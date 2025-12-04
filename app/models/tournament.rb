@@ -141,16 +141,16 @@ class Tournament < ApplicationRecord
     "season_id" => "seasons.id",
     "discipline_id" => "disciplines.id",
     "location_id" => "locations.id",
-    
+
     # Externe IDs (sichtbar, filterbar)
     "CC_ID" => "tournament_ccs.cc_id",
-    
+
     # Referenzen (Dropdown/Select)
     "Region" => "regions.shortname",
     "Season" => "seasons.name",
     "Discipline" => "disciplines.name",
     "Location" => "locations.name",
-    
+
     # Eigene Felder
     "Title" => "tournaments.title",
     "Shortname" => "tournaments.shortname",
@@ -160,7 +160,7 @@ class Tournament < ApplicationRecord
   self.ignored_columns = ["region_ids"]
 
   # Searchable concern provides search_hash, we only need to define the specifics
-  
+
   def self.text_search_sql
     "(tournaments.ba_id = :isearch)
      or (tournaments.title ilike :search)
@@ -190,7 +190,7 @@ class Tournament < ApplicationRecord
       'season_id' => []  # Season ist unabhängig, könnte aber Disciplines filtern (optional)
     }
   end
-  
+
   def self.field_examples(field_name)
     case field_name
     when 'Title'
@@ -511,7 +511,7 @@ class Tournament < ApplicationRecord
     # Meldeliste
     # Nur beim Archivieren (reload_game_results: true) alte Seedings aufräumen
     # Beim Setup (reload_game_results: false) bestehende Seedings NICHT löschen!
-    if opts[:reload_game_results]
+    if opts[:reload_game_results] || opts[:reload_seedings]
       reload.seedings.destroy_all
     end
     # Seedings ohne Player-Zuordnung immer aufräumen
@@ -796,23 +796,23 @@ class Tournament < ApplicationRecord
   def calculate_and_cache_rankings
     return unless organizer.is_a?(Region) && discipline.present?
     return unless id.present? && id >= Tournament::MIN_ID  # Nur für lokale Tournaments
-    
+
     Tournament.logger.info "[calculate_and_cache_rankings] for local tournament #{id}"
-    
+
     # Berechne Rankings basierend auf effective_gd (wie in define_participants)
     current_season = Season.current_season
     seasons = Season.where('id <= ?', current_season.id).order(id: :desc).limit(3).reverse
-    
+
     # Lade alle Rankings für die Disziplin und Region
     all_rankings = PlayerRanking.where(
       discipline_id: discipline_id,
       season_id: seasons.pluck(:id),
       region_id: organizer_id
     ).to_a
-    
+
     # Gruppiere nach Spieler
     rankings_by_player = all_rankings.group_by(&:player_id)
-    
+
     # Berechne effective_gd für jeden Spieler (neueste Saison zuerst)
     player_effective_gd = {}
     rankings_by_player.each do |player_id, rankings|
@@ -824,20 +824,20 @@ class Tournament < ApplicationRecord
       effective_gd = gd_values[2] || gd_values[1] || gd_values[0]
       player_effective_gd[player_id] = effective_gd if effective_gd.present?
     end
-    
+
     # Sortiere Spieler nach effective_gd (absteigend) und ermittle Rang
     sorted_players = player_effective_gd.sort_by { |player_id, gd| -gd }
     player_rank = {}
     sorted_players.each_with_index do |(player_id, gd), index|
       player_rank[player_id] = index + 1
     end
-    
+
     # Speichere in data Hash
     data_will_change!
     self.data ||= {}
     self.data['player_rankings'] = player_rank
     save!
-    
+
     Tournament.logger.info "[calculate_and_cache_rankings] cached #{player_rank.size} player rankings"
   end
 
@@ -861,7 +861,7 @@ class Tournament < ApplicationRecord
   def admin_can_reset_tournament?
     current_user = User.current || PaperTrail.request.whodunnit
     return true if current_user.blank? # Beim Initialisieren gibt es keinen User
-    
+
     user = current_user.is_a?(User) ? current_user : User.find_by(id: current_user)
     user&.club_admin? || user&.system_admin?
   end
@@ -1225,7 +1225,7 @@ class Tournament < ApplicationRecord
           players = Player.where(type: nil).where(firstname:, lastname:)
           if players.count.zero?
             logger.info "==== scrape ==== [scrape_tournaments] Inkonsistence - Fatal: Player #{lastname}, #{firstname} not found in club #{club_str} [#{club.ba_id}] , Region #{region.shortname}, season #{season.name}! Not found anywhere - typo?"
-            
+
             # Use PlayerFinder to prevent duplicates
             player_fixed = Player.find_or_create_player(
               firstname: firstname,
@@ -1235,7 +1235,7 @@ class Tournament < ApplicationRecord
               season_id: season.id,
               allow_create: true
             )
-            
+
             if player_fixed.present?
               logger.info "==== scrape ==== [scrape_tournaments] Player #{lastname}, #{firstname} (ID: #{player_fixed.id}) found/created for club #{club_str} [#{club.ba_id}]"
             else
