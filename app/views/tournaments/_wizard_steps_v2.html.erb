@@ -76,7 +76,7 @@
       </div>
 
       <div class="wizard-step-actions">
-        <%= button_to 'Jetzt synchronisieren', reload_from_cc_tournament_path(tournament),
+        <%= button_to 'Jetzt synchronisieren', reload_from_cc_tournament_path(tournament, reload_seedings: true),
             method: :post,
             class: "btn btn-primary #{'btn-pulse' if sync_needed?(tournament)}" %>
 
