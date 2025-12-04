@@ -678,19 +678,25 @@ namespace :scenario do
   end
 
   def generate_cable_yml(scenario_config, env_config, env_dir)
-    # Generate cable.yml with async adapter for production (no Redis dependency)
+    # Generate cable.yml with redis adapter for development and production
+    # Note: async adapter isolates connections and prevents real-time sync between browsers
+    # See docs/ACTIONCABLE_REDIS_FIX.md for details
     redis_db = env_config['redis_database'] || 1
     channel_prefix = env_config['channel_prefix'] || 'carambus_development'
+    environment = File.basename(env_dir)
 
     content = <<~YAML
 development:
-  adapter: async
+  adapter: redis
+  url: <%= ENV.fetch("REDIS_URL") { "redis://localhost:6379/#{redis_db}" } %>
 
 test:
   adapter: test
 
 production:
-  adapter: async
+  adapter: redis
+  url: <%= ENV.fetch("REDIS_URL") { "redis://localhost:6379/#{redis_db}" } %>
+  channel_prefix: #{channel_prefix}
 YAML
 
     File.write(File.join(env_dir, 'cable.yml'), content)
