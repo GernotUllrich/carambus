@@ -706,6 +706,8 @@ YAML
 
     content = <<~RUBY
 require "active_support/core_ext/integer/time"
+require "active_support/logger"
+require "active_support/broadcast_logger"
 
 Rails.application.configure do
   config.session_store :redis_session_store,
@@ -717,10 +719,15 @@ Rails.application.configure do
       url: ENV.fetch("REDIS_URL") { "redis://localhost:6379/#{redis_db}" }
     }
 
-  # Log to STDOUT for development
-  config.logger = ActiveSupport::Logger.new($stdout)
-    .tap { |logger| logger.formatter = ::Logger::Formatter.new }
-    .then { |logger| ActiveSupport::TaggedLogging.new(logger) }
+  # Log to BOTH STDOUT (for RubyMine console) AND file (for grep/tail)
+  # This allows viewing logs in RubyMine console while also enabling:
+  # tail -f log/development.log | grep -E "(🔔|📡|📥|🔌)"
+  stdout_logger = ActiveSupport::Logger.new($stdout)
+  file_logger = ActiveSupport::Logger.new(Rails.root.join("log", "development.log"))
+  
+  # Broadcast to both loggers
+  config.logger = ActiveSupport::BroadcastLogger.new(stdout_logger, file_logger)
+  config.logger.formatter = ::Logger::Formatter.new
 
   # Set log level
   config.log_level = :debug
