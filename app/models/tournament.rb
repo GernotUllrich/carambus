@@ -483,6 +483,12 @@ class Tournament < ApplicationRecord
     tc.save
     self.region_id = region.id
     save!
+    # Meldeliste
+    # Nur beim Archivieren (reload_game_results: true) alte Seedings aufräumen
+    # Beim Setup (reload_game_results: false) bestehende Seedings NICHT löschen!
+    if opts[:reload_game_results] || opts[:reload_seedings]
+      reload.seedings.destroy_all
+    end
     player_list = {}
     registration_link = tournament_link.gsub("meisterschaft", "meldeliste")
     Rails.logger.info "reading #{url + registration_link}"
@@ -507,12 +513,6 @@ class Tournament < ApplicationRecord
           player_list[player.fl_name] = [player, club] if player.present?
         end
       end
-    end
-    # Meldeliste
-    # Nur beim Archivieren (reload_game_results: true) alte Seedings aufräumen
-    # Beim Setup (reload_game_results: false) bestehende Seedings NICHT löschen!
-    if opts[:reload_game_results] || opts[:reload_seedings]
-      reload.seedings.destroy_all
     end
     # Seedings ohne Player-Zuordnung immer aufräumen
     reload.seedings.where(player: nil).destroy_all
