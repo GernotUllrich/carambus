@@ -99,7 +99,18 @@ inet_protocols = ipv4
 # Destination domains
 mydestination = \$myhostname, localhost.\$mydomain, localhost
 
-# No relay host - send directly
+# Relay host configuration
+# Since the server IP is blocklisted, we need to use a relay host
+# Options:
+# 1. GMX SMTP: [mail.gmx.net]:587 (requires authentication)
+# 2. Gmail SMTP: [smtp.gmail.com]:587 (requires app password)
+# 3. ISP SMTP: Check with your internet provider
+# 
+# To configure relay with authentication, create /etc/postfix/sasl_passwd:
+#   [mail.gmx.net]:587    your-email@gmx.de:your-password
+# Then run: sudo postmap /etc/postfix/sasl_passwd
+# 
+# For now, configure relay host here or leave empty to use direct sending
 relayhost = 
 
 # Mail delivery settings
