@@ -2,6 +2,7 @@
 
 require "uri"
 require "net/http"
+require "openssl"
 # == Schema Information
 #
 # Table name: versions
@@ -58,11 +59,25 @@ class Version < PaperTrail::Version
     end
   end
 
+  # Hilfsmethode für HTTP GET mit SSL-Verifizierung deaktiviert
+  def self.http_get_with_ssl_bypass(uri)
+    http = Net::HTTP.new(uri.host, uri.port)
+    if uri.scheme == "https"
+      http.use_ssl = true
+      http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+    end
+    http.read_timeout = 30
+    http.open_timeout = 10
+    req = Net::HTTP::Get.new(uri.request_uri)
+    res = http.request(req)
+    res.body
+  end
+
   def self.update_carambus
     url = URI("#{Carambus.config.carambus_api_url}/versions/current_revision")
     Rails.logger.info ">>>>>>>>>>>>>>>> GET #{url} <<<<<<<<<<<<<<<<"
     uri = URI(url)
-    json_io = Net::HTTP.get(uri)
+    json_io = http_get_with_ssl_bypass(uri)
     vers = JSON.parse(json_io)
     revision = vers["current_revision"]
     my_revision = `cat #{Rails.root}/REVISION`.strip
@@ -154,7 +169,7 @@ class Version < PaperTrail::Version
 
     url = "#{Carambus.config.carambus_api_url}/versions/last_version"
     uri = URI(url)
-    json_io = Net::HTTP.get(uri)
+    json_io = http_get_with_ssl_bypass(uri)
     JSON.parse(json_io)["last_version"]
   rescue OpenURI::HTTPError => e
     Rails.logger.info "===== #{e} cannot read from #{url}"
@@ -209,7 +224,7 @@ class Version < PaperTrail::Version
     }&season_id=#{Season.current_season&.id}")
     Rails.logger.info ">>>>>>>>>>>>>>>> GET #{url} <<<<<<<<<<<<<<<<"
     uri = URI(url)
-    json_io = Net::HTTP.get(uri)
+    json_io = http_get_with_ssl_bypass(uri)
     vers = JSON.parse(json_io)
     while vers.present?
       h = vers.shift

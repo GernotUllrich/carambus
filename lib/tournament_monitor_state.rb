@@ -26,6 +26,17 @@ module TournamentMonitorState
     args = { game_id: nil }
     args[:tournament_monitor] = nil unless tournament.continuous_placements
     table_monitor.update(args)
+
+    # Automatische Übertragung in die ClubCloud
+    begin
+      if tournament.tournament_cc.present?
+        Setting.upload_game_to_cc(table_monitor)
+      end
+    rescue StandardError => e
+      Rails.logger.error "Failed to upload game[#{game.id}] to ClubCloud: #{e.message}"
+      Rails.logger.error e.backtrace.join("\n")
+      # Fehler nicht weiterwerfen, damit finalize_game_result nicht fehlschlägt
+    end
   end
 
   def all_table_monitors_finished?
@@ -376,6 +387,36 @@ module TournamentMonitorState
       tournament.reload.signal_tournament_monitors_ready!
       # noinspection RubyResolve
       start_playing_groups! if groups_must_be_played
+      
+      # Vorbereitung des GroupCc Mappings für ClubCloud (nur wenn tournament_cc vorhanden)
+      begin
+        if tournament.tournament_cc.present?
+          Tournament.logger.info "[tmon-reset_tournament_monitor] Preparing GroupCc mapping for ClubCloud..."
+          opts = RegionCcAction.get_base_opts_from_environment
+          group_cc = tournament.tournament_cc.prepare_group_mapping(opts)
+          if group_cc
+            Tournament.logger.info "[tmon-reset_tournament_monitor] GroupCc mapping prepared: GroupCc[#{group_cc.id}]"
+            
+            # Validiere Mapping
+            validation = tournament.tournament_cc.validate_game_gname_mapping
+            if validation[:missing].any?
+              Tournament.logger.warn "[tmon-reset_tournament_monitor] WARNING: #{validation[:missing].count} game.gname patterns could not be mapped to ClubCloud group names"
+              validation[:missing].each do |missing|
+                Tournament.logger.warn "[tmon-reset_tournament_monitor] Missing mapping: #{missing[:gname]} (mapped to: #{missing[:cc_name]})"
+              end
+            else
+              Tournament.logger.info "[tmon-reset_tournament_monitor] All #{validation[:total]} game.gname patterns successfully mapped to ClubCloud"
+            end
+          else
+            Tournament.logger.warn "[tmon-reset_tournament_monitor] Could not prepare GroupCc mapping (no group options found)"
+          end
+        end
+      rescue StandardError => e
+        Tournament.logger.error "[tmon-reset_tournament_monitor] Error preparing GroupCc mapping: #{e.message}"
+        Tournament.logger.error "[tmon-reset_tournament_monitor] Backtrace: #{e.backtrace&.join("\n")}"
+        # Fehler nicht weiterwerfen, damit reset_tournament_monitor nicht fehlschlägt
+      end
+      
       Tournament.logger.info "...[tmon-reset_tournament_monitor] tournament.state:\
  #{tournament.state} tournament_monitor.state: #{state}"
     else

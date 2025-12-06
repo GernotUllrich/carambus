@@ -447,6 +447,228 @@ class Setting < ApplicationRecord
     end
   end
 
+  # Mappt game.gname (z.B. "group1:1-2", "Runde 1", "Finale") zu einem ClubCloud-Gruppennamen
+  def self.map_game_gname_to_cc_group_name(gname)
+    return nil unless gname.present?
+
+    # Normalisiere gname
+    normalized = gname.strip
+
+    # Prüfe zuerst groups-Mapping
+    GroupCc::NAME_MAPPING[:groups].each do |pattern, mapped_name|
+      if pattern.start_with?("/") && pattern.end_with?("/")
+        # Regex-Pattern
+        regex = Regexp.new(pattern[1..-2])
+        return mapped_name if regex.match?(normalized)
+      elsif normalized == pattern || normalized.include?(pattern)
+        return mapped_name
+      end
+    end
+
+    # Prüfe round-Mapping
+    GroupCc::NAME_MAPPING[:round].each do |pattern, mapped_name|
+      if normalized == pattern || normalized.include?(pattern)
+        return mapped_name
+      end
+    end
+
+    # Fallback: Versuche aus gname zu extrahieren
+    if (m = normalized.match(/group(\d+)/i))
+      group_no = m[1].to_i
+      return "Gruppe #{group_no}"
+    end
+
+    # Wenn nichts gefunden, gib nil zurück
+    Rails.logger.warn "Could not map game.gname '#{gname}' to ClubCloud group name"
+    nil
+  end
+
+  # Findet die groupItemId direkt aus game.gname
+  # Verwendet tournament.group_cc.data["positions"]
+  def self.find_group_item_id_from_gname(game_gname, tournament = nil)
+    return nil unless game_gname.present? && tournament.present?
+
+    tournament_cc = tournament.tournament_cc
+    return nil unless tournament_cc.present?
+
+    group_cc = tournament_cc.group_cc
+    return nil unless group_cc.present?
+
+    # Prüfe ob group_cc.data["positions"] existiert
+    positions_data = group_cc.data
+    positions = positions_data.is_a?(String) ? JSON.parse(positions_data) : positions_data
+    positions = positions["positions"] if positions.is_a?(Hash) && positions["positions"].present?
+
+    return nil unless positions.is_a?(Hash)
+
+    # Mappe game.gname zu CC-Gruppennamen
+    cc_group_name = map_game_gname_to_cc_group_name(game_gname)
+    return nil unless cc_group_name.present?
+
+    # Suche nach dem Gruppennamen in positions
+    positions.each do |group_item_id, name|
+      return group_item_id.to_i if name == cc_group_name || name.include?(cc_group_name) || cc_group_name.include?(name)
+    end
+
+    Rails.logger.warn "Could not find groupItemId for game.gname '#{game_gname}' (mapped to '#{cc_group_name}') in tournament_cc[#{tournament_cc.id}]"
+    nil
+  end
+
+  # Findet die groupItemId für einen ClubCloud-Gruppennamen
+  # Verwendet tournament.group_cc.data["positions"]
+  def self.find_group_item_id(tournament, cc_group_name)
+    return nil unless cc_group_name.present? && tournament.present?
+
+    tournament_cc = tournament.tournament_cc
+    return nil unless tournament_cc.present?
+
+    group_cc = tournament_cc.group_cc
+    return nil unless group_cc.present?
+
+    # Prüfe ob group_cc.data["positions"] existiert
+    positions_data = group_cc.data
+    positions = positions_data.is_a?(String) ? JSON.parse(positions_data) : positions_data
+    positions = positions["positions"] if positions.is_a?(Hash) && positions["positions"].present?
+
+    return nil unless positions.is_a?(Hash)
+
+    # Suche nach dem Gruppennamen in positions
+    positions.each do |group_item_id, name|
+      return group_item_id.to_i if name == cc_group_name || name.include?(cc_group_name) || cc_group_name.include?(name)
+    end
+
+    Rails.logger.warn "Could not find groupItemId for group name '#{cc_group_name}' in tournament_cc[#{tournament_cc.id}]"
+    nil
+  end
+
+  # Trägt ein Spiel automatisch in die ClubCloud ein
+  def self.upload_game_to_cc(table_monitor)
+    return false unless table_monitor.present?
+
+    game = table_monitor.game
+    return false unless game.present?
+
+    tournament = game.tournament
+    return false unless tournament.present?
+
+    tournament_cc = tournament.tournament_cc
+    return false unless tournament_cc.present?
+
+    # Prüfe ob TournamentCc konfiguriert ist
+    region = tournament.organizer
+    return false unless region.present?
+
+    region_cc = region.region_cc
+    return false unless region_cc.present? && region_cc.base_url.present?
+
+    # Hole Session-ID (login falls nötig)
+    session_id = Setting.key_get_value("session_id")
+    unless session_id
+      Rails.logger.info "No session ID found, attempting login..."
+      begin
+        session_id = Setting.login_to_cc
+      rescue StandardError => e
+        Rails.logger.error "Failed to login to ClubCloud: #{e.message}"
+        return false
+      end
+    end
+
+    # Extrahiere Spieldaten
+    ba_results = table_monitor.data["ba_results"] || game.data["ba_results"]
+    return false unless ba_results.present?
+
+    # Finde groupItemId direkt aus game.gname (verwendet CC: UNIVERSAL Mapping wenn verfügbar)
+    group_item_id = find_group_item_id_from_gname(game.gname, tournament)
+    unless group_item_id
+      Rails.logger.warn "Could not find groupItemId for game[#{game.id}], gname: #{game.gname}"
+      return false
+    end
+
+    # Hole Spieler
+    gp1 = game.game_participations.where(role: %w[playera Heim]).first
+    gp2 = game.game_participations.where(role: %w[playerb Gast]).first
+    return false unless gp1.present? && gp2.present?
+
+    player1 = gp1.player
+    player2 = gp2.player
+    return false unless player1.present? && player2.present?
+
+    # Hole ClubCloud-IDs (cc_id oder ba_id als Fallback)
+    sportler_one_id = player1.cc_id || player1.ba_id
+    sportler_two_id = player2.cc_id || player2.ba_id
+    return false unless sportler_one_id.present? && sportler_two_id.present?
+
+    # Extrahiere Spieldaten
+    partie_number = ba_results["Partie"] || game.seqno || 1
+    set_number = ba_results["SetNo"] || 1
+    homescore = ba_results["Ergebnis1"] || gp1.result || 0
+    visitorscore = ba_results["Ergebnis2"] || gp2.result || 0
+    homeinning = ba_results["Aufnahmen1"] || gp1.innings || 0
+    visitorinning = ba_results["Aufnahmen2"] || gp2.innings || 0
+    homebreak = ba_results["Höchstserie1"] || gp1.hs || 0
+    visitorbreak = ba_results["Höchstserie2"] || gp2.hs || 0
+
+    # Hole Tournament-Parameter
+    branch_cc = tournament_cc.branch_cc
+    return false unless branch_cc.present?
+
+    # Erstelle Formular-Daten
+    form_data = {
+      fedId: region.cc_id,
+      branchId: branch_cc.cc_id,
+      disciplinId: "*",
+      season: tournament.season.name,
+      catId: "*",
+      meisterTypeId: tournament_cc.championship_type_cc&.cc_id || "",
+      meisterschaftsId: tournament_cc.cc_id,
+      teilnehmerId: "*",
+      groupItemId: group_item_id,
+      partieNumber: partie_number.to_s,
+      setNumber: set_number.to_s,
+      sportlerOne: sportler_one_id.to_s,
+      sportlerTwo: sportler_two_id.to_s,
+      homescore: homescore.to_s,
+      visitorscore: visitorscore.to_s,
+      homeinning: homeinning.to_s,
+      visitorinning: visitorinning.to_s,
+      homebreak: homebreak.to_s,
+      visitorbreak: visitorbreak.to_s
+    }
+
+    # Sende POST-Request an createErgebnisSave.php
+    url = region_cc.base_url + "/admin/einzel/meisterschaft/createErgebnisSave.php"
+    uri = URI(url)
+    http = Net::HTTP.new(uri.host, uri.port)
+    http.use_ssl = true
+    http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+    http.read_timeout = 30
+    http.open_timeout = 10
+
+    req = Net::HTTP::Post.new(uri.request_uri)
+    req["Content-Type"] = "application/x-www-form-urlencoded"
+    req["cookie"] = "PHPSESSID=#{session_id}"
+    req["referer"] = region_cc.base_url + "/admin/einzel/meisterschaft/showErgebnisliste.php"
+    req["User-Agent"] = "Mozilla/5.0 (compatible; Carambus/1.0)"
+    req["Origin"] = region_cc.base_url
+    req["Accept"] = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+
+    req.set_form_data(form_data)
+    res = http.request(req)
+
+    if res.is_a?(Net::HTTPSuccess) || res.is_a?(Net::HTTPRedirection)
+      Rails.logger.info "Successfully uploaded game[#{game.id}] to ClubCloud (Status: #{res.code})"
+      return true
+    else
+      Rails.logger.error "Failed to upload game[#{game.id}] to ClubCloud (Status: #{res.code}, Message: #{res.message})"
+      Rails.logger.error "Response body preview: #{res.body[0..500]}" if res.body.present?
+      return false
+    end
+  rescue StandardError => e
+    Rails.logger.error "Error uploading game[#{game&.id}] to ClubCloud: #{e.message}"
+    Rails.logger.error e.backtrace.join("\n")
+    false
+  end
+
   def self.key_set_value(k, v)
     return nil unless %w[session_id last_version_id scenario_name].include?(k.to_s)
     Setting.transaction do
