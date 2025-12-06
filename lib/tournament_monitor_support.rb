@@ -254,11 +254,11 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
     f = File.new("#{Rails.root}/tmp/result-#{tournament.cc_id}.csv", "w")
     f.write(game_data.join("\n"))
     f.close
-    # NotifierMailer.result(tournament, current_admin.email, "Turnierergebnisse -\
-    # #{tournament.title}", "result-#{tournament.ba_id}.csv"\
-    # , "#{Rails.root}/tmp/result-#{tournament.ba_id}.csv").deliver
-    # NotifierMailer.result(tournament, 'gernot.ullrich@gmx.de', "Turnierergebnisse - #{tournament.title}",
-    #                     "result-#{tournament.ba_id}.csv", "#{Rails.root}/tmp/result-#{tournament.ba_id}.csv").deliver
+    NotifierMailer.result(tournament, current_admin.email, "Turnierergebnisse -\
+    #{tournament.title}", "result-#{tournament.id}.csv"\
+    , "#{Rails.root}/tmp/result-#{tournament.id}.csv").deliver
+    NotifierMailer.result(tournament, 'gernot.ullrich@gmx.de', "Turnierergebnisse - #{tournament.title}",
+                        "result-#{tournament.id}.csv", "#{Rails.root}/tmp/result-#{tournament.id}.csv").deliver
   end
 
   def initialize_table_monitors
@@ -274,19 +274,19 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
           Tournament.logger.warn "[tmon-initialize_table_monitors] WARNING: table_id für Tisch #{t_no} fehlt (table_ids[#{t_no - 1}] = nil)"
           next
         end
-        
+
         table = Table.find_by(id: table_id)
         unless table.present?
           Tournament.logger.error "[tmon-initialize_table_monitors] ERROR: Table[#{table_id}] nicht gefunden für Tisch #{t_no}"
           next
         end
-        
+
         table_monitor = table.table_monitor
         unless table_monitor.present?
           Tournament.logger.error "[tmon-initialize_table_monitors] ERROR: TableMonitor für Table[#{table_id}] nicht gefunden für Tisch #{t_no}"
           next
         end
-        
+
         table_monitor.reset_table_monitor if table_monitor.game.present?
         table_monitor.update(tournament_monitor: self)
         Tournament.logger.info "[tmon-initialize_table_monitors] Tisch #{t_no} (Table[#{table_id}]) zugewiesen"
@@ -666,13 +666,13 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
         info = "+++ 8b - tournament_monitor#do_placement"
         Rails.logger.info info
         table_ids = tournament.data["table_ids"]
-        
+
         # Wenn vorgesehener Tisch belegt ist: Suche freien Tisch
-        if t_no.to_i.positive? && current_round == r_no && new_game.present? && 
+        if t_no.to_i.positive? && current_round == r_no && new_game.present? &&
            @placements.andand["round#{r_no}"].andand["table#{t_no}"].present? &&
            !tournament.continuous_placements
           Tournament.logger.warn "[do_placement] Tisch #{t_no} bereits belegt in Runde #{r_no}, suche freien Tisch..."
-          
+
           # Finde ersten freien Tisch
           # Bestimme Anzahl verfügbarer Tische
           available_tables = if table_ids.is_a?(Array)
@@ -686,7 +686,7 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
             # Fallback: Anzahl aus TournamentPlan oder Location
             tournament.tournament_plan&.tables.to_i > 0 ? tournament.tournament_plan.tables : 4
           end
-          
+
           original_t_no = t_no
           t_no = nil
           (1..available_tables).each do |check_t_no|
@@ -696,13 +696,13 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
               break
             end
           end
-          
+
           unless t_no.present?
             Tournament.logger.error "[do_placement] ERROR: Kein freier Tisch gefunden in Runde #{r_no} für Spiel #{new_game.gname} (verfügbar: #{available_tables} Tische)"
             return
           end
         end
-        
+
         if t_no.to_i.positive? &&
            ((current_round == r_no &&
              new_game.present? &&
