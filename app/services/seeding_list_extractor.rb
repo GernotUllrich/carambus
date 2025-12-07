@@ -75,26 +75,34 @@ class SeedingListExtractor
       end
       
       # Ende der Setzliste (bei nächster Überschrift)
-      if in_seeding_section && line =~ /Gruppenbildung|Turniermodus|^[A-Z][a-z]+:/
+      if in_seeding_section && line =~ /Gruppenbildung|Turniermodus|Ausspielziel|^[A-Z][a-z]+:/
         break
       end
       
       # Parse Spieler-Zeilen
       if in_seeding_section
-        # WICHTIG: Zweispaltige Tabellen!
-        # Format: "1. Lastname Firstname 54 Pkt       7. Lastname Firstname 25 Pkt"
-        # oder:   "1 Lastname Firstname              7 Lastname Firstname"
+        # Skip Header-Zeilen
+        next if line =~ /Name\s+Pkt/i
+        next if line.strip.empty?
         
-        # Pattern mit Vorgaben (Pkt): Nummer + Name + Punkte + (optional) zweite Spalte
-        two_column_with_points = /(\d+)[\.\s]+([A-ZÄÖÜ][\wäöüß\-]+)\s+([A-ZÄÖÜ][\wäöüß\-\.]+)\s+(\d+)\s*Pkt(?:\s{2,}|\t+)(\d+)[\.\s]+([A-ZÄÖÜ][\wäöüß\-]+)\s+([A-ZÄÖÜ][\wäöüß\-\.]+)\s+(\d+)\s*Pkt/i
+        # Pattern für Spieler mit Vorgabe (Zahl nach dem Namen)
+        # Format: "1   Ullrich Gernot             54     5   Scharf Claus-Dieter         21"
+        # oder:   "4   Jahn Wilfried              25" (einspaltig)
+        # Struktur: Nummer + Name + viele Leerzeichen + Zahl + (viele Leerzeichen + zweiter Spieler)
         
-        # Pattern ohne Vorgaben: Nummer + Name + zweite Spalte
-        two_column_pattern = /(\d+)[\.\s]+([A-ZÄÖÜ][\wäöüß\-]+)\s+([A-ZÄÖÜ][\wäöüß\-\.]+)(?:\s{2,}|\t+)(\d+)[\.\s]+([A-ZÄÖÜ][\wäöüß\-]+)\s+([A-ZÄÖÜ][\wäöüß\-\.]+)/
+        # Versuche zuerst zweispaltiges Format zu erkennen
+        # Pattern: Nummer + Name (Nachname + Vorname, flexibel) + flexible Whitespace + Zahl + große Leerzeichen + Nummer + Name + flexible Whitespace + Zahl
+        # Verwende flexiblere Namens-Patterns die auch Bindestriche unterstützen
+        # Erlaubt variable Whitespace zwischen Name und Zahl
+        two_column_pattern = /^\s*(\d+)\s+([A-ZÄÖÜ][\wäöüß\-]+)\s+([A-ZÄÖÜ][\wäöüß\-\.]+)\s+(\d+)(?:\s*Pkt)?\s{3,}(\d+)\s+([A-ZÄÖÜ][\wäöüß\-]+)\s+([A-ZÄÖÜ][\wäöüß\-\.]+)\s+(\d+)(?:\s*Pkt)?/i
         
-        # Pattern einspaltig mit Vorgabe
-        single_with_points = /^\s*(\d+)[\.\s]+([A-ZÄÖÜ][\wäöüß\-]+)\s+([A-ZÄÖÜ][\wäöüß\-\.]+)\s+(\d+)\s*Pkt/i
+        # Einspaltig mit Vorgabe: Nummer + Nachname + Vorname + flexible Whitespace + Zahl
+        single_with_points = /^\s*(\d+)\s+([A-ZÄÖÜ][\wäöüß\-]+)\s+([A-ZÄÖÜ][\wäöüß\-\.]+)\s+(\d+)(?:\s*Pkt)?/i
         
-        if (match = line.match(two_column_with_points))
+        # Einspaltig ohne Vorgabe (Fallback)
+        single_without_points = /^\s*(\d+)\s+([A-ZÄÖÜ][\wäöüß\-]+)\s+([A-ZÄÖÜ][\wäöüß\-\.]+)/i
+        
+        if (match = line.match(two_column_pattern))
           # Zweispaltig MIT Vorgaben
           # Linke Spalte
           players << {
@@ -113,25 +121,8 @@ class SeedingListExtractor
             full_name: "#{match[6].strip}, #{match[7].strip}",
             balls_goal: match[8].to_i
           }
-        elsif (match = line.match(two_column_pattern))
-          # Zweispaltig OHNE Vorgaben
-          # Linke Spalte
-          players << {
-            position: match[1].to_i,
-            lastname: match[2].strip,
-            firstname: match[3].strip,
-            full_name: "#{match[2].strip}, #{match[3].strip}"
-          }
-          
-          # Rechte Spalte
-          players << {
-            position: match[4].to_i,
-            lastname: match[5].strip,
-            firstname: match[6].strip,
-            full_name: "#{match[5].strip}, #{match[6].strip}"
-          }
         elsif (match = line.match(single_with_points))
-          # Einspaltig MIT Vorgabe
+          # Einspaltig MIT Vorgabe (kann in zweispaltiger Tabelle vorkommen, z.B. letzte Zeile)
           players << {
             position: match[1].to_i,
             lastname: match[2].strip,
@@ -139,17 +130,13 @@ class SeedingListExtractor
             full_name: "#{match[2].strip}, #{match[3].strip}",
             balls_goal: match[4].to_i
           }
-        # Einspaltig OHNE Vorgabe (Fallback)
-        elsif (match = line.match(/^\s*(\d+)[\.\s]+([A-ZÄÖÜ][\wäöüß\-]+)\s+([A-ZÄÖÜ][\wäöüß\-\.]+)/))
-          position = match[1].to_i
-          lastname = match[2].strip
-          firstname = match[3].strip
-          
+        elsif (match = line.match(single_without_points))
+          # Einspaltig OHNE Vorgabe (Fallback)
           players << {
-            position: position,
-            lastname: lastname,
-            firstname: firstname,
-            full_name: "#{lastname}, #{firstname}"
+            position: match[1].to_i,
+            lastname: match[2].strip,
+            firstname: match[3].strip,
+            full_name: "#{match[2].strip}, #{match[3].strip}"
           }
         end
       end
