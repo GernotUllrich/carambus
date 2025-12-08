@@ -79,3 +79,5 @@ echo ""
 echo "📊 Current nginx status:"
 ssh -p "$SSH_PORT" "${SSH_USER}@${SSH_HOST}" "sudo systemctl status nginx --no-pager -l | head -20"
 
+
+
