@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Weihnachtsgeschenke-Sortierspiel</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .container {
+      background: white;
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      max-width: 900px;
+      width: 100%;
+    }
+
+    h1 {
+      text-align: center;
+      color: #c53030;
+      font-size: 2.5rem;
+      margin-bottom: 20px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .instructions {
+      background: #ebf8ff;
+      padding: 20px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      border-left: 4px solid #3182ce;
+    }
+
+    .instructions h2 {
+      font-size: 1.3rem;
+      margin-bottom: 10px;
+      color: #2c5282;
+    }
+
+    .instructions ul {
+      margin-left: 20px;
+      margin-top: 10px;
+    }
+
+    .instructions li {
+      margin: 5px 0;
+      color: #2d3748;
+    }
+
+    .stats {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      margin-bottom: 20px;
+      font-size: 1.5rem;
+      font-weight: bold;
+    }
+
+    .stat {
+      text-align: center;
+    }
+
+    .stat-label {
+      font-size: 0.9rem;
+      color: #718096;
+      margin-bottom: 5px;
+    }
+
+    .stat-value {
+      color: #2d3748;
+      font-size: 2rem;
+    }
+
+    .game-container {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+
+    #gameCanvas {
+      border: 4px solid #2d5016;
+      border-radius: 10px;
+      background: #f0f9ff;
+      cursor: grab;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    #gameCanvas:active {
+      cursor: grabbing;
+    }
+
+    .controls {
+      text-align: center;
+    }
+
+    button {
+      background: #38a169;
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      font-size: 1.2rem;
+      font-weight: bold;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    button:hover:not(:disabled) {
+      background: #2f855a;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 8px rgba(0,0,0,0.15);
+    }
+
+    button:disabled {
+      background: #a0aec0;
+      cursor: not-allowed;
+    }
+
+    .highscores {
+      margin-top: 30px;
+      padding: 20px;
+      background: #fef3c7;
+      border-radius: 10px;
+      display: none;
+    }
+
+    .highscores.show {
+      display: block;
+    }
+
+    .highscores h2 {
+      font-size: 1.5rem;
+      margin-bottom: 15px;
+      color: #92400e;
+    }
+
+    .highscores ol {
+      margin-left: 20px;
+    }
+
+    .highscores li {
+      margin: 8px 0;
+      font-size: 1.1rem;
+      color: #78350f;
+    }
+
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 1.8rem;
+      }
+
+      .stats {
+        gap: 20px;
+        font-size: 1.2rem;
+      }
+
+      .stat-value {
+        font-size: 1.5rem;
+      }
+
+      #gameCanvas {
+        width: 100%;
+        height: auto;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎄 Weihnachtsgeschenke-Sortierspiel 🎄</h1>
+    
+    <div class="instructions">
+      <h2>Spielanleitung:</h2>
+      <p>Ziehe die Geschenke vom Förderband in den passenden Sack mit der gleichen Farbe!</p>
+      <ul>
+        <li>✅ Richtige Farbe: <strong>+10 Punkte</strong></li>
+        <li>❌ Falsche Farbe: <strong>-5 Punkte</strong></li>
+        <li>⏱️ Verpasstes Geschenk: <strong>-2 Punkte</strong></li>
+      </ul>
+    </div>
+
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-label">Zeit</div>
+        <div class="stat-value" id="timer">60</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Punkte</div>
+        <div class="stat-value" id="score">0</div>
+      </div>
+    </div>
+
+    <div class="game-container">
+      <canvas id="gameCanvas" width="800" height="500"></canvas>
+    </div>
+
+    <div class="controls">
+      <button id="startButton">Spiel starten</button>
+    </div>
+
+    <div class="highscores" id="highscores">
+      <h2>🏆 Weihnachts-Bestenliste</h2>
+      <ol id="highscoresList"></ol>
+    </div>
+  </div>
+
+  <script>
+    // Spielkonfiguration
+    const GIFT_COLORS = ['red', 'green', 'blue', 'yellow', 'purple'];
+    const COLOR_VALUES = {
+      red: '#e53e3e',
+      green: '#38a169',
+      blue: '#3182ce',
+      yellow: '#d69e2e',
+      purple: '#805ad5'
+    };
+    
+    const SACK_POSITIONS = [100, 250, 400, 550, 700];
+    let gifts = [];
+    let score = 0;
+    let timeLeft = 60;
+    let gameInterval = null;
+    let animationFrame = null;
+    let selectedGift = null;
+    let originalX, originalY;
+    let gameRunning = false;
+
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const startButton = document.getElementById('startButton');
+    const timerElement = document.getElementById('timer');
+    const scoreElement = document.getElementById('score');
+
+    // Canvas an Bildschirmgröße anpassen
+    function resizeCanvas() {
+      const container = canvas.parentElement;
+      const maxWidth = Math.min(800, container.clientWidth - 40);
+      canvas.width = maxWidth;
+      canvas.height = Math.min(500, window.innerHeight * 0.5);
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    // SVG-Geschenk zeichnen
+    function drawGift(ctx, x, y, width, height, color) {
+      const colorValue = COLOR_VALUES[color];
+      
+      // Geschenkbox
+      ctx.fillStyle = colorValue;
+      ctx.fillRect(x, y, width, height);
+      
+      // Weißes Band vertikal
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(x + width * 0.4, y, width * 0.2, height);
+      
+      // Weißes Band horizontal
+      ctx.fillRect(x, y + height * 0.4, width, height * 0.2);
+      
+      // Schleife oben
+      ctx.beginPath();
+      ctx.arc(x + width * 0.5, y, width * 0.15, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // SVG-Sack zeichnen
+    function drawSack(ctx, x, y, radius, color) {
+      const colorValue = COLOR_VALUES[color];
+      
+      // Sackkörper
+      ctx.fillStyle = colorValue;
+      ctx.beginPath();
+      ctx.arc(x, y, radius, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Sacköffnung
+      ctx.fillStyle = '#d1d5db';
+      ctx.beginPath();
+      ctx.arc(x, y, radius * 0.75, 0, Math.PI);
+      ctx.fill();
+      
+      // Dekoration
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(x, y - radius * 0.3, radius * 0.2, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+
+    // Spiel starten
+    function startGame() {
+      if (gameRunning) return;
+      
+      gameRunning = true;
+      gifts = [];
+      score = 0;
+      timeLeft = 60;
+      selectedGift = null;
+      
+      updateDisplay();
+      startButton.disabled = true;
+      startButton.textContent = 'Spiel läuft...';
+      
+      // Timer starten
+      gameInterval = setInterval(() => {
+        timeLeft--;
+        updateDisplay();
+        
+        if (timeLeft <= 0) {
+          endGame();
+        }
+      }, 1000);
+      
+      // Spielschleife starten
+      gameLoop();
+    }
+
+    // Spiel beenden
+    function endGame() {
+      gameRunning = false;
+      clearInterval(gameInterval);
+      if (animationFrame) {
+        cancelAnimationFrame(animationFrame);
+      }
+      
+      startButton.disabled = false;
+      startButton.textContent = 'Nochmal spielen';
+      
+      // Highscore speichern
+      const playerName = prompt(`Spiel beendet! Deine Punkte: ${score}\n\nGib deinen Namen für die Bestenliste ein:`);
+      if (playerName && playerName.trim()) {
+        saveHighscore(playerName.trim(), score);
+      }
+      
+      showHighscores();
+    }
+
+    // Anzeige aktualisieren
+    function updateDisplay() {
+      timerElement.textContent = timeLeft;
+      scoreElement.textContent = score;
+    }
+
+    // Spielschleife
+    function gameLoop() {
+      if (!gameRunning) return;
+      
+      // Neue Geschenke generieren
+      const difficulty = Math.max(0.3, 0.7 - (60 - timeLeft) * 0.01);
+      if (Math.random() > difficulty) {
+        gifts.push({
+          x: 0,
+          y: 50 + Math.random() * (canvas.height - 200),
+          width: 40,
+          height: 40,
+          color: GIFT_COLORS[Math.floor(Math.random() * GIFT_COLORS.length)],
+          speed: 2 + Math.random() * 3 + (60 - timeLeft) * 0.05,
+          dragging: false
+        });
+      }
+      
+      // Geschenke bewegen
+      for (let i = gifts.length - 1; i >= 0; i--) {
+        const gift = gifts[i];
+        if (!gift.dragging) {
+          gift.x += gift.speed;
+        }
+        
+        // Geschenk entfernen, wenn es das Band verlässt
+        if (gift.x > canvas.width) {
+          gifts.splice(i, 1);
+          score -= 2;
+          updateDisplay();
+        }
+      }
+      
+      drawGame();
+      animationFrame = requestAnimationFrame(gameLoop);
+    }
+
+    // Spiel zeichnen
+    function drawGame() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      // Förderband
+      ctx.fillStyle = '#4a5568';
+      ctx.fillRect(0, 0, canvas.width, 20);
+      
+      // Weihnachtslichter
+      const now = Date.now();
+      for (let i = 0; i < canvas.width; i += 30) {
+        ctx.beginPath();
+        ctx.arc(i + (now / 100) % 30, 10, 3, 0, Math.PI * 2);
+        ctx.fillStyle = `hsl(${(i + now / 10) % 360}, 100%, 50%)`;
+        ctx.fill();
+      }
+      
+      // Geschenke zeichnen
+      gifts.forEach(gift => {
+        drawGift(ctx, gift.x, gift.y, gift.width, gift.height, gift.color);
+      });
+      
+      // Säcke zeichnen
+      const sackY = canvas.height - 50;
+      SACK_POSITIONS.forEach((x, i) => {
+        if (x < canvas.width) {
+          drawSack(ctx, x, sackY, 40, GIFT_COLORS[i]);
+          
+          // Beschriftung
+          ctx.fillStyle = '#000000';
+          ctx.font = '16px Arial';
+          ctx.textAlign = 'center';
+          ctx.fillText(`Sack ${i+1}`, x, canvas.height - 5);
+        }
+      });
+    }
+
+    // Drag & Drop
+    function getMousePos(e) {
+      const rect = canvas.getBoundingClientRect();
+      return {
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top
+      };
+    }
+
+    function startDrag(e) {
+      if (!gameRunning) return;
+      
+      const pos = getMousePos(e);
+      
+      // Prüfen, ob ein Geschenk angeklickt wurde
+      for (let i = gifts.length - 1; i >= 0; i--) {
+        const gift = gifts[i];
+        if (pos.x > gift.x && pos.x < gift.x + gift.width &&
+            pos.y > gift.y && pos.y < gift.y + gift.height) {
+          selectedGift = gift;
+          originalX = gift.x;
+          originalY = gift.y;
+          gift.dragging = true;
+          break;
+        }
+      }
+    }
+
+    function drag(e) {
+      if (selectedGift) {
+        const pos = getMousePos(e);
+        selectedGift.x = pos.x - selectedGift.width / 2;
+        selectedGift.y = pos.y - selectedGift.height / 2;
+      }
+    }
+
+    function stopDrag() {
+      if (selectedGift) {
+        selectedGift.dragging = false;
+        let scored = false;
+        
+        // Prüfen, ob das Geschenk über einem Sack losgelassen wurde
+        const giftCenterX = selectedGift.x + selectedGift.width / 2;
+        const giftCenterY = selectedGift.y + selectedGift.height / 2;
+        const sackY = canvas.height - 50;
+        
+        for (let i = 0; i < SACK_POSITIONS.length; i++) {
+          const sackX = SACK_POSITIONS[i];
+          if (sackX >= canvas.width) continue;
+          
+          const distance = Math.sqrt(
+            Math.pow(giftCenterX - sackX, 2) + 
+            Math.pow(giftCenterY - sackY, 2)
+          );
+          
+          if (distance < 40) {
+            scored = true;
+            if (selectedGift.color === GIFT_COLORS[i]) {
+              score += 10;
+              gifts.splice(gifts.indexOf(selectedGift), 1);
+            } else {
+              score -= 5;
+              selectedGift.x = originalX;
+              selectedGift.y = originalY;
+            }
+            updateDisplay();
+            break;
+          }
+        }
+        
+        // Geschenk zurücksetzen, wenn nicht über Sack
+        if (!scored) {
+          selectedGift.x = originalX;
+          selectedGift.y = originalY;
+        }
+        
+        selectedGift = null;
+      }
+    }
+
+    // Event-Listener
+    canvas.addEventListener('mousedown', startDrag);
+    canvas.addEventListener('mousemove', drag);
+    canvas.addEventListener('mouseup', stopDrag);
+    canvas.addEventListener('mouseleave', stopDrag);
+
+    // Touch-Events
+    canvas.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      const touch = e.touches[0];
+      const mouseEvent = new MouseEvent('mousedown', {
+        clientX: touch.clientX,
+        clientY: touch.clientY
+      });
+      canvas.dispatchEvent(mouseEvent);
+    });
+
+    canvas.addEventListener('touchmove', (e) => {
+      e.preventDefault();
+      const touch = e.touches[0];
+      const mouseEvent = new MouseEvent('mousemove', {
+        clientX: touch.clientX,
+        clientY: touch.clientY
+      });
+      canvas.dispatchEvent(mouseEvent);
+    });
+
+    canvas.addEventListener('touchend', (e) => {
+      e.preventDefault();
+      const mouseEvent = new MouseEvent('mouseup', {});
+      canvas.dispatchEvent(mouseEvent);
+    });
+
+    startButton.addEventListener('click', startGame);
+
+    // Highscore-Funktionen
+    function saveHighscore(name, score) {
+      const highscores = JSON.parse(localStorage.getItem('christmasHighscores') || '[]');
+      highscores.push({ 
+        name, 
+        score, 
+        date: new Date().toLocaleDateString('de-DE') 
+      });
+      
+      highscores.sort((a, b) => b.score - a.score);
+      if (highscores.length > 10) highscores.length = 10;
+      
+      localStorage.setItem('christmasHighscores', JSON.stringify(highscores));
+    }
+
+    function showHighscores() {
+      const highscores = JSON.parse(localStorage.getItem('christmasHighscores') || '[]');
+      const list = document.getElementById('highscoresList');
+      const container = document.getElementById('highscores');
+      
+      if (highscores.length === 0) {
+        container.style.display = 'none';
+        return;
+      }
+      
+      list.innerHTML = '';
+      highscores.forEach((entry, index) => {
+        const li = document.createElement('li');
+        li.textContent = `${entry.name}: ${entry.score} Punkte (${entry.date})`;
+        list.appendChild(li);
+      });
+      
+      container.classList.add('show');
+    }
+
+    // Initiales Zeichnen
+    drawGame();
+  </script>
+</body>
+</html>
+
