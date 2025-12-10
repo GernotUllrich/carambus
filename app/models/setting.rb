@@ -52,6 +52,55 @@ class Setting < ApplicationRecord
     SETTING
   end
 
+  # Holt ClubCloud Credentials aus Rails Credentials (lokal, verschlüsselt)
+  # Fallback auf RegionCc für Rückwärtskompatibilität
+  #
+  # Rails Credentials Format (config/credentials/development.yml.enc oder production.yml.enc):
+  #   clubcloud:
+  #     nbv:
+  #       username: "your-email@example.com"
+  #       password: "your-password"
+  #     dbu:
+  #       username: "..."
+  #       password: "..."
+  #
+  # Verwendung:
+  #   credentials = Setting.get_cc_credentials("nbv")
+  #   # => { username: "...", password: "..." }
+  def self.get_cc_credentials(context)
+    context_key = context.to_s.downcase.to_sym
+    
+    # Primär: Aus Rails Credentials (lokal, verschlüsselt, nicht synchronisiert)
+    if Rails.application.credentials.clubcloud.present?
+      cc_config = Rails.application.credentials.clubcloud[context_key]
+      if cc_config.present?
+        Rails.logger.debug "[get_cc_credentials] Using credentials from Rails Credentials for context: #{context}"
+        return {
+          username: cc_config[:username],
+          password: cc_config[:password]
+        }
+      end
+    end
+    
+    # Fallback: Aus RegionCc (für Rückwärtskompatibilität, aber nicht empfohlen)
+    region = Region.find_by(shortname: context.upcase)
+    if region&.region_cc.present?
+      region_cc = region.region_cc
+      if region_cc.username.present? && region_cc.userpw.present?
+        Rails.logger.warn "[get_cc_credentials] WARNING: Using credentials from RegionCc (deprecated). Please move to Rails Credentials for security."
+        return {
+          username: region_cc.username,
+          password: region_cc.userpw
+        }
+      end
+    end
+    
+    # Keine Credentials gefunden
+    Rails.logger.error "[get_cc_credentials] No ClubCloud credentials found for context: #{context}"
+    Rails.logger.error "[get_cc_credentials] Please configure in Rails Credentials: rails credentials:edit --environment #{Rails.env}"
+    { username: nil, password: nil }
+  end
+
   def self.login_to_cc
     opts = RegionCcAction.get_base_opts_from_environment
     region = Region.find_by(shortname: opts[:context].upcase)
@@ -60,8 +109,14 @@ class Setting < ApplicationRecord
     region_cc = region.region_cc
     raise "RegionCc not found for region: #{region.shortname}" unless region_cc
     raise "RegionCc base_url not set for region: #{region.shortname}" unless region_cc.base_url.present?
-    raise "RegionCc username not set for region: #{region.shortname}" unless region_cc.username.present?
-    raise "RegionCc userpw not set for region: #{region.shortname}" unless region_cc.userpw.present?
+    
+    # Hole Credentials aus Rails Credentials (lokal, verschlüsselt) oder als Fallback aus RegionCc
+    cc_credentials = get_cc_credentials(opts[:context])
+    username = cc_credentials[:username]
+    password = cc_credentials[:password]
+    
+    raise "ClubCloud username not configured for region: #{region.shortname}" unless username.present?
+    raise "ClubCloud password not configured for region: #{region.shortname}" unless password.present?
 
     # Schritt 1: Login-Seite abrufen, um call_police zu bekommen und Session-Cookie zu erhalten
     url = region_cc.base_url + "/index.php"
@@ -140,7 +195,7 @@ class Setting < ApplicationRecord
     call_police = call_police_input&.[]("value")&.to_i || 0
 
     # Schritt 2: Login-Daten direkt senden an /login/checkUser.php (nicht /index.php!)
-    userpw = region_cc.userpw
+    userpw = password
     
     # Prüfe ob Passwort bereits URL-decoded ist (falls es in DB encoded gespeichert ist)
     # Versuche zu decodieren, falls es encoded ist
@@ -161,7 +216,7 @@ class Setting < ApplicationRecord
     login_uri = URI(login_url)
     
     # Debug: Zeige Login-Parameter (ohne Passwort)
-    Rails.logger.debug "Login attempt - URL: #{login_url}, username: #{region_cc.username}, call_police: #{call_police}, has_session: #{initial_session_id.present?}, pw_length: #{userpw.length}"
+    Rails.logger.debug "Login attempt - URL: #{login_url}, username: #{username}, call_police: #{call_police}, has_session: #{initial_session_id.present?}, pw_length: #{userpw.length}"
     
     login_http = Net::HTTP.new(login_uri.host, login_uri.port)
     login_http.use_ssl = true
@@ -189,10 +244,10 @@ class Setting < ApplicationRecord
     
     # Erstelle Form-Daten - set_form_data kodiert automatisch
     form_data = {
-      username: region_cc.username,
+      username: username,
       userpassword: md5pw,
       call_police: call_police.to_s,
-      loginUser: region_cc.username,
+      loginUser: username,
       userpw: userpw,  # Klartext-Passwort (wird von set_form_data kodiert)
       loginButton: "ANMELDEN"
     }
