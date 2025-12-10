@@ -2,7 +2,6 @@
 
 require "uri"
 require "net/http"
-require "openssl"
 # == Schema Information
 #
 # Table name: versions
@@ -57,20 +56,6 @@ class Version < PaperTrail::Version
     ActiveRecord::Base.connection.execute(sql).each do |query|
       ActiveRecord::Base.connection.execute(query["query"])
     end
-  end
-
-  # Hilfsmethode für HTTP GET mit SSL-Verifizierung deaktiviert
-  def self.http_get_with_ssl_bypass(uri)
-    http = Net::HTTP.new(uri.host, uri.port)
-    if uri.scheme == "https"
-      http.use_ssl = true
-      http.verify_mode = OpenSSL::SSL::VERIFY_NONE
-    end
-    http.read_timeout = 30
-    http.open_timeout = 10
-    req = Net::HTTP::Get.new(uri.request_uri)
-    res = http.request(req)
-    res.body
   end
 
   def self.update_carambus
@@ -224,7 +209,7 @@ class Version < PaperTrail::Version
     }&season_id=#{Season.current_season&.id}")
     Rails.logger.info ">>>>>>>>>>>>>>>> GET #{url} <<<<<<<<<<<<<<<<"
     uri = URI(url)
-    json_io = http_get_with_ssl_bypass(uri)
+    json_io = Net::HTTP.get(uri)
     vers = JSON.parse(json_io)
     while vers.present?
       h = vers.shift

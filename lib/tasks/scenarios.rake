@@ -3713,8 +3713,17 @@ ENV
     location = Location.find(location_id)
     location_md5 = location.md5
 
+    # Use localhost if local server is enabled, otherwise use webserver_host
+    # Both go through Nginx on the standard port
+    if pi_config['local_server_enabled'] == true
+      url_host = 'localhost'
+    else
+      url_host = webserver_host
+    end
+    url_port = webserver_port
+
     # Generate URL using the correct MD5
-    scoreboard_url = "http://#{webserver_host}:#{webserver_port}/locations/#{location_md5}/scoreboard?sb_state=#{sb_state}&locale=de"
+    scoreboard_url = "http://#{url_host}:#{url_port}/locations/#{location_md5}/scoreboard?sb_state=#{sb_state}&locale=de"
 
     puts "   Scoreboard URL: #{scoreboard_url}"
 
@@ -3734,13 +3743,31 @@ ENV
     # Upload autostart script
     puts "\n📤 Uploading autostart script..."
     autostart_script = generate_autostart_script(scenario_name, pi_config)
+    
+    # Verify script was generated
+    if autostart_script.nil? || autostart_script.empty?
+      puts "   ❌ Failed to generate autostart script (empty or nil)"
+      return false
+    end
+    puts "   ✅ Script generated (#{autostart_script.length} characters)"
 
     # Write script to temporary file locally first
     temp_script_path = "/tmp/autostart-scoreboard-#{scenario_name}.sh"
     File.write(temp_script_path, autostart_script)
+    
+    # Verify the file was written correctly
+    if File.exist?(temp_script_path) && File.size(temp_script_path) > 0
+      puts "   ✅ Script file created (#{File.size(temp_script_path)} bytes)"
+    else
+      puts "   ❌ Failed to create script file or file is empty"
+      File.delete(temp_script_path) if File.exist?(temp_script_path)
+      return false
+    end
 
     # Upload the file using scp
-    if system("scp -P #{ssh_port} #{temp_script_path} #{ssh_user}@#{pi_ip}:/tmp/autostart-scoreboard.sh")
+    scp_cmd = "scp -P #{ssh_port} #{temp_script_path} #{ssh_user}@#{pi_ip}:/tmp/autostart-scoreboard.sh"
+    puts "   Executing: #{scp_cmd}"
+    if system(scp_cmd)
       puts "   ✅ Autostart script uploaded"
       # Clean up local temp file
       File.delete(temp_script_path)
@@ -4738,8 +4765,14 @@ EOF
       raise "Missing production.webserver_host or production.webserver_port in scenario configuration for #{scenario_name}"
     end
 
-    fallback_url = "http://#{webserver_host}:#{webserver_port}/locations/#{md5_hash}/scoreboard?sb_state=welcome&locale=de"
     local_server_enabled = pi_config['local_server_enabled'] || false
+    
+    # Use localhost if local server is enabled, otherwise use webserver_host
+    # Both go through Nginx on the standard port
+    url_host = local_server_enabled ? 'localhost' : webserver_host
+    url_port = webserver_port
+    
+    fallback_url = "http://#{url_host}:#{url_port}/locations/#{md5_hash}/scoreboard?sb_state=welcome&locale=de"
 
     # Generate the script using Ruby string manipulation
     generate_autostart_script_content(scenario_name, basename, fallback_url, local_server_enabled)
@@ -4868,6 +4901,9 @@ EOF
         --disable-features=VizDisplayCompositor,TranslateUI \
         --disable-translate \
         --disable-dev-shm-usage \
+        --disable-web-security \
+        --disable-site-isolation-trials \
+        --allow-running-insecure-content \
         --app="$SCOREBOARD_URL" \
         # --no-sandbox \
         --disable-gpu \
@@ -4882,6 +4918,9 @@ EOF
         --disable-features=VizDisplayCompositor,TranslateUI \
         --disable-translate \
         --disable-dev-shm-usage \
+        --disable-web-security \
+        --disable-site-isolation-trials \
+        --allow-running-insecure-content \
         --disable-setuid-sandbox \
         --disable-gpu \
         --disable-infobars \

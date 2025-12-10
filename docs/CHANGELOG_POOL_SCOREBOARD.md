@@ -265,3 +265,5 @@ Der Undo-Button unterhalb des Tischnamens wurde entfernt, da bereits ein Undo/Re
 - `docs/pool_scoreboard_benutzerhandbuch.de.md` - Neues Benutzerhandbuch
 - `docs/CHANGELOG_POOL_SCOREBOARD.md` - Diese Datei
 
+
+

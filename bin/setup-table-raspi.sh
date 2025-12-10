@@ -245,6 +245,38 @@ puts config.dig('environments', 'production', 'raspberry_pi_client', 'kiosk_user
     if [ "$KIOSK_USER" != "pi" ]; then
         log "✓ Kiosk user from config.yml: $KIOSK_USER"
     fi
+
+    # Detect database environment (needed for LOCATION_MD5 lookup later)
+    # Use development database only (should always be available locally)
+    info "Detecting database environment for location MD5 lookup..."
+    DB_ENV="development"
+    info "  Checking development database (required for setup)..."
+
+    # Try to connect to development database directly
+    TEST_OUTPUT=$(cd "$RAILS_APP_DIR" && RAILS_ENV=development bundle exec rails runner "puts Location.count" 2>&1 | head -20)
+    if echo "$TEST_OUTPUT" | tail -1 | grep -qE '^[0-9]+$'; then
+        log "✓ Development database detected and accessible"
+    else
+        # Development database not accessible - this is required
+        error "Development database is not accessible"
+        error "This is required for location MD5 lookup"
+        if echo "$TEST_OUTPUT" | grep -qi "database.*does not exist\|could not find.*database"; then
+            error "Please create the development database:"
+            error "  cd $RAILS_APP_DIR && RAILS_ENV=development bundle exec rails db:create"
+        else
+            error "Database connection failed. Output:"
+            echo "$TEST_OUTPUT" | head -5 | while IFS= read -r line; do
+                error "  $line"
+            done
+        fi
+        DB_ENV=""
+    fi
+
+    if [ -z "$DB_ENV" ]; then
+        error "Database environment not detected - cannot query location MD5"
+        error "Please ensure database connection is available or run on server where database is located"
+        exit 1
+    fi
 else
     SERVER_MODE=false
     # Table clients always use pi/22 for SSH (don't read from config)
