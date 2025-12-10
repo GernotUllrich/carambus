@@ -3713,15 +3713,14 @@ ENV
     location = Location.find(location_id)
     location_md5 = location.md5
 
-    # Use direct TCP port (webserver_port + 1) if local server is enabled to bypass Nginx
-    # Otherwise use webserver_host through Nginx
+    # Use localhost if local server is enabled, otherwise use webserver_host
+    # Both go through Nginx on the standard port
     if pi_config['local_server_enabled'] == true
-      url_host = '127.0.0.1'
-      url_port = webserver_port.to_i + 1  # Puma TCP bind is on port + 1
+      url_host = 'localhost'
     else
       url_host = webserver_host
-      url_port = webserver_port
     end
+    url_port = webserver_port
 
     # Generate URL using the correct MD5
     scoreboard_url = "http://#{url_host}:#{url_port}/locations/#{location_md5}/scoreboard?sb_state=#{sb_state}&locale=de"
@@ -4768,15 +4767,10 @@ EOF
 
     local_server_enabled = pi_config['local_server_enabled'] || false
     
-    # Use direct TCP port (webserver_port + 1) if local server is enabled to bypass Nginx
-    # Otherwise use webserver_host through Nginx
-    if local_server_enabled
-      url_host = '127.0.0.1'
-      url_port = webserver_port.to_i + 1  # Puma TCP bind is on port + 1
-    else
-      url_host = webserver_host
-      url_port = webserver_port
-    end
+    # Use localhost if local server is enabled, otherwise use webserver_host
+    # Both go through Nginx on the standard port
+    url_host = local_server_enabled ? 'localhost' : webserver_host
+    url_port = webserver_port
     
     fallback_url = "http://#{url_host}:#{url_port}/locations/#{md5_hash}/scoreboard?sb_state=welcome&locale=de"
 
@@ -4907,6 +4901,9 @@ EOF
         --disable-features=VizDisplayCompositor,TranslateUI \
         --disable-translate \
         --disable-dev-shm-usage \
+        --disable-web-security \
+        --disable-site-isolation-trials \
+        --allow-running-insecure-content \
         --app="$SCOREBOARD_URL" \
         # --no-sandbox \
         --disable-gpu \
@@ -4921,6 +4918,9 @@ EOF
         --disable-features=VizDisplayCompositor,TranslateUI \
         --disable-translate \
         --disable-dev-shm-usage \
+        --disable-web-security \
+        --disable-site-isolation-trials \
+        --allow-running-insecure-content \
         --disable-setuid-sandbox \
         --disable-gpu \
         --disable-infobars \
