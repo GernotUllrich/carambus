@@ -1,7 +1,9 @@
 class RegionCcAction
   def self.get_base_opts_from_environment
-    session_id = ENV["PHPSESSID"].presence || Setting.key_get_value("session_id")
-    context = (ENV["CC_REGION"].andand.upcase.presence || Setting.key_get_value("context") || "NBV").downcase
+    # Session-ID wird primär aus Setting geholt (gesetzt durch Setting.login_to_cc)
+    # Fallback auf ENV nur für manuelle Overrides bei Tests/Debug
+    session_id = Setting.key_get_value("session_id").presence || ENV["PHPSESSID"].presence
+    context = (ENV["CC_REGION"]&.upcase.presence || Setting.key_get_value("context") || "NBV").downcase
     season_name = ENV["CC_SEASON"].presence || Setting.key_get_value(:season_name)
     force_update = (ENV["CC_UPDATE"].presence || Setting.key_get_value("force_update").presence) == "true"
     # exclude_season_names = ["2009/2010", "2010/2011", "2011/2012", "2012/2013", "2013/2014", "2014/2015", "2015/2016",
@@ -275,10 +277,10 @@ TournamentCc[#{TournamentCc.where("id > 50000000").ids}]
       else
         Rails.logger.warn "REPORT! [synchronize_league_team_structure] LigaTeams für Season #{opts[:season_name]} nicht definiert in CC #{LeagueTeam.where(id: league_teams_still_todo_ids)
           .map { |league_team|
-                                                                                                                                            "#{league_team.name}[#{league_team.id}] - in Liga #{league_team.league.name} #{league_team.league.discipline.andand.name}"
+                                                                                                                                            "#{league_team.name}[#{league_team.id}] - in Liga #{league_team.league.name} #{league_team.league.discipline&.name}"
                                                                                                                                           }}"
         RegionCc.logger.warn "REPORT! [synchronize_league_team_structure] LigaTeams für Season #{opts[:season_name]} nicht definiert in CC #{LeagueTeam.where(id: league_teams_still_todo_ids).map { |league_team|
-          "#{league_team.name}[#{league_team.id}] - in Liga #{league_team.league.name} #{league_team.league.discipline.andand.name}"
+          "#{league_team.name}[#{league_team.id}] - in Liga #{league_team.league.name} #{league_team.league.discipline&.name}"
         }}"
       end
     end
@@ -286,7 +288,7 @@ TournamentCc[#{TournamentCc.where("id > 50000000").ids}]
     return if league_teams_overdone_ids.blank?
 
     RegionCc.logger.info "REPORT [synchronize_league_team_structure] more league_team_ids with context #{context} than expected in CC: #{LeagueTeam.where(id: league_teams_overdone_ids).map { |league_team|
-      "#{league_team.name}[#{league_team.id}] - in Liga #{league_team.league.name} #{league_team.league.discipline.andand.name}"
+      "#{league_team.name}[#{league_team.id}] - in Liga #{league_team.league.name} #{league_team.league.discipline&.name}"
     }}"
   end
 
@@ -325,10 +327,10 @@ TournamentCc[#{TournamentCc.where("id > 50000000").ids}]
         end
       else
         Rails.logger.warn "REPORT! [synchronize_league_team_structure] LigaTeams für Season #{opts[:season_name]} nicht definiert in CC #{LeagueTeam.where(id: league_teams_still_todo_ids).map { |league_team|
-          "#{league_team.name}[#{league_team.id}] - in Liga #{league_team.league.name} #{league_team.league.discipline.andand.name}"
+          "#{league_team.name}[#{league_team.id}] - in Liga #{league_team.league.name} #{league_team.league.discipline&.name}"
         }}"
         RegionCc.logger.warn "REPORT! [synchronize_league_team_structure] LigaTeams für Season #{opts[:season_name]} nicht definiert in CC #{LeagueTeam.where(id: league_teams_still_todo_ids).map { |league_team|
-          "#{league_team.name}[#{league_team.id}] - in Liga #{league_team.league.name} #{league_team.league.discipline.andand.name}"
+          "#{league_team.name}[#{league_team.id}] - in Liga #{league_team.league.name} #{league_team.league.discipline&.name}"
         }}"
       end
     end
@@ -336,7 +338,7 @@ TournamentCc[#{TournamentCc.where("id > 50000000").ids}]
     return if league_teams_overdone_ids.blank?
 
     RegionCc.logger.info "REPORT [synchronize_league_team_structure] more league_team_ids with context #{context} than expected in CC: #{LeagueTeam.where(id: league_teams_overdone_ids).map { |league_team|
-      "#{league_team.name}[#{league_team.id}] - in Liga #{league_team.league.name} #{league_team.league.discipline.andand.name}"
+      "#{league_team.name}[#{league_team.id}] - in Liga #{league_team.league.name} #{league_team.league.discipline&.name}"
     }}"
   end
 
@@ -377,13 +379,13 @@ TournamentCc[#{TournamentCc.where("id > 50000000").ids}]
           league.organizer_id == region.id && league.organizer_type == "Region"
         }.map { |league|
           [league.name,
-           league.discipline.andand.name]
+           league.discipline&.name]
         }}"
         RegionCc.logger.warn "REPORT! WARNING Einige Spielpläne für Season #{opts[:season_name]} nicht definiert in CC für Ligen #{incomplete_leagues.select { |league|
           league.organizer_id == region.id && league.organizer_type == "Region"
         }.map { |league|
           [league.name,
-           league.discipline.andand.name]
+           league.discipline&.name]
         }}"
       end
     end
@@ -430,7 +432,7 @@ TournamentCc[#{TournamentCc.where("id > 50000000").ids}]
     return if parties_overdone_ids.blank?
 
     raise_err_msg("synchronize_league_team_structure", "more league_team_ids with context #{context} than expected in CC: #{LeagueTeam.where(id: parties_overdone_ids).map do |league_team|
-      "#{league_team.name}[#{league_team.id}] - in Liga #{league_team.league.name} #{league_team.league.discipline.andand.name}"
+      "#{league_team.name}[#{league_team.id}] - in Liga #{league_team.league.name} #{league_team.league.discipline&.name}"
     end}")
   end
 
