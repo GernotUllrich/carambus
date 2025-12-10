@@ -423,7 +423,7 @@ class Setting < ApplicationRecord
     session_id = opts[:session_id] || Setting.key_get_value("session_id")
     unless session_id
       Rails.logger.warn "No session ID found, already logged off?"
-      return
+      return true
     end
 
     # Logoff direkt senden (ohne post_cc, da logoff nicht in PATH_MAP ist)
@@ -442,9 +442,137 @@ class Setting < ApplicationRecord
     Setting.key_delete("session_id")
     if res&.message == "OK"
       Rails.logger.info "Successfully logged off from ClubCloud"
+      true
     else
       Rails.logger.warn "Logoff response: #{res&.message}"
+      true # Auch bei Fehler als erfolgreich betrachten (Session wird gelöscht)
     end
+  end
+
+  # Prüft, ob die aktuelle Session noch gültig ist
+  # Ruft eine geschützte Seite auf und prüft, ob wir noch eingeloggt sind
+  def self.validate_session(session_id = nil)
+    return false unless session_id.present? || Setting.key_get_value("session_id").present?
+    
+    session_id ||= Setting.key_get_value("session_id")
+    opts = RegionCcAction.get_base_opts_from_environment
+    region = Region.find_by(shortname: opts[:context].upcase)
+    return false unless region&.region_cc&.base_url.present?
+
+    region_cc = region.region_cc
+    
+    # Versuche eine Admin-Seite aufzurufen (z.B. die Hauptseite nach Login)
+    url = region_cc.base_url + "/admin/index.php"
+    uri = URI(url)
+    http = Net::HTTP.new(uri.host, uri.port)
+    http.use_ssl = true
+    http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+    http.read_timeout = 10
+    http.open_timeout = 5
+    
+    req = Net::HTTP::Get.new(uri.request_uri)
+    req["cookie"] = "PHPSESSID=#{session_id}"
+    res = http.request(req)
+    
+    # Wenn wir zur Login-Seite redirected werden oder die Login-Seite sehen, ist Session ungültig
+    if res.is_a?(Net::HTTPRedirection)
+      redirect_url = res['location']
+      if redirect_url&.include?("index.php") && !redirect_url&.include?("admin")
+        Rails.logger.debug "Session invalid: Redirected to login page"
+        return false
+      end
+    end
+    
+    if res.is_a?(Net::HTTPSuccess)
+      doc = Nokogiri::HTML(res.body)
+      # Prüfe ob Login-Formular vorhanden (= nicht eingeloggt)
+      has_login_form = doc.css("input[name='call_police']").any? || 
+                       doc.css("input[name='loginUser']").any? ||
+                       doc.css("title").text.include?("Anmeldung")
+      
+      if has_login_form
+        Rails.logger.debug "Session invalid: Login form detected"
+        return false
+      end
+      
+      Rails.logger.debug "Session valid: Admin page accessible"
+      return true
+    end
+    
+    Rails.logger.warn "Session validation inconclusive: #{res.class} #{res.code}"
+    false
+  rescue StandardError => e
+    Rails.logger.error "Error validating session: #{e.message}"
+    false
+  end
+
+  # Login mit automatischem Logout-Retry bei Fehler
+  # Wenn Login fehlschlägt, wird erst ein Logout versucht, dann erneut Login
+  def self.login_with_retry(max_retries: 1)
+    attempt = 0
+    last_error = nil
+    
+    loop do
+      attempt += 1
+      
+      begin
+        Rails.logger.info "[login_with_retry] Attempt #{attempt}/#{max_retries + 1}"
+        session_id = login_to_cc
+        
+        # Validiere Session nach Login
+        if validate_session(session_id)
+          Rails.logger.info "[login_with_retry] Login successful and validated"
+          return session_id
+        else
+          raise "Session validation failed after login"
+        end
+        
+      rescue StandardError => e
+        last_error = e
+        Rails.logger.error "[login_with_retry] Login attempt #{attempt} failed: #{e.message}"
+        
+        if attempt <= max_retries
+          Rails.logger.info "[login_with_retry] Attempting logout before retry..."
+          begin
+            logoff_from_cc
+            sleep 1 # Kurze Pause nach Logout
+          rescue StandardError => logout_error
+            Rails.logger.warn "[login_with_retry] Logout failed (continuing anyway): #{logout_error.message}"
+          end
+        else
+          Rails.logger.error "[login_with_retry] Max retries (#{max_retries}) reached, giving up"
+          raise last_error
+        end
+      end
+    end
+  end
+
+  # Stellt sicher, dass wir eingeloggt sind (mit Session-Validierung)
+  # Ruft login_with_retry auf wenn nötig
+  def self.ensure_logged_in
+    session_id = Setting.key_get_value("session_id")
+    
+    # Wenn keine Session vorhanden: Login
+    unless session_id.present?
+      Rails.logger.info "[ensure_logged_in] No session found, logging in..."
+      return login_with_retry
+    end
+    
+    # Session vorhanden: Validiere sie
+    if validate_session(session_id)
+      Rails.logger.debug "[ensure_logged_in] Existing session is valid"
+      return session_id
+    end
+    
+    # Session ungültig: Logout + Login
+    Rails.logger.info "[ensure_logged_in] Session invalid, re-logging in..."
+    begin
+      logoff_from_cc
+    rescue StandardError => e
+      Rails.logger.warn "[ensure_logged_in] Logout failed (continuing): #{e.message}"
+    end
+    
+    login_with_retry
   end
 
   # Mappt game.gname (z.B. "group1:1-2", "Runde 1", "Finale") zu einem ClubCloud-Gruppennamen
@@ -561,16 +689,12 @@ class Setting < ApplicationRecord
     region_cc = region.region_cc
     return false unless region_cc.present? && region_cc.base_url.present?
 
-    # Hole Session-ID (login falls nötig)
-    session_id = Setting.key_get_value("session_id")
-    unless session_id
-      Rails.logger.info "No session ID found, attempting login..."
-      begin
-        session_id = Setting.login_to_cc
-      rescue StandardError => e
-        Rails.logger.error "Failed to login to ClubCloud: #{e.message}"
-        return false
-      end
+    # Stelle sicher, dass wir eingeloggt sind (mit Session-Validierung)
+    begin
+      session_id = Setting.ensure_logged_in
+    rescue StandardError => e
+      Rails.logger.error "Failed to ensure ClubCloud login: #{e.message}"
+      return false
     end
 
     # Extrahiere Spieldaten

@@ -315,12 +315,8 @@ class TournamentCc < ApplicationRecord
     branch_cc = self.branch_cc
     raise "BranchCc not found for tournament_cc[#{id}]" unless branch_cc.present?
 
-    # Hole Session-ID (login falls nötig)
-    session_id = opts[:session_id] || Setting.key_get_value("session_id")
-    unless session_id
-      Rails.logger.info "No session ID found, attempting login..."
-      session_id = Setting.login_to_cc
-    end
+    # Stelle sicher, dass wir eingeloggt sind (mit Session-Validierung)
+    session_id = opts[:session_id] || Setting.ensure_logged_in
 
     # Erstelle Payload für createErgebnisCheck.php
     args = {

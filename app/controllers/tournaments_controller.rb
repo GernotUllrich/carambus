@@ -278,6 +278,19 @@ class TournamentsController < ApplicationController
   end
 
   def start
+    # Validiere ClubCloud-Zugriff falls konfiguriert
+    if @tournament.tournament_cc.present?
+      begin
+        Rails.logger.info "[TournamentsController#start] Validating ClubCloud access..."
+        Setting.ensure_logged_in
+        flash[:notice] = "ClubCloud-Zugriff validiert ✓"
+      rescue StandardError => e
+        flash[:alert] = "ClubCloud-Login fehlgeschlagen: #{e.message}. Bitte prüfen Sie die ClubCloud-Zugangsdaten."
+        redirect_to tournament_path(@tournament)
+        return
+      end
+    end
+
     data_ = @tournament.data
     data_["table_ids"] = params[:table_id]
     data_["balls_goal"] = params[:balls_goal].to_i
