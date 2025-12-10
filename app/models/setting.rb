@@ -625,38 +625,100 @@ class Setting < ApplicationRecord
   end
 
   # Mappt game.gname (z.B. "group1:1-2", "Runde 1", "Finale") zu einem ClubCloud-Gruppennamen
+  # Mappt Carambus game.gname zu ClubCloud-Gruppennamen
+  # 
+  # Beispiele:
+  #   "group1:1-2" → "Gruppe A"
+  #   "Gruppe 1" → "Gruppe A"
+  #   "Platz 5-6" → "Spiel um Platz 5"
+  #   "hf1" → "Halbfinale"
+  #
+  # Die Mapping-Regeln werden in dieser Reihenfolge angewendet:
+  # 1. Direkte Mappings (exakte Übereinstimmung oder Pattern)
+  # 2. Gruppenextraktion (group1, group2, etc. → Gruppe A, B, C, ...)
+  # 3. Platzierungsspiele (Platz X-Y → Spiel um Platz X)
+  # 4. Fallback auf nil (mit Warnung)
   def self.map_game_gname_to_cc_group_name(gname)
     return nil unless gname.present?
 
-    # Normalisiere gname
+    # Normalisiere gname (trim whitespace)
     normalized = gname.strip
 
-    # Prüfe zuerst groups-Mapping
-    GroupCc::NAME_MAPPING[:groups].each do |pattern, mapped_name|
-      if pattern.start_with?("/") && pattern.end_with?("/")
-        # Regex-Pattern
-        regex = Regexp.new(pattern[1..-2])
-        return mapped_name if regex.match?(normalized)
-      elsif normalized == pattern || normalized.include?(pattern)
-        return mapped_name
+    # === DIREKTE MAPPINGS ===
+    # Format: Carambus-Pattern => ClubCloud-Name
+    direct_mappings = {
+      # Gruppen (numerical to alphabetic)
+      /^group1[:\/]/i => "Gruppe A",
+      /^Gruppe 1$/i => "Gruppe A",
+      /^group2[:\/]/i => "Gruppe B", 
+      /^Gruppe 2$/i => "Gruppe B",
+      /^group3[:\/]/i => "Gruppe C",
+      /^Gruppe 3$/i => "Gruppe C",
+      /^group4[:\/]/i => "Gruppe D",
+      /^Gruppe 4$/i => "Gruppe D",
+      /^group5[:\/]/i => "Gruppe E",
+      /^Gruppe 5$/i => "Gruppe E",
+      /^group6[:\/]/i => "Gruppe F",
+      /^Gruppe 6$/i => "Gruppe F",
+      
+      # Halbfinale
+      /^hf1$/i => "Halbfinale",
+      /^hf2$/i => "Halbfinale",
+      /^Halbfinale\s*1?$/i => "Halbfinale",
+      
+      # Finale
+      /^fin$/i => "Finale",
+      /^Finale$/i => "Finale",
+      /^Endspiel$/i => "Finale",
+      
+      # Platzierungsspiele
+      /^Platz\s*3[-\/]4$/i => "Spiel um Platz 3",
+      /^p<3-4>$/i => "Spiel um Platz 3",
+      /^Platz\s*5[-\/]6$/i => "Spiel um Platz 5",
+      /^p<5-6>$/i => "Spiel um Platz 5",
+      /^Platz\s*7[-\/]8$/i => "Spiel um Platz 7",
+      /^p<7-8>$/i => "Spiel um Platz 7",
+      /^Platz\s*9[-\/]10$/i => "Spiel um Platz 9",
+      /^p<9-10>$/i => "Spiel um Platz 9",
+      /^Platz\s*11[-\/]12$/i => "Spiel um Platz 11",
+      /^p<11-12>$/i => "Spiel um Platz 11",
+      /^Platz\s*13[-\/]14$/i => "Spiel um Platz 13",
+      /^p<13-14>$/i => "Spiel um Platz 13"
+    }
+
+    # Versuche direkte Mappings
+    direct_mappings.each do |pattern, cc_name|
+      if pattern.is_a?(Regexp)
+        return cc_name if pattern.match?(normalized)
+      elsif pattern.is_a?(String)
+        return cc_name if normalized.casecmp(pattern).zero?
       end
     end
 
-    # Prüfe round-Mapping
-    GroupCc::NAME_MAPPING[:round].each do |pattern, mapped_name|
-      if normalized == pattern || normalized.include?(pattern)
-        return mapped_name
-      end
-    end
-
-    # Fallback: Versuche aus gname zu extrahieren
+    # === DYNAMISCHE GRUPPENEXTRAKTION ===
+    # Extrahiere Gruppennummer aus verschiedenen Formaten
+    # group1, group2, Gruppe 1, etc.
     if (m = normalized.match(/group(\d+)/i))
       group_no = m[1].to_i
-      return "Gruppe #{group_no}"
+      # Mappe Nummer zu Buchstabe: 1→A, 2→B, 3→C, ...
+      if group_no >= 1 && group_no <= 26
+        letter = ('A'.ord + group_no - 1).chr
+        return "Gruppe #{letter}"
+      end
     end
 
-    # Wenn nichts gefunden, gib nil zurück
-    Rails.logger.warn "Could not map game.gname '#{gname}' to ClubCloud group name"
+    # === DYNAMISCHE PLATZIERUNGSSPIELE ===
+    # Extrahiere Platzierungen: "Platz 5-6", "p<5-6>", etc.
+    if (m = normalized.match(/(?:Platz|p<)\s*(\d+)[-\/](\d+)>?/i))
+      place1 = m[1].to_i
+      place2 = m[2].to_i
+      lower_place = [place1, place2].min
+      return "Spiel um Platz #{lower_place}"
+    end
+
+    # === FALLBACK ===
+    # Wenn nichts gefunden, gib nil zurück und logge Warnung
+    Rails.logger.warn "[map_game_gname_to_cc_group_name] Could not map '#{gname}' to ClubCloud group name"
     nil
   end
 
