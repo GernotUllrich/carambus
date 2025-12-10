@@ -907,6 +907,11 @@ class TournamentsController < ApplicationController
     # Auch auf lokalen Servern: Prüfe ob ClubCloud-Ergebnisse vorliegen
     return unless @tournament&.has_clubcloud_results?
 
+    # Sysadmin darf mit reload_games=true auch geschlossene Turniere neu laden
+    if action_name == 'reload_from_cc' && params[:reload_games] == 'true' && current_user&.privileged_access?
+      return
+    end
+
     flash[:alert] =
       "⚠️ Dieses Turnier hat bereits Ergebnisse aus der ClubCloud und ist schreibgeschützt. Die ClubCloud ist die führende Datenquelle für abgeschlossene Turniere."
     redirect_to tournament_path(@tournament)

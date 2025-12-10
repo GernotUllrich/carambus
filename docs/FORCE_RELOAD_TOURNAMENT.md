@@ -90,6 +90,15 @@ def privileged_access?
 end
 ```
 
+Additionally, the `ensure_local_server` before_action has been modified to allow privileged users to bypass the ClubCloud results write-protection when using `reload_from_cc` with `reload_games=true`:
+
+```ruby
+# Sysadmin darf mit reload_games=true auch geschlossene Turniere neu laden
+if action_name == 'reload_from_cc' && params[:reload_games] == 'true' && current_user&.privileged_access?
+  return
+end
+```
+
 ### Translations
 
 - **German:** `tournaments.show.force_reload_from_api` and `tournaments.show.force_reload_confirm`
