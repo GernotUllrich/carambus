@@ -1047,6 +1047,8 @@ en:
       reload_from_club_cloud_with_details: Reload From ClubCloud with all details
       reorder: Reorder
       reset_tournament_monitor: Reset Tournament Monitor
+      force_reload_from_api: 'Sysadmin: Force Reload Tournament from API Server'
+      force_reload_confirm: 'Are you sure? This will completely reset the tournament and reload all data (including results) from the API server. This action cannot be undone!'
       sets_to_play: 'Sets To Play:'
       sets_to_win: 'Sets To Win:'
       state: 'State:'
