@@ -781,57 +781,79 @@ class Setting < ApplicationRecord
   end
 
   # Trägt ein Spiel automatisch in die ClubCloud ein
+  # Returns: { success: true/false, error: nil/"error message" }
   def self.upload_game_to_cc(table_monitor)
-    return false unless table_monitor.present?
+    return { success: false, error: "No table_monitor" } unless table_monitor.present?
 
     game = table_monitor.game
-    return false unless game.present?
+    return { success: false, error: "No game" } unless game.present?
 
     tournament = game.tournament
-    return false unless tournament.present?
+    return { success: false, error: "No tournament" } unless tournament.present?
 
     tournament_cc = tournament.tournament_cc
-    return false unless tournament_cc.present?
+    return { success: false, error: "No tournament_cc configuration" } unless tournament_cc.present?
 
     # Prüfe ob TournamentCc konfiguriert ist
     region = tournament.organizer
-    return false unless region.present?
+    return { success: false, error: "No region/organizer" } unless region.present?
 
     region_cc = region.region_cc
-    return false unless region_cc.present? && region_cc.base_url.present?
+    return { success: false, error: "No region_cc configuration" } unless region_cc.present?
+    return { success: false, error: "No region_cc.base_url" } unless region_cc.base_url.present?
 
     # Stelle sicher, dass wir eingeloggt sind (mit Session-Validierung)
     begin
       session_id = Setting.ensure_logged_in
     rescue StandardError => e
-      Rails.logger.error "Failed to ensure ClubCloud login: #{e.message}"
-      return false
+      error_msg = "ClubCloud login failed: #{e.message}"
+      Rails.logger.error "[CC-Upload] #{error_msg}"
+      log_cc_upload_error(tournament, game, error_msg)
+      return { success: false, error: error_msg }
     end
 
     # Extrahiere Spieldaten
     ba_results = table_monitor.data["ba_results"] || game.data["ba_results"]
-    return false unless ba_results.present?
+    unless ba_results.present?
+      error_msg = "No game results (ba_results) found"
+      Rails.logger.warn "[CC-Upload] #{error_msg} for game[#{game.id}]"
+      return { success: false, error: error_msg }
+    end
 
     # Finde groupItemId direkt aus game.gname (verwendet CC: UNIVERSAL Mapping wenn verfügbar)
     group_item_id = find_group_item_id_from_gname(game.gname, tournament)
     unless group_item_id
-      Rails.logger.warn "Could not find groupItemId for game[#{game.id}], gname: #{game.gname}"
-      return false
+      cc_group_name = map_game_gname_to_cc_group_name(game.gname)
+      error_msg = "Gruppe '#{game.gname}' konnte nicht zugeordnet werden (CC-Name: '#{cc_group_name || 'unbekannt'}')"
+      Rails.logger.warn "[CC-Upload] #{error_msg} for game[#{game.id}]"
+      log_cc_upload_error(tournament, game, error_msg)
+      return { success: false, error: error_msg }
     end
 
     # Hole Spieler
     gp1 = game.game_participations.where(role: %w[playera Heim]).first
     gp2 = game.game_participations.where(role: %w[playerb Gast]).first
-    return false unless gp1.present? && gp2.present?
+    unless gp1.present? && gp2.present?
+      error_msg = "Game participations incomplete"
+      return { success: false, error: error_msg }
+    end
 
     player1 = gp1.player
     player2 = gp2.player
-    return false unless player1.present? && player2.present?
+    unless player1.present? && player2.present?
+      error_msg = "Players not found"
+      return { success: false, error: error_msg }
+    end
 
     # Hole ClubCloud-IDs (cc_id oder ba_id als Fallback)
     sportler_one_id = player1.cc_id || player1.ba_id
     sportler_two_id = player2.cc_id || player2.ba_id
-    return false unless sportler_one_id.present? && sportler_two_id.present?
+    unless sportler_one_id.present? && sportler_two_id.present?
+      error_msg = "Spieler #{player1.name} oder #{player2.name} nicht in ClubCloud registriert (keine cc_id/ba_id)"
+      Rails.logger.warn "[CC-Upload] #{error_msg} for game[#{game.id}]"
+      log_cc_upload_error(tournament, game, error_msg)
+      return { success: false, error: error_msg }
+    end
 
     # Extrahiere Spieldaten
     partie_number = ba_results["Partie"] || game.seqno || 1
@@ -891,17 +913,63 @@ class Setting < ApplicationRecord
     res = http.request(req)
 
     if res.is_a?(Net::HTTPSuccess) || res.is_a?(Net::HTTPRedirection)
-      Rails.logger.info "Successfully uploaded game[#{game.id}] to ClubCloud (Status: #{res.code})"
-      return true
+      Rails.logger.info "[CC-Upload] ✓ Successfully uploaded game[#{game.id}] (#{player1.name} vs #{player2.name}, #{game.gname}) to ClubCloud (Status: #{res.code})"
+      # Lösche vorherige Fehler für dieses Spiel
+      clear_cc_upload_error(tournament, game)
+      return { success: true, error: nil }
     else
-      Rails.logger.error "Failed to upload game[#{game.id}] to ClubCloud (Status: #{res.code}, Message: #{res.message})"
-      Rails.logger.error "Response body preview: #{res.body[0..500]}" if res.body.present?
-      return false
+      error_msg = "Upload fehlgeschlagen (HTTP #{res.code}: #{res.message})"
+      Rails.logger.error "[CC-Upload] #{error_msg} for game[#{game.id}]"
+      Rails.logger.error "[CC-Upload] Response body preview: #{res.body[0..500]}" if res.body.present?
+      log_cc_upload_error(tournament, game, error_msg)
+      return { success: false, error: error_msg }
     end
   rescue StandardError => e
-    Rails.logger.error "Error uploading game[#{game&.id}] to ClubCloud: #{e.message}"
-    Rails.logger.error e.backtrace.join("\n")
-    false
+    error_msg = "Exception: #{e.message}"
+    Rails.logger.error "[CC-Upload] #{error_msg} for game[#{game&.id}]"
+    Rails.logger.error "[CC-Upload] Backtrace: #{e.backtrace.first(5).join("\n")}"
+    log_cc_upload_error(tournament, game, error_msg) if tournament && game
+    { success: false, error: error_msg }
+  end
+
+  # Loggt einen ClubCloud Upload-Fehler im Tournament.data für Admin-Feedback
+  def self.log_cc_upload_error(tournament, game, error_message)
+    return unless tournament && game
+    
+    tournament.reload
+    tournament.unprotected = true
+    
+    cc_errors = tournament.data["cc_upload_errors"] || {}
+    cc_errors[game.id.to_s] = {
+      "timestamp" => Time.current.iso8601,
+      "game_gname" => game.gname,
+      "error" => error_message
+    }
+    
+    tournament.data["cc_upload_errors"] = cc_errors
+    tournament.data_will_change!
+    tournament.save!
+    tournament.unprotected = false
+  rescue StandardError => e
+    Rails.logger.error "[CC-Upload] Failed to log error: #{e.message}"
+  end
+
+  # Löscht einen ClubCloud Upload-Fehler nach erfolgreichem Upload
+  def self.clear_cc_upload_error(tournament, game)
+    return unless tournament && game
+    
+    tournament.reload
+    cc_errors = tournament.data["cc_upload_errors"]
+    return unless cc_errors.present? && cc_errors[game.id.to_s].present?
+    
+    tournament.unprotected = true
+    cc_errors.delete(game.id.to_s)
+    tournament.data["cc_upload_errors"] = cc_errors
+    tournament.data_will_change!
+    tournament.save!
+    tournament.unprotected = false
+  rescue StandardError => e
+    Rails.logger.error "[CC-Upload] Failed to clear error: #{e.message}"
   end
 
   def self.key_set_value(k, v)

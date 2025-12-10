@@ -28,14 +28,16 @@ module TournamentMonitorState
     table_monitor.update(args)
 
     # Automatische Übertragung in die ClubCloud
-    begin
-      if tournament.tournament_cc.present?
-        Setting.upload_game_to_cc(table_monitor)
+    if tournament.tournament_cc.present?
+      Rails.logger.info "[TournamentMonitorState] Attempting ClubCloud upload for game[#{game.id}]..."
+      result = Setting.upload_game_to_cc(table_monitor)
+      if result[:success]
+        Rails.logger.info "[TournamentMonitorState] ✓ ClubCloud upload successful for game[#{game.id}]"
+      else
+        Rails.logger.warn "[TournamentMonitorState] ✗ ClubCloud upload failed for game[#{game.id}]: #{result[:error]}"
+        # Fehler ist bereits in tournament.data["cc_upload_errors"] geloggt
+        # Nicht weiterwerfen, damit finalize_game_result nicht fehlschlägt
       end
-    rescue StandardError => e
-      Rails.logger.error "Failed to upload game[#{game.id}] to ClubCloud: #{e.message}"
-      Rails.logger.error e.backtrace.join("\n")
-      # Fehler nicht weiterwerfen, damit finalize_game_result nicht fehlschlägt
     end
   end
 
