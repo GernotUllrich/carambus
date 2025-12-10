@@ -34,6 +34,19 @@ class Version < PaperTrail::Version
     where("region_id IS NULL OR region_id = ? OR global_context = TRUE", region_id)
   }
 
+  # Helper method to perform HTTP GET requests with SSL verification disabled
+  # This is useful in development environments where SSL certificates might not be properly configured
+  def self.http_get_with_ssl_bypass(uri)
+    http = Net::HTTP.new(uri.host, uri.port)
+    if uri.scheme == "https"
+      http.use_ssl = true
+      http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+    end
+    request = Net::HTTP::Get.new(uri.request_uri)
+    response = http.request(request)
+    response.body
+  end
+
   def self.list_sequence
     sql = <<~SQL
       SELECT 'SELECT NEXTVAL(' ||
@@ -209,7 +222,7 @@ class Version < PaperTrail::Version
     }&season_id=#{Season.current_season&.id}")
     Rails.logger.info ">>>>>>>>>>>>>>>> GET #{url} <<<<<<<<<<<<<<<<"
     uri = URI(url)
-    json_io = Net::HTTP.get(uri)
+    json_io = http_get_with_ssl_bypass(uri)
     vers = JSON.parse(json_io)
     while vers.present?
       h = vers.shift
