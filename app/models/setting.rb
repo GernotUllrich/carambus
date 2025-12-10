@@ -781,18 +781,29 @@ class Setting < ApplicationRecord
   end
 
   # Trägt ein Spiel automatisch in die ClubCloud ein
-  # Returns: { success: true/false, error: nil/"error message" }
+  # Returns: { success: true/false, error: nil/"error message", skipped: true/false }
   def self.upload_game_to_cc(table_monitor)
-    return { success: false, error: "No table_monitor" } unless table_monitor.present?
+    return { success: false, error: "No table_monitor", skipped: false } unless table_monitor.present?
 
     game = table_monitor.game
-    return { success: false, error: "No game" } unless game.present?
+    return { success: false, error: "No game", skipped: false } unless game.present?
 
     tournament = game.tournament
-    return { success: false, error: "No tournament" } unless tournament.present?
+    return { success: false, error: "No tournament", skipped: false } unless tournament.present?
 
     tournament_cc = tournament.tournament_cc
-    return { success: false, error: "No tournament_cc configuration" } unless tournament_cc.present?
+    return { success: false, error: "No tournament_cc configuration", skipped: false } unless tournament_cc.present?
+
+    # SCHUTZ: Prüfe ob Spiel bereits hochgeladen wurde
+    if game.data["cc_uploaded_at"].present?
+      uploaded_at = Time.parse(game.data["cc_uploaded_at"]) rescue nil
+      if uploaded_at && uploaded_at > 5.minutes.ago
+        Rails.logger.info "[CC-Upload] ⊘ Skipping game[#{game.id}] - already uploaded at #{uploaded_at.strftime('%H:%M:%S')}"
+        return { success: true, error: nil, skipped: true }
+      else
+        Rails.logger.info "[CC-Upload] Re-uploading game[#{game.id}] (previous upload: #{uploaded_at})"
+      end
+    end
 
     # Prüfe ob TournamentCc konfiguriert ist
     region = tournament.organizer
@@ -914,22 +925,41 @@ class Setting < ApplicationRecord
 
     if res.is_a?(Net::HTTPSuccess) || res.is_a?(Net::HTTPRedirection)
       Rails.logger.info "[CC-Upload] ✓ Successfully uploaded game[#{game.id}] (#{player1.name} vs #{player2.name}, #{game.gname}) to ClubCloud (Status: #{res.code})"
+      
+      # Markiere Spiel als hochgeladen (Schutz vor Doppel-Uploads)
+      mark_game_as_uploaded(game)
+      
       # Lösche vorherige Fehler für dieses Spiel
       clear_cc_upload_error(tournament, game)
-      return { success: true, error: nil }
+      
+      return { success: true, error: nil, skipped: false }
     else
       error_msg = "Upload fehlgeschlagen (HTTP #{res.code}: #{res.message})"
       Rails.logger.error "[CC-Upload] #{error_msg} for game[#{game.id}]"
       Rails.logger.error "[CC-Upload] Response body preview: #{res.body[0..500]}" if res.body.present?
       log_cc_upload_error(tournament, game, error_msg)
-      return { success: false, error: error_msg }
+      return { success: false, error: error_msg, skipped: false }
     end
   rescue StandardError => e
     error_msg = "Exception: #{e.message}"
     Rails.logger.error "[CC-Upload] #{error_msg} for game[#{game&.id}]"
     Rails.logger.error "[CC-Upload] Backtrace: #{e.backtrace.first(5).join("\n")}"
     log_cc_upload_error(tournament, game, error_msg) if tournament && game
-    { success: false, error: error_msg }
+    { success: false, error: error_msg, skipped: false }
+  end
+
+  # Markiert ein Spiel als erfolgreich hochgeladen (Schutz vor Doppel-Uploads)
+  def self.mark_game_as_uploaded(game)
+    return unless game.present?
+    
+    game.reload
+    game.unprotected = true
+    game.data["cc_uploaded_at"] = Time.current.iso8601
+    game.data_will_change!
+    game.save!
+    game.unprotected = false
+  rescue StandardError => e
+    Rails.logger.error "[CC-Upload] Failed to mark game as uploaded: #{e.message}"
   end
 
   # Loggt einen ClubCloud Upload-Fehler im Tournament.data für Admin-Feedback

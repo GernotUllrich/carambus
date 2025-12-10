@@ -32,7 +32,11 @@ module TournamentMonitorState
       Rails.logger.info "[TournamentMonitorState] Attempting ClubCloud upload for game[#{game.id}]..."
       result = Setting.upload_game_to_cc(table_monitor)
       if result[:success]
-        Rails.logger.info "[TournamentMonitorState] ✓ ClubCloud upload successful for game[#{game.id}]"
+        if result[:skipped]
+          Rails.logger.info "[TournamentMonitorState] ⊘ ClubCloud upload skipped for game[#{game.id}] (already uploaded)"
+        else
+          Rails.logger.info "[TournamentMonitorState] ✓ ClubCloud upload successful for game[#{game.id}]"
+        end
       else
         Rails.logger.warn "[TournamentMonitorState] ✗ ClubCloud upload failed for game[#{game.id}]: #{result[:error]}"
         # Fehler ist bereits in tournament.data["cc_upload_errors"] geloggt
