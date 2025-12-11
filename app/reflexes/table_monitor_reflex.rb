@@ -34,6 +34,15 @@ class TableMonitorReflex < ApplicationReflex
     if DEBUG
       Rails.logger.info "+++++++++++++++++>>> #{"key(#{table_monitor_id}, #{val})"} <<<++++++++++++++++++++++++++++++++++++++"
     end
+    
+    # Skip broadcasts on API Server (no scoreboards running)
+    # This reflex should rarely be triggered on API server anyway
+    unless ApplicationRecord.local_server?
+      Rails.logger.info "🔔 TableMonitorReflex skipped (API Server - no scoreboards)"
+      morph :nothing
+      return
+    end
+    
     morph :nothing
     if TableMonitor::NNN == "db"
       table_monitor_id = element.andand.dataset[:id]

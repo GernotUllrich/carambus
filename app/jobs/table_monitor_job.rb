@@ -3,6 +3,13 @@ class TableMonitorJob < ApplicationJob
   queue_as :default
 
   def perform(*args)
+    # Skip execution on API Server (no scoreboards running)
+    # Local servers are identified by having a carambus_api_url configured
+    unless ApplicationRecord.local_server?
+      Rails.logger.info "📡 TableMonitorJob skipped (API Server - no scoreboards)"
+      return
+    end
+
     debug = true # Rails.env != 'production'
     table_monitor = args[0]
     operation_type = args[1]

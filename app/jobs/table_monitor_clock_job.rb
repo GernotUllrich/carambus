@@ -3,6 +3,13 @@ class TableMonitorClockJob < ApplicationJob
   queue_as :default
   # around_perform :avoid_multiple_invocation
   def perform(*args)
+    # Skip execution on API Server (no scoreboards running)
+    # Local servers are identified by having a carambus_api_url configured
+    unless ApplicationRecord.local_server?
+      Rails.logger.info "📡 TableMonitorClockJob skipped (API Server - no scoreboards)"
+      return
+    end
+
     Rails.logger.silence do
       # periodic update until timer_finish_at is history
       table_monitor, delta, active_player, balls, inning = args

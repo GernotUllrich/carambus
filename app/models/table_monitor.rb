@@ -76,6 +76,14 @@ class TableMonitor < ApplicationRecord
       return
     end
 
+    # Skip cable broadcasts on API Server (no scoreboards running)
+    # Local servers are identified by having a carambus_api_url configured
+    unless ApplicationRecord.local_server?
+      Rails.logger.info "🔔 Skipping callbacks (API Server - no scoreboards)"
+      Rails.logger.info "🔔 ========== after_update_commit END (API Server) =========="
+      return
+    end
+
     Rails.logger.info "🔔 ========== after_update_commit TRIGGERED =========="
     Rails.logger.info "🔔 TableMonitor ID: #{id}"
     Rails.logger.info "🔔 Previous changes: #{@collected_changes.inspect}"
