@@ -754,29 +754,47 @@ class Setting < ApplicationRecord
   end
 
   # Findet die groupItemId für einen ClubCloud-Gruppennamen
-  # Verwendet tournament.group_cc.data["positions"]
+  # Sucht zuerst in tournament_monitor.data["cc_group_mapping"]["positions"] (lokal, nicht geschützt)
+  # Fallback: tournament.tournament_cc.group_cc.data["positions"] (nur auf API-Server)
   def self.find_group_item_id(tournament, cc_group_name)
     return nil unless cc_group_name.present? && tournament.present?
 
-    tournament_cc = tournament.tournament_cc
-    return nil unless tournament_cc.present?
+    positions = nil
+    
+    # Primär: Suche in tournament_monitor.data (funktioniert auf lokalen Servern)
+    tournament_monitor = tournament.tournament_monitor
+    if tournament_monitor.present? && tournament_monitor.data["cc_group_mapping"].present?
+      mapping_data = tournament_monitor.data["cc_group_mapping"]
+      positions = mapping_data["positions"] if mapping_data.is_a?(Hash)
+      Rails.logger.debug "[find_group_item_id] Using positions from tournament_monitor.data (#{positions&.count || 0} entries)"
+    end
+    
+    # Fallback: Suche in tournament_cc.group_cc.data (alte Methode, nur auf API-Server)
+    unless positions.present?
+      tournament_cc = tournament.tournament_cc
+      if tournament_cc.present? && tournament_cc.group_cc.present?
+        group_cc = tournament_cc.group_cc
+        positions_data = group_cc.data
+        positions = positions_data.is_a?(String) ? JSON.parse(positions_data) : positions_data
+        positions = positions["positions"] if positions.is_a?(Hash) && positions["positions"].present?
+        Rails.logger.debug "[find_group_item_id] Using positions from group_cc.data (#{positions&.count || 0} entries)"
+      end
+    end
 
-    group_cc = tournament_cc.group_cc
-    return nil unless group_cc.present?
-
-    # Prüfe ob group_cc.data["positions"] existiert
-    positions_data = group_cc.data
-    positions = positions_data.is_a?(String) ? JSON.parse(positions_data) : positions_data
-    positions = positions["positions"] if positions.is_a?(Hash) && positions["positions"].present?
-
-    return nil unless positions.is_a?(Hash)
+    unless positions.is_a?(Hash) && positions.present?
+      Rails.logger.warn "[find_group_item_id] No positions found for tournament[#{tournament.id}]"
+      return nil
+    end
 
     # Suche nach dem Gruppennamen in positions
     positions.each do |group_item_id, name|
-      return group_item_id.to_i if name == cc_group_name || name.include?(cc_group_name) || cc_group_name.include?(name)
+      if name == cc_group_name || name.include?(cc_group_name) || cc_group_name.include?(name)
+        Rails.logger.debug "[find_group_item_id] Found match: '#{cc_group_name}' -> groupItemId #{group_item_id} (#{name})"
+        return group_item_id.to_i
+      end
     end
 
-    Rails.logger.warn "Could not find groupItemId for group name '#{cc_group_name}' in tournament_cc[#{tournament_cc.id}]"
+    Rails.logger.warn "[find_group_item_id] Could not find groupItemId for group name '#{cc_group_name}' in available positions: #{positions.keys.map { |k| "#{k}=>#{positions[k]}" }.join(', ')}"
     nil
   end
 

@@ -391,6 +391,9 @@ class TournamentCc < ApplicationRecord
 
   # Erstellt oder updated den GroupCc Record mit den groupItemId-Mappings
   # Wird bei der Turniervorbereitung aufgerufen
+  # 
+  # WICHTIG: Auf lokalen Servern sind ClubCloud-Records geschützt (LocalProtector).
+  # Daher speichern wir die Mappings direkt in tournament_monitor.data statt in GroupCc.
   def prepare_group_mapping(opts = {})
     return nil unless tournament.present?
 
@@ -399,53 +402,60 @@ class TournamentCc < ApplicationRecord
 
     return nil if group_options.empty?
 
-    branch_cc = self.branch_cc
-    raise "BranchCc not found" unless branch_cc.present?
-
-    # Finde oder erstelle GroupCc Record
-    # Suche zuerst nach existierendem Record mit passenden positions
-    found_group_cc = self.group_cc || GroupCc.where(branch_cc: branch_cc).find do |gcc|
-      positions = gcc.data.is_a?(String) ? JSON.parse(gcc.data) : gcc.data
-      positions = positions["positions"] if positions.is_a?(Hash)
-      positions.is_a?(Hash) && positions.values.sort == group_options.values.sort
+    tournament_monitor = tournament.tournament_monitor
+    unless tournament_monitor.present?
+      Rails.logger.warn "[prepare_group_mapping] No tournament_monitor found for tournament[#{tournament.id}]"
+      return nil
     end
 
-    # Wenn nicht gefunden, erstelle neuen Record
-    unless found_group_cc
-      # Hole Turnierplan-Name aus Tournament Details (z.B. "CC: UNIVERSAL")
-      plan_name = name || "Unknown Plan"
-      
-      region = tournament.organizer
-      region_cc = region.region_cc if region.present?
-      context = region_cc&.context || branch_cc.region_cc&.context || "nbv"
-      
-      found_group_cc = GroupCc.create!(
-        context: context,
-        name: plan_name,
-        display: "Gruppen",
-        status: "Freigegeben",
-        branch_cc_id: branch_cc.id,
-        data: { "positions" => group_options }.to_json
-      )
-      Rails.logger.info "Created new GroupCc[#{found_group_cc.id}] for tournament_cc[#{id}]"
-    else
-      # Update positions falls nötig
-      positions_data = found_group_cc.data.is_a?(String) ? JSON.parse(found_group_cc.data) : found_group_cc.data
-      positions = positions_data["positions"] || {}
-      
-      # Merge mit neuen Optionen (neue Optionen haben Vorrang)
-      merged_positions = positions.merge(group_options)
-      
-      if merged_positions != positions
-        found_group_cc.update(data: { "positions" => merged_positions }.to_json)
-        Rails.logger.info "Updated GroupCc[#{found_group_cc.id}] positions for tournament_cc[#{id}]"
+    # Speichere Mappings in tournament_monitor.data (nicht geschützt durch LocalProtector)
+    tournament_monitor.deep_merge_data!(
+      "cc_group_mapping" => {
+        "positions" => group_options,
+        "scraped_at" => Time.current.iso8601
+      }
+    )
+    tournament_monitor.save!
+    
+    Rails.logger.info "[prepare_group_mapping] Saved #{group_options.count} groupItemId mappings to tournament_monitor[#{tournament_monitor.id}].data"
+    Rails.logger.info "[prepare_group_mapping] Mappings: #{group_options.inspect}"
+
+    # Für Rückwärtskompatibilität: Versuche auch GroupCc zu erstellen (nur auf API-Server)
+    # Auf lokalen Servern wird das fehlschlagen, aber das ist OK
+    begin
+      branch_cc = self.branch_cc
+      if branch_cc.present?
+        found_group_cc = self.group_cc || GroupCc.where(branch_cc: branch_cc).find do |gcc|
+          positions = gcc.data.is_a?(String) ? JSON.parse(gcc.data) : gcc.data
+          positions = positions["positions"] if positions.is_a?(Hash)
+          positions.is_a?(Hash) && positions.values.sort == group_options.values.sort
+        end
+
+        unless found_group_cc
+          plan_name = name || "Unknown Plan"
+          region = tournament.organizer
+          region_cc = region.region_cc if region.present?
+          context = region_cc&.context || branch_cc.region_cc&.context || "nbv"
+          
+          found_group_cc = GroupCc.create!(
+            context: context,
+            name: plan_name,
+            display: "Gruppen",
+            status: "Freigegeben",
+            branch_cc_id: branch_cc.id,
+            data: { "positions" => group_options }.to_json
+          )
+          Rails.logger.info "[prepare_group_mapping] Created GroupCc[#{found_group_cc.id}] for tournament_cc[#{id}]"
+        end
+
+        update(group_cc: found_group_cc) unless group_cc_id == found_group_cc.id
       end
+    rescue StandardError => e
+      # Auf lokalen Servern wird das fehlschlagen (LocalProtector), das ist OK
+      Rails.logger.debug "[prepare_group_mapping] Could not create/update GroupCc (expected on local servers): #{e.message}"
     end
 
-    # Verknüpfe GroupCc mit TournamentCc
-    update(group_cc: found_group_cc) unless group_cc_id == found_group_cc.id
-
-    found_group_cc
+    true
   end
 
   # Validiert, ob alle game.gname aus executor_params ein Mapping in GroupCc haben
