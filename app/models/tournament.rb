@@ -378,7 +378,7 @@ class Tournament < ApplicationRecord
         tournament_link_ = "sb_meisterschaft.php?p=#{region_cc_cc_id}--#{season.name}--0--2-1-100000-"
         Rails.logger.info "reading #{url + tournament_link_}"
         uri = URI(url + tournament_link_)
-        tournament_html_ = Net::HTTP.get(uri)
+        tournament_html = Rails.env == 'development' ?  Version.http_get_with_ssl_bypass(uri) : Net::HTTP.get(uri)
         tournament_doc_ = Nokogiri::HTML(tournament_html_)
         tournament_cc_id = nil
         tournament_doc_.css("article table.silver").andand[1].andand.css("tr").to_a[2..].to_a.each do |tr|
@@ -405,7 +405,7 @@ class Tournament < ApplicationRecord
       tournament_link = "sb_meisterschaft.php?p=#{region_cc_cc_id}--#{season.name}-#{tournament_cc_id}----1-100000-"
       Rails.logger.info "reading #{url + tournament_link}"
       uri = URI(url + tournament_link)
-      tournament_html = Rails.env == 'development' ?  http_get_with_ssl_bypass(uri) : Net::HTTP.get(uri)
+      tournament_html = Rails.env == 'development' ?  Version.http_get_with_ssl_bypass(uri) : Net::HTTP.get(uri)
       Rails.logger.info "===== scrape =========================== SCRAPING TOURNAMENT '#{url + tournament_link}'"
       tournament_doc = Nokogiri::HTML(tournament_html)
     end
@@ -493,7 +493,7 @@ class Tournament < ApplicationRecord
     registration_link = tournament_link.gsub("meisterschaft", "meldeliste")
     Rails.logger.info "reading #{url + registration_link}"
     uri = URI(url + registration_link)
-    registration_html = Net::HTTP.get(uri)
+    registration_html = Rails.env == 'development' ?  Version.http_get_with_ssl_bypass(uri) : Net::HTTP.get(uri)
     registration_doc = Nokogiri::HTML(registration_html)
     registration_table = registration_doc.css("aside table.silver table")[0]
     _header = []
@@ -550,7 +550,7 @@ class Tournament < ApplicationRecord
     result_url = url + result_link
     Rails.logger.info "reading #{result_url}"
     uri = URI(result_url)
-    result_html = Net::HTTP.get(uri)
+    result_html = Rails.env == 'development' ?  Version.http_get_with_ssl_bypass(uri) : Net::HTTP.get(uri)
     result_doc = Nokogiri::HTML(result_html)
     table = result_doc.css("aside table.silver")[1]
     if table.present?
@@ -634,7 +634,7 @@ class Tournament < ApplicationRecord
     ranking_link = tournament_link.gsub("meisterschaft", "einzelrangliste")
     Rails.logger.info "reading #{url + ranking_link}"
     uri = URI(url + ranking_link)
-    ranking_html = Net::HTTP.get(uri)
+    ranking_html = Rails.env == 'development' ?  Version.http_get_with_ssl_bypass(uri) : Net::HTTP.get(uri)
     ranking_doc = Nokogiri::HTML(ranking_html)
     ranking_table = ranking_doc.css("aside table.silver table")[0]
     header = []
