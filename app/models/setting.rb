@@ -813,27 +813,42 @@ class Setting < ApplicationRecord
     return { success: false, error: "No tournament_cc configuration", skipped: false } unless tournament_cc.present?
 
     # SCHUTZ: Prüfe ob Spiel bereits hochgeladen wurde oder wird
-    # WICHTIG: Check + Markierung müssen atomar sein, sonst Race Condition!
-    game.reload
-    if game.data["cc_uploaded_at"].present?
-      uploaded_at = Time.parse(game.data["cc_uploaded_at"]) rescue nil
-      if uploaded_at && uploaded_at > 5.minutes.ago
-        Rails.logger.info "[CC-Upload] ⊘ Skipping game[#{game.id}] - already uploaded at #{uploaded_at.strftime('%H:%M:%S')}"
-        return { success: true, error: nil, skipped: true }
+    # WICHTIG: Check + Markierung müssen atomar sein (mit DB-Lock)
+    upload_allowed = false
+    Game.transaction do
+      # WITH LOCK verhindert Race Condition (pessimistic locking)
+      game_locked = Game.lock.find(game.id)
+      
+      if game_locked.data["cc_uploaded_at"].present?
+        uploaded_at = Time.parse(game_locked.data["cc_uploaded_at"]) rescue nil
+        if uploaded_at && uploaded_at > 5.minutes.ago
+          Rails.logger.info "[CC-Upload] ⊘ Skipping game[#{game.id}] - already uploaded at #{uploaded_at.strftime('%H:%M:%S')}"
+          # Transaction wird abgebrochen, upload_allowed bleibt false
+        else
+          Rails.logger.info "[CC-Upload] Re-uploading game[#{game.id}] (previous upload: #{uploaded_at})"
+          upload_allowed = true
+        end
       else
-        Rails.logger.info "[CC-Upload] Re-uploading game[#{game.id}] (previous upload: #{uploaded_at})"
+        upload_allowed = true
+      end
+      
+      if upload_allowed
+        # Markiere Spiel SOFORT als "wird hochgeladen" (Race Condition Protection)
+        game_locked.unprotected = true
+        game_locked.data["cc_uploaded_at"] = Time.current.iso8601
+        game_locked.data["cc_upload_in_progress"] = true
+        game_locked.data_will_change!
+        game_locked.save!
+        game_locked.unprotected = false
+        Rails.logger.debug "[CC-Upload] Marked game[#{game.id}] as upload in progress (locked)"
       end
     end
     
-    # Markiere Spiel SOFORT als "wird hochgeladen" (Race Condition Protection)
-    # Wenn Upload fehlschlägt, wird der Timestamp gelöscht
-    game.unprotected = true
-    game.data["cc_uploaded_at"] = Time.current.iso8601
-    game.data["cc_upload_in_progress"] = true
-    game.data_will_change!
-    game.save!
-    game.unprotected = false
-    Rails.logger.debug "[CC-Upload] Marked game[#{game.id}] as upload in progress"
+    # Wenn Upload nicht erlaubt (bereits hochgeladen), return sofort
+    return { success: true, error: nil, skipped: true } unless upload_allowed
+    
+    # Reload game nach Lock-Release
+    game.reload
 
     # Prüfe ob TournamentCc konfiguriert ist
     region = tournament.organizer
