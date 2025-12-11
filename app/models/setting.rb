@@ -831,22 +831,23 @@ class Setting < ApplicationRecord
       return { success: false, error: error_msg }
     end
 
-    # Finde groupItemId direkt aus game.gname (verwendet CC: UNIVERSAL Mapping wenn verfügbar)
-    group_item_id = find_group_item_id_from_gname(game.gname, tournament)
+    # Strategie: 
+    # 1. Mappe game.gname zu ClubCloud-Gruppenname
+    # 2. Suche nach groupItemId in tournament.group_cc.data["positions"]
     
-    # Fallback: Wenn find_group_item_id_from_gname fehlschlägt, versuche manuelles Mapping
-    unless group_item_id
-      cc_group_name = map_game_gname_to_cc_group_name(game.gname)
-      if cc_group_name.present?
-        # Mapping war erfolgreich, versuche nochmal mit find_group_item_id
-        group_item_id = find_group_item_id(tournament, cc_group_name)
-      end
+    # Schritt 1: Mapping
+    cc_group_name = map_game_gname_to_cc_group_name(game.gname)
+    unless cc_group_name.present?
+      error_msg = "Gruppe '#{game.gname}' konnte nicht zu ClubCloud-Gruppenname gemappt werden"
+      Rails.logger.warn "[CC-Upload] #{error_msg} for game[#{game.id}]"
+      log_cc_upload_error(tournament, game, error_msg)
+      return { success: false, error: error_msg }
     end
     
-    # Nur wenn auch der Fallback fehlgeschlagen ist, Fehler melden
+    # Schritt 2: Finde groupItemId in ClubCloud
+    group_item_id = find_group_item_id(tournament, cc_group_name)
     unless group_item_id
-      cc_group_name ||= map_game_gname_to_cc_group_name(game.gname)
-      error_msg = "Gruppe '#{game.gname}' konnte nicht zugeordnet werden (CC-Name: '#{cc_group_name || 'unbekannt'}')"
+      error_msg = "Gruppe '#{game.gname}' (gemappt zu '#{cc_group_name}') wurde nicht in ClubCloud-Turnier gefunden"
       Rails.logger.warn "[CC-Upload] #{error_msg} for game[#{game.id}]"
       log_cc_upload_error(tournament, game, error_msg)
       return { success: false, error: error_msg }
