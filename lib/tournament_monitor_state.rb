@@ -16,7 +16,22 @@ module TournamentMonitorState
     #     "Tischnummer": 2
     # }
     game = table_monitor.game
-    game.deep_merge_data!("ba_results" => table_monitor.data["ba_results"])
+    
+    # SCHUTZ: Prüfe ob finalize_game_result bereits aufgerufen wurde
+    # (kann passieren wenn finish_match! mehrfach aufgerufen wird)
+    if game.data["finalized_at"].present?
+      finalized_at = Time.parse(game.data["finalized_at"]) rescue nil
+      if finalized_at && finalized_at > 1.minute.ago
+        Rails.logger.warn "[TournamentMonitorState] ⊘ Skipping finalize_game_result for game[#{game.id}] - already finalized at #{finalized_at.strftime('%H:%M:%S')}"
+        return
+      end
+    end
+    
+    # Markiere als finalisiert
+    game.deep_merge_data!(
+      "ba_results" => table_monitor.data["ba_results"],
+      "finalized_at" => Time.current.iso8601
+    )
     game.save!
 
     # Automatische Übertragung in die ClubCloud
