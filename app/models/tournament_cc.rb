@@ -357,15 +357,35 @@ class TournamentCc < ApplicationRecord
 
     # Parse HTML und extrahiere groupItemId-Optionen
     doc = Nokogiri::HTML(res.body)
+    
+    # Debug: Prüfe ob Select vorhanden ist
+    select_element = doc.css('select[name="groupItemId"]')
+    if select_element.empty?
+      Rails.logger.warn "[scrape_tournament_group_options] WARNING: select[name='groupItemId'] not found in HTML response"
+      Rails.logger.debug "[scrape_tournament_group_options] Response body preview (first 1000 chars): #{res.body[0..1000]}"
+      
+      # Prüfe ob Login-Seite angezeigt wird
+      if res.body.include?("call_police") || res.body.include?("loginUser")
+        Rails.logger.error "[scrape_tournament_group_options] ERROR: Got login page instead of createErgebnisCheck page - session may be invalid"
+        raise "Session invalid: Got login page instead of createErgebnisCheck"
+      end
+    end
+    
     group_options = doc.css('select[name="groupItemId"] > option').each_with_object({}) do |o, memo|
       memo[o["value"].to_i] = o.text.strip unless o["value"] == "*"
     end
 
-    Rails.logger.info "Scraped #{group_options.count} groupItemId options from createErgebnisCheck for tournament_cc[#{id}]"
+    if group_options.empty?
+      Rails.logger.warn "[scrape_tournament_group_options] WARNING: No groupItemId options found for tournament_cc[#{id}]"
+      Rails.logger.debug "[scrape_tournament_group_options] All select elements: #{doc.css('select').map { |s| s['name'] }.join(', ')}"
+    else
+      Rails.logger.info "[scrape_tournament_group_options] Scraped #{group_options.count} groupItemId options: #{group_options.inspect}"
+    end
+    
     group_options
   rescue StandardError => e
-    Rails.logger.error "Error scraping tournament group options: #{e.message}"
-    Rails.logger.error e.backtrace.join("\n")
+    Rails.logger.error "[scrape_tournament_group_options] Error scraping tournament group options: #{e.message}"
+    Rails.logger.error "[scrape_tournament_group_options] Backtrace: #{e.backtrace.first(10).join("\n")}"
     raise
   end
 
