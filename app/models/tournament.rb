@@ -187,7 +187,7 @@ class Tournament < ApplicationRecord
 
   def self.cascading_filters
     {
-      'season_id' => []  # Season ist unabhängig, könnte aber Disciplines filtern (optional)
+      'season_id' => [] # Season ist unabhängig, könnte aber Disciplines filtern (optional)
     }
   end
 
@@ -405,7 +405,7 @@ class Tournament < ApplicationRecord
       tournament_link = "sb_meisterschaft.php?p=#{region_cc_cc_id}--#{season.name}-#{tournament_cc_id}----1-100000-"
       Rails.logger.info "reading #{url + tournament_link}"
       uri = URI(url + tournament_link)
-      tournament_html = Net::HTTP.get(uri)
+      tournament_html = Rails.env == 'development' ?  http_get_with_ssl_bypass(uri) : Net::HTTP.get(uri)
       Rails.logger.info "===== scrape =========================== SCRAPING TOURNAMENT '#{url + tournament_link}'"
       tournament_doc = Nokogiri::HTML(tournament_html)
     end
@@ -619,9 +619,9 @@ class Tournament < ApplicationRecord
         frame1_lines, frame_points, frame_result, frames, gd, group, hb, header, hs, mp, innings, nbsp, no,
           player_list, playera_fl_name, playerb_fl_name, points, result, result_lines, result_url,
           td_lines, _tr = parse_table_tr(region,
-          frame1_lines, frame_points, frame_result, frames, gd, group, hb,
-          header, hs, mp, innings, nbsp, no, player_list, playera_fl_name, playerb_fl_name,
-          points, result, result_lines, result_url, td_lines, tr
+                                         frame1_lines, frame_points, frame_result, frames, gd, group, hb,
+                                         header, hs, mp, innings, nbsp, no, player_list, playera_fl_name, playerb_fl_name,
+                                         points, result, result_lines, result_url, td_lines, tr
         )
       end
       if td_lines.positive? && no.present?
@@ -687,7 +687,7 @@ class Tournament < ApplicationRecord
             names = player_fl_name.split(/\//).map(&:strip)
             player_fl_name = player_list[names.join(" ")].present? ? names.join(" ") : names.reverse.join(" ")
           end
-           seeding = seedings.where(player: player_list[player_fl_name][0]).first if player_list[player_fl_name].present?
+          seeding = seedings.where(player: player_list[player_fl_name][0]).first if player_list[player_fl_name].present?
           if seeding.blank?
             Rails.logger.info("===== scrape ===== seeding of player #{player_fl_name} should exist!")
           else
@@ -795,7 +795,7 @@ class Tournament < ApplicationRecord
   # Nur für lokale Tournaments (id >= MIN_ID), nicht für ClubCloud-Records
   def calculate_and_cache_rankings
     return unless organizer.is_a?(Region) && discipline.present?
-    return unless id.present? && id >= Tournament::MIN_ID  # Nur für lokale Tournaments
+    return unless id.present? && id >= Tournament::MIN_ID # Nur für lokale Tournaments
 
     Tournament.logger.info "[calculate_and_cache_rankings] for local tournament #{id}"
 
