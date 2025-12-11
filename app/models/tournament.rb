@@ -545,6 +545,20 @@ class Tournament < ApplicationRecord
     reload
     return if discipline&.name == "Biathlon"
 
+    # Delete games BEFORE processing results (if reload_game_results is true)
+    # This ensures orphan games are deleted even if the results table doesn't exist
+    # IMPORTANT: Use destroy_all (not delete_all) to create PaperTrail versions for synchronization with local servers
+    if opts[:reload_game_results]
+      games_to_delete = Game.where(tournament_id: self.id)
+      count_before = games_to_delete.count
+      if count_before > 0
+        Rails.logger.info "Deleting #{count_before} game(s) for tournament #{self.id} (reload_game_results: true)"
+        games_to_delete.destroy_all
+        count_after = Game.where(tournament_id: self.id).count
+        Rails.logger.info "After deletion: #{count_after} game(s) remaining for tournament #{self.id}"
+      end
+    end
+
     # Ergebnisse
     result_link = tournament_link.gsub("meisterschaft", "einzelergebnisse")
     result_url = url + result_link
@@ -595,19 +609,6 @@ class Tournament < ApplicationRecord
           player.save if player.changed?
         else
           Rails.logger.info("===== scrape ===== Inconsistent Playerlist Player #{[k, v].inspect}")
-        end
-      end
-      # Delete ALL games with this tournament_id, regardless of tournament_type
-      # This ensures orphan games are also cleaned up (e.g., games with tournament_id but wrong/missing tournament_type)
-      # IMPORTANT: Use destroy_all (not delete_all) to create PaperTrail versions for synchronization with local servers
-      if opts[:reload_game_results]
-        games_to_delete = Game.where(tournament_id: self.id)
-        count_before = games_to_delete.count
-        if count_before > 0
-          Rails.logger.info "Deleting #{count_before} game(s) for tournament #{self.id} (reload_game_results: true)"
-          games_to_delete.destroy_all
-          count_after = Game.where(tournament_id: self.id).count
-          Rails.logger.info "After deletion: #{count_after} game(s) remaining for tournament #{self.id}"
         end
       end
       # games.destroy_all if opts[:reload_game_results]
