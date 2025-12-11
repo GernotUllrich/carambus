@@ -1,5 +1,13 @@
 class TableMonitorChannel < ApplicationCable::Channel
   def subscribed
+    # Reject subscriptions on API Server (no scoreboards running)
+    # Local servers are identified by having a carambus_api_url configured
+    unless ApplicationRecord.local_server?
+      Rails.logger.info "[TableMonitorChannel] Subscription rejected (API Server - no scoreboards)"
+      reject
+      return
+    end
+
     stream_from "table-monitor-stream"
     Rails.logger.info "[TableMonitorChannel] Subscribed: connection=#{connection.connection_token}"
   end

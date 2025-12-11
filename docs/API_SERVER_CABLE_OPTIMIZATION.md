@@ -74,20 +74,34 @@ end
 
 ### 4. Channels
 
-**No Changes Required**
+**Files Modified:**
+- `app/channels/table_monitor_channel.rb`
+- `app/channels/tournament_monitor_channel.rb`
+- `app/channels/table_monitor_clock_channel.rb`
 
-The channel files themselves (`TableMonitorChannel`, `TournamentMonitorChannel`) do NOT need modification:
-- Channels are just WebSocket endpoints
-- They're harmless if no clients subscribe
-- Keeping them allows the shared codebase to work on both server types
+Added guards to reject subscriptions on API Server:
+
+```ruby
+def subscribed
+  unless ApplicationRecord.local_server?
+    Rails.logger.info "[ChannelName] Subscription rejected (API Server - no scoreboards)"
+    reject
+    return
+  end
+  # ... rest of subscription logic
+end
+```
+
+This prevents clients from establishing WebSocket subscriptions to monitor channels on the API Server, eliminating connection messages in logs.
 
 ## Benefits
 
 1. **Reduced CPU Usage**: API Server no longer renders HTML partials for non-existent scoreboards
 2. **Reduced Redis Load**: No unnecessary ActionCable messages in Redis queues
-3. **Cleaner Logs**: API Server logs don't fill up with scoreboard broadcast messages
-4. **No Breaking Changes**: Local servers continue to work exactly as before
-5. **Shared Codebase**: Both server types can still use the same code
+3. **Cleaner Logs**: API Server logs don't show connection/subscription messages or broadcast messages
+4. **Prevented Subscriptions**: Clients cannot subscribe to monitor channels on API Server (subscriptions are rejected)
+5. **No Breaking Changes**: Local servers continue to work exactly as before
+6. **Shared Codebase**: Both server types can still use the same code
 
 ## Server Type Detection
 
@@ -145,8 +159,9 @@ tm.touch
 - `app/jobs/table_monitor_clock_job.rb` - Timer broadcast job
 - `app/jobs/tournament_monitor_update_results_job.rb` - Tournament results job
 - `app/reflexes/table_monitor_reflex.rb` - Interactive number pad reflex
-- `app/channels/table_monitor_channel.rb` - WebSocket channel (unchanged)
-- `app/channels/tournament_monitor_channel.rb` - WebSocket channel (unchanged)
+- `app/channels/table_monitor_channel.rb` - WebSocket channel (rejects subscriptions on API Server)
+- `app/channels/tournament_monitor_channel.rb` - WebSocket channel (rejects subscriptions on API Server)
+- `app/channels/table_monitor_clock_channel.rb` - WebSocket channel (rejects subscriptions on API Server)
 
 ## Future Considerations
 
