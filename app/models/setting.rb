@@ -833,8 +833,19 @@ class Setting < ApplicationRecord
 
     # Finde groupItemId direkt aus game.gname (verwendet CC: UNIVERSAL Mapping wenn verfügbar)
     group_item_id = find_group_item_id_from_gname(game.gname, tournament)
+    
+    # Fallback: Wenn find_group_item_id_from_gname fehlschlägt, versuche manuelles Mapping
     unless group_item_id
       cc_group_name = map_game_gname_to_cc_group_name(game.gname)
+      if cc_group_name.present?
+        # Mapping war erfolgreich, versuche nochmal mit find_group_item_id
+        group_item_id = find_group_item_id(tournament, cc_group_name)
+      end
+    end
+    
+    # Nur wenn auch der Fallback fehlgeschlagen ist, Fehler melden
+    unless group_item_id
+      cc_group_name ||= map_game_gname_to_cc_group_name(game.gname)
       error_msg = "Gruppe '#{game.gname}' konnte nicht zugeordnet werden (CC-Name: '#{cc_group_name || 'unbekannt'}')"
       Rails.logger.warn "[CC-Upload] #{error_msg} for game[#{game.id}]"
       log_cc_upload_error(tournament, game, error_msg)
