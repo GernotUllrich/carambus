@@ -597,7 +597,19 @@ class Tournament < ApplicationRecord
           Rails.logger.info("===== scrape ===== Inconsistent Playerlist Player #{[k, v].inspect}")
         end
       end
-      Game.where(tournament_id: self.id).where("tournament_type='Tournament' OR tournament_type is NULL").destroy_all if opts[:reload_game_results]
+      # Delete ALL games with this tournament_id, regardless of tournament_type
+      # This ensures orphan games are also cleaned up (e.g., games with tournament_id but wrong/missing tournament_type)
+      # IMPORTANT: Use destroy_all (not delete_all) to create PaperTrail versions for synchronization with local servers
+      if opts[:reload_game_results]
+        games_to_delete = Game.where(tournament_id: self.id)
+        count_before = games_to_delete.count
+        if count_before > 0
+          Rails.logger.info "Deleting #{count_before} game(s) for tournament #{self.id} (reload_game_results: true)"
+          games_to_delete.destroy_all
+          count_after = Game.where(tournament_id: self.id).count
+          Rails.logger.info "After deletion: #{count_after} game(s) remaining for tournament #{self.id}"
+        end
+      end
       # games.destroy_all if opts[:reload_game_results]
       group = nil
       frame1_lines = result_lines = td_lines = 0
@@ -1369,6 +1381,14 @@ class Tournament < ApplicationRecord
 
   def handle_game(region, frame_result, frames, gd, group, hs, hb, mp, innings, no, player_list, playera_fl_name, playerb_fl_name,
                   frame_points, points, result)
+    # Skip games where both players are "Freilos" (bye games) - these shouldn't be created
+    # Check if both players are "Freilos" or both are missing from player_list
+    playera_missing = playera_fl_name == "Freilos" || !player_list[playera_fl_name].present?
+    playerb_missing = playerb_fl_name == "Freilos" || !player_list[playerb_fl_name].present?
+    if playera_missing && playerb_missing
+      Rails.logger.info "Skipping bye game (Freilos vs Freilos) for tournament #{id}, seqno #{no}, group #{group}"
+      return
+    end
     game = games.where(seqno: no, gname: group).first
     region_id = region.id
     data = if frames.count > 1
