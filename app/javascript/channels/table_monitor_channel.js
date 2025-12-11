@@ -41,7 +41,37 @@ document.addEventListener('score:update', (event) => {
 
 // Page Context Detection and Filtering
 function getPageContext() {
-  // PRIORITY 1: Check meta tag (most reliable, set by server)
+  // IMPORTANT: Check page type FIRST before using meta tag
+  // Meta tag is present on all pages within location context, but should only
+  // be used for actual scoreboard pages
+  
+  // Detect table_scores overview page FIRST
+  if (document.querySelector('#table_scores')) {
+    return { type: 'table_scores' }
+  }
+  
+  // Detect tournament_scores view FIRST
+  if (document.querySelector('turbo-frame#teasers')) {
+    return { type: 'tournament_scores' }
+  }
+  
+  // Now we know we're NOT on table_scores or tournament_scores
+  // Check if we're on an actual scoreboard page
+  
+  // PRIORITY 1: Check data attribute (most reliable for scoreboard detection)
+  const scoreboardRoot = document.querySelector('[data-table-monitor-root="scoreboard"]')
+  if (scoreboardRoot) {
+    const tableMonitorId = scoreboardRoot.dataset.tableMonitorId
+    if (tableMonitorId) {
+      return { 
+        type: 'scoreboard', 
+        tableMonitorId: parseInt(tableMonitorId),
+        source: 'data-attribute'
+      }
+    }
+  }
+  
+  // PRIORITY 2: Check meta tag (reliable if scoreboard root is loading/transitioning)
   const metaTableMonitorId = document.querySelector('meta[name="scoreboard-table-monitor-id"]')
   if (metaTableMonitorId) {
     const tableMonitorId = parseInt(metaTableMonitorId.content)
@@ -53,19 +83,6 @@ function getPageContext() {
         type: 'scoreboard', 
         tableMonitorId: tableMonitorId,
         source: 'meta-tag'
-      }
-    }
-  }
-  
-  // PRIORITY 2: Detect individual scoreboard page via data attribute
-  const scoreboardRoot = document.querySelector('[data-table-monitor-root="scoreboard"]')
-  if (scoreboardRoot) {
-    const tableMonitorId = scoreboardRoot.dataset.tableMonitorId
-    if (tableMonitorId) {
-      return { 
-        type: 'scoreboard', 
-        tableMonitorId: parseInt(tableMonitorId),
-        source: 'data-attribute'
       }
     }
   }
@@ -82,16 +99,6 @@ function getPageContext() {
         source: 'dom-id'
       }
     }
-  }
-  
-  // Detect table_scores overview
-  if (document.querySelector('#table_scores')) {
-    return { type: 'table_scores' }
-  }
-  
-  // Detect tournament_scores view
-  if (document.querySelector('turbo-frame#teasers')) {
-    return { type: 'tournament_scores' }
   }
   
   return { type: 'unknown' }
@@ -580,3 +587,4 @@ const tableMonitorSubscription = consumer.subscriptions.create("TableMonitorChan
 
 // Export for external access if needed
 export default tableMonitorSubscription;
+
