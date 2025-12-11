@@ -23,6 +23,11 @@
   <%= csp_meta_tag %>
   <%= viewport_meta_tag %>
   <meta name="google" content="notranslate">
+  <!-- Scoreboard table_id binding for client-side validation -->
+  <% if @table&.table_monitor&.id.present? %>
+    <meta name="scoreboard-table-monitor-id" content="<%= @table.table_monitor.id %>">
+    <meta name="scoreboard-table-id" content="<%= @table.id %>">
+  <% end %>
   <% if current_user&.system_theme? %>
     <script>document.documentElement.classList.toggle("dark", window.matchMedia('(prefers-color-scheme: dark)').matches)</script>
   <% end %>

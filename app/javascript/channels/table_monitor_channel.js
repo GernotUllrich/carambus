@@ -41,19 +41,36 @@ document.addEventListener('score:update', (event) => {
 
 // Page Context Detection and Filtering
 function getPageContext() {
-  // Detect individual scoreboard page
+  // PRIORITY 1: Check meta tag (most reliable, set by server)
+  const metaTableMonitorId = document.querySelector('meta[name="scoreboard-table-monitor-id"]')
+  if (metaTableMonitorId) {
+    const tableMonitorId = parseInt(metaTableMonitorId.content)
+    if (tableMonitorId) {
+      if (PERF_LOGGING && !NO_LOGGING) {
+        console.log('🎯 Table Monitor ID from meta tag:', tableMonitorId)
+      }
+      return { 
+        type: 'scoreboard', 
+        tableMonitorId: tableMonitorId,
+        source: 'meta-tag'
+      }
+    }
+  }
+  
+  // PRIORITY 2: Detect individual scoreboard page via data attribute
   const scoreboardRoot = document.querySelector('[data-table-monitor-root="scoreboard"]')
   if (scoreboardRoot) {
     const tableMonitorId = scoreboardRoot.dataset.tableMonitorId
     if (tableMonitorId) {
       return { 
         type: 'scoreboard', 
-        tableMonitorId: parseInt(tableMonitorId)
+        tableMonitorId: parseInt(tableMonitorId),
+        source: 'data-attribute'
       }
     }
   }
   
-  // Fallback: try to detect by ID if data attribute is missing
+  // PRIORITY 3: Fallback - try to detect by ID if data attribute is missing
   const scoreboardEl = document.querySelector('[id^="full_screen_table_monitor_"]')
   if (scoreboardEl) {
     const idMatch = scoreboardEl.id.match(/full_screen_table_monitor_(\d+)/)
@@ -61,7 +78,8 @@ function getPageContext() {
     if (tableMonitorId) {
       return { 
         type: 'scoreboard', 
-        tableMonitorId: tableMonitorId
+        tableMonitorId: tableMonitorId,
+        source: 'dom-id'
       }
     }
   }
@@ -96,8 +114,16 @@ function shouldAcceptOperation(operation, pageContext) {
       if (fullScreenMatch) {
         const selectorTableMonitorId = parseInt(fullScreenMatch[1])
         const isMatch = selectorTableMonitorId === pageContext.tableMonitorId
-        if (!isMatch && (PERF_LOGGING || !NO_LOGGING)) {
-          console.log(`🚫 REJECTED: Selector ${selector} (ID: ${selectorTableMonitorId}) does not match current scoreboard (ID: ${pageContext.tableMonitorId})`)
+        if (!isMatch) {
+          // CRITICAL: Log rejected scoreboard updates for debugging mix-ups
+          console.warn(`🚫 SCOREBOARD MIX-UP PREVENTED: Selector ${selector} (TM_ID: ${selectorTableMonitorId}) rejected for current scoreboard (TM_ID: ${pageContext.tableMonitorId}, source: ${pageContext.source})`)
+          console.warn(`🚫 Context:`, {
+            rejectedTableMonitorId: selectorTableMonitorId,
+            currentTableMonitorId: pageContext.tableMonitorId,
+            detectionSource: pageContext.source,
+            timestamp: new Date().toISOString(),
+            url: window.location.href
+          })
         }
         return isMatch
       }
@@ -434,6 +460,18 @@ const tableMonitorSubscription = consumer.subscriptions.create("TableMonitorChan
             operation: op.operation,
             selector: op.selector
           }))
+        })
+      }
+      
+      // CRITICAL: Log if we're on a scoreboard page but context detection failed
+      if (pageContext.type === 'unknown' && document.querySelector('[data-table-monitor-root="scoreboard"]')) {
+        console.error('⚠️ SCOREBOARD CONTEXT DETECTION FAILED:', {
+          detectedType: pageContext.type,
+          hasScoreboardRoot: true,
+          metaTag: document.querySelector('meta[name="scoreboard-table-monitor-id"]')?.content,
+          dataAttribute: document.querySelector('[data-table-monitor-root="scoreboard"]')?.dataset?.tableMonitorId,
+          timestamp: new Date().toISOString(),
+          url: window.location.href
         })
       }
       

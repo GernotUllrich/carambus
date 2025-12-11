@@ -46,8 +46,18 @@ class LocationsController < ApplicationController
     tournament = Tournament.find(params[:tournament_id]) if params[:tournament_id].present?
     @navbar = @footer = false
 
-    # Set @table if table_id is present
-    @table = Table.find(params[:table_id]) if params[:table_id].present?
+    # Set @table if table_id is present (from params or session)
+    # IMPORTANT: Prefer params[:table_id] over session to allow table switching
+    # But fallback to session[:scoreboard_table_id] if params is missing (e.g., page reload)
+    if params[:table_id].present?
+      @table = Table.find(params[:table_id])
+      # Update session with current table_id
+      session[:scoreboard_table_id] = params[:table_id]
+      Rails.logger.info "[Scoreboard] 🎯 Table set from params: #{@table.id} (location: #{@location.id})"
+    elsif session[:scoreboard_table_id].present?
+      @table = Table.find(session[:scoreboard_table_id])
+      Rails.logger.info "[Scoreboard] 🎯 Table restored from session: #{@table.id} (location: #{@location.id})"
+    end
 
     # Preload data based on state
     case session[:sb_state]
@@ -270,6 +280,13 @@ class LocationsController < ApplicationController
   def scoreboard
     session[:location_id] = @location.id
     sb_state = params[:sb_state] || "welcome"
+    
+    # IMPORTANT: Persist table_id in session to prevent scoreboard mix-ups
+    # This ensures that after page reloads, the correct table is displayed
+    if params[:table_id].present?
+      session[:scoreboard_table_id] = params[:table_id]
+      Rails.logger.info "[Scoreboard] 🎯 Session table_id set: #{session[:scoreboard_table_id]} (location: #{@location.id})"
+    end
     
     # Auto-Login zum Scoreboard-User nur wenn kein User angemeldet ist
     # Wenn ein User bereits angemeldet ist, bleibt current_user erhalten
