@@ -4,7 +4,7 @@
                 id: "tournament_#{@tournament.id}",
                 class: "container mx-auto my-2 px-2" do %>
   <!-- Tournament Channel Subscription wird über JavaScript gehandhabt (tournament_channel.js) -->
-  
+
   <!-- Tournament Details (collapsed in card) -->
   <div class="tournament-details-card">
     <%= render :partial => "show", locals: { tournament: @tournament, subtitle: "", show_edit_back: true } %>
@@ -20,7 +20,7 @@
             <div>
               <h3 class="font-semibold text-yellow-900 mb-1">Turnier ist schreibgeschützt</h3>
               <p class="text-yellow-800">
-                Dieses Turnier hat bereits <strong>Ergebnisse aus der ClubCloud</strong> und kann nicht mehr bearbeitet werden. 
+                Dieses Turnier hat bereits <strong>Ergebnisse aus der ClubCloud</strong> und kann nicht mehr bearbeitet werden.
                 Die ClubCloud ist die führende Datenquelle für abgeschlossene Turniere.
               </p>
             </div>
@@ -91,7 +91,7 @@
   <% end %>
 
   <%- seeding_scope = @tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").count > 0 ? "seedings.id >= #{Seeding::MIN_ID}" : "seedings.id < #{Seeding::MIN_ID}" %>
-  
+
   <!-- Rankings Section -->
   <div class="seedings-table-container">
     <h2><%= I18n.t("tournaments.show.rankings") %></h2>
@@ -132,7 +132,7 @@
         <%- end %>
       </div>
   </div>
-  
+
   <!-- Games Section -->
   <%- game_scope = @tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").count > 0 ? "games.id >= #{Game::MIN_ID}" : "games.id < #{Game::MIN_ID}" %>
   <div class="seedings-table-container">
@@ -167,12 +167,12 @@
         <%- end %>
       </div>
   </div>
-  
+
   <!-- Admin Actions -->
   <% if local_server? %>
     <div class="admin-actions-container" style="margin-top: 2rem;">
       <%- games = @tournament.games.where(game_scope).order(seqno: :asc) %>
-      
+
       <!-- Regular Admin Actions (only for tournaments without ClubCloud results) -->
       <% if !@tournament.has_clubcloud_results? %>
         <%- if !@tournament.tournament_started %>
@@ -182,16 +182,17 @@
           <%= button_to I18n.t("tournaments.show.debugging_force_reset_tournament_monitor"), reset_tournament_path(@tournament, force_reset: true), method: :post, class: "btn btn-flat btn-primary", style: "float: left; margin-right: 10px;" %>
         <% end %>
       <% end %>
-      
-      <!-- Sysadmin: Force Reload from API Server (for closed tournaments with results) -->
-      <% if current_user&.privileged_access? %>
-        <%= button_to I18n.t("tournaments.show.force_reload_from_api"), 
-            reload_from_cc_tournament_path(@tournament, reload_games: true), 
-            method: :post, 
-            class: "btn btn-flat btn-warning", 
-            data: { confirm: I18n.t("tournaments.show.force_reload_confirm") }, 
-            style: "float: left; margin-right: 10px;" %>
-      <% end %>
     </div>
+  <% end %>
+
+  <!-- Sysadmin: Force Reload from API Server (for closed tournaments with results) -->
+  <!-- if on API Server force full scraping again -->
+  <% if current_user&.privileged_access? %>
+    <%= button_to I18n.t("tournaments.show.force_reload_from_api"),
+                  reload_from_cc_tournament_path(@tournament, reload_games: true),
+                  method: :post,
+                  class: "btn btn-flat btn-warning",
+                  data: { confirm: I18n.t("tournaments.show.force_reload_confirm") },
+                  style: "float: left; margin-right: 10px;" %>
   <% end %>
 <% end %>
