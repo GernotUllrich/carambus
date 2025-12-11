@@ -83,6 +83,7 @@ class SeedingListExtractor
       if in_seeding_section
         # Skip Header-Zeilen
         next if line =~ /Name\s+Pkt/i
+        next if line =~ /^[\s]*Name[\s]*Name/i  # Header mit zwei "Name" Spalten
         next if line.strip.empty?
         
         # Pattern für Spieler mit Vorgabe (Zahl nach dem Namen)
@@ -90,11 +91,15 @@ class SeedingListExtractor
         # oder:   "4   Jahn Wilfried              25" (einspaltig)
         # Struktur: Nummer + Name + viele Leerzeichen + Zahl + (viele Leerzeichen + zweiter Spieler)
         
-        # Versuche zuerst zweispaltiges Format zu erkennen
-        # Pattern: Nummer + Name (Nachname + Vorname, flexibel) + flexible Whitespace + Zahl + große Leerzeichen + Nummer + Name + flexible Whitespace + Zahl
-        # Verwende flexiblere Namens-Patterns die auch Bindestriche unterstützen
-        # Erlaubt variable Whitespace zwischen Name und Zahl
-        two_column_pattern = /^\s*(\d+)\s+([A-ZÄÖÜ][\wäöüß\-]+)\s+([A-ZÄÖÜ][\wäöüß\-\.]+)\s+(\d+)(?:\s*Pkt)?\s{3,}(\d+)\s+([A-ZÄÖÜ][\wäöüß\-]+)\s+([A-ZÄÖÜ][\wäöüß\-\.]+)\s+(\d+)(?:\s*Pkt)?/i
+        # WICHTIG: Prüfe zuerst zweispaltige Formate, BEVOR einspaltige geprüft werden!
+        # Sonst wird nur der erste Spieler erkannt und die rechte Spalte ignoriert.
+        
+        # Zweispaltig MIT Vorgaben: Nummer + Name + Zahl + große Leerzeichen + Nummer + Name + Zahl
+        two_column_with_points = /^\s*(\d+)\s+([A-ZÄÖÜ][\wäöüß\-]+)\s+([A-ZÄÖÜ][\wäöüß\-\.]+)\s+(\d+)(?:\s*Pkt)?\s{3,}(\d+)\s+([A-ZÄÖÜ][\wäöüß\-]+)\s+([A-ZÄÖÜ][\wäöüß\-\.]+)\s+(\d+)(?:\s*Pkt)?/i
+        
+        # Zweispaltig OHNE Vorgaben: Nummer + Name + große Leerzeichen + Nummer + Name
+        # Format: "1 Smrcka Martin          4   Stahl Mario"
+        two_column_without_points = /^\s*(\d+)\s+([A-ZÄÖÜ][\wäöüß\-]+)\s+([A-ZÄÖÜ][\wäöüß\-\.]+)\s{3,}(\d+)\s+([A-ZÄÖÜ][\wäöüß\-]+)\s+([A-ZÄÖÜ][\wäöüß\-\.]+)/i
         
         # Einspaltig mit Vorgabe: Nummer + Nachname + Vorname + flexible Whitespace + Zahl
         single_with_points = /^\s*(\d+)\s+([A-ZÄÖÜ][\wäöüß\-]+)\s+([A-ZÄÖÜ][\wäöüß\-\.]+)\s+(\d+)(?:\s*Pkt)?/i
@@ -102,7 +107,7 @@ class SeedingListExtractor
         # Einspaltig ohne Vorgabe (Fallback)
         single_without_points = /^\s*(\d+)\s+([A-ZÄÖÜ][\wäöüß\-]+)\s+([A-ZÄÖÜ][\wäöüß\-\.]+)/i
         
-        if (match = line.match(two_column_pattern))
+        if (match = line.match(two_column_with_points))
           # Zweispaltig MIT Vorgaben
           # Linke Spalte
           players << {
@@ -120,6 +125,23 @@ class SeedingListExtractor
             firstname: match[7].strip,
             full_name: "#{match[6].strip}, #{match[7].strip}",
             balls_goal: match[8].to_i
+          }
+        elsif (match = line.match(two_column_without_points))
+          # Zweispaltig OHNE Vorgaben
+          # Linke Spalte
+          players << {
+            position: match[1].to_i,
+            lastname: match[2].strip,
+            firstname: match[3].strip,
+            full_name: "#{match[2].strip}, #{match[3].strip}"
+          }
+          
+          # Rechte Spalte
+          players << {
+            position: match[4].to_i,
+            lastname: match[5].strip,
+            firstname: match[6].strip,
+            full_name: "#{match[5].strip}, #{match[6].strip}"
           }
         elsif (match = line.match(single_with_points))
           # Einspaltig MIT Vorgabe (kann in zweispaltiger Tabelle vorkommen, z.B. letzte Zeile)
