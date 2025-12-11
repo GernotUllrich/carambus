@@ -18,14 +18,6 @@ module TournamentMonitorState
     game = table_monitor.game
     game.deep_merge_data!("ba_results" => table_monitor.data["ba_results"])
     game.save!
-    return unless tournament.manual_assignment || tournament.continuous_placements
-
-    update_game_participations(table_monitor)
-    # noinspection RubyResolve
-    table_monitor.close_match!
-    args = { game_id: nil }
-    args[:tournament_monitor] = nil unless tournament.continuous_placements
-    table_monitor.update(args)
 
     # Automatische Übertragung in die ClubCloud
     if tournament.tournament_cc.present?
@@ -43,6 +35,15 @@ module TournamentMonitorState
         # Nicht weiterwerfen, damit finalize_game_result nicht fehlschlägt
       end
     end
+
+    return unless tournament.manual_assignment || tournament.continuous_placements
+
+    update_game_participations(table_monitor)
+    # noinspection RubyResolve
+    table_monitor.close_match!
+    args = { game_id: nil }
+    args[:tournament_monitor] = nil unless tournament.continuous_placements
+    table_monitor.update(args)
   end
 
   def all_table_monitors_finished?
@@ -393,7 +394,7 @@ module TournamentMonitorState
       tournament.reload.signal_tournament_monitors_ready!
       # noinspection RubyResolve
       start_playing_groups! if groups_must_be_played
-      
+
       # Vorbereitung des GroupCc Mappings für ClubCloud (nur wenn tournament_cc vorhanden)
       begin
         if tournament.tournament_cc.present?
@@ -402,7 +403,7 @@ module TournamentMonitorState
           group_cc = tournament.tournament_cc.prepare_group_mapping(opts)
           if group_cc
             Tournament.logger.info "[tmon-reset_tournament_monitor] GroupCc mapping prepared: GroupCc[#{group_cc.id}]"
-            
+
             # Validiere Mapping
             validation = tournament.tournament_cc.validate_game_gname_mapping
             if validation[:missing].any?
@@ -422,7 +423,7 @@ module TournamentMonitorState
         Tournament.logger.error "[tmon-reset_tournament_monitor] Backtrace: #{e.backtrace&.join("\n")}"
         # Fehler nicht weiterwerfen, damit reset_tournament_monitor nicht fehlschlägt
       end
-      
+
       Tournament.logger.info "...[tmon-reset_tournament_monitor] tournament.state:\
  #{tournament.state} tournament_monitor.state: #{state}"
     else
