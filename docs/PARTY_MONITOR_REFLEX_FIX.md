@@ -1,7 +1,7 @@
 # PartyMonitor Reflex Issue - Root Cause Analysis
 
 ## Problem
-PartyMonitor reflex actions (assign_player, remove_player) were not providing immediate UI feedback in development environment. The same code worked perfectly in production.
+PartyMonitor reflex actions (assign_player, remove_player, reset_party_monitor) were not providing immediate UI feedback in development environment. The same code worked perfectly in production.
 
 ## Root Cause
 **Stale JavaScript assets in development.**
@@ -75,6 +75,27 @@ Before diving into code changes, check:
 | WebSockets | Local Redis | Production Redis |
 | JavaScript | Source maps available | Minified |
 
+## Additional Issues Found and Fixed
+
+### Reset Button Not Working
+
+**Problem**: The reset_party_monitor button had no effect when clicked.
+
+**Root Causes**:
+1. Button was inside a `<form>` and defaulting to `type="submit"`, causing form submission instead of reflex
+2. HTML escaping of `->` in `data-reflex="confirm:complete->PartyMonitorReflex#reset_party_monitor"` became `&gt;` breaking the syntax
+3. UI not updating after reset completed
+
+**Solutions**:
+1. Added `type="button"` attribute to prevent form submission
+2. Changed reflex syntax from `confirm:complete->` to simple `click->` (avoids HTML escaping)
+3. Added `window.location.reload()` in `resetPartyMonitorSuccess` lifecycle method to refresh UI
+4. Created minimal `party_monitor_controller.js` with lifecycle methods
+
+**Key Learning**: Buttons inside forms need explicit `type="button"` to prevent form submission. Rails `content_tag` with complex data attributes can cause HTML escaping issues with special characters like `->`.
+
 ## Prevention
 
 Consider adding a pre-commit hook or reminder to rebuild assets after pulling changes that might affect JavaScript controllers or StimulusReflex behavior.
+
+Always use `type="button"` for buttons inside forms when using StimulusReflex.
