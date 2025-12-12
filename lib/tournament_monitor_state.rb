@@ -39,7 +39,9 @@ module TournamentMonitorState
       Rails.logger.info "[TournamentMonitorState] Attempting ClubCloud upload for game[#{game.id}]..."
       result = Setting.upload_game_to_cc(table_monitor)
       if result[:success]
-        if result[:skipped]
+        if result[:dry_run]
+          Rails.logger.info "[TournamentMonitorState] 🧪 ClubCloud upload DRY RUN completed for game[#{game.id}] (development mode)"
+        elsif result[:skipped]
           Rails.logger.info "[TournamentMonitorState] ⊘ ClubCloud upload skipped for game[#{game.id}] (already uploaded)"
         else
           Rails.logger.info "[TournamentMonitorState] ✓ ClubCloud upload successful for game[#{game.id}]"

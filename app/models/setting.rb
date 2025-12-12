@@ -908,6 +908,37 @@ class Setting < ApplicationRecord
 
     player1 = gp1.player
     player2 = gp2.player
+    
+    # DRY RUN MODE für Development Environment
+    if Rails.env.development?
+      Rails.logger.info "=" * 80
+      Rails.logger.info "[CC-Upload] 🧪 DRY RUN MODE (Development Environment)"
+      Rails.logger.info "[CC-Upload] ⚠️  NO ACTUAL UPLOAD TO CLUBCLOUD WILL BE PERFORMED"
+      Rails.logger.info "=" * 80
+      Rails.logger.info "[CC-Upload] Would upload game[#{game.id}]:"
+      Rails.logger.info "[CC-Upload]   Tournament: #{tournament.title}"
+      Rails.logger.info "[CC-Upload]   Group: #{game.gname} → #{cc_group_name}"
+      Rails.logger.info "[CC-Upload]   GroupItemId: #{group_item_id}"
+      Rails.logger.info "[CC-Upload]   Player 1: #{player1&.name} (DBU: #{player1&.dbu_nr})"
+      Rails.logger.info "[CC-Upload]   Player 2: #{player2&.name} (DBU: #{player2&.dbu_nr})" if player2.present?
+      Rails.logger.info "[CC-Upload]   Results:"
+      Rails.logger.info "[CC-Upload]     - Player 1: #{ba_results['Ergebnis1']} balls, #{ba_results['Aufnahmen1']} innings, HS: #{ba_results['Höchstserie1']}"
+      Rails.logger.info "[CC-Upload]     - Player 2: #{ba_results['Ergebnis2']} balls, #{ba_results['Aufnahmen2']} innings, HS: #{ba_results['Höchstserie2']}" if player2.present?
+      Rails.logger.info "[CC-Upload]   URL: #{region_cc.base_url}/admin/einzel/meisterschaft/createErgebnisSave.php"
+      Rails.logger.info "=" * 80
+      
+      # Markiere Spiel als erfolgreich hochgeladen (auch im Dry Run)
+      game.reload
+      game.unprotected = true
+      game.data.delete("cc_upload_in_progress")
+      game.data_will_change!
+      game.save!
+      game.unprotected = false
+      clear_cc_upload_error(tournament, game)
+      
+      return { success: true, error: nil, skipped: false, dry_run: true }
+    end
+    
     unless player1.present? && player2.present?
       error_msg = "Players not found"
       return { success: false, error: error_msg }
