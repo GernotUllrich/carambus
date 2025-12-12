@@ -41,12 +41,16 @@ class PartyMonitorReflex < ApplicationReflex
     end
     
     Rails.logger.info "🔵 Instance variables before morph: @assigned_players_#{ab}_ids exists? #{instance_variable_defined?("@assigned_players_#{ab}_ids")}"
-    Rails.logger.info "🔵 About to call morph :page"
+    Rails.logger.info "🔵 @assigned_players_#{ab}_ids count: #{instance_variable_get("@assigned_players_#{ab}_ids")&.count}"
+    Rails.logger.info "🔵 About to call morph with selector ##{dom_id(@party_monitor)}"
     
-    # Force page re-render to show updated player lists
-    morph :page
+    # Re-fetch fresh data from database before morphing
+    setup_view_variables
     
-    Rails.logger.info "🔵 END assign_player_#{ab} - morph :page called"
+    # Morph just the party_monitor div instead of entire page
+    morph "##{dom_id(@party_monitor)}", render(partial: "party_monitors/party_monitor", locals: { party_monitor: @party_monitor })
+    
+    Rails.logger.info "🔵 END assign_player_#{ab} - morph called"
   rescue StandardError => e
     Rails.logger.error "🔴 ERROR in assign_player_#{ab}: #{e.message}"
     Rails.logger.error "🔴 Backtrace: #{e.backtrace.first(10).join("\n")}"
@@ -61,12 +65,15 @@ class PartyMonitorReflex < ApplicationReflex
     
     deleted = Seeding.where(player_id: remove_ids, tournament: @party, role: "team_#{ab}").destroy_all
     Rails.logger.info "🔵 Destroyed #{deleted.count} seeding(s)"
-    Rails.logger.info "🔵 About to call morph :page"
+    Rails.logger.info "🔵 About to call morph with selector ##{dom_id(@party_monitor)}"
     
-    # Force page re-render to show updated player lists
-    morph :page
+    # Re-fetch fresh data from database before morphing
+    setup_view_variables
     
-    Rails.logger.info "🔵 END remove_player_#{ab} - morph :page called"
+    # Morph just the party_monitor div instead of entire page
+    morph "##{dom_id(@party_monitor)}", render(partial: "party_monitors/party_monitor", locals: { party_monitor: @party_monitor })
+    
+    Rails.logger.info "🔵 END remove_player_#{ab} - morph called"
   rescue StandardError => e
     Rails.logger.error "🔴 ERROR in remove_player_#{ab}: #{e.message}"
     Rails.logger.error "🔴 Backtrace: #{e.backtrace.first(10).join("\n")}"
