@@ -40,17 +40,22 @@ class PartyMonitorReflex < ApplicationReflex
       Rails.logger.info "🔵 Created seeding ID: #{seeding.id}, valid: #{seeding.valid?}, errors: #{seeding.errors.full_messages.inspect}"
     end
     
-    Rails.logger.info "🔵 Instance variables before morph: @assigned_players_#{ab}_ids exists? #{instance_variable_defined?("@assigned_players_#{ab}_ids")}"
-    Rails.logger.info "🔵 @assigned_players_#{ab}_ids count: #{instance_variable_get("@assigned_players_#{ab}_ids")&.count}"
-    Rails.logger.info "🔵 About to call morph with selector ##{dom_id(@party_monitor)}"
+    Rails.logger.info "🔵 Instance variables before re-fetch: @assigned_players_#{ab}_ids exists? #{instance_variable_defined?("@assigned_players_#{ab}_ids")}"
     
-    # Re-fetch fresh data from database before morphing
+    # Re-fetch fresh data from database after creating seedings
     setup_view_variables
     
-    # Morph just the party_monitor div instead of entire page
-    morph "##{dom_id(@party_monitor)}", render(partial: "party_monitors/party_monitor", locals: { party_monitor: @party_monitor })
+    Rails.logger.info "🔵 @assigned_players_#{ab}_ids count after re-fetch: #{instance_variable_get("@assigned_players_#{ab}_ids")&.count}"
+    Rails.logger.info "🔵 About to use cable_ready to update page"
     
-    Rails.logger.info "🔵 END assign_player_#{ab} - morph called"
+    # Use CableReady to update the page - more reliable than morph with Turbo
+    cable_ready[StimulusReflex::Channel.channel_name].morph(
+      selector: "body",
+      html: render(template: "party_monitors/show")
+    )
+    cable_ready.broadcast
+    
+    Rails.logger.info "🔵 END assign_player_#{ab} - broadcast sent"
   rescue StandardError => e
     Rails.logger.error "🔴 ERROR in assign_player_#{ab}: #{e.message}"
     Rails.logger.error "🔴 Backtrace: #{e.backtrace.first(10).join("\n")}"
@@ -65,15 +70,20 @@ class PartyMonitorReflex < ApplicationReflex
     
     deleted = Seeding.where(player_id: remove_ids, tournament: @party, role: "team_#{ab}").destroy_all
     Rails.logger.info "🔵 Destroyed #{deleted.count} seeding(s)"
-    Rails.logger.info "🔵 About to call morph with selector ##{dom_id(@party_monitor)}"
     
-    # Re-fetch fresh data from database before morphing
+    # Re-fetch fresh data from database after destroying seedings
     setup_view_variables
     
-    # Morph just the party_monitor div instead of entire page
-    morph "##{dom_id(@party_monitor)}", render(partial: "party_monitors/party_monitor", locals: { party_monitor: @party_monitor })
+    Rails.logger.info "🔵 About to use cable_ready to update page"
     
-    Rails.logger.info "🔵 END remove_player_#{ab} - morph called"
+    # Use CableReady to update the page - more reliable than morph with Turbo
+    cable_ready[StimulusReflex::Channel.channel_name].morph(
+      selector: "body",
+      html: render(template: "party_monitors/show")
+    )
+    cable_ready.broadcast
+    
+    Rails.logger.info "🔵 END remove_player_#{ab} - broadcast sent"
   rescue StandardError => e
     Rails.logger.error "🔴 ERROR in remove_player_#{ab}: #{e.message}"
     Rails.logger.error "🔴 Backtrace: #{e.backtrace.first(10).join("\n")}"
