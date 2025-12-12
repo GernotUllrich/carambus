@@ -40,22 +40,16 @@ class PartyMonitorReflex < ApplicationReflex
       Rails.logger.info "🔵 Created seeding ID: #{seeding.id}, valid: #{seeding.valid?}, errors: #{seeding.errors.full_messages.inspect}"
     end
     
-    Rails.logger.info "🔵 Instance variables before re-fetch: @assigned_players_#{ab}_ids exists? #{instance_variable_defined?("@assigned_players_#{ab}_ids")}"
-    
-    # Re-fetch fresh data from database after creating seedings
+    # Re-fetch fresh data from database AFTER creating seedings
     setup_view_variables
     
     Rails.logger.info "🔵 @assigned_players_#{ab}_ids count after re-fetch: #{instance_variable_get("@assigned_players_#{ab}_ids")&.count}"
-    Rails.logger.info "🔵 About to use cable_ready to update page"
+    Rails.logger.info "🔵 About to morph - instance variables are now refreshed with new data"
     
-    # Use CableReady to update the page - more reliable than morph with Turbo
-    cable_ready[StimulusReflex::Channel.channel_name].morph(
-      selector: "body",
-      html: render(template: "party_monitors/show")
-    )
-    cable_ready.broadcast
+    # Now morph :page will use the refreshed instance variables
+    morph :page
     
-    Rails.logger.info "🔵 END assign_player_#{ab} - broadcast sent"
+    Rails.logger.info "🔵 END assign_player_#{ab} - morph :page called with fresh data"
   rescue StandardError => e
     Rails.logger.error "🔴 ERROR in assign_player_#{ab}: #{e.message}"
     Rails.logger.error "🔴 Backtrace: #{e.backtrace.first(10).join("\n")}"
@@ -71,19 +65,15 @@ class PartyMonitorReflex < ApplicationReflex
     deleted = Seeding.where(player_id: remove_ids, tournament: @party, role: "team_#{ab}").destroy_all
     Rails.logger.info "🔵 Destroyed #{deleted.count} seeding(s)"
     
-    # Re-fetch fresh data from database after destroying seedings
+    # Re-fetch fresh data from database AFTER destroying seedings
     setup_view_variables
     
-    Rails.logger.info "🔵 About to use cable_ready to update page"
+    Rails.logger.info "🔵 About to morph - instance variables are now refreshed with new data"
     
-    # Use CableReady to update the page - more reliable than morph with Turbo
-    cable_ready[StimulusReflex::Channel.channel_name].morph(
-      selector: "body",
-      html: render(template: "party_monitors/show")
-    )
-    cable_ready.broadcast
+    # Now morph :page will use the refreshed instance variables
+    morph :page
     
-    Rails.logger.info "🔵 END remove_player_#{ab} - broadcast sent"
+    Rails.logger.info "🔵 END remove_player_#{ab} - morph :page called with fresh data"
   rescue StandardError => e
     Rails.logger.error "🔴 ERROR in remove_player_#{ab}: #{e.message}"
     Rails.logger.error "🔴 Backtrace: #{e.backtrace.first(10).join("\n")}"
