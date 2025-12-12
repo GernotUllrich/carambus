@@ -320,6 +320,12 @@ class PartyMonitorReflex < ApplicationReflex
   end
 
   def reset_party_monitor
+    unless current_user&.admin?
+      flash[:alert] = "Nur Administratoren können den Party Monitor zurücksetzen."
+      Rails.logger.warn "Unauthorized reset_party_monitor attempt by user: #{current_user&.id}"
+      return
+    end
+
     # morph :nothing
     # 1. Lösche Games der TableMonitors (nur wenn vorhanden)
     @party_monitor.table_monitors.each do |table_monitor|
@@ -393,5 +399,37 @@ class PartyMonitorReflex < ApplicationReflex
   def load_objects
     @party_monitor = PartyMonitor.find(element.dataset["id"])
     @party = @party_monitor.party
+    setup_view_variables
+  end
+
+  def setup_view_variables
+    # Set up all instance variables needed by the view
+    # This mirrors what the controller's show action does
+    @league = @party.league
+    @assigned_players_a_ids = Player.joins(:seedings).where(seedings: { role: "team_a", tournament_type: "Party",
+                                                                        tournament_id: @party.id }).order("players.lastname").ids
+    @assigned_players_b_ids = Player.joins(:seedings).where(seedings: { role: "team_b", tournament_type: "Party",
+                                                                        tournament_id: @party.id }).order("players.lastname").ids
+    @available_players_a_ids = @party.league_team_a.seedings.joins(:player).order("players.lastname").map(&:player_id).select do |pid|
+      !@assigned_players_a_ids.include?(pid)
+    end
+    @available_players_b_ids = @party.league_team_b.seedings.joins(:player).order("players.lastname").map(&:player_id).select do |pid|
+      !@assigned_players_b_ids.include?(pid)
+    end
+    league_team_a_name = @party.league_team_a.name
+    league_team_b_name = @party.league_team_b.name
+    replacement_teams_a_ids = LeagueTeam.joins(:league).where(leagues: { season_id: Season.current_season.id }).where(club_id: @party.league_team_a.club_id).where("league_teams.name > '#{league_team_a_name}'").ids - @available_players_a_ids
+    replacement_teams_b_ids = LeagueTeam.joins(:league).where(leagues: { season_id: Season.current_season.id }).where(club_id: @party.league_team_b.club_id).where("league_teams.name > '#{league_team_b_name}'").ids - @available_players_b_ids
+    @available_replacement_players_a_ids = Seeding.where(league_team_id: replacement_teams_a_ids).joins(:player).order("players.lastname").map(&:player_id).select do |pid|
+      !@assigned_players_a_ids.include?(pid)
+    end
+    @available_replacement_players_b_ids = Seeding.where(league_team_id: replacement_teams_b_ids).joins(:player).order("players.lastname").map(&:player_id).select do |pid|
+      !@assigned_players_b_ids.include?(pid)
+    end
+
+    @available_fitting_table_ids = @party.location.andand.tables.andand.joins(table_kind: :disciplines).andand.where(disciplines: { id: @league.discipline_id }).andand.order("name").andand.map(&:id).to_a
+    @tournament_tables = @party.location.andand.tables.andand.joins(table_kind: :disciplines).andand.where(disciplines: { id: @league.discipline_id }).andand.count.to_i
+    @tables_from_plan = @party_monitor.data["tables"].to_i
+    @tournament_tables = [@tournament_tables, @party_monitor.data["tables"].to_i].min if @tables_from_plan > 0
   end
 end
