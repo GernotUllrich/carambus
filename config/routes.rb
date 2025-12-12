@@ -48,7 +48,8 @@ Rails.application.routes.draw do
   resources :discipline_phases
   resources :party_monitors do
     member do
-      get :upload_form
+      post :assign_player
+      post :remove_player
       get :upload_form
     end
   end

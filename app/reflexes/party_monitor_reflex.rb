@@ -44,12 +44,12 @@ class PartyMonitorReflex < ApplicationReflex
     setup_view_variables
     
     Rails.logger.info "🔵 @assigned_players_#{ab}_ids count after re-fetch: #{instance_variable_get("@assigned_players_#{ab}_ids")&.count}"
-    Rails.logger.info "🔵 About to reload page"
+    Rails.logger.info "🔵 About to morph page with fresh data"
     
-    # Use StimulusReflex's built-in redirect to reload the page
-    redirect_to request.url
+    # Now morph the page - instance variables have fresh data
+    morph :page
     
-    Rails.logger.info "🔵 END assign_player_#{ab} - redirect called"
+    Rails.logger.info "🔵 END assign_player_#{ab} - morph :page called with fresh data"
   rescue StandardError => e
     Rails.logger.error "🔴 ERROR in assign_player_#{ab}: #{e.message}"
     Rails.logger.error "🔴 Backtrace: #{e.backtrace.first(10).join("\n")}"
@@ -68,12 +68,12 @@ class PartyMonitorReflex < ApplicationReflex
     # Re-fetch fresh data from database AFTER destroying seedings
     setup_view_variables
     
-    Rails.logger.info "🔵 About to reload page"
+    Rails.logger.info "🔵 About to morph page with fresh data"
     
-    # Use StimulusReflex's built-in redirect to reload the page
-    redirect_to request.url
+    # Now morph the page - instance variables have fresh data
+    morph :page
     
-    Rails.logger.info "🔵 END remove_player_#{ab} - redirect called"
+    Rails.logger.info "🔵 END remove_player_#{ab} - morph :page called with fresh data"
   rescue StandardError => e
     Rails.logger.error "🔴 ERROR in remove_player_#{ab}: #{e.message}"
     Rails.logger.error "🔴 Backtrace: #{e.backtrace.first(10).join("\n")}"
