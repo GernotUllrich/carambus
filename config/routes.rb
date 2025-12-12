@@ -170,6 +170,7 @@ Rails.application.routes.draw do
     member do
       post :switch_players
       post :update_games
+      post :start_round_games
     end
   end
   resources :discipline_tournament_plans

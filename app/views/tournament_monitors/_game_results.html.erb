@@ -2,6 +2,19 @@
 <%- edit_games_modus = local_assigns[:edit_games_modus] %>
 <h2><%= t("tournament_monitors.game_results.game_results") %></h2>
 <%- game_scope = tournament_monitor.tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").count > 0 ? "games.id >= #{Game::MIN_ID}" : "games.id < #{Game::MIN_ID}" %>
+<%- has_games_to_start = tournament_monitor.table_monitors.includes(:game).where.not(game_id: nil).any? { |tm| %i[ready warmup warmup_a warmup_b match_shootout].include?(tm.state.to_sym) } %>
+<% if edit_games_modus && has_games_to_start %>
+  <div class="mb-4">
+    <%= button_to "🎯 Spiele der Runde starten (für manuelle Eingabe)", 
+        start_round_games_tournament_monitor_path(tournament_monitor), 
+        method: :post, 
+        class: "btn btn-warning",
+        data: { confirm: "Alle Spiele werden in den 'Playing'-Status versetzt. Danach können Ergebnisse manuell eingegeben werden." } %>
+    <p class="text-sm text-gray-600 mt-2">
+      ℹ️ Schritt 1: Spiele starten → Schritt 2: Ergebnisse eingeben und "update" klicken
+    </p>
+  </div>
+<% end %>
 <div class="flex space-x-20 p-4 bg-white dark:bg-black">
   <div class="w-full">
     <%= form_tag update_games_tournament_monitor_path(tournament_monitor), id: "update_games", method: :post do %>
