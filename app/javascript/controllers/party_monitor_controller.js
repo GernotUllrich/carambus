@@ -23,7 +23,9 @@ export default class extends ApplicationController {
   }
   
   resetPartyMonitorSuccess(element, reflex, noop, reflexId) {
-    console.log('✅ reset_party_monitor succeeded')
+    console.log('✅ reset_party_monitor succeeded - reloading page')
+    // Reload the page to show the reset state
+    window.location.reload()
   }
   
   resetPartyMonitorError(element, reflex, error, reflexId) {
