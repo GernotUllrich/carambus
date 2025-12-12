@@ -10,13 +10,16 @@ export default class extends ApplicationController {
     console.log('🔴 Before reset_party_monitor reflex', element, reflex)
     
     // Show confirm dialog
-    const message = element.dataset.confirm || "Bist Du sicher?"
-    if (!confirm(message)) {
-      console.log('🔴 User cancelled reset')
-      return false // Cancel the reflex
+    const message = element.dataset.confirm || "Bist Du sicher das gesammte Party-Monitoring incl. aller Spielerzuordnungen und Ergebnisse zurückzusetzen? Dies kann nicht rückgängig gemacht werden!"
+    const confirmed = confirm(message)
+    console.log('🔴 Confirm result:', confirmed)
+    
+    if (!confirmed) {
+      console.log('🔴 User cancelled reset - returning false to prevent reflex')
+      throw "User cancelled" // Throw to prevent the reflex from executing
     }
-    console.log('🔴 User confirmed reset')
-    return true
+    
+    console.log('🔴 User confirmed reset - proceeding with reflex')
   }
   
   resetPartyMonitorSuccess(element, reflex, noop, reflexId) {
