@@ -25,6 +25,7 @@ class TournamentMonitorsController < ApplicationController
       next unless game.present?
 
       table_monitor = game.table_monitor
+      next unless table_monitor.present?
       next unless (table_monitor.data["playera"]["balls_goal"].to_i == 0 || params["resulta"][ix].to_i <= table_monitor.data["playera"]["balls_goal"].to_i) &&
                   (table_monitor.data["playerb"]["balls_goal"].to_i == 0 || params["resultb"][ix].to_i <= table_monitor.data["playerb"]["balls_goal"].to_i) &&
                   (table_monitor.data["innings_goal"].to_i == 0 || params["inningsa"][ix].to_i <= table_monitor.data["innings_goal"].to_i) &&
