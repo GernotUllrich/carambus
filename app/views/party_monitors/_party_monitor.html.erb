@@ -260,7 +260,7 @@
 
             <%= custom_link_to( I18n.t("upload_to_club_cloud"), upload_form_party_monitor_path(@party_monitor), disabled: !@party_monitor.closed?, class: "btn btn-primary", data: { turbo: false}, title: I18n.t("upload_to_club_cloud"), method: :get) %>
 
-            <%= content_tag(:button, disabled: !current_user&.admin?, class: "btn btn-primary", name: "reset_party_ponitor", title: "PartyMonitor komplett zurücksetzen", data: { turbo: false, confirm: "Bist Du sicher das gesammte Party-Monitoring incl. aller Spielerzuordnungen und Ergebnisse zurückzusetzen?  Dies kann nicht rückgängig gemacht werden!", reflex: "confirm:complete->PartyMonitorReflex#reset_party_monitor", reflex_serialize_form: "true", id: @party_monitor.id, 'reflex-dataset': "ancestors" }) do %>
+            <%= content_tag(:button, type: "button", disabled: !current_user&.admin?, class: "btn btn-primary", name: "reset_party_ponitor", title: "PartyMonitor komplett zurücksetzen", data: { turbo: false, confirm: "Bist Du sicher das gesammte Party-Monitoring incl. aller Spielerzuordnungen und Ergebnisse zurückzusetzen?  Dies kann nicht rückgängig gemacht werden!", reflex: "confirm:complete->PartyMonitorReflex#reset_party_monitor", reflex_serialize_form: "true", id: @party_monitor.id, 'reflex-dataset': "ancestors" }) do %>
               <%= I18n.t("activerecord.attributes.party_monitor.reset_party_monitor") %> (<%= I18n.t("requires_admin_role") %>)
             <%- end %>
           </form>
