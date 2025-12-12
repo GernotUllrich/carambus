@@ -6,16 +6,43 @@ The reflexes in `PartyMonitorReflex` (e.g., `assign_player_a`, `remove_player_a`
 
 ## Root Cause
 
-StimulusReflex automatically re-renders the view after a reflex action completes (unless you specify `morph :nothing` or use CableReady explicitly). However, the view needs specific instance variables to render properly.
+**TWO critical issues were preventing reflexes from working:**
 
-The problem was:
-1. The `PartyMonitorReflex` methods were modifying the database (creating/destroying `Seeding` records)
-2. But they were NOT setting up the instance variables that the view `_party_monitor.html.erb` requires
-3. Without these variables (like `@assigned_players_a_ids`, `@available_players_a_ids`, etc.), the view couldn't render properly
-4. StimulusReflex would try to morph the DOM, but with missing data, resulting in no visible changes
+### Issue 1: Missing Stimulus Controller
+The view had `data-controller="party_monitor"` but there was no corresponding `party_monitor_controller.js` file! Without this controller:
+- StimulusReflex couldn't register the controller
+- Reflex actions couldn't be triggered via the WebSocket
+- No DOM morphing could occur
+
+### Issue 2: No Explicit Morph Command
+Even if the controller existed, the reflex methods didn't specify how to update the UI. They were:
+1. Modifying the database (creating/destroying `Seeding` records) ✅
+2. But NOT telling StimulusReflex to update the page ❌
+
+Without calling `morph :page`, StimulusReflex doesn't know it should re-render anything.
+
+### Issue 3: Missing Instance Variables
+The view template requires many instance variables to render properly, but these weren't being set in the reflex, only in the controller's `show` action.
 
 ## Solution
 
+**Three fixes were applied:**
+
+### Fix 1: Created Missing Stimulus Controller
+Created `/app/javascript/controllers/party_monitor_controller.js` that extends `ApplicationController`:
+- Registers with StimulusReflex on connect
+- Enables reflex actions to be triggered from the view
+- Adds lifecycle callbacks for debugging (beforeAssignPlayerA, assignPlayerASuccess, etc.)
+
+### Fix 2: Added Explicit Morph Commands
+Added `morph :page` calls to reflex methods:
+- `assign_player()` - now calls `morph :page` after creating seedings
+- `remove_player()` - now calls `morph :page` after destroying seedings
+- `edit_parameter()` - now calls `morph :page` after updating parameters
+
+This tells StimulusReflex to re-render the entire page after database changes.
+
+### Fix 3: Setup Instance Variables
 Added a new private method `setup_view_variables` that mirrors the logic in `PartyMonitorsController#show`. This method sets up all the necessary instance variables:
 
 - `@league`
@@ -26,11 +53,44 @@ Added a new private method `setup_view_variables` that mirrors the logic in `Par
 - `@tournament_tables`
 - `@tables_from_plan`
 
-This method is called from the `load_objects` before_reflex callback, ensuring all instance variables are properly set before any reflex action executes.
+This method is called from the `load_objects` before_reflex callback, ensuring all instance variables are properly set before any reflex action executes and before the page is morphed.
 
 ## Changes Made
 
-### 1. Added `setup_view_variables` Method
+### 1. Created Stimulus Controller
+
+**File:** `/app/javascript/controllers/party_monitor_controller.js`
+
+```javascript
+import ApplicationController from './application_controller'
+
+export default class extends ApplicationController {
+  connect () {
+    super.connect()
+    console.log("PartyMonitor controller connected!")
+  }
+}
+```
+
+### 2. Added `morph :page` to Reflex Methods
+
+**File:** `/app/reflexes/party_monitor_reflex.rb`
+
+```ruby
+def assign_player(ab)
+  # ... database updates ...
+  morph :page  # Added this line
+end
+
+def remove_player(ab)
+  # ... database updates ...
+  morph :page  # Added this line
+end
+```
+
+### 3. Added `setup_view_variables` Method
+
+**File:** `/app/reflexes/party_monitor_reflex.rb`
 
 ```ruby
 def setup_view_variables
@@ -91,8 +151,10 @@ After this fix:
 
 ## Related Files
 
-- `/app/reflexes/party_monitor_reflex.rb` - The reflex file (modified)
+- `/app/javascript/controllers/party_monitor_controller.js` - The Stimulus controller (CREATED)
+- `/app/reflexes/party_monitor_reflex.rb` - The reflex file (MODIFIED)
 - `/app/controllers/party_monitors_controller.rb` - Controller with original `show` action logic
+- `/app/views/party_monitors/show.html.erb` - Uses `data-controller="party_monitor"`
 - `/app/views/party_monitors/_party_monitor.html.erb` - The view that requires these variables
 
 ## Deployment

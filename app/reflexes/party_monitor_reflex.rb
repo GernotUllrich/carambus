@@ -32,6 +32,8 @@ class PartyMonitorReflex < ApplicationReflex
       Seeding.create(player_id: pid, tournament: @party, role: "team_#{ab}", position: 1)
     end
     Rails.logger.info "======== assign_player_#{ab}"
+    # Force page re-render to show updated player lists
+    morph :page
   rescue StandardError => e
     Rails.logger.info "======== #{e} #{e.backtrace}"
   end
@@ -40,6 +42,8 @@ class PartyMonitorReflex < ApplicationReflex
     remove_ids = Array(params["assignedPlayer#{ab.upcase}Id"]).map(&:to_i)
     Seeding.where(player_id: remove_ids, tournament: @party, role: "team_#{ab}").destroy_all
     Rails.logger.info "======== remove_player_#{ab}"
+    # Force page re-render to show updated player lists
+    morph :page
   end
 
   def assign_player_a
@@ -60,6 +64,8 @@ class PartyMonitorReflex < ApplicationReflex
 
   def edit_parameter
     gather_parameters
+    # Force page re-render to show updated parameters
+    morph :page
   rescue StandardError => e
     Rails.logger.info "======== #{e} #{e.backtrace}"
   end
