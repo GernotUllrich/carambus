@@ -319,13 +319,16 @@ class PartyMonitorReflex < ApplicationReflex
   end
 
   def reset_party_monitor
+    Rails.logger.info "🔴 RESET PARTY MONITOR CALLED - User: #{current_user&.id}, Admin: #{current_user&.admin?}"
+    
     unless current_user&.admin?
       flash[:alert] = "Nur Administratoren können den Party Monitor zurücksetzen."
       Rails.logger.warn "Unauthorized reset_party_monitor attempt by user: #{current_user&.id}"
       return
     end
 
-    # morph :nothing
+    Rails.logger.info "🔴 Starting reset - PartyMonitor ID: #{@party_monitor.id}"
+    
     # 1. Lösche Games der TableMonitors (nur wenn vorhanden)
     @party_monitor.table_monitors.each do |table_monitor|
       table_monitor.game&.destroy
@@ -338,6 +341,8 @@ class PartyMonitorReflex < ApplicationReflex
     @party_monitor.party.seedings.where("id > 5000000").destroy_all
     # 5. Setze den PartyMonitor zurück
     @party_monitor.reset_party_monitor
+    
+    Rails.logger.info "🔴 Reset completed successfully"
     flash[:notice] = "Party Monitor komplett zurückgesetzt"
   rescue StandardError => e
     Rails.logger.info "reset_party_monitor error: #{e} #{e.backtrace}"
