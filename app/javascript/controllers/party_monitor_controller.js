@@ -8,6 +8,15 @@ export default class extends ApplicationController {
   
   beforeResetPartyMonitor(element, reflex, noop, reflexId) {
     console.log('🔴 Before reset_party_monitor reflex', element, reflex)
+    
+    // Show confirm dialog
+    const message = element.dataset.confirm || "Bist Du sicher?"
+    if (!confirm(message)) {
+      console.log('🔴 User cancelled reset')
+      return false // Cancel the reflex
+    }
+    console.log('🔴 User confirmed reset')
+    return true
   }
   
   resetPartyMonitorSuccess(element, reflex, noop, reflexId) {
