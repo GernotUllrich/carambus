@@ -25,59 +25,20 @@ class PartyMonitorReflex < ApplicationReflex
   before_reflex :load_objects
 
   def assign_player(ab)
-    Rails.logger.info "🔵 START assign_player_#{ab}"
-    Rails.logger.info "🔵 Party: #{@party&.id}, Monitor: #{@party_monitor&.id}"
-    Rails.logger.info "🔵 Params keys: #{params.keys.inspect}"
-    
     assigned_players_ids = Player.joins(:seedings).where(seedings: { tournament: @party, role: "team_#{ab}" }).ids
-    Rails.logger.info "🔵 Currently assigned IDs for team_#{ab}: #{assigned_players_ids.inspect}"
-    
     add_ids = Array(params["availablePlayer#{ab.upcase}Id"]).map(&:to_i) - assigned_players_ids
-    Rails.logger.info "🔵 Will add player IDs: #{add_ids.inspect}"
-    
     add_ids.each do |pid|
-      seeding = Seeding.create(player_id: pid, tournament: @party, role: "team_#{ab}", position: 1)
-      Rails.logger.info "🔵 Created seeding ID: #{seeding.id}, valid: #{seeding.valid?}, errors: #{seeding.errors.full_messages.inspect}"
+      Seeding.create(player_id: pid, tournament: @party, role: "team_#{ab}", position: 1)
     end
-    
-    # Re-fetch fresh data from database AFTER creating seedings
-    setup_view_variables
-    
-    Rails.logger.info "🔵 @assigned_players_#{ab}_ids count after re-fetch: #{instance_variable_get("@assigned_players_#{ab}_ids")&.count}"
-    Rails.logger.info "🔵 About to morph page with fresh data"
-    
-    # Now morph the page - instance variables have fresh data
-    morph :page
-    
-    Rails.logger.info "🔵 END assign_player_#{ab} - morph :page called with fresh data"
+    Rails.logger.info "======== assign_player_#{ab}"
   rescue StandardError => e
-    Rails.logger.error "🔴 ERROR in assign_player_#{ab}: #{e.message}"
-    Rails.logger.error "🔴 Backtrace: #{e.backtrace.first(10).join("\n")}"
-    raise e
+    Rails.logger.info "======== #{e} #{e.backtrace}"
   end
 
   def remove_player(ab)
-    Rails.logger.info "🔵 START remove_player_#{ab}"
-    
     remove_ids = Array(params["assignedPlayer#{ab.upcase}Id"]).map(&:to_i)
-    Rails.logger.info "🔵 Will remove player IDs: #{remove_ids.inspect}"
-    
-    deleted = Seeding.where(player_id: remove_ids, tournament: @party, role: "team_#{ab}").destroy_all
-    Rails.logger.info "🔵 Destroyed #{deleted.count} seeding(s)"
-    
-    # Re-fetch fresh data from database AFTER destroying seedings
-    setup_view_variables
-    
-    Rails.logger.info "🔵 About to morph page with fresh data"
-    
-    # Now morph the page - instance variables have fresh data
-    morph :page
-    
-    Rails.logger.info "🔵 END remove_player_#{ab} - morph :page called with fresh data"
-  rescue StandardError => e
-    Rails.logger.error "🔴 ERROR in remove_player_#{ab}: #{e.message}"
-    Rails.logger.error "🔴 Backtrace: #{e.backtrace.first(10).join("\n")}"
-    raise e
+    Seeding.where(player_id: remove_ids, tournament: @party, role: "team_#{ab}").destroy_all
+    Rails.logger.info "======== remove_player_#{ab}"
   end
 
   def assign_player_a
@@ -98,8 +59,6 @@ class PartyMonitorReflex < ApplicationReflex
 
   def edit_parameter
     gather_parameters
-    # Force page re-render to show updated parameters
-    morph :page
   rescue StandardError => e
     Rails.logger.info "======== #{e} #{e.backtrace}"
   end
@@ -439,37 +398,5 @@ class PartyMonitorReflex < ApplicationReflex
   def load_objects
     @party_monitor = PartyMonitor.find(element.dataset["id"])
     @party = @party_monitor.party
-    setup_view_variables
-  end
-
-  def setup_view_variables
-    # Set up all instance variables needed by the view
-    # This mirrors what the controller's show action does
-    @league = @party.league
-    @assigned_players_a_ids = Player.joins(:seedings).where(seedings: { role: "team_a", tournament_type: "Party",
-                                                                        tournament_id: @party.id }).order("players.lastname").ids
-    @assigned_players_b_ids = Player.joins(:seedings).where(seedings: { role: "team_b", tournament_type: "Party",
-                                                                        tournament_id: @party.id }).order("players.lastname").ids
-    @available_players_a_ids = @party.league_team_a.seedings.joins(:player).order("players.lastname").map(&:player_id).select do |pid|
-      !@assigned_players_a_ids.include?(pid)
-    end
-    @available_players_b_ids = @party.league_team_b.seedings.joins(:player).order("players.lastname").map(&:player_id).select do |pid|
-      !@assigned_players_b_ids.include?(pid)
-    end
-    league_team_a_name = @party.league_team_a.name
-    league_team_b_name = @party.league_team_b.name
-    replacement_teams_a_ids = LeagueTeam.joins(:league).where(leagues: { season_id: Season.current_season.id }).where(club_id: @party.league_team_a.club_id).where("league_teams.name > '#{league_team_a_name}'").ids - @available_players_a_ids
-    replacement_teams_b_ids = LeagueTeam.joins(:league).where(leagues: { season_id: Season.current_season.id }).where(club_id: @party.league_team_b.club_id).where("league_teams.name > '#{league_team_b_name}'").ids - @available_players_b_ids
-    @available_replacement_players_a_ids = Seeding.where(league_team_id: replacement_teams_a_ids).joins(:player).order("players.lastname").map(&:player_id).select do |pid|
-      !@assigned_players_a_ids.include?(pid)
-    end
-    @available_replacement_players_b_ids = Seeding.where(league_team_id: replacement_teams_b_ids).joins(:player).order("players.lastname").map(&:player_id).select do |pid|
-      !@assigned_players_b_ids.include?(pid)
-    end
-
-    @available_fitting_table_ids = @party.location.andand.tables.andand.joins(table_kind: :disciplines).andand.where(disciplines: { id: @league.discipline_id }).andand.order("name").andand.map(&:id).to_a
-    @tournament_tables = @party.location.andand.tables.andand.joins(table_kind: :disciplines).andand.where(disciplines: { id: @league.discipline_id }).andand.count.to_i
-    @tables_from_plan = @party_monitor.data["tables"].to_i
-    @tournament_tables = [@tournament_tables, @party_monitor.data["tables"].to_i].min if @tables_from_plan > 0
   end
 end
