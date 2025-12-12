@@ -44,24 +44,12 @@ class PartyMonitorReflex < ApplicationReflex
     setup_view_variables
     
     Rails.logger.info "🔵 @assigned_players_#{ab}_ids count after re-fetch: #{instance_variable_get("@assigned_players_#{ab}_ids")&.count}"
-    Rails.logger.info "🔵 About to force page reload with JavaScript"
+    Rails.logger.info "🔵 About to reload page"
     
-    # Tell StimulusReflex to do NOTHING (don't morph automatically)
-    morph :nothing
+    # Use StimulusReflex's built-in redirect to reload the page
+    redirect_to request.url
     
-    # Force a hard browser reload using JavaScript
-    cable_ready[StimulusReflex::Channel.channel_name].console_log(message: "PartyMonitor: About to reload page...")
-    cable_ready[StimulusReflex::Channel.channel_name].dispatch_event(
-      name: "turbo:visit",
-      detail: { url: request.url }
-    )
-    cable_ready[StimulusReflex::Channel.channel_name].inner_html(
-      selector: "head",
-      html: "<meta http-equiv='refresh' content='0'>"
-    )
-    cable_ready.broadcast
-    
-    Rails.logger.info "🔵 END assign_player_#{ab} - page reload commands sent"
+    Rails.logger.info "🔵 END assign_player_#{ab} - redirect called"
   rescue StandardError => e
     Rails.logger.error "🔴 ERROR in assign_player_#{ab}: #{e.message}"
     Rails.logger.error "🔴 Backtrace: #{e.backtrace.first(10).join("\n")}"
@@ -80,24 +68,12 @@ class PartyMonitorReflex < ApplicationReflex
     # Re-fetch fresh data from database AFTER destroying seedings
     setup_view_variables
     
-    Rails.logger.info "🔵 About to force page reload with JavaScript"
+    Rails.logger.info "🔵 About to reload page"
     
-    # Tell StimulusReflex to do NOTHING (don't morph automatically)
-    morph :nothing
+    # Use StimulusReflex's built-in redirect to reload the page
+    redirect_to request.url
     
-    # Force a hard browser reload using JavaScript
-    cable_ready[StimulusReflex::Channel.channel_name].console_log(message: "PartyMonitor: About to reload page...")
-    cable_ready[StimulusReflex::Channel.channel_name].dispatch_event(
-      name: "turbo:visit",
-      detail: { url: request.url }
-    )
-    cable_ready[StimulusReflex::Channel.channel_name].inner_html(
-      selector: "head",
-      html: "<meta http-equiv='refresh' content='0'>"
-    )
-    cable_ready.broadcast
-    
-    Rails.logger.info "🔵 END remove_player_#{ab} - page reload commands sent"
+    Rails.logger.info "🔵 END remove_player_#{ab} - redirect called"
   rescue StandardError => e
     Rails.logger.error "🔴 ERROR in remove_player_#{ab}: #{e.message}"
     Rails.logger.error "🔴 Backtrace: #{e.backtrace.first(10).join("\n")}"
