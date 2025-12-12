@@ -25,25 +25,52 @@ class PartyMonitorReflex < ApplicationReflex
   before_reflex :load_objects
 
   def assign_player(ab)
+    Rails.logger.info "🔵 START assign_player_#{ab}"
+    Rails.logger.info "🔵 Party: #{@party&.id}, Monitor: #{@party_monitor&.id}"
+    Rails.logger.info "🔵 Params keys: #{params.keys.inspect}"
+    
     assigned_players_ids = Player.joins(:seedings).where(seedings: { tournament: @party, role: "team_#{ab}" }).ids
-    # player_ids = Player.joins(:seedings).where(seedings: { role: "team_#{ab}", tournament_id: @party.id, tournament_type: "Party" }).ids
+    Rails.logger.info "🔵 Currently assigned IDs for team_#{ab}: #{assigned_players_ids.inspect}"
+    
     add_ids = Array(params["availablePlayer#{ab.upcase}Id"]).map(&:to_i) - assigned_players_ids
+    Rails.logger.info "🔵 Will add player IDs: #{add_ids.inspect}"
+    
     add_ids.each do |pid|
-      Seeding.create(player_id: pid, tournament: @party, role: "team_#{ab}", position: 1)
+      seeding = Seeding.create(player_id: pid, tournament: @party, role: "team_#{ab}", position: 1)
+      Rails.logger.info "🔵 Created seeding ID: #{seeding.id}, valid: #{seeding.valid?}, errors: #{seeding.errors.full_messages.inspect}"
     end
-    Rails.logger.info "======== assign_player_#{ab}"
+    
+    Rails.logger.info "🔵 Instance variables before morph: @assigned_players_#{ab}_ids exists? #{instance_variable_defined?("@assigned_players_#{ab}_ids")}"
+    Rails.logger.info "🔵 About to call morph :page"
+    
     # Force page re-render to show updated player lists
     morph :page
+    
+    Rails.logger.info "🔵 END assign_player_#{ab} - morph :page called"
   rescue StandardError => e
-    Rails.logger.info "======== #{e} #{e.backtrace}"
+    Rails.logger.error "🔴 ERROR in assign_player_#{ab}: #{e.message}"
+    Rails.logger.error "🔴 Backtrace: #{e.backtrace.first(10).join("\n")}"
+    raise e
   end
 
   def remove_player(ab)
+    Rails.logger.info "🔵 START remove_player_#{ab}"
+    
     remove_ids = Array(params["assignedPlayer#{ab.upcase}Id"]).map(&:to_i)
-    Seeding.where(player_id: remove_ids, tournament: @party, role: "team_#{ab}").destroy_all
-    Rails.logger.info "======== remove_player_#{ab}"
+    Rails.logger.info "🔵 Will remove player IDs: #{remove_ids.inspect}"
+    
+    deleted = Seeding.where(player_id: remove_ids, tournament: @party, role: "team_#{ab}").destroy_all
+    Rails.logger.info "🔵 Destroyed #{deleted.count} seeding(s)"
+    Rails.logger.info "🔵 About to call morph :page"
+    
     # Force page re-render to show updated player lists
     morph :page
+    
+    Rails.logger.info "🔵 END remove_player_#{ab} - morph :page called"
+  rescue StandardError => e
+    Rails.logger.error "🔴 ERROR in remove_player_#{ab}: #{e.message}"
+    Rails.logger.error "🔴 Backtrace: #{e.backtrace.first(10).join("\n")}"
+    raise e
   end
 
   def assign_player_a
