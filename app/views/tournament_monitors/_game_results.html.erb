@@ -61,19 +61,19 @@
                   <td><%= gpa.andand.points %></td>
                   <td><%= gpb.andand.points %></td>
                 <%- end %>
-                <td><%= edit_games_modus && editable_game ? hidden_field_tag("game_id[]", game.id) : "" %><%= edit_games_modus && editable_game ? text_field_tag("resulta[]", gpa.andand.result, size: 3) : gpa.andand.result %></td>
-                <td><%= edit_games_modus && editable_game ? text_field_tag("resultb[]", gpb.andand.result, size: 3) : gpb.andand.result %></td>
-                <td><%= edit_games_modus && editable_game ? text_field_tag("inningsa[]", gpa.andand.innings, size: 3) : gpa.andand.innings %></td>
-                <td><%= edit_games_modus && editable_game ? text_field_tag("inningsb[]", gpb.andand.innings, size: 3) : gpb.andand.innings %></td>
+                <td><%= edit_games_modus && editable_game ? hidden_field_tag("game_id[]", game.id) : "" %><%= edit_games_modus && editable_game ? text_field_tag("resulta[]", gpa.andand.result, size: 3, class: "border-2 border-black dark:border-white px-1") : gpa.andand.result %></td>
+                <td><%= edit_games_modus && editable_game ? text_field_tag("resultb[]", gpb.andand.result, size: 3, class: "border-2 border-black dark:border-white px-1") : gpb.andand.result %></td>
+                <td><%= edit_games_modus && editable_game ? text_field_tag("inningsa[]", gpa.andand.innings, size: 3, class: "border-2 border-black dark:border-white px-1") : gpa.andand.innings %></td>
+                <td><%= edit_games_modus && editable_game ? text_field_tag("inningsb[]", gpb.andand.innings, size: 3, class: "border-2 border-black dark:border-white px-1") : gpb.andand.innings %></td>
                 <td><%= gpa.andand.gd %></td>
                 <td><%= gpb.andand.gd %></td>
-                <td><%= edit_games_modus && editable_game ? text_field_tag("hsa[]", gpa.andand.hs, size: 3) : gpa.andand.hs %></td>
-                <td><%= edit_games_modus && editable_game ? text_field_tag("hsb[]", gpb.andand.hs, size: 3) : gpb.andand.hs %></td>
+                <td><%= edit_games_modus && editable_game ? text_field_tag("hsa[]", gpa.andand.hs, size: 3, class: "border-2 border-black dark:border-white px-1") : gpa.andand.hs %></td>
+                <td><%= edit_games_modus && editable_game ? text_field_tag("hsb[]", gpb.andand.hs, size: 3, class: "border-2 border-black dark:border-white px-1") : gpb.andand.hs %></td>
                 <%- if tournament_monitor.tournament.handicap_tournier? %>
-                  <td><%= edit_games_modus && editable_game ? text_field_tag("bga[]", gpa.andand.data.andand['results'].andand['BG'].to_i, size: 3) : gpa.andand.data.andand['results'].andand['BG'].to_i %></td>
-                  <td><%= edit_games_modus && editable_game ? text_field_tag("bgb[]", gpb.andand.data.andand['results'].andand['BG'].to_i, size: 3) : gpb.andand.data.andand['results'].andand['BG'].to_i %></td>
-                  <td><%= edit_games_modus && editable_game ? text_field_tag("bg_pa[]", gpa.andand.data.andand['results'].andand['BG_P'].to_f, size: 3) : gpa.andand.data.andand['results'].andand['BG_P'].to_f %></td>
-                  <td><%= edit_games_modus && editable_game ? text_field_tag("bg_pb[]", gpb.andand.data.andand['results'].andand['BG_P'].to_f, size: 3) : gpb.andand.data.andand['results'].andand['BG_P'].to_f %></td>
+                  <td><%= edit_games_modus && editable_game ? text_field_tag("bga[]", gpa.andand.data.andand['results'].andand['BG'].to_i, size: 3, class: "border-2 border-black dark:border-white px-1") : gpa.andand.data.andand['results'].andand['BG'].to_i %></td>
+                  <td><%= edit_games_modus && editable_game ? text_field_tag("bgb[]", gpb.andand.data.andand['results'].andand['BG'].to_i, size: 3, class: "border-2 border-black dark:border-white px-1") : gpb.andand.data.andand['results'].andand['BG'].to_i %></td>
+                  <td><%= edit_games_modus && editable_game ? text_field_tag("bg_pa[]", gpa.andand.data.andand['results'].andand['BG_P'].to_f, size: 3, class: "border-2 border-black dark:border-white px-1") : gpa.andand.data.andand['results'].andand['BG_P'].to_f %></td>
+                  <td><%= edit_games_modus && editable_game ? text_field_tag("bg_pb[]", gpb.andand.data.andand['results'].andand['BG_P'].to_f, size: 3, class: "border-2 border-black dark:border-white px-1") : gpb.andand.data.andand['results'].andand['BG_P'].to_f %></td>
                 <%- end %>
               </tr>
             <%- end %>
