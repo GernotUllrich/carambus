@@ -745,11 +745,24 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
             attrs = {}
             attrs["sets_to_play"] = sets unless sets.nil?
             # PRIORITÄT: Formular (tournament_monitor) > Tournament > executor_params
+            Rails.logger.debug "===== PLACEMENT DEBUG ====="
+            Rails.logger.debug "self.innings_goal: #{self.innings_goal.inspect}"
+            Rails.logger.debug "tournament.innings_goal: #{tournament.innings_goal.inspect}"
+            Rails.logger.debug "innings (executor_params): #{innings.inspect}"
+            Rails.logger.debug "self.balls_goal: #{self.balls_goal.inspect}"
+            Rails.logger.debug "tournament.balls_goal: #{tournament.balls_goal.inspect}"
+            Rails.logger.debug "balls (executor_params): #{balls.inspect}"
+            
             attrs["innings_goal"] = self.innings_goal || tournament.innings_goal || innings
             attrs["playera"] = {}
             attrs["playera"]["balls_goal"] = self.balls_goal || tournament.balls_goal || balls
             attrs["playerb"] = {}
             attrs["playerb"]["balls_goal"] = self.balls_goal || tournament.balls_goal || balls
+            
+            Rails.logger.debug "attrs['innings_goal']: #{attrs['innings_goal'].inspect}"
+            Rails.logger.debug "attrs['playera']['balls_goal']: #{attrs['playera']['balls_goal'].inspect}"
+            Rails.logger.debug "=========================="
+            
             @table_monitor.deep_merge_data!(attrs)
             @table_monitor.data_will_change!
             @table_monitor.assign_attributes(tournament_monitor: self)
