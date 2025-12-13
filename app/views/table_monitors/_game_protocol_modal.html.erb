@@ -1,69 +1,185 @@
 <%# Game Protocol Modal - Shows complete innings history with edit capability %>
+<%# For simple set games (8-Ball, 9-Ball, 10-Ball) shows set protocol instead %>
 <%- table_monitor = local_assigns[:table_monitor] %>
 <%- history = table_monitor.innings_history %>
+<%- is_final_mode = table_monitor.panel_state == "protocol_final" %>
+<%- is_simple_set_game = table_monitor.simple_set_game? %>
+<%- 
+  # Calculate final scores
+  if is_simple_set_game
+    # For simple set games, count sets won from the sets array
+    sets = Array(table_monitor.data["sets"])
+    result_a = sets.count { |s| s["Ergebnis1"].to_i > s["Ergebnis2"].to_i }
+    result_b = sets.count { |s| s["Ergebnis2"].to_i > s["Ergebnis1"].to_i }
+    sets_to_win = table_monitor.data["sets_to_win"].to_i
+  else
+    result_a = table_monitor.data.dig('playera', 'result').to_i + Array(table_monitor.data.dig('playera', 'innings_redo_list')).last.to_i
+    result_b = table_monitor.data.dig('playerb', 'result').to_i + Array(table_monitor.data.dig('playerb', 'innings_redo_list')).last.to_i
+  end
+  innings_a = table_monitor.data.dig('playera', 'innings').to_i
+  innings_b = table_monitor.data.dig('playerb', 'innings').to_i
+  hs_a = table_monitor.data.dig('playera', 'hs').to_i
+  hs_b = table_monitor.data.dig('playerb', 'hs').to_i
+  gd_a = table_monitor.data.dig('playera', 'gd')
+  gd_b = table_monitor.data.dig('playerb', 'gd')
+  winner_a = result_a > result_b
+  winner_b = result_b > result_a
+%>
 <div id="game-protocol-modal" 
      class="modal fixed inset-0 z-50 flex items-center justify-center"
      data-table-monitor-id="<%= table_monitor.id %>">
   
   <!-- Backdrop -->
   <div class="modal-backdrop absolute inset-0 bg-black bg-opacity-70"
-       data-reflex="click->GameProtocolReflex#close_protocol"
+       <%- unless is_final_mode %>data-reflex="click->GameProtocolReflex#close_protocol"<%- end %>
        data-id="<%= table_monitor.id %>"></div>
   
   <!-- Modal Content -->
   <div class="modal-content relative bg-white dark:bg-gray-900 rounded-lg shadow-2xl max-w-6xl w-11/12 max-h-[95vh] flex flex-col">
     
-    <!-- Header -->
-    <div class="modal-header flex justify-between items-center px-4 py-2 border-b border-gray-200 dark:border-gray-700">
-      <div class="flex items-center gap-4">
-        <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100">Spielprotokoll</h2>
-        <div class="text-sm text-gray-600 dark:text-gray-400">
-          <span><%= table_monitor.discipline || 'Freie Partie' %></span>
-          <span class="mx-1">•</span>
-          <span>Ziel: <%= table_monitor.data.dig('playera', 'balls_goal').to_i > 0 ? "#{table_monitor.data.dig('playera', 'balls_goal')}" : "∞" %></span>
+    <%- if is_final_mode %>
+      <!-- Final Result Header - prominent display -->
+      <div class="bg-gradient-to-r from-blue-600 via-gray-800 to-green-600 text-white px-6 py-4 rounded-t-lg">
+        <div class="text-center mb-2">
+          <h2 class="text-2xl font-bold">🏆 Spielende - Ergebnis prüfen</h2>
+          <div class="text-sm opacity-80 mt-1">
+            <%= table_monitor.discipline || 'Freie Partie' %> • 
+            <%- if is_simple_set_game %>
+              Gewinnspiele: <%= sets_to_win %>
+            <%- else %>
+              Ziel: <%= table_monitor.data.dig('playera', 'balls_goal').to_i > 0 ? table_monitor.data.dig('playera', 'balls_goal') : "∞" %>
+            <%- end %>
+          </div>
+        </div>
+        
+        <!-- Big Score Display -->
+        <div class="flex items-center justify-center gap-8 mt-4">
+          <!-- Player A -->
+          <div class="text-center flex-1">
+            <div class="text-lg font-semibold <%= winner_a ? 'text-yellow-300' : '' %>">
+              <%= winner_a ? '🏆 ' : '' %><%= history[:player_a][:shortname] || history[:player_a][:name] %>
+            </div>
+            <div class="text-5xl font-bold mt-2 <%= winner_a ? 'text-yellow-300' : '' %>">
+              <%= result_a %>
+            </div>
+            <%- unless is_simple_set_game %>
+              <div class="text-sm mt-2 opacity-80">
+                <span>Aufn: <%= innings_a %></span> • 
+                <span>HS: <%= hs_a %></span> • 
+                <span>GD: <%= gd_a %></span>
+              </div>
+            <%- end %>
+          </div>
+          
+          <!-- VS Divider -->
+          <div class="text-3xl font-bold opacity-50">:</div>
+          
+          <!-- Player B -->
+          <div class="text-center flex-1">
+            <div class="text-lg font-semibold <%= winner_b ? 'text-yellow-300' : '' %>">
+              <%= winner_b ? '🏆 ' : '' %><%= history[:player_b][:shortname] || history[:player_b][:name] %>
+            </div>
+            <div class="text-5xl font-bold mt-2 <%= winner_b ? 'text-yellow-300' : '' %>">
+              <%= result_b %>
+            </div>
+            <%- unless is_simple_set_game %>
+              <div class="text-sm mt-2 opacity-80">
+                <span>Aufn: <%= innings_b %></span> • 
+                <span>HS: <%= hs_b %></span> • 
+                <span>GD: <%= gd_b %></span>
+              </div>
+            <%- end %>
+          </div>
+        </div>
+        
+        <%- if is_simple_set_game %>
+          <div class="text-center mt-4 text-lg">
+            Ergebnis: <strong><%= result_a %>:<%= result_b %></strong> in Sätzen
+          </div>
+        <%- end %>
+        
+        <div class="text-center mt-4 text-sm">
+          <span class="bg-yellow-500 text-black px-3 py-1 rounded-full font-semibold">
+            ⚠️ Bitte Ergebnis prüfen!
+          </span>
         </div>
       </div>
-      <button class="close-button text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 text-2xl leading-none"
-              data-reflex="click->GameProtocolReflex#close_protocol"
-              data-id="<%= table_monitor.id %>">
-        ✕
-      </button>
-    </div>
+    <%- else %>
+      <!-- Standard Header -->
+      <div class="modal-header flex justify-between items-center px-4 py-2 border-b border-gray-200 dark:border-gray-700">
+        <div class="flex items-center gap-4">
+          <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100">Spielprotokoll</h2>
+          <div class="text-sm text-gray-600 dark:text-gray-400">
+            <span><%= table_monitor.discipline || 'Freie Partie' %></span>
+            <span class="mx-1">•</span>
+            <span>Ziel: <%= table_monitor.data.dig('playera', 'balls_goal').to_i > 0 ? "#{table_monitor.data.dig('playera', 'balls_goal')}" : "∞" %></span>
+          </div>
+        </div>
+        <button class="close-button text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 text-2xl leading-none"
+                data-reflex="click->GameProtocolReflex#close_protocol"
+                data-id="<%= table_monitor.id %>">
+          ✕
+        </button>
+      </div>
+    <%- end %>
     
     <!-- Table Container (scrollable) -->
     <div class="protocol-table-container flex-1 overflow-y-auto p-2">
-      <table class="protocol-table w-full border-collapse">
-        <thead class="sticky top-0 bg-gray-100 dark:bg-gray-800 border-b-2 border-gray-300 dark:border-gray-600">
-          <tr>
-            <th class="py-2 px-2 text-center text-xs font-semibold text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-700">#</th>
-            <th colspan="2" class="py-2 px-4 text-center text-sm font-semibold text-blue-700 dark:text-blue-300 bg-blue-100 dark:bg-blue-900 dark:bg-opacity-30"><%= history[:player_a][:shortname] || history[:player_a][:name] %></th>
-            <th colspan="2" class="py-2 px-4 text-center text-sm font-semibold text-green-700 dark:text-green-300 bg-green-100 dark:bg-green-900 dark:bg-opacity-30"><%= history[:player_b][:shortname] || history[:player_b][:name] %></th>
-            <th class="py-2 px-2 text-center text-xs font-semibold text-gray-700 dark:text-gray-300"></th>
-          </tr>
-          <tr>
-            <th class="py-2 px-2 text-center text-xs text-gray-600 dark:text-gray-400 bg-gray-200 dark:bg-gray-700">Aufn.</th>
-            <th class="py-2 px-4 text-center text-xs text-gray-600 dark:text-gray-400 bg-blue-50 dark:bg-blue-900 dark:bg-opacity-20">Punkte</th>
-            <th class="py-2 px-4 text-center text-xs text-gray-600 dark:text-gray-400 bg-blue-50 dark:bg-blue-900 dark:bg-opacity-20">Total</th>
-            <th class="py-2 px-4 text-center text-xs text-gray-600 dark:text-gray-400 bg-green-50 dark:bg-green-900 dark:bg-opacity-20">Punkte</th>
-            <th class="py-2 px-4 text-center text-xs text-gray-600 dark:text-gray-400 bg-green-50 dark:bg-green-900 dark:bg-opacity-20">Total</th>
-            <th class="py-2 px-2 text-center text-xs text-gray-600 dark:text-gray-400"></th>
-          </tr>
-        </thead>
-        <tbody class="text-gray-900 dark:text-gray-100" id="protocol-tbody-<%= table_monitor.id %>">
-          <%- if table_monitor.panel_state == "protocol_edit" %>
-            <%= render partial: 'table_monitors/game_protocol_table_body_edit', locals: { history: history, table_monitor: table_monitor } %>
-          <%- else %>
-            <%= render partial: 'table_monitors/game_protocol_table_body', locals: { history: history, table_monitor: table_monitor } %>
-          <%- end %>
-        </tbody>
-      </table>
+      <%- if is_simple_set_game %>
+        <%# Simple Set Game Protocol - Shows only set results, no innings %>
+        <%= render partial: 'table_monitors/set_protocol_table', locals: { table_monitor: table_monitor, history: history, is_final_mode: is_final_mode } %>
+      <%- else %>
+        <%# Standard Innings Protocol %>
+        <table class="protocol-table w-full border-collapse">
+          <thead class="sticky top-0 bg-gray-100 dark:bg-gray-800 border-b-2 border-gray-300 dark:border-gray-600">
+            <tr>
+              <th class="py-2 px-2 text-center text-xs font-semibold text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-700">#</th>
+              <th colspan="2" class="py-2 px-4 text-center text-sm font-semibold text-blue-700 dark:text-blue-300 bg-blue-100 dark:bg-blue-900 dark:bg-opacity-30"><%= history[:player_a][:shortname] || history[:player_a][:name] %></th>
+              <th colspan="2" class="py-2 px-4 text-center text-sm font-semibold text-green-700 dark:text-green-300 bg-green-100 dark:bg-green-900 dark:bg-opacity-30"><%= history[:player_b][:shortname] || history[:player_b][:name] %></th>
+              <th class="py-2 px-2 text-center text-xs font-semibold text-gray-700 dark:text-gray-300"></th>
+            </tr>
+            <tr>
+              <th class="py-2 px-2 text-center text-xs text-gray-600 dark:text-gray-400 bg-gray-200 dark:bg-gray-700">Aufn.</th>
+              <th class="py-2 px-4 text-center text-xs text-gray-600 dark:text-gray-400 bg-blue-50 dark:bg-blue-900 dark:bg-opacity-20">Punkte</th>
+              <th class="py-2 px-4 text-center text-xs text-gray-600 dark:text-gray-400 bg-blue-50 dark:bg-blue-900 dark:bg-opacity-20">Total</th>
+              <th class="py-2 px-4 text-center text-xs text-gray-600 dark:text-gray-400 bg-green-50 dark:bg-green-900 dark:bg-opacity-20">Punkte</th>
+              <th class="py-2 px-4 text-center text-xs text-gray-600 dark:text-gray-400 bg-green-50 dark:bg-green-900 dark:bg-opacity-20">Total</th>
+              <th class="py-2 px-2 text-center text-xs text-gray-600 dark:text-gray-400"></th>
+            </tr>
+          </thead>
+          <tbody class="text-gray-900 dark:text-gray-100" id="protocol-tbody-<%= table_monitor.id %>">
+            <%- if table_monitor.panel_state == "protocol_edit" || is_final_mode %>
+              <%# Final mode always shows edit view for corrections %>
+              <%= render partial: 'table_monitors/game_protocol_table_body_edit', locals: { history: history, table_monitor: table_monitor } %>
+            <%- else %>
+              <%= render partial: 'table_monitors/game_protocol_table_body', locals: { history: history, table_monitor: table_monitor } %>
+            <%- end %>
+          </tbody>
+        </table>
+      <%- end %>
     </div>
     
     <!-- Actions Footer -->
-    <div class="modal-actions flex gap-3 p-4 border-t border-gray-200 dark:border-gray-700 justify-end">
+    <div class="modal-actions flex gap-3 p-4 border-t border-gray-200 dark:border-gray-700 justify-between">
       
-      <%- if table_monitor.panel_state == "protocol_edit" %>
+      <%- if is_final_mode %>
+        <!-- Final Mode Actions - Confirm Result -->
+        <div class="flex gap-3">
+          <button class="btn btn-secondary px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-semibold transition"
+                  onclick="window.open('<%= print_protocol_table_monitor_path(table_monitor, format: :pdf) %>', '_blank')">
+            📄 Protokoll drucken
+          </button>
+        </div>
+        <div class="flex gap-3">
+          <button class="btn btn-success px-8 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-bold text-lg transition shadow-lg"
+                  data-reflex="click->GameProtocolReflex#confirm_result"
+                  data-id="<%= table_monitor.id %>">
+            ✓ Ergebnis bestätigen
+          </button>
+        </div>
+      <%- elsif table_monitor.panel_state == "protocol_edit" %>
         <!-- Edit Mode Actions -->
+        <div class="flex gap-3"></div>
         <div class="flex gap-3">
           <button class="btn btn-danger px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold transition"
                   data-reflex="click->GameProtocolReflex#close_protocol"
@@ -73,6 +189,7 @@
         </div>
       <%- else %>
         <!-- View Mode Actions -->
+        <div class="flex gap-3"></div>
         <div class="flex gap-3">
           <button class="btn btn-primary px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition"
                   data-reflex="click->GameProtocolReflex#switch_to_edit_mode"
@@ -84,9 +201,9 @@
                   data-id="<%= table_monitor.id %>">
             Fertig
           </button>
-          <button class="btn btn-secondary px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-semibold transition print:hidden"
-                  onclick="window.print()">
-            📄 Drucken
+          <button class="btn btn-secondary px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-semibold transition"
+                  onclick="window.open('<%= print_protocol_table_monitor_path(table_monitor, format: :pdf) %>', '_blank')">
+            📄 Protokoll PDF
           </button>
         </div>
       <%- end %>

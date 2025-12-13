@@ -361,3 +361,4 @@ It ensures that **active scoreboards** get updates, even when only a "teaser" or
 
 **The system is actually quite clever** - it uses broadcast redundancy + DOM filtering to ensure all contexts get updates, even though it's not immediately obvious from the code!
 
+

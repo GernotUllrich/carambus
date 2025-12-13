@@ -82,7 +82,8 @@ current_sets = player_key == "playera" ? options[:current_sets_a] : options[:cur
     <%- end %>
   </div>
   <%= content_tag "div", data: { controller: "table-monitor", action: "click->table-monitor##{click_action}", id: table_monitor.id, discipline: player[:discipline] }, class: "flex flex-col h-5/6 #{bg_color} dark:bg-black border-solid #{ player_active ? "border-green-400 border-8" : "border-gray dark:border-gray-700 border-4" }", title: player_key, style: "letter-spacing: -5px;", id: position, tabindex: 1, onclick: "console.time('#{click_action}_click')" do %>
-    <%- if !table_monitor.set_over? %>
+    <%# Bei set_over zeigen wir jetzt das protocol_final Modal statt des alten innings_list %>
+    <%- if !table_monitor.set_over? || table_monitor.protocol_modal_should_be_open? %>
       <div class="flex h-1/6">
         <%- if is_left %>
           <div class="flex-1 text-left font-bold text-red-400">

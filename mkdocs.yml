@@ -50,6 +50,7 @@ plugins:
             Einzelturnierverwaltung: Individual Tournament Management
             Scoreboard Setup: Scoreboard Setup
             Scoreboard Benutzerhandbuch: Scoreboard User Guide
+            Pool Scoreboard: Pool Scoreboard
             KI-gestützte Suche: AI-Powered Search
             Entwicklerhandbuch: Developer Guide
             Getting Started: Getting Started
@@ -69,6 +70,7 @@ plugins:
             Filter-Popup: Filter Popup
             Turnier-Duplikate: Tournament Duplicates
             Regions-Tagging: Region Tagging
+            Pool Scoreboard Changelog: Pool Scoreboard Changelog
             Referenz: Reference
             API: API
             AGB: Terms
@@ -92,6 +94,7 @@ nav:
       - Einzelturnierverwaltung: einzelturnierverwaltung.md
       - Scoreboard Setup: scoreboard_autostart_setup.md
       - Scoreboard Benutzerhandbuch: scoreboard_benutzerhandbuch.md
+      - Pool Scoreboard: pool_scoreboard_benutzerhandbuch.de.md
       - KI-gestützte Suche: ai_search.md
   - Entwicklerhandbuch:
       - Getting Started: GETTING_STARTED_DEVELOPER.md
@@ -112,6 +115,7 @@ nav:
       - Filter-Popup: filter_popup_usage.md
       - Turnier-Duplikate: tournament_duplicate_handling.md
       - Regions-Tagging: region_tagging_cleanup_summary.md
+      - Pool Scoreboard Changelog: CHANGELOG_POOL_SCOREBOARD.md
   - Referenz:
       - API: API.md
       - AGB: terms.md

@@ -43,6 +43,44 @@ default:
       - category: "Vierball"
         buttons:
           - { balls: 120, innings: 0, discipline: "4 Ball", label: "120/-", allow_follow_up: false }
+    pool:
+      - category: "8-Ball"
+        buttons:
+          - { sets_to_win: 3, discipline: "8-Ball", kickoff_switches_with: "winner", label: "3 (W)" }
+          - { sets_to_win: 4, discipline: "8-Ball", kickoff_switches_with: "winner", label: "4 (W)" }
+          - { sets_to_win: 5, discipline: "8-Ball", kickoff_switches_with: "winner", label: "5 (W)" }
+          - { sets_to_win: 3, discipline: "8-Ball", kickoff_switches_with: "set", label: "3 (A)" }
+          - { sets_to_win: 4, discipline: "8-Ball", kickoff_switches_with: "set", label: "4 (A)" }
+          - { sets_to_win: 5, discipline: "8-Ball", kickoff_switches_with: "set", label: "5 (A)" }
+      - category: "9-Ball"
+        buttons:
+          - { sets_to_win: 5, discipline: "9-Ball", kickoff_switches_with: "winner", label: "5 (W)" }
+          - { sets_to_win: 7, discipline: "9-Ball", kickoff_switches_with: "winner", label: "7 (W)" }
+          - { sets_to_win: 9, discipline: "9-Ball", kickoff_switches_with: "winner", label: "9 (W)" }
+          - { sets_to_win: 5, discipline: "9-Ball", kickoff_switches_with: "set", label: "5 (A)" }
+          - { sets_to_win: 7, discipline: "9-Ball", kickoff_switches_with: "set", label: "7 (A)" }
+          - { sets_to_win: 9, discipline: "9-Ball", kickoff_switches_with: "set", label: "9 (A)" }
+      - category: "10-Ball"
+        buttons:
+          - { sets_to_win: 5, discipline: "10-Ball", kickoff_switches_with: "winner", label: "5 (W)" }
+          - { sets_to_win: 7, discipline: "10-Ball", kickoff_switches_with: "winner", label: "7 (W)" }
+          - { sets_to_win: 5, discipline: "10-Ball", kickoff_switches_with: "set", label: "5 (A)" }
+          - { sets_to_win: 7, discipline: "10-Ball", kickoff_switches_with: "set", label: "7 (A)" }
+      - category: "14.1 endlos"
+        buttons:
+          - { balls: 50, innings: 0, discipline: "14.1 endlos", label: "50" }
+          - { balls: 75, innings: 0, discipline: "14.1 endlos", label: "75" }
+          - { balls: 100, innings: 0, discipline: "14.1 endlos", label: "100" }
+          - { balls: 125, innings: 0, discipline: "14.1 endlos", label: "125" }
+          - { balls: 150, innings: 0, discipline: "14.1 endlos", label: "150" }
+          - { balls: 100, innings: 20, discipline: "14.1 endlos", label: "100/20" }
+    snooker:
+      - category: "Snooker"
+        buttons:
+          - { frames_to_win: 2, discipline: "Snooker", label: "Best of 3" }
+          - { frames_to_win: 3, discipline: "Snooker", label: "Best of 5" }
+          - { frames_to_win: 4, discipline: "Snooker", label: "Best of 7" }
+          - { frames_to_win: 5, discipline: "Snooker", label: "Best of 9" }
 development:
   carambus_api_url: <%= carambus_api_url %>
   location_id: <%= location_id %>

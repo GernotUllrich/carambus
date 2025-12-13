@@ -141,16 +141,16 @@ class Tournament < ApplicationRecord
     "season_id" => "seasons.id",
     "discipline_id" => "disciplines.id",
     "location_id" => "locations.id",
-    
+
     # Externe IDs (sichtbar, filterbar)
     "CC_ID" => "tournament_ccs.cc_id",
-    
+
     # Referenzen (Dropdown/Select)
     "Region" => "regions.shortname",
     "Season" => "seasons.name",
     "Discipline" => "disciplines.name",
     "Location" => "locations.name",
-    
+
     # Eigene Felder
     "Title" => "tournaments.title",
     "Shortname" => "tournaments.shortname",
@@ -160,7 +160,7 @@ class Tournament < ApplicationRecord
   self.ignored_columns = ["region_ids"]
 
   # Searchable concern provides search_hash, we only need to define the specifics
-  
+
   def self.text_search_sql
     "(tournaments.ba_id = :isearch)
      or (tournaments.title ilike :search)
@@ -187,10 +187,10 @@ class Tournament < ApplicationRecord
 
   def self.cascading_filters
     {
-      'season_id' => []  # Season ist unabhängig, könnte aber Disciplines filtern (optional)
+      'season_id' => [] # Season ist unabhängig, könnte aber Disciplines filtern (optional)
     }
   end
-  
+
   def self.field_examples(field_name)
     case field_name
     when 'Title'
@@ -286,10 +286,10 @@ class Tournament < ApplicationRecord
                   to: :tournament_started
     end
     event :reset_tmt_monitor do
-      transitions to: :new_tournament, guard: :tournament_not_yet_started
+      transitions to: :new_tournament, guard: %i[tournament_not_yet_started admin_can_reset_tournament?]
     end
     event :forced_reset_tournament_monitor do
-      transitions to: :new_tournament
+      transitions to: :new_tournament, guard: :admin_can_reset_tournament?
     end
     event :finish_tournament do
       transitions to: :tournament_finished
@@ -378,7 +378,7 @@ class Tournament < ApplicationRecord
         tournament_link_ = "sb_meisterschaft.php?p=#{region_cc_cc_id}--#{season.name}--0--2-1-100000-"
         Rails.logger.info "reading #{url + tournament_link_}"
         uri = URI(url + tournament_link_)
-        tournament_html_ = Net::HTTP.get(uri)
+        tournament_html = Rails.env == 'development' ?  Version.http_get_with_ssl_bypass(uri) : Net::HTTP.get(uri)
         tournament_doc_ = Nokogiri::HTML(tournament_html_)
         tournament_cc_id = nil
         tournament_doc_.css("article table.silver").andand[1].andand.css("tr").to_a[2..].to_a.each do |tr|
@@ -405,7 +405,7 @@ class Tournament < ApplicationRecord
       tournament_link = "sb_meisterschaft.php?p=#{region_cc_cc_id}--#{season.name}-#{tournament_cc_id}----1-100000-"
       Rails.logger.info "reading #{url + tournament_link}"
       uri = URI(url + tournament_link)
-      tournament_html = Net::HTTP.get(uri)
+      tournament_html = Rails.env == 'development' ?  Version.http_get_with_ssl_bypass(uri) : Net::HTTP.get(uri)
       Rails.logger.info "===== scrape =========================== SCRAPING TOURNAMENT '#{url + tournament_link}'"
       tournament_doc = Nokogiri::HTML(tournament_html)
     end
@@ -483,11 +483,17 @@ class Tournament < ApplicationRecord
     tc.save
     self.region_id = region.id
     save!
+    # Meldeliste
+    # Nur beim Archivieren (reload_game_results: true) alte Seedings aufräumen
+    # Beim Setup (reload_game_results: false) bestehende Seedings NICHT löschen!
+    if opts[:reload_game_results] || opts[:reload_seedings]
+      reload.seedings.destroy_all
+    end
     player_list = {}
     registration_link = tournament_link.gsub("meisterschaft", "meldeliste")
     Rails.logger.info "reading #{url + registration_link}"
     uri = URI(url + registration_link)
-    registration_html = Net::HTTP.get(uri)
+    registration_html = Rails.env == 'development' ?  Version.http_get_with_ssl_bypass(uri) : Net::HTTP.get(uri)
     registration_doc = Nokogiri::HTML(registration_html)
     registration_table = registration_doc.css("aside table.silver table")[0]
     _header = []
@@ -507,12 +513,6 @@ class Tournament < ApplicationRecord
           player_list[player.fl_name] = [player, club] if player.present?
         end
       end
-    end
-    # Meldeliste
-    # Nur beim Archivieren (reload_game_results: true) alte Seedings aufräumen
-    # Beim Setup (reload_game_results: false) bestehende Seedings NICHT löschen!
-    if opts[:reload_game_results]
-      reload.seedings.destroy_all
     end
     # Seedings ohne Player-Zuordnung immer aufräumen
     reload.seedings.where(player: nil).destroy_all
@@ -545,12 +545,26 @@ class Tournament < ApplicationRecord
     reload
     return if discipline&.name == "Biathlon"
 
+    # Delete games BEFORE processing results (if reload_game_results is true)
+    # This ensures orphan games are deleted even if the results table doesn't exist
+    # IMPORTANT: Use destroy_all (not delete_all) to create PaperTrail versions for synchronization with local servers
+    if opts[:reload_game_results]
+      games_to_delete = Game.where(tournament_id: self.id)
+      count_before = games_to_delete.count
+      if count_before > 0
+        Rails.logger.info "Deleting #{count_before} game(s) for tournament #{self.id} (reload_game_results: true)"
+        games_to_delete.destroy_all
+        count_after = Game.where(tournament_id: self.id).count
+        Rails.logger.info "After deletion: #{count_after} game(s) remaining for tournament #{self.id}"
+      end
+    end
+
     # Ergebnisse
     result_link = tournament_link.gsub("meisterschaft", "einzelergebnisse")
     result_url = url + result_link
     Rails.logger.info "reading #{result_url}"
     uri = URI(result_url)
-    result_html = Net::HTTP.get(uri)
+    result_html = Rails.env == 'development' ?  Version.http_get_with_ssl_bypass(uri) : Net::HTTP.get(uri)
     result_doc = Nokogiri::HTML(result_html)
     table = result_doc.css("aside table.silver")[1]
     if table.present?
@@ -597,7 +611,6 @@ class Tournament < ApplicationRecord
           Rails.logger.info("===== scrape ===== Inconsistent Playerlist Player #{[k, v].inspect}")
         end
       end
-      Game.where(tournament_id: self.id).where("tournament_type='Tournament' OR tournament_type is NULL").destroy_all if opts[:reload_game_results]
       # games.destroy_all if opts[:reload_game_results]
       group = nil
       frame1_lines = result_lines = td_lines = 0
@@ -619,9 +632,9 @@ class Tournament < ApplicationRecord
         frame1_lines, frame_points, frame_result, frames, gd, group, hb, header, hs, mp, innings, nbsp, no,
           player_list, playera_fl_name, playerb_fl_name, points, result, result_lines, result_url,
           td_lines, _tr = parse_table_tr(region,
-          frame1_lines, frame_points, frame_result, frames, gd, group, hb,
-          header, hs, mp, innings, nbsp, no, player_list, playera_fl_name, playerb_fl_name,
-          points, result, result_lines, result_url, td_lines, tr
+                                         frame1_lines, frame_points, frame_result, frames, gd, group, hb,
+                                         header, hs, mp, innings, nbsp, no, player_list, playera_fl_name, playerb_fl_name,
+                                         points, result, result_lines, result_url, td_lines, tr
         )
       end
       if td_lines.positive? && no.present?
@@ -634,7 +647,7 @@ class Tournament < ApplicationRecord
     ranking_link = tournament_link.gsub("meisterschaft", "einzelrangliste")
     Rails.logger.info "reading #{url + ranking_link}"
     uri = URI(url + ranking_link)
-    ranking_html = Net::HTTP.get(uri)
+    ranking_html = Rails.env == 'development' ?  Version.http_get_with_ssl_bypass(uri) : Net::HTTP.get(uri)
     ranking_doc = Nokogiri::HTML(ranking_html)
     ranking_table = ranking_doc.css("aside table.silver table")[0]
     header = []
@@ -687,7 +700,7 @@ class Tournament < ApplicationRecord
             names = player_fl_name.split(/\//).map(&:strip)
             player_fl_name = player_list[names.join(" ")].present? ? names.join(" ") : names.reverse.join(" ")
           end
-           seeding = seedings.where(player: player_list[player_fl_name][0]).first if player_list[player_fl_name].present?
+          seeding = seedings.where(player: player_list[player_fl_name][0]).first if player_list[player_fl_name].present?
           if seeding.blank?
             Rails.logger.info("===== scrape ===== seeding of player #{player_fl_name} should exist!")
           else
@@ -795,24 +808,24 @@ class Tournament < ApplicationRecord
   # Nur für lokale Tournaments (id >= MIN_ID), nicht für ClubCloud-Records
   def calculate_and_cache_rankings
     return unless organizer.is_a?(Region) && discipline.present?
-    return unless id.present? && id >= Tournament::MIN_ID  # Nur für lokale Tournaments
-    
+    return unless id.present? && id >= Tournament::MIN_ID # Nur für lokale Tournaments
+
     Tournament.logger.info "[calculate_and_cache_rankings] for local tournament #{id}"
-    
+
     # Berechne Rankings basierend auf effective_gd (wie in define_participants)
     current_season = Season.current_season
     seasons = Season.where('id <= ?', current_season.id).order(id: :desc).limit(3).reverse
-    
+
     # Lade alle Rankings für die Disziplin und Region
     all_rankings = PlayerRanking.where(
       discipline_id: discipline_id,
       season_id: seasons.pluck(:id),
       region_id: organizer_id
     ).to_a
-    
+
     # Gruppiere nach Spieler
     rankings_by_player = all_rankings.group_by(&:player_id)
-    
+
     # Berechne effective_gd für jeden Spieler (neueste Saison zuerst)
     player_effective_gd = {}
     rankings_by_player.each do |player_id, rankings|
@@ -824,20 +837,20 @@ class Tournament < ApplicationRecord
       effective_gd = gd_values[2] || gd_values[1] || gd_values[0]
       player_effective_gd[player_id] = effective_gd if effective_gd.present?
     end
-    
+
     # Sortiere Spieler nach effective_gd (absteigend) und ermittle Rang
     sorted_players = player_effective_gd.sort_by { |player_id, gd| -gd }
     player_rank = {}
     sorted_players.each_with_index do |(player_id, gd), index|
       player_rank[player_id] = index + 1
     end
-    
+
     # Speichere in data Hash
     data_will_change!
     self.data ||= {}
     self.data['player_rankings'] = player_rank
     save!
-    
+
     Tournament.logger.info "[calculate_and_cache_rankings] cached #{player_rank.size} player rankings"
   end
 
@@ -855,6 +868,15 @@ class Tournament < ApplicationRecord
 
   def tournament_started
     games.where("games.id >= #{Game::MIN_ID}").present?
+  end
+
+  # Guard für reset_tournament - nur club_admin oder system_admin dürfen zurücksetzen
+  def admin_can_reset_tournament?
+    current_user = User.current || PaperTrail.request.whodunnit
+    return true if current_user.blank? # Beim Initialisieren gibt es keinen User
+
+    user = current_user.is_a?(User) ? current_user : User.find_by(id: current_user)
+    user&.club_admin? || user&.system_admin?
   end
 
   def date_str
@@ -1216,7 +1238,7 @@ class Tournament < ApplicationRecord
           players = Player.where(type: nil).where(firstname:, lastname:)
           if players.count.zero?
             logger.info "==== scrape ==== [scrape_tournaments] Inkonsistence - Fatal: Player #{lastname}, #{firstname} not found in club #{club_str} [#{club.ba_id}] , Region #{region.shortname}, season #{season.name}! Not found anywhere - typo?"
-            
+
             # Use PlayerFinder to prevent duplicates
             player_fixed = Player.find_or_create_player(
               firstname: firstname,
@@ -1226,7 +1248,7 @@ class Tournament < ApplicationRecord
               season_id: season.id,
               allow_create: true
             )
-            
+
             if player_fixed.present?
               logger.info "==== scrape ==== [scrape_tournaments] Player #{lastname}, #{firstname} (ID: #{player_fixed.id}) found/created for club #{club_str} [#{club.ba_id}]"
             else
@@ -1360,6 +1382,14 @@ class Tournament < ApplicationRecord
 
   def handle_game(region, frame_result, frames, gd, group, hs, hb, mp, innings, no, player_list, playera_fl_name, playerb_fl_name,
                   frame_points, points, result)
+    # Skip games where both players are "Freilos" (bye games) - these shouldn't be created
+    # Check if both players are "Freilos" or both are missing from player_list
+    playera_missing = playera_fl_name == "Freilos" || !player_list[playera_fl_name].present?
+    playerb_missing = playerb_fl_name == "Freilos" || !player_list[playerb_fl_name].present?
+    if playera_missing && playerb_missing
+      Rails.logger.info "Skipping bye game (Freilos vs Freilos) for tournament #{id}, seqno #{no}, group #{group}"
+      return
+    end
     game = games.where(seqno: no, gname: group).first
     region_id = region.id
     data = if frames.count > 1

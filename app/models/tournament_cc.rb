@@ -300,4 +300,216 @@ class TournamentCc < ApplicationRecord
 
     [doc0a, doc0b, doc2, doc3]
   end
+
+  # Scrapt die groupItemId-Optionen aus createErgebnisCheck.php für dieses Turnier
+  # Gibt ein Hash zurück: {groupItemId => "Gruppe A", ...}
+  def scrape_tournament_group_options(opts = {})
+    return {} unless tournament.present?
+
+    region = tournament.organizer
+    raise "Tournament organizer not found" unless region.present?
+
+    region_cc = region.region_cc
+    raise "RegionCc not found for region: #{region.shortname}" unless region_cc.present?
+
+    branch_cc = self.branch_cc
+    raise "BranchCc not found for tournament_cc[#{id}]" unless branch_cc.present?
+
+    # Stelle sicher, dass wir eingeloggt sind (mit Session-Validierung)
+    session_id = opts[:session_id] || Setting.ensure_logged_in
+
+    # Erstelle Payload für createErgebnisCheck.php
+    args = {
+      fedId: region.cc_id,
+      branchId: branch_cc.cc_id,
+      disciplinId: "*",
+      season: tournament.season.name,
+      catId: "*",
+      meisterTypeId: championship_type_cc&.cc_id || "",
+      meisterschaftsId: cc_id,
+      teilnehmerId: "*",
+      nbut: ""
+    }
+
+    # Rufe createErgebnisCheck.php direkt auf (nicht in PATH_MAP)
+    url = region_cc.base_url + "/admin/einzel/meisterschaft/createErgebnisCheck.php"
+    uri = URI(url)
+    http = Net::HTTP.new(uri.host, uri.port)
+    http.use_ssl = true
+    http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+    http.read_timeout = 30
+    http.open_timeout = 10
+
+    req = Net::HTTP::Post.new(uri.request_uri)
+    req["Content-Type"] = "application/x-www-form-urlencoded"
+    req["cookie"] = "PHPSESSID=#{session_id}"
+    req["referer"] = region_cc.base_url + "/admin/einzel/meisterschaft/showMeisterschaft.php"
+    req["User-Agent"] = "Mozilla/5.0 (compatible; Carambus/1.0)"
+    req["Origin"] = region_cc.base_url
+    req["Accept"] = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+
+    req.set_form_data(args)
+    res = http.request(req)
+
+    unless res.is_a?(Net::HTTPSuccess)
+      raise "Failed to fetch createErgebnisCheck: #{res.code} - #{res.message}"
+    end
+
+    # Parse HTML und extrahiere groupItemId-Optionen
+    doc = Nokogiri::HTML(res.body)
+    
+    # Debug: Prüfe ob Select vorhanden ist
+    select_element = doc.css('select[name="groupItemId"]')
+    if select_element.empty?
+      Rails.logger.warn "[scrape_tournament_group_options] WARNING: select[name='groupItemId'] not found in HTML response"
+      Rails.logger.debug "[scrape_tournament_group_options] Response body preview (first 1000 chars): #{res.body[0..1000]}"
+      
+      # Prüfe ob Login-Seite angezeigt wird
+      if res.body.include?("call_police") || res.body.include?("loginUser")
+        Rails.logger.error "[scrape_tournament_group_options] ERROR: Got login page instead of createErgebnisCheck page - session may be invalid"
+        raise "Session invalid: Got login page instead of createErgebnisCheck"
+      end
+    end
+    
+    group_options = doc.css('select[name="groupItemId"] > option').each_with_object({}) do |o, memo|
+      memo[o["value"].to_i] = o.text.strip unless o["value"] == "*"
+    end
+
+    if group_options.empty?
+      Rails.logger.warn "[scrape_tournament_group_options] WARNING: No groupItemId options found for tournament_cc[#{id}]"
+      Rails.logger.debug "[scrape_tournament_group_options] All select elements: #{doc.css('select').map { |s| s['name'] }.join(', ')}"
+    else
+      Rails.logger.info "[scrape_tournament_group_options] Scraped #{group_options.count} groupItemId options: #{group_options.inspect}"
+    end
+    
+    group_options
+  rescue StandardError => e
+    Rails.logger.error "[scrape_tournament_group_options] Error scraping tournament group options: #{e.message}"
+    Rails.logger.error "[scrape_tournament_group_options] Backtrace: #{e.backtrace.first(10).join("\n")}"
+    raise
+  end
+
+  # Erstellt oder updated den GroupCc Record mit den groupItemId-Mappings
+  # Wird bei der Turniervorbereitung aufgerufen
+  # 
+  # WICHTIG: Auf lokalen Servern sind ClubCloud-Records geschützt (LocalProtector).
+  # Daher speichern wir die Mappings direkt in tournament_monitor.data statt in GroupCc.
+  def prepare_group_mapping(opts = {})
+    return nil unless tournament.present?
+
+    # Scrape die groupItemId-Optionen
+    group_options = scrape_tournament_group_options(opts)
+
+    return nil if group_options.empty?
+
+    tournament_monitor = tournament.tournament_monitor
+    unless tournament_monitor.present?
+      Rails.logger.warn "[prepare_group_mapping] No tournament_monitor found for tournament[#{tournament.id}]"
+      return nil
+    end
+
+    # Speichere Mappings in tournament_monitor.data (nicht geschützt durch LocalProtector)
+    tournament_monitor.deep_merge_data!(
+      "cc_group_mapping" => {
+        "positions" => group_options,
+        "scraped_at" => Time.current.iso8601
+      }
+    )
+    tournament_monitor.save!
+    
+    Rails.logger.info "[prepare_group_mapping] Saved #{group_options.count} groupItemId mappings to tournament_monitor[#{tournament_monitor.id}].data"
+    Rails.logger.info "[prepare_group_mapping] Mappings: #{group_options.inspect}"
+
+    # Für Rückwärtskompatibilität: Versuche auch GroupCc zu erstellen (nur auf API-Server)
+    # Auf lokalen Servern wird das fehlschlagen, aber das ist OK
+    begin
+      branch_cc = self.branch_cc
+      if branch_cc.present?
+        found_group_cc = self.group_cc || GroupCc.where(branch_cc: branch_cc).find do |gcc|
+          positions = gcc.data.is_a?(String) ? JSON.parse(gcc.data) : gcc.data
+          positions = positions["positions"] if positions.is_a?(Hash)
+          positions.is_a?(Hash) && positions.values.sort == group_options.values.sort
+        end
+
+        unless found_group_cc
+          plan_name = name || "Unknown Plan"
+          region = tournament.organizer
+          region_cc = region.region_cc if region.present?
+          context = region_cc&.context || branch_cc.region_cc&.context || "nbv"
+          
+          found_group_cc = GroupCc.create!(
+            context: context,
+            name: plan_name,
+            display: "Gruppen",
+            status: "Freigegeben",
+            branch_cc_id: branch_cc.id,
+            data: { "positions" => group_options }.to_json
+          )
+          Rails.logger.info "[prepare_group_mapping] Created GroupCc[#{found_group_cc.id}] for tournament_cc[#{id}]"
+        end
+
+        update(group_cc: found_group_cc) unless group_cc_id == found_group_cc.id
+      end
+    rescue StandardError => e
+      # Auf lokalen Servern wird das fehlschlagen (LocalProtector), das ist OK
+      Rails.logger.debug "[prepare_group_mapping] Could not create/update GroupCc (expected on local servers): #{e.message}"
+    end
+
+    true
+  end
+
+  # Validiert, ob alle game.gname aus executor_params ein Mapping in GroupCc haben
+  # Gibt Hash zurück: {missing: [...], mapped: [...]}
+  def validate_game_gname_mapping
+    return { missing: [], mapped: [] } unless tournament.present? && tournament.tournament_plan.present?
+
+    group_cc = self.group_cc
+    return { missing: [], mapped: [], error: "GroupCc not found" } unless group_cc.present?
+
+    # Extrahiere positions aus GroupCc
+    positions_data = group_cc.data.is_a?(String) ? JSON.parse(group_cc.data) : group_cc.data
+    positions = positions_data["positions"] || {}
+    cc_names = positions.values
+
+    # Extrahiere game.gname aus executor_params
+    executor_params = JSON.parse(tournament.tournament_plan.executor_params)
+    game_gnames = []
+
+    executor_params.each_key do |k|
+      next unless (m = k.match(/g(\d+)/))
+
+      group_no = m[1].to_i
+      # Erstelle gname-Patterns wie "group1:1-2", "group2:1-3", etc.
+      # (basierend auf der Struktur in tournament_monitor_state.rb)
+      sequence = executor_params[k]["sq"]
+      if sequence.is_a?(Hash)
+        sequence.each do |_round_key, round_data|
+          next unless round_data.is_a?(Hash)
+
+          round_data.each do |_tno_str, game_pair|
+            if game_pair.is_a?(String) && /(\d+)-(\d+)/.match?(game_pair)
+              game_gnames << "group#{group_no}:#{game_pair}"
+            end
+          end
+        end
+      end
+    end
+
+    # Prüfe Mapping für jeden gname
+    missing = []
+    mapped = []
+
+    game_gnames.each do |gname|
+      # Mappe gname zu CC-Name
+      cc_name = Setting.map_game_gname_to_cc_group_name(gname)
+      
+      if cc_name.present? && cc_names.include?(cc_name)
+        mapped << { gname: gname, cc_name: cc_name }
+      else
+        missing << { gname: gname, cc_name: cc_name }
+      end
+    end
+
+    { missing: missing, mapped: mapped, total: game_gnames.count }
+  end
 end

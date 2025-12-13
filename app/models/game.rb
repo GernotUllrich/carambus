@@ -211,7 +211,7 @@ class Game < ApplicationRecord
   def deep_merge_data!(hash)
     h = data.dup
     h.deep_merge!(hash)
-    
+
     # Only call data_will_change! if the data actually changed
     if h != data
       data_will_change!
@@ -225,7 +225,7 @@ class Game < ApplicationRecord
     res = nil
     if h[key].present?
       res = h.delete(key)
-      
+
       # Only call data_will_change! if the data actually changed
       if h != data
         data_will_change!
@@ -240,7 +240,9 @@ class Game < ApplicationRecord
     %r{group(\d+):(\d+)-(\d+)(?:\/(\d+))} => ->(m) { I18n.t("game.display_group_game_name_rp", group_no: m[1], playera: m[2], playerb: m[3], rp: m[4]).html_safe },
     /group(\d+):(\d+)-(\d+)/ => ->(m) { I18n.t("game.display_group_game_name", group_no: m[1], playera: m[2], playerb: m[3]).html_safe },
     /group(\d+)/i => ->(m) { I18n.t("game.display_group_game_name_short", group_no: self.clean_key(m[1])).html_safe },
-    # ... repeated for all patterns
+    /p<(\d*)-(\d*)>/i => -> (m) {"Spiel um Platz #{m[1]} und #{m[2]}".html_safe},
+    /hf(\d*)/i => -> (m) {"Halbfinale #{m[1]}"},
+    /fin/i => -> (m) {"Finale".html_safe},
   }.freeze
 
   def self.clean_key(key)
@@ -336,8 +338,8 @@ class Game < ApplicationRecord
 
   # Allow NULL values for tournament_id and gname (for training games)
   # But maintain uniqueness when values are present
-  validates :seqno, uniqueness: { 
-    scope: [:tournament_id, :gname], 
+  validates :seqno, uniqueness: {
+    scope: [:tournament_id, :gname],
     message: "Duplicate game in group",
     allow_nil: true
   }

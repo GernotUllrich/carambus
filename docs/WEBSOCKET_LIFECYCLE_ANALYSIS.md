@@ -806,3 +806,4 @@ PONG
 
 **Sollen wir das Logging jetzt einbauen und dann systematisch testen?**
 
+

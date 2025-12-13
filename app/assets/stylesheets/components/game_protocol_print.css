@@ -1,0 +1,262 @@
+/* Game Protocol Print Styles - 3 per landscape A4 page */
+
+@media print {
+  @page {
+    size: A4 landscape;
+    margin: 0.5cm;
+  }
+  
+  body {
+    margin: 0;
+    padding: 0;
+    background: white;
+  }
+  
+  /* Hide everything except print content */
+  body > *:not(.protocol-print-container) {
+    display: none !important;
+  }
+  
+  .protocol-print-container {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100vh;
+    page-break-inside: avoid;
+  }
+  
+  /* Each sheet takes 1/3 of the page height */
+  .protocol-print-sheet {
+    width: 100%;
+    height: calc((100vh - 1cm) / 3);
+    border: 1px solid #000;
+    margin-bottom: 0.3cm;
+    padding: 0.3cm;
+    box-sizing: border-box;
+    page-break-inside: avoid;
+    display: flex;
+    flex-direction: column;
+    font-size: 8pt;
+  }
+  
+  /* Location Header */
+  .protocol-header {
+    border-bottom: 1px solid #000;
+    padding-bottom: 0.2cm;
+    margin-bottom: 0.2cm;
+  }
+  
+  .location-info {
+    text-align: center;
+  }
+  
+  .location-name {
+    font-weight: bold;
+    font-size: 10pt;
+    margin-bottom: 0.1cm;
+  }
+  
+  .location-address {
+    font-size: 8pt;
+  }
+  
+  /* Game Info */
+  .protocol-game-info {
+    display: flex;
+    justify-content: space-between;
+    font-size: 7pt;
+    margin-bottom: 0.2cm;
+    padding-bottom: 0.1cm;
+    border-bottom: 1px solid #ccc;
+  }
+  
+  .game-discipline,
+  .game-goal,
+  .game-date {
+    flex: 1;
+  }
+  
+  /* Protocol Table */
+  .protocol-print-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 7pt;
+    flex: 1;
+  }
+  
+  .protocol-print-table th,
+  .protocol-print-table td {
+    border: 1px solid #000;
+    padding: 0.1cm;
+    text-align: center;
+  }
+  
+  .protocol-print-table thead {
+    background: #f0f0f0;
+  }
+  
+  .protocol-print-table thead th {
+    font-weight: bold;
+    font-size: 7pt;
+  }
+  
+  .protocol-print-table thead tr:first-child th {
+    background: #f0f0f0;
+    font-size: 8pt;
+  }
+  
+  .protocol-print-table .player-a-header {
+    background: #e3f2fd;
+  }
+  
+  .protocol-print-table .player-b-header {
+    background: #e8f5e9;
+  }
+  
+  .col-inning {
+    width: 8%;
+  }
+  
+  .col-points {
+    width: 23%;
+  }
+  
+  .col-total {
+    width: 23%;
+  }
+  
+  .protocol-print-table tbody tr:nth-child(even) {
+    background: #f9f9f9;
+  }
+  
+  .protocol-print-table tbody .player-a {
+    background: #e3f2fd;
+  }
+  
+  .protocol-print-table tbody .player-b {
+    background: #e8f5e9;
+  }
+  
+  .protocol-print-table tfoot {
+    border-top: 2px solid #000;
+  }
+  
+  .protocol-print-table tfoot .totals-row {
+    font-weight: bold;
+    background: #f0f0f0;
+  }
+  
+  .protocol-print-table tfoot .stats-row {
+    font-size: 6pt;
+  }
+}
+
+/* Screen preview styles */
+@media screen {
+  .protocol-print-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
+    background: #f5f5f5;
+  }
+  
+  .protocol-print-sheet {
+    width: 100%;
+    max-width: 29.7cm; /* A4 landscape width */
+    height: calc(21cm / 3); /* A4 landscape height / 3 */
+    border: 1px solid #000;
+    padding: 0.5cm;
+    background: white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+    font-size: 10pt;
+  }
+  
+  .protocol-header {
+    border-bottom: 1px solid #000;
+    padding-bottom: 0.3cm;
+    margin-bottom: 0.3cm;
+  }
+  
+  .location-info {
+    text-align: center;
+  }
+  
+  .location-name {
+    font-weight: bold;
+    font-size: 12pt;
+    margin-bottom: 0.1cm;
+  }
+  
+  .location-address {
+    font-size: 9pt;
+  }
+  
+  .protocol-game-info {
+    display: flex;
+    justify-content: space-between;
+    font-size: 8pt;
+    margin-bottom: 0.3cm;
+    padding-bottom: 0.2cm;
+    border-bottom: 1px solid #ccc;
+  }
+  
+  .protocol-print-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 8pt;
+    flex: 1;
+  }
+  
+  .protocol-print-table th,
+  .protocol-print-table td {
+    border: 1px solid #000;
+    padding: 0.2cm;
+    text-align: center;
+  }
+  
+  .protocol-print-table thead {
+    background: #f0f0f0;
+  }
+  
+  .protocol-print-table thead th {
+    font-weight: bold;
+  }
+  
+  .protocol-print-table thead tr:first-child th {
+    background: #f0f0f0;
+    font-size: 9pt;
+  }
+  
+  .protocol-print-table .player-a-header {
+    background: #e3f2fd;
+  }
+  
+  .protocol-print-table .player-b-header {
+    background: #e8f5e9;
+  }
+  
+  .protocol-print-table tbody tr:nth-child(even) {
+    background: #f9f9f9;
+  }
+  
+  .protocol-print-table tbody .player-a {
+    background: #e3f2fd;
+  }
+  
+  .protocol-print-table tbody .player-b {
+    background: #e8f5e9;
+  }
+  
+  .protocol-print-table tfoot {
+    border-top: 2px solid #000;
+  }
+  
+  .protocol-print-table tfoot .totals-row {
+    font-weight: bold;
+    background: #f0f0f0;
+  }
+}
+

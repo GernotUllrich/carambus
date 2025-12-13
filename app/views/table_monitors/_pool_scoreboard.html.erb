@@ -33,7 +33,9 @@
 <%- state_display = table_monitor.state_display(I18n.locale).presence || "" %>
 <%- showing_timer_a = (left_player_active && table_monitor.playing? && table_monitor.timer_finish_at.present? && ((show_tournament_monitor.present? && show_tournament_monitor.timeout.to_i > 0) || show_tournament_monitor.blank? && show_data["timeout"].to_i > 0)) ? "" : "hidden" %>
 <%- showing_timer_b = (right_player_active && table_monitor.playing? && table_monitor.timer_finish_at.present? && ((show_tournament_monitor.present? && show_tournament_monitor.timeout.to_i > 0) || show_tournament_monitor.blank? && show_data["timeout"].to_i > 0)) ? "" : "hidden" %>
-<%- time_counter, green_bars, do_green_bars, do_yellow_bars, do_orange_bars, do_lightred_bars, do_red_bars = options[:timer_data] if fullscreen && options[:timer_data].present? %>
+<%- if fullscreen && options[:timer_data].present? %>
+<%- time_counter, green_bars, do_green_bars, do_yellow_bars, do_orange_bars, do_lightred_bars, do_red_bars = options[:timer_data] %>
+<%- end %>
 
 <%- vw2 = fullscreen ? "2vw" : "1vw" %>
 <%- vw3 = fullscreen ? "3vw" : "1-5vw" %>
@@ -177,6 +179,7 @@
                             id: "game_state",
                             class: "level-3 flex flex-col h-1/6 items-center font-bold text-red-400 text-#{vw2} text-center dark:bg-black" do %>
             <%- end %>
+          <%- end %>
           <%- if ['8-Ball', '8-Ball Doppel'].include?(left_player[:discipline]) %>
             <div class="overflow-hidden flex pb-1 justify-center hover:bg-gray-700 align-middle text-<%= fullscreen ? '2vw' : '1-5vw' %> w-60 h-20">
               <%= image_tag "p8.png" %>
@@ -241,21 +244,6 @@
             <%- end %>
             <%- if options[:sets_to_play].to_i > 1 %>
               <div class="flex flex-1 items-center text-center text-<%= vw2 %>"><%= "maximal #{options[:sets_to_play].to_i} Sätze" %></div>
-            <%- end %>
-          </div>
-          <div class="flex flex-row justify-center space-x-4">
-            <%= content_tag "div",
-                            class: "mr-4 flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none bg-red-50 dark:bg-black hover:bg-gray-300 dark:text-red-200 text-red-200",
-                            title: "Undo",
-                            data: {
-                              controller: "table-monitor tooltip",
-                              action: "click->table-monitor#undo",
-                              id: table_monitor.id,
-                              "tippy-content": "Letzte Eingabe zurücknehmen"
-                            },
-                            id: "undo",
-                            tabindex: 2 do %>
-              <%= render_svg "undo-gray-500t", styles: "responsive-svg fill-current icon-4xl text-red-300 inline-block" %>
             <%- end %>
           </div>
           <%- if left_player[:discipline] == "14.1 endlos" %>

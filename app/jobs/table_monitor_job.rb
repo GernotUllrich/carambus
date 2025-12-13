@@ -3,6 +3,13 @@ class TableMonitorJob < ApplicationJob
   queue_as :default
 
   def perform(*args)
+    # Skip execution on API Server (no scoreboards running)
+    # Local servers are identified by having a carambus_api_url configured
+    unless ApplicationRecord.local_server?
+      Rails.logger.info "📡 TableMonitorJob skipped (API Server - no scoreboards)"
+      return
+    end
+
     debug = true # Rails.env != 'production'
     table_monitor = args[0]
     operation_type = args[1]
@@ -14,9 +21,11 @@ class TableMonitorJob < ApplicationJob
     
     Rails.logger.info "📡 ========== TableMonitorJob START =========="
     Rails.logger.info "📡 TableMonitor ID: #{table_monitor.id}"
+    Rails.logger.info "📡 Table ID: #{table_monitor.table&.id}"
+    Rails.logger.info "📡 Location ID: #{table_monitor.table&.location&.id}"
     Rails.logger.info "📡 Operation Type: #{operation_type}"
     Rails.logger.info "📡 Options: #{options.inspect}" if options.present?
-    Rails.logger.info "📡 Stream: table-monitor-stream"
+    Rails.logger.info "📡 Stream: table-monitor-stream (SHARED - clients filter by table_monitor_id)"
     Rails.logger.info "📡 Broadcast Timestamp: #{broadcast_timestamp}"
     
     # Reload and clear cache to ensure fresh data
@@ -214,6 +223,8 @@ class TableMonitorJob < ApplicationJob
       render_start = Time.now.to_f
       selector = "#full_screen_table_monitor_#{table_monitor.id}"
       Rails.logger.info "📡 Broadcasting scoreboard to table-monitor stream (for scoreboard view)"
+      Rails.logger.info "📡 ⚠️  FULL SCOREBOARD UPDATE: This will be sent to ALL clients via shared stream"
+      Rails.logger.info "📡 ⚠️  Clients MUST filter by table_monitor_id=#{table_monitor.id} to prevent mix-ups"
       
       full_screen_html = ApplicationController.render(
         partial: "table_monitors/show#{show}",

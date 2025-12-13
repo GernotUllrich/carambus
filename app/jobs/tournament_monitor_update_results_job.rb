@@ -3,6 +3,13 @@ class TournamentMonitorUpdateResultsJob < ApplicationJob
   queue_as :default
 
   def perform(*args)
+    # Skip execution on API Server (no tournament monitors running)
+    # Local servers are identified by having a carambus_api_url configured
+    unless ApplicationRecord.local_server?
+      Rails.logger.info "📡 TournamentMonitorUpdateResultsJob skipped (API Server - no tournament monitors)"
+      return
+    end
+
     tournament_monitor = args[0]
     html_game_results = ApplicationController.render(
       partial: "tournament_monitors/game_results",

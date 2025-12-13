@@ -177,3 +177,4 @@ screenshots/
 *Note: Screenshots are not yet included in the repository. They should be captured from a running instance of the Carambus application and added to this directory.*
 
 
+

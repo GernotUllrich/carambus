@@ -40,16 +40,16 @@
   <hr>
   <h3 class="mt-6 mb-4"><%= custom_link_to "=> #{t('tournaments_season')} #{Season.current_season.name}", tournaments_path(sSearch: "Region:#{@region.shortname} Season:#{Season.current_season.name} Date:>heute-2w") %></h3>
   <h3 class="mt-6 mb-4"><%= custom_link_to "=> #{t('leagues_season')} #{Season.current_season.name}", parties_path(sSearch: "Region:#{@region.shortname} Season:#{Season.current_season.name} Date:>heute-2w") %></h3>
-  
+
   <!-- Quick Load für anstehende Events -->
   <% if current_user&.admin? %>
-    <div class="my-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-      <h4 class="text-sm font-semibold text-blue-900 mb-2">⚡ Schnell-Aktualisierung</h4>
-      <p class="text-sm text-blue-800 mb-3">
+    <div class="my-4 p-4 bg-blue-50 dark:bg-black border border-blue-200 rounded-lg">
+      <h4 class="text-sm font-semibold text-blue-800 dark:text-blue-400 mb-2">⚡ Schnell-Aktualisierung</h4>
+      <p class="text-sm text-blue-800 dark:text-blue-400 mb-3">
         Lädt nur unmittelbar anstehende Events vom API Server (schneller als komplette Synchronisation)
       </p>
       <div class="flex gap-2">
-        <%= button_to '🔄 Anstehende Turniere (30 Tage)', 
+        <%= button_to '🔄 Anstehende Turniere (30 Tage)',
             reload_upcoming_tournaments_region_path(@region),
             method: :post,
             class: 'btn btn-sm btn-primary',
@@ -59,7 +59,7 @@
       </div>
     </div>
   <% end %>
-  
+
   <h3><%= custom_link_to "=> Clubs", clubs_path(sSearch: "reg:#{@region.shortname}") %></h3>
   <%= render partial: "rankings" %>
   <% if current_user&.admin? %>

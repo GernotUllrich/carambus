@@ -1,5 +1,5 @@
 class PartyMonitorsController < ApplicationController
-  before_action :set_party_monitor, only: %i[show edit update destroy upload_form]
+  before_action :set_party_monitor, only: %i[show edit update destroy upload_form assign_player remove_player]
 
   # Uncomment to enforce Pundit authorization
   # after_action :verify_authorized
@@ -99,6 +99,28 @@ class PartyMonitorsController < ApplicationController
       end
       format.json { head :no_content }
     end
+  end
+
+  # POST /party_monitors/:id/assign_player
+  def assign_player
+    team = params[:team] # 'a' or 'b'
+    player_ids = Array(params["availablePlayer#{team.upcase}Id"]).map(&:to_i)
+    
+    player_ids.each do |pid|
+      Seeding.create(player_id: pid, tournament: @party_monitor.party, role: "team_#{team}", position: 1)
+    end
+    
+    redirect_to @party_monitor, notice: "Player(s) assigned successfully."
+  end
+
+  # POST /party_monitors/:id/remove_player
+  def remove_player
+    team = params[:team] # 'a' or 'b'
+    player_ids = Array(params["assignedPlayer#{team.upcase}Id"]).map(&:to_i)
+    
+    Seeding.where(player_id: player_ids, tournament: @party_monitor.party, role: "team_#{team}").destroy_all
+    
+    redirect_to @party_monitor, notice: "Player(s) removed successfully."
   end
 
   private

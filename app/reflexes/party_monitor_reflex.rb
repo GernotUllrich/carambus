@@ -26,7 +26,6 @@ class PartyMonitorReflex < ApplicationReflex
 
   def assign_player(ab)
     assigned_players_ids = Player.joins(:seedings).where(seedings: { tournament: @party, role: "team_#{ab}" }).ids
-    # player_ids = Player.joins(:seedings).where(seedings: { role: "team_#{ab}", tournament_id: @party.id, tournament_type: "Party" }).ids
     add_ids = Array(params["availablePlayer#{ab.upcase}Id"]).map(&:to_i) - assigned_players_ids
     add_ids.each do |pid|
       Seeding.create(player_id: pid, tournament: @party, role: "team_#{ab}", position: 1)
@@ -269,6 +268,14 @@ class PartyMonitorReflex < ApplicationReflex
         #   :first_break_choice
         # ]
         row_type = row[:type] == "14/1e" ? "14.1 endlos" : row[:type]
+        # Extract numeric score from strings like "Hauptrunde 80" or just use the value if it's already a number
+        score_value = row[:score]
+        if score_value.is_a?(String)
+          # Extract the last number from the string (e.g., "Hauptrunde 80" -> 80)
+          score_value = score_value.scan(/\d+/).last.to_i
+        end
+        score_value = score_value.to_i if score_value.present?
+        
         essential_game_options = {
           # tournament: @party,
           gname: "#{row[:seqno]}-#{row[:type]}",
@@ -284,11 +291,11 @@ class PartyMonitorReflex < ApplicationReflex
           player_b_id: row[:player_b],
           discipline_a: row_type,
           discipline_b: row_type,
-          sets_to_win: row[:sets],
-          points_choice: row[:score],
-          balls_goal_a: row[:score],
-          balls_goal_b: row[:score],
-          innings_goal: row[:innings],
+          sets_to_win: row[:sets].to_i,
+          points_choice: score_value,
+          balls_goal_a: score_value,
+          balls_goal_b: score_value,
+          innings_goal: row[:innings].to_i,
           first_break_choice: row[:first_break]
         }
         game = @party.games.where(gname: "#{row[:seqno]}-#{row[:type]}").first
@@ -312,17 +319,34 @@ class PartyMonitorReflex < ApplicationReflex
   end
 
   def reset_party_monitor
-    # morph :nothing
-    @party_monitor.table_monitors.each do |table_monitor|
-      table_monitor.game.destroy
+    Rails.logger.info "🔴 RESET PARTY MONITOR CALLED - User: #{current_user&.id}, Admin: #{current_user&.admin?}"
+    
+    unless current_user&.admin?
+      flash[:alert] = "Nur Administratoren können den Party Monitor zurücksetzen."
+      Rails.logger.warn "Unauthorized reset_party_monitor attempt by user: #{current_user&.id}"
+      return
     end
+
+    Rails.logger.info "🔴 Starting reset - PartyMonitor ID: #{@party_monitor.id}"
+    
+    # 1. Lösche Games der TableMonitors (nur wenn vorhanden)
+    @party_monitor.table_monitors.each do |table_monitor|
+      table_monitor.game&.destroy
+    end
+    # 2. Lösche alle TableMonitors
     @party_monitor.table_monitors.destroy_all
+    # 3. Lösche alle Party-Games
+    @party_monitor.party.games.destroy_all
+    # 4. Lösche Test-Seedings (nur die mit hohen IDs)
     @party_monitor.party.seedings.where("id > 5000000").destroy_all
+    # 5. Setze den PartyMonitor zurück
     @party_monitor.reset_party_monitor
+    
+    Rails.logger.info "🔴 Reset completed successfully"
     flash[:notice] = "Party Monitor komplett zurückgesetzt"
   rescue StandardError => e
-    Rails.logger.info "#{e} #{e.backtrace}"
-    raise StandardError
+    Rails.logger.info "reset_party_monitor error: #{e} #{e.backtrace}"
+    flash[:alert] = "Fehler beim Zurücksetzen: #{e.message}"
   end
 
   def close_party

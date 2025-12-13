@@ -136,3 +136,4 @@ Nach dem Logging einbauen:
 **Problem:** `selectorExists: false` in Browser Console  
 **Check:** Ist Element wirklich im DOM? Console: `document.querySelector("#table_scores")`
 
+

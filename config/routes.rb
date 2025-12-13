@@ -48,7 +48,8 @@ Rails.application.routes.draw do
   resources :discipline_phases
   resources :party_monitors do
     member do
-      get :upload_form
+      post :assign_player
+      post :remove_player
       get :upload_form
     end
   end
@@ -133,6 +134,9 @@ Rails.application.routes.draw do
   end
   resources :table_monitors do
     member do
+      get :print_protocol
+    end
+    member do
       post :set_balls
       post :add_one
       post :add_ten
@@ -166,6 +170,7 @@ Rails.application.routes.draw do
     member do
       post :switch_players
       post :update_games
+      post :start_round_games
     end
   end
   resources :discipline_tournament_plans

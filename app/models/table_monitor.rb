@@ -34,8 +34,7 @@ class TableMonitor < ApplicationRecord
   include ApiProtector
   include CableReady::Broadcaster
 
-  #broadcasts_to ->(table_monitor) { [table_monitor, :table_show2] }, inserts_by: :prepend, updates_by: :replace
-
+  # broadcasts_to ->(table_monitor) { [table_monitor, :table_show2] }, inserts_by: :prepend, updates_by: :replace
 
   DEBUG = Rails.env != "production"
 
@@ -69,19 +68,28 @@ class TableMonitor < ApplicationRecord
   attr_accessor :skip_update_callbacks
 
   after_update_commit lambda {
-    Rails.logger.info "🔔 ========== after_update_commit TRIGGERED =========="
-    Rails.logger.info "🔔 TableMonitor ID: #{id}"
-    Rails.logger.info "🔔 Previous changes: #{@collected_changes.inspect}"
-
     # Skip callbacks if flag is set (used in start_game to prevent redundant job enqueues)
     if skip_update_callbacks
       Rails.logger.info "🔔 Skipping callbacks (skip_update_callbacks=true)"
       Rails.logger.info "🔔 ========== after_update_commit END (skipped) =========="
-      @collected_changes = nil
+      # @collected_data_changes = nil ## ! still collect changes!
       return
     end
 
-    #broadcast_replace_later_to self
+    # Skip cable broadcasts on API Server (no scoreboards running)
+    # Local servers are identified by having a carambus_api_url configured
+    unless ApplicationRecord.local_server?
+      Rails.logger.info "🔔 Skipping callbacks (API Server - no scoreboards)"
+      Rails.logger.info "🔔 ========== after_update_commit END (API Server) =========="
+      return
+    end
+
+    Rails.logger.info "🔔 ========== after_update_commit TRIGGERED =========="
+    Rails.logger.info "🔔 TableMonitor ID: #{id}"
+    Rails.logger.info "🔔 Previous changes: #{@collected_changes.inspect}"
+    Rails.logger.info "🔔 Previous data changes: #{@collected_dada_changes.inspect}"
+
+    # broadcast_replace_later_to self
     relevant_keys = (previous_changes.keys - %w[data nnn panel_state pointer_mode current_element updated_at])
     Rails.logger.info "🔔 Relevant keys: #{relevant_keys.inspect}"
 
@@ -96,48 +104,52 @@ class TableMonitor < ApplicationRecord
     if previous_changes.keys.present? && relevant_keys.present?
       Rails.logger.info "🔔 Enqueuing: table_scores job (relevant_keys present)"
       TableMonitorJob.perform_later(self, "table_scores")
-    else
-      Rails.logger.info "🔔 Enqueuing: teaser job (no relevant_keys)"
+      # Also send teaser for tournament_scores page (which doesn't have #table_scores container)
+      Rails.logger.info "🔔 Enqueuing: teaser job (for tournament_scores page)"
       TableMonitorJob.perform_later(self, "teaser")
+    else
+      if @collected_changes.present? || @collected_data_changes.select{ |a| a.present? }.present?
+        Rails.logger.info "🔔 Enqueuing: teaser job (no relevant_keys)"
+        TableMonitorJob.perform_later(self, "teaser")
+      end
     end
 
     # ULTRA-FAST PATH: Only score/innings changed - send just data, no HTML
     if ultra_fast_score_update?
-      player_key = (@collected_changes.flat_map(&:keys) & ['playera', 'playerb']).first
+      player_key = (@collected_data_changes.flat_map(&:keys) & ['playera', 'playerb']).first
       TableMonitorJob.perform_later(self, "score_data", player: player_key)
-      @collected_changes = nil
+      @collected_data_changes = nil
       return
     end
-    
+
     # FAST PATH: Check for simple score changes that can use targeted updates
     # If only one player's score changed (plus balls_on_table), use partial update instead of full render
     if simple_score_update?
-      player_key = (@collected_changes.flat_map(&:keys) & ['playera', 'playerb']).first
+      player_key = (@collected_data_changes.flat_map(&:keys) & ['playera', 'playerb']).first
 
       Rails.logger.info "🔔 ⚡ FAST PATH: Simple score update detected for #{player_key}"
-      Rails.logger.info "🔔 ⚡ Changed keys: #{@collected_changes.flat_map(&:keys).uniq.inspect}"
+      Rails.logger.info "🔔 ⚡ Changed keys: #{@collected_data_changes.flat_map(&:keys).uniq.inspect}"
       TableMonitorJob.perform_later(self, "player_score_panel", player: player_key)
 
-      @collected_changes = nil
+      @collected_data_changes = nil
       Rails.logger.info "🔔 ========== after_update_commit END (fast path) =========="
       return
     end
-    
+
     # SLOW PATH: Full scoreboard update
     # The empty string triggers the `else` branch in TableMonitorJob's case statement,
     # which renders and broadcasts the full scoreboard HTML (#full_screen_table_monitor_X).
     # See docs/EMPTY_STRING_JOB_ANALYSIS.md for detailed explanation.
     Rails.logger.info "🔔 Enqueuing: score_update job (empty string for full screen)"
     TableMonitorJob.perform_later(self, "")
-    @collected_changes = nil
+    @collected_data_changes = nil
     Rails.logger.info "🔔 ========== after_update_commit END =========="
-
 
     # Broadcast Tournament Status Update wenn sich Spielstände während des Turniers ändern
     if tournament_monitor.is_a?(TournamentMonitor) &&
-       tournament_monitor.tournament.present? &&
-       tournament_monitor.tournament.tournament_started &&
-       previous_changes.key?("data")
+      tournament_monitor.tournament.present? &&
+      tournament_monitor.tournament.tournament_started &&
+      previous_changes.key?("data")
       # Prüfe ob sich relevante Spiel-Daten geändert haben
       old_data = previous_changes["data"][0] rescue {}
       new_data = previous_changes["data"][1] rescue {}
@@ -186,35 +198,43 @@ class TableMonitor < ApplicationRecord
   end
 
   def ultra_fast_score_update?
-    return false if @collected_changes.blank?
-    
+    return false if @collected_data_changes.blank?
+    return false if @collected_changes.present?
+
+    # 14.1 endlos requires full updates due to complex ball display and counter stack
+    return false if discipline == "14.1 endlos"
+
     # Flatten all keys from collected changes
-    all_keys = @collected_changes.flat_map(&:keys).uniq
-    
+    all_keys = @collected_data_changes.flat_map(&:keys).uniq
+
     # Ultra-fast path: ONLY score/innings changed for one player
     # Check if only one player changed and only innings_redo_list
     player_keys = all_keys & ['playera', 'playerb']
     return false unless player_keys.size == 1
-    
+
     player_key = player_keys.first
-    player_changes = @collected_changes.find { |c| c.key?(player_key) }
+    player_changes = @collected_data_changes.find { |c| c.key?(player_key) }
     return false unless player_changes
-    
+
     # Check if only innings_redo_list changed for this player
     player_change_keys = player_changes[player_key].keys
     player_change_keys == ['innings_redo_list']
   end
-  
+
   def simple_score_update?
-    return false if @collected_changes.blank?
-    
+    return false if @collected_data_changes.blank?
+    return false if @collected_changes.present?
+
+    # 14.1 endlos requires full updates due to complex ball display and counter stack
+    return false if discipline == "14.1 endlos"
+
     # Flatten all keys from collected changes
-    all_keys = @collected_changes.flat_map(&:keys).uniq
-    
+    all_keys = @collected_data_changes.flat_map(&:keys).uniq
+
     # Fast path: only balls_on_table and/or one player changed
     safe_keys = ['balls_on_table', 'playera', 'playerb']
     player_keys = all_keys & ['playera', 'playerb']
-    
+
     # Must have exactly one player key, and only safe keys
     player_keys.size == 1 && (all_keys - safe_keys).empty?
   end
@@ -231,7 +251,8 @@ class TableMonitor < ApplicationRecord
     "final_match_score" => "game_state",
     "ready_for_new_match" => "game_state",
     "show_results" => "game_state",
-    "warning" => "ok"
+    "warning" => "ok",
+    "protocol_final" => "confirm_result"
   }.freeze
   NNN = "db" # store nnn in database table_monitor
 
@@ -394,9 +415,11 @@ class TableMonitor < ApplicationRecord
   end
 
   def log_state_change
+    @collected_data_changes ||= []
     @collected_changes ||= []
     if changes.present?
-      changes['data']&.count == 2 && @collected_changes << deep_diff(*changes['data'])
+      changes['data']&.count == 2 && @collected_data_changes << deep_diff(*changes['data'])
+      @collected_changes << changes.except('data') if changes.except('data').present?
     end
     if DEBUG
       Rails.logger.info "-------------m6[#{id}]-------->>> log_state_change #{self.changes.inspect} <<<\
@@ -416,14 +439,17 @@ class TableMonitor < ApplicationRecord
   end
 
   def set_game_over
-    return unless remote_control_detected
-
     if DEBUG
-      Rails.logger.info "--------------m6[#{id}]------->>> set_game_over <<<------------------------------------------"
+      Rails.logger.info "--------------m6[#{id}]------->>> set_game_over (state=#{state}) <<<------------------------------------------"
     end
-    assign_attributes(current_element: "game_state")
-    data_will_change!
-    save
+    
+    # Only show protocol_final modal when entering set_over state ("Partie beendet - OK?")
+    # Not when entering final_set_score ("Ergebnis erfasst") or final_match_score
+    if state == "set_over"
+      assign_attributes(panel_state: "protocol_final", current_element: "confirm_result")
+      data_will_change!
+      save
+    end
   rescue StandardError => e
     Rails.logger.info "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}" if DEBUG
     raise StandardError
@@ -479,7 +505,7 @@ class TableMonitor < ApplicationRecord
     units = "seconds"
     start_at = Time.now
     delta = tournament_monitor&.tournament&.send(active_timer.to_sym)
-                              &.send(units.to_sym) ||
+              &.send(units.to_sym) ||
       (data["timeout"].to_i.positive? ? data["timeout"].to_i.seconds : nil)
     finish_at = delta.to_i != 0 && delta.present? ? start_at + delta.to_i : nil
     if timer_halt_at.present? && finish_at.present?
@@ -662,7 +688,14 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
   end
 
   def protocol_modal_should_be_open?
-    panel_state == "protocol" || panel_state == "protocol_edit"
+    panel_state == "protocol" || panel_state == "protocol_edit" || panel_state == "protocol_final"
+  rescue StandardError => e
+    Rails.logger.info "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}" if DEBUG
+    false
+  end
+
+  def final_protocol_modal_should_be_open?
+    panel_state == "protocol_final"
   rescue StandardError => e
     Rails.logger.info "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}" if DEBUG
     false
@@ -762,7 +795,7 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
                            "playerb" => ret_b
                          })
       end
-      #save!
+      # save!
     end
   rescue StandardError => e
     Rails.logger.info "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}" if DEBUG
@@ -1078,8 +1111,10 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
     innings_sum = data[current_role]["innings_list"]&.sum.to_i
     other_player = current_role == "playera" ? "playerb" : "playera"
     other_innings_sum = data[other_player]["innings_list"]&.sum.to_i
-    total_sum = innings_sum + other_innings_sum +
-      data[current_role]["innings_redo_list"][-1].to_i - data["extra_balls"].to_i
+    # Include current inning balls from both players for correct balls_on_table calculation
+    current_redo = data[current_role]["innings_redo_list"]&.last.to_i
+    other_redo = data[other_player]["innings_redo_list"]&.last.to_i
+    total_sum = innings_sum + other_innings_sum + current_redo + other_redo - data["extra_balls"].to_i
     data["balls_on_table"] = 15 - ((total_sum % 14).zero? ? 0 : total_sum % 14)
     data[current_role]["result"] =
       innings_sum + data[current_role]["innings_foul_list"].to_a.sum +
@@ -1398,6 +1433,7 @@ data[\"allow_overflow\"].present?")
   def marshal_dup(hash)
     Marshal.load(Marshal.dump(hash))
   end
+
   def evaluate_panel_and_current
     return unless remote_control_detected
 
@@ -1452,7 +1488,7 @@ data[\"allow_overflow\"].present?")
     elsif numbers_modal_should_be_open?
       new_panel_state = "numbers"
     elsif set_over? || final_set_score?
-      new_panel_state = "show_results"
+      new_panel_state = "protocol_final"
     end
     if new_panel_state.present?
       new_current_element = TableMonitor::DEFAULT_ENTRY[new_panel_state]
@@ -1479,6 +1515,27 @@ data[\"allow_overflow\"].present?")
   rescue StandardError => e
     Rails.logger.info "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}" if DEBUG
     raise StandardError
+  end
+
+  # Check if this is a multi-set match (Gewinnsätze or max. Sätze)
+  def is_multi_set_match?
+    data["sets_to_win"].to_i > 1 || data["sets_to_play"].to_i > 1
+  end
+
+  # Check if the match is decided (one player has won enough sets, or all sets played)
+  def is_match_decided?
+    return true unless is_multi_set_match?
+    
+    if data["sets_to_win"].to_i > 1
+      # Gewinnsätze mode - check if someone has won enough sets
+      max_number_of_wins = get_max_number_of_wins
+      max_number_of_wins >= data["sets_to_win"].to_i
+    elsif data["sets_to_play"].to_i > 1
+      # Fixed number of sets mode - check if all sets are played
+      sets_played >= data["sets_to_play"].to_i
+    else
+      true
+    end
   end
 
   def set_n_balls(n_balls, change_to_pointer_mode = false)
@@ -1690,13 +1747,87 @@ data[\"allow_overflow\"].present?")
     return unless playing?
 
     current_role = data["current_inning"]["active_player"]
-    return unless data[current_role]["discipline"] == "14.1 endlos"
-    return unless copy_from.present?
-
-    self.copy_from += 1
-    deep_merge_data!(versions[self.copy_from -= 1].reify.data)
-    data_will_change!
-    save!
+    
+    # For "14.1 endlos" discipline, use PaperTrail-based redo
+    if data[current_role]["discipline"] == "14.1 endlos"
+      return unless copy_from.present?
+      next_copy_from = copy_from + 1
+      if next_copy_from <= versions.last.index
+        next_version = versions[next_copy_from]
+        if next_version
+          self.copy_from = next_copy_from
+          deep_merge_data!(next_version.reify.data)
+          data_will_change!
+          save!
+        end
+      end
+      return
+    end
+    
+    # For other disciplines, redo works like next_step: terminate current inning
+    # until we reach the current state (no more undone state)
+    # Check if there's a current inning with points to terminate
+    innings_redo = Array(data[current_role]["innings_redo_list"]).last.to_i
+    
+    # If we're in an undone state, restore forward through versions first
+    if copy_from.present? && copy_from < versions.last.index
+      next_copy_from = copy_from + 1
+      next_version = versions.find_by(index: next_copy_from)
+      if next_version
+        self.copy_from = next_copy_from
+        deep_merge_data!(next_version.reify.data)
+        data_will_change!
+        save!
+        return
+      end
+    end
+    
+    # If we're at current state and there's a current inning with points, terminate it
+    if innings_redo > 0
+      terminate_current_inning
+    end
+  end
+  
+  def can_redo?
+    return false unless playing?
+    current_role = data["current_inning"]["active_player"]
+    
+    # For "14.1 endlos", check if copy_from allows redo
+    if data[current_role]["discipline"] == "14.1 endlos"
+      return copy_from.present? && copy_from < versions.last.index
+    end
+    
+    # For other disciplines, check if there's a current inning with points or undone state
+    innings_redo = Array(data[current_role]["innings_redo_list"]).last.to_i
+    return true if innings_redo > 0
+    return true if copy_from.present? && copy_from < versions.last.index
+    false
+  end
+  
+  def can_undo?
+    return false unless playing? || set_over?
+    current_role = data["current_inning"]["active_player"]
+    
+    # For "14.1 endlos", check if we can go back
+    if data[current_role]["discipline"] == "14.1 endlos"
+      # Can undo if we have versions and either copy_from is set or we have game data
+      return true if copy_from.present? && copy_from > 0
+      return true if versions.any? && (data["playera"]["innings"].to_i + data["playerb"]["innings"].to_i +
+        data["playera"]["result"].to_i + data["playerb"]["result"].to_i +
+        data["sets"].to_a.length +
+        data["playera"]["innings_redo_list"].andand[-1].to_i + data["playerb"]["innings_redo_list"].andand[-1].to_i) > 0
+      return false
+    end
+    
+    # For other disciplines, check if we have innings to undo
+    the_other_player = (current_role == "playera" ? "playerb" : "playera")
+    return true if (data[the_other_player]["innings"]).to_i.positive?
+    return true if copy_from.present? && copy_from > 0
+    return true if versions.any? && (data["playera"]["innings"].to_i + data["playerb"]["innings"].to_i +
+      data["playera"]["result"].to_i + data["playerb"]["result"].to_i +
+      data["sets"].to_a.length +
+      data["playera"]["innings_redo_list"].andand[-1].to_i + data["playerb"]["innings_redo_list"].andand[-1].to_i) > 0
+    false
   end
 
   def undo
@@ -1925,7 +2056,7 @@ data[\"allow_overflow\"].present?")
     }
 
     deep_merge_data!(options)
-    assign_attributes(state: "playing")
+    assign_attributes(state: "playing", panel_state: "pointer_mode", current_element: "pointer_mode")
     save!
   rescue StandardError => e
     Rails.logger.info "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}" if DEBUG
@@ -1935,9 +2066,35 @@ data[\"allow_overflow\"].present?")
   def evaluate_result
     debug = true # true
     if (playing? || set_over? || final_set_score? || final_match_score?) && end_of_set?
-      end_of_set! if playing? && simple_set_game? && may_end_of_set?
-      if playing?
-        end_of_set! if may_end_of_set?
+      # Remember if we were playing before any state transition
+      was_playing = playing?
+      is_simple_set = simple_set_game?
+      
+      # For simple set games (8-Ball, 9-Ball, 10-Ball), handle set end differently:
+      # - Don't show protocol modal after each set
+      # - Automatically switch to next set
+      # - Only show modal when match is won
+      if is_simple_set && was_playing && may_end_of_set?
+        end_of_set!
+        save_current_set
+        max_number_of_wins = get_max_number_of_wins
+        if max_number_of_wins >= data["sets_to_win"].to_i
+          # Match is over - show final result modal
+          self.panel_state = "protocol_final"
+          self.current_element = "confirm_result"
+          save!
+          return
+        else
+          # More sets to play - switch to next set automatically (no modal)
+          switch_to_next_set
+          return
+        end
+      elsif was_playing && !is_simple_set
+        end_of_set! if playing? && may_end_of_set?
+        # Show protocol_final modal for result review at EVERY set end
+        # (for innings-based games like Karambol, 14.1 endlos)
+        self.panel_state = "protocol_final"
+        self.current_element = "confirm_result"
         save_result
         save!
         return
@@ -1996,28 +2153,48 @@ data[\"allow_overflow\"].present?")
     # (start_game does 3 saves which would trigger 6 background jobs otherwise)
     self.skip_update_callbacks = true
 
-    # Unlink any existing game from this table monitor (preserve game history)
-    if game.present?
-      existing_game_id = game.id
-      game.update(table_monitor: nil)
-      Rails.logger.info "Unlinked existing game #{existing_game_id} from table monitor #{id}" if DEBUG
-    end
+    # Check if we have an existing Party/Tournament game that should be preserved
+    existing_party_game = game if game.present? && game.tournament_type.present?
+    
+    if existing_party_game.present?
+      # Use the existing Party/Tournament game - don't create a new one
+      @game = existing_party_game
+      Rails.logger.info "Using existing #{game.tournament_type} game #{@game.id} for table monitor #{id}" if DEBUG
+      
+      # Update or create game participations
+      players = Player.where(id: options["player_a_id"]).order(:dbu_nr).to_a
+      team = Player.team_from_players(players)
+      gp_a = @game.game_participations.find_or_initialize_by(role: "playera")
+      gp_a.update!(player: team)
+      
+      players = Player.where(id: options["player_b_id"]).order(:dbu_nr).to_a
+      team = Player.team_from_players(players)
+      gp_b = @game.game_participations.find_or_initialize_by(role: "playerb")
+      gp_b.update!(player: team)
+    else
+      # Unlink any existing game from this table monitor (preserve game history)
+      if game.present?
+        existing_game_id = game.id
+        game.update(table_monitor: nil)
+        Rails.logger.info "Unlinked existing game #{existing_game_id} from table monitor #{id}" if DEBUG
+      end
 
-    # Create a new game for this table monitor
-    @game = Game.new(table_monitor: self)
-    reload
-    @game.update(data: {})
-    players = Player.where(id: options["player_a_id"]).order(:dbu_nr).to_a
-    team = Player.team_from_players(players)
-    GameParticipation.create!(
-      game_id: @game.id, player: team, role: "playera"
-    )
-    @game.save
-    players = Player.where(id: options["player_b_id"]).order(:dbu_nr).to_a
-    team = Player.team_from_players(players)
-    GameParticipation.create!(
-      game_id: @game.id, player: team, role: "playerb"
-    )
+      # Create a new game for this table monitor
+      @game = Game.new(table_monitor: self)
+      reload
+      @game.update(data: {})
+      players = Player.where(id: options["player_a_id"]).order(:dbu_nr).to_a
+      team = Player.team_from_players(players)
+      GameParticipation.create!(
+        game_id: @game.id, player: team, role: "playera"
+      )
+      @game.save
+      players = Player.where(id: options["player_b_id"]).order(:dbu_nr).to_a
+      team = Player.team_from_players(players)
+      GameParticipation.create!(
+        game_id: @game.id, player: team, role: "playerb"
+      )
+    end
     @game.save
     kickoff_switches_with = options["kickoff_switches_with"].presence || "set"
     color_remains_with_set = options["color_remains_with_set"]
@@ -2095,7 +2272,7 @@ data[\"allow_overflow\"].present?")
   rescue StandardError => e
     msg = "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}"
     Rails.logger.info msg if DEBUG
-    self.skip_update_callbacks = false  # Ensure callbacks are re-enabled on error
+    self.skip_update_callbacks = false # Ensure callbacks are re-enabled on error
     raise StandardError unless Rails.env == "production"
   end
 
@@ -2223,9 +2400,11 @@ data[\"allow_overflow\"].present?")
       }
       deep_merge_data!("ba_results" => game_ba_result)
       save!
-      if tournament_monitor&.id.blank? && final_set_score? && game.present?
-        game.deep_merge_data!(data)
+      # Save results to the game for both free games and tournament/party games
+      if final_set_score? && game.present?
+        game.deep_merge_data!("ba_results" => data["ba_results"])
         game.save!
+        Rails.logger.info "[prepare_final_game_result] Saved ba_results to game #{game.id}" if DEBUG
       end
     else
       Rails.logger.info "[prepare_final_game_result] m6[#{id}]ignored - no game"
@@ -2346,7 +2525,7 @@ data[\"allow_overflow\"].present?")
     # So we use MIN, not MAX of the list lengths
     completed_innings = [innings_list_a.length, innings_list_b.length].min
     num_rows = completed_innings + 1
-    num_rows = [num_rows, 1].max  # At least 1
+    num_rows = [num_rows, 1].max # At least 1
 
     Rails.logger.warn "📋 INNINGS_HISTORY_DEBUG 📋 CALCULATION:"
     Rails.logger.warn "  completed_innings (MIN of list lengths) = #{completed_innings}"
@@ -2430,7 +2609,7 @@ data[\"allow_overflow\"].present?")
         innings_count: data.dig('playerb', 'innings').to_i
       },
       current_inning: {
-        number: num_rows,  # Current inning = number of rows
+        number: num_rows, # Current inning = number of rows
         active_player: data.dig('current_inning', 'active_player')
       },
       discipline: data.dig('playera', 'discipline'),
@@ -2656,10 +2835,14 @@ data[\"allow_overflow\"].present?")
     innings_list_a = Array(data.dig('playera', 'innings_list'))
     innings_list_b = Array(data.dig('playerb', 'innings_list'))
 
-    Rails.logger.warn "🗑️ DELETE_DEBUG 🗑️ innings_list_a.length=#{innings_list_a.length}, innings_list_b.length=#{innings_list_b.length}"
+    # Store original lengths BEFORE delete to know which player had an entry
+    original_length_a = innings_list_a.length
+    original_length_b = innings_list_b.length
+
+    Rails.logger.warn "🗑️ DELETE_DEBUG 🗑️ innings_list_a.length=#{original_length_a}, innings_list_b.length=#{original_length_b}"
 
     # Check if trying to delete the CURRENT inning (last row = innings_redo_list)
-    max_list_length = [innings_list_a.length, innings_list_b.length].max
+    max_list_length = [original_length_a, original_length_b].max
     if inning_index >= max_list_length
       Rails.logger.warn "🗑️ DELETE_DEBUG 🗑️ REJECTED: Cannot delete current inning (index=#{inning_index} >= list_length=#{max_list_length})"
       return { success: false, error: 'Die laufende Aufnahme kann nicht gelöscht werden' }
@@ -2676,9 +2859,9 @@ data[\"allow_overflow\"].present?")
       return { success: false, error: 'Nur Zeilen mit 0:0 können gelöscht werden' }
     end
 
-    # Remove the inning from both innings_lists
-    innings_list_a.delete_at(inning_index)
-    innings_list_b.delete_at(inning_index)
+    # Remove the inning from innings_lists ONLY if player had an entry at that index
+    innings_list_a.delete_at(inning_index) if inning_index < original_length_a
+    innings_list_b.delete_at(inning_index) if inning_index < original_length_b
 
     Rails.logger.warn "🗑️ DELETE_DEBUG 🗑️ After delete: innings_list_a=#{innings_list_a.inspect}, innings_list_b=#{innings_list_b.inspect}"
 
@@ -2686,9 +2869,13 @@ data[\"allow_overflow\"].present?")
     data['playera']['innings_list'] = innings_list_a
     data['playerb']['innings_list'] = innings_list_b
 
-    # Decrement innings counter for both players (min 1)
-    data['playera']['innings'] = [data['playera']['innings'].to_i - 1, 1].max
-    data['playerb']['innings'] = [data['playerb']['innings'].to_i - 1, 1].max
+    # Decrement innings counter ONLY if player actually had an entry at that index (min 1)
+    if inning_index < original_length_a
+      data['playera']['innings'] = [data['playera']['innings'].to_i - 1, 1].max
+    end
+    if inning_index < original_length_b
+      data['playerb']['innings'] = [data['playerb']['innings'].to_i - 1, 1].max
+    end
 
     Rails.logger.warn "🗑️ DELETE_DEBUG 🗑️ New innings counters: A=#{data['playera']['innings']}, B=#{data['playerb']['innings']}"
 
@@ -2813,10 +3000,10 @@ data[\"allow_overflow\"].present?")
     # Calculate GD (average) from all innings
     total_points = all_innings.compact.sum
     data[player]['gd'] = if current_innings > 0
-                            format("%.3f", total_points.to_f / current_innings)
-                          else
-                            0.0
-                          end
+                           format("%.3f", total_points.to_f / current_innings)
+                         else
+                           0.0
+                         end
 
     Rails.logger.warn "🔍 RECALC: player=#{player}, result=#{data[player]['result']}, hs=#{data[player]['hs']}, gd=#{data[player]['gd']}"
 
@@ -2855,10 +3042,10 @@ data[\"allow_overflow\"].present?")
     # Update GD (average) - use TOTAL points (including current inning) divided by innings counter
     total_points = innings_array.compact.sum
     data[player]['gd'] = if current_innings > 0
-                            format("%.3f", total_points.to_f / current_innings)
-                          else
-                            0.0
-                          end
+                           format("%.3f", total_points.to_f / current_innings)
+                         else
+                           0.0
+                         end
 
     data_will_change!
     save!

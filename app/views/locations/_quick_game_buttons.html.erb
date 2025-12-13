@@ -2,11 +2,19 @@
 <%# Parameters: table_kind_name, table_monitor, location %>
 
 <% 
+  # Determine table_kind_key based on table_kind_name
   table_kind_key = case table_kind_name
-                   when /klein/i then 'small_billard'
+                   when /Pool/i then 'pool'
+                   when /Snooker/i then 'snooker'
+                   when /klein/i, /Small/i then 'small_billard'
                    when /groß|gross/i, /Match/i then 'match_billard'
                    else 'small_billard'
                    end
+  
+  # Determine game type for form handling
+  is_pool = table_kind_key == 'pool'
+  is_snooker = table_kind_key == 'snooker'
+  is_karambol = !is_pool && !is_snooker
   
   config = YAML.load_file(Rails.root.join('config', 'carambus.yml'))
   # Try environment-specific presets first, fallback to default
@@ -17,6 +25,7 @@
   Rails.logger.info "=== QUICK GAME DEBUG ==="
   Rails.logger.info "table_kind_name: #{table_kind_name}"
   Rails.logger.info "table_kind_key: #{table_kind_key}"
+  Rails.logger.info "is_pool: #{is_pool}, is_snooker: #{is_snooker}"
   Rails.logger.info "presets count: #{presets.size}"
   Rails.logger.info "========================"
 %>
@@ -35,8 +44,24 @@
       <div class="flex flex-wrap gap-4 justify-center">
         <% category_group['buttons'].each do |button| %>
           <% 
+            # Generate unique button ID
+            if is_pool && button['sets_to_win']
+              button_id = "#{button['discipline']}_#{button['sets_to_win']}_#{button['kickoff_switches_with']}"
+            elsif is_snooker && button['frames_to_win']
+              button_id = "snooker_#{button['frames_to_win']}"
+            else
+              button_id = "#{button['balls']}_#{button['innings']}"
+            end
+            button_id = button_id.to_s.gsub(/[^a-zA-Z0-9]/, '_')
+            
+            # Generate label
             if button['label']
               label = button['label']
+            elsif is_pool && button['sets_to_win']
+              kickoff = button['kickoff_switches_with'] == 'winner' ? 'W' : 'A'
+              label = "#{button['sets_to_win']} (#{kickoff})"
+            elsif is_snooker && button['frames_to_win']
+              label = "Best of #{button['frames_to_win'] * 2 - 1}"
             else
               balls_str = button['balls'] == 0 ? '-' : button['balls'].to_s
               innings_str = button['innings'] == 0 ? '-' : button['innings'].to_s
@@ -47,24 +72,59 @@
                        method: :post, 
                        data: { turbo: false },
                        class: "inline-block" do %>
-            <%= hidden_field_tag :player_a_id, '', id: "quick_player_a_#{button['balls']}_#{button['innings']}" %>
-            <%= hidden_field_tag :player_b_id, '', id: "quick_player_b_#{button['balls']}_#{button['innings']}" %>
-            <%= hidden_field_tag :quick_game_form, 'karambol' %>
-            <%= hidden_field_tag :discipline_a, button['discipline'] %>
-            <%= hidden_field_tag :discipline_b, button['discipline'] %>
-            <%= hidden_field_tag :balls_goal_a, button['balls'] %>
-            <%= hidden_field_tag :balls_goal_b, button['balls'] %>
-            <%= hidden_field_tag :innings_goal, button['innings'] %>
-            <%= hidden_field_tag :sets_to_win, 0 %>
-            <%= hidden_field_tag :kickoff_switches_with, 'set' %>
-            <%= hidden_field_tag :allow_follow_up, button['allow_follow_up'].nil? ? true : button['allow_follow_up'] %>
-            <%= hidden_field_tag :first_break_choice, 0 %>
+            <%= hidden_field_tag :player_a_id, '', id: "quick_player_a_#{button_id}" %>
+            <%= hidden_field_tag :player_b_id, '', id: "quick_player_b_#{button_id}" %>
+            
+            <% if is_pool %>
+              <%= hidden_field_tag :quick_game_form, 'pool' %>
+              <%= hidden_field_tag :free_game_form, 'pool' %>
+              <%= hidden_field_tag :discipline_a, button['discipline'] %>
+              <%= hidden_field_tag :discipline_b, button['discipline'] %>
+              <% if button['discipline'] == '14.1 endlos' %>
+                <%# 14.1 endlos uses balls (points goal) and optional innings %>
+                <%= hidden_field_tag :balls_goal_a, button['balls'] || 100 %>
+                <%= hidden_field_tag :balls_goal_b, button['balls'] || 100 %>
+                <%= hidden_field_tag :innings_goal, button['innings'] || 0 %>
+                <%= hidden_field_tag :sets_to_win, 0 %>
+                <%= hidden_field_tag :sets_to_play, 1 %>
+              <% else %>
+                <%# 8-Ball, 9-Ball, 10-Ball use sets_to_win %>
+                <%= hidden_field_tag :sets_to_win, button['sets_to_win'] || 5 %>
+                <%= hidden_field_tag :sets_to_play, (button['sets_to_win'] || 5) * 2 - 1 %>
+                <%= hidden_field_tag :balls_goal_a, 1 %>
+                <%= hidden_field_tag :balls_goal_b, 1 %>
+                <%= hidden_field_tag :innings_goal, 0 %>
+              <% end %>
+              <%= hidden_field_tag :kickoff_switches_with, button['kickoff_switches_with'] || 'winner' %>
+              <%= hidden_field_tag :first_break_choice, 0 %>
+            <% elsif is_snooker %>
+              <%= hidden_field_tag :quick_game_form, 'snooker' %>
+              <%= hidden_field_tag :free_game_form, 'snooker' %>
+              <%= hidden_field_tag :discipline_a, 'Snooker' %>
+              <%= hidden_field_tag :discipline_b, 'Snooker' %>
+              <%= hidden_field_tag :frames_to_win, button['frames_to_win'] || 3 %>
+              <%= hidden_field_tag :sets_to_win, button['frames_to_win'] || 3 %>
+              <%= hidden_field_tag :sets_to_play, (button['frames_to_win'] || 3) * 2 - 1 %>
+              <%= hidden_field_tag :first_break_choice, 0 %>
+            <% else %>
+              <%# Karambol %>
+              <%= hidden_field_tag :quick_game_form, 'karambol' %>
+              <%= hidden_field_tag :discipline_a, button['discipline'] %>
+              <%= hidden_field_tag :discipline_b, button['discipline'] %>
+              <%= hidden_field_tag :balls_goal_a, button['balls'] %>
+              <%= hidden_field_tag :balls_goal_b, button['balls'] %>
+              <%= hidden_field_tag :innings_goal, button['innings'] %>
+              <%= hidden_field_tag :sets_to_win, 0 %>
+              <%= hidden_field_tag :kickoff_switches_with, 'set' %>
+              <%= hidden_field_tag :allow_follow_up, button['allow_follow_up'].nil? ? true : button['allow_follow_up'] %>
+              <%= hidden_field_tag :first_break_choice, 0 %>
+            <% end %>
             
             <%= submit_tag label,
                 class: "px-8 py-6 text-4xl font-bold rounded-lg bg-blue-500 text-white hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed quick-start-btn",
                 disabled: true,
                 data: { 
-                  form_id: "quick_player_a_#{button['balls']}_#{button['innings']}",
+                  form_id: "quick_player_a_#{button_id}",
                   enabled_class: "bg-blue-500 hover:bg-blue-600 cursor-pointer",
                   disabled_class: "bg-gray-400 cursor-not-allowed"
                 } %>
@@ -77,7 +137,13 @@
   <%# Link to detailed configuration %>
   <div class="text-center mt-8">
     <p class="text-white text-xl mb-2" style="text-shadow: 1px 1px #000000">
-      Für andere Disziplinen (Cadre, 5-Kegel, Einband, etc.):
+      <% if is_pool %>
+        Für andere Einstellungen oder Disziplinen:
+      <% elsif is_snooker %>
+        Für andere Frame-Anzahlen:
+      <% else %>
+        Für andere Disziplinen (Cadre, 5-Kegel, Einband, etc.):
+      <% end %>
     </p>
     <%= link_to "⚙️ Detail-Konfiguration", 
         location_path(location.md5, 
@@ -105,8 +171,8 @@ document.addEventListener('DOMContentLoaded', function() {
       if (playerAId && playerBId && playerAId !== playerBId) {
         btn.disabled = false;
         btn.className = btn.className.replace(btn.dataset.disabledClass, btn.dataset.enabledClass);
-        playerAField.value = playerAId;
-        playerBField.value = playerBId;
+        if (playerAField) playerAField.value = playerAId;
+        if (playerBField) playerBField.value = playerBId;
       } else {
         btn.disabled = true;
         btn.className = btn.className.replace(btn.dataset.enabledClass, btn.dataset.disabledClass);
@@ -126,4 +192,3 @@ document.addEventListener('DOMContentLoaded', function() {
   setTimeout(updateQuickButtons, 100);
 });
 </script>
-

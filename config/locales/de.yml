@@ -299,6 +299,8 @@ de:
       invalid_theme: Ungültiges Layout Thema
       invalid_locale: Ungültiges Locale Kürzel
       invalid_timezone: Ungültige Zeitzone
+    tournament_game_manipulation_blocked: "Spielmanipulationen sind während eines Turniers nicht erlaubt. Bitte verwenden Sie das Turnier-Verwaltungssystem."
+    tournament_reset_requires_admin: "Das Zurücksetzen eines Turniers ist nur für Club- und System-Administratoren erlaubt."
   game_participation:
     balls_goal: Ballziel
     created_at: created at
@@ -1066,6 +1068,8 @@ de:
       reload_from_club_cloud_with_details: Datenabgleich mit der Club Cloud mit allen Details
       reorder: Reihenfolge
       reset_tournament_monitor: Zurücksetzen des Turnier-Monitors
+      force_reload_from_api: 'Sysadmin: Turnier vom API-Server neu laden'
+      force_reload_confirm: 'Bist du sicher? Dies wird das Turnier komplett zurücksetzen und alle Daten (inkl. Ergebnisse) vom API-Server neu laden. Diese Aktion kann nicht rückgängig gemacht werden!'
       sets_to_play: 'Sätze:'
       sets_to_win: 'Gewinnsätze:'
       state: 'Status:'
@@ -1073,6 +1077,16 @@ de:
       syncing_with_billard_area_ext: Der Abgleich mit den Daten der Billard-Area erfogt über den Link
       team_size: 'Teamgrösse:'
       title: 'Titel:'
+      clubcloud_registration_list:
+        title: "ClubCloud-Meldeliste"
+        description: "Solange noch keine Ergebnisse vorliegen, zeigt diese Liste die aktuellen Meldungen aus der ClubCloud."
+        link_label: "ClubCloud öffnen (Meldestatus prüfen)"
+        empty: "⚠️ Die ClubCloud-Meldeliste wurde noch nicht synchronisiert. Bitte zuerst Schritt 1 des Wizard-Durchlaufs verwenden."
+        unknown_player: "Unbekannter Spieler"
+        table:
+          order: "Reihenfolge"
+          name: "Spieler"
+          club: "Verein"
     start_tournament: Starte den Turnier-Monitor
     tournament_monitor: Turnier-Monitor
   tournaments_season: Aktuelle Turniere in der Saison

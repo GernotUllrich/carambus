@@ -156,7 +156,23 @@ or (tournament_plans.rulesystem ilike :search)",
     ngroups += 1 if ngroups.odd?
     ngroups = 1 if ngroups.zero?
     groups = TournamentMonitor.distribute_to_group((1..nplayers).to_a, ngroups)
-    (1..ngroups).to_a.map { |gix| groups["group#{gix}"].length }
+    
+    # Sicherstellen, dass groups ein Hash ist und alle erwarteten Keys enthält
+    unless groups.is_a?(Hash)
+      Rails.logger.error "TournamentPlan.group_sizes_from: distribute_to_group returned non-Hash: #{groups.class}"
+      return [nplayers] # Fallback: eine Gruppe mit allen Spielern
+    end
+    
+    (1..ngroups).to_a.map do |gix|
+      group_key = "group#{gix}"
+      group_array = groups[group_key]
+      if group_array.nil?
+        Rails.logger.warn "TournamentPlan.group_sizes_from: Missing group key '#{group_key}' in groups hash. Available keys: #{groups.keys.inspect}"
+        0 # Fallback: leere Gruppe
+      else
+        group_array.length
+      end
+    end
   end
   
   # Extrahiert Gruppengrößen aus executor_params

@@ -3,6 +3,8 @@
 class TableMonitorsController < ApplicationController
   before_action :set_table_monitor,
                 only: %i[show start_game edit update destroy next_step evaluate_result set_balls toggle_dark_mode]
+  before_action :block_tournament_manipulation,
+                only: %i[start_game update destroy]
 
   def set_balls
     unless @table_monitor.set_n_balls(params[:add_balls].to_i)
@@ -96,13 +98,23 @@ class TableMonitorsController < ApplicationController
       p[:balls_goal_b] = p[:balls_goal_b].to_i if p[:balls_goal_b].present?
       p[:innings_goal] = p[:innings_goal].to_i if p[:innings_goal].present?
       p[:sets_to_win] = p[:sets_to_win].to_i if p[:sets_to_win].present?
-      p[:sets_to_play] = 1
+      p[:sets_to_play] = p[:sets_to_play].to_i if p[:sets_to_play].present?
+      # For Pool set games (8-Ball, 9-Ball, 10-Ball), sets_to_play should be calculated from sets_to_win
+      if p[:quick_game_form] == 'pool' && p[:discipline_a] != '14.1 endlos' && p[:sets_to_win].to_i > 0
+        p[:sets_to_play] = p[:sets_to_win].to_i * 2 - 1 if p[:sets_to_play].to_i <= 1
+      else
+        p[:sets_to_play] = 1 if p[:sets_to_play].to_i <= 0
+      end
       p[:allow_follow_up] = (p[:allow_follow_up] == "true" || p[:allow_follow_up] == true)
       
       Rails.logger.info "=== QUICK GAME START ==="
+      Rails.logger.info "quick_game_form: #{p[:quick_game_form]}"
       Rails.logger.info "discipline_a: #{p[:discipline_a]}"
       Rails.logger.info "balls_goal_a: #{p[:balls_goal_a]}"
       Rails.logger.info "innings_goal: #{p[:innings_goal]}"
+      Rails.logger.info "sets_to_win: #{p[:sets_to_win]}"
+      Rails.logger.info "sets_to_play: #{p[:sets_to_play]}"
+      Rails.logger.info "kickoff_switches_with: #{p[:kickoff_switches_with]}"
       Rails.logger.info "======================="
     end
     if p[:four_ball].present?
@@ -112,24 +124,28 @@ class TableMonitorsController < ApplicationController
       p[:sets_to_play] = 1
       p[:sets_to_win] = 1
     end
-    if p[:free_game_form] == "pool"
-      p[:discipline_a] = p[:discipline_b] = Discipline::POOL_DISCIPLINE_MAP[p.delete(:discipline_choice).to_i]
-      unless p[:discipline_a] == "14.1 endlos"
-        p[:kickoff_switches_with] =
-          (p.delete(:next_break_choice) == "1" ? "winner" : "set")
+    # Process free_game_form only for detail forms (not quick_game_form)
+    # Quick games already have discipline_a/b set directly
+    unless p[:quick_game_form].present?
+      if p[:free_game_form] == "pool"
+        p[:discipline_a] = p[:discipline_b] = Discipline::POOL_DISCIPLINE_MAP[p.delete(:discipline_choice).to_i]
+        unless p[:discipline_a] == "14.1 endlos"
+          p[:kickoff_switches_with] =
+            (p.delete(:next_break_choice) == "1" ? "winner" : "set")
+        end
+        p[:warntime] = p.delete(:warntime).to_i
+        p[:gametime] = p.delete(:gametime).to_i
+        if p[:discipline_a] == "14.1 endlos"
+          p[:balls_goal_a] = p[:balls_goal_b] = p.delete(:points_choice).to_i
+        else
+          p[:balls_goal_a] = p[:balls_goal_b] = 1
+          p[:sets_to_win] = p.delete(:games_choice).to_i
+        end
+        p[:innings_goal] = p[:discipline_a] == "14.1 endlos" ? p.delete(:innings_choice).to_i : 1
+        p[:first_break_choice] = p[:first_break_choice].to_i # 0: AusStoßen, 1: Heim/Spieler A, 2: Gast/Spieler B
+      elsif p[:free_game_form] == "karambol"
+        p[:discipline_a] = p[:discipline_b] = Discipline::KARAMBOL_DISCIPLINE_MAP[p.delete(:discipline_choice).to_i]
       end
-      p[:warntime] = p.delete(:warntime).to_i
-      p[:gametime] = p.delete(:gametime).to_i
-      if p[:discipline_a] == "14.1 endlos"
-        p[:balls_goal_a] = p[:balls_goal_b] = p.delete(:points_choice).to_i
-      else
-        p[:balls_goal_a] = p[:balls_goal_b] = 1
-        p[:sets_to_win] = p.delete(:games_choice).to_i
-      end
-      p[:innings_goal] = p[:discipline_a] == "14.1 endlos" ? p.delete(:innings_choice).to_i : 1
-      p[:first_break_choice] = p[:first_break_choice].to_i # 0: AusStoßen, 1: Heim/Spieler A, 2: Gast/Spieler B
-    elsif p[:free_game_form] == "karambol"
-      p[:discipline_a] = p[:discipline_b] = Discipline::KARAMBOL_DISCIPLINE_MAP[p.delete(:discipline_choice).to_i]
     end
 
     p[:color_remains_with_set] = (p[:color_remains_with_set] == "1")
@@ -213,6 +229,20 @@ class TableMonitorsController < ApplicationController
   # All game protocol functionality now handled by GameProtocolReflex
   # Old JSON/HTML endpoints removed - modal is server-side rendered via panel_state
 
+  # Print protocol - generates PDF with 3 protocols per landscape A4 page
+  def print_protocol
+    @table_monitor = TableMonitor.find(params[:id])
+    @history = @table_monitor.innings_history
+    @location = @table_monitor.table.location
+    
+    pdf = ProtocolPdf.new(@table_monitor, @history, @location)
+    
+    send_data pdf.render,
+              filename: "spielprotokoll_#{@table_monitor.id}_#{Time.current.strftime('%Y%m%d_%H%M%S')}.pdf",
+              type: "application/pdf",
+              disposition: :inline
+  end
+
   private
 
   # Use callbacks to share common setup or constraints between actions.
@@ -265,5 +295,14 @@ class TableMonitorsController < ApplicationController
                   :timeout, :timeouts, :kickoff_switches_with,
                   :fixed_display_left, :color_remains_with_set, :balls_on_table,
                   :allow_overflow, :allow_follow_up, :toggle_dark_mode)
+  end
+
+  # Verhindert Manipulationen an TableMonitor während eines Turniers
+  def block_tournament_manipulation
+    if @table_monitor&.tournament_monitor_id.present?
+      flash[:error] = I18n.t('errors.tournament_game_manipulation_blocked',
+                            default: 'Spielmanipulationen sind während eines Turniers nicht erlaubt.')
+      redirect_back(fallback_location: locations_path) and return
+    end
   end
 end

@@ -101,6 +101,8 @@ gem "strong_migrations", "~> 0.7.6"
 group :development do
   gem "letter_opener_web", "~> 3.0"
   gem "aasm-diagram", require: false
+  # Required for ActiveSupport::EventedFileUpdateChecker (file watching in development)
+  gem "listen", "~> 3.9"
   gem "capistrano", "~> 3.19.2"
   gem "capistrano-bundler"
   gem "capistrano-rails"
@@ -155,6 +157,9 @@ gem 'ruby-openai', '~> 7.3'
 
 # PDF text extraction for tournament invitation parsing
 gem 'pdf-reader', '~> 2.12'
+# PDF generation for game protocols
+gem 'prawn', '~> 2.4'
+gem 'prawn-table', '~> 0.2'
 
 # OCR for screenshot/image text extraction (requires tesseract-ocr system package)
 gem 'rtesseract', '~> 3.1'

@@ -2,6 +2,19 @@
 <%- edit_games_modus = local_assigns[:edit_games_modus] %>
 <h2><%= t("tournament_monitors.game_results.game_results") %></h2>
 <%- game_scope = tournament_monitor.tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").count > 0 ? "games.id >= #{Game::MIN_ID}" : "games.id < #{Game::MIN_ID}" %>
+<%- has_games_to_start = tournament_monitor.table_monitors.includes(:game).where.not(game_id: nil).any? { |tm| %i[ready warmup warmup_a warmup_b match_shootout].include?(tm.state.to_sym) } %>
+<% if edit_games_modus && has_games_to_start %>
+  <div class="mb-4">
+    <%= button_to "🎯 Spiele der Runde starten (für manuelle Eingabe)", 
+        start_round_games_tournament_monitor_path(tournament_monitor), 
+        method: :post, 
+        class: "btn btn-warning",
+        data: { confirm: "Alle Spiele werden in den 'Playing'-Status versetzt. Danach können Ergebnisse manuell eingegeben werden." } %>
+    <p class="text-sm text-gray-600 mt-2">
+      ℹ️ Schritt 1: Spiele starten → Schritt 2: Ergebnisse eingeben und "update" klicken
+    </p>
+  </div>
+<% end %>
 <div class="flex space-x-20 p-4 bg-white dark:bg-black">
   <div class="w-full">
     <%= form_tag update_games_tournament_monitor_path(tournament_monitor), id: "update_games", method: :post do %>
@@ -29,7 +42,8 @@
         <tbody>
         <%- games = tournament_monitor.tournament.games.where("games.id >= ?", Seeding::MIN_ID).includes(game_participations: :player).where(game_scope).to_a.sort_by { |game| game.seqno.presence || 999 } %>
         <%- games.each do |game| %>
-          <% playing_game = game.table_monitor.andand.playing? %>
+          <% # Allow manual editing if game has a table_monitor (game is placed) %>
+          <% editable_game = game.table_monitor.present? %>
           <% gpa = game.game_participations.where("role = 'playera' or role = 'Heim'").first; playera = gpa.andand.player %>
           <% gpb = game.game_participations.where("role = 'playerb' or role = 'Gast'").first; playerb = gpb.andand.player %>
           <%- if playera.present? && playerb.present? %>
@@ -47,19 +61,19 @@
                   <td><%= gpa.andand.points %></td>
                   <td><%= gpb.andand.points %></td>
                 <%- end %>
-                <td><%= edit_games_modus && playing_game ? hidden_field_tag("game_id[]", game.id) : "" %><%= edit_games_modus && playing_game ? text_field_tag("resulta[]", gpa.andand.result, size: 3) : gpa.andand.result %></td>
-                <td><%= edit_games_modus && playing_game ? text_field_tag("resultb[]", gpb.andand.result, size: 3) : gpb.andand.result %></td>
-                <td><%= edit_games_modus && playing_game ? text_field_tag("inningsa[]", gpa.andand.innings, size: 3) : gpa.andand.innings %></td>
-                <td><%= edit_games_modus && playing_game ? text_field_tag("inningsb[]", gpb.andand.innings, size: 3) : gpb.andand.innings %></td>
+                <td><%= edit_games_modus && editable_game ? hidden_field_tag("game_id[]", game.id) : "" %><%= edit_games_modus && editable_game ? text_field_tag("resulta[]", gpa.andand.result, size: 3, class: "border-2 border-black dark:border-white px-1") : gpa.andand.result %></td>
+                <td><%= edit_games_modus && editable_game ? text_field_tag("resultb[]", gpb.andand.result, size: 3, class: "border-2 border-black dark:border-white px-1") : gpb.andand.result %></td>
+                <td><%= edit_games_modus && editable_game ? text_field_tag("inningsa[]", gpa.andand.innings, size: 3, class: "border-2 border-black dark:border-white px-1") : gpa.andand.innings %></td>
+                <td><%= edit_games_modus && editable_game ? text_field_tag("inningsb[]", gpb.andand.innings, size: 3, class: "border-2 border-black dark:border-white px-1") : gpb.andand.innings %></td>
                 <td><%= gpa.andand.gd %></td>
                 <td><%= gpb.andand.gd %></td>
-                <td><%= edit_games_modus && playing_game ? text_field_tag("hsa[]", gpa.andand.hs, size: 3) : gpa.andand.hs %></td>
-                <td><%= edit_games_modus && playing_game ? text_field_tag("hsb[]", gpb.andand.hs, size: 3) : gpb.andand.hs %></td>
+                <td><%= edit_games_modus && editable_game ? text_field_tag("hsa[]", gpa.andand.hs, size: 3, class: "border-2 border-black dark:border-white px-1") : gpa.andand.hs %></td>
+                <td><%= edit_games_modus && editable_game ? text_field_tag("hsb[]", gpb.andand.hs, size: 3, class: "border-2 border-black dark:border-white px-1") : gpb.andand.hs %></td>
                 <%- if tournament_monitor.tournament.handicap_tournier? %>
-                  <td><%= edit_games_modus && playing_game ? text_field_tag("bga[]", gpa.andand.data.andand['results'].andand['BG'].to_i, size: 3) : gpa.andand.data.andand['results'].andand['BG'].to_i %></td>
-                  <td><%= edit_games_modus && playing_game ? text_field_tag("bgb[]", gpb.andand.data.andand['results'].andand['BG'].to_i, size: 3) : gpb.andand.data.andand['results'].andand['BG'].to_i %></td>
-                  <td><%= edit_games_modus && playing_game ? text_field_tag("bg_pa[]", gpa.andand.data.andand['results'].andand['BG_P'].to_f, size: 3) : gpa.andand.data.andand['results'].andand['BG_P'].to_f %></td>
-                  <td><%= edit_games_modus && playing_game ? text_field_tag("bg_pb[]", gpb.andand.data.andand['results'].andand['BG_P'].to_f, size: 3) : gpb.andand.data.andand['results'].andand['BG_P'].to_f %></td>
+                  <td><%= edit_games_modus && editable_game ? text_field_tag("bga[]", gpa.andand.data.andand['results'].andand['BG'].to_i, size: 3, class: "border-2 border-black dark:border-white px-1") : gpa.andand.data.andand['results'].andand['BG'].to_i %></td>
+                  <td><%= edit_games_modus && editable_game ? text_field_tag("bgb[]", gpb.andand.data.andand['results'].andand['BG'].to_i, size: 3, class: "border-2 border-black dark:border-white px-1") : gpb.andand.data.andand['results'].andand['BG'].to_i %></td>
+                  <td><%= edit_games_modus && editable_game ? text_field_tag("bg_pa[]", gpa.andand.data.andand['results'].andand['BG_P'].to_f, size: 3, class: "border-2 border-black dark:border-white px-1") : gpa.andand.data.andand['results'].andand['BG_P'].to_f %></td>
+                  <td><%= edit_games_modus && editable_game ? text_field_tag("bg_pb[]", gpb.andand.data.andand['results'].andand['BG_P'].to_f, size: 3, class: "border-2 border-black dark:border-white px-1") : gpb.andand.data.andand['results'].andand['BG_P'].to_f %></td>
                 <%- end %>
               </tr>
             <%- end %>

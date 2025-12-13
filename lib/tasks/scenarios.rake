@@ -678,19 +678,25 @@ namespace :scenario do
   end
 
   def generate_cable_yml(scenario_config, env_config, env_dir)
-    # Generate cable.yml with async adapter for production (no Redis dependency)
+    # Generate cable.yml with redis adapter for development and production
+    # Note: async adapter isolates connections and prevents real-time sync between browsers
+    # See docs/ACTIONCABLE_REDIS_FIX.md for details
     redis_db = env_config['redis_database'] || 1
     channel_prefix = env_config['channel_prefix'] || 'carambus_development'
+    environment = File.basename(env_dir)
 
     content = <<~YAML
 development:
-  adapter: async
+  adapter: redis
+  url: <%= ENV.fetch("REDIS_URL") { "redis://localhost:6379/#{redis_db}" } %>
 
 test:
   adapter: test
 
 production:
-  adapter: async
+  adapter: redis
+  url: <%= ENV.fetch("REDIS_URL") { "redis://localhost:6379/#{redis_db}" } %>
+  channel_prefix: #{channel_prefix}
 YAML
 
     File.write(File.join(env_dir, 'cable.yml'), content)
@@ -706,6 +712,8 @@ YAML
 
     content = <<~RUBY
 require "active_support/core_ext/integer/time"
+require "active_support/logger"
+require "active_support/broadcast_logger"
 
 Rails.application.configure do
   config.session_store :redis_session_store,
@@ -717,10 +725,15 @@ Rails.application.configure do
       url: ENV.fetch("REDIS_URL") { "redis://localhost:6379/#{redis_db}" }
     }
 
-  # Log to STDOUT for development
-  config.logger = ActiveSupport::Logger.new($stdout)
-    .tap { |logger| logger.formatter = ::Logger::Formatter.new }
-    .then { |logger| ActiveSupport::TaggedLogging.new(logger) }
+  # Log to BOTH STDOUT (for RubyMine console) AND file (for grep/tail)
+  # This allows viewing logs in RubyMine console while also enabling:
+  # tail -f log/development.log | grep -E "(🔔|📡|📥|🔌)"
+  stdout_logger = ActiveSupport::Logger.new($stdout)
+  file_logger = ActiveSupport::Logger.new(Rails.root.join("log", "development.log"))
+  
+  # Broadcast to both loggers
+  config.logger = ActiveSupport::BroadcastLogger.new(stdout_logger, file_logger)
+  config.logger.formatter = ::Logger::Formatter.new
 
   # Set log level
   config.log_level = :debug
@@ -1735,12 +1748,6 @@ ENV
       return true
     end
 
-    # Check if carambus_api_development exists locally
-    unless system("psql -lqt | cut -d \\| -f 1 | grep -qw carambus_api_development")
-      puts "   ℹ️  carambus_api_development not found locally - skipping sync"
-      return true
-    end
-
     # Load carambus_api configuration to get API server SSH details
     api_config_file = File.join(scenarios_path, 'carambus_api', 'config.yml')
     unless File.exist?(api_config_file)
@@ -1750,7 +1757,7 @@ ENV
     end
     api_config = YAML.load_file(api_config_file)
 
-    # Check if carambus_api_production exists on remote API server
+    # Get API server SSH details
     api_ssh_host = api_config.dig('environments', 'production', 'ssh_host')
     api_ssh_port = api_config.dig('environments', 'production', 'ssh_port') || '22'
     if api_ssh_host.nil? || api_ssh_host.empty?
@@ -1758,6 +1765,22 @@ ENV
       return false
     end
     puts "   🔍 Checking API server at #{api_ssh_host}:#{api_ssh_port}"
+
+    # Check if carambus_api_development exists locally
+    local_db_exists = system("psql -lqt | cut -d \\| -f 1 | grep -qw carambus_api_development")
+    
+    unless local_db_exists
+      # BOOTSTRAP: carambus_api_development doesn't exist locally - need to create it
+      puts "   ⚠️  carambus_api_development not found locally - BOOTSTRAP required!"
+      puts ""
+      puts "   🔄 Bootstrap: Creating carambus_api_development from API server..."
+      puts "   This is required because scenario databases are created from carambus_api_development."
+      puts ""
+      
+      return bootstrap_api_development_database(api_ssh_host, api_ssh_port)
+    end
+
+    # Check if carambus_api_production exists on remote API server
     unless system("ssh -p #{api_ssh_port} www-data@#{api_ssh_host} 'sudo -u postgres psql -lqt | cut -d \\| -f 1 | grep -qw carambus_api_production'")
       puts "   ℹ️  carambus_api_production not found on remote server - skipping sync"
       return true
@@ -1828,6 +1851,97 @@ ENV
       puts "   ℹ️  Local carambus_api_development has newer official versions (#{local_version} > #{remote_version}) - no sync needed"
     end
 
+    true
+  end
+
+  # Bootstrap carambus_api_development from API server when it doesn't exist locally
+  # This compares carambus_api_development and carambus_api_production on the API server
+  # and uses whichever has the higher Version.last.id (more recent data)
+  def bootstrap_api_development_database(api_ssh_host, api_ssh_port)
+    puts "   🔍 Determining best source database on API server..."
+    
+    # Check which databases exist on remote server
+    remote_dev_exists = system("ssh -p #{api_ssh_port} www-data@#{api_ssh_host} 'sudo -u postgres psql -lqt | cut -d \\| -f 1 | grep -qw carambus_api_development'")
+    remote_prod_exists = system("ssh -p #{api_ssh_port} www-data@#{api_ssh_host} 'sudo -u postgres psql -lqt | cut -d \\| -f 1 | grep -qw carambus_api_production'")
+    
+    unless remote_dev_exists || remote_prod_exists
+      puts "   ❌ Neither carambus_api_development nor carambus_api_production found on API server!"
+      puts "   ❌ Cannot bootstrap - no source database available."
+      puts ""
+      puts "   🔧 Manual solution:"
+      puts "   1. Ensure at least one database exists on the API server (#{api_ssh_host})"
+      puts "   2. Or restore from a database dump file manually:"
+      puts "      createdb carambus_api_development"
+      puts "      gunzip -c /path/to/dump.sql.gz | psql carambus_api_development"
+      return false
+    end
+    
+    # Get Version.last.id from each available remote database
+    remote_dev_version = 0
+    remote_prod_version = 0
+    
+    if remote_dev_exists
+      dev_version_cmd = "ssh -p #{api_ssh_port} www-data@#{api_ssh_host} 'sudo -u postgres psql -d carambus_api_development -t -c \"SELECT COALESCE(MAX(id), 0) FROM versions;\"'"
+      remote_dev_version = `#{dev_version_cmd}`.strip.to_i
+      puts "   📊 Remote carambus_api_development Version.last.id: #{remote_dev_version}"
+    else
+      puts "   ℹ️  Remote carambus_api_development does not exist"
+    end
+    
+    if remote_prod_exists
+      prod_version_cmd = "ssh -p #{api_ssh_port} www-data@#{api_ssh_host} 'sudo -u postgres psql -d carambus_api_production -t -c \"SELECT COALESCE(MAX(id), 0) FROM versions;\"'"
+      remote_prod_version = `#{prod_version_cmd}`.strip.to_i
+      puts "   📊 Remote carambus_api_production Version.last.id: #{remote_prod_version}"
+    else
+      puts "   ℹ️  Remote carambus_api_production does not exist"
+    end
+    
+    # Determine which database to use (higher Version.last.id = more recent)
+    source_db = nil
+    source_version = 0
+    
+    if remote_prod_version > remote_dev_version
+      source_db = 'carambus_api_production'
+      source_version = remote_prod_version
+      puts "   🎯 Using carambus_api_production (Version.last.id: #{remote_prod_version} > #{remote_dev_version})"
+    elsif remote_dev_exists
+      source_db = 'carambus_api_development'
+      source_version = remote_dev_version
+      if remote_prod_exists
+        puts "   🎯 Using carambus_api_development (Version.last.id: #{remote_dev_version} >= #{remote_prod_version})"
+      else
+        puts "   🎯 Using carambus_api_development (only available source)"
+      end
+    else
+      source_db = 'carambus_api_production'
+      source_version = remote_prod_version
+      puts "   🎯 Using carambus_api_production (only available source)"
+    end
+    
+    puts ""
+    puts "   📥 Creating local carambus_api_development from remote #{source_db}..."
+    puts "   ⏳ This may take several minutes depending on database size and network speed..."
+    
+    # Create local database
+    unless system("createdb carambus_api_development")
+      puts "   ❌ Failed to create local carambus_api_development database"
+      return false
+    end
+    
+    # Copy data from remote source to local development
+    dump_cmd = "ssh -p #{api_ssh_port} www-data@#{api_ssh_host} 'sudo -u postgres pg_dump #{source_db}' | psql carambus_api_development"
+    unless system(dump_cmd)
+      puts "   ❌ Failed to download database from API server"
+      system("dropdb carambus_api_development")
+      return false
+    end
+    
+    puts "   ✅ Successfully created local carambus_api_development from #{source_db}"
+    puts "   📊 Version.last.id: #{source_version}"
+    puts ""
+    puts "   ℹ️  Note: This is a one-time bootstrap operation."
+    puts "   ℹ️  Future runs will sync carambus_api_development with carambus_api_production if newer."
+    
     true
   end
 
@@ -3599,8 +3713,17 @@ ENV
     location = Location.find(location_id)
     location_md5 = location.md5
 
+    # Use localhost if local server is enabled, otherwise use webserver_host
+    # Both go through Nginx on the standard port
+    if pi_config['local_server_enabled'] == true
+      url_host = 'localhost'
+    else
+      url_host = webserver_host
+    end
+    url_port = webserver_port
+
     # Generate URL using the correct MD5
-    scoreboard_url = "http://#{webserver_host}:#{webserver_port}/locations/#{location_md5}/scoreboard?sb_state=#{sb_state}&locale=de"
+    scoreboard_url = "http://#{url_host}:#{url_port}/locations/#{location_md5}/scoreboard?sb_state=#{sb_state}&locale=de"
 
     puts "   Scoreboard URL: #{scoreboard_url}"
 
@@ -3620,13 +3743,31 @@ ENV
     # Upload autostart script
     puts "\n📤 Uploading autostart script..."
     autostart_script = generate_autostart_script(scenario_name, pi_config)
+    
+    # Verify script was generated
+    if autostart_script.nil? || autostart_script.empty?
+      puts "   ❌ Failed to generate autostart script (empty or nil)"
+      return false
+    end
+    puts "   ✅ Script generated (#{autostart_script.length} characters)"
 
     # Write script to temporary file locally first
     temp_script_path = "/tmp/autostart-scoreboard-#{scenario_name}.sh"
     File.write(temp_script_path, autostart_script)
+    
+    # Verify the file was written correctly
+    if File.exist?(temp_script_path) && File.size(temp_script_path) > 0
+      puts "   ✅ Script file created (#{File.size(temp_script_path)} bytes)"
+    else
+      puts "   ❌ Failed to create script file or file is empty"
+      File.delete(temp_script_path) if File.exist?(temp_script_path)
+      return false
+    end
 
     # Upload the file using scp
-    if system("scp -P #{ssh_port} #{temp_script_path} #{ssh_user}@#{pi_ip}:/tmp/autostart-scoreboard.sh")
+    scp_cmd = "scp -P #{ssh_port} #{temp_script_path} #{ssh_user}@#{pi_ip}:/tmp/autostart-scoreboard.sh"
+    puts "   Executing: #{scp_cmd}"
+    if system(scp_cmd)
       puts "   ✅ Autostart script uploaded"
       # Clean up local temp file
       File.delete(temp_script_path)
@@ -4624,8 +4765,14 @@ EOF
       raise "Missing production.webserver_host or production.webserver_port in scenario configuration for #{scenario_name}"
     end
 
-    fallback_url = "http://#{webserver_host}:#{webserver_port}/locations/#{md5_hash}/scoreboard?sb_state=welcome&locale=de"
     local_server_enabled = pi_config['local_server_enabled'] || false
+    
+    # Use localhost if local server is enabled, otherwise use webserver_host
+    # Both go through Nginx on the standard port
+    url_host = local_server_enabled ? 'localhost' : webserver_host
+    url_port = webserver_port
+    
+    fallback_url = "http://#{url_host}:#{url_port}/locations/#{md5_hash}/scoreboard?sb_state=welcome&locale=de"
 
     # Generate the script using Ruby string manipulation
     generate_autostart_script_content(scenario_name, basename, fallback_url, local_server_enabled)
@@ -4754,6 +4901,9 @@ EOF
         --disable-features=VizDisplayCompositor,TranslateUI \
         --disable-translate \
         --disable-dev-shm-usage \
+        --disable-web-security \
+        --disable-site-isolation-trials \
+        --allow-running-insecure-content \
         --app="$SCOREBOARD_URL" \
         # --no-sandbox \
         --disable-gpu \
@@ -4768,6 +4918,9 @@ EOF
         --disable-features=VizDisplayCompositor,TranslateUI \
         --disable-translate \
         --disable-dev-shm-usage \
+        --disable-web-security \
+        --disable-site-isolation-trials \
+        --allow-running-insecure-content \
         --disable-setuid-sandbox \
         --disable-gpu \
         --disable-infobars \

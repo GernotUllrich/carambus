@@ -1,6 +1,6 @@
 <div class="container mx-auto my-8 px-4">
   <div class="max-w-6xl mx-auto">
-    
+
     <!-- Header -->
     <div class="flex items-center justify-between mb-6">
       <h1 class="text-3xl font-bold">
@@ -26,7 +26,7 @@
           Bitte prüfen Sie die erkannten Spieler und bestätigen Sie die Übernahme.
         </p>
       </div>
-      
+
       <!-- Gruppenbildung Preview (wenn extrahiert) -->
       <% if @extraction_result[:group_assignment].present? %>
         <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
@@ -59,7 +59,7 @@
       <% end %>
 
       <!-- Matched Players -->
-      <div class="bg-white rounded-lg shadow p-6 mb-6">
+      <div class="bg-white  dark:bg-slate-900 rounded-lg shadow p-6 mb-6">
         <h2 class="text-xl font-bold mb-4">
           Erkannte Spieler (<%= @match_result[:match_rate] %>% Übereinstimmung)
         </h2>
@@ -67,7 +67,7 @@
         <%= form_with url: apply_seeding_order_tournament_path(@tournament), method: :post do |f| %>
           <table class="w-full">
             <thead>
-              <tr class="bg-gray-100">
+              <tr class="bg-gray-100 dark:bg-slate-900">
                 <th class="p-3 text-left">Position</th>
                 <th class="p-3 text-left">Erkannter Name</th>
                 <th class="p-3 text-left">Zugeordneter Spieler</th>
@@ -131,9 +131,9 @@
           <% end %>
 
           <div class="flex justify-between items-center mt-6">
-            <%= link_to 'Abbrechen', compare_seedings_tournament_path(@tournament), 
+            <%= link_to 'Abbrechen', compare_seedings_tournament_path(@tournament),
                 class: 'btn btn-secondary' %>
-            <%= f.submit 'Setzliste übernehmen', 
+            <%= f.submit 'Setzliste übernehmen',
                 class: 'btn btn-success btn-lg',
                 data: { confirm: "Setzliste mit #{@match_result[:matched].count} Spielern übernehmen?" } %>
           </div>
@@ -141,11 +141,11 @@
       </div>
 
       <!-- Raw Text Preview (für Debugging) -->
-      <details class="bg-gray-50 rounded-lg p-4">
+      <details class="bg-gray-50 dark:bg-slate-900 rounded-lg p-4">
         <summary class="cursor-pointer font-semibold text-gray-700">
           🔍 Extrahierter Text anzeigen (Debugging)
         </summary>
-        <pre class="mt-4 p-4 bg-white border rounded text-xs overflow-auto max-h-96"><%= @extraction_result[:raw_text] %></pre>
+        <pre class="mt-4 p-4 bg-white dark:bg-slate-900 border rounded text-xs overflow-auto max-h-96"><%= @extraction_result[:raw_text] %></pre>
       </details>
 
     <% else %>
@@ -161,9 +161,9 @@
         <div class="space-y-3">
           <p class="text-red-700">Alternativen:</p>
           <div class="flex gap-3">
-            <%= link_to 'Andere Datei hochladen', compare_seedings_tournament_path(@tournament), 
+            <%= link_to 'Andere Datei hochladen', compare_seedings_tournament_path(@tournament),
                 class: 'btn btn-primary' %>
-            <%= link_to 'Manuell sortieren', tournament_path(@tournament), 
+            <%= link_to 'Manuell sortieren', tournament_path(@tournament),
                 class: 'btn btn-secondary' %>
           </div>
         </div>

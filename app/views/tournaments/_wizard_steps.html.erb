@@ -64,8 +64,8 @@
 
           <% if tournament.source_url.present? %>
             <div class="step-info" style="margin-top: 0.5rem;">
-              <%= link_to '🔗 In ClubCloud öffnen', tournament.source_url, 
-                  target: '_blank', 
+              <%= link_to '🔗 In ClubCloud öffnen', tournament.source_url,
+                  target: '_blank',
                   class: 'text-blue-600 hover:underline',
                   rel: 'noopener' %>
               <span class="text-gray-500 text-xs ml-2">(zum Vergleich der Meldeliste)</span>
@@ -78,10 +78,10 @@
               <p>
                 <strong>Notwendig:</strong> Wenn die letzte Synchronisierung VOR dem Meldeschluss war.
                 Nach dem Meldeschluss können sich noch Teilnehmer ummelden.<br><br>
-                
+
                 <strong>Optional:</strong> Wenn bereits nach dem Meldeschluss synchronisiert wurde.
                 Sie können mit der offiziellen Meldeliste aus der Email des Landessportwartes vergleichen.<br><br>
-                
+
                 <strong>Tipp:</strong> Öffnen Sie die ClubCloud (Link oben) und vergleichen Sie die Meldeliste
                 visuell mit der unten angezeigten Setzliste.
               </p>
@@ -91,7 +91,7 @@
       </div>
 
       <div class="wizard-step-actions">
-        <%= button_to 'Jetzt synchronisieren', reload_from_cc_tournament_path(tournament),
+        <%= button_to 'Jetzt synchronisieren', reload_from_cc_tournament_path(tournament, reload_seedings: true),
             method: :post,
             class: "btn btn-primary #{'btn-pulse' if sync_needed?(tournament)}" %>
         <% if tournament.source_url.present? %>

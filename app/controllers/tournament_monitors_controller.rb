@@ -1,7 +1,7 @@
 class TournamentMonitorsController < ApplicationController
-  before_action :set_tournament_monitor, only: %i[show edit update destroy update_games switch_players]
-  before_action :ensure_tournament_director, only: %i[show edit update destroy update_games switch_players]
-  before_action :ensure_local_server, only: %i[show edit update destroy update_games switch_players]
+  before_action :set_tournament_monitor, only: %i[show edit update destroy update_games switch_players start_round_games]
+  before_action :ensure_tournament_director, only: %i[show edit update destroy update_games switch_players start_round_games]
+  before_action :ensure_local_server, only: %i[show edit update destroy update_games switch_players start_round_games]
 
   def switch_players
     @game = Game[params[:game_id]]
@@ -11,6 +11,23 @@ class TournamentMonitorsController < ApplicationController
         gp.update(role: roles[ix])
       end
     end
+    redirect_to tournament_monitor_path(@tournament_monitor)
+  end
+
+  def start_round_games
+    # Transition all table monitors with games to playing state
+    @tournament_monitor.table_monitors.includes(:game).where.not(game_id: nil).each do |table_monitor|
+      # Skip warmup and go directly to playing state for manual entry
+      table_monitor.skip_update_callbacks = true
+      if %i[ready warmup warmup_a warmup_b].include?(table_monitor.state.to_sym)
+        table_monitor.start_new_match! if table_monitor.may_start_new_match?
+        table_monitor.finish_warmup! if table_monitor.may_finish_warmup?
+        table_monitor.finish_shootout! if table_monitor.may_finish_shootout?
+      end
+      table_monitor.skip_update_callbacks = false
+      table_monitor.save!
+    end
+    flash[:notice] = "Alle Spiele der Runde wurden gestartet und sind bereit für die manuelle Eingabe."
     redirect_to tournament_monitor_path(@tournament_monitor)
   end
 
@@ -25,12 +42,21 @@ class TournamentMonitorsController < ApplicationController
       next unless game.present?
 
       table_monitor = game.table_monitor
+      next unless table_monitor.present?
       next unless (table_monitor.data["playera"]["balls_goal"].to_i == 0 || params["resulta"][ix].to_i <= table_monitor.data["playera"]["balls_goal"].to_i) &&
                   (table_monitor.data["playerb"]["balls_goal"].to_i == 0 || params["resultb"][ix].to_i <= table_monitor.data["playerb"]["balls_goal"].to_i) &&
                   (table_monitor.data["innings_goal"].to_i == 0 || params["inningsa"][ix].to_i <= table_monitor.data["innings_goal"].to_i) &&
                   (table_monitor.data["innings_goal"].to_i == 0 || params["inningsb"][ix].to_i <= table_monitor.data["innings_goal"].to_i) &&
                   (params["resulta"][ix].to_i > 0 || params["resultb"][ix].to_i > 0)
 
+      # Ensure table_monitor is in playing state for evaluate_result to work
+      table_monitor.skip_update_callbacks = true
+      if %i[ready warmup warmup_a warmup_b match_shootout].include?(table_monitor.state.to_sym)
+        table_monitor.start_new_match! if table_monitor.may_start_new_match?
+        table_monitor.finish_warmup! if table_monitor.may_finish_warmup?
+        table_monitor.finish_shootout! if table_monitor.may_finish_shootout?
+      end
+      
       table_monitor.data["playera"]["result"] = params["resulta"][ix].to_i
       table_monitor.data["playerb"]["result"] = params["resultb"][ix].to_i
       table_monitor.data["playera"]["innings"] = params["inningsa"][ix].to_i
@@ -42,6 +68,7 @@ class TournamentMonitorsController < ApplicationController
       table_monitor.data["playerb"]["gd"] =
         format("%.2f", table_monitor.data["playerb"]["result"].to_f / table_monitor.data["playerb"]["innings"])
       table_monitor.data_will_change!
+      table_monitor.skip_update_callbacks = false
       table_monitor.save
       game.update(ended_at: Time.now)
       @tournament_monitor.update_game_participations(table_monitor)

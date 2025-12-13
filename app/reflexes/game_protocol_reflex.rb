@@ -105,6 +105,29 @@ class GameProtocolReflex < ApplicationReflex
     @table_monitor.skip_update_callbacks = false
     send_table_update(render_protocol_table_body)
   end
+
+  # Confirm the final result and close the protocol modal
+  # This transitions the game to the final acknowledged state
+  def confirm_result
+    morph :nothing
+    Rails.logger.info "🎯 GameProtocolReflex#confirm_result" if TableMonitor::DEBUG
+    
+    # Close the modal first
+    send_modal_update("")
+    
+    # Now trigger the result confirmation via evaluate_result
+    # This will handle the state transition (acknowledge_result!, finish_match!, etc.)
+    @table_monitor.skip_update_callbacks = true
+    @table_monitor.panel_state = "pointer_mode"
+    @table_monitor.save!
+    @table_monitor.skip_update_callbacks = false
+    
+    # Call evaluate_result to proceed with the game flow
+    @table_monitor.evaluate_result
+    
+    # Broadcast the updated scoreboard
+    TableMonitorJob.perform_later(@table_monitor, "")
+  end
   
   private
   
@@ -135,7 +158,9 @@ class GameProtocolReflex < ApplicationReflex
     return "" unless @table_monitor.protocol_modal_should_be_open?
 
     history = @table_monitor.innings_history
-    partial = @table_monitor.panel_state == "protocol_edit" ? "table_monitors/game_protocol_table_body_edit" : "table_monitors/game_protocol_table_body"
+    # Use edit body for both protocol_edit and protocol_final modes
+    use_edit_body = @table_monitor.panel_state == "protocol_edit" || @table_monitor.panel_state == "protocol_final"
+    partial = use_edit_body ? "table_monitors/game_protocol_table_body_edit" : "table_monitors/game_protocol_table_body"
 
     ApplicationController.render(
       partial: partial,

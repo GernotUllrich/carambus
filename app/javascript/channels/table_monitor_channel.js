@@ -41,19 +41,53 @@ document.addEventListener('score:update', (event) => {
 
 // Page Context Detection and Filtering
 function getPageContext() {
-  // Detect individual scoreboard page
+  // IMPORTANT: Check page type FIRST before using meta tag
+  // Meta tag is present on all pages within location context, but should only
+  // be used for actual scoreboard pages
+  
+  // Detect table_scores overview page FIRST
+  if (document.querySelector('#table_scores')) {
+    return { type: 'table_scores' }
+  }
+  
+  // Detect tournament_scores view FIRST
+  if (document.querySelector('turbo-frame#teasers')) {
+    return { type: 'tournament_scores' }
+  }
+  
+  // Now we know we're NOT on table_scores or tournament_scores
+  // Check if we're on an actual scoreboard page
+  
+  // PRIORITY 1: Check data attribute (most reliable for scoreboard detection)
   const scoreboardRoot = document.querySelector('[data-table-monitor-root="scoreboard"]')
   if (scoreboardRoot) {
     const tableMonitorId = scoreboardRoot.dataset.tableMonitorId
     if (tableMonitorId) {
       return { 
         type: 'scoreboard', 
-        tableMonitorId: parseInt(tableMonitorId)
+        tableMonitorId: parseInt(tableMonitorId),
+        source: 'data-attribute'
       }
     }
   }
   
-  // Fallback: try to detect by ID if data attribute is missing
+  // PRIORITY 2: Check meta tag (reliable if scoreboard root is loading/transitioning)
+  const metaTableMonitorId = document.querySelector('meta[name="scoreboard-table-monitor-id"]')
+  if (metaTableMonitorId) {
+    const tableMonitorId = parseInt(metaTableMonitorId.content)
+    if (tableMonitorId) {
+      if (PERF_LOGGING && !NO_LOGGING) {
+        console.log('🎯 Table Monitor ID from meta tag:', tableMonitorId)
+      }
+      return { 
+        type: 'scoreboard', 
+        tableMonitorId: tableMonitorId,
+        source: 'meta-tag'
+      }
+    }
+  }
+  
+  // PRIORITY 3: Fallback - try to detect by ID if data attribute is missing
   const scoreboardEl = document.querySelector('[id^="full_screen_table_monitor_"]')
   if (scoreboardEl) {
     const idMatch = scoreboardEl.id.match(/full_screen_table_monitor_(\d+)/)
@@ -61,19 +95,10 @@ function getPageContext() {
     if (tableMonitorId) {
       return { 
         type: 'scoreboard', 
-        tableMonitorId: tableMonitorId
+        tableMonitorId: tableMonitorId,
+        source: 'dom-id'
       }
     }
-  }
-  
-  // Detect table_scores overview
-  if (document.querySelector('#table_scores')) {
-    return { type: 'table_scores' }
-  }
-  
-  // Detect tournament_scores view
-  if (document.querySelector('turbo-frame#teasers')) {
-    return { type: 'tournament_scores' }
   }
   
   return { type: 'unknown' }
@@ -95,7 +120,19 @@ function shouldAcceptOperation(operation, pageContext) {
       // Only accept full_screen updates for THIS specific table monitor
       if (fullScreenMatch) {
         const selectorTableMonitorId = parseInt(fullScreenMatch[1])
-        return selectorTableMonitorId === pageContext.tableMonitorId
+        const isMatch = selectorTableMonitorId === pageContext.tableMonitorId
+        if (!isMatch) {
+          // CRITICAL: Log rejected scoreboard updates for debugging mix-ups
+          console.warn(`🚫 SCOREBOARD MIX-UP PREVENTED: Selector ${selector} (TM_ID: ${selectorTableMonitorId}) rejected for current scoreboard (TM_ID: ${pageContext.tableMonitorId}, source: ${pageContext.source})`)
+          console.warn(`🚫 Context:`, {
+            rejectedTableMonitorId: selectorTableMonitorId,
+            currentTableMonitorId: pageContext.tableMonitorId,
+            detectionSource: pageContext.source,
+            timestamp: new Date().toISOString(),
+            url: window.location.href
+          })
+        }
+        return isMatch
       }
       // Reject teaser and table_scores updates on scoreboard pages
       if (selector.startsWith('#teaser_') || selector === '#table_scores') {
@@ -415,7 +452,37 @@ const tableMonitorSubscription = consumer.subscriptions.create("TableMonitorChan
       // Context-aware filtering: only process operations relevant to this page
       const pageContext = getPageContext()
       
-      const applicableOperations = data.operations.filter(op => shouldAcceptOperation(op, pageContext))
+      // Debug logging to diagnose filtering issues
+      if (PERF_LOGGING || !NO_LOGGING) {
+        console.log('🔍 Filtering operations:', {
+          pageContext,
+          operationCount: data.operations.length,
+          operations: data.operations.map(op => ({
+            operation: op.operation,
+            selector: op.selector
+          }))
+        })
+      }
+      
+      // CRITICAL: Log if we're on a scoreboard page but context detection failed
+      if (pageContext.type === 'unknown' && document.querySelector('[data-table-monitor-root="scoreboard"]')) {
+        console.error('⚠️ SCOREBOARD CONTEXT DETECTION FAILED:', {
+          detectedType: pageContext.type,
+          hasScoreboardRoot: true,
+          metaTag: document.querySelector('meta[name="scoreboard-table-monitor-id"]')?.content,
+          dataAttribute: document.querySelector('[data-table-monitor-root="scoreboard"]')?.dataset?.tableMonitorId,
+          timestamp: new Date().toISOString(),
+          url: window.location.href
+        })
+      }
+      
+      const applicableOperations = data.operations.filter(op => {
+        const accepted = shouldAcceptOperation(op, pageContext)
+        if (PERF_LOGGING || !NO_LOGGING) {
+          console.log(`${accepted ? '✅' : '🚫'} ${op.selector || 'no selector'}: ${accepted ? 'ACCEPTED' : 'REJECTED'}`)
+        }
+        return accepted
+      })
       
       // If no operations are applicable, skip processing
       if (applicableOperations.length === 0) {
@@ -511,3 +578,4 @@ const tableMonitorSubscription = consumer.subscriptions.create("TableMonitorChan
 
 // Export for external access if needed
 export default tableMonitorSubscription;
+
