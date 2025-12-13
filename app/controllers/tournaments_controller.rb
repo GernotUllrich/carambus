@@ -320,6 +320,8 @@ class TournamentsController < ApplicationController
         @tournament.tournament_monitor.update(current_admin: current_user,
                                               timeout: (params[:timeout].presence || 0).to_i,
                                               timeouts: (params[:timeouts].presence || @tournament.timeouts).to_i,
+                                              innings_goal: (params[:innings_goal].presence || @tournament.innings_goal).to_i,
+                                              balls_goal: (params[:balls_goal].presence || @tournament.balls_goal).to_i,
                                               sets_to_play: (params[:sets_to_play].presence || @tournament.sets_to_play).to_i,
                                               sets_to_win: (params[:sets_to_win].presence || @tournament.sets_to_win).to_i,
                                               kickoff_switches_with: params[:kickoff_switches_with],
