@@ -924,10 +924,10 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
                        "innings_goal" => if tournament_monitor.is_a?(PartyMonitor)
                                            game.data["innings_goal"]
                                          else
-                                           data["innings_goal"] ||
                                              tournament_monitor&.innings_goal ||
                                              tournament_monitor&.tournament&.innings_goal ||
-                                             tournament_monitor&.tournament&.data.andand[:innings_goal]
+                                             tournament_monitor&.tournament&.data.andand[:innings_goal] ||
+                                           data["innings_goal"]
                                          end,
                        "playera" => {
                          "result" => 0,
@@ -944,15 +944,15 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
                                          end,
                          "gd" => 0.0,
                          "balls_goal" => if tournament_monitor.is_a?(PartyMonitor)
-                                           game.data["balls_goal_a"]
-                                         else
-                                           data["playera"].andand["balls_goal"] ||
-                                             tournament_monitor&.tournament&.handicap_tournier? &&
-                                               seeding_from("playera").balls_goal.presence ||
-                                             tournament_monitor&.balls_goal ||
-                                             tournament_monitor&.tournament&.balls_goal ||
-                                             tournament_monitor&.tournament&.data.andand[:balls_goal]
-                                         end,
+                                          game.data["balls_goal_a"]
+                                        else
+                                            tournament_monitor&.tournament&.handicap_tournier? &&
+                                              seeding_from("playera").balls_goal.presence ||
+                                            tournament_monitor&.balls_goal ||
+                                            tournament_monitor&.tournament&.balls_goal ||
+                                            tournament_monitor&.tournament&.data.andand[:balls_goal] ||
+                                          data["playera"].andand["balls_goal"]
+                                        end,
                          "tc" => if tournament_monitor.is_a?(PartyMonitor)
                                    game.data["timeouts"]
                                  else
@@ -977,15 +977,15 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
                                          end,
                          "gd" => 0.0,
                          "balls_goal" => if tournament_monitor.is_a?(PartyMonitor)
-                                           game.data["balls_goal_a"]
-                                         else
-                                           data["playerb"].andand["balls_goal"] ||
-                                             tournament_monitor&.tournament&.handicap_tournier? &&
-                                               seeding_from("playerb").balls_goal.presence ||
-                                             tournament_monitor&.balls_goal ||
-                                             tournament_monitor&.tournament&.balls_goal ||
-                                             tournament_monitor&.tournament&.data.andand[:balls_goal]
-                                         end,
+                                          game.data["balls_goal_a"]
+                                        else
+                                            tournament_monitor&.tournament&.handicap_tournier? &&
+                                              seeding_from("playerb").balls_goal.presence ||
+                                            tournament_monitor&.balls_goal ||
+                                            tournament_monitor&.tournament&.balls_goal ||
+                                            tournament_monitor&.tournament&.data.andand[:balls_goal] ||
+                                          data["playerb"].andand["balls_goal"]
+                                        end,
                          "tc" => if tournament_monitor.is_a?(PartyMonitor)
                                    game.data["timeouts"]
                                  else
