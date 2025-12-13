@@ -754,11 +754,17 @@
         }
       }, 1000);
       
-      // Geschenke generieren
-      giftInterval = setInterval(() => {
+      // Geschenke generieren - wird schneller bei höherem Score
+      function scheduleNextGift() {
         if (!gameRunning) return;
         createGift();
-      }, 2000);
+        // Intervall wird kürzer bei höherem Score (minimal 1 Sekunde)
+        const baseInterval = 2000;
+        const scoreReduction = Math.min(score * 10, 1000); // Maximal 1 Sekunde Reduktion
+        const nextInterval = Math.max(baseInterval - scoreReduction, 1000);
+        setTimeout(scheduleNextGift, nextInterval);
+      }
+      scheduleNextGift();
     }
 
     // Geschenk erstellen
@@ -781,12 +787,16 @@
       gift.style.top = startY + 'px';
       
       conveyorBelt.appendChild(gift);
+      // Geschwindigkeit basierend auf Zeit und Score
+      // Je mehr Punkte, desto schneller wird das Band
+      const timeFactor = (60 - timeLeft) * 0.03;
+      const scoreFactor = Math.min(score * 0.02, 3); // Maximal +3 durch Score
       gifts.push({
         element: gift,
         x: 0,
         y: startY,
         color: color,
-        speed: 1 + Math.random() * 2 + (60 - timeLeft) * 0.03,
+        speed: 1 + Math.random() * 2 + timeFactor + scoreFactor,
         id: gift.dataset.id
       });
       
