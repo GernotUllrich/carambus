@@ -325,9 +325,9 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
             group_no = m[1].to_i
             # apply table/round_rules
             if executor_params[k]["sq"]["r#{current_round}"].blank?
-              sets = executor_params[k]["sets"].presence
-              balls = executor_params[k]["balls"].presence
-              innings = executor_params[k]["innings"].presence
+              sets = executor_params[k]["sets"]
+              balls = executor_params[k]["balls"]
+              innings = executor_params[k]["innings"]
               Tournament.logger.info "+++002 k,v = [#{k} => #{executor_params[k].inspect}]\
  [k][\"sq\"][\"r#{current_round}\"] is blank"
               if executor_params[k]["rs"].to_s == "eae_pg"
@@ -471,9 +471,9 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
                 end
               end
             end
-            sets = executor_params[k]["sets"].presence
-            balls = executor_params[k]["balls"].presence
-            innings = executor_params[k]["innings"].presence
+            sets = executor_params[k]["sets"]
+            balls = executor_params[k]["balls"]
+            innings = executor_params[k]["innings"]
             executor_params[k]["sq"].to_a.each do |round_no, h1|
               if round_no == "sets"
                 sets = h1
@@ -560,9 +560,9 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
             r_no = executor_params[k].keys.find { |kk| kk =~ /r[*\d+]/ }.match(/r([*\d+])/)[1].to_i
             if current_round == r_no
               t_no = nil
-              sets = executor_params[k]["sets"].presence
-              balls = executor_params[k]["balls"].presence
-              innings = executor_params[k]["innings"].presence
+              sets = executor_params[k]["sets"]
+              balls = executor_params[k]["balls"]
+              innings = executor_params[k]["innings"]
               tno_str, players = executor_params[k]["r#{r_no}"].to_a[0]
               Tournament.logger.info "+++012B k, r_no, tno_str, players = #{k}, #{r_no}, #{tno_str}, #{players}"
               if (mm = tno_str.match(/t(\d+)/))
@@ -743,12 +743,12 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
           end
           if @table_monitor.present?
             attrs = {}
-            attrs["sets_to_play"] = sets if sets.present?
-            attrs["innings_goal"] = innings if innings.present?
+            attrs["sets_to_play"] = sets unless sets.nil?
+            attrs["innings_goal"] = innings unless innings.nil?
             attrs["playera"] = {}
-            attrs["playera"]["balls_goal"] = balls if balls.present?
+            attrs["playera"]["balls_goal"] = balls unless balls.nil?
             attrs["playerb"] = {}
-            attrs["playerb"]["balls_goal"] = balls if balls.present?
+            attrs["playerb"]["balls_goal"] = balls unless balls.nil?
             @table_monitor.deep_merge_data!(attrs)
             @table_monitor.data_will_change!
             @table_monitor.assign_attributes(tournament_monitor: self)
