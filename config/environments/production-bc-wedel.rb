@@ -74,19 +74,22 @@ Rails.application.configure do
   config.action_mailer.perform_caching = false
   config.action_mailer.default_url_options = {host: Carambus.config.carambus_domain.presence || "carambus.de"}
 
-  # Ignore bad email addresses and do not raise email delivery errors.
-  # Set this to true and configure the email server for immediate delivery to raise delivery errors.
-  # config.action_mailer.raise_delivery_errors = false
-  #
-  config.action_mailer.delivery_method = :sendmail
-  # Defaults to:
-  # config.action_mailer.sendmail_settings = {
-  #   location: '/usr/sbin/sendmail',
-  #   arguments: %w[ -i ]
-  # }
+  # Configure SMTP for email delivery (Gmail)
+  config.action_mailer.delivery_method = :smtp
+  config.action_mailer.smtp_settings = {
+    address: 'smtp.gmail.com',
+    port: 587,
+    domain: 'bc-wedel.de',
+    user_name: ENV['SMTP_USERNAME'],
+    password: ENV['SMTP_PASSWORD'],
+    authentication: 'plain',
+    enable_starttls_auto: true,
+    open_timeout: 5,
+    read_timeout: 5
+  }
   config.action_mailer.perform_deliveries = true
   config.action_mailer.raise_delivery_errors = true
-  config.action_mailer.default_options = {from: "gernot.ullrich@gmx.de"}
+  config.action_mailer.default_options = {from: ENV['SMTP_USERNAME'] || "no-reply@carambus.de"}
 
   # Enable locale fallbacks for I18n (makes lookups for any locale fall back to
   # the I18n.default_locale when a translation cannot be found).
