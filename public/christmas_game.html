@@ -13,21 +13,47 @@
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, #1a202c 0%, #2d3748 50%, #1a202c 100%);
       min-height: 100vh;
       padding: 20px;
       display: flex;
       flex-direction: column;
       align-items: center;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Schneeflocken-Animation */
+    @keyframes snowflake {
+      0% {
+        transform: translateY(0) rotate(0deg);
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(100vh) rotate(360deg);
+        opacity: 0;
+      }
+    }
+
+    .snowflake {
+      position: fixed;
+      top: -10px;
+      color: white;
+      font-size: 1.5rem;
+      animation: snowflake linear infinite;
+      pointer-events: none;
+      z-index: 1;
     }
 
     .container {
       background: white;
       border-radius: 20px;
       padding: 30px;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
       max-width: 900px;
       width: 100%;
+      position: relative;
+      z-index: 10;
     }
 
     h1 {
@@ -35,21 +61,22 @@
       color: #c53030;
       font-size: 2.5rem;
       margin-bottom: 20px;
-      text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
     }
 
     .instructions {
-      background: #ebf8ff;
+      background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
       padding: 20px;
       border-radius: 10px;
       margin-bottom: 20px;
-      border-left: 4px solid #3182ce;
+      border-left: 4px solid #d69e2e;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
 
     .instructions h2 {
       font-size: 1.3rem;
       margin-bottom: 10px;
-      color: #2c5282;
+      color: #92400e;
     }
 
     .instructions ul {
@@ -59,7 +86,7 @@
 
     .instructions li {
       margin: 5px 0;
-      color: #2d3748;
+      color: #78350f;
     }
 
     .stats {
@@ -97,12 +124,13 @@
       width: 100%;
       max-width: 800px;
       height: 200px;
-      background: #4a5568;
+      background: linear-gradient(180deg, #4a5568 0%, #2d3748 100%);
       border-radius: 10px;
       position: relative;
       overflow: hidden;
       margin-bottom: 30px;
-      border: 4px solid #2d5016;
+      border: 4px solid #1a202c;
+      box-shadow: inset 0 2px 10px rgba(0,0,0,0.3);
     }
 
     .gift {
@@ -111,30 +139,31 @@
       height: 60px;
       cursor: pointer;
       transition: transform 0.1s;
-      border-radius: 5px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 2rem;
-      font-weight: bold;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.4);
     }
 
     .gift:hover {
-      transform: scale(1.1);
+      transform: scale(1.15);
     }
 
     .gift.selected {
-      transform: scale(1.2);
-      box-shadow: 0 0 20px rgba(255,255,255,0.8);
+      transform: scale(1.25);
+      box-shadow: 0 0 25px rgba(255,255,255,0.9), 0 0 40px rgba(255,215,0,0.6);
       z-index: 10;
+      animation: pulse 0.5s ease-in-out infinite alternate;
     }
 
-    .gift.red { background: #e53e3e; }
-    .gift.green { background: #38a169; }
-    .gift.blue { background: #3182ce; }
-    .gift.yellow { background: #d69e2e; }
-    .gift.purple { background: #805ad5; }
+    @keyframes pulse {
+      from { box-shadow: 0 0 25px rgba(255,255,255,0.9), 0 0 40px rgba(255,215,0,0.6); }
+      to { box-shadow: 0 0 35px rgba(255,255,255,1), 0 0 50px rgba(255,215,0,0.8); }
+    }
+
+    .gift canvas {
+      width: 100%;
+      height: 100%;
+      border-radius: 8px;
+    }
 
     .sacks-container {
       display: flex;
@@ -155,21 +184,20 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.5rem;
-      font-weight: bold;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+      box-shadow: 0 6px 12px rgba(0,0,0,0.4);
+      border: 3px solid rgba(255,255,255,0.3);
     }
 
     .sack:hover {
-      transform: scale(1.1);
-      box-shadow: 0 6px 12px rgba(0,0,0,0.4);
+      transform: scale(1.15);
+      box-shadow: 0 8px 16px rgba(0,0,0,0.5);
     }
 
-    .sack.red { background: #e53e3e; }
-    .sack.green { background: #38a169; }
-    .sack.blue { background: #3182ce; }
-    .sack.yellow { background: #d69e2e; }
-    .sack.purple { background: #805ad5; }
+    .sack canvas {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+    }
 
     .sack-label {
       position: absolute;
@@ -179,6 +207,7 @@
       font-size: 0.9rem;
       color: #2d3748;
       white-space: nowrap;
+      font-weight: bold;
     }
 
     .controls {
@@ -232,9 +261,10 @@
     .highscores {
       margin-top: 30px;
       padding: 20px;
-      background: #fef3c7;
+      background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
       border-radius: 10px;
       display: none;
+      border: 2px solid #d69e2e;
     }
 
     .highscores.show {
@@ -273,6 +303,192 @@
       color: #e53e3e;
     }
 
+    /* Modal für Namenseingabe */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 10000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.7);
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal.show {
+      display: flex;
+    }
+
+    .modal-content {
+      background: white;
+      padding: 30px;
+      border-radius: 15px;
+      max-width: 500px;
+      width: 90%;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+      text-align: center;
+    }
+
+    .modal-content h2 {
+      margin-bottom: 20px;
+      color: #2d3748;
+      font-size: 1.8rem;
+    }
+
+    .modal-content p {
+      margin-bottom: 20px;
+      color: #4a5568;
+      font-size: 1.2rem;
+    }
+
+    .modal-content input {
+      width: 100%;
+      padding: 15px;
+      font-size: 1.2rem;
+      border: 2px solid #cbd5e0;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .modal-content input:focus {
+      outline: none;
+      border-color: #3182ce;
+    }
+
+    .modal-buttons {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+
+    .modal-buttons button {
+      min-width: 120px;
+    }
+
+    .modal-buttons .cancel-btn {
+      background: #718096;
+    }
+
+    .modal-buttons .cancel-btn:hover {
+      background: #4a5568;
+    }
+
+    /* Virtual Keyboard Styles */
+    .keyboard {
+      z-index: 9999999;
+    }
+
+    @font-face {
+      font-family: 'Material Icons';
+      font-style: normal;
+      font-weight: 400;
+      src: url(https://fonts.gstatic.com/s/materialicons/v129/flUhRq6tzZclQEJ-Vdg-IuiaDsNc.woff2) format('woff2');
+    }
+
+    .material-icons {
+      font-family: 'Material Icons';
+      font-weight: normal;
+      font-style: normal;
+      font-size: 24px;
+      line-height: 1;
+      letter-spacing: normal;
+      text-transform: none;
+      display: inline-block;
+      white-space: nowrap;
+      word-wrap: normal;
+      direction: ltr;
+      -webkit-font-feature-settings: 'liga';
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .keyboard {
+      position: fixed;
+      left: 0;
+      bottom: 0;
+      width: 100%;
+      padding: 5px 0;
+      background: #171333;
+      box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+      user-select: none;
+      transition: bottom 0.4s;
+    }
+
+    .keyboard--hidden {
+      bottom: -100%;
+    }
+
+    .keyboard__keys {
+      text-align: center;
+    }
+
+    .keyboard__key {
+      height: 45px;
+      width: 6%;
+      max-width: 90px;
+      margin: 3px;
+      border-radius: 4px;
+      border: none;
+      background: rgba(255, 255, 255, 0.2);
+      color: #ffffff;
+      font-size: 1.05rem;
+      outline: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      vertical-align: top;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      position: relative;
+    }
+
+    .keyboard__key:active {
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    .keyboard__key--wide {
+      width: 15% !important;
+    }
+
+    .keyboard__key--extra-wide {
+      width: 36%;
+      max-width: 500px;
+    }
+
+    .keyboard__key--activatable::after {
+      content: '';
+      top: 10px;
+      right: 10px;
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      background: rgba(0, 0, 0, 0.4);
+      border-radius: 50%;
+    }
+
+    .keyboard__key--active::after {
+      background: #2d64fb;
+    }
+
+    .keyboard__key--dark {
+      background: rgba(0, 0, 0, 0.25);
+      background: #2d64fb;
+      color: #311261;
+    }
+
+    .hide-me {
+      display: none;
+    }
+
+    .backspace-btn {
+      width: 200px !important;
+      margin-left: 0px !important;
+      margin-right: 3px !important;
+    }
+
     @media (max-width: 768px) {
       h1 {
         font-size: 1.8rem;
@@ -290,18 +506,19 @@
       .sack {
         width: 80px;
         height: 80px;
-        font-size: 1.2rem;
       }
 
       .gift {
         width: 50px;
         height: 50px;
-        font-size: 1.5rem;
       }
     }
   </style>
 </head>
 <body>
+  <!-- Schneeflocken -->
+  <div id="snowflakes"></div>
+
   <div class="container">
     <button class="back-button" onclick="goBack()">← Zurück zum Scoreboard</button>
     <h1>🎄 Weihnachtsgeschenke-Sortierspiel 🎄</h1>
@@ -336,23 +553,23 @@
 
       <div class="sacks-container">
         <div class="sack red" data-color="red">
-          🎁
+          <canvas width="100" height="100"></canvas>
           <div class="sack-label">Rot</div>
         </div>
         <div class="sack green" data-color="green">
-          🎁
+          <canvas width="100" height="100"></canvas>
           <div class="sack-label">Grün</div>
         </div>
         <div class="sack blue" data-color="blue">
-          🎁
+          <canvas width="100" height="100"></canvas>
           <div class="sack-label">Blau</div>
         </div>
         <div class="sack yellow" data-color="yellow">
-          🎁
+          <canvas width="100" height="100"></canvas>
           <div class="sack-label">Gelb</div>
         </div>
         <div class="sack purple" data-color="purple">
-          🎁
+          <canvas width="100" height="100"></canvas>
           <div class="sack-label">Lila</div>
         </div>
       </div>
@@ -368,15 +585,30 @@
     </div>
   </div>
 
+  <!-- Modal für Namenseingabe -->
+  <div class="modal" id="nameModal">
+    <div class="modal-content">
+      <h2>🎉 Spiel beendet!</h2>
+      <p>Deine Punkte: <strong id="finalScore">0</strong></p>
+      <p>Gib deinen Namen für die Bestenliste ein:</p>
+      <input type="text" id="playerNameInput" class="p-input--bonus" placeholder="Dein Name" maxlength="20">
+      <div class="modal-buttons">
+        <button class="cancel-btn" onclick="closeNameModal()">Abbrechen</button>
+        <button onclick="savePlayerName()">Speichern</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/onscreen-keyboard.js"></script>
   <script>
     // Spielkonfiguration
     const GIFT_COLORS = ['red', 'green', 'blue', 'yellow', 'purple'];
-    const COLOR_EMOJIS = {
-      red: '🔴',
-      green: '🟢',
-      blue: '🔵',
-      yellow: '🟡',
-      purple: '🟣'
+    const COLOR_VALUES = {
+      red: '#e53e3e',
+      green: '#38a169',
+      blue: '#3182ce',
+      yellow: '#d69e2e',
+      purple: '#805ad5'
     };
     
     let gifts = [];
@@ -394,6 +626,106 @@
     const scoreElement = document.getElementById('score');
     const feedbackElement = document.getElementById('feedback');
     const sacks = document.querySelectorAll('.sack');
+    const nameModal = document.getElementById('nameModal');
+    const playerNameInput = document.getElementById('playerNameInput');
+    const finalScoreElement = document.getElementById('finalScore');
+
+    // Schneeflocken erstellen
+    function createSnowflakes() {
+      const snowflakesContainer = document.getElementById('snowflakes');
+      const snowflakeSymbols = ['❄', '❅', '❆'];
+      
+      for (let i = 0; i < 20; i++) {
+        const snowflake = document.createElement('div');
+        snowflake.className = 'snowflake';
+        snowflake.textContent = snowflakeSymbols[Math.floor(Math.random() * snowflakeSymbols.length)];
+        snowflake.style.left = Math.random() * 100 + '%';
+        snowflake.style.animationDuration = (Math.random() * 3 + 2) + 's';
+        snowflake.style.animationDelay = Math.random() * 2 + 's';
+        snowflakesContainer.appendChild(snowflake);
+      }
+    }
+
+    // Geschenk auf Canvas zeichnen
+    function drawGift(ctx, color) {
+      const colorValue = COLOR_VALUES[color];
+      const width = ctx.canvas.width;
+      const height = ctx.canvas.height;
+      
+      // Geschenkbox
+      ctx.fillStyle = colorValue;
+      ctx.fillRect(0, 0, width, height);
+      
+      // Weißes Band vertikal
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(width * 0.4, 0, width * 0.2, height);
+      
+      // Weißes Band horizontal
+      ctx.fillRect(0, height * 0.4, width, height * 0.2);
+      
+      // Schleife oben
+      ctx.beginPath();
+      ctx.arc(width * 0.5, 0, width * 0.15, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Schleife seitlich
+      ctx.beginPath();
+      ctx.arc(0, height * 0.5, width * 0.12, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(width, height * 0.5, width * 0.12, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // Sack auf Canvas zeichnen
+    function drawSack(ctx, color) {
+      const colorValue = COLOR_VALUES[color];
+      const width = ctx.canvas.width;
+      const height = ctx.canvas.height;
+      const centerX = width / 2;
+      const centerY = height / 2;
+      const radius = Math.min(width, height) / 2 - 5;
+      
+      // Sackkörper
+      ctx.fillStyle = colorValue;
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Sacköffnung
+      ctx.fillStyle = '#d1d5db';
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, radius * 0.75, 0, Math.PI);
+      ctx.fill();
+      
+      // Dekoration - weihnachtliche Schleife
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(centerX, centerY - radius * 0.3, radius * 0.2, 0, Math.PI * 2);
+      ctx.stroke();
+      
+      // Stern oben
+      ctx.fillStyle = '#ffd700';
+      ctx.beginPath();
+      for (let i = 0; i < 5; i++) {
+        const angle = (i * 4 * Math.PI) / 5 - Math.PI / 2;
+        const x = centerX + Math.cos(angle) * radius * 0.15;
+        const y = centerY - radius * 0.5 + Math.sin(angle) * radius * 0.15;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    // Säcke initial zeichnen
+    sacks.forEach(sack => {
+      const canvas = sack.querySelector('canvas');
+      const ctx = canvas.getContext('2d');
+      const color = sack.dataset.color;
+      drawSack(ctx, color);
+    });
 
     // Spiel starten
     function startGame() {
@@ -426,7 +758,7 @@
       giftInterval = setInterval(() => {
         if (!gameRunning) return;
         createGift();
-      }, 2000); // Alle 2 Sekunden ein neues Geschenk
+      }, 2000);
     }
 
     // Geschenk erstellen
@@ -436,7 +768,13 @@
       gift.className = `gift ${color}`;
       gift.dataset.color = color;
       gift.dataset.id = lastGiftId++;
-      gift.textContent = COLOR_EMOJIS[color];
+      
+      const canvas = document.createElement('canvas');
+      canvas.width = 60;
+      canvas.height = 60;
+      const ctx = canvas.getContext('2d');
+      drawGift(ctx, color);
+      gift.appendChild(canvas);
       
       const startY = 20 + Math.random() * (conveyorBelt.clientHeight - 100);
       gift.style.left = '0px';
@@ -452,10 +790,7 @@
         id: gift.dataset.id
       });
       
-      // Geschenk-Klick-Event
       gift.addEventListener('click', selectGift);
-      
-      // Geschenk bewegen
       moveGift(gift.dataset.id);
     }
 
@@ -467,12 +802,11 @@
       if (!giftData) return;
       
       const gift = giftData.element;
-      if (!gift.parentElement) return; // Geschenk wurde bereits entfernt
+      if (!gift.parentElement) return;
       
       giftData.x += giftData.speed;
       gift.style.left = giftData.x + 'px';
       
-      // Geschenk entfernen, wenn es das Band verlässt
       if (giftData.x > conveyorBelt.clientWidth) {
         if (giftData.element === selectedGift) {
           selectedGift = null;
@@ -487,7 +821,6 @@
         return;
       }
       
-      // Weiter bewegen
       requestAnimationFrame(() => moveGift(giftId));
     }
 
@@ -499,12 +832,10 @@
       const giftData = gifts.find(g => g.element === gift);
       if (!giftData) return;
       
-      // Vorherige Auswahl entfernen
       if (selectedGift) {
         selectedGift.classList.remove('selected');
       }
       
-      // Neue Auswahl
       selectedGift = gift;
       gift.classList.add('selected');
     }
@@ -520,10 +851,8 @@
         const sackColor = sack.dataset.color;
         const giftColor = giftData.color;
         
-        // Auswahl entfernen
         selectedGift.classList.remove('selected');
         
-        // Punkte vergeben
         if (sackColor === giftColor) {
           score += 10;
           showFeedback('✅ Richtig! +10 Punkte', 'correct');
@@ -532,7 +861,6 @@
           showFeedback('❌ Falsch! -5 Punkte', 'wrong');
         }
         
-        // Geschenk entfernen
         selectedGift.remove();
         const index = gifts.indexOf(giftData);
         if (index > -1) {
@@ -562,7 +890,6 @@
       clearInterval(gameInterval);
       clearInterval(giftInterval);
       
-      // Alle Geschenke entfernen
       conveyorBelt.innerHTML = '';
       gifts = [];
       selectedGift = null;
@@ -570,14 +897,50 @@
       startButton.disabled = false;
       startButton.textContent = 'Nochmal spielen';
       
-      // Highscore speichern
-      const playerName = prompt(`Spiel beendet! Deine Punkte: ${score}\n\nGib deinen Namen für die Bestenliste ein:`);
-      if (playerName && playerName.trim()) {
-        saveHighscore(playerName.trim(), score);
-      }
+      // Modal öffnen
+      finalScoreElement.textContent = score;
+      playerNameInput.value = '';
+      nameModal.classList.add('show');
       
-      showHighscores();
+      // Keyboard öffnen nach kurzer Verzögerung
+      setTimeout(() => {
+        playerNameInput.focus();
+        if (typeof Keyboard !== 'undefined') {
+          Keyboard._setupKeyboard('alfa');
+          Keyboard.selectedElement = playerNameInput;
+          Keyboard.open('', (currentValue) => {
+            playerNameInput.value = currentValue;
+          }, () => {
+            // Keyboard geschlossen
+          });
+        }
+      }, 300);
     }
+
+    // Namens-Modal schließen
+    function closeNameModal() {
+      nameModal.classList.remove('show');
+      if (typeof Keyboard !== 'undefined') {
+        Keyboard.close();
+      }
+    }
+
+    // Spielername speichern
+    function savePlayerName() {
+      const playerName = playerNameInput.value.trim();
+      if (playerName) {
+        saveHighscore(playerName, score);
+        showHighscores();
+      }
+      closeNameModal();
+    }
+
+    // Enter-Taste im Input-Feld
+    playerNameInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        savePlayerName();
+      }
+    });
 
     // Anzeige aktualisieren
     function updateDisplay() {
@@ -624,17 +987,16 @@
 
     // Initial Highscores anzeigen
     showHighscores();
+    createSnowflakes();
 
     // Zurück-Navigation
     function goBack() {
       if (window.history.length > 1) {
         window.history.back();
       } else {
-        // Fallback: zur Startseite navigieren
         window.location.href = '/';
       }
     }
   </script>
 </body>
 </html>
-
