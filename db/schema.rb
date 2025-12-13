@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_10_31_191941) do
+ActiveRecord::Schema[7.2].define(version: 2025_12_13_223351) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -1150,6 +1150,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_10_31_191941) do
     t.string "kickoff_switches_with"
     t.string "source_url"
     t.boolean "global_context", default: false
+    t.boolean "allow_overflow", default: false, null: false
     t.index ["ba_id"], name: "index_tournaments_on_ba_id", unique: true
     t.index ["global_context"], name: "index_tournaments_on_global_context"
   end

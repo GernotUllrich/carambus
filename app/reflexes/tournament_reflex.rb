@@ -37,12 +37,13 @@ class TournamentReflex < ApplicationReflex
     gd_has_prio: "B",
     kickoff_switches_with: "S",
     allow_follow_up: "B",
+    allow_overflow: "B",
     color_remains_with_set: "B",
     fixed_display_left: "K",
     sets_to_play: "I",
     sets_to_win: "I",
-    time_out_warm_up_first_min: "B",
-    time_out_warm_up_follow_up_min: "B"
+    time_out_warm_up_first_min: "I",
+    time_out_warm_up_follow_up_min: "I"
   }
 
   ATTRIBUTE_METHODS.keys.each do |attribute|

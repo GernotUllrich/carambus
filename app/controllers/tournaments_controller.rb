@@ -324,11 +324,11 @@ class TournamentsController < ApplicationController
                                               balls_goal: (params[:balls_goal].presence || @tournament.balls_goal).to_i,
                                               sets_to_play: (params[:sets_to_play].presence || @tournament.sets_to_play).to_i,
                                               sets_to_win: (params[:sets_to_win].presence || @tournament.sets_to_win).to_i,
-                                              kickoff_switches_with: params[:kickoff_switches_with],
+                                              kickoff_switches_with: params[:kickoff_switches_with].presence || @tournament.kickoff_switches_with,
                                               color_remains_with_set: params[:color_remains_with_set] == "1",
-                                              allow_overflow: params[:allow_overflow].present?,
-                                              allow_follow_up: params[:allow_follow_up].present?,
-                                              fixed_display_left: params[:fixed_display_left].to_s)
+                                              allow_overflow: (params[:allow_overflow] == "1") || @tournament.allow_overflow?,
+                                              allow_follow_up: (params[:allow_follow_up] == "1") || @tournament.allow_follow_up?,
+                                              fixed_display_left: params[:fixed_display_left].to_s.presence || @tournament.fixed_display_left)
       end
       if @tournament.tournament_started_waiting_for_monitors?
         redirect_to tournament_monitor_path(@tournament.tournament_monitor)

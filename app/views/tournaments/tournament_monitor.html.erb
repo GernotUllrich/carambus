@@ -96,7 +96,7 @@
               <span class="w-1/2 text-right text-sm"><%= label_tag "Die Ballfarbe bleibt zwischen den Sätzen" %></span><span id="tournament_color_remains_with_set"><%= check_box_tag :color_remains_with_set, "1", @tournament.color_remains_with_set?, class: "border-2", data: { reflex: "change->TournamentReflex#color_remains_with_set", id: @tournament.id } %></span>
             </div>
             <div class="flex flex-row space-x-4 items-center">
-              <span class="w-1/2 text-right text-sm"><%= label_tag "Kein exaktes Erreichen des Ballzieles notwendig" %></span><span id="tournament_allow_overflow"><%= check_box_tag :allow_overflow, "1", false, class: "border-2", data: { reflex: "change->TournamentReflex#allow_overflow", id: @tournament.id } %></span>
+              <span class="w-1/2 text-right text-sm"><%= label_tag "Kein exaktes Erreichen des Ballzieles notwendig" %></span><span id="tournament_allow_overflow"><%= check_box_tag :allow_overflow, "1", @tournament.allow_overflow?, class: "border-2", data: { reflex: "change->TournamentReflex#allow_overflow", id: @tournament.id } %></span>
             </div>
             <div class="flex flex-row space-x-4 items-center">
               <span class="w-1/2 text-right text-sm"><%= label_tag "Darstellung linksseitig" %></span><span id="tournament_fixed_display_left"><%= select_tag :fixed_display_left, options_for_select([["Kick-Off Left", ""], ["Player A", "playera"], ["Player B", "playerb"]]), class: "border-2", data: { reflex: "change->TournamentReflex#fixed_display_left", id: @tournament.id } %></span>
