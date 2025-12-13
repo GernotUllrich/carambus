@@ -88,20 +88,97 @@
 
     .game-container {
       display: flex;
-      justify-content: center;
+      flex-direction: column;
+      align-items: center;
       margin-bottom: 20px;
     }
 
-    #gameCanvas {
-      border: 4px solid #2d5016;
+    .conveyor-belt {
+      width: 100%;
+      max-width: 800px;
+      height: 200px;
+      background: #4a5568;
       border-radius: 10px;
-      background: #f0f9ff;
-      cursor: grab;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 30px;
+      border: 4px solid #2d5016;
     }
 
-    #gameCanvas:active {
-      cursor: grabbing;
+    .gift {
+      position: absolute;
+      width: 60px;
+      height: 60px;
+      cursor: pointer;
+      transition: transform 0.1s;
+      border-radius: 5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      font-weight: bold;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    }
+
+    .gift:hover {
+      transform: scale(1.1);
+    }
+
+    .gift.selected {
+      transform: scale(1.2);
+      box-shadow: 0 0 20px rgba(255,255,255,0.8);
+      z-index: 10;
+    }
+
+    .gift.red { background: #e53e3e; }
+    .gift.green { background: #38a169; }
+    .gift.blue { background: #3182ce; }
+    .gift.yellow { background: #d69e2e; }
+    .gift.purple { background: #805ad5; }
+
+    .sacks-container {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+      width: 100%;
+      max-width: 800px;
+    }
+
+    .sack {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      cursor: pointer;
+      position: relative;
+      transition: transform 0.2s, box-shadow 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      font-weight: bold;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    }
+
+    .sack:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 12px rgba(0,0,0,0.4);
+    }
+
+    .sack.red { background: #e53e3e; }
+    .sack.green { background: #38a169; }
+    .sack.blue { background: #3182ce; }
+    .sack.yellow { background: #d69e2e; }
+    .sack.purple { background: #805ad5; }
+
+    .sack-label {
+      position: absolute;
+      bottom: -25px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.9rem;
+      color: #2d3748;
+      white-space: nowrap;
     }
 
     .controls {
@@ -132,6 +209,26 @@
       cursor: not-allowed;
     }
 
+    .back-button {
+      background: #718096;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      font-size: 1rem;
+      font-weight: bold;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+
+    .back-button:hover {
+      background: #4a5568;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 8px rgba(0,0,0,0.15);
+    }
+
     .highscores {
       margin-top: 30px;
       padding: 20px;
@@ -160,6 +257,22 @@
       color: #78350f;
     }
 
+    .feedback {
+      text-align: center;
+      font-size: 1.5rem;
+      font-weight: bold;
+      min-height: 40px;
+      margin-bottom: 10px;
+    }
+
+    .feedback.correct {
+      color: #38a169;
+    }
+
+    .feedback.wrong {
+      color: #e53e3e;
+    }
+
     @media (max-width: 768px) {
       h1 {
         font-size: 1.8rem;
@@ -174,20 +287,28 @@
         font-size: 1.5rem;
       }
 
-      #gameCanvas {
-        width: 100%;
-        height: auto;
+      .sack {
+        width: 80px;
+        height: 80px;
+        font-size: 1.2rem;
+      }
+
+      .gift {
+        width: 50px;
+        height: 50px;
+        font-size: 1.5rem;
       }
     }
   </style>
 </head>
 <body>
   <div class="container">
+    <button class="back-button" onclick="goBack()">← Zurück zum Scoreboard</button>
     <h1>🎄 Weihnachtsgeschenke-Sortierspiel 🎄</h1>
     
     <div class="instructions">
       <h2>Spielanleitung:</h2>
-      <p>Ziehe die Geschenke vom Förderband in den passenden Sack mit der gleichen Farbe!</p>
+      <p>Klicke auf ein Geschenk und dann auf den passenden Sack mit der gleichen Farbe!</p>
       <ul>
         <li>✅ Richtige Farbe: <strong>+10 Punkte</strong></li>
         <li>❌ Falsche Farbe: <strong>-5 Punkte</strong></li>
@@ -207,7 +328,34 @@
     </div>
 
     <div class="game-container">
-      <canvas id="gameCanvas" width="800" height="500"></canvas>
+      <div class="feedback" id="feedback"></div>
+      
+      <div class="conveyor-belt" id="conveyorBelt">
+        <!-- Geschenke werden hier dynamisch eingefügt -->
+      </div>
+
+      <div class="sacks-container">
+        <div class="sack red" data-color="red">
+          🎁
+          <div class="sack-label">Rot</div>
+        </div>
+        <div class="sack green" data-color="green">
+          🎁
+          <div class="sack-label">Grün</div>
+        </div>
+        <div class="sack blue" data-color="blue">
+          🎁
+          <div class="sack-label">Blau</div>
+        </div>
+        <div class="sack yellow" data-color="yellow">
+          🎁
+          <div class="sack-label">Gelb</div>
+        </div>
+        <div class="sack purple" data-color="purple">
+          🎁
+          <div class="sack-label">Lila</div>
+        </div>
+      </div>
     </div>
 
     <div class="controls">
@@ -223,85 +371,29 @@
   <script>
     // Spielkonfiguration
     const GIFT_COLORS = ['red', 'green', 'blue', 'yellow', 'purple'];
-    const COLOR_VALUES = {
-      red: '#e53e3e',
-      green: '#38a169',
-      blue: '#3182ce',
-      yellow: '#d69e2e',
-      purple: '#805ad5'
+    const COLOR_EMOJIS = {
+      red: '🔴',
+      green: '🟢',
+      blue: '🔵',
+      yellow: '🟡',
+      purple: '🟣'
     };
     
-    const SACK_POSITIONS = [100, 250, 400, 550, 700];
     let gifts = [];
     let score = 0;
     let timeLeft = 60;
     let gameInterval = null;
-    let animationFrame = null;
+    let giftInterval = null;
     let selectedGift = null;
-    let originalX, originalY;
     let gameRunning = false;
+    let lastGiftId = 0;
 
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
+    const conveyorBelt = document.getElementById('conveyorBelt');
     const startButton = document.getElementById('startButton');
     const timerElement = document.getElementById('timer');
     const scoreElement = document.getElementById('score');
-
-    // Canvas an Bildschirmgröße anpassen
-    function resizeCanvas() {
-      const container = canvas.parentElement;
-      const maxWidth = Math.min(800, container.clientWidth - 40);
-      canvas.width = maxWidth;
-      canvas.height = Math.min(500, window.innerHeight * 0.5);
-    }
-
-    window.addEventListener('resize', resizeCanvas);
-    resizeCanvas();
-
-    // SVG-Geschenk zeichnen
-    function drawGift(ctx, x, y, width, height, color) {
-      const colorValue = COLOR_VALUES[color];
-      
-      // Geschenkbox
-      ctx.fillStyle = colorValue;
-      ctx.fillRect(x, y, width, height);
-      
-      // Weißes Band vertikal
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(x + width * 0.4, y, width * 0.2, height);
-      
-      // Weißes Band horizontal
-      ctx.fillRect(x, y + height * 0.4, width, height * 0.2);
-      
-      // Schleife oben
-      ctx.beginPath();
-      ctx.arc(x + width * 0.5, y, width * 0.15, 0, Math.PI * 2);
-      ctx.fill();
-    }
-
-    // SVG-Sack zeichnen
-    function drawSack(ctx, x, y, radius, color) {
-      const colorValue = COLOR_VALUES[color];
-      
-      // Sackkörper
-      ctx.fillStyle = colorValue;
-      ctx.beginPath();
-      ctx.arc(x, y, radius, 0, Math.PI * 2);
-      ctx.fill();
-      
-      // Sacköffnung
-      ctx.fillStyle = '#d1d5db';
-      ctx.beginPath();
-      ctx.arc(x, y, radius * 0.75, 0, Math.PI);
-      ctx.fill();
-      
-      // Dekoration
-      ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.arc(x, y - radius * 0.3, radius * 0.2, 0, Math.PI * 2);
-      ctx.stroke();
-    }
+    const feedbackElement = document.getElementById('feedback');
+    const sacks = document.querySelectorAll('.sack');
 
     // Spiel starten
     function startGame() {
@@ -312,10 +404,13 @@
       score = 0;
       timeLeft = 60;
       selectedGift = null;
+      lastGiftId = 0;
       
       updateDisplay();
+      clearFeedback();
       startButton.disabled = true;
       startButton.textContent = 'Spiel läuft...';
+      conveyorBelt.innerHTML = '';
       
       // Timer starten
       gameInterval = setInterval(() => {
@@ -327,17 +422,150 @@
         }
       }, 1000);
       
-      // Spielschleife starten
-      gameLoop();
+      // Geschenke generieren
+      giftInterval = setInterval(() => {
+        if (!gameRunning) return;
+        createGift();
+      }, 2000); // Alle 2 Sekunden ein neues Geschenk
+    }
+
+    // Geschenk erstellen
+    function createGift() {
+      const color = GIFT_COLORS[Math.floor(Math.random() * GIFT_COLORS.length)];
+      const gift = document.createElement('div');
+      gift.className = `gift ${color}`;
+      gift.dataset.color = color;
+      gift.dataset.id = lastGiftId++;
+      gift.textContent = COLOR_EMOJIS[color];
+      
+      const startY = 20 + Math.random() * (conveyorBelt.clientHeight - 100);
+      gift.style.left = '0px';
+      gift.style.top = startY + 'px';
+      
+      conveyorBelt.appendChild(gift);
+      gifts.push({
+        element: gift,
+        x: 0,
+        y: startY,
+        color: color,
+        speed: 1 + Math.random() * 2 + (60 - timeLeft) * 0.03,
+        id: gift.dataset.id
+      });
+      
+      // Geschenk-Klick-Event
+      gift.addEventListener('click', selectGift);
+      
+      // Geschenk bewegen
+      moveGift(gift.dataset.id);
+    }
+
+    // Geschenk bewegen
+    function moveGift(giftId) {
+      if (!gameRunning) return;
+      
+      const giftData = gifts.find(g => g.id == giftId);
+      if (!giftData) return;
+      
+      const gift = giftData.element;
+      if (!gift.parentElement) return; // Geschenk wurde bereits entfernt
+      
+      giftData.x += giftData.speed;
+      gift.style.left = giftData.x + 'px';
+      
+      // Geschenk entfernen, wenn es das Band verlässt
+      if (giftData.x > conveyorBelt.clientWidth) {
+        if (giftData.element === selectedGift) {
+          selectedGift = null;
+        }
+        gift.remove();
+        const index = gifts.indexOf(giftData);
+        if (index > -1) {
+          gifts.splice(index, 1);
+        }
+        score -= 2;
+        updateDisplay();
+        return;
+      }
+      
+      // Weiter bewegen
+      requestAnimationFrame(() => moveGift(giftId));
+    }
+
+    // Geschenk auswählen
+    function selectGift(e) {
+      if (!gameRunning) return;
+      
+      const gift = e.currentTarget;
+      const giftData = gifts.find(g => g.element === gift);
+      if (!giftData) return;
+      
+      // Vorherige Auswahl entfernen
+      if (selectedGift) {
+        selectedGift.classList.remove('selected');
+      }
+      
+      // Neue Auswahl
+      selectedGift = gift;
+      gift.classList.add('selected');
+    }
+
+    // Sack-Klick-Event
+    sacks.forEach(sack => {
+      sack.addEventListener('click', () => {
+        if (!gameRunning || !selectedGift) return;
+        
+        const giftData = gifts.find(g => g.element === selectedGift);
+        if (!giftData) return;
+        
+        const sackColor = sack.dataset.color;
+        const giftColor = giftData.color;
+        
+        // Auswahl entfernen
+        selectedGift.classList.remove('selected');
+        
+        // Punkte vergeben
+        if (sackColor === giftColor) {
+          score += 10;
+          showFeedback('✅ Richtig! +10 Punkte', 'correct');
+        } else {
+          score -= 5;
+          showFeedback('❌ Falsch! -5 Punkte', 'wrong');
+        }
+        
+        // Geschenk entfernen
+        selectedGift.remove();
+        const index = gifts.indexOf(giftData);
+        if (index > -1) {
+          gifts.splice(index, 1);
+        }
+        
+        selectedGift = null;
+        updateDisplay();
+      });
+    });
+
+    // Feedback anzeigen
+    function showFeedback(message, type) {
+      feedbackElement.textContent = message;
+      feedbackElement.className = `feedback ${type}`;
+      setTimeout(clearFeedback, 1500);
+    }
+
+    function clearFeedback() {
+      feedbackElement.textContent = '';
+      feedbackElement.className = 'feedback';
     }
 
     // Spiel beenden
     function endGame() {
       gameRunning = false;
       clearInterval(gameInterval);
-      if (animationFrame) {
-        cancelAnimationFrame(animationFrame);
-      }
+      clearInterval(giftInterval);
+      
+      // Alle Geschenke entfernen
+      conveyorBelt.innerHTML = '';
+      gifts = [];
+      selectedGift = null;
       
       startButton.disabled = false;
       startButton.textContent = 'Nochmal spielen';
@@ -356,193 +584,6 @@
       timerElement.textContent = timeLeft;
       scoreElement.textContent = score;
     }
-
-    // Spielschleife
-    function gameLoop() {
-      if (!gameRunning) return;
-      
-      // Neue Geschenke generieren
-      const difficulty = Math.max(0.3, 0.7 - (60 - timeLeft) * 0.01);
-      if (Math.random() > difficulty) {
-        gifts.push({
-          x: 0,
-          y: 50 + Math.random() * (canvas.height - 200),
-          width: 40,
-          height: 40,
-          color: GIFT_COLORS[Math.floor(Math.random() * GIFT_COLORS.length)],
-          speed: 2 + Math.random() * 3 + (60 - timeLeft) * 0.05,
-          dragging: false
-        });
-      }
-      
-      // Geschenke bewegen
-      for (let i = gifts.length - 1; i >= 0; i--) {
-        const gift = gifts[i];
-        if (!gift.dragging) {
-          gift.x += gift.speed;
-        }
-        
-        // Geschenk entfernen, wenn es das Band verlässt
-        if (gift.x > canvas.width) {
-          gifts.splice(i, 1);
-          score -= 2;
-          updateDisplay();
-        }
-      }
-      
-      drawGame();
-      animationFrame = requestAnimationFrame(gameLoop);
-    }
-
-    // Spiel zeichnen
-    function drawGame() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      
-      // Förderband
-      ctx.fillStyle = '#4a5568';
-      ctx.fillRect(0, 0, canvas.width, 20);
-      
-      // Weihnachtslichter
-      const now = Date.now();
-      for (let i = 0; i < canvas.width; i += 30) {
-        ctx.beginPath();
-        ctx.arc(i + (now / 100) % 30, 10, 3, 0, Math.PI * 2);
-        ctx.fillStyle = `hsl(${(i + now / 10) % 360}, 100%, 50%)`;
-        ctx.fill();
-      }
-      
-      // Geschenke zeichnen
-      gifts.forEach(gift => {
-        drawGift(ctx, gift.x, gift.y, gift.width, gift.height, gift.color);
-      });
-      
-      // Säcke zeichnen
-      const sackY = canvas.height - 50;
-      SACK_POSITIONS.forEach((x, i) => {
-        if (x < canvas.width) {
-          drawSack(ctx, x, sackY, 40, GIFT_COLORS[i]);
-          
-          // Beschriftung
-          ctx.fillStyle = '#000000';
-          ctx.font = '16px Arial';
-          ctx.textAlign = 'center';
-          ctx.fillText(`Sack ${i+1}`, x, canvas.height - 5);
-        }
-      });
-    }
-
-    // Drag & Drop
-    function getMousePos(e) {
-      const rect = canvas.getBoundingClientRect();
-      return {
-        x: e.clientX - rect.left,
-        y: e.clientY - rect.top
-      };
-    }
-
-    function startDrag(e) {
-      if (!gameRunning) return;
-      
-      const pos = getMousePos(e);
-      
-      // Prüfen, ob ein Geschenk angeklickt wurde
-      for (let i = gifts.length - 1; i >= 0; i--) {
-        const gift = gifts[i];
-        if (pos.x > gift.x && pos.x < gift.x + gift.width &&
-            pos.y > gift.y && pos.y < gift.y + gift.height) {
-          selectedGift = gift;
-          originalX = gift.x;
-          originalY = gift.y;
-          gift.dragging = true;
-          break;
-        }
-      }
-    }
-
-    function drag(e) {
-      if (selectedGift) {
-        const pos = getMousePos(e);
-        selectedGift.x = pos.x - selectedGift.width / 2;
-        selectedGift.y = pos.y - selectedGift.height / 2;
-      }
-    }
-
-    function stopDrag() {
-      if (selectedGift) {
-        selectedGift.dragging = false;
-        let scored = false;
-        
-        // Prüfen, ob das Geschenk über einem Sack losgelassen wurde
-        const giftCenterX = selectedGift.x + selectedGift.width / 2;
-        const giftCenterY = selectedGift.y + selectedGift.height / 2;
-        const sackY = canvas.height - 50;
-        
-        for (let i = 0; i < SACK_POSITIONS.length; i++) {
-          const sackX = SACK_POSITIONS[i];
-          if (sackX >= canvas.width) continue;
-          
-          const distance = Math.sqrt(
-            Math.pow(giftCenterX - sackX, 2) + 
-            Math.pow(giftCenterY - sackY, 2)
-          );
-          
-          if (distance < 40) {
-            scored = true;
-            if (selectedGift.color === GIFT_COLORS[i]) {
-              score += 10;
-              gifts.splice(gifts.indexOf(selectedGift), 1);
-            } else {
-              score -= 5;
-              selectedGift.x = originalX;
-              selectedGift.y = originalY;
-            }
-            updateDisplay();
-            break;
-          }
-        }
-        
-        // Geschenk zurücksetzen, wenn nicht über Sack
-        if (!scored) {
-          selectedGift.x = originalX;
-          selectedGift.y = originalY;
-        }
-        
-        selectedGift = null;
-      }
-    }
-
-    // Event-Listener
-    canvas.addEventListener('mousedown', startDrag);
-    canvas.addEventListener('mousemove', drag);
-    canvas.addEventListener('mouseup', stopDrag);
-    canvas.addEventListener('mouseleave', stopDrag);
-
-    // Touch-Events
-    canvas.addEventListener('touchstart', (e) => {
-      e.preventDefault();
-      const touch = e.touches[0];
-      const mouseEvent = new MouseEvent('mousedown', {
-        clientX: touch.clientX,
-        clientY: touch.clientY
-      });
-      canvas.dispatchEvent(mouseEvent);
-    });
-
-    canvas.addEventListener('touchmove', (e) => {
-      e.preventDefault();
-      const touch = e.touches[0];
-      const mouseEvent = new MouseEvent('mousemove', {
-        clientX: touch.clientX,
-        clientY: touch.clientY
-      });
-      canvas.dispatchEvent(mouseEvent);
-    });
-
-    canvas.addEventListener('touchend', (e) => {
-      e.preventDefault();
-      const mouseEvent = new MouseEvent('mouseup', {});
-      canvas.dispatchEvent(mouseEvent);
-    });
 
     startButton.addEventListener('click', startGame);
 
@@ -581,8 +622,18 @@
       container.classList.add('show');
     }
 
-    // Initiales Zeichnen
-    drawGame();
+    // Initial Highscores anzeigen
+    showHighscores();
+
+    // Zurück-Navigation
+    function goBack() {
+      if (window.history.length > 1) {
+        window.history.back();
+      } else {
+        // Fallback: zur Startseite navigieren
+        window.location.href = '/';
+      }
+    }
   </script>
 </body>
 </html>
