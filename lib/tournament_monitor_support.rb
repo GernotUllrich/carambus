@@ -744,11 +744,12 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
           if @table_monitor.present?
             attrs = {}
             attrs["sets_to_play"] = sets unless sets.nil?
-            attrs["innings_goal"] = innings unless innings.nil?
+            # Fallback zu tournament_monitor/tournament Werten wenn nicht in executor_params
+            attrs["innings_goal"] = innings || self.innings_goal || tournament.innings_goal
             attrs["playera"] = {}
-            attrs["playera"]["balls_goal"] = balls unless balls.nil?
+            attrs["playera"]["balls_goal"] = balls || self.balls_goal || tournament.balls_goal
             attrs["playerb"] = {}
-            attrs["playerb"]["balls_goal"] = balls unless balls.nil?
+            attrs["playerb"]["balls_goal"] = balls || self.balls_goal || tournament.balls_goal
             @table_monitor.deep_merge_data!(attrs)
             @table_monitor.data_will_change!
             @table_monitor.assign_attributes(tournament_monitor: self)
