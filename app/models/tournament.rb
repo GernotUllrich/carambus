@@ -311,7 +311,8 @@ class Tournament < ApplicationRecord
         %w[timeouts timeout gd_has_prio admin_controlled sets_to_play sets_to_win
            team_size kickoff_switches_with allow_follow_up
            fixed_display_left color_remains_with_set].each do |meth|
-          if data[meth].present?
+          # Use !nil? instead of present? to allow 0 and false as valid values
+          if !data[meth].nil?
             data_will_change!
             write_attribute(meth, data.delete(meth))
           end
