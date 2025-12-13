@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Weihnachtsgeschenke-Sortierspiel</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .container {
+      background: white;
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      max-width: 900px;
+      width: 100%;
+    }
+
+    h1 {
+      text-align: center;
+      color: #c53030;
+      font-size: 2.5rem;
+      margin-bottom: 20px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .instructions {
+      background: #ebf8ff;
+      padding: 20px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      border-left: 4px solid #3182ce;
+    }
+
+    .instructions h2 {
+      font-size: 1.3rem;
+      margin-bottom: 10px;
+      color: #2c5282;
+    }
+
+    .instructions ul {
+      margin-left: 20px;
+      margin-top: 10px;
+    }
+
+    .instructions li {
+      margin: 5px 0;
+      color: #2d3748;
+    }
+
+    .stats {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      margin-bottom: 20px;
+      font-size: 1.5rem;
+      font-weight: bold;
+    }
+
+    .stat {
+      text-align: center;
+    }
+
+    .stat-label {
+      font-size: 0.9rem;
+      color: #718096;
+      margin-bottom: 5px;
+    }
+
+    .stat-value {
+      color: #2d3748;
+      font-size: 2rem;
+    }
+
+    .game-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .conveyor-belt {
+      width: 100%;
+      max-width: 800px;
+      height: 200px;
+      background: #4a5568;
+      border-radius: 10px;
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 30px;
+      border: 4px solid #2d5016;
+    }
+
+    .gift {
+      position: absolute;
+      width: 60px;
+      height: 60px;
+      cursor: pointer;
+      transition: transform 0.1s;
+      border-radius: 5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      font-weight: bold;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    }
+
+    .gift:hover {
+      transform: scale(1.1);
+    }
+
+    .gift.selected {
+      transform: scale(1.2);
+      box-shadow: 0 0 20px rgba(255,255,255,0.8);
+      z-index: 10;
+    }
+
+    .gift.red { background: #e53e3e; }
+    .gift.green { background: #38a169; }
+    .gift.blue { background: #3182ce; }
+    .gift.yellow { background: #d69e2e; }
+    .gift.purple { background: #805ad5; }
+
+    .sacks-container {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+      width: 100%;
+      max-width: 800px;
+    }
+
+    .sack {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      cursor: pointer;
+      position: relative;
+      transition: transform 0.2s, box-shadow 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      font-weight: bold;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    }
+
+    .sack:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 12px rgba(0,0,0,0.4);
+    }
+
+    .sack.red { background: #e53e3e; }
+    .sack.green { background: #38a169; }
+    .sack.blue { background: #3182ce; }
+    .sack.yellow { background: #d69e2e; }
+    .sack.purple { background: #805ad5; }
+
+    .sack-label {
+      position: absolute;
+      bottom: -25px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.9rem;
+      color: #2d3748;
+      white-space: nowrap;
+    }
+
+    .controls {
+      text-align: center;
+    }
+
+    button {
+      background: #38a169;
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      font-size: 1.2rem;
+      font-weight: bold;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    button:hover:not(:disabled) {
+      background: #2f855a;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 8px rgba(0,0,0,0.15);
+    }
+
+    button:disabled {
+      background: #a0aec0;
+      cursor: not-allowed;
+    }
+
+    .back-button {
+      background: #718096;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      font-size: 1rem;
+      font-weight: bold;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+
+    .back-button:hover {
+      background: #4a5568;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 8px rgba(0,0,0,0.15);
+    }
+
+    .highscores {
+      margin-top: 30px;
+      padding: 20px;
+      background: #fef3c7;
+      border-radius: 10px;
+      display: none;
+    }
+
+    .highscores.show {
+      display: block;
+    }
+
+    .highscores h2 {
+      font-size: 1.5rem;
+      margin-bottom: 15px;
+      color: #92400e;
+    }
+
+    .highscores ol {
+      margin-left: 20px;
+    }
+
+    .highscores li {
+      margin: 8px 0;
+      font-size: 1.1rem;
+      color: #78350f;
+    }
+
+    .feedback {
+      text-align: center;
+      font-size: 1.5rem;
+      font-weight: bold;
+      min-height: 40px;
+      margin-bottom: 10px;
+    }
+
+    .feedback.correct {
+      color: #38a169;
+    }
+
+    .feedback.wrong {
+      color: #e53e3e;
+    }
+
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 1.8rem;
+      }
+
+      .stats {
+        gap: 20px;
+        font-size: 1.2rem;
+      }
+
+      .stat-value {
+        font-size: 1.5rem;
+      }
+
+      .sack {
+        width: 80px;
+        height: 80px;
+        font-size: 1.2rem;
+      }
+
+      .gift {
+        width: 50px;
+        height: 50px;
+        font-size: 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <button class="back-button" onclick="goBack()">← Zurück zum Scoreboard</button>
+    <h1>🎄 Weihnachtsgeschenke-Sortierspiel 🎄</h1>
+    
+    <div class="instructions">
+      <h2>Spielanleitung:</h2>
+      <p>Klicke auf ein Geschenk und dann auf den passenden Sack mit der gleichen Farbe!</p>
+      <ul>
+        <li>✅ Richtige Farbe: <strong>+10 Punkte</strong></li>
+        <li>❌ Falsche Farbe: <strong>-5 Punkte</strong></li>
+        <li>⏱️ Verpasstes Geschenk: <strong>-2 Punkte</strong></li>
+      </ul>
+    </div>
+
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-label">Zeit</div>
+        <div class="stat-value" id="timer">60</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Punkte</div>
+        <div class="stat-value" id="score">0</div>
+      </div>
+    </div>
+
+    <div class="game-container">
+      <div class="feedback" id="feedback"></div>
+      
+      <div class="conveyor-belt" id="conveyorBelt">
+        <!-- Geschenke werden hier dynamisch eingefügt -->
+      </div>
+
+      <div class="sacks-container">
+        <div class="sack red" data-color="red">
+          🎁
+          <div class="sack-label">Rot</div>
+        </div>
+        <div class="sack green" data-color="green">
+          🎁
+          <div class="sack-label">Grün</div>
+        </div>
+        <div class="sack blue" data-color="blue">
+          🎁
+          <div class="sack-label">Blau</div>
+        </div>
+        <div class="sack yellow" data-color="yellow">
+          🎁
+          <div class="sack-label">Gelb</div>
+        </div>
+        <div class="sack purple" data-color="purple">
+          🎁
+          <div class="sack-label">Lila</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button id="startButton">Spiel starten</button>
+    </div>
+
+    <div class="highscores" id="highscores">
+      <h2>🏆 Weihnachts-Bestenliste</h2>
+      <ol id="highscoresList"></ol>
+    </div>
+  </div>
+
+  <script>
+    // Spielkonfiguration
+    const GIFT_COLORS = ['red', 'green', 'blue', 'yellow', 'purple'];
+    const COLOR_EMOJIS = {
+      red: '🔴',
+      green: '🟢',
+      blue: '🔵',
+      yellow: '🟡',
+      purple: '🟣'
+    };
+    
+    let gifts = [];
+    let score = 0;
+    let timeLeft = 60;
+    let gameInterval = null;
+    let giftInterval = null;
+    let selectedGift = null;
+    let gameRunning = false;
+    let lastGiftId = 0;
+
+    const conveyorBelt = document.getElementById('conveyorBelt');
+    const startButton = document.getElementById('startButton');
+    const timerElement = document.getElementById('timer');
+    const scoreElement = document.getElementById('score');
+    const feedbackElement = document.getElementById('feedback');
+    const sacks = document.querySelectorAll('.sack');
+
+    // Spiel starten
+    function startGame() {
+      if (gameRunning) return;
+      
+      gameRunning = true;
+      gifts = [];
+      score = 0;
+      timeLeft = 60;
+      selectedGift = null;
+      lastGiftId = 0;
+      
+      updateDisplay();
+      clearFeedback();
+      startButton.disabled = true;
+      startButton.textContent = 'Spiel läuft...';
+      conveyorBelt.innerHTML = '';
+      
+      // Timer starten
+      gameInterval = setInterval(() => {
+        timeLeft--;
+        updateDisplay();
+        
+        if (timeLeft <= 0) {
+          endGame();
+        }
+      }, 1000);
+      
+      // Geschenke generieren
+      giftInterval = setInterval(() => {
+        if (!gameRunning) return;
+        createGift();
+      }, 2000); // Alle 2 Sekunden ein neues Geschenk
+    }
+
+    // Geschenk erstellen
+    function createGift() {
+      const color = GIFT_COLORS[Math.floor(Math.random() * GIFT_COLORS.length)];
+      const gift = document.createElement('div');
+      gift.className = `gift ${color}`;
+      gift.dataset.color = color;
+      gift.dataset.id = lastGiftId++;
+      gift.textContent = COLOR_EMOJIS[color];
+      
+      const startY = 20 + Math.random() * (conveyorBelt.clientHeight - 100);
+      gift.style.left = '0px';
+      gift.style.top = startY + 'px';
+      
+      conveyorBelt.appendChild(gift);
+      gifts.push({
+        element: gift,
+        x: 0,
+        y: startY,
+        color: color,
+        speed: 1 + Math.random() * 2 + (60 - timeLeft) * 0.03,
+        id: gift.dataset.id
+      });
+      
+      // Geschenk-Klick-Event
+      gift.addEventListener('click', selectGift);
+      
+      // Geschenk bewegen
+      moveGift(gift.dataset.id);
+    }
+
+    // Geschenk bewegen
+    function moveGift(giftId) {
+      if (!gameRunning) return;
+      
+      const giftData = gifts.find(g => g.id == giftId);
+      if (!giftData) return;
+      
+      const gift = giftData.element;
+      if (!gift.parentElement) return; // Geschenk wurde bereits entfernt
+      
+      giftData.x += giftData.speed;
+      gift.style.left = giftData.x + 'px';
+      
+      // Geschenk entfernen, wenn es das Band verlässt
+      if (giftData.x > conveyorBelt.clientWidth) {
+        if (giftData.element === selectedGift) {
+          selectedGift = null;
+        }
+        gift.remove();
+        const index = gifts.indexOf(giftData);
+        if (index > -1) {
+          gifts.splice(index, 1);
+        }
+        score -= 2;
+        updateDisplay();
+        return;
+      }
+      
+      // Weiter bewegen
+      requestAnimationFrame(() => moveGift(giftId));
+    }
+
+    // Geschenk auswählen
+    function selectGift(e) {
+      if (!gameRunning) return;
+      
+      const gift = e.currentTarget;
+      const giftData = gifts.find(g => g.element === gift);
+      if (!giftData) return;
+      
+      // Vorherige Auswahl entfernen
+      if (selectedGift) {
+        selectedGift.classList.remove('selected');
+      }
+      
+      // Neue Auswahl
+      selectedGift = gift;
+      gift.classList.add('selected');
+    }
+
+    // Sack-Klick-Event
+    sacks.forEach(sack => {
+      sack.addEventListener('click', () => {
+        if (!gameRunning || !selectedGift) return;
+        
+        const giftData = gifts.find(g => g.element === selectedGift);
+        if (!giftData) return;
+        
+        const sackColor = sack.dataset.color;
+        const giftColor = giftData.color;
+        
+        // Auswahl entfernen
+        selectedGift.classList.remove('selected');
+        
+        // Punkte vergeben
+        if (sackColor === giftColor) {
+          score += 10;
+          showFeedback('✅ Richtig! +10 Punkte', 'correct');
+        } else {
+          score -= 5;
+          showFeedback('❌ Falsch! -5 Punkte', 'wrong');
+        }
+        
+        // Geschenk entfernen
+        selectedGift.remove();
+        const index = gifts.indexOf(giftData);
+        if (index > -1) {
+          gifts.splice(index, 1);
+        }
+        
+        selectedGift = null;
+        updateDisplay();
+      });
+    });
+
+    // Feedback anzeigen
+    function showFeedback(message, type) {
+      feedbackElement.textContent = message;
+      feedbackElement.className = `feedback ${type}`;
+      setTimeout(clearFeedback, 1500);
+    }
+
+    function clearFeedback() {
+      feedbackElement.textContent = '';
+      feedbackElement.className = 'feedback';
+    }
+
+    // Spiel beenden
+    function endGame() {
+      gameRunning = false;
+      clearInterval(gameInterval);
+      clearInterval(giftInterval);
+      
+      // Alle Geschenke entfernen
+      conveyorBelt.innerHTML = '';
+      gifts = [];
+      selectedGift = null;
+      
+      startButton.disabled = false;
+      startButton.textContent = 'Nochmal spielen';
+      
+      // Highscore speichern
+      const playerName = prompt(`Spiel beendet! Deine Punkte: ${score}\n\nGib deinen Namen für die Bestenliste ein:`);
+      if (playerName && playerName.trim()) {
+        saveHighscore(playerName.trim(), score);
+      }
+      
+      showHighscores();
+    }
+
+    // Anzeige aktualisieren
+    function updateDisplay() {
+      timerElement.textContent = timeLeft;
+      scoreElement.textContent = score;
+    }
+
+    startButton.addEventListener('click', startGame);
+
+    // Highscore-Funktionen
+    function saveHighscore(name, score) {
+      const highscores = JSON.parse(localStorage.getItem('christmasHighscores') || '[]');
+      highscores.push({ 
+        name, 
+        score, 
+        date: new Date().toLocaleDateString('de-DE') 
+      });
+      
+      highscores.sort((a, b) => b.score - a.score);
+      if (highscores.length > 10) highscores.length = 10;
+      
+      localStorage.setItem('christmasHighscores', JSON.stringify(highscores));
+    }
+
+    function showHighscores() {
+      const highscores = JSON.parse(localStorage.getItem('christmasHighscores') || '[]');
+      const list = document.getElementById('highscoresList');
+      const container = document.getElementById('highscores');
+      
+      if (highscores.length === 0) {
+        container.style.display = 'none';
+        return;
+      }
+      
+      list.innerHTML = '';
+      highscores.forEach((entry, index) => {
+        const li = document.createElement('li');
+        li.textContent = `${entry.name}: ${entry.score} Punkte (${entry.date})`;
+        list.appendChild(li);
+      });
+      
+      container.classList.add('show');
+    }
+
+    // Initial Highscores anzeigen
+    showHighscores();
+
+    // Zurück-Navigation
+    function goBack() {
+      if (window.history.length > 1) {
+        window.history.back();
+      } else {
+        // Fallback: zur Startseite navigieren
+        window.location.href = '/';
+      }
+    }
+  </script>
+</body>
+</html>
+
