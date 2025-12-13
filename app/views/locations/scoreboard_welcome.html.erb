@@ -8,7 +8,7 @@
 </style>
 <!--<script src="hotkeys.js"></script>-->
 <script type="text/javascript">
-  document.addEventListener('turbo:load', function() {
+  document.addEventListener('turbo:load', function () {
     console.log('Window.hotkeys in view:', window.hotkeys); // Check availability
     if (!window.hotkeys) {
       console.error('Hotkeys not available!');
@@ -143,7 +143,7 @@
 </div>
 
 <script>
-  (function() {
+  (function () {
     function updateFullscreenIconBottom() {
       var icon = document.getElementById('fullscreen-toggle-bottom');
       if (!icon) return;
@@ -159,7 +159,7 @@
     document.addEventListener('DOMContentLoaded', updateFullscreenIconBottom);
     updateFullscreenIconBottom();
   })();
-  </script>
+</script>
 
 <!-- Language Switcher Bottom Right (+ fullscreen toggle left) -->
 <% if I18n.locale.to_s == "de" %>
@@ -188,5 +188,11 @@
   <span class="flex items-center flex-row h-1/4 space-x-20">
     <%= custom_link_to t('home.index.reservation'), location_path(@location, sb_state: "reservations"), data: { turbo: false }, class: "dark:text-white focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary text-3vw lg:mr-10 mr-4 lg:mt-4 mt-2", id: "reservations", tabindex: 1 %>
   </span>
-
+  <% if Time.now.month == 12 %>
+  <span class="flex items-center flex-row h-1/4 space-x-20">
+      <a href="/christmas_game.html" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
+        🎄 Weihnachtsspiel spielen
+      </a>
+  </span>
+  <% end %>
 </div>
