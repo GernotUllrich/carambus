@@ -771,7 +771,11 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
             @table_monitor.deep_merge_data!(attrs)
             @table_monitor.data_will_change!
             @table_monitor.assign_attributes(tournament_monitor: self)
-            @table_monitor.save
+            @table_monitor.save!  # Muss save! sein, nicht save
+            
+            Rails.logger.info "AFTER SAVE: @table_monitor.data['innings_goal'] = #{@table_monitor.data['innings_goal'].inspect}"
+            @table_monitor.reload
+            Rails.logger.info "AFTER RELOAD: @table_monitor.data['innings_goal'] = #{@table_monitor.data['innings_goal'].inspect}"
           end
           @table_monitor.andand.assign_game(new_game.reload)
         elsif tournament.continuous_placements?
