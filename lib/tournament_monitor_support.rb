@@ -651,7 +651,7 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
   end
 
   def do_placement(new_game, r_no, t_no, sets, balls, innings)
-    Tournament.logger.info ">>>>> do_placement CALLED: game=#{new_game.gname}, r_no=#{r_no}, t_no=#{t_no}, sets=#{sets.inspect}, balls=#{balls.inspect}, innings=#{innings.inspect}"
+    Rails.logger.info ">>>>> do_placement CALLED: game=#{new_game.gname}, r_no=#{r_no}, t_no=#{t_no}, sets=#{sets.inspect}, balls=#{balls.inspect}, innings=#{innings.inspect}"
     try do
       @placements ||= data["placements"].presence
       @placement_candidates ||= data["placement_candidates"].presence
@@ -663,11 +663,11 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
       info = "+++ 8a - tournament_monitor#do_placement new_game, r_no, t_no:\
  #{new_game.attributes.inspect}, #{r_no}, #{t_no}"
       Rails.logger.info info
-      Tournament.logger.info ">>>>> CHECK 1: @placements_done.include?(#{new_game.id})=#{@placements_done.include?(new_game.id)}, new_game.data.blank?=#{new_game.data.blank?}"
+      Rails.logger.info ">>>>> CHECK 1: @placements_done.include?(#{new_game.id})=#{@placements_done.include?(new_game.id)}, new_game.data.blank?=#{new_game.data.blank?}"
       if !@placements_done.include?(new_game.id) || new_game.data.blank? || new_game.data.keys == ["tmp_results"]
         info = "+++ 8b - tournament_monitor#do_placement"
         Rails.logger.info info
-        Tournament.logger.info ">>>>> CHECK 1 PASSED"
+        Rails.logger.info ">>>>> CHECK 1 PASSED"
         table_ids = tournament.data["table_ids"]
 
         # Wenn vorgesehener Tisch belegt ist: Suche freien Tisch
@@ -706,13 +706,13 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
           end
         end
 
-        Tournament.logger.info ">>>>> CHECK 2: t_no=#{t_no}, current_round=#{current_round}, r_no=#{r_no}, continuous=#{tournament.continuous_placements}"
+        Rails.logger.info ">>>>> CHECK 2: t_no=#{t_no}, current_round=#{current_round}, r_no=#{r_no}, continuous=#{tournament.continuous_placements}"
         if t_no.to_i.positive? &&
            ((current_round == r_no &&
              new_game.present? &&
              @placements.andand["round#{r_no}"].andand["table#{t_no}"].blank?) || tournament.continuous_placements)
 
-          Tournament.logger.info ">>>>> CHECK 2 PASSED - will do placement"
+          Rails.logger.info ">>>>> CHECK 2 PASSED - will do placement"
           seqno = new_game.seqno.to_i.positive? ? new_game.seqno : next_seqno
           new_game.update(round_no: r_no.to_i, table_no: t_no, seqno: seqno)
           @placements ||= {}
@@ -750,13 +750,13 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
             attrs = {}
             attrs["sets_to_play"] = sets unless sets.nil?
             # PRIORITÄT: Formular (tournament_monitor) > Tournament > executor_params
-            Tournament.logger.info "===== PLACEMENT DEBUG ====="
-            Tournament.logger.info "self.innings_goal: #{self.innings_goal.inspect}"
-            Tournament.logger.info "tournament.innings_goal: #{tournament.innings_goal.inspect}"
-            Tournament.logger.info "innings (executor_params): #{innings.inspect}"
-            Tournament.logger.info "self.balls_goal: #{self.balls_goal.inspect}"
-            Tournament.logger.info "tournament.balls_goal: #{tournament.balls_goal.inspect}"
-            Tournament.logger.info "balls (executor_params): #{balls.inspect}"
+            Rails.logger.info "===== PLACEMENT DEBUG ====="
+            Rails.logger.info "self.innings_goal: #{self.innings_goal.inspect}"
+            Rails.logger.info "tournament.innings_goal: #{tournament.innings_goal.inspect}"
+            Rails.logger.info "innings (executor_params): #{innings.inspect}"
+            Rails.logger.info "self.balls_goal: #{self.balls_goal.inspect}"
+            Rails.logger.info "tournament.balls_goal: #{tournament.balls_goal.inspect}"
+            Rails.logger.info "balls (executor_params): #{balls.inspect}"
             
             attrs["innings_goal"] = self.innings_goal || tournament.innings_goal || innings
             attrs["playera"] = {}
@@ -764,9 +764,9 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
             attrs["playerb"] = {}
             attrs["playerb"]["balls_goal"] = self.balls_goal || tournament.balls_goal || balls
             
-            Tournament.logger.info "attrs['innings_goal']: #{attrs['innings_goal'].inspect}"
-            Tournament.logger.info "attrs['playera']['balls_goal']: #{attrs['playera']['balls_goal'].inspect}"
-            Tournament.logger.info "=========================="
+            Rails.logger.info "attrs['innings_goal']: #{attrs['innings_goal'].inspect}"
+            Rails.logger.info "attrs['playera']['balls_goal']: #{attrs['playera']['balls_goal'].inspect}"
+            Rails.logger.info "=========================="
             
             @table_monitor.deep_merge_data!(attrs)
             @table_monitor.data_will_change!
