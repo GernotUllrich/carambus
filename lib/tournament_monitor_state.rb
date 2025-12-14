@@ -152,15 +152,16 @@ module TournamentMonitorState
       sets_to_play: tournament.andand.sets_to_play.presence || 1,
       sets_to_win: tournament.andand.sets_to_win.presence || 1,
       team_size: tournament.andand.team_size.presence || 1,
-      innings_goal: tournament.andand.innings_goal,
-      balls_goal: tournament.andand.balls_goal,
-      timeout: tournament.andand.timeout || 0,
-      timeouts: tournament.andand.timeouts || 0,
-      kickoff_switches_with: tournament.andand.kickoff_switches_with,
-      allow_follow_up: tournament.andand.allow_follow_up,
-      allow_overflow: tournament.andand.allow_overflow || false,
-      fixed_display_left: tournament.andand.fixed_display_left || "",
-      color_remains_with_set: tournament.andand.color_remains_with_set
+      # WICHTIG: Wenn bereits gesetzt (vom Controller), NICHT überschreiben!
+      innings_goal: self.innings_goal || tournament.andand.innings_goal,
+      balls_goal: self.balls_goal || tournament.andand.balls_goal,
+      timeout: self.timeout || tournament.andand.timeout || 0,
+      timeouts: self.timeouts || tournament.andand.timeouts || 0,
+      kickoff_switches_with: self.kickoff_switches_with || tournament.andand.kickoff_switches_with,
+      allow_follow_up: self.allow_follow_up.nil? ? tournament.andand.allow_follow_up : self.allow_follow_up,
+      allow_overflow: self.allow_overflow || tournament.andand.allow_overflow || false,
+      fixed_display_left: self.fixed_display_left.presence || tournament.andand.fixed_display_left || "",
+      color_remains_with_set: self.color_remains_with_set.nil? ? tournament.andand.color_remains_with_set : self.color_remains_with_set
     )
     tournament.games.where("games.id >= #{Game::MIN_ID}").destroy_all
     # table_monitors.destroy_all
