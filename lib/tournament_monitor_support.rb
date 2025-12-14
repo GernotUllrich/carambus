@@ -751,7 +751,11 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
             attrs["sets_to_play"] = sets unless sets.nil?
             # PRIORITÄT: Formular (tournament_monitor) > Tournament > executor_params
             Rails.logger.info "===== PLACEMENT DEBUG ====="
+            Rails.logger.info "self.class: #{self.class.name}"
+            Rails.logger.info "self.id: #{self.id.inspect}"
             Rails.logger.info "self.innings_goal: #{self.innings_goal.inspect}"
+            Rails.logger.info "self.attributes['innings_goal']: #{self.attributes['innings_goal'].inspect}"
+            Rails.logger.info "tournament.id: #{tournament.id.inspect}"
             Rails.logger.info "tournament.innings_goal: #{tournament.innings_goal.inspect}"
             Rails.logger.info "innings (executor_params): #{innings.inspect}"
             Rails.logger.info "self.balls_goal: #{self.balls_goal.inspect}"
