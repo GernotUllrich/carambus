@@ -876,6 +876,11 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
     existing_balls_goal_a = data.dig("playera", "balls_goal")
     existing_balls_goal_b = data.dig("playerb", "balls_goal")
     
+    Rails.logger.info "===== initialize_game DEBUG ====="
+    Rails.logger.info "BEFORE deep_merge: data['innings_goal'] = #{data['innings_goal'].inspect}"
+    Rails.logger.info "existing_innings_goal = #{existing_innings_goal.inspect}"
+    Rails.logger.info "tournament_monitor.innings_goal = #{tournament_monitor&.innings_goal.inspect}"
+    
     deep_merge_data!({
                        "free_game_form" => tournament_monitor.is_a?(PartyMonitor) ? game.data["free_game_form"] : nil,
                        "balls_on_table" => 15,
@@ -1009,6 +1014,10 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
                          "balls" => 0
                        }
                      })
+    
+    Rails.logger.info "AFTER deep_merge: data['innings_goal'] = #{data['innings_goal'].inspect}"
+    Rails.logger.info "===== initialize_game DEBUG END ====="
+    
     # self.panel_state = "pointer_mode"
     # self.current_element = "pointer_mode"
     # finish_warmup! #TODO  INTERMEDIATE SOLUTION UNTIL SHOOTOUT WORKS
