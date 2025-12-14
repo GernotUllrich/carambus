@@ -449,22 +449,6 @@ module TournamentMonitorState
 
       Tournament.logger.info "...[tmon-reset_tournament_monitor] tournament.state:\
  #{tournament.state} tournament_monitor.state: #{state}"
-      
-      # CRITICAL: Aktualisiere ALLE TableMonitors mit den aktuellen TournamentMonitor-Parametern
-      # Dies ist wichtig, weil beim erneuten Start existierende Spiele einfach wieder
-      # auf "warmup" gesetzt werden, OHNE dass do_placement/initialize_game aufgerufen wird!
-      Rails.logger.info "[tmon-reset_tournament_monitor] Updating #{table_monitors.count} TableMonitors with current parameters..."
-      table_monitors.each do |tm|
-        Rails.logger.info "[tmon-reset_tournament_monitor] Updating TableMonitor[#{tm.id}]: innings_goal=#{self.innings_goal}, balls_goal=#{self.balls_goal}"
-        tm.deep_merge_data!({
-          "innings_goal" => self.innings_goal,
-          "playera" => { "balls_goal" => self.balls_goal },
-          "playerb" => { "balls_goal" => self.balls_goal }
-        })
-        tm.save!
-        Rails.logger.info "[tmon-reset_tournament_monitor] TableMonitor[#{tm.id}] updated: innings_goal=#{tm.data['innings_goal']}"
-      end
-      Rails.logger.info "[tmon-reset_tournament_monitor] All TableMonitors updated successfully!"
     else
       error_msg = "[tmon-reset_tournament_monitor] ERROR MISSING TOURNAMENT_PLAN"
       Tournament.logger.info "...#{error_msg}"

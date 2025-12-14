@@ -342,6 +342,25 @@ class TournamentsController < ApplicationController
         Rails.logger.info "update_result: #{update_result.inspect}"
         Rails.logger.info "AFTER update: tournament_monitor.innings_goal = #{@tournament.tournament_monitor.reload.innings_goal.inspect}"
         Rails.logger.info "===== CONTROLLER START DEBUG END ====="
+        
+        # CRITICAL: Aktualisiere ALLE TableMonitors mit den aktuellen TournamentMonitor-Parametern
+        # Dies muss NACH dem tournament_monitor.update passieren, damit die Werte korrekt sind!
+        # Beim erneuten Start werden existierende Spiele einfach wieder auf "warmup" gesetzt,
+        # OHNE dass do_placement/initialize_game aufgerufen wird!
+        tm = @tournament.tournament_monitor
+        Rails.logger.info "===== UPDATING TableMonitors ====="
+        Rails.logger.info "TournamentMonitor[#{tm.id}]: innings_goal=#{tm.innings_goal}, balls_goal=#{tm.balls_goal}"
+        tm.table_monitors.each do |table_mon|
+          Rails.logger.info "Updating TableMonitor[#{table_mon.id}] with innings_goal=#{tm.innings_goal}, balls_goal=#{tm.balls_goal}"
+          table_mon.deep_merge_data!({
+            "innings_goal" => tm.innings_goal,
+            "playera" => { "balls_goal" => tm.balls_goal },
+            "playerb" => { "balls_goal" => tm.balls_goal }
+          })
+          table_mon.save!
+          Rails.logger.info "TableMonitor[#{table_mon.id}] updated: innings_goal=#{table_mon.data['innings_goal']}"
+        end
+        Rails.logger.info "===== TableMonitors UPDATED ====="
       end
       if @tournament.tournament_started_waiting_for_monitors?
         redirect_to tournament_monitor_path(@tournament.tournament_monitor)
