@@ -1,0 +1,254 @@
+<!--suppress RubyScope, RubyScope, RubyScope -->
+<!--<script defer src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.min.js"></script>-->
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+<style>
+    .responsive-svg {
+        width: 100%;
+        height: auto;
+    }
+</style>
+<!--<script defer src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.min.js"></script>-->
+<!--<script src="/alpine.min.js"></script>-->
+<script src="/onscreen-keyboard.js?v=<%= Time.current.to_i %>"></script>
+<script type="text/javascript">
+
+  function players_mode() {
+    set_players_modal();
+  }
+
+  function new_player_mode() {
+    set_new_player_modal();
+  }
+
+  function set_checked_player(ab, ix, val) {
+    document.getElementById("player" + ab + "_" + ix).checked = true
+    document.getElementById("player_" + ab + "_id").value = val
+  }
+
+  function set_players_modal() {
+    document.getElementById("modal-players").classList.toggle("hidden");
+    document.getElementById("modal-players" + "-bg").classList.toggle("hidden");
+    document.getElementById("modal-players").classList.toggle("flex");
+    document.getElementById("modal-players" + "-bg").classList.toggle("flex");
+  }
+
+  function set_new_player_modal() {
+    document.getElementById("modal-new-player").classList.toggle("hidden");
+    document.getElementById("modal-new-player" + "-bg").classList.toggle("hidden");
+    document.getElementById("modal-new-player").classList.toggle("flex");
+    document.getElementById("modal-new-player").classList.toggle("flex");
+  }
+</script>
+<div style="z-index:900" class="hidden opacity-70 fixed inset-0 bg-black" id="modal-players-bg"></div>
+<div style="z-index:910" class="hidden overflow-x-hidden overflow-y-auto fixed inset-0 outline-none focus:outline-none justify-center" id="modal-players">
+  <div id="players_modal_setup__2" class="border-2 border-gray-500 rounded-lg shadow-lg relative flex flex-col w-5/6 dark:text-gray-200 bg-white dark:bg-black  outline-none focus:outline-none">
+    <div class="flex flex-col">
+      <div class="flex justify-around pt-5 space-x-10">
+        <%= custom_link_to t('continue'), "javascript:set_players_modal()", data: { turbolinks: false }, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary text-2vw", id: "cancel", tabindex: "1" %>
+      </div>
+      <div class="flex justify-around w-full text-3vw">
+        <div class="">Spieler A</div>
+        <div class="">Spieler B</div>
+      </div>
+      <%- players = [] %>
+      <%- players += [["---Gäste---", ""]] +
+        Array(@guest_players_default.andand.map { |p| ["#{p.firstname} #{p.lastname}".gsub("Dr. ", "") + (p.firstname =~ /Dr\./ ? ", Dr." : ""), p.id] }) +
+        Array(@guest_players_other.andand.map { |p| ["#{p.firstname} #{p.lastname}".gsub("Dr. ", "") + (p.firstname =~ /Dr\./ ? ", Dr." : ""), p.id] })
+      %>
+      <%- players += [["---Club---", ""]] + Array(club_players.andand.map { |p| ["#{p.firstname} #{p.lastname}".gsub("Dr. ", "") + (p.firstname =~ /Dr\./ ? ", Dr." : ""), p.id] }) %>
+      <%- count = players.count %>
+      <div class="flex justify-between w-full text-2vw">
+        <div class="mr-2">
+          <%= content_tag :div, id: "player_a_w", tabindex: 1, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-2 rounded-lg p-3" do %>
+            <div class="flex flex-row w-full">
+              <div class="flex-col">
+                <%- (0..(count / 2 - 1)).each do |ix| %>
+                  <div class="flex mb-2">
+                    <div class="">
+                      <%- if players[ix][1].present? %>
+                        <%= radio_button_tag :player_a_id, players[ix][1], class: "mr-4 text-4vw", id: "playera_#{ix}", onclick: "set_checked_player('a', #{ix}, #{players[ix][1]})", ontouch: "set_checked_player('a', #{ix}, #{players[ix][1]})" %>
+                      <%- end %>
+                    </div>
+                    <div class="" onclick="set_checked_player('a', <%= ix %>, <%= players[ix][1] %>)">
+                      <%= players[ix][0] %></div>
+                  </div>
+                <%- end %>
+              </div>
+              <div class="flex-col">
+                <%- ((count / 2)..count - 1).each do |ix| %>
+                  <div class="flex mb-2">
+                    <div class="">
+                      <%- if players[ix][1].present? %>
+                        <%= radio_button_tag :player_a_id, players[ix][1], class: "mr-4 text-4vw", id: "playera_#{ix}", onclick: "set_checked_player('a', #{ix}, #{players[ix][1]})", ontouch: "set_checked_player('a', #{ix}, #{players[ix][1]})" %>
+                      <%- end %>
+                    </div>
+                    <div class="" onclick="set_checked_player('a', <%= ix %>, <%= players[ix][1] %>)">
+                      <%= players[ix][0] %></div>
+                  </div>
+                <%- end %>
+              </div>
+            </div>
+          <%- end %>
+        </div>
+        <div class="">
+          <%= content_tag :div, id: "player_b_w", tabindex: 1, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-2 rounded-lg p-3" do %>
+            <div class="flex flex-row w-full">
+              <div class="flex-col">
+                <%- (0..(count / 2 - 1)).each do |ix| %>
+                  <div class="flex mb-2">
+                    <div class="">
+                      <%- if players[ix][1].present? %>
+                        <%= radio_button_tag :player_b_id, players[ix][1], players[ix][1] == @player_b.andand.id, class: "mr-4 text-4vw", id: "playerb_#{ix}", onclick: "set_checked_player('b', #{ix}, #{players[ix][1]})", ontouch: "set_checked_player('b', #{ix}, #{players[ix][1]})" %>
+                      <%- end %>
+                    </div>
+                    <div class="" onclick="set_checked_player('b', <%= ix %>, <%= players[ix][1] %>)">
+                      <%= players[ix][0] %></div>
+                  </div>
+                <%- end %>
+              </div>
+              <div class="flex-col">
+                <%- ((count / 2)..count - 1).each do |ix| %>
+                  <div class="flex mb-2">
+                    <div class="">
+                      <%- if players[ix][1].present? %>
+                        <%= radio_button_tag :player_b_id, players[ix][1], players[ix][1] == @player_b.andand.id, class: "mr-4 text-4vw", id: "playerb_#{ix}", onclick: "set_checked_player('b', #{ix}, #{players[ix][1]})", ontouch: "set_checked_player('b', #{ix}, #{players[ix][1]})" %>
+                      <%- end %>
+                    </div>
+                    <div class="" onclick="set_checked_player('b', <%= ix %>, <%= players[ix][1] %>)">
+                      <%= players[ix][0] %></div>
+                  </div>
+                <%- end %>
+              </div>
+            </div>
+          <%- end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div style="z-index:900" class="hidden opacity-70 fixed inset-0 bg-black" id="modal-new-player-bg"></div>
+<div style="z-index:910" class="hidden overflow-x-hidden overflow-y-auto fixed inset-0 outline-none focus:outline-none justify-center items-center" id="modal-new-player">
+  <div id="new_player_modal_setup__2" class="border-2 border-gray-500 rounded-lg shadow-lg relative flex flex-col p-10 w-5/6 dark:text-gray-200 bg-white dark:bg-black  outline-none focus:outline-none">
+    <div class="flex flex-col">
+      <h2 class="flex mb-5">Anmeldung eines Gasts im Club <%= club.shortname %></h2>
+      <div class="flex justify-around w-full text-3vw">
+        <%= form_with(model: Player.new) do |form| %>
+          <%= hidden_field_tag :club_id, club.id %>
+          <%= hidden_field_tag :location_id, @location.id %>
+          <%= hidden_field_tag :season_id, Season.current_season.id %>
+          <%= hidden_field_tag :from, "new_guest" %>
+          <%= render "error_messages", resource: form.object %>
+          <div class="form-group">
+            <%= form.text_field :firstname, autocomplete: "off", class: "form-control text-2vw", placeholder: "Vorname" %>
+          </div>
+          <div class="form-group">
+            <%= form.text_field :lastname, autocomplete: "off", class: "form-control text-2vw", placeholder: "Nachname" %>
+          </div>
+          <div class="form-group">
+            <%= custom_link_to t('back'), "javascript:set_new_player_modal()", data: { turbolinks: false }, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary text-2vw", id: "cancel", tabindex: "1" %>
+
+            <%= form.submit t('save'), class: "btn btn-primary text-2vw" %>
+          </div>
+          </div>
+        <% end %>
+    </div>
+  </div>
+</div>
+<div class="w-1/12 grid grid-cols-2 gap-4 mr-4 fixed text-gray-300 hover:text-black text-2vw font-bold" style="right: 10px; top: -10px;">
+  <%= custom_link_to scoreboard_location_path(@location.md5, sb_state: "tournament_scores", :"data-turbo" => false) do %>
+    <%= render_svg "icons/information-outline", styles: "responsive-svg fill-current icon-lg m-4 text-white inline-block", title: "home" %>
+  <% end %>
+  <%= custom_link_to scoreboard_location_path(@location.md5, sb_state: "welcome", :"data-turbolinks" => false) do %>
+    <%= render_svg "icons/home", styles: "responsive-svg fill-current icon-lg m-4 text-white inline-block", title: "home" %>
+  <% end %>
+</div>
+<div data-controller="table-monitor" class="p-4 w-full m-auto flex
+ items-center flex-col bg-cover h-screen bg-center bg-no-repeat"
+     style="background-image: url('<%= @location.background_image
+     .gsub(".", "-.") %>')">
+  <h1 style="text-shadow: 2px 2px #000000" class="text-4vw flex
+  text-gray-300 "><%= "#{table.andand.table_kind.andand.name} -
+                        #{table.andand.name}" %></h1>
+  <%- if @location.present? %>
+    <!--    <h1 style="text-shadow: 2px 2px #000000" class="text-2vw flex text-gray-300"><%#= @location.name %></h1>-->
+    <%= form_tag start_game_table_monitor_path(table_monitor), data: {turbo: false}, method: :post, class: "flex flex-col text-gray-300" do %>
+      <input name='free_game_form' value='snooker' type='hidden'/>
+      <input name='discipline_a' value='Snooker' type='hidden'/>
+      <input name='discipline_b' value='Snooker' type='hidden'/>
+      <div class="flex justify-center mt-4 text-center">
+        <div id="submit" tabindex=1 class="focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 min-w-min focus:border-0 rounded-lg">
+          <%= submit_tag "Start Game", class: "h-full border-4 rounded-lg btn btn-primary text-center text-2vw p-2" %>
+        </div>
+      </div>
+      <div x-data="{last_direction: 0, gametime: 30, warntime: 5, frames_to_win: 2, first_break: 0}" class="mt-8 text-2vw grid grid-cols-6 gap-6 items-center">
+        <input type="hidden" name="gametime" x-model.number="gametime" >
+        <input type="hidden" name="warntime" x-model.number="warntime" >
+        <div>Spieler</div>
+        <div class="col-span-4 flex flex-row">
+          <div class="grid grid-cols-3 gap-4">
+            <div class="flex">
+              <%= custom_link_to "Spieler-Auswahl", "javascript:players_mode()", data: { turbolinks: false }, class: "flex w-full h-full border-4 focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-primary text-white hover:text-white text-2vw", id: "cancel", tabindex: "1" %>
+            </div>
+            <%= content_tag :div, id: "player_a_w", tabindex: 1, class: "flex focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 rounded-lg" do %>
+              <%= select_tag :player_a_id, options_for_select(Array(players),default_guest_a.player.id), class: "py-3 px-4 text-2vw w-full" %>
+            <%- end %>
+            <%= content_tag :div, id: "player_b_w", tabindex: 1, class: "flex focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 rounded-lg" do %>
+              <%= select_tag :player_b_id, options_for_select(Array(players), default_guest_b.player.id), class: "py-3 px-4 text-2vw w-full" %>
+            <%- end %>
+          </div>
+        </div>
+        <div class="col-span-1">
+
+          <div class="flex">
+            <%= custom_link_to "Neuer Spieler", "javascript:new_player_mode()", data: { turbolinks: false }, class: "flex w-full h-full border-4 focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-primary text-2vw", id: "cancel", tabindex: "1" %>
+          </div>
+        </div>
+        <form>
+          <%= render partial: "radio_select", locals: {
+            table: table,
+            show: "true",
+            header: "Frames",
+            varname: "frames_to_win",
+            values: [2, 3, 4, 5],
+            maxval: 5,
+            displays: ["Best of 3", "Best of 5", "Best of 7", "Best of 9"],
+            cols: 4,
+            increment: 1 }
+          %>
+          <input type="hidden" name="sets_to_win" x-model.number="frames_to_win" >
+          <input type="hidden" name="sets_to_play" x-model.number="frames_to_win * 2 - 1" >
+          <div class="col-span-4 flex flex-row">
+            <div class="w-full grid grid-cols-4">
+              <div class="flex justify-end items-center">Spielzeit:</div>
+              <div class="ml-4 grid grid-cols-3 gap-2">
+                <div class="flex text-4vw justify-center font-bold" @click="if (parseInt(gametime) <= 200) {increment = 25}; if (parseInt(gametime) <= 100) {increment = 5}; if (parseInt(gametime) <= 10) {increment = 1}; if (parseInt(gametime) > 0 ) {gametime = parseInt(gametime) - increment};">-</div>
+                <div name="gametime" type='number' x-text="gametime" class="flex text-2vw items-center justify-center font-medium  shadow-sm text-gray-900 border rounded-md"></div>
+                <div class="flex text-4vw justify-center font-bold" @click="if (parseInt(gametime) >= 10) {increment = 5}; if (parseInt(gametime) >= 100) {increment = 25}; if (parseInt(gametime) >= 200) { increment = 100 }; if (parseInt(gametime) < 99) {gametime = parseInt(gametime) + increment};">+</div>
+              </div>
+              <div class="flex justify-end items-center">Warnzeit:</div>
+              <div class="ml-4 grid grid-cols-3 gap-2">
+                <div class="flex text-4vw justify-center font-bold" @click="if (parseInt(warntime) <= 200) {increment = 25}; if (parseInt(warntime) <= 100) {increment = 5}; if (parseInt(warntime) <= 10) {increment = 1}; if (parseInt(warntime) > 0 ) {warntime = parseInt(warntime) - increment};">-</div>
+                <div name="warntime" type='number' x-text="warntime" class="flex text-2vw items-center justify-center font-medium  shadow-sm text-gray-900 border rounded-md "></div>
+                <div class="flex text-4vw justify-center font-bold" @click="if (parseInt(warntime) >= 10) {increment = 5}; if (parseInt(warntime) >= 100) {increment = 25}; if (parseInt(warntime) >= 200) { increment = 100 }; if (parseInt(warntime) < 99) {warntime = parseInt(warntime) + increment};">+</div>
+              </div>
+            </div>
+          </div>
+          <%= render partial: "radio_select", locals: {
+            table: table,
+            show: "true",
+            header: "Erster Anstoß",
+            varname: "first_break",
+            values: %w{0 1 2},
+            maxval: 2,
+            displays: ["ausstoßen", "Heim/Spieler A", "Gast/Spieler B"],
+            cols: 3,
+            increment: 1,
+            no_counter: true }
+          %>
+        </form>
+      </div>
+    <%- end %>
+  <%- end %>
+</div>
+
