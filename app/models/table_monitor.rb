@@ -870,6 +870,12 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
     Rails.logger.info info if DEBUG
     current_kickoff_player = "playera"
     self.copy_from = nil
+    
+    # Werte die aus do_placement kommen sollen NICHT überschrieben werden
+    existing_innings_goal = data["innings_goal"]
+    existing_balls_goal_a = data.dig("playera", "balls_goal")
+    existing_balls_goal_b = data.dig("playerb", "balls_goal")
+    
     deep_merge_data!({
                        "free_game_form" => tournament_monitor.is_a?(PartyMonitor) ? game.data["free_game_form"] : nil,
                        "balls_on_table" => 15,
@@ -925,7 +931,7 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
                                           game.data["innings_goal"]
                                         else
                                           # PRIORITÄT: Bereits in data gesetzt (aus do_placement) > tournament_monitor > tournament
-                                          data["innings_goal"] ||
+                                          existing_innings_goal ||
                                             tournament_monitor&.innings_goal ||
                                             tournament_monitor&.tournament&.innings_goal ||
                                             tournament_monitor&.tournament&.data.andand[:innings_goal]
@@ -948,7 +954,7 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
                                          game.data["balls_goal_a"]
                                        else
                                          # PRIORITÄT: Bereits in data gesetzt (aus do_placement) > handicap > tournament_monitor > tournament
-                                         data["playera"].andand["balls_goal"] ||
+                                         existing_balls_goal_a ||
                                            (tournament_monitor&.tournament&.handicap_tournier? &&
                                              seeding_from("playera").balls_goal.presence) ||
                                            tournament_monitor&.balls_goal ||
@@ -982,7 +988,7 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
                                          game.data["balls_goal_a"]
                                        else
                                          # PRIORITÄT: Bereits in data gesetzt (aus do_placement) > handicap > tournament_monitor > tournament
-                                         data["playerb"].andand["balls_goal"] ||
+                                         existing_balls_goal_b ||
                                            (tournament_monitor&.tournament&.handicap_tournier? &&
                                              seeding_from("playerb").balls_goal.presence) ||
                                            tournament_monitor&.balls_goal ||
