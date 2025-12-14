@@ -317,11 +317,20 @@ class TournamentsController < ApplicationController
         @tournament.start_tournament!
         @tournament.save
         @tournament.reload
-        @tournament.tournament_monitor.update(current_admin: current_user,
+        innings_goal_value = (params[:innings_goal].presence || @tournament.innings_goal).to_i
+        balls_goal_value = (params[:balls_goal].presence || @tournament.balls_goal).to_i
+        
+        Rails.logger.info "===== CONTROLLER START DEBUG ====="
+        Rails.logger.info "params[:innings_goal]: #{params[:innings_goal].inspect}"
+        Rails.logger.info "innings_goal_value: #{innings_goal_value.inspect}"
+        Rails.logger.info "balls_goal_value: #{balls_goal_value.inspect}"
+        Rails.logger.info "BEFORE update: tournament_monitor.innings_goal = #{@tournament.tournament_monitor.innings_goal.inspect}"
+        
+        update_result = @tournament.tournament_monitor.update(current_admin: current_user,
                                               timeout: (params[:timeout].presence || 0).to_i,
                                               timeouts: (params[:timeouts].presence || @tournament.timeouts).to_i,
-                                              innings_goal: (params[:innings_goal].presence || @tournament.innings_goal).to_i,
-                                              balls_goal: (params[:balls_goal].presence || @tournament.balls_goal).to_i,
+                                              innings_goal: innings_goal_value,
+                                              balls_goal: balls_goal_value,
                                               sets_to_play: (params[:sets_to_play].presence || @tournament.sets_to_play).to_i,
                                               sets_to_win: (params[:sets_to_win].presence || @tournament.sets_to_win).to_i,
                                               kickoff_switches_with: params[:kickoff_switches_with].presence || @tournament.kickoff_switches_with,
@@ -329,6 +338,10 @@ class TournamentsController < ApplicationController
                                               allow_overflow: (params[:allow_overflow] == "1") || @tournament.allow_overflow?,
                                               allow_follow_up: (params[:allow_follow_up] == "1") || @tournament.allow_follow_up?,
                                               fixed_display_left: params[:fixed_display_left].to_s.presence || @tournament.fixed_display_left)
+        
+        Rails.logger.info "update_result: #{update_result.inspect}"
+        Rails.logger.info "AFTER update: tournament_monitor.innings_goal = #{@tournament.tournament_monitor.reload.innings_goal.inspect}"
+        Rails.logger.info "===== CONTROLLER START DEBUG END ====="
       end
       if @tournament.tournament_started_waiting_for_monitors?
         redirect_to tournament_monitor_path(@tournament.tournament_monitor)
