@@ -921,14 +921,15 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
                                         (tournament_monitor&.team_size ||
                                           tournament_monitor&.tournament&.team_size).presence || 1
                                       end,
-                       "innings_goal" => if tournament_monitor.is_a?(PartyMonitor)
-                                           game.data["innings_goal"]
-                                         else
-                                             tournament_monitor&.innings_goal ||
-                                             tournament_monitor&.tournament&.innings_goal ||
-                                             tournament_monitor&.tournament&.data.andand[:innings_goal] ||
-                                           data["innings_goal"]
-                                         end,
+                      "innings_goal" => if tournament_monitor.is_a?(PartyMonitor)
+                                          game.data["innings_goal"]
+                                        else
+                                          # PRIORITÄT: Bereits in data gesetzt (aus do_placement) > tournament_monitor > tournament
+                                          data["innings_goal"] ||
+                                            tournament_monitor&.innings_goal ||
+                                            tournament_monitor&.tournament&.innings_goal ||
+                                            tournament_monitor&.tournament&.data.andand[:innings_goal]
+                                        end,
                        "playera" => {
                          "result" => 0,
                          "innings" => 0,
@@ -943,16 +944,17 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
                                            nil
                                          end,
                          "gd" => 0.0,
-                         "balls_goal" => if tournament_monitor.is_a?(PartyMonitor)
-                                          game.data["balls_goal_a"]
-                                        else
-                                            tournament_monitor&.tournament&.handicap_tournier? &&
-                                              seeding_from("playera").balls_goal.presence ||
-                                            tournament_monitor&.balls_goal ||
-                                            tournament_monitor&.tournament&.balls_goal ||
-                                            tournament_monitor&.tournament&.data.andand[:balls_goal] ||
-                                          data["playera"].andand["balls_goal"]
-                                        end,
+                        "balls_goal" => if tournament_monitor.is_a?(PartyMonitor)
+                                         game.data["balls_goal_a"]
+                                       else
+                                         # PRIORITÄT: Bereits in data gesetzt (aus do_placement) > handicap > tournament_monitor > tournament
+                                         data["playera"].andand["balls_goal"] ||
+                                           (tournament_monitor&.tournament&.handicap_tournier? &&
+                                             seeding_from("playera").balls_goal.presence) ||
+                                           tournament_monitor&.balls_goal ||
+                                           tournament_monitor&.tournament&.balls_goal ||
+                                           tournament_monitor&.tournament&.data.andand[:balls_goal]
+                                       end,
                          "tc" => if tournament_monitor.is_a?(PartyMonitor)
                                    game.data["timeouts"]
                                  else
@@ -976,16 +978,17 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
                                            nil
                                          end,
                          "gd" => 0.0,
-                         "balls_goal" => if tournament_monitor.is_a?(PartyMonitor)
-                                          game.data["balls_goal_a"]
-                                        else
-                                            tournament_monitor&.tournament&.handicap_tournier? &&
-                                              seeding_from("playerb").balls_goal.presence ||
-                                            tournament_monitor&.balls_goal ||
-                                            tournament_monitor&.tournament&.balls_goal ||
-                                            tournament_monitor&.tournament&.data.andand[:balls_goal] ||
-                                          data["playerb"].andand["balls_goal"]
-                                        end,
+                        "balls_goal" => if tournament_monitor.is_a?(PartyMonitor)
+                                         game.data["balls_goal_a"]
+                                       else
+                                         # PRIORITÄT: Bereits in data gesetzt (aus do_placement) > handicap > tournament_monitor > tournament
+                                         data["playerb"].andand["balls_goal"] ||
+                                           (tournament_monitor&.tournament&.handicap_tournier? &&
+                                             seeding_from("playerb").balls_goal.presence) ||
+                                           tournament_monitor&.balls_goal ||
+                                           tournament_monitor&.tournament&.balls_goal ||
+                                           tournament_monitor&.tournament&.data.andand[:balls_goal]
+                                       end,
                          "tc" => if tournament_monitor.is_a?(PartyMonitor)
                                    game.data["timeouts"]
                                  else
