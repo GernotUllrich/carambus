@@ -515,6 +515,9 @@ class TableMonitorReflex < ApplicationReflex
     active_player = @table_monitor.data["current_inning"]["active_player"]
     opponent_player = active_player == "playera" ? "playerb" : "playera"
     
+    # Mark data as changed
+    @table_monitor.data_will_change!
+    
     # Store foul information for protocol
     @table_monitor.data["last_foul"] = {
       "points" => foul_points,
@@ -538,7 +541,7 @@ class TableMonitorReflex < ApplicationReflex
       @table_monitor.data[active_player]["innings_redo_list"] = active_break_list
     end
     
-    # Close modal
+    # Close modal - set panel_state BEFORE deleting foul data
     @table_monitor.panel_state = "pointer_mode"
     @table_monitor.current_element = "pointer_mode"
     @table_monitor.data.delete("foul")
