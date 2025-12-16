@@ -698,6 +698,13 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
     false
   end
 
+  def foul_modal_should_be_open?
+    panel_state == "foul"
+  rescue StandardError => e
+    Rails.logger.info "ERROR: foul_modal_should_be_open?[#{id}]#{e}, #{e.backtrace&.join("\n")}" if DEBUG
+    false
+  end
+
   def final_protocol_modal_should_be_open?
     panel_state == "protocol_final"
   rescue StandardError => e

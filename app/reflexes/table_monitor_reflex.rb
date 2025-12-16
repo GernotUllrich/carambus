@@ -431,6 +431,121 @@ class TableMonitorReflex < ApplicationReflex
     @table_monitor.numbers
   end
 
+  def foul
+    Rails.logger.info "+++++++++++++++++>>> foul <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
+    morph :nothing
+    @table_monitor = TableMonitor.find(element.andand.dataset[:id])
+    @table_monitor.reset_timer!
+    @table_monitor.panel_state = "foul"
+    @table_monitor.data["foul"] ||= { "ball" => 4, "free_ball" => false, "miss" => false, "reds_to_remove" => 0 }
+    @table_monitor.save
+  end
+
+  def foul_select_ball
+    Rails.logger.info "+++++++++++++++++>>> foul_select_ball <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
+    morph :nothing
+    @table_monitor = TableMonitor.find(element.andand.dataset[:id])
+    ball_value = element.andand.dataset[:ball].to_i
+    @table_monitor.data["foul"] ||= {}
+    @table_monitor.data["foul"]["ball"] = ball_value
+    @table_monitor.save
+  end
+
+  def foul_toggle_free_ball
+    Rails.logger.info "+++++++++++++++++>>> foul_toggle_free_ball <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
+    morph :nothing
+    @table_monitor = TableMonitor.find(element.andand.dataset[:id])
+    @table_monitor.data["foul"] ||= {}
+    @table_monitor.data["foul"]["free_ball"] = !@table_monitor.data["foul"]["free_ball"]
+    @table_monitor.save
+  end
+
+  def foul_toggle_miss
+    Rails.logger.info "+++++++++++++++++>>> foul_toggle_miss <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
+    morph :nothing
+    @table_monitor = TableMonitor.find(element.andand.dataset[:id])
+    @table_monitor.data["foul"] ||= {}
+    @table_monitor.data["foul"]["miss"] = !@table_monitor.data["foul"]["miss"]
+    @table_monitor.save
+  end
+
+  def foul_increase_reds
+    Rails.logger.info "+++++++++++++++++>>> foul_increase_reds <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
+    morph :nothing
+    @table_monitor = TableMonitor.find(element.andand.dataset[:id])
+    @table_monitor.data["foul"] ||= {}
+    current_reds = @table_monitor.data["foul"]["reds_to_remove"].to_i
+    @table_monitor.data["foul"]["reds_to_remove"] = [current_reds + 1, 15].min
+    @table_monitor.save
+  end
+
+  def foul_decrease_reds
+    Rails.logger.info "+++++++++++++++++>>> foul_decrease_reds <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
+    morph :nothing
+    @table_monitor = TableMonitor.find(element.andand.dataset[:id])
+    @table_monitor.data["foul"] ||= {}
+    current_reds = @table_monitor.data["foul"]["reds_to_remove"].to_i
+    @table_monitor.data["foul"]["reds_to_remove"] = [current_reds - 1, 0].max
+    @table_monitor.save
+  end
+
+  def foul_cancel
+    Rails.logger.info "+++++++++++++++++>>> foul_cancel <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
+    morph :nothing
+    @table_monitor = TableMonitor.find(element.andand.dataset[:id])
+    @table_monitor.panel_state = "pointer_mode"
+    @table_monitor.data.delete("foul")
+    @table_monitor.save
+  end
+
+  def foul_submit
+    Rails.logger.info "+++++++++++++++++>>> foul_submit <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
+    morph :nothing
+    @table_monitor = TableMonitor.find(element.andand.dataset[:id])
+    
+    foul_data = @table_monitor.data["foul"] || {}
+    foul_points = foul_data["ball"].to_i
+    free_ball = foul_data["free_ball"] || false
+    miss = foul_data["miss"] || false
+    reds_to_remove = foul_data["reds_to_remove"].to_i
+    
+    # Get active and opponent players
+    active_player = @table_monitor.data["current_inning"]["active_player"]
+    opponent_player = active_player == "playera" ? "playerb" : "playera"
+    
+    # Add foul points to opponent
+    opponent_data = @table_monitor.data[opponent_player] || {}
+    opponent_break_list = opponent_data["innings_redo_list"] || []
+    current_opponent_break = opponent_break_list.last.to_i
+    opponent_break_list[-1] = current_opponent_break + foul_points
+    @table_monitor.data[opponent_player]["innings_redo_list"] = opponent_break_list
+    
+    # Store foul information for protocol
+    @table_monitor.data["last_foul"] = {
+      "points" => foul_points,
+      "free_ball" => free_ball,
+      "miss" => miss,
+      "reds_removed" => reds_to_remove,
+      "player" => active_player
+    }
+    
+    # Switch players (foul means turn ends)
+    @table_monitor.data["current_inning"]["active_player"] = opponent_player
+    
+    # Reset break for the player who fouled
+    active_data = @table_monitor.data[active_player] || {}
+    active_break_list = active_data["innings_redo_list"] || []
+    active_break_list[-1] = 0
+    @table_monitor.data[active_player]["innings_redo_list"] = active_break_list
+    
+    # Close modal
+    @table_monitor.panel_state = "pointer_mode"
+    @table_monitor.data.delete("foul")
+    
+    @table_monitor.reset_timer!
+    @table_monitor.save
+  end
+
   def up
     Rails.logger.info "+++++++++++++++++>>> up <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     morph :nothing

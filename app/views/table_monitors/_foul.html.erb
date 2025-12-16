@@ -1,0 +1,117 @@
+<%- table_monitor = local_assigns[:table_monitor] %>
+<%- foul_data = table_monitor.data["foul"] || {} %>
+<%- selected_ball = foul_data["ball"] || 4 %>
+<%- free_ball = foul_data["free_ball"] || false %>
+<%- miss = foul_data["miss"] || false %>
+<%- reds_to_remove = foul_data["reds_to_remove"] || 0 %>
+<%= content_tag "div" do %>
+  <div id="table_monitor_modal_foul_<%= table_monitor.id %>" class="modal-content-30">
+    <div class="flex flex-col h-screen space-y-4 rounded-lg border-2 border border-gray-300 dark:bg-black dark:text-white">
+      <!-- Title -->
+      <div class="flex flex-row items-center justify-center h-1/8 pt-4">
+        <h1 class="text-6vw font-bold">Foul</h1>
+      </div>
+
+      <!-- Ball Selection -->
+      <div class="flex flex-col items-center justify-center h-1/4 space-y-2">
+        <div class="text-3vw font-semibold mb-2">Foul-Punkte</div>
+        <div class="flex flex-row flex-wrap items-center justify-center gap-2 px-4">
+          <!-- Minimum Foul (4 points) - White ball with number -->
+          <%= content_tag "div",
+                          data: { reflex: "click->TableMonitorReflex#foul_select_ball", id: table_monitor.id, ball: 4 },
+                          class: "flex items-center justify-center w-20 h-20 rounded-full border-4 #{selected_ball == 4 ? 'border-yellow-400 bg-gray-200 shadow-lg' : 'border-gray-400 bg-white'} text-4vw font-bold",
+                          id: "foul_ball_4",
+                          tabindex: 5 do %>
+            <span class="text-gray-800">4</span>
+          <%- end %>
+          
+          <!-- Color balls: Blue (5), Pink (6), Black (7) -->
+          <%- { 5 => '#3B82F6', 6 => '#EC4899', 7 => '#000000' }.each do |value, color| %>
+            <%= content_tag "div",
+                            data: { reflex: "click->TableMonitorReflex#foul_select_ball", id: table_monitor.id, ball: value },
+                            class: "flex items-center justify-center w-20 h-20 rounded-full border-4 #{selected_ball == value ? 'border-yellow-400 shadow-lg' : 'border-gray-400'} text-4vw font-bold text-white",
+                            style: "background-color: #{color}",
+                            id: "foul_ball_#{value}",
+                            tabindex: 5 do %>
+              <span><%= value %></span>
+            <%- end %>
+          <%- end %>
+        </div>
+      </div>
+
+      <!-- Additional Options -->
+      <div class="flex flex-col items-center justify-center h-1/4 space-y-4 px-4">
+        <!-- Miss Checkbox -->
+        <div class="flex flex-row items-center justify-center space-x-4 w-full">
+          <label class="text-3vw font-semibold">Miss</label>
+          <%= content_tag "div",
+                          data: { reflex: "click->TableMonitorReflex#foul_toggle_miss", id: table_monitor.id },
+                          class: "flex items-center justify-center w-12 h-12 border-2 #{miss ? 'bg-green-500 border-green-600' : 'bg-gray-200 border-gray-400'} rounded",
+                          id: "foul_miss",
+                          tabindex: 5 do %>
+            <%- if miss %>
+              <span class="text-white text-3vw">✓</span>
+            <%- end %>
+          <%- end %>
+        </div>
+
+        <!-- Free Ball Checkbox -->
+        <div class="flex flex-row items-center justify-center space-x-4 w-full">
+          <label class="text-3vw font-semibold">Free ball</label>
+          <%= content_tag "div",
+                          data: { reflex: "click->TableMonitorReflex#foul_toggle_free_ball", id: table_monitor.id },
+                          class: "flex items-center justify-center w-12 h-12 border-2 #{free_ball ? 'bg-green-500 border-green-600' : 'bg-gray-200 border-gray-400'} rounded",
+                          id: "foul_free_ball",
+                          tabindex: 5 do %>
+            <%- if free_ball %>
+              <span class="text-white text-3vw">✓</span>
+            <%- end %>
+          <%- end %>
+        </div>
+
+        <!-- Remove Reds Stepper -->
+        <div class="flex flex-row items-center justify-center space-x-4 w-full">
+          <label class="text-3vw font-semibold">Remove reds</label>
+          <div class="flex flex-row items-center space-x-2">
+            <%= content_tag "div",
+                            data: { reflex: "click->TableMonitorReflex#foul_decrease_reds", id: table_monitor.id },
+                            class: "flex items-center justify-center w-12 h-12 bg-gray-300 dark:bg-gray-700 rounded text-4vw font-bold",
+                            id: "foul_reds_minus",
+                            tabindex: 5 do %>
+              <span>-</span>
+            <%- end %>
+            <div class="flex items-center justify-center w-16 h-12 bg-gray-100 dark:bg-gray-800 border-2 border-gray-400 rounded text-4vw font-bold">
+              <span id="foul_reds_count"><%= reds_to_remove %></span>
+            </div>
+            <%= content_tag "div",
+                            data: { reflex: "click->TableMonitorReflex#foul_increase_reds", id: table_monitor.id },
+                            class: "flex items-center justify-center w-12 h-12 bg-gray-300 dark:bg-gray-700 rounded text-4vw font-bold",
+                            id: "foul_reds_plus",
+                            tabindex: 5 do %>
+              <span>+</span>
+            <%- end %>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex flex-row items-center justify-center space-x-8 h-1/6 pb-4">
+        <%= content_tag "div",
+                        data: { reflex: "click->TableMonitorReflex#foul_cancel", id: table_monitor.id },
+                        class: "flex items-center justify-center px-8 py-4 bg-gray-300 dark:bg-gray-700 rounded-lg text-3vw font-semibold hover:bg-gray-400",
+                        id: "foul_cancel",
+                        tabindex: 5 do %>
+          Cancel
+        <%- end %>
+        <%= content_tag "div",
+                        data: { reflex: "click->TableMonitorReflex#foul_submit", id: table_monitor.id },
+                        class: "flex items-center justify-center px-8 py-4 bg-green-500 rounded-lg text-3vw font-semibold hover:bg-green-600 text-white",
+                        id: "foul_submit",
+                        tabindex: 5 do %>
+          Submit
+        <%- end %>
+      </div>
+    </div>
+  </div>
+<%- end %>
+

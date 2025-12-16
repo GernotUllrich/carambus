@@ -71,6 +71,11 @@ export default class extends ApplicationController {
     this.stimulate('TableMonitor#numbers')
   }
 
+  foul () {
+    console.log('TableMonitor foul called')
+    this.stimulate('TableMonitor#foul')
+  }
+
   force_next_state () {
     console.log('TableMonitor force_next_state called')
     this.stimulate('TableMonitor#force_next_state')
