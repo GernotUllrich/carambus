@@ -311,6 +311,10 @@ class TableMonitor < ApplicationRecord
     state :final_set_score, after_enter: [:set_game_over]
     state :final_match_score, after_enter: [:set_game_over]
     state :ready_for_new_match # previous game result still displayed here - and probably next players
+    
+    # Global state transition logging to detect spurious transitions
+    after_all_transitions :log_state_transition
+    
     event :start_new_match, after: :set_start_time do
       transitions from: :ready,
                   to: :warmup
@@ -2121,6 +2125,18 @@ data[\"allow_overflow\"].present?")
 
   def evaluate_result
     debug = true # true
+    
+    # GUARD: Prevent evaluation on brand-new games (within 5 seconds of placement)
+    if started_at.present? && started_at > 5.seconds.ago
+      total_innings = data["playera"]["innings"].to_i + data["playerb"]["innings"].to_i
+      total_points = data["playera"]["result"].to_i + data["playerb"]["result"].to_i
+      
+      if total_innings == 0 && total_points == 0
+        Rails.logger.warn "[evaluate_result GUARD] Game[#{game_id}] on TM[#{id}] is brand new (started #{(Time.current - started_at).round(1)}s ago) with 0 innings/points - SKIPPING evaluation to prevent spurious finish"
+        return
+      end
+    end
+    
     if (playing? || set_over? || final_set_score? || final_match_score?) && end_of_set?
       # Remember if we were playing before any state transition
       was_playing = playing?
@@ -2385,12 +2401,24 @@ data[\"allow_overflow\"].present?")
   end
 
   def end_of_set?
+    # GUARD: Game must have actually been played before it can end
+    # Prevent spurious finalization of games that haven't started
+    total_innings = data["playera"]["innings"].to_i + data["playerb"]["innings"].to_i
+    total_points = data["playera"]["result"].to_i + data["playerb"]["result"].to_i
+    
+    if total_innings == 0 && total_points == 0
+      Rails.logger.warn "[TableMonitor#end_of_set?] GUARD: Game[#{game_id}] on TM[#{id}] has 0 innings and 0 points - NOT ending set (state: #{state})"
+      return false
+    end
+
     if data["playera"]["balls_goal"].to_i.positive? && ((data["playera"]["result"].to_i >= data["playera"]["balls_goal"].to_i ||
       data["playerb"]["result"].to_i >= data["playerb"]["balls_goal"].to_i) &&
       (data["playera"]["innings"] == data["playerb"]["innings"] || !data["allow_follow_up"]))
+      Rails.logger.info "[TableMonitor#end_of_set?] Game[#{game_id}] on TM[#{id}] ended: balls_goal reached (A:#{data["playera"]["result"]}/#{data["playera"]["balls_goal"]}, B:#{data["playerb"]["result"]}/#{data["playerb"]["balls_goal"]})"
       return true
     elsif data["innings_goal"].to_i.positive? && data["playera"]["innings"].to_i >= data["innings_goal"].to_i &&
       (data["playera"]["innings"] == data["playerb"]["innings"] || !data["allow_follow_up"])
+      Rails.logger.info "[TableMonitor#end_of_set?] Game[#{game_id}] on TM[#{id}] ended: innings_goal reached (A:#{data["playera"]["innings"]}, B:#{data["playerb"]["innings"]}, goal:#{data["innings_goal"]})"
       return true
     end
 
@@ -3117,6 +3145,25 @@ data[\"allow_overflow\"].present?")
       totals << sum
     end
     totals
+  end
+
+  # Log all state transitions to detect spurious state changes
+  def log_state_transition
+    from_state = aasm.from_state
+    to_state = aasm.to_state
+    event_name = aasm.current_event
+    
+    total_innings = data["playera"]["innings"].to_i + data["playerb"]["innings"].to_i rescue 0
+    total_points = data["playera"]["result"].to_i + data["playerb"]["result"].to_i rescue 0
+    
+    Rails.logger.info "[🔄 STATE TRANSITION] TM[#{id}] Game[#{game_id}]: #{from_state} → #{to_state} (event: #{event_name}, innings: #{total_innings}, points: #{total_points})"
+    
+    # ALERT: Suspicious state transitions
+    if to_state.to_s.in?(['set_over', 'final_set_score', 'final_match_score']) && total_innings == 0 && total_points == 0
+      Rails.logger.error "[⚠️  SUSPICIOUS TRANSITION] TM[#{id}] Game[#{game_id}] moved to #{to_state} with ZERO innings and ZERO points! Event: #{event_name}, Caller: #{caller[0..3].join(' <- ')}"
+    end
+  rescue StandardError => e
+    Rails.logger.error "[log_state_transition ERROR] #{e.message}: #{e.backtrace&.first(3)&.join(' <- ')}"
   end
 
 end
