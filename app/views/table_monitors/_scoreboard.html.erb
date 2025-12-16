@@ -26,7 +26,8 @@
 <%- time_counter, green_bars, do_green_bars, do_yellow_bars, do_orange_bars, do_lightred_bars, do_red_bars = options[:timer_data] if fullscreen %>
 <div class="fullscreen flex flex-col h-full  rounded shadow"
      data-table-monitor-root="scoreboard"
-     data-table-monitor-id="<%= table_monitor.id %>">
+     data-table-monitor-id="<%= table_monitor.id %>"
+     data-game-id="<%= table_monitor.game_id %>">
   <!-- Connection Status Indicator -->
   <div id="connection-status-indicator"
        class="connection-status connection-status-healthy"

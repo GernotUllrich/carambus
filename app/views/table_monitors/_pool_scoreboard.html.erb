@@ -46,7 +46,8 @@
 
 <div class="<%= fullscreen ? "fullscreen flex flex-col h-full rounded shadow dark:bg-black" : "flex h-full rounded shadow" %>" 
      data-table-monitor-root="scoreboard" 
-     data-table-monitor-id="<%= table_monitor.id %>">
+     data-table-monitor-id="<%= table_monitor.id %>"
+     data-game-id="<%= table_monitor.game_id %>">
   <div class="<%= fullscreen ? "flex flex-col w-full h-full" : "flex w-full bg-gray-200" %>">
     <div class="<%= fullscreen ? "flex h-5/6 bg-gray-200" : "flex w-full bg-gray-200" %>">
       <div class="w-2/5 <%= options[:current_left_color] == "yellow" ? "player_b dark:bg-black text-gray-800 dark:text-yellow-400" : "player_a dark:bg-black text-gray-800 dark:text-gray-200" %>">
