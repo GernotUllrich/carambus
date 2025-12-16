@@ -2127,12 +2127,12 @@ data[\"allow_overflow\"].present?")
     debug = true # true
     
     # GUARD: Prevent evaluation on brand-new games (within 5 seconds of placement)
-    if started_at.present? && started_at > 5.seconds.ago
+    if game&.started_at.present? && game.started_at > 5.seconds.ago
       total_innings = data["playera"]["innings"].to_i + data["playerb"]["innings"].to_i
       total_points = data["playera"]["result"].to_i + data["playerb"]["result"].to_i
       
       if total_innings == 0 && total_points == 0
-        Rails.logger.warn "[evaluate_result GUARD] Game[#{game_id}] on TM[#{id}] is brand new (started #{(Time.current - started_at).round(1)}s ago) with 0 innings/points - SKIPPING evaluation to prevent spurious finish"
+        Rails.logger.warn "[evaluate_result GUARD] Game[#{game_id}] on TM[#{id}] is brand new (started #{(Time.current - game.started_at).round(1)}s ago) with 0 innings/points - SKIPPING evaluation to prevent spurious finish"
         return
       end
     end
