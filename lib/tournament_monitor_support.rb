@@ -652,7 +652,11 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
 
   def do_placement(new_game, r_no, t_no, sets, balls, innings)
     Rails.logger.info ">>>>> do_placement CALLED: game=#{new_game.gname}, r_no=#{r_no}, t_no=#{t_no}, sets=#{sets.inspect}, balls=#{balls.inspect}, innings=#{innings.inspect}"
-    try do
+    
+    # CRITICAL: Wrap in transaction to prevent race conditions with background jobs
+    # Jobs reload TableMonitor - if they run before transaction commits, they corrupt in-memory state
+    ActiveRecord::Base.transaction do
+      try do
       @placements ||= data["placements"].presence
       @placement_candidates ||= data["placement_candidates"].presence
       @placements ||= {}
@@ -791,9 +795,10 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
           Rails.logger.info info
         end
       end
-    rescue StandardError => e
-      Rails.logger.info "StandardError #{e}, #{e.backtrace&.join("\n")}"
-      raise ActiveRecord::Rollback
-    end
+      rescue StandardError => e
+        Rails.logger.info "StandardError #{e}, #{e.backtrace&.join("\n")}"
+        raise ActiveRecord::Rollback
+      end
+    end # transaction
   end
 end
