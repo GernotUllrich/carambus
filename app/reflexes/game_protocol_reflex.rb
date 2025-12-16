@@ -27,7 +27,7 @@ class GameProtocolReflex < ApplicationReflex
     @table_monitor.save!
     @table_monitor.skip_update_callbacks = false
     send_modal_update("")
-    TableMonitorJob.perform_later(@table_monitor, "")
+    TableMonitorJob.perform_later(@table_monitor.id, "")
   end
   
   # Switch to edit mode
@@ -126,7 +126,7 @@ class GameProtocolReflex < ApplicationReflex
     @table_monitor.evaluate_result
     
     # Broadcast the updated scoreboard
-    TableMonitorJob.perform_later(@table_monitor, "")
+    TableMonitorJob.perform_later(@table_monitor.id, "")
   end
   
   private
