@@ -11,13 +11,21 @@ class TableMonitorJob < ApplicationJob
     end
 
     debug = true # Rails.env != 'production'
-    table_monitor = args[0]
+    
+    # CRITICAL: Accept ID or object, but always work with fresh instance
+    # Never mutate the passed object - main thread may still be using it!
+    table_monitor_arg = args[0]
+    table_monitor_id = table_monitor_arg.is_a?(Integer) ? table_monitor_arg : table_monitor_arg.id
     operation_type = args[1]
     options = args[2] || {}
     
     # Performance timing
     job_start = Time.now.to_f
     broadcast_timestamp = (Time.now.to_f * 1000).to_i # Milliseconds since epoch
+    
+    # Load FRESH instance - never reuse passed object reference
+    table_monitor = TableMonitor.find(table_monitor_id)
+    table_monitor.clear_options_cache
     
     Rails.logger.info "📡 ========== TableMonitorJob START =========="
     Rails.logger.info "📡 TableMonitor ID: #{table_monitor.id}"
@@ -27,13 +35,7 @@ class TableMonitorJob < ApplicationJob
     Rails.logger.info "📡 Options: #{options.inspect}" if options.present?
     Rails.logger.info "📡 Stream: table-monitor-stream (SHARED - clients filter by table_monitor_id)"
     Rails.logger.info "📡 Broadcast Timestamp: #{broadcast_timestamp}"
-    
-    # Reload and clear cache to ensure fresh data
-    # Transaction wrapper in do_placement ensures this doesn't pull stale data
-    table_monitor.reload
-    table_monitor.clear_options_cache
-    
-    Rails.logger.info "📡 Reloaded state: #{table_monitor.state}, game_id: #{table_monitor.game_id}"
+    Rails.logger.info "📡 Loaded fresh state: #{table_monitor.state}, game_id: #{table_monitor.game_id}"
     
     info = "perf +++++++!!!! C: PERFORM JOB #{Time.now} TM[#{table_monitor.id}]"
     Rails.logger.info info if debug

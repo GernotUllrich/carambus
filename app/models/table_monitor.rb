@@ -97,27 +97,27 @@ class TableMonitor < ApplicationRecord
     if tournament_monitor.is_a?(PartyMonitor) &&
       (relevant_keys.include?("state") || state != "playing")
       Rails.logger.info "🔔 Enqueuing: party_monitor_scores job"
-      TableMonitorJob.perform_later(self,
+      TableMonitorJob.perform_later(self.id,
                                     "party_monitor_scores")
     end
     # Update table_scores overview (if structural changes) OR individual teaser (if score changes only)
     if previous_changes.keys.present? && relevant_keys.present?
       Rails.logger.info "🔔 Enqueuing: table_scores job (relevant_keys present)"
-      TableMonitorJob.perform_later(self, "table_scores")
+      TableMonitorJob.perform_later(self.id, "table_scores")
       # Also send teaser for tournament_scores page (which doesn't have #table_scores container)
       Rails.logger.info "🔔 Enqueuing: teaser job (for tournament_scores page)"
-      TableMonitorJob.perform_later(self, "teaser")
+      TableMonitorJob.perform_later(self.id, "teaser")
     else
       if @collected_changes.present? || @collected_data_changes.select{ |a| a.present? }.present?
         Rails.logger.info "🔔 Enqueuing: teaser job (no relevant_keys)"
-        TableMonitorJob.perform_later(self, "teaser")
+        TableMonitorJob.perform_later(self.id, "teaser")
       end
     end
 
     # ULTRA-FAST PATH: Only score/innings changed - send just data, no HTML
     if ultra_fast_score_update?
       player_key = (@collected_data_changes.flat_map(&:keys) & ['playera', 'playerb']).first
-      TableMonitorJob.perform_later(self, "score_data", player: player_key)
+      TableMonitorJob.perform_later(self.id, "score_data", player: player_key)
       @collected_data_changes = nil
       return
     end
@@ -129,7 +129,7 @@ class TableMonitor < ApplicationRecord
 
       Rails.logger.info "🔔 ⚡ FAST PATH: Simple score update detected for #{player_key}"
       Rails.logger.info "🔔 ⚡ Changed keys: #{@collected_data_changes.flat_map(&:keys).uniq.inspect}"
-      TableMonitorJob.perform_later(self, "player_score_panel", player: player_key)
+      TableMonitorJob.perform_later(self.id, "player_score_panel", player: player_key)
 
       @collected_data_changes = nil
       Rails.logger.info "🔔 ========== after_update_commit END (fast path) =========="
@@ -141,7 +141,7 @@ class TableMonitor < ApplicationRecord
     # which renders and broadcasts the full scoreboard HTML (#full_screen_table_monitor_X).
     # See docs/EMPTY_STRING_JOB_ANALYSIS.md for detailed explanation.
     Rails.logger.info "🔔 Enqueuing: score_update job (empty string for full screen)"
-    TableMonitorJob.perform_later(self, "")
+    TableMonitorJob.perform_later(self.id, "")
     @collected_data_changes = nil
     Rails.logger.info "🔔 ========== after_update_commit END =========="
 
@@ -2337,7 +2337,7 @@ data[\"allow_overflow\"].present?")
     # Re-enable callbacks and manually enqueue table_scores job
     # (full_screen_update is NOT needed because controller does redirect_to @table_monitor)
     self.skip_update_callbacks = false
-    TableMonitorJob.perform_later(self, "table_scores")
+    TableMonitorJob.perform_later(self.id, "table_scores")
 
     finish_warmup! if options["discipline_a"] =~ /shootout/i && may_finish_warmup?
     true
