@@ -512,6 +512,8 @@ class TableMonitorReflex < ApplicationReflex
     reds_to_remove = foul_data["reds_to_remove"].to_i
     
     # Get active and opponent players
+    # active_player = the one who made the foul (currently active)
+    # opponent_player = the one who gets the points (NOT currently active)
     active_player = @table_monitor.data["current_inning"]["active_player"]
     opponent_player = active_player == "playera" ? "playerb" : "playera"
     
@@ -527,19 +529,22 @@ class TableMonitorReflex < ApplicationReflex
       "player" => active_player
     }
     
-    # Switch to opponent player first (so add_n_balls adds to the right player)
+    # STEP 1: Add foul points to opponent (who is NOT currently active)
+    # Temporarily switch to opponent to use add_n_balls correctly
     @table_monitor.data["current_inning"]["active_player"] = opponent_player
-    
-    # Add foul points to opponent using add_n_balls (proper game logic)
     @table_monitor.add_n_balls(foul_points, opponent_player)
     
-    # Reset break for the player who fouled
+    # STEP 2: Reset break for the player who fouled (the original active player)
     active_data = @table_monitor.data[active_player] || {}
     active_break_list = active_data["innings_redo_list"] || []
     if active_break_list.present?
       active_break_list[-1] = 0
       @table_monitor.data[active_player]["innings_redo_list"] = active_break_list
     end
+    
+    # STEP 3: Switch to opponent player (who now has the points and should be active)
+    # The opponent is already set as active from step 1, so we just need to ensure proper state
+    # The active_player is now opponent_player, which is correct
     
     # Close modal - set panel_state BEFORE deleting foul data
     @table_monitor.panel_state = "pointer_mode"
