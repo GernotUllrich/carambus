@@ -6,8 +6,12 @@
     document.getElementById(modalID + "-backdrop").classList.toggle("flex");
   }
 </script>
+<%- table_monitor.get_options!(I18n.locale) %>
+<%- options = table_monitor.options %>
 <%- time_counter, green_bars = table_monitor.get_progress_bar_status(18) %>
 <%- gps = table_monitor.game.andand.game_participations.andand.order(:role).to_a %>
+<%- left_player = options[:current_left_player] == "playera" ? options[:player_a] : options[:player_b] %>
+<%- right_player = options[:current_left_player] == "playera" ? options[:player_b] : options[:player_a] %>
 <%- if full_screen %>
   <div class="flex overflow-x-hidden text-black overflow-y-auto fixed inset-0 z-50 outline-none focus:outline-none justify-center items-center" id="modal-id">
     <!--content-->
@@ -29,8 +33,8 @@
         </div>
         <%- gps = table_monitor.game.andand.game_participations.andand.order(:role).to_a %>
         <div class="mt-4 flex h-1/2 flex-row text-black dark:text-gray-200 space-x-4">
-          <div class="flex-1 text-3vw text-center font-semibold"><%= table_monitor.tournament_monitor.andand.id.present? ? gps[0].andand.player.andand.fullname : gps[0].andand.player.andand.simple_firstname.presence || gps[0].andand.player.andand.shortname %></div>
-          <div class="flex-1 text-3vw text-center font-semibold"><%= table_monitor.tournament_monitor.andand.id.present? ? gps[1].andand.player.andand.fullname : gps[1].andand.player.andand.simple_firstname.presence || gps[1].andand.player.andand.shortname %></div>
+          <div class="flex-1 text-3vw text-center font-semibold"><%= left_player[:fullname] %></div>
+          <div class="flex-1 text-3vw text-center font-semibold"><%= right_player[:fullname] %></div>
         </div>
       </div>
       <div class="dark:text-gray-200 bg-white dark:bg-black bg-gray-50 flex h-1/6 flex-row mt-2 space-x-8">
