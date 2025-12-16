@@ -1428,6 +1428,43 @@ data[\"allow_overflow\"].present?")
           active_player: show_data["current_inning"].andand["active_player"]
         }
       ).stringify_keys
+
+      # Für Trainings- und freie Spiele (ohne Turnier-Monitor) die Spielernamen so
+      # kürzen, dass sie sich eindeutig unterscheiden:
+      # Beispiel: "Andreas Meissner" vs. "Andreas Mertens" =>
+      # "Andreas Mei." und "Andreas Mer."
+      if show_tournament_monitor.blank? &&
+         gps&.size.to_i >= 2 &&
+         gps[0]&.player.is_a?(Player) &&
+         gps[1]&.player.is_a?(Player)
+
+        p1 = gps[0].player
+        p2 = gps[1].player
+
+        fn1 = p1.simple_firstname.presence || p1.firstname
+        fn2 = p2.simple_firstname.presence || p2.firstname
+        ln1 = p1.lastname.to_s
+        ln2 = p2.lastname.to_s
+
+        # Nur eingreifen, wenn beide einen Vornamen und Nachnamen haben und
+        # die (vereinfachten) Vornamen gleich sind.
+        if fn1.present? && fn2.present? && ln1.present? && ln2.present? && fn1 == fn2 && ln1 != ln2
+          max_len = [ln1.length, ln2.length].max
+          prefix_len = 1
+
+          # Finde die kleinste Präfix-Länge, bei der sich die Nachnamen unterscheiden
+          while prefix_len < max_len && ln1[0, prefix_len].casecmp?(ln2[0, prefix_len])
+            prefix_len += 1
+          end
+
+          # Wenn sich auch nach Durchlauf des Loops nichts unterscheidet, lassen wir die
+          # bisherige Logik unverändert (extremer Sonderfall, z.B. exakt gleicher Name).
+          unless ln1[0, prefix_len].casecmp?(ln2[0, prefix_len])
+            options[:player_a][:fullname] = "#{fn1} #{ln1[0, prefix_len] }."
+            options[:player_b][:fullname] = "#{fn2} #{ln2[0, prefix_len] }."
+          end
+        end
+      end
       self.options = options
       self.gps = gps
       self.location = table.location

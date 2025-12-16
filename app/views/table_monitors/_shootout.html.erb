@@ -10,11 +10,13 @@
         <%- left_player_name = left_player[:fullname] %>
         <%- right_player_name = right_player[:fullname] %>
         <%- left_player_id = options[:current_left_player] == "playera" ? "playera" : "playerb" %>
-        <%- kick_off_player_id = options["current_kickoff_player"] == "playera" ? (left_player_id == 0 ? 0 : 1) : (left_player_id == 0 ? 1 : 0) %>
-        <%- kickoff_player_name = table_monitor.tournament_monitor.andand.id.present? ? gps[1 - kick_off_player_id].andand.player.andand.fullname : gps[1 - kick_off_player_id].andand.player.andand.simple_firstname || gps[1 - kick_off_player_id].andand.player.andand.shortname %>
-        <%- aftershot_player_name = table_monitor.tournament_monitor.andand.id.present? ? gps[kick_off_player_id].andand.player.andand.fullname : gps[kick_off_player_id].andand.player.andand.simple_firstname || gps[kick_off_player_id].andand.player.andand.shortname %>
-        <%- left_player_id = options[:current_left_player] == "playera" ? "playera" : "playerb" %>
         <%- right_player_id = options[:current_left_player] == "playera" ? "playerb" : "playera" %>
+        <%- kickoff_player_key = options["current_kickoff_player"] == "playera" ? "playera" : "playerb" %>
+        <%- aftershot_player_key = kickoff_player_key == "playera" ? "playerb" : "playera" %>
+        <%- kickoff_player = kickoff_player_key == "playera" ? options[:player_a] : options[:player_b] %>
+        <%- aftershot_player = aftershot_player_key == "playera" ? options[:player_a] : options[:player_b] %>
+        <%- kickoff_player_name = kickoff_player[:fullname] %>
+        <%- aftershot_player_name = aftershot_player[:fullname] %>
         <%- left_player_active = options[:current_left_player] == "playera" ? options[:player_a_active] : options[:player_b_active] %>
         <%- right_player_active = options[:current_left_player] == "playera" ? options[:player_b_active] : options[:player_a_active] %>
         <div class="grid grid-cols-3 gap-4">
