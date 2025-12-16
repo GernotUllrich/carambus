@@ -12,10 +12,18 @@ class TableMonitorJob < ApplicationJob
 
     debug = true # Rails.env != 'production'
     
-    # CRITICAL: Accept ID or object, but always work with fresh instance
-    # Never mutate the passed object - main thread may still be using it!
-    table_monitor_arg = args[0]
-    table_monitor_id = table_monitor_arg.is_a?(Integer) ? table_monitor_arg : table_monitor_arg.id
+    # CRITICAL: ONLY accept Integer ID - NEVER accept object reference!
+    # Passing objects creates race conditions where main thread reuses the
+    # same object for different tables, causing jobs to render wrong data.
+    table_monitor_id = args[0]
+    
+    unless table_monitor_id.is_a?(Integer)
+      error_msg = "❌ CRITICAL: TableMonitorJob MUST receive Integer ID, got #{table_monitor_id.class}! " \
+                  "Passing objects causes race conditions. Use table_monitor.id, not table_monitor."
+      Rails.logger.error error_msg
+      raise ArgumentError, error_msg
+    end
+    
     operation_type = args[1]
     options = args[2] || {}
     
