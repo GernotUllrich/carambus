@@ -6,8 +6,14 @@
     document.getElementById(modalID + "-backdrop").classList.toggle("flex");
   }
 </script>
-<%- table_monitor.get_options!(I18n.locale) %>
-<%- options = table_monitor.options %>
+<%- 
+  # Use passed-in options if available (from job with snapshot), otherwise get fresh
+  # This prevents race conditions when multiple jobs render simultaneously
+  unless local_assigns[:options].present?
+    table_monitor.get_options!(I18n.locale)
+    options = table_monitor.options
+  end
+%>
 <%- time_counter, green_bars = table_monitor.get_progress_bar_status(18) %>
 <%- gps = table_monitor.game.andand.game_participations.andand.order(:role).to_a %>
 <%- left_player = options[:current_left_player] == "playera" ? options[:player_a] : options[:player_b] %>
