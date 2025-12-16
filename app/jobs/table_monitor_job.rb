@@ -92,9 +92,13 @@ class TableMonitorJob < ApplicationJob
       selector = "#teaser_#{table_monitor.id}"
       Rails.logger.info "📡 Broadcasting teaser to table-monitor-stream (filtered by client)"
       
+      # CRITICAL: Get options and pass as local variable to avoid race condition
+      table_monitor.get_options!(I18n.locale)
+      options_snapshot = table_monitor.options.deep_dup
+      
       rendered_html = ApplicationController.render(
         partial: "table_monitors/teaser",
-        locals: { table_monitor: table_monitor }
+        locals: { table_monitor: table_monitor, options: options_snapshot }
       )
       render_time = ((Time.now.to_f - render_start) * 1000).round(2)
       Rails.logger.info "📡 Render time: #{render_time}ms"
@@ -206,9 +210,11 @@ class TableMonitorJob < ApplicationJob
                when "snooker" then "_snooker"
                else ""
                end
+        table_monitor.get_options!(I18n.locale)
+        options_snapshot = table_monitor.options.deep_dup
         full_screen_html = ApplicationController.render(
           partial: "table_monitors/show#{show}",
-          locals: { table_monitor: table_monitor, full_screen: true }
+          locals: { table_monitor: table_monitor, full_screen: true, options: options_snapshot }
         )
         cable_ready["table-monitor-stream"].inner_html(
           selector: "#full_screen_table_monitor_#{table_monitor.id}",
@@ -237,9 +243,14 @@ class TableMonitorJob < ApplicationJob
       Rails.logger.info "📡 ⚠️  FULL SCOREBOARD UPDATE: This will be sent to ALL clients via shared stream"
       Rails.logger.info "📡 ⚠️  Clients MUST filter by table_monitor_id=#{table_monitor.id} to prevent mix-ups"
       
+      # CRITICAL: Get options and pass as local variable to avoid race condition
+      # options is a cattr_accessor (class-level), so parallel jobs can overwrite each other!
+      table_monitor.get_options!(I18n.locale)
+      options_snapshot = table_monitor.options.deep_dup
+      
       full_screen_html = ApplicationController.render(
         partial: "table_monitors/show#{show}",
-        locals: { table_monitor: table_monitor, full_screen: true }
+        locals: { table_monitor: table_monitor, full_screen: true, options: options_snapshot }
       )
       render_time = ((Time.now.to_f - render_start) * 1000).round(2)
       Rails.logger.info "📡 Render time: #{render_time}ms"
@@ -261,7 +272,7 @@ class TableMonitorJob < ApplicationJob
         )
         html = ApplicationController.render(
           partial: "table_monitors/show#{show}",
-          locals: { table_monitor: table_monitor, full_screen: false }
+          locals: { table_monitor: table_monitor, full_screen: false, options: options_snapshot }
         )
         cable_ready["table-monitor-stream"].inner_html(
           selector: "#table_monitor_#{table_monitor.id}",

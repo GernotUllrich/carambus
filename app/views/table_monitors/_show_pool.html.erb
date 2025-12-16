@@ -2,9 +2,15 @@
 <%- if table_monitor.andand.reload.present? %>
   <%- tid = table_monitor.id %>
   <%- Rails.logger.info "tam _show !!!!!!!!!!!!!!!!!!!!!!!!!!!!! #{tid} !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" %>
-  <%- table_monitor.get_options!(I18n.locale) %>
-  <%- options = table_monitor.options %>
-  <%- options[:timer_data] = table_monitor.get_progress_bar_status(18) %>
+  <%- 
+    # Use passed-in options if available (from job with snapshot), otherwise get fresh
+    # This prevents race conditions when multiple jobs render simultaneously
+    unless local_assigns[:options].present?
+      table_monitor.get_options!(I18n.locale)
+      options = table_monitor.options
+    end
+    options[:timer_data] = table_monitor.get_progress_bar_status(18) 
+  %>
   <%- Rails.logger.info "++++++ SHOW #{options.inspect}" if Rails.env != "production" %>
 
   <%- if full_screen %>

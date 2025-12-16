@@ -1,6 +1,12 @@
 <div class="teaser flex flex-col items-center text-gray-900 dark:text-gray-200 text-bold">
-  <%- table_monitor.get_options!(I18n.locale) %>
-  <%- options = table_monitor.options %>
+  <%- 
+    # Use passed-in options if available (from job with snapshot), otherwise get fresh
+    # This prevents race conditions when multiple jobs render simultaneously
+    unless local_assigns[:options].present?
+      table_monitor.get_options!(I18n.locale)
+      options = table_monitor.options
+    end
+  %>
   <%- left_player = options[:current_left_player] == "playera" ? options[:player_a] : options[:player_b] %>
   <%- right_player = options[:current_left_player] == "playera" ? options[:player_b] : options[:player_a] %>
   <%- left_player_id = options[:current_left_player] == "playera" ? "playera" : "playerb" %>
