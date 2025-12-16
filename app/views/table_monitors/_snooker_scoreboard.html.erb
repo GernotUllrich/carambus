@@ -117,9 +117,11 @@
                 </div>
               </div>
             </div>
-            <%- won_or_draw = table_monitor.set_over? && current_frame_a >= current_frame_b %>
-            <div class="flex h-4/6 text-center text-<%= vw24 %> justify-center items-center font-bold score-display <%= 'text-green-400' if won_or_draw %>" data-player="<%= left_player_id %>" data-score="<%= current_frame_a %>">
-              <span class="frame-score" data-player="<%= left_player_id %>"><%= current_frame_a %></span>
+            <%- total_score_left = left_player[:result].to_i + (show_data[left_player_id].andand["innings_redo_list"].andand[-1].to_i || 0) %>
+            <%- total_score_right = right_player[:result].to_i + (show_data[right_player_id].andand["innings_redo_list"].andand[-1].to_i || 0) %>
+            <%- won_or_draw = table_monitor.set_over? && total_score_left >= total_score_right %>
+            <div class="flex h-4/6 text-center text-<%= vw24 %> justify-center items-center font-bold score-display <%= 'text-green-400' if won_or_draw %>" data-player="<%= left_player_id %>" data-score="<%= total_score_left %>">
+              <span class="main-score" data-player="<%= left_player_id %>"><%= total_score_left %></span>
             </div>
             <%- if fullscreen %>
               <%- if showing_timer_a.blank? %>
@@ -301,9 +303,9 @@
                 </div>
               </div>
             </div>
-            <%- won_or_draw = table_monitor.set_over? && current_frame_b >= current_frame_a %>
-            <div class="flex h-4/6 text-center text-<%= vw24 %> justify-center items-center font-bold score-display <%= 'text-green-400' if won_or_draw %>" data-player="<%= right_player_id %>" data-score="<%= current_frame_b %>">
-              <span class="frame-score" data-player="<%= right_player_id %>"><%= current_frame_b %></span>
+            <%- won_or_draw = table_monitor.set_over? && total_score_right >= total_score_left %>
+            <div class="flex h-4/6 text-center text-<%= vw24 %> justify-center items-center font-bold score-display <%= 'text-green-400' if won_or_draw %>" data-player="<%= right_player_id %>" data-score="<%= total_score_right %>">
+              <span class="main-score" data-player="<%= right_player_id %>"><%= total_score_right %></span>
             </div>
             <%- if fullscreen %>
               <%- if showing_timer_b.blank? %>
