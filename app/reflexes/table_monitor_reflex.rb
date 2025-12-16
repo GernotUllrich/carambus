@@ -501,7 +501,9 @@ class TableMonitorReflex < ApplicationReflex
   def foul_submit
     Rails.logger.info "+++++++++++++++++>>> foul_submit <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     morph :nothing
+    
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
+    @table_monitor.skip_update_callbacks = true
     
     foul_data = @table_monitor.data["foul"] || {}
     foul_points = foul_data["ball"].to_i
@@ -513,13 +515,6 @@ class TableMonitorReflex < ApplicationReflex
     active_player = @table_monitor.data["current_inning"]["active_player"]
     opponent_player = active_player == "playera" ? "playerb" : "playera"
     
-    # Add foul points to opponent
-    opponent_data = @table_monitor.data[opponent_player] || {}
-    opponent_break_list = opponent_data["innings_redo_list"] || []
-    current_opponent_break = opponent_break_list.last.to_i
-    opponent_break_list[-1] = current_opponent_break + foul_points
-    @table_monitor.data[opponent_player]["innings_redo_list"] = opponent_break_list
-    
     # Store foul information for protocol
     @table_monitor.data["last_foul"] = {
       "points" => foul_points,
@@ -529,21 +524,29 @@ class TableMonitorReflex < ApplicationReflex
       "player" => active_player
     }
     
-    # Switch players (foul means turn ends)
+    # Switch to opponent player first (so add_n_balls adds to the right player)
     @table_monitor.data["current_inning"]["active_player"] = opponent_player
+    
+    # Add foul points to opponent using add_n_balls (proper game logic)
+    @table_monitor.add_n_balls(foul_points, opponent_player)
     
     # Reset break for the player who fouled
     active_data = @table_monitor.data[active_player] || {}
     active_break_list = active_data["innings_redo_list"] || []
-    active_break_list[-1] = 0
-    @table_monitor.data[active_player]["innings_redo_list"] = active_break_list
+    if active_break_list.present?
+      active_break_list[-1] = 0
+      @table_monitor.data[active_player]["innings_redo_list"] = active_break_list
+    end
     
     # Close modal
     @table_monitor.panel_state = "pointer_mode"
+    @table_monitor.current_element = "pointer_mode"
     @table_monitor.data.delete("foul")
     
+    @table_monitor.do_play
     @table_monitor.reset_timer!
-    @table_monitor.save
+    @table_monitor.skip_update_callbacks = false
+    @table_monitor.save!
   end
 
   def up
