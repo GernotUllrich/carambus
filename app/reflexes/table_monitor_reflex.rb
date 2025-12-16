@@ -435,6 +435,13 @@ class TableMonitorReflex < ApplicationReflex
     Rails.logger.info "+++++++++++++++++>>> foul <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     morph :nothing
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
+    
+    # Only allow foul modal for snooker games
+    unless @table_monitor.data["free_game_form"] == "snooker"
+      Rails.logger.warn "🚫 Foul modal only available for snooker games (current: #{@table_monitor.data["free_game_form"]})"
+      return
+    end
+    
     @table_monitor.reset_timer!
     @table_monitor.panel_state = "foul"
     @table_monitor.data["foul"] ||= { "ball" => 4, "free_ball" => false, "miss" => false, "reds_to_remove" => 0 }
@@ -445,6 +452,10 @@ class TableMonitorReflex < ApplicationReflex
     Rails.logger.info "+++++++++++++++++>>> foul_select_ball <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     morph :nothing
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
+    
+    # Only allow for snooker games
+    return unless @table_monitor.data["free_game_form"] == "snooker"
+    
     ball_value = element.andand.dataset[:ball].to_i
     @table_monitor.data["foul"] ||= {}
     @table_monitor.data["foul"]["ball"] = ball_value
@@ -455,6 +466,10 @@ class TableMonitorReflex < ApplicationReflex
     Rails.logger.info "+++++++++++++++++>>> foul_toggle_free_ball <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     morph :nothing
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
+    
+    # Only allow for snooker games
+    return unless @table_monitor.data["free_game_form"] == "snooker"
+    
     @table_monitor.data["foul"] ||= {}
     @table_monitor.data["foul"]["free_ball"] = !@table_monitor.data["foul"]["free_ball"]
     @table_monitor.save
@@ -464,6 +479,10 @@ class TableMonitorReflex < ApplicationReflex
     Rails.logger.info "+++++++++++++++++>>> foul_toggle_miss <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     morph :nothing
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
+    
+    # Only allow for snooker games
+    return unless @table_monitor.data["free_game_form"] == "snooker"
+    
     @table_monitor.data["foul"] ||= {}
     @table_monitor.data["foul"]["miss"] = !@table_monitor.data["foul"]["miss"]
     @table_monitor.save
@@ -473,6 +492,10 @@ class TableMonitorReflex < ApplicationReflex
     Rails.logger.info "+++++++++++++++++>>> foul_increase_reds <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     morph :nothing
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
+    
+    # Only allow for snooker games
+    return unless @table_monitor.data["free_game_form"] == "snooker"
+    
     @table_monitor.data["foul"] ||= {}
     current_reds = @table_monitor.data["foul"]["reds_to_remove"].to_i
     @table_monitor.data["foul"]["reds_to_remove"] = [current_reds + 1, 15].min
@@ -483,6 +506,10 @@ class TableMonitorReflex < ApplicationReflex
     Rails.logger.info "+++++++++++++++++>>> foul_decrease_reds <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     morph :nothing
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
+    
+    # Only allow for snooker games
+    return unless @table_monitor.data["free_game_form"] == "snooker"
+    
     @table_monitor.data["foul"] ||= {}
     current_reds = @table_monitor.data["foul"]["reds_to_remove"].to_i
     @table_monitor.data["foul"]["reds_to_remove"] = [current_reds - 1, 0].max
@@ -493,6 +520,10 @@ class TableMonitorReflex < ApplicationReflex
     Rails.logger.info "+++++++++++++++++>>> foul_cancel <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     morph :nothing
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
+    
+    # Only allow for snooker games
+    return unless @table_monitor.data["free_game_form"] == "snooker"
+    
     @table_monitor.panel_state = "pointer_mode"
     @table_monitor.data.delete("foul")
     @table_monitor.save
@@ -503,6 +534,13 @@ class TableMonitorReflex < ApplicationReflex
     morph :nothing
     
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
+    
+    # Only allow foul submission for snooker games
+    unless @table_monitor.data["free_game_form"] == "snooker"
+      Rails.logger.warn "🚫 Foul submit only available for snooker games (current: #{@table_monitor.data["free_game_form"]})"
+      return
+    end
+    
     @table_monitor.skip_update_callbacks = true
     
     foul_data = @table_monitor.data["foul"] || {}
