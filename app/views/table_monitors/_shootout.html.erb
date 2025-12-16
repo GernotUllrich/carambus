@@ -1,7 +1,7 @@
 <%- table_monitor.get_options!(I18n.locale) %>
 <%- options = table_monitor.options %>
 <div class="flex overflow-x-hidden overflow-y-auto fixed inset-0 z-50 outline-none focus:outline-none justify-center items-center" id="modal-id">
-  <div id="table_monitor_modal_shootout_<%= table_monitor.id %>" class="modal-content border-2  rounded-lg border-gray-500 dark:bg-black dark:text-gray-200 bg-gray-100 space-y-4 flex-col h-1/2">
+  <div id="table_monitor_modal_shootout_<%= table_monitor.id %>" class="modal-content border-2  rounded-lg border-gray-500 dark:bg-black dark:text-gray-200 bg-gray-100 space-y-4 flex-col h-1/2" data-game-id="<%= table_monitor.game_id %>">
     <div class="flex h-1/2 flex-col space-x-4 items-center">
       <%- gps = table_monitor.game.andand.game_participations.andand.order(:role).to_a %>
       <div class="flex h-1/2 flex-row items-center">
