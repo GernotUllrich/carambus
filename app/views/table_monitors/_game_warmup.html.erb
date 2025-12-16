@@ -11,7 +11,7 @@
 <%- if full_screen %>
   <div class="flex overflow-x-hidden text-black overflow-y-auto fixed inset-0 z-50 outline-none focus:outline-none justify-center items-center" id="modal-id">
     <!--content-->
-    <div id="table_monitor_modal_setup_<%= table_monitor.id %>" class="p-2 lg:p-10 border-2 border-gray-500 rounded-lg shadow-lg relative flex flex-col h-3/4 w-3/4  dark:text-gray-200 bg-white dark:bg-black outline-none focus:outline-none">
+    <div id="table_monitor_modal_setup_<%= table_monitor.id %>" class="p-2 lg:p-10 border-2 border-gray-500 rounded-lg shadow-lg relative flex flex-col h-3/4 w-3/4  dark:text-gray-200 bg-white dark:bg-black outline-none focus:outline-none" data-game-id="<%= table_monitor.game_id %>">
 
       <div class="dark:text-gray-200 bg-white dark:bg-black bg-gray-50 flex h-2/6 flex-col">
         <div class="flex h-2/6 flex-row space-x-4">
@@ -93,7 +93,7 @@
 <%- else %>
   <div class="flex overflow-x-hidden overflow-y-auto fixed inset-0 z-50 outline-none focus:outline-none justify-center items-center" id="modal-id">
     <!--content-->
-    <div id="table_monitor_modal_setup_<%= table_monitor.id %>" class="p-2 lg:p-10 border-0 rounded-lg shadow-lg relative flex flex-col h-3/4 w-3/4  outline-none focus:outline-none">
+    <div id="table_monitor_modal_setup_<%= table_monitor.id %>" class="p-2 lg:p-10 border-0 rounded-lg shadow-lg relative flex flex-col h-3/4 w-3/4  outline-none focus:outline-none" data-game-id="<%= table_monitor.game_id %>">
       <div class="flex h-1/6 flex-col">
         <div class="flex h-1/2 flex-row space-x-4">
           <div class="flex-1 text-2vw text-center">Tisch <%= table_monitor.name.match(/.*(\d+).*/).andand[1] %></div>
