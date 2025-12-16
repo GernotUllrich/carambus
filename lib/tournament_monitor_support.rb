@@ -643,6 +643,13 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
       deep_merge_data!("placements" => @placements, "placement_candidates" => @placement_candidates)
       save!
       Tournament.logger.info "[tmon-populate_tables] placements: #{@placements.inspect}"
+      
+      # Broadcast komplettes table_scores Tableau nach initialem Placement
+      if table_monitors.first.present?
+        Tournament.logger.info "[tmon-populate_tables] Broadcasting table_scores (complete tableau)"
+        TableMonitorJob.perform_later(table_monitors.first.id, "table_scores")
+      end
+      
       Tournament.logger.info "...[tmon-populate_tables]"
     rescue StandardError => e
       Tournament.logger.info "[tmon-populate_tables] StandardError - ROLLBACK - #{e} #{e.backtrace&.join("\n")}"
