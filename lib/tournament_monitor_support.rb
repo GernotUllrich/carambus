@@ -644,10 +644,11 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
       save!
       Tournament.logger.info "[tmon-populate_tables] placements: #{@placements.inspect}"
       
-      # Broadcast komplettes table_scores Tableau nach initialem Placement
-      if table_monitors.first.present?
-        Tournament.logger.info "[tmon-populate_tables] Broadcasting table_scores (complete tableau)"
-        TableMonitorJob.perform_later(table_monitors.first.id, "table_scores")
+      # Broadcast individual teaser updates nach initialem Placement
+      # (tournament_scores view hat nur #teaser_X frames, kein #table_scores container)
+      Tournament.logger.info "[tmon-populate_tables] Broadcasting teasers for all table monitors"
+      table_monitors.each do |tm|
+        TableMonitorJob.perform_later(tm.id, "teaser") if tm.game.present?
       end
       
       Tournament.logger.info "...[tmon-populate_tables]"

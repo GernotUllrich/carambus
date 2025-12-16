@@ -362,11 +362,11 @@ class TournamentsController < ApplicationController
         end
         Rails.logger.info "===== TableMonitors UPDATED ====="
         
-        # Broadcast komplettes table_scores Tableau (alle Tische auf einmal)
-        # Effizienter als einzelne Teaser, da beim Turnierstart alle Tische sich ändern
-        if tm.table_monitors.first.present?
-          Rails.logger.info "===== Broadcasting table_scores (complete tableau) ====="
-          TableMonitorJob.perform_later(tm.table_monitors.first.id, "table_scores")
+        # Broadcast individual teaser updates für tournament_scores view
+        # (tournament_scores view hat nur #teaser_X frames, kein #table_scores container)
+        Rails.logger.info "===== Broadcasting teasers for all table monitors ====="
+        tm.table_monitors.each do |table_mon|
+          TableMonitorJob.perform_later(table_mon.id, "teaser") if table_mon.game.present?
         end
       end
       if @tournament.tournament_started_waiting_for_monitors?
