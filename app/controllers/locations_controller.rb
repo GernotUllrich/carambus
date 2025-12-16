@@ -614,5 +614,15 @@ class LocationsController < ApplicationController
                            } }
                          ]
                        )
+                       .to_a
+    
+    # Set @table_kinds based on actual tables present (not just free tables)
+    # Filter out tables without table_kind and ensure uniqueness
+    # This ensures only table kinds that actually have tables are shown
+    @table_kinds = @tables
+                     .select { |t| t.table_kind.present? }
+                     .map(&:table_kind)
+                     .uniq
+                     .sort_by(&:name)
   end
 end
