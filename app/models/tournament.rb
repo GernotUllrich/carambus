@@ -767,10 +767,11 @@ class Tournament < ApplicationRecord
     Tournament.logger.info "[reset_tournament]..."
     # called from state machine only
     # use direct only for testing purposes
+    table_monitors_to_update = []
     if tournament_monitor.present?
-      table_monitors = tournament_monitor.table_monitors
+      table_monitors_to_update = tournament_monitor.table_monitors.to_a
       tournament_monitor.destroy
-      table_monitors.each do |tm|
+      table_monitors_to_update.each do |tm|
         tm.reload.reset_table_monitor
       end
     end
@@ -801,6 +802,14 @@ class Tournament < ApplicationRecord
       # reload
       # reorder_seedings
     end
+    
+    # Broadcast teaser updates nach Reset um Views zu aktualisieren
+    # TableMonitors haben jetzt keine games mehr (game_id = nil)
+    Tournament.logger.info "[reset_tournament] Broadcasting teasers for cleared table monitors"
+    table_monitors_to_update.each do |tm|
+      TableMonitorJob.perform_later(tm.id, "teaser")
+    end
+    
     Tournament.logger.info "state:#{state}...[reset_tournament]"
   end
 
