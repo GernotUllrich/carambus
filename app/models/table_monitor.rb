@@ -745,7 +745,10 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
   end
 
   # Determines which balls are "on" (playable) in snooker according to official rules
-  # Returns a hash with ball values (1-7) as keys and true/false as values
+  # Returns a hash with ball values (1-7) as keys and status values:
+  #   :on - ball is "on" and playable
+  #   :addable - ball can be added (red after red, can pot multiple reds in same shot)
+  #   :off - ball is not playable
   # Ball 1 = Red, 2 = Yellow, 3 = Green, 4 = Brown, 5 = Blue, 6 = Pink, 7 = Black
   def snooker_balls_on
     return {} unless data["free_game_form"] == "snooker"
@@ -766,7 +769,7 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
     
     # If free ball is active, all balls are disabled
     if free_ball_active
-      return { 1 => false, 2 => false, 3 => false, 4 => false, 5 => false, 6 => false, 7 => false }
+      return { 1 => :off, 2 => :off, 3 => :off, 4 => :off, 5 => :off, 6 => :off, 7 => :off }
     end
     
     # If all reds are potted, only colors in sequence are "on"
@@ -774,30 +777,30 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
       next_color = colors_sequence.first
       result = {}
       (1..7).each do |ball|
-        result[ball] = (ball == next_color)
+        result[ball] = (ball == next_color) ? :on : :off
       end
       return result
     end
     
     # If reds are still on the table:
-    # - After a red: all colors are "on" (but player must choose one)
+    # - After a red: all colors are "on", red is "addable" (can pot additional reds)
     # - After a color: back to reds
     # - At start: only reds are "on"
     
     if last_potted == 1
-      # After a red ball: all colors are "on"
-      { 1 => false, 2 => true, 3 => true, 4 => true, 5 => true, 6 => true, 7 => true }
+      # After a red ball: all colors are "on", red is "addable" for additional reds
+      { 1 => :addable, 2 => :on, 3 => :on, 4 => :on, 5 => :on, 6 => :on, 7 => :on }
     elsif last_potted && last_potted >= 2 && last_potted <= 7
       # After a color: back to reds
-      { 1 => true, 2 => false, 3 => false, 4 => false, 5 => false, 6 => false, 7 => false }
+      { 1 => :on, 2 => :off, 3 => :off, 4 => :off, 5 => :off, 6 => :off, 7 => :off }
     else
       # At start or after player change: only reds are "on"
-      { 1 => true, 2 => false, 3 => false, 4 => false, 5 => false, 6 => false, 7 => false }
+      { 1 => :on, 2 => :off, 3 => :off, 4 => :off, 5 => :off, 6 => :off, 7 => :off }
     end
   rescue StandardError => e
     Rails.logger.info "ERROR: snooker_balls_on[#{id}]#{e}, #{e.backtrace&.join("\n")}" if DEBUG
     # Default: all enabled if error
-    { 1 => true, 2 => true, 3 => true, 4 => true, 5 => true, 6 => true, 7 => true }
+    { 1 => :on, 2 => :on, 3 => :on, 4 => :on, 5 => :on, 6 => :on, 7 => :on }
   end
 
   def final_protocol_modal_should_be_open?

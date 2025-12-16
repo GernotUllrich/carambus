@@ -367,7 +367,10 @@
           <%- # Snooker ball values: Red=1, Yellow=2, Green=3, Brown=4, Blue=5, Pink=6, Black=7 %>
           <%- balls_on = table_monitor.snooker_balls_on %>
           <%- [1, 2, 3, 4, 5, 6, 7].each do |ball_value| %>
-            <%- ball_is_on = balls_on[ball_value] != false %>
+            <%- ball_status = balls_on[ball_value] || :off %>
+            <%- ball_is_playable = ball_status == :on || ball_status == :addable %>
+            <%- ball_is_addable = ball_status == :addable %>
+            <%- ball_is_off = ball_status == :off %>
             <%- ball_color = case ball_value
               when 1 then '#DC2626' # Red
               when 2 then '#FCD34D' # Yellow
@@ -378,19 +381,22 @@
               when 7 then '#000000' # Black
             end %>
             <%= content_tag "div",
-                            class: "flex align-center overflow-hidden pb-1 #{ball_is_on ? 'hover:scale-125' : 'opacity-30 cursor-not-allowed'} w-18 dark:bg-black",
-                            data: ball_is_on ? {
+                            class: "flex align-center overflow-hidden pb-1 relative #{ball_is_playable ? 'hover:scale-125' : ''} w-18 dark:bg-black",
+                            data: ball_is_playable ? {
                               controller: "table-monitor",
                               action: "click->table-monitor#add_n",
                               n: ball_value,
                               id: table_monitor.id
                             } : {},
-                            title: ball_is_on ? "Add #{ball_value} point#{ball_value > 1 ? 's' : ''}" : "Ball not 'on'",
-                            tabindex: ball_is_on ? 2 : -1 do %>
-              <div class="flex items-center justify-center w-16 h-16 rounded-full font-bold text-<%= fullscreen ? '3vw' : '2vw' %> text-white border-2 <%= ball_is_on ? 'border-white' : 'border-gray-500' %>"
+                            title: ball_is_addable ? "+1" : (ball_is_playable ? "Add #{ball_value} point#{ball_value > 1 ? 's' : ''}" : "Ball not 'on'"),
+                            tabindex: ball_is_playable ? 2 : -1 do %>
+              <div class="flex items-center justify-center w-16 h-16 rounded-full font-bold text-<%= fullscreen ? '3vw' : '2vw' %> text-white border-2 <%= ball_is_playable ? 'border-white' : 'border-gray-500' %>"
                    style="background-color: <%= ball_color %>">
                 <%= ball_value %>
               </div>
+              <%- if ball_is_off %>
+                <div class="absolute inset-0 bg-black bg-opacity-50 rounded-full pointer-events-none"></div>
+              <%- end %>
             <%- end %>
           <%- end %>
           <%= content_tag "div",
