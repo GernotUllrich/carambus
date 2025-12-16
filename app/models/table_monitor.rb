@@ -705,6 +705,101 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
     false
   end
 
+  # Updates snooker game state when a ball is potted
+  def update_snooker_state(ball_value)
+    return unless data["free_game_form"] == "snooker"
+    
+    # Initialize snooker state tracking if not present
+    data["snooker_state"] ||= {
+      "reds_remaining" => 15,
+      "last_potted_ball" => nil,
+      "free_ball_active" => false,
+      "colors_sequence" => [2, 3, 4, 5, 6, 7]
+    }
+    
+    state = data["snooker_state"]
+    
+    # If free ball was just potted, deactivate free ball status
+    if state["free_ball_active"]
+      state["free_ball_active"] = false
+      # After free ball, continue with normal rules based on what was potted
+    end
+    
+    # Update based on ball value
+    if ball_value == 1
+      # Red ball potted - decrement reds remaining
+      current_reds = state["reds_remaining"].to_i
+      state["reds_remaining"] = [current_reds - 1, 0].max
+      state["last_potted_ball"] = 1
+    elsif ball_value >= 2 && ball_value <= 7
+      # Color ball potted
+      state["last_potted_ball"] = ball_value
+      
+      # If all reds are gone, remove this color from sequence
+      if state["reds_remaining"].to_i <= 0
+        state["colors_sequence"] = state["colors_sequence"].reject { |c| c == ball_value }
+      end
+    end
+  rescue StandardError => e
+    Rails.logger.info "ERROR: update_snooker_state[#{id}]#{e}, #{e.backtrace&.join("\n")}" if DEBUG
+  end
+
+  # Determines which balls are "on" (playable) in snooker according to official rules
+  # Returns a hash with ball values (1-7) as keys and true/false as values
+  # Ball 1 = Red, 2 = Yellow, 3 = Green, 4 = Brown, 5 = Blue, 6 = Pink, 7 = Black
+  def snooker_balls_on
+    return {} unless data["free_game_form"] == "snooker"
+    
+    # Initialize snooker state tracking if not present
+    data["snooker_state"] ||= {
+      "reds_remaining" => 15,
+      "last_potted_ball" => nil, # 1 for red, 2-7 for colors
+      "free_ball_active" => false,
+      "colors_sequence" => [2, 3, 4, 5, 6, 7] # Remaining colors in order
+    }
+    
+    state = data["snooker_state"]
+    reds_remaining = state["reds_remaining"] || 15
+    last_potted = state["last_potted_ball"]
+    free_ball_active = state["free_ball_active"] || false
+    colors_sequence = state["colors_sequence"] || [2, 3, 4, 5, 6, 7]
+    
+    # If free ball is active, all balls are disabled
+    if free_ball_active
+      return { 1 => false, 2 => false, 3 => false, 4 => false, 5 => false, 6 => false, 7 => false }
+    end
+    
+    # If all reds are potted, only colors in sequence are "on"
+    if reds_remaining <= 0
+      next_color = colors_sequence.first
+      result = {}
+      (1..7).each do |ball|
+        result[ball] = (ball == next_color)
+      end
+      return result
+    end
+    
+    # If reds are still on the table:
+    # - After a red: all colors are "on" (but player must choose one)
+    # - After a color: back to reds
+    # - At start: only reds are "on"
+    
+    if last_potted == 1
+      # After a red ball: all colors are "on"
+      { 1 => false, 2 => true, 3 => true, 4 => true, 5 => true, 6 => true, 7 => true }
+    elsif last_potted && last_potted >= 2 && last_potted <= 7
+      # After a color: back to reds
+      { 1 => true, 2 => false, 3 => false, 4 => false, 5 => false, 6 => false, 7 => false }
+    else
+      # At start or after player change: only reds are "on"
+      { 1 => true, 2 => false, 3 => false, 4 => false, 5 => false, 6 => false, 7 => false }
+    end
+  rescue StandardError => e
+    Rails.logger.info "ERROR: snooker_balls_on[#{id}]#{e}, #{e.backtrace&.join("\n")}" if DEBUG
+    # Default: all enabled if error
+    { 1 => true, 2 => true, 3 => true, 4 => true, 5 => true, 6 => true, 7 => true }
+  end
+
   def final_protocol_modal_should_be_open?
     panel_state == "protocol_final"
   rescue StandardError => e
@@ -1256,6 +1351,9 @@ data[\"allow_overflow\"].present?")
             data[current_role]["innings_redo_list"][-1] =
               [(data[current_role]["innings_redo_list"][-1].to_i + add.to_i), 0].max
             recompute_result(current_role)
+            
+            # Update snooker state when ball is potted
+            update_snooker_state(n_balls) if data["free_game_form"] == "snooker"
           end
           if add == to_play
             Rails.logger.info("addn +++++ m6[#{id}]C: add == to_play") if debug
@@ -1735,6 +1833,13 @@ data[\"allow_overflow\"].present?")
         data[current_role]["hs"] = n_balls if n_balls > data[current_role]["hs"].to_i
         data[current_role]["gd"] =
           format("%.2f", data[current_role]["result"].to_f / data[current_role].andand["innings"].to_i)
+        
+        # Reset snooker state when player changes (last_potted_ball resets so new player starts with reds)
+        if data["free_game_form"] == "snooker" && data["snooker_state"].present?
+          # Only reset last_potted_ball, keep reds_remaining and colors_sequence
+          data["snooker_state"]["last_potted_ball"] = nil
+          # Free ball status should persist until ball is potted
+        end
         if discipline == "Biathlon" && current_role == "playerb"
           innings_goal_3b = 30
           if data["biathlon_phase"] == "3b" && discipline == "Biathlon" && data[current_role]["innings"] == innings_goal_3b

@@ -567,6 +567,19 @@ class TableMonitorReflex < ApplicationReflex
       "player" => active_player
     }
     
+    # Set free ball status if free ball was selected
+    if free_ball
+      @table_monitor.data["snooker_state"] ||= {}
+      @table_monitor.data["snooker_state"]["free_ball_active"] = true
+    end
+    
+    # Update reds remaining if reds were removed
+    if reds_to_remove > 0
+      @table_monitor.data["snooker_state"] ||= { "reds_remaining" => 15 }
+      current_reds = @table_monitor.data["snooker_state"]["reds_remaining"].to_i
+      @table_monitor.data["snooker_state"]["reds_remaining"] = [current_reds - reds_to_remove, 0].max
+    end
+    
     # STEP 1: Add foul points to opponent (who is NOT currently active)
     # Temporarily switch to opponent to use add_n_balls correctly
     @table_monitor.data["current_inning"]["active_player"] = opponent_player
