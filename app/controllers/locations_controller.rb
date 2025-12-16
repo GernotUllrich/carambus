@@ -43,20 +43,33 @@ class LocationsController < ApplicationController
     table = game = table_monitor = player_b = player_a = nil
     session[:sb_state] ||= "welcome"
     session[:sb_state] = params[:sb_state] if params[:sb_state].present?
+    
+    # Clear table selection when entering "start" or "tables" state without explicit table_id
+    # This ensures users can select a table fresh instead of being stuck with an old session table
+    if (session[:sb_state] == "start" || session[:sb_state] == "tables") && params[:table_id].blank?
+      session[:scoreboard_table_id] = nil
+      Rails.logger.info "[Scoreboard] 🎯 Cleared session table_id for fresh selection (sb_state: #{session[:sb_state]})"
+    end
     tournament = Tournament.find(params[:tournament_id]) if params[:tournament_id].present?
     @navbar = @footer = false
 
     # Set @table if table_id is present (from params or session)
     # IMPORTANT: Prefer params[:table_id] over session to allow table switching
     # But fallback to session[:scoreboard_table_id] if params is missing (e.g., page reload)
+    # EXCEPTION: For "start" and "tables" states, don't restore from session to allow fresh table selection
     if params[:table_id].present?
       @table = Table.find(params[:table_id])
       # Update session with current table_id
       session[:scoreboard_table_id] = params[:table_id]
       Rails.logger.info "[Scoreboard] 🎯 Table set from params: #{@table.id} (location: #{@location.id})"
-    elsif session[:scoreboard_table_id].present?
+    elsif session[:scoreboard_table_id].present? && !%w[start tables].include?(session[:sb_state])
+      # Only restore from session if not in "start" or "tables" state (which should show table selection)
       @table = Table.find(session[:scoreboard_table_id])
       Rails.logger.info "[Scoreboard] 🎯 Table restored from session: #{@table.id} (location: #{@location.id})"
+    else
+      # Clear table for "start" and "tables" states to ensure fresh table selection
+      @table = nil
+      Rails.logger.info "[Scoreboard] 🎯 Table cleared for fresh selection (sb_state: #{session[:sb_state]})"
     end
 
     # Preload data based on state
