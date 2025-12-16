@@ -442,7 +442,7 @@ class TableMonitor < ApplicationRecord
     if DEBUG
       Rails.logger.info "--------------m6[#{id}]------->>> set_game_over (state=#{state}) <<<------------------------------------------"
     end
-    
+
     # Only show protocol_final modal when entering set_over state ("Partie beendet - OK?")
     # Not when entering final_set_score ("Ergebnis erfasst") or final_match_score
     if state == "set_over"
@@ -870,17 +870,17 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
     Rails.logger.info info if DEBUG
     current_kickoff_player = "playera"
     self.copy_from = nil
-    
+
     # Werte die aus do_placement kommen sollen NICHT überschrieben werden
     existing_innings_goal = data["innings_goal"]
     existing_balls_goal_a = data.dig("playera", "balls_goal")
     existing_balls_goal_b = data.dig("playerb", "balls_goal")
-    
+
     Rails.logger.info "===== initialize_game DEBUG ====="
     Rails.logger.info "BEFORE deep_merge: data['innings_goal'] = #{data['innings_goal'].inspect}"
     Rails.logger.info "existing_innings_goal = #{existing_innings_goal.inspect}"
     Rails.logger.info "tournament_monitor.innings_goal = #{tournament_monitor&.innings_goal.inspect}"
-    
+
     deep_merge_data!({
                        "free_game_form" => tournament_monitor.is_a?(PartyMonitor) ? game.data["free_game_form"] : nil,
                        "balls_on_table" => 15,
@@ -1014,10 +1014,10 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
                          "balls" => 0
                        }
                      })
-    
+
     Rails.logger.info "AFTER deep_merge: data['innings_goal'] = #{data['innings_goal'].inspect}"
     Rails.logger.info "===== initialize_game DEBUG END ====="
-    
+
     # self.panel_state = "pointer_mode"
     # self.current_element = "pointer_mode"
     # finish_warmup! #TODO  INTERMEDIATE SOLUTION UNTIL SHOOTOUT WORKS
@@ -1434,9 +1434,9 @@ data[\"allow_overflow\"].present?")
       # Beispiel: "Andreas Meissner" vs. "Andreas Mertens" =>
       # "Andreas Mei." und "Andreas Mer."
       if show_tournament_monitor.blank? &&
-         gps&.size.to_i >= 2 &&
-         gps[0]&.player.is_a?(Player) &&
-         gps[1]&.player.is_a?(Player)
+        gps&.size.to_i >= 2 &&
+        gps[0]&.player.is_a?(Player) &&
+        gps[1]&.player.is_a?(Player)
 
         p1 = gps[0].player
         p2 = gps[1].player
@@ -1465,6 +1465,7 @@ data[\"allow_overflow\"].present?")
           end
         end
       end
+
       self.options = options
       self.gps = gps
       self.location = table.location
@@ -1580,7 +1581,7 @@ data[\"allow_overflow\"].present?")
   # Check if the match is decided (one player has won enough sets, or all sets played)
   def is_match_decided?
     return true unless is_multi_set_match?
-    
+
     if data["sets_to_win"].to_i > 1
       # Gewinnsätze mode - check if someone has won enough sets
       max_number_of_wins = get_max_number_of_wins
@@ -1802,7 +1803,7 @@ data[\"allow_overflow\"].present?")
     return unless playing?
 
     current_role = data["current_inning"]["active_player"]
-    
+
     # For "14.1 endlos" discipline, use PaperTrail-based redo
     if data[current_role]["discipline"] == "14.1 endlos"
       return unless copy_from.present?
@@ -1818,12 +1819,12 @@ data[\"allow_overflow\"].present?")
       end
       return
     end
-    
+
     # For other disciplines, redo works like next_step: terminate current inning
     # until we reach the current state (no more undone state)
     # Check if there's a current inning with points to terminate
     innings_redo = Array(data[current_role]["innings_redo_list"]).last.to_i
-    
+
     # If we're in an undone state, restore forward through versions first
     if copy_from.present? && copy_from < versions.last.index
       next_copy_from = copy_from + 1
@@ -1836,33 +1837,33 @@ data[\"allow_overflow\"].present?")
         return
       end
     end
-    
+
     # If we're at current state and there's a current inning with points, terminate it
     if innings_redo > 0
       terminate_current_inning
     end
   end
-  
+
   def can_redo?
     return false unless playing?
     current_role = data["current_inning"]["active_player"]
-    
+
     # For "14.1 endlos", check if copy_from allows redo
     if data[current_role]["discipline"] == "14.1 endlos"
       return copy_from.present? && copy_from < versions.last.index
     end
-    
+
     # For other disciplines, check if there's a current inning with points or undone state
     innings_redo = Array(data[current_role]["innings_redo_list"]).last.to_i
     return true if innings_redo > 0
     return true if copy_from.present? && copy_from < versions.last.index
     false
   end
-  
+
   def can_undo?
     return false unless playing? || set_over?
     current_role = data["current_inning"]["active_player"]
-    
+
     # For "14.1 endlos", check if we can go back
     if data[current_role]["discipline"] == "14.1 endlos"
       # Can undo if we have versions and either copy_from is set or we have game data
@@ -1873,7 +1874,7 @@ data[\"allow_overflow\"].present?")
         data["playera"]["innings_redo_list"].andand[-1].to_i + data["playerb"]["innings_redo_list"].andand[-1].to_i) > 0
       return false
     end
-    
+
     # For other disciplines, check if we have innings to undo
     the_other_player = (current_role == "playera" ? "playerb" : "playera")
     return true if (data[the_other_player]["innings"]).to_i.positive?
@@ -2124,7 +2125,7 @@ data[\"allow_overflow\"].present?")
       # Remember if we were playing before any state transition
       was_playing = playing?
       is_simple_set = simple_set_game?
-      
+
       # For simple set games (8-Ball, 9-Ball, 10-Ball), handle set end differently:
       # - Don't show protocol modal after each set
       # - Automatically switch to next set
@@ -2210,18 +2211,18 @@ data[\"allow_overflow\"].present?")
 
     # Check if we have an existing Party/Tournament game that should be preserved
     existing_party_game = game if game.present? && game.tournament_type.present?
-    
+
     if existing_party_game.present?
       # Use the existing Party/Tournament game - don't create a new one
       @game = existing_party_game
       Rails.logger.info "Using existing #{game.tournament_type} game #{@game.id} for table monitor #{id}" if DEBUG
-      
+
       # Update or create game participations
       players = Player.where(id: options["player_a_id"]).order(:dbu_nr).to_a
       team = Player.team_from_players(players)
       gp_a = @game.game_participations.find_or_initialize_by(role: "playera")
       gp_a.update!(player: team)
-      
+
       players = Player.where(id: options["player_b_id"]).order(:dbu_nr).to_a
       team = Player.team_from_players(players)
       gp_b = @game.game_participations.find_or_initialize_by(role: "playerb")

@@ -29,12 +29,12 @@
     <div class="flex h-1/2 flex-row w-full space-x-4">
       <div class="flex-1 h-full text-center">
         <%= content_tag "div", class: "text-2vw h-2/3 btn btn-primary", data: { turbo: false, reflex: "click->TableMonitorReflex#start_game", id: table_monitor.id }, id: "start_game", tabindex: 6 do %>
-          <%= "#{kickoff_player_name} stößt an!" %>
+          <%= "#{left_player[:fullname]} stößt an!" %>
         <%- end %>
       </div>
       <div class="flex-1 h-full text-center">
         <%= content_tag "div", class: "text-2vw h-2/3 btn btn-primary", data: { turbo: false, reflex: "click->TableMonitorReflex#switch_players_and_start_game", id: table_monitor.id }, id: "switch_and_start", tabindex: 6 do %>
-          <%= "#{aftershot_player_name} stößt an!" %>
+          <%= "#{right_player[:fullname]} stößt an!" %>
         <%- end %>
       </div>
     </div>
