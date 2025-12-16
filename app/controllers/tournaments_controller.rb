@@ -359,6 +359,9 @@ class TournamentsController < ApplicationController
           })
           table_mon.save!
           Rails.logger.info "TableMonitor[#{table_mon.id}] updated: innings_goal=#{table_mon.data['innings_goal']}"
+          
+          # Broadcast teaser update für tournament_scores view
+          TableMonitorJob.perform_later(table_mon.id, "teaser")
         end
         Rails.logger.info "===== TableMonitors UPDATED ====="
       end
