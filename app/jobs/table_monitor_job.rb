@@ -28,11 +28,32 @@ class TableMonitorJob < ApplicationJob
     Rails.logger.info "📡 Stream: table-monitor-stream (SHARED - clients filter by table_monitor_id)"
     Rails.logger.info "📡 Broadcast Timestamp: #{broadcast_timestamp}"
     
+    # RACE CONDITION PROTECTION: Capture game_id BEFORE reload
+    # If reload pulls different game_id, we're dealing with stale data from previous game
+    enqueued_game_id = table_monitor.game_id
+    enqueued_state = table_monitor.state
+    
+    Rails.logger.info "📡 BEFORE reload: state=#{enqueued_state}, game_id=#{enqueued_game_id}"
+    
     # Reload and clear cache to ensure fresh data
     table_monitor.reload
     table_monitor.clear_options_cache
     
-    Rails.logger.info "📡 Reloaded state: #{table_monitor.state}, game_id: #{table_monitor.game_id}"
+    reloaded_game_id = table_monitor.game_id
+    reloaded_state = table_monitor.state
+    
+    Rails.logger.info "📡 AFTER reload: state=#{reloaded_state}, game_id=#{reloaded_game_id}"
+    
+    # GUARD: Detect race condition - abort job if game changed during reload
+    if enqueued_game_id != reloaded_game_id
+      Rails.logger.error "[⚠️  RACE CONDITION DETECTED] TM[#{table_monitor.id}] Job enqueued for Game[#{enqueued_game_id}] (#{enqueued_state}), but reload shows Game[#{reloaded_game_id}] (#{reloaded_state}) - ABORTING job to prevent corruption!"
+      return # Abort this job - it's for the wrong game
+    end
+    
+    # Additional warning for state changes (informational, not blocking)
+    if enqueued_state != reloaded_state
+      Rails.logger.warn "[📡 State changed during reload] TM[#{table_monitor.id}] Game[#{reloaded_game_id}]: #{enqueued_state} → #{reloaded_state} (continuing with fresh state)"
+    end
     
     info = "perf +++++++!!!! C: PERFORM JOB #{Time.now} TM[#{table_monitor.id}]"
     Rails.logger.info info if debug
