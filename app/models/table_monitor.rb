@@ -705,13 +705,28 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
     false
   end
 
+  # Returns the initial number of red balls for snooker (6, 10, or 15)
+  # Default is 15 (standard snooker)
+  def initial_red_balls
+    return 15 unless data["free_game_form"] == "snooker"
+    
+    value = data["initial_red_balls"].to_i
+    # Only allow valid values: 6, 10, or 15
+    if [6, 10, 15].include?(value)
+      value
+    else
+      15 # Default to 15 if invalid value
+    end
+  end
+
   # Updates snooker game state when a ball is potted
   def update_snooker_state(ball_value)
     return unless data["free_game_form"] == "snooker"
     
     # Initialize snooker state tracking if not present
+    initial_reds = initial_red_balls
     data["snooker_state"] ||= {
-      "reds_remaining" => 15,
+      "reds_remaining" => initial_reds,
       "last_potted_ball" => nil,
       "free_ball_active" => false,
       "colors_sequence" => [2, 3, 4, 5, 6, 7]
@@ -758,15 +773,16 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
     return {} unless data["free_game_form"] == "snooker"
     
     # Initialize snooker state tracking if not present
+    initial_reds = initial_red_balls
     data["snooker_state"] ||= {
-      "reds_remaining" => 15,
+      "reds_remaining" => initial_reds,
       "last_potted_ball" => nil, # 1 for red, 2-7 for colors
       "free_ball_active" => false,
       "colors_sequence" => [2, 3, 4, 5, 6, 7] # Remaining colors in order
     }
     
     state = data["snooker_state"]
-    reds_remaining = state["reds_remaining"] || 15
+    reds_remaining = state["reds_remaining"] || initial_reds
     last_potted = state["last_potted_ball"]
     free_ball_active = state["free_ball_active"] || false
     colors_sequence = state["colors_sequence"] || [2, 3, 4, 5, 6, 7]
@@ -1012,8 +1028,20 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
     Rails.logger.info "existing_innings_goal = #{existing_innings_goal.inspect}"
     Rails.logger.info "tournament_monitor.innings_goal = #{tournament_monitor&.innings_goal.inspect}"
 
+    # Initialize initial_red_balls for snooker (default 15)
+    initial_reds = if tournament_monitor.is_a?(PartyMonitor) && game.data["free_game_form"] == "snooker"
+                     game.data["initial_red_balls"] || 15
+                   elsif data["free_game_form"] == "snooker"
+                     data["initial_red_balls"] || 15
+                   else
+                     15
+                   end
+    # Ensure valid value (6, 10, or 15)
+    initial_reds = [6, 10, 15].include?(initial_reds.to_i) ? initial_reds.to_i : 15
+    
     deep_merge_data!({
                        "free_game_form" => tournament_monitor.is_a?(PartyMonitor) ? game.data["free_game_form"] : nil,
+                       "initial_red_balls" => initial_reds,
                        "balls_on_table" => 15,
                        "balls_counter" => 15,
                        "balls_counter_stack" => [],

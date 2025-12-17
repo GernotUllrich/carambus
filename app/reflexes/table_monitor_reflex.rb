@@ -575,7 +575,8 @@ class TableMonitorReflex < ApplicationReflex
     
     # Update reds remaining if reds were removed
     if reds_to_remove > 0
-      @table_monitor.data["snooker_state"] ||= { "reds_remaining" => 15 }
+      initial_reds = @table_monitor.initial_red_balls
+      @table_monitor.data["snooker_state"] ||= { "reds_remaining" => initial_reds }
       current_reds = @table_monitor.data["snooker_state"]["reds_remaining"].to_i
       @table_monitor.data["snooker_state"]["reds_remaining"] = [current_reds - reds_to_remove, 0].max
     end
