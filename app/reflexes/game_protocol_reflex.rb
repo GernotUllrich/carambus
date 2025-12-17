@@ -237,35 +237,55 @@ class GameProtocolReflex < ApplicationReflex
     
     Rails.logger.info "💾 Saving snooker inning edit: player=#{player}, inning=#{inning_index}, balls=#{new_balls.inspect}" if TableMonitor::DEBUG
     
-    # Update break_balls_list
-    @table_monitor.data[player]["break_balls_list"] ||= []
-    @table_monitor.data[player]["break_balls_list"][inning_index] = new_balls
+    # Calculate new points from balls
+    balls_points = new_balls.sum
     
-    # CRITICAL: Ensure break_fouls_list has matching length with nil entries
-    # This keeps the arrays synchronized so fouls don't shift positions
-    @table_monitor.data[player]["break_fouls_list"] ||= []
-    while @table_monitor.data[player]["break_fouls_list"].length <= inning_index
-      @table_monitor.data[player]["break_fouls_list"] << nil
+    # Check if this inning has a pending foul (not yet completed)
+    has_pending_foul = @table_monitor.data[player]["pending_foul"].present?
+    
+    if has_pending_foul
+      # This is an ACTIVE inning with foul points waiting to be finalized
+      # Update innings_redo_list (current break), NOT innings_list
+      foul_points = @table_monitor.data[player]["pending_foul"]["points"].to_i
+      total_points = balls_points + foul_points
+      
+      @table_monitor.data[player]["innings_redo_list"] ||= [0]
+      @table_monitor.data[player]["innings_redo_list"][-1] = total_points
+      
+      # Update break_balls_redo_list (current break balls)
+      @table_monitor.data[player]["break_balls_redo_list"] ||= [[]]
+      @table_monitor.data[player]["break_balls_redo_list"][-1] = new_balls
+      
+      # Don't touch innings_list or break_balls_list - inning not yet completed
+      Rails.logger.info "💾 Updated ACTIVE inning (with pending foul): balls=#{balls_points}, foul=#{foul_points}, total=#{total_points}" if TableMonitor::DEBUG
+    else
+      # This is a COMPLETED inning - update innings_list normally
+      @table_monitor.data[player]["break_balls_list"] ||= []
+      @table_monitor.data[player]["break_balls_list"][inning_index] = new_balls
+      
+      # CRITICAL: Ensure break_fouls_list has matching length with nil entries
+      @table_monitor.data[player]["break_fouls_list"] ||= []
+      while @table_monitor.data[player]["break_fouls_list"].length <= inning_index
+        @table_monitor.data[player]["break_fouls_list"] << nil
+      end
+      @table_monitor.data[player]["break_fouls_list"][inning_index] = nil
+      
+      # Update innings_list
+      @table_monitor.data[player]["innings_list"] ||= []
+      @table_monitor.data[player]["innings_list"][inning_index] = balls_points
+      
+      # Recalculate result (sum of all completed innings)
+      @table_monitor.data[player]["result"] = @table_monitor.data[player]["innings_list"].compact.sum
+      
+      # Recalculate innings count (number of completed innings)
+      @table_monitor.data[player]["innings"] = @table_monitor.data[player]["innings_list"].compact.size
+      
+      # Update HS (high score) if this inning is higher
+      current_hs = @table_monitor.data[player]["hs"].to_i
+      @table_monitor.data[player]["hs"] = [current_hs, balls_points].max
+      
+      Rails.logger.info "💾 Updated COMPLETED inning: balls=#{balls_points}" if TableMonitor::DEBUG
     end
-    # Ensure this position is nil (not a foul) since we're editing balls
-    @table_monitor.data[player]["break_fouls_list"][inning_index] = nil
-    
-    # Calculate new points
-    new_points = new_balls.sum
-    
-    # Update innings_list
-    @table_monitor.data[player]["innings_list"] ||= []
-    @table_monitor.data[player]["innings_list"][inning_index] = new_points
-    
-    # Recalculate result (sum of all completed innings)
-    @table_monitor.data[player]["result"] = @table_monitor.data[player]["innings_list"].compact.sum
-    
-    # Recalculate innings count (number of completed innings)
-    @table_monitor.data[player]["innings"] = @table_monitor.data[player]["innings_list"].compact.size
-    
-    # Update HS (high score) if this inning is higher
-    current_hs = @table_monitor.data[player]["hs"].to_i
-    @table_monitor.data[player]["hs"] = [current_hs, new_points].max
     
     # Clear edit state
     @table_monitor.data.delete("snooker_inning_edit")
