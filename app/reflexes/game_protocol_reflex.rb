@@ -186,5 +186,135 @@ class GameProtocolReflex < ApplicationReflex
       html: html
     ).broadcast
   end
+
+  # Snooker Inning Edit Methods
+
+  def open_snooker_inning_edit
+    morph :nothing
+    return unless @table_monitor.data["free_game_form"] == "snooker"
+    
+    inning_index = element.dataset['inning'].to_i
+    player = element.dataset['player'] # 'playera' or 'playerb'
+    
+    Rails.logger.info "🎯 GameProtocolReflex#open_snooker_inning_edit: inning=#{inning_index}, player=#{player}" if TableMonitor::DEBUG
+    
+    # Get current balls for this inning
+    history = @table_monitor.innings_history
+    player_data = player == 'playera' ? history[:player_a] : history[:player_b]
+    current_balls = player_data[:break_balls][inning_index] || []
+    
+    # Store edit state
+    @table_monitor.data["snooker_inning_edit"] = {
+      "inning_index" => inning_index,
+      "player" => player,
+      "balls" => current_balls
+    }
+    
+    @table_monitor.skip_update_callbacks = true
+    @table_monitor.panel_state = "snooker_inning_edit"
+    @table_monitor.data_will_change!
+    @table_monitor.save!
+    @table_monitor.skip_update_callbacks = false
+    
+    TableMonitorJob.perform_later(@table_monitor.id, "")
+  end
+
+  def add_ball_to_edit
+    morph :nothing
+    return unless @table_monitor.data["free_game_form"] == "snooker"
+    
+    ball_value = element.dataset['ball'].to_i
+    edit_data = @table_monitor.data["snooker_inning_edit"] || {}
+    balls = edit_data["balls"] || []
+    balls << ball_value
+    edit_data["balls"] = balls
+    
+    @table_monitor.data["snooker_inning_edit"] = edit_data
+    @table_monitor.data_will_change!
+    @table_monitor.save!
+    
+    TableMonitorJob.perform_later(@table_monitor.id, "")
+  end
+
+  def remove_ball_from_edit
+    morph :nothing
+    return unless @table_monitor.data["free_game_form"] == "snooker"
+    
+    index = element.dataset['index'].to_i
+    edit_data = @table_monitor.data["snooker_inning_edit"] || {}
+    balls = edit_data["balls"] || []
+    balls.delete_at(index) if index < balls.length
+    edit_data["balls"] = balls
+    
+    @table_monitor.data["snooker_inning_edit"] = edit_data
+    @table_monitor.data_will_change!
+    @table_monitor.save!
+    
+    TableMonitorJob.perform_later(@table_monitor.id, "")
+  end
+
+  def clear_balls_in_edit
+    morph :nothing
+    return unless @table_monitor.data["free_game_form"] == "snooker"
+    
+    edit_data = @table_monitor.data["snooker_inning_edit"] || {}
+    edit_data["balls"] = []
+    
+    @table_monitor.data["snooker_inning_edit"] = edit_data
+    @table_monitor.data_will_change!
+    @table_monitor.save!
+    
+    TableMonitorJob.perform_later(@table_monitor.id, "")
+  end
+
+  def cancel_snooker_inning_edit
+    morph :nothing
+    return unless @table_monitor.data["free_game_form"] == "snooker"
+    
+    @table_monitor.data.delete("snooker_inning_edit")
+    @table_monitor.skip_update_callbacks = true
+    @table_monitor.panel_state = "protocol"
+    @table_monitor.data_will_change!
+    @table_monitor.save!
+    @table_monitor.skip_update_callbacks = false
+    
+    TableMonitorJob.perform_later(@table_monitor.id, "")
+  end
+
+  def save_snooker_inning_edit
+    morph :nothing
+    return unless @table_monitor.data["free_game_form"] == "snooker"
+    
+    edit_data = @table_monitor.data["snooker_inning_edit"] || {}
+    inning_index = edit_data["inning_index"].to_i
+    player = edit_data["player"]
+    new_balls = edit_data["balls"] || []
+    new_points = new_balls.sum
+    
+    Rails.logger.info "🎯 Saving snooker inning edit: inning=#{inning_index}, player=#{player}, balls=#{new_balls.inspect}, points=#{new_points}" if TableMonitor::DEBUG
+    
+    # Update break_balls_list
+    @table_monitor.data[player]["break_balls_list"] ||= []
+    @table_monitor.data[player]["break_balls_list"][inning_index] = new_balls
+    
+    # Update innings_list
+    @table_monitor.data[player]["innings_list"] ||= []
+    @table_monitor.data[player]["innings_list"][inning_index] = new_points
+    
+    # Recalculate all stats
+    @table_monitor.recalculate_player_stats(player)
+    
+    # Clear edit state
+    @table_monitor.data.delete("snooker_inning_edit")
+    @table_monitor.skip_update_callbacks = true
+    @table_monitor.panel_state = "protocol"
+    @table_monitor.data_will_change!
+    @table_monitor.save!
+    @table_monitor.skip_update_callbacks = false
+    
+    # Refresh protocol modal
+    send_modal_update(render_protocol_modal)
+    TableMonitorJob.perform_later(@table_monitor.id, "")
+  end
 end
 

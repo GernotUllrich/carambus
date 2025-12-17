@@ -1,0 +1,102 @@
+<%- table_monitor = local_assigns[:table_monitor] %>
+<%- edit_data = table_monitor.data["snooker_inning_edit"] || {} %>
+<%- inning_index = edit_data["inning_index"] %>
+<%- player = edit_data["player"] %>
+<%- current_balls = edit_data["balls"] || [] %>
+<%- current_points = current_balls.sum %>
+
+<%= content_tag "div" do %>
+  <div id="snooker_inning_edit_modal_<%= table_monitor.id %>" class="modal-content-30">
+    <div class="flex flex-col h-screen space-y-4 rounded-lg border-2 border-gray-300 dark:bg-black dark:text-white p-6">
+      <!-- Title -->
+      <div class="flex flex-row items-center justify-between">
+        <h1 class="text-4xl font-bold">Aufnahme <%= inning_index.to_i + 1 %> bearbeiten</h1>
+        <button data-reflex="click->GameProtocolReflex#cancel_snooker_inning_edit"
+                data-id="<%= table_monitor.id %>"
+                class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 text-3xl">&times;</button>
+      </div>
+
+      <!-- Current Player -->
+      <div class="text-2xl text-center text-gray-600 dark:text-gray-400">
+        <%= player == 'playera' ? 'Spieler A' : 'Spieler B' %>
+      </div>
+
+      <!-- Current Points Display -->
+      <div class="text-center">
+        <div class="text-6xl font-bold text-blue-500 dark:text-blue-400">
+          <%= current_points %>
+        </div>
+        <div class="text-xl text-gray-500 dark:text-gray-400 mt-2">
+          Punkte
+        </div>
+      </div>
+
+      <!-- Current Balls Display -->
+      <div class="flex-1 overflow-y-auto">
+        <div class="text-xl font-semibold mb-3">Versenkte Bälle:</div>
+        <%- if current_balls.any? %>
+          <div class="flex items-center flex-wrap gap-2">
+            <%- ball_image_map = { 1 => 'snooker_ball_red', 2 => 'snooker_ball_yellow', 3 => 'snooker_ball_green', 4 => 'snooker_ball_brown', 5 => 'snooker_ball_blue', 6 => 'snooker_ball_pink', 7 => 'snooker_ball_black' } %>
+            <%- current_balls.each_with_index do |ball_value, idx| %>
+              <%- ball_image = ball_image_map[ball_value] %>
+              <div class="relative">
+                <%= image_tag "#{ball_image}.svg", class: "w-12 h-12 object-contain #{ball_value == 7 ? 'rounded-full border border-gray-400 dark:border-gray-500' : ''}" %>
+                <button data-reflex="click->GameProtocolReflex#remove_ball_from_edit"
+                        data-id="<%= table_monitor.id %>"
+                        data-index="<%= idx %>"
+                        class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full text-sm hover:bg-red-600">×</button>
+              </div>
+            <%- end %>
+          </div>
+        <%- else %>
+          <div class="text-gray-500 dark:text-gray-400 italic">Keine Bälle versenkt</div>
+        <%- end %>
+      </div>
+
+      <!-- Ball Selector -->
+      <div class="border-t-2 border-gray-300 dark:border-gray-600 pt-4">
+        <div class="text-xl font-semibold mb-3">Ball hinzufügen:</div>
+        <div class="flex items-center justify-center flex-wrap gap-3">
+          <%- ball_map = { 
+            1 => { image: 'snooker_ball_red', points: 1 },
+            2 => { image: 'snooker_ball_yellow', points: 2 },
+            3 => { image: 'snooker_ball_green', points: 3 },
+            4 => { image: 'snooker_ball_brown', points: 4 },
+            5 => { image: 'snooker_ball_blue', points: 5 },
+            6 => { image: 'snooker_ball_pink', points: 6 },
+            7 => { image: 'snooker_ball_black', points: 7 }
+          } %>
+          
+          <%- ball_map.each do |ball_value, ball_info| %>
+            <button data-reflex="click->GameProtocolReflex#add_ball_to_edit"
+                    data-id="<%= table_monitor.id %>"
+                    data-ball="<%= ball_value %>"
+                    class="relative flex items-center justify-center w-16 h-16 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition">
+              <%= image_tag "#{ball_info[:image]}.svg", class: "w-full h-full object-contain #{ball_value == 7 ? 'rounded-full border border-gray-400 dark:border-gray-500' : ''}" %>
+            </button>
+          <%- end %>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex flex-row items-center justify-between space-x-4 pt-4 border-t-2 border-gray-300 dark:border-gray-600">
+        <button data-reflex="click->GameProtocolReflex#clear_balls_in_edit"
+                data-id="<%= table_monitor.id %>"
+                class="flex-1 px-6 py-3 bg-gray-500 hover:bg-gray-600 text-white rounded-lg text-xl font-semibold">
+          Alle löschen
+        </button>
+        <button data-reflex="click->GameProtocolReflex#cancel_snooker_inning_edit"
+                data-id="<%= table_monitor.id %>"
+                class="flex-1 px-6 py-3 bg-gray-300 dark:bg-gray-700 hover:bg-gray-400 dark:hover:bg-gray-600 rounded-lg text-xl font-semibold">
+          Abbrechen
+        </button>
+        <button data-reflex="click->GameProtocolReflex#save_snooker_inning_edit"
+                data-id="<%= table_monitor.id %>"
+                class="flex-1 px-6 py-3 bg-green-500 hover:bg-green-600 text-white rounded-lg text-xl font-semibold">
+          Speichern
+        </button>
+      </div>
+    </div>
+  </div>
+<%- end %>
+

@@ -65,6 +65,16 @@
                    } %>
       <%- end %>
     </div>
+    <%- if table_monitor.snooker_inning_edit_modal_should_be_open? %>
+      <%= render partial: "table_monitors/snooker_inning_edit_modal",
+                 locals: {
+                   table_monitor: table_monitor,
+                   full_screen: full_screen,
+                   modal_hidden: !table_monitor.snooker_inning_edit_modal_should_be_open?
+                 },
+                 layout: "layouts/application"
+      %>
+    <%- end %>
   <%- end %>
 
   <%= content_tag "div", id: "panel_state", panel_state: table_monitor.panel_state, style: "display: none" do %>

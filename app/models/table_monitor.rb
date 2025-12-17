@@ -705,6 +705,13 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
     false
   end
 
+  def snooker_inning_edit_modal_should_be_open?
+    panel_state == "snooker_inning_edit"
+  rescue StandardError => e
+    Rails.logger.info "ERROR: snooker_inning_edit_modal_should_be_open?[#{id}]#{e}, #{e.backtrace&.join("\n")}" if DEBUG
+    false
+  end
+
   # Returns the initial number of red balls for snooker (6, 10, or 15)
   # Default is 15 (standard snooker)
   def initial_red_balls
