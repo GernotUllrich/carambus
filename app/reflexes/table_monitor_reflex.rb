@@ -571,8 +571,10 @@ class TableMonitorReflex < ApplicationReflex
     # Mark data as changed
     @table_monitor.data_will_change!
     
-    # Store foul information for protocol (stored for OPPONENT who gets the points)
-    @table_monitor.data["last_foul"] = {
+    # Store foul information for protocol
+    # Foul will be stored with the RECEIVING player (opponent) in their break_fouls_list
+    # when their inning is terminated
+    foul_info = {
       "ball_value" => ball_value,
       "points" => foul_points,
       "free_ball" => free_ball,
@@ -581,6 +583,13 @@ class TableMonitorReflex < ApplicationReflex
       "fouling_player" => active_player,  # Who made the foul
       "receiving_player" => opponent_player  # Who gets the points
     }
+    
+    # Store for scoreboard display (temporary)
+    @table_monitor.data["last_foul"] = foul_info
+    
+    # Store foul info for the RECEIVING player's current break
+    # This will be saved to break_fouls_list when terminate_current_inning is called
+    @table_monitor.data[opponent_player]["current_break_foul"] = foul_info
     
     # Set free ball status if free ball was selected
     if free_ball
@@ -610,7 +619,7 @@ class TableMonitorReflex < ApplicationReflex
       @table_monitor.data[active_player]["innings_redo_list"] = active_break_list
     end
     
-    # For snooker: Store foul break (0 points) with foul info
+    # For snooker: Terminate the fouling player's break (0 points with foul info)
     if @table_monitor.data["free_game_form"] == "snooker"
       @table_monitor.data[active_player]["break_balls_redo_list"] ||= []
       if @table_monitor.data[active_player]["break_balls_redo_list"].empty?
@@ -619,6 +628,10 @@ class TableMonitorReflex < ApplicationReflex
       @table_monitor.data[active_player]["break_balls_redo_list"][-1] = [] # Clear break balls
       # Terminate the foul break to store it in protocol
       @table_monitor.terminate_current_inning(active_player)
+      
+      # CRITICAL FIX: The opponent's break CONTINUES (foul points + subsequent balls = ONE inning)
+      # DO NOT terminate opponent's inning here - it will be terminated when they miss or foul
+      # The foul points are already in opponent's innings_redo_list, subsequent balls will be added
     end
     
     # STEP 3: Switch to opponent player (who now has the points and should be active)
