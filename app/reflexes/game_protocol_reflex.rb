@@ -248,19 +248,26 @@ class GameProtocolReflex < ApplicationReflex
     @table_monitor.data[player]["innings_list"] ||= []
     @table_monitor.data[player]["innings_list"][inning_index] = new_points
     
-    # Recalculate all stats
-    @table_monitor.recalculate_player_stats(player)
+    # Recalculate result (sum of all completed innings)
+    @table_monitor.data[player]["result"] = @table_monitor.data[player]["innings_list"].compact.sum
+    
+    # Recalculate innings count (number of completed innings)
+    @table_monitor.data[player]["innings"] = @table_monitor.data[player]["innings_list"].compact.size
+    
+    # Update HS (high score) if this inning is higher
+    current_hs = @table_monitor.data[player]["hs"].to_i
+    @table_monitor.data[player]["hs"] = [current_hs, new_points].max
     
     # Clear edit state
     @table_monitor.data.delete("snooker_inning_edit")
     @table_monitor.skip_update_callbacks = true
-    @table_monitor.panel_state = "protocol"
+    @table_monitor.panel_state = "protocol_edit"  # Stay in edit mode
     @table_monitor.data_will_change!
     @table_monitor.save!
     @table_monitor.skip_update_callbacks = false
     
-    # Refresh protocol modal
-    send_modal_update(render_protocol_modal)
+    # Refresh protocol table body only
+    send_table_update(render_protocol_table_body)
     TableMonitorJob.perform_later(@table_monitor.id, "")
   end
   
