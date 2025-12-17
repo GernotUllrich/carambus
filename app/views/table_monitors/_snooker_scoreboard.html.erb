@@ -389,7 +389,7 @@
                             } : {},
                             title: ball_is_addable ? "+1" : (ball_is_playable ? "Add #{ball_value} point#{ball_value > 1 ? 's' : ''}" : "Ball not 'on'"),
                             tabindex: ball_is_playable ? 2 : -1 do %>
-              <div class="relative flex items-center justify-center w-16 h-16">
+              <div class="relative flex items-center justify-center <%= ball_value == 7 ? 'dark:border dark:border-gray-500 rounded-full' : '' %>" style="width: 5.2rem; height: 5.2rem;">
                 <%= image_tag "#{ball_image}.svg", class: "w-full h-full object-contain #{ball_is_off ? 'opacity-50' : ''}" %>
                 <%- if ball_value == 1 %>
                   <%- # Show reds remaining on red ball %>

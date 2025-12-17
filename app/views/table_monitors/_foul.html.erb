@@ -31,7 +31,7 @@
           <%- { 5 => 'snooker_ball_blue', 6 => 'snooker_ball_pink', 7 => 'snooker_ball_black' }.each do |value, image| %>
             <%= content_tag "div",
                             data: { reflex: "click->TableMonitorReflex#foul_select_ball", id: table_monitor.id, ball: value },
-                            class: "relative flex items-center justify-center w-20 h-20 rounded-full border-4 #{selected_ball == value ? 'border-yellow-400 shadow-lg' : 'border-gray-400'}",
+                            class: "relative flex items-center justify-center w-20 h-20 rounded-full border-4 #{selected_ball == value ? 'border-yellow-400 shadow-lg' : 'border-gray-400'} #{value == 7 ? 'dark:border-gray-500' : ''}",
                             id: "foul_ball_#{value}",
                             tabindex: 5 do %>
               <%= image_tag "#{image}.svg", class: "w-full h-full object-contain" %>
