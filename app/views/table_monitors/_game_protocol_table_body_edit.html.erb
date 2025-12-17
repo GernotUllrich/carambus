@@ -57,23 +57,11 @@
     <td class="py-2 px-4 text-center bg-blue-50 dark:bg-blue-900 dark:bg-blue-900 dark:bg-opacity-20">
       <% if show_inning_a %>
         <%- if table_monitor.data["free_game_form"] == "snooker" %>
-          <%# Snooker: Show balls and Edit button (only for non-foul innings) %>
+          <%# Snooker: Only show normal innings (with balls), skip fouls %>
           <%- has_balls = player_a[:break_balls] && player_a[:break_balls][i] && player_a[:break_balls][i].any? %>
           <%- has_foul = player_a[:break_fouls] && player_a[:break_fouls][i] && player_a[:break_fouls][i]["fouling_player"] == "playera" %>
-          <%- if has_foul %>
-            <%# Foul inning - show foul info, no edit button %>
-            <%- foul = player_a[:break_fouls][i] %>
-            <div class="flex items-center justify-center gap-2 text-red-600 dark:text-red-400">
-              <%- ball_value = foul["ball_value"] || 4 %>
-              <%- ball_image_map = { 1 => 'snooker_ball_red', 2 => 'snooker_ball_yellow', 3 => 'snooker_ball_green', 4 => 'snooker_ball_brown', 5 => 'snooker_ball_blue', 6 => 'snooker_ball_pink', 7 => 'snooker_ball_black' } %>
-              <%- ball_image = ball_image_map[ball_value] %>
-              <%- if ball_image %>
-                <%= image_tag "#{ball_image}.svg", class: "w-6 h-6 object-contain #{ball_value == 7 ? 'rounded-full border border-gray-400 dark:border-gray-500' : ''}" %>
-              <%- end %>
-              <span class="font-bold">Foul -<%= foul["points"] %></span>
-            </div>
-          <%- else %>
-            <%# Normal inning - show balls and edit button %>
+          <%- if !has_foul && inning_a.to_i > 0 %>
+            <%# Only normal innings (not fouls) %>
             <div class="flex items-center justify-center gap-2">
               <span class="font-semibold"><%= inning_a %></span>
               <%- if has_balls %>
@@ -122,23 +110,11 @@
     <td class="py-2 px-4 text-center bg-green-50 dark:bg-green-900 dark:bg-opacity-20">
       <% if show_inning_b %>
         <%- if table_monitor.data["free_game_form"] == "snooker" %>
-          <%# Snooker: Show balls and Edit button (only for non-foul innings) %>
+          <%# Snooker: Only show normal innings (with balls), skip fouls %>
           <%- has_balls = player_b[:break_balls] && player_b[:break_balls][i] && player_b[:break_balls][i].any? %>
           <%- has_foul = player_b[:break_fouls] && player_b[:break_fouls][i] && player_b[:break_fouls][i]["fouling_player"] == "playerb" %>
-          <%- if has_foul %>
-            <%# Foul inning - show foul info, no edit button %>
-            <%- foul = player_b[:break_fouls][i] %>
-            <div class="flex items-center justify-center gap-2 text-red-600 dark:text-red-400">
-              <%- ball_value = foul["ball_value"] || 4 %>
-              <%- ball_image_map = { 1 => 'snooker_ball_red', 2 => 'snooker_ball_yellow', 3 => 'snooker_ball_green', 4 => 'snooker_ball_brown', 5 => 'snooker_ball_blue', 6 => 'snooker_ball_pink', 7 => 'snooker_ball_black' } %>
-              <%- ball_image = ball_image_map[ball_value] %>
-              <%- if ball_image %>
-                <%= image_tag "#{ball_image}.svg", class: "w-6 h-6 object-contain #{ball_value == 7 ? 'rounded-full border border-gray-400 dark:border-gray-500' : ''}" %>
-              <%- end %>
-              <span class="font-bold">Foul -<%= foul["points"] %></span>
-            </div>
-          <%- else %>
-            <%# Normal inning - show balls and edit button %>
+          <%- if !has_foul && inning_b.to_i > 0 %>
+            <%# Only normal innings (not fouls) %>
             <div class="flex items-center justify-center gap-2">
               <span class="font-semibold"><%= inning_b %></span>
               <%- if has_balls %>
