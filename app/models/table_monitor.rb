@@ -2184,7 +2184,9 @@ data[\"allow_overflow\"].present?")
           end
           # Reduce break by 1 (minimum 0)
           data[current_role]["innings_redo_list"][-1] = [current_break - 1, 0].max
+          # Recompute result for both players to ensure score is correct
           recompute_result(current_role)
+          recompute_result(the_other_player)
         end
       elsif (data["playera"]["innings"].to_i + data["playerb"]["innings"].to_i +
         data["playera"]["result"].to_i + data["playerb"]["result"].to_i +
