@@ -53,22 +53,46 @@
       <span class="font-semibold"><%= i + 1 %></span>
     </td>
     
-    <!-- Player A Points with +/- buttons -->
-    <td class="py-2 px-4 text-center bg-blue-50 dark:bg-blue-900 dark:bg-opacity-20">
+    <!-- Player A Points with +/- buttons or Edit for Snooker -->
+    <td class="py-2 px-4 text-center bg-blue-50 dark:bg-blue-900 dark:bg-blue-900 dark:bg-opacity-20">
       <% if show_inning_a %>
-        <div class="flex items-center justify-center gap-1">
-          <button data-reflex="click->GameProtocolReflex#decrement_points"
-                  data-inning="<%= i %>"
-                  data-player="playera"
-                  data-id="<%= table_monitor.id %>"
-                  class="px-2 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded text-sm font-bold">−</button>
-          <span class="<%= input_class_a %> w-16 px-2 py-1 text-center"><%= inning_a %></span>
-          <button data-reflex="click->GameProtocolReflex#increment_points"
-                  data-inning="<%= i %>"
-                  data-player="playera"
-                  data-id="<%= table_monitor.id %>"
-                  class="px-2 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded text-sm font-bold">+</button>
-        </div>
+        <%- if table_monitor.data["free_game_form"] == "snooker" %>
+          <%# Snooker: Show balls and Edit button %>
+          <div class="flex items-center justify-center gap-2">
+            <span class="font-semibold"><%= inning_a %></span>
+            <%- if player_a[:break_balls] && player_a[:break_balls][i] && player_a[:break_balls][i].any? %>
+              <div class="flex items-center gap-0.5">
+                <%- player_a[:break_balls][i].each do |ball_value| %>
+                  <%- ball_image_map = { 1 => 'snooker_ball_red', 2 => 'snooker_ball_yellow', 3 => 'snooker_ball_green', 4 => 'snooker_ball_brown', 5 => 'snooker_ball_blue', 6 => 'snooker_ball_pink', 7 => 'snooker_ball_black' } %>
+                  <%- ball_image = ball_image_map[ball_value] %>
+                  <%- if ball_image %>
+                    <%= image_tag "#{ball_image}.svg", class: "w-5 h-5 object-contain #{ball_value == 7 ? 'rounded-full border border-gray-400 dark:border-gray-500' : ''}" %>
+                  <%- end %>
+                <%- end %>
+              </div>
+            <%- end %>
+            <button data-reflex="click->GameProtocolReflex#open_snooker_inning_edit"
+                    data-inning="<%= i %>"
+                    data-player="playera"
+                    data-id="<%= table_monitor.id %>"
+                    class="px-2 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded text-xs font-bold">✏️</button>
+          </div>
+        <%- else %>
+          <%# Other games: +/- buttons %>
+          <div class="flex items-center justify-center gap-1">
+            <button data-reflex="click->GameProtocolReflex#decrement_points"
+                    data-inning="<%= i %>"
+                    data-player="playera"
+                    data-id="<%= table_monitor.id %>"
+                    class="px-2 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded text-sm font-bold">−</button>
+            <span class="<%= input_class_a %> w-16 px-2 py-1 text-center"><%= inning_a %></span>
+            <button data-reflex="click->GameProtocolReflex#increment_points"
+                    data-inning="<%= i %>"
+                    data-player="playera"
+                    data-id="<%= table_monitor.id %>"
+                    class="px-2 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded text-sm font-bold">+</button>
+          </div>
+        <%- end %>
       <% end %>
     </td>
     
@@ -77,22 +101,46 @@
       <%= show_inning_a ? total_a : '' %>
     </td>
     
-    <!-- Player B Points with +/- buttons -->
+    <!-- Player B Points with +/- buttons or Edit for Snooker -->
     <td class="py-2 px-4 text-center bg-green-50 dark:bg-green-900 dark:bg-opacity-20">
       <% if show_inning_b %>
-        <div class="flex items-center justify-center gap-1">
-          <button data-reflex="click->GameProtocolReflex#decrement_points"
-                  data-inning="<%= i %>"
-                  data-player="playerb"
-                  data-id="<%= table_monitor.id %>"
-                  class="px-2 py-1 bg-green-500 hover:bg-green-600 text-white rounded text-sm font-bold">−</button>
-          <span class="<%= input_class_b %> w-16 px-2 py-1 text-center"><%= inning_b %></span>
-          <button data-reflex="click->GameProtocolReflex#increment_points"
-                  data-inning="<%= i %>"
-                  data-player="playerb"
-                  data-id="<%= table_monitor.id %>"
-                  class="px-2 py-1 bg-green-500 hover:bg-green-600 text-white rounded text-sm font-bold">+</button>
-        </div>
+        <%- if table_monitor.data["free_game_form"] == "snooker" %>
+          <%# Snooker: Show balls and Edit button %>
+          <div class="flex items-center justify-center gap-2">
+            <span class="font-semibold"><%= inning_b %></span>
+            <%- if player_b[:break_balls] && player_b[:break_balls][i] && player_b[:break_balls][i].any? %>
+              <div class="flex items-center gap-0.5">
+                <%- player_b[:break_balls][i].each do |ball_value| %>
+                  <%- ball_image_map = { 1 => 'snooker_ball_red', 2 => 'snooker_ball_yellow', 3 => 'snooker_ball_green', 4 => 'snooker_ball_brown', 5 => 'snooker_ball_blue', 6 => 'snooker_ball_pink', 7 => 'snooker_ball_black' } %>
+                  <%- ball_image = ball_image_map[ball_value] %>
+                  <%- if ball_image %>
+                    <%= image_tag "#{ball_image}.svg", class: "w-5 h-5 object-contain #{ball_value == 7 ? 'rounded-full border border-gray-400 dark:border-gray-500' : ''}" %>
+                  <%- end %>
+                <%- end %>
+              </div>
+            <%- end %>
+            <button data-reflex="click->GameProtocolReflex#open_snooker_inning_edit"
+                    data-inning="<%= i %>"
+                    data-player="playerb"
+                    data-id="<%= table_monitor.id %>"
+                    class="px-2 py-1 bg-green-500 hover:bg-green-600 text-white rounded text-xs font-bold">✏️</button>
+          </div>
+        <%- else %>
+          <%# Other games: +/- buttons %>
+          <div class="flex items-center justify-center gap-1">
+            <button data-reflex="click->GameProtocolReflex#decrement_points"
+                    data-inning="<%= i %>"
+                    data-player="playerb"
+                    data-id="<%= table_monitor.id %>"
+                    class="px-2 py-1 bg-green-500 hover:bg-green-600 text-white rounded text-sm font-bold">−</button>
+            <span class="<%= input_class_b %> w-16 px-2 py-1 text-center"><%= inning_b %></span>
+            <button data-reflex="click->GameProtocolReflex#increment_points"
+                    data-inning="<%= i %>"
+                    data-player="playerb"
+                    data-id="<%= table_monitor.id %>"
+                    class="px-2 py-1 bg-green-500 hover:bg-green-600 text-white rounded text-sm font-bold">+</button>
+          </div>
+        <%- end %>
       <% end %>
     </td>
     
