@@ -2194,6 +2194,32 @@ data[\"allow_overflow\"].present?")
           # result should only contain completed innings (innings_list), not current break
           recompute_result(current_role)
         end
+      elsif (data[the_other_player]["innings_redo_list"].andand[-1].to_i).positive?
+        # Reduce break for other player (when player was switched but other player still has break)
+        # This happens when a player had a break, then "next" was pressed, switching to other player
+        # Undo should reduce the other player's break and switch back
+        other_break = data[the_other_player]["innings_redo_list"][-1].to_i
+        if other_break > 0
+          # For snooker: also remove last ball from break_balls_redo_list
+          if data["free_game_form"] == "snooker"
+            data[the_other_player]["break_balls_redo_list"] ||= []
+            if data[the_other_player]["break_balls_redo_list"].present? && data[the_other_player]["break_balls_redo_list"][-1].present?
+              data[the_other_player]["break_balls_redo_list"][-1].pop
+              # Remove empty arrays
+              data[the_other_player]["break_balls_redo_list"].pop if data[the_other_player]["break_balls_redo_list"][-1].empty?
+              # Ensure at least one element exists
+              if data[the_other_player]["break_balls_redo_list"].empty?
+                data[the_other_player]["break_balls_redo_list"] = [[]]
+              end
+            end
+          end
+          # Reduce break by 1 (minimum 0)
+          data[the_other_player]["innings_redo_list"][-1] = [other_break - 1, 0].max
+          # Switch back to other player
+          data["current_inning"]["active_player"] = the_other_player
+          # Recompute result for other player
+          recompute_result(the_other_player)
+        end
       elsif (data["playera"]["innings"].to_i + data["playerb"]["innings"].to_i +
         data["playera"]["result"].to_i + data["playerb"]["result"].to_i +
         data["sets"].to_a.length +
