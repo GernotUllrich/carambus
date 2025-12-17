@@ -618,10 +618,15 @@ class TableMonitorReflex < ApplicationReflex
     @table_monitor.data["current_inning"]["active_player"] = opponent_player
     
     # Initialize opponent's break if needed
-    @table_monitor.init_lists(opponent_player) unless @table_monitor.data[opponent_player]["innings_redo_list"].present?
+    @table_monitor.init_lists(opponent_player)
+    
+    # Ensure innings_redo_list exists and has at least one element
+    @table_monitor.data[opponent_player]["innings_redo_list"] ||= []
+    if @table_monitor.data[opponent_player]["innings_redo_list"].empty?
+      @table_monitor.data[opponent_player]["innings_redo_list"] = [0]
+    end
     
     # Add foul points to opponent's CURRENT break (not terminated yet!)
-    @table_monitor.data[opponent_player]["innings_redo_list"] ||= [0]
     current_break = @table_monitor.data[opponent_player]["innings_redo_list"][-1].to_i
     @table_monitor.data[opponent_player]["innings_redo_list"][-1] = current_break + foul_points
     
