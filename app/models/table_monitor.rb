@@ -2160,19 +2160,9 @@ data[\"allow_overflow\"].present?")
         prev_version.copy_from = copy_from_
         prev_version.save!
         reload
-      elsif (data[the_other_player]["innings"]).to_i.positive?
-        if data[the_other_player]["innings_list"].present?
-          arr = Array(data[the_other_player]["innings_list"])
-          data[the_other_player]["innings_redo_list"] << arr.pop.to_i if arr.present?
-        end
-        data[the_other_player]["innings"] -= 1
-        data[the_other_player]["result"] = data[the_other_player]["innings_list"]&.sum.to_i
-        data[the_other_player]["hs"] = data[the_other_player]["innings_list"]&.max.to_i
-        data[the_other_player]["gd"] =
-          format("%.2f", data[the_other_player]["result"].to_f / data[current_role]["innings"].to_i)
-        data["current_inning"]["active_player"] = the_other_player
+      # LIFO order: Check most recent action first (current player's break)
       elsif (data[current_role]["innings_redo_list"].andand[-1].to_i).positive?
-        # Reduce current break for active player
+        # Reduce current break for active player (most recent action)
         current_break = data[current_role]["innings_redo_list"][-1].to_i
         if current_break > 0
           # For snooker: also remove last ball from break_balls_redo_list and update reds_remaining
@@ -2200,6 +2190,7 @@ data[\"allow_overflow\"].present?")
           # result should only contain completed innings (innings_list), not current break
           recompute_result(current_role)
         end
+      # Check other player's break (when player was switched but other player still has break)
       elsif data["free_game_form"] == "snooker" && (data[the_other_player]["innings_redo_list"].andand[-1].to_i).positive?
         # For snooker only: Reduce break for other player (when player was switched but other player still has break)
         # This happens when a player had a break, then "next" was pressed, switching to other player
@@ -2230,6 +2221,18 @@ data[\"allow_overflow\"].present?")
           # Recompute result for other player
           recompute_result(the_other_player)
         end
+      # Check other player's completed innings (oldest action, checked last in LIFO order)
+      elsif (data[the_other_player]["innings"]).to_i.positive?
+        if data[the_other_player]["innings_list"].present?
+          arr = Array(data[the_other_player]["innings_list"])
+          data[the_other_player]["innings_redo_list"] << arr.pop.to_i if arr.present?
+        end
+        data[the_other_player]["innings"] -= 1
+        data[the_other_player]["result"] = data[the_other_player]["innings_list"]&.sum.to_i
+        data[the_other_player]["hs"] = data[the_other_player]["innings_list"]&.max.to_i
+        data[the_other_player]["gd"] =
+          format("%.2f", data[the_other_player]["result"].to_f / data[current_role]["innings"].to_i)
+        data["current_inning"]["active_player"] = the_other_player
       elsif (data["playera"]["innings"].to_i + data["playerb"]["innings"].to_i +
         data["playera"]["result"].to_i + data["playerb"]["result"].to_i +
         data["sets"].to_a.length +
