@@ -444,7 +444,7 @@ class TableMonitorReflex < ApplicationReflex
     
     @table_monitor.reset_timer!
     @table_monitor.panel_state = "foul"
-    @table_monitor.data["foul"] ||= { "ball" => 4, "free_ball" => false, "miss" => false, "reds_to_remove" => 0 }
+    @table_monitor.data["foul"] ||= { "ball_value" => 4, "points" => 4, "free_ball" => false, "miss" => false, "reds_to_remove" => 0 }
     @table_monitor.save
   end
 
@@ -458,7 +458,19 @@ class TableMonitorReflex < ApplicationReflex
     
     ball_value = element.andand.dataset[:ball].to_i
     @table_monitor.data["foul"] ||= {}
-    @table_monitor.data["foul"]["ball"] = ball_value
+    @table_monitor.data["foul"]["ball_value"] = ball_value
+    
+    # Calculate foul points based on ball value
+    # Red(1), Yellow(2), Green(3), Brown(4) = 4 points minimum
+    # Blue(5) = 5 points, Pink(6) = 6 points, Black(7) = 7 points
+    foul_points = case ball_value
+                  when 1, 2, 3, 4 then 4
+                  when 5 then 5
+                  when 6 then 6
+                  when 7 then 7
+                  else 4
+                  end
+    @table_monitor.data["foul"]["points"] = foul_points
     @table_monitor.save
   end
 
@@ -544,7 +556,8 @@ class TableMonitorReflex < ApplicationReflex
     @table_monitor.skip_update_callbacks = true
     
     foul_data = @table_monitor.data["foul"] || {}
-    foul_points = foul_data["ball"].to_i
+    ball_value = foul_data["ball_value"] || foul_data["ball"] || 4  # Fallback for old format
+    foul_points = foul_data["points"].to_i
     free_ball = foul_data["free_ball"] || false
     miss = foul_data["miss"] || false
     reds_to_remove = foul_data["reds_to_remove"].to_i
@@ -558,13 +571,15 @@ class TableMonitorReflex < ApplicationReflex
     # Mark data as changed
     @table_monitor.data_will_change!
     
-    # Store foul information for protocol
+    # Store foul information for protocol (stored for OPPONENT who gets the points)
     @table_monitor.data["last_foul"] = {
+      "ball_value" => ball_value,
       "points" => foul_points,
       "free_ball" => free_ball,
       "miss" => miss,
       "reds_removed" => reds_to_remove,
-      "player" => active_player
+      "fouling_player" => active_player,  # Who made the foul
+      "receiving_player" => opponent_player  # Who gets the points
     }
     
     # Set free ball status if free ball was selected

@@ -1,6 +1,6 @@
 <%- table_monitor = local_assigns[:table_monitor] %>
 <%- foul_data = table_monitor.data["foul"] || {} %>
-<%- selected_ball = foul_data["ball"] || 4 %>
+<%- selected_ball = foul_data["ball_value"] || foul_data["ball"] || 4 %>
 <%- free_ball = foul_data["free_ball"] || false %>
 <%- miss = foul_data["miss"] || false %>
 <%- reds_to_remove = foul_data["reds_to_remove"] || 0 %>
@@ -14,29 +14,28 @@
 
       <!-- Ball Selection -->
       <div class="flex flex-col items-center justify-center h-1/4 space-y-2">
-        <div class="text-3vw font-semibold mb-2">Foul-Punkte</div>
+        <div class="text-3vw font-semibold mb-2">Foul-Kugel</div>
         <div class="flex flex-row flex-wrap items-center justify-center gap-2 px-4">
-          <!-- Minimum Foul (4 points) - White ball -->
-          <%= content_tag "div",
-                          data: { reflex: "click->TableMonitorReflex#foul_select_ball", id: table_monitor.id, ball: 4 },
-                          class: "relative flex items-center justify-center w-20 h-20 rounded-full border-4 #{selected_ball == 4 ? 'border-yellow-400 shadow-lg' : 'border-gray-400'}",
-                          id: "foul_ball_4",
-                          tabindex: 5 do %>
-            <div class="w-full h-full rounded-full bg-gray-200 flex items-center justify-center">
-              <span class="text-gray-800 text-4vw font-bold">4</span>
-            </div>
-          <%- end %>
+          <!-- All snooker balls with their point values -->
+          <%- ball_map = { 
+            1 => { image: 'snooker_ball_red', points: 4 },
+            2 => { image: 'snooker_ball_yellow', points: 4 },
+            3 => { image: 'snooker_ball_green', points: 4 },
+            4 => { image: 'snooker_ball_brown', points: 4 },
+            5 => { image: 'snooker_ball_blue', points: 5 },
+            6 => { image: 'snooker_ball_pink', points: 6 },
+            7 => { image: 'snooker_ball_black', points: 7 }
+          } %>
           
-          <!-- Color balls: Blue (5), Pink (6), Black (7) -->
-          <%- { 5 => 'snooker_ball_blue', 6 => 'snooker_ball_pink', 7 => 'snooker_ball_black' }.each do |value, image| %>
+          <%- ball_map.each do |ball_value, ball_info| %>
             <%= content_tag "div",
-                            data: { reflex: "click->TableMonitorReflex#foul_select_ball", id: table_monitor.id, ball: value },
-                            class: "relative flex items-center justify-center w-20 h-20 rounded-full border-4 #{selected_ball == value ? 'border-yellow-400 shadow-lg' : 'border-gray-400'} #{value == 7 ? 'dark:border-gray-500' : ''}",
-                            id: "foul_ball_#{value}",
+                            data: { reflex: "click->TableMonitorReflex#foul_select_ball", id: table_monitor.id, ball: ball_value },
+                            class: "relative flex items-center justify-center w-20 h-20 rounded-full border-4 #{selected_ball == ball_value ? 'border-yellow-400 shadow-lg' : 'border-gray-400'} #{ball_value == 7 ? 'dark:border-gray-500' : ''}",
+                            id: "foul_ball_#{ball_value}",
                             tabindex: 5 do %>
-              <%= image_tag "#{image}.svg", class: "w-full h-full object-contain" %>
-              <div class="absolute inset-0 flex items-center justify-center">
-                <span class="text-white text-4vw font-bold drop-shadow-lg" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.8);"><%= value %></span>
+              <%= image_tag "#{ball_info[:image]}.svg", class: "w-full h-full object-contain" %>
+              <div class="absolute -bottom-6 left-1/2 transform -translate-x-1/2">
+                <span class="text-2vw font-bold text-gray-700 dark:text-gray-300"><%= ball_info[:points] %></span>
               </div>
             <%- end %>
           <%- end %>
