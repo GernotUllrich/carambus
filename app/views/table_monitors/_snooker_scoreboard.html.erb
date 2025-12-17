@@ -94,7 +94,7 @@
                         style: "letter-spacing: -5px;" do %>
           <%- if !table_monitor.set_over? %>
             <div class="flex h-1/6">
-              <div class="flex-1 text-left font-bold text-red-400">
+              <div class="flex-1 text-left font-bold text-red-400" style="letter-spacing: normal;">
                 <div class="text-<%= vw8 %> p-4">
                   <span class="break-score" data-player="<%= left_player_id %>">
                     <%- if left_player_active && current_break_left > 0 %>
@@ -108,7 +108,7 @@
                   <%- end %>
                 </div>
               </div>
-              <div class="flex flex-col flex-1 text-right text-gray-500 text-<%= vw3 %>">
+              <div class="flex flex-col flex-1 text-right text-gray-500 text-<%= vw3 %>" style="letter-spacing: normal;">
                 <div class="flex-1 mb-1">
                   Frames: <%= current_frame_a %> / <%= frames_to_win %>
                 </div>
@@ -178,7 +178,7 @@
             <%- end %>
           <%- end %>
           <div class="overflow-hidden flex pb-1 justify-center hover:bg-gray-700 align-middle text-<%= fullscreen ? '2vw' : '1-5vw' %> w-60 h-20">
-            <div class="flex text-<%= fullscreen ? '2-5vw' : '1-5vw' %> items-center font-bold">SNOOKER</div>
+            <div class="flex text-<%= fullscreen ? '2-5vw' : '1-5vw' %> items-center">SNOOKER</div>
           </div>
           <div id="clock" class="hidden dark:bg-black text-gray-500 dark:text-gray-300 hover:text-black text-<%= vw2 %> text-center"><%= Time.now.strftime("%H:%M") %></div>
         </div>
@@ -187,7 +187,7 @@
                         id: "game_state",
                         class: "flex flex-col h-5/6 dark:text-gray-200 bg-gray-100 dark:bg-black" do %>
           <div class="flex flex-col h-2/6" tabindex="3" id="pointer_mode">
-            <div class="h-5/6 p-4 text-<%= vw8 %> font-bold text-center">Frame <%= current_frame_number %></div>
+            <div class="h-5/6 p-4 text-<%= fullscreen ? '4vw' : '2vw' %> font-bold text-center">Frame <%= current_frame_number %></div>
             <%- if frames_to_win.to_i > 0 %>
               <div class="h-1/6 items-center text-<%= vw2 %> justify-center text-center"><%= t('of') %> <%= frames_to_play.to_i > 0 ? frames_to_play : "Best of #{frames_to_win * 2 - 1}" %></div>
             <%- end %>
@@ -278,7 +278,7 @@
                         style: "letter-spacing: -5px;" do %>
           <%- if !table_monitor.set_over? %>
             <div class="flex h-1/6">
-              <div class="flex flex-col flex-1 text-left text-gray-500 text-<%= vw3 %>">
+              <div class="flex flex-col flex-1 text-left text-gray-500 text-<%= vw3 %>" style="letter-spacing: normal;">
                 <div class="flex-1 mb-1">
                   Frames: <%= current_frame_b %> / <%= frames_to_win %>
                 </div>
@@ -289,7 +289,7 @@
                   <%- end %>
                 </div>
               </div>
-              <div class="flex-1 text-right font-bold text-red-400">
+              <div class="flex-1 text-right font-bold text-red-400" style="letter-spacing: normal;">
                 <div class="text-<%= vw8 %> p-4">
                   <span class="break-score" data-player="<%= right_player_id %>">
                     <%- if right_player_active && current_break_right > 0 %>
@@ -358,14 +358,8 @@
       </div>
       <div class="controls hide-on-display-only w-full h-1/6 grid grid-cols-11 place-items-center gap-1 dark:bg-black">
         <%- if table_monitor.playing? %>
-          <%= content_tag "div",
-                          class: "mr-1 min-w-1/3 flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none bg-red-50 dark:bg-black hover:bg-gray-300 dark:text-red-200 text-red-200",
-                          title: "Undo",
-                          style: "letter-spacing: -3px;",
-                          data: { controller: "table-monitor", action: "click->table-monitor#undo", id: table_monitor.id },
-                          id: "undo",
-                          tabindex: 2 do %>
-            <%= render_svg "undo", styles: "responsive-svg fill-current icon-2xl text-red-300 inline-block" %>
+          <%= content_tag "div", class: "mr-1 min-w-1/3 flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none bg-blue-50 dark:bg-black hover:bg-gray-300 dark:text-blue-400 text-blue-600", title: "Spielprotokoll", data: { reflex: "click->GameProtocolReflex#open_protocol", id: table_monitor.id }, id: "game-protocol-button", tabindex: 2 do %>
+            <%= render_svg "icons/clipboard", styles: "fill-current icon-2xl inline-block" %>
           <%- end %>
           <%- # Snooker ball values: Red=1, Yellow=2, Green=3, Brown=4, Blue=5, Pink=6, Black=7 %>
           <%- balls_on = table_monitor.snooker_balls_on %>
@@ -390,7 +384,7 @@
                             title: ball_is_addable ? "+1" : (ball_is_playable ? "Add #{ball_value} point#{ball_value > 1 ? 's' : ''}" : "Ball not 'on'"),
                             tabindex: ball_is_playable ? 2 : -1 do %>
               <div class="relative flex items-center justify-center <%= ball_value == 7 ? 'dark:border dark:border-gray-500 rounded-full' : '' %>" style="width: 5.2rem; height: 5.2rem;">
-                <%= image_tag "#{ball_image}.svg", class: "w-full h-full object-contain #{ball_is_off ? 'opacity-50' : ''}" %>
+                <%= image_tag "#{ball_image}.svg", class: "w-full h-full object-contain #{ball_is_off ? 'opacity-70' : ''}" %>
                 <%- if ball_value == 1 %>
                   <%- # Show reds remaining on red ball %>
                   <div class="absolute inset-0 flex items-center justify-center">
@@ -400,13 +394,13 @@
                   </div>
                 <%- end %>
                 <%- if ball_is_off %>
-                  <div class="absolute inset-0 bg-black bg-opacity-50 rounded-full pointer-events-none"></div>
+                  <div class="absolute inset-0 bg-black bg-opacity-30 rounded-full pointer-events-none"></div>
                 <%- end %>
               </div>
             <%- end %>
           <%- end %>
           <%= content_tag "div",
-                          class: "ml-1 min-w-1/3 flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none bg-red-500 dark:bg-red-600 hover:bg-red-600 dark:hover:bg-red-700 text-white",
+                          class: "ml-1 min-w-1/3 flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none bg-red-500 dark:bg-red-600 hover:bg-red-600 dark:hover:bg-red-700 text-white px-4 py-2",
                           title: "Foul",
                           data: { controller: "table-monitor", action: "click->table-monitor#foul", id: table_monitor.id },
                           id: "foul",
