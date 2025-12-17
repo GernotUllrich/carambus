@@ -73,14 +73,14 @@
             <%- if table_monitor.data["free_game_form"] == "snooker" && player_a[:break_fouls] && player_a[:break_fouls][i] %>
               <%- foul_info = player_a[:break_fouls][i] %>
               <%- if foul_info && foul_info["points"] %>
-                <div class="flex items-center gap-1 text-xs bg-red-500 text-white px-1.5 py-0.5 rounded">
+                <div class="flex items-center gap-1 text-sm text-gray-700 dark:text-gray-300">
                   <%- ball_value = foul_info["ball_value"] || 4 %>
                   <%- ball_image_map = { 1 => 'snooker_ball_red', 2 => 'snooker_ball_yellow', 3 => 'snooker_ball_green', 4 => 'snooker_ball_brown', 5 => 'snooker_ball_blue', 6 => 'snooker_ball_pink', 7 => 'snooker_ball_black' } %>
                   <%- ball_image = ball_image_map[ball_value] %>
                   <%- if ball_image %>
-                    <%= image_tag "#{ball_image}.svg", class: "w-4 h-4 object-contain" %>
+                    <%= image_tag "#{ball_image}.svg", class: "w-6 h-6 object-contain" %>
                   <%- end %>
-                  <span>Foul +<%= foul_info["points"] %></span>
+                  <span>Foul -<%= foul_info["points"] %></span>
                 </div>
               <%- end %>
             <%- end %>
@@ -114,14 +114,14 @@
             <%- if table_monitor.data["free_game_form"] == "snooker" && player_b[:break_fouls] && player_b[:break_fouls][i] %>
               <%- foul_info = player_b[:break_fouls][i] %>
               <%- if foul_info && foul_info["points"] %>
-                <div class="flex items-center gap-1 text-xs bg-red-500 text-white px-1.5 py-0.5 rounded">
+                <div class="flex items-center gap-1 text-sm text-gray-700 dark:text-gray-300">
                   <%- ball_value = foul_info["ball_value"] || 4 %>
                   <%- ball_image_map = { 1 => 'snooker_ball_red', 2 => 'snooker_ball_yellow', 3 => 'snooker_ball_green', 4 => 'snooker_ball_brown', 5 => 'snooker_ball_blue', 6 => 'snooker_ball_pink', 7 => 'snooker_ball_black' } %>
                   <%- ball_image = ball_image_map[ball_value] %>
                   <%- if ball_image %>
-                    <%= image_tag "#{ball_image}.svg", class: "w-4 h-4 object-contain" %>
+                    <%= image_tag "#{ball_image}.svg", class: "w-6 h-6 object-contain" %>
                   <%- end %>
-                  <span>Foul +<%= foul_info["points"] %></span>
+                  <span>Foul -<%= foul_info["points"] %></span>
                 </div>
               <%- end %>
             <%- end %>

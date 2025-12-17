@@ -2014,11 +2014,11 @@ data[\"allow_overflow\"].present?")
           data[current_role]["break_balls_list"] << break_balls
           
           # Store foul info if available
-          # Foul is stored with the player who RECEIVES the points (not who made the foul)
+          # Foul is stored with the player who MADE the foul (fouling_player)
           data[current_role]["break_fouls_list"] ||= []
           last_foul = data["last_foul"]
-          if last_foul && last_foul["receiving_player"] == current_role
-            # This player received foul points - store foul info
+          if last_foul && last_foul["fouling_player"] == current_role
+            # This player made the foul - store foul info
             data[current_role]["break_fouls_list"] << last_foul
             data.delete("last_foul") # Clear after storing
           else
