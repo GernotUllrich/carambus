@@ -117,7 +117,7 @@
                           <%- ball_image_map = { 1 => 'snooker_ball_red', 2 => 'snooker_ball_yellow', 3 => 'snooker_ball_green', 4 => 'snooker_ball_brown', 5 => 'snooker_ball_blue', 6 => 'snooker_ball_pink', 7 => 'snooker_ball_black' } %>
                           <%- ball_image = ball_image_map[ball_value] %>
                           <%- if ball_image %>
-                            <%= image_tag "#{ball_image}.svg", class: "w-8 h-8 object-contain" %>
+                            <%= image_tag "#{ball_image}.svg", class: "w-8 h-8 object-contain #{ball_value == 7 ? 'rounded-full border border-gray-400 dark:border-gray-500' : ''}" %>
                           <%- end %>
                         <%- end %>
                       </div>
@@ -342,7 +342,7 @@
                           <%- ball_image_map = { 1 => 'snooker_ball_red', 2 => 'snooker_ball_yellow', 3 => 'snooker_ball_green', 4 => 'snooker_ball_brown', 5 => 'snooker_ball_blue', 6 => 'snooker_ball_pink', 7 => 'snooker_ball_black' } %>
                           <%- ball_image = ball_image_map[ball_value] %>
                           <%- if ball_image %>
-                            <%= image_tag "#{ball_image}.svg", class: "w-8 h-8 object-contain" %>
+                            <%= image_tag "#{ball_image}.svg", class: "w-8 h-8 object-contain #{ball_value == 7 ? 'rounded-full border border-gray-400 dark:border-gray-500' : ''}" %>
                           <%- end %>
                         <%- end %>
                       </div>
