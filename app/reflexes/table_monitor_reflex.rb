@@ -597,6 +597,9 @@ class TableMonitorReflex < ApplicationReflex
     # For snooker: Store foul break (0 points) with foul info
     if @table_monitor.data["free_game_form"] == "snooker"
       @table_monitor.data[active_player]["break_balls_redo_list"] ||= []
+      if @table_monitor.data[active_player]["break_balls_redo_list"].empty?
+        @table_monitor.data[active_player]["break_balls_redo_list"] = [[]]
+      end
       @table_monitor.data[active_player]["break_balls_redo_list"][-1] = [] # Clear break balls
       # Terminate the foul break to store it in protocol
       @table_monitor.terminate_current_inning(active_player)
