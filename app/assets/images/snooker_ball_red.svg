@@ -11,8 +11,8 @@
       <feGaussianBlur stdDeviation="1.1908669"/>
     </filter>
     <radialGradient id="ball-gradient-red" gradientUnits="userSpaceOnUse" cy="562.79" cx="321.25" r="73.19">
-      <stop style="stop-color:#d40000" offset="0"/>
-      <stop style="stop-color:#080000" offset="1"/>
+      <stop style="stop-color:#FF3333" offset="0"/>
+      <stop style="stop-color:#CC0000" offset="1"/>
     </radialGradient>
     <radialGradient id="highlight-gradient" gradientUnits="userSpaceOnUse" cy="606.6" cx="340.73" r="29.393">
       <stop style="stop-color:#f9f9f9" offset="0"/>
