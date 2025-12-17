@@ -128,64 +128,6 @@ class GameProtocolReflex < ApplicationReflex
     # Broadcast the updated scoreboard
     TableMonitorJob.perform_later(@table_monitor.id, "")
   end
-  
-  private
-  
-  def load_table_monitor
-    # Read from data-id attribute (standard for all reflexes)
-    table_monitor_id = element.dataset['id']
-    Rails.logger.info "🔍 Loading TableMonitor ##{table_monitor_id}" if TableMonitor::DEBUG
-    @table_monitor = TableMonitor.find(table_monitor_id)
-  rescue ActiveRecord::RecordNotFound => e
-    Rails.logger.error "❌ TableMonitor not found: #{table_monitor_id}"
-    raise e
-  end
-
-  def render_protocol_modal
-    return "" unless @table_monitor.protocol_modal_should_be_open?
-
-    ApplicationController.render(
-      partial: "table_monitors/game_protocol_modal",
-      locals: {
-        table_monitor: @table_monitor,
-        full_screen: true,
-        modal_hidden: false
-      }
-    )
-  end
-
-  def render_protocol_table_body
-    return "" unless @table_monitor.protocol_modal_should_be_open?
-
-    history = @table_monitor.innings_history
-    # Use edit body for both protocol_edit and protocol_final modes
-    use_edit_body = @table_monitor.panel_state == "protocol_edit" || @table_monitor.panel_state == "protocol_final"
-    partial = use_edit_body ? "table_monitors/game_protocol_table_body_edit" : "table_monitors/game_protocol_table_body"
-
-    ApplicationController.render(
-      partial: partial,
-      locals: {
-        history: history,
-        table_monitor: @table_monitor
-      }
-    )
-  end
-
-  def send_modal_update(html)
-    CableReady::Channels.instance["table-monitor-stream"].inner_html(
-      selector: "#protocol-modal-container-#{@table_monitor.id}",
-      html: html
-    ).broadcast
-  end
-
-  def send_table_update(html)
-    return if html.blank?
-
-    CableReady::Channels.instance["table-monitor-stream"].inner_html(
-      selector: "#protocol-tbody-#{@table_monitor.id}",
-      html: html
-    ).broadcast
-  end
 
   # Snooker Inning Edit Methods
 
@@ -271,9 +213,10 @@ class GameProtocolReflex < ApplicationReflex
     morph :nothing
     return unless @table_monitor.data["free_game_form"] == "snooker"
     
+    # Clear edit state
     @table_monitor.data.delete("snooker_inning_edit")
     @table_monitor.skip_update_callbacks = true
-    @table_monitor.panel_state = "protocol"
+    @table_monitor.panel_state = "protocol_edit"
     @table_monitor.data_will_change!
     @table_monitor.save!
     @table_monitor.skip_update_callbacks = false
@@ -285,17 +228,21 @@ class GameProtocolReflex < ApplicationReflex
     morph :nothing
     return unless @table_monitor.data["free_game_form"] == "snooker"
     
-    edit_data = @table_monitor.data["snooker_inning_edit"] || {}
-    inning_index = edit_data["inning_index"].to_i
+    edit_data = @table_monitor.data["snooker_inning_edit"]
+    return unless edit_data
+    
+    inning_index = edit_data["inning_index"]
     player = edit_data["player"]
     new_balls = edit_data["balls"] || []
-    new_points = new_balls.sum
     
-    Rails.logger.info "🎯 Saving snooker inning edit: inning=#{inning_index}, player=#{player}, balls=#{new_balls.inspect}, points=#{new_points}" if TableMonitor::DEBUG
+    Rails.logger.info "💾 Saving snooker inning edit: player=#{player}, inning=#{inning_index}, balls=#{new_balls.inspect}" if TableMonitor::DEBUG
     
     # Update break_balls_list
     @table_monitor.data[player]["break_balls_list"] ||= []
     @table_monitor.data[player]["break_balls_list"][inning_index] = new_balls
+    
+    # Calculate new points
+    new_points = new_balls.sum
     
     # Update innings_list
     @table_monitor.data[player]["innings_list"] ||= []
@@ -315,6 +262,64 @@ class GameProtocolReflex < ApplicationReflex
     # Refresh protocol modal
     send_modal_update(render_protocol_modal)
     TableMonitorJob.perform_later(@table_monitor.id, "")
+  end
+  
+  private
+  
+  def load_table_monitor
+    # Read from data-id attribute (standard for all reflexes)
+    table_monitor_id = element.dataset['id']
+    Rails.logger.info "🔍 Loading TableMonitor ##{table_monitor_id}" if TableMonitor::DEBUG
+    @table_monitor = TableMonitor.find(table_monitor_id)
+  rescue ActiveRecord::RecordNotFound => e
+    Rails.logger.error "❌ TableMonitor not found: #{table_monitor_id}"
+    raise e
+  end
+
+  def render_protocol_modal
+    return "" unless @table_monitor.protocol_modal_should_be_open?
+
+    ApplicationController.render(
+      partial: "table_monitors/game_protocol_modal",
+      locals: {
+        table_monitor: @table_monitor,
+        full_screen: true,
+        modal_hidden: false
+      }
+    )
+  end
+
+  def render_protocol_table_body
+    return "" unless @table_monitor.protocol_modal_should_be_open?
+
+    history = @table_monitor.innings_history
+    # Use edit body for both protocol_edit and protocol_final modes
+    use_edit_body = @table_monitor.panel_state == "protocol_edit" || @table_monitor.panel_state == "protocol_final"
+    partial = use_edit_body ? "table_monitors/game_protocol_table_body_edit" : "table_monitors/game_protocol_table_body"
+
+    ApplicationController.render(
+      partial: partial,
+      locals: {
+        history: history,
+        table_monitor: @table_monitor
+      }
+    )
+  end
+
+  def send_modal_update(html)
+    CableReady::Channels.instance["table-monitor-stream"].inner_html(
+      selector: "#protocol-modal-container-#{@table_monitor.id}",
+      html: html
+    ).broadcast
+  end
+
+  def send_table_update(html)
+    return if html.blank?
+
+    CableReady::Channels.instance["table-monitor-stream"].inner_html(
+      selector: "#protocol-tbody-#{@table_monitor.id}",
+      html: html
+    ).broadcast
   end
 end
 
