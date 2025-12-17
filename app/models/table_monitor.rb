@@ -1312,7 +1312,9 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
     # Initialize snooker break tracking
     if data["free_game_form"] == "snooker"
       data[current_role]["break_balls_redo_list"] ||= []
-      data[current_role]["break_balls_redo_list"][-1] ||= [] if data[current_role]["break_balls_redo_list"].present?
+      if data[current_role]["break_balls_redo_list"].empty?
+        data[current_role]["break_balls_redo_list"] = [[]]
+      end
       data[current_role]["break_balls_list"] ||= []
       data[current_role]["break_fouls_list"] ||= []
     end
@@ -1418,6 +1420,9 @@ data[\"allow_overflow\"].present?")
               update_snooker_state(n_balls)
               # Track balls potted in current break for protocol display
               data[current_role]["break_balls_redo_list"] ||= []
+              if data[current_role]["break_balls_redo_list"].empty?
+                data[current_role]["break_balls_redo_list"] = [[]]
+              end
               data[current_role]["break_balls_redo_list"][-1] ||= []
               data[current_role]["break_balls_redo_list"][-1] = Array(data[current_role]["break_balls_redo_list"][-1]) + [n_balls]
             end
