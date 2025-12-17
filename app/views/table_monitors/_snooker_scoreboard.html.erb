@@ -104,6 +104,10 @@
                   </span>
                 </div>
                 <div class="text-<%= vw2 %>">
+                  <%- # Check if this player has a foul to display (exception: show even if not active) %>
+                  <%- last_foul = table_monitor.data["last_foul"] %>
+                  <%- has_foul = last_foul && last_foul["fouling_player"] == left_player_id && last_foul["points"] %>
+                  
                   <%- if left_player_active %>
                     <%- # Show balls in current break for active player (from break_balls_redo_list) %>
                     <%- break_balls = show_data[left_player_id].andand["break_balls_redo_list"].andand[-1] %>
@@ -121,9 +125,8 @@
                       Break
                     <%- end %>
                   <%- end %>
-                  <%- # Show foul info if available (for the player who MADE the foul - fouling_player) %>
-                  <%- last_foul = table_monitor.data["last_foul"] %>
-                  <%- if last_foul && last_foul["fouling_player"] == left_player_id && last_foul["points"] %>
+                  <%- # Show foul info if available (EXCEPTION: show even if player is not active) %>
+                  <%- if has_foul %>
                     <div class="flex items-center justify-center gap-1 text-sm text-gray-700 dark:text-gray-300 mt-1">
                       <%- ball_value = last_foul["ball_value"] || 4 %>
                       <%- ball_image_map = { 1 => 'snooker_ball_red', 2 => 'snooker_ball_yellow', 3 => 'snooker_ball_green', 4 => 'snooker_ball_brown', 5 => 'snooker_ball_blue', 6 => 'snooker_ball_pink', 7 => 'snooker_ball_black' } %>
@@ -326,6 +329,10 @@
                   </span>
                 </div>
                 <div class="text-<%= vw2 %>">
+                  <%- # Check if this player has a foul to display (exception: show even if not active) %>
+                  <%- last_foul = table_monitor.data["last_foul"] %>
+                  <%- has_foul = last_foul && last_foul["fouling_player"] == right_player_id && last_foul["points"] %>
+                  
                   <%- if right_player_active %>
                     <%- # Show balls in current break for active player (from break_balls_redo_list) %>
                     <%- break_balls = show_data[right_player_id].andand["break_balls_redo_list"].andand[-1] %>
@@ -343,9 +350,8 @@
                       Break
                     <%- end %>
                   <%- end %>
-                  <%- # Show foul info if available (for the player who MADE the foul - fouling_player) %>
-                  <%- last_foul = table_monitor.data["last_foul"] %>
-                  <%- if last_foul && last_foul["fouling_player"] == right_player_id && last_foul["points"] %>
+                  <%- # Show foul info if available (EXCEPTION: show even if player is not active) %>
+                  <%- if has_foul %>
                     <div class="flex items-center justify-center gap-1 text-sm text-gray-700 dark:text-gray-300 mt-1">
                       <%- ball_value = last_foul["ball_value"] || 4 %>
                       <%- ball_image_map = { 1 => 'snooker_ball_red', 2 => 'snooker_ball_yellow', 3 => 'snooker_ball_green', 4 => 'snooker_ball_brown', 5 => 'snooker_ball_blue', 6 => 'snooker_ball_pink', 7 => 'snooker_ball_black' } %>
