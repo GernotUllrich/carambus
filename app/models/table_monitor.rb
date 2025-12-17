@@ -719,10 +719,14 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
     
     state = data["snooker_state"]
     
+    # Track if free ball was active before this pot
+    free_ball_was_active = state["free_ball_active"] || false
+    
     # If free ball was just potted, deactivate free ball status
-    if state["free_ball_active"]
+    if free_ball_was_active
       state["free_ball_active"] = false
-      # After free ball, continue with normal rules based on what was potted
+      # After free ball, the potted ball counts as the nominated ball
+      # Continue with normal rules based on what was potted
     end
     
     # Update based on ball value
