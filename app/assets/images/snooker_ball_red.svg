@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 150">
+  <defs>
+    <filter id="shadow">
+      <feGaussianBlur stdDeviation="13.983349"/>
+    </filter>
+    <filter id="blur">
+      <feGaussianBlur stdDeviation="0.51894099"/>
+    </filter>
+    <filter id="highlight-blur">
+      <feGaussianBlur stdDeviation="1.1908669"/>
+    </filter>
+    <radialGradient id="ball-gradient-red" gradientUnits="userSpaceOnUse" cy="562.79" cx="321.25" r="73.19">
+      <stop style="stop-color:#d40000" offset="0"/>
+      <stop style="stop-color:#080000" offset="1"/>
+    </radialGradient>
+    <radialGradient id="highlight-gradient" gradientUnits="userSpaceOnUse" cy="606.6" cx="340.73" r="29.393">
+      <stop style="stop-color:#f9f9f9" offset="0"/>
+      <stop style="stop-color:#f9f9f9;stop-opacity:0" offset="1"/>
+    </radialGradient>
+  </defs>
+  <g transform="translate(-318.67 -185.69)">
+    <path d="m360.17 611.94a73.19 73.19 0 1 1 -146.38 0 73.19 73.19 0 1 1 146.38 0z" 
+          style="filter:url(#shadow);stroke:#333333;stroke-width:3.8401;fill:#333333" 
+          transform="matrix(.60444 0 0 .076057 220.21 273.59)"/>
+    <path d="m360.17 611.94a73.19 73.19 0 1 1 -146.38 0 73.19 73.19 0 1 1 146.38 0z" 
+          style="filter:url(#blur);stroke:#333333;stroke-width:.94555;fill:url(#ball-gradient-red)" 
+          transform="matrix(.86882 0 0 .87273 144.34 -273.66)"/>
+    <path d="m366.76 593c-2.53-0.89-17.52 2.78-29.04 10.4-11.53 7.63-17.12 17.46-17.06 20.08 0.07 3.26 3.72 12.45 11.9 20.82 8.17 8.36 19.96 13.67 20.81 12.64 0.57-0.68 1.68-15.06 8.18-25.28 6.51-10.22 17.18-13.13 17.85-15.62 0.42-1.58-2.05-7.62-5.21-13.38s-5.53-9-7.43-9.66z" 
+          style="filter:url(#highlight-blur);fill-rule:evenodd;fill:url(#highlight-gradient)" 
+          transform="matrix(.61577 -.077588 .077239 .61854 103.83 -130.06)"/>
+  </g>
+</svg>
+
