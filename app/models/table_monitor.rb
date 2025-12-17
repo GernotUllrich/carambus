@@ -1532,6 +1532,9 @@ data[\"allow_overflow\"].present?")
               end
               data[current_role]["break_balls_redo_list"][-1] ||= []
               data[current_role]["break_balls_redo_list"][-1] = Array(data[current_role]["break_balls_redo_list"][-1]) + [n_balls]
+              
+              # Clear last_foul when a new ball is potted (foul display is over)
+              data.delete("last_foul")
             end
           end
           if add == to_play
@@ -2020,7 +2023,8 @@ data[\"allow_overflow\"].present?")
           if last_foul && last_foul["fouling_player"] == current_role
             # This player made the foul - store foul info
             data[current_role]["break_fouls_list"] << last_foul
-            data.delete("last_foul") # Clear after storing
+            # Don't delete last_foul yet - scoreboard needs it for display
+            # It will be cleared when next ball is potted
           else
             data[current_role]["break_fouls_list"] << nil
           end
