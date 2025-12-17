@@ -719,6 +719,107 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
     end
   end
 
+  # Undo the last potted ball for snooker
+  # Removes last ball from protocol, recalculates score and game state
+  def undo_snooker_ball(player_role)
+    return unless data["free_game_form"] == "snooker"
+    
+    # Initialize if not present
+    data[player_role]["break_balls_redo_list"] ||= [[]]
+    
+    # Get current break balls
+    current_break_balls = data[player_role]["break_balls_redo_list"][-1] || []
+    
+    # Remove last ball from the list
+    if current_break_balls.any?
+      removed_ball = current_break_balls.pop
+      
+      # Recalculate score from remaining balls in current break
+      new_score = current_break_balls.sum
+      data[player_role]["innings_redo_list"][-1] = new_score
+      
+      # Recalculate reds_remaining from ALL balls in protocol
+      recalculate_snooker_state_from_protocol
+      
+      # Update last_potted_ball to the previous ball (if any)
+      if current_break_balls.any?
+        data["snooker_state"]["last_potted_ball"] = current_break_balls.last
+      else
+        # Check other player's last ball if current player has no balls
+        other_player = (player_role == "playera" ? "playerb" : "playera")
+        other_break_balls = data[other_player]["break_balls_redo_list"]&.[](-1) || []
+        if other_break_balls.any?
+          data["snooker_state"]["last_potted_ball"] = other_break_balls.last
+        else
+          # Check last completed break
+          if data[player_role]["break_balls_list"]&.any?
+            last_completed = data[player_role]["break_balls_list"].last
+            data["snooker_state"]["last_potted_ball"] = last_completed&.last if last_completed&.any?
+          elsif data[other_player]["break_balls_list"]&.any?
+            last_completed = data[other_player]["break_balls_list"].last
+            data["snooker_state"]["last_potted_ball"] = last_completed&.last if last_completed&.any?
+          else
+            data["snooker_state"]["last_potted_ball"] = nil
+          end
+        end
+      end
+    end
+    
+    # Recompute result (sum of completed innings only)
+    recompute_result(player_role)
+  end
+  
+  # Recalculate snooker state (reds_remaining, colors_sequence) from protocol
+  def recalculate_snooker_state_from_protocol
+    return unless data["free_game_form"] == "snooker"
+    return unless data["snooker_state"].present?
+    
+    initial_reds = initial_red_balls
+    reds_potted = 0
+    all_potted_balls = []
+    
+    # Collect all potted balls from both players (completed + current breaks)
+    ["playera", "playerb"].each do |player|
+      # Completed breaks
+      if data[player]["break_balls_list"].present?
+        data[player]["break_balls_list"].each do |break_balls|
+          all_potted_balls += Array(break_balls) if break_balls.present?
+        end
+      end
+      # Current break
+      if data[player]["break_balls_redo_list"].present? && data[player]["break_balls_redo_list"][-1].present?
+        all_potted_balls += Array(data[player]["break_balls_redo_list"][-1])
+      end
+    end
+    
+    # Count reds
+    reds_potted = all_potted_balls.count(1)
+    data["snooker_state"]["reds_remaining"] = [initial_reds - reds_potted, 0].max
+    
+    # Recalculate colors_sequence (if all reds are gone)
+    if data["snooker_state"]["reds_remaining"] <= 0
+      # Start with all colors
+      all_colors = [2, 3, 4, 5, 6, 7]
+      # Remove colors that have been potted (after reds were gone)
+      # Find when reds became 0
+      balls_before_reds_gone = []
+      temp_reds = initial_reds
+      all_potted_balls.each do |ball|
+        if temp_reds > 0
+          balls_before_reds_gone << ball
+          temp_reds -= 1 if ball == 1
+        else
+          # Reds are gone, this ball is part of color clearance
+          all_colors.delete(ball) if ball >= 2 && ball <= 7
+        end
+      end
+      data["snooker_state"]["colors_sequence"] = all_colors
+    else
+      # Reds still on table, all colors available
+      data["snooker_state"]["colors_sequence"] = [2, 3, 4, 5, 6, 7]
+    end
+  end
+
   # Updates snooker game state when a ball is potted
   def update_snooker_state(ball_value)
     return unless data["free_game_form"] == "snooker"
@@ -2163,88 +2264,20 @@ data[\"allow_overflow\"].present?")
       # LIFO order: Check most recent action first (current player's break)
       elsif (data[current_role]["innings_redo_list"].andand[-1].to_i).positive?
         # Reduce current break for active player (most recent action)
-        current_break = data[current_role]["innings_redo_list"][-1].to_i
-        if current_break > 0
-          # For snooker: also remove last ball from break_balls_redo_list and recalculate reds_remaining
-          if data["free_game_form"] == "snooker"
-            data[current_role]["break_balls_redo_list"] ||= []
-            if data[current_role]["break_balls_redo_list"].present? && data[current_role]["break_balls_redo_list"][-1].present?
-              data[current_role]["break_balls_redo_list"][-1].pop
-              # Remove empty arrays
-              data[current_role]["break_balls_redo_list"].pop if data[current_role]["break_balls_redo_list"][-1].empty?
-              # Ensure at least one element exists
-              if data[current_role]["break_balls_redo_list"].empty?
-                data[current_role]["break_balls_redo_list"] = [[]]
-              end
-            end
-            # Recalculate reds_remaining from all balls in protocol (most accurate)
-            if data["snooker_state"].present?
-              initial_reds = initial_red_balls
-              reds_potted = 0
-              # Count reds in all completed breaks for both players
-              ["playera", "playerb"].each do |player|
-                if data[player]["break_balls_list"].present?
-                  data[player]["break_balls_list"].each do |break_balls|
-                    reds_potted += Array(break_balls).count(1) if break_balls.present?
-                  end
-                end
-                # Count reds in current break
-                if data[player]["break_balls_redo_list"].present? && data[player]["break_balls_redo_list"][-1].present?
-                  reds_potted += Array(data[player]["break_balls_redo_list"][-1]).count(1)
-                end
-              end
-              data["snooker_state"]["reds_remaining"] = [initial_reds - reds_potted, 0].max
-            end
-          end
-          # Reduce break by 1 (minimum 0)
+        if data["free_game_form"] == "snooker"
+          undo_snooker_ball(current_role)
+        else
+          # For non-snooker: simple decrement
+          current_break = data[current_role]["innings_redo_list"][-1].to_i
           data[current_role]["innings_redo_list"][-1] = [current_break - 1, 0].max
-          # Recompute result for current player to ensure result is correct
-          # result should only contain completed innings (innings_list), not current break
           recompute_result(current_role)
         end
       # Check other player's break (when player was switched but other player still has break)
       elsif data["free_game_form"] == "snooker" && (data[the_other_player]["innings_redo_list"].andand[-1].to_i).positive?
-        # For snooker only: Reduce break for other player (when player was switched but other player still has break)
-        # This happens when a player had a break, then "next" was pressed, switching to other player
-        # Undo should reduce the other player's break and switch back
-        other_break = data[the_other_player]["innings_redo_list"][-1].to_i
-        if other_break > 0
-          # Remove last ball from break_balls_redo_list and recalculate reds_remaining
-          data[the_other_player]["break_balls_redo_list"] ||= []
-          if data[the_other_player]["break_balls_redo_list"].present? && data[the_other_player]["break_balls_redo_list"][-1].present?
-            data[the_other_player]["break_balls_redo_list"][-1].pop
-            # Remove empty arrays
-            data[the_other_player]["break_balls_redo_list"].pop if data[the_other_player]["break_balls_redo_list"][-1].empty?
-            # Ensure at least one element exists
-            if data[the_other_player]["break_balls_redo_list"].empty?
-              data[the_other_player]["break_balls_redo_list"] = [[]]
-            end
-          end
-          # Recalculate reds_remaining from all balls in protocol (most accurate)
-          if data["snooker_state"].present?
-            initial_reds = initial_red_balls
-            reds_potted = 0
-            # Count reds in all completed breaks for both players
-            ["playera", "playerb"].each do |player|
-              if data[player]["break_balls_list"].present?
-                data[player]["break_balls_list"].each do |break_balls|
-                  reds_potted += Array(break_balls).count(1) if break_balls.present?
-                end
-              end
-              # Count reds in current break
-              if data[player]["break_balls_redo_list"].present? && data[player]["break_balls_redo_list"][-1].present?
-                reds_potted += Array(data[player]["break_balls_redo_list"][-1]).count(1)
-              end
-            end
-            data["snooker_state"]["reds_remaining"] = [initial_reds - reds_potted, 0].max
-          end
-          # Reduce break by 1 (minimum 0)
-          data[the_other_player]["innings_redo_list"][-1] = [other_break - 1, 0].max
-          # Switch back to other player
-          data["current_inning"]["active_player"] = the_other_player
-          # Recompute result for other player
-          recompute_result(the_other_player)
-        end
+        # For snooker only: Reduce break for other player and switch back
+        undo_snooker_ball(the_other_player)
+        # Switch back to other player
+        data["current_inning"]["active_player"] = the_other_player
       # Check other player's completed innings (oldest action, checked last in LIFO order)
       elsif (data[the_other_player]["innings"]).to_i.positive?
         if data[the_other_player]["innings_list"].present?
