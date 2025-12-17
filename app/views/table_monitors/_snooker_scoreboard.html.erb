@@ -105,6 +105,26 @@
                 <div class="text-<%= vw2 %>">
                   <%- if left_player_active && current_break_left > 0 %>
                     Break
+                    <%- # Show balls in current break %>
+                    <%- break_balls = show_data[left_player_id].andand["break_balls_redo_list"].andand[-1] %>
+                    <%- if break_balls.present? && break_balls.any? %>
+                      <div class="flex items-center justify-center gap-0.5 mt-1">
+                        <%- break_balls.each do |ball_value| %>
+                          <%- ball_image_map = { 1 => 'snooker_ball_red', 2 => 'snooker_ball_yellow', 3 => 'snooker_ball_green', 4 => 'snooker_ball_brown', 5 => 'snooker_ball_blue', 6 => 'snooker_ball_pink', 7 => 'snooker_ball_black' } %>
+                          <%- ball_image = ball_image_map[ball_value] %>
+                          <%- if ball_image %>
+                            <%= image_tag "#{ball_image}.svg", class: "w-4 h-4 object-contain" %>
+                          <%- end %>
+                        <%- end %>
+                      </div>
+                    <%- end %>
+                    <%- # Show foul info if available %>
+                    <%- last_foul = table_monitor.data["last_foul"] %>
+                    <%- if last_foul && last_foul["player"] == left_player_id && last_foul["points"] %>
+                      <div class="text-xs bg-red-500 text-white px-1.5 py-0.5 rounded mt-1 inline-block">
+                        Foul: <%= last_foul["points"] %>
+                      </div>
+                    <%- end %>
                   <%- end %>
                 </div>
               </div>
@@ -300,6 +320,26 @@
                 <div class="text-<%= vw2 %>">
                   <%- if right_player_active && current_break_right > 0 %>
                     Break
+                    <%- # Show balls in current break %>
+                    <%- break_balls = show_data[right_player_id].andand["break_balls_redo_list"].andand[-1] %>
+                    <%- if break_balls.present? && break_balls.any? %>
+                      <div class="flex items-center justify-center gap-0.5 mt-1">
+                        <%- break_balls.each do |ball_value| %>
+                          <%- ball_image_map = { 1 => 'snooker_ball_red', 2 => 'snooker_ball_yellow', 3 => 'snooker_ball_green', 4 => 'snooker_ball_brown', 5 => 'snooker_ball_blue', 6 => 'snooker_ball_pink', 7 => 'snooker_ball_black' } %>
+                          <%- ball_image = ball_image_map[ball_value] %>
+                          <%- if ball_image %>
+                            <%= image_tag "#{ball_image}.svg", class: "w-4 h-4 object-contain" %>
+                          <%- end %>
+                        <%- end %>
+                      </div>
+                    <%- end %>
+                    <%- # Show foul info if available %>
+                    <%- last_foul = table_monitor.data["last_foul"] %>
+                    <%- if last_foul && last_foul["player"] == right_player_id && last_foul["points"] %>
+                      <div class="text-xs bg-red-500 text-white px-1.5 py-0.5 rounded mt-1 inline-block">
+                        Foul: <%= last_foul["points"] %>
+                      </div>
+                    <%- end %>
                   <%- end %>
                 </div>
               </div>
