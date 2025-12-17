@@ -1308,6 +1308,14 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
     return unless data[current_role]["innings_foul_redo_list"].blank?
 
     data[current_role]["innings_foul_redo_list"] = [0]
+    
+    # Initialize snooker break tracking
+    if data["free_game_form"] == "snooker"
+      data[current_role]["break_balls_redo_list"] ||= []
+      data[current_role]["break_balls_redo_list"][-1] ||= [] if data[current_role]["break_balls_redo_list"].present?
+      data[current_role]["break_balls_list"] ||= []
+      data[current_role]["break_fouls_list"] ||= []
+    end
   end
 
   def add_n_balls(n_balls, player = nil)
@@ -1406,7 +1414,13 @@ data[\"allow_overflow\"].present?")
             recompute_result(current_role)
             
             # Update snooker state when ball is potted
-            update_snooker_state(n_balls) if data["free_game_form"] == "snooker"
+            if data["free_game_form"] == "snooker"
+              update_snooker_state(n_balls)
+              # Track balls potted in current break for protocol display
+              data[current_role]["break_balls_redo_list"] ||= []
+              data[current_role]["break_balls_redo_list"][-1] ||= []
+              data[current_role]["break_balls_redo_list"][-1] = Array(data[current_role]["break_balls_redo_list"][-1]) + [n_balls]
+            end
           end
           if add == to_play
             Rails.logger.info("addn +++++ m6[#{id}]C: add == to_play") if debug
@@ -1879,6 +1893,27 @@ data[\"allow_overflow\"].present?")
         init_lists(current_role)
         data[current_role]["innings_list"] << n_balls
         data[current_role]["innings_foul_list"] << n_fouls
+        
+        # Store break balls and foul info for snooker protocol
+        if data["free_game_form"] == "snooker"
+          # Store balls from current break
+          break_balls = Array(data[current_role]["break_balls_redo_list"]).pop || []
+          data[current_role]["break_balls_list"] ||= []
+          data[current_role]["break_balls_list"] << break_balls
+          
+          # Store foul info if available (check if this player had a foul)
+          # Foul info is stored in last_foul with the player who fouled
+          data[current_role]["break_fouls_list"] ||= []
+          last_foul = data["last_foul"]
+          if last_foul && last_foul["player"] == current_role && n_balls == 0
+            # This was a foul break (0 points) - store foul info
+            data[current_role]["break_fouls_list"] << last_foul
+            data.delete("last_foul") # Clear after storing
+          else
+            data[current_role]["break_fouls_list"] << nil
+          end
+        end
+        
         recompute_result(current_role)
         if data["innings_goal"].to_i.zero? || data[current_role]["innings"].to_i < data["innings_goal"].to_i
           data[current_role]["innings"] += 1
@@ -2833,6 +2868,51 @@ data[\"allow_overflow\"].present?")
       end
     end
 
+    # Get break balls and fouls for snooker
+    break_balls_a = []
+    break_balls_b = []
+    break_fouls_a = []
+    break_fouls_b = []
+    
+    if data["free_game_form"] == "snooker"
+      break_balls_list_a = Array(data.dig('playera', 'break_balls_list'))
+      break_balls_list_b = Array(data.dig('playerb', 'break_balls_list'))
+      break_fouls_list_a = Array(data.dig('playera', 'break_fouls_list'))
+      break_fouls_list_b = Array(data.dig('playerb', 'break_fouls_list'))
+      break_balls_redo_a = Array(data.dig('playera', 'break_balls_redo_list')).last || []
+      break_balls_redo_b = Array(data.dig('playerb', 'break_balls_redo_list')).last || []
+      
+      (0...num_rows).each do |i|
+        if i < break_balls_list_a.length
+          break_balls_a << break_balls_list_a[i]
+        elsif i == break_balls_list_a.length && active_player == 'playera'
+          break_balls_a << break_balls_redo_a
+        else
+          break_balls_a << nil
+        end
+        
+        if i < break_balls_list_b.length
+          break_balls_b << break_balls_list_b[i]
+        elsif i == break_balls_list_b.length && active_player == 'playerb'
+          break_balls_b << break_balls_redo_b
+        else
+          break_balls_b << nil
+        end
+        
+        if i < break_fouls_list_a.length
+          break_fouls_a << break_fouls_list_a[i]
+        else
+          break_fouls_a << nil
+        end
+        
+        if i < break_fouls_list_b.length
+          break_fouls_b << break_fouls_list_b[i]
+        else
+          break_fouls_b << nil
+        end
+      end
+    end
+
     Rails.logger.warn "📋 INNINGS_HISTORY_DEBUG 📋 RESULT:"
     Rails.logger.warn "  Player A innings (#{innings_a.length} items): #{innings_a.inspect}"
     Rails.logger.warn "  Player B innings (#{innings_b.length} items): #{innings_b.inspect}"
@@ -2840,7 +2920,7 @@ data[\"allow_overflow\"].present?")
     Rails.logger.warn "📋 INNINGS_HISTORY_DEBUG 📋 END"
     Rails.logger.warn "=" * 80
 
-    {
+    result = {
       player_a: {
         name: gps[0]&.player&.fullname || "Spieler A",
         shortname: gps[0]&.player&.shortname || "Spieler A",
@@ -2864,6 +2944,16 @@ data[\"allow_overflow\"].present?")
       discipline: data.dig('playera', 'discipline'),
       balls_goal: data.dig('playera', 'balls_goal').to_i
     }
+    
+    # Add snooker-specific data
+    if data["free_game_form"] == "snooker"
+      result[:player_a][:break_balls] = break_balls_a
+      result[:player_a][:break_fouls] = break_fouls_a
+      result[:player_b][:break_balls] = break_balls_b
+      result[:player_b][:break_fouls] = break_fouls_b
+    end
+    
+    result
   rescue StandardError => e
     Rails.logger.info "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}" if DEBUG
     {

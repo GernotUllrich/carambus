@@ -56,7 +56,28 @@
       <td class="<%= cell_class_a %> <%= inning_a_class %>" 
           data-player="playera" 
           data-inning="<%= i %>">
-        <%= has_inning_a ? inning_a : '' %>
+        <%- if has_inning_a %>
+          <div class="flex items-center justify-center gap-1">
+            <span class="font-semibold"><%= inning_a %></span>
+            <%- if table_monitor.data["free_game_form"] == "snooker" && player_a[:break_balls] && player_a[:break_balls][i] %>
+              <div class="flex items-center gap-0.5">
+                <%- player_a[:break_balls][i].each do |ball_value| %>
+                  <%- ball_image_map = { 1 => 'snooker_ball_red', 2 => 'snooker_ball_yellow', 3 => 'snooker_ball_green', 4 => 'snooker_ball_brown', 5 => 'snooker_ball_blue', 6 => 'snooker_ball_pink', 7 => 'snooker_ball_black' } %>
+                  <%- ball_image = ball_image_map[ball_value] %>
+                  <%- if ball_image %>
+                    <%= image_tag "#{ball_image}.svg", class: "w-6 h-6 object-contain" %>
+                  <%- end %>
+                <%- end %>
+              </div>
+            <%- end %>
+            <%- if table_monitor.data["free_game_form"] == "snooker" && player_a[:break_fouls] && player_a[:break_fouls][i] %>
+              <%- foul_info = player_a[:break_fouls][i] %>
+              <%- if foul_info && foul_info["points"] %>
+                <span class="text-xs bg-red-500 text-white px-1.5 py-0.5 rounded">Foul: <%= foul_info["points"] %></span>
+              <%- end %>
+            <%- end %>
+          </div>
+        <%- end %>
       </td>
       
       <!-- Player A Total -->
@@ -68,7 +89,28 @@
       <td class="<%= cell_class_b %> <%= inning_b_class %>"
           data-player="playerb"
           data-inning="<%= i %>">
-        <%= has_inning_b ? inning_b : '' %>
+        <%- if has_inning_b %>
+          <div class="flex items-center justify-center gap-1">
+            <span class="font-semibold"><%= inning_b %></span>
+            <%- if table_monitor.data["free_game_form"] == "snooker" && player_b[:break_balls] && player_b[:break_balls][i] %>
+              <div class="flex items-center gap-0.5">
+                <%- player_b[:break_balls][i].each do |ball_value| %>
+                  <%- ball_image_map = { 1 => 'snooker_ball_red', 2 => 'snooker_ball_yellow', 3 => 'snooker_ball_green', 4 => 'snooker_ball_brown', 5 => 'snooker_ball_blue', 6 => 'snooker_ball_pink', 7 => 'snooker_ball_black' } %>
+                  <%- ball_image = ball_image_map[ball_value] %>
+                  <%- if ball_image %>
+                    <%= image_tag "#{ball_image}.svg", class: "w-6 h-6 object-contain" %>
+                  <%- end %>
+                <%- end %>
+              </div>
+            <%- end %>
+            <%- if table_monitor.data["free_game_form"] == "snooker" && player_b[:break_fouls] && player_b[:break_fouls][i] %>
+              <%- foul_info = player_b[:break_fouls][i] %>
+              <%- if foul_info && foul_info["points"] %>
+                <span class="text-xs bg-red-500 text-white px-1.5 py-0.5 rounded">Foul: <%= foul_info["points"] %></span>
+              <%- end %>
+            <%- end %>
+          </div>
+        <%- end %>
       </td>
       
       <!-- Player B Total -->
