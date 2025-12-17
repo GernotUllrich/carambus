@@ -48,8 +48,9 @@
 <%- frames_to_play = options[:sets_to_play] || options[:frames_to_play] || 0 %>
 <%- current_frame_a = options[:current_sets_a] || 0 %>
 <%- current_frame_b = options[:current_sets_b] || 0 %>
-<%- current_break_left = left_player_active ? (show_data[left_player_id].andand["innings_redo_list"].andand[-1].to_i || 0) : 0 %>
-<%- current_break_right = right_player_active ? (show_data[right_player_id].andand["innings_redo_list"].andand[-1].to_i || 0) : 0 %>
+<%- # Always calculate break for both players, not just active one %>
+<%- current_break_left = show_data[left_player_id].andand["innings_redo_list"].andand[-1].to_i || 0 %>
+<%- current_break_right = show_data[right_player_id].andand["innings_redo_list"].andand[-1].to_i || 0 %>
 <%- high_break_left = left_player[:hs] || 0 %>
 <%- high_break_right = right_player[:hs] || 0 %>
 <%- current_frame_number = (current_frame_a.to_i + current_frame_b.to_i) + 1 %>
@@ -97,13 +98,13 @@
               <div class="flex-1 text-left font-bold text-red-400" style="letter-spacing: normal;">
                 <div class="text-<%= vw8 %> p-4">
                   <span class="break-score" data-player="<%= left_player_id %>">
-                    <%- if left_player_active && current_break_left > 0 %>
+                    <%- if current_break_left > 0 %>
                       <%= current_break_left %>
                     <%- end %>
                   </span>
                 </div>
                 <div class="text-<%= vw2 %>">
-                  <%- if left_player_active && current_break_left > 0 %>
+                  <%- if current_break_left > 0 %>
                     Break
                     <%- # Show balls in current break %>
                     <%- break_balls = show_data[left_player_id].andand["break_balls_redo_list"].andand[-1] %>
@@ -312,13 +313,13 @@
               <div class="flex-1 text-right font-bold text-red-400" style="letter-spacing: normal;">
                 <div class="text-<%= vw8 %> p-4">
                   <span class="break-score" data-player="<%= right_player_id %>">
-                    <%- if right_player_active && current_break_right > 0 %>
+                    <%- if current_break_right > 0 %>
                       <%= current_break_right %>
                     <%- end %>
                   </span>
                 </div>
                 <div class="text-<%= vw2 %>">
-                  <%- if right_player_active && current_break_right > 0 %>
+                  <%- if current_break_right > 0 %>
                     Break
                     <%- # Show balls in current break %>
                     <%- break_balls = show_data[right_player_id].andand["break_balls_redo_list"].andand[-1] %>
