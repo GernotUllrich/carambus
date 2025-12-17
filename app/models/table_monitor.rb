@@ -2165,6 +2165,27 @@ data[\"allow_overflow\"].present?")
         data[the_other_player]["gd"] =
           format("%.2f", data[the_other_player]["result"].to_f / data[current_role]["innings"].to_i)
         data["current_inning"]["active_player"] = the_other_player
+      elsif (data[current_role]["innings_redo_list"].andand[-1].to_i).positive?
+        # Reduce current break for active player
+        current_break = data[current_role]["innings_redo_list"][-1].to_i
+        if current_break > 0
+          # For snooker: also remove last ball from break_balls_redo_list
+          if data["free_game_form"] == "snooker"
+            data[current_role]["break_balls_redo_list"] ||= []
+            if data[current_role]["break_balls_redo_list"].present? && data[current_role]["break_balls_redo_list"][-1].present?
+              data[current_role]["break_balls_redo_list"][-1].pop
+              # Remove empty arrays
+              data[current_role]["break_balls_redo_list"].pop if data[current_role]["break_balls_redo_list"][-1].empty?
+              # Ensure at least one element exists
+              if data[current_role]["break_balls_redo_list"].empty?
+                data[current_role]["break_balls_redo_list"] = [[]]
+              end
+            end
+          end
+          # Reduce break by 1 (minimum 0)
+          data[current_role]["innings_redo_list"][-1] = [current_break - 1, 0].max
+          recompute_result(current_role)
+        end
       elsif (data["playera"]["innings"].to_i + data["playerb"]["innings"].to_i +
         data["playera"]["result"].to_i + data["playerb"]["result"].to_i +
         data["sets"].to_a.length +
