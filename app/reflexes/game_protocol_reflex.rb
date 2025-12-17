@@ -241,6 +241,15 @@ class GameProtocolReflex < ApplicationReflex
     @table_monitor.data[player]["break_balls_list"] ||= []
     @table_monitor.data[player]["break_balls_list"][inning_index] = new_balls
     
+    # CRITICAL: Ensure break_fouls_list has matching length with nil entries
+    # This keeps the arrays synchronized so fouls don't shift positions
+    @table_monitor.data[player]["break_fouls_list"] ||= []
+    while @table_monitor.data[player]["break_fouls_list"].length <= inning_index
+      @table_monitor.data[player]["break_fouls_list"] << nil
+    end
+    # Ensure this position is nil (not a foul) since we're editing balls
+    @table_monitor.data[player]["break_fouls_list"][inning_index] = nil
+    
     # Calculate new points
     new_points = new_balls.sum
     
