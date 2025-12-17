@@ -775,6 +775,10 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
     # If all reds are potted, only colors in sequence are "on"
     if reds_remaining <= 0
       next_color = colors_sequence.first
+      if next_color.nil?
+        # All colors potted - game should be over, but allow all as fallback
+        return { 1 => :off, 2 => :on, 3 => :on, 4 => :on, 5 => :on, 6 => :on, 7 => :on }
+      end
       result = {}
       (1..7).each do |ball|
         result[ball] = (ball == next_color) ? :on : :off
@@ -791,8 +795,22 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
       # After a red ball: all colors are "on", red is "addable" for additional reds
       { 1 => :addable, 2 => :on, 3 => :on, 4 => :on, 5 => :on, 6 => :on, 7 => :on }
     elsif last_potted && last_potted >= 2 && last_potted <= 7
-      # After a color: back to reds
-      { 1 => :on, 2 => :off, 3 => :off, 4 => :off, 5 => :off, 6 => :off, 7 => :off }
+      # After a color: back to reds (if reds remain)
+      if reds_remaining > 0
+        { 1 => :on, 2 => :off, 3 => :off, 4 => :off, 5 => :off, 6 => :off, 7 => :off }
+      else
+        # All reds gone, but color was just potted - next color in sequence
+        next_color = colors_sequence.first
+        if next_color.nil?
+          { 1 => :off, 2 => :off, 3 => :off, 4 => :off, 5 => :off, 6 => :off, 7 => :off }
+        else
+          result = {}
+          (1..7).each do |ball|
+            result[ball] = (ball == next_color) ? :on : :off
+          end
+          result
+        end
+      end
     else
       # At start or after player change: only reds are "on"
       { 1 => :on, 2 => :off, 3 => :off, 4 => :off, 5 => :off, 6 => :off, 7 => :off }
