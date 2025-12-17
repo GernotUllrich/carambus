@@ -571,8 +571,8 @@ class TableMonitorReflex < ApplicationReflex
     # Mark data as changed
     @table_monitor.data_will_change!
     
-    # Store foul information for protocol (stored for OPPONENT who gets the points)
-    @table_monitor.data["last_foul"] = {
+    # Create foul info hash (used for both last_foul and pending_foul)
+    foul_info = {
       "ball_value" => ball_value,
       "points" => foul_points,
       "free_ball" => free_ball,
@@ -581,6 +581,9 @@ class TableMonitorReflex < ApplicationReflex
       "fouling_player" => active_player,  # Who made the foul
       "receiving_player" => opponent_player  # Who gets the points
     }
+    
+    # Store foul information for scoreboard display
+    @table_monitor.data["last_foul"] = foul_info
     
     # Set free ball status if free ball was selected
     if free_ball
