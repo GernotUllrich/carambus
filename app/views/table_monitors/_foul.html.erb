@@ -16,24 +16,28 @@
       <div class="flex flex-col items-center justify-center h-1/4 space-y-2">
         <div class="text-3vw font-semibold mb-2">Foul-Punkte</div>
         <div class="flex flex-row flex-wrap items-center justify-center gap-2 px-4">
-          <!-- Minimum Foul (4 points) - White ball with number -->
+          <!-- Minimum Foul (4 points) - White ball -->
           <%= content_tag "div",
                           data: { reflex: "click->TableMonitorReflex#foul_select_ball", id: table_monitor.id, ball: 4 },
-                          class: "flex items-center justify-center w-20 h-20 rounded-full border-4 #{selected_ball == 4 ? 'border-yellow-400 bg-gray-200 shadow-lg' : 'border-gray-400 bg-white'} text-4vw font-bold",
+                          class: "relative flex items-center justify-center w-20 h-20 rounded-full border-4 #{selected_ball == 4 ? 'border-yellow-400 shadow-lg' : 'border-gray-400'}",
                           id: "foul_ball_4",
                           tabindex: 5 do %>
-            <span class="text-gray-800">4</span>
+            <div class="w-full h-full rounded-full bg-gray-200 flex items-center justify-center">
+              <span class="text-gray-800 text-4vw font-bold">4</span>
+            </div>
           <%- end %>
           
           <!-- Color balls: Blue (5), Pink (6), Black (7) -->
-          <%- { 5 => '#3B82F6', 6 => '#EC4899', 7 => '#000000' }.each do |value, color| %>
+          <%- { 5 => 'snooker_ball_blue', 6 => 'snooker_ball_pink', 7 => 'snooker_ball_black' }.each do |value, image| %>
             <%= content_tag "div",
                             data: { reflex: "click->TableMonitorReflex#foul_select_ball", id: table_monitor.id, ball: value },
-                            class: "flex items-center justify-center w-20 h-20 rounded-full border-4 #{selected_ball == value ? 'border-yellow-400 shadow-lg' : 'border-gray-400'} text-4vw font-bold text-white",
-                            style: "background-color: #{color}",
+                            class: "relative flex items-center justify-center w-20 h-20 rounded-full border-4 #{selected_ball == value ? 'border-yellow-400 shadow-lg' : 'border-gray-400'}",
                             id: "foul_ball_#{value}",
                             tabindex: 5 do %>
-              <span><%= value %></span>
+              <%= image_tag "#{image}.svg", class: "w-full h-full object-contain" %>
+              <div class="absolute inset-0 flex items-center justify-center">
+                <span class="text-white text-4vw font-bold drop-shadow-lg" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.8);"><%= value %></span>
+              </div>
             <%- end %>
           <%- end %>
         </div>

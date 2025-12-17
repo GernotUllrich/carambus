@@ -370,6 +370,9 @@
           <%- # Snooker ball values: Red=1, Yellow=2, Green=3, Brown=4, Blue=5, Pink=6, Black=7 %>
           <%- balls_on = table_monitor.snooker_balls_on %>
           <%- ball_image_map = { 1 => 'snooker_ball_red', 2 => 'snooker_ball_yellow', 3 => 'snooker_ball_green', 4 => 'snooker_ball_brown', 5 => 'snooker_ball_blue', 6 => 'snooker_ball_pink', 7 => 'snooker_ball_black' } %>
+          <%- # Get reds remaining for display on red ball %>
+          <%- snooker_state = table_monitor.data["snooker_state"] || {} %>
+          <%- reds_remaining = snooker_state["reds_remaining"] || table_monitor.initial_red_balls %>
           <%- [1, 2, 3, 4, 5, 6, 7].each do |ball_value| %>
             <%- ball_status = balls_on[ball_value] || :off %>
             <%- ball_is_playable = ball_status == :on || ball_status == :addable %>
@@ -388,11 +391,14 @@
                             tabindex: ball_is_playable ? 2 : -1 do %>
               <div class="relative flex items-center justify-center w-16 h-16">
                 <%= image_tag "#{ball_image}.svg", class: "w-full h-full object-contain #{ball_is_off ? 'opacity-50' : ''}" %>
-                <div class="absolute inset-0 flex items-center justify-center">
-                  <span class="font-bold text-<%= fullscreen ? '3vw' : '2vw' %> text-white drop-shadow-lg" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.8);">
-                    <%= ball_value %>
-                  </span>
-                </div>
+                <%- if ball_value == 1 %>
+                  <%- # Show reds remaining on red ball %>
+                  <div class="absolute inset-0 flex items-center justify-center">
+                    <span class="font-bold text-<%= fullscreen ? '3vw' : '2vw' %> text-white drop-shadow-lg" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.8);">
+                      <%= reds_remaining %>
+                    </span>
+                  </div>
+                <%- end %>
                 <%- if ball_is_off %>
                   <div class="absolute inset-0 bg-black bg-opacity-50 rounded-full pointer-events-none"></div>
                 <%- end %>
