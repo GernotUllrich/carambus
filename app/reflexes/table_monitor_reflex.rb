@@ -599,14 +599,21 @@ class TableMonitorReflex < ApplicationReflex
     # STEP 1: Terminate the fouling player's break
     # Store foul info with the fouling player
     if @table_monitor.data["free_game_form"] == "snooker"
+      # Initialize fouling player's lists if needed
+      @table_monitor.init_lists(active_player)
+      
+      # Ensure break_balls_redo_list exists
       @table_monitor.data[active_player]["break_balls_redo_list"] ||= []
       if @table_monitor.data[active_player]["break_balls_redo_list"].empty?
         @table_monitor.data[active_player]["break_balls_redo_list"] = [[]]
       end
       @table_monitor.data[active_player]["break_balls_redo_list"][-1] = [] # Clear break balls
       
-      # Reset break points to 0
-      @table_monitor.data[active_player]["innings_redo_list"] ||= [0]
+      # Ensure innings_redo_list exists and reset break points to 0
+      @table_monitor.data[active_player]["innings_redo_list"] ||= []
+      if @table_monitor.data[active_player]["innings_redo_list"].empty?
+        @table_monitor.data[active_player]["innings_redo_list"] = [0]
+      end
       @table_monitor.data[active_player]["innings_redo_list"][-1] = 0
       
       # Terminate the foul break (stores in protocol with foul info)
