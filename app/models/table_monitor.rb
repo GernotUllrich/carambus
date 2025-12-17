@@ -2165,24 +2165,35 @@ data[\"allow_overflow\"].present?")
         # Reduce current break for active player (most recent action)
         current_break = data[current_role]["innings_redo_list"][-1].to_i
         if current_break > 0
-          # For snooker: also remove last ball from break_balls_redo_list and update reds_remaining
+          # For snooker: also remove last ball from break_balls_redo_list and recalculate reds_remaining
           if data["free_game_form"] == "snooker"
             data[current_role]["break_balls_redo_list"] ||= []
             if data[current_role]["break_balls_redo_list"].present? && data[current_role]["break_balls_redo_list"][-1].present?
-              last_ball = data[current_role]["break_balls_redo_list"][-1].pop
-              # If last ball was a red (value 1), increment reds_remaining
-              # Simply reverse what was done when the ball was potted
-              if last_ball == 1 && data["snooker_state"].present?
-                current_reds = data["snooker_state"]["reds_remaining"].to_i
-                initial_reds = initial_red_balls
-                data["snooker_state"]["reds_remaining"] = [current_reds + 1, initial_reds].min
-              end
+              data[current_role]["break_balls_redo_list"][-1].pop
               # Remove empty arrays
               data[current_role]["break_balls_redo_list"].pop if data[current_role]["break_balls_redo_list"][-1].empty?
               # Ensure at least one element exists
               if data[current_role]["break_balls_redo_list"].empty?
                 data[current_role]["break_balls_redo_list"] = [[]]
               end
+            end
+            # Recalculate reds_remaining from all balls in protocol (most accurate)
+            if data["snooker_state"].present?
+              initial_reds = initial_red_balls
+              reds_potted = 0
+              # Count reds in all completed breaks for both players
+              ["playera", "playerb"].each do |player|
+                if data[player]["break_balls_list"].present?
+                  data[player]["break_balls_list"].each do |break_balls|
+                    reds_potted += Array(break_balls).count(1) if break_balls.present?
+                  end
+                end
+                # Count reds in current break
+                if data[player]["break_balls_redo_list"].present? && data[player]["break_balls_redo_list"][-1].present?
+                  reds_potted += Array(data[player]["break_balls_redo_list"][-1]).count(1)
+                end
+              end
+              data["snooker_state"]["reds_remaining"] = [initial_reds - reds_potted, 0].max
             end
           end
           # Reduce break by 1 (minimum 0)
@@ -2198,23 +2209,34 @@ data[\"allow_overflow\"].present?")
         # Undo should reduce the other player's break and switch back
         other_break = data[the_other_player]["innings_redo_list"][-1].to_i
         if other_break > 0
-          # Remove last ball from break_balls_redo_list and update reds_remaining
+          # Remove last ball from break_balls_redo_list and recalculate reds_remaining
           data[the_other_player]["break_balls_redo_list"] ||= []
           if data[the_other_player]["break_balls_redo_list"].present? && data[the_other_player]["break_balls_redo_list"][-1].present?
-            last_ball = data[the_other_player]["break_balls_redo_list"][-1].pop
-            # If last ball was a red (value 1), increment reds_remaining
-            # Simply reverse what was done when the ball was potted
-            if last_ball == 1 && data["snooker_state"].present?
-              current_reds = data["snooker_state"]["reds_remaining"].to_i
-              initial_reds = initial_red_balls
-              data["snooker_state"]["reds_remaining"] = [current_reds + 1, initial_reds].min
-            end
+            data[the_other_player]["break_balls_redo_list"][-1].pop
             # Remove empty arrays
             data[the_other_player]["break_balls_redo_list"].pop if data[the_other_player]["break_balls_redo_list"][-1].empty?
             # Ensure at least one element exists
             if data[the_other_player]["break_balls_redo_list"].empty?
               data[the_other_player]["break_balls_redo_list"] = [[]]
             end
+          end
+          # Recalculate reds_remaining from all balls in protocol (most accurate)
+          if data["snooker_state"].present?
+            initial_reds = initial_red_balls
+            reds_potted = 0
+            # Count reds in all completed breaks for both players
+            ["playera", "playerb"].each do |player|
+              if data[player]["break_balls_list"].present?
+                data[player]["break_balls_list"].each do |break_balls|
+                  reds_potted += Array(break_balls).count(1) if break_balls.present?
+                end
+              end
+              # Count reds in current break
+              if data[player]["break_balls_redo_list"].present? && data[player]["break_balls_redo_list"][-1].present?
+                reds_potted += Array(data[player]["break_balls_redo_list"][-1]).count(1)
+              end
+            end
+            data["snooker_state"]["reds_remaining"] = [initial_reds - reds_potted, 0].max
           end
           # Reduce break by 1 (minimum 0)
           data[the_other_player]["innings_redo_list"][-1] = [other_break - 1, 0].max
