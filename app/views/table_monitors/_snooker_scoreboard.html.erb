@@ -53,6 +53,9 @@
 <%- high_break_left = left_player[:hs] || 0 %>
 <%- high_break_right = right_player[:hs] || 0 %>
 <%- current_frame_number = (current_frame_a.to_i + current_frame_b.to_i) + 1 %>
+<%- # Calculate total scores (result + current break) for both players %>
+<%- total_score_left = left_player[:result].to_i + (show_data[left_player_id].andand["innings_redo_list"].andand[-1].to_i || 0) %>
+<%- total_score_right = right_player[:result].to_i + (show_data[right_player_id].andand["innings_redo_list"].andand[-1].to_i || 0) %>
 
 <div class="<%= fullscreen ? "fullscreen flex flex-col h-full rounded shadow dark:bg-black" : "flex h-full rounded shadow" %>" 
      data-table-monitor-root="scoreboard" 
@@ -117,8 +120,6 @@
                 </div>
               </div>
             </div>
-            <%- total_score_left = left_player[:result].to_i + (show_data[left_player_id].andand["innings_redo_list"].andand[-1].to_i || 0) %>
-            <%- total_score_right = right_player[:result].to_i + (show_data[right_player_id].andand["innings_redo_list"].andand[-1].to_i || 0) %>
             <%- won_or_draw = table_monitor.set_over? && total_score_left >= total_score_right %>
             <div class="flex h-4/6 text-center text-<%= vw24 %> justify-center items-center font-bold score-display <%= 'text-green-400' if won_or_draw %>" data-player="<%= left_player_id %>" data-score="<%= total_score_left %>">
               <span class="main-score" data-player="<%= left_player_id %>"><%= total_score_left %></span>
