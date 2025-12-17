@@ -2175,11 +2175,17 @@ data[\"allow_overflow\"].present?")
         # Reduce current break for active player
         current_break = data[current_role]["innings_redo_list"][-1].to_i
         if current_break > 0
-          # For snooker: also remove last ball from break_balls_redo_list
+          # For snooker: also remove last ball from break_balls_redo_list and update reds_remaining
           if data["free_game_form"] == "snooker"
             data[current_role]["break_balls_redo_list"] ||= []
             if data[current_role]["break_balls_redo_list"].present? && data[current_role]["break_balls_redo_list"][-1].present?
-              data[current_role]["break_balls_redo_list"][-1].pop
+              last_ball = data[current_role]["break_balls_redo_list"][-1].pop
+              # If last ball was a red (value 1), increment reds_remaining
+              if last_ball == 1 && data["snooker_state"].present?
+                current_reds = data["snooker_state"]["reds_remaining"].to_i
+                initial_reds = initial_red_balls
+                data["snooker_state"]["reds_remaining"] = [current_reds + 1, initial_reds].min
+              end
               # Remove empty arrays
               data[current_role]["break_balls_redo_list"].pop if data[current_role]["break_balls_redo_list"][-1].empty?
               # Ensure at least one element exists
@@ -2194,23 +2200,27 @@ data[\"allow_overflow\"].present?")
           # result should only contain completed innings (innings_list), not current break
           recompute_result(current_role)
         end
-      elsif (data[the_other_player]["innings_redo_list"].andand[-1].to_i).positive?
-        # Reduce break for other player (when player was switched but other player still has break)
+      elsif data["free_game_form"] == "snooker" && (data[the_other_player]["innings_redo_list"].andand[-1].to_i).positive?
+        # For snooker only: Reduce break for other player (when player was switched but other player still has break)
         # This happens when a player had a break, then "next" was pressed, switching to other player
         # Undo should reduce the other player's break and switch back
         other_break = data[the_other_player]["innings_redo_list"][-1].to_i
         if other_break > 0
-          # For snooker: also remove last ball from break_balls_redo_list
-          if data["free_game_form"] == "snooker"
-            data[the_other_player]["break_balls_redo_list"] ||= []
-            if data[the_other_player]["break_balls_redo_list"].present? && data[the_other_player]["break_balls_redo_list"][-1].present?
-              data[the_other_player]["break_balls_redo_list"][-1].pop
-              # Remove empty arrays
-              data[the_other_player]["break_balls_redo_list"].pop if data[the_other_player]["break_balls_redo_list"][-1].empty?
-              # Ensure at least one element exists
-              if data[the_other_player]["break_balls_redo_list"].empty?
-                data[the_other_player]["break_balls_redo_list"] = [[]]
-              end
+          # Remove last ball from break_balls_redo_list and update reds_remaining
+          data[the_other_player]["break_balls_redo_list"] ||= []
+          if data[the_other_player]["break_balls_redo_list"].present? && data[the_other_player]["break_balls_redo_list"][-1].present?
+            last_ball = data[the_other_player]["break_balls_redo_list"][-1].pop
+            # If last ball was a red (value 1), increment reds_remaining
+            if last_ball == 1 && data["snooker_state"].present?
+              current_reds = data["snooker_state"]["reds_remaining"].to_i
+              initial_reds = initial_red_balls
+              data["snooker_state"]["reds_remaining"] = [current_reds + 1, initial_reds].min
+            end
+            # Remove empty arrays
+            data[the_other_player]["break_balls_redo_list"].pop if data[the_other_player]["break_balls_redo_list"][-1].empty?
+            # Ensure at least one element exists
+            if data[the_other_player]["break_balls_redo_list"].empty?
+              data[the_other_player]["break_balls_redo_list"] = [[]]
             end
           end
           # Reduce break by 1 (minimum 0)
