@@ -2280,16 +2280,48 @@ data[\"allow_overflow\"].present?")
         data["current_inning"]["active_player"] = the_other_player
       # Check other player's completed innings (oldest action, checked last in LIFO order)
       elsif (data[the_other_player]["innings"]).to_i.positive?
-        if data[the_other_player]["innings_list"].present?
-          arr = Array(data[the_other_player]["innings_list"])
-          data[the_other_player]["innings_redo_list"] << arr.pop.to_i if arr.present?
+        # For snooker: restore the completed inning to redo_list AND restore break_balls
+        if data["free_game_form"] == "snooker"
+          # Move last completed inning back to redo
+          if data[the_other_player]["innings_list"].present?
+            arr = Array(data[the_other_player]["innings_list"])
+            data[the_other_player]["innings_redo_list"] << arr.pop.to_i if arr.present?
+          end
+          
+          # Restore break_balls from break_balls_list to break_balls_redo_list
+          if data[the_other_player]["break_balls_list"].present?
+            last_break_balls = data[the_other_player]["break_balls_list"].pop
+            data[the_other_player]["break_balls_redo_list"] ||= []
+            data[the_other_player]["break_balls_redo_list"] << (last_break_balls || [])
+          end
+          
+          # Recalculate snooker state from protocol
+          recalculate_snooker_state_from_protocol
+          
+          # Update last_potted_ball to last ball in the restored break
+          if data[the_other_player]["break_balls_redo_list"]&.[](-1)&.any?
+            data["snooker_state"]["last_potted_ball"] = data[the_other_player]["break_balls_redo_list"][-1].last
+          end
+          
+          data[the_other_player]["innings"] -= 1
+          recompute_result(the_other_player)
+          data[the_other_player]["hs"] = data[the_other_player]["innings_list"]&.max.to_i
+          data[the_other_player]["gd"] =
+            format("%.2f", data[the_other_player]["result"].to_f / data[the_other_player]["innings"].to_i) if data[the_other_player]["innings"].to_i > 0
+          data["current_inning"]["active_player"] = the_other_player
+        else
+          # For non-snooker: standard logic
+          if data[the_other_player]["innings_list"].present?
+            arr = Array(data[the_other_player]["innings_list"])
+            data[the_other_player]["innings_redo_list"] << arr.pop.to_i if arr.present?
+          end
+          data[the_other_player]["innings"] -= 1
+          data[the_other_player]["result"] = data[the_other_player]["innings_list"]&.sum.to_i
+          data[the_other_player]["hs"] = data[the_other_player]["innings_list"]&.max.to_i
+          data[the_other_player]["gd"] =
+            format("%.2f", data[the_other_player]["result"].to_f / data[current_role]["innings"].to_i)
+          data["current_inning"]["active_player"] = the_other_player
         end
-        data[the_other_player]["innings"] -= 1
-        data[the_other_player]["result"] = data[the_other_player]["innings_list"]&.sum.to_i
-        data[the_other_player]["hs"] = data[the_other_player]["innings_list"]&.max.to_i
-        data[the_other_player]["gd"] =
-          format("%.2f", data[the_other_player]["result"].to_f / data[current_role]["innings"].to_i)
-        data["current_inning"]["active_player"] = the_other_player
       elsif (data["playera"]["innings"].to_i + data["playerb"]["innings"].to_i +
         data["playera"]["result"].to_i + data["playerb"]["result"].to_i +
         data["sets"].to_a.length +
