@@ -767,9 +767,9 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
     free_ball_active = state["free_ball_active"] || false
     colors_sequence = state["colors_sequence"] || [2, 3, 4, 5, 6, 7]
     
-    # If free ball is active, all balls are disabled
+    # If free ball is active, all balls are playable (player can nominate any ball)
     if free_ball_active
-      return { 1 => :off, 2 => :off, 3 => :off, 4 => :off, 5 => :off, 6 => :off, 7 => :off }
+      return { 1 => :on, 2 => :on, 3 => :on, 4 => :on, 5 => :on, 6 => :on, 7 => :on }
     end
     
     # If all reds are potted, only colors in sequence are "on"
