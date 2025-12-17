@@ -1293,9 +1293,15 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
     other_redo = data[other_player]["innings_redo_list"]&.last.to_i
     total_sum = innings_sum + other_innings_sum + current_redo + other_redo - data["extra_balls"].to_i
     data["balls_on_table"] = 15 - ((total_sum % 14).zero? ? 0 : total_sum % 14)
-    data[current_role]["result"] =
-      innings_sum + data[current_role]["innings_foul_list"].to_a.sum +
-        data[current_role]["innings_foul_redo_list"].to_a.sum
+    # For snooker, result should only include completed innings, not current break
+    # The score is displayed as result + current_break
+    if data["free_game_form"] == "snooker"
+      data[current_role]["result"] = innings_sum + data[current_role]["innings_foul_list"].to_a.sum
+    else
+      data[current_role]["result"] =
+        innings_sum + data[current_role]["innings_foul_list"].to_a.sum +
+          data[current_role]["innings_foul_redo_list"].to_a.sum
+    end
   rescue StandardError => e
     Rails.logger.info "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}" if DEBUG
     raise StandardError
