@@ -2024,15 +2024,27 @@ data[\"allow_overflow\"].present?")
           data[current_role]["break_balls_list"] << break_balls
           
           # Store foul info if available
-          # Foul is stored with the player who MADE the foul (fouling_player)
           data[current_role]["break_fouls_list"] ||= []
+          
+          # Check if this player made a foul (fouling_player)
           last_foul = data["last_foul"]
-          if last_foul && last_foul["fouling_player"] == current_role
+          made_foul = last_foul && last_foul["fouling_player"] == current_role
+          
+          # Check if this player received a foul (has pending_foul)
+          pending_foul = data[current_role]["pending_foul"]
+          
+          if made_foul
             # This player made the foul - store foul info
             data[current_role]["break_fouls_list"] << last_foul
             # Don't delete last_foul yet - scoreboard needs it for display
             # It will be cleared when next ball is potted
+          elsif pending_foul
+            # This player received foul points - store foul info with their break
+            data[current_role]["break_fouls_list"] << pending_foul
+            # Clear pending_foul after storing
+            data[current_role].delete("pending_foul")
           else
+            # No foul in this break
             data[current_role]["break_fouls_list"] << nil
           end
         end

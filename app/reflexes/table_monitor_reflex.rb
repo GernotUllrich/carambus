@@ -596,34 +596,40 @@ class TableMonitorReflex < ApplicationReflex
       @table_monitor.data["snooker_state"]["reds_remaining"] = [current_reds - reds_to_remove, 0].max
     end
     
-    # STEP 1: Add foul points to opponent (who is NOT currently active)
-    # Temporarily switch to opponent to use add_n_balls correctly
-    # Use skip_snooker_state_update: true because we're adding POINTS, not an actual BALL
-    @table_monitor.data["current_inning"]["active_player"] = opponent_player
-    @table_monitor.add_n_balls(foul_points, opponent_player, skip_snooker_state_update: true)
-    
-    # STEP 2: Reset break for the player who fouled (the original active player)
-    active_data = @table_monitor.data[active_player] || {}
-    active_break_list = active_data["innings_redo_list"] || []
-    if active_break_list.present?
-      active_break_list[-1] = 0
-      @table_monitor.data[active_player]["innings_redo_list"] = active_break_list
-    end
-    
-    # For snooker: Store foul break (0 points) with foul info
+    # STEP 1: Terminate the fouling player's break
+    # Store foul info with the fouling player
     if @table_monitor.data["free_game_form"] == "snooker"
       @table_monitor.data[active_player]["break_balls_redo_list"] ||= []
       if @table_monitor.data[active_player]["break_balls_redo_list"].empty?
         @table_monitor.data[active_player]["break_balls_redo_list"] = [[]]
       end
       @table_monitor.data[active_player]["break_balls_redo_list"][-1] = [] # Clear break balls
-      # Terminate the foul break to store it in protocol
+      
+      # Reset break points to 0
+      @table_monitor.data[active_player]["innings_redo_list"] ||= [0]
+      @table_monitor.data[active_player]["innings_redo_list"][-1] = 0
+      
+      # Terminate the foul break (stores in protocol with foul info)
       @table_monitor.terminate_current_inning(active_player)
     end
     
-    # STEP 3: Switch to opponent player (who now has the points and should be active)
-    # The opponent is already set as active from step 1, so we just need to ensure proper state
-    # The active_player is now opponent_player, which is correct
+    # STEP 2: Add foul points to opponent WITHOUT terminating their inning
+    # Switch to opponent player
+    @table_monitor.data["current_inning"]["active_player"] = opponent_player
+    
+    # Initialize opponent's break if needed
+    @table_monitor.init_lists(opponent_player) unless @table_monitor.data[opponent_player]["innings_redo_list"].present?
+    
+    # Add foul points to opponent's CURRENT break (not terminated yet!)
+    @table_monitor.data[opponent_player]["innings_redo_list"] ||= [0]
+    current_break = @table_monitor.data[opponent_player]["innings_redo_list"][-1].to_i
+    @table_monitor.data[opponent_player]["innings_redo_list"][-1] = current_break + foul_points
+    
+    # Store foul info temporarily for opponent's break (will be saved when they terminate)
+    @table_monitor.data[opponent_player]["pending_foul"] = foul_info
+    
+    # Recompute opponent's result
+    @table_monitor.recompute_result(opponent_player)
     
     # Close modal - set panel_state BEFORE deleting foul data
     @table_monitor.panel_state = "pointer_mode"
