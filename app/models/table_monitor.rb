@@ -1427,7 +1427,7 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
     end
   end
 
-  def add_n_balls(n_balls, player = nil)
+  def add_n_balls(n_balls, player = nil, skip_snooker_state_update: false)
     if DEBUG
       Rails.logger.info "-------------m6[#{id}]-------->>> #{"add_n_balls(#{n_balls})"} <<<\
 ------------------------------------------"
@@ -1522,8 +1522,8 @@ data[\"allow_overflow\"].present?")
               [(data[current_role]["innings_redo_list"][-1].to_i + add.to_i), 0].max
             recompute_result(current_role)
             
-            # Update snooker state when ball is potted
-            if data["free_game_form"] == "snooker"
+            # Update snooker state when ball is potted (unless it's a foul)
+            if data["free_game_form"] == "snooker" && !skip_snooker_state_update
               update_snooker_state(n_balls)
               # Track balls potted in current break for protocol display
               data[current_role]["break_balls_redo_list"] ||= []

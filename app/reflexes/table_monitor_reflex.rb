@@ -598,8 +598,9 @@ class TableMonitorReflex < ApplicationReflex
     
     # STEP 1: Add foul points to opponent (who is NOT currently active)
     # Temporarily switch to opponent to use add_n_balls correctly
+    # Use skip_snooker_state_update: true because we're adding POINTS, not an actual BALL
     @table_monitor.data["current_inning"]["active_player"] = opponent_player
-    @table_monitor.add_n_balls(foul_points, opponent_player)
+    @table_monitor.add_n_balls(foul_points, opponent_player, skip_snooker_state_update: true)
     
     # STEP 2: Reset break for the player who fouled (the original active player)
     active_data = @table_monitor.data[active_player] || {}
