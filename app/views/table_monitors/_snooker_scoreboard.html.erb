@@ -112,7 +112,7 @@
                     <%- # Show balls in current break for active player (from break_balls_redo_list) %>
                     <%- break_balls = show_data[left_player_id].andand["break_balls_redo_list"].andand[-1] %>
                     <%- if break_balls.present? && break_balls.any? %>
-                      <div class="flex items-center justify-center flex-wrap gap-1">
+                      <div class="flex items-center justify-start flex-wrap gap-1">
                         <%- break_balls.each do |ball_value| %>
                           <%- ball_image_map = { 1 => 'snooker_ball_red', 2 => 'snooker_ball_yellow', 3 => 'snooker_ball_green', 4 => 'snooker_ball_brown', 5 => 'snooker_ball_blue', 6 => 'snooker_ball_pink', 7 => 'snooker_ball_black' } %>
                           <%- ball_image = ball_image_map[ball_value] %>
@@ -125,16 +125,16 @@
                       Break
                     <%- end %>
                   <%- end %>
-                  <%- # Show foul info if available (EXCEPTION: show even if player is not active) %>
+                  <%- # Show foul info if available (EXCEPTION: show even if player is not active) - DOUBLE SIZE %>
                   <%- if has_foul %>
-                    <div class="flex items-center justify-center gap-1 text-sm text-gray-700 dark:text-gray-300 mt-1">
+                    <div class="flex items-center justify-start gap-2 text-xl text-gray-700 dark:text-gray-300 mt-1">
                       <%- ball_value = last_foul["ball_value"] || 4 %>
                       <%- ball_image_map = { 1 => 'snooker_ball_red', 2 => 'snooker_ball_yellow', 3 => 'snooker_ball_green', 4 => 'snooker_ball_brown', 5 => 'snooker_ball_blue', 6 => 'snooker_ball_pink', 7 => 'snooker_ball_black' } %>
                       <%- ball_image = ball_image_map[ball_value] %>
                       <%- if ball_image %>
-                        <%= image_tag "#{ball_image}.svg", class: "w-6 h-6 object-contain" %>
+                        <%= image_tag "#{ball_image}.svg", class: "w-12 h-12 object-contain" %>
                       <%- end %>
-                      <span>Foul -<%= last_foul["points"] %></span>
+                      <span class="font-bold">Foul -<%= last_foul["points"] %></span>
                     </div>
                   <%- end %>
                 </div>
@@ -337,7 +337,7 @@
                     <%- # Show balls in current break for active player (from break_balls_redo_list) %>
                     <%- break_balls = show_data[right_player_id].andand["break_balls_redo_list"].andand[-1] %>
                     <%- if break_balls.present? && break_balls.any? %>
-                      <div class="flex items-center justify-center flex-wrap gap-1">
+                      <div class="flex items-center justify-end flex-wrap gap-1">
                         <%- break_balls.each do |ball_value| %>
                           <%- ball_image_map = { 1 => 'snooker_ball_red', 2 => 'snooker_ball_yellow', 3 => 'snooker_ball_green', 4 => 'snooker_ball_brown', 5 => 'snooker_ball_blue', 6 => 'snooker_ball_pink', 7 => 'snooker_ball_black' } %>
                           <%- ball_image = ball_image_map[ball_value] %>
@@ -350,16 +350,16 @@
                       Break
                     <%- end %>
                   <%- end %>
-                  <%- # Show foul info if available (EXCEPTION: show even if player is not active) %>
+                  <%- # Show foul info if available (EXCEPTION: show even if player is not active) - DOUBLE SIZE %>
                   <%- if has_foul %>
-                    <div class="flex items-center justify-center gap-1 text-sm text-gray-700 dark:text-gray-300 mt-1">
+                    <div class="flex items-center justify-end gap-2 text-xl text-gray-700 dark:text-gray-300 mt-1">
                       <%- ball_value = last_foul["ball_value"] || 4 %>
                       <%- ball_image_map = { 1 => 'snooker_ball_red', 2 => 'snooker_ball_yellow', 3 => 'snooker_ball_green', 4 => 'snooker_ball_brown', 5 => 'snooker_ball_blue', 6 => 'snooker_ball_pink', 7 => 'snooker_ball_black' } %>
                       <%- ball_image = ball_image_map[ball_value] %>
                       <%- if ball_image %>
-                        <%= image_tag "#{ball_image}.svg", class: "w-6 h-6 object-contain" %>
+                        <%= image_tag "#{ball_image}.svg", class: "w-12 h-12 object-contain" %>
                       <%- end %>
-                      <span>Foul -<%= last_foul["points"] %></span>
+                      <span class="font-bold">Foul -<%= last_foul["points"] %></span>
                     </div>
                   <%- end %>
                 </div>
