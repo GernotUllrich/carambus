@@ -33,7 +33,7 @@
 <%- showing_timer_a = (left_player_active && table_monitor.playing? && table_monitor.timer_finish_at.present? && ((show_tournament_monitor.present? && show_tournament_monitor.timeout.to_i > 0) || show_tournament_monitor.blank? && show_data["timeout"].to_i > 0)) ? "" : "hidden" %>
 <%- showing_timer_b = (right_player_active && table_monitor.playing? && table_monitor.timer_finish_at.present? && ((show_tournament_monitor.present? && show_tournament_monitor.timeout.to_i > 0) || show_tournament_monitor.blank? && show_data["timeout"].to_i > 0)) ? "" : "hidden" %>
 <%- if fullscreen && options[:timer_data].present? %>
-<%- time_counter, green_bars, do_green_bars, do_yellow_bars, do_orange_bars, do_lightred_bars, do_red_bars = options[:timer_data] %>
+  <%- time_counter, green_bars, do_green_bars, do_yellow_bars, do_orange_bars, do_lightred_bars, do_red_bars = options[:timer_data] %>
 <%- end %>
 
 <%- vw2 = fullscreen ? "2vw" : "1vw" %>
@@ -58,8 +58,8 @@
 <%- total_score_left = left_player[:result].to_i + (show_data[left_player_id].andand["innings_redo_list"].andand[-1].to_i || 0) %>
 <%- total_score_right = right_player[:result].to_i + (show_data[right_player_id].andand["innings_redo_list"].andand[-1].to_i || 0) %>
 
-<div class="<%= fullscreen ? "fullscreen flex flex-col h-full rounded shadow dark:bg-black" : "flex h-full rounded shadow" %>" 
-     data-table-monitor-root="scoreboard" 
+<div class="<%= fullscreen ? "fullscreen flex flex-col h-full rounded shadow dark:bg-black" : "flex h-full rounded shadow" %>"
+     data-table-monitor-root="scoreboard"
      data-table-monitor-id="<%= table_monitor.id %>"
      data-game-id="<%= table_monitor.game_id %>">
   <div class="<%= fullscreen ? "flex flex-col w-full h-full" : "flex w-full bg-gray-200" %>">
@@ -107,7 +107,7 @@
                   <%- # Check if this player has a foul to display (exception: show even if not active) %>
                   <%- last_foul = table_monitor.data["last_foul"] %>
                   <%- has_foul = last_foul && last_foul["fouling_player"] == left_player_id && last_foul["points"] %>
-                  
+
                   <%- if left_player_active %>
                     <%- # Show balls in current break for active player (from break_balls_redo_list) %>
                     <%- break_balls = show_data[left_player_id].andand["break_balls_redo_list"].andand[-1] %>
@@ -188,7 +188,7 @@
         <%- end %>
       </div>
       <div class="w-1/5 bg-grey">
-          <div class="flex flex-col h-1/6 dark:text-gray-200 items-center dark:bg-black space-y-2">
+        <div class="flex flex-col h-2/6 dark:text-gray-200 items-center dark:bg-black space-y-2">
           <%- if fullscreen %>
             <%- unless table_monitor.warmup_modal_should_be_open? || table_monitor.shootout_modal_should_be_open? || table_monitor.numbers_modal_should_be_open? || table_monitor.protocol_modal_should_be_open? %>
               <%= render partial: 'table_monitors/menu', locals: { table_monitor: table_monitor } %>
@@ -223,9 +223,9 @@
               <div class="h-1/6 items-center text-<%= vw2 %> justify-center text-center"><%= t('of') %> <%= frames_to_play.to_i > 0 ? frames_to_play : "Best of #{frames_to_win * 2 - 1}" %></div>
             <%- end %>
           </div>
-          <div class="flex flex-col h-3/6 dark:bg-black p-4 items-center">
+          <div class="flex flex-col h-2/6 dark:bg-black p-4 items-center">
             <div class="flex flex-1 items-center font-bold text-center text-<%= vw2 %>"><%= options[:tournament_title] %></div>
-              <div class="flex flex-1 items-center text-center text-<%= vw2 %>"><%= options[:name] %></div>
+            <div class="flex flex-1 items-center text-center text-<%= vw2 %>"><%= options[:name] %></div>
             <%- if options[:current_round].present? %>
               <div class="flex flex-1 items-center text-center text-<%= vw2 %>">Runde <%= options[:current_round] %></div>
             <%- end %>
@@ -332,7 +332,7 @@
                   <%- # Check if this player has a foul to display (exception: show even if not active) %>
                   <%- last_foul = table_monitor.data["last_foul"] %>
                   <%- has_foul = last_foul && last_foul["fouling_player"] == right_player_id && last_foul["points"] %>
-                  
+
                   <%- if right_player_active %>
                     <%- # Show balls in current break for active player (from break_balls_redo_list) %>
                     <%- break_balls = show_data[right_player_id].andand["break_balls_redo_list"].andand[-1] %>

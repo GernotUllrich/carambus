@@ -73,8 +73,8 @@ class TableMonitorsController < ApplicationController
                 :allow_overflow, :allow_follow_up, :free_game_form, :quick_game_form, :preset,
                 :discipline_choice, :next_break_choice, :games_choice, :games_2_choice, :four_ball,
                 :points_choice, :points_2_choice, :innings_choice, :innings_2_choice, :warntime, :gametime, :commit,
-                :first_break_choice, :initial_red_balls, :frames_to_win)
-    
+                :first_break_choice, :initial_red_balls_choice, :frames_to_win)
+
     # Process standard form parameters (unless quick_game_form)
     unless p[:quick_game_form].present?
       p[:innings_choice] = p[:innings_2_choice].presence || p[:innings_choice]
@@ -106,7 +106,7 @@ class TableMonitorsController < ApplicationController
         p[:sets_to_play] = 1 if p[:sets_to_play].to_i <= 0
       end
       p[:allow_follow_up] = (p[:allow_follow_up] == "true" || p[:allow_follow_up] == true)
-      
+
       Rails.logger.info "=== QUICK GAME START ==="
       Rails.logger.info "quick_game_form: #{p[:quick_game_form]}"
       Rails.logger.info "discipline_a: #{p[:discipline_a]}"
@@ -147,7 +147,7 @@ class TableMonitorsController < ApplicationController
         p[:discipline_a] = p[:discipline_b] = Discipline::KARAMBOL_DISCIPLINE_MAP[p.delete(:discipline_choice).to_i]
       elsif p[:free_game_form] == "snooker"
         # Snooker parameters
-        p[:initial_red_balls] = p[:initial_red_balls].to_i if p[:initial_red_balls].present?
+        p[:initial_red_balls] = p[:initial_red_balls_choice].to_i if p[:initial_red_balls_choice].present?
         p[:frames_to_win] = p[:frames_to_win].to_i if p[:frames_to_win].present?
         p[:warntime] = p[:warntime].to_i if p[:warntime].present?
         p[:gametime] = p[:gametime].to_i if p[:gametime].present?
@@ -241,9 +241,9 @@ class TableMonitorsController < ApplicationController
     @table_monitor = TableMonitor.find(params[:id])
     @history = @table_monitor.innings_history
     @location = @table_monitor.table.location
-    
+
     pdf = ProtocolPdf.new(@table_monitor, @history, @location)
-    
+
     send_data pdf.render,
               filename: "spielprotokoll_#{@table_monitor.id}_#{Time.current.strftime('%Y%m%d_%H%M%S')}.pdf",
               type: "application/pdf",
@@ -301,7 +301,7 @@ class TableMonitorsController < ApplicationController
                   :balls_goal_b, :discipline, :discipline_a, :discipline_b, :innings_goal,
                   :timeout, :timeouts, :kickoff_switches_with,
                   :fixed_display_left, :color_remains_with_set, :balls_on_table,
-                  :allow_overflow, :allow_follow_up, :toggle_dark_mode)
+                  :allow_overflow, :allow_follow_up, :toggle_dark_mode, :initial_red_balls)
   end
 
   # Verhindert Manipulationen an TableMonitor während eines Turniers

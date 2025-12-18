@@ -311,10 +311,10 @@ class TableMonitor < ApplicationRecord
     state :final_set_score, after_enter: [:set_game_over]
     state :final_match_score, after_enter: [:set_game_over]
     state :ready_for_new_match # previous game result still displayed here - and probably next players
-    
+
     # Global state transition logging to detect spurious transitions
     after_all_transitions :log_state_transition
-    
+
     event :start_new_match, after: :set_start_time do
       transitions from: :ready,
                   to: :warmup
@@ -716,7 +716,7 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
   # Default is 15 (standard snooker)
   def initial_red_balls
     return 15 unless data["free_game_form"] == "snooker"
-    
+
     value = data["initial_red_balls"].to_i
     # Only allow valid values: 6, 10, or 15
     if [6, 10, 15].include?(value)
@@ -730,24 +730,24 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
   # Removes last ball from protocol, recalculates score and game state
   def undo_snooker_ball(player_role)
     return unless data["free_game_form"] == "snooker"
-    
+
     # Initialize if not present
     data[player_role]["break_balls_redo_list"] ||= [[]]
-    
+
     # Get current break balls
     current_break_balls = data[player_role]["break_balls_redo_list"][-1] || []
-    
+
     # Remove last ball from the list
     if current_break_balls.any?
       removed_ball = current_break_balls.pop
-      
+
       # Recalculate score from remaining balls in current break
       new_score = current_break_balls.sum
       data[player_role]["innings_redo_list"][-1] = new_score
-      
+
       # Recalculate reds_remaining from ALL balls in protocol
       recalculate_snooker_state_from_protocol
-      
+
       # Update last_potted_ball to the previous ball (if any)
       if current_break_balls.any?
         data["snooker_state"]["last_potted_ball"] = current_break_balls.last
@@ -771,20 +771,20 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
         end
       end
     end
-    
+
     # Recompute result (sum of completed innings only)
     recompute_result(player_role)
   end
-  
+
   # Recalculate snooker state (reds_remaining, colors_sequence) from protocol
   def recalculate_snooker_state_from_protocol
     return unless data["free_game_form"] == "snooker"
     return unless data["snooker_state"].present?
-    
+
     initial_reds = initial_red_balls
     reds_potted = 0
     all_potted_balls = []
-    
+
     # Collect all potted balls from both players (completed + current breaks)
     ["playera", "playerb"].each do |player|
       # Completed breaks
@@ -798,11 +798,11 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
         all_potted_balls += Array(data[player]["break_balls_redo_list"][-1])
       end
     end
-    
+
     # Count reds
     reds_potted = all_potted_balls.count(1)
     data["snooker_state"]["reds_remaining"] = [initial_reds - reds_potted, 0].max
-    
+
     # Recalculate colors_sequence (if all reds are gone)
     if data["snooker_state"]["reds_remaining"] <= 0
       # Start with all colors
@@ -830,7 +830,7 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
   # Updates snooker game state when a ball is potted
   def update_snooker_state(ball_value)
     return unless data["free_game_form"] == "snooker"
-    
+
     # Initialize snooker state tracking if not present
     initial_reds = initial_red_balls
     data["snooker_state"] ||= {
@@ -839,19 +839,19 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
       "free_ball_active" => false,
       "colors_sequence" => [2, 3, 4, 5, 6, 7]
     }
-    
+
     state = data["snooker_state"]
-    
+
     # Track if free ball was active before this pot
     free_ball_was_active = state["free_ball_active"] || false
-    
+
     # If free ball was just potted, deactivate free ball status
     if free_ball_was_active
       state["free_ball_active"] = false
       # After free ball, the potted ball counts as the nominated ball
       # Continue with normal rules based on what was potted
     end
-    
+
     # Update based on ball value
     if ball_value == 1
       # Red ball potted - decrement reds remaining
@@ -861,7 +861,7 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
     elsif ball_value >= 2 && ball_value <= 7
       # Color ball potted
       state["last_potted_ball"] = ball_value
-      
+
       # If all reds are gone, remove this color from sequence
       if state["reds_remaining"].to_i <= 0
         state["colors_sequence"] = state["colors_sequence"].reject { |c| c == ball_value }
@@ -879,7 +879,7 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
   # Ball 1 = Red, 2 = Yellow, 3 = Green, 4 = Brown, 5 = Blue, 6 = Pink, 7 = Black
   def snooker_balls_on
     return {} unless data["free_game_form"] == "snooker"
-    
+
     # Initialize snooker state tracking if not present
     initial_reds = initial_red_balls
     data["snooker_state"] ||= {
@@ -888,18 +888,18 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
       "free_ball_active" => false,
       "colors_sequence" => [2, 3, 4, 5, 6, 7] # Remaining colors in order
     }
-    
+
     state = data["snooker_state"]
     reds_remaining = state["reds_remaining"] || initial_reds
     last_potted = state["last_potted_ball"]
     free_ball_active = state["free_ball_active"] || false
     colors_sequence = state["colors_sequence"] || [2, 3, 4, 5, 6, 7]
-    
+
     # If free ball is active, all balls are playable (player can nominate any ball)
     if free_ball_active
       return { 1 => :on, 2 => :on, 3 => :on, 4 => :on, 5 => :on, 6 => :on, 7 => :on }
     end
-    
+
     # If all reds are potted, only colors in sequence are "on"
     if reds_remaining <= 0
       next_color = colors_sequence.first
@@ -913,12 +913,12 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
       end
       return result
     end
-    
+
     # If reds are still on the table:
     # - After a red: all colors are "on", red is "addable" (can pot additional reds)
     # - After a color: back to reds
     # - At start: only reds are "on"
-    
+
     if last_potted == 1
       # After a red ball: all colors are "on", red is "addable" for additional reds
       { 1 => :addable, 2 => :on, 3 => :on, 4 => :on, 5 => :on, 6 => :on, 7 => :on }
@@ -1146,7 +1146,7 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
                    end
     # Ensure valid value (6, 10, or 15)
     initial_reds = [6, 10, 15].include?(initial_reds.to_i) ? initial_reds.to_i : 15
-    
+
     deep_merge_data!({
                        "free_game_form" => tournament_monitor.is_a?(PartyMonitor) ? game.data["free_game_form"] : nil,
                        "initial_red_balls" => initial_reds,
@@ -1422,7 +1422,7 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
     return unless data[current_role]["innings_foul_redo_list"].blank?
 
     data[current_role]["innings_foul_redo_list"] = [0]
-    
+
     # Initialize snooker break tracking
     if data["free_game_form"] == "snooker"
       data[current_role]["break_balls_redo_list"] ||= []
@@ -1528,7 +1528,7 @@ data[\"allow_overflow\"].present?")
             data[current_role]["innings_redo_list"][-1] =
               [(data[current_role]["innings_redo_list"][-1].to_i + add.to_i), 0].max
             recompute_result(current_role)
-            
+
             # Update snooker state when ball is potted (unless it's a foul)
             if data["free_game_form"] == "snooker" && !skip_snooker_state_update
               update_snooker_state(n_balls)
@@ -1539,7 +1539,7 @@ data[\"allow_overflow\"].present?")
               end
               data[current_role]["break_balls_redo_list"][-1] ||= []
               data[current_role]["break_balls_redo_list"][-1] = Array(data[current_role]["break_balls_redo_list"][-1]) + [n_balls]
-              
+
               # Clear last_foul when a new ball is potted (foul display is over)
               data.delete("last_foul")
             end
@@ -2015,24 +2015,24 @@ data[\"allow_overflow\"].present?")
         init_lists(current_role)
         data[current_role]["innings_list"] << n_balls
         data[current_role]["innings_foul_list"] << n_fouls
-        
+
         # Store break balls and foul info for snooker protocol
         if data["free_game_form"] == "snooker"
           # Store balls from current break
           break_balls = Array(data[current_role]["break_balls_redo_list"]).pop || []
           data[current_role]["break_balls_list"] ||= []
           data[current_role]["break_balls_list"] << break_balls
-          
+
           # Store foul info if available
           data[current_role]["break_fouls_list"] ||= []
-          
+
           # Check if this player made a foul (fouling_player)
           last_foul = data["last_foul"]
           made_foul = last_foul && last_foul["fouling_player"] == current_role
-          
+
           # Check if this player received a foul (has pending_foul)
           pending_foul = data[current_role]["pending_foul"]
-          
+
           if made_foul
             # This player made the foul - store foul info
             data[current_role]["break_fouls_list"] << last_foul
@@ -2048,7 +2048,7 @@ data[\"allow_overflow\"].present?")
             data[current_role]["break_fouls_list"] << nil
           end
         end
-        
+
         recompute_result(current_role)
         if data["innings_goal"].to_i.zero? || data[current_role]["innings"].to_i < data["innings_goal"].to_i
           data[current_role]["innings"] += 1
@@ -2056,7 +2056,7 @@ data[\"allow_overflow\"].present?")
         data[current_role]["hs"] = n_balls if n_balls > data[current_role]["hs"].to_i
         data[current_role]["gd"] =
           format("%.2f", data[current_role]["result"].to_f / data[current_role].andand["innings"].to_i)
-        
+
         # Reset snooker state when player changes (last_potted_ball resets so new player starts with reds)
         if data["free_game_form"] == "snooker" && data["snooker_state"].present?
           # Only reset last_potted_ball, keep reds_remaining and colors_sequence
@@ -2310,22 +2310,22 @@ data[\"allow_overflow\"].present?")
             arr = Array(data[the_other_player]["innings_list"])
             data[the_other_player]["innings_redo_list"] << arr.pop.to_i if arr.present?
           end
-          
+
           # Restore break_balls from break_balls_list to break_balls_redo_list
           if data[the_other_player]["break_balls_list"].present?
             last_break_balls = data[the_other_player]["break_balls_list"].pop
             data[the_other_player]["break_balls_redo_list"] ||= []
             data[the_other_player]["break_balls_redo_list"] << (last_break_balls || [])
           end
-          
+
           # Recalculate snooker state from protocol
           recalculate_snooker_state_from_protocol
-          
+
           # Update last_potted_ball to last ball in the restored break
           if data[the_other_player]["break_balls_redo_list"]&.[](-1)&.any?
             data["snooker_state"]["last_potted_ball"] = data[the_other_player]["break_balls_redo_list"][-1].last
           end
-          
+
           data[the_other_player]["innings"] -= 1
           recompute_result(the_other_player)
           data[the_other_player]["hs"] = data[the_other_player]["innings_list"]&.max.to_i
@@ -2510,18 +2510,18 @@ data[\"allow_overflow\"].present?")
 
   def evaluate_result
     debug = true # true
-    
+
     # GUARD: Prevent evaluation on brand-new games (within 5 seconds of placement)
     if game&.started_at.present? && game.started_at > 5.seconds.ago
       total_innings = data["playera"]["innings"].to_i + data["playerb"]["innings"].to_i
       total_points = data["playera"]["result"].to_i + data["playerb"]["result"].to_i
-      
+
       if total_innings == 0 && total_points == 0
         Rails.logger.warn "[evaluate_result GUARD] Game[#{game_id}] on TM[#{id}] is brand new (started #{(Time.current - game.started_at).round(1)}s ago) with 0 innings/points - SKIPPING evaluation to prevent spurious finish"
         return
       end
     end
-    
+
     if (playing? || set_over? || final_set_score? || final_match_score?) && end_of_set?
       # Remember if we were playing before any state transition
       was_playing = playing?
@@ -2661,6 +2661,7 @@ data[\"allow_overflow\"].present?")
       "first_break_choice" => options["first_break_choice"],
       "extra_balls" => 0,
       "balls_on_table" => (options["balls_on_table"].presence || 15).to_i,
+      "initial_red_balls" => (options["initial_red_balls"].presence || 15).to_i,
       "warntime" => options["warntime"].to_i,
       "gametime" => options["gametime"].to_i,
       "timeouts" => options["timeouts"].to_i,
@@ -2790,7 +2791,7 @@ data[\"allow_overflow\"].present?")
     # Prevent spurious finalization of games that haven't started
     total_innings = data["playera"]["innings"].to_i + data["playerb"]["innings"].to_i
     total_points = data["playera"]["result"].to_i + data["playerb"]["result"].to_i
-    
+
     if total_innings == 0 && total_points == 0
       Rails.logger.warn "[TableMonitor#end_of_set?] GUARD: Game[#{game_id}] on TM[#{id}] has 0 innings and 0 points - NOT ending set (state: #{state})"
       return false
@@ -3058,7 +3059,7 @@ data[\"allow_overflow\"].present?")
     break_balls_b = []
     break_fouls_a = []
     break_fouls_b = []
-    
+
     if data["free_game_form"] == "snooker"
       break_balls_list_a = Array(data.dig('playera', 'break_balls_list'))
       break_balls_list_b = Array(data.dig('playerb', 'break_balls_list'))
@@ -3066,7 +3067,7 @@ data[\"allow_overflow\"].present?")
       break_fouls_list_b = Array(data.dig('playerb', 'break_fouls_list'))
       break_balls_redo_a = Array(data.dig('playera', 'break_balls_redo_list')).last || []
       break_balls_redo_b = Array(data.dig('playerb', 'break_balls_redo_list')).last || []
-      
+
       (0...num_rows).each do |i|
         if i < break_balls_list_a.length
           break_balls_a << break_balls_list_a[i]
@@ -3075,7 +3076,7 @@ data[\"allow_overflow\"].present?")
         else
           break_balls_a << nil
         end
-        
+
         if i < break_balls_list_b.length
           break_balls_b << break_balls_list_b[i]
         elsif i == break_balls_list_b.length && active_player == 'playerb'
@@ -3083,13 +3084,13 @@ data[\"allow_overflow\"].present?")
         else
           break_balls_b << nil
         end
-        
+
         if i < break_fouls_list_a.length
           break_fouls_a << break_fouls_list_a[i]
         else
           break_fouls_a << nil
         end
-        
+
         if i < break_fouls_list_b.length
           break_fouls_b << break_fouls_list_b[i]
         else
@@ -3129,7 +3130,7 @@ data[\"allow_overflow\"].present?")
       discipline: data.dig('playera', 'discipline'),
       balls_goal: data.dig('playera', 'balls_goal').to_i
     }
-    
+
     # Add snooker-specific data
     if data["free_game_form"] == "snooker"
       result[:player_a][:break_balls] = break_balls_a
@@ -3137,7 +3138,7 @@ data[\"allow_overflow\"].present?")
       result[:player_b][:break_balls] = break_balls_b
       result[:player_b][:break_fouls] = break_fouls_b
     end
-    
+
     result
   rescue StandardError => e
     Rails.logger.info "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}" if DEBUG
@@ -3592,12 +3593,12 @@ data[\"allow_overflow\"].present?")
     from_state = aasm.from_state
     to_state = aasm.to_state
     event_name = aasm.current_event
-    
+
     total_innings = data["playera"]["innings"].to_i + data["playerb"]["innings"].to_i rescue 0
     total_points = data["playera"]["result"].to_i + data["playerb"]["result"].to_i rescue 0
-    
+
     Rails.logger.info "[🔄 STATE TRANSITION] TM[#{id}] Game[#{game_id}]: #{from_state} → #{to_state} (event: #{event_name}, innings: #{total_innings}, points: #{total_points})"
-    
+
     # ALERT: Suspicious state transitions
     if to_state.to_s.in?(['set_over', 'final_set_score', 'final_match_score']) && total_innings == 0 && total_points == 0
       Rails.logger.error "[⚠️  SUSPICIOUS TRANSITION] TM[#{id}] Game[#{game_id}] moved to #{to_state} with ZERO innings and ZERO points! Event: #{event_name}, Caller: #{caller[0..3].join(' <- ')}"
