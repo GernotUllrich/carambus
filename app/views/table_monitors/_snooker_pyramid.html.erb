@@ -9,20 +9,20 @@
 <%- 
 # Define pyramid configurations for different ball counts
 pyramid_configs = {
-  6 => { rows: [1, 2, 3], viewbox: "0 0 180 80" },
-  10 => { rows: [1, 2, 3, 4], viewbox: "0 0 220 95" },
-  15 => { rows: [1, 2, 3, 4, 5], viewbox: "0 0 260 110" }
+  6 => { rows: [1, 2, 3], viewbox: "0 0 180 100" },
+  10 => { rows: [1, 2, 3, 4], viewbox: "0 0 220 120" },
+  15 => { rows: [1, 2, 3, 4, 5], viewbox: "0 0 260 140" }
 }
 
 config = pyramid_configs[ball_count] || pyramid_configs[15]
 rows = config[:rows]
 viewbox = config[:viewbox]
 
-# Alle Kugeln gleich groß
-ball_radius = 10.0
+# Alle Kugeln doppelt so groß
+ball_radius = 20.0
 
 # Nach hinten verschieben: jede Reihe um 1/4 Kugelbreite höher
-vertical_offset_per_row = ball_radius / 2.0  # 1/4 Kugelbreite = halber Radius
+vertical_offset_per_row = ball_radius / 2.0  # 1/4 Kugelbreite = halber Radius = 10px
 
 # Calculate center of viewbox
 viewbox_parts = viewbox.split(' ')
