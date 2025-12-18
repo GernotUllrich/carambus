@@ -73,7 +73,7 @@ class TableMonitorsController < ApplicationController
                 :allow_overflow, :allow_follow_up, :free_game_form, :quick_game_form, :preset,
                 :discipline_choice, :next_break_choice, :games_choice, :games_2_choice, :four_ball,
                 :points_choice, :points_2_choice, :innings_choice, :innings_2_choice, :warntime, :gametime, :commit,
-                :first_break_choice, :initial_red_balls_choice, :frames_to_win)
+                :first_break_choice, :initial_red_balls, :frames_to_win)
 
     # Process standard form parameters (unless quick_game_form)
     unless p[:quick_game_form].present?
