@@ -1549,11 +1549,14 @@ data[\"allow_overflow\"].present?")
               colors_sequence = snooker_state["colors_sequence"] || []
               
               if reds_remaining <= 0 && colors_sequence.empty?
-                # All balls potted - terminate current inning and evaluate result
-                Rails.logger.info "[add_n_balls] Snooker frame[#{game_id}] on TM[#{id}]: All balls potted, terminating inning"
+                # All balls potted - frame is over, evaluate result
+                # DON'T call terminate_current_inning (would switch player)
+                # Just save and let evaluate_result handle frame end
+                Rails.logger.info "[add_n_balls] Snooker frame[#{game_id}] on TM[#{id}]: All balls potted, frame complete"
                 data_will_change!
                 self.copy_from = nil
-                terminate_current_inning(player)
+                save!
+                evaluate_result
                 return
               end
             end
