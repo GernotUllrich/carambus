@@ -1343,6 +1343,19 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
     Rails.logger.info "AFTER deep_merge: data['innings_goal'] = #{data['innings_goal'].inspect}"
     Rails.logger.info "===== initialize_game DEBUG END ====="
 
+    # Initialize snooker state for first frame if this is a snooker game
+    if data["free_game_form"] == "snooker"
+      deep_merge_data!({
+        "snooker_state" => {
+          "reds_remaining" => initial_reds,
+          "last_potted_ball" => nil,
+          "free_ball_active" => false,
+          "colors_sequence" => [2, 3, 4, 5, 6, 7]
+        },
+        "snooker_frame_complete" => false
+      })
+    end
+
     # self.panel_state = "pointer_mode"
     # self.current_element = "pointer_mode"
     # finish_warmup! #TODO  INTERMEDIATE SOLUTION UNTIL SHOOTOUT WORKS
