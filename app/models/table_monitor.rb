@@ -2460,10 +2460,11 @@ data[\"allow_overflow\"].present?")
       ergebnis2 = data["playerb"]["result"].to_i
       
       if data["free_game_form"] == "snooker"
-        # Sum all break points from innings_redo_list for each player
-        ergebnis1 = Array(data["playera"]["innings_redo_list"]).sum(&:to_i)
-        ergebnis2 = Array(data["playerb"]["innings_redo_list"]).sum(&:to_i)
-        Rails.logger.info "[save_result] Snooker frame - Player A: #{ergebnis1} points, Player B: #{ergebnis2} points"
+        # Sum ALL break points: innings_list (completed breaks) + innings_redo_list (current break)
+        # When a player switches, their break moves from redo_list to list
+        ergebnis1 = Array(data["playera"]["innings_list"]).sum(&:to_i) + Array(data["playera"]["innings_redo_list"]).sum(&:to_i)
+        ergebnis2 = Array(data["playerb"]["innings_list"]).sum(&:to_i) + Array(data["playerb"]["innings_redo_list"]).sum(&:to_i)
+        Rails.logger.info "[save_result] Snooker frame - Player A: #{ergebnis1} points (list:#{Array(data["playera"]["innings_list"]).sum} + redo:#{Array(data["playera"]["innings_redo_list"]).sum}), Player B: #{ergebnis2} points (list:#{Array(data["playerb"]["innings_list"]).sum} + redo:#{Array(data["playerb"]["innings_redo_list"]).sum})"
       end
       
       game_set_result = {
