@@ -73,7 +73,7 @@ class TableMonitorsController < ApplicationController
                 :allow_overflow, :allow_follow_up, :free_game_form, :quick_game_form, :preset,
                 :discipline_choice, :next_break_choice, :games_choice, :games_2_choice, :four_ball,
                 :points_choice, :points_2_choice, :innings_choice, :innings_2_choice, :warntime, :gametime, :commit,
-                :first_break_choice, :initial_red_balls, :frames_to_win)
+                :first_break_choice, :initial_red_balls, :frames_to_win, :frames_to_win_choice, :frames_to_win_2_choice)
 
     # Process standard form parameters (unless quick_game_form)
     unless p[:quick_game_form].present?
@@ -151,9 +151,10 @@ class TableMonitorsController < ApplicationController
         p[:warntime] = p.delete(:warntime).to_i
         p[:gametime] = p.delete(:gametime).to_i
         p[:first_break_choice] = p[:first_break_choice].to_i
-        # sets_to_win and sets_to_play come from form (frames_to_win Alpine variable)
-        p[:sets_to_win] = p.delete(:sets_to_win).to_i
-        p[:sets_to_play] = p.delete(:sets_to_play).to_i
+        # sets_to_win and sets_to_play: try from hidden fields first, fallback to _choice params
+        frames_to_win = p.delete(:sets_to_win) || p.delete(:frames_to_win_2_choice) || p.delete(:frames_to_win_choice) || p.delete(:frames_to_win)
+        p[:sets_to_win] = frames_to_win.to_i
+        p[:sets_to_play] = (frames_to_win.to_i * 2 - 1)
       end
     end
 
