@@ -208,8 +208,8 @@
                             class: "level-3 flex flex-col h-1/6 items-center font-bold text-red-400 text-#{vw2} text-center dark:bg-black" do %>
             <%- end %>
           <%- end %>
-          <div class="overflow-hidden flex pb-1 justify-center hover:bg-gray-700 align-middle text-<%= fullscreen ? '2vw' : '1-5vw' %> w-60 h-20">
-            <div class="flex text-<%= fullscreen ? '2-5vw' : '1-5vw' %> items-center">SNOOKER</div>
+          <div class="overflow-hidden flex pb-1 justify-center hover:bg-gray-700 align-middle w-60 h-20 items-center">
+            <%= render partial: 'table_monitors/snooker_pyramid', locals: { ball_count: table_monitor.initial_red_balls, size_class: fullscreen ? 'w-48 h-24' : 'w-40 h-20' } %>
           </div>
           <div id="clock" class="hidden dark:bg-black text-gray-500 dark:text-gray-300 hover:text-black text-<%= vw2 %> text-center"><%= Time.now.strftime("%H:%M") %></div>
         </div>

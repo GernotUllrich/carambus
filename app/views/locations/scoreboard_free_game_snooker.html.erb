@@ -181,9 +181,10 @@
           <%= submit_tag "Start Game", class: "h-full border-4 rounded-lg btn btn-primary text-center text-2vw p-2" %>
         </div>
       </div>
-      <div x-data="{last_direction: 0, gametime: 30, warntime: 5, frames_to_win: 2, first_break: 0}" class="mt-8 text-2vw grid grid-cols-6 gap-6 items-center">
+      <div x-data="{last_direction: 0, gametime: 30, warntime: 5, frames_to_win: 2, first_break: 0, initial_red_balls: 15}" class="mt-8 text-2vw grid grid-cols-6 gap-6 items-center">
         <input type="hidden" name="gametime" x-model.number="gametime" >
         <input type="hidden" name="warntime" x-model.number="warntime" >
+        <input type="hidden" name="initial_red_balls" x-model.number="initial_red_balls" >
         <div>Spieler</div>
         <div class="col-span-4 flex flex-row">
           <div class="grid grid-cols-3 gap-4">
@@ -218,6 +219,18 @@
           %>
           <input type="hidden" name="sets_to_win" x-model.number="frames_to_win" >
           <input type="hidden" name="sets_to_play" x-model.number="frames_to_win * 2 - 1" >
+          <%= render partial: "radio_select", locals: {
+            table: table,
+            show: "true",
+            header: "Rote Bälle",
+            varname: "initial_red_balls",
+            values: [6, 10, 15],
+            maxval: 15,
+            displays: ["6 Reds", "10 Reds", "15 Reds"],
+            cols: 3,
+            increment: 1,
+            no_counter: true }
+          %>
           <div class="col-span-4 flex flex-row">
             <div class="w-full grid grid-cols-4">
               <div class="flex justify-end items-center">Spielzeit:</div>

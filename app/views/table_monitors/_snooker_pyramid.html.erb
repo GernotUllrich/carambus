@@ -1,0 +1,93 @@
+<%# Displays snooker red balls in pyramid formation with perspective %>
+<%# Parameters:
+  - ball_count: Number of red balls (6, 10, or 15)
+  - size_class: Tailwind class for sizing (e.g., 'w-40 h-20')
+%>
+<%- ball_count ||= 15 %>
+<%- size_class ||= 'w-40 h-20' %>
+
+<%- 
+# Define pyramid configurations for different ball counts
+pyramid_configs = {
+  6 => { rows: [1, 2, 3], viewbox: "0 0 180 80" },
+  10 => { rows: [1, 2, 3, 4], viewbox: "0 0 220 95" },
+  15 => { rows: [1, 2, 3, 4, 5], viewbox: "0 0 260 110" }
+}
+
+config = pyramid_configs[ball_count] || pyramid_configs[15]
+rows = config[:rows]
+viewbox = config[:viewbox]
+
+# Alle Kugeln gleich groß
+ball_radius = 10.0
+
+# Nach hinten verschieben: jede Reihe um 1/4 Kugelbreite höher
+vertical_offset_per_row = ball_radius / 2.0  # 1/4 Kugelbreite = halber Radius
+
+# Calculate center of viewbox
+viewbox_parts = viewbox.split(' ')
+center_x = viewbox_parts[2].to_f / 2
+-%>
+
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="<%= viewbox %>" class="<%= size_class %>">
+  <defs>
+    <radialGradient id="ball-gradient-red-pyramid" cx="30%" cy="30%">
+      <stop offset="0%" style="stop-color:#FF4444;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#DD0000;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#990000;stop-opacity:1" />
+    </radialGradient>
+    <radialGradient id="ball-highlight" cx="35%" cy="35%">
+      <stop offset="0%" style="stop-color:#FFFFFF;stop-opacity:0.6" />
+      <stop offset="40%" style="stop-color:#FFFFFF;stop-opacity:0.2" />
+      <stop offset="100%" style="stop-color:#FFFFFF;stop-opacity:0" />
+    </radialGradient>
+    <filter id="ball-shadow">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="1.5"/>
+      <feOffset dx="0.5" dy="1.5" result="offsetblur"/>
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.3"/>
+      </feComponentTransfer>
+      <feMerge> 
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/> 
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <%- 
+  # Render from back to front so front balls overlap back balls
+  rows.each_with_index do |balls_in_row, row_index|
+    # row_index 0 = hinterste Reihe (1 Kugel)
+    # row_index 4 = vorderste Reihe (5 Kugeln bei 15 Bällen)
+    
+    # Y position: hintere Reihen weiter oben (höher in Y, also kleinere Y-Werte)
+    # Vordere Reihen weiter unten (niedriger in Y, also größere Y-Werte)
+    y_pos = ball_radius + 20 + (row_index * vertical_offset_per_row)
+    
+    # Calculate horizontal spacing - balls touch
+    ball_spacing = ball_radius * 2.0
+    total_row_width = (balls_in_row - 1) * ball_spacing
+    # Center each row
+    start_x = center_x - (total_row_width / 2)
+    
+    balls_in_row.times do |ball_index|
+      x_pos = start_x + (ball_index * ball_spacing)
+  -%>
+      <%# Shadow %>
+      <ellipse cx="<%= x_pos %>" cy="<%= y_pos + ball_radius * 0.4 %>" 
+               rx="<%= ball_radius * 0.7 %>" ry="<%= ball_radius * 0.18 %>" 
+               fill="#000000" opacity="0.2"/>
+      
+      <%# Ball %>
+      <circle cx="<%= x_pos %>" cy="<%= y_pos %>" r="<%= ball_radius %>" 
+              fill="url(#ball-gradient-red-pyramid)" 
+              filter="url(#ball-shadow)"/>
+      
+      <%# Highlight %>
+      <circle cx="<%= x_pos %>" cy="<%= y_pos %>" r="<%= ball_radius %>" 
+              fill="url(#ball-highlight)" />
+  <%- 
+    end
+  end
+  -%>
+</svg>
