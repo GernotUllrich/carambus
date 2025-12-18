@@ -73,7 +73,7 @@ class TableMonitorsController < ApplicationController
                 :allow_overflow, :allow_follow_up, :free_game_form, :quick_game_form, :preset,
                 :discipline_choice, :next_break_choice, :games_choice, :games_2_choice, :four_ball,
                 :points_choice, :points_2_choice, :innings_choice, :innings_2_choice, :warntime, :gametime, :commit,
-                :first_break_choice)
+                :first_break_choice, :initial_red_balls, :frames_to_win)
     
     # Process standard form parameters (unless quick_game_form)
     unless p[:quick_game_form].present?
@@ -145,6 +145,13 @@ class TableMonitorsController < ApplicationController
         p[:first_break_choice] = p[:first_break_choice].to_i # 0: AusStoßen, 1: Heim/Spieler A, 2: Gast/Spieler B
       elsif p[:free_game_form] == "karambol"
         p[:discipline_a] = p[:discipline_b] = Discipline::KARAMBOL_DISCIPLINE_MAP[p.delete(:discipline_choice).to_i]
+      elsif p[:free_game_form] == "snooker"
+        # Snooker parameters
+        p[:initial_red_balls] = p[:initial_red_balls].to_i if p[:initial_red_balls].present?
+        p[:frames_to_win] = p[:frames_to_win].to_i if p[:frames_to_win].present?
+        p[:warntime] = p[:warntime].to_i if p[:warntime].present?
+        p[:gametime] = p[:gametime].to_i if p[:gametime].present?
+        p[:first_break_choice] = p[:first_break_choice].to_i if p[:first_break_choice].present?
       end
     end
 
