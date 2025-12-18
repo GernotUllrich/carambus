@@ -555,18 +555,27 @@ class TableMonitorReflex < ApplicationReflex
     
     # Get current active player
     active_player = @table_monitor.data["current_inning"]["active_player"]
+    opponent_player = active_player == "playera" ? "playerb" : "playera"
+    
+    Rails.logger.info "[concede_snooker_frame] Player #{active_player} concedes frame"
+    Rails.logger.info "[concede_snooker_frame] Current state: #{@table_monitor.state}"
+    Rails.logger.info "[concede_snooker_frame] Player A points: #{Array(@table_monitor.data["playera"]["innings_redo_list"]).sum}"
+    Rails.logger.info "[concede_snooker_frame] Player B points: #{Array(@table_monitor.data["playerb"]["innings_redo_list"]).sum}"
     
     # Terminate current break (if any) before conceding
     if @table_monitor.playing?
+      Rails.logger.info "[concede_snooker_frame] Terminating current inning for #{active_player}"
       @table_monitor.terminate_current_inning(active_player)
     end
     
     # Mark frame as complete (current player concedes = opponent wins based on points)
-    Rails.logger.info "[concede_snooker_frame] Player #{active_player} concedes frame"
     @table_monitor.data["snooker_frame_complete"] = true
     @table_monitor.data_will_change!
     @table_monitor.save!
+    
+    Rails.logger.info "[concede_snooker_frame] Frame marked complete, calling evaluate_result"
     @table_monitor.evaluate_result
+    Rails.logger.info "[concede_snooker_frame] After evaluate_result - state: #{@table_monitor.state}, Sets1: #{@table_monitor.data["ba_results"]&.dig("Sets1")}, Sets2: #{@table_monitor.data["ba_results"]&.dig("Sets2")}"
   end
 
   def foul_submit

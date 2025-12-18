@@ -989,16 +989,19 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
     # Each red is worth 1 point
     red_points = reds_remaining * 1
 
-    # After each red, a color can be potted (assume black = 7 for maximum)
-    # This is the maximum possible points from reds phase
-    red_phase_max_points = reds_remaining * 8  # red (1) + black (7)
-
-    # Color clearance phase: sum remaining colors
+    # Color points: sum of remaining colors
     color_points = colors_sequence.sum
 
-    # Total: reds + max color after each red + remaining colors
-    # Simplified: just reds * 8 + remaining colors
-    red_phase_max_points + color_points
+    # If reds remain, all 6 colors are on the table (they respawn)
+    # So total = reds + 27 (2+3+4+5+6+7)
+    # If no reds, only count colors still in sequence
+    if reds_remaining > 0
+      # All colors are on table (they respawn after each red)
+      red_points + 27  # 2+3+4+5+6+7 = 27
+    else
+      # Only colors in sequence remain
+      color_points
+    end
   rescue StandardError => e
     Rails.logger.info "ERROR: snooker_remaining_points[#{id}]#{e}, #{e.backtrace&.join("\n")}" if DEBUG
     0
