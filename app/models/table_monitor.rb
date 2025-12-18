@@ -920,8 +920,22 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
     # - At start: only reds are "on"
 
     if last_potted == 1
-      # After a red ball: all colors are "on", red is "addable" for additional reds
-      { 1 => :addable, 2 => :on, 3 => :on, 4 => :on, 5 => :on, 6 => :on, 7 => :on }
+      # After a red ball: all colors are "on", red is "addable" ONLY if reds remain
+      if reds_remaining > 0
+        { 1 => :addable, 2 => :on, 3 => :on, 4 => :on, 5 => :on, 6 => :on, 7 => :on }
+      else
+        # Last red was just potted - now only colors in sequence
+        next_color = colors_sequence.first
+        if next_color.nil?
+          { 1 => :off, 2 => :off, 3 => :off, 4 => :off, 5 => :off, 6 => :off, 7 => :off }
+        else
+          result = {}
+          (1..7).each do |ball|
+            result[ball] = (ball == next_color) ? :on : :off
+          end
+          result
+        end
+      end
     elsif last_potted && last_potted >= 2 && last_potted <= 7
       # After a color: back to reds (if reds remain)
       if reds_remaining > 0
@@ -2383,6 +2397,18 @@ data[\"allow_overflow\"].present?")
   def save_result
     game_set_result = {}
     if game.present?
+      # For Snooker: Calculate total points from innings_redo_list (where break points accumulate)
+      # For other games: Use the result field
+      ergebnis1 = data["playera"]["result"].to_i
+      ergebnis2 = data["playerb"]["result"].to_i
+      
+      if data["free_game_form"] == "snooker"
+        # Sum all break points from innings_redo_list for each player
+        ergebnis1 = Array(data["playera"]["innings_redo_list"]).sum(&:to_i)
+        ergebnis2 = Array(data["playerb"]["innings_redo_list"]).sum(&:to_i)
+        Rails.logger.info "[save_result] Snooker frame - Player A: #{ergebnis1} points, Player B: #{ergebnis2} points"
+      end
+      
       game_set_result = {
         "Gruppe" => game.group_no,
         "Partie" => game.seqno,
@@ -2391,8 +2417,8 @@ data[\"allow_overflow\"].present?")
         "Spieler2" => game.game_participations.where(role: "playerb").first&.player&.ba_id,
         "Innings1" => data["playera"]["innings_list"].dup,
         "Innings2" => data["playerb"]["innings_list"].dup,
-        "Ergebnis1" => data["playera"]["result"].to_i,
-        "Ergebnis2" => data["playerb"]["result"].to_i,
+        "Ergebnis1" => ergebnis1,
+        "Ergebnis2" => ergebnis2,
         "Aufnahmen1" => data["playera"]["innings"].to_i,
         "Aufnahmen2" => data["playerb"]["innings"].to_i,
         "3BErgebnis1" => data["playera"]["result_3b"].to_i,
