@@ -963,6 +963,33 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
     { 1 => :on, 2 => :on, 3 => :on, 4 => :on, 5 => :on, 6 => :on, 7 => :on }
   end
 
+  # Calculate remaining points on the table in a Snooker frame
+  # Returns total points that can still be scored
+  def snooker_remaining_points
+    return 0 unless data["free_game_form"] == "snooker"
+
+    state = data["snooker_state"] || {}
+    reds_remaining = state["reds_remaining"].to_i
+    colors_sequence = state["colors_sequence"] || [2, 3, 4, 5, 6, 7]
+
+    # Each red is worth 1 point
+    red_points = reds_remaining * 1
+
+    # After each red, a color can be potted (assume black = 7 for maximum)
+    # This is the maximum possible points from reds phase
+    red_phase_max_points = reds_remaining * 8  # red (1) + black (7)
+
+    # Color clearance phase: sum remaining colors
+    color_points = colors_sequence.sum
+
+    # Total: reds + max color after each red + remaining colors
+    # Simplified: just reds * 8 + remaining colors
+    red_phase_max_points + color_points
+  rescue StandardError => e
+    Rails.logger.info "ERROR: snooker_remaining_points[#{id}]#{e}, #{e.backtrace&.join("\n")}" if DEBUG
+    0
+  end
+
   def final_protocol_modal_should_be_open?
     panel_state == "protocol_final"
   rescue StandardError => e

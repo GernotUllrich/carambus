@@ -76,6 +76,13 @@ export default class extends ApplicationController {
     this.stimulate('TableMonitor#foul')
   }
 
+  concede_snooker_frame () {
+    console.log('TableMonitor concede_snooker_frame called')
+    if (confirm('Möchten Sie das Frame wirklich aufgeben? Der Gegner gewinnt.')) {
+      this.stimulate('TableMonitor#concede_snooker_frame')
+    }
+  }
+
   force_next_state () {
     console.log('TableMonitor force_next_state called')
     this.stimulate('TableMonitor#force_next_state')

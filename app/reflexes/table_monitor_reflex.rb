@@ -541,6 +541,25 @@ class TableMonitorReflex < ApplicationReflex
     @table_monitor.save
   end
 
+  def concede_snooker_frame
+    Rails.logger.info "+++++++++++++++++>>> concede_snooker_frame <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
+    morph :nothing
+    
+    @table_monitor = TableMonitor.find(element.andand.dataset[:id])
+    
+    # Only allow for snooker games
+    unless @table_monitor.data["free_game_form"] == "snooker"
+      Rails.logger.warn "🚫 Concede only available for snooker games (current: #{@table_monitor.data["free_game_form"]})"
+      return
+    end
+    
+    # Mark frame as complete (current player concedes = opponent wins)
+    @table_monitor.data["snooker_frame_complete"] = true
+    @table_monitor.data_will_change!
+    @table_monitor.save!
+    @table_monitor.evaluate_result
+  end
+
   def foul_submit
     Rails.logger.info "+++++++++++++++++>>> foul_submit <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     morph :nothing
