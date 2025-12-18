@@ -147,11 +147,15 @@ class TableMonitorsController < ApplicationController
         p[:discipline_a] = p[:discipline_b] = Discipline::KARAMBOL_DISCIPLINE_MAP[p.delete(:discipline_choice).to_i]
       elsif p[:free_game_form] == "snooker"
         # Snooker parameters
-        p[:initial_red_balls] = p[:initial_red_balls_choice].to_i if p[:initial_red_balls_choice].present?
-        p[:frames_to_win] = p[:frames_to_win].to_i if p[:frames_to_win].present?
-        p[:warntime] = p[:warntime].to_i if p[:warntime].present?
-        p[:gametime] = p[:gametime].to_i if p[:gametime].present?
-        p[:first_break_choice] = p[:first_break_choice].to_i if p[:first_break_choice].present?
+        p[:initial_red_balls] = p.delete(:initial_red_balls).to_i
+        p[:warntime] = p.delete(:warntime).to_i
+        p[:gametime] = p.delete(:gametime).to_i
+        p[:first_break_choice] = p[:first_break_choice].to_i
+        # Map frames_to_win to sets_to_win (frames are called "sets" internally)
+        # Note: sets_to_win and sets_to_play are already set in the form
+        # Just ensure they're integers
+        p[:sets_to_win] = p[:sets_to_win].to_i if p[:sets_to_win].present?
+        p[:sets_to_play] = p[:sets_to_play].to_i if p[:sets_to_play].present?
       end
     end
 
