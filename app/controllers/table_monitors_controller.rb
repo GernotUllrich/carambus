@@ -151,11 +151,9 @@ class TableMonitorsController < ApplicationController
         p[:warntime] = p.delete(:warntime).to_i
         p[:gametime] = p.delete(:gametime).to_i
         p[:first_break_choice] = p[:first_break_choice].to_i
-        # Map frames_to_win to sets_to_win (frames are called "sets" internally)
-        # Note: sets_to_win and sets_to_play are already set in the form
-        # Just ensure they're integers
-        p[:sets_to_win] = p[:sets_to_win].to_i if p[:sets_to_win].present?
-        p[:sets_to_play] = p[:sets_to_play].to_i if p[:sets_to_play].present?
+        # sets_to_win and sets_to_play come from form (frames_to_win Alpine variable)
+        p[:sets_to_win] = p.delete(:sets_to_win).to_i
+        p[:sets_to_play] = p.delete(:sets_to_play).to_i
       end
     end
 
