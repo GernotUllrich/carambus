@@ -2445,6 +2445,19 @@ data[\"allow_overflow\"].present?")
     end
     if game.present?
       game_set_result = save_result
+      
+      # Check if this set was already saved (to prevent double-counting on modal close)
+      # Compare the current result with the last saved set
+      last_set = Array(data["sets"]).last
+      if last_set && 
+         last_set["Ergebnis1"] == game_set_result["Ergebnis1"] &&
+         last_set["Ergebnis2"] == game_set_result["Ergebnis2"] &&
+         last_set["Aufnahmen1"] == game_set_result["Aufnahmen1"] &&
+         last_set["Aufnahmen2"] == game_set_result["Aufnahmen2"]
+        Rails.logger.info "[save_current_set] m6[#{id}] Frame already saved - skipping duplicate save"
+        return
+      end
+      
       sets = Array(data["sets"]).push(game_set_result)
       deep_merge_data!("redo_sets" => [])
       deep_merge_data!("sets" => sets)
