@@ -2797,6 +2797,18 @@ data[\"allow_overflow\"].present?")
       return false
     end
 
+    # Snooker: Frame ends when all balls are potted (reds_remaining = 0 and colors_sequence empty)
+    if data["free_game_form"] == "snooker"
+      snooker_state = data["snooker_state"] || {}
+      reds_remaining = snooker_state["reds_remaining"].to_i
+      colors_sequence = snooker_state["colors_sequence"] || []
+      
+      if reds_remaining <= 0 && colors_sequence.empty?
+        Rails.logger.info "[TableMonitor#end_of_set?] Snooker frame[#{game_id}] on TM[#{id}] ended: all balls potted (A:#{data["playera"]["result"]}, B:#{data["playerb"]["result"]})"
+        return true
+      end
+    end
+
     if data["playera"]["balls_goal"].to_i.positive? && ((data["playera"]["result"].to_i >= data["playera"]["balls_goal"].to_i ||
       data["playerb"]["result"].to_i >= data["playerb"]["balls_goal"].to_i) &&
       (data["playera"]["innings"] == data["playerb"]["innings"] || !data["allow_follow_up"]))
