@@ -161,7 +161,12 @@ class TableMonitorsController < ApplicationController
         p[:gametime] = p.delete(:gametime).to_i
         p[:first_break_choice] = p[:first_break_choice].to_i
         # sets_to_win and sets_to_play: try from hidden fields first, fallback to _choice params
-        frames_to_win = p.delete(:sets_to_win) || p.delete(:frames_to_win_2_choice) || p.delete(:frames_to_win_choice) || p.delete(:frames_to_win) || 2
+        # Use .presence to convert empty strings to nil
+        frames_to_win = p.delete(:sets_to_win).presence || 
+                        p.delete(:frames_to_win_choice).presence || 
+                        p.delete(:frames_to_win_2_choice).presence || 
+                        p.delete(:frames_to_win).presence || 
+                        2
         p[:sets_to_win] = frames_to_win.to_i
         p[:sets_to_play] = (frames_to_win.to_i * 2 - 1)
         
