@@ -954,8 +954,22 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
         end
       end
     else
-      # At start or after player change: only reds are "on"
-      { 1 => :on, 2 => :off, 3 => :off, 4 => :off, 5 => :off, 6 => :off, 7 => :off }
+      # At start or after player change: only reds are "on" (if reds remain)
+      if reds_remaining > 0
+        { 1 => :on, 2 => :off, 3 => :off, 4 => :off, 5 => :off, 6 => :off, 7 => :off }
+      else
+        # No reds left - next color in sequence
+        next_color = colors_sequence.first
+        if next_color.nil?
+          { 1 => :off, 2 => :off, 3 => :off, 4 => :off, 5 => :off, 6 => :off, 7 => :off }
+        else
+          result = {}
+          (1..7).each do |ball|
+            result[ball] = (ball == next_color) ? :on : :off
+          end
+          result
+        end
+      end
     end
   rescue StandardError => e
     Rails.logger.info "ERROR: snooker_balls_on[#{id}]#{e}, #{e.backtrace&.join("\n")}" if DEBUG

@@ -553,7 +553,16 @@ class TableMonitorReflex < ApplicationReflex
       return
     end
     
-    # Mark frame as complete (current player concedes = opponent wins)
+    # Get current active player
+    active_player = @table_monitor.data["current_inning"]["active_player"]
+    
+    # Terminate current break (if any) before conceding
+    if @table_monitor.playing?
+      @table_monitor.terminate_current_inning(active_player)
+    end
+    
+    # Mark frame as complete (current player concedes = opponent wins based on points)
+    Rails.logger.info "[concede_snooker_frame] Player #{active_player} concedes frame"
     @table_monitor.data["snooker_frame_complete"] = true
     @table_monitor.data_will_change!
     @table_monitor.save!
