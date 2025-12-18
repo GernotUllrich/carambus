@@ -562,11 +562,9 @@ class TableMonitorReflex < ApplicationReflex
     Rails.logger.info "[concede_snooker_frame] Player A points: #{Array(@table_monitor.data["playera"]["innings_redo_list"]).sum}"
     Rails.logger.info "[concede_snooker_frame] Player B points: #{Array(@table_monitor.data["playerb"]["innings_redo_list"]).sum}"
     
-    # Terminate current break (if any) before conceding
-    if @table_monitor.playing?
-      Rails.logger.info "[concede_snooker_frame] Terminating current inning for #{active_player}"
-      @table_monitor.terminate_current_inning(active_player)
-    end
+    # IMPORTANT: Do NOT terminate_current_inning here!
+    # evaluate_result -> save_result needs the innings_redo_list intact to count points
+    # The frame will be properly closed by evaluate_result -> switch_to_next_set
     
     # Mark frame as complete (current player concedes = opponent wins based on points)
     @table_monitor.data["snooker_frame_complete"] = true
