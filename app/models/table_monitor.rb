@@ -2514,6 +2514,23 @@ data[\"allow_overflow\"].present?")
       }
     }
 
+    # Reset snooker state for new frame
+    if data["free_game_form"] == "snooker"
+      initial_reds = initial_red_balls
+      options["snooker_state"] = {
+        "reds_remaining" => initial_reds,
+        "last_potted_ball" => nil,
+        "free_ball_active" => false,
+        "colors_sequence" => [2, 3, 4, 5, 6, 7]
+      }
+      options["playera"]["break_balls_list"] = []
+      options["playera"]["break_balls_redo_list"] = []
+      options["playera"]["break_fouls_list"] = []
+      options["playerb"]["break_balls_list"] = []
+      options["playerb"]["break_balls_redo_list"] = []
+      options["playerb"]["break_fouls_list"] = []
+    end
+
     deep_merge_data!(options)
     assign_attributes(state: "playing", panel_state: "pointer_mode", current_element: "pointer_mode")
     save!
@@ -2911,7 +2928,8 @@ data[\"allow_overflow\"].present?")
   end
 
   def simple_set_game?
-    data["free_game_form"] == "pool" && data["playera"]["discipline"] != "14.1 endlos"
+    (data["free_game_form"] == "pool" && data["playera"]["discipline"] != "14.1 endlos") ||
+    data["free_game_form"] == "snooker"
   end
 
   def admin_ack_result
