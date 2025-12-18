@@ -2562,22 +2562,28 @@ data[\"allow_overflow\"].present?")
       was_playing = playing?
       is_simple_set = simple_set_game?
 
-      # For simple set games (8-Ball, 9-Ball, 10-Ball), handle set end differently:
+      Rails.logger.info "[evaluate_result] Frame end detected - was_playing: #{was_playing}, is_simple_set: #{is_simple_set}, may_end_of_set?: #{may_end_of_set?}, state: #{state}"
+
+      # For simple set games (8-Ball, 9-Ball, 10-Ball, Snooker), handle set end differently:
       # - Don't show protocol modal after each set
       # - Automatically switch to next set
       # - Only show modal when match is won
       if is_simple_set && was_playing && may_end_of_set?
+        Rails.logger.info "[evaluate_result] Snooker/Pool frame end - checking if match is won"
         end_of_set!
         save_current_set
         max_number_of_wins = get_max_number_of_wins
+        Rails.logger.info "[evaluate_result] max_number_of_wins: #{max_number_of_wins}, sets_to_win: #{data["sets_to_win"]}, Sets1: #{data["ba_results"]["Sets1"]}, Sets2: #{data["ba_results"]["Sets2"]}"
         if max_number_of_wins >= data["sets_to_win"].to_i
           # Match is over - show final result modal
+          Rails.logger.info "[evaluate_result] Match WON - showing final modal"
           self.panel_state = "protocol_final"
           self.current_element = "confirm_result"
           save!
           return
         else
           # More sets to play - switch to next set automatically (no modal)
+          Rails.logger.info "[evaluate_result] Match NOT won - switching to next frame"
           switch_to_next_set
           return
         end
