@@ -1542,6 +1542,20 @@ data[\"allow_overflow\"].present?")
 
               # Clear last_foul when a new ball is potted (foul display is over)
               data.delete("last_foul")
+              
+              # Check if all balls are potted (frame end)
+              snooker_state = data["snooker_state"] || {}
+              reds_remaining = snooker_state["reds_remaining"].to_i
+              colors_sequence = snooker_state["colors_sequence"] || []
+              
+              if reds_remaining <= 0 && colors_sequence.empty?
+                # All balls potted - terminate current inning and evaluate result
+                Rails.logger.info "[add_n_balls] Snooker frame[#{game_id}] on TM[#{id}]: All balls potted, terminating inning"
+                data_will_change!
+                self.copy_from = nil
+                terminate_current_inning(player)
+                return
+              end
             end
           end
           if add == to_play
