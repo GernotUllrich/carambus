@@ -2833,6 +2833,12 @@ data[\"allow_overflow\"].present?")
     total_innings = data["playera"]["innings"].to_i + data["playerb"]["innings"].to_i
     total_points = data["playera"]["result"].to_i + data["playerb"]["result"].to_i
 
+    # For Snooker: also count points in innings_redo_list (where snooker break points accumulate)
+    if data["free_game_form"] == "snooker"
+      total_redo_points = (data["playera"]["innings_redo_list"]&.last.to_i + data["playerb"]["innings_redo_list"]&.last.to_i)
+      total_points += total_redo_points
+    end
+
     if total_innings == 0 && total_points == 0
       Rails.logger.warn "[TableMonitor#end_of_set?] GUARD: Game[#{game_id}] on TM[#{id}] has 0 innings and 0 points - NOT ending set (state: #{state})"
       return false
