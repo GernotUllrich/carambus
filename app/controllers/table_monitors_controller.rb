@@ -147,14 +147,29 @@ class TableMonitorsController < ApplicationController
         p[:discipline_a] = p[:discipline_b] = Discipline::KARAMBOL_DISCIPLINE_MAP[p.delete(:discipline_choice).to_i]
       elsif p[:free_game_form] == "snooker"
         # Snooker parameters
+        Rails.logger.info "=== SNOOKER PARAMS DEBUG ==="
+        Rails.logger.info "sets_to_win: #{p[:sets_to_win].inspect}"
+        Rails.logger.info "sets_to_play: #{p[:sets_to_play].inspect}"
+        Rails.logger.info "frames_to_win: #{p[:frames_to_win].inspect}"
+        Rails.logger.info "frames_to_win_choice: #{p[:frames_to_win_choice].inspect}"
+        Rails.logger.info "frames_to_win_2_choice: #{p[:frames_to_win_2_choice].inspect}"
+        Rails.logger.info "initial_red_balls: #{p[:initial_red_balls].inspect}"
+        Rails.logger.info "============================"
+        
         p[:initial_red_balls] = p.delete(:initial_red_balls).to_i
         p[:warntime] = p.delete(:warntime).to_i
         p[:gametime] = p.delete(:gametime).to_i
         p[:first_break_choice] = p[:first_break_choice].to_i
         # sets_to_win and sets_to_play: try from hidden fields first, fallback to _choice params
-        frames_to_win = p.delete(:sets_to_win) || p.delete(:frames_to_win_2_choice) || p.delete(:frames_to_win_choice) || p.delete(:frames_to_win)
+        frames_to_win = p.delete(:sets_to_win) || p.delete(:frames_to_win_2_choice) || p.delete(:frames_to_win_choice) || p.delete(:frames_to_win) || 2
         p[:sets_to_win] = frames_to_win.to_i
         p[:sets_to_play] = (frames_to_win.to_i * 2 - 1)
+        
+        Rails.logger.info "=== SNOOKER RESULT ==="
+        Rails.logger.info "Calculated frames_to_win: #{frames_to_win}"
+        Rails.logger.info "Final sets_to_win: #{p[:sets_to_win]}"
+        Rails.logger.info "Final sets_to_play: #{p[:sets_to_play]}"
+        Rails.logger.info "======================"
       end
     end
 
