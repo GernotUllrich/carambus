@@ -2530,16 +2530,23 @@ data[\"allow_overflow\"].present?")
     if game.present?
       game_set_result = save_result
       
-      # Check if this set was already saved (to prevent double-counting on modal close)
-      # Compare the current result with the last saved set
-      last_set = Array(data["sets"]).last
-      if last_set && 
-         last_set["Ergebnis1"] == game_set_result["Ergebnis1"] &&
-         last_set["Ergebnis2"] == game_set_result["Ergebnis2"] &&
-         last_set["Aufnahmen1"] == game_set_result["Aufnahmen1"] &&
-         last_set["Aufnahmen2"] == game_set_result["Aufnahmen2"]
-        Rails.logger.info "[save_current_set] m6[#{id}] Frame already saved - skipping duplicate save"
-        return
+      # For simple_set_game (snooker, pool), check if frame was already saved by comparing:
+      # 1. Number of saved sets matches expected count based on ba_results
+      # 2. Last saved set matches current result
+      # This prevents double-saving when protocol modal is closed
+      if simple_set_game?
+        current_sets_count = Array(data["sets"]).length
+        expected_sets_count = (data["ba_results"]&.dig("Sets1").to_i + data["ba_results"]&.dig("Sets2").to_i)
+        
+        if current_sets_count >= expected_sets_count && expected_sets_count > 0
+          last_set = Array(data["sets"]).last
+          if last_set && 
+             last_set["Ergebnis1"] == game_set_result["Ergebnis1"] &&
+             last_set["Ergebnis2"] == game_set_result["Ergebnis2"]
+            Rails.logger.info "[save_current_set] m6[#{id}] Frame already saved (#{current_sets_count} sets, expected #{expected_sets_count}) - skipping duplicate"
+            return
+          end
+        end
       end
       
       sets = Array(data["sets"]).push(game_set_result)
