@@ -1549,10 +1549,10 @@ data[\"allow_overflow\"].present?")
               colors_sequence = snooker_state["colors_sequence"] || []
               
               if reds_remaining <= 0 && colors_sequence.empty?
-                # All balls potted - frame is over, evaluate result
-                # DON'T call terminate_current_inning (would switch player)
-                # Just save and let evaluate_result handle frame end
-                Rails.logger.info "[add_n_balls] Snooker frame[#{game_id}] on TM[#{id}]: All balls potted, frame complete"
+                # All balls potted - frame is over
+                # Set flag so end_of_set? knows frame is complete
+                Rails.logger.info "[add_n_balls] Snooker frame[#{game_id}] on TM[#{id}]: All balls potted, setting frame_complete flag"
+                data["snooker_frame_complete"] = true
                 data_will_change!
                 self.copy_from = nil
                 save!
@@ -2526,6 +2526,7 @@ data[\"allow_overflow\"].present?")
         "free_ball_active" => false,
         "colors_sequence" => [2, 3, 4, 5, 6, 7]
       }
+      options["snooker_frame_complete"] = false
       options["playera"]["break_balls_list"] = []
       options["playera"]["break_balls_redo_list"] = []
       options["playera"]["break_fouls_list"] = []
@@ -2831,10 +2832,15 @@ data[\"allow_overflow\"].present?")
       return false
     end
 
-    # Snooker: Frame end is handled in add_n_balls when last ball is potted
-    # Don't check here - otherwise frame would end on player switch after last ball
-    # (even if player missed and opponent should continue)
+    # Snooker: Frame ends when all balls are potted and flag is set
+    # Flag is set in add_n_balls when last ball is potted
+    # This prevents frame ending on player switch after last ball
     if data["free_game_form"] == "snooker"
+      frame_complete = data["snooker_frame_complete"] || false
+      if frame_complete
+        Rails.logger.info "[TableMonitor#end_of_set?] Snooker frame[#{game_id}] on TM[#{id}] ended: frame_complete flag set (A:#{data["playera"]["result"]}, B:#{data["playerb"]["result"]})"
+        return true
+      end
       return false
     end
 
