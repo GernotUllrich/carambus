@@ -2528,18 +2528,13 @@ data[\"allow_overflow\"].present?")
       Rails.logger.info "----------------m6[#{id}]----->>> save_current_set <<<------------------------------------------"
     end
     if game.present?
-      game_set_result = save_result
-      
       # For simple_set_game (snooker, pool), check if we already have the expected number of frames
-      # This prevents double-saving when protocol modal is closed or evaluate_result is called multiple times
-      is_simple = simple_set_game?
-      Rails.logger.info "[save_current_set] m6[#{id}] simple_set_game?: #{is_simple}"
-      
-      if is_simple
+      # MUST check BEFORE calling save_result (which increments Sets1/Sets2 counters)
+      if simple_set_game?
         current_sets_count = Array(data["sets"]).length
         expected_sets_count = (data["ba_results"]&.dig("Sets1").to_i + data["ba_results"]&.dig("Sets2").to_i)
         
-        Rails.logger.info "[save_current_set] m6[#{id}] current_sets_count: #{current_sets_count}, expected_sets_count: #{expected_sets_count}"
+        Rails.logger.info "[save_current_set] m6[#{id}] BEFORE save_result: current_sets_count: #{current_sets_count}, expected_sets_count: #{expected_sets_count}"
         
         # If we already have the expected number of frames saved, don't save again
         # This can happen when evaluate_result is called from protocol modal confirmation
@@ -2548,6 +2543,8 @@ data[\"allow_overflow\"].present?")
           return
         end
       end
+      
+      game_set_result = save_result
       
       sets = Array(data["sets"]).push(game_set_result)
       deep_merge_data!("redo_sets" => [])
