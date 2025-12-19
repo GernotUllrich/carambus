@@ -2528,23 +2528,24 @@ data[\"allow_overflow\"].present?")
       Rails.logger.info "----------------m6[#{id}]----->>> save_current_set <<<------------------------------------------"
     end
     if game.present?
-      # For simple_set_game (snooker, pool), check if we already have the expected number of frames
-      # MUST check BEFORE calling save_result (which increments Sets1/Sets2 counters)
+      game_set_result = save_result
+      
+      # For simple_set_game (snooker, pool), check if this frame was already saved
+      # This prevents double-saving when protocol modal is confirmed (which calls evaluate_result → save_current_set again)
       if simple_set_game?
-        current_sets_count = Array(data["sets"]).length
-        expected_sets_count = (data["ba_results"]&.dig("Sets1").to_i + data["ba_results"]&.dig("Sets2").to_i)
-        
-        Rails.logger.info "[save_current_set] m6[#{id}] BEFORE save_result: current_sets_count: #{current_sets_count}, expected_sets_count: #{expected_sets_count}"
-        
-        # If we already have the expected number of frames saved, don't save again
-        # This can happen when evaluate_result is called from protocol modal confirmation
-        if current_sets_count >= expected_sets_count && expected_sets_count > 0
-          Rails.logger.info "[save_current_set] m6[#{id}] Frame already saved (#{current_sets_count} frames saved, #{expected_sets_count} expected) - skipping duplicate"
+        # After save_result, ba_results counters (Sets1, Sets2) have been incremented
+        # Check if the sets array already contains a frame with these exact results
+        # If yes, this is a duplicate call (e.g. from protocol modal confirmation)
+        last_saved_set = Array(data["sets"]).last
+        if last_saved_set && 
+           last_saved_set["Ergebnis1"] == game_set_result["Ergebnis1"] &&
+           last_saved_set["Ergebnis2"] == game_set_result["Ergebnis2"] &&
+           last_saved_set["Aufnahmen1"] == game_set_result["Aufnahmen1"] &&
+           last_saved_set["Aufnahmen2"] == game_set_result["Aufnahmen2"]
+          Rails.logger.info "[save_current_set] m6[#{id}] Frame already saved (duplicate result: #{game_set_result["Ergebnis1"]}:#{game_set_result["Ergebnis2"]}) - skipping"
           return
         end
       end
-      
-      game_set_result = save_result
       
       sets = Array(data["sets"]).push(game_set_result)
       deep_merge_data!("redo_sets" => [])
