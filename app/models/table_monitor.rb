@@ -2532,9 +2532,14 @@ data[\"allow_overflow\"].present?")
       
       # For simple_set_game (snooker, pool), check if we already have the expected number of frames
       # This prevents double-saving when protocol modal is closed or evaluate_result is called multiple times
-      if simple_set_game?
+      is_simple = simple_set_game?
+      Rails.logger.info "[save_current_set] m6[#{id}] simple_set_game?: #{is_simple}"
+      
+      if is_simple
         current_sets_count = Array(data["sets"]).length
         expected_sets_count = (data["ba_results"]&.dig("Sets1").to_i + data["ba_results"]&.dig("Sets2").to_i)
+        
+        Rails.logger.info "[save_current_set] m6[#{id}] current_sets_count: #{current_sets_count}, expected_sets_count: #{expected_sets_count}"
         
         # If we already have the expected number of frames saved, don't save again
         # This can happen when evaluate_result is called from protocol modal confirmation
