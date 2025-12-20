@@ -22,8 +22,8 @@ class StaticController < ApplicationController
   end
 
   def intro
-    # Redirect to tournament documentation
-    redirect_to docs_page_path(path: 'tournament', locale: I18n.locale.to_s)
+    # Redirect to main documentation index
+    redirect_to docs_page_path(path: 'index', locale: I18n.locale.to_s)
   end
 
   def index_t; end
@@ -60,7 +60,7 @@ class StaticController < ApplicationController
 
   # Neue Methode: Einzelne MkDocs-Dokumente in das Carambus-Layout integrieren
   def docs_page
-    # Pfad aus der URL extrahieren (z.B. "tournament" oder "about")
+    # Pfad aus der URL extrahieren (z.B. "tournament" oder "about" oder "managers/tournament-management")
     path = params[:path]
     locale = params[:locale] || I18n.locale.to_s
     
@@ -70,26 +70,32 @@ class StaticController < ApplicationController
       return
     end
     
-    # Markdown-Datei aus docs/ Verzeichnis laden (neue Struktur: about.de.md, about.en.md)
-    docs_path = Rails.root.join('docs', "#{path}.#{locale}.md")
+    # Versuche verschiedene Pfadstrukturen
+    possible_paths = [
+      Rails.root.join('docs', "#{path}.#{locale}.md"),              # Neue Struktur: about.de.md
+      Rails.root.join('docs', locale, "#{path}.md"),                # Alte Struktur: de/about.md
+      Rails.root.join('docs', path, "#{locale}.md"),                # Sehr alte Struktur: about/de.md
+    ]
     
-    # Wenn die Datei nicht existiert, versuche es mit der alten Struktur
-    unless File.exist?(docs_path)
-      docs_path = Rails.root.join('docs', locale, "#{path}.md")
+    # Auch mit anderem Locale versuchen falls nicht gefunden
+    other_locale = locale == 'de' ? 'en' : 'de'
+    possible_paths += [
+      Rails.root.join('docs', "#{path}.#{other_locale}.md"),
+      Rails.root.join('docs', other_locale, "#{path}.md"),
+      Rails.root.join('docs', path, "#{other_locale}.md"),
+    ]
+    
+    # Erste existierende Datei verwenden
+    docs_path = possible_paths.find { |p| File.exist?(p) }
+    
+    # Wenn keine Datei gefunden, 404
+    unless docs_path
+      render_404
+      return
     end
     
-    # Wenn die Datei immer noch nicht existiert, versuche es mit der anderen Sprache
-    unless File.exist?(docs_path)
-      other_locale = locale == 'de' ? 'en' : 'de'
-      docs_path = Rails.root.join('docs', "#{path}.#{other_locale}.md")
-      
-      # Wenn auch die andere Sprache nicht existiert, 404
-      unless File.exist?(docs_path)
-        render_404
-        return
-      end
-      
-      # Setze die gefundene Sprache als aktuelle Locale
+    # Sprache aus gefundenem Pfad extrahieren
+    if docs_path.to_s.include?(".#{other_locale}.md")
       locale = other_locale
     end
     
