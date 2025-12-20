@@ -325,3 +325,5 @@ Jedes Spiel wird nur einmal hochgeladen:
 - [ClubCloud Integration](clubcloud-integration.md)
 - [API Server Synchronization](api-server-sync.md)
 
+
+

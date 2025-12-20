@@ -151,3 +151,5 @@ echo "  3. Read documentation: docs/clubcloud_credentials.md"
 echo ""
 log "Done!"
 
+
+

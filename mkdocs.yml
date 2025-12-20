@@ -1,25 +1,41 @@
 # Site Basics
 site_name: Carambus Documentation
-site_description: Docs for Carambus - Billiards management with Ruby on Rails
+site_description: Comprehensive documentation for Carambus - Professional billiards tournament management system
 site_url: https://GernotUllrich.github.io/carambus
 repo_url: https://github.com/GernotUllrich/carambus
 repo_name: GernotUllrich/carambus
-docs_dir: docs  # THIS DEFINES THE SUBFOLDER FOR .md FILES (instead of default 'docs')
+docs_dir: docs
 
 # Theme
 theme:
   name: material
   features:
     - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.expand
+    - navigation.indexes
     - search.suggest
+    - search.highlight
     - header.autohide
+    - toc.follow
   palette:
     - scheme: default
       primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
     - scheme: slate
       primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  icon:
+    repo: fontawesome/brands/github
 
-# Plugins (ensure pip install mkdocs-static-i18n)
+# Plugins
 plugins:
   - search
   - i18n:
@@ -32,108 +48,142 @@ plugins:
           name: Deutsch
           default: true
           build: true
+          nav_translations:
+            Home: Startseite
+            Decision Makers: Für Entscheider
+            Executive Summary: Executive Summary
+            Features Overview: Feature-Übersicht
+            Deployment Options: Deployment-Optionen
+            Players: Für Spieler
+            Player Guide: Spieler-Leitfaden
+            Scoreboard Guide: Scoreboard-Anleitung
+            Tournament Participation: Turnierteilnahme
+            AI-Powered Search: KI-gestützte Suche
+            Managers: Für Turniermanager
+            Manager Guide: Manager-Leitfaden
+            Tournament Management: Turnierverwaltung
+            League Management: Liga-Management
+            Single Tournament: Einzelturnier
+            Table Reservation: Tischreservierung
+            Admin Roles: Admin-Rollen
+            ClubCloud Integration: ClubCloud-Integration
+            Search & Filters: Suche & Filter
+            Administrators: Für Systemadministratoren
+            Administrator Guide: Administrator-Leitfaden
+            Installation Overview: Installations-Übersicht
+            Raspberry Pi Quickstart: Raspberry Pi Quickstart
+            Raspberry Pi Client: Raspberry Pi Client
+            Scoreboard Autostart: Scoreboard Autostart
+            Server Architecture: Server-Architektur
+            Email Configuration: Email-Konfiguration
+            Database Setup: Datenbank-Setup
+            Developers: Für Entwickler
+            Developer Guide: Entwickler-Leitfaden
+            Getting Started: Getting Started
+            Database Design: Datenbank-Design
+            ER Diagram: ER-Diagramm
+            API Reference: API-Referenz
+            Scenario Management: Scenario-Management
+            Testing & Debugging: Testing & Debugging
+            Deployment Workflow: Deployment-Workflow
+            Server Scripts: Server-Scripts
+            Raspberry Pi Scripts: Raspberry Pi-Scripts
+            Data Management: Datenverwaltung
+            Database Partitioning: Datenbank-Partitionierung
+            Paper Trail Optimization: PaperTrail-Optimierung
+            Game Plan Reconstruction: Spielplan-Rekonstruktion
+            Tournament Duplicates: Turnier-Duplikate
+            Region Tagging: Regions-Tagging
+            Pool Scoreboard Changelog: Pool Scoreboard Changelog
+            Reference: Referenz
+            API: API
+            Glossary: Glossar
+            Terms: AGB
+            Privacy: Datenschutz
+            Config Lock Files: Config Lock Files
+            About: Über
+            README: README
         - locale: en
           name: English
           build: true
-          nav_translations:
-            Startseite: Home
-            Einführung: Introduction
-            Über: About
-            README: README
-            Installation: Installation
-            Übersicht: Overview
-            Schnellstart Raspberry Pi: Quick Start Raspberry Pi
-            Benutzerhandbuch: User Guide
-            Turnierverwaltung: Tournament Management
-            Ligaspieltage: League Days
-            Tischreservierung: Table Reservation
-            Einzelturnierverwaltung: Individual Tournament Management
-            Scoreboard Setup: Scoreboard Setup
-            Scoreboard Benutzerhandbuch: Scoreboard User Guide
-            Pool Scoreboard: Pool Scoreboard
-            KI-gestützte Suche: AI-Powered Search
-            Entwicklerhandbuch: Developer Guide
-            Getting Started: Getting Started
-            Scenario Management: Scenario Management
-            Raspberry Pi Scripts: Raspberry Pi Scripts
-            Server Management Scripts: Server Management Scripts
-            Rake Tasks & Debugging: Rake Tasks & Debugging
-            Datenbank-Setup: Database Setup
-            MkDocs Dokumentation: MkDocs Documentation
-            Datenbankdesign: Database Design
-            Datenbank-Partitionierung: Database Partitioning
-            Admin-Rollen: Admin Roles
-            Datenverwaltung: Data Management
-            Spielplan-Rekonstruktion: Game Plan Reconstruction
-            PaperTrail Optimierung: PaperTrail Optimization
-            ER-Diagramm: ER Diagram
-            Filter-Popup: Filter Popup
-            Turnier-Duplikate: Tournament Duplicates
-            Regions-Tagging: Region Tagging
-            Pool Scoreboard Changelog: Pool Scoreboard Changelog
-            Referenz: Reference
-            API: API
-            AGB: Terms
-            Datenschutz: Privacy
-            Sonstiges: Miscellaneous
-            Tischreservierung Heizung: Table Reservation Heating
 
-# Navigation (will be automatically localized by the i18n plugin)
+# Navigation
 nav:
-  - Startseite: index.md
-  - Einführung:
-      - Über: about.md
+  - Home: index.md
+  - Decision Makers:
+      - decision-makers/index.md
+      - Executive Summary: decision-makers/executive-summary.md
+      - Features Overview: decision-makers/features-overview.md
+      - Deployment Options: decision-makers/deployment-options.md
+  - Players:
+      - players/index.md
+      - Scoreboard Guide: players/scoreboard-guide.md
+      - Tournament Participation: players/tournament-participation.md
+      - AI-Powered Search: players/ai-search.md
+  - Managers:
+      - managers/index.md
+      - Tournament Management: managers/tournament-management.md
+      - League Management: managers/league-management.md
+      - Single Tournament: managers/single-tournament.md
+      - Table Reservation: managers/table-reservation.md
+      - Admin Roles: managers/admin_roles.md
+      - ClubCloud Integration: managers/clubcloud_integration.md
+      - Search & Filters: managers/search-filters.md
+  - Administrators:
+      - administrators/index.md
+      - Installation Overview: administrators/installation_overview.md
+      - Raspberry Pi Quickstart: administrators/quickstart_raspberry_pi.md
+      - Raspberry Pi Client: administrators/raspberry-pi-client.md
+      - Scoreboard Autostart: administrators/scoreboard_autostart_setup.md
+      - Server Architecture: administrators/server-architecture.md
+      - Email Configuration: administrators/email_configuration.md
+      - Database Setup: administrators/database-setup.md
+  - Developers:
+      - developers/index.md
+      - Getting Started: developers/getting-started.md
+      - Developer Guide: developers/developer-guide.md
+      - Database Design: developers/database_design.md
+      - ER Diagram: developers/er_diagram.md
+      - API Reference: reference/API.md
+      - Scenario Management: developers/scenario_management.md
+      - Testing & Debugging: developers/rake-tasks-debugging.md
+      - Deployment Workflow: developers/deployment_workflow.md
+      - Data Management: developers/data_management.md
+      - Database Partitioning: developers/database-partitioning.md
+      - Paper Trail Optimization: developers/paper_trail_optimization.md
+      - Game Plan Reconstruction: developers/game_plan_reconstruction.md
+      - Tournament Duplicates: developers/tournament_duplicate_handling.md
+      - Region Tagging: developers/region_tagging_cleanup_summary.md
+      - Pool Scoreboard Changelog: developers/pool-scoreboard-changelog.md
+  - Reference:
+      - API: reference/API.md
+      - Glossary: reference/glossary.md
+      - Terms: reference/terms.md
+      - Privacy: reference/privacy.md
+      - Config Lock Files: reference/config-lock-files.md
+      - Search: reference/search.md
+      - MkDocs: reference/mkdocs_dokumentation.md
+  - About:
+      - About: about.md
       - README: README.md
-  - Installation:
-      - Übersicht: installation_overview.md
-      - Schnellstart Raspberry Pi: quickstart_raspberry_pi.md
-  - Benutzerhandbuch:
-      - Turnierverwaltung: tournament.md
-      - Ligaspieltage: league.md
-      - Tischreservierung: table_reservation_heating_control.md
-      - Einzelturnierverwaltung: einzelturnierverwaltung.md
-      - Scoreboard Setup: scoreboard_autostart_setup.md
-      - Scoreboard Benutzerhandbuch: scoreboard_benutzerhandbuch.md
-      - Pool Scoreboard: pool_scoreboard_benutzerhandbuch.de.md
-      - KI-gestützte Suche: ai_search.md
-  - Entwicklerhandbuch:
-      - Getting Started: GETTING_STARTED_DEVELOPER.md
-      - Entwicklerhandbuch: DEVELOPER_GUIDE.md
-      - Scenario Management: scenario_management.md
-      - Raspberry Pi Scripts: raspberry_pi_scripts.md
-      - Server Management Scripts: server_management_scripts.md
-      - Rake Tasks & Debugging: entwickler-rake-tasks-debugging.md
-      - Datenbank-Setup: DATABASE_SETUP.md
-      - MkDocs Dokumentation: mkdocs_dokumentation.md
-      - Datenbankdesign: database_design.md
-      - Datenbank-Partitionierung: datenbank-partitionierung-und-synchronisierung.md
-      - Admin-Rollen: admin_roles.md
-      - Datenverwaltung: data_management.md
-      - Spielplan-Rekonstruktion: game_plan_reconstruction.md
-      - PaperTrail Optimierung: paper_trail_optimization.md
-      - ER-Diagramm: er_diagram.md
-      - Filter-Popup: filter_popup_usage.md
-      - Turnier-Duplikate: tournament_duplicate_handling.md
-      - Regions-Tagging: region_tagging_cleanup_summary.md
-      - Pool Scoreboard Changelog: CHANGELOG_POOL_SCOREBOARD.md
-  - Referenz:
-      - API: API.md
-      - AGB: terms.md
-      - Datenschutz: privacy.md
-  - Sonstiges:
-      - Tischreservierung Heizung: tischreservierung_heizungssteuerung.md
 
 # Markdown extensions
 markdown_extensions:
-  - pymdownx.highlight
+  - pymdownx.highlight:
+      anchor_linenums: true
   - pymdownx.superfences
-  - pymdownx.arithmatex
+  - pymdownx.arithmatex:
+      generic: true
   - pymdownx.details
-  - pymdownx.emoji
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
   - pymdownx.smartsymbols
   - pymdownx.snippets
-  - pymdownx.tabbed
-  - pymdownx.tasklist
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
   - pymdownx.tilde
   - admonition
   - codehilite
@@ -141,8 +191,10 @@ markdown_extensions:
   - meta
   - toc:
       permalink: true
-  - pymdownx.arithmatex:
-      generic: true
+      toc_depth: 3
+  - attr_list
+  - md_in_html
+  - def_list
 
 # Extra CSS and JS
 extra_css:
@@ -152,3 +204,13 @@ extra_javascript:
   - javascripts/mathjax.js
   - https://polyfill.io/v3/polyfill.min.js?features=es6
   - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
+
+# Extra
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/GernotUllrich/carambus
+    - icon: fontawesome/solid/globe
+      link: http://www.billardclub-wedel.de/
+  version:
+    provider: mike

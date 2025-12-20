@@ -27,24 +27,46 @@ Vollständige Dokumentation auf Englisch inklusive:
 
 ## 📚 Dokumentations-Kategorien
 
-### Benutzer-Dokumentation
-- Turnierverwaltung
-- Ligaverwaltung
-- Tischreservierung
-- Scoreboard-Einrichtung
+### 🎯 Für Entscheider
+Evaluieren Sie Carambus für Ihren Verein oder Verband
+- **[Executive Summary](decision-makers/executive-summary.de.md)**: Überblick in 3 Minuten
+- **[Feature-Übersicht](decision-makers/features-overview.de.md)**: Alle Funktionen im Detail
+- **[Deployment-Optionen](decision-makers/deployment-options.de.md)**: Cloud, On-Premise oder Raspberry Pi?
+
+### 🎮 Für Spieler
+Nutzen Sie Carambus als Turnierteilnehmer
+- **[Spieler-Übersicht](players/index.de.md)**: Start hier!
+- Scoreboard-Bedienung (Carambolage, Pool, Snooker)
 - KI-gestützte Suche
+- Persönliche Statistiken
 
-### Technische Dokumentation
-- Datenbankdesign
-- API-Referenz
-- Entwicklungs-Setup
-- Deployment-Anleitung
+### 🏆 Für Turniermanager
+Organisieren und verwalten Sie Turniere
+- **[Manager-Übersicht](managers/index.de.md)**: Start hier!
+- Turnierverwaltung
+- Ligaspieltage
+- ClubCloud-Integration
+- Tischreservierung
 
-### Systemadministration
-- Installation
-- Konfiguration
-- Wartung
-- Fehlerbehebung
+### 🖥️ Für Systemadministratoren
+Installieren und betreiben Sie Carambus
+- **[Administrator-Übersicht](administrators/index.de.md)**: Start hier!
+- Installation (Cloud, On-Premise, Raspberry Pi)
+- Konfiguration & Sicherheit
+- Wartung & Updates
+
+### 💻 Für Entwickler
+Entwickeln Sie mit und erweitern Sie Carambus
+- **[Entwickler-Übersicht](developers/index.de.md)**: Start hier!
+- Getting Started
+- Architektur & Datenbank
+- API & Testing
+- Contribution Guidelines
+
+### 📖 Referenz
+- API-Dokumentation
+- Glossar
+- Datenschutz & AGB
 
 ## 🔧 System-Überblick
 

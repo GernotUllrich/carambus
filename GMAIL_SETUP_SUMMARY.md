@@ -269,3 +269,5 @@ If you encounter issues:
 - Rails ActionMailer: https://guides.rubyonrails.org/action_mailer_basics.html
 - Devise Configuration: https://github.com/heartcombo/devise
 
+
+

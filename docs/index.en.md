@@ -27,23 +27,46 @@ Complete documentation in English including:
 
 ## 📚 Documentation Categories
 
-### User Documentation
-- Tournament Management
-- League Management
-- Table Reservation
-- Scoreboard Setup
+### 🎯 For Decision Makers
+Evaluate Carambus for your club or federation
+- **[Executive Summary](decision-makers/executive-summary.en.md)**: Overview in 3 minutes
+- **[Features Overview](decision-makers/features-overview.en.md)**: All features in detail
+- **[Deployment Options](decision-makers/deployment-options.en.md)**: Cloud, On-Premise or Raspberry Pi?
 
-### Technical Documentation
-- Database Design
-- API Reference
-- Development Setup
-- Deployment Guide
+### 🎮 For Players
+Use Carambus as tournament participant
+- **[Player Overview](players/index.en.md)**: Start here!
+- Scoreboard operation (Carom, Pool, Snooker)
+- AI-powered search
+- Personal statistics
 
-### System Administration
-- Installation
-- Configuration
-- Maintenance
-- Troubleshooting
+### 🏆 For Tournament Managers
+Organize and manage tournaments
+- **[Manager Overview](managers/index.en.md)**: Start here!
+- Tournament management
+- League match days
+- ClubCloud integration
+- Table reservation
+
+### 🖥️ For System Administrators
+Install and operate Carambus
+- **[Administrator Overview](administrators/index.en.md)**: Start here!
+- Installation (Cloud, On-Premise, Raspberry Pi)
+- Configuration & Security
+- Maintenance & Updates
+
+### 💻 For Developers
+Develop with and extend Carambus
+- **[Developer Overview](developers/index.en.md)**: Start here!
+- Getting Started
+- Architecture & Database
+- API & Testing
+- Contribution Guidelines
+
+### 📖 Reference
+- API Documentation
+- Glossary
+- Privacy & Terms
 
 ## 🔧 System Overview
 
