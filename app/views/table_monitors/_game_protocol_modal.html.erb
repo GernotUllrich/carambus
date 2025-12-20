@@ -125,11 +125,12 @@
     
     <!-- Table Container (scrollable) -->
     <div class="protocol-table-container flex-1 overflow-y-auto p-2">
-      <%- if is_simple_set_game %>
+      <%- if is_simple_set_game && table_monitor.data["free_game_form"] != "snooker" %>
         <%# Simple Set Game Protocol - Shows only set results, no innings %>
+        <%# Exception: Snooker needs innings protocol to show individual breaks %>
         <%= render partial: 'table_monitors/set_protocol_table', locals: { table_monitor: table_monitor, history: history, is_final_mode: is_final_mode } %>
       <%- else %>
-        <%# Standard Innings Protocol %>
+        <%# Standard Innings Protocol (also used for Snooker to show breaks) %>
         <table class="protocol-table w-full border-collapse">
           <thead class="sticky top-0 bg-gray-100 dark:bg-gray-800 border-b-2 border-gray-300 dark:border-gray-600">
             <tr>
