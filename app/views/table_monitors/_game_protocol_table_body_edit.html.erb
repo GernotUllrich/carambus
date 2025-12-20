@@ -80,6 +80,8 @@
                         data-inning="<%= i %>"
                         data-player="playera"
                         data-id="<%= table_monitor.id %>"
+                        data-controller="stimulus-reflex"
+                        data-action="click->stimulus-reflex#__perform"
                         class="px-2 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded text-xs font-bold">✏️</button>
               <%- end %>
             </div>
@@ -135,6 +137,8 @@
                         data-inning="<%= i %>"
                         data-player="playerb"
                         data-id="<%= table_monitor.id %>"
+                        data-controller="stimulus-reflex"
+                        data-action="click->stimulus-reflex#__perform"
                         class="px-2 py-1 bg-green-500 hover:bg-green-600 text-white rounded text-xs font-bold">✏️</button>
               <%- end %>
             </div>
