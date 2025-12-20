@@ -53,8 +53,12 @@
 <%- current_break_right = right_player_active ? (show_data[right_player_id].andand["innings_redo_list"].andand[-1].to_i || 0) : 0 %>
 <%- high_break_left = left_player[:hs] || 0 %>
 <%- high_break_right = right_player[:hs] || 0 %>
-<%- # Frame number: during play = frames won + 1 (current), after match end = frames won (last played) %>
-<%- current_frame_number = (current_frame_a.to_i + current_frame_b.to_i) + (table_monitor.final_match_score? ? 0 : 1) %>
+<%- # Frame number: Check if match is over (someone reached frames_to_win)
+    # During play: frames won + 1 (shows current frame being played)
+    # After match end: frames won (shows last completed frame)
+    match_is_over = (current_frame_a >= frames_to_win) || (current_frame_b >= frames_to_win)
+    current_frame_number = (current_frame_a.to_i + current_frame_b.to_i) + (match_is_over ? 0 : 1)
+%>
 <%- # Calculate total scores (result + current break) for both players %>
 <%- total_score_left = left_player[:result].to_i + (show_data[left_player_id].andand["innings_redo_list"].andand[-1].to_i || 0) %>
 <%- total_score_right = right_player[:result].to_i + (show_data[right_player_id].andand["innings_redo_list"].andand[-1].to_i || 0) %>
@@ -141,9 +145,6 @@
                 </div>
               </div>
               <div class="flex flex-col flex-1 text-right text-gray-500 text-<%= vw3 %>" style="letter-spacing: normal;">
-                <div class="flex-1 mb-1">
-                  Frames: <%= current_frame_a %> / <%= frames_to_win %>
-                </div>
                 <div class="flex-1 mb-1">HB: <%= high_break_left %></div>
                 <div class="flex-1">
                   <%- (1..(options[:timeouts] || 0).to_i).each do |i| %>
@@ -316,9 +317,6 @@
           <%- if !table_monitor.set_over? %>
             <div class="flex h-1/6">
               <div class="flex flex-col flex-1 text-left text-gray-500 text-<%= vw3 %>" style="letter-spacing: normal;">
-                <div class="flex-1 mb-1">
-                  Frames: <%= current_frame_b %> / <%= frames_to_win %>
-                </div>
                 <div class="flex-1 mb-1">HB: <%= high_break_right %></div>
                 <div class="flex-1">
                   <%- (1..(options[:timeouts] || 0).to_i).each do |i| %>
