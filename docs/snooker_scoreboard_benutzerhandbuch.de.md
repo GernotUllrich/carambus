@@ -11,6 +11,10 @@ Das Carambus Snooker Scoreboard ist ein vollständiges Anzeigesystem für Snooke
 - **High Break (HB)** - Höchster Break jedes Spielers im Spiel
 - **Frame-Verwaltung** - Automatische Frame-Zählung (Best of 3, 5, 7, 9)
 - **Ball-Wert-Buttons** - Farbcodierte Buttons für alle Snooker-Bälle (Rot=1, Gelb=2, Grün=3, Braun=4, Blau=5, Pink=6, Schwarz=7)
+- **Pyramiden-Anzeige** - Visuell realistische Darstellung der roten Bälle (6/10/15 Reds) mit perspektivischer 3D-Ansicht
+- **Restpunkte-Anzeige** - Live-Berechnung der verbleibenden Punkte auf dem Tisch
+- **Aufgeben-Funktion** - Möglichkeit für Spieler, einen Frame vorzeitig aufzugeben
+- **Intelligente Ball-Verwaltung** - Automatische Erkennung der spielbaren Bälle (rot/farbig) mit visueller Hervorhebung
 - **Dark Mode** - Augenfreundliche Darstellung für verschiedene Lichtverhältnisse
 
 ---
@@ -129,17 +133,27 @@ Häufige Fouls im Snooker:
 │  │   (klick=+1)    │              │  (klick=wechsel)││
 │  └─────────────────┘              └─────────────────┘│
 │                                                       │
+│  [●●●●●●]  ← Pyramide (15 Reds)                     │
+│  42 Punkte übrig                                     │
+│                                                       │
 │  Frame 1                                            │
 │  Best of 5                                          │
 │                                                       │
-│  [Undo] [1] [2] [3] [4] [5] [6] [7] [Calc]          │
-│  (Rot)(Gelb)(Grün)(Braun)(Blau)(Pink)(Schwarz)      │
+│  [Protokoll] [●] [●●] [●●●] [●●●●] [●●●●●] [●●●●●●] │
+│              6   Foul  Aufgeben   Calc               │
+│  [Rot=1] [Gelb=2] [Grün=3] [Braun=4] [Blau=5]       │
+│  [Pink=6] [Schwarz=7]                                │
 └─────────────────────────────────────────────────────┘
 ```
 
 **Klickbare Bereiche:**
 - **Frame-Score des aktiven Spielers** (1): Klick = +1 Punkt zum aktuellen Break
 - **Frame-Score des inaktiven Spielers** (0): Klick = Spielerwechsel
+
+**Neue visuelle Elemente:**
+- **Pyramiden-Anzeige**: Zeigt die verbleibenden roten Bälle als 3D-Pyramid (dynamisch je nach gewählter Anzahl: 6/10/15 Reds)
+- **Restpunkte**: Berechnet automatisch die maximal erreichbaren Punkte auf dem Tisch
+- **Rote Bälle Counter**: Zeigt die Anzahl der verbleibenden roten Bälle direkt auf dem roten Ball-Button
 
 ### Anzeigeelemente
 
@@ -161,14 +175,24 @@ Häufige Fouls im Snooker:
 
 Die untere Leiste zeigt farbcodierte Buttons für alle Snooker-Bälle:
 
-- **Rot (1 Punkt)** - Rote Bälle
+- **Rot (1 Punkt)** - Rote Bälle (zeigt die Anzahl der verbleibenden roten Bälle an)
 - **Gelb (2 Punkte)** - Gelber Ball
 - **Grün (3 Punkte)** - Grüner Ball
 - **Braun (4 Punkte)** - Brauner Ball
 - **Blau (5 Punkte)** - Blauer Ball
 - **Pink (6 Punkte)** - Pinker Ball
 - **Schwarz (7 Punkte)** - Schwarzer Ball
+- **Foul** - Foul-Eingabe (Mindeststrafe 4 Punkte)
+- **Aufgeben** - Frame vorzeitig beenden (Gegner gewinnt Frame)
 - **Calculator** - Direkte Zahlen-Eingabe für größere Breaks
+
+**Intelligente Ball-Anzeige:**
+- **Spielbare Bälle** werden normal angezeigt und sind klickbar
+- **Nicht-spielbare Bälle** werden abgedunkelt und sind nicht klickbar
+- Das System erkennt automatisch, welche Bälle "on" sind (rot oder farbig)
+- Nach einem roten Ball sind alle farbigen Bälle spielbar
+- Nach einem farbigen Ball (wenn noch rote Bälle vorhanden) ist nur rot spielbar
+- Wenn keine roten Bälle mehr vorhanden sind, werden die farbigen Bälle in Reihenfolge gespielt (Gelb → Grün → Braun → Blau → Pink → Schwarz)
 
 ---
 
@@ -200,6 +224,10 @@ Nach Auswahl des Tisches erscheinen die Snooker-Optionen:
 ### 4. Spielparameter einstellen
 
 - **Frames**: Wählen Sie das Match-Format (Best of 3/5/7/9)
+- **Rote Bälle**: Wählen Sie die Anzahl der roten Anfangsbälle (6 Reds, 10 Reds oder 15 Reds)
+  - **6 Reds**: Schnelles Training (ca. 15-20 Min pro Frame)
+  - **10 Reds**: Mittlere Länge (ca. 25-35 Min pro Frame)
+  - **15 Reds**: Vollständiges Snooker (ca. 40-60 Min pro Frame)
 - **Spielzeit**: Einstellen der maximalen Spielzeit pro Frame (optional)
 - **Warnzeit**: Einstellen der Warnzeit vor Ablauf (optional)
 - **Erster Anstoß**: Ausstoßen, Spieler A oder Spieler B
@@ -271,14 +299,22 @@ Nach einem Foul oder wenn der Spieler keine Punkte erzielt:
 
 Ein Frame endet automatisch, wenn:
 - Ein Spieler alle Bälle versenkt hat
-- Ein Spieler aufgibt (über Menü)
+- Ein Spieler aufgibt (über **"Aufgeben"**-Button)
 - Das Maximum erreicht wurde
+
+**Aufgeben-Funktion:**
+- Klicken Sie auf den **"Aufgeben"**-Button (orange, rechts in der Kontrollleiste)
+- Bestätigen Sie die Aktion im Dialog
+- Der Gegner gewinnt den Frame mit dem aktuellen Punktestand
+- Das System berechnet den Frame-Gewinner basierend auf den erzielten Punkten
+- Der nächste Frame beginnt automatisch (falls Match nicht beendet)
 
 Nach Frame-Ende:
 - Der Frame-Score wird aktualisiert
 - Der Frame-Zähler erhöht sich
-- Das System zeigt "Frame Over" an
-- Klicken Sie auf "Next Frame" um fortzufahren
+- Das Protokoll-Modal zeigt das Frame-Ergebnis an
+- Bei laufendem Match: Klicken Sie auf "Bestätigen" um zum nächsten Frame zu gehen
+- Bei Match-Ende: Das Endergebnis wird angezeigt
 
 ### Match-Ende
 
@@ -337,9 +373,12 @@ Für Fouls gibt es verschiedene Möglichkeiten:
 | **+5 Punkte** (Blauer Ball) | Klick auf Blau-Button (5) |
 | **+6 Punkte** (Pinker Ball) | Klick auf Pink-Button (6) |
 | **+7 Punkte** (Schwarzer Ball) | Klick auf Schwarz-Button (7) |
+| **Foul** | Klick auf Foul-Button → Gegner erhält Strafe-Punkte |
+| **Frame aufgeben** | Klick auf Aufgeben-Button → Gegner gewinnt Frame |
 | **Spielerwechsel** | Klick auf gegnerischen Frame-Score |
 | **Größere Breaks** | Calculator-Button verwenden |
 | **Korrektur** | Undo-Button oder -1/-5/-10 Buttons |
+| **Protokoll anzeigen** | Klick auf Protokoll-Button (links) |
 
 ---
 
@@ -372,6 +411,112 @@ Für Turniere und wichtige Spiele:
 - Klicken Sie auf **"Best of 9"** Button
 - Wählen Sie die Spieler
 - Klicken Sie auf **"Start Game"**
+
+---
+
+## Neue Features (Dezember 2024)
+
+### Visuelle Pyramiden-Anzeige
+
+Das Scoreboard zeigt jetzt eine realistische 3D-Pyramide der roten Bälle:
+
+**Funktionen:**
+- **6 Reds**: 3 Reihen (1-2-3 Bälle)
+- **10 Reds**: 4 Reihen (1-2-3-4 Bälle)
+- **15 Reds**: 5 Reihen (1-2-3-4-5 Bälle)
+- **Perspektivische Darstellung**: Bälle werden mit realistischer Tiefenwirkung angezeigt
+- **Dynamische Größe**: Passt sich automatisch an Vollbild/Normal-Modus an
+
+### Restpunkte-Berechnung
+
+Das System zeigt automatisch die verbleibenden Punkte auf dem Tisch:
+
+**Berechnung:**
+- **Rote Phase** (noch rote Bälle vorhanden):
+  - Jeder rote Ball = 1 Punkt
+  - Alle 6 farbigen Bälle = 27 Punkte (werden nach jedem farbigen Ball wieder aufgesetzt)
+  - **Beispiel**: 5 Reds übrig → 5 + 27 = **32 Punkte möglich**
+
+- **Farbige Phase** (keine roten Bälle mehr):
+  - Nur noch die farbigen Bälle in Reihenfolge
+  - **Beispiel**: Noch Gelb, Grün, Braun, Blau, Pink, Schwarz → 2+3+4+5+6+7 = **27 Punkte möglich**
+
+**Nutzen:**
+- Spieler können sofort sehen, ob ein "Snooker" (Aufholen unmöglich) vorliegt
+- Hilft bei der Entscheidung, ob ein Frame aufgegeben werden sollte
+- Zeigt den maximal möglichen Break an
+
+### Intelligente Ball-Verwaltung
+
+Das System erkennt automatisch, welche Bälle spielbar sind:
+
+**"On"-Bälle (spielbar):**
+- Werden normal angezeigt
+- Sind klickbar
+- Zeigen bei Hover einen Vergrößerungseffekt
+
+**"Off"-Bälle (nicht spielbar):**
+- Werden abgedunkelt (30% Transparenz)
+- Sind nicht klickbar
+- Zeigen "Ball not 'on'" beim Hover
+
+**Automatische Erkennung:**
+- **Nach rotem Ball**: Alle farbigen Bälle sind "on"
+- **Nach farbigem Ball** (mit roten Bällen): Nur rote Bälle sind "on"
+- **Keine roten mehr**: Nächster farbiger Ball in Reihenfolge ist "on"
+- **Letzter Ball versenkt**: Alle Bälle "off" → Frame-Ende
+
+**Rote Bälle Counter:**
+- Der rote Ball-Button zeigt die Anzahl der verbleibenden roten Bälle
+- Große Zahl wird mittig auf dem roten Ball angezeigt
+- Wenn 0 Reds → Ball wird automatisch abgedunkelt
+
+### Aufgeben-Funktion
+
+Spieler können einen Frame vorzeitig aufgeben:
+
+**Verwendung:**
+1. Klick auf den orange **"Aufgeben"**-Button
+2. Bestätigen Sie im Dialog "Möchten Sie das Frame wirklich aufgeben?"
+3. Der Frame wird sofort beendet
+
+**Ergebnis:**
+- Der Frame-Gewinner wird anhand der Punkte bestimmt (höherer Score gewinnt)
+- Die Punkte beider Spieler werden korrekt gespeichert
+- Der nächste Frame beginnt automatisch (falls Match nicht beendet)
+- Bei Match-Ende: Endergebnis-Modal wird angezeigt
+
+**Wann aufgeben?**
+- Wenn ein "Snooker" vorliegt (Aufholen unmöglich)
+- Wenn der Punkteabstand zu groß ist
+- Bei schwerer Spielsituation
+
+### Variable Anzahl roter Bälle
+
+Das System unterstützt jetzt drei verschiedene Frame-Längen:
+
+**6 Reds (Schnelles Training):**
+- **Dauer**: ca. 15-20 Minuten pro Frame
+- **Maximum Break**: 75 Punkte (6×1 + 6×7 + 27)
+- **Ideal für**: Anfänger, schnelle Trainingseinheiten, Zeitdruck
+- **Pyramide**: 3 Reihen (1-2-3)
+
+**10 Reds (Mittel):**
+- **Dauer**: ca. 25-35 Minuten pro Frame
+- **Maximum Break**: 107 Punkte (10×1 + 10×7 + 27)
+- **Ideal für**: Fortgeschrittene, Club-Spiele, moderate Länge
+- **Pyramide**: 4 Reihen (1-2-3-4)
+
+**15 Reds (Vollständig):**
+- **Dauer**: ca. 40-60 Minuten pro Frame
+- **Maximum Break**: 147 Punkte (15×1 + 15×7 + 27)
+- **Ideal für**: Turniere, erfahrene Spieler, offizielle Matches
+- **Pyramide**: 5 Reihen (1-2-3-4-5)
+
+**Auswahl:**
+- Bei Spielstart: Wählen Sie die gewünschte Anzahl roter Bälle
+- Die Pyramiden-Anzeige passt sich automatisch an
+- Die Restpunkte-Berechnung berücksichtigt die gewählte Anzahl
 
 ---
 
@@ -461,10 +606,25 @@ Snooker-Ligen werden unterstützt:
 
 ### Wie viele Punkte kann man maximal in einem Frame erzielen?
 
-**147 Punkte** (Maximum Break):
+Das hängt von der Anzahl der roten Bälle ab:
+
+**15 Reds (vollständig):**
+- **147 Punkte** (Maximum Break)
 - 15 rote Bälle (15 Punkte) + 15 schwarze Bälle (15 × 7 = 105 Punkte) = 120 Punkte
 - Danach alle farbigen Bälle in Reihenfolge: Gelb (2) + Grün (3) + Braun (4) + Blau (5) + Pink (6) + Schwarz (7) = 27 Punkte
 - **Gesamt: 147 Punkte**
+
+**10 Reds:**
+- **107 Punkte** (Maximum Break)
+- 10 rote Bälle (10 Punkte) + 10 schwarze Bälle (10 × 7 = 70 Punkte) = 80 Punkte
+- Danach alle farbigen Bälle: 27 Punkte
+- **Gesamt: 107 Punkte**
+
+**6 Reds:**
+- **75 Punkte** (Maximum Break)
+- 6 rote Bälle (6 Punkte) + 6 schwarze Bälle (6 × 7 = 42 Punkte) = 48 Punkte
+- Danach alle farbigen Bälle: 27 Punkte
+- **Gesamt: 75 Punkte**
 
 ### Was passiert, wenn beide Spieler die gleiche Anzahl von Frames haben?
 
@@ -490,6 +650,50 @@ Nach Spielende können Sie:
 - Das **Protokoll** einsehen
 - **High Breaks** und **Frame-Ergebnisse** anzeigen
 - Die **Spielstatistiken** im Turnier-/Liga-System prüfen
+
+### Warum zeigt der rote Ball eine Zahl?
+
+Die Zahl auf dem roten Ball zeigt die **Anzahl der verbleibenden roten Bälle** an:
+- Zu Beginn: 6, 10 oder 15 (je nach gewählter Variante)
+- Nach jedem versenkten roten Ball: Zahl wird um 1 reduziert
+- Bei 0: Der rote Ball wird abgedunkelt und ist nicht mehr spielbar
+
+### Was bedeuten die abgedunkelten Bälle?
+
+Abgedunkelte Bälle sind **"off"** (nicht spielbar):
+- Sie können nicht angeklickt werden
+- Das System zeigt "Ball not 'on'" beim Hover
+- Die Spielregeln erlauben nur bestimmte Bälle als Ziel
+
+**Regeln:**
+- Nach rotem Ball: Nur farbige Bälle sind "on"
+- Nach farbigem Ball: Nur rote Bälle sind "on" (falls noch vorhanden)
+- Keine roten mehr: Farbige Bälle in Reihenfolge (Gelb → Grün → Braun → Blau → Pink → Schwarz)
+
+### Was zeigt "X Punkte übrig" an?
+
+Die **Restpunkte-Anzeige** zeigt die maximal erreichbaren Punkte auf dem Tisch:
+- Hilft zu erkennen, ob ein Aufholen noch möglich ist
+- Wird automatisch nach jedem versenkten Ball aktualisiert
+- Berücksichtigt die korrekte Snooker-Regel (Reds respawn colors)
+
+**Beispiel:**
+- 3 rote Bälle übrig → 3 + 27 = **30 Punkte möglich**
+- Spieler A: 45 Punkte, Spieler B: 20 Punkte
+- Differenz: 25 Punkte → Spieler B kann noch aufholen (30 > 25)
+
+### Wann sollte ich aufgeben?
+
+Aufgeben ist sinnvoll, wenn:
+- Ein **"Snooker"** vorliegt (Restpunkte < Punktedifferenz)
+- Der Gegner einen uneinholbaren Vorsprung hat
+- Die Spielsituation aussichtslos ist
+
+**Beispiel für Snooker:**
+- Spieler A: 60 Punkte, Spieler B: 25 Punkte
+- Differenz: 35 Punkte
+- Restpunkte: 30 Punkte
+- → Spieler B kann nicht mehr gewinnen → Aufgeben ist fair
 
 ---
 
