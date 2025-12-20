@@ -138,12 +138,14 @@ class GameProtocolReflex < ApplicationReflex
     inning_index = element.dataset['inning'].to_i
     player = element.dataset['player'] # 'playera' or 'playerb'
     
-    Rails.logger.info "🎯 GameProtocolReflex#open_snooker_inning_edit: inning=#{inning_index}, player=#{player}" if TableMonitor::DEBUG
+    Rails.logger.info "🎯 GameProtocolReflex#open_snooker_inning_edit: inning=#{inning_index}, player=#{player}, current_panel_state=#{@table_monitor.panel_state}" if TableMonitor::DEBUG
     
     # Get current balls for this inning
     history = @table_monitor.innings_history
     player_data = player == 'playera' ? history[:player_a] : history[:player_b]
     current_balls = player_data[:break_balls][inning_index] || []
+    
+    Rails.logger.info "🎯 Current balls for inning #{inning_index}: #{current_balls.inspect}" if TableMonitor::DEBUG
     
     # Store edit state
     @table_monitor.data["snooker_inning_edit"] = {
@@ -152,11 +154,16 @@ class GameProtocolReflex < ApplicationReflex
       "balls" => current_balls
     }
     
+    # Store previous panel state to restore after edit
+    @table_monitor.data["previous_panel_state"] = @table_monitor.panel_state
+    
     @table_monitor.skip_update_callbacks = true
     @table_monitor.panel_state = "snooker_inning_edit"
     @table_monitor.data_will_change!
     @table_monitor.save!
     @table_monitor.skip_update_callbacks = false
+    
+    Rails.logger.info "🎯 Panel state changed to: #{@table_monitor.panel_state}" if TableMonitor::DEBUG
     
     TableMonitorJob.perform_later(@table_monitor.id, "")
   end
@@ -213,13 +220,21 @@ class GameProtocolReflex < ApplicationReflex
     morph :nothing
     return unless @table_monitor.data["free_game_form"] == "snooker"
     
+    Rails.logger.info "🎯 GameProtocolReflex#cancel_snooker_inning_edit" if TableMonitor::DEBUG
+    
+    # Restore previous panel state
+    previous_state = @table_monitor.data["previous_panel_state"] || "protocol_edit"
+    
     # Clear edit state
     @table_monitor.data.delete("snooker_inning_edit")
+    @table_monitor.data.delete("previous_panel_state")
     @table_monitor.skip_update_callbacks = true
-    @table_monitor.panel_state = "protocol_edit"
+    @table_monitor.panel_state = previous_state
     @table_monitor.data_will_change!
     @table_monitor.save!
     @table_monitor.skip_update_callbacks = false
+    
+    Rails.logger.info "🎯 Restored panel state to: #{previous_state}" if TableMonitor::DEBUG
     
     TableMonitorJob.perform_later(@table_monitor.id, "")
   end
@@ -287,13 +302,19 @@ class GameProtocolReflex < ApplicationReflex
       Rails.logger.info "💾 Updated COMPLETED inning: balls=#{balls_points}" if TableMonitor::DEBUG
     end
     
+    # Restore previous panel state
+    previous_state = @table_monitor.data["previous_panel_state"] || "protocol_edit"
+    
     # Clear edit state
     @table_monitor.data.delete("snooker_inning_edit")
+    @table_monitor.data.delete("previous_panel_state")
     @table_monitor.skip_update_callbacks = true
-    @table_monitor.panel_state = "protocol_edit"  # Stay in edit mode
+    @table_monitor.panel_state = previous_state
     @table_monitor.data_will_change!
     @table_monitor.save!
     @table_monitor.skip_update_callbacks = false
+    
+    Rails.logger.info "💾 Saved and restored panel state to: #{previous_state}" if TableMonitor::DEBUG
     
     # Refresh protocol table body only
     send_table_update(render_protocol_table_body)
