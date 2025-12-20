@@ -57,11 +57,10 @@
     <td class="py-2 px-4 text-center bg-blue-50 dark:bg-blue-900 dark:bg-blue-900 dark:bg-opacity-20">
       <% if show_inning_a %>
         <%- if table_monitor.data["free_game_form"] == "snooker" %>
-          <%# Snooker: Only show normal innings (with balls), skip fouls %>
+          <%# Snooker: Show all innings with edit button %>
           <%- has_balls = player_a[:break_balls] && player_a[:break_balls][i] && player_a[:break_balls][i].any? %>
           <%- has_foul = player_a[:break_fouls] && player_a[:break_fouls][i] && player_a[:break_fouls][i]["fouling_player"] == "playera" %>
-          <%- if !has_foul && inning_a.to_i > 0 %>
-            <%# Only normal innings (not fouls) %>
+          <%- if inning_a.to_i > 0 %>
             <div class="flex items-center justify-center gap-2">
               <span class="font-semibold"><%= inning_a %></span>
               <%- if has_balls %>
@@ -75,11 +74,14 @@
                   <%- end %>
                 </div>
               <%- end %>
-              <button data-reflex="click->GameProtocolReflex#open_snooker_inning_edit"
-                      data-inning="<%= i %>"
-                      data-player="playera"
-                      data-id="<%= table_monitor.id %>"
-                      class="px-2 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded text-xs font-bold">✏️</button>
+              <%- if !has_foul %>
+                <%# Only show edit button for normal innings, not fouls %>
+                <button data-reflex="click->GameProtocolReflex#open_snooker_inning_edit"
+                        data-inning="<%= i %>"
+                        data-player="playera"
+                        data-id="<%= table_monitor.id %>"
+                        class="px-2 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded text-xs font-bold">✏️</button>
+              <%- end %>
             </div>
           <%- end %>
         <%- else %>
@@ -110,11 +112,10 @@
     <td class="py-2 px-4 text-center bg-green-50 dark:bg-green-900 dark:bg-opacity-20">
       <% if show_inning_b %>
         <%- if table_monitor.data["free_game_form"] == "snooker" %>
-          <%# Snooker: Only show normal innings (with balls), skip fouls %>
+          <%# Snooker: Show all innings with edit button %>
           <%- has_balls = player_b[:break_balls] && player_b[:break_balls][i] && player_b[:break_balls][i].any? %>
           <%- has_foul = player_b[:break_fouls] && player_b[:break_fouls][i] && player_b[:break_fouls][i]["fouling_player"] == "playerb" %>
-          <%- if !has_foul && inning_b.to_i > 0 %>
-            <%# Only normal innings (not fouls) %>
+          <%- if inning_b.to_i > 0 %>
             <div class="flex items-center justify-center gap-2">
               <span class="font-semibold"><%= inning_b %></span>
               <%- if has_balls %>
@@ -128,11 +129,14 @@
                   <%- end %>
                 </div>
               <%- end %>
-              <button data-reflex="click->GameProtocolReflex#open_snooker_inning_edit"
-                      data-inning="<%= i %>"
-                      data-player="playerb"
-                      data-id="<%= table_monitor.id %>"
-                      class="px-2 py-1 bg-green-500 hover:bg-green-600 text-white rounded text-xs font-bold">✏️</button>
+              <%- if !has_foul %>
+                <%# Only show edit button for normal innings, not fouls %>
+                <button data-reflex="click->GameProtocolReflex#open_snooker_inning_edit"
+                        data-inning="<%= i %>"
+                        data-player="playerb"
+                        data-id="<%= table_monitor.id %>"
+                        class="px-2 py-1 bg-green-500 hover:bg-green-600 text-white rounded text-xs font-bold">✏️</button>
+              <%- end %>
             </div>
           <%- end %>
         <%- else %>

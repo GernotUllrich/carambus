@@ -148,11 +148,8 @@
             </tr>
           </thead>
           <tbody class="text-gray-900 dark:text-gray-100" id="protocol-tbody-<%= table_monitor.id %>">
-            <%- if table_monitor.data["free_game_form"] == "snooker" %>
-              <%# Snooker always uses the clickable version (with modal edit) %>
-              <%= render partial: 'table_monitors/game_protocol_table_body', locals: { history: history, table_monitor: table_monitor } %>
-            <%- elsif table_monitor.panel_state == "protocol_edit" || is_final_mode %>
-              <%# Final mode always shows edit view for corrections (for non-snooker games) %>
+            <%- if table_monitor.panel_state == "protocol_edit" || is_final_mode %>
+              <%# Final mode always shows edit view for corrections %>
               <%= render partial: 'table_monitors/game_protocol_table_body_edit', locals: { history: history, table_monitor: table_monitor } %>
             <%- else %>
               <%= render partial: 'table_monitors/game_protocol_table_body', locals: { history: history, table_monitor: table_monitor } %>
