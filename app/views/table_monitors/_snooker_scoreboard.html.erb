@@ -172,14 +172,14 @@
                 </div>
               <%- else %>
                 <div class="flex h-1/6 w-full flex-row">
-                  <div class="flex w-full items-end justify-end text-gray-500 text-2vw p-2 flex-nowrap">
+                  <div class="flex w-full items-end justify-end text-gray-500 text-2vw p-2 flex-wrap tracking-normal" style="letter-spacing: normal;">
                     <%= table_monitor.render_last_innings(60, gps[0].andand.role) %>
                   </div>
                 </div>
               <%- end %>
             <%- else %>
               <div class="flex h-1/6 w-full flex-row">
-                <div class="flex w-full items-end justify-end text-gray-500 text-vw p-2 flex-nowrap">
+                <div class="flex w-full items-end justify-end text-gray-500 text-vw p-2 flex-wrap tracking-normal" style="letter-spacing: normal;">
                   <%= table_monitor.render_last_innings(60, gps[0].andand.role) %>
                 </div>
               </div>
@@ -388,14 +388,14 @@
                 </div>
               <%- else %>
                 <div class="flex h-1/6 w-full flex-row">
-                  <div class="flex w-full items-end justify-end text-gray-500 text-2vw p-2 flex-nowrap">
+                  <div class="flex w-full items-end justify-start text-gray-500 text-2vw p-2 flex-wrap tracking-normal" style="letter-spacing: normal;">
                     <%= table_monitor.render_last_innings(60, gps[1].andand.role) %>
                   </div>
                 </div>
               <%- end %>
             <%- else %>
               <div class="flex h-1/6 w-full flex-row">
-                <div class="flex w-full items-end justify-end text-gray-500 text-vw p-2 flex-nowrap">
+                <div class="flex w-full items-end justify-start text-gray-500 text-vw p-2 flex-wrap tracking-normal" style="letter-spacing: normal;">
                   <%= table_monitor.render_last_innings(60, gps[1].andand.role) %>
                 </div>
               </div>
