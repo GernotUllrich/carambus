@@ -415,11 +415,11 @@ Carambus is **independent** of ClubCloud and works completely **without** it. Sc
 
 ## 📚 See Also
 
-- [Server Architecture](server_architektur.en.md) - API vs Local Server
-- [Glossary](glossar.en.md) - All terms explained
-- [Database Synchronization](datenbank-partitionierung-und-synchronisierung.de.md) - Technical details
-- [Region Tagging](region_tagging_cleanup_summary.en.md) - Regional filtering
-- [Tournament Duplicate Handling](tournament_duplicate_handling.de.md) - Duplicate management
+- [Server Architecture](server_architektur.md) - API vs Local Server
+- [Glossary](glossar.md) - All terms explained
+- [Database Synchronization](datenbank-partitionierung-und-synchronisierung.md) - Technical details
+- [Region Tagging](region_tagging_cleanup_summary.md) - Regional filtering
+- [Tournament Duplicate Handling](tournament_duplicate_handling.md) - Duplicate management
 
 ---
 

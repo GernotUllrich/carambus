@@ -25,8 +25,8 @@ Heizung nur bei tatsächlicher Nutzung aktivieren.
 ---
 
 ➡️ Details siehe: 
-- [Tischreservierung & Heizung](table_reservation_heating_control.de.md)
-- [Tischreservierung Heizung (erweitert)](tischreservierung_heizungssteuerung.de.md)
+- [Tischreservierung & Heizung](table_reservation_heating_control.md)
+- [Tischreservierung Heizung (erweitert)](tischreservierung_heizungssteuerung.md)
 
 _Diese Dokumente werden in einer zukünftigen Version konsolidiert._
 

@@ -25,7 +25,7 @@ As a tournament manager, you are responsible for:
 9. **Check rankings** → Automatically calculated
 10. **Complete tournament** → Award ceremony
 
-➡️ **[To detailed tournament management guide](tournament-management.en.md)**
+➡️ **[To detailed tournament management guide](tournament-management.md)**
 
 ## 📚 Main Topics
 
@@ -38,8 +38,8 @@ As a tournament manager, you are responsible for:
 - Best-of and Race-to modes
 - Seeding lists
 
-➡️ **[Tournament Management Manual](tournament-management.en.md)**  
-➡️ **[Single Tournament Management](single-tournament.en.md)**
+➡️ **[Tournament Management Manual](tournament-management.md)**  
+➡️ **[Single Tournament Management](single-tournament.md)**
 
 ### 2. League Match Days
 
@@ -50,7 +50,7 @@ As a tournament manager, you are responsible for:
 - Automatic table creation
 - Season evaluations
 
-➡️ **[League Management Manual](league-management.en.md)**
+➡️ **[League Management Manual](league-management.md)**
 
 ### 3. Player Management
 
@@ -61,7 +61,7 @@ As a tournament manager, you are responsible for:
 - Blocks and releases
 - View player statistics
 
-➡️ **[Tournament Management - Player Management](tournament-management.en.md#player-management)**
+➡️ **[Tournament Management - Player Management](tournament-management.md#player-management)**
 
 ### 4. Result Recording & Control
 
@@ -72,7 +72,7 @@ As a tournament manager, you are responsible for:
 - Award walkovers
 - Handle protests
 
-➡️ **[Tournament Management - Result Control](tournament-management.en.md#result-control)**
+➡️ **[Tournament Management - Result Control](tournament-management.md#result-control)**
 
 ### 5. Admin Roles & Permissions
 
@@ -82,7 +82,7 @@ As a tournament manager, you are responsible for:
 - Tournament-specific rights
 - Club administration
 
-➡️ **[Admin Roles Manual](admin-roles.en.md)**
+➡️ **[Admin Roles Manual](admin-roles.md)**
 
 ### 6. ClubCloud Integration
 
@@ -92,7 +92,7 @@ As a tournament manager, you are responsible for:
 - Upload results
 - Manage license mapping
 
-➡️ **[ClubCloud Integration Guide](clubcloud-integration.en.md)**
+➡️ **[ClubCloud Integration Guide](clubcloud-integration.md)**
 
 ### 7. Search & Filter
 
@@ -102,7 +102,7 @@ As a tournament manager, you are responsible for:
 - Bulk operations
 - Export functions
 
-➡️ **[Filter Popup Guide](search-filters.en.md)**
+➡️ **[Filter Popup Guide](search-filters.md)**
 
 ### 8. Table Reservation
 
@@ -112,7 +112,7 @@ As a tournament manager, you are responsible for:
 - Configure heating control
 - Automatic preheating
 
-➡️ **[Table Reservation Manual](table-reservation.en.md)**
+➡️ **[Table Reservation Manual](table-reservation.md)**
 
 ## 🎮 Tournament Formats in Detail
 
@@ -130,7 +130,7 @@ As a tournament manager, you are responsible for:
 - Home and away rounds
 - Table rotation
 
-➡️ **[Round Robin Details](tournament-management.en.md#round-robin)**
+➡️ **[Round Robin Details](tournament-management.md#round-robin)**
 
 ### Knockout System (Elimination)
 
@@ -150,7 +150,7 @@ As a tournament manager, you are responsible for:
 - Best-of modes
 - Placement matches
 
-➡️ **[Knockout System Details](tournament-management.en.md#knockout-system)**
+➡️ **[Knockout System Details](tournament-management.md#knockout-system)**
 
 ### Swiss System
 
@@ -166,7 +166,7 @@ As a tournament manager, you are responsible for:
 - ✅ Everyone plays equal number of matches
 - ✅ Automatic draw
 
-➡️ **[Swiss System Details](tournament-management.en.md#swiss-system)**
+➡️ **[Swiss System Details](tournament-management.md#swiss-system)**
 
 ### Group Phases + Knockout
 
@@ -182,7 +182,7 @@ As a tournament manager, you are responsible for:
 - ✅ Multiple chances in group phase
 - ✅ Final decision in knockout
 
-➡️ **[Group Phase Details](tournament-management.en.md#group-phases)**
+➡️ **[Group Phase Details](tournament-management.md#group-phases)**
 
 ## 🛠️ Important Functions
 
@@ -201,7 +201,7 @@ As a tournament manager, you are responsible for:
 - Schedule breaks
 - Change individual pairings
 
-➡️ **[Schedule Creation](tournament-management.en.md#create-schedule)**
+➡️ **[Schedule Creation](tournament-management.md#create-schedule)**
 
 ### Live Monitoring
 
@@ -217,7 +217,7 @@ As a tournament manager, you are responsible for:
 - Scoreboard (per table)
 - Manager Dashboard
 
-➡️ **[Live Monitoring](tournament-management.en.md#live-monitoring)**
+➡️ **[Live Monitoring](tournament-management.md#live-monitoring)**
 
 ### Result Correction
 
@@ -236,7 +236,7 @@ As a tournament manager, you are responsible for:
 
 **History tracking**: All changes are logged
 
-➡️ **[Result Correction](tournament-management.en.md#correct-results)**
+➡️ **[Result Correction](tournament-management.md#correct-results)**
 
 ### Statistics & Reports
 
@@ -252,7 +252,7 @@ As a tournament manager, you are responsible for:
 - CSV (for Excel)
 - JSON (for further processing)
 
-➡️ **[Statistics & Reports](tournament-management.en.md#statistics-reports)**
+➡️ **[Statistics & Reports](tournament-management.md#statistics-reports)**
 
 ## 🎓 Best Practices
 
@@ -376,7 +376,7 @@ As a tournament manager, you are responsible for:
 **Referee**: Result recording only  
 **Member**: Player (no management)
 
-➡️ **[Detailed role description](admin-roles.en.md)**
+➡️ **[Detailed role description](admin-roles.md)**
 
 ### Delegate Tasks
 
@@ -394,11 +394,11 @@ As a tournament manager, you are responsible for:
 
 ### Documentation
 
-- **[Tournament Management](tournament-management.en.md)**: Complete manual
-- **[League Management](league-management.en.md)**: Organize league match days
-- **[Admin Roles](admin-roles.en.md)**: Manage permissions
-- **[ClubCloud](clubcloud-integration.en.md)**: Use integration
-- **[Glossary](../reference/glossary.en.md)**: All technical terms
+- **[Tournament Management](tournament-management.md)**: Complete manual
+- **[League Management](league-management.md)**: Organize league match days
+- **[Admin Roles](admin-roles.md)**: Manage permissions
+- **[ClubCloud](clubcloud-integration.md)**: Use integration
+- **[Glossary](../reference/glossary.md)**: All technical terms
 
 ### Help with Problems
 
@@ -420,13 +420,13 @@ As a tournament manager, you are responsible for:
 
 ## 🔗 All Manager Documents
 
-1. **[Tournament Management](tournament-management.en.md)** - Complete manual for individual tournaments
-2. **[League Management](league-management.en.md)** - League match days and team competitions
-3. **[Single Tournament Management](single-tournament.en.md)** - Specific features for individual tournaments
-4. **[Table Reservation](table-reservation.en.md)** - Booking system and heating control
-5. **[Admin Roles](admin-roles.en.md)** - Manage users and permissions
-6. **[ClubCloud Integration](clubcloud-integration.en.md)** - Connect DBU ClubCloud
-7. **[Search & Filter](search-filters.en.md)** - Find data efficiently
+1. **[Tournament Management](tournament-management.md)** - Complete manual for individual tournaments
+2. **[League Management](league-management.md)** - League match days and team competitions
+3. **[Single Tournament Management](single-tournament.md)** - Specific features for individual tournaments
+4. **[Table Reservation](table-reservation.md)** - Booking system and heating control
+5. **[Admin Roles](admin-roles.md)** - Manage users and permissions
+6. **[ClubCloud Integration](clubcloud-integration.md)** - Connect DBU ClubCloud
+7. **[Search & Filter](search-filters.md)** - Find data efficiently
 
 ---
 

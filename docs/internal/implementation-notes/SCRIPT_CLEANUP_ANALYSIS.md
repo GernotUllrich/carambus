@@ -64,8 +64,8 @@ ISierung
 
 | Script | Zweck | Dokumentiert | Status |
 |--------|-------|--------------|--------|
-| `deploy-scenario.sh` | Vollständiger Scenario-Deployment-Workflow | ✅ Ja (deployment_workflow.de.md) | ✅ Produktiv |
-| `check_database_sync.sh` | DB-Synchronisation prüfen | ✅ Ja (database_syncing.de.md) | ✅ Produktiv |
+| `deploy-scenario.sh` | Vollständiger Scenario-Deployment-Workflow | ✅ Ja (deployment_workflow.md) | ✅ Produktiv |
+| `check_database_sync.sh` | DB-Synchronisation prüfen | ✅ Ja (database_syncing.md) | ✅ Produktiv |
 
 ### 3.2 **Raspberry Pi Management** (Wichtig, teilweise dokumentiert)
 
@@ -102,7 +102,7 @@ ISierung
 | Script | Zweck | Dokumentiert | Status |
 |--------|-------|--------------|--------|
 | `start-scoreboard.sh` | Scoreboard starten | ❌ Nein | ✅ Produktiv |
-| `autostart-scoreboard.sh` | Scoreboard Autostart | ✅ Ja (scoreboard_autostart_setup.de.md) | ✅ Produktiv |
+| `autostart-scoreboard.sh` | Scoreboard Autostart | ✅ Ja (scoreboard_autostart_setup.md) | ✅ Produktiv |
 | `restart-scoreboard.sh` | Scoreboard neustarten | ❌ Nein | ✅ Utility |
 | `exit-scoreboard.sh` | Scoreboard beenden | ❌ Nein | ✅ Utility |
 | `cleanup-chromium.sh` | Chromium-Cache bereinigen | ❌ Nein | ✅ Utility |
@@ -202,8 +202,8 @@ ISierung
 **Zu dokumentieren in MkDocs:**
 
 1. **Scenario Management** (Ergänzungen zu bestehenden Docs)
-   - `bin/check_database_sync.sh` - ✅ Bereits dokumentiert (database_syncing.de.md)
-   - `bin/deploy-scenario.sh` - ✅ Bereits dokumentiert (deployment_workflow.de.md)
+   - `bin/check_database_sync.sh` - ✅ Bereits dokumentiert (database_syncing.md)
+   - `bin/deploy-scenario.sh` - ✅ Bereits dokumentiert (deployment_workflow.md)
 
 2. **Raspberry Pi Management** (Neue Doku-Sektion)
    - Dokument erstellen: `docs/raspberry_pi_scripts.de.md`

@@ -219,7 +219,7 @@ ssh pi@raspberrypi.local '/path/to/start-scoreboard.sh'
 - Wartet auf Puma-Server
 - Startet Browser automatisch
 
-**Dokumentiert in**: [Scoreboard Autostart Setup](scoreboard_autostart_setup.de.md)
+**Dokumentiert in**: [Scoreboard Autostart Setup](scoreboard_autostart_setup.md)
 
 ---
 
@@ -447,9 +447,9 @@ ssh -p 8910 www-data@raspberrypi './bin/cleanup-chromium.sh && ./bin/restart-sco
 ## Siehe auch
 
 - [Client-Only Installation](client_only_installation.md) - Detaillierte Installationsanleitung
-- [Scoreboard Autostart Setup](scoreboard_autostart_setup.de.md) - Autostart-Konfiguration
-- [Deployment Workflow](deployment_workflow.de.md) - Vollständiger Deployment-Prozess
-- [Scenario Management](scenario_management.de.md) - Scenario-System-Übersicht
+- [Scoreboard Autostart Setup](scoreboard_autostart_setup.md) - Autostart-Konfiguration
+- [Deployment Workflow](deployment_workflow.md) - Vollständiger Deployment-Prozess
+- [Scenario Management](scenario_management.md) - Scenario-System-Übersicht
 
 
 

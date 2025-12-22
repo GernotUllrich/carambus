@@ -31,9 +31,9 @@ The Enhanced Mode System allowed switching between deployment configurations usi
 All functionality is now handled by the Scenario Management System:
 
 📚 **Current Documentation:**
-- [Scenario Management Guide](../scenario_management.de.md) - Complete replacement system
-- [Deployment Workflow](../deployment_workflow.de.md) - Modern deployment process
-- [Developer Rake Tasks](../entwickler-rake-tasks-debugging.de.md) - Current task reference
+- [Scenario Management Guide](../scenario_management.md) - Complete replacement system
+- [Deployment Workflow](../deployment_workflow.md) - Modern deployment process
+- [Developer Rake Tasks](../entwickler-rake-tasks-debugging.md) - Current task reference
 
 🚀 **Quick Migration:**
 

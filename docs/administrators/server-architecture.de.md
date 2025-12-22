@@ -415,10 +415,10 @@ rake sync:to_api[local_data]
 
 ## 📚 Siehe auch
 
-- [Datenbank-Partitionierung](datenbank-partitionierung-und-synchronisierung.de.md) - Technische Details
-- [Scenario Management](scenario_management.de.md) - Entwicklung mit mehreren Scenarios
-- [Installation](installation_overview.de.md) - Server aufsetzen
-- [Raspberry Pi Setup](quickstart_raspberry_pi.de.md) - Local Server auf Raspberry Pi
+- [Datenbank-Partitionierung](datenbank-partitionierung-und-synchronisierung.md) - Technische Details
+- [Scenario Management](scenario_management.md) - Entwicklung mit mehreren Scenarios
+- [Installation](installation_overview.md) - Server aufsetzen
+- [Raspberry Pi Setup](quickstart_raspberry_pi.md) - Local Server auf Raspberry Pi
 
 ---
 

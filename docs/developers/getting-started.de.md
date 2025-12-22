@@ -200,7 +200,7 @@ Diese Fehler sind normal, wenn die Datenbank bereits teilweise initialisiert wur
 - [Entwicklerhandbuch](DEVELOPER_GUIDE.md) lesen
 - [API-Dokumentation](API.md) studieren
 - [Datenbankdesign](database_design.md) verstehen
-- [Scenario Management](scenario_management.de.md) für Deployment-Konfiguration
+- [Scenario Management](scenario_management.md) für Deployment-Konfiguration
 - Mit dem Team sprechen über aktuelle Tasks
 
 > ⚠️ **Hinweis:** Das alte "Enhanced Mode System" ist obsolet. Siehe [docs/obsolete/](obsolete/) für Migrations-Hinweise.

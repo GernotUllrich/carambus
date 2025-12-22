@@ -29,20 +29,20 @@ Complete documentation in English including:
 
 ### 🎯 For Decision Makers
 Evaluate Carambus for your club or federation
-- **[Executive Summary](decision-makers/executive-summary.en.md)**: Overview in 3 minutes
-- **[Features Overview](decision-makers/features-overview.en.md)**: All features in detail
-- **[Deployment Options](decision-makers/deployment-options.en.md)**: Cloud, On-Premise or Raspberry Pi?
+- **[Executive Summary](decision-makers/executive-summary.md)**: Overview in 3 minutes
+- **[Features Overview](decision-makers/features-overview.md)**: All features in detail
+- **[Deployment Options](decision-makers/deployment-options.md)**: Cloud, On-Premise or Raspberry Pi?
 
 ### 🎮 For Players
 Use Carambus as tournament participant
-- **[Player Overview](players/index.en.md)**: Start here!
+- **[Player Overview](players/index.md)**: Start here!
 - Scoreboard operation (Carom, Pool, Snooker)
 - AI-powered search
 - Personal statistics
 
 ### 🏆 For Tournament Managers
 Organize and manage tournaments
-- **[Manager Overview](managers/index.en.md)**: Start here!
+- **[Manager Overview](managers/index.md)**: Start here!
 - Tournament management
 - League match days
 - ClubCloud integration
@@ -50,14 +50,14 @@ Organize and manage tournaments
 
 ### 🖥️ For System Administrators
 Install and operate Carambus
-- **[Administrator Overview](administrators/index.en.md)**: Start here!
+- **[Administrator Overview](administrators/index.md)**: Start here!
 - Installation (Cloud, On-Premise, Raspberry Pi)
 - Configuration & Security
 - Maintenance & Updates
 
 ### 💻 For Developers
 Develop with and extend Carambus
-- **[Developer Overview](developers/index.en.md)**: Start here!
+- **[Developer Overview](developers/index.md)**: Start here!
 - Getting Started
 - Architecture & Database
 - API & Testing

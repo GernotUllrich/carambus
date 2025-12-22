@@ -25,7 +25,7 @@ Als Turniermanager sind Sie verantwortlich für:
 9. **Rangliste prüfen** → Automatisch berechnet
 10. **Turnier abschließen** → Siegerehrung
 
-➡️ **[Zur ausführlichen Turnierverwaltungs-Anleitung](tournament-management.de.md)**
+➡️ **[Zur ausführlichen Turnierverwaltungs-Anleitung](tournament-management.md)**
 
 ## 📚 Hauptthemen
 
@@ -38,8 +38,8 @@ Als Turniermanager sind Sie verantwortlich für:
 - Best-of und Race-to Modi
 - Setzlisten und Seeding
 
-➡️ **[Turnierverwaltungs-Handbuch](tournament-management.de.md)**  
-➡️ **[Einzelturnier-Verwaltung](single-tournament.de.md)**
+➡️ **[Turnierverwaltungs-Handbuch](tournament-management.md)**  
+➡️ **[Einzelturnier-Verwaltung](single-tournament.md)**
 
 ### 2. Ligaspieltage
 
@@ -50,7 +50,7 @@ Als Turniermanager sind Sie verantwortlich für:
 - Automatische Tabellenerstellung
 - Saisonauswertungen
 
-➡️ **[Liga-Management-Handbuch](league-management.de.md)**
+➡️ **[Liga-Management-Handbuch](league-management.md)**
 
 ### 3. Spielerverwaltung
 
@@ -61,7 +61,7 @@ Als Turniermanager sind Sie verantwortlich für:
 - Sperren und Freigaben
 - Spielerstatistiken einsehen
 
-➡️ **[Turnierverwaltung - Spielerverwaltung](tournament-management.de.md#spielerverwaltung)**
+➡️ **[Turnierverwaltung - Spielerverwaltung](tournament-management.md#spielerverwaltung)**
 
 ### 4. Ergebniserfassung & -kontrolle
 
@@ -72,7 +72,7 @@ Als Turniermanager sind Sie verantwortlich für:
 - Kampflose Siege vergeben
 - Protests bearbeiten
 
-➡️ **[Turnierverwaltung - Ergebniskontrolle](tournament-management.de.md#ergebniskontrolle)**
+➡️ **[Turnierverwaltung - Ergebniskontrolle](tournament-management.md#ergebniskontrolle)**
 
 ### 5. Admin-Rollen & Berechtigungen
 
@@ -82,7 +82,7 @@ Als Turniermanager sind Sie verantwortlich für:
 - Turnierspezifische Rechte
 - Vereinsadministration
 
-➡️ **[Admin-Rollen-Handbuch](admin-roles.de.md)**
+➡️ **[Admin-Rollen-Handbuch](admin-roles.md)**
 
 ### 6. ClubCloud-Integration
 
@@ -92,7 +92,7 @@ Als Turniermanager sind Sie verantwortlich für:
 - Ergebnisse hochladen
 - Lizenz-Mapping verwalten
 
-➡️ **[ClubCloud-Integrations-Leitfaden](clubcloud-integration.de.md)**
+➡️ **[ClubCloud-Integrations-Leitfaden](clubcloud-integration.md)**
 
 ### 7. Suche & Filter
 
@@ -102,7 +102,7 @@ Als Turniermanager sind Sie verantwortlich für:
 - Bulk-Operationen
 - Export-Funktionen
 
-➡️ **[Filter-Popup-Anleitung](search-filters.de.md)**
+➡️ **[Filter-Popup-Anleitung](search-filters.md)**
 
 ### 8. Tischreservierung
 
@@ -112,7 +112,7 @@ Als Turniermanager sind Sie verantwortlich für:
 - Heizungssteuerung konfigurieren
 - Automatisches Vorheizen
 
-➡️ **[Tischreservierungs-Handbuch](table-reservation.de.md)**
+➡️ **[Tischreservierungs-Handbuch](table-reservation.md)**
 
 ## 🎮 Turnierformate im Detail
 
@@ -130,7 +130,7 @@ Als Turniermanager sind Sie verantwortlich für:
 - Hin- und Rückrunde
 - Tischrotation
 
-➡️ **[Round Robin Details](tournament-management.de.md#round-robin)**
+➡️ **[Round Robin Details](tournament-management.md#round-robin)**
 
 ### KO-System (Elimination)
 
@@ -150,7 +150,7 @@ Als Turniermanager sind Sie verantwortlich für:
 - Best-of Modi
 - Platzierungsspiele
 
-➡️ **[KO-System Details](tournament-management.de.md#ko-system)**
+➡️ **[KO-System Details](tournament-management.md#ko-system)**
 
 ### Schweizer System
 
@@ -166,7 +166,7 @@ Als Turniermanager sind Sie verantwortlich für:
 - ✅ Alle spielen gleich viele Spiele
 - ✅ Automatische Auslosung
 
-➡️ **[Schweizer System Details](tournament-management.de.md#schweizer-system)**
+➡️ **[Schweizer System Details](tournament-management.md#schweizer-system)**
 
 ### Gruppenphasen + KO
 
@@ -182,7 +182,7 @@ Als Turniermanager sind Sie verantwortlich für:
 - ✅ Mehrere Chancen in der Gruppenphase
 - ✅ Finale Entscheidung im KO
 
-➡️ **[Gruppenphasen Details](tournament-management.de.md#gruppenphasen)**
+➡️ **[Gruppenphasen Details](tournament-management.md#gruppenphasen)**
 
 ## 🛠️ Wichtige Funktionen
 
@@ -201,7 +201,7 @@ Als Turniermanager sind Sie verantwortlich für:
 - Pausen einplanen
 - Einzelne Paarungen ändern
 
-➡️ **[Spielplan-Erstellung](tournament-management.de.md#spielplan-erstellen)**
+➡️ **[Spielplan-Erstellung](tournament-management.md#spielplan-erstellen)**
 
 ### Live-Monitoring
 
@@ -217,7 +217,7 @@ Als Turniermanager sind Sie verantwortlich für:
 - Scoreboard (pro Tisch)
 - Manager-Dashboard
 
-➡️ **[Live-Monitoring](tournament-management.de.md#live-monitoring)**
+➡️ **[Live-Monitoring](tournament-management.md#live-monitoring)**
 
 ### Ergebnis-Korrektur
 
@@ -236,7 +236,7 @@ Als Turniermanager sind Sie verantwortlich für:
 
 **Historien-Tracking**: Alle Änderungen werden protokolliert
 
-➡️ **[Ergebnis-Korrektur](tournament-management.de.md#ergebnisse-korrigieren)**
+➡️ **[Ergebnis-Korrektur](tournament-management.md#ergebnisse-korrigieren)**
 
 ### Statistiken & Reports
 
@@ -252,7 +252,7 @@ Als Turniermanager sind Sie verantwortlich für:
 - CSV (für Excel)
 - JSON (für weitere Verarbeitung)
 
-➡️ **[Statistiken & Reports](tournament-management.de.md#statistiken-reports)**
+➡️ **[Statistiken & Reports](tournament-management.md#statistiken-reports)**
 
 ## 🎓 Best Practices
 
@@ -376,7 +376,7 @@ Als Turniermanager sind Sie verantwortlich für:
 **Referee**: Nur Ergebniserfassung  
 **Member**: Spieler (kein Management)
 
-➡️ **[Detaillierte Rollen-Beschreibung](admin-roles.de.md)**
+➡️ **[Detaillierte Rollen-Beschreibung](admin-roles.md)**
 
 ### Aufgaben delegieren
 
@@ -394,11 +394,11 @@ Als Turniermanager sind Sie verantwortlich für:
 
 ### Dokumentation
 
-- **[Turnierverwaltung](tournament-management.de.md)**: Vollständiges Handbuch
-- **[Liga-Management](league-management.de.md)**: Ligaspieltage organisieren
-- **[Admin-Rollen](admin-roles.de.md)**: Berechtigungen verwalten
-- **[ClubCloud](clubcloud-integration.de.md)**: Integration nutzen
-- **[Glossar](../reference/glossary.de.md)**: Alle Fachbegriffe
+- **[Turnierverwaltung](tournament-management.md)**: Vollständiges Handbuch
+- **[Liga-Management](league-management.md)**: Ligaspieltage organisieren
+- **[Admin-Rollen](admin-roles.md)**: Berechtigungen verwalten
+- **[ClubCloud](clubcloud-integration.md)**: Integration nutzen
+- **[Glossar](../reference/glossary.md)**: Alle Fachbegriffe
 
 ### Hilfe bei Problemen
 
@@ -420,13 +420,13 @@ Als Turniermanager sind Sie verantwortlich für:
 
 ## 🔗 Alle Manager-Dokumente
 
-1. **[Turnierverwaltung](tournament-management.de.md)** - Komplettes Handbuch für Einzelturniere
-2. **[Liga-Management](league-management.de.md)** - Ligaspieltage und Mannschaftswettbewerbe
-3. **[Einzelturnier-Verwaltung](single-tournament.de.md)** - Spezifische Features für Einzelturniere
-4. **[Tischreservierung](table-reservation.de.md)** - Buchungssystem und Heizungssteuerung
-5. **[Admin-Rollen](admin-roles.de.md)** - Benutzer und Berechtigungen verwalten
-6. **[ClubCloud-Integration](clubcloud-integration.de.md)** - DBU ClubCloud anbinden
-7. **[Suche & Filter](search-filters.de.md)** - Effizient Daten finden
+1. **[Turnierverwaltung](tournament-management.md)** - Komplettes Handbuch für Einzelturniere
+2. **[Liga-Management](league-management.md)** - Ligaspieltage und Mannschaftswettbewerbe
+3. **[Einzelturnier-Verwaltung](single-tournament.md)** - Spezifische Features für Einzelturniere
+4. **[Tischreservierung](table-reservation.md)** - Buchungssystem und Heizungssteuerung
+5. **[Admin-Rollen](admin-roles.md)** - Benutzer und Berechtigungen verwalten
+6. **[ClubCloud-Integration](clubcloud-integration.md)** - DBU ClubCloud anbinden
+7. **[Suche & Filter](search-filters.md)** - Effizient Daten finden
 
 ---
 

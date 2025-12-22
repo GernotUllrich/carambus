@@ -30,7 +30,7 @@ chromium-browser --kiosk --noerrdialogs \
 
 ---
 
-➡️ Details see: [Raspberry Pi Client Integration](raspberry_pi_client_integration.de.md) (German only for now)
+➡️ Details see: [Raspberry Pi Client Integration](raspberry_pi_client_integration.md) (German only for now)
 
 _More information will follow in a future version._
 

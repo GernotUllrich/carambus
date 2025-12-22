@@ -17,9 +17,9 @@ Als Spieler nutzen Sie Carambus hauptsächlich, um:
 
 Lernen Sie, wie Sie Punkte während des Spiels eintragen:
 
-- **[Carambolage-Scoreboard](scoreboard-guide.de.md#carambolage)**: Für Freie Partie, Cadre und Dreiband
-- **[Pool-Scoreboard](scoreboard-guide.de.md#pool)**: Für 8-Ball, 9-Ball, 10-Ball
-- **[Snooker-Scoreboard](scoreboard-guide.de.md#snooker)**: Für Snooker mit Frames
+- **[Carambolage-Scoreboard](scoreboard-guide.md#carambolage)**: Für Freie Partie, Cadre und Dreiband
+- **[Pool-Scoreboard](scoreboard-guide.md#pool)**: Für 8-Ball, 9-Ball, 10-Ball
+- **[Snooker-Scoreboard](scoreboard-guide.md#snooker)**: Für Snooker mit Frames
 
 **Wichtigste Funktionen**:
 - ✅ Punkte eintragen per Touch oder Tastatur
@@ -27,7 +27,7 @@ Lernen Sie, wie Sie Punkte während des Spiels eintragen:
 - ✅ Spiel beenden und bestätigen
 - ✅ Statistiken live verfolgen (GD, Höchstserie)
 
-➡️ **[Zur ausführlichen Scoreboard-Anleitung](scoreboard-guide.de.md)**
+➡️ **[Zur ausführlichen Scoreboard-Anleitung](scoreboard-guide.md)**
 
 ### 2. Turnierteilnahme
 
@@ -39,7 +39,7 @@ Alles, was Sie über Turnierteilnahme wissen müssen:
 - **Ergebnisse prüfen**: Sind alle meine Ergebnisse korrekt?
 - **Benachrichtigungen**: Wie werde ich über meine Spiele informiert?
 
-➡️ **[Zur Turnierteilnahme-Anleitung](tournament-participation.de.md)**
+➡️ **[Zur Turnierteilnahme-Anleitung](tournament-participation.md)**
 
 ### 3. KI-gestützte Suche
 
@@ -52,7 +52,7 @@ Finden Sie schnell, was Sie suchen - in natürlicher Sprache:
 - "Alle Spiele gegen Müller"
 - "Rangliste Liga Gruppe A"
 
-➡️ **[Zur Suche-Anleitung](ai-search.de.md)**
+➡️ **[Zur Suche-Anleitung](ai-search.md)**
 
 ### 4. Persönliche Statistiken
 
@@ -64,7 +64,7 @@ Verfolgen Sie Ihre Leistungsentwicklung:
 - **Turnierhistorie**: Alle Ihre Turnierteilnahmen
 - **Head-to-Head**: Direktvergleiche mit anderen Spielern
 
-➡️ **[Statistiken ansehen](tournament-participation.de.md#statistiken)**
+➡️ **[Statistiken ansehen](tournament-participation.md#statistiken)**
 
 ## 🖥️ Geräte & Zugriff
 
@@ -117,7 +117,7 @@ Verfolgen Sie Ihre Leistungsentwicklung:
 - Höchstserie wird markiert
 - Restpunkte bis zur Distanz angezeigt
 
-➡️ **[Carambolage-Scoreboard Details](scoreboard-guide.de.md#carambolage)**
+➡️ **[Carambolage-Scoreboard Details](scoreboard-guide.md#carambolage)**
 
 ### Pool-Billard
 
@@ -133,7 +133,7 @@ Verfolgen Sie Ihre Leistungsentwicklung:
 - Break-Wechsel
 - Foul-Behandlung
 
-➡️ **[Pool-Scoreboard Details](scoreboard-guide.de.md#pool)**
+➡️ **[Pool-Scoreboard Details](scoreboard-guide.md#pool)**
 
 ### Snooker
 
@@ -144,7 +144,7 @@ Verfolgen Sie Ihre Leistungsentwicklung:
 - Re-spotted Black bei Gleichstand
 - Century Breaks werden hervorgehoben
 
-➡️ **[Snooker-Scoreboard Details](scoreboard-guide.de.md#snooker)**
+➡️ **[Snooker-Scoreboard Details](scoreboard-guide.md#snooker)**
 
 ## 🆘 Häufige Fragen (FAQ)
 
@@ -274,17 +274,17 @@ Senden Sie Ihre Vorschläge an: gernot.ullrich@gmx.de
 
 ## 🔗 Weiterführende Links
 
-- **[Turniermanager-Dokumentation](../managers/index.de.md)**: Falls Sie selbst ein Turnier organisieren
-- **[Glossar](../reference/glossary.de.md)**: Erklärung aller Fachbegriffe
-- **[API-Dokumentation](../reference/api.de.md)**: Für technisch Interessierte
+- **[Turniermanager-Dokumentation](../managers/index.md)**: Falls Sie selbst ein Turnier organisieren
+- **[Glossar](../reference/glossary.md)**: Erklärung aller Fachbegriffe
+- **[API-Dokumentation](../reference/api.md)**: Für technisch Interessierte
 
 ---
 
 ## 📖 Alle Spieler-Dokumente
 
-1. **[Scoreboard-Bedienungsanleitung](scoreboard-guide.de.md)** - Detaillierte Anleitung für alle Disziplinen
-2. **[Turnierteilnahme-Leitfaden](tournament-participation.de.md)** - Von Anmeldung bis Siegerehrung
-3. **[KI-gestützte Suche](ai-search.de.md)** - So finden Sie schnell, was Sie brauchen
+1. **[Scoreboard-Bedienungsanleitung](scoreboard-guide.md)** - Detaillierte Anleitung für alle Disziplinen
+2. **[Turnierteilnahme-Leitfaden](tournament-participation.md)** - Von Anmeldung bis Siegerehrung
+3. **[KI-gestützte Suche](ai-search.md)** - So finden Sie schnell, was Sie brauchen
 
 ---
 

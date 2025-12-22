@@ -8,13 +8,13 @@ Diese Sektion richtet sich an Vereinsvorstände, Verbandsmanager und IT-Entschei
 
 ### Kernfragen, die wir beantworten:
 
-- **Was kann Carambus?** → [Feature-Übersicht](features-overview.de.md)
-- **Was kostet es?** → [Deployment-Optionen](deployment-options.de.md)
-- **Passt es zu uns?** → [Executive Summary](executive-summary.de.md)
+- **Was kann Carambus?** → [Feature-Übersicht](features-overview.md)
+- **Was kostet es?** → [Deployment-Optionen](deployment-options.md)
+- **Passt es zu uns?** → [Executive Summary](executive-summary.md)
 
 ## 📚 Verfügbare Dokumente
 
-### 1. [Executive Summary](executive-summary.de.md)
+### 1. [Executive Summary](executive-summary.md)
 **Lesezeit: 5-10 Minuten**
 
 Kompakter Überblick über:
@@ -27,7 +27,7 @@ Kompakter Überblick über:
 
 **Ideal für**: Erste Einschätzung, Vorstands-Präsentation
 
-### 2. [Feature-Übersicht](features-overview.de.md)
+### 2. [Feature-Übersicht](features-overview.md)
 **Lesezeit: 20-30 Minuten**
 
 Detaillierte Beschreibung aller Funktionen:
@@ -41,7 +41,7 @@ Detaillierte Beschreibung aller Funktionen:
 
 **Ideal für**: Detaillierte Evaluation, Feature-Vergleiche
 
-### 3. [Deployment-Optionen](deployment-options.de.md)
+### 3. [Deployment-Optionen](deployment-options.md)
 **Lesezeit: 15-20 Minuten**
 
 Vollständiger Vergleich aller Betriebsmodelle:
@@ -63,7 +63,7 @@ Inklusive:
 ### Szenario A: Schnell-Check (10 Minuten)
 Sie wollen schnell einschätzen, ob Carambus grundsätzlich passt.
 
-**Lesen Sie**: [Executive Summary](executive-summary.de.md)
+**Lesen Sie**: [Executive Summary](executive-summary.md)
 
 ### Szenario B: Detaillierte Evaluation (1 Stunde)
 Sie planen eine fundierte Entscheidung und möchten alle Aspekte verstehen.
@@ -85,7 +85,7 @@ Sie wollen wissen: "Können wir das technisch umsetzen?"
 
 **Lesen Sie**:
 1. Deployment Options (Alle Optionen)
-2. [Administrator-Übersicht](../administrators/index.de.md) (Installation)
+2. [Administrator-Übersicht](../administrators/index.md) (Installation)
 
 ## 💡 Typische Entscheidungs-Szenarien
 
@@ -98,7 +98,7 @@ Sie wollen wissen: "Können wir das technisch umsetzen?"
 - Wartungsarm
 - Ausreichend für Vereinsbetrieb
 
-➡️ Details: [Deployment-Optionen - Raspberry Pi](deployment-options.de.md#raspberry-pi-all-in-one)
+➡️ Details: [Deployment-Optionen - Raspberry Pi](deployment-options.md#raspberry-pi-all-in-one)
 
 ### Mittelgroßer Verein (50-200 Mitglieder)
 **Empfehlung**: Cloud-Hosting (Budget) oder On-Premise (Standard)
@@ -108,7 +108,7 @@ Sie wollen wissen: "Können wir das technisch umsetzen?"
 - Von überall erreichbar (Cloud)
 - Skalierbar bei Wachstum
 
-➡️ Details: [Deployment-Optionen - Vergleich](deployment-options.de.md#vergleichs-matrix-erweitert)
+➡️ Details: [Deployment-Optionen - Vergleich](deployment-options.md#vergleichs-matrix-erweitert)
 
 ### Verband (Mehrere Vereine, 200+ Mitglieder)
 **Empfehlung**: Cloud-Hosting (Standard oder Premium)
@@ -119,7 +119,7 @@ Sie wollen wissen: "Können wir das technisch umsetzen?"
 - Professionelle Infrastruktur
 - Beste Skalierbarkeit
 
-➡️ Details: [Deployment-Optionen - Cloud](deployment-options.de.md#cloud-hosting-vps)
+➡️ Details: [Deployment-Optionen - Cloud](deployment-options.md#cloud-hosting-vps)
 
 ## 📞 Nächste Schritte
 

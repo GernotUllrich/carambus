@@ -6,7 +6,7 @@ This document describes the advanced search and filter functions for tournament 
 
 The filter popup allows you to efficiently search and filter large amounts of data.
 
-➡️ Details see: [Filter Popup Usage](filter_popup_usage.en.md)
+➡️ Details see: [Filter Popup Usage](filter_popup_usage.md)
 
 ## Advanced Search Functions
 

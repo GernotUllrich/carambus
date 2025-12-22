@@ -17,9 +17,9 @@ As a player, you mainly use Carambus to:
 
 Learn how to enter points during the game:
 
-- **[Carom Scoreboard](scoreboard-guide.en.md#carom)**: For Straight Rail, Cadre, and Three-Cushion
-- **[Pool Scoreboard](scoreboard-guide.en.md#pool)**: For 8-Ball, 9-Ball, 10-Ball
-- **[Snooker Scoreboard](scoreboard-guide.en.md#snooker)**: For Snooker with frames
+- **[Carom Scoreboard](scoreboard-guide.md#carom)**: For Straight Rail, Cadre, and Three-Cushion
+- **[Pool Scoreboard](scoreboard-guide.md#pool)**: For 8-Ball, 9-Ball, 10-Ball
+- **[Snooker Scoreboard](scoreboard-guide.md#snooker)**: For Snooker with frames
 
 **Most Important Functions**:
 - ✅ Enter points via touch or keyboard
@@ -27,7 +27,7 @@ Learn how to enter points during the game:
 - ✅ End and confirm match
 - ✅ Follow statistics live (average, high run)
 
-➡️ **[To detailed scoreboard instructions](scoreboard-guide.en.md)**
+➡️ **[To detailed scoreboard instructions](scoreboard-guide.md)**
 
 ### 2. Tournament Participation
 
@@ -39,7 +39,7 @@ Everything you need to know about tournament participation:
 - **Check results**: Are all my results correct?
 - **Notifications**: How am I informed about my matches?
 
-➡️ **[To tournament participation guide](tournament-participation.en.md)**
+➡️ **[To tournament participation guide](tournament-participation.md)**
 
 ### 3. AI-Powered Search
 
@@ -52,7 +52,7 @@ Find quickly what you're looking for - in natural language:
 - "All matches against Miller"
 - "League ranking group A"
 
-➡️ **[To search guide](ai-search.en.md)**
+➡️ **[To search guide](ai-search.md)**
 
 ### 4. Personal Statistics
 
@@ -64,7 +64,7 @@ Track your performance development:
 - **Tournament history**: All your tournament participations
 - **Head-to-Head**: Direct comparisons with other players
 
-➡️ **[View statistics](tournament-participation.en.md#statistics)**
+➡️ **[View statistics](tournament-participation.md#statistics)**
 
 ## 🖥️ Devices & Access
 
@@ -117,7 +117,7 @@ Track your performance development:
 - High run is marked
 - Remaining points to distance shown
 
-➡️ **[Carom Scoreboard Details](scoreboard-guide.en.md#carom)**
+➡️ **[Carom Scoreboard Details](scoreboard-guide.md#carom)**
 
 ### Pool Billiards
 
@@ -133,7 +133,7 @@ Track your performance development:
 - Break alternation
 - Foul handling
 
-➡️ **[Pool Scoreboard Details](scoreboard-guide.en.md#pool)**
+➡️ **[Pool Scoreboard Details](scoreboard-guide.md#pool)**
 
 ### Snooker
 
@@ -144,7 +144,7 @@ Track your performance development:
 - Re-spotted black on tie
 - Century breaks are highlighted
 
-➡️ **[Snooker Scoreboard Details](scoreboard-guide.en.md#snooker)**
+➡️ **[Snooker Scoreboard Details](scoreboard-guide.md#snooker)**
 
 ## 🆘 Frequently Asked Questions (FAQ)
 
@@ -274,17 +274,17 @@ Send your suggestions to: gernot.ullrich@gmx.de
 
 ## 🔗 Related Links
 
-- **[Tournament Manager Documentation](../managers/index.en.md)**: If you organize a tournament yourself
-- **[Glossary](../reference/glossary.en.md)**: Explanation of all technical terms
-- **[API Documentation](../reference/api.en.md)**: For technically interested people
+- **[Tournament Manager Documentation](../managers/index.md)**: If you organize a tournament yourself
+- **[Glossary](../reference/glossary.md)**: Explanation of all technical terms
+- **[API Documentation](../reference/api.md)**: For technically interested people
 
 ---
 
 ## 📖 All Player Documents
 
-1. **[Scoreboard User Manual](scoreboard-guide.en.md)** - Detailed instructions for all disciplines
-2. **[Tournament Participation Guide](tournament-participation.en.md)** - From registration to award ceremony
-3. **[AI-Powered Search](ai-search.en.md)** - How to quickly find what you need
+1. **[Scoreboard User Manual](scoreboard-guide.md)** - Detailed instructions for all disciplines
+2. **[Tournament Participation Guide](tournament-participation.md)** - From registration to award ceremony
+3. **[AI-Powered Search](ai-search.md)** - How to quickly find what you need
 
 ---
 

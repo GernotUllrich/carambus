@@ -25,7 +25,7 @@ Activate heating only during actual use.
 ---
 
 ➡️ Details see: 
-- [Table Reservation & Heating](table_reservation_heating_control.en.md)
+- [Table Reservation & Heating](table_reservation_heating_control.md)
 
 _These documents will be consolidated in a future version._
 

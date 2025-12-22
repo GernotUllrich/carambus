@@ -420,10 +420,10 @@ end
 
 ## Weiterführende Dokumentation
 
-- [Scenario Management Workflow](./scenario-system-workflow.de.md)
-- [Database Partitioning & Sync](./datenbank-partitionierung-und-synchronisierung.de.md)
-- [Raspberry Pi Scripts Reference](./raspberry_pi_scripts.de.md)
-- [Server Management Scripts](./server_management_scripts.de.md)
+- [Scenario Management Workflow](./scenario-system-workflow.md)
+- [Database Partitioning & Sync](./datenbank-partitionierung-und-synchronisierung.md)
+- [Raspberry Pi Scripts Reference](./raspberry_pi_scripts.md)
+- [Server Management Scripts](./server_management_scripts.md)
 
 ---
 

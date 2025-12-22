@@ -11,7 +11,7 @@ _Dieses Dokument ist in Bearbeitung und wird aus bestehenden Dokumenten konsolid
 - Benachrichtigungen
 - Persönliche Statistiken
 
-➡️ Siehe vorläufig: [Turnierverwaltung](../managers/tournament-management.de.md) (Spieler-Perspektive)
+➡️ Siehe vorläufig: [Turnierverwaltung](../managers/tournament-management.md) (Spieler-Perspektive)
 
 
 

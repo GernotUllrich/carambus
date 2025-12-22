@@ -8,13 +8,13 @@ This section is aimed at club board members, federation managers, and IT decisio
 
 ### Core questions we answer:
 
-- **What can Carambus do?** → [Features Overview](features-overview.en.md)
-- **What does it cost?** → [Deployment Options](deployment-options.en.md)
-- **Does it fit us?** → [Executive Summary](executive-summary.en.md)
+- **What can Carambus do?** → [Features Overview](features-overview.md)
+- **What does it cost?** → [Deployment Options](deployment-options.md)
+- **Does it fit us?** → [Executive Summary](executive-summary.md)
 
 ## 📚 Available Documents
 
-### 1. [Executive Summary](executive-summary.en.md)
+### 1. [Executive Summary](executive-summary.md)
 **Reading time: 5-10 minutes**
 
 Compact overview of:
@@ -27,7 +27,7 @@ Compact overview of:
 
 **Ideal for**: Initial assessment, board presentations
 
-### 2. [Features Overview](features-overview.en.md)
+### 2. [Features Overview](features-overview.md)
 **Reading time: 20-30 minutes**
 
 Detailed description of all functions:
@@ -41,7 +41,7 @@ Detailed description of all functions:
 
 **Ideal for**: Detailed evaluation, feature comparisons
 
-### 3. [Deployment Options](deployment-options.en.md)
+### 3. [Deployment Options](deployment-options.md)
 **Reading time: 15-20 minutes**
 
 Complete comparison of all operating models:
@@ -63,7 +63,7 @@ Including:
 ### Scenario A: Quick Check (10 minutes)
 You want to quickly assess whether Carambus is basically suitable.
 
-**Read**: [Executive Summary](executive-summary.en.md)
+**Read**: [Executive Summary](executive-summary.md)
 
 ### Scenario B: Detailed Evaluation (1 hour)
 You plan a well-founded decision and want to understand all aspects.
@@ -85,7 +85,7 @@ You want to know: "Can we technically implement this?"
 
 **Read**:
 1. Deployment Options (All options)
-2. [Administrator Overview](../administrators/index.en.md) (Installation)
+2. [Administrator Overview](../administrators/index.md) (Installation)
 
 ## 💡 Typical Decision Scenarios
 
@@ -98,7 +98,7 @@ You want to know: "Can we technically implement this?"
 - Low maintenance
 - Sufficient for club operation
 
-➡️ Details: [Deployment Options - Raspberry Pi](deployment-options.en.md#raspberry-pi-all-in-one)
+➡️ Details: [Deployment Options - Raspberry Pi](deployment-options.md#raspberry-pi-all-in-one)
 
 ### Medium-Sized Club (50-200 members)
 **Recommendation**: Cloud Hosting (Budget) or On-Premise (Standard)
@@ -108,7 +108,7 @@ You want to know: "Can we technically implement this?"
 - Accessible from anywhere (Cloud)
 - Scalable with growth
 
-➡️ Details: [Deployment Options - Comparison](deployment-options.en.md#comparison-matrix-extended)
+➡️ Details: [Deployment Options - Comparison](deployment-options.md#comparison-matrix-extended)
 
 ### Federation (Multiple clubs, 200+ members)
 **Recommendation**: Cloud Hosting (Standard or Premium)
@@ -119,7 +119,7 @@ You want to know: "Can we technically implement this?"
 - Professional infrastructure
 - Best scalability
 
-➡️ Details: [Deployment Options - Cloud](deployment-options.en.md#cloud-hosting)
+➡️ Details: [Deployment Options - Cloud](deployment-options.md#cloud-hosting)
 
 ## 📞 Next Steps
 

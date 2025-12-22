@@ -11,7 +11,7 @@ _This document is work in progress and will be consolidated from existing docume
 - Notifications
 - Personal statistics
 
-➡️ See temporarily: [Tournament Management](../managers/tournament-management.en.md) (player perspective)
+➡️ See temporarily: [Tournament Management](../managers/tournament-management.md) (player perspective)
 
 
 

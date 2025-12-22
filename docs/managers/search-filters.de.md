@@ -6,7 +6,7 @@ Dieses Dokument beschreibt die erweiterten Such- und Filterfunktionen für Turni
 
 Das Filter-Popup ermöglicht es Ihnen, große Datenmengen effizient zu durchsuchen und zu filtern.
 
-➡️ Details siehe: [Filter-Popup Nutzung](filter_popup_usage.de.md)
+➡️ Details siehe: [Filter-Popup Nutzung](filter_popup_usage.md)
 
 ## Erweiterte Suchfunktionen
 

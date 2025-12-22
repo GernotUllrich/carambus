@@ -1,0 +1,3432 @@
+
+<!doctype html>
+<html lang="de" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Comprehensive documentation for Carambus - Professional billiards tournament management system">
+      
+      
+      
+        <link rel="canonical" href="https://GernotUllrich.github.io/carambus/players/snooker_scoreboard_benutzerhandbuch/">
+      
+      
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.18">
+    
+    
+      
+        <title>Snooker Scoreboard Benutzerhandbuch - Carambus Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.7e37652d.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#snooker-scoreboard-benutzerhandbuch" class="md-skip">
+          Zum Inhalt
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Kopfzeile">
+    <a href="../.." title="Carambus Documentation" class="md-header__button md-logo" aria-label="Carambus Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Carambus Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Snooker Scoreboard Benutzerhandbuch
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+      <div class="md-header__option">
+  <div class="md-select">
+    
+    <button class="md-header__button md-icon" aria-label="Sprache wechseln">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
+    </button>
+    <div class="md-select__inner">
+      <ul class="md-select__list">
+        
+          <li class="md-select__item">
+            <a href="./" hreflang="de" class="md-select__link">
+              Deutsch
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="../../en/players/snooker_scoreboard_benutzerhandbuch/" hreflang="en" class="md-select__link">
+              English
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</div>
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Suche" placeholder="Suche" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Suche">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Zurücksetzen" aria-label="Zurücksetzen" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Suche wird initialisiert
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/GernotUllrich/carambus" title="Zum Repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GernotUllrich/carambus
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Hauptnavigation" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Startseite
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../decision-makers/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Für Entscheider
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Für Spieler
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../managers/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Für Turniermanager
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../administrators/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Für Systemadministratoren
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../developers/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Für Entwickler
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../reference/API/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Referenz
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../about/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Über
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Carambus Documentation" class="md-nav__button md-logo" aria-label="Carambus Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Carambus Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/GernotUllrich/carambus" title="Zum Repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GernotUllrich/carambus
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Startseite
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../decision-makers/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Für Entscheider
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2" id="__nav_2_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Für Entscheider
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../decision-makers/executive-summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Executive Summary
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../decision-makers/features-overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Feature-Übersicht
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../decision-makers/deployment-options/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Deployment-Optionen
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Für Spieler
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Für Spieler
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../scoreboard-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scoreboard-Anleitung
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tournament-participation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Turnierteilnahme
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ai-search/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    KI-gestützte Suche
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../managers/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Für Turniermanager
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Für Turniermanager
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../managers/tournament-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Turnierverwaltung
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../managers/league-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Liga-Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../managers/single-tournament/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Einzelturnier
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../managers/table-reservation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tischreservierung
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../managers/admin_roles/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Admin-Rollen
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../managers/clubcloud_integration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    ClubCloud-Integration
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../managers/search-filters/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Suche & Filter
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../administrators/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Für Systemadministratoren
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5" id="__nav_5_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Für Systemadministratoren
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administrators/installation_overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Installations-Übersicht
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administrators/quickstart_raspberry_pi/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Raspberry Pi Quickstart
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administrators/raspberry-pi-client/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Raspberry Pi Client
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administrators/scoreboard_autostart_setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scoreboard Autostart
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administrators/server-architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Server-Architektur
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administrators/email_configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Email-Konfiguration
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administrators/database-setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Datenbank-Setup
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../developers/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Für Entwickler
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_6" id="__nav_6_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            Für Entwickler
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Getting Started
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/developer-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Entwickler-Leitfaden
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/database_design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Datenbank-Design
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/er_diagram/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    ER-Diagramm
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/API/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    API-Referenz
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/scenario_management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scenario-Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/rake-tasks-debugging/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Testing & Debugging
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/deployment_workflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Deployment-Workflow
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/data_management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Datenverwaltung
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/database-partitioning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Datenbank-Partitionierung
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/paper_trail_optimization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    PaperTrail-Optimierung
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/game_plan_reconstruction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Spielplan-Rekonstruktion
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/tournament_duplicate_handling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Turnier-Duplikate
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/region_tagging_cleanup_summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Regions-Tagging
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/pool-scoreboard-changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Pool Scoreboard Changelog
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Referenz
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            Referenz
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/API/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    API-Referenz
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/glossary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Glossar
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/terms/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    AGB
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/privacy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Datenschutz
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/config-lock-files/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Config Lock Files
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/search/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Search
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/mkdocs_dokumentation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    MkDocs
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+          
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_8" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../.." class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Über
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_8" id="__nav_8_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            Über
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../about/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Über
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Inhaltsverzeichnis">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Inhaltsverzeichnis
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#ubersicht" class="md-nav__link">
+    <span class="md-ellipsis">
+      Übersicht
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hauptfunktionen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Hauptfunktionen
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#inhaltsverzeichnis" class="md-nav__link">
+    <span class="md-ellipsis">
+      Inhaltsverzeichnis
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#erste-schritte" class="md-nav__link">
+    <span class="md-ellipsis">
+      Erste Schritte
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Erste Schritte">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#scoreboard-starten" class="md-nav__link">
+    <span class="md-ellipsis">
+      Scoreboard starten
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#willkommensbildschirm" class="md-nav__link">
+    <span class="md-ellipsis">
+      Willkommensbildschirm
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tischubersicht" class="md-nav__link">
+    <span class="md-ellipsis">
+      Tischübersicht
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#snooker-regeln-im-uberblick" class="md-nav__link">
+    <span class="md-ellipsis">
+      Snooker-Regeln im Überblick
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Snooker-Regeln im Überblick">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#grundregeln" class="md-nav__link">
+    <span class="md-ellipsis">
+      Grundregeln
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#spielablauf" class="md-nav__link">
+    <span class="md-ellipsis">
+      Spielablauf
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frame-gewinnen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Frame gewinnen
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#match-gewinnen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Match gewinnen
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fouls" class="md-nav__link">
+    <span class="md-ellipsis">
+      Fouls
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scoreboard-hauptansicht" class="md-nav__link">
+    <span class="md-ellipsis">
+      Scoreboard-Hauptansicht
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Scoreboard-Hauptansicht">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#layout" class="md-nav__link">
+    <span class="md-ellipsis">
+      Layout
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#anzeigeelemente" class="md-nav__link">
+    <span class="md-ellipsis">
+      Anzeigeelemente
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#spielablauf_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Spielablauf
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Spielablauf">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-tisch-auswahlen" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Tisch auswählen
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-spielform-wahlen" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Spielform wählen
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-spieler-auswahlen" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Spieler auswählen
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-spielparameter-einstellen" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Spielparameter einstellen
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-spiel-starten" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. Spiel starten
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tastenbelegung" class="md-nav__link">
+    <span class="md-ellipsis">
+      Tastenbelegung
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Tastenbelegung">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#punkte-eintragen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Punkte eintragen
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#spielerwechsel" class="md-nav__link">
+    <span class="md-ellipsis">
+      Spielerwechsel
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frame-beenden" class="md-nav__link">
+    <span class="md-ellipsis">
+      Frame beenden
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#match-ende" class="md-nav__link">
+    <span class="md-ellipsis">
+      Match-Ende
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fouls-eintragen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Fouls eintragen
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#beispiel-spielablauf" class="md-nav__link">
+    <span class="md-ellipsis">
+      Beispiel-Spielablauf
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#eingabe-zusammenfassung" class="md-nav__link">
+    <span class="md-ellipsis">
+      Eingabe-Zusammenfassung
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quickstart-spiele" class="md-nav__link">
+    <span class="md-ellipsis">
+      Quickstart-Spiele
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Quickstart-Spiele">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#best-of-3-2-frames-zum-gewinn" class="md-nav__link">
+    <span class="md-ellipsis">
+      Best of 3 (2 Frames zum Gewinn)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#best-of-5-3-frames-zum-gewinn" class="md-nav__link">
+    <span class="md-ellipsis">
+      Best of 5 (3 Frames zum Gewinn)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#best-of-7-4-frames-zum-gewinn" class="md-nav__link">
+    <span class="md-ellipsis">
+      Best of 7 (4 Frames zum Gewinn)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#best-of-9-5-frames-zum-gewinn" class="md-nav__link">
+    <span class="md-ellipsis">
+      Best of 9 (5 Frames zum Gewinn)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#neue-features-dezember-2024" class="md-nav__link">
+    <span class="md-ellipsis">
+      Neue Features (Dezember 2024)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Neue Features (Dezember 2024)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#visuelle-pyramiden-anzeige" class="md-nav__link">
+    <span class="md-ellipsis">
+      Visuelle Pyramiden-Anzeige
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#restpunkte-berechnung" class="md-nav__link">
+    <span class="md-ellipsis">
+      Restpunkte-Berechnung
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#intelligente-ball-verwaltung" class="md-nav__link">
+    <span class="md-ellipsis">
+      Intelligente Ball-Verwaltung
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aufgeben-funktion" class="md-nav__link">
+    <span class="md-ellipsis">
+      Aufgeben-Funktion
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#variable-anzahl-roter-balle" class="md-nav__link">
+    <span class="md-ellipsis">
+      Variable Anzahl roter Bälle
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tipps-fur-effiziente-bedienung" class="md-nav__link">
+    <span class="md-ellipsis">
+      Tipps für effiziente Bedienung
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Tipps für effiziente Bedienung">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#schnelle-break-eingabe" class="md-nav__link">
+    <span class="md-ellipsis">
+      Schnelle Break-Eingabe
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#spielerwechsel-optimieren" class="md-nav__link">
+    <span class="md-ellipsis">
+      Spielerwechsel optimieren
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#break-tracking" class="md-nav__link">
+    <span class="md-ellipsis">
+      Break-Tracking
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frame-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      Frame-Management
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#fehlerbehebung" class="md-nav__link">
+    <span class="md-ellipsis">
+      Fehlerbehebung
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Fehlerbehebung">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#break-wird-nicht-angezeigt" class="md-nav__link">
+    <span class="md-ellipsis">
+      Break wird nicht angezeigt
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#falsche-punkte-eingegeben" class="md-nav__link">
+    <span class="md-ellipsis">
+      Falsche Punkte eingegeben
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#spielerwechsel-funktioniert-nicht" class="md-nav__link">
+    <span class="md-ellipsis">
+      Spielerwechsel funktioniert nicht
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frame-score-wird-nicht-aktualisiert" class="md-nav__link">
+    <span class="md-ellipsis">
+      Frame-Score wird nicht aktualisiert
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#high-break-wird-nicht-aktualisiert" class="md-nav__link">
+    <span class="md-ellipsis">
+      High Break wird nicht aktualisiert
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#turnier-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Turnier-Integration
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Turnier-Integration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#snooker-in-turnieren" class="md-nav__link">
+    <span class="md-ellipsis">
+      Snooker in Turnieren
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#liga-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Liga-Integration
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#haufige-fragen-faq" class="md-nav__link">
+    <span class="md-ellipsis">
+      Häufige Fragen (FAQ)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Häufige Fragen (FAQ)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#wie-viele-punkte-kann-man-maximal-in-einem-frame-erzielen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Wie viele Punkte kann man maximal in einem Frame erzielen?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#was-passiert-wenn-beide-spieler-die-gleiche-anzahl-von-frames-haben" class="md-nav__link">
+    <span class="md-ellipsis">
+      Was passiert, wenn beide Spieler die gleiche Anzahl von Frames haben?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#wie-werden-fouls-gehandhabt" class="md-nav__link">
+    <span class="md-ellipsis">
+      Wie werden Fouls gehandhabt?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kann-ich-ein-spiel-pausieren" class="md-nav__link">
+    <span class="md-ellipsis">
+      Kann ich ein Spiel pausieren?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#wie-sehe-ich-die-spielstatistiken" class="md-nav__link">
+    <span class="md-ellipsis">
+      Wie sehe ich die Spielstatistiken?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#warum-zeigt-der-rote-ball-eine-zahl" class="md-nav__link">
+    <span class="md-ellipsis">
+      Warum zeigt der rote Ball eine Zahl?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#was-bedeuten-die-abgedunkelten-balle" class="md-nav__link">
+    <span class="md-ellipsis">
+      Was bedeuten die abgedunkelten Bälle?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#was-zeigt-x-punkte-ubrig-an" class="md-nav__link">
+    <span class="md-ellipsis">
+      Was zeigt "X Punkte übrig" an?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#wann-sollte-ich-aufgeben" class="md-nav__link">
+    <span class="md-ellipsis">
+      Wann sollte ich aufgeben?
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#unterstutzung" class="md-nav__link">
+    <span class="md-ellipsis">
+      Unterstützung
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="snooker-scoreboard-benutzerhandbuch">Snooker Scoreboard Benutzerhandbuch<a class="headerlink" href="#snooker-scoreboard-benutzerhandbuch" title="Permanent link">&para;</a></h1>
+<h2 id="ubersicht">Übersicht<a class="headerlink" href="#ubersicht" title="Permanent link">&para;</a></h2>
+<p>Das Carambus Snooker Scoreboard ist ein vollständiges Anzeigesystem für Snooker-Spiele, das sowohl für Turniere als auch für Trainingsspiele verwendet werden kann. Es unterstützt die klassische Snooker-Disziplin mit Frame-Zählung.</p>
+<h2 id="hauptfunktionen">Hauptfunktionen<a class="headerlink" href="#hauptfunktionen" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Frame-Anzeige</strong> - Echtzeit-Anzeige der gewonnenen Frames beider Spieler</li>
+<li><strong>Break-Anzeige</strong> - Aktuelle Break-Punkte des aktiven Spielers</li>
+<li><strong>High Break (HB)</strong> - Höchster Break jedes Spielers im Spiel</li>
+<li><strong>Frame-Verwaltung</strong> - Automatische Frame-Zählung (Best of 3, 5, 7, 9)</li>
+<li><strong>Ball-Wert-Buttons</strong> - Farbcodierte Buttons für alle Snooker-Bälle (Rot=1, Gelb=2, Grün=3, Braun=4, Blau=5, Pink=6, Schwarz=7)</li>
+<li><strong>Pyramiden-Anzeige</strong> - Visuell realistische Darstellung der roten Bälle (6/10/15 Reds) mit perspektivischer 3D-Ansicht</li>
+<li><strong>Restpunkte-Anzeige</strong> - Live-Berechnung der verbleibenden Punkte auf dem Tisch</li>
+<li><strong>Aufgeben-Funktion</strong> - Möglichkeit für Spieler, einen Frame vorzeitig aufzugeben</li>
+<li><strong>Intelligente Ball-Verwaltung</strong> - Automatische Erkennung der spielbaren Bälle (rot/farbig) mit visueller Hervorhebung</li>
+<li><strong>Dark Mode</strong> - Augenfreundliche Darstellung für verschiedene Lichtverhältnisse</li>
+</ul>
+<hr />
+<h2 id="inhaltsverzeichnis">Inhaltsverzeichnis<a class="headerlink" href="#inhaltsverzeichnis" title="Permanent link">&para;</a></h2>
+<ol>
+<li><a href="#erste-schritte">Erste Schritte</a></li>
+<li><a href="#snooker-regeln-im-überblick">Snooker-Regeln im Überblick</a></li>
+<li><a href="#scoreboard-hauptansicht">Scoreboard-Hauptansicht</a></li>
+<li><a href="#spielablauf">Spielablauf</a></li>
+<li><a href="#tastenbelegung">Tastenbelegung</a></li>
+<li><a href="#quickstart-spiele">Quickstart-Spiele</a></li>
+<li><a href="#fehlerbehebung">Fehlerbehebung</a></li>
+</ol>
+<hr />
+<h2 id="erste-schritte">Erste Schritte<a class="headerlink" href="#erste-schritte" title="Permanent link">&para;</a></h2>
+<h3 id="scoreboard-starten">Scoreboard starten<a class="headerlink" href="#scoreboard-starten" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Raspberry Pi Setup</strong>: Das Scoreboard startet automatisch beim Hochfahren des Raspberry Pi</li>
+<li><strong>Manueller Start</strong>: Öffnen Sie einen Browser und navigieren zu:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>http://[server-adresse]:3000/locations/[location-id]/scoreboard?sb_state=welcome
+</code></pre></div></li>
+<li><strong>Von der Location-Seite</strong>: Klicken Sie auf den "scoreboard" Link</li>
+</ol>
+<h3 id="willkommensbildschirm">Willkommensbildschirm<a class="headerlink" href="#willkommensbildschirm" title="Permanent link">&para;</a></h3>
+<p>Der Willkommensbildschirm ist der Startpunkt für alle Scoreboard-Aktivitäten. Von hier aus können Sie:</p>
+<ul>
+<li><strong>Turnier auswählen</strong> - Für offizielle Snooker-Turniere</li>
+<li><strong>Tisch auswählen</strong> - Für Trainingsspiele</li>
+<li><strong>Spielstände anzeigen</strong> - Übersicht laufender Spiele</li>
+</ul>
+<h3 id="tischubersicht">Tischübersicht<a class="headerlink" href="#tischubersicht" title="Permanent link">&para;</a></h3>
+<p>Nach Auswahl von "Training" erscheint die Tischübersicht mit allen verfügbaren Pool- und Snooker-Tischen:</p>
+<ul>
+<li><strong>Blaue Buttons</strong>: Freie Tische</li>
+<li><strong>Spielernamen</strong>: Tische mit laufenden Spielen</li>
+</ul>
+<hr />
+<h2 id="snooker-regeln-im-uberblick">Snooker-Regeln im Überblick<a class="headerlink" href="#snooker-regeln-im-uberblick" title="Permanent link">&para;</a></h2>
+<h3 id="grundregeln">Grundregeln<a class="headerlink" href="#grundregeln" title="Permanent link">&para;</a></h3>
+<p>Snooker wird mit 22 Bällen gespielt:</p>
+<p><strong>Rote Bälle:</strong>
+- 15 rote Bälle (jeder zählt 1 Punkt)
+- Zu Beginn des Frames werden alle 15 roten Bälle aufgestellt</p>
+<p><strong>Farbige Bälle:</strong>
+- Gelb (2 Punkte)
+- Grün (3 Punkte)
+- Braun (4 Punkte)
+- Blau (5 Punkte)
+- Pink (6 Punkte)
+- Schwarz (7 Punkte)</p>
+<p><strong>Weißer Ball:</strong>
+- Die weiße Spielkugel (Cue Ball)</p>
+<h3 id="spielablauf">Spielablauf<a class="headerlink" href="#spielablauf" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Rote Phase</strong>: Der Spieler muss zuerst einen roten Ball versenken (1 Punkt)</li>
+<li><strong>Farbige Phase</strong>: Nach einem roten Ball muss eine farbige Ball versenkt werden</li>
+<li><strong>Wiederholung</strong>: Rot → Farbe → Rot → Farbe ... bis alle roten Bälle versenkt sind</li>
+<li><strong>Farbige Phase</strong>: Nach den roten Bällen müssen die farbigen Bälle in aufsteigender Reihenfolge versenkt werden: Gelb → Grün → Braun → Blau → Pink → Schwarz</li>
+</ol>
+<h3 id="frame-gewinnen">Frame gewinnen<a class="headerlink" href="#frame-gewinnen" title="Permanent link">&para;</a></h3>
+<p>Ein Frame wird gewonnen, wenn:
+- Ein Spieler alle Bälle versenkt hat (Maximum Break: 147 Punkte)
+- Der Gegner aufgibt
+- Der Gegner mehr Fouls begeht als Punkte erzielt hat</p>
+<h3 id="match-gewinnen">Match gewinnen<a class="headerlink" href="#match-gewinnen" title="Permanent link">&para;</a></h3>
+<p>Ein Match wird gewonnen, wenn ein Spieler die erforderliche Anzahl von Frames gewinnt:
+- <strong>Best of 3</strong>: 2 Frames gewinnen
+- <strong>Best of 5</strong>: 3 Frames gewinnen
+- <strong>Best of 7</strong>: 4 Frames gewinnen
+- <strong>Best of 9</strong>: 5 Frames gewinnen</p>
+<h3 id="fouls">Fouls<a class="headerlink" href="#fouls" title="Permanent link">&para;</a></h3>
+<p>Häufige Fouls im Snooker:
+- <strong>Ball nicht getroffen</strong>: Mindestens 4 Punkte Strafe (oder Wert des Balles, wenn höher)
+- <strong>Falsche Ball getroffen</strong>: Strafe entspricht dem Wert des falschen Balles
+- <strong>Ball versenkt, aber falscher Ball</strong>: Strafe entspricht dem Wert des versenkten Balles
+- <strong>Weißer Ball versenkt</strong>: Mindestens 4 Punkte Strafe</p>
+<p><strong>Wichtig</strong>: Bei einem Foul erhält der Gegner die Strafe als Punkte gutgeschrieben.</p>
+<hr />
+<h2 id="scoreboard-hauptansicht">Scoreboard-Hauptansicht<a class="headerlink" href="#scoreboard-hauptansicht" title="Permanent link">&para;</a></h2>
+<h3 id="layout">Layout<a class="headerlink" href="#layout" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>┌─────────────────────────────────────────────────────┐
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>│  [Dark Mode] [Undo] [Home] [Beenden]                │
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>│                                                       │
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>│  Spieler A (aktiv)                  Spieler B        │
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>│  ┌─────────────────┐              ┌─────────────────┐│
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>│  │  Break: 24      │              │  Break: --     ││
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>│  │                 │              │                 ││
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>│  │  Frames: 1 / 3  │              │  Frames: 0 / 3 ││
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>│  │  HB: 45         │              │  HB: 32         ││
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>│  │                 │              │                 ││
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>│  │      1  ←───────│──────────────│───── 0          ││
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>│  │   (klick=+1)    │              │  (klick=wechsel)││
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>│  └─────────────────┘              └─────────────────┘│
+<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>│                                                       │
+<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>│  [●●●●●●]  ← Pyramide (15 Reds)                     │
+<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>│  42 Punkte übrig                                     │
+<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a>│                                                       │
+<a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a>│  Frame 1                                            │
+<a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a>│  Best of 5                                          │
+<a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a>│                                                       │
+<a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a>│  [Protokoll] [●] [●●] [●●●] [●●●●] [●●●●●] [●●●●●●] │
+<a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a>│              6   Foul  Aufgeben   Calc               │
+<a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a>│  [Rot=1] [Gelb=2] [Grün=3] [Braun=4] [Blau=5]       │
+<a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a>│  [Pink=6] [Schwarz=7]                                │
+<a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a>└─────────────────────────────────────────────────────┘
+</code></pre></div>
+<p><strong>Klickbare Bereiche:</strong>
+- <strong>Frame-Score des aktiven Spielers</strong> (1): Klick = +1 Punkt zum aktuellen Break
+- <strong>Frame-Score des inaktiven Spielers</strong> (0): Klick = Spielerwechsel</p>
+<p><strong>Neue visuelle Elemente:</strong>
+- <strong>Pyramiden-Anzeige</strong>: Zeigt die verbleibenden roten Bälle als 3D-Pyramid (dynamisch je nach gewählter Anzahl: 6/10/15 Reds)
+- <strong>Restpunkte</strong>: Berechnet automatisch die maximal erreichbaren Punkte auf dem Tisch
+- <strong>Rote Bälle Counter</strong>: Zeigt die Anzahl der verbleibenden roten Bälle direkt auf dem roten Ball-Button</p>
+<h3 id="anzeigeelemente">Anzeigeelemente<a class="headerlink" href="#anzeigeelemente" title="Permanent link">&para;</a></h3>
+<h4 id="spielerinformationen-je-seite">Spielerinformationen (je Seite)<a class="headerlink" href="#spielerinformationen-je-seite" title="Permanent link">&para;</a></h4>
+<ol>
+<li><strong>Spielername</strong> - Vollständiger Name oder Kurzname</li>
+<li><strong>Aktueller Break</strong> - Punkte in der laufenden Aufnahme (rot hervorgehoben, nur bei aktivem Spieler)</li>
+<li><strong>Frames</strong> - Gewonnene Frames / Frames zum Gewinnen (z.B. "1 / 3" bedeutet 1 Frame gewonnen, 3 Frames zum Sieg)</li>
+<li><strong>HB (High Break)</strong> - Höchster Break im aktuellen Spiel</li>
+<li><strong>Frame-Score</strong> - Große Anzeige der gewonnenen Frames in der Mitte</li>
+</ol>
+<h4 id="zentrale-anzeige">Zentrale Anzeige<a class="headerlink" href="#zentrale-anzeige" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>Frame-Nummer</strong> - Aktueller Frame (z.B. "Frame 1")</li>
+<li><strong>Match-Format</strong> - Best of X (z.B. "Best of 5")</li>
+<li><strong>Turnier-Informationen</strong> - Turniername, Runde, Spielname (falls im Turnier)</li>
+</ul>
+<h4 id="ball-wert-buttons-nur-im-vollbildmodus">Ball-Wert-Buttons (nur im Vollbildmodus)<a class="headerlink" href="#ball-wert-buttons-nur-im-vollbildmodus" title="Permanent link">&para;</a></h4>
+<p>Die untere Leiste zeigt farbcodierte Buttons für alle Snooker-Bälle:</p>
+<ul>
+<li><strong>Rot (1 Punkt)</strong> - Rote Bälle (zeigt die Anzahl der verbleibenden roten Bälle an)</li>
+<li><strong>Gelb (2 Punkte)</strong> - Gelber Ball</li>
+<li><strong>Grün (3 Punkte)</strong> - Grüner Ball</li>
+<li><strong>Braun (4 Punkte)</strong> - Brauner Ball</li>
+<li><strong>Blau (5 Punkte)</strong> - Blauer Ball</li>
+<li><strong>Pink (6 Punkte)</strong> - Pinker Ball</li>
+<li><strong>Schwarz (7 Punkte)</strong> - Schwarzer Ball</li>
+<li><strong>Foul</strong> - Foul-Eingabe (Mindeststrafe 4 Punkte)</li>
+<li><strong>Aufgeben</strong> - Frame vorzeitig beenden (Gegner gewinnt Frame)</li>
+<li><strong>Calculator</strong> - Direkte Zahlen-Eingabe für größere Breaks</li>
+</ul>
+<p><strong>Intelligente Ball-Anzeige:</strong>
+- <strong>Spielbare Bälle</strong> werden normal angezeigt und sind klickbar
+- <strong>Nicht-spielbare Bälle</strong> werden abgedunkelt und sind nicht klickbar
+- Das System erkennt automatisch, welche Bälle "on" sind (rot oder farbig)
+- Nach einem roten Ball sind alle farbigen Bälle spielbar
+- Nach einem farbigen Ball (wenn noch rote Bälle vorhanden) ist nur rot spielbar
+- Wenn keine roten Bälle mehr vorhanden sind, werden die farbigen Bälle in Reihenfolge gespielt (Gelb → Grün → Braun → Blau → Pink → Schwarz)</p>
+<hr />
+<h2 id="spielablauf_1">Spielablauf<a class="headerlink" href="#spielablauf_1" title="Permanent link">&para;</a></h2>
+<h3 id="1-tisch-auswahlen">1. Tisch auswählen<a class="headerlink" href="#1-tisch-auswahlen" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Vom <strong>Willkommensbildschirm</strong> wählen Sie <strong>"Tische"</strong></li>
+<li>Wählen Sie einen <strong>Snooker-Tisch</strong> (erkennbar am Tischtyp)</li>
+<li>Klicken Sie auf den gewünschten Tisch</li>
+</ol>
+<h3 id="2-spielform-wahlen">2. Spielform wählen<a class="headerlink" href="#2-spielform-wahlen" title="Permanent link">&para;</a></h3>
+<p>Nach Auswahl des Tisches erscheinen die Snooker-Optionen:</p>
+<p><strong>Quickstart-Buttons:</strong>
+- <strong>Best of 3</strong> (2 Frames zum Gewinn)
+- <strong>Best of 5</strong> (3 Frames zum Gewinn)
+- <strong>Best of 7</strong> (4 Frames zum Gewinn)
+- <strong>Best of 9</strong> (5 Frames zum Gewinn)</p>
+<p><strong>Oder:</strong> Detaillierte Konfiguration über "Neue Snooker-Partie"</p>
+<h3 id="3-spieler-auswahlen">3. Spieler auswählen<a class="headerlink" href="#3-spieler-auswahlen" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Spieler-Auswahl</strong>: Wählen Sie beide Spieler aus der Liste</li>
+<li><strong>Neuer Spieler</strong>: Registrieren Sie einen neuen Gastspieler</li>
+</ul>
+<h3 id="4-spielparameter-einstellen">4. Spielparameter einstellen<a class="headerlink" href="#4-spielparameter-einstellen" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Frames</strong>: Wählen Sie das Match-Format (Best of &#8535;/7/9)</li>
+<li><strong>Rote Bälle</strong>: Wählen Sie die Anzahl der roten Anfangsbälle (6 Reds, 10 Reds oder 15 Reds)</li>
+<li><strong>6 Reds</strong>: Schnelles Training (ca. 15-20 Min pro Frame)</li>
+<li><strong>10 Reds</strong>: Mittlere Länge (ca. 25-35 Min pro Frame)</li>
+<li><strong>15 Reds</strong>: Vollständiges Snooker (ca. 40-60 Min pro Frame)</li>
+<li><strong>Spielzeit</strong>: Einstellen der maximalen Spielzeit pro Frame (optional)</li>
+<li><strong>Warnzeit</strong>: Einstellen der Warnzeit vor Ablauf (optional)</li>
+<li><strong>Erster Anstoß</strong>: Ausstoßen, Spieler A oder Spieler B</li>
+</ul>
+<h3 id="5-spiel-starten">5. Spiel starten<a class="headerlink" href="#5-spiel-starten" title="Permanent link">&para;</a></h3>
+<p>Klicken Sie auf <strong>"Start Game"</strong> - das Scoreboard zeigt den Spielstand an.</p>
+<hr />
+<h2 id="tastenbelegung">Tastenbelegung<a class="headerlink" href="#tastenbelegung" title="Permanent link">&para;</a></h2>
+<h3 id="punkte-eintragen">Punkte eintragen<a class="headerlink" href="#punkte-eintragen" title="Permanent link">&para;</a></h3>
+<p><strong>Methode 1: Ball-Wert-Buttons (empfohlen)</strong></p>
+<p>Klicken Sie auf den farbcodierten Button, der dem versenkten Ball entspricht:</p>
+<ul>
+<li><strong>Rot-Button</strong>: Roter Ball versenkt → +1 Punkt</li>
+<li><strong>Gelb-Button</strong>: Gelber Ball versenkt → +2 Punkte</li>
+<li><strong>Grün-Button</strong>: Grüner Ball versenkt → +3 Punkte</li>
+<li><strong>Braun-Button</strong>: Brauner Ball versenkt → +4 Punkte</li>
+<li><strong>Blau-Button</strong>: Blauer Ball versenkt → +5 Punkte</li>
+<li><strong>Pink-Button</strong>: Pinker Ball versenkt → +6 Punkte</li>
+<li><strong>Schwarz-Button</strong>: Schwarzer Ball versenkt → +7 Punkte</li>
+</ul>
+<p><strong>Beispiel:</strong>
+- Spieler versenkt einen roten Ball → Klick auf <strong>Rot-Button (1)</strong> → Break: +1
+- Spieler versenkt danach den blauen Ball → Klick auf <strong>Blau-Button (5)</strong> → Break: +6 (1+5)
+- Spieler versenkt weiteren roten Ball → Klick auf <strong>Rot-Button (1)</strong> → Break: +7 (1+5+1)</p>
+<p><strong>Methode 2: Klick auf den eigenen Frame-Score (+1 Punkt)</strong></p>
+<p>Für einzelne Punkte können Sie direkt auf den <strong>Frame-Score des aktiven Spielers</strong> klicken:</p>
+<ul>
+<li>Klicken Sie auf die große Frame-Zahl des aktiven Spielers</li>
+<li>Jeder Klick fügt <strong>+1 Punkt</strong> zum aktuellen Break hinzu</li>
+<li>Ideal für schnelle Einzelpunkt-Eingaben (z.B. rote Bälle)</li>
+</ul>
+<p><strong>Methode 3: Direkte Eingabe (Calculator)</strong></p>
+<p>Für größere Breaks können Sie die Calculator-Funktion verwenden:</p>
+<ul>
+<li>Klicken Sie auf den <strong>Calculator-Button</strong></li>
+<li>Geben Sie die Gesamtpunktzahl des Breaks ein</li>
+<li>Das System übernimmt die Punkte automatisch</li>
+</ul>
+<h3 id="spielerwechsel">Spielerwechsel<a class="headerlink" href="#spielerwechsel" title="Permanent link">&para;</a></h3>
+<p><strong>Methode 1: Klick auf den Frame-Score des anderen Spielers</strong></p>
+<p>Der einfachste Weg zum Spielerwechsel:</p>
+<ul>
+<li>Klicken Sie auf die <strong>Frame-Zahl des nicht-aktiven Spielers</strong></li>
+<li>Der Spieler wechselt sofort</li>
+<li>Der aktuelle Break wird beendet und zum Frame-Score hinzugefügt</li>
+<li>Der grüne Rahmen wechselt zum neuen aktiven Spielers</li>
+<li>Der Break-Zähler wird zurückgesetzt</li>
+</ul>
+<p><strong>Methode 2: Automatischer Wechsel</strong></p>
+<p>Nach einem Foul oder wenn der Spieler keine Punkte erzielt:
+- Der aktive Spieler wechselt automatisch
+- Der grüne Rahmen zeigt den neuen aktiven Spieler</p>
+<blockquote>
+<p><strong>Tipp:</strong> Der Klick auf den gegnerischen Frame-Score ist die schnellste Methode für den Spielerwechsel und wird von erfahrenen Schiedsrichtern bevorzugt.</p>
+</blockquote>
+<h3 id="frame-beenden">Frame beenden<a class="headerlink" href="#frame-beenden" title="Permanent link">&para;</a></h3>
+<p>Ein Frame endet automatisch, wenn:
+- Ein Spieler alle Bälle versenkt hat
+- Ein Spieler aufgibt (über <strong>"Aufgeben"</strong>-Button)
+- Das Maximum erreicht wurde</p>
+<p><strong>Aufgeben-Funktion:</strong>
+- Klicken Sie auf den <strong>"Aufgeben"</strong>-Button (orange, rechts in der Kontrollleiste)
+- Bestätigen Sie die Aktion im Dialog
+- Der Gegner gewinnt den Frame mit dem aktuellen Punktestand
+- Das System berechnet den Frame-Gewinner basierend auf den erzielten Punkten
+- Der nächste Frame beginnt automatisch (falls Match nicht beendet)</p>
+<p>Nach Frame-Ende:
+- Der Frame-Score wird aktualisiert
+- Der Frame-Zähler erhöht sich
+- Das Protokoll-Modal zeigt das Frame-Ergebnis an
+- Bei laufendem Match: Klicken Sie auf "Bestätigen" um zum nächsten Frame zu gehen
+- Bei Match-Ende: Das Endergebnis wird angezeigt</p>
+<h3 id="match-ende">Match-Ende<a class="headerlink" href="#match-ende" title="Permanent link">&para;</a></h3>
+<p>Das Match endet automatisch, wenn ein Spieler die erforderliche Anzahl von Frames gewonnen hat:</p>
+<ul>
+<li><strong>Best of 3</strong>: 2 Frames gewonnen</li>
+<li><strong>Best of 5</strong>: 3 Frames gewonnen</li>
+<li><strong>Best of 7</strong>: 4 Frames gewonnen</li>
+<li><strong>Best of 9</strong>: 5 Frames gewonnen</li>
+</ul>
+<p>Nach Match-Ende:
+- Das System zeigt das Endergebnis an
+- Sie können das Protokoll einsehen
+- Das Spiel kann beendet werden</p>
+<h3 id="fouls-eintragen">Fouls eintragen<a class="headerlink" href="#fouls-eintragen" title="Permanent link">&para;</a></h3>
+<p>Für Fouls gibt es verschiedene Möglichkeiten:</p>
+<p><strong>Option 1: Punkte abziehen</strong>
+- Verwenden Sie die <strong>Undo-Funktion</strong> oder <strong>-1/-5/-10 Buttons</strong> um Punkte abzuziehen
+- Danach den <strong>Spielerwechsel</strong> durchführen</p>
+<p><strong>Option 2: Direkte Eingabe</strong>
+- Verwenden Sie den <strong>Calculator</strong> um die korrigierte Punktzahl einzugeben
+- Danach den <strong>Spielerwechsel</strong> durchführen</p>
+<p><strong>Wichtig</strong>: Bei einem Foul erhält der Gegner die Strafe als Punkte. Dies muss manuell über den Calculator oder die Punkt-Buttons eingegeben werden.</p>
+<h3 id="beispiel-spielablauf">Beispiel-Spielablauf<a class="headerlink" href="#beispiel-spielablauf" title="Permanent link">&para;</a></h3>
+<p><strong>Frame 1 - Best of 5:</strong></p>
+<ol>
+<li><strong>Start</strong>: Beide Spieler haben 0 Frames, Frame 1 beginnt</li>
+<li><strong>Spieler A</strong> versenkt roten Ball → Klick auf <strong>Rot-Button (1)</strong> → Break: 1</li>
+<li><strong>Spieler A</strong> versenkt blauen Ball → Klick auf <strong>Blau-Button (5)</strong> → Break: 6</li>
+<li><strong>Spieler A</strong> versenkt weiteren roten Ball → Klick auf <strong>Rot-Button (1)</strong> → Break: 7</li>
+<li><strong>Spieler A</strong> verschießt → Klick auf <strong>Frame-Score von Spieler B (0)</strong> → Spielerwechsel</li>
+<li>Break von 7 wird zum Frame-Score hinzugefügt (wenn Frame gewonnen)</li>
+<li><strong>Spieler B</strong> versenkt roten Ball → Klick auf <strong>Rot-Button (1)</strong> → Break: 1</li>
+<li><strong>Spieler B</strong> verschießt → Klick auf <strong>Frame-Score von Spieler A</strong> → Spielerwechsel</li>
+<li>... (Spiel läuft weiter)</li>
+<li><strong>Spieler A</strong> gewinnt Frame 1 → Frame-Score: 1:0</li>
+<li><strong>Frame 2</strong> beginnt automatisch</li>
+<li>... (weitere Frames)</li>
+<li><strong>Spieler A</strong> erreicht 3 Frames → Match gewonnen!</li>
+</ol>
+<h3 id="eingabe-zusammenfassung">Eingabe-Zusammenfassung<a class="headerlink" href="#eingabe-zusammenfassung" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Aktion</th>
+<th>Eingabe</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>+1 Punkt</strong> (Roter Ball)</td>
+<td>Klick auf Rot-Button (1) oder Frame-Score</td>
+</tr>
+<tr>
+<td><strong>+2 Punkte</strong> (Gelber Ball)</td>
+<td>Klick auf Gelb-Button (2)</td>
+</tr>
+<tr>
+<td><strong>+3 Punkte</strong> (Grüner Ball)</td>
+<td>Klick auf Grün-Button (3)</td>
+</tr>
+<tr>
+<td><strong>+4 Punkte</strong> (Brauner Ball)</td>
+<td>Klick auf Braun-Button (4)</td>
+</tr>
+<tr>
+<td><strong>+5 Punkte</strong> (Blauer Ball)</td>
+<td>Klick auf Blau-Button (5)</td>
+</tr>
+<tr>
+<td><strong>+6 Punkte</strong> (Pinker Ball)</td>
+<td>Klick auf Pink-Button (6)</td>
+</tr>
+<tr>
+<td><strong>+7 Punkte</strong> (Schwarzer Ball)</td>
+<td>Klick auf Schwarz-Button (7)</td>
+</tr>
+<tr>
+<td><strong>Foul</strong></td>
+<td>Klick auf Foul-Button → Gegner erhält Strafe-Punkte</td>
+</tr>
+<tr>
+<td><strong>Frame aufgeben</strong></td>
+<td>Klick auf Aufgeben-Button → Gegner gewinnt Frame</td>
+</tr>
+<tr>
+<td><strong>Spielerwechsel</strong></td>
+<td>Klick auf gegnerischen Frame-Score</td>
+</tr>
+<tr>
+<td><strong>Größere Breaks</strong></td>
+<td>Calculator-Button verwenden</td>
+</tr>
+<tr>
+<td><strong>Korrektur</strong></td>
+<td>Undo-Button oder -1/-5/-10 Buttons</td>
+</tr>
+<tr>
+<td><strong>Protokoll anzeigen</strong></td>
+<td>Klick auf Protokoll-Button (links)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="quickstart-spiele">Quickstart-Spiele<a class="headerlink" href="#quickstart-spiele" title="Permanent link">&para;</a></h2>
+<h3 id="best-of-3-2-frames-zum-gewinn">Best of 3 (2 Frames zum Gewinn)<a class="headerlink" href="#best-of-3-2-frames-zum-gewinn" title="Permanent link">&para;</a></h3>
+<p>Ideal für schnelle Trainingsspiele:
+- Klicken Sie auf <strong>"Best of 3"</strong> Button
+- Wählen Sie die Spieler
+- Klicken Sie auf <strong>"Start Game"</strong></p>
+<h3 id="best-of-5-3-frames-zum-gewinn">Best of 5 (3 Frames zum Gewinn)<a class="headerlink" href="#best-of-5-3-frames-zum-gewinn" title="Permanent link">&para;</a></h3>
+<p>Standard für die meisten Spiele:
+- Klicken Sie auf <strong>"Best of 5"</strong> Button
+- Wählen Sie die Spieler
+- Klicken Sie auf <strong>"Start Game"</strong></p>
+<h3 id="best-of-7-4-frames-zum-gewinn">Best of 7 (4 Frames zum Gewinn)<a class="headerlink" href="#best-of-7-4-frames-zum-gewinn" title="Permanent link">&para;</a></h3>
+<p>Für längere Spiele:
+- Klicken Sie auf <strong>"Best of 7"</strong> Button
+- Wählen Sie die Spieler
+- Klicken Sie auf <strong>"Start Game"</strong></p>
+<h3 id="best-of-9-5-frames-zum-gewinn">Best of 9 (5 Frames zum Gewinn)<a class="headerlink" href="#best-of-9-5-frames-zum-gewinn" title="Permanent link">&para;</a></h3>
+<p>Für Turniere und wichtige Spiele:
+- Klicken Sie auf <strong>"Best of 9"</strong> Button
+- Wählen Sie die Spieler
+- Klicken Sie auf <strong>"Start Game"</strong></p>
+<hr />
+<h2 id="neue-features-dezember-2024">Neue Features (Dezember 2024)<a class="headerlink" href="#neue-features-dezember-2024" title="Permanent link">&para;</a></h2>
+<h3 id="visuelle-pyramiden-anzeige">Visuelle Pyramiden-Anzeige<a class="headerlink" href="#visuelle-pyramiden-anzeige" title="Permanent link">&para;</a></h3>
+<p>Das Scoreboard zeigt jetzt eine realistische 3D-Pyramide der roten Bälle:</p>
+<p><strong>Funktionen:</strong>
+- <strong>6 Reds</strong>: 3 Reihen (1-2-3 Bälle)
+- <strong>10 Reds</strong>: 4 Reihen (1-2-3-4 Bälle)
+- <strong>15 Reds</strong>: 5 Reihen (1-2-3-4-5 Bälle)
+- <strong>Perspektivische Darstellung</strong>: Bälle werden mit realistischer Tiefenwirkung angezeigt
+- <strong>Dynamische Größe</strong>: Passt sich automatisch an Vollbild/Normal-Modus an</p>
+<h3 id="restpunkte-berechnung">Restpunkte-Berechnung<a class="headerlink" href="#restpunkte-berechnung" title="Permanent link">&para;</a></h3>
+<p>Das System zeigt automatisch die verbleibenden Punkte auf dem Tisch:</p>
+<p><strong>Berechnung:</strong>
+- <strong>Rote Phase</strong> (noch rote Bälle vorhanden):
+  - Jeder rote Ball = 1 Punkt
+  - Alle 6 farbigen Bälle = 27 Punkte (werden nach jedem farbigen Ball wieder aufgesetzt)
+  - <strong>Beispiel</strong>: 5 Reds übrig → 5 + 27 = <strong>32 Punkte möglich</strong></p>
+<ul>
+<li><strong>Farbige Phase</strong> (keine roten Bälle mehr):</li>
+<li>Nur noch die farbigen Bälle in Reihenfolge</li>
+<li><strong>Beispiel</strong>: Noch Gelb, Grün, Braun, Blau, Pink, Schwarz → 2+3+4+5+6+7 = <strong>27 Punkte möglich</strong></li>
+</ul>
+<p><strong>Nutzen:</strong>
+- Spieler können sofort sehen, ob ein "Snooker" (Aufholen unmöglich) vorliegt
+- Hilft bei der Entscheidung, ob ein Frame aufgegeben werden sollte
+- Zeigt den maximal möglichen Break an</p>
+<h3 id="intelligente-ball-verwaltung">Intelligente Ball-Verwaltung<a class="headerlink" href="#intelligente-ball-verwaltung" title="Permanent link">&para;</a></h3>
+<p>Das System erkennt automatisch, welche Bälle spielbar sind:</p>
+<p><strong>"On"-Bälle (spielbar):</strong>
+- Werden normal angezeigt
+- Sind klickbar
+- Zeigen bei Hover einen Vergrößerungseffekt</p>
+<p><strong>"Off"-Bälle (nicht spielbar):</strong>
+- Werden abgedunkelt (30% Transparenz)
+- Sind nicht klickbar
+- Zeigen "Ball not 'on'" beim Hover</p>
+<p><strong>Automatische Erkennung:</strong>
+- <strong>Nach rotem Ball</strong>: Alle farbigen Bälle sind "on"
+- <strong>Nach farbigem Ball</strong> (mit roten Bällen): Nur rote Bälle sind "on"
+- <strong>Keine roten mehr</strong>: Nächster farbiger Ball in Reihenfolge ist "on"
+- <strong>Letzter Ball versenkt</strong>: Alle Bälle "off" → Frame-Ende</p>
+<p><strong>Rote Bälle Counter:</strong>
+- Der rote Ball-Button zeigt die Anzahl der verbleibenden roten Bälle
+- Große Zahl wird mittig auf dem roten Ball angezeigt
+- Wenn 0 Reds → Ball wird automatisch abgedunkelt</p>
+<h3 id="aufgeben-funktion">Aufgeben-Funktion<a class="headerlink" href="#aufgeben-funktion" title="Permanent link">&para;</a></h3>
+<p>Spieler können einen Frame vorzeitig aufgeben:</p>
+<p><strong>Verwendung:</strong>
+1. Klick auf den orange <strong>"Aufgeben"</strong>-Button
+2. Bestätigen Sie im Dialog "Möchten Sie das Frame wirklich aufgeben?"
+3. Der Frame wird sofort beendet</p>
+<p><strong>Ergebnis:</strong>
+- Der Frame-Gewinner wird anhand der Punkte bestimmt (höherer Score gewinnt)
+- Die Punkte beider Spieler werden korrekt gespeichert
+- Der nächste Frame beginnt automatisch (falls Match nicht beendet)
+- Bei Match-Ende: Endergebnis-Modal wird angezeigt</p>
+<p><strong>Wann aufgeben?</strong>
+- Wenn ein "Snooker" vorliegt (Aufholen unmöglich)
+- Wenn der Punkteabstand zu groß ist
+- Bei schwerer Spielsituation</p>
+<h3 id="variable-anzahl-roter-balle">Variable Anzahl roter Bälle<a class="headerlink" href="#variable-anzahl-roter-balle" title="Permanent link">&para;</a></h3>
+<p>Das System unterstützt jetzt drei verschiedene Frame-Längen:</p>
+<p><strong>6 Reds (Schnelles Training):</strong>
+- <strong>Dauer</strong>: ca. 15-20 Minuten pro Frame
+- <strong>Maximum Break</strong>: 75 Punkte (6×1 + 6×7 + 27)
+- <strong>Ideal für</strong>: Anfänger, schnelle Trainingseinheiten, Zeitdruck
+- <strong>Pyramide</strong>: 3 Reihen (1-2-3)</p>
+<p><strong>10 Reds (Mittel):</strong>
+- <strong>Dauer</strong>: ca. 25-35 Minuten pro Frame
+- <strong>Maximum Break</strong>: 107 Punkte (10×1 + 10×7 + 27)
+- <strong>Ideal für</strong>: Fortgeschrittene, Club-Spiele, moderate Länge
+- <strong>Pyramide</strong>: 4 Reihen (1-2-3-4)</p>
+<p><strong>15 Reds (Vollständig):</strong>
+- <strong>Dauer</strong>: ca. 40-60 Minuten pro Frame
+- <strong>Maximum Break</strong>: 147 Punkte (15×1 + 15×7 + 27)
+- <strong>Ideal für</strong>: Turniere, erfahrene Spieler, offizielle Matches
+- <strong>Pyramide</strong>: 5 Reihen (1-2-3-4-5)</p>
+<p><strong>Auswahl:</strong>
+- Bei Spielstart: Wählen Sie die gewünschte Anzahl roter Bälle
+- Die Pyramiden-Anzeige passt sich automatisch an
+- Die Restpunkte-Berechnung berücksichtigt die gewählte Anzahl</p>
+<hr />
+<h2 id="tipps-fur-effiziente-bedienung">Tipps für effiziente Bedienung<a class="headerlink" href="#tipps-fur-effiziente-bedienung" title="Permanent link">&para;</a></h2>
+<h3 id="schnelle-break-eingabe">Schnelle Break-Eingabe<a class="headerlink" href="#schnelle-break-eingabe" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Für rote Bälle</strong>: Verwenden Sie den <strong>Frame-Score-Klick</strong> (+1) - am schnellsten</li>
+<li><strong>Für farbige Bälle</strong>: Verwenden Sie die <strong>farbcodierten Buttons</strong> - visuell klar</li>
+<li><strong>Für größere Breaks</strong>: Verwenden Sie den <strong>Calculator</strong> für direkte Eingabe</li>
+</ol>
+<h3 id="spielerwechsel-optimieren">Spielerwechsel optimieren<a class="headerlink" href="#spielerwechsel-optimieren" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Immer auf den gegnerischen Frame-Score klicken</strong> - das ist schneller als andere Methoden</li>
+<li>Der Break wird automatisch beendet und zum Frame-Score hinzugefügt</li>
+</ul>
+<h3 id="break-tracking">Break-Tracking<a class="headerlink" href="#break-tracking" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Der <strong>aktuelle Break</strong> wird nur beim aktiven Spieler angezeigt</li>
+<li>Nach Spielerwechsel wird der Break zum Frame-Score hinzugefügt</li>
+<li>Der <strong>High Break (HB)</strong> wird automatisch aktualisiert, wenn ein neuer Rekord erreicht wird</li>
+</ul>
+<h3 id="frame-management">Frame-Management<a class="headerlink" href="#frame-management" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Die <strong>Frame-Nummer</strong> wird automatisch erhöht</li>
+<li>Das <strong>Match-Format</strong> (Best of X) wird in der Mitte angezeigt</li>
+<li>Der <strong>Frame-Score</strong> zeigt gewonnene Frames / Frames zum Gewinn</li>
+</ul>
+<hr />
+<h2 id="fehlerbehebung">Fehlerbehebung<a class="headerlink" href="#fehlerbehebung" title="Permanent link">&para;</a></h2>
+<h3 id="break-wird-nicht-angezeigt">Break wird nicht angezeigt<a class="headerlink" href="#break-wird-nicht-angezeigt" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Prüfen Sie</strong>: Ist der Spieler aktiv? (Grüner Rahmen)</li>
+<li>Der Break wird nur beim aktiven Spieler angezeigt</li>
+<li>Nach Spielerwechsel wird der Break zum Frame-Score hinzugefügt</li>
+</ul>
+<h3 id="falsche-punkte-eingegeben">Falsche Punkte eingegeben<a class="headerlink" href="#falsche-punkte-eingegeben" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Undo-Button</strong>: Macht die letzte Aktion rückgängig</li>
+<li><strong>-1/-5/-10 Buttons</strong>: Ziehen Punkte ab</li>
+<li><strong>Calculator</strong>: Für größere Korrekturen</li>
+</ul>
+<h3 id="spielerwechsel-funktioniert-nicht">Spielerwechsel funktioniert nicht<a class="headerlink" href="#spielerwechsel-funktioniert-nicht" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Klicken Sie auf den Frame-Score des anderen Spielers</strong> (nicht auf den eigenen)</li>
+<li>Der grüne Rahmen zeigt den aktiven Spieler an</li>
+<li>Prüfen Sie, ob das Spiel läuft (nicht pausiert)</li>
+</ul>
+<h3 id="frame-score-wird-nicht-aktualisiert">Frame-Score wird nicht aktualisiert<a class="headerlink" href="#frame-score-wird-nicht-aktualisiert" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Der Frame-Score wird nur aktualisiert, wenn ein Frame gewonnen wird</li>
+<li>Einzelne Breaks werden zum Frame-Score addiert, wenn der Frame gewonnen wird</li>
+<li>Prüfen Sie, ob der Frame bereits beendet wurde</li>
+</ul>
+<h3 id="high-break-wird-nicht-aktualisiert">High Break wird nicht aktualisiert<a class="headerlink" href="#high-break-wird-nicht-aktualisiert" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Der High Break wird nur aktualisiert, wenn ein neuer Rekord erreicht wird</li>
+<li>Prüfen Sie, ob der aktuelle Break höher ist als der bisherige High Break</li>
+<li>Der High Break wird pro Spiel (nicht pro Frame) geführt</li>
+</ul>
+<hr />
+<h2 id="turnier-integration">Turnier-Integration<a class="headerlink" href="#turnier-integration" title="Permanent link">&para;</a></h2>
+<h3 id="snooker-in-turnieren">Snooker in Turnieren<a class="headerlink" href="#snooker-in-turnieren" title="Permanent link">&para;</a></h3>
+<p>Das Snooker Scoreboard ist vollständig in das Turniersystem integriert:</p>
+<ul>
+<li><strong>Automatische Frame-Zählung</strong> für Turnierspiele</li>
+<li><strong>Ergebnis-Übermittlung</strong> an das Turniersystem</li>
+<li><strong>Spielstand-Anzeige</strong> in der Turnierübersicht</li>
+<li><strong>Protokoll-Erstellung</strong> für offizielle Spiele</li>
+</ul>
+<h3 id="liga-integration">Liga-Integration<a class="headerlink" href="#liga-integration" title="Permanent link">&para;</a></h3>
+<p>Snooker-Ligen werden unterstützt:</p>
+<ul>
+<li><strong>Frame-Ergebnisse</strong> werden automatisch in die Liga-Tabelle übernommen</li>
+<li><strong>High Breaks</strong> werden in den Statistiken erfasst</li>
+<li><strong>Spielstände</strong> werden für die Liga-Wertung verwendet</li>
+</ul>
+<hr />
+<h2 id="haufige-fragen-faq">Häufige Fragen (FAQ)<a class="headerlink" href="#haufige-fragen-faq" title="Permanent link">&para;</a></h2>
+<h3 id="wie-viele-punkte-kann-man-maximal-in-einem-frame-erzielen">Wie viele Punkte kann man maximal in einem Frame erzielen?<a class="headerlink" href="#wie-viele-punkte-kann-man-maximal-in-einem-frame-erzielen" title="Permanent link">&para;</a></h3>
+<p>Das hängt von der Anzahl der roten Bälle ab:</p>
+<p><strong>15 Reds (vollständig):</strong>
+- <strong>147 Punkte</strong> (Maximum Break)
+- 15 rote Bälle (15 Punkte) + 15 schwarze Bälle (15 × 7 = 105 Punkte) = 120 Punkte
+- Danach alle farbigen Bälle in Reihenfolge: Gelb (2) + Grün (3) + Braun (4) + Blau (5) + Pink (6) + Schwarz (7) = 27 Punkte
+- <strong>Gesamt: 147 Punkte</strong></p>
+<p><strong>10 Reds:</strong>
+- <strong>107 Punkte</strong> (Maximum Break)
+- 10 rote Bälle (10 Punkte) + 10 schwarze Bälle (10 × 7 = 70 Punkte) = 80 Punkte
+- Danach alle farbigen Bälle: 27 Punkte
+- <strong>Gesamt: 107 Punkte</strong></p>
+<p><strong>6 Reds:</strong>
+- <strong>75 Punkte</strong> (Maximum Break)
+- 6 rote Bälle (6 Punkte) + 6 schwarze Bälle (6 × 7 = 42 Punkte) = 48 Punkte
+- Danach alle farbigen Bälle: 27 Punkte
+- <strong>Gesamt: 75 Punkte</strong></p>
+<h3 id="was-passiert-wenn-beide-spieler-die-gleiche-anzahl-von-frames-haben">Was passiert, wenn beide Spieler die gleiche Anzahl von Frames haben?<a class="headerlink" href="#was-passiert-wenn-beide-spieler-die-gleiche-anzahl-von-frames-haben" title="Permanent link">&para;</a></h3>
+<p>Bei einem Unentschieden (z.B. 2:2 bei Best of 5) wird ein <strong>Entscheidungsframe</strong> gespielt, bis ein Spieler gewinnt.</p>
+<h3 id="wie-werden-fouls-gehandhabt">Wie werden Fouls gehandhabt?<a class="headerlink" href="#wie-werden-fouls-gehandhabt" title="Permanent link">&para;</a></h3>
+<p>Fouls müssen manuell eingegeben werden:
+1. Punkte vom Break abziehen (oder korrigieren)
+2. Foul-Punkte zum Gegner hinzufügen (über Calculator oder Punkt-Buttons)
+3. Spielerwechsel durchführen</p>
+<h3 id="kann-ich-ein-spiel-pausieren">Kann ich ein Spiel pausieren?<a class="headerlink" href="#kann-ich-ein-spiel-pausieren" title="Permanent link">&para;</a></h3>
+<p>Ja, über das <strong>Menü</strong> können Sie:
+- Das Spiel pausieren
+- Das Spiel beenden
+- Zurück zum Willkommensbildschirm</p>
+<h3 id="wie-sehe-ich-die-spielstatistiken">Wie sehe ich die Spielstatistiken?<a class="headerlink" href="#wie-sehe-ich-die-spielstatistiken" title="Permanent link">&para;</a></h3>
+<p>Nach Spielende können Sie:
+- Das <strong>Protokoll</strong> einsehen
+- <strong>High Breaks</strong> und <strong>Frame-Ergebnisse</strong> anzeigen
+- Die <strong>Spielstatistiken</strong> im Turnier-/Liga-System prüfen</p>
+<h3 id="warum-zeigt-der-rote-ball-eine-zahl">Warum zeigt der rote Ball eine Zahl?<a class="headerlink" href="#warum-zeigt-der-rote-ball-eine-zahl" title="Permanent link">&para;</a></h3>
+<p>Die Zahl auf dem roten Ball zeigt die <strong>Anzahl der verbleibenden roten Bälle</strong> an:
+- Zu Beginn: 6, 10 oder 15 (je nach gewählter Variante)
+- Nach jedem versenkten roten Ball: Zahl wird um 1 reduziert
+- Bei 0: Der rote Ball wird abgedunkelt und ist nicht mehr spielbar</p>
+<h3 id="was-bedeuten-die-abgedunkelten-balle">Was bedeuten die abgedunkelten Bälle?<a class="headerlink" href="#was-bedeuten-die-abgedunkelten-balle" title="Permanent link">&para;</a></h3>
+<p>Abgedunkelte Bälle sind <strong>"off"</strong> (nicht spielbar):
+- Sie können nicht angeklickt werden
+- Das System zeigt "Ball not 'on'" beim Hover
+- Die Spielregeln erlauben nur bestimmte Bälle als Ziel</p>
+<p><strong>Regeln:</strong>
+- Nach rotem Ball: Nur farbige Bälle sind "on"
+- Nach farbigem Ball: Nur rote Bälle sind "on" (falls noch vorhanden)
+- Keine roten mehr: Farbige Bälle in Reihenfolge (Gelb → Grün → Braun → Blau → Pink → Schwarz)</p>
+<h3 id="was-zeigt-x-punkte-ubrig-an">Was zeigt "X Punkte übrig" an?<a class="headerlink" href="#was-zeigt-x-punkte-ubrig-an" title="Permanent link">&para;</a></h3>
+<p>Die <strong>Restpunkte-Anzeige</strong> zeigt die maximal erreichbaren Punkte auf dem Tisch:
+- Hilft zu erkennen, ob ein Aufholen noch möglich ist
+- Wird automatisch nach jedem versenkten Ball aktualisiert
+- Berücksichtigt die korrekte Snooker-Regel (Reds respawn colors)</p>
+<p><strong>Beispiel:</strong>
+- 3 rote Bälle übrig → 3 + 27 = <strong>30 Punkte möglich</strong>
+- Spieler A: 45 Punkte, Spieler B: 20 Punkte
+- Differenz: 25 Punkte → Spieler B kann noch aufholen (30 &gt; 25)</p>
+<h3 id="wann-sollte-ich-aufgeben">Wann sollte ich aufgeben?<a class="headerlink" href="#wann-sollte-ich-aufgeben" title="Permanent link">&para;</a></h3>
+<p>Aufgeben ist sinnvoll, wenn:
+- Ein <strong>"Snooker"</strong> vorliegt (Restpunkte &lt; Punktedifferenz)
+- Der Gegner einen uneinholbaren Vorsprung hat
+- Die Spielsituation aussichtslos ist</p>
+<p><strong>Beispiel für Snooker:</strong>
+- Spieler A: 60 Punkte, Spieler B: 25 Punkte
+- Differenz: 35 Punkte
+- Restpunkte: 30 Punkte
+- → Spieler B kann nicht mehr gewinnen → Aufgeben ist fair</p>
+<hr />
+<h2 id="unterstutzung">Unterstützung<a class="headerlink" href="#unterstutzung" title="Permanent link">&para;</a></h2>
+<p>Bei Fragen oder Problemen wenden Sie sich bitte an:
+- Den <strong>Schiedsrichter</strong> oder <strong>Turnierleiter</strong>
+- Die <strong>Club-Verwaltung</strong>
+- Den <strong>System-Administrator</strong></p>
+<hr />
+<p><strong>Viel Erfolg beim Snooker-Spielen!</strong></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/GernotUllrich/carambus" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="http://www.billardclub-wedel.de/" target="_blank" rel="noopener" title="www.billardclub-wedel.de" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M351.9 280H161c2.9 64.5 17.2 123.9 37.5 167.4 11.4 24.5 23.7 41.8 35.1 52.4 11.2 10.5 18.9 12.2 22.9 12.2s11.7-1.7 22.9-12.2c11.4-10.6 23.7-28 35.1-52.4 20.3-43.5 34.6-102.9 37.5-167.4zm-191-48h190.9c-2.8-64.5-17.1-123.9-37.4-167.4-11.4-24.4-23.7-41.8-35.1-52.4C268.1 1.7 260.4 0 256.4 0s-11.7 1.7-22.9 12.2c-11.4 10.6-23.7 28-35.1 52.4-20.3 43.5-34.6 102.9-37.5 167.4m-48 0c3.5-85.6 25.6-165.1 57.9-217.3C78.7 47.3 10.9 131.2 1.5 232zM1.5 280c9.4 100.8 77.2 184.7 169.3 217.3-32.3-52.2-54.4-131.7-57.9-217.3zm398.4 0c-3.5 85.6-25.6 165.1-57.9 217.3 92.1-32.7 159.9-116.5 169.3-217.3zm111.4-48C501.9 131.2 434.1 47.3 342 14.7c32.3 52.2 54.4 131.7 57.9 217.3z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.indexes", "search.suggest", "search.highlight", "header.autohide", "toc.follow"], "search": "../../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "In Zwischenablage kopiert", "clipboard.copy": "In Zwischenablage kopieren", "search.result.more.one": "1 weiteres Suchergebnis auf dieser Seite", "search.result.more.other": "# weitere Suchergebnisse auf dieser Seite", "search.result.none": "Keine Suchergebnisse", "search.result.one": "1 Suchergebnis", "search.result.other": "# Suchergebnisse", "search.result.placeholder": "Suchbegriff eingeben", "search.result.term.missing": "Es fehlt", "select.version": "Version ausw\u00e4hlen"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.92b07e13.min.js"></script>
+      
+        <script src="../../javascripts/mathjax.js"></script>
+      
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>

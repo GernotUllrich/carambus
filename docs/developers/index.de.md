@@ -47,7 +47,7 @@ yarn build:css
 rails server
 ```
 
-➡️ **[Detaillierte Getting-Started-Anleitung](getting-started.de.md)**
+➡️ **[Detaillierte Getting-Started-Anleitung](getting-started.md)**
 
 ### 2. Erste Schritte (30 Minuten)
 
@@ -57,7 +57,7 @@ rails server
 4. **Erste Änderung**: Kleine Verbesserung implementieren
 5. **Pull Request**: Contribution einreichen
 
-➡️ **[Developer Guide](developer-guide.de.md)**
+➡️ **[Developer Guide](developer-guide.md)**
 
 ## 📚 Hauptthemen
 
@@ -69,7 +69,7 @@ rails server
 - Credentials konfigurieren
 - Erste Schritte
 
-➡️ **[Getting Started für Entwickler](getting-started.de.md)**
+➡️ **[Getting Started für Entwickler](getting-started.md)**
 
 ### 2. Architektur & Design
 
@@ -86,7 +86,7 @@ rails server
 - Presenters/Decorators
 - Repository Pattern (teilweise)
 
-➡️ **[Developer Guide - Architektur](developer-guide.de.md#architektur)**
+➡️ **[Developer Guide - Architektur](developer-guide.md#architektur)**
 
 ### 3. Datenbank
 
@@ -103,8 +103,8 @@ rails server
 - N+1-Problem vermeiden
 - Caching-Strategien
 
-➡️ **[Datenbankdesign](database-design.de.md)**  
-➡️ **[ER-Diagramm](er-diagram.de.md)**
+➡️ **[Datenbankdesign](database-design.md)**  
+➡️ **[ER-Diagramm](er-diagram.md)**
 
 ### 4. API & Integration
 
@@ -120,7 +120,7 @@ rails server
 - Client-Integration
 - Troubleshooting
 
-➡️ **[API-Referenz](api-reference.de.md)**
+➡️ **[API-Referenz](api-reference.md)**
 
 ### 5. Frontend-Entwicklung
 
@@ -135,7 +135,7 @@ rails server
 - Tailwind für CSS
 - Build-Prozess
 
-➡️ **[Developer Guide - Frontend](developer-guide.de.md#frontend)**
+➡️ **[Developer Guide - Frontend](developer-guide.md#frontend)**
 
 ### 6. Testing
 
@@ -154,7 +154,7 @@ rails server
 - Fixtures vs. Factories
 - Mocking & Stubbing
 
-➡️ **[Testing & Debugging](testing-debugging.de.md)**
+➡️ **[Testing & Debugging](testing-debugging.md)**
 
 ### 7. Deployment & DevOps
 
@@ -172,8 +172,8 @@ rails server
 - Multi-Environment Setup
 - Deployment-Scripts
 
-➡️ **[Deployment Workflow](deployment-workflow.de.md)**  
-➡️ **[Scenario Management](scenario-management.de.md)**
+➡️ **[Deployment Workflow](deployment-workflow.md)**  
+➡️ **[Scenario Management](scenario-management.md)**
 
 ### 8. Performance & Optimierung
 
@@ -189,7 +189,7 @@ rails server
 - Asset-Optimierung
 - Background Jobs
 
-➡️ **[Paper Trail Optimization](paper-trail-optimization.de.md)**
+➡️ **[Paper Trail Optimization](paper-trail-optimization.md)**
 
 ### 9. Datenverwaltung
 
@@ -206,8 +206,8 @@ rails server
 - Database-Partitioning
 - Sharding-Strategien
 
-➡️ **[Datenverwaltung](data-management.de.md)**  
-➡️ **[Datenbank-Partitionierung](database-partitioning.de.md)**
+➡️ **[Datenverwaltung](data-management.md)**  
+➡️ **[Datenbank-Partitionierung](database-partitioning.md)**
 
 ## 🏗️ Projekt-Struktur
 
@@ -281,7 +281,7 @@ rails clubcloud:sync         # ClubCloud-Daten synchronisieren
 rails tournament:reconstruct # Spielplan rekonstruieren
 ```
 
-➡️ **[Rake Tasks & Debugging](rake-tasks-debugging.de.md)**
+➡️ **[Rake Tasks & Debugging](rake-tasks-debugging.md)**
 
 ## 💻 Entwickler-Workflows
 
@@ -474,14 +474,14 @@ chore: Update dependencies
 
 ### Interne Dokumentation
 
-- **[Getting Started](getting-started.de.md)**: Entwicklungsumgebung
-- **[Developer Guide](developer-guide.de.md)**: Umfassendes Entwicklerhandbuch
-- **[Database Design](database-design.de.md)**: Datenbank-Schema
-- **[ER-Diagramm](er-diagram.de.md)**: Visuelle Datenbankübersicht
-- **[API Reference](api-reference.de.md)**: API-Dokumentation
-- **[Deployment Workflow](deployment-workflow.de.md)**: Deployment-Prozesse
-- **[Scenario Management](scenario-management.de.md)**: Multi-Environment
-- **[Testing & Debugging](testing-debugging.de.md)**: Test-Strategien
+- **[Getting Started](getting-started.md)**: Entwicklungsumgebung
+- **[Developer Guide](developer-guide.md)**: Umfassendes Entwicklerhandbuch
+- **[Database Design](database-design.md)**: Datenbank-Schema
+- **[ER-Diagramm](er-diagram.md)**: Visuelle Datenbankübersicht
+- **[API Reference](api-reference.md)**: API-Dokumentation
+- **[Deployment Workflow](deployment-workflow.md)**: Deployment-Prozesse
+- **[Scenario Management](scenario-management.md)**: Multi-Environment
+- **[Testing & Debugging](testing-debugging.md)**: Test-Strategien
 
 ### Externe Ressourcen
 
@@ -503,22 +503,22 @@ chore: Update dependencies
 
 ## 🔗 Alle Entwickler-Dokumente
 
-1. **[Getting Started](getting-started.de.md)** - Entwicklungsumgebung einrichten
-2. **[Developer Guide](developer-guide.de.md)** - Umfassendes Entwicklerhandbuch
-3. **[Database Design](database-design.de.md)** - Datenbank-Schema und Modelle
-4. **[ER-Diagramm](er-diagram.de.md)** - Visuelle Datenbankübersicht
-5. **[API Reference](api-reference.de.md)** - REST-API Dokumentation
-6. **[Scenario Management](scenario-management.de.md)** - Multi-Environment Setup
-7. **[Testing & Debugging](testing-debugging.de.md)** - Test-Strategien
-8. **[Deployment Workflow](deployment-workflow.de.md)** - Deployment-Prozesse
-9. **[Server Management Scripts](server-scripts.de.md)** - Automatisierungs-Scripts
-10. **[Raspberry Pi Scripts](raspberry-pi-scripts.de.md)** - RasPi-spezifische Tools
-11. **[Data Management](data-management.de.md)** - Datenverwaltung
-12. **[Database Partitioning](database-partitioning.de.md)** - Partitionierungs-Strategien
-13. **[Paper Trail Optimization](paper-trail-optimization.de.md)** - Audit-Log-Performance
-14. **[Game Plan Reconstruction](game-plan-reconstruction.de.md)** - Spielplan-Algorithmen
-15. **[Tournament Duplicates](tournament-duplicates.de.md)** - Duplikat-Handling
-16. **[Region Tagging](region-tagging.de.md)** - Geografische Zuordnung
+1. **[Getting Started](getting-started.md)** - Entwicklungsumgebung einrichten
+2. **[Developer Guide](developer-guide.md)** - Umfassendes Entwicklerhandbuch
+3. **[Database Design](database-design.md)** - Datenbank-Schema und Modelle
+4. **[ER-Diagramm](er-diagram.md)** - Visuelle Datenbankübersicht
+5. **[API Reference](api-reference.md)** - REST-API Dokumentation
+6. **[Scenario Management](scenario-management.md)** - Multi-Environment Setup
+7. **[Testing & Debugging](testing-debugging.md)** - Test-Strategien
+8. **[Deployment Workflow](deployment-workflow.md)** - Deployment-Prozesse
+9. **[Server Management Scripts](server-scripts.md)** - Automatisierungs-Scripts
+10. **[Raspberry Pi Scripts](raspberry-pi-scripts.md)** - RasPi-spezifische Tools
+11. **[Data Management](data-management.md)** - Datenverwaltung
+12. **[Database Partitioning](database-partitioning.md)** - Partitionierungs-Strategien
+13. **[Paper Trail Optimization](paper-trail-optimization.md)** - Audit-Log-Performance
+14. **[Game Plan Reconstruction](game-plan-reconstruction.md)** - Spielplan-Algorithmen
+15. **[Tournament Duplicates](tournament-duplicates.md)** - Duplikat-Handling
+16. **[Region Tagging](region-tagging.md)** - Geografische Zuordnung
 
 ---
 
