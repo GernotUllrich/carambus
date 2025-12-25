@@ -1,0 +1,61 @@
+<% if @game.present? %>
+  <div class="overlay-container" data-controller="streaming-overlay" data-streaming-overlay-table-id-value="<%= @table&.id %>">
+    <!-- Player A -->
+    <div class="player-section">
+      <div class="player-name">
+        <%= @game.player_a&.display_name || "Spieler 1" %>
+      </div>
+      <div class="player-score" data-streaming-overlay-target="scoreA">
+        <%= @game.score_a || 0 %>
+      </div>
+      <% if @game.respond_to?(:grand_average_a) && @game.grand_average_a.present? %>
+        <div class="player-stats">
+          GD: <%= number_with_precision(@game.grand_average_a, precision: 3) %>
+        </div>
+      <% end %>
+    </div>
+    
+    <!-- VS Section -->
+    <div class="vs-section">
+      <div class="vs-text">
+        <span class="live-indicator"></span>VS
+      </div>
+      <% if @tournament.present? %>
+        <div class="tournament-info">
+          <%= @tournament.name.truncate(30) %>
+        </div>
+      <% end %>
+    </div>
+    
+    <!-- Player B -->
+    <div class="player-section">
+      <div class="player-name">
+        <%= @game.player_b&.display_name || "Spieler 2" %>
+      </div>
+      <div class="player-score" data-streaming-overlay-target="scoreB">
+        <%= @game.score_b || 0 %>
+      </div>
+      <% if @game.respond_to?(:grand_average_b) && @game.grand_average_b.present? %>
+        <div class="player-stats">
+          GD: <%= number_with_precision(@game.grand_average_b, precision: 3) %>
+        </div>
+      <% end %>
+    </div>
+    
+    <!-- Table Info -->
+    <div class="table-info">
+      Tisch <%= @table&.number || "?" %> • <%= @location&.name %>
+    </div>
+  </div>
+<% else %>
+  <!-- No active game -->
+  <div class="no-game">
+    <div class="no-game-title">
+      <%= @location&.name || "Carambus" %>
+    </div>
+    <div class="no-game-subtitle">
+      Tisch <%= @table&.number || "?" %> • Kein aktives Spiel
+    </div>
+  </div>
+<% end %>
+

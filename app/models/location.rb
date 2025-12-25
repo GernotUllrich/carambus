@@ -35,6 +35,7 @@ class Location < ApplicationRecord
   belongs_to :organizer, polymorphic: true, optional: true
   has_many :tables
   has_many :tournaments, foreign_key: :location_id
+  has_many :stream_configurations, dependent: :destroy
 
   self.ignored_columns = ["club_id", "region_ids"]
 

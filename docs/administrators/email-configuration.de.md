@@ -232,7 +232,7 @@ sudo systemctl restart carambus_bcw
 
 ## Siehe auch
 
-- [Deployment Workflow](deployment_workflow.md)
-- [Server Architektur](server_architektur.md)
-- [Scenario Management](scenario_management.md)
+- [Deployment Workflow](../developers/deployment-workflow.de.md)
+- [Server Architektur](server-architecture.de.md)
+- [Scenario Management](../developers/scenario-management.de.md)
 

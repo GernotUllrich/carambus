@@ -1,0 +1,62 @@
+# Systemd service template for Carambus YouTube streaming
+# 
+# Installation on Raspberry Pi:
+#   sudo cp carambus-stream@.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable carambus-stream@1.service
+#   sudo systemctl start carambus-stream@1.service
+#
+# Usage:
+#   sudo systemctl start carambus-stream@1.service   # Start stream for table 1
+#   sudo systemctl stop carambus-stream@1.service    # Stop stream
+#   sudo systemctl status carambus-stream@1.service  # Check status
+#   sudo journalctl -u carambus-stream@1.service -f  # Follow logs
+#
+
+[Unit]
+Description=Carambus YouTube Stream for Table %i
+After=network-online.target graphical.target
+Wants=network-online.target
+# Don't start if scoreboard is not ready
+After=carambus-scoreboard@%i.service
+
+[Service]
+Type=simple
+User=pi
+Group=pi
+
+# Read configuration from table-specific file
+EnvironmentFile=/etc/carambus/stream-table-%i.conf
+
+# Run the streaming script
+ExecStart=/usr/local/bin/carambus-stream.sh %i
+
+# Restart on failure
+Restart=on-failure
+RestartSec=10
+StartLimitInterval=300
+StartLimitBurst=5
+
+# Resource limits
+# Limit CPU to 80% (streaming is CPU intensive on Raspi 4)
+CPUQuota=80%
+
+# Memory limit (FFmpeg + Chromium can use significant memory)
+MemoryMax=1G
+
+# Logging
+StandardOutput=append:/var/log/carambus/stream-table-%i.log
+StandardError=append:/var/log/carambus/stream-table-%i-error.log
+SyslogIdentifier=carambus-stream-%i
+
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=true
+
+# Allow access to video devices
+DeviceAllow=/dev/video0 rw
+DeviceAllow=/dev/video1 rw
+
+[Install]
+WantedBy=multi-user.target
+

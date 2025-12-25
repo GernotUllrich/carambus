@@ -3,7 +3,7 @@
 ## 📋 Verfügbare Installations-Guides
 
 ### 🎯 Scenario Management (Empfohlen)
-**[Scenario Management](scenario_management.md)** - Modernes Deployment-System für verschiedene Carambus-Umgebungen.
+**[Scenario Management](../developers/scenario-management.de.md)** - Modernes Deployment-System für verschiedene Carambus-Umgebungen.
 
 **Unterstützte Szenarien:**
 - **carambus** - Hauptproduktionsumgebung
@@ -89,14 +89,14 @@ Das Scenario Management konfiguriert automatisch:
 
 ## 📖 Weitere Dokumentation
 
-- **[Scenario Management](scenario_management.md)** - Vollständiger Deployment-Guide
-- **[Entwicklerleitfaden](DEVELOPER_GUIDE.md)** - Entwicklerdokumentation
-- **[API-Dokumentation](API.md)** - API-Referenz
+- **[Scenario Management](../developers/scenario-management.de.md)** - Vollständiger Deployment-Guide
+- **[Entwicklerleitfaden](../developers/developer-guide.de.md)** - Entwicklerdokumentation
+- **[API-Dokumentation](../reference/API.de.md)** - API-Referenz
 
 ## 🆘 Support
 
 Bei Problemen:
-1. Prüfen Sie die **[Scenario Management](scenario_management.md)**-Seite
+1. Prüfen Sie die **[Scenario Management](../developers/scenario-management.de.md)**-Seite
 2. Logs anschauen: `tail -f log/production.log`
 3. Service-Status: `systemctl status puma-carambus`
 4. System neu starten: `sudo reboot`

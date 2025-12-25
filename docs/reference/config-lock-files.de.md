@@ -147,7 +147,7 @@ Prüfen Sie:
 
 ## Siehe auch
 
-- [Deployment-Prozess](DEPLOYMENT.md)
-- [Szenario-Verwaltung](SCENARIOS.md)
+- [Deployment-Prozess](../developers/deployment-workflow.de.md)
+- [Szenario-Verwaltung](../developers/scenario-management.de.md)
 - [Produktions-Setup](PRODUCTION_SETUP.md)
 

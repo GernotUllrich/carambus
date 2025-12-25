@@ -35,7 +35,7 @@ cd carambus_master
 - Scenario-Konfiguration in `carambus_data/scenarios/<scenario_name>/config.yml`
 - Raspberry Pi läuft bereits mit OS
 
-**Dokumentiert in**: [Client-Only Installation](client_only_installation.md)
+**Dokumentiert in**: [Client-Only Installation](raspberry-pi-client.de.md)
 
 **Beispiel**:
 ```bash
@@ -61,7 +61,7 @@ cd carambus_master
 
 **Use Case**: Tablet oder RasPi, das nur als Display dient
 
-**Dokumentiert in**: [Client-Only Installation](client_only_installation.md)
+**Dokumentiert in**: [Client-Only Installation](raspberry-pi-client.de.md)
 
 ---
 
@@ -219,7 +219,7 @@ ssh pi@raspberrypi.local '/path/to/start-scoreboard.sh'
 - Wartet auf Puma-Server
 - Startet Browser automatisch
 
-**Dokumentiert in**: [Scoreboard Autostart Setup](scoreboard_autostart_setup.md)
+**Dokumentiert in**: [Scoreboard Autostart Setup](scoreboard-autostart.de.md)
 
 ---
 
@@ -446,10 +446,10 @@ ssh -p 8910 www-data@raspberrypi './bin/cleanup-chromium.sh && ./bin/restart-sco
 
 ## Siehe auch
 
-- [Client-Only Installation](client_only_installation.md) - Detaillierte Installationsanleitung
-- [Scoreboard Autostart Setup](scoreboard_autostart_setup.md) - Autostart-Konfiguration
-- [Deployment Workflow](deployment_workflow.md) - Vollständiger Deployment-Prozess
-- [Scenario Management](scenario_management.md) - Scenario-System-Übersicht
+- [Client-Only Installation](raspberry-pi-client.de.md) - Detaillierte Installationsanleitung
+- [Scoreboard Autostart Setup](scoreboard-autostart.de.md) - Autostart-Konfiguration
+- [Deployment Workflow](../developers/deployment-workflow.de.md) - Vollständiger Deployment-Prozess
+- [Scenario Management](../developers/scenario-management.de.md) - Scenario-System-Übersicht
 
 
 

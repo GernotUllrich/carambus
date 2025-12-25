@@ -133,7 +133,7 @@ Die Anwendung verwendet Rails Concerns, um Funktionalität zu teilen:
 
 Für die Einrichtung einer neuen Entwicklungsdatenbank wird empfohlen, einen bestehenden Datenbank-Dump zu importieren. Detaillierte Anweisungen finden Sie in der separaten Dokumentation:
 
-**[🗄️ Datenbank-Setup Anleitung](DATABASE_SETUP.md)**
+**[🗄️ Datenbank-Setup Anleitung](../administrators/database-setup.de.md)**
 
 ### Schnellstart
 ```bash
@@ -266,7 +266,7 @@ Das Scoreboard-System bietet Live-Updates für Turnier-Anzeigen:
 - **WebSocket-Integration**: Live-Updates über Action Cable
 
 #### Einrichtung
-Siehe [Scoreboard-Setup](scoreboard_autostart_setup.md) für detaillierte Konfiguration.
+Siehe [Scoreboard-Setup](../administrators/scoreboard-autostart.de.md) für detaillierte Konfiguration.
 
 ### Datensynchronisation
 Integration mit externen Billard-Datenbanken:
@@ -527,7 +527,7 @@ Das Scenario Management System wurde 2024 umfassend refaktoriert, um Code-Duplik
 - **Flexibilität**: Granulare Kontrolle über einzelne Schritte
 - **Zuverlässigkeit**: Idempotente Operationen, keine Abhängigkeitsfehler
 
-**[🚀 Vollständige Scenario Management Dokumentation](scenario_management.md)**
+**[🚀 Vollständige Scenario Management Dokumentation](scenario-management.de.md)**
 
 ### Produktions-Setup
 Die Anwendung ist für den Einsatz auf Raspberry Pi oder ähnlicher Hardware konzipiert:
@@ -614,11 +614,11 @@ sudo systemctl status carambus
 ## Zusätzliche Ressourcen
 
 ### Dokumentation
-- [Datenbankdesign](database_design.md): Detailliertes Datenbankschema
-- [Scoreboard-Setup](scoreboard_autostart_setup.md): Scoreboard-Konfiguration
-- [Turnierverwaltung](tournament.md): Turnier-Workflows
-- [Installationsübersicht](installation_overview.md): Installationsübersicht
-- [Scenario Management](scenario_management.md): Deployment-Konfiguration und Multi-Environment-Support
+- [Datenbankdesign](database-design.de.md): Detailliertes Datenbankschema
+- [Scoreboard-Setup](../administrators/scoreboard-autostart.de.md): Scoreboard-Konfiguration
+- [Turnierverwaltung](../managers/tournament-management.de.md): Turnier-Workflows
+- [Installationsübersicht](../administrators/installation-overview.de.md): Installationsübersicht
+- [Scenario Management](scenario-management.de.md): Deployment-Konfiguration und Multi-Environment-Support
 
 ### Externe Links
 - [Ruby on Rails Guides](https://guides.rubyonrails.org/)

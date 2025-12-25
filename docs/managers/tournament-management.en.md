@@ -78,7 +78,7 @@ The URL can be derived from the scoreboard URLs, e.g., in Wedel http://192.168.2
 
 Tournaments can best be found via `Regional Associations -> Search -> View`. There, the currently known tournaments of the running season are listed. The tournament can be selected via the title.
 
-Btw - with the **[AI Assistent](ai_search.md)** (available from October 2025), you could also simply search for “Tournaments in the NBV in the 2025/2026 season no older than 2 weeks.”
+Btw - with the **[AI Assistent](../players/ai-search.en.md)** (available from October 2025), you could also simply search for “Tournaments in the NBV in the 2025/2026 season no older than 2 weeks.”
 
 If a tournament is not yet listed, this can have several reasons:
 

@@ -30,6 +30,7 @@ class Table < ApplicationRecord
   belongs_to :table_kind
   belongs_to :table_monitor, optional: true
   has_one :table_local, dependent: :destroy
+  has_one :stream_configuration, dependent: :destroy
   MIN_ID = 50_000_000
   LOCAL_METHODS = %i[
     ip_address tpl_ip_address event_id event_summary event_start event_end event_creator heater heater_on_reason

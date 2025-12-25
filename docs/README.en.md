@@ -1,72 +1,178 @@
-# Carambus API Documentation
+# Carambus Documentation
 
-Welcome to the Carambus API documentation. This directory contains comprehensive documentation for the Carambus billiards management system.
+Welcome to the Carambus documentation! This directory contains comprehensive documentation for the Carambus billiards tournament management system.
 
-## 📚 Documentation Index
+## 🎯 Quick Start by Target Audience
 
-### Core Documentation
-- **[About](about.md)** - Developer information and project overview
+### 🎯 For Decision Makers
+Evaluating Carambus for your club or federation?
+**Start**: [Decision Makers Overview](decision-makers/index.en.md)
 
-### System Setup & Configuration
-- **[Scoreboard Autostart Setup](scoreboard_autostart_setup.md)** - Complete guide for setting up scoreboard autostart functionality
-- **[Scoreboard User Guide](scoreboard_benutzerhandbuch.md)** - Complete user guide for operating the scoreboard 🆕
-- **[Mode Switcher](mode_switcher.md)** - Switch between LOCAL and API modes in single folder
-- **[Table Reservation and Heating Control](table_reservation_heating_control.md)** - Automated table reservation and heating control
+### 🎮 For Players
+Using Carambus as tournament participant?
+**Start**: [Players Overview](players/index.en.md)
 
-### Database & Data Management
-- **[Database Design](database_design.md)** - Complete database schema and design documentation
-- **[Database Syncing](database_syncing.md)** - Database synchronization procedures
+### 🏆 For Tournament Managers
+Organizing tournaments and league match days?
+**Start**: [Managers Overview](managers/index.en.md)
 
-### Tournament Management
-- **[Tournament Management](tournament.md)** - Tournament administration and management
-- **[Tournament Duplicate Handling](tournament_duplicate_handling.md)** - Handling duplicate tournament entries
-- **[Game Plan Reconstruction](game_plan_reconstruction.md)** - Reconstructing game plans and schedules
+### 🖥️ For System Administrators
+Installing and operating Carambus?
+**Start**: [Administrators Overview](administrators/index.en.md)
 
-### League Management
-- **[League Match Days](league.md)** - League match day management
+### 💻 For Developers
+Developing with or on Carambus?
+**Start**: [Developers Overview](developers/index.en.md)
 
-### System Administration
-- **[Admin Roles](admin_roles.md)** - Administrative roles and permissions
-- **[Admin Settings Configuration](ADMIN_SETTINGS_CONFIGURATION.md)** - Configuration editor and lock file protection 🆕
-- **[Data Management](data_management.md)** - Data management procedures
-- **[Privacy](privacy.md)** - Privacy and data protection information
+## 📚 Documentation Structure
 
-### Technical Documentation
-- **[ER Diagram](er_diagram.md)** - Entity-Relationship diagram
-- **[Paper Trail Optimization](paper_trail_optimization.md)** - Optimizing paper trail functionality
-- **[Filter Popup Usage](filter_popup_usage.md)** - How to use filter popups in the interface
-- **[AI-Powered Search](ai_search.md)** - Natural language search using AI
+The documentation is now clearly structured by target audience:
 
-### Terms & Legal
-- **[Terms](terms.md)** - General terms
+```
+docs/
+├── index.md                        # Main landing page
+├── README.md                       # This file
+│
+├── decision-makers/                # For Decision Makers
+│   ├── index.md                   # Overview
+│   ├── executive-summary.md       # Executive Summary
+│   ├── features-overview.md       # Features Overview
+│   └── deployment-options.md      # Deployment Options
+│
+├── players/                        # For Players
+│   ├── index.md                   # Overview
+│   ├── scoreboard-guide.md        # Scoreboard Operation
+│   ├── tournament-participation.md # Tournament Participation
+│   └── ai-search.md              # AI Search
+│
+├── managers/                       # For Tournament Managers
+│   ├── index.md                   # Overview
+│   ├── tournament-management.md   # Tournament Management
+│   ├── league-management.md       # League Management
+│   ├── single-tournament.md       # Single Tournament
+│   ├── table-reservation.md       # Table Reservation
+│   ├── admin_roles.md            # Admin Roles
+│   ├── clubcloud_integration.md   # ClubCloud
+│   └── search-filters.md         # Search & Filters
+│
+├── administrators/                 # For Admins
+│   ├── index.md                   # Overview
+│   ├── installation_overview.md   # Installation
+│   ├── quickstart_raspberry_pi.md # Raspberry Pi
+│   ├── raspberry-pi-client.md     # RasPi Client
+│   ├── scoreboard_autostart_setup.md # Autostart
+│   ├── server-architecture.md     # Architecture
+│   ├── email_configuration.md     # E-Mail
+│   └── database-setup.md         # Database
+│
+├── developers/                     # For Developers
+│   ├── index.md                   # Overview
+│   ├── getting-started.md         # Getting Started
+│   ├── developer-guide.md         # Developer Guide
+│   ├── database_design.md         # DB Design
+│   ├── er_diagram.md             # ER Diagram
+│   ├── scenario_management.md     # Scenarios
+│   ├── rake-tasks-debugging.md    # Testing
+│   ├── deployment_workflow.md     # Deployment
+│   ├── data_management.md         # Data Management
+│   ├── database-partitioning.md   # DB Partitioning
+│   └── ... (more technical docs)
+│
+└── reference/                      # Reference
+    ├── API.md                     # API Docs
+    ├── glossary.md                # Glossary
+    ├── terms.md                   # Terms
+    └── privacy.md                 # Privacy
+```
 
-### Specialized Documentation
-- **[Region Tagging Cleanup Summary](region_tagging_cleanup_summary.md)** - Summary of region tagging cleanup operations
+## 🔍 Most Important Documents
 
-## 🚀 Quick Start
+### Getting Started
+- **[Main Index](index.en.md)**: Overview of all target audiences
+- **[About the Project](about.en.md)**: Background and history
 
-For new users, we recommend starting with:
-1. **[About](about.md)** - Understand the project
-2. **[Scoreboard Autostart Setup](scoreboard_autostart_setup.md)** - Set up the scoreboard system
-3. **[Scoreboard User Guide](scoreboard_benutzerhandbuch.md)** - Learn how to use the scoreboard 🆕
-4. **[Table Reservation and Heating Control](table_reservation_heating_control.md)** - Learn about automated table management
+### For Decision Makers
+- **[Executive Summary](decision-makers/executive-summary.en.md)**: Compact overview
+- **[Features Overview](decision-makers/features-overview.en.md)**: All features
+- **[Deployment Options](decision-makers/deployment-options.en.md)**: Operating models compared
 
-For system administrators:
-1. **[Admin Settings Configuration](ADMIN_SETTINGS_CONFIGURATION.md)** - Configure system via web interface 🆕
+### For Users
+- **[Scoreboard Guide](players/scoreboard-guide.en.md)**: Operation at the table
+- **[Tournament Management](managers/tournament-management.en.md)**: Organize tournaments
+- **[League Management](managers/league-management.en.md)**: Conduct league match days
 
-## 🔧 System Requirements
+### For Administrators
+- **[Installation](administrators/installation-overview.en.md)**: All installation options
+- **[Raspberry Pi Setup](administrators/raspberry-pi-quickstart.en.md)**: RasPi in 30 minutes
+- **[Server Architecture](administrators/server-architecture.en.md)**: System overview
 
-- Ruby on Rails application
-- PostgreSQL database
-- WebSocket support for real-time features
-- Google Calendar integration for table reservations
+### For Developers
+- **[Getting Started](developers/getting-started.en.md)**: Development environment
+- **[Developer Guide](developers/developer-guide.en.md)**: Comprehensive handbook
+- **[Database Design](developers/database-design.en.md)**: Schema and models
+- **[API Reference](reference/API.en.md)**: REST API documentation
 
-## 📞 Support
+## 🌍 Languages
 
-For technical support or questions about the documentation, please contact:
-- **Email:** gernot.ullrich@gmx.de
-- **Project:** [Billardclub Wedel 61 e.V.](http://www.billardclub-wedel.de/)
+The documentation is available in:
+- 🇩🇪 **German** (Primary language)
+- 🇺🇸 **English** (Translations for most important documents)
+
+Use the language selector in the mkdocs navigation to switch languages.
+
+## 🔄 Documentation Maintenance
+
+### Contributing to Documentation
+- Follow the [Contribution Guide](developers/developer-guide.en.md)
+- Update relevant documentation when adding features
+- Add code examples for new APIs
+- Maintain consistency across all documents
+
+### Documentation Standards
+- Use clear, concise language
+- Include practical examples
+- Provide German and English versions where appropriate
+- Keep documentation up-to-date with code changes
+
+### Version Control
+- Documentation is versioned with the codebase
+- Major changes require documentation updates
+- API changes must be documented before release
+
+## 📞 Getting Help
+
+### Search Documentation
+- Use the **search function** (top right in mkdocs)
+- Use the **table of contents** on each page
+- Check the **[Glossary](reference/glossary.en.md)** for technical terms
+
+### Support Channels
+- **GitHub Issues**: [https://github.com/GernotUllrich/carambus/issues](https://github.com/GernotUllrich/carambus/issues)
+- **Email**: gernot.ullrich@gmx.de
+- **Project**: [Billardclub Wedel 61 e.V.](http://www.billardclub-wedel.de/)
+
+### Missing Documentation?
+If you find missing documentation or errors:
+1. Create a GitHub issue
+2. Or send an email to gernot.ullrich@gmx.de
+3. Pull requests are welcome!
+
+## 🚀 Quick Links
+
+### For New Users
+- [What is Carambus?](about.en.md)
+- [Which target audience am I?](index.en.md)
+- [How do I install Carambus?](administrators/installation-overview.en.md)
+
+### For Experienced Users
+- [API Documentation](reference/API.en.md)
+- [Database Schema](developers/database-design.en.md)
+- [Deployment Workflow](developers/deployment-workflow.en.md)
 
 ---
 
-*Last updated: January 27, 2025* 
+**Version**: 2.0 (Reorganized December 2024)  
+**Status**: Complete  
+**Languages**: German, English
+
+*Welcome to the newly structured Carambus documentation! Choose your target audience above for the best entry point.*

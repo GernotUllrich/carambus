@@ -1,0 +1,12 @@
+<% content_for :title, "Stream-Konfiguration bearbeiten" %>
+
+<div class="container mx-auto px-4 py-8">
+  <div class="max-w-4xl mx-auto">
+    <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-8">
+      Stream-Konfiguration bearbeiten: <%= @stream_configuration.table.name %>
+    </h1>
+
+    <%= render 'form', stream_configuration: @stream_configuration %>
+  </div>
+</div>
+

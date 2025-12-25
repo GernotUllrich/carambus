@@ -6,7 +6,7 @@ class LocationsController < ApplicationController
 
   include FiltersHelper
   before_action :set_location,
-                only: %i[scoreboard show edit update destroy
+                only: %i[scoreboard scoreboard_overlay show edit update destroy
                          new_league_tournament add_tables_to
                          toggle_dark_mode create_event]
 
@@ -317,6 +317,27 @@ class LocationsController < ApplicationController
       File.write("#{Rails.root}/config/scoreboard_url", scoreboard_location_url(@location.md5, sb_state: "welcome"))
     end
     redirect_to location_url(@location, sb_state: sb_state, locale: params[:locale], host: request.server_name, port: request.server_port)
+  end
+
+  # Minimal scoreboard view for streaming overlay
+  # This renders a lightweight version without UI chrome for use in FFmpeg video overlay
+  def scoreboard_overlay
+    @navbar = @footer = false
+    @minimal = true
+    
+    # Get table from params
+    table_number = params[:table]&.to_i
+    @table = @location.tables.find_by(name: "Tisch #{table_number}") if table_number.present?
+    @table ||= @location.tables.first # Fallback to first table
+    
+    # Get current game on this table
+    @table_monitor = @table&.table_monitor
+    @game = @table_monitor&.game
+    @tournament_monitor = @table_monitor&.tournament_monitor
+    @tournament = @tournament_monitor&.tournament
+    
+    # Render minimal overlay layout
+    render layout: 'streaming_overlay'
   end
 
   def game_results

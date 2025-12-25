@@ -20,19 +20,19 @@ Choose your deployment variant:
 **Setup time**: 30-60 minutes  
 **Difficulty**: ⭐ Easy
 
-➡️ **[Raspberry Pi Quickstart Guide](raspberry-pi-quickstart.md)**
+➡️ **[Raspberry Pi Quickstart Guide](raspberry-pi-quickstart.en.md)**
 
 ### Option 2: Cloud Hosting (Recommended for Federations)
 **Setup time**: 2-4 hours  
 **Difficulty**: ⭐⭐ Medium
 
-➡️ **[Installation Overview - Cloud Setup](installation-overview.md#cloud-hosting)**
+➡️ **[Installation Overview - Cloud Setup](installation-overview.en.md#cloud-hosting)**
 
 ### Option 3: On-Premise Server
 **Setup time**: 1-2 days  
 **Difficulty**: ⭐⭐⭐ Demanding
 
-➡️ **[Installation Overview - On-Premise](installation-overview.md#on-premise)**
+➡️ **[Installation Overview - On-Premise](installation-overview.en.md#on-premise)**
 
 ## 📚 Main Topics
 
@@ -45,12 +45,12 @@ Choose your deployment variant:
 - Deploy Carambus
 - Initial configuration
 
-➡️ **[Complete Installation Guide](installation-overview.md)**
+➡️ **[Complete Installation Guide](installation-overview.en.md)**
 
 **Special installations**:
-- **[Raspberry Pi Setup](raspberry-pi-quickstart.md)**: All-in-One kiosk system
-- **[Raspberry Pi Client](raspberry-pi-client.md)**: Display/Scoreboard only
-- **[Database Setup](database-setup.md)**: Configure PostgreSQL
+- **[Raspberry Pi Setup](raspberry-pi-quickstart.en.md)**: All-in-One kiosk system
+- **[Raspberry Pi Client](raspberry-pi-client.en.md)**: Display/Scoreboard only
+- **[Database Setup](database-setup.en.md)**: Configure PostgreSQL
 
 ### 2. Configuration
 
@@ -60,14 +60,14 @@ Choose your deployment variant:
 - SSL/TLS certificates
 - Backup strategies
 
-➡️ **[Email Configuration](email-configuration.md)**
+➡️ **[Email Configuration](email-configuration.en.md)**
 
 **Scoreboard setup**:
 - Automatic start on boot
 - Configure kiosk mode
 - Manage multiple displays
 
-➡️ **[Scoreboard Autostart Setup](scoreboard-autostart.md)**
+➡️ **[Scoreboard Autostart Setup](scoreboard-autostart.en.md)**
 
 ### 3. Server Architecture
 
@@ -78,7 +78,7 @@ Choose your deployment variant:
 - WebSocket communication
 - Caching strategies
 
-➡️ **[Server Architecture Documentation](server-architecture.md)**
+➡️ **[Server Architecture Documentation](server-architecture.en.md)**
 
 ### 4. Maintenance & Updates
 
@@ -111,7 +111,7 @@ Choose your deployment variant:
 - Log monitoring
 - Penetration tests
 
-➡️ **[Security Best Practices](installation-overview.md#security)**
+➡️ **[Security Best Practices](installation-overview.en.md#security)**
 
 ### 6. Monitoring & Troubleshooting
 
@@ -142,7 +142,7 @@ Choose your deployment variant:
 - Relay modules
 - Timer switches
 
-➡️ **[Table Reservation & Heating Control](table-reservation-heating.md)**
+➡️ **[Table Reservation & Heating Control](../managers/table-reservation.en.md)**
 
 ## 🛠️ Installation Scenarios in Detail
 
@@ -161,7 +161,7 @@ Choose your deployment variant:
 3. **Initial configuration**: WiFi, club name, admin account
 4. **Done!**: System boots in kiosk mode
 
-➡️ **[Detailed Raspberry Pi Guide](raspberry-pi-quickstart.md)**
+➡️ **[Detailed Raspberry Pi Guide](raspberry-pi-quickstart.en.md)**
 
 ### Cloud Hosting (VPS)
 
@@ -182,7 +182,7 @@ Choose your deployment variant:
 9. Configure backup
 10. Set up monitoring
 
-➡️ **[Cloud Installation Guide](installation-overview.md#cloud-hosting)**
+➡️ **[Cloud Installation Guide](installation-overview.en.md#cloud-hosting)**
 
 ### On-Premise Server
 
@@ -191,7 +191,7 @@ Choose your deployment variant:
 - **Standard**: Intel NUC or mini PC (~400 EUR)
 - **Premium**: Tower server with RAID (~1,500 EUR)
 
-➡️ **[On-Premise Installation Guide](installation-overview.md#on-premise)**
+➡️ **[On-Premise Installation Guide](installation-overview.en.md#on-premise)**
 
 ## 🔧 Maintenance Checklist
 
@@ -272,12 +272,12 @@ rails log:clear
 
 ### Documentation
 
-- **[Installation Overview](installation-overview.md)**: All deployment options
-- **[Raspberry Pi Quickstart](raspberry-pi-quickstart.md)**: RasPi setup
-- **[Server Architecture](server-architecture.md)**: System overview
-- **[Database Setup](database-setup.md)**: Configure PostgreSQL
-- **[Email Configuration](email-configuration.md)**: Set up SMTP
-- **[Scoreboard Autostart](scoreboard-autostart.md)**: Kiosk mode
+- **[Installation Overview](installation-overview.en.md)**: All deployment options
+- **[Raspberry Pi Quickstart](raspberry-pi-quickstart.en.md)**: RasPi setup
+- **[Server Architecture](server-architecture.en.md)**: System overview
+- **[Database Setup](database-setup.en.md)**: Configure PostgreSQL
+- **[Email Configuration](email-configuration.en.md)**: Set up SMTP
+- **[Scoreboard Autostart](scoreboard-autostart.en.md)**: Kiosk mode
 
 ### Community & Help
 
@@ -291,20 +291,21 @@ rails log:clear
 
 ## 🔗 All Administrator Documents
 
-1. **[Installation Overview](installation-overview.md)** - All deployment options
-2. **[Raspberry Pi Quickstart](raspberry-pi-quickstart.md)** - All-in-One setup
-3. **[Raspberry Pi Client](raspberry-pi-client.md)** - Display/Scoreboard only
-4. **[Scoreboard Autostart](scoreboard-autostart.md)** - Set up kiosk mode
-5. **[Server Architecture](server-architecture.md)** - System components
-6. **[Email Configuration](email-configuration.md)** - Set up SMTP
-7. **[Database Setup](database-setup.md)** - Configure PostgreSQL
-8. **[Table Reservation & Heating](table-reservation-heating.md)** - Hardware integration
+1. **[Installation Overview](installation-overview.en.md)** - All deployment options
+2. **[Raspberry Pi Quickstart](raspberry-pi-quickstart.en.md)** - All-in-One setup
+3. **[Raspberry Pi Client](raspberry-pi-client.en.md)** - Display/Scoreboard only
+4. **[Scoreboard Autostart](scoreboard-autostart.en.md)** - Set up kiosk mode
+5. **[Server Architecture](server-architecture.en.md)** - System components
+6. **[Email Configuration](email-configuration.en.md)** - Set up SMTP
+7. **[Database Setup](database-setup.en.md)** - Configure PostgreSQL
+8. **[Table Reservation & Heating](../managers/table-reservation.en.md)** - Hardware integration
 
 ---
 
 **Good luck with administration! 🖥️**
 
 *Tip: Document your specific installation (server details, passwords, specifics) in a separate, secure document.*
+
 
 
 

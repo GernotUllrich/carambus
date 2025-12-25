@@ -81,11 +81,11 @@ config.yml → prepare_development → prepare_deploy → deploy
    - **Directory Setup**: Erstellt Deployment-Verzeichnisse mit korrekten Berechtigungen
    - **Service Preparation**: Bereitet systemd und Nginx vor
    
-   **Hinweis**: Konfigurationsdateien mit einer `.lock` Datei werden beim Upload übersprungen. Details siehe [CONFIG_LOCK_FILES.md](CONFIG_LOCK_FILES.md).
+   **Hinweis**: Konfigurationsdateien mit einer `.lock` Datei werden beim Upload übersprungen. Details siehe [CONFIG_LOCK_FILES.md](../reference/config-lock-files.de.md).
 
 **Perfekt für**: Vollständige Deployment-Vorbereitung, Blank-Server-Setup, **Saisonbeginn mit vielen DB-Änderungen**
 
-**💡 Config Lock Files**: Konfigurationsdateien können auf dem Server durch das Erstellen einer `.lock` Datei vor Überschreibung geschützt werden. Beispiel: `/var/www/[basename]/shared/config/carambus.yml.lock` verhindert, dass `carambus.yml` während des Deployments aktualisiert wird. Dies ist nützlich, um server-spezifische Einstellungen zu bewahren. Details siehe [CONFIG_LOCK_FILES.md](CONFIG_LOCK_FILES.md).
+**💡 Config Lock Files**: Konfigurationsdateien können auf dem Server durch das Erstellen einer `.lock` Datei vor Überschreibung geschützt werden. Beispiel: `/var/www/[basename]/shared/config/carambus.yml.lock` verhindert, dass `carambus.yml` während des Deployments aktualisiert wird. Dies ist nützlich, um server-spezifische Einstellungen zu bewahren. Details siehe [CONFIG_LOCK_FILES.md](../reference/config-lock-files.de.md).
 
 ### 3. `scenario:deploy[scenario_name]`
 **Zweck**: Reine Capistrano-Deployment mit automatischem Service-Management

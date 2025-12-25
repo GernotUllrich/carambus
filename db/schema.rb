@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_12_13_223351) do
+ActiveRecord::Schema[7.2].define(version: 2025_12_25_201141) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -875,6 +875,34 @@ ActiveRecord::Schema[7.2].define(version: 2025_12_13_223351) do
     t.datetime "updated_at", null: false
   end
 
+  create_table "stream_configurations", force: :cascade do |t|
+    t.bigint "table_id", null: false
+    t.bigint "location_id", null: false
+    t.string "youtube_stream_key"
+    t.string "youtube_channel_id"
+    t.string "camera_device", default: "/dev/video0"
+    t.integer "camera_width", default: 1280
+    t.integer "camera_height", default: 720
+    t.integer "camera_fps", default: 60
+    t.boolean "overlay_enabled", default: true
+    t.string "overlay_position", default: "bottom"
+    t.integer "overlay_height", default: 200
+    t.string "status", default: "inactive"
+    t.datetime "last_started_at"
+    t.datetime "last_stopped_at"
+    t.text "error_message"
+    t.integer "restart_count", default: 0
+    t.string "raspi_ip"
+    t.integer "raspi_ssh_port", default: 22
+    t.integer "video_bitrate", default: 2000
+    t.integer "audio_bitrate", default: 128
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["location_id"], name: "index_stream_configurations_on_location_id"
+    t.index ["status"], name: "index_stream_configurations_on_status"
+    t.index ["table_id"], name: "index_stream_configurations_on_table_id", unique: true
+  end
+
   create_table "sync_hashes", force: :cascade do |t|
     t.string "url"
     t.string "md5"
@@ -1253,6 +1281,8 @@ ActiveRecord::Schema[7.2].define(version: 2025_12_13_223351) do
   add_foreign_key "settings", "clubs"
   add_foreign_key "settings", "regions"
   add_foreign_key "settings", "tournaments"
+  add_foreign_key "stream_configurations", "locations"
+  add_foreign_key "stream_configurations", "tables"
   add_foreign_key "tables", "locations"
   add_foreign_key "tables", "regions", validate: false
   add_foreign_key "tables", "table_kinds"

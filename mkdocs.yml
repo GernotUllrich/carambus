@@ -126,34 +126,34 @@ nav:
       - League Management: managers/league-management.md
       - Single Tournament: managers/single-tournament.md
       - Table Reservation: managers/table-reservation.md
-      - Admin Roles: managers/admin_roles.md
-      - ClubCloud Integration: managers/clubcloud_integration.md
+      - Admin Roles: managers/admin-roles.md
+      - ClubCloud Integration: managers/clubcloud-integration.md
       - Search & Filters: managers/search-filters.md
   - Administrators:
       - administrators/index.md
-      - Installation Overview: administrators/installation_overview.md
-      - Raspberry Pi Quickstart: administrators/quickstart_raspberry_pi.md
+      - Installation Overview: administrators/installation-overview.md
+      - Raspberry Pi Quickstart: administrators/raspberry-pi-quickstart.md
       - Raspberry Pi Client: administrators/raspberry-pi-client.md
-      - Scoreboard Autostart: administrators/scoreboard_autostart_setup.md
+      - Scoreboard Autostart: administrators/scoreboard-autostart.md
       - Server Architecture: administrators/server-architecture.md
-      - Email Configuration: administrators/email_configuration.md
+      - Email Configuration: administrators/email-configuration.md
       - Database Setup: administrators/database-setup.md
   - Developers:
       - developers/index.md
       - Getting Started: developers/getting-started.md
       - Developer Guide: developers/developer-guide.md
-      - Database Design: developers/database_design.md
-      - ER Diagram: developers/er_diagram.md
+      - Database Design: developers/database-design.md
+      - ER Diagram: developers/er-diagram.md
       - API Reference: reference/API.md
-      - Scenario Management: developers/scenario_management.md
+      - Scenario Management: developers/scenario-management.md
       - Testing & Debugging: developers/rake-tasks-debugging.md
-      - Deployment Workflow: developers/deployment_workflow.md
-      - Data Management: developers/data_management.md
+      - Deployment Workflow: developers/deployment-workflow.md
+      - Data Management: developers/data-management.md
       - Database Partitioning: developers/database-partitioning.md
-      - Paper Trail Optimization: developers/paper_trail_optimization.md
-      - Game Plan Reconstruction: developers/game_plan_reconstruction.md
-      - Tournament Duplicates: developers/tournament_duplicate_handling.md
-      - Region Tagging: developers/region_tagging_cleanup_summary.md
+      - Paper Trail Optimization: developers/paper-trail-optimization.md
+      - Game Plan Reconstruction: developers/game-plan-reconstruction.md
+      - Tournament Duplicates: developers/tournament-duplicate-handling.md
+      - Region Tagging: developers/region-tagging-cleanup-summary.md
       - Pool Scoreboard Changelog: developers/pool-scoreboard-changelog.md
   - Reference:
       - API: reference/API.md

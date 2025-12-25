@@ -190,6 +190,7 @@ Rails.application.routes.draw do
       get :game_results
       get :placement
       get :scoreboard
+      get :scoreboard_overlay
       get :toggle_dark_mode
     end
   end
@@ -382,6 +383,18 @@ Rails.application.routes.draw do
     resources :settings, only: [:index, :create, :update] do
       collection do
         patch :update
+      end
+    end
+    
+    resources :stream_configurations do
+      member do
+        post :start
+        post :stop
+        post :restart
+        post :health_check
+      end
+      collection do
+        post :deploy_all
       end
     end
     

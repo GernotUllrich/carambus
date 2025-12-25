@@ -349,7 +349,7 @@ The AI service uses an optimized system prompt:
 
 - [OpenAI Platform](https://platform.openai.com)
 - [GPT-4o-mini Pricing](https://openai.com/pricing)
-- [Carambus Filter Documentation](./search.md)
+- [Carambus Filter Documentation](../reference/search.en.md)
 
 ## 🤝 Support
 

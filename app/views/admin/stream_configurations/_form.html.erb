@@ -1,0 +1,170 @@
+<%= form_with(model: [:admin, stream_configuration], local: true, class: "space-y-6") do |form| %>
+  <% if stream_configuration.errors.any? %>
+    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+      <h2 class="font-bold mb-2"><%= pluralize(stream_configuration.errors.count, "Fehler") %> beim Speichern:</h2>
+      <ul class="list-disc list-inside">
+        <% stream_configuration.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <!-- Location Selection -->
+    <div class="form-group">
+      <%= form.label :location_id, "Location", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2" %>
+      <%= form.select :location_id, 
+          options_from_collection_for_select(@locations, :id, :name, stream_configuration.location_id),
+          { include_blank: "Bitte wählen..." },
+          { class: "form-select w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500",
+            data: { action: "change->stream-config#loadTables" } } %>
+    </div>
+
+    <!-- Table Selection -->
+    <div class="form-group">
+      <%= form.label :table_id, "Tisch", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2" %>
+      <%= form.select :table_id,
+          @tables.any? ? options_from_collection_for_select(@tables, :id, :name, stream_configuration.table_id) : [],
+          { include_blank: "Bitte wählen..." },
+          { class: "form-select w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500",
+            data: { stream_config_target: "tableSelect" } } %>
+    </div>
+  </div>
+
+  <!-- YouTube Configuration -->
+  <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+    <h3 class="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-100">🎬 YouTube-Konfiguration</h3>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div class="form-group md:col-span-2">
+        <%= form.label :youtube_stream_key, "Stream-Key", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2" %>
+        <%= form.text_field :youtube_stream_key,
+            class: "form-input w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500",
+            placeholder: "xxxx-yyyy-zzzz-aaaa-bbbb" %>
+        <p class="mt-1 text-sm text-gray-500">Aus YouTube Studio → Live-Streaming → Stream-Key kopieren</p>
+      </div>
+
+      <div class="form-group md:col-span-2">
+        <%= form.label :youtube_channel_id, "Channel-ID (optional)", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2" %>
+        <%= form.text_field :youtube_channel_id,
+            class: "form-input w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500",
+            placeholder: "UCxxxxxxxxxxxxxxxxxxxxxxxxx" %>
+        <p class="mt-1 text-sm text-gray-500">Für direkten Link zum Live-Stream</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Camera Configuration -->
+  <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+    <h3 class="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-100">📷 Kamera-Einstellungen</h3>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div class="form-group">
+        <%= form.label :camera_device, "Gerät", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2" %>
+        <%= form.text_field :camera_device,
+            class: "form-input w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500",
+            placeholder: "/dev/video0" %>
+      </div>
+
+      <div class="form-group">
+        <%= form.label :camera_fps, "Framerate (FPS)", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2" %>
+        <%= form.select :camera_fps,
+            options_for_select([30, 60], stream_configuration.camera_fps || 60),
+            {},
+            { class: "form-select w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" } %>
+      </div>
+
+      <div class="form-group">
+        <%= form.label :camera_width, "Breite", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2" %>
+        <%= form.number_field :camera_width,
+            class: "form-input w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" %>
+      </div>
+
+      <div class="form-group">
+        <%= form.label :camera_height, "Höhe", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2" %>
+        <%= form.number_field :camera_height,
+            class: "form-input w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Overlay Configuration -->
+  <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+    <h3 class="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-100">🎨 Overlay-Einstellungen</h3>
+    
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="form-group">
+        <label class="flex items-center">
+          <%= form.check_box :overlay_enabled,
+              class: "form-checkbox h-5 w-5 text-blue-600 rounded focus:ring-blue-500" %>
+          <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-300">Overlay aktiviert</span>
+        </label>
+      </div>
+
+      <div class="form-group">
+        <%= form.label :overlay_position, "Position", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2" %>
+        <%= form.select :overlay_position,
+            options_for_select([['Unten', 'bottom'], ['Oben', 'top']], stream_configuration.overlay_position || 'bottom'),
+            {},
+            { class: "form-select w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" } %>
+      </div>
+
+      <div class="form-group">
+        <%= form.label :overlay_height, "Höhe (px)", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2" %>
+        <%= form.number_field :overlay_height,
+            class: "form-input w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stream Quality -->
+  <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+    <h3 class="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-100">⚙️ Stream-Qualität</h3>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div class="form-group">
+        <%= form.label :video_bitrate, "Video-Bitrate (kbit/s)", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2" %>
+        <%= form.number_field :video_bitrate,
+            class: "form-input w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500",
+            step: 100 %>
+        <p class="mt-1 text-sm text-gray-500">Empfohlen: 2000-2500 für 720p60</p>
+      </div>
+
+      <div class="form-group">
+        <%= form.label :audio_bitrate, "Audio-Bitrate (kbit/s)", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2" %>
+        <%= form.number_field :audio_bitrate,
+            class: "form-input w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500",
+            step: 32 %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Network Configuration -->
+  <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+    <h3 class="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-100">🌐 Netzwerk</h3>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div class="form-group">
+        <%= form.label :raspi_ip, "Raspberry Pi IP-Adresse", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2" %>
+        <%= form.text_field :raspi_ip,
+            class: "form-input w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500",
+            placeholder: "192.168.1.100" %>
+        <p class="mt-1 text-sm text-gray-500">Wird automatisch vom Tisch übernommen, falls vorhanden</p>
+      </div>
+
+      <div class="form-group">
+        <%= form.label :raspi_ssh_port, "SSH-Port", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2" %>
+        <%= form.number_field :raspi_ssh_port,
+            class: "form-input w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div class="flex justify-end gap-3">
+    <%= link_to "Abbrechen", admin_stream_configurations_path, class: "btn btn-secondary" %>
+    <%= form.submit "Speichern", class: "btn btn-primary" %>
+  </div>
+<% end %>
+

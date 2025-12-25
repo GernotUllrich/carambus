@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Carambus Stream Overlay</title>
+  
+  <%= csrf_meta_tags %>
+  <%= csp_meta_tag %>
+  
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Arial', 'Helvetica', sans-serif;
+      background: rgba(0, 0, 0, 0.75);
+      color: white;
+      overflow: hidden;
+      font-smooth: always;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    
+    .overlay-container {
+      width: 1920px;
+      height: 200px;
+      padding: 20px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    
+    .player-section {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .player-name {
+      font-size: 32px;
+      font-weight: bold;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 450px;
+    }
+    
+    .player-score {
+      font-size: 72px;
+      font-weight: bold;
+      color: #4CAF50;
+      text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.9);
+      line-height: 1;
+    }
+    
+    .player-stats {
+      font-size: 20px;
+      color: #CCC;
+      text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
+    }
+    
+    .vs-section {
+      flex: 0 0 150px;
+      text-align: center;
+    }
+    
+    .vs-text {
+      font-size: 48px;
+      font-weight: bold;
+      color: #FFF;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+    }
+    
+    .tournament-info {
+      font-size: 18px;
+      color: #AAA;
+      margin-top: 10px;
+      text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
+    }
+    
+    .table-info {
+      position: absolute;
+      bottom: 10px;
+      left: 40px;
+      font-size: 18px;
+      color: #AAA;
+      text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
+    }
+    
+    /* No game state */
+    .no-game {
+      width: 1920px;
+      height: 200px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 20px;
+    }
+    
+    .no-game-title {
+      font-size: 48px;
+      font-weight: bold;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+    }
+    
+    .no-game-subtitle {
+      font-size: 24px;
+      color: #CCC;
+      text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
+    }
+    
+    /* Pulsing animation for live indicator */
+    .live-indicator {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      background: #FF0000;
+      border-radius: 50%;
+      margin-right: 8px;
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+  </style>
+  
+  <%= javascript_importmap_tags %>
+  <%= action_cable_meta_tag %>
+</head>
+
+<body>
+  <%= yield %>
+</body>
+</html>
+

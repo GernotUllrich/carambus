@@ -138,3 +138,4 @@ echo "  1. Check Puma configuration in shared/config/puma.rb"
 echo "  2. Restart Puma: cd /var/www/carambus/current && bundle exec puma -C shared/config/puma.rb -d"
 echo "  3. Or use systemd if configured: sudo systemctl restart carambus"
 
+

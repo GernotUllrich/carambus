@@ -1,0 +1,232 @@
+<% content_for :title, "YouTube Live Streaming" %>
+
+<div class="container mx-auto px-4 py-8">
+  <div class="flex justify-between items-center mb-8">
+    <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-100">
+      📹 YouTube Live Streaming
+    </h1>
+    
+    <div class="flex gap-3">
+      <%= link_to "Neue Stream-Konfiguration", 
+          new_admin_stream_configuration_path,
+          class: "btn btn-primary" %>
+      <%= link_to "Alle deployen",
+          deploy_all_admin_stream_configurations_path,
+          method: :post,
+          data: { confirm: "Alle Streaming-Konfigurationen auf die Raspis deployen?" },
+          class: "btn btn-secondary" %>
+    </div>
+  </div>
+
+  <% if @stream_configurations.empty? %>
+    <div class="bg-gray-100 dark:bg-gray-800 rounded-lg p-8 text-center">
+      <p class="text-xl text-gray-600 dark:text-gray-300 mb-4">
+        Noch keine Streaming-Konfigurationen vorhanden
+      </p>
+      <%= link_to "Erste Konfiguration erstellen", 
+          new_admin_stream_configuration_path,
+          class: "btn btn-primary" %>
+    </div>
+  <% else %>
+    <% @configurations_by_location.each do |location, configs| %>
+      <div class="mb-8">
+        <h2 class="text-2xl font-semibold text-gray-700 dark:text-gray-200 mb-4">
+          <%= location.name %>
+        </h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <% configs.each do |config| %>
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 border-l-4 <%= status_border_color(config.status) %>">
+              <!-- Header -->
+              <div class="flex justify-between items-start mb-4">
+                <div>
+                  <h3 class="text-xl font-bold text-gray-800 dark:text-gray-100">
+                    <%= config.table.name %>
+                  </h3>
+                  <p class="text-sm text-gray-500 dark:text-gray-400">
+                    IP: <%= config.raspi_ip %>
+                  </p>
+                </div>
+                
+                <span class="<%= status_badge_class(config.status) %> px-3 py-1 rounded-full text-sm font-semibold">
+                  <%= status_icon(config.status) %> <%= config.status.titleize %>
+                </span>
+              </div>
+
+              <!-- Stream Info -->
+              <div class="mb-4 space-y-2 text-sm text-gray-600 dark:text-gray-300">
+                <div class="flex items-center">
+                  <span class="w-24 font-semibold">Auflösung:</span>
+                  <span><%= config.camera_width %>x<%= config.camera_height %>@<%= config.camera_fps %>fps</span>
+                </div>
+                <div class="flex items-center">
+                  <span class="w-24 font-semibold">Bitrate:</span>
+                  <span><%= config.video_bitrate %>k</span>
+                </div>
+                <div class="flex items-center">
+                  <span class="w-24 font-semibold">Overlay:</span>
+                  <span><%= config.overlay_enabled ? '✓ Aktiv' : '✗ Deaktiviert' %></span>
+                </div>
+                <% if config.active? %>
+                  <div class="flex items-center">
+                    <span class="w-24 font-semibold">Uptime:</span>
+                    <span><%= config.uptime_humanized %></span>
+                  </div>
+                <% end %>
+              </div>
+
+              <!-- Error Message -->
+              <% if config.error_message.present? %>
+                <div class="mb-4 p-3 bg-red-100 dark:bg-red-900/20 border border-red-300 dark:border-red-700 rounded text-sm text-red-700 dark:text-red-300">
+                  <%= config.error_message %>
+                </div>
+              <% end %>
+
+              <!-- Actions -->
+              <div class="flex gap-2 flex-wrap">
+                <% if config.inactive? || config.error? %>
+                  <%= link_to start_admin_stream_configuration_path(config),
+                      method: :post,
+                      class: "btn btn-sm btn-success flex-1",
+                      data: { confirm: "Stream für #{config.table.name} starten?" } do %>
+                    ▶ Start
+                  <% end %>
+                <% end %>
+                
+                <% if config.operational? %>
+                  <%= link_to stop_admin_stream_configuration_path(config),
+                      method: :post,
+                      class: "btn btn-sm btn-danger flex-1",
+                      data: { confirm: "Stream wirklich stoppen?" } do %>
+                    ⏹ Stop
+                  <% end %>
+                <% end %>
+                
+                <% if config.active? %>
+                  <%= link_to restart_admin_stream_configuration_path(config),
+                      method: :post,
+                      class: "btn btn-sm btn-warning",
+                      data: { confirm: "Stream neu starten?" } do %>
+                    🔄
+                  <% end %>
+                <% end %>
+                
+                <%= link_to health_check_admin_stream_configuration_path(config),
+                    method: :post,
+                    class: "btn btn-sm btn-secondary" do %>
+                  ❤️
+                <% end %>
+                
+                <%= link_to edit_admin_stream_configuration_path(config),
+                    class: "btn btn-sm btn-info" do %>
+                  ✏️
+                <% end %>
+                
+                <%= link_to admin_stream_configuration_path(config),
+                    method: :delete,
+                    class: "btn btn-sm btn-danger",
+                    data: { confirm: "Stream-Konfiguration wirklich löschen?" } do %>
+                  🗑️
+                <% end %>
+              </div>
+
+              <!-- YouTube Preview (if active) -->
+              <% if config.active? && config.youtube_channel_id.present? %>
+                <div class="mt-4">
+                  <%= link_to "YouTube Live ansehen", 
+                      "https://youtube.com/channel/#{config.youtube_channel_id}/live",
+                      target: "_blank",
+                      class: "btn btn-sm btn-primary w-full" %>
+                </div>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+  <% end %>
+
+  <!-- System Status -->
+  <div class="mt-8 bg-gray-100 dark:bg-gray-800 rounded-lg p-6">
+    <h3 class="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-100">System-Status</h3>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+      <div>
+        <div class="text-3xl font-bold text-green-600"><%= @stream_configurations.active.count %></div>
+        <div class="text-sm text-gray-600 dark:text-gray-300">Aktive Streams</div>
+      </div>
+      <div>
+        <div class="text-3xl font-bold text-gray-600"><%= @stream_configurations.inactive.count %></div>
+        <div class="text-sm text-gray-600 dark:text-gray-300">Inaktiv</div>
+      </div>
+      <div>
+        <div class="text-3xl font-bold text-red-600"><%= @stream_configurations.with_errors.count %></div>
+        <div class="text-sm text-gray-600 dark:text-gray-300">Fehler</div>
+      </div>
+      <div>
+        <div class="text-3xl font-bold text-blue-600"><%= @stream_configurations.count %></div>
+        <div class="text-sm text-gray-600 dark:text-gray-300">Gesamt</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%# Helper methods for styling %>
+<% 
+def status_border_color(status)
+  case status
+  when 'active' then 'border-green-500'
+  when 'starting' then 'border-yellow-500'
+  when 'stopping' then 'border-orange-500'
+  when 'error' then 'border-red-500'
+  else 'border-gray-300'
+  end
+end
+
+def status_badge_class(status)
+  case status
+  when 'active' then 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+  when 'starting' then 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+  when 'stopping' then 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200'
+  when 'error' then 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+  else 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
+  end
+end
+
+def status_icon(status)
+  case status
+  when 'active' then '🟢'
+  when 'starting' then '🟡'
+  when 'stopping' then '🟠'
+  when 'error' then '🔴'
+  else '⚪'
+  end
+end
+%>
+
+<style>
+  .btn {
+    @apply px-4 py-2 rounded font-medium transition-colors duration-200;
+  }
+  .btn-sm {
+    @apply px-2 py-1 text-sm;
+  }
+  .btn-primary {
+    @apply bg-blue-600 text-white hover:bg-blue-700;
+  }
+  .btn-secondary {
+    @apply bg-gray-600 text-white hover:bg-gray-700;
+  }
+  .btn-success {
+    @apply bg-green-600 text-white hover:bg-green-700;
+  }
+  .btn-danger {
+    @apply bg-red-600 text-white hover:bg-red-700;
+  }
+  .btn-warning {
+    @apply bg-yellow-600 text-white hover:bg-yellow-700;
+  }
+  .btn-info {
+    @apply bg-cyan-600 text-white hover:bg-cyan-700;
+  }
+</style>
+

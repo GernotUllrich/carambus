@@ -20,19 +20,19 @@ Wählen Sie Ihre Deployment-Variante:
 **Setup-Zeit**: 30-60 Minuten  
 **Schwierigkeit**: ⭐ Einfach
 
-➡️ **[Raspberry Pi Quickstart-Anleitung](raspberry-pi-quickstart.md)**
+➡️ **[Raspberry Pi Quickstart-Anleitung](raspberry-pi-quickstart.de.md)**
 
 ### Option 2: Cloud-Hosting (Empfohlen für Verbände)
 **Setup-Zeit**: 2-4 Stunden  
 **Schwierigkeit**: ⭐⭐ Mittel
 
-➡️ **[Installations-Übersicht - Cloud-Setup](installation-overview.md#cloud-hosting)**
+➡️ **[Installations-Übersicht - Cloud-Setup](installation-overview.de.md#cloud-hosting)**
 
 ### Option 3: On-Premise Server
 **Setup-Zeit**: 1-2 Tage  
 **Schwierigkeit**: ⭐⭐⭐ Anspruchsvoll
 
-➡️ **[Installations-Übersicht - On-Premise](installation-overview.md#on-premise)**
+➡️ **[Installations-Übersicht - On-Premise](installation-overview.de.md#on-premise)**
 
 ## 📚 Hauptthemen
 
@@ -45,12 +45,12 @@ Wählen Sie Ihre Deployment-Variante:
 - Carambus deployen
 - Erste Konfiguration
 
-➡️ **[Vollständige Installationsanleitung](installation-overview.md)**
+➡️ **[Vollständige Installationsanleitung](installation-overview.de.md)**
 
 **Spezielle Installationen**:
-- **[Raspberry Pi Setup](raspberry-pi-quickstart.md)**: All-in-One Kiosk-System
-- **[Raspberry Pi Client](raspberry-pi-client.md)**: Nur als Display/Scoreboard
-- **[Datenbank-Setup](database-setup.md)**: PostgreSQL konfigurieren
+- **[Raspberry Pi Setup](raspberry-pi-quickstart.de.md)**: All-in-One Kiosk-System
+- **[Raspberry Pi Client](raspberry-pi-client.de.md)**: Nur als Display/Scoreboard
+- **[Datenbank-Setup](database-setup.de.md)**: PostgreSQL konfigurieren
 
 ### 2. Konfiguration
 
@@ -60,14 +60,14 @@ Wählen Sie Ihre Deployment-Variante:
 - SSL/TLS-Zertifikate
 - Backup-Strategien
 
-➡️ **[Email-Konfiguration](email-configuration.md)**
+➡️ **[Email-Konfiguration](email-configuration.de.md)**
 
 **Scoreboard-Setup**:
 - Automatischer Start beim Booten
 - Kiosk-Modus konfigurieren
 - Multiple Displays verwalten
 
-➡️ **[Scoreboard Autostart-Setup](scoreboard-autostart.md)**
+➡️ **[Scoreboard Autostart-Setup](scoreboard-autostart.de.md)**
 
 ### 3. Server-Architektur
 
@@ -78,7 +78,7 @@ Wählen Sie Ihre Deployment-Variante:
 - WebSocket-Kommunikation
 - Caching-Strategien
 
-➡️ **[Server-Architektur-Dokumentation](server-architecture.md)**
+➡️ **[Server-Architektur-Dokumentation](server-architecture.de.md)**
 
 ### 4. Wartung & Updates
 
@@ -111,7 +111,7 @@ Wählen Sie Ihre Deployment-Variante:
 - Log-Monitoring
 - Penetration-Tests
 
-➡️ **[Sicherheits-Best-Practices](installation-overview.md#sicherheit)**
+➡️ **[Sicherheits-Best-Practices](installation-overview.de.md#sicherheit)**
 
 ### 6. Monitoring & Troubleshooting
 
@@ -142,7 +142,7 @@ Wählen Sie Ihre Deployment-Variante:
 - Relais-Module
 - Zeitschaltuhren
 
-➡️ **[Tischreservierung & Heizungssteuerung](table-reservation-heating.md)**
+➡️ **[Tischreservierung & Heizungssteuerung](../managers/table-reservation.de.md)**
 
 ## 🛠️ Installations-Szenarien im Detail
 
@@ -171,7 +171,7 @@ Wählen Sie Ihre Deployment-Variante:
 - ❌ Begrenzte Performance (für kleine Vereine ausreichend)
 - ❌ SD-Karte kann ausfallen (regelmäßige Backups!)
 
-➡️ **[Detaillierte Raspberry Pi-Anleitung](raspberry-pi-quickstart.md)**
+➡️ **[Detaillierte Raspberry Pi-Anleitung](raspberry-pi-quickstart.de.md)**
 
 ### Cloud-Hosting (VPS)
 
@@ -205,7 +205,7 @@ Wählen Sie Ihre Deployment-Variante:
 - ❌ Internet-Abhängigkeit
 - ❌ Höherer initialer Setup-Aufwand
 
-➡️ **[Cloud-Installations-Guide](installation-overview.md#cloud-hosting)**
+➡️ **[Cloud-Installations-Guide](installation-overview.de.md#cloud-hosting)**
 
 ### On-Premise Server
 
@@ -239,7 +239,7 @@ Wählen Sie Ihre Deployment-Variante:
 - ❌ Selbst für Wartung verantwortlich
 - ❌ Höherer Setup-Aufwand
 
-➡️ **[On-Premise-Installations-Guide](installation-overview.md#on-premise)**
+➡️ **[On-Premise-Installations-Guide](installation-overview.de.md#on-premise)**
 
 ## ⚙️ Wichtige Konfigurationsdateien
 
@@ -478,13 +478,13 @@ sudo systemctl status certbot.timer
 
 ### Dokumentation
 
-- **[Installations-Übersicht](installation-overview.md)**: Alle Deployment-Optionen
-- **[Raspberry Pi Quickstart](raspberry-pi-quickstart.md)**: RasPi-Setup
-- **[Raspberry Pi Client](raspberry-pi-client.md)**: RasPi als Display
-- **[Server-Architektur](server-architecture.md)**: System-Überblick
-- **[Datenbank-Setup](database-setup.md)**: PostgreSQL konfigurieren
-- **[Email-Konfiguration](email-configuration.md)**: SMTP einrichten
-- **[Scoreboard Autostart](scoreboard-autostart.md)**: Kiosk-Modus
+- **[Installations-Übersicht](installation-overview.de.md)**: Alle Deployment-Optionen
+- **[Raspberry Pi Quickstart](raspberry-pi-quickstart.de.md)**: RasPi-Setup
+- **[Raspberry Pi Client](raspberry-pi-client.de.md)**: RasPi als Display
+- **[Server-Architektur](server-architecture.de.md)**: System-Überblick
+- **[Datenbank-Setup](database-setup.de.md)**: PostgreSQL konfigurieren
+- **[Email-Konfiguration](email-configuration.de.md)**: SMTP einrichten
+- **[Scoreboard Autostart](scoreboard-autostart.de.md)**: Kiosk-Modus
 
 ### Community & Hilfe
 
@@ -513,20 +513,21 @@ sudo systemctl status certbot.timer
 
 ## 🔗 Alle Administrator-Dokumente
 
-1. **[Installations-Übersicht](installation-overview.md)** - Alle Deployment-Optionen
-2. **[Raspberry Pi Quickstart](raspberry-pi-quickstart.md)** - All-in-One Setup
-3. **[Raspberry Pi Client](raspberry-pi-client.md)** - Nur Display/Scoreboard
-4. **[Scoreboard Autostart](scoreboard-autostart.md)** - Kiosk-Modus einrichten
-5. **[Server-Architektur](server-architecture.md)** - System-Komponenten
-6. **[Email-Konfiguration](email-configuration.md)** - SMTP einrichten
-7. **[Datenbank-Setup](database-setup.md)** - PostgreSQL konfigurieren
-8. **[Tischreservierung & Heizung](table-reservation-heating.md)** - Hardware-Integration
+1. **[Installations-Übersicht](installation-overview.de.md)** - Alle Deployment-Optionen
+2. **[Raspberry Pi Quickstart](raspberry-pi-quickstart.de.md)** - All-in-One Setup
+3. **[Raspberry Pi Client](raspberry-pi-client.de.md)** - Nur Display/Scoreboard
+4. **[Scoreboard Autostart](scoreboard-autostart.de.md)** - Kiosk-Modus einrichten
+5. **[Server-Architektur](server-architecture.de.md)** - System-Komponenten
+6. **[Email-Konfiguration](email-configuration.de.md)** - SMTP einrichten
+7. **[Datenbank-Setup](database-setup.de.md)** - PostgreSQL konfigurieren
+8. **[Tischreservierung & Heizung](../managers/table-reservation.de.md)** - Hardware-Integration
 
 ---
 
 **Viel Erfolg bei der Administration! 🖥️**
 
 *Tipp: Dokumentieren Sie Ihre spezifische Installation (Server-Details, Passwörter, Besonderheiten) in einem separaten, sicheren Dokument.*
+
 
 
 

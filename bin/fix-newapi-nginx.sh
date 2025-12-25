@@ -174,3 +174,4 @@ echo "If there are still issues, check:"
 echo "  sudo tail -f /var/log/carambus_api/error.log"
 echo "  sudo tail -f /var/log/nginx/error.log"
 
+

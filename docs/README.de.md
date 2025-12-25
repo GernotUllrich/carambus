@@ -2,85 +2,128 @@
 
 Willkommen bei der Carambus-Dokumentation! Dieses Verzeichnis enthält umfassende Dokumentation für das Carambus Billard-Turnierverwaltungssystem.
 
-## 📚 Dokumentationsindex
+## 🎯 Schnellstart nach Zielgruppe
 
-### Erste Schritte
-- **[README.md](README.md)**: Projektübersicht und Schnellstart-Anleitung
-- **[DEVELOPER_GUIDE.md](DEVELOPER_GUIDE.md)**: Umfassender Leitfaden für Entwickler
-- **[API.md](API.md)**: Vollständige API-Dokumentation mit Beispielen
+### 🎯 Für Entscheider
+Sie evaluieren Carambus für Ihren Verein oder Verband?
+**Start**: [Entscheider-Übersicht](decision-makers/index.de.md)
 
-### Kern-Dokumentation
-- **[database_design.md](database_design.md)**: Datenbankschema und Beziehungen
-- **[tournament.md](tournament.md)**: Turnierverwaltungs-Workflows
-- **[einzelturnierverwaltung.md](einzelturnierverwaltung.md)**: Einzelturnierverwaltung
-- **[league.md](league.md)**: Ligaspieltage
-- **[scoreboard_benutzerhandbuch.md](scoreboard_benutzerhandbuch.md)**: Vollständiges Scoreboard-Benutzerhandbuch 🆕
-- **[ai_search.md](ai_search.md)**: KI-gestützte Suche mit natürlicher Sprache
+### 🎮 Für Spieler
+Sie nutzen Carambus als Turnierteilnehmer?
+**Start**: [Spieler-Übersicht](players/index.de.md)
 
-### Technische Dokumentation
-- **[datenbank-partitionierung-und-synchronisierung.md](datenbank-partitionierung-und-synchronisierung.md)**: Datenbank-Partitionierung
-- **[installation_overview.md](installation_overview.md)**: Installationsübersicht
-- **[ADMIN_SETTINGS_CONFIGURATION.md](ADMIN_SETTINGS_CONFIGURATION.md)**: Admin-Einstellungen und Konfigurationseditor 🆕
+### 🏆 Für Turniermanager
+Sie organisieren Turniere und Ligaspieltage?
+**Start**: [Manager-Übersicht](managers/index.de.md)
 
-### Deployment & Betrieb
-- **[installation_overview.md](installation_overview.md)**: Installationsübersicht
-- **[ADMIN_SETTINGS_CONFIGURATION.md](ADMIN_SETTINGS_CONFIGURATION.md)**: Konfigurationsverwaltung über Web-Interface
+### 🖥️ Für Systemadministratoren
+Sie installieren und betreiben Carambus?
+**Start**: [Administrator-Übersicht](administrators/index.de.md)
 
-### Rechtliches & Datenschutz
-- **[terms.md](terms.md)**: Nutzungsbedingungen
+### 💻 Für Entwickler
+Sie entwickeln mit oder an Carambus?
+**Start**: [Entwickler-Übersicht](developers/index.de.md)
 
-### Projektinformationen
-- **[about.md](about.md)**: Projekt-Hintergrund und Entwicklerinformationen
+## 📚 Dokumentationsstruktur
 
-## 🎯 Schnelle Navigation
-
-### Für neue Entwickler
-1. Beginnen Sie mit **[README.md](README.md)** für Projektübersicht
-2. Lesen Sie **[DEVELOPER_GUIDE.md](DEVELOPER_GUIDE.md)** für Setup-Anweisungen
-3. Überprüfen Sie **[database_design.md](database_design.md)** für Datenmodell-Verständnis
-4. Prüfen Sie **[API.md](API.md)** für Integrationsmöglichkeiten
-
-### Für Systemadministratoren
-1. Überprüfen Sie **[installation_overview.md](installation_overview.md)** für Installationsübersicht
-2. Lesen Sie **[ADMIN_SETTINGS_CONFIGURATION.md](ADMIN_SETTINGS_CONFIGURATION.md)** für Konfigurationsverwaltung 🆕
-3. Prüfen Sie **[table_reservation_heating_control.md](table_reservation_heating_control.md)** für Tischreservierung und Heizungssteuerung
-
-### Für Turnierorganisatoren
-1. Lesen Sie **[tournament.md](tournament.md)** für Turnier-Workflows
-2. Überprüfen Sie **[einzelturnierverwaltung.md](einzelturnierverwaltung.md)** für detaillierte Anleitung
-3. Prüfen Sie **[league.md](league.md)** für Ligaverwaltung
-4. Nutzen Sie **[scoreboard_benutzerhandbuch.md](scoreboard_benutzerhandbuch.md)** für die Bedienung des Scoreboards 🆕
-
-### Für API-Benutzer
-1. Beginnen Sie mit **[API.md](API.md)** für vollständige API-Dokumentation
-2. Überprüfen Sie **[database_design.md](database_design.md)** für Datenstruktur
-3. Nutzen Sie **[ai_search.md](ai_search.md)** für KI-gestützte Datensuche
-
-## 📖 Dokumentationsstruktur
+Die Dokumentation ist jetzt klar nach Zielgruppen strukturiert:
 
 ```
 docs/
-├── index.md                            # Hauptstartseite
-├── de/                                 # Deutsche Dokumentation
-│   ├── README.md                       # Diese Datei - Dokumentationsindex
-│   ├── DEVELOPER_GUIDE.md              # Haupt-Entwicklerdokumentation
-│   ├── API.md                          # API-Dokumentation
-│   ├── database_design.md              # Datenbankschema
-│   ├── tournament.md                   # Turnier-Workflows
-│   ├── einzelturnierverwaltung.md      # Einzelturnierverwaltung
-│   ├── league.md                       # Ligaspieltage
-│   ├── installation_overview.md        # Installationsübersicht
-│   ├── table_reservation_heating_control.md # Tischreservierung
-│   ├── terms.md                        # Nutzungsbedingungen
-│   └── about.md                        # Projektinformationen
-└── en/                                 # Englische Dokumentation
-    └── ...                             # Entsprechende Übersetzungen
+├── index.md                        # Haupt-Landing-Page
+├── README.md                       # Diese Datei
+│
+├── decision-makers/                # Für Entscheider
+│   ├── index.md                   # Übersicht
+│   ├── executive-summary.md       # Executive Summary
+│   ├── features-overview.md       # Feature-Übersicht
+│   └── deployment-options.md      # Deployment-Optionen
+│
+├── players/                        # Für Spieler
+│   ├── index.md                   # Übersicht
+│   ├── scoreboard-guide.md        # Scoreboard-Bedienung
+│   ├── tournament-participation.md # Turnierteilnahme
+│   └── ai-search.md              # KI-Suche
+│
+├── managers/                       # Für Turniermanager
+│   ├── index.md                   # Übersicht
+│   ├── tournament-management.md   # Turnierverwaltung
+│   ├── league-management.md       # Liga-Management
+│   ├── single-tournament.md       # Einzelturnier
+│   ├── table-reservation.md       # Tischreservierung
+│   ├── admin_roles.md            # Admin-Rollen
+│   ├── clubcloud_integration.md   # ClubCloud
+│   └── search-filters.md         # Suche & Filter
+│
+├── administrators/                 # Für Admins
+│   ├── index.md                   # Übersicht
+│   ├── installation_overview.md   # Installation
+│   ├── quickstart_raspberry_pi.md # Raspberry Pi
+│   ├── raspberry-pi-client.md     # RasPi Client
+│   ├── scoreboard_autostart_setup.md # Autostart
+│   ├── server-architecture.md     # Architektur
+│   ├── email_configuration.md     # E-Mail
+│   └── database-setup.md         # Datenbank
+│
+├── developers/                     # Für Entwickler
+│   ├── index.md                   # Übersicht
+│   ├── getting-started.md         # Getting Started
+│   ├── developer-guide.md         # Developer Guide
+│   ├── database_design.md         # DB-Design
+│   ├── er_diagram.md             # ER-Diagramm
+│   ├── scenario_management.md     # Scenarios
+│   ├── rake-tasks-debugging.md    # Testing
+│   ├── deployment_workflow.md     # Deployment
+│   ├── data_management.md         # Datenverwaltung
+│   ├── database-partitioning.md   # DB-Partitionierung
+│   └── ... (weitere tech. Docs)
+│
+└── reference/                      # Referenz
+    ├── API.md                     # API-Doku
+    ├── glossary.md                # Glossar
+    ├── terms.md                   # AGB
+    └── privacy.md                 # Datenschutz
 ```
+
+## 🔍 Wichtigste Dokumente
+
+### Einstieg
+- **[Hauptindex](index.de.md)**: Übersicht über alle Zielgruppen
+- **[Über das Projekt](about.de.md)**: Hintergrund und Geschichte
+
+### Für Entscheider
+- **[Executive Summary](decision-makers/executive-summary.de.md)**: Kompakter Überblick
+- **[Feature-Übersicht](decision-makers/features-overview.de.md)**: Alle Funktionen
+- **[Deployment-Optionen](decision-makers/deployment-options.de.md)**: Betriebsmodelle im Vergleich
+
+### Für Benutzer
+- **[Scoreboard-Anleitung](players/scoreboard-guide.de.md)**: Bedienung am Tisch
+- **[Turnierverwaltung](managers/tournament-management.de.md)**: Turniere organisieren
+- **[Liga-Management](managers/league-management.de.md)**: Ligaspieltage durchführen
+
+### Für Administratoren
+- **[Installation](administrators/installation-overview.de.md)**: Alle Installationsoptionen
+- **[Raspberry Pi Setup](administrators/raspberry-pi-quickstart.de.md)**: RasPi in 30 Minuten
+- **[Server-Architektur](administrators/server-architecture.de.md)**: System-Übersicht
+
+### Für Entwickler
+- **[Getting Started](developers/getting-started.de.md)**: Entwicklungsumgebung
+- **[Developer Guide](developers/developer-guide.de.md)**: Umfassendes Handbuch
+- **[Datenbank-Design](developers/database-design.de.md)**: Schema und Modelle
+- **[API-Referenz](reference/API.de.md)**: REST-API Dokumentation
+
+## 🌍 Sprachen
+
+Die Dokumentation ist verfügbar in:
+- 🇩🇪 **Deutsch** (Primärsprache)
+- 🇺🇸 **Englisch** (Übersetzungen für wichtigste Dokumente)
+
+Zum Sprachwechsel verwenden Sie den Language-Selector in der mkdocs-Navigation.
 
 ## 🔄 Dokumentationswartung
 
 ### Beitrag zur Dokumentation
-- Folgen Sie dem [Beitragsleitfaden](DEVELOPER_GUIDE.md#mitwirken)
+- Folgen Sie dem [Contribution Guide](developers/developer-guide.de.md)
 - Aktualisieren Sie relevante Dokumentation beim Hinzufügen von Features
 - Fügen Sie Code-Beispiele für neue APIs ein
 - Behalten Sie Konsistenz über alle Dokumente hinweg
@@ -98,33 +141,38 @@ docs/
 
 ## 📞 Hilfe erhalten
 
-### Dokumentationsprobleme
-- Melden Sie Dokumentationsfehler über [GitHub Issues](https://github.com/your-username/carambus/issues)
-- Schlagen Sie Verbesserungen über [GitHub Discussions](https://github.com/your-username/carambus/discussions) vor
+### Dokumentation durchsuchen
+- Verwenden Sie die **Suchfunktion** (oben rechts in mkdocs)
+- Nutzen Sie die **Inhaltsverzeichnisse** jeder Seite
+- Prüfen Sie das **[Glossar](reference/glossary.de.md)** für Fachbegriffe
 
-### Technischer Support
-- Prüfen Sie den [Entwicklerleitfaden](DEVELOPER_GUIDE.md) für häufige Probleme
-- Überprüfen Sie die [API-Dokumentation](API.md) für Integrationshilfe
-- Konsultieren Sie die [Installationsübersicht](installation_overview.md) für Deployment-Probleme
+### Support-Kanäle
+- **GitHub Issues**: [https://github.com/GernotUllrich/carambus/issues](https://github.com/GernotUllrich/carambus/issues)
+- **E-Mail**: gernot.ullrich@gmx.de
+- **Projekt**: [Billardclub Wedel 61 e.V.](http://www.billardclub-wedel.de/)
 
-### Community-Ressourcen
-- **GitHub Issues**: Bug-Reports und Feature-Requests
-- **GitHub Discussions**: Fragen und Community-Support
-- **Projekt Wiki**: Zusätzliche community-gewartete Dokumentation
+### Fehlende Dokumentation?
+Wenn Sie Dokumentation vermissen oder Fehler finden:
+1. Erstellen Sie ein GitHub Issue
+2. Oder senden Sie eine E-Mail an gernot.ullrich@gmx.de
+3. Pull Requests sind willkommen!
 
-## 🌐 Sprachunterstützung
+## 🚀 Schnelle Links
 
-Die Carambus-Dokumentation ist in mehreren Sprachen verfügbar:
+### Für neue Benutzer
+- [Was ist Carambus?](about.de.md)
+- [Für welche Zielgruppe bin ich?](index.de.md)
+- [Wie installiere ich Carambus?](administrators/installation-overview.de.md)
 
-- **Englisch**: Primäre Dokumentationssprache
-- **Deutsch**: Wichtige Dokumente für deutsche Benutzer übersetzt
-- **Zukunft**: Zusätzliche Sprachunterstützung geplant
-
-### Sprachspezifische Dateien
-- `*.en.md`: Englische Dokumentation
-- `*.de.md`: Deutsche Dokumentation
-- `*.md`: Standardsprache (normalerweise Englisch)
+### Für erfahrene Benutzer
+- [API-Dokumentation](reference/API.de.md)
+- [Datenbank-Schema](developers/database-design.de.md)
+- [Deployment-Workflow](developers/deployment-workflow.de.md)
 
 ---
 
-*Diese Dokumentation wird vom Carambus-Entwicklungsteam gepflegt. Für Fragen oder Beiträge siehe den [Beitragsleitfaden](DEVELOPER_GUIDE.md#mitwirken).* 
+**Version**: 2.0 (Reorganisiert Dezember 2024)  
+**Status**: Vollständig  
+**Sprachen**: Deutsch, Englisch
+
+*Willkommen in der neu strukturierten Carambus-Dokumentation! Wählen Sie oben Ihre Zielgruppe für den besten Einstieg.*

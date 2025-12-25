@@ -4,14 +4,14 @@ Willkommen zur Carambus Dokumentation! Dieses System bietet umfassende Dokumenta
 
 ## 🌍 Sprachauswahl
 
-### [🇩🇪 Deutsche Dokumentation](README.md)
+### [🇩🇪 Deutsche Dokumentation](README.de.md)
 Vollständige Dokumentation auf Deutsch inklusive:
 - Benutzerhandbücher und Tutorials
 - Entwicklerdokumentation
 - API-Referenzen
 - Installationsanleitungen
 
-### [🇺🇸 Englische Dokumentation](README.md)
+### [🇺🇸 Englische Dokumentation](README.de.md)
 Vollständige Dokumentation auf Englisch inklusive:
 - Benutzerhandbücher und Tutorials
 - Entwicklerdokumentation
@@ -20,10 +20,10 @@ Vollständige Dokumentation auf Englisch inklusive:
 
 ## 🚀 Schnellstart
 
-1. **Für Benutzer**: Starten Sie mit der [Turnierverwaltung](tournament.md) Anleitung
-2. **Für Entwickler**: Beginnen Sie mit [Getting Started](GETTING_STARTED_DEVELOPER.md)
-3. **Für Systemadministratoren**: Siehe [Installationsübersicht](installation_overview.md)
-4. **Für Raspberry Pi**: Folgen Sie dem [Schnellstart Raspberry Pi](quickstart_raspberry_pi.md)
+1. **Für Benutzer**: Starten Sie mit der [Turnierverwaltung](managers/tournament-management.de.md) Anleitung
+2. **Für Entwickler**: Beginnen Sie mit [Getting Started](developers/getting-started.de.md)
+3. **Für Systemadministratoren**: Siehe [Installationsübersicht](administrators/installation-overview.de.md)
+4. **Für Raspberry Pi**: Folgen Sie dem [Schnellstart Raspberry Pi](administrators/raspberry-pi-quickstart.de.md)
 
 ## 📚 Dokumentations-Kategorien
 
@@ -85,7 +85,7 @@ Carambus unterstützt vollständige Raspberry Pi Integration für:
 - **Touch-Display Unterstützung**: Intuitive Bedienung am Tisch
 - **Schnelle Installation**: Von leerer SD-Karte zu funktionierendem System in 30 Minuten
 
-➡️ **[Schnellstart Raspberry Pi Installation](quickstart_raspberry_pi.md)**
+➡️ **[Schnellstart Raspberry Pi Installation](administrators/raspberry-pi-quickstart.de.md)**
 
 ## 📞 Support
 

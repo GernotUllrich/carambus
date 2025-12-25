@@ -4,14 +4,14 @@ Welcome to the Carambus documentation! This system provides comprehensive docume
 
 ## 🌍 Language Selection
 
-### [🇩🇪 German Documentation](README.md)
+### [🇩🇪 German Documentation](README.en.md)
 Complete documentation in German including:
 - User guides and tutorials
 - Developer documentation
 - API references
 - Installation guides
 
-### [🇺🇸 English Documentation](README.md)
+### [🇺🇸 English Documentation](README.en.md)
 Complete documentation in English including:
 - User guides and tutorials
 - Developer documentation
@@ -20,10 +20,10 @@ Complete documentation in English including:
 
 ## 🚀 Quick Start
 
-1. **For Users**: Start with the [Tournament Management](tournament.md) guide
-2. **For Developers**: Begin with [Getting Started](GETTING_STARTED_DEVELOPER.md)
-3. **For System Administrators**: Check [Installation Overview](installation_overview.md)
-4. **For Raspberry Pi**: Follow the [Quick Start Raspberry Pi](quickstart_raspberry_pi.md)
+1. **For Users**: Start with the [Tournament Management](managers/tournament-management.en.md) guide
+2. **For Developers**: Begin with [Getting Started](developers/getting-started.en.md)
+3. **For System Administrators**: Check [Installation Overview](administrators/installation-overview.en.md)
+4. **For Raspberry Pi**: Follow the [Quick Start Raspberry Pi](administrators/raspberry-pi-quickstart.en.md)
 
 ## 📚 Documentation Categories
 
@@ -85,7 +85,7 @@ Carambus supports full Raspberry Pi integration for:
 - **Touch Display Support**: Intuitive operation at the table
 - **Quick Installation**: From blank SD card to working system in 30 minutes
 
-➡️ **[Quick Start Raspberry Pi Installation](quickstart_raspberry_pi.md)**
+➡️ **[Quick Start Raspberry Pi Installation](administrators/raspberry-pi-quickstart.en.md)**
 
 ## 📞 Support
 
