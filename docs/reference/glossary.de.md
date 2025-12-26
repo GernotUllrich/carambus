@@ -409,7 +409,7 @@ Region (Verband)
 - [Turnierverwaltung](../managers/tournament-management.de.md) - Einzelturniere
 - [Ligaspieltage](../managers/league-management.de.md) - Mannschaftswettbewerbe
 - [Datenbank-Design](../developers/database-design.de.md) - ER-Diagramm
-- [Filter & Suche](search.de.md) - Daten finden
+- [Filter & Suche](../search.de.md) - Daten finden
 
 ---
 

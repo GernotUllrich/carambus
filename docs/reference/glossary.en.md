@@ -409,7 +409,7 @@ Region (Association)
 - [Tournament Management](../managers/tournament-management.en.md) - Individual tournaments
 - [League Match Days](../managers/league-management.en.md) - Team competitions
 - [Database Design](../developers/database-design.en.md) - ER Diagram
-- [Filter & Search](search.en.md) - Finding data
+- [Filter & Search](../search.en.md) - Finding data
 
 ---
 
