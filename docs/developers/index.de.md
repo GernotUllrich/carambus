@@ -519,6 +519,7 @@ chore: Update dependencies
 14. **[Game Plan Reconstruction](game-plan-reconstruction.de.md)** - Spielplan-Algorithmen
 15. **[Tournament Duplicates](tournament-duplicate-handling.de.md)** - Duplikat-Handling
 16. **[Region Tagging](region-tagging-cleanup-summary.de.md)** - Geografische Zuordnung
+17. **[YouTube Streaming Architecture](streaming-architecture.de.md)** - Live-Streaming System (Architektur, FFmpeg, Hardware)
 
 ---
 

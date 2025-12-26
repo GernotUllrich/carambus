@@ -144,6 +144,27 @@ Wählen Sie Ihre Deployment-Variante:
 
 ➡️ **[Tischreservierung & Heizungssteuerung](../managers/table-reservation.de.md)**
 
+### 8. YouTube Live Streaming
+
+**Turnier-Streaming mit vorhandenen Scoreboards**:
+- Nutzt vorhandene Scoreboard-Raspberry-Pis
+- USB-Webcam pro Tisch (~80€)
+- FFmpeg Hardware-Encoding
+- Automatisches Scoreboard-Overlay
+- Zentrale Verwaltung im Admin-Interface
+
+**Dokumentation**:
+- 🚀 **[Quick Start (5 Schritte)](streaming-quickstart.de.md)** - In 5 Minuten zum ersten Stream
+- 📖 **[Vollständige Setup-Anleitung](streaming-setup.de.md)** - Hardware, YouTube-Setup, Konfiguration, Troubleshooting
+- 💻 **[Entwickler-Architektur](../developers/streaming-architecture.de.md)** - Technische Details für Entwickler
+
+**Features**:
+- ✅ Tischbezogenes Streaming (jeder Tisch unabhängig)
+- ✅ Live-Overlays (Spielernamen, Scores, Turnierinfo)
+- ✅ Auto-Restart bei Fehlern
+- ✅ Health-Monitoring
+- ✅ Sehr kostengünstig (~80€ Kamera pro Tisch)
+
 ## 🛠️ Installations-Szenarien im Detail
 
 ### Raspberry Pi All-in-One

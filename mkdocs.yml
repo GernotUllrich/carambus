@@ -77,6 +77,8 @@ plugins:
             Server Architecture: Server-Architektur
             Email Configuration: Email-Konfiguration
             Database Setup: Datenbank-Setup
+            YouTube Streaming Quickstart: YouTube Streaming Quickstart
+            YouTube Streaming Setup: YouTube Streaming Setup
             Developers: Für Entwickler
             Developer Guide: Entwickler-Leitfaden
             Getting Started: Getting Started
@@ -94,6 +96,7 @@ plugins:
             Game Plan Reconstruction: Spielplan-Rekonstruktion
             Tournament Duplicates: Turnier-Duplikate
             Region Tagging: Regions-Tagging
+            YouTube Streaming Architecture: YouTube Streaming Architektur
             Pool Scoreboard Changelog: Pool Scoreboard Changelog
             Reference: Referenz
             API: API
@@ -138,6 +141,8 @@ nav:
       - Server Architecture: administrators/server-architecture.md
       - Email Configuration: administrators/email-configuration.md
       - Database Setup: administrators/database-setup.md
+      - YouTube Streaming Quickstart: administrators/streaming-quickstart.md
+      - YouTube Streaming Setup: administrators/streaming-setup.md
   - Developers:
       - developers/index.md
       - Getting Started: developers/getting-started.md
@@ -154,6 +159,7 @@ nav:
       - Game Plan Reconstruction: developers/game-plan-reconstruction.md
       - Tournament Duplicates: developers/tournament-duplicate-handling.md
       - Region Tagging: developers/region-tagging-cleanup-summary.md
+      - YouTube Streaming Architecture: developers/streaming-architecture.md
       - Pool Scoreboard Changelog: developers/pool-scoreboard-changelog.md
   - Reference:
       - API: reference/API.md
