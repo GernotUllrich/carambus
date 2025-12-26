@@ -1,99 +1,177 @@
 # Carambus Documentation
 
-Welcome to the Carambus documentation! This system provides comprehensive documentation for the Carambus billiards tournament management system.
+Welcome to the Carambus documentation! This directory contains comprehensive documentation for the Carambus billiards tournament management system.
 
-## 🌍 Language Selection
-
-### [🇩🇪 German Documentation](README.en.md)
-Complete documentation in German including:
-- User guides and tutorials
-- Developer documentation
-- API references
-- Installation guides
-
-### [🇺🇸 English Documentation](README.en.md)
-Complete documentation in English including:
-- User guides and tutorials
-- Developer documentation
-- API references
-- Installation guides
-
-## 🚀 Quick Start
-
-1. **For Users**: Start with the [Tournament Management](managers/tournament-management.en.md) guide
-2. **For Developers**: Begin with [Getting Started](developers/getting-started.en.md)
-3. **For System Administrators**: Check [Installation Overview](administrators/installation-overview.en.md)
-4. **For Raspberry Pi**: Follow the [Quick Start Raspberry Pi](administrators/raspberry-pi-quickstart.en.md)
-
-## 📚 Documentation Categories
+## 🎯 Quick Start by Target Audience
 
 ### 🎯 For Decision Makers
-Evaluate Carambus for your club or federation
-- **[Executive Summary](decision-makers/executive-summary.md)**: Overview in 3 minutes
-- **[Features Overview](decision-makers/features-overview.md)**: All features in detail
-- **[Deployment Options](decision-makers/deployment-options.md)**: Cloud, On-Premise or Raspberry Pi?
+Evaluating Carambus for your club or federation?
+**Start**: [Decision Makers Overview](decision-makers/index.en.md)
 
 ### 🎮 For Players
-Use Carambus as tournament participant
-- **[Player Overview](players/index.md)**: Start here!
-- Scoreboard operation (Carom, Pool, Snooker)
-- AI-powered search
-- Personal statistics
+Using Carambus as tournament participant?
+**Start**: [Players Overview](players/index.en.md)
 
 ### 🏆 For Tournament Managers
-Organize and manage tournaments
-- **[Manager Overview](managers/index.md)**: Start here!
-- Tournament management
-- League match days
-- ClubCloud integration
-- Table reservation
+Organizing tournaments and league match days?
+**Start**: [Managers Overview](managers/index.en.md)
 
 ### 🖥️ For System Administrators
-Install and operate Carambus
-- **[Administrator Overview](administrators/index.md)**: Start here!
-- Installation (Cloud, On-Premise, Raspberry Pi)
-- Configuration & Security
-- Maintenance & Updates
+Installing and operating Carambus?
+**Start**: [Administrators Overview](administrators/index.en.md)
 
 ### 💻 For Developers
-Develop with and extend Carambus
-- **[Developer Overview](developers/index.md)**: Start here!
-- Getting Started
-- Architecture & Database
-- API & Testing
-- Contribution Guidelines
+Developing with or on Carambus?
+**Start**: [Developers Overview](developers/index.en.md)
 
-### 📖 Reference
-- API Documentation
-- Glossary
-- Privacy & Terms
+## 📚 Documentation Structure
 
-## 🔧 System Overview
+The documentation is now clearly structured by target audience:
 
-Carambus is a comprehensive billiards tournament management system built with:
-- **Backend**: Ruby on Rails 7.2
-- **Database**: PostgreSQL
-- **Frontend**: Hotwire, Stimulus, Tailwind CSS
-- **Real-time**: Action Cable, WebSockets
-- **Deployment**: Capistrano
+```
+docs/
+├── index.md                        # Main landing page
+│
+├── decision-makers/                # For Decision Makers
+│   ├── index.md                   # Overview
+│   ├── executive-summary.md       # Executive Summary
+│   ├── features-overview.md       # Features Overview
+│   └── deployment-options.md      # Deployment Options
+│
+├── players/                        # For Players
+│   ├── index.md                   # Overview
+│   ├── scoreboard-guide.md        # Scoreboard Operation
+│   ├── tournament-participation.md # Tournament Participation
+│   └── ai-search.md              # AI Search
+│
+├── managers/                       # For Tournament Managers
+│   ├── index.md                   # Overview
+│   ├── tournament-management.md   # Tournament Management
+│   ├── league-management.md       # League Management
+│   ├── single-tournament.md       # Single Tournament
+│   ├── table-reservation.md       # Table Reservation
+│   ├── admin_roles.md            # Admin Roles
+│   ├── clubcloud_integration.md   # ClubCloud
+│   └── search-filters.md         # Search & Filters
+│
+├── administrators/                 # For Admins
+│   ├── index.md                   # Overview
+│   ├── installation_overview.md   # Installation
+│   ├── quickstart_raspberry_pi.md # Raspberry Pi
+│   ├── raspberry-pi-client.md     # RasPi Client
+│   ├── scoreboard_autostart_setup.md # Autostart
+│   ├── server-architecture.md     # Architecture
+│   ├── email_configuration.md     # E-Mail
+│   └── database-setup.md         # Database
+│
+├── developers/                     # For Developers
+│   ├── index.md                   # Overview
+│   ├── getting-started.md         # Getting Started
+│   ├── developer-guide.md         # Developer Guide
+│   ├── database_design.md         # DB Design
+│   ├── er_diagram.md             # ER Diagram
+│   ├── scenario_management.md     # Scenarios
+│   ├── rake-tasks-debugging.md    # Testing
+│   ├── deployment_workflow.md     # Deployment
+│   ├── data_management.md         # Data Management
+│   ├── database-partitioning.md   # DB Partitioning
+│   └── ... (more technical docs)
+│
+└── reference/                      # Reference
+    ├── API.md                     # API Docs
+    ├── glossary.md                # Glossary
+    ├── terms.md                   # Terms
+    └── privacy.md                 # Privacy
+```
 
-## 📱 Raspberry Pi Integration
+## 🔍 Most Important Documents
 
-Carambus supports full Raspberry Pi integration for:
-- **All-in-One Kiosk Systems**: Server and display in one device
-- **Automatic Browser Start**: Kiosk mode with Chromium
-- **Touch Display Support**: Intuitive operation at the table
-- **Quick Installation**: From blank SD card to working system in 30 minutes
+### Getting Started
+- **[Main Index](index.en.md)**: Overview of all target audiences
+- **[About the Project](about.en.md)**: Background and history
 
-➡️ **[Quick Start Raspberry Pi Installation](administrators/raspberry-pi-quickstart.en.md)**
+### For Decision Makers
+- **[Executive Summary](decision-makers/executive-summary.en.md)**: Compact overview
+- **[Features Overview](decision-makers/features-overview.en.md)**: All features
+- **[Deployment Options](decision-makers/deployment-options.en.md)**: Operating models compared
 
-## 📞 Support
+### For Users
+- **[Scoreboard Guide](players/scoreboard-guide.en.md)**: Operation at the table
+- **[Tournament Management](managers/tournament-management.en.md)**: Organize tournaments
+- **[League Management](managers/league-management.en.md)**: Conduct league match days
 
-For technical support or documentation questions:
+### For Administrators
+- **[Installation](administrators/installation-overview.en.md)**: All installation options
+- **[Raspberry Pi Setup](administrators/raspberry-pi-quickstart.en.md)**: RasPi in 30 minutes
+- **[Server Architecture](administrators/server-architecture.en.md)**: System overview
+
+### For Developers
+- **[Getting Started](developers/getting-started.en.md)**: Development environment
+- **[Developer Guide](developers/developer-guide.en.md)**: Comprehensive handbook
+- **[Database Design](developers/database-design.en.md)**: Schema and models
+- **[API Reference](reference/API.en.md)**: REST API documentation
+
+## 🌍 Languages
+
+The documentation is available in:
+- 🇩🇪 **German** (Primary language)
+- 🇺🇸 **English** (Translations for most important documents)
+
+Use the language selector in the mkdocs navigation to switch languages.
+
+## 🔄 Documentation Maintenance
+
+### Contributing to Documentation
+- Follow the [Contribution Guide](developers/developer-guide.en.md)
+- Update relevant documentation when adding features
+- Add code examples for new APIs
+- Maintain consistency across all documents
+
+### Documentation Standards
+- Use clear, concise language
+- Include practical examples
+- Provide German and English versions where appropriate
+- Keep documentation up-to-date with code changes
+
+### Version Control
+- Documentation is versioned with the codebase
+- Major changes require documentation updates
+- API changes must be documented before release
+
+## 📞 Getting Help
+
+### Search Documentation
+- Use the **search function** (top right in mkdocs)
+- Use the **table of contents** on each page
+- Check the **[Glossary](reference/glossary.en.md)** for technical terms
+
+### Support Channels
+- **GitHub Issues**: [https://github.com/GernotUllrich/carambus/issues](https://github.com/GernotUllrich/carambus/issues)
 - **Email**: gernot.ullrich@gmx.de
 - **Project**: [Billardclub Wedel 61 e.V.](http://www.billardclub-wedel.de/)
-- **GitHub**: [GernotUllrich/carambus](https://github.com/GernotUllrich/carambus)
+
+### Missing Documentation?
+If you find missing documentation or errors:
+1. Create a GitHub issue
+2. Or send an email to gernot.ullrich@gmx.de
+3. Pull requests are welcome!
+
+## 🚀 Quick Links
+
+### For New Users
+- [What is Carambus?](about.en.md)
+- [Which target audience am I?](index.en.md)
+- [How do I install Carambus?](administrators/installation-overview.en.md)
+
+### For Experienced Users
+- [API Documentation](reference/API.en.md)
+- [Database Schema](developers/database-design.en.md)
+- [Deployment Workflow](developers/deployment-workflow.en.md)
 
 ---
 
-*Last updated: October 2025*
+**Version**: 2.0 (Reorganized December 2024)  
+**Status**: Complete  
+**Languages**: German, English
+
+*Welcome to the newly structured Carambus documentation! Choose your target audience above for the best entry point.*
