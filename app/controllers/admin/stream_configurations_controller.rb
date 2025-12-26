@@ -28,7 +28,6 @@ module Admin
       # Pre-populate from params if available
       if params[:table_id]
         @stream_configuration.table_id = params[:table_id]
-        @stream_configuration.location_id = Table.find(params[:table_id]).location_id
       end
     end
     
@@ -38,7 +37,7 @@ module Admin
     
     # POST /admin/stream_configurations
     def create
-      @stream_configuration = StreamConfiguration.new(stream_configuration_params)
+      @stream_configuration = StreamConfiguration.new(stream_configuration_params.except(:location_id))
       
       if @stream_configuration.save
         redirect_to admin_stream_configurations_path, notice: 'Stream-Konfiguration wurde erfolgreich erstellt.'
@@ -128,18 +127,12 @@ module Admin
     end
     
     def set_locations_and_tables
-      @locations = Location.order(:name)
-      @tables = if params[:location_id]
-        Location.find(params[:location_id]).tables.order(:name)
-      else
-        []
-      end
+      @locations = Location.includes(:tables).order(:name)
     end
     
     def stream_configuration_params
       params.require(:stream_configuration).permit(
         :table_id,
-        :location_id,
         :youtube_stream_key,
         :youtube_channel_id,
         :camera_device,

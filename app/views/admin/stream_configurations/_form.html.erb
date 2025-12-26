@@ -10,26 +10,17 @@
     </div>
   <% end %>
 
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-    <!-- Location Selection -->
-    <div class="form-group">
-      <%= form.label :location_id, "Location", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2" %>
-      <%= form.select :location_id, 
-          options_from_collection_for_select(@locations, :id, :name, stream_configuration.location_id),
-          { include_blank: "Bitte wählen..." },
-          { class: "form-select w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500",
-            data: { action: "change->stream-config#loadTables" } } %>
-    </div>
-
-    <!-- Table Selection -->
-    <div class="form-group">
-      <%= form.label :table_id, "Tisch", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2" %>
-      <%= form.select :table_id,
-          @tables.any? ? options_from_collection_for_select(@tables, :id, :name, stream_configuration.table_id) : [],
-          { include_blank: "Bitte wählen..." },
-          { class: "form-select w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500",
-            data: { stream_config_target: "tableSelect" } } %>
-    </div>
+  <div class="form-group">
+    <!-- Table Selection (Location wird daraus abgeleitet) -->
+    <%= form.label :table_id, "Tisch", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2" %>
+    <%= form.select :table_id,
+        grouped_options_for_select(
+          @locations.map { |loc| [loc.name, loc.tables.map { |t| [t.name, t.id] }] },
+          stream_configuration.table_id
+        ),
+        { include_blank: "Bitte Location und Tisch wählen..." },
+        { class: "form-select w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" } %>
+    <p class="mt-1 text-sm text-gray-500">Location wird automatisch vom gewählten Tisch übernommen</p>
   </div>
 
   <!-- YouTube Configuration -->

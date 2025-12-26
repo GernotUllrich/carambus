@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_12_25_201141) do
+ActiveRecord::Schema[7.2].define(version: 2025_12_26_091838) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -877,7 +877,6 @@ ActiveRecord::Schema[7.2].define(version: 2025_12_25_201141) do
 
   create_table "stream_configurations", force: :cascade do |t|
     t.bigint "table_id", null: false
-    t.bigint "location_id", null: false
     t.string "youtube_stream_key"
     t.string "youtube_channel_id"
     t.string "camera_device", default: "/dev/video0"
@@ -898,7 +897,6 @@ ActiveRecord::Schema[7.2].define(version: 2025_12_25_201141) do
     t.integer "audio_bitrate", default: 128
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["location_id"], name: "index_stream_configurations_on_location_id"
     t.index ["status"], name: "index_stream_configurations_on_status"
     t.index ["table_id"], name: "index_stream_configurations_on_table_id", unique: true
   end
@@ -1281,7 +1279,6 @@ ActiveRecord::Schema[7.2].define(version: 2025_12_25_201141) do
   add_foreign_key "settings", "clubs"
   add_foreign_key "settings", "regions"
   add_foreign_key "settings", "tournaments"
-  add_foreign_key "stream_configurations", "locations"
   add_foreign_key "stream_configurations", "tables"
   add_foreign_key "tables", "locations"
   add_foreign_key "tables", "regions", validate: false

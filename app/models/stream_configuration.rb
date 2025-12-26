@@ -25,24 +25,28 @@
 #  youtube_stream_key  :string
 #  created_at          :datetime         not null
 #  updated_at          :datetime         not null
-#  location_id         :bigint           not null
 #  table_id            :bigint           not null
 #
 # Indexes
 #
-#  index_stream_configurations_on_location_id  (location_id)
 #  index_stream_configurations_on_status       (status)
 #  index_stream_configurations_on_table_id     (table_id) UNIQUE
 #
 # Foreign Keys
 #
-#  fk_rails_...  (location_id => locations.id)
 #  fk_rails_...  (table_id => tables.id)
 #
+# Note: location is accessed via table association (has_one :location, through: :table)
+#
 class StreamConfiguration < ApplicationRecord
+  include ApiProtector  # Only exists on Local Servers, never on API Server
+  
+  # Ignore removed columns for safe deployment
+  self.ignored_columns = ["location_id"]
+  
   # Associations
   belongs_to :table
-  belongs_to :location
+  has_one :location, through: :table
   
   # Encryption for sensitive data
   encrypts :youtube_stream_key, deterministic: false
@@ -63,7 +67,7 @@ class StreamConfiguration < ApplicationRecord
   scope :active, -> { where(status: 'active') }
   scope :inactive, -> { where(status: 'inactive') }
   scope :with_errors, -> { where(status: 'error') }
-  scope :by_location, ->(location_id) { where(location_id: location_id) }
+  scope :by_location, ->(location_id) { joins(:table).where(tables: { location_id: location_id }) }
   
   # Callbacks
   before_validation :set_raspi_ip_from_table, if: -> { raspi_ip.blank? && table.present? }
