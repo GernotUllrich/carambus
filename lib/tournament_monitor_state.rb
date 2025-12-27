@@ -35,7 +35,7 @@ module TournamentMonitorState
     game.save!
 
     # Automatische Übertragung in die ClubCloud
-    if tournament.tournament_cc.present?
+    if tournament.tournament_cc.present? && tournament.auto_upload_to_cc?
       Rails.logger.info "[TournamentMonitorState] Attempting ClubCloud upload for game[#{game.id}]..."
       result = Setting.upload_game_to_cc(table_monitor)
       if result[:success]

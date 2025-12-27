@@ -236,7 +236,16 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
     # Hauptrunde;1;98765;95678;100;85;24;23;16;9;1;11:30:45;12:17:51
     game_data = []
     tournament.games.where("games.id >= #{Game::MIN_ID}").each do |game|
-      gruppe = "#{game.gname =~ /^group/ ? "Gruppe" : game.gname}#{" #{game.group_no}" if game.group_no.present?}"
+      # Verwende die gleiche Mapping-Logik wie beim Single-Game-Upload
+      # um konsistente ClubCloud-Spielnamen zu generieren
+      gruppe = Setting.map_game_gname_to_cc_group_name(game.gname)
+      
+      # Fallback auf alte Logik, falls Mapping fehlschlägt
+      unless gruppe.present?
+        Rails.logger.warn "[CSV-Export] Could not map game.gname '#{game.gname}' to ClubCloud group name, using fallback"
+        gruppe = "#{game.gname =~ /^group/ ? "Gruppe" : game.gname}#{" #{game.group_no}" if game.group_no.present?}"
+      end
+      
       partie = game.seqno
       gp1 = game.game_participations.where(role: "playera").first
       gp2 = game.game_participations.where(role: "playerb").first

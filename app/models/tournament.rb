@@ -227,7 +227,7 @@ class Tournament < ApplicationRecord
     end
   end
 
-  %i[timeouts timeout gd_has_prio admin_controlled sets_to_play sets_to_win
+  %i[timeouts timeout gd_has_prio admin_controlled auto_upload_to_cc sets_to_play sets_to_win
      team_size kickoff_switches_with allow_follow_up
      fixed_display_left color_remains_with_set].each do |meth|
     define_method(meth) do
@@ -308,7 +308,7 @@ class Tournament < ApplicationRecord
     if data.present?
       %w[balls_goal innings_goal time_out_warm_up_first_min
          time_out_warm_up_follow_up_min kickoff_switches_with fixed_display_left] +
-        %w[timeouts timeout gd_has_prio admin_controlled sets_to_play sets_to_win
+        %w[timeouts timeout gd_has_prio admin_controlled auto_upload_to_cc sets_to_play sets_to_win
            team_size kickoff_switches_with allow_follow_up
            fixed_display_left color_remains_with_set].each do |meth|
           # Use !nil? instead of present? to allow 0 and false as valid values

@@ -200,12 +200,23 @@ Das neue Wizard-System besteht aus **6 Hauptschritten**, die Sie visuell durch d
   - **Timeout** in Sekunden (0 oder leer, wenn keine Timeouts)
   - **Timeouts** (maximale Anzahl von Timeout-Verlängerungen)
   - **Checkbox:** "Tournament manager checks results before acceptance"
+  - **Checkbox:** "Ergebnisse automatisch in ClubCloud hochladen" (Standard: aktiviert)
   - **Einspielzeit** (Standard und verkürzt bei Wechsel)
 
 **Turnierparameter:**
 - Viele Parameter können aus der **Einladung** übernommen werden
 - Beispiel: "Das Ausspielziel beträgt 80 Punkte in 20 Aufnahmen"
 - Diese Informationen werden automatisch extrahiert (falls verfügbar)
+
+**Automatischer Upload in die ClubCloud:**
+- **Standard (empfohlen):** Die Checkbox **"Ergebnisse automatisch in ClubCloud hochladen"** ist aktiviert
+- Bei dieser Einstellung wird **jedes abgeschlossene Spiel sofort** automatisch in die ClubCloud übertragen
+- **Vorteile:**
+  - ✅ Echtzeit-Übertragung der Ergebnisse
+  - ✅ Sofortige Sichtbarkeit für alle Verbände
+  - ✅ Kein manuelles Hochladen am Ende nötig
+  - ✅ Automatische Fehlerbehandlung und Wiederholungsversuche
+- **Alternative:** Checkbox deaktivieren für manuellen CSV-Upload am Ende (z.B. bei Offline-Turnieren)
 
 **Turnier starten:**
 1. Alle Parameter prüfen und ggf. anpassen
@@ -327,15 +338,57 @@ Nach dem Start des Turniers wird der **Wizard ausgeblendet** und durch die **Tou
 
 ## Nach dem Turnier
 
-### Ergebnisse exportieren
+### Ergebnisse-Übertragung in die ClubCloud
 
-Nach Abschluss des Turniers erhalten Sie automatisch per **eMail** eine CSV-Datei mit den Ergebnissen im Format für den Upload in die ClubCloud.
+Carambus bietet **zwei Methoden** zur Übertragung der Turnierergebnisse in die ClubCloud:
 
-Die Datei wird auch lokal gespeichert: `{carambus}/tmp/result-{ba_id}.csv`
+#### Methode 1: Automatischer Einzel-Upload (Standard, empfohlen)
 
-### Ergebnisse in ClubCloud hochladen
+**So funktioniert es:**
+- Bei aktivierter Option **"Ergebnisse automatisch in ClubCloud hochladen"** (Standard in Schritt 6)
+- Wird **jedes Spiel sofort nach Abschluss** automatisch in die ClubCloud übertragen
+- Die Übertragung erfolgt im Hintergrund, ohne dass der Turnierleiter eingreifen muss
 
-Der Turnierleiter kann die CSV-Datei direkt in die ClubCloud hochladen.
+**Vorteile:**
+- ✅ **Echtzeit-Updates:** Ergebnisse sind sofort für alle Verbände sichtbar
+- ✅ **Automatisch:** Kein manuelles Eingreifen nötig
+- ✅ **Fehlerbehandlung:** Automatische Wiederholungsversuche bei Problemen
+- ✅ **Transparenz:** Live-Verfolgung des Turnierverlaufs möglich
+
+**Was wird übertragen?**
+- Spielpaarungen mit korrekten **ClubCloud-Spielnamen** (z.B. "Gruppe A:1-2")
+- Ergebnisse (Punkte, Aufnahmen, Höchstserien)
+- Tischnummern
+- Zeitstempel
+
+**Status-Überwachung:**
+- Erfolgreiche Uploads werden im Log bestätigt: ✓ "ClubCloud upload successful"
+- Bei Fehlern werden diese im Tournament Monitor angezeigt
+- Fehlerhafte Spiele können manuell wiederholt werden
+
+#### Methode 2: Manueller CSV-Batch-Upload (Alternative)
+
+**Wann verwenden?**
+- Bei **Offline-Turnieren** ohne Internet-Verbindung
+- Als **Backup** nach automatischem Upload
+- Bei **Problemen** mit dem automatischen Upload
+- Wenn die Option in Schritt 6 **deaktiviert** wurde
+
+**So funktioniert es:**
+1. Nach Abschluss des Turniers erhalten Sie per **eMail** eine CSV-Datei
+2. Die Datei wird auch lokal gespeichert: `{carambus}/tmp/result-{ba_id}.csv`
+3. Der Turnierleiter lädt die CSV-Datei manuell in die ClubCloud hoch
+
+**CSV-Datei enthält:**
+- Alle Spielergebnisse im ClubCloud-Format
+- Korrekte **ClubCloud-Spielnamen** (z.B. "Gruppe A:1-2", "Finale")
+- Spielpaarungen, Ergebnisse, Aufnahmen, Höchstserien
+- Tischnummern
+
+**Wichtig:**
+- Die CSV-Datei wird **immer** generiert, auch bei automatischem Upload
+- Sie dient als **Backup** und zur **Kontrolle**
+- Bei aktiviertem automatischem Upload sind die Spiele in der CSV bereits hochgeladen
 
 ### Finaler Abgleich
 
@@ -343,6 +396,8 @@ Als letzten Schritt kann nochmal ein **Abgleich mit der ClubCloud** erfolgen:
 - `Turnier → "📊 Ergebnisse von ClubCloud laden"` (nur für Archivierung!)
 
 Die damit heruntergeladenen Daten sind Grundlage für später ausgerechnete Rankings.
+
+**Hinweis:** Dieser Abgleich überschreibt lokale Daten mit ClubCloud-Daten und sollte nur nach finaler Freigabe erfolgen.
 
 ## Wichtige Unterschiede: Meldeliste vs. Setzliste vs. Teilnehmerliste
 

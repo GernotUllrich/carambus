@@ -268,28 +268,86 @@ end
 
 ## 🔄 Synchronization Back to ClubCloud
 
-**Current state:** Only via **CSV upload** possible
+**Current state:** Two upload methods available
 
-### Uploading Results (Manual)
+### Method 1: Automatic Single-Game Upload (Standard since 2024)
+
+**Real-time transfer during tournament:**
+
+```
+1. Prepare and start tournament in Carambus
+2. Enable checkbox "Automatically upload results to ClubCloud" (default)
+3. During tournament: Each completed game is automatically transferred
+4. Background process transfers game results immediately after finalization
+5. Automatic error handling and retry attempts
+6. Status monitoring in Tournament Monitor
+```
+
+**Advantages:**
+- ✅ **Real-time updates:** Results immediately visible
+- ✅ **Automatic:** No manual work needed
+- ✅ **Robust:** Automatic error handling
+- ✅ **Transparent:** Live tracking possible
+
+**Technical Details:**
+- Uses ClubCloud form interface (POST request)
+- Authentication via session cookie
+- Correct ClubCloud game names (e.g., "Group A:1-2")
+- Duplicate prevention (already uploaded games are skipped)
+- Error logging in tournament data
+
+**Prerequisites:**
+- Internet connection during tournament
+- Valid ClubCloud login (automatic via RegionCc)
+- `tournament.tournament_cc` present (automatic for ClubCloud tournaments)
+
+### Method 2: Manual CSV Upload (Alternative/Backup)
+
+**Batch upload after tournament completion:**
 
 ```
 1. Run tournament in Carambus
 2. Results captured in Carambus (via scoreboards)
-3. Export as CSV file
+3. Export as CSV file (automatic via email)
 4. Login to ClubCloud (with admin credentials)
 5. CSV upload via ClubCloud interface
 6. Manual approval/review in ClubCloud
 ```
 
-**Why CSV and not API?**
-- ClubCloud doesn't (yet) offer upload API
-- CSV is universally supported
-- Manual control by admin desired
+**When to use?**
+- For **offline tournaments** without internet connection
+- As **backup** in case of problems with automatic upload
+- For **verification** and review of results
+- When automatic upload was manually disabled
+
+**Advantages:**
+- ✅ Works offline
+- ✅ Manual control possible
+- ✅ CSV as universal format
+- ✅ Backup function
+
+**CSV file contains:**
+- All game results in ClubCloud format
+- Correct ClubCloud game names
+- Game pairings, results, innings, high runs
+- Table numbers
+
+### Comparison of Methods
+
+| Aspect | Automatic Upload | CSV Upload |
+|--------|-----------------|------------|
+| **Timing** | During tournament | After tournament |
+| **Internet** | Required | Optional |
+| **Manual** | No | Yes |
+| **Real-time** | Yes | No |
+| **Error handling** | Automatic | Manual |
+| **Control** | Automatic | Manual possible |
+| **Recommended for** | Standard tournaments | Offline tournaments |
 
 **Future possibilities:**
-- Direct API integration (when ClubCloud provides it)
-- Automatic upload after tournament end
-- Real-time synchronization during match day
+- API-based uploads (when ClubCloud provides API)
+- Bi-directional synchronization
+- Extended error reporting
 
 ---
 
@@ -319,9 +377,10 @@ end
    - Everything stored in Carambus
 
 5. Results back to ClubCloud
-   - CSV export from Carambus
-   - Upload to ClubCloud (manual)
-   - Publication for all associations
+   - **Automatic:** Each game directly uploaded (default, recommended)
+   - **Alternative:** CSV export from Carambus
+   - **Alternative:** Upload to ClubCloud (manual)
+   - Publication for all associations (automatic with auto-upload)
 ```
 
 ### Scenario 2: Preparing a Match Day
@@ -339,11 +398,12 @@ end
 3. Execute match day
    - Carambus Party Monitor controls process
    - Scoreboards capture games live
-   - No ClubCloud connection needed (offline!)
+   - Optional: No ClubCloud connection needed (offline!)
 
 4. Upload results
-   - After match day: CSV export
-   - Upload to ClubCloud
+   - **Automatic:** With internet connection, games are directly transferred (recommended)
+   - **Alternative (offline):** After match day: CSV export
+   - **Alternative (offline):** Upload to ClubCloud (manual)
    - Update league table
 ```
 
@@ -403,7 +463,8 @@ A: No. Carambus only marks them as "no longer in ClubCloud". Historical data is 
 ✅ **Automatic** daily at 4:00 AM  
 ✅ **Manual** before tournaments/match days  
 ✅ **No authentication** for reading (public data)  
-✅ **CSV upload** for results back to ClubCloud  
+✅ **Automatic upload** of individual games in real-time (default since 2024)  
+✅ **CSV upload** as backup for results back to ClubCloud  
 ✅ **DBU-IDs** as global master identifiers  
 ✅ **Duplicate handling** with synonyms and merge  
 ✅ **Offline-capable** through local data storage  

@@ -306,6 +306,7 @@ class TournamentsController < ApplicationController
     data_["color_remains_with_set"] = params[:color_remains_with_set]
     data_["allow_overflow"] = params[:allow_overflow]
     data_["allow_follow_up"] = params[:allow_follow_up]
+    data_["auto_upload_to_cc"] = params[:auto_upload_to_cc]
     @tournament.unprotected = true
     @tournament.data_will_change!
     @tournament.assign_attributes(data: data_)

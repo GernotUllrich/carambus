@@ -1040,6 +1040,7 @@ de:
       ba_state: 'BA Status:'
       back: Zurück
       balls_goal: Bälle Ziel
+      auto_upload_to_cc: 'Ergebnisse automatisch in ClubCloud hochladen'
       club: Club
       date: 'Datum:'
       debugging_force_reset_tournament_monitor: 'Debugging: Force Reset Tournament'

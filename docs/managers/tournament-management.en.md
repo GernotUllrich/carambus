@@ -203,7 +203,7 @@ A final protocol is displayed on the board. The players confirm the result with 
 As soon as all games of a round are finished, the next round starts automatically. The corresponding new pairings are displayed on the scoreboards.
 
 ### End of tournament
-As soon as all games of the tournament are completed, a final protocol is sent to the game leader with a CSV file, which can then be used directly for uploading the results to the Billard-Area.
+As soon as all games of the tournament are completed, the results are automatically transferred to ClubCloud (if enabled). Additionally, a final protocol is sent to the tournament director with a CSV file as backup, which can alternatively be used manually for uploading the results to the Billard-Area.
 
 ## Training Mode
 At the scoreboards, the respective tables can be selected. Depending on the tournament status, free tables can be recognized and used for free training games.
@@ -232,8 +232,9 @@ A tournament is generally managed in the following phases:
 * Check of local scoreboards
 * Start of tournament
 * Comparison of game results with game protocols
-* Email with game results (csv) to tournament leader
-* Upload of game results (csv) to ClubCloud
+* **Automatic upload** of each game to ClubCloud (default, recommended)
+* Email with game results (csv) to tournament leader as backup
+* Alternatively: Manual upload of game results (csv) to ClubCloud
 * Synchronization with ClubCloud for final check
 
 ### Verification of relevant data
@@ -286,12 +287,30 @@ The following parameters can now still be adjusted:
 
 The new game pairings appear automatically on the scoreboards.
 
+### Automatic Upload to ClubCloud (recommended)
+
+**Standard procedure since version 2024:**
+- Each completed game is **immediately automatically** transferred to ClubCloud
+- The transfer happens in the background during the tournament
+- **Advantages:** Real-time updates, no manual work, automatic error handling
+- **Activation:** Checkbox "Automatically upload results to ClubCloud" in Step 6 of the wizard (default: enabled)
+
 ### Email with game results (csv) to tournament leader
 
 After the tournament is completed, the tournament leader automatically receives an email with a CSV file containing the results in the format required for uploading to the ClubCloud. This file is also saved on the local server (`{carambus}/tmp/result-{ba_id}.csv`)
 
-### Upload of game results (csv) to ClubCloud
+**Function of the CSV file:**
+- **Backup:** Safety copy of all results
+- **Control:** Manual verification of results
+- **Offline tournaments:** Manual upload when internet connection is unavailable
+
+### Manual upload of game results (csv) to ClubCloud (Alternative)
 The tournament leader can upload the CSV file directly to the ClubCloud (he knows how to do it ;-)
+
+**When to upload manually?**
+- For offline tournaments without internet connection
+- As backup when automatic upload was disabled
+- In case of problems with automatic upload
 
 ### Synchronization with ClubCloud for final check
 As a final step, another synchronization with the ClubCloud can take place. The data downloaded with this is the basis for later calculated rankings. 

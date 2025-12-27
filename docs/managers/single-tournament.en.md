@@ -205,12 +205,23 @@ The new wizard system consists of **6 main steps** that visually guide you throu
   - **Timeout** in seconds (0 or empty if no timeouts)
   - **Timeouts** (maximum number of timeout extensions)
   - **Checkbox:** "Tournament manager checks results before acceptance"
+  - **Checkbox:** "Automatically upload results to ClubCloud" (Default: enabled)
   - **Warm-up time** (standard and shortened when switching tables)
 
 **Tournament Parameters:**
 - Many parameters can be taken from the **invitation**
 - Example: "The target score is 80 points in 20 innings"
 - This information is automatically extracted (if available)
+
+**Automatic Upload to ClubCloud:**
+- **Default (recommended):** The checkbox **"Automatically upload results to ClubCloud"** is enabled
+- With this setting, **each completed game is immediately** uploaded to ClubCloud automatically
+- **Advantages:**
+  - ✅ Real-time transmission of results
+  - ✅ Immediate visibility for all associations
+  - ✅ No manual upload needed at the end
+  - ✅ Automatic error handling and retry attempts
+- **Alternative:** Disable checkbox for manual CSV upload at the end (e.g., for offline tournaments)
 
 **Start Tournament:**
 1. Review all parameters and adjust if needed
@@ -332,15 +343,57 @@ After the tournament starts, the **Wizard is hidden** and replaced by the **Tour
 
 ## After the Tournament
 
-### Export Results
+### Results Transfer to ClubCloud
 
-After the tournament ends, you automatically receive an **email** with a CSV file containing the results in the format required for uploading to ClubCloud.
+Carambus offers **two methods** for transferring tournament results to ClubCloud:
 
-The file is also saved locally: `{carambus}/tmp/result-{ba_id}.csv`
+#### Method 1: Automatic Single-Game Upload (Default, recommended)
 
-### Upload Results to ClubCloud
+**How it works:**
+- With the option **"Automatically upload results to ClubCloud"** enabled (default in Step 6)
+- **Each game is automatically uploaded to ClubCloud immediately after completion**
+- The transfer happens in the background without tournament director intervention
 
-The tournament director can upload the CSV file directly to ClubCloud.
+**Advantages:**
+- ✅ **Real-time updates:** Results are immediately visible to all associations
+- ✅ **Automatic:** No manual intervention required
+- ✅ **Error handling:** Automatic retry attempts in case of problems
+- ✅ **Transparency:** Live tracking of tournament progress possible
+
+**What is transferred?**
+- Game pairings with correct **ClubCloud game names** (e.g., "Group A:1-2")
+- Results (points, innings, high runs)
+- Table numbers
+- Timestamps
+
+**Status Monitoring:**
+- Successful uploads are confirmed in the log: ✓ "ClubCloud upload successful"
+- Errors are displayed in the Tournament Monitor
+- Failed games can be manually retried
+
+#### Method 2: Manual CSV Batch Upload (Alternative)
+
+**When to use?**
+- For **offline tournaments** without internet connection
+- As a **backup** after automatic upload
+- In case of **problems** with automatic upload
+- When the option was **disabled** in Step 6
+
+**How it works:**
+1. After tournament completion, you receive a CSV file via **email**
+2. The file is also saved locally: `{carambus}/tmp/result-{ba_id}.csv`
+3. The tournament director manually uploads the CSV file to ClubCloud
+
+**CSV file contains:**
+- All game results in ClubCloud format
+- Correct **ClubCloud game names** (e.g., "Group A:1-2", "Final")
+- Game pairings, results, innings, high runs
+- Table numbers
+
+**Important:**
+- The CSV file is **always** generated, even with automatic upload
+- It serves as a **backup** and for **verification**
+- With automatic upload enabled, games in the CSV are already uploaded
 
 ### Final Synchronization
 
@@ -348,6 +401,8 @@ As a final step, a **synchronization with ClubCloud** can be performed:
 - `Tournament → "📊 Load Results from ClubCloud"` (only for archiving!)
 
 The downloaded data forms the basis for later calculated rankings.
+
+**Note:** This synchronization overwrites local data with ClubCloud data and should only be performed after final approval.
 
 ## Important Differences: Registration List vs. Seeding List vs. Participant List
 

@@ -1018,6 +1018,7 @@ en:
       ba_state: 'BA State:'
       back: Back
       balls_goal: Balls Goal
+      auto_upload_to_cc: 'Automatically upload results to ClubCloud'
       club: Club
       date: 'Date:'
       debugging_force_reset_tournament_monitor: 'Debugging: Force Reset Tournament Monitor'

@@ -203,7 +203,7 @@ An der Tafel wird ein Abschlussprotokoll angezeigt. Die Spieler bestätigen das 
 Sobald alle Spiele einer Runde beendet sind, startet automatisch die nächste Runde. Die entsprechenden neuen Paarungen werden an den Anzeigetafeln angezeigt.
 
 ### Ende des Turniers
-Sobald alle Spiele des Turniers abgeschlossen sind, wird ein Endprotokoll an den Spielleiter gesendet mit einer CSV-Datei, die dann direkt zum Upload der Ergebnisse in die Billard-Area genutzt werden kann.
+Sobald alle Spiele des Turniers abgeschlossen sind, werden die Ergebnisse automatisch an die ClubCloud übertragen (wenn aktiviert). Zusätzlich wird ein Endprotokoll an den Spielleiter gesendet mit einer CSV-Datei als Backup, die alternativ auch manuell zum Upload der Ergebnisse in die Billard-Area genutzt werden kann.
 
 ## Trainingsmodus
 An den Scoreboards können die jeweiligen Tische ausgewählt werden. Abhängig vom Turnierstatus können freie Tische erkannt werden und für das freie Trainingsspiel genutzt werden.
@@ -232,8 +232,9 @@ Ein Turnier wird generell in folgenden Phasen verwaltet:
 * Check der lokalen Scoreboards
 * Start des Turniers
 * Abgleich der Partieergebnisse mit den Spielprotokollen
-* eMail mit den Spielergebnissen (csv) an den Turnierleiter
-* Upload der Spielergebnisse (csv) in die ClubCloud
+* **Automatischer Upload** jedes Spiels in die ClubCloud (Standard, empfohlen)
+* eMail mit den Spielergebnissen (csv) an den Turnierleiter als Backup
+* Alternativ: Manueller Upload der Spielergebnisse (csv) in die ClubCloud
 * Abgleich mit der ClubCloud zum letzten Check
 
 ### Überprüfung der relevanten Daten
@@ -286,12 +287,30 @@ Folgende Parameter können nun noch angepasst werden:
 
 Die neuen Spielpaarungen erscheinen jeweils automatisch auf den Scoreboards.
 
+### Automatischer Upload in die ClubCloud (empfohlen)
+
+**Standardverfahren seit Version 2024:**
+- Jedes abgeschlossene Spiel wird **sofort automatisch** in die ClubCloud übertragen
+- Die Übertragung erfolgt im Hintergrund während des Turniers
+- **Vorteile:** Echtzeit-Updates, keine manuelle Arbeit, automatische Fehlerbehandlung
+- **Aktivierung:** Checkbox "Ergebnisse automatisch in ClubCloud hochladen" in Schritt 6 des Wizard (Standard: aktiviert)
+
 ### eMail mit den Spielergebnissen (csv) an den Turnierleiter
 
 Nach Abschluss des Turniers erhält der Turnierleiter automatisch per eMail eine CSV-Datei mit den Ergebnissen in dem Format, welches für den Upload in die ClubCloud notwendig ist. Diese Datei wird auch auf dem lokalen Server gespeichert (`{carambus}/tmp/result-{ba_id}.csv`)
 
-### Upload der Spielergebnisse (csv) in die ClubCloud
+**Funktion der CSV-Datei:**
+- **Backup:** Sicherheitskopie aller Ergebnisse
+- **Kontrolle:** Manuelle Überprüfung der Ergebnisse
+- **Offline-Turniere:** Manueller Upload bei fehlender Internet-Verbindung
+
+### Manueller Upload der Spielergebnisse (csv) in die ClubCloud (Alternative)
 Der Turnierleiter kann die CSV-Datei direkt in die ClubCloud hochladen (er weiß wie das geht ;-)
+
+**Wann manuell hochladen?**
+- Bei Offline-Turnieren ohne Internet-Verbindung
+- Als Backup, wenn automatischer Upload deaktiviert war
+- Bei Problemen mit dem automatischen Upload
 
 ### Abgleich mit der ClubCloud zum letzten Check
 Als letzten Schritt kann noch einmal ein Abgleich mit der ClubCloud erfolgen. Die damit heruntergeladenen Daten sind Grundlage für später ausgerechnete Rankings.

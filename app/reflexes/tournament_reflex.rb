@@ -33,6 +33,7 @@ class TournamentReflex < ApplicationReflex
     balls_goal: "I",
     timeout: "I",
     admin_controlled: "B",
+    auto_upload_to_cc: "B",
     continuous_placements: "B",
     gd_has_prio: "B",
     kickoff_switches_with: "S",

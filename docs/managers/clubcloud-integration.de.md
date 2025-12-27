@@ -268,28 +268,86 @@ end
 
 ## 🔄 Synchronisation zurück zur ClubCloud
 
-**Aktueller Stand:** Nur über **CSV-Upload** möglich
+**Aktueller Stand:** Zwei Upload-Methoden verfügbar
 
-### Ergebnisse hochladen (manuell)
+### Methode 1: Automatischer Einzel-Upload (Standard seit 2024)
+
+**Echtzeit-Übertragung während des Turniers:**
+
+```
+1. Turnier in Carambus vorbereiten und starten
+2. Checkbox "Ergebnisse automatisch in ClubCloud hochladen" aktivieren (Standard)
+3. Während des Turniers: Jedes abgeschlossene Spiel wird automatisch übertragen
+4. Hintergrund-Prozess überträgt Spielergebnisse sofort nach Finalisierung
+5. Automatische Fehlerbehandlung und Wiederholungsversuche
+6. Status-Überwachung im Tournament Monitor
+```
+
+**Vorteile:**
+- ✅ **Echtzeit-Updates:** Ergebnisse sofort sichtbar
+- ✅ **Automatisch:** Keine manuelle Arbeit nötig
+- ✅ **Robust:** Automatische Fehlerbehandlung
+- ✅ **Transparent:** Live-Verfolgung möglich
+
+**Technische Details:**
+- Verwendet ClubCloud-Formular-Interface (POST-Request)
+- Authentifizierung über Session-Cookie
+- Korrekte ClubCloud-Spielnamen (z.B. "Gruppe A:1-2")
+- Duplicate-Prevention (bereits hochgeladene Spiele werden übersprungen)
+- Error-Logging im Tournament-Data
+
+**Voraussetzungen:**
+- Internet-Verbindung während des Turniers
+- Gültiges ClubCloud-Login (automatisch über RegionCc)
+- `tournament.tournament_cc` vorhanden (automatisch bei ClubCloud-Turnieren)
+
+### Methode 2: Manueller CSV-Upload (Alternative/Backup)
+
+**Batch-Upload nach Turnierablauf:**
 
 ```
 1. Turnier in Carambus durchführen
 2. Ergebnisse in Carambus erfasst (über Scoreboards)
-3. Export als CSV-Datei
+3. Export als CSV-Datei (automatisch per eMail)
 4. Login in ClubCloud (mit Admin-Credentials)
 5. CSV-Upload über ClubCloud-Interface
 6. Manuelle Freigabe/Überprüfung in ClubCloud
 ```
 
-**Warum CSV und nicht API?**
-- ClubCloud bietet (noch) keine Upload-API
-- CSV ist universell unterstützt
-- Manuelle Kontrolle durch Admin gewünscht
+**Wann verwenden?**
+- Bei **Offline-Turnieren** ohne Internet-Verbindung
+- Als **Backup** bei Problemen mit automatischem Upload
+- Für **Kontrolle** und Überprüfung der Ergebnisse
+- Wenn automatischer Upload manuell deaktiviert wurde
+
+**Vorteile:**
+- ✅ Funktioniert offline
+- ✅ Manuelle Kontrolle möglich
+- ✅ CSV als universelles Format
+- ✅ Backup-Funktion
+
+**CSV-Datei enthält:**
+- Alle Spielergebnisse im ClubCloud-Format
+- Korrekte ClubCloud-Spielnamen
+- Spielpaarungen, Ergebnisse, Aufnahmen, Höchstserien
+- Tischnummern
+
+### Vergleich der Methoden
+
+| Aspekt | Automatischer Upload | CSV-Upload |
+|--------|---------------------|------------|
+| **Zeitpunkt** | Während des Turniers | Nach dem Turnier |
+| **Internet** | Erforderlich | Optional |
+| **Manuell** | Nein | Ja |
+| **Echtzeit** | Ja | Nein |
+| **Fehlerbehandlung** | Automatisch | Manuell |
+| **Kontrolle** | Automatisch | Manuell möglich |
+| **Empfohlen für** | Standard-Turniere | Offline-Turniere |
 
 **Zukünftig möglich:**
-- Direkte API-Integration (wenn ClubCloud bereitstellt)
-- Automatischer Upload nach Turnier-Ende
-- Real-time Synchronisation während Spieltag
+- API-basierte Uploads (wenn ClubCloud API bereitstellt)
+- Bi-direktionale Synchronisation
+- Erweiterte Fehlerberichterstattung
 
 ---
 
@@ -319,9 +377,10 @@ end
    - Alles in Carambus gespeichert
 
 5. Ergebnisse zurück zur ClubCloud
-   - CSV-Export aus Carambus
-   - Upload in ClubCloud (manuell)
-   - Veröffentlichung für alle Verbände
+   - **Automatisch:** Jedes Spiel wird direkt hochgeladen (Standard, empfohlen)
+   - **Alternativ:** CSV-Export aus Carambus
+   - **Alternativ:** Upload in ClubCloud (manuell)
+   - Veröffentlichung für alle Verbände (automatisch bei Auto-Upload)
 ```
 
 ### Szenario 2: Spieltag vorbereiten
@@ -339,11 +398,12 @@ end
 3. Spieltag durchführen
    - Carambus Party Monitor steuert Ablauf
    - Scoreboards erfassen Spiele live
-   - Keine ClubCloud-Verbindung nötig (offline!)
+   - Optional: Keine ClubCloud-Verbindung nötig (offline!)
 
 4. Ergebnisse hochladen
-   - Nach Spieltag: CSV-Export
-   - Upload zu ClubCloud
+   - **Automatisch:** Mit Internet-Verbindung werden Spiele direkt übertragen (empfohlen)
+   - **Alternativ (offline):** Nach Spieltag: CSV-Export
+   - **Alternativ (offline):** Upload zu ClubCloud (manuell)
    - Aktualisierung der Liga-Tabelle
 ```
 
@@ -403,7 +463,8 @@ A: Nein. Carambus markiert sie nur als "nicht mehr in ClubCloud". Historische Da
 ✅ **Automatisch** täglich um 4:00 Uhr  
 ✅ **Manuell** vor Turnieren/Spieltagen  
 ✅ **Keine Authentifizierung** für Lesen (öffentliche Daten)  
-✅ **CSV-Upload** für Ergebnisse zurück zur ClubCloud  
+✅ **Automatischer Upload** einzelner Spiele in Echtzeit (Standard seit 2024)  
+✅ **CSV-Upload** als Backup für Ergebnisse zurück zur ClubCloud  
 ✅ **DBU-IDs** als globale Master-Identifikatoren  
 ✅ **Duplikat-Handling** mit Synonymen und Merge  
 ✅ **Offline-fähig** durch lokale Datenhaltung  

@@ -75,6 +75,9 @@
               <span class="w-1/2 text-right text-sm"><%= label_tag "Tournament Manager checks results before acceptance" %></span><span id="tournament_admin_controlled"><%= check_box_tag :admin_controlled, "1", @tournament.admin_controlled?, class: "border-2", data: { reflex: "change->TournamentReflex#admin_controlled", id: @tournament.id } %></span>
             </div>
             <div class="flex flex-row space-x-4 items-center">
+              <span class="w-1/2 text-right text-sm"><%= label_tag t('tournaments.show.auto_upload_to_cc', default: "Ergebnisse automatisch in ClubCloud hochladen") %></span><span id="tournament_auto_upload_to_cc"><%= check_box_tag :auto_upload_to_cc, "1", @tournament.auto_upload_to_cc?, class: "border-2", data: { reflex: "change->TournamentReflex#auto_upload_to_cc", id: @tournament.id } %></span>
+            </div>
+            <div class="flex flex-row space-x-4 items-center">
               <span class="w-1/2 text-right text-sm"><%= label_tag "Assign Games as Tables become available" %></span><span id="tournament_continuous_placements"><%= check_box_tag :continuous_placements, "1", @tournament.continuous_placements?, class: "border-2", data: { reflex: "change->TournamentReflex#continuous_placements", id: @tournament.id } %></span>
             </div>
             <div class="flex flex-row space-x-4 items-center">
