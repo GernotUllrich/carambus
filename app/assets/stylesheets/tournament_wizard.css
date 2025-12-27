@@ -116,13 +116,27 @@ html.dark {
   transition: all 0.2s ease;
 }
 
+html.dark .wizard-step {
+  background-color: #1f2937;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
 .wizard-step:hover {
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+html.dark .wizard-step:hover {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4);
 }
 
 .wizard-step-completed {
   border-color: #10b981;
   background-color: #f0fdf4;
+}
+
+html.dark .wizard-step-completed {
+  border-color: #10b981;
+  background-color: #064e3b;
 }
 
 .wizard-step-active {
@@ -131,10 +145,21 @@ html.dark {
   box-shadow: 0 4px 6px rgba(59, 130, 246, 0.2);
 }
 
+html.dark .wizard-step-active {
+  border-color: #3b82f6;
+  background-color: #1e3a8a;
+  box-shadow: 0 4px 6px rgba(59, 130, 246, 0.3);
+}
+
 .wizard-step-pending {
   border-color: #d1d5db;
   background-color: #f9fafb;
   opacity: 0.7;
+}
+
+html.dark .wizard-step-pending {
+  border-color: #4b5563;
+  background-color: #111827;
 }
 
 .wizard-step-danger {
@@ -149,6 +174,11 @@ html.dark {
 .wizard-step-optional.wizard-step-active {
   border-color: #60a5fa;
   background-color: #f0f9ff;
+}
+
+html.dark .wizard-step-optional.wizard-step-active {
+  border-color: #60a5fa;
+  background-color: #1e40af;
 }
 
 /* Step Header */
@@ -179,6 +209,10 @@ html.dark {
   font-size: 1.125rem;
 }
 
+html.dark .step-number {
+  color: #9ca3af;
+}
+
 .step-title {
   font-size: 1.125rem;
   font-weight: 600;
@@ -186,10 +220,18 @@ html.dark {
   margin: 0;
 }
 
+html.dark .step-title {
+  color: #f9fafb;
+}
+
 .step-info {
   font-size: 0.875rem;
   color: #4b5563;
   margin-top: 0.5rem;
+}
+
+html.dark .step-info {
+  color: #d1d5db;
 }
 
 .step-warning {
@@ -200,6 +242,10 @@ html.dark {
   gap: 0.5rem;
   margin-top: 0.5rem;
   font-weight: 500;
+}
+
+html.dark .step-warning {
+  color: #fb923c;
 }
 
 .warning-icon {
@@ -215,10 +261,18 @@ html.dark {
   color: #6b7280;
 }
 
+html.dark .step-help details {
+  color: #9ca3af;
+}
+
 .step-help summary {
   cursor: pointer;
   color: #2563eb;
   font-weight: 500;
+}
+
+html.dark .step-help summary {
+  color: #60a5fa;
 }
 
 .step-help summary:hover {
@@ -226,10 +280,18 @@ html.dark {
   text-decoration: underline;
 }
 
+html.dark .step-help summary:hover {
+  color: #93c5fd;
+}
+
 .step-help p {
   margin-top: 0.5rem;
   padding-left: 1rem;
   color: #4b5563;
+}
+
+html.dark .step-help p {
+  color: #d1d5db;
 }
 
 /* Step Actions */
@@ -284,6 +346,46 @@ html.dark {
   font-weight: bold;
   margin-bottom: 1rem;
   color: var(--tournament-card-heading);
+}
+
+/* Tables in Dark Mode */
+.seedings-table-container table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.seedings-table-container th {
+  background-color: #f3f4f6;
+  padding: 0.75rem;
+  text-align: left;
+  font-weight: 600;
+  color: #1f2937;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+html.dark .seedings-table-container th {
+  background-color: #374151;
+  color: #f9fafb;
+  border-bottom: 2px solid #4b5563;
+}
+
+.seedings-table-container td {
+  padding: 0.75rem;
+  border-bottom: 1px solid #e5e7eb;
+  color: #4b5563;
+}
+
+html.dark .seedings-table-container td {
+  border-bottom: 1px solid #374151;
+  color: #d1d5db;
+}
+
+.seedings-table-container tbody tr:hover {
+  background-color: #f9fafb;
+}
+
+html.dark .seedings-table-container tbody tr:hover {
+  background-color: #1f2937;
 }
 
 /* Responsive */

@@ -99,12 +99,12 @@
       </div>
 
       <!-- Troubleshooting: Turnier nicht gefunden -->
-      <div class="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded">
+      <div class="mt-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded">
         <details>
-          <summary class="cursor-pointer text-sm font-semibold text-yellow-800">
+          <summary class="cursor-pointer text-sm font-semibold text-yellow-800 dark:text-yellow-200">
             ⚠️ Turnier nicht gefunden? Hier klicken für Hilfe
           </summary>
-          <div class="mt-3 text-sm text-yellow-900 space-y-3">
+          <div class="mt-3 text-sm text-yellow-900 dark:text-yellow-100 space-y-3">
             <div>
               <p class="font-semibold mb-1">Empfohlen: Nur anstehende Turniere aktualisieren</p>
               <%= button_to '🔄 Anstehende Turniere laden (nächste 30 Tage)',
@@ -113,12 +113,12 @@
                   class: 'btn btn-sm btn-warning',
                   data: { disable_with: 'API scraped...' },
                   params: { days_ahead: 30, tournament_id: tournament.id } %>
-              <p class="text-xs text-yellow-700 mt-1">
+              <p class="text-xs text-yellow-700 dark:text-yellow-300 mt-1">
                 ⏱️ Schnell (10-30 Sekunden) - Nur Turniere der nächsten 30 Tage
               </p>
             </div>
 
-            <div class="border-t border-yellow-300 pt-2">
+            <div class="border-t border-yellow-300 dark:border-yellow-600 pt-2">
               <p class="font-semibold mb-1">Alternative: Alle Turniere aktualisieren</p>
               <%= button_to '🔄 Alle Turniere vom API Server laden',
                   reload_tournaments_region_path(tournament.organizer),
@@ -126,7 +126,7 @@
                   class: 'btn btn-sm btn-outline-warning',
                   data: { disable_with: 'API scraped alle... (1-2 Minuten)' },
                   params: { tournament_id: tournament.id } %>
-              <p class="text-xs text-yellow-700 mt-1">
+              <p class="text-xs text-yellow-700 dark:text-yellow-300 mt-1">
                 ⏱️ Langsamer - Alle Turniere der Region
               </p>
             </div>
@@ -201,8 +201,8 @@
 
         <%# Zeige alternativen Button wenn Seedings vorhanden sind %>
         <% if show_alternative_button %>
-          <div class="mt-3 p-3 bg-gray-50 border border-gray-300 rounded">
-            <p class="text-sm text-gray-700 mb-2">
+          <div class="mt-3 p-3 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded">
+            <p class="text-sm text-gray-700 dark:text-gray-300 mb-2">
               <strong>Wenn keine Einladung zum Upload vorliegt:</strong>
             </p>
             <% seedings_count = clubcloud_seedings_count > 0 ? clubcloud_seedings_count : tournament.seedings.count %>
@@ -223,8 +223,8 @@
 
         <%# Zeige alternativen Button auch bei completed wenn Seedings vorhanden sind %>
         <% if clubcloud_seedings_count > 0 %>
-          <div class="mt-2 p-2 bg-gray-50 border border-gray-300 rounded">
-            <p class="text-xs text-gray-700 mb-2">
+          <div class="mt-2 p-2 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded">
+            <p class="text-xs text-gray-700 dark:text-gray-300 mb-2">
               <strong>Wenn keine Einladung zum Upload vorliegt:</strong>
             </p>
             <%= button_to "→ Mit Meldeliste zu Schritt 3 (#{clubcloud_seedings_count} Spieler, nach Rangliste)",
@@ -368,9 +368,9 @@
 </div>
 
 <!-- Hilfe-Box -->
-<div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-  <h4 class="font-semibold text-blue-900 mb-2">📖 Begriffserklärung</h4>
-  <dl class="text-sm text-blue-800 space-y-2">
+<div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-4 mb-6">
+  <h4 class="font-semibold text-blue-900 dark:text-blue-200 mb-2">📖 Begriffserklärung</h4>
+  <dl class="text-sm text-blue-800 dark:text-blue-200 space-y-2">
     <dt class="font-semibold">Meldeliste:</dt>
     <dd class="ml-4">Wer hat sich für das Turnier <em>angemeldet</em> (aus ClubCloud)</dd>
 
