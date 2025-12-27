@@ -34,17 +34,17 @@
         <%- # Berechne Rankings basierend auf effective_gd (wie in rankings_controller.rb) %>
         <%- current_season = Season.current_season %>
         <%- seasons = Season.where('id <= ?', current_season.id).order(id: :desc).limit(3).reverse %>
-        
+
         <%- # Lade alle Rankings für die Disziplin und Region %>
         <%- if @tournament.organizer.is_a?(Region) %>
           <%- all_rankings = PlayerRanking.joins(:player)
-                                          .where(season_id: seasons.pluck(:id), 
+                                          .where(season_id: seasons.pluck(:id),
                                                  discipline_id: @tournament.discipline_id,
                                                  region_id: @tournament.organizer_id)
                                           .to_a %>
           <%- # Gruppiere nach Spieler %>
           <%- rankings_by_player = all_rankings.group_by(&:player_id) %>
-          
+
           <%- # Berechne effective_gd für jeden Spieler (neueste Saison zuerst) %>
           <%- player_effective_gd = {} %>
           <%- rankings_by_player.each do |player_id, rankings| %>
@@ -56,7 +56,7 @@
             <%- effective_gd = gd_values[2] || gd_values[1] || gd_values[0] %>
             <%- player_effective_gd[player_id] = effective_gd if effective_gd.present? %>
           <%- end %>
-          
+
           <%- # Sortiere Spieler nach effective_gd (absteigend) und ermittle Rang %>
           <%- sorted_players = player_effective_gd.sort_by { |player_id, gd| -gd } %>
           <%- player_rank = {} %>
@@ -66,17 +66,17 @@
         <%- else %>
           <%- player_rank = {} %>
         <%- end %>
-        
+
         <div class="flex items-center justify-between mb-4">
           <h1 class="h3"><%= @tournament.title %> - <%= @tournament.season.name %>
             - <%= @tournament.organizer.shortname %>
             - Teilnehmerliste</h1>
           <%= custom_link_to "zurück", @tournament %>
         </div>
-        
-        <div class="mb-4 p-4 bg-green-50 border border-green-200 rounded">
+
+        <div class="mb-4 p-4 dark:bg-gray-800 bg-green-50 border border-green-200 rounded">
           <h4 class="font-semibold text-green-900 mb-2">📝 Teilnehmerliste bearbeiten</h4>
-          <ul class="list-disc list-inside text-green-800 text-sm space-y-1">
+          <ul class="list-disc list-inside dark:text-green-400 text-green-800 text-sm space-y-1">
             <li>✓ Haken setzen/entfernen = Spieler als Teilnehmer markieren/streichen</li>
             <li><% if @tournament.handicap_tournier %>✓ Vorgaben (Punktziel) anpassen falls nötig<% else %>✓ Änderungen werden sofort gespeichert<% end %></li>
             <li>🔢 <strong>Setzreihenfolge ändern:</strong> Neue Position direkt eingeben ODER Pfeile ⬆️⬇️ klicken</li>
@@ -84,7 +84,7 @@
             <li>➕ Kurzfristig nachmelden? Checkbox aktivieren!</li>
           </ul>
         </div>
-        
+
         <table class="w-full">
           <thead>
           <tr>
@@ -100,20 +100,20 @@
           <tbody>
           <%- seeding_scope = @tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").count > 0 ? "seedings.id >= #{Seeding::MIN_ID}" : "seedings.id < #{Seeding::MIN_ID}" %>
           <%- active_seedings = @tournament.seedings.where(seeding_scope).to_a %>
-          
+
           <%# Sortiere und aktualisiere Positionen NUR wenn keine Einladung hochgeladen wurde %>
           <%# UND nur wenn Positionen noch nicht gesetzt sind (erstes Mal) %>
           <%- if @tournament.data['invitation_filename'].blank? %>
             <%# Prüfe ob Positionen bereits manuell gesetzt wurden %>
             <%- positions_already_set = active_seedings.all? { |s| s.position.present? } %>
-            
+
             <%- if !positions_already_set %>
               <%# Sortiere Seedings nach berechnetem Ranking (falls vorhanden), sonst 999 %>
               <%- active_seedings.sort_by! do |seeding| %>
                 <%- rank = player_rank[seeding.player_id] %>
                 <%- rank.present? ? rank : 999 %>
               <%- end %>
-              
+
               <%# Setze initiale Positionen basierend auf Ranking-Sortierung %>
               <%- active_seedings.each_with_index do |seeding, index| %>
                 <%- if seeding.position != (index + 1) %>
@@ -121,14 +121,14 @@
                 <%- end %>
               <%- end %>
             <%- end %>
-            
+
             <%# Sortiere nach Position (respektiert manuelle Änderungen) %>
             <%- active_seedings.sort_by! { |s| s.position || 999 } %>
           <%- else %>
             <%# Mit Einladung: Sortiere nach Position aus der Einladung %>
             <%- active_seedings.sort_by! { |s| s.position || 999 } %>
           <%- end %>
-          
+
           <%# Zeige aktive Seedings (sortiert nach position) %>
           <%- active_seedings.each_with_index do |seeding, index| %>
             <%- player = seeding.player %>
@@ -139,9 +139,9 @@
             <tr data-seeding-id="<%= seeding.id %>" class="<%= seeding.state == 'no_show' ? 'opacity-50' : '' %>">
               <td class="text-center font-semibold"><%= seeding.position || (index + 1) %></td>
               <td class="text-center">
-                <%= number_field_tag "new_position-#{player.id}", nil, 
+                <%= number_field_tag "new_position-#{player.id}", nil,
                     placeholder: seeding.position,
-                    style: "width:60px", 
+                    style: "width:60px",
                     min: 1,
                     max: active_seedings.length,
                     class: "text-center",
@@ -150,7 +150,7 @@
               <td class="text-center">
                 <div class="flex flex-col gap-1">
                   <% if prev_seeding.present? %>
-                    <button class="btn btn-xs btn-outline-secondary" 
+                    <button class="btn btn-xs btn-outline-secondary"
                             title="Nach oben"
                             data-reflex="click->TournamentReflex#move_up"
                             data-tournament-id="<%= @tournament.id %>"
@@ -161,7 +161,7 @@
                     <span class="btn btn-xs btn-disabled opacity-50 cursor-not-allowed" title="Bereits oben">↑</span>
                   <% end %>
                   <% if next_seeding.present? %>
-                    <button class="btn btn-xs btn-outline-secondary" 
+                    <button class="btn btn-xs btn-outline-secondary"
                             title="Nach unten"
                             data-reflex="click->TournamentReflex#move_down"
                             data-tournament-id="<%= @tournament.id %>"
@@ -176,9 +176,9 @@
               <td><%= player.fullname %></td>
               <td class="text-center">
                 <% if rank.present? && player_region.present? %>
-                  <%= link_to rank, 
+                  <%= link_to rank,
                       ranking_path(player_region) + "#discipline-#{@tournament.discipline_id}",
-                      class: 'text-blue-600 hover:text-blue-800 underline',
+                      class: 'text-blue-600 dark:text-blue-200 hover:text-blue-800 underline',
                       title: "Rang #{rank} in #{@tournament.discipline.name} (#{player_region.shortname})",
                       target: '_blank' %>
                 <% else %>
@@ -186,25 +186,25 @@
                 <% end %>
               </td>
               <td class="text-center">
-                <%= check_box_tag "participate-#{player.id}", "1", seeding.present? && seeding.state != 'no_show', 
+                <%= check_box_tag "participate-#{player.id}", "1", seeding.present? && seeding.state != 'no_show',
                     data: { reflex: "change->TournamentReflex#change_seeding", id: @tournament.id } %>
               </td>
               <td class="text-right" id="balls-wrapper-<%= player.id %>">
-                <%= number_field_tag("balls-#{player.id}", seeding.balls_goal, 
-                    data: { reflex: "change->TournamentReflex#change_point_goal", id: @tournament.id }, 
+                <%= number_field_tag("balls-#{player.id}", seeding.balls_goal,
+                    data: { reflex: "change->TournamentReflex#change_point_goal", id: @tournament.id },
                     style: seeding.present? && seeding.state != 'no_show' ? "" : "display: none",
                     class: "w-20 text-right") %>
               </td>
             </tr>
           <% end %>
-          
+
           <%# Zeige Spieler ohne Seeding (falls vorhanden) %>
           <%- seeding_scope = @tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").count > 0 ? "seedings.id >= #{Seeding::MIN_ID}" : "seedings.id < #{Seeding::MIN_ID}" %>
           <%- players_with_seedings = active_seedings.map(&:player_id).to_set %>
           <%- players = @tournament.organizer.is_a?(Region) ? Player.all.joins(:seedings).where(seedings: { tournament_id: @tournament.id }).where(seeding_scope) : @tournament.organizer.season_participations.where(season: Season.current_season).map(&:player).compact %>
           <%- club_players = players.uniq.reject { |p| players_with_seedings.include?(p.id) }.sort_by { |player| player.fl_name }.to_a %>
           <%- guest_players = @tournament.organizer.is_a?(Region) ? [] : @tournament.organizer.players.where(guest: true).order(:lastname).to_a.reject { |p| players_with_seedings.include?(p.id) } %>
-          
+
           <%- (club_players + guest_players).each do |player| %>
             <%- rank = player_rank[player.id] %>
             <%- player_region = @tournament.organizer.is_a?(Region) ? @tournament.organizer : player.player_rankings.where(discipline_id: @tournament.discipline_id, season_id: seasons.pluck(:id)).first&.region %>
@@ -215,9 +215,9 @@
               <td class="text-gray-500"><%= player.fullname %></td>
               <td class="text-center">
                 <% if rank.present? && player_region.present? %>
-                  <%= link_to rank, 
+                  <%= link_to rank,
                       ranking_path(player_region) + "#discipline-#{@tournament.discipline_id}",
-                      class: 'text-blue-600 hover:text-blue-800 underline text-sm',
+                      class: 'text-blue-600 dark:text-blue-200 hover:text-blue-800 underline text-sm',
                       title: "Rang #{rank} in #{@tournament.discipline.name} (#{player_region.shortname})",
                       target: '_blank' %>
                 <% else %>
@@ -225,12 +225,12 @@
                 <% end %>
               </td>
               <td class="text-center">
-                <%= check_box_tag "participate-#{player.id}", "1", false, 
+                <%= check_box_tag "participate-#{player.id}", "1", false,
                     data: { reflex: "change->TournamentReflex#change_seeding", id: @tournament.id } %>
               </td>
               <td class="text-right" id="balls-wrapper-<%= player.id %>">
-                <%= number_field_tag("balls-#{player.id}", nil, 
-                    data: { reflex: "change->TournamentReflex#change_point_goal", id: @tournament.id }, 
+                <%= number_field_tag("balls-#{player.id}", nil,
+                    data: { reflex: "change->TournamentReflex#change_point_goal", id: @tournament.id },
                     style: "display: none",
                     class: "w-20 text-right") %>
               </td>
@@ -238,22 +238,22 @@
           <% end %>
           </tbody>
         </table>
-        
+
         <!-- Turnierpläne und Gruppenzuordnungen Vorschau -->
         <% if @participant_count > 0 && @proposed_discipline_tournament_plan.present? %>
-          <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded">
-            <h4 class="font-semibold text-blue-900 mb-3">
+          <div class="mt-6 p-4 bg-blue-50 dark:bg-gray-800 border border-blue-200 rounded">
+            <h4 class="font-semibold text-blue-900 dark:text-blue-200 mb-3">
               📊 Mögliche Turnierpläne für <%= @participant_count %> Teilnehmer
             </h4>
-            
+
             <!-- Vorgeschlagener Plan (aus Einladung oder automatisch) -->
-            <div class="mb-4 p-3 bg-white border border-blue-300 rounded">
+            <div class="mb-4 p-3 dark:bg-black bg-white border border-blue-300 rounded">
               <div class="flex items-center justify-between mb-2">
                 <div class="flex-1">
                   <% if @tournament.data['extracted_plan_info'].present? %>
                     <span class="text-sm font-semibold text-green-700">📄 Aus Einladung:</span>
                   <% else %>
-                    <span class="text-sm font-semibold text-blue-700">🤖 Automatisch vorgeschlagen:</span>
+                    <span class="text-sm font-semibold dark:text-blue-400 text-blue-700">🤖 Automatisch vorgeschlagen:</span>
                   <% end %>
                   <span class="text-sm font-bold ml-2"><%= @proposed_discipline_tournament_plan.name %></span>
                   <% if @groups_source == :extracted_differs_from_nbv %>
@@ -264,24 +264,24 @@
                 </div>
                 <% rounds = @proposed_discipline_tournament_plan.rounds_count %>
                 <% if rounds.present? %>
-                  <span class="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded ml-2">
+                  <span class="text-xs dark:bg-gray-800 bg-gray-100 dark:text-gray-100 text-gray-700 px-2 py-1 rounded ml-2">
                     <%= rounds %> Runde<%= rounds > 1 ? 'n' : '' %>
                   </span>
                 <% end %>
               </div>
-              <p class="text-xs text-gray-600 mb-2"><%= @proposed_discipline_tournament_plan.rulesystem %></p>
+              <p class="text-xs dark:text-gray-100 text-gray-600 mb-2"><%= @proposed_discipline_tournament_plan.rulesystem %></p>
               <%= render partial: "groups_compact", locals: { tournament_plan: @proposed_discipline_tournament_plan, groups: @groups } %>
             </div>
-            
+
             <!-- Alternative Pläne (gleiche Disziplin) -->
             <% if @alternatives_same_discipline.any? %>
               <details class="text-sm mb-3">
-                <summary class="cursor-pointer text-blue-800 hover:text-blue-900 font-semibold">
+                <summary class="cursor-pointer text-blue-800 dark:text-blue-400 hover:text-blue-900 font-semibold">
                   🔄 <%= @alternatives_same_discipline.count %> Alternative Plan<%= @alternatives_same_discipline.count > 1 ? 'e' : '' %> (<%= @tournament.discipline.name %>) anzeigen
                 </summary>
                 <div class="mt-3 space-y-2">
                   <% @alternatives_same_discipline.each do |alternative| %>
-                    <div class="p-3 bg-white border border-gray-300 rounded">
+                    <div class="p-3 dark:bg-black bg-white border border-gray-300 rounded">
                       <div class="flex items-center justify-between mb-2">
                         <div class="flex-1">
                           <span class="text-sm font-bold"><%= alternative.name %></span>
@@ -289,14 +289,14 @@
                         </div>
                         <% rounds = alternative.rounds_count %>
                         <% if rounds.present? %>
-                          <span class="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded ml-2">
+                          <span class="text-xs bg-gray-100 text-gray-700 dark:text-gray-200 px-2 py-1 rounded ml-2">
                             <%= rounds %> Runde<%= rounds > 1 ? 'n' : '' %>
                           </span>
                         <% end %>
                       </div>
                       <% alternative_groups = TournamentMonitor.distribute_to_group(
-                           @tournament.seedings.where.not(state: "no_show").where(@seeding_scope).order(:position).map(&:player), 
-                           alternative.ngroups, 
+                           @tournament.seedings.where.not(state: "no_show").where(@seeding_scope).order(:position).map(&:player),
+                           alternative.ngroups,
                            alternative.group_sizes) %>
                       <%= render partial: "groups_compact", locals: { tournament_plan: alternative, groups: alternative_groups } %>
                     </div>
@@ -304,11 +304,11 @@
                 </div>
               </details>
             <% end %>
-            
+
             <!-- Weitere Pläne (andere Disziplinen, Jeder-gegen-Jeden, KO) -->
             <% if @alternatives_other_disciplines.any? %>
               <details class="text-sm">
-                <summary class="cursor-pointer text-gray-700 hover:text-gray-900 font-semibold">
+                <summary class="cursor-pointer text-gray-700 dark:text-gray-200 hover:text-gray-900 font-semibold">
                   ⚙️ <%= @alternatives_other_disciplines.count %> Weitere Plan<%= @alternatives_other_disciplines.count > 1 ? 'e' : '' %> anzeigen
                   <% if @participant_count <= 6 %>
                     <span class="ml-1 text-green-700">(inkl. "Jeder gegen Jeden")</span>
@@ -317,7 +317,7 @@
                 <div class="mt-3 space-y-2">
                   <% @alternatives_other_disciplines.each do |alternative| %>
                     <% is_round_robin = alternative.name =~ /jeder.*gegen.*jeden/i || alternative.name =~ /round.*robin/i || alternative.name == "Jgj#{@participant_count}" %>
-                    <div class="p-3 bg-white border <%= is_round_robin ? 'border-green-300 bg-green-50' : 'border-gray-300' %> rounded">
+                    <div class="p-3 dark:bg-black bg-white border <%= is_round_robin ? 'border-green-300 dark:bg-gray-600 bg-green-50' : 'border-gray-300' %> rounded">
                       <div class="flex items-center justify-between mb-2">
                         <div class="flex-1">
                           <% if is_round_robin %>
@@ -328,14 +328,14 @@
                         </div>
                         <% rounds = alternative.rounds_count %>
                         <% if rounds.present? %>
-                          <span class="text-xs <%= is_round_robin ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700' %> px-2 py-1 rounded ml-2">
+                          <span class="text-xs <%= is_round_robin ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700 dark:text-gray-200' %> px-2 py-1 rounded ml-2">
                             <%= rounds %> Runde<%= rounds > 1 ? 'n' : '' %>
                           </span>
                         <% end %>
                       </div>
                       <% alternative_groups = TournamentMonitor.distribute_to_group(
-                           @tournament.seedings.where.not(state: "no_show").where(@seeding_scope).order(:position).map(&:player), 
-                           alternative.ngroups, 
+                           @tournament.seedings.where.not(state: "no_show").where(@seeding_scope).order(:position).map(&:player),
+                           alternative.ngroups,
                            alternative.group_sizes) %>
                       <%= render partial: "groups_compact", locals: { tournament_plan: alternative, groups: alternative_groups } %>
                     </div>
@@ -343,12 +343,12 @@
                 </div>
               </details>
             <% end %>
-            
-            <div class="text-xs text-blue-700 mt-3 space-y-1">
+
+            <div class="text-xs dark:text-blue-400 text-blue-700 mt-3 space-y-1">
               <p>💡 Die Gruppenzuordnungen ändern sich automatisch, wenn Sie die Teilnehmerliste bearbeiten.</p>
               <% if @alternatives_other_disciplines.any? %>
-                <p class="text-gray-600">
-                  ℹ️ Alternative Pläne können ggf. mit reduziertem Ausspielziel arbeiten (z.B. 25% weniger Aufnahmen/Punkte), 
+                <p class="dark:text-gray-100 text-gray-600">
+                  ℹ️ Alternative Pläne können ggf. mit reduziertem Ausspielziel arbeiten (z.B. 25% weniger Aufnahmen/Punkte),
                   um die Gesamtdauer zu verkürzen. Rundenzahl und durchschnittliche Spieldauer beachten.
                 </p>
               <% end %>
@@ -356,22 +356,22 @@
           </div>
         <% elsif @participant_count > 0 %>
           <div class="mt-6 p-4 bg-gray-50 border border-gray-300 rounded">
-            <p class="text-sm text-gray-700">
+            <p class="text-sm text-gray-700 dark:text-gray-200">
               ℹ️  Für <%= @participant_count %> Teilnehmer ist aktuell kein Turnierplan für <%= @tournament.discipline.name %> hinterlegt.
             </p>
           </div>
         <% end %>
-        
+
         <!-- Spieler hinzufügen (kurzfristige Nachmeldung) -->
         <div class="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded">
           <h4 class="font-semibold text-yellow-900 mb-2">➕ Kurzfristiger Nachmelder?</h4>
           <p class="text-sm text-yellow-800 mb-3">
             Spieler mit <strong>DBU-Nummer</strong> hinzufügen (wird automatisch zur Liste hinzugefügt):
           </p>
-          
+
           <%= form_with url: add_player_by_dbu_tournament_path(@tournament), method: :post, local: true, class: 'flex gap-2 items-start' do |f| %>
             <div class="flex-1">
-              <%= text_field_tag :dbu_nr, nil, 
+              <%= text_field_tag :dbu_nr, nil,
                   placeholder: "DBU-Nummer eingeben (z.B. 12345)",
                   class: 'form-control',
                   pattern: '\d+',
@@ -380,11 +380,11 @@
                 💡 Mit DBU-Nummer: Spieler eindeutig identifiziert (empfohlen)
               </p>
             </div>
-            <%= f.submit 'Spieler hinzufügen', 
+            <%= f.submit 'Spieler hinzufügen',
                 class: 'btn btn-sm btn-warning',
                 data: { disable_with: 'Wird gesucht...' } %>
           <% end %>
-          
+
           <details class="mt-3">
             <summary class="cursor-pointer text-sm text-yellow-800 font-semibold">
               ⚠️ Spieler ohne DBU-Nummer? (Klicken für Info)
@@ -395,7 +395,7 @@
                 <strong>Grund:</strong> In der ClubCloud können nur Spieler mit DBU-Nummer eingetragen werden.
               </p>
               <p class="mt-2">
-                <strong>Lösung:</strong> 
+                <strong>Lösung:</strong>
                 <ol class="list-decimal list-inside ml-2 mt-1">
                   <li>Spieler muss DBU-Nummer beantragen</li>
                   <li>Oder: Turnierleiter trägt Spieler als Gast ein (kontaktieren Sie den Landessportwart)</li>
@@ -405,21 +405,21 @@
           </details>
         </div>
       <%- end %>
-      
+
       <!-- Info-Box und Navigation -->
-      <div class="mt-8 p-4 bg-blue-50 border border-blue-200 rounded">
+      <div class="mt-8 p-4 bg-blue-50 dark:bg-gray-800 border border-blue-200 rounded">
         <div class="flex items-center justify-between">
           <div>
-            <h4 class="font-semibold text-blue-900">💡 Wichtig</h4>
-            <p class="text-sm text-blue-800">
+            <h4 class="font-semibold text-blue-900 dark:text-blue-200">💡 Wichtig</h4>
+            <p class="text-sm text-blue-800 dark:text-blue-400">
               ✓ Alle Änderungen (Checkboxen, Vorgaben) werden <strong>sofort gespeichert</strong><br>
               ✓ Sie können jederzeit hierher zurückkehren um weitere Anpassungen vorzunehmen
             </p>
-            <p class="text-sm text-blue-900 mt-3 font-semibold bg-blue-100 p-2 rounded">
+            <p class="text-sm text-blue-900 dark:text-blue-200 mt-3 font-semibold bg-blue-100 dark:bg-gray-800 p-2 rounded">
               ⏭️ Wenn Sie fertig sind: Gehen Sie zurück zum Wizard und klicken Sie <strong>Schritt 4: Teilnehmerliste finalisieren</strong>
             </p>
           </div>
-          <%= link_to '← Zurück zum Wizard', tournament_path(@tournament), 
+          <%= link_to '← Zurück zum Wizard', tournament_path(@tournament),
               class: 'btn btn-secondary' %>
         </div>
       </div>

@@ -2,8 +2,8 @@
 <% if groups.present? && tournament_plan.present? %>
   <div class="flex gap-2 text-xs">
     <% (1..tournament_plan.ngroups).each do |n| %>
-      <div class="flex-1 bg-gray-50 p-2 rounded border border-gray-200">
-        <div class="font-semibold text-gray-700 mb-1">Gr. <%= n %></div>
+      <div class="flex-1 dark:bg-black bg-gray-50 p-2 rounded border border-gray-200">
+        <div class="font-semibold text-gray-700 dark:text-gray-200 mb-1">Gr. <%= n %></div>
         <% group_key = "group#{n}" %>
         <% if groups[group_key].present? %>
           <% groups[group_key].each_with_index do |player_id, idx| %>
@@ -11,7 +11,7 @@
               <% player = Player.find_by(id: player_id) %>
               <% if player.present? %>
                 <% seeding = @tournament.seedings.find_by(player_id: player_id) %>
-                <div class="text-gray-600 truncate" title="<%= player.fullname %>">
+                <div class="dark:text-gray-100 text-gray-600 truncate" title="<%= player.fullname %>">
                   <%= seeding&.position || '?' %>. <%= player.lastname %>
                 </div>
               <% end %>
