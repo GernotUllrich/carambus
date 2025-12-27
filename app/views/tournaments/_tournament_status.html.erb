@@ -1,13 +1,13 @@
 <%# Tournament Status Overview - Für alle sichtbar wenn Turnier läuft/abgeschlossen %>
 <% tournament ||= @tournament %>
 <% if tournament_active_or_finished?(tournament) && tournament.tournament_monitor.present? %>
-  <div id="tournament-status-container-<%= tournament.id %>" class="tournament-status-container bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
+  <div id="tournament-status-container-<%= tournament.id %>" class="tournament-status-container dark:bg-black bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
     <h2 class="text-2xl font-bold mb-4 text-blue-900">
       📊 Turnier-Status: <%= tournament.title %>
     </h2>
 
     <% tournament_monitor = tournament.tournament_monitor %>
-    
+
     <!-- Turnier-Phase -->
     <div class="mb-4">
       <h3 class="text-lg font-semibold text-blue-800 mb-2">Aktuelle Phase</h3>
@@ -31,7 +31,7 @@
         <h3 class="text-lg font-semibold text-blue-800 mb-2">Spiele-Fortschritt</h3>
         <div class="flex items-center gap-4">
           <div class="flex-1 bg-gray-200 rounded-full h-6">
-            <div class="bg-blue-600 h-6 rounded-full" 
+            <div class="bg-blue-600 h-6 rounded-full"
                  id="tournament-progress-bar-<%= tournament.id %>"
                  style="width: <%= (games_progress[:finished].to_f / games_progress[:total] * 100).round %>%"></div>
           </div>
@@ -47,7 +47,7 @@
       <div class="mb-4" id="tournament-current-games-<%= tournament.id %>">
         <h3 class="text-lg font-semibold text-blue-800 mb-2">Aktuelle Spiele</h3>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <% 
+          <%
             # Lade TableMonitors mit ihren Games und Players
             table_monitors = TableMonitor.includes(:table, :game => :game_participations)
                                          .where(tournament_monitor_id: tournament_monitor.id)
@@ -62,13 +62,13 @@
               <% if tm.game.present? && tm.data.present? %>
                 <% player_a = tm.game.game_participations.where(role: "playera").first&.player %>
                 <% player_b = tm.game.game_participations.where(role: "playerb").first&.player %>
-                <% 
+                <%
                   # Berechne aktuellen Stand: result + aktueller Inning-Stand
                   result_a = tm.data["playera"]&.dig("result").to_i || 0
                   result_b = tm.data["playerb"]&.dig("result").to_i || 0
                   current_inning_a = Array(tm.data["playera"]&.dig("innings_redo_list")).last.to_i || 0
                   current_inning_b = Array(tm.data["playerb"]&.dig("innings_redo_list")).last.to_i || 0
-                  
+
                   # Wenn Spiel läuft, zeige result + aktueller Inning-Stand
                   if tm.playing?
                     total_a = result_a + current_inning_a
@@ -102,13 +102,13 @@
     <!-- Links zu Tournament Monitor und Scoreboards -->
     <div class="mt-4 pt-4 border-t border-blue-300 flex flex-wrap gap-2">
       <% if defined?(current_user) && tournament_director?(current_user) %>
-        <%= link_to '🎮 Tournament Monitor öffnen', 
+        <%= link_to '🎮 Tournament Monitor öffnen',
             tournament_monitor_path(tournament_monitor),
             class: 'btn btn-primary btn-lg',
             style: 'font-weight: bold;' %>
         <!-- Test-Button für Realtime Updates (nur wenn Route verfügbar) -->
         <% begin %>
-          <%= button_to '🔄 Test Update', 
+          <%= button_to '🔄 Test Update',
               test_tournament_status_update_path(tournament),
               method: :post,
               class: 'btn btn-secondary btn-sm',
@@ -118,9 +118,9 @@
           <!-- Route nicht verfügbar (z.B. nach Deployment, Server muss neu gestartet werden) -->
         <% end %>
       <% end %>
-      
+
       <% if tournament.location.present? %>
-        <%= link_to '📺 Scoreboards anzeigen (read-only)', 
+        <%= link_to '📺 Scoreboards anzeigen (read-only)',
             scoreboard_location_path(tournament.location.md5, sb_state: "tournament_scores"),
             data: { turbo: false },
             class: 'btn btn-secondary btn-lg',
@@ -133,7 +133,7 @@
     <% if groups.present? && tournament.tournament_plan.present? %>
       <div class="mt-6 pt-4 border-t border-blue-300" id="tournament-groups-<%= tournament.id %>">
         <h3 class="text-lg font-semibold text-blue-800 mb-3">Gruppen</h3>
-        <%= render partial: "tournaments/groups", 
+        <%= render partial: "tournaments/groups",
             locals: { tournament_plan: tournament.tournament_plan, groups: groups } %>
       </div>
     <% end %>
@@ -142,38 +142,38 @@
     <% if tournament_monitor.data['rankings'].present? %>
       <div class="mt-6 pt-4 border-t border-blue-300" id="tournament-rankings-<%= tournament.id %>">
         <h3 class="text-lg font-semibold text-blue-800 mb-3">Aktuelle Platzierungen</h3>
-        <%= render partial: "tournament_monitors/rankings", 
+        <%= render partial: "tournament_monitors/rankings",
             locals: { tournament_monitor: tournament_monitor, totals: true } %>
       </div>
     <% end %>
 
     <!-- Setzliste (read-only) -->
-    <% 
-      seeding_scope = tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").count > 0 ? 
-                      "seedings.id >= #{Seeding::MIN_ID}" : 
+    <%
+      seeding_scope = tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").count > 0 ?
+                      "seedings.id >= #{Seeding::MIN_ID}" :
                       "seedings.id < #{Seeding::MIN_ID}"
-      
+
       # Verwende gecachte Rankings aus tournament.data (berechnet beim Finalisieren der Seedings)
       player_rank = tournament.data['player_rankings']
-      
+
       # Fallback: Berechne Rankings wenn nicht gecacht (für Debugging)
       if player_rank.blank? && tournament.organizer.is_a?(Region) && tournament.discipline.present?
         Rails.logger.info "[_tournament_status] Rankings not cached for tournament #{tournament.id}, calculating now..."
-        
+
         current_season = Season.current_season
         seasons = Season.where('id <= ?', current_season.id).order(id: :desc).limit(3).reverse
-        
+
         all_rankings = PlayerRanking.where(
           discipline_id: tournament.discipline_id,
           season_id: seasons.pluck(:id),
           region_id: tournament.organizer_id
         ).to_a
-        
+
         Rails.logger.info "[_tournament_status] Found #{all_rankings.size} rankings"
-        
+
         rankings_by_player = all_rankings.group_by(&:player_id)
         player_effective_gd = {}
-        
+
         rankings_by_player.each do |player_id, rankings|
           gd_values = seasons.map do |season|
             ranking = rankings.find { |r| r.season_id == season.id }
@@ -182,16 +182,16 @@
           effective_gd = gd_values[2] || gd_values[1] || gd_values[0]
           player_effective_gd[player_id] = effective_gd if effective_gd.present?
         end
-        
+
         sorted_players = player_effective_gd.sort_by { |player_id, gd| -gd }
         player_rank = {}
         sorted_players.each_with_index do |(player_id, gd), index|
           player_rank[player_id] = index + 1
         end
-        
+
         Rails.logger.info "[_tournament_status] Calculated #{player_rank.size} player ranks"
       end
-      
+
       player_rank ||= {}
     %>
     <div class="mt-6 pt-4 border-t border-blue-300 dark:border-blue-700" id="tournament-seedings-<%= tournament.id %>">
@@ -230,12 +230,12 @@
           </tbody>
         </table>
       </div>
-      
+
       <!-- Link zur Ranking-Tabelle -->
       <% if tournament.organizer.is_a?(Region) && tournament.discipline.present? %>
         <div class="mt-3 text-sm text-blue-700">
-          💡 Alle Rankings: 
-          <%= link_to "#{tournament.organizer.shortname} Rangliste #{tournament.discipline.name}", 
+          💡 Alle Rankings:
+          <%= link_to "#{tournament.organizer.shortname} Rangliste #{tournament.discipline.name}",
               ranking_path(tournament.organizer) + "#discipline-#{tournament.discipline_id}",
               class: 'text-blue-600 hover:text-blue-800 underline font-semibold',
               target: '_blank' %>
