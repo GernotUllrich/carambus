@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'net/ssh'
+
 # Job to check the health of streaming services on Raspberry Pi devices
 # Monitors stream status, checks for errors, and can trigger automatic restarts
 class StreamHealthJob < ApplicationJob
@@ -146,4 +148,5 @@ class StreamHealthJob < ApplicationJob
     }
   end
 end
+
 

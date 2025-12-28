@@ -60,3 +60,4 @@ DeviceAllow=/dev/video1 rw
 [Install]
 WantedBy=multi-user.target
 
+

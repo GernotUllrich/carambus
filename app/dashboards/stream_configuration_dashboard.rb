@@ -125,3 +125,4 @@ class StreamConfigurationDashboard < Administrate::BaseDashboard
   end
 end
 
+

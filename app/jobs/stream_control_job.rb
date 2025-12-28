@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'net/ssh'
+
 # Job to control streaming on remote Raspberry Pi devices
 # Handles start, stop, and restart operations via SSH
 class StreamControlJob < ApplicationJob
@@ -185,4 +187,5 @@ class StreamControlJob < ApplicationJob
     }
   end
 end
+
 

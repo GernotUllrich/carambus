@@ -139,3 +139,4 @@ echo "  2. Restart Puma: cd /var/www/carambus/current && bundle exec puma -C sha
 echo "  3. Or use systemd if configured: sudo systemctl restart carambus"
 
 
+

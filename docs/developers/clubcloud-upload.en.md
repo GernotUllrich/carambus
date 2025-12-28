@@ -473,3 +473,4 @@ ClubCloudUploadJob.perform_later(table_monitor.id)
 - [Manager Documentation: Single Tournament Management](../managers/single-tournament.en.md)
 - [API Reference](../reference/API.en.md)
 
+

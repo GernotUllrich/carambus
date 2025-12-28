@@ -454,3 +454,4 @@ The script automatically detects:
 - Configures WLAN and static IP accordingly
 
 
+

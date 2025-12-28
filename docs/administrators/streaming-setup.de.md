@@ -539,3 +539,4 @@ Overlay-Image:  /tmp/carambus-overlay-table-1.png
 **Datum**: Dezember 2024  
 **Autor**: Carambus Development Team
 
+
