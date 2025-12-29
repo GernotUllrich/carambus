@@ -157,6 +157,9 @@ class StreamControlJob < ApplicationJob
     output = ""
     exit_code = nil
     
+    Rails.logger.info "[StreamControl] Connecting to #{ssh_user}@#{@raspi_ip}:#{@raspi_port}"
+    Rails.logger.info "[StreamControl] SSH options: #{ssh_options.except(:keys).inspect}"
+    
     Net::SSH.start(@raspi_ip, ssh_user, ssh_options) do |ssh|
       output = ssh.exec!(command)
       exit_code = ssh.exec!("echo $?").strip.to_i
@@ -169,10 +172,15 @@ class StreamControlJob < ApplicationJob
       exit_code: exit_code
     )
   rescue Net::SSH::AuthenticationFailed => e
-    OpenStruct.new(success?: false, error: "SSH authentication failed: #{e.message}")
+    Rails.logger.error "[StreamControl] SSH Authentication failed for #{ssh_user}@#{@raspi_ip}:#{@raspi_port}"
+    Rails.logger.error "[StreamControl] Error: #{e.message}"
+    Rails.logger.error "[StreamControl] Available keys: #{ssh_options[:keys]&.join(', ') || 'none (using agent)'}"
+    OpenStruct.new(success?: false, error: "Authentication failed for user #{ssh_user}@#{@raspi_ip}")
   rescue Errno::EHOSTUNREACH => e
+    Rails.logger.error "[StreamControl] Host unreachable: #{@raspi_ip}"
     OpenStruct.new(success?: false, error: "Host unreachable: #{e.message}")
   rescue => e
+    Rails.logger.error "[StreamControl] SSH Error: #{e.class} - #{e.message}"
     OpenStruct.new(success?: false, error: e.message)
   end
   
@@ -198,8 +206,23 @@ class StreamControlJob < ApplicationJob
       options[:keys] = key_paths
       options[:keys_only] = true
     else
-      # Use default SSH keys (id_rsa, id_ed25519, etc.)
-      options[:keys_only] = false
+      # Auto-detect SSH keys from standard locations
+      possible_keys = [
+        File.expand_path('~/.ssh/id_rsa'),
+        File.expand_path('~/.ssh/id_ed25519'),
+        File.expand_path('~/.ssh/id_ecdsa'),
+        File.expand_path('~/.ssh/id_dsa')
+      ].select { |f| File.exist?(f) }
+      
+      if possible_keys.any?
+        Rails.logger.info "[StreamControl] Using SSH keys: #{possible_keys.join(', ')}"
+        options[:keys] = possible_keys
+        options[:keys_only] = true
+      else
+        # Last resort: try ssh-agent
+        Rails.logger.info "[StreamControl] No explicit keys found, trying ssh-agent"
+        options[:keys_only] = false
+      end
     end
     
     options
