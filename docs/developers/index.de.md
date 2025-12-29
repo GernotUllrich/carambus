@@ -521,6 +521,7 @@ chore: Update dependencies
 16. **[Region Tagging](region-tagging-cleanup-summary.de.md)** - Geografische Zuordnung
 17. **[ClubCloud Upload System](clubcloud-upload.de.md)** - Automatischer Upload & CSV-Export
 18. **[YouTube Streaming Architecture](streaming-architecture.de.md)** - Live-Streaming System (Architektur, FFmpeg, Hardware)
+19. **[YouTube Streaming Development Setup](streaming-dev-setup.de.md)** - Entwicklungsumgebung für Streaming (SSH-Keys, Custom Port)
 
 ---
 
