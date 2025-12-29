@@ -18,23 +18,42 @@ module Admin
       end
     end
 
-    # Return status badge with icon
-    def status_badge(status)
-      icon, color_class = case status
+    # Return status badge CSS classes
+    def status_badge_class(status)
+      case status
       when 'active'
-        ['🟢', 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200']
+        'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
       when 'starting'
-        ['🟡', 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200']
+        'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
       when 'stopping'
-        ['🟠', 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200']
+        'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200'
       when 'error'
-        ['🔴', 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200']
+        'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
       else # inactive
-        ['⚪', 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200']
+        'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
       end
+    end
 
-      content_tag(:span, class: "inline-flex items-center px-3 py-1 rounded-full text-sm font-medium #{color_class}") do
-        "#{icon} #{status.titleize}"
+    # Return status icon
+    def status_icon(status)
+      case status
+      when 'active'
+        '🟢'
+      when 'starting'
+        '🟡'
+      when 'stopping'
+        '🟠'
+      when 'error'
+        '🔴'
+      else # inactive
+        '⚪'
+      end
+    end
+
+    # Return status badge with icon (full HTML)
+    def status_badge(status)
+      content_tag(:span, class: "inline-flex items-center px-3 py-1 rounded-full text-sm font-medium #{status_badge_class(status)}") do
+        "#{status_icon(status)} #{status.titleize}"
       end
     end
 
