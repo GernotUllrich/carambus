@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_12_27_211318) do
+ActiveRecord::Schema[7.2].define(version: 2025_12_29_204810) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -897,6 +897,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_12_27_211318) do
     t.integer "audio_bitrate", default: 128
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "raspi_ssh_user", default: "pi"
     t.index ["status"], name: "index_stream_configurations_on_status"
     t.index ["table_id"], name: "index_stream_configurations_on_table_id", unique: true
   end

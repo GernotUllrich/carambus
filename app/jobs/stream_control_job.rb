@@ -111,10 +111,15 @@ class StreamControlJob < ApplicationJob
     temp_file = "/tmp/stream-table-#{@table_number}.conf"
     target_file = "/etc/carambus/stream-table-#{@table_number}.conf"
     
-    # Upload file
+    # Upload file using base64 encoding (works over SSH exec)
     Net::SSH.start(@raspi_ip, ssh_user, ssh_options) do |ssh|
-      # Write to temp location
-      ssh.exec!("cat > #{temp_file}", data: config_content)
+      # Encode content to base64
+      require 'base64'
+      encoded = Base64.strict_encode64(config_content)
+      
+      # Upload and decode on remote side
+      ssh.exec!("echo '#{encoded}' | base64 -d > #{temp_file}")
+      
       # Move to final location with sudo
       ssh.exec!("sudo mv #{temp_file} #{target_file}")
       ssh.exec!("sudo chmod 644 #{target_file}")
@@ -171,20 +176,33 @@ class StreamControlJob < ApplicationJob
     OpenStruct.new(success?: false, error: e.message)
   end
   
-  # SSH user (typically 'pi' for Raspberry Pi)
+  # SSH user from config or environment variable
   def ssh_user
-    ENV['RASPI_SSH_USER'] || 'pi'
+    @config.raspi_ssh_user.presence || ENV['RASPI_SSH_USER'] || 'pi'
   end
   
   # SSH connection options
   def ssh_options
-    {
+    options = {
       port: @raspi_port,
-      password: ENV['RASPI_SSH_PASSWORD'],
       timeout: 10,
       non_interactive: true,
       verify_host_key: :never  # For local network devices
     }
+    
+    # Authentication: Try password from ENV, then fallback to SSH keys
+    if ENV['RASPI_SSH_PASSWORD'].present?
+      options[:password] = ENV['RASPI_SSH_PASSWORD']
+    elsif ENV['RASPI_SSH_KEYS'].present?
+      key_paths = ENV['RASPI_SSH_KEYS'].split(',').map(&:strip).map { |k| File.expand_path(k) }
+      options[:keys] = key_paths
+      options[:keys_only] = true
+    else
+      # Use default SSH keys (id_rsa, id_ed25519, etc.)
+      options[:keys_only] = false
+    end
+    
+    options
   end
 end
 

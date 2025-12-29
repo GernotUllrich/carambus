@@ -143,6 +143,7 @@ module Admin
         :overlay_position,
         :overlay_height,
         :raspi_ip,
+        :raspi_ssh_user,
         :raspi_ssh_port,
         :video_bitrate,
         :audio_bitrate
