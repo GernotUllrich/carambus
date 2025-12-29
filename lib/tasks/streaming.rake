@@ -62,13 +62,13 @@ namespace :streaming do
         
         puts "\n📄 Uploading streaming script..."
         script_content = File.read(Rails.root.join('bin', 'carambus-stream.sh'))
-        ssh.exec!("cat > /tmp/carambus-stream.sh", data: script_content)
+        upload_file_via_ssh(ssh, script_content, '/tmp/carambus-stream.sh')
         ssh.exec!("sudo mv /tmp/carambus-stream.sh /usr/local/bin/carambus-stream.sh")
         ssh.exec!("sudo chmod +x /usr/local/bin/carambus-stream.sh")
         
         puts "\n⚙️  Installing systemd service..."
         service_content = File.read(Rails.root.join('bin', 'carambus-stream.service'))
-        ssh.exec!("cat > /tmp/carambus-stream@.service", data: service_content)
+        upload_file_via_ssh(ssh, service_content, '/tmp/carambus-stream@.service')
         ssh.exec!("sudo mv /tmp/carambus-stream@.service /etc/systemd/system/")
         ssh.exec!("sudo systemctl daemon-reload")
         
@@ -369,9 +369,29 @@ def deploy_stream_config(config)
   ssh_user = ssh_options.delete(:user)
   
   Net::SSH.start(raspi_ip, ssh_user, ssh_options) do |ssh|
-    ssh.exec!("cat > #{temp_file}", data: config_content)
+    upload_file_via_ssh(ssh, config_content, temp_file)
     ssh.exec!("sudo mv #{temp_file} #{target_file}")
     ssh.exec!("sudo chmod 644 #{target_file}")
+  end
+end
+
+# Helper method to upload file content via SSH
+def upload_file_via_ssh(ssh, content, remote_path)
+  # Escape single quotes in content and use base64 encoding for binary-safe transfer
+  require 'base64'
+  encoded = Base64.strict_encode64(content)
+  
+  # Split into chunks if content is large (to avoid command line length limits)
+  chunk_size = 50000
+  if encoded.length > chunk_size
+    # For large files, write in chunks
+    ssh.exec!("rm -f #{remote_path}")
+    encoded.scan(/.{1,#{chunk_size}}/).each do |chunk|
+      ssh.exec!("echo '#{chunk}' | base64 -d >> #{remote_path}")
+    end
+  else
+    # For small files, write in one go
+    ssh.exec!("echo '#{encoded}' | base64 -d > #{remote_path}")
   end
 end
 
