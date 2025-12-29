@@ -12,12 +12,37 @@ namespace :streaming do
     puts "=" * 60
     
     ssh_user = ENV['RASPI_SSH_USER'] || 'pi'
+    ssh_port = ENV['RASPI_SSH_PORT']&.to_i || 22
     ssh_password = ENV['RASPI_SSH_PASSWORD']
+    ssh_keys = ENV['RASPI_SSH_KEYS'] # Can be comma-separated list of key paths
     
-    abort "Error: RASPI_SSH_PASSWORD environment variable not set" if ssh_password.blank?
+    # Build SSH options
+    ssh_options = {
+      port: ssh_port,
+      timeout: 10,
+      verify_host_key: :never,
+      non_interactive: true
+    }
+    
+    # Add authentication method: password or keys
+    if ssh_password.present?
+      ssh_options[:password] = ssh_password
+      puts "  → Using password authentication"
+    elsif ssh_keys.present?
+      key_paths = ssh_keys.split(',').map(&:strip).map { |k| File.expand_path(k) }
+      ssh_options[:keys] = key_paths
+      ssh_options[:keys_only] = true
+      puts "  → Using key-based authentication (#{key_paths.join(', ')})"
+    else
+      # Try default SSH keys
+      ssh_options[:keys_only] = false
+      puts "  → Using default SSH key authentication"
+    end
+    
+    puts "  → Connecting to #{ssh_user}@#{raspi_ip}:#{ssh_port}"
     
     begin
-      Net::SSH.start(raspi_ip, ssh_user, password: ssh_password, timeout: 10, verify_host_key: :never) do |ssh|
+      Net::SSH.start(raspi_ip, ssh_user, ssh_options) do |ssh|
         puts "\n📦 Installing dependencies..."
         
         # Update package list
@@ -57,14 +82,17 @@ namespace :streaming do
         puts "1. Configure stream settings in the admin interface"
         puts "2. Deploy configuration: rake streaming:deploy[TABLE_ID]"
         puts "3. Start stream via admin interface or:"
-        puts "   ssh #{ssh_user}@#{raspi_ip} 'sudo systemctl start carambus-stream@1.service'"
+        ssh_port_flag = ssh_port != 22 ? "-p #{ssh_port} " : ""
+        puts "   ssh #{ssh_port_flag}#{ssh_user}@#{raspi_ip} 'sudo systemctl start carambus-stream@1.service'"
       end
-    rescue Net::SSH::AuthenticationFailed
-      abort "❌ SSH authentication failed. Check RASPI_SSH_PASSWORD."
+    rescue Net::SSH::AuthenticationFailed => e
+      abort "❌ SSH authentication failed. Check credentials or SSH keys.\n   Error: #{e.message}"
     rescue Errno::EHOSTUNREACH
       abort "❌ Host unreachable: #{raspi_ip}"
+    rescue Errno::ECONNREFUSED
+      abort "❌ Connection refused: #{raspi_ip}:#{ssh_port}. Check if SSH is running on port #{ssh_port}."
     rescue => e
-      abort "❌ Error: #{e.message}"
+      abort "❌ Error: #{e.message}\n   #{e.class}"
     end
   end
   
@@ -91,7 +119,10 @@ namespace :streaming do
     puts "\n✅ Configuration deployed!"
     puts "\nYou can now start the stream:"
     puts "  • Via admin interface"
-    puts "  • Or: ssh pi@#{config.raspi_ip} 'sudo systemctl start carambus-stream@#{table.number}.service'"
+    ssh_user = ENV['RASPI_SSH_USER'] || 'pi'
+    ssh_port = config.raspi_ssh_port || 22
+    ssh_port_flag = ssh_port != 22 ? "-p #{ssh_port} " : ""
+    puts "  • Or: ssh #{ssh_port_flag}#{ssh_user}@#{config.raspi_ip} 'sudo systemctl start carambus-stream@#{table.number}.service'"
   end
   
   desc "Deploy all stream configurations"
@@ -170,13 +201,12 @@ namespace :streaming do
     puts "🧪 Testing streaming setup on: #{raspi_ip}"
     puts "=" * 60
     
-    ssh_user = ENV['RASPI_SSH_USER'] || 'pi'
-    ssh_password = ENV['RASPI_SSH_PASSWORD']
-    
-    abort "Error: RASPI_SSH_PASSWORD not set" if ssh_password.blank?
+    # Use helper to get SSH options
+    ssh_options = build_ssh_options(raspi_ip)
+    ssh_user = ssh_options.delete(:user)
     
     begin
-      Net::SSH.start(raspi_ip, ssh_user, password: ssh_password, timeout: 10, verify_host_key: :never) do |ssh|
+      Net::SSH.start(raspi_ip, ssh_user, ssh_options) do |ssh|
         tests = {
           "FFmpeg installed" => "which ffmpeg",
           "Xvfb installed" => "which Xvfb",
@@ -235,11 +265,20 @@ namespace :streaming do
       
       Environment Variables:
         RASPI_SSH_USER      SSH username (default: pi)
-        RASPI_SSH_PASSWORD  SSH password (required)
+        RASPI_SSH_PORT      SSH port (default: 22)
+        RASPI_SSH_PASSWORD  SSH password (for password authentication)
+        RASPI_SSH_KEYS      SSH key paths, comma-separated (for key-based auth)
+                            If neither password nor keys specified, uses default SSH keys
       
       Examples:
-        # Setup new Raspberry Pi for streaming
+        # Setup with password authentication (standard)
         RASPI_SSH_PASSWORD=raspberry rake streaming:setup[192.168.1.100]
+        
+        # Setup with key-based authentication on custom port (development)
+        RASPI_SSH_USER=www-data RASPI_SSH_PORT=8910 rake streaming:setup[192.168.1.50]
+        
+        # Setup with explicit SSH key
+        RASPI_SSH_USER=www-data RASPI_SSH_PORT=8910 RASPI_SSH_KEYS=~/.ssh/id_rsa rake streaming:setup[192.168.1.50]
         
         # Deploy configuration for table 1
         rake streaming:deploy[1]
@@ -247,13 +286,49 @@ namespace :streaming do
         # Check status of all streams
         rake streaming:status
         
-        # Test setup
-        RASPI_SSH_PASSWORD=raspberry rake streaming:test[192.168.1.100]
+        # Test setup with custom port
+        RASPI_SSH_USER=www-data RASPI_SSH_PORT=8910 rake streaming:test[192.168.1.50]
+      
+      Development Setup:
+        For testing with a single Raspberry Pi in development:
+        - Use www-data user with SSH key authentication
+        - Use custom port (e.g., 8910) to avoid conflicts
+        - Desktop still runs under pi user account
       
       For more information, see: docs/administrators/streaming-setup.md
       
     HELP
   end
+end
+
+# Helper method to build SSH options from environment variables
+def build_ssh_options(raspi_ip = nil)
+  ssh_user = ENV['RASPI_SSH_USER'] || 'pi'
+  ssh_port = ENV['RASPI_SSH_PORT']&.to_i || 22
+  ssh_password = ENV['RASPI_SSH_PASSWORD']
+  ssh_keys = ENV['RASPI_SSH_KEYS']
+  
+  ssh_options = {
+    user: ssh_user,
+    port: ssh_port,
+    timeout: 10,
+    verify_host_key: :never,
+    non_interactive: true
+  }
+  
+  # Add authentication method: password or keys
+  if ssh_password.present?
+    ssh_options[:password] = ssh_password
+  elsif ssh_keys.present?
+    key_paths = ssh_keys.split(',').map(&:strip).map { |k| File.expand_path(k) }
+    ssh_options[:keys] = key_paths
+    ssh_options[:keys_only] = true
+  else
+    # Try default SSH keys (~/.ssh/id_rsa, id_ed25519, etc.)
+    ssh_options[:keys_only] = false
+  end
+  
+  ssh_options
 end
 
 # Helper method to deploy config directly
@@ -288,10 +363,12 @@ def deploy_stream_config(config)
   temp_file = "/tmp/stream-table-#{table_number}.conf"
   target_file = "/etc/carambus/stream-table-#{table_number}.conf"
   
-  ssh_user = ENV['RASPI_SSH_USER'] || 'pi'
-  ssh_password = ENV['RASPI_SSH_PASSWORD']
+  # Build SSH options, overriding port from config
+  ssh_options = build_ssh_options(raspi_ip)
+  ssh_options[:port] = raspi_port
+  ssh_user = ssh_options.delete(:user)
   
-  Net::SSH.start(raspi_ip, ssh_user, password: ssh_password, port: raspi_port, timeout: 10, verify_host_key: :never) do |ssh|
+  Net::SSH.start(raspi_ip, ssh_user, ssh_options) do |ssh|
     ssh.exec!("cat > #{temp_file}", data: config_content)
     ssh.exec!("sudo mv #{temp_file} #{target_file}")
     ssh.exec!("sudo chmod 644 #{target_file}")
