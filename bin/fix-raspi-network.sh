@@ -15,14 +15,17 @@ sudo tee /etc/NetworkManager/conf.d/wifi-powersave.conf > /dev/null << 'EOF'
 wifi.powersave = 2
 EOF
 
-# Alternative method for non-NetworkManager systems
-sudo tee /etc/rc.local.d/disable-wifi-powersave.sh > /dev/null << 'EOF'
-#!/bin/bash
-# Disable WiFi power management
-iwconfig wlan0 power off 2>/dev/null || true
-exit 0
-EOF
-sudo chmod +x /etc/rc.local.d/disable-wifi-powersave.sh 2>/dev/null || true
+# Alternative method for non-NetworkManager systems (use rc.local)
+if [ -f /etc/rc.local ]; then
+    if ! grep -q "iwconfig wlan0 power off" /etc/rc.local; then
+        # Add before 'exit 0' if it exists, otherwise at the end
+        sudo sed -i '/^exit 0/i \# Disable WiFi power management\niwconfig wlan0 power off 2>/dev/null || true\n' /etc/rc.local 2>/dev/null || \
+        echo -e "\n# Disable WiFi power management\niwconfig wlan0 power off 2>/dev/null || true" | sudo tee -a /etc/rc.local > /dev/null
+        echo "   ✅ Added to /etc/rc.local"
+    fi
+else
+    echo "   ⚠️  /etc/rc.local not found, skipping alternative method"
+fi
 
 # 2. SSH Keep-Alive (Server-Side)
 echo ""
@@ -39,6 +42,7 @@ fi
 # 3. Network Watchdog - Auto-reconnect on failure
 echo ""
 echo "3️⃣ Setting up Network Watchdog..."
+sudo mkdir -p /usr/local/bin
 sudo tee /usr/local/bin/network-watchdog.sh > /dev/null << 'WATCHDOG'
 #!/bin/bash
 # Network Watchdog - Restarts networking if connection is lost
@@ -90,18 +94,28 @@ echo "   ✅ Network Watchdog installed and started"
 # 4. Disable IPv6 (optional, can cause issues)
 echo ""
 echo "4️⃣ Disabling IPv6 (optional)..."
-if ! grep -q "ipv6.disable=1" /boot/cmdline.txt 2>/dev/null; then
-    sudo sed -i '1s/$/ ipv6.disable=1/' /boot/cmdline.txt 2>/dev/null || \
-    sudo sed -i '1s/$/ ipv6.disable=1/' /boot/firmware/cmdline.txt 2>/dev/null || \
-    echo "   ⚠️  Could not disable IPv6 (file not found)"
-    echo "   ✅ IPv6 disabled (requires reboot)"
+CMDLINE_FILE=""
+if [ -f /boot/cmdline.txt ]; then
+    CMDLINE_FILE="/boot/cmdline.txt"
+elif [ -f /boot/firmware/cmdline.txt ]; then
+    CMDLINE_FILE="/boot/firmware/cmdline.txt"
+fi
+
+if [ -n "$CMDLINE_FILE" ]; then
+    if ! grep -q "ipv6.disable=1" "$CMDLINE_FILE" 2>/dev/null; then
+        sudo sed -i.bak '1s/$/ ipv6.disable=1/' "$CMDLINE_FILE"
+        echo "   ✅ IPv6 disabled in $CMDLINE_FILE (requires reboot)"
+    else
+        echo "   ✅ IPv6 already disabled in $CMDLINE_FILE"
+    fi
 else
-    echo "   ✅ IPv6 already disabled"
+    echo "   ⚠️  cmdline.txt not found, skipping IPv6 disable"
 fi
 
 # 5. Increase network buffer sizes
 echo ""
 echo "5️⃣ Optimizing network buffers..."
+sudo mkdir -p /etc/sysctl.d
 sudo tee /etc/sysctl.d/99-network-tuning.conf > /dev/null << 'SYSCTL'
 # Network buffer tuning for better stability
 net.core.rmem_max = 16777216
