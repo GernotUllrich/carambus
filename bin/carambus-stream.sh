@@ -232,17 +232,10 @@ start_stream() {
         log "Camera using YUYV, using software encoding"
     fi
     
-    # Check for hardware encoder availability
-    if ffmpeg -hide_banner -encoders 2>/dev/null | grep -q h264_v4l2m2m; then
-        VIDEO_ENCODER="h264_v4l2m2m"
-        log "Using hardware encoder: h264_v4l2m2m"
-    elif ffmpeg -hide_banner -encoders 2>/dev/null | grep -q h264_omx; then
-        VIDEO_ENCODER="h264_omx"
-        log "Using hardware encoder: h264_omx"
-    else
-        VIDEO_ENCODER="libx264"
-        log "Using software encoder: libx264 (may be slow!)"
-    fi
+    # Force software encoder for YouTube compatibility
+    # Hardware encoders can produce incompatible streams that YouTube can't decode
+    VIDEO_ENCODER="libx264"
+    log "Using software encoder: libx264 (best YouTube compatibility)"
     
     if [ "$OVERLAY_ENABLED" = "true" ]; then
         # Stream with overlay
@@ -265,9 +258,11 @@ start_stream() {
                 -f v4l2 -input_format "$INPUT_FORMAT" -video_size "${CAMERA_WIDTH}x${CAMERA_HEIGHT}" -framerate "$CAMERA_FPS" \
                 -i "$CAMERA_DEVICE" \
                 -loop 1 -framerate 1 -i "$OVERLAY_IMAGE" \
+                -f lavfi -i anullsrc=channel_layout=stereo:sample_rate=44100 \
                 -filter_complex "[0:v]format=yuv420p,scale=${CAMERA_WIDTH}:${CAMERA_HEIGHT}[cam];[cam][1:v]overlay=x=0:y=main_h-overlay_h:shortest=1[out]" \
-                -map "[out]" \
+                -map "[out]" -map 2:a \
                 -c:v "$VIDEO_ENCODER" -b:v "${VIDEO_BITRATE}k" -maxrate "$((VIDEO_BITRATE + 500))k" -bufsize "$((VIDEO_BITRATE * 2))k" \
+                -c:a aac -b:a "${AUDIO_BITRATE}k" \
                 -pix_fmt yuv420p -g 120 -keyint_min 120 -sc_threshold 0 \
                 -preset ultrafast -tune zerolatency \
                 -f flv "$RTMP_URL" \
