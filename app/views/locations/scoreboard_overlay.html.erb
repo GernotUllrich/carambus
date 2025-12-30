@@ -12,44 +12,61 @@
     # Get scores from data hash or attributes
     score_a = @game.data.dig('Ergebnis1') || @game.data.dig('score_a') || 0
     score_b = @game.data.dig('Ergebnis2') || @game.data.dig('score_b') || 0
+    
+    # Determine active player (simplified - could be enhanced with real logic)
+    player_a_active = true # Could use @table_monitor data if available
   %>
   
   <div class="overlay-container" data-controller="streaming-overlay" data-streaming-overlay-table-id-value="<%= @table&.id %>">
-    <!-- Player A -->
-    <div class="player-section">
-      <div class="player-name">
-        <%= player_a&.fl_name || "#{player_a&.firstname} #{player_a&.lastname}".strip.presence || "Spieler 1" %>
+    <!-- Header with table, tournament, and live indicator -->
+    <div class="overlay-header">
+      <div class="table-number">
+        Tisch <%= @table&.number || "?" %>
       </div>
-      <div class="player-score" data-streaming-overlay-target="scoreA">
-        <%= score_a %>
-      </div>
-    </div>
-    
-    <!-- VS Section -->
-    <div class="vs-section">
-      <div class="vs-text">
-        <span class="live-indicator"></span>VS
-      </div>
+      
       <% if @tournament.present? %>
         <div class="tournament-info">
-          <%= @tournament.try(:title)&.truncate(30) || @tournament.try(:name)&.truncate(30) || "Turnier" %>
+          <%= @tournament.try(:title) || @tournament.try(:name) || "Turnier" %>
         </div>
       <% end %>
-    </div>
-    
-    <!-- Player B -->
-    <div class="player-section">
-      <div class="player-name">
-        <%= player_b&.fl_name || "#{player_b&.firstname} #{player_b&.lastname}".strip.presence || "Spieler 2" %>
-      </div>
-      <div class="player-score" data-streaming-overlay-target="scoreB">
-        <%= score_b %>
+      
+      <div class="live-badge">
+        <span class="live-indicator"></span>
+        LIVE
       </div>
     </div>
     
-    <!-- Table Info -->
-    <div class="table-info">
-      Tisch <%= @table&.number || "?" %> • <%= @location&.name %>
+    <!-- Players Section -->
+    <div class="players-section">
+      <!-- Player A -->
+      <div class="player-card <%= 'active' if player_a_active %>">
+        <div class="player-name">
+          <%= player_a&.fl_name || "#{player_a&.firstname} #{player_a&.lastname}".strip.presence || "Spieler 1" %>
+        </div>
+        <div class="player-score" data-streaming-overlay-target="scoreA">
+          <%= score_a %>
+        </div>
+      </div>
+      
+      <!-- VS Divider -->
+      <div class="vs-divider">
+        <div class="vs-text">VS</div>
+      </div>
+      
+      <!-- Player B -->
+      <div class="player-card <%= 'active' unless player_a_active %>">
+        <div class="player-name">
+          <%= player_b&.fl_name || "#{player_b&.firstname} #{player_b&.lastname}".strip.presence || "Spieler 2" %>
+        </div>
+        <div class="player-score" data-streaming-overlay-target="scoreB">
+          <%= score_b %>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Location Info Footer -->
+    <div class="location-info">
+      <%= @location&.name %>
     </div>
   </div>
 <% else %>
@@ -63,5 +80,3 @@
     </div>
   </div>
 <% end %>
-
-
