@@ -16,6 +16,8 @@
     }
     
     body {
+      width: 1280px;
+      height: 200px;
       font-family: 'Arial', 'Helvetica', sans-serif;
       background: transparent;
       color: white;
@@ -26,58 +28,50 @@
     }
     
     .overlay-container {
-      width: 1280px;
-      height: 200px;
+      position: absolute;
+      bottom: 10px;
+      left: 10px;
+      width: 320px;
       background: linear-gradient(135deg, rgba(0, 97, 120, 0.95) 0%, rgba(0, 60, 80, 0.95) 100%);
-      border-radius: 12px;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
-      padding: 16px 24px;
+      border-radius: 8px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.8);
+      padding: 10px;
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
+      gap: 8px;
     }
     
     .overlay-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding-bottom: 8px;
-      border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+      padding-bottom: 6px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
     }
     
     .table-number {
-      font-size: 28px;
+      font-size: 16px;
       font-weight: bold;
       color: #FFF;
-      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
-    }
-    
-    .tournament-info {
-      font-size: 16px;
-      color: rgba(255, 255, 255, 0.9);
-      text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
-      max-width: 400px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
     }
     
     .live-badge {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 4px;
       background: rgba(255, 0, 0, 0.9);
-      padding: 6px 12px;
-      border-radius: 20px;
-      font-size: 14px;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 10px;
       font-weight: bold;
       text-transform: uppercase;
     }
     
     .live-indicator {
       display: inline-block;
-      width: 10px;
-      height: 10px;
+      width: 6px;
+      height: 6px;
       background: #FFF;
       border-radius: 50%;
       animation: pulse 2s infinite;
@@ -88,115 +82,78 @@
       50% { opacity: 0.5; transform: scale(0.85); }
     }
     
-    .players-section {
-      flex: 1;
+    .player-row {
       display: flex;
-      gap: 16px;
-      align-items: stretch;
+      align-items: center;
+      gap: 8px;
+      background: rgba(0, 0, 0, 0.4);
+      border-radius: 4px;
+      padding: 6px 8px;
+      border-left: 3px solid transparent;
     }
     
-    .player-card {
-      flex: 1;
-      background: rgba(0, 0, 0, 0.6);
-      border-radius: 8px;
-      padding: 12px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      border: 2px solid rgba(255, 255, 255, 0.1);
-      position: relative;
-      overflow: hidden;
-    }
-    
-    .player-card.active {
-      border-color: #FFD700;
-      box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
-    }
-    
-    .player-card.active::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 3px;
-      background: linear-gradient(90deg, transparent, #FFD700, transparent);
-      animation: shimmer 2s infinite;
-    }
-    
-    @keyframes shimmer {
-      0% { transform: translateX(-100%); }
-      100% { transform: translateX(100%); }
+    .player-row.active {
+      border-left-color: #FFD700;
+      background: rgba(255, 215, 0, 0.15);
     }
     
     .player-name {
-      font-size: 22px;
+      flex: 1;
+      font-size: 14px;
       font-weight: bold;
       color: #FFF;
-      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      margin-bottom: 8px;
     }
     
     .player-score {
-      font-size: 56px;
+      font-size: 24px;
       font-weight: bold;
       color: #4CAF50;
-      text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.9);
-      line-height: 1;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9);
+      min-width: 40px;
+      text-align: right;
+    }
+    
+    .tournament-info {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.8);
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
       text-align: center;
-    }
-    
-    .vs-divider {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-width: 60px;
-    }
-    
-    .vs-text {
-      font-size: 36px;
-      font-weight: bold;
-      color: rgba(255, 255, 255, 0.7);
-      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
-    }
-    
-    .location-info {
-      text-align: center;
-      font-size: 14px;
-      color: rgba(255, 255, 255, 0.7);
-      text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
-      padding-top: 8px;
+      padding-top: 4px;
       border-top: 1px solid rgba(255, 255, 255, 0.1);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     
     /* No game state */
     .no-game {
-      width: 1280px;
-      height: 200px;
+      position: absolute;
+      bottom: 10px;
+      left: 10px;
+      width: 320px;
       background: linear-gradient(135deg, rgba(0, 97, 120, 0.95) 0%, rgba(0, 60, 80, 0.95) 100%);
-      border-radius: 12px;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-      gap: 16px;
+      border-radius: 8px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.8);
+      padding: 16px;
+      text-align: center;
     }
     
     .no-game-title {
-      font-size: 42px;
+      font-size: 18px;
       font-weight: bold;
-      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
       color: #FFF;
+      margin-bottom: 6px;
     }
     
     .no-game-subtitle {
-      font-size: 22px;
+      font-size: 13px;
       color: rgba(255, 255, 255, 0.8);
-      text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
     }
   </style>
   

@@ -18,56 +18,43 @@
   %>
   
   <div class="overlay-container" data-controller="streaming-overlay" data-streaming-overlay-table-id-value="<%= @table&.id %>">
-    <!-- Header with table, tournament, and live indicator -->
+    <!-- Header -->
     <div class="overlay-header">
       <div class="table-number">
-        Tisch <%= @table&.number || "?" %>
+        T<%= @table&.number || "?" %>
       </div>
-      
-      <% if @tournament.present? %>
-        <div class="tournament-info">
-          <%= @tournament.try(:title) || @tournament.try(:name) || "Turnier" %>
-        </div>
-      <% end %>
-      
       <div class="live-badge">
         <span class="live-indicator"></span>
         LIVE
       </div>
     </div>
     
-    <!-- Players Section -->
-    <div class="players-section">
-      <!-- Player A -->
-      <div class="player-card <%= 'active' if player_a_active %>">
-        <div class="player-name">
-          <%= player_a&.fl_name || "#{player_a&.firstname} #{player_a&.lastname}".strip.presence || "Spieler 1" %>
-        </div>
-        <div class="player-score" data-streaming-overlay-target="scoreA">
-          <%= score_a %>
-        </div>
+    <!-- Player A -->
+    <div class="player-row <%= 'active' if player_a_active %>">
+      <div class="player-name">
+        <%= player_a&.fl_name || "#{player_a&.firstname} #{player_a&.lastname}".strip.presence || "Spieler 1" %>
       </div>
-      
-      <!-- VS Divider -->
-      <div class="vs-divider">
-        <div class="vs-text">VS</div>
-      </div>
-      
-      <!-- Player B -->
-      <div class="player-card <%= 'active' unless player_a_active %>">
-        <div class="player-name">
-          <%= player_b&.fl_name || "#{player_b&.firstname} #{player_b&.lastname}".strip.presence || "Spieler 2" %>
-        </div>
-        <div class="player-score" data-streaming-overlay-target="scoreB">
-          <%= score_b %>
-        </div>
+      <div class="player-score" data-streaming-overlay-target="scoreA">
+        <%= score_a %>
       </div>
     </div>
     
-    <!-- Location Info Footer -->
-    <div class="location-info">
-      <%= @location&.name %>
+    <!-- Player B -->
+    <div class="player-row <%= 'active' unless player_a_active %>">
+      <div class="player-name">
+        <%= player_b&.fl_name || "#{player_b&.firstname} #{player_b&.lastname}".strip.presence || "Spieler 2" %>
+      </div>
+      <div class="player-score" data-streaming-overlay-target="scoreB">
+        <%= score_b %>
+      </div>
     </div>
+    
+    <!-- Tournament Info Footer -->
+    <% if @tournament.present? %>
+      <div class="tournament-info">
+        <%= @tournament.try(:title) || @tournament.try(:name) || "Turnier" %>
+      </div>
+    <% end %>
   </div>
 <% else %>
   <!-- No active game -->
@@ -76,7 +63,7 @@
       <%= @location&.name || "Carambus" %>
     </div>
     <div class="no-game-subtitle">
-      Tisch <%= @table&.number || "?" %> • Kein aktives Spiel
+      Tisch <%= @table&.number || "?" %> • Kein Spiel
     </div>
   </div>
 <% end %>
