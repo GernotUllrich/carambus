@@ -179,7 +179,7 @@ class StreamConfiguration < ApplicationRecord
       3000
     end
     
-    "http://#{host}:#{port}/locations/#{location.md5}/scoreboard_overlay?table=#{table.number}"
+    "http://#{host}:#{port}/locations/#{location.md5}/scoreboard_overlay?table_id=#{table.id}"
   end
   
   # Get YouTube RTMP URL

@@ -325,9 +325,16 @@ class LocationsController < ApplicationController
     @navbar = @footer = false
     @minimal = true
     
-    # Get table from params
-    table_number = params[:table]&.to_i
-    @table = @location.tables.find_by(name: "Tisch #{table_number}") if table_number.present?
+    # Get table from params - use table_id for uniqueness (not table number!)
+    # Table numbers can be ambiguous (e.g., "Tisch 1" for both small and large tables)
+    if params[:table_id].present?
+      @table = @location.tables.find_by(id: params[:table_id])
+    elsif params[:table].present?
+      # Legacy fallback: try to find by number (deprecated, ambiguous!)
+      table_number = params[:table]&.to_i
+      @table = @location.tables.find_by(name: "Tisch #{table_number}")
+    end
+    
     @table ||= @location.tables.first # Fallback to first table
     
     # Get current game on this table
