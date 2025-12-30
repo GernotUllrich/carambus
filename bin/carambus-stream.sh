@@ -214,29 +214,31 @@ start_stream() {
     log "Starting FFmpeg..."
     log "RTMP URL: rtmp://a.rtmp.youtube.com/live2/[REDACTED]"
     
-    # Detect available camera formats
-    CAMERA_FORMATS=$(v4l2-ctl --device="$CAMERA_DEVICE" --list-formats-ext 2>/dev/null | grep -E "YUYV|MJPEG|H264" | head -1)
+    # Detect available camera formats and choose best one
+    # Priority: MJPEG (best for 720p@30fps) > H264 > YUYV (worst, limited to 10fps at 720p)
+    CAMERA_FORMATS=$(v4l2-ctl --device="$CAMERA_DEVICE" --list-formats-ext 2>/dev/null)
     
     # Determine input format and encoding strategy
-    if echo "$CAMERA_FORMATS" | grep -q "H264"; then
+    # Check for MJPEG support (preferred for Logitech C922 at 720p)
+    if echo "$CAMERA_FORMATS" | grep -i "MJPG" > /dev/null 2>&1; then
+        INPUT_FORMAT="mjpeg"
+        USE_HW_DECODE=false
+        log "Camera using MJPEG format (optimal for 720p@30fps)"
+    elif echo "$CAMERA_FORMATS" | grep -i "H264" > /dev/null 2>&1; then
         INPUT_FORMAT="h264"
         USE_HW_DECODE=true
         log "Camera supports H.264, using hardware decoding"
-    elif echo "$CAMERA_FORMATS" | grep -q "MJPEG"; then
-        INPUT_FORMAT="mjpeg"
-        USE_HW_DECODE=false
-        log "Camera supports MJPEG, using software decoding"
     else
         INPUT_FORMAT="yuyv422"
         USE_HW_DECODE=false
-        log "Camera using YUYV, using software encoding"
+        log "WARNING: Camera using YUYV (limited to 10fps at 720p on C922)"
     fi
     
-    # Force software encoder for YouTube compatibility
-    # Hardware encoders (h264_v4l2m2m) produce streams that YouTube cannot decode
-    # even with audio track included. Tested and confirmed on Raspberry Pi 4.
+    # CONFIRMED: Hardware encoder does NOT work with YouTube Live
+    # Tested multiple times with h264_v4l2m2m - YouTube only shows logo, never video
+    # Must use libx264 software encoder for YouTube compatibility
     VIDEO_ENCODER="libx264"
-    log "Using software encoder: libx264 (YouTube compatible)"
+    log "Using software encoder: libx264 (YouTube requires this)"
     
     if [ "$OVERLAY_ENABLED" = "true" ]; then
         # Stream with overlay
@@ -275,7 +277,10 @@ start_stream() {
             ffmpeg \
                 -f v4l2 -input_format "$INPUT_FORMAT" -video_size "${CAMERA_WIDTH}x${CAMERA_HEIGHT}" -framerate "$CAMERA_FPS" \
                 -i "$CAMERA_DEVICE" \
+                -f lavfi -i anullsrc=channel_layout=stereo:sample_rate=44100 \
+                -map 0:v -map 1:a \
                 -c:v "$VIDEO_ENCODER" -b:v "${VIDEO_BITRATE}k" -maxrate "$((VIDEO_BITRATE + 500))k" -bufsize "$((VIDEO_BITRATE * 2))k" \
+                -c:a aac -b:a "${AUDIO_BITRATE}k" \
                 -pix_fmt yuv420p -g 120 -keyint_min 120 -sc_threshold 0 \
                 -preset ultrafast -tune zerolatency \
                 -f flv "$RTMP_URL" \
@@ -284,8 +289,14 @@ start_stream() {
             ffmpeg \
                 -f v4l2 -input_format "$INPUT_FORMAT" -video_size "${CAMERA_WIDTH}x${CAMERA_HEIGHT}" -framerate "$CAMERA_FPS" \
                 -i "$CAMERA_DEVICE" \
+                -f lavfi -i anullsrc=channel_layout=stereo:sample_rate=44100 \
+                -filter_complex "[0:v]scale=${CAMERA_WIDTH}:${CAMERA_HEIGHT}:flags=lanczos,format=yuv420p,setrange=tv,setparams=colorspace=bt709:color_trc=bt709:color_primaries=bt709[vout]" \
+                -map "[vout]" -map 1:a \
                 -c:v "$VIDEO_ENCODER" -b:v "${VIDEO_BITRATE}k" -maxrate "$((VIDEO_BITRATE + 500))k" -bufsize "$((VIDEO_BITRATE * 2))k" \
-                -pix_fmt yuv420p -g 120 -keyint_min 120 -sc_threshold 0 \
+                -c:a aac -b:a "${AUDIO_BITRATE}k" \
+                -pix_fmt yuv420p -color_range tv -colorspace bt709 -color_primaries bt709 -color_trc bt709 \
+                -profile:v high -level 4.0 \
+                -g 120 -keyint_min 120 -sc_threshold 0 \
                 -preset ultrafast -tune zerolatency \
                 -f flv "$RTMP_URL" \
                 >> "$LOG_FILE" 2>&1
