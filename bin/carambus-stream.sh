@@ -157,11 +157,12 @@ update_overlay_loop() {
     while true; do
         $BROWSER_CMD \
             --headless \
-            --disable-gpu \
             --screenshot="$OVERLAY_IMAGE" \
             --window-size="${CAMERA_WIDTH},${OVERLAY_HEIGHT}" \
             --virtual-time-budget=2000 \
             --hide-scrollbars \
+            --force-device-scale-factor=1 \
+            --default-background-color=0 \
             "$OVERLAY_URL" >> "$LOG_FILE" 2>&1 || true
         
         sleep 2
