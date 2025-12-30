@@ -18,7 +18,7 @@
     <!-- Player A -->
     <div class="player-section">
       <div class="player-name">
-        <%= player_a&.display_name || "Spieler 1" %>
+        <%= player_a&.fl_name || "#{player_a&.firstname} #{player_a&.lastname}".strip.presence || "Spieler 1" %>
       </div>
       <div class="player-score" data-streaming-overlay-target="scoreA">
         <%= score_a %>
@@ -32,7 +32,7 @@
       </div>
       <% if @tournament.present? %>
         <div class="tournament-info">
-          <%= @tournament.title.try(:truncate, 30) || @tournament.name.try(:truncate, 30) || "Turnier" %>
+          <%= @tournament.try(:title)&.truncate(30) || @tournament.try(:name)&.truncate(30) || "Turnier" %>
         </div>
       <% end %>
     </div>
@@ -40,7 +40,7 @@
     <!-- Player B -->
     <div class="player-section">
       <div class="player-name">
-        <%= player_b&.display_name || "Spieler 2" %>
+        <%= player_b&.fl_name || "#{player_b&.firstname} #{player_b&.lastname}".strip.presence || "Spieler 2" %>
       </div>
       <div class="player-score" data-streaming-overlay-target="scoreB">
         <%= score_b %>
