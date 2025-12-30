@@ -58,15 +58,19 @@ class StreamHealthJob < ApplicationJob
   private
   
   def check_service_active
-    cmd = "systemctl is-active carambus-stream@#{@table_number}.service"
+    cmd = "sudo systemctl is-active carambus-stream@#{@table_number}.service"
     result = execute_ssh_command(cmd)
     result.success? && result.output.strip == 'active'
   end
   
   def check_ffmpeg_running
     # Check if FFmpeg process is running and streaming
-    cmd = "pgrep -f 'ffmpeg.*table.*#{@table_number}' > /dev/null && echo 'running' || echo 'stopped'"
+    # Look for ffmpeg with the YouTube RTMP URL or device input
+    cmd = "pgrep -f 'ffmpeg.*(/dev/video|rtmp://a.rtmp.youtube.com)' > /dev/null && echo 'running' || echo 'stopped'"
     result = execute_ssh_command(cmd)
+    
+    Rails.logger.debug "[StreamHealth] FFmpeg check: #{result.output.strip} (success: #{result.success?})"
+    
     result.success? && result.output.strip == 'running'
   end
   
@@ -120,8 +124,27 @@ class StreamHealthJob < ApplicationJob
     exit_code = nil
     
     Net::SSH.start(@raspi_ip, ssh_user, ssh_options) do |ssh|
+      # Execute command and capture exit status properly
       output = ssh.exec!(command)
-      exit_code = ssh.exec!("echo $?").strip.to_i
+      
+      # Get the actual exit status from the channel
+      ssh.exec!("echo $?") do |channel, stream, data|
+        exit_code = data.strip.to_i if stream == :stdout
+      end
+    end
+    
+    # If we couldn't get exit code, check if output suggests success
+    if exit_code.nil?
+      # For systemctl is-active, "active" = success
+      # For pgrep, "running" = success
+      # For other commands, non-empty output without "error" = success
+      exit_code = if command.include?('is-active')
+                    output.strip == 'active' ? 0 : 1
+                  elsif command.include?('pgrep')
+                    output.strip == 'running' ? 0 : 1
+                  else
+                    0 # Assume success if we got output
+                  end
     end
     
     OpenStruct.new(
@@ -131,21 +154,47 @@ class StreamHealthJob < ApplicationJob
       exit_code: exit_code
     )
   rescue => e
-    OpenStruct.new(success?: false, error: e.message)
+    Rails.logger.error "[StreamHealth] SSH command failed: #{e.message}"
+    OpenStruct.new(success?: false, error: e.message, output: "")
   end
   
   def ssh_user
-    ENV['RASPI_SSH_USER'] || 'pi'
+    @config.raspi_ssh_user || ENV['RASPI_SSH_USER'] || 'www-data'
   end
   
   def ssh_options
-    {
+    options = {
       port: @raspi_port,
-      password: ENV['RASPI_SSH_PASSWORD'],
       timeout: 10,
       non_interactive: true,
       verify_host_key: :never
     }
+    
+    # Try SSH keys first (same as StreamControlJob)
+    ssh_keys = find_ssh_keys
+    if ssh_keys.any?
+      options[:keys] = ssh_keys
+      options[:auth_methods] = ['publickey']
+    elsif ENV['RASPI_SSH_PASSWORD'].present?
+      options[:password] = ENV['RASPI_SSH_PASSWORD']
+      options[:auth_methods] = ['password', 'publickey']
+    end
+    
+    options
+  end
+  
+  def find_ssh_keys
+    return ENV['RASPI_SSH_KEYS'].split(',') if ENV['RASPI_SSH_KEYS'].present?
+    
+    # Common SSH key locations
+    key_paths = [
+      File.expand_path('~/.ssh/id_rsa'),
+      File.expand_path('~/.ssh/id_ed25519'),
+      File.expand_path('~/.ssh/id_ecdsa'),
+      '/var/www/.ssh/id_rsa'
+    ]
+    
+    key_paths.select { |path| File.exist?(path) }
   end
 end
 
