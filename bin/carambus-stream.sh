@@ -232,18 +232,11 @@ start_stream() {
         log "Camera using YUYV, using software encoding"
     fi
     
-    # Try hardware encoder first for better performance, fallback to software
-    # Now that we have audio, YouTube should accept hardware-encoded streams
-    if ffmpeg -hide_banner -encoders 2>/dev/null | grep -q h264_v4l2m2m; then
-        VIDEO_ENCODER="h264_v4l2m2m"
-        log "Using hardware encoder: h264_v4l2m2m (best performance)"
-    elif ffmpeg -hide_banner -encoders 2>/dev/null | grep -q h264_omx; then
-        VIDEO_ENCODER="h264_omx"
-        log "Using hardware encoder: h264_omx (best performance)"
-    else
-        VIDEO_ENCODER="libx264"
-        log "Using software encoder: libx264 (fallback)"
-    fi
+    # Force software encoder for YouTube compatibility
+    # Hardware encoders (h264_v4l2m2m) produce streams that YouTube cannot decode
+    # even with audio track included. Tested and confirmed on Raspberry Pi 4.
+    VIDEO_ENCODER="libx264"
+    log "Using software encoder: libx264 (YouTube compatible)"
     
     if [ "$OVERLAY_ENABLED" = "true" ]; then
         # Stream with overlay
