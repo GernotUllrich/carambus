@@ -161,8 +161,23 @@ class StreamConfiguration < ApplicationRecord
   def scoreboard_overlay_url
     return nil unless location.present? && table.present?
     
+    # Determine host - use localhost if on the same machine, otherwise location URL
     host = ApplicationRecord.local_server? ? 'localhost' : location.url
-    port = Rails.env.production? ? 80 : 3000
+    
+    # Determine port from Rails server configuration
+    # Try to get from action_mailer default_url_options first (most reliable)
+    port = if Rails.application.config.action_mailer.default_url_options.present? &&
+              Rails.application.config.action_mailer.default_url_options[:port].present?
+      Rails.application.config.action_mailer.default_url_options[:port]
+    elsif ENV['PORT'].present?
+      ENV['PORT']
+    elsif Rails.env.production?
+      # Fallback for production: check common ports
+      # For Raspberry Pi development server, typically 3131
+      3131
+    else
+      3000
+    end
     
     "http://#{host}:#{port}/locations/#{location.md5}/scoreboard_overlay?table=#{table.number}"
   end
