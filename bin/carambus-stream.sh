@@ -157,12 +157,12 @@ update_overlay_loop() {
     while true; do
         $BROWSER_CMD \
             --headless \
+            --disable-gpu \
             --screenshot="$OVERLAY_IMAGE" \
             --window-size="${CAMERA_WIDTH},${OVERLAY_HEIGHT}" \
             --virtual-time-budget=2000 \
             --hide-scrollbars \
             --force-device-scale-factor=1 \
-            --default-background-color=0 \
             "$OVERLAY_URL" >> "$LOG_FILE" 2>&1 || true
         
         sleep 2
@@ -258,12 +258,13 @@ start_stream() {
                 >> "$LOG_FILE" 2>&1
         else
             # Software decode path (YUYV/MJPEG)
+            # Colorkey filter removes white background from overlay PNG
             ffmpeg \
                 -f v4l2 -input_format "$INPUT_FORMAT" -video_size "${CAMERA_WIDTH}x${CAMERA_HEIGHT}" -framerate "$CAMERA_FPS" \
                 -i "$CAMERA_DEVICE" \
                 -loop 1 -framerate 1 -i "$OVERLAY_IMAGE" \
                 -f lavfi -i anullsrc=channel_layout=stereo:sample_rate=44100 \
-                -filter_complex "[0:v]format=yuv420p,scale=${CAMERA_WIDTH}:${CAMERA_HEIGHT}[cam];[cam][1:v]overlay=x=0:y=main_h-overlay_h:shortest=1[out]" \
+                -filter_complex "[0:v]format=yuv420p,scale=${CAMERA_WIDTH}:${CAMERA_HEIGHT}[cam];[1:v]colorkey=0xFFFFFF:0.3:0.2[overlay];[cam][overlay]overlay=x=0:y=main_h-overlay_h:shortest=1[out]" \
                 -map "[out]" -map 2:a \
                 -c:v "$VIDEO_ENCODER" -b:v "${VIDEO_BITRATE}k" -maxrate "$((VIDEO_BITRATE + 500))k" -bufsize "$((VIDEO_BITRATE * 2))k" \
                 -c:a aac -b:a "${AUDIO_BITRATE}k" \
