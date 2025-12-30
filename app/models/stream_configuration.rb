@@ -72,6 +72,7 @@ class StreamConfiguration < ApplicationRecord
   # Callbacks
   before_validation :set_raspi_ip_from_table, if: -> { raspi_ip.blank? && table.present? }
   after_initialize :set_defaults, if: :new_record?
+  after_save :broadcast_status_change, if: -> { saved_change_to_status? || saved_change_to_error_message? || saved_change_to_last_started_at? }
   
   # Status helper methods
   def inactive?
@@ -225,6 +226,19 @@ class StreamConfiguration < ApplicationRecord
   def ip_required?
     # IP is required unless we're just creating the record
     persisted? || operational?
+  end
+  
+  # Broadcast status changes to ActionCable
+  def broadcast_status_change
+    ActionCable.server.broadcast(
+      "stream_status",
+      {
+        stream_id: id,
+        status: status,
+        last_started_at: last_started_at&.iso8601,
+        error_message: error_message
+      }
+    )
   end
 end
 

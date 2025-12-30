@@ -36,7 +36,11 @@
         
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <% configs.each do |config| %>
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 border-l-4 <%= status_border_color(config.status) %>">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 border-l-4 <%= status_border_color(config.status) %>"
+                 data-controller="stream-monitor"
+                 data-stream-monitor-stream-id-value="<%= config.id %>"
+                 data-stream-monitor-auto-refresh-value="true"
+                 data-stream-monitor-refresh-interval-value="30000">
               <!-- Header -->
               <div class="flex justify-between items-start mb-4">
                 <div>
@@ -48,7 +52,8 @@
                   </p>
                 </div>
                 
-                <span class="<%= status_badge_class(config.status) %> px-3 py-1 rounded-full text-sm font-semibold">
+                <span class="<%= status_badge_class(config.status) %> px-3 py-1 rounded-full text-sm font-semibold"
+                      data-stream-monitor-target="status">
                   <%= status_icon(config.status) %> <%= config.status.titleize %>
                 </span>
               </div>
@@ -70,14 +75,15 @@
                 <% if config.active? %>
                   <div class="flex items-center">
                     <span class="w-24 font-semibold">Uptime:</span>
-                    <span><%= config.uptime_humanized %></span>
+                    <span data-stream-monitor-target="uptime"><%= format_uptime(config.last_started_at) %></span>
                   </div>
                 <% end %>
               </div>
 
               <!-- Error Message -->
               <% if config.error_message.present? %>
-                <div class="mb-4 p-3 bg-red-100 dark:bg-red-900/20 border border-red-300 dark:border-red-700 rounded text-sm text-red-700 dark:text-red-300">
+                <div class="mb-4 p-3 bg-red-100 dark:bg-red-900/20 border border-red-300 dark:border-red-700 rounded text-sm text-red-700 dark:text-red-300"
+                     data-stream-monitor-target="error">
                   <%= config.error_message %>
                 </div>
               <% end %>
@@ -111,11 +117,11 @@
                   <% end %>
                 <% end %>
                 
-                <%= link_to health_check_admin_stream_configuration_path(config),
-                    method: :post,
-                    class: "btn btn-sm btn-secondary" do %>
+                <button data-action="click->stream-monitor#manualHealthCheck"
+                        data-stream-monitor-target="healthButton"
+                        class="btn btn-sm btn-secondary">
                   ❤️
-                <% end %>
+                </button>
                 
                 <%= link_to edit_admin_stream_configuration_path(config),
                     class: "btn btn-sm btn-info" do %>

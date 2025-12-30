@@ -98,7 +98,18 @@ module Admin
     # POST /admin/stream_configurations/1/health_check
     def health_check
       @stream_configuration.check_health
-      redirect_to admin_stream_configurations_path, notice: 'Health-Check wurde gestartet...'
+      
+      respond_to do |format|
+        format.html { redirect_to admin_stream_configurations_path, notice: 'Health-Check wurde gestartet...' }
+        format.json { 
+          render json: {
+            stream_id: @stream_configuration.id,
+            status: @stream_configuration.status,
+            last_started_at: @stream_configuration.last_started_at&.iso8601,
+            error_message: @stream_configuration.error_message
+          }
+        }
+      end
     end
     
     # POST /admin/stream_configurations/deploy_all
