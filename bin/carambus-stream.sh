@@ -259,17 +259,22 @@ start_stream() {
         else
             # Software decode path (YUYV/MJPEG)
             # Colorkey filter removes white background from overlay PNG
+            # PERFORMANCE OPTIMIZATIONS:
+            # - Use veryfast preset (better compression than ultrafast, still realtime on Pi4)
+            # - threads=4 to use all cores
+            # - Reduce filter complexity with single-pass scale+overlay
             ffmpeg \
                 -f v4l2 -input_format "$INPUT_FORMAT" -video_size "${CAMERA_WIDTH}x${CAMERA_HEIGHT}" -framerate "$CAMERA_FPS" \
                 -i "$CAMERA_DEVICE" \
                 -loop 1 -framerate 1 -i "$OVERLAY_IMAGE" \
                 -f lavfi -i anullsrc=channel_layout=stereo:sample_rate=44100 \
-                -filter_complex "[0:v]format=yuv420p,scale=${CAMERA_WIDTH}:${CAMERA_HEIGHT}[cam];[1:v]colorkey=0xFFFFFF:0.3:0.2[overlay];[cam][overlay]overlay=x=0:y=main_h-overlay_h:shortest=1[out]" \
+                -filter_complex "[1:v]colorkey=0xFFFFFF:0.3:0.2[overlay];[0:v][overlay]overlay=x=0:y=main_h-overlay_h:shortest=1,format=yuv420p,scale=${CAMERA_WIDTH}:${CAMERA_HEIGHT}:flags=fast_bilinear[out]" \
                 -map "[out]" -map 2:a \
                 -c:v "$VIDEO_ENCODER" -b:v "${VIDEO_BITRATE}k" -maxrate "$((VIDEO_BITRATE + 500))k" -bufsize "$((VIDEO_BITRATE * 2))k" \
                 -c:a aac -b:a "${AUDIO_BITRATE}k" \
-                -pix_fmt yuv420p -g 120 -keyint_min 120 -sc_threshold 0 \
-                -preset ultrafast -tune zerolatency \
+                -pix_fmt yuv420p -color_range tv -colorspace bt709 -color_primaries bt709 -color_trc bt709 \
+                -g 120 -keyint_min 120 -sc_threshold 0 \
+                -preset veryfast -tune zerolatency -threads 4 -thread_type slice \
                 -f flv "$RTMP_URL" \
                 >> "$LOG_FILE" 2>&1
         fi
