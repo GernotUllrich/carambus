@@ -108,6 +108,9 @@ class TableMonitorJob < ApplicationJob
         selector: selector,
         html: rendered_html,
       )
+      
+      # Also generate PNG snapshot for streaming overlay (if configured)
+      generate_overlay_snapshot(table_monitor, options_snapshot) if table_monitor.has_active_stream?
       # cable_ready.broadcast
     when "table_scores"
       render_start = Time.now.to_f
@@ -306,5 +309,42 @@ class TableMonitorJob < ApplicationJob
     Rails.logger.info "📡 Total job time: #{total_time}ms"
     Rails.logger.info "📡 Broadcast complete!"
     Rails.logger.info "📡 ========== TableMonitorJob END =========="
+  end
+  
+  private
+  
+  # Generate PNG snapshot for streaming overlay
+  # This is called in real-time when teaser updates, providing instant overlay updates
+  def generate_overlay_snapshot(table_monitor, options_snapshot)
+    table = table_monitor.table
+    overlay_file = "/tmp/carambus-overlay-table-#{table.id}.png"
+    
+    Rails.logger.info "📸 Generating overlay snapshot for Table #{table.id}"
+    
+    # Render streaming overlay layout with teaser data
+    html = ApplicationController.render(
+      template: 'locations/scoreboard_overlay',
+      layout: 'streaming_overlay',
+      locals: {
+        table_monitor: table_monitor,
+        table: table,
+        location: table.location,
+        tournament: table_monitor.tournament_monitor&.tournament,
+        game: table_monitor.game,
+        options: options_snapshot
+      }
+    )
+    
+    # Use headless Chromium to render PNG
+    # This runs async in background, doesn't block the broadcast
+    system(
+      "chromium --headless --disable-gpu --screenshot=#{overlay_file} " \
+      "--window-size=1280,200 --virtual-time-budget=500 " \
+      "--hide-scrollbars --force-device-scale-factor=1 " \
+      "--data-url 'data:text/html,#{CGI.escape(html)}' " \
+      ">/dev/null 2>&1 &"
+    )
+  rescue => e
+    Rails.logger.error "📸 Failed to generate overlay snapshot: #{e.message}"
   end
 end

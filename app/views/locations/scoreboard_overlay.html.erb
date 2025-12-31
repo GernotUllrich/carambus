@@ -1,20 +1,29 @@
-<% if @game.present? %>
+<% 
+  # Check if we have options from TableMonitorJob (real-time updates)
+  # or need to get them fresh from the database (polling mode)
+  if local_assigns[:options].present?
+    options = local_assigns[:options]
+  elsif @table_monitor.present?
+    @table_monitor.get_options!(I18n.locale)
+    options = @table_monitor.options
+  else
+    options = nil
+  end
+%>
+
+<% if @game.present? && options.present? %>
   <% 
-    # Get players from game_participations (works with both schemas)
-    participations = @game.game_participations.includes(:player).to_a rescue []
-    player_a = participations.find { |gp| gp.role.to_s.downcase.in?(['playera', 'heim', 'home']) }&.player
-    player_b = participations.find { |gp| gp.role.to_s.downcase.in?(['playerb', 'gast', 'guest']) }&.player
+    # Use the same logic as teaser - get player orientation based on current_left_player
+    left_player = options[:current_left_player] == "playera" ? options[:player_a] : options[:player_b]
+    right_player = options[:current_left_player] == "playera" ? options[:player_b] : options[:player_a]
+    left_player_id = options[:current_left_player] == "playera" ? "playera" : "playerb"
+    right_player_id = options[:current_left_player] == "playera" ? "playerb" : "playera"
+    left_player_active = options[:current_left_player] == "playera" ? options[:player_a_active] : options[:player_b_active]
+    right_player_active = options[:current_left_player] == "playera" ? options[:player_b_active] : options[:player_a_active]
     
-    # Fallback to first two players if roles not found
-    player_a ||= participations.first&.player
-    player_b ||= participations.second&.player
-    
-    # Get scores from data hash or attributes
-    score_a = @game.data.dig('Ergebnis1') || @game.data.dig('score_a') || 0
-    score_b = @game.data.dig('Ergebnis2') || @game.data.dig('score_b') || 0
-    
-    # Determine active player (simplified - could be enhanced with real logic)
-    player_a_active = true # Could use @table_monitor data if available
+    # Get current scores (result + current innings)
+    left_score = left_player[:result].to_i + (@table_monitor.data[left_player_id].andand["innings_redo_list"].andand[-1].to_i || 0)
+    right_score = right_player[:result].to_i + (@table_monitor.data[right_player_id].andand["innings_redo_list"].andand[-1].to_i || 0)
   %>
   
   <div class="overlay-container" data-controller="streaming-overlay" data-streaming-overlay-table-id-value="<%= @table&.id %>">
@@ -29,23 +38,23 @@
       </div>
     </div>
     
-    <!-- Player A -->
-    <div class="player-row <%= 'active' if player_a_active %>">
+    <!-- Left Player -->
+    <div class="player-row <%= 'active' if left_player_active %>">
       <div class="player-name">
-        <%= player_a&.fl_name || "#{player_a&.firstname} #{player_a&.lastname}".strip.presence || "Spieler 1" %>
+        <%= (left_player[:firstname].presence || left_player[:lastname]).gsub("Dr. ", "") %>
       </div>
       <div class="player-score" data-streaming-overlay-target="scoreA">
-        <%= score_a %>
+        <%= left_score %>
       </div>
     </div>
     
-    <!-- Player B -->
-    <div class="player-row <%= 'active' unless player_a_active %>">
+    <!-- Right Player -->
+    <div class="player-row <%= 'active' if right_player_active %>">
       <div class="player-name">
-        <%= player_b&.fl_name || "#{player_b&.firstname} #{player_b&.lastname}".strip.presence || "Spieler 2" %>
+        <%= (right_player[:firstname].presence || right_player[:lastname]).gsub("Dr. ", "") %>
       </div>
       <div class="player-score" data-streaming-overlay-target="scoreB">
-        <%= score_b %>
+        <%= right_score %>
       </div>
     </div>
     

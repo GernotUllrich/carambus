@@ -58,6 +58,11 @@ class TableMonitor < ApplicationRecord
   has_one :table, dependent: :nullify
   before_save :set_paper_trail_whodunnit
   before_destroy :log_state_change_destroy
+  
+  # Check if this table has an active stream configuration
+  def has_active_stream?
+    table&.stream_configuration&.active?
+  end
 
   before_create :on_create
   before_save :log_state_change
