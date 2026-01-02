@@ -504,14 +504,33 @@ class Tournament < ApplicationRecord
           _header = tr.css("th").map(&:text)
         elsif tr.css("td").count.positive?
           _n = tr.css("td")[0].text.to_i
-          player_fullname = tr.css("td")[1].text.gsub(nbsp, " ").strip
-          player_lname, player_fname = player_fullname.match(/(.*), (.*)/)[1..2]
-          club_name = tr.css("td")[3].text.gsub(nbsp, " ").strip.gsub("1.", "1. ").gsub("1.  ", "1. ")
-          player, club, _seeding, _state_ix = Player.fix_from_shortnames(player_lname, player_fname,
-                                                                         season, region,
-                                                                         club_name, self,
-                                                                         true, true, ix)
-          player_list[player.fl_name] = [player, club] if player.present?
+          # New format: td[2] contains player name in <b> tag and club after <br>
+          player_td = tr.css("td")[2]
+          if player_td.present?
+            # Extract player name (in bold) and club (after <br>)
+            lines = player_td.inner_html.gsub(/<b>|<\/b>/, '').split(/<br>/i).map { |line| line.gsub(nbsp, " ").strip }
+            player_fullname = lines[0] if lines[0].present?
+            club_name = lines[1] if lines[1].present?
+            
+            # Split player name on last space (lastname is after last space)
+            if player_fullname.present?
+              last_space_index = player_fullname.rindex(' ')
+              if last_space_index
+                player_fname = player_fullname[0...last_space_index].strip
+                player_lname = player_fullname[last_space_index+1..-1].strip
+              else
+                player_fname = ''
+                player_lname = player_fullname.strip
+              end
+              
+              club_name = club_name.andand.gsub("1.", "1. ").andand.gsub("1.  ", "1. ") if club_name.present?
+              player, club, _seeding, _state_ix = Player.fix_from_shortnames(player_lname, player_fname,
+                                                                             season, region,
+                                                                             club_name, self,
+                                                                             true, true, ix)
+              player_list[player.fl_name] = [player, club] if player.present?
+            end
+          end
         end
       end
     end
