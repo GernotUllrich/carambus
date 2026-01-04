@@ -46,6 +46,12 @@ if [ -z "$YOUTUBE_KEY" ]; then
     exit 1
 fi
 
+# Use TABLE_ID from config for overlay file path (not TABLE_NUMBER)
+# TABLE_ID matches the database ID, TABLE_NUMBER is the display number
+if [ -n "$TABLE_ID" ]; then
+    OVERLAY_IMAGE="/tmp/carambus-overlay-table-${TABLE_ID}.png"
+fi
+
 # Default values if not set in config
 CAMERA_DEVICE=${CAMERA_DEVICE:-/dev/video0}
 CAMERA_WIDTH=${CAMERA_WIDTH:-1280}
