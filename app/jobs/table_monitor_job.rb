@@ -326,8 +326,9 @@ class TableMonitorJob < ApplicationJob
     
     begin
       # Render overlay HTML with options
+      # Note: scoreboard_overlay is a full template, not a partial
       overlay_html = ApplicationController.render(
-        partial: "locations/scoreboard_overlay",
+        template: "locations/scoreboard_overlay",
         locals: { 
           table_monitor: table_monitor,
           table: table,
@@ -337,7 +338,7 @@ class TableMonitorJob < ApplicationJob
           tournament: table_monitor.tournament_monitor&.tournament,
           options: options
         },
-        layout: false
+        layout: 'streaming_overlay'
       )
       
       # Use Chromium headless to convert HTML to PNG
