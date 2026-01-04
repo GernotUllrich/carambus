@@ -51,9 +51,12 @@ namespace :streaming do
         
         # Install required packages
         # Note: chromium-browser was renamed to chromium in newer Raspberry Pi OS
-        packages = %w[ffmpeg xvfb v4l-utils imagemagick chromium]
+        packages = %w[ffmpeg xvfb v4l-utils imagemagick chromium ruby]
         puts "  → Installing: #{packages.join(', ')}"
         ssh.exec!("sudo apt-get install -y #{packages.join(' ')}")
+        
+        puts "\n💎 Installing Ruby gems for overlay receiver..."
+        ssh.exec!("sudo gem install websocket-client-simple --no-document")
         
         puts "\n📁 Creating directories..."
         ssh.exec!("sudo mkdir -p /etc/carambus")
@@ -67,10 +70,21 @@ namespace :streaming do
         ssh.exec!("sudo mv /tmp/carambus-stream.sh /usr/local/bin/carambus-stream.sh")
         ssh.exec!("sudo chmod +x /usr/local/bin/carambus-stream.sh")
         
-        puts "\n⚙️  Installing systemd service..."
+        puts "\n📄 Uploading overlay receiver script..."
+        receiver_content = File.read(Rails.root.join('bin', 'carambus-overlay-receiver.rb'))
+        upload_file_via_ssh(ssh, receiver_content, '/tmp/carambus-overlay-receiver.rb')
+        ssh.exec!("sudo mv /tmp/carambus-overlay-receiver.rb /usr/local/bin/carambus-overlay-receiver.rb")
+        ssh.exec!("sudo chmod +x /usr/local/bin/carambus-overlay-receiver.rb")
+        
+        puts "\n⚙️  Installing systemd services..."
         service_content = File.read(Rails.root.join('bin', 'carambus-stream.service'))
         upload_file_via_ssh(ssh, service_content, '/tmp/carambus-stream@.service')
         ssh.exec!("sudo mv /tmp/carambus-stream@.service /etc/systemd/system/")
+        
+        receiver_service_content = File.read(Rails.root.join('bin', 'carambus-overlay-receiver.service'))
+        upload_file_via_ssh(ssh, receiver_service_content, '/tmp/carambus-overlay-receiver@.service')
+        ssh.exec!("sudo mv /tmp/carambus-overlay-receiver@.service /etc/systemd/system/")
+        
         ssh.exec!("sudo systemctl daemon-reload")
         
         puts "\n🔍 Checking camera..."
@@ -340,6 +354,16 @@ def deploy_stream_config(config)
   raspi_port = config.raspi_ssh_port || 22
   table_number = config.table.number
   
+  # Extract base URL and table_id for overlay receiver
+  overlay_url = config.scoreboard_overlay_url
+  if overlay_url.present? && overlay_url.match?(/table_id=(\d+)/)
+    table_id = overlay_url[/table_id=(\d+)/, 1]
+    overlay_url_base = overlay_url.sub(/\/locations\/.*/, '')
+  else
+    table_id = config.table.id
+    overlay_url_base = overlay_url.present? ? overlay_url.sub(/\/locations\/.*/, '') : 'http://localhost:3000'
+  end
+  
   config_content = <<~CONFIG
     # Carambus Stream Configuration for Table #{table_number}
     # Generated: #{Time.current}
@@ -352,6 +376,7 @@ def deploy_stream_config(config)
     
     OVERLAY_ENABLED=#{config.overlay_enabled ? 'true' : 'false'}
     OVERLAY_URL=#{config.scoreboard_overlay_url}
+    OVERLAY_URL_BASE=#{overlay_url_base}
     OVERLAY_POSITION=#{config.overlay_position}
     OVERLAY_HEIGHT=#{config.overlay_height}
     
@@ -359,6 +384,7 @@ def deploy_stream_config(config)
     AUDIO_BITRATE=#{config.audio_bitrate}
     
     TABLE_NUMBER=#{table_number}
+    TABLE_ID=#{table_id}
   CONFIG
   
   temp_file = "/tmp/stream-table-#{table_number}.conf"

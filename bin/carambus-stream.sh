@@ -68,18 +68,8 @@ log() {
 cleanup() {
     log "Cleaning up..."
     
-    # Kill overlay update loop
-    if [ -n "$OVERLAY_PID" ]; then
-        kill $OVERLAY_PID 2>/dev/null || true
-    fi
-    
-    # Kill Xvfb
-    if [ -n "$XVFB_PID" ]; then
-        kill $XVFB_PID 2>/dev/null || true
-    fi
-    
-    # Remove temporary files
-    rm -f "$OVERLAY_IMAGE" 2>/dev/null || true
+    # Note: Overlay PNG is managed by carambus-overlay-receiver service
+    # We don't remove it here so it's available for the next stream start
     
     log "Cleanup complete"
 }
@@ -138,41 +128,30 @@ start_xvfb() {
     return 0
 }
 
-update_overlay_loop() {
-    log "Starting overlay update loop (fetching PNG from server)..."
+check_overlay_file() {
+    # Overlay PNG is provided by carambus-overlay-receiver service via ActionCable
+    # This function just verifies the file exists and is being updated
+    log "Checking for overlay PNG file (provided by overlay receiver service)..."
     
-    # Extract table_id from OVERLAY_URL
-    # URL format: http://host:port/locations/xxx/scoreboard_overlay?table_id=N
-    TABLE_ID=$(echo "$OVERLAY_URL" | sed -n 's/.*table_id=\([0-9]*\).*/\1/p')
-    
-    if [ -z "$TABLE_ID" ]; then
-        log "ERROR: Could not extract table_id from OVERLAY_URL: $OVERLAY_URL"
+    if [ ! -f "$OVERLAY_IMAGE" ]; then
+        log "WARNING: Overlay PNG not found yet at $OVERLAY_IMAGE"
+        log "         The carambus-overlay-receiver@${TABLE_NUMBER}.service should be running"
+        log "         Creating blank overlay as fallback..."
+        convert -size "${CAMERA_WIDTH}x${OVERLAY_HEIGHT}" xc:transparent "$OVERLAY_IMAGE"
         return 1
     fi
     
-    # Build PNG URL: http://host:port/overlays/table-N.png
-    # Extract base URL (protocol + host + port)
-    BASE_URL=$(echo "$OVERLAY_URL" | sed -n 's#\(http[s]*://[^/]*\)/.*#\1#p')
-    PNG_URL="${BASE_URL}/overlays/table-${TABLE_ID}.png"
+    # Check file age (should be updated recently by receiver service)
+    FILE_AGE=$(( $(date +%s) - $(stat -c %Y "$OVERLAY_IMAGE" 2>/dev/null || stat -f %m "$OVERLAY_IMAGE" 2>/dev/null || echo 0) ))
     
-    log "Fetching overlay PNG from: $PNG_URL"
-    log "Table ID: $TABLE_ID"
+    if [ $FILE_AGE -gt 30 ]; then
+        log "WARNING: Overlay PNG is stale (${FILE_AGE}s old)"
+        log "         Check carambus-overlay-receiver@${TABLE_NUMBER}.service status"
+    else
+        log "Overlay PNG OK (${FILE_AGE}s old)"
+    fi
     
-    # Fetch overlay PNG every 0.5 seconds for real-time updates
-    # Server generates PNG when game state changes, we just fetch it
-    while true; do
-        # Add timestamp to prevent caching
-        TIMESTAMP=$(date +%s%3N)
-        
-        # Fetch PNG from server with curl (much faster than Chromium!)
-        # Silent mode, follow redirects, timeout 2 seconds
-        curl -sf -m 2 "${PNG_URL}?_t=${TIMESTAMP}" -o "$OVERLAY_IMAGE" 2>> "$LOG_FILE" || {
-            # If fetch fails, log but continue (server might be generating new PNG)
-            echo "$(date '+%Y-%m-%d %H:%M:%S') - Failed to fetch overlay PNG, retrying..." >> "$LOG_FILE"
-        }
-        
-        sleep 0.5
-    done
+    return 0
 }
 
 start_stream() {
@@ -189,28 +168,9 @@ start_stream() {
     check_camera || exit 1
     check_network || log "WARNING: Network check failed, continuing anyway..."
     
-    # Start overlay update loop if enabled (no Xvfb needed - fetches PNG from server)
+    # Check overlay file if enabled (provided by carambus-overlay-receiver service)
     if [ "$OVERLAY_ENABLED" = "true" ]; then
-        # Start overlay update loop in background
-        update_overlay_loop &
-        OVERLAY_PID=$!
-        
-        log "Overlay update loop started (PID: $OVERLAY_PID)"
-        
-        # Wait for first overlay image
-        log "Waiting for first overlay image..."
-        for i in {1..10}; do
-            if [ -f "$OVERLAY_IMAGE" ]; then
-                log "Overlay image ready"
-                break
-            fi
-            sleep 1
-        done
-        
-        if [ ! -f "$OVERLAY_IMAGE" ]; then
-            log "WARNING: Overlay image not created, creating blank overlay"
-            convert -size "${CAMERA_WIDTH}x${OVERLAY_HEIGHT}" xc:transparent "$OVERLAY_IMAGE"
-        fi
+        check_overlay_file || log "WARNING: Overlay file check failed, continuing with blank overlay"
     fi
     
     # Build FFmpeg command
