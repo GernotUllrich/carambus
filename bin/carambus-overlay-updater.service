@@ -1,0 +1,57 @@
+# Systemd service template for Carambus Overlay PNG Updater
+# 
+# Installation on Raspberry Pi:
+#   sudo cp carambus-overlay-updater@.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable carambus-overlay-updater@6.service
+#   sudo systemctl start carambus-overlay-updater@6.service
+#
+# Usage:
+#   sudo systemctl start carambus-overlay-updater@6.service   # Start updater for table 6
+#   sudo systemctl stop carambus-overlay-updater@6.service    # Stop updater
+#   sudo systemctl status carambus-overlay-updater@6.service  # Check status
+#   sudo journalctl -u carambus-overlay-updater@6.service -f  # Follow logs
+#
+
+[Unit]
+Description=Carambus Overlay PNG Updater for Table %i
+After=network-online.target
+Wants=network-online.target
+# Should start before the stream service
+Before=carambus-stream@%i.service
+
+[Service]
+Type=simple
+User=pi
+Group=pi
+
+# Read configuration from table-specific file
+EnvironmentFile=/etc/carambus/stream-table-%i.conf
+
+# Run the overlay updater script
+# Pass TABLE_ID and SERVER_URL from environment
+ExecStart=/usr/local/bin/carambus-overlay-updater.sh ${TABLE_ID} ${OVERLAY_URL_BASE}
+
+# Restart on failure (important for maintaining service)
+Restart=always
+RestartSec=5
+StartLimitInterval=300
+StartLimitBurst=10
+
+# Resource limits (very light - just HTTP listener + curl)
+CPUQuota=5%
+MemoryMax=50M
+
+# Logging
+StandardOutput=append:/var/log/carambus/overlay-updater-table-%i.log
+StandardError=append:/var/log/carambus/overlay-updater-table-%i-error.log
+SyslogIdentifier=carambus-overlay-updater-%i
+
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=false
+ReadWritePaths=/tmp
+
+[Install]
+WantedBy=multi-user.target
+

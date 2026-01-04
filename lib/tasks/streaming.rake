@@ -51,12 +51,10 @@ namespace :streaming do
         
         # Install required packages
         # Note: chromium-browser was renamed to chromium in newer Raspberry Pi OS
-        packages = %w[ffmpeg xvfb v4l-utils imagemagick chromium ruby]
+        # netcat (nc) is used for the simple HTTP trigger endpoint
+        packages = %w[ffmpeg xvfb v4l-utils imagemagick chromium netcat-openbsd curl]
         puts "  → Installing: #{packages.join(', ')}"
         ssh.exec!("sudo apt-get install -y #{packages.join(' ')}")
-        
-        puts "\n💎 Installing Ruby gems for overlay receiver..."
-        ssh.exec!("sudo gem install websocket-client-simple --no-document")
         
         puts "\n📁 Creating directories..."
         ssh.exec!("sudo mkdir -p /etc/carambus")
@@ -70,20 +68,20 @@ namespace :streaming do
         ssh.exec!("sudo mv /tmp/carambus-stream.sh /usr/local/bin/carambus-stream.sh")
         ssh.exec!("sudo chmod +x /usr/local/bin/carambus-stream.sh")
         
-        puts "\n📄 Uploading overlay receiver script..."
-        receiver_content = File.read(Rails.root.join('bin', 'carambus-overlay-receiver.rb'))
-        upload_file_via_ssh(ssh, receiver_content, '/tmp/carambus-overlay-receiver.rb')
-        ssh.exec!("sudo mv /tmp/carambus-overlay-receiver.rb /usr/local/bin/carambus-overlay-receiver.rb")
-        ssh.exec!("sudo chmod +x /usr/local/bin/carambus-overlay-receiver.rb")
+        puts "\n📄 Uploading overlay updater script..."
+        updater_content = File.read(Rails.root.join('bin', 'carambus-overlay-updater.sh'))
+        upload_file_via_ssh(ssh, updater_content, '/tmp/carambus-overlay-updater.sh')
+        ssh.exec!("sudo mv /tmp/carambus-overlay-updater.sh /usr/local/bin/carambus-overlay-updater.sh")
+        ssh.exec!("sudo chmod +x /usr/local/bin/carambus-overlay-updater.sh")
         
         puts "\n⚙️  Installing systemd services..."
         service_content = File.read(Rails.root.join('bin', 'carambus-stream.service'))
         upload_file_via_ssh(ssh, service_content, '/tmp/carambus-stream@.service')
         ssh.exec!("sudo mv /tmp/carambus-stream@.service /etc/systemd/system/")
         
-        receiver_service_content = File.read(Rails.root.join('bin', 'carambus-overlay-receiver.service'))
-        upload_file_via_ssh(ssh, receiver_service_content, '/tmp/carambus-overlay-receiver@.service')
-        ssh.exec!("sudo mv /tmp/carambus-overlay-receiver@.service /etc/systemd/system/")
+        updater_service_content = File.read(Rails.root.join('bin', 'carambus-overlay-updater.service'))
+        upload_file_via_ssh(ssh, updater_service_content, '/tmp/carambus-overlay-updater@.service')
+        ssh.exec!("sudo mv /tmp/carambus-overlay-updater@.service /etc/systemd/system/")
         
         ssh.exec!("sudo systemctl daemon-reload")
         

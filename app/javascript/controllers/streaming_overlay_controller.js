@@ -40,6 +40,20 @@ export default class extends Controller {
   }
   
   handleUpdate(data) {
+    // Trigger overlay PNG update when CableReady operations contain teaser updates
+    if (data.cableReady && data.operations) {
+      data.operations.forEach(op => {
+        // Trigger PNG update on any teaser inner_html update
+        if (op.operation === 'innerHtml' && op.selector && op.selector.includes('teaser')) {
+          this.triggerOverlayUpdate()
+        }
+        // Also trigger on explicit overlay-png-update events
+        if (op.operation === 'dispatchEvent' && op.name === 'overlay-png-update') {
+          this.triggerOverlayUpdate()
+        }
+      })
+    }
+    
     // Handle different types of updates
     switch(data.type) {
       case "score_update":
@@ -59,6 +73,18 @@ export default class extends Controller {
       default:
         console.log("[StreamingOverlay] Unknown message type:", data.type)
     }
+  }
+  
+  triggerOverlayUpdate() {
+    // Trigger local overlay updater service to fetch latest PNG
+    // The updater service listens on localhost:8888 and fetches from server
+    fetch('http://localhost:8888/update', { 
+      method: 'GET',
+      mode: 'no-cors' // Avoid CORS preflight for simple GET
+    }).catch(err => {
+      // Silently ignore errors (updater might not be running on non-streaming clients)
+      console.debug("[StreamingOverlay] Overlay update trigger:", err.message)
+    })
   }
   
   updateScores(data) {
