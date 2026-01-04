@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_12_29_204810) do
+ActiveRecord::Schema[7.2].define(version: 2025_12_31_132304) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -880,9 +880,9 @@ ActiveRecord::Schema[7.2].define(version: 2025_12_29_204810) do
     t.string "youtube_stream_key"
     t.string "youtube_channel_id"
     t.string "camera_device", default: "/dev/video0"
-    t.integer "camera_width", default: 1280
-    t.integer "camera_height", default: 720
-    t.integer "camera_fps", default: 60
+    t.integer "camera_width", default: 640
+    t.integer "camera_height", default: 360
+    t.integer "camera_fps", default: 30
     t.boolean "overlay_enabled", default: true
     t.string "overlay_position", default: "bottom"
     t.integer "overlay_height", default: 200
@@ -893,7 +893,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_12_29_204810) do
     t.integer "restart_count", default: 0
     t.string "raspi_ip"
     t.integer "raspi_ssh_port", default: 22
-    t.integer "video_bitrate", default: 2000
+    t.integer "video_bitrate", default: 1000
     t.integer "audio_bitrate", default: 128
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false

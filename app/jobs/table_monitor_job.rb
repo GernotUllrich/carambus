@@ -360,8 +360,11 @@ class TableMonitorJob < ApplicationJob
       html_file = Rails.root.join("tmp", "overlay-#{table.id}.html")
       File.write(html_file, overlay_html)
       
-      # Generate PNG with Chromium (temp file for broadcast)
-      png_file = Rails.root.join("tmp", "overlay-broadcast-#{table.id}.png")
+      # Generate PNG with Chromium
+      # Save to public/overlays/ for HTTP access by clients
+      overlay_dir = Rails.root.join("public", "overlays")
+      FileUtils.mkdir_p(overlay_dir) unless Dir.exist?(overlay_dir)
+      png_file = overlay_dir.join("table-#{table.id}.png")
       
       # Use same dimensions as streaming configuration
       width = table.stream_configuration&.camera_width || 640
@@ -381,26 +384,10 @@ class TableMonitorJob < ApplicationJob
         png_time = ((Time.now.to_f - png_start) * 1000).round(2)
         file_size = File.size(png_file)
         Rails.logger.info "🎨 ✅ Overlay PNG generated: #{file_size} bytes in #{png_time}ms"
+        Rails.logger.info "🎨 📍 Saved to: /overlays/table-#{table.id}.png"
         
-        # Encode PNG as base64 for ActionCable broadcast
-        png_data = File.binread(png_file)
-        png_base64 = Base64.strict_encode64(png_data)
-        
-        # Broadcast PNG to table-monitor-stream (clients filter by table_monitor_id)
-        cable_ready["table-monitor-stream"].dispatch_event(
-          name: "overlay-png-update",
-          detail: {
-            table_monitor_id: table_monitor.id,
-            table_id: table.id,
-            png_data: png_base64,
-            timestamp: (Time.now.to_f * 1000).to_i
-          }
-        )
-        
-        Rails.logger.info "🎨 📡 PNG broadcast via ActionCable (#{png_base64.length} base64 chars)"
-        
-        # Clean up temp PNG
-        File.delete(png_file) if File.exist?(png_file)
+        # PNG is now available via HTTP at /overlays/table-N.png
+        # Clients fetch it when they receive teaser updates via ActionCable
       else
         Rails.logger.error "🎨 ❌ Failed to generate overlay PNG"
       end
