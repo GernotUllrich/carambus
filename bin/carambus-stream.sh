@@ -155,15 +155,21 @@ update_overlay_loop() {
     
     # Update overlay every 2 seconds
     while true; do
+        # Add timestamp to URL to prevent caching
+        TIMESTAMP=$(date +%s)
+        URL_WITH_TIMESTAMP="${OVERLAY_URL}&_t=${TIMESTAMP}"
+        
         $BROWSER_CMD \
             --headless \
             --disable-gpu \
+            --disable-cache \
+            --incognito \
             --screenshot="$OVERLAY_IMAGE" \
             --window-size="${CAMERA_WIDTH},${OVERLAY_HEIGHT}" \
             --virtual-time-budget=2000 \
             --hide-scrollbars \
             --force-device-scale-factor=1 \
-            "$OVERLAY_URL" >> "$LOG_FILE" 2>&1 || true
+            "$URL_WITH_TIMESTAMP" >> "$LOG_FILE" 2>&1 || true
         
         sleep 2
     done
