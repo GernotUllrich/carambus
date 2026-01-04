@@ -341,14 +341,18 @@ class TableMonitorJob < ApplicationJob
         layout: 'streaming_overlay'
       )
       
-      # Use Chromium headless to convert HTML to PNG
-      # Detection priority: chromium > chromium-browser
+      # Use Chromium/Chrome headless to convert HTML to PNG
+      # Detection priority: chromium > chromium-browser > google-chrome > Google Chrome.app (Mac)
       chromium_cmd = if system("which chromium > /dev/null 2>&1")
         "chromium"
       elsif system("which chromium-browser > /dev/null 2>&1")
         "chromium-browser"
+      elsif system("which google-chrome > /dev/null 2>&1")
+        "google-chrome"
+      elsif File.exist?("/Applications/Google Chrome.app/Contents/MacOS/Google Chrome")
+        "/Applications/Google\\ Chrome.app/Contents/MacOS/Google\\ Chrome"
       else
-        Rails.logger.error "🎨 ❌ Chromium not found - cannot generate overlay PNG"
+        Rails.logger.error "🎨 ❌ Chromium/Chrome not found - cannot generate overlay PNG"
         return
       end
       
