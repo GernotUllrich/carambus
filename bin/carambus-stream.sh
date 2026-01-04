@@ -153,25 +153,27 @@ update_overlay_loop() {
         return 1
     fi
     
-    # Update overlay every 2 seconds
+    # Update overlay every 1 second for responsive updates
     while true; do
         # Add timestamp to URL to prevent caching
-        TIMESTAMP=$(date +%s)
+        TIMESTAMP=$(date +%s%3N)  # Include milliseconds for better cache busting
         URL_WITH_TIMESTAMP="${OVERLAY_URL}&_t=${TIMESTAMP}"
         
-        $BROWSER_CMD \
+        # Run chromium with reduced timeout for faster updates
+        timeout 3s $BROWSER_CMD \
             --headless \
             --disable-gpu \
             --disable-cache \
             --incognito \
             --screenshot="$OVERLAY_IMAGE" \
             --window-size="${CAMERA_WIDTH},${OVERLAY_HEIGHT}" \
-            --virtual-time-budget=2000 \
+            --virtual-time-budget=1000 \
             --hide-scrollbars \
             --force-device-scale-factor=1 \
+            --no-sandbox \
             "$URL_WITH_TIMESTAMP" >> "$LOG_FILE" 2>&1 || true
         
-        sleep 2
+        sleep 1
     done
 }
 
