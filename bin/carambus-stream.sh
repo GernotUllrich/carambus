@@ -139,41 +139,39 @@ start_xvfb() {
 }
 
 update_overlay_loop() {
-    log "Starting overlay update loop..."
+    log "Starting overlay update loop (fetching PNG from server)..."
     
-    export DISPLAY="$XVFB_DISPLAY"
+    # Extract table_id from OVERLAY_URL
+    # URL format: http://host:port/locations/xxx/scoreboard_overlay?table_id=N
+    TABLE_ID=$(echo "$OVERLAY_URL" | sed -n 's/.*table_id=\([0-9]*\).*/\1/p')
     
-    # Detect chromium command
-    if command -v chromium >/dev/null 2>&1; then
-        BROWSER_CMD="chromium"
-    elif command -v chromium-browser >/dev/null 2>&1; then
-        BROWSER_CMD="chromium-browser"
-    else
-        log "ERROR: Chromium not found"
+    if [ -z "$TABLE_ID" ]; then
+        log "ERROR: Could not extract table_id from OVERLAY_URL: $OVERLAY_URL"
         return 1
     fi
     
-    # Update overlay every 1 second for responsive updates
+    # Build PNG URL: http://host:port/overlays/table-N.png
+    # Extract base URL (protocol + host + port)
+    BASE_URL=$(echo "$OVERLAY_URL" | sed -n 's#\(http[s]*://[^/]*\)/.*#\1#p')
+    PNG_URL="${BASE_URL}/overlays/table-${TABLE_ID}.png"
+    
+    log "Fetching overlay PNG from: $PNG_URL"
+    log "Table ID: $TABLE_ID"
+    
+    # Fetch overlay PNG every 0.5 seconds for real-time updates
+    # Server generates PNG when game state changes, we just fetch it
     while true; do
-        # Add timestamp to URL to prevent caching
-        TIMESTAMP=$(date +%s%3N)  # Include milliseconds for better cache busting
-        URL_WITH_TIMESTAMP="${OVERLAY_URL}&_t=${TIMESTAMP}"
+        # Add timestamp to prevent caching
+        TIMESTAMP=$(date +%s%3N)
         
-        # Run chromium with reduced timeout for faster updates
-        timeout 3s $BROWSER_CMD \
-            --headless \
-            --disable-gpu \
-            --disable-cache \
-            --incognito \
-            --screenshot="$OVERLAY_IMAGE" \
-            --window-size="${CAMERA_WIDTH},${OVERLAY_HEIGHT}" \
-            --virtual-time-budget=1000 \
-            --hide-scrollbars \
-            --force-device-scale-factor=1 \
-            --no-sandbox \
-            "$URL_WITH_TIMESTAMP" >> "$LOG_FILE" 2>&1 || true
+        # Fetch PNG from server with curl (much faster than Chromium!)
+        # Silent mode, follow redirects, timeout 2 seconds
+        curl -sf -m 2 "${PNG_URL}?_t=${TIMESTAMP}" -o "$OVERLAY_IMAGE" 2>> "$LOG_FILE" || {
+            # If fetch fails, log but continue (server might be generating new PNG)
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - Failed to fetch overlay PNG, retrying..." >> "$LOG_FILE"
+        }
         
-        sleep 1
+        sleep 0.5
     done
 }
 
@@ -191,10 +189,8 @@ start_stream() {
     check_camera || exit 1
     check_network || log "WARNING: Network check failed, continuing anyway..."
     
-    # Start Xvfb if overlay is enabled
+    # Start overlay update loop if enabled (no Xvfb needed - fetches PNG from server)
     if [ "$OVERLAY_ENABLED" = "true" ]; then
-        start_xvfb || exit 1
-        
         # Start overlay update loop in background
         update_overlay_loop &
         OVERLAY_PID=$!

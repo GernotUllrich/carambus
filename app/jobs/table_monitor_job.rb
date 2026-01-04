@@ -108,6 +108,11 @@ class TableMonitorJob < ApplicationJob
         selector: selector,
         html: rendered_html,
       )
+      
+      # Generate overlay PNG for streaming if table has active stream
+      if table_monitor.has_active_stream?
+        generate_overlay_snapshot(table_monitor, options_snapshot)
+      end
       # cable_ready.broadcast
     when "table_scores"
       render_start = Time.now.to_f
@@ -306,6 +311,82 @@ class TableMonitorJob < ApplicationJob
     Rails.logger.info "📡 Total job time: #{total_time}ms"
     Rails.logger.info "📡 Broadcast complete!"
     Rails.logger.info "📡 ========== TableMonitorJob END =========="
+  end
+  
+  private
+  
+  def generate_overlay_snapshot(table_monitor, options)
+    # Generate PNG overlay for streaming
+    # This runs on the SERVER (not the streaming Pi), so it doesn't affect scoreboard performance
+    table = table_monitor.table
+    return unless table
+    
+    png_start = Time.now.to_f
+    Rails.logger.info "🎨 Generating overlay PNG for table #{table.id}..."
+    
+    begin
+      # Render overlay HTML with options
+      overlay_html = ApplicationController.render(
+        partial: "locations/scoreboard_overlay",
+        locals: { 
+          table_monitor: table_monitor,
+          table: table,
+          game: table_monitor.game,
+          location: table.location,
+          tournament_monitor: table_monitor.tournament_monitor,
+          tournament: table_monitor.tournament_monitor&.tournament,
+          options: options
+        },
+        layout: false
+      )
+      
+      # Use Chromium headless to convert HTML to PNG
+      # Detection priority: chromium > chromium-browser
+      chromium_cmd = if system("which chromium > /dev/null 2>&1")
+        "chromium"
+      elsif system("which chromium-browser > /dev/null 2>&1")
+        "chromium-browser"
+      else
+        Rails.logger.error "🎨 ❌ Chromium not found - cannot generate overlay PNG"
+        return
+      end
+      
+      # Save HTML to temp file
+      html_file = Rails.root.join("tmp", "overlay-#{table.id}.html")
+      File.write(html_file, overlay_html)
+      
+      # Generate PNG with Chromium
+      png_file = Rails.root.join("public", "overlays", "table-#{table.id}.png")
+      png_dir = File.dirname(png_file)
+      FileUtils.mkdir_p(png_dir) unless Dir.exist?(png_dir)
+      
+      # Use same dimensions as streaming configuration
+      width = table.stream_configuration&.camera_width || 640
+      height = table.stream_configuration&.overlay_height || 200
+      
+      cmd = "#{chromium_cmd} --headless --disable-gpu --disable-cache --screenshot=#{png_file} " \
+            "--window-size=#{width},#{height} --virtual-time-budget=1000 " \
+            "--hide-scrollbars --force-device-scale-factor=1 --no-sandbox " \
+            "file://#{html_file} > /dev/null 2>&1"
+      
+      system(cmd)
+      
+      # Clean up temp HTML
+      File.delete(html_file) if File.exist?(html_file)
+      
+      if File.exist?(png_file)
+        png_time = ((Time.now.to_f - png_start) * 1000).round(2)
+        file_size = File.size(png_file)
+        Rails.logger.info "🎨 ✅ Overlay PNG generated: #{file_size} bytes in #{png_time}ms"
+        Rails.logger.info "🎨 📍 URL: /overlays/table-#{table.id}.png"
+      else
+        Rails.logger.error "🎨 ❌ Failed to generate overlay PNG"
+      end
+      
+    rescue => e
+      Rails.logger.error "🎨 ❌ Error generating overlay PNG: #{e.message}"
+      Rails.logger.error e.backtrace.first(5).join("\n")
+    end
   end
   
 end
