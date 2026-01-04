@@ -50,7 +50,8 @@ namespace :streaming do
         ssh.exec!("sudo apt-get update -qq")
         
         # Install required packages
-        packages = %w[ffmpeg xvfb v4l-utils imagemagick chromium-browser]
+        # Note: chromium-browser was renamed to chromium in newer Raspberry Pi OS
+        packages = %w[ffmpeg xvfb v4l-utils imagemagick chromium]
         puts "  → Installing: #{packages.join(', ')}"
         ssh.exec!("sudo apt-get install -y #{packages.join(' ')}")
         
