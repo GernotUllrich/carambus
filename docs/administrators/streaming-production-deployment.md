@@ -58,18 +58,18 @@ The admin dashboard is the **primary control interface** for production streamin
 
 The following database fields control the stream quality:
 
-| Field | Recommended | Description |
-|-------|-------------|-------------|
-| `camera_width` | 1280 | Resolution width (720p) |
-| `camera_height` | 720 | Resolution height |
-| `camera_fps` | 30 | Frames per second |
-| `video_bitrate` | 2500 | Video bitrate in kbps |
-| `audio_bitrate` | 128 | Audio bitrate in kbps |
-| `overlay_enabled` | true | Enable text overlay |
-| `overlay_height` | 100 | Overlay area height |
-| `raspi_ip` | 192.168.x.x | Pi IP address |
-| `raspi_ssh_port` | 22 | SSH port |
-| `raspi_ssh_user` | pi | SSH username |
+| Field | 360p (Low) | 720p (Recommended) | 1080p (High) | Description |
+|-------|------------|-------------------|--------------|-------------|
+| `camera_width` | 640 | 1280 | 1920 | Resolution width |
+| `camera_height` | 360 | 720 | 1080 | Resolution height |
+| `camera_fps` | 30 | 30 | 30 | Frames per second |
+| `video_bitrate` | 1000 | 2500 | 4500 | Video bitrate in kbps |
+| `audio_bitrate` | 128 | 128 | 128 | Audio bitrate in kbps |
+| `overlay_enabled` | true | true | true | Enable text overlay |
+| `overlay_height` | 80 | 100 | 120 | Overlay area height |
+| `raspi_ip` | 192.168.x.x | 192.168.x.x | 192.168.x.x | Pi IP address |
+| `raspi_ssh_port` | 22 | 22 | 22 | SSH port |
+| `raspi_ssh_user` | pi | pi | pi | SSH username |
 
 ### Configuring via Admin UI
 
@@ -77,6 +77,8 @@ The following database fields control the stream quality:
 2. Find the configuration for your table
 3. Click **Edit**
 4. Set the parameters:
+
+   **For 720p (Recommended)**:
    ```
    Camera Width: 1280
    Camera Height: 720
@@ -88,6 +90,20 @@ The following database fields control the stream quality:
    Overlay Enabled: ✓ Yes
    Overlay Height: 100
    ```
+
+   **For 360p (Low bandwidth/testing)**:
+   ```
+   Camera Width: 640
+   Camera Height: 360
+   Camera FPS: 30
+   Video Bitrate: 1000
+   Audio Bitrate: 128
+   Raspberry Pi IP: 192.168.2.216  (club network)
+   SSH Port: 22
+   Overlay Enabled: ✓ Yes
+   Overlay Height: 80
+   ```
+
 5. Click **Update**
 6. Use **Start** button to begin streaming
 
@@ -102,7 +118,7 @@ RAILS_ENV=production rails console
 # Find configuration (adjust table_id as needed)
 config = StreamConfiguration.find_by(table_id: 2)
 
-# Update settings
+# Update settings for 720p (recommended)
 config.update!(
   camera_width: 1280,
   camera_height: 720,
@@ -111,6 +127,20 @@ config.update!(
   audio_bitrate: 128,
   overlay_enabled: true,
   overlay_height: 100,
+  raspi_ip: '192.168.2.216',
+  raspi_ssh_port: 22,
+  raspi_ssh_user: 'pi'
+)
+
+# OR update settings for 360p (low bandwidth/testing)
+config.update!(
+  camera_width: 640,
+  camera_height: 360,
+  camera_fps: 30,
+  video_bitrate: 1000,
+  audio_bitrate: 128,
+  overlay_enabled: true,
+  overlay_height: 80,
   raspi_ip: '192.168.2.216',
   raspi_ssh_port: 22,
   raspi_ssh_user: 'pi'
@@ -168,6 +198,7 @@ Edit configuration manually only for testing:
 sudo nano /etc/carambus/stream-table-6.conf
 ```
 
+**For 720p (Recommended)**:
 ```bash
 # Carambus Stream Configuration for Table 6 (ID: 2)
 # Note: Table 6 refers to table name "Tisch 6", Rails table_id is 2
@@ -184,6 +215,32 @@ OVERLAY_HEIGHT=100
 OVERLAY_WIDTH=1280
 
 VIDEO_BITRATE=2500
+AUDIO_BITRATE=128
+
+# Critical: TABLE_ID is Rails database ID, TABLE_NUMBER is for file naming
+TABLE_ID=2
+TABLE_NUMBER=6
+LOCATION_MD5=your-location-md5
+SERVER_URL=http://bc-wedel.duckdns.org:3131
+```
+
+**For 360p (Low bandwidth/testing)**:
+```bash
+# Carambus Stream Configuration for Table 6 (ID: 2)
+# Note: Table 6 refers to table name "Tisch 6", Rails table_id is 2
+
+YOUTUBE_KEY=your-youtube-stream-key
+CAMERA_DEVICE=/dev/video0
+CAMERA_WIDTH=640
+CAMERA_HEIGHT=360
+CAMERA_FPS=30
+
+OVERLAY_ENABLED=true
+OVERLAY_POSITION=bottom
+OVERLAY_HEIGHT=80
+OVERLAY_WIDTH=640
+
+VIDEO_BITRATE=1000
 AUDIO_BITRATE=128
 
 # Critical: TABLE_ID is Rails database ID, TABLE_NUMBER is for file naming
