@@ -191,6 +191,7 @@ Rails.application.routes.draw do
       get :placement
       get :scoreboard
       get :scoreboard_overlay
+      get :scoreboard_text
       get :toggle_dark_mode
     end
   end

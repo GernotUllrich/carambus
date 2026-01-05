@@ -6,7 +6,7 @@ class LocationsController < ApplicationController
 
   include FiltersHelper
   before_action :set_location,
-                only: %i[scoreboard scoreboard_overlay show edit update destroy
+                only: %i[scoreboard scoreboard_overlay scoreboard_text show edit update destroy
                          new_league_tournament add_tables_to
                          toggle_dark_mode create_event]
 
@@ -345,6 +345,90 @@ class LocationsController < ApplicationController
     
     # Render minimal overlay layout
     render layout: 'streaming_overlay'
+  end
+
+  # Text-based scoreboard data for FFmpeg drawtext filter
+  def scoreboard_text
+    # Get table from params
+    if params[:table_id].present?
+      @table = @location.tables.find_by(id: params[:table_id])
+    elsif params[:table].present?
+      table_number = params[:table]&.to_i
+      @table = @location.tables.find_by(name: "Tisch #{table_number}")
+    end
+    
+    @table ||= @location.tables.first
+    
+    # Get current game on this table
+    @table_monitor = @table&.table_monitor
+    @game = @table_monitor&.game
+    @tournament_monitor = @table_monitor&.tournament_monitor
+    @tournament = @tournament_monitor&.tournament
+    
+    # Build text output
+    text_lines = []
+    
+    if @game.present? && @table_monitor.present?
+      # Get fresh options from table monitor
+      @table_monitor.get_options!(I18n.locale)
+      options = @table_monitor.options
+      
+      if options.present?
+        # Use the same logic as scoreboard_overlay view
+        left_player = options[:current_left_player] == "playera" ? options[:player_a] : options[:player_b]
+        right_player = options[:current_left_player] == "playera" ? options[:player_b] : options[:player_a]
+        left_player_id = options[:current_left_player] == "playera" ? "playera" : "playerb"
+        right_player_id = options[:current_left_player] == "playera" ? "playerb" : "playera"
+        left_player_active = options[:current_left_player] == "playera" ? options[:player_a_active] : options[:player_b_active]
+        right_player_active = options[:current_left_player] == "playera" ? options[:player_b_active] : options[:player_a_active]
+        
+        # Get current scores and inning balls
+        left_inning_balls = @table_monitor.data[left_player_id]&.[]("innings_redo_list")&.last.to_i || 0
+        right_inning_balls = @table_monitor.data[right_player_id]&.[]("innings_redo_list")&.last.to_i || 0
+        left_score = left_player[:result].to_i + left_inning_balls
+        right_score = right_player[:result].to_i + right_inning_balls
+        
+        # Format player names (remove "Dr. ")
+        left_name = (left_player[:firstname].presence || left_player[:lastname]).to_s.gsub("Dr. ", "")
+        right_name = (right_player[:firstname].presence || right_player[:lastname]).to_s.gsub("Dr. ", "")
+        
+        # Build player lines with right-aligned scores and inning balls
+        # Format: "  Name:       Score (Balls)" with right alignment
+        max_name_length = [left_name.length, right_name.length].max
+        max_score_length = [left_score.to_s.length, right_score.to_s.length].max
+        
+        # Line 1: Table and LIVE indicator
+        text_lines << "T#{@table&.number || '?'} • LIVE"
+        
+        # Line 2: Left player (with active indicator, right-aligned score)
+        left_indicator = left_player_active ? '▶' : ' '
+        left_inning_display = left_inning_balls > 0 ? " (#{left_inning_balls})" : ""
+        left_line = "#{left_indicator} #{left_name.ljust(max_name_length)}:  #{left_score.to_s.rjust(max_score_length)}#{left_inning_display}"
+        text_lines << left_line
+        
+        # Line 3: Right player (with active indicator, right-aligned score)
+        right_indicator = right_player_active ? '▶' : ' '
+        right_inning_display = right_inning_balls > 0 ? " (#{right_inning_balls})" : ""
+        right_line = "#{right_indicator} #{right_name.ljust(max_name_length)}:  #{right_score.to_s.rjust(max_score_length)}#{right_inning_display}"
+        text_lines << right_line
+        
+        # Line 4: Tournament info
+        if @tournament.present?
+          tournament_name = @tournament.try(:title) || @tournament.try(:name) || "Turnier"
+          text_lines << tournament_name
+        end
+      else
+        # Game exists but options not available yet
+        text_lines << "T#{@table&.number || '?'} • LIVE"
+        text_lines << "Spiel lädt..."
+      end
+    else
+      # No active game
+      text_lines << "#{@location&.name || 'Carambus'}"
+      text_lines << "Tisch #{@table&.number || '?'} • Kein Spiel"
+    end
+    
+    render plain: text_lines.join("\n"), content_type: 'text/plain'
   end
 
   def game_results

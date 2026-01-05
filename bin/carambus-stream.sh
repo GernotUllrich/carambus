@@ -8,13 +8,19 @@
 # - Renders scoreboard overlay from local Rails server
 # - Composites video + overlay with FFmpeg
 # - Streams to YouTube via RTMP
-# - Uses hardware encoding (h264_v4l2m2m) for efficiency
+# - Uses software encoding (libx264) for YouTube compatibility
 #
 # Usage:
-#   carambus-stream.sh [table_number]
+#   carambus-stream.sh [table_id]
+#
+# Example:
+#   carambus-stream.sh 2  # For Rails Table with ID 2 (may be named "Tisch 6")
 #
 # Configuration:
-#   Reads from /etc/carambus/stream-table-N.conf
+#   Reads from /etc/carambus/stream-table-[table_id].conf
+#
+# Note: table_id is the Rails database ID (Table.id), not the table name/number.
+#       For example: Table with id=2 might have name="Tisch 6"
 #
 
 set -e  # Exit on error
@@ -23,10 +29,13 @@ set -e  # Exit on error
 # Configuration
 # ============================================================================
 
-TABLE_NUMBER=${1:-1}
+# TABLE_NUMBER is used for file names (e.g., "6" for "Tisch 6")
+# TABLE_ID is the Rails database ID (e.g., 2 for the table record)
+TABLE_NUMBER=${1:-2}
 CONFIG_FILE="/etc/carambus/stream-table-${TABLE_NUMBER}.conf"
 LOG_FILE="/var/log/carambus/stream-table-${TABLE_NUMBER}.log"
 OVERLAY_IMAGE="/tmp/carambus-overlay-table-${TABLE_NUMBER}.png"
+OVERLAY_TEXT_FILE="/tmp/carambus-overlay-text-table-${TABLE_NUMBER}.txt"
 XVFB_DISPLAY=":${TABLE_NUMBER}"
 
 # Ensure log directory exists
@@ -40,16 +49,16 @@ fi
 
 source "$CONFIG_FILE"
 
+# TABLE_ID should be set in the config file - this is the Rails DB ID
+if [ -z "$TABLE_ID" ]; then
+    echo "ERROR: TABLE_ID not set in $CONFIG_FILE" | tee -a "$LOG_FILE"
+    exit 1
+fi
+
 # Validate required configuration
 if [ -z "$YOUTUBE_KEY" ]; then
     echo "ERROR: YOUTUBE_KEY not set in $CONFIG_FILE" | tee -a "$LOG_FILE"
     exit 1
-fi
-
-# Use TABLE_ID from config for overlay file path (not TABLE_NUMBER)
-# TABLE_ID matches the database ID, TABLE_NUMBER is the display number
-if [ -n "$TABLE_ID" ]; then
-    OVERLAY_IMAGE="/tmp/carambus-overlay-table-${TABLE_ID}.png"
 fi
 
 # Default values if not set in config
@@ -164,7 +173,7 @@ start_stream() {
     log "=========================================="
     log "Starting Carambus Stream"
     log "=========================================="
-    log "Table: $TABLE_NUMBER"
+    log "Table: ${TABLE_NUMBER} (name: Tisch ${TABLE_NUMBER}, Rails ID: ${TABLE_ID})"
     log "Camera: $CAMERA_DEVICE (${CAMERA_WIDTH}x${CAMERA_HEIGHT}@${CAMERA_FPS}fps)"
     log "Overlay: $OVERLAY_ENABLED"
     log "Video Bitrate: ${VIDEO_BITRATE}k"
@@ -212,42 +221,63 @@ start_stream() {
     log "Using software encoder: libx264 (YouTube requires this)"
     
     if [ "$OVERLAY_ENABLED" = "true" ]; then
-        # Stream with overlay
-        if [ "$USE_HW_DECODE" = "true" ]; then
-            # Hardware decode path
-            ffmpeg \
-                -f v4l2 -input_format "$INPUT_FORMAT" -video_size "${CAMERA_WIDTH}x${CAMERA_HEIGHT}" -framerate "$CAMERA_FPS" \
-                -i "$CAMERA_DEVICE" \
-                -loop 1 -framerate 1 -i "$OVERLAY_IMAGE" \
-                -filter_complex "[0:v]scale=${CAMERA_WIDTH}:${CAMERA_HEIGHT}[cam];[cam][1:v]overlay=x=0:y=main_h-overlay_h:shortest=1[out]" \
-                -map "[out]" \
-                -c:v "$VIDEO_ENCODER" -b:v "${VIDEO_BITRATE}k" -maxrate "$((VIDEO_BITRATE + 500))k" -bufsize "$((VIDEO_BITRATE * 2))k" \
-                -pix_fmt yuv420p -g 120 -keyint_min 120 -sc_threshold 0 \
-                -preset ultrafast -tune zerolatency \
-                -f flv "$RTMP_URL" \
-                >> "$LOG_FILE" 2>&1
-        else
-            # Software decode path (YUYV/MJPEG)
-            # Colorkey filter removes white background from overlay PNG
-            # PERFORMANCE OPTIMIZATIONS:
-            # - Use veryfast preset (better compression than ultrafast, still realtime on Pi4)
-            # - threads=4 to use all cores
-            # - Reduce filter complexity with single-pass scale+overlay
-            ffmpeg \
-                -f v4l2 -input_format "$INPUT_FORMAT" -video_size "${CAMERA_WIDTH}x${CAMERA_HEIGHT}" -framerate "$CAMERA_FPS" \
-                -i "$CAMERA_DEVICE" \
-                -loop 1 -framerate 1 -i "$OVERLAY_IMAGE" \
-                -f lavfi -i anullsrc=channel_layout=stereo:sample_rate=44100 \
-                -filter_complex "[1:v]colorkey=0xFFFFFF:0.3:0.2[overlay];[0:v][overlay]overlay=x=0:y=main_h-overlay_h:shortest=1,format=yuv420p,scale=${CAMERA_WIDTH}:${CAMERA_HEIGHT}:flags=fast_bilinear[out]" \
-                -map "[out]" -map 2:a \
-                -c:v "$VIDEO_ENCODER" -b:v "${VIDEO_BITRATE}k" -maxrate "$((VIDEO_BITRATE + 500))k" -bufsize "$((VIDEO_BITRATE * 2))k" \
-                -c:a aac -b:a "${AUDIO_BITRATE}k" \
-                -pix_fmt yuv420p -color_range tv -colorspace bt709 -color_primaries bt709 -color_trc bt709 \
-                -g 120 -keyint_min 120 -sc_threshold 0 \
-                -preset veryfast -tune zerolatency -threads 4 -thread_type slice \
-                -f flv "$RTMP_URL" \
-                >> "$LOG_FILE" 2>&1
+        # Text-based overlay using FFmpeg drawtext filter
+        # Fetches text data from Rails server endpoint
+        # Text file is updated by background process
+        
+        log "Using text overlay: ${OVERLAY_TEXT_FILE}"
+        
+        # Create initial text file if it doesn't exist
+        if [ ! -f "$OVERLAY_TEXT_FILE" ]; then
+            echo "Loading..." > "$OVERLAY_TEXT_FILE"
         fi
+        
+        # Get location MD5 and server URL from config
+        LOCATION_MD5=${LOCATION_MD5:-"0819bf0d7893e629200c20497ef9cfff"}
+        RAILS_SERVER=${SERVER_URL:-"http://192.168.178.106:3000"}
+        
+        # Start background process to update text file
+        (
+            while true; do
+                curl -sf "${RAILS_SERVER}/locations/${LOCATION_MD5}/scoreboard_text?table_id=${TABLE_ID}" \
+                    > "${OVERLAY_TEXT_FILE}.tmp" 2>/dev/null && \
+                    mv "${OVERLAY_TEXT_FILE}.tmp" "${OVERLAY_TEXT_FILE}"
+                sleep 1
+            done
+        ) &
+        TEXT_UPDATER_PID=$!
+        
+        # Build drawtext filter with monospace font for alignment
+        # Use DejaVuSansMono for fixed-width characters
+        # Font size scales with resolution: 720p=24px, 1080p=32px, 360p=16px
+        if [ "$CAMERA_HEIGHT" -ge 1080 ]; then
+            FONT_SIZE=32
+        elif [ "$CAMERA_HEIGHT" -ge 720 ]; then
+            FONT_SIZE=24
+        else
+            FONT_SIZE=16
+        fi
+        DRAWTEXT_FILTER="drawtext=fontfile=/usr/share/fonts/truetype/dejavu/DejaVuSansMono-Bold.ttf:textfile='${OVERLAY_TEXT_FILE}':reload=1:fontsize=${FONT_SIZE}:fontcolor=white:box=1:boxcolor=black@0.8:boxborderw=15:x=15:y=h-th-15"
+        
+        # Stream with text overlay
+        # YouTube requires keyframes every 4 seconds or less (GOP size)
+        # At 30fps: -g 60 = keyframe every 2 seconds
+        ffmpeg \
+            -f v4l2 -input_format "$INPUT_FORMAT" -video_size "${CAMERA_WIDTH}x${CAMERA_HEIGHT}" -framerate "$CAMERA_FPS" \
+            -i "$CAMERA_DEVICE" \
+            -f lavfi -i anullsrc=channel_layout=stereo:sample_rate=44100 \
+            -filter_complex "[0:v]${DRAWTEXT_FILTER}[out]" \
+            -map "[out]" -map 1:a \
+            -c:v "$VIDEO_ENCODER" -b:v "${VIDEO_BITRATE}k" -maxrate "$((VIDEO_BITRATE + 500))k" -bufsize "$((VIDEO_BITRATE * 2))k" \
+            -c:a aac -b:a "${AUDIO_BITRATE}k" \
+            -pix_fmt yuv420p -color_range tv -colorspace bt709 -color_primaries bt709 -color_trc bt709 \
+            -g 60 -keyint_min 60 -sc_threshold 0 \
+            -preset veryfast -tune zerolatency -threads 4 -thread_type slice \
+            -f flv "$RTMP_URL" \
+            >> "$LOG_FILE" 2>&1
+        
+        # Kill text updater on exit
+        kill $TEXT_UPDATER_PID 2>/dev/null || true
     else
         # Stream without overlay
         if [ "$USE_HW_DECODE" = "true" ]; then
