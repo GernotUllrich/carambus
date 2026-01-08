@@ -8,11 +8,29 @@ export default class extends Controller {
   
   connect() {
     console.log("[StreamingOverlay] Connected", this.tableIdValue)
-    this.subscribeToTableMonitor()
+    
+    // PHASE 1: Simple polling approach for OBS Browser Source
+    // Reload page every 3 seconds to fetch fresh scores
+    // This is simple, reliable, and works great for streaming overlays
+    this.pollInterval = setInterval(() => {
+      console.log("[StreamingOverlay] Reloading for fresh data...")
+      window.location.reload()
+    }, 3000) // 3 seconds
+    
+    // PHASE 2: Real-time updates via CableReady (future optimization)
+    // Uncomment this when implementing event-driven updates
+    // this.subscribeToTableMonitor()
   }
   
   disconnect() {
     console.log("[StreamingOverlay] Disconnected")
+    
+    // Clear polling interval
+    if (this.pollInterval) {
+      clearInterval(this.pollInterval)
+    }
+    
+    // Unsubscribe from ActionCable (when using Phase 2)
     if (this.subscription) {
       this.subscription.unsubscribe()
     }
