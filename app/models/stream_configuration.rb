@@ -50,9 +50,13 @@ class StreamConfiguration < ApplicationRecord
   
   # Encryption for sensitive data
   encrypts :youtube_stream_key, deterministic: false
+  encrypts :custom_rtmp_key, deterministic: false
   
   # Validations
-  validates :youtube_stream_key, presence: true, if: -> { active? || starting? }
+  validates :stream_destination, inclusion: { in: %w[youtube local custom] }, presence: true
+  validates :youtube_stream_key, presence: true, if: -> { stream_destination == 'youtube' && (active? || starting?) }
+  validates :custom_rtmp_url, presence: true, if: -> { stream_destination == 'custom' && (active? || starting?) }
+  validates :local_rtmp_server_ip, presence: true, if: -> { stream_destination == 'local' && (active? || starting?) }
   validates :status, inclusion: { in: %w[inactive starting active stopping error] }
   validates :overlay_position, inclusion: { in: %w[top bottom custom] }
   validates :camera_device, presence: true
@@ -182,11 +186,18 @@ class StreamConfiguration < ApplicationRecord
     "http://#{host}:#{port}/locations/#{location.md5}/scoreboard_overlay?table_id=#{table.id}"
   end
   
-  # Get YouTube RTMP URL
+  # Get RTMP URL based on stream destination
   def rtmp_url
-    return nil if youtube_stream_key.blank?
-    
-    "rtmp://a.rtmp.youtube.com/live2/#{youtube_stream_key}"
+    case stream_destination
+    when 'youtube'
+      youtube_rtmp_url
+    when 'local'
+      local_rtmp_url
+    when 'custom'
+      custom_rtmp_url_complete
+    else
+      raise "Unknown stream destination: #{stream_destination}"
+    end
   end
   
   # Get stream uptime
@@ -219,8 +230,36 @@ class StreamConfiguration < ApplicationRecord
   
   private
   
+  # Get YouTube RTMP URL
+  def youtube_rtmp_url
+    return nil if youtube_stream_key.blank?
+    "rtmp://a.rtmp.youtube.com/live2/#{youtube_stream_key}"
+  end
+  
+  # Get local RTMP server URL (Mac mini/Laptop running Docker RTMP)
+  def local_rtmp_url
+    return nil if local_rtmp_server_ip.blank?
+    
+    # Stream name format: table<ID> (e.g., table1, table2)
+    # This makes it easy to identify in OBS
+    "rtmp://#{local_rtmp_server_ip}:1935/live/table#{table.id}"
+  end
+  
+  # Get custom RTMP URL (user-specified)
+  def custom_rtmp_url_complete
+    return nil if custom_rtmp_url.blank?
+    
+    # If custom_rtmp_key is provided, append it to URL
+    if custom_rtmp_key.present?
+      "#{custom_rtmp_url}/#{custom_rtmp_key}"
+    else
+      custom_rtmp_url
+    end
+  end
+  
   def set_defaults
     self.status ||= 'inactive'
+    self.stream_destination ||= 'youtube'
     self.camera_device ||= '/dev/video0'
     self.camera_width ||= 1280
     self.camera_height ||= 720

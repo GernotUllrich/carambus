@@ -144,8 +144,12 @@ module Admin
     def stream_configuration_params
       params.require(:stream_configuration).permit(
         :table_id,
+        :stream_destination,
         :youtube_stream_key,
         :youtube_channel_id,
+        :custom_rtmp_url,
+        :custom_rtmp_key,
+        :local_rtmp_server_ip,
         :camera_device,
         :camera_width,
         :camera_height,

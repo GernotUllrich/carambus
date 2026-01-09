@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_12_31_132304) do
+ActiveRecord::Schema[7.2].define(version: 2026_01_09_210439) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -898,7 +898,12 @@ ActiveRecord::Schema[7.2].define(version: 2025_12_31_132304) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "raspi_ssh_user", default: "pi"
+    t.string "stream_destination", default: "youtube", null: false
+    t.string "custom_rtmp_url"
+    t.string "custom_rtmp_key"
+    t.string "local_rtmp_server_ip"
     t.index ["status"], name: "index_stream_configurations_on_status"
+    t.index ["stream_destination"], name: "index_stream_configurations_on_stream_destination"
     t.index ["table_id"], name: "index_stream_configurations_on_table_id", unique: true
   end
 

@@ -134,21 +134,31 @@ class StreamControlJob < ApplicationJob
       # Carambus Stream Configuration for Table #{@table_number}
       # Generated: #{Time.current}
       
-      YOUTUBE_KEY=#{@config.youtube_stream_key}
+      # Stream Destination
+      STREAM_DESTINATION=#{@config.stream_destination}
+      RTMP_URL=#{@config.rtmp_url}
+      
+      # Camera Settings
       CAMERA_DEVICE=#{@config.camera_device}
       CAMERA_WIDTH=#{@config.camera_width}
       CAMERA_HEIGHT=#{@config.camera_height}
       CAMERA_FPS=#{@config.camera_fps}
       
+      # Overlay Settings
       OVERLAY_ENABLED=#{@config.overlay_enabled ? 'true' : 'false'}
       OVERLAY_URL=#{@config.scoreboard_overlay_url}
       OVERLAY_POSITION=#{@config.overlay_position}
       OVERLAY_HEIGHT=#{@config.overlay_height}
       
+      # Quality Settings
       VIDEO_BITRATE=#{@config.video_bitrate}
       AUDIO_BITRATE=#{@config.audio_bitrate}
       
+      # Metadata
+      TABLE_ID=#{@config.table.id}
       TABLE_NUMBER=#{@table_number}
+      LOCATION_NAME="#{@config.location.name}"
+      GENERATED_AT="#{Time.current}"
     CONFIG
   end
   
