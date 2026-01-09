@@ -1,4 +1,4 @@
-<%= form_with(model: [:admin, stream_configuration], local: true, class: "space-y-6") do |form| %>
+<%= form_with(model: [:admin, stream_configuration], local: true, class: "space-y-6", data: { controller: "stream-destination" }) do |form| %>
   <% if stream_configuration.errors.any? %>
     <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
       <h2 class="font-bold mb-2"><%= pluralize(stream_configuration.errors.count, "Fehler") %> beim Speichern:</h2>
@@ -38,7 +38,6 @@
         {
           class: "form-select w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500",
           data: {
-            controller: "stream-destination",
             action: "change->stream-destination#toggle"
           }
         } %>
