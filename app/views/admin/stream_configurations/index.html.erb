@@ -61,6 +61,12 @@
               <!-- Stream Info -->
               <div class="mb-4 space-y-2 text-sm text-gray-600 dark:text-gray-300">
                 <div class="flex items-center">
+                  <span class="w-24 font-semibold">Ziel:</span>
+                  <span class="<%= destination_badge_class(config.stream_destination) %> px-2 py-0.5 rounded text-xs font-medium">
+                    <%= destination_label(config.stream_destination) %>
+                  </span>
+                </div>
+                <div class="flex items-center">
                   <span class="w-24 font-semibold">Auflösung:</span>
                   <span><%= config.camera_width %>x<%= config.camera_height %>@<%= config.camera_fps %>fps</span>
                 </div>

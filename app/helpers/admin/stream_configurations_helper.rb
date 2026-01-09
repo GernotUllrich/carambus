@@ -86,6 +86,34 @@ module Admin
         "#{bitrate}k"
       end
     end
+
+    # Return destination badge CSS classes
+    def destination_badge_class(destination)
+      case destination
+      when 'youtube'
+        'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+      when 'local'
+        'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+      when 'custom'
+        'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200'
+      else
+        'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
+      end
+    end
+
+    # Return human-readable destination label
+    def destination_label(destination)
+      case destination
+      when 'youtube'
+        '📺 YouTube'
+      when 'local'
+        '🖥️ Lokal (OBS)'
+      when 'custom'
+        '🔧 Eigener Server'
+      else
+        destination.to_s.titleize
+      end
+    end
   end
 end
 

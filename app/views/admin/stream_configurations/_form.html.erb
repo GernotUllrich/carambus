@@ -23,8 +23,36 @@
     <p class="mt-1 text-sm text-gray-500">Location wird automatisch vom gewählten Tisch übernommen</p>
   </div>
 
+  <!-- Stream Destination Selection -->
+  <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border-2 border-blue-200 dark:border-blue-800">
+    <h3 class="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-100">🎯 Stream-Ziel</h3>
+    
+    <%= form.label :stream_destination, "Wohin soll gestreamt werden?", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2" %>
+    <%= form.select :stream_destination,
+        [
+          ['YouTube Live', 'youtube'],
+          ['Lokaler RTMP Server (Mac/OBS)', 'local'],
+          ['Eigener RTMP Server', 'custom']
+        ],
+        {},
+        {
+          class: "form-select w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500",
+          data: {
+            controller: "stream-destination",
+            action: "change->stream-destination#toggle"
+          }
+        } %>
+    <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+      <strong>YouTube:</strong> Direkt zu YouTube Live streamen<br>
+      <strong>Lokal:</strong> Zu Mac/Laptop mit OBS streamen (für Multi-Kamera-Setups)<br>
+      <strong>Eigener Server:</strong> Zu beliebigem RTMP-Server streamen
+    </p>
+  </div>
+
   <!-- YouTube Configuration -->
-  <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+  <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg" 
+       data-stream-destination-target="youtubeFields"
+       style="<%= 'display: none;' unless stream_configuration.stream_destination == 'youtube' %>">
     <h3 class="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-100">🎬 YouTube-Konfiguration</h3>
     
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -43,6 +71,73 @@
             placeholder: "UCxxxxxxxxxxxxxxxxxxxxxxxxx" %>
         <p class="mt-1 text-sm text-gray-500">Für direkten Link zum Live-Stream</p>
       </div>
+    </div>
+  </div>
+
+  <!-- Local RTMP Configuration -->
+  <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg"
+       data-stream-destination-target="localFields"
+       style="<%= 'display: none;' unless stream_configuration.stream_destination == 'local' %>">
+    <h3 class="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-100">🖥️ Lokaler RTMP Server</h3>
+    
+    <div class="form-group">
+      <%= form.label :local_rtmp_server_ip, "RTMP Server IP-Adresse", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2" %>
+      <%= form.text_field :local_rtmp_server_ip,
+          class: "form-input w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500",
+          placeholder: "192.168.1.105" %>
+      <p class="mt-1 text-sm text-gray-500">
+        IP-Adresse des Mac mini oder Laptops, auf dem Docker RTMP Server läuft
+      </p>
+    </div>
+
+    <% if stream_configuration.table_id.present? %>
+      <div class="mt-4 p-3 bg-blue-50 dark:bg-blue-900/30 rounded border border-blue-200 dark:border-blue-800">
+        <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">📡 RTMP Stream-URL (für OBS):</p>
+        <code class="text-xs bg-white dark:bg-gray-900 px-2 py-1 rounded">
+          rtmp://<%= stream_configuration.local_rtmp_server_ip || '[SERVER-IP]' %>:1935/live/table<%= stream_configuration.table_id %>
+        </code>
+        <p class="text-xs text-gray-600 dark:text-gray-400 mt-2">
+          Diese URL in OBS als "Media Source" einbinden
+        </p>
+      </div>
+    <% end %>
+  </div>
+
+  <!-- Custom RTMP Configuration -->
+  <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg"
+       data-stream-destination-target="customFields"
+       style="<%= 'display: none;' unless stream_configuration.stream_destination == 'custom' %>">
+    <h3 class="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-100">🔧 Eigener RTMP Server</h3>
+    
+    <div class="grid grid-cols-1 gap-4">
+      <div class="form-group">
+        <%= form.label :custom_rtmp_url, "RTMP Server URL", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2" %>
+        <%= form.text_field :custom_rtmp_url,
+            class: "form-input w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500",
+            placeholder: "rtmp://example.com:1935/live" %>
+        <p class="mt-1 text-sm text-gray-500">
+          Basis-URL ohne Stream-Key (z.B. rtmp://server.com:1935/live)
+        </p>
+      </div>
+
+      <div class="form-group">
+        <%= form.label :custom_rtmp_key, "Stream-Key (optional)", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2" %>
+        <%= form.text_field :custom_rtmp_key,
+            class: "form-input w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500",
+            placeholder: "optional-stream-key" %>
+        <p class="mt-1 text-sm text-gray-500">
+          Falls der Server einen Stream-Key benötigt
+        </p>
+      </div>
+
+      <% if stream_configuration.custom_rtmp_url.present? %>
+        <div class="p-3 bg-blue-50 dark:bg-blue-900/30 rounded border border-blue-200 dark:border-blue-800">
+          <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">📡 Finale RTMP URL:</p>
+          <code class="text-xs bg-white dark:bg-gray-900 px-2 py-1 rounded break-all">
+            <%= stream_configuration.custom_rtmp_url %><%= "/#{stream_configuration.custom_rtmp_key}" if stream_configuration.custom_rtmp_key.present? %>
+          </code>
+        </div>
+      <% end %>
     </div>
   </div>
 
