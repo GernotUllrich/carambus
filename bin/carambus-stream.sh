@@ -55,9 +55,14 @@ if [ -z "$TABLE_ID" ]; then
     exit 1
 fi
 
-# Validate required configuration
-if [ -z "$YOUTUBE_KEY" ]; then
-    echo "ERROR: YOUTUBE_KEY not set in $CONFIG_FILE" | tee -a "$LOG_FILE"
+# Validate required configuration based on stream destination
+if [ -z "$STREAM_DESTINATION" ]; then
+    STREAM_DESTINATION="youtube"  # Default to youtube for backward compatibility
+fi
+
+if [ -z "$RTMP_URL" ]; then
+    echo "ERROR: RTMP_URL not set in $CONFIG_FILE" | tee -a "$LOG_FILE"
+    echo "       Please configure stream destination in admin UI" | tee -a "$LOG_FILE"
     exit 1
 fi
 
@@ -188,11 +193,12 @@ start_stream() {
         check_overlay_file || log "WARNING: Overlay file check failed, continuing with blank overlay"
     fi
     
-    # Build FFmpeg command
-    RTMP_URL="rtmp://a.rtmp.youtube.com/live2/${YOUTUBE_KEY}"
+    # RTMP_URL is now set in config file (supports YouTube, local RTMP, custom servers)
+    # No need to build it here anymore
     
     log "Starting FFmpeg..."
-    log "RTMP URL: rtmp://a.rtmp.youtube.com/live2/[REDACTED]"
+    log "Stream destination: $STREAM_DESTINATION"
+    log "RTMP URL: ${RTMP_URL%%/*}//[REDACTED]"  # Log without exposing keys
     
     # Detect available camera formats and choose best one
     # Priority: MJPEG (best for 720p@30fps) > H264 > YUYV (worst, limited to 10fps at 720p)
