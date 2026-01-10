@@ -88,14 +88,20 @@ log() {
 # Detect available audio input
 detect_audio_input() {
     # Check if webcam has audio (ALSA card 0)
-    if ffmpeg -f alsa -i hw:0 -t 0.1 -f null - 2>&1 | grep -q "Input #0"; then
+    # Temporarily disable 'set -e' for this test
+    set +e
+    ffmpeg -f alsa -i hw:0 -t 0.1 -f null - 2>&1 | grep -q "Input #0"
+    local result=$?
+    set -e
+    
+    if [ $result -eq 0 ]; then
         log "Audio: Webcam microphone detected (hw:0)"
         echo "hw:0"
     else
         log "Audio: No microphone detected, using null audio"
         echo "anullsrc"
     fi
-    return 0  # Always return success so script doesn't exit
+    return 0
 }
 
 cleanup() {
