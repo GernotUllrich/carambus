@@ -242,7 +242,8 @@ class StreamConfiguration < ApplicationRecord
     
     # Stream name format: table<ID> (e.g., table1, table2)
     # This makes it easy to identify in OBS
-    "rtmp://#{local_rtmp_server_ip}:1935/live/table#{table.id}"
+    # Using '/stream' application (as configured in alfg/nginx-rtmp Docker image)
+    "rtmp://#{local_rtmp_server_ip}:1935/stream/table#{table.id}"
   end
   
   # Get custom RTMP URL (user-specified)
