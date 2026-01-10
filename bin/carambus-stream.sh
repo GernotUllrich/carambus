@@ -91,12 +91,11 @@ detect_audio_input() {
     if ffmpeg -f alsa -i hw:0 -t 0.1 -f null - 2>&1 | grep -q "Input #0"; then
         log "Audio: Webcam microphone detected (hw:0)"
         echo "hw:0"
-        return 0
     else
         log "Audio: No microphone detected, using null audio"
         echo "anullsrc"
-        return 1
     fi
+    return 0  # Always return success so script doesn't exit
 }
 
 cleanup() {
