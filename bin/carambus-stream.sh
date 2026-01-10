@@ -268,11 +268,11 @@ start_stream() {
         # Stream with text overlay
         # YouTube requires keyframes every 4 seconds or less (GOP size)
         # At 30fps: -g 60 = keyframe every 2 seconds
-        # Audio: Try to use webcam microphone (hw:0,0), fall back to null audio if not available
+        # Audio: Use webcam microphone (hw:0 = card 0, the C922 webcam)
         ffmpeg \
             -f v4l2 -input_format "$INPUT_FORMAT" -video_size "${CAMERA_WIDTH}x${CAMERA_HEIGHT}" -framerate "$CAMERA_FPS" \
             -i "$CAMERA_DEVICE" \
-            -f alsa -ac 2 -i hw:0,0 \
+            -f alsa -ac 2 -i hw:0 \
             -filter_complex "[0:v]${DRAWTEXT_FILTER}[out]" \
             -map "[out]" -map 1:a \
             -c:v "$VIDEO_ENCODER" -b:v "${VIDEO_BITRATE}k" -maxrate "$((VIDEO_BITRATE + 500))k" -bufsize "$((VIDEO_BITRATE * 2))k" \
@@ -288,11 +288,11 @@ start_stream() {
     else
         # Stream without overlay
         if [ "$USE_HW_DECODE" = "true" ]; then
-            # Audio: Try to use webcam microphone (hw:0,0), fall back to null audio if not available
+            # Audio: Use webcam microphone (hw:0 = card 0, the C922 webcam)
             ffmpeg \
                 -f v4l2 -input_format "$INPUT_FORMAT" -video_size "${CAMERA_WIDTH}x${CAMERA_HEIGHT}" -framerate "$CAMERA_FPS" \
                 -i "$CAMERA_DEVICE" \
-                -f alsa -ac 2 -i hw:0,0 \
+                -f alsa -ac 2 -i hw:0 \
                 -map 0:v -map 1:a \
                 -c:v "$VIDEO_ENCODER" -b:v "${VIDEO_BITRATE}k" -maxrate "$((VIDEO_BITRATE + 500))k" -bufsize "$((VIDEO_BITRATE * 2))k" \
                 -c:a aac -b:a "${AUDIO_BITRATE}k" \
@@ -301,11 +301,11 @@ start_stream() {
                 -f flv "$RTMP_URL" \
                 >> "$LOG_FILE" 2>&1
         else
-            # Audio: Try to use webcam microphone (hw:0,0), fall back to null audio if not available
+            # Audio: Use webcam microphone (hw:0 = card 0, the C922 webcam)
             ffmpeg \
                 -f v4l2 -input_format "$INPUT_FORMAT" -video_size "${CAMERA_WIDTH}x${CAMERA_HEIGHT}" -framerate "$CAMERA_FPS" \
                 -i "$CAMERA_DEVICE" \
-                -f alsa -ac 2 -i hw:0,0 \
+                -f alsa -ac 2 -i hw:0 \
                 -filter_complex "[0:v]scale=${CAMERA_WIDTH}:${CAMERA_HEIGHT}:flags=lanczos,format=yuv420p,setrange=tv,setparams=colorspace=bt709:color_trc=bt709:color_primaries=bt709[vout]" \
                 -map "[vout]" -map 1:a \
                 -c:v "$VIDEO_ENCODER" -b:v "${VIDEO_BITRATE}k" -maxrate "$((VIDEO_BITRATE + 500))k" -bufsize "$((VIDEO_BITRATE * 2))k" \
