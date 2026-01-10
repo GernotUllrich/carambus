@@ -61,3 +61,5 @@ DeviceAllow=/dev/video1 rw
 WantedBy=multi-user.target
 
 
+
+

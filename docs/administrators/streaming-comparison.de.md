@@ -605,3 +605,5 @@ open http://localhost:3000/locations/[MD5]/scoreboard_overlay?table_id=1
 **Datum:** Januar 2025  
 **Autor:** Carambus Development Team
 
+
+
