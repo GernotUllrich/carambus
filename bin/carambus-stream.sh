@@ -89,10 +89,10 @@ log() {
 detect_audio_input() {
     # Check if ALSA card 0 exists (webcam audio)
     if [ -d "/proc/asound/card0" ]; then
-        log "Audio: Webcam microphone detected (hw:0)"
+        echo "[$(date '+%Y-%m-%d %H:%M:%S')] Audio: Webcam microphone detected (hw:0)" >> "$LOG_FILE"
         echo "hw:0"
     else
-        log "Audio: No microphone detected, using null audio"
+        echo "[$(date '+%Y-%m-%d %H:%M:%S')] Audio: No microphone detected, using null audio" >> "$LOG_FILE"
         echo "anullsrc"
     fi
 }
