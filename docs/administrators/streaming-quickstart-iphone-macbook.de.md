@@ -65,6 +65,50 @@ brew install --cask obs
 
 ---
 
+### Schritt 3b: Lokaler RTMP Server (Optional, 5 Min)
+
+**Nur nötig wenn Sie Raspberry Pi Streams in OBS integrieren wollen!**
+
+Der RTMP Server empfängt Streams von Raspberry Pi Kameras und macht sie für OBS verfügbar.
+
+**3b.1 Docker Desktop starten:**
+
+```bash
+open -a Docker
+```
+
+Warten bis das Docker-Icon in der Menüleiste erscheint (ca. 10-20 Sekunden).
+
+**3b.2 RTMP Server erstellen (nur beim ersten Mal):**
+
+```bash
+docker run -d --name rtmp-server -p 1935:1935 -p 8080:8080 alfg/nginx-rtmp
+```
+
+**3b.3 Server starten (bei jedem Mac-Neustart):**
+
+```bash
+# Checken ob läuft:
+docker ps
+
+# Falls nicht läuft, starten:
+docker start rtmp-server
+```
+
+**3b.4 Mac IP-Adresse notieren:**
+
+```bash
+# WLAN:
+ipconfig getifaddr en0
+
+# Oder Ethernet:
+ipconfig getifaddr en1
+```
+
+Diese IP brauchen Sie in der Carambus Admin UI für die Stream-Konfiguration!
+
+---
+
 ### Schritt 4: OBS konfigurieren (10 Min)
 
 **4.1 Stream-Einstellungen:**
@@ -97,11 +141,25 @@ brew install --cask obs
 
 **5.1 Video-Quelle hinzufügen:**
 
+**Option A: iPhone als Kamera**
+
 1. In OBS: Quellen → "+" → **Video Capture Device**
-2. Name: "Kamera Tisch 1"
+2. Name: "iPhone Kamera Tisch 1"
 3. Gerät: iPhone auswählen
 4. OK
 5. Quelle auf Vollbild ziehen (Rand anfassen und ziehen)
+
+**Option B: Raspberry Pi Stream (wenn Schritt 3b gemacht)**
+
+1. In OBS: Quellen → "+" → **Media Source**
+2. Name: "Raspi Stream Tisch 6"
+3. ☑ **Lokale Datei** deaktivieren
+4. Eingabe: `rtmp://localhost:1935/stream/table2`
+   - Format: `rtmp://localhost:1935/stream/table<TABLE_ID>`
+   - TABLE_ID ist die Rails-Tabellen-ID (nicht table.number!)
+5. ☑ **Neustart der Wiedergabe wenn Quelle aktiv wird** aktivieren
+6. OK
+7. Quelle positionieren und skalieren
 
 **5.2 Overlay hinzufügen:**
 
@@ -482,4 +540,6 @@ Ansteck-Mikro an iPhone → Audio im Stream
 **Kosten:** 0€  
 **Setup-Zeit:** 30 Minuten  
 **Ergebnis:** Professionelles Streaming 🎉
+
+
 
