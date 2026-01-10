@@ -85,6 +85,20 @@ log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*" | tee -a "$LOG_FILE"
 }
 
+# Detect available audio input
+detect_audio_input() {
+    # Check if webcam has audio (ALSA card 0)
+    if ffmpeg -f alsa -i hw:0 -t 0.1 -f null - 2>&1 | grep -q "Input #0"; then
+        log "Audio: Webcam microphone detected (hw:0)"
+        echo "hw:0"
+        return 0
+    else
+        log "Audio: No microphone detected, using null audio"
+        echo "anullsrc"
+        return 1
+    fi
+}
+
 cleanup() {
     log "Cleaning up..."
     
@@ -188,6 +202,14 @@ start_stream() {
     check_camera || exit 1
     check_network || log "WARNING: Network check failed, continuing anyway..."
     
+    # Detect audio input (microphone or null)
+    AUDIO_SOURCE=$(detect_audio_input)
+    if [ "$AUDIO_SOURCE" = "anullsrc" ]; then
+        AUDIO_INPUT="-f lavfi -i anullsrc=channel_layout=stereo:sample_rate=44100"
+    else
+        AUDIO_INPUT="-f alsa -ac 2 -i $AUDIO_SOURCE"
+    fi
+    
     # Check overlay file if enabled (provided by carambus-overlay-receiver service)
     if [ "$OVERLAY_ENABLED" = "true" ]; then
         check_overlay_file || log "WARNING: Overlay file check failed, continuing with blank overlay"
@@ -268,10 +290,11 @@ start_stream() {
         # Stream with text overlay
         # YouTube requires keyframes every 4 seconds or less (GOP size)
         # At 30fps: -g 60 = keyframe every 2 seconds
+        # Audio input is auto-detected (webcam mic or null audio)
         ffmpeg \
             -f v4l2 -input_format "$INPUT_FORMAT" -video_size "${CAMERA_WIDTH}x${CAMERA_HEIGHT}" -framerate "$CAMERA_FPS" \
             -i "$CAMERA_DEVICE" \
-            -f lavfi -i anullsrc=channel_layout=stereo:sample_rate=44100 \
+            $AUDIO_INPUT \
             -filter_complex "[0:v]${DRAWTEXT_FILTER}[out]" \
             -map "[out]" -map 1:a \
             -c:v "$VIDEO_ENCODER" -b:v "${VIDEO_BITRATE}k" -maxrate "$((VIDEO_BITRATE + 500))k" -bufsize "$((VIDEO_BITRATE * 2))k" \
@@ -287,10 +310,11 @@ start_stream() {
     else
         # Stream without overlay
         if [ "$USE_HW_DECODE" = "true" ]; then
+            # Audio input is auto-detected (webcam mic or null audio)
             ffmpeg \
                 -f v4l2 -input_format "$INPUT_FORMAT" -video_size "${CAMERA_WIDTH}x${CAMERA_HEIGHT}" -framerate "$CAMERA_FPS" \
                 -i "$CAMERA_DEVICE" \
-                -f lavfi -i anullsrc=channel_layout=stereo:sample_rate=44100 \
+                $AUDIO_INPUT \
                 -map 0:v -map 1:a \
                 -c:v "$VIDEO_ENCODER" -b:v "${VIDEO_BITRATE}k" -maxrate "$((VIDEO_BITRATE + 500))k" -bufsize "$((VIDEO_BITRATE * 2))k" \
                 -c:a aac -b:a "${AUDIO_BITRATE}k" \
@@ -299,10 +323,11 @@ start_stream() {
                 -f flv "$RTMP_URL" \
                 >> "$LOG_FILE" 2>&1
         else
+            # Audio input is auto-detected (webcam mic or null audio)
             ffmpeg \
                 -f v4l2 -input_format "$INPUT_FORMAT" -video_size "${CAMERA_WIDTH}x${CAMERA_HEIGHT}" -framerate "$CAMERA_FPS" \
                 -i "$CAMERA_DEVICE" \
-                -f lavfi -i anullsrc=channel_layout=stereo:sample_rate=44100 \
+                $AUDIO_INPUT \
                 -filter_complex "[0:v]scale=${CAMERA_WIDTH}:${CAMERA_HEIGHT}:flags=lanczos,format=yuv420p,setrange=tv,setparams=colorspace=bt709:color_trc=bt709:color_primaries=bt709[vout]" \
                 -map "[vout]" -map 1:a \
                 -c:v "$VIDEO_ENCODER" -b:v "${VIDEO_BITRATE}k" -maxrate "$((VIDEO_BITRATE + 500))k" -bufsize "$((VIDEO_BITRATE * 2))k" \
