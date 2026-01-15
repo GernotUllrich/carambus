@@ -297,8 +297,9 @@ RAILS_ENV=production $RBENV_ROOT/bin/rbenv exec bundle config --local deployment
 RAILS_ENV=production $RBENV_ROOT/bin/rbenv exec bundle config --local path "${SHARED_PATH}/bundle"
 RAILS_ENV=production $RBENV_ROOT/bin/rbenv exec bundle config --local without development:test
 
-# Install gems
-RAILS_ENV=production $RBENV_ROOT/bin/rbenv exec bundle install --jobs 4 --quiet
+# Install gems (remove --quiet for better debugging and ensure git repos are cloned)
+log_info "  Running bundle install..."
+RAILS_ENV=production $RBENV_ROOT/bin/rbenv exec bundle install --jobs 4
 
 log_success "Ruby dependencies installed"
 
