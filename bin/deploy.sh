@@ -292,14 +292,16 @@ log_step "Installing Ruby dependencies..."
 
 cd "$NEW_RELEASE_PATH"
 
-# Configure bundler
-RAILS_ENV=production $RBENV_ROOT/bin/rbenv exec bundle config --local deployment true
+# Configure bundler path and without groups
 RAILS_ENV=production $RBENV_ROOT/bin/rbenv exec bundle config --local path "${SHARED_PATH}/bundle"
 RAILS_ENV=production $RBENV_ROOT/bin/rbenv exec bundle config --local without development:test
 
-# Install gems (remove --quiet for better debugging and ensure git repos are cloned)
-log_info "  Running bundle install..."
+# Install gems first (without deployment mode to allow Git repos to be cloned)
+log_info "  Running bundle install (initial)..."
 RAILS_ENV=production $RBENV_ROOT/bin/rbenv exec bundle install --jobs 4
+
+# Now set deployment mode for future deploys
+RAILS_ENV=production $RBENV_ROOT/bin/rbenv exec bundle config --local deployment true
 
 log_success "Ruby dependencies installed"
 
