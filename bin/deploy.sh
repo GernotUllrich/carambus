@@ -13,9 +13,24 @@
 #   /var/www/carambus/current/bin/deploy.sh
 #   /var/www/carambus/current/bin/deploy.sh master
 #   /var/www/carambus_bcw/current/bin/deploy.sh develop abc123
+#
+# IMPORTANT: Do NOT run this script with 'bundle exec'!
+# Run it directly: sh bin/deploy.sh or bash bin/deploy.sh
 # =============================================================================
 
 set -e  # Exit on error
+
+# Check if running under bundle exec (not recommended)
+if [ -n "$BUNDLE_GEMFILE" ]; then
+    echo "⚠️  WARNING: This script is running under 'bundle exec'."
+    echo "⚠️  This may cause issues with bundler configuration."
+    echo "⚠️  Recommended: Run without bundle exec: sh bin/deploy.sh"
+    echo ""
+    # Unset bundler environment variables to avoid conflicts
+    unset BUNDLE_GEMFILE
+    unset BUNDLE_APP_CONFIG
+    unset RUBYOPT
+fi
 
 # Color output
 RED='\033[0;31m'
@@ -291,25 +306,23 @@ log_step "Installing Ruby dependencies..."
 
 cd "$NEW_RELEASE_PATH"
 
+# Unset BUNDLE_GEMFILE to avoid using the old current release's Gemfile
+unset BUNDLE_GEMFILE
+unset BUNDLE_APP_CONFIG
+
 # Remove the .bundle directory if it exists to start fresh
 if [ -d ".bundle" ]; then
     /usr/bin/env rm -rf ".bundle"
 fi
 
-# Configure bundler path and without groups
-RAILS_ENV=production $RBENV_ROOT/bin/rbenv exec bundle config --local path "${SHARED_PATH}/bundle"
-RAILS_ENV=production $RBENV_ROOT/bin/rbenv exec bundle config --local without development:test
+# Configure bundler with explicit settings (not using --local to avoid .bundle/config issues)
+log_info "  Configuring bundler..."
+RAILS_ENV=production $RBENV_ROOT/bin/rbenv exec bundle config set --local path "${SHARED_PATH}/bundle"
+RAILS_ENV=production $RBENV_ROOT/bin/rbenv exec bundle config set --local without 'development test'
 
-# Install gems first (without deployment mode to allow Git repos to be cloned)
+# Install gems
 log_info "  Running bundle install..."
 RAILS_ENV=production $RBENV_ROOT/bin/rbenv exec bundle install --jobs 4
-
-# Now symlink the .bundle directory to shared for consistency
-if [ -d "${NEW_RELEASE_PATH}/.bundle" ]; then
-    /usr/bin/env rm -rf "${NEW_RELEASE_PATH}/.bundle"
-fi
-/usr/bin/env ln -s "${SHARED_PATH}/.bundle" "${NEW_RELEASE_PATH}/.bundle"
-log_info "  Linked: .bundle (after install)"
 
 log_success "Ruby dependencies installed"
 
