@@ -425,7 +425,12 @@ fi
 log_step "Logging deployment..."
 
 DEPLOY_USER=$(whoami)
-echo "Branch $BRANCH (at $REVISION) deployed as release $REVISION_DATE by $DEPLOY_USER" >> "${DEPLOY_PATH}revisions.log"
+
+# Get the actual git commit hash that was deployed
+cd "$REPO_PATH"
+ACTUAL_COMMIT=$(git rev-parse "$REVISION")
+
+echo "Branch $BRANCH (at $ACTUAL_COMMIT) deployed as release $REVISION_DATE by $DEPLOY_USER" >> "${DEPLOY_PATH}revisions.log"
 
 log_success "Deployment logged"
 
@@ -459,7 +464,7 @@ log_success "  Deployment completed successfully!"
 log_success "======================================================================"
 log_success "  Release: $REVISION_DATE"
 log_success "  Branch: $BRANCH"
-log_success "  Revision: $REVISION"
+log_success "  Commit: $ACTUAL_COMMIT"
 log_success "  Application: $APPLICATION_NAME ($BASENAME)"
 log_success "======================================================================"
 echo ""
