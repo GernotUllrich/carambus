@@ -266,9 +266,9 @@ step_zero_cleanup() {
     ssh -p $SSH_PORT www-data@$SSH_HOST "sudo rm -f /etc/systemd/system/puma-${SCENARIO_NAME}.service || true"
     log "✅ Puma service removed"
     
-    # Remove Nginx configuration
-    ssh -p $SSH_PORT www-data@$SSH_HOST "sudo rm -f /etc/nginx/sites-enabled/*${SCENARIO_NAME}* || true"
-    ssh -p $SSH_PORT www-data@$SSH_HOST "sudo rm -f /etc/nginx/sites-available/*${SCENARIO_NAME}* || true"
+    # Remove Nginx configuration (exact match only, not substrings)
+    ssh -p $SSH_PORT www-data@$SSH_HOST "sudo rm -f /etc/nginx/sites-enabled/${SCENARIO_NAME} || true"
+    ssh -p $SSH_PORT www-data@$SSH_HOST "sudo rm -f /etc/nginx/sites-available/${SCENARIO_NAME} || true"
     ssh -p $SSH_PORT www-data@$SSH_HOST "sudo systemctl reload nginx || true"
     log "✅ Nginx configuration removed"
     
