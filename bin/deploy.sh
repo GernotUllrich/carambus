@@ -105,13 +105,25 @@ else
     log_info "Application name (fallback): $APPLICATION_NAME"
 fi
 
-# Try to read Ruby version from Gemfile
-if [ -f "${DEPLOY_PATH}current/Gemfile" ]; then
-    RUBY_VERSION=$(grep "ruby" "${DEPLOY_PATH}current/Gemfile" 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+# Try to read Ruby version - prioritize .ruby-version file
+if [ -f "${DEPLOY_PATH}current/.ruby-version" ]; then
+    RUBY_VERSION=$(cat "${DEPLOY_PATH}current/.ruby-version" | tr -d '[:space:]')
+    log_info "Ruby version from .ruby-version: $RUBY_VERSION"
+elif [ -f "${DEPLOY_PATH}current/Gemfile" ]; then
+    # Fallback: try to extract from Gemfile (direct version, not 'file:' reference)
+    RUBY_VERSION=$(grep "^ruby ['\"]" "${DEPLOY_PATH}current/Gemfile" 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+    if [ -n "$RUBY_VERSION" ]; then
+        log_info "Ruby version from Gemfile: $RUBY_VERSION"
+    fi
 fi
-RUBY_VERSION=${RUBY_VERSION:-"3.3.6"}
 
-log_info "Ruby version: $RUBY_VERSION"
+# Final fallback
+if [ -z "$RUBY_VERSION" ]; then
+    RUBY_VERSION="3.3.6"
+    log_warning "Could not detect Ruby version, using default: $RUBY_VERSION"
+else
+    log_info "Ruby version: $RUBY_VERSION"
+fi
 
 # =============================================================================
 # Setup Paths
