@@ -69,28 +69,30 @@ ps aux | grep puma | grep -v grep
 echo ""
 
 echo "8. Checking if Puma sockets/ports are listening:"
-if [ -S /tmp/puma.sock ]; then
-    echo "✅ Puma socket /tmp/puma.sock exists"
-    ls -la /tmp/puma.sock
+if [ -S /var/www/carambus/shared/sockets/puma-production.sock ]; then
+    echo "✅ Puma socket /var/www/carambus/shared/sockets/puma-production.sock exists"
+    ls -la /var/www/carambus/shared/sockets/puma-production.sock
 else
-    echo "❌ Puma socket /tmp/puma.sock MISSING"
+    echo "❌ Puma socket /var/www/carambus/shared/sockets/puma-production.sock MISSING"
+fi
+echo ""
+if [ -S /var/www/carambus_api/shared/sockets/puma-production.sock ]; then
+    echo "✅ Puma socket /var/www/carambus_api/shared/sockets/puma-production.sock exists"
+    ls -la /var/www/carambus_api/shared/sockets/puma-production.sock
+else
+    echo "❌ Puma socket /var/www/carambus_api/shared/sockets/puma-production.sock MISSING"
 fi
 echo ""
 
 echo "9. Checking systemd services:"
-echo "--- carambus_api service ---"
-sudo systemctl status carambus_api --no-pager | head -15
+echo "--- puma-carambus_api service ---"
+sudo systemctl status puma-carambus_api --no-pager | head -15
 echo ""
 
-echo "--- carambus service ---"
-sudo systemctl status carambus --no-pager | head -15
+echo "--- puma-carambus service ---"
+sudo systemctl status puma-carambus --no-pager | head -15
 echo ""
 
 echo "=========================================="
 echo "Diagnosis complete"
 echo "=========================================="
-
-
-
-
-
