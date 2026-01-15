@@ -252,7 +252,7 @@ log_success "Shared files linked"
 
 log_step "Creating symlinks for shared directories..."
 
-# Linked directories (from deploy.rb)
+# Linked directories (from deploy.rb) - NOTE: bundle is NOT symlinked yet
 linked_dirs=(
     "log"
     "tmp/pids"
@@ -261,7 +261,6 @@ linked_dirs=(
     "public/system"
     "storage"
     "config/credentials"
-    "bundle"
 )
 
 for dir in "${linked_dirs[@]}"; do
@@ -292,16 +291,25 @@ log_step "Installing Ruby dependencies..."
 
 cd "$NEW_RELEASE_PATH"
 
+# Remove the .bundle directory if it exists to start fresh
+if [ -d ".bundle" ]; then
+    /usr/bin/env rm -rf ".bundle"
+fi
+
 # Configure bundler path and without groups
 RAILS_ENV=production $RBENV_ROOT/bin/rbenv exec bundle config --local path "${SHARED_PATH}/bundle"
 RAILS_ENV=production $RBENV_ROOT/bin/rbenv exec bundle config --local without development:test
 
 # Install gems first (without deployment mode to allow Git repos to be cloned)
-log_info "  Running bundle install (initial)..."
+log_info "  Running bundle install..."
 RAILS_ENV=production $RBENV_ROOT/bin/rbenv exec bundle install --jobs 4
 
-# Now set deployment mode for future deploys
-RAILS_ENV=production $RBENV_ROOT/bin/rbenv exec bundle config --local deployment true
+# Now symlink the .bundle directory to shared for consistency
+if [ -d "${NEW_RELEASE_PATH}/.bundle" ]; then
+    /usr/bin/env rm -rf "${NEW_RELEASE_PATH}/.bundle"
+fi
+/usr/bin/env ln -s "${SHARED_PATH}/.bundle" "${NEW_RELEASE_PATH}/.bundle"
+log_info "  Linked: .bundle (after install)"
 
 log_success "Ruby dependencies installed"
 
