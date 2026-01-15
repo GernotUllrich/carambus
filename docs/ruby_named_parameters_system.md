@@ -60,7 +60,7 @@ bundle exec rails 'mode:named:local' \
   MODE_DOMAIN=carambus.de \
   MODE_LOCATION_ID=1 \
   MODE_CLUB_ID=357 \
-  MODE_HOST=new.carambus.de \
+  MODE_HOST=carambus.de \
   MODE_RAILS_ENV=production
 ```
 

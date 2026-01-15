@@ -2,7 +2,7 @@
 # Check Puma logs for carambus
 
 echo "=========================================="
-echo "Puma Logs for new.carambus.de"
+echo "Puma Logs for carambus.de"
 echo "=========================================="
 echo ""
 

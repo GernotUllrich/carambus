@@ -2695,7 +2695,7 @@ ENV
         'context' => context,
         'region_id' => 1,
         'club_id' => location_id.to_i,
-        'api_url' => 'https://newapi.carambus.de/',
+        'api_url' => 'https://api.carambus.de/',
         'season_name' => '2025/2026',
         'application_name' => 'carambus',
         'basename' => "carambus_#{scenario_name}",

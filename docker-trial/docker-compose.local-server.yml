@@ -1,5 +1,5 @@
 # Carambus Local Server Docker Compose Configuration
-# Für lokale Server (new.carambus.de -> carambus.de)
+# Für lokale Server (carambus.de)
 # Läuft unter www-data User
 # Unterstützt location-spezifische Erweiterungen (id > 50000000)
 

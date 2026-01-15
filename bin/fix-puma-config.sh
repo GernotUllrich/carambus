@@ -71,7 +71,7 @@ echo "=========================================="
 echo "Fix complete!"
 echo "=========================================="
 echo ""
-echo "Please test: https://new.carambus.de"
+echo "Please test: https://carambus.de"
 
 
 

@@ -290,8 +290,8 @@ port ENV.fetch("PORT") { 3000 }
 - **Beschreibung**: Lokaler Server (verbindet sich mit API Server)
 - **Context**: LOCAL
 - **API URL**: https://newapi.carambus.de
-- **Production**: new.carambus.de:80
-- **SSH**: new.carambus.de:8910
+- **Production**: carambus.de:80
+- **SSH**: carambus.de:8910
 - **Status**: ✅ Erstellt und getestet mit Unix-Sockets
 - **Besonderheit**: Spezielle Datenbank-Transformation (Version-Sequenz-Reset)
 

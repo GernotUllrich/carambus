@@ -3,7 +3,7 @@
 :database: carambus_api_production
 :domain: api.carambus.de
 :rails_env: production
-:host: newapi.carambus.de
+:host: api.carambus.de
 :port: '3001'
 :branch: master
 :puma_script: manage-puma-api.sh

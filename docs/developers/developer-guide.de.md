@@ -468,8 +468,8 @@ carambus_scenarioname_production (on server)
 - **Enthält**: DB-Drop/Create, Dump-Restore, Sequence-Reset
 
 #### Verfügbare Scenarios
-- **carambus**: Hauptproduktionsumgebung (new.carambus.de)
-- **carambus_api**: API-Server (newapi.carambus.de)
+- **carambus**: Hauptproduktionsumgebung (carambus.de)
+- **carambus_api**: API-Server (api.carambus.de)
 - **carambus_location_2459**: PHAT Consulting Location
 - **carambus_location_2460**: Test-Location
 - **carambus_location_5101**: Weitere Test-Location

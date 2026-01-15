@@ -39,7 +39,7 @@ All functionality is now handled by the Scenario Management System:
 
 ```bash
 # OLD (obsolete):
-bundle exec rails 'mode:local' MODE_LOCATION_ID=5101 MODE_API_URL=https://newapi.carambus.de/
+bundle exec rails 'mode:local' MODE_LOCATION_ID=5101 MODE_API_URL=https://api.carambus.de/
 
 # NEW (current):
 rake scenario:deploy[carambus_location_5101,production]

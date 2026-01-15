@@ -1,5 +1,5 @@
 # Carambus API Server Docker Compose Configuration
-# Für den zentralen API-Server (newapi.carambus.de -> api.carambus.de)
+# Für den zentralen API-Server (api.carambus.de)
 # Läuft unter www-data User
 
 version: '3.8'

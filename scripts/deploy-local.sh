@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Deployment-Skript für Local Server (new.carambus.de)
+# Deployment-Skript für Local Server (carambus.de)
 # Verwendet Capistrano - einfach und zuverlässig
 
 set -euo pipefail
@@ -23,14 +23,14 @@ print_warning() {
     echo -e "${YELLOW}[WARNING]${NC} $1"
 }
 
-print_info "Deployment für Local Server (new.carambus.de) wird gestartet..."
+print_info "Deployment für Local Server (carambus.de) wird gestartet..."
 
 # Capistrano-Deployment starten (Assets werden automatisch auf dem Server gebaut)
 print_info "Starte Capistrano-Deployment..."
 bundle exec cap local deploy
 
 print_success "Local Server Deployment abgeschlossen!"
-print_info "Die Anwendung läuft jetzt auf new.carambus.de"
+print_info "Die Anwendung läuft jetzt auf carambus.de"
 print_info "Nginx neu laden: sudo systemctl reload nginx"
 print_info "Puma-Status prüfen: sudo systemctl status puma_carambus"
 print_info ""

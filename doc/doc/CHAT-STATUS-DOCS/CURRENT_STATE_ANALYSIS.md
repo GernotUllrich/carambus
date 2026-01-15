@@ -6,7 +6,7 @@ Datum: Do  4 Sep 2025 15:31:12 CEST
 🔍 CURRENT MODE STATUS
 ============================================================
 Current Configuration:
-  API URL: https://newapi.carambus.de/
+  API URL: https://api.carambus.de/
   Context: NBV
   Database: carambus_location_2459_production
   Deploy Basename: carambus
@@ -28,14 +28,14 @@ DETAILED PARAMETER BREAKDOWN
 1.  season_name:     2025/2026
 2.  application_name: carambus
 3.  context:         NBV
-4.  api_url:         https://newapi.carambus.de/
+4.  api_url:         https://api.carambus.de/
 5.  basename:        carambus
 6.  database:        carambus_location_2459_production
 7.  domain:          carambus.de
 8.  location_id:     2459
 9.  club_id:         2459
 10. rails_env:       development
-11. host:            newapi.carambus.de
+11. host:            api.carambus.de
 12. port:            8910
 13. branch:          master
 14. puma_script:     manage-puma-api.sh
@@ -43,21 +43,21 @@ DETAILED PARAMETER BREAKDOWN
 🔄 COMPLETE PARAMETER STRING:
 ----------------------------------------
 ✅ All parameters configured
-2025/2026,carambus,NBV,https://newapi.carambus.de/,carambus,carambus_location_2459_production,carambus.de,2459,2459,development,newapi.carambus.de,8910,master,manage-puma-api.sh
+2025/2026,carambus,NBV,https://api.carambus.de/,carambus,carambus_location_2459_production,carambus.de,2459,2459,development,api.carambus.de,8910,master,manage-puma-api.sh
 
 📝 USAGE:
 ----------------------------------------
 To switch to this exact configuration:
-bundle exec rails "mode:local[2025/2026,carambus,NBV,https://newapi.carambus.de/,carambus,carambus_location_2459_production,carambus.de,2459,2459,development,newapi.carambus.de,8910,master,manage-puma-api.sh]"
+bundle exec rails "mode:local[2025/2026,carambus,NBV,https://api.carambus.de/,carambus,carambus_location_2459_production,carambus.de,2459,2459,development,api.carambus.de,8910,master,manage-puma-api.sh]"
 
 Or save this configuration:
-./bin/mode-params.sh save my_current_config "2025/2026,carambus,NBV,https://newapi.carambus.de/,carambus,carambus_location_2459_production,carambus.de,2459,2459,development,newapi.carambus.de,8910,master,manage-puma-api.sh"
+./bin/mode-params.sh save my_current_config "2025/2026,carambus,NBV,https://api.carambus.de/,carambus,carambus_location_2459_production,carambus.de,2459,2459,development,api.carambus.de,8910,master,manage-puma-api.sh"
 
 ## 2. AKTUELLE KONFIGURATIONSDATEIEN
 ### config/carambus.yml:
 ---
 default:
-  carambus_api_url: https://newapi.carambus.de/
+  carambus_api_url: https://api.carambus.de/
   location_id: 2459
   application_name: carambus
   basename: carambus
@@ -75,7 +75,7 @@ default:
   no_local_protection: 'false'
   club_id: 2459
 development:
-  carambus_api_url: https://newapi.carambus.de/
+  carambus_api_url: https://api.carambus.de/
   location_id: 2459
   application_name: carambus
   basename: carambus
@@ -90,7 +90,7 @@ development:
   no_local_protection: 'false'
   club_id: 2459
 production:
-  carambus_api_url: https://newapi.carambus.de/
+  carambus_api_url: https://api.carambus.de/
   location_id: 2459
   application_name: carambus
   basename: carambus

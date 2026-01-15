@@ -6,7 +6,7 @@ This feature allows system administrators to force a complete reload of tourname
 
 ## Use Case
 
-When a tournament has been completed and closed on the API server (newapi.carambus.de), but the local development or location server is out of sync, a sysadmin can force a complete reload without needing to use the Rails console.
+When a tournament has been completed and closed on the API server (api.carambus.de), but the local development or location server is out of sync, a sysadmin can force a complete reload without needing to use the Rails console.
 
 ## How to Use
 

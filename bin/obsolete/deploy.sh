@@ -234,7 +234,7 @@ deploy_local_server() {
     # Configure mode
     print_status "Configuring local mode..."
     MODE_BASENAME=carambus \
-    MODE_DOMAIN=new.carambus.de \
+    MODE_DOMAIN=carambus.de \
     MODE_SSL_ENABLED=true \
     MODE_HOST=$SERVER_HOST \
     MODE_PORT=$SERVER_PORT \

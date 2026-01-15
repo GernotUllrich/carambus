@@ -1,10 +1,10 @@
 #!/bin/bash
-# Restart Puma for carambus (new.carambus.de)
+# Restart Puma for carambus (carambus.de)
 
 set -e
 
 echo "=========================================="
-echo "Restarting Puma for new.carambus.de"
+echo "Restarting Puma for carambus.de"
 echo "=========================================="
 echo ""
 
@@ -118,7 +118,7 @@ echo "=========================================="
 echo "Restart complete!"
 echo "=========================================="
 echo ""
-echo "Please test: https://new.carambus.de"
+echo "Please test: https://carambus.de"
 echo ""
 echo "If still having issues, check logs:"
 echo "  tail -f /var/www/carambus/shared/log/puma.log"

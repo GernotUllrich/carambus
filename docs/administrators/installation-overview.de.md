@@ -30,7 +30,7 @@ Für spezielle Anforderungen oder Legacy-Systeme:
 ### Production-Szenarien
 1. **API-Server** (`carambus`)
    - Zentrale API für alle Local-Server
-   - Domain: newapi.carambus.de
+   - Domain: api.carambus.de
    - Kann auch als Hosting-Server fungieren
 
 2. **Local-Server** (`carambus_location_*`)

@@ -12,7 +12,7 @@ Carambus verwendet **Capistrano** für alle Deployments. Docker wurde entfernt, 
 
 ### Neu (carambus - Open Source)
 - **API Server**: `newapi.carambus.de` → `/var/www/carambus_api/current`
-- **Local Server**: `new.carambus.de` → `/var/www/carambus/current`
+- **Local Server**: `carambus.de` → `/var/www/carambus/current`
 
 ## Deployment
 
@@ -27,7 +27,7 @@ Carambus verwendet **Capistrano** für alle Deployments. Docker wurde entfernt, 
 bundle exec cap api deploy
 ```
 
-#### Local Server (new.carambus.de)
+#### Local Server (carambus.de)
 ```bash
 # Einfach mit Skript
 ./scripts/deploy-local.sh
@@ -56,7 +56,7 @@ Du musst **nichts lokal** bauen - Capistrano übernimmt das alles!
 
 ### Nginx-Konfigurationen
 - `nginx-host-config/newapi.carambus.de` - API Server
-- `nginx-host-config/new.carambus.de` - Local Server
+- `nginx-host-config/carambus.de` - Local Server
 
 ## Ports
 
@@ -90,7 +90,7 @@ sudo systemctl status puma_carambus
 
 ## Migration von carambus2
 
-1. **Neue Domains testen** mit `newapi.carambus.de` und `new.carambus.de`
+1. **Production Domains verwenden** `api.carambus.de` und `carambus.de`
 2. **Funktionalität verifizieren**
 3. **DNS umstellen** von `api.carambus.de` → `newapi.carambus.de`
 4. **Alte carambus2-Installationen** entfernen

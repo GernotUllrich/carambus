@@ -4,7 +4,7 @@
 
 set -e
 
-SSH_HOST="newapi.carambus.de"
+SSH_HOST="api.carambus.de"
 SSH_PORT="8910"
 SSH_USER="www-data"
 

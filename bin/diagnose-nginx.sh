@@ -21,13 +21,13 @@ echo ""
 
 echo "4. Checking if our configurations exist:"
 echo ""
-echo "--- newapi.carambus.de config ---"
-if [ -f /etc/nginx/sites-enabled/newapi.carambus.de ]; then
-    echo "✅ newapi.carambus.de exists"
+echo "--- api.carambus.de config ---"
+if [ -f /etc/nginx/sites-enabled/api.carambus.de ]; then
+    echo "✅ api.carambus.de exists"
     echo "First 30 lines:"
-    head -30 /etc/nginx/sites-enabled/newapi.carambus.de
+    head -30 /etc/nginx/sites-enabled/api.carambus.de
 else
-    echo "❌ newapi.carambus.de MISSING"
+    echo "❌ api.carambus.de MISSING"
 fi
 echo ""
 
@@ -52,15 +52,15 @@ if [ -f /var/log/nginx/error.log ]; then
 fi
 echo ""
 
-if [ -f /var/log/nginx/newapi.carambus.de_error.log ]; then
-    echo "--- newapi.carambus.de error log ---"
-    sudo tail -20 /var/log/nginx/newapi.carambus.de_error.log
+if [ -f /var/log/nginx/api.carambus.de_error.log ]; then
+    echo "--- api.carambus.de error log ---"
+    sudo tail -20 /var/log/nginx/api.carambus.de_error.log
 fi
 echo ""
 
-if [ -f /var/log/nginx/new.carambus.de_error.log ]; then
-    echo "--- new.carambus.de error log ---"
-    sudo tail -20 /var/log/nginx/new.carambus.de_error.log
+if [ -f /var/log/nginx/carambus.de_error.log ]; then
+    echo "--- carambus.de error log ---"
+    sudo tail -20 /var/log/nginx/carambus.de_error.log
 fi
 echo ""
 

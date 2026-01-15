@@ -12,7 +12,7 @@ namespace :mode do
     location_id = params[:location_id] || '1'
     club_id = params[:club_id] || '357'
     rails_env = params[:rails_env] || 'development'
-    host = params[:host] || 'new.carambus.de'
+    host = params[:host] || 'carambus.de'
     port = params[:port] || '8910'  # SSH Port, not application port
     branch = params[:branch] || 'master'
     puma_script = params[:puma_script] || 'manage-puma.sh'
@@ -1258,7 +1258,7 @@ namespace :mode do
     location_id = params[:location_id] || '1'
     club_id = params[:club_id] || '357'
     rails_env = params[:rails_env] || 'development'
-    host = params[:host] || 'new.carambus.de'
+    host = params[:host] || 'carambus.de'
     port = params[:port] || '8910'  # SSH Port, not application port
     branch = params[:branch] || 'master'
     puma_script = params[:puma_script] || 'manage-puma.sh'
@@ -1323,7 +1323,7 @@ namespace :mode do
     location_id = params[:location_id] || '1'
     club_id = params[:club_id] || '357'
     rails_env = params[:rails_env] || 'production'
-    host = params[:host] || 'new.carambus.de'
+    host = params[:host] || 'carambus.de'
     port = params[:port] || '8910'  # SSH Port, not application port
     branch = params[:branch] || 'master'
     puma_script = params[:puma_script] || 'manage-puma.sh'

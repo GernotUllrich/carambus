@@ -1,8 +1,8 @@
 #!/bin/bash
-# Detailed diagnosis for carambus (new.carambus.de) Puma connection issues
+# Detailed diagnosis for carambus (carambus.de) Puma connection issues
 
 echo "=========================================="
-echo "Puma Diagnosis for new.carambus.de"
+echo "Puma Diagnosis for carambus.de"
 echo "=========================================="
 echo ""
 
@@ -99,7 +99,7 @@ else
 fi
 echo ""
 
-echo "10. Checking nginx error log for new.carambus.de:"
+echo "10. Checking nginx error log for carambus.de:"
 NGINX_ERROR="/var/log/carambus/error.log"
 if [ -f "$NGINX_ERROR" ]; then
     echo "✅ Nginx error log exists"

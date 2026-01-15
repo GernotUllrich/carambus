@@ -655,7 +655,7 @@ scenario:
   context: LOCAL                    # API, LOCAL, oder NBV
   region_id: 1
   club_id: 357
-  api_url: https://newapi.carambus.de/
+  api_url: https://api.carambus.de/
   season_name: 2025/2026
   application_name: carambus
   basename: carambus_location_5101

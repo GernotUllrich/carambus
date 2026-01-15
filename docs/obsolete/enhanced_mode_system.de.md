@@ -68,7 +68,7 @@ bundle exec rails 'mode:local' \
   MODE_DOMAIN=carambus.de \
   MODE_LOCATION_ID=1 \
   MODE_CLUB_ID=357 \
-  MODE_HOST=new.carambus.de \
+  MODE_HOST=carambus.de \
   MODE_RAILS_ENV=production \
   MODE_NGINX_PORT=80 \
   MODE_PUMA_SOCKET=puma-production.sock \
@@ -746,7 +746,7 @@ bundle exec rails cleanup:remove_non_region_records
 # Lokaler Server für NBV-Region
 MODE_CONTEXT=NBV \
 MODE_BASENAME=carambus \
-MODE_DOMAIN=new.carambus.de \
+MODE_DOMAIN=carambus.de \
 bundle exec rails 'mode:local'
 
 # Führt automatisch aus:

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Deployment-Skript für API Server (newapi.carambus.de)
+# Deployment-Skript für API Server (api.carambus.de)
 # Verwendet Capistrano - einfach und zuverlässig
 
 set -euo pipefail
@@ -23,7 +23,7 @@ print_warning() {
     echo -e "${YELLOW}[WARNING]${NC} $1"
 }
 
-print_info "Deployment für API Server (newapi.carambus.de) wird gestartet..."
+print_info "Deployment für API Server (api.carambus.de) wird gestartet..."
 
 # Prüfen ob es das erste Deployment ist
 print_info "Prüfe Server-Setup..."
