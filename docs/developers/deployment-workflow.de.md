@@ -494,3 +494,403 @@ rake "scenario:deploy[carambus_location_5101]"
 - Verwende nie manuelle `systemctl`-Befehle
 - Capistrano verwaltet alle Services automatisch
 - Bei Problemen: `prepare_deploy` erneut ausführen
+
+## Automatisierter Workflow mit bin/deploy-scenario.sh
+
+Das Script `bin/deploy-scenario.sh` automatisiert den kompletten Deployment-Workflow von der Konfiguration bis zum laufenden System.
+
+### Übersicht
+
+```bash
+# Vollständiger Workflow (löscht alles und erstellt neu)
+bin/deploy-scenario.sh carambus_location_5101
+
+# Mit Auto-Confirm (keine interaktiven Prompts)
+bin/deploy-scenario.sh carambus_location_5101 -y
+
+# Production-Only Mode (bewahrt Development-Environment)
+bin/deploy-scenario.sh carambus_location_5101 --production-only
+
+# Skip Cleanup (überspringt Löschung, aber erstellt Development neu)
+bin/deploy-scenario.sh carambus_location_5101 --skip-cleanup
+```
+
+### Workflow-Modi
+
+#### Standard-Modus (Vollständiger Workflow)
+
+```bash
+bin/deploy-scenario.sh carambus_bcw
+```
+
+**Ausgeführte Schritte:**
+
+1. **Step 0: Complete Cleanup** 🧹
+   - Löscht lokales Scenario-Verzeichnis (`$CARAMBUS_BASE/$SCENARIO_NAME`)
+   - Droppt Development-Datenbank (außer bei `carambus_api`)
+   - Entfernt Puma Service auf Raspberry Pi
+   - Entfernt Nginx-Konfiguration
+   - Droppt Production-Datenbank (mit Sicherheitschecks für lokale Daten)
+   - Löscht Deployment-Verzeichnis (`/var/www/$SCENARIO_NAME`)
+
+2. **Step 1: Prepare Development** 🔧
+   - Generiert alle Konfigurationsdateien
+   - Erstellt Rails Root Folder
+   - Synct mit `carambus_api_production` (falls neuere Daten vorhanden)
+   - Erstellt Development-Datenbank aus Template
+   - Wendet Region-Filterung an
+   - Richtet Development-Environment ein
+
+3. **Step 2: Prepare Deploy** 📦
+   - Generiert Production-Konfigurationsdateien
+   - Erstellt Production-Datenbank aus Development-Dump
+   - Backup von lokalen Daten (ID > 50.000.000) - **automatisch**
+   - Restore lokaler Daten nach DB-Replacement - **automatisch**
+   - Kopiert Deployment-Files (nginx, puma, etc.)
+   - Uploaded Config-Files zum Server
+   - Erstellt Systemd-Service und Nginx-Konfiguration
+
+4. **Step 3: Deploy** 🚀
+   - Führt Capistrano-Deployment aus
+   - Startet Puma-Service automatisch neu
+   - Deployment wird abgeschlossen
+
+5. **Step 4: Prepare Client** 🍓
+   - Installiert benötigte Packages (chromium, wmctrl, xdotool)
+   - Erstellt Kiosk-User
+   - Richtet Systemd-Service ein
+
+6. **Step 5: Deploy Client** 📱
+   - Uploaded Scoreboard-URL
+   - Installiert Autostart-Script
+   - Aktiviert Systemd-Service
+   - Startet Kiosk-Mode
+
+7. **Step 6: Final Test** 🧪
+   - Testet komplette Funktionalität
+   - Testet Browser-Restart
+
+#### Production-Only Mode (⭐ Empfohlen für Config-Updates)
+
+```bash
+bin/deploy-scenario.sh carambus_bcw --production-only
+```
+
+**Wann verwenden:**
+- Nur Production-Konfiguration aktualisieren (z.B. neue `deploy.rb`)
+- Development-Environment soll **unverändert** bleiben
+- Lokale Anpassungen in Development bewahren
+- Schnellere Iteration ohne Development neu zu erstellen
+
+**Was wird NICHT gemacht:**
+- ❌ Step 0: Cleanup wird übersprungen
+- ❌ Step 1: Development-Environment wird **NICHT NEU GENERIERT**
+  - Bestehendes Development-Verzeichnis bleibt **UNVERÄNDERT**
+  - Keine Änderungen an Development-Datenbank
+  - Alle lokalen Anpassungen bleiben erhalten
+
+**Was wird gemacht:**
+- ✅ Step 2: **Nur** Production-Config neu generieren
+  - Generiert neue `config/deploy.rb` aus Template
+  - Generiert neue `config/deploy/production.rb`
+  - Updated Production-Datenbank (mit lokalen Daten-Backup)
+  - Uploaded neue Config-Files zum Server
+- ✅ Step 3-7: Deploy, Client Setup, Tests
+
+**Beispiel-Use-Case:**
+```bash
+# Template wurde in carambus_master geändert (z.B. deploy.rb Fix)
+# Production-Config soll neu generiert werden, aber Development bleibt
+cd /path/to/carambus_master
+git pull  # Holt neue Templates
+
+# Nur Production neu generieren
+bin/deploy-scenario.sh carambus_bcw --production-only -y
+```
+
+#### Skip-Cleanup Mode
+
+```bash
+bin/deploy-scenario.sh carambus_bcw --skip-cleanup
+```
+
+**Wann verwenden:**
+- Iterative Entwicklung
+- Development-Datenbank soll nicht gelöscht werden
+- Server-Cleanup soll übersprungen werden
+
+**⚠️ WICHTIG:** Development wird trotzdem **neu generiert**!
+- Config-Files werden überschrieben
+- Lokale Anpassungen gehen verloren
+- Für Config-Preservation besser `--production-only` verwenden
+
+**Was wird NICHT gemacht:**
+- ❌ Step 0: Cleanup wird übersprungen
+
+**Was wird gemacht:**
+- ✅ Step 1: Development **wird NEU GENERIERT** (überschreibt Files!)
+- ✅ Step 2-7: Alle weiteren Schritte
+
+### Vergleich der Modi
+
+| Flag | Step 0 (Cleanup) | Step 1 (Dev) | Step 2 (Prod) | Development-Files | Use Case |
+|------|-----------------|--------------|---------------|-------------------|----------|
+| (keine) | ✅ Vollständig | ✅ Neu erstellen | ✅ Neu erstellen | ⚠️ Komplett neu | Vollständiges Setup |
+| `--skip-cleanup` | ❌ Übersprungen | ✅ **Neu erstellen** | ✅ Neu erstellen | ⚠️ Überschrieben | Iterative Entwicklung |
+| `--production-only` | ❌ Übersprungen | ❌ **Bewahren** | ✅ Neu erstellen | ✅ **Unverändert** | Production-Config-Updates |
+
+### Praktische Beispiele
+
+#### Beispiel 1: Erstes Setup eines neuen Scenarios
+
+```bash
+# config.yml wurde erstellt in carambus_data/scenarios/carambus_location_5101/
+cd /path/to/carambus_master
+
+# Vollständiger Setup
+bin/deploy-scenario.sh carambus_location_5101 -y
+
+# Ergebnis:
+# - Development-Environment erstellt
+# - Production deployed
+# - Client eingerichtet
+# - System läuft
+```
+
+#### Beispiel 2: Template-Update für bestehende Scenarios
+
+```bash
+# Situation: deploy.rb Template wurde in carambus_master gefixt
+cd /path/to/carambus_master
+git pull  # Holt neues Template
+
+# Nur Production-Config neu generieren (für alle Scenarios)
+for scenario in carambus_bcw carambus_phat carambus_pbv; do
+  bin/deploy-scenario.sh $scenario --production-only -y
+done
+
+# Ergebnis:
+# - Neue deploy.rb aus Template generiert
+# - Production deployed mit neuer Config
+# - Development bleibt unverändert
+```
+
+#### Beispiel 3: Code-Update für Scenario
+
+```bash
+cd /path/to/carambus_bcw
+git pull  # Neue Code-Version
+
+# Nur deployen, keine Config-Änderungen
+cap production deploy
+
+# Oder falls Assets erzwungen werden sollen:
+FORCE_ASSETS=1 cap production deploy
+```
+
+#### Beispiel 4: Nach Template-Änderung testen
+
+```bash
+# Nur für ein Test-Scenario Production neu generieren
+bin/deploy-scenario.sh carambus_test --production-only -y
+
+# Testen ob es funktioniert
+# Falls OK: Für alle anderen Scenarios wiederholen
+```
+
+### Sicherheitsmechanismen
+
+#### Lokale Daten-Erkennung
+
+Das Script schützt automatisch vor Datenverlust:
+
+```bash
+# Beim Cleanup wird geprüft:
+# 1. Hat die Production-DB lokale Daten (ID > 50.000.000)?
+# 2. Ist die Production-DB-Version neuer als Development?
+
+# Falls JA → Database wird NICHT gelöscht
+# Falls NEIN → Database wird gelöscht und neu erstellt
+```
+
+**Automatisches Backup & Restore:**
+```bash
+# In Step 2 (prepare_deploy):
+# 1. Check: Hat Production lokale Daten?
+# 2. JA → Automatisches Backup vor DB-Drop
+# 3. Neue DB wird erstellt aus Development
+# 4. Automatischer Restore lokaler Daten
+# 5. Kein manueller Eingriff nötig!
+```
+
+#### Bestätigungs-Prompts
+
+```bash
+# Interaktiver Modus (Standard):
+bin/deploy-scenario.sh carambus_bcw
+# → Fragt bei jedem kritischen Step nach Bestätigung
+
+# Auto-Confirm Modus (für Automation):
+bin/deploy-scenario.sh carambus_bcw -y
+# → Führt alle Steps automatisch aus
+```
+
+### Fehlerbehandlung
+
+#### Development-Verzeichnis existiert nicht (--production-only)
+
+```bash
+$ bin/deploy-scenario.sh carambus_new --production-only
+⏭️  Step 0: Cleanup skipped (--production-only)
+⏭️  Step 1: Development preparation skipped (--production-only)
+❌ Development environment not found at /path/to/carambus_new
+❌ Run without --production-only first to create it
+
+# Lösung: Erst vollständiges Setup
+$ bin/deploy-scenario.sh carambus_new -y
+```
+
+#### Production-Datenbank hat neuere Version
+
+```bash
+$ bin/deploy-scenario.sh carambus_bcw
+⚠️  Production database version (20250116120000) is higher than development (20250115100000)
+✅ Production database preserved (has local data or newer version)
+ℹ️  Step 2 (prepare_deploy) will handle database update with data preservation
+```
+
+#### SSH-Verbindung fehlgeschlagen
+
+```bash
+# Step 0 prüft SSH-Verbindung
+# Falls nicht erreichbar → Script stoppt mit klarer Fehlermeldung
+❌ Could not connect to SSH server bc-wedel.duckdns.org:8910
+```
+
+### Best Practices
+
+#### 1. Development und Production trennen
+
+```bash
+# ✅ RICHTIG: Production-Config separat aktualisieren
+bin/deploy-scenario.sh carambus_bcw --production-only -y
+
+# ❌ FALSCH: Vollständiger Workflow für kleine Änderungen
+bin/deploy-scenario.sh carambus_bcw -y  # Löscht alles!
+```
+
+#### 2. Templates zentral pflegen
+
+```bash
+# Alle Templates liegen in carambus_master
+cd /path/to/carambus_master
+
+# Template ändern
+vim templates/deploy/deploy_rb.erb
+
+# Commit & Push
+git add templates/deploy/deploy_rb.erb
+git commit -m "Fix deploy.rb template"
+git push
+
+# Für alle Scenarios ausrollen
+for scenario in carambus_bcw carambus_phat carambus_pbv; do
+  bin/deploy-scenario.sh $scenario --production-only -y
+done
+```
+
+#### 3. Lokale Anpassungen bewahren
+
+```bash
+# Development hat lokale Anpassungen (z.B. in config.yml)
+# → Verwende --production-only
+
+# ✅ Bewahrt Development
+bin/deploy-scenario.sh carambus_bcw --production-only -y
+
+# ❌ Überschreibt Development
+bin/deploy-scenario.sh carambus_bcw --skip-cleanup -y
+```
+
+#### 4. Iterative Code-Entwicklung
+
+```bash
+# Code-Änderungen am carambus_master
+cd /path/to/carambus_master
+git add .
+git commit -m "Feature X"
+git push
+
+# Scenarios aktualisieren (nur Code, keine Config)
+cd /path/to/carambus_bcw
+git pull
+cap production deploy
+
+# Oder falls Assets neu gebaut werden sollen:
+FORCE_ASSETS=1 cap production deploy
+```
+
+### Workflow-Diagramm mit Modi
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  bin/deploy-scenario.sh <scenario> [flags]                  │
+└─────────────────────────────────────────────────────────────┘
+                           │
+        ┌──────────────────┼──────────────────┐
+        │                  │                  │
+        ▼                  ▼                  ▼
+┌────────────────┐  ┌──────────────┐  ┌──────────────────┐
+│ (keine flags)  │  │ --skip-      │  │ --production-    │
+│                │  │ cleanup      │  │ only             │
+└────────────────┘  └──────────────┘  └──────────────────┘
+        │                  │                  │
+        ▼                  ▼                  ▼
+┌────────────────┐  ┌──────────────┐  ┌──────────────────┐
+│ Step 0: ✅     │  │ Step 0: ❌   │  │ Step 0: ❌       │
+│ Cleanup        │  │ Skip         │  │ Skip             │
+└────────────────┘  └──────────────┘  └──────────────────┘
+        │                  │                  │
+        ▼                  ▼                  ▼
+┌────────────────┐  ┌──────────────┐  ┌──────────────────┐
+│ Step 1: ✅     │  │ Step 1: ✅   │  │ Step 1: ❌       │
+│ Prepare Dev    │  │ Regenerate!  │  │ Keep existing!   │
+│ (neu)          │  │ (⚠️ overwrite)│  │ (✅ preserve)    │
+└────────────────┘  └──────────────┘  └──────────────────┘
+        │                  │                  │
+        └──────────────────┼──────────────────┘
+                           ▼
+                  ┌──────────────────┐
+                  │ Step 2: ✅       │
+                  │ Prepare Deploy   │
+                  │ (Production)     │
+                  └──────────────────┘
+                           │
+                           ▼
+                  ┌──────────────────┐
+                  │ Step 3-7: ✅     │
+                  │ Deploy, Client,  │
+                  │ Tests            │
+                  └──────────────────┘
+```
+
+### Cheat Sheet
+
+```bash
+# Vollständiges Setup (erstes Mal)
+bin/deploy-scenario.sh <scenario> -y
+
+# Template-Update ausrollen (bewahrt Development)
+bin/deploy-scenario.sh <scenario> --production-only -y
+
+# Nur Code deployen (keine Config-Änderungen)
+cd /path/to/<scenario> && git pull && cap production deploy
+
+# Assets erzwingen
+FORCE_ASSETS=1 cap production deploy
+
+# Alle Scenarios mit neuem Template aktualisieren
+for s in carambus_bcw carambus_phat carambus_pbv; do
+  bin/deploy-scenario.sh $s --production-only -y
+done
+```
