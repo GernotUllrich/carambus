@@ -101,6 +101,11 @@ class SeedingListExtractor
         # Format: "1 Smrcka Martin          4   Stahl Mario"
         two_column_without_points = /^\s*(\d+)\s+([A-ZÄÖÜ][\wäöüß\-]+)\s+([A-ZÄÖÜ][\wäöüß\-\.]+)\s{3,}(\d+)\s+([A-ZÄÖÜ][\wäöüß\-]+)\s+([A-ZÄÖÜ][\wäöüß\-\.]+)/i
         
+        # NEUE Variante: Zweispaltig mit weniger Whitespace (z.B. "2 Schröder Hans-Jörg 6 Kämmer Lothar")
+        # Die Zahl nach dem ersten Namen könnte Position (klein) oder Vorgabe (groß) sein
+        # Wir prüfen: Wenn Zahl <= 20 UND ein weiterer Name folgt → Position, sonst Vorgabe
+        two_column_compact = /^\s*(\d+)\s+([A-ZÄÖÜ][\wäöüß\-]+)\s+([A-ZÄÖÜ][\wäöüß\-\.]+)\s+(\d+)\s+([A-ZÄÖÜ][\wäöüß\-]+)\s+([A-ZÄÖÜ][\wäöüß\-\.]+)/i
+        
         # Einspaltig mit Vorgabe: Nummer + Nachname + Vorname + flexible Whitespace + Zahl
         single_with_points = /^\s*(\d+)\s+([A-ZÄÖÜ][\wäöüß\-]+)\s+([A-ZÄÖÜ][\wäöüß\-\.]+)\s+(\d+)(?:\s*Pkt)?/i
         
@@ -143,6 +148,37 @@ class SeedingListExtractor
             firstname: match[6].strip,
             full_name: "#{match[5].strip}, #{match[6].strip}"
           }
+        elsif (match = line.match(two_column_compact))
+          # Kompaktes zweispaltiges Format: "2 Schröder Hans-Jörg 6 Kämmer Lothar"
+          # Die Zahl nach dem ersten Namen könnte Position (klein, ≤20) oder Vorgabe (groß) sein
+          # Heuristik: Wenn ≤ 20 → wahrscheinlich Position, sonst Vorgabe
+          number_after_first = match[4].to_i
+          
+          if number_after_first <= 20
+            # Wahrscheinlich Position → Zweispaltig OHNE Vorgaben
+            players << {
+              position: match[1].to_i,
+              lastname: match[2].strip,
+              firstname: match[3].strip,
+              full_name: "#{match[2].strip}, #{match[3].strip}"
+            }
+            
+            players << {
+              position: number_after_first,
+              lastname: match[5].strip,
+              firstname: match[6].strip,
+              full_name: "#{match[5].strip}, #{match[6].strip}"
+            }
+          else
+            # Wahrscheinlich Vorgabe → Einspaltig MIT Vorgabe
+            players << {
+              position: match[1].to_i,
+              lastname: match[2].strip,
+              firstname: match[3].strip,
+              full_name: "#{match[2].strip}, #{match[3].strip}",
+              balls_goal: number_after_first
+            }
+          end
         elsif (match = line.match(single_with_points))
           # Einspaltig MIT Vorgabe (kann in zweispaltiger Tabelle vorkommen, z.B. letzte Zeile)
           players << {
