@@ -372,47 +372,83 @@ class SeedingListExtractor
   end
   
   # Matched Spieler aus der Datenbank mit der extrahierten Liste
+  # Strategie: Seedings existieren bereits aus Meldeliste-Scraping
+  # → Matche extrahierte Namen PRIORITÄR mit vorhandenen Seeding-Spielern
   def self.match_with_database(extracted_players, tournament)
     matched = []
     unmatched = []
     
+    # Hole alle Seeding-Spieler des Turniers (diese sind bereits korrekt aus Meldeliste)
+    seeding_players = tournament.seedings.joins(:player).includes(:player).map(&:player)
+    
     extracted_players.each do |ep|
       player = nil
       confidence = nil
+      match_method = nil
       
-      # Strategie 1: Exakter Match in Turnier-Seedings (beide Namen exakt)
-      player = tournament.seedings
-                         .joins(:player)
-                         .where("LOWER(players.lastname) = LOWER(?) AND LOWER(players.firstname) = LOWER(?)", 
-                                ep[:lastname].strip, ep[:firstname].strip)
-                         .first&.player
-      confidence = :high if player
+      # Strategie 1: Exakter Match mit Seeding-Spieler (Nachname exakt, Vorname exakt)
+      player = seeding_players.find do |p|
+        p.lastname.to_s.downcase == ep[:lastname].to_s.strip.downcase &&
+        p.firstname.to_s.downcase == ep[:firstname].to_s.strip.downcase
+      end
+      if player
+        confidence = :high
+        match_method = "Exakt (Name)"
+      end
       
-      # Strategie 2: Exakter Match in allen Spielern der Region
+      # Strategie 2: Nachname exakt, Vorname enthält extrahierten Namen
+      # Z.B. extrahiert "Gernot" matched "Dr. Gernot"
+      unless player
+        player = seeding_players.find do |p|
+          p.lastname.to_s.downcase == ep[:lastname].to_s.strip.downcase &&
+          p.firstname.to_s.downcase.include?(ep[:firstname].to_s.strip.downcase)
+        end
+        if player
+          confidence = :high
+          match_method = "Exakt (Nachname), enthält (Vorname)"
+        end
+      end
+      
+      # Strategie 3: Extrahierter Vorname enthält DB-Vorname
+      # Z.B. extrahiert "Dr. Gernot" matched "Gernot"
+      unless player
+        player = seeding_players.find do |p|
+          p.lastname.to_s.downcase == ep[:lastname].to_s.strip.downcase &&
+          ep[:firstname].to_s.downcase.include?(p.firstname.to_s.downcase)
+        end
+        if player
+          confidence = :high
+          match_method = "Exakt (Nachname), extrahiert enthält DB-Vorname"
+        end
+      end
+      
+      # Strategie 4: Fuzzy Match nur bei Nachname (Nachname enthält, Vorname exakt)
+      unless player
+        player = seeding_players.find do |p|
+          p.lastname.to_s.downcase.include?(ep[:lastname].to_s.strip.downcase) &&
+          p.firstname.to_s.downcase == ep[:firstname].to_s.strip.downcase
+        end
+        if player
+          confidence = :medium
+          match_method = "Fuzzy (Nachname enthält), exakt (Vorname)"
+        end
+      end
+      
+      # Strategie 5: Suche in ALLEN Spielern der Region (Fallback)
+      # Nur wenn in Seedings nicht gefunden
       unless player
         player = Player.where(type: nil, region_id: tournament.region_id)
                        .where("LOWER(lastname) = LOWER(?) AND LOWER(firstname) = LOWER(?)", 
                               ep[:lastname].strip, ep[:firstname].strip)
                        .first
-        confidence = :high if player
-      end
-      
-      # Strategie 3: Fuzzy-Match nur bei Nachname (mit exaktem Vorname)
-      unless player
-        player = Player.where(type: nil, region_id: tournament.region_id)
-                       .where("lastname ILIKE ? AND LOWER(firstname) = LOWER(?)", 
-                              "%#{ep[:lastname].strip}%", ep[:firstname].strip)
-                       .first
-        confidence = :medium if player
-      end
-      
-      # Strategie 4: Fuzzy-Match in allen Spielern (beide Namen ähnlich)
-      unless player
-        player = fuzzy_match_player(ep[:lastname], ep[:firstname])
-        confidence = :low if player
+        if player
+          confidence = :medium
+          match_method = "Exakt (aus Region, nicht in Seedings!)"
+        end
       end
       
       if player
+        Rails.logger.info "===== match ===== '#{ep[:full_name]}' → Player #{player.id} (#{player.lastname}, #{player.firstname}) via #{match_method}"
         matched << {
           position: ep[:position],
           player: player,
@@ -422,6 +458,7 @@ class SeedingListExtractor
           suggestion: (confidence != :high)
         }
       else
+        Rails.logger.warn "===== match ===== '#{ep[:full_name]}' → NICHT GEFUNDEN"
         unmatched << ep
       end
     end
