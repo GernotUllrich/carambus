@@ -377,12 +377,40 @@ class SeedingListExtractor
     unmatched = []
     
     extracted_players.each do |ep|
-      # Suche in der Meldeliste des Tournaments
+      player = nil
+      confidence = nil
+      
+      # Strategie 1: Exakter Match in Turnier-Seedings (beide Namen exakt)
       player = tournament.seedings
                          .joins(:player)
-                         .where("players.lastname ILIKE ? AND players.firstname ILIKE ?", 
-                                ep[:lastname], ep[:firstname])
+                         .where("LOWER(players.lastname) = LOWER(?) AND LOWER(players.firstname) = LOWER(?)", 
+                                ep[:lastname].strip, ep[:firstname].strip)
                          .first&.player
+      confidence = :high if player
+      
+      # Strategie 2: Exakter Match in allen Spielern der Region
+      unless player
+        player = Player.where(type: nil, region_id: tournament.region_id)
+                       .where("LOWER(lastname) = LOWER(?) AND LOWER(firstname) = LOWER(?)", 
+                              ep[:lastname].strip, ep[:firstname].strip)
+                       .first
+        confidence = :high if player
+      end
+      
+      # Strategie 3: Fuzzy-Match nur bei Nachname (mit exaktem Vorname)
+      unless player
+        player = Player.where(type: nil, region_id: tournament.region_id)
+                       .where("lastname ILIKE ? AND LOWER(firstname) = LOWER(?)", 
+                              "%#{ep[:lastname].strip}%", ep[:firstname].strip)
+                       .first
+        confidence = :medium if player
+      end
+      
+      # Strategie 4: Fuzzy-Match in allen Spielern (beide Namen ähnlich)
+      unless player
+        player = fuzzy_match_player(ep[:lastname], ep[:firstname])
+        confidence = :low if player
+      end
       
       if player
         matched << {
@@ -390,24 +418,11 @@ class SeedingListExtractor
           player: player,
           extracted_name: ep[:full_name],
           balls_goal: ep[:balls_goal],  # Vorgabe mitgeben
-          confidence: :high
+          confidence: confidence,
+          suggestion: (confidence != :high)
         }
       else
-        # Fuzzy-Match in allen Spielern
-        player = fuzzy_match_player(ep[:lastname], ep[:firstname])
-        
-        if player
-          matched << {
-            position: ep[:position],
-            player: player,
-            extracted_name: ep[:full_name],
-            balls_goal: ep[:balls_goal],  # Vorgabe mitgeben
-            confidence: :medium,
-            suggestion: true
-          }
-        else
-          unmatched << ep
-        end
+        unmatched << ep
       end
     end
     
@@ -420,8 +435,9 @@ class SeedingListExtractor
   
   def self.fuzzy_match_player(lastname, firstname)
     # Suche mit Levenshtein-Distanz oder ähnlich
-    # Für jetzt: einfache ILIKE-Suche
-    Player.where("lastname ILIKE ? OR firstname ILIKE ?", 
+    # Wichtig: AND statt OR - beide Namen müssen matchen!
+    # Sonst werden falsche Spieler zugeordnet (z.B. "Unger, Jörg" -> "Winterstein, Jörg")
+    Player.where("lastname ILIKE ? AND firstname ILIKE ?", 
                  "%#{lastname}%", "%#{firstname}%").first
   end
 end
