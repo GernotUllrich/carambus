@@ -119,9 +119,23 @@ if [ -f "${DEPLOY_PATH}current/config/deploy.rb" ]; then
     APPLICATION_NAME=$(grep "set :application" "${DEPLOY_PATH}current/config/deploy.rb" 2>/dev/null | sed -E 's/.*set :application, *["\x27]?([^"\x27,]+)["\x27]?.*/\1/' || echo "")
 fi
 
-# If not found, try from git repo (if it exists)
+# If not found, try from git repo (if it exists and is accessible)
 if [ -z "$APPLICATION_NAME" ] && [ -d "${REPO_PATH}" ]; then
+    # Temporarily disable exit on error for git command
+    set +e
     APPLICATION_NAME=$(cd "${REPO_PATH}" && git show HEAD:config/deploy.rb 2>/dev/null | grep "set :application" | sed -E 's/.*set :application, *["\x27]?([^"\x27,]+)["\x27]?.*/\1/' || echo "")
+    set -e
+fi
+
+# If not found, try from a recent release
+if [ -z "$APPLICATION_NAME" ] && [ -d "${RELEASES_PATH}" ]; then
+    LATEST_RELEASE=$(ls -t "${RELEASES_PATH}" 2>/dev/null | head -1)
+    if [ -n "$LATEST_RELEASE" ] && [ -f "${RELEASES_PATH}/${LATEST_RELEASE}/config/deploy.rb" ]; then
+        APPLICATION_NAME=$(grep "set :application" "${RELEASES_PATH}/${LATEST_RELEASE}/config/deploy.rb" 2>/dev/null | sed -E 's/.*set :application, *["\x27]?([^"\x27,]+)["\x27]?.*/\1/' || echo "")
+        if [ -n "$APPLICATION_NAME" ] && [ "$APPLICATION_NAME" != "set" ]; then
+            log_info "Application name from previous release: $APPLICATION_NAME"
+        fi
+    fi
 fi
 
 # Validate and fallback to basename if needed
@@ -205,12 +219,18 @@ REPO_URL="git@github.com:GernotUllrich/${APPLICATION_NAME}.git"
 log_info "Repository URL: $REPO_URL"
 
 # Check if we have SSH access to GitHub
+# Note: ssh -T returns exit code 1 even on success, so we check the output
+set +e  # Temporarily disable exit on error
 SSH_CHECK=$(ssh -T git@github.com 2>&1)
+SSH_EXIT_CODE=$?
+set -e  # Re-enable exit on error
+
 if echo "$SSH_CHECK" | grep -q "successfully authenticated"; then
     log_info "GitHub SSH access: OK"
 else
     log_error "No SSH access to GitHub detected."
-    log_error "SSH test result: $SSH_CHECK"
+    log_error "SSH test output: $SSH_CHECK"
+    log_error "SSH exit code: $SSH_EXIT_CODE"
     log_error ""
     log_error "This script needs SSH access to GitHub to clone/update the repository."
     log_error ""
