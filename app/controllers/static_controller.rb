@@ -32,6 +32,11 @@ class StaticController < ApplicationController
     params
   end
 
+  def repo_version
+    # This method is called by the view to display version information
+    # and prepare git changelog if out of date
+  end
+
   def update_version
     unless local_server?
       redirect_to repo_version_path, alert: "Update is only available on local servers"

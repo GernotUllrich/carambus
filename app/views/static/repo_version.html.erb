@@ -29,6 +29,21 @@
       <div class="text-red-700 mb-4">
         <%= "Version is out-of-date (api.carambus.de has version #{revision[0..8]})" %>
       </div>
+      
+      <%- changelog = git_changelog(repo_version, revision) rescue [] -%>
+      <%- if changelog.any? -%>
+        <div class="mt-4 mb-4 p-4 bg-gray-100 rounded">
+          <h3 class="font-bold mb-2">📝 Changes in latest version:</h3>
+          <div class="font-mono text-sm">
+            <%- changelog.each do |commit_line| -%>
+              <div class="py-1 border-b border-gray-300 last:border-0">
+                <%= commit_line %>
+              </div>
+            <%- end -%>
+          </div>
+        </div>
+      <%- end -%>
+      
       <div class="mt-4">
         <%= button_to "Update to latest version", 
                       update_version_path, 
