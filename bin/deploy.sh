@@ -344,6 +344,19 @@ if [ -d ".bundle" ]; then
     /usr/bin/env rm -rf ".bundle"
 fi
 
+# Check if shared/bundle exists and has a broken state (git gems not checked out)
+# This can happen after database reset which removes shared directory
+if [ -d "${SHARED_PATH}/bundle" ]; then
+    # Check for the specific error pattern: bundler/gems directory exists but is broken
+    BUNDLER_GEMS_DIR="${SHARED_PATH}/bundle/ruby/*/bundler/gems"
+    if ls $BUNDLER_GEMS_DIR 2>/dev/null | head -1 >/dev/null; then
+        log_warning "Detected potentially broken git gems in bundle cache"
+        log_info "  Cleaning bundle cache to avoid 'not yet checked out' errors..."
+        /usr/bin/env rm -rf "${SHARED_PATH}/bundle"
+        log_success "Bundle cache cleaned"
+    fi
+fi
+
 # Configure bundler with explicit settings (not using --local to avoid .bundle/config issues)
 log_info "  Configuring bundler..."
 RAILS_ENV=production $RBENV_ROOT/bin/rbenv exec bundle config set --local path "${SHARED_PATH}/bundle"
