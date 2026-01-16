@@ -134,8 +134,13 @@ namespace :deploy do
     task :verify_manifest do
       on roles(:app) do
         within release_path do
-          execute :ls, "-la public/assets/"
-          execute :find, "public/assets", "-name '*.json'", "-o", "-name 'manifest*'"
+          # Only verify if assets were actually compiled
+          if fetch(:assets_changed, true)
+            execute :ls, "-la public/assets/"
+            execute :find, "public/assets", "-name '*.json'", "-o", "-name 'manifest*'"
+          else
+            info "Skipping manifest verification (assets were not recompiled)"
+          end
         end
       end
     end

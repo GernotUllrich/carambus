@@ -44,26 +44,42 @@ info() {
 # Parse command line arguments
 SCENARIO_NAME=""
 AUTO_CONFIRM=false
+SKIP_CLEANUP=false
+PRODUCTION_ONLY=false
 
 show_usage() {
-    echo "Usage: $0 <scenario_name> [-y]"
+    echo "Usage: $0 <scenario_name> [-y] [--skip-cleanup] [--production-only]"
     echo ""
     echo "Arguments:"
-    echo "  scenario_name    Name of the scenario to deploy (e.g., carambus_location_5101)"
-    echo "  -y               Auto-confirm all steps (skip interactive prompts)"
+    echo "  scenario_name       Name of the scenario to deploy (e.g., carambus_location_5101)"
+    echo "  -y                  Auto-confirm all steps (skip interactive prompts)"
+    echo "  --skip-cleanup      Skip Step 0 cleanup (useful for iterative deployments)"
+    echo "  --production-only   Only regenerate production configs, preserve development"
     echo ""
     echo "Examples:"
     echo "  $0 carambus_location_5101"
     echo "  $0 carambus_location_5101 -y"
+    echo "  $0 carambus_location_5101 --production-only       # Update production only"
+    echo "  $0 carambus_location_5101 --skip-cleanup -y       # Skip cleanup step"
     echo ""
-    echo "This script will:"
-    echo "  1. Clean up existing deployment"
-    echo "  2. Prepare development environment"
-    echo "  3. Prepare deployment configuration"
-    echo "  4. Deploy to server"
-    echo "  5. Prepare Raspberry Pi client"
-    echo "  6. Deploy client configuration"
-    echo "  7. Run final tests"
+    echo "Workflow modes:"
+    echo "  Default mode:"
+    echo "    1. Clean up existing deployment"
+    echo "    2. Prepare development environment"
+    echo "    3. Prepare deployment configuration"
+    echo "    4. Deploy to server"
+    echo "    5. Prepare Raspberry Pi client"
+    echo "    6. Deploy client configuration"
+    echo "    7. Run final tests"
+    echo ""
+    echo "  Production-only mode (--production-only):"
+    echo "    1. Skip cleanup (preserves development)"
+    echo "    2. Skip development preparation (uses existing)"
+    echo "    3. Prepare deployment configuration"
+    echo "    4. Deploy to server"
+    echo "    5. Prepare Raspberry Pi client"
+    echo "    6. Deploy client configuration"
+    echo "    7. Run final tests"
 }
 
 # Parse arguments
@@ -86,6 +102,15 @@ while [[ $# -gt 0 ]]; do
     case $1 in
         -y|--yes)
             AUTO_CONFIRM=true
+            shift
+            ;;
+        --skip-cleanup)
+            SKIP_CLEANUP=true
+            shift
+            ;;
+        --production-only)
+            PRODUCTION_ONLY=true
+            SKIP_CLEANUP=true  # Production-only implies skip cleanup
             shift
             ;;
         -h|--help)
@@ -454,20 +479,43 @@ main() {
     else
         log "Mode: Interactive"
     fi
+    if [ "$PRODUCTION_ONLY" = true ]; then
+        warning "Mode: Production-only (preserving development environment)"
+    fi
+    if [ "$SKIP_CLEANUP" = true ] && [ "$PRODUCTION_ONLY" = false ]; then
+        warning "Mode: Skip cleanup"
+    fi
     echo ""
     
-    # Step 0: Complete Cleanup
-    step_zero_cleanup
-    if [ $? -ne 0 ]; then
-        log "Workflow cancelled at cleanup step"
-        exit 1
+    # Step 0: Complete Cleanup (unless skipped)
+    if [ "$SKIP_CLEANUP" = false ]; then
+        step_zero_cleanup
+        if [ $? -ne 0 ]; then
+            log "Workflow cancelled at cleanup step"
+            exit 1
+        fi
+    else
+        log "⏭️  Step 0: Cleanup skipped (--skip-cleanup or --production-only)"
+        echo ""
     fi
     
-    # Step 1: Prepare Development
-    step_one_prepare_development
-    if [ $? -ne 0 ]; then
-        log "Workflow cancelled at development preparation"
-        exit 1
+    # Step 1: Prepare Development (skip in production-only mode)
+    if [ "$PRODUCTION_ONLY" = false ]; then
+        step_one_prepare_development
+        if [ $? -ne 0 ]; then
+            log "Workflow cancelled at development preparation"
+            exit 1
+        fi
+    else
+        log "⏭️  Step 1: Development preparation skipped (--production-only)"
+        info "Using existing development environment at $CARAMBUS_BASE/$SCENARIO_NAME"
+        # Verify development environment exists
+        if [ ! -d "$CARAMBUS_BASE/$SCENARIO_NAME" ]; then
+            error "Development environment not found at $CARAMBUS_BASE/$SCENARIO_NAME"
+            error "Run without --production-only first to create it"
+            exit 1
+        fi
+        echo ""
     fi
     
     # Step 2: Prepare Deploy
