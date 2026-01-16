@@ -344,27 +344,39 @@ if [ -d ".bundle" ]; then
     /usr/bin/env rm -rf ".bundle"
 fi
 
-# Check if shared/bundle exists and has a broken state (git gems not checked out)
-# This can happen after database reset which removes shared directory
-if [ -d "${SHARED_PATH}/bundle" ]; then
-    # Check for the specific error pattern: bundler/gems directory exists but is broken
-    BUNDLER_GEMS_DIR="${SHARED_PATH}/bundle/ruby/*/bundler/gems"
-    if ls $BUNDLER_GEMS_DIR 2>/dev/null | head -1 >/dev/null; then
-        log_warning "Detected potentially broken git gems in bundle cache"
-        log_info "  Cleaning bundle cache to avoid 'not yet checked out' errors..."
-        /usr/bin/env rm -rf "${SHARED_PATH}/bundle"
-        log_success "Bundle cache cleaned"
-    fi
-fi
-
 # Configure bundler with explicit settings (not using --local to avoid .bundle/config issues)
 log_info "  Configuring bundler..."
 RAILS_ENV=production $RBENV_ROOT/bin/rbenv exec bundle config set --local path "${SHARED_PATH}/bundle"
 RAILS_ENV=production $RBENV_ROOT/bin/rbenv exec bundle config set --local without 'development test'
 
-# Install gems
+# Install gems - if it fails with git checkout error, clean bundle cache and retry
 log_info "  Running bundle install..."
-RAILS_ENV=production $RBENV_ROOT/bin/rbenv exec bundle install --jobs 4
+set +e  # Temporarily disable exit on error
+BUNDLE_OUTPUT=$(RAILS_ENV=production $RBENV_ROOT/bin/rbenv exec bundle install --jobs 4 2>&1)
+BUNDLE_EXIT_CODE=$?
+set -e  # Re-enable exit on error
+
+if [ $BUNDLE_EXIT_CODE -ne 0 ]; then
+    # Check if error is due to git gems not checked out
+    if echo "$BUNDLE_OUTPUT" | grep -q "is not yet checked out"; then
+        log_warning "Bundle install failed: Git gems not checked out"
+        log_info "  Cleaning bundle cache and retrying..."
+        /usr/bin/env rm -rf "${SHARED_PATH}/bundle"
+        /usr/bin/env rm -rf ".bundle"
+        
+        # Reconfigure bundler after cleaning
+        RAILS_ENV=production $RBENV_ROOT/bin/rbenv exec bundle config set --local path "${SHARED_PATH}/bundle"
+        RAILS_ENV=production $RBENV_ROOT/bin/rbenv exec bundle config set --local without 'development test'
+        
+        # Retry bundle install
+        log_info "  Retrying bundle install..."
+        RAILS_ENV=production $RBENV_ROOT/bin/rbenv exec bundle install --jobs 4
+    else
+        # Other error - show output and exit
+        echo "$BUNDLE_OUTPUT"
+        exit 1
+    fi
+fi
 
 log_success "Ruby dependencies installed"
 
