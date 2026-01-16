@@ -422,10 +422,18 @@ class SeedingListExtractor
       confidence = nil
       match_method = nil
       
+      # Normalisiere extrahierte Namen (ß → ss für Matching)
+      extracted_lastname_normalized = ep[:lastname].to_s.strip.downcase.gsub('ß', 'ss')
+      extracted_firstname_normalized = ep[:firstname].to_s.strip.downcase.gsub('ß', 'ss')
+      
       # Strategie 1: Exakter Match mit Seeding-Spieler (Nachname exakt, Vorname exakt)
+      # Berücksichtigt ß/ss Varianten
       player = seeding_players.find do |p|
-        p.lastname.to_s.downcase == ep[:lastname].to_s.strip.downcase &&
-        p.firstname.to_s.downcase == ep[:firstname].to_s.strip.downcase
+        db_lastname_normalized = p.lastname.to_s.downcase.gsub('ß', 'ss')
+        db_firstname_normalized = p.firstname.to_s.downcase.gsub('ß', 'ss')
+        
+        db_lastname_normalized == extracted_lastname_normalized &&
+        db_firstname_normalized == extracted_firstname_normalized
       end
       if player
         confidence = :high
@@ -436,8 +444,11 @@ class SeedingListExtractor
       # Z.B. extrahiert "Gernot" matched "Dr. Gernot"
       unless player
         player = seeding_players.find do |p|
-          p.lastname.to_s.downcase == ep[:lastname].to_s.strip.downcase &&
-          p.firstname.to_s.downcase.include?(ep[:firstname].to_s.strip.downcase)
+          db_lastname_normalized = p.lastname.to_s.downcase.gsub('ß', 'ss')
+          db_firstname_normalized = p.firstname.to_s.downcase.gsub('ß', 'ss')
+          
+          db_lastname_normalized == extracted_lastname_normalized &&
+          db_firstname_normalized.include?(extracted_firstname_normalized)
         end
         if player
           confidence = :high
@@ -449,8 +460,11 @@ class SeedingListExtractor
       # Z.B. extrahiert "Dr. Gernot" matched "Gernot"
       unless player
         player = seeding_players.find do |p|
-          p.lastname.to_s.downcase == ep[:lastname].to_s.strip.downcase &&
-          ep[:firstname].to_s.downcase.include?(p.firstname.to_s.downcase)
+          db_lastname_normalized = p.lastname.to_s.downcase.gsub('ß', 'ss')
+          db_firstname_normalized = p.firstname.to_s.downcase.gsub('ß', 'ss')
+          
+          db_lastname_normalized == extracted_lastname_normalized &&
+          extracted_firstname_normalized.include?(db_firstname_normalized)
         end
         if player
           confidence = :high
@@ -461,8 +475,11 @@ class SeedingListExtractor
       # Strategie 4: Fuzzy Match nur bei Nachname (Nachname enthält, Vorname exakt)
       unless player
         player = seeding_players.find do |p|
-          p.lastname.to_s.downcase.include?(ep[:lastname].to_s.strip.downcase) &&
-          p.firstname.to_s.downcase == ep[:firstname].to_s.strip.downcase
+          db_lastname_normalized = p.lastname.to_s.downcase.gsub('ß', 'ss')
+          db_firstname_normalized = p.firstname.to_s.downcase.gsub('ß', 'ss')
+          
+          db_lastname_normalized.include?(extracted_lastname_normalized) &&
+          db_firstname_normalized == extracted_firstname_normalized
         end
         if player
           confidence = :medium
