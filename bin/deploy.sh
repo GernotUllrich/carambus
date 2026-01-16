@@ -18,7 +18,6 @@
 # Run it directly: sh bin/deploy.sh or bash bin/deploy.sh
 # =============================================================================
 
-
 set -e  # Exit on error
 
 # Check if running under bundle exec (not recommended)
