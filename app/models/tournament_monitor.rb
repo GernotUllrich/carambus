@@ -278,6 +278,7 @@ class TournamentMonitor < ApplicationRecord
     if group_sizes == GROUP_SIZES[players_count]
       GROUP_RULES[players_count].each_with_index do |group_positions, ix|
         group_positions.each do |pos|
+          next if pos == 0 # Skip placeholder positions
           player_id = players[pos - 1].is_a?(Integer) ? players[pos - 1] : players[pos - 1].id
           groups["group#{ix + 1}"] << player_id
         end
