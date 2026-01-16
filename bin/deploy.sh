@@ -204,6 +204,21 @@ REPO_URL="git@github.com:GernotUllrich/${APPLICATION_NAME}.git"
 
 log_info "Repository URL: $REPO_URL"
 
+# Check if we have SSH access to GitHub (either via agent forwarding or local keys)
+if ! ssh -T git@github.com 2>&1 | grep -q "successfully authenticated"; then
+    log_warning "No SSH access to GitHub detected."
+    log_warning "This script needs SSH access to GitHub to clone/update the repository."
+    log_warning ""
+    log_warning "Solutions:"
+    log_warning "  1. Run this script via SSH with agent forwarding:"
+    log_warning "     ssh -A bc-wedel 'cd carambus_bcw/current && bin/deploy.sh'"
+    log_warning "  2. Add the server's SSH key to your GitHub account:"
+    log_warning "     cat ~/.ssh/id_rsa.pub"
+    log_warning "  3. Use Capistrano instead: cap production deploy"
+    log_error "Cannot proceed without GitHub access"
+    exit 1
+fi
+
 # Initialize or update repository
 if [ ! -d "$REPO_PATH" ]; then
     log_info "Cloning repository..."
