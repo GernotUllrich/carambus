@@ -573,7 +573,7 @@ class Tournament < ApplicationRecord
       
       seeding = Seeding.find_by_player_id_and_tournament_id(player.id, id)
       unless seeding.present?
-        seeding = Seeding.new(player_id: player.id, tournament_id: id, position: position || idx)
+        seeding = Seeding.new(player_id: player.id, tournament: self, position: position || idx)
         seeding.region_id = region.id
         if seeding.save
           Rails.logger.info("Seeding[#{seeding.id}] created for #{fl_name}.")
