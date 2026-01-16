@@ -46,17 +46,30 @@ class StaticController < ApplicationController
       return
     end
 
-    # Start deployment in background
+    # Start deployment in background, completely outside of Bundler context
+    # Use nohup and bash to ensure it runs independently
+    log_file = Rails.root.join('log', 'deploy.log').to_s
+    
+    # Build command that runs outside of bundler
+    cmd = [
+      'bash', '-c',
+      "nohup bash #{deploy_script} > #{log_file} 2>&1 &"
+    ]
+    
+    # Spawn without any bundler environment
     pid = Process.spawn(
-      { 'RAILS_ENV' => Rails.env.to_s },
-      deploy_script,
-      out: Rails.root.join('log', 'deploy.log').to_s,
-      err: [:child, :out]
+      { 
+        'BUNDLE_GEMFILE' => nil,
+        'RUBYOPT' => nil,
+        'RAILS_ENV' => Rails.env.to_s
+      },
+      *cmd,
+      unsetenv_others: false
     )
     Process.detach(pid)
 
     redirect_to repo_version_path, 
-                notice: "Deployment started in background. The application will restart automatically. Please refresh this page in 1-2 minutes."
+                notice: "Deployment started in background (PID: #{pid}). The application will restart automatically. Please refresh this page in 1-2 minutes. Check log/deploy.log for progress."
   end
 
   def pricing
