@@ -111,21 +111,25 @@ log_info "Revision: $REVISION"
 # Detect Application Name and Ruby Version
 # =============================================================================
 
-# Try to read from deploy.rb if it exists in current release
+# Try to read application name from multiple sources
+APPLICATION_NAME=""
+
+# First, try from current release's deploy.rb
 if [ -f "${DEPLOY_PATH}current/config/deploy.rb" ]; then
-    # Extract application name from deploy.rb (handle both quoted and unquoted values)
-    APPLICATION_NAME=$(grep "set :application" "${DEPLOY_PATH}current/config/deploy.rb" 2>/dev/null | sed -E 's/.*set :application, *["\x27]?([^"\x27,]+)["\x27]?.*/\1/' || echo "$BASENAME")
-    
-    # If application_name is still empty or same as line, use basename
-    if [ -z "$APPLICATION_NAME" ] || [ "$APPLICATION_NAME" = "set" ]; then
-        APPLICATION_NAME="$BASENAME"
-        log_info "Application name (fallback): $APPLICATION_NAME"
-    else
-        log_info "Application name from deploy.rb: $APPLICATION_NAME"
-    fi
-else
+    APPLICATION_NAME=$(grep "set :application" "${DEPLOY_PATH}current/config/deploy.rb" 2>/dev/null | sed -E 's/.*set :application, *["\x27]?([^"\x27,]+)["\x27]?.*/\1/' || echo "")
+fi
+
+# If not found, try from git repo (if it exists)
+if [ -z "$APPLICATION_NAME" ] && [ -d "${REPO_PATH}" ]; then
+    APPLICATION_NAME=$(cd "${REPO_PATH}" && git show HEAD:config/deploy.rb 2>/dev/null | grep "set :application" | sed -E 's/.*set :application, *["\x27]?([^"\x27,]+)["\x27]?.*/\1/' || echo "")
+fi
+
+# Validate and fallback to basename if needed
+if [ -z "$APPLICATION_NAME" ] || [ "$APPLICATION_NAME" = "set" ]; then
     APPLICATION_NAME="$BASENAME"
-    log_info "Application name (fallback): $APPLICATION_NAME"
+    log_info "Application name (fallback to basename): $APPLICATION_NAME"
+else
+    log_info "Application name from deploy.rb: $APPLICATION_NAME"
 fi
 
 # Try to read Ruby version - prioritize .ruby-version file
@@ -198,12 +202,15 @@ log_step "Updating git repository..."
 # Get repository URL
 REPO_URL="git@github.com:GernotUllrich/${APPLICATION_NAME}.git"
 
+log_info "Repository URL: $REPO_URL"
+
 # Initialize or update repository
 if [ ! -d "$REPO_PATH" ]; then
     log_info "Cloning repository..."
     /usr/bin/env git clone --mirror "$REPO_URL" "$REPO_PATH"
 else
     log_info "Updating repository..."
+    # Always set the correct URL in case it changed (e.g., basename != application)
     cd "$REPO_PATH" && /usr/bin/env git remote set-url origin "$REPO_URL"
     cd "$REPO_PATH" && /usr/bin/env git remote update --prune
 fi
