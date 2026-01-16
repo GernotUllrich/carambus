@@ -475,7 +475,11 @@ Region #{real_club.region&.shortname}, season #{season.name}!"
           unless seeding.present?
             seeding = Seeding.new(player_id: player&.id, tournament: tournament, position: position)
             seeding.region_id = region.id
-            seeding.save
+            if seeding.save
+              Rails.logger.info("Seeding[#{seeding.id}] created.")
+            else
+              Rails.logger.error("==== scrape ==== Failed to create seeding for player #{player&.id}: #{seeding.errors.full_messages.join(', ')}")
+            end
           end
         end
         state_ix = 0
@@ -508,7 +512,11 @@ Region #{real_club.region&.shortname}, season #{season.name}!"
             unless seeding.present?
               seeding = Seeding.new(player_id: player_fixed.id, tournament_id: tournament.id, position: position)
               seeding.region_id = region.id
-              seeding.save
+              if seeding.save
+                Rails.logger.info("Seeding[#{seeding.id}] created.")
+              else
+                Rails.logger.error("==== scrape ==== Failed to create seeding for player #{player_fixed.id}: #{seeding.errors.full_messages.join(', ')}")
+              end
             end
           end
         else
@@ -538,7 +546,11 @@ region #{region.shortname} and season #{season.name}"
               unless seeding.present?
                 seeding = Seeding.new(player_id: player_fixed.id, tournament_id: tournament.id, position: position)
                 seeding.region_id = region.id
-                seeding.save
+                if seeding.save
+                  Rails.logger.info("Seeding[#{seeding.id}] created.")
+                else
+                  Rails.logger.error("==== scrape ==== Failed to create seeding for player #{player_fixed.id}: #{seeding.errors.full_messages.join(', ')}")
+                end
               end
             end
           end
@@ -565,7 +577,11 @@ Assume Player #{lastname}, #{firstname} is active in Clubs [#{clubs_str}] "
               unless seeding.present?
                 seeding = Seeding.new(player_id: player_fixed.id, tournament_id: tournament.id, position: position)
                 seeding.region_id = region.id
-                seeding.save
+                if seeding.save
+                  Rails.logger.info("Seeding[#{seeding.id}] created.")
+                else
+                  Rails.logger.error("==== scrape ==== Failed to create seeding for player #{player_fixed.id}: #{seeding.errors.full_messages.join(', ')}")
+                end
               end
             end
           end
@@ -608,7 +624,11 @@ and season #{season.name}"
               unless seeding.present?
                 seeding = Seeding.new(player_id: player_fixed.id, tournament_id: tournament.id, position: position)
                 seeding.region_id = region.id
-                seeding.save
+                if seeding.save
+                  Rails.logger.info("Seeding[#{seeding.id}] created.")
+                else
+                  Rails.logger.error("==== scrape ==== Failed to create seeding for player #{player_fixed.id}: #{seeding.errors.full_messages.join(', ')}")
+                end
               end
             end
           end

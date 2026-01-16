@@ -524,11 +524,12 @@ class Tournament < ApplicationRecord
               end
               
               club_name = club_name.andand.gsub("1.", "1. ").andand.gsub("1.  ", "1. ") if club_name.present?
+              # Don't create seedings yet - just collect players from registration list
               player, club, _seeding, _state_ix = Player.fix_from_shortnames(player_lname, player_fname,
                                                                              season, region,
-                                                                             club_name, self,
+                                                                             club_name, nil,
                                                                              true, true, ix)
-              player_list[player.fl_name] = [player, club] if player.present?
+              player_list[player.fl_name] = [player, club, ix] if player.present?
             end
           end
         end
@@ -556,12 +557,32 @@ class Tournament < ApplicationRecord
           end
         end
         club_name = club_name.andand.gsub("1.", "1. ").andand.gsub("1.  ", "1. ")
+        # Don't create seedings yet - just collect players from participant list
         player, club, _seeding, _state_ix = Player.fix_from_shortnames(player_lname, player_fname, season, region,
-                                                                       club_name.strip, self,
+                                                                       club_name.strip, nil,
                                                                        true, true, ix)
-        player_list[player.fl_name] = [player, club]
+        # Only add to player_list if not already present (registration list takes precedence for position)
+        player_list[player.fl_name] ||= [player, club, ix] if player.present?
       end
     end
+    
+    # Now create seedings for all players in the unified player_list
+    Rails.logger.info "==== scrape ==== Creating seedings for #{player_list.count} players from combined registration and participant lists"
+    player_list.each_with_index do |(fl_name, (player, club, position)), idx|
+      next unless player.present?
+      
+      seeding = Seeding.find_by_player_id_and_tournament_id(player.id, id)
+      unless seeding.present?
+        seeding = Seeding.new(player_id: player.id, tournament_id: id, position: position || idx)
+        seeding.region_id = region.id
+        if seeding.save
+          Rails.logger.info("Seeding[#{seeding.id}] created for #{fl_name}.")
+        else
+          Rails.logger.error("==== scrape ==== Failed to create seeding for player #{player.id} (#{fl_name}): #{seeding.errors.full_messages.join(', ')}")
+        end
+      end
+    end
+    
     reload
     return if discipline&.name == "Biathlon"
 
