@@ -32,6 +32,33 @@ class StaticController < ApplicationController
     params
   end
 
+  def update_version
+    unless local_server?
+      redirect_to repo_version_path, alert: "Update is only available on local servers"
+      return
+    end
+
+    # Run the deployment in a background process
+    deploy_script = "#{Rails.root}/bin/deploy.sh"
+    
+    unless File.exist?(deploy_script)
+      redirect_to repo_version_path, alert: "Deploy script not found at #{deploy_script}"
+      return
+    end
+
+    # Start deployment in background
+    pid = Process.spawn(
+      { 'RAILS_ENV' => Rails.env.to_s },
+      deploy_script,
+      out: Rails.root.join('log', 'deploy.log').to_s,
+      err: [:child, :out]
+    )
+    Process.detach(pid)
+
+    redirect_to repo_version_path, 
+                notice: "Deployment started in background. The application will restart automatically. Please refresh this page in 1-2 minutes."
+  end
+
   def pricing
     plans = Plan.visible.sorted
     unless plans.any?
