@@ -2769,6 +2769,19 @@ ENV
           
           echo "🔄 Starting database reset process..."
           
+          # Stop Puma service to release database connections
+          echo "🛑 Stopping Puma service (to release database connections)..."
+          if sudo systemctl is-active --quiet puma-#{basename}.service; then
+            sudo systemctl stop puma-#{basename}.service
+            echo "✅ Puma service stopped"
+          else
+            echo "ℹ️  Puma service not running"
+          fi
+          
+          # Terminate any remaining connections to the database
+          echo "🔌 Terminating database connections..."
+          sudo -u postgres psql -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '#{production_database}' AND pid <> pg_backend_pid();" || echo "No connections to terminate"
+          
           # Backup shared directory before removing application folders
           echo "💾 Backing up shared directory..."
           if [ -d "/var/www/#{basename}/shared" ]; then
