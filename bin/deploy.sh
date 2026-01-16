@@ -113,8 +113,16 @@ log_info "Revision: $REVISION"
 
 # Try to read from deploy.rb if it exists in current release
 if [ -f "${DEPLOY_PATH}current/config/deploy.rb" ]; then
-    APPLICATION_NAME=$(grep "set :application" "${DEPLOY_PATH}current/config/deploy.rb" 2>/dev/null | sed 's/.*set :application, *"\([^"]*\)".*/\1/' || echo "$BASENAME")
-    log_info "Application name from deploy.rb: $APPLICATION_NAME"
+    # Extract application name from deploy.rb (handle both quoted and unquoted values)
+    APPLICATION_NAME=$(grep "set :application" "${DEPLOY_PATH}current/config/deploy.rb" 2>/dev/null | sed -E 's/.*set :application, *["\x27]?([^"\x27,]+)["\x27]?.*/\1/' || echo "$BASENAME")
+    
+    # If application_name is still empty or same as line, use basename
+    if [ -z "$APPLICATION_NAME" ] || [ "$APPLICATION_NAME" = "set" ]; then
+        APPLICATION_NAME="$BASENAME"
+        log_info "Application name (fallback): $APPLICATION_NAME"
+    else
+        log_info "Application name from deploy.rb: $APPLICATION_NAME"
+    fi
 else
     APPLICATION_NAME="$BASENAME"
     log_info "Application name (fallback): $APPLICATION_NAME"
