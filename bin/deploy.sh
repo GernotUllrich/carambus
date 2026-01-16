@@ -111,40 +111,15 @@ log_info "Revision: $REVISION"
 # Detect Application Name and Ruby Version
 # =============================================================================
 
-# Try to read application name from multiple sources
-APPLICATION_NAME=""
+# =============================================================================
+# Set Application Name (Repository Name)
+# =============================================================================
+# All carambus instances (carambus, carambus_bcw, carambus_phat, etc.) 
+# use the same repository: carambus.git
+# The difference is only in the deployment path and configuration.
 
-# First, try from current release's deploy.rb
-if [ -f "${DEPLOY_PATH}current/config/deploy.rb" ]; then
-    APPLICATION_NAME=$(grep "set :application" "${DEPLOY_PATH}current/config/deploy.rb" 2>/dev/null | sed -E 's/.*set :application, *["\x27]?([^"\x27,]+)["\x27]?.*/\1/' || echo "")
-fi
-
-# If not found, try from git repo (if it exists and is accessible)
-if [ -z "$APPLICATION_NAME" ] && [ -d "${REPO_PATH}" ]; then
-    # Temporarily disable exit on error for git command
-    set +e
-    APPLICATION_NAME=$(cd "${REPO_PATH}" && git show HEAD:config/deploy.rb 2>/dev/null | grep "set :application" | sed -E 's/.*set :application, *["\x27]?([^"\x27,]+)["\x27]?.*/\1/' || echo "")
-    set -e
-fi
-
-# If not found, try from a recent release
-if [ -z "$APPLICATION_NAME" ] && [ -d "${RELEASES_PATH}" ]; then
-    LATEST_RELEASE=$(ls -t "${RELEASES_PATH}" 2>/dev/null | head -1)
-    if [ -n "$LATEST_RELEASE" ] && [ -f "${RELEASES_PATH}/${LATEST_RELEASE}/config/deploy.rb" ]; then
-        APPLICATION_NAME=$(grep "set :application" "${RELEASES_PATH}/${LATEST_RELEASE}/config/deploy.rb" 2>/dev/null | sed -E 's/.*set :application, *["\x27]?([^"\x27,]+)["\x27]?.*/\1/' || echo "")
-        if [ -n "$APPLICATION_NAME" ] && [ "$APPLICATION_NAME" != "set" ]; then
-            log_info "Application name from previous release: $APPLICATION_NAME"
-        fi
-    fi
-fi
-
-# Validate and fallback to basename if needed
-if [ -z "$APPLICATION_NAME" ] || [ "$APPLICATION_NAME" = "set" ]; then
-    APPLICATION_NAME="$BASENAME"
-    log_info "Application name (fallback to basename): $APPLICATION_NAME"
-else
-    log_info "Application name from deploy.rb: $APPLICATION_NAME"
-fi
+APPLICATION_NAME="carambus"
+log_info "Repository: $APPLICATION_NAME (fixed for all carambus instances)"
 
 # Try to read Ruby version - prioritize .ruby-version file
 if [ -f "${DEPLOY_PATH}current/.ruby-version" ]; then
