@@ -18,6 +18,7 @@
 # Run it directly: sh bin/deploy.sh or bash bin/deploy.sh
 # =============================================================================
 
+
 set -e  # Exit on error
 
 # Check if running under bundle exec (not recommended)
@@ -114,7 +115,7 @@ log_info "Revision: $REVISION"
 # =============================================================================
 # Set Application Name (Repository Name)
 # =============================================================================
-# All carambus instances (carambus, carambus_bcw, carambus_phat, etc.) 
+# All carambus instances (carambus, carambus_bcw, carambus_phat, etc.)
 # use the same repository: carambus.git
 # The difference is only in the deployment path and configuration.
 
@@ -273,12 +274,12 @@ linked_files=(
 for file in "${linked_files[@]}"; do
     target="${NEW_RELEASE_PATH}/${file}"
     source="${SHARED_PATH}/${file}"
-    
+
     # Remove if exists
     if [ -f "$target" ] || [ -L "$target" ]; then
         /usr/bin/env rm "$target"
     fi
-    
+
     # Create symlink if source exists
     if [ -f "$source" ]; then
         /usr/bin/env ln -s "$source" "$target"
@@ -310,16 +311,16 @@ linked_dirs=(
 for dir in "${linked_dirs[@]}"; do
     target="${NEW_RELEASE_PATH}/${dir}"
     source="${SHARED_PATH}/${dir}"
-    
+
     # Create parent directory if needed
     parent_dir=$(dirname "$target")
     /usr/bin/env mkdir -p "$parent_dir"
-    
+
     # Remove if exists
     if [ -d "$target" ] || [ -L "$target" ]; then
         /usr/bin/env rm -rf "$target"
     fi
-    
+
     # Create symlink
     /usr/bin/env ln -s "$source" "$target"
     log_info "  Linked: $dir"
@@ -383,14 +384,14 @@ if command -v yarn &> /dev/null; then
     # Build JavaScript with esbuild
     log_info "  Building JavaScript..."
     /usr/bin/env yarn build
-    
+
     # Build CSS with Tailwind
     log_info "  Building CSS..."
     /usr/bin/env yarn build:css
-    
+
     # Ensure builds directory exists
     /usr/bin/env mkdir -p app/assets/builds
-    
+
     log_success "Frontend assets built"
 else
     log_warning "Yarn not found, skipping frontend asset build"
