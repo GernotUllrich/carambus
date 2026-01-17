@@ -5,6 +5,7 @@
 #  id                     :bigint           not null, primary key
 #  admin_controlled       :boolean
 #  allow_follow_up        :boolean          default(TRUE), not null
+#  allow_overflow         :boolean          default(FALSE), not null
 #  balls_goal             :integer
 #  color_remains_with_set :boolean          default(TRUE), not null
 #  fixed_display_left     :string

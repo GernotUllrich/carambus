@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_01_09_210439) do
+ActiveRecord::Schema[7.2].define(version: 2026_01_17_235353) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -1060,6 +1060,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_09_210439) do
     t.integer "innings_goal"
     t.integer "balls_goal"
     t.boolean "auto_upload_to_cc", default: true, null: false
+    t.boolean "allow_overflow", default: false, null: false
   end
 
   create_table "tournament_monitors", force: :cascade do |t|

@@ -248,6 +248,7 @@ class Tournament < ApplicationRecord
         team_size: read_attribute(:team_size).presence || 1,
         kickoff_switches_with: read_attribute(:kickoff_switches_with),
         allow_follow_up: read_attribute(:allow_follow_up),
+        allow_overflow: read_attribute(:allow_overflow),
         fixed_display_left: read_attribute(:fixed_display_left),
         color_remains_with_set: read_attribute(:color_remains_with_set)
       )
