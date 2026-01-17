@@ -61,11 +61,13 @@ class TournamentReflex < ApplicationReflex
             when "B"
               !!element.checked
             end
-      update_unprotected(tournament, attribute.to_sym, val)
-
-      # tournament.unprotected = true
-      # tournament.update(attribute.to_sym => val)
-      # tournament.unprotected = false
+      
+      # Use setter to trigger delegation to TournamentLocal (for local tournaments)
+      # Direct update would bypass delegation and write to wrong table!
+      tournament.unprotected = true
+      tournament.send("#{attribute}=", val)
+      tournament.save!
+      tournament.unprotected = false
     end
   end
 
@@ -181,21 +183,5 @@ class TournamentReflex < ApplicationReflex
     player = Player.find(element.attributes["id"].split("-")[1].to_i)
     seeding = tournament.seedings.where(player_id: player.id).first
     seeding&.update(balls_goal: val)
-  end
-
-  private
-
-  def update_unprotected(object, key, val)
-    object.unprotected = true
-    object.update(key => val)
-    object.unprotected = false
-  end
-
-  private
-
-  def update_unprotected(object, key, val)
-    object.unprotected = true
-    object.update(key => val)
-    object.unprotected = false
   end
 end

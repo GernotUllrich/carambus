@@ -335,9 +335,9 @@ class TournamentsController < ApplicationController
                                               sets_to_play: (params[:sets_to_play].presence || @tournament.sets_to_play).to_i,
                                               sets_to_win: (params[:sets_to_win].presence || @tournament.sets_to_win).to_i,
                                               kickoff_switches_with: params[:kickoff_switches_with].presence || @tournament.kickoff_switches_with,
-                                              color_remains_with_set: params[:color_remains_with_set] == "1",
-                                              allow_overflow: (params[:allow_overflow] == "1") || @tournament.allow_overflow?,
-                                              allow_follow_up: (params[:allow_follow_up] == "1") || @tournament.allow_follow_up?,
+                                              color_remains_with_set: params.key?(:color_remains_with_set) ? (params[:color_remains_with_set] == "1") : @tournament.color_remains_with_set,
+                                              allow_overflow: params.key?(:allow_overflow) ? (params[:allow_overflow] == "1") : @tournament.allow_overflow,
+                                              allow_follow_up: params.key?(:allow_follow_up) ? (params[:allow_follow_up] == "1") : @tournament.allow_follow_up,
                                               fixed_display_left: params[:fixed_display_left].to_s.presence || @tournament.fixed_display_left)
         
         Rails.logger.info "update_result: #{update_result.inspect}"

@@ -228,34 +228,34 @@ class Tournament < ApplicationRecord
   end
 
   %i[timeouts timeout gd_has_prio admin_controlled auto_upload_to_cc sets_to_play sets_to_win
-     team_size kickoff_switches_with allow_follow_up
+     team_size kickoff_switches_with allow_follow_up allow_overflow
      fixed_display_left color_remains_with_set].each do |meth|
     define_method(meth) do
       id.present? && id < Tournament::MIN_ID && tournament_local.present? ? tournament_local.send(meth) : read_attribute(meth)
     end
 
-    define_method(:"#{meth}=") do |value|
-      if new_record?
-        write_attribute(meth, value)
-      elsif id < Tournament::MIN_ID
-        tol = tournament_local.presence || create_tournament_local(
-          timeouts: read_attribute(:timeouts).to_i,
-          timeout: read_attribute(:timeout).to_i,
-          gd_has_prio: !read_attribute(:gd_has_prio).present?,
-          admin_controlled: !read_attribute(:admin_controlled).present?,
-          sets_to_play: read_attribute(:sets_to_play) || 1,
-          sets_to_win: read_attribute(:sets_to_win).presence || 1,
-          team_size: read_attribute(:team_size).presence || 1,
-          kickoff_switches_with: read_attribute(:kickoff_switches_with),
-          allow_follow_up: !read_attribute(:allow_follow_up).present?,
-          fixed_display_left: read_attribute(:fixed_display_left),
-          color_remains_with_set: !read_attribute(:color_remains_with_set).present?
-        )
-        tol.update(meth => value)
-      else
-        write_attribute(meth, value)
-      end
+  define_method(:"#{meth}=") do |value|
+    if new_record?
+      write_attribute(meth, value)
+    elsif id < Tournament::MIN_ID
+      tol = tournament_local.presence || create_tournament_local(
+        timeouts: read_attribute(:timeouts).to_i,
+        timeout: read_attribute(:timeout).to_i,
+        gd_has_prio: read_attribute(:gd_has_prio),
+        admin_controlled: read_attribute(:admin_controlled),
+        sets_to_play: read_attribute(:sets_to_play) || 1,
+        sets_to_win: read_attribute(:sets_to_win).presence || 1,
+        team_size: read_attribute(:team_size).presence || 1,
+        kickoff_switches_with: read_attribute(:kickoff_switches_with),
+        allow_follow_up: read_attribute(:allow_follow_up),
+        fixed_display_left: read_attribute(:fixed_display_left),
+        color_remains_with_set: read_attribute(:color_remains_with_set)
+      )
+      tol.update(meth => value)
+    else
+      write_attribute(meth, value)
     end
+  end
   end
 
   aasm column: "state", skip_validation_on_save: true do
@@ -309,7 +309,7 @@ class Tournament < ApplicationRecord
       %w[balls_goal innings_goal time_out_warm_up_first_min
          time_out_warm_up_follow_up_min kickoff_switches_with fixed_display_left] +
         %w[timeouts timeout gd_has_prio admin_controlled auto_upload_to_cc sets_to_play sets_to_win
-           team_size kickoff_switches_with allow_follow_up
+           team_size kickoff_switches_with allow_follow_up allow_overflow
            fixed_display_left color_remains_with_set].each do |meth|
           # Use !nil? instead of present? to allow 0 and false as valid values
           if !data[meth].nil?
@@ -335,7 +335,24 @@ class Tournament < ApplicationRecord
       # DNSSD.announce http, 'carambus server'
       # Setting.key_set_val(:carambus_server_status, "ready to accept connections from scoreboards")
       games.where("games.id >= #{Game::MIN_ID}").destroy_all
-      create_tournament_monitor unless tournament_monitor.present?
+      unless tournament_monitor.present?
+        # Erstelle TournamentMonitor mit initialisierten Parametern vom Tournament
+        # DB-Defaults sind korrekt gesetzt, daher keine nil-Checks nötig
+        create_tournament_monitor(
+          timeout: timeout || 0,
+          timeouts: timeouts || 0,
+          innings_goal: innings_goal,
+          balls_goal: balls_goal,
+          sets_to_play: sets_to_play || 1,
+          sets_to_win: sets_to_win || 1,
+          team_size: team_size || 1,
+          kickoff_switches_with: kickoff_switches_with,
+          allow_follow_up: allow_follow_up,
+          color_remains_with_set: color_remains_with_set,
+          allow_overflow: allow_overflow,
+          fixed_display_left: fixed_display_left
+        )
+      end
       Tournament.logger.info "state:#{state}...[initialize_tournament_monitor]"
     rescue StandardError => e
       Tournament.logger.info "...[initialize_tournament_monitor] StandardError #{e}:\n#{e.backtrace.to_a.join("\n")}"
