@@ -4,7 +4,7 @@ require "rake"
 class AutoReserveTablesTaskTest < ActiveSupport::TestCase
   setup do
     # Load rake tasks
-    Carambus::Application.load_tasks if Rake::Task.tasks.empty?
+    Rails.application.load_tasks if Rake::Task.tasks.empty?
     
     @season = Season.create!(name: "2025/2026")
     @region = Region.create!(shortname: "TEST", name: "Test Region")
