@@ -34,11 +34,11 @@
 
       <%- changelog = git_changelog(repo_version, revision) rescue [] -%>
       <%- if changelog.any? -%>
-        <div class="mt-4 mb-4 p-4 bg-gray-100 rounded">
-          <h3 class="font-bold mb-2">📝 Changes in latest version:</h3>
-          <div class="font-mono text-sm leading-tight">
+        <div class="mt-4 mb-4 p-4 bg-gray-100 dark:bg-gray-800 rounded">
+          <h3 class="font-bold mb-2 text-gray-900 dark:text-gray-100">📝 Changes in latest version:</h3>
+          <div class="font-mono text-sm leading-none text-gray-800 dark:text-gray-200">
             <%- changelog.each do |commit_line| -%>
-              <div class="border-b border-gray-300 last:border-0">
+              <div class="py-0.5 border-b border-gray-300 dark:border-gray-600 last:border-0">
                 <%= commit_line %>
               </div>
             <%- end -%>
