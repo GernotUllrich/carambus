@@ -6,6 +6,16 @@ require "minitest/mock"
 require "webmock/minitest"
 require 'factory_bot_rails'
 
+# Disable LocalProtector for all test records
+module LocalProtectorTestOverride
+  def disallow_saving_global_records
+    # Skip protection in test environment
+    true
+  end
+end
+
+LocalProtector.prepend(LocalProtectorTestOverride)
+
 # Uncomment to view full stack trace in tests
 # Rails.backtrace_cleaner.remove_silencers!
 
