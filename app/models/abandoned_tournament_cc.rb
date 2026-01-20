@@ -88,24 +88,24 @@ class AbandonedTournamentCc < ApplicationRecord
   def self.analyze_duplicates(region_shortname, season_name)
     region = Region.find_by_shortname(region_shortname)
     season = Season.find_by_name(season_name)
-    
+
     return "Region or season not found" unless region && season
-    
+
     url = region.public_cc_url_base
     return "No public CC URL for region" unless url.present?
-    
+
     einzel_url = url + "sb_meisterschaft.php?eps=100000&s=#{season.name}"
     uri = URI(einzel_url)
-    einzel_html = Net::HTTP.get(uri)
+    einzel_html = Rails.env == 'development' ?  Version.http_get_with_ssl_bypass(uri) : Net::HTTP.get(uri)
     einzel_doc = Nokogiri::HTML(einzel_html)
-    
+
     tournament_groups = {}
     einzel_doc.css("article table.silver").andand[1].andand.css("tr").to_a[2..].to_a.each do |tr|
       tournament_link = tr.css("a")[0].attributes["href"].value
       params = tournament_link.split("p=")[1].split("-")
       cc_id = params[3].to_i
       name = tr.css("a")[0].text.strip
-      
+
       tournament_groups[name] ||= []
       tournament_groups[name] << {
         cc_id: cc_id,
@@ -113,9 +113,9 @@ class AbandonedTournamentCc < ApplicationRecord
         name: name
       }
     end
-    
+
     duplicates = tournament_groups.select { |name, tournaments| tournaments.length > 1 }
-    
+
     if duplicates.empty?
       "No duplicates found for #{region_shortname} #{season_name}"
     else
@@ -126,7 +126,7 @@ class AbandonedTournamentCc < ApplicationRecord
           # Do partial scraping to check for seedings and games
           has_seedings, has_games = region.check_tournament_status(t[:link], t[:cc_id])
           is_abandoned = AbandonedTournamentCcSimple.is_abandoned?(t[:cc_id], region.region_cc.context)
-          
+
           result += "    cc_id: #{t[:cc_id]}, has_seedings: #{has_seedings}, has_games: #{has_games}, abandoned: #{is_abandoned}\n"
         end
       end
@@ -135,4 +135,4 @@ class AbandonedTournamentCc < ApplicationRecord
   rescue StandardError => e
     "Error analyzing duplicates: #{e.message}"
   end
-end 
+end

@@ -6,13 +6,13 @@ module StaticHelper
     return [] if current_commit == latest_commit
 
     # Try to get changelog from bare repository
-    repo_path = get_repo_path
+    repo_path = get_repo_path || (Rails.root.join(".git") if Rails.env.development?)
     return [] unless repo_path && File.directory?(repo_path)
 
     begin
       # Use git log with --oneline format to get commits between current and latest
       changelog = `git --git-dir=#{repo_path} log --oneline #{current_commit}..#{latest_commit} 2>/dev/null`
-      
+
       if $?.success?
         changelog.split("\n").reject(&:blank?)
       else
@@ -27,13 +27,13 @@ module StaticHelper
   # Get the path to the bare git repository
   def get_repo_path
     return nil unless Rails.env.production?
-    
+
     # In production, the bare repo is typically at: /var/www/scenario_name/repo
     # Rails.root is something like: /var/www/scenario_name/releases/20260116122318
     # or /var/www/scenario_name/current (symlink to a release)
-    
+
     rails_root = Rails.root.to_s
-    
+
     # Extract deployment path (everything before /releases or /current)
     if rails_root.include?('/releases/')
       deploy_path = rails_root.split('/releases/').first
@@ -42,7 +42,7 @@ module StaticHelper
     else
       return nil
     end
-    
+
     repo_path = File.join(deploy_path, 'repo')
     File.directory?(repo_path) ? repo_path : nil
   end
