@@ -21,6 +21,16 @@
 
 set -e  # Exit on error
 
+# Get the directory where this script is located
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_ROOT="$(dirname "$SCRIPT_DIR")"
+
+# CRITICAL: Remove .bundle/config from current directory FIRST
+# This file can point to old/deleted bundle paths and cause Ruby to fail
+if [ -f "$SCRIPT_ROOT/.bundle/config" ]; then
+    rm -f "$SCRIPT_ROOT/.bundle/config"
+fi
+
 # Clean ALL bundler and gem-related environment variables
 # This is critical to avoid conflicts with old bundle installations
 unset BUNDLE_GEMFILE
