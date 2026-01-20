@@ -75,12 +75,23 @@ class StaticController < ApplicationController
     ]
     
     # Spawn without any bundler environment
+    # CRITICAL: Must unset ALL bundler/gem environment variables
+    # Otherwise Ruby will try to load bundler from the old path
+    clean_env = {
+      'BUNDLE_GEMFILE' => nil,
+      'BUNDLE_APP_CONFIG' => nil,
+      'BUNDLE_BIN_PATH' => nil,
+      'BUNDLE_PATH' => nil,
+      'BUNDLER_VERSION' => nil,
+      'RUBYOPT' => nil,
+      'RUBYLIB' => nil,
+      'GEM_HOME' => nil,
+      'GEM_PATH' => nil,
+      'RAILS_ENV' => 'production'  # Always production for deployment
+    }
+    
     pid = Process.spawn(
-      { 
-        'BUNDLE_GEMFILE' => nil,
-        'RUBYOPT' => nil,
-        'RAILS_ENV' => Rails.env.to_s
-      },
+      clean_env,
       *cmd,
       unsetenv_others: false
     )
