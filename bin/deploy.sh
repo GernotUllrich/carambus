@@ -46,14 +46,23 @@ fi
 
 # Clean ALL bundler and gem-related environment variables
 # This is critical to avoid conflicts with old bundle installations
+# IMPORTANT: Also unset BUNDLER_ORIG_* variables that Bundler uses to restore environment
 unset BUNDLE_GEMFILE
 unset BUNDLE_APP_CONFIG
 unset BUNDLE_BIN_PATH
 unset BUNDLE_PATH
+unset BUNDLER_VERSION
+unset BUNDLER_SETUP
 unset GEM_HOME
 unset GEM_PATH
 unset RUBYOPT
 unset RUBYLIB
+
+# Unset ALL BUNDLER_ORIG_* variables (Bundler's environment preservation)
+# These cause Ruby to restore the old bundler environment when it starts
+for var in $(env | grep '^BUNDLER_ORIG_' | cut -d= -f1); do
+    unset "$var"
+done
 
 echo "Environment after cleanup:" >> "$DEBUG_LOG"
 env | grep -E "(BUNDLE|GEM|RUBY)" | sort >> "$DEBUG_LOG" 2>&1 || echo "  No BUNDLE/GEM/RUBY vars found" >> "$DEBUG_LOG"
