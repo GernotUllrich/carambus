@@ -18,6 +18,7 @@
 # Run it directly: sh bin/deploy.sh or bash bin/deploy.sh
 # =============================================================================
 
+
 set -e  # Exit on error
 
 # Check if running under bundle exec (not recommended)
@@ -363,11 +364,11 @@ if [ $BUNDLE_EXIT_CODE -ne 0 ]; then
         log_info "  Cleaning bundle cache and retrying..."
         /usr/bin/env rm -rf "${SHARED_PATH}/bundle"
         /usr/bin/env rm -rf ".bundle"
-        
+
         # Reconfigure bundler after cleaning
         RAILS_ENV=production $RBENV_ROOT/bin/rbenv exec bundle config set --local path "${SHARED_PATH}/bundle"
         RAILS_ENV=production $RBENV_ROOT/bin/rbenv exec bundle config set --local without 'development test'
-        
+
         # Retry bundle install
         log_info "  Retrying bundle install..."
         RAILS_ENV=production $RBENV_ROOT/bin/rbenv exec bundle install --jobs 4
