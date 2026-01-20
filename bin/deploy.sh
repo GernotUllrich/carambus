@@ -18,6 +18,7 @@
 # Run it directly: sh bin/deploy.sh or bash bin/deploy.sh
 # =============================================================================
 
+
 set -e  # Exit on error
 
 # Get the directory where this script is located
@@ -365,17 +366,17 @@ fi
 if [ -d "${SHARED_PATH}/bundle" ]; then
     # Try to detect if bundle cache is broken by checking if bundler/gems references exist but are empty
     set +e  # Temporarily disable exit on error
-    
+
     # Unset bundler environment to avoid using old bundle
     unset BUNDLE_GEMFILE
     unset BUNDLE_APP_CONFIG
     unset BUNDLE_BIN_PATH
     unset RUBYOPT
-    
+
     BUNDLE_CHECK_OUTPUT=$($RBENV_ROOT/bin/rbenv exec bundle config 2>&1)
     BUNDLE_CHECK_EXIT=$?
     set -e  # Re-enable exit on error
-    
+
     if [ $BUNDLE_CHECK_EXIT -ne 0 ] && echo "$BUNDLE_CHECK_OUTPUT" | grep -q "is not yet checked out"; then
         log_warning "Detected broken bundle cache (git gems not checked out)"
         log_info "  Cleaning bundle cache..."
