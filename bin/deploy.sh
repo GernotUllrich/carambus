@@ -24,9 +24,22 @@ set -e  # Exit on error
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SCRIPT_ROOT="$(dirname "$SCRIPT_DIR")"
 
+# DEBUG: Log initial environment to help diagnose issues
+DEBUG_LOG="${SCRIPT_ROOT}/log/deploy_env_debug.log"
+mkdir -p "$(dirname "$DEBUG_LOG")"
+echo "========================================" >> "$DEBUG_LOG"
+echo "Deploy started at: $(date)" >> "$DEBUG_LOG"
+echo "Script called as: $0 $@" >> "$DEBUG_LOG"
+echo "PPID: $PPID (parent process)" >> "$DEBUG_LOG"
+echo "----------------------------------------" >> "$DEBUG_LOG"
+echo "Initial environment (before cleanup):" >> "$DEBUG_LOG"
+env | grep -E "(BUNDLE|GEM|RUBY)" | sort >> "$DEBUG_LOG" 2>&1 || echo "  No BUNDLE/GEM/RUBY vars found" >> "$DEBUG_LOG"
+echo "----------------------------------------" >> "$DEBUG_LOG"
+
 # CRITICAL: Remove .bundle/config from current directory FIRST
 # This file can point to old/deleted bundle paths and cause Ruby to fail
 if [ -f "$SCRIPT_ROOT/.bundle/config" ]; then
+    echo "Removing stale .bundle/config" >> "$DEBUG_LOG"
     rm -f "$SCRIPT_ROOT/.bundle/config"
 fi
 
@@ -40,6 +53,11 @@ unset GEM_HOME
 unset GEM_PATH
 unset RUBYOPT
 unset RUBYLIB
+
+echo "Environment after cleanup:" >> "$DEBUG_LOG"
+env | grep -E "(BUNDLE|GEM|RUBY)" | sort >> "$DEBUG_LOG" 2>&1 || echo "  No BUNDLE/GEM/RUBY vars found" >> "$DEBUG_LOG"
+echo "========================================" >> "$DEBUG_LOG"
+echo "" >> "$DEBUG_LOG"
 
 # Check if running under bundle exec (not recommended)
 if [ -n "$BUNDLER_VERSION" ]; then
