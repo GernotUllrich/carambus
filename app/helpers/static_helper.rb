@@ -8,19 +8,32 @@ module StaticHelper
     return [] if current_commit == latest_commit
 
     begin
+      # Determine which commit is older/newer using git merge-base
       if Rails.env.development?
-        # In development, use regular git in Rails.root
-        # Note: current_commit..latest_commit shows commits that are in latest but not in current
-        changelog = `cd #{Rails.root} && git log --oneline #{current_commit}..#{latest_commit} 2>&1`
+        # Check if current is ancestor of latest (normal case: current is older)
+        is_behind = system("cd #{Rails.root} && git merge-base --is-ancestor #{current_commit} #{latest_commit} 2>/dev/null")
+        
+        if is_behind
+          # Current is behind latest (normal case)
+          from_commit = current_commit
+          to_commit = latest_commit
+        else
+          # Current is ahead of latest (development is newer than API server)
+          # Show commits in reverse: what's in current that's not in latest
+          from_commit = latest_commit
+          to_commit = current_commit
+        end
+        
+        changelog = `cd #{Rails.root} && git log --oneline #{from_commit}..#{to_commit} 2>&1`
       else
-        # In production, use bare repository
+        # In production, assume local is always behind (never develops on production)
         repo_path = get_repo_path
         return [] unless repo_path && File.directory?(repo_path)
         
         changelog = `git --git-dir=#{repo_path} log --oneline #{current_commit}..#{latest_commit} 2>&1`
       end
 
-      Rails.logger.info "git_changelog: exit_status=#{$?.success?}, output=#{changelog.inspect}"
+      Rails.logger.info "git_changelog: #{current_commit[0..7]}..#{latest_commit[0..7]}, exit_status=#{$?.success?}, output=#{changelog.inspect}"
 
       if $?.success? && changelog.present?
         result = changelog.split("\n").reject(&:blank?)
