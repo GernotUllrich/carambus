@@ -150,7 +150,7 @@ class TournamentAutoReserveTest < ActiveSupport::TestCase
     # Add participants
     12.times do |i|
       player = Player.create!(firstname: "Player", lastname: "#{i+1}")
-      Seeding.create!(tournament: tournament, player: player, state: "registered")
+      Seeding.create!(tournament_id: tournament.id, tournament_type: "Tournament", player: player, state: "registered")
     end
     
     assert_equal 6, tournament.required_tables_count
@@ -170,7 +170,7 @@ class TournamentAutoReserveTest < ActiveSupport::TestCase
     # Add 10 participants
     10.times do |i|
       player = Player.create!(firstname: "Player", lastname: "#{i+1}")
-      Seeding.create!(tournament: tournament, player: player, state: "registered")
+      Seeding.create!(tournament_id: tournament.id, tournament_type: "Tournament", player: player, state: "registered")
     end
     
     # Fallback: (10 / 2).ceil = 5
@@ -191,12 +191,12 @@ class TournamentAutoReserveTest < ActiveSupport::TestCase
     # Add 10 registered + 2 no_show
     10.times do |i|
       player = Player.create!(firstname: "Player", lastname: "#{i+1}")
-      Seeding.create!(tournament: tournament, player: player, state: "registered")
+      Seeding.create!(tournament_id: tournament.id, tournament_type: "Tournament", player: player, state: "registered")
     end
     
     2.times do |i|
       player = Player.create!(firstname: "NoShow", lastname: "#{i+1}")
-      Seeding.create!(tournament: tournament, player: player, state: "no_show")
+      Seeding.create!(tournament_id: tournament.id, tournament_type: "Tournament", player: player, state: "no_show")
     end
     
     # Should only count registered: (10 / 2).ceil = 5
@@ -217,7 +217,7 @@ class TournamentAutoReserveTest < ActiveSupport::TestCase
     # Add 7 participants
     7.times do |i|
       player = Player.create!(firstname: "Player", lastname: "#{i+1}")
-      Seeding.create!(tournament: tournament, player: player, state: "registered")
+      Seeding.create!(tournament_id: tournament.id, tournament_type: "Tournament", player: player, state: "registered")
     end
     
     # Fallback: (7 / 2.0).ceil = 4
@@ -268,7 +268,7 @@ class TournamentAutoReserveTest < ActiveSupport::TestCase
     # Add participants
     4.times do |i|
       player = Player.create!(firstname: "Player", lastname: "#{i+1}")
-      Seeding.create!(tournament: tournament, player: player, state: "registered")
+      Seeding.create!(tournament_id: tournament.id, tournament_type: "Tournament", player: player, state: "registered")
     end
     
     assert_nil tournament.create_table_reservation
@@ -303,7 +303,7 @@ class TournamentAutoReserveTest < ActiveSupport::TestCase
     # Add participants
     4.times do |i|
       player = Player.create!(firstname: "Player", lastname: "#{i+1}")
-      Seeding.create!(tournament: tournament, player: player, state: "registered")
+      Seeding.create!(tournament_id: tournament.id, tournament_type: "Tournament", player: player, state: "registered")
     end
     
     # Mock Google Calendar API
@@ -348,7 +348,7 @@ class TournamentAutoReserveTest < ActiveSupport::TestCase
     # Add participants requiring 2 tables
     4.times do |i|
       player = Player.create!(firstname: "Player", lastname: "#{i+1}")
-      Seeding.create!(tournament: tournament, player: player, state: "registered")
+      Seeding.create!(tournament_id: tournament.id, tournament_type: "Tournament", player: player, state: "registered")
     end
     
     # Mock Google Calendar API
@@ -389,7 +389,7 @@ class TournamentAutoReserveTest < ActiveSupport::TestCase
     # Add participants requiring 3 consecutive tables
     6.times do |i|
       player = Player.create!(firstname: "Player", lastname: "#{i+1}")
-      Seeding.create!(tournament: tournament, player: player, state: "registered")
+      Seeding.create!(tournament_id: tournament.id, tournament_type: "Tournament", player: player, state: "registered")
     end
     
     # Mock Google Calendar API
@@ -435,7 +435,7 @@ class TournamentAutoReserveTest < ActiveSupport::TestCase
     # Add participants
     4.times do |i|
       player = Player.create!(firstname: "Player", lastname: "#{i+1}")
-      Seeding.create!(tournament: tournament, player: player, state: "registered")
+      Seeding.create!(tournament_id: tournament.id, tournament_type: "Tournament", player: player, state: "registered")
     end
     
     # Mock Google Calendar API
@@ -481,7 +481,7 @@ class TournamentAutoReserveTest < ActiveSupport::TestCase
     # Add participants
     4.times do |i|
       player = Player.create!(firstname: "Player", lastname: "#{i+1}")
-      Seeding.create!(tournament: tournament, player: player, state: "registered")
+      Seeding.create!(tournament_id: tournament.id, tournament_type: "Tournament", player: player, state: "registered")
     end
     
     # Mock Google Calendar API to raise error
@@ -514,7 +514,7 @@ class TournamentAutoReserveTest < ActiveSupport::TestCase
     # Add participants
     4.times do |i|
       player = Player.create!(firstname: "Player", lastname: "#{i+1}")
-      Seeding.create!(tournament: tournament, player: player, state: "registered")
+      Seeding.create!(tournament_id: tournament.id, tournament_type: "Tournament", player: player, state: "registered")
     end
     
     # Mock Google Calendar API
@@ -556,7 +556,7 @@ class TournamentAutoReserveTest < ActiveSupport::TestCase
     # Add participants
     4.times do |i|
       player = Player.create!(firstname: "Player", lastname: "#{i+1}")
-      Seeding.create!(tournament: tournament, player: player, state: "registered")
+      Seeding.create!(tournament_id: tournament.id, tournament_type: "Tournament", player: player, state: "registered")
     end
     
     # Mock Google Calendar API

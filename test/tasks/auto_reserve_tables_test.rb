@@ -141,7 +141,7 @@ class AutoReserveTablesTaskTest < ActiveSupport::TestCase
     # Add participants
     4.times do |i|
       player = Player.create!(firstname: "Player", lastname: "#{i+1}")
-      Seeding.create!(tournament: tournament, player: player, state: "registered")
+      Seeding.create!(tournament_id: tournament.id, tournament_type: "Tournament", player: player, state: "registered")
     end
     
     # Find tournaments
@@ -174,7 +174,7 @@ class AutoReserveTablesTaskTest < ActiveSupport::TestCase
     # Add participants
     4.times do |i|
       player = Player.create!(firstname: "Player", lastname: "#{i+1}")
-      Seeding.create!(tournament: tournament, player: player, state: "registered")
+      Seeding.create!(tournament_id: tournament.id, tournament_type: "Tournament", player: player, state: "registered")
     end
     
     # Find tournaments
@@ -207,7 +207,7 @@ class AutoReserveTablesTaskTest < ActiveSupport::TestCase
     # Add participants
     4.times do |i|
       player = Player.create!(firstname: "Player", lastname: "#{i+1}")
-      Seeding.create!(tournament: tournament, player: player, state: "registered")
+      Seeding.create!(tournament_id: tournament.id, tournament_type: "Tournament", player: player, state: "registered")
     end
     
     # Find tournaments
@@ -240,7 +240,7 @@ class AutoReserveTablesTaskTest < ActiveSupport::TestCase
     # Add participants
     4.times do |i|
       player = Player.create!(firstname: "Player", lastname: "#{i+1}")
-      Seeding.create!(tournament: tournament, player: player, state: "registered")
+      Seeding.create!(tournament_id: tournament.id, tournament_type: "Tournament", player: player, state: "registered")
     end
     
     # Find tournaments
@@ -273,7 +273,7 @@ class AutoReserveTablesTaskTest < ActiveSupport::TestCase
     # Add participants
     4.times do |i|
       player = Player.create!(firstname: "Player", lastname: "#{i+1}")
-      Seeding.create!(tournament: tournament, player: player, state: "registered")
+      Seeding.create!(tournament_id: tournament.id, tournament_type: "Tournament", player: player, state: "registered")
     end
     
     # Mock Google Calendar API
@@ -332,7 +332,7 @@ class AutoReserveTablesTaskTest < ActiveSupport::TestCase
     # Add only no_show participants
     4.times do |i|
       player = Player.create!(firstname: "NoShow", lastname: "#{i+1}")
-      Seeding.create!(tournament: tournament, player: player, state: "no_show")
+      Seeding.create!(tournament_id: tournament.id, tournament_type: "Tournament", player: player, state: "no_show")
     end
     
     # Should return nil (no active participants)
@@ -357,7 +357,7 @@ class AutoReserveTablesTaskTest < ActiveSupport::TestCase
       # Add participants
       4.times do |j|
         player = Player.create!(firstname: "Player#{i}", lastname: "#{j+1}")
-        Seeding.create!(tournament: tournament, player: player, state: "registered")
+        Seeding.create!(tournament_id: tournament.id, tournament_type: "Tournament", player: player, state: "registered")
       end
       
       tournaments << tournament
@@ -393,7 +393,7 @@ class AutoReserveTablesTaskTest < ActiveSupport::TestCase
     # Add participants
     4.times do |i|
       player = Player.create!(firstname: "Player", lastname: "#{i+1}")
-      Seeding.create!(tournament: tournament, player: player, state: "registered")
+      Seeding.create!(tournament_id: tournament.id, tournament_type: "Tournament", player: player, state: "registered")
     end
     
     # Find tournaments
@@ -426,7 +426,7 @@ class AutoReserveTablesTaskTest < ActiveSupport::TestCase
     # Add participants
     4.times do |i|
       player = Player.create!(firstname: "Player", lastname: "#{i+1}")
-      Seeding.create!(tournament: tournament, player: player, state: "registered")
+      Seeding.create!(tournament_id: tournament.id, tournament_type: "Tournament", player: player, state: "registered")
     end
     
     # Find tournaments
