@@ -55,7 +55,7 @@ class AutoReserveTablesTaskTest < ActiveSupport::TestCase
     # Add participants
     4.times do |i|
       player = Player.create!(firstname: "Player", lastname: "#{i+1}")
-      Seeding.create!(tournament: tournament_recent, player: player, state: "registered")
+      Seeding.create!(tournament_id: tournament_recent.id, tournament_type: "Tournament", player: player, state: "registered")
     end
     
     # Create tournament with deadline 10 days ago (should be ignored)
@@ -73,7 +73,7 @@ class AutoReserveTablesTaskTest < ActiveSupport::TestCase
     # Add participants
     4.times do |i|
       player = Player.create!(firstname: "OldPlayer", lastname: "#{i+1}")
-      Seeding.create!(tournament: tournament_old, player: player, state: "registered")
+      Seeding.create!(tournament_id: tournament_old.id, tournament_type: "Tournament", player: player, state: "registered")
     end
     
     # Find tournaments (simulate what task does)
@@ -108,7 +108,7 @@ class AutoReserveTablesTaskTest < ActiveSupport::TestCase
     # Add participants
     4.times do |i|
       player = Player.create!(firstname: "Player", lastname: "#{i+1}")
-      Seeding.create!(tournament: tournament_league, player: player, state: "registered")
+      Seeding.create!(tournament_id: tournament_league.id, tournament_type: "Tournament", player: player, state: "registered")
     end
     
     # Find tournaments
