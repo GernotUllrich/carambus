@@ -21,16 +21,22 @@
 
 set -e  # Exit on error
 
+# Clean ALL bundler and gem-related environment variables
+# This is critical to avoid conflicts with old bundle installations
+unset BUNDLE_GEMFILE
+unset BUNDLE_APP_CONFIG
+unset BUNDLE_BIN_PATH
+unset BUNDLE_PATH
+unset GEM_HOME
+unset GEM_PATH
+unset RUBYOPT
+unset RUBYLIB
+
 # Check if running under bundle exec (not recommended)
-if [ -n "$BUNDLE_GEMFILE" ]; then
-    echo "⚠️  WARNING: This script is running under 'bundle exec'."
-    echo "⚠️  This may cause issues with bundler configuration."
-    echo "⚠️  Recommended: Run without bundle exec: sh bin/deploy.sh"
+if [ -n "$BUNDLER_VERSION" ]; then
+    echo "⚠️  WARNING: This script appears to be running under 'bundle exec'."
+    echo "⚠️  All bundler environment variables have been cleared."
     echo ""
-    # Unset bundler environment variables to avoid conflicts
-    unset BUNDLE_GEMFILE
-    unset BUNDLE_APP_CONFIG
-    unset RUBYOPT
 fi
 
 # Color output
