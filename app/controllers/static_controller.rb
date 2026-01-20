@@ -43,8 +43,22 @@ class StaticController < ApplicationController
       return
     end
 
-    # Run the deployment in a background process
-    deploy_script = "#{Rails.root}/bin/deploy.sh"
+    # Determine the deployment path from Rails.root
+    # Rails.root is something like: /var/www/carambus_bcw/releases/20260120120005
+    # We need to get: /var/www/carambus_bcw
+    rails_root = Rails.root.to_s
+    
+    if rails_root.include?('/releases/')
+      # Extract deployment path from releases directory
+      deploy_path = rails_root.split('/releases/').first
+      # Use current symlink to get the deploy script
+      deploy_script = "#{deploy_path}/current/bin/deploy.sh"
+      log_file = "#{deploy_path}/current/log/deploy.log"
+    else
+      # Fallback for non-standard deployments
+      deploy_script = "#{Rails.root}/bin/deploy.sh"
+      log_file = Rails.root.join('log', 'deploy.log').to_s
+    end
     
     unless File.exist?(deploy_script)
       redirect_to repo_version_path, alert: "Deploy script not found at #{deploy_script}"
@@ -53,7 +67,6 @@ class StaticController < ApplicationController
 
     # Start deployment in background, completely outside of Bundler context
     # Use nohup and bash to ensure it runs independently
-    log_file = Rails.root.join('log', 'deploy.log').to_s
     
     # Build command that runs outside of bundler
     cmd = [
