@@ -5,13 +5,17 @@ module StaticHelper
     return [] if current_commit.blank? || latest_commit.blank?
     return [] if current_commit == latest_commit
 
-    # Try to get changelog from bare repository
-    repo_path = get_repo_path
-    return [] unless Rails.env.development? || (repo_path && File.directory?(repo_path))
-
     begin
-      # Use git log with --oneline format to get commits between current and latest
-      changelog = `cd Rails.root && git #{"--git-dir=#{repo_path}" if repo_path.present?} log --oneline #{current_commit}..#{latest_commit} 2>/dev/null`
+      if Rails.env.development?
+        # In development, use regular git in Rails.root
+        changelog = `cd #{Rails.root} && git log --oneline #{current_commit}..#{latest_commit} 2>/dev/null`
+      else
+        # In production, use bare repository
+        repo_path = get_repo_path
+        return [] unless repo_path && File.directory?(repo_path)
+        
+        changelog = `git --git-dir=#{repo_path} log --oneline #{current_commit}..#{latest_commit} 2>/dev/null`
+      end
 
       if $?.success?
         changelog.split("\n").reject(&:blank?)
