@@ -32,22 +32,7 @@
         <%= "Version is out-of-date (api.carambus.de has version #{revision[0..8]})" %>
       </div>
 
-      <%- 
-        # Debug output
-        Rails.logger.info "=== git_changelog debug ==="
-        Rails.logger.info "  repo_version: #{repo_version.inspect} (length: #{repo_version&.length})"
-        Rails.logger.info "  revision: #{revision.inspect} (length: #{revision&.length})"
-        
-        # Test the exact command that would run
-        test_cmd = "cd #{Rails.root} && git log --oneline #{repo_version}..#{revision}"
-        Rails.logger.info "  Test command: #{test_cmd}"
-        test_output = `#{test_cmd} 2>&1`
-        Rails.logger.info "  Direct command output: #{test_output.inspect}"
-        Rails.logger.info "  Direct command exit: #{$?.success?}"
-        
-        changelog = git_changelog(repo_version, revision)
-        Rails.logger.info "  changelog result: #{changelog.inspect}"
-      -%>
+      <%- changelog = git_changelog(repo_version, revision) -%>
       <%- if changelog&.any? -%>
         <div class="mt-4 mb-4 p-4 bg-gray-100 dark:bg-gray-800 rounded">
           <h3 class="font-bold mb-2 text-gray-900 dark:text-gray-100">📝 Changes in latest version:</h3>

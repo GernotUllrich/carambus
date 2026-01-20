@@ -33,14 +33,9 @@ module StaticHelper
         changelog = `git --git-dir=#{repo_path} log --oneline #{current_commit}..#{latest_commit} 2>&1`
       end
 
-      Rails.logger.info "git_changelog: #{current_commit[0..7]}..#{latest_commit[0..7]}, exit_status=#{$?.success?}, output=#{changelog.inspect}"
-
       if $?.success? && changelog.present?
-        result = changelog.split("\n").reject(&:blank?)
-        Rails.logger.info "git_changelog: returning #{result.length} commits"
-        result
+        changelog.split("\n").reject(&:blank?)
       else
-        Rails.logger.info "git_changelog: failed or empty (exit: #{$?.success?})"
         []
       end
     rescue => e
