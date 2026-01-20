@@ -345,6 +345,23 @@ if [ -d ".bundle" ]; then
     /usr/bin/env rm -rf ".bundle"
 fi
 
+# Check for broken bundle cache BEFORE running bundle config
+# This happens when shared/bundle has references to git gems that don't exist
+if [ -d "${SHARED_PATH}/bundle" ]; then
+    # Try to detect if bundle cache is broken by checking if bundler/gems references exist but are empty
+    set +e  # Temporarily disable exit on error
+    BUNDLE_CHECK_OUTPUT=$(RAILS_ENV=production $RBENV_ROOT/bin/rbenv exec bundle config 2>&1)
+    BUNDLE_CHECK_EXIT=$?
+    set -e  # Re-enable exit on error
+    
+    if [ $BUNDLE_CHECK_EXIT -ne 0 ] && echo "$BUNDLE_CHECK_OUTPUT" | grep -q "is not yet checked out"; then
+        log_warning "Detected broken bundle cache (git gems not checked out)"
+        log_info "  Cleaning bundle cache..."
+        /usr/bin/env rm -rf "${SHARED_PATH}/bundle"
+        log_success "Bundle cache cleaned"
+    fi
+fi
+
 # Configure bundler with explicit settings (not using --local to avoid .bundle/config issues)
 log_info "  Configuring bundler..."
 RAILS_ENV=production $RBENV_ROOT/bin/rbenv exec bundle config set --local path "${SHARED_PATH}/bundle"
