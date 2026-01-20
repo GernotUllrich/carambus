@@ -32,8 +32,15 @@
         <%= "Version is out-of-date (api.carambus.de has version #{revision[0..8]})" %>
       </div>
 
-      <%- changelog = git_changelog(repo_version, revision) rescue [] -%>
-      <%- if changelog.any? -%>
+      <%- 
+        # Debug output
+        Rails.logger.info "=== git_changelog debug ==="
+        Rails.logger.info "  repo_version: #{repo_version.inspect}"
+        Rails.logger.info "  revision: #{revision.inspect}"
+        changelog = git_changelog(repo_version, revision)
+        Rails.logger.info "  changelog result: #{changelog.inspect}"
+      -%>
+      <%- if changelog&.any? -%>
         <div class="mt-4 mb-4 p-4 bg-gray-100 dark:bg-gray-800 rounded">
           <h3 class="font-bold mb-2 text-gray-900 dark:text-gray-100">📝 Changes in latest version:</h3>
           <div class="font-mono text-sm leading-none text-gray-800 dark:text-gray-200">
