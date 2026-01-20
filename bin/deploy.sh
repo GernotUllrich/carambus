@@ -350,7 +350,14 @@ fi
 if [ -d "${SHARED_PATH}/bundle" ]; then
     # Try to detect if bundle cache is broken by checking if bundler/gems references exist but are empty
     set +e  # Temporarily disable exit on error
-    BUNDLE_CHECK_OUTPUT=$(RAILS_ENV=production $RBENV_ROOT/bin/rbenv exec bundle config 2>&1)
+    
+    # Unset bundler environment to avoid using old bundle
+    unset BUNDLE_GEMFILE
+    unset BUNDLE_APP_CONFIG
+    unset BUNDLE_BIN_PATH
+    unset RUBYOPT
+    
+    BUNDLE_CHECK_OUTPUT=$($RBENV_ROOT/bin/rbenv exec bundle config 2>&1)
     BUNDLE_CHECK_EXIT=$?
     set -e  # Re-enable exit on error
     
@@ -358,6 +365,7 @@ if [ -d "${SHARED_PATH}/bundle" ]; then
         log_warning "Detected broken bundle cache (git gems not checked out)"
         log_info "  Cleaning bundle cache..."
         /usr/bin/env rm -rf "${SHARED_PATH}/bundle"
+        /usr/bin/env rm -rf ".bundle"
         log_success "Bundle cache cleaned"
     fi
 fi
