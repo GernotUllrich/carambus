@@ -20,16 +20,32 @@
 
 set -e  # Exit on error
 
+# Get the directory where this script is located
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_ROOT="$(dirname "$SCRIPT_DIR")"
+
+# CRITICAL: Remove .bundle/config from current directory FIRST
+# This file can point to old/deleted bundle paths and cause Ruby to fail
+if [ -f "$SCRIPT_ROOT/.bundle/config" ]; then
+    rm -f "$SCRIPT_ROOT/.bundle/config"
+fi
+
+# Clean ALL bundler and gem-related environment variables
+# This is critical to avoid conflicts with old bundle installations
+unset BUNDLE_GEMFILE
+unset BUNDLE_APP_CONFIG
+unset BUNDLE_BIN_PATH
+unset BUNDLE_PATH
+unset GEM_HOME
+unset GEM_PATH
+unset RUBYOPT
+unset RUBYLIB
+
 # Check if running under bundle exec (not recommended)
-if [ -n "$BUNDLE_GEMFILE" ]; then
-    echo "⚠️  WARNING: This script is running under 'bundle exec'."
-    echo "⚠️  This may cause issues with bundler configuration."
-    echo "⚠️  Recommended: Run without bundle exec: sh bin/deploy.sh"
+if [ -n "$BUNDLER_VERSION" ]; then
+    echo "⚠️  WARNING: This script appears to be running under 'bundle exec'."
+    echo "⚠️  All bundler environment variables have been cleared."
     echo ""
-    # Unset bundler environment variables to avoid conflicts
-    unset BUNDLE_GEMFILE
-    unset BUNDLE_APP_CONFIG
-    unset RUBYOPT
 fi
 
 # Color output
@@ -342,6 +358,31 @@ unset BUNDLE_APP_CONFIG
 # Remove the .bundle directory if it exists to start fresh
 if [ -d ".bundle" ]; then
     /usr/bin/env rm -rf ".bundle"
+fi
+
+# Check for broken bundle cache BEFORE running bundle config
+# This happens when shared/bundle has references to git gems that don't exist
+if [ -d "${SHARED_PATH}/bundle" ]; then
+    # Try to detect if bundle cache is broken by checking if bundler/gems references exist but are empty
+    set +e  # Temporarily disable exit on error
+    
+    # Unset bundler environment to avoid using old bundle
+    unset BUNDLE_GEMFILE
+    unset BUNDLE_APP_CONFIG
+    unset BUNDLE_BIN_PATH
+    unset RUBYOPT
+    
+    BUNDLE_CHECK_OUTPUT=$($RBENV_ROOT/bin/rbenv exec bundle config 2>&1)
+    BUNDLE_CHECK_EXIT=$?
+    set -e  # Re-enable exit on error
+    
+    if [ $BUNDLE_CHECK_EXIT -ne 0 ] && echo "$BUNDLE_CHECK_OUTPUT" | grep -q "is not yet checked out"; then
+        log_warning "Detected broken bundle cache (git gems not checked out)"
+        log_info "  Cleaning bundle cache..."
+        /usr/bin/env rm -rf "${SHARED_PATH}/bundle"
+        /usr/bin/env rm -rf ".bundle"
+        log_success "Bundle cache cleaned"
+    fi
 fi
 
 # Configure bundler with explicit settings (not using --local to avoid .bundle/config issues)

@@ -49,12 +49,10 @@
                       update_version_path, 
                       method: :post,
                       data: { 
-                        turbo_confirm: "This will update the application to the latest version. The server will restart. Continue?",
-                        turbo_frame: "update_status"
+                        turbo_confirm: "This will update the application to the latest version. The server will restart. Continue?"
                       },
                       class: "bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" %>
       </div>
-      <div id="update_status" class="mt-4"></div>
     <%- end -%>
     <!--    Carambus: <%#= Rails.env == 'development' ? `git log -10` : `#{"tail -1 #{Rails.root}/../../revisions.log"}` %>-->
 
