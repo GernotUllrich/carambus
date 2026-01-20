@@ -1056,5 +1056,123 @@ namespace :carambus do
       results[:errors].each { |error| puts "  - #{error}" }
     end
   end
+
+  desc "Auto-reserve tables for upcoming tournaments after registration deadline"
+  task auto_reserve_tables: :environment do
+    puts "=" * 80
+    puts "Tournament Auto-Reserve Tables Task"
+    puts "Started at: #{Time.current}"
+    puts "=" * 80
+    
+    # Find tournaments that need table reservations:
+    # - Single tournaments only (not leagues)
+    # - Have a location
+    # - Have a date in the future
+    # - Registration deadline (accredation_end) has passed within last 7 days
+    
+    cutoff_date = 7.days.ago
+    now = Time.current
+    
+    tournaments = Tournament
+      .where(single_or_league: 'single')
+      .where.not(location_id: nil)
+      .where.not(discipline_id: nil)
+      .where('date >= ?', now)
+      .where('accredation_end IS NOT NULL')
+      .where('accredation_end >= ? AND accredation_end <= ?', cutoff_date, now)
+      .includes(:location, :discipline, :tournament_cc, :seedings, :tournament_plan)
+    
+    puts "\nFound #{tournaments.count} tournament(s) to process:\n"
+    
+    results = {
+      total: tournaments.count,
+      created: 0,
+      skipped: 0,
+      failed: 0,
+      errors: []
+    }
+    
+    tournaments.each do |tournament|
+      puts "\n" + "-" * 80
+      puts "Tournament: #{tournament.title || tournament.shortname}"
+      puts "  ID: #{tournament.id}"
+      puts "  Date: #{tournament.date}"
+      puts "  Location: #{tournament.location.name}"
+      puts "  Discipline: #{tournament.discipline.name}"
+      puts "  Registration deadline: #{tournament.accredation_end}"
+      puts "  Participants: #{tournament.seedings.where.not(state: 'no_show').count}"
+      
+      begin
+        # Check if tournament has participants
+        participant_count = tournament.seedings.where.not(state: 'no_show').count
+        if participant_count.zero?
+          puts "  ⚠️  SKIPPED: No participants registered"
+          results[:skipped] += 1
+          next
+        end
+        
+        # Calculate required tables
+        tables_needed = tournament.required_tables_count
+        puts "  Tables needed: #{tables_needed}"
+        
+        if tables_needed.zero?
+          puts "  ⚠️  SKIPPED: Could not determine table count"
+          results[:skipped] += 1
+          next
+        end
+        
+        # Check available tables with heaters
+        available_tables = tournament.location.tables
+                                     .joins(:table_kind)
+                                     .where(table_kinds: { id: tournament.discipline.table_kind_id })
+                                     .where.not(tpl_ip_address: nil)
+                                     .order(:id)
+        
+        puts "  Available tables with heaters: #{available_tables.count}"
+        
+        if available_tables.count < tables_needed
+          puts "  ⚠️  WARNING: Only #{available_tables.count} tables available, need #{tables_needed}"
+          puts "  ℹ️  Proceeding with available tables..."
+        end
+        
+        # Create reservation
+        response = tournament.create_table_reservation
+        
+        if response.present?
+          puts "  ✓ SUCCESS: Calendar event created"
+          puts "    Event ID: #{response.id}"
+          puts "    Summary: #{response.summary}"
+          puts "    Start: #{response.start.date_time}"
+          puts "    End: #{response.end.date_time}"
+          results[:created] += 1
+        else
+          puts "  ✗ FAILED: Could not create calendar event"
+          results[:failed] += 1
+          results[:errors] << "Tournament ##{tournament.id}: Failed to create reservation"
+        end
+        
+      rescue StandardError => e
+        puts "  ✗ ERROR: #{e.message}"
+        puts "    #{e.backtrace.first(3).join("\n    ")}"
+        results[:failed] += 1
+        results[:errors] << "Tournament ##{tournament.id}: #{e.message}"
+      end
+    end
+    
+    puts "\n" + "=" * 80
+    puts "Summary:"
+    puts "  Total processed: #{results[:total]}"
+    puts "  ✓ Created: #{results[:created]}"
+    puts "  ⚠️  Skipped: #{results[:skipped]}"
+    puts "  ✗ Failed: #{results[:failed]}"
+    
+    if results[:errors].any?
+      puts "\nErrors:"
+      results[:errors].each { |error| puts "  - #{error}" }
+    end
+    
+    puts "\nCompleted at: #{Time.current}"
+    puts "=" * 80
+  end
 end
 

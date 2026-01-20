@@ -1565,4 +1565,208 @@ class Tournament < ApplicationRecord
   def before_all_events
     Tournament.logger.info "[tournament] #{aasm.current_event.inspect}"
   end
+
+  # ===== Automatic Table Reservation for Heating Control =====
+  
+  # Calculates the required number of tables for the tournament
+  # based on the tournament plan or participant count
+  def required_tables_count
+    return 0 unless location.present? && discipline.present?
+    
+    # Count participants (excluding no-shows)
+    participant_count = seedings.where.not(state: 'no_show').count
+    return 0 if participant_count.zero?
+    
+    # Try to get from tournament plan if available
+    if tournament_plan.present? && tournament_plan.tables.present? && tournament_plan.tables > 0
+      return tournament_plan.tables
+    end
+    
+    # Check if there are multiple possible tournament plans for this participant count
+    possible_plans = TournamentPlan.joins(discipline_tournament_plans: :discipline)
+                                   .where(discipline_tournament_plans: {
+                                     players: participant_count,
+                                     discipline_id: discipline_id
+                                   })
+                                   .where.not(tables: nil)
+    
+    if possible_plans.any?
+      # Return the maximum table count from all possible plans
+      return possible_plans.maximum(:tables) || fallback_table_count(participant_count)
+    end
+    
+    # Fallback: estimate based on participant count
+    fallback_table_count(participant_count)
+  end
+  
+  # Creates a Google Calendar reservation for the tournament tables
+  # Returns the event response or nil if creation failed
+  def create_table_reservation
+    return nil unless location.present? && discipline.present? && date.present?
+    
+    tables_needed = required_tables_count
+    return nil if tables_needed.zero?
+    
+    # Find suitable tables with heaters (tpl_ip_address present)
+    # Filter by discipline's table_kind and order by ID ascending
+    available_tables = location.tables
+                               .joins(:table_kind)
+                               .where(table_kinds: { id: discipline.table_kind_id })
+                               .where.not(tpl_ip_address: nil)
+                               .order(:id)
+                               .limit(tables_needed)
+    
+    return nil if available_tables.empty?
+    
+    # Build table list string (e.g., "T1, T2, T3" or "T1-T3")
+    table_names = available_tables.map(&:name).sort_by { |name| name.match(/\d+/)[0].to_i }
+    table_string = format_table_list(table_names)
+    
+    # Build event summary based on tournament details
+    summary = build_event_summary(table_string)
+    
+    # Calculate event times
+    start_time = calculate_start_time
+    end_time = calculate_end_time
+    
+    # Create Google Calendar event
+    create_google_calendar_event(summary, start_time, end_time)
+  end
+  
+  private
+  
+  def fallback_table_count(participant_count)
+    # Fallback estimation: half of participants (rounded up)
+    # assuming simultaneous matches in first round
+    (participant_count / 2.0).ceil
+  end
+  
+  def format_table_list(table_names)
+    return "" if table_names.empty?
+    
+    # Extract table numbers
+    numbers = table_names.map { |name| name.match(/\d+/)[0].to_i }.sort
+    
+    # Check if consecutive
+    if numbers == (numbers.first..numbers.last).to_a
+      # Consecutive: use range format
+      "T#{numbers.first}-T#{numbers.last}"
+    else
+      # Non-consecutive: list all
+      numbers.map { |n| "T#{n}" }.join(", ")
+    end
+  end
+  
+  def build_event_summary(table_string)
+    # Format: "T1, T2, T3 NDM Cadre 35/2 Klasse 5-6"
+    # or: "T1-T3 Clubmeisterschaft 8-Ball"
+    parts = [table_string]
+    
+    # Add tournament title or shortname
+    if shortname.present?
+      parts << shortname
+    elsif title.present?
+      parts << title
+    end
+    
+    # Add discipline name if present
+    if discipline.present?
+      parts << discipline.name
+    end
+    
+    # Add player class if present
+    if player_class.present?
+      parts << "Klasse #{player_class}"
+    end
+    
+    parts.join(" ")
+  end
+  
+  def calculate_start_time
+    tournament_date = date
+    
+    # Use starting_at from tournament_cc if available, otherwise default to 11:00
+    if tournament_cc.present? && tournament_cc.starting_at.present?
+      start_hour = tournament_cc.starting_at.hour
+      start_minute = tournament_cc.starting_at.min
+    else
+      start_hour = 11
+      start_minute = 0
+    end
+    
+    # Combine date with time
+    Time.zone.local(
+      tournament_date.year,
+      tournament_date.month,
+      tournament_date.day,
+      start_hour,
+      start_minute,
+      0
+    ).utc.iso8601
+  end
+  
+  def calculate_end_time
+    tournament_date = date
+    
+    # End time: 20:00
+    Time.zone.local(
+      tournament_date.year,
+      tournament_date.month,
+      tournament_date.day,
+      20,
+      0,
+      0
+    ).utc.iso8601
+  end
+  
+  def create_google_calendar_event(summary, start_time, end_time)
+    return nil unless Rails.application.credentials.dig(:google_service, :private_key).present?
+    
+    begin
+      # Setup Google API credentials
+      google_creds_json = {
+        type: "service_account",
+        project_id: "carambus-test",
+        private_key_id: Rails.application.credentials.dig(:google_service, :public_key),
+        private_key: Rails.application.credentials.dig(:google_service, :private_key).gsub('\n', "\n"),
+        client_email: "service-test@carambus-test.iam.gserviceaccount.com",
+        client_id: "110923757328591064447",
+        auth_uri: "https://accounts.google.com/o/oauth2/auth",
+        token_uri: "https://oauth2.googleapis.com/token",
+        auth_provider_x509_cert_url: "https://www.googleapis.com/oauth2/v1/certs",
+        client_x509_cert_url: "https://www.googleapis.com/robot/v1/metadata/x509/service-test%40carambus-test.iam.gserviceaccount.com",
+        universe_domain: "googleapis.com"
+      }.to_json
+      
+      scopes = %w[https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/calendar.events]
+      authorizer = Google::Auth::ServiceAccountCredentials.make_creds(
+        json_key_io: StringIO.new(google_creds_json),
+        scope: scopes
+      )
+      
+      service = Google::Apis::CalendarV3::CalendarService.new
+      service.authorization = authorizer
+      calendar_id = Rails.application.credentials[:location_calendar_id]
+      
+      event_object = Google::Apis::CalendarV3::Event.new(
+        summary: summary,
+        start: {
+          date_time: start_time,
+          time_zone: "UTC"
+        },
+        end: {
+          date_time: end_time,
+          time_zone: "UTC"
+        }
+      )
+      
+      response = service.insert_event(calendar_id, event_object)
+      Rails.logger.info "Tournament ##{id}: Created calendar reservation '#{summary}' (Event ID: #{response.id})"
+      response
+    rescue StandardError => e
+      Rails.logger.error "Tournament ##{id}: Failed to create calendar reservation: #{e.message}"
+      Rails.logger.error e.backtrace.join("\n")
+      nil
+    end
+  end
 end
