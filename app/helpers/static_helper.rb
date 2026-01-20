@@ -1,6 +1,8 @@
 module StaticHelper
   # Get git changelog between current deployment and latest version
   # Returns array of commit messages in --oneline format
+  # current_commit: the version currently deployed/running
+  # latest_commit: the newer version from API server
   def git_changelog(current_commit, latest_commit)
     return [] if current_commit.blank? || latest_commit.blank?
     return [] if current_commit == latest_commit
@@ -8,22 +10,29 @@ module StaticHelper
     begin
       if Rails.env.development?
         # In development, use regular git in Rails.root
-        changelog = `cd #{Rails.root} && git log --oneline #{current_commit}..#{latest_commit} 2>/dev/null`
+        # Note: current_commit..latest_commit shows commits that are in latest but not in current
+        changelog = `cd #{Rails.root} && git log --oneline #{current_commit}..#{latest_commit} 2>&1`
       else
         # In production, use bare repository
         repo_path = get_repo_path
         return [] unless repo_path && File.directory?(repo_path)
         
-        changelog = `git --git-dir=#{repo_path} log --oneline #{current_commit}..#{latest_commit} 2>/dev/null`
+        changelog = `git --git-dir=#{repo_path} log --oneline #{current_commit}..#{latest_commit} 2>&1`
       end
 
-      if $?.success?
-        changelog.split("\n").reject(&:blank?)
+      Rails.logger.info "git_changelog: exit_status=#{$?.success?}, output=#{changelog.inspect}"
+
+      if $?.success? && changelog.present?
+        result = changelog.split("\n").reject(&:blank?)
+        Rails.logger.info "git_changelog: returning #{result.length} commits"
+        result
       else
+        Rails.logger.info "git_changelog: failed or empty (exit: #{$?.success?})"
         []
       end
     rescue => e
       Rails.logger.error "Failed to get git changelog: #{e.message}"
+      Rails.logger.error e.backtrace.join("\n")
       []
     end
   end
