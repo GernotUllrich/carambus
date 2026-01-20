@@ -18,6 +18,7 @@
 # Run it directly: sh bin/deploy.sh or bash bin/deploy.sh
 # =============================================================================
 
+
 set -e  # Exit on error
 
 # Get the directory where this script is located
