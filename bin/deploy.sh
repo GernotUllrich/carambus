@@ -19,6 +19,7 @@
 # =============================================================================
 
 
+
 set -e  # Exit on error
 
 # Get the directory where this script is located
@@ -46,14 +47,23 @@ fi
 
 # Clean ALL bundler and gem-related environment variables
 # This is critical to avoid conflicts with old bundle installations
+# IMPORTANT: Also unset BUNDLER_ORIG_* variables that Bundler uses to restore environment
 unset BUNDLE_GEMFILE
 unset BUNDLE_APP_CONFIG
 unset BUNDLE_BIN_PATH
 unset BUNDLE_PATH
+unset BUNDLER_VERSION
+unset BUNDLER_SETUP
 unset GEM_HOME
 unset GEM_PATH
 unset RUBYOPT
 unset RUBYLIB
+
+# Unset ALL BUNDLER_ORIG_* variables (Bundler's environment preservation)
+# These cause Ruby to restore the old bundler environment when it starts
+for var in $(env | grep '^BUNDLER_ORIG_' | cut -d= -f1); do
+    unset "$var"
+done
 
 echo "Environment after cleanup:" >> "$DEBUG_LOG"
 env | grep -E "(BUNDLE|GEM|RUBY)" | sort >> "$DEBUG_LOG" 2>&1 || echo "  No BUNDLE/GEM/RUBY vars found" >> "$DEBUG_LOG"
@@ -374,69 +384,14 @@ cd "$NEW_RELEASE_PATH"
 unset BUNDLE_GEMFILE
 unset BUNDLE_APP_CONFIG
 
-# Remove the .bundle directory if it exists to start fresh
-if [ -d ".bundle" ]; then
-    /usr/bin/env rm -rf ".bundle"
-fi
-
-# Check for broken bundle cache BEFORE running bundle config
-# This happens when shared/bundle has references to git gems that don't exist
-if [ -d "${SHARED_PATH}/bundle" ]; then
-    # Try to detect if bundle cache is broken by checking if bundler/gems references exist but are empty
-    set +e  # Temporarily disable exit on error
-
-    # Unset bundler environment to avoid using old bundle
-    unset BUNDLE_GEMFILE
-    unset BUNDLE_APP_CONFIG
-    unset BUNDLE_BIN_PATH
-    unset RUBYOPT
-
-    BUNDLE_CHECK_OUTPUT=$($RBENV_ROOT/bin/rbenv exec bundle config 2>&1)
-    BUNDLE_CHECK_EXIT=$?
-    set -e  # Re-enable exit on error
-
-    if [ $BUNDLE_CHECK_EXIT -ne 0 ] && echo "$BUNDLE_CHECK_OUTPUT" | grep -q "is not yet checked out"; then
-        log_warning "Detected broken bundle cache (git gems not checked out)"
-        log_info "  Cleaning bundle cache..."
-        /usr/bin/env rm -rf "${SHARED_PATH}/bundle"
-        /usr/bin/env rm -rf ".bundle"
-        log_success "Bundle cache cleaned"
-    fi
-fi
-
-# Configure bundler with explicit settings (not using --local to avoid .bundle/config issues)
+# Configure bundler - use shared bundle path
 log_info "  Configuring bundler..."
 RAILS_ENV=production $RBENV_ROOT/bin/rbenv exec bundle config set --local path "${SHARED_PATH}/bundle"
 RAILS_ENV=production $RBENV_ROOT/bin/rbenv exec bundle config set --local without 'development test'
 
-# Install gems - if it fails with git checkout error, clean bundle cache and retry
+# Install gems
 log_info "  Running bundle install..."
-set +e  # Temporarily disable exit on error
-BUNDLE_OUTPUT=$(RAILS_ENV=production $RBENV_ROOT/bin/rbenv exec bundle install --jobs 4 2>&1)
-BUNDLE_EXIT_CODE=$?
-set -e  # Re-enable exit on error
-
-if [ $BUNDLE_EXIT_CODE -ne 0 ]; then
-    # Check if error is due to git gems not checked out
-    if echo "$BUNDLE_OUTPUT" | grep -q "is not yet checked out"; then
-        log_warning "Bundle install failed: Git gems not checked out"
-        log_info "  Cleaning bundle cache and retrying..."
-        /usr/bin/env rm -rf "${SHARED_PATH}/bundle"
-        /usr/bin/env rm -rf ".bundle"
-
-        # Reconfigure bundler after cleaning
-        RAILS_ENV=production $RBENV_ROOT/bin/rbenv exec bundle config set --local path "${SHARED_PATH}/bundle"
-        RAILS_ENV=production $RBENV_ROOT/bin/rbenv exec bundle config set --local without 'development test'
-
-        # Retry bundle install
-        log_info "  Retrying bundle install..."
-        RAILS_ENV=production $RBENV_ROOT/bin/rbenv exec bundle install --jobs 4
-    else
-        # Other error - show output and exit
-        echo "$BUNDLE_OUTPUT"
-        exit 1
-    fi
-fi
+RAILS_ENV=production $RBENV_ROOT/bin/rbenv exec bundle install --jobs 4 --quiet
 
 log_success "Ruby dependencies installed"
 

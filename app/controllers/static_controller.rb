@@ -83,12 +83,19 @@ class StaticController < ApplicationController
       'BUNDLE_BIN_PATH' => nil,
       'BUNDLE_PATH' => nil,
       'BUNDLER_VERSION' => nil,
+      'BUNDLER_SETUP' => nil,
       'RUBYOPT' => nil,
       'RUBYLIB' => nil,
       'GEM_HOME' => nil,
       'GEM_PATH' => nil,
       'RAILS_ENV' => 'production'  # Always production for deployment
     }
+    
+    # Also unset all BUNDLER_ORIG_* variables
+    # Bundler uses these to preserve/restore the original environment
+    ENV.keys.select { |k| k.start_with?('BUNDLER_ORIG_') }.each do |key|
+      clean_env[key] = nil
+    end
     
     pid = Process.spawn(
       clean_env,
