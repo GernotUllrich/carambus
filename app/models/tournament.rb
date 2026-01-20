@@ -968,6 +968,75 @@ class Tournament < ApplicationRecord
     end
   end
 
+  # ===== Automatic Table Reservation for Heating Control =====
+  
+  # Calculates the required number of tables for the tournament
+  # based on the tournament plan or participant count
+  # Public method to allow external calls and testing
+  def required_tables_count
+    return 0 unless location.present? && discipline.present?
+    
+    # Count participants (excluding no-shows)
+    participant_count = seedings.where.not(state: 'no_show').count
+    return 0 if participant_count.zero?
+    
+    # Try to get from tournament plan if available
+    if tournament_plan.present? && tournament_plan.tables.present? && tournament_plan.tables > 0
+      return tournament_plan.tables
+    end
+    
+    # Check if there are multiple possible tournament plans for this participant count
+    possible_plans = TournamentPlan.joins(discipline_tournament_plans: :discipline)
+                                   .where(discipline_tournament_plans: {
+                                     players: participant_count,
+                                     discipline_id: discipline_id
+                                   })
+                                   .where.not(tables: nil)
+    
+    if possible_plans.any?
+      # Return the maximum table count from all possible plans
+      return possible_plans.maximum(:tables) || fallback_table_count(participant_count)
+    end
+    
+    # Fallback: estimate based on participant count
+    fallback_table_count(participant_count)
+  end
+  
+  # Creates a Google Calendar reservation for the tournament tables
+  # Returns the event response or nil if creation failed
+  # Public method to allow external calls and testing
+  def create_table_reservation
+    return nil unless location.present? && discipline.present? && date.present?
+    
+    tables_needed = required_tables_count
+    return nil if tables_needed.zero?
+    
+    # Find suitable tables with heaters (tpl_ip_address present)
+    # Filter by discipline's table_kind and order by ID ascending
+    available_tables = location.tables
+                               .joins(:table_kind)
+                               .where(table_kinds: { id: discipline.table_kind_id })
+                               .where.not(tpl_ip_address: nil)
+                               .order(:id)
+                               .limit(tables_needed)
+    
+    return nil if available_tables.empty?
+    
+    # Build table list string (e.g., "T1, T2, T3" or "T1-T3")
+    table_names = available_tables.map(&:name).sort_by { |name| name.match(/\d+/)[0].to_i }
+    table_string = format_table_list(table_names)
+    
+    # Build event summary based on tournament details
+    summary = build_event_summary(table_string)
+    
+    # Calculate event times
+    start_time = calculate_start_time
+    end_time = calculate_end_time
+    
+    # Create Google Calendar event
+    create_google_calendar_event(summary, start_time, end_time)
+  end
+
   private
 
   def parse_table_tr(region, frame1_lines, frame_points, frame_result, frames, gd, group, hb,
@@ -1566,73 +1635,6 @@ class Tournament < ApplicationRecord
     Tournament.logger.info "[tournament] #{aasm.current_event.inspect}"
   end
 
-  # ===== Automatic Table Reservation for Heating Control =====
-  
-  # Calculates the required number of tables for the tournament
-  # based on the tournament plan or participant count
-  def required_tables_count
-    return 0 unless location.present? && discipline.present?
-    
-    # Count participants (excluding no-shows)
-    participant_count = seedings.where.not(state: 'no_show').count
-    return 0 if participant_count.zero?
-    
-    # Try to get from tournament plan if available
-    if tournament_plan.present? && tournament_plan.tables.present? && tournament_plan.tables > 0
-      return tournament_plan.tables
-    end
-    
-    # Check if there are multiple possible tournament plans for this participant count
-    possible_plans = TournamentPlan.joins(discipline_tournament_plans: :discipline)
-                                   .where(discipline_tournament_plans: {
-                                     players: participant_count,
-                                     discipline_id: discipline_id
-                                   })
-                                   .where.not(tables: nil)
-    
-    if possible_plans.any?
-      # Return the maximum table count from all possible plans
-      return possible_plans.maximum(:tables) || fallback_table_count(participant_count)
-    end
-    
-    # Fallback: estimate based on participant count
-    fallback_table_count(participant_count)
-  end
-  
-  # Creates a Google Calendar reservation for the tournament tables
-  # Returns the event response or nil if creation failed
-  def create_table_reservation
-    return nil unless location.present? && discipline.present? && date.present?
-    
-    tables_needed = required_tables_count
-    return nil if tables_needed.zero?
-    
-    # Find suitable tables with heaters (tpl_ip_address present)
-    # Filter by discipline's table_kind and order by ID ascending
-    available_tables = location.tables
-                               .joins(:table_kind)
-                               .where(table_kinds: { id: discipline.table_kind_id })
-                               .where.not(tpl_ip_address: nil)
-                               .order(:id)
-                               .limit(tables_needed)
-    
-    return nil if available_tables.empty?
-    
-    # Build table list string (e.g., "T1, T2, T3" or "T1-T3")
-    table_names = available_tables.map(&:name).sort_by { |name| name.match(/\d+/)[0].to_i }
-    table_string = format_table_list(table_names)
-    
-    # Build event summary based on tournament details
-    summary = build_event_summary(table_string)
-    
-    # Calculate event times
-    start_time = calculate_start_time
-    end_time = calculate_end_time
-    
-    # Create Google Calendar event
-    create_google_calendar_event(summary, start_time, end_time)
-  end
-  
   private
   
   def fallback_table_count(participant_count)

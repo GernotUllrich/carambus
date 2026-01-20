@@ -6,9 +6,9 @@ class TournamentAutoReserveTest < ActiveSupport::TestCase
     @region = Region.create!(shortname: "TEST", name: "Test Region")
     
     # Create table kinds
-    @table_kind_small = TableKind.create!(name: "Small Billard", shortname: "SB")
-    @table_kind_pool = TableKind.create!(name: "Pool", shortname: "P")
-    @table_kind_match = TableKind.create!(name: "Match Billard", shortname: "MB")
+    @table_kind_small = TableKind.create!(name: "Small Billard")
+    @table_kind_pool = TableKind.create!(name: "Pool")
+    @table_kind_match = TableKind.create!(name: "Match Billard")
     
     # Create disciplines
     @discipline_cadre = Discipline.create!(

@@ -10,7 +10,7 @@ class AutoReserveTablesTaskTest < ActiveSupport::TestCase
     @region = Region.create!(shortname: "TEST", name: "Test Region")
     
     # Create table kinds and disciplines
-    @table_kind_small = TableKind.create!(name: "Small Billard", shortname: "SB")
+    @table_kind_small = TableKind.create!(name: "Small Billard")
     @discipline_cadre = Discipline.create!(
       name: "Cadre 35/2",
       table_kind: @table_kind_small
