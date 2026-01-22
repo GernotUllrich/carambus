@@ -260,6 +260,333 @@ namespace :streaming do
     end
   end
   
+  desc "Calibrate camera settings (find optimal focus/exposure values)"
+  task :camera_calibrate, [:table_id] => :environment do |t, args|
+    require 'net/ssh'
+    
+    table_id = args[:table_id]
+    abort "Usage: rake streaming:camera_calibrate[TABLE_ID]" if table_id.blank?
+    
+    table = Table.find(table_id)
+    config = table.stream_configuration
+    
+    abort "No stream configuration found for table #{table_id}" if config.nil?
+    abort "No Raspberry Pi IP configured" if config.raspi_ip.blank?
+    
+    raspi_ip = config.raspi_ip
+    camera_device = config.camera_device || '/dev/video0'
+    
+    puts "📷 Camera Calibration Tool"
+    puts "=" * 60
+    puts "Table: #{table.name}"
+    puts "Location: #{config.location.name}"
+    puts "Raspi IP: #{raspi_ip}"
+    puts "Camera: #{camera_device}"
+    puts "=" * 60
+    
+    ssh_options = build_ssh_options(raspi_ip)
+    ssh_user = ssh_options[:user]
+    
+    begin
+      Net::SSH.start(raspi_ip, ssh_user, ssh_options) do |ssh|
+        puts "\n🔍 Reading current camera settings..."
+        
+        # Get all available controls
+        controls_output = ssh.exec!("v4l2-ctl --device=#{camera_device} --list-ctrls 2>/dev/null")
+        
+        if controls_output.empty?
+          abort "❌ Cannot access camera at #{camera_device}. Check if camera is connected and accessible."
+        end
+        
+        # Parse controls
+        controls = {}
+        controls_output.each_line do |line|
+          if line =~ /^\s*(\w+)\s+0x[0-9a-f]+\s+\((\w+)\)\s*:\s*min=(-?\d+)\s+max=(-?\d+)\s+step=(-?\d+)\s+default=(-?\d+)\s+value=(-?\d+)/
+            name = $1
+            type = $2
+            min = $3.to_i
+            max = $4.to_i
+            step = $5.to_i
+            default = $6.to_i
+            value = $7.to_i
+            
+            controls[name] = {
+              type: type,
+              min: min,
+              max: max,
+              step: step,
+              default: default,
+              value: value
+            }
+          elsif line =~ /^\s*(\w+)\s+0x[0-9a-f]+\s+\((\w+)\)\s*:\s*min=(-?\d+)\s+max=(-?\d+)\s+step=(-?\d+)\s+default=(-?\d+)\s+value=(-?\d+)\s+flags=(\w+)/
+            name = $1
+            type = $2
+            min = $3.to_i
+            max = $4.to_i
+            step = $5.to_i
+            default = $6.to_i
+            value = $7.to_i
+            flags = $8
+            
+            controls[name] = {
+              type: type,
+              min: min,
+              max: max,
+              step: step,
+              default: default,
+              value: value,
+              flags: flags
+            }
+          elsif line =~ /^\s*(\w+)\s+0x[0-9a-f]+\s+\((\w+)\)\s*:\s*min=(-?\d+)\s+max=(-?\d+)\s+step=(-?\d+)\s+default=(-?\d+)\s+value=(-?\d+)\s+\(([^)]+)\)/
+            name = $1
+            type = $2
+            min = $3.to_i
+            max = $4.to_i
+            step = $5.to_i
+            default = $6.to_i
+            value = $7.to_i
+            menu_text = $8
+            
+            controls[name] = {
+              type: type,
+              min: min,
+              max: max,
+              step: step,
+              default: default,
+              value: value,
+              menu_text: menu_text
+            }
+          end
+        end
+        
+        # Display current settings
+        puts "\n📊 Current Camera Settings:"
+        puts "-" * 60
+        
+        # Focus settings
+        if controls['focus_automatic_continuous']
+          focus_auto = controls['focus_automatic_continuous'][:value]
+          puts "  Auto-Focus:        #{focus_auto == 1 ? 'ON (automatic)' : 'OFF (manual)'}"
+          if controls['focus_absolute']
+            focus_val = controls['focus_absolute'][:value]
+            focus_max = controls['focus_absolute'][:max]
+            puts "  Focus Value:       #{focus_val} / #{focus_max} (step: #{controls['focus_absolute'][:step]})"
+          end
+        elsif controls['focus_auto']
+          focus_auto = controls['focus_auto'][:value]
+          puts "  Auto-Focus:        #{focus_auto == 1 ? 'ON (automatic)' : 'OFF (manual)'}"
+          if controls['focus_absolute']
+            focus_val = controls['focus_absolute'][:value]
+            focus_max = controls['focus_absolute'][:max]
+            puts "  Focus Value:       #{focus_val} / #{focus_max}"
+          end
+        end
+        
+        # Exposure settings
+        if controls['auto_exposure']
+          exp_auto = controls['auto_exposure'][:value]
+          exp_text = controls['auto_exposure'][:menu_text] || exp_auto.to_s
+          puts "  Auto-Exposure:     #{exp_text}"
+          if controls['exposure_time_absolute']
+            exp_val = controls['exposure_time_absolute'][:value]
+            exp_max = controls['exposure_time_absolute'][:max]
+            puts "  Exposure Value:    #{exp_val} / #{exp_max} (default: #{controls['exposure_time_absolute'][:default]})"
+          end
+        elsif controls['exposure_auto']
+          exp_auto = controls['exposure_auto'][:value]
+          puts "  Auto-Exposure:     #{exp_auto == 3 ? 'ON (automatic)' : 'OFF (manual)'}"
+          if controls['exposure_absolute']
+            exp_val = controls['exposure_absolute'][:value]
+            puts "  Exposure Value:    #{exp_val}"
+          end
+        end
+        
+        # Other settings
+        if controls['brightness']
+          puts "  Brightness:        #{controls['brightness'][:value]} / #{controls['brightness'][:max]} (default: #{controls['brightness'][:default]})"
+        end
+        if controls['contrast']
+          puts "  Contrast:          #{controls['contrast'][:value]} / #{controls['contrast'][:max]} (default: #{controls['contrast'][:default]})"
+        end
+        if controls['saturation']
+          puts "  Saturation:        #{controls['saturation'][:value]} / #{controls['saturation'][:max]} (default: #{controls['saturation'][:default]})"
+        end
+        
+        puts "\n💡 Calibration Guide:"
+        puts "-" * 60
+        puts "1. Start with AUTO mode to see what the camera chooses"
+        puts "2. Switch to MANUAL mode and use the current values as starting point"
+        puts "3. Adjust values while watching the stream in OBS or via preview"
+        puts "4. Find values that work well for your lighting conditions"
+        puts "5. Save the values to the database when satisfied"
+        puts ""
+        puts "📝 Available Commands:"
+        puts "  • Set auto-focus OFF:     v4l2-ctl --set-ctrl=focus_automatic_continuous=0"
+        puts "  • Set auto-exposure OFF:  v4l2-ctl --set-ctrl=auto_exposure=1"
+        puts "  • Set focus value:        v4l2-ctl --set-ctrl=focus_absolute=VALUE"
+        puts "  • Set exposure value:     v4l2-ctl --set-ctrl=exposure_time_absolute=VALUE"
+        puts "  • Set brightness:         v4l2-ctl --set-ctrl=brightness=VALUE"
+        puts "  • Set contrast:          v4l2-ctl --set-ctrl=contrast=VALUE"
+        puts "  • Set saturation:         v4l2-ctl --set-ctrl=saturation=VALUE"
+        puts "  • Read current values:     v4l2-ctl --get-ctrl=CONTROL_NAME"
+        puts ""
+        puts "🔧 Interactive Mode:"
+        puts "  You can now SSH to the Raspberry Pi and adjust values manually:"
+        puts "    ssh #{ssh_user}@#{raspi_ip}"
+        puts "    v4l2-ctl --device=#{camera_device} --set-ctrl=..."
+        puts ""
+        puts "  Or use this tool to set values directly:"
+        puts "    rake streaming:camera_set[TABLE_ID,CONTROL,VALUE]"
+        puts ""
+        
+        # Show current database values
+        puts "💾 Current Database Values:"
+        puts "-" * 60
+        puts "  Focus Auto:         #{config.focus_auto || 0} (0=manual, 1=auto)"
+        puts "  Exposure Auto:      #{config.exposure_auto || 1} (1=manual, 3=auto)"
+        puts "  Focus Absolute:    #{config.focus_absolute || '(not set)'}"
+        puts "  Exposure Absolute: #{config.exposure_absolute || '(not set)'}"
+        puts "  Brightness:         #{config.brightness || '(not set)'}"
+        puts "  Contrast:           #{config.contrast || '(not set)'}"
+        puts "  Saturation:         #{config.saturation || '(not set)'}"
+        puts ""
+        puts "✅ To save current camera values to database:"
+        puts "    rake streaming:camera_save[#{table_id}]"
+      end
+    rescue Net::SSH::AuthenticationFailed => e
+      abort "❌ SSH authentication failed: #{e.message}"
+    rescue => e
+      abort "❌ Error: #{e.message}"
+    end
+  end
+  
+  desc "Set a camera control value on Raspberry Pi"
+  task :camera_set, [:table_id, :control, :value] => :environment do |t, args|
+    require 'net/ssh'
+    
+    table_id = args[:table_id]
+    control = args[:control]
+    value = args[:value]
+    
+    abort "Usage: rake streaming:camera_set[TABLE_ID,CONTROL,VALUE]" if [table_id, control, value].any?(&:blank?)
+    
+    table = Table.find(table_id)
+    config = table.stream_configuration
+    
+    abort "No stream configuration found for table #{table_id}" if config.nil?
+    abort "No Raspberry Pi IP configured" if config.raspi_ip.blank?
+    
+    raspi_ip = config.raspi_ip
+    camera_device = config.camera_device || '/dev/video0'
+    
+    ssh_options = build_ssh_options(raspi_ip)
+    ssh_user = ssh_options[:user]
+    
+    begin
+      Net::SSH.start(raspi_ip, ssh_user, ssh_options) do |ssh|
+        puts "🔧 Setting #{control} = #{value} on #{camera_device}..."
+        
+        result = ssh.exec!("v4l2-ctl --device=#{camera_device} --set-ctrl=#{control}=#{value} 2>&1")
+        
+        if result.empty? || result.include?('error')
+          puts "❌ Failed to set value"
+          puts result if result.present?
+        else
+          puts "✅ Value set successfully"
+          
+          # Read back to confirm
+          current = ssh.exec!("v4l2-ctl --device=#{camera_device} --get-ctrl=#{control} 2>/dev/null")
+          puts "   Current value: #{current.strip}" if current.present?
+        end
+      end
+    rescue => e
+      abort "❌ Error: #{e.message}"
+    end
+  end
+  
+  desc "Save current camera values from Raspberry Pi to database"
+  task :camera_save, [:table_id] => :environment do |t, args|
+    require 'net/ssh'
+    
+    table_id = args[:table_id]
+    abort "Usage: rake streaming:camera_save[TABLE_ID]" if table_id.blank?
+    
+    table = Table.find(table_id)
+    config = table.stream_configuration
+    
+    abort "No stream configuration found for table #{table_id}" if config.nil?
+    abort "No Raspberry Pi IP configured" if config.raspi_ip.blank?
+    
+    raspi_ip = config.raspi_ip
+    camera_device = config.camera_device || '/dev/video0'
+    
+    ssh_options = build_ssh_options(raspi_ip)
+    ssh_user = ssh_options[:user]
+    
+    begin
+      Net::SSH.start(raspi_ip, ssh_user, ssh_options) do |ssh|
+        puts "💾 Reading current camera values from Raspberry Pi..."
+        
+        # Read all relevant values
+        values = {}
+        
+        # Focus
+        if ssh.exec!("v4l2-ctl --device=#{camera_device} --get-ctrl=focus_automatic_continuous 2>/dev/null").present?
+          focus_auto = ssh.exec!("v4l2-ctl --device=#{camera_device} --get-ctrl=focus_automatic_continuous 2>/dev/null").strip
+          values[:focus_auto] = focus_auto.split('=').last.to_i
+          
+          if ssh.exec!("v4l2-ctl --device=#{camera_device} --get-ctrl=focus_absolute 2>/dev/null").present?
+            focus_abs = ssh.exec!("v4l2-ctl --device=#{camera_device} --get-ctrl=focus_absolute 2>/dev/null").strip
+            values[:focus_absolute] = focus_abs.split('=').last.to_i if focus_abs.include?('=')
+          end
+        end
+        
+        # Exposure
+        if ssh.exec!("v4l2-ctl --device=#{camera_device} --get-ctrl=auto_exposure 2>/dev/null").present?
+          exp_auto = ssh.exec!("v4l2-ctl --device=#{camera_device} --get-ctrl=auto_exposure 2>/dev/null").strip
+          exp_val = exp_auto.split('=').last.to_i
+          # Convert: 1=manual, 3=auto -> store as 1=manual, 3=auto
+          values[:exposure_auto] = exp_val
+          
+          if ssh.exec!("v4l2-ctl --device=#{camera_device} --get-ctrl=exposure_time_absolute 2>/dev/null").present?
+            exp_abs = ssh.exec!("v4l2-ctl --device=#{camera_device} --get-ctrl=exposure_time_absolute 2>/dev/null").strip
+            values[:exposure_absolute] = exp_abs.split('=').last.to_i if exp_abs.include?('=')
+          end
+        end
+        
+        # Brightness, Contrast, Saturation
+        ['brightness', 'contrast', 'saturation'].each do |ctrl|
+          if ssh.exec!("v4l2-ctl --device=#{camera_device} --get-ctrl=#{ctrl} 2>/dev/null").present?
+            val = ssh.exec!("v4l2-ctl --device=#{camera_device} --get-ctrl=#{ctrl} 2>/dev/null").strip
+            values[ctrl.to_sym] = val.split('=').last.to_i if val.include?('=')
+          end
+        end
+        
+        # Update database
+        puts "\n📝 Saving values to database..."
+        puts "-" * 60
+        
+        values.each do |key, value|
+          if config.respond_to?("#{key}=")
+            config.send("#{key}=", value)
+            puts "  #{key}: #{value}"
+          end
+        end
+        
+        if config.save
+          puts "\n✅ Values saved successfully!"
+          puts "\nNext steps:"
+          puts "  1. Deploy configuration: rake streaming:deploy[#{table_id}]"
+          puts "  2. Restart stream to apply new settings"
+        else
+          puts "\n❌ Failed to save: #{config.errors.full_messages.join(', ')}"
+        end
+      end
+    rescue => e
+      abort "❌ Error: #{e.message}"
+    end
+  end
+  
   desc "Show streaming documentation"
   task :help do
     puts <<~HELP
@@ -275,6 +602,11 @@ namespace :streaming do
       Monitoring:
         rake streaming:status                    Show status of all streams
         rake streaming:test[RASPI_IP]           Test streaming setup on Raspi
+      
+      Camera Calibration:
+        rake streaming:camera_calibrate[TABLE_ID] Show current camera settings and calibration guide
+        rake streaming:camera_set[TABLE_ID,CONTROL,VALUE] Set a camera control value
+        rake streaming:camera_save[TABLE_ID]     Save current camera values to database
       
       Environment Variables:
         RASPI_SSH_USER      SSH username (default: pi)
