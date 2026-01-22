@@ -165,8 +165,16 @@ class StreamConfiguration < ApplicationRecord
   def scoreboard_overlay_url
     return nil unless location.present? && table.present?
     
+    # Use explicit server URL from ENV if set, otherwise determine automatically
+    if ENV['STREAMING_SERVER_URL'].present?
+      base_url = ENV['STREAMING_SERVER_URL']
+      # Ensure it doesn't end with /
+      base_url = base_url.chomp('/')
+      return "#{base_url}/locations/#{location.md5}/scoreboard_overlay?table_id=#{table.id}"
+    end
+    
     # Determine host - use localhost if on the same machine, otherwise location URL
-    host = ApplicationRecord.local_server? ? 'localhost' : location.url
+    host = ApplicationRecord.local_server? ? 'localhost' : (location.respond_to?(:url) ? location.url : '192.168.2.210')
     
     # Determine port from Rails server configuration
     # Try to get from action_mailer default_url_options first (most reliable)
@@ -272,6 +280,13 @@ class StreamConfiguration < ApplicationRecord
     self.audio_bitrate ||= 128
     self.raspi_ssh_port ||= 22
     self.restart_count ||= 0
+    self.perspective_enabled = false if perspective_enabled.nil?
+    # Default: no correction (full frame)
+    # Format: "x0:y0:x1:y1:x2:y2:x3:y3" (top-left, top-right, bottom-right, bottom-left)
+    self.perspective_coords ||= "0:0:W:0:W:H:0:H" if perspective_coords.blank?
+    # Camera manual settings (default: manual focus/exposure to prevent auto-adjustment)
+    self.focus_auto ||= 0  # 0 = manual, 1 = auto
+    self.exposure_auto ||= 1  # 1 = manual, 3 = auto
   end
   
   def set_raspi_ip_from_table

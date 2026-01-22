@@ -390,9 +390,24 @@ def deploy_stream_config(config)
     VIDEO_BITRATE=#{config.video_bitrate}
     AUDIO_BITRATE=#{config.audio_bitrate}
     
+    # Perspective Correction (Trapezkorrektur)
+    PERSPECTIVE_ENABLED=#{config.perspective_enabled ? 'true' : 'false'}
+    PERSPECTIVE_COORDS=#{config.perspective_coords || '0:0:W:0:W:H:0:H'}
+    
+    # Camera Manual Settings (for constant focus/exposure)
+    FOCUS_AUTO=#{config.focus_auto || 0}
+    EXPOSURE_AUTO=#{config.exposure_auto || 1}
+    FOCUS_ABSOLUTE=#{config.focus_absolute || ''}
+    EXPOSURE_ABSOLUTE=#{config.exposure_absolute || ''}
+    BRIGHTNESS=#{config.brightness || ''}
+    CONTRAST=#{config.contrast || ''}
+    SATURATION=#{config.saturation || ''}
+    
     # Metadata
     TABLE_NUMBER=#{table_number}
     TABLE_ID=#{table_id}
+    LOCATION_MD5=#{config.location.md5}
+    SERVER_URL=#{overlay_url_base}
     LOCATION_NAME="#{config.location.name}"
     GENERATED_AT="#{Time.current}"
   CONFIG

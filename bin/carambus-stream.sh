@@ -76,6 +76,16 @@ OVERLAY_POSITION=${OVERLAY_POSITION:-bottom}
 OVERLAY_HEIGHT=${OVERLAY_HEIGHT:-200}
 VIDEO_BITRATE=${VIDEO_BITRATE:-2000}
 AUDIO_BITRATE=${AUDIO_BITRATE:-128}
+PERSPECTIVE_ENABLED=${PERSPECTIVE_ENABLED:-false}
+PERSPECTIVE_COORDS=${PERSPECTIVE_COORDS:-"0:0:W:0:W:H:0:H"}
+# Camera manual settings (for constant focus/exposure)
+FOCUS_AUTO=${FOCUS_AUTO:-0}  # 0=manual, 1=auto (default: manual to prevent auto-adjustment)
+EXPOSURE_AUTO=${EXPOSURE_AUTO:-1}  # 1=manual, 3=auto (default: manual)
+FOCUS_ABSOLUTE=${FOCUS_ABSOLUTE:-}  # Optional: manual focus value (0-250)
+EXPOSURE_ABSOLUTE=${EXPOSURE_ABSOLUTE:-}  # Optional: manual exposure value (3-2047)
+BRIGHTNESS=${BRIGHTNESS:-}  # Optional: brightness (0-255)
+CONTRAST=${CONTRAST:-}  # Optional: contrast (0-255)
+SATURATION=${SATURATION:-}  # Optional: saturation (0-255)
 
 # ============================================================================
 # Functions
@@ -87,14 +97,10 @@ log() {
 
 # Detect available audio input
 detect_audio_input() {
-    # Check if ALSA card 0 exists (webcam audio)
-    if [ -d "/proc/asound/card0" ]; then
-        echo "[$(date +%Y-%m-%d\ %H:%M:%S)] Audio: Webcam microphone detected (hw:0)" >> "$LOG_FILE"
-        echo "hw:0"
-    else
-        echo "[$(date +%Y-%m-%d\ %H:%M:%S)] Audio: No microphone detected, using null audio" >> "$LOG_FILE"
-        echo "anullsrc"
-    fi
+    # For now, always use null audio to avoid device issues
+    # TODO: Implement proper audio device detection if needed
+    echo "[$(date +%Y-%m-%d\ %H:%M:%S)] Audio: Using null audio (no microphone configured)" >> "$LOG_FILE"
+    echo "anullsrc"
 }
 
 cleanup() {
@@ -186,6 +192,92 @@ check_overlay_file() {
     return 0
 }
 
+# Configure camera to use manual focus and exposure (prevents auto-adjustment when people walk by)
+configure_camera_manual() {
+    log "Configuring camera for manual focus and exposure..."
+    
+    # Default values if not set in config
+    # For Logitech C922: focus_automatic_continuous (0=manual, 1=auto), auto_exposure (1=manual, 3=auto)
+    FOCUS_AUTO=${FOCUS_AUTO:-0}  # 0 = manual, 1 = auto (focus_automatic_continuous)
+    EXPOSURE_AUTO=${EXPOSURE_AUTO:-1}  # 1 = manual, 3 = auto (auto_exposure)
+    FOCUS_ABSOLUTE=${FOCUS_ABSOLUTE:-}  # Optional: manual focus value (0-250, step=5)
+    EXPOSURE_ABSOLUTE=${EXPOSURE_ABSOLUTE:-}  # Optional: manual exposure value (3-2047)
+    BRIGHTNESS=${BRIGHTNESS:-}  # Optional: brightness (0-255, default=128)
+    CONTRAST=${CONTRAST:-}  # Optional: contrast (0-255, default=128)
+    SATURATION=${SATURATION:-}  # Optional: saturation (0-255, default=128)
+    
+    # Disable auto-focus (Logitech C922 uses focus_automatic_continuous)
+    if v4l2-ctl --device="$CAMERA_DEVICE" --set-ctrl=focus_automatic_continuous="$FOCUS_AUTO" 2>/dev/null; then
+        log "Auto-focus disabled (focus_automatic_continuous=$FOCUS_AUTO, 0=manual, 1=auto)"
+        
+        # Set manual focus value if provided
+        if [ -n "$FOCUS_ABSOLUTE" ]; then
+            if v4l2-ctl --device="$CAMERA_DEVICE" --set-ctrl=focus_absolute="$FOCUS_ABSOLUTE" 2>/dev/null; then
+                log "Manual focus set to: $FOCUS_ABSOLUTE (range: 0-250, step: 5)"
+            else
+                log "WARNING: Could not set focus_absolute (may not be supported by this camera)"
+            fi
+        fi
+    else
+        # Try alternative control name (some cameras use focus_auto)
+        if v4l2-ctl --device="$CAMERA_DEVICE" --set-ctrl=focus_auto="$FOCUS_AUTO" 2>/dev/null; then
+            log "Auto-focus disabled (focus_auto=$FOCUS_AUTO)"
+        else
+            log "WARNING: Could not disable auto-focus (may not be supported by this camera)"
+        fi
+    fi
+    
+    # Disable auto-exposure (Logitech C922 uses auto_exposure: 1=manual, 3=auto)
+    if v4l2-ctl --device="$CAMERA_DEVICE" --set-ctrl=auto_exposure="$EXPOSURE_AUTO" 2>/dev/null; then
+        log "Auto-exposure disabled (auto_exposure=$EXPOSURE_AUTO, 1=manual, 3=auto)"
+        
+        # Set manual exposure value if provided
+        if [ -n "$EXPOSURE_ABSOLUTE" ]; then
+            if v4l2-ctl --device="$CAMERA_DEVICE" --set-ctrl=exposure_time_absolute="$EXPOSURE_ABSOLUTE" 2>/dev/null; then
+                log "Manual exposure set to: $EXPOSURE_ABSOLUTE (range: 3-2047, default: 250)"
+            else
+                log "WARNING: Could not set exposure_time_absolute (may not be supported by this camera)"
+            fi
+        fi
+    else
+        # Try alternative control name
+        if v4l2-ctl --device="$CAMERA_DEVICE" --set-ctrl=exposure_auto="$EXPOSURE_AUTO" 2>/dev/null; then
+            log "Auto-exposure disabled (exposure_auto=$EXPOSURE_AUTO)"
+        else
+            log "WARNING: Could not disable auto-exposure (may not be supported by this camera)"
+        fi
+    fi
+    
+    # Set brightness if provided
+    if [ -n "$BRIGHTNESS" ]; then
+        if v4l2-ctl --device="$CAMERA_DEVICE" --set-ctrl=brightness="$BRIGHTNESS" 2>/dev/null; then
+            log "Brightness set to: $BRIGHTNESS (range: 0-255, default: 128)"
+        else
+            log "WARNING: Could not set brightness"
+        fi
+    fi
+    
+    # Set contrast if provided
+    if [ -n "$CONTRAST" ]; then
+        if v4l2-ctl --device="$CAMERA_DEVICE" --set-ctrl=contrast="$CONTRAST" 2>/dev/null; then
+            log "Contrast set to: $CONTRAST (range: 0-255, default: 128)"
+        else
+            log "WARNING: Could not set contrast"
+        fi
+    fi
+    
+    # Set saturation if provided
+    if [ -n "$SATURATION" ]; then
+        if v4l2-ctl --device="$CAMERA_DEVICE" --set-ctrl=saturation="$SATURATION" 2>/dev/null; then
+            log "Saturation set to: $SATURATION (range: 0-255, default: 128)"
+        else
+            log "WARNING: Could not set saturation"
+        fi
+    fi
+    
+    log "Camera configuration complete"
+}
+
 start_stream() {
     log "=========================================="
     log "Starting Carambus Stream"
@@ -199,6 +291,9 @@ start_stream() {
     # Check prerequisites
     check_camera || exit 1
     check_network || log "WARNING: Network check failed, continuing anyway..."
+    
+    # Configure camera for manual focus/exposure (prevents auto-adjustment)
+    configure_camera_manual
     
     # Detect audio input (microphone or null)
     AUDIO_SOURCE=$(detect_audio_input)
@@ -285,6 +380,18 @@ start_stream() {
         fi
         DRAWTEXT_FILTER="drawtext=fontfile=/usr/share/fonts/truetype/dejavu/DejaVuSansMono-Bold.ttf:textfile='${OVERLAY_TEXT_FILE}':reload=1:fontsize=${FONT_SIZE}:fontcolor=white:box=1:boxcolor=black@0.8:boxborderw=15:x=15:y=h-th-15"
         
+        # Build filter chain: perspective correction (if enabled) -> drawtext overlay
+        if [ "$PERSPECTIVE_ENABLED" = "true" ] && [ -n "$PERSPECTIVE_COORDS" ]; then
+            # Parse coordinates (format: x0:y0:x1:y1:x2:y2:x3:y3)
+            # Replace W and H with actual width/height values
+            PERSP_COORDS=$(echo "$PERSPECTIVE_COORDS" | sed "s/W/${CAMERA_WIDTH}/g" | sed "s/H/${CAMERA_HEIGHT}/g")
+            PERSPECTIVE_FILTER="perspective=${PERSP_COORDS}"
+            FILTER_CHAIN="[0:v]${PERSPECTIVE_FILTER},${DRAWTEXT_FILTER}[out]"
+            log "Perspective correction enabled: ${PERSP_COORDS}"
+        else
+            FILTER_CHAIN="[0:v]${DRAWTEXT_FILTER}[out]"
+        fi
+        
         # Stream with text overlay
         # YouTube requires keyframes every 4 seconds or less (GOP size)
         # At 30fps: -g 60 = keyframe every 2 seconds
@@ -293,7 +400,7 @@ start_stream() {
             -f v4l2 -input_format "$INPUT_FORMAT" -video_size "${CAMERA_WIDTH}x${CAMERA_HEIGHT}" -framerate "$CAMERA_FPS" \
             -i "$CAMERA_DEVICE" \
             $AUDIO_INPUT \
-            -filter_complex "[0:v]${DRAWTEXT_FILTER}[out]" \
+            -filter_complex "${FILTER_CHAIN}" \
             -map "[out]" -map 1:a \
             -c:v "$VIDEO_ENCODER" -b:v "${VIDEO_BITRATE}k" -maxrate "$((VIDEO_BITRATE + 500))k" -bufsize "$((VIDEO_BITRATE * 2))k" \
             -c:a aac -b:a "${AUDIO_BITRATE}k" \
@@ -321,12 +428,23 @@ start_stream() {
                 -f flv "$RTMP_URL" \
                 >> "$LOG_FILE" 2>&1
         else
+            # Build filter chain: perspective correction (if enabled) -> scale/format
+            if [ "$PERSPECTIVE_ENABLED" = "true" ] && [ -n "$PERSPECTIVE_COORDS" ]; then
+                # Parse coordinates (format: x0:y0:x1:y1:x2:y2:x3:y3)
+                PERSP_COORDS=$(echo "$PERSPECTIVE_COORDS" | sed "s/W/${CAMERA_WIDTH}/g" | sed "s/H/${CAMERA_HEIGHT}/g")
+                PERSPECTIVE_FILTER="perspective=${PERSP_COORDS}"
+                FILTER_CHAIN="[0:v]${PERSPECTIVE_FILTER},scale=${CAMERA_WIDTH}:${CAMERA_HEIGHT}:flags=lanczos,format=yuv420p,setrange=tv,setparams=colorspace=bt709:color_trc=bt709:color_primaries=bt709[vout]"
+                log "Perspective correction enabled: ${PERSP_COORDS}"
+            else
+                FILTER_CHAIN="[0:v]scale=${CAMERA_WIDTH}:${CAMERA_HEIGHT}:flags=lanczos,format=yuv420p,setrange=tv,setparams=colorspace=bt709:color_trc=bt709:color_primaries=bt709[vout]"
+            fi
+            
             # Audio input is auto-detected (webcam mic or null audio)
             ffmpeg \
                 -f v4l2 -input_format "$INPUT_FORMAT" -video_size "${CAMERA_WIDTH}x${CAMERA_HEIGHT}" -framerate "$CAMERA_FPS" \
                 -i "$CAMERA_DEVICE" \
                 $AUDIO_INPUT \
-                -filter_complex "[0:v]scale=${CAMERA_WIDTH}:${CAMERA_HEIGHT}:flags=lanczos,format=yuv420p,setrange=tv,setparams=colorspace=bt709:color_trc=bt709:color_primaries=bt709[vout]" \
+                -filter_complex "${FILTER_CHAIN}" \
                 -map "[vout]" -map 1:a \
                 -c:v "$VIDEO_ENCODER" -b:v "${VIDEO_BITRATE}k" -maxrate "$((VIDEO_BITRATE + 500))k" -bufsize "$((VIDEO_BITRATE * 2))k" \
                 -c:a aac -b:a "${AUDIO_BITRATE}k" \

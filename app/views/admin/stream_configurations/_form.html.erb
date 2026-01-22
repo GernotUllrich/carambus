@@ -174,6 +174,83 @@
     </div>
   </div>
 
+  <!-- Camera Manual Settings (Focus/Exposure) -->
+  <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+    <h3 class="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-100">🔧 Manuelle Kameraeinstellungen</h3>
+    <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
+      Deaktiviert Auto-Fokus und Auto-Belichtung, damit die Einstellungen konstant bleiben, auch wenn jemand durch das Bild läuft.
+    </p>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div class="form-group">
+        <%= form.label :focus_auto, "Auto-Fokus", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2" %>
+        <%= form.select :focus_auto,
+            options_for_select([['Manuell (empfohlen)', 0], ['Automatisch', 1]], stream_configuration.focus_auto || 0),
+            {},
+            { class: "form-select w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" } %>
+        <p class="mt-1 text-sm text-gray-500">Manuell = konstanter Fokus, auch bei Bewegung</p>
+      </div>
+
+      <div class="form-group">
+        <%= form.label :exposure_auto, "Auto-Belichtung", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2" %>
+        <%= form.select :exposure_auto,
+            options_for_select([['Manuell (empfohlen)', 1], ['Automatisch', 3]], stream_configuration.exposure_auto || 1),
+            {},
+            { class: "form-select w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" } %>
+        <p class="mt-1 text-sm text-gray-500">Manuell = konstante Belichtung, auch bei Bewegung</p>
+      </div>
+
+      <div class="form-group">
+        <%= form.label :focus_absolute, "Fokus-Wert (optional)", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2" %>
+        <%= form.number_field :focus_absolute,
+            class: "form-input w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500",
+            min: 0, max: 250, step: 5, placeholder: "Leer = aktueller Wert beibehalten" %>
+        <p class="mt-1 text-sm text-gray-500">0-250 (Schritt: 5). Nur wenn Auto-Fokus = Manuell</p>
+      </div>
+
+      <div class="form-group">
+        <%= form.label :exposure_absolute, "Belichtungs-Wert (optional)", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2" %>
+        <%= form.number_field :exposure_absolute,
+            class: "form-input w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500",
+            min: 3, max: 2047, placeholder: "Leer = aktueller Wert beibehalten" %>
+        <p class="mt-1 text-sm text-gray-500">3-2047 (Standard: 250). Nur wenn Auto-Belichtung = Manuell</p>
+      </div>
+
+      <div class="form-group">
+        <%= form.label :brightness, "Helligkeit (optional)", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2" %>
+        <%= form.number_field :brightness,
+            class: "form-input w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500",
+            min: 0, max: 255, placeholder: "Leer = Standard (128)" %>
+        <p class="mt-1 text-sm text-gray-500">0-255 (Standard: 128)</p>
+      </div>
+
+      <div class="form-group">
+        <%= form.label :contrast, "Kontrast (optional)", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2" %>
+        <%= form.number_field :contrast,
+            class: "form-input w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500",
+            min: 0, max: 255, placeholder: "Leer = Standard (128)" %>
+        <p class="mt-1 text-sm text-gray-500">0-255 (Standard: 128)</p>
+      </div>
+
+      <div class="form-group">
+        <%= form.label :saturation, "Sättigung (optional)", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2" %>
+        <%= form.number_field :saturation,
+            class: "form-input w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500",
+            min: 0, max: 255, placeholder: "Leer = Standard (128)" %>
+        <p class="mt-1 text-sm text-gray-500">0-255 (Standard: 128)</p>
+      </div>
+    </div>
+    
+    <div class="mt-4 p-3 bg-blue-50 dark:bg-blue-900/30 rounded border border-blue-200 dark:border-blue-800">
+      <p class="text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">💡 Tipp:</p>
+      <p class="text-xs text-gray-600 dark:text-gray-400">
+        <strong>Standard-Einstellungen:</strong> Auto-Fokus = Manuell, Auto-Belichtung = Manuell<br>
+        Diese Einstellungen verhindern, dass die Kamera sich automatisch anpasst, wenn jemand durch das Bild läuft.<br>
+        Optional können Sie manuelle Werte für Fokus und Belichtung setzen, um die beste Qualität zu erzielen.
+      </p>
+    </div>
+  </div>
+
   <!-- Overlay Configuration -->
   <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
     <h3 class="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-100">🎨 Overlay-Einstellungen</h3>
@@ -199,6 +276,50 @@
         <%= form.label :overlay_height, "Höhe (px)", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2" %>
         <%= form.number_field :overlay_height,
             class: "form-input w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Perspective Correction (Trapezkorrektur) -->
+  <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+    <h3 class="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-100">📐 Trapezkorrektur</h3>
+    
+    <div class="form-group mb-4">
+      <label class="flex items-center">
+        <%= form.check_box :perspective_enabled,
+            class: "form-checkbox h-5 w-5 text-blue-600 rounded focus:ring-blue-500",
+            data: { 
+              action: "change->stream-destination#togglePerspective",
+              stream_destination_target: "perspectiveCheckbox"
+            } %>
+        <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-300">Trapezkorrektur aktivieren</span>
+      </label>
+      <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+        Korrigiert Verzerrungen, wenn die Kamera schräg auf das Spielfeld gerichtet ist
+      </p>
+    </div>
+
+    <div class="form-group" data-stream-destination-target="perspectiveFields" style="<%= 'display: none;' unless stream_configuration.perspective_enabled %>">
+      <%= form.label :perspective_coords, "Koordinaten", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2" %>
+      <%= form.text_field :perspective_coords,
+          class: "form-input w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 font-mono text-sm",
+          placeholder: "0:0:W:0:W:H:0:H" %>
+      <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+        Format: <code class="bg-gray-200 dark:bg-gray-700 px-1 rounded">x0:y0:x1:y1:x2:y2:x3:y3</code><br>
+        <strong>Ecken:</strong> oben-links, oben-rechts, unten-rechts, unten-links<br>
+        <strong>Beispiele:</strong><br>
+        • Keine Korrektur: <code class="bg-gray-200 dark:bg-gray-700 px-1 rounded">0:0:W:0:W:H:0:H</code><br>
+        • Leichte Korrektur: <code class="bg-gray-200 dark:bg-gray-700 px-1 rounded">50:20:W-50:20:W-30:H-30:30:H-30</code><br>
+        • Pixel-Werte (für 1280x720): <code class="bg-gray-200 dark:bg-gray-700 px-1 rounded">0:0:1280:0:1280:720:0:720</code><br>
+        <strong>Hinweis:</strong> <code class="bg-gray-200 dark:bg-gray-700 px-1 rounded">W</code> und <code class="bg-gray-200 dark:bg-gray-700 px-1 rounded">H</code> werden automatisch durch Breite/Höhe ersetzt
+      </p>
+      
+      <div class="mt-3 p-3 bg-blue-50 dark:bg-blue-900/30 rounded border border-blue-200 dark:border-blue-800">
+        <p class="text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">💡 Tipp:</p>
+        <p class="text-xs text-gray-600 dark:text-gray-400">
+          Die Koordinaten definieren, welche Bereiche des Quellbildes auf die 4 Ecken des Ausgabebildes gemappt werden.
+          Experimentieren Sie mit verschiedenen Werten, um die beste Korrektur zu finden.
+        </p>
       </div>
     </div>
   </div>

@@ -167,34 +167,37 @@ class StreamHealthJob < ApplicationJob
       port: @raspi_port,
       timeout: 10,
       non_interactive: true,
-      verify_host_key: :never
+      verify_host_key: :never  # For local network devices
     }
     
-    # Try SSH keys first (same as StreamControlJob)
-    ssh_keys = find_ssh_keys
-    if ssh_keys.any?
-      options[:keys] = ssh_keys
-      options[:auth_methods] = ['publickey']
-    elsif ENV['RASPI_SSH_PASSWORD'].present?
+    # Authentication: Try password from ENV, then fallback to SSH keys (same as StreamControlJob)
+    if ENV['RASPI_SSH_PASSWORD'].present?
       options[:password] = ENV['RASPI_SSH_PASSWORD']
-      options[:auth_methods] = ['password', 'publickey']
+    elsif ENV['RASPI_SSH_KEYS'].present?
+      key_paths = ENV['RASPI_SSH_KEYS'].split(',').map(&:strip).map { |k| File.expand_path(k) }
+      options[:keys] = key_paths
+      options[:keys_only] = true
+    else
+      # Auto-detect SSH keys from standard locations
+      possible_keys = [
+        File.expand_path('~/.ssh/id_rsa'),
+        File.expand_path('~/.ssh/id_ed25519'),
+        File.expand_path('~/.ssh/id_ecdsa'),
+        File.expand_path('~/.ssh/id_dsa')
+      ].select { |f| File.exist?(f) }
+      
+      if possible_keys.any?
+        Rails.logger.info "[StreamHealth] Using SSH keys: #{possible_keys.join(', ')}"
+        options[:keys] = possible_keys
+        options[:keys_only] = true
+      else
+        # Last resort: try ssh-agent
+        Rails.logger.info "[StreamHealth] No explicit keys found, trying ssh-agent"
+        options[:keys_only] = false
+      end
     end
     
     options
-  end
-  
-  def find_ssh_keys
-    return ENV['RASPI_SSH_KEYS'].split(',') if ENV['RASPI_SSH_KEYS'].present?
-    
-    # Common SSH key locations
-    key_paths = [
-      File.expand_path('~/.ssh/id_rsa'),
-      File.expand_path('~/.ssh/id_ed25519'),
-      File.expand_path('~/.ssh/id_ecdsa'),
-      '/var/www/.ssh/id_rsa'
-    ]
-    
-    key_paths.select { |path| File.exist?(path) }
   end
 end
 
