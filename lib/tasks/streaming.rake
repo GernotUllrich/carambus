@@ -135,7 +135,9 @@ namespace :streaming do
     ssh_user = ENV['RASPI_SSH_USER'] || 'pi'
     ssh_port = config.raspi_ssh_port || 22
     ssh_port_flag = ssh_port != 22 ? "-p #{ssh_port} " : ""
-    puts "  • Or: ssh #{ssh_port_flag}#{ssh_user}@#{config.raspi_ip} 'sudo systemctl start carambus-stream@#{table.number}.service'"
+    table_number = table.number
+    puts "  • Or: ssh #{ssh_port_flag}#{ssh_user}@#{config.raspi_ip} 'sudo systemctl start carambus-stream@#{table_number}.service'"
+    puts "       (Note: Uses table number #{table_number}, not table_id #{table.id})"
   end
   
   desc "Deploy all stream configurations"
