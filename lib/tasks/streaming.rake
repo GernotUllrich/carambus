@@ -587,6 +587,134 @@ namespace :streaming do
     end
   end
   
+  desc "Interactive perspective correction calibration"
+  task :perspective_calibrate, [:table_id] => :environment do |t, args|
+    table_id = args[:table_id]
+    abort "Usage: rake streaming:perspective_calibrate[TABLE_ID]" if table_id.blank?
+    
+    table = Table.find(table_id)
+    config = table.stream_configuration
+    
+    abort "No stream configuration found for table #{table_id}" if config.nil?
+    
+    puts "📐 Interactive Perspective Correction Calibration"
+    puts "=" * 60
+    puts "Table: #{table.name}"
+    puts "Camera: #{config.camera_width}x#{config.camera_height}"
+    puts "=" * 60
+    
+    # Parse current coordinates
+    current_coords = config.perspective_coords || "0:0:W:0:W:H:0:H"
+    coords = parse_perspective_coords(current_coords, config.camera_width, config.camera_height)
+    
+    puts "\n📊 Current Settings:"
+    puts "-" * 60
+    puts "  Enabled: #{config.perspective_enabled ? 'Yes' : 'No'}"
+    puts "  Coordinates: #{current_coords}"
+    puts ""
+    puts "  Visual representation:"
+    draw_perspective_coords(coords, config.camera_width, config.camera_height)
+    
+    puts "\n💡 Coordinate System:"
+    puts "-" * 60
+    puts "  Format: x0:y0:x1:y1:x2:y2:x3:y3"
+    puts "  Corners: top-left, top-right, bottom-right, bottom-left"
+    puts "  W = width (#{config.camera_width}), H = height (#{config.camera_height})"
+    puts ""
+    puts "  Current values (in pixels):"
+    puts "    Top-left:     (#{coords[0]}, #{coords[1]})"
+    puts "    Top-right:    (#{coords[2]}, #{coords[3]})"
+    puts "    Bottom-right: (#{coords[4]}, #{coords[5]})"
+    puts "    Bottom-left:  (#{coords[6]}, #{coords[7]})"
+    
+    puts "\n🔧 Interactive Mode:"
+    puts "-" * 60
+    puts "  1. Set individual coordinates"
+    puts "  2. Use preset adjustments"
+    puts "  3. Test current values"
+    puts "  4. Save to database"
+    puts "  5. Exit"
+    puts ""
+    
+    loop do
+      print "\n> Select option (1-5): "
+      choice = STDIN.gets.chomp
+      
+      case choice
+      when '1'
+        coords = set_individual_coords(coords, config.camera_width, config.camera_height)
+        current_coords = format_perspective_coords(coords, config.camera_width, config.camera_height)
+        puts "✅ Updated coordinates: #{current_coords}"
+        draw_perspective_coords(coords, config.camera_width, config.camera_height)
+        
+      when '2'
+        coords = apply_preset(coords, config.camera_width, config.camera_height)
+        current_coords = format_perspective_coords(coords, config.camera_width, config.camera_height)
+        puts "✅ Applied preset: #{current_coords}"
+        draw_perspective_coords(coords, config.camera_width, config.camera_height)
+        
+      when '3'
+        puts "🧪 Testing current values..."
+        config.perspective_enabled = true
+        config.perspective_coords = current_coords
+        if config.save
+          puts "✅ Values saved temporarily"
+          puts "   Deploy: rake streaming:deploy[#{table_id}]"
+          puts "   Restart stream to see changes"
+        else
+          puts "❌ Failed to save: #{config.errors.full_messages.join(', ')}"
+        end
+        
+      when '4'
+        puts "💾 Saving to database..."
+        config.perspective_enabled = true
+        config.perspective_coords = current_coords
+        if config.save
+          puts "✅ Saved successfully!"
+          puts "   Next: rake streaming:deploy[#{table_id}]"
+          break
+        else
+          puts "❌ Failed to save: #{config.errors.full_messages.join(', ')}"
+        end
+        
+      when '5'
+        puts "👋 Exiting without saving"
+        break
+        
+      else
+        puts "❌ Invalid option. Please choose 1-5."
+      end
+    end
+  end
+  
+  desc "Set perspective correction coordinates"
+  task :perspective_set, [:table_id, :coords] => :environment do |t, args|
+    table_id = args[:table_id]
+    coords = args[:coords]
+    
+    abort "Usage: rake streaming:perspective_set[TABLE_ID,COORDS]" if [table_id, coords].any?(&:blank?)
+    
+    table = Table.find(table_id)
+    config = table.stream_configuration
+    
+    abort "No stream configuration found for table #{table_id}" if config.nil?
+    
+    # Validate format
+    unless coords.match?(/^[\dW:\-]+$/) && coords.count(':') == 7
+      abort "❌ Invalid format. Expected: x0:y0:x1:y1:x2:y2:x3:y3"
+    end
+    
+    config.perspective_enabled = true
+    config.perspective_coords = coords
+    
+    if config.save
+      puts "✅ Perspective correction set: #{coords}"
+      puts "   Deploy: rake streaming:deploy[#{table_id}]"
+    else
+      abort "❌ Failed to save: #{config.errors.full_messages.join(', ')}"
+    end
+  end
+  
   desc "Show streaming documentation"
   task :help do
     puts <<~HELP
@@ -607,6 +735,10 @@ namespace :streaming do
         rake streaming:camera_calibrate[TABLE_ID] Show current camera settings and calibration guide
         rake streaming:camera_set[TABLE_ID,CONTROL,VALUE] Set a camera control value
         rake streaming:camera_save[TABLE_ID]     Save current camera values to database
+      
+      Perspective Correction:
+        rake streaming:perspective_calibrate[TABLE_ID] Interactive perspective correction calibration
+        rake streaming:perspective_set[TABLE_ID,COORDS] Set perspective coordinates directly
       
       Environment Variables:
         RASPI_SSH_USER      SSH username (default: pi)
@@ -674,6 +806,138 @@ def build_ssh_options(raspi_ip = nil)
   end
   
   ssh_options
+end
+
+# Helper methods for perspective correction
+def parse_perspective_coords(coords_str, width, height)
+  # Replace W and H with actual values
+  coords_str = coords_str.gsub('W', width.to_s).gsub('H', height.to_s)
+  
+  # Parse expressions like "W-50" or "H-30"
+  coords_str = coords_str.gsub(/(\d+)-(\d+)/) { |m| ($1.to_i - $2.to_i).to_s }
+  coords_str = coords_str.gsub(/(\d+)\+(\d+)/) { |m| ($1.to_i + $2.to_i).to_s }
+  
+  parts = coords_str.split(':')
+  if parts.length == 8
+    parts.map(&:to_i)
+  else
+    [0, 0, width, 0, width, height, 0, height] # Default: no correction
+  end
+end
+
+def format_perspective_coords(coords, width, height)
+  # Try to use W/H notation where possible
+  result = []
+  coords.each_with_index do |val, idx|
+    if idx.even? # x coordinates
+      if val == 0
+        result << "0"
+      elsif val == width
+        result << "W"
+      elsif val < width && (width - val) < 100
+        result << "W-#{width - val}"
+      else
+        result << val.to_s
+      end
+    else # y coordinates
+      if val == 0
+        result << "0"
+      elsif val == height
+        result << "H"
+      elsif val < height && (height - val) < 100
+        result << "H-#{height - val}"
+      else
+        result << val.to_s
+      end
+    end
+  end
+  result.join(':')
+end
+
+def draw_perspective_coords(coords, width, height)
+  x0, y0, x1, y1, x2, y2, x3, y3 = coords
+  
+  # Draw a simple ASCII representation
+  puts ""
+  puts "    #{x0},#{y0} ──────────────── #{x1},#{y1}"
+  puts "     │                           │"
+  puts "     │                           │"
+  puts "     │                           │"
+  puts "     │                           │"
+  puts "    #{x3},#{y3} ──────────────── #{x2},#{y2}"
+  puts ""
+  puts "  Source corners → Output rectangle (#{width}x#{height})"
+end
+
+def set_individual_coords(current_coords, width, height)
+  coords = current_coords.dup
+  
+  puts "\n📝 Set Individual Coordinates:"
+  puts "-" * 60
+  puts "  Current values:"
+  puts "    Top-left (x0, y0):     (#{coords[0]}, #{coords[1]})"
+  puts "    Top-right (x1, y1):    (#{coords[2]}, #{coords[3]})"
+  puts "    Bottom-right (x2, y2): (#{coords[4]}, #{coords[5]})"
+  puts "    Bottom-left (x3, y3):  (#{coords[6]}, #{coords[7]})"
+  puts ""
+  puts "  Enter new values (press Enter to keep current):"
+  
+  ['Top-left x', 'Top-left y', 'Top-right x', 'Top-right y',
+   'Bottom-right x', 'Bottom-right y', 'Bottom-left x', 'Bottom-left y'].each_with_index do |label, idx|
+    print "  #{label} (0-#{idx.even? ? width : height}): "
+    input = STDIN.gets.chomp
+    coords[idx] = input.to_i if input.present? && input.to_i >= 0
+  end
+  
+  coords
+end
+
+def apply_preset(current_coords, width, height)
+  puts "\n🎨 Preset Adjustments:"
+  puts "-" * 60
+  puts "  1. No correction (default)"
+  puts "  2. Slight top correction (top narrower)"
+  puts "  3. Slight bottom correction (bottom narrower)"
+  puts "  4. Slight left correction (left narrower)"
+  puts "  5. Slight right correction (right narrower)"
+  puts "  6. Custom percentage crop"
+  puts ""
+  print "  Select preset (1-6): "
+  choice = STDIN.gets.chomp
+  
+  case choice
+  when '1'
+    [0, 0, width, 0, width, height, 0, height]
+  when '2'
+    # Top narrower by 5%
+    crop = (width * 0.05).to_i
+    [crop, 0, width - crop, 0, width, height, 0, height]
+  when '3'
+    # Bottom narrower by 5%
+    crop = (width * 0.05).to_i
+    [0, 0, width, 0, width - crop, height, crop, height]
+  when '4'
+    # Left narrower by 5%
+    crop = (height * 0.05).to_i
+    [0, crop, width, 0, width, height, 0, height - crop]
+  when '5'
+    # Right narrower by 5%
+    crop = (height * 0.05).to_i
+    [0, 0, width, crop, width, height - crop, 0, height]
+  when '6'
+    print "  Enter crop percentage (0-50): "
+    percent = STDIN.gets.chomp.to_f
+    percent = [percent, 50].min
+    percent = [percent, 0].max
+    
+    x_crop = (width * percent / 100).to_i
+    y_crop = (height * percent / 100).to_i
+    
+    [x_crop, y_crop, width - x_crop, y_crop, width - x_crop, height - y_crop, x_crop, height - y_crop]
+  else
+    puts "  Invalid choice, keeping current values"
+    current_coords
+  end
 end
 
 # Helper method to deploy config directly
