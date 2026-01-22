@@ -96,7 +96,8 @@ namespace :streaming do
         puts "2. Deploy configuration: rake streaming:deploy[TABLE_ID]"
         puts "3. Start stream via admin interface or:"
         ssh_port_flag = ssh_port != 22 ? "-p #{ssh_port} " : ""
-        puts "   ssh #{ssh_port_flag}#{ssh_user}@#{raspi_ip} 'sudo systemctl start carambus-stream@1.service'"
+        puts "   ssh #{ssh_port_flag}#{ssh_user}@#{raspi_ip} 'sudo systemctl start carambus-stream@[TABLE_ID].service'"
+        puts "   (Replace [TABLE_ID] with the actual Rails table.id, e.g., 3)"
       end
     rescue Net::SSH::AuthenticationFailed => e
       abort "❌ SSH authentication failed. Check credentials or SSH keys.\n   Error: #{e.message}"
@@ -135,9 +136,9 @@ namespace :streaming do
     ssh_user = ENV['RASPI_SSH_USER'] || 'pi'
     ssh_port = config.raspi_ssh_port || 22
     ssh_port_flag = ssh_port != 22 ? "-p #{ssh_port} " : ""
-    table_number = table.number
-    puts "  • Or: ssh #{ssh_port_flag}#{ssh_user}@#{config.raspi_ip} 'sudo systemctl start carambus-stream@#{table_number}.service'"
-    puts "       (Note: Uses table number #{table_number}, not table_id #{table.id})"
+    table_id = table.id
+    puts "  • Or: ssh #{ssh_port_flag}#{ssh_user}@#{config.raspi_ip} 'sudo systemctl start carambus-stream@#{table_id}.service'"
+    puts "       (Note: Uses table_id #{table_id}, not table number from name)"
   end
   
   desc "Deploy all stream configurations"
@@ -1074,20 +1075,19 @@ def deploy_stream_config(config)
   
   raspi_ip = config.raspi_ip
   raspi_port = config.raspi_ssh_port || 22
-  table_number = config.table.number
+  table_id = config.table.id
+  table_name = config.table.name
   
-  # Extract base URL and table_id for overlay receiver
+  # Extract base URL for overlay receiver
   overlay_url = config.scoreboard_overlay_url
   if overlay_url.present? && overlay_url.match?(/table_id=(\d+)/)
-    table_id = overlay_url[/table_id=(\d+)/, 1]
     overlay_url_base = overlay_url.sub(/\/locations\/.*/, '')
   else
-    table_id = config.table.id
     overlay_url_base = overlay_url.present? ? overlay_url.sub(/\/locations\/.*/, '') : 'http://localhost:3000'
   end
   
   config_content = <<~CONFIG
-    # Carambus Stream Configuration for Table #{table_number}
+    # Carambus Stream Configuration for Table ID #{table_id} (#{table_name})
     # Generated: #{Time.current}
     
     # Stream Destination
@@ -1128,16 +1128,16 @@ def deploy_stream_config(config)
     SATURATION=#{config.saturation || ''}
     
     # Metadata
-    TABLE_NUMBER=#{table_number}
     TABLE_ID=#{table_id}
+    TABLE_NAME="#{table_name}"
     LOCATION_MD5=#{config.location.md5}
     SERVER_URL=#{overlay_url_base}
     LOCATION_NAME="#{config.location.name}"
     GENERATED_AT="#{Time.current}"
   CONFIG
   
-  temp_file = "/tmp/stream-table-#{table_number}.conf"
-  target_file = "/etc/carambus/stream-table-#{table_number}.conf"
+  temp_file = "/tmp/stream-table-#{table_id}.conf"
+  target_file = "/etc/carambus/stream-table-#{table_id}.conf"
   
   # Build SSH options, overriding port from config
   ssh_options = build_ssh_options(raspi_ip)

@@ -7,14 +7,16 @@
 #   sudo systemctl start carambus-stream@1.service
 #
 # Usage:
-#   sudo systemctl start carambus-stream@1.service   # Start stream for table 1
-#   sudo systemctl stop carambus-stream@1.service    # Stop stream
-#   sudo systemctl status carambus-stream@1.service  # Check status
-#   sudo journalctl -u carambus-stream@1.service -f  # Follow logs
+#   sudo systemctl start carambus-stream@3.service   # Start stream for table_id 3
+#   sudo systemctl stop carambus-stream@3.service    # Stop stream
+#   sudo systemctl status carambus-stream@3.service  # Check status
+#   sudo journalctl -u carambus-stream@3.service -f  # Follow logs
 #
+# Note: %i is the table_id (Rails database ID), not the table number from the name.
+#       For example: Table with id=3 named "Tisch 7" uses carambus-stream@3.service
 
 [Unit]
-Description=Carambus YouTube Stream for Table %i
+Description=Carambus Stream for Table ID %i
 After=network-online.target graphical.target
 Wants=network-online.target
 # Don't start if scoreboard is not ready
@@ -25,10 +27,10 @@ Type=simple
 User=pi
 Group=pi
 
-# Read configuration from table-specific file
+# Read configuration from table-specific file (uses table_id)
 EnvironmentFile=/etc/carambus/stream-table-%i.conf
 
-# Run the streaming script
+# Run the streaming script with table_id as argument
 ExecStart=/usr/local/bin/carambus-stream.sh %i
 
 # Restart on failure
@@ -44,7 +46,7 @@ CPUQuota=80%
 # Memory limit (FFmpeg + Chromium can use significant memory)
 MemoryMax=1G
 
-# Logging
+# Logging (uses table_id in filename)
 StandardOutput=append:/var/log/carambus/stream-table-%i.log
 StandardError=append:/var/log/carambus/stream-table-%i-error.log
 SyslogIdentifier=carambus-stream-%i

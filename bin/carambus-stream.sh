@@ -14,13 +14,14 @@
 #   carambus-stream.sh [table_id]
 #
 # Example:
-#   carambus-stream.sh 2  # For Rails Table with ID 2 (may be named "Tisch 6")
+#   carambus-stream.sh 3  # For Rails Table with ID 3 (e.g., "Tisch 7")
 #
 # Configuration:
 #   Reads from /etc/carambus/stream-table-[table_id].conf
 #
-# Note: table_id is the Rails database ID (Table.id), not the table name/number.
-#       For example: Table with id=2 might have name="Tisch 6"
+# Note: table_id is the Rails database ID (Table.id), which is unique.
+#       This is NOT the table number extracted from the name (which can be ambiguous).
+#       For example: Table with id=3 has name="Tisch 7", but we use id=3, not 7.
 #
 
 set -e  # Exit on error
@@ -29,14 +30,20 @@ set -e  # Exit on error
 # Configuration
 # ============================================================================
 
-# TABLE_NUMBER is used for file names (e.g., "6" for "Tisch 6")
-# TABLE_ID is the Rails database ID (e.g., 2 for the table record)
-TABLE_NUMBER=${1:-2}
-CONFIG_FILE="/etc/carambus/stream-table-${TABLE_NUMBER}.conf"
-LOG_FILE="/var/log/carambus/stream-table-${TABLE_NUMBER}.log"
-OVERLAY_IMAGE="/tmp/carambus-overlay-table-${TABLE_NUMBER}.png"
-OVERLAY_TEXT_FILE="/tmp/carambus-overlay-text-table-${TABLE_NUMBER}.txt"
-XVFB_DISPLAY=":${TABLE_NUMBER}"
+# TABLE_ID is the Rails database ID (unique identifier)
+# This is passed as argument and used for all file names
+TABLE_ID=${1:-}
+if [ -z "$TABLE_ID" ]; then
+    echo "ERROR: TABLE_ID argument required" >&2
+    echo "Usage: carambus-stream.sh [table_id]" >&2
+    exit 1
+fi
+
+CONFIG_FILE="/etc/carambus/stream-table-${TABLE_ID}.conf"
+LOG_FILE="/var/log/carambus/stream-table-${TABLE_ID}.log"
+OVERLAY_IMAGE="/tmp/carambus-overlay-table-${TABLE_ID}.png"
+OVERLAY_TEXT_FILE="/tmp/carambus-overlay-text-table-${TABLE_ID}.txt"
+XVFB_DISPLAY=":${TABLE_ID}"
 
 # Ensure log directory exists
 mkdir -p /var/log/carambus
@@ -173,7 +180,7 @@ check_overlay_file() {
     
     if [ ! -f "$OVERLAY_IMAGE" ]; then
         log "WARNING: Overlay PNG not found yet at $OVERLAY_IMAGE"
-        log "         The carambus-overlay-receiver@${TABLE_NUMBER}.service should be running"
+        log "         The carambus-overlay-receiver@${TABLE_ID}.service should be running"
         log "         Creating blank overlay as fallback..."
         convert -size "${CAMERA_WIDTH}x${OVERLAY_HEIGHT}" xc:transparent "$OVERLAY_IMAGE"
         return 1
@@ -184,7 +191,7 @@ check_overlay_file() {
     
     if [ $FILE_AGE -gt 30 ]; then
         log "WARNING: Overlay PNG is stale (${FILE_AGE}s old)"
-        log "         Check carambus-overlay-receiver@${TABLE_NUMBER}.service status"
+        log "         Check carambus-overlay-receiver@${TABLE_ID}.service status"
     else
         log "Overlay PNG OK (${FILE_AGE}s old)"
     fi
@@ -282,7 +289,7 @@ start_stream() {
     log "=========================================="
     log "Starting Carambus Stream"
     log "=========================================="
-    log "Table: ${TABLE_NUMBER} (name: Tisch ${TABLE_NUMBER}, Rails ID: ${TABLE_ID})"
+    log "Table ID: ${TABLE_ID} (Rails database ID)"
     log "Camera: $CAMERA_DEVICE (${CAMERA_WIDTH}x${CAMERA_HEIGHT}@${CAMERA_FPS}fps)"
     log "Overlay: $OVERLAY_ENABLED"
     log "Video Bitrate: ${VIDEO_BITRATE}k"
