@@ -715,6 +715,129 @@ namespace :streaming do
     end
   end
   
+  desc "Test SSH connection to Raspberry Pi and setup key-based authentication"
+  task :ssh_test, [:table_id] => :environment do |t, args|
+    require 'net/ssh'
+    
+    table_id = args[:table_id]
+    abort "Usage: rake streaming:ssh_test[TABLE_ID]" if table_id.blank?
+    
+    table = Table.find(table_id)
+    config = table.stream_configuration
+    
+    abort "No stream configuration found for table #{table_id}" if config.nil?
+    abort "No Raspberry Pi IP configured" if config.raspi_ip.blank?
+    
+    raspi_ip = config.raspi_ip
+    ssh_user = config.raspi_ssh_user || ENV['RASPI_SSH_USER'] || 'pi'
+    ssh_port = config.raspi_ssh_port || ENV['RASPI_SSH_PORT']&.to_i || 22
+    
+    puts "🔐 SSH Connection Test"
+    puts "=" * 60
+    puts "Table: #{table.name}"
+    puts "Raspberry Pi: #{raspi_ip}"
+    puts "SSH User: #{ssh_user}"
+    puts "SSH Port: #{ssh_port}"
+    puts "=" * 60
+    
+    # Check for SSH keys on local server
+    puts "\n📋 Checking for SSH keys on Local Server..."
+    possible_keys = [
+      File.expand_path('~/.ssh/id_rsa'),
+      File.expand_path('~/.ssh/id_ed25519'),
+      File.expand_path('~/.ssh/id_ecdsa'),
+      File.expand_path('~/.ssh/id_dsa')
+    ].select { |f| File.exist?(f) }
+    
+    if possible_keys.empty?
+      puts "❌ No SSH keys found on Local Server!"
+      puts "\n💡 To generate SSH keys:"
+      puts "   ssh-keygen -t ed25519 -C 'local-server@carambus'"
+      puts "   (Press Enter to accept default location)"
+      abort
+    end
+    
+    puts "✅ Found SSH keys:"
+    possible_keys.each do |key|
+      puts "   - #{key}"
+    end
+    
+    # Get public key
+    public_key_file = possible_keys.first.gsub(/\.pub$/, '') + '.pub'
+    if File.exist?(public_key_file)
+      public_key = File.read(public_key_file).strip
+      puts "\n📝 Public key to add to Raspberry Pi:"
+      puts "-" * 60
+      puts public_key
+      puts "-" * 60
+    else
+      puts "\n⚠️  Public key file not found: #{public_key_file}"
+      puts "   Generating public key..."
+      `ssh-keygen -y -f #{possible_keys.first} > #{public_key_file} 2>/dev/null`
+      if File.exist?(public_key_file)
+        public_key = File.read(public_key_file).strip
+        puts "   Public key:"
+        puts "-" * 60
+        puts public_key
+        puts "-" * 60
+      else
+        abort "❌ Could not generate public key"
+      end
+    end
+    
+    # Test SSH connection
+    puts "\n🔍 Testing SSH connection..."
+    ssh_options = build_ssh_options(raspi_ip)
+    
+    begin
+      Net::SSH.start(raspi_ip, ssh_user, ssh_options) do |ssh|
+        result = ssh.exec!("echo 'SSH connection successful!'")
+        puts "✅ SSH connection works!"
+        puts "   Response: #{result.strip}"
+        
+        # Check if key is already authorized
+        puts "\n🔑 Checking authorized_keys on Raspberry Pi..."
+        authorized_keys = ssh.exec!("cat ~/.ssh/authorized_keys 2>/dev/null || echo ''")
+        
+        if authorized_keys.include?(public_key.split(' ')[0..1].join(' '))
+          puts "✅ Public key is already in authorized_keys!"
+        else
+          puts "❌ Public key is NOT in authorized_keys"
+          puts "\n📋 To add the key, run this command on the Raspberry Pi:"
+          puts "-" * 60
+          puts "mkdir -p ~/.ssh"
+          puts "chmod 700 ~/.ssh"
+          puts "echo '#{public_key}' >> ~/.ssh/authorized_keys"
+          puts "chmod 600 ~/.ssh/authorized_keys"
+          puts "-" * 60
+          puts "\n💡 Or copy-paste this one-liner:"
+          puts "echo '#{public_key}' >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys"
+        end
+      end
+    rescue Net::SSH::AuthenticationFailed => e
+      puts "❌ SSH authentication failed!"
+      puts "   Error: #{e.message}"
+      puts "\n💡 To fix this:"
+      puts "   1. Copy the public key above"
+      puts "   2. SSH to Raspberry Pi (with password):"
+      puts "      ssh #{ssh_user}@#{raspi_ip}"
+      puts "   3. Run these commands on the Raspberry Pi:"
+      puts "      mkdir -p ~/.ssh"
+      puts "      chmod 700 ~/.ssh"
+      puts "      echo '#{public_key}' >> ~/.ssh/authorized_keys"
+      puts "      chmod 600 ~/.ssh/authorized_keys"
+      puts "   4. Test again: rake streaming:ssh_test[#{table_id}]"
+    rescue Errno::EHOSTUNREACH => e
+      puts "❌ Host unreachable: #{raspi_ip}"
+      puts "   Check network connectivity"
+    rescue Errno::ECONNREFUSED => e
+      puts "❌ Connection refused on port #{ssh_port}"
+      puts "   Check if SSH is running on the Raspberry Pi"
+    rescue => e
+      puts "❌ Error: #{e.class} - #{e.message}"
+    end
+  end
+  
   desc "Show streaming documentation"
   task :help do
     puts <<~HELP
@@ -739,6 +862,9 @@ namespace :streaming do
       Perspective Correction:
         rake streaming:perspective_calibrate[TABLE_ID] Interactive perspective correction calibration
         rake streaming:perspective_set[TABLE_ID,COORDS] Set perspective coordinates directly
+      
+      SSH Setup:
+        rake streaming:ssh_test[TABLE_ID] Test SSH connection and show setup instructions
       
       Environment Variables:
         RASPI_SSH_USER      SSH username (default: pi)
