@@ -381,7 +381,7 @@ XVFB_PID=$!
 
 # 3. Overlay-Update-Loop starten (Hintergrund)
 while true; do
-  chromium-browser \
+  chromium \
     --headless \
     --screenshot=${OVERLAY_IMAGE} \
     --window-size=${CAMERA_WIDTH},${OVERLAY_HEIGHT} \
@@ -409,7 +409,7 @@ systemd
  └─ carambus-stream.sh (PID 1234)
      ├─ Xvfb :1 (PID 1235)
      ├─ Overlay-Loop (PID 1236)
-     │   └─ chromium-browser --headless (PID 1237, restart alle 2s)
+     │   └─ chromium --headless (PID 1237, restart alle 2s)
      └─ ffmpeg (PID 1238, Hauptprozess)
 ```
 
@@ -680,7 +680,8 @@ Total Latency              ~6s      (Typisch)
 **Performance-Optimierung:**
 
 ```bash
-chromium-browser \
+# Verwende "chromium" oder "chromium-browser" (beide funktionieren)
+chromium \
   --headless \
   --disable-gpu \              # Kein GPU (nicht verfügbar in Xvfb)
   --screenshot=/tmp/out.png \
@@ -1172,7 +1173,9 @@ ssh pi@192.168.1.100
 
 # Pakete installieren
 sudo apt-get update
-sudo apt-get install -y ffmpeg xvfb v4l-utils chromium-browser
+sudo apt-get install -y ffmpeg xvfb v4l-utils chromium
+# Hinweis: In neueren Raspberry Pi OS Versionen heißt das Paket "chromium" statt "chromium-browser"
+# Der Befehl "chromium-browser" existiert weiterhin als Symlink
 
 # Directories anlegen
 sudo mkdir -p /etc/carambus /var/log/carambus /usr/local/bin
@@ -1286,7 +1289,7 @@ sudo modprobe uvcvideo
 **Issue: Overlay zeigt nur schwarzes Bild**
 ```bash
 # Chromium manuell testen
-DISPLAY=:1 chromium-browser \
+DISPLAY=:1 chromium \
   --headless \
   --screenshot=/tmp/test.png \
   --window-size=1920,200 \
