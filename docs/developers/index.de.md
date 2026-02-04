@@ -137,7 +137,30 @@ rails server
 
 ➡️ **[Developer Guide - Frontend](developer-guide.de.md#frontend)**
 
-### 6. Testing
+### 6. Setup & Konfiguration
+
+**Entwicklungsumgebung**:
+- Development-Logging konfigurieren
+- Email/SMTP-Setup (Gmail)
+- AI-Suche einrichten
+- Credentials verwalten
+
+➡️ **[AI-Suche Setup](setup/ai-search-setup.de.md)**  
+➡️ **[Development Logging](setup/development-logging.de.md)**  
+➡️ **[Email-Konfiguration](setup/email-configuration.de.md)**
+
+### 7. Debugging & Troubleshooting
+
+**Debugging-Tools**:
+- WebSocket-Logging aktivieren
+- Puma-Socket-Probleme beheben
+- Log-Analyse
+- Performance-Profiling
+
+➡️ **[WebSocket Logging](debugging/websocket-logging.de.md)**  
+➡️ **[Puma Socket Troubleshooting](debugging/puma-socket-troubleshooting.de.md)**
+
+### 8. Testing
 
 **Test-Framework**:
 - Minitest (Standard) oder RSpec
@@ -145,9 +168,29 @@ rails server
 - Integration Tests
 - Unit Tests
 
+**Test-Pläne**:
+- Feature-Test-Pläne
+- Integrationstests
+- Manuelle Test-Checklisten
+
+➡️ **[AI-Suche Test-Plan](testing/ai-search-test-plan.de.md)**  
+➡️ **[Admin Settings Test-Plan](testing/admin-settings-test-plan.de.md)**
+
 **Coverage**:
 - SimpleCov für Code-Coverage
 - Ziel: > 80% Coverage
+
+### 9. Operations & Security
+
+**Produktionsbetrieb**:
+- Scraper-Schutz konfigurieren
+- Turnier-/Spiel-Schutz
+- IP-Whitelisting/-Blacklisting
+- Sicherheitsfeatures
+
+➡️ **[Scraper-Protection](operations/scraper-protection.de.md)**  
+➡️ **[Scraper-Protection Advanced](operations/scraper-protection-advanced.de.md)**  
+➡️ **[Tournament Game Protection](operations/tournament-game-protection.de.md)**
 
 **Best Practices**:
 - TDD/BDD
