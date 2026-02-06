@@ -272,23 +272,46 @@ class Setting < ApplicationRecord
           cookie_match = cookie.match(/PHPSESSID=([a-f0-9]+)/i)
           if cookie_match
             session_id = cookie_match[1]
-            Setting.key_set_value("session_id", session_id)
-            Setting.key_set_value("session_login_time", Time.now.to_f.to_s) # Track login time
-            Rails.logger.info "Successfully logged in to ClubCloud (via redirect), session_id: #{session_id}"
-            return session_id
+            Rails.logger.info "Got session ID from redirect: #{session_id}"
           end
         end
       end
       
       # Falls keine Session-ID im Redirect, verwende die initiale (falls vorhanden)
-      if initial_session_id
-        Setting.key_set_value("session_id", initial_session_id)
-        Setting.key_set_value("session_login_time", Time.now.to_f.to_s) # Track login time
-        Rails.logger.info "Successfully logged in to ClubCloud (via redirect, using initial session), session_id: #{initial_session_id}"
-        return initial_session_id
-      else
-        # Keine Session-ID gefunden - das ist problematisch, aber versuchen wir trotzdem
+      session_id ||= initial_session_id
+      
+      unless session_id
         Rails.logger.warn "Login redirect but no session ID found - login may have failed"
+      else
+        # WICHTIG: Folge dem Redirect, um die Session zu aktivieren!
+        # ClubCloud erwartet, dass wir die Zielseite tatsächlich besuchen
+        Rails.logger.info "Following redirect to: #{redirect_url}"
+        
+        redirect_uri = URI(redirect_url)
+        # Wenn relative URL, mache sie absolut
+        if redirect_uri.relative?
+          redirect_uri = URI.join(url, redirect_url)
+        end
+        
+        redirect_http = Net::HTTP.new(redirect_uri.host, redirect_uri.port)
+        redirect_http.use_ssl = true
+        redirect_http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+        redirect_http.read_timeout = 30
+        redirect_http.open_timeout = 10
+        
+        redirect_req = Net::HTTP::Get.new(redirect_uri.request_uri)
+        redirect_req["cookie"] = "PHPSESSID=#{session_id}"
+        redirect_req["User-Agent"] = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36"
+        redirect_req["Accept"] = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+        
+        redirect_follow_res = redirect_http.request(redirect_req)
+        Rails.logger.info "Redirect follow response: #{redirect_follow_res.code}"
+        
+        # Speichere Session-ID nach erfolgreichem Redirect-Follow
+        Setting.key_set_value("session_id", session_id)
+        Setting.key_set_value("session_login_time", Time.now.to_f.to_s)
+        Rails.logger.info "Successfully logged in to ClubCloud (via redirect + follow), session_id: #{session_id}"
+        return session_id
       end
     end
 
