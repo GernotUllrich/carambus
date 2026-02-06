@@ -463,6 +463,7 @@ class Setting < ApplicationRecord
       raise "Could not extract session ID from login response. Status: #{login_res.code}, Set-Cookie: #{login_res['set-cookie'] || '(none)'}, All cookies: #{all_cookies.inspect}, Response body length: #{login_res.body.length}"
     end
     Setting.key_set_value("session_id", session_id)
+    Setting.key_set_value("session_login_time", Time.now.to_f.to_s) # Track login time
     Rails.logger.info "Successfully logged in to ClubCloud, session_id: #{session_id}"
     session_id
   end

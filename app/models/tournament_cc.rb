@@ -348,7 +348,22 @@ class TournamentCc < ApplicationRecord
     req["User-Agent"] = "Mozilla/5.0 (compatible; Carambus/1.0)"
     req["Accept"] = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
 
+    # Debug: Log request details
+    login_time_str = Setting.key_get_value("session_login_time")
+    time_since_login = login_time_str ? (Time.now.to_f - login_time_str.to_f) : nil
+    Rails.logger.warn "[scrape_tournament_group_options] REQUEST DEBUG:"
+    Rails.logger.warn "[scrape_tournament_group_options]   URL: #{url_with_params}"
+    Rails.logger.warn "[scrape_tournament_group_options]   Cookie: PHPSESSID=#{session_id}"
+    Rails.logger.warn "[scrape_tournament_group_options]   Referer: #{req['referer']}"
+    Rails.logger.warn "[scrape_tournament_group_options]   User-Agent: #{req['User-Agent']}"
+    Rails.logger.warn "[scrape_tournament_group_options]   Time since login: #{time_since_login ? '%.2f' % time_since_login : 'unknown'} seconds"
+
     res = http.request(req)
+    
+    # Debug: Log response details
+    Rails.logger.warn "[scrape_tournament_group_options] RESPONSE DEBUG:"
+    Rails.logger.warn "[scrape_tournament_group_options]   Status: #{res.code}"
+    Rails.logger.warn "[scrape_tournament_group_options]   Set-Cookie headers: #{res.get_fields('set-cookie')&.join('; ') || 'none'}"
 
     unless res.is_a?(Net::HTTPSuccess)
       raise "Failed to fetch createErgebnisCheck: #{res.code} - #{res.message}"
