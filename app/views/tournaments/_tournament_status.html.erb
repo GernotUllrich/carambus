@@ -119,8 +119,9 @@
           <!-- Route nicht verfügbar (z.B. nach Deployment, Server muss neu gestartet werden) -->
         <% end %>
       <% end %>
-      <% rescue RuntimeError => e %>
+      <% rescue => e %>
         <!-- current_user nicht verfügbar (z.B. in Background Job) - Links werden ausgeblendet -->
+        <!-- Exception: <%= e.class.name %>: <%= e.message %> -->
       <% end %>
 
       <% if tournament.location.present? %>
