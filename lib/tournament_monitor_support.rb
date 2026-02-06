@@ -782,15 +782,40 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
             Rails.logger.info "self.balls_goal: #{self.balls_goal.inspect}"
             Rails.logger.info "tournament.balls_goal: #{tournament.balls_goal.inspect}"
             Rails.logger.info "balls (executor_params): #{balls.inspect}"
+            Rails.logger.info "tournament.handicap_tournier?: #{tournament.handicap_tournier?.inspect}"
             
             attrs["innings_goal"] = self.innings_goal || tournament.innings_goal || innings
-            attrs["playera"] = {}
-            attrs["playera"]["balls_goal"] = self.balls_goal || tournament.balls_goal || balls
-            attrs["playerb"] = {}
-            attrs["playerb"]["balls_goal"] = self.balls_goal || tournament.balls_goal || balls
+            
+            # Bei Handicap-Turnieren: Individuelle Vorgaben aus Seeding holen
+            if tournament.handicap_tournier?
+              Rails.logger.info "HANDICAP TURNIER: Hole individuelle balls_goal aus Seeding"
+              
+              # Hole die Spieler aus den GameParticipations
+              gp_a = new_game.game_participations.find { |gp| gp.role == "playera" }
+              gp_b = new_game.game_participations.find { |gp| gp.role == "playerb" }
+              
+              # Hole die Seedings der Spieler
+              seeding_a = gp_a&.player&.seedings&.where(tournament_id: tournament.id, tournament_type: "Tournament")&.first
+              seeding_b = gp_b&.player&.seedings&.where(tournament_id: tournament.id, tournament_type: "Tournament")&.first
+              
+              Rails.logger.info "Seeding A (Player #{gp_a&.player_id}): balls_goal=#{seeding_a&.balls_goal.inspect}"
+              Rails.logger.info "Seeding B (Player #{gp_b&.player_id}): balls_goal=#{seeding_b&.balls_goal.inspect}"
+              
+              attrs["playera"] = {}
+              attrs["playera"]["balls_goal"] = seeding_a&.balls_goal&.presence || self.balls_goal || tournament.balls_goal || balls
+              attrs["playerb"] = {}
+              attrs["playerb"]["balls_goal"] = seeding_b&.balls_goal&.presence || self.balls_goal || tournament.balls_goal || balls
+            else
+              # Bei normalen Turnieren: Einheitliches balls_goal für beide Spieler
+              attrs["playera"] = {}
+              attrs["playera"]["balls_goal"] = self.balls_goal || tournament.balls_goal || balls
+              attrs["playerb"] = {}
+              attrs["playerb"]["balls_goal"] = self.balls_goal || tournament.balls_goal || balls
+            end
             
             Rails.logger.info "attrs['innings_goal']: #{attrs['innings_goal'].inspect}"
             Rails.logger.info "attrs['playera']['balls_goal']: #{attrs['playera']['balls_goal'].inspect}"
+            Rails.logger.info "attrs['playerb']['balls_goal']: #{attrs['playerb']['balls_goal'].inspect}"
             Rails.logger.info "=========================="
             
             @table_monitor.deep_merge_data!(attrs)
