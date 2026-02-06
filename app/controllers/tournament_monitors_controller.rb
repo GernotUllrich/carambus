@@ -43,11 +43,29 @@ class TournamentMonitorsController < ApplicationController
 
       table_monitor = game.table_monitor
       next unless table_monitor.present?
-      next unless (table_monitor.data["playera"]["balls_goal"].to_i == 0 || params["resulta"][ix].to_i <= table_monitor.data["playera"]["balls_goal"].to_i) &&
-                  (table_monitor.data["playerb"]["balls_goal"].to_i == 0 || params["resultb"][ix].to_i <= table_monitor.data["playerb"]["balls_goal"].to_i) &&
-                  (table_monitor.data["innings_goal"].to_i == 0 || params["inningsa"][ix].to_i <= table_monitor.data["innings_goal"].to_i) &&
-                  (table_monitor.data["innings_goal"].to_i == 0 || params["inningsb"][ix].to_i <= table_monitor.data["innings_goal"].to_i) &&
-                  (params["resulta"][ix].to_i > 0 || params["resultb"][ix].to_i > 0)
+      
+      # Validierung: Prüfe ob Ergebnisse im erlaubten Bereich liegen
+      # WICHTIG: Bei Vorgabe-Turnieren können beide Spieler unterschiedliche balls_goal haben!
+      # Ein Spieler kann sein Ziel erreichen, während der andere noch nicht fertig ist.
+      playera_balls_goal = table_monitor.data["playera"]["balls_goal"].to_i
+      playerb_balls_goal = table_monitor.data["playerb"]["balls_goal"].to_i
+      innings_goal = table_monitor.data["innings_goal"].to_i
+      
+      resulta = params["resulta"][ix].to_i
+      resultb = params["resultb"][ix].to_i
+      inningsa = params["inningsa"][ix].to_i
+      inningsb = params["inningsb"][ix].to_i
+      
+      # Validierung: Mindestens ein Ergebnis muss > 0 sein
+      next unless (resulta > 0 || resultb > 0)
+      
+      # Validierung: Ergebnisse dürfen die jeweiligen balls_goal nicht überschreiten (falls gesetzt)
+      next unless (playera_balls_goal == 0 || resulta <= playera_balls_goal)
+      next unless (playerb_balls_goal == 0 || resultb <= playerb_balls_goal)
+      
+      # Validierung: Innings dürfen innings_goal nicht überschreiten (falls gesetzt)
+      next unless (innings_goal == 0 || inningsa <= innings_goal)
+      next unless (innings_goal == 0 || inningsb <= innings_goal)
 
       # Ensure table_monitor is in playing state for evaluate_result to work
       table_monitor.skip_update_callbacks = true
@@ -57,10 +75,10 @@ class TournamentMonitorsController < ApplicationController
         table_monitor.finish_shootout! if table_monitor.may_finish_shootout?
       end
       
-      table_monitor.data["playera"]["result"] = params["resulta"][ix].to_i
-      table_monitor.data["playerb"]["result"] = params["resultb"][ix].to_i
-      table_monitor.data["playera"]["innings"] = params["inningsa"][ix].to_i
-      table_monitor.data["playerb"]["innings"] = params["inningsb"][ix].to_i
+      table_monitor.data["playera"]["result"] = resulta
+      table_monitor.data["playerb"]["result"] = resultb
+      table_monitor.data["playera"]["innings"] = inningsa
+      table_monitor.data["playerb"]["innings"] = inningsb
       table_monitor.data["playera"]["hs"] = params["hsa"][ix].to_i
       table_monitor.data["playerb"]["hs"] = params["hsb"][ix].to_i
       table_monitor.data["playera"]["gd"] =
@@ -73,6 +91,26 @@ class TournamentMonitorsController < ApplicationController
       game.update(ended_at: Time.now)
       @tournament_monitor.update_game_participations(table_monitor)
       table_monitor.evaluate_result
+      
+      # WICHTIG: Triggere ClubCloud-Upload (falls aktiviert)
+      # Dies entspricht der Logik in lib/tournament_monitor_state.rb:finalize_game_result
+      tournament = @tournament_monitor.tournament
+      if tournament.tournament_cc.present? && tournament.auto_upload_to_cc?
+        Rails.logger.info "[TournamentMonitorsController#update_games] Attempting ClubCloud upload for game[#{game.id}] (manual entry)..."
+        result = Setting.upload_game_to_cc(table_monitor)
+        if result[:success]
+          if result[:dry_run]
+            Rails.logger.info "[TournamentMonitorsController#update_games] 🧪 ClubCloud upload DRY RUN completed for game[#{game.id}] (development mode)"
+          elsif result[:skipped]
+            Rails.logger.info "[TournamentMonitorsController#update_games] ⊘ ClubCloud upload skipped for game[#{game.id}] (already uploaded)"
+          else
+            Rails.logger.info "[TournamentMonitorsController#update_games] ✓ ClubCloud upload successful for game[#{game.id}]"
+          end
+        else
+          Rails.logger.warn "[TournamentMonitorsController#update_games] ✗ ClubCloud upload failed for game[#{game.id}]: #{result[:error]}"
+          # Fehler ist bereits in tournament.data["cc_upload_errors"] geloggt
+        end
+      end
     end
     redirect_back_or_to(tournament_monitor_path(@tournament_monitor))
   end
