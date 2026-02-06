@@ -320,12 +320,9 @@ class TournamentCc < ApplicationRecord
 
     base = region_cc.base_url.sub(/\/+$/, '') # Entferne trailing slashes
 
-    # WICHTIG: Besuche erst die Meisterschafts-Detailseite (mit meisterschaftsId)
-    # um den "Kontext" in der Session zu setzen
-    show_args = {
-      meisterschaftsId: cc_id
-    }
-    show_url = base + "/admin/einzel/meisterschaft/showMeisterschaft.php?" + URI.encode_www_form(show_args)
+    # WICHTIG: Besuche erst die Ergebnisliste (showErgebnisliste.php)
+    # um den "Kontext" in der Session zu setzen - das ist der Browser-Flow!
+    show_url = base + "/admin/einzel/meisterschaft/showErgebnisliste.php?"
     show_uri = URI(show_url)
     show_http = Net::HTTP.new(show_uri.host, show_uri.port)
     show_http.use_ssl = true
@@ -340,12 +337,12 @@ class TournamentCc < ApplicationRecord
     show_req["Accept-Language"] = "de-DE,de;q=0.9,en-US;q=0.8,en;q=0.7"
     show_req["Connection"] = "keep-alive"
     
-    Rails.logger.warn "[scrape_tournament_group_options] Visiting showMeisterschaft.php with meisterschaftsId=#{cc_id}..."
+    Rails.logger.warn "[scrape_tournament_group_options] Visiting showErgebnisliste.php to set session context..."
     show_res = show_http.request(show_req)
-    Rails.logger.warn "[scrape_tournament_group_options] showMeisterschaft response: #{show_res.code}"
+    Rails.logger.warn "[scrape_tournament_group_options] showErgebnisliste response: #{show_res.code}"
     
     # Kurze Pause, damit ClubCloud den Kontext setzen kann
-    sleep(0.5)
+    sleep(0.3)
 
     # Erstelle Payload für createErgebnisCheck.php
     args = {
