@@ -188,19 +188,13 @@ class TournamentReflex < ApplicationReflex
   def sort_by_ranking
     tournament = Tournament.find(element.dataset["id"])
     
-    # Sortiere nach Ranking (gleiche Logik wie order_by_ranking_or_handicap)
+    # Sortiere nach Ranking - OHNE balls_goal zu verändern
     hash = {}
-    unless tournament.organizer.is_a?(Club) || (tournament.id >= Seeding::MIN_ID)
-      # restore seedings from ba
-      tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").destroy_all
-      tournament.seedings.create(
-        tournament.seedings.where("seedings.id < #{Seeding::MIN_ID}").map do |s|
-          { player_id: s.player_id, balls_goal: s.balls_goal }
-        end
-      )
-    end
     
-    tournament.seedings.where("seedings.id >= #{tournament.organizer.is_a?(Club) ? Seeding::MIN_ID : Seeding::MIN_ID}").each do |seeding|
+    # Bestimme den Scope für lokale Seedings
+    seeding_scope = "seedings.id >= #{Seeding::MIN_ID}"
+    
+    tournament.seedings.where(seeding_scope).each do |seeding|
       diff = Season.current_season&.name == "2021/2022" ? 2 : 1
       hash[seeding] = if tournament.team_size > 1
                         999
@@ -211,10 +205,11 @@ class TournamentReflex < ApplicationReflex
                       end
     end
     
+    # Sortiere und aktualisiere NUR die Position (balls_goal bleibt erhalten)
     sorted = hash.to_a.sort_by { |a| a[1] }
     sorted.each_with_index do |a, ix|
       seeding, = a
-      seeding.update(position: ix + 1)
+      seeding.update_column(:position, ix + 1)
     end
     
     # Rendere die ganze Seite neu, damit neue Sortierung sichtbar wird
@@ -227,25 +222,20 @@ class TournamentReflex < ApplicationReflex
     # Sortiere nach Vorgabeziel (balls_goal, höher = stärker = niedrigere Position)
     # Bester Spieler hat höchstes Punktziel (kleinstes Handicap)
     hash = {}
-    unless tournament.organizer.is_a?(Club) || (tournament.id >= Seeding::MIN_ID)
-      # restore seedings from ba
-      tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").destroy_all
-      tournament.seedings.create(
-        tournament.seedings.where("seedings.id < #{Seeding::MIN_ID}").map do |s|
-          { player_id: s.player_id, balls_goal: s.balls_goal }
-        end
-      )
-    end
     
-    tournament.seedings.where("seedings.id >= #{tournament.organizer.is_a?(Club) ? Seeding::MIN_ID : Seeding::MIN_ID}").each do |seeding|
+    # Bestimme den Scope für lokale Seedings
+    seeding_scope = "seedings.id >= #{Seeding::MIN_ID}"
+    
+    tournament.seedings.where(seeding_scope).each do |seeding|
       hash[seeding] = seeding.balls_goal.to_i
     end
     
     # Sortiere absteigend (höchstes balls_goal = Position 1)
+    # Aktualisiere NUR die Position (balls_goal bleibt natürlich erhalten)
     sorted = hash.to_a.sort_by { |a| -a[1] }
     sorted.each_with_index do |a, ix|
       seeding, = a
-      seeding.update(position: ix + 1)
+      seeding.update_column(:position, ix + 1)
     end
     
     # Rendere die ganze Seite neu, damit neue Sortierung sichtbar wird
