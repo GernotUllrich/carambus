@@ -834,14 +834,25 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
             Rails.logger.info "attrs['playerb']['balls_goal']: #{attrs['playerb']['balls_goal'].inspect}"
             Rails.logger.info "=========================="
             
+            Rails.logger.info "BEFORE deep_merge: @table_monitor.data['playera']&.[]('balls_goal') = #{@table_monitor.data.dig('playera', 'balls_goal').inspect}"
+            Rails.logger.info "BEFORE deep_merge: @table_monitor.data['playerb']&.[]('balls_goal') = #{@table_monitor.data.dig('playerb', 'balls_goal').inspect}"
+            
             @table_monitor.deep_merge_data!(attrs)
             @table_monitor.data_will_change!
+            
+            Rails.logger.info "AFTER deep_merge: @table_monitor.data['playera']&.[]('balls_goal') = #{@table_monitor.data.dig('playera', 'balls_goal').inspect}"
+            Rails.logger.info "AFTER deep_merge: @table_monitor.data['playerb']&.[]('balls_goal') = #{@table_monitor.data.dig('playerb', 'balls_goal').inspect}"
+            
             @table_monitor.assign_attributes(tournament_monitor: self)
             @table_monitor.save!  # Muss save! sein, nicht save
             
             Rails.logger.info "AFTER SAVE: @table_monitor.data['innings_goal'] = #{@table_monitor.data['innings_goal'].inspect}"
+            Rails.logger.info "AFTER SAVE: @table_monitor.data['playera']&.[]('balls_goal') = #{@table_monitor.data.dig('playera', 'balls_goal').inspect}"
+            Rails.logger.info "AFTER SAVE: @table_monitor.data['playerb']&.[]('balls_goal') = #{@table_monitor.data.dig('playerb', 'balls_goal').inspect}"
             @table_monitor.reload
             Rails.logger.info "AFTER RELOAD: @table_monitor.data['innings_goal'] = #{@table_monitor.data['innings_goal'].inspect}"
+            Rails.logger.info "AFTER RELOAD: @table_monitor.data['playera']&.[]('balls_goal') = #{@table_monitor.data.dig('playera', 'balls_goal').inspect}"
+            Rails.logger.info "AFTER RELOAD: @table_monitor.data['playerb']&.[]('balls_goal') = #{@table_monitor.data.dig('playerb', 'balls_goal').inspect}"
           end
           @table_monitor.andand.assign_game(new_game.reload)
         elsif tournament.continuous_placements?

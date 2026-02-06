@@ -1196,7 +1196,11 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
 
     Rails.logger.info "===== initialize_game DEBUG ====="
     Rails.logger.info "BEFORE deep_merge: data['innings_goal'] = #{data['innings_goal'].inspect}"
+    Rails.logger.info "BEFORE deep_merge: data['playera']&.[]('balls_goal') = #{data.dig('playera', 'balls_goal').inspect}"
+    Rails.logger.info "BEFORE deep_merge: data['playerb']&.[]('balls_goal') = #{data.dig('playerb', 'balls_goal').inspect}"
     Rails.logger.info "existing_innings_goal = #{existing_innings_goal.inspect}"
+    Rails.logger.info "existing_balls_goal_a = #{existing_balls_goal_a.inspect}"
+    Rails.logger.info "existing_balls_goal_b = #{existing_balls_goal_b.inspect}"
     Rails.logger.info "tournament_monitor.innings_goal = #{tournament_monitor&.innings_goal.inspect}"
 
     # Initialize initial_red_balls for snooker (default 15)
@@ -1346,6 +1350,8 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
                      })
 
     Rails.logger.info "AFTER deep_merge: data['innings_goal'] = #{data['innings_goal'].inspect}"
+    Rails.logger.info "AFTER deep_merge: data['playera']&.[]('balls_goal') = #{data.dig('playera', 'balls_goal').inspect}"
+    Rails.logger.info "AFTER deep_merge: data['playerb']&.[]('balls_goal') = #{data.dig('playerb', 'balls_goal').inspect}"
     Rails.logger.info "===== initialize_game DEBUG END ====="
 
     # Initialize snooker state for first frame if this is a snooker game
