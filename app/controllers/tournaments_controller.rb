@@ -168,13 +168,18 @@ class TournamentsController < ApplicationController
                                       .where(@seeding_scope)
                                       .count
 
-      # Versuche TournamentPlan anhand extrahierter Info zu finden (z.B. "T21")
+      # Versuche TournamentPlan anhand extrahierter Info zu finden (z.B. "T21", aber NICHT T0)
       @proposed_discipline_tournament_plan = nil
       # Extrahiere Plan-Name (z.B. "T21" aus "T21 - 3 Gruppen à 3, 4 und 4 Spieler")
       if @tournament.data["extracted_plan_info"].present? && (match = @tournament.data["extracted_plan_info"].match(/^(T\d+)/i))
         plan_name = match[1].upcase
-        @proposed_discipline_tournament_plan = ::TournamentPlan.where(name: plan_name).first
-        Rails.logger.info "===== finalize_modus ===== Extracted plan name: #{plan_name}, found: #{@proposed_discipline_tournament_plan.present?}"
+        # Ignoriere T0 (Turnier findet nicht statt)
+        unless plan_name == 'T0'
+          @proposed_discipline_tournament_plan = ::TournamentPlan.where(name: plan_name).first
+          Rails.logger.info "===== finalize_modus ===== Extracted plan name: #{plan_name}, found: #{@proposed_discipline_tournament_plan.present?}"
+        else
+          Rails.logger.info "===== finalize_modus ===== Extracted plan name T0 ignored"
+        end
       end
 
       # Fallback: Suche nach Spielerzahl + Disziplin (aber NICHT T0)
@@ -449,12 +454,13 @@ class TournamentsController < ApplicationController
                                     .where(@seeding_scope)
                                     .count
 
-    # Versuche TournamentPlan anhand extrahierter Info zu finden (z.B. "T21")
+    # Versuche TournamentPlan anhand extrahierter Info zu finden (z.B. "T21", aber NICHT T0)
     @proposed_discipline_tournament_plan = nil
     # Extrahiere Plan-Name (z.B. "T21" aus "T21 - 3 Gruppen à 3, 4 und 4 Spieler")
     if @tournament.data["extracted_plan_info"].present? && (match = @tournament.data["extracted_plan_info"].match(/^(T\d+)/i))
       plan_name = match[1].upcase
-      @proposed_discipline_tournament_plan = ::TournamentPlan.where(name: plan_name).first
+      # Ignoriere T0 (Turnier findet nicht statt)
+      @proposed_discipline_tournament_plan = ::TournamentPlan.where(name: plan_name).first unless plan_name == 'T0'
     end
 
     # Fallback: Suche nach Spielerzahl + Disziplin (aber NICHT T0)
