@@ -273,6 +273,7 @@ class Setting < ApplicationRecord
           if cookie_match
             session_id = cookie_match[1]
             Setting.key_set_value("session_id", session_id)
+            Setting.key_set_value("session_login_time", Time.now.to_f.to_s) # Track login time
             Rails.logger.info "Successfully logged in to ClubCloud (via redirect), session_id: #{session_id}"
             return session_id
           end
@@ -282,6 +283,7 @@ class Setting < ApplicationRecord
       # Falls keine Session-ID im Redirect, verwende die initiale (falls vorhanden)
       if initial_session_id
         Setting.key_set_value("session_id", initial_session_id)
+        Setting.key_set_value("session_login_time", Time.now.to_f.to_s) # Track login time
         Rails.logger.info "Successfully logged in to ClubCloud (via redirect, using initial session), session_id: #{initial_session_id}"
         return initial_session_id
       else
