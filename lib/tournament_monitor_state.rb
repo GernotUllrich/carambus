@@ -36,20 +36,25 @@ module TournamentMonitorState
 
     # Automatische Übertragung in die ClubCloud
     if tournament.tournament_cc.present? && tournament.auto_upload_to_cc?
-      Rails.logger.info "[TournamentMonitorState] Attempting ClubCloud upload for game[#{game.id}]..."
-      result = Setting.upload_game_to_cc(table_monitor)
-      if result[:success]
-        if result[:dry_run]
-          Rails.logger.info "[TournamentMonitorState] 🧪 ClubCloud upload DRY RUN completed for game[#{game.id}] (development mode)"
-        elsif result[:skipped]
-          Rails.logger.info "[TournamentMonitorState] ⊘ ClubCloud upload skipped for game[#{game.id}] (already uploaded)"
-        else
-          Rails.logger.info "[TournamentMonitorState] ✓ ClubCloud upload successful for game[#{game.id}]"
-        end
+      # Überspringe Platzierungsspiele (p<...>) - diese existieren nicht in ClubCloud
+      if game.gname.match?(/^p<[\d\.\-]+>/)
+        Rails.logger.info "[TournamentMonitorState] ⊘ Skipping ClubCloud upload for placement game[#{game.id}] (#{game.gname}) - not in ClubCloud"
       else
-        Rails.logger.warn "[TournamentMonitorState] ✗ ClubCloud upload failed for game[#{game.id}]: #{result[:error]}"
-        # Fehler ist bereits in tournament.data["cc_upload_errors"] geloggt
-        # Nicht weiterwerfen, damit finalize_game_result nicht fehlschlägt
+        Rails.logger.info "[TournamentMonitorState] Attempting ClubCloud upload for game[#{game.id}]..."
+        result = Setting.upload_game_to_cc(table_monitor)
+        if result[:success]
+          if result[:dry_run]
+            Rails.logger.info "[TournamentMonitorState] 🧪 ClubCloud upload DRY RUN completed for game[#{game.id}] (development mode)"
+          elsif result[:skipped]
+            Rails.logger.info "[TournamentMonitorState] ⊘ ClubCloud upload skipped for game[#{game.id}] (already uploaded)"
+          else
+            Rails.logger.info "[TournamentMonitorState] ✓ ClubCloud upload successful for game[#{game.id}]"
+          end
+        else
+          Rails.logger.warn "[TournamentMonitorState] ✗ ClubCloud upload failed for game[#{game.id}]: #{result[:error]}"
+          # Fehler ist bereits in tournament.data["cc_upload_errors"] geloggt
+          # Nicht weiterwerfen, damit finalize_game_result nicht fehlschlägt
+        end
       end
     end
 

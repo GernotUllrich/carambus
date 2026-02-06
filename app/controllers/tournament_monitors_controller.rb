@@ -118,19 +118,24 @@ class TournamentMonitorsController < ApplicationController
       # Dies entspricht der Logik in lib/tournament_monitor_state.rb:finalize_game_result
       tournament = @tournament_monitor.tournament
       if tournament.tournament_cc.present? && tournament.auto_upload_to_cc?
-        Rails.logger.info "[TournamentMonitorsController#update_games] Attempting ClubCloud upload for game[#{game.id}] (manual entry)..."
-        result = Setting.upload_game_to_cc(table_monitor)
-        if result[:success]
-          if result[:dry_run]
-            Rails.logger.info "[TournamentMonitorsController#update_games] 🧪 ClubCloud upload DRY RUN completed for game[#{game.id}] (development mode)"
-          elsif result[:skipped]
-            Rails.logger.info "[TournamentMonitorsController#update_games] ⊘ ClubCloud upload skipped for game[#{game.id}] (already uploaded)"
-          else
-            Rails.logger.info "[TournamentMonitorsController#update_games] ✓ ClubCloud upload successful for game[#{game.id}]"
-          end
+        # Überspringe Platzierungsspiele (p<...>) - diese existieren nicht in ClubCloud
+        if game.gname.match?(/^p<[\d\.\-]+>/)
+          Rails.logger.info "[TournamentMonitorsController#update_games] ⊘ Skipping ClubCloud upload for placement game[#{game.id}] (#{game.gname}) - not in ClubCloud"
         else
-          Rails.logger.warn "[TournamentMonitorsController#update_games] ✗ ClubCloud upload failed for game[#{game.id}]: #{result[:error]}"
-          # Fehler ist bereits in tournament.data["cc_upload_errors"] geloggt
+          Rails.logger.info "[TournamentMonitorsController#update_games] Attempting ClubCloud upload for game[#{game.id}] (manual entry)..."
+          result = Setting.upload_game_to_cc(table_monitor)
+          if result[:success]
+            if result[:dry_run]
+              Rails.logger.info "[TournamentMonitorsController#update_games] 🧪 ClubCloud upload DRY RUN completed for game[#{game.id}] (development mode)"
+            elsif result[:skipped]
+              Rails.logger.info "[TournamentMonitorsController#update_games] ⊘ ClubCloud upload skipped for game[#{game.id}] (already uploaded)"
+            else
+              Rails.logger.info "[TournamentMonitorsController#update_games] ✓ ClubCloud upload successful for game[#{game.id}]"
+            end
+          else
+            Rails.logger.warn "[TournamentMonitorsController#update_games] ✗ ClubCloud upload failed for game[#{game.id}]: #{result[:error]}"
+            # Fehler ist bereits in tournament.data["cc_upload_errors"] geloggt
+          end
         end
       end
     end
