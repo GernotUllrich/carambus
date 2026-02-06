@@ -360,7 +360,7 @@ class TournamentCc < ApplicationRecord
     select_element = doc.css('select[name="groupItemId"]')
     if select_element.empty?
       Rails.logger.warn "[scrape_tournament_group_options] WARNING: select[name='groupItemId'] not found in HTML response"
-      Rails.logger.warn "[scrape_tournament_group_options] Response URL: #{url}"
+      Rails.logger.warn "[scrape_tournament_group_options] Response URL: #{url_with_params}"
       Rails.logger.warn "[scrape_tournament_group_options] Response status: #{res.code}"
       Rails.logger.warn "[scrape_tournament_group_options] Response body preview (first 1500 chars): #{res.body[0..1500]}"
       Rails.logger.warn "[scrape_tournament_group_options] All select elements: #{doc.css('select').map { |s| "#{s['name']}(#{s['id']})" }.join(', ')}"
