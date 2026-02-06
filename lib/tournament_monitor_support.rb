@@ -794,9 +794,19 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
               gp_a = new_game.game_participations.find { |gp| gp.role == "playera" }
               gp_b = new_game.game_participations.find { |gp| gp.role == "playerb" }
               
-              # Hole die Seedings der Spieler
-              seeding_a = gp_a&.player&.seedings&.where(tournament_id: tournament.id, tournament_type: "Tournament")&.first
-              seeding_b = gp_b&.player&.seedings&.where(tournament_id: tournament.id, tournament_type: "Tournament")&.first
+              # Hole die Seedings der Spieler (priorisiere lokale Seedings >= MIN_ID)
+              seeding_a = if gp_a&.player
+                            # Erst lokale Seedings probieren
+                            tournament.seedings.where("id >= ?", Seeding::MIN_ID).find_by(player_id: gp_a.player_id) ||
+                            # Fallback: ClubCloud Seedings
+                            tournament.seedings.where("id < ?", Seeding::MIN_ID).find_by(player_id: gp_a.player_id)
+                          end
+              seeding_b = if gp_b&.player
+                            # Erst lokale Seedings probieren
+                            tournament.seedings.where("id >= ?", Seeding::MIN_ID).find_by(player_id: gp_b.player_id) ||
+                            # Fallback: ClubCloud Seedings
+                            tournament.seedings.where("id < ?", Seeding::MIN_ID).find_by(player_id: gp_b.player_id)
+                          end
               
               Rails.logger.info "Seeding A (Player #{gp_a&.player_id}): balls_goal=#{seeding_a&.balls_goal.inspect}"
               Rails.logger.info "Seeding B (Player #{gp_b&.player_id}): balls_goal=#{seeding_b&.balls_goal.inspect}"
