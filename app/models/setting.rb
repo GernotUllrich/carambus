@@ -1145,7 +1145,7 @@ class Setting < ApplicationRecord
   end
 
   def self.key_set_value(k, v)
-    return nil unless %w[session_id last_version_id scenario_name].include?(k.to_s)
+    return nil unless %w[session_id session_login_time last_version_id scenario_name].include?(k.to_s)
     Setting.transaction do
       inst = instance.reload
       hash = inst.data
