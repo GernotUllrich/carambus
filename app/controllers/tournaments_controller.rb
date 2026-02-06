@@ -168,21 +168,21 @@ class TournamentsController < ApplicationController
                                       .where(@seeding_scope)
                                       .count
 
-      # Versuche TournamentPlan anhand extrahierter Info zu finden (z.B. "T21", aber NICHT T0)
+      # Versuche TournamentPlan anhand extrahierter Info zu finden (z.B. "T21", aber NICHT T0/T00)
       @proposed_discipline_tournament_plan = nil
       # Extrahiere Plan-Name (z.B. "T21" aus "T21 - 3 Gruppen à 3, 4 und 4 Spieler")
       if @tournament.data["extracted_plan_info"].present? && (match = @tournament.data["extracted_plan_info"].match(/^(T\d+)/i))
         plan_name = match[1].upcase
-        # Ignoriere T0 (Turnier findet nicht statt)
-        unless plan_name == 'T0'
+        # Ignoriere T0, T00, T000 etc. (Turnier findet nicht statt)
+        unless plan_name.match?(/^T0+$/)
           @proposed_discipline_tournament_plan = ::TournamentPlan.where(name: plan_name).first
           Rails.logger.info "===== finalize_modus ===== Extracted plan name: #{plan_name}, found: #{@proposed_discipline_tournament_plan.present?}"
         else
-          Rails.logger.info "===== finalize_modus ===== Extracted plan name T0 ignored"
+          Rails.logger.info "===== finalize_modus ===== Extracted plan name #{plan_name} (T0 variant) ignored"
         end
       end
 
-      # Fallback: Suche nach Spielerzahl + Disziplin (aber NICHT T0)
+      # Fallback: Suche nach Spielerzahl + Disziplin (aber NICHT T0/T00/T000)
       unless @proposed_discipline_tournament_plan.present?
         @proposed_discipline_tournament_plan = ::TournamentPlan.joins(discipline_tournament_plans: :discipline)
                                                                .where(discipline_tournament_plans: {
@@ -190,7 +190,7 @@ class TournamentsController < ApplicationController
                                                                         player_class: @tournament.player_class,
                                                                         discipline_id: @tournament.discipline_id
                                                                       })
-                                                               .where.not(name: 'T0')
+                                                               .where.not(name: ['T0', 'T00', 'T000'])
                                                                .first
       end
       if @proposed_discipline_tournament_plan.present?
@@ -454,16 +454,16 @@ class TournamentsController < ApplicationController
                                     .where(@seeding_scope)
                                     .count
 
-    # Versuche TournamentPlan anhand extrahierter Info zu finden (z.B. "T21", aber NICHT T0)
+    # Versuche TournamentPlan anhand extrahierter Info zu finden (z.B. "T21", aber NICHT T0/T00)
     @proposed_discipline_tournament_plan = nil
     # Extrahiere Plan-Name (z.B. "T21" aus "T21 - 3 Gruppen à 3, 4 und 4 Spieler")
     if @tournament.data["extracted_plan_info"].present? && (match = @tournament.data["extracted_plan_info"].match(/^(T\d+)/i))
       plan_name = match[1].upcase
-      # Ignoriere T0 (Turnier findet nicht statt)
-      @proposed_discipline_tournament_plan = ::TournamentPlan.where(name: plan_name).first unless plan_name == 'T0'
+      # Ignoriere T0, T00, T000 etc. (Turnier findet nicht statt)
+      @proposed_discipline_tournament_plan = ::TournamentPlan.where(name: plan_name).first unless plan_name.match?(/^T0+$/)
     end
 
-    # Fallback: Suche nach Spielerzahl + Disziplin (aber NICHT T0)
+    # Fallback: Suche nach Spielerzahl + Disziplin (aber NICHT T0/T00/T000)
     unless @proposed_discipline_tournament_plan.present?
       # Erst mit player_class versuchen
       @proposed_discipline_tournament_plan = ::TournamentPlan.joins(discipline_tournament_plans: :discipline)
@@ -472,7 +472,7 @@ class TournamentsController < ApplicationController
                                                                       player_class: @tournament.player_class,
                                                                       discipline_id: @tournament.discipline_id
                                                                     })
-                                                             .where.not(name: 'T0')
+                                                             .where.not(name: ['T0', 'T00', 'T000'])
                                                              .first
 
       # Fallback ohne player_class (wenn keiner gefunden wurde)
@@ -482,7 +482,7 @@ class TournamentsController < ApplicationController
                                                                         players: @participant_count,
                                                                         discipline_id: @tournament.discipline_id
                                                                       })
-                                                               .where.not(name: 'T0')
+                                                               .where.not(name: ['T0', 'T00', 'T000'])
                                                                .first
       end
     end
