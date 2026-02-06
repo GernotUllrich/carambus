@@ -56,16 +56,38 @@ class TournamentMonitorsController < ApplicationController
       inningsa = params["inningsa"][ix].to_i
       inningsb = params["inningsb"][ix].to_i
       
+      Rails.logger.info "[TournamentMonitorsController#update_games] Game[#{game.id}] validation:"
+      Rails.logger.info "  playera_balls_goal: #{playera_balls_goal}, resulta: #{resulta}"
+      Rails.logger.info "  playerb_balls_goal: #{playerb_balls_goal}, resultb: #{resultb}"
+      Rails.logger.info "  innings_goal: #{innings_goal}, inningsa: #{inningsa}, inningsb: #{inningsb}"
+      
       # Validierung: Mindestens ein Ergebnis muss > 0 sein
-      next unless (resulta > 0 || resultb > 0)
+      unless (resulta > 0 || resultb > 0)
+        Rails.logger.warn "[TournamentMonitorsController#update_games] Game[#{game.id}] SKIPPED: No results entered"
+        next
+      end
       
       # Validierung: Ergebnisse dürfen die jeweiligen balls_goal nicht überschreiten (falls gesetzt)
-      next unless (playera_balls_goal == 0 || resulta <= playera_balls_goal)
-      next unless (playerb_balls_goal == 0 || resultb <= playerb_balls_goal)
+      unless (playera_balls_goal == 0 || resulta <= playera_balls_goal)
+        Rails.logger.warn "[TournamentMonitorsController#update_games] Game[#{game.id}] SKIPPED: resulta (#{resulta}) > playera_balls_goal (#{playera_balls_goal})"
+        next
+      end
+      unless (playerb_balls_goal == 0 || resultb <= playerb_balls_goal)
+        Rails.logger.warn "[TournamentMonitorsController#update_games] Game[#{game.id}] SKIPPED: resultb (#{resultb}) > playerb_balls_goal (#{playerb_balls_goal})"
+        next
+      end
       
       # Validierung: Innings dürfen innings_goal nicht überschreiten (falls gesetzt)
-      next unless (innings_goal == 0 || inningsa <= innings_goal)
-      next unless (innings_goal == 0 || inningsb <= innings_goal)
+      unless (innings_goal == 0 || inningsa <= innings_goal)
+        Rails.logger.warn "[TournamentMonitorsController#update_games] Game[#{game.id}] SKIPPED: inningsa (#{inningsa}) > innings_goal (#{innings_goal})"
+        next
+      end
+      unless (innings_goal == 0 || inningsb <= innings_goal)
+        Rails.logger.warn "[TournamentMonitorsController#update_games] Game[#{game.id}] SKIPPED: inningsb (#{inningsb}) > innings_goal (#{innings_goal})"
+        next
+      end
+      
+      Rails.logger.info "[TournamentMonitorsController#update_games] Game[#{game.id}] validation PASSED, updating..."
 
       # Ensure table_monitor is in playing state for evaluate_result to work
       table_monitor.skip_update_callbacks = true
