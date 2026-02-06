@@ -891,17 +891,39 @@ class Setting < ApplicationRecord
     
     # Schritt 2: Finde groupItemId in ClubCloud
     group_item_id = find_group_item_id(tournament, cc_group_name)
+    
+    # Wenn Gruppe nicht gefunden: Versuche Mapping neu zu scrapen (einmalig)
     unless group_item_id
-      error_msg = "Gruppe '#{game.gname}' (gemappt zu '#{cc_group_name}') wurde nicht in ClubCloud-Turnier gefunden"
+      Rails.logger.info "[CC-Upload] Gruppe '#{cc_group_name}' nicht gefunden, versuche Mapping neu zu scrapen..."
       
-      # INFO statt WARN für Platzierungsspiele - diese existieren oft nicht in ClubCloud
-      if game.gname.match?(/^p<[\d\.\-]+>/)
-        Rails.logger.info "[CC-Upload] ⓘ #{error_msg} for game[#{game.id}] - Platzierungsspiel existiert möglicherweise nicht in ClubCloud"
-      else
-        Rails.logger.warn "[CC-Upload] #{error_msg} for game[#{game.id}]"
+      begin
+        # Re-scrape group mapping (für neue Gruppen wie Platzierungsspiele)
+        opts = RegionCcAction.get_base_opts_from_environment
+        tournament_cc.prepare_group_mapping(opts)
+        
+        # Versuche erneut groupItemId zu finden
+        group_item_id = find_group_item_id(tournament, cc_group_name)
+        
+        if group_item_id
+          Rails.logger.info "[CC-Upload] ✓ Gruppe '#{cc_group_name}' nach Re-Scraping gefunden (groupItemId: #{group_item_id})"
+        else
+          error_msg = "Gruppe '#{game.gname}' (gemappt zu '#{cc_group_name}') wurde nicht in ClubCloud-Turnier gefunden (auch nach Re-Scraping)"
+          
+          # INFO statt WARN für Platzierungsspiele - diese existieren manchmal erst später
+          if game.gname.match?(/^p<[\d\.\-]+>/)
+            Rails.logger.info "[CC-Upload] ⓘ #{error_msg} for game[#{game.id}] - Platzierungsspiel möglicherweise noch nicht in ClubCloud angelegt"
+          else
+            Rails.logger.warn "[CC-Upload] #{error_msg} for game[#{game.id}]"
+            log_cc_upload_error(tournament, game, error_msg)
+          end
+          return { success: false, error: error_msg }
+        end
+      rescue StandardError => e
+        error_msg = "Fehler beim Re-Scraping: #{e.message}"
+        Rails.logger.error "[CC-Upload] #{error_msg}"
         log_cc_upload_error(tournament, game, error_msg)
+        return { success: false, error: error_msg }
       end
-      return { success: false, error: error_msg }
     end
 
     # Hole Spieler
