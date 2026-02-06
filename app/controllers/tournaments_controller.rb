@@ -177,14 +177,16 @@ class TournamentsController < ApplicationController
         Rails.logger.info "===== finalize_modus ===== Extracted plan name: #{plan_name}, found: #{@proposed_discipline_tournament_plan.present?}"
       end
 
-      # Fallback: Suche nach Spielerzahl + Disziplin
+      # Fallback: Suche nach Spielerzahl + Disziplin (aber NICHT T0)
       unless @proposed_discipline_tournament_plan.present?
         @proposed_discipline_tournament_plan = ::TournamentPlan.joins(discipline_tournament_plans: :discipline)
                                                                .where(discipline_tournament_plans: {
                                                                         players: @participant_count,
                                                                         player_class: @tournament.player_class,
                                                                         discipline_id: @tournament.discipline_id
-                                                                      }).first
+                                                                      })
+                                                               .where.not(name: 'T0')
+                                                               .first
       end
       if @proposed_discipline_tournament_plan.present?
         # Berechne IMMER die NBV-Standard-Gruppenbildung (MIT Gruppengrößen aus executor_params!)
@@ -455,7 +457,7 @@ class TournamentsController < ApplicationController
       @proposed_discipline_tournament_plan = ::TournamentPlan.where(name: plan_name).first
     end
 
-    # Fallback: Suche nach Spielerzahl + Disziplin
+    # Fallback: Suche nach Spielerzahl + Disziplin (aber NICHT T0)
     unless @proposed_discipline_tournament_plan.present?
       # Erst mit player_class versuchen
       @proposed_discipline_tournament_plan = ::TournamentPlan.joins(discipline_tournament_plans: :discipline)
@@ -463,7 +465,9 @@ class TournamentsController < ApplicationController
                                                                       players: @participant_count,
                                                                       player_class: @tournament.player_class,
                                                                       discipline_id: @tournament.discipline_id
-                                                                    }).first
+                                                                    })
+                                                             .where.not(name: 'T0')
+                                                             .first
 
       # Fallback ohne player_class (wenn keiner gefunden wurde)
       unless @proposed_discipline_tournament_plan.present?
@@ -471,7 +475,9 @@ class TournamentsController < ApplicationController
                                                                .where(discipline_tournament_plans: {
                                                                         players: @participant_count,
                                                                         discipline_id: @tournament.discipline_id
-                                                                      }).first
+                                                                      })
+                                                               .where.not(name: 'T0')
+                                                               .first
       end
     end
 
