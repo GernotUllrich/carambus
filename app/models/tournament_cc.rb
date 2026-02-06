@@ -333,7 +333,8 @@ class TournamentCc < ApplicationRecord
 
     # Rufe createErgebnisCheck.php mit GET auf (nicht POST!)
     # ClubCloud erwartet GET um das Formular zu laden, POST geht an createErgebnisSave.php
-    url_with_params = region_cc.base_url + "/admin/einzel/meisterschaft/createErgebnisCheck.php?" + URI.encode_www_form(args)
+    base = region_cc.base_url.sub(/\/+$/, '') # Entferne trailing slashes
+    url_with_params = base + "/admin/einzel/meisterschaft/createErgebnisCheck.php?" + URI.encode_www_form(args)
     uri = URI(url_with_params)
     http = Net::HTTP.new(uri.host, uri.port)
     http.use_ssl = true
