@@ -357,16 +357,28 @@ class TournamentsController < ApplicationController
         # OHNE dass do_placement/initialize_game aufgerufen wird!
         tm = @tournament.tournament_monitor
         Rails.logger.info "===== UPDATING TableMonitors ====="
-        Rails.logger.info "TournamentMonitor[#{tm.id}]: innings_goal=#{tm.innings_goal}, balls_goal=#{tm.balls_goal}"
+        Rails.logger.info "TournamentMonitor[#{tm.id}]: innings_goal=#{tm.innings_goal}, balls_goal=#{tm.balls_goal}, handicap_tournier=#{@tournament.handicap_tournier?}"
         tm.table_monitors.each do |table_mon|
-          Rails.logger.info "Updating TableMonitor[#{table_mon.id}] with innings_goal=#{tm.innings_goal}, balls_goal=#{tm.balls_goal}"
-          table_mon.deep_merge_data!({
-            "innings_goal" => tm.innings_goal,
-            "playera" => { "balls_goal" => tm.balls_goal },
-            "playerb" => { "balls_goal" => tm.balls_goal }
-          })
+          Rails.logger.info "Updating TableMonitor[#{table_mon.id}] with innings_goal=#{tm.innings_goal}"
+          
+          # Bei Handicap-Turnieren: balls_goal NICHT überschreiben (wurde in do_placement individuell gesetzt)
+          # Bei normalen Turnieren: balls_goal einheitlich für beide Spieler setzen
+          update_data = {
+            "innings_goal" => tm.innings_goal
+          }
+          
+          unless @tournament.handicap_tournier?
+            # Nur bei NICHT-Handicap-Turnieren die balls_goal überschreiben
+            update_data["playera"] = { "balls_goal" => tm.balls_goal }
+            update_data["playerb"] = { "balls_goal" => tm.balls_goal }
+            Rails.logger.info "  Setting balls_goal=#{tm.balls_goal} for both players (normal tournament)"
+          else
+            Rails.logger.info "  Keeping individual balls_goal values (handicap tournament): playera=#{table_mon.data.dig('playera', 'balls_goal')}, playerb=#{table_mon.data.dig('playerb', 'balls_goal')}"
+          end
+          
+          table_mon.deep_merge_data!(update_data)
           table_mon.save!
-          Rails.logger.info "TableMonitor[#{table_mon.id}] updated: innings_goal=#{table_mon.data['innings_goal']}"
+          Rails.logger.info "TableMonitor[#{table_mon.id}] updated: innings_goal=#{table_mon.data['innings_goal']}, playera_balls_goal=#{table_mon.data.dig('playera', 'balls_goal')}, playerb_balls_goal=#{table_mon.data.dig('playerb', 'balls_goal')}"
         end
         Rails.logger.info "===== TableMonitors UPDATED ====="
         
