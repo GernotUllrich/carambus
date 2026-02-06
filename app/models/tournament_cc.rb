@@ -318,31 +318,7 @@ class TournamentCc < ApplicationRecord
     # Stelle sicher, dass wir eingeloggt sind (mit Session-Validierung)
     session_id = opts[:session_id] || Setting.ensure_logged_in
 
-    # WICHTIG: Rufe erst showMeisterschaft.php auf, um die Session zu "aktivieren"
-    # ClubCloud erwartet möglicherweise, dass wir die Navigation durchlaufen
     base = region_cc.base_url.sub(/\/+$/, '') # Entferne trailing slashes
-    show_url = base + "/admin/einzel/meisterschaft/showMeisterschaft.php"
-    show_uri = URI(show_url)
-    show_http = Net::HTTP.new(show_uri.host, show_uri.port)
-    show_http.use_ssl = true
-    show_http.verify_mode = OpenSSL::SSL::VERIFY_NONE
-    show_http.read_timeout = 30
-    show_http.open_timeout = 10
-    
-    show_req = Net::HTTP::Get.new(show_uri.request_uri)
-    show_req["cookie"] = "PHPSESSID=#{session_id}"
-    show_req["User-Agent"] = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-    show_req["Accept"] = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
-    show_req["Accept-Language"] = "de-DE,de;q=0.9,en-US;q=0.8,en;q=0.7"
-    show_req["Accept-Encoding"] = "gzip, deflate, br"
-    show_req["Connection"] = "keep-alive"
-    
-    Rails.logger.warn "[scrape_tournament_group_options] Pre-warming session by visiting showMeisterschaft.php..."
-    show_res = show_http.request(show_req)
-    Rails.logger.warn "[scrape_tournament_group_options] Pre-warm response: #{show_res.code}"
-    
-    # Warte länger, um ClubCloud mehr Zeit zur Session-Aktivierung zu geben
-    sleep(1.0)
 
     # Erstelle Payload für createErgebnisCheck.php
     args = {
