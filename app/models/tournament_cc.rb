@@ -362,7 +362,11 @@ class TournamentCc < ApplicationRecord
     select_element = doc.css('select[name="groupItemId"]')
     if select_element.empty?
       Rails.logger.warn "[scrape_tournament_group_options] WARNING: select[name='groupItemId'] not found in HTML response"
-      Rails.logger.debug "[scrape_tournament_group_options] Response body preview (first 1000 chars): #{res.body[0..1000]}"
+      Rails.logger.warn "[scrape_tournament_group_options] Response URL: #{url}"
+      Rails.logger.warn "[scrape_tournament_group_options] Response status: #{res.code}"
+      Rails.logger.warn "[scrape_tournament_group_options] Response body preview (first 1500 chars): #{res.body[0..1500]}"
+      Rails.logger.warn "[scrape_tournament_group_options] All select elements: #{doc.css('select').map { |s| "#{s['name']}(#{s['id']})" }.join(', ')}"
+      Rails.logger.warn "[scrape_tournament_group_options] Request args: #{args.inspect}"
       
       # Prüfe ob Login-Seite angezeigt wird
       if res.body.include?("call_police") || res.body.include?("loginUser")
@@ -377,7 +381,7 @@ class TournamentCc < ApplicationRecord
 
     if group_options.empty?
       Rails.logger.warn "[scrape_tournament_group_options] WARNING: No groupItemId options found for tournament_cc[#{id}]"
-      Rails.logger.debug "[scrape_tournament_group_options] All select elements: #{doc.css('select').map { |s| s['name'] }.join(', ')}"
+      Rails.logger.warn "[scrape_tournament_group_options] All select elements in response: #{doc.css('select').map { |s| s['name'] }.join(', ')}"
     else
       Rails.logger.info "[scrape_tournament_group_options] Scraped #{group_options.count} groupItemId options: #{group_options.inspect}"
     end
