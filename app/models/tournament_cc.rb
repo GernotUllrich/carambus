@@ -370,14 +370,25 @@ class TournamentCc < ApplicationRecord
     # Debug: Log response details
     Rails.logger.warn "[scrape_tournament_group_options] RESPONSE DEBUG:"
     Rails.logger.warn "[scrape_tournament_group_options]   Status: #{res.code}"
+    Rails.logger.warn "[scrape_tournament_group_options]   Content-Encoding: #{res['content-encoding'] || 'none'}"
     Rails.logger.warn "[scrape_tournament_group_options]   Set-Cookie headers: #{res.get_fields('set-cookie')&.join('; ') || 'none'}"
 
     unless res.is_a?(Net::HTTPSuccess)
       raise "Failed to fetch createErgebnisCheck: #{res.code} - #{res.message}"
     end
 
+    # Decompress response body if needed
+    body = res.body
+    if res['content-encoding'] == 'gzip'
+      Rails.logger.warn "[scrape_tournament_group_options] Decompressing gzip response..."
+      body = Zlib::GzipReader.new(StringIO.new(body)).read
+    elsif res['content-encoding'] == 'deflate'
+      Rails.logger.warn "[scrape_tournament_group_options] Decompressing deflate response..."
+      body = Zlib::Inflate.inflate(body)
+    end
+
     # Parse HTML und extrahiere groupItemId-Optionen
-    doc = Nokogiri::HTML(res.body)
+    doc = Nokogiri::HTML(body)
     
     # Debug: Prüfe ob Select vorhanden ist
     select_element = doc.css('select[name="groupItemId"]')
@@ -385,12 +396,12 @@ class TournamentCc < ApplicationRecord
       Rails.logger.warn "[scrape_tournament_group_options] WARNING: select[name='groupItemId'] not found in HTML response"
       Rails.logger.warn "[scrape_tournament_group_options] Response URL: #{url_with_params}"
       Rails.logger.warn "[scrape_tournament_group_options] Response status: #{res.code}"
-      Rails.logger.warn "[scrape_tournament_group_options] Response body preview (first 1500 chars): #{res.body[0..1500]}"
+      Rails.logger.warn "[scrape_tournament_group_options] Response body preview (first 1500 chars): #{body[0..1500]}"
       Rails.logger.warn "[scrape_tournament_group_options] All select elements: #{doc.css('select').map { |s| "#{s['name']}(#{s['id']})" }.join(', ')}"
       Rails.logger.warn "[scrape_tournament_group_options] Request args: #{args.inspect}"
       
       # Prüfe ob Login-Seite angezeigt wird
-      if res.body.include?("call_police") || res.body.include?("loginUser")
+      if body.include?("call_police") || body.include?("loginUser")
         Rails.logger.error "[scrape_tournament_group_options] ERROR: Got login page instead of createErgebnisCheck page - session may be invalid"
         raise "Session invalid: Got login page instead of createErgebnisCheck"
       end
