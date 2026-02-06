@@ -790,18 +790,24 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
             if tournament.handicap_tournier?
               Rails.logger.info "HANDICAP TURNIER: Hole individuelle balls_goal aus Seeding"
               
+              # Reload game um sicherzustellen dass GameParticipations geladen sind
+              new_game.reload
+              
               # Hole die Spieler aus den GameParticipations
               gp_a = new_game.game_participations.find { |gp| gp.role == "playera" }
               gp_b = new_game.game_participations.find { |gp| gp.role == "playerb" }
               
+              Rails.logger.info "GameParticipation A: player_id=#{gp_a&.player_id}, role=#{gp_a&.role}"
+              Rails.logger.info "GameParticipation B: player_id=#{gp_b&.player_id}, role=#{gp_b&.role}"
+              
               # Hole die Seedings der Spieler (priorisiere lokale Seedings >= MIN_ID)
-              seeding_a = if gp_a&.player
+              seeding_a = if gp_a&.player_id
                             # Erst lokale Seedings probieren
                             tournament.seedings.where("id >= ?", Seeding::MIN_ID).find_by(player_id: gp_a.player_id) ||
                             # Fallback: ClubCloud Seedings
                             tournament.seedings.where("id < ?", Seeding::MIN_ID).find_by(player_id: gp_a.player_id)
                           end
-              seeding_b = if gp_b&.player
+              seeding_b = if gp_b&.player_id
                             # Erst lokale Seedings probieren
                             tournament.seedings.where("id >= ?", Seeding::MIN_ID).find_by(player_id: gp_b.player_id) ||
                             # Fallback: ClubCloud Seedings
