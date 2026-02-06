@@ -344,7 +344,7 @@ class TournamentCc < ApplicationRecord
 
     req = Net::HTTP::Get.new(uri.request_uri)
     req["cookie"] = "PHPSESSID=#{session_id}"
-    req["referer"] = region_cc.base_url + "/admin/einzel/meisterschaft/showMeisterschaft.php"
+    req["referer"] = base + "/admin/einzel/meisterschaft/showMeisterschaft.php" # use 'base' (no trailing slash)
     req["User-Agent"] = "Mozilla/5.0 (compatible; Carambus/1.0)"
     req["Accept"] = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
 
