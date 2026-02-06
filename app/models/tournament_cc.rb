@@ -341,8 +341,8 @@ class TournamentCc < ApplicationRecord
     show_res = show_http.request(show_req)
     Rails.logger.warn "[scrape_tournament_group_options] Pre-warm response: #{show_res.code}"
     
-    # Warte kurz, um ClubCloud Zeit zu geben
-    sleep(0.2)
+    # Warte länger, um ClubCloud mehr Zeit zur Session-Aktivierung zu geben
+    sleep(1.0)
 
     # Erstelle Payload für createErgebnisCheck.php
     args = {
