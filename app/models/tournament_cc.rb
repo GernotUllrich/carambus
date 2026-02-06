@@ -331,24 +331,22 @@ class TournamentCc < ApplicationRecord
       nbut: ""
     }
 
-    # Rufe createErgebnisCheck.php direkt auf (nicht in PATH_MAP)
-    url = region_cc.base_url + "/admin/einzel/meisterschaft/createErgebnisCheck.php"
-    uri = URI(url)
+    # Rufe createErgebnisCheck.php mit GET auf (nicht POST!)
+    # ClubCloud erwartet GET um das Formular zu laden, POST geht an createErgebnisSave.php
+    url_with_params = region_cc.base_url + "/admin/einzel/meisterschaft/createErgebnisCheck.php?" + URI.encode_www_form(args)
+    uri = URI(url_with_params)
     http = Net::HTTP.new(uri.host, uri.port)
     http.use_ssl = true
     http.verify_mode = OpenSSL::SSL::VERIFY_NONE
     http.read_timeout = 30
     http.open_timeout = 10
 
-    req = Net::HTTP::Post.new(uri.request_uri)
-    req["Content-Type"] = "application/x-www-form-urlencoded"
+    req = Net::HTTP::Get.new(uri.request_uri)
     req["cookie"] = "PHPSESSID=#{session_id}"
     req["referer"] = region_cc.base_url + "/admin/einzel/meisterschaft/showMeisterschaft.php"
     req["User-Agent"] = "Mozilla/5.0 (compatible; Carambus/1.0)"
-    req["Origin"] = region_cc.base_url
     req["Accept"] = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
 
-    req.set_form_data(args)
     res = http.request(req)
 
     unless res.is_a?(Net::HTTPSuccess)
