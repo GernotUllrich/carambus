@@ -893,8 +893,14 @@ class Setting < ApplicationRecord
     group_item_id = find_group_item_id(tournament, cc_group_name)
     unless group_item_id
       error_msg = "Gruppe '#{game.gname}' (gemappt zu '#{cc_group_name}') wurde nicht in ClubCloud-Turnier gefunden"
-      Rails.logger.warn "[CC-Upload] #{error_msg} for game[#{game.id}]"
-      log_cc_upload_error(tournament, game, error_msg)
+      
+      # INFO statt WARN für Platzierungsspiele - diese existieren oft nicht in ClubCloud
+      if game.gname.match?(/^p<[\d\.\-]+>/)
+        Rails.logger.info "[CC-Upload] ⓘ #{error_msg} for game[#{game.id}] - Platzierungsspiel existiert möglicherweise nicht in ClubCloud"
+      else
+        Rails.logger.warn "[CC-Upload] #{error_msg} for game[#{game.id}]"
+        log_cc_upload_error(tournament, game, error_msg)
+      end
       return { success: false, error: error_msg }
     end
 
