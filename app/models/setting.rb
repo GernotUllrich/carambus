@@ -565,6 +565,16 @@ class Setting < ApplicationRecord
     attempt = 0
     last_error = nil
     
+    # Immer zuerst versuchen auszuloggen, um bestehende Sessions zu beenden
+    # (z.B. wenn noch im Browser eingeloggt)
+    Rails.logger.info "[login_with_retry] Attempting logout before login to clear any existing sessions..."
+    begin
+      logoff_from_cc
+      sleep 1 # Kurze Pause nach Logout
+    rescue StandardError => logout_error
+      Rails.logger.warn "[login_with_retry] Initial logout failed (continuing anyway): #{logout_error.message}"
+    end
+    
     loop do
       attempt += 1
       
