@@ -239,6 +239,30 @@
           </tbody>
         </table>
 
+        <!-- Sortier-Buttons -->
+        <div class="mt-6 p-4 bg-gray-50 dark:bg-gray-800 border border-gray-300 rounded">
+          <h4 class="font-semibold text-gray-900 dark:text-gray-200 mb-3">🔄 Teilnehmerliste sortieren</h4>
+          <div class="flex gap-3">
+            <button class="btn btn-primary"
+                    data-reflex="click->TournamentReflex#sort_by_ranking"
+                    data-id="<%= @tournament.id %>"
+                    title="Sortiert nach aktuellem Carambus-Ranking">
+              📊 Nach Ranking sortieren
+            </button>
+            <% if @tournament.handicap_tournier %>
+              <button class="btn btn-secondary"
+                      data-reflex="click->TournamentReflex#sort_by_handicap"
+                      data-id="<%= @tournament.id %>"
+                      title="Sortiert nach Vorgabeziel (höheres Punktziel = stärker)">
+                🎯 Nach Vorgabeziel sortieren
+              </button>
+            <% end %>
+          </div>
+          <p class="text-xs text-gray-600 dark:text-gray-400 mt-2">
+            💡 Die Sortierung passt die Positionen automatisch an. Änderungen werden sofort gespeichert.
+          </p>
+        </div>
+        
         <!-- Turnierpläne und Gruppenzuordnungen Vorschau -->
         <% if @participant_count > 0 && @proposed_discipline_tournament_plan.present? %>
           <div class="mt-6 p-4 bg-blue-50 dark:bg-gray-800 border border-blue-200 rounded">
@@ -403,30 +427,6 @@
               </p>
             </div>
           </details>
-        </div>
-
-        <!-- Sortier-Buttons -->
-        <div class="mt-6 p-4 bg-gray-50 dark:bg-gray-800 border border-gray-300 rounded">
-          <h4 class="font-semibold text-gray-900 dark:text-gray-200 mb-3">🔄 Teilnehmerliste sortieren</h4>
-          <div class="flex gap-3">
-            <button class="btn btn-primary"
-                    data-reflex="click->TournamentReflex#sort_by_ranking"
-                    data-id="<%= @tournament.id %>"
-                    title="Sortiert nach aktuellem Carambus-Ranking">
-              📊 Nach Ranking sortieren
-            </button>
-            <% if @tournament.handicap_tournier %>
-              <button class="btn btn-secondary"
-                      data-reflex="click->TournamentReflex#sort_by_handicap"
-                      data-id="<%= @tournament.id %>"
-                      title="Sortiert nach Vorgabeziel (höheres Punktziel = stärker)">
-                🎯 Nach Vorgabeziel sortieren
-              </button>
-            <% end %>
-          </div>
-          <p class="text-xs text-gray-600 dark:text-gray-400 mt-2">
-            💡 Die Sortierung passt die Positionen automatisch an. Änderungen werden sofort gespeichert.
-          </p>
         </div>
       <%- end %>
 
