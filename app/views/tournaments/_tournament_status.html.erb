@@ -101,7 +101,8 @@
 
     <!-- Links zu Tournament Monitor und Scoreboards -->
     <div class="mt-4 pt-4 border-t border-blue-300 flex flex-wrap gap-2">
-      <% if defined?(current_user) && tournament_director?(current_user) %>
+      <% begin %>
+        <% if current_user.present? && tournament_director?(current_user) %>
         <%= link_to '🎮 Tournament Monitor öffnen',
             tournament_monitor_path(tournament_monitor),
             class: 'btn btn-primary btn-lg',
@@ -117,6 +118,9 @@
         <% rescue NoMethodError, ActionController::UrlGenerationError %>
           <!-- Route nicht verfügbar (z.B. nach Deployment, Server muss neu gestartet werden) -->
         <% end %>
+      <% end %>
+      <% rescue RuntimeError => e %>
+        <!-- current_user nicht verfügbar (z.B. in Background Job) - Links werden ausgeblendet -->
       <% end %>
 
       <% if tournament.location.present? %>
