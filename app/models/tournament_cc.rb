@@ -364,7 +364,7 @@ class TournamentCc < ApplicationRecord
         meisterschaft_body = gz.read
         gz.close rescue nil
       end
-      Rails.logger.warn "[scrape_tournament_group_options] showMeisterschaft body preview (first 1500 chars): #{meisterschaft_body[0..1500]}"
+      Rails.logger.warn "[scrape_tournament_group_options] showMeisterschaft body preview (first 2500 chars): #{meisterschaft_body[0..2500]}"
       
       # Prüfe auf JavaScript-Redirects oder Fehlermeldungen
       if meisterschaft_body.include?("errMsg") || meisterschaft_body.include?("errMsgNew")
@@ -373,6 +373,9 @@ class TournamentCc < ApplicationRecord
           Rails.logger.error "[scrape_tournament_group_options] Error message: #{$1}"
         end
       end
+      
+      # Logge auch die URL, die wir aufgerufen haben
+      Rails.logger.warn "[scrape_tournament_group_options] showMeisterschaft URL was: #{meisterschaft_url}"
     rescue => e
       Rails.logger.warn "[scrape_tournament_group_options] Could not parse showMeisterschaft response: #{e.message}"
     end
