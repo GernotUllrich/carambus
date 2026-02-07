@@ -336,6 +336,7 @@ class TournamentCc < ApplicationRecord
     # Format: *--meisterschaftsId--* (wobei '--' leere/übersprungene Parameter bedeutet)
     # WICHTIG: season NICHT URL-encoden - Browser verwendet "2025/2026" statt "2025%2F2026"
     # WICHTIG: idsid muss region_cc.cc_id sein, NICHT region.cc_id!
+    Rails.logger.warn "[scrape_tournament_group_options] DEBUG IDs: region.id=#{region.id}, region.cc_id=#{region.cc_id}, region_cc.id=#{region_cc.id}, region_cc.cc_id=#{region_cc.cc_id}"
     positional_params = "*--#{cc_id}--*"
     meisterschaft_url = base + "/admin/einzel/meisterschaft/showMeisterschaft.php?branchId=#{branch_cc.cc_id}&idsid=#{region_cc.cc_id}&season=#{tournament.season.name}&#{positional_params}&"
     meisterschaft_uri = URI(meisterschaft_url)
