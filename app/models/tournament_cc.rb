@@ -333,9 +333,10 @@ class TournamentCc < ApplicationRecord
     # KRITISCH: Erst showMeisterschaft.php aufrufen, um das Turnier in der Session zu öffnen!
     # Dies ist der fehlende Schritt im Browser-Flow, der die Session-Variablen setzt.
     # ClubCloud verwendet ein proprietäres URL-Format: branchId, idsid, season, dann positionelle Parameter
-    # Format: *--meisterschaftsId--catId (wobei '--' leere Parameter bedeutet)
+    # Format: *--meisterschaftsId--* (wobei '--' leere/übersprungene Parameter bedeutet)
+    # WICHTIG: season NICHT URL-encoden - Browser verwendet "2025/2026" statt "2025%2F2026"
     positional_params = "*--#{cc_id}--*"
-    meisterschaft_url = base + "/admin/einzel/meisterschaft/showMeisterschaft.php?branchId=#{branch_cc.cc_id}&idsid=#{region.cc_id}&season=#{URI.encode_www_form_component(tournament.season.name)}&#{positional_params}&"
+    meisterschaft_url = base + "/admin/einzel/meisterschaft/showMeisterschaft.php?branchId=#{branch_cc.cc_id}&idsid=#{region.cc_id}&season=#{tournament.season.name}&#{positional_params}&"
     meisterschaft_uri = URI(meisterschaft_url)
     meisterschaft_http = Net::HTTP.new(meisterschaft_uri.host, meisterschaft_uri.port)
     meisterschaft_http.use_ssl = true
