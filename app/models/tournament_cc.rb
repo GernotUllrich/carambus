@@ -405,6 +405,27 @@ class TournamentCc < ApplicationRecord
         end
       end
       
+      # Versuche, idsid aus Links in der showMeisterschaft-Response zu extrahieren
+      # Format: <a href="...?idsid=59&..."> oder <a href="...&idsid=59&...">
+      meisterschaft_doc = Nokogiri::HTML(meisterschaft_body)
+      meisterschaft_doc.css('a[href*="idsid="]').each do |link|
+        if link['href'] =~ /[?&]idsid=(\d+)/
+          scraped_idsid = $1.to_i
+          Rails.logger.warn "[scrape_tournament_group_options] 🎯 Found idsid=#{scraped_idsid} in showMeisterschaft links"
+          
+          # Speichere in tournament.data für zukünftige Uploads
+          if tournament.data.is_a?(Hash)
+            tournament.data["cc_meta"] ||= {}
+            unless tournament.data["cc_meta"]["idsid"] == scraped_idsid
+              tournament.data["cc_meta"]["idsid"] = scraped_idsid
+              tournament.save!
+              Rails.logger.warn "[scrape_tournament_group_options] 💾 Saved idsid=#{scraped_idsid} to tournament.data['cc_meta']['idsid']"
+            end
+          end
+          break  # Nur den ersten Link verwenden
+        end
+      end
+      
       # Logge auch die URL, die wir aufgerufen haben
       Rails.logger.warn "[scrape_tournament_group_options] showMeisterschaft URL was: #{meisterschaft_url}"
     rescue => e
@@ -551,6 +572,23 @@ class TournamentCc < ApplicationRecord
     Rails.logger.warn "[scrape_tournament_group_options]   Status: #{res.code}"
     Rails.logger.warn "[scrape_tournament_group_options]   Content-Encoding: #{res['content-encoding'] || 'none'}"
     Rails.logger.warn "[scrape_tournament_group_options]   Set-Cookie headers: #{res.get_fields('set-cookie')&.join('; ') || 'none'}"
+    Rails.logger.warn "[scrape_tournament_group_options]   Response URI: #{res.uri}" if res.respond_to?(:uri)
+
+    # Extrahiere idsid aus Response-URL (bei Redirects) oder aus Referer
+    # und speichere sie für zukünftige Requests
+    actual_url = res['location'] || url_with_params
+    if actual_url =~ /[?&]idsid=(\d+)/
+      scraped_idsid = $1.to_i
+      Rails.logger.warn "[scrape_tournament_group_options] 🎯 Extracted idsid=#{scraped_idsid} from response URL"
+      
+      # Speichere in tournament.data für zukünftige Uploads
+      if tournament.data.is_a?(Hash)
+        tournament.data["cc_meta"] ||= {}
+        tournament.data["cc_meta"]["idsid"] = scraped_idsid
+        tournament.save!
+        Rails.logger.warn "[scrape_tournament_group_options] 💾 Saved idsid=#{scraped_idsid} to tournament.data['cc_meta']['idsid']"
+      end
+    end
 
     unless res.is_a?(Net::HTTPSuccess)
       raise "Failed to fetch createErgebnisCheck: #{res.code} - #{res.message}"
