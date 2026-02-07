@@ -85,6 +85,19 @@ class TournamentCc < ApplicationRecord
   }.freeze
   JACKPOT_DISPLAY_INV = JACKPOT_DISPLAY.invert
 
+  # HARDCODED LOOKUP für bekannte Regionen (TODO: In DB auslagern)
+  # NBV (region_cc.cc_id=20) hat mehrere Sub-Regionen:
+  # - Niedersächsischer Billard-Verband: idsid=59
+  # - Hamburg: idsid=?
+  # - etc.
+  # Für NDM-Turniere (Niedersachsen) verwende idsid=59
+  REGION_IDSID_MAP = {
+    20 => {  # NBV
+      'default' => 59  # Niedersächsischer Billard-Verband
+      # Füge hier weitere Sub-Regionen hinzu, falls nötig
+    }
+  }.freeze
+
   TYPE_MAP = {
     6 => { # Pool
       1 => ["Norddeutsche Meisterschaft", "NDM"],
@@ -336,19 +349,6 @@ class TournamentCc < ApplicationRecord
     # Format: *--meisterschaftsId--* (wobei '--' leere/übersprungene Parameter bedeutet)
     # WICHTIG: season NICHT URL-encoden - Browser verwendet "2025/2026" statt "2025%2F2026"
     # WICHTIG: idsid ist oft NICHT region_cc.cc_id, sondern eine Sub-Region-ID!
-    
-    # HARDCODED LOOKUP für bekannte Regionen (TODO: In DB auslagern)
-    # NBV (region_cc.cc_id=20) hat mehrere Sub-Regionen:
-    # - Niedersächsischer Billard-Verband: idsid=59
-    # - Hamburg: idsid=?
-    # - etc.
-    # Für NDM-Turniere (Niedersachsen) verwende idsid=59
-    REGION_IDSID_MAP = {
-      20 => {  # NBV
-        'default' => 59,  # Niedersächsischer Billard-Verband
-        # Füge hier weitere Sub-Regionen hinzu, falls nötig
-      }
-    }
     
     # Versuche, idsid aus Hardcoded-Map zu holen
     idsid = nil
