@@ -330,9 +330,20 @@ class TournamentCc < ApplicationRecord
 
     base = region_cc.base_url.sub(/\/+$/, '') # Entferne trailing slashes
 
-    # WICHTIG: Besuche erst die Ergebnisliste (showErgebnisliste.php)
+    # WICHTIG: Besuche erst die Ergebnisliste (showErgebnisliste.php) MIT den Turnier-Parametern
     # um den "Kontext" in der Session zu setzen - das ist der Browser-Flow!
-    show_url = base + "/admin/einzel/meisterschaft/showErgebnisliste.php?"
+    # ClubCloud erwartet die Parameter, um den Kontext zu setzen!
+    show_params = {
+      fedId: region.cc_id,
+      branchId: branch_cc.cc_id,
+      disciplinId: "*",
+      season: tournament.season.name,
+      catId: "*",
+      meisterTypeId: championship_type_cc&.cc_id || "",
+      meisterschaftsId: cc_id,
+      teilnehmerId: "*"
+    }
+    show_url = base + "/admin/einzel/meisterschaft/showErgebnisliste.php?" + URI.encode_www_form(show_params)
     show_uri = URI(show_url)
     show_http = Net::HTTP.new(show_uri.host, show_uri.port)
     show_http.use_ssl = true
