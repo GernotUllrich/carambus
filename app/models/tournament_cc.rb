@@ -358,6 +358,28 @@ class TournamentCc < ApplicationRecord
     meisterschaft_res = meisterschaft_http.request(meisterschaft_req)
     Rails.logger.warn "[scrape_tournament_group_options] showMeisterschaft response: #{meisterschaft_res.code}"
     
+    # DEBUG: Schaue in die showMeisterschaft Response
+    begin
+      meisterschaft_body = meisterschaft_res.body
+      if meisterschaft_res["content-encoding"] == "gzip"
+        sio = StringIO.new(meisterschaft_body)
+        gz = Zlib::GzipReader.new(sio)
+        meisterschaft_body = gz.read
+        gz.close rescue nil
+      end
+      Rails.logger.warn "[scrape_tournament_group_options] showMeisterschaft body preview (first 1500 chars): #{meisterschaft_body[0..1500]}"
+      
+      # Prüfe auf JavaScript-Redirects oder Fehlermeldungen
+      if meisterschaft_body.include?("errMsg") || meisterschaft_body.include?("errMsgNew")
+        Rails.logger.error "[scrape_tournament_group_options] ⚠️  showMeisterschaft returned an ERROR!"
+        if meisterschaft_body =~ /errMsg.*?value='([^']+)'/
+          Rails.logger.error "[scrape_tournament_group_options] Error message: #{$1}"
+        end
+      end
+    rescue => e
+      Rails.logger.warn "[scrape_tournament_group_options] Could not parse showMeisterschaft response: #{e.message}"
+    end
+    
     # Prüfe auf neue Session-ID nach showMeisterschaft
     meisterschaft_cookies = meisterschaft_res.get_fields("set-cookie")
     if meisterschaft_cookies
