@@ -330,9 +330,52 @@ class TournamentCc < ApplicationRecord
 
     base = region_cc.base_url.sub(/\/+$/, '') # Entferne trailing slashes
 
-    # WICHTIG: Besuche erst die Ergebnisliste (showErgebnisliste.php) MIT den Turnier-Parametern
-    # um den "Kontext" in der Session zu setzen - das ist der Browser-Flow!
-    # ClubCloud erwartet die Parameter, um den Kontext zu setzen!
+    # KRITISCH: Erst showMeisterschaft.php aufrufen, um das Turnier in der Session zu öffnen!
+    # Dies ist der fehlende Schritt im Browser-Flow, der die Session-Variablen setzt.
+    meisterschaft_params = {
+      branchId: branch_cc.cc_id,
+      idsid: region.cc_id,
+      season: tournament.season.name,
+      meisterschaftsId: cc_id
+    }
+    meisterschaft_url = base + "/admin/einzel/meisterschaft/showMeisterschaft.php?" + URI.encode_www_form(meisterschaft_params)
+    meisterschaft_uri = URI(meisterschaft_url)
+    meisterschaft_http = Net::HTTP.new(meisterschaft_uri.host, meisterschaft_uri.port)
+    meisterschaft_http.use_ssl = true
+    meisterschaft_http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+    meisterschaft_http.read_timeout = 30
+    meisterschaft_http.open_timeout = 10
+    
+    meisterschaft_req = Net::HTTP::Get.new(meisterschaft_uri.request_uri)
+    meisterschaft_req["cookie"] = "PHPSESSID=#{session_id}"
+    meisterschaft_req["referer"] = base + "/index.php"
+    meisterschaft_req["User-Agent"] = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    meisterschaft_req["Accept"] = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+    meisterschaft_req["Accept-Language"] = "de-DE,de;q=0.9,en-US;q=0.8,en;q=0.7"
+    meisterschaft_req["Connection"] = "keep-alive"
+    
+    Rails.logger.warn "[scrape_tournament_group_options] Step 1: Visiting showMeisterschaft.php to open tournament in session..."
+    meisterschaft_res = meisterschaft_http.request(meisterschaft_req)
+    Rails.logger.warn "[scrape_tournament_group_options] showMeisterschaft response: #{meisterschaft_res.code}"
+    
+    # Prüfe auf neue Session-ID nach showMeisterschaft
+    meisterschaft_cookies = meisterschaft_res.get_fields("set-cookie")
+    if meisterschaft_cookies
+      meisterschaft_cookies.each do |cookie|
+        cookie_match = cookie.match(/PHPSESSID=([a-f0-9]+)/i)
+        if cookie_match
+          new_session_id = cookie_match[1]
+          if new_session_id != session_id
+            Rails.logger.info "[scrape_tournament_group_options] Got NEW session ID from showMeisterschaft: #{new_session_id} (old: #{session_id})"
+            session_id = new_session_id
+            Setting.key_set_value("session_id", session_id)
+          end
+          break
+        end
+      end
+    end
+
+    # JETZT zur Ergebnisliste - das Turnier ist bereits in der Session geöffnet
     show_params = {
       fedId: region.cc_id,
       branchId: branch_cc.cc_id,
@@ -353,13 +396,13 @@ class TournamentCc < ApplicationRecord
     
     show_req = Net::HTTP::Get.new(show_uri.request_uri)
     show_req["cookie"] = "PHPSESSID=#{session_id}"
-    show_req["referer"] = base + "/index.php"  # Wichtig: Referer vom Login
+    show_req["referer"] = meisterschaft_url  # Referer ist jetzt showMeisterschaft!
     show_req["User-Agent"] = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
     show_req["Accept"] = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
     show_req["Accept-Language"] = "de-DE,de;q=0.9,en-US;q=0.8,en;q=0.7"
     show_req["Connection"] = "keep-alive"
     
-    Rails.logger.warn "[scrape_tournament_group_options] Visiting showErgebnisliste.php to set session context..."
+    Rails.logger.warn "[scrape_tournament_group_options] Step 2: Visiting showErgebnisliste.php..."
     show_res = show_http.request(show_req)
     Rails.logger.warn "[scrape_tournament_group_options] showErgebnisliste response: #{show_res.code}"
     
