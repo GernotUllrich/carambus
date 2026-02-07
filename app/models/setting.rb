@@ -324,7 +324,16 @@ class Setting < ApplicationRecord
     
     # Debug: Zeige alle Set-Cookie Header
     all_cookies = login_res.get_fields("set-cookie")
-    Rails.logger.debug "Set-Cookie headers: #{all_cookies.inspect}" if all_cookies
+    Rails.logger.debug "Set-Cookie headers (count: #{all_cookies&.length || 0}): #{all_cookies.inspect}" if all_cookies
+    
+    # WICHTIG: Wenn mehrere PHPSESSID cookies gesetzt werden, nutze den LETZTEN (neuesten)
+    if all_cookies && all_cookies.length > 1
+      phpsessid_cookies = all_cookies.select { |c| c.include?("PHPSESSID=") }
+      if phpsessid_cookies.length > 1
+        Rails.logger.warn "Multiple PHPSESSID cookies received (#{phpsessid_cookies.length}), using the LAST one"
+        Rails.logger.debug "All PHPSESSID cookies: #{phpsessid_cookies.inspect}"
+      end
+    end
     
     # Prüfe ob Login erfolgreich war (wenn Response noch Login-Seite ist, war Login fehlgeschlagen)
     login_doc = Nokogiri::HTML(login_res.body)
@@ -398,28 +407,29 @@ class Setting < ApplicationRecord
       end
     end
     
-    # Versuche Session-ID aus dem Set-Cookie Header zu extrahieren (beste Methode)
-    if login_res["set-cookie"]
-      cookie_match = login_res["set-cookie"].match(/PHPSESSID=([a-f0-9]+)/i)
-      session_id = cookie_match[1] if cookie_match
-    end
-
-    # Fallback: Versuche Session-ID aus allen Cookies im Set-Cookie Header
-    unless session_id
-      cookies = login_res.get_fields("set-cookie")
-      if cookies
-        cookies.each do |cookie|
-          # Prüfe verschiedene Cookie-Formate
-          cookie_match = cookie.match(/PHPSESSID=([a-f0-9]+)/i)
-          if cookie_match
-            session_id = cookie_match[1]
-            Rails.logger.debug "Found session ID in cookie: #{session_id}"
-            break
-          end
-          # Auch nach PHPSESSID ohne Wert suchen (falls anders formatiert)
-          if cookie.include?("PHPSESSID")
-            Rails.logger.debug "Cookie contains PHPSESSID but format unclear: #{cookie}"
-          end
+    # Versuche Session-ID aus dem Set-Cookie Header zu extrahieren
+    # WICHTIG: Wenn mehrere PHPSESSID cookies vorhanden sind, nutze den LETZTEN
+    cookies = login_res.get_fields("set-cookie")
+    if cookies
+      # Sammle alle PHPSESSID-Werte
+      phpsessid_values = []
+      cookies.each do |cookie|
+        cookie_match = cookie.match(/PHPSESSID=([a-f0-9]+)/i)
+        if cookie_match
+          phpsessid_values << cookie_match[1]
+          Rails.logger.debug "Found PHPSESSID in cookie: #{cookie_match[1]}"
+        elsif cookie.include?("PHPSESSID")
+          Rails.logger.debug "Cookie contains PHPSESSID but format unclear: #{cookie}"
+        end
+      end
+      
+      # Nutze den LETZTEN PHPSESSID-Wert (der neueste/gültigste)
+      if phpsessid_values.any?
+        session_id = phpsessid_values.last
+        if phpsessid_values.length > 1
+          Rails.logger.warn "Multiple PHPSESSID values found: #{phpsessid_values.inspect}, using LAST: #{session_id}"
+        else
+          Rails.logger.debug "Found session ID: #{session_id}"
         end
       end
     end
@@ -596,7 +606,7 @@ class Setting < ApplicationRecord
     Rails.logger.info "[login_with_retry] Attempting logout before login to clear any existing sessions..."
     begin
       logoff_from_cc
-      sleep 1 # Kurze Pause nach Logout
+      sleep 0.1 # Sehr kurze Pause nach Logout (0.1s statt 1s)
     rescue StandardError => logout_error
       Rails.logger.warn "[login_with_retry] Initial logout failed (continuing anyway): #{logout_error.message}"
     end
@@ -620,7 +630,7 @@ class Setting < ApplicationRecord
           Rails.logger.info "[login_with_retry] Attempting logout before retry..."
           begin
             logoff_from_cc
-            sleep 1 # Kurze Pause nach Logout
+            sleep 0.1 # Sehr kurze Pause nach Logout (0.1s statt 1s)
           rescue StandardError => logout_error
             Rails.logger.warn "[login_with_retry] Logout failed (continuing anyway): #{logout_error.message}"
           end
@@ -934,7 +944,9 @@ class Setting < ApplicationRecord
       
       begin
         # Re-scrape group mapping (für neue Gruppen wie Platzierungsspiele)
+        # WICHTIG: Gebe die aktuelle session_id weiter, damit kein neues Login gemacht wird!
         opts = RegionCcAction.get_base_opts_from_environment
+        opts[:session_id] = session_id
         tournament_cc.prepare_group_mapping(opts)
         
         # Versuche erneut groupItemId zu finden

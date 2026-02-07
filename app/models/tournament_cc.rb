@@ -303,6 +303,9 @@ class TournamentCc < ApplicationRecord
 
   # Scrapt die groupItemId-Optionen aus createErgebnisCheck.php für dieses Turnier
   # Gibt ein Hash zurück: {groupItemId => "Gruppe A", ...}
+  # 
+  # WICHTIG: Wenn opts[:session_id] übergeben wird, wird diese Session verwendet!
+  # Sonst wird ensure_logged_in aufgerufen, was ein neues Login macht.
   def scrape_tournament_group_options(opts = {})
     return {} unless tournament.present?
 
@@ -315,8 +318,15 @@ class TournamentCc < ApplicationRecord
     branch_cc = self.branch_cc
     raise "BranchCc not found for tournament_cc[#{id}]" unless branch_cc.present?
 
-    # Stelle sicher, dass wir eingeloggt sind (mit Session-Validierung)
-    session_id = opts[:session_id] || Setting.ensure_logged_in
+    # WICHTIG: Verwende die übergebene session_id, falls vorhanden!
+    # Sonst stelle sicher, dass wir eingeloggt sind (mit Session-Validierung)
+    session_id = opts[:session_id]
+    unless session_id.present?
+      Rails.logger.info "[scrape_tournament_group_options] No session_id in opts, calling ensure_logged_in..."
+      session_id = Setting.ensure_logged_in
+    else
+      Rails.logger.info "[scrape_tournament_group_options] Using session_id from opts: #{session_id}"
+    end
 
     base = region_cc.base_url.sub(/\/+$/, '') # Entferne trailing slashes
 
@@ -332,6 +342,7 @@ class TournamentCc < ApplicationRecord
     
     show_req = Net::HTTP::Get.new(show_uri.request_uri)
     show_req["cookie"] = "PHPSESSID=#{session_id}"
+    show_req["referer"] = base + "/index.php"  # Wichtig: Referer vom Login
     show_req["User-Agent"] = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
     show_req["Accept"] = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
     show_req["Accept-Language"] = "de-DE,de;q=0.9,en-US;q=0.8,en;q=0.7"
@@ -341,8 +352,26 @@ class TournamentCc < ApplicationRecord
     show_res = show_http.request(show_req)
     Rails.logger.warn "[scrape_tournament_group_options] showErgebnisliste response: #{show_res.code}"
     
-    # Kurze Pause, damit ClubCloud den Kontext setzen kann
-    sleep(0.3)
+    # WICHTIG: Prüfe ob eine neue Session-ID gesetzt wurde und verwende diese!
+    show_cookies = show_res.get_fields("set-cookie")
+    if show_cookies
+      show_cookies.each do |cookie|
+        cookie_match = cookie.match(/PHPSESSID=([a-f0-9]+)/i)
+        if cookie_match
+          new_session_id = cookie_match[1]
+          if new_session_id != session_id
+            Rails.logger.info "[scrape_tournament_group_options] Got NEW session ID from showErgebnisliste: #{new_session_id} (old: #{session_id})"
+            session_id = new_session_id
+            # Update auch in Settings, damit andere Requests die neue Session verwenden
+            Setting.key_set_value("session_id", session_id)
+          end
+          break
+        end
+      end
+    end
+    
+    # KEINE Wartezeit mehr - ClubCloud erwartet schnelle Requests!
+    # sleep(0.3)  # ENTFERNT
 
     # Erstelle Payload für createErgebnisCheck.php
     args = {
@@ -391,6 +420,24 @@ class TournamentCc < ApplicationRecord
     Rails.logger.warn "[scrape_tournament_group_options]   Time since login: #{time_since_login ? '%.2f' % time_since_login : 'unknown'} seconds"
 
     res = http.request(req)
+    
+    # WICHTIG: Prüfe ob eine neue Session-ID gesetzt wurde
+    res_cookies = res.get_fields("set-cookie")
+    if res_cookies
+      res_cookies.each do |cookie|
+        cookie_match = cookie.match(/PHPSESSID=([a-f0-9]+)/i)
+        if cookie_match
+          new_session_id = cookie_match[1]
+          if new_session_id != session_id
+            Rails.logger.info "[scrape_tournament_group_options] Got NEW session ID from createErgebnisCheck: #{new_session_id} (old: #{session_id})"
+            session_id = new_session_id
+            # Update auch in Settings
+            Setting.key_set_value("session_id", session_id)
+          end
+          break
+        end
+      end
+    end
     
     # Debug: Log response details
     Rails.logger.warn "[scrape_tournament_group_options] RESPONSE DEBUG:"
@@ -455,10 +502,12 @@ class TournamentCc < ApplicationRecord
   # 
   # WICHTIG: Auf lokalen Servern sind ClubCloud-Records geschützt (LocalProtector).
   # Daher speichern wir die Mappings direkt in tournament_monitor.data statt in GroupCc.
+  # 
+  # opts[:session_id] - Wenn übergeben, wird diese Session für das Scraping verwendet
   def prepare_group_mapping(opts = {})
     return nil unless tournament.present?
 
-    # Scrape die groupItemId-Optionen
+    # Scrape die groupItemId-Optionen (verwende session_id aus opts, falls vorhanden)
     group_options = scrape_tournament_group_options(opts)
 
     return nil if group_options.empty?
