@@ -449,58 +449,8 @@ class TournamentCc < ApplicationRecord
       end
     end
 
-    # JETZT zur Ergebnisliste - das Turnier ist bereits in der Session geöffnet
-    show_params = {
-      fedId: region.cc_id,
-      branchId: branch_cc.cc_id,
-      disciplinId: "*",
-      season: tournament.season.name,
-      catId: "*",
-      meisterTypeId: championship_type_cc&.cc_id || "",
-      meisterschaftsId: cc_id,
-      teilnehmerId: "*"
-    }
-    show_url = base + "/admin/einzel/meisterschaft/showErgebnisliste.php?" + URI.encode_www_form(show_params)
-    show_uri = URI(show_url)
-    show_http = Net::HTTP.new(show_uri.host, show_uri.port)
-    show_http.use_ssl = true
-    show_http.verify_mode = OpenSSL::SSL::VERIFY_NONE
-    show_http.read_timeout = 30
-    show_http.open_timeout = 10
-    
-    show_req = Net::HTTP::Get.new(show_uri.request_uri)
-    show_req["cookie"] = "PHPSESSID=#{session_id}"
-    show_req["referer"] = meisterschaft_url  # Referer ist jetzt showMeisterschaft!
-    show_req["User-Agent"] = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-    show_req["Accept"] = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
-    show_req["Accept-Language"] = "de-DE,de;q=0.9,en-US;q=0.8,en;q=0.7"
-    show_req["Connection"] = "keep-alive"
-    
-    Rails.logger.warn "[scrape_tournament_group_options] Step 2: Visiting showErgebnisliste.php..."
-    show_res = show_http.request(show_req)
-    Rails.logger.warn "[scrape_tournament_group_options] showErgebnisliste response: #{show_res.code}"
-    
-    # WICHTIG: Prüfe ob eine neue Session-ID gesetzt wurde und verwende diese!
-    show_cookies = show_res.get_fields("set-cookie")
-    if show_cookies
-      show_cookies.each do |cookie|
-        cookie_match = cookie.match(/PHPSESSID=([a-f0-9]+)/i)
-        if cookie_match
-          new_session_id = cookie_match[1]
-          if new_session_id != session_id
-            Rails.logger.info "[scrape_tournament_group_options] Got NEW session ID from showErgebnisliste: #{new_session_id} (old: #{session_id})"
-            session_id = new_session_id
-            # Update auch in Settings, damit andere Requests die neue Session verwenden
-            Setting.key_set_value("session_id", session_id)
-          end
-          break
-        end
-      end
-    end
-    
-    # KEINE Wartezeit mehr - ClubCloud erwartet schnelle Requests!
-    # sleep(0.3)  # ENTFERNT
-
+    # DIREKT zu createErgebnisCheck.php - das Turnier ist bereits in der Session geöffnet
+    # WICHTIG: Kein Umweg über showErgebnisliste.php!
     # Erstelle Payload für createErgebnisCheck.php
     args = {
       fedId: region.cc_id,
@@ -526,7 +476,7 @@ class TournamentCc < ApplicationRecord
 
     req = Net::HTTP::Get.new(uri.request_uri)
     req["cookie"] = "PHPSESSID=#{session_id}"
-    req["referer"] = show_url  # Verwende die showMeisterschaft-URL mit meisterschaftsId als Referer
+    req["referer"] = meisterschaft_url  # Verwende die showMeisterschaft-URL als Referer (KEIN Umweg über showErgebnisliste!)
     req["User-Agent"] = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
     req["Accept"] = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
     req["Accept-Language"] = "de-DE,de;q=0.9,en-US;q=0.8,en;q=0.7"
