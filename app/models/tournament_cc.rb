@@ -335,10 +335,38 @@ class TournamentCc < ApplicationRecord
     # ClubCloud verwendet ein proprietäres URL-Format: branchId, idsid, season, dann positionelle Parameter
     # Format: *--meisterschaftsId--* (wobei '--' leere/übersprungene Parameter bedeutet)
     # WICHTIG: season NICHT URL-encoden - Browser verwendet "2025/2026" statt "2025%2F2026"
-    # WICHTIG: idsid muss region_cc.cc_id sein, NICHT region.cc_id!
-    Rails.logger.warn "[scrape_tournament_group_options] DEBUG IDs: region.id=#{region.id}, region.cc_id=#{region.cc_id}, region_cc.id=#{region_cc.id}, region_cc.cc_id=#{region_cc.cc_id}"
+    # WICHTIG: idsid ist oft NICHT region_cc.cc_id, sondern eine Sub-Region-ID!
+    
+    # HARDCODED LOOKUP für bekannte Regionen (TODO: In DB auslagern)
+    # NBV (region_cc.cc_id=20) hat mehrere Sub-Regionen:
+    # - Niedersächsischer Billard-Verband: idsid=59
+    # - Hamburg: idsid=?
+    # - etc.
+    # Für NDM-Turniere (Niedersachsen) verwende idsid=59
+    REGION_IDSID_MAP = {
+      20 => {  # NBV
+        'default' => 59,  # Niedersächsischer Billard-Verband
+        # Füge hier weitere Sub-Regionen hinzu, falls nötig
+      }
+    }
+    
+    # Versuche, idsid aus Hardcoded-Map zu holen
+    idsid = nil
+    if REGION_IDSID_MAP.key?(region_cc.cc_id)
+      idsid = REGION_IDSID_MAP[region_cc.cc_id]['default']
+      Rails.logger.warn "[scrape_tournament_group_options] Using HARDCODED idsid=#{idsid} for region_cc.cc_id=#{region_cc.cc_id}"
+    end
+    
+    # Fallback: Versuche aus tournament.data zu lesen (falls vorher erfolgreich gescraped)
+    idsid ||= tournament.data.dig("cc_meta", "idsid") if tournament.data.is_a?(Hash)
+    
+    # Fallback: Verwende region_cc.cc_id
+    idsid ||= region_cc.cc_id
+    
+    Rails.logger.warn "[scrape_tournament_group_options] Using idsid=#{idsid} (region_cc.cc_id=#{region_cc.cc_id}, branch_cc.cc_id=#{branch_cc.cc_id})"
+    
     positional_params = "*--#{cc_id}--*"
-    meisterschaft_url = base + "/admin/einzel/meisterschaft/showMeisterschaft.php?branchId=#{branch_cc.cc_id}&idsid=#{region_cc.cc_id}&season=#{tournament.season.name}&#{positional_params}&"
+    meisterschaft_url = base + "/admin/einzel/meisterschaft/showMeisterschaft.php?branchId=#{branch_cc.cc_id}&idsid=#{idsid}&season=#{tournament.season.name}&#{positional_params}&"
     meisterschaft_uri = URI(meisterschaft_url)
     meisterschaft_http = Net::HTTP.new(meisterschaft_uri.host, meisterschaft_uri.port)
     meisterschaft_http.use_ssl = true
