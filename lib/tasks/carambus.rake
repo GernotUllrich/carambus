@@ -897,7 +897,7 @@ namespace :carambus do
     season_name = args[:season_name]
     region_shortname = args[:region_shortname]
     discipline = args[:discipline]
-    
+
     if season_name.blank?
       puts "Usage: rake carambus:reconstruct_game_plans[season_name,region_shortname,discipline]"
       puts "Examples:"
@@ -909,29 +909,29 @@ namespace :carambus do
       puts "Disciplines: Pool, Karambol, Snooker, Kegel"
       exit 1
     end
-    
+
     season = Season.find_by_name(season_name)
     if season.blank?
       puts "Season '#{season_name}' not found"
       exit 1
     end
-    
+
     opts = {}
     opts[:region_shortname] = region_shortname if region_shortname.present?
     opts[:discipline] = discipline if discipline.present?
-    
+
     filter_description = []
     filter_description << "region: #{region_shortname}" if region_shortname.present?
     filter_description << "discipline: #{discipline}" if discipline.present?
     filter_text = filter_description.any? ? " (#{filter_description.join(', ')})" : ""
-    
+
     puts "Starting GamePlan reconstruction for season: #{season_name}#{filter_text}"
     results = League.reconstruct_game_plans_for_season(season, opts)
-    
+
     puts "\nReconstruction completed:"
     puts "Success: #{results[:success]}"
     puts "Failed: #{results[:failed]}"
-    
+
     if results[:errors].any?
       puts "\nErrors:"
       results[:errors].each { |error| puts "  - #{error}" }
@@ -941,22 +941,22 @@ namespace :carambus do
   desc "Reconstruct GamePlan for a specific league"
   task :reconstruct_league_game_plan, [:league_id] => :environment do |t, args|
     league_id = args[:league_id]
-    
+
     if league_id.blank?
       puts "Usage: rake carambus:reconstruct_league_game_plan[league_id]"
       puts "Example: rake carambus:reconstruct_league_game_plan[123]"
       exit 1
     end
-    
+
     league = League.find_by_id(league_id)
     if league.blank?
       puts "League with ID #{league_id} not found"
       exit 1
     end
-    
+
     puts "Reconstructing GamePlan for league: #{league.name} (ID: #{league.id})"
     game_plan = league.reconstruct_game_plan_from_existing_data
-    
+
     if game_plan
       puts "Successfully reconstructed GamePlan: #{game_plan.name} (ID: #{game_plan.id})"
     else
@@ -970,7 +970,7 @@ namespace :carambus do
     season_name = args[:season_name]
     region_shortname = args[:region_shortname]
     discipline = args[:discipline]
-    
+
     if season_name.blank?
       puts "Usage: rake carambus:delete_game_plans[season_name,region_shortname,discipline]"
       puts "Examples:"
@@ -982,22 +982,22 @@ namespace :carambus do
       puts "Disciplines: Pool, Karambol, Snooker, Kegel"
       exit 1
     end
-    
+
     season = Season.find_by_name(season_name)
     if season.blank?
       puts "Season '#{season_name}' not found"
       exit 1
     end
-    
+
     opts = {}
     opts[:region_shortname] = region_shortname if region_shortname.present?
     opts[:discipline] = discipline if discipline.present?
-    
+
     filter_description = []
     filter_description << "region: #{region_shortname}" if region_shortname.present?
     filter_description << "discipline: #{discipline}" if discipline.present?
     filter_text = filter_description.any? ? " (#{filter_description.join(', ')})" : ""
-    
+
     puts "Deleting GamePlans for season: #{season_name}#{filter_text}"
     deleted_count = League.delete_game_plans_for_season(season, opts)
     puts "Deleted #{deleted_count} GamePlans"
@@ -1008,7 +1008,7 @@ namespace :carambus do
     season_name = args[:season_name]
     region_shortname = args[:region_shortname]
     discipline = args[:discipline]
-    
+
     if season_name.blank?
       puts "Usage: rake carambus:clean_reconstruct_game_plans[season_name,region_shortname,discipline]"
       puts "Examples:"
@@ -1020,37 +1020,37 @@ namespace :carambus do
       puts "Disciplines: Pool, Karambol, Snooker, Kegel"
       exit 1
     end
-    
+
     season = Season.find_by_name(season_name)
     if season.blank?
       puts "Season '#{season_name}' not found"
       exit 1
     end
-    
+
     opts = {}
     opts[:region_shortname] = region_shortname if region_shortname.present?
     opts[:discipline] = discipline if discipline.present?
-    
+
     filter_description = []
     filter_description << "region: #{region_shortname}" if region_shortname.present?
     filter_description << "discipline: #{discipline}" if discipline.present?
     filter_text = filter_description.any? ? " (#{filter_description.join(', ')})" : ""
-    
+
     puts "Cleaning and reconstructing GamePlans for season: #{season_name}#{filter_text}"
-    
+
     # First delete existing GamePlans
     puts "Step 1: Deleting existing GamePlans..."
     deleted_count = League.delete_game_plans_for_season(season, opts)
     puts "Deleted #{deleted_count} GamePlans"
-    
+
     # Then reconstruct them
     puts "Step 2: Reconstructing GamePlans..."
     results = League.reconstruct_game_plans_for_season(season, opts)
-    
+
     puts "\nReconstruction completed:"
     puts "Success: #{results[:success]}"
     puts "Failed: #{results[:failed]}"
-    
+
     if results[:errors].any?
       puts "\nErrors:"
       results[:errors].each { |error| puts "  - #{error}" }
@@ -1063,27 +1063,26 @@ namespace :carambus do
     puts "Tournament Auto-Reserve Tables Task"
     puts "Started at: #{Time.current}"
     puts "=" * 80
-    
+
     # Find tournaments that need table reservations:
     # - Single tournaments only (not leagues)
     # - Have a location
     # - Have a date in the future
     # - Registration deadline (accredation_end) has passed within last 7 days
-    
+
     cutoff_date = 7.days.ago
     now = Time.current
-    
-    tournaments = Tournament
-      .where(single_or_league: 'single')
-      .where.not(location_id: nil)
-      .where.not(discipline_id: nil)
-      .where('date >= ?', now)
-      .where('accredation_end IS NOT NULL')
-      .where('accredation_end >= ? AND accredation_end <= ?', cutoff_date, now)
+
+      tournaments = Tournament
+        .where.not(location_id: nil)
+        .where.not(discipline_id: nil)
+        .where('date >= ?', now)
+        .where('accredation_end IS NOT NULL')
+        .where('accredation_end >= ? AND accredation_end <= ?', cutoff_date, now)
       .includes(:location, :discipline, :tournament_cc, :seedings, :tournament_plan)
-    
+
     puts "\nFound #{tournaments.count} tournament(s) to process:\n"
-    
+
     results = {
       total: tournaments.count,
       created: 0,
@@ -1091,7 +1090,7 @@ namespace :carambus do
       failed: 0,
       errors: []
     }
-    
+
     tournaments.each do |tournament|
       puts "\n" + "-" * 80
       puts "Tournament: #{tournament.title || tournament.shortname}"
@@ -1101,7 +1100,7 @@ namespace :carambus do
       puts "  Discipline: #{tournament.discipline.name}"
       puts "  Registration deadline: #{tournament.accredation_end}"
       puts "  Participants: #{tournament.seedings.where.not(state: 'no_show').count}"
-      
+
       begin
         # Check if tournament has participants
         participant_count = tournament.seedings.where.not(state: 'no_show').count
@@ -1110,34 +1109,34 @@ namespace :carambus do
           results[:skipped] += 1
           next
         end
-        
+
         # Calculate required tables
         tables_needed = tournament.required_tables_count
         puts "  Tables needed: #{tables_needed}"
-        
+
         if tables_needed.zero?
           puts "  ⚠️  SKIPPED: Could not determine table count"
           results[:skipped] += 1
           next
         end
-        
+
         # Check available tables with heaters
         available_tables = tournament.location.tables
                                      .joins(:table_kind)
                                      .where(table_kinds: { id: tournament.discipline.table_kind_id })
                                      .where.not(tpl_ip_address: nil)
                                      .order(:id)
-        
+
         puts "  Available tables with heaters: #{available_tables.count}"
-        
+
         if available_tables.count < tables_needed
           puts "  ⚠️  WARNING: Only #{available_tables.count} tables available, need #{tables_needed}"
           puts "  ℹ️  Proceeding with available tables..."
         end
-        
+
         # Create reservation
         response = tournament.create_table_reservation
-        
+
         if response.present?
           puts "  ✓ SUCCESS: Calendar event created"
           puts "    Event ID: #{response.id}"
@@ -1150,7 +1149,7 @@ namespace :carambus do
           results[:failed] += 1
           results[:errors] << "Tournament ##{tournament.id}: Failed to create reservation"
         end
-        
+
       rescue StandardError => e
         puts "  ✗ ERROR: #{e.message}"
         puts "    #{e.backtrace.first(3).join("\n    ")}"
@@ -1158,19 +1157,19 @@ namespace :carambus do
         results[:errors] << "Tournament ##{tournament.id}: #{e.message}"
       end
     end
-    
+
     puts "\n" + "=" * 80
     puts "Summary:"
     puts "  Total processed: #{results[:total]}"
     puts "  ✓ Created: #{results[:created]}"
     puts "  ⚠️  Skipped: #{results[:skipped]}"
     puts "  ✗ Failed: #{results[:failed]}"
-    
+
     if results[:errors].any?
       puts "\nErrors:"
       results[:errors].each { |error| puts "  - #{error}" }
     end
-    
+
     puts "\nCompleted at: #{Time.current}"
     puts "=" * 80
   end
