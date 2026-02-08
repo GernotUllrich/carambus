@@ -13,12 +13,28 @@ class ScoreboardOptimisticService
 
     # Basic bounds checking
     balls_goal = @table_monitor.data[player_id]['balls_goal'].to_i
+    current_result = @table_monitor.data[player_id]['result']&.to_i || 0
     current_innings_redo = @table_monitor.data[player_id]['innings_redo_list']&.last&.to_i || 0
-    new_innings_redo = current_innings_redo + points
+    current_total = current_result + current_innings_redo
+    to_play = balls_goal - current_total
     
-    if balls_goal > 0 && new_innings_redo > balls_goal && !@table_monitor.data['allow_overflow']
-      return false
+    # Check if input should be processed based on allow_overflow setting
+    # If allow_overflow is false: silently reject inputs that exceed remaining points
+    # If allow_overflow is true: allow inputs beyond goal (for special game modes)
+    if balls_goal > 0 && !@table_monitor.data['allow_overflow']
+      # If goal already reached, reject further positive additions
+      if current_total >= balls_goal && points > 0
+        return false
+      end
+      
+      # Silently reject positive inputs that exceed remaining points (to_play)
+      # This allows users to correct mistakes (e.g., +10, -3)
+      if points > 0 && points > to_play
+        return false
+      end
     end
+    
+    new_innings_redo = current_innings_redo + points
     
     # Store optimistic values for display only (don't persist to database)
     @optimistic_scores ||= {}
