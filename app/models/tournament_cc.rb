@@ -464,17 +464,18 @@ class TournamentCc < ApplicationRecord
       nbut: ""
     }
 
-    # Rufe createErgebnisCheck.php mit GET auf (nicht POST!)
-    # ClubCloud erwartet GET um das Formular zu laden, POST geht an createErgebnisSave.php
-    url_with_params = base + "/admin/einzel/meisterschaft/createErgebnisCheck.php?" + URI.encode_www_form(args)
-    uri = URI(url_with_params)
+    # WICHTIG: createErgebnisCheck.php erwartet POST (nicht GET!)
+    # Browser sendet Form-Data als POST-Body
+    url = base + "/admin/einzel/meisterschaft/createErgebnisCheck.php"
+    uri = URI(url)
     http = Net::HTTP.new(uri.host, uri.port)
     http.use_ssl = true
     http.verify_mode = OpenSSL::SSL::VERIFY_NONE
     http.read_timeout = 30
     http.open_timeout = 10
 
-    req = Net::HTTP::Get.new(uri.request_uri)
+    req = Net::HTTP::Post.new(uri.request_uri)
+    req.set_form_data(args)  # Parameter als POST-Body (wie im Browser!)
     req["cookie"] = "PHPSESSID=#{session_id}"
     req["referer"] = meisterschaft_url  # Verwende die showMeisterschaft-URL als Referer (KEIN Umweg über showErgebnisliste!)
     req["User-Agent"] = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
@@ -491,7 +492,8 @@ class TournamentCc < ApplicationRecord
     login_time_str = Setting.key_get_value("session_login_time")
     time_since_login = login_time_str ? (Time.now.to_f - login_time_str.to_f) : nil
     Rails.logger.warn "[scrape_tournament_group_options] REQUEST DEBUG:"
-    Rails.logger.warn "[scrape_tournament_group_options]   URL: #{url_with_params}"
+    Rails.logger.warn "[scrape_tournament_group_options]   URL: #{url}"
+    Rails.logger.warn "[scrape_tournament_group_options]   Method: POST (Form-Data in body)"
     Rails.logger.warn "[scrape_tournament_group_options]   Cookie: PHPSESSID=#{session_id}"
     Rails.logger.warn "[scrape_tournament_group_options]   Referer: #{req['referer']}"
     Rails.logger.warn "[scrape_tournament_group_options]   User-Agent: #{req['User-Agent']}"
@@ -526,7 +528,7 @@ class TournamentCc < ApplicationRecord
 
     # Extrahiere idsid aus Response-URL (bei Redirects) oder aus Referer
     # und speichere sie für zukünftige Requests
-    actual_url = res['location'] || url_with_params
+    actual_url = res['location'] || url
     if actual_url =~ /[?&]idsid=(\d+)/
       scraped_idsid = $1.to_i
       Rails.logger.warn "[scrape_tournament_group_options] 🎯 Extracted idsid=#{scraped_idsid} from response URL"
@@ -561,11 +563,11 @@ class TournamentCc < ApplicationRecord
     select_element = doc.css('select[name="groupItemId"]')
     if select_element.empty?
       Rails.logger.warn "[scrape_tournament_group_options] WARNING: select[name='groupItemId'] not found in HTML response"
-      Rails.logger.warn "[scrape_tournament_group_options] Response URL: #{url_with_params}"
+      Rails.logger.warn "[scrape_tournament_group_options] Response URL: #{url}"
       Rails.logger.warn "[scrape_tournament_group_options] Response status: #{res.code}"
       Rails.logger.warn "[scrape_tournament_group_options] Response body preview (first 1500 chars): #{body[0..1500]}"
       Rails.logger.warn "[scrape_tournament_group_options] All select elements: #{doc.css('select').map { |s| "#{s['name']}(#{s['id']})" }.join(', ')}"
-      Rails.logger.warn "[scrape_tournament_group_options] Request args: #{args.inspect}"
+      Rails.logger.warn "[scrape_tournament_group_options] Request args (POST body): #{args.inspect}"
       
       # Prüfe ob Login-Seite angezeigt wird
       if body.include?("call_police") || body.include?("loginUser")
