@@ -1569,16 +1569,38 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
           data[current_role]["innings_redo_list"][-1].to_i)
       end
       if data["biathlon_phase"] != "3b" || n_balls <= to_play_3b
-        if n_balls <= to_play || data["allow_overflow"].present?
+        # Check if input should be processed based on allow_overflow setting
+        # If allow_overflow is false: silently reject inputs that exceed remaining points (to_play)
+        # If allow_overflow is true: allow inputs beyond goal (for special game modes)
+        # For negative inputs: only allow if they don't make current inning negative
+        current_inning_value = data[current_role]["innings_redo_list"][-1].to_i
+        
+        should_process_input = if data["allow_overflow"].present?
+                                 to_play > 0  # With overflow: process if goal not yet reached
+                               elsif n_balls > 0
+                                 n_balls <= to_play && to_play > 0  # Without overflow: only if input doesn't exceed goal
+                               elsif n_balls < 0
+                                 # Negative corrections: only allow if they don't make inning negative
+                                 (current_inning_value + n_balls) >= 0
+                               else
+                                 false  # n_balls == 0 shouldn't happen
+                               end
+        
+        if should_process_input
           if data["biathlon_phase"] == "3b"
-            add_3b = [n_balls, to_play_3b].min
+            # For Biathlon: cap at goal if allow_overflow is false
+            add = if data["allow_overflow"].present?
+                    n_balls  # No capping when overflow allowed
+                  else
+                    [n_balls, to_play_3b].min  # Cap at goal
+                  end
             data[current_role]["innings_redo_list"][-1] =
-              [(data[current_role]["innings_redo_list"][-1].to_i + add_3b.to_i), 0].max
+              [(data[current_role]["innings_redo_list"][-1].to_i + add.to_i), 0].max
             recompute_result(current_role)
             if debug
-              Rails.logger.info("addn +++++ m6[#{id}]B: n_balls <= to_play || \
-data[\"allow_overflow\"].present?")
+              Rails.logger.info("addn +++++ m6[#{id}]B: Processing Biathlon 3b input (n_balls=#{n_balls}, add=#{add})")
             end
+            # Check if Biathlon 3b phase is complete
             if (data[current_role]["innings_list"]&.sum.to_i +
               data[current_role]["innings_redo_list"][-1].to_i) == balls_goal_3b
               other_player = current_role == "playera" ? "playerb" : "playera"
@@ -1604,8 +1626,17 @@ data[\"allow_overflow\"].present?")
               data[other_player]["innings_3b"] = data[other_player]["innings"].to_i
             end
           else
-            Rails.logger.info("addn +++++ m6[#{id}]B: n_balls <= to_play || data[\"allow_overflow\"].present?") if debug
-            add = [n_balls, to_play].min
+            Rails.logger.info("addn +++++ m6[#{id}]B: Processing input (n_balls=#{n_balls}, to_play=#{to_play}, allow_overflow=#{data["allow_overflow"].inspect})") if debug
+            # When allow_overflow is false: inputs that exceed goal are already rejected (should_process_input)
+            # When allow_overflow is true: allow inputs beyond goal (cap at goal for game logic)
+            # Always allow negative corrections without capping
+            add = if data["allow_overflow"].present?
+                    # With overflow: cap at goal to prevent issues, but allow beyond in special cases
+                    n_balls > 0 ? [n_balls, to_play].min : n_balls
+                  else
+                    # Without overflow: input was already validated, just use it
+                    n_balls
+                  end
             data[current_role]["fouls_1"] = 0
             data[current_role]["innings_redo_list"][-1] =
               [(data[current_role]["innings_redo_list"][-1].to_i + add.to_i), 0].max
@@ -1643,13 +1674,14 @@ data[\"allow_overflow\"].present?")
               end
             end
           end
+          # Terminate inning (and potentially end game) if goal was reached exactly
           if add == to_play
-            Rails.logger.info("addn +++++ m6[#{id}]C: add == to_play") if debug
+            Rails.logger.info("addn +++++ m6[#{id}]C: add == to_play (terminating inning)") if debug
             data_will_change!
             self.copy_from = nil
             terminate_current_inning(player)
           else
-            Rails.logger.info("addn +++++ m6[#{id}]D: add != to_play") if debug
+            Rails.logger.info("addn +++++ m6[#{id}]D: add != to_play (#{add} != #{to_play})") if debug
             self.copy_from = nil
             data_will_change!
           end
