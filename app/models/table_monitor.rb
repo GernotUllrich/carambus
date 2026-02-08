@@ -1572,13 +1572,18 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
         # Check if input should be processed based on allow_overflow setting
         # If allow_overflow is false: silently reject inputs that exceed remaining points (to_play)
         # If allow_overflow is true: allow inputs beyond goal (for special game modes)
-        # Always allow negative corrections (corrections should always work)
+        # For negative inputs: only allow if they don't make current inning negative
+        current_inning_value = data[current_role]["innings_redo_list"][-1].to_i
+        
         should_process_input = if data["allow_overflow"].present?
                                  to_play > 0  # With overflow: process if goal not yet reached
                                elsif n_balls > 0
                                  n_balls <= to_play && to_play > 0  # Without overflow: only if input doesn't exceed goal
+                               elsif n_balls < 0
+                                 # Negative corrections: only allow if they don't make inning negative
+                                 (current_inning_value + n_balls) >= 0
                                else
-                                 true  # Always allow negative corrections
+                                 false  # n_balls == 0 shouldn't happen
                                end
         
         if should_process_input

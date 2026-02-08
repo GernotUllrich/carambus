@@ -81,7 +81,12 @@ class ScoreboardOptimisticService
   def valid_quick_update?(player_id, points)
     return false unless @table_monitor.playing?
     return false unless @table_monitor.data[player_id]
-    return false if points < 0 && @table_monitor.data[player_id]['innings_redo_list']&.last&.to_i < points.abs
+    
+    # For negative corrections: ensure they don't make current inning negative
+    if points < 0
+      current_inning = @table_monitor.data[player_id]['innings_redo_list']&.last&.to_i || 0
+      return false if (current_inning + points) < 0
+    end
     
     true
   end
