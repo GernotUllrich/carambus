@@ -6,14 +6,23 @@
         height: auto;
     }
 </style>
-<div class="inline-flex items-center justify-end space-x-[1.5vw] mr-4 fixed text-gray-300 hover:text-black text-2vw font-bold" style="right: 10px; top: 10px;">
-  <%= custom_link_to toggle_dark_mode_location_path(@location), :"data-turbo" => false do %>
-    <%= fa_icon "circle-half-stroke", weight: "fa-solid", class: "responsive-svg fill-current icon-lg m-0 text-gray-300 dark:text-white inline-block", title: "toggle dark mode" %>
-  <% end %>
-  <%= custom_link_to scoreboard_location_path(@location.md5, sb_state: "welcome", :"data-turbo" => false) do %>
-    <%= fa_icon "house", weight: "fa-solid", class: "responsive-svg fill-current icon-lg m-0 text-gray-300 dark:text-white inline-block", title: "home" %>
-  <% end %>
+<%# TV Display Wake-from-Sleep Monitor %>
+<%# Automatically reloads page when TV wakes from standby to prevent frozen displays %>
+<div data-controller="table-scores-monitor" 
+     data-table-scores-monitor-sleep-threshold-value="300000"
+     data-table-scores-monitor-debug-value="false">
+  
+  <div class="inline-flex items-center justify-end space-x-[1.5vw] mr-4 fixed text-gray-300 hover:text-black text-2vw font-bold" style="right: 10px; top: 10px;">
+    <%= custom_link_to toggle_dark_mode_location_path(@location), :"data-turbo" => false do %>
+      <%= fa_icon "circle-half-stroke", weight: "fa-solid", class: "responsive-svg fill-current icon-lg m-0 text-gray-300 dark:text-white inline-block", title: "toggle dark mode" %>
+    <% end %>
+    <%= custom_link_to scoreboard_location_path(@location.md5, sb_state: "welcome", :"data-turbo" => false) do %>
+      <%= fa_icon "house", weight: "fa-solid", class: "responsive-svg fill-current icon-lg m-0 text-gray-300 dark:text-white inline-block", title: "home" %>
+    <% end %>
+  </div>
+  
+  <turbo-frame id="table_scores" class="p-8 w-full m-auto flex flex-col bg-cover h-screen bg-center bg-no-repeat">
+    <%= render partial: "locations/table_scores", locals: {table_kinds: @location.table_kinds} %>
+  </turbo-frame>
+  
 </div>
-<turbo-frame id="table_scores" class="p-8 w-full m-auto flex flex-col bg-cover h-screen bg-center bg-no-repeat">
-  <%= render partial: "locations/table_scores", locals: {table_kinds: @location.table_kinds} %>
-</turbo-frame>
