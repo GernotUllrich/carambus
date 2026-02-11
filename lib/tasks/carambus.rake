@@ -61,27 +61,8 @@ namespace :carambus do
   desc "delete not conforming events"
   task delete_non_conforming_calendar_entries: :environment do
     location ||= Location[Rails.application.credentials[:location_id]]
-    google_creds_json = {
-      type: "service_account",
-      project_id: "carambus-test",
-      private_key_id: Rails.application.credentials.dig(:google_service, :public_key),
-      private_key: Rails.application.credentials.dig(:google_service, :private_key).gsub('\n', "\n"),
-      client_email: "service-test@carambus-test.iam.gserviceaccount.com",
-      client_id: "110923757328591064447",
-      auth_uri: "https://accounts.google.com/o/oauth2/auth",
-      token_uri: "https://oauth2.googleapis.com/token",
-      auth_provider_x509_cert_url: "https://www.googleapis.com/oauth2/v1/certs",
-      client_x509_cert_url: "https://www.googleapis.com/robot/v1/metadata/x509/service-test%40carambus-test.iam.gserviceaccount.com",
-      universe_domain: "googleapis.com"
-    }.to_json
-    scopes = ['https://www.googleapis.com/auth/calendar', 'https://www.googleapis.com/auth/calendar.events']
-    authorizer = Google::Auth::ServiceAccountCredentials.make_creds(
-      json_key_io: StringIO.new(google_creds_json),
-      scope: scopes
-    )
-    service = Google::Apis::CalendarV3::CalendarService.new
-    service.authorization = authorizer
-    calendar_id = Rails.application.credentials[:location_calendar_id]
+    service = GoogleCalendarService.calendar_service
+    calendar_id = GoogleCalendarService.calendar_id
     response = service.list_events(calendar_id,
                                    max_results: 40,
                                    single_events: true,
@@ -105,27 +86,8 @@ namespace :carambus do
     tables_to_be_heated_all = []
     location ||= Location[Rails.application.credentials[:location_id]]
     tables = location.tables.order(:name).to_a
-    google_creds_json = {
-      type: "service_account",
-      project_id: "carambus-test",
-      private_key_id: Rails.application.credentials.dig(:google_service, :public_key),
-      private_key: Rails.application.credentials.dig(:google_service, :private_key).gsub('\n', "\n"),
-      client_email: "service-test@carambus-test.iam.gserviceaccount.com",
-      client_id: "110923757328591064447",
-      auth_uri: "https://accounts.google.com/o/oauth2/auth",
-      token_uri: "https://oauth2.googleapis.com/token",
-      auth_provider_x509_cert_url: "https://www.googleapis.com/oauth2/v1/certs",
-      client_x509_cert_url: "https://www.googleapis.com/robot/v1/metadata/x509/service-test%40carambus-test.iam.gserviceaccount.com",
-      universe_domain: "googleapis.com"
-    }.to_json
-    scopes = ['https://www.googleapis.com/auth/calendar', 'https://www.googleapis.com/auth/calendar.events']
-    authorizer = Google::Auth::ServiceAccountCredentials.make_creds(
-      json_key_io: StringIO.new(google_creds_json),
-      scope: scopes
-    )
-    service = Google::Apis::CalendarV3::CalendarService.new
-    service.authorization = authorizer
-    calendar_id = Rails.application.credentials[:location_calendar_id]
+    service = GoogleCalendarService.calendar_service
+    calendar_id = GoogleCalendarService.calendar_id
     response = service.list_events(calendar_id,
                                    max_results: 40,
                                    single_events: true,
