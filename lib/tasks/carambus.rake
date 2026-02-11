@@ -1121,11 +1121,7 @@ namespace :carambus do
         end
 
         # Check available tables with heaters
-        available_tables = tournament.location.tables
-                                     .joins(:table_kind)
-                                     .where(table_kinds: { id: tournament.discipline.table_kind_id })
-                                     .where.not(tpl_ip_address: nil)
-                                     .order(:id)
+        available_tables = tournament.available_tables_with_heaters
 
         puts "  Available tables with heaters: #{available_tables.count}"
 

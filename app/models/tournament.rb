@@ -1005,24 +1005,31 @@ class Tournament < ApplicationRecord
   # Creates a Google Calendar reservation for the tournament tables
   # Returns the event response or nil if creation failed
   # Public method to allow external calls and testing
+  # Returns available tables with heaters for this tournament's discipline
+  # Considers both global tables (tpl_ip_address in tables) and 
+  # local tables (tpl_ip_address in table_locals)
+  def available_tables_with_heaters(limit: nil)
+    return Table.none unless location.present? && discipline.present?
+    
+    query = location.tables
+                    .joins(:table_kind)
+                    .left_joins(:table_local)
+                    .where(table_kinds: { id: discipline.table_kind_id })
+                    .where("(tables.id >= ? AND tables.tpl_ip_address IS NOT NULL) OR (tables.id < ? AND table_locals.tpl_ip_address IS NOT NULL)", 
+                           Table::MIN_ID, Table::MIN_ID)
+                    .order(:id)
+    
+    query = query.limit(limit) if limit
+    query
+  end
+
   def create_table_reservation
     return nil unless location.present? && discipline.present? && date.present?
     
     tables_needed = required_tables_count
     return nil if tables_needed.zero?
     
-    # Find suitable tables with heaters (tpl_ip_address present)
-    # Filter by discipline's table_kind and order by ID ascending
-    # For local tables (id < 50M), tpl_ip_address is stored in table_locals
-    available_tables = location.tables
-                               .joins(:table_kind)
-                               .left_joins(:table_local)
-                               .where(table_kinds: { id: discipline.table_kind_id })
-                               .where("(tables.id >= ? AND tables.tpl_ip_address IS NOT NULL) OR (tables.id < ? AND table_locals.tpl_ip_address IS NOT NULL)", 
-                                      Table::MIN_ID, Table::MIN_ID)
-                               .order(:id)
-                               .limit(tables_needed)
-    
+    available_tables = available_tables_with_heaters(limit: tables_needed)
     return nil if available_tables.empty?
     
     # Build table list string (e.g., "T1, T2, T3" or "T1-T3")
