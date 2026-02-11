@@ -1738,30 +1738,9 @@ class Tournament < ApplicationRecord
     return nil unless Rails.application.credentials.dig(:google_service, :private_key).present?
     
     begin
-      # Setup Google API credentials
-      google_creds_json = {
-        type: "service_account",
-        project_id: "carambus-test",
-        private_key_id: Rails.application.credentials.dig(:google_service, :public_key),
-        private_key: Rails.application.credentials.dig(:google_service, :private_key).gsub('\n', "\n"),
-        client_email: "service-test@carambus-test.iam.gserviceaccount.com",
-        client_id: "110923757328591064447",
-        auth_uri: "https://accounts.google.com/o/oauth2/auth",
-        token_uri: "https://oauth2.googleapis.com/token",
-        auth_provider_x509_cert_url: "https://www.googleapis.com/oauth2/v1/certs",
-        client_x509_cert_url: "https://www.googleapis.com/robot/v1/metadata/x509/service-test%40carambus-test.iam.gserviceaccount.com",
-        universe_domain: "googleapis.com"
-      }.to_json
-      
-      scopes = %w[https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/calendar.events]
-      authorizer = Google::Auth::ServiceAccountCredentials.make_creds(
-        json_key_io: StringIO.new(google_creds_json),
-        scope: scopes
-      )
-      
-      service = Google::Apis::CalendarV3::CalendarService.new
-      service.authorization = authorizer
-      calendar_id = Rails.application.credentials[:location_calendar_id]
+      # Setup Google Calendar API service
+      service = GoogleCalendarService.calendar_service
+      calendar_id = GoogleCalendarService.calendar_id
       
       event_object = Google::Apis::CalendarV3::Event.new(
         summary: summary,
