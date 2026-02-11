@@ -1,0 +1,109 @@
+<div class="container mx-auto px-4 py-8 max-w-2xl">
+  <div class="mb-6">
+    <%= link_to '← Back to Messages', admin_scoreboard_messages_path, class: 'text-blue-600 hover:text-blue-900' %>
+  </div>
+
+  <div class="bg-white shadow-md rounded-lg p-6">
+    <div class="flex justify-between items-start mb-6">
+      <h1 class="text-3xl font-bold">Message #<%= @message.id %></h1>
+      <div>
+        <% if @message.acknowledged_at.present? %>
+          <span class="px-3 py-1 text-sm font-semibold rounded-full bg-green-100 text-green-800">
+            Acknowledged
+          </span>
+        <% elsif @message.expired? %>
+          <span class="px-3 py-1 text-sm font-semibold rounded-full bg-red-100 text-red-800">
+            Expired
+          </span>
+        <% else %>
+          <span class="px-3 py-1 text-sm font-semibold rounded-full bg-yellow-100 text-yellow-800">
+            Active
+          </span>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="space-y-4">
+      <div>
+        <h3 class="text-sm font-medium text-gray-500">Message</h3>
+        <div class="mt-1 p-4 bg-gray-50 rounded border border-gray-200">
+          <p class="text-gray-900 whitespace-pre-wrap"><%= @message.message %></p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <h3 class="text-sm font-medium text-gray-500">Location</h3>
+          <p class="mt-1 text-gray-900"><%= @message.location.name %></p>
+        </div>
+
+        <div>
+          <h3 class="text-sm font-medium text-gray-500">Target</h3>
+          <p class="mt-1 text-gray-900">
+            <% if @message.table_monitor_id.present? %>
+              Table: <%= @message.table_monitor.name %>
+            <% else %>
+              <span class="font-semibold text-purple-600">All Tables</span>
+            <% end %>
+          </p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <h3 class="text-sm font-medium text-gray-500">Sent By</h3>
+          <p class="mt-1 text-gray-900"><%= @message.sender.name %></p>
+        </div>
+
+        <div>
+          <h3 class="text-sm font-medium text-gray-500">Created At</h3>
+          <p class="mt-1 text-gray-900"><%= @message.created_at.strftime('%Y-%m-%d %H:%M:%S') %></p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <h3 class="text-sm font-medium text-gray-500">Expires At</h3>
+          <p class="mt-1 text-gray-900">
+            <%= @message.expires_at.strftime('%Y-%m-%d %H:%M:%S') %>
+            <% unless @message.acknowledged_at.present? %>
+              <% if @message.expired? %>
+                <span class="text-red-600 text-sm">(expired)</span>
+              <% else %>
+                <span class="text-gray-500 text-sm">(in <%= distance_of_time_in_words(Time.current, @message.expires_at) %>)</span>
+              <% end %>
+            <% end %>
+          </p>
+        </div>
+
+        <div>
+          <h3 class="text-sm font-medium text-gray-500">Acknowledged At</h3>
+          <p class="mt-1 text-gray-900">
+            <% if @message.acknowledged_at.present? %>
+              <%= @message.acknowledged_at.strftime('%Y-%m-%d %H:%M:%S') %>
+              <span class="text-gray-500 text-sm">(<%= time_ago_in_words(@message.acknowledged_at) %> ago)</span>
+            <% else %>
+              <span class="text-gray-400">Not yet acknowledged</span>
+            <% end %>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-8 pt-6 border-t border-gray-200 flex gap-4">
+      <% if @message.active? %>
+        <%= button_to 'Acknowledge Message', 
+            acknowledge_admin_scoreboard_message_path(@message), 
+            method: :post,
+            class: 'btn btn-success',
+            data: { confirm: 'Mark this message as acknowledged? This will dismiss it on all scoreboards.' } %>
+      <% end %>
+      
+      <%= link_to 'Delete', 
+          admin_scoreboard_message_path(@message), 
+          method: :delete,
+          data: { confirm: 'Are you sure you want to delete this message?' },
+          class: 'btn btn-danger' %>
+    </div>
+  </div>
+</div>

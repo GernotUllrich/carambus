@@ -387,6 +387,32 @@ const tableMonitorSubscription = consumer.subscriptions.create("TableMonitorChan
       }
       return
     }
+
+    // Handle scoreboard messages (admin messages to scoreboards)
+    if (data.type === "scoreboard_message") {
+      if (!NO_LOGGING) {
+        console.log("📨 Scoreboard message received:", data)
+      }
+      // Use global helper function to show message
+      if (window.ScoreboardMessageController) {
+        window.ScoreboardMessageController.showMessage(data)
+      } else {
+        console.warn("⚠️ ScoreboardMessageController global not found")
+      }
+      return
+    }
+
+    // Handle scoreboard message acknowledgement (hide message on all scoreboards)
+    if (data.type === "scoreboard_message_acknowledged") {
+      if (!NO_LOGGING) {
+        console.log("✅ Scoreboard message acknowledged:", data.message_id)
+      }
+      // Use global helper function to hide message
+      if (window.ScoreboardMessageController) {
+        window.ScoreboardMessageController.hideMessage(data.message_id)
+      }
+      return
+    }
     
     // Handle dispatch_event operations (they have a different structure)
     // Note: dispatch_event operations create DOM events that are handled by event listeners

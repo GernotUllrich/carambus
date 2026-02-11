@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_01_22_172221) do
+ActiveRecord::Schema[7.2].define(version: 2026_02_11_184631) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -789,6 +789,22 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_22_172221) do
     t.string "status"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+  end
+
+  create_table "scoreboard_messages", force: :cascade do |t|
+    t.integer "table_monitor_id"
+    t.integer "location_id", null: false
+    t.text "message", null: false
+    t.datetime "acknowledged_at"
+    t.datetime "expires_at"
+    t.integer "sender_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["acknowledged_at"], name: "index_scoreboard_messages_on_acknowledged_at"
+    t.index ["expires_at"], name: "index_scoreboard_messages_on_expires_at"
+    t.index ["location_id"], name: "index_scoreboard_messages_on_location_id"
+    t.index ["sender_id"], name: "index_scoreboard_messages_on_sender_id"
+    t.index ["table_monitor_id"], name: "index_scoreboard_messages_on_table_monitor_id"
   end
 
   create_table "season_ccs", force: :cascade do |t|

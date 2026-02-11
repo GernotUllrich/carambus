@@ -1,0 +1,106 @@
+<div class="container mx-auto px-4 py-8">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-3xl font-bold">Scoreboard Messages</h1>
+    <%= link_to 'Send New Message', new_admin_scoreboard_message_path, class: 'btn btn-primary' %>
+  </div>
+
+  <!-- Status Filter -->
+  <div class="mb-4 flex gap-2">
+    <%= link_to 'All', admin_scoreboard_messages_path, class: "btn #{params[:status].nil? ? 'btn-primary' : 'btn-secondary'}" %>
+    <%= link_to 'Active', admin_scoreboard_messages_path(status: 'active'), class: "btn #{params[:status] == 'active' ? 'btn-primary' : 'btn-secondary'}" %>
+    <%= link_to 'Acknowledged', admin_scoreboard_messages_path(status: 'acknowledged'), class: "btn #{params[:status] == 'acknowledged' ? 'btn-primary' : 'btn-secondary'}" %>
+    <%= link_to 'Expired', admin_scoreboard_messages_path(status: 'expired'), class: "btn #{params[:status] == 'expired' ? 'btn-primary' : 'btn-secondary'}" %>
+  </div>
+
+  <% if @messages.any? %>
+    <div class="bg-white shadow-md rounded-lg overflow-hidden">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Message</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Target</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sender</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          <% @messages.each do |message| %>
+            <tr class="<%= 'bg-green-50' if message.acknowledged_at.present? %> <%= 'bg-red-50' if message.expired? %>">
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <%= message.id %>
+              </td>
+              <td class="px-6 py-4 text-sm text-gray-900">
+                <%= truncate(message.message, length: 80) %>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <%= message.location.name %>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <% if message.table_monitor_id.present? %>
+                  <span class="text-blue-600">Table: <%= message.table_monitor.name %></span>
+                <% else %>
+                  <span class="text-purple-600 font-semibold">All Tables</span>
+                <% end %>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <% if message.acknowledged_at.present? %>
+                  <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                    Acknowledged
+                  </span>
+                  <div class="text-xs text-gray-500 mt-1">
+                    <%= time_ago_in_words(message.acknowledged_at) %> ago
+                  </div>
+                <% elsif message.expired? %>
+                  <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                    Expired
+                  </span>
+                <% else %>
+                  <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                    Active
+                  </span>
+                  <div class="text-xs text-gray-500 mt-1">
+                    Expires in <%= distance_of_time_in_words(Time.current, message.expires_at) %>
+                  </div>
+                <% end %>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <%= message.sender.name %>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <%= message.created_at.strftime('%Y-%m-%d %H:%M') %>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                <div class="flex gap-2">
+                  <%= link_to 'View', admin_scoreboard_message_path(message), class: 'text-blue-600 hover:text-blue-900' %>
+                  <% if message.active? %>
+                    <%= button_to 'Acknowledge', acknowledge_admin_scoreboard_message_path(message), 
+                        method: :post, 
+                        class: 'text-green-600 hover:text-green-900',
+                        data: { confirm: 'Mark this message as acknowledged?' } %>
+                  <% end %>
+                  <%= link_to 'Delete', admin_scoreboard_message_path(message), 
+                      method: :delete, 
+                      data: { confirm: 'Are you sure?' }, 
+                      class: 'text-red-600 hover:text-red-900' %>
+                </div>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="mt-4">
+      <%= paginate @messages %>
+    </div>
+  <% else %>
+    <div class="bg-white shadow-md rounded-lg p-8 text-center text-gray-500">
+      <p class="text-lg">No messages found.</p>
+      <%= link_to 'Send First Message', new_admin_scoreboard_message_path, class: 'btn btn-primary mt-4' %>
+    </div>
+  <% end %>
+</div>

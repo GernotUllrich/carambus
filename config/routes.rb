@@ -132,6 +132,13 @@ Rails.application.routes.draw do
       get :down
     end
   end
+  # Scoreboard message acknowledgement (public endpoint for scoreboards)
+  resources :scoreboard_messages, only: [] do
+    member do
+      post :acknowledge
+    end
+  end
+
   resources :table_monitors do
     member do
       get :print_protocol
@@ -385,6 +392,12 @@ Rails.application.routes.draw do
     resources :settings, only: [:index, :create, :update] do
       collection do
         patch :update
+      end
+    end
+    
+    resources :scoreboard_messages do
+      member do
+        post :acknowledge
       end
     end
     
