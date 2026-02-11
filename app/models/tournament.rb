@@ -1659,12 +1659,15 @@ class Tournament < ApplicationRecord
     # Extract table numbers
     numbers = table_names.map { |name| name.match(/\d+/)[0].to_i }.sort
     
+    # Single table: just "T5"
+    return "T#{numbers.first}" if numbers.length == 1
+    
     # Check if consecutive
     if numbers == (numbers.first..numbers.last).to_a
-      # Consecutive: use range format
+      # Consecutive: use range format "T5-T8"
       "T#{numbers.first}-T#{numbers.last}"
     else
-      # Non-consecutive: list all
+      # Non-consecutive: list all "T1, T3, T5"
       numbers.map { |n| "T#{n}" }.join(", ")
     end
   end
