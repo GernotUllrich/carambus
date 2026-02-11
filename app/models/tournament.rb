@@ -1013,10 +1013,13 @@ class Tournament < ApplicationRecord
     
     # Find suitable tables with heaters (tpl_ip_address present)
     # Filter by discipline's table_kind and order by ID ascending
+    # For local tables (id < 50M), tpl_ip_address is stored in table_locals
     available_tables = location.tables
                                .joins(:table_kind)
+                               .left_joins(:table_local)
                                .where(table_kinds: { id: discipline.table_kind_id })
-                               .where.not(tpl_ip_address: nil)
+                               .where("(tables.id >= ? AND tables.tpl_ip_address IS NOT NULL) OR (tables.id < ? AND table_locals.tpl_ip_address IS NOT NULL)", 
+                                      Table::MIN_ID, Table::MIN_ID)
                                .order(:id)
                                .limit(tables_needed)
     
