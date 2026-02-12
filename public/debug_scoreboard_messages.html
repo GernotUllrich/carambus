@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Scoreboard Message Debug</title>
+  <style>
+    body { font-family: monospace; padding: 20px; background: #1e1e1e; color: #d4d4d4; }
+    .section { margin: 20px 0; padding: 15px; background: #2d2d2d; border-radius: 5px; }
+    .success { color: #4ec9b0; }
+    .error { color: #f48771; }
+    .info { color: #9cdcfe; }
+    button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+    pre { background: #1e1e1e; padding: 10px; overflow-x: auto; }
+  </style>
+</head>
+<body>
+  <h1>🐛 Scoreboard Message Debug Tool</h1>
+  
+  <div class="section">
+    <h2>1. Check if Modal Element Exists</h2>
+    <button onclick="checkModal()">Check Modal</button>
+    <pre id="modal-result"></pre>
+  </div>
+
+  <div class="section">
+    <h2>2. Check if Controller is Initialized</h2>
+    <button onclick="checkController()">Check Controller</button>
+    <pre id="controller-result"></pre>
+  </div>
+
+  <div class="section">
+    <h2>3. Check ActionCable Connection</h2>
+    <button onclick="checkCable()">Check Cable</button>
+    <pre id="cable-result"></pre>
+  </div>
+
+  <div class="section">
+    <h2>4. Test Manual Message Display</h2>
+    <button onclick="testManualMessage()">Test Message</button>
+    <pre id="test-result"></pre>
+  </div>
+
+  <div class="section">
+    <h2>5. Check Table Monitor ID</h2>
+    <button onclick="checkTableMonitorId()">Check TM ID</button>
+    <pre id="tm-result"></pre>
+  </div>
+
+  <div class="section">
+    <h2>6. Simulate ActionCable Message</h2>
+    <input type="number" id="message-id" placeholder="Message ID" value="1">
+    <input type="text" id="message-text" placeholder="Message text" value="Test message">
+    <button onclick="simulateMessage()">Simulate</button>
+    <pre id="simulate-result"></pre>
+  </div>
+
+  <script>
+    function log(elementId, message, type = 'info') {
+      const el = document.getElementById(elementId);
+      const className = type === 'error' ? 'error' : (type === 'success' ? 'success' : 'info');
+      el.innerHTML = `<span class="${className}">${message}</span>`;
+    }
+
+    function checkModal() {
+      const modal = document.querySelector('[data-controller="scoreboard-message"]');
+      if (modal) {
+        log('modal-result', `✅ Modal found!\nID: ${modal.id}\nVisible: ${!modal.classList.contains('hidden')}`, 'success');
+      } else {
+        log('modal-result', '❌ Modal element not found! Make sure you are on a scoreboard page.', 'error');
+      }
+    }
+
+    function checkController() {
+      if (window.ScoreboardMessageController) {
+        log('controller-result', '✅ Global ScoreboardMessageController found!', 'success');
+      } else {
+        log('controller-result', '❌ Global ScoreboardMessageController not found!', 'error');
+      }
+    }
+
+    function checkCable() {
+      try {
+        if (window.tableMonitorChannel) {
+          log('cable-result', '✅ tableMonitorChannel found!', 'success');
+        } else {
+          log('cable-result', '⚠️  tableMonitorChannel not found (may be OK if not on scoreboard)', 'info');
+        }
+      } catch (e) {
+        log('cable-result', `❌ Error: ${e.message}`, 'error');
+      }
+    }
+
+    function checkTableMonitorId() {
+      const meta = document.querySelector('meta[name="scoreboard-table-monitor-id"]');
+      const root = document.querySelector('[data-table-monitor-root="scoreboard"]');
+      
+      let result = '';
+      if (meta) {
+        result += `✅ Meta tag found: ${meta.content}\n`;
+      } else {
+        result += '❌ Meta tag not found\n';
+      }
+      
+      if (root) {
+        result += `✅ Scoreboard root found\n`;
+        result += `   Table Monitor ID: ${root.dataset.tableMonitorId}\n`;
+      } else {
+        result += '❌ Scoreboard root not found\n';
+      }
+      
+      log('tm-result', result, meta && root ? 'success' : 'error');
+    }
+
+    function testManualMessage() {
+      if (!window.ScoreboardMessageController) {
+        log('test-result', '❌ Controller not available', 'error');
+        return;
+      }
+      
+      try {
+        window.ScoreboardMessageController.showMessage({
+          message_id: 999,
+          table_monitor_id: 1,
+          message: 'This is a manual test message',
+          expires_at: new Date(Date.now() + 30 * 60 * 1000).toISOString()
+        });
+        log('test-result', '✅ Manual message triggered! Check if modal appeared.', 'success');
+      } catch (e) {
+        log('test-result', `❌ Error: ${e.message}\n${e.stack}`, 'error');
+      }
+    }
+
+    function simulateMessage() {
+      const messageId = document.getElementById('message-id').value;
+      const messageText = document.getElementById('message-text').value;
+      
+      if (!window.ScoreboardMessageController) {
+        log('simulate-result', '❌ Controller not available', 'error');
+        return;
+      }
+      
+      try {
+        const data = {
+          message_id: parseInt(messageId),
+          table_monitor_id: 1,
+          message: messageText,
+          expires_at: new Date(Date.now() + 30 * 60 * 1000).toISOString()
+        };
+        
+        console.log('[Debug] Simulating message:', data);
+        window.ScoreboardMessageController.showMessage(data);
+        
+        log('simulate-result', `✅ Simulated message ${messageId}\nCheck console for details`, 'success');
+      } catch (e) {
+        log('simulate-result', `❌ Error: ${e.message}\n${e.stack}`, 'error');
+      }
+    }
+
+    // Auto-check on load
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        checkModal();
+        checkController();
+        checkCable();
+        checkTableMonitorId();
+      }, 1000);
+    });
+  </script>
+</body>
+</html>
