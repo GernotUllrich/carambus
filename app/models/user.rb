@@ -9,7 +9,6 @@ class User < ApplicationRecord
     club_admin: 1,
     system_admin: 2
   }, default: :player
-  
 
   PRIVILEGED = %w[gernot.ullrich@gmx.de nla@ph.at wcauel@gmail.com joerg.unger@hamburg.de].freeze
 
