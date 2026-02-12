@@ -176,18 +176,37 @@ export default class extends Controller {
 // Make controller accessible globally for ActionCable callbacks
 window.ScoreboardMessageController = {
   showMessage: (data) => {
-    const controller = document.querySelector('[data-controller="scoreboard-message"]')
-    if (controller && controller.scoreboardMessage) {
-      controller.scoreboardMessage.showMessage(data)
+    const element = document.querySelector('[data-controller="scoreboard-message"]')
+    if (!element) {
+      console.warn('[ScoreboardMessage] Modal element not found')
+      return
+    }
+    
+    // Get the Stimulus application and controller
+    const application = window.Stimulus
+    if (!application) {
+      console.warn('[ScoreboardMessage] Stimulus application not found')
+      return
+    }
+    
+    const controller = application.getControllerForElementAndIdentifier(element, 'scoreboard-message')
+    if (controller) {
+      controller.showMessage(data)
     } else {
-      console.warn('[ScoreboardMessage] Controller not found or not initialized')
+      console.warn('[ScoreboardMessage] Controller not initialized')
     }
   },
   
   hideMessage: (messageId) => {
-    const controller = document.querySelector('[data-controller="scoreboard-message"]')
-    if (controller && controller.scoreboardMessage) {
-      controller.scoreboardMessage.hideMessageIfMatches(messageId)
+    const element = document.querySelector('[data-controller="scoreboard-message"]')
+    if (!element) return
+    
+    const application = window.Stimulus
+    if (!application) return
+    
+    const controller = application.getControllerForElementAndIdentifier(element, 'scoreboard-message')
+    if (controller) {
+      controller.hideMessageIfMatches(messageId)
     }
   }
 }
