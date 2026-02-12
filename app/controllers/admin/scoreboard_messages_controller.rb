@@ -1,10 +1,14 @@
 # frozen_string_literal: true
 
 module Admin
-  class ScoreboardMessagesController < ApplicationController
-    before_action :authenticate_user!
+  class ScoreboardMessagesController < Admin::ApplicationController
     before_action :check_permissions
     before_action :set_message, only: [:show, :edit, :update, :destroy]
+    
+    # Override to prevent Administrate from trying to use its default views
+    def resource_class
+      ScoreboardMessage
+    end
 
     def index
       @messages = ScoreboardMessage
