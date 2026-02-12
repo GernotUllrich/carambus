@@ -30,10 +30,12 @@
     <%- if local_server? && revision != repo_version -%>
       <%- # Check if API server version is newer (more recent commit timestamp) -%>
       <%- begin -%>
-        <%- local_timestamp = `git log -1 --format=%ct #{repo_version} 2>/dev/null`.strip.to_i -%>
-        <%- api_timestamp = `git log -1 --format=%ct #{revision} 2>/dev/null`.strip.to_i -%>
-        <%- api_is_newer = api_timestamp > local_timestamp -%>
-      <%- rescue -%>
+        <%- git_dir = Rails.root.to_s -%>
+        <%- local_timestamp = `cd #{git_dir} && git log -1 --format=%ct #{repo_version} 2>/dev/null`.strip.to_i -%>
+        <%- api_timestamp = `cd #{git_dir} && git log -1 --format=%ct #{revision} 2>/dev/null`.strip.to_i -%>
+        <%- api_is_newer = (local_timestamp > 0 && api_timestamp > 0 && api_timestamp > local_timestamp) -%>
+      <%- rescue => e -%>
+        <%- Rails.logger.error "Error comparing versions: #{e.message}" -%>
         <%- api_is_newer = false -%>
       <%- end -%>
       <%- if api_is_newer -%>
