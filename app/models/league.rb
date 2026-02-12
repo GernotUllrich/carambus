@@ -1449,7 +1449,11 @@ class League < ApplicationRecord
         # Annahme: Ergebnis steht in party.data[:result] oder party.data["result"] als "x:y"
         result = party.data["result"] || party.data[:result]
         next unless result.present? && result.include?(":")
-        left, right = result.split(":").map(&:to_i)
+        if result == ":"
+          left, right = [0, 0]
+        else
+          left, right = result.split(":").map(&:to_i)
+        end
         if party.league_team_a_id == team.id
           team_for = left
           team_against = right
@@ -1510,7 +1514,11 @@ class League < ApplicationRecord
         # Annahme: Ergebnis steht in party.data[:result] oder party.data["result"] als "x:y"
         result = party.data["result"] || party.data[:result]
         next unless result.present? && result.include?(":")
-        left, right = result.split(":").map(&:to_i)
+        if result == ":"
+          left, right = [0, 0]
+        else
+          left, right = result.split(":").map(&:to_i)
+        end
         if party.league_team_a_id == team.id
           team_for = left
           team_against = right
