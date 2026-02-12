@@ -28,22 +28,22 @@
     Repo-Branch: <%= branch %>
     Last: <%= version %>
     <%- if local_server? && revision != repo_version -%>
-      <%- # Check if API server version is newer (more recent commit timestamp) -%>
+      <%- # Check if API server version is newer using git merge-base -%>
       <%- begin -%>
         <%- if Rails.env.development? -%>
-          <%- local_timestamp = `cd #{Rails.root} && git log -1 --format=%ct #{repo_version} 2>/dev/null`.strip.to_i -%>
-          <%- api_timestamp = `cd #{Rails.root} && git log -1 --format=%ct #{revision} 2>/dev/null`.strip.to_i -%>
+          <%- # In development, check if local commit is ancestor of API commit -%>
+          <%- api_is_newer = system("cd #{Rails.root} && git merge-base --is-ancestor #{repo_version} #{revision} 2>/dev/null") -%>
         <%- else -%>
           <%- repo_path = get_repo_path -%>
           <%- if repo_path && File.directory?(repo_path) -%>
-            <%- local_timestamp = `git --git-dir=#{repo_path} log -1 --format=%ct #{repo_version} 2>/dev/null`.strip.to_i -%>
-            <%- api_timestamp = `git --git-dir=#{repo_path} log -1 --format=%ct #{revision} 2>/dev/null`.strip.to_i -%>
+            <%- # Fetch latest commits from origin to ensure we have the API commit -%>
+            <%- `git --git-dir=#{repo_path} fetch origin 2>/dev/null` -%>
+            <%- # Check if local commit is ancestor of API commit (means API is ahead) -%>
+            <%- api_is_newer = system("git --git-dir=#{repo_path} merge-base --is-ancestor #{repo_version} #{revision} 2>/dev/null") -%>
           <%- else -%>
-            <%- local_timestamp = 0 -%>
-            <%- api_timestamp = 0 -%>
+            <%- api_is_newer = false -%>
           <%- end -%>
         <%- end -%>
-        <%- api_is_newer = (local_timestamp > 0 && api_timestamp > 0 && api_timestamp > local_timestamp) -%>
       <%- rescue => e -%>
         <%- Rails.logger.error "Error comparing versions: #{e.message}" -%>
         <%- api_is_newer = false -%>
