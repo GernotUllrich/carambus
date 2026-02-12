@@ -393,11 +393,51 @@ const tableMonitorSubscription = consumer.subscriptions.create("TableMonitorChan
       if (!NO_LOGGING) {
         console.log("📨 Scoreboard message received:", data)
       }
-      // Use global helper function to show message
+      
+      // Try global helper function first
       if (window.ScoreboardMessageController) {
         window.ScoreboardMessageController.showMessage(data)
       } else {
-        console.warn("⚠️ ScoreboardMessageController global not found")
+        // Fallback: Direct DOM manipulation if controller not available
+        console.warn("⚠️ ScoreboardMessageController not found, using fallback")
+        const modal = document.querySelector('#scoreboard-message-modal')
+        if (modal) {
+          const messageText = modal.querySelector('[data-scoreboard-message-target="messageText"]')
+          const expiryText = modal.querySelector('[data-scoreboard-message-target="expiryText"]')
+          
+          if (messageText) messageText.textContent = data.message
+          if (expiryText) {
+            const expiresAt = new Date(data.expires_at)
+            const minutesUntilExpiry = Math.round((expiresAt - Date.now()) / 1000 / 60)
+            expiryText.textContent = `This message will expire in ${minutesUntilExpiry} minutes`
+          }
+          
+          modal.classList.remove('hidden')
+          
+          // Add click handler to acknowledge button
+          const ackButton = modal.querySelector('[data-scoreboard-message-target="acknowledgeButton"]')
+          if (ackButton) {
+            ackButton.onclick = () => {
+              // Send acknowledgement
+              fetch(`/scoreboard_messages/${data.message_id}/acknowledge`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'X-CSRF-Token': document.querySelector('[name="csrf-token"]').content
+                }
+              }).then(() => {
+                modal.classList.add('hidden')
+              }).catch(err => console.error('Failed to acknowledge:', err))
+            }
+          }
+          
+          // Auto-dismiss after 30 minutes
+          setTimeout(() => {
+            modal.classList.add('hidden')
+          }, 30 * 60 * 1000)
+        } else {
+          console.error("❌ Modal element not found")
+        }
       }
       return
     }

@@ -119,8 +119,10 @@
   <%= render partial: "footer" if !turbo_native_app? && @footer %>
 </div>
 
-<!-- Scoreboard Message Modal (for all pages) -->
-<%= render partial: "shared/scoreboard_message_modal" if @table_monitor.present? %>
+<!-- Scoreboard Message Modal (for scoreboards and location pages) -->
+<% if @table_monitor.present? || (@location.present? && params[:sb_state].present?) %>
+  <%= render partial: "shared/scoreboard_message_modal" %>
+<% end %>
 
 <ninja-keys data-controller="command-palette" hideBreadcrumbs></ninja-keys>
 <%= yield :javascript %>
