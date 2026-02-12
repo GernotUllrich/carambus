@@ -32,16 +32,19 @@ class ScoreboardMessageCleanupJob < ApplicationJob
           )
         else
           # Broadcast to all table monitors in location
-          message.location.table_monitors.each do |tm|
-            ActionCable.server.broadcast(
-              'table-monitor-stream',
-              {
-                type: 'scoreboard_message_acknowledged',
-                message_id: message.id,
-                table_monitor_id: tm.id,
-                reason: 'auto_expired'
-              }
-            )
+          # Get table_monitors through tables (location -> tables -> table_monitor)
+          message.location.tables.includes(:table_monitor).each do |table|
+            if table.table_monitor.present?
+              ActionCable.server.broadcast(
+                'table-monitor-stream',
+                {
+                  type: 'scoreboard_message_acknowledged',
+                  message_id: message.id,
+                  table_monitor_id: table.table_monitor.id,
+                  reason: 'auto_expired'
+                }
+              )
+            end
           end
         end
       end

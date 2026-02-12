@@ -59,8 +59,11 @@ class ScoreboardMessage < ApplicationRecord
       broadcast_to_table_monitor(table_monitor)
     else
       # Broadcast to all table monitors in location
-      location.table_monitors.each do |tm|
-        broadcast_to_table_monitor(tm)
+      # Get table_monitors through tables (location -> tables -> table_monitor)
+      location.tables.includes(:table_monitor).each do |table|
+        if table.table_monitor.present?
+          broadcast_to_table_monitor(table.table_monitor)
+        end
       end
     end
   end
@@ -97,15 +100,18 @@ class ScoreboardMessage < ApplicationRecord
       )
     else
       # Broadcast to all table monitors in location
-      location.table_monitors.each do |tm|
-        ActionCable.server.broadcast(
-          'table-monitor-stream',
-          {
-            type: 'scoreboard_message_acknowledged',
-            message_id: id,
-            table_monitor_id: tm.id
-          }
-        )
+      # Get table_monitors through tables (location -> tables -> table_monitor)
+      location.tables.includes(:table_monitor).each do |table|
+        if table.table_monitor.present?
+          ActionCable.server.broadcast(
+            'table-monitor-stream',
+            {
+              type: 'scoreboard_message_acknowledged',
+              message_id: id,
+              table_monitor_id: table.table_monitor.id
+            }
+          )
+        end
       end
     end
   end
