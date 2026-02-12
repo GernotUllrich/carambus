@@ -1,7 +1,8 @@
 # frozen_string_literal: true
 
 module Admin
-  class ScoreboardMessagesController < Admin::ApplicationController
+  class ScoreboardMessagesController < ApplicationController
+    before_action :authenticate_user!
     before_action :check_permissions
     before_action :set_message, only: [:show, :edit, :update, :destroy]
 
