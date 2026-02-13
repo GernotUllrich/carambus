@@ -1,0 +1,22 @@
+[Unit]
+Description=Scoreboard Browser Health Check Service
+Documentation=https://github.com/GernotUllrich/carambus
+After=network-online.target scoreboard-kiosk.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/scoreboard-browser-watchdog.sh
+
+# Run as root to allow systemctl restart
+User=root
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=scoreboard-browser-watchdog
+
+# Timeout for the health check
+TimeoutStartSec=30s
+
+[Install]
+WantedBy=multi-user.target

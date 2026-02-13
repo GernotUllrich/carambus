@@ -1,0 +1,14 @@
+[Unit]
+Description=Scoreboard Browser Health Check Timer
+Documentation=https://github.com/GernotUllrich/carambus
+
+[Timer]
+# Run health check every 5 minutes
+OnBootSec=5min
+OnUnitActiveSec=5min
+
+# If system was off, run on next boot
+Persistent=true
+
+[Install]
+WantedBy=timers.target

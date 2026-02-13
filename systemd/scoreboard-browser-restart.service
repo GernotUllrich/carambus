@@ -1,0 +1,19 @@
+[Unit]
+Description=Scoreboard Browser Restart Service
+Documentation=https://github.com/GernotUllrich/carambus
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/scoreboard-browser-restart.sh
+
+# Run as root to allow systemctl restart
+User=root
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=scoreboard-browser-restart
+
+[Install]
+WantedBy=multi-user.target
