@@ -6,24 +6,27 @@
 #   2. Health check watchdog (smart, only restarts when needed)
 #
 # Usage:
-#   ./install-browser-watchdog.sh <pi_ip> [watchdog_type]
+#   ./install-browser-watchdog.sh <pi_ip> [watchdog_type] [ssh_user] [ssh_port]
 #
 # Arguments:
-#   pi_ip        - IP address of the Raspberry Pi
+#   pi_ip        - IP address of the Raspberry Pi or hostname
 #   watchdog_type - "daily" (default) or "healthcheck"
+#   ssh_user     - SSH user (default: "pj")
+#   ssh_port     - SSH port (default: "22")
 #
 # Examples:
 #   ./install-browser-watchdog.sh 192.168.178.81
 #   ./install-browser-watchdog.sh 192.168.178.81 daily
 #   ./install-browser-watchdog.sh 192.168.178.81 healthcheck
+#   ./install-browser-watchdog.sh bc-wedel.duckdns.org daily www-data 8910
 
 set -euo pipefail
 
 # Configuration
 PI_IP="${1:-}"
 WATCHDOG_TYPE="${2:-daily}"
-SSH_USER="pj"
-SSH_PORT="22"
+SSH_USER="${3:-pj}"
+SSH_PORT="${4:-22}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SYSTEMD_DIR="$(dirname "$SCRIPT_DIR")/systemd"
 
@@ -54,23 +57,41 @@ error() {
 # Usage
 usage() {
     cat <<EOF
-Usage: $0 <pi_ip> [watchdog_type]
+Usage: $0 <pi_ip> [watchdog_type] [ssh_user] [ssh_port]
 
 Arguments:
-  pi_ip        - IP address of the Raspberry Pi
+  pi_ip        - IP address of the Raspberry Pi or hostname
   watchdog_type - "daily" (default) or "healthcheck"
+  ssh_user     - SSH user (default: "pj")
+  ssh_port     - SSH port (default: "22")
 
 Examples:
   $0 192.168.178.81
   $0 192.168.178.81 daily
   $0 192.168.178.81 healthcheck
+  $0 bc-wedel.duckdns.org daily www-data 8910
 
 Watchdog Types:
   daily       - Restarts browser once per day at 6:00 AM (simple, reliable)
   healthcheck - Checks browser health every 5 minutes and restarts if needed (smart)
+
+Special Hosts:
+  bc-wedel.duckdns.org - BC Wedel server (auto-detects: user=www-data, port=8910)
 EOF
     exit 1
 }
+
+# Auto-detect special hosts
+if [ "$PI_IP" = "bc-wedel.duckdns.org" ] || [ "$PI_IP" = "bc-wedel" ]; then
+    if [ "$SSH_USER" = "pj" ]; then
+        SSH_USER="www-data"
+        info "Auto-detected bc-wedel: using SSH_USER=$SSH_USER"
+    fi
+    if [ "$SSH_PORT" = "22" ]; then
+        SSH_PORT="8910"
+        info "Auto-detected bc-wedel: using SSH_PORT=$SSH_PORT"
+    fi
+fi
 
 # Validate arguments
 if [ -z "$PI_IP" ]; then
