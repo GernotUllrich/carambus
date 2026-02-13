@@ -1,5 +1,15 @@
 # TV Display Freeze Fix - table_scores Page (2025-02-10)
 
+## ⚠️ UPDATE (2025-02-10 Evening)
+
+**Diese JavaScript-Lösung funktioniert NICHT für TV-Standby!** Der Browser-Prozess wird vom OS eingefroren und kann keine JavaScript-Events ausführen.
+
+**→ Siehe stattdessen:** [`BROWSER_WATCHDOG_SOLUTION.md`](BROWSER_WATCHDOG_SOLUTION.md) für die **funktionierende OS-Level Lösung**.
+
+Die hier beschriebene JavaScript-Lösung bleibt im Code als "Defense in Depth" für Fälle wo der Browser responsive ist, funktioniert aber **nicht** für echten TV-Standby.
+
+---
+
 ## 🚨 Problem
 
 Die `table_scores` Seite auf dem Samsung TV Browser friert ein, wenn der TV aus dem Standby aufgewacht wird. Die Seite zeigt oft ein eingefrorenes Bild, wenn der TV eingeschaltet wird.
@@ -239,19 +249,29 @@ ActionCable's built-in reconnection is good, but:
 
 ## 🔗 Related Documentation
 
+- **`BROWSER_WATCHDOG_SOLUTION.md`** - **FUNKTIONIERENDE LÖSUNG für TV-Standby** ⭐
 - `BLANK_TABLE_SCORES_BUG_FIX.md` - Previous table_scores fix (variable mismatch)
 - `WEBSOCKET_LIFECYCLE_ANALYSIS.md` - ActionCable architecture
 - `SCOREBOARD_ARCHITECTURE.md` - Server-driven architecture
 
 ## ✅ Result
 
-**Problem gelöst!** 🎉
+⚠️ **Diese Lösung funktioniert NICHT für TV-Standby!**
 
-- ✅ TV kann stundenlang im Standby sein
-- ✅ Beim Einschalten: Automatischer Reload nach 1 Sekunde
-- ✅ Keine eingefrorenen Bilder mehr
-- ✅ Immer aktueller Stand sichtbar
-- ✅ Kein manueller Eingriff nötig
+**Warum nicht:**
+- TV Standby friert Browser-Prozess komplett ein
+- JavaScript kann nicht ausgeführt werden
+- Page Visibility API Events werden nicht gefeuert
+- Browser bleibt eingefroren bis Prozess neu startet
+
+**Funktionierende Lösung:**
+→ [`BROWSER_WATCHDOG_SOLUTION.md`](BROWSER_WATCHDOG_SOLUTION.md) - OS-Level Watchdog mit systemd Timer
+
+**Was diese Lösung trotzdem leistet:**
+- ✅ Erkennt kurze Inaktivitäts-Phasen (< 5 Minuten)
+- ✅ Reload bei normalem Browser-Sleep (nicht TV-Standby)
+- ✅ "Defense in Depth" Layer
+- ✅ Schnelle Recovery wenn Browser responsive ist
 
 ## 🚀 Deployment
 
