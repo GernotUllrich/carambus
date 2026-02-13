@@ -217,10 +217,17 @@ HEATER OFF - #{name}#{reason.present? ? " because of #{reason}" : ""}" if DEBUG_
         save if id >= Table::MIN_ID # heater is updated on TableLocal record
       end
 
-      if event_id.present? &&
-        (event_start.to_i > DateTime.now.to_i) &&
-        (event_start.to_i - DateTime.now.to_i) / 1.minute < 120
-        return
+      if event_id.present?
+        # Event noch nicht gestartet und startet in < 120 Minuten: Heizung bleibt an
+        if event_start.to_i > DateTime.now.to_i && (event_start.to_i - DateTime.now.to_i) / 1.minute < 120
+          return
+        end
+        
+        # Event bereits gestartet: Heizung nur an lassen, wenn innerhalb der ersten 30 Minuten
+        # (gibt dem Spieler Zeit, das Scoreboard einzuschalten)
+        if event_start.to_i <= DateTime.now.to_i && (DateTime.now.to_i - event_start.to_i) / 1.minute < 30
+          return
+        end
       end
 
       if !heater_auto_off? && heater_switched_on_at.present? && heater_switched_off_at.blank?
