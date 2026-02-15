@@ -5,6 +5,7 @@ site_url: https://GernotUllrich.github.io/carambus
 repo_url: https://github.com/GernotUllrich/carambus
 repo_name: GernotUllrich/carambus
 docs_dir: docs
+site_dir: site  # Explicitly set output directory (default, but good to be explicit)
 
 # Theme
 theme:

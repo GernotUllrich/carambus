@@ -1,0 +1,33 @@
+# MkDocs Ignore File
+# Files/directories to exclude from documentation build
+
+# Development & Testing
+test/
+spec/
+coverage/
+
+# Temporary files
+*.tmp
+*.swp
+*~
+
+# Version control
+.git/
+.github/
+
+# Build artifacts
+site/
+*.pyc
+__pycache__/
+
+# IDE
+.vscode/
+.idea/
+
+# Internal documentation (not for public docs)
+docs/internal/
+
+# Large files
+*.sql
+*.sql.gz
+*.dump
