@@ -17,67 +17,73 @@ namespace :scrape do
     monitor = ScrapingMonitor.new("daily_update", "scheduled")
     
     monitor.run do |m|
-      # Region-Level Scraping
-      # Only scrape regions that have a region_cc (ClubCloud integration)
-      Region.joins(:region_cc).each do |region|
-        region_monitor = ScrapingMonitor.new("region_scraping", "Region[#{region.id}]")
-        
-        region_monitor.run do |rm|
-          # Scrape Tournaments
-          region.seasons.active.each do |season|
-            tournaments = region.tournaments.where(season: season)
-            
-            tournaments.each do |tournament|
-              begin
-                old_attrs = tournament.attributes.slice('title', 'date', 'discipline_id')
-                
-                result = tournament.scrape_single_tournament_public
-                
-                if result == true
-                  tournament.reload
-                  new_attrs = tournament.attributes.slice('title', 'date', 'discipline_id')
-                  
-                  if old_attrs != new_attrs
-                    rm.record_updated(tournament)
-                  else
-                    rm.record_unchanged(tournament)
-                  end
-                elsif result == false
-                  rm.record_unchanged(tournament)
-                end
-                
-                rm.track_method("scrape_single_tournament_public")
-              rescue => e
-                rm.record_error(tournament, e)
-                Rails.logger.error "Tournament scraping failed: #{e.message}"
-              end
-            end
-          end
-          
-          # Scrape Locations
-          begin
-            count_before = Location.count
-            region.scrape_locations
-            count_after = Location.count
-            
-            (count_after - count_before).times { rm.record_created(Location.new) }
-            rm.track_method("scrape_locations")
-          rescue => e
-            rm.record_error(region, e)
-          end
-          
-          # Scrape Clubs
-          begin
-            count_before = Club.count
-            region.scrape_clubs
-            count_after = Club.count
-            
-            (count_after - count_before).times { rm.record_created(Club.new) }
-            rm.track_method("scrape_clubs")
-          rescue => e
-            rm.record_error(region, e)
-          end
+      # Update seasons if needed
+      Season.update_seasons if Season.find_by_name("#{Date.today.year}/#{Date.today.year + 1}").blank?
+      season = Season.current_season
+      
+      # 1. Update Regions
+      begin
+        Rails.logger.info "##-##-##-##-##-## UPDATE REGIONS ##-##-##-##-##-##"
+        Region.scrape_regions
+        m.track_method("Region.scrape_regions")
+      rescue => e
+        m.record_error(nil, e)
+        Rails.logger.error "Region scraping failed: #{e.message}"
+      end
+      
+      # 2. Update Locations
+      begin
+        Rails.logger.info "##-##-##-##-##-## UPDATE LOCATIONS ##-##-##-##-##-##"
+        count_before = Location.count
+        Location.scrape_locations
+        count_after = Location.count
+        (count_after - count_before).times { m.record_created(Location.new) }
+        m.track_method("Location.scrape_locations")
+      rescue => e
+        m.record_error(nil, e)
+        Rails.logger.error "Location scraping failed: #{e.message}"
+      end
+      
+      # 3. Update Clubs and Players
+      begin
+        Rails.logger.info "##-##-##-##-##-## UPDATE CLUBS AND PLAYERS ##-##-##-##-##-##"
+        count_before = Club.count
+        Club.scrape_clubs(season, from_background: true, player_details: true)
+        count_after = Club.count
+        (count_after - count_before).times { m.record_created(Club.new) }
+        m.track_method("Club.scrape_clubs")
+      rescue => e
+        m.record_error(nil, e)
+        Rails.logger.error "Club scraping failed: #{e.message}"
+      end
+      
+      # 4. Update Tournaments
+      begin
+        Rails.logger.info "##-##-##-##-##-## UPDATE TOURNAMENTS ##-##-##-##-##-##"
+        count_before = Tournament.count
+        season.scrape_single_tournaments_public_cc(optimize_api_access: false)
+        count_after = Tournament.count
+        (count_after - count_before).times { m.record_created(Tournament.new) }
+        m.track_method("Season.scrape_single_tournaments_public_cc")
+      rescue => e
+        m.record_error(nil, e)
+        Rails.logger.error "Tournament scraping failed: #{e.message}"
+      end
+      
+      # 5. Update Leagues
+      begin
+        Rails.logger.info "##-##-##-##-##-## UPDATE LEAGUES ##-##-##-##-##-##"
+        count_before = League.count
+        (Region::SHORTNAMES_ROOF_ORGANIZATION + Region::SHORTNAMES_CARAMBUS_USERS + Region::SHORTNAMES_OTHERS).each do |shortname|
+          region = Region.find_by_shortname(shortname)
+          League.scrape_leagues_from_cc(region, season, league_details: true, optimize_api_access: false) if region.present?
         end
+        count_after = League.count
+        (count_after - count_before).times { m.record_created(League.new) }
+        m.track_method("League.scrape_leagues_from_cc")
+      rescue => e
+        m.record_error(nil, e)
+        Rails.logger.error "League scraping failed: #{e.message}"
       end
     end
     
