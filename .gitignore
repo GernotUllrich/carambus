@@ -66,6 +66,13 @@ Thumbs.db
 # Ignore database files
 /*.sqlite3
 /*.sqlite3-*
+*.sql.gz
+*.sql
+/doc/doc-local/docker/**/*.sql.gz
+/doc/doc-local/docker/**/*.sql
+
+# Ignore MkDocs generated site
+/site/
 
 # Ignore uploaded files
 /public/uploads
