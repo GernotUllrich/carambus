@@ -28,6 +28,21 @@ class ScrapingLog < ApplicationRecord
     []
   end
   
+  # Parse model_stats (JSONB is already parsed by PostgreSQL)
+  def model_stats_parsed
+    model_stats || {}
+  end
+  
+  # Get stats for specific model
+  def stats_for_model(model_name)
+    model_stats_parsed[model_name] || { created: 0, updated: 0, deleted: 0 }
+  end
+  
+  # Get all models that were affected
+  def affected_models
+    model_stats_parsed.keys.sort
+  end
+  
   # Total operations count
   def total_operations
     created_count + updated_count + deleted_count + unchanged_count

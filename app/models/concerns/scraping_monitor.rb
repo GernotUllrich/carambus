@@ -46,12 +46,17 @@ class ScrapingMonitor
       unchanged: 0,
       errors: 0
     }
+    @stats_by_model = {}  # Per-Model Statistiken
     @errors = []
     @method_calls = []
+    @version_snapshot_before = nil
   end
   
   def run(&block)
     Rails.logger.info "▶️  ScrapeMonitor: Starting #{operation} (#{context})"
+    
+    # Snapshot PaperTrail versions before scraping
+    @version_snapshot_before = capture_version_snapshot
     
     # Track DB changes
     track_database_changes do
@@ -66,6 +71,8 @@ class ScrapingMonitor
       end
     end
   ensure
+    # Analyze PaperTrail versions after scraping
+    analyze_versions
     log_summary
   end
   
@@ -106,6 +113,44 @@ class ScrapingMonitor
   end
   
   private
+  
+  def capture_version_snapshot
+    # Snapshot der aktuellen Version IDs nach Model
+    return {} unless defined?(PaperTrail)
+    
+    {
+      max_version_id: PaperTrail::Version.maximum(:id) || 0,
+      timestamp: Time.current
+    }
+  end
+  
+  def analyze_versions
+    return unless defined?(PaperTrail)
+    return unless @version_snapshot_before
+    
+    # Hole alle neuen Versions seit dem Snapshot
+    new_versions = PaperTrail::Version.where("id > ?", @version_snapshot_before[:max_version_id])
+                                      .where("created_at >= ?", @version_snapshot_before[:timestamp])
+    
+    # Gruppiere nach Model und Event
+    new_versions.group(:item_type, :event).count.each do |(model, event), count|
+      @stats_by_model[model] ||= { created: 0, updated: 0, deleted: 0 }
+      
+      case event
+      when 'create'
+        @stats_by_model[model][:created] += count
+        @stats[:created] += count
+      when 'update'
+        @stats_by_model[model][:updated] += count
+        @stats[:updated] += count
+      when 'destroy'
+        @stats_by_model[model][:deleted] += count
+        @stats[:deleted] += count
+      end
+    end
+    
+    Rails.logger.info "📈 Model-specific changes: #{@stats_by_model.inspect}" if @stats_by_model.any?
+  end
   
   def track_database_changes(&block)
     # Zähle DB-Operationen via ActiveSupport::Notifications
@@ -161,6 +206,16 @@ class ScrapingMonitor
     Rails.logger.info "   Unchanged: #{@stats[:unchanged]}"
     Rails.logger.info "   Errors:    #{@stats[:errors]}"
     
+    # Per-Model Breakdown
+    if @stats_by_model.any?
+      Rails.logger.info "   "
+      Rails.logger.info "   📦 Per Model:"
+      @stats_by_model.sort.each do |model, counts|
+        total = counts[:created] + counts[:updated] + counts[:deleted]
+        Rails.logger.info "      #{model}: #{total} (C:#{counts[:created]} U:#{counts[:updated]} D:#{counts[:deleted]})"
+      end
+    end
+    
     if @method_calls.any?
       Rails.logger.info "   Methods called: #{@method_calls.join(', ')}"
     end
@@ -188,6 +243,7 @@ class ScrapingMonitor
       deleted_count: @stats[:deleted],
       unchanged_count: @stats[:unchanged],
       error_count: @stats[:errors],
+      model_stats: @stats_by_model,
       errors_json: @errors.map { |e| 
         { 
           context: e[:context] || e[:record]&.class&.name,

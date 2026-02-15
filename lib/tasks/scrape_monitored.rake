@@ -109,6 +109,16 @@ namespace :scrape do
       puts "Errors:             #{stats[:total_errors]}"
       puts "Erfolgsrate:        #{stats[:success_rate]}%"
       puts "Letzter Lauf:       #{stats[:last_run]&.strftime('%Y-%m-%d %H:%M')}"
+      
+      # Show last run's model breakdown
+      last_log = ScrapingLog.by_operation(operation).order(executed_at: :desc).first
+      if last_log && last_log.model_stats_parsed.any?
+        puts "\n📦 Letzter Lauf - Pro Model:"
+        last_log.model_stats_parsed.sort.each do |model, counts|
+          total = counts['created'] + counts['updated'] + counts['deleted']
+          puts "  #{model.ljust(20)}: #{total.to_s.rjust(5)} (C:#{counts['created']} U:#{counts['updated']} D:#{counts['deleted']})"
+        end
+      end
     else
       puts "\n📊 Alle Scraping-Operationen (letzte 7 Tage):"
       puts "=" * 80
