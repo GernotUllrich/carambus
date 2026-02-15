@@ -455,6 +455,10 @@ Rails.application.routes.draw do
   end
 
   resources :rankings, only: [:index, :show]
+  
+  # Scraping Monitor Dashboard
+  get 'scraping_monitor', to: 'scraping_monitor#index', as: :scraping_monitor
+  get 'scraping_monitor/:id', to: 'scraping_monitor#operation', as: :scraping_monitor_operation
 
   # Demo route for testing optimistic updates
   get 'demo/scoreboard', to: 'table_monitors#demo_scoreboard'

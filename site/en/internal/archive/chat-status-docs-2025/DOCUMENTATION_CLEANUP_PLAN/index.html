@@ -1,0 +1,3014 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Comprehensive documentation for Carambus - Professional billiards tournament management system">
+      
+      
+      
+        <link rel="canonical" href="https://GernotUllrich.github.io/carambus/en/internal/archive/chat-status-docs-2025/DOCUMENTATION_CLEANUP_PLAN/">
+      
+      
+      
+      
+      <link rel="icon" href="../../../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.15">
+    
+    
+      
+        <title>Dokumentations-Bereinigungsplan - Carambus Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../../../assets/stylesheets/main.342714a4.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../../../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#dokumentations-bereinigungsplan" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../../../" title="Carambus Documentation" class="md-header__button md-logo" aria-label="Carambus Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Carambus Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Dokumentations-Bereinigungsplan
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+      <div class="md-header__option">
+  <div class="md-select">
+    
+    <button class="md-header__button md-icon" aria-label="Select language">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
+    </button>
+    <div class="md-select__inner">
+      <ul class="md-select__list">
+        
+          <li class="md-select__item">
+            <a href="../../../../../internal/archive/chat-status-docs-2025/DOCUMENTATION_CLEANUP_PLAN/" hreflang="de" class="md-select__link">
+              Deutsch
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="./" hreflang="en" class="md-select__link">
+              English
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</div>
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/GernotUllrich/carambus" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GernotUllrich/carambus
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../../" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../../decision-makers/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Decision Makers
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../../players/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Players
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../../managers/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Managers
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../../administrators/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Administrators
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../../developers/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Developers
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../../reference/API/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../../about/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  About
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../../../" title="Carambus Documentation" class="md-nav__button md-logo" aria-label="Carambus Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Carambus Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/GernotUllrich/carambus" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GernotUllrich/carambus
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../../decision-makers/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Decision Makers
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2" id="__nav_2_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Decision Makers
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../decision-makers/executive-summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Executive Summary
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../decision-makers/features-overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Features Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../decision-makers/deployment-options/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Deployment Options
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../../players/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Players
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Players
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../players/scoreboard-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scoreboard Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../players/tournament-participation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tournament Participation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../players/ai-search/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    AI-Powered Search
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../../managers/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Managers
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Managers
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../managers/tournament-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tournament Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../managers/league-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    League Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../managers/single-tournament/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Single Tournament
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../managers/table-reservation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Table Reservation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../managers/admin-roles/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Admin Roles
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../managers/clubcloud-integration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    ClubCloud Integration
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../managers/search-filters/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Search & Filters
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../../administrators/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Administrators
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5" id="__nav_5_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Administrators
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../administrators/installation-overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Installation Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../administrators/raspberry-pi-quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Raspberry Pi Quickstart
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../administrators/raspberry-pi-client/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Raspberry Pi Client
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../administrators/scoreboard-autostart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scoreboard Autostart
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../administrators/server-architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Server Architecture
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../administrators/email-configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Email Configuration
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../administrators/database-setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Database Setup
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../administrators/streaming-quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    YouTube Streaming Quickstart
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../administrators/streaming-setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    YouTube Streaming Setup
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../../developers/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Developers
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_6" id="__nav_6_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            Developers
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../developers/getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Getting Started
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../developers/developer-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Developer Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../developers/database-design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Database Design
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../developers/er-diagram/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    ER Diagram
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../reference/API/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    API Reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../developers/scenario-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scenario Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../developers/rake-tasks-debugging/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Testing & Debugging
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../developers/deployment-workflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Deployment Workflow
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../developers/data-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Data Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../developers/database-partitioning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Database Partitioning
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../developers/paper-trail-optimization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Paper Trail Optimization
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../developers/game-plan-reconstruction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Game Plan Reconstruction
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../developers/tournament-duplicate-handling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tournament Duplicates
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../developers/region-tagging-cleanup-summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Region Tagging
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../developers/streaming-architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    YouTube Streaming Architecture
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../developers/pool-scoreboard-changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Pool Scoreboard Changelog
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Reference
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            Reference
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../reference/API/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    API Reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../reference/glossary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Glossary
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../reference/terms/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Terms
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../reference/privacy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Privacy
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../reference/config-lock-files/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Config Lock Files
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../reference/search/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Search
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../reference/mkdocs_dokumentation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    MkDocs
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    About
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            About
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../about/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    About
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#ubersicht" class="md-nav__link">
+    <span class="md-ellipsis">
+      Übersicht
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aktuelle-situation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Aktuelle Situation
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Aktuelle Situation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#zwei-dokumentationssysteme" class="md-nav__link">
+    <span class="md-ellipsis">
+      Zwei Dokumentationssysteme
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#identifizierte-duplikate" class="md-nav__link">
+    <span class="md-ellipsis">
+      Identifizierte Duplikate
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#problem-analyse" class="md-nav__link">
+    <span class="md-ellipsis">
+      Problem-Analyse
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Problem-Analyse">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hauptprobleme" class="md-nav__link">
+    <span class="md-ellipsis">
+      Hauptprobleme
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ursachen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Ursachen
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#losungsansatze" class="md-nav__link">
+    <span class="md-ellipsis">
+      Lösungsansätze
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Lösungsansätze">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ansatz-1-vollstandige-konsolidierung-empfohlen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Ansatz 1: Vollständige Konsolidierung (Empfohlen)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ansatz-2-klare-trennung-der-verantwortlichkeiten" class="md-nav__link">
+    <span class="md-ellipsis">
+      Ansatz 2: Klare Trennung der Verantwortlichkeiten
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ansatz-3-hybrid-losung" class="md-nav__link">
+    <span class="md-ellipsis">
+      Ansatz 3: Hybrid-Lösung
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#empfohlene-losung-ansatz-1-vollstandige-konsolidierung" class="md-nav__link">
+    <span class="md-ellipsis">
+      Empfohlene Lösung: Ansatz 1 (Vollständige Konsolidierung)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Empfohlene Lösung: Ansatz 1 (Vollständige Konsolidierung)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#phase-1-analyse-und-planung-1-2-tage" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 1: Analyse und Planung (1-2 Tage)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-2-konsolidierung-3-5-tage" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 2: Konsolidierung (3-5 Tage)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-3-rails-app-anpassen-2-3-tage" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 3: Rails-App anpassen (2-3 Tage)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-4-cleanup-1-2-tage" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 4: Cleanup (1-2 Tage)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#neue-verzeichnisstruktur" class="md-nav__link">
+    <span class="md-ellipsis">
+      Neue Verzeichnisstruktur
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Neue Verzeichnisstruktur">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#docs-einheitliches-dokumentationssystem" class="md-nav__link">
+    <span class="md-ellipsis">
+      docs/ (Einheitliches Dokumentationssystem)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pages-nur-noch-fur-dynamische-inhalte" class="md-nav__link">
+    <span class="md-ellipsis">
+      pages/ (Nur noch für dynamische Inhalte)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#migration-schritte" class="md-nav__link">
+    <span class="md-ellipsis">
+      Migration-Schritte
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Migration-Schritte">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#schritt-1-backup-erstellen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Schritt 1: Backup erstellen
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#schritt-2-neue-struktur-in-docs-erstellen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Schritt 2: Neue Struktur in docs/ erstellen
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#schritt-3-rails-app-anpassen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Schritt 3: Rails-App anpassen
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#schritt-4-mkdocs-konfiguration-aktualisieren" class="md-nav__link">
+    <span class="md-ellipsis">
+      Schritt 4: MkDocs-Konfiguration aktualisieren
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#schritt-5-alte-dateien-entfernen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Schritt 5: Alte Dateien entfernen
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#qualitatssicherung" class="md-nav__link">
+    <span class="md-ellipsis">
+      Qualitätssicherung
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Qualitätssicherung">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#konsistenz-checks" class="md-nav__link">
+    <span class="md-ellipsis">
+      Konsistenz-Checks
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#automatisierung" class="md-nav__link">
+    <span class="md-ellipsis">
+      Automatisierung
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#risiken-und-mitigation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Risiken und Mitigation
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Risiken und Mitigation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#risiken" class="md-nav__link">
+    <span class="md-ellipsis">
+      Risiken
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mitigation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Mitigation
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#erfolgsmetriken" class="md-nav__link">
+    <span class="md-ellipsis">
+      Erfolgsmetriken
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Erfolgsmetriken">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#quantitative-metriken" class="md-nav__link">
+    <span class="md-ellipsis">
+      Quantitative Metriken
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qualitative-metriken" class="md-nav__link">
+    <span class="md-ellipsis">
+      Qualitative Metriken
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#zeitplan" class="md-nav__link">
+    <span class="md-ellipsis">
+      Zeitplan
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Zeitplan">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#woche-1-analyse-und-planung" class="md-nav__link">
+    <span class="md-ellipsis">
+      Woche 1: Analyse und Planung
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#woche-2-konsolidierung" class="md-nav__link">
+    <span class="md-ellipsis">
+      Woche 2: Konsolidierung
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#woche-3-rails-app-anpassen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Woche 3: Rails-App anpassen
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#woche-4-cleanup-und-dokumentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Woche 4: Cleanup und Dokumentation
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#nachste-schritte" class="md-nav__link">
+    <span class="md-ellipsis">
+      Nächste Schritte
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Nächste Schritte">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sofort-diese-woche" class="md-nav__link">
+    <span class="md-ellipsis">
+      Sofort (Diese Woche)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kurzfristig-nachste-2-wochen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Kurzfristig (Nächste 2 Wochen)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mittelfristig-nachste-4-wochen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Mittelfristig (Nächste 4 Wochen)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#langfristig-nachste-8-wochen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Langfristig (Nächste 8 Wochen)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#fazit" class="md-nav__link">
+    <span class="md-ellipsis">
+      Fazit
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="dokumentations-bereinigungsplan">Dokumentations-Bereinigungsplan<a class="headerlink" href="#dokumentations-bereinigungsplan" title="Permanent link">&para;</a></h1>
+<h2 id="ubersicht">Übersicht<a class="headerlink" href="#ubersicht" title="Permanent link">&para;</a></h2>
+<p>Das Carambus-Projekt hat derzeit zwei separate Dokumentationssysteme, die zu Duplikaten und Inkonsistenzen führen. Dieser Plan beschreibt, wie wir das bereinigen können.</p>
+<h2 id="aktuelle-situation">Aktuelle Situation<a class="headerlink" href="#aktuelle-situation" title="Permanent link">&para;</a></h2>
+<h3 id="zwei-dokumentationssysteme">Zwei Dokumentationssysteme<a class="headerlink" href="#zwei-dokumentationssysteme" title="Permanent link">&para;</a></h3>
+<h4 id="1-mkdocs-docs">1. MkDocs (docs/)<a class="headerlink" href="#1-mkdocs-docs" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>Zweck</strong>: Statische Dokumentation für Entwickler und Benutzer</li>
+<li><strong>Verzeichnis</strong>: <code>docs/</code></li>
+<li><strong>Build</strong>: Über MkDocs und GitHub Actions</li>
+<li><strong>Zugriff</strong>: Über GitHub Pages</li>
+<li><strong>Inhalt</strong>: Technische Dokumentation, API-Docs, Entwicklerhandbücher</li>
+</ul>
+<h4 id="2-rails-app-pages">2. Rails-App (pages/)<a class="headerlink" href="#2-rails-app-pages" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>Zweck</strong>: Dynamische Inhalte für die Carambus-Web-App</li>
+<li><strong>Verzeichnis</strong>: <code>pages/</code></li>
+<li><strong>Build</strong>: Über Rails-Models und Controller</li>
+<li><strong>Zugriff</strong>: Über die Carambus-Web-App selbst</li>
+<li><strong>Inhalt</strong>: Benutzerhandbücher, Anleitungen, Marketing-Inhalte</li>
+</ul>
+<h3 id="identifizierte-duplikate">Identifizierte Duplikate<a class="headerlink" href="#identifizierte-duplikate" title="Permanent link">&para;</a></h3>
+<h4 id="gemeinsame-dateien-35-dateien">Gemeinsame Dateien (35 Dateien)<a class="headerlink" href="#gemeinsame-dateien-35-dateien" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>de/about.md, de/API.md, de/database_design.md, de/datenbank-partitionierung-und-synchronisierung.md
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>de/DEVELOPER_GUIDE.md, de/docker_installation.md, de/einzelturnierverwaltung.md
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>de/GETTING_STARTED_DEVELOPER.md, de/installation_overview.md, de/league.md
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>de/mkdocs_dokumentation.md, de/mode_switcher.md, de/README.md
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>de/table_reservation_heating_control.md, de/terms.md, de/tournament.md
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>de/verwaltung-von-ligaspieltagen.md, en/about.md, en/admin_roles.md
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>en/API.md, en/data_management.md, en/database_design.md, en/database_syncing.md
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>en/DEVELOPER_GUIDE.md, en/docker_installation.md, en/er_diagram.md
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>en/filter_popup_usage.md, en/game_plan_reconstruction.md, en/GETTING_STARTED_DEVELOPER.md
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>en/installation_overview.md, en/league.md, en/mkdocs_documentation.md
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>en/mode_switcher.md, en/paper_trail_optimization.md, en/privacy.md
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>en/README.md, en/region_tagging_cleanup_summary.md, en/scoreboard_autostart_setup.md
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>en/table_reservation_heating_control.md, en/terms.md, en/tournament.md
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>index.md
+</code></pre></div>
+<h4 id="nur-in-docs-14-dateien">Nur in docs/ (14 Dateien)<a class="headerlink" href="#nur-in-docs-14-dateien" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>changelog/CHANGELOG.de.md, changelog/CHANGELOG.md
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>de/admin_roles.md, de/data_management.md, de/er_diagram.md
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>de/filter_popup_usage.md, de/game_plan_reconstruction.md
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>de/paper_trail_optimization.md, de/privacy.md
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>de/region_tagging_cleanup_summary.md, de/scoreboard_autostart_setup.md
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>de/tischreservierung_heizungssteuerung.md, de/tournament_duplicate_handling.md
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>en/einzelturnierverwaltung.md
+</code></pre></div>
+<h4 id="nur-in-pages-1-datei">Nur in pages/ (1 Datei)<a class="headerlink" href="#nur-in-pages-1-datei" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>en/island25.md
+</code></pre></div>
+<h2 id="problem-analyse">Problem-Analyse<a class="headerlink" href="#problem-analyse" title="Permanent link">&para;</a></h2>
+<h3 id="hauptprobleme">Hauptprobleme<a class="headerlink" href="#hauptprobleme" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Duplikate</strong>: 35 Dateien existieren in beiden Verzeichnissen</li>
+<li><strong>Inkonsistenzen</strong>: Gleiche Inhalte können unterschiedlich sein</li>
+<li><strong>Wartungsaufwand</strong>: Änderungen müssen an zwei Stellen gemacht werden</li>
+<li><strong>Verwirrung</strong>: Entwickler wissen nicht, wo sie Dokumentation finden</li>
+<li><strong>SEO-Probleme</strong>: Doppelte Inhalte können zu Ranking-Problemen führen</li>
+</ol>
+<h3 id="ursachen">Ursachen<a class="headerlink" href="#ursachen" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Historische Entwicklung</strong>: Zwei Systeme sind parallel gewachsen</li>
+<li><strong>Unterschiedliche Ziele</strong>: Statische vs. dynamische Dokumentation</li>
+<li><strong>Fehlende Koordination</strong>: Keine klare Trennung der Verantwortlichkeiten</li>
+<li><strong>Automatische Generierung</strong>: Rails-App generiert automatisch Markdown-Dateien</li>
+</ol>
+<h2 id="losungsansatze">Lösungsansätze<a class="headerlink" href="#losungsansatze" title="Permanent link">&para;</a></h2>
+<h3 id="ansatz-1-vollstandige-konsolidierung-empfohlen">Ansatz 1: Vollständige Konsolidierung (Empfohlen)<a class="headerlink" href="#ansatz-1-vollstandige-konsolidierung-empfohlen" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Ziel</strong>: Ein einheitliches Dokumentationssystem</li>
+<li><strong>Methode</strong>: Alle Dokumentation in <code>docs/</code> konsolidieren</li>
+<li><strong>Vorteile</strong>: Keine Duplikate, einfache Wartung, klare Struktur</li>
+<li><strong>Nachteile</strong>: Höherer initialer Aufwand</li>
+</ul>
+<h3 id="ansatz-2-klare-trennung-der-verantwortlichkeiten">Ansatz 2: Klare Trennung der Verantwortlichkeiten<a class="headerlink" href="#ansatz-2-klare-trennung-der-verantwortlichkeiten" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Ziel</strong>: Zwei Systeme mit klaren Grenzen</li>
+<li><strong>Methode</strong>: </li>
+<li><code>docs/</code>: Technische Dokumentation, API-Docs, Entwicklerhandbücher</li>
+<li><code>pages/</code>: Benutzerhandbücher, Anleitungen, Marketing-Inhalte</li>
+<li><strong>Vorteile</strong>: Behält beide Systeme bei, klare Trennung</li>
+<li><strong>Nachteile</strong>: Weiterhin zwei Systeme zu warten</li>
+</ul>
+<h3 id="ansatz-3-hybrid-losung">Ansatz 3: Hybrid-Lösung<a class="headerlink" href="#ansatz-3-hybrid-losung" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Ziel</strong>: Ein System mit zwei Ausgabekanälen</li>
+<li><strong>Methode</strong>: Einheitliche Quelle, verschiedene Build-Prozesse</li>
+<li><strong>Vorteile</strong>: Einheitliche Wartung, verschiedene Ausgaben</li>
+<li><strong>Nachteile</strong>: Komplexere Build-Prozesse</li>
+</ul>
+<h2 id="empfohlene-losung-ansatz-1-vollstandige-konsolidierung">Empfohlene Lösung: Ansatz 1 (Vollständige Konsolidierung)<a class="headerlink" href="#empfohlene-losung-ansatz-1-vollstandige-konsolidierung" title="Permanent link">&para;</a></h2>
+<h3 id="phase-1-analyse-und-planung-1-2-tage">Phase 1: Analyse und Planung (1-2 Tage)<a class="headerlink" href="#phase-1-analyse-und-planung-1-2-tage" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Inhaltsanalyse</strong>: Alle Duplikate vergleichen</li>
+<li><strong>Qualitätsbewertung</strong>: Beste Version identifizieren</li>
+<li><strong>Strukturplan</strong>: Neue Verzeichnisstruktur planen</li>
+<li><strong>Migration-Plan</strong>: Schritt-für-Schritt-Plan erstellen</li>
+</ol>
+<h3 id="phase-2-konsolidierung-3-5-tage">Phase 2: Konsolidierung (3-5 Tage)<a class="headerlink" href="#phase-2-konsolidierung-3-5-tage" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Beste Inhalte auswählen</strong>: Aus beiden Verzeichnissen</li>
+<li><strong>Neue Struktur erstellen</strong>: In <code>docs/</code></li>
+<li><strong>Inhalte zusammenführen</strong>: Duplikate eliminieren</li>
+<li><strong>Qualitätssicherung</strong>: Konsistenz prüfen</li>
+</ol>
+<h3 id="phase-3-rails-app-anpassen-2-3-tage">Phase 3: Rails-App anpassen (2-3 Tage)<a class="headerlink" href="#phase-3-rails-app-anpassen-2-3-tage" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Pages-Controller anpassen</strong>: Auf <code>docs/</code> verweisen</li>
+<li><strong>Routen aktualisieren</strong>: Neue Pfade definieren</li>
+<li><strong>Views anpassen</strong>: Neue Struktur berücksichtigen</li>
+<li><strong>Tests aktualisieren</strong>: Neue Pfade testen</li>
+</ol>
+<h3 id="phase-4-cleanup-1-2-tage">Phase 4: Cleanup (1-2 Tage)<a class="headerlink" href="#phase-4-cleanup-1-2-tage" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Alte Dateien entfernen</strong>: Aus <code>pages/</code></li>
+<li><strong>Symlinks erstellen</strong>: Für Abwärtskompatibilität</li>
+<li><strong>Dokumentation aktualisieren</strong>: Neue Struktur beschreiben</li>
+<li><strong>Team informieren</strong>: Über neue Struktur</li>
+</ol>
+<h2 id="neue-verzeichnisstruktur">Neue Verzeichnisstruktur<a class="headerlink" href="#neue-verzeichnisstruktur" title="Permanent link">&para;</a></h2>
+<h3 id="docs-einheitliches-dokumentationssystem">docs/ (Einheitliches Dokumentationssystem)<a class="headerlink" href="#docs-einheitliches-dokumentationssystem" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>docs/
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>├── index.md                    # Hauptseite
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>├── changelog/                  # Changelog-Dateien
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>│   ├── CHANGELOG.md
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>│   └── CHANGELOG.de.md
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>├── de/                         # Deutsche Dokumentation
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>│   ├── about.md               # Über Carambus
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>│   ├── README.md              # Haupt-README
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>│   ├── installation/          # Installation
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>│   │   ├── overview.md
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>│   │   └── docker.md
+<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>│   ├── user_guide/            # Benutzerhandbuch
+<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a>│   │   ├── tournament.md
+<a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a>│   │   ├── league.md
+<a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a>│   │   ├── table_reservation.md
+<a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a>│   │   └── scoreboard.md
+<a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a>│   ├── developer_guide/       # Entwicklerhandbuch
+<a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a>│   │   ├── getting_started.md
+<a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a>│   │   ├── api.md
+<a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a>│   │   ├── database_design.md
+<a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a>│   │   └── er_diagram.md
+<a id="__codelineno-3-22" name="__codelineno-3-22" href="#__codelineno-3-22"></a>│   └── reference/             # Referenz
+<a id="__codelineno-3-23" name="__codelineno-3-23" href="#__codelineno-3-23"></a>│       ├── terms.md
+<a id="__codelineno-3-24" name="__codelineno-3-24" href="#__codelineno-3-24"></a>│       └── privacy.md
+<a id="__codelineno-3-25" name="__codelineno-3-25" href="#__codelineno-3-25"></a>├── en/                         # Englische Dokumentation
+<a id="__codelineno-3-26" name="__codelineno-3-26" href="#__codelineno-3-26"></a>│   ├── about.md
+<a id="__codelineno-3-27" name="__codelineno-3-27" href="#__codelineno-3-27"></a>│   ├── README.md
+<a id="__codelineno-3-28" name="__codelineno-3-28" href="#__codelineno-3-28"></a>│   ├── installation/
+<a id="__codelineno-3-29" name="__codelineno-3-29" href="#__codelineno-3-29"></a>│   ├── user_guide/
+<a id="__codelineno-3-30" name="__codelineno-3-30" href="#__codelineno-3-30"></a>│   ├── developer_guide/
+<a id="__codelineno-3-31" name="__codelineno-3-31" href="#__codelineno-3-31"></a>│   └── reference/
+<a id="__codelineno-3-32" name="__codelineno-3-32" href="#__codelineno-3-32"></a>├── assets/                     # Gemeinsame Assets
+<a id="__codelineno-3-33" name="__codelineno-3-33" href="#__codelineno-3-33"></a>│   ├── images/
+<a id="__codelineno-3-34" name="__codelineno-3-34" href="#__codelineno-3-34"></a>│   ├── css/
+<a id="__codelineno-3-35" name="__codelineno-3-35" href="#__codelineno-3-35"></a>│   └── js/
+<a id="__codelineno-3-36" name="__codelineno-3-36" href="#__codelineno-3-36"></a>└── _templates/                 # MkDocs-Templates
+</code></pre></div>
+<h3 id="pages-nur-noch-fur-dynamische-inhalte">pages/ (Nur noch für dynamische Inhalte)<a class="headerlink" href="#pages-nur-noch-fur-dynamische-inhalte" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>pages/
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>├── index.md                    # Einfache Startseite
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>├── marketing/                  # Marketing-Inhalte
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>│   ├── features.md
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>│   └── pricing.md
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>└── dynamic/                    # Dynamisch generierte Inhalte
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>    └── user_generated/         # Benutzer-generierte Inhalte
+</code></pre></div>
+<h2 id="migration-schritte">Migration-Schritte<a class="headerlink" href="#migration-schritte" title="Permanent link">&para;</a></h2>
+<h3 id="schritt-1-backup-erstellen">Schritt 1: Backup erstellen<a class="headerlink" href="#schritt-1-backup-erstellen" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1"># Backup der aktuellen Struktur</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>cp<span class="w"> </span>-r<span class="w"> </span>docs<span class="w"> </span>docs_backup_<span class="k">$(</span>date<span class="w"> </span>+%Y%m%d<span class="k">)</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>cp<span class="w"> </span>-r<span class="w"> </span>pages<span class="w"> </span>pages_backup_<span class="k">$(</span>date<span class="w"> </span>+%Y%m%d<span class="k">)</span>
+</code></pre></div>
+<h3 id="schritt-2-neue-struktur-in-docs-erstellen">Schritt 2: Neue Struktur in docs/ erstellen<a class="headerlink" href="#schritt-2-neue-struktur-in-docs-erstellen" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># Neue Verzeichnisse erstellen</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>mkdir<span class="w"> </span>-p<span class="w"> </span>docs/<span class="o">{</span>installation,user_guide,developer_guide,reference,assets,_templates<span class="o">}</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="c1"># Beste Inhalte kopieren und organisieren</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="c1"># (Details je nach Analyse)</span>
+</code></pre></div>
+<h3 id="schritt-3-rails-app-anpassen">Schritt 3: Rails-App anpassen<a class="headerlink" href="#schritt-3-rails-app-anpassen" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1"># PagesController anpassen</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="k">class</span><span class="w"> </span><span class="nc">PagesController</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="no">ApplicationController</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">  </span><span class="k">def</span><span class="w"> </span><span class="nf">show</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">    </span><span class="c1"># Neue Logik für docs/-basierte Inhalte</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">    </span><span class="vi">@content</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">load_from_docs</span><span class="p">(</span><span class="n">params</span><span class="o">[</span><span class="ss">:id</span><span class="o">]</span><span class="p">)</span>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">  </span><span class="k">end</span>
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="w">  </span><span class="kp">private</span>
+<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>
+<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="w">  </span><span class="k">def</span><span class="w"> </span><span class="nf">load_from_docs</span><span class="p">(</span><span class="n">page_id</span><span class="p">)</span>
+<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="w">    </span><span class="c1"># Lade Inhalte aus docs/ Verzeichnis</span>
+<a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="w">    </span><span class="n">docs_path</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">Rails</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;docs&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;de&#39;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;</span><span class="si">#{</span><span class="n">page_id</span><span class="si">}</span><span class="s2">.md&quot;</span><span class="p">)</span>
+<a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a><span class="w">    </span><span class="no">File</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">docs_path</span><span class="p">)</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="no">File</span><span class="o">.</span><span class="n">exist?</span><span class="p">(</span><span class="n">docs_path</span><span class="p">)</span>
+<a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a><span class="w">  </span><span class="k">end</span>
+<a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a><span class="k">end</span>
+</code></pre></div>
+<h3 id="schritt-4-mkdocs-konfiguration-aktualisieren">Schritt 4: MkDocs-Konfiguration aktualisieren<a class="headerlink" href="#schritt-4-mkdocs-konfiguration-aktualisieren" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1"># mkdocs.yml aktualisieren</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="nt">docs_dir</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">docs</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="nt">nav</span><span class="p">:</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">Home</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">index.md</span>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">Installation</span><span class="p">:</span>
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">Overview</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">de/installation/overview.md</span>
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">Docker</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">de/installation/docker.md</span>
+<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">User Guide</span><span class="p">:</span>
+<a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">Tournament</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">de/user_guide/tournament.md</span>
+<a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">League</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">de/user_guide/league.md</span>
+<a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">Developer Guide</span><span class="p">:</span>
+<a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">Getting Started</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">de/developer_guide/getting_started.md</span>
+<a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">API</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">de/developer_guide/api.md</span>
+</code></pre></div>
+<h3 id="schritt-5-alte-dateien-entfernen">Schritt 5: Alte Dateien entfernen<a class="headerlink" href="#schritt-5-alte-dateien-entfernen" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1"># Duplikate aus pages/ entfernen</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="c1"># (Nach erfolgreicher Migration)</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="c1"># Symlinks für Abwärtskompatibilität</span>
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>ln<span class="w"> </span>-sf<span class="w"> </span>../docs/de/tournament.md<span class="w"> </span>pages/de/tournament.md
+</code></pre></div>
+<h2 id="qualitatssicherung">Qualitätssicherung<a class="headerlink" href="#qualitatssicherung" title="Permanent link">&para;</a></h2>
+<h3 id="konsistenz-checks">Konsistenz-Checks<a class="headerlink" href="#konsistenz-checks" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Inhaltsvergleich</strong>: Alle Duplikate auf Unterschiede prüfen</li>
+<li><strong>Format-Standards</strong>: Einheitliche Markdown-Formatierung</li>
+<li><strong>Sprachqualität</strong>: Deutsche und englische Versionen vergleichen</li>
+<li><strong>Link-Validierung</strong>: Alle internen Links prüfen</li>
+</ol>
+<h3 id="automatisierung">Automatisierung<a class="headerlink" href="#automatisierung" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>CI/CD-Pipeline</strong>: Automatische Builds und Tests</li>
+<li><strong>Link-Checker</strong>: Automatische Überprüfung aller Links</li>
+<li><strong>Format-Checker</strong>: Automatische Markdown-Formatierung</li>
+<li><strong>Duplikat-Detektor</strong>: Automatische Erkennung von Duplikaten</li>
+</ol>
+<h2 id="risiken-und-mitigation">Risiken und Mitigation<a class="headerlink" href="#risiken-und-mitigation" title="Permanent link">&para;</a></h2>
+<h3 id="risiken">Risiken<a class="headerlink" href="#risiken" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Verlust von Inhalten</strong>: Wichtige Inhalte könnten verloren gehen</li>
+<li><strong>Breaking Changes</strong>: Bestehende Links könnten nicht mehr funktionieren</li>
+<li><strong>Team-Verwirrung</strong>: Entwickler könnten sich in der neuen Struktur verlieren</li>
+<li><strong>Build-Probleme</strong>: MkDocs könnte nicht mehr funktionieren</li>
+</ol>
+<h3 id="mitigation">Mitigation<a class="headerlink" href="#mitigation" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Umfassende Backups</strong>: Alle Inhalte sichern</li>
+<li><strong>Symlinks</strong>: Abwärtskompatibilität gewährleisten</li>
+<li><strong>Dokumentation</strong>: Neue Struktur klar dokumentieren</li>
+<li><strong>Schrittweise Migration</strong>: Nicht alles auf einmal ändern</li>
+<li><strong>Tests</strong>: Jeden Schritt testen</li>
+</ol>
+<h2 id="erfolgsmetriken">Erfolgsmetriken<a class="headerlink" href="#erfolgsmetriken" title="Permanent link">&para;</a></h2>
+<h3 id="quantitative-metriken">Quantitative Metriken<a class="headerlink" href="#quantitative-metriken" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Duplikate eliminiert</strong>: Von 35 auf 0 reduzieren</li>
+<li><strong>Wartungsaufwand</strong>: Reduzierung um 50%</li>
+<li><strong>Build-Zeit</strong>: Reduzierung um 30%</li>
+<li><strong>Dateigröße</strong>: Reduzierung um 25%</li>
+</ol>
+<h3 id="qualitative-metriken">Qualitative Metriken<a class="headerlink" href="#qualitative-metriken" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Entwicklerzufriedenheit</strong>: Umfrage nach Migration</li>
+<li><strong>Dokumentationsqualität</strong>: Bewertung durch Review-Team</li>
+<li><strong>Benutzerfreundlichkeit</strong>: Feedback von Endbenutzern</li>
+<li><strong>Wartbarkeit</strong>: Einfachheit der Aktualisierung</li>
+</ol>
+<h2 id="zeitplan">Zeitplan<a class="headerlink" href="#zeitplan" title="Permanent link">&para;</a></h2>
+<h3 id="woche-1-analyse-und-planung">Woche 1: Analyse und Planung<a class="headerlink" href="#woche-1-analyse-und-planung" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Tag 1-2</strong>: Inhaltsanalyse und Duplikat-Identifikation</li>
+<li><strong>Tag 3-4</strong>: Strukturplanung und Migration-Plan</li>
+<li><strong>Tag 5</strong>: Team-Review und Genehmigung</li>
+</ul>
+<h3 id="woche-2-konsolidierung">Woche 2: Konsolidierung<a class="headerlink" href="#woche-2-konsolidierung" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Tag 1-3</strong>: Neue Struktur in docs/ erstellen</li>
+<li><strong>Tag 4-5</strong>: Inhalte zusammenführen und Qualitätssicherung</li>
+</ul>
+<h3 id="woche-3-rails-app-anpassen">Woche 3: Rails-App anpassen<a class="headerlink" href="#woche-3-rails-app-anpassen" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Tag 1-2</strong>: Pages-Controller und Routen anpassen</li>
+<li><strong>Tag 3-4</strong>: Views und Tests aktualisieren</li>
+<li><strong>Tag 5</strong>: Integrationstests</li>
+</ul>
+<h3 id="woche-4-cleanup-und-dokumentation">Woche 4: Cleanup und Dokumentation<a class="headerlink" href="#woche-4-cleanup-und-dokumentation" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Tag 1-2</strong>: Alte Dateien entfernen und Symlinks erstellen</li>
+<li><strong>Tag 3-4</strong>: Dokumentation aktualisieren</li>
+<li><strong>Tag 5</strong>: Team-Schulung und Go-Live</li>
+</ul>
+<h2 id="nachste-schritte">Nächste Schritte<a class="headerlink" href="#nachste-schritte" title="Permanent link">&para;</a></h2>
+<h3 id="sofort-diese-woche">Sofort (Diese Woche)<a class="headerlink" href="#sofort-diese-woche" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Team informieren</strong>: Über den Bereinigungsplan</li>
+<li><strong>Backup erstellen</strong>: Aktuelle Struktur sichern</li>
+<li><strong>Inhaltsanalyse starten</strong>: Erste Duplikate identifizieren</li>
+</ol>
+<h3 id="kurzfristig-nachste-2-wochen">Kurzfristig (Nächste 2 Wochen)<a class="headerlink" href="#kurzfristig-nachste-2-wochen" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Strukturplan finalisieren</strong>: Neue Verzeichnisstruktur definieren</li>
+<li><strong>Migration-Plan detaillieren</strong>: Schritt-für-Schritt-Anleitung</li>
+<li><strong>Team-Schulung planen</strong>: Über neue Struktur informieren</li>
+</ol>
+<h3 id="mittelfristig-nachste-4-wochen">Mittelfristig (Nächste 4 Wochen)<a class="headerlink" href="#mittelfristig-nachste-4-wochen" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Migration durchführen</strong>: Schrittweise Umsetzung</li>
+<li><strong>Tests durchführen</strong>: Alle Funktionen prüfen</li>
+<li><strong>Dokumentation aktualisieren</strong>: Neue Struktur beschreiben</li>
+</ol>
+<h3 id="langfristig-nachste-8-wochen">Langfristig (Nächste 8 Wochen)<a class="headerlink" href="#langfristig-nachste-8-wochen" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Automatisierung</strong>: CI/CD-Pipeline optimieren</li>
+<li><strong>Qualitätssicherung</strong>: Regelmäßige Checks einführen</li>
+<li><strong>Best Practices</strong>: Dokumentationsstandards etablieren</li>
+</ol>
+<h2 id="fazit">Fazit<a class="headerlink" href="#fazit" title="Permanent link">&para;</a></h2>
+<p>Die Bereinigung der Dokumentations-Duplikate ist ein wichtiger Schritt zur Verbesserung der Projektqualität. Obwohl der initiale Aufwand hoch ist, werden die langfristigen Vorteile die Kosten bei weitem übersteigen:</p>
+<ul>
+<li><strong>Reduzierter Wartungsaufwand</strong></li>
+<li><strong>Bessere Entwicklererfahrung</strong></li>
+<li><strong>Konsistentere Dokumentation</strong></li>
+<li><strong>Einfachere Onboarding-Prozesse</strong></li>
+</ul>
+<p>Mit dem empfohlenen Ansatz der vollständigen Konsolidierung können wir ein einheitliches, wartbares und benutzerfreundliches Dokumentationssystem schaffen.</p>
+<hr />
+<p><strong>Erstellt von</strong>: AI Assistant<br />
+<strong>Datum</strong>: 14. August 2025<br />
+<strong>Status</strong>: Planungsphase<br />
+<strong>Nächster Schritt</strong>: Team-Review und Genehmigung </p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        <div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/GernotUllrich/carambus" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="http://www.billardclub-wedel.de/" target="_blank" rel="noopener" title="www.billardclub-wedel.de" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M352 256c0 22.2-1.2 43.6-3.3 64H163.4c-2.2-20.4-3.3-41.8-3.3-64s1.2-43.6 3.3-64h185.3c2.2 20.4 3.3 41.8 3.3 64m28.8-64h123.1c5.3 20.5 8.1 41.9 8.1 64s-2.8 43.5-8.1 64H380.8c2.1-20.6 3.2-42 3.2-64s-1.1-43.4-3.2-64m112.6-32H376.7c-10-63.9-29.8-117.4-55.3-151.6 78.3 20.7 142 77.5 171.9 151.6zm-149.1 0H167.7c6.1-36.4 15.5-68.6 27-94.7 10.5-23.6 22.2-40.7 33.5-51.5C239.4 3.2 248.7 0 256 0s16.6 3.2 27.8 13.8c11.3 10.8 23 27.9 33.5 51.5 11.6 26 20.9 58.2 27 94.7m-209 0H18.6c30-74.1 93.6-130.9 172-151.6-25.5 34.2-45.3 87.7-55.3 151.6M8.1 192h123.1c-2.1 20.6-3.2 42-3.2 64s1.1 43.4 3.2 64H8.1C2.8 299.5 0 278.1 0 256s2.8-43.5 8.1-64m186.6 254.6c-11.6-26-20.9-58.2-27-94.6h176.6c-6.1 36.4-15.5 68.6-27 94.6-10.5 23.6-22.2 40.7-33.5 51.5-11.2 10.7-20.5 13.9-27.8 13.9s-16.6-3.2-27.8-13.8c-11.3-10.8-23-27.9-33.5-51.5zM135.3 352c10 63.9 29.8 117.4 55.3 151.6-78.4-20.7-142-77.5-172-151.6zm358.1 0c-30 74.1-93.6 130.9-171.9 151.6 25.5-34.2 45.2-87.7 55.3-151.6h116.7z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../../../../..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.indexes", "search.suggest", "search.highlight", "header.autohide", "toc.follow"], "search": "../../../../../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../../../../../assets/javascripts/bundle.56ea9cef.min.js"></script>
+      
+        <script src="../../../../../javascripts/mathjax.js"></script>
+      
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>

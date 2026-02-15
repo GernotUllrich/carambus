@@ -1,0 +1,3863 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Comprehensive documentation for Carambus - Professional billiards tournament management system">
+      
+      
+      
+        <link rel="canonical" href="https://GernotUllrich.github.io/carambus/en/decision-makers/features-overview/">
+      
+      
+        <link rel="prev" href="../executive-summary/">
+      
+      
+        <link rel="next" href="../deployment-options/">
+      
+      
+      <link rel="icon" href="../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.15">
+    
+    
+      
+        <title>Features Overview - Carambus Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.342714a4.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#features-overview-carambus" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../" title="Carambus Documentation" class="md-header__button md-logo" aria-label="Carambus Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Carambus Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Features Overview
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+      <div class="md-header__option">
+  <div class="md-select">
+    
+    <button class="md-header__button md-icon" aria-label="Select language">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
+    </button>
+    <div class="md-select__inner">
+      <ul class="md-select__list">
+        
+          <li class="md-select__item">
+            <a href="../../../decision-makers/features-overview/" hreflang="de" class="md-select__link">
+              Deutsch
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="./" hreflang="en" class="md-select__link">
+              English
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</div>
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/GernotUllrich/carambus" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GernotUllrich/carambus
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Decision Makers
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../players/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Players
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../managers/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Managers
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../administrators/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Administrators
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../developers/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Developers
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../reference/API/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../about/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  About
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../" title="Carambus Documentation" class="md-nav__button md-logo" aria-label="Carambus Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Carambus Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/GernotUllrich/carambus" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GernotUllrich/carambus
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Decision Makers
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2" id="__nav_2_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Decision Makers
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../executive-summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Executive Summary
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Features Overview
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    Features Overview
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#tournament-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      🎯 Tournament Management
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🎯 Tournament Management">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#automatic-match-schedule-creation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Automatic Match Schedule Creation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tournament-formats" class="md-nav__link">
+    <span class="md-ellipsis">
+      Tournament Formats
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#live-result-recording" class="md-nav__link">
+    <span class="md-ellipsis">
+      Live Result Recording
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#league-championship-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      📊 League &amp; Championship Management
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📊 League &amp; Championship Management">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#league-match-days" class="md-nav__link">
+    <span class="md-ellipsis">
+      League Match Days
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rankings" class="md-nav__link">
+    <span class="md-ellipsis">
+      Rankings
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#clubcloud-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      ClubCloud Integration
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#display-solutions" class="md-nav__link">
+    <span class="md-ellipsis">
+      🖥️ Display Solutions
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🖥️ Display Solutions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#live-scoreboards" class="md-nav__link">
+    <span class="md-ellipsis">
+      Live Scoreboards
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tournament-monitor" class="md-nav__link">
+    <span class="md-ellipsis">
+      Tournament Monitor
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#party-monitor-league-match-days" class="md-nav__link">
+    <span class="md-ellipsis">
+      Party Monitor (League Match Days)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#search-navigation" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔍 Search &amp; Navigation
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔍 Search &amp; Navigation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ai-powered-search" class="md-nav__link">
+    <span class="md-ellipsis">
+      AI-Powered Search
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#classic-search" class="md-nav__link">
+    <span class="md-ellipsis">
+      Classic Search
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#table-reservation" class="md-nav__link">
+    <span class="md-ellipsis">
+      📅 Table Reservation
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📅 Table Reservation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#online-booking-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      Online Booking System
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#heating-control" class="md-nav__link">
+    <span class="md-ellipsis">
+      Heating Control
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#user-management-permissions" class="md-nav__link">
+    <span class="md-ellipsis">
+      👥 User Management &amp; Permissions
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="👥 User Management &amp; Permissions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#role-concept" class="md-nav__link">
+    <span class="md-ellipsis">
+      Role Concept
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fine-grained-permissions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Fine-Grained Permissions
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#self-service-portal" class="md-nav__link">
+    <span class="md-ellipsis">
+      Self-Service Portal
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#statistics-analytics" class="md-nav__link">
+    <span class="md-ellipsis">
+      📈 Statistics &amp; Analytics
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📈 Statistics &amp; Analytics">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#player-statistics" class="md-nav__link">
+    <span class="md-ellipsis">
+      Player Statistics
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tournament-statistics" class="md-nav__link">
+    <span class="md-ellipsis">
+      Tournament Statistics
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#club-statistics" class="md-nav__link">
+    <span class="md-ellipsis">
+      Club Statistics
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#export-reports" class="md-nav__link">
+    <span class="md-ellipsis">
+      Export &amp; Reports
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#administration-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔧 Administration &amp; Configuration
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔧 Administration &amp; Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#system-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      System Settings
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tournament-templates" class="md-nav__link">
+    <span class="md-ellipsis">
+      Tournament Templates
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#data-importexport" class="md-nav__link">
+    <span class="md-ellipsis">
+      Data Import/Export
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#history-tracking-paper-trail" class="md-nav__link">
+    <span class="md-ellipsis">
+      History Tracking (Paper Trail)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#security-privacy" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔐 Security &amp; Privacy
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔐 Security &amp; Privacy">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#authentication" class="md-nav__link">
+    <span class="md-ellipsis">
+      Authentication
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#data-protection-gdpr" class="md-nav__link">
+    <span class="md-ellipsis">
+      Data Protection (GDPR)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#encryption" class="md-nav__link">
+    <span class="md-ellipsis">
+      Encryption
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mobile-responsive" class="md-nav__link">
+    <span class="md-ellipsis">
+      📱 Mobile &amp; Responsive
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📱 Mobile &amp; Responsive">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#responsive-design" class="md-nav__link">
+    <span class="md-ellipsis">
+      Responsive Design
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#progressive-web-app-pwa" class="md-nav__link">
+    <span class="md-ellipsis">
+      Progressive Web App (PWA)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#performance-scalability" class="md-nav__link">
+    <span class="md-ellipsis">
+      🚀 Performance &amp; Scalability
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🚀 Performance &amp; Scalability">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#optimized-performance" class="md-nav__link">
+    <span class="md-ellipsis">
+      Optimized Performance
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scalability" class="md-nav__link">
+    <span class="md-ellipsis">
+      Scalability
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#integration-extensibility" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔌 Integration &amp; Extensibility
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔌 Integration &amp; Extensibility">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#api" class="md-nav__link">
+    <span class="md-ellipsis">
+      API
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#webhooks" class="md-nav__link">
+    <span class="md-ellipsis">
+      Webhooks
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#extensions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Extensions
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#training-documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      🎓 Training &amp; Documentation
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🎓 Training &amp; Documentation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#comprehensive-documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Comprehensive Documentation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#multilingual" class="md-nav__link">
+    <span class="md-ellipsis">
+      Multilingual
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#support-channels" class="md-nav__link">
+    <span class="md-ellipsis">
+      Support Channels
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#innovative-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      💡 Innovative Features
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="💡 Innovative Features">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#automatic-match-recognition" class="md-nav__link">
+    <span class="md-ellipsis">
+      Automatic Match Recognition
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ai-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      AI Functions
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#social-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      Social Features
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#roadmap-planned-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      Roadmap: Planned Features
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Roadmap: Planned Features">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#short-term-3-6-months" class="md-nav__link">
+    <span class="md-ellipsis">
+      Short Term (3-6 months)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#medium-term-6-12-months" class="md-nav__link">
+    <span class="md-ellipsis">
+      Medium Term (6-12 months)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#long-term-12-months" class="md-nav__link">
+    <span class="md-ellipsis">
+      Long Term (12+ months)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../deployment-options/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Deployment Options
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../players/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Players
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Players
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../players/scoreboard-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scoreboard Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../players/tournament-participation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tournament Participation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../players/ai-search/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    AI-Powered Search
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../managers/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Managers
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Managers
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../managers/tournament-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tournament Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../managers/league-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    League Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../managers/single-tournament/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Single Tournament
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../managers/table-reservation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Table Reservation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../managers/admin-roles/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Admin Roles
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../managers/clubcloud-integration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    ClubCloud Integration
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../managers/search-filters/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Search & Filters
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../administrators/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Administrators
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5" id="__nav_5_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Administrators
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administrators/installation-overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Installation Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administrators/raspberry-pi-quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Raspberry Pi Quickstart
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administrators/raspberry-pi-client/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Raspberry Pi Client
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administrators/scoreboard-autostart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scoreboard Autostart
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administrators/server-architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Server Architecture
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administrators/email-configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Email Configuration
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administrators/database-setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Database Setup
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administrators/streaming-quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    YouTube Streaming Quickstart
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administrators/streaming-setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    YouTube Streaming Setup
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../developers/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Developers
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_6" id="__nav_6_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            Developers
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Getting Started
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/developer-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Developer Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/database-design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Database Design
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/er-diagram/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    ER Diagram
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/API/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    API Reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/scenario-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scenario Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/rake-tasks-debugging/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Testing & Debugging
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/deployment-workflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Deployment Workflow
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/data-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Data Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/database-partitioning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Database Partitioning
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/paper-trail-optimization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Paper Trail Optimization
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/game-plan-reconstruction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Game Plan Reconstruction
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/tournament-duplicate-handling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tournament Duplicates
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/region-tagging-cleanup-summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Region Tagging
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/streaming-architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    YouTube Streaming Architecture
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/pool-scoreboard-changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Pool Scoreboard Changelog
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Reference
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            Reference
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/API/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    API Reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/glossary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Glossary
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/terms/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Terms
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/privacy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Privacy
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/config-lock-files/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Config Lock Files
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/search/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Search
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/mkdocs_dokumentation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    MkDocs
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    About
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            About
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../about/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    About
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#tournament-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      🎯 Tournament Management
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🎯 Tournament Management">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#automatic-match-schedule-creation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Automatic Match Schedule Creation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tournament-formats" class="md-nav__link">
+    <span class="md-ellipsis">
+      Tournament Formats
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#live-result-recording" class="md-nav__link">
+    <span class="md-ellipsis">
+      Live Result Recording
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#league-championship-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      📊 League &amp; Championship Management
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📊 League &amp; Championship Management">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#league-match-days" class="md-nav__link">
+    <span class="md-ellipsis">
+      League Match Days
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rankings" class="md-nav__link">
+    <span class="md-ellipsis">
+      Rankings
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#clubcloud-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      ClubCloud Integration
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#display-solutions" class="md-nav__link">
+    <span class="md-ellipsis">
+      🖥️ Display Solutions
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🖥️ Display Solutions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#live-scoreboards" class="md-nav__link">
+    <span class="md-ellipsis">
+      Live Scoreboards
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tournament-monitor" class="md-nav__link">
+    <span class="md-ellipsis">
+      Tournament Monitor
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#party-monitor-league-match-days" class="md-nav__link">
+    <span class="md-ellipsis">
+      Party Monitor (League Match Days)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#search-navigation" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔍 Search &amp; Navigation
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔍 Search &amp; Navigation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ai-powered-search" class="md-nav__link">
+    <span class="md-ellipsis">
+      AI-Powered Search
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#classic-search" class="md-nav__link">
+    <span class="md-ellipsis">
+      Classic Search
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#table-reservation" class="md-nav__link">
+    <span class="md-ellipsis">
+      📅 Table Reservation
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📅 Table Reservation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#online-booking-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      Online Booking System
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#heating-control" class="md-nav__link">
+    <span class="md-ellipsis">
+      Heating Control
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#user-management-permissions" class="md-nav__link">
+    <span class="md-ellipsis">
+      👥 User Management &amp; Permissions
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="👥 User Management &amp; Permissions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#role-concept" class="md-nav__link">
+    <span class="md-ellipsis">
+      Role Concept
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fine-grained-permissions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Fine-Grained Permissions
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#self-service-portal" class="md-nav__link">
+    <span class="md-ellipsis">
+      Self-Service Portal
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#statistics-analytics" class="md-nav__link">
+    <span class="md-ellipsis">
+      📈 Statistics &amp; Analytics
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📈 Statistics &amp; Analytics">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#player-statistics" class="md-nav__link">
+    <span class="md-ellipsis">
+      Player Statistics
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tournament-statistics" class="md-nav__link">
+    <span class="md-ellipsis">
+      Tournament Statistics
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#club-statistics" class="md-nav__link">
+    <span class="md-ellipsis">
+      Club Statistics
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#export-reports" class="md-nav__link">
+    <span class="md-ellipsis">
+      Export &amp; Reports
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#administration-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔧 Administration &amp; Configuration
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔧 Administration &amp; Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#system-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      System Settings
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tournament-templates" class="md-nav__link">
+    <span class="md-ellipsis">
+      Tournament Templates
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#data-importexport" class="md-nav__link">
+    <span class="md-ellipsis">
+      Data Import/Export
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#history-tracking-paper-trail" class="md-nav__link">
+    <span class="md-ellipsis">
+      History Tracking (Paper Trail)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#security-privacy" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔐 Security &amp; Privacy
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔐 Security &amp; Privacy">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#authentication" class="md-nav__link">
+    <span class="md-ellipsis">
+      Authentication
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#data-protection-gdpr" class="md-nav__link">
+    <span class="md-ellipsis">
+      Data Protection (GDPR)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#encryption" class="md-nav__link">
+    <span class="md-ellipsis">
+      Encryption
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mobile-responsive" class="md-nav__link">
+    <span class="md-ellipsis">
+      📱 Mobile &amp; Responsive
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📱 Mobile &amp; Responsive">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#responsive-design" class="md-nav__link">
+    <span class="md-ellipsis">
+      Responsive Design
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#progressive-web-app-pwa" class="md-nav__link">
+    <span class="md-ellipsis">
+      Progressive Web App (PWA)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#performance-scalability" class="md-nav__link">
+    <span class="md-ellipsis">
+      🚀 Performance &amp; Scalability
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🚀 Performance &amp; Scalability">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#optimized-performance" class="md-nav__link">
+    <span class="md-ellipsis">
+      Optimized Performance
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scalability" class="md-nav__link">
+    <span class="md-ellipsis">
+      Scalability
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#integration-extensibility" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔌 Integration &amp; Extensibility
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔌 Integration &amp; Extensibility">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#api" class="md-nav__link">
+    <span class="md-ellipsis">
+      API
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#webhooks" class="md-nav__link">
+    <span class="md-ellipsis">
+      Webhooks
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#extensions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Extensions
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#training-documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      🎓 Training &amp; Documentation
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🎓 Training &amp; Documentation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#comprehensive-documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Comprehensive Documentation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#multilingual" class="md-nav__link">
+    <span class="md-ellipsis">
+      Multilingual
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#support-channels" class="md-nav__link">
+    <span class="md-ellipsis">
+      Support Channels
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#innovative-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      💡 Innovative Features
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="💡 Innovative Features">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#automatic-match-recognition" class="md-nav__link">
+    <span class="md-ellipsis">
+      Automatic Match Recognition
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ai-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      AI Functions
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#social-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      Social Features
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#roadmap-planned-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      Roadmap: Planned Features
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Roadmap: Planned Features">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#short-term-3-6-months" class="md-nav__link">
+    <span class="md-ellipsis">
+      Short Term (3-6 months)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#medium-term-6-12-months" class="md-nav__link">
+    <span class="md-ellipsis">
+      Medium Term (6-12 months)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#long-term-12-months" class="md-nav__link">
+    <span class="md-ellipsis">
+      Long Term (12+ months)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="features-overview-carambus">Features Overview: Carambus<a class="headerlink" href="#features-overview-carambus" title="Permanent link">&para;</a></h1>
+<p>A comprehensive overview of all features of the Carambus billiards tournament management system.</p>
+<h2 id="tournament-management">🎯 Tournament Management<a class="headerlink" href="#tournament-management" title="Permanent link">&para;</a></h2>
+<h3 id="automatic-match-schedule-creation">Automatic Match Schedule Creation<a class="headerlink" href="#automatic-match-schedule-creation" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Multiple Tournament Modes</strong>:</li>
+<li>Round Robin (Everyone vs Everyone)</li>
+<li>Knockout System (Single/Double Elimination)</li>
+<li>Swiss System</li>
+<li>Group Phases with Knockout Round</li>
+<li><strong>Flexible Configuration</strong>:</li>
+<li>Adjustable number of rounds</li>
+<li>Automatic table rotation</li>
+<li>Break planning</li>
+<li>Configurable match times</li>
+<li><strong>Intelligent Match Pairings</strong>: Automatic optimization based on table availability and player preferences</li>
+</ul>
+<p><strong>Benefit</strong>: Saves 80-90% of time compared to manual schedule creation</p>
+<h3 id="tournament-formats">Tournament Formats<a class="headerlink" href="#tournament-formats" title="Permanent link">&para;</a></h3>
+<h4 id="carom-tournaments">Carom Tournaments<a class="headerlink" href="#carom-tournaments" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>Disciplines</strong>: Straight Rail, Cadre 47/1, Cadre 47/2, Cadre 71/2, One-Cushion, Three-Cushion</li>
+<li><strong>Flexible Distances</strong>: Freely configurable point targets</li>
+<li><strong>Innings Tracking</strong>: Automatic calculation of average (GD)</li>
+<li><strong>High Run</strong>: Recording and display of best run</li>
+</ul>
+<h4 id="pool-tournaments">Pool Tournaments<a class="headerlink" href="#pool-tournaments" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>Disciplines</strong>: 8-Ball, 9-Ball, 10-Ball, Straight Pool</li>
+<li><strong>Best-of Modes</strong>: e.g., Best-of-5, Best-of-7</li>
+<li><strong>Race-to Modes</strong>: e.g., Race-to-9</li>
+<li><strong>Alternating Break</strong>: Automatic management</li>
+<li><strong>Ball-in-hand</strong>: Foul system support</li>
+</ul>
+<h4 id="snooker-tournaments">Snooker Tournaments<a class="headerlink" href="#snooker-tournaments" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>Frames System</strong>: Best-of-Frames mode</li>
+<li><strong>Frame Scores</strong>: Detailed point recording per frame</li>
+<li><strong>Re-spotted Black</strong>: Support for tied frames</li>
+<li><strong>Century Breaks</strong>: Highlighting of 100+ point breaks</li>
+</ul>
+<h3 id="live-result-recording">Live Result Recording<a class="headerlink" href="#live-result-recording" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Multiple Input Methods</strong>:</li>
+<li>Desktop interface for tournament managers</li>
+<li>Tablet interface for referees</li>
+<li>Touch scoreboard directly at the table</li>
+<li><strong>Real-time Synchronization</strong>: All devices update automatically</li>
+<li><strong>Offline Capability</strong>: Local recording during connection issues</li>
+<li><strong>Error Correction</strong>: Easy reset for input errors</li>
+</ul>
+<h2 id="league-championship-management">📊 League &amp; Championship Management<a class="headerlink" href="#league-championship-management" title="Permanent link">&para;</a></h2>
+<h3 id="league-match-days">League Match Days<a class="headerlink" href="#league-match-days" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Season Management</strong>: Multiple seasons in parallel</li>
+<li><strong>Group Management</strong>: Automatic table creation</li>
+<li><strong>Match Day Planning</strong>: Home/away match logic</li>
+<li><strong>Team Competitions</strong>: Team lineups and team rankings</li>
+</ul>
+<h3 id="rankings">Rankings<a class="headerlink" href="#rankings" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Automatic Calculation</strong>: Points, quotients, head-to-head</li>
+<li><strong>Historical Data</strong>: Season-spanning statistics</li>
+<li><strong>Export Functions</strong>: PDF, CSV for publication</li>
+</ul>
+<h3 id="clubcloud-integration">ClubCloud Integration<a class="headerlink" href="#clubcloud-integration" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Automatic Import</strong>: Tournaments and player data from DBU ClubCloud</li>
+<li><strong>Bidirectional Synchronization</strong>: Push results back</li>
+<li><strong>License Validation</strong>: Automatic verification of playing eligibility</li>
+<li><strong>Mapping Management</strong>: Assignment of local players to ClubCloud IDs</li>
+</ul>
+<p><strong>Benefit</strong>: Eliminates manual data entry and transfer errors</p>
+<h2 id="display-solutions">🖥️ Display Solutions<a class="headerlink" href="#display-solutions" title="Permanent link">&para;</a></h2>
+<h3 id="live-scoreboards">Live Scoreboards<a class="headerlink" href="#live-scoreboards" title="Permanent link">&para;</a></h3>
+<h4 id="carom-scoreboard">Carom Scoreboard<a class="headerlink" href="#carom-scoreboard" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>Large, Readable Display</strong>:</li>
+<li>Player names</li>
+<li>Current score</li>
+<li>Innings and average</li>
+<li>High run</li>
+<li>Remaining points (distance minus achieved points)</li>
+<li><strong>Animations</strong>: Smooth transitions on score changes</li>
+<li><strong>Timeout Display</strong>: Countdown for thinking time</li>
+<li><strong>Foul Display</strong>: Clear marking of fouls</li>
+</ul>
+<h4 id="pool-scoreboard">Pool Scoreboard<a class="headerlink" href="#pool-scoreboard" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>Game Score</strong>: Total games won</li>
+<li><strong>Rack Display</strong>: Current game visualized</li>
+<li><strong>Break Indicator</strong>: Who has the break</li>
+<li><strong>Ball Tracking</strong>: Which balls were pocketed</li>
+<li><strong>Foul System</strong>: Automatic ball-in-hand</li>
+</ul>
+<h4 id="snooker-scoreboard">Snooker Scoreboard<a class="headerlink" href="#snooker-scoreboard" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>Frame Overview</strong>: Total frames and current frame</li>
+<li><strong>Break Counter</strong>: Running series in current break</li>
+<li><strong>Balls Remaining</strong>: Remaining points on the table</li>
+<li><strong>Colors Display</strong>: Which colors still in play</li>
+<li><strong>Re-spotted Black</strong>: Special display for decider</li>
+</ul>
+<h3 id="tournament-monitor">Tournament Monitor<a class="headerlink" href="#tournament-monitor" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Current Matches</strong>: All running matches at a glance</li>
+<li><strong>Table Standings</strong>: Live rankings</li>
+<li><strong>Next Round</strong>: Preview of upcoming pairings</li>
+<li><strong>Results</strong>: Completed matches</li>
+<li><strong>Responsive Design</strong>: Optimized for TV, projector, tablet</li>
+</ul>
+<h3 id="party-monitor-league-match-days">Party Monitor (League Match Days)<a class="headerlink" href="#party-monitor-league-match-days" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Group Overview</strong>: All tables and pairings</li>
+<li><strong>Overall Table</strong>: Team standings</li>
+<li><strong>Statistics</strong>: Team performances at a glance</li>
+<li><strong>Countdown</strong>: Time until match day end</li>
+</ul>
+<p><strong>Benefit</strong>: Professional presentation, increased spectator appeal</p>
+<h2 id="search-navigation">🔍 Search &amp; Navigation<a class="headerlink" href="#search-navigation" title="Permanent link">&para;</a></h2>
+<h3 id="ai-powered-search">AI-Powered Search<a class="headerlink" href="#ai-powered-search" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Natural Language Queries</strong>:</li>
+<li>"Show me all matches by Miller last month"</li>
+<li>"Who won the tournament in 2023?"</li>
+<li>"Highest average in the season"</li>
+<li><strong>Intelligent Filters</strong>: Automatic recognition of search intent</li>
+<li><strong>Quick Answers</strong>: Direct result display without navigation</li>
+</ul>
+<h3 id="classic-search">Classic Search<a class="headerlink" href="#classic-search" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Full-Text Search</strong>: Across all players, tournaments, clubs</li>
+<li><strong>Advanced Filters</strong>:</li>
+<li>Time period</li>
+<li>Discipline</li>
+<li>Venue</li>
+<li>Tournament type</li>
+<li><strong>Saved Searches</strong>: Save frequently used filters</li>
+</ul>
+<h2 id="table-reservation">📅 Table Reservation<a class="headerlink" href="#table-reservation" title="Permanent link">&para;</a></h2>
+<h3 id="online-booking-system">Online Booking System<a class="headerlink" href="#online-booking-system" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Calendar View</strong>: Clear display of available times</li>
+<li><strong>Member Login</strong>: Personalized bookings</li>
+<li><strong>Email Confirmation</strong>: Automatic booking confirmation</li>
+<li><strong>Cancellation</strong>: Self-service cancellation by members</li>
+<li><strong>Recurring Bookings</strong>: For training times</li>
+</ul>
+<h3 id="heating-control">Heating Control<a class="headerlink" href="#heating-control" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Automatic Preheating</strong>: Warm up tables before booking start</li>
+<li><strong>Energy Optimization</strong>: Heating only during actual use</li>
+<li><strong>Manual Control</strong>: Override for special cases</li>
+<li><strong>Integration</strong>: Direct connection to existing heating control</li>
+</ul>
+<p><strong>Benefit</strong>: Reduces energy costs by up to 40%, increases comfort</p>
+<h2 id="user-management-permissions">👥 User Management &amp; Permissions<a class="headerlink" href="#user-management-permissions" title="Permanent link">&para;</a></h2>
+<h3 id="role-concept">Role Concept<a class="headerlink" href="#role-concept" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Super Admin</strong>: Full system control</li>
+<li><strong>Club Admin</strong>: Club management</li>
+<li><strong>Tournament Manager</strong>: Tournament administration</li>
+<li><strong>Referee</strong>: Result recording</li>
+<li><strong>Member</strong>: Player with access to own data</li>
+<li><strong>Guest</strong>: Read-only access</li>
+</ul>
+<h3 id="fine-grained-permissions">Fine-Grained Permissions<a class="headerlink" href="#fine-grained-permissions" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Tournament-Based</strong>: Assign permissions per tournament</li>
+<li><strong>Club-Based</strong>: Access to club data</li>
+<li><strong>Function-Based</strong>: Specific rights (e.g., result recording only)</li>
+</ul>
+<h3 id="self-service-portal">Self-Service Portal<a class="headerlink" href="#self-service-portal" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Player Profile</strong>: Maintain own data</li>
+<li><strong>Match History</strong>: View personal statistics</li>
+<li><strong>Registration</strong>: Sign up for tournaments</li>
+<li><strong>Notifications</strong>: Email for important events</li>
+</ul>
+<h2 id="statistics-analytics">📈 Statistics &amp; Analytics<a class="headerlink" href="#statistics-analytics" title="Permanent link">&para;</a></h2>
+<h3 id="player-statistics">Player Statistics<a class="headerlink" href="#player-statistics" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Overall Record</strong>: Wins/losses across all tournaments</li>
+<li><strong>Averages</strong>: GD (General Average) over time</li>
+<li><strong>Best Performances</strong>: High runs, best GDs</li>
+<li><strong>Development Curve</strong>: Graphical display of performance</li>
+<li><strong>Head-to-Head</strong>: Direct comparisons with other players</li>
+</ul>
+<h3 id="tournament-statistics">Tournament Statistics<a class="headerlink" href="#tournament-statistics" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Participant Overview</strong>: Demographic data</li>
+<li><strong>Performance Distribution</strong>: Averages, high runs</li>
+<li><strong>Match Duration Analysis</strong>: Average match duration</li>
+<li><strong>Table Utilization</strong>: Efficiency of match planning</li>
+</ul>
+<h3 id="club-statistics">Club Statistics<a class="headerlink" href="#club-statistics" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Member Activity</strong>: Tournament participations per member</li>
+<li><strong>Utilization</strong>: Table occupancy over time</li>
+<li><strong>League Performance</strong>: Club performance in leagues</li>
+<li><strong>Revenue</strong>: Bookings and income (for guest play operations)</li>
+</ul>
+<h3 id="export-reports">Export &amp; Reports<a class="headerlink" href="#export-reports" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>PDF Generation</strong>: Professional tournament reports</li>
+<li><strong>CSV Export</strong>: For external analysis (Excel)</li>
+<li><strong>API Access</strong>: Programmatic access to statistics</li>
+<li><strong>Automatic Reports</strong>: Periodic email reports</li>
+</ul>
+<h2 id="administration-configuration">🔧 Administration &amp; Configuration<a class="headerlink" href="#administration-configuration" title="Permanent link">&para;</a></h2>
+<h3 id="system-settings">System Settings<a class="headerlink" href="#system-settings" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Basic Data</strong>: Club name, logo, contact details</li>
+<li><strong>Email Configuration</strong>: SMTP server, sender</li>
+<li><strong>Language &amp; Localization</strong>: German/English, timezone</li>
+<li><strong>Backup Settings</strong>: Automatic backups</li>
+<li><strong>Maintenance Mode</strong>: Temporarily disable system</li>
+</ul>
+<h3 id="tournament-templates">Tournament Templates<a class="headerlink" href="#tournament-templates" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Predefined Formats</strong>: Save frequently used tournament setups</li>
+<li><strong>Reusable</strong>: Quick tournament creation</li>
+<li><strong>Customizable</strong>: Edit and extend templates</li>
+</ul>
+<h3 id="data-importexport">Data Import/Export<a class="headerlink" href="#data-importexport" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>CSV Import</strong>: Player data, tournament results</li>
+<li><strong>Bulk Operations</strong>: Change multiple records simultaneously</li>
+<li><strong>Backup/Restore</strong>: Complete database backup</li>
+</ul>
+<h3 id="history-tracking-paper-trail">History Tracking (Paper Trail)<a class="headerlink" href="#history-tracking-paper-trail" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Complete Change History</strong>: Who changed what when</li>
+<li><strong>Rollback Function</strong>: Undo accidental changes</li>
+<li><strong>Audit Security</strong>: Traceability for federation tournaments</li>
+</ul>
+<h2 id="security-privacy">🔐 Security &amp; Privacy<a class="headerlink" href="#security-privacy" title="Permanent link">&para;</a></h2>
+<h3 id="authentication">Authentication<a class="headerlink" href="#authentication" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Secure Password Storage</strong>: bcrypt hashing</li>
+<li><strong>Session Management</strong>: Automatic timeout</li>
+<li><strong>Two-Factor Authentication</strong>: Optionally activatable</li>
+<li><strong>OAuth Integration</strong>: Login via Google/Facebook (optional)</li>
+</ul>
+<h3 id="data-protection-gdpr">Data Protection (GDPR)<a class="headerlink" href="#data-protection-gdpr" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Data Minimization</strong>: Only necessary data is collected</li>
+<li><strong>Consent</strong>: Explicit agreement during registration</li>
+<li><strong>Deletion Function</strong>: Player data can be deleted</li>
+<li><strong>Data Export</strong>: Players can export their data</li>
+<li><strong>Anonymization</strong>: Anonymize old tournaments</li>
+</ul>
+<h3 id="encryption">Encryption<a class="headerlink" href="#encryption" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>HTTPS/TLS</strong>: All transmissions encrypted</li>
+<li><strong>Database Encryption</strong>: Sensitive data encrypted</li>
+<li><strong>Credentials Management</strong>: Secure storage of API keys</li>
+</ul>
+<h2 id="mobile-responsive">📱 Mobile &amp; Responsive<a class="headerlink" href="#mobile-responsive" title="Permanent link">&para;</a></h2>
+<h3 id="responsive-design">Responsive Design<a class="headerlink" href="#responsive-design" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Desktop</strong>: Full functionality</li>
+<li><strong>Tablet</strong>: Optimized for tournament management</li>
+<li><strong>Smartphone</strong>: Read access, result queries</li>
+<li><strong>Touch Optimization</strong>: Large buttons, swipe gestures</li>
+</ul>
+<h3 id="progressive-web-app-pwa">Progressive Web App (PWA)<a class="headerlink" href="#progressive-web-app-pwa" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Offline Mode</strong>: Basic functions even without internet</li>
+<li><strong>Home Screen Icon</strong>: Installable like native app</li>
+<li><strong>Push Notifications</strong>: For important events</li>
+<li><strong>App-Like Feel</strong>: Fast and responsive</li>
+</ul>
+<h2 id="performance-scalability">🚀 Performance &amp; Scalability<a class="headerlink" href="#performance-scalability" title="Permanent link">&para;</a></h2>
+<h3 id="optimized-performance">Optimized Performance<a class="headerlink" href="#optimized-performance" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Fast Load Times</strong>: &lt; 1 second for main pages</li>
+<li><strong>Real-Time Updates</strong>: WebSocket updates in &lt; 100ms</li>
+<li><strong>Caching</strong>: Intelligent caching strategies</li>
+<li><strong>Lazy Loading</strong>: Load images and data on-demand</li>
+</ul>
+<h3 id="scalability">Scalability<a class="headerlink" href="#scalability" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Small Clubs</strong>: 50 members, 10 parallel tournaments</li>
+<li><strong>Large Clubs</strong>: 500+ members, 50+ parallel tournaments</li>
+<li><strong>Federations</strong>: 5,000+ players, 100+ clubs</li>
+<li><strong>Load Tests</strong>: Successfully tested with 1,000+ concurrent users</li>
+</ul>
+<h2 id="integration-extensibility">🔌 Integration &amp; Extensibility<a class="headerlink" href="#integration-extensibility" title="Permanent link">&para;</a></h2>
+<h3 id="api">API<a class="headerlink" href="#api" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>REST API</strong>: Standardized JSON API</li>
+<li><strong>Documented</strong>: Complete API documentation</li>
+<li><strong>Authentication</strong>: Token-based</li>
+<li><strong>Rate Limiting</strong>: Protection against abuse</li>
+</ul>
+<h3 id="webhooks">Webhooks<a class="headerlink" href="#webhooks" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Event Notifications</strong>: On tournament events</li>
+<li><strong>External Integration</strong>: Connection to other systems</li>
+<li><strong>Configurable</strong>: Which events trigger webhooks</li>
+</ul>
+<h3 id="extensions">Extensions<a class="headerlink" href="#extensions" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Plugin System</strong>: Add custom modules</li>
+<li><strong>Custom Themes</strong>: Implement own design</li>
+<li><strong>Discipline Extensions</strong>: Add new game variants</li>
+</ul>
+<h2 id="training-documentation">🎓 Training &amp; Documentation<a class="headerlink" href="#training-documentation" title="Permanent link">&para;</a></h2>
+<h3 id="comprehensive-documentation">Comprehensive Documentation<a class="headerlink" href="#comprehensive-documentation" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>User Manuals</strong>: Step-by-step guides</li>
+<li><strong>Video Tutorials</strong>: Visual introductions</li>
+<li><strong>FAQ</strong>: Frequently asked questions</li>
+<li><strong>Glossary</strong>: Explanation of all technical terms</li>
+</ul>
+<h3 id="multilingual">Multilingual<a class="headerlink" href="#multilingual" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>German</strong>: Complete</li>
+<li><strong>English</strong>: Complete</li>
+<li><strong>Extensible</strong>: Additional languages easily addable</li>
+</ul>
+<h3 id="support-channels">Support Channels<a class="headerlink" href="#support-channels" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Documentation</strong>: Available online</li>
+<li><strong>GitHub Issues</strong>: Community support</li>
+<li><strong>Email Support</strong>: For registered users</li>
+<li><strong>Commercial Support</strong>: Available upon request</li>
+</ul>
+<h2 id="innovative-features">💡 Innovative Features<a class="headerlink" href="#innovative-features" title="Permanent link">&para;</a></h2>
+<h3 id="automatic-match-recognition">Automatic Match Recognition<a class="headerlink" href="#automatic-match-recognition" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Camera Integration</strong>: Automatic point counting via computer vision (in development)</li>
+<li><strong>Score Import</strong>: Import from electronic counters</li>
+</ul>
+<h3 id="ai-functions">AI Functions<a class="headerlink" href="#ai-functions" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Player Recommendations</strong>: Suggestions for balanced pairings</li>
+<li><strong>Performance Predictions</strong>: Expected tournament performance</li>
+<li><strong>Anomaly Detection</strong>: Mark unusual results</li>
+</ul>
+<h3 id="social-features">Social Features<a class="headerlink" href="#social-features" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Player Profiles</strong>: Public profiles with statistics</li>
+<li><strong>Comments</strong>: Comment on tournament matches</li>
+<li><strong>Photo Upload</strong>: Share tournament photos</li>
+<li><strong>Social Media</strong>: Share results on Facebook/Twitter</li>
+</ul>
+<hr />
+<h2 id="roadmap-planned-features">Roadmap: Planned Features<a class="headerlink" href="#roadmap-planned-features" title="Permanent link">&para;</a></h2>
+<h3 id="short-term-3-6-months">Short Term (3-6 months)<a class="headerlink" href="#short-term-3-6-months" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Live streaming integration</li>
+<li>Mobile app (iOS/Android)</li>
+<li>Extended statistics dashboards</li>
+<li>Automatic tournament highlights</li>
+</ul>
+<h3 id="medium-term-6-12-months">Medium Term (6-12 months)<a class="headerlink" href="#medium-term-6-12-months" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Computer vision score tracking</li>
+<li>Extended AI functions</li>
+<li>Multi-tenant SaaS platform</li>
+<li>Payment integration (entry fees)</li>
+</ul>
+<h3 id="long-term-12-months">Long Term (12+ months)<a class="headerlink" href="#long-term-12-months" title="Permanent link">&para;</a></h3>
+<ul>
+<li>International tournament aggregation</li>
+<li>Player ranking system</li>
+<li>Live commentator function</li>
+<li>VR/AR visualizations</li>
+</ul>
+<hr />
+<p><em>The feature list is continuously expanded. Current information can be found in the <a href="https://github.com/GernotUllrich/carambus">GitHub Repository</a>.</em></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        <div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/GernotUllrich/carambus" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="http://www.billardclub-wedel.de/" target="_blank" rel="noopener" title="www.billardclub-wedel.de" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M352 256c0 22.2-1.2 43.6-3.3 64H163.4c-2.2-20.4-3.3-41.8-3.3-64s1.2-43.6 3.3-64h185.3c2.2 20.4 3.3 41.8 3.3 64m28.8-64h123.1c5.3 20.5 8.1 41.9 8.1 64s-2.8 43.5-8.1 64H380.8c2.1-20.6 3.2-42 3.2-64s-1.1-43.4-3.2-64m112.6-32H376.7c-10-63.9-29.8-117.4-55.3-151.6 78.3 20.7 142 77.5 171.9 151.6zm-149.1 0H167.7c6.1-36.4 15.5-68.6 27-94.7 10.5-23.6 22.2-40.7 33.5-51.5C239.4 3.2 248.7 0 256 0s16.6 3.2 27.8 13.8c11.3 10.8 23 27.9 33.5 51.5 11.6 26 20.9 58.2 27 94.7m-209 0H18.6c30-74.1 93.6-130.9 172-151.6-25.5 34.2-45.3 87.7-55.3 151.6M8.1 192h123.1c-2.1 20.6-3.2 42-3.2 64s1.1 43.4 3.2 64H8.1C2.8 299.5 0 278.1 0 256s2.8-43.5 8.1-64m186.6 254.6c-11.6-26-20.9-58.2-27-94.6h176.6c-6.1 36.4-15.5 68.6-27 94.6-10.5 23.6-22.2 40.7-33.5 51.5-11.2 10.7-20.5 13.9-27.8 13.9s-16.6-3.2-27.8-13.8c-11.3-10.8-23-27.9-33.5-51.5zM135.3 352c10 63.9 29.8 117.4 55.3 151.6-78.4-20.7-142-77.5-172-151.6zm358.1 0c-30 74.1-93.6 130.9-171.9 151.6 25.5-34.2 45.2-87.7 55.3-151.6h116.7z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.indexes", "search.suggest", "search.highlight", "header.autohide", "toc.follow"], "search": "../../../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.56ea9cef.min.js"></script>
+      
+        <script src="../../../javascripts/mathjax.js"></script>
+      
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>

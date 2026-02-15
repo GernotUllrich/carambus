@@ -1,0 +1,3257 @@
+
+<!doctype html>
+<html lang="de" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Comprehensive documentation for Carambus - Professional billiards tournament management system">
+      
+      
+      
+        <link rel="canonical" href="https://GernotUllrich.github.io/carambus/administrators/streaming-obs-setup/">
+      
+      
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.15">
+    
+    
+      
+        <title>OBS Studio Streaming Setup für MacBook/iPhone - Carambus Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.342714a4.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#obs-studio-streaming-setup-fur-macbookiphone" class="md-skip">
+          Zum Inhalt
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Kopfzeile">
+    <a href="../.." title="Carambus Documentation" class="md-header__button md-logo" aria-label="Carambus Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Carambus Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              OBS Studio Streaming Setup für MacBook/iPhone
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+      <div class="md-header__option">
+  <div class="md-select">
+    
+    <button class="md-header__button md-icon" aria-label="Sprache wechseln">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
+    </button>
+    <div class="md-select__inner">
+      <ul class="md-select__list">
+        
+          <li class="md-select__item">
+            <a href="./" hreflang="de" class="md-select__link">
+              Deutsch
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="../../en/administrators/streaming-obs-setup/" hreflang="en" class="md-select__link">
+              English
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</div>
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Suche" placeholder="Suche" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Suche">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Zurücksetzen" aria-label="Zurücksetzen" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Suche wird initialisiert
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/GernotUllrich/carambus" title="Zum Repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GernotUllrich/carambus
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Hauptnavigation" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Startseite
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../decision-makers/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Für Entscheider
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../players/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Für Spieler
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../managers/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Für Turniermanager
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Für Systemadministratoren
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../developers/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Für Entwickler
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../reference/API/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Referenz
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../about/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Über
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Carambus Documentation" class="md-nav__button md-logo" aria-label="Carambus Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Carambus Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/GernotUllrich/carambus" title="Zum Repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GernotUllrich/carambus
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Startseite
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../decision-makers/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Für Entscheider
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2" id="__nav_2_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Für Entscheider
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../decision-makers/executive-summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Executive Summary
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../decision-makers/features-overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Feature-Übersicht
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../decision-makers/deployment-options/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Deployment-Optionen
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../players/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Für Spieler
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Für Spieler
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../players/scoreboard-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scoreboard-Anleitung
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../players/tournament-participation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Turnierteilnahme
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../players/ai-search/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    KI-gestützte Suche
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../managers/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Für Turniermanager
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Für Turniermanager
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../managers/tournament-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Turnierverwaltung
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../managers/league-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Liga-Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../managers/single-tournament/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Einzelturnier
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../managers/table-reservation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tischreservierung
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../managers/admin-roles/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Admin-Rollen
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../managers/clubcloud-integration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    ClubCloud-Integration
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../managers/search-filters/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Suche & Filter
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Für Systemadministratoren
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5" id="__nav_5_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Für Systemadministratoren
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installation-overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Installations-Übersicht
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../raspberry-pi-quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Raspberry Pi Quickstart
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../raspberry-pi-client/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Raspberry Pi Client
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../scoreboard-autostart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scoreboard Autostart
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../server-architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Server-Architektur
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../email-configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Email-Konfiguration
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../database-setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Datenbank-Setup
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../streaming-quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    YouTube Streaming Quickstart
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../streaming-setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    YouTube Streaming Setup
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../developers/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Für Entwickler
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_6" id="__nav_6_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            Für Entwickler
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Getting Started
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/developer-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Entwickler-Leitfaden
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/database-design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Datenbank-Design
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/er-diagram/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    ER-Diagramm
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/API/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    API-Referenz
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/scenario-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scenario-Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/rake-tasks-debugging/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Testing & Debugging
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/deployment-workflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Deployment-Workflow
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/data-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Datenverwaltung
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/database-partitioning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Datenbank-Partitionierung
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/paper-trail-optimization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    PaperTrail-Optimierung
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/game-plan-reconstruction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Spielplan-Rekonstruktion
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/tournament-duplicate-handling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Turnier-Duplikate
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/region-tagging-cleanup-summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Regions-Tagging
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/streaming-architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    YouTube Streaming Architektur
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/pool-scoreboard-changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Pool Scoreboard Changelog
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Referenz
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            Referenz
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/API/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    API-Referenz
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/glossary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Glossar
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/terms/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    AGB
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/privacy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Datenschutz
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/config-lock-files/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Config Lock Files
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/search/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Search
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/mkdocs_dokumentation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    MkDocs
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Über
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            Über
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../about/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Über
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Inhaltsverzeichnis">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Inhaltsverzeichnis
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#ubersicht" class="md-nav__link">
+    <span class="md-ellipsis">
+      Übersicht
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#vorteile-gegenuber-raspberry-pi" class="md-nav__link">
+    <span class="md-ellipsis">
+      Vorteile gegenüber Raspberry Pi
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Vorteile gegenüber Raspberry Pi">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#macbook-pro-obs" class="md-nav__link">
+    <span class="md-ellipsis">
+      MacBook Pro + OBS
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#iphone" class="md-nav__link">
+    <span class="md-ellipsis">
+      iPhone
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hardware-anforderungen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Hardware-Anforderungen
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Hardware-Anforderungen">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#minimal-1-stream" class="md-nav__link">
+    <span class="md-ellipsis">
+      Minimal (1 Stream)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#erweitert-multi-kamera" class="md-nav__link">
+    <span class="md-ellipsis">
+      Erweitert (Multi-Kamera)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#software-installation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Software-Installation
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Software-Installation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-obs-studio-installieren" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. OBS Studio installieren
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-obs-plugins-optional" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. OBS Plugins (optional)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-iphone-als-kamera-macos-ventura" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. iPhone als Kamera (macOS Ventura+)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#obs-konfiguration" class="md-nav__link">
+    <span class="md-ellipsis">
+      OBS Konfiguration
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="OBS Konfiguration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ausgabe-einstellungen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Ausgabe-Einstellungen
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#video-einstellungen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Video-Einstellungen
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stream-einstellungen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Stream-Einstellungen
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#szenen-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      Szenen-Setup
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Szenen-Setup">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#szene-1-einzeltisch-hauptansicht" class="md-nav__link">
+    <span class="md-ellipsis">
+      Szene 1: Einzeltisch (Hauptansicht)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#szene-2-multi-table-4-tische" class="md-nav__link">
+    <span class="md-ellipsis">
+      Szene 2: Multi-Table (4 Tische)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#szene-3-nahaufnahme-spieler-fokus" class="md-nav__link">
+    <span class="md-ellipsis">
+      Szene 3: Nahaufnahme (Spieler-Fokus)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#szene-4-kommentarinterview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Szene 4: Kommentar/Interview
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#overlay-anpassungen-fur-obs" class="md-nav__link">
+    <span class="md-ellipsis">
+      Overlay-Anpassungen für OBS
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Overlay-Anpassungen für OBS">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#neue-controller-action-fur-obs-overlays" class="md-nav__link">
+    <span class="md-ellipsis">
+      Neue Controller-Action für OBS-Overlays
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#layout-modi" class="md-nav__link">
+    <span class="md-ellipsis">
+      Layout-Modi
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#iphone-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      iPhone Setup
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="iPhone Setup">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#option-1-continuity-camera-macos-ventura" class="md-nav__link">
+    <span class="md-ellipsis">
+      Option 1: Continuity Camera (macOS Ventura+)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#option-2-usb-verbindung-ndi-hx" class="md-nav__link">
+    <span class="md-ellipsis">
+      Option 2: USB-Verbindung (NDI HX)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#option-3-larix-broadcaster-eigenstandig" class="md-nav__link">
+    <span class="md-ellipsis">
+      Option 3: Larix Broadcaster (Eigenständig)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#workflow-wahrend-turnier" class="md-nav__link">
+    <span class="md-ellipsis">
+      Workflow während Turnier
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Workflow während Turnier">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#vorbereitung-30-min-vor-start" class="md-nav__link">
+    <span class="md-ellipsis">
+      Vorbereitung (30 Min vor Start)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#wahrend-turnier" class="md-nav__link">
+    <span class="md-ellipsis">
+      Während Turnier
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#nach-turnier" class="md-nav__link">
+    <span class="md-ellipsis">
+      Nach Turnier
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#performance-optimierung" class="md-nav__link">
+    <span class="md-ellipsis">
+      Performance-Optimierung
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Performance-Optimierung">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#macbook-wird-hei" class="md-nav__link">
+    <span class="md-ellipsis">
+      MacBook wird heiß
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#latenz-zu-hoch" class="md-nav__link">
+    <span class="md-ellipsis">
+      Latenz zu hoch
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stream-ruckelt" class="md-nav__link">
+    <span class="md-ellipsis">
+      Stream ruckelt
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#vergleich-raspberry-pi-vs-macbook" class="md-nav__link">
+    <span class="md-ellipsis">
+      Vergleich: Raspberry Pi vs. MacBook
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#erweiterte-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      Erweiterte Features
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Erweiterte Features">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-picture-in-picture" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Picture-in-Picture
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-lower-thirds" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Lower Thirds
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-turnier-tabelle-zwischenstand" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Turnier-Tabelle (Zwischenstand)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-chat-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Chat-Integration
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#automatisierung" class="md-nav__link">
+    <span class="md-ellipsis">
+      Automatisierung
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Automatisierung">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#stream-auto-start" class="md-nav__link">
+    <span class="md-ellipsis">
+      Stream-Auto-Start
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#szenen-wechsel-via-hotkeysscript" class="md-nav__link">
+    <span class="md-ellipsis">
+      Szenen-Wechsel via Hotkeys/Script
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      Troubleshooting
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Troubleshooting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overlay-ladt-nicht" class="md-nav__link">
+    <span class="md-ellipsis">
+      Overlay lädt nicht
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#iphone-wird-nicht-erkannt" class="md-nav__link">
+    <span class="md-ellipsis">
+      iPhone wird nicht erkannt
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stream-ruckeltbricht-ab" class="md-nav__link">
+    <span class="md-ellipsis">
+      Stream ruckelt/bricht ab
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overlay-zeigt-alte-daten" class="md-nav__link">
+    <span class="md-ellipsis">
+      Overlay zeigt alte Daten
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#nachste-schritte" class="md-nav__link">
+    <span class="md-ellipsis">
+      Nächste Schritte
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#support-ressourcen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Support &amp; Ressourcen
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="obs-studio-streaming-setup-fur-macbookiphone">OBS Studio Streaming Setup für MacBook/iPhone<a class="headerlink" href="#obs-studio-streaming-setup-fur-macbookiphone" title="Permanent link">&para;</a></h1>
+<h2 id="ubersicht">Übersicht<a class="headerlink" href="#ubersicht" title="Permanent link">&para;</a></h2>
+<p>Anstatt Raspberry Pis als Streaming-Einheiten zu verwenden, kann das bereits vorhandene MacBook Pro (Turnierleitung) oder iPhones für professionelles Streaming mit mehreren Ansichten genutzt werden.</p>
+<h2 id="vorteile-gegenuber-raspberry-pi">Vorteile gegenüber Raspberry Pi<a class="headerlink" href="#vorteile-gegenuber-raspberry-pi" title="Permanent link">&para;</a></h2>
+<h3 id="macbook-pro-obs">MacBook Pro + OBS<a class="headerlink" href="#macbook-pro-obs" title="Permanent link">&para;</a></h3>
+<ul>
+<li>✅ <strong>Mehrere Kameras gleichzeitig</strong> (USB, iPhone, Webcam)</li>
+<li>✅ <strong>Professionelle Szenen-Wechsel</strong> (Tischansicht, Nahaufnahme, Multi-Table)</li>
+<li>✅ <strong>Einfaches Overlay-Management</strong> (Browser-Source in OBS)</li>
+<li>✅ <strong>Höhere Qualität</strong> (bessere Encoder, höhere Auflösung)</li>
+<li>✅ <strong>Flexiblere Layouts</strong> (Picture-in-Picture, Splitscreen)</li>
+<li>✅ <strong>Bereits vorhanden</strong> (keine zusätzliche Hardware)</li>
+</ul>
+<h3 id="iphone">iPhone<a class="headerlink" href="#iphone" title="Permanent link">&para;</a></h3>
+<ul>
+<li>✅ <strong>Exzellente Kamera-Qualität</strong> (besser als Logitech C922)</li>
+<li>✅ <strong>Mobil und flexibel</strong> (einfach positionierbar)</li>
+<li>✅ <strong>Gute Low-Light-Performance</strong></li>
+<li>✅ <strong>Bereits vorhanden</strong></li>
+</ul>
+<h2 id="hardware-anforderungen">Hardware-Anforderungen<a class="headerlink" href="#hardware-anforderungen" title="Permanent link">&para;</a></h2>
+<h3 id="minimal-1-stream">Minimal (1 Stream)<a class="headerlink" href="#minimal-1-stream" title="Permanent link">&para;</a></h3>
+<ul>
+<li>MacBook Pro (2017+, i5 oder besser)</li>
+<li>8GB RAM (16GB empfohlen)</li>
+<li>Stabile Internet-Verbindung (5 Mbit/s Upload minimum)</li>
+</ul>
+<h3 id="erweitert-multi-kamera">Erweitert (Multi-Kamera)<a class="headerlink" href="#erweitert-multi-kamera" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Wie oben, plus:</li>
+<li>1-2 iPhones (iPhone X oder neuer für beste Qualität)</li>
+<li>USB-Kameras (optional, für zusätzliche Ansichten)</li>
+<li>USB-Hub (powered, für mehrere Kameras)</li>
+</ul>
+<h2 id="software-installation">Software-Installation<a class="headerlink" href="#software-installation" title="Permanent link">&para;</a></h2>
+<h3 id="1-obs-studio-installieren">1. OBS Studio installieren<a class="headerlink" href="#1-obs-studio-installieren" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># Via Homebrew</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>brew<span class="w"> </span>install<span class="w"> </span>--cask<span class="w"> </span>obs
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c1"># Oder Download von https://obsproject.com/</span>
+</code></pre></div>
+<h3 id="2-obs-plugins-optional">2. OBS Plugins (optional)<a class="headerlink" href="#2-obs-plugins-optional" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># Advanced Scene Switcher</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>brew<span class="w"> </span>install<span class="w"> </span>--cask<span class="w"> </span>obs-advanced-scene-switcher
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="c1"># Virtual Camera (für Zoom/Meet)</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="c1"># Bereits in OBS Studio 26+ enthalten</span>
+</code></pre></div>
+<h3 id="3-iphone-als-kamera-macos-ventura">3. iPhone als Kamera (macOS Ventura+)<a class="headerlink" href="#3-iphone-als-kamera-macos-ventura" title="Permanent link">&para;</a></h3>
+<p><strong>Continuity Camera</strong> ist bereits in macOS integriert:
+1. iPhone und Mac mit gleichem Apple-ID anmelden
+2. Bluetooth und WLAN aktivieren
+3. iPhone in Nähe von Mac platzieren
+4. In OBS: iPhone erscheint als Videoquelle</p>
+<p><strong>Alternative: USB-Verbindung</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># NDI HX Camera App auf iPhone installieren (gratis)</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="c1"># Oder: Epoccam, Camo Studio (kostenpflichtig, bessere Qualität)</span>
+</code></pre></div></p>
+<h2 id="obs-konfiguration">OBS Konfiguration<a class="headerlink" href="#obs-konfiguration" title="Permanent link">&para;</a></h2>
+<h3 id="ausgabe-einstellungen">Ausgabe-Einstellungen<a class="headerlink" href="#ausgabe-einstellungen" title="Permanent link">&para;</a></h3>
+<p><strong>Datei → Einstellungen → Ausgabe</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>Modus: Erweitert
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>Encoder: Apple VT H264 Hardware-Encoder (empfohlen)
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>        oder x264 (höhere CPU-Last)
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>Bitrate: 4500 kbps (1080p30)
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>        6000 kbps (1080p60)
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>        2500 kbps (720p30)
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>Keyframe-Intervall: 2 Sekunden
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>CPU-Voreinstellung: veryfast (für Software-Encoder)
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>Profil: high
+<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>Tune: zerolatency
+</code></pre></div>
+<h3 id="video-einstellungen">Video-Einstellungen<a class="headerlink" href="#video-einstellungen" title="Permanent link">&para;</a></h3>
+<p><strong>Datei → Einstellungen → Video</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>Basis (Leinwand) Auflösung: 1920x1080
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>Ausgabe (skaliert): 1920x1080 (oder 1280x720 für niedrigere Bandbreite)
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>FPS: 30 (empfohlen für Billard)
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>     60 (bei ausreichend Upload)
+</code></pre></div>
+<h3 id="stream-einstellungen">Stream-Einstellungen<a class="headerlink" href="#stream-einstellungen" title="Permanent link">&para;</a></h3>
+<p><strong>Datei → Einstellungen → Stream</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>Dienst: YouTube - RTMP
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>Server: Primary YouTube ingest server
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>Stream-Schlüssel: [von YouTube Live Dashboard]
+</code></pre></div>
+<p><strong>YouTube Stream-Key finden:</strong>
+1. YouTube Studio → Livestream erstellen
+2. "Stream-Einstellungen" → "Stream-Schlüssel" kopieren</p>
+<h2 id="szenen-setup">Szenen-Setup<a class="headerlink" href="#szenen-setup" title="Permanent link">&para;</a></h2>
+<h3 id="szene-1-einzeltisch-hauptansicht">Szene 1: Einzeltisch (Hauptansicht)<a class="headerlink" href="#szene-1-einzeltisch-hauptansicht" title="Permanent link">&para;</a></h3>
+<p><strong>Quellen:</strong>
+1. <strong>Video Capture Device</strong> → iPhone/USB-Kamera
+   - Name: "Kamera Tisch 1"
+   - Position: Vollbild</p>
+<ol>
+<li><strong>Browser Source</strong> → Carambus Overlay</li>
+<li>URL: <code>http://localhost:3000/locations/[MD5]/scoreboard_overlay?table_id=1</code></li>
+<li>Breite: 1920</li>
+<li>Höhe: 200</li>
+<li>Position: Unten (0, 880)</li>
+<li>✅ "Shutdown source when not visible" (Performance)</li>
+<li>
+<p>✅ "Refresh browser when scene becomes active"</p>
+</li>
+<li>
+<p><strong>Text (Optional)</strong> → Turnier-Info</p>
+</li>
+<li>Text: "Deutscher Meister 2025 - Runde 3"</li>
+<li>Position: Oben links</li>
+<li>Schriftart: Arial Bold, 24px</li>
+</ol>
+<h3 id="szene-2-multi-table-4-tische">Szene 2: Multi-Table (4 Tische)<a class="headerlink" href="#szene-2-multi-table-4-tische" title="Permanent link">&para;</a></h3>
+<p><strong>Layout: 2x2 Grid</strong></p>
+<p><strong>Quellen:</strong>
+1. <strong>Gruppe: Tisch 1 (oben links)</strong>
+   - Video: iPhone 1
+   - Browser: Overlay Table 1
+   - Position: (0, 0) → (960x540)</p>
+<ol>
+<li><strong>Gruppe: Tisch 2 (oben rechts)</strong></li>
+<li>Video: iPhone 2</li>
+<li>Browser: Overlay Table 2</li>
+<li>
+<p>Position: (960, 0) → (960x540)</p>
+</li>
+<li>
+<p><strong>Gruppe: Tisch 3 (unten links)</strong></p>
+</li>
+<li>Video: USB-Kamera 1</li>
+<li>Browser: Overlay Table 3</li>
+<li>
+<p>Position: (0, 540) → (960x540)</p>
+</li>
+<li>
+<p><strong>Gruppe: Tisch 4 (unten rechts)</strong></p>
+</li>
+<li>Video: USB-Kamera 2</li>
+<li>Browser: Overlay Table 4</li>
+<li>Position: (960, 540) → (960x540)</li>
+</ol>
+<p><strong>Overlay-URL für Multi-Table:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="x">&lt;!-- In app/views/locations/scoreboard_overlay_multi.html.erb --&gt;</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="x">&lt;div class=&quot;grid grid-cols-2 gap-2 text-xs&quot;&gt;</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="x">  </span><span class="cp">&lt;%</span><span class="w"> </span><span class="o">[</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="mi">4</span><span class="o">].</span><span class="n">each</span><span class="w"> </span><span class="k">do</span><span class="w"> </span><span class="o">|</span><span class="n">table_id</span><span class="o">|</span><span class="w"> </span><span class="cp">%&gt;</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="x">    &lt;div class=&quot;p-2 bg-gray-900/90 rounded&quot;&gt;</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="x">      </span><span class="cp">&lt;%=</span><span class="w"> </span><span class="n">render</span><span class="w"> </span><span class="ss">partial</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;scoreboard_mini&#39;</span><span class="p">,</span><span class="w"> </span><span class="ss">locals</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="ss">table_id</span><span class="p">:</span><span class="w"> </span><span class="n">table_id</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="cp">%&gt;</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="x">    &lt;/div&gt;</span>
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="x">  </span><span class="cp">&lt;%</span><span class="w"> </span><span class="k">end</span><span class="w"> </span><span class="cp">%&gt;</span>
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="x">&lt;/div&gt;</span>
+</code></pre></div></p>
+<h3 id="szene-3-nahaufnahme-spieler-fokus">Szene 3: Nahaufnahme (Spieler-Fokus)<a class="headerlink" href="#szene-3-nahaufnahme-spieler-fokus" title="Permanent link">&para;</a></h3>
+<p><strong>Quellen:</strong>
+1. <strong>Video Capture Device</strong> → iPhone (Close-up)
+   - Zoom auf Spieler-Gesicht/Haltung</p>
+<ol>
+<li><strong>Browser Source</strong> → Minimales Overlay</li>
+<li>Nur aktueller Score</li>
+<li>Position: Oben rechts (klein)</li>
+</ol>
+<h3 id="szene-4-kommentarinterview">Szene 4: Kommentar/Interview<a class="headerlink" href="#szene-4-kommentarinterview" title="Permanent link">&para;</a></h3>
+<p><strong>Quellen:</strong>
+1. <strong>Video Capture Device</strong> → MacBook Webcam
+   - Kommentator/Moderator</p>
+<ol>
+<li><strong>Video Capture Device</strong> → Picture-in-Picture</li>
+<li>
+<p>Tisch-Ansicht (klein, Ecke)</p>
+</li>
+<li>
+<p><strong>Browser Source</strong> → Lower Third</p>
+</li>
+<li>Name des Kommentators</li>
+<li>Aktueller Spielstand</li>
+</ol>
+<h2 id="overlay-anpassungen-fur-obs">Overlay-Anpassungen für OBS<a class="headerlink" href="#overlay-anpassungen-fur-obs" title="Permanent link">&para;</a></h2>
+<h3 id="neue-controller-action-fur-obs-overlays">Neue Controller-Action für OBS-Overlays<a class="headerlink" href="#neue-controller-action-fur-obs-overlays" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1"># app/controllers/locations_controller.rb</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="k">def</span><span class="w"> </span><span class="nf">streaming_overlay_obs</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">  </span><span class="vi">@table_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">params</span><span class="o">[</span><span class="ss">:table_id</span><span class="o">]</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">  </span><span class="vi">@table</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">Table</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="vi">@table_id</span><span class="p">)</span>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">  </span><span class="vi">@table_monitor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="vi">@table</span><span class="o">.</span><span class="n">table_monitor</span>
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="w">  </span><span class="vi">@game</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="vi">@table_monitor</span><span class="o">&amp;.</span><span class="n">current_game</span>
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="w">  </span><span class="vi">@layout_mode</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">params</span><span class="o">[</span><span class="ss">:layout</span><span class="o">]</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="s1">&#39;full&#39;</span><span class="w">  </span><span class="c1"># &#39;full&#39;, &#39;minimal&#39;, &#39;multi&#39;</span>
+<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>
+<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="w">  </span><span class="n">render</span><span class="w"> </span><span class="ss">layout</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;streaming_overlay&#39;</span>
+<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="k">end</span>
+</code></pre></div>
+<p><strong>Routes:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1"># config/routes.rb</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="n">get</span><span class="w"> </span><span class="s1">&#39;locations/:md5/streaming_overlay_obs&#39;</span><span class="p">,</span><span class="w"> </span><span class="ss">to</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;locations#streaming_overlay_obs&#39;</span>
+</code></pre></div></p>
+<h3 id="layout-modi">Layout-Modi<a class="headerlink" href="#layout-modi" title="Permanent link">&para;</a></h3>
+<p><strong>1. Full (Standard)</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>http://localhost:3000/locations/[MD5]/streaming_overlay_obs?table_id=1&amp;layout=full
+</code></pre></div>
+- Kompletter Scoreboard (200px Höhe)
+- Spieler, Score, Durchschnitt, Höchste Serie</p>
+<p><strong>2. Minimal (für Nahaufnahmen)</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>http://localhost:3000/locations/[MD5]/streaming_overlay_obs?table_id=1&amp;layout=minimal
+</code></pre></div>
+- Nur Score (80px Höhe)
+- Spielername + Punkte</p>
+<p><strong>3. Multi (für 2x2 Grid)</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>http://localhost:3000/locations/[MD5]/streaming_overlay_obs?layout=multi
+</code></pre></div>
+- Alle Tische gleichzeitig
+- Kompakte Darstellung</p>
+<h2 id="iphone-setup">iPhone Setup<a class="headerlink" href="#iphone-setup" title="Permanent link">&para;</a></h2>
+<h3 id="option-1-continuity-camera-macos-ventura">Option 1: Continuity Camera (macOS Ventura+)<a class="headerlink" href="#option-1-continuity-camera-macos-ventura" title="Permanent link">&para;</a></h3>
+<p><strong>Voraussetzungen:</strong>
+- macOS Ventura (13.0) oder neuer
+- iOS 16 oder neuer
+- Gleiche Apple-ID auf Mac und iPhone</p>
+<p><strong>Setup:</strong>
+1. iPhone mit Stativ/Halterung positionieren
+2. iPhone entsperren (muss nicht offen sein)
+3. OBS → Video Capture Device → iPhone auswählen
+4. Fertig! 🎉</p>
+<p><strong>Vorteile:</strong>
+- Kabellos (WLAN)
+- Automatische Erkennung
+- Gute Qualität</p>
+<p><strong>Nachteile:</strong>
+- Höhere Latenz (~1-2 Sekunden)
+- Batterieverbrauch (iPhone muss geladen werden)</p>
+<h3 id="option-2-usb-verbindung-ndi-hx">Option 2: USB-Verbindung (NDI HX)<a class="headerlink" href="#option-2-usb-verbindung-ndi-hx" title="Permanent link">&para;</a></h3>
+<p><strong>App installieren:</strong>
+1. "NDI HX Camera" im App Store (gratis)
+2. iPhone per USB an MacBook anschließen
+3. App öffnen, NDI aktivieren</p>
+<p><strong>OBS Plugin:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>brew<span class="w"> </span>install<span class="w"> </span>--cask<span class="w"> </span>obs-ndi
+</code></pre></div></p>
+<p><strong>OBS-Einstellungen:</strong>
+- Tools → NDI Output Settings
+- NDI Source → iPhone auswählen</p>
+<p><strong>Vorteile:</strong>
+- Niedrige Latenz (&lt;500ms)
+- Keine Batterie-Probleme
+- Bessere Qualität</p>
+<p><strong>Nachteile:</strong>
+- USB-Kabel erforderlich
+- Plugin-Installation</p>
+<h3 id="option-3-larix-broadcaster-eigenstandig">Option 3: Larix Broadcaster (Eigenständig)<a class="headerlink" href="#option-3-larix-broadcaster-eigenstandig" title="Permanent link">&para;</a></h3>
+<p>Wenn MacBook nicht verfügbar → iPhone kann direkt zu YouTube streamen:</p>
+<p><strong>App installieren:</strong>
+1. "Larix Broadcaster" im App Store (gratis)
+2. RTMP-Einstellungen konfigurieren
+3. Browser-Overlay parallel anzeigen (kompliziert)</p>
+<p><strong>Nicht empfohlen</strong>, da:
+- Kein natives Overlay-Compositing
+- Schwierig, HTML-Overlay einzubinden
+- Besser: iPhone als Kamera → MacBook/OBS → Stream</p>
+<h2 id="workflow-wahrend-turnier">Workflow während Turnier<a class="headerlink" href="#workflow-wahrend-turnier" title="Permanent link">&para;</a></h2>
+<h3 id="vorbereitung-30-min-vor-start">Vorbereitung (30 Min vor Start)<a class="headerlink" href="#vorbereitung-30-min-vor-start" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="c1"># 1. Rails-Server starten (falls noch nicht läuft)</span>
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="nb">cd</span><span class="w"> </span>/Volumes/EXT2TB/gullrich/DEV/carambus/carambus_master
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>rails<span class="w"> </span>s<span class="w"> </span>-p<span class="w"> </span><span class="m">3000</span>
+<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>
+<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="c1"># 2. Overlay-URLs testen</span>
+<a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>open<span class="w"> </span>http://localhost:3000/locations/<span class="o">[</span>MD5<span class="o">]</span>/streaming_overlay_obs?table_id<span class="o">=</span><span class="m">1</span>
+<a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a>
+<a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a><span class="c1"># 3. OBS starten</span>
+<a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a><span class="c1"># 4. Kameras verbinden (iPhone, USB)</span>
+<a id="__codelineno-13-10" name="__codelineno-13-10" href="#__codelineno-13-10"></a><span class="c1"># 5. Stream-Test (privater YouTube-Stream)</span>
+</code></pre></div>
+<h3 id="wahrend-turnier">Während Turnier<a class="headerlink" href="#wahrend-turnier" title="Permanent link">&para;</a></h3>
+<p><strong>Szenen-Wechsel:</strong>
+- <strong>Hotkeys definieren</strong> (Datei → Einstellungen → Hotkeys)
+  - F1: Szene "Tisch 1"
+  - F2: Szene "Multi-Table"
+  - F3: Szene "Nahaufnahme"
+  - F4: Szene "Kommentar"</p>
+<p><strong>Overlay-Updates:</strong>
+- Laufen automatisch via ActionCable
+- Keine manuelle Aktion erforderlich</p>
+<p><strong>Stream-Monitoring:</strong>
+- YouTube Studio → Livestream-Dashboard
+- Zuschauerzahlen, Chat, Health-Status</p>
+<h3 id="nach-turnier">Nach Turnier<a class="headerlink" href="#nach-turnier" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="c1"># 1. Stream beenden (OBS)</span>
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="c1"># 2. Video in YouTube Studio prüfen</span>
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="c1"># 3. Video archivieren/highlighten</span>
+<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="c1"># 4. OBS beenden</span>
+</code></pre></div>
+<h2 id="performance-optimierung">Performance-Optimierung<a class="headerlink" href="#performance-optimierung" title="Permanent link">&para;</a></h2>
+<h3 id="macbook-wird-hei">MacBook wird heiß<a class="headerlink" href="#macbook-wird-hei" title="Permanent link">&para;</a></h3>
+<p><strong>Lösungen:</strong>
+1. Hardware-Encoder nutzen (Apple VT H264)
+2. Auflösung reduzieren (720p statt 1080p)
+3. FPS reduzieren (30 statt 60)
+4. Externe Kühlung (Laptop-Lüfter)</p>
+<h3 id="latenz-zu-hoch">Latenz zu hoch<a class="headerlink" href="#latenz-zu-hoch" title="Permanent link">&para;</a></h3>
+<p><strong>Maßnahmen:</strong>
+1. USB statt WLAN für iPhone
+2. Encoder: "zerolatency" Tune
+3. Keyframe-Intervall: 1 Sekunde
+4. Netzwerk-QoS (Gaming/Streaming priorisieren)</p>
+<h3 id="stream-ruckelt">Stream ruckelt<a class="headerlink" href="#stream-ruckelt" title="Permanent link">&para;</a></h3>
+<p><strong>Diagnose:</strong>
+OBS → Ansicht → Stats
+- "Dropped Frames (Network)" → Upload zu langsam
+- "Dropped Frames (Rendering)" → CPU überlastet
+- "Dropped Frames (Encoding)" → Encoder überlastet</p>
+<p><strong>Fixes:</strong>
+- Network: Bitrate reduzieren
+- Rendering: Quellen reduzieren, Vorschau deaktivieren
+- Encoding: Hardware-Encoder, niedrigere Auflösung</p>
+<h2 id="vergleich-raspberry-pi-vs-macbook">Vergleich: Raspberry Pi vs. MacBook<a class="headerlink" href="#vergleich-raspberry-pi-vs-macbook" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Aspekt</th>
+<th>Raspberry Pi</th>
+<th>MacBook + OBS</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Hardware-Kosten</strong></td>
+<td>150€ pro Tisch</td>
+<td>0€ (bereits vorhanden)</td>
+</tr>
+<tr>
+<td><strong>Setup-Zeit</strong></td>
+<td>2h pro Raspi</td>
+<td>30 Min einmalig</td>
+</tr>
+<tr>
+<td><strong>Flexibilität</strong></td>
+<td>1 Tisch = 1 Stream</td>
+<td>Mehrere Ansichten, Szenen</td>
+</tr>
+<tr>
+<td><strong>Qualität</strong></td>
+<td>720p30 (Hardware-Limit)</td>
+<td>1080p60 möglich</td>
+</tr>
+<tr>
+<td><strong>Kamera-Qualität</strong></td>
+<td>Logitech C922 (gut)</td>
+<td>iPhone (exzellent)</td>
+</tr>
+<tr>
+<td><strong>Szenen-Wechsel</strong></td>
+<td>Nicht möglich</td>
+<td>Einfach (Hotkeys)</td>
+</tr>
+<tr>
+<td><strong>Multi-Table</strong></td>
+<td>Nicht möglich</td>
+<td>2x2 Grid easy</td>
+</tr>
+<tr>
+<td><strong>Wartung</strong></td>
+<td>Pro Raspi separat</td>
+<td>Zentral</td>
+</tr>
+<tr>
+<td><strong>Skalierung</strong></td>
+<td>Linear (N Raspis)</td>
+<td>1 MacBook für 2-4 Tische</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Empfehlung:</strong>
+- <strong>Kleine Turniere (1-2 Tische):</strong> MacBook + OBS + iPhone(s)
+- <strong>Große Turniere (8+ Tische):</strong> Hybrid (MacBook für Hauptstream, Raspis für zusätzliche Tische)
+- <strong>Permanente Installation:</strong> Raspberry Pi (unbeaufsichtigt)</p>
+<h2 id="erweiterte-features">Erweiterte Features<a class="headerlink" href="#erweiterte-features" title="Permanent link">&para;</a></h2>
+<h3 id="1-picture-in-picture">1. Picture-in-Picture<a class="headerlink" href="#1-picture-in-picture" title="Permanent link">&para;</a></h3>
+<p><strong>Spieler-Nahaufnahme während Hauptansicht:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>Szene: &quot;Tisch 1 mit PiP&quot;
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>- Quelle 1: USB-Kamera (Tisch, Vollbild)
+<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a>- Quelle 2: iPhone (Spieler, 320x180, Ecke)
+<a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a>- Quelle 3: Browser (Overlay)
+</code></pre></div></p>
+<h3 id="2-lower-thirds">2. Lower Thirds<a class="headerlink" href="#2-lower-thirds" title="Permanent link">&para;</a></h3>
+<p><strong>Spieler-Info einblenden:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="cm">&lt;!-- app/views/streaming/lower_third.html.erb --&gt;</span>
+<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a><span class="p">&lt;</span><span class="nt">div</span> <span class="na">class</span><span class="o">=</span><span class="s">&quot;fixed bottom-20 left-10 bg-gradient-to-r from-blue-900/90 to-transparent pr-20 pl-6 py-4 rounded-r-full&quot;</span><span class="p">&gt;</span>
+<a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>  <span class="p">&lt;</span><span class="nt">div</span> <span class="na">class</span><span class="o">=</span><span class="s">&quot;text-2xl font-bold&quot;</span><span class="p">&gt;</span><span class="err">&lt;</span>%= @player.name %&gt;<span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
+<a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a>  <span class="p">&lt;</span><span class="nt">div</span> <span class="na">class</span><span class="o">=</span><span class="s">&quot;text-sm opacity-80&quot;</span><span class="p">&gt;</span>
+<a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a>    <span class="err">&lt;</span>%= @player.club %&gt; | Ø <span class="err">&lt;</span>%= @player.current_average %&gt;
+<a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a>  <span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
+<a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a><span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
+</code></pre></div></p>
+<p><strong>OBS Browser Source:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>URL: http://localhost:3000/streaming/lower_third?player_id=123
+<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a>Breite: 1920, Höhe: 1080
+<a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a>Transparenter Hintergrund: ✅
+</code></pre></div></p>
+<h3 id="3-turnier-tabelle-zwischenstand">3. Turnier-Tabelle (Zwischenstand)<a class="headerlink" href="#3-turnier-tabelle-zwischenstand" title="Permanent link">&para;</a></h3>
+<p><strong>Zwischen Spielen einblenden:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="cm">&lt;!-- app/views/streaming/standings.html.erb --&gt;</span>
+<a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a><span class="p">&lt;</span><span class="nt">div</span> <span class="na">class</span><span class="o">=</span><span class="s">&quot;p-10 bg-gray-900/95 rounded-lg&quot;</span><span class="p">&gt;</span>
+<a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a>  <span class="p">&lt;</span><span class="nt">h1</span> <span class="na">class</span><span class="o">=</span><span class="s">&quot;text-4xl mb-6&quot;</span><span class="p">&gt;</span>Zwischenstand<span class="p">&lt;/</span><span class="nt">h1</span><span class="p">&gt;</span>
+<a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a>  <span class="p">&lt;</span><span class="nt">table</span> <span class="na">class</span><span class="o">=</span><span class="s">&quot;w-full text-2xl&quot;</span><span class="p">&gt;</span>
+<a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a>    <span class="err">&lt;</span>% @tournament.rankings.each do |player| %&gt;
+<a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a>      <span class="p">&lt;</span><span class="nt">tr</span><span class="p">&gt;</span>
+<a id="__codelineno-18-7" name="__codelineno-18-7" href="#__codelineno-18-7"></a>        <span class="p">&lt;</span><span class="nt">td</span><span class="p">&gt;</span><span class="err">&lt;</span>%= player.rank %&gt;<span class="p">&lt;/</span><span class="nt">td</span><span class="p">&gt;</span>
+<a id="__codelineno-18-8" name="__codelineno-18-8" href="#__codelineno-18-8"></a>        <span class="p">&lt;</span><span class="nt">td</span><span class="p">&gt;</span><span class="err">&lt;</span>%= player.name %&gt;<span class="p">&lt;/</span><span class="nt">td</span><span class="p">&gt;</span>
+<a id="__codelineno-18-9" name="__codelineno-18-9" href="#__codelineno-18-9"></a>        <span class="p">&lt;</span><span class="nt">td</span><span class="p">&gt;</span><span class="err">&lt;</span>%= player.points %&gt;<span class="p">&lt;/</span><span class="nt">td</span><span class="p">&gt;</span>
+<a id="__codelineno-18-10" name="__codelineno-18-10" href="#__codelineno-18-10"></a>      <span class="p">&lt;/</span><span class="nt">tr</span><span class="p">&gt;</span>
+<a id="__codelineno-18-11" name="__codelineno-18-11" href="#__codelineno-18-11"></a>    <span class="err">&lt;</span>% end %&gt;
+<a id="__codelineno-18-12" name="__codelineno-18-12" href="#__codelineno-18-12"></a>  <span class="p">&lt;/</span><span class="nt">table</span><span class="p">&gt;</span>
+<a id="__codelineno-18-13" name="__codelineno-18-13" href="#__codelineno-18-13"></a><span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
+</code></pre></div></p>
+<h3 id="4-chat-integration">4. Chat-Integration<a class="headerlink" href="#4-chat-integration" title="Permanent link">&para;</a></h3>
+<p><strong>YouTube-Chat im Stream einblenden:</strong>
+- OBS → Browser Source
+- URL: YouTube Live Chat Embed URL
+- Position: Rechts (Sidebar)</p>
+<h2 id="automatisierung">Automatisierung<a class="headerlink" href="#automatisierung" title="Permanent link">&para;</a></h2>
+<h3 id="stream-auto-start">Stream-Auto-Start<a class="headerlink" href="#stream-auto-start" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="ch">#!/bin/bash</span>
+<a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a><span class="c1"># bin/obs-auto-start.sh</span>
+<a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a>
+<a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a><span class="c1"># Rails-Server starten</span>
+<a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a><span class="nb">cd</span><span class="w"> </span>/Volumes/EXT2TB/gullrich/DEV/carambus/carambus_master
+<a id="__codelineno-19-6" name="__codelineno-19-6" href="#__codelineno-19-6"></a>rails<span class="w"> </span>s<span class="w"> </span>-p<span class="w"> </span><span class="m">3000</span><span class="w"> </span>-d
+<a id="__codelineno-19-7" name="__codelineno-19-7" href="#__codelineno-19-7"></a>
+<a id="__codelineno-19-8" name="__codelineno-19-8" href="#__codelineno-19-8"></a><span class="c1"># Warten bis Server ready</span>
+<a id="__codelineno-19-9" name="__codelineno-19-9" href="#__codelineno-19-9"></a>sleep<span class="w"> </span><span class="m">10</span>
+<a id="__codelineno-19-10" name="__codelineno-19-10" href="#__codelineno-19-10"></a>
+<a id="__codelineno-19-11" name="__codelineno-19-11" href="#__codelineno-19-11"></a><span class="c1"># OBS mit Profil starten</span>
+<a id="__codelineno-19-12" name="__codelineno-19-12" href="#__codelineno-19-12"></a>open<span class="w"> </span>-a<span class="w"> </span><span class="s2">&quot;OBS&quot;</span><span class="w"> </span>--args<span class="w"> </span>--profile<span class="w"> </span><span class="s2">&quot;Carambus Tournament&quot;</span><span class="w"> </span>--collection<span class="w"> </span><span class="s2">&quot;4 Tables&quot;</span><span class="w"> </span>--startstreaming
+</code></pre></div>
+<h3 id="szenen-wechsel-via-hotkeysscript">Szenen-Wechsel via Hotkeys/Script<a class="headerlink" href="#szenen-wechsel-via-hotkeysscript" title="Permanent link">&para;</a></h3>
+<p><strong>OBS WebSocket Plugin:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>brew<span class="w"> </span>install<span class="w"> </span>--cask<span class="w"> </span>obs-websocket
+</code></pre></div></p>
+<p><strong>Ruby-Client:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="c1"># lib/obs_control.rb</span>
+<a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a><span class="nb">require</span><span class="w"> </span><span class="s1">&#39;obswebsocket&#39;</span>
+<a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a>
+<a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a><span class="n">client</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">OBSWebSocket</span><span class="o">::</span><span class="no">Client</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="ss">host</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;localhost&#39;</span><span class="p">,</span><span class="w"> </span><span class="ss">port</span><span class="p">:</span><span class="w"> </span><span class="mi">4455</span><span class="p">)</span>
+<a id="__codelineno-21-5" name="__codelineno-21-5" href="#__codelineno-21-5"></a><span class="n">client</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="ss">password</span><span class="p">:</span><span class="w"> </span><span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;OBS_PASSWORD&#39;</span><span class="o">]</span><span class="p">)</span>
+<a id="__codelineno-21-6" name="__codelineno-21-6" href="#__codelineno-21-6"></a>
+<a id="__codelineno-21-7" name="__codelineno-21-7" href="#__codelineno-21-7"></a><span class="c1"># Szene wechseln</span>
+<a id="__codelineno-21-8" name="__codelineno-21-8" href="#__codelineno-21-8"></a><span class="n">client</span><span class="o">.</span><span class="n">set_current_scene</span><span class="p">(</span><span class="ss">scene_name</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;Tisch 1&#39;</span><span class="p">)</span>
+<a id="__codelineno-21-9" name="__codelineno-21-9" href="#__codelineno-21-9"></a>
+<a id="__codelineno-21-10" name="__codelineno-21-10" href="#__codelineno-21-10"></a><span class="c1"># Quelle ein/ausblenden</span>
+<a id="__codelineno-21-11" name="__codelineno-21-11" href="#__codelineno-21-11"></a><span class="n">client</span><span class="o">.</span><span class="n">set_source_visibility</span><span class="p">(</span><span class="ss">source_name</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;Overlay Table 1&#39;</span><span class="p">,</span><span class="w"> </span><span class="ss">visible</span><span class="p">:</span><span class="w"> </span><span class="kp">true</span><span class="p">)</span>
+</code></pre></div></p>
+<h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h2>
+<h3 id="overlay-ladt-nicht">Overlay lädt nicht<a class="headerlink" href="#overlay-ladt-nicht" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a><span class="c1"># Browser-Cache in OBS leeren</span>
+<a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a><span class="c1"># Rechtsklick auf Browser Source → &quot;Refresh Cache&quot;</span>
+<a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a>
+<a id="__codelineno-22-4" name="__codelineno-22-4" href="#__codelineno-22-4"></a><span class="c1"># Oder URL testen im normalen Browser</span>
+<a id="__codelineno-22-5" name="__codelineno-22-5" href="#__codelineno-22-5"></a>open<span class="w"> </span>http://localhost:3000/locations/<span class="o">[</span>MD5<span class="o">]</span>/streaming_overlay_obs?table_id<span class="o">=</span><span class="m">1</span>
+</code></pre></div>
+<h3 id="iphone-wird-nicht-erkannt">iPhone wird nicht erkannt<a class="headerlink" href="#iphone-wird-nicht-erkannt" title="Permanent link">&para;</a></h3>
+<p><strong>Continuity Camera:</strong>
+1. Bluetooth/WLAN prüfen
+2. Gleiche Apple-ID auf beiden Geräten
+3. Handoff aktiviert (Systemeinstellungen → Allgemein)
+4. iPhone neu starten</p>
+<p><strong>USB/NDI:</strong>
+1. iPhone "diesem Computer vertrauen"
+2. NDI App läuft im Vordergrund
+3. OBS-Plugin installiert</p>
+<h3 id="stream-ruckeltbricht-ab">Stream ruckelt/bricht ab<a class="headerlink" href="#stream-ruckeltbricht-ab" title="Permanent link">&para;</a></h3>
+<p><strong>Diagnose:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="c1"># Upload-Speed testen</span>
+<a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a>speedtest-cli<span class="w"> </span>--simple
+<a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a>
+<a id="__codelineno-23-4" name="__codelineno-23-4" href="#__codelineno-23-4"></a><span class="c1"># OBS-Log anschauen</span>
+<a id="__codelineno-23-5" name="__codelineno-23-5" href="#__codelineno-23-5"></a><span class="c1"># Hilfe → Log-Dateien → Aktuelles Log anzeigen</span>
+</code></pre></div></p>
+<p><strong>Häufige Ursachen:</strong>
+- Upload zu langsam (&lt; 5 Mbit/s)
+- CPU überlastet (&gt; 80%)
+- Falscher Encoder (Software statt Hardware)
+- Zu hohe Bitrate</p>
+<h3 id="overlay-zeigt-alte-daten">Overlay zeigt alte Daten<a class="headerlink" href="#overlay-zeigt-alte-daten" title="Permanent link">&para;</a></h3>
+<p><strong>Fix:</strong>
+1. Scoreboard aktualisieren
+2. Browser Source in OBS refreshen
+3. ActionCable-Verbindung prüfen:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a>rails<span class="w"> </span>c
+<a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a>ActionCable.server.broadcast<span class="o">(</span><span class="s1">&#39;table_monitor_channel&#39;</span>,<span class="w"> </span><span class="o">{</span><span class="w"> </span>test:<span class="w"> </span><span class="nb">true</span><span class="w"> </span><span class="o">})</span>
+</code></pre></div></p>
+<h2 id="nachste-schritte">Nächste Schritte<a class="headerlink" href="#nachste-schritte" title="Permanent link">&para;</a></h2>
+<ol>
+<li>✅ <strong>OBS installieren und konfigurieren</strong></li>
+<li>✅ <strong>Test-Stream mit 1 Tisch</strong> (privater YouTube-Stream)</li>
+<li>🎨 <strong>Overlays anpassen</strong> (Layout, Farben)</li>
+<li>📱 <strong>iPhone-Integration testen</strong> (Continuity Camera)</li>
+<li>🎬 <strong>Szenen erstellen</strong> (Multi-Table, Nahaufnahme)</li>
+<li>🚀 <strong>Live-Test bei Turnier</strong> (mit Backup-Plan)</li>
+</ol>
+<h2 id="support-ressourcen">Support &amp; Ressourcen<a class="headerlink" href="#support-ressourcen" title="Permanent link">&para;</a></h2>
+<p><strong>OBS Studio:</strong>
+- <a href="https://obsproject.com/wiki/">Offizielle Dokumentation</a>
+- <a href="https://obsproject.com/forum/">OBS Forums</a>
+- <a href="https://www.youtube.com/results?search_query=obs+studio+tutorial">YouTube Tutorials</a></p>
+<p><strong>NDI:</strong>
+- <a href="https://apps.apple.com/app/ndi-hx-camera/id1501247274">NDI HX Camera App</a>
+- <a href="https://github.com/obs-ndi/obs-ndi">OBS NDI Plugin</a></p>
+<p><strong>YouTube:</strong>
+- <a href="https://support.google.com/youtube/answer/2853702">Live Streaming Best Practices</a>
+- <a href="https://support.google.com/youtube/answer/2853702">Stream Settings</a></p>
+<hr />
+<p><strong>Version:</strong> 1.0<br />
+<strong>Datum:</strong> Januar 2025<br />
+<strong>Status:</strong> ✅ Ready for Testing</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        <div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/GernotUllrich/carambus" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="http://www.billardclub-wedel.de/" target="_blank" rel="noopener" title="www.billardclub-wedel.de" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M352 256c0 22.2-1.2 43.6-3.3 64H163.4c-2.2-20.4-3.3-41.8-3.3-64s1.2-43.6 3.3-64h185.3c2.2 20.4 3.3 41.8 3.3 64m28.8-64h123.1c5.3 20.5 8.1 41.9 8.1 64s-2.8 43.5-8.1 64H380.8c2.1-20.6 3.2-42 3.2-64s-1.1-43.4-3.2-64m112.6-32H376.7c-10-63.9-29.8-117.4-55.3-151.6 78.3 20.7 142 77.5 171.9 151.6zm-149.1 0H167.7c6.1-36.4 15.5-68.6 27-94.7 10.5-23.6 22.2-40.7 33.5-51.5C239.4 3.2 248.7 0 256 0s16.6 3.2 27.8 13.8c11.3 10.8 23 27.9 33.5 51.5 11.6 26 20.9 58.2 27 94.7m-209 0H18.6c30-74.1 93.6-130.9 172-151.6-25.5 34.2-45.3 87.7-55.3 151.6M8.1 192h123.1c-2.1 20.6-3.2 42-3.2 64s1.1 43.4 3.2 64H8.1C2.8 299.5 0 278.1 0 256s2.8-43.5 8.1-64m186.6 254.6c-11.6-26-20.9-58.2-27-94.6h176.6c-6.1 36.4-15.5 68.6-27 94.6-10.5 23.6-22.2 40.7-33.5 51.5-11.2 10.7-20.5 13.9-27.8 13.9s-16.6-3.2-27.8-13.8c-11.3-10.8-23-27.9-33.5-51.5zM135.3 352c10 63.9 29.8 117.4 55.3 151.6-78.4-20.7-142-77.5-172-151.6zm358.1 0c-30 74.1-93.6 130.9-171.9 151.6 25.5-34.2 45.2-87.7 55.3-151.6h116.7z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.indexes", "search.suggest", "search.highlight", "header.autohide", "toc.follow"], "search": "../../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "In Zwischenablage kopiert", "clipboard.copy": "In Zwischenablage kopieren", "search.result.more.one": "1 weiteres Suchergebnis auf dieser Seite", "search.result.more.other": "# weitere Suchergebnisse auf dieser Seite", "search.result.none": "Keine Suchergebnisse", "search.result.one": "1 Suchergebnis", "search.result.other": "# Suchergebnisse", "search.result.placeholder": "Suchbegriff eingeben", "search.result.term.missing": "Es fehlt", "select.version": "Version ausw\u00e4hlen"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.56ea9cef.min.js"></script>
+      
+        <script src="../../javascripts/mathjax.js"></script>
+      
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>

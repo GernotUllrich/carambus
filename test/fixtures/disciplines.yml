@@ -1,0 +1,18 @@
+# Disciplines for testing
+carom_3band:
+  id: 50_000_001
+  name: "Dreiband"
+  created_at: <%= 2.years.ago %>
+  updated_at: <%= 1.day.ago %>
+
+pool_8ball:
+  id: 50_000_002
+  name: "8-Ball"
+  created_at: <%= 2.years.ago %>
+  updated_at: <%= 1.day.ago %>
+
+pool_9ball:
+  id: 50_000_003
+  name: "9-Ball"
+  created_at: <%= 2.years.ago %>
+  updated_at: <%= 1.day.ago %>

@@ -1,0 +1,41 @@
+# Tournaments for testing
+
+# Local tournament (id >= 50M)
+local:
+  id: 50_000_001
+  title: "Local Test Tournament"
+  season: current
+  organizer: nbv (Region)
+  organizer_type: "Region"
+  discipline: carom_3band
+  state: "registration"
+  date: <%= 2.weeks.from_now %>
+  created_at: <%= 1.month.ago %>
+  updated_at: <%= 1.day.ago %>
+
+# Imported tournament (id < 50M) - would be readonly in production
+imported:
+  id: 1000
+  title: "Imported API Tournament"
+  season: current
+  organizer: nbv (Region)
+  organizer_type: "Region"
+  discipline: pool_8ball
+  state: "tournament_started"
+  date: <%= 1.week.ago %>
+  created_at: <%= 3.months.ago %>
+  updated_at: <%= 1.week.ago %>
+
+# Tournament with source_url for scraping tests
+scraped:
+  id: 50_000_002
+  title: "Scraped Tournament"
+  season: current
+  organizer: nbv (Region)
+  organizer_type: "Region"
+  discipline: carom_3band
+  state: "registration"
+  source_url: "https://nbv.clubcloud.de/sb_meisterschaft.php?p=20--2025-123-0--2-1-100000-"
+  sync_date: <%= 1.day.ago %>
+  created_at: <%= 1.month.ago %>
+  updated_at: <%= 1.day.ago %>

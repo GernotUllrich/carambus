@@ -1,0 +1,4412 @@
+
+<!doctype html>
+<html lang="de" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Comprehensive documentation for Carambus - Professional billiards tournament management system">
+      
+      
+      
+        <link rel="canonical" href="https://GernotUllrich.github.io/carambus/managers/league-management/">
+      
+      
+        <link rel="prev" href="../tournament-management/">
+      
+      
+        <link rel="next" href="../single-tournament/">
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.15">
+    
+    
+      
+        <title>Liga-Management - Carambus Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.342714a4.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#ligaspieltage-verwaltung-und-abwicklung" class="md-skip">
+          Zum Inhalt
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Kopfzeile">
+    <a href="../.." title="Carambus Documentation" class="md-header__button md-logo" aria-label="Carambus Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Carambus Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Liga-Management
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+      <div class="md-header__option">
+  <div class="md-select">
+    
+    <button class="md-header__button md-icon" aria-label="Sprache wechseln">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
+    </button>
+    <div class="md-select__inner">
+      <ul class="md-select__list">
+        
+          <li class="md-select__item">
+            <a href="./" hreflang="de" class="md-select__link">
+              Deutsch
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="../../en/managers/league-management/" hreflang="en" class="md-select__link">
+              English
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</div>
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Suche" placeholder="Suche" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Suche">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Zurücksetzen" aria-label="Zurücksetzen" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Suche wird initialisiert
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/GernotUllrich/carambus" title="Zum Repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GernotUllrich/carambus
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Hauptnavigation" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Startseite
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../decision-makers/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Für Entscheider
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../players/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Für Spieler
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Für Turniermanager
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../administrators/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Für Systemadministratoren
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../developers/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Für Entwickler
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../reference/API/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Referenz
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../about/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Über
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Carambus Documentation" class="md-nav__button md-logo" aria-label="Carambus Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Carambus Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/GernotUllrich/carambus" title="Zum Repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GernotUllrich/carambus
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Startseite
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../decision-makers/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Für Entscheider
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2" id="__nav_2_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Für Entscheider
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../decision-makers/executive-summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Executive Summary
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../decision-makers/features-overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Feature-Übersicht
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../decision-makers/deployment-options/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Deployment-Optionen
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../players/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Für Spieler
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Für Spieler
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../players/scoreboard-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scoreboard-Anleitung
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../players/tournament-participation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Turnierteilnahme
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../players/ai-search/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    KI-gestützte Suche
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Für Turniermanager
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Für Turniermanager
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tournament-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Turnierverwaltung
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Liga-Management
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    Liga-Management
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Inhaltsverzeichnis">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Inhaltsverzeichnis
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#ubersicht" class="md-nav__link">
+    <span class="md-ellipsis">
+      Übersicht
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Übersicht">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#unterstutzte-ligen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Unterstützte Ligen
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#inhaltsverzeichnis" class="md-nav__link">
+    <span class="md-ellipsis">
+      Inhaltsverzeichnis
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#wichtige-begriffe-und-konzepte" class="md-nav__link">
+    <span class="md-ellipsis">
+      Wichtige Begriffe und Konzepte
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Wichtige Begriffe und Konzepte">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#league-liga" class="md-nav__link">
+    <span class="md-ellipsis">
+      League (Liga)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#leagueteam-mannschaft" class="md-nav__link">
+    <span class="md-ellipsis">
+      LeagueTeam (Mannschaft)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#party-spieltag" class="md-nav__link">
+    <span class="md-ellipsis">
+      Party (Spieltag)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#partygame-einzelspiel-innerhalb-eines-spieltags" class="md-nav__link">
+    <span class="md-ellipsis">
+      PartyGame (Einzelspiel innerhalb eines Spieltags)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#datenstruktur" class="md-nav__link">
+    <span class="md-ellipsis">
+      Datenstruktur
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#beispiel" class="md-nav__link">
+    <span class="md-ellipsis">
+      Beispiel
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ablauf-eines-ligaspieltages" class="md-nav__link">
+    <span class="md-ellipsis">
+      Ablauf eines Ligaspieltages
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Ablauf eines Ligaspieltages">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#phasen-eines-spieltages" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phasen eines Spieltages
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#datenquellen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Datenquellen
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#voraussetzungen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Voraussetzungen
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Voraussetzungen">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#systemanforderungen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Systemanforderungen
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#datenvoraussetzungen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Datenvoraussetzungen
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#partymonitor-starten" class="md-nav__link">
+    <span class="md-ellipsis">
+      PartyMonitor starten
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="PartyMonitor starten">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#uber-die-location-seite" class="md-nav__link">
+    <span class="md-ellipsis">
+      Über die Location-Seite
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#uber-die-party-seite" class="md-nav__link">
+    <span class="md-ellipsis">
+      Über die Party-Seite
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#direkter-url-zugriff" class="md-nav__link">
+    <span class="md-ellipsis">
+      Direkter URL-Zugriff
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#workflow-ubersicht" class="md-nav__link">
+    <span class="md-ellipsis">
+      Workflow-Übersicht
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#phase-1-mannschaftsaufstellung" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 1: Mannschaftsaufstellung
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Phase 1: Mannschaftsaufstellung">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ansicht" class="md-nav__link">
+    <span class="md-ellipsis">
+      Ansicht
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#spieler-zuordnen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Spieler zuordnen
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#abschlieen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Abschließen
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#phase-2-tischzuordnung" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 2: Tischzuordnung
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Phase 2: Tischzuordnung">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ansicht_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Ansicht
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tische-zuordnen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Tische zuordnen
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#workflow-buttons" class="md-nav__link">
+    <span class="md-ellipsis">
+      Workflow-Buttons
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#phase-3-spielerzuordnung" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 3: Spielerzuordnung
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Phase 3: Spielerzuordnung">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ansicht_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Ansicht
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#spieler-zuordnen_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Spieler zuordnen
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#abschlieen_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Abschließen
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#phase-4-runde-starten" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 4: Runde starten
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Phase 4: Runde starten">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#vor-dem-start" class="md-nav__link">
+    <span class="md-ellipsis">
+      Vor dem Start
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#runde-starten" class="md-nav__link">
+    <span class="md-ellipsis">
+      Runde starten
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#phase-5-spiele-durchfuhren" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 5: Spiele durchführen
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Phase 5: Spiele durchführen">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#scoreboard-ansicht" class="md-nav__link">
+    <span class="md-ellipsis">
+      Scoreboard-Ansicht
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#partymonitor-ubersicht" class="md-nav__link">
+    <span class="md-ellipsis">
+      PartyMonitor-Übersicht
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ergebnis-bestatigen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Ergebnis bestätigen
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#phase-6-ergebnisse-bestatigen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 6: Ergebnisse bestätigen
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Phase 6: Ergebnisse bestätigen">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ergebnisanzeige" class="md-nav__link">
+    <span class="md-ellipsis">
+      Ergebnisanzeige
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#runde-abschlieen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Runde abschließen
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#automatischer-rundenabschluss" class="md-nav__link">
+    <span class="md-ellipsis">
+      Automatischer Rundenabschluss
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#phase-7-spieltag-abschlieen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 7: Spieltag abschließen
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Phase 7: Spieltag abschließen">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#endstand" class="md-nav__link">
+    <span class="md-ellipsis">
+      Endstand
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aktionen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Aktionen
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#upload-in-die-clubcloud" class="md-nav__link">
+    <span class="md-ellipsis">
+      Upload in die ClubCloud
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#disziplin-parameter" class="md-nav__link">
+    <span class="md-ellipsis">
+      Disziplin-Parameter
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Disziplin-Parameter">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameter-bearbeiten" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameter bearbeiten
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#141-endlos-141e" class="md-nav__link">
+    <span class="md-ellipsis">
+      14.1 endlos (14/1e)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#8-ball" class="md-nav__link">
+    <span class="md-ellipsis">
+      8-Ball
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#9-ball" class="md-nav__link">
+    <span class="md-ellipsis">
+      9-Ball
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#10-ball" class="md-nav__link">
+    <span class="md-ellipsis">
+      10-Ball
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#administration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Administration
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Administration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#adminrechte-erforderlich" class="md-nav__link">
+    <span class="md-ellipsis">
+      Adminrechte erforderlich
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#partymonitor-zurucksetzen" class="md-nav__link">
+    <span class="md-ellipsis">
+      PartyMonitor zurücksetzen
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reset-uber-rails-console" class="md-nav__link">
+    <span class="md-ellipsis">
+      Reset über Rails Console
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#fehlerbehebung" class="md-nav__link">
+    <span class="md-ellipsis">
+      Fehlerbehebung
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Fehlerbehebung">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#problem-spielergebnisse-werden-nicht-angezeigt" class="md-nav__link">
+    <span class="md-ellipsis">
+      Problem: Spielergebnisse werden nicht angezeigt
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#problem-reset-button-funktioniert-nicht" class="md-nav__link">
+    <span class="md-ellipsis">
+      Problem: Reset-Button funktioniert nicht
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#problem-tisch-dropdown-ist-leer" class="md-nav__link">
+    <span class="md-ellipsis">
+      Problem: Tisch-Dropdown ist leer
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#problem-spieler-konnen-nicht-zugeordnet-werden" class="md-nav__link">
+    <span class="md-ellipsis">
+      Problem: Spieler können nicht zugeordnet werden
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#problem-parameter-konnen-nicht-geandert-werden" class="md-nav__link">
+    <span class="md-ellipsis">
+      Problem: Parameter können nicht geändert werden
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#glossar" class="md-nav__link">
+    <span class="md-ellipsis">
+      Glossar
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#technische-referenz" class="md-nav__link">
+    <span class="md-ellipsis">
+      Technische Referenz
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Technische Referenz">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#partymonitor-states" class="md-nav__link">
+    <span class="md-ellipsis">
+      PartyMonitor States
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#relevante-urls" class="md-nav__link">
+    <span class="md-ellipsis">
+      Relevante URLs
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../single-tournament/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Einzelturnier
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../table-reservation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tischreservierung
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../admin-roles/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Admin-Rollen
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../clubcloud-integration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    ClubCloud-Integration
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../search-filters/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Suche & Filter
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../administrators/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Für Systemadministratoren
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5" id="__nav_5_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Für Systemadministratoren
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administrators/installation-overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Installations-Übersicht
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administrators/raspberry-pi-quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Raspberry Pi Quickstart
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administrators/raspberry-pi-client/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Raspberry Pi Client
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administrators/scoreboard-autostart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scoreboard Autostart
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administrators/server-architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Server-Architektur
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administrators/email-configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Email-Konfiguration
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administrators/database-setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Datenbank-Setup
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administrators/streaming-quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    YouTube Streaming Quickstart
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administrators/streaming-setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    YouTube Streaming Setup
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../developers/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Für Entwickler
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_6" id="__nav_6_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            Für Entwickler
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Getting Started
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/developer-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Entwickler-Leitfaden
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/database-design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Datenbank-Design
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/er-diagram/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    ER-Diagramm
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/API/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    API-Referenz
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/scenario-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scenario-Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/rake-tasks-debugging/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Testing & Debugging
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/deployment-workflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Deployment-Workflow
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/data-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Datenverwaltung
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/database-partitioning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Datenbank-Partitionierung
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/paper-trail-optimization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    PaperTrail-Optimierung
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/game-plan-reconstruction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Spielplan-Rekonstruktion
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/tournament-duplicate-handling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Turnier-Duplikate
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/region-tagging-cleanup-summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Regions-Tagging
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/streaming-architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    YouTube Streaming Architektur
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/pool-scoreboard-changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Pool Scoreboard Changelog
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Referenz
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            Referenz
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/API/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    API-Referenz
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/glossary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Glossar
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/terms/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    AGB
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/privacy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Datenschutz
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/config-lock-files/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Config Lock Files
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/search/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Search
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/mkdocs_dokumentation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    MkDocs
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Über
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            Über
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../about/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Über
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Inhaltsverzeichnis">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Inhaltsverzeichnis
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#ubersicht" class="md-nav__link">
+    <span class="md-ellipsis">
+      Übersicht
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Übersicht">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#unterstutzte-ligen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Unterstützte Ligen
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#inhaltsverzeichnis" class="md-nav__link">
+    <span class="md-ellipsis">
+      Inhaltsverzeichnis
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#wichtige-begriffe-und-konzepte" class="md-nav__link">
+    <span class="md-ellipsis">
+      Wichtige Begriffe und Konzepte
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Wichtige Begriffe und Konzepte">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#league-liga" class="md-nav__link">
+    <span class="md-ellipsis">
+      League (Liga)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#leagueteam-mannschaft" class="md-nav__link">
+    <span class="md-ellipsis">
+      LeagueTeam (Mannschaft)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#party-spieltag" class="md-nav__link">
+    <span class="md-ellipsis">
+      Party (Spieltag)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#partygame-einzelspiel-innerhalb-eines-spieltags" class="md-nav__link">
+    <span class="md-ellipsis">
+      PartyGame (Einzelspiel innerhalb eines Spieltags)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#datenstruktur" class="md-nav__link">
+    <span class="md-ellipsis">
+      Datenstruktur
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#beispiel" class="md-nav__link">
+    <span class="md-ellipsis">
+      Beispiel
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ablauf-eines-ligaspieltages" class="md-nav__link">
+    <span class="md-ellipsis">
+      Ablauf eines Ligaspieltages
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Ablauf eines Ligaspieltages">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#phasen-eines-spieltages" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phasen eines Spieltages
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#datenquellen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Datenquellen
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#voraussetzungen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Voraussetzungen
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Voraussetzungen">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#systemanforderungen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Systemanforderungen
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#datenvoraussetzungen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Datenvoraussetzungen
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#partymonitor-starten" class="md-nav__link">
+    <span class="md-ellipsis">
+      PartyMonitor starten
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="PartyMonitor starten">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#uber-die-location-seite" class="md-nav__link">
+    <span class="md-ellipsis">
+      Über die Location-Seite
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#uber-die-party-seite" class="md-nav__link">
+    <span class="md-ellipsis">
+      Über die Party-Seite
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#direkter-url-zugriff" class="md-nav__link">
+    <span class="md-ellipsis">
+      Direkter URL-Zugriff
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#workflow-ubersicht" class="md-nav__link">
+    <span class="md-ellipsis">
+      Workflow-Übersicht
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#phase-1-mannschaftsaufstellung" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 1: Mannschaftsaufstellung
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Phase 1: Mannschaftsaufstellung">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ansicht" class="md-nav__link">
+    <span class="md-ellipsis">
+      Ansicht
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#spieler-zuordnen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Spieler zuordnen
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#abschlieen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Abschließen
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#phase-2-tischzuordnung" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 2: Tischzuordnung
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Phase 2: Tischzuordnung">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ansicht_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Ansicht
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tische-zuordnen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Tische zuordnen
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#workflow-buttons" class="md-nav__link">
+    <span class="md-ellipsis">
+      Workflow-Buttons
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#phase-3-spielerzuordnung" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 3: Spielerzuordnung
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Phase 3: Spielerzuordnung">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ansicht_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Ansicht
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#spieler-zuordnen_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Spieler zuordnen
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#abschlieen_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Abschließen
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#phase-4-runde-starten" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 4: Runde starten
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Phase 4: Runde starten">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#vor-dem-start" class="md-nav__link">
+    <span class="md-ellipsis">
+      Vor dem Start
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#runde-starten" class="md-nav__link">
+    <span class="md-ellipsis">
+      Runde starten
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#phase-5-spiele-durchfuhren" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 5: Spiele durchführen
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Phase 5: Spiele durchführen">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#scoreboard-ansicht" class="md-nav__link">
+    <span class="md-ellipsis">
+      Scoreboard-Ansicht
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#partymonitor-ubersicht" class="md-nav__link">
+    <span class="md-ellipsis">
+      PartyMonitor-Übersicht
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ergebnis-bestatigen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Ergebnis bestätigen
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#phase-6-ergebnisse-bestatigen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 6: Ergebnisse bestätigen
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Phase 6: Ergebnisse bestätigen">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ergebnisanzeige" class="md-nav__link">
+    <span class="md-ellipsis">
+      Ergebnisanzeige
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#runde-abschlieen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Runde abschließen
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#automatischer-rundenabschluss" class="md-nav__link">
+    <span class="md-ellipsis">
+      Automatischer Rundenabschluss
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#phase-7-spieltag-abschlieen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 7: Spieltag abschließen
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Phase 7: Spieltag abschließen">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#endstand" class="md-nav__link">
+    <span class="md-ellipsis">
+      Endstand
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aktionen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Aktionen
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#upload-in-die-clubcloud" class="md-nav__link">
+    <span class="md-ellipsis">
+      Upload in die ClubCloud
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#disziplin-parameter" class="md-nav__link">
+    <span class="md-ellipsis">
+      Disziplin-Parameter
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Disziplin-Parameter">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameter-bearbeiten" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameter bearbeiten
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#141-endlos-141e" class="md-nav__link">
+    <span class="md-ellipsis">
+      14.1 endlos (14/1e)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#8-ball" class="md-nav__link">
+    <span class="md-ellipsis">
+      8-Ball
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#9-ball" class="md-nav__link">
+    <span class="md-ellipsis">
+      9-Ball
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#10-ball" class="md-nav__link">
+    <span class="md-ellipsis">
+      10-Ball
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#administration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Administration
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Administration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#adminrechte-erforderlich" class="md-nav__link">
+    <span class="md-ellipsis">
+      Adminrechte erforderlich
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#partymonitor-zurucksetzen" class="md-nav__link">
+    <span class="md-ellipsis">
+      PartyMonitor zurücksetzen
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reset-uber-rails-console" class="md-nav__link">
+    <span class="md-ellipsis">
+      Reset über Rails Console
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#fehlerbehebung" class="md-nav__link">
+    <span class="md-ellipsis">
+      Fehlerbehebung
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Fehlerbehebung">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#problem-spielergebnisse-werden-nicht-angezeigt" class="md-nav__link">
+    <span class="md-ellipsis">
+      Problem: Spielergebnisse werden nicht angezeigt
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#problem-reset-button-funktioniert-nicht" class="md-nav__link">
+    <span class="md-ellipsis">
+      Problem: Reset-Button funktioniert nicht
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#problem-tisch-dropdown-ist-leer" class="md-nav__link">
+    <span class="md-ellipsis">
+      Problem: Tisch-Dropdown ist leer
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#problem-spieler-konnen-nicht-zugeordnet-werden" class="md-nav__link">
+    <span class="md-ellipsis">
+      Problem: Spieler können nicht zugeordnet werden
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#problem-parameter-konnen-nicht-geandert-werden" class="md-nav__link">
+    <span class="md-ellipsis">
+      Problem: Parameter können nicht geändert werden
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#glossar" class="md-nav__link">
+    <span class="md-ellipsis">
+      Glossar
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#technische-referenz" class="md-nav__link">
+    <span class="md-ellipsis">
+      Technische Referenz
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Technische Referenz">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#partymonitor-states" class="md-nav__link">
+    <span class="md-ellipsis">
+      PartyMonitor States
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#relevante-urls" class="md-nav__link">
+    <span class="md-ellipsis">
+      Relevante URLs
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="ligaspieltage-verwaltung-und-abwicklung">Ligaspieltage - Verwaltung und Abwicklung<a class="headerlink" href="#ligaspieltage-verwaltung-und-abwicklung" title="Permanent link">&para;</a></h1>
+<h2 id="ubersicht">Übersicht<a class="headerlink" href="#ubersicht" title="Permanent link">&para;</a></h2>
+<p>Der <strong>PartyMonitor</strong> ist das zentrale Werkzeug zur Abwicklung von Liga-Spieltagen in Carambus. Er ermöglicht die vollständige Verwaltung eines Mannschaftskampfes von der Spieleraufstellung über die Tischzuordnung bis zur Ergebniserfassung und -übermittlung.</p>
+<h3 id="unterstutzte-ligen">Unterstützte Ligen<a class="headerlink" href="#unterstutzte-ligen" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Pool-Ligen</strong> (Landesliga, Bezirksliga, etc.)</li>
+<li>14.1 endlos (Straight Pool)</li>
+<li>8-Ball</li>
+<li>9-Ball</li>
+<li>10-Ball</li>
+<li><strong>Karambol-Ligen</strong> (in Vorbereitung)</li>
+<li><strong>Snooker-Ligen</strong> (in Vorbereitung)</li>
+</ul>
+<hr />
+<h2 id="inhaltsverzeichnis">Inhaltsverzeichnis<a class="headerlink" href="#inhaltsverzeichnis" title="Permanent link">&para;</a></h2>
+<ol>
+<li><a href="#wichtige-begriffe-und-konzepte">Wichtige Begriffe und Konzepte</a></li>
+<li><a href="#ablauf-eines-ligaspieltages">Ablauf eines Ligaspieltages</a></li>
+<li><a href="#partymonitor-starten">PartyMonitor starten</a></li>
+<li><a href="#workflow-übersicht">Workflow-Übersicht</a></li>
+<li><a href="#phase-1-mannschaftsaufstellung">Phase 1: Mannschaftsaufstellung</a></li>
+<li><a href="#phase-2-tischzuordnung">Phase 2: Tischzuordnung</a></li>
+<li><a href="#phase-3-spielerzuordnung">Phase 3: Spielerzuordnung</a></li>
+<li><a href="#phase-4-runde-starten">Phase 4: Runde starten</a></li>
+<li><a href="#phase-5-spiele-durchführen">Phase 5: Spiele durchführen</a></li>
+<li><a href="#phase-6-ergebnisse-bestätigen">Phase 6: Ergebnisse bestätigen</a></li>
+<li><a href="#phase-7-spieltag-abschließen">Phase 7: Spieltag abschließen</a></li>
+<li><a href="#disziplin-parameter">Disziplin-Parameter</a></li>
+<li><a href="#administration">Administration</a></li>
+<li><a href="#fehlerbehebung">Fehlerbehebung</a></li>
+</ol>
+<hr />
+<h2 id="wichtige-begriffe-und-konzepte">Wichtige Begriffe und Konzepte<a class="headerlink" href="#wichtige-begriffe-und-konzepte" title="Permanent link">&para;</a></h2>
+<h3 id="league-liga">League (Liga)<a class="headerlink" href="#league-liga" title="Permanent link">&para;</a></h3>
+<p>Eine <strong>Liga</strong> ist ein Mannschaftswettbewerb über eine Saison mit mehreren Teams.</p>
+<h3 id="leagueteam-mannschaft">LeagueTeam (Mannschaft)<a class="headerlink" href="#leagueteam-mannschaft" title="Permanent link">&para;</a></h3>
+<p>Ein <strong>LeagueTeam</strong> ist eine Mannschaft innerhalb einer Liga. Jedes Team besteht aus mehreren Spielern.</p>
+<h3 id="party-spieltag">Party (Spieltag)<a class="headerlink" href="#party-spieltag" title="Permanent link">&para;</a></h3>
+<p>Ein <strong>Party</strong> (Spieltag) ist eine Begegnung zwischen <strong>zwei LeagueTeams</strong> an einem bestimmten Datum und Ort.</p>
+<p><strong>Wichtig:</strong> In einer Liga gibt es typischerweise:
+- <strong>Hinrunde:</strong> Jedes Team spielt einmal gegen jedes andere (zu Hause oder auswärts)
+- <strong>Rückrunde:</strong> Die gleichen Begegnungen, mit getauschtem Heimrecht</p>
+<p>Beispiel: Team A vs. Team B
+- Hinrunde: Party 1 (bei Team A)
+- Rückrunde: Party 2 (bei Team B)</p>
+<h3 id="partygame-einzelspiel-innerhalb-eines-spieltags">PartyGame (Einzelspiel innerhalb eines Spieltags)<a class="headerlink" href="#partygame-einzelspiel-innerhalb-eines-spieltags" title="Permanent link">&para;</a></h3>
+<p>Ein <strong>PartyGame</strong> ist ein einzelnes Spiel zwischen zwei Spielern während eines Spieltags (Party).</p>
+<p>An einem Spieltag werden <strong>mehrere PartyGames</strong> nach einem festgelegten Muster ausgetragen:
+- Jeder Spieler aus Team A spielt gegen mehrere Spieler aus Team B
+- Die Anzahl und Reihenfolge ist durch den <strong>GamePlan</strong> vorgegeben
+- Typisch: 4-12 Einzelspiele pro Spieltag</p>
+<h3 id="datenstruktur">Datenstruktur<a class="headerlink" href="#datenstruktur" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>League (Liga)
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  └── LeagueTeam (Mannschaften)
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>        └── Party (Spieltag zwischen 2 Teams)
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>              └── PartyGame (Einzelspiele innerhalb des Spieltags)
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>                    └── Spieler A vs. Spieler B
+</code></pre></div>
+<h3 id="beispiel">Beispiel<a class="headerlink" href="#beispiel" title="Permanent link">&para;</a></h3>
+<p><strong>Landesliga Pool, 1. Spieltag:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Ebene</th>
+<th>Beispiel</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>League</strong></td>
+<td>Landesliga Pool 2025/2026</td>
+</tr>
+<tr>
+<td><strong>LeagueTeams</strong></td>
+<td>1. PBV Pinneberg 4, Kieler Billard Union 2</td>
+</tr>
+<tr>
+<td><strong>Party</strong></td>
+<td>1. PBV Pinneberg 4 vs. Kieler Billard Union 2 (06.12.2025)</td>
+</tr>
+<tr>
+<td><strong>PartyGames</strong></td>
+<td>Spiel 1: 14.1 endlos, Spiel 2: 8-Ball, Spiel 3: 9-Ball, Spiel 4: 10-Ball, ...</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="ablauf-eines-ligaspieltages">Ablauf eines Ligaspieltages<a class="headerlink" href="#ablauf-eines-ligaspieltages" title="Permanent link">&para;</a></h2>
+<p>Die Behandlung von Ligabegegnungen läuft grundlegend verschieden verglichen mit Einzelturnieren und wird daher speziell unterstützt. Die Struktur der Ligabegegnungen ist für die einzelnen Ligen vorgegeben und ändert sich nicht im Laufe einer Saison.</p>
+<h3 id="phasen-eines-spieltages">Phasen eines Spieltages<a class="headerlink" href="#phasen-eines-spieltages" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Phase</th>
+<th>Beschreibung</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>1. Planung</strong></td>
+<td>Spieltage und Mannschaften werden in der ClubCloud geplant</td>
+</tr>
+<tr>
+<td><strong>2. Mannschaftsaufstellung</strong></td>
+<td>Kapitäne legen die Spieler für den Spieltag fest</td>
+</tr>
+<tr>
+<td><strong>3. Tischzuordnung</strong></td>
+<td>Tische werden den einzelnen Spielen zugeordnet</td>
+</tr>
+<tr>
+<td><strong>4. Spielerzuordnung</strong></td>
+<td>Spieler werden den einzelnen Partien zugeordnet</td>
+</tr>
+<tr>
+<td><strong>5. Rundenstart</strong></td>
+<td>Daten werden an die Scoreboards übertragen</td>
+</tr>
+<tr>
+<td><strong>6. Spielbetrieb</strong></td>
+<td>Bedienung der Scoreboards durch die Spieler</td>
+</tr>
+<tr>
+<td><strong>7. Ergebnisübergabe</strong></td>
+<td>Ergebnisse werden am PartyMonitor bestätigt</td>
+</tr>
+<tr>
+<td><strong>8. Rundenabschluss</strong></td>
+<td>Automatischer Übergang zur nächsten Runde</td>
+</tr>
+<tr>
+<td><strong>9. Upload</strong></td>
+<td>Ergebnisse werden an die ClubCloud übertragen</td>
+</tr>
+</tbody>
+</table>
+<h3 id="datenquellen">Datenquellen<a class="headerlink" href="#datenquellen" title="Permanent link">&para;</a></h3>
+<p>Die Struktur der Spieltage einer Liga wird zu Saisonbeginn auf DBU- oder Landesebene festgelegt und in der ClubCloud formal eingetragen:</p>
+<ul>
+<li><strong>Spielplan (GamePlan):</strong> Definiert die Reihenfolge und Art der Spiele</li>
+<li><strong>Terminierung:</strong> Datum und Uhrzeit der Spieltage</li>
+<li><strong>Spielberechtigungen:</strong> Welche Spieler für welche Mannschaft spielen dürfen</li>
+</ul>
+<p>Diese Daten bilden die Grundlage für das Carambus Matchday Management.</p>
+<hr />
+<h2 id="voraussetzungen">Voraussetzungen<a class="headerlink" href="#voraussetzungen" title="Permanent link">&para;</a></h2>
+<h3 id="systemanforderungen">Systemanforderungen<a class="headerlink" href="#systemanforderungen" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Carambus-Server mit konfigurierter Location</li>
+<li>Pool-Tische mit zugewiesenen TableMonitors</li>
+<li>Aktive Liga mit Spielplan (GamePlan)</li>
+<li>Benutzer mit entsprechenden Rechten (Admin für Reset-Funktionen)</li>
+</ul>
+<h3 id="datenvoraussetzungen">Datenvoraussetzungen<a class="headerlink" href="#datenvoraussetzungen" title="Permanent link">&para;</a></h3>
+<p>Bevor ein Spieltag abgewickelt werden kann, müssen folgende Daten vorhanden sein:</p>
+<ol>
+<li><strong>Liga</strong> - Eine aktive Liga mit Spielplan</li>
+<li><strong>Mannschaften</strong> - Zwei Mannschaften (Heim und Gast)</li>
+<li><strong>Spieler</strong> - Spielberechtigte Spieler für beide Mannschaften</li>
+<li><strong>Spieltag (Party)</strong> - Ein geplanter Spieltag mit Paarung</li>
+<li><strong>Tische</strong> - Verfügbare Pool-Tische an der Location</li>
+</ol>
+<hr />
+<h2 id="partymonitor-starten">PartyMonitor starten<a class="headerlink" href="#partymonitor-starten" title="Permanent link">&para;</a></h2>
+<h3 id="uber-die-location-seite">Über die Location-Seite<a class="headerlink" href="#uber-die-location-seite" title="Permanent link">&para;</a></h3>
+<p>Der Spielleiter findet die Spieltage am einfachsten über das Spiellokal:</p>
+<ol>
+<li>Öffnen Sie die <strong>Location-Seite</strong></li>
+<li>Unter "Aktuelle Ligabegegnungen" finden Sie alle anstehenden Spieltage</li>
+<li>Klicken Sie auf den gewünschten Spieltag</li>
+</ol>
+<h3 id="uber-die-party-seite">Über die Party-Seite<a class="headerlink" href="#uber-die-party-seite" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Navigieren Sie zur <strong>Party-Detailseite</strong> (z.B. <code>/parties/332914</code>)</li>
+<li>Klicken Sie auf <strong>"Spieltag Monitor"</strong></li>
+</ol>
+<h3 id="direkter-url-zugriff">Direkter URL-Zugriff<a class="headerlink" href="#direkter-url-zugriff" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>http://[server]/party_monitors/[party_monitor_id]
+</code></pre></div>
+<hr />
+<h2 id="workflow-ubersicht">Workflow-Übersicht<a class="headerlink" href="#workflow-ubersicht" title="Permanent link">&para;</a></h2>
+<p>Der PartyMonitor führt Sie durch einen strukturierten Workflow:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>┌─────────────────────────────────────────────────────────────────────┐
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>│                        SPIELTAG-WORKFLOW                            │
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>├─────────────────────────────────────────────────────────────────────┤
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>│                                                                     │
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>│  1. SEEDING_MODE (Mannschaftsaufstellung)                          │
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>│     └─&gt; Spieler den Mannschaften zuordnen                          │
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>│         └─&gt; &quot;Mannschaftsaufstellung abschließen&quot;                   │
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>│                                                                     │
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>│  2. TABLE_DEFINITION_MODE (Tischzuordnung)                         │
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>│     └─&gt; Tische für jede Partie auswählen                           │
+<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>│         └─&gt; &quot;Tischzuordnung Runde X abschließen&quot;                   │
+<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>│                                                                     │
+<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>│  3. NEXT_ROUND_SEEDING_MODE (Spielerzuordnung)                     │
+<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a>│     └─&gt; Spieler den einzelnen Partien zuordnen                     │
+<a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a>│         └─&gt; &quot;Spielerzuordnungen Runde X abschließen&quot;               │
+<a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a>│                                                                     │
+<a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a>│  4. PLAYING_ROUND (Runde läuft)                                    │
+<a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a>│     └─&gt; &quot;Runde X starten&quot;                                          │
+<a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a>│     └─&gt; Spiele werden auf den Scoreboards gespielt                 │
+<a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a>│     └─&gt; Ergebnisse werden automatisch erfasst                      │
+<a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a>│         └─&gt; &quot;Runde X abschließen&quot;                                  │
+<a id="__codelineno-2-22" name="__codelineno-2-22" href="#__codelineno-2-22"></a>│                                                                     │
+<a id="__codelineno-2-23" name="__codelineno-2-23" href="#__codelineno-2-23"></a>│  5. ROUND_RESULT_CHECKING_MODE (Ergebnisprüfung)                   │
+<a id="__codelineno-2-24" name="__codelineno-2-24" href="#__codelineno-2-24"></a>│     └─&gt; Ergebnisse prüfen und bestätigen                           │
+<a id="__codelineno-2-25" name="__codelineno-2-25" href="#__codelineno-2-25"></a>│                                                                     │
+<a id="__codelineno-2-26" name="__codelineno-2-26" href="#__codelineno-2-26"></a>│  [Wiederholung für weitere Runden]                                 │
+<a id="__codelineno-2-27" name="__codelineno-2-27" href="#__codelineno-2-27"></a>│                                                                     │
+<a id="__codelineno-2-28" name="__codelineno-2-28" href="#__codelineno-2-28"></a>│  6. PARTY_RESULT_CHECKING_MODE (Spieltag abschließen)              │
+<a id="__codelineno-2-29" name="__codelineno-2-29" href="#__codelineno-2-29"></a>│     └─&gt; &quot;Spieltag abschließen&quot;                                     │
+<a id="__codelineno-2-30" name="__codelineno-2-30" href="#__codelineno-2-30"></a>│     └─&gt; &quot;Upload in die ClubCloud&quot;                                  │
+<a id="__codelineno-2-31" name="__codelineno-2-31" href="#__codelineno-2-31"></a>│                                                                     │
+<a id="__codelineno-2-32" name="__codelineno-2-32" href="#__codelineno-2-32"></a>│  7. CLOSED (Abgeschlossen)                                         │
+<a id="__codelineno-2-33" name="__codelineno-2-33" href="#__codelineno-2-33"></a>│                                                                     │
+<a id="__codelineno-2-34" name="__codelineno-2-34" href="#__codelineno-2-34"></a>└─────────────────────────────────────────────────────────────────────┘
+</code></pre></div>
+<hr />
+<h2 id="phase-1-mannschaftsaufstellung">Phase 1: Mannschaftsaufstellung<a class="headerlink" href="#phase-1-mannschaftsaufstellung" title="Permanent link">&para;</a></h2>
+<h3 id="ansicht">Ansicht<a class="headerlink" href="#ansicht" title="Permanent link">&para;</a></h3>
+<p>Nach dem Start des PartyMonitors sehen Sie die <strong>Teilnehmerliste</strong> mit:</p>
+<ul>
+<li><strong>Heim-Mannschaft</strong> (links)</li>
+<li><strong>Gast-Mannschaft</strong> (rechts)</li>
+</ul>
+<p>Für jede Mannschaft gibt es zwei Listen:</p>
+<table>
+<thead>
+<tr>
+<th>Mitspieler</th>
+<th>Spielberechtigte</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Aktive Spieler für diesen Spieltag</td>
+<td>Alle spielberechtigten Spieler der Mannschaft</td>
+</tr>
+</tbody>
+</table>
+<p>Carambus bietet aus den Eintragungen in der ClubCloud zur Auswahl die Spieler des entsprechenden Teams und zusätzlich Spieler aus untergeordneten Ligen.</p>
+<h3 id="spieler-zuordnen">Spieler zuordnen<a class="headerlink" href="#spieler-zuordnen" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Spieler auswählen</strong>: Klicken Sie auf einen Spieler in der "Spielberechtigte"-Liste</li>
+<li><strong>Zur Mannschaft hinzufügen</strong>: Klicken Sie auf den <strong>←</strong> Pfeil</li>
+<li><strong>Spieler entfernen</strong>: Wählen Sie einen Spieler in "Mitspieler" und klicken Sie <strong>→</strong></li>
+</ol>
+<h3 id="abschlieen">Abschließen<a class="headerlink" href="#abschlieen" title="Permanent link">&para;</a></h3>
+<p>Klicken Sie auf <strong>"Mannschaftsaufstellung abschließen"</strong>, wenn alle Spieler zugeordnet sind.</p>
+<blockquote>
+<p><strong>Hinweis</strong>: Nach der Auswahl ist die Menge der am Spieltag verfügbaren Spieler unveränderbar festgelegt. Die Anzahl der Mitspieler muss den Liga-Regeln entsprechen (z.B. 4 Spieler pro Mannschaft).</p>
+</blockquote>
+<hr />
+<h2 id="phase-2-tischzuordnung">Phase 2: Tischzuordnung<a class="headerlink" href="#phase-2-tischzuordnung" title="Permanent link">&para;</a></h2>
+<h3 id="ansicht_1">Ansicht<a class="headerlink" href="#ansicht_1" title="Permanent link">&para;</a></h3>
+<p>Nach Abschluss der Mannschaftsaufstellung sehen Sie:</p>
+<ul>
+<li><strong>Runde 1</strong> mit den geplanten Partien</li>
+<li>Für jede Partie ein <strong>Tisch-Dropdown</strong></li>
+</ul>
+<p>In Carambus können die in einem Spiellokal verfügbaren Tische mit Name und Typ (Karambol groß, mittel, klein, Pool, Snooker) definiert werden.</p>
+<h3 id="tische-zuordnen">Tische zuordnen<a class="headerlink" href="#tische-zuordnen" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Wählen Sie für jede Partie einen passenden Tisch aus dem Dropdown</li>
+<li>Die verfügbaren Tische werden basierend auf der Disziplin gefiltert</li>
+</ol>
+<h3 id="workflow-buttons">Workflow-Buttons<a class="headerlink" href="#workflow-buttons" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>[Tischzuordnung Runde 1 abschließen] =&gt; [Spielerzuordnungen Runde 1 abschließen] =&gt; [Runde 1 starten]
+</code></pre></div>
+<p>Klicken Sie auf <strong>"Tischzuordnung Runde X abschließen"</strong>.</p>
+<hr />
+<h2 id="phase-3-spielerzuordnung">Phase 3: Spielerzuordnung<a class="headerlink" href="#phase-3-spielerzuordnung" title="Permanent link">&para;</a></h2>
+<h3 id="ansicht_2">Ansicht<a class="headerlink" href="#ansicht_2" title="Permanent link">&para;</a></h3>
+<p>Für jede Partie sehen Sie:</p>
+<table>
+<thead>
+<tr>
+<th>Seqno</th>
+<th>Disziplin</th>
+<th>Spieler A</th>
+<th>Ergebnis</th>
+<th>Spieler B</th>
+<th>Punkte</th>
+<th>Tisch</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>14/1e</td>
+<td>[Dropdown]</td>
+<td>:</td>
+<td>[Dropdown]</td>
+<td>:</td>
+<td>Table 1</td>
+</tr>
+<tr>
+<td>2</td>
+<td>8-Ball</td>
+<td>[Dropdown]</td>
+<td>:</td>
+<td>[Dropdown]</td>
+<td>:</td>
+<td>Table 2</td>
+</tr>
+</tbody>
+</table>
+<h3 id="spieler-zuordnen_1">Spieler zuordnen<a class="headerlink" href="#spieler-zuordnen_1" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Wählen Sie für jede Partie den <strong>Spieler A</strong> (Heim) aus dem Dropdown</li>
+<li>Wählen Sie den <strong>Spieler B</strong> (Gast) aus dem Dropdown</li>
+</ol>
+<p>Erst wenn alle Spiele einer Runde belegt sind, kann die Runde gestartet werden.</p>
+<h3 id="abschlieen_1">Abschließen<a class="headerlink" href="#abschlieen_1" title="Permanent link">&para;</a></h3>
+<p>Klicken Sie auf <strong>"Spielerzuordnungen Runde X abschließen"</strong>.</p>
+<hr />
+<h2 id="phase-4-runde-starten">Phase 4: Runde starten<a class="headerlink" href="#phase-4-runde-starten" title="Permanent link">&para;</a></h2>
+<h3 id="vor-dem-start">Vor dem Start<a class="headerlink" href="#vor-dem-start" title="Permanent link">&para;</a></h3>
+<p>Überprüfen Sie die <strong>Disziplin-Parameter</strong> (siehe <a href="#disziplin-parameter">Disziplin-Parameter</a>):</p>
+<ul>
+<li><strong>14/1e</strong>: Punkteziel (z.B. 80), Aufnahmelimit</li>
+<li><strong>8-Ball</strong>: Gewinnspiele (z.B. 6)</li>
+<li><strong>9-Ball</strong>: Gewinnspiele (z.B. 8)</li>
+<li><strong>10-Ball</strong>: Gewinnspiele (z.B. 7)</li>
+</ul>
+<h3 id="runde-starten">Runde starten<a class="headerlink" href="#runde-starten" title="Permanent link">&para;</a></h3>
+<p>Klicken Sie auf <strong>"Runde X starten"</strong>.</p>
+<p>Nach dem Start:
+- Die Scoreboards auf den zugewiesenen Tischen werden aktiviert
+- Die Spieler und Parameter werden übertragen
+- Der Status wechselt zu <strong>PLAYING_ROUND</strong>
+- An den Scoreboards erscheinen die einzelnen Spielpaarungen</p>
+<hr />
+<h2 id="phase-5-spiele-durchfuhren">Phase 5: Spiele durchführen<a class="headerlink" href="#phase-5-spiele-durchfuhren" title="Permanent link">&para;</a></h2>
+<h3 id="scoreboard-ansicht">Scoreboard-Ansicht<a class="headerlink" href="#scoreboard-ansicht" title="Permanent link">&para;</a></h3>
+<p>Jedes Spiel wird auf dem zugewiesenen Tisch-Scoreboard angezeigt. Die Spieler können:</p>
+<ul>
+<li>Punkte eingeben (Klick auf Score oder Bälle)</li>
+<li>Spielerwechsel durchführen</li>
+<li>Sätze abschließen</li>
+</ul>
+<p>Die Bedienung der Scoreboards erfolgt über Touch-Eingabe. Per Undo können Eingaben beliebig zurückgenommen werden. Das gilt auch nach Ende der Partie, solange die Partie nicht endgültig vom Spielleiter abgeschlossen wurde.</p>
+<h3 id="partymonitor-ubersicht">PartyMonitor-Übersicht<a class="headerlink" href="#partymonitor-ubersicht" title="Permanent link">&para;</a></h3>
+<p>Im PartyMonitor sehen Sie den Live-Status aller Spiele. Die Ergebnisse werden live in der Monitoransicht aktualisiert:</p>
+<table>
+<thead>
+<tr>
+<th>Symbol</th>
+<th>Bedeutung</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>👁️ (grau)</td>
+<td>Spiel läuft</td>
+</tr>
+<tr>
+<td>👁️ (gelb)</td>
+<td>Satz beendet, wartet auf Bestätigung</td>
+</tr>
+<tr>
+<td>👁️ (grün)</td>
+<td>Spiel beendet</td>
+</tr>
+<tr>
+<td>✓ OK? (gelb)</td>
+<td>Ergebnis muss bestätigt werden</td>
+</tr>
+</tbody>
+</table>
+<h3 id="ergebnis-bestatigen">Ergebnis bestätigen<a class="headerlink" href="#ergebnis-bestatigen" title="Permanent link">&para;</a></h3>
+<p>Wenn ein Spiel den Status "Satz beendet" hat:</p>
+<ol>
+<li>Klicken Sie auf das <strong>👁️</strong>-Symbol, um das Scoreboard zu öffnen</li>
+<li>Überprüfen Sie das Ergebnis</li>
+<li>Klicken Sie auf <strong>"✓ OK?"</strong> im PartyMonitor, um das Ergebnis zu bestätigen</li>
+</ol>
+<hr />
+<h2 id="phase-6-ergebnisse-bestatigen">Phase 6: Ergebnisse bestätigen<a class="headerlink" href="#phase-6-ergebnisse-bestatigen" title="Permanent link">&para;</a></h2>
+<h3 id="ergebnisanzeige">Ergebnisanzeige<a class="headerlink" href="#ergebnisanzeige" title="Permanent link">&para;</a></h3>
+<p>Nach Abschluss aller Spiele einer Runde werden die Ergebnisse angezeigt:</p>
+<p><strong>Für 14.1 endlos:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>Punkte: 48 : 80    Aufn.: 3 / 3    HS: 32 / 58
+</code></pre></div></p>
+<p><strong>Für 8-Ball, 9-Ball, 10-Ball:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>2 : 6
+</code></pre></div></p>
+<h3 id="runde-abschlieen">Runde abschließen<a class="headerlink" href="#runde-abschlieen" title="Permanent link">&para;</a></h3>
+<p>Klicken Sie auf <strong>"Runde X abschließen"</strong>, wenn alle Ergebnisse bestätigt sind.</p>
+<h3 id="automatischer-rundenabschluss">Automatischer Rundenabschluss<a class="headerlink" href="#automatischer-rundenabschluss" title="Permanent link">&para;</a></h3>
+<p>Wenn alle Spiele einer Runde bestätigt sind, wird automatisch zur nächsten Runde bzw. ggf. zum Shootout bei Gleichstand übergegangen. Die Zwischenergebnisse und das Endergebnis können bei Bedarf an jedem Scoreboard eingesehen werden (Start → Turniere → Turnier).</p>
+<hr />
+<h2 id="phase-7-spieltag-abschlieen">Phase 7: Spieltag abschließen<a class="headerlink" href="#phase-7-spieltag-abschlieen" title="Permanent link">&para;</a></h2>
+<h3 id="endstand">Endstand<a class="headerlink" href="#endstand" title="Permanent link">&para;</a></h3>
+<p>Am Ende des Spieltags wird der <strong>Endstand</strong> angezeigt:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>Endstand: 3 : 5
+</code></pre></div>
+<h3 id="aktionen">Aktionen<a class="headerlink" href="#aktionen" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Button</th>
+<th>Funktion</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Spieltag abschließen</strong></td>
+<td>Schließt den Spieltag ab</td>
+</tr>
+<tr>
+<td><strong>Upload in die ClubCloud</strong></td>
+<td>Überträgt die Ergebnisse zur ClubCloud</td>
+</tr>
+</tbody>
+</table>
+<h3 id="upload-in-die-clubcloud">Upload in die ClubCloud<a class="headerlink" href="#upload-in-die-clubcloud" title="Permanent link">&para;</a></h3>
+<p>Zum Upload in die ClubCloud wird das Formular angeboten, genau so wie auch im Adminbereich der ClubCloud. Damit das funktioniert, ist ein Login in die ClubCloud mit demselben Browser notwendig.</p>
+<hr />
+<h2 id="disziplin-parameter">Disziplin-Parameter<a class="headerlink" href="#disziplin-parameter" title="Permanent link">&para;</a></h2>
+<h3 id="parameter-bearbeiten">Parameter bearbeiten<a class="headerlink" href="#parameter-bearbeiten" title="Permanent link">&para;</a></h3>
+<p>Die Disziplin-Parameter können <strong>vor dem Start der Runde</strong> bearbeitet werden:</p>
+<ol>
+<li>Klicken Sie auf den <strong>Bearbeiten-Button</strong> neben dem Parameter</li>
+<li>Wählen Sie den neuen Wert aus dem Dropdown</li>
+<li>Die Änderung wird sofort gespeichert</li>
+</ol>
+<h3 id="141-endlos-141e">14.1 endlos (14/1e)<a class="headerlink" href="#141-endlos-141e" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Optionen</th>
+<th>Standard</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Punkteziel</td>
+<td>50, 60, 70, 75, 80, 100, 125, 150</td>
+<td>80</td>
+</tr>
+<tr>
+<td>Aufnahmelimit</td>
+<td>0 (unbegrenzt), 15, 20, 25, 30, 35, 40</td>
+<td>0</td>
+</tr>
+<tr>
+<td>Erster Anstoß</td>
+<td>Ausstoßen, Spieler A, Spieler B</td>
+<td>Ausstoßen</td>
+</tr>
+</tbody>
+</table>
+<h3 id="8-ball">8-Ball<a class="headerlink" href="#8-ball" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Optionen</th>
+<th>Standard</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Gewinnspiele</td>
+<td>4, 5, 6, 7</td>
+<td>6</td>
+</tr>
+<tr>
+<td>Anstoß</td>
+<td>Wechsel, Gewinner, Verlierer</td>
+<td>Wechsel</td>
+</tr>
+<tr>
+<td>Erster Anstoß</td>
+<td>Ausstoßen, Spieler A, Spieler B</td>
+<td>Ausstoßen</td>
+</tr>
+</tbody>
+</table>
+<h3 id="9-ball">9-Ball<a class="headerlink" href="#9-ball" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Optionen</th>
+<th>Standard</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Gewinnspiele</td>
+<td>5, 6, 7, 8, 9</td>
+<td>8</td>
+</tr>
+<tr>
+<td>Anstoß</td>
+<td>Wechsel, Gewinner, Verlierer</td>
+<td>Wechsel</td>
+</tr>
+<tr>
+<td>Erster Anstoß</td>
+<td>Ausstoßen, Spieler A, Spieler B</td>
+<td>Ausstoßen</td>
+</tr>
+</tbody>
+</table>
+<h3 id="10-ball">10-Ball<a class="headerlink" href="#10-ball" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Optionen</th>
+<th>Standard</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Gewinnspiele</td>
+<td>5, 6, 7, 8</td>
+<td>7</td>
+</tr>
+<tr>
+<td>Anstoß</td>
+<td>Wechsel, Gewinner, Verlierer</td>
+<td>Wechsel</td>
+</tr>
+<tr>
+<td>Erster Anstoß</td>
+<td>Ausstoßen, Spieler A, Spieler B</td>
+<td>Ausstoßen</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="administration">Administration<a class="headerlink" href="#administration" title="Permanent link">&para;</a></h2>
+<h3 id="adminrechte-erforderlich">Adminrechte erforderlich<a class="headerlink" href="#adminrechte-erforderlich" title="Permanent link">&para;</a></h3>
+<p>Bestimmte Funktionen erfordern Admin-Rechte:</p>
+<ul>
+<li><strong>Spieltag-Monitor komplett zurücksetzen</strong></li>
+</ul>
+<h3 id="partymonitor-zurucksetzen">PartyMonitor zurücksetzen<a class="headerlink" href="#partymonitor-zurucksetzen" title="Permanent link">&para;</a></h3>
+<blockquote>
+<p>⚠️ <strong>Warnung</strong>: Diese Aktion löscht alle Spielerzuordnungen und Ergebnisse unwiderruflich!</p>
+</blockquote>
+<ol>
+<li>Scrollen Sie zum Ende der Seite</li>
+<li>Klicken Sie auf <strong>"Spieltag-Monitor komplett zurücksetzen (Adminrechte notwendig)"</strong></li>
+<li>Bestätigen Sie die Sicherheitsabfrage</li>
+</ol>
+<p>Nach dem Reset:
+- Der PartyMonitor kehrt zum Status <strong>SEEDING_MODE</strong> zurück
+- Alle TableMonitors werden gelöscht
+- Alle Spiele und Ergebnisse werden gelöscht
+- Die Spielerzuordnungen werden zurückgesetzt</p>
+<h3 id="reset-uber-rails-console">Reset über Rails Console<a class="headerlink" href="#reset-uber-rails-console" title="Permanent link">&para;</a></h3>
+<p>Falls der UI-Reset nicht funktioniert:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="n">pm</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">PartyMonitor</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="o">[</span><span class="no">ID</span><span class="o">]</span><span class="p">)</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="n">party</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pm</span><span class="o">.</span><span class="n">party</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="c1"># TableMonitor-Games löschen</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="n">pm</span><span class="o">.</span><span class="n">table_monitors</span><span class="o">.</span><span class="n">each</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="o">|</span><span class="n">tm</span><span class="o">|</span><span class="w"> </span><span class="n">tm</span><span class="o">.</span><span class="n">game</span><span class="o">&amp;.</span><span class="n">destroy</span><span class="w"> </span><span class="p">}</span>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="c1"># TableMonitors löschen</span>
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="n">pm</span><span class="o">.</span><span class="n">table_monitors</span><span class="o">.</span><span class="n">destroy_all</span>
+<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>
+<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="c1"># Party-Games löschen</span>
+<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="n">party</span><span class="o">.</span><span class="n">games</span><span class="o">.</span><span class="n">destroy_all</span>
+<a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a>
+<a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a><span class="c1"># Test-Seedings löschen</span>
+<a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a><span class="n">party</span><span class="o">.</span><span class="n">seedings</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="s2">&quot;id &gt; 5000000&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">destroy_all</span>
+<a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a>
+<a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a><span class="c1"># PartyMonitor zurücksetzen</span>
+<a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a><span class="n">pm</span><span class="o">.</span><span class="n">reset_party_monitor</span>
+<a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a><span class="n">pm</span><span class="o">.</span><span class="n">save!</span>
+</code></pre></div>
+<hr />
+<h2 id="fehlerbehebung">Fehlerbehebung<a class="headerlink" href="#fehlerbehebung" title="Permanent link">&para;</a></h2>
+<h3 id="problem-spielergebnisse-werden-nicht-angezeigt">Problem: Spielergebnisse werden nicht angezeigt<a class="headerlink" href="#problem-spielergebnisse-werden-nicht-angezeigt" title="Permanent link">&para;</a></h3>
+<p><strong>Ursache</strong>: Die TableMonitors sind nicht korrekt mit den Party-Games verknüpft.</p>
+<p><strong>Lösung</strong>:
+1. Setzen Sie den PartyMonitor zurück
+2. Starten Sie den Workflow erneut</p>
+<h3 id="problem-reset-button-funktioniert-nicht">Problem: Reset-Button funktioniert nicht<a class="headerlink" href="#problem-reset-button-funktioniert-nicht" title="Permanent link">&para;</a></h3>
+<p><strong>Ursache</strong>: Fehlende Admin-Rechte oder technischer Fehler.</p>
+<p><strong>Lösung</strong>:
+1. Stellen Sie sicher, dass Sie als Admin eingeloggt sind
+2. Verwenden Sie alternativ die Rails Console (siehe oben)</p>
+<h3 id="problem-tisch-dropdown-ist-leer">Problem: Tisch-Dropdown ist leer<a class="headerlink" href="#problem-tisch-dropdown-ist-leer" title="Permanent link">&para;</a></h3>
+<p><strong>Ursache</strong>: Keine passenden Tische für die Disziplin konfiguriert.</p>
+<p><strong>Lösung</strong>:
+1. Prüfen Sie die Tisch-Konfiguration in der Location
+2. Stellen Sie sicher, dass Pool-Tische vorhanden sind</p>
+<h3 id="problem-spieler-konnen-nicht-zugeordnet-werden">Problem: Spieler können nicht zugeordnet werden<a class="headerlink" href="#problem-spieler-konnen-nicht-zugeordnet-werden" title="Permanent link">&para;</a></h3>
+<p><strong>Ursache</strong>: Keine spielberechtigten Spieler für die Mannschaft.</p>
+<p><strong>Lösung</strong>:
+1. Prüfen Sie die Seedings der Mannschaft
+2. Fügen Sie ggf. Spieler zur Mannschaft hinzu</p>
+<h3 id="problem-parameter-konnen-nicht-geandert-werden">Problem: Parameter können nicht geändert werden<a class="headerlink" href="#problem-parameter-konnen-nicht-geandert-werden" title="Permanent link">&para;</a></h3>
+<p><strong>Ursache</strong>: Der PartyMonitor ist bereits im Status PLAYING_ROUND.</p>
+<p><strong>Lösung</strong>:
+- Parameter können nur in den Status SEEDING_MODE, TABLE_DEFINITION_MODE oder NEXT_ROUND_SEEDING_MODE geändert werden
+- Setzen Sie ggf. den PartyMonitor zurück</p>
+<hr />
+<h2 id="glossar">Glossar<a class="headerlink" href="#glossar" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Begriff</th>
+<th>Beschreibung</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>League</strong></td>
+<td>Eine Liga/Mannschaftswettbewerb über eine Saison</td>
+</tr>
+<tr>
+<td><strong>LeagueTeam</strong></td>
+<td>Eine Mannschaft innerhalb einer Liga</td>
+</tr>
+<tr>
+<td><strong>Party</strong></td>
+<td>Ein Spieltag/Mannschaftskampf zwischen zwei Teams</td>
+</tr>
+<tr>
+<td><strong>PartyGame</strong></td>
+<td>Ein Einzelspiel innerhalb eines Spieltags</td>
+</tr>
+<tr>
+<td><strong>PartyMonitor</strong></td>
+<td>Das Verwaltungstool für einen Spieltag</td>
+</tr>
+<tr>
+<td><strong>GamePlan</strong></td>
+<td>Der Spielplan einer Liga mit allen Paarungen</td>
+</tr>
+<tr>
+<td><strong>Seeding</strong></td>
+<td>Zuordnung eines Spielers zu einer Mannschaft/Turnier</td>
+</tr>
+<tr>
+<td><strong>TableMonitor</strong></td>
+<td>Das Scoreboard eines einzelnen Tisches</td>
+</tr>
+<tr>
+<td><strong>Round</strong></td>
+<td>Eine Runde innerhalb eines Spieltags</td>
+</tr>
+<tr>
+<td><strong>ba_results</strong></td>
+<td>Die Ergebnisdaten im Billard-Area-Format</td>
+</tr>
+<tr>
+<td><strong>ClubCloud</strong></td>
+<td>Das zentrale Verwaltungssystem des DBU</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="technische-referenz">Technische Referenz<a class="headerlink" href="#technische-referenz" title="Permanent link">&para;</a></h2>
+<h3 id="partymonitor-states">PartyMonitor States<a class="headerlink" href="#partymonitor-states" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>State</th>
+<th>Beschreibung</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>seeding_mode</code></td>
+<td>Mannschaftsaufstellung</td>
+</tr>
+<tr>
+<td><code>table_definition_mode</code></td>
+<td>Tischzuordnung</td>
+</tr>
+<tr>
+<td><code>next_round_seeding_mode</code></td>
+<td>Spielerzuordnung</td>
+</tr>
+<tr>
+<td><code>playing_round</code></td>
+<td>Runde läuft</td>
+</tr>
+<tr>
+<td><code>round_result_checking_mode</code></td>
+<td>Ergebnisprüfung</td>
+</tr>
+<tr>
+<td><code>party_result_checking_mode</code></td>
+<td>Spieltag abschließen</td>
+</tr>
+<tr>
+<td><code>closed</code></td>
+<td>Abgeschlossen</td>
+</tr>
+</tbody>
+</table>
+<h3 id="relevante-urls">Relevante URLs<a class="headerlink" href="#relevante-urls" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Seite</th>
+<th>URL</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Location</td>
+<td><code>/locations/[location_id]</code></td>
+</tr>
+<tr>
+<td>Party-Details</td>
+<td><code>/parties/[party_id]</code></td>
+</tr>
+<tr>
+<td>PartyMonitor</td>
+<td><code>/party_monitors/[party_monitor_id]</code></td>
+</tr>
+<tr>
+<td>Scoreboard</td>
+<td><code>/table_monitors/[table_monitor_id]</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<p><em>Letzte Aktualisierung: Dezember 2025</em></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        <div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/GernotUllrich/carambus" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="http://www.billardclub-wedel.de/" target="_blank" rel="noopener" title="www.billardclub-wedel.de" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M352 256c0 22.2-1.2 43.6-3.3 64H163.4c-2.2-20.4-3.3-41.8-3.3-64s1.2-43.6 3.3-64h185.3c2.2 20.4 3.3 41.8 3.3 64m28.8-64h123.1c5.3 20.5 8.1 41.9 8.1 64s-2.8 43.5-8.1 64H380.8c2.1-20.6 3.2-42 3.2-64s-1.1-43.4-3.2-64m112.6-32H376.7c-10-63.9-29.8-117.4-55.3-151.6 78.3 20.7 142 77.5 171.9 151.6zm-149.1 0H167.7c6.1-36.4 15.5-68.6 27-94.7 10.5-23.6 22.2-40.7 33.5-51.5C239.4 3.2 248.7 0 256 0s16.6 3.2 27.8 13.8c11.3 10.8 23 27.9 33.5 51.5 11.6 26 20.9 58.2 27 94.7m-209 0H18.6c30-74.1 93.6-130.9 172-151.6-25.5 34.2-45.3 87.7-55.3 151.6M8.1 192h123.1c-2.1 20.6-3.2 42-3.2 64s1.1 43.4 3.2 64H8.1C2.8 299.5 0 278.1 0 256s2.8-43.5 8.1-64m186.6 254.6c-11.6-26-20.9-58.2-27-94.6h176.6c-6.1 36.4-15.5 68.6-27 94.6-10.5 23.6-22.2 40.7-33.5 51.5-11.2 10.7-20.5 13.9-27.8 13.9s-16.6-3.2-27.8-13.8c-11.3-10.8-23-27.9-33.5-51.5zM135.3 352c10 63.9 29.8 117.4 55.3 151.6-78.4-20.7-142-77.5-172-151.6zm358.1 0c-30 74.1-93.6 130.9-171.9 151.6 25.5-34.2 45.2-87.7 55.3-151.6h116.7z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.indexes", "search.suggest", "search.highlight", "header.autohide", "toc.follow"], "search": "../../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "In Zwischenablage kopiert", "clipboard.copy": "In Zwischenablage kopieren", "search.result.more.one": "1 weiteres Suchergebnis auf dieser Seite", "search.result.more.other": "# weitere Suchergebnisse auf dieser Seite", "search.result.none": "Keine Suchergebnisse", "search.result.one": "1 Suchergebnis", "search.result.other": "# Suchergebnisse", "search.result.placeholder": "Suchbegriff eingeben", "search.result.term.missing": "Es fehlt", "select.version": "Version ausw\u00e4hlen"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.56ea9cef.min.js"></script>
+      
+        <script src="../../javascripts/mathjax.js"></script>
+      
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>

@@ -1,0 +1,3646 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Comprehensive documentation for Carambus - Professional billiards tournament management system">
+      
+      
+      
+        <link rel="canonical" href="https://GernotUllrich.github.io/carambus/en/obsolete/enhanced_mode_system/">
+      
+      
+      
+      
+      <link rel="icon" href="../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.15">
+    
+    
+      
+        <title>Carambus Enhanced Mode System - Carambus Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.342714a4.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#carambus-enhanced-mode-system" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../" title="Carambus Documentation" class="md-header__button md-logo" aria-label="Carambus Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Carambus Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Carambus Enhanced Mode System
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+      <div class="md-header__option">
+  <div class="md-select">
+    
+    <button class="md-header__button md-icon" aria-label="Select language">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
+    </button>
+    <div class="md-select__inner">
+      <ul class="md-select__list">
+        
+          <li class="md-select__item">
+            <a href="../../../obsolete/enhanced_mode_system/" hreflang="de" class="md-select__link">
+              Deutsch
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="./" hreflang="en" class="md-select__link">
+              English
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</div>
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/GernotUllrich/carambus" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GernotUllrich/carambus
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../decision-makers/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Decision Makers
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../players/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Players
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../managers/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Managers
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../administrators/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Administrators
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../developers/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Developers
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../reference/API/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../about/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  About
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../" title="Carambus Documentation" class="md-nav__button md-logo" aria-label="Carambus Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Carambus Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/GernotUllrich/carambus" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GernotUllrich/carambus
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../decision-makers/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Decision Makers
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2" id="__nav_2_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Decision Makers
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../decision-makers/executive-summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Executive Summary
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../decision-makers/features-overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Features Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../decision-makers/deployment-options/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Deployment Options
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../players/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Players
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Players
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../players/scoreboard-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scoreboard Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../players/tournament-participation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tournament Participation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../players/ai-search/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    AI-Powered Search
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../managers/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Managers
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Managers
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../managers/tournament-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tournament Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../managers/league-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    League Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../managers/single-tournament/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Single Tournament
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../managers/table-reservation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Table Reservation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../managers/admin-roles/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Admin Roles
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../managers/clubcloud-integration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    ClubCloud Integration
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../managers/search-filters/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Search & Filters
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../administrators/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Administrators
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5" id="__nav_5_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Administrators
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administrators/installation-overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Installation Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administrators/raspberry-pi-quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Raspberry Pi Quickstart
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administrators/raspberry-pi-client/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Raspberry Pi Client
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administrators/scoreboard-autostart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scoreboard Autostart
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administrators/server-architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Server Architecture
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administrators/email-configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Email Configuration
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administrators/database-setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Database Setup
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administrators/streaming-quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    YouTube Streaming Quickstart
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administrators/streaming-setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    YouTube Streaming Setup
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../developers/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Developers
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_6" id="__nav_6_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            Developers
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Getting Started
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/developer-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Developer Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/database-design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Database Design
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/er-diagram/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    ER Diagram
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/API/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    API Reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/scenario-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scenario Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/rake-tasks-debugging/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Testing & Debugging
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/deployment-workflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Deployment Workflow
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/data-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Data Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/database-partitioning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Database Partitioning
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/paper-trail-optimization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Paper Trail Optimization
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/game-plan-reconstruction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Game Plan Reconstruction
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/tournament-duplicate-handling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tournament Duplicates
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/region-tagging-cleanup-summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Region Tagging
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/streaming-architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    YouTube Streaming Architecture
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/pool-scoreboard-changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Pool Scoreboard Changelog
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Reference
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            Reference
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/API/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    API Reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/glossary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Glossary
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/terms/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Terms
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/privacy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Privacy
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/config-lock-files/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Config Lock Files
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/search/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Search
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/mkdocs_dokumentation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    MkDocs
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    About
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            About
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../about/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    About
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#ubersicht" class="md-nav__link">
+    <span class="md-ellipsis">
+      🎯 Übersicht
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#schnellstart" class="md-nav__link">
+    <span class="md-ellipsis">
+      🚀 Schnellstart
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🚀 Schnellstart">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#rubyrake-named-parameters-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      Ruby/Rake Named Parameters System
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#verfugbare-parameter" class="md-nav__link">
+    <span class="md-ellipsis">
+      📋 Verfügbare Parameter
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📋 Verfügbare Parameter">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#alle-parameter-alphabetisch" class="md-nav__link">
+    <span class="md-ellipsis">
+      Alle Parameter (alphabetisch)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#verwendungsbeispiele" class="md-nav__link">
+    <span class="md-ellipsis">
+      🎯 Verwendungsbeispiele
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🎯 Verwendungsbeispiele">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-api-server-deployment" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. API Server Deployment
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-local-server-deployment" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Local Server Deployment
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-entwicklungsumgebung" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Entwicklungsumgebung
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#konfigurationen-verwalten" class="md-nav__link">
+    <span class="md-ellipsis">
+      💾 Konfigurationen Verwalten
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="💾 Konfigurationen Verwalten">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#konfiguration-speichern" class="md-nav__link">
+    <span class="md-ellipsis">
+      Konfiguration Speichern
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gespeicherte-konfigurationen-auflisten" class="md-nav__link">
+    <span class="md-ellipsis">
+      Gespeicherte Konfigurationen Auflisten
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#konfiguration-laden" class="md-nav__link">
+    <span class="md-ellipsis">
+      Konfiguration Laden
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#socket-basierte-architektur" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔧 Socket-basierte Architektur
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔧 Socket-basierte Architektur">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#unix-socket-vorteile" class="md-nav__link">
+    <span class="md-ellipsis">
+      Unix Socket Vorteile
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#socket-pfad-struktur" class="md-nav__link">
+    <span class="md-ellipsis">
+      Socket-Pfad Struktur
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#automatische-template-generierung" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔧 Automatische Template-Generierung
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔧 Automatische Template-Generierung">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#templates-werden-automatisch-generiert" class="md-nav__link">
+    <span class="md-ellipsis">
+      Templates werden automatisch generiert
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#templates-uber-capistrano-deployen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Templates über Capistrano deployen
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#capistrano-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      📋 Capistrano Integration
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📋 Capistrano Integration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#automatische-template-ubertragung" class="md-nav__link">
+    <span class="md-ellipsis">
+      Automatische Template-Übertragung
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deployment-hooks" class="md-nav__link">
+    <span class="md-ellipsis">
+      Deployment-Hooks
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#verfugbare-capistrano-tasks" class="md-nav__link">
+    <span class="md-ellipsis">
+      Verfügbare Capistrano Tasks
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#rubymine-debugging" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔧 RubyMine Debugging
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔧 RubyMine Debugging">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#vollstandige-debugging-unterstutzung" class="md-nav__link">
+    <span class="md-ellipsis">
+      Vollständige Debugging-Unterstützung
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#best-practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      🎯 Best Practices
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🎯 Best Practices">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-rubymine-debugging-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. RubyMine Debugging Workflow
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-konfigurationen-speichern" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Konfigurationen Speichern
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-nur-anderungen-angeben" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Nur Änderungen Angeben
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#datenbank-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      🗄️ Datenbank-Management
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🗄️ Datenbank-Management">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#datenbank-synchronisation-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      Datenbank-Synchronisation Workflow
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#vollstandiger-synchronisations-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      Vollständiger Synchronisations-Workflow
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sicherheitsfeatures" class="md-nav__link">
+    <span class="md-ellipsis">
+      Sicherheitsfeatures
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#asset-handling-und-build-prozess" class="md-nav__link">
+    <span class="md-ellipsis">
+      Asset-Handling und Build-Prozess
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#region-spezifische-datenbankreduktion" class="md-nav__link">
+    <span class="md-ellipsis">
+      Region-spezifische Datenbankreduktion
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#region-spezifische-datenbankreduktion_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Region-spezifische Datenbankreduktion
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#vollstandiger-workflow-mit-region-reduktion" class="md-nav__link">
+    <span class="md-ellipsis">
+      Vollständiger Workflow mit Region-Reduktion
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lokale-anderungen-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      Lokale Änderungen-Management
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#automatisierte-datenbank-synchronisation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Automatisierte Datenbank-Synchronisation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#datenbank-versionierung" class="md-nav__link">
+    <span class="md-ellipsis">
+      Datenbank-Versionierung
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#deployment-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      🚀 Deployment Workflow
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🚀 Deployment Workflow">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-konfiguration-vorbereiten" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Konfiguration Vorbereiten
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-konfiguration-anwenden" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Konfiguration Anwenden
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-konfiguration-validieren" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Konfiguration Validieren
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-deployment-ausfuhren" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Deployment Ausführen
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#multi-environment-deployment" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔄 Multi-Environment Deployment
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔄 Multi-Environment Deployment">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#deployment-script-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Deployment-Script Integration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#automatischer-repo-pull" class="md-nav__link">
+    <span class="md-ellipsis">
+      Automatischer Repo-Pull
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔍 Troubleshooting
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔍 Troubleshooting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#socket-berechtigungen-prufen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Socket-Berechtigungen prüfen
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#nginx-socket-konfiguration-testen" class="md-nav__link">
+    <span class="md-ellipsis">
+      NGINX Socket-Konfiguration testen
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#puma-socket-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      Puma Socket Status
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#socket-verzeichnisse-erstellen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Socket-Verzeichnisse erstellen
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dateistruktur" class="md-nav__link">
+    <span class="md-ellipsis">
+      📁 Dateistruktur
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📁 Dateistruktur">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#konfigurationsdateien" class="md-nav__link">
+    <span class="md-ellipsis">
+      Konfigurationsdateien
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rake-tasks" class="md-nav__link">
+    <span class="md-ellipsis">
+      Rake Tasks
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#vorteile-des-enhanced-mode-systems" class="md-nav__link">
+    <span class="md-ellipsis">
+      ✅ Vorteile des Enhanced Mode Systems
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#fazit" class="md-nav__link">
+    <span class="md-ellipsis">
+      🎉 Fazit
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="carambus-enhanced-mode-system">Carambus Enhanced Mode System<a class="headerlink" href="#carambus-enhanced-mode-system" title="Permanent link">&para;</a></h1>
+<h2 id="ubersicht">🎯 <strong>Übersicht</strong><a class="headerlink" href="#ubersicht" title="Permanent link">&para;</a></h2>
+<p>Das <strong>Enhanced Mode System</strong> ermöglicht das einfache Umschalten zwischen verschiedenen Deployment-Konfigurationen für Carambus. Es verwendet <strong>Ruby/Rake Tasks</strong> für maximale Debugging-Unterstützung und <strong>Unix Sockets</strong> für effiziente Kommunikation zwischen NGINX und Puma.</p>
+<h2 id="schnellstart">🚀 <strong>Schnellstart</strong><a class="headerlink" href="#schnellstart" title="Permanent link">&para;</a></h2>
+<h3 id="rubyrake-named-parameters-system"><strong>Ruby/Rake Named Parameters System</strong><a class="headerlink" href="#rubyrake-named-parameters-system" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># API Server Mode</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>rails<span class="w"> </span><span class="s1">&#39;mode:api&#39;</span><span class="w"> </span><span class="nv">MODE_BASENAME</span><span class="o">=</span>carambus_api<span class="w"> </span><span class="nv">MODE_DATABASE</span><span class="o">=</span>carambus_api_production<span class="w"> </span><span class="nv">MODE_HOST</span><span class="o">=</span>newapi.carambus.de<span class="w"> </span><span class="nv">MODE_PORT</span><span class="o">=</span><span class="m">3001</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c1"># Local Server Mode</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>rails<span class="w"> </span><span class="s1">&#39;mode:local&#39;</span><span class="w"> </span><span class="nv">MODE_SEASON_NAME</span><span class="o">=</span><span class="s1">&#39;2025/2026&#39;</span><span class="w"> </span><span class="nv">MODE_CONTEXT</span><span class="o">=</span>NBV<span class="w"> </span><span class="nv">MODE_API_URL</span><span class="o">=</span><span class="s1">&#39;https://newapi.carambus.de/&#39;</span>
+</code></pre></div>
+<h2 id="verfugbare-parameter">📋 <strong>Verfügbare Parameter</strong><a class="headerlink" href="#verfugbare-parameter" title="Permanent link">&para;</a></h2>
+<h3 id="alle-parameter-alphabetisch"><strong>Alle Parameter (alphabetisch)</strong><a class="headerlink" href="#alle-parameter-alphabetisch" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>MODE_API_URL</code> - API URL für LOCAL Mode</li>
+<li><code>MODE_APPLICATION_NAME</code> - Anwendungsname</li>
+<li><code>MODE_BASENAME</code> - Deploy Basename</li>
+<li><code>MODE_BRANCH</code> - Git Branch</li>
+<li><code>MODE_CLUB_ID</code> - Club ID</li>
+<li><code>MODE_CONTEXT</code> - Context Identifier</li>
+<li><code>MODE_DATABASE</code> - Datenbankname</li>
+<li><code>MODE_DOMAIN</code> - Domain Name</li>
+<li><code>MODE_HOST</code> - Server Hostname</li>
+<li><code>MODE_LOCATION_ID</code> - Location ID</li>
+<li><code>MODE_NGINX_PORT</code> - NGINX Web Port (default: 80)</li>
+<li><code>MODE_PORT</code> - Server Port</li>
+<li><code>MODE_PUMA_SCRIPT</code> - Puma Management Script</li>
+<li><code>MODE_PUMA_SOCKET</code> - Puma Socket Name (default: puma-{rails_env}.sock)</li>
+<li><code>MODE_RAILS_ENV</code> - Rails Environment</li>
+<li><code>MODE_SCOREBOARD_URL</code> - Scoreboard URL (auto-generated)</li>
+<li><code>MODE_SEASON_NAME</code> - Season Identifier</li>
+<li><code>MODE_SSL_ENABLED</code> - SSL aktiviert (true/false, default: false)</li>
+</ul>
+<h2 id="verwendungsbeispiele">🎯 <strong>Verwendungsbeispiele</strong><a class="headerlink" href="#verwendungsbeispiele" title="Permanent link">&para;</a></h2>
+<h3 id="1-api-server-deployment"><strong>1. API Server Deployment</strong><a class="headerlink" href="#1-api-server-deployment" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>rails<span class="w"> </span><span class="s1">&#39;mode:api&#39;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="nv">MODE_BASENAME</span><span class="o">=</span>carambus_api<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="nv">MODE_DATABASE</span><span class="o">=</span>carambus_api_production<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span><span class="nv">MODE_HOST</span><span class="o">=</span>newapi.carambus.de<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">  </span><span class="nv">MODE_PORT</span><span class="o">=</span><span class="m">3001</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">  </span><span class="nv">MODE_DOMAIN</span><span class="o">=</span>api.carambus.de<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">  </span><span class="nv">MODE_RAILS_ENV</span><span class="o">=</span>production<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">  </span><span class="nv">MODE_BRANCH</span><span class="o">=</span>master<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">  </span><span class="nv">MODE_PUMA_SCRIPT</span><span class="o">=</span>manage-puma-api.sh<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">  </span><span class="nv">MODE_NGINX_PORT</span><span class="o">=</span><span class="m">80</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="w">  </span><span class="nv">MODE_PUMA_SOCKET</span><span class="o">=</span>puma-production.sock<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="w">  </span><span class="nv">MODE_SSL_ENABLED</span><span class="o">=</span><span class="nb">true</span>
+</code></pre></div>
+<h3 id="2-local-server-deployment"><strong>2. Local Server Deployment</strong><a class="headerlink" href="#2-local-server-deployment" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>rails<span class="w"> </span><span class="s1">&#39;mode:local&#39;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="nv">MODE_SEASON_NAME</span><span class="o">=</span><span class="s1">&#39;2025/2026&#39;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span><span class="nv">MODE_APPLICATION_NAME</span><span class="o">=</span>carambus<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span><span class="nv">MODE_CONTEXT</span><span class="o">=</span>NBV<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">  </span><span class="nv">MODE_API_URL</span><span class="o">=</span><span class="s1">&#39;https://newapi.carambus.de/&#39;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">  </span><span class="nv">MODE_BASENAME</span><span class="o">=</span>carambus<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">  </span><span class="nv">MODE_DATABASE</span><span class="o">=</span>carambus_api_development<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">  </span><span class="nv">MODE_DOMAIN</span><span class="o">=</span>carambus.de<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="w">  </span><span class="nv">MODE_LOCATION_ID</span><span class="o">=</span><span class="m">1</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="w">  </span><span class="nv">MODE_CLUB_ID</span><span class="o">=</span><span class="m">357</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="w">  </span><span class="nv">MODE_HOST</span><span class="o">=</span>carambus.de<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="w">  </span><span class="nv">MODE_RAILS_ENV</span><span class="o">=</span>production<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="w">  </span><span class="nv">MODE_NGINX_PORT</span><span class="o">=</span><span class="m">80</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="w">  </span><span class="nv">MODE_PUMA_SOCKET</span><span class="o">=</span>puma-production.sock<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a><span class="w">  </span><span class="nv">MODE_SSL_ENABLED</span><span class="o">=</span><span class="nb">false</span>
+</code></pre></div>
+<h3 id="3-entwicklungsumgebung"><strong>3. Entwicklungsumgebung</strong><a class="headerlink" href="#3-entwicklungsumgebung" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>rails<span class="w"> </span><span class="s1">&#39;mode:api&#39;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="nv">MODE_BASENAME</span><span class="o">=</span>carambus_api<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span><span class="nv">MODE_DATABASE</span><span class="o">=</span>carambus_api_development<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">  </span><span class="nv">MODE_HOST</span><span class="o">=</span>localhost<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">  </span><span class="nv">MODE_PORT</span><span class="o">=</span><span class="m">3001</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">  </span><span class="nv">MODE_RAILS_ENV</span><span class="o">=</span>development<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">  </span><span class="nv">MODE_NGINX_PORT</span><span class="o">=</span><span class="m">3000</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">  </span><span class="nv">MODE_PUMA_SOCKET</span><span class="o">=</span>puma-development.sock<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="w">  </span><span class="nv">MODE_SSL_ENABLED</span><span class="o">=</span><span class="nb">false</span>
+</code></pre></div>
+<h2 id="konfigurationen-verwalten">💾 <strong>Konfigurationen Verwalten</strong><a class="headerlink" href="#konfigurationen-verwalten" title="Permanent link">&para;</a></h2>
+<h3 id="konfiguration-speichern"><strong>Konfiguration Speichern</strong><a class="headerlink" href="#konfiguration-speichern" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>rails<span class="w"> </span><span class="s1">&#39;mode:save[production_api]&#39;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="nv">MODE_BASENAME</span><span class="o">=</span>carambus_api<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">  </span><span class="nv">MODE_DATABASE</span><span class="o">=</span>carambus_api_production<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">  </span><span class="nv">MODE_HOST</span><span class="o">=</span>newapi.carambus.de<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">  </span><span class="nv">MODE_PORT</span><span class="o">=</span><span class="m">3001</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">  </span><span class="nv">MODE_NGINX_PORT</span><span class="o">=</span><span class="m">80</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="w">  </span><span class="nv">MODE_PUMA_SOCKET</span><span class="o">=</span>puma-production.sock<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="w">  </span><span class="nv">MODE_SSL_ENABLED</span><span class="o">=</span><span class="nb">true</span>
+</code></pre></div>
+<h3 id="gespeicherte-konfigurationen-auflisten"><strong>Gespeicherte Konfigurationen Auflisten</strong><a class="headerlink" href="#gespeicherte-konfigurationen-auflisten" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>rails<span class="w"> </span><span class="s1">&#39;mode:list&#39;</span>
+</code></pre></div>
+<h3 id="konfiguration-laden"><strong>Konfiguration Laden</strong><a class="headerlink" href="#konfiguration-laden" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>rails<span class="w"> </span><span class="s1">&#39;mode:load[production_api]&#39;</span>
+</code></pre></div>
+<h2 id="socket-basierte-architektur">🔧 <strong>Socket-basierte Architektur</strong><a class="headerlink" href="#socket-basierte-architektur" title="Permanent link">&para;</a></h2>
+<h3 id="unix-socket-vorteile"><strong>Unix Socket Vorteile</strong><a class="headerlink" href="#unix-socket-vorteile" title="Permanent link">&para;</a></h3>
+<ul>
+<li>✅ <strong>Effizienter</strong> - Keine TCP/IP Overhead</li>
+<li>✅ <strong>Sicherer</strong> - Nur lokale Kommunikation</li>
+<li>✅ <strong>Schneller</strong> - Direkte Kernel-Kommunikation</li>
+<li>✅ <strong>Skalierbarer</strong> - Bessere Performance unter Last</li>
+</ul>
+<h3 id="socket-pfad-struktur"><strong>Socket-Pfad Struktur</strong><a class="headerlink" href="#socket-pfad-struktur" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>/var/www/{basename}/shared/
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>├── sockets/
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>│   └── puma-{rails_env}.sock    # Unix Socket
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>├── pids/
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>│   ├── puma-{rails_env}.pid     # Process ID
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>│   └── puma-{rails_env}.state   # State File
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>└── log/
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>    ├── puma.stdout.log          # Standard Output
+<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>    └── puma.stderr.log          # Standard Error
+</code></pre></div>
+<h2 id="automatische-template-generierung">🔧 <strong>Automatische Template-Generierung</strong><a class="headerlink" href="#automatische-template-generierung" title="Permanent link">&para;</a></h2>
+<h3 id="templates-werden-automatisch-generiert"><strong>Templates werden automatisch generiert</strong><a class="headerlink" href="#templates-werden-automatisch-generiert" title="Permanent link">&para;</a></h3>
+<p>Das System generiert und überträgt automatisch:</p>
+<ol>
+<li><strong>NGINX Konfiguration</strong> (<code>config/nginx.conf</code>)</li>
+<li>Verwendet Unix Socket: <code>unix:/var/www/{basename}/shared/sockets/{puma_socket}</code></li>
+<li>Kopiert nach <code>/etc/nginx/sites-available/{basename}</code></li>
+<li>Erstellt Symlink in <code>/etc/nginx/sites-enabled/</code></li>
+<li>
+<p>Testet Konfiguration und lädt NGINX neu</p>
+</li>
+<li>
+<p><strong>Puma.rb Konfiguration</strong> (<code>config/puma.rb</code>)</p>
+</li>
+<li>Bindet an Unix Socket: <code>unix://{shared_dir}/sockets/puma-{rails_env}.sock</code></li>
+<li>Erstellt Socket-Verzeichnisse automatisch</li>
+<li>Setzt korrekte Socket-Berechtigungen (0666)</li>
+<li>
+<p>Konfiguriert PID- und State-Dateien</p>
+</li>
+<li>
+<p><strong>Puma Service Konfiguration</strong> (<code>config/puma.service</code>)</p>
+</li>
+<li>Kopiert nach <code>/etc/systemd/system/puma-{basename}.service</code></li>
+<li>Erstellt Socket-Verzeichnisse vor Service-Start</li>
+<li>Lädt systemd daemon neu</li>
+<li>
+<p>Aktiviert den Service</p>
+</li>
+<li>
+<p><strong>Scoreboard URL</strong> (<code>config/scoreboard_url</code>)</p>
+</li>
+<li>Kopiert nach <code>/var/www/{basename}/shared/config/scoreboard_url</code></li>
+</ol>
+<h3 id="templates-uber-capistrano-deployen"><strong>Templates über Capistrano deployen</strong><a class="headerlink" href="#templates-uber-capistrano-deployen" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1"># Alle Templates (automatisch nach Deployment)</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>cap<span class="w"> </span>production<span class="w"> </span>deploy
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="c1"># Einzelne Template-Tasks</span>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>cap<span class="w"> </span>production<span class="w"> </span>deploy:nginx_config
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>cap<span class="w"> </span>production<span class="w"> </span>deploy:puma_rb_config
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>cap<span class="w"> </span>production<span class="w"> </span>deploy:puma_service_config
+</code></pre></div>
+<h2 id="capistrano-integration">📋 <strong>Capistrano Integration</strong><a class="headerlink" href="#capistrano-integration" title="Permanent link">&para;</a></h2>
+<h3 id="automatische-template-ubertragung"><strong>Automatische Template-Übertragung</strong><a class="headerlink" href="#automatische-template-ubertragung" title="Permanent link">&para;</a></h3>
+<p>Die folgenden Dateien werden automatisch übertragen:
+- <code>config/nginx.conf</code> → <code>/var/www/{basename}/shared/config/nginx.conf</code>
+- <code>config/puma.rb</code> → <code>/var/www/{basename}/shared/config/puma.rb</code>
+- <code>config/puma.service</code> → <code>/var/www/{basename}/shared/config/puma.service</code>
+- <code>config/scoreboard_url</code> → <code>/var/www/{basename}/shared/config/scoreboard_url</code></p>
+<h3 id="deployment-hooks"><strong>Deployment-Hooks</strong><a class="headerlink" href="#deployment-hooks" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1"># Automatisch nach jedem Deployment</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="n">after</span><span class="w"> </span><span class="s2">&quot;deploy:published&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;deploy:deploy_templates&quot;</span>
+</code></pre></div>
+<h3 id="verfugbare-capistrano-tasks"><strong>Verfügbare Capistrano Tasks</strong><a class="headerlink" href="#verfugbare-capistrano-tasks" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="c1"># Template-Deployment</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>cap<span class="w"> </span>deploy:deploy_templates<span class="w">              </span><span class="c1"># Alle Templates deployen</span>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>cap<span class="w"> </span>deploy:nginx_config<span class="w">                  </span><span class="c1"># NGINX Konfiguration deployen</span>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>cap<span class="w"> </span>deploy:puma_rb_config<span class="w">                </span><span class="c1"># Puma.rb Konfiguration deployen</span>
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>cap<span class="w"> </span>deploy:puma_service_config<span class="w">           </span><span class="c1"># Puma Service deployen</span>
+<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>
+<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="c1"># Puma Management</span>
+<a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a>cap<span class="w"> </span>puma:restart<span class="w">                         </span><span class="c1"># Puma neu starten</span>
+<a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a>cap<span class="w"> </span>puma:stop<span class="w">                            </span><span class="c1"># Puma stoppen</span>
+<a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a>cap<span class="w"> </span>puma:start<span class="w">                           </span><span class="c1"># Puma starten</span>
+<a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a>cap<span class="w"> </span>puma:status<span class="w">                          </span><span class="c1"># Puma Status anzeigen</span>
+</code></pre></div>
+<h2 id="rubymine-debugging">🔧 <strong>RubyMine Debugging</strong><a class="headerlink" href="#rubymine-debugging" title="Permanent link">&para;</a></h2>
+<h3 id="vollstandige-debugging-unterstutzung"><strong>Vollständige Debugging-Unterstützung</strong><a class="headerlink" href="#vollstandige-debugging-unterstutzung" title="Permanent link">&para;</a></h3>
+<p>Das Ruby/Rake-System bietet <strong>perfekte RubyMine-Integration</strong>:</p>
+<h4 id="1-breakpoints-setzen"><strong>1. Breakpoints setzen</strong><a class="headerlink" href="#1-breakpoints-setzen" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="c1"># In lib/tasks/mode.rake</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="k">def</span><span class="w"> </span><span class="nf">parse_named_parameters_from_env</span>
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="w">  </span><span class="n">params</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{}</span>
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="w">  </span><span class="c1"># Setze Breakpoint hier</span>
+<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="w">  </span><span class="o">%</span><span class="n">i</span><span class="o">[</span><span class="n">season_name</span><span class="w"> </span><span class="n">application_name</span><span class="w"> </span><span class="n">context</span><span class="w"> </span><span class="n">api_url</span><span class="w"> </span><span class="n">basename</span><span class="w"> </span><span class="n">database</span><span class="w"> </span><span class="n">domain</span><span class="w"> </span><span class="n">location_id</span><span class="w"> </span><span class="n">club_id</span><span class="w"> </span><span class="n">rails_env</span><span class="w"> </span><span class="n">host</span><span class="w"> </span><span class="n">port</span><span class="w"> </span><span class="n">branch</span><span class="w"> </span><span class="n">puma_script</span><span class="w"> </span><span class="n">nginx_port</span><span class="w"> </span><span class="n">puma_port</span><span class="w"> </span><span class="n">ssl_enabled</span><span class="w"> </span><span class="n">scoreboard_url</span><span class="w"> </span><span class="n">puma_socket</span><span class="o">].</span><span class="n">each</span><span class="w"> </span><span class="k">do</span><span class="w"> </span><span class="o">|</span><span class="n">param</span><span class="o">|</span>
+<a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a><span class="w">    </span><span class="n">env_var</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;MODE_</span><span class="si">#{</span><span class="n">param</span><span class="o">.</span><span class="n">to_s</span><span class="o">.</span><span class="n">upcase</span><span class="si">}</span><span class="s2">&quot;</span>
+<a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a><span class="w">    </span><span class="n">params</span><span class="o">[</span><span class="n">param</span><span class="o">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">ENV</span><span class="o">[</span><span class="n">env_var</span><span class="o">]</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="no">ENV</span><span class="o">[</span><span class="n">env_var</span><span class="o">]</span>
+<a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a><span class="w">  </span><span class="k">end</span>
+<a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a>
+<a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a><span class="w">  </span><span class="n">params</span><span class="w">  </span><span class="c1"># Setze Breakpoint hier</span>
+<a id="__codelineno-11-12" name="__codelineno-11-12" href="#__codelineno-11-12"></a><span class="k">end</span>
+</code></pre></div>
+<h4 id="2-rubymine-run-configuration"><strong>2. RubyMine Run Configuration</strong><a class="headerlink" href="#2-rubymine-run-configuration" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>Run -&gt; Edit Configurations -&gt; Rake
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>Task: mode:api
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>Environment Variables:
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a>  MODE_BASENAME=carambus_api
+<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>  MODE_DATABASE=carambus_api_production
+<a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a>  MODE_HOST=newapi.carambus.de
+<a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a>  MODE_PORT=3001
+<a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a>  MODE_NGINX_PORT=80
+<a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a>  MODE_PUMA_SOCKET=puma-production.sock
+<a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a>  MODE_SSL_ENABLED=true
+</code></pre></div>
+<h4 id="3-step-by-step-debugging"><strong>3. Step-by-Step Debugging</strong><a class="headerlink" href="#3-step-by-step-debugging" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>Step Into</strong>: Gehe in Methoden hinein</li>
+<li><strong>Step Over</strong>: Überspringe Methoden</li>
+<li><strong>Step Out</strong>: Gehe aus Methoden heraus</li>
+<li><strong>Variables Inspector</strong>: Sehe alle Parameter-Werte</li>
+</ul>
+<h2 id="best-practices">🎯 <strong>Best Practices</strong><a class="headerlink" href="#best-practices" title="Permanent link">&para;</a></h2>
+<h3 id="1-rubymine-debugging-workflow"><strong>1. RubyMine Debugging Workflow</strong><a class="headerlink" href="#1-rubymine-debugging-workflow" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="c1"># 1. Setze Breakpoints in lib/tasks/mode.rake</span>
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="c1"># 2. Erstelle RubyMine Run Configuration</span>
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="c1"># 3. Debugge step-by-step</span>
+<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="c1"># 4. Inspiziere Variablen</span>
+<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="c1"># 5. Teste verschiedene Parameter-Kombinationen</span>
+</code></pre></div>
+<h3 id="2-konfigurationen-speichern"><strong>2. Konfigurationen Speichern</strong><a class="headerlink" href="#2-konfigurationen-speichern" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="c1"># Speichere häufig verwendete Konfigurationen</span>
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>rails<span class="w"> </span><span class="s1">&#39;mode:save[production_api]&#39;</span><span class="w"> </span><span class="nv">MODE_BASENAME</span><span class="o">=</span>carambus_api<span class="w"> </span><span class="nv">MODE_DATABASE</span><span class="o">=</span>carambus_api_production<span class="w"> </span><span class="nv">MODE_HOST</span><span class="o">=</span>newapi.carambus.de<span class="w"> </span><span class="nv">MODE_PORT</span><span class="o">=</span><span class="m">3001</span><span class="w"> </span><span class="nv">MODE_NGINX_PORT</span><span class="o">=</span><span class="m">80</span><span class="w"> </span><span class="nv">MODE_PUMA_SOCKET</span><span class="o">=</span>puma-production.sock<span class="w"> </span><span class="nv">MODE_SSL_ENABLED</span><span class="o">=</span><span class="nb">true</span>
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>rails<span class="w"> </span><span class="s1">&#39;mode:save[development_api]&#39;</span><span class="w"> </span><span class="nv">MODE_BASENAME</span><span class="o">=</span>carambus_api<span class="w"> </span><span class="nv">MODE_DATABASE</span><span class="o">=</span>carambus_api_development<span class="w"> </span><span class="nv">MODE_HOST</span><span class="o">=</span>localhost<span class="w"> </span><span class="nv">MODE_PORT</span><span class="o">=</span><span class="m">3001</span><span class="w"> </span><span class="nv">MODE_NGINX_PORT</span><span class="o">=</span><span class="m">3000</span><span class="w"> </span><span class="nv">MODE_PUMA_SOCKET</span><span class="o">=</span>puma-development.sock<span class="w"> </span><span class="nv">MODE_SSL_ENABLED</span><span class="o">=</span><span class="nb">false</span>
+</code></pre></div>
+<h3 id="3-nur-anderungen-angeben"><strong>3. Nur Änderungen Angeben</strong><a class="headerlink" href="#3-nur-anderungen-angeben" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="c1"># Nur die Parameter angeben, die sich von den Defaults unterscheiden</span>
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>rails<span class="w"> </span><span class="s1">&#39;mode:api&#39;</span><span class="w"> </span><span class="nv">MODE_HOST</span><span class="o">=</span>localhost<span class="w"> </span><span class="nv">MODE_PORT</span><span class="o">=</span><span class="m">3001</span><span class="w"> </span><span class="nv">MODE_RAILS_ENV</span><span class="o">=</span>development<span class="w"> </span><span class="nv">MODE_NGINX_PORT</span><span class="o">=</span><span class="m">3000</span><span class="w"> </span><span class="nv">MODE_PUMA_SOCKET</span><span class="o">=</span>puma-development.sock<span class="w"> </span><span class="nv">MODE_SSL_ENABLED</span><span class="o">=</span><span class="nb">false</span>
+</code></pre></div>
+<h2 id="datenbank-management">🗄️ <strong>Datenbank-Management</strong><a class="headerlink" href="#datenbank-management" title="Permanent link">&para;</a></h2>
+<h3 id="datenbank-synchronisation-workflow"><strong>Datenbank-Synchronisation Workflow</strong><a class="headerlink" href="#datenbank-synchronisation-workflow" title="Permanent link">&para;</a></h3>
+<p>Das Enhanced Mode System bietet vollständige Datenbanksynchronisation zwischen lokaler Entwicklung und Produktionsumgebung:</p>
+<h4 id="1-lokalen-development-dump-erstellen"><strong>1. Lokalen Development-Dump erstellen</strong><a class="headerlink" href="#1-lokalen-development-dump-erstellen" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="c1"># Erstellt einen Dump der lokalen carambus_api_development Datenbank</span>
+<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>rails<span class="w"> </span>mode:prepare_db_dump
+<a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>
+<a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a><span class="c1"># Ausgabe:</span>
+<a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a><span class="c1"># 🗄️  Creating database dump: carambus_api_development_20250102_120000.sql.gz</span>
+<a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a><span class="c1"># 📊 Source database: carambus_api_development</span>
+<a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a><span class="c1"># 🎯 Target database: carambus_api_production (on server)</span>
+<a id="__codelineno-16-8" name="__codelineno-16-8" href="#__codelineno-16-8"></a><span class="c1"># ✅ Database dump created successfully: carambus_api_development_20250102_120000.sql.gz</span>
+</code></pre></div>
+<h4 id="2-production-dump-vom-server-herunterladen"><strong>2. Production-Dump vom Server herunterladen</strong><a class="headerlink" href="#2-production-dump-vom-server-herunterladen" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="c1"># Erstellt einen Dump der carambus_api_production Datenbank auf dem Server und lädt ihn herunter</span>
+<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>rails<span class="w"> </span>mode:download_db_dump
+<a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a>
+<a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a><span class="c1"># Ausgabe:</span>
+<a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a><span class="c1"># 📥 Downloading database dump: carambus_api_production_20250102_120000.sql.gz</span>
+<a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a><span class="c1"># 📊 Source database: carambus_api_production (on server)</span>
+<a id="__codelineno-17-7" name="__codelineno-17-7" href="#__codelineno-17-7"></a><span class="c1"># 🎯 Target database: carambus_api_development (local)</span>
+<a id="__codelineno-17-8" name="__codelineno-17-8" href="#__codelineno-17-8"></a><span class="c1"># ✅ Database dump downloaded successfully: carambus_api_production_20250102_120000.sql.gz</span>
+</code></pre></div>
+<h4 id="3-verfugbare-dumps-auflisten"><strong>3. Verfügbare Dumps auflisten</strong><a class="headerlink" href="#3-verfugbare-dumps-auflisten" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="c1"># Zeigt alle verfügbaren Dumps mit Größe und Datum</span>
+<a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>rails<span class="w"> </span>mode:list_db_dumps
+<a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a>
+<a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a><span class="c1"># Ausgabe:</span>
+<a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a><span class="c1"># 🗄️  Available database dumps:</span>
+<a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a><span class="c1"># ----------------------------------------</span>
+<a id="__codelineno-18-7" name="__codelineno-18-7" href="#__codelineno-18-7"></a><span class="c1"># 📊 Development dumps (for upload to production):</span>
+<a id="__codelineno-18-8" name="__codelineno-18-8" href="#__codelineno-18-8"></a><span class="c1">#   carambus_api_development_20250102_120000.sql.gz (1234567 bytes, 2025-01-02 12:00:00)</span>
+<a id="__codelineno-18-9" name="__codelineno-18-9" href="#__codelineno-18-9"></a><span class="c1"># 🎯 Production dumps (for download to development):</span>
+<a id="__codelineno-18-10" name="__codelineno-18-10" href="#__codelineno-18-10"></a><span class="c1">#   carambus_api_production_20250102_120000.sql.gz (1234567 bytes, 2025-01-02 12:00:00)</span>
+</code></pre></div>
+<h4 id="4-version-sicherheit-prufen"><strong>4. Version-Sicherheit prüfen</strong><a class="headerlink" href="#4-version-sicherheit-prufen" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="c1"># Prüft die Version-Sequenz-Nummern für sichere Synchronisation</span>
+<a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>rails<span class="w"> </span><span class="s1">&#39;mode:check_version_safety[carambus_api_development_20250102_120000.sql.gz]&#39;</span>
+<a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a>
+<a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a><span class="c1"># Ausgabe:</span>
+<a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a><span class="c1"># 🔍 Checking version sequence safety...</span>
+<a id="__codelineno-19-6" name="__codelineno-19-6" href="#__codelineno-19-6"></a><span class="c1"># 📊 Highest version ID in dump: 12345</span>
+<a id="__codelineno-19-7" name="__codelineno-19-7" href="#__codelineno-19-7"></a><span class="c1"># 🎯 Current max version ID in database: 10000</span>
+<a id="__codelineno-19-8" name="__codelineno-19-8" href="#__codelineno-19-8"></a><span class="c1"># ✅ SAFE: Dump has higher version numbers - safe to import</span>
+</code></pre></div>
+<h4 id="5-dump-zum-api-server-ubertragen-mit-sicherheitsprufung"><strong>5. Dump zum API-Server übertragen (mit Sicherheitsprüfung)</strong><a class="headerlink" href="#5-dump-zum-api-server-ubertragen-mit-sicherheitsprufung" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="c1"># Überträgt den Dump zum Server und legt ihn in /var/www/carambus_api/shared/database_dumps/ ab</span>
+<a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>rails<span class="w"> </span><span class="s1">&#39;mode:deploy_db_dump[carambus_api_development_20250102_120000.sql.gz]&#39;</span>
+<a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a>
+<a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a><span class="c1"># Ausgabe:</span>
+<a id="__codelineno-20-5" name="__codelineno-20-5" href="#__codelineno-20-5"></a><span class="c1"># 🚀 Deploying database dump to production server...</span>
+<a id="__codelineno-20-6" name="__codelineno-20-6" href="#__codelineno-20-6"></a><span class="c1"># 🔍 Performing safety check...</span>
+<a id="__codelineno-20-7" name="__codelineno-20-7" href="#__codelineno-20-7"></a><span class="c1"># ✅ SAFE: Dump has higher version numbers - safe to import</span>
+<a id="__codelineno-20-8" name="__codelineno-20-8" href="#__codelineno-20-8"></a><span class="c1"># ✅ Database dump deployed successfully</span>
+<a id="__codelineno-20-9" name="__codelineno-20-9" href="#__codelineno-20-9"></a><span class="c1"># 📁 Remote location: /var/www/carambus_api/shared/database_dumps/carambus_api_development_20250102_120000.sql.gz</span>
+</code></pre></div>
+<h4 id="6-dump-auf-api-server-einlesen-drop-and-replace"><strong>6. Dump auf API-Server einlesen (DROP AND REPLACE)</strong><a class="headerlink" href="#6-dump-auf-api-server-einlesen-drop-and-replace" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="c1"># Liest den Dump in die carambus_api_production Datenbank ein (kompletter Ersatz)</span>
+<a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>rails<span class="w"> </span><span class="s1">&#39;mode:restore_db_dump[carambus_api_development_20250102_120000.sql.gz]&#39;</span>
+<a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a>
+<a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a><span class="c1"># Ausgabe:</span>
+<a id="__codelineno-21-5" name="__codelineno-21-5" href="#__codelineno-21-5"></a><span class="c1"># 🗄️  Restoring database from dump (DROP AND REPLACE)...</span>
+<a id="__codelineno-21-6" name="__codelineno-21-6" href="#__codelineno-21-6"></a><span class="c1"># ⚠️  WARNING: This will DROP and REPLACE the production database!</span>
+<a id="__codelineno-21-7" name="__codelineno-21-7" href="#__codelineno-21-7"></a><span class="c1">#    Are you sure? (type &#39;yes&#39; to continue): yes</span>
+<a id="__codelineno-21-8" name="__codelineno-21-8" href="#__codelineno-21-8"></a><span class="c1"># ✅ Database restored successfully (drop and replace)</span>
+<a id="__codelineno-21-9" name="__codelineno-21-9" href="#__codelineno-21-9"></a><span class="c1"># 🔄 Puma service restarted</span>
+</code></pre></div>
+<h4 id="7-lokale-development-db-von-production-dump-wiederherstellen"><strong>7. Lokale Development-DB von Production-Dump wiederherstellen</strong><a class="headerlink" href="#7-lokale-development-db-von-production-dump-wiederherstellen" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a><span class="c1"># Stellt die lokale carambus_api_development von einem Production-Dump wieder her</span>
+<a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>rails<span class="w"> </span><span class="s1">&#39;mode:restore_local_db[carambus_api_production_20250102_120000.sql.gz]&#39;</span>
+<a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a>
+<a id="__codelineno-22-4" name="__codelineno-22-4" href="#__codelineno-22-4"></a><span class="c1"># Ausgabe:</span>
+<a id="__codelineno-22-5" name="__codelineno-22-5" href="#__codelineno-22-5"></a><span class="c1"># 🗄️  Restoring local development database from production dump...</span>
+<a id="__codelineno-22-6" name="__codelineno-22-6" href="#__codelineno-22-6"></a><span class="c1"># ⚠️  WARNING: This will DROP and REPLACE your local development database!</span>
+<a id="__codelineno-22-7" name="__codelineno-22-7" href="#__codelineno-22-7"></a><span class="c1">#    Are you sure? (type &#39;yes&#39; to continue): yes</span>
+<a id="__codelineno-22-8" name="__codelineno-22-8" href="#__codelineno-22-8"></a><span class="c1"># ✅ Local development database restored successfully</span>
+<a id="__codelineno-22-9" name="__codelineno-22-9" href="#__codelineno-22-9"></a><span class="c1"># 📊 Database: carambus_api_development</span>
+</code></pre></div>
+<h4 id="8-lokale-anderungen-sichern-id-50000000"><strong>8. Lokale Änderungen sichern (ID &gt; 50.000.000)</strong><a class="headerlink" href="#8-lokale-anderungen-sichern-id-50000000" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="c1"># Sichert lokale Änderungen vor Datenbank-Ersetzung</span>
+<a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>rails<span class="w"> </span>mode:backup_local_changes
+<a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a>
+<a id="__codelineno-23-4" name="__codelineno-23-4" href="#__codelineno-23-4"></a><span class="c1"># Ausgabe:</span>
+<a id="__codelineno-23-5" name="__codelineno-23-5" href="#__codelineno-23-5"></a><span class="c1"># 💾 Backing up local changes (ID &gt; 50,000,000)...</span>
+<a id="__codelineno-23-6" name="__codelineno-23-6" href="#__codelineno-23-6"></a><span class="c1"># 🔍 Filtering local changes (ID &gt; 50,000,000)...</span>
+<a id="__codelineno-23-7" name="__codelineno-23-7" href="#__codelineno-23-7"></a><span class="c1"># ✅ Filtered local changes: local_changes_filtered_20250102_120000.sql</span>
+<a id="__codelineno-23-8" name="__codelineno-23-8" href="#__codelineno-23-8"></a><span class="c1"># 📊 Only records with ID &gt; 50,000,000 included</span>
+</code></pre></div>
+<h4 id="9-lokale-anderungen-nach-datenbank-ersetzung-wiederherstellen"><strong>9. Lokale Änderungen nach Datenbank-Ersetzung wiederherstellen</strong><a class="headerlink" href="#9-lokale-anderungen-nach-datenbank-ersetzung-wiederherstellen" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a><span class="c1"># Stellt lokale Änderungen nach Datenbank-Ersetzung wieder her</span>
+<a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>rails<span class="w"> </span><span class="s1">&#39;mode:restore_local_changes[local_changes_filtered_20250102_120000.sql]&#39;</span>
+<a id="__codelineno-24-3" name="__codelineno-24-3" href="#__codelineno-24-3"></a>
+<a id="__codelineno-24-4" name="__codelineno-24-4" href="#__codelineno-24-4"></a><span class="c1"># Ausgabe:</span>
+<a id="__codelineno-24-5" name="__codelineno-24-5" href="#__codelineno-24-5"></a><span class="c1"># 🔄 Restoring local changes after database replacement...</span>
+<a id="__codelineno-24-6" name="__codelineno-24-6" href="#__codelineno-24-6"></a><span class="c1"># ✅ Local changes restored successfully</span>
+<a id="__codelineno-24-7" name="__codelineno-24-7" href="#__codelineno-24-7"></a><span class="c1"># 📊 Records with ID &gt; 50,000,000 restored</span>
+</code></pre></div>
+<h4 id="10-lokale-development-db-mit-erhaltung-lokaler-anderungen-wiederherstellen"><strong>10. Lokale Development-DB mit Erhaltung lokaler Änderungen wiederherstellen</strong><a class="headerlink" href="#10-lokale-development-db-mit-erhaltung-lokaler-anderungen-wiederherstellen" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a><span class="c1"># Stellt die lokale DB wieder her und behält lokale Änderungen</span>
+<a id="__codelineno-25-2" name="__codelineno-25-2" href="#__codelineno-25-2"></a>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>rails<span class="w"> </span><span class="s1">&#39;mode:restore_local_db_with_preservation[carambus_api_production_20250102_120000.sql.gz]&#39;</span>
+<a id="__codelineno-25-3" name="__codelineno-25-3" href="#__codelineno-25-3"></a>
+<a id="__codelineno-25-4" name="__codelineno-25-4" href="#__codelineno-25-4"></a><span class="c1"># Ausgabe:</span>
+<a id="__codelineno-25-5" name="__codelineno-25-5" href="#__codelineno-25-5"></a><span class="c1"># 🗄️  Restoring local development database with local changes preservation...</span>
+<a id="__codelineno-25-6" name="__codelineno-25-6" href="#__codelineno-25-6"></a><span class="c1"># ⚠️  WARNING: This will DROP and REPLACE your local development database!</span>
+<a id="__codelineno-25-7" name="__codelineno-25-7" href="#__codelineno-25-7"></a><span class="c1">#    Local changes (ID &gt; 50,000,000) will be preserved and restored.</span>
+<a id="__codelineno-25-8" name="__codelineno-25-8" href="#__codelineno-25-8"></a><span class="c1">#    Are you sure? (type &#39;yes&#39; to continue): yes</span>
+<a id="__codelineno-25-9" name="__codelineno-25-9" href="#__codelineno-25-9"></a><span class="c1"># 📋 Step 1: Backing up local changes...</span>
+<a id="__codelineno-25-10" name="__codelineno-25-10" href="#__codelineno-25-10"></a><span class="c1"># 📋 Step 2: Dropping and recreating database...</span>
+<a id="__codelineno-25-11" name="__codelineno-25-11" href="#__codelineno-25-11"></a><span class="c1"># 📋 Step 3: Restoring local changes...</span>
+<a id="__codelineno-25-12" name="__codelineno-25-12" href="#__codelineno-25-12"></a><span class="c1"># ✅ Local development database restored with local changes preserved</span>
+</code></pre></div>
+<h4 id="11-lokale-development-db-mit-region-reduktion-wiederherstellen"><strong>11. Lokale Development-DB mit Region-Reduktion wiederherstellen</strong><a class="headerlink" href="#11-lokale-development-db-mit-region-reduktion-wiederherstellen" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a><span class="c1"># Stellt die lokale DB wieder her und reduziert auf Region-spezifische Daten</span>
+<a id="__codelineno-26-2" name="__codelineno-26-2" href="#__codelineno-26-2"></a>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>rails<span class="w"> </span><span class="s1">&#39;mode:restore_local_db_with_region_reduction[carambus_api_production_20250102_120000.sql.gz]&#39;</span>
+<a id="__codelineno-26-3" name="__codelineno-26-3" href="#__codelineno-26-3"></a>
+<a id="__codelineno-26-4" name="__codelineno-26-4" href="#__codelineno-26-4"></a><span class="c1"># Ausgabe:</span>
+<a id="__codelineno-26-5" name="__codelineno-26-5" href="#__codelineno-26-5"></a><span class="c1"># 🗄️  Restoring local development database with region reduction...</span>
+<a id="__codelineno-26-6" name="__codelineno-26-6" href="#__codelineno-26-6"></a><span class="c1"># ⚠️  WARNING: This will DROP and REPLACE your local development database!</span>
+<a id="__codelineno-26-7" name="__codelineno-26-7" href="#__codelineno-26-7"></a><span class="c1">#    The database will be reduced to region-specific data only.</span>
+<a id="__codelineno-26-8" name="__codelineno-26-8" href="#__codelineno-26-8"></a><span class="c1">#    Are you sure? (type &#39;yes&#39; to continue): yes</span>
+<a id="__codelineno-26-9" name="__codelineno-26-9" href="#__codelineno-26-9"></a><span class="c1"># 📋 Step 1: Backing up local changes...</span>
+<a id="__codelineno-26-10" name="__codelineno-26-10" href="#__codelineno-26-10"></a><span class="c1"># 📋 Step 2: Dropping and recreating database...</span>
+<a id="__codelineno-26-11" name="__codelineno-26-11" href="#__codelineno-26-11"></a><span class="c1"># 📋 Step 3: Updating region taggings...</span>
+<a id="__codelineno-26-12" name="__codelineno-26-12" href="#__codelineno-26-12"></a><span class="c1"># 📋 Step 4: Reducing database to region-specific data...</span>
+<a id="__codelineno-26-13" name="__codelineno-26-13" href="#__codelineno-26-13"></a><span class="c1"># 📋 Step 5: Restoring local changes...</span>
+<a id="__codelineno-26-14" name="__codelineno-26-14" href="#__codelineno-26-14"></a><span class="c1"># ✅ Local development database restored with region reduction</span>
+<a id="__codelineno-26-15" name="__codelineno-26-15" href="#__codelineno-26-15"></a><span class="c1"># 🎯 Region-specific data only</span>
+</code></pre></div>
+<h3 id="vollstandiger-synchronisations-workflow"><strong>Vollständiger Synchronisations-Workflow</strong><a class="headerlink" href="#vollstandiger-synchronisations-workflow" title="Permanent link">&para;</a></h3>
+<h4 id="development-production-upload"><strong>Development → Production (Upload)</strong><a class="headerlink" href="#development-production-upload" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a><span class="c1"># 1. Lokalen Development-Dump erstellen</span>
+<a id="__codelineno-27-2" name="__codelineno-27-2" href="#__codelineno-27-2"></a>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>rails<span class="w"> </span>mode:prepare_db_dump
+<a id="__codelineno-27-3" name="__codelineno-27-3" href="#__codelineno-27-3"></a>
+<a id="__codelineno-27-4" name="__codelineno-27-4" href="#__codelineno-27-4"></a><span class="c1"># 2. Version-Sicherheit prüfen</span>
+<a id="__codelineno-27-5" name="__codelineno-27-5" href="#__codelineno-27-5"></a>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>rails<span class="w"> </span><span class="s1">&#39;mode:check_version_safety[carambus_api_development_20250102_120000.sql.gz]&#39;</span>
+<a id="__codelineno-27-6" name="__codelineno-27-6" href="#__codelineno-27-6"></a>
+<a id="__codelineno-27-7" name="__codelineno-27-7" href="#__codelineno-27-7"></a><span class="c1"># 3. Dump zum API-Server übertragen (mit Sicherheitsprüfung)</span>
+<a id="__codelineno-27-8" name="__codelineno-27-8" href="#__codelineno-27-8"></a>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>rails<span class="w"> </span><span class="s1">&#39;mode:deploy_db_dump[carambus_api_development_20250102_120000.sql.gz]&#39;</span>
+<a id="__codelineno-27-9" name="__codelineno-27-9" href="#__codelineno-27-9"></a>
+<a id="__codelineno-27-10" name="__codelineno-27-10" href="#__codelineno-27-10"></a><span class="c1"># 4. Dump auf API-Server einlesen (DROP AND REPLACE)</span>
+<a id="__codelineno-27-11" name="__codelineno-27-11" href="#__codelineno-27-11"></a>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>rails<span class="w"> </span><span class="s1">&#39;mode:restore_db_dump[carambus_api_development_20250102_120000.sql.gz]&#39;</span>
+</code></pre></div>
+<h4 id="production-development-download"><strong>Production → Development (Download)</strong><a class="headerlink" href="#production-development-download" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a><span class="c1"># 1. Production-Dump vom Server herunterladen</span>
+<a id="__codelineno-28-2" name="__codelineno-28-2" href="#__codelineno-28-2"></a>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>rails<span class="w"> </span>mode:download_db_dump
+<a id="__codelineno-28-3" name="__codelineno-28-3" href="#__codelineno-28-3"></a>
+<a id="__codelineno-28-4" name="__codelineno-28-4" href="#__codelineno-28-4"></a><span class="c1"># 2. Lokale Development-DB von Production-Dump wiederherstellen</span>
+<a id="__codelineno-28-5" name="__codelineno-28-5" href="#__codelineno-28-5"></a>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>rails<span class="w"> </span><span class="s1">&#39;mode:restore_local_db[carambus_api_production_20250102_120000.sql.gz]&#39;</span>
+</code></pre></div>
+<h4 id="production-development-mit-erhaltung-lokaler-anderungen"><strong>Production → Development mit Erhaltung lokaler Änderungen</strong><a class="headerlink" href="#production-development-mit-erhaltung-lokaler-anderungen" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a><span class="c1"># 1. Production-Dump vom Server herunterladen</span>
+<a id="__codelineno-29-2" name="__codelineno-29-2" href="#__codelineno-29-2"></a>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>rails<span class="w"> </span>mode:download_db_dump
+<a id="__codelineno-29-3" name="__codelineno-29-3" href="#__codelineno-29-3"></a>
+<a id="__codelineno-29-4" name="__codelineno-29-4" href="#__codelineno-29-4"></a><span class="c1"># 2. Lokale Development-DB mit Erhaltung lokaler Änderungen wiederherstellen</span>
+<a id="__codelineno-29-5" name="__codelineno-29-5" href="#__codelineno-29-5"></a>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>rails<span class="w"> </span><span class="s1">&#39;mode:restore_local_db_with_preservation[carambus_api_production_20250102_120000.sql.gz]&#39;</span>
+</code></pre></div>
+<h4 id="production-development-mit-region-reduktion"><strong>Production → Development mit Region-Reduktion</strong><a class="headerlink" href="#production-development-mit-region-reduktion" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-30-1" name="__codelineno-30-1" href="#__codelineno-30-1"></a><span class="c1"># 1. Production-Dump vom Server herunterladen</span>
+<a id="__codelineno-30-2" name="__codelineno-30-2" href="#__codelineno-30-2"></a>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>rails<span class="w"> </span>mode:download_db_dump
+<a id="__codelineno-30-3" name="__codelineno-30-3" href="#__codelineno-30-3"></a>
+<a id="__codelineno-30-4" name="__codelineno-30-4" href="#__codelineno-30-4"></a><span class="c1"># 2. Lokale Development-DB mit Region-Reduktion wiederherstellen</span>
+<a id="__codelineno-30-5" name="__codelineno-30-5" href="#__codelineno-30-5"></a>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>rails<span class="w"> </span><span class="s1">&#39;mode:restore_local_db_with_region_reduction[carambus_api_production_20250102_120000.sql.gz]&#39;</span>
+</code></pre></div>
+<h3 id="sicherheitsfeatures"><strong>Sicherheitsfeatures</strong><a class="headerlink" href="#sicherheitsfeatures" title="Permanent link">&para;</a></h3>
+<h4 id="version-sequenz-sicherheit"><strong>Version-Sequenz-Sicherheit</strong><a class="headerlink" href="#version-sequenz-sicherheit" title="Permanent link">&para;</a></h4>
+<p>Das System verhindert versehentliches Überschreiben neuerer Daten:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-31-1" name="__codelineno-31-1" href="#__codelineno-31-1"></a><span class="c1"># Automatische Sicherheitsprüfung vor Upload</span>
+<a id="__codelineno-31-2" name="__codelineno-31-2" href="#__codelineno-31-2"></a>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>rails<span class="w"> </span><span class="s1">&#39;mode:deploy_db_dump[carambus_api_development_20250102_120000.sql.gz]&#39;</span>
+<a id="__codelineno-31-3" name="__codelineno-31-3" href="#__codelineno-31-3"></a>
+<a id="__codelineno-31-4" name="__codelineno-31-4" href="#__codelineno-31-4"></a><span class="c1"># Manuelle Sicherheitsprüfung</span>
+<a id="__codelineno-31-5" name="__codelineno-31-5" href="#__codelineno-31-5"></a>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>rails<span class="w"> </span><span class="s1">&#39;mode:check_version_safety[carambus_api_development_20250102_120000.sql.gz]&#39;</span>
+</code></pre></div>
+<p><strong>Sicherheitsregeln:</strong>
+- ✅ <strong>SAFE</strong>: Dump hat höhere Version-Nummern → Upload erlaubt
+- ⚠️ <strong>WARNING</strong>: Dump hat gleiche Version-Nummern → Potentielle Konflikte
+- ❌ <strong>BLOCKED</strong>: Dump hat niedrigere Version-Nummern → Upload blockiert</p>
+<h4 id="drop-and-replace-bestatigung"><strong>Drop-and-Replace Bestätigung</strong><a class="headerlink" href="#drop-and-replace-bestatigung" title="Permanent link">&para;</a></h4>
+<p>Alle kritischen Operationen erfordern explizite Bestätigung:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-32-1" name="__codelineno-32-1" href="#__codelineno-32-1"></a><span class="c1"># Production-Datenbank ersetzen</span>
+<a id="__codelineno-32-2" name="__codelineno-32-2" href="#__codelineno-32-2"></a>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>rails<span class="w"> </span><span class="s1">&#39;mode:restore_db_dump[carambus_api_development_20250102_120000.sql.gz]&#39;</span>
+<a id="__codelineno-32-3" name="__codelineno-32-3" href="#__codelineno-32-3"></a><span class="c1"># ⚠️  WARNING: This will DROP and REPLACE the production database!</span>
+<a id="__codelineno-32-4" name="__codelineno-32-4" href="#__codelineno-32-4"></a><span class="c1">#    Are you sure? (type &#39;yes&#39; to continue): yes</span>
+<a id="__codelineno-32-5" name="__codelineno-32-5" href="#__codelineno-32-5"></a>
+<a id="__codelineno-32-6" name="__codelineno-32-6" href="#__codelineno-32-6"></a><span class="c1"># Lokale Development-DB ersetzen</span>
+<a id="__codelineno-32-7" name="__codelineno-32-7" href="#__codelineno-32-7"></a>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>rails<span class="w"> </span><span class="s1">&#39;mode:restore_local_db[carambus_api_production_20250102_120000.sql.gz]&#39;</span>
+<a id="__codelineno-32-8" name="__codelineno-32-8" href="#__codelineno-32-8"></a><span class="c1"># ⚠️  WARNING: This will DROP and REPLACE your local development database!</span>
+<a id="__codelineno-32-9" name="__codelineno-32-9" href="#__codelineno-32-9"></a><span class="c1">#    Are you sure? (type &#39;yes&#39; to continue): yes</span>
+</code></pre></div>
+<h4 id="dateinamen-validierung"><strong>Dateinamen-Validierung</strong><a class="headerlink" href="#dateinamen-validierung" title="Permanent link">&para;</a></h4>
+<p>Das System erkennt automatisch die Herkunft der Dumps:</p>
+<ul>
+<li>✅ <strong>carambus_api_development_*.sql.gz</strong> → Nur für Upload zu Production</li>
+<li>✅ <strong>carambus_api_production_*.sql.gz</strong> → Nur für Download zu Development</li>
+<li>❌ <strong>Falsche Dateinamen</strong> → Operation blockiert</li>
+</ul>
+<h3 id="asset-handling-und-build-prozess"><strong>Asset-Handling und Build-Prozess</strong><a class="headerlink" href="#asset-handling-und-build-prozess" title="Permanent link">&para;</a></h3>
+<h4 id="optimiertes-asset-handling"><strong>Optimiertes Asset-Handling</strong><a class="headerlink" href="#optimiertes-asset-handling" title="Permanent link">&para;</a></h4>
+<p>Das Enhanced Mode System verwendet <strong>pre-built assets</strong> aus dem <code>build/</code> Verzeichnis für schnellere Deployments:</p>
+<h4 id="lokaler-build-prozess-vor-deployment"><strong>Lokaler Build-Prozess (vor Deployment)</strong><a class="headerlink" href="#lokaler-build-prozess-vor-deployment" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-33-1" name="__codelineno-33-1" href="#__codelineno-33-1"></a><span class="c1"># 1. Dependencies installieren</span>
+<a id="__codelineno-33-2" name="__codelineno-33-2" href="#__codelineno-33-2"></a>yarn<span class="w"> </span>install
+<a id="__codelineno-33-3" name="__codelineno-33-3" href="#__codelineno-33-3"></a>
+<a id="__codelineno-33-4" name="__codelineno-33-4" href="#__codelineno-33-4"></a><span class="c1"># 2. JavaScript Assets bauen</span>
+<a id="__codelineno-33-5" name="__codelineno-33-5" href="#__codelineno-33-5"></a>yarn<span class="w"> </span>build
+<a id="__codelineno-33-6" name="__codelineno-33-6" href="#__codelineno-33-6"></a>
+<a id="__codelineno-33-7" name="__codelineno-33-7" href="#__codelineno-33-7"></a><span class="c1"># 3. CSS Assets bauen</span>
+<a id="__codelineno-33-8" name="__codelineno-33-8" href="#__codelineno-33-8"></a>yarn<span class="w"> </span>build:css
+<a id="__codelineno-33-9" name="__codelineno-33-9" href="#__codelineno-33-9"></a>
+<a id="__codelineno-33-10" name="__codelineno-33-10" href="#__codelineno-33-10"></a><span class="c1"># 4. Rails Assets precompilieren</span>
+<a id="__codelineno-33-11" name="__codelineno-33-11" href="#__codelineno-33-11"></a>rails<span class="w"> </span>assets:precompile
+</code></pre></div>
+<h4 id="deployment-asset-handling"><strong>Deployment Asset-Handling</strong><a class="headerlink" href="#deployment-asset-handling" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-34-1" name="__codelineno-34-1" href="#__codelineno-34-1"></a><span class="c1"># Deployment überspringt den Build-Prozess und verwendet pre-built assets:</span>
+<a id="__codelineno-34-2" name="__codelineno-34-2" href="#__codelineno-34-2"></a><span class="m">00</span>:15<span class="w"> </span>deploy:verify_node
+<a id="__codelineno-34-3" name="__codelineno-34-3" href="#__codelineno-34-3"></a><span class="w">      </span><span class="m">01</span><span class="w"> </span>node<span class="w"> </span>--version
+<a id="__codelineno-34-4" name="__codelineno-34-4" href="#__codelineno-34-4"></a><span class="w">      </span><span class="m">01</span><span class="w"> </span>v20.19.4
+<a id="__codelineno-34-5" name="__codelineno-34-5" href="#__codelineno-34-5"></a><span class="w">      </span><span class="m">02</span><span class="w"> </span>yarn<span class="w"> </span>--version
+<a id="__codelineno-34-6" name="__codelineno-34-6" href="#__codelineno-34-6"></a><span class="w">      </span><span class="m">02</span><span class="w"> </span><span class="m">1</span>.22.22
+<a id="__codelineno-34-7" name="__codelineno-34-7" href="#__codelineno-34-7"></a>
+<a id="__codelineno-34-8" name="__codelineno-34-8" href="#__codelineno-34-8"></a><span class="m">00</span>:15<span class="w"> </span>deploy:assets:install_dependencies
+<a id="__codelineno-34-9" name="__codelineno-34-9" href="#__codelineno-34-9"></a><span class="w">      </span><span class="m">01</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span>Skipping<span class="w"> </span>yarn<span class="w"> </span>install<span class="w"> </span>-<span class="w"> </span>using<span class="w"> </span>pre-built<span class="w"> </span>assets<span class="w"> </span>from<span class="w"> </span>build/<span class="w"> </span>directory
+<a id="__codelineno-34-10" name="__codelineno-34-10" href="#__codelineno-34-10"></a><span class="w">      </span><span class="m">01</span><span class="w"> </span>Skipping<span class="w"> </span>yarn<span class="w"> </span>install<span class="w"> </span>-<span class="w"> </span>using<span class="w"> </span>pre-built<span class="w"> </span>assets<span class="w"> </span>from<span class="w"> </span>build/<span class="w"> </span>directory
+<a id="__codelineno-34-11" name="__codelineno-34-11" href="#__codelineno-34-11"></a>
+<a id="__codelineno-34-12" name="__codelineno-34-12" href="#__codelineno-34-12"></a><span class="m">00</span>:16<span class="w"> </span>deploy:assets:build_frontend_assets
+<a id="__codelineno-34-13" name="__codelineno-34-13" href="#__codelineno-34-13"></a><span class="w">      </span><span class="m">01</span><span class="w"> </span>mkdir<span class="w"> </span>-p<span class="w"> </span>build
+<a id="__codelineno-34-14" name="__codelineno-34-14" href="#__codelineno-34-14"></a><span class="w">      </span><span class="m">02</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span>Using<span class="w"> </span>pre-built<span class="w"> </span>assets<span class="w"> </span>from<span class="w"> </span>build/<span class="w"> </span>directory
+<a id="__codelineno-34-15" name="__codelineno-34-15" href="#__codelineno-34-15"></a><span class="w">      </span><span class="m">03</span><span class="w"> </span>mkdir<span class="w"> </span>-p<span class="w"> </span>app/assets/builds
+<a id="__codelineno-34-16" name="__codelineno-34-16" href="#__codelineno-34-16"></a>
+<a id="__codelineno-34-17" name="__codelineno-34-17" href="#__codelineno-34-17"></a><span class="m">00</span>:16<span class="w"> </span>deploy:assets:precompile
+<a id="__codelineno-34-18" name="__codelineno-34-18" href="#__codelineno-34-18"></a><span class="w">      </span><span class="m">01</span><span class="w"> </span><span class="nv">RBENV_ROOT</span><span class="o">=</span><span class="nv">$HOME</span>/.rbenv<span class="w"> </span><span class="nv">RBENV_VERSION</span><span class="o">=</span><span class="m">3</span>.2.1<span class="w"> </span><span class="nv">$HOME</span>/.rbenv/bin/rbenv<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>rails<span class="w"> </span>assets:precompile
+</code></pre></div>
+<h4 id="korrektes-asset-handling-aktuell"><strong>Korrektes Asset-Handling (Aktuell)</strong><a class="headerlink" href="#korrektes-asset-handling-aktuell" title="Permanent link">&para;</a></h4>
+<p>Das System verwendet <strong>Build-Assets</strong> (ohne Fingerprints) und generiert <strong>Precompiled Assets</strong> (mit Fingerprints) auf dem Server:</p>
+<ul>
+<li>✅ <strong>Build-Assets</strong> (<code>build/</code>, <code>app/assets/builds/</code>) - Werden ins Repository committet</li>
+<li>✅ <strong>Precompiled Assets</strong> (<code>public/assets/</code>) - Werden auf Server generiert</li>
+<li>✅ <strong>Fingerprints</strong> - Werden korrekt auf Server erstellt</li>
+<li>✅ <strong>Asset-Manifest</strong> - Wird korrekt auf Server generiert</li>
+</ul>
+<h4 id="warum-pre-built-assets"><strong>Warum pre-built Assets?</strong><a class="headerlink" href="#warum-pre-built-assets" title="Permanent link">&para;</a></h4>
+<ul>
+<li>✅ <strong>Schnellere Deployments</strong> - Kein Build-Prozess auf dem Server</li>
+<li>✅ <strong>Konsistente Assets</strong> - Gleiche Assets wie lokal getestet</li>
+<li>✅ <strong>Weniger Server-Last</strong> - Keine Node.js/Yarn-Ausführung</li>
+<li>✅ <strong>Bessere Kontrolle</strong> - Assets werden lokal validiert</li>
+</ul>
+<h4 id="asset-build-workflow"><strong>Asset-Build-Workflow</strong><a class="headerlink" href="#asset-build-workflow" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-35-1" name="__codelineno-35-1" href="#__codelineno-35-1"></a><span class="c1"># 1. Lokale Entwicklung</span>
+<a id="__codelineno-35-2" name="__codelineno-35-2" href="#__codelineno-35-2"></a>yarn<span class="w"> </span>install
+<a id="__codelineno-35-3" name="__codelineno-35-3" href="#__codelineno-35-3"></a>yarn<span class="w"> </span>build
+<a id="__codelineno-35-4" name="__codelineno-35-4" href="#__codelineno-35-4"></a>yarn<span class="w"> </span>build:css
+<a id="__codelineno-35-5" name="__codelineno-35-5" href="#__codelineno-35-5"></a>rails<span class="w"> </span>assets:precompile
+<a id="__codelineno-35-6" name="__codelineno-35-6" href="#__codelineno-35-6"></a>
+<a id="__codelineno-35-7" name="__codelineno-35-7" href="#__codelineno-35-7"></a><span class="c1"># 2. Assets committen und pushen</span>
+<a id="__codelineno-35-8" name="__codelineno-35-8" href="#__codelineno-35-8"></a>git<span class="w"> </span>add<span class="w"> </span>build/<span class="w"> </span>app/assets/builds/<span class="w"> </span>public/assets/
+<a id="__codelineno-35-9" name="__codelineno-35-9" href="#__codelineno-35-9"></a>git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;Update assets&quot;</span>
+<a id="__codelineno-35-10" name="__codelineno-35-10" href="#__codelineno-35-10"></a>git<span class="w"> </span>push<span class="w"> </span>carambus<span class="w"> </span>master
+<a id="__codelineno-35-11" name="__codelineno-35-11" href="#__codelineno-35-11"></a>
+<a id="__codelineno-35-12" name="__codelineno-35-12" href="#__codelineno-35-12"></a><span class="c1"># 3. Deployment (verwendet pre-built assets)</span>
+<a id="__codelineno-35-13" name="__codelineno-35-13" href="#__codelineno-35-13"></a>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>cap<span class="w"> </span>production<span class="w"> </span>deploy
+</code></pre></div>
+<h4 id="optimierter-asset-workflow-empfohlen"><strong>Optimierter Asset-Workflow (Empfohlen)</strong><a class="headerlink" href="#optimierter-asset-workflow-empfohlen" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-36-1" name="__codelineno-36-1" href="#__codelineno-36-1"></a><span class="c1"># 1. Nur Build-Assets committen (ohne Fingerprints)</span>
+<a id="__codelineno-36-2" name="__codelineno-36-2" href="#__codelineno-36-2"></a>yarn<span class="w"> </span>install
+<a id="__codelineno-36-3" name="__codelineno-36-3" href="#__codelineno-36-3"></a>yarn<span class="w"> </span>build
+<a id="__codelineno-36-4" name="__codelineno-36-4" href="#__codelineno-36-4"></a>yarn<span class="w"> </span>build:css
+<a id="__codelineno-36-5" name="__codelineno-36-5" href="#__codelineno-36-5"></a>
+<a id="__codelineno-36-6" name="__codelineno-36-6" href="#__codelineno-36-6"></a><span class="c1"># 2. Nur Build-Assets committen</span>
+<a id="__codelineno-36-7" name="__codelineno-36-7" href="#__codelineno-36-7"></a>git<span class="w"> </span>add<span class="w"> </span>build/<span class="w"> </span>app/assets/builds/
+<a id="__codelineno-36-8" name="__codelineno-36-8" href="#__codelineno-36-8"></a>git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;Update build assets&quot;</span>
+<a id="__codelineno-36-9" name="__codelineno-36-9" href="#__codelineno-36-9"></a>git<span class="w"> </span>push<span class="w"> </span>carambus<span class="w"> </span>master
+<a id="__codelineno-36-10" name="__codelineno-36-10" href="#__codelineno-36-10"></a>
+<a id="__codelineno-36-11" name="__codelineno-36-11" href="#__codelineno-36-11"></a><span class="c1"># 3. Deployment (Assets werden auf Server kompiliert)</span>
+<a id="__codelineno-36-12" name="__codelineno-36-12" href="#__codelineno-36-12"></a>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>cap<span class="w"> </span>production<span class="w"> </span>deploy
+</code></pre></div>
+<h4 id="warum-build-assets-vs-precompiled-assets"><strong>Warum Build-Assets vs. Precompiled Assets?</strong><a class="headerlink" href="#warum-build-assets-vs-precompiled-assets" title="Permanent link">&para;</a></h4>
+<ul>
+<li>✅ <strong>Build-Assets</strong> (<code>build/</code>, <code>app/assets/builds/</code>) - Keine Fingerprints, konsistent</li>
+<li>❌ <strong>Precompiled Assets</strong> (<code>public/assets/</code>) - Fingerprints ändern sich bei jedem Build</li>
+<li>✅ <strong>Server-Kompilierung</strong> - Assets werden mit korrekten Fingerprints auf Server generiert</li>
+</ul>
+<h4 id="asset-fingerprint-problem"><strong>Asset-Fingerprint-Problem</strong><a class="headerlink" href="#asset-fingerprint-problem" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-37-1" name="__codelineno-37-1" href="#__codelineno-37-1"></a><span class="c1"># Bei jedem rails assets:precompile ändern sich die Dateinamen:</span>
+<a id="__codelineno-37-2" name="__codelineno-37-2" href="#__codelineno-37-2"></a>application-19cb5b...<span class="w"> </span>→<span class="w"> </span>application-f11a2c...
+<a id="__codelineno-37-3" name="__codelineno-37-3" href="#__codelineno-37-3"></a>turbo-a6b3a37c...<span class="w"> </span>→<span class="w"> </span>turbo-c69e22a49dcb...
+<a id="__codelineno-37-4" name="__codelineno-37-4" href="#__codelineno-37-4"></a>trix-5fc7656c...<span class="w"> </span>→<span class="w"> </span>trix-b6d103912a6c8...
+<a id="__codelineno-37-5" name="__codelineno-37-5" href="#__codelineno-37-5"></a>
+<a id="__codelineno-37-6" name="__codelineno-37-6" href="#__codelineno-37-6"></a><span class="c1"># Das führt zu:</span>
+<a id="__codelineno-37-7" name="__codelineno-37-7" href="#__codelineno-37-7"></a><span class="c1"># - Großen Git-Diffs</span>
+<a id="__codelineno-37-8" name="__codelineno-37-8" href="#__codelineno-37-8"></a><span class="c1"># - Unnötigen Commits</span>
+<a id="__codelineno-37-9" name="__codelineno-37-9" href="#__codelineno-37-9"></a><span class="c1"># - Inkonsistenten Asset-Referenzen</span>
+</code></pre></div>
+<h4 id="gitignore-konfiguration"><strong>Gitignore-Konfiguration</strong><a class="headerlink" href="#gitignore-konfiguration" title="Permanent link">&para;</a></h4>
+<p>Die <code>.gitignore</code> ist bereits korrekt konfiguriert:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-38-1" name="__codelineno-38-1" href="#__codelineno-38-1"></a><span class="c1"># Precompiled Assets werden ignoriert</span>
+<a id="__codelineno-38-2" name="__codelineno-38-2" href="#__codelineno-38-2"></a>/public/assets
+<a id="__codelineno-38-3" name="__codelineno-38-3" href="#__codelineno-38-3"></a>/public/packs
+<a id="__codelineno-38-4" name="__codelineno-38-4" href="#__codelineno-38-4"></a>/public/packs-test
+<a id="__codelineno-38-5" name="__codelineno-38-5" href="#__codelineno-38-5"></a>
+<a id="__codelineno-38-6" name="__codelineno-38-6" href="#__codelineno-38-6"></a><span class="c1"># Build-Assets werden committet</span>
+<a id="__codelineno-38-7" name="__codelineno-38-7" href="#__codelineno-38-7"></a><span class="c1"># /build/           # Node.js Dependencies</span>
+<a id="__codelineno-38-8" name="__codelineno-38-8" href="#__codelineno-38-8"></a><span class="c1"># /app/assets/builds/ # Kompilierte CSS/JS</span>
+</code></pre></div>
+<h4 id="empfohlener-asset-workflow"><strong>Empfohlener Asset-Workflow</strong><a class="headerlink" href="#empfohlener-asset-workflow" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-39-1" name="__codelineno-39-1" href="#__codelineno-39-1"></a><span class="c1"># 1. Lokale Entwicklung (nur Build-Assets)</span>
+<a id="__codelineno-39-2" name="__codelineno-39-2" href="#__codelineno-39-2"></a>yarn<span class="w"> </span>install
+<a id="__codelineno-39-3" name="__codelineno-39-3" href="#__codelineno-39-3"></a>yarn<span class="w"> </span>build
+<a id="__codelineno-39-4" name="__codelineno-39-4" href="#__codelineno-39-4"></a>yarn<span class="w"> </span>build:css
+<a id="__codelineno-39-5" name="__codelineno-39-5" href="#__codelineno-39-5"></a>
+<a id="__codelineno-39-6" name="__codelineno-39-6" href="#__codelineno-39-6"></a><span class="c1"># 2. Build-Assets committen (ohne public/assets/)</span>
+<a id="__codelineno-39-7" name="__codelineno-39-7" href="#__codelineno-39-7"></a>git<span class="w"> </span>add<span class="w"> </span>build/<span class="w"> </span>app/assets/builds/
+<a id="__codelineno-39-8" name="__codelineno-39-8" href="#__codelineno-39-8"></a>git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;Update build assets&quot;</span>
+<a id="__codelineno-39-9" name="__codelineno-39-9" href="#__codelineno-39-9"></a>git<span class="w"> </span>push<span class="w"> </span>carambus<span class="w"> </span>master
+<a id="__codelineno-39-10" name="__codelineno-39-10" href="#__codelineno-39-10"></a>
+<a id="__codelineno-39-11" name="__codelineno-39-11" href="#__codelineno-39-11"></a><span class="c1"># 3. Deployment (Assets werden auf Server kompiliert)</span>
+<a id="__codelineno-39-12" name="__codelineno-39-12" href="#__codelineno-39-12"></a>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>cap<span class="w"> </span>production<span class="w"> </span>deploy
+</code></pre></div>
+<h4 id="asset-build-konfiguration"><strong>Asset-Build-Konfiguration</strong><a class="headerlink" href="#asset-build-konfiguration" title="Permanent link">&para;</a></h4>
+<p>Das System verwendet <strong>esbuild</strong> für JavaScript und <strong>Tailwind CSS</strong> für Styling:</p>
+<p><strong>JavaScript Build (esbuild):</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-40-1" name="__codelineno-40-1" href="#__codelineno-40-1"></a><span class="c1"># build/esbuild.config.mjs</span>
+<a id="__codelineno-40-2" name="__codelineno-40-2" href="#__codelineno-40-2"></a>yarn<span class="w"> </span>build<span class="w">          </span><span class="c1"># Einmaliger Build</span>
+<a id="__codelineno-40-3" name="__codelineno-40-3" href="#__codelineno-40-3"></a>yarn<span class="w"> </span>build<span class="w"> </span>--watch<span class="w">  </span><span class="c1"># Watch-Modus für Entwicklung</span>
+<a id="__codelineno-40-4" name="__codelineno-40-4" href="#__codelineno-40-4"></a>yarn<span class="w"> </span>build<span class="w"> </span>--reload<span class="w"> </span><span class="c1"># Live-Reload für Entwicklung</span>
+</code></pre></div></p>
+<p><strong>CSS Build (Tailwind):</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-41-1" name="__codelineno-41-1" href="#__codelineno-41-1"></a><span class="c1"># build/package.json</span>
+<a id="__codelineno-41-2" name="__codelineno-41-2" href="#__codelineno-41-2"></a>yarn<span class="w"> </span>build:css<span class="w">      </span><span class="c1"># Tailwind CSS kompilieren</span>
+</code></pre></div></p>
+<p><strong>Build-Verzeichnisse:</strong>
+- ✅ <strong>build/</strong> - Node.js Dependencies und Build-Scripts
+- ✅ <strong>app/assets/builds/</strong> - Kompilierte Assets (CSS/JS)
+- ✅ <strong>public/assets/</strong> - Rails precompilierte Assets</p>
+<h4 id="asset-build-modi"><strong>Asset-Build-Modi</strong><a class="headerlink" href="#asset-build-modi" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-42-1" name="__codelineno-42-1" href="#__codelineno-42-1"></a><span class="c1"># Entwicklung (mit Sourcemaps)</span>
+<a id="__codelineno-42-2" name="__codelineno-42-2" href="#__codelineno-42-2"></a><span class="nv">RAILS_ENV</span><span class="o">=</span>development<span class="w"> </span>yarn<span class="w"> </span>build
+<a id="__codelineno-42-3" name="__codelineno-42-3" href="#__codelineno-42-3"></a><span class="nv">RAILS_ENV</span><span class="o">=</span>development<span class="w"> </span>yarn<span class="w"> </span>build:css
+<a id="__codelineno-42-4" name="__codelineno-42-4" href="#__codelineno-42-4"></a>
+<a id="__codelineno-42-5" name="__codelineno-42-5" href="#__codelineno-42-5"></a><span class="c1"># Production (minifiziert)</span>
+<a id="__codelineno-42-6" name="__codelineno-42-6" href="#__codelineno-42-6"></a><span class="nv">RAILS_ENV</span><span class="o">=</span>production<span class="w"> </span>yarn<span class="w"> </span>build
+<a id="__codelineno-42-7" name="__codelineno-42-7" href="#__codelineno-42-7"></a><span class="nv">RAILS_ENV</span><span class="o">=</span>production<span class="w"> </span>yarn<span class="w"> </span>build:css
+</code></pre></div>
+<h3 id="region-spezifische-datenbankreduktion"><strong>Region-spezifische Datenbankreduktion</strong><a class="headerlink" href="#region-spezifische-datenbankreduktion" title="Permanent link">&para;</a></h3>
+<h3 id="region-spezifische-datenbankreduktion_1"><strong>Region-spezifische Datenbankreduktion</strong><a class="headerlink" href="#region-spezifische-datenbankreduktion_1" title="Permanent link">&para;</a></h3>
+<h4 id="warum-datenbankreduktion"><strong>Warum Datenbankreduktion?</strong><a class="headerlink" href="#warum-datenbankreduktion" title="Permanent link">&para;</a></h4>
+<p>Lokale Server können auf eine spezifische Region reduziert werden, um nur relevante Daten zu behalten:</p>
+<ul>
+<li>✅ <strong>Records ohne Region-Bezug</strong> (global_context = TRUE)</li>
+<li>✅ <strong>Records der spezifischen Region</strong> (region_id = MODE_CONTEXT)</li>
+<li>✅ <strong>DBU-relevante Records</strong> (Spieler, Clubs, LeagueTeams, Locations, Games, Parties, PartyGames, Seedings, GameParticipations)</li>
+</ul>
+<h4 id="automatische-datenbankreduktion"><strong>Automatische Datenbankreduktion</strong><a class="headerlink" href="#automatische-datenbankreduktion" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-43-1" name="__codelineno-43-1" href="#__codelineno-43-1"></a><span class="c1"># Datenbank auf spezifische Region reduzieren</span>
+<a id="__codelineno-43-2" name="__codelineno-43-2" href="#__codelineno-43-2"></a>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>rails<span class="w"> </span>cleanup:remove_non_region_records
+<a id="__codelineno-43-3" name="__codelineno-43-3" href="#__codelineno-43-3"></a>
+<a id="__codelineno-43-4" name="__codelineno-43-4" href="#__codelineno-43-4"></a><span class="c1"># Ausgabe:</span>
+<a id="__codelineno-43-5" name="__codelineno-43-5" href="#__codelineno-43-5"></a><span class="c1"># Deleting records in dependency order...</span>
+<a id="__codelineno-43-6" name="__codelineno-43-6" href="#__codelineno-43-6"></a><span class="c1"># Processing GameParticipation...</span>
+<a id="__codelineno-43-7" name="__codelineno-43-7" href="#__codelineno-43-7"></a><span class="c1">#   Before: 15000</span>
+<a id="__codelineno-43-8" name="__codelineno-43-8" href="#__codelineno-43-8"></a><span class="c1">#   After: 5000</span>
+<a id="__codelineno-43-9" name="__codelineno-43-9" href="#__codelineno-43-9"></a><span class="c1">#   Deleted: 10000</span>
+<a id="__codelineno-43-10" name="__codelineno-43-10" href="#__codelineno-43-10"></a><span class="c1"># Processing Game...</span>
+<a id="__codelineno-43-11" name="__codelineno-43-11" href="#__codelineno-43-11"></a><span class="c1">#   Before: 8000</span>
+<a id="__codelineno-43-12" name="__codelineno-43-12" href="#__codelineno-43-12"></a><span class="c1">#   After: 3000</span>
+<a id="__codelineno-43-13" name="__codelineno-43-13" href="#__codelineno-43-13"></a><span class="c1">#   Deleted: 5000</span>
+</code></pre></div>
+<h4 id="context-gesteuerte-synchronisation"><strong>Context-gesteuerte Synchronisation</strong><a class="headerlink" href="#context-gesteuerte-synchronisation" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-44-1" name="__codelineno-44-1" href="#__codelineno-44-1"></a><span class="c1"># Lokaler Server mit spezifischem Context</span>
+<a id="__codelineno-44-2" name="__codelineno-44-2" href="#__codelineno-44-2"></a><span class="nv">MODE_CONTEXT</span><span class="o">=</span>NBV<span class="w"> </span>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>rails<span class="w"> </span><span class="s1">&#39;mode:local&#39;</span>
+<a id="__codelineno-44-3" name="__codelineno-44-3" href="#__codelineno-44-3"></a>
+<a id="__codelineno-44-4" name="__codelineno-44-4" href="#__codelineno-44-4"></a><span class="c1"># Nur Context-relevante Daten werden synchronisiert</span>
+<a id="__codelineno-44-5" name="__codelineno-44-5" href="#__codelineno-44-5"></a><span class="c1"># - Records der NBV-Region</span>
+<a id="__codelineno-44-6" name="__codelineno-44-6" href="#__codelineno-44-6"></a><span class="c1"># - DBU-relevante Records (global_context = TRUE)</span>
+<a id="__codelineno-44-7" name="__codelineno-44-7" href="#__codelineno-44-7"></a><span class="c1"># - Records ohne Region-Bezug</span>
+</code></pre></div>
+<h4 id="region-tagging-nach-api-db-import"><strong>Region-Tagging nach API-DB Import</strong><a class="headerlink" href="#region-tagging-nach-api-db-import" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-45-1" name="__codelineno-45-1" href="#__codelineno-45-1"></a><span class="c1"># Nach dem Einlesen einer API-Datenbank</span>
+<a id="__codelineno-45-2" name="__codelineno-45-2" href="#__codelineno-45-2"></a>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>rails<span class="w"> </span>region_taggings:update_all_region_ids
+<a id="__codelineno-45-3" name="__codelineno-45-3" href="#__codelineno-45-3"></a>
+<a id="__codelineno-45-4" name="__codelineno-45-4" href="#__codelineno-45-4"></a><span class="c1"># Aktualisiert alle region_tags in der lokalen Datenbank</span>
+<a id="__codelineno-45-5" name="__codelineno-45-5" href="#__codelineno-45-5"></a><span class="c1"># Setzt korrekte region_id für alle Modelle</span>
+</code></pre></div>
+<h3 id="vollstandiger-workflow-mit-region-reduktion"><strong>Vollständiger Workflow mit Region-Reduktion</strong><a class="headerlink" href="#vollstandiger-workflow-mit-region-reduktion" title="Permanent link">&para;</a></h3>
+<h4 id="api-local-mit-region-reduktion"><strong>API → Local mit Region-Reduktion</strong><a class="headerlink" href="#api-local-mit-region-reduktion" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-46-1" name="__codelineno-46-1" href="#__codelineno-46-1"></a><span class="c1"># 1. Production-Dump vom Server herunterladen</span>
+<a id="__codelineno-46-2" name="__codelineno-46-2" href="#__codelineno-46-2"></a>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>rails<span class="w"> </span>mode:download_db_dump
+<a id="__codelineno-46-3" name="__codelineno-46-3" href="#__codelineno-46-3"></a>
+<a id="__codelineno-46-4" name="__codelineno-46-4" href="#__codelineno-46-4"></a><span class="c1"># 2. Lokale Development-DB mit Erhaltung lokaler Änderungen wiederherstellen</span>
+<a id="__codelineno-46-5" name="__codelineno-46-5" href="#__codelineno-46-5"></a>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>rails<span class="w"> </span><span class="s1">&#39;mode:restore_local_db_with_preservation[carambus_api_production_20250102_120000.sql.gz]&#39;</span>
+<a id="__codelineno-46-6" name="__codelineno-46-6" href="#__codelineno-46-6"></a>
+<a id="__codelineno-46-7" name="__codelineno-46-7" href="#__codelineno-46-7"></a><span class="c1"># 3. Region-Tagging aktualisieren</span>
+<a id="__codelineno-46-8" name="__codelineno-46-8" href="#__codelineno-46-8"></a>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>rails<span class="w"> </span>region_taggings:update_all_region_ids
+<a id="__codelineno-46-9" name="__codelineno-46-9" href="#__codelineno-46-9"></a>
+<a id="__codelineno-46-10" name="__codelineno-46-10" href="#__codelineno-46-10"></a><span class="c1"># 4. Datenbank auf spezifische Region reduzieren</span>
+<a id="__codelineno-46-11" name="__codelineno-46-11" href="#__codelineno-46-11"></a>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>rails<span class="w"> </span>cleanup:remove_non_region_records
+</code></pre></div>
+<h4 id="context-spezifische-konfiguration"><strong>Context-spezifische Konfiguration</strong><a class="headerlink" href="#context-spezifische-konfiguration" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-47-1" name="__codelineno-47-1" href="#__codelineno-47-1"></a><span class="c1"># Lokaler Server für NBV-Region</span>
+<a id="__codelineno-47-2" name="__codelineno-47-2" href="#__codelineno-47-2"></a><span class="nv">MODE_CONTEXT</span><span class="o">=</span>NBV<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-47-3" name="__codelineno-47-3" href="#__codelineno-47-3"></a><span class="nv">MODE_BASENAME</span><span class="o">=</span>carambus<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-47-4" name="__codelineno-47-4" href="#__codelineno-47-4"></a><span class="nv">MODE_DOMAIN</span><span class="o">=</span>carambus.de<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-47-5" name="__codelineno-47-5" href="#__codelineno-47-5"></a>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>rails<span class="w"> </span><span class="s1">&#39;mode:local&#39;</span>
+<a id="__codelineno-47-6" name="__codelineno-47-6" href="#__codelineno-47-6"></a>
+<a id="__codelineno-47-7" name="__codelineno-47-7" href="#__codelineno-47-7"></a><span class="c1"># Führt automatisch aus:</span>
+<a id="__codelineno-47-8" name="__codelineno-47-8" href="#__codelineno-47-8"></a><span class="c1"># - Context-spezifische Datenbankreduktion</span>
+<a id="__codelineno-47-9" name="__codelineno-47-9" href="#__codelineno-47-9"></a><span class="c1"># - Region-Tagging Aktualisierung</span>
+<a id="__codelineno-47-10" name="__codelineno-47-10" href="#__codelineno-47-10"></a><span class="c1"># - Nur relevante Daten-Synchronisation</span>
+</code></pre></div>
+<h3 id="lokale-anderungen-management"><strong>Lokale Änderungen-Management</strong><a class="headerlink" href="#lokale-anderungen-management" title="Permanent link">&para;</a></h3>
+<h4 id="warum-lokale-anderungen-sichern"><strong>Warum lokale Änderungen sichern?</strong><a class="headerlink" href="#warum-lokale-anderungen-sichern" title="Permanent link">&para;</a></h4>
+<p>Bei lokalen Servern können lokale Änderungen (Records mit ID &gt; 50.000.000) vorhanden sein, die vor dem Drop-and-Replace der Datenbank gesichert werden müssen.</p>
+<h4 id="automatische-erhaltung-lokaler-anderungen"><strong>Automatische Erhaltung lokaler Änderungen</strong><a class="headerlink" href="#automatische-erhaltung-lokaler-anderungen" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-48-1" name="__codelineno-48-1" href="#__codelineno-48-1"></a><span class="c1"># Vollständiger Workflow mit Erhaltung lokaler Änderungen</span>
+<a id="__codelineno-48-2" name="__codelineno-48-2" href="#__codelineno-48-2"></a>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>rails<span class="w"> </span><span class="s1">&#39;mode:restore_local_db_with_preservation[carambus_api_production_20250102_120000.sql.gz]&#39;</span>
+<a id="__codelineno-48-3" name="__codelineno-48-3" href="#__codelineno-48-3"></a>
+<a id="__codelineno-48-4" name="__codelineno-48-4" href="#__codelineno-48-4"></a><span class="c1"># Führt automatisch aus:</span>
+<a id="__codelineno-48-5" name="__codelineno-48-5" href="#__codelineno-48-5"></a><span class="c1"># 1. Backup lokaler Änderungen (ID &gt; 50.000.000)</span>
+<a id="__codelineno-48-6" name="__codelineno-48-6" href="#__codelineno-48-6"></a><span class="c1"># 2. Drop und Recreate der Datenbank</span>
+<a id="__codelineno-48-7" name="__codelineno-48-7" href="#__codelineno-48-7"></a><span class="c1"># 3. Import des Production-Dumps</span>
+<a id="__codelineno-48-8" name="__codelineno-48-8" href="#__codelineno-48-8"></a><span class="c1"># 4. Wiederherstellung lokaler Änderungen</span>
+</code></pre></div>
+<h4 id="manuelle-erhaltung-lokaler-anderungen"><strong>Manuelle Erhaltung lokaler Änderungen</strong><a class="headerlink" href="#manuelle-erhaltung-lokaler-anderungen" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-49-1" name="__codelineno-49-1" href="#__codelineno-49-1"></a><span class="c1"># Schritt 1: Lokale Änderungen sichern</span>
+<a id="__codelineno-49-2" name="__codelineno-49-2" href="#__codelineno-49-2"></a>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>rails<span class="w"> </span>mode:backup_local_changes
+<a id="__codelineno-49-3" name="__codelineno-49-3" href="#__codelineno-49-3"></a>
+<a id="__codelineno-49-4" name="__codelineno-49-4" href="#__codelineno-49-4"></a><span class="c1"># Schritt 2: Datenbank ersetzen</span>
+<a id="__codelineno-49-5" name="__codelineno-49-5" href="#__codelineno-49-5"></a>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>rails<span class="w"> </span><span class="s1">&#39;mode:restore_local_db[carambus_api_production_20250102_120000.sql.gz]&#39;</span>
+<a id="__codelineno-49-6" name="__codelineno-49-6" href="#__codelineno-49-6"></a>
+<a id="__codelineno-49-7" name="__codelineno-49-7" href="#__codelineno-49-7"></a><span class="c1"># Schritt 3: Lokale Änderungen wiederherstellen</span>
+<a id="__codelineno-49-8" name="__codelineno-49-8" href="#__codelineno-49-8"></a>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>rails<span class="w"> </span><span class="s1">&#39;mode:restore_local_changes[local_changes_filtered_20250102_120000.sql]&#39;</span>
+</code></pre></div>
+<h4 id="verwendung-der-bestehenden-filter-logik"><strong>Verwendung der bestehenden Filter-Logik</strong><a class="headerlink" href="#verwendung-der-bestehenden-filter-logik" title="Permanent link">&para;</a></h4>
+<p>Das System nutzt die bewährte <code>carambus:filter_local_changes_from_sql_dump_new</code> Logik, um lokale Änderungen zu identifizieren und zu filtern.</p>
+<h3 id="automatisierte-datenbank-synchronisation"><strong>Automatisierte Datenbank-Synchronisation</strong><a class="headerlink" href="#automatisierte-datenbank-synchronisation" title="Permanent link">&para;</a></h3>
+<h4 id="mit-deployment-script"><strong>Mit Deployment-Script</strong><a class="headerlink" href="#mit-deployment-script" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-50-1" name="__codelineno-50-1" href="#__codelineno-50-1"></a><span class="c1"># Vollständiges Local Deployment inkl. Datenbanksynchronisation</span>
+<a id="__codelineno-50-2" name="__codelineno-50-2" href="#__codelineno-50-2"></a>./bin/deploy.sh<span class="w"> </span>full-local
+<a id="__codelineno-50-3" name="__codelineno-50-3" href="#__codelineno-50-3"></a>
+<a id="__codelineno-50-4" name="__codelineno-50-4" href="#__codelineno-50-4"></a><span class="c1"># Führt automatisch aus:</span>
+<a id="__codelineno-50-5" name="__codelineno-50-5" href="#__codelineno-50-5"></a><span class="c1"># 1. Local Server Deployment</span>
+<a id="__codelineno-50-6" name="__codelineno-50-6" href="#__codelineno-50-6"></a><span class="c1"># 2. API-Datenbank-Dump erstellen</span>
+<a id="__codelineno-50-7" name="__codelineno-50-7" href="#__codelineno-50-7"></a><span class="c1"># 3. Dump zum Local Server übertragen</span>
+<a id="__codelineno-50-8" name="__codelineno-50-8" href="#__codelineno-50-8"></a><span class="c1"># 4. Dump auf Local Server einlesen</span>
+<a id="__codelineno-50-9" name="__codelineno-50-9" href="#__codelineno-50-9"></a><span class="c1"># 5. Post-Deploy Setup</span>
+</code></pre></div>
+<h4 id="manuelle-datenbank-synchronisation"><strong>Manuelle Datenbank-Synchronisation</strong><a class="headerlink" href="#manuelle-datenbank-synchronisation" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-51-1" name="__codelineno-51-1" href="#__codelineno-51-1"></a><span class="c1"># API-Datenbank auf Server dumpen</span>
+<a id="__codelineno-51-2" name="__codelineno-51-2" href="#__codelineno-51-2"></a>ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">8910</span><span class="w"> </span>www-data@carambus.de<span class="w"> </span><span class="s2">&quot;cd /var/www/carambus_api/current &amp;&amp; pg_dump -Uwww_data carambus_api_production | gzip &gt; carambus_api_production.sql.gz&quot;</span>
+<a id="__codelineno-51-3" name="__codelineno-51-3" href="#__codelineno-51-3"></a>
+<a id="__codelineno-51-4" name="__codelineno-51-4" href="#__codelineno-51-4"></a><span class="c1"># Dump lokal herunterladen</span>
+<a id="__codelineno-51-5" name="__codelineno-51-5" href="#__codelineno-51-5"></a>scp<span class="w"> </span>-P<span class="w"> </span><span class="m">8910</span><span class="w"> </span>www-data@carambus.de:/var/www/carambus_api/current/carambus_api_production.sql.gz<span class="w"> </span>.
+<a id="__codelineno-51-6" name="__codelineno-51-6" href="#__codelineno-51-6"></a>
+<a id="__codelineno-51-7" name="__codelineno-51-7" href="#__codelineno-51-7"></a><span class="c1"># Dump in lokale Entwicklungsumgebung einlesen</span>
+<a id="__codelineno-51-8" name="__codelineno-51-8" href="#__codelineno-51-8"></a>gunzip<span class="w"> </span>-c<span class="w"> </span>carambus_api_production.sql.gz<span class="w"> </span><span class="p">|</span><span class="w"> </span>psql<span class="w"> </span>carambus_api_development
+</code></pre></div>
+<h3 id="datenbank-versionierung"><strong>Datenbank-Versionierung</strong><a class="headerlink" href="#datenbank-versionierung" title="Permanent link">&para;</a></h3>
+<h4 id="papertrail-integration"><strong>PaperTrail Integration</strong><a class="headerlink" href="#papertrail-integration" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-52-1" name="__codelineno-52-1" href="#__codelineno-52-1"></a><span class="c1"># Sequence Reset nach Dump-Import</span>
+<a id="__codelineno-52-2" name="__codelineno-52-2" href="#__codelineno-52-2"></a><span class="nv">RAILS_ENV</span><span class="o">=</span>production<span class="w"> </span>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>rails<span class="w"> </span>runner<span class="w"> </span><span class="s2">&quot;Version.sequence_reset&quot;</span>
+<a id="__codelineno-52-3" name="__codelineno-52-3" href="#__codelineno-52-3"></a>
+<a id="__codelineno-52-4" name="__codelineno-52-4" href="#__codelineno-52-4"></a><span class="c1"># Last Version ID für API-Synchronisation setzen</span>
+<a id="__codelineno-52-5" name="__codelineno-52-5" href="#__codelineno-52-5"></a><span class="nv">LAST_VERSION_ID</span><span class="o">=</span><span class="k">$(</span>ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">8910</span><span class="w"> </span>www-data@carambus.de<span class="w"> </span><span class="s2">&quot;cd /var/www/carambus_api/current &amp;&amp; RAILS_ENV=production bundle exec rails runner &#39;puts PaperTrail::Version.last.id&#39;&quot;</span><span class="k">)</span>
+<a id="__codelineno-52-6" name="__codelineno-52-6" href="#__codelineno-52-6"></a><span class="nv">RAILS_ENV</span><span class="o">=</span>production<span class="w"> </span>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>rails<span class="w"> </span>runner<span class="w"> </span><span class="s2">&quot;Setting.key_set_value(&#39;last_version_id&#39;, </span><span class="nv">$LAST_VERSION_ID</span><span class="s2">)&quot;</span>
+</code></pre></div>
+<h4 id="datenbank-backup-management"><strong>Datenbank-Backup Management</strong><a class="headerlink" href="#datenbank-backup-management" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-53-1" name="__codelineno-53-1" href="#__codelineno-53-1"></a><span class="c1"># Nur die letzten 2 Dumps behalten</span>
+<a id="__codelineno-53-2" name="__codelineno-53-2" href="#__codelineno-53-2"></a>ls<span class="w"> </span>-t<span class="w"> </span>carambus_api_production_*.sql.gz<span class="w"> </span><span class="p">|</span><span class="w"> </span>tail<span class="w"> </span>-n<span class="w"> </span>+3<span class="w"> </span><span class="p">|</span><span class="w"> </span>xargs<span class="w"> </span>rm<span class="w"> </span>-f
+<a id="__codelineno-53-3" name="__codelineno-53-3" href="#__codelineno-53-3"></a>
+<a id="__codelineno-53-4" name="__codelineno-53-4" href="#__codelineno-53-4"></a><span class="c1"># Dumps komprimieren</span>
+<a id="__codelineno-53-5" name="__codelineno-53-5" href="#__codelineno-53-5"></a>gzip<span class="w"> </span>-9<span class="w"> </span>carambus_api_production_*.sql
+<a id="__codelineno-53-6" name="__codelineno-53-6" href="#__codelineno-53-6"></a>
+<a id="__codelineno-53-7" name="__codelineno-53-7" href="#__codelineno-53-7"></a><span class="c1"># Dumps verifizieren</span>
+<a id="__codelineno-53-8" name="__codelineno-53-8" href="#__codelineno-53-8"></a>gunzip<span class="w"> </span>-t<span class="w"> </span>carambus_api_production_*.sql.gz
+</code></pre></div>
+<h2 id="deployment-workflow">🚀 <strong>Deployment Workflow</strong><a class="headerlink" href="#deployment-workflow" title="Permanent link">&para;</a></h2>
+<h3 id="1-konfiguration-vorbereiten"><strong>1. Konfiguration Vorbereiten</strong><a class="headerlink" href="#1-konfiguration-vorbereiten" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-54-1" name="__codelineno-54-1" href="#__codelineno-54-1"></a><span class="c1"># Lade gespeicherte Konfiguration</span>
+<a id="__codelineno-54-2" name="__codelineno-54-2" href="#__codelineno-54-2"></a>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>rails<span class="w"> </span><span class="s1">&#39;mode:load[api_hetzner]&#39;</span>
+</code></pre></div>
+<h3 id="2-konfiguration-anwenden"><strong>2. Konfiguration Anwenden</strong><a class="headerlink" href="#2-konfiguration-anwenden" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-55-1" name="__codelineno-55-1" href="#__codelineno-55-1"></a><span class="c1"># Wende die geladenen Parameter an</span>
+<a id="__codelineno-55-2" name="__codelineno-55-2" href="#__codelineno-55-2"></a>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>rails<span class="w"> </span><span class="s1">&#39;mode:api&#39;</span>
+</code></pre></div>
+<h3 id="3-konfiguration-validieren"><strong>3. Konfiguration Validieren</strong><a class="headerlink" href="#3-konfiguration-validieren" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-56-1" name="__codelineno-56-1" href="#__codelineno-56-1"></a><span class="c1"># Überprüfe die aktuelle Konfiguration</span>
+<a id="__codelineno-56-2" name="__codelineno-56-2" href="#__codelineno-56-2"></a>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>rails<span class="w"> </span><span class="s1">&#39;mode:status&#39;</span>
+</code></pre></div>
+<h3 id="4-deployment-ausfuhren"><strong>4. Deployment Ausführen</strong><a class="headerlink" href="#4-deployment-ausfuhren" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-57-1" name="__codelineno-57-1" href="#__codelineno-57-1"></a><span class="c1"># Deploy mit der validierten Konfiguration</span>
+<a id="__codelineno-57-2" name="__codelineno-57-2" href="#__codelineno-57-2"></a>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>cap<span class="w"> </span>production<span class="w"> </span>deploy
+</code></pre></div>
+<h2 id="multi-environment-deployment">🔄 <strong>Multi-Environment Deployment</strong><a class="headerlink" href="#multi-environment-deployment" title="Permanent link">&para;</a></h2>
+<h3 id="deployment-script-integration"><strong>Deployment-Script Integration</strong><a class="headerlink" href="#deployment-script-integration" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-58-1" name="__codelineno-58-1" href="#__codelineno-58-1"></a><span class="c1"># API Server Deployment mit automatischem Pull</span>
+<a id="__codelineno-58-2" name="__codelineno-58-2" href="#__codelineno-58-2"></a>./bin/deploy.sh<span class="w"> </span>deploy-api
+<a id="__codelineno-58-3" name="__codelineno-58-3" href="#__codelineno-58-3"></a>
+<a id="__codelineno-58-4" name="__codelineno-58-4" href="#__codelineno-58-4"></a><span class="c1"># Local Server Deployment mit automatischem Pull</span>
+<a id="__codelineno-58-5" name="__codelineno-58-5" href="#__codelineno-58-5"></a>./bin/deploy.sh<span class="w"> </span>deploy-local
+<a id="__codelineno-58-6" name="__codelineno-58-6" href="#__codelineno-58-6"></a>
+<a id="__codelineno-58-7" name="__codelineno-58-7" href="#__codelineno-58-7"></a><span class="c1"># Full Local Deployment</span>
+<a id="__codelineno-58-8" name="__codelineno-58-8" href="#__codelineno-58-8"></a>./bin/deploy.sh<span class="w"> </span>full-local
+</code></pre></div>
+<h3 id="automatischer-repo-pull"><strong>Automatischer Repo-Pull</strong><a class="headerlink" href="#automatischer-repo-pull" title="Permanent link">&para;</a></h3>
+<p>Das Deployment-System führt automatisch einen <code>git pull</code> für die jeweiligen Szenario-Ordner durch, bevor das Deployment startet.</p>
+<h2 id="troubleshooting">🔍 <strong>Troubleshooting</strong><a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h2>
+<h3 id="socket-berechtigungen-prufen"><strong>Socket-Berechtigungen prüfen</strong><a class="headerlink" href="#socket-berechtigungen-prufen" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-59-1" name="__codelineno-59-1" href="#__codelineno-59-1"></a><span class="c1"># Socket-Verzeichnis prüfen</span>
+<a id="__codelineno-59-2" name="__codelineno-59-2" href="#__codelineno-59-2"></a>ls<span class="w"> </span>-la<span class="w"> </span>/var/www/carambus_api/shared/sockets/
+<a id="__codelineno-59-3" name="__codelineno-59-3" href="#__codelineno-59-3"></a>
+<a id="__codelineno-59-4" name="__codelineno-59-4" href="#__codelineno-59-4"></a><span class="c1"># Socket-Berechtigungen prüfen</span>
+<a id="__codelineno-59-5" name="__codelineno-59-5" href="#__codelineno-59-5"></a>ls<span class="w"> </span>-la<span class="w"> </span>/var/www/carambus_api/shared/sockets/puma-production.sock
+</code></pre></div>
+<h3 id="nginx-socket-konfiguration-testen"><strong>NGINX Socket-Konfiguration testen</strong><a class="headerlink" href="#nginx-socket-konfiguration-testen" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-60-1" name="__codelineno-60-1" href="#__codelineno-60-1"></a><span class="c1"># Lokal testen</span>
+<a id="__codelineno-60-2" name="__codelineno-60-2" href="#__codelineno-60-2"></a>sudo<span class="w"> </span>nginx<span class="w"> </span>-t
+<a id="__codelineno-60-3" name="__codelineno-60-3" href="#__codelineno-60-3"></a>
+<a id="__codelineno-60-4" name="__codelineno-60-4" href="#__codelineno-60-4"></a><span class="c1"># Auf Server testen</span>
+<a id="__codelineno-60-5" name="__codelineno-60-5" href="#__codelineno-60-5"></a>ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">8910</span><span class="w"> </span>www-data@newapi.carambus.de<span class="w"> </span><span class="s1">&#39;sudo nginx -t&#39;</span>
+</code></pre></div>
+<h3 id="puma-socket-status"><strong>Puma Socket Status</strong><a class="headerlink" href="#puma-socket-status" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-61-1" name="__codelineno-61-1" href="#__codelineno-61-1"></a><span class="c1"># Socket-Verbindung prüfen</span>
+<a id="__codelineno-61-2" name="__codelineno-61-2" href="#__codelineno-61-2"></a>ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">8910</span><span class="w"> </span>www-data@newapi.carambus.de<span class="w"> </span><span class="s1">&#39;netstat -an | grep puma&#39;</span>
+<a id="__codelineno-61-3" name="__codelineno-61-3" href="#__codelineno-61-3"></a>
+<a id="__codelineno-61-4" name="__codelineno-61-4" href="#__codelineno-61-4"></a><span class="c1"># Service Status</span>
+<a id="__codelineno-61-5" name="__codelineno-61-5" href="#__codelineno-61-5"></a>ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">8910</span><span class="w"> </span>www-data@newapi.carambus.de<span class="w"> </span><span class="s1">&#39;sudo systemctl status puma-carambus_api.service&#39;</span>
+</code></pre></div>
+<h3 id="socket-verzeichnisse-erstellen"><strong>Socket-Verzeichnisse erstellen</strong><a class="headerlink" href="#socket-verzeichnisse-erstellen" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-62-1" name="__codelineno-62-1" href="#__codelineno-62-1"></a><span class="c1"># Manuell Socket-Verzeichnisse erstellen</span>
+<a id="__codelineno-62-2" name="__codelineno-62-2" href="#__codelineno-62-2"></a>ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">8910</span><span class="w"> </span>www-data@newapi.carambus.de<span class="w"> </span><span class="s1">&#39;sudo mkdir -p /var/www/carambus_api/shared/sockets /var/www/carambus_api/shared/pids /var/www/carambus_api/shared/log&#39;</span>
+</code></pre></div>
+<h2 id="dateistruktur">📁 <strong>Dateistruktur</strong><a class="headerlink" href="#dateistruktur" title="Permanent link">&para;</a></h2>
+<h3 id="konfigurationsdateien"><strong>Konfigurationsdateien</strong><a class="headerlink" href="#konfigurationsdateien" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-63-1" name="__codelineno-63-1" href="#__codelineno-63-1"></a>config/
+<a id="__codelineno-63-2" name="__codelineno-63-2" href="#__codelineno-63-2"></a>├── named_modes/           # Gespeicherte Named-Konfigurationen
+<a id="__codelineno-63-3" name="__codelineno-63-3" href="#__codelineno-63-3"></a>│   ├── api_hetzner.yml
+<a id="__codelineno-63-4" name="__codelineno-63-4" href="#__codelineno-63-4"></a>│   ├── local_hetzner.yml
+<a id="__codelineno-63-5" name="__codelineno-63-5" href="#__codelineno-63-5"></a>│   └── development.yml
+<a id="__codelineno-63-6" name="__codelineno-63-6" href="#__codelineno-63-6"></a>├── carambus.yml.erb      # ERB Template
+<a id="__codelineno-63-7" name="__codelineno-63-7" href="#__codelineno-63-7"></a>├── database.yml.erb      # ERB Template
+<a id="__codelineno-63-8" name="__codelineno-63-8" href="#__codelineno-63-8"></a>├── deploy.rb.erb         # ERB Template
+<a id="__codelineno-63-9" name="__codelineno-63-9" href="#__codelineno-63-9"></a>├── nginx.conf.erb        # NGINX Template (Socket-basiert)
+<a id="__codelineno-63-10" name="__codelineno-63-10" href="#__codelineno-63-10"></a>├── puma.rb.erb           # Puma.rb Template (Socket-basiert)
+<a id="__codelineno-63-11" name="__codelineno-63-11" href="#__codelineno-63-11"></a>├── puma.service.erb      # Puma Service Template
+<a id="__codelineno-63-12" name="__codelineno-63-12" href="#__codelineno-63-12"></a>├── scoreboard_url.erb    # Scoreboard URL Template
+<a id="__codelineno-63-13" name="__codelineno-63-13" href="#__codelineno-63-13"></a>├── nginx.conf            # Generierte NGINX Konfiguration
+<a id="__codelineno-63-14" name="__codelineno-63-14" href="#__codelineno-63-14"></a>├── puma.rb               # Generierte Puma.rb Konfiguration
+<a id="__codelineno-63-15" name="__codelineno-63-15" href="#__codelineno-63-15"></a>├── puma.service          # Generierter Puma Service
+<a id="__codelineno-63-16" name="__codelineno-63-16" href="#__codelineno-63-16"></a>├── scoreboard_url        # Generierte Scoreboard URL
+<a id="__codelineno-63-17" name="__codelineno-63-17" href="#__codelineno-63-17"></a>└── deploy/
+<a id="__codelineno-63-18" name="__codelineno-63-18" href="#__codelineno-63-18"></a>    └── production.rb.erb # ERB Template
+</code></pre></div>
+<h3 id="rake-tasks"><strong>Rake Tasks</strong><a class="headerlink" href="#rake-tasks" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-64-1" name="__codelineno-64-1" href="#__codelineno-64-1"></a>lib/tasks/
+<a id="__codelineno-64-2" name="__codelineno-64-2" href="#__codelineno-64-2"></a>└── mode.rake             # Hauptsystem mit Named Parameters
+<a id="__codelineno-64-3" name="__codelineno-64-3" href="#__codelineno-64-3"></a>
+<a id="__codelineno-64-4" name="__codelineno-64-4" href="#__codelineno-64-4"></a>lib/capistrano/tasks/
+<a id="__codelineno-64-5" name="__codelineno-64-5" href="#__codelineno-64-5"></a>└── templates.rake        # Capistrano Template-Tasks
+</code></pre></div>
+<h2 id="vorteile-des-enhanced-mode-systems">✅ <strong>Vorteile des Enhanced Mode Systems</strong><a class="headerlink" href="#vorteile-des-enhanced-mode-systems" title="Permanent link">&para;</a></h2>
+<ol>
+<li><strong>RubyMine Integration</strong>: Perfekte Debugging-Unterstützung</li>
+<li><strong>Type Safety</strong>: Ruby-Typisierung und Validierung</li>
+<li><strong>Error Handling</strong>: Robuste Fehlerbehandlung</li>
+<li><strong>Debugging</strong>: Step-by-Step Debugging mit Breakpoints</li>
+<li><strong>Variable Inspection</strong>: Vollständige Variablen-Inspektion</li>
+<li><strong>Call Stack</strong>: Call Stack Navigation</li>
+<li><strong>IDE Support</strong>: Vollständige IDE-Unterstützung</li>
+<li><strong>Maintainability</strong>: Einfache Wartung und Erweiterung</li>
+<li><strong>Socket Integration</strong>: Vollständige Socket-basierte Architektur</li>
+<li><strong>Template Generation</strong>: Automatische Template-Generierung</li>
+<li><strong>Performance</strong>: Unix Sockets sind schneller als TCP/IP</li>
+<li><strong>Security</strong>: Keine Netzwerk-Exposition</li>
+<li><strong>Efficiency</strong>: Weniger Overhead</li>
+<li><strong>Scalability</strong>: Bessere Performance unter Last</li>
+<li><strong>Automation</strong>: Vollständige Automatisierung</li>
+<li><strong>Multi-Environment</strong>: Multi-Environment Support</li>
+</ol>
+<h2 id="fazit">🎉 <strong>Fazit</strong><a class="headerlink" href="#fazit" title="Permanent link">&para;</a></h2>
+<p>Das <strong>Enhanced Mode System</strong> mit Socket-basierter Architektur ist die <strong>ideale Lösung</strong> für RubyMine-Nutzer:</p>
+<ul>
+<li>✅ <strong>Vollständige Debugging-Unterstützung</strong></li>
+<li>✅ <strong>Robuste Parameter-Behandlung</strong></li>
+<li>✅ <strong>Einfache Wartung</strong></li>
+<li>✅ <strong>IDE-Integration</strong></li>
+<li>✅ <strong>Type Safety</strong></li>
+<li>✅ <strong>Socket-basierte Architektur</strong></li>
+<li>✅ <strong>Automatische Template-Generierung</strong></li>
+<li>✅ <strong>Vollständige Automatisierung</strong></li>
+<li>✅ <strong>Multi-Environment Support</strong></li>
+<li>✅ <strong>Robuste Deployment-Pipeline</strong></li>
+</ul>
+<p><strong>Empfehlung</strong>: Verwende das Enhanced Mode System für alle Carambus-Deployments.</p>
+<p>Das System macht die Deployment-Konfiguration <strong>debuggbar, wartbar und robust</strong>! 🚀</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        <div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/GernotUllrich/carambus" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="http://www.billardclub-wedel.de/" target="_blank" rel="noopener" title="www.billardclub-wedel.de" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M352 256c0 22.2-1.2 43.6-3.3 64H163.4c-2.2-20.4-3.3-41.8-3.3-64s1.2-43.6 3.3-64h185.3c2.2 20.4 3.3 41.8 3.3 64m28.8-64h123.1c5.3 20.5 8.1 41.9 8.1 64s-2.8 43.5-8.1 64H380.8c2.1-20.6 3.2-42 3.2-64s-1.1-43.4-3.2-64m112.6-32H376.7c-10-63.9-29.8-117.4-55.3-151.6 78.3 20.7 142 77.5 171.9 151.6zm-149.1 0H167.7c6.1-36.4 15.5-68.6 27-94.7 10.5-23.6 22.2-40.7 33.5-51.5C239.4 3.2 248.7 0 256 0s16.6 3.2 27.8 13.8c11.3 10.8 23 27.9 33.5 51.5 11.6 26 20.9 58.2 27 94.7m-209 0H18.6c30-74.1 93.6-130.9 172-151.6-25.5 34.2-45.3 87.7-55.3 151.6M8.1 192h123.1c-2.1 20.6-3.2 42-3.2 64s1.1 43.4 3.2 64H8.1C2.8 299.5 0 278.1 0 256s2.8-43.5 8.1-64m186.6 254.6c-11.6-26-20.9-58.2-27-94.6h176.6c-6.1 36.4-15.5 68.6-27 94.6-10.5 23.6-22.2 40.7-33.5 51.5-11.2 10.7-20.5 13.9-27.8 13.9s-16.6-3.2-27.8-13.8c-11.3-10.8-23-27.9-33.5-51.5zM135.3 352c10 63.9 29.8 117.4 55.3 151.6-78.4-20.7-142-77.5-172-151.6zm358.1 0c-30 74.1-93.6 130.9-171.9 151.6 25.5-34.2 45.2-87.7 55.3-151.6h116.7z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.indexes", "search.suggest", "search.highlight", "header.autohide", "toc.follow"], "search": "../../../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.56ea9cef.min.js"></script>
+      
+        <script src="../../../javascripts/mathjax.js"></script>
+      
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>

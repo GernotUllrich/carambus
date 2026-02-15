@@ -1,0 +1,3828 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Comprehensive documentation for Carambus - Professional billiards tournament management system">
+      
+      
+      
+        <link rel="canonical" href="https://GernotUllrich.github.io/carambus/en/decision-makers/deployment-options/">
+      
+      
+        <link rel="prev" href="../features-overview/">
+      
+      
+        <link rel="next" href="../../players/">
+      
+      
+      <link rel="icon" href="../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.15">
+    
+    
+      
+        <title>Deployment Options - Carambus Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.342714a4.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#deployment-options-for-carambus" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../" title="Carambus Documentation" class="md-header__button md-logo" aria-label="Carambus Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Carambus Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Deployment Options
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+      <div class="md-header__option">
+  <div class="md-select">
+    
+    <button class="md-header__button md-icon" aria-label="Select language">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
+    </button>
+    <div class="md-select__inner">
+      <ul class="md-select__list">
+        
+          <li class="md-select__item">
+            <a href="../../../decision-makers/deployment-options/" hreflang="de" class="md-select__link">
+              Deutsch
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="./" hreflang="en" class="md-select__link">
+              English
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</div>
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/GernotUllrich/carambus" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GernotUllrich/carambus
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Decision Makers
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../players/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Players
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../managers/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Managers
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../administrators/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Administrators
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../developers/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Developers
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../reference/API/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../about/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  About
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../" title="Carambus Documentation" class="md-nav__button md-logo" aria-label="Carambus Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Carambus Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/GernotUllrich/carambus" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GernotUllrich/carambus
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Decision Makers
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2" id="__nav_2_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Decision Makers
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../executive-summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Executive Summary
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../features-overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Features Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Deployment Options
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    Deployment Options
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview-of-deployment-options" class="md-nav__link">
+    <span class="md-ellipsis">
+      Overview of Deployment Options
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#option-1-cloud-hosting" class="md-nav__link">
+    <span class="md-ellipsis">
+      Option 1: Cloud Hosting
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Option 1: Cloud Hosting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#description" class="md-nav__link">
+    <span class="md-ellipsis">
+      Description
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#technical-requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      Technical Requirements
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hosting-providers-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      Hosting Providers (Examples)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#advantages" class="md-nav__link">
+    <span class="md-ellipsis">
+      Advantages
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#disadvantages" class="md-nav__link">
+    <span class="md-ellipsis">
+      Disadvantages
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cost-calculation-36-months" class="md-nav__link">
+    <span class="md-ellipsis">
+      Cost Calculation (36 months)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#setup-process" class="md-nav__link">
+    <span class="md-ellipsis">
+      Setup Process
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#maintenance" class="md-nav__link">
+    <span class="md-ellipsis">
+      Maintenance
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#recommended-for" class="md-nav__link">
+    <span class="md-ellipsis">
+      Recommended for
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#option-2-on-premise-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      Option 2: On-Premise Server
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Option 2: On-Premise Server">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#description_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Description
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hardware-options" class="md-nav__link">
+    <span class="md-ellipsis">
+      Hardware Options
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#network-requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      Network Requirements
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#advantages_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Advantages
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#disadvantages_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Disadvantages
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cost-calculation-36-months_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Cost Calculation (36 months)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#setup-process_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Setup Process
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#maintenance_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Maintenance
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#recommended-for_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Recommended for
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#option-3-raspberry-pi-all-in-one" class="md-nav__link">
+    <span class="md-ellipsis">
+      Option 3: Raspberry Pi All-in-One
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Option 3: Raspberry Pi All-in-One">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#description_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Description
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hardware-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      Hardware Setup
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#software-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      Software Setup
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kiosk-mode-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      Kiosk Mode Features
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#advantages_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Advantages
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#disadvantages_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Disadvantages
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cost-calculation-36-months_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Cost Calculation (36 months)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#setup-process-with-pre-configured-image" class="md-nav__link">
+    <span class="md-ellipsis">
+      Setup Process (with pre-configured image)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#maintenance_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Maintenance
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#typical-use-cases" class="md-nav__link">
+    <span class="md-ellipsis">
+      Typical Use Cases
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#recommended-for_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Recommended for
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#comparison-matrix-extended" class="md-nav__link">
+    <span class="md-ellipsis">
+      Comparison Matrix: Extended
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Comparison Matrix: Extended">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#performance-comparison" class="md-nav__link">
+    <span class="md-ellipsis">
+      Performance Comparison
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#security-comparison" class="md-nav__link">
+    <span class="md-ellipsis">
+      Security Comparison
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#availability-comparison" class="md-nav__link">
+    <span class="md-ellipsis">
+      Availability Comparison
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#decision-aid-which-option-fits-me" class="md-nav__link">
+    <span class="md-ellipsis">
+      Decision Aid: Which Option Fits Me?
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Decision Aid: Which Option Fits Me?">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#flowchart" class="md-nav__link">
+    <span class="md-ellipsis">
+      Flowchart
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quick-check-your-situation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Quick Check: Your Situation
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#migration-paths" class="md-nav__link">
+    <span class="md-ellipsis">
+      Migration Paths
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Migration Paths">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#from-raspberry-pi-to-cloud" class="md-nav__link">
+    <span class="md-ellipsis">
+      From Raspberry Pi to Cloud
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#from-raspberry-pi-to-on-premise" class="md-nav__link">
+    <span class="md-ellipsis">
+      From Raspberry Pi to On-Premise
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#from-cloud-to-on-premise" class="md-nav__link">
+    <span class="md-ellipsis">
+      From Cloud to On-Premise
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      Summary
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../players/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Players
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Players
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../players/scoreboard-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scoreboard Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../players/tournament-participation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tournament Participation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../players/ai-search/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    AI-Powered Search
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../managers/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Managers
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Managers
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../managers/tournament-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tournament Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../managers/league-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    League Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../managers/single-tournament/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Single Tournament
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../managers/table-reservation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Table Reservation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../managers/admin-roles/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Admin Roles
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../managers/clubcloud-integration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    ClubCloud Integration
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../managers/search-filters/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Search & Filters
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../administrators/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Administrators
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5" id="__nav_5_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Administrators
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administrators/installation-overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Installation Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administrators/raspberry-pi-quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Raspberry Pi Quickstart
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administrators/raspberry-pi-client/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Raspberry Pi Client
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administrators/scoreboard-autostart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scoreboard Autostart
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administrators/server-architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Server Architecture
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administrators/email-configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Email Configuration
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administrators/database-setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Database Setup
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administrators/streaming-quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    YouTube Streaming Quickstart
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administrators/streaming-setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    YouTube Streaming Setup
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../developers/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Developers
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_6" id="__nav_6_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            Developers
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Getting Started
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/developer-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Developer Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/database-design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Database Design
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/er-diagram/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    ER Diagram
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/API/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    API Reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/scenario-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scenario Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/rake-tasks-debugging/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Testing & Debugging
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/deployment-workflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Deployment Workflow
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/data-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Data Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/database-partitioning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Database Partitioning
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/paper-trail-optimization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Paper Trail Optimization
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/game-plan-reconstruction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Game Plan Reconstruction
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/tournament-duplicate-handling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tournament Duplicates
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/region-tagging-cleanup-summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Region Tagging
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/streaming-architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    YouTube Streaming Architecture
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/pool-scoreboard-changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Pool Scoreboard Changelog
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Reference
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            Reference
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/API/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    API Reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/glossary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Glossary
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/terms/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Terms
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/privacy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Privacy
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/config-lock-files/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Config Lock Files
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/search/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Search
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/mkdocs_dokumentation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    MkDocs
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    About
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            About
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../about/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    About
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview-of-deployment-options" class="md-nav__link">
+    <span class="md-ellipsis">
+      Overview of Deployment Options
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#option-1-cloud-hosting" class="md-nav__link">
+    <span class="md-ellipsis">
+      Option 1: Cloud Hosting
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Option 1: Cloud Hosting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#description" class="md-nav__link">
+    <span class="md-ellipsis">
+      Description
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#technical-requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      Technical Requirements
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hosting-providers-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      Hosting Providers (Examples)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#advantages" class="md-nav__link">
+    <span class="md-ellipsis">
+      Advantages
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#disadvantages" class="md-nav__link">
+    <span class="md-ellipsis">
+      Disadvantages
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cost-calculation-36-months" class="md-nav__link">
+    <span class="md-ellipsis">
+      Cost Calculation (36 months)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#setup-process" class="md-nav__link">
+    <span class="md-ellipsis">
+      Setup Process
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#maintenance" class="md-nav__link">
+    <span class="md-ellipsis">
+      Maintenance
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#recommended-for" class="md-nav__link">
+    <span class="md-ellipsis">
+      Recommended for
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#option-2-on-premise-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      Option 2: On-Premise Server
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Option 2: On-Premise Server">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#description_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Description
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hardware-options" class="md-nav__link">
+    <span class="md-ellipsis">
+      Hardware Options
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#network-requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      Network Requirements
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#advantages_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Advantages
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#disadvantages_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Disadvantages
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cost-calculation-36-months_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Cost Calculation (36 months)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#setup-process_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Setup Process
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#maintenance_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Maintenance
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#recommended-for_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Recommended for
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#option-3-raspberry-pi-all-in-one" class="md-nav__link">
+    <span class="md-ellipsis">
+      Option 3: Raspberry Pi All-in-One
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Option 3: Raspberry Pi All-in-One">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#description_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Description
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hardware-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      Hardware Setup
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#software-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      Software Setup
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kiosk-mode-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      Kiosk Mode Features
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#advantages_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Advantages
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#disadvantages_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Disadvantages
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cost-calculation-36-months_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Cost Calculation (36 months)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#setup-process-with-pre-configured-image" class="md-nav__link">
+    <span class="md-ellipsis">
+      Setup Process (with pre-configured image)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#maintenance_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Maintenance
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#typical-use-cases" class="md-nav__link">
+    <span class="md-ellipsis">
+      Typical Use Cases
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#recommended-for_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Recommended for
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#comparison-matrix-extended" class="md-nav__link">
+    <span class="md-ellipsis">
+      Comparison Matrix: Extended
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Comparison Matrix: Extended">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#performance-comparison" class="md-nav__link">
+    <span class="md-ellipsis">
+      Performance Comparison
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#security-comparison" class="md-nav__link">
+    <span class="md-ellipsis">
+      Security Comparison
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#availability-comparison" class="md-nav__link">
+    <span class="md-ellipsis">
+      Availability Comparison
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#decision-aid-which-option-fits-me" class="md-nav__link">
+    <span class="md-ellipsis">
+      Decision Aid: Which Option Fits Me?
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Decision Aid: Which Option Fits Me?">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#flowchart" class="md-nav__link">
+    <span class="md-ellipsis">
+      Flowchart
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quick-check-your-situation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Quick Check: Your Situation
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#migration-paths" class="md-nav__link">
+    <span class="md-ellipsis">
+      Migration Paths
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Migration Paths">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#from-raspberry-pi-to-cloud" class="md-nav__link">
+    <span class="md-ellipsis">
+      From Raspberry Pi to Cloud
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#from-raspberry-pi-to-on-premise" class="md-nav__link">
+    <span class="md-ellipsis">
+      From Raspberry Pi to On-Premise
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#from-cloud-to-on-premise" class="md-nav__link">
+    <span class="md-ellipsis">
+      From Cloud to On-Premise
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      Summary
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="deployment-options-for-carambus">Deployment Options for Carambus<a class="headerlink" href="#deployment-options-for-carambus" title="Permanent link">&para;</a></h1>
+<p>A detailed comparison of all operating models with decision aids for different deployment scenarios.</p>
+<h2 id="overview-of-deployment-options">Overview of Deployment Options<a class="headerlink" href="#overview-of-deployment-options" title="Permanent link">&para;</a></h2>
+<p>Carambus offers three basic deployment models that differ in complexity, cost, and use case:</p>
+<table>
+<thead>
+<tr>
+<th>Aspect</th>
+<th>Cloud Hosting</th>
+<th>On-Premise Server</th>
+<th>Raspberry Pi All-in-One</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Ideal for</strong></td>
+<td>Federations, Multi-location</td>
+<td>Privacy-sensitive</td>
+<td>Individual clubs</td>
+</tr>
+<tr>
+<td><strong>Initial costs</strong></td>
+<td>Low</td>
+<td>Medium-High</td>
+<td>Very low</td>
+</tr>
+<tr>
+<td><strong>Running costs</strong></td>
+<td>10-50 EUR/month</td>
+<td>Power + Internet</td>
+<td>Power only (~2 EUR/month)</td>
+</tr>
+<tr>
+<td><strong>IT skills</strong></td>
+<td>Medium</td>
+<td>High</td>
+<td>Low</td>
+</tr>
+<tr>
+<td><strong>Setup time</strong></td>
+<td>2-4 hours</td>
+<td>1-2 days</td>
+<td>30-60 minutes</td>
+</tr>
+<tr>
+<td><strong>Internet required</strong></td>
+<td>Yes (always)</td>
+<td>No (optional)</td>
+<td>No (optional)</td>
+</tr>
+<tr>
+<td><strong>Maintenance effort</strong></td>
+<td>Low</td>
+<td>Medium</td>
+<td>Very low</td>
+</tr>
+<tr>
+<td><strong>Scalability</strong></td>
+<td>Excellent</td>
+<td>Good</td>
+<td>Limited</td>
+</tr>
+<tr>
+<td><strong>Data control</strong></td>
+<td>With provider</td>
+<td>Complete</td>
+<td>Complete</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="option-1-cloud-hosting">Option 1: Cloud Hosting<a class="headerlink" href="#option-1-cloud-hosting" title="Permanent link">&para;</a></h2>
+<h3 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h3>
+<p>The system is installed on a rented web server (VPS, cloud instance) and is accessible to all users via the internet. The operator doesn't need to worry about hardware but pays ongoing hosting fees.</p>
+<h3 id="technical-requirements">Technical Requirements<a class="headerlink" href="#technical-requirements" title="Permanent link">&para;</a></h3>
+<p><strong>Server Specifications (Minimum)</strong>:
+- <strong>CPU</strong>: 2 vCores
+- <strong>RAM</strong>: 4 GB
+- <strong>Storage</strong>: 20 GB SSD
+- <strong>Bandwidth</strong>: 1 TB/month
+- <strong>OS</strong>: Ubuntu 22.04 LTS or newer</p>
+<p><strong>Recommended Specifications</strong> (for 100+ concurrent users):
+- <strong>CPU</strong>: 4 vCores
+- <strong>RAM</strong>: 8 GB
+- <strong>Storage</strong>: 50 GB SSD
+- <strong>Bandwidth</strong>: Unlimited
+- <strong>Backup</strong>: Daily snapshots</p>
+<h3 id="hosting-providers-examples">Hosting Providers (Examples)<a class="headerlink" href="#hosting-providers-examples" title="Permanent link">&para;</a></h3>
+<h4 id="budget-option-hetzner-cloud">Budget Option: Hetzner Cloud<a class="headerlink" href="#budget-option-hetzner-cloud" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>Model</strong>: CPX21</li>
+<li><strong>Price</strong>: ~8 EUR/month</li>
+<li><strong>Specs</strong>: 3 vCPU, 4 GB RAM, 80 GB SSD</li>
+<li><strong>Location</strong>: Germany (GDPR-compliant)</li>
+<li><strong>Suitable for</strong>: Up to 50 concurrent users</li>
+</ul>
+<h4 id="standard-option-digitalocean">Standard Option: DigitalOcean<a class="headerlink" href="#standard-option-digitalocean" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>Model</strong>: Droplet 4GB</li>
+<li><strong>Price</strong>: ~24 USD/month</li>
+<li><strong>Specs</strong>: 2 vCPU, 4 GB RAM, 80 GB SSD</li>
+<li><strong>Location</strong>: Frankfurt available</li>
+<li><strong>Suitable for</strong>: Up to 100 concurrent users</li>
+</ul>
+<h4 id="premium-option-awsazure">Premium Option: AWS/Azure<a class="headerlink" href="#premium-option-awsazure" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>Price</strong>: From 30 EUR/month (variable)</li>
+<li><strong>Advantage</strong>: Enterprise-grade, auto-scaling</li>
+<li><strong>Suitable for</strong>: Large federations, critical applications</li>
+</ul>
+<h3 id="advantages">Advantages<a class="headerlink" href="#advantages" title="Permanent link">&para;</a></h3>
+<p>✅ <strong>Central management</strong>: One system for all clubs/locations<br />
+✅ <strong>Available everywhere</strong>: Access from any location with internet<br />
+✅ <strong>No hardware</strong>: No own server required<br />
+✅ <strong>Easy scaling</strong>: Book more resources when needed<br />
+✅ <strong>Automatic backups</strong>: Usually included in hosting package<br />
+✅ <strong>Professional infrastructure</strong>: 99.9% uptime guarantee<br />
+✅ <strong>SSL certificates</strong>: Free via Let's Encrypt  </p>
+<h3 id="disadvantages">Disadvantages<a class="headerlink" href="#disadvantages" title="Permanent link">&para;</a></h3>
+<p>❌ <strong>Running costs</strong>: Monthly fees<br />
+❌ <strong>Internet dependency</strong>: Only works with internet connection<br />
+❌ <strong>Privacy</strong>: Data resides with provider<br />
+❌ <strong>Shared resources</strong>: Performance can fluctuate  </p>
+<h3 id="cost-calculation-36-months">Cost Calculation (36 months)<a class="headerlink" href="#cost-calculation-36-months" title="Permanent link">&para;</a></h3>
+<p><strong>Budget Setup (Hetzner CPX21)</strong>:
+- Hosting: 8 EUR × 36 = 288 EUR
+- Domain: 10 EUR/year × 3 = 30 EUR
+- <strong>Total</strong>: ~320 EUR</p>
+<p><strong>Standard Setup (DigitalOcean)</strong>:
+- Hosting: 24 USD × 36 ≈ 760 EUR
+- Domain: 10 EUR/year × 3 = 30 EUR
+- Backup service: 5 USD × 36 ≈ 160 EUR
+- <strong>Total</strong>: ~950 EUR</p>
+<h3 id="setup-process">Setup Process<a class="headerlink" href="#setup-process" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Book VPS</strong> (30 minutes)</li>
+<li>Create account with hosting provider</li>
+<li>Select and start server instance</li>
+<li>
+<p>Set up SSH access</p>
+</li>
+<li>
+<p><strong>Prepare system</strong> (1 hour)</p>
+</li>
+<li>Install Ubuntu (usually pre-installed)</li>
+<li>Configure firewall</li>
+<li>Apply updates</li>
+<li>
+<p>Install PostgreSQL</p>
+</li>
+<li>
+<p><strong>Install Carambus</strong> (1-2 hours)</p>
+</li>
+<li>Install Ruby and Rails dependencies</li>
+<li>Check out Carambus code via Git</li>
+<li>Set up database</li>
+<li>
+<p>Compile assets</p>
+</li>
+<li>
+<p><strong>Configure web server</strong> (30 minutes)</p>
+</li>
+<li>Install and configure Nginx</li>
+<li>SSL certificate via Let's Encrypt</li>
+<li>
+<p>Configure domain DNS</p>
+</li>
+<li>
+<p><strong>Go live</strong> (15 minutes)</p>
+</li>
+<li>Set up systemd service</li>
+<li>Start server and test</li>
+<li>Activate monitoring</li>
+</ol>
+<p><strong>Total time required</strong>: 3-4 hours (for experienced admins)</p>
+<h3 id="maintenance">Maintenance<a class="headerlink" href="#maintenance" title="Permanent link">&para;</a></h3>
+<p><strong>Regularly required</strong>:
+- Security updates: 1× monthly (15 minutes)
+- Carambus updates: As needed (30 minutes)
+- Backup checks: 1× weekly (5 minutes)
+- Performance monitoring: Ongoing (automated)</p>
+<p><strong>Estimated time required</strong>: 2-3 hours/month</p>
+<h3 id="recommended-for">Recommended for<a class="headerlink" href="#recommended-for" title="Permanent link">&para;</a></h3>
+<ul>
+<li>✅ State or national federations with many clubs</li>
+<li>✅ Clubs with multiple venues</li>
+<li>✅ Tournaments with online registration from outside</li>
+<li>✅ Scenarios where access is needed from everywhere</li>
+<li>✅ Organizations with IT budget but without IT staff</li>
+</ul>
+<hr />
+<h2 id="option-2-on-premise-server">Option 2: On-Premise Server<a class="headerlink" href="#option-2-on-premise-server" title="Permanent link">&para;</a></h2>
+<h3 id="description_1">Description<a class="headerlink" href="#description_1" title="Permanent link">&para;</a></h3>
+<p>The system runs on your own server in the clubhouse or data center. Full control over hardware and data, but also responsibility for operation and maintenance.</p>
+<h3 id="hardware-options">Hardware Options<a class="headerlink" href="#hardware-options" title="Permanent link">&para;</a></h3>
+<h4 id="budget-raspberry-pi-4-8gb-as-server">Budget: Raspberry Pi 4 (8GB) as Server<a class="headerlink" href="#budget-raspberry-pi-4-8gb-as-server" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>Cost</strong>: ~100 EUR</li>
+<li><strong>Consumption</strong>: ~5W (~1 EUR/month)</li>
+<li><strong>Performance</strong>: Good for small clubs (&lt;50 members)</li>
+<li><strong>Advantage</strong>: Very cheap, silent, compact</li>
+</ul>
+<h4 id="standard-intel-nuc-mini-pc">Standard: Intel NUC / Mini PC<a class="headerlink" href="#standard-intel-nuc-mini-pc" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>Cost</strong>: 300-500 EUR</li>
+<li><strong>Specs</strong>: Intel i3/i5, 8-16 GB RAM, 256 GB SSD</li>
+<li><strong>Consumption</strong>: ~15W (~3 EUR/month)</li>
+<li><strong>Performance</strong>: Very good for medium-sized clubs</li>
+<li><strong>Advantage</strong>: Quiet, compact, reliable</li>
+</ul>
+<h4 id="premium-tower-server-nas">Premium: Tower Server / NAS<a class="headerlink" href="#premium-tower-server-nas" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>Cost</strong>: 800-2,000 EUR</li>
+<li><strong>Specs</strong>: Xeon/Ryzen, 32+ GB RAM, RAID storage</li>
+<li><strong>Consumption</strong>: ~50-100W (~10-20 EUR/month)</li>
+<li><strong>Performance</strong>: Excellent, even for large federations</li>
+<li><strong>Advantage</strong>: Professional, fail-safe (RAID), expandable</li>
+</ul>
+<h3 id="network-requirements">Network Requirements<a class="headerlink" href="#network-requirements" title="Permanent link">&para;</a></h3>
+<p><strong>Minimal</strong>:
+- LAN connection (100 Mbit/s)
+- Access to local network
+- Optional: Internet access for ClubCloud sync</p>
+<p><strong>Recommended</strong>:
+- Gigabit LAN
+- Static IP in local network
+- UPS (Uninterruptible Power Supply)
+- VPN for remote access</p>
+<p><strong>For Internet Access</strong> (optional):
+- Static public IP or DynDNS
+- Port forwarding in router (ports 80, 443)
+- SSL certificate</p>
+<h3 id="advantages_1">Advantages<a class="headerlink" href="#advantages_1" title="Permanent link">&para;</a></h3>
+<p>✅ <strong>Full data control</strong>: All data stays in-house<br />
+✅ <strong>No running costs</strong>: Only one-time hardware purchase<br />
+✅ <strong>Internet-independent</strong>: Works even during outages<br />
+✅ <strong>Fast on LAN</strong>: Best performance for local users<br />
+✅ <strong>GDPR-secure</strong>: Ideal for privacy-sensitive environments<br />
+✅ <strong>Customizable</strong>: Full control over configuration  </p>
+<h3 id="disadvantages_1">Disadvantages<a class="headerlink" href="#disadvantages_1" title="Permanent link">&para;</a></h3>
+<p>❌ <strong>Hardware purchase</strong>: Initial investment required<br />
+❌ <strong>Maintenance effort</strong>: Perform updates, backups yourself<br />
+❌ <strong>IT knowledge</strong>: Linux knowledge required<br />
+❌ <strong>Power costs</strong>: Continuous operating costs<br />
+❌ <strong>Failure risk</strong>: No professional hosting SLA<br />
+❌ <strong>No remote access</strong>: Only in local network (except VPN)  </p>
+<h3 id="cost-calculation-36-months_1">Cost Calculation (36 months)<a class="headerlink" href="#cost-calculation-36-months_1" title="Permanent link">&para;</a></h3>
+<p><strong>Budget Setup (Raspberry Pi 4)</strong>:
+- Hardware: 100 EUR
+- Power costs: 1 EUR × 36 = 36 EUR
+- Backup (USB HDD): 50 EUR
+- <strong>Total</strong>: ~186 EUR</p>
+<p><strong>Standard Setup (Intel NUC)</strong>:
+- Hardware: 400 EUR
+- Power costs: 3 EUR × 36 = 108 EUR
+- UPS: 80 EUR
+- Backup NAS: 150 EUR
+- <strong>Total</strong>: ~738 EUR</p>
+<p><strong>Premium Setup (Tower Server)</strong>:
+- Hardware: 1,500 EUR
+- Power costs: 15 EUR × 36 = 540 EUR
+- UPS: 200 EUR
+- Network switch: 100 EUR
+- <strong>Total</strong>: ~2,340 EUR</p>
+<h3 id="setup-process_1">Setup Process<a class="headerlink" href="#setup-process_1" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Procure hardware</strong> (delivery time varies)</li>
+<li><strong>Install operating system</strong> (1 hour)</li>
+<li>Install Ubuntu Server 22.04 LTS</li>
+<li>Configure network</li>
+<li>Set up SSH</li>
+<li><strong>Harden system</strong> (1 hour)</li>
+<li>Activate firewall (ufw)</li>
+<li>Install Fail2ban</li>
+<li>Configure automatic updates</li>
+<li><strong>Install Carambus</strong> (2-3 hours)</li>
+<li>Install dependencies</li>
+<li>Set up PostgreSQL</li>
+<li>Deploy Carambus</li>
+<li><strong>Set up backup</strong> (1 hour)</li>
+<li>Daily database backups</li>
+<li>Automate backup script</li>
+</ol>
+<p><strong>Total time required</strong>: 6-8 hours (for experienced Linux admins)</p>
+<h3 id="maintenance_1">Maintenance<a class="headerlink" href="#maintenance_1" title="Permanent link">&para;</a></h3>
+<p><strong>Regularly required</strong>:
+- Security updates: 1× weekly (10 minutes)
+- Backup checks: 1× weekly (10 minutes)
+- Hardware check: 1× monthly (30 minutes)
+- Log monitoring: When problems occur</p>
+<p><strong>Estimated time required</strong>: 3-4 hours/month</p>
+<h3 id="recommended-for_1">Recommended for<a class="headerlink" href="#recommended-for_1" title="Permanent link">&para;</a></h3>
+<ul>
+<li>✅ Clubs with own IT infrastructure</li>
+<li>✅ Privacy-sensitive environments</li>
+<li>✅ Clubs with IT-savvy members</li>
+<li>✅ Scenarios without reliable internet</li>
+<li>✅ Long-term cost minimization desired</li>
+</ul>
+<hr />
+<h2 id="option-3-raspberry-pi-all-in-one">Option 3: Raspberry Pi All-in-One<a class="headerlink" href="#option-3-raspberry-pi-all-in-one" title="Permanent link">&para;</a></h2>
+<h3 id="description_2">Description<a class="headerlink" href="#description_2" title="Permanent link">&para;</a></h3>
+<p>The most elegant solution for small to medium-sized clubs: A Raspberry Pi serves simultaneously as server AND kiosk display. Connected to a TV/monitor in the clubhouse, it permanently shows the tournament monitor or scoreboard. Other devices (tablets, smartphones) can connect on the local network.</p>
+<h3 id="hardware-setup">Hardware Setup<a class="headerlink" href="#hardware-setup" title="Permanent link">&para;</a></h3>
+<h4 id="basic-kit-150-eur">Basic Kit (~150 EUR)<a class="headerlink" href="#basic-kit-150-eur" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>Raspberry Pi 4 (8 GB)</strong>: ~90 EUR</li>
+<li><strong>Power supply (USB-C, 3A)</strong>: ~10 EUR</li>
+<li><strong>Micro SD card (64 GB)</strong>: ~15 EUR</li>
+<li><strong>Case with fan</strong>: ~15 EUR</li>
+<li><strong>HDMI cable</strong>: ~10 EUR</li>
+<li><strong>Total</strong>: ~140 EUR</li>
+</ul>
+<h4 id="touch-display-setup-350-eur">Touch Display Setup (~350 EUR)<a class="headerlink" href="#touch-display-setup-350-eur" title="Permanent link">&para;</a></h4>
+<ul>
+<li>Basic kit: ~140 EUR</li>
+<li><strong>Official 7" Touch Display</strong>: ~80 EUR</li>
+<li><strong>Display mount</strong>: ~20 EUR</li>
+<li><strong>Touch pen</strong>: ~10 EUR</li>
+<li>Optional: Portable case: ~100 EUR</li>
+<li><strong>Total</strong>: ~350 EUR</li>
+</ul>
+<h4 id="professional-setup-500-eur">Professional Setup (~500 EUR)<a class="headerlink" href="#professional-setup-500-eur" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>Raspberry Pi 5 (8 GB)</strong>: ~120 EUR</li>
+<li>Accessories: ~30 EUR</li>
+<li><strong>External touch display (10-15")</strong>: ~250 EUR</li>
+<li><strong>Robust tablet case</strong>: ~100 EUR</li>
+<li><strong>Total</strong>: ~500 EUR</li>
+</ul>
+<h3 id="software-setup">Software Setup<a class="headerlink" href="#software-setup" title="Permanent link">&para;</a></h3>
+<p><strong>Pre-configured image available</strong> (recommended):
+- Download pre-configured image
+- Flash to SD card (with Balena Etcher)
+- One-time configuration (WiFi, club name)
+- <strong>Time required</strong>: 30 minutes</p>
+<p><strong>Manual installation</strong>:
+- Install Raspberry Pi OS Lite
+- Run Carambus installation script
+- Configure kiosk mode
+- <strong>Time required</strong>: 2-3 hours</p>
+<h3 id="kiosk-mode-features">Kiosk Mode Features<a class="headerlink" href="#kiosk-mode-features" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Automatic start</strong>: System boots directly into Chromium browser</li>
+<li><strong>Fullscreen</strong>: No menu bars or desktop visible</li>
+<li><strong>Auto-refresh</strong>: On connection problems</li>
+<li><strong>Screensaver</strong>: Dim after inactivity</li>
+<li><strong>Touch optimization</strong>: Large buttons, gesture control</li>
+<li><strong>Remote maintenance</strong>: SSH access for updates</li>
+</ul>
+<h3 id="advantages_2">Advantages<a class="headerlink" href="#advantages_2" title="Permanent link">&para;</a></h3>
+<p>✅ <strong>Extremely cheap</strong>: Lowest total cost of all options<br />
+✅ <strong>Plug &amp; Play</strong>: Pre-configured image available<br />
+✅ <strong>All-in-One</strong>: Server + display in one device<br />
+✅ <strong>Power-efficient</strong>: &lt; 15W, ~2 EUR/month<br />
+✅ <strong>Compact</strong>: Fits behind any monitor<br />
+✅ <strong>Silent</strong>: No fans (with passive cooling)<br />
+✅ <strong>Touch-capable</strong>: Direct operation on display<br />
+✅ <strong>Internet-optional</strong>: Works completely offline  </p>
+<h3 id="disadvantages_2">Disadvantages<a class="headerlink" href="#disadvantages_2" title="Permanent link">&para;</a></h3>
+<p>❌ <strong>Limited performance</strong>: Not for &gt; 100 members<br />
+❌ <strong>Single point of failure</strong>: Device is server AND display<br />
+❌ <strong>SD card risk</strong>: Can fail after years (avoidable with SSD)<br />
+❌ <strong>Not scalable</strong>: Unsuitable for multi-location  </p>
+<h3 id="cost-calculation-36-months_2">Cost Calculation (36 months)<a class="headerlink" href="#cost-calculation-36-months_2" title="Permanent link">&para;</a></h3>
+<p><strong>Standard setup</strong>:
+- Hardware: 150 EUR (one-time)
+- Power costs: 2 EUR × 36 = 72 EUR
+- SD card replacement: 15 EUR (after 2 years)
+- <strong>Total</strong>: ~237 EUR</p>
+<p><strong>Amortization comparison</strong>:
+- <strong>vs. Cloud (Hetzner)</strong>: Amortization after 18 months
+- <strong>vs. Cloud (DigitalOcean)</strong>: Amortization after 10 months</p>
+<h3 id="setup-process-with-pre-configured-image">Setup Process (with pre-configured image)<a class="headerlink" href="#setup-process-with-pre-configured-image" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Procure hardware</strong> (online order, 3-5 days)</li>
+<li><strong>Download image</strong> (15 minutes)</li>
+<li>Download from GitHub releases</li>
+<li>Flash to SD card with Balena Etcher</li>
+<li><strong>Set up Raspberry Pi</strong> (15 minutes)</li>
+<li>Insert SD card</li>
+<li>Connect HDMI to monitor/TV</li>
+<li>Connect power → starts automatically</li>
+<li><strong>Initial setup</strong> (10 minutes)</li>
+<li>Configure WiFi (if no LAN)</li>
+<li>Upload club name and logo</li>
+<li>Create admin account</li>
+<li><strong>Done!</strong> System is ready for use</li>
+</ol>
+<p><strong>Total time required</strong>: 30-60 minutes</p>
+<h3 id="maintenance_2">Maintenance<a class="headerlink" href="#maintenance_2" title="Permanent link">&para;</a></h3>
+<p><strong>Very low maintenance</strong>:
+- Updates: 1× monthly via SSH (5 minutes)
+- Backup: Automatically to USB stick (optional)
+- Hardware: Occasionally remove dust</p>
+<p><strong>Estimated time required</strong>: &lt; 1 hour/month</p>
+<h3 id="typical-use-cases">Typical Use Cases<a class="headerlink" href="#typical-use-cases" title="Permanent link">&para;</a></h3>
+<h4 id="scenario-a-table-monitor">Scenario A: Table Monitor<a class="headerlink" href="#scenario-a-table-monitor" title="Permanent link">&para;</a></h4>
+<ul>
+<li>Raspberry Pi + 7" touch display</li>
+<li>Wall mount next to billiard table</li>
+<li>Shows current scoreboard</li>
+<li>Players can enter scores themselves</li>
+</ul>
+<h4 id="scenario-b-tournament-display">Scenario B: Tournament Display<a class="headerlink" href="#scenario-b-tournament-display" title="Permanent link">&para;</a></h4>
+<ul>
+<li>Raspberry Pi connected to existing TV/projector</li>
+<li>Central display in clubhouse</li>
+<li>Shows tournament monitor with all matches</li>
+<li>Automatic rotation between views</li>
+</ul>
+<h4 id="scenario-c-mobile-referee-station">Scenario C: Mobile Referee Station<a class="headerlink" href="#scenario-c-mobile-referee-station" title="Permanent link">&para;</a></h4>
+<ul>
+<li>Raspberry Pi + large tablet display (10-15")</li>
+<li>In portable case</li>
+<li>Referee carries to each table</li>
+<li>Records results directly on-site</li>
+</ul>
+<h3 id="recommended-for_2">Recommended for<a class="headerlink" href="#recommended-for_2" title="Permanent link">&para;</a></h3>
+<ul>
+<li>✅ Small clubs (&lt; 100 members)</li>
+<li>✅ Budget-conscious installations</li>
+<li>✅ Simple, low-maintenance solution desired</li>
+<li>✅ Single location (no multi-club operation)</li>
+<li>✅ Primarily local use in clubhouse</li>
+<li>✅ Quick start without IT knowledge</li>
+</ul>
+<hr />
+<h2 id="comparison-matrix-extended">Comparison Matrix: Extended<a class="headerlink" href="#comparison-matrix-extended" title="Permanent link">&para;</a></h2>
+<h3 id="performance-comparison">Performance Comparison<a class="headerlink" href="#performance-comparison" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>Cloud (Standard)</th>
+<th>On-Premise (NUC)</th>
+<th>Raspberry Pi 4</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Max concurrent users</strong></td>
+<td>100+</td>
+<td>50-100</td>
+<td>20-30</td>
+</tr>
+<tr>
+<td><strong>Page load time</strong></td>
+<td>300-500ms</td>
+<td>100-200ms</td>
+<td>500-800ms</td>
+</tr>
+<tr>
+<td><strong>WebSocket latency</strong></td>
+<td>50-100ms</td>
+<td>&lt; 10ms</td>
+<td>10-30ms</td>
+</tr>
+<tr>
+<td><strong>Database size</strong></td>
+<td>Unlimited</td>
+<td>Depends on disk</td>
+<td>32 GB practical</td>
+</tr>
+<tr>
+<td><strong>Backup speed</strong></td>
+<td>Fast</td>
+<td>Very fast</td>
+<td>Slow</td>
+</tr>
+</tbody>
+</table>
+<h3 id="security-comparison">Security Comparison<a class="headerlink" href="#security-comparison" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Aspect</th>
+<th>Cloud</th>
+<th>On-Premise</th>
+<th>Raspberry Pi</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Physical security</strong></td>
+<td>Professional</td>
+<td>Medium</td>
+<td>Low</td>
+</tr>
+<tr>
+<td><strong>Network isolation</strong></td>
+<td>Provider</td>
+<td>Self</td>
+<td>Self</td>
+</tr>
+<tr>
+<td><strong>DDoS protection</strong></td>
+<td>Included</td>
+<td>Self</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td><strong>Data privacy</strong></td>
+<td>Provider</td>
+<td>Complete</td>
+<td>Complete</td>
+</tr>
+<tr>
+<td><strong>Update frequency</strong></td>
+<td>High</td>
+<td>Medium</td>
+<td>Medium</td>
+</tr>
+<tr>
+<td><strong>Penetration testing</strong></td>
+<td>Provider</td>
+<td>Self</td>
+<td>Self</td>
+</tr>
+</tbody>
+</table>
+<h3 id="availability-comparison">Availability Comparison<a class="headerlink" href="#availability-comparison" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Criterion</th>
+<th>Cloud</th>
+<th>On-Premise</th>
+<th>Raspberry Pi</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Uptime SLA</strong></td>
+<td>99.9%</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td><strong>Redundancy</strong></td>
+<td>Present</td>
+<td>Optional</td>
+<td>None</td>
+</tr>
+<tr>
+<td><strong>Power outage</strong></td>
+<td>UPS present</td>
+<td>UPS recommended</td>
+<td>Problematic</td>
+</tr>
+<tr>
+<td><strong>Hardware failure</strong></td>
+<td>Quick replacement</td>
+<td>Self-procure</td>
+<td>Replace SD card</td>
+</tr>
+<tr>
+<td><strong>MTTR (Mean Time to Repair)</strong></td>
+<td>&lt; 1 hour</td>
+<td>1-24 hours</td>
+<td>&lt; 1 hour</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="decision-aid-which-option-fits-me">Decision Aid: Which Option Fits Me?<a class="headerlink" href="#decision-aid-which-option-fits-me" title="Permanent link">&para;</a></h2>
+<h3 id="flowchart">Flowchart<a class="headerlink" href="#flowchart" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Do you have more than 200 members?
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>├─ YES → How many locations?
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>│   ├─ Multiple → **Cloud Hosting** (recommended)
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>│   └─ One → On-Premise Server (Premium)
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>│
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>└─ NO → Is your budget &lt; 300 EUR?
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    ├─ YES → **Raspberry Pi All-in-One** (recommended)
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    └─ NO → Do you need external access?
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>        ├─ YES → Cloud Hosting or On-Premise + VPN
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>        └─ NO → Raspberry Pi or On-Premise
+</code></pre></div>
+<h3 id="quick-check-your-situation">Quick Check: Your Situation<a class="headerlink" href="#quick-check-your-situation" title="Permanent link">&para;</a></h3>
+<p><strong>You should choose Cloud Hosting if</strong>:
+- You have multiple clubs/locations
+- You need access from everywhere
+- You have no IT staff
+- You want to start quickly
+- You need scalability</p>
+<p><strong>You should choose On-Premise if</strong>:
+- You have strict privacy requirements
+- You have IT staff or IT-savvy members
+- You want to save costs long-term
+- You want internet independence
+- You need full control over all aspects</p>
+<p><strong>You should choose Raspberry Pi if</strong>:
+- You are a small club (&lt; 100 members)
+- You have minimal budget
+- You want to start quickly and easily
+- You have primarily local use
+- You want a low-maintenance solution</p>
+<hr />
+<h2 id="migration-paths">Migration Paths<a class="headerlink" href="#migration-paths" title="Permanent link">&para;</a></h2>
+<h3 id="from-raspberry-pi-to-cloud">From Raspberry Pi to Cloud<a class="headerlink" href="#from-raspberry-pi-to-cloud" title="Permanent link">&para;</a></h3>
+<p><strong>When sensible</strong>: Club grows, external access becomes important</p>
+<p><strong>Process</strong>:
+1. Create database backup from Raspberry Pi
+2. Set up cloud server
+3. Import backup to cloud server
+4. Switch DNS/URLs
+5. Continue using Raspberry Pi as local display client</p>
+<p><strong>Effort</strong>: 2-3 hours, <strong>no data loss</strong></p>
+<h3 id="from-raspberry-pi-to-on-premise">From Raspberry Pi to On-Premise<a class="headerlink" href="#from-raspberry-pi-to-on-premise" title="Permanent link">&para;</a></h3>
+<p><strong>When sensible</strong>: Performance requirements increase</p>
+<p><strong>Process</strong>:
+- Identical to above, only target is local server instead of cloud</p>
+<h3 id="from-cloud-to-on-premise">From Cloud to On-Premise<a class="headerlink" href="#from-cloud-to-on-premise" title="Permanent link">&para;</a></h3>
+<p><strong>When sensible</strong>: Privacy requirements change, long-term cost reduction</p>
+<p><strong>Process</strong>:
+1. Build on-premise server
+2. Download database backup from cloud
+3. Import to local server
+4. Test in parallel operation
+5. Switch and cancel cloud</p>
+<p><strong>Effort</strong>: 4-6 hours</p>
+<hr />
+<h2 id="summary">Summary<a class="headerlink" href="#summary" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Criterion</th>
+<th>Cloud</th>
+<th>On-Premise</th>
+<th>Raspberry Pi</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Best choice for</strong></td>
+<td>Federations</td>
+<td>Privacy</td>
+<td>Small clubs</td>
+</tr>
+<tr>
+<td><strong>Cost (3 years)</strong></td>
+<td>320-950 EUR</td>
+<td>186-2,340 EUR</td>
+<td>~237 EUR</td>
+</tr>
+<tr>
+<td><strong>Setup time</strong></td>
+<td>3-4 h</td>
+<td>6-8 h</td>
+<td>0.5-1 h</td>
+</tr>
+<tr>
+<td><strong>Maintenance/month</strong></td>
+<td>2-3 h</td>
+<td>3-4 h</td>
+<td>&lt; 1 h</td>
+</tr>
+<tr>
+<td><strong>IT skills</strong></td>
+<td>Medium</td>
+<td>High</td>
+<td>Low</td>
+</tr>
+<tr>
+<td><strong>Scalability</strong></td>
+<td>⭐⭐⭐⭐⭐</td>
+<td>⭐⭐⭐⭐</td>
+<td>⭐⭐</td>
+</tr>
+<tr>
+<td><strong>Simplicity</strong></td>
+<td>⭐⭐⭐⭐</td>
+<td>⭐⭐</td>
+<td>⭐⭐⭐⭐⭐</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Recommendation</strong>: Most small to medium clubs are best served with the <strong>Raspberry Pi All-in-One solution</strong>. It's cost-effective, easy to install, and perfectly adequate for typical club operations.</p>
+<hr />
+<p><em>For individual consultation on your specific situation, contact us at gernot.ullrich@gmx.de</em></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        <div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/GernotUllrich/carambus" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="http://www.billardclub-wedel.de/" target="_blank" rel="noopener" title="www.billardclub-wedel.de" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M352 256c0 22.2-1.2 43.6-3.3 64H163.4c-2.2-20.4-3.3-41.8-3.3-64s1.2-43.6 3.3-64h185.3c2.2 20.4 3.3 41.8 3.3 64m28.8-64h123.1c5.3 20.5 8.1 41.9 8.1 64s-2.8 43.5-8.1 64H380.8c2.1-20.6 3.2-42 3.2-64s-1.1-43.4-3.2-64m112.6-32H376.7c-10-63.9-29.8-117.4-55.3-151.6 78.3 20.7 142 77.5 171.9 151.6zm-149.1 0H167.7c6.1-36.4 15.5-68.6 27-94.7 10.5-23.6 22.2-40.7 33.5-51.5C239.4 3.2 248.7 0 256 0s16.6 3.2 27.8 13.8c11.3 10.8 23 27.9 33.5 51.5 11.6 26 20.9 58.2 27 94.7m-209 0H18.6c30-74.1 93.6-130.9 172-151.6-25.5 34.2-45.3 87.7-55.3 151.6M8.1 192h123.1c-2.1 20.6-3.2 42-3.2 64s1.1 43.4 3.2 64H8.1C2.8 299.5 0 278.1 0 256s2.8-43.5 8.1-64m186.6 254.6c-11.6-26-20.9-58.2-27-94.6h176.6c-6.1 36.4-15.5 68.6-27 94.6-10.5 23.6-22.2 40.7-33.5 51.5-11.2 10.7-20.5 13.9-27.8 13.9s-16.6-3.2-27.8-13.8c-11.3-10.8-23-27.9-33.5-51.5zM135.3 352c10 63.9 29.8 117.4 55.3 151.6-78.4-20.7-142-77.5-172-151.6zm358.1 0c-30 74.1-93.6 130.9-171.9 151.6 25.5-34.2 45.2-87.7 55.3-151.6h116.7z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.indexes", "search.suggest", "search.highlight", "header.autohide", "toc.follow"], "search": "../../../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.56ea9cef.min.js"></script>
+      
+        <script src="../../../javascripts/mathjax.js"></script>
+      
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>

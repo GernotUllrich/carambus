@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_02_11_184631) do
+ActiveRecord::Schema[7.2].define(version: 2026_02_15_195121) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -805,6 +805,24 @@ ActiveRecord::Schema[7.2].define(version: 2026_02_11_184631) do
     t.index ["location_id"], name: "index_scoreboard_messages_on_location_id"
     t.index ["sender_id"], name: "index_scoreboard_messages_on_sender_id"
     t.index ["table_monitor_id"], name: "index_scoreboard_messages_on_table_monitor_id"
+  end
+
+  create_table "scraping_logs", force: :cascade do |t|
+    t.string "operation", null: false
+    t.string "context"
+    t.float "duration"
+    t.integer "created_count", default: 0
+    t.integer "updated_count", default: 0
+    t.integer "deleted_count", default: 0
+    t.integer "error_count", default: 0
+    t.text "errors_json"
+    t.datetime "executed_at", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.integer "unchanged_count", default: 0
+    t.index ["executed_at"], name: "index_scraping_logs_on_executed_at"
+    t.index ["operation", "executed_at"], name: "index_scraping_logs_on_operation_and_executed_at"
+    t.index ["operation"], name: "index_scraping_logs_on_operation"
   end
 
   create_table "season_ccs", force: :cascade do |t|

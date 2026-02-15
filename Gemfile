@@ -74,6 +74,15 @@ group :test do
   gem "selenium-webdriver", ">= 4.20.1"
   gem "webmock"
   gem 'factory_bot_rails'
+  
+  # Snapshot testing for external APIs (ClubCloud scraping)
+  gem 'vcr'
+  
+  # Test coverage reporting (for information, not dogma)
+  gem 'simplecov', require: false
+  
+  # Better test assertions
+  gem 'shoulda-matchers'
 end
 gem "redcarpet", "~> 3.5"
 gem "stimulus_reflex", "3.5.3"

@@ -1,0 +1,14 @@
+# Regions for testing
+nbv:
+  id: 50_000_001
+  name: "Niedersächsischer Billard-Verband"
+  shortname: "NBV"
+  created_at: <%= 2.years.ago %>
+  updated_at: <%= 1.day.ago %>
+
+bbv:
+  id: 50_000_002
+  name: "Bayerischer Billard-Verband"
+  shortname: "BBV"
+  created_at: <%= 2.years.ago %>
+  updated_at: <%= 1.month.ago %>

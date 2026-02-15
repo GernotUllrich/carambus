@@ -1,0 +1,3955 @@
+
+<!doctype html>
+<html lang="de" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Comprehensive documentation for Carambus - Professional billiards tournament management system">
+      
+      
+      
+        <link rel="canonical" href="https://GernotUllrich.github.io/carambus/developers/developer-guide/">
+      
+      
+        <link rel="prev" href="../getting-started/">
+      
+      
+        <link rel="next" href="../database-design/">
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.15">
+    
+    
+      
+        <title>Entwickler-Leitfaden - Carambus Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.342714a4.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#carambus-entwicklerleitfaden" class="md-skip">
+          Zum Inhalt
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Kopfzeile">
+    <a href="../.." title="Carambus Documentation" class="md-header__button md-logo" aria-label="Carambus Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Carambus Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Entwickler-Leitfaden
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+      <div class="md-header__option">
+  <div class="md-select">
+    
+    <button class="md-header__button md-icon" aria-label="Sprache wechseln">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
+    </button>
+    <div class="md-select__inner">
+      <ul class="md-select__list">
+        
+          <li class="md-select__item">
+            <a href="./" hreflang="de" class="md-select__link">
+              Deutsch
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="../../en/developers/developer-guide/" hreflang="en" class="md-select__link">
+              English
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</div>
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Suche" placeholder="Suche" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Suche">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Zurücksetzen" aria-label="Zurücksetzen" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Suche wird initialisiert
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/GernotUllrich/carambus" title="Zum Repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GernotUllrich/carambus
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Hauptnavigation" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Startseite
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../decision-makers/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Für Entscheider
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../players/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Für Spieler
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../managers/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Für Turniermanager
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../administrators/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Für Systemadministratoren
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Für Entwickler
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../reference/API/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Referenz
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../about/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Über
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Carambus Documentation" class="md-nav__button md-logo" aria-label="Carambus Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Carambus Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/GernotUllrich/carambus" title="Zum Repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GernotUllrich/carambus
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Startseite
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../decision-makers/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Für Entscheider
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2" id="__nav_2_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Für Entscheider
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../decision-makers/executive-summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Executive Summary
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../decision-makers/features-overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Feature-Übersicht
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../decision-makers/deployment-options/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Deployment-Optionen
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../players/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Für Spieler
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Für Spieler
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../players/scoreboard-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scoreboard-Anleitung
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../players/tournament-participation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Turnierteilnahme
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../players/ai-search/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    KI-gestützte Suche
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../managers/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Für Turniermanager
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Für Turniermanager
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../managers/tournament-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Turnierverwaltung
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../managers/league-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Liga-Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../managers/single-tournament/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Einzelturnier
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../managers/table-reservation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tischreservierung
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../managers/admin-roles/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Admin-Rollen
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../managers/clubcloud-integration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    ClubCloud-Integration
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../managers/search-filters/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Suche & Filter
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../administrators/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Für Systemadministratoren
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5" id="__nav_5_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Für Systemadministratoren
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administrators/installation-overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Installations-Übersicht
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administrators/raspberry-pi-quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Raspberry Pi Quickstart
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administrators/raspberry-pi-client/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Raspberry Pi Client
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administrators/scoreboard-autostart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scoreboard Autostart
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administrators/server-architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Server-Architektur
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administrators/email-configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Email-Konfiguration
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administrators/database-setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Datenbank-Setup
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administrators/streaming-quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    YouTube Streaming Quickstart
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administrators/streaming-setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    YouTube Streaming Setup
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Für Entwickler
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_6" id="__nav_6_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            Für Entwickler
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Getting Started
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Entwickler-Leitfaden
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    Entwickler-Leitfaden
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Inhaltsverzeichnis">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Inhaltsverzeichnis
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#inhaltsverzeichnis" class="md-nav__link">
+    <span class="md-ellipsis">
+      Inhaltsverzeichnis
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#uebersicht" class="md-nav__link">
+    <span class="md-ellipsis">
+      Übersicht
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Übersicht">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hauptfunktionen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Hauptfunktionen
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#technologie-stack" class="md-nav__link">
+    <span class="md-ellipsis">
+      Technologie-Stack
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#architektur" class="md-nav__link">
+    <span class="md-ellipsis">
+      Architektur
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Architektur">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#rails-struktur" class="md-nav__link">
+    <span class="md-ellipsis">
+      Rails-Struktur
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#wichtige-architekturmuster" class="md-nav__link">
+    <span class="md-ellipsis">
+      Wichtige Architekturmuster
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#erste-schritte" class="md-nav__link">
+    <span class="md-ellipsis">
+      Erste Schritte
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Erste Schritte">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#voraussetzungen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Voraussetzungen
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#installation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Installation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#entwicklungstools" class="md-nav__link">
+    <span class="md-ellipsis">
+      Entwicklungstools
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#datenbank-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      Datenbank-Setup
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Datenbank-Setup">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#schnellstart" class="md-nav__link">
+    <span class="md-ellipsis">
+      Schnellstart
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#erwartete-fehler" class="md-nav__link">
+    <span class="md-ellipsis">
+      Erwartete Fehler
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#datenbankdesign" class="md-nav__link">
+    <span class="md-ellipsis">
+      Datenbankdesign
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Datenbankdesign">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#kern-models" class="md-nav__link">
+    <span class="md-ellipsis">
+      Kern-Models
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#datenspeicherungsmuster" class="md-nav__link">
+    <span class="md-ellipsis">
+      Datenspeicherungsmuster
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#kern-models_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Kern-Models
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Kern-Models">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#turnierverwaltung" class="md-nav__link">
+    <span class="md-ellipsis">
+      Turnierverwaltung
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ligaverwaltung" class="md-nav__link">
+    <span class="md-ellipsis">
+      Ligaverwaltung
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#standortverwaltung" class="md-nav__link">
+    <span class="md-ellipsis">
+      Standortverwaltung
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#benutzerverwaltung" class="md-nav__link">
+    <span class="md-ellipsis">
+      Benutzerverwaltung
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hauptfunktionen_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Hauptfunktionen
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Hauptfunktionen">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#echtzeit-scoreboards" class="md-nav__link">
+    <span class="md-ellipsis">
+      Echtzeit-Scoreboards
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#datensynchronisation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Datensynchronisation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#turnier-workflows" class="md-nav__link">
+    <span class="md-ellipsis">
+      Turnier-Workflows
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#entwicklungsworkflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      Entwicklungsworkflow
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Entwicklungsworkflow">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#code-stil" class="md-nav__link">
+    <span class="md-ellipsis">
+      Code-Stil
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#git-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      Git-Workflow
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#testing_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Testing
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#datenbank-migrationen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Datenbank-Migrationen
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#deployment" class="md-nav__link">
+    <span class="md-ellipsis">
+      Deployment
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Deployment">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#scenario-management-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      Scenario Management System
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#produktions-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      Produktions-Setup
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#konfigurationsdateien" class="md-nav__link">
+    <span class="md-ellipsis">
+      Konfigurationsdateien
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#service-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      Service-Management
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mitwirken" class="md-nav__link">
+    <span class="md-ellipsis">
+      Mitwirken
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Mitwirken">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#entwicklungsumgebung" class="md-nav__link">
+    <span class="md-ellipsis">
+      Entwicklungsumgebung
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#code-beitrage" class="md-nav__link">
+    <span class="md-ellipsis">
+      Code-Beiträge
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dokumentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Dokumentation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#test-richtlinien" class="md-nav__link">
+    <span class="md-ellipsis">
+      Test-Richtlinien
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#code-review-prozess" class="md-nav__link">
+    <span class="md-ellipsis">
+      Code-Review-Prozess
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#zusatzliche-ressourcen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Zusätzliche Ressourcen
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Zusätzliche Ressourcen">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dokumentation_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Dokumentation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#externe-links" class="md-nav__link">
+    <span class="md-ellipsis">
+      Externe Links
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#support" class="md-nav__link">
+    <span class="md-ellipsis">
+      Support
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../database-design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Datenbank-Design
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../er-diagram/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    ER-Diagramm
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/API/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    API-Referenz
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../scenario-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scenario-Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rake-tasks-debugging/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Testing & Debugging
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../deployment-workflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Deployment-Workflow
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../data-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Datenverwaltung
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../database-partitioning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Datenbank-Partitionierung
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../paper-trail-optimization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    PaperTrail-Optimierung
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../game-plan-reconstruction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Spielplan-Rekonstruktion
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tournament-duplicate-handling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Turnier-Duplikate
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../region-tagging-cleanup-summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Regions-Tagging
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../streaming-architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    YouTube Streaming Architektur
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pool-scoreboard-changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Pool Scoreboard Changelog
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Referenz
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            Referenz
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/API/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    API-Referenz
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/glossary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Glossar
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/terms/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    AGB
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/privacy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Datenschutz
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/config-lock-files/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Config Lock Files
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/search/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Search
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/mkdocs_dokumentation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    MkDocs
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Über
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            Über
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../about/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Über
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Inhaltsverzeichnis">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Inhaltsverzeichnis
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#inhaltsverzeichnis" class="md-nav__link">
+    <span class="md-ellipsis">
+      Inhaltsverzeichnis
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#uebersicht" class="md-nav__link">
+    <span class="md-ellipsis">
+      Übersicht
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Übersicht">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hauptfunktionen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Hauptfunktionen
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#technologie-stack" class="md-nav__link">
+    <span class="md-ellipsis">
+      Technologie-Stack
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#architektur" class="md-nav__link">
+    <span class="md-ellipsis">
+      Architektur
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Architektur">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#rails-struktur" class="md-nav__link">
+    <span class="md-ellipsis">
+      Rails-Struktur
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#wichtige-architekturmuster" class="md-nav__link">
+    <span class="md-ellipsis">
+      Wichtige Architekturmuster
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#erste-schritte" class="md-nav__link">
+    <span class="md-ellipsis">
+      Erste Schritte
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Erste Schritte">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#voraussetzungen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Voraussetzungen
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#installation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Installation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#entwicklungstools" class="md-nav__link">
+    <span class="md-ellipsis">
+      Entwicklungstools
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#datenbank-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      Datenbank-Setup
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Datenbank-Setup">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#schnellstart" class="md-nav__link">
+    <span class="md-ellipsis">
+      Schnellstart
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#erwartete-fehler" class="md-nav__link">
+    <span class="md-ellipsis">
+      Erwartete Fehler
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#datenbankdesign" class="md-nav__link">
+    <span class="md-ellipsis">
+      Datenbankdesign
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Datenbankdesign">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#kern-models" class="md-nav__link">
+    <span class="md-ellipsis">
+      Kern-Models
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#datenspeicherungsmuster" class="md-nav__link">
+    <span class="md-ellipsis">
+      Datenspeicherungsmuster
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#kern-models_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Kern-Models
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Kern-Models">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#turnierverwaltung" class="md-nav__link">
+    <span class="md-ellipsis">
+      Turnierverwaltung
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ligaverwaltung" class="md-nav__link">
+    <span class="md-ellipsis">
+      Ligaverwaltung
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#standortverwaltung" class="md-nav__link">
+    <span class="md-ellipsis">
+      Standortverwaltung
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#benutzerverwaltung" class="md-nav__link">
+    <span class="md-ellipsis">
+      Benutzerverwaltung
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hauptfunktionen_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Hauptfunktionen
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Hauptfunktionen">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#echtzeit-scoreboards" class="md-nav__link">
+    <span class="md-ellipsis">
+      Echtzeit-Scoreboards
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#datensynchronisation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Datensynchronisation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#turnier-workflows" class="md-nav__link">
+    <span class="md-ellipsis">
+      Turnier-Workflows
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#entwicklungsworkflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      Entwicklungsworkflow
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Entwicklungsworkflow">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#code-stil" class="md-nav__link">
+    <span class="md-ellipsis">
+      Code-Stil
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#git-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      Git-Workflow
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#testing_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Testing
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#datenbank-migrationen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Datenbank-Migrationen
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#deployment" class="md-nav__link">
+    <span class="md-ellipsis">
+      Deployment
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Deployment">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#scenario-management-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      Scenario Management System
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#produktions-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      Produktions-Setup
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#konfigurationsdateien" class="md-nav__link">
+    <span class="md-ellipsis">
+      Konfigurationsdateien
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#service-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      Service-Management
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mitwirken" class="md-nav__link">
+    <span class="md-ellipsis">
+      Mitwirken
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Mitwirken">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#entwicklungsumgebung" class="md-nav__link">
+    <span class="md-ellipsis">
+      Entwicklungsumgebung
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#code-beitrage" class="md-nav__link">
+    <span class="md-ellipsis">
+      Code-Beiträge
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dokumentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Dokumentation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#test-richtlinien" class="md-nav__link">
+    <span class="md-ellipsis">
+      Test-Richtlinien
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#code-review-prozess" class="md-nav__link">
+    <span class="md-ellipsis">
+      Code-Review-Prozess
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#zusatzliche-ressourcen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Zusätzliche Ressourcen
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Zusätzliche Ressourcen">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dokumentation_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Dokumentation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#externe-links" class="md-nav__link">
+    <span class="md-ellipsis">
+      Externe Links
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#support" class="md-nav__link">
+    <span class="md-ellipsis">
+      Support
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="carambus-entwicklerleitfaden">Carambus Entwicklerleitfaden<a class="headerlink" href="#carambus-entwicklerleitfaden" title="Permanent link">&para;</a></h1>
+<h2 id="inhaltsverzeichnis">Inhaltsverzeichnis<a class="headerlink" href="#inhaltsverzeichnis" title="Permanent link">&para;</a></h2>
+<ol>
+<li><a href="#uebersicht">Übersicht</a></li>
+<li><a href="#architektur">Architektur</a></li>
+<li><a href="#erste-schritte">Erste Schritte</a></li>
+<li><a href="#datenbank-setup">Datenbank-Setup</a></li>
+<li><a href="#datenbankdesign">Datenbankdesign</a></li>
+<li><a href="#kern-models">Kern-Models</a></li>
+<li><a href="#hauptfunktionen">Hauptfunktionen</a></li>
+<li><a href="#entwicklungsworkflow">Entwicklungsworkflow</a></li>
+<li><a href="#deployment">Deployment</a></li>
+<li><a href="#mitwirken">Mitwirken</a></li>
+</ol>
+<h2 id="uebersicht">Übersicht<a class="headerlink" href="#uebersicht" title="Permanent link">&para;</a></h2>
+<p>Carambus ist ein umfassendes Billard-Turnierverwaltungssystem, das mit Ruby on Rails entwickelt wurde. Es bietet eine vollständige Automatisierung der Billard-Betriebsabläufe von der Turnierplanung bis zur Datenerfassung und Ergebnisübertragung.</p>
+<h3 id="hauptfunktionen">Hauptfunktionen<a class="headerlink" href="#hauptfunktionen" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Turnierverwaltung</strong>: Vollständige Turnierlebenszyklus-Verwaltung</li>
+<li><strong>Echtzeit-Scoreboards</strong>: Live-Scoreboard-Anzeigen mit WebSocket-Unterstützung</li>
+<li><strong>Ligaverwaltung</strong>: Team-basierte Ligaorganisation</li>
+<li><strong>Datensynchronisation</strong>: Integration mit externen Billard-Datenbanken (BA/CC)</li>
+<li><strong>Mehrsprachige Unterstützung</strong>: Deutsche und englische Benutzeroberflächen</li>
+<li><strong>Responsive Design</strong>: Funktioniert auf Desktop- und Mobilgeräten</li>
+</ul>
+<h3 id="technologie-stack">Technologie-Stack<a class="headerlink" href="#technologie-stack" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Backend</strong>: Ruby on Rails 7.2</li>
+<li><strong>Datenbank</strong>: PostgreSQL</li>
+<li><strong>Frontend</strong>: Hotwire (Turbo + Stimulus) + Stimulus Reflex</li>
+<li><strong>Echtzeit</strong>: Action Cable mit Redis</li>
+<li><strong>Authentifizierung</strong>: Devise</li>
+<li><strong>Autorisierung</strong>: Pundit + CanCanCan</li>
+<li><strong>Admin-Interface</strong>: Administrate</li>
+<li><strong>Deployment</strong>: Capistrano + Puma</li>
+</ul>
+<h2 id="architektur">Architektur<a class="headerlink" href="#architektur" title="Permanent link">&para;</a></h2>
+<h3 id="rails-struktur">Rails-Struktur<a class="headerlink" href="#rails-struktur" title="Permanent link">&para;</a></h3>
+<p>Carambus folgt den Standard-Rails-Konventionen mit einigen Anpassungen:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>app/
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>├── controllers/          # RESTful Controller
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>├── models/              # ActiveRecord Models mit Concerns
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>├── views/               # ERB Templates
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>├── javascript/          # Stimulus Controller und Utilities
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>├── channels/            # Action Cable Channels
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>├── jobs/                # Hintergrund-Jobs
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>├── services/            # Geschäftslogik-Services
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>└── helpers/             # View Helper
+</code></pre></div>
+<h3 id="wichtige-architekturmuster">Wichtige Architekturmuster<a class="headerlink" href="#wichtige-architekturmuster" title="Permanent link">&para;</a></h3>
+<h4 id="concerns">Concerns<a class="headerlink" href="#concerns" title="Permanent link">&para;</a></h4>
+<p>Die Anwendung verwendet Rails Concerns, um Funktionalität zu teilen:</p>
+<ul>
+<li><code>LocalProtector</code>: Schützt lokale Daten vor externen Änderungen</li>
+<li><code>SourceHandler</code>: Verwaltet externe Datensynchronisation</li>
+<li><code>RegionTaggable</code>: Behandelt regionsbasierte Datenorganisation</li>
+</ul>
+<h4 id="echtzeit-funktionen">Echtzeit-Funktionen<a class="headerlink" href="#echtzeit-funktionen" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>Action Cable</strong>: WebSocket-Verbindungen für Live-Updates</li>
+<li><strong>Stimulus Reflex</strong>: Server-seitige Reflexe für reaktive UI</li>
+<li><strong>Cable Ready</strong>: Client-seitige DOM-Manipulation</li>
+</ul>
+<h2 id="erste-schritte">Erste Schritte<a class="headerlink" href="#erste-schritte" title="Permanent link">&para;</a></h2>
+<h3 id="voraussetzungen">Voraussetzungen<a class="headerlink" href="#voraussetzungen" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Ruby 3.2+ (siehe <code>.ruby-version</code>)</li>
+<li>PostgreSQL 11+</li>
+<li>Redis 5+</li>
+<li>Node.js 14+ (für Asset-Kompilierung)</li>
+</ul>
+<h3 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">&para;</a></h3>
+<ol>
+<li>
+<p><strong>Repository klonen</strong>
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>git<span class="w"> </span>clone<span class="w"> </span>&lt;repository-url&gt;
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="nb">cd</span><span class="w"> </span>carambus
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Abhängigkeiten installieren</strong>
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>bundle<span class="w"> </span>install
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>yarn<span class="w"> </span>install
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Datenbank einrichten</strong>
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>cp<span class="w"> </span>config/database.yml.example<span class="w"> </span>config/database.yml
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="c1"># database.yml mit Ihren PostgreSQL-Zugangsdaten bearbeiten</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="c1"># Option 1: Bestehenden Datenbank-Dump importieren (empfohlen)</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="c1"># Stellen Sie sicher, dass Sie eine Datenbank-Dump-Datei haben (z.B., carambus_api_development_YYYYMMDD_HHMMSS.sql)</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="c1"># Datenbank erstellen und Dump importieren:</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>createdb<span class="w"> </span>carambus_development
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>psql<span class="w"> </span>-d<span class="w"> </span>carambus_development<span class="w"> </span>-f<span class="w"> </span>/pfad/zu/ihrem/dump.sql
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="c1"># Option 2: Neue Datenbank erstellen (falls kein Dump verfügbar)</span>
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>rails<span class="w"> </span>db:create
+<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>rails<span class="w"> </span>db:migrate
+<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a>rails<span class="w"> </span>db:seed
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Umgebungskonfiguration</strong>
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>cp<span class="w"> </span>config/application.yml.example<span class="w"> </span>config/application.yml
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="c1"># application.yml mit Ihrer Konfiguration bearbeiten</span>
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Anwendung starten</strong>
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>rails<span class="w"> </span>server
+</code></pre></div></p>
+</li>
+</ol>
+<h3 id="entwicklungstools">Entwicklungstools<a class="headerlink" href="#entwicklungstools" title="Permanent link">&para;</a></h3>
+<h4 id="code-qualitat">Code-Qualität<a class="headerlink" href="#code-qualitat" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>RuboCop</strong>: Code-Stil-Erzwingung</li>
+<li><strong>Standard</strong>: Ruby-Code-Formatierung</li>
+<li><strong>Brakeman</strong>: Sicherheitslücken-Scanning</li>
+<li><strong>Overcommit</strong>: Git-Hooks für Code-Qualität</li>
+</ul>
+<h4 id="testing">Testing<a class="headerlink" href="#testing" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>RSpec</strong>: Unit- und Integrationstests</li>
+<li><strong>Capybara</strong>: Systemtests</li>
+<li><strong>Factory Bot</strong>: Test-Daten-Factories</li>
+</ul>
+<h2 id="datenbank-setup">Datenbank-Setup<a class="headerlink" href="#datenbank-setup" title="Permanent link">&para;</a></h2>
+<p>Für die Einrichtung einer neuen Entwicklungsdatenbank wird empfohlen, einen bestehenden Datenbank-Dump zu importieren. Detaillierte Anweisungen finden Sie in der separaten Dokumentation:</p>
+<p><strong><a href="../../administrators/database-setup/">🗄️ Datenbank-Setup Anleitung</a></strong></p>
+<h3 id="schnellstart">Schnellstart<a class="headerlink" href="#schnellstart" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># Datenbank erstellen</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>createdb<span class="w"> </span>carambus_development
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="c1"># Dump importieren</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>psql<span class="w"> </span>-d<span class="w"> </span>carambus_development<span class="w"> </span>-f<span class="w"> </span>/pfad/zu/ihrem/dump.sql
+</code></pre></div>
+<h3 id="erwartete-fehler">Erwartete Fehler<a class="headerlink" href="#erwartete-fehler" title="Permanent link">&para;</a></h3>
+<p>Beim Import können folgende Fehler auftreten, die ignoriert werden können:
+- <code>relation "table_name" already exists</code> - Tabelle existiert bereits
+- <code>multiple primary keys for table "table_name" are not allowed</code> - Primärschlüssel bereits definiert
+- <code>relation "index_name" already exists</code> - Index existiert bereits
+- <code>constraint "constraint_name" for relation "table_name" already exists</code> - Constraint bereits definiert</p>
+<p>Diese Fehler sind normal, wenn die Datenbank bereits teilweise initialisiert wurde.</p>
+<h2 id="datenbankdesign">Datenbankdesign<a class="headerlink" href="#datenbankdesign" title="Permanent link">&para;</a></h2>
+<h3 id="kern-models">Kern-Models<a class="headerlink" href="#kern-models" title="Permanent link">&para;</a></h3>
+<h4 id="seeding-model-doppelzweck">Seeding Model (Doppelzweck)<a class="headerlink" href="#seeding-model-doppelzweck" title="Permanent link">&para;</a></h4>
+<p>Das <code>Seeding</code> Model dient zwei verschiedenen Zwecken:</p>
+<ol>
+<li><strong>Team-Kader-Verwaltung</strong></li>
+<li>Verbunden mit <code>LeagueTeam</code> über <code>league_team_id</code></li>
+<li>Verwaltet den vollständigen Spielerkader für ein Ligateam</li>
+<li>
+<p>Wird während der initialen Liga/Team-Einrichtung erstellt</p>
+</li>
+<li>
+<p><strong>Spiel-Teilnahme-Verfolgung</strong></p>
+</li>
+<li>Verbunden mit <code>Party</code> über polymorphic <code>tournament_id</code></li>
+<li>Verfolgt, welche Spieler an bestimmten Spielen teilnehmen</li>
+<li>Wird beim Einrichten einzelner Spiele erstellt</li>
+</ol>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">Seeding</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="no">ApplicationRecord</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">  </span><span class="n">belongs_to</span><span class="w"> </span><span class="ss">:player</span><span class="p">,</span><span class="w"> </span><span class="ss">optional</span><span class="p">:</span><span class="w"> </span><span class="kp">true</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">  </span><span class="n">belongs_to</span><span class="w"> </span><span class="ss">:tournament</span><span class="p">,</span><span class="w"> </span><span class="ss">polymorphic</span><span class="p">:</span><span class="w"> </span><span class="kp">true</span><span class="p">,</span><span class="w"> </span><span class="ss">optional</span><span class="p">:</span><span class="w"> </span><span class="kp">true</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">  </span><span class="n">belongs_to</span><span class="w"> </span><span class="ss">:league_team</span><span class="p">,</span><span class="w"> </span><span class="ss">optional</span><span class="p">:</span><span class="w"> </span><span class="kp">true</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">  </span><span class="kp">include</span><span class="w"> </span><span class="no">LocalProtector</span>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">  </span><span class="kp">include</span><span class="w"> </span><span class="no">SourceHandler</span>
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="w">  </span><span class="kp">include</span><span class="w"> </span><span class="no">RegionTaggable</span>
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="k">end</span>
+</code></pre></div>
+<h4 id="party-und-leagueteam-beziehung">Party und LeagueTeam Beziehung<a class="headerlink" href="#party-und-leagueteam-beziehung" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">Party</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="no">ApplicationRecord</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">  </span><span class="n">belongs_to</span><span class="w"> </span><span class="ss">:league_team_a</span><span class="p">,</span><span class="w"> </span><span class="ss">class_name</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;LeagueTeam&quot;</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">  </span><span class="n">belongs_to</span><span class="w"> </span><span class="ss">:league_team_b</span><span class="p">,</span><span class="w"> </span><span class="ss">class_name</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;LeagueTeam&quot;</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">  </span><span class="n">belongs_to</span><span class="w"> </span><span class="ss">:host_league_team</span><span class="p">,</span><span class="w"> </span><span class="ss">class_name</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;LeagueTeam&quot;</span>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="w">  </span><span class="n">has_many</span><span class="w"> </span><span class="ss">:seedings</span><span class="p">,</span><span class="w"> </span><span class="ss">as</span><span class="p">:</span><span class="w"> </span><span class="ss">:tournament</span>
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="w">  </span><span class="kp">include</span><span class="w"> </span><span class="no">LocalProtector</span>
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="w">  </span><span class="kp">include</span><span class="w"> </span><span class="no">SourceHandler</span>
+<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="k">end</span>
+</code></pre></div>
+<h3 id="datenspeicherungsmuster">Datenspeicherungsmuster<a class="headerlink" href="#datenspeicherungsmuster" title="Permanent link">&para;</a></h3>
+<h4 id="flexible-datenspeicherung">Flexible Datenspeicherung<a class="headerlink" href="#flexible-datenspeicherung" title="Permanent link">&para;</a></h4>
+<p>Mehrere Models verwenden serialisierte Spalten für flexible Datenspeicherung:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1"># JSON Serialisierung</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="n">serialize</span><span class="w"> </span><span class="ss">:data</span><span class="p">,</span><span class="w"> </span><span class="ss">coder</span><span class="p">:</span><span class="w"> </span><span class="no">JSON</span><span class="p">,</span><span class="w"> </span><span class="ss">type</span><span class="p">:</span><span class="w"> </span><span class="no">Hash</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="c1"># Verwendet in: Party, Seeding, LeagueTeam</span>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="c1"># YAML Serialisierung  </span>
+<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="n">serialize</span><span class="w"> </span><span class="ss">:remarks</span><span class="p">,</span><span class="w"> </span><span class="ss">coder</span><span class="p">:</span><span class="w"> </span><span class="no">YAML</span><span class="p">,</span><span class="w"> </span><span class="ss">type</span><span class="p">:</span><span class="w"> </span><span class="no">Hash</span>
+<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="c1"># Verwendet in: Party</span>
+</code></pre></div>
+<h4 id="regions-tagging-system">Regions-Tagging-System<a class="headerlink" href="#regions-tagging-system" title="Permanent link">&para;</a></h4>
+<p>Das <code>RegionTaggable</code> Concern bietet intelligente Regions-Behandlung:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="c1"># Automatisches Regions-Tagging basierend auf Kontext</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="k">when</span><span class="w"> </span><span class="no">Seeding</span>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="n">tournament_id</span><span class="o">.</span><span class="n">present?</span>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="w">    </span><span class="c1"># Turnier-basiertes Regions-Tagging</span>
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="w">    </span><span class="n">tournament</span><span class="w"> </span><span class="p">?</span><span class="w"> </span><span class="o">[</span>
+<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="w">      </span><span class="n">tournament</span><span class="o">.</span><span class="n">region_id</span><span class="p">,</span>
+<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="w">      </span><span class="p">(</span><span class="n">tournament</span><span class="o">.</span><span class="n">organizer_type</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s2">&quot;Region&quot;</span><span class="w"> </span><span class="p">?</span><span class="w"> </span><span class="n">tournament</span><span class="o">.</span><span class="n">organizer_id</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="kp">nil</span><span class="p">),</span>
+<a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a><span class="w">      </span><span class="n">find_dbu_region_id_if_global</span>
+<a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a><span class="w">    </span><span class="o">].</span><span class="n">compact</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="o">[]</span>
+<a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a><span class="w">  </span><span class="k">elsif</span><span class="w"> </span><span class="n">league_team_id</span><span class="o">.</span><span class="n">present?</span>
+<a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a><span class="w">    </span><span class="c1"># Liga-Team-basiertes Regions-Tagging</span>
+<a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a><span class="w">    </span><span class="n">league_team</span><span class="o">&amp;.</span><span class="n">league</span><span class="w"> </span><span class="p">?</span><span class="w"> </span><span class="o">[</span>
+<a id="__codelineno-10-13" name="__codelineno-10-13" href="#__codelineno-10-13"></a><span class="w">      </span><span class="p">(</span><span class="n">league_team</span><span class="o">.</span><span class="n">league</span><span class="o">.</span><span class="n">organizer_type</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s2">&quot;Region&quot;</span><span class="w"> </span><span class="p">?</span><span class="w"> </span><span class="n">league_team</span><span class="o">.</span><span class="n">league</span><span class="o">.</span><span class="n">organizer_id</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="kp">nil</span><span class="p">),</span>
+<a id="__codelineno-10-14" name="__codelineno-10-14" href="#__codelineno-10-14"></a><span class="w">      </span><span class="n">find_dbu_region_id_if_global</span>
+<a id="__codelineno-10-15" name="__codelineno-10-15" href="#__codelineno-10-15"></a><span class="w">    </span><span class="o">].</span><span class="n">compact</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="o">[]</span>
+<a id="__codelineno-10-16" name="__codelineno-10-16" href="#__codelineno-10-16"></a><span class="w">  </span><span class="k">end</span>
+</code></pre></div>
+<h2 id="kern-models_1">Kern-Models<a class="headerlink" href="#kern-models_1" title="Permanent link">&para;</a></h2>
+<h3 id="turnierverwaltung">Turnierverwaltung<a class="headerlink" href="#turnierverwaltung" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Tournament</strong>: Haupt-Turnier-Entität</li>
+<li><strong>Discipline</strong>: Spieltypen (z.B. 3-Banden, 1-Bande)</li>
+<li><strong>Player</strong>: Einzelne Spieler</li>
+<li><strong>Seeding</strong>: Turnier-Teilnahme und Ranglisten</li>
+</ul>
+<h3 id="ligaverwaltung">Ligaverwaltung<a class="headerlink" href="#ligaverwaltung" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>League</strong>: Liga-Organisation</li>
+<li><strong>LeagueTeam</strong>: Teams innerhalb von Ligen</li>
+<li><strong>Party</strong>: Einzelne Spiele zwischen Teams</li>
+<li><strong>Season</strong>: Liga-Saisons</li>
+</ul>
+<h3 id="standortverwaltung">Standortverwaltung<a class="headerlink" href="#standortverwaltung" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Location</strong>: Billard-Clubs/Standorte</li>
+<li><strong>Table</strong>: Einzelne Billard-Tische</li>
+<li><strong>TableMonitor</strong>: Echtzeit-Tischüberwachung</li>
+<li><strong>TableLocal</strong>: Lokale Tisch-Konfigurationen</li>
+</ul>
+<h3 id="benutzerverwaltung">Benutzerverwaltung<a class="headerlink" href="#benutzerverwaltung" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>User</strong>: Systembenutzer mit Devise-Authentifizierung</li>
+<li><strong>Role</strong>: Benutzerrollen und Berechtigungen</li>
+<li><strong>Admin</strong>: Administratives Interface über Administrate</li>
+</ul>
+<h2 id="hauptfunktionen_1">Hauptfunktionen<a class="headerlink" href="#hauptfunktionen_1" title="Permanent link">&para;</a></h2>
+<h3 id="echtzeit-scoreboards">Echtzeit-Scoreboards<a class="headerlink" href="#echtzeit-scoreboards" title="Permanent link">&para;</a></h3>
+<p>Das Scoreboard-System bietet Live-Updates für Turnier-Anzeigen:</p>
+<h4 id="komponenten">Komponenten<a class="headerlink" href="#komponenten" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>Tisch-Monitor</strong>: Echtzeit-Spielverfolgung</li>
+<li><strong>Scoreboard-Anzeige</strong>: Öffentliche Scoreboard-Ansichten</li>
+<li><strong>WebSocket-Integration</strong>: Live-Updates über Action Cable</li>
+</ul>
+<h4 id="einrichtung">Einrichtung<a class="headerlink" href="#einrichtung" title="Permanent link">&para;</a></h4>
+<p>Siehe <a href="../../administrators/scoreboard-autostart/">Scoreboard-Setup</a> für detaillierte Konfiguration.</p>
+<h3 id="datensynchronisation">Datensynchronisation<a class="headerlink" href="#datensynchronisation" title="Permanent link">&para;</a></h3>
+<p>Integration mit externen Billard-Datenbanken:</p>
+<h4 id="externe-quellen">Externe Quellen<a class="headerlink" href="#externe-quellen" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>BA (Billard-Verband)</strong>: Offizielle Spieler- und Turnierdaten</li>
+<li><strong>CC (Competition Center)</strong>: Wettkampf-Management-System</li>
+</ul>
+<h4 id="synchronisationsprozess">Synchronisationsprozess<a class="headerlink" href="#synchronisationsprozess" title="Permanent link">&para;</a></h4>
+<ol>
+<li>Externe Daten werden über API abgerufen</li>
+<li>Lokale Daten sind vor externen Änderungen geschützt</li>
+<li>Regions-Tagging wird automatisch angewendet</li>
+<li>Konflikte werden basierend auf Quellen-Priorität gelöst</li>
+</ol>
+<h3 id="turnier-workflows">Turnier-Workflows<a class="headerlink" href="#turnier-workflows" title="Permanent link">&para;</a></h3>
+<h4 id="turnier-erstellung">Turnier-Erstellung<a class="headerlink" href="#turnier-erstellung" title="Permanent link">&para;</a></h4>
+<ol>
+<li>Turnier mit Disziplin und Einstellungen erstellen</li>
+<li>Teilnehmer definieren (Spieler/Teams)</li>
+<li>Spielpläne generieren</li>
+<li>Turnier mit Echtzeit-Überwachung starten</li>
+</ol>
+<h4 id="spiel-management">Spiel-Management<a class="headerlink" href="#spiel-management" title="Permanent link">&para;</a></h4>
+<ol>
+<li>Spiele planen (Parties)</li>
+<li>Live-Spielfortschritt verfolgen</li>
+<li>Ergebnisse und Ranglisten aufzeichnen</li>
+<li>Berichte und Statistiken generieren</li>
+</ol>
+<h2 id="entwicklungsworkflow">Entwicklungsworkflow<a class="headerlink" href="#entwicklungsworkflow" title="Permanent link">&para;</a></h2>
+<h3 id="code-stil">Code-Stil<a class="headerlink" href="#code-stil" title="Permanent link">&para;</a></h3>
+<p>Das Projekt verwendet Standard Ruby für Code-Formatierung:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="c1"># Code formatieren</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>standardrb<span class="w"> </span>--fix
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="c1"># Auf Probleme prüfen</span>
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>standardrb
+</code></pre></div>
+<h3 id="git-workflow">Git-Workflow<a class="headerlink" href="#git-workflow" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Feature-Branch von main erstellen</li>
+<li>Änderungen mit Tests vornehmen</li>
+<li>Code-Qualitätsprüfungen ausführen</li>
+<li>Pull Request einreichen</li>
+</ol>
+<h3 id="testing_1">Testing<a class="headerlink" href="#testing_1" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="c1"># Alle Tests ausführen</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>rails<span class="w"> </span><span class="nb">test</span>
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="c1"># Bestimmte Test-Datei ausführen</span>
+<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>rails<span class="w"> </span><span class="nb">test</span><span class="w"> </span>test/models/tournament_test.rb
+<a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a>
+<a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a><span class="c1"># Systemtests ausführen</span>
+<a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a>rails<span class="w"> </span>test:system
+</code></pre></div>
+<h3 id="datenbank-migrationen">Datenbank-Migrationen<a class="headerlink" href="#datenbank-migrationen" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="c1"># Migration generieren</span>
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>rails<span class="w"> </span>generate<span class="w"> </span>migration<span class="w"> </span>AddFieldToModel
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>
+<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="c1"># Migrationen ausführen</span>
+<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>rails<span class="w"> </span>db:migrate
+<a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>
+<a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a><span class="c1"># Zurückrollen</span>
+<a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a>rails<span class="w"> </span>db:rollback
+</code></pre></div>
+<h2 id="deployment">Deployment<a class="headerlink" href="#deployment" title="Permanent link">&para;</a></h2>
+<h3 id="scenario-management-system">Scenario Management System<a class="headerlink" href="#scenario-management-system" title="Permanent link">&para;</a></h3>
+<p>Carambus verwendet ein <strong>Scenario Management System</strong> für die Verwaltung verschiedener Deployment-Umgebungen und Konfigurationen:</p>
+<h4 id="hauptfunktionen_2">Hauptfunktionen<a class="headerlink" href="#hauptfunktionen_2" title="Permanent link">&para;</a></h4>
+<ul>
+<li>✅ <strong>Scenario-basierte Konfiguration</strong> mit YAML-basierten Konfigurationsdateien</li>
+<li>✅ <strong>Automatische Konfigurationsgenerierung</strong> aus ERB-Templates</li>
+<li>✅ <strong>Intelligente Update-Mechanismen</strong> (Development vs. Deploy vs. Update)</li>
+<li>✅ <strong>Konflikt-Analyse</strong> und interaktive Auflösung bei Deployment-Konflikten</li>
+<li>✅ <strong>Parallele Deployments</strong> mehrerer Scenarios auf demselben Server</li>
+<li>✅ <strong>Idempotente Operationen</strong> für wiederholbare Deployments</li>
+<li>✅ <strong>RubyMine-Integration</strong> mit .idea-Konfiguration</li>
+<li>✅ <strong>Region-Filtering</strong> für optimierte Datenbank-Dumps</li>
+<li>✅ <strong>Template-basierte Datenbank-Transformation</strong> für carambus-Scenario</li>
+</ul>
+<h4 id="task-matrix-code-sektionen-vs-rake-tasks">Task-Matrix: Code-Sektionen vs. Rake-Tasks<a class="headerlink" href="#task-matrix-code-sektionen-vs-rake-tasks" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Code Section</th>
+<th><code>prepare_development</code></th>
+<th><code>prepare_deploy</code></th>
+<th><code>deploy</code></th>
+<th><code>create_rails_root</code></th>
+<th><code>generate_configs</code></th>
+<th><code>create_database_dump</code></th>
+<th><code>restore_database_dump</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Load scenario config</strong></td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+<tr>
+<td><strong>Create Rails root folder</strong></td>
+<td>✅*</td>
+<td>❌</td>
+<td>❌</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+</tr>
+<tr>
+<td><strong>Generate development config files</strong></td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+</tr>
+<tr>
+<td><strong>Copy basic config files</strong></td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+</tr>
+<tr>
+<td><strong>Create dev DB from template</strong></td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>✅</td>
+<td>❌</td>
+</tr>
+<tr>
+<td><strong>Apply region filtering</strong></td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>✅</td>
+<td>❌</td>
+</tr>
+<tr>
+<td><strong>Set last_version_id</strong></td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>✅</td>
+<td>❌</td>
+</tr>
+<tr>
+<td><strong>Reset version sequence (50000000+)</strong></td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>✅</td>
+<td>❌</td>
+</tr>
+<tr>
+<td><strong>Create database dump</strong></td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>✅</td>
+<td>❌</td>
+</tr>
+<tr>
+<td><strong>Generate production config files</strong></td>
+<td>❌</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+</tr>
+<tr>
+<td><strong>Copy production config files</strong></td>
+<td>❌</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+</tr>
+<tr>
+<td><strong>Copy credentials/master.key</strong></td>
+<td>❌</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+</tr>
+<tr>
+<td><strong>Copy deployment files</strong></td>
+<td>❌</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+</tr>
+<tr>
+<td><strong>Create production DB from dump</strong></td>
+<td>❌</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>✅</td>
+</tr>
+<tr>
+<td><strong>Server operations</strong></td>
+<td>❌</td>
+<td>❌</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+</tr>
+</tbody>
+</table>
+<p><em>✅</em> = Uses this code section<br />
+<em>❌</em> = Doesn't use this code section<br />
+<em>✅</em>* = Uses this code section conditionally (only if Rails root doesn't exist)</p>
+<h4 id="database-flow-explanation">Database Flow Explanation<a class="headerlink" href="#database-flow-explanation" title="Permanent link">&para;</a></h4>
+<p><strong>Source Database</strong>: <code>carambus_api_development</code> (mother of all API databases)</p>
+<p><strong>Development Flow</strong> (<code>prepare_development</code>):
+1. <strong>Create dev DB from template</strong>: <code>carambus_scenarioname_development</code> ← <code>carambus_api_development</code> (using <code>--template</code>)
+2. <strong>Apply region filtering</strong>: Remove non-region data (reduces ~500MB to ~90MB)
+3. <strong>Set last_version_id</strong>: Update settings with current max version ID for sync tracking
+4. <strong>Reset version sequence</strong>: Set versions_id_seq to 50,000,000+ for local server (prevents ID conflicts with API)
+5. <strong>Create database dump</strong>: Save the processed development database</p>
+<p><strong>Production Flow</strong> (<code>prepare_deploy</code> → <code>deploy</code>):
+1. <strong>Create production DB from dump</strong>: Create <code>carambus_scenarioname_production</code> by loading development dump
+2. <strong>Server operations</strong>: Upload config + Capistrano deployment</p>
+<p><strong>Key Insight</strong>: The development database is the "processed" version (template + filtering + sequences), and production is created from this processed version.</p>
+<h4 id="database-flow-diagram">Database Flow Diagram<a class="headerlink" href="#database-flow-diagram" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>carambus_api_development (mother database)
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>                    ↓
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>    ┌─────────────────────────────────────┐
+<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a>    │ prepare_development                 │
+<a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>    │ 1. Create dev DB from template      │
+<a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a>    │ 2. Apply region filtering           │
+<a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a>    │ 3. Set last_version_id              │
+<a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a>    │ 4. Reset version sequence (50000000+)│
+<a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a>    │ 5. Create database dump            │
+<a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a>    └─────────────────────────────────────┘
+<a id="__codelineno-14-11" name="__codelineno-14-11" href="#__codelineno-14-11"></a>                    ↓
+<a id="__codelineno-14-12" name="__codelineno-14-12" href="#__codelineno-14-12"></a>carambus_scenarioname_development (processed)
+<a id="__codelineno-14-13" name="__codelineno-14-13" href="#__codelineno-14-13"></a>                    ↓
+<a id="__codelineno-14-14" name="__codelineno-14-14" href="#__codelineno-14-14"></a>    ┌─────────────────────────────────────┐
+<a id="__codelineno-14-15" name="__codelineno-14-15" href="#__codelineno-14-15"></a>    │ prepare_deploy                     │
+<a id="__codelineno-14-16" name="__codelineno-14-16" href="#__codelineno-14-16"></a>    │ 1. Create production DB from dump  │
+<a id="__codelineno-14-17" name="__codelineno-14-17" href="#__codelineno-14-17"></a>    │ 2. Copy production configs         │
+<a id="__codelineno-14-18" name="__codelineno-14-18" href="#__codelineno-14-18"></a>    │ 3. Upload configs to server        │
+<a id="__codelineno-14-19" name="__codelineno-14-19" href="#__codelineno-14-19"></a>    │ 4. Create systemd service          │
+<a id="__codelineno-14-20" name="__codelineno-14-20" href="#__codelineno-14-20"></a>    │ 5. Create Nginx config             │
+<a id="__codelineno-14-21" name="__codelineno-14-21" href="#__codelineno-14-21"></a>    └─────────────────────────────────────┘
+<a id="__codelineno-14-22" name="__codelineno-14-22" href="#__codelineno-14-22"></a>                    ↓
+<a id="__codelineno-14-23" name="__codelineno-14-23" href="#__codelineno-14-23"></a>carambus_scenarioname_production (on server)
+<a id="__codelineno-14-24" name="__codelineno-14-24" href="#__codelineno-14-24"></a>                    ↓
+<a id="__codelineno-14-25" name="__codelineno-14-25" href="#__codelineno-14-25"></a>    ┌─────────────────────────────────────┐
+<a id="__codelineno-14-26" name="__codelineno-14-26" href="#__codelineno-14-26"></a>    │ deploy                             │
+<a id="__codelineno-14-27" name="__codelineno-14-27" href="#__codelineno-14-27"></a>    │ 1. Transfer &amp; load database dump   │
+<a id="__codelineno-14-28" name="__codelineno-14-28" href="#__codelineno-14-28"></a>    │ 2. Standard Capistrano deployment  │
+<a id="__codelineno-14-29" name="__codelineno-14-29" href="#__codelineno-14-29"></a>    │ 3. Start Puma service              │
+<a id="__codelineno-14-30" name="__codelineno-14-30" href="#__codelineno-14-30"></a>    └─────────────────────────────────────┘
+</code></pre></div>
+<h4 id="task-ubersicht">Task-Übersicht<a class="headerlink" href="#task-ubersicht" title="Permanent link">&para;</a></h4>
+<h5 id="haupt-tasks-empfohlen-fur-normale-nutzung">Haupt-Tasks (Empfohlen für normale Nutzung)<a class="headerlink" href="#haupt-tasks-empfohlen-fur-normale-nutzung" title="Permanent link">&para;</a></h5>
+<p><strong><code>scenario:prepare_development[scenario_name,environment]</code></strong>
+- <strong>Zweck</strong>: Lokale Development-Umgebung einrichten
+- <strong>Schritte</strong>: Config-Generierung → DB-Dump-Erstellung → Rails Root → Basic Config Files
+- <strong>Perfekt für</strong>: Lokale Entwicklung, Scenario-Testing</p>
+<p><strong><code>scenario:prepare_deploy[scenario_name]</code></strong>
+- <strong>Zweck</strong>: Vollständige Deployment-Vorbereitung (inklusive Server-Setup)
+- <strong>Schritte</strong>: Production Config → DB-Restore → Rails Root → All Config Files → Credentials → Deploy Files → Server-Setup → systemd-Service → Nginx-Config
+- <strong>Perfekt für</strong>: Vollständige Deployment-Vorbereitung, Blank-Server-Setup</p>
+<p><strong><code>scenario:deploy[scenario_name]</code></strong>
+- <strong>Zweck</strong>: Standard Capistrano-Deployment (nach Server-Setup)
+- <strong>Schritte</strong>: Database Transfer → Standard Capistrano Deploy → Start Services
+- <strong>Perfekt für</strong>: Production-Deployment (nach prepare_deploy), Standard-Deployment</p>
+<h5 id="reparatur-tasks-fur-gezielte-reparaturen">Reparatur-Tasks (Für gezielte Reparaturen)<a class="headerlink" href="#reparatur-tasks-fur-gezielte-reparaturen" title="Permanent link">&para;</a></h5>
+<p><strong><code>scenario:create_rails_root[scenario_name]</code></strong>
+- <strong>Zweck</strong>: Nur Rails Root Folder erstellen
+- <strong>Enthält</strong>: Git Clone, .idea-Kopie, Verzeichnis-Setup</p>
+<p><strong><code>scenario:generate_configs[scenario_name,environment]</code></strong>
+- <strong>Zweck</strong>: Nur Konfigurationsdateien generieren
+- <strong>Enthält</strong>: ERB-Template-Verarbeitung für alle Config-Files</p>
+<p><strong><code>scenario:create_database_dump[scenario_name,environment]</code></strong>
+- <strong>Zweck</strong>: Nur Datenbank-Dump erstellen
+- <strong>Enthält</strong>: Region-Filtering, Template-Transformation (carambus), Optimierte DB-Erstellung</p>
+<p><strong><code>scenario:restore_database_dump[scenario_name,environment]</code></strong>
+- <strong>Zweck</strong>: Nur Datenbank-Dump wiederherstellen
+- <strong>Enthält</strong>: DB-Drop/Create, Dump-Restore, Sequence-Reset</p>
+<h4 id="verfugbare-scenarios">Verfügbare Scenarios<a class="headerlink" href="#verfugbare-scenarios" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>carambus</strong>: Hauptproduktionsumgebung (carambus.de)</li>
+<li><strong>carambus_api</strong>: API-Server (api.carambus.de)</li>
+<li><strong>carambus_location_2459</strong>: PHAT Consulting Location</li>
+<li><strong>carambus_location_2460</strong>: Test-Location</li>
+<li><strong>carambus_location_5101</strong>: Weitere Test-Location</li>
+</ul>
+<h4 id="schnellstart_1">Schnellstart<a class="headerlink" href="#schnellstart_1" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="c1"># Lokale Development-Umgebung einrichten</span>
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>rake<span class="w"> </span><span class="s2">&quot;scenario:prepare_development[carambus_location_2459,development]&quot;</span>
+<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a>
+<a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="c1"># Für Deployment vorbereiten (ohne Server-Operationen)</span>
+<a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a>rake<span class="w"> </span><span class="s2">&quot;scenario:prepare_deploy[carambus_location_2459]&quot;</span>
+<a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a>
+<a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a><span class="c1"># Server-Deployment ausführen</span>
+<a id="__codelineno-15-8" name="__codelineno-15-8" href="#__codelineno-15-8"></a>rake<span class="w"> </span><span class="s2">&quot;scenario:deploy[carambus_location_2459]&quot;</span>
+<a id="__codelineno-15-9" name="__codelineno-15-9" href="#__codelineno-15-9"></a>
+<a id="__codelineno-15-10" name="__codelineno-15-10" href="#__codelineno-15-10"></a><span class="c1"># Scenario aktualisieren (nur Git Pull, behält lokale Änderungen)</span>
+<a id="__codelineno-15-11" name="__codelineno-15-11" href="#__codelineno-15-11"></a>rake<span class="w"> </span><span class="s2">&quot;scenario:update[carambus_location_2459]&quot;</span>
+</code></pre></div>
+<h4 id="erweiterte-nutzung">Erweiterte Nutzung<a class="headerlink" href="#erweiterte-nutzung" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="c1"># Nur Konfigurationsdateien neu generieren</span>
+<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>rake<span class="w"> </span><span class="s2">&quot;scenario:generate_configs[carambus_location_2459,development]&quot;</span>
+<a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>
+<a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a><span class="c1"># Nur Datenbank-Dump erstellen (mit Region-Filtering)</span>
+<a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a>rake<span class="w"> </span><span class="s2">&quot;scenario:create_database_dump[carambus_location_2459,development]&quot;</span>
+<a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a>
+<a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a><span class="c1"># Nur Datenbank-Dump wiederherstellen</span>
+<a id="__codelineno-16-8" name="__codelineno-16-8" href="#__codelineno-16-8"></a>rake<span class="w"> </span><span class="s2">&quot;scenario:restore_database_dump[carambus_location_2459,development]&quot;</span>
+<a id="__codelineno-16-9" name="__codelineno-16-9" href="#__codelineno-16-9"></a>
+<a id="__codelineno-16-10" name="__codelineno-16-10" href="#__codelineno-16-10"></a><span class="c1"># Nur Rails Root Folder erstellen</span>
+<a id="__codelineno-16-11" name="__codelineno-16-11" href="#__codelineno-16-11"></a>rake<span class="w"> </span><span class="s2">&quot;scenario:create_rails_root[carambus_location_2459]&quot;</span>
+</code></pre></div>
+<h4 id="code-duplikation-und-refactoring">Code-Duplikation und Refactoring<a class="headerlink" href="#code-duplikation-und-refactoring" title="Permanent link">&para;</a></h4>
+<p>Das Scenario Management System wurde 2024 umfassend refaktoriert, um Code-Duplikation zu eliminieren:</p>
+<p><strong>Vorher (Problematisch):</strong>
+- <code>scenario:setup</code> und <code>scenario:setup_with_rails_root</code> waren redundant
+- <code>scenario:deploy</code> erwartete existierenden Rails Root Folder
+- ~150 Zeilen duplizierter Code zwischen verschiedenen Tasks
+- Verwirrende Task-Namen und überlappende Funktionalitäten</p>
+<p><strong>Nachher (Optimiert):</strong>
+- ✅ <strong>Klare Task-Hierarchie</strong>: <code>prepare_development</code> → <code>prepare_deploy</code> → <code>deploy</code>
+- ✅ <strong>Bedingte Rails Root Erstellung</strong>: Alle Tasks erstellen Rails Root automatisch wenn nötig
+- ✅ <strong>Eliminierte Duplikation</strong>: ~150 Zeilen weniger Code
+- ✅ <strong>Logische Trennung</strong>: Development vs. Deploy vs. Repair Tasks
+- ✅ <strong>Intuitive Nutzung</strong>: Jeder Task hat einen klaren, nicht überlappenden Zweck</p>
+<p><strong>Refactoring-Vorteile:</strong>
+- <strong>Wartbarkeit</strong>: Weniger Code, weniger Bugs
+- <strong>Verständlichkeit</strong>: Klare Task-Zwecke ohne Verwirrung
+- <strong>Flexibilität</strong>: Granulare Kontrolle über einzelne Schritte
+- <strong>Zuverlässigkeit</strong>: Idempotente Operationen, keine Abhängigkeitsfehler</p>
+<p><strong><a href="../scenario-management/">🚀 Vollständige Scenario Management Dokumentation</a></strong></p>
+<h3 id="produktions-setup">Produktions-Setup<a class="headerlink" href="#produktions-setup" title="Permanent link">&para;</a></h3>
+<p>Die Anwendung ist für den Einsatz auf Raspberry Pi oder ähnlicher Hardware konzipiert:</p>
+<h4 id="systemanforderungen">Systemanforderungen<a class="headerlink" href="#systemanforderungen" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>Hardware</strong>: Raspberry Pi 4 (4GB RAM empfohlen)</li>
+<li><strong>OS</strong>: Raspberry Pi OS (32-bit)</li>
+<li><strong>Datenbank</strong>: PostgreSQL 11+</li>
+<li><strong>Web-Server</strong>: Nginx + Puma</li>
+</ul>
+<h4 id="deployment-prozess">Deployment-Prozess<a class="headerlink" href="#deployment-prozess" title="Permanent link">&para;</a></h4>
+<ol>
+<li><strong>Server-Setup</strong>: Siehe <a href="doc/doc/Runbook">Runbook</a> für detaillierte Server-Konfiguration</li>
+<li><strong>Scenario Management</strong>: Verwenden Sie das Scenario Management System für Deployment-Konfiguration</li>
+<li><strong>Anwendungs-Deployment</strong>: Capistrano-basiertes Deployment</li>
+<li><strong>Service-Management</strong>: Systemd-Services für Autostart</li>
+<li><strong>Scoreboard-Setup</strong>: Automatisierter Scoreboard-Start</li>
+</ol>
+<h3 id="konfigurationsdateien">Konfigurationsdateien<a class="headerlink" href="#konfigurationsdateien" title="Permanent link">&para;</a></h3>
+<h4 id="datenbank-konfiguration">Datenbank-Konfiguration<a class="headerlink" href="#datenbank-konfiguration" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="c1"># config/database.yml</span>
+<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="nt">production</span><span class="p">:</span>
+<a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a><span class="w">  </span><span class="nt">adapter</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">postgresql</span>
+<a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a><span class="w">  </span><span class="nt">database</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">carambus_production</span>
+<a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a><span class="w">  </span><span class="nt">host</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">localhost</span>
+<a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a><span class="w">  </span><span class="nt">username</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">www_data</span>
+<a id="__codelineno-17-7" name="__codelineno-17-7" href="#__codelineno-17-7"></a><span class="w">  </span><span class="nt">password</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;%= ENV[&#39;DATABASE_PASSWORD&#39;] %&gt;</span>
+</code></pre></div>
+<h4 id="anwendungs-konfiguration">Anwendungs-Konfiguration<a class="headerlink" href="#anwendungs-konfiguration" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="c1"># config/application.yml</span>
+<a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a><span class="nt">defaults</span><span class="p">:</span><span class="w"> </span><span class="nl">&amp;defaults</span>
+<a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a><span class="w">  </span><span class="nt">database_url</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">postgresql://www_data:password@localhost/carambus_production</span>
+<a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a><span class="w">  </span><span class="nt">redis_url</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">redis://localhost:6379/0</span>
+<a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a><span class="w">  </span><span class="nt">secret_key_base</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;%= ENV[&#39;SECRET_KEY_BASE&#39;] %&gt;</span>
+</code></pre></div>
+<h3 id="service-management">Service-Management<a class="headerlink" href="#service-management" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="c1"># Anwendung starten</span>
+<a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a>sudo<span class="w"> </span>systemctl<span class="w"> </span>start<span class="w"> </span>carambus
+<a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a>
+<a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a><span class="c1"># Autostart aktivieren</span>
+<a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a>sudo<span class="w"> </span>systemctl<span class="w"> </span><span class="nb">enable</span><span class="w"> </span>carambus
+<a id="__codelineno-19-6" name="__codelineno-19-6" href="#__codelineno-19-6"></a>
+<a id="__codelineno-19-7" name="__codelineno-19-7" href="#__codelineno-19-7"></a><span class="c1"># Status prüfen</span>
+<a id="__codelineno-19-8" name="__codelineno-19-8" href="#__codelineno-19-8"></a>sudo<span class="w"> </span>systemctl<span class="w"> </span>status<span class="w"> </span>carambus
+</code></pre></div>
+<h2 id="mitwirken">Mitwirken<a class="headerlink" href="#mitwirken" title="Permanent link">&para;</a></h2>
+<h3 id="entwicklungsumgebung">Entwicklungsumgebung<a class="headerlink" href="#entwicklungsumgebung" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Folgen Sie dem <a href="#erste-schritte">Erste Schritte</a> Leitfaden</li>
+<li>Pre-commit-Hooks einrichten: <code>bundle exec overcommit --install</code></li>
+<li>Machen Sie sich mit dem <a href="#datenbankdesign">Datenbankdesign</a> vertraut</li>
+</ol>
+<h3 id="code-beitrage">Code-Beiträge<a class="headerlink" href="#code-beitrage" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Repository forken</strong></li>
+<li><strong>Feature-Branch erstellen</strong></li>
+<li><strong>Änderungen vornehmen</strong></li>
+<li><strong>Tests für neue Funktionalität hinzufügen</strong></li>
+<li><strong>Sicherstellen, dass alle Tests bestehen</strong></li>
+<li><strong>Pull Request einreichen</strong></li>
+</ol>
+<h3 id="dokumentation">Dokumentation<a class="headerlink" href="#dokumentation" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Relevante Dokumentation bei Hinzufügen von Features aktualisieren</li>
+<li>Code-Beispiele für neue APIs einschließen</li>
+<li>Konfigurationsänderungen dokumentieren</li>
+</ul>
+<h3 id="test-richtlinien">Test-Richtlinien<a class="headerlink" href="#test-richtlinien" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Tests für alle neue Funktionalität schreiben</li>
+<li>Test-Abdeckung über 80% halten</li>
+<li>Integrationstests für komplexe Workflows einschließen</li>
+<li>Sowohl deutsche als auch englische Locales testen</li>
+</ul>
+<h3 id="code-review-prozess">Code-Review-Prozess<a class="headerlink" href="#code-review-prozess" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Alle Änderungen erfordern Code-Review</li>
+<li>Automatisierte Prüfungen müssen bestehen</li>
+<li>Manuelles Testing auf Staging-Umgebung</li>
+<li>Dokumentations-Updates nach Bedarf</li>
+</ol>
+<h2 id="zusatzliche-ressourcen">Zusätzliche Ressourcen<a class="headerlink" href="#zusatzliche-ressourcen" title="Permanent link">&para;</a></h2>
+<h3 id="dokumentation_1">Dokumentation<a class="headerlink" href="#dokumentation_1" title="Permanent link">&para;</a></h3>
+<ul>
+<li><a href="../database-design/">Datenbankdesign</a>: Detailliertes Datenbankschema</li>
+<li><a href="../../administrators/scoreboard-autostart/">Scoreboard-Setup</a>: Scoreboard-Konfiguration</li>
+<li><a href="../../managers/tournament-management/">Turnierverwaltung</a>: Turnier-Workflows</li>
+<li><a href="../../administrators/installation-overview/">Installationsübersicht</a>: Installationsübersicht</li>
+<li><a href="../scenario-management/">Scenario Management</a>: Deployment-Konfiguration und Multi-Environment-Support</li>
+</ul>
+<h3 id="externe-links">Externe Links<a class="headerlink" href="#externe-links" title="Permanent link">&para;</a></h3>
+<ul>
+<li><a href="https://guides.rubyonrails.org/">Ruby on Rails Guides</a></li>
+<li><a href="https://hotwired.dev/">Hotwire Dokumentation</a></li>
+<li><a href="https://docs.stimulusreflex.com/">Stimulus Reflex</a></li>
+<li><a href="https://guides.rubyonrails.org/action_cable_overview.html">Action Cable</a></li>
+</ul>
+<h3 id="support">Support<a class="headerlink" href="#support" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Issues</strong>: Verwenden Sie GitHub Issues für Bug-Reports und Feature-Requests</li>
+<li><strong>Diskussionen</strong>: GitHub Discussions für Fragen und Ideen</li>
+<li><strong>Dokumentation</strong>: Dokumentation mit Änderungen aktuell halten</li>
+</ul>
+<hr />
+<p><em>Diese Dokumentation wird vom Carambus-Entwicklungsteam gepflegt. Für Fragen oder Beiträge siehe den <a href="#mitwirken">Mitwirken</a> Abschnitt.</em> </p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        <div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/GernotUllrich/carambus" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="http://www.billardclub-wedel.de/" target="_blank" rel="noopener" title="www.billardclub-wedel.de" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M352 256c0 22.2-1.2 43.6-3.3 64H163.4c-2.2-20.4-3.3-41.8-3.3-64s1.2-43.6 3.3-64h185.3c2.2 20.4 3.3 41.8 3.3 64m28.8-64h123.1c5.3 20.5 8.1 41.9 8.1 64s-2.8 43.5-8.1 64H380.8c2.1-20.6 3.2-42 3.2-64s-1.1-43.4-3.2-64m112.6-32H376.7c-10-63.9-29.8-117.4-55.3-151.6 78.3 20.7 142 77.5 171.9 151.6zm-149.1 0H167.7c6.1-36.4 15.5-68.6 27-94.7 10.5-23.6 22.2-40.7 33.5-51.5C239.4 3.2 248.7 0 256 0s16.6 3.2 27.8 13.8c11.3 10.8 23 27.9 33.5 51.5 11.6 26 20.9 58.2 27 94.7m-209 0H18.6c30-74.1 93.6-130.9 172-151.6-25.5 34.2-45.3 87.7-55.3 151.6M8.1 192h123.1c-2.1 20.6-3.2 42-3.2 64s1.1 43.4 3.2 64H8.1C2.8 299.5 0 278.1 0 256s2.8-43.5 8.1-64m186.6 254.6c-11.6-26-20.9-58.2-27-94.6h176.6c-6.1 36.4-15.5 68.6-27 94.6-10.5 23.6-22.2 40.7-33.5 51.5-11.2 10.7-20.5 13.9-27.8 13.9s-16.6-3.2-27.8-13.8c-11.3-10.8-23-27.9-33.5-51.5zM135.3 352c10 63.9 29.8 117.4 55.3 151.6-78.4-20.7-142-77.5-172-151.6zm358.1 0c-30 74.1-93.6 130.9-171.9 151.6 25.5-34.2 45.2-87.7 55.3-151.6h116.7z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.indexes", "search.suggest", "search.highlight", "header.autohide", "toc.follow"], "search": "../../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "In Zwischenablage kopiert", "clipboard.copy": "In Zwischenablage kopieren", "search.result.more.one": "1 weiteres Suchergebnis auf dieser Seite", "search.result.more.other": "# weitere Suchergebnisse auf dieser Seite", "search.result.none": "Keine Suchergebnisse", "search.result.one": "1 Suchergebnis", "search.result.other": "# Suchergebnisse", "search.result.placeholder": "Suchbegriff eingeben", "search.result.term.missing": "Es fehlt", "select.version": "Version ausw\u00e4hlen"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.56ea9cef.min.js"></script>
+      
+        <script src="../../javascripts/mathjax.js"></script>
+      
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>

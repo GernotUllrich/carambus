@@ -1,5 +1,30 @@
 # test/test_helper.rb
 ENV["RAILS_ENV"] ||= "test"
+
+# SimpleCov must be loaded before application code
+if ENV['COVERAGE']
+  require 'simplecov'
+  SimpleCov.start 'rails' do
+    # Focus on app code, not test code
+    add_filter '/test/'
+    add_filter '/config/'
+    add_filter '/vendor/'
+    
+    # Group by type for better reporting
+    add_group 'Models', 'app/models'
+    add_group 'Controllers', 'app/controllers'
+    add_group 'Services', 'app/services'
+    add_group 'Concerns', 'app/models/concerns'
+    add_group 'Helpers', 'app/helpers'
+    
+    # Track coverage for critical files
+    track_files '{app}/**/*.rb'
+    
+    # Set minimum coverage (not enforced, just reported)
+    minimum_coverage 60
+  end
+end
+
 require_relative "../config/environment"
 require "rails/test_help"
 require "minitest/mock"
@@ -31,7 +56,8 @@ end
 module ActiveSupport
   class TestCase
     # Run tests in parallel with specified workers
-    parallelize(workers: :number_of_processors)
+    # Disabled for now to avoid database issues with fixtures
+    # parallelize(workers: :number_of_processors)
 
     # Setup all fixtures in test/fixtures/*.yml for all tests in alphabetical order.
     fixtures :all
@@ -42,6 +68,11 @@ module ActiveSupport
     end
 
     include FactoryBot::Syntax::Methods
+    
+    # Load custom test helpers
+    Dir[Rails.root.join('test', 'support', '**', '*.rb')].sort.each { |f| require f }
+    include ScrapingHelpers
+    include SnapshotHelpers
   end
 end
 

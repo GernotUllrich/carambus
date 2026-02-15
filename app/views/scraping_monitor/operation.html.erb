@@ -1,0 +1,124 @@
+<div class="container mx-auto px-4 py-8">
+  <div class="mb-6">
+    <%= link_to "← Back to Dashboard", scraping_monitor_path, class: "text-blue-600 hover:text-blue-800" %>
+  </div>
+  
+  <h1 class="text-3xl font-bold mb-6">📊 <%= @operation %></h1>
+  
+  <!-- Time Range Filter -->
+  <div class="mb-6 flex gap-2">
+    <%= link_to "7 Days", scraping_monitor_operation_path(@operation, days: 7), 
+        class: "px-4 py-2 rounded #{@time_range == 7 ? 'bg-blue-600 text-white' : 'bg-gray-200'}" %>
+    <%= link_to "30 Days", scraping_monitor_operation_path(@operation, days: 30), 
+        class: "px-4 py-2 rounded #{@time_range == 30 ? 'bg-blue-600 text-white' : 'bg-gray-200'}" %>
+    <%= link_to "90 Days", scraping_monitor_operation_path(@operation, days: 90), 
+        class: "px-4 py-2 rounded #{@time_range == 90 ? 'bg-blue-600 text-white' : 'bg-gray-200'}" %>
+  </div>
+  
+  <!-- Stats Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
+    <div class="bg-white border-l-4 border-purple-500 p-4 shadow">
+      <div class="text-sm text-gray-600">Total Runs</div>
+      <div class="text-2xl font-bold text-gray-900"><%= @stats[:total_runs] %></div>
+    </div>
+    
+    <div class="bg-white border-l-4 border-indigo-500 p-4 shadow">
+      <div class="text-sm text-gray-600">Avg Duration</div>
+      <div class="text-2xl font-bold text-gray-900"><%= "#{@stats[:avg_duration]}s" %></div>
+    </div>
+    
+    <div class="bg-white border-l-4 border-green-500 p-4 shadow">
+      <div class="text-sm text-gray-600">Total Created</div>
+      <div class="text-2xl font-bold text-green-600"><%= @stats[:total_created] %></div>
+    </div>
+    
+    <div class="bg-white border-l-4 border-blue-500 p-4 shadow">
+      <div class="text-sm text-gray-600">Total Updated</div>
+      <div class="text-2xl font-bold text-blue-600"><%= @stats[:total_updated] %></div>
+    </div>
+    
+    <div class="bg-white border-l-4 border-red-500 p-4 shadow">
+      <div class="text-sm text-gray-600">Success Rate</div>
+      <div class="text-2xl font-bold <%= @stats[:success_rate] >= 95 ? 'text-green-600' : 'text-red-600' %>">
+        <%= "#{@stats[:success_rate]}%" %>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Last Run Info -->
+  <div class="bg-blue-50 border border-blue-200 rounded p-4 mb-8">
+    <strong class="text-blue-900">Last Run:</strong> 
+    <span class="text-blue-700"><%= @stats[:last_run]&.strftime('%Y-%m-%d %H:%M:%S') || 'N/A' %></span>
+  </div>
+  
+  <!-- Logs Table -->
+  <div class="bg-white shadow rounded-lg">
+    <div class="px-6 py-4 border-b border-gray-200">
+      <h2 class="text-xl font-semibold">📝 Execution History (Last 100 Runs)</h2>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Timestamp</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Context</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Duration</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Updated</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Deleted</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unchanged</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Errors</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          <% @logs.each do |log| %>
+            <tr class="<%= log.error_count > 0 ? 'bg-red-50' : 'hover:bg-gray-50' %>">
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <%= log.executed_at.strftime('%Y-%m-%d %H:%M:%S') %>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                <%= log.context || '-' %>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm">
+                <span class="<%= log.duration.to_f > 120 ? 'text-orange-600 font-bold' : 'text-gray-900' %>">
+                  <%= "#{log.duration&.round(2)}s" %>
+                </span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-green-600">
+                <%= log.created_count %>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-blue-600">
+                <%= log.updated_count %>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-yellow-600">
+                <%= log.deleted_count %>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                <%= log.unchanged_count %>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm">
+                <% if log.error_count > 0 %>
+                  <details class="cursor-pointer">
+                    <summary class="px-2 py-1 text-xs font-bold bg-red-100 text-red-800 rounded hover:bg-red-200">
+                      <%= log.error_count %> errors
+                    </summary>
+                    <div class="mt-2 p-2 bg-red-50 rounded text-xs">
+                      <% log.errors_parsed.each do |error| %>
+                        <div class="mb-2">
+                          <strong><%= error.dig('error', 'class') %>:</strong>
+                          <%= error.dig('error', 'message') %>
+                        </div>
+                      <% end %>
+                    </div>
+                  </details>
+                <% else %>
+                  <span class="text-green-600">✓</span>
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

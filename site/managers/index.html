@@ -1,0 +1,2951 @@
+
+<!doctype html>
+<html lang="de" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Comprehensive documentation for Carambus - Professional billiards tournament management system">
+      
+      
+      
+        <link rel="canonical" href="https://GernotUllrich.github.io/carambus/managers/">
+      
+      
+        <link rel="prev" href="../players/ai-search/">
+      
+      
+        <link rel="next" href="tournament-management/">
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.15">
+    
+    
+      
+        <title>Turniermanager-Dokumentation - Carambus Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.342714a4.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#turniermanager-dokumentation" class="md-skip">
+          Zum Inhalt
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Kopfzeile">
+    <a href=".." title="Carambus Documentation" class="md-header__button md-logo" aria-label="Carambus Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Carambus Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Turniermanager-Dokumentation
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+      <div class="md-header__option">
+  <div class="md-select">
+    
+    <button class="md-header__button md-icon" aria-label="Sprache wechseln">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
+    </button>
+    <div class="md-select__inner">
+      <ul class="md-select__list">
+        
+          <li class="md-select__item">
+            <a href="./" hreflang="de" class="md-select__link">
+              Deutsch
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="../en/managers/" hreflang="en" class="md-select__link">
+              English
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</div>
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Suche" placeholder="Suche" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Suche">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Zurücksetzen" aria-label="Zurücksetzen" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Suche wird initialisiert
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/GernotUllrich/carambus" title="Zum Repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GernotUllrich/carambus
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Hauptnavigation" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Startseite
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../decision-makers/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Für Entscheider
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../players/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Für Spieler
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="./" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Für Turniermanager
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../administrators/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Für Systemadministratoren
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../developers/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Für Entwickler
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../reference/API/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Referenz
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../about/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Über
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Carambus Documentation" class="md-nav__button md-logo" aria-label="Carambus Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Carambus Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/GernotUllrich/carambus" title="Zum Repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GernotUllrich/carambus
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Startseite
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../decision-makers/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Für Entscheider
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2" id="__nav_2_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Für Entscheider
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../decision-makers/executive-summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Executive Summary
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../decision-makers/features-overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Feature-Übersicht
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../decision-makers/deployment-options/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Deployment-Optionen
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../players/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Für Spieler
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Für Spieler
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../players/scoreboard-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scoreboard-Anleitung
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../players/tournament-participation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Turnierteilnahme
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../players/ai-search/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    KI-gestützte Suche
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="./" class="md-nav__link md-nav__link--active">
+              
+  
+  
+  <span class="md-ellipsis">
+    Für Turniermanager
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link md-nav__link--active" for="__nav_4" id="__nav_4_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Für Turniermanager
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="tournament-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Turnierverwaltung
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="league-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Liga-Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="single-tournament/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Einzelturnier
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="table-reservation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tischreservierung
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="admin-roles/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Admin-Rollen
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="clubcloud-integration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    ClubCloud-Integration
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="search-filters/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Suche & Filter
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../administrators/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Für Systemadministratoren
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5" id="__nav_5_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Für Systemadministratoren
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../administrators/installation-overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Installations-Übersicht
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../administrators/raspberry-pi-quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Raspberry Pi Quickstart
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../administrators/raspberry-pi-client/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Raspberry Pi Client
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../administrators/scoreboard-autostart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scoreboard Autostart
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../administrators/server-architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Server-Architektur
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../administrators/email-configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Email-Konfiguration
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../administrators/database-setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Datenbank-Setup
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../administrators/streaming-quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    YouTube Streaming Quickstart
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../administrators/streaming-setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    YouTube Streaming Setup
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../developers/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Für Entwickler
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_6" id="__nav_6_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            Für Entwickler
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../developers/getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Getting Started
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../developers/developer-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Entwickler-Leitfaden
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../developers/database-design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Datenbank-Design
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../developers/er-diagram/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    ER-Diagramm
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/API/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    API-Referenz
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../developers/scenario-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scenario-Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../developers/rake-tasks-debugging/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Testing & Debugging
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../developers/deployment-workflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Deployment-Workflow
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../developers/data-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Datenverwaltung
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../developers/database-partitioning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Datenbank-Partitionierung
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../developers/paper-trail-optimization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    PaperTrail-Optimierung
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../developers/game-plan-reconstruction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Spielplan-Rekonstruktion
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../developers/tournament-duplicate-handling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Turnier-Duplikate
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../developers/region-tagging-cleanup-summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Regions-Tagging
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../developers/streaming-architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    YouTube Streaming Architektur
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../developers/pool-scoreboard-changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Pool Scoreboard Changelog
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Referenz
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            Referenz
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/API/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    API-Referenz
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/glossary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Glossar
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/terms/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    AGB
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/privacy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Datenschutz
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/config-lock-files/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Config Lock Files
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/search/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Search
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/mkdocs_dokumentation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    MkDocs
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Über
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            Über
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../about/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Über
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Inhaltsverzeichnis">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Inhaltsverzeichnis
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#ihre-rolle-als-turniermanager" class="md-nav__link">
+    <span class="md-ellipsis">
+      🎯 Ihre Rolle als Turniermanager
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#schnellstart-ihr-erstes-turnier-in-10-schritten" class="md-nav__link">
+    <span class="md-ellipsis">
+      🚀 Schnellstart: Ihr erstes Turnier in 10 Schritten
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hauptthemen" class="md-nav__link">
+    <span class="md-ellipsis">
+      📚 Hauptthemen
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📚 Hauptthemen">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-turnierverwaltung" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Turnierverwaltung
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-ligaspieltage" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Ligaspieltage
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-spielerverwaltung" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Spielerverwaltung
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-ergebniserfassung-kontrolle" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Ergebniserfassung &amp; -kontrolle
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-admin-rollen-berechtigungen" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. Admin-Rollen &amp; Berechtigungen
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-clubcloud-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      6. ClubCloud-Integration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#7-suche-filter" class="md-nav__link">
+    <span class="md-ellipsis">
+      7. Suche &amp; Filter
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#8-tischreservierung" class="md-nav__link">
+    <span class="md-ellipsis">
+      8. Tischreservierung
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#turnierformate-im-detail" class="md-nav__link">
+    <span class="md-ellipsis">
+      🎮 Turnierformate im Detail
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🎮 Turnierformate im Detail">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#jeder-gegen-jeden-round-robin" class="md-nav__link">
+    <span class="md-ellipsis">
+      Jeder-gegen-Jeden (Round Robin)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ko-system-elimination" class="md-nav__link">
+    <span class="md-ellipsis">
+      KO-System (Elimination)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#schweizer-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      Schweizer System
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gruppenphasen-ko" class="md-nav__link">
+    <span class="md-ellipsis">
+      Gruppenphasen + KO
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#wichtige-funktionen" class="md-nav__link">
+    <span class="md-ellipsis">
+      🛠️ Wichtige Funktionen
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🛠️ Wichtige Funktionen">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#automatische-spielplanerstellung" class="md-nav__link">
+    <span class="md-ellipsis">
+      Automatische Spielplanerstellung
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#live-monitoring" class="md-nav__link">
+    <span class="md-ellipsis">
+      Live-Monitoring
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ergebnis-korrektur" class="md-nav__link">
+    <span class="md-ellipsis">
+      Ergebnis-Korrektur
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#statistiken-reports" class="md-nav__link">
+    <span class="md-ellipsis">
+      Statistiken &amp; Reports
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#best-practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      🎓 Best Practices
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🎓 Best Practices">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#vorbereitung" class="md-nav__link">
+    <span class="md-ellipsis">
+      Vorbereitung
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#wahrend-des-turniers" class="md-nav__link">
+    <span class="md-ellipsis">
+      Während des Turniers
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#nach-dem-turnier" class="md-nav__link">
+    <span class="md-ellipsis">
+      Nach dem Turnier
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#haufige-probleme-losungen" class="md-nav__link">
+    <span class="md-ellipsis">
+      🆘 Häufige Probleme &amp; Lösungen
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🆘 Häufige Probleme &amp; Lösungen">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#vor-dem-turnier" class="md-nav__link">
+    <span class="md-ellipsis">
+      Vor dem Turnier
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#wahrend-des-turniers_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Während des Turniers
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#nach-dem-turnier_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Nach dem Turnier
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#gerate-empfehlungen" class="md-nav__link">
+    <span class="md-ellipsis">
+      📱 Geräte-Empfehlungen
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📱 Geräte-Empfehlungen">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fur-den-turniermanager" class="md-nav__link">
+    <span class="md-ellipsis">
+      Für den Turniermanager
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fur-anzeigen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Für Anzeigen
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#berechtigungen-delegation" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔐 Berechtigungen &amp; Delegation
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔐 Berechtigungen &amp; Delegation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#rollen-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      Rollen-System
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aufgaben-delegieren" class="md-nav__link">
+    <span class="md-ellipsis">
+      Aufgaben delegieren
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#support-ressourcen" class="md-nav__link">
+    <span class="md-ellipsis">
+      📞 Support &amp; Ressourcen
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📞 Support &amp; Ressourcen">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dokumentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Dokumentation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hilfe-bei-problemen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Hilfe bei Problemen
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#community" class="md-nav__link">
+    <span class="md-ellipsis">
+      Community
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#alle-manager-dokumente" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔗 Alle Manager-Dokumente
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="turniermanager-dokumentation">Turniermanager-Dokumentation<a class="headerlink" href="#turniermanager-dokumentation" title="Permanent link">&para;</a></h1>
+<p>Willkommen zur Carambus-Dokumentation für Turniermanager! Hier finden Sie alle Informationen zur Organisation und Durchführung von Billardturnieren und Ligaspieltagen.</p>
+<h2 id="ihre-rolle-als-turniermanager">🎯 Ihre Rolle als Turniermanager<a class="headerlink" href="#ihre-rolle-als-turniermanager" title="Permanent link">&para;</a></h2>
+<p>Als Turniermanager sind Sie verantwortlich für:
+- ✅ <strong>Turniererstellung</strong>: Turniere anlegen und konfigurieren
+- ✅ <strong>Spielerverwaltung</strong>: Teilnehmer anmelden und verwalten
+- ✅ <strong>Spielplanerstellung</strong>: Automatische oder manuelle Paarungen
+- ✅ <strong>Turnierdurchführung</strong>: Spiele starten und überwachen
+- ✅ <strong>Ergebniskontrolle</strong>: Ergebnisse prüfen und ggf. korrigieren
+- ✅ <strong>Turnierauswertung</strong>: Ranglisten und Statistiken veröffentlichen</p>
+<h2 id="schnellstart-ihr-erstes-turnier-in-10-schritten">🚀 Schnellstart: Ihr erstes Turnier in 10 Schritten<a class="headerlink" href="#schnellstart-ihr-erstes-turnier-in-10-schritten" title="Permanent link">&para;</a></h2>
+<ol>
+<li><strong>Turnier anlegen</strong> → Neue Veranstaltung erstellen</li>
+<li><strong>Grunddaten eingeben</strong> → Name, Datum, Disziplin</li>
+<li><strong>Turniermodus wählen</strong> → Jeder-gegen-Jeden, KO, Schweizer System</li>
+<li><strong>Spieler anmelden</strong> → Teilnehmer hinzufügen</li>
+<li><strong>Spielplan erstellen</strong> → Automatisch generieren lassen</li>
+<li><strong>Tische zuweisen</strong> → Spielplan veröffentlichen</li>
+<li><strong>Turnier starten</strong> → Spieler können beginnen</li>
+<li><strong>Ergebnisse überwachen</strong> → Live-Verfolgung</li>
+<li><strong>Rangliste prüfen</strong> → Automatisch berechnet</li>
+<li><strong>Turnier abschließen</strong> → Siegerehrung</li>
+</ol>
+<p>➡️ <strong><a href="tournament-management/">Zur ausführlichen Turnierverwaltungs-Anleitung</a></strong></p>
+<h2 id="hauptthemen">📚 Hauptthemen<a class="headerlink" href="#hauptthemen" title="Permanent link">&para;</a></h2>
+<h3 id="1-turnierverwaltung">1. Turnierverwaltung<a class="headerlink" href="#1-turnierverwaltung" title="Permanent link">&para;</a></h3>
+<p><strong>Einzel-Turniere organisieren</strong>:
+- Turnierformate (Jeder-gegen-Jeden, KO, Schweizer System)
+- Spielplanerstellung (automatisch &amp; manuell)
+- Gruppenphasen mit KO-Runde
+- Best-of und Race-to Modi
+- Setzlisten und Seeding</p>
+<p>➡️ <strong><a href="tournament-management/">Turnierverwaltungs-Handbuch</a></strong><br />
+➡️ <strong><a href="single-tournament/">Einzelturnier-Verwaltung</a></strong></p>
+<h3 id="2-ligaspieltage">2. Ligaspieltage<a class="headerlink" href="#2-ligaspieltage" title="Permanent link">&para;</a></h3>
+<p><strong>Mannschaftswettbewerbe durchführen</strong>:
+- Ligasaisons anlegen und verwalten
+- Spieltage planen (Heim-/Auswärtsspiele)
+- Mannschaftsaufstellungen
+- Automatische Tabellenerstellung
+- Saisonauswertungen</p>
+<p>➡️ <strong><a href="league-management/">Liga-Management-Handbuch</a></strong></p>
+<h3 id="3-spielerverwaltung">3. Spielerverwaltung<a class="headerlink" href="#3-spielerverwaltung" title="Permanent link">&para;</a></h3>
+<p><strong>Teilnehmer verwalten</strong>:
+- Spieler anlegen und bearbeiten
+- Spielergruppen erstellen
+- Lizenzen prüfen (ClubCloud-Integration)
+- Sperren und Freigaben
+- Spielerstatistiken einsehen</p>
+<p>➡️ <strong><a href="tournament-management/#spielerverwaltung">Turnierverwaltung - Spielerverwaltung</a></strong></p>
+<h3 id="4-ergebniserfassung-kontrolle">4. Ergebniserfassung &amp; -kontrolle<a class="headerlink" href="#4-ergebniserfassung-kontrolle" title="Permanent link">&para;</a></h3>
+<p><strong>Ergebnisse verwalten</strong>:
+- Manuelle Ergebniseingabe
+- Ergebnisse korrigieren
+- Spiele neu ansetzen
+- Kampflose Siege vergeben
+- Protests bearbeiten</p>
+<p>➡️ <strong><a href="tournament-management/#ergebniskontrolle">Turnierverwaltung - Ergebniskontrolle</a></strong></p>
+<h3 id="5-admin-rollen-berechtigungen">5. Admin-Rollen &amp; Berechtigungen<a class="headerlink" href="#5-admin-rollen-berechtigungen" title="Permanent link">&para;</a></h3>
+<p><strong>Team-Management</strong>:
+- Rollen vergeben (Admin, Schiedsrichter, etc.)
+- Berechtigungen verwalten
+- Turnierspezifische Rechte
+- Vereinsadministration</p>
+<p>➡️ <strong><a href="admin-roles/">Admin-Rollen-Handbuch</a></strong></p>
+<h3 id="6-clubcloud-integration">6. ClubCloud-Integration<a class="headerlink" href="#6-clubcloud-integration" title="Permanent link">&para;</a></h3>
+<p><strong>DBU ClubCloud anbinden</strong>:
+- Turniere importieren
+- Spielerdaten synchronisieren
+- Ergebnisse hochladen
+- Lizenz-Mapping verwalten</p>
+<p>➡️ <strong><a href="clubcloud-integration/">ClubCloud-Integrations-Leitfaden</a></strong></p>
+<h3 id="7-suche-filter">7. Suche &amp; Filter<a class="headerlink" href="#7-suche-filter" title="Permanent link">&para;</a></h3>
+<p><strong>Daten effizient finden</strong>:
+- Erweiterte Filterfunktionen
+- Gespeicherte Suchen
+- Bulk-Operationen
+- Export-Funktionen</p>
+<p>➡️ <strong><a href="search-filters/">Filter-Popup-Anleitung</a></strong></p>
+<h3 id="8-tischreservierung">8. Tischreservierung<a class="headerlink" href="#8-tischreservierung" title="Permanent link">&para;</a></h3>
+<p><strong>Vereinszeiten verwalten</strong>:
+- Online-Buchungssystem einrichten
+- Buchungen verwalten
+- Heizungssteuerung konfigurieren
+- Automatisches Vorheizen</p>
+<p>➡️ <strong><a href="table-reservation/">Tischreservierungs-Handbuch</a></strong></p>
+<h2 id="turnierformate-im-detail">🎮 Turnierformate im Detail<a class="headerlink" href="#turnierformate-im-detail" title="Permanent link">&para;</a></h2>
+<h3 id="jeder-gegen-jeden-round-robin">Jeder-gegen-Jeden (Round Robin)<a class="headerlink" href="#jeder-gegen-jeden-round-robin" title="Permanent link">&para;</a></h3>
+<p><strong>Ideal für</strong>: Kleine Gruppen (bis 12 Spieler), wenn jeder gegen jeden spielen soll</p>
+<p><strong>Vorteile</strong>:
+- ✅ Jeder Spieler hat gleich viele Spiele
+- ✅ Fairste Ermittlung des Gewinners
+- ✅ Keine Ausscheidung nach einem Spiel</p>
+<p><strong>Einstellungen</strong>:
+- Anzahl der Runden (einfach, doppelt)
+- Hin- und Rückrunde
+- Tischrotation</p>
+<p>➡️ <strong><a href="tournament-management/#round-robin">Round Robin Details</a></strong></p>
+<h3 id="ko-system-elimination">KO-System (Elimination)<a class="headerlink" href="#ko-system-elimination" title="Permanent link">&para;</a></h3>
+<p><strong>Ideal für</strong>: Große Felder, zeitlich begrenzte Turniere</p>
+<p><strong>Varianten</strong>:
+- <strong>Single Elimination</strong>: Ausscheiden nach erster Niederlage
+- <strong>Double Elimination</strong>: Ausscheiden nach zweiter Niederlage</p>
+<p><strong>Vorteile</strong>:
+- ✅ Schnell durchführbar
+- ✅ Klare K.O.-Struktur
+- ✅ Spannend für Zuschauer</p>
+<p><strong>Einstellungen</strong>:
+- Seeding (Setzliste)
+- Best-of Modi
+- Platzierungsspiele</p>
+<p>➡️ <strong><a href="tournament-management/#ko-system">KO-System Details</a></strong></p>
+<h3 id="schweizer-system">Schweizer System<a class="headerlink" href="#schweizer-system" title="Permanent link">&para;</a></h3>
+<p><strong>Ideal für</strong>: Große Felder mit begrenzter Rundenanzahl</p>
+<p><strong>Funktionsweise</strong>:
+- Spieler mit ähnlicher Punktzahl spielen gegeneinander
+- Keine Ausscheidung
+- Optimale Paarungen nach jeder Runde</p>
+<p><strong>Vorteile</strong>:
+- ✅ Fair bei vielen Teilnehmern
+- ✅ Alle spielen gleich viele Spiele
+- ✅ Automatische Auslosung</p>
+<p>➡️ <strong><a href="tournament-management/#schweizer-system">Schweizer System Details</a></strong></p>
+<h3 id="gruppenphasen-ko">Gruppenphasen + KO<a class="headerlink" href="#gruppenphasen-ko" title="Permanent link">&para;</a></h3>
+<p><strong>Ideal für</strong>: Mittelgroße bis große Turniere</p>
+<p><strong>Ablauf</strong>:
+1. Gruppenphase (Round Robin in Gruppen)
+2. Qualifikation der Top-N pro Gruppe
+3. KO-Runde mit Qualifizierten</p>
+<p><strong>Vorteile</strong>:
+- ✅ Kombiniert Fairness (Gruppenphase) mit Spannung (KO)
+- ✅ Mehrere Chancen in der Gruppenphase
+- ✅ Finale Entscheidung im KO</p>
+<p>➡️ <strong><a href="tournament-management/#gruppenphasen">Gruppenphasen Details</a></strong></p>
+<h2 id="wichtige-funktionen">🛠️ Wichtige Funktionen<a class="headerlink" href="#wichtige-funktionen" title="Permanent link">&para;</a></h2>
+<h3 id="automatische-spielplanerstellung">Automatische Spielplanerstellung<a class="headerlink" href="#automatische-spielplanerstellung" title="Permanent link">&para;</a></h3>
+<p><strong>Features</strong>:
+- Optimale Paarungen nach Turniermodus
+- Automatische Tischwechsel
+- Zeitplan-Berücksichtigung
+- Spieler-Verfügbarkeit
+- Bye-Runden bei ungerader Teilnehmerzahl</p>
+<p><strong>Manuelle Anpassung</strong>:
+- Spiele verschieben per Drag &amp; Drop
+- Tische neu zuweisen
+- Pausen einplanen
+- Einzelne Paarungen ändern</p>
+<p>➡️ <strong><a href="tournament-management/#spielplan-erstellen">Spielplan-Erstellung</a></strong></p>
+<h3 id="live-monitoring">Live-Monitoring<a class="headerlink" href="#live-monitoring" title="Permanent link">&para;</a></h3>
+<p><strong>Turnier-Überwachung in Echtzeit</strong>:
+- Dashboard mit allen laufenden Spielen
+- Fortschrittsanzeige pro Partie
+- Verzögerungen erkennen
+- Nächste Runde vorbereiten</p>
+<p><strong>Anzeige-Optionen</strong>:
+- Tournament Monitor (für Zuschauer)
+- Party Monitor (Ligaspieltage)
+- Scoreboard (pro Tisch)
+- Manager-Dashboard</p>
+<p>➡️ <strong><a href="tournament-management/#live-monitoring">Live-Monitoring</a></strong></p>
+<h3 id="ergebnis-korrektur">Ergebnis-Korrektur<a class="headerlink" href="#ergebnis-korrektur" title="Permanent link">&para;</a></h3>
+<p><strong>Wann nötig?</strong>:
+- Eingabefehler
+- Spieler-Verwechslung
+- Regelauslegung korrigiert
+- Protest stattgegeben</p>
+<p><strong>Wie korrigieren?</strong>:
+1. Spiel in Übersicht finden
+2. "Bearbeiten" klicken
+3. Ergebnis ändern
+4. Änderungsgrund dokumentieren (optional)
+5. Speichern → automatische Neuberechnung</p>
+<p><strong>Historien-Tracking</strong>: Alle Änderungen werden protokolliert</p>
+<p>➡️ <strong><a href="tournament-management/#ergebnisse-korrigieren">Ergebnis-Korrektur</a></strong></p>
+<h3 id="statistiken-reports">Statistiken &amp; Reports<a class="headerlink" href="#statistiken-reports" title="Permanent link">&para;</a></h3>
+<p><strong>Verfügbare Auswertungen</strong>:
+- Ranglisten (Punkte, Quote, GD)
+- Spieler-Statistiken (Durchschnitte, Serien)
+- Turnierverlauf
+- Tischauslastung
+- Spieldauer-Analysen</p>
+<p><strong>Export-Formate</strong>:
+- PDF (für Aushang/Website)
+- CSV (für Excel)
+- JSON (für weitere Verarbeitung)</p>
+<p>➡️ <strong><a href="tournament-management/#statistiken-reports">Statistiken &amp; Reports</a></strong></p>
+<h2 id="best-practices">🎓 Best Practices<a class="headerlink" href="#best-practices" title="Permanent link">&para;</a></h2>
+<h3 id="vorbereitung">Vorbereitung<a class="headerlink" href="#vorbereitung" title="Permanent link">&para;</a></h3>
+<p><strong>Eine Woche vorher</strong>:
+- ✅ Turnier anlegen
+- ✅ Ausschreibung veröffentlichen
+- ✅ Anmeldefrist setzen
+- ✅ Tische prüfen (Heizung!)</p>
+<p><strong>Einen Tag vorher</strong>:
+- ✅ Teilnehmerliste prüfen
+- ✅ Spielplan erstellen (Entwurf)
+- ✅ Displays testen
+- ✅ Backup der Datenbank</p>
+<p><strong>Am Turniertag</strong>:
+- ✅ 1 Stunde vorher: System hochfahren
+- ✅ Tournament Monitor auf Beamer
+- ✅ Scoreboards an Tischen aktivieren
+- ✅ Testspiel durchführen</p>
+<h3 id="wahrend-des-turniers">Während des Turniers<a class="headerlink" href="#wahrend-des-turniers" title="Permanent link">&para;</a></h3>
+<p><strong>Kontinuierliche Aufgaben</strong>:
+- 🔍 Spielfortschritt überwachen
+- 🔍 Technische Probleme beheben
+- 🔍 Spieler-Fragen beantworten
+- 🔍 Pausen koordinieren
+- 🔍 Nächste Runde vorbereiten</p>
+<p><strong>Bei Problemen</strong>:
+- Ruhe bewahren
+- Regelwerk konsultieren
+- Bei Unsicherheit: Protest zulassen und später klären
+- Änderungen dokumentieren</p>
+<h3 id="nach-dem-turnier">Nach dem Turnier<a class="headerlink" href="#nach-dem-turnier" title="Permanent link">&para;</a></h3>
+<p><strong>Abschluss-Aufgaben</strong>:
+- ✅ Rangliste veröffentlichen
+- ✅ Ergebnisse zu ClubCloud hochladen
+- ✅ Fotos hochladen
+- ✅ Feedback einholen
+- ✅ Erkenntnisse dokumentieren</p>
+<p><strong>Langfristig</strong>:
+- 📊 Statistiken analysieren
+- 📊 Turnierformat evaluieren
+- 📊 Verbesserungen planen</p>
+<h2 id="haufige-probleme-losungen">🆘 Häufige Probleme &amp; Lösungen<a class="headerlink" href="#haufige-probleme-losungen" title="Permanent link">&para;</a></h2>
+<h3 id="vor-dem-turnier">Vor dem Turnier<a class="headerlink" href="#vor-dem-turnier" title="Permanent link">&para;</a></h3>
+<p><strong>Problem: Spieler findet sich nicht in der Anmeldung</strong><br />
+<strong>Lösung</strong>: Prüfen Sie, ob der Spieler im System existiert. Falls nicht: Neu anlegen. Falls ja: Zum Turnier hinzufügen.</p>
+<p><strong>Problem: Spielplan lässt sich nicht erstellen</strong><br />
+<strong>Lösung</strong>: Prüfen Sie, ob genügend Tische und Spieler vorhanden sind. Bei ungerader Spielerzahl werden automatisch Bye-Runden eingeplant.</p>
+<p><strong>Problem: Heizung läuft nicht</strong><br />
+<strong>Lösung</strong>: Prüfen Sie die Heizungssteuerung in den Tischreservierungs-Einstellungen. Ggf. manuell aktivieren.</p>
+<h3 id="wahrend-des-turniers_1">Während des Turniers<a class="headerlink" href="#wahrend-des-turniers_1" title="Permanent link">&para;</a></h3>
+<p><strong>Problem: Scoreboard zeigt falsches Spiel an</strong><br />
+<strong>Lösung</strong>: Aktualisieren Sie die Tischzuweisung im Spielplan. Scoreboard aktualisiert sich automatisch.</p>
+<p><strong>Problem: Spieler kann Ergebnis nicht eintragen</strong><br />
+<strong>Lösung</strong>: Prüfen Sie, ob das Spiel gestartet wurde. Im Manager-Dashboard: Spiel auf "Laufend" setzen.</p>
+<p><strong>Problem: Ergebnis wurde falsch eingetragen</strong><br />
+<strong>Lösung</strong>: Manager-Dashboard → Spiel suchen → Bearbeiten → Korrigieren. Rangliste wird automatisch neu berechnet.</p>
+<p><strong>Problem: Spieler erscheint nicht</strong><br />
+<strong>Lösung</strong>: Kampfloser Sieg möglich. Im Spiel-Detailview: "Kampfloser Sieg für [Gegner]" auswählen.</p>
+<h3 id="nach-dem-turnier_1">Nach dem Turnier<a class="headerlink" href="#nach-dem-turnier_1" title="Permanent link">&para;</a></h3>
+<p><strong>Problem: Rangliste stimmt nicht</strong><br />
+<strong>Lösung</strong>: Prüfen Sie die Turnier-Einstellungen (Punkte für Sieg/Remis/Niederlage). Änderungen führen zu automatischer Neuberechnung.</p>
+<p><strong>Problem: ClubCloud-Upload schlägt fehl</strong><br />
+<strong>Lösung</strong>: Prüfen Sie die ClubCloud-Credentials. Stellen Sie sicher, dass das Turnier in ClubCloud existiert und das Mapping korrekt ist.</p>
+<h2 id="gerate-empfehlungen">📱 Geräte-Empfehlungen<a class="headerlink" href="#gerate-empfehlungen" title="Permanent link">&para;</a></h2>
+<h3 id="fur-den-turniermanager">Für den Turniermanager<a class="headerlink" href="#fur-den-turniermanager" title="Permanent link">&para;</a></h3>
+<p><strong>Desktop/Laptop</strong>:
+- Große Übersicht über alle Spiele
+- Schnelle Bearbeitung
+- Mehrere Tabs parallel</p>
+<p><strong>Tablet</strong>:
+- Mobil im Vereinsheim
+- Touch-optimierte Bedienung
+- Ideal für kleinere Turniere</p>
+<h3 id="fur-anzeigen">Für Anzeigen<a class="headerlink" href="#fur-anzeigen" title="Permanent link">&para;</a></h3>
+<p><strong>Tournament Monitor</strong>:
+- TV/Beamer mit HDMI
+- Raspberry Pi oder Tablet als Client
+- Kiosk-Modus (Vollbild)</p>
+<p><strong>Scoreboards</strong>:
+- Tablets an Tischen (7-10")
+- Touch-fähig für Spielereingabe
+- WLAN-Verbindung zum Server</p>
+<h2 id="berechtigungen-delegation">🔐 Berechtigungen &amp; Delegation<a class="headerlink" href="#berechtigungen-delegation" title="Permanent link">&para;</a></h2>
+<h3 id="rollen-system">Rollen-System<a class="headerlink" href="#rollen-system" title="Permanent link">&para;</a></h3>
+<p><strong>Super-Admin</strong>: Volle Kontrolle<br />
+<strong>Club-Admin</strong>: Vereinsverwaltung<br />
+<strong>Tournament-Manager</strong>: Turnierverwaltung (Sie!)<br />
+<strong>Referee</strong>: Nur Ergebniserfassung<br />
+<strong>Member</strong>: Spieler (kein Management)</p>
+<p>➡️ <strong><a href="admin-roles/">Detaillierte Rollen-Beschreibung</a></strong></p>
+<h3 id="aufgaben-delegieren">Aufgaben delegieren<a class="headerlink" href="#aufgaben-delegieren" title="Permanent link">&para;</a></h3>
+<p><strong>Sie können Rechte vergeben an</strong>:
+- <strong>Co-Manager</strong>: Vollzugriff auf Turnier
+- <strong>Schiedsrichter</strong>: Ergebniserfassung und Korrektur
+- <strong>Scoreboard-Betreuer</strong>: Nur Display-Management</p>
+<p><strong>Best Practice</strong>: 
+- Mindestens 2 Personen mit Manager-Rechten
+- Schiedsrichter für große Turniere
+- Klare Kommunikation über Zuständigkeiten</p>
+<h2 id="support-ressourcen">📞 Support &amp; Ressourcen<a class="headerlink" href="#support-ressourcen" title="Permanent link">&para;</a></h2>
+<h3 id="dokumentation">Dokumentation<a class="headerlink" href="#dokumentation" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong><a href="tournament-management/">Turnierverwaltung</a></strong>: Vollständiges Handbuch</li>
+<li><strong><a href="league-management/">Liga-Management</a></strong>: Ligaspieltage organisieren</li>
+<li><strong><a href="admin-roles/">Admin-Rollen</a></strong>: Berechtigungen verwalten</li>
+<li><strong><a href="clubcloud-integration/">ClubCloud</a></strong>: Integration nutzen</li>
+<li><strong><a href="../reference/glossary/">Glossar</a></strong>: Alle Fachbegriffe</li>
+</ul>
+<h3 id="hilfe-bei-problemen">Hilfe bei Problemen<a class="headerlink" href="#hilfe-bei-problemen" title="Permanent link">&para;</a></h3>
+<p><strong>Während des Turniers</strong>:
+- Dokumentation durchsuchen
+- Andere Manager im Verein fragen
+- Notfallkontakt: gernot.ullrich@gmx.de</p>
+<p><strong>Nicht-dringend</strong>:
+- GitHub Issues: <a href="https://github.com/GernotUllrich/carambus/issues">https://github.com/GernotUllrich/carambus/issues</a>
+- E-Mail: gernot.ullrich@gmx.de</p>
+<h3 id="community">Community<a class="headerlink" href="#community" title="Permanent link">&para;</a></h3>
+<p><strong>Erfahrungsaustausch</strong>:
+- Andere Carambus-Nutzer kontaktieren
+- Best Practices teilen
+- Feature-Requests einreichen</p>
+<h2 id="alle-manager-dokumente">🔗 Alle Manager-Dokumente<a class="headerlink" href="#alle-manager-dokumente" title="Permanent link">&para;</a></h2>
+<ol>
+<li><strong><a href="tournament-management/">Turnierverwaltung</a></strong> - Komplettes Handbuch für Einzelturniere</li>
+<li><strong><a href="league-management/">Liga-Management</a></strong> - Ligaspieltage und Mannschaftswettbewerbe</li>
+<li><strong><a href="single-tournament/">Einzelturnier-Verwaltung</a></strong> - Spezifische Features für Einzelturniere</li>
+<li><strong><a href="table-reservation/">Tischreservierung</a></strong> - Buchungssystem und Heizungssteuerung</li>
+<li><strong><a href="admin-roles/">Admin-Rollen</a></strong> - Benutzer und Berechtigungen verwalten</li>
+<li><strong><a href="clubcloud-integration/">ClubCloud-Integration</a></strong> - DBU ClubCloud anbinden</li>
+<li><strong><a href="search-filters/">Suche &amp; Filter</a></strong> - Effizient Daten finden</li>
+</ol>
+<hr />
+<p><strong>Viel Erfolg bei Ihren Turnieren! 🏆</strong></p>
+<p><em>Tipp: Fügen Sie diese Seite zu Ihren Lesezeichen hinzu. Sie dient als zentrale Anlaufstelle für alle Turniermanagement-Aufgaben.</em></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        <div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/GernotUllrich/carambus" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="http://www.billardclub-wedel.de/" target="_blank" rel="noopener" title="www.billardclub-wedel.de" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M352 256c0 22.2-1.2 43.6-3.3 64H163.4c-2.2-20.4-3.3-41.8-3.3-64s1.2-43.6 3.3-64h185.3c2.2 20.4 3.3 41.8 3.3 64m28.8-64h123.1c5.3 20.5 8.1 41.9 8.1 64s-2.8 43.5-8.1 64H380.8c2.1-20.6 3.2-42 3.2-64s-1.1-43.4-3.2-64m112.6-32H376.7c-10-63.9-29.8-117.4-55.3-151.6 78.3 20.7 142 77.5 171.9 151.6zm-149.1 0H167.7c6.1-36.4 15.5-68.6 27-94.7 10.5-23.6 22.2-40.7 33.5-51.5C239.4 3.2 248.7 0 256 0s16.6 3.2 27.8 13.8c11.3 10.8 23 27.9 33.5 51.5 11.6 26 20.9 58.2 27 94.7m-209 0H18.6c30-74.1 93.6-130.9 172-151.6-25.5 34.2-45.3 87.7-55.3 151.6M8.1 192h123.1c-2.1 20.6-3.2 42-3.2 64s1.1 43.4 3.2 64H8.1C2.8 299.5 0 278.1 0 256s2.8-43.5 8.1-64m186.6 254.6c-11.6-26-20.9-58.2-27-94.6h176.6c-6.1 36.4-15.5 68.6-27 94.6-10.5 23.6-22.2 40.7-33.5 51.5-11.2 10.7-20.5 13.9-27.8 13.9s-16.6-3.2-27.8-13.8c-11.3-10.8-23-27.9-33.5-51.5zM135.3 352c10 63.9 29.8 117.4 55.3 151.6-78.4-20.7-142-77.5-172-151.6zm358.1 0c-30 74.1-93.6 130.9-171.9 151.6 25.5-34.2 45.2-87.7 55.3-151.6h116.7z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.indexes", "search.suggest", "search.highlight", "header.autohide", "toc.follow"], "search": "../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "In Zwischenablage kopiert", "clipboard.copy": "In Zwischenablage kopieren", "search.result.more.one": "1 weiteres Suchergebnis auf dieser Seite", "search.result.more.other": "# weitere Suchergebnisse auf dieser Seite", "search.result.none": "Keine Suchergebnisse", "search.result.one": "1 Suchergebnis", "search.result.other": "# Suchergebnisse", "search.result.placeholder": "Suchbegriff eingeben", "search.result.term.missing": "Es fehlt", "select.version": "Version ausw\u00e4hlen"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.56ea9cef.min.js"></script>
+      
+        <script src="../javascripts/mathjax.js"></script>
+      
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>
