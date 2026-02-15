@@ -18,7 +18,8 @@ namespace :scrape do
     
     monitor.run do |m|
       # Region-Level Scraping
-      Region.where.not(organizer: false).each do |region|
+      # Only scrape regions that have a region_cc (ClubCloud integration)
+      Region.joins(:region_cc).each do |region|
         region_monitor = ScrapingMonitor.new("region_scraping", "Region[#{region.id}]")
         
         region_monitor.run do |rm|
