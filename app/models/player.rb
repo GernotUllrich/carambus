@@ -434,6 +434,7 @@ class Player < ApplicationRecord
     if firstname&.match(/.*\((.*)\)/)
       firstname.gsub!(/\s*\((.*)\)/, "")
     end
+    return nil if club_str_.nil?
     club_str = club_str_.strip.gsub("  ", " ")
     player = nil
     club = Club.where("synonyms ilike ?", "%#{club_str}%").to_a.find do |cb|
