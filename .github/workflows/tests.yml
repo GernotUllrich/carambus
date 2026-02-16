@@ -55,6 +55,10 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y postgresql-client libpq-dev
     
+    - name: Setup config files
+      run: |
+        cp lib/templates/config/carambus.yml config/carambus.yml
+    
     - name: Setup test database
       run: |
         bin/rails db:create RAILS_ENV=test
