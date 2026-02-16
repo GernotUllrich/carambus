@@ -58,7 +58,7 @@ jobs:
     - name: Setup test database
       run: |
         bin/rails db:create RAILS_ENV=test
-        bin/rails db:schema:load RAILS_ENV=test
+        SAFETY_ASSURED=true bin/rails db:schema:load RAILS_ENV=test
     
     - name: Run tests
       run: |
