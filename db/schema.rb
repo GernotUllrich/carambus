@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_02_15_195121) do
+ActiveRecord::Schema[7.2].define(version: 2026_02_15_210617) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -820,7 +820,9 @@ ActiveRecord::Schema[7.2].define(version: 2026_02_15_195121) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "unchanged_count", default: 0
+    t.jsonb "model_stats", default: {}
     t.index ["executed_at"], name: "index_scraping_logs_on_executed_at"
+    t.index ["model_stats"], name: "index_scraping_logs_on_model_stats", using: :gin
     t.index ["operation", "executed_at"], name: "index_scraping_logs_on_operation_and_executed_at"
     t.index ["operation"], name: "index_scraping_logs_on_operation"
   end
@@ -1313,31 +1315,31 @@ ActiveRecord::Schema[7.2].define(version: 2026_02_15_195121) do
   end
 
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
-  add_foreign_key "club_locations", "regions", validate: false
-  add_foreign_key "clubs", "regions", validate: false
-  add_foreign_key "game_participations", "regions", validate: false
-  add_foreign_key "game_plans", "regions", validate: false
-  add_foreign_key "games", "regions", validate: false
-  add_foreign_key "league_teams", "regions", validate: false
-  add_foreign_key "leagues", "regions", validate: false
-  add_foreign_key "locations", "regions", validate: false
-  add_foreign_key "parties", "regions", validate: false
-  add_foreign_key "party_games", "regions", validate: false
-  add_foreign_key "player_rankings", "regions", validate: false
-  add_foreign_key "players", "regions", validate: false
-  add_foreign_key "regions", "regions", validate: false
-  add_foreign_key "season_participations", "regions", validate: false
-  add_foreign_key "seedings", "regions", validate: false
+  add_foreign_key "club_locations", "regions"
+  add_foreign_key "clubs", "regions"
+  add_foreign_key "game_participations", "regions"
+  add_foreign_key "game_plans", "regions"
+  add_foreign_key "games", "regions"
+  add_foreign_key "league_teams", "regions"
+  add_foreign_key "leagues", "regions"
+  add_foreign_key "locations", "regions"
+  add_foreign_key "parties", "regions"
+  add_foreign_key "party_games", "regions"
+  add_foreign_key "player_rankings", "regions"
+  add_foreign_key "players", "regions"
+  add_foreign_key "regions", "regions"
+  add_foreign_key "season_participations", "regions"
+  add_foreign_key "seedings", "regions"
   add_foreign_key "settings", "clubs"
   add_foreign_key "settings", "regions"
   add_foreign_key "settings", "tournaments"
   add_foreign_key "stream_configurations", "tables"
   add_foreign_key "tables", "locations"
-  add_foreign_key "tables", "regions", validate: false
+  add_foreign_key "tables", "regions"
   add_foreign_key "tables", "table_kinds"
   add_foreign_key "tournament_monitors", "tournaments"
   add_foreign_key "tournament_plan_games", "tournament_plans"
-  add_foreign_key "tournaments", "regions", validate: false
+  add_foreign_key "tournaments", "regions"
   add_foreign_key "users", "players"
-  add_foreign_key "versions", "regions", validate: false
+  add_foreign_key "versions", "regions"
 end

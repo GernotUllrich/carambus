@@ -12,14 +12,14 @@ class ScrapingLog < ApplicationRecord
   # Validations
   validates :operation, presence: true
   validates :executed_at, presence: true
-  
+
   # Scopes
   scope :recent, -> { order(executed_at: :desc).limit(100) }
   scope :by_operation, ->(op) { where(operation: op) }
   scope :with_errors, -> { where("error_count > 0") }
   scope :today, -> { where("executed_at >= ?", Time.current.beginning_of_day) }
   scope :last_week, -> { where("executed_at >= ?", 1.week.ago) }
-  
+
   # Parse errors_json
   def errors_parsed
     return [] if errors_json.blank?
@@ -27,37 +27,37 @@ class ScrapingLog < ApplicationRecord
   rescue JSON::ParserError
     []
   end
-  
+
   # Parse model_stats (JSONB is already parsed by PostgreSQL)
   def model_stats_parsed
     model_stats || {}
   end
-  
+
   # Get stats for specific model
   def stats_for_model(model_name)
-    model_stats_parsed[model_name] || { created: 0, updated: 0, deleted: 0 }
+    model_stats_parsed[model_name] || {created: 0, updated: 0, deleted: 0}
   end
-  
+
   # Get all models that were affected
   def affected_models
     model_stats_parsed.keys.sort
   end
-  
+
   # Total operations count
   def total_operations
     created_count + updated_count + deleted_count + unchanged_count
   end
-  
+
   # Success rate
   def success_rate
     return 100.0 if total_operations.zero?
     ((total_operations - error_count).to_f / total_operations * 100).round(1)
   end
-  
+
   # Statistiken für Operation
   def self.stats_for(operation, since: 1.week.ago)
     logs = by_operation(operation).where("executed_at >= ?", since)
-    
+
     {
       total_runs: logs.count,
       avg_duration: logs.average(:duration)&.round(2) || 0,
@@ -69,20 +69,20 @@ class ScrapingLog < ApplicationRecord
       success_rate: calculate_success_rate(logs)
     }
   end
-  
+
   # Alle Operationen mit Statistiken
   def self.all_operations_stats(since: 1.week.ago)
     operations = where("executed_at >= ?", since).distinct.pluck(:operation)
-    
+
     operations.map do |op|
-      { operation: op }.merge(stats_for(op, since: since))
+      {operation: op}.merge(stats_for(op, since: since))
     end.sort_by { |s| s[:total_runs] }.reverse
   end
-  
+
   # Prüfe auf Anomalien (z.B. ungewöhnlich viele Errors)
   def self.check_anomalies(threshold: 0.1)
     anomalies = []
-    
+
     all_operations_stats.each do |stats|
       # Mehr als 10% Errors?
       if stats[:success_rate] < (100 - threshold * 100)
@@ -92,7 +92,7 @@ class ScrapingLog < ApplicationRecord
           details: stats
         }
       end
-      
+
       # Ungewöhnlich lange Laufzeit?
       if stats[:avg_duration] > 300  # 5 Minuten
         anomalies << {
@@ -102,29 +102,31 @@ class ScrapingLog < ApplicationRecord
         }
       end
     end
-    
+
     anomalies
   end
-  
+
   # Bereinige alte Logs (älter als X Tage)
   def self.cleanup_old_logs(keep_days: 90)
     cutoff = keep_days.days.ago
     deleted = where("executed_at < ?", cutoff).delete_all
-    
+
     Rails.logger.info "🧹 Cleaned up #{deleted} old scraping logs (older than #{keep_days} days)"
     deleted
   end
-  
-  private
-  
-  def self.calculate_success_rate(logs)
-    return 100.0 if logs.empty?
-    
-    total_ops = logs.sum(:created_count) + logs.sum(:updated_count) + 
-                logs.sum(:deleted_count) + logs.sum("COALESCE(unchanged_count, 0)")
-    total_errors = logs.sum(:error_count)
-    
-    return 100.0 if total_ops.zero?
-    ((total_ops - total_errors).to_f / total_ops * 100).round(1)
+
+  class << self
+    private
+
+    def calculate_success_rate(logs)
+      return 100.0 if logs.empty?
+
+      total_ops = logs.sum(:created_count) + logs.sum(:updated_count) +
+        logs.sum(:deleted_count) + logs.sum("COALESCE(unchanged_count, 0)")
+      total_errors = logs.sum(:error_count)
+
+      return 100.0 if total_ops.zero?
+      ((total_ops - total_errors).to_f / total_ops * 100).round(1)
+    end
   end
 end
