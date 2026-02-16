@@ -58,6 +58,10 @@ class ScrapingMonitor
     # Snapshot PaperTrail versions before scraping
     @version_snapshot_before = capture_version_snapshot
 
+    # Subscribe to Rails error reporter to catch ALL exceptions
+    # (even those caught and handled within scraping methods)
+    error_subscriber = subscribe_to_errors
+
     # Track DB changes
     track_database_changes do
       # Track exceptions
@@ -70,6 +74,9 @@ class ScrapingMonitor
       raise  # Re-raise nach Logging
     end
   ensure
+    # Unsubscribe from error reporter
+    Rails.error.unsubscribe(error_subscriber) if error_subscriber
+
     # Analyze PaperTrail versions after scraping
     analyze_versions
     log_summary
@@ -112,6 +119,33 @@ class ScrapingMonitor
   end
 
   private
+
+  def subscribe_to_errors
+    # Subscribe to Rails.error to catch all exceptions during scraping
+    # Even those that are rescued/handled by the scraping methods
+    return nil unless defined?(Rails.error)
+
+    Rails.error.subscribe do |error, handled:, severity:, context:|
+      # Only track errors during our scraping operation
+      # Ignore already-handled low-severity errors
+      next if severity == :warning
+      next if handled && severity == :info
+
+      # Record the error
+      @stats[:errors] += 1
+      @errors << {
+        context: context[:context] || @context,
+        error: error,
+        handled: handled,
+        severity: severity
+      }
+
+      Rails.logger.error "  ⚠️  Caught error: #{error.class.name}: #{error.message}"
+    end
+  rescue => e
+    Rails.logger.warn "Could not subscribe to error reporter: #{e.message}"
+    nil
+  end
 
   def capture_version_snapshot
     # Snapshot der aktuellen Version IDs nach Model
