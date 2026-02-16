@@ -156,7 +156,7 @@ HEATER OFF - #{name}#{reason.present? ? " because of #{reason}" : ""}" if DEBUG_
   end
 
   def heater_auto_off?
-    event_summary.andand.match(/!/)
+    event_summary.andand.include?("(!)")
   end
 
   def short_event_summary
@@ -185,6 +185,8 @@ HEATER OFF - #{name}#{reason.present? ? " because of #{reason}" : ""}" if DEBUG_
 
   def heater_off_on_idle(event_ids: [])
     Rails.logger.info "Reservations: #{name} heater_off_on_idle..." if DEBUG_CALENDAR
+    # Capture before we may clear it (when event not in event_ids), so "(!)" check still works
+    current_event_summary = event_summary
     if event_id.present? && !event_ids.include?(event_id)
       if event_end < DateTime.now
         Rails.logger.info "Reservations: #{name} Event #{event_summary} has finished!" if DEBUG_CALENDAR
@@ -230,7 +232,9 @@ HEATER OFF - #{name}#{reason.present? ? " because of #{reason}" : ""}" if DEBUG_
         end
       end
 
-      if !heater_auto_off? && heater_switched_on_at.present? && heater_switched_off_at.blank?
+      # Use current_event_summary (captured at start) so we don't turn off when event had "(!)" even if we cleared it above
+      allow_auto_off = !current_event_summary.to_s.include?("(!)")
+      if allow_auto_off && heater_switched_on_at.present? && heater_switched_off_at.blank?
         heater_off!("inactivity detected")
       end
     end
