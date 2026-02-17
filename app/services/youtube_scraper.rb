@@ -30,6 +30,32 @@ class YoutubeScraper
     end
   end
 
+  # Test API access
+  def test_api_access
+    Rails.logger.info "[YoutubeScraper] Testing YouTube API access..."
+    Rails.logger.info "[YoutubeScraper] API Key present: #{@youtube.key.present?}"
+    Rails.logger.info "[YoutubeScraper] API Key (first 10 chars): #{@youtube.key[0..9]}..." if @youtube.key.present?
+    
+    # Try a simple API call
+    response = youtube.list_channels('snippet', id: 'UC_x5XG1OV2P6uZZ5FSM9Ttw') # Google Developers channel
+    
+    if response&.items&.any?
+      Rails.logger.info "[YoutubeScraper] ✅ API access successful!"
+      Rails.logger.info "[YoutubeScraper] Test channel: #{response.items.first.snippet.title}"
+      true
+    else
+      Rails.logger.error "[YoutubeScraper] ❌ API returned empty response"
+      false
+    end
+  rescue Google::Apis::ClientError => e
+    Rails.logger.error "[YoutubeScraper] ❌ YouTube API error: #{e.message}"
+    Rails.logger.error "[YoutubeScraper] Status: #{e.status_code}"
+    false
+  rescue StandardError => e
+    Rails.logger.error "[YoutubeScraper] ❌ Unexpected error: #{e.message}"
+    false
+  end
+
   # Scrape a specific channel by ID
   def scrape_channel(channel_id, days_back: 30)
     Rails.logger.info "[YoutubeScraper] Scraping channel #{channel_id} (#{days_back} days back)"
@@ -39,7 +65,7 @@ class YoutubeScraper
     
     if channel_response.nil? || channel_response.items.nil? || channel_response.items.empty?
       Rails.logger.warn "[YoutubeScraper] No channel found for ID #{channel_id}"
-      return []
+      return 0
     end
 
     channel = channel_response.items.first
@@ -62,11 +88,11 @@ class YoutubeScraper
   rescue Google::Apis::ClientError => e
     Rails.logger.error "[YoutubeScraper] YouTube API error for channel #{channel_id}: #{e.message}"
     Rails.logger.error "[YoutubeScraper] Status: #{e.status_code}, Body: #{e.body}"
-    []
+    0
   rescue StandardError => e
     Rails.logger.error "[YoutubeScraper] Unexpected error for channel #{channel_id}: #{e.message}"
     Rails.logger.error e.backtrace.first(5).join("\n")
-    []
+    0
   end
 
   # Scrape all known YouTube channels
