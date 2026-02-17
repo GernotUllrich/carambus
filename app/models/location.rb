@@ -220,7 +220,7 @@ class Location < ApplicationRecord
       off_str = I18n.l t.heater_switched_off_at.utc.in_time_zone("Berlin") if t.heater_switched_off_at.present?
       if heater_on
         if on_str && off_str.blank?
-          hash[t.name][:heater] << "Heater on by Program at #{on_str}, reason: #{t.heater_off_reason}"
+          hash[t.name][:heater] << "Heater on by Program at #{on_str}, reason: #{t.heater_on_reason}"
         elsif on_str && off_str
           hash[t.name][:heater] << "Inconsistence: Heater switched off by Program at #{off_str} but is on now!, \
 Off Reason was: #{t.heater_off_reason}"
