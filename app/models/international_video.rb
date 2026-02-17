@@ -160,7 +160,7 @@ class InternationalVideo < ApplicationRecord
       if patterns.any? { |pattern| text.include?(pattern.downcase) }
         # Try to find discipline, prefer klein (small table) if ambiguous
         found = Discipline.where('name ILIKE ?', "%#{discipline_name}%")
-                         .order("CASE WHEN name ILIKE '%klein%' THEN 0 ELSE 1 END")
+                         .order(Arel.sql("CASE WHEN name ILIKE '%klein%' THEN 0 ELSE 1 END"))
                          .first
         return found if found
       end
