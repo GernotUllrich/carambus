@@ -76,3 +76,11 @@ Thumbs.db
 
 # Ignore uploaded files
 /public/uploads
+
+# Ignore scenario-specific generated files (generated from carambus_data/*/config.yml)
+/config/deploy/production.rb
+/config/environments/development.rb
+/config/scoreboard_url
+/env.development
+/doc/doc-local/**/*.log
+/doc/doc-local/**/*.md
