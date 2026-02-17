@@ -94,8 +94,13 @@ Die Tischheizungen werden automatisch basierend auf Kalendereinträgen und Score
 1. Event "T5 Test (!)" 16:25-17:25
 2. Heizung AN ab 14:25 (2h Vorheizung)
 3. Heizung bleibt AN bis 17:25 (auch ohne Scoreboard-Aktivität)
-4. Um 17:30: Event ist beendet → Heizung wird AUSGESCHALTET
-5. Event wird aus Liste entfernt
+4. Um 17:30: Event ist beendet → Event wird gelöscht → Heizung wird SOFORT AUSGESCHALTET
+5. Heizung geht AUS auch wenn Scoreboard noch läuft (Spieler hat vergessen auszuschalten)
+
+**Technische Details:**
+- Protection gilt nur WÄHREND event_id present ist
+- Nach Event-Ende: Sofortiges Ausschalten, kein Warten auf Scoreboard
+- Grund: "event finished" statt "inactivity detected"
 
 ### Regel 6: Turnier-Reservierungen
 

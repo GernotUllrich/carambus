@@ -232,18 +232,28 @@ class Table < ApplicationRecord
   def heater_off_on_idle(event_ids: [])
     # Check if event has been removed/cancelled (only log on state change)
     event_was_removed = false
+    event_finished = false
     if event_id.present? && !event_ids.include?(event_id)
       if event_end < DateTime.now
         Rails.logger.info "📅 #{name}: Event '#{event_summary}' has finished" if DEBUG_CALENDAR
         event_was_removed = true
+        event_finished = true
       else
         Rails.logger.warn "📅 #{name}: Event '#{event_summary}' was cancelled!" if DEBUG_CALENDAR
+        event_was_removed = true
       end
       self.event_id = nil
       self.event_summary = nil
       self.event_start = nil
       self.event_end = nil
       save if id >= Table::MIN_ID # heater is updated on TableLocal record
+      
+      # IMPORTANT: If event finished, turn off heater immediately
+      # even if scoreboard is still on (player might forget to turn it off)
+      if event_finished && heater_switched_on_at.present? && heater_switched_off_at.blank?
+        heater_off!("event finished")
+        return
+      end
     end
     
     scoreboard_really_on = scoreboard_on?
@@ -290,17 +300,10 @@ class Table < ApplicationRecord
         end
       end
 
-      # Turn off heater if:
-      # - No active event (event_id is nil) OR
-      # - Event is not protected OR  
-      # - Event was just removed because it finished
-      # AND heater is currently on
+      # Turn off heater due to inactivity (no scoreboard activity)
+      # Note: event_was_removed case is already handled above (early return after heater_off!)
       if heater_switched_on_at.present? && heater_switched_off_at.blank?
-        if event_was_removed
-          heater_off!("event finished")
-        else
-          heater_off!("inactivity detected")
-        end
+        heater_off!("inactivity detected")
       end
     end
   end
