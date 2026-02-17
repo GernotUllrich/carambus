@@ -230,13 +230,12 @@ class Table < ApplicationRecord
   end
 
   def heater_off_on_idle(event_ids: [])
-    # Capture before we may clear it (when event not in event_ids), so "(!)" check still works
-    current_event_summary = event_summary
-    
     # Check if event has been removed/cancelled (only log on state change)
+    event_was_removed = false
     if event_id.present? && !event_ids.include?(event_id)
       if event_end < DateTime.now
         Rails.logger.info "📅 #{name}: Event '#{event_summary}' has finished" if DEBUG_CALENDAR
+        event_was_removed = true
       else
         Rails.logger.warn "📅 #{name}: Event '#{event_summary}' was cancelled!" if DEBUG_CALENDAR
       end
@@ -282,13 +281,26 @@ class Table < ApplicationRecord
         if event_start.to_i <= DateTime.now.to_i && (DateTime.now.to_i - event_start.to_i) / 1.minute < 30
           return
         end
+        
+        # Protected events (with "(!)" in title) keep heater ON during the event
+        # But protection only applies while event is still active (event_id present)
+        if heater_protected?
+          Rails.logger.info "⚠️  #{name}: Event is protected (!), keeping heater on despite inactivity" if DEBUG_CALENDAR
+          return
+        end
       end
 
-      # Use current_event_summary (captured at start) so we don't turn off when event had "(!)" even if we cleared it above
-      # Protected events (with "(!)" in title) keep heater ON regardless of activity
-      event_is_protected = current_event_summary.to_s.include?("(!)")
-      if !event_is_protected && heater_switched_on_at.present? && heater_switched_off_at.blank?
-        heater_off!("inactivity detected")
+      # Turn off heater if:
+      # - No active event (event_id is nil) OR
+      # - Event is not protected OR  
+      # - Event was just removed because it finished
+      # AND heater is currently on
+      if heater_switched_on_at.present? && heater_switched_off_at.blank?
+        if event_was_removed
+          heater_off!("event finished")
+        else
+          heater_off!("inactivity detected")
+        end
       end
     end
   end

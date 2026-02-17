@@ -680,13 +680,16 @@ class TableHeaterManagementTest < ActiveSupport::TestCase
     assert_equal false, heater_off_called, "Heater should stay on for protected (!) events"
   end
   
-  test "heater_off_on_idle respects (!) even after event is cleared" do
+  test "heater_off_on_idle keeps heater on during protected event (active event)" do
+    event_start = DateTime.now - 1.hour
+    event_end = DateTime.now + 1.hour  # Event is still running!
+    
     @table.table_local.update!(
-      event_id: "old_event",
+      event_id: "active_protected_event",
       event_summary: "T5 Important Event (!)",
-      event_start: DateTime.now - 3.hours,
-      event_end: DateTime.now - 1.hour,
-      heater_switched_on_at: DateTime.now - 3.hours,
+      event_start: event_start,
+      event_end: event_end,
+      heater_switched_on_at: event_start,
       heater_switched_off_at: nil
     )
     
@@ -694,14 +697,44 @@ class TableHeaterManagementTest < ActiveSupport::TestCase
     @table.stub(:scoreboard_on?, false) do
       @table.stub(:scoreboard?, false) do
         @table.stub(:heater_off!, proc { heater_off_called = true }) do
+          @table.heater_off_on_idle(event_ids: ["active_protected_event"])
+        end
+      end
+    end
+    
+    # Event is still active and protected - heater should stay ON
+    assert_equal "active_protected_event", @table.event_id
+    assert_equal false, heater_off_called, "Heater should stay on during protected (!) event"
+  end
+  
+  test "heater_off_on_idle turns off heater when protected event finishes" do
+    @table.table_local.update!(
+      event_id: "old_event",
+      event_summary: "T5 Important Event (!)",
+      event_start: DateTime.now - 3.hours,
+      event_end: DateTime.now - 1.hour,  # Event ended 1 hour ago
+      heater_switched_on_at: DateTime.now - 3.hours,
+      heater_switched_off_at: nil
+    )
+    
+    heater_off_called = false
+    heater_off_reason = nil
+    @table.stub(:scoreboard_on?, false) do
+      @table.stub(:scoreboard?, false) do
+        @table.stub(:heater_off!, ->(reason) { 
+          heater_off_called = true
+          heater_off_reason = reason
+        }) do
           @table.heater_off_on_idle(event_ids: ["other_event"])
         end
       end
     end
     
-    # Event should be cleared but heater stays on because it had (!)
+    # Event should be cleared AND heater should be turned off (even with "(!)")
+    # because the event has finished
     assert_nil @table.event_id
-    assert_equal false, heater_off_called, "Heater respects protected (!) flag even after event cleared"
+    assert_equal true, heater_off_called, "Heater should turn off when protected event finishes"
+    assert_equal "event finished", heater_off_reason
   end
   
   # ============================================================================

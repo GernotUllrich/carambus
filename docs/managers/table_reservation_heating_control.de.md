@@ -88,6 +88,15 @@ Die Tischheizungen werden automatisch basierend auf Kalendereinträgen und Score
 
 **Beispiel:** "T1-T6 Vereinsmeisterschaft (!)" → Heizung bleibt von Vorheizzeit bis Ende-Zeit durchgehend an
 
+**Wichtig:** Nach Ende der Reservierung wird die Heizung AUSGESCHALTET, auch bei "(!)" Events
+
+**Ablauf:**
+1. Event "T5 Test (!)" 16:25-17:25
+2. Heizung AN ab 14:25 (2h Vorheizung)
+3. Heizung bleibt AN bis 17:25 (auch ohne Scoreboard-Aktivität)
+4. Um 17:30: Event ist beendet → Heizung wird AUSGESCHALTET
+5. Event wird aus Liste entfernt
+
 ### Regel 6: Turnier-Reservierungen
 
 **Automatisch:** Turniere werden automatisch im Kalender eingetragen

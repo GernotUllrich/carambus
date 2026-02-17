@@ -93,9 +93,10 @@ Die Tests sind in folgende Kategorien organisiert:
 - ✅ Keine Logs für normale Checks
 
 ### 11. **(!)-Ausnahme Tests**
-- ✅ Heizung bleibt AN bei "(!)" im Titel
-- ✅ Regel gilt auch nach Event-Löschung
-- ✅ heater_protected Flag korrekt
+- ✅ Heizung bleibt AN bei "(!)" während Event läuft
+- ✅ Heizung geht AUS wenn Event beendet ist (auch mit "(!)")
+- ✅ heater_protected? Flag korrekt
+- ✅ Logging für protected events
 
 ### 12. **Integration Tests**
 - ✅ Kompletter Workflow: Event → Scoreboard AN → Scoreboard AUS → Heizung AUS
@@ -147,9 +148,11 @@ test "heater_off_on_idle keeps heater on during 30-minute grace period after sta
 ### Regel 5: (!)-Ausnahme (Protected Events)
 ```ruby
 test "heater_protected? returns true when event_summary contains (!)"
-test "heater_off_on_idle respects protected events (!) and keeps heater on"
-test "heater_off_on_idle respects (!) even after event is cleared"
+test "heater_off_on_idle keeps heater on during protected event (active event)"
+test "heater_off_on_idle turns off heater when protected event finishes"
 ```
+
+**Wichtig:** Protection gilt nur während der Event-Laufzeit, NICHT danach!
 
 ### Regel 6: Turnier-Absage
 ```ruby
