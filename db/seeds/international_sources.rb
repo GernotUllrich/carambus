@@ -5,49 +5,43 @@
 
 puts "Seeding international sources..."
 
-# Seed known YouTube channels with their channel IDs
+# Seed known YouTube channels with their verified channel IDs
+# Channel IDs verified using: rails international:find_channel_id[@handle]
+
 InternationalSource.find_or_create_by!(
-  name: 'Kozoom',
+  name: 'Kozoom Carom',
   source_type: InternationalSource::YOUTUBE
 ) do |source|
-  source.base_url = 'https://www.youtube.com/@kozoom'
+  source.base_url = 'https://www.youtube.com/channel/UCOwcct1FjXWzlvmQxaR4Y8Q'
   source.metadata = {
-    key: 'kozoom',
-    channel_id: 'UCNbRBHkg56WmZ8NljJOp3SQ',
+    key: 'kozoom_carom',
+    channel_id: 'UCOwcct1FjXWzlvmQxaR4Y8Q',
     priority: 1,
-    description: 'Professional carom billiards streaming service',
-    estimated_quota: 'high'
+    description: 'Official Carom Youtube channel of Kozoom, active promoter since 1998',
+    estimated_quota: 'high',
+    verified_date: '2026-02-17'
   }
   puts "  Created: #{source.name}"
 end
 
 InternationalSource.find_or_create_by!(
-  name: 'Five & Six',
+  name: 'Kozoom Pool',
   source_type: InternationalSource::YOUTUBE
 ) do |source|
-  source.base_url = 'https://www.youtube.com/@fiveandsix'
+  source.base_url = 'https://www.youtube.com/channel/UCCgd8_MFdqMHXYSE91KUxQQ'
   source.metadata = {
-    key: 'fiveandsix',
-    channel_id: 'UCsLw74IkpO3kbRChP0LoMMA',
-    priority: 1,
-    description: 'Billiard tournament coverage'
+    key: 'kozoom_pool',
+    channel_id: 'UCCgd8_MFdqMHXYSE91KUxQQ',
+    priority: 3,
+    description: 'Official Pool Youtube channel of Kozoom (less relevant for carom)',
+    verified_date: '2026-02-17'
   }
   puts "  Created: #{source.name}"
 end
 
-InternationalSource.find_or_create_by!(
-  name: 'CEB Carom',
-  source_type: InternationalSource::YOUTUBE
-) do |source|
-  source.base_url = 'https://www.youtube.com/@CEBCarom'
-  source.metadata = {
-    key: 'ceb_carom',
-    channel_id: 'UCxkXXKvFLMjBMYVVKHQGsKg',
-    priority: 2,
-    description: 'Confédération Européenne de Billard'
-  }
-  puts "  Created: #{source.name}"
-end
+# Note: Other channels need to be verified using rake task
+# rails international:find_channel_id[fiveandsix]
+# rails international:find_channel_id[ceb]
 
 # Seed federations
 InternationalSource.find_or_create_by!(

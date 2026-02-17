@@ -56,31 +56,25 @@ class InternationalSource < ApplicationRecord
 
   # Known YouTube channels for carom billiards
   # Note: Channel IDs are needed because modern @handles don't work with for_username API
-  # To find a channel ID: Open channel page, View Page Source, search for "channelId"
+  # To find a channel ID: Use rake task: rails international:find_channel_id[@handle]
   KNOWN_YOUTUBE_CHANNELS = {
-    'kozoom' => {
-      name: 'Kozoom',
-      channel_id: 'UCNbRBHkg56WmZ8NljJOp3SQ', # Kozoom official channel
+    'kozoom_carom' => {
+      name: 'Kozoom Carom',
+      channel_id: 'UCOwcct1FjXWzlvmQxaR4Y8Q', # Verified 2026-02-17
       base_url: 'https://www.youtube.com/@kozoom',
       priority: 1,
-      description: 'Professional carom billiards streaming service'
+      description: 'Official Carom Youtube channel of Kozoom, active promoter of billiards since 1998'
     },
-    'fiveandsix' => {
-      name: 'Five & Six',
-      channel_id: 'UCsLw74IkpO3kbRChP0LoMMA', # Five & Six official channel
-      base_url: 'https://www.youtube.com/@fiveandsix',
-      priority: 1,
-      description: 'Billiard tournament coverage'
-    },
-    'ceb_carom' => {
-      name: 'CEB Carom',
-      channel_id: 'UCxkXXKvFLMjBMYVVKHQGsKg', # CEB Carom official channel
-      base_url: 'https://www.youtube.com/@CEBCarom',
-      priority: 2,
-      description: 'Confédération Européenne de Billard'
+    'kozoom_pool' => {
+      name: 'Kozoom Pool',
+      channel_id: 'UCCgd8_MFdqMHXYSE91KUxQQ', # Verified 2026-02-17
+      base_url: 'https://www.youtube.com/@kozoom',
+      priority: 3,
+      description: 'Official Pool Youtube channel of Kozoom (less relevant for carom)'
     }
-    # More channels can be added here
-    # To find channel ID: youtube.com/@handle → View Source → search "channelId"
+    # Note: Five & Six and CEB Carom channels need to be verified
+    # Use: rails international:find_channel_id[fiveandsix]
+    # Use: rails international:find_channel_id[ceb]
   }.freeze
 
   # Known federation websites
