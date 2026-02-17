@@ -55,26 +55,32 @@ class InternationalSource < ApplicationRecord
   }
 
   # Known YouTube channels for carom billiards
+  # Note: Channel IDs are needed because modern @handles don't work with for_username API
+  # To find a channel ID: Open channel page, View Page Source, search for "channelId"
   KNOWN_YOUTUBE_CHANNELS = {
     'kozoom' => {
       name: 'Kozoom',
+      channel_id: 'UCNbRBHkg56WmZ8NljJOp3SQ', # Kozoom official channel
       base_url: 'https://www.youtube.com/@kozoom',
       priority: 1,
       description: 'Professional carom billiards streaming service'
     },
     'fiveandsix' => {
       name: 'Five & Six',
+      channel_id: 'UCsLw74IkpO3kbRChP0LoMMA', # Five & Six official channel
       base_url: 'https://www.youtube.com/@fiveandsix',
       priority: 1,
       description: 'Billiard tournament coverage'
     },
     'ceb_carom' => {
       name: 'CEB Carom',
+      channel_id: 'UCxkXXKvFLMjBMYVVKHQGsKg', # CEB Carom official channel
       base_url: 'https://www.youtube.com/@CEBCarom',
       priority: 2,
       description: 'Confédération Européenne de Billard'
     }
     # More channels can be added here
+    # To find channel ID: youtube.com/@handle → View Source → search "channelId"
   }.freeze
 
   # Known federation websites

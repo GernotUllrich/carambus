@@ -5,7 +5,7 @@
 
 puts "Seeding international sources..."
 
-# Seed known YouTube channels
+# Seed known YouTube channels with their channel IDs
 InternationalSource.find_or_create_by!(
   name: 'Kozoom',
   source_type: InternationalSource::YOUTUBE
@@ -13,6 +13,7 @@ InternationalSource.find_or_create_by!(
   source.base_url = 'https://www.youtube.com/@kozoom'
   source.metadata = {
     key: 'kozoom',
+    channel_id: 'UCNbRBHkg56WmZ8NljJOp3SQ',
     priority: 1,
     description: 'Professional carom billiards streaming service',
     estimated_quota: 'high'
@@ -27,6 +28,7 @@ InternationalSource.find_or_create_by!(
   source.base_url = 'https://www.youtube.com/@fiveandsix'
   source.metadata = {
     key: 'fiveandsix',
+    channel_id: 'UCsLw74IkpO3kbRChP0LoMMA',
     priority: 1,
     description: 'Billiard tournament coverage'
   }
@@ -40,6 +42,7 @@ InternationalSource.find_or_create_by!(
   source.base_url = 'https://www.youtube.com/@CEBCarom'
   source.metadata = {
     key: 'ceb_carom',
+    channel_id: 'UCxkXXKvFLMjBMYVVKHQGsKg',
     priority: 2,
     description: 'Confédération Européenne de Billard'
   }

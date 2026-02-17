@@ -62,9 +62,13 @@ class YoutubeScraper
     total_saved = 0
     
     InternationalSource::KNOWN_YOUTUBE_CHANNELS.each do |key, data|
-      # Extract channel ID from URL or use directly
-      channel_id = extract_channel_id(data[:base_url])
-      next if channel_id.blank?
+      # Use channel_id directly from metadata
+      channel_id = data[:channel_id]
+      
+      if channel_id.blank?
+        Rails.logger.warn "[YoutubeScraper] No channel_id for #{key}, skipping"
+        next
+      end
       
       begin
         count = scrape_channel(channel_id, days_back: days_back)
@@ -128,23 +132,14 @@ class YoutubeScraper
     # Handle different YouTube URL formats
     if url.match(%r{youtube\.com/channel/([^/]+)})
       Regexp.last_match(1)
-    elsif url.match(%r{youtube\.com/@([^/]+)})
-      # Handle @username format - need to resolve to channel ID
-      username = Regexp.last_match(1)
-      resolve_username_to_channel_id(username)
     elsif url.match(/^UC/)
       # Direct channel ID
       url
+    else
+      # For @username URLs, channel ID must be provided separately
+      # Modern YouTube @handles don't work with for_username API
+      nil
     end
-  end
-
-  # Resolve @username to channel ID
-  def resolve_username_to_channel_id(username)
-    response = youtube.list_channels('id', for_username: username)
-    response.items.first&.id
-  rescue StandardError => e
-    Rails.logger.error "[YoutubeScraper] Error resolving username #{username}: #{e.message}"
-    nil
   end
 
   # Find or create international source from channel
