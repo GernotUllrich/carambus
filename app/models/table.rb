@@ -66,64 +66,66 @@ class Table < ApplicationRecord
   end
 
   def heater_on!(reason = "")
-    Rails.logger.info "Reservations: #{name} heater_on! ..." if DEBUG_CALENDAR
+    # Only log if heater is actually being turned ON (state change)
+    was_off = heater_switched_off_at.present? || heater_switched_on_at.blank?
+    return unless was_off # Already on, skip
+    
     res = {}
     if Rails.env == "production"
-      Rails.logger.info "Reservations: HEATER ON - #{name}#{reason.present? ? " because of #{reason}" : ""}" if DEBUG_CALENDAR
+      Rails.logger.info "🔥 HEATER ON - #{name} (reason: #{reason})" if DEBUG_CALENDAR
       res = perform("on")
     else
-      Rails.logger.info "Reservations: would do: HEATER ON - #{name}#{reason.present? ? " because of #{reason}" : ""}" if DEBUG_CALENDAR
+      Rails.logger.info "🔥 HEATER ON (dev) - #{name} (reason: #{reason})" if DEBUG_CALENDAR
     end
     unless res["error"].present?
       self.heater_switched_on_at = DateTime.now
       self.heater_switched_off_at = nil
       self.heater_on_reason = reason
       self.heater = true
-      Rails.logger.info "Reservations: Heater switch on detected #{JSON.pretty_generate table_local.attributes}" if DEBUG_CALENDAR
       save if id >= Table::MIN_ID # heater is updated on TableLocal record
     end
     res
   end
 
   def heater_off!(reason = "")
-    # Enhanced logging with full context for debugging
-    context = {
-      table: name,
-      reason: reason,
-      event_id: event_id,
-      event_summary: event_summary,
-      event_start: event_start,
-      event_end: event_end,
-      scoreboard: scoreboard,
-      scoreboard_off_at: scoreboard_off_at,
-      heater_switched_on_at: heater_switched_on_at,
-      allow_auto_off: !event_summary.to_s.include?("(!)"),
-      time_since_event_start: event_start.present? ? ((DateTime.now.to_i - event_start.to_i) / 1.minute).round(1) : nil,
-      time_until_event_end: event_end.present? ? ((event_end.to_i - DateTime.now.to_i) / 1.minute).round(1) : nil
-    }
-    Rails.logger.warn "🔥 HEATER OFF: #{JSON.pretty_generate(context)}" if DEBUG_CALENDAR
+    # Only log if heater is actually being turned OFF (state change)
+    was_on = heater_switched_on_at.present? && heater_switched_off_at.blank?
+    return unless was_on # Already off, skip
+    
+    # Enhanced logging with full context for debugging (only on state change)
+    if DEBUG_CALENDAR
+      context = {
+        table: name,
+        reason: reason,
+        event_id: event_id,
+        event_summary: event_summary,
+        event_start: event_start,
+        event_end: event_end,
+        scoreboard: scoreboard,
+        scoreboard_off_at: scoreboard_off_at,
+        heater_switched_on_at: heater_switched_on_at,
+        allow_auto_off: !event_summary.to_s.include?("(!)"),
+        time_since_event_start: event_start.present? ? ((DateTime.now.to_i - event_start.to_i) / 1.minute).round(1) : nil,
+        time_until_event_end: event_end.present? ? ((event_end.to_i - DateTime.now.to_i) / 1.minute).round(1) : nil
+      }
+      Rails.logger.warn "🔥 HEATER OFF: #{JSON.pretty_generate(context)}"
+    end
     
     res = {}
     if Rails.env == "production"
-      Rails.logger.info "Reservations: #{name} HEATER OFF - #{name}#{reason.present? ? " because of #{reason}" : ""}" if DEBUG_CALENDAR
       res = perform("off")
-    else
-      Rails.logger.info "Reservations: #{name} would do: \
-HEATER OFF - #{name}#{reason.present? ? " because of #{reason}" : ""}" if DEBUG_CALENDAR
     end
     unless res["error"].present?
       self.heater_switched_off_at = DateTime.now
       self.heater_off_reason = reason
       self.heater = false
-      Rails.logger.info "Reservations: #{name} Heater switch off detected \
-#{JSON.pretty_generate table_local.attributes}" if DEBUG_CALENDAR
       save if id >= Table::MIN_ID # heater is updated on TableLocal record
     end
     res
   end
 
   def scoreboard_on?
-    Rails.logger.info "Reservations: #{name} scoreboard_on?..." if DEBUG_CALENDAR
+    # No logging for status checks - only log state changes
     if ip_address.present?
       pt = Net::Ping::External.new(ip_address)
       pt.ping?
@@ -133,14 +135,13 @@ HEATER OFF - #{name}#{reason.present? ? " because of #{reason}" : ""}" if DEBUG_
   end
 
   def heater_on?
-    Rails.logger.info "Reservations: #{name} heater_on?..." if DEBUG_CALENDAR
+    # No logging for status checks - only log state changes
     if Rails.env == "production"
       v = perform("info")
       heater_status = nil
       unless v["error"].present?
         heater_status = v["system"]["get_sysinfo"]["relay_state"] == 1
         self.heater = heater_status
-        Rails.logger.info "Reservations: #{name} Check Heater Status - is #{heater_status}" if DEBUG_CALENDAR
         save if id >= Table::MIN_ID # heater is updated on TableLocal record
       end
       heater_status
@@ -155,17 +156,20 @@ HEATER OFF - #{name}#{reason.present? ? " because of #{reason}" : ""}" if DEBUG_
     if ["Snooker", "Match Billard"].include?(table_kind.name) ||
       (((event.start.date || event.start.date_time).to_i - DateTime.now.to_i) / 1.hour) < pre_heating_time_in_hours &&
         ((event.end.date || event.end.date_time).to_i - DateTime.now.to_i).positive?
-      Rails.logger.info "Reservations: #{name} check_heater_on \
-#{JSON.pretty_generate table_local&.attributes.to_s} #{event.summary}..." if DEBUG_CALENDAR
-      if event_id != event.id || (table_kind.name != "Pool" && !heater_on?)
+      
+      # Only log when event changes (new event detected)
+      if event_id != event.id
+        Rails.logger.info "📅 #{name}: New event detected - #{event.summary}" if DEBUG_CALENDAR
         self.event_id = event.id
         self.event_summary = event.summary
         self.event_start = event.start.date || event.start.date_time
         self.event_end = event.end.date || event.end.date_time
         self.event_creator = event.creator.email
         heater_on!("event") unless table_kind.name == "Pool"
-        Rails.logger.info "Reservations: #{name} event detected #{JSON.pretty_generate table_local.attributes}" if DEBUG_CALENDAR
         save if id >= Table::MIN_ID # heater is updated on TableLocal record
+      elsif table_kind.name != "Pool" && !heater_on?
+        # Heater should be on but isn't - turn it on
+        heater_on!("event")
       elsif DateTime.now > event_start + 30.minutes
         # Event started more than 30 minutes ago - check if heater should be turned off due to inactivity
         heater_off_on_idle(event_ids: event_ids) unless table_kind.name == "Pool"
@@ -189,7 +193,7 @@ HEATER OFF - #{name}#{reason.present? ? " because of #{reason}" : ""}" if DEBUG_
   end
 
   def check_heater_off(event_ids: [])
-    Rails.logger.info "Reservations: #{name} check_heater_off..." if DEBUG_CALENDAR
+    # No logging here - heater_off_on_idle will log state changes
     heater_off_on_idle(event_ids: event_ids)
   end
 
@@ -202,14 +206,15 @@ HEATER OFF - #{name}#{reason.present? ? " because of #{reason}" : ""}" if DEBUG_
   end
 
   def heater_off_on_idle(event_ids: [])
-    Rails.logger.info "Reservations: #{name} heater_off_on_idle..." if DEBUG_CALENDAR
     # Capture before we may clear it (when event not in event_ids), so "(!)" check still works
     current_event_summary = event_summary
+    
+    # Check if event has been removed/cancelled (only log on state change)
     if event_id.present? && !event_ids.include?(event_id)
       if event_end < DateTime.now
-        Rails.logger.info "Reservations: #{name} Event #{event_summary} has finished!" if DEBUG_CALENDAR
+        Rails.logger.info "📅 #{name}: Event '#{event_summary}' has finished" if DEBUG_CALENDAR
       else
-        Rails.logger.info "Reservations: #{name} Event #{event_summary} has been cancelled!" if DEBUG_CALENDAR
+        Rails.logger.warn "📅 #{name}: Event '#{event_summary}' was cancelled!" if DEBUG_CALENDAR
       end
       self.event_id = nil
       self.event_summary = nil
@@ -217,14 +222,16 @@ HEATER OFF - #{name}#{reason.present? ? " because of #{reason}" : ""}" if DEBUG_
       self.event_end = nil
       save if id >= Table::MIN_ID # heater is updated on TableLocal record
     end
+    
     scoreboard_really_on = scoreboard_on?
+    
+    # Scoreboard state changes - only log when state actually changes
     if scoreboard_really_on
       unless scoreboard?
         self.scoreboard = true
         self.scoreboard_on_at = DateTime.now
         self.scoreboard_off_at = nil
-        Rails.logger.info "Reservations: #{name} Scoreboard switch on detected - \
-#{JSON.pretty_generate table_local.attributes}" if DEBUG_CALENDAR
+        Rails.logger.info "📺 #{name}: Scoreboard switched ON" if DEBUG_CALENDAR
         save if id >= Table::MIN_ID # heater is updated on TableLocal record
       end
       heater_on!("activity detected")
@@ -232,24 +239,23 @@ HEATER OFF - #{name}#{reason.present? ? " because of #{reason}" : ""}" if DEBUG_
       if scoreboard?
         self.scoreboard = false
         self.scoreboard_off_at = DateTime.now
-        Rails.logger.info "Reservations: #{name} Scoreboard switch off detected - \
-#{JSON.pretty_generate table_local.attributes}" if DEBUG_CALENDAR
+        Rails.logger.info "📺 #{name}: Scoreboard switched OFF" if DEBUG_CALENDAR
         save if id >= Table::MIN_ID # heater is updated on TableLocal record
       end
 
       if event_id.present?
         # Event noch nicht gestartet und startet in < 120 Minuten: Heizung bleibt an
         # (Vorheizphase - Event wurde erkannt und Heizung ist bereits an)
+        # No logging - this is normal operation
         if event_start.to_i > DateTime.now.to_i && (event_start.to_i - DateTime.now.to_i) / 1.minute < 120
-          Rails.logger.info "Reservations: #{name} Event not started yet, keeping heater on (starts in #{((event_start.to_i - DateTime.now.to_i) / 1.minute).round(1)} min)" if DEBUG_CALENDAR
           return
         end
         
         # Event bereits gestartet: Heizung nur an lassen, wenn innerhalb der ersten 30 Minuten
         # (gibt dem Spieler Zeit, das Scoreboard einzuschalten)
         # Nach 30 Minuten ohne Scoreboard-Aktivität wird die Heizung ausgeschaltet
+        # No logging - this is normal operation
         if event_start.to_i <= DateTime.now.to_i && (DateTime.now.to_i - event_start.to_i) / 1.minute < 30
-          Rails.logger.info "Reservations: #{name} Event started #{((DateTime.now.to_i - event_start.to_i) / 1.minute).round(1)} min ago, waiting for scoreboard activity (30 min grace period)" if DEBUG_CALENDAR
           return
         end
       end
