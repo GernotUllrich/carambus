@@ -74,13 +74,14 @@ class ProcessUnprocessedVideosJob < ApplicationJob
   def extract_basic_metadata(video)
     metadata = {}
     
-    # Extract year if present (handles both "2026" and "2025/2026" formats)
-    if video.title.match?(/\b(20\d{2})(?:\/20\d{2})?\b/)
-      metadata['year'] = Regexp.last_match(1).to_i
-    elsif video.title.match?(/\b(20\d{2})\/(20\d{2})\b/)
+    # Extract year (check season format FIRST before single year)
+    if video.title.match?(/\b(20\d{2})\/(20\d{2})\b/)
       # For season format "2025/2026", use the second year
       metadata['year'] = Regexp.last_match(2).to_i
       metadata['season'] = "#{Regexp.last_match(1)}/#{Regexp.last_match(2)}"
+    elsif video.title.match?(/\b(20\d{2})\b/)
+      # Single year format
+      metadata['year'] = Regexp.last_match(1).to_i
     end
     
     # Extract round information
