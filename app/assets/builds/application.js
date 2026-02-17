@@ -15726,6 +15726,108 @@
   // channels/location_channel.js
   var PERF_LOGGING = localStorage.getItem("debug_cable_performance") === "true";
   var NO_LOGGING = localStorage.getItem("cable_no_logging") === "true";
+  var LocationChannelHealthMonitor = class {
+    constructor(subscription2, locationId) {
+      this.subscription = subscription2;
+      this.locationId = locationId;
+      this.healthCheckInterval = null;
+      this.reconnectTimeout = null;
+      this.healthCheckFrequency = 3e4;
+      this.maxSilenceTime = 12e4;
+      this.reconnectDelay = 5e3;
+      this.forceReloadDelay = 1e4;
+    }
+    start() {
+      if (!NO_LOGGING) {
+        console.log("\u{1F3E5} Location Channel health monitor started for location", this.locationId);
+      }
+      this.healthCheckInterval = setInterval(() => {
+        this.checkHealth();
+      }, this.healthCheckFrequency);
+      this.visibilityHandler = () => {
+        if (!document.hidden) {
+          if (!NO_LOGGING) {
+            console.log("\u{1F4F1} Page became visible, checking location channel health...");
+          }
+          this.checkHealth();
+        }
+      };
+      document.addEventListener("visibilitychange", this.visibilityHandler);
+    }
+    stop() {
+      if (this.healthCheckInterval) {
+        clearInterval(this.healthCheckInterval);
+        this.healthCheckInterval = null;
+      }
+      if (this.reconnectTimeout) {
+        clearTimeout(this.reconnectTimeout);
+        this.reconnectTimeout = null;
+      }
+      if (this.visibilityHandler) {
+        document.removeEventListener("visibilitychange", this.visibilityHandler);
+        this.visibilityHandler = null;
+      }
+      if (!NO_LOGGING) {
+        console.log("\u{1F3E5} Location Channel health monitor stopped");
+      }
+    }
+    checkHealth() {
+      try {
+        const state = consumer_default.connection.getState();
+        const timeSinceLastMessage = Date.now() - this.subscription.lastReceived;
+        if (PERF_LOGGING && !NO_LOGGING) {
+          console.log("\u{1F3E5} Location Channel health check:", {
+            connectionState: state,
+            timeSinceLastMessage: Math.round(timeSinceLastMessage / 1e3) + "s",
+            lastReceived: new Date(this.subscription.lastReceived).toISOString()
+          });
+        }
+        if (state !== "open") {
+          console.warn("\u26A0\uFE0F Location Channel connection not open, state:", state);
+          this.triggerReconnect("connection_not_open");
+          return;
+        }
+        if (!document.hidden && timeSinceLastMessage > this.maxSilenceTime) {
+          console.warn("\u26A0\uFE0F Location Channel: No messages received for", Math.round(timeSinceLastMessage / 1e3), "seconds");
+          this.triggerReconnect("message_timeout");
+          return;
+        }
+        if (PERF_LOGGING && !NO_LOGGING) {
+          console.log("\u2705 Location Channel connection healthy");
+        }
+        this.updateStatusIndicator("healthy");
+      } catch (error3) {
+        console.error("\u274C Location Channel health check failed:", error3);
+        this.triggerReconnect("health_check_error");
+      }
+    }
+    triggerReconnect(reason) {
+      console.warn("\u{1F504} Location Channel triggering reconnection, reason:", reason);
+      this.updateStatusIndicator("reconnecting");
+      consumer_default.connection.reopen();
+      this.reconnectTimeout = setTimeout(() => {
+        const state = consumer_default.connection.getState();
+        if (state !== "open") {
+          console.error("\u{1F504} Location Channel reconnection failed, reloading page...");
+          this.updateStatusIndicator("reloading");
+          window.location.reload();
+        } else {
+          console.log("\u2705 Location Channel reconnection successful");
+          this.updateStatusIndicator("healthy");
+        }
+      }, this.reconnectDelay);
+    }
+    updateStatusIndicator(status) {
+      const indicator = document.getElementById("connection-status-indicator");
+      if (indicator) {
+        indicator.className = `connection-status connection-status-${status}`;
+        indicator.title = `Connection: ${status}`;
+      }
+      window.dispatchEvent(new CustomEvent("connection-status-change", {
+        detail: { status, channel: "location" }
+      }));
+    }
+  };
   var locationElement = document.querySelector("[data-location-id]");
   if (locationElement) {
     const locationId = locationElement.dataset.locationId;
@@ -15738,15 +15840,57 @@
           }
           this.lastReceived = Date.now();
           this.pendingBroadcastTimestamp = null;
+          this.connectionAttempts = 0;
+          this.healthMonitor = new LocationChannelHealthMonitor(this, locationId);
         },
         connected() {
           if (!NO_LOGGING) {
             console.log("\u{1F3E2} Location Channel connected for location", locationId);
           }
+          this.connectionAttempts = 0;
+          if (this.healthMonitor) {
+            this.healthMonitor.start();
+          }
+          this.startHeartbeat();
+        },
+        startHeartbeat() {
+          if (this.heartbeatInterval) {
+            clearInterval(this.heartbeatInterval);
+          }
+          this.heartbeatInterval = setInterval(() => {
+            if (!document.hidden) {
+              this.sendHeartbeat();
+            }
+          }, 6e4);
+          if (PERF_LOGGING && !NO_LOGGING) {
+            console.log("\u{1F493} Heartbeat started (every 60s)");
+          }
+        },
+        sendHeartbeat() {
+          try {
+            this.perform("heartbeat", { timestamp: Date.now() });
+            if (PERF_LOGGING && !NO_LOGGING) {
+              console.log("\u{1F493} Heartbeat sent to server");
+            }
+          } catch (error3) {
+            console.error("\u{1F494} Failed to send heartbeat:", error3);
+          }
         },
         disconnected() {
           if (!NO_LOGGING) {
             console.warn("\u{1F3E2} Location Channel disconnected for location", locationId);
+          }
+          this.connectionAttempts++;
+          if (this.healthMonitor) {
+            this.healthMonitor.stop();
+          }
+          if (this.heartbeatInterval) {
+            clearInterval(this.heartbeatInterval);
+            this.heartbeatInterval = null;
+          }
+          if (this.connectionAttempts > 5) {
+            console.error("\u{1F504} Too many disconnects, reloading page...");
+            window.location.reload();
           }
         },
         received(data) {
@@ -15766,6 +15910,7 @@
             if (PERF_LOGGING && !NO_LOGGING) {
               console.log("\u{1F493} Heartbeat acknowledged by server");
             }
+            this.lastReceived = receiveTime;
             return;
           }
           let broadcastTimestamp = this.pendingBroadcastTimestamp;
@@ -16100,6 +16245,57 @@
       if (data.type === "heartbeat_ack") {
         if (PERF_LOGGING2 && !NO_LOGGING2) {
           console.log("\u{1F493} Heartbeat acknowledged by server");
+        }
+        return;
+      }
+      if (data.type === "scoreboard_message") {
+        if (!NO_LOGGING2) {
+          console.log("\u{1F4E8} Scoreboard message received:", data);
+        }
+        if (window.ScoreboardMessageController) {
+          window.ScoreboardMessageController.showMessage(data);
+        } else {
+          console.warn("\u26A0\uFE0F ScoreboardMessageController not found, using fallback");
+          const modal = document.querySelector("#scoreboard-message-modal");
+          if (modal) {
+            const messageText = modal.querySelector('[data-scoreboard-message-target="messageText"]');
+            const expiryText = modal.querySelector('[data-scoreboard-message-target="expiryText"]');
+            if (messageText) messageText.textContent = data.message;
+            if (expiryText) {
+              const expiresAt = new Date(data.expires_at);
+              const minutesUntilExpiry = Math.round((expiresAt - Date.now()) / 1e3 / 60);
+              expiryText.textContent = `This message will expire in ${minutesUntilExpiry} minutes`;
+            }
+            modal.classList.remove("hidden");
+            const ackButton = modal.querySelector('[data-scoreboard-message-target="acknowledgeButton"]');
+            if (ackButton) {
+              ackButton.onclick = () => {
+                fetch(`/scoreboard_messages/${data.message_id}/acknowledge`, {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRF-Token": document.querySelector('[name="csrf-token"]').content
+                  }
+                }).then(() => {
+                  modal.classList.add("hidden");
+                }).catch((err) => console.error("Failed to acknowledge:", err));
+              };
+            }
+            setTimeout(() => {
+              modal.classList.add("hidden");
+            }, 30 * 60 * 1e3);
+          } else {
+            console.error("\u274C Modal element not found");
+          }
+        }
+        return;
+      }
+      if (data.type === "scoreboard_message_acknowledged") {
+        if (!NO_LOGGING2) {
+          console.log("\u2705 Scoreboard message acknowledged:", data.message_id);
+        }
+        if (window.ScoreboardMessageController) {
+          window.ScoreboardMessageController.hideMessage(data.message_id);
         }
         return;
       }
@@ -24796,6 +24992,167 @@ ${text}</tr>
     }
   };
 
+  // controllers/scoreboard_message_controller.js
+  var scoreboard_message_controller_exports = {};
+  __export(scoreboard_message_controller_exports, {
+    default: () => scoreboard_message_controller_default
+  });
+  var scoreboard_message_controller_default = class extends Controller {
+    static targets = ["messageText", "expiryText", "countdown", "closeButton", "acknowledgeButton"];
+    static values = {
+      messageId: Number,
+      tableMonitorId: Number
+    };
+    connect() {
+      console.log("[ScoreboardMessage] Controller connected");
+      this.countdownInterval = null;
+      this.closeButtonTimeout = null;
+      this.setupActionCableListener();
+    }
+    disconnect() {
+      console.log("[ScoreboardMessage] Controller disconnected");
+      this.clearTimers();
+    }
+    setupActionCableListener() {
+      if (window.tableMonitorChannel) {
+        console.log("[ScoreboardMessage] Using existing tableMonitorChannel");
+      } else {
+        console.warn("[ScoreboardMessage] No tableMonitorChannel found, messages will not be received");
+      }
+    }
+    // Called from external code when a message is received via ActionCable
+    showMessage(data) {
+      console.log("[ScoreboardMessage] Showing message:", data);
+      this.messageIdValue = data.message_id;
+      this.messageTextTarget.textContent = data.message;
+      const expiresAt = new Date(data.expires_at);
+      const now4 = /* @__PURE__ */ new Date();
+      const minutesUntilExpiry = Math.round((expiresAt - now4) / 1e3 / 60);
+      this.expiryTextTarget.textContent = `This message will expire in ${minutesUntilExpiry} minutes`;
+      this.element.classList.remove("hidden");
+      this.startCountdown(expiresAt);
+      this.closeButtonTimeout = setTimeout(() => {
+        if (this.hasCloseButtonTarget) {
+          this.closeButtonTarget.classList.remove("hidden");
+        }
+      }, 3e3);
+      const timeUntilExpiry = expiresAt - now4;
+      setTimeout(() => {
+        this.hideModal();
+      }, timeUntilExpiry);
+    }
+    // Called from external code when a message is acknowledged elsewhere
+    hideMessageIfMatches(messageId) {
+      if (this.messageIdValue === messageId) {
+        console.log("[ScoreboardMessage] Message acknowledged elsewhere, hiding");
+        this.hideModal();
+      }
+    }
+    startCountdown(expiresAt) {
+      this.clearCountdown();
+      const updateCountdown = () => {
+        const now4 = /* @__PURE__ */ new Date();
+        const secondsRemaining = Math.max(0, Math.round((expiresAt - now4) / 1e3));
+        if (this.hasCountdownTarget) {
+          const minutes = Math.floor(secondsRemaining / 60);
+          const seconds = secondsRemaining % 60;
+          this.countdownTarget.textContent = `${minutes}:${seconds.toString().padStart(2, "0")}`;
+        }
+        if (secondsRemaining <= 0) {
+          this.clearCountdown();
+        }
+      };
+      updateCountdown();
+      this.countdownInterval = setInterval(updateCountdown, 1e3);
+    }
+    clearCountdown() {
+      if (this.countdownInterval) {
+        clearInterval(this.countdownInterval);
+        this.countdownInterval = null;
+      }
+    }
+    clearTimers() {
+      this.clearCountdown();
+      if (this.closeButtonTimeout) {
+        clearTimeout(this.closeButtonTimeout);
+        this.closeButtonTimeout = null;
+      }
+    }
+    acknowledge() {
+      console.log("[ScoreboardMessage] Acknowledging message:", this.messageIdValue);
+      if (this.hasAcknowledgeButtonTarget) {
+        this.acknowledgeButtonTarget.disabled = true;
+        this.acknowledgeButtonTarget.textContent = "Sending...";
+      }
+      fetch(`/scoreboard_messages/${this.messageIdValue}/acknowledge`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRF-Token": document.querySelector('[name="csrf-token"]').content
+        }
+      }).then((response2) => response2.json()).then((data) => {
+        console.log("[ScoreboardMessage] Acknowledgement response:", data);
+        if (data.success) {
+          this.hideModal();
+        } else {
+          console.error("[ScoreboardMessage] Failed to acknowledge:", data.message);
+          if (this.hasAcknowledgeButtonTarget) {
+            this.acknowledgeButtonTarget.disabled = false;
+            this.acknowledgeButtonTarget.textContent = "OK - I understand";
+          }
+        }
+      }).catch((error3) => {
+        console.error("[ScoreboardMessage] Error acknowledging message:", error3);
+        if (this.hasAcknowledgeButtonTarget) {
+          this.acknowledgeButtonTarget.disabled = false;
+          this.acknowledgeButtonTarget.textContent = "OK - I understand";
+        }
+      });
+    }
+    hideModal() {
+      console.log("[ScoreboardMessage] Hiding modal");
+      this.element.classList.add("hidden");
+      this.clearTimers();
+      if (this.hasAcknowledgeButtonTarget) {
+        this.acknowledgeButtonTarget.disabled = false;
+        this.acknowledgeButtonTarget.textContent = "OK - I understand";
+      }
+      if (this.hasCloseButtonTarget) {
+        this.closeButtonTarget.classList.add("hidden");
+      }
+    }
+  };
+  window.ScoreboardMessageController = {
+    showMessage: (data) => {
+      const element = document.querySelector('[data-controller="scoreboard-message"]');
+      if (!element) {
+        console.warn("[ScoreboardMessage] Modal element not found");
+        return;
+      }
+      const application2 = window.Stimulus;
+      if (!application2) {
+        console.warn("[ScoreboardMessage] Stimulus application not found");
+        return;
+      }
+      const controller = application2.getControllerForElementAndIdentifier(element, "scoreboard-message");
+      if (controller) {
+        controller.showMessage(data);
+      } else {
+        console.warn("[ScoreboardMessage] Controller not initialized");
+      }
+    },
+    hideMessage: (messageId) => {
+      const element = document.querySelector('[data-controller="scoreboard-message"]');
+      if (!element) return;
+      const application2 = window.Stimulus;
+      if (!application2) return;
+      const controller = application2.getControllerForElementAndIdentifier(element, "scoreboard-message");
+      if (controller) {
+        controller.hideMessageIfMatches(messageId);
+      }
+    }
+  };
+
   // controllers/search_parser_controller.js
   var search_parser_controller_exports = {};
   __export(search_parser_controller_exports, {
@@ -24961,10 +25318,11 @@ ${text}</tr>
     default: () => stream_destination_controller_default
   });
   var stream_destination_controller_default = class extends Controller {
-    static targets = ["youtubeFields", "localFields", "customFields"];
+    static targets = ["youtubeFields", "localFields", "customFields", "perspectiveFields"];
     connect() {
       console.log("[StreamDestination] Controller connected");
       this.toggle();
+      this.togglePerspective();
     }
     toggle() {
       const select = this.element.querySelector('select[name*="stream_destination"]');
@@ -24993,6 +25351,17 @@ ${text}</tr>
             this.customFieldsTarget.style.display = "block";
           }
           break;
+      }
+    }
+    togglePerspective() {
+      const checkbox = this.element.querySelector('input[name*="perspective_enabled"]');
+      if (!checkbox) {
+        return;
+      }
+      const enabled = checkbox.checked;
+      console.log("[StreamDestination] Perspective correction:", enabled ? "enabled" : "disabled");
+      if (this.hasPerspectiveFieldsTarget) {
+        this.perspectiveFieldsTarget.style.display = enabled ? "block" : "none";
       }
     }
   };
@@ -25354,6 +25723,121 @@ ${text}</tr>
     }
     reflexError(element, reflex, error3, id) {
       console.error(`TableMonitor reflexError: ${reflex}`, error3);
+    }
+  };
+
+  // controllers/table_scores_monitor_controller.js
+  var table_scores_monitor_controller_exports = {};
+  __export(table_scores_monitor_controller_exports, {
+    default: () => table_scores_monitor_controller_default
+  });
+  var table_scores_monitor_controller_default = class extends Controller {
+    static values = {
+      // How long the page must be hidden before we force reload on visibility (ms)
+      // Default: 5 minutes (TV typically sleeps longer than this)
+      sleepThreshold: { type: Number, default: 3e5 },
+      // 5 minutes
+      // Enable debug logging
+      debug: { type: Boolean, default: false }
+    };
+    connect() {
+      this.log("\u{1F5A5}\uFE0F Table Scores Monitor connected");
+      this.hiddenAt = null;
+      this.lastActivityAt = Date.now();
+      this.visibilityChangeHandler = this.handleVisibilityChange.bind(this);
+      document.addEventListener("visibilitychange", this.visibilityChangeHandler);
+      this.connectionStatusHandler = this.handleConnectionStatus.bind(this);
+      window.addEventListener("connection-status-change", this.connectionStatusHandler);
+      this.heartbeatInterval = setInterval(() => {
+        this.checkHeartbeat();
+      }, 3e4);
+      this.log("\u2705 Monitoring started", {
+        sleepThreshold: `${this.sleepThresholdValue / 1e3}s`,
+        currentlyHidden: document.hidden
+      });
+    }
+    disconnect() {
+      this.log("\u{1F50C} Table Scores Monitor disconnecting");
+      document.removeEventListener("visibilitychange", this.visibilityChangeHandler);
+      window.removeEventListener("connection-status-change", this.connectionStatusHandler);
+      if (this.heartbeatInterval) {
+        clearInterval(this.heartbeatInterval);
+        this.heartbeatInterval = null;
+      }
+    }
+    handleVisibilityChange() {
+      if (document.hidden) {
+        this.hiddenAt = Date.now();
+        this.log("\u{1F634} Page hidden (TV standby?)", {
+          hiddenAt: new Date(this.hiddenAt).toISOString()
+        });
+      } else {
+        const now4 = Date.now();
+        const hiddenDuration = this.hiddenAt ? now4 - this.hiddenAt : 0;
+        this.log("\u{1F441}\uFE0F Page visible (TV wake?)", {
+          hiddenDuration: `${Math.round(hiddenDuration / 1e3)}s`,
+          threshold: `${this.sleepThresholdValue / 1e3}s`
+        });
+        if (hiddenDuration > this.sleepThresholdValue) {
+          this.log("\u{1F504} Sleep threshold exceeded, forcing reload...", {
+            hiddenFor: `${Math.round(hiddenDuration / 1e3)}s`
+          });
+          this.showReloadMessage();
+          setTimeout(() => {
+            window.location.reload();
+          }, 1e3);
+        } else {
+          this.hiddenAt = null;
+          this.lastActivityAt = now4;
+        }
+      }
+    }
+    handleConnectionStatus(event) {
+      const { status } = event.detail;
+      this.log("\u{1F4E1} Connection status changed", { status });
+      if (status === "reloading") {
+        this.log("\u26A0\uFE0F ActionCable triggered reload");
+      }
+    }
+    checkHeartbeat() {
+      const now4 = Date.now();
+      const timeSinceActivity = now4 - this.lastActivityAt;
+      if (!document.hidden && timeSinceActivity > this.sleepThresholdValue) {
+        this.log("\u{1F494} Heartbeat failed - no activity for too long", {
+          timeSinceActivity: `${Math.round(timeSinceActivity / 1e3)}s`
+        });
+        this.log("\u{1F504} Forcing reload due to heartbeat failure");
+        window.location.reload();
+      } else {
+        this.lastActivityAt = now4;
+      }
+    }
+    showReloadMessage() {
+      const overlay = document.createElement("div");
+      overlay.style.cssText = `
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0, 0, 0, 0.9);
+      color: white;
+      padding: 2rem 3rem;
+      border-radius: 1rem;
+      font-size: 2rem;
+      z-index: 9999;
+      text-align: center;
+    `;
+      overlay.textContent = "Aktualisiere Anzeige...";
+      document.body.appendChild(overlay);
+    }
+    log(message, data = null) {
+      if (this.debugValue) {
+        if (data) {
+          console.log(`[TableScoresMonitor] ${message}`, data);
+        } else {
+          console.log(`[TableScoresMonitor] ${message}`);
+        }
+      }
     }
   };
 
@@ -28756,7 +29240,7 @@ ${text}</tr>
   };
 
   // rails:/Volumes/EXT2TB/gullrich/DEV/carambus/carambus_master/app/javascript/controllers/**/*_controller.js
-  var modules = [{ name: "ai-search", module: ai_search_controller_exports, filename: "ai_search_controller.js" }, { name: "application", module: application_controller_exports, filename: "application_controller.js" }, { name: "clipboard", module: clipboard_controller_exports, filename: "clipboard_controller.js" }, { name: "counter", module: counter_controller_exports, filename: "counter_controller.js" }, { name: "dark-mode", module: dark_mode_controller_exports, filename: "dark_mode_controller.js" }, { name: "dropdown", module: dropdown_controller_exports, filename: "dropdown_controller.js" }, { name: "example", module: example_controller_exports, filename: "example_controller.js" }, { name: "filter-popup", module: filter_popup_controller_exports, filename: "filter_popup_controller.js" }, { name: "hello", module: hello_controller_exports, filename: "hello_controller.js" }, { name: "markdown-editor", module: markdown_editor_controller_exports, filename: "markdown_editor_controller.js" }, { name: "pagy-url", module: pagy_url_controller_exports, filename: "pagy_url_controller.js" }, { name: "party", module: party_controller_exports, filename: "party_controller.js" }, { name: "party-monitor", module: party_monitor_controller_exports, filename: "party_monitor_controller.js" }, { name: "search-parser", module: search_parser_controller_exports, filename: "search_parser_controller.js" }, { name: "sidebar", module: sidebar_controller_exports, filename: "sidebar_controller.js" }, { name: "stream-destination", module: stream_destination_controller_exports, filename: "stream_destination_controller.js" }, { name: "stream-monitor", module: stream_monitor_controller_exports, filename: "stream_monitor_controller.js" }, { name: "streaming-overlay", module: streaming_overlay_controller_exports, filename: "streaming_overlay_controller.js" }, { name: "table-monitor", module: table_monitor_controller_exports, filename: "table_monitor_controller.js" }, { name: "tippy", module: tippy_controller_exports, filename: "tippy_controller.js" }, { name: "toggle", module: toggle_controller_exports, filename: "toggle_controller.js" }, { name: "tournament", module: tournament_controller_exports, filename: "tournament_controller.js" }, { name: "transition", module: transition_controller_exports, filename: "transition_controller.js" }];
+  var modules = [{ name: "ai-search", module: ai_search_controller_exports, filename: "ai_search_controller.js" }, { name: "application", module: application_controller_exports, filename: "application_controller.js" }, { name: "clipboard", module: clipboard_controller_exports, filename: "clipboard_controller.js" }, { name: "counter", module: counter_controller_exports, filename: "counter_controller.js" }, { name: "dark-mode", module: dark_mode_controller_exports, filename: "dark_mode_controller.js" }, { name: "dropdown", module: dropdown_controller_exports, filename: "dropdown_controller.js" }, { name: "example", module: example_controller_exports, filename: "example_controller.js" }, { name: "filter-popup", module: filter_popup_controller_exports, filename: "filter_popup_controller.js" }, { name: "hello", module: hello_controller_exports, filename: "hello_controller.js" }, { name: "markdown-editor", module: markdown_editor_controller_exports, filename: "markdown_editor_controller.js" }, { name: "pagy-url", module: pagy_url_controller_exports, filename: "pagy_url_controller.js" }, { name: "party", module: party_controller_exports, filename: "party_controller.js" }, { name: "party-monitor", module: party_monitor_controller_exports, filename: "party_monitor_controller.js" }, { name: "scoreboard-message", module: scoreboard_message_controller_exports, filename: "scoreboard_message_controller.js" }, { name: "search-parser", module: search_parser_controller_exports, filename: "search_parser_controller.js" }, { name: "sidebar", module: sidebar_controller_exports, filename: "sidebar_controller.js" }, { name: "stream-destination", module: stream_destination_controller_exports, filename: "stream_destination_controller.js" }, { name: "stream-monitor", module: stream_monitor_controller_exports, filename: "stream_monitor_controller.js" }, { name: "streaming-overlay", module: streaming_overlay_controller_exports, filename: "streaming_overlay_controller.js" }, { name: "table-monitor", module: table_monitor_controller_exports, filename: "table_monitor_controller.js" }, { name: "table-scores-monitor", module: table_scores_monitor_controller_exports, filename: "table_scores_monitor_controller.js" }, { name: "tippy", module: tippy_controller_exports, filename: "tippy_controller.js" }, { name: "toggle", module: toggle_controller_exports, filename: "toggle_controller.js" }, { name: "tournament", module: tournament_controller_exports, filename: "tournament_controller.js" }, { name: "transition", module: transition_controller_exports, filename: "transition_controller.js" }];
   var controller_default = modules;
 
   // ../../node_modules/tailwindcss-stimulus-components/dist/tailwindcss-stimulus-components.module.js
