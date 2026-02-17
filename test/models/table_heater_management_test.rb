@@ -77,25 +77,30 @@ class TableHeaterManagementTest < ActiveSupport::TestCase
   end
   
   # ============================================================================
-  # Test: heater_auto_off?
-  # Note: Despite the name, this method returns TRUE when "(!))" is present
-  # (meaning heater should NOT auto-off). It's a bit confusing but matches
-  # the implementation where it checks if "(!)" exists.
+  # Test: heater_protected?
+  # Returns true when event has "(!)" in title, meaning heater should stay on
+  # regardless of scoreboard activity
   # ============================================================================
   
-  test "heater_auto_off? returns true when event_summary contains (!)" do
+  test "heater_protected? returns true when event_summary contains (!)" do
     @table.table_local.update!(event_summary: "T5 Important Event (!)")
-    assert_equal true, @table.heater_auto_off?
+    assert_equal true, @table.heater_protected?
   end
   
-  test "heater_auto_off? returns false when event_summary does not contain (!)" do
+  test "heater_protected? returns false when event_summary does not contain (!)" do
     @table.table_local.update!(event_summary: "T5 Regular Event")
-    assert_equal false, @table.heater_auto_off?
+    assert_equal false, @table.heater_protected?
   end
   
-  test "heater_auto_off? returns false/nil when event_summary is nil" do
+  test "heater_protected? returns nil when event_summary is nil" do
     @table.table_local.update!(event_summary: nil)
-    assert_nil @table.heater_auto_off? # andand returns nil when event_summary is nil
+    assert_nil @table.heater_protected? # andand returns nil when event_summary is nil
+  end
+  
+  # Backward compatibility test
+  test "heater_auto_off? is aliased to heater_protected? for backward compatibility" do
+    @table.table_local.update!(event_summary: "T5 Protected Event (!)")
+    assert_equal @table.heater_protected?, @table.heater_auto_off?
   end
   
   # ============================================================================
@@ -651,7 +656,7 @@ class TableHeaterManagementTest < ActiveSupport::TestCase
   # Test: heater_off_on_idle - (!) Exception Rule
   # ============================================================================
   
-  test "heater_off_on_idle respects (!) in event_summary and keeps heater on" do
+  test "heater_off_on_idle respects protected events (!) and keeps heater on" do
     event_start = DateTime.now - 35.minutes
     
     @table.table_local.update!(
@@ -672,7 +677,7 @@ class TableHeaterManagementTest < ActiveSupport::TestCase
       end
     end
     
-    assert_equal false, heater_off_called, "Heater should stay on for (!) events"
+    assert_equal false, heater_off_called, "Heater should stay on for protected (!) events"
   end
   
   test "heater_off_on_idle respects (!) even after event is cleared" do
@@ -696,7 +701,7 @@ class TableHeaterManagementTest < ActiveSupport::TestCase
     
     # Event should be cleared but heater stays on because it had (!)
     assert_nil @table.event_id
-    assert_equal false, heater_off_called, "Heater respects (!) even after event cleared"
+    assert_equal false, heater_off_called, "Heater respects protected (!) flag even after event cleared"
   end
   
   # ============================================================================

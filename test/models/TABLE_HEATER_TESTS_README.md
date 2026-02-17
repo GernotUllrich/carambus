@@ -32,10 +32,11 @@ Die Tests sind in folgende Kategorien organisiert:
 - ✅ Karambol-Tische: 2 Stunden
 - ✅ Pool-Tische: 2 Stunden (aber keine automatische Heizung)
 
-### 2. **Auto-Off Exception Tests** (`heater_auto_off?`)
-- ✅ Events mit "(!)" im Titel
-- ✅ Events ohne "(!)" im Titel
-- ✅ Nil event_summary
+### 2. **Protected Event Tests** (`heater_protected?`)
+- ✅ Events mit "(!)" im Titel (protected = true)
+- ✅ Events ohne "(!)" im Titel (protected = false)
+- ✅ Nil event_summary (protected = nil)
+- ✅ Backward compatibility mit `heater_auto_off?` alias
 
 ### 3. **Event Summary Tests** (`short_event_summary`)
 - ✅ Einzeltisch-Format: "T5 Gernot Ullrich" → "5GeUl"
@@ -94,7 +95,7 @@ Die Tests sind in folgende Kategorien organisiert:
 ### 11. **(!)-Ausnahme Tests**
 - ✅ Heizung bleibt AN bei "(!)" im Titel
 - ✅ Regel gilt auch nach Event-Löschung
-- ✅ allow_auto_off Flag korrekt
+- ✅ heater_protected Flag korrekt
 
 ### 12. **Integration Tests**
 - ✅ Kompletter Workflow: Event → Scoreboard AN → Scoreboard AUS → Heizung AUS
@@ -107,7 +108,7 @@ Die Tests sind in folgende Kategorien organisiert:
 | Methode | Coverage | Tests |
 |---------|----------|-------|
 | `pre_heating_time_in_hours` | 100% | 4 |
-| `heater_auto_off?` | 100% | 3 |
+| `heater_protected?` | 100% | 4 |
 | `short_event_summary` | 100% | 4 |
 | `heater_on!` | 100% | 3 |
 | `heater_off!` | 100% | 3 |
@@ -143,9 +144,10 @@ test "heater_off_on_idle turns heater off after 30-minute grace period"
 test "heater_off_on_idle keeps heater on during 30-minute grace period after start"
 ```
 
-### Regel 5: (!)-Ausnahme
+### Regel 5: (!)-Ausnahme (Protected Events)
 ```ruby
-test "heater_off_on_idle respects (!) in event_summary and keeps heater on"
+test "heater_protected? returns true when event_summary contains (!)"
+test "heater_off_on_idle respects protected events (!) and keeps heater on"
 test "heater_off_on_idle respects (!) even after event is cleared"
 ```
 

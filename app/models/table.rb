@@ -104,7 +104,7 @@ class Table < ApplicationRecord
         scoreboard: scoreboard,
         scoreboard_off_at: scoreboard_off_at,
         heater_switched_on_at: heater_switched_on_at,
-        allow_auto_off: !event_summary.to_s.include?("(!)"),
+        heater_protected: heater_protected?,
         time_since_event_start: event_start.present? ? ((DateTime.now.to_i - event_start.to_i) / 1.minute).round(1) : nil,
         time_until_event_end: event_end.present? ? ((event_end.to_i - DateTime.now.to_i) / 1.minute).round(1) : nil
       }
@@ -195,9 +195,15 @@ class Table < ApplicationRecord
     end
   end
 
-  def heater_auto_off?
+  # Returns true if event is protected (has "(!)" in title)
+  # Protected events keep the heater ON regardless of scoreboard activity
+  def heater_protected?
     event_summary.andand.include?("(!)")
   end
+  
+  # Deprecated: Use heater_protected? instead
+  # This name was confusing because it returns TRUE when heater should NOT auto-off
+  alias_method :heater_auto_off?, :heater_protected?
 
   def short_event_summary
     return unless event_id.present?
@@ -279,8 +285,9 @@ class Table < ApplicationRecord
       end
 
       # Use current_event_summary (captured at start) so we don't turn off when event had "(!)" even if we cleared it above
-      allow_auto_off = !current_event_summary.to_s.include?("(!)")
-      if allow_auto_off && heater_switched_on_at.present? && heater_switched_off_at.blank?
+      # Protected events (with "(!)" in title) keep heater ON regardless of activity
+      event_is_protected = current_event_summary.to_s.include?("(!)")
+      if !event_is_protected && heater_switched_on_at.present? && heater_switched_off_at.blank?
         heater_off!("inactivity detected")
       end
     end
