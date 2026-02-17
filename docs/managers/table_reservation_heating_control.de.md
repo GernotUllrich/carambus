@@ -98,11 +98,21 @@ Die Tischheizungen werden automatisch basierend auf Kalendereinträgen und Score
 
 ### Regel 7: Änderung bestehender Einträge
 
-**Verhalten:** System erkennt geänderte Events automatisch (via Event-ID)
+**Verhalten:** System erkennt geänderte Events automatisch durch Vergleich von:
+- Event-ID (neues Event erkannt)
+- Start-Zeit (Zeit wurde geändert)
+- End-Zeit (Dauer wurde geändert)
+- Titel/Summary (Beschreibung wurde geändert)
 
-**Aktion:** Alte Termin-Daten werden überschrieben, neue Zeiten gelten sofort
+**Aktion:** Alte Termin-Daten werden überschrieben, neue Zeiten gelten sofort beim nächsten Cron-Check (max. 5 Minuten)
 
 **Event-Löschung:** Event wird aus dem Tisch-Speicher entfernt wenn nicht mehr im Kalender vorhanden
+
+**Beispiel:**
+1. Event erstellt: "T5 Test, 14:30-15:30"
+2. User ändert: "T5 Test, 15:40-16:40" (kommt später)
+3. System erkennt: Start-Zeit geändert → Aktualisiert alle Daten
+4. Heizung schaltet entsprechend der **neuen** Zeit
 
 **Vorteil:** Kein "Gedächtnis" alter Termine - immer aktueller Kalender-Stand ist maßgeblich
 

@@ -157,13 +157,31 @@ class Table < ApplicationRecord
       (((event.start.date || event.start.date_time).to_i - DateTime.now.to_i) / 1.hour) < pre_heating_time_in_hours &&
         ((event.end.date || event.end.date_time).to_i - DateTime.now.to_i).positive?
       
-      # Only log when event changes (new event detected)
-      if event_id != event.id
-        Rails.logger.info "📅 #{name}: New event detected - #{event.summary}" if DEBUG_CALENDAR
+      new_event_start = event.start.date || event.start.date_time
+      new_event_end = event.end.date || event.end.date_time
+      
+      # Check if event is new or has been modified (times or summary changed)
+      event_changed = event_id != event.id || 
+                      event_start != new_event_start || 
+                      event_end != new_event_end ||
+                      event_summary != event.summary
+      
+      if event_changed
+        # Log what changed
+        if event_id != event.id
+          Rails.logger.info "📅 #{name}: New event detected - #{event.summary}" if DEBUG_CALENDAR
+        else
+          changes = []
+          changes << "start: #{event_start} → #{new_event_start}" if event_start != new_event_start
+          changes << "end: #{event_end} → #{new_event_end}" if event_end != new_event_end
+          changes << "summary: '#{event_summary}' → '#{event.summary}'" if event_summary != event.summary
+          Rails.logger.info "📅 #{name}: Event modified - #{changes.join(", ")}" if DEBUG_CALENDAR
+        end
+        
         self.event_id = event.id
         self.event_summary = event.summary
-        self.event_start = event.start.date || event.start.date_time
-        self.event_end = event.end.date || event.end.date_time
+        self.event_start = new_event_start
+        self.event_end = new_event_end
         self.event_creator = event.creator.email
         heater_on!("event") unless table_kind.name == "Pool"
         save if id >= Table::MIN_ID # heater is updated on TableLocal record
