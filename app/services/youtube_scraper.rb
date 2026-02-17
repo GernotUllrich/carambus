@@ -183,7 +183,8 @@ class YoutubeScraper
       end
       
       next_page_token = response.next_page_token
-      break if next_page_token.nil? || videos.last&.snippet&.published_at&.< cutoff_date
+      last_video_date = videos.last&.snippet&.published_at
+      break if next_page_token.nil? || (last_video_date && last_video_date < cutoff_date)
     end
     
     # Get full video details
