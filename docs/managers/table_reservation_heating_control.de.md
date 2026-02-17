@@ -1,6 +1,7 @@
 # Tischreservierung und Heizungssteuerung
 
-*BC Wedel, Gernot, 7. Mai 2024*
+*BC Wedel, Gernot, 7. Mai 2024*  
+*Aktualisiert: 17. Februar 2026*
 
 ## 1. Tischreservierung
 
@@ -19,37 +20,115 @@ Tischreservierungen können ab sofort von berechtigten Mitgliedern im zentralen 
 - **"T6 Gernot + Lothar"** - Einzelne Tischreservierung
 - **"T1, T4-T8 Clubabend"** - Mehrere Tische für Clubabend
 - **"T5, T7 NDM Cadre 35/2 Klasse 5-6"** - Turnierreservierung (Cadre wird rot hervorgehoben)
+- **"T1-T6 Vereinsmeisterschaft (!)"** - Gesicherter Termin (Heizung bleibt während gesamter Dauer AN)
 
 ### Formatierungsregeln:
 - **Tischnummern:** Verwenden Sie "T" gefolgt von der Tischnummer (z.B. T1, T6)
 - **Mehrere Tische:** Trennen Sie mit Komma (T1, T4) oder Bereich (T4-T8)
 - **Beschreibung:** Fügen Sie nach den Tischnummern eine Beschreibung hinzu
 - **Turniere:** Verwenden Sie spezielle Schlüsselwörter wie "Cadre" für automatische Erkennung
+- **Gesicherte Termine:** Fügen Sie "(!)" im Titel hinzu, um automatisches Abschalten zu verhindern
 
-## 2. Heizungssteuerung
+## 2. Heizungssteuerung - Detaillierte Regeln
 
 ### Automatisierte Steuerung
 Die Tischheizungen werden automatisch basierend auf Kalendereinträgen und Scoreboard-Aktivitäten geschaltet.
 
-### Heizung EIN (AN)
+### Regel 1: Heizung EIN (Normale Reservierung)
 
-Die Heizung wird automatisch eingeschaltet:
+**Wann:** 2 Stunden vor Reservierung (3 Stunden bei Match Billard/Snooker)
 
-1. **2 Stunden (bzw. 3 Std. für grosse Tische) vor einer Reservierung** - Basierend auf Google Calendar Einträgen für grosse Tische)
-2. **Spätestens 5 Minuten vor Beginn** - Wenn ein Spiel auf dem Scoreboard erkannt wird
+**Bedingung:** Aktuelle Zeit > (Start - Vorheizzeit) UND < Ende
 
-### Heizung AUS (AUS)
+**Beispiel:** 
+- Reservierung 18:00-22:00, großer Tisch → Heizung AN ab 15:00
+- Reservierung 18:00-22:00, normaler Tisch → Heizung AN ab 16:00
 
-Die Heizung wird automatisch ausgeschaltet:
+**Besonderheit:** Wenn ein Termin kurz vor Beginn eingetragen wird, schaltet die Heizung sofort ein (innerhalb von 5 Minuten durch Cron-Check)
 
-1. **Nach 1 Stunde ohne Scoreboard-Aktivität** - Wenn die Reservierung bereits begonnen hat
-2. **Nach 1 Stunde ohne Aktivität** - Wenn keine Reservierung läuft und keine Scoreboard-Aktivität erkannt wird
+### Regel 2: Heizung EIN (Spontanes Spiel ohne Reservierung)
+
+**Wann:** Sofort wenn Scoreboard eingeschaltet wird
+
+**Verzögerung:** Max. 5 Minuten (Cron-Intervall)
+
+**Bedingung:** Keine Reservierung erforderlich
+
+**Beispiel:** Spieler kommt spontan zum Club, schaltet Scoreboard ein → Heizung geht automatisch an
+
+### Regel 3: Heizung AUS (Scoreboard ausgeschaltet)
+
+**Wann:** Sofort (innerhalb 5 Minuten) wenn Scoreboard ausgeschaltet wird
+
+**Aktion:** Laufende Reservierung wird als "nicht wahrgenommen" markiert und gelöscht
+
+**Ausnahme:** Gilt NICHT für Events mit "(!)" im Titel
+
+**Beispiel:** Spieler beendet Spiel, schaltet Scoreboard aus → Heizung geht aus, Reservierung wird als nicht genutzt markiert
+
+### Regel 4: Heizung AUS (Keine Aktivität nach Event-Start)
+
+**Wann:** 30 Minuten nach Event-Anfang
+
+**Bedingung:** Scoreboard wurde nicht eingeschaltet
+
+**Grund:** Event wurde wahrscheinlich nicht wahrgenommen oder vergessen
+
+**Ausnahme:** Gilt NICHT für Events mit "(!)" im Titel
+
+**Beispiel:** Reservierung um 18:00, aber um 18:30 ist Scoreboard immer noch aus → Heizung wird ausgeschaltet
+
+### Regel 5: Gesicherte Termine (Ausnahmeregelung "(!)")
+
+**Markierung:** "(!)" im Kalendertitel
+
+**Verhalten:** Heizung bleibt während gesamter Reservierungszeit AN, unabhängig von Scoreboard-Aktivität
+
+**Anwendung:** Wichtige Turniere, Veranstaltungen, bei denen die Heizung garantiert laufen muss
+
+**Beispiel:** "T1-T6 Vereinsmeisterschaft (!)" → Heizung bleibt von Vorheizzeit bis Ende-Zeit durchgehend an
+
+### Regel 6: Turnier-Reservierungen
+
+**Automatisch:** Turniere werden automatisch im Kalender eingetragen
+
+**Absage:** Turnier im Kalender löschen oder als "ABGESAGT:" markieren → Heizung wird beim nächsten Check ausgeschaltet
+
+**Status:** Manuelles Löschen im Kalender ist aktuell der Mechanismus für Turnier-Absagen
+
+### Regel 7: Änderung bestehender Einträge
+
+**Verhalten:** System erkennt geänderte Events automatisch (via Event-ID)
+
+**Aktion:** Alte Termin-Daten werden überschrieben, neue Zeiten gelten sofort
+
+**Event-Löschung:** Event wird aus dem Tisch-Speicher entfernt wenn nicht mehr im Kalender vorhanden
+
+**Vorteil:** Kein "Gedächtnis" alter Termine - immer aktueller Kalender-Stand ist maßgeblich
 
 ### Technische Details
 
-- **Scoreboard-Integration:** Das System überwacht kontinuierlich die Aktivitäten auf dem Carambus Scoreboard
-- **Kalender-Integration:** Google Calendar Einträge werden automatisch ausgelesen und verarbeitet
-- **Intelligente Logik:** Das System berücksichtigt sowohl geplante Reservierungen als auch spontane Aktivitäten
+#### System-Parameter
+- **Cron-Intervall:** Alle 5 Minuten
+- **Scoreboard-Check:** Network Ping zur IP-Adresse des Tisches
+- **Event-Window:** Events werden bis zu 3 Stunden im Voraus geprüft
+- **Vorheizzeiten:**
+  - Match Billard: 3 Stunden
+  - Snooker: 3 Stunden
+  - Pool: Keine automatische Heizung
+  - Andere Tische (Karambol): 2 Stunden
+
+#### Toleranz-Zeiten
+- **Vor Event-Start:** 120 Minuten (Heizung bleibt an in Vorheizphase)
+- **Nach Event-Start:** 30 Minuten (Zeit zum Einschalten des Scoreboards)
+- **Scoreboard-Check:** Sofort bei Erkennung
+
+#### Logging und Debugging
+- **Debug-Modus:** Aktiviert für detailliertes Logging
+- **Log-Dateien:** 
+  - `log/events` - Anstehende Kalender-Events
+  - `log/table_status` - Aktueller Status aller Tische
+  - `log/production.log` - Detaillierte Heizungs-Aktionen
 
 ### Vorteile der automatisierten Steuerung
 
@@ -57,7 +136,37 @@ Die Heizung wird automatisch ausgeschaltet:
 - **Komfort:** Automatische Vorheizung vor Reservierungen
 - **Kosteneinsparung:** Vermeidung unnötiger Heizkosten bei ungenutzten Tischen
 - **Benutzerfreundlichkeit:** Keine manuelle Bedienung der Heizungen erforderlich
+- **Flexibilität:** Spontanes Spielen ohne Reservierung möglich
+- **Sicherheit:** Gesicherte Termine für wichtige Events
+
+## 3. Fehlersuche und Problemlösung
+
+### Heizung geht während des Spiels aus
+
+**Mögliche Ursachen:**
+1. **Scoreboard-Verbindung verloren:** Netzwerk-Ping schlägt fehl → System denkt Scoreboard ist aus
+2. **Event bereits beendet:** Reservierungs-Ende wurde überschritten
+3. **Event wurde gelöscht/geändert:** Kalender wurde aktualisiert und Event ist nicht mehr vorhanden
+
+**Lösung:** Prüfen Sie die Log-Dateien für genaue Ursache (mit 🔥 HEATER OFF Markierung)
+
+### Heizung geht nicht an
+
+**Mögliche Ursachen:**
+1. **Falsches Titel-Format:** Tischnummer nicht erkannt (z.B. "Tisch 6" statt "T6")
+2. **Event zu weit in Zukunft:** Mehr als 2-3 Stunden bis Start
+3. **Pool-Tisch:** Pool-Tische haben keine automatische Heizung
+
+**Lösung:** Titel-Format prüfen, Cron-Log kontrollieren
+
+### Event wird als "nicht wahrgenommen" markiert
+
+**Ursache:** Scoreboard wurde innerhalb 30 Minuten nach Event-Start nicht eingeschaltet
+
+**Lösung:** 
+- Entweder: Scoreboard früher einschalten
+- Oder: Event mit "(!)" markieren für garantierte Heizung
 
 ---
 
-*Diese Dokumentation beschreibt die Integration von Google Calendar Reservierungen mit der Carambus Scoreboard-Technologie für eine vollautomatisierte Tisch- und Heizungsverwaltung im BC Wedel.* 
+*Diese Dokumentation beschreibt die Integration von Google Calendar Reservierungen mit der Carambus Scoreboard-Technologie für eine vollautomatisierte Tisch- und Heizungsverwaltung im BC Wedel.*

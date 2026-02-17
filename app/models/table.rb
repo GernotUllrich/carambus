@@ -37,7 +37,7 @@ class Table < ApplicationRecord
     heater_off_reason heater_switched_on_at heater_switched_off_at manual_heater_on_at manual_heater_off_at
     scoreboard scoreboard_on_at scoreboard_off_at
   ].freeze
-  DEBUG_CALENDAR = false
+  DEBUG_CALENDAR = true
 
   serialize :data, coder: JSON, type: Hash
 
@@ -86,6 +86,23 @@ class Table < ApplicationRecord
   end
 
   def heater_off!(reason = "")
+    # Enhanced logging with full context for debugging
+    context = {
+      table: name,
+      reason: reason,
+      event_id: event_id,
+      event_summary: event_summary,
+      event_start: event_start,
+      event_end: event_end,
+      scoreboard: scoreboard,
+      scoreboard_off_at: scoreboard_off_at,
+      heater_switched_on_at: heater_switched_on_at,
+      allow_auto_off: !event_summary.to_s.include?("(!)"),
+      time_since_event_start: event_start.present? ? ((DateTime.now.to_i - event_start.to_i) / 1.minute).round(1) : nil,
+      time_until_event_end: event_end.present? ? ((event_end.to_i - DateTime.now.to_i) / 1.minute).round(1) : nil
+    }
+    Rails.logger.warn "🔥 HEATER OFF: #{JSON.pretty_generate(context)}" if DEBUG_CALENDAR
+    
     res = {}
     if Rails.env == "production"
       Rails.logger.info "Reservations: #{name} HEATER OFF - #{name}#{reason.present? ? " because of #{reason}" : ""}" if DEBUG_CALENDAR
@@ -132,8 +149,8 @@ HEATER OFF - #{name}#{reason.present? ? " because of #{reason}" : ""}" if DEBUG_
     end
   end
 
-  # start heater when event starts within lead_time_in_hours hours
-  # when event already underway but no activity on scoreboard for 1 hour - heater_off!
+  # Start heater when event starts within pre_heating_time_in_hours (2-3h depending on table size)
+  # When event already underway but no activity on scoreboard for 30 minutes - heater_off!
   def check_heater_on(event, event_ids: [])
     if ["Snooker", "Match Billard"].include?(table_kind.name) ||
       (((event.start.date || event.start.date_time).to_i - DateTime.now.to_i) / 1.hour) < pre_heating_time_in_hours &&
@@ -149,7 +166,8 @@ HEATER OFF - #{name}#{reason.present? ? " because of #{reason}" : ""}" if DEBUG_
         heater_on!("event") unless table_kind.name == "Pool"
         Rails.logger.info "Reservations: #{name} event detected #{JSON.pretty_generate table_local.attributes}" if DEBUG_CALENDAR
         save if id >= Table::MIN_ID # heater is updated on TableLocal record
-      elsif DateTime.now > event_start + 1.hour
+      elsif DateTime.now > event_start + 30.minutes
+        # Event started more than 30 minutes ago - check if heater should be turned off due to inactivity
         heater_off_on_idle(event_ids: event_ids) unless table_kind.name == "Pool"
       end
     end
@@ -221,13 +239,17 @@ HEATER OFF - #{name}#{reason.present? ? " because of #{reason}" : ""}" if DEBUG_
 
       if event_id.present?
         # Event noch nicht gestartet und startet in < 120 Minuten: Heizung bleibt an
+        # (Vorheizphase - Event wurde erkannt und Heizung ist bereits an)
         if event_start.to_i > DateTime.now.to_i && (event_start.to_i - DateTime.now.to_i) / 1.minute < 120
+          Rails.logger.info "Reservations: #{name} Event not started yet, keeping heater on (starts in #{((event_start.to_i - DateTime.now.to_i) / 1.minute).round(1)} min)" if DEBUG_CALENDAR
           return
         end
         
         # Event bereits gestartet: Heizung nur an lassen, wenn innerhalb der ersten 30 Minuten
         # (gibt dem Spieler Zeit, das Scoreboard einzuschalten)
+        # Nach 30 Minuten ohne Scoreboard-Aktivität wird die Heizung ausgeschaltet
         if event_start.to_i <= DateTime.now.to_i && (DateTime.now.to_i - event_start.to_i) / 1.minute < 30
+          Rails.logger.info "Reservations: #{name} Event started #{((DateTime.now.to_i - event_start.to_i) / 1.minute).round(1)} min ago, waiting for scoreboard activity (30 min grace period)" if DEBUG_CALENDAR
           return
         end
       end

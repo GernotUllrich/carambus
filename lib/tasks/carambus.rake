@@ -119,22 +119,25 @@ namespace :carambus do
             upcoming_events << full_entry
             summaries << summary_day_hour
           end
-          unless ((start.to_i - DateTime.now.to_i) / 1.hour) < 3 &&
+          # Use maximum pre-heating time from affected tables (2h for small tables, 3h for large tables)
+          # This ensures we don't skip events that are within the pre-heating window for any table
+          max_pre_heating_time = tables_to_be_heated.map(&:pre_heating_time_in_hours).max || 3
+          unless ((start.to_i - DateTime.now.to_i) / 1.hour) < max_pre_heating_time &&
             (ende.to_i - DateTime.now.to_i).positive?
             next
           end
 
-          tables_to_be_heated.map { |t| t.check_heater_on(event) }
+          tables_to_be_heated.map { |t| t.check_heater_on(event, event_ids: event_ids) }
           tables_to_be_heated_all |= tables_to_be_heated
         else
           remove_event(service, calendar_id, event)
         end
       end
       #
-      # t.check_heater_on(event): start heater when event starts within pre_heating_time_in_hours hours
-      #   when event already underway but no activity on scoreboard for 1 hour - heater_off!
+      # t.check_heater_on(event): start heater when event starts within pre_heating_time_in_hours (2-3h)
+      #   when event already underway but no activity on scoreboard for 30 minutes - heater_off!
       # t.check_heater_off:
-      #   when no activity on scoreboard for 1 hour - heater_off!
+      #   when no activity on scoreboard for 30 minutes - heater_off!
       # (assumes T1 .. Tn responds to the name ordered list of location tables)
     end
 
