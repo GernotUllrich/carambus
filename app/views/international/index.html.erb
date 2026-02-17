@@ -1,0 +1,124 @@
+<div class="container mx-auto px-4 py-8">
+  <div class="mb-8">
+    <h1 class="text-4xl font-bold text-gray-900 mb-2">International Carom Billiards</h1>
+    <p class="text-xl text-gray-600">World Cups, Championships, and Tournament Coverage</p>
+  </div>
+
+  <!-- Upcoming Tournaments -->
+  <section class="mb-12">
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-3xl font-bold text-gray-900">Upcoming Tournaments</h2>
+      <%= link_to 'View All →', international_tournaments_path, class: 'text-blue-600 hover:text-blue-800 font-semibold' %>
+    </div>
+    
+    <% if @upcoming_tournaments.any? %>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <% @upcoming_tournaments.each do |tournament| %>
+          <%= link_to international_tournament_path(tournament), class: 'block bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow p-6' do %>
+            <div class="mb-4">
+              <span class="inline-block px-3 py-1 text-sm font-semibold text-blue-800 bg-blue-100 rounded-full">
+                <%= tournament.tournament_type&.humanize || 'Tournament' %>
+              </span>
+            </div>
+            <h3 class="text-xl font-bold text-gray-900 mb-2"><%= tournament.name %></h3>
+            <div class="text-gray-600 space-y-1">
+              <p><%= tournament.discipline.name %></p>
+              <p><%= tournament.date_range %></p>
+              <% if tournament.location.present? %>
+                <p class="flex items-center">
+                  <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
+                  </svg>
+                  <%= tournament.location %>
+                </p>
+              <% end %>
+            </div>
+          <% end %>
+        <% end %>
+      </div>
+    <% else %>
+      <p class="text-gray-600 italic">No upcoming tournaments found.</p>
+    <% end %>
+  </section>
+
+  <!-- Recent Videos -->
+  <section class="mb-12">
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-3xl font-bold text-gray-900">Latest Videos</h2>
+      <%= link_to 'View All →', international_videos_path, class: 'text-blue-600 hover:text-blue-800 font-semibold' %>
+    </div>
+    
+    <% if @recent_videos.any? %>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <% @recent_videos.each do |video| %>
+          <%= link_to international_video_path(video), class: 'block bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow overflow-hidden' do %>
+            <% if video.thumbnail_url.present? %>
+              <div class="relative pb-[56.25%]">
+                <%= image_tag video.thumbnail_url, class: 'absolute inset-0 w-full h-full object-cover', alt: video.title %>
+                <% if video.duration.present? %>
+                  <span class="absolute bottom-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
+                    <%= video.duration_formatted %>
+                  </span>
+                <% end %>
+              </div>
+            <% end %>
+            <div class="p-4">
+              <h3 class="text-sm font-semibold text-gray-900 mb-2 line-clamp-2"><%= video.title %></h3>
+              <div class="text-xs text-gray-600">
+                <p><%= video.international_source.name %></p>
+                <% if video.published_at.present? %>
+                  <p><%= time_ago_in_words(video.published_at) %> ago</p>
+                <% end %>
+              </div>
+            </div>
+          <% end %>
+        <% end %>
+      </div>
+    <% else %>
+      <p class="text-gray-600 italic">No videos found yet.</p>
+    <% end %>
+  </section>
+
+  <!-- Recent Results -->
+  <section>
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-3xl font-bold text-gray-900">Recent Results</h2>
+      <%= link_to 'All Tournaments →', international_tournaments_path, class: 'text-blue-600 hover:text-blue-800 font-semibold' %>
+    </div>
+    
+    <% if @recent_results.any? %>
+      <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Position</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Player</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tournament</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            <% @recent_results.each do |result| %>
+              <tr class="hover:bg-gray-50">
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                  <%= result.display_position %>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <%= result.display_name %>
+                </td>
+                <td class="px-6 py-4 text-sm text-gray-900">
+                  <%= link_to result.international_tournament.name, international_tournament_path(result.international_tournament), class: 'text-blue-600 hover:text-blue-800' %>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                  <%= result.international_tournament.end_date&.strftime('%b %Y') %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% else %>
+      <p class="text-gray-600 italic">No recent results available.</p>
+    <% end %>
+  </section>
+</div>

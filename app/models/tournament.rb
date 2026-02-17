@@ -86,8 +86,12 @@ class Tournament < ApplicationRecord
   belongs_to :organizer, polymorphic: true
   belongs_to :location, optional: true
   has_one :tournament_local, dependent: :destroy
+  
+  # International associations
+  belongs_to :international_tournament, optional: true
 
   scope :active_manual_assignment, -> { where(state: "tournament_started").where(manual_assignment: true) }
+  scope :international, -> { where.not(international_tournament_id: nil) }
 
   #   data:
   #     {:table_ids=>["2", "4"],

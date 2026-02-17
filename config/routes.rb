@@ -1,5 +1,12 @@
 # For details on the DSL available within this file, see http://guides.rubyonrails.org/routing.html
 Rails.application.routes.draw do
+  # International section
+  namespace :international do
+    resources :tournaments, only: [:index, :show]
+    resources :videos, only: [:index, :show]
+  end
+  get 'international', to: 'international#index', as: :international
+
  devise_for :users,
              controllers: {
                registrations: 'registrations'
