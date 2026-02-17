@@ -36,7 +36,11 @@ class YoutubeScraper
     
     # Get channel info
     channel_response = youtube.list_channels('snippet,contentDetails', id: channel_id)
-    return [] if channel_response.items.empty?
+    
+    if channel_response.nil? || channel_response.items.nil? || channel_response.items.empty?
+      Rails.logger.warn "[YoutubeScraper] No channel found for ID #{channel_id}"
+      return []
+    end
 
     channel = channel_response.items.first
     source = find_or_create_source(channel)
@@ -55,6 +59,14 @@ class YoutubeScraper
     
     Rails.logger.info "[YoutubeScraper] Saved #{saved_count} carom videos from #{carom_videos.size} candidates"
     saved_count
+  rescue Google::Apis::ClientError => e
+    Rails.logger.error "[YoutubeScraper] YouTube API error for channel #{channel_id}: #{e.message}"
+    Rails.logger.error "[YoutubeScraper] Status: #{e.status_code}, Body: #{e.body}"
+    []
+  rescue StandardError => e
+    Rails.logger.error "[YoutubeScraper] Unexpected error for channel #{channel_id}: #{e.message}"
+    Rails.logger.error e.backtrace.first(5).join("\n")
+    []
   end
 
   # Scrape all known YouTube channels
