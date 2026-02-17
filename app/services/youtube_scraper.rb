@@ -77,13 +77,18 @@ class YoutubeScraper
     # Get recent videos from uploads playlist
     videos = fetch_playlist_videos(uploads_playlist_id, days_back: days_back)
     
+    Rails.logger.info "[YoutubeScraper] Found #{videos.size} total videos from channel"
+    
     # Filter for carom-related videos and save
     carom_videos = videos.select { |v| carom_related?(v) }
+    
+    Rails.logger.info "[YoutubeScraper] Filtered to #{carom_videos.size} carom-related videos"
+    
     saved_count = save_videos(carom_videos, source)
     
     source.mark_scraped!
     
-    Rails.logger.info "[YoutubeScraper] Saved #{saved_count} carom videos from #{carom_videos.size} candidates"
+    Rails.logger.info "[YoutubeScraper] Saved #{saved_count} carom videos (#{videos.size} total, #{carom_videos.size} carom-related)"
     saved_count
   rescue Google::Apis::ClientError => e
     Rails.logger.error "[YoutubeScraper] YouTube API error for channel #{channel_id}: #{e.message}"
