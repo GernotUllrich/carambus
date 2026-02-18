@@ -613,4 +613,22 @@ module ApplicationHelper
       false # Default to false for unknown types
     end
   end
+
+  # Helper for international tournament type badge colors
+  def tournament_type_badge_class(type)
+    case type
+    when 'world_championship'
+      'text-yellow-800 bg-yellow-100'
+    when 'world_cup'
+      'text-blue-800 bg-blue-100'
+    when 'european_championship'
+      'text-purple-800 bg-purple-100'
+    when 'league'
+      'text-green-800 bg-green-100'
+    when 'invitation'
+      'text-pink-800 bg-pink-100'
+    else
+      'text-gray-800 bg-gray-100'
+    end
+  end
 end
