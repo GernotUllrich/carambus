@@ -156,10 +156,21 @@ class TournamentDiscoveryService
                              .group_by(&:discipline)
                              .transform_values(&:count)
     
-    return nil if discipline_counts.empty?
+    # If we have disciplines, return the most common one
+    return discipline_counts.max_by { |_k, v| v }&.first if discipline_counts.any?
     
-    # Return most common discipline
-    discipline_counts.max_by { |_k, v| v }&.first
+    # Fallback: Try to infer from video titles/source
+    # Most international videos are 3-cushion (Dreiband klein)
+    source = videos.first&.international_source
+    
+    # Look for "3-cushion" or "dreiband" in titles
+    if videos.any? { |v| v.title.downcase.match?(/3[-\s]?cushion|dreiband|carom/) }
+      # Find "Dreiband klein" discipline (most common for international)
+      return Discipline.where('name ILIKE ?', '%Dreiband%').where('name ILIKE ?', '%klein%').first
+    end
+    
+    # Ultimate fallback: Use first Dreiband discipline we can find
+    Discipline.where('name ILIKE ?', '%Dreiband%').first
   end
 
   # Map tournament type strings to constants

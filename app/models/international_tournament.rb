@@ -43,14 +43,18 @@ class InternationalTournament < ApplicationRecord
   WORLD_CHAMPIONSHIP = 'world_championship'
   EUROPEAN_CHAMPIONSHIP = 'european_championship'
   NATIONAL_CHAMPIONSHIP = 'national_championship'
+  LEAGUE = 'league'
   INVITATION = 'invitation'
+  OTHER = 'other'
 
   TOURNAMENT_TYPES = [
     WORLD_CUP,
     WORLD_CHAMPIONSHIP,
     EUROPEAN_CHAMPIONSHIP,
     NATIONAL_CHAMPIONSHIP,
-    INVITATION
+    LEAGUE,
+    INVITATION,
+    OTHER
   ].freeze
 
   # Associations
