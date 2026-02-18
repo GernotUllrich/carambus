@@ -265,16 +265,20 @@ namespace :international do
       next
     end
     
-    malformed = InternationalTournament.where(international_source: umb_source)
-                                      .where("name ~ ?", '\d{1,2}\s*-\s*\d{0,2}')
+    # Find entries that are ONLY date fragments (not tournament names that contain dates)
+    # Match patterns like: "26 -", "- 01", "05 - 11" but NOT "World Cup 3-Cushion"
+    date_only = InternationalTournament.where(international_source: umb_source)
+                                      .where("name ~ ?", '^-?\s*\d{1,2}\s*-\s*\d{0,2}\s*$')
     
-    date_fragments = InternationalTournament.where(international_source: umb_source)
-                                           .where("name ~ ?", '^\d{1,2}\s')
+    # Find entries that are just "Date", "Tournament" etc
+    meta_labels = InternationalTournament.where(international_source: umb_source)
+                                        .where("name IN ('Date', 'Tournament', 'Type', 'Organization', 'Place')")
     
-    short_names = InternationalTournament.where(international_source: umb_source)
-                                        .where("LENGTH(name) < 10")
+    # Find entries with extremely malformed names (huge text blocks)
+    huge_names = InternationalTournament.where(international_source: umb_source)
+                                       .where("LENGTH(name) > 200")
     
-    all_bad = (malformed.to_a + date_fragments.to_a + short_names.to_a).uniq
+    all_bad = (date_only.to_a + meta_labels.to_a + huge_names.to_a).uniq
     
     if all_bad.empty?
       puts "✅ No malformed entries found!"
@@ -283,7 +287,8 @@ namespace :international do
     
     puts "\nFound #{all_bad.size} malformed entries:"
     all_bad.each do |t|
-      puts "  - '#{t.name}' (#{t.location})"
+      preview = t.name.length > 80 ? "#{t.name[0..77]}..." : t.name
+      puts "  - '#{preview}' (#{t.location})"
     end
     
     puts "\nDeleting malformed entries..."

@@ -186,17 +186,11 @@ class UmbScraper
     # Skip rows that are just fragments (less than 3 words)
     return nil if name_text.split(/\s+/).size < 3
     
-    # Skip if name is just a date pattern (fragment rows)
-    return nil if name_text.match?(/^\d{1,2}\s*-\s*\d{1,2}$/)
+    # Skip if name is ONLY a date pattern (fragment rows like "26 -", "- 01", "06 - 12")
+    return nil if name_text.match?(/^-?\s*\d{1,2}\s*-\s*\d{0,2}\s*$/)
     
-    # Skip if name contains date patterns (e.g. "26 -", "- 01", "06 - 12")
-    return nil if name_text.match?(/\b\d{1,2}\s*-\s*\d{0,2}\b/)
-    
-    # Skip if name is just a month name with extra stuff (malformed rows)
-    return nil if name_text.match?(/^(January|February|March|April|May|June|July|August|September|October|November|December)\s+\d/i)
-    
-    # Skip if name starts with just a number (likely a date fragment)
-    return nil if name_text.match?(/^\d{1,2}\s/)
+    # Skip if name is just a month name with numbers (malformed rows)
+    return nil if name_text.match?(/^(January|February|March|April|May|June|July|August|September|October|November|December)\s*\d/i)
     
     # Enhance date text with current month if it's just days
     enhanced_date = enhance_date_with_context(date_text, current_month, current_year)
