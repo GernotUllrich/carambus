@@ -97,6 +97,7 @@ class UmbScraper
     current_year = Time.current.year
     current_month = nil
     row_count = 0
+    pending_cross_month = {} # Track incomplete cross-month events by name+location
     
     # UMB website has structure:
     # Month rows contain just the month name (e.g. "February")
@@ -118,8 +119,8 @@ class UmbScraper
       Rails.logger.debug "[UmbScraper] Row #{row_count}: #{cells.size} cells, first='#{first_cell&.first(50)}', row_text='#{row_text&.first(100)}'"
       
       # Check if row contains a year (anywhere in the text)
-      if row_text.match?(/\b(2026|2027|2028)\b/) && !row_text.match?(/\d{1,2}\s*-\s*\d{1,2}/)
-        if (match = row_text.match(/\b(2026|2027|2028)\b/))
+      if row_text.match?(/\b(2026|2027|2028|2029|2030)\b/) && !row_text.match?(/\d{1,2}\s*-\s*\d{1,2}/)
+        if (match = row_text.match(/\b(2026|2027|2028|2029|2030)\b/))
           current_year = match[1].to_i
           Rails.logger.info "[UmbScraper] Found year: #{current_year} in row text"
           next
@@ -149,7 +150,8 @@ class UmbScraper
       
       tournament_data = extract_tournament_from_row(cells, 
                                                      current_month: current_month, 
-                                                     current_year: current_year)
+                                                     current_year: current_year,
+                                                     pending_cross_month: pending_cross_month)
       
       if tournament_data
         Rails.logger.debug "[UmbScraper] Row #{row_count}: Extracted tournament: #{tournament_data[:name]}"
@@ -167,7 +169,7 @@ class UmbScraper
   end
 
   # Extract tournament data from table row
-  def extract_tournament_from_row(cells, current_month:, current_year:)
+  def extract_tournament_from_row(cells, current_month:, current_year:, pending_cross_month:)
     # UMB structure: Date | Tournament Name | Type | Organization | Location
     date_text = cells[0]&.text&.strip
     name_text = cells[1]&.text&.strip
@@ -192,20 +194,66 @@ class UmbScraper
     # Skip if name is just a month name with numbers (malformed rows)
     return nil if name_text.match?(/^(January|February|March|April|May|June|July|August|September|October|November|December)\s*\d/i)
     
-    # Enhance date text with current month if it's just days
-    enhanced_date = enhance_date_with_context(date_text, current_month, current_year)
-    
-    # Skip if date enhancement failed (incomplete ranges)
-    return nil if enhanced_date.nil?
-    
-    # Clean location - sometimes it has organization info, extract actual location
+    # Clean location first (we need it for cross-month matching)
     cleaned_location = extract_location(location_text)
-    
-    # If location is nil, skip this tournament (we need location to distinguish duplicates)
     if cleaned_location.blank?
       Rails.logger.debug "[UmbScraper]   → Skipping: no valid location (was: '#{location_text}')"
       return nil
     end
+    
+    # Check if this is a cross-month event (date starts with "DD -" or "- DD")
+    key = "#{name_text}|#{cleaned_location}"
+    
+    if date_text.match?(/^(\d{1,2})\s*-\s*$/)
+      # Start of cross-month event (e.g. "26 -")
+      start_day = date_text.match(/^(\d{1,2})\s*-\s*$/)[1].to_i
+      pending_cross_month[key] = {
+        name: name_text,
+        location: cleaned_location,
+        type: type_text,
+        org: org_text,
+        start_month: current_month,
+        start_year: current_year,
+        start_day: start_day
+      }
+      Rails.logger.debug "[UmbScraper]   → Storing cross-month start: #{name_text} (#{start_day}.#{current_month}.#{current_year})"
+      return nil # Don't add yet, wait for end date
+    elsif date_text.match?(/^-\s*(\d{1,2})$/)
+      # End of cross-month event (e.g. "- 05")
+      end_day = date_text.match(/^-\s*(\d{1,2})$/)[1].to_i
+      
+      if pending_cross_month[key]
+        # Found matching start! Build complete date range
+        start_info = pending_cross_month[key]
+        start_month_abbr = Date::ABBR_MONTHNAMES[start_info[:start_month]]
+        end_month_abbr = Date::ABBR_MONTHNAMES[current_month]
+        
+        enhanced_date = "#{start_month_abbr} #{start_info[:start_day]} - #{end_month_abbr} #{end_day}, #{current_year}"
+        Rails.logger.info "[UmbScraper]   → Completed cross-month event: #{name_text} (#{enhanced_date})"
+        
+        pending_cross_month.delete(key) # Clean up
+        
+        return {
+          name: name_text,
+          location: cleaned_location,
+          tournament_type_hint: type_text,
+          organization: org_text,
+          date_range: enhanced_date,
+          source: 'umb',
+          source_url: FUTURE_TOURNAMENTS_URL
+        }
+      else
+        # No matching start found, skip this orphaned end
+        Rails.logger.warn "[UmbScraper]   → Orphaned cross-month end: #{name_text} (- #{end_day})"
+        return nil
+      end
+    end
+    
+    # Regular event (has complete date range)
+    enhanced_date = enhance_date_with_context(date_text, current_month, current_year)
+    
+    # Skip if date enhancement failed (incomplete ranges)
+    return nil if enhanced_date.nil?
     
     {
       name: name_text,
@@ -270,28 +318,11 @@ class UmbScraper
       return enhanced
     end
     
-      # If date is "- 05" (end of month range), it's a cross-month event ending in current month
-      # Example: "March 31 - April 05" shows as "31 -" in March row, "- 05" in April row
-      if cleaned.match?(/^-\s*(\d{1,2})$/)
-        end_day = cleaned.match(/^-\s*(\d{1,2})$/)[1]
-        # We only have the end date in the current month, assume it started last day of previous month
-        # This is a best-effort approximation without cross-row context
-        prev_month = month == 1 ? 12 : month - 1
-        prev_year = month == 1 ? year - 1 : year
-        # Assume it started on the last few days of previous month (common for cross-month events)
-        prev_month_abbr = Date::ABBR_MONTHNAMES[prev_month]
-        curr_month_abbr = Date::ABBR_MONTHNAMES[month]
-        # Format: "Feb 28 - Apr 05, 2026" (Month Day - Month Day, Year) to match parse_month_day_range
-        enhanced = "#{prev_month_abbr} 28 - #{curr_month_abbr} #{end_day}, #{year}"
-        Rails.logger.debug "[UmbScraper]   → cross-month end: '#{enhanced}'"
-        return enhanced
-      end
-      
-      # If date is "31 -" (start of cross-month range), we need the next row for context
-      # Skip for now - will be picked up when we see the end date
-      if cleaned.match?(/^\d{1,2}\s*-$/)
-        Rails.logger.debug "[UmbScraper]   → skipping incomplete range (start only) - will be in next month's row"
-        return nil # Skip incomplete ranges
+      # Cross-month events (e.g. "31 -" or "- 05") are now handled in extract_tournament_from_row
+      # This should not be reached, but keep as fallback
+      if cleaned.match?(/^-?\s*\d{1,2}\s*-\s*$/) || cleaned.match?(/^-\s*\d{1,2}$/)
+        Rails.logger.debug "[UmbScraper]   → skipping incomplete cross-month date (handled elsewhere)"
+        return nil
       end
     
     # If date already has month/year info, return as-is
