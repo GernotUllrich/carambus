@@ -106,8 +106,8 @@ class TournamentDiscoveryService
         end_date: end_date,
         discipline: discipline,
         international_source: candidate[:source],
-        year: candidate[:year],
-        metadata: {
+        data: {
+          year: candidate[:year],
           season: candidate[:season],
           video_count: videos.size,
           auto_discovered: true,
@@ -125,7 +125,7 @@ class TournamentDiscoveryService
       # Update existing tournament
       tournament.update(
         end_date: [tournament.end_date, end_date].compact.max,
-        metadata: tournament.metadata.merge(
+        data: tournament.data.merge(
           video_count: videos.size,
           last_updated: Time.current.iso8601
         )
