@@ -90,6 +90,9 @@ gem "stimulus_reflex", "3.5.3"
 gem "gcal-ruby", "~> 0.1.0"
 gem "google-apis-calendar_v3", "~> 0.5.0"
 gem "google-apis-youtube_v3", "~> 0.40.0"
+
+# Google Cloud Translation API for video title translation
+gem "google-cloud-translate", "~> 4.1"
 gem "i15r", "~> 0.5.1"
 gem "i18n_yaml_sort", git: "https://github.com/GovTechSG/i18n_yaml_sort.git"
 gem "multipart-post"

@@ -26,7 +26,12 @@
 
       <!-- Video Info -->
       <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-        <h1 class="text-2xl font-bold text-gray-900 mb-4"><%= @video.title %></h1>
+        <h1 class="text-2xl font-bold text-gray-900 mb-4"><%= @video.translated_title(:en) %></h1>
+        <% if @video.translated_title(:en) != @video.title %>
+          <p class="text-sm text-gray-500 mb-4">
+            Original: <%= @video.title %>
+          </p>
+        <% end %>
 
         <!-- Metadata Pills -->
         <div class="flex flex-wrap gap-2 mb-4">
@@ -36,7 +41,7 @@
           
           <% if @video.discipline.present? %>
             <span class="inline-flex items-center px-3 py-1 text-sm font-semibold text-green-800 bg-green-100 rounded-full">
-              <%= @video.discipline.name %>
+              <%= @video.discipline.translated_name(:en) %>
             </span>
           <% end %>
 

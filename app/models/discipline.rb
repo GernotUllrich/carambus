@@ -45,6 +45,21 @@ class Discipline < ApplicationRecord
     self.synonyms = (synonyms.to_s.split("\n") + [name]).uniq.join("\n")
   end
 
+  # Translation map for international frontend
+  TRANSLATIONS = {
+    'Karambol' => { en: 'Carom', fr: 'Carambole', es: 'Carambola', nl: 'Carambole', de: 'Karambol' },
+    'Dreiband' => { en: '3-Cushion', fr: 'Trois bandes', es: 'Tres bandas', nl: 'Driebanden', de: 'Dreiband' },
+    'Dreiband klein' => { en: '3-Cushion (small table)', fr: 'Trois bandes (petit billard)', es: 'Tres bandas (mesa pequeña)', nl: 'Driebanden (klein)', de: 'Dreiband klein' },
+    'Dreiband groß' => { en: '3-Cushion (match table)', fr: 'Trois bandes (grand billard)', es: 'Tres bandas (mesa grande)', nl: 'Driebanden (groot)', de: 'Dreiband groß' },
+    'Freie Partie' => { en: 'Straight Rail', fr: 'Partie libre', es: 'Libre', nl: 'Vrije partij', de: 'Freie Partie' },
+    'Cadre' => { en: 'Balkline', fr: 'Cadre', es: 'Cadre', nl: 'Cadre', de: 'Cadre' },
+    'Einband' => { en: '1-Cushion', fr: 'Une bande', es: 'Una banda', nl: 'Eenbanden', de: 'Einband' }
+  }.freeze
+
+  def translated_name(locale = :en)
+    TRANSLATIONS.dig(name, locale) || name
+  end
+
   DE_DISCIPLINE_NAMES = ["Pool", "Snooker", "Kegel", "5 Kegel", "Karambol großes Billard",
                          "Karambol kleines Billard", "Biathlon"].freeze
   DISCIPLINE_NAMES = ["Pool", "Snooker", "Pin Billards", "5-Pin Billards",

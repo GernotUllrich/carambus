@@ -130,4 +130,52 @@ namespace :international do
     puts "  Tournaments created/updated: #{result[:tournaments].size}"
     puts "  Videos assigned: #{result[:videos_assigned]}"
   end
+
+  desc 'Translate video titles to English'
+  task :translate_videos, [:limit] => :environment do |_t, args|
+    limit = (args[:limit] || 100).to_i
+    
+    puts "\n=== Video Translation ==="
+    puts "Translating up to #{limit} videos..."
+    
+    service = VideoTranslationService.new
+    
+    unless service.translator
+      puts "ERROR: Google Translate API not configured!"
+      puts "Please add your API key to Rails credentials:"
+      puts "  rails credentials:edit"
+      puts "  google:"
+      puts "    translate_api_key: YOUR_KEY_HERE"
+      next
+    end
+    
+    # Get untranslated videos (prioritize non-English)
+    videos = InternationalVideo.where("metadata->>'translated_title' IS NULL")
+                               .order(published_at: :desc)
+                               .limit(limit)
+    
+    if videos.empty?
+      puts "No videos to translate!"
+      next
+    end
+    
+    puts "Found #{videos.size} videos to translate"
+    
+    count = service.translate_batch(videos, target_language: 'en')
+    
+    puts "\nTranslation complete!"
+    puts "  Videos translated: #{count}"
+    puts "  Failed: #{videos.size - count}"
+    
+    # Show sample translations
+    puts "\nSample translations:"
+    InternationalVideo.where("metadata->>'translated_title' IS NOT NULL")
+                     .order(updated_at: :desc)
+                     .limit(5)
+                     .each do |v|
+      puts "  Original: #{v.title[0..60]}"
+      puts "  Translated: #{v.metadata['translated_title'][0..60]}"
+      puts ""
+    end
+  end
 end
