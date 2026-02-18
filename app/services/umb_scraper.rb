@@ -94,48 +94,110 @@ class UmbScraper
   # Parse future tournaments from HTML
   def parse_future_tournaments(doc)
     tournaments = []
+    current_year = Time.current.year
+    current_month = nil
     
-    # UMB uses a table structure for tournaments
-    # Look for table rows with tournament data
+    # UMB website has structure:
+    # Month rows contain just the month name (e.g. "February")
+    # Tournament rows contain: Date | Tournament Name | Type | Organization | Location
+    
     doc.css('table tr').each do |row|
       cells = row.css('td')
-      next if cells.size < 4 # Skip header rows or incomplete data
+      next if cells.empty?
       
-      # Common UMB table structure:
-      # | Date | Event | Location | Discipline |
-      tournament_data = extract_tournament_from_row(cells)
+      first_cell = cells[0]&.text&.strip
+      
+      # Check if this is a year header
+      if first_cell.match?(/^(2026|2027|2028)$/)
+        current_year = first_cell.to_i
+        Rails.logger.debug "[UmbScraper] Found year: #{current_year}"
+        next
+      end
+      
+      # Check if this is a month header
+      month_num = parse_month_name(first_cell)
+      if month_num && cells.size < 5
+        current_month = month_num
+        Rails.logger.debug "[UmbScraper] Found month: #{first_cell} (#{current_month})"
+        next
+      end
+      
+      # Try to parse as tournament row
+      next if cells.size < 5
+      
+      tournament_data = extract_tournament_from_row(cells, 
+                                                     current_month: current_month, 
+                                                     current_year: current_year)
       tournaments << tournament_data if tournament_data
     end
     
-    tournaments
+    Rails.logger.info "[UmbScraper] Parsed #{tournaments.size} tournament entries from HTML"
+    tournaments.compact
   rescue StandardError => e
     Rails.logger.error "[UmbScraper] Error parsing tournaments: #{e.message}"
     []
   end
 
   # Extract tournament data from table row
-  def extract_tournament_from_row(cells)
-    # Try to extract date, name, location, discipline
-    # This is a heuristic parser - structure may vary
-    
+  def extract_tournament_from_row(cells, current_month:, current_year:)
+    # UMB structure: Date | Tournament Name | Type | Organization | Location
     date_text = cells[0]&.text&.strip
-    event_text = cells[1]&.text&.strip
-    location_text = cells[2]&.text&.strip
-    discipline_text = cells[3]&.text&.strip
+    name_text = cells[1]&.text&.strip
+    type_text = cells[2]&.text&.strip
+    org_text = cells[3]&.text&.strip
+    location_text = cells[4]&.text&.strip
     
-    return nil if event_text.blank?
+    # Skip if this looks like a header row
+    return nil if date_text.match?(/^Date$/i)
+    return nil if name_text.match?(/^(Tournament|Type|Organization|Place)$/i)
+    
+    # Skip if name is too short
+    return nil if name_text.blank? || name_text.length < 5
+    
+    # Skip rows that are just fragments (less than 3 words)
+    return nil if name_text.split(/\s+/).size < 3
+    
+    # Enhance date text with current month if it's just days
+    enhanced_date = enhance_date_with_context(date_text, current_month, current_year)
     
     {
-      name: event_text,
+      name: name_text,
       location: location_text,
-      discipline_name: discipline_text,
-      date_range: date_text,
+      tournament_type_hint: type_text,
+      organization: org_text,
+      date_range: enhanced_date,
       source: 'umb',
       source_url: FUTURE_TOURNAMENTS_URL
     }
   rescue StandardError => e
     Rails.logger.warn "[UmbScraper] Failed to extract tournament from row: #{e.message}"
     nil
+  end
+  
+  # Enhance date string with month/year context
+  def enhance_date_with_context(date_str, month, year)
+    return date_str if date_str.blank? || month.nil?
+    
+    # If date is just "06 - 12" add the month name
+    if date_str.match?(/^\d{1,2}\s*-\s*\d{1,2}$/)
+      month_name = Date::MONTHNAMES[month]
+      return "#{date_str} #{month_name} #{year}"
+    end
+    
+    # If date is " - 05" (end of month range), we need previous entry's context
+    # For now, just add month/year
+    if date_str.match?(/^\s*-\s*\d{1,2}$/)
+      month_name = Date::MONTHNAMES[month]
+      return "#{date_str.strip} #{month_name} #{year}"
+    end
+    
+    # If date is "31 - " (start of cross-month range)
+    if date_str.match?(/^\d{1,2}\s*-\s*$/)
+      month_name = Date::MONTHNAMES[month]
+      return "#{date_str.strip} #{month_name} #{year}"
+    end
+    
+    date_str
   end
 
   # Save tournaments to database
@@ -147,12 +209,18 @@ class UmbScraper
         # Parse dates
         dates = parse_date_range(data[:date_range])
         
-        # Find discipline
-        discipline = find_discipline(data[:discipline_name])
+        # Skip tournaments without valid dates
+        if dates[:start_date].blank?
+          Rails.logger.debug "[UmbScraper] Skipping #{data[:name]} - no valid date"
+          next
+        end
+        
+        # Find discipline - default to Dreiband (3-Cushion is most common)
+        discipline = find_discipline_from_name(data[:name]) || Discipline.find_by('name ILIKE ?', 'Dreiband')
         next unless discipline
         
-        # Determine tournament type from name
-        tournament_type = determine_tournament_type(data[:name])
+        # Determine tournament type from name and type hint
+        tournament_type = determine_tournament_type(data[:name], data[:tournament_type_hint])
         
         # Find or create tournament
         tournament = InternationalTournament.find_or_initialize_by(
@@ -170,12 +238,14 @@ class UmbScraper
             source_url: data[:source_url],
             data: {
               umb_official: true,
+              umb_type: data[:tournament_type_hint],
+              umb_organization: data[:organization],
               scraped_at: Time.current.iso8601
             }
           )
           
           if tournament.save
-            Rails.logger.info "[UmbScraper] Created tournament: #{data[:name]}"
+            Rails.logger.info "[UmbScraper] Created tournament: #{data[:name]} (#{dates[:start_date]})"
             saved_count += 1
           else
             Rails.logger.error "[UmbScraper] Failed to save tournament: #{tournament.errors.full_messages}"
@@ -183,10 +253,14 @@ class UmbScraper
         else
           # Update existing
           tournament.update(
+            end_date: dates[:end_date],
             location: data[:location],
+            tournament_type: tournament_type,
             source_url: data[:source_url],
             data: tournament.data.merge(
               umb_official: true,
+              umb_type: data[:tournament_type_hint],
+              umb_organization: data[:organization],
               last_updated: Time.current.iso8601
             )
           )
@@ -201,21 +275,25 @@ class UmbScraper
   end
 
   # Parse date range string (e.g. "18-21 Dec 2025" or "Feb 26 - Mar 1, 2026")
-  def parse_date_range(date_str)
+  # Note: UMB website often omits month/year - we need context from surrounding rows
+  def parse_date_range(date_str, year: Time.current.year)
     return { start_date: nil, end_date: nil } if date_str.blank?
     
-    # Clean up string
-    cleaned = date_str.strip.gsub(/\s+/, ' ')
+    # Clean up string - remove extra whitespace and newlines
+    cleaned = date_str.strip.gsub(/\s+/, ' ').gsub(/\n+/, ' ')
+    
+    # Skip if it's too short or just numbers
+    return { start_date: nil, end_date: nil } if cleaned.length < 3
     
     # Try different patterns
-    result = parse_day_range_with_month(cleaned) ||
+    result = parse_day_range_with_month(cleaned, year: year) ||
              parse_month_day_range(cleaned) ||
              parse_full_month_range(cleaned)
     
     if result
       result
     else
-      Rails.logger.warn "[UmbScraper] Could not parse date: #{date_str}"
+      Rails.logger.debug "[UmbScraper] Could not parse date: #{date_str}"
       { start_date: nil, end_date: nil }
     end
   rescue StandardError => e
@@ -223,37 +301,37 @@ class UmbScraper
     { start_date: nil, end_date: nil }
   end
 
-  # Parse "18-21 Dec 2025" or "December 18-21, 2025"
-  def parse_day_range_with_month(str)
-    # Pattern: "18-21 Dec 2025"
-    if (match = str.match(/(\d{1,2})-(\d{1,2})\s+([A-Za-z]+)[\s,]+(\d{4})/))
+  # Parse "18-21 Dec 2025" or "December 18-21, 2025" or just "18 - 24"
+  def parse_day_range_with_month(str, year: Time.current.year)
+    # Pattern: "18-21 Dec 2025" or "18 - 21 Dec 2025"
+    if (match = str.match(/(\d{1,2})\s*-\s*(\d{1,2})\s+([A-Za-z]+)[\s,]*(\d{4})?/))
       start_day = match[1].to_i
       end_day = match[2].to_i
       month_str = match[3]
-      year = match[4].to_i
+      year_from_match = match[4]&.to_i || year
       
       month = parse_month_name(month_str)
       return nil unless month
       
       return {
-        start_date: Date.new(year, month, start_day),
-        end_date: Date.new(year, month, end_day)
+        start_date: Date.new(year_from_match, month, start_day),
+        end_date: Date.new(year_from_match, month, end_day)
       }
     end
     
-    # Pattern: "December 18-21, 2025"
-    if (match = str.match(/([A-Za-z]+)\s+(\d{1,2})-(\d{1,2})[\s,]+(\d{4})/))
+    # Pattern: "December 18-21, 2025" or "December 18 - 21, 2025"
+    if (match = str.match(/([A-Za-z]+)\s+(\d{1,2})\s*-\s*(\d{1,2})[\s,]*(\d{4})?/))
       month_str = match[1]
       start_day = match[2].to_i
       end_day = match[3].to_i
-      year = match[4].to_i
+      year_from_match = match[4]&.to_i || year
       
       month = parse_month_name(month_str)
       return nil unless month
       
       return {
-        start_date: Date.new(year, month, start_day),
-        end_date: Date.new(year, month, end_day)
+        start_date: Date.new(year_from_match, month, start_day),
+        end_date: Date.new(year_from_match, month, end_day)
       }
     end
     
@@ -318,31 +396,41 @@ class UmbScraper
     months[name.downcase]
   end
 
-  # Find discipline by name
-  def find_discipline(name)
+  # Find discipline from tournament name
+  def find_discipline_from_name(name)
     return nil if name.blank?
     
-    # Map UMB discipline names to our database
-    mapping = {
-      '3-cushion' => 'Dreiband',
-      '3 cushion' => 'Dreiband',
-      'libre' => 'Freie Partie',
-      'cadre' => 'Cadre',
-      '5-pins' => 'Fünfkampf',
-      'balkline' => 'Cadre'
-    }
-    
-    discipline_search = mapping[name.downcase] || name
-    
-    # Find in database
-    Discipline.where('name ILIKE ?', "%#{discipline_search}%").first ||
-      Discipline.find_by('name ILIKE ?', 'Karambol')
-  end
-
-  # Determine tournament type from name
-  def determine_tournament_type(name)
     name_lower = name.downcase
     
+    # Check for discipline keywords in name
+    if name_lower.include?('3-cushion') || name_lower.include?('3 cushion')
+      return Discipline.find_by('name ILIKE ?', 'Dreiband')
+    elsif name_lower.include?('5-pins') || name_lower.include?('5 pins')
+      return Discipline.find_by('name ILIKE ?', '%fünf%') || Discipline.find_by('name ILIKE ?', '%five%')
+    elsif name_lower.include?('artistique') || name_lower.include?('artistic')
+      return Discipline.find_by('name ILIKE ?', '%artist%')
+    elsif name_lower.include?('libre') || name_lower.include?('free')
+      return Discipline.find_by('name ILIKE ?', '%frei%') || Discipline.find_by('name ILIKE ?', '%libre%')
+    elsif name_lower.include?('cadre')
+      return Discipline.find_by('name ILIKE ?', '%cadre%')
+    end
+    
+    # Default to generic Karambol
+    Discipline.find_by('name ILIKE ?', 'Karambol')
+  end
+
+  # Determine tournament type from name and UMB type hint
+  def determine_tournament_type(name, type_hint = nil)
+    name_lower = name.downcase
+    hint_lower = type_hint&.downcase || ''
+    
+    # Check type hint first (more reliable)
+    return 'world_championship' if hint_lower.include?('world championship')
+    return 'world_cup' if hint_lower.include?('world cup')
+    return 'european_championship' if hint_lower.include?('european championship')
+    return 'invitation' if hint_lower.include?('invitational') || hint_lower.include?('promotional')
+    
+    # Fallback to name parsing
     case name_lower
     when /world championship/
       'world_championship'
@@ -354,6 +442,8 @@ class UmbScraper
       'invitation'
     when /national championship/
       'national_championship'
+    when /general assembly/
+      'other' # Not actually a tournament
     else
       'other'
     end
