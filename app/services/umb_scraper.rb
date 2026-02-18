@@ -111,24 +111,32 @@ class UmbScraper
         next
       end
       
+      # Get full row text to check for months/years
+      row_text = row.text.strip
       first_cell = cells[0]&.text&.strip
       
-      Rails.logger.debug "[UmbScraper] Row #{row_count}: #{cells.size} cells, first='#{first_cell&.first(50)}'"
+      Rails.logger.debug "[UmbScraper] Row #{row_count}: #{cells.size} cells, first='#{first_cell&.first(50)}', row_text='#{row_text&.first(100)}'"
       
-      # Check if this is a year header
-      if first_cell.match?(/^(2026|2027|2028)$/)
-        current_year = first_cell.to_i
-        Rails.logger.info "[UmbScraper] Found year: #{current_year}"
-        next
+      # Check if row contains a year (anywhere in the text)
+      if row_text.match?(/\b(2026|2027|2028)\b/) && !row_text.match?(/\d{1,2}\s*-\s*\d{1,2}/)
+        if (match = row_text.match(/\b(2026|2027|2028)\b/))
+          current_year = match[1].to_i
+          Rails.logger.info "[UmbScraper] Found year: #{current_year} in row text"
+          next
+        end
       end
       
-      # Check if this is a month header
-      # Month rows have the month name in first cell and are usually colspan cells
-      month_num = parse_month_name(first_cell)
-      if month_num
-        current_month = month_num
-        Rails.logger.info "[UmbScraper] Found month: #{Date::MONTHNAMES[month_num]} (#{current_month}) in row with #{cells.size} cells"
-        # Don't skip yet - month might be in a row with tournament data too
+      # Check if row contains a month name (anywhere in the text)
+      # Extract just the first recognizable month name from the row
+      %w[January February March April May June July August September October November December].each do |month_name|
+        if row_text.match?(/\b#{month_name}\b/i)
+          month_num = Date::MONTHNAMES.index(month_name)
+          if month_num
+            current_month = month_num
+            Rails.logger.info "[UmbScraper] Found month: #{month_name} (#{current_month}) in row with #{cells.size} cells"
+            break
+          end
+        end
       end
       
       # Try to parse as tournament row
