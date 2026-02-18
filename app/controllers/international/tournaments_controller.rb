@@ -15,7 +15,7 @@ module International
       @tournaments = @tournaments.in_year(params[:year]) if params[:year].present?
       
       # Pagination
-      @tournaments = @tournaments.page(params[:page]).per(20)
+      @pagy, @tournaments = pagy(@tournaments, items: 20)
       
       # For filters
       @tournament_types = InternationalTournament::TOURNAMENT_TYPES

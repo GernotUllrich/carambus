@@ -1,0 +1,205 @@
+<div class="container mx-auto px-4 py-8">
+  <!-- Breadcrumb -->
+  <nav class="mb-6 text-sm">
+    <%= link_to 'International', international_path, class: 'text-blue-600 hover:text-blue-800' %>
+    <span class="mx-2 text-gray-400">/</span>
+    <%= link_to 'Videos', international_videos_path, class: 'text-blue-600 hover:text-blue-800' %>
+    <span class="mx-2 text-gray-400">/</span>
+    <span class="text-gray-600"><%= truncate(@video.title, length: 50) %></span>
+  </nav>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <!-- Main Content -->
+    <div class="lg:col-span-2">
+      <!-- Video Player -->
+      <div class="bg-black rounded-lg overflow-hidden mb-6">
+        <div class="relative" style="padding-bottom: 56.25%;">
+          <iframe
+            src="<%= @video.youtube_embed_url %>"
+            class="absolute inset-0 w-full h-full"
+            frameborder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen>
+          </iframe>
+        </div>
+      </div>
+
+      <!-- Video Info -->
+      <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+        <h1 class="text-2xl font-bold text-gray-900 mb-4"><%= @video.title %></h1>
+
+        <!-- Metadata Pills -->
+        <div class="flex flex-wrap gap-2 mb-4">
+          <span class="inline-flex items-center px-3 py-1 text-sm font-semibold text-blue-800 bg-blue-100 rounded-full">
+            <%= @video.international_source.name %>
+          </span>
+          
+          <% if @video.discipline.present? %>
+            <span class="inline-flex items-center px-3 py-1 text-sm font-semibold text-green-800 bg-green-100 rounded-full">
+              <%= @video.discipline.name %>
+            </span>
+          <% end %>
+
+          <% if @video.metadata['year'].present? && @video.metadata['year'] > 0 %>
+            <span class="inline-flex items-center px-3 py-1 text-sm font-semibold text-purple-800 bg-purple-100 rounded-full">
+              <%= @video.metadata['season'] || @video.metadata['year'] %>
+            </span>
+          <% end %>
+
+          <% if @video.metadata['tournament_type'].present? %>
+            <span class="inline-flex items-center px-3 py-1 text-sm font-semibold text-indigo-800 bg-indigo-100 rounded-full">
+              <%= @video.metadata['tournament_type'] %>
+            </span>
+          <% end %>
+
+          <% if @video.metadata['round_number'].present? %>
+            <span class="inline-flex items-center px-3 py-1 text-sm font-semibold text-pink-800 bg-pink-100 rounded-full">
+              Round <%= @video.metadata['round_number'] %>
+            </span>
+          <% end %>
+        </div>
+
+        <!-- Stats -->
+        <div class="grid grid-cols-3 gap-4 py-4 border-t border-b border-gray-200">
+          <div class="text-center">
+            <div class="text-2xl font-bold text-gray-900">
+              <%= number_to_human(@video.view_count || 0, precision: 1) %>
+            </div>
+            <div class="text-sm text-gray-600">Views</div>
+          </div>
+          
+          <div class="text-center">
+            <div class="text-2xl font-bold text-gray-900">
+              <%= number_to_human(@video.like_count || 0, precision: 1) %>
+            </div>
+            <div class="text-sm text-gray-600">Likes</div>
+          </div>
+          
+          <div class="text-center">
+            <div class="text-2xl font-bold text-gray-900">
+              <%= @video.duration_formatted || '--' %>
+            </div>
+            <div class="text-sm text-gray-600">Duration</div>
+          </div>
+        </div>
+
+        <!-- Published Date -->
+        <% if @video.published_at.present? %>
+          <div class="mt-4 text-sm text-gray-600">
+            Published <%= @video.published_at.strftime('%B %d, %Y') %>
+            (<%= time_ago_in_words(@video.published_at) %> ago)
+          </div>
+        <% end %>
+
+        <!-- Players -->
+        <% if @video.metadata['players'].present? && @video.metadata['players'].any? %>
+          <div class="mt-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-3">Players</h3>
+            <div class="flex items-center justify-center py-4 bg-gray-50 rounded-lg">
+              <div class="text-center">
+                <div class="text-xl font-bold text-gray-900"><%= @video.metadata['players'][0] %></div>
+              </div>
+              <div class="mx-6 text-2xl font-bold text-gray-400">vs</div>
+              <div class="text-center">
+                <div class="text-xl font-bold text-gray-900"><%= @video.metadata['players'][1] %></div>
+              </div>
+            </div>
+          </div>
+        <% end %>
+
+        <!-- Description -->
+        <% if @video.description.present? %>
+          <div class="mt-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-3">Description</h3>
+            <div class="text-gray-700 whitespace-pre-line">
+              <%= truncate(@video.description, length: 500) %>
+            </div>
+          </div>
+        <% end -->
+
+        <!-- Watch on YouTube -->
+        <div class="mt-6">
+          <%= link_to @video.youtube_url, 
+              target: '_blank', 
+              rel: 'noopener noreferrer',
+              class: 'inline-flex items-center px-6 py-3 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition-colors' do %>
+            <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+            </svg>
+            Watch on YouTube
+          <% end %>
+        </div>
+      </div>
+
+      <!-- Tournament Info -->
+      <% if @video.international_tournament.present? %>
+        <div class="bg-white rounded-lg shadow-md p-6">
+          <h2 class="text-xl font-bold text-gray-900 mb-4">Tournament</h2>
+          <%= link_to international_tournament_path(@video.international_tournament), 
+              class: 'block p-4 border border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all' do %>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">
+              <%= @video.international_tournament.name %>
+            </h3>
+            <div class="text-sm text-gray-600 space-y-1">
+              <p><%= @video.international_tournament.tournament_type&.humanize %></p>
+              <p><%= @video.international_tournament.date_range %></p>
+              <% if @video.international_tournament.location.present? %>
+                <p><%= @video.international_tournament.location %></p>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="lg:col-span-1">
+      <!-- Related Videos -->
+      <% if @related_videos.any? %>
+        <div class="bg-white rounded-lg shadow-md p-6">
+          <h2 class="text-xl font-bold text-gray-900 mb-4">Related Videos</h2>
+          <div class="space-y-4">
+            <% @related_videos.each do |related_video| %>
+              <%= link_to international_video_path(related_video), 
+                  class: 'block hover:bg-gray-50 rounded-lg transition-colors' do %>
+                <div class="flex gap-3">
+                  <% if related_video.thumbnail_url.present? %>
+                    <div class="flex-shrink-0 w-32 h-18 relative">
+                      <%= image_tag related_video.thumbnail_url, 
+                          class: 'w-full h-full object-cover rounded', 
+                          alt: related_video.title %>
+                      <% if related_video.duration.present? %>
+                        <span class="absolute bottom-1 right-1 bg-black bg-opacity-75 text-white text-xs px-1 py-0.5 rounded">
+                          <%= related_video.duration_formatted %>
+                        </span>
+                      <% end %>
+                    </div>
+                  <% end %>
+                  <div class="flex-1 min-w-0">
+                    <h3 class="text-sm font-semibold text-gray-900 line-clamp-2 mb-1">
+                      <%= related_video.title %>
+                    </h3>
+                    <p class="text-xs text-gray-600">
+                      <%= related_video.international_source.name %>
+                    </p>
+                    <% if related_video.published_at.present? %>
+                      <p class="text-xs text-gray-500">
+                        <%= time_ago_in_words(related_video.published_at) %> ago
+                      </p>
+                    <% end %>
+                  </div>
+                </div>
+              <% end %>
+            <% end %>
+          </div>
+          
+          <div class="mt-4 pt-4 border-t border-gray-200">
+            <%= link_to 'View All Videos →', 
+                international_videos_path, 
+                class: 'text-blue-600 hover:text-blue-800 font-semibold text-sm' %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

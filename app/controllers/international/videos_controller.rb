@@ -21,7 +21,7 @@ module International
       end
       
       # Pagination
-      @videos = @videos.page(params[:page]).per(24)
+      @pagy, @videos = pagy(@videos, items: 24)
       
       # For filters
       @sources = InternationalSource.active.order(:name)
