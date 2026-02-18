@@ -323,8 +323,10 @@ class UmbScraper
           next
         end
         
-        # Find discipline - default to Dreiband (3-Cushion is most common)
-        discipline = find_discipline_from_name(data[:name]) || Discipline.find_by('name ILIKE ?', 'Dreiband')
+        # Find discipline - default to Dreiband groß (3-Cushion on large table is most common)
+        discipline = find_discipline_from_name(data[:name]) || 
+                    Discipline.find_by('name ILIKE ?', '%dreiband%groß%') ||
+                    Discipline.find_by('name ILIKE ?', '%dreiband%gross%')
         unless discipline
           Rails.logger.warn "[UmbScraper] Skipping #{data[:name]} - no discipline found"
           next
@@ -544,10 +546,11 @@ class UmbScraper
     
     # Check for discipline keywords in name
     if name_lower.include?('3-cushion') || name_lower.include?('3 cushion')
-      # Try various spellings: Dreiband, Libre, or anything with "drei" or "three"
-      return Discipline.find_by('name ILIKE ?', '%drei%') || 
-             Discipline.find_by('name ILIKE ?', '%three%') ||
-             Discipline.find_by('name ILIKE ?', '%cushion%') ||
+      # UMB 3-Cushion tournaments are always on large tables = "Dreiband groß"
+      return Discipline.find_by('name ILIKE ?', '%dreiband%groß%') ||
+             Discipline.find_by('name ILIKE ?', '%dreiband%gross%') ||
+             Discipline.find_by('name ILIKE ?', '%three%cushion%') ||
+             Discipline.find_by('name ILIKE ?', '%3%cushion%') ||
              Discipline.find_by('name ILIKE ?', 'Karambol')  # Ultimate fallback
     elsif name_lower.include?('5-pins') || name_lower.include?('5 pins')
       return Discipline.find_by('name ILIKE ?', '%fünf%') || 
