@@ -175,8 +175,8 @@ class UmbScraper
     org_text = cells[3]&.text&.strip
     location_text = cells[4]&.text&.strip
     
-    # Debug: log what we're seeing
-    Rails.logger.debug "[UmbScraper]   Cells: date='#{date_text&.first(30)}' name='#{name_text&.first(40)}' type='#{type_text&.first(20)}' org='#{org_text&.first(20)}' loc='#{location_text&.first(40)}'"
+    # Debug: log what we're seeing (use INFO for production visibility)
+    Rails.logger.info "[UmbScraper]   Cells: date='#{date_text&.first(30)}' name='#{name_text&.first(40)}' type='#{type_text&.first(20)}' org='#{org_text&.first(20)}' loc='#{location_text&.first(40)}'"
     
     # Skip if this looks like a header row
     return nil if date_text.match?(/^Date$/i)
@@ -205,7 +205,7 @@ class UmbScraper
     
     # If location is nil, skip this tournament (we need location to distinguish duplicates)
     if cleaned_location.blank?
-      Rails.logger.debug "[UmbScraper]   → Skipping: no valid location (was: '#{location_text}')"
+      Rails.logger.info "[UmbScraper]   → Skipping: no valid location (was: '#{location_text}')"
       return nil
     end
     
