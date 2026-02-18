@@ -135,7 +135,7 @@ class UmbScraper
           if month_num
             current_month = month_num
             month_found_this_row = true
-            Rails.logger.info "[UmbScraper] Found month: #{month_name} (#{current_month}) for subsequent rows"
+            Rails.logger.debug "[UmbScraper] Found month: #{month_name} (#{current_month}) for subsequent rows"
             break
           end
         end
@@ -147,22 +147,17 @@ class UmbScraper
         next
       end
       
-      # Log current context for this row
-      Rails.logger.debug "[UmbScraper] Row #{row_count}: Processing with month=#{current_month}, year=#{current_year}"
-      
       tournament_data = extract_tournament_from_row(cells, 
                                                      current_month: current_month, 
                                                      current_year: current_year)
       
       if tournament_data
-        Rails.logger.info "[UmbScraper] Row #{row_count}: Extracted tournament: #{tournament_data[:name]}"
+        Rails.logger.debug "[UmbScraper] Row #{row_count}: Extracted tournament: #{tournament_data[:name]}"
         tournaments << tournament_data
-      else
-        Rails.logger.debug "[UmbScraper] Row #{row_count}: Filtered out"
       end
     end
     
-    Rails.logger.info "[UmbScraper] Total rows processed: #{row_count}"
+    Rails.logger.debug "[UmbScraper] Total rows processed: #{row_count}"
     Rails.logger.info "[UmbScraper] Parsed #{tournaments.size} tournament entries from HTML"
     tournaments.compact
   rescue StandardError => e
@@ -180,8 +175,6 @@ class UmbScraper
     org_text = cells[3]&.text&.strip
     location_text = cells[4]&.text&.strip
     
-    # Debug: log what we're seeing (use INFO for production visibility)
-    Rails.logger.info "[UmbScraper]   Cells: date='#{date_text&.first(30)}' name='#{name_text&.first(40)}' type='#{type_text&.first(20)}' org='#{org_text&.first(20)}' loc='#{location_text&.first(40)}'"
     
     # Skip if this looks like a header row
     return nil if date_text.match?(/^Date$/i)
@@ -210,7 +203,7 @@ class UmbScraper
     
     # If location is nil, skip this tournament (we need location to distinguish duplicates)
     if cleaned_location.blank?
-      Rails.logger.info "[UmbScraper]   → Skipping: no valid location (was: '#{location_text}')"
+      Rails.logger.debug "[UmbScraper]   → Skipping: no valid location (was: '#{location_text}')"
       return nil
     end
     
@@ -290,7 +283,7 @@ class UmbScraper
         curr_month_abbr = Date::ABBR_MONTHNAMES[month]
         # Format: "Feb 28 - Apr 05, 2026" (Month Day - Month Day, Year) to match parse_month_day_range
         enhanced = "#{prev_month_abbr} 28 - #{curr_month_abbr} #{end_day}, #{year}"
-        Rails.logger.info "[UmbScraper]   → cross-month end: '#{enhanced}'"
+        Rails.logger.debug "[UmbScraper]   → cross-month end: '#{enhanced}'"
         return enhanced
       end
       
@@ -313,9 +306,7 @@ class UmbScraper
     tournaments.each do |data|
       begin
         # Parse dates
-        Rails.logger.info "[UmbScraper] Parsing date for #{data[:name]}: '#{data[:date_range]}'"
         dates = parse_date_range(data[:date_range])
-        Rails.logger.info "[UmbScraper]   → Result: #{dates[:start_date]} to #{dates[:end_date]}"
         
         # Skip tournaments without valid dates
         if dates[:start_date].blank?
@@ -331,8 +322,6 @@ class UmbScraper
           Rails.logger.warn "[UmbScraper] Skipping #{data[:name]} - no discipline found"
           next
         end
-        Rails.logger.info "[UmbScraper]   → Discipline: #{discipline.name}"
-        
         # Determine tournament type from name and type hint
         tournament_type = determine_tournament_type(data[:name], data[:tournament_type_hint])
         
@@ -345,11 +334,7 @@ class UmbScraper
                            dates[:start_date] + 7.days)
                     .first
         
-        if existing
-          Rails.logger.info "[UmbScraper]   → Found existing: #{existing.name} (#{existing.start_date})"
-        else
-          Rails.logger.info "[UmbScraper]   → Creating new tournament"
-        end
+        Rails.logger.debug "[UmbScraper]   → #{existing ? 'Found existing' : 'Creating new'}: #{data[:name]}"
         
         tournament = existing || InternationalTournament.new(
           name: data[:name],
