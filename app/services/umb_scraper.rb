@@ -116,7 +116,7 @@ class UmbScraper
       row_text = row.text.strip
       first_cell = cells[0]&.text&.strip
       
-      Rails.logger.debug "[UmbScraper] Row #{row_count}: #{cells.size} cells, first='#{first_cell&.first(50)}', row_text='#{row_text&.first(100)}'"
+      Rails.logger.info "[UmbScraper] Row #{row_count}: #{cells.size} cells, first='#{first_cell&.first(50)}', current_year=#{current_year}, current_month=#{current_month}"
       
       # Check if row contains a year (anywhere in the text)
       if row_text.match?(/\b(2026|2027|2028|2029|2030)\b/) && !row_text.match?(/\d{1,2}\s*-\s*\d{1,2}/)
@@ -154,7 +154,7 @@ class UmbScraper
                                                      pending_cross_month: pending_cross_month)
       
       if tournament_data
-        Rails.logger.debug "[UmbScraper] Row #{row_count}: Extracted tournament: #{tournament_data[:name]}"
+        Rails.logger.info "[UmbScraper] Row #{row_count}: Extracted tournament: #{tournament_data[:name]} (date_range: #{tournament_data[:date_range]})"
         tournaments << tournament_data
       end
     end
