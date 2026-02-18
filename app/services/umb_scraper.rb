@@ -209,10 +209,17 @@ class UmbScraper
   def enhance_date_with_context(date_str, month, year)
     return date_str if date_str.blank? || month.nil? || year.nil?
     
-    # Clean up the date string first
-    cleaned = date_str.strip.gsub(/\s+/, ' ')
+    # Clean up the date string first - remove extra whitespace and newlines
+    cleaned = date_str.strip.gsub(/\s+/, ' ').gsub(/\n+/, ' ')
     
-    Rails.logger.debug "[UmbScraper] enhance_date_with_context: '#{date_str}' with month=#{month}, year=#{year}"
+    # Extract ONLY the date portion if there's extra text
+    # Pattern: find "DD - DD" at the start of the string
+    date_match = cleaned.match(/^(\d{1,2}\s*-\s*\d{1,2})/)
+    if date_match
+      cleaned = date_match[1]
+    end
+    
+    Rails.logger.debug "[UmbScraper] enhance_date_with_context: '#{date_str}' → cleaned: '#{cleaned}' with month=#{month}, year=#{year}"
     
     # If date is just "06 - 12" add the month name
     if cleaned.match?(/^\d{1,2}\s*-\s*\d{1,2}$/)
