@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_02_17_221513) do
+ActiveRecord::Schema[7.2].define(version: 2026_02_18_175938) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -813,12 +813,16 @@ ActiveRecord::Schema[7.2].define(version: 2026_02_17_221513) do
     t.boolean "global_context", default: false
     t.boolean "reviewed_duplicate", default: false, null: false
     t.boolean "international_player", default: false
+    t.integer "umb_player_id"
+    t.string "nationality", limit: 2
     t.index ["ba_id"], name: "index_players_on_ba_id", unique: true
     t.index ["club_id"], name: "index_players_on_club_id"
     t.index ["global_context"], name: "index_players_on_global_context"
     t.index ["international_player"], name: "index_players_on_international_player"
+    t.index ["nationality"], name: "index_players_on_nationality"
     t.index ["region_id"], name: "index_players_on_region_id"
     t.index ["reviewed_duplicate"], name: "index_players_on_reviewed_duplicate"
+    t.index ["umb_player_id"], name: "index_players_on_umb_player_id"
   end
 
   create_table "region_ccs", force: :cascade do |t|

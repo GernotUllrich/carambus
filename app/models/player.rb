@@ -40,6 +40,9 @@ class Player < ApplicationRecord
             exclusion: { in: %w[1234 1111 0000 1212 7777 1004 2000 4444 2222 6969 9999 3333 5555 6666 1122 1313 8888
                                 4321 2001 1010] },
             unless: -> { pin4.blank? }
+  
+  validates :nationality, length: { is: 2 }, allow_blank: true
+  validates :umb_player_id, uniqueness: true, allow_nil: true
 
   before_save do
     self.fl_name = "#{firstname} #{lastname}".strip

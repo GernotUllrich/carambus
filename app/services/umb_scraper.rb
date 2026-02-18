@@ -8,6 +8,7 @@ require 'nokogiri'
 class UmbScraper
   BASE_URL = 'https://files.umb-carom.org'
   FUTURE_TOURNAMENTS_URL = "#{BASE_URL}/public/FutureTournaments.aspx"
+  ARCHIVE_URL = 'https://www.umb-carom.org/PG342L2/Union-Mondiale-de-Billard.aspx'
   TIMEOUT = 30 # seconds
 
   attr_reader :umb_source
@@ -62,6 +63,32 @@ class UmbScraper
     # For now, just log that this is planned
     Rails.logger.warn "[UmbScraper] Ranking scraping not yet implemented"
     0
+  end
+  
+  # Scrape tournament archive by filters
+  def scrape_tournament_archive(discipline: nil, year: nil, event_type: nil)
+    Rails.logger.info "[UmbScraper] Scraping tournament archive: discipline=#{discipline}, year=#{year}, event_type=#{event_type}"
+    
+    begin
+      # For now, we'll use the simpler approach: scrape the main archive page
+      # The actual UMB website uses POST forms, but we can start with GET to the main page
+      html = fetch_url(ARCHIVE_URL)
+      return [] if html.blank?
+      
+      doc = Nokogiri::HTML(html)
+      tournaments = parse_archive_tournaments(doc)
+      
+      Rails.logger.info "[UmbScraper] Found #{tournaments.size} tournaments in archive"
+      
+      saved_count = save_archived_tournaments(tournaments)
+      
+      Rails.logger.info "[UmbScraper] Saved #{saved_count} archived tournaments"
+      saved_count
+    rescue StandardError => e
+      Rails.logger.error "[UmbScraper] Error scraping tournament archive: #{e.message}"
+      Rails.logger.error e.backtrace.first(5).join("\n")
+      0
+    end
   end
 
   private
@@ -642,6 +669,88 @@ class UmbScraper
       'other' # Not actually a tournament
     else
       'other'
+    end
+  end
+  
+  # Parse archived tournaments from HTML
+  def parse_archive_tournaments(doc)
+    tournaments = []
+    
+    # UMB archive page structure needs to be analyzed
+    # For now, return empty array as placeholder
+    # This will be implemented once we analyze the actual page structure
+    
+    Rails.logger.info "[UmbScraper] Archive parsing not yet fully implemented - placeholder"
+    tournaments
+  end
+  
+  # Save archived tournaments to database
+  def save_archived_tournaments(tournaments)
+    saved_count = 0
+    
+    tournaments.each do |data|
+      # Parse dates from date_range string
+      dates = parse_date_range(data[:date_range]) if data[:date_range].present?
+      next unless dates && dates[:start_date]
+      
+      # Find or create discipline
+      discipline = find_discipline_from_name(data[:discipline] || '3-Cushion')
+      next unless discipline
+      
+      # Extract location and country
+      location, country = parse_location_country(data[:location])
+      
+      # Determine tournament type
+      tournament_type = determine_tournament_type(data[:name], data[:tournament_type_hint])
+      
+      # Check for existing tournament (avoid duplicates)
+      existing = InternationalTournament
+        .where(name: data[:name])
+        .where('start_date BETWEEN ? AND ?', 
+               dates[:start_date] - 30.days, 
+               dates[:start_date] + 30.days)
+        .first
+      
+      tournament = existing || InternationalTournament.new
+      
+      tournament.assign_attributes(
+        name: data[:name],
+        start_date: dates[:start_date],
+        end_date: dates[:end_date],
+        location: location,
+        country: country,
+        discipline: discipline,
+        tournament_type: tournament_type,
+        international_source: @umb_source,
+        source_url: data[:url],
+        data: {
+          umb_official: true,
+          archived: true,
+          scraped_at: Time.current.iso8601
+        }
+      )
+      
+      if tournament.save
+        Rails.logger.info "[UmbScraper] Saved archived tournament: #{data[:name]}"
+        saved_count += 1
+      else
+        Rails.logger.error "[UmbScraper] Failed to save tournament: #{tournament.errors.full_messages}"
+      end
+    end
+    
+    saved_count
+  end
+  
+  # Parse location and country from strings like "ANKARA (Turkey)"
+  def parse_location_country(location_string)
+    return [nil, nil] if location_string.blank?
+    
+    if (match = location_string.match(/([A-Z\s]+)\s*\(([^)]+)\)/))
+      city = match[1].strip.titleize
+      country = match[2].strip
+      [city, country]
+    else
+      [location_string, nil]
     end
   end
 end
