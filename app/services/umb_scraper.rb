@@ -313,11 +313,13 @@ class UmbScraper
     tournaments.each do |data|
       begin
         # Parse dates
+        Rails.logger.info "[UmbScraper] Parsing date for #{data[:name]}: '#{data[:date_range]}'"
         dates = parse_date_range(data[:date_range])
+        Rails.logger.info "[UmbScraper]   → Result: #{dates[:start_date]} to #{dates[:end_date]}"
         
         # Skip tournaments without valid dates
         if dates[:start_date].blank?
-          Rails.logger.debug "[UmbScraper] Skipping #{data[:name]} - no valid date"
+          Rails.logger.info "[UmbScraper] Skipping #{data[:name]} - no valid date"
           next
         end
         
