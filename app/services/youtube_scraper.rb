@@ -204,6 +204,8 @@ class YoutubeScraper
     cutoff_date = days_back.days.ago
     videos = []
     next_page_token = nil
+    max_pages = (days_back / 30.0).ceil + 1 # Roughly 1 page per month
+    pages_fetched = 0
     
     loop do
       response = youtube.list_playlist_items(
@@ -213,17 +215,29 @@ class YoutubeScraper
         page_token: next_page_token
       )
       
+      pages_fetched += 1
+      
+      # Collect all items from this page
+      page_videos = []
       response.items.each do |item|
         published_at = item.snippet.published_at
-        break if published_at < cutoff_date
-        
-        videos << item
+        if published_at >= cutoff_date
+          page_videos << item
+        end
       end
       
+      videos.concat(page_videos)
+      
       next_page_token = response.next_page_token
-      last_video_date = videos.last&.snippet&.published_at
-      break if next_page_token.nil? || (last_video_date && last_video_date < cutoff_date)
+      
+      # Stop if: no more pages, reached cutoff date, or fetched enough pages
+      last_video_date = response.items.last&.snippet&.published_at
+      break if next_page_token.nil?
+      break if last_video_date && last_video_date < cutoff_date
+      break if pages_fetched >= max_pages
     end
+    
+    Rails.logger.info "[YoutubeScraper] Fetched #{videos.size} videos from #{pages_fetched} pages (cutoff: #{cutoff_date})"
     
     # Get full video details
     return [] if videos.empty?
