@@ -1,0 +1,204 @@
+<div class="container mx-auto px-4 py-8">
+  <!-- Breadcrumb -->
+  <nav class="mb-6 text-sm">
+    <%= link_to 'International', international_path, class: 'text-blue-600 hover:text-blue-800' %>
+    <span class="mx-2 text-gray-400">/</span>
+    <%= link_to 'Tournaments', international_tournaments_path, class: 'text-blue-600 hover:text-blue-800' %>
+    <span class="mx-2 text-gray-400">/</span>
+    <span class="text-gray-600"><%= @tournament.name %></span>
+  </nav>
+
+  <!-- Tournament Header -->
+  <div class="bg-white rounded-lg shadow-md p-8 mb-8">
+    <div class="flex items-start justify-between mb-6">
+      <div class="flex-1">
+        <div class="mb-3">
+          <span class="inline-block px-4 py-2 text-sm font-semibold <%= tournament_type_badge_class(@tournament.tournament_type) %> rounded-full">
+            <%= @tournament.tournament_type&.humanize || 'Tournament' %>
+          </span>
+        </div>
+        <h1 class="text-4xl font-bold text-gray-900 mb-4"><%= @tournament.name %></h1>
+      </div>
+    </div>
+
+    <!-- Tournament Info Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <!-- Discipline -->
+      <div class="flex items-start space-x-3">
+        <div class="flex-shrink-0">
+          <svg class="w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
+          </svg>
+        </div>
+        <div>
+          <dt class="text-sm font-medium text-gray-500">Discipline</dt>
+          <dd class="mt-1 text-lg font-semibold text-gray-900"><%= @tournament.discipline.translated_name(:en) %></dd>
+        </div>
+      </div>
+
+      <!-- Dates -->
+      <div class="flex items-start space-x-3">
+        <div class="flex-shrink-0">
+          <svg class="w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+          </svg>
+        </div>
+        <div>
+          <dt class="text-sm font-medium text-gray-500">Date</dt>
+          <dd class="mt-1 text-lg font-semibold text-gray-900"><%= @tournament.date_range %></dd>
+        </div>
+      </div>
+
+      <!-- Location -->
+      <% if @tournament.location.present? %>
+        <div class="flex items-start space-x-3">
+          <div class="flex-shrink-0">
+            <svg class="w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
+            </svg>
+          </div>
+          <div>
+            <dt class="text-sm font-medium text-gray-500">Location</dt>
+            <dd class="mt-1 text-lg font-semibold text-gray-900"><%= @tournament.location %></dd>
+          </div>
+        </div>
+      <% end %>
+
+      <!-- Videos Count -->
+      <div class="flex items-start space-x-3">
+        <div class="flex-shrink-0">
+          <svg class="w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zm12.553 1.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z"/>
+          </svg>
+        </div>
+        <div>
+          <dt class="text-sm font-medium text-gray-500">Videos</dt>
+          <dd class="mt-1 text-lg font-semibold text-gray-900"><%= @videos.count %></dd>
+        </div>
+      </div>
+    </div>
+
+    <!-- Source URL -->
+    <% if @tournament.source_url.present? %>
+      <div class="mt-6 pt-6 border-t border-gray-200">
+        <%= link_to @tournament.source_url,
+            target: '_blank',
+            rel: 'noopener noreferrer',
+            class: 'inline-flex items-center text-blue-600 hover:text-blue-800 font-semibold' do %>
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+          </svg>
+          Official Website
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+
+  <!-- Tournament Videos -->
+  <section class="mb-12">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6">Tournament Videos</h2>
+    
+    <% if @videos.any? %>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <% @videos.each do |video| %>
+          <a href="<%= international_video_path(video) %>" 
+             class="block bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow overflow-hidden">
+            <!-- Thumbnail -->
+            <% if video.thumbnail_url.present? %>
+              <div class="relative pb-[56.25%]">
+                <%= image_tag video.thumbnail_url, class: 'absolute inset-0 w-full h-full object-cover', alt: video.title %>
+                
+                <!-- Duration Badge -->
+                <% if video.duration.present? %>
+                  <span class="absolute bottom-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
+                    <%= video.duration_formatted %>
+                  </span>
+                <% end %>
+              </div>
+            <% end %>
+
+            <!-- Video Info -->
+            <div class="p-4">
+              <h3 class="text-sm font-semibold text-gray-900 mb-2 line-clamp-2" title="<%= video.title %>">
+                <%= video.translated_title(:en) %>
+              </h3>
+              
+              <div class="text-xs text-gray-600 space-y-1">
+                <p><%= video.international_source.name %></p>
+                <% if video.published_at.present? %>
+                  <p><%= time_ago_in_words(video.published_at) %> ago</p>
+                <% end %>
+              </div>
+
+              <!-- Metadata Pills -->
+              <% if video.metadata['players'].present? %>
+                <div class="mt-2">
+                  <span class="inline-block px-2 py-0.5 text-xs font-semibold text-purple-800 bg-purple-100 rounded">
+                    <%= video.metadata['players'].join(' vs ') %>
+                  </span>
+                </div>
+              <% end %>
+            </div>
+          </a>
+        <% end %>
+      </div>
+    <% else %>
+      <p class="text-gray-600 italic">No videos available for this tournament yet.</p>
+    <% end %>
+  </section>
+
+  <!-- Results Section (if available) -->
+  <% if @results.any? %>
+    <section>
+      <h2 class="text-2xl font-bold text-gray-900 mb-6">Results</h2>
+      
+      <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Position</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Player</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Country</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            <% @results.each do |result| %>
+              <tr class="hover:bg-gray-50">
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                  <%= result.display_position %>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <%= result.display_name %>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                  <%= result.player&.country || '-' %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  <% end %>
+</div>
+
+<% content_for :helpers do %>
+  <%
+    def tournament_type_badge_class(type)
+      case type
+      when 'world_championship'
+        'text-yellow-800 bg-yellow-100'
+      when 'world_cup'
+        'text-blue-800 bg-blue-100'
+      when 'european_championship'
+        'text-purple-800 bg-purple-100'
+      when 'league'
+        'text-green-800 bg-green-100'
+      when 'invitation'
+        'text-pink-800 bg-pink-100'
+      else
+        'text-gray-800 bg-gray-100'
+      end
+    end
+  %>
+<% end %>
