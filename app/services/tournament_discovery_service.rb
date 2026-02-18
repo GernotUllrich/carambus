@@ -159,18 +159,26 @@ class TournamentDiscoveryService
     # If we have disciplines, return the most common one
     return discipline_counts.max_by { |_k, v| v }&.first if discipline_counts.any?
     
-    # Fallback: Try to infer from video titles/source
-    # Most international videos are 3-cushion (Dreiband klein)
-    source = videos.first&.international_source
+    # Fallback: Use generic "Karambol" discipline (parent of all carom variants)
+    # This is better than guessing a specific variant
+    karambol = Discipline.find_by('name ILIKE ?', 'Karambol')
     
-    # Look for "3-cushion" or "dreiband" in titles
-    if videos.any? { |v| v.title.downcase.match?(/3[-\s]?cushion|dreiband|carom/) }
-      # Find "Dreiband klein" discipline (most common for international)
-      return Discipline.where('name ILIKE ?', '%Dreiband%').where('name ILIKE ?', '%klein%').first
+    if karambol
+      Rails.logger.info "[TournamentDiscovery] Using fallback discipline: Karambol"
+      return karambol
     end
     
-    # Ultimate fallback: Use first Dreiband discipline we can find
-    Discipline.where('name ILIKE ?', '%Dreiband%').first
+    # If "Karambol" doesn't exist, try "Dreiband" as fallback
+    dreiband = Discipline.where('name ILIKE ?', '%Dreiband%').first
+    
+    if dreiband
+      Rails.logger.warn "[TournamentDiscovery] Karambol discipline not found, using: #{dreiband.name}"
+      return dreiband
+    end
+    
+    # Ultimate fallback: any carom-related discipline
+    Rails.logger.error "[TournamentDiscovery] No suitable discipline found!"
+    nil
   end
 
   # Map tournament type strings to constants
