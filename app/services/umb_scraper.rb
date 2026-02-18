@@ -182,6 +182,14 @@ class UmbScraper
     return nil if date_text.match?(/^Date$/i)
     return nil if name_text.match?(/^(Tournament|Type|Organization|Place)$/i)
     
+    # Skip month header rows that have shifted data
+    # Example: "February | 26 - | World Championship N | World Championship | UMB"
+    # These rows have the month name in column 0 and partial tournament info in wrong columns
+    if date_text.match?(/^(January|February|March|April|May|June|July|August|September|October|November|December)/i)
+      Rails.logger.debug "[UmbScraper]   → Skipping month header row with shifted data"
+      return nil
+    end
+    
     # Skip if name is too short
     return nil if name_text.blank? || name_text.length < 5
     
