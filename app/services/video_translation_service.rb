@@ -21,6 +21,9 @@ class VideoTranslationService
     begin
       translation = @translator.translate(video.title, to: target_language)
       translated_text = translation.text
+      
+      # Clean branding tags from translation
+      translated_text = clean_branding_tags(translated_text)
 
       # Update video metadata with translation
       video.update(
@@ -128,5 +131,22 @@ class VideoTranslationService
     
     # If more than 80% ASCII, consider it English
     ratio > 0.8
+  end
+
+  # Remove common branding tags from translated titles
+  def clean_branding_tags(text)
+    return text if text.blank?
+    
+    # Remove common bracketed prefixes
+    cleaned = text.gsub(/^\[(?:Rewind|Replay|Playback|Rewatch|Best of|Highlights?)\s*X?\]\s*/i, '')
+    
+    # Remove "ft." footnotes at the end (often not important)
+    cleaned = cleaned.gsub(/\s*\(ft\..*?\)\s*$/, '')
+    
+    # Remove excessive punctuation at the end
+    cleaned = cleaned.gsub(/[!?。]+\s*$/, '')
+    
+    # Trim whitespace
+    cleaned.strip
   end
 end
