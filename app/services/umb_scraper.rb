@@ -126,14 +126,16 @@ class UmbScraper
         end
       end
       
-      # Check if row contains a month name (anywhere in the text)
+      # IMPORTANT: Check for month BEFORE processing tournament
       # Extract just the first recognizable month name from the row
+      month_found_this_row = false
       %w[January February March April May June July August September October November December].each do |month_name|
         if row_text.match?(/\b#{month_name}\b/i)
           month_num = Date::MONTHNAMES.index(month_name)
           if month_num
             current_month = month_num
-            Rails.logger.info "[UmbScraper] Found month: #{month_name} (#{current_month}) in row with #{cells.size} cells"
+            month_found_this_row = true
+            Rails.logger.info "[UmbScraper] Found month: #{month_name} (#{current_month}) for subsequent rows"
             break
           end
         end
@@ -144,6 +146,9 @@ class UmbScraper
         Rails.logger.debug "[UmbScraper] Row #{row_count}: Skipping - only #{cells.size} cells"
         next
       end
+      
+      # Log current context for this row
+      Rails.logger.debug "[UmbScraper] Row #{row_count}: Processing with month=#{current_month}, year=#{current_year}"
       
       tournament_data = extract_tournament_from_row(cells, 
                                                      current_month: current_month, 
@@ -272,18 +277,28 @@ class UmbScraper
       return enhanced
     end
     
-    # If date is " - 05" (end of month range), skip for now
-    # These are cross-month ranges that need more context
-    if cleaned.match?(/^-\s*\d{1,2}$/)
-      Rails.logger.debug "[UmbScraper]   → skipping incomplete range (end only)"
-      return nil # Skip incomplete ranges
-    end
-    
-    # If date is "31 - " (start of cross-month range), skip for now
-    if cleaned.match?(/^\d{1,2}\s*-$/)
-      Rails.logger.debug "[UmbScraper]   → skipping incomplete range (start only)"
-      return nil # Skip incomplete ranges
-    end
+      # If date is "- 05" (end of month range), it's a cross-month event ending in current month
+      # Example: "March 31 - April 05" shows as "31 -" in March row, "- 05" in April row
+      if cleaned.match?(/^-\s*(\d{1,2})$/)
+        end_day = cleaned.match(/^-\s*(\d{1,2})$/)[1]
+        # We only have the end date in the current month, assume it started last day of previous month
+        # This is a best-effort approximation without cross-row context
+        prev_month = month == 1 ? 12 : month - 1
+        prev_year = month == 1 ? year - 1 : year
+        # Assume it started on the last few days of previous month (common for cross-month events)
+        prev_month_abbr = Date::ABBR_MONTHNAMES[prev_month]
+        curr_month_abbr = Date::ABBR_MONTHNAMES[month]
+        enhanced = "28 #{prev_month_abbr} - #{end_day} #{curr_month_abbr} #{year}"
+        Rails.logger.info "[UmbScraper]   → cross-month end: '#{enhanced}'"
+        return enhanced
+      end
+      
+      # If date is "31 -" (start of cross-month range), we need the next row for context
+      # Skip for now - will be picked up when we see the end date
+      if cleaned.match?(/^\d{1,2}\s*-$/)
+        Rails.logger.debug "[UmbScraper]   → skipping incomplete range (start only) - will be in next month's row"
+        return nil # Skip incomplete ranges
+      end
     
     # If date already has month/year info, return as-is
     Rails.logger.debug "[UmbScraper]   → returning as-is"
