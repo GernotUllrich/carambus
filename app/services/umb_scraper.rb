@@ -96,21 +96,29 @@ class UmbScraper
     tournaments = []
     current_year = Time.current.year
     current_month = nil
+    row_count = 0
     
     # UMB website has structure:
     # Month rows contain just the month name (e.g. "February")
     # Tournament rows contain: Date | Tournament Name | Type | Organization | Location
     
     doc.css('table tr').each do |row|
+      row_count += 1
       cells = row.css('td')
-      next if cells.empty?
+      
+      if cells.empty?
+        Rails.logger.debug "[UmbScraper] Row #{row_count}: No cells"
+        next
+      end
       
       first_cell = cells[0]&.text&.strip
+      
+      Rails.logger.debug "[UmbScraper] Row #{row_count}: #{cells.size} cells, first='#{first_cell&.first(50)}'"
       
       # Check if this is a year header
       if first_cell.match?(/^(2026|2027|2028)$/)
         current_year = first_cell.to_i
-        Rails.logger.debug "[UmbScraper] Found year: #{current_year}"
+        Rails.logger.info "[UmbScraper] Found year: #{current_year}"
         next
       end
       
@@ -118,23 +126,34 @@ class UmbScraper
       month_num = parse_month_name(first_cell)
       if month_num && cells.size < 5
         current_month = month_num
-        Rails.logger.debug "[UmbScraper] Found month: #{first_cell} (#{current_month})"
+        Rails.logger.info "[UmbScraper] Found month: #{Date::MONTHNAMES[month_num]} (#{current_month})"
         next
       end
       
       # Try to parse as tournament row
-      next if cells.size < 5
+      if cells.size < 5
+        Rails.logger.debug "[UmbScraper] Row #{row_count}: Skipping - only #{cells.size} cells"
+        next
+      end
       
       tournament_data = extract_tournament_from_row(cells, 
                                                      current_month: current_month, 
                                                      current_year: current_year)
-      tournaments << tournament_data if tournament_data
+      
+      if tournament_data
+        Rails.logger.info "[UmbScraper] Row #{row_count}: Extracted tournament: #{tournament_data[:name]}"
+        tournaments << tournament_data
+      else
+        Rails.logger.debug "[UmbScraper] Row #{row_count}: Filtered out"
+      end
     end
     
+    Rails.logger.info "[UmbScraper] Total rows processed: #{row_count}"
     Rails.logger.info "[UmbScraper] Parsed #{tournaments.size} tournament entries from HTML"
     tournaments.compact
   rescue StandardError => e
     Rails.logger.error "[UmbScraper] Error parsing tournaments: #{e.message}"
+    Rails.logger.error e.backtrace.first(10).join("\n")
     []
   end
 
@@ -283,7 +302,10 @@ class UmbScraper
     cleaned = date_str.strip.gsub(/\s+/, ' ').gsub(/\n+/, ' ')
     
     # Skip if it's too short or just numbers
-    return { start_date: nil, end_date: nil } if cleaned.length < 3
+    if cleaned.length < 3
+      Rails.logger.debug "[UmbScraper] Date too short: '#{date_str}'"
+      return { start_date: nil, end_date: nil }
+    end
     
     # Try different patterns
     result = parse_day_range_with_month(cleaned, year: year) ||
@@ -291,9 +313,10 @@ class UmbScraper
              parse_full_month_range(cleaned)
     
     if result
+      Rails.logger.debug "[UmbScraper] Parsed '#{date_str}' → #{result[:start_date]} to #{result[:end_date]}"
       result
     else
-      Rails.logger.debug "[UmbScraper] Could not parse date: #{date_str}"
+      Rails.logger.info "[UmbScraper] Could not parse date: '#{date_str}' (cleaned: '#{cleaned}')"
       { start_date: nil, end_date: nil }
     end
   rescue StandardError => e
@@ -313,10 +336,15 @@ class UmbScraper
       month = parse_month_name(month_str)
       return nil unless month
       
-      return {
-        start_date: Date.new(year_from_match, month, start_day),
-        end_date: Date.new(year_from_match, month, end_day)
-      }
+      begin
+        return {
+          start_date: Date.new(year_from_match, month, start_day),
+          end_date: Date.new(year_from_match, month, end_day)
+        }
+      rescue ArgumentError => e
+        Rails.logger.warn "[UmbScraper] Invalid date: #{year_from_match}-#{month}-#{start_day} to #{end_day}: #{e.message}"
+        return nil
+      end
     end
     
     # Pattern: "December 18-21, 2025" or "December 18 - 21, 2025"
@@ -329,10 +357,15 @@ class UmbScraper
       month = parse_month_name(month_str)
       return nil unless month
       
-      return {
-        start_date: Date.new(year_from_match, month, start_day),
-        end_date: Date.new(year_from_match, month, end_day)
-      }
+      begin
+        return {
+          start_date: Date.new(year_from_match, month, start_day),
+          end_date: Date.new(year_from_match, month, end_day)
+        }
+      rescue ArgumentError => e
+        Rails.logger.warn "[UmbScraper] Invalid date: #{year_from_match}-#{month}-#{start_day} to #{end_day}: #{e.message}"
+        return nil
+      end
     end
     
     nil
