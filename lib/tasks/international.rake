@@ -254,6 +254,53 @@ namespace :international do
     end
   end
 
+  desc 'Clean up malformed UMB tournament entries'
+  task cleanup_umb_fragments: :environment do
+    puts "\n=== UMB Tournament Cleanup ==="
+    puts "Finding malformed tournament entries..."
+    
+    umb_source = InternationalSource.find_by(source_type: 'umb')
+    unless umb_source
+      puts "No UMB source found!"
+      next
+    end
+    
+    malformed = InternationalTournament.where(international_source: umb_source)
+                                      .where("name ~ ?", '\d{1,2}\s*-\s*\d{0,2}')
+    
+    date_fragments = InternationalTournament.where(international_source: umb_source)
+                                           .where("name ~ ?", '^\d{1,2}\s')
+    
+    short_names = InternationalTournament.where(international_source: umb_source)
+                                        .where("LENGTH(name) < 10")
+    
+    all_bad = (malformed.to_a + date_fragments.to_a + short_names.to_a).uniq
+    
+    if all_bad.empty?
+      puts "✅ No malformed entries found!"
+      next
+    end
+    
+    puts "\nFound #{all_bad.size} malformed entries:"
+    all_bad.each do |t|
+      puts "  - '#{t.name}' (#{t.location})"
+    end
+    
+    puts "\nDeleting malformed entries..."
+    deleted_count = 0
+    all_bad.each do |t|
+      if t.destroy
+        deleted_count += 1
+      else
+        puts "  Failed to delete: #{t.name}"
+      end
+    end
+    
+    puts "\n✅ Cleanup complete!"
+    puts "  Deleted: #{deleted_count} entries"
+    puts "  Remaining UMB tournaments: #{InternationalTournament.where(international_source: umb_source).count}"
+  end
+
   desc 'Full pipeline: scrape → process → discover tournaments → translate'
   task :full_pipeline, [:days_back] => :environment do |_t, args|
     days_back = (args[:days_back] || 7).to_i
