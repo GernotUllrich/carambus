@@ -236,7 +236,8 @@ class UmbScraper
         start_month_abbr = Date::ABBR_MONTHNAMES[start_info[:start_month]]
         end_month_abbr = Date::ABBR_MONTHNAMES[current_month]
         
-        enhanced_date = "#{start_month_abbr} #{start_info[:start_day]} - #{end_month_abbr} #{end_day}, #{current_year}"
+        # Use the start year from pending info (important for year transitions like Dec 2026 -> Jan 2027)
+        enhanced_date = "#{start_month_abbr} #{start_info[:start_day]} - #{end_month_abbr} #{end_day}, #{start_info[:start_year]}"
         Rails.logger.info "[UmbScraper]   → Completed cross-month event: #{name_text} (#{enhanced_date})"
         
         pending_cross_month.delete(key) # Clean up
@@ -365,12 +366,10 @@ class UmbScraper
         tournament_type = determine_tournament_type(data[:name], data[:tournament_type_hint])
         
         # Find or create tournament
-        # Check for existing by name and approximate date (within 7 days)
+        # Check for existing by name and exact date (same day, to avoid year conflicts)
         existing = InternationalTournament
                     .where(name: data[:name])
-                    .where('start_date BETWEEN ? AND ?', 
-                           dates[:start_date] - 7.days, 
-                           dates[:start_date] + 7.days)
+                    .where(start_date: dates[:start_date])
                     .first
         
         Rails.logger.debug "[UmbScraper]   → #{existing ? 'Found existing' : 'Creating new'}: #{data[:name]}"
