@@ -243,9 +243,16 @@ class YoutubeScraper
     return [] if videos.empty?
     
     video_ids = videos.map { |v| v.snippet.resource_id.video_id }.compact
-    videos_response = youtube.list_videos('snippet,contentDetails,statistics', id: video_ids.join(','))
     
-    videos_response.items
+    # YouTube API limits to 50 IDs per request, so batch them
+    all_videos = []
+    video_ids.each_slice(50) do |batch_ids|
+      videos_response = youtube.list_videos('snippet,contentDetails,statistics', id: batch_ids.join(','))
+      all_videos.concat(videos_response.items)
+    end
+    
+    Rails.logger.info "[YoutubeScraper] Fetched full details for #{all_videos.size} videos"
+    all_videos
   end
 
   # Check if video is carom-related
