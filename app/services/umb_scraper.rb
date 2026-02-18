@@ -325,7 +325,11 @@ class UmbScraper
         
         # Find discipline - default to Dreiband (3-Cushion is most common)
         discipline = find_discipline_from_name(data[:name]) || Discipline.find_by('name ILIKE ?', 'Dreiband')
-        next unless discipline
+        unless discipline
+          Rails.logger.warn "[UmbScraper] Skipping #{data[:name]} - no discipline found"
+          next
+        end
+        Rails.logger.info "[UmbScraper]   → Discipline: #{discipline.name}"
         
         # Determine tournament type from name and type hint
         tournament_type = determine_tournament_type(data[:name], data[:tournament_type_hint])
