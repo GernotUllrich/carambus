@@ -109,4 +109,25 @@ namespace :international do
       end
     end
   end
+
+  desc 'Discover tournaments from existing videos'
+  task discover_tournaments: :environment do
+    puts "\n=== Tournament Discovery ==="
+    service = TournamentDiscoveryService.new
+    result = service.discover_from_videos
+    
+    puts "\nDiscovered Tournaments:"
+    result[:tournaments].each do |tournament|
+      puts "  #{tournament.name}"
+      puts "    Type: #{tournament.tournament_type}"
+      puts "    Discipline: #{tournament.discipline&.name}"
+      puts "    Dates: #{tournament.start_date&.strftime('%Y-%m-%d')} - #{tournament.end_date&.strftime('%Y-%m-%d')}"
+      puts "    Videos: #{tournament.international_videos.count}"
+      puts ""
+    end
+    
+    puts "Summary:"
+    puts "  Tournaments created/updated: #{result[:tournaments].size}"
+    puts "  Videos assigned: #{result[:videos_assigned]}"
+  end
 end
