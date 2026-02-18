@@ -213,10 +213,11 @@ class UmbScraper
     cleaned = date_str.strip.gsub(/\s+/, ' ').gsub(/\n+/, ' ')
     
     # Extract ONLY the date portion if there's extra text
-    # Pattern: find "DD - DD" at the start of the string
-    date_match = cleaned.match(/^(\d{1,2}\s*-\s*\d{1,2})/)
+    # Pattern: find "DD - DD" anywhere in the string (not just at start)
+    date_match = cleaned.match(/(\d{1,2}\s*-\s*\d{1,2})/)
     if date_match
       cleaned = date_match[1]
+      Rails.logger.debug "[UmbScraper]   → extracted date portion: '#{cleaned}'"
     end
     
     Rails.logger.debug "[UmbScraper] enhance_date_with_context: '#{date_str}' → cleaned: '#{cleaned}' with month=#{month}, year=#{year}"
