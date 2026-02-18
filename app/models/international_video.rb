@@ -121,13 +121,24 @@ class InternationalVideo < ApplicationRecord
 
   # Keywords detection for carom billiards
   CAROM_KEYWORDS = [
-    'three cushion', '3-cushion', '3 cushion',
-    'carom', 'carambole', 'karambol',
-    'dreiband', 'driebanden',
-    'libre', 'freie partie',
-    'cadre', 'balkline',
+    # English
+    'three cushion', '3-cushion', '3 cushion', 'carom', 'billiard',
+    # German
+    'dreiband', 'driebanden', 'karambol', 'freie partie',
+    # French
+    'carambole', 'libre', 'cadre', 'balkline',
+    # Korean (당구 = billiards, 3쿠션 = 3-cushion, 캐롬 = carom)
+    '당구', '3쿠션', '캐롬', '쿠션',
+    # Spanish
+    'carambola', 'tres bandas',
+    # Dutch
+    'driebanden',
+    # Turkish
+    'üç bant',
+    # Tournaments & Organizations
     'world cup', 'world championship', 'european championship',
-    'UMB', 'CEB', 'kozoom'
+    'UMB', 'CEB', 'kozoom', 'verhoeven', 'sanchez', 'zanetti',
+    'jaspers', 'caudron', 'merckx', 'horn'
   ].freeze
 
   def self.contains_carom_keywords?(text)
