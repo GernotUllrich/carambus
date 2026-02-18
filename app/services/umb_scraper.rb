@@ -123,11 +123,12 @@ class UmbScraper
       end
       
       # Check if this is a month header
+      # Month rows have the month name in first cell and are usually colspan cells
       month_num = parse_month_name(first_cell)
-      if month_num && cells.size < 5
+      if month_num
         current_month = month_num
-        Rails.logger.info "[UmbScraper] Found month: #{Date::MONTHNAMES[month_num]} (#{current_month})"
-        next
+        Rails.logger.info "[UmbScraper] Found month: #{Date::MONTHNAMES[month_num]} (#{current_month}) in row with #{cells.size} cells"
+        # Don't skip yet - month might be in a row with tournament data too
       end
       
       # Try to parse as tournament row
