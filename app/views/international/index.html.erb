@@ -22,7 +22,7 @@
             </div>
             <h3 class="text-xl font-bold text-gray-900 mb-2"><%= tournament.name %></h3>
             <div class="text-gray-600 space-y-1">
-              <p><%= tournament.discipline.name %></p>
+              <p><%= tournament.discipline.translated_name(:en) %></p>
               <p><%= tournament.date_range %></p>
               <% if tournament.location.present? %>
                 <p class="flex items-center">

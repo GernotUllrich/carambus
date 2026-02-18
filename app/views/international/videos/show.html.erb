@@ -36,7 +36,7 @@
           
           <% if @video.discipline.present? %>
             <span class="inline-flex items-center px-3 py-1 text-sm font-semibold text-green-800 bg-green-100 rounded-full">
-              <%= @video.discipline.name %>
+              <%= @video.discipline.translated_name(:en) %>
             </span>
           <% end %>
 
