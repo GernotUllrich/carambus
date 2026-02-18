@@ -178,4 +178,105 @@ namespace :international do
       puts ""
     end
   end
+
+  desc 'Process all unprocessed videos (metadata extraction)'
+  task process_all_videos: :environment do
+    puts "\n=== Processing All Unprocessed Videos ==="
+    
+    total_unprocessed = InternationalVideo.unprocessed.count
+    puts "Unprocessed videos: #{total_unprocessed}"
+    
+    if total_unprocessed.zero?
+      puts "All videos already processed!"
+      next
+    end
+    
+    processed_total = 0
+    batch_size = 50
+    
+    while InternationalVideo.unprocessed.any?
+      puts "\nProcessing batch #{(processed_total / batch_size) + 1}..."
+      ProcessUnprocessedVideosJob.perform_now
+      
+      processed_total += batch_size
+      remaining = InternationalVideo.unprocessed.count
+      
+      puts "  Processed: #{processed_total}"
+      puts "  Remaining: #{remaining}"
+      
+      break if remaining.zero?
+    end
+    
+    puts "\n✅ All videos processed!"
+    puts "Total processed: #{processed_total}"
+  end
+
+  desc 'Daily automated scrape (run via cron)'
+  task daily_scrape: :environment do
+    puts "\n=== Daily International Scrape ==="
+    result = DailyInternationalScrapeJob.perform_now(days_back: 3)
+    
+    puts "\nResults:"
+    puts "  Videos scraped: #{result[:scraped]}"
+    puts "  Videos processed: #{result[:processed]}"
+    puts "  Tournaments discovered: #{result[:tournaments]}"
+    puts "  Titles translated: #{result[:translated]}"
+    
+    puts "\n✅ Daily scrape complete!"
+  end
+
+  desc 'Full pipeline: scrape → process → discover tournaments → translate'
+  task :full_pipeline, [:days_back] => :environment do |_t, args|
+    days_back = (args[:days_back] || 7).to_i
+    
+    puts "\n" + "=" * 80
+    puts "INTERNATIONAL CONTENT PIPELINE"
+    puts "=" * 80
+    
+    # Step 1: Scrape
+    puts "\n[1/4] Scraping videos (#{days_back} days back)..."
+    scraped = ScrapeYoutubeJob.perform_now(days_back: days_back)
+    puts "  Scraped: #{scraped} videos"
+    
+    # Step 2: Process metadata
+    puts "\n[2/4] Processing video metadata..."
+    unprocessed = InternationalVideo.unprocessed.count
+    puts "  Unprocessed: #{unprocessed}"
+    
+    processed_count = 0
+    while InternationalVideo.unprocessed.any? && processed_count < 500
+      ProcessUnprocessedVideosJob.perform_now
+      processed_count += 50
+    end
+    puts "  Processed: #{processed_count}"
+    
+    # Step 3: Discover tournaments
+    puts "\n[3/4] Discovering tournaments..."
+    service = TournamentDiscoveryService.new
+    result = service.discover_from_videos
+    puts "  Tournaments: #{result[:tournaments].size}"
+    puts "  Videos assigned: #{result[:videos_assigned]}"
+    
+    # Step 4: Translate (sample)
+    puts "\n[4/4] Translating titles (first 50)..."
+    translate_service = VideoTranslationService.new
+    if translate_service.translator
+      videos_to_translate = InternationalVideo.where("metadata->>'translated_title' IS NULL")
+                                             .where.not("metadata->>'players' IS NULL")
+                                             .limit(50)
+      translated = translate_service.translate_batch(videos_to_translate)
+      puts "  Translated: #{translated}"
+    else
+      puts "  Translation API not configured, skipping"
+    end
+    
+    # Final stats
+    puts "\n" + "=" * 80
+    puts "PIPELINE COMPLETE"
+    puts "=" * 80
+    puts "Total videos: #{InternationalVideo.count}"
+    puts "Total tournaments: #{InternationalTournament.count}"
+    puts "Processed videos: #{InternationalVideo.processed.count}"
+    puts "Videos with players: #{InternationalVideo.where("metadata->>'players' IS NOT NULL").count}"
+  end
 end
