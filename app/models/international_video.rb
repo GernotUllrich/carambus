@@ -161,18 +161,23 @@ class InternationalVideo < ApplicationRecord
     'dreiband', 'driebanden', 'karambol', 'freie partie',
     # French
     'carambole', 'libre', 'cadre', 'balkline',
-    # Korean (당구 = billiards, 3쿠션 = 3-cushion, 캐롬 = carom)
-    '당구', '3쿠션', '캐롬', '쿠션',
+    # Korean (당구 = billiards, 3쿠션 = 3-cushion, 캐롬 = carom, 케롬 = carom variant)
+    '당구', '3쿠션', '캐롬', '쿠션', '케롬',
+    # Vietnamese (bi-a = billiards, carom)
+    'bi-a', 'bida', 'carom', 'ba băng',
     # Spanish
-    'carambola', 'tres bandas',
+    'carambola', 'tres bandas', 'banda',
     # Dutch
     'driebanden',
     # Turkish
-    'üç bant',
+    'üç bant', 'bilardo',
     # Tournaments & Organizations
     'world cup', 'world championship', 'european championship',
-    'UMB', 'CEB', 'kozoom', 'verhoeven', 'sanchez', 'zanetti',
-    'jaspers', 'caudron', 'merckx', 'horn'
+    'UMB', 'CEB', 'kozoom', 'predator',
+    # Famous Players (helps identify carom content)
+    'verhoeven', 'sanchez', 'zanetti', 'jaspers', 'caudron', 'merckx', 'horn',
+    'blomdahl', 'sayginer', 'tasdemir', 'polychronopoulos', 'forthomme',
+    'bao phuong', 'tran quyet', 'cho myung', 'kim haeng'
   ].freeze
 
   def self.contains_carom_keywords?(text)

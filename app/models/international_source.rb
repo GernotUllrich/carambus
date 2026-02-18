@@ -78,6 +78,69 @@ class InternationalSource < ApplicationRecord
       base_url: 'https://www.youtube.com/@스포놀이터-n9x',
       priority: 2,
       description: 'Korean carom billiards channel featuring international and Korean tournaments'
+    },
+    'billiards_network' => {
+      name: 'Billiards Network',
+      channel_id: 'UC_DhgWl6frARzHLoA3YbrDw', # Verified 2026-02-18
+      base_url: 'https://www.youtube.com/@BilliardsNetwork',
+      priority: 2,
+      description: 'International billiards network with carom and pool content'
+    },
+    'pro_billiard_tv' => {
+      name: 'Pro Billiard TV',
+      channel_id: 'UCcNJ3Z708plAMWVkcluIDmA', # Verified 2026-02-18
+      base_url: 'https://www.youtube.com/@ProBilliardTV',
+      priority: 3,
+      description: 'Professional billiards coverage, primarily pool with some carom'
+    },
+    'i_love_billiards' => {
+      name: 'I Love Billiards',
+      channel_id: 'UCsU-72Iz-Cp7WtDrSIMo8Ig', # Verified 2026-02-18
+      base_url: 'https://www.youtube.com/@ILoveBilliards',
+      priority: 3,
+      description: 'Billiards enthusiast channel with various disciplines'
+    },
+    'pba_tv' => {
+      name: 'PBA TV',
+      channel_id: 'UCuXTHFVxa6tPC_jmqwpyOUA', # Verified 2026-02-18
+      base_url: 'https://www.youtube.com/@PBATV',
+      priority: 4,
+      description: 'Professional Billiards Association TV - mainly pool'
+    },
+    'ky_phong_viet_art' => {
+      name: 'Ky Phong Viet Art',
+      channel_id: 'UCrsA1h1rLciorA5TLOT0Hiw', # Verified 2026-02-18
+      base_url: 'https://www.youtube.com/@KyPhongVietArt',
+      priority: 2,
+      description: 'Vietnamese billiards channel featuring Vietnamese and international players'
+    },
+    'bao_phuong_vinh' => {
+      name: 'Bao Phương Vinh',
+      channel_id: 'UCXkAGi8082zIUw4zqCMfk_Q', # Verified 2026-02-18
+      base_url: 'https://www.youtube.com/@BaoPhuongVinh',
+      priority: 2,
+      description: 'Vietnamese carom player channel with tournament highlights'
+    },
+    'predator_cues' => {
+      name: 'Predator Cues',
+      channel_id: 'UCvHY60Bb4z7simxzpsRIb5Q', # Verified 2026-02-18
+      base_url: 'https://www.youtube.com/@PredatorCues',
+      priority: 3,
+      description: 'Official Predator brand channel - pool and carom equipment, tournaments'
+    },
+    'carom_lab_korea' => {
+      name: '케롬 당구 연구소 (Carom Billiards Lab)',
+      channel_id: 'UCsMn2OGmEEeLBxMQkCmlXug', # Verified 2026-02-18
+      base_url: 'https://www.youtube.com/@CaromLab',
+      priority: 2,
+      description: 'Korean carom billiards research and educational content'
+    },
+    'andykin_mesa1' => {
+      name: 'Andykin Sports MESA 1',
+      channel_id: 'UCF2hMcLklanWE6YyUffen7w', # Verified 2026-02-18
+      base_url: 'https://www.youtube.com/@AndykinMESA1',
+      priority: 3,
+      description: 'Spanish billiards channel with international carom content'
     }
     # Note: Five & Six and CEB Carom channels need to be verified
     # Use: rails international:find_channel_id[fiveandsix]
