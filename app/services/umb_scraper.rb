@@ -339,6 +339,12 @@ class UmbScraper
                            dates[:start_date] + 7.days)
                     .first
         
+        if existing
+          Rails.logger.info "[UmbScraper]   → Found existing: #{existing.name} (#{existing.start_date})"
+        else
+          Rails.logger.info "[UmbScraper]   → Creating new tournament"
+        end
+        
         tournament = existing || InternationalTournament.new(
           name: data[:name],
           start_date: dates[:start_date]
