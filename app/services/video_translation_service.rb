@@ -3,6 +3,7 @@
 require 'google/cloud/translate/v2'
 
 # Service to translate video titles and descriptions using Google Cloud Translation API
+# Updated to work with new Video model (uses 'data' instead of 'metadata')
 class VideoTranslationService
   attr_reader :translator
 
@@ -13,10 +14,13 @@ class VideoTranslationService
   # Translate video title to target language
   def translate_title(video, target_language: 'en')
     return video.title if video.title.blank?
-    return video.metadata['translated_title'] if video.metadata['translated_title'].present?
+    return video.json_data['translated_title'] if video.json_data['translated_title'].present?
 
     # Skip if already in target language (heuristic: mostly ASCII)
     return video.title if mostly_ascii?(video.title)
+    
+    # Skip if no translator available
+    return video.title if @translator.nil?
 
     begin
       translation = @translator.translate(video.title, to: target_language)
@@ -25,9 +29,10 @@ class VideoTranslationService
       # Clean branding tags from translation
       translated_text = clean_branding_tags(translated_text)
 
-      # Update video metadata with translation
+      # Update video data with translation (using new 'data' field)
+      current_data = video.json_data
       video.update(
-        metadata: video.metadata.merge(
+        data: current_data.merge(
           'translated_title' => translated_text,
           'original_language' => translation.from || translation.language,
           'translated_at' => Time.current.iso8601
@@ -45,10 +50,13 @@ class VideoTranslationService
   # Translate description (optional, costs more)
   def translate_description(video, target_language: 'en')
     return video.description if video.description.blank?
-    return video.metadata['translated_description'] if video.metadata['translated_description'].present?
+    return video.json_data['translated_description'] if video.json_data['translated_description'].present?
 
     # Skip if already in target language
     return video.description if mostly_ascii?(video.description)
+    
+    # Skip if no translator available
+    return video.description if @translator.nil?
 
     begin
       # Only translate first 500 characters to save costs
@@ -56,8 +64,9 @@ class VideoTranslationService
       translation = @translator.translate(truncated, to: target_language)
       translated_text = translation.text
 
+      current_data = video.json_data
       video.update(
-        metadata: video.metadata.merge(
+        data: current_data.merge(
           'translated_description' => translated_text,
           'translated_at' => Time.current.iso8601
         )
@@ -72,10 +81,15 @@ class VideoTranslationService
 
   # Batch translate multiple videos
   def translate_batch(videos, target_language: 'en', include_description: false)
+    if @translator.nil?
+      Rails.logger.warn "[VideoTranslation] No translator available, skipping batch translation"
+      return 0
+    end
+    
     translated_count = 0
     
     videos.each do |video|
-      next if video.metadata['translated_title'].present? # Skip already translated
+      next if video.json_data['translated_title'].present? # Skip already translated
       
       translate_title(video, target_language: target_language)
       translate_description(video, target_language: target_language) if include_description
@@ -92,7 +106,7 @@ class VideoTranslationService
 
   # Detect language of text
   def detect_language(text)
-    return nil if text.blank?
+    return nil if text.blank? || @translator.nil?
     
     detection = @translator.detect(text)
     {
@@ -103,16 +117,23 @@ class VideoTranslationService
     Rails.logger.error "[VideoTranslation] Language detection failed: #{e.message}"
     nil
   end
+  
+  # Check if translator is available
+  def available?
+    !@translator.nil?
+  end
 
   private
 
   def setup_translator
     # Check for API key in credentials or environment
+    # NOTE: Uses nested path google.translate_api_key
     api_key = Rails.application.credentials.dig(:google, :translate_api_key) || 
               ENV['GOOGLE_TRANSLATE_API_KEY']
     
     if api_key.blank?
       Rails.logger.warn "[VideoTranslation] No Google Translate API key found. Translation disabled."
+      Rails.logger.warn "[VideoTranslation] Set credentials with: google.translate_api_key or ENV['GOOGLE_TRANSLATE_API_KEY']"
       return nil
     end
     

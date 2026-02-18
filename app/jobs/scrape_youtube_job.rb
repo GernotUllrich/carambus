@@ -20,9 +20,6 @@ class ScrapeYoutubeJob < ApplicationJob
       Rails.logger.info "[ScrapeYoutubeJob] Scraped #{count} videos from all channels"
     end
     
-    # Process unprocessed videos
-    ProcessUnprocessedVideosJob.perform_later
-    
     count
   rescue StandardError => e
     Rails.logger.error "[ScrapeYoutubeJob] Error: #{e.message}"

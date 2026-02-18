@@ -260,16 +260,17 @@ class YoutubeScraper
     title = video.snippet.title || ''
     description = video.snippet.description || ''
     
-    InternationalVideo.contains_carom_keywords?("#{title} #{description}")
+    # Use new Video model's carom detection
+    Video.contains_carom_keywords?("#{title} #{description}")
   end
 
-  # Save videos to database
+  # Save videos to database (NEW: Uses Video model instead of InternationalVideo)
   def save_videos(videos, source)
     saved_count = 0
     
     videos.each do |video|
       begin
-        existing = InternationalVideo.find_by(external_id: video.id)
+        existing = Video.find_by(external_id: video.id)
         
         if existing
           # Update statistics
@@ -278,10 +279,10 @@ class YoutubeScraper
             like_count: video.statistics&.like_count
           )
         else
-          # Create new video
+          # Create new video (polymorphic - unassigned initially)
           duration_seconds = parse_duration(video.content_details.duration)
           
-          international_video = InternationalVideo.create!(
+          new_video = Video.create!(
             international_source: source,
             external_id: video.id,
             title: video.snippet.title,
@@ -291,11 +292,16 @@ class YoutubeScraper
             language: video.snippet.default_language || video.snippet.default_audio_language,
             thumbnail_url: video.snippet.thumbnails&.high&.url || video.snippet.thumbnails&.default&.url,
             view_count: video.statistics&.view_count,
-            like_count: video.statistics&.like_count
+            like_count: video.statistics&.like_count,
+            # Polymorphic fields - initially unassigned
+            videoable_type: nil,
+            videoable_id: nil,
+            # Metadata
+            data: { year: video.snippet.published_at&.year }
           )
           
           # Auto-assign discipline if possible
-          international_video.auto_assign_discipline!
+          new_video.auto_assign_discipline!
           
           saved_count += 1
         end

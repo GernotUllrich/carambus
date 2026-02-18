@@ -28,6 +28,9 @@ class Player < ApplicationRecord
   has_many :international_tournaments, through: :international_participations
   has_many :international_results, dependent: :nullify
   
+  # Polymorphe Video Association
+  has_many :videos, as: :videoable, dependent: :nullify
+  
   REFLECTION_KEYS = %w[club game_participations seedings season_participations].freeze
 
   self.ignored_columns = ["region_ids"]

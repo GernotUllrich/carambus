@@ -6,11 +6,24 @@ class InternationalController < ApplicationController
     @upcoming_tournaments = InternationalTournament.upcoming
                                                    .includes(:discipline, :international_source)
                                                    .limit(10)
-    @recent_videos = InternationalVideo.recent.limit(12)
-    @recent_results = InternationalResult.includes(:international_tournament, :player)
-                                        .joins(:international_tournament)
-                                        .where('international_tournaments.end_date >= ?', 6.months.ago)
-                                        .order('international_tournaments.end_date DESC')
-                                        .limit(20)
+    
+    # Videos - polymorphe Association
+    @recent_videos = Video.for_tournaments
+                          .where(videoable_type: 'Tournament')
+                          .where("videoable_id IN (?)", InternationalTournament.pluck(:id))
+                          .recent
+                          .limit(12)
+    
+    # Recent results via GameParticipation
+    recent_tournament_ids = InternationalTournament
+                             .where('end_date >= ? OR (end_date IS NULL AND date >= ?)', 
+                                    6.months.ago, 6.months.ago)
+                             .pluck(:id)
+    
+    @recent_results = GameParticipation
+                       .joins(:game, :player)
+                       .where(games: { tournament_id: recent_tournament_ids })
+                       .order('games.ended_at DESC NULLS LAST')
+                       .limit(20)
   end
 end

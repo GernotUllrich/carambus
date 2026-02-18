@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_02_18_175938) do
+ActiveRecord::Schema[7.2].define(version: 2026_02_18_193951) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -328,9 +328,11 @@ ActiveRecord::Schema[7.2].define(version: 2026_02_18_175938) do
     t.string "tournament_type"
     t.integer "region_id"
     t.boolean "global_context", default: false
+    t.string "type"
     t.index ["global_context"], name: "index_games_on_global_context"
     t.index ["region_id"], name: "index_games_on_region_id"
     t.index ["tournament_id", "gname", "seqno"], name: "index_games_on_tournament_id_and_gname_and_seqno", unique: true
+    t.index ["type"], name: "index_games_on_type"
   end
 
   create_table "group_ccs", force: :cascade do |t|
@@ -359,37 +361,6 @@ ActiveRecord::Schema[7.2].define(version: 2026_02_18_175938) do
     t.index ["game_id", "sequence_number"], name: "index_innings_on_game_id_and_sequence_number", unique: true
   end
 
-  create_table "international_participations", force: :cascade do |t|
-    t.bigint "player_id", null: false
-    t.bigint "international_tournament_id", null: false
-    t.bigint "international_result_id"
-    t.boolean "confirmed", default: false
-    t.string "source"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["international_result_id"], name: "index_international_participations_on_international_result_id"
-    t.index ["international_tournament_id"], name: "idx_on_international_tournament_id_badf3a5137"
-    t.index ["player_id", "international_tournament_id"], name: "index_intl_participations_on_player_and_tournament", unique: true
-    t.index ["player_id"], name: "index_international_participations_on_player_id"
-  end
-
-  create_table "international_results", force: :cascade do |t|
-    t.bigint "international_tournament_id", null: false
-    t.bigint "player_id"
-    t.string "player_name"
-    t.string "player_country"
-    t.integer "position"
-    t.integer "points"
-    t.decimal "prize", precision: 10, scale: 2
-    t.jsonb "metadata", default: {}
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["international_tournament_id", "position"], name: "index_intl_results_on_tournament_and_position"
-    t.index ["international_tournament_id"], name: "index_international_results_on_international_tournament_id"
-    t.index ["player_id"], name: "index_intl_results_on_player_id"
-    t.index ["player_name"], name: "index_international_results_on_player_name"
-  end
-
   create_table "international_sources", force: :cascade do |t|
     t.string "name", null: false
     t.string "source_type", null: false
@@ -403,56 +374,6 @@ ActiveRecord::Schema[7.2].define(version: 2026_02_18_175938) do
     t.index ["active"], name: "index_international_sources_on_active"
     t.index ["name", "source_type"], name: "index_international_sources_on_name_and_source_type", unique: true
     t.index ["source_type"], name: "index_international_sources_on_source_type"
-  end
-
-  create_table "international_tournaments", force: :cascade do |t|
-    t.bigint "discipline_id", null: false
-    t.bigint "international_source_id"
-    t.string "name", null: false
-    t.string "tournament_type"
-    t.date "start_date"
-    t.date "end_date"
-    t.string "location"
-    t.string "country"
-    t.string "organizer"
-    t.decimal "prize_money", precision: 12, scale: 2
-    t.string "source_url"
-    t.string "external_id"
-    t.jsonb "data", default: {}
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["country"], name: "index_international_tournaments_on_country"
-    t.index ["discipline_id"], name: "index_international_tournaments_on_discipline_id"
-    t.index ["external_id", "international_source_id"], name: "index_intl_tournaments_on_external_id_and_source", unique: true
-    t.index ["international_source_id"], name: "index_international_tournaments_on_international_source_id"
-    t.index ["organizer"], name: "index_international_tournaments_on_organizer"
-    t.index ["start_date", "tournament_type"], name: "idx_on_start_date_tournament_type_933b628b60"
-  end
-
-  create_table "international_videos", force: :cascade do |t|
-    t.bigint "international_source_id", null: false
-    t.bigint "international_tournament_id"
-    t.bigint "discipline_id"
-    t.string "external_id", null: false
-    t.string "title"
-    t.text "description"
-    t.datetime "published_at"
-    t.integer "duration"
-    t.string "language"
-    t.string "thumbnail_url"
-    t.integer "view_count"
-    t.integer "like_count"
-    t.boolean "metadata_extracted", default: false
-    t.datetime "metadata_extracted_at"
-    t.jsonb "metadata", default: {}
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["discipline_id"], name: "index_international_videos_on_discipline_id"
-    t.index ["external_id"], name: "index_international_videos_on_external_id", unique: true
-    t.index ["international_source_id"], name: "index_international_videos_on_international_source_id"
-    t.index ["international_tournament_id", "published_at"], name: "index_intl_videos_on_tournament_and_published"
-    t.index ["metadata_extracted"], name: "index_international_videos_on_metadata_extracted"
-    t.index ["published_at"], name: "index_international_videos_on_published_at"
   end
 
   create_table "ion_contents", force: :cascade do |t|
@@ -1334,9 +1255,15 @@ ActiveRecord::Schema[7.2].define(version: 2026_02_18_175938) do
     t.boolean "allow_overflow", default: false, null: false
     t.boolean "auto_upload_to_cc", default: true, null: false
     t.bigint "international_tournament_id"
+    t.string "type"
+    t.string "external_id"
+    t.bigint "international_source_id"
     t.index ["ba_id"], name: "index_tournaments_on_ba_id", unique: true
+    t.index ["external_id", "international_source_id"], name: "idx_tournaments_external_id_source", unique: true, where: "((external_id IS NOT NULL) AND (international_source_id IS NOT NULL))"
     t.index ["global_context"], name: "index_tournaments_on_global_context"
+    t.index ["international_source_id"], name: "index_tournaments_on_international_source_id"
     t.index ["international_tournament_id"], name: "index_tournaments_on_international_tournament_id"
+    t.index ["type"], name: "index_tournaments_on_type"
   end
 
   create_table "uploads", force: :cascade do |t|
@@ -1418,22 +1345,40 @@ ActiveRecord::Schema[7.2].define(version: 2026_02_18_175938) do
     t.index ["region_id"], name: "index_versions_on_region_id"
   end
 
+  create_table "videos", force: :cascade do |t|
+    t.string "external_id", null: false
+    t.string "title"
+    t.text "description"
+    t.string "thumbnail_url"
+    t.integer "duration"
+    t.datetime "published_at"
+    t.integer "view_count"
+    t.integer "like_count"
+    t.string "language"
+    t.bigint "international_source_id"
+    t.string "videoable_type"
+    t.bigint "videoable_id"
+    t.jsonb "data", default: {}
+    t.boolean "metadata_extracted", default: false
+    t.datetime "metadata_extracted_at"
+    t.bigint "discipline_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["discipline_id"], name: "index_videos_on_discipline_id"
+    t.index ["external_id"], name: "index_videos_on_external_id", unique: true
+    t.index ["international_source_id"], name: "index_videos_on_international_source_id"
+    t.index ["metadata_extracted"], name: "index_videos_on_metadata_extracted"
+    t.index ["published_at"], name: "index_videos_on_published_at"
+    t.index ["videoable_type", "videoable_id", "published_at"], name: "idx_videos_on_videoable_and_published"
+    t.index ["videoable_type", "videoable_id"], name: "index_videos_on_videoable"
+  end
+
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "club_locations", "regions", validate: false
   add_foreign_key "clubs", "regions", validate: false
   add_foreign_key "game_participations", "regions", validate: false
   add_foreign_key "game_plans", "regions", validate: false
   add_foreign_key "games", "regions", validate: false
-  add_foreign_key "international_participations", "international_results"
-  add_foreign_key "international_participations", "international_tournaments"
-  add_foreign_key "international_participations", "players"
-  add_foreign_key "international_results", "international_tournaments"
-  add_foreign_key "international_results", "players"
-  add_foreign_key "international_tournaments", "disciplines"
-  add_foreign_key "international_tournaments", "international_sources"
-  add_foreign_key "international_videos", "disciplines"
-  add_foreign_key "international_videos", "international_sources"
-  add_foreign_key "international_videos", "international_tournaments"
   add_foreign_key "league_teams", "regions", validate: false
   add_foreign_key "leagues", "regions", validate: false
   add_foreign_key "locations", "regions", validate: false
@@ -1453,8 +1398,10 @@ ActiveRecord::Schema[7.2].define(version: 2026_02_18_175938) do
   add_foreign_key "tables", "table_kinds"
   add_foreign_key "tournament_monitors", "tournaments"
   add_foreign_key "tournament_plan_games", "tournament_plans"
-  add_foreign_key "tournaments", "international_tournaments", validate: false
+  add_foreign_key "tournaments", "international_sources", validate: false
   add_foreign_key "tournaments", "regions", validate: false
   add_foreign_key "users", "players"
   add_foreign_key "versions", "regions", validate: false
+  add_foreign_key "videos", "disciplines"
+  add_foreign_key "videos", "international_sources"
 end

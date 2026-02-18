@@ -24,8 +24,19 @@ module International
     end
 
     def show
-      @results = @tournament.international_results.includes(:player).ordered
-      @videos = @tournament.international_videos.recent
+      # Results via GameParticipation (ersetzt international_results)
+      @results = GameParticipation
+                  .joins(:game, :player)
+                  .where(games: { tournament_id: @tournament.id })
+                  .order('games.ended_at DESC NULLS LAST, game_participations.points DESC')
+      
+      # Videos - polymorphe Association (Tournament + seine Games)
+      @videos = @tournament.videos.recent
+      
+      # Optional: Auch Videos von Games des Turniers
+      @game_videos = Video.for_games
+                          .where(videoable_id: @tournament.games.pluck(:id))
+                          .recent
     end
 
     private

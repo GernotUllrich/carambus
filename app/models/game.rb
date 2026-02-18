@@ -30,6 +30,9 @@ class Game < ApplicationRecord
   has_many :game_participations, dependent: :destroy
   has_one :table_monitor, dependent: :nullify
   has_one :was_table_monitor, foreign_key: :prev_game_id, class_name: "TableMonitor", dependent: :nullify
+  
+  # Polymorphe Video Association
+  has_many :videos, as: :videoable, dependent: :nullify
 
   before_save :set_paper_trail_whodunnit
 

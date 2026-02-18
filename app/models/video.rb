@@ -2,49 +2,49 @@
 
 # == Schema Information
 #
-# Table name: international_videos
+# Table name: videos
 #
-#  id                         :bigint           not null, primary key
-#  description                :text
-#  duration                   :integer
-#  language                   :string
-#  like_count                 :integer
-#  metadata                   :jsonb
-#  metadata_extracted         :boolean          default(FALSE)
-#  metadata_extracted_at      :datetime
-#  published_at               :datetime
-#  thumbnail_url              :string
-#  title                      :string
-#  view_count                 :integer
-#  created_at                 :datetime         not null
-#  updated_at                 :datetime         not null
-#  discipline_id              :bigint
-#  external_id                :string           not null
-#  international_source_id    :bigint           not null
-#  international_tournament_id :bigint
+#  id                      :bigint           not null, primary key
+#  data                    :jsonb
+#  description             :text
+#  duration                :integer
+#  external_id             :string           not null
+#  language                :string
+#  like_count              :integer
+#  metadata_extracted      :boolean          default(FALSE)
+#  metadata_extracted_at   :datetime
+#  published_at            :datetime
+#  thumbnail_url           :string
+#  title                   :string
+#  videoable_type          :string
+#  view_count              :integer
+#  created_at              :datetime         not null
+#  updated_at              :datetime         not null
+#  discipline_id           :bigint
+#  international_source_id :bigint
+#  videoable_id            :bigint
 #
 # Indexes
 #
-#  index_international_videos_on_discipline_id               (discipline_id)
-#  index_international_videos_on_external_id                 (external_id) UNIQUE
-#  index_international_videos_on_international_source_id     (international_source_id)
-#  index_international_videos_on_international_tournament_id (international_tournament_id)
-#  index_international_videos_on_metadata_extracted          (metadata_extracted)
-#  index_international_videos_on_published_at                (published_at)
-#  index_international_videos_on_tournament_and_published    (international_tournament_id,published_at)
+#  idx_videos_on_videoable_and_published       (videoable_type,videoable_id,published_at)
+#  index_videos_on_discipline_id               (discipline_id)
+#  index_videos_on_external_id                 (external_id) UNIQUE
+#  index_videos_on_international_source_id     (international_source_id)
+#  index_videos_on_metadata_extracted          (metadata_extracted)
+#  index_videos_on_published_at                (published_at)
+#  index_videos_on_videoable                   (videoable_type,videoable_id)
 #
 # Foreign Keys
 #
 #  fk_rails_...  (discipline_id => disciplines.id)
 #  fk_rails_...  (international_source_id => international_sources.id)
-#  fk_rails_...  (international_tournament_id => international_tournaments.id)
 #
-class InternationalVideo < ApplicationRecord
+class Video < ApplicationRecord
   include LocalProtector
 
-  # Associations
+  # Polymorphe Association - Video kann zu Tournament, Game oder Player gehören
+  belongs_to :videoable, polymorphic: true, optional: true
   belongs_to :international_source
-  belongs_to :international_tournament, optional: true
   belongs_to :discipline, optional: true
 
   # Validations
@@ -53,10 +53,13 @@ class InternationalVideo < ApplicationRecord
 
   # Scopes
   scope :recent, -> { order(published_at: :desc) }
+  scope :for_tournaments, -> { where(videoable_type: 'Tournament') }
+  scope :for_games, -> { where(videoable_type: 'Game') }
+  scope :for_players, -> { where(videoable_type: 'Player') }
+  scope :unassigned, -> { where(videoable_id: nil) }
   scope :unprocessed, -> { where(metadata_extracted: false) }
   scope :processed, -> { where(metadata_extracted: true) }
   scope :by_source, ->(source_id) { where(international_source_id: source_id) }
-  scope :by_tournament, ->(tournament_id) { where(international_tournament_id: tournament_id) }
   scope :by_discipline, ->(discipline_id) { where(discipline_id: discipline_id) }
   scope :youtube, -> { joins(:international_source).where(international_sources: { source_type: 'youtube' }) }
 
@@ -68,17 +71,15 @@ class InternationalVideo < ApplicationRecord
   # Get translated title (English) if available, otherwise build from metadata or use original
   def translated_title(locale = :en)
     # Priority 1: Use cached Google Translate translation
-    return metadata['translated_title'] if metadata['translated_title'].present?
+    return json_data['translated_title'] if json_data['translated_title'].present?
     
     # Priority 2: Build descriptive title from player names
-    if metadata['players'].present? && metadata['players'].size >= 2
-      translator = PlayerNameTranslator.new
-      match_str = translator.build_match_string(metadata['players'])
-      
+    if json_data['players'].present? && json_data['players'].size >= 2
+      # Note: PlayerNameTranslator might need to be added if not present
       parts = []
-      parts << metadata['tournament_type'] if metadata['tournament_type'].present?
-      parts << metadata['season'] if metadata['season'].present?
-      parts << match_str if match_str.present?
+      parts << json_data['tournament_type'] if json_data['tournament_type'].present?
+      parts << json_data['season'] if json_data['season'].present?
+      parts << json_data['players'].join(' vs ') if json_data['players'].present?
       
       return parts.join(' - ') if parts.any?
     end
@@ -89,7 +90,7 @@ class InternationalVideo < ApplicationRecord
   
   # Check if video needs translation (non-English title without translation)
   def needs_translation?
-    return false if metadata['translated_title'].present?
+    return false if json_data['translated_title'].present?
     return false if title.blank?
     
     # Simple heuristic: if mostly ASCII, probably English
@@ -114,34 +115,43 @@ class InternationalVideo < ApplicationRecord
   end
 
   def youtube_url
-    return nil unless international_source.source_type == 'youtube'
+    return nil unless international_source&.source_type == 'youtube'
     "https://www.youtube.com/watch?v=#{external_id}"
   end
 
   def youtube_embed_url
-    return nil unless international_source.source_type == 'youtube'
+    return nil unless international_source&.source_type == 'youtube'
     "https://www.youtube.com/embed/#{external_id}"
   end
 
-  # Extracted metadata accessors
+  # Metadata accessors
+  def json_data
+    @json_data ||= begin
+      return {} if data.blank?
+      data.is_a?(String) ? JSON.parse(data) : data
+    rescue JSON::ParserError
+      {}
+    end
+  end
+
   def extracted_players
-    metadata.dig('players') || []
+    json_data['players'] || []
   end
 
   def extracted_event_name
-    metadata.dig('event_name')
+    json_data['event_name']
   end
 
   def extracted_round
-    metadata.dig('round')
+    json_data['round']
   end
 
   def extracted_location
-    metadata.dig('location')
+    json_data['location']
   end
 
   def commentary_language
-    metadata.dig('commentary_language')
+    json_data['commentary_language']
   end
 
   # Mark as processed
@@ -149,7 +159,7 @@ class InternationalVideo < ApplicationRecord
     update!(
       metadata_extracted: true,
       metadata_extracted_at: Time.current,
-      metadata: metadata.merge(extracted_metadata)
+      data: json_data.merge(extracted_metadata)
     )
   end
 

@@ -2,6 +2,7 @@
 
 require 'net/http'
 require 'nokogiri'
+require 'openssl'
 
 # Service to scrape tournament data from UMB (Union Mondiale de Billard)
 # Official website: https://files.umb-carom.org
@@ -65,53 +66,176 @@ class UmbScraper
     0
   end
   
-  # Scrape tournament archive by filters
-  def scrape_tournament_archive(discipline: nil, year: nil, event_type: nil)
-    Rails.logger.info "[UmbScraper] Scraping tournament archive: discipline=#{discipline}, year=#{year}, event_type=#{event_type}"
+  # Scrape tournament archive by sequential ID scanning
+  # UMB tournament detail URLs use sequential IDs: /TournametDetails.aspx?ID=1, ID=2, etc.
+  # We can scan through a range of IDs to discover all tournaments
+  def scrape_tournament_archive(start_id: 1, end_id: 500, batch_size: 50)
+    Rails.logger.info "[UmbScraper] Scraping tournament archive: IDs #{start_id}..#{end_id}"
     
-    begin
-      # For now, we'll use the simpler approach: scrape the main archive page
-      # The actual UMB website uses POST forms, but we can start with GET to the main page
-      html = fetch_url(ARCHIVE_URL)
-      return [] if html.blank?
+    total_found = 0
+    total_saved = 0
+    not_found_count = 0
+    max_consecutive_404s = 50  # Stop if we hit 50 consecutive 404s
+    
+    (start_id..end_id).each do |id|
+      break if not_found_count >= max_consecutive_404s
       
-      doc = Nokogiri::HTML(html)
-      tournaments = parse_archive_tournaments(doc)
+      Rails.logger.info "[UmbScraper] Checking tournament ID #{id}..."
       
-      Rails.logger.info "[UmbScraper] Found #{tournaments.size} tournaments in archive"
+      # Build detail URL
+      detail_url = "#{BASE_URL}/public/TournametDetails.aspx?ID=#{id}"
       
-      saved_count = save_archived_tournaments(tournaments)
+      html = fetch_url(detail_url)
       
-      Rails.logger.info "[UmbScraper] Saved #{saved_count} archived tournaments"
-      saved_count
-    rescue StandardError => e
-      Rails.logger.error "[UmbScraper] Error scraping tournament archive: #{e.message}"
-      Rails.logger.error e.backtrace.first(5).join("\n")
-      0
+      if html.blank? || html.include?('404') || html.length < 500
+        not_found_count += 1
+        Rails.logger.debug "[UmbScraper] Tournament ID #{id} not found (consecutive 404s: #{not_found_count})"
+        next
+      end
+      
+      # Found a valid tournament
+      not_found_count = 0
+      total_found += 1
+      
+      begin
+        doc = Nokogiri::HTML(html)
+        tournament_data = parse_tournament_detail_for_archive(doc, id, detail_url)
+        
+        if tournament_data && save_archived_tournament(tournament_data)
+          total_saved += 1
+          Rails.logger.info "[UmbScraper] ✓ Saved tournament ID #{id}: #{tournament_data[:name]}"
+        end
+      rescue StandardError => e
+        Rails.logger.error "[UmbScraper] Error parsing tournament ID #{id}: #{e.message}"
+      end
+      
+      # Rate limiting
+      sleep 1 if id % 10 == 0
     end
+    
+    Rails.logger.info "[UmbScraper] Archive scan complete: found #{total_found}, saved #{total_saved}"
+    total_saved
+  rescue StandardError => e
+    Rails.logger.error "[UmbScraper] Error in archive scan: #{e.message}"
+    Rails.logger.error e.backtrace.first(5).join("\n")
+    total_saved
+  end
+
+  # Scrape details for a specific tournament by ID
+  def scrape_tournament_details(tournament_id_or_record)
+    tournament = tournament_id_or_record.is_a?(Tournament) ? 
+                 tournament_id_or_record : 
+                 Tournament.find(tournament_id_or_record)
+    
+    # If tournament has an external_id, we can build the detail URL
+    if tournament.external_id.present?
+      detail_url = "#{BASE_URL}/public/TournametDetails.aspx?ID=#{tournament.external_id}"
+    elsif tournament.data&.dig('umb_detail_url').present?
+      detail_url = tournament.data['umb_detail_url']
+    else
+      Rails.logger.warn "[UmbScraper] No detail URL available for tournament #{tournament.id}"
+      return false
+    end
+    
+    Rails.logger.info "[UmbScraper] Scraping details for: #{tournament.name} (#{detail_url})"
+    
+    html = fetch_url(detail_url)
+    return false if html.blank?
+    
+    doc = Nokogiri::HTML(html)
+    
+    # Find all PDF links on the detail page
+    pdf_links = {}
+    doc.css('a[href$=".pdf"]').each do |link|
+      href = link['href']
+      text = link.text.strip.downcase
+      
+      # Categorize PDFs by their purpose
+      case text
+      when /players.*list|seeding/i
+        pdf_links[:players_list] = make_absolute_url(href)
+      when /groups/i
+        pdf_links[:groups] = make_absolute_url(href)
+      when /timetable|schedule/i
+        pdf_links[:timetable] = make_absolute_url(href)
+      when /results.*by.*round/i
+        pdf_links[:results_by_round] = make_absolute_url(href)
+      when /final.*ranking|final.*results/i
+        pdf_links[:final_ranking] = make_absolute_url(href)
+      else
+        pdf_links[:other] ||= []
+        pdf_links[:other] << { text: link.text.strip, url: make_absolute_url(href) }
+      end
+    end
+    
+    # Store PDF links in tournament data
+    tournament.data ||= {}
+    tournament.data['pdf_links'] = pdf_links.compact
+    tournament.data['detail_scraped_at'] = Time.current.iso8601
+    
+    if tournament.save
+      Rails.logger.info "[UmbScraper] Saved #{pdf_links.size} PDF links for #{tournament.name}"
+      
+      # Automatically scrape players list if available
+      if pdf_links[:players_list].present?
+        scrape_players_from_pdf(tournament, pdf_links[:players_list])
+      end
+      
+      # Automatically scrape final ranking if available
+      if pdf_links[:final_ranking].present?
+        scrape_results_from_pdf(tournament, pdf_links[:final_ranking])
+      end
+      
+      true
+    else
+      Rails.logger.error "[UmbScraper] Failed to save tournament details: #{tournament.errors.full_messages}"
+      false
+    end
+  rescue StandardError => e
+    Rails.logger.error "[UmbScraper] Error scraping tournament details: #{e.message}"
+    Rails.logger.error e.backtrace.first(5).join("\n")
+    false
   end
 
   private
 
-  # Fetch URL with timeout
-  def fetch_url(url)
+  # Fetch URL with timeout and redirect handling
+  def fetch_url(url, follow_redirects: true, max_redirects: 5)
     uri = URI(url)
+    redirects = 0
     
-    http = Net::HTTP.new(uri.host, uri.port)
-    http.use_ssl = (uri.scheme == 'https')
-    http.open_timeout = TIMEOUT
-    http.read_timeout = TIMEOUT
-    
-    request = Net::HTTP::Get.new(uri)
-    request['User-Agent'] = 'Carambus International Bot/1.0'
-    
-    response = http.request(request)
-    
-    if response.code == '200'
-      response.body
-    else
-      Rails.logger.error "[UmbScraper] HTTP #{response.code} for #{url}"
-      nil
+    loop do
+      http = Net::HTTP.new(uri.host, uri.port)
+      http.use_ssl = (uri.scheme == 'https')
+      http.verify_mode = OpenSSL::SSL::VERIFY_NONE if Rails.env.development?
+      http.open_timeout = TIMEOUT
+      http.read_timeout = TIMEOUT
+      
+      request = Net::HTTP::Get.new(uri)
+      request['User-Agent'] = 'Carambus International Bot/1.0'
+      request['Accept'] = 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+      request['Accept-Language'] = 'en-US,en;q=0.5'
+      
+      response = http.request(request)
+      
+      case response
+      when Net::HTTPSuccess
+        return response.body
+      when Net::HTTPRedirection
+        if follow_redirects && redirects < max_redirects
+          redirects += 1
+          location = response['location']
+          uri = URI.join(uri, location)
+          Rails.logger.debug "[UmbScraper] Following redirect #{redirects}/#{max_redirects} to #{uri}"
+          next
+        else
+          Rails.logger.error "[UmbScraper] Too many redirects for #{url}"
+          return nil
+        end
+      else
+        Rails.logger.error "[UmbScraper] HTTP #{response.code} for #{url}"
+        return nil
+      end
     end
   rescue StandardError => e
     Rails.logger.error "[UmbScraper] Failed to fetch #{url}: #{e.message}"
@@ -409,40 +533,44 @@ class UmbScraper
         tournament_type = determine_tournament_type(data[:name], data[:tournament_type_hint])
         
         # Find or create tournament
-        # Check for existing by name, location and approximate date (within 30 days)
+        # Check for existing by title (not name in Tournament), location and approximate date (within 30 days)
         # This catches duplicates even if dates are off by a day or year
         candidates = InternationalTournament
-                    .where(name: data[:name])
-                    .where(location: data[:location])
-                    .where('start_date BETWEEN ? AND ?', 
+                    .where(title: data[:name])
+                    .where(location_text: data[:location])
+                    .where('date BETWEEN ? AND ?', 
                            dates[:start_date] - 30.days, 
                            dates[:start_date] + 30.days)
                     .to_a
         
         # Find the closest match by date
-        existing = candidates.min_by { |t| (t.start_date - dates[:start_date]).abs }
+        existing = candidates.min_by { |t| (t.date.to_date - dates[:start_date]).abs }
         
         Rails.logger.debug "[UmbScraper]   → #{existing ? 'Found existing' : 'Creating new'}: #{data[:name]}"
         
         tournament = existing || InternationalTournament.new(
-          name: data[:name],
-          start_date: dates[:start_date]
+          title: data[:name],
+          date: dates[:start_date]
         )
         
         if tournament.new_record?
           tournament.assign_attributes(
             end_date: dates[:end_date],
-            location: data[:location],
+            location_text: data[:location],
             discipline: discipline,
-            tournament_type: tournament_type,
             international_source: @umb_source,
             source_url: data[:source_url],
+            modus: 'international',
+            single_or_league: 'single',
+            plan_or_show: 'show',
+            state: dates[:start_date] > Date.today ? 'planned' : 'finished',
             data: {
               umb_official: true,
               umb_type: data[:tournament_type_hint],
               umb_organization: data[:organization],
+              tournament_type: tournament_type,
               scraped_at: Time.current.iso8601
-            }
+            }.to_json
           )
           
           if tournament.save
@@ -453,11 +581,19 @@ class UmbScraper
           end
         else
           # Update existing
+          tournament_data = tournament.data.is_a?(String) ? JSON.parse(tournament.data) : (tournament.data || {})
+          tournament_data.merge!({
+            umb_type: data[:tournament_type_hint],
+            umb_organization: data[:organization],
+            tournament_type: tournament_type,
+            scraped_at: Time.current.iso8601
+          })
+          
           tournament.update(
             end_date: dates[:end_date],
-            location: data[:location],
-            tournament_type: tournament_type,
+            location_text: data[:location],
             source_url: data[:source_url],
+            data: tournament_data.to_json,
             data: tournament.data.merge(
               umb_official: true,
               umb_type: data[:tournament_type_hint],
@@ -672,16 +808,144 @@ class UmbScraper
     end
   end
   
-  # Parse archived tournaments from HTML
-  def parse_archive_tournaments(doc)
-    tournaments = []
+  # Parse tournament detail page for archive scanning
+  def parse_tournament_detail_for_archive(doc, external_id, detail_url)
+    # Extract tournament info from detail page table
+    tournament_info = {}
     
-    # UMB archive page structure needs to be analyzed
-    # For now, return empty array as placeholder
-    # This will be implemented once we analyze the actual page structure
+    # Find the tournament info table
+    doc.css('table tr').each do |row|
+      cells = row.css('td')
+      next unless cells.size == 2
+      
+      label = cells[0].text.strip.downcase
+      value = cells[1].text.strip
+      
+      case label
+      when /tournament:/i
+        tournament_info[:name] = value
+      when /starts on:/i
+        tournament_info[:start_date] = parse_date(value)
+      when /ends on:/i
+        tournament_info[:end_date] = parse_date(value)
+      when /organized by:/i
+        tournament_info[:organizer] = value
+      when /place:/i
+        city, country = parse_location_country(value)
+        tournament_info[:location] = value
+        tournament_info[:country] = country
+      end
+    end
     
-    Rails.logger.info "[UmbScraper] Archive parsing not yet fully implemented - placeholder"
-    tournaments
+    # Must have at least a name
+    return nil unless tournament_info[:name].present?
+    
+    # Try to determine discipline from name
+    discipline_name = determine_discipline_from_name(tournament_info[:name])
+    discipline = Discipline.find_by(name: discipline_name)
+    
+    # Determine tournament type
+    tournament_type = determine_tournament_type(tournament_info[:name])
+    
+    {
+      name: tournament_info[:name],
+      start_date: tournament_info[:start_date],
+      end_date: tournament_info[:end_date],
+      location: tournament_info[:location],
+      country: tournament_info[:country],
+      organizer: tournament_info[:organizer],
+      discipline: discipline,
+      tournament_type: tournament_type,
+      external_id: external_id.to_s,
+      source_url: detail_url,
+      data: {
+        umb_organization: tournament_info[:organizer],
+        scraped_from: 'sequential_scan',
+        scraped_at: Time.current.iso8601
+      }
+    }
+  end
+  
+  # Save single archived tournament
+  def save_archived_tournament(tournament_data)
+    return false unless tournament_data[:name].present?
+    
+    # Check if tournament already exists
+    existing = InternationalTournament.find_by(
+      international_source: @umb_source,
+      external_id: tournament_data[:external_id]
+    )
+    
+    if existing
+      Rails.logger.debug "[UmbScraper] Tournament #{tournament_data[:external_id]} already exists"
+      return false
+    end
+    
+    # Build attributes, discipline_id is required so we use a default if not found
+    discipline_id = tournament_data[:discipline]&.id || Discipline.first&.id
+    
+    tournament = InternationalTournament.new(
+      international_source: @umb_source,
+      name: tournament_data[:name],
+      start_date: tournament_data[:start_date],
+      end_date: tournament_data[:end_date],
+      location: tournament_data[:location],
+      country: tournament_data[:country],
+      organizer: tournament_data[:organizer],
+      discipline_id: discipline_id,
+      tournament_type: tournament_data[:tournament_type],
+      external_id: tournament_data[:external_id],
+      source_url: tournament_data[:source_url],
+      data: tournament_data[:data]
+    )
+    
+    if tournament.save
+      true
+    else
+      Rails.logger.error "[UmbScraper] Failed to save tournament: #{tournament.errors.full_messages}"
+      false
+    end
+  end
+  
+  # Parse date from various formats
+  def parse_date(date_string)
+    return nil if date_string.blank?
+    
+    # Try common UMB formats:
+    # "24-February-2025"
+    # "2025-02-24"
+    # "24/02/2025"
+    
+    formats = [
+      '%d-%B-%Y',    # 24-February-2025
+      '%Y-%m-%d',    # 2025-02-24
+      '%d/%m/%Y',    # 24/02/2025
+      '%d.%m.%Y'     # 24.02.2025
+    ]
+    
+    formats.each do |format|
+      begin
+        return Date.strptime(date_string, format)
+      rescue ArgumentError
+        next
+      end
+    end
+    
+    nil
+  rescue StandardError => e
+    Rails.logger.debug "[UmbScraper] Could not parse date: #{date_string}"
+    nil
+  end
+  
+  # Determine discipline from tournament name
+  def determine_discipline_from_name(name)
+    return '3-Cushion' if name =~ /3-cushion/i
+    return 'Cadre 47/2' if name =~ /cadre.*47.*2|47.*2.*cadre/i
+    return '5-Pins' if name =~ /5-pins?/i
+    return 'Artistique' if name =~ /artistique/i
+    return 'Balkline' if name =~ /balkline/i
+    
+    '3-Cushion'  # Default
   end
   
   # Save archived tournaments to database
@@ -753,4 +1017,270 @@ class UmbScraper
       [location_string, nil]
     end
   end
+  
+  # Make relative URL absolute
+  def make_absolute_url(url)
+    return url if url.nil? || url.start_with?('http')
+    
+    if url.start_with?('/')
+      "https://files.umb-carom.org#{url}"
+    else
+      "#{BASE_URL}/public/#{url}"
+    end
+  end
+  
+  # Download PDF file
+  def download_pdf(url)
+    full_url = make_absolute_url(url)
+    Rails.logger.info "[UmbScraper] Downloading PDF: #{full_url}"
+    
+    uri = URI(full_url)
+    http = Net::HTTP.new(uri.host, uri.port)
+    http.use_ssl = (uri.scheme == 'https')
+    http.verify_mode = OpenSSL::SSL::VERIFY_NONE if Rails.env.development?
+    http.open_timeout = TIMEOUT
+    http.read_timeout = TIMEOUT * 2  # PDFs can be larger
+    
+    request = Net::HTTP::Get.new(uri)
+    request['User-Agent'] = 'Carambus International Bot/1.0'
+    
+    response = http.request(request)
+    
+    if response.code == '200' && response['content-type']&.include?('pdf')
+      response.body
+    else
+      Rails.logger.error "[UmbScraper] Failed to download PDF: HTTP #{response.code}, Content-Type: #{response['content-type']}"
+      nil
+    end
+  rescue StandardError => e
+    Rails.logger.error "[UmbScraper] Failed to download PDF #{url}: #{e.message}"
+    nil
+  end
+  
+  # Scrape players from Players List PDF
+  def scrape_players_from_pdf(tournament, pdf_url)
+    Rails.logger.info "[UmbScraper] Parsing Players List PDF for: #{tournament.name}"
+    
+    # Note: PDF parsing requires 'pdf-reader' gem
+    # For now, we'll log and return - full implementation needs the gem
+    unless defined?(PDF::Reader)
+      Rails.logger.warn "[UmbScraper] PDF parsing requires 'pdf-reader' gem - add to Gemfile"
+      Rails.logger.warn "[UmbScraper] Run: bundle add pdf-reader"
+      return 0
+    end
+    
+    pdf_content = download_pdf(pdf_url)
+    return 0 unless pdf_content
+    
+    begin
+      require 'stringio'
+      reader = PDF::Reader.new(StringIO.new(pdf_content))
+      text = reader.pages.map(&:text).join("\n")
+      
+      # UMB player lists are in table format:
+      # Number  LASTNAME Firstname  COUNTRY  RankPos  RankPts  PlayerID  Status
+      # Example: "1      JASPERS Dick                               NL         1          480         0106      Main Tournament    Confirmed"
+      players_data = []
+      
+      text.split("\n").each do |line|
+        # Match table row: Position  LASTNAME Firstname  COUNTRY  RankingPos  RankingPts  PlayerID
+        if line =~ /^\s*(\d+)\s+([A-Z][A-Z\s]+?[A-Z])\s+([A-Z][a-z]+.*?)\s+([A-Z]{2,3})\s+\d+\s+\d+\s+(\d+)/
+          players_data << {
+            position: $1.to_i,
+            lastname: $2.strip,
+            firstname: $3.strip,
+            country: $4.strip.upcase,
+            umb_player_id: $5.to_i
+          }
+        end
+      end
+      
+      Rails.logger.info "[UmbScraper] Found #{players_data.size} players in PDF"
+      
+      # Save participations
+      save_participations(tournament, players_data)
+    rescue StandardError => e
+      Rails.logger.error "[UmbScraper] Error parsing Players List PDF: #{e.message}"
+      Rails.logger.error e.backtrace.first(5).join("\n")
+      0
+    end
+  end
+  
+  # Scrape results from Final Ranking PDF
+  def scrape_results_from_pdf(tournament, pdf_url)
+    Rails.logger.info "[UmbScraper] Parsing Final Ranking PDF for: #{tournament.name}"
+    
+    unless defined?(PDF::Reader)
+      Rails.logger.warn "[UmbScraper] PDF parsing requires 'pdf-reader' gem"
+      return 0
+    end
+    
+    pdf_content = download_pdf(pdf_url)
+    return 0 unless pdf_content
+    
+    begin
+      require 'stringio'
+      reader = PDF::Reader.new(StringIO.new(pdf_content))
+      text = reader.pages.map(&:text).join("\n")
+      
+      # Pattern for UMB final rankings (more flexible to capture various formats)
+      results_data = []
+      
+      # Try pattern with points and average
+      text.scan(/(\d+)[\.\)]\s+([A-Z][A-Z\s]+?)\s+([A-Z][a-z]+.*?)\s*\(([A-Z]{2,3})\).*?(?:Points?:?\s*(\d+))?.*?(?:Avg:?\s*([\d.]+))?/mi) do |position, lastname, firstname, country, points, average|
+        results_data << {
+          position: position.to_i,
+          lastname: lastname.strip.titleize,
+          firstname: firstname.strip,
+          country: country.strip.upcase,
+          points: points&.to_i,
+          average: average&.to_f
+        }
+      end
+      
+      Rails.logger.info "[UmbScraper] Found #{results_data.size} results in PDF"
+      
+      # Save results
+      save_results(tournament, results_data)
+    rescue StandardError => e
+      Rails.logger.error "[UmbScraper] Error parsing Final Ranking PDF: #{e.message}"
+      Rails.logger.error e.backtrace.first(5).join("\n")
+      0
+    end
+  end
+  
+  # Save international participations
+  def save_participations(tournament, players_data)
+    saved_count = 0
+    umb_region = Region.find_by(shortname: "UMB")
+    
+    unless umb_region
+      Rails.logger.error "[UmbScraper] UMB region not found - run seeds first"
+      return 0
+    end
+    
+    players_data.each do |data|
+      player = find_or_create_international_player(
+        firstname: data[:firstname],
+        lastname: data[:lastname],
+        nationality: data[:country],
+        umb_player_id: data[:umb_player_id],
+        region: umb_region
+      )
+      
+      next unless player
+      
+      participation = InternationalParticipation.find_or_initialize_by(
+        player: player,
+        international_tournament: tournament
+      )
+      
+      participation.source = InternationalParticipation::RESULT_LIST
+      participation.confirmed = true
+      
+      if participation.save
+        saved_count += 1
+        Rails.logger.info "[UmbScraper] Added participation: #{player.fl_name} (#{data[:country]})"
+      else
+        Rails.logger.error "[UmbScraper] Failed to save participation: #{participation.errors.full_messages}"
+      end
+    end
+    
+    saved_count
+  end
+  
+  # Save international results
+  def save_results(tournament, results_data)
+    saved_count = 0
+    umb_region = Region.find_by(shortname: "UMB")
+    
+    unless umb_region
+      Rails.logger.error "[UmbScraper] UMB region not found"
+      return 0
+    end
+    
+    results_data.each do |data|
+      player = find_or_create_international_player(
+        firstname: data[:firstname],
+        lastname: data[:lastname],
+        nationality: data[:country],
+        region: umb_region
+      )
+      
+      player_name = "#{data[:firstname]} #{data[:lastname]}"
+      
+      result = InternationalResult.find_or_initialize_by(
+        international_tournament: tournament,
+        position: data[:position]
+      )
+      
+      result.assign_attributes(
+        player: player,
+        player_name: player_name,
+        player_country: data[:country],
+        points: data[:points],
+        metadata: {
+          average: data[:average],
+          scraped_from: 'umb_pdf',
+          scraped_at: Time.current.iso8601
+        }.compact
+      )
+      
+      if result.save
+        saved_count += 1
+        Rails.logger.info "[UmbScraper] Added result: #{data[:position]}. #{player_name} (#{data[:points]} pts)"
+      else
+        Rails.logger.error "[UmbScraper] Failed to save result: #{result.errors.full_messages}"
+      end
+    end
+    
+    saved_count
+  end
+  
+  # Find or create international player
+  def find_or_create_international_player(firstname:, lastname:, nationality:, region:, umb_player_id: nil)
+    fl_name = "#{firstname} #{lastname}".strip
+    
+    # Try to find by umb_player_id first
+    player = Player.find_by(umb_player_id: umb_player_id) if umb_player_id.present?
+    
+    # If not found by ID, try to find existing player by name
+    if player.nil?
+      player = Player.where(
+        "LOWER(firstname) = ? AND LOWER(lastname) = ?",
+        firstname.downcase,
+        lastname.downcase
+      ).where(type: nil).first
+    end
+    
+    # If still not found, create new international player
+    if player.nil?
+      player = Player.new(
+        firstname: firstname,
+        lastname: lastname,
+        fl_name: fl_name,
+        nationality: nationality,
+        umb_player_id: umb_player_id,
+        international_player: true,
+        region: region
+      )
+    end
+    
+    # Update fields if missing
+    player.umb_player_id ||= umb_player_id
+    player.nationality ||= nationality
+    player.international_player = true
+    player.region ||= region
+    
+    if player.save
+      player
+    else
+      Rails.logger.error "[UmbScraper] Failed to create player #{fl_name}: #{player.errors.full_messages}"
+      nil
+    end
+  rescue StandardError => e
+    Rails.logger.error "[UmbScraper] Error finding/creating player #{firstname} #{lastname}: #{e.message}"
+    nil
+  end
+  
 end

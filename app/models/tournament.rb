@@ -89,6 +89,9 @@ class Tournament < ApplicationRecord
   
   # International associations
   belongs_to :international_tournament, optional: true
+  
+  # Polymorphe Video Association
+  has_many :videos, as: :videoable, dependent: :nullify
 
   scope :active_manual_assignment, -> { where(state: "tournament_started").where(manual_assignment: true) }
   scope :international, -> { where.not(international_tournament_id: nil) }
