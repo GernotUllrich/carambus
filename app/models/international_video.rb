@@ -65,12 +65,12 @@ class InternationalVideo < ApplicationRecord
     title.presence || "Video #{external_id}"
   end
 
-  # Get translated title (English) if available, otherwise original
+  # Get translated title (English) if available, otherwise build from metadata or use original
   def translated_title(locale = :en)
-    # Check if we have a cached translation in metadata
+    # Priority 1: Use cached Google Translate translation
     return metadata['translated_title'] if metadata['translated_title'].present?
     
-    # If we have player names, build a descriptive title
+    # Priority 2: Build descriptive title from player names
     if metadata['players'].present? && metadata['players'].size >= 2
       translator = PlayerNameTranslator.new
       match_str = translator.build_match_string(metadata['players'])
@@ -83,8 +83,20 @@ class InternationalVideo < ApplicationRecord
       return parts.join(' - ') if parts.any?
     end
     
-    # Fallback to original title
+    # Priority 3: Fallback to original title
     title
+  end
+  
+  # Check if video needs translation (non-English title without translation)
+  def needs_translation?
+    return false if metadata['translated_title'].present?
+    return false if title.blank?
+    
+    # Simple heuristic: if mostly ASCII, probably English
+    ascii_chars = title.chars.count { |c| c.ord < 128 }
+    ratio = ascii_chars.to_f / title.length
+    
+    ratio < 0.8 # Less than 80% ASCII means likely non-English
   end
 
   def duration_formatted
