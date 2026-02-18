@@ -119,13 +119,14 @@ class UmbScraper
       Rails.logger.info "[UmbScraper] Row #{row_count}: #{cells.size} cells, first='#{first_cell&.first(50)}', current_year=#{current_year}, current_month=#{current_month}"
       
       # Check if row contains a year (anywhere in the text) - BEFORE month check!
-      # Year rows can also contain month names, so we process year first
+      # Year rows can also contain month names and dates, so we process year first
+      # Look for year at the START of the cell text (like "2027" or "2026")
       year_found_this_row = false
-      if row_text.match?(/\b(2026|2027|2028|2029|2030)\b/) && !row_text.match?(/\d{1,2}\s*-\s*\d{1,2}/)
-        if (match = row_text.match(/\b(2026|2027|2028|2029|2030)\b/))
+      if first_cell.match?(/^\s*(2026|2027|2028|2029|2030)\b/)
+        if (match = first_cell.match(/^\s*(2026|2027|2028|2029|2030)\b/))
           current_year = match[1].to_i
           year_found_this_row = true
-          Rails.logger.info "[UmbScraper] Found year: #{current_year} in row text"
+          Rails.logger.info "[UmbScraper] Found year: #{current_year} in first cell"
         end
       end
       
