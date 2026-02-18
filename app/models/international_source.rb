@@ -71,6 +71,13 @@ class InternationalSource < ApplicationRecord
       base_url: 'https://www.youtube.com/@kozoom',
       priority: 3,
       description: 'Official Pool Youtube channel of Kozoom (less relevant for carom)'
+    },
+    'sponoiter_korea' => {
+      name: '스포놀이터 (Sports Playground Korea)',
+      channel_id: 'UCh1f8I6U3qo1mt08MR8GoHQ', # Verified 2026-02-18
+      base_url: 'https://www.youtube.com/@스포놀이터-n9x',
+      priority: 2,
+      description: 'Korean carom billiards channel featuring international and Korean tournaments'
     }
     # Note: Five & Six and CEB Carom channels need to be verified
     # Use: rails international:find_channel_id[fiveandsix]

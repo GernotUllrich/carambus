@@ -39,6 +39,21 @@ InternationalSource.find_or_create_by!(
   puts "  Created: #{source.name}"
 end
 
+InternationalSource.find_or_create_by!(
+  name: '스포놀이터 (Sports Playground Korea)',
+  source_type: InternationalSource::YOUTUBE
+) do |source|
+  source.base_url = 'https://www.youtube.com/channel/UCh1f8I6U3qo1mt08MR8GoHQ'
+  source.metadata = {
+    key: 'sponoiter_korea',
+    channel_id: 'UCh1f8I6U3qo1mt08MR8GoHQ',
+    priority: 2,
+    description: 'Korean carom billiards channel featuring international and Korean tournaments',
+    verified_date: '2026-02-18'
+  }
+  puts "  Created: #{source.name}"
+end
+
 # Note: Other channels need to be verified using rake task
 # rails international:find_channel_id[fiveandsix]
 # rails international:find_channel_id[ceb]
