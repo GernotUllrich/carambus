@@ -78,7 +78,7 @@ class TournamentDiscoveryService
 
   # Find or create tournament from candidate
   def find_or_create_tournament(candidate)
-    # Build tournament name
+    # Build tournament name (normalize case)
     name = build_tournament_name(candidate)
     
     # Determine dates from videos
@@ -94,10 +94,18 @@ class TournamentDiscoveryService
       return nil
     end
     
-    # Find or create tournament
-    tournament = InternationalTournament.find_or_initialize_by(
+    tournament_type = map_tournament_type(candidate[:tournament_type])
+    
+    # Find existing tournament (case-insensitive name matching)
+    tournament = InternationalTournament.where('LOWER(name) = ?', name.downcase)
+                                       .where(tournament_type: tournament_type)
+                                       .where('start_date >= ? AND start_date <= ?', start_date - 30.days, start_date + 30.days)
+                                       .first
+    
+    # Create new if not found
+    tournament ||= InternationalTournament.new(
       name: name,
-      tournament_type: map_tournament_type(candidate[:tournament_type]),
+      tournament_type: tournament_type,
       start_date: start_date
     )
     
@@ -136,9 +144,12 @@ class TournamentDiscoveryService
     tournament
   end
 
-  # Build tournament name from candidate data
+  # Build tournament name from candidate data (normalize case)
   def build_tournament_name(candidate)
-    parts = [candidate[:tournament_type]]
+    # Normalize tournament type to title case
+    type = candidate[:tournament_type].to_s.split.map(&:capitalize).join(' ')
+    
+    parts = [type]
     
     if candidate[:season].present?
       parts << candidate[:season]
