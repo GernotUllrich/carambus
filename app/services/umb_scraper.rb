@@ -288,7 +288,8 @@ class UmbScraper
         # Assume it started on the last few days of previous month (common for cross-month events)
         prev_month_abbr = Date::ABBR_MONTHNAMES[prev_month]
         curr_month_abbr = Date::ABBR_MONTHNAMES[month]
-        enhanced = "28 #{prev_month_abbr} - #{end_day} #{curr_month_abbr} #{year}"
+        # Format: "Feb 28 - Apr 05, 2026" (Month Day - Month Day, Year) to match parse_month_day_range
+        enhanced = "#{prev_month_abbr} 28 - #{curr_month_abbr} #{end_day}, #{year}"
         Rails.logger.info "[UmbScraper]   → cross-month end: '#{enhanced}'"
         return enhanced
       end
