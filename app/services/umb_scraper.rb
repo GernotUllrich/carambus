@@ -179,6 +179,9 @@ class UmbScraper
     # Enhance date text with current month if it's just days
     enhanced_date = enhance_date_with_context(date_text, current_month, current_year)
     
+    # Skip if date enhancement failed (incomplete ranges)
+    return nil if enhanced_date.nil?
+    
     {
       name: name_text,
       location: location_text,
@@ -195,27 +198,29 @@ class UmbScraper
   
   # Enhance date string with month/year context
   def enhance_date_with_context(date_str, month, year)
-    return date_str if date_str.blank? || month.nil?
+    return date_str if date_str.blank? || month.nil? || year.nil?
+    
+    # Clean up the date string first
+    cleaned = date_str.strip.gsub(/\s+/, ' ')
     
     # If date is just "06 - 12" add the month name
-    if date_str.match?(/^\d{1,2}\s*-\s*\d{1,2}$/)
-      month_name = Date::MONTHNAMES[month]
-      return "#{date_str} #{month_name} #{year}"
+    if cleaned.match?(/^\d{1,2}\s*-\s*\d{1,2}$/)
+      month_abbr = Date::ABBR_MONTHNAMES[month]
+      return "#{cleaned} #{month_abbr} #{year}"
     end
     
-    # If date is " - 05" (end of month range), we need previous entry's context
-    # For now, just add month/year
-    if date_str.match?(/^\s*-\s*\d{1,2}$/)
-      month_name = Date::MONTHNAMES[month]
-      return "#{date_str.strip} #{month_name} #{year}"
+    # If date is " - 05" (end of month range), skip for now
+    # These are cross-month ranges that need more context
+    if cleaned.match?(/^-\s*\d{1,2}$/)
+      return nil # Skip incomplete ranges
     end
     
-    # If date is "31 - " (start of cross-month range)
-    if date_str.match?(/^\d{1,2}\s*-\s*$/)
-      month_name = Date::MONTHNAMES[month]
-      return "#{date_str.strip} #{month_name} #{year}"
+    # If date is "31 - " (start of cross-month range), skip for now
+    if cleaned.match?(/^\d{1,2}\s*-$/)
+      return nil # Skip incomplete ranges
     end
     
+    # If date already has month/year info, return as-is
     date_str
   end
 
