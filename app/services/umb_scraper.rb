@@ -118,16 +118,18 @@ class UmbScraper
       
       Rails.logger.info "[UmbScraper] Row #{row_count}: #{cells.size} cells, first='#{first_cell&.first(50)}', current_year=#{current_year}, current_month=#{current_month}"
       
-      # Check if row contains a year (anywhere in the text)
+      # Check if row contains a year (anywhere in the text) - BEFORE month check!
+      # Year rows can also contain month names, so we process year first
+      year_found_this_row = false
       if row_text.match?(/\b(2026|2027|2028|2029|2030)\b/) && !row_text.match?(/\d{1,2}\s*-\s*\d{1,2}/)
         if (match = row_text.match(/\b(2026|2027|2028|2029|2030)\b/))
           current_year = match[1].to_i
+          year_found_this_row = true
           Rails.logger.info "[UmbScraper] Found year: #{current_year} in row text"
-          next
         end
       end
       
-      # IMPORTANT: Check for month BEFORE processing tournament
+      # IMPORTANT: Check for month AFTER year check
       # Extract just the first recognizable month name from the row
       month_found_this_row = false
       %w[January February March April May June July August September October November December].each do |month_name|
@@ -136,10 +138,15 @@ class UmbScraper
           if month_num
             current_month = month_num
             month_found_this_row = true
-            Rails.logger.debug "[UmbScraper] Found month: #{month_name} (#{current_month}) for subsequent rows"
+            Rails.logger.info "[UmbScraper] Found month: #{month_name} (#{current_month}) with year=#{current_year}"
             break
           end
         end
+      end
+      
+      # Skip year-only rows (but continue if row has both year and month)
+      if year_found_this_row && !month_found_this_row
+        next
       end
       
       # Try to parse as tournament row
@@ -379,7 +386,7 @@ class UmbScraper
                     .where('start_date BETWEEN ? AND ?', 
                            dates[:start_date] - 30.days, 
                            dates[:start_date] + 30.days)
-                    .order('ABS(EXTRACT(EPOCH FROM (start_date - ?::date)))', dates[:start_date])
+                    .order(Arel.sql("ABS(EXTRACT(EPOCH FROM (start_date - ?::date)))"), dates[:start_date])
                     .first
         
         Rails.logger.debug "[UmbScraper]   → #{existing ? 'Found existing' : 'Creating new'}: #{data[:name]}"
