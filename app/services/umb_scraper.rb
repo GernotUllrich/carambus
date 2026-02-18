@@ -185,15 +185,24 @@ class UmbScraper
     # Skip rows that are just fragments (less than 3 words)
     return nil if name_text.split(/\s+/).size < 3
     
+    # Skip if name is just a date pattern (fragment rows)
+    return nil if name_text.match?(/^\d{1,2}\s*-\s*\d{1,2}$/)
+    
+    # Skip if name is just a month name with extra stuff (malformed rows)
+    return nil if name_text.match?(/^(January|February|March|April|May|June|July|August|September|October|November|December)\s+\d/i)
+    
     # Enhance date text with current month if it's just days
     enhanced_date = enhance_date_with_context(date_text, current_month, current_year)
     
     # Skip if date enhancement failed (incomplete ranges)
     return nil if enhanced_date.nil?
     
+    # Clean location - sometimes it has organization info, extract actual location
+    cleaned_location = extract_location(location_text)
+    
     {
       name: name_text,
-      location: location_text,
+      location: cleaned_location,
       tournament_type_hint: type_text,
       organization: org_text,
       date_range: enhanced_date,
@@ -203,6 +212,30 @@ class UmbScraper
   rescue StandardError => e
     Rails.logger.warn "[UmbScraper] Failed to extract tournament from row: #{e.message}"
     nil
+  end
+  
+  # Extract actual location from text like "ANKARA (Turkey)" or "UMB / CEB"
+  def extract_location(text)
+    return nil if text.blank?
+    
+    # If it looks like "CITY (Country)", extract that
+    if (match = text.match(/([A-Z\s]+)\s*\(([^)]+)\)/))
+      city = match[1].strip.titleize
+      country = match[2].strip
+      return "#{city}, #{country}"
+    end
+    
+    # If it's "N/A (Country)", just return country
+    if (match = text.match(/N\/A\s*\(([^)]+)\)/))
+      return match[1].strip
+    end
+    
+    # If it looks like org info (UMB / ...), return nil
+    return nil if text.match?(/^UMB\s*\//)
+    return nil if text.match?(/^WCBS/)
+    
+    # Otherwise return as-is
+    text.strip
   end
   
   # Enhance date string with month/year context
@@ -271,7 +304,15 @@ class UmbScraper
         tournament_type = determine_tournament_type(data[:name], data[:tournament_type_hint])
         
         # Find or create tournament
-        tournament = InternationalTournament.find_or_initialize_by(
+        # Check for existing by name and approximate date (within 7 days)
+        existing = InternationalTournament
+                    .where(name: data[:name])
+                    .where('start_date BETWEEN ? AND ?', 
+                           dates[:start_date] - 7.days, 
+                           dates[:start_date] + 7.days)
+                    .first
+        
+        tournament = existing || InternationalTournament.new(
           name: data[:name],
           start_date: dates[:start_date]
         )
