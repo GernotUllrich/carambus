@@ -114,19 +114,22 @@ class UmbScraper
       
       # Get full row text to check for months/years
       row_text = row.text.strip
-      first_cell = cells[0]&.text&.strip
+      first_cell_raw = cells[0]&.text
       
-      Rails.logger.info "[UmbScraper] Row #{row_count}: #{cells.size} cells, first='#{first_cell&.first(50)}', current_year=#{current_year}, current_month=#{current_month}"
+      # Split first cell by newlines and get the first non-empty line
+      # This handles cases where cell contains "2027\n\nApril\n05 - 11\n..."
+      first_cell_lines = first_cell_raw&.split(/\n+/)&.map(&:strip)&.reject(&:blank?) || []
+      first_line = first_cell_lines.first || ''
       
-      # Check if row contains a year (anywhere in the text) - BEFORE month check!
-      # Year rows can also contain month names and dates, so we process year first
-      # Look for year at the START of the cell text (like "2027" or "2026")
+      Rails.logger.info "[UmbScraper] Row #{row_count}: #{cells.size} cells, first_line='#{first_line&.first(50)}', current_year=#{current_year}, current_month=#{current_month}"
+      
+      # Check if FIRST LINE of first cell is a year (like "2027" or "2026")
       year_found_this_row = false
-      if first_cell&.match?(/^\s*(2026|2027|2028|2029|2030)/)
-        if (match = first_cell.match(/^\s*(2026|2027|2028|2029|2030)/))
+      if first_line.match?(/^\s*(2026|2027|2028|2029|2030)\s*$/)
+        if (match = first_line.match(/^\s*(2026|2027|2028|2029|2030)\s*$/))
           current_year = match[1].to_i
           year_found_this_row = true
-          Rails.logger.info "[UmbScraper] Found year: #{current_year} in first cell (was: '#{first_cell&.first(30)}...')"
+          Rails.logger.info "[UmbScraper] Found year: #{current_year} (first line of cell)"
         end
       end
       
