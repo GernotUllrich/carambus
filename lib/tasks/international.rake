@@ -225,6 +225,35 @@ namespace :international do
     puts "\n✅ Daily scrape complete!"
   end
 
+  desc 'Scrape official UMB tournament data'
+  task scrape_umb: :environment do
+    puts "\n=== UMB Tournament Scraper ==="
+    puts "Fetching official tournament data from UMB..."
+    
+    scraper = UmbScraper.new
+    count = scraper.scrape_future_tournaments
+    
+    if count > 0
+      puts "\n✅ Success!"
+      puts "  Tournaments scraped: #{count}"
+      
+      puts "\nOfficial UMB Tournaments:"
+      InternationalTournament.joins(:international_source)
+                            .where(international_sources: { source_type: 'umb' })
+                            .order(start_date: :asc)
+                            .each do |t|
+        puts "  #{t.name}"
+        puts "    Date: #{t.date_range}"
+        puts "    Location: #{t.location || 'TBA'}"
+        puts "    Discipline: #{t.discipline.name}"
+        puts ""
+      end
+    else
+      puts "\n⚠️ No tournaments found or scraping failed"
+      puts "Check logs for details"
+    end
+  end
+
   desc 'Full pipeline: scrape → process → discover tournaments → translate'
   task :full_pipeline, [:days_back] => :environment do |_t, args|
     days_back = (args[:days_back] || 7).to_i
