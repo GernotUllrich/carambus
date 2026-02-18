@@ -544,19 +544,26 @@ class UmbScraper
     
     # Check for discipline keywords in name
     if name_lower.include?('3-cushion') || name_lower.include?('3 cushion')
-      return Discipline.find_by('name ILIKE ?', 'Dreiband')
+      # Try various spellings: Dreiband, Libre, or anything with "drei" or "three"
+      return Discipline.find_by('name ILIKE ?', '%drei%') || 
+             Discipline.find_by('name ILIKE ?', '%three%') ||
+             Discipline.find_by('name ILIKE ?', '%cushion%') ||
+             Discipline.find_by('name ILIKE ?', 'Karambol')  # Ultimate fallback
     elsif name_lower.include?('5-pins') || name_lower.include?('5 pins')
-      return Discipline.find_by('name ILIKE ?', '%fünf%') || Discipline.find_by('name ILIKE ?', '%five%')
+      return Discipline.find_by('name ILIKE ?', '%fünf%') || 
+             Discipline.find_by('name ILIKE ?', '%five%') ||
+             Discipline.find_by('name ILIKE ?', '%pin%')
     elsif name_lower.include?('artistique') || name_lower.include?('artistic')
       return Discipline.find_by('name ILIKE ?', '%artist%')
     elsif name_lower.include?('libre') || name_lower.include?('free')
-      return Discipline.find_by('name ILIKE ?', '%frei%') || Discipline.find_by('name ILIKE ?', '%libre%')
+      return Discipline.find_by('name ILIKE ?', '%frei%') || 
+             Discipline.find_by('name ILIKE ?', '%libre%')
     elsif name_lower.include?('cadre')
       return Discipline.find_by('name ILIKE ?', '%cadre%')
     end
     
-    # Default to generic Karambol
-    Discipline.find_by('name ILIKE ?', 'Karambol')
+    # Default to generic Karambol (should always exist)
+    Discipline.find_by('name ILIKE ?', '%karambol%') || Discipline.first
   end
 
   # Determine tournament type from name and UMB type hint
