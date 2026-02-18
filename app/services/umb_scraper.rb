@@ -371,10 +371,15 @@ class UmbScraper
         tournament_type = determine_tournament_type(data[:name], data[:tournament_type_hint])
         
         # Find or create tournament
-        # Check for existing by name and exact date (same day, to avoid year conflicts)
+        # Check for existing by name, location and approximate date (within 30 days)
+        # This catches duplicates even if dates are off by a day or year
         existing = InternationalTournament
                     .where(name: data[:name])
-                    .where(start_date: dates[:start_date])
+                    .where(location: data[:location])
+                    .where('start_date BETWEEN ? AND ?', 
+                           dates[:start_date] - 30.days, 
+                           dates[:start_date] + 30.days)
+                    .order('ABS(EXTRACT(EPOCH FROM (start_date - ?::date)))', dates[:start_date])
                     .first
         
         Rails.logger.debug "[UmbScraper]   → #{existing ? 'Found existing' : 'Creating new'}: #{data[:name]}"
