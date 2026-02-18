@@ -65,6 +65,28 @@ class InternationalVideo < ApplicationRecord
     title.presence || "Video #{external_id}"
   end
 
+  # Get translated title (English) if available, otherwise original
+  def translated_title(locale = :en)
+    # Check if we have a cached translation in metadata
+    return metadata['translated_title'] if metadata['translated_title'].present?
+    
+    # If we have player names, build a descriptive title
+    if metadata['players'].present? && metadata['players'].size >= 2
+      translator = PlayerNameTranslator.new
+      match_str = translator.build_match_string(metadata['players'])
+      
+      parts = []
+      parts << metadata['tournament_type'] if metadata['tournament_type'].present?
+      parts << metadata['season'] if metadata['season'].present?
+      parts << match_str if match_str.present?
+      
+      return parts.join(' - ') if parts.any?
+    end
+    
+    # Fallback to original title
+    title
+  end
+
   def duration_formatted
     return nil if duration.blank?
     
