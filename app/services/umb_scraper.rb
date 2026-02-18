@@ -203,24 +203,31 @@ class UmbScraper
     # Clean up the date string first
     cleaned = date_str.strip.gsub(/\s+/, ' ')
     
+    Rails.logger.debug "[UmbScraper] enhance_date_with_context: '#{date_str}' with month=#{month}, year=#{year}"
+    
     # If date is just "06 - 12" add the month name
     if cleaned.match?(/^\d{1,2}\s*-\s*\d{1,2}$/)
       month_abbr = Date::ABBR_MONTHNAMES[month]
-      return "#{cleaned} #{month_abbr} #{year}"
+      enhanced = "#{cleaned} #{month_abbr} #{year}"
+      Rails.logger.debug "[UmbScraper]   → enhanced to: '#{enhanced}'"
+      return enhanced
     end
     
     # If date is " - 05" (end of month range), skip for now
     # These are cross-month ranges that need more context
     if cleaned.match?(/^-\s*\d{1,2}$/)
+      Rails.logger.debug "[UmbScraper]   → skipping incomplete range (end only)"
       return nil # Skip incomplete ranges
     end
     
     # If date is "31 - " (start of cross-month range), skip for now
     if cleaned.match?(/^\d{1,2}\s*-$/)
+      Rails.logger.debug "[UmbScraper]   → skipping incomplete range (start only)"
       return nil # Skip incomplete ranges
     end
     
     # If date already has month/year info, return as-is
+    Rails.logger.debug "[UmbScraper]   → returning as-is"
     date_str
   end
 
