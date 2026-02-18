@@ -26,7 +26,7 @@ class VideoTranslationService
       video.update(
         metadata: video.metadata.merge(
           'translated_title' => translated_text,
-          'original_language' => translation.detected_language_code,
+          'original_language' => translation.from || translation.language,
           'translated_at' => Time.current.iso8601
         )
       )
