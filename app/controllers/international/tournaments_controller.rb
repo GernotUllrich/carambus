@@ -6,13 +6,14 @@ module International
     before_action :set_tournament, only: [:show]
 
     def index
-      @tournaments = InternationalTournament.includes(:discipline)
+      @tournaments = InternationalTournament.includes(:discipline, :international_source)
                                            .order(start_date: :desc)
       
       # Filters
       @tournaments = @tournaments.by_type(params[:type]) if params[:type].present?
       @tournaments = @tournaments.by_discipline(params[:discipline_id]) if params[:discipline_id].present?
       @tournaments = @tournaments.in_year(params[:year]) if params[:year].present?
+      @tournaments = @tournaments.official_umb if params[:official_umb] == '1'
       
       # Pagination
       @pagy, @tournaments = pagy(@tournaments, items: 20)

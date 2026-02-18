@@ -3,7 +3,9 @@
 # Main controller for international section
 class InternationalController < ApplicationController
   def index
-    @upcoming_tournaments = InternationalTournament.upcoming.limit(10)
+    @upcoming_tournaments = InternationalTournament.upcoming
+                                                   .includes(:discipline, :international_source)
+                                                   .limit(10)
     @recent_videos = InternationalVideo.recent.limit(12)
     @recent_results = InternationalResult.includes(:international_tournament, :player)
                                         .joins(:international_tournament)

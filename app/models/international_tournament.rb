@@ -80,6 +80,9 @@ class InternationalTournament < ApplicationRecord
   scope :by_type, ->(type) { where(tournament_type: type) }
   scope :by_discipline, ->(discipline_id) { where(discipline_id: discipline_id) }
   scope :in_year, ->(year) { where('EXTRACT(YEAR FROM start_date) = ?', year) }
+  scope :official_umb, lambda {
+    joins(:international_source).where(international_sources: { source_type: 'umb' })
+  }
 
   # Display methods
   def display_name
@@ -109,6 +112,11 @@ class InternationalTournament < ApplicationRecord
   # Check if tournament is a major championship
   def major_championship?
     [WORLD_CHAMPIONSHIP, EUROPEAN_CHAMPIONSHIP].include?(tournament_type)
+  end
+
+  # Check if tournament is official UMB data
+  def official_umb?
+    international_source&.source_type == 'umb'
   end
 
   # Get winner
