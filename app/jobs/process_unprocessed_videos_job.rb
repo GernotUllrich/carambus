@@ -75,13 +75,13 @@ class ProcessUnprocessedVideosJob < ApplicationJob
     metadata = {}
     
     # Extract year (check season format FIRST before single year)
-    if video.title.match?(/\b(20\d{2})\/(20\d{2})\b/)
+    if match = video.title.match(/\b(20\d{2})\/(20\d{2})\b/)
       # For season format "2025/2026", use the second year
-      metadata['year'] = Regexp.last_match(2).to_i
-      metadata['season'] = "#{Regexp.last_match(1)}/#{Regexp.last_match(2)}"
-    elsif video.title.match?(/\b(20\d{2})\b/)
+      metadata['year'] = match[2].to_i
+      metadata['season'] = "#{match[1]}/#{match[2]}"
+    elsif match = video.title.match(/\b(20\d{2})\b/)
       # Single year format
-      metadata['year'] = Regexp.last_match(1).to_i
+      metadata['year'] = match[1].to_i
     end
     
     # Extract round information
@@ -102,21 +102,21 @@ class ProcessUnprocessedVideosJob < ApplicationJob
     # Extract player names (improved for international names)
     # Look for "Player1 vs Player2" or "Player1 - Player2"
     # Handles: "Eddy MERCKX vs Dick JASPERS" or "Glenn HOFMAN vs Marco ZANETTI"
-    if video.title.match(/\b([A-Z][a-zéèêëàâäöüß]+(?:\s+[A-Z][A-ZÉÈÊËÀÂÄÖÜß]+)?)\s+(?:vs\.?|v\.?)\s+([A-Z][a-zéèêëàâäöüß]+(?:\s+[A-Z][A-ZÉÈÊËÀÂÄÖÜß]+)?)\b/)
-      player1 = Regexp.last_match(1).strip
-      player2 = Regexp.last_match(2).strip
+    if match = video.title.match(/\b([A-Z][a-zéèêëàâäöüß]+(?:\s+[A-Z][A-ZÉÈÊËÀÂÄÖÜß]+)?)\s+(?:vs\.?|v\.?)\s+([A-Z][a-zéèêëàâäöüß]+(?:\s+[A-Z][A-ZÉÈÊËÀÂÄÖÜß]+)?)\b/)
+      player1 = match[1].strip
+      player2 = match[2].strip
       metadata['players'] = [player1, player2]
       metadata['match'] = "#{player1} vs #{player2}"
     end
     
     # Extract league/tournament info
-    if video.title.match(/(Kozoom League|French League|World Cup|World Championship)/i)
-      metadata['tournament_type'] = Regexp.last_match(1)
+    if match = video.title.match(/(Kozoom League|French League|World Cup|World Championship)/i)
+      metadata['tournament_type'] = match[1]
     end
     
     # Extract round info if present
-    if video.title.match(/Round\s+(\d+)/i)
-      metadata['round_number'] = Regexp.last_match(1).to_i
+    if match = video.title.match(/Round\s+(\d+)/i)
+      metadata['round_number'] = match[1].to_i
     end
     
     metadata
