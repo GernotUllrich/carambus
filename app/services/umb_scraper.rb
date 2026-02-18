@@ -236,9 +236,14 @@ class UmbScraper
         start_month_abbr = Date::ABBR_MONTHNAMES[start_info[:start_month]]
         end_month_abbr = Date::ABBR_MONTHNAMES[current_month]
         
-        # Use the start year from pending info (important for year transitions like Dec 2026 -> Jan 2027)
-        enhanced_date = "#{start_month_abbr} #{start_info[:start_day]} - #{end_month_abbr} #{end_day}, #{start_info[:start_year]}"
-        Rails.logger.info "[UmbScraper]   → Completed cross-month event: #{name_text} (#{enhanced_date})"
+        # Handle year wrap: if end month < start month, it's next year
+        # Example: Dec (12) 31 -> Jan (1) 05 means Dec 2026 -> Jan 2027
+        start_year = start_info[:start_year]
+        end_year = current_month < start_info[:start_month] ? start_year + 1 : start_year
+        
+        # Build date string that parse_month_day_range can handle
+        enhanced_date = "#{start_month_abbr} #{start_info[:start_day]} - #{end_month_abbr} #{end_day}, #{start_year}"
+        Rails.logger.info "[UmbScraper]   → Completed cross-month event: #{name_text} (#{enhanced_date}, end_year=#{end_year})"
         
         pending_cross_month.delete(key) # Clean up
         
