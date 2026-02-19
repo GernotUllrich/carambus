@@ -45,21 +45,21 @@
             </span>
           <% end %>
 
-          <% if @video.metadata['year'].present? && @video.metadata['year'] > 0 %>
+          <% if @video.data['year'].present? && @video.data['year'] > 0 %>
             <span class="inline-flex items-center px-3 py-1 text-sm font-semibold text-purple-800 bg-purple-100 rounded-full">
-              <%= @video.metadata['season'] || @video.metadata['year'] %>
+              <%= @video.data['season'] || @video.data['year'] %>
             </span>
           <% end %>
 
-          <% if @video.metadata['tournament_type'].present? %>
+          <% if @video.data['tournament_type'].present? %>
             <span class="inline-flex items-center px-3 py-1 text-sm font-semibold text-indigo-800 bg-indigo-100 rounded-full">
-              <%= @video.metadata['tournament_type'] %>
+              <%= @video.data['tournament_type'] %>
             </span>
           <% end %>
 
-          <% if @video.metadata['round_number'].present? %>
+          <% if @video.data['round_number'].present? %>
             <span class="inline-flex items-center px-3 py-1 text-sm font-semibold text-pink-800 bg-pink-100 rounded-full">
-              Round <%= @video.metadata['round_number'] %>
+              Round <%= @video.data['round_number'] %>
             </span>
           <% end %>
         </div>
@@ -97,16 +97,16 @@
         <% end %>
 
         <!-- Players -->
-        <% if @video.metadata['players'].present? && @video.metadata['players'].any? %>
+        <% if @video.data['players'].present? && @video.data['players'].any? %>
           <div class="mt-6">
             <h3 class="text-lg font-semibold text-gray-900 mb-3">Players</h3>
             <div class="flex items-center justify-center py-4 bg-gray-50 rounded-lg">
               <div class="text-center">
-                <div class="text-xl font-bold text-gray-900"><%= @video.metadata['players'][0] %></div>
+                <div class="text-xl font-bold text-gray-900"><%= @video.data['players'][0] %></div>
               </div>
               <div class="mx-6 text-2xl font-bold text-gray-400">vs</div>
               <div class="text-center">
-                <div class="text-xl font-bold text-gray-900"><%= @video.metadata['players'][1] %></div>
+                <div class="text-xl font-bold text-gray-900"><%= @video.data['players'][1] %></div>
               </div>
             </div>
           </div>
@@ -137,19 +137,19 @@
       </div>
 
       <!-- Tournament Info -->
-      <% if @video.international_tournament.present? %>
+      <% if @video.videoable_type == 'Tournament' && @video.videoable.present? %>
         <div class="bg-white rounded-lg shadow-md p-6">
           <h2 class="text-xl font-bold text-gray-900 mb-4">Tournament</h2>
-          <a href="<%= international_tournament_path(@video.international_tournament) %>" 
+          <a href="<%= international_tournament_path(@video.videoable) %>" 
              class="block p-4 border border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all">
             <h3 class="text-lg font-semibold text-gray-900 mb-2">
-              <%= @video.international_tournament.name %>
+              <%= @video.videoable.name %>
             </h3>
             <div class="text-sm text-gray-600 space-y-1">
-              <p><%= @video.international_tournament.tournament_type&.humanize %></p>
-              <p><%= @video.international_tournament.date_range %></p>
-              <% if @video.international_tournament.location.present? %>
-                <p><%= @video.international_tournament.location %></p>
+              <p><%= @video.videoable.tournament_type&.humanize %></p>
+              <p><%= @video.videoable.date_range %></p>
+              <% if @video.videoable.location.present? %>
+                <p><%= @video.videoable.location %></p>
               <% end %>
             </div>
           </a>

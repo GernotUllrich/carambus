@@ -1,0 +1,127 @@
+<div class="container py-4">
+  <h1 class="mb-4">Incomplete Records Management</h1>
+  
+  <!-- Statistics -->
+  <div class="row mb-4">
+    <div class="col-md-3">
+      <div class="card text-center">
+        <div class="card-body">
+          <h5 class="card-title">Total</h5>
+          <p class="card-text display-4"><%= @stats[:total] %></p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card text-center border-success">
+        <div class="card-body">
+          <h5 class="card-title">Complete</h5>
+          <p class="card-text display-4 text-success"><%= @stats[:complete] %></p>
+          <small class="text-muted"><%= (@stats[:complete].to_f / @stats[:total] * 100).round(1) %>%</small>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card text-center border-warning">
+        <div class="card-body">
+          <h5 class="card-title">Incomplete</h5>
+          <p class="card-text display-4 text-warning"><%= @stats[:incomplete] %></p>
+          <small class="text-muted"><%= (@stats[:incomplete].to_f / @stats[:total] * 100).round(1) %>%</small>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="text-center pt-3">
+        <%= link_to "Auto-Fix Disciplines", auto_fix_all_admin_incomplete_records_path, 
+                    method: :post, 
+                    class: "btn btn-primary btn-lg",
+                    data: { confirm: "This will automatically fix disciplines based on tournament titles. Continue?" } %>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Field Breakdown -->
+  <div class="card mb-4">
+    <div class="card-header">
+      <h5 class="mb-0">Issues Breakdown</h5>
+    </div>
+    <div class="card-body">
+      <div class="row">
+        <div class="col-md-3">
+          <div class="alert alert-warning">
+            <strong>Unknown Discipline:</strong> <%= @field_stats[:unknown_discipline] %>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="alert alert-warning">
+            <strong>Unknown Season:</strong> <%= @field_stats[:unknown_season] %>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="alert alert-warning">
+            <strong>Unknown Location:</strong> <%= @field_stats[:unknown_location] %>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="alert alert-warning">
+            <strong>Unknown Organizer:</strong> <%= @field_stats[:unknown_organizer] %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Tournaments List -->
+  <div class="card">
+    <div class="card-header">
+      <h5 class="mb-0">Incomplete Tournaments (<%= @tournaments.total_count %>)</h5>
+    </div>
+    <div class="card-body">
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Title</th>
+            <th>Date</th>
+            <th>Issues</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @tournaments.each do |tournament| %>
+            <tr>
+              <td><%= tournament.id %></td>
+              <td>
+                <%= tournament.title %>
+                <% if tournament.international_source %>
+                  <small class="text-muted">(<%= tournament.international_source.name %>)</small>
+                <% end %>
+              </td>
+              <td><%= tournament.date&.strftime('%Y-%m-%d') %></td>
+              <td>
+                <% if tournament.is_placeholder_field?(:discipline_id) %>
+                  <span class="badge badge-warning">Discipline</span>
+                <% end %>
+                <% if tournament.is_placeholder_field?(:season_id) %>
+                  <span class="badge badge-warning">Season</span>
+                <% end %>
+                <% if tournament.is_placeholder_field?(:location_id) %>
+                  <span class="badge badge-warning">Location</span>
+                <% end %>
+                <% if tournament.is_placeholder_field?(:organizer_id) %>
+                  <span class="badge badge-warning">Organizer</span>
+                <% end %>
+              </td>
+              <td>
+                <%= link_to "Fix", admin_incomplete_record_path(tournament), class: "btn btn-sm btn-primary" %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+      
+      <% if defined?(Kaminari) %>
+        <%= paginate @tournaments %>
+      <% end %>
+    </div>
+  </div>
+</div>

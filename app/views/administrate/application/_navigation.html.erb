@@ -1,0 +1,39 @@
+<%#
+# Navigation
+
+This partial is used to display the navigation in Administrate.
+By default, the navigation contains navigation links
+for all resources in the admin dashboard,
+as defined by the routes in the `admin/` namespace
+%>
+
+<nav class="navigation">
+  <%= link_to(t("administrate.navigation.back_to_app"), root_path, class: "button button--alt button--nav") %>
+
+  <% Administrate::Namespace.new(namespace).resources_with_index_route.each do |resource| %>
+    <% begin %>
+      <%= link_to(
+        display_resource_name(resource),
+        resource_index_route(resource),
+        class: "navigation__link navigation__link--#{nav_link_state(resource)}"
+      ) if accessible_action?(model_from_resource(resource), :index) %>
+    <% rescue NameError => e %>
+      <%# Skip resources without dashboards %>
+    <% end %>
+  <% end %>
+  
+  <%# Custom non-Administrate resources %>
+  <%= link_to(
+    "Player Duplicates",
+    admin_player_duplicates_path,
+    class: "navigation__link navigation__link--#{controller_name == 'player_duplicates' ? 'active' : 'inactive'}",
+    style: "background-color: #f97316; color: white;"
+  ) %>
+  
+  <%= link_to(
+    "Incomplete Records",
+    admin_incomplete_records_path,
+    class: "navigation__link navigation__link--#{controller_name == 'incomplete_records' ? 'active' : 'inactive'}",
+    style: "background-color: #eab308; color: white;"
+  ) %>
+</nav>

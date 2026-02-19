@@ -106,19 +106,19 @@
             </tr>
           </thead>
           <tbody class="bg-white divide-y divide-gray-200">
-            <% @recent_results.each do |result| %>
+            <% @recent_results.each_with_index do |result, index| %>
               <tr class="hover:bg-gray-50">
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                  <%= result.display_position %>
+                  <%= index + 1 %>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  <%= result.display_name %>
+                  <%= result.player&.fl_name || result.player&.name || '-' %>
                 </td>
                 <td class="px-6 py-4 text-sm text-gray-900">
-                  <%= link_to result.international_tournament.name, international_tournament_path(result.international_tournament), class: 'text-blue-600 hover:text-blue-800' %>
+                  <%= link_to result.game.tournament.title, international_tournament_path(result.game.tournament), class: 'text-blue-600 hover:text-blue-800' %>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                  <%= result.international_tournament.end_date&.strftime('%b %Y') %>
+                  <%= result.game.tournament.end_date&.strftime('%b %Y') || result.game.tournament.date&.strftime('%b %Y') %>
                 </td>
               </tr>
             <% end %>

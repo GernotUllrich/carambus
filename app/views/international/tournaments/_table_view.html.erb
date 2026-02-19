@@ -1,0 +1,87 @@
+<div class="bg-white rounded-lg shadow-md overflow-hidden">
+  <%
+    # Gruppierung nach Jahr/Monat
+    tournaments_by_month = tournaments.group_by { |t| [t.date.year, t.date.month] }
+    tournaments_by_month = tournaments_by_month.sort.reverse
+  %>
+  
+  <% tournaments_by_month.each do |(year, month), month_tournaments| %>
+    <div class="border-b border-gray-200 last:border-b-0">
+      <!-- Monats-Header -->
+      <div class="bg-gray-100 px-6 py-3 sticky top-0 z-10 border-b border-gray-300">
+        <h3 class="text-lg font-bold text-gray-900">
+          <%= Date.new(year, month, 1).strftime('%B %Y') %>
+          <span class="ml-2 text-sm font-normal text-gray-600">
+            (<%= pluralize(month_tournaments.count, 'tournament') %>)
+          </span>
+        </h3>
+      </div>
+      
+      <!-- Monats-Tabelle -->
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tournament</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Discipline</th>
+              <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Videos</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-100">
+            <% month_tournaments.sort_by(&:date).each do |tournament| %>
+              <tr class="hover:bg-gray-50 transition-colors">
+                <td class="px-4 py-3 text-sm text-gray-900 whitespace-nowrap font-medium">
+                  <%= tournament.date.strftime('%d.%m.%Y') %>
+                </td>
+                <td class="px-4 py-3">
+                  <div class="flex items-center">
+                    <%= link_to tournament.name, international_tournament_path(tournament), 
+                        class: 'text-blue-600 hover:text-blue-800 font-medium hover:underline' %>
+                    <% if tournament.official_umb? %>
+                      <span class="ml-2 inline-flex items-center px-2 py-0.5 text-xs font-semibold bg-blue-100 text-blue-800 rounded">
+                        <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                          <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                        </svg>
+                        UMB
+                      </span>
+                    <% end %>
+                  </div>
+                </td>
+                <td class="px-4 py-3 text-sm">
+                  <% if tournament.tournament_type.present? %>
+                    <span class="<%= tournament_type_badge_class(tournament.tournament_type) %> px-2 py-1 rounded-full text-xs font-semibold">
+                      <%= tournament.tournament_type.humanize %>
+                    </span>
+                  <% else %>
+                    <span class="text-gray-400">-</span>
+                  <% end %>
+                </td>
+                <td class="px-4 py-3 text-sm text-gray-700">
+                  <%= tournament.location.presence || '-' %>
+                </td>
+                <td class="px-4 py-3 text-sm text-gray-700">
+                  <%= tournament.discipline.name %>
+                </td>
+                <td class="px-4 py-3 text-sm text-center">
+                  <% if tournament.videos.count > 0 %>
+                    <span class="inline-flex items-center justify-center text-blue-600 font-semibold">
+                      <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zm12.553 1.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z"/>
+                      </svg>
+                      <%= tournament.videos.count %>
+                    </span>
+                  <% else %>
+                    <span class="text-gray-400">-</span>
+                  <% end %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  <% end %>
+</div>

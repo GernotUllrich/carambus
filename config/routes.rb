@@ -6,6 +6,18 @@ Rails.application.routes.draw do
     resources :videos, only: [:index, :show]
   end
   get 'international', to: 'international#index', as: :international
+  
+  # Admin section
+  namespace :admin do
+    resources :incomplete_records, only: [:index, :show, :update] do
+      collection do
+        post :auto_fix_all
+      end
+      member do
+        post :create_location_from_text
+      end
+    end
+  end
 
  devise_for :users,
              controllers: {

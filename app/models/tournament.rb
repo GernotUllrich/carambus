@@ -94,7 +94,9 @@ class Tournament < ApplicationRecord
   has_many :videos, as: :videoable, dependent: :nullify
 
   scope :active_manual_assignment, -> { where(state: "tournament_started").where(manual_assignment: true) }
-  scope :international, -> { where.not(international_tournament_id: nil) }
+  scope :international, -> { where(type: 'InternationalTournament') }
+  scope :upcoming, -> { where('date >= ?', Date.today).order(date: :asc) }
+  scope :in_year, ->(year) { year.present? ? where('EXTRACT(YEAR FROM date) = ?', year) : all }
 
   #   data:
   #     {:table_ids=>["2", "4"],

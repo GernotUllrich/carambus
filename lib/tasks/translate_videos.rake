@@ -21,9 +21,8 @@ namespace :videos do
       exit 1
     end
     
-    # Find videos that need translation
-    videos_to_translate = Video.where(metadata_extracted: true)
-                               .where("data->>'translated_title' IS NULL")
+    # Find videos that need translation (removed metadata_extracted requirement)
+    videos_to_translate = Video.where("data->>'translated_title' IS NULL")
                                .where.not(language: ['en', 'en-US'])
                                .order(view_count: :desc)
     
@@ -77,8 +76,7 @@ namespace :videos do
     total = Video.count
     translated = Video.where("data->>'translated_title' IS NOT NULL").count
     non_english = Video.where.not(language: ['en', 'en-US']).count
-    needs_translation = Video.where(metadata_extracted: true)
-                             .where("data->>'translated_title' IS NULL")
+    needs_translation = Video.where("data->>'translated_title' IS NULL")
                              .where.not(language: ['en', 'en-US'])
                              .count
     

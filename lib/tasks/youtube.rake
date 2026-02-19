@@ -130,7 +130,7 @@ namespace :youtube do
          end
     
     # Recent
-    recent = Video.youtube.where('created_at >= ?', 7.days.ago).count
+    recent = Video.youtube.where('videos.created_at >= ?', 7.days.ago).count
     puts "\nNew videos (last 7 days): #{recent}"
     
     # Unassigned

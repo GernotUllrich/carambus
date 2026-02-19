@@ -84,3 +84,4 @@ Thumbs.db
 /env.development
 /doc/doc-local/**/*.log
 /doc/doc-local/**/*.md
+import_all.log

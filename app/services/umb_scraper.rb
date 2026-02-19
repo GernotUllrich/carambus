@@ -10,7 +10,23 @@ class UmbScraper
   BASE_URL = 'https://files.umb-carom.org'
   FUTURE_TOURNAMENTS_URL = "#{BASE_URL}/public/FutureTournaments.aspx"
   ARCHIVE_URL = 'https://www.umb-carom.org/PG342L2/Union-Mondiale-de-Billard.aspx'
+  TOURNAMENT_DETAILS_URL = "#{BASE_URL}/public/TournametDetails.aspx"
   TIMEOUT = 30 # seconds
+  
+  # Game type mappings from PDF filenames
+  GAME_TYPE_MAPPINGS = {
+    'PPPQ' => 'Pre-Pre-Pre-Qualification',
+    'PPQ' => 'Pre-Pre-Qualification',
+    'PQ' => 'Pre-Qualification',
+    'Q' => 'Qualification',
+    'R16' => 'Round of 16',
+    'R32' => 'Round of 32',
+    'Rank_8' => 'Match for 8th Place',
+    'Quarter_Final' => 'Quarter Final',
+    'Semi_Final-Final' => 'Semi Final & Final',
+    'Semi_Final' => 'Semi Final',
+    'Final' => 'Final'
+  }.freeze
 
   attr_reader :umb_source
 
@@ -26,6 +42,56 @@ class UmbScraper
         description: 'World governing body for carom billiards'
       }
     end
+  end
+
+  # Detect discipline from tournament name
+  def detect_discipline_from_name(tournament_name)
+    return nil if tournament_name.blank?
+    
+    name_lower = tournament_name.to_s.downcase
+    
+    # 3-Cushion (Dreiband) - Most common for international tournaments
+    if name_lower.match?(/3-?cushion|three ?cushion|dreiband|drei ?band|3-?bandes|3-?banden/i)
+      # Default to "Dreiband halb" (Match Billard) for international tournaments
+      return Discipline.find_by(name: 'Dreiband halb')&.id || 12
+    end
+    
+    # 5-Pin Billards
+    if name_lower.match?(/5-?pin|five ?pin/i)
+      return Discipline.find_by(name: '5-Pin Billards')&.id || 26
+    end
+    
+    # 1-Cushion (Einband)
+    if name_lower.match?(/1-?cushion|one ?cushion|einband|een ?band/i)
+      return Discipline.find_by(name: 'Einband halb')&.id || 11
+    end
+    
+    # Straight Rail / Freie Partie
+    if name_lower.match?(/straight ?rail|libre|freie ?partie|vrije ?partij/i)
+      return Discipline.find_by(name: 'Freie Partie klein')&.id || 34
+    end
+    
+    # Cadre / Balkline
+    if name_lower.match?(/cadre|balkline|(\d+)\/(\d+)/i)
+      # Try to detect specific cadre size
+      if name_lower.match?(/47\/2/)
+        return Discipline.find_by(name: 'Cadre 47/2')&.id || 40
+      elsif name_lower.match?(/71\/2/)
+        return Discipline.find_by(name: 'Cadre 71/2')&.id || 39
+      elsif name_lower.match?(/57\/2/)
+        return Discipline.find_by(name: 'Cadre 57/2')&.id || 10
+      elsif name_lower.match?(/52\/2/)
+        return Discipline.find_by(name: 'Cadre 52/2')&.id || 36
+      elsif name_lower.match?(/35\/2/)
+        return Discipline.find_by(name: 'Cadre 35/2')&.id || 35
+      else
+        # Default cadre
+        return Discipline.find_by(name: 'Cadre 47/2')&.id || 40
+      end
+    end
+    
+    # Default: Dreiband halb (most international tournaments are 3-cushion)
+    Discipline.find_by(name: 'Dreiband halb')&.id || 12
   end
 
   # Scrape future tournaments from UMB
@@ -121,15 +187,98 @@ class UmbScraper
     total_saved
   end
 
+  # Fetch basic tournament data from details page
+  def fetch_tournament_basic_data(external_id)
+    detail_url = "#{TOURNAMENT_DETAILS_URL}?ID=#{external_id}"
+    html = fetch_url(detail_url)
+    return nil if html.blank?
+    
+    doc = Nokogiri::HTML(html)
+    
+    # Extract tournament info from table
+    data = { external_id: external_id, url: detail_url }
+    
+    doc.css('table tr').each do |row|
+      cells = row.css('td')
+      next if cells.size < 2
+      
+      label = cells[0].text.strip.downcase
+      value = cells[1].text.strip
+      
+      case label
+      when /tournament:/
+        data[:name] = value
+      when /starts on:/
+        data[:start_date] = value
+      when /ends on:/
+        data[:end_date] = value
+      when /place:/
+        data[:location] = value
+      when /organized by:/
+        data[:organizer] = value
+      end
+    end
+    
+    data[:name].present? ? data : nil
+  end
+  
+  # Create tournament from basic data
+  def save_tournament_from_details(data)
+    location, country = parse_location_country(data[:location])
+    
+    # Parse dates (format: "04-November-2024")
+    start_date = parse_single_date(data[:start_date])
+    end_date = parse_single_date(data[:end_date])
+    
+    # Use placeholder discipline if none found
+    discipline = Discipline.find_by(name: 'Dreiband') || 
+                 Discipline.find_by(name: 'Unknown Discipline')
+    
+    # Prepare tournament attributes with enhanced location/season/organizer handling
+    season = find_or_create_season_from_date(start_date)
+    umb_organizer = find_or_create_umb_organizer
+    location_record = find_or_create_location_from_text(location) if location.present?
+    
+    tournament = InternationalTournament.new(
+      title: data[:name],
+      external_id: data[:external_id].to_s,
+      international_source: @umb_source,
+      discipline: discipline,
+      date: start_date,
+      end_date: end_date,
+      location_text: location,
+      location_id: location_record&.id,
+      modus: 'international',
+      plan_or_show: 'show',
+      single_or_league: 'single',
+      state: 'finished',
+      source_url: data[:url],
+      season_id: season&.id,
+      organizer_id: umb_organizer&.id,
+      organizer_type: 'Region'
+    )
+    
+    if tournament.save(validate: false)
+      Rails.logger.info "[UmbScraper] Created tournament: #{tournament.title}"
+      tournament
+    else
+      Rails.logger.error "[UmbScraper] Failed to create tournament: #{tournament.errors.full_messages}"
+      nil
+    end
+  end
+  
   # Scrape details for a specific tournament by ID
-  def scrape_tournament_details(tournament_id_or_record)
-    tournament = tournament_id_or_record.is_a?(Tournament) ? 
+  # @param tournament_id_or_record [Integer, InternationalTournament] Tournament ID or record
+  # @param create_games [Boolean] Whether to create Game records
+  # @param parse_pdfs [Boolean] Whether to parse PDFs for match details
+  def scrape_tournament_details(tournament_id_or_record, create_games: true, parse_pdfs: false)
+    tournament = tournament_id_or_record.is_a?(InternationalTournament) ? 
                  tournament_id_or_record : 
-                 Tournament.find(tournament_id_or_record)
+                 InternationalTournament.find(tournament_id_or_record)
     
     # If tournament has an external_id, we can build the detail URL
     if tournament.external_id.present?
-      detail_url = "#{BASE_URL}/public/TournametDetails.aspx?ID=#{tournament.external_id}"
+      detail_url = "#{TOURNAMENT_DETAILS_URL}?ID=#{tournament.external_id}"
     elsif tournament.data&.dig('umb_detail_url').present?
       detail_url = tournament.data['umb_detail_url']
     else
@@ -144,47 +293,145 @@ class UmbScraper
     
     doc = Nokogiri::HTML(html)
     
-    # Find all PDF links on the detail page
-    pdf_links = {}
-    doc.css('a[href$=".pdf"]').each do |link|
-      href = link['href']
-      text = link.text.strip.downcase
+    # Parse tournament information from the details table
+    tournament_info = {}
+    doc.css('table tr').each do |row|
+      cells = row.css('td')
+      next if cells.size < 2
       
-      # Categorize PDFs by their purpose
-      case text
-      when /players.*list|seeding/i
-        pdf_links[:players_list] = make_absolute_url(href)
-      when /groups/i
-        pdf_links[:groups] = make_absolute_url(href)
-      when /timetable|schedule/i
-        pdf_links[:timetable] = make_absolute_url(href)
-      when /results.*by.*round/i
-        pdf_links[:results_by_round] = make_absolute_url(href)
-      when /final.*ranking|final.*results/i
-        pdf_links[:final_ranking] = make_absolute_url(href)
-      else
-        pdf_links[:other] ||= []
-        pdf_links[:other] << { text: link.text.strip, url: make_absolute_url(href) }
+      label = cells[0].text.strip.gsub(':', '')
+      value = cells[1].text.strip
+      
+      case label
+      when 'Tournament'
+        tournament_info[:name] = value
+      when 'Starts on'
+        tournament_info[:start_date] = value
+      when 'Ends on'
+        tournament_info[:end_date] = value
+      when 'Organized by'
+        tournament_info[:organizer] = value
+      when 'Place'
+        tournament_info[:location] = value
+      when 'Material'
+        tournament_info[:material] = value
+      when 'Delegate UMB'
+        tournament_info[:delegate] = value.gsub(/\[.*\]/, '').strip
       end
     end
     
-    # Store PDF links in tournament data
+    # Update location_text if we found it and tournament doesn't have one
+    if tournament_info[:location].present? && tournament.location_text.blank?
+      tournament.location_text = tournament_info[:location]
+      Rails.logger.info "[UmbScraper] Found location: #{tournament_info[:location]}"
+    end
+    
+    # Find all PDF links on the detail page
+    pdf_links = {}
+    game_types = []
+    ranking_files = []
+    
+    doc.css('a[href*=".pdf"]').each do |link|
+      href = link['href']
+      text = link.text.strip
+      absolute_url = make_absolute_url(href)
+      
+      # Store all PDFs
+      pdf_links[text] = absolute_url
+      
+      # Categorize PDFs by their purpose (old categorization for backward compatibility)
+      text_lower = text.downcase
+      case text_lower
+      when /players.*list|seeding/i
+        pdf_links[:players_list] ||= absolute_url
+      when /^b\.\s*groups/i
+        pdf_links[:groups] ||= absolute_url
+      when /timetable|schedule/i
+        pdf_links[:timetable] ||= absolute_url
+      when /results.*by.*round/i
+        pdf_links[:results_by_round] ||= absolute_url
+      when /final.*ranking|final.*results/i
+        pdf_links[:final_ranking] ||= absolute_url
+      end
+      
+      # Extract game types from filenames
+      GAME_TYPE_MAPPINGS.each do |key, description|
+        if text.match?(/GroupResults_#{key}\.pdf/i) || 
+           text.match?(/MTResults_#{key}\.pdf/i)
+          
+          game_types << {
+            key: key,
+            name: description,
+            pdf_url: absolute_url,
+            pdf_filename: text,
+            category: text.include?('GroupResults') ? 'group' : 'main_tournament'
+          }
+        end
+      end
+      
+      # Extract ranking files
+      if text.match?(/Ranking/i)
+        phase = if text.match?(/FinalRanking/i)
+                  'final'
+                elsif (match = text.match(/Groups?_Ranking_(\w+)\.pdf/i))
+                  match[1].downcase
+                else
+                  'unknown'
+                end
+        
+        ranking_files << {
+          phase: phase,
+          pdf_url: absolute_url,
+          pdf_filename: text
+        }
+      end
+    end
+    
+    # Store enhanced data in tournament
     tournament.data ||= {}
     tournament.data['pdf_links'] = pdf_links.compact
+    tournament.data['game_types'] = game_types
+    tournament.data['ranking_files'] = ranking_files
     tournament.data['detail_scraped_at'] = Time.current.iso8601
     
-    if tournament.save
-      Rails.logger.info "[UmbScraper] Saved #{pdf_links.size} PDF links for #{tournament.name}"
+    # Remember original organizer to avoid overwriting it
+    original_organizer_id = tournament.organizer_id
+    original_organizer_type = tournament.organizer_type
+    
+    # 1. LOCATION: Create Location from location_text if needed
+    if tournament.location_id.blank? && tournament.location_text.present?
+      location = find_or_create_location_from_text(tournament.location_text)
+      tournament.location_id = location&.id if location
+    end
+    
+    # 2. SEASON: Create Season from date if needed (billiard season starts July 1st)
+    if tournament.season_id.blank? && tournament.date.present?
+      season = find_or_create_season_from_date(tournament.date)
+      tournament.season_id = season&.id if season
+    end
+    
+    # 3. ORGANIZER: Set UMB as organizer for all UMB tournaments (only if not set)
+    if original_organizer_id.blank?
+      umb_region = find_or_create_umb_organizer
+      tournament.organizer_id = umb_region&.id
+      tournament.organizer_type = 'Region'
+    else
+      # Restore original organizer to prevent overwriting
+      tournament.organizer_id = original_organizer_id
+      tournament.organizer_type = original_organizer_type
+    end
+    
+    if tournament.save(validate: false)
+      Rails.logger.info "[UmbScraper] Saved #{pdf_links.size} PDF links, #{game_types.size} game types for #{tournament.name}"
       
-      # Automatically scrape players list if available
-      if pdf_links[:players_list].present?
-        scrape_players_from_pdf(tournament, pdf_links[:players_list])
+      # Create games if requested (InternationalTournament IS a Tournament via STI)
+      if create_games && game_types.any?
+        create_games_for_tournament(tournament, game_types, parse_pdfs: parse_pdfs)
       end
       
-      # Automatically scrape final ranking if available
-      if pdf_links[:final_ranking].present?
-        scrape_results_from_pdf(tournament, pdf_links[:final_ranking])
-      end
+      # Note: Players list and final ranking use InternationalParticipation
+      # which should be created via separate process
+      # Game participations are created directly from GroupResults PDFs above
       
       true
     else
@@ -204,19 +451,20 @@ class UmbScraper
     uri = URI(url)
     redirects = 0
     
-    loop do
-      http = Net::HTTP.new(uri.host, uri.port)
-      http.use_ssl = (uri.scheme == 'https')
-      http.verify_mode = OpenSSL::SSL::VERIFY_NONE if Rails.env.development?
-      http.open_timeout = TIMEOUT
-      http.read_timeout = TIMEOUT
-      
-      request = Net::HTTP::Get.new(uri)
-      request['User-Agent'] = 'Carambus International Bot/1.0'
-      request['Accept'] = 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
-      request['Accept-Language'] = 'en-US,en;q=0.5'
-      
-      response = http.request(request)
+    Timeout.timeout(TIMEOUT + 5) do  # Overall timeout slightly longer than individual timeouts
+      loop do
+        http = Net::HTTP.new(uri.host, uri.port)
+        http.use_ssl = (uri.scheme == 'https')
+        http.verify_mode = OpenSSL::SSL::VERIFY_NONE if Rails.env.development?
+        http.open_timeout = TIMEOUT
+        http.read_timeout = TIMEOUT
+        
+        request = Net::HTTP::Get.new(uri)
+        request['User-Agent'] = 'Carambus International Bot/1.0'
+        request['Accept'] = 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+        request['Accept-Language'] = 'en-US,en;q=0.5'
+        
+        response = http.request(request)
       
       case response
       when Net::HTTPSuccess
@@ -236,7 +484,11 @@ class UmbScraper
         Rails.logger.error "[UmbScraper] HTTP #{response.code} for #{url}"
         return nil
       end
+      end
     end
+  rescue Timeout::Error
+    Rails.logger.error "[UmbScraper] Timeout fetching #{url}"
+    nil
   rescue StandardError => e
     Rails.logger.error "[UmbScraper] Failed to fetch #{url}: #{e.message}"
     nil
@@ -469,6 +721,122 @@ class UmbScraper
     text.strip
   end
   
+  # Parse location text to extract city and country code
+  # Returns: { city: "Nice", country_code: "FR" }
+  def parse_location_components(location_text)
+    return nil if location_text.blank?
+    
+    # Match patterns like "NICE (France)" or "Nice (FR)"
+    if (match = location_text.match(/([A-Za-z\s\-]+)\s*\(([A-Za-z\s]{2,})\)/))
+      city = match[1].strip.titleize
+      country = match[2].strip
+      
+      # Try to convert country name to code
+      country_code = country_name_to_code(country)
+      
+      return { city: city, country_code: country_code, full_text: location_text }
+    end
+    
+    # Fallback: just return the text as city
+    { city: location_text, country_code: nil, full_text: location_text }
+  end
+  
+  # Convert country name to ISO 2-letter code
+  def country_name_to_code(country_name)
+    mapping = {
+      'France' => 'FR', 'FR' => 'FR',
+      'Germany' => 'DE', 'DE' => 'DE', 'Deutschland' => 'DE',
+      'Belgium' => 'BE', 'BE' => 'BE', 'Belgique' => 'BE', 'België' => 'BE',
+      'Netherlands' => 'NL', 'NL' => 'NL', 'Nederland' => 'NL',
+      'Spain' => 'ES', 'ES' => 'ES', 'España' => 'ES',
+      'Italy' => 'IT', 'IT' => 'IT', 'Italia' => 'IT',
+      'Turkey' => 'TR', 'TR' => 'TR', 'Türkiye' => 'TR',
+      'Austria' => 'AT', 'AT' => 'AT', 'Österreich' => 'AT',
+      'Switzerland' => 'CH', 'CH' => 'CH', 'Schweiz' => 'CH',
+      'Egypt' => 'EG', 'EG' => 'EG',
+      'Korea' => 'KR', 'KR' => 'KR', 'South Korea' => 'KR',
+      'Vietnam' => 'VN', 'VN' => 'VN',
+      'USA' => 'US', 'US' => 'US', 'United States' => 'US',
+      'Luxembourg' => 'LU', 'LU' => 'LU',
+      'Portugal' => 'PT', 'PT' => 'PT',
+      'Greece' => 'GR', 'GR' => 'GR',
+      'Poland' => 'PL', 'PL' => 'PL',
+      'Czech Republic' => 'CZ', 'CZ' => 'CZ',
+      'Slovenia' => 'SI', 'SI' => 'SI',
+      'Denmark' => 'DK', 'DK' => 'DK'
+    }
+    
+    mapping[country_name] || country_name[0, 2].upcase rescue 'XX'
+  end
+  
+  # Find or create a Location from location_text
+  def find_or_create_location_from_text(location_text)
+    return nil if location_text.blank?
+    
+    # Parse components first
+    components = parse_location_components(location_text)
+    return nil unless components
+    
+    # Check if location already exists (by city name)
+    existing = Location.find_by(name: components[:city])
+    return existing if existing
+    
+    # Create new location
+    Location.create!(
+      name: components[:city],
+      address: components[:full_text],
+      data: {
+        country_code: components[:country_code],
+        created_from: 'umb_scraper',
+        created_at: Time.current.iso8601
+      }
+    )
+  rescue ActiveRecord::RecordInvalid => e
+    Rails.logger.warn "[UmbScraper] Could not create location '#{location_text}': #{e.message}"
+    nil
+  end
+  
+  # Find or create Season from date (billiard season starts July 1st)
+  def find_or_create_season_from_date(date)
+    return nil if date.blank?
+    
+    # Try existing season logic first
+    season = Season.season_from_date(date)
+    return season if season
+    
+    # Create new season if it doesn't exist
+    # Billiard season runs from July 1st to June 30th
+    year = date.year
+    season_start_year = date.month >= 7 ? year : year - 1
+    season_end_year = season_start_year + 1
+    season_name = "#{season_start_year}/#{season_end_year}"
+    
+    Season.find_or_create_by!(name: season_name) do |s|
+      s.ba_id = nil
+      s.data = "created_from: umb_scraper, start: #{Date.new(season_start_year, 7, 1)}, end: #{Date.new(season_end_year, 6, 30)}"
+    end
+  rescue ActiveRecord::RecordInvalid => e
+    Rails.logger.warn "[UmbScraper] Could not create season for date #{date}: #{e.message}"
+    Season.find_by(name: 'Unknown Season')
+  end
+  
+  # Find or create UMB organizer region
+  def find_or_create_umb_organizer
+    Region.find_or_create_by!(shortname: 'UMB') do |r|
+      r.name = 'Union Mondiale de Billard'
+      r.email = 'info@umb-carom.org'
+      r.website = 'https://www.umb-carom.org'
+      r.scrape_data = {
+        'created_from' => 'umb_scraper',
+        'description' => 'World governing body for carom billiards',
+        'created_at' => Time.current.iso8601
+      }
+    end
+  rescue ActiveRecord::RecordInvalid => e
+    Rails.logger.warn "[UmbScraper] Could not create UMB region: #{e.message}"
+    Region.find_by(shortname: 'UNKNOWN')
+  end
+  
   # Enhance date string with month/year context
   def enhance_date_with_context(date_str, month, year)
     return date_str if date_str.blank? || month.nil? || year.nil?
@@ -554,12 +922,21 @@ class UmbScraper
         )
         
         if tournament.new_record?
+          # Prepare enhanced attributes for new tournament
+          season = find_or_create_season_from_date(dates[:start_date])
+          umb_organizer = find_or_create_umb_organizer
+          location_record = find_or_create_location_from_text(data[:location]) if data[:location].present?
+          
           tournament.assign_attributes(
             end_date: dates[:end_date],
             location_text: data[:location],
+            location_id: location_record&.id,
             discipline: discipline,
             international_source: @umb_source,
             source_url: data[:source_url],
+            season_id: season&.id,
+            organizer_id: umb_organizer&.id,
+            organizer_type: 'Region',
             modus: 'international',
             single_or_league: 'single',
             plan_or_show: 'show',
@@ -593,13 +970,12 @@ class UmbScraper
             end_date: dates[:end_date],
             location_text: data[:location],
             source_url: data[:source_url],
-            data: tournament_data.to_json,
-            data: tournament.data.merge(
+            data: tournament_data.merge(
               umb_official: true,
               umb_type: data[:tournament_type_hint],
               umb_organization: data[:organization],
               last_updated: Time.current.iso8601
-            )
+            ).to_json
           )
           Rails.logger.info "[UmbScraper] Updated tournament: #{data[:name]}"
         end
@@ -640,6 +1016,18 @@ class UmbScraper
   rescue StandardError => e
     Rails.logger.warn "[UmbScraper] Failed to parse date: #{date_str} - #{e.message}"
     { start_date: nil, end_date: nil }
+  end
+  
+  # Parse single date like "04-November-2024"
+  def parse_single_date(date_str)
+    return nil if date_str.blank?
+    
+    # Try standard date parsing
+    begin
+      Date.parse(date_str)
+    rescue
+      nil
+    end
   end
 
   # Parse "18-21 Dec 2025" or "December 18-21, 2025" or just "18 - 24"
@@ -753,29 +1141,73 @@ class UmbScraper
     
     name_lower = name.downcase
     
-    # Check for discipline keywords in name
-    if name_lower.include?('3-cushion') || name_lower.include?('3 cushion')
-      # UMB 3-Cushion tournaments are always on large tables = "Dreiband groß"
+    # Check for Cadre variants FIRST (more specific)
+    if name_lower.match?(/cadre|balkline/)
+      # Try to detect specific cadre size from name
+      if name_lower.match?(/47[\s\/\-]*2/)
+        return Discipline.find_by('name ILIKE ?', '%cadre%47%2%') ||
+               Discipline.find_by('name ILIKE ?', '%47%2%')
+      elsif name_lower.match?(/71[\s\/\-]*2/)
+        return Discipline.find_by('name ILIKE ?', '%cadre%71%2%') ||
+               Discipline.find_by('name ILIKE ?', '%71%2%')
+      elsif name_lower.match?(/57[\s\/\-]*2/)
+        return Discipline.find_by('name ILIKE ?', '%cadre%57%2%') ||
+               Discipline.find_by('name ILIKE ?', '%57%2%')
+      elsif name_lower.match?(/52[\s\/\-]*2/)
+        return Discipline.find_by('name ILIKE ?', '%cadre%52%2%') ||
+               Discipline.find_by('name ILIKE ?', '%52%2%')
+      elsif name_lower.match?(/35[\s\/\-]*2/)
+        return Discipline.find_by('name ILIKE ?', '%cadre%35%2%') ||
+               Discipline.find_by('name ILIKE ?', '%35%2%')
+      else
+        # Generic cadre - default to 47/2
+        return Discipline.find_by('name ILIKE ?', '%cadre%47%2%') ||
+               Discipline.find_by('name ILIKE ?', '%cadre%')
+      end
+    end
+    
+    # Check for 3-Cushion (case insensitive)
+    if name_lower.match?(/3[\s\-]*cushion|three[\s\-]*cushion|dreiband|drei[\s\-]*band|3[\s\-]*bandes|3[\s\-]*banden/)
+      # International UMB 3-Cushion tournaments are ALWAYS on full-size tables = "Dreiband groß"
+      # Only German national leagues use match tables ("Dreiband halb")
       return Discipline.find_by('name ILIKE ?', '%dreiband%groß%') ||
              Discipline.find_by('name ILIKE ?', '%dreiband%gross%') ||
              Discipline.find_by('name ILIKE ?', '%three%cushion%') ||
              Discipline.find_by('name ILIKE ?', '%3%cushion%') ||
+             Discipline.find_by('name ILIKE ?', '%dreiband%halb%') ||  # Fallback
              Discipline.find_by('name ILIKE ?', 'Karambol')  # Ultimate fallback
-    elsif name_lower.include?('5-pins') || name_lower.include?('5 pins')
-      return Discipline.find_by('name ILIKE ?', '%fünf%') || 
-             Discipline.find_by('name ILIKE ?', '%five%') ||
-             Discipline.find_by('name ILIKE ?', '%pin%')
-    elsif name_lower.include?('artistique') || name_lower.include?('artistic')
-      return Discipline.find_by('name ILIKE ?', '%artist%')
-    elsif name_lower.include?('libre') || name_lower.include?('free')
-      return Discipline.find_by('name ILIKE ?', '%frei%') || 
-             Discipline.find_by('name ILIKE ?', '%libre%')
-    elsif name_lower.include?('cadre')
-      return Discipline.find_by('name ILIKE ?', '%cadre%')
     end
     
-    # Default to generic Karambol (should always exist)
-    Discipline.find_by('name ILIKE ?', '%karambol%') || Discipline.first
+    # 5-Pin Billards
+    if name_lower.match?(/5[\s\-]*pin/)
+      return Discipline.find_by('name ILIKE ?', '%5%pin%') ||
+             Discipline.find_by('name ILIKE ?', '%fünf%') || 
+             Discipline.find_by('name ILIKE ?', '%five%')
+    end
+    
+    # 1-Cushion (Einband)
+    if name_lower.match?(/1[\s\-]*cushion|one[\s\-]*cushion|einband/)
+      return Discipline.find_by('name ILIKE ?', '%einband%') ||
+             Discipline.find_by('name ILIKE ?', '%1%cushion%')
+    end
+    
+    # Artistique / Artistic
+    if name_lower.match?(/artistique|artistic|künstlerisch/)
+      return Discipline.find_by('name ILIKE ?', '%artist%')
+    end
+    
+    # Libre / Free Game / Freie Partie
+    if name_lower.match?(/libre|straight[\s\-]*rail|freie[\s\-]*partie/)
+      return Discipline.find_by('name ILIKE ?', '%frei%parti%') || 
+             Discipline.find_by('name ILIKE ?', '%libre%')
+    end
+    
+    # Default to Dreiband groß (3-Cushion on full-size table is most common for UMB tournaments)
+    # Use placeholder if nothing matches
+    Discipline.find_by('name ILIKE ?', '%dreiband%groß%') ||
+      Discipline.find_by('name ILIKE ?', '%dreiband%gross%') ||
+      Discipline.find_by('name ILIKE ?', '%karambol%') || 
+      Discipline.find_by(name: 'Unknown Discipline')
   end
 
   # Determine tournament type from name and UMB type hint
@@ -882,24 +1314,47 @@ class UmbScraper
     end
     
     # Build attributes, discipline_id is required so we use a default if not found
-    discipline_id = tournament_data[:discipline]&.id || Discipline.first&.id
+    # Try to detect discipline from tournament name first
+    # NEVER use Discipline.first - it returns a random discipline!
+    discipline_id = tournament_data[:discipline]&.id || 
+                    detect_discipline_from_name(tournament_data[:name]) ||
+                    Discipline.find_by(name: 'Unknown Discipline')&.id
+    
+    # Get season and organizer for required fields - use placeholders if not available
+    # NEVER use Season.first or Region.first - they return random records!
+    season = tournament_data[:start_date] ? Season.season_from_date(tournament_data[:start_date]) : nil
+    # Enhanced tournament creation with auto-created Location, Season, and UMB Organizer
+    season = find_or_create_season_from_date(tournament_data[:start_date]) if tournament_data[:start_date]
+    season ||= Season.find_by(name: 'Unknown Season')
+    
+    umb_organizer = find_or_create_umb_organizer
+    location_record = find_or_create_location_from_text(tournament_data[:location]) if tournament_data[:location].present?
     
     tournament = InternationalTournament.new(
       international_source: @umb_source,
-      name: tournament_data[:name],
-      start_date: tournament_data[:start_date],
+      title: tournament_data[:name],
+      date: tournament_data[:start_date],
       end_date: tournament_data[:end_date],
-      location: tournament_data[:location],
-      country: tournament_data[:country],
-      organizer: tournament_data[:organizer],
+      location_text: tournament_data[:location],
+      location_id: location_record&.id,
       discipline_id: discipline_id,
-      tournament_type: tournament_data[:tournament_type],
       external_id: tournament_data[:external_id],
       source_url: tournament_data[:source_url],
-      data: tournament_data[:data]
+      season_id: season&.id,
+      organizer_id: umb_organizer&.id,
+      organizer_type: 'Region',
+      modus: 'international',
+      plan_or_show: 'show',
+      single_or_league: 'single',
+      state: tournament_data[:start_date] && tournament_data[:start_date] < Date.today ? 'finished' : 'planned',
+      data: tournament_data[:data].merge(
+        country: tournament_data[:country],
+        organizer_text: tournament_data[:organizer],
+        tournament_type: tournament_data[:tournament_type]
+      ).to_json
     )
     
-    if tournament.save
+    if tournament.save(validate: false)
       true
     else
       Rails.logger.error "[UmbScraper] Failed to save tournament: #{tournament.errors.full_messages}"
@@ -1170,15 +1625,19 @@ class UmbScraper
       
       next unless player
       
-      participation = InternationalParticipation.find_or_initialize_by(
+      # Use Seeding instead of InternationalParticipation
+      seeding = Seeding.find_or_initialize_by(
         player: player,
-        international_tournament: tournament
+        tournament: tournament
       )
       
-      participation.source = InternationalParticipation::RESULT_LIST
-      participation.confirmed = true
+      # Store metadata in data field
+      seeding.data ||= {}
+      seeding.data['source'] = 'result_list'
+      seeding.data['country'] = data[:country]
+      seeding.state = 'confirmed'
       
-      if participation.save
+      if seeding.save
         saved_count += 1
         Rails.logger.info "[UmbScraper] Added participation: #{player.fl_name} (#{data[:country]})"
       else
@@ -1281,6 +1740,322 @@ class UmbScraper
   rescue StandardError => e
     Rails.logger.error "[UmbScraper] Error finding/creating player #{firstname} #{lastname}: #{e.message}"
     nil
+  end
+  
+  # Create game records for each game type found
+  # Note: InternationalTournament is a Tournament (STI), so it has games directly
+  # Note: tournament_type is used for polymorphic association, not for game type!
+  def create_games_for_tournament(tournament, game_types, parse_pdfs: false)
+    Rails.logger.info "[UmbScraper]   Creating games for tournament: #{tournament.title}"
+    
+    created_count = 0
+    updated_count = 0
+    
+    game_types.each do |game_type|
+      # Create or update game record
+      game = tournament.games.find_or_initialize_by(
+        gname: game_type[:name]
+      )
+      
+      is_new = game.new_record?
+      
+      # Store all game type info in data (tournament_type is polymorphic column!)
+      game_data = game.data || {}
+      game_data['umb_game_type'] = game_type[:key]
+      game_data['umb_category'] = game_type[:category] # 'group' or 'main_tournament'
+      game_data['umb_pdf_url'] = game_type[:pdf_url]
+      game_data['umb_pdf_filename'] = game_type[:pdf_filename]
+      game_data['umb_scraped_at'] = Time.current.iso8601
+      game.data = game_data # Keep as Hash, not JSON string
+      
+      if game.save(validate: false)
+        if is_new
+          created_count += 1
+          Rails.logger.info "[UmbScraper]     ✓ Created game: #{game_type[:name]}"
+        else
+          updated_count += 1
+          Rails.logger.debug "[UmbScraper]     ✓ Updated game: #{game_type[:name]}"
+        end
+        
+        # Parse PDF for game details if requested
+        if parse_pdfs && game_type[:pdf_url].present?
+          begin
+            Timeout.timeout(60) do  # 60 second timeout per PDF
+              if game_type[:pdf_filename].match?(/GroupResults/i)
+                parse_group_results_pdf(game, game_type[:pdf_url])
+              elsif game_type[:pdf_filename].match?(/MTResults/i)
+                parse_knockout_results_pdf(game, game_type[:pdf_url])
+              end
+            end
+          rescue Timeout::Error
+            Rails.logger.error "[UmbScraper]     ✗ PDF parsing timeout for #{game_type[:pdf_filename]}"
+          rescue => e
+            Rails.logger.error "[UmbScraper]     ✗ PDF parsing error: #{e.message}"
+          end
+        end
+      else
+        Rails.logger.error "[UmbScraper]     ✗ Failed to save game: #{game.errors.full_messages}"
+      end
+    end
+    
+    Rails.logger.info "[UmbScraper]   Games: #{created_count} created, #{updated_count} updated"
+    created_count + updated_count
+  end
+  
+  # Parse GroupResults PDF to extract match data and create individual Games (one per match)
+  # Each match has exactly 2 players
+  def parse_group_results_pdf(phase_game, pdf_url)
+    Rails.logger.info "[UmbScraper]     Parsing PDF for phase: #{phase_game.gname}"
+    
+    unless defined?(PDF::Reader)
+      Rails.logger.warn "[UmbScraper]     PDF parsing requires 'pdf-reader' gem"
+      return 0
+    end
+    
+    pdf_content = download_pdf(pdf_url)
+    return 0 unless pdf_content
+    
+    begin
+      require 'stringio'
+      reader = PDF::Reader.new(StringIO.new(pdf_content))
+      text = reader.pages.map(&:text).join("\n")
+      
+      player_lines = []
+      current_group = nil
+      
+      # Parse text line by line to extract player performance data
+      text.split("\n").each do |line|
+        next if line.blank?
+        
+        # Detect group header
+        if line.match?(/^\s*([A-Z])\s{3,}/) && line.match?(/\d+\s+\d+\s+[\d.]+/)
+          group_match = line.match(/^\s*([A-Z])\s+/)
+          current_group = group_match[1] if group_match
+        elsif line.match?(/^\s*([A-Z])\s{3,}/) && !line.match?(/\d+/)
+          current_group = line.match(/^\s*([A-Z])/)[1]
+          next
+        end
+        
+        # Parse player line
+        if line.match?(/([A-Z][A-Za-z\s]+?)\s{3,}(\d+)\s+(\d+)\s+([\d.]+)\s+(\d+)\s+(\d+)\s+(\d+)\s*$/)
+          match_data = line.match(/([A-Z][A-Za-z\s]+?)\s{3,}(\d+)\s+(\d+)\s+([\d.]+)\s+(\d+)\s+(\d+)\s+(\d+)\s*$/)
+          
+          player_name = match_data[1].strip.sub(/^[A-Z]\s+/, '')
+          
+          # Skip summary lines
+          next if player_name.match?(/Players|^(TR|ES|KR|DK|JP|VN|SE)\s/)
+          
+          player_lines << {
+            group: current_group,
+            player_name: player_name,
+            points: match_data[2].to_i,
+            innings: match_data[3].to_i,
+            average: match_data[4].to_f,
+            match_points: match_data[5].to_i,
+            high_run_1: match_data[6].to_i,
+            high_run_2: match_data[7].to_i
+          }
+        end
+      end
+      
+      # Group player lines into matches (pairs of consecutive players)
+      matches = []
+      player_lines.each_slice(2) do |player_pair|
+        if player_pair.size == 2
+          matches << player_pair
+        end
+      end
+      
+      Rails.logger.info "[UmbScraper]     Found #{matches.size} matches (#{player_lines.size} player performances)"
+      
+      # Create individual games for each match (with round_name for display)
+      games_created = create_games_from_matches(
+        phase_game.tournament, 
+        phase_game, 
+        matches,
+        round_name: nil  # Group phase doesn't have round names
+      )
+      
+      games_created
+    rescue StandardError => e
+      Rails.logger.error "[UmbScraper]     Error parsing PDF: #{e.message}"
+      Rails.logger.error e.backtrace.first(5).join("\n")
+      0
+    end
+  end
+  
+  # Create individual Game records for each match (2 players per game)
+  def create_games_from_matches(tournament, phase_game, matches, round_name: nil)
+    return 0 if matches.empty?
+    
+    umb_region = Region.find_by(shortname: 'UMB')
+    games_created = 0
+    participations_created = 0
+    
+    matches.each_with_index do |player_pair, match_index|
+      player1_data = player_pair[0]
+      player2_data = player_pair[1]
+      
+      # Create game name based on context
+      if player1_data[:group].present?
+        # Group phase: "Phase - Group X - Match Y"
+        game_name = "#{phase_game.gname} - Group #{player1_data[:group]} - Match #{match_index + 1}"
+        group_no = player1_data[:group]
+      else
+        # Knockout phase: "Phase - Round - Match Y" or just "Phase - Match Y"
+        if round_name.present?
+          game_name = "#{phase_game.gname} - #{round_name} - Match #{match_index + 1}"
+        else
+          game_name = "#{phase_game.gname} - Match #{match_index + 1}"
+        end
+        group_no = nil
+      end
+      
+      # Create individual game for this match
+      match_game = tournament.games.find_or_initialize_by(
+        gname: game_name,
+        group_no: group_no
+      )
+      
+      match_game.assign_attributes(
+        data: {
+          phase: phase_game.gname,
+          phase_game_id: phase_game.id,
+          round_name: round_name,
+          umb_match_number: match_index + 1,
+          umb_scraped_from: player1_data[:group].present? ? 'group_results_pdf' : 'knockout_results_pdf'
+        }
+      )
+      
+      if match_game.save(validate: false)
+        games_created += 1 if match_game.previously_new_record?
+        
+        # Create participations for both players
+        [player1_data, player2_data].each do |player_data|
+          player = find_or_create_international_player(
+            firstname: player_data[:player_name].split(' ').first,
+            lastname: player_data[:player_name].split(' ')[1..-1].join(' '),
+            nationality: nil,
+            region: umb_region
+          )
+          
+          next unless player
+          
+          participation = match_game.game_participations.find_or_initialize_by(
+            player: player
+          )
+          
+          participation.assign_attributes(
+            result: player_data[:points],
+            innings: player_data[:innings],
+            gd: player_data[:average],
+            hs: [player_data[:high_run_1], player_data[:high_run_2]].max,
+            points: player_data[:match_points],
+            data: {
+              group: player_data[:group],
+              round_name: round_name,
+              high_runs: [player_data[:high_run_1], player_data[:high_run_2]],
+              umb_scraped_from: player_data[:group].present? ? 'group_results_pdf' : 'knockout_results_pdf'
+            }
+          )
+          
+          if participation.save(validate: false)
+            participations_created += 1 if participation.previously_new_record?
+          end
+        end
+      end
+    end
+    
+    Rails.logger.info "[UmbScraper]     Created #{games_created} individual games with #{participations_created} participations"
+    games_created
+  end
+  
+  # Parse MTResults (Knockout/Main Tournament) PDF to extract match data
+  # Format is different from group results: typically shows bracket-style matches
+  def parse_knockout_results_pdf(phase_game, pdf_url)
+    Rails.logger.info "[UmbScraper]     Parsing Knockout PDF for phase: #{phase_game.gname}"
+    
+    unless defined?(PDF::Reader)
+      Rails.logger.warn "[UmbScraper]     PDF parsing requires 'pdf-reader' gem"
+      return 0
+    end
+    
+    pdf_content = download_pdf(pdf_url)
+    return 0 unless pdf_content
+    
+    begin
+      require 'stringio'
+      reader = PDF::Reader.new(StringIO.new(pdf_content))
+      text = reader.pages.map(&:text).join("\n")
+      
+      player_lines = []
+      current_round = nil
+      
+      # Parse text line by line to extract knockout match data
+      # Knockout format typically shows pairs of players with their match results
+      text.split("\n").each do |line|
+        next if line.blank?
+        
+        # Detect round/section headers (e.g., "Quarter Final", "Semi Final", "Final")
+        if line.match?(/^\s*(Quarter[\s\-]*Final|Semi[\s\-]*Final|Final|Round\s+of\s+\d+)/i)
+          round_match = line.match(/^\s*(Quarter[\s\-]*Final|Semi[\s\-]*Final|Final|Round\s+of\s+\d+)/i)
+          current_round = round_match[1].gsub(/[\s\-]+/, ' ').strip if round_match
+          next
+        end
+        
+        # Parse player line in knockout format
+        # Format: Player Name    Points  Innings  Average  MP  HighRun1  HighRun2
+        # Similar to group format but without group letter
+        if line.match?(/([A-Z][A-Za-z\s]+?)\s{3,}(\d+)\s+(\d+)\s+([\d.]+)(?:\s+(\d+)\s+(\d+)\s+(\d+))?\s*$/)
+          match_data = line.match(/([A-Z][A-Za-z\s]+?)\s{3,}(\d+)\s+(\d+)\s+([\d.]+)(?:\s+(\d+)\s+(\d+)\s+(\d+))?\s*$/)
+          
+          player_name = match_data[1].strip
+          
+          # Skip summary/header lines
+          next if player_name.match?(/Players|Match|Total|^(TR|ES|KR|DK|JP|VN|SE|NL|BE|FR|DE)\s/)
+          next if player_name.length < 3
+          
+          player_lines << {
+            round: current_round,
+            player_name: player_name,
+            points: match_data[2].to_i,
+            innings: match_data[3].to_i,
+            average: match_data[4].to_f,
+            match_points: match_data[5]&.to_i || (match_data[2].to_i > 0 ? 2 : 0), # Winner gets 2 points
+            high_run_1: match_data[6]&.to_i || 0,
+            high_run_2: match_data[7]&.to_i || 0
+          }
+        end
+      end
+      
+      # Group player lines into matches (pairs of consecutive players)
+      matches = []
+      current_round_name = nil
+      
+      player_lines.each_slice(2) do |player_pair|
+        if player_pair.size == 2
+          # Use the round name from the first player
+          current_round_name = player_pair[0][:round] if player_pair[0][:round].present?
+          matches << player_pair
+        end
+      end
+      
+      Rails.logger.info "[UmbScraper]     Found #{matches.size} knockout matches (#{player_lines.size} player performances)"
+      
+      # Create individual games for each knockout match
+      games_created = create_games_from_matches(
+        phase_game.tournament, 
+        phase_game, 
+        matches,
+        round_name: current_round_name
+      )
+      
+      games_created
+    rescue StandardError => e
+      Rails.logger.error "[UmbScraper]     Error parsing Knockout PDF: #{e.message}"
+      Rails.logger.error e.backtrace.first(5).join("\n")
+      0
+    end
   end
   
 end

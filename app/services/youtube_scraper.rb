@@ -276,7 +276,8 @@ class YoutubeScraper
           # Update statistics
           existing.update(
             view_count: video.statistics&.view_count,
-            like_count: video.statistics&.like_count
+            like_count: video.statistics&.like_count,
+            metadata_extracted: true
           )
         else
           # Create new video (polymorphic - unassigned initially)
@@ -297,7 +298,8 @@ class YoutubeScraper
             videoable_type: nil,
             videoable_id: nil,
             # Metadata
-            data: { year: video.snippet.published_at&.year }
+            data: { year: video.snippet.published_at&.year },
+            metadata_extracted: true
           )
           
           # Auto-assign discipline if possible

@@ -24,9 +24,10 @@ class Player < ApplicationRecord
   has_one :admin_user, class_name: "User", foreign_key: "player_id", dependent: :nullify
   
   # International associations
-  has_many :international_participations, dependent: :destroy
-  has_many :international_tournaments, through: :international_participations
-  has_many :international_results, dependent: :nullify
+  # Note: International tournament participation is tracked via Seeding (not a separate model)
+  # Tournament results are tracked via Games and GameParticipations
+  has_many :international_tournaments, through: :seedings, source: :tournament, 
+           class_name: 'InternationalTournament'
   
   # Polymorphe Video Association
   has_many :videos, as: :videoable, dependent: :nullify

@@ -3,6 +3,8 @@
 # InternationalTournament is a STI subclass of Tournament
 # for international carom billiards tournaments (World Cups, World Championships, etc.)
 class InternationalTournament < Tournament
+  include PlaceholderAware
+  
   # International tournaments use international_source_id instead of region_id
   belongs_to :international_source, optional: true
   
@@ -16,16 +18,37 @@ class InternationalTournament < Tournament
   
   # Scopes
   scope :from_umb, -> { joins(:international_source).where(international_sources: { source_type: 'umb' }) }
-  scope :world_cups, -> { where("data->>'tournament_type' = ?", 'world_cup') }
-  scope :world_championships, -> { where("data->>'tournament_type' = ?", 'world_championship') }
   scope :upcoming, -> { where('date >= ?', Date.today).order(date: :asc) }
-  scope :by_type, ->(type) { where("data->>'tournament_type' = ?", type) if type.present? }
-  scope :by_discipline, ->(discipline_id) { where(discipline_id: discipline_id) if discipline_id.present? }
-  scope :in_year, ->(year) { where('EXTRACT(YEAR FROM date) = ?', year) if year.present? }
-  scope :official_umb, -> { where("data->>'umb_official' = ?", 'true') }
+  
+  # Class methods for filtering (data is serialized TEXT, not JSONB)
+  def self.by_type(type)
+    return all if type.blank?
+    
+    # Filter in Ruby since data is serialized
+    all.select do |tournament|
+      tournament.tournament_type == type
+    end
+  end
+  
+  def self.official_umb_only
+    # Filter in Ruby since data is serialized
+    all.select do |tournament|
+      tournament.official_umb?
+    end
+  end
   
   # Tournament types for filters
   TOURNAMENT_TYPES = %w[world_cup world_championship european_championship masters grand_prix].freeze
+  
+  # Define placeholder fields (inherited from Tournament)
+  def self.placeholder_fields
+    {
+      discipline_id: -> { Discipline.find_by(name: 'Unknown Discipline')&.id },
+      season_id: -> { Season.find_by(name: 'Unknown Season')&.id },
+      location_id: -> { Location.find_by(name: 'Unknown Location')&.id },
+      organizer_id: -> { Region.find_by(shortname: 'UNKNOWN')&.id }
+    }
+  end
   
   # View compatibility methods (alias to Tournament fields)
   def name

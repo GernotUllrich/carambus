@@ -165,8 +165,11 @@ namespace :adhoc do
     # puts "try to delete TableMonitor[#{t.id}]"
     # t.destroy
     # puts "last is still: #{TableMonitor.last.id}"
-    t = Tournament[17385]
-    t.scrape_single_tournament_public(reload_seedings: true)
+    # t = Tournament[17385]
+    # t.scrape_single_tournament_public(reload_seedings: true)
+    tournament = InternationalTournament.find_by(external_id: '363')
+    scraper = UmbScraper.new
+    scraper.scrape_tournament_details(tournament, create_games: true, parse_pdfs: true)
   end
 
   desc "Sequence Reset"

@@ -1400,3 +1400,11 @@ de:
     errors:
       generic: "Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut."
       no_docs_found: "Keine Antwort in der Dokumentation gefunden."
+  
+  views:
+    pagination:
+      first: "&laquo; Erste"
+      last: "Letzte &raquo;"
+      previous: "&lsaquo; Zurück"
+      next: "Weiter &rsaquo;"
+      truncate: "&hellip;"

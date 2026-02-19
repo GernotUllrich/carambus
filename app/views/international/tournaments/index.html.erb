@@ -17,11 +17,11 @@
               class: 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500' %>
         </div>
 
-        <!-- Discipline Filter -->
+        <!-- Discipline Filter (Hierarchical) -->
         <div>
           <%= f.label :discipline_id, 'Discipline', class: 'block text-sm font-medium text-gray-700 mb-1' %>
           <%= f.select :discipline_id,
-              options_from_collection_for_select(@disciplines, :id, :name, params[:discipline_id]),
+              grouped_options_for_select(grouped_disciplines_for_select, params[:discipline_id]),
               { include_blank: 'All Disciplines' },
               class: 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500' %>
         </div>
@@ -45,9 +45,8 @@
       <div class="flex items-center pt-2">
         <label class="flex items-center cursor-pointer">
           <%= f.check_box :official_umb, 
-              { checked: params[:official_umb] == '1' },
-              '1', '0',
-              class: 'w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500' %>
+              { checked: params[:official_umb] == '1', class: 'w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500' },
+              '1', '0' %>
           <span class="ml-2 text-sm font-medium text-gray-700">
             Show only official UMB tournaments
             <span class="ml-1 px-2 py-0.5 text-xs font-semibold text-blue-800 bg-blue-100 rounded">Official</span>
@@ -57,9 +56,33 @@
     <% end %>
   </div>
 
-  <!-- Tournament Grid -->
+  <!-- View Mode Toggle -->
+  <div class="flex justify-end mb-6">
+    <div class="inline-flex rounded-lg shadow-sm" role="group">
+      <%= link_to international_tournaments_path(view: 'grid', type: params[:type], discipline_id: params[:discipline_id], year: params[:year], official_umb: params[:official_umb]), 
+          class: "px-4 py-2 text-sm font-medium #{params[:view] != 'table' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'} border border-gray-300 rounded-l-lg transition-colors inline-flex items-center" do %>
+        <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+          <path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
+        </svg>
+        Grid
+      <% end %>
+      <%= link_to international_tournaments_path(view: 'table', type: params[:type], discipline_id: params[:discipline_id], year: params[:year], official_umb: params[:official_umb]), 
+          class: "px-4 py-2 text-sm font-medium #{params[:view] == 'table' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'} border-l-0 border border-gray-300 rounded-r-lg transition-colors inline-flex items-center" do %>
+        <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"/>
+        </svg>
+        Table
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Tournament Results -->
   <% if @tournaments.any? %>
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+    <% if params[:view] == 'table' %>
+      <%= render 'table_view', tournaments: @tournaments %>
+    <% else %>
+      <!-- Tournament Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
       <% @tournaments.each do |tournament| %>
         <a href="<%= international_tournament_path(tournament) %>" 
            class="block bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow p-6">
@@ -116,15 +139,16 @@
               <svg class="w-4 h-4 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zm12.553 1.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z"/>
               </svg>
-              <span><%= tournament.international_videos.count %> videos</span>
+              <span><%= tournament.videos.count %> videos</span>
             </p>
           </div>
         </a>
       <% end %>
-    </div>
+      </div>
+    <% end %>
 
     <!-- Pagination -->
-    <div class="flex justify-center">
+    <div class="flex justify-center mt-8">
       <%== pagy_nav(@pagy) if @pagy.pages > 1 %>
     </div>
   <% else %>
