@@ -1,0 +1,38 @@
+<%# Display video tags as badges %>
+<%# Usage: <%= render 'international/videos/video_tags', video: video, limit: 5 %>
+
+<% 
+  limit = local_assigns[:limit] || 5 
+  show_icon = local_assigns.fetch(:show_icon, false)
+  size = local_assigns[:size] || 'sm' # 'xs', 'sm', 'md'
+  
+  tags = video.tags
+%>
+
+<% if tags.present? && tags.any? %>
+  <div class="flex flex-wrap gap-1 <%= 'mt-2' if local_assigns[:spacing] != false %>">
+    <% tags.take(limit).each do |tag| %>
+      <%= link_to international_videos_path(tag: tag),
+          class: "inline-flex items-center px-2 py-0.5 text-#{size} font-medium rounded transition-colors #{video_tag_badge_class(tag)} hover:opacity-80",
+          title: "Filter by: #{tag.titleize}" do %>
+        <% if show_icon %>
+          <% if InternationalHelper::VIDEO_TAG_GROUPS['Content Type'][:tags].include?(tag) %>
+            <span class="mr-1">🎬</span>
+          <% elsif InternationalHelper::VIDEO_TAG_GROUPS['Quality'][:tags].include?(tag) %>
+            <span class="mr-1">🎥</span>
+          <% else %>
+            <span class="mr-1">⭐</span>
+          <% end %>
+        <% end %>
+        <%= tag.titleize %>
+      <% end %>
+    <% end %>
+    
+    <% if tags.size > limit %>
+      <span class="inline-flex items-center px-2 py-0.5 text-#{size} font-medium rounded bg-gray-100 text-gray-600"
+            title="<%= (tags.drop(limit)).join(', ') %>">
+        +<%= tags.size - limit %> more
+      </span>
+    <% end %>
+  </div>
+<% end %>
