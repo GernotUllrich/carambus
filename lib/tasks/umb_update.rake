@@ -270,6 +270,65 @@ namespace :umb do
     puts "\n" + "="*80 + "\n"
   end
   
+  desc "Fix bad locations (like 'A' from N/A parsing errors)"
+  task fix_locations: :environment do
+    puts "\n" + "="*80
+    puts "FIX UMB TOURNAMENT LOCATIONS"
+    puts "="*80 + "\n"
+
+    scraper = UmbScraper.new
+    umb_source = InternationalSource.find_by(source_type: 'umb')
+
+    # Find tournaments with bad location 'A' or N/A patterns
+    bad_locations = ['A', 'N/A']
+    tournaments = InternationalTournament
+      .where(international_source: umb_source)
+      .where(location_text: bad_locations)
+      .where.not(external_id: nil)
+
+    if tournaments.any?
+      puts "Found #{tournaments.count} tournaments with bad locations"
+      puts "Re-scraping to get correct location data...\n"
+
+      fixed = 0
+      failed = 0
+      
+      tournaments.each_with_index do |tournament, idx|
+        print "[#{idx + 1}/#{tournaments.count}] ID #{tournament.external_id}: #{tournament.title[0..40]}... "
+        
+        begin
+          # Re-scrape tournament details (pass tournament object, not external_id)
+          scraper.scrape_tournament_details(tournament, create_games: false, parse_pdfs: false)
+          
+          # Reload to check if location changed
+          tournament.reload
+          if bad_locations.include?(tournament.location_text)
+            puts "❌ Still bad"
+            failed += 1
+          else
+            puts "✓ → #{tournament.location_text}"
+            fixed += 1
+          end
+        rescue StandardError => e
+          puts "❌ Error: #{e.message}"
+          failed += 1
+        end
+        
+        sleep 0.5 # Rate limiting
+      end
+
+      puts "\n" + "="*80
+      puts "✓ Fixed #{fixed} of #{tournaments.count} tournaments"
+      if failed > 0
+        puts "✗ Failed to fix #{failed} tournaments"
+      end
+      puts "="*80
+    else
+      puts "✓ No tournaments with bad locations found"
+    end
+    puts ""
+  end
+  
   desc "Comprehensive UMB status report"
   task status: :environment do
     umb_source = InternationalSource.find_by(source_type: 'umb')

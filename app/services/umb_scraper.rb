@@ -27,6 +27,9 @@ class UmbScraper
     'Semi_Final' => 'Semi Final',
     'Final' => 'Final'
   }.freeze
+  
+  # Bad location values that should be replaced when re-scraping
+  BAD_LOCATIONS = ['A', 'N/A', '', nil].freeze
 
   attr_reader :umb_source
 
@@ -340,8 +343,8 @@ class UmbScraper
       end
     end
     
-    # Update location_text if we found it and tournament doesn't have one
-    if tournament_info[:location].present? && tournament.location_text.blank?
+    # Update location_text if we found it and tournament doesn't have one OR has a bad one
+    if tournament_info[:location].present? && BAD_LOCATIONS.include?(tournament.location_text)
       tournament.location_text = tournament_info[:location]
       Rails.logger.info "[UmbScraper] Found location: #{tournament_info[:location]}"
     end
@@ -418,10 +421,18 @@ class UmbScraper
     original_organizer_id = tournament.organizer_id
     original_organizer_type = tournament.organizer_type
     
-    # 1. LOCATION: Create Location from location_text if needed
-    if tournament.location_id.blank? && tournament.location_text.present?
+    # 1. LOCATION: Create Location from location_text if needed OR if existing location is bad
+    should_update_location = tournament.location_text.present? && (
+      tournament.location_id.blank? ||
+      (tournament.location_id && Location.exists?(tournament.location_id) && Location.find(tournament.location_id).name == 'A')
+    )
+    
+    if should_update_location
       location = find_or_create_location_from_text(tournament.location_text)
-      tournament.location_id = location&.id if location
+      if location && location.name != 'A'
+        tournament.location_id = location.id
+        Rails.logger.info "[UmbScraper] Updated location: #{location.name}"
+      end
     end
     
     # 2. SEASON: Create Season from date if needed (billiard season starts July 1st)
@@ -721,21 +732,22 @@ class UmbScraper
   def extract_location(text)
     return nil if text.blank?
     
-    # If it looks like "CITY (Country)", extract that
-    if (match = text.match(/([A-Z\s]+)\s*\(([^)]+)\)/))
-      city = match[1].strip.titleize
-      country = match[2].strip
-      return "#{city}, #{country}"
-    end
-    
-    # If it's "N/A (Country)", just return country
-    if (match = text.match(/N\/A\s*\(([^)]+)\)/))
+    # IMPORTANT: Check N/A pattern FIRST before generic city pattern
+    # If it's "N/A (Country)", just return country name
+    if (match = text.match(/N\/A\s*\(([^)]+)\)/i))
       return match[1].strip
     end
     
     # If it looks like org info (UMB / ...), return nil
     return nil if text.match?(/^UMB\s*\//)
     return nil if text.match?(/^WCBS/)
+    
+    # If it looks like "CITY (Country)", extract that
+    if (match = text.match(/([A-Z\s]+)\s*\(([^)]+)\)/))
+      city = match[1].strip.titleize
+      country = match[2].strip
+      return "#{city}, #{country}"
+    end
     
     # Otherwise return as-is
     text.strip
@@ -745,6 +757,20 @@ class UmbScraper
   # Returns: { city: "Nice", country_code: "FR" }
   def parse_location_components(location_text)
     return nil if location_text.blank?
+    
+    # IMPORTANT: Handle N/A pattern FIRST
+    # "N/A (Korea)" → city: "Korea", country_code: "KR"
+    if (match = location_text.match(/N\/A\s*\(([A-Za-z\s]+)\)/i))
+      country_name = match[1].strip
+      country_code = country_name_to_code(country_name)
+      
+      return { 
+        city: country_name,           # Use country name as city name
+        country_code: country_code, 
+        full_text: location_text,
+        is_country_placeholder: true  # Flag for future reference
+      }
+    end
     
     # Match patterns like "NICE (France)" or "Nice (FR)"
     if (match = location_text.match(/([A-Za-z\s\-]+)\s*\(([A-Za-z\s]{2,})\)/))
