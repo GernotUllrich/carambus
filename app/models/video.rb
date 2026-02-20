@@ -62,6 +62,12 @@ class Video < ApplicationRecord
   scope :by_source, ->(source_id) { where(international_source_id: source_id) }
   scope :by_discipline, ->(discipline_id) { where(discipline_id: discipline_id) }
   scope :youtube, -> { joins(:international_source).where(international_sources: { source_type: 'youtube' }) }
+  
+  # Tag filtering scopes
+  scope :with_tag, ->(tag) { where("data @> ?", { tags: [tag] }.to_json) }
+  scope :with_any_tag, ->(tags) { where("data->'tags' ?| array[?]", tags) }
+  scope :with_all_tags, ->(tags) { where("data->'tags' ?& array[?]", tags) }
+  scope :without_tags, -> { where("data->'tags' IS NULL OR jsonb_array_length(data->'tags') = 0") }
 
   # Display methods
   def display_title
@@ -233,5 +239,131 @@ class Video < ApplicationRecord
   def auto_assign_discipline!
     detected = detect_discipline
     update(discipline: detected) if detected && discipline.blank?
+  end
+
+  # ============================================================================
+  # VIDEO TAGGING SYSTEM
+  # ============================================================================
+
+  # Content type detection patterns
+  CONTENT_TYPE_DETECTORS = {
+    'full_game' => lambda { |video|
+      video.duration && video.duration > 1800 &&
+        video.title.match?(/\bvs\.?\b|\bgegen\b|\-/i) &&
+        video.extracted_players.size >= 2
+    },
+    'shot_of_the_day' => lambda { |video|
+      video.duration && video.duration < 300 &&
+        video.title.downcase.match?(/shot|trick|amazing|incredible|unbelievable/)
+    },
+    'high_run' => lambda { |video|
+      title = video.title.downcase
+      title.match?(/high run|serie|series/i) &&
+        title.scan(/\d+/).any? { |n| n.to_i > 10 }
+    },
+    'highlights' => lambda { |video|
+      video.title.downcase.match?(/highlights?|best of|top \d+/)
+    },
+    'training' => lambda { |video|
+      video.title.downcase.match?(/training|lesson|tutorial|drill/)
+    }
+  }.freeze
+
+  # Quality detection patterns
+  QUALITY_DETECTORS = {
+    '4k' => ->(video) { video.title.match?(/\b4k\b|\b2160p\b/i) },
+    'hd' => ->(video) { video.title.match?(/\bhd\b|\b1080p\b|\b720p\b/i) },
+    'slow_motion' => ->(video) { video.title.downcase.match?(/slow motion|slow-mo|slowmo/) },
+    'multi_angle' => ->(video) { video.title.downcase.match?(/multi[- ]?angle|multiple angles/) }
+  }.freeze
+
+  # Get current tags from data JSONB
+  def tags
+    json_data['tags'] || []
+  end
+
+  # Set tags in data JSONB
+  def tags=(new_tags)
+    self.data = json_data.merge('tags' => new_tags.uniq.compact)
+  end
+
+  # Add a tag
+  def add_tag(tag)
+    current_tags = tags
+    return if current_tags.include?(tag)
+    
+    self.tags = current_tags + [tag]
+    save
+  end
+
+  # Remove a tag
+  def remove_tag(tag)
+    self.tags = tags - [tag]
+    save
+  end
+
+  # Check if video has a specific tag
+  def tagged_with?(tag)
+    tags.include?(tag)
+  end
+
+  # Detect player tags from title and description
+  def detect_player_tags
+    detected = []
+    text = "#{title} #{description}".upcase
+    
+    InternationalHelper::WORLD_CUP_TOP_32.each do |tag, info|
+      if text.include?(tag.upcase) || text.include?(info[:full_name].upcase)
+        detected << tag.downcase
+      end
+    end
+    
+    detected
+  end
+
+  # Detect content type tags
+  def detect_content_type_tags
+    detected = []
+    
+    CONTENT_TYPE_DETECTORS.each do |tag, detector|
+      detected << tag if detector.call(self)
+    end
+    
+    detected
+  end
+
+  # Detect quality tags
+  def detect_quality_tags
+    detected = []
+    
+    QUALITY_DETECTORS.each do |tag, detector|
+      detected << tag if detector.call(self)
+    end
+    
+    detected
+  end
+
+  # Detect all tags (players + content types + quality)
+  def detect_all_tags
+    (detect_player_tags + detect_content_type_tags + detect_quality_tags).uniq
+  end
+
+  # Auto-tag video with detected tags
+  def auto_tag!
+    detected_tags = detect_all_tags
+    return if detected_tags.empty?
+    
+    current_tags = tags
+    new_tags = (current_tags + detected_tags).uniq
+    
+    update(data: json_data.merge(
+      'tags' => new_tags,
+      'auto_tagged_at' => Time.current.iso8601
+    ))
+  end
+
+  # Get auto-detected tags (without saving)
+  def suggested_tags
+    detect_all_tags - tags
   end
 end
