@@ -50,25 +50,35 @@ class UmbScraper
     
     name_lower = tournament_name.to_s.downcase
     
+    # Artistique (check before 3-cushion as it might contain numbers)
+    if name_lower.match?(/artistique|artistic|künstlerisch/i)
+      return Discipline.find_by(name: 'Artistique')&.id || 71
+    end
+    
     # 3-Cushion (Dreiband) - Most common for international tournaments
-    if name_lower.match?(/3-?cushion|three ?cushion|dreiband|drei ?band|3-?bandes|3-?banden/i)
-      # Default to "Dreiband halb" (Match Billard) for international tournaments
-      return Discipline.find_by(name: 'Dreiband halb')&.id || 12
+    # Patterns: "3-cushion", "3 cushion", "3C", "(3C)", "3-Cushion", "three cushion"
+    if name_lower.match?(/3[\s\-]?c(?:ushion)?(?:\s|$|\))/i) || 
+       name_lower.match?(/\(3c\)/i) ||
+       name_lower.match?(/three[\s\-]?cushion/i) ||
+       name_lower.match?(/dreiband|drei[\s\-]?band/i) ||
+       name_lower.match?(/3[\s\-]?bandes|3[\s\-]?banden/i)
+      # UMB international tournaments use FULL-SIZE tables = "Dreiband groß"
+      return Discipline.find_by(name: 'Dreiband groß')&.id || 31
     end
     
     # 5-Pin Billards
-    if name_lower.match?(/5-?pin|five ?pin/i)
+    if name_lower.match?(/5[\s\-]?pin|five[\s\-]?pin/i)
       return Discipline.find_by(name: '5-Pin Billards')&.id || 26
     end
     
     # 1-Cushion (Einband)
-    if name_lower.match?(/1-?cushion|one ?cushion|einband|een ?band/i)
-      return Discipline.find_by(name: 'Einband halb')&.id || 11
+    if name_lower.match?(/1[\s\-]?cushion|one[\s\-]?cushion|einband|een[\s\-]?band/i)
+      return Discipline.find_by(name: 'Einband groß')&.id || 32
     end
     
-    # Straight Rail / Freie Partie
-    if name_lower.match?(/straight ?rail|libre|freie ?partie|vrije ?partij/i)
-      return Discipline.find_by(name: 'Freie Partie klein')&.id || 34
+    # Straight Rail / Freie Partie / Libre
+    if name_lower.match?(/straight[\s\-]?rail|libre|freie[\s\-]?partie|vrije[\s\-]?partij/i)
+      return Discipline.find_by(name: 'Freie Partie groß')&.id || 38
     end
     
     # Cadre / Balkline
@@ -90,8 +100,8 @@ class UmbScraper
       end
     end
     
-    # Default: Dreiband halb (most international tournaments are 3-cushion)
-    Discipline.find_by(name: 'Dreiband halb')&.id || 12
+    # Default: Dreiband groß (most UMB international tournaments are 3-cushion on full-size)
+    Discipline.find_by(name: 'Dreiband groß')&.id || 31
   end
 
   # Scrape future tournaments from UMB
@@ -230,9 +240,13 @@ class UmbScraper
     start_date = parse_single_date(data[:start_date])
     end_date = parse_single_date(data[:end_date])
     
-    # Use placeholder discipline if none found
-    discipline = Discipline.find_by(name: 'Dreiband') || 
-                 Discipline.find_by(name: 'Unknown Discipline')
+    # Detect discipline from tournament name
+    discipline_id = detect_discipline_from_name(data[:name])
+    discipline = Discipline.find(discipline_id) if discipline_id
+    
+    # Fallback to Dreiband groß if detection failed
+    discipline ||= Discipline.find_by(name: 'Dreiband groß') || 
+                   Discipline.find_by(name: 'Unknown Discipline')
     
     # Prepare tournament attributes with enhanced location/season/organizer handling
     season = find_or_create_season_from_date(start_date)
@@ -974,7 +988,7 @@ class UmbScraper
             Rails.logger.error "[UmbScraper] Failed to save tournament: #{tournament.errors.full_messages}"
           end
         else
-          # Update existing
+          # Update existing tournament
           tournament_data = tournament.data.is_a?(String) ? JSON.parse(tournament.data) : (tournament.data || {})
           tournament_data.merge!({
             umb_type: data[:tournament_type_hint],
@@ -983,10 +997,24 @@ class UmbScraper
             scraped_at: Time.current.iso8601
           })
           
+          # IMPORTANT: Also set organizer if missing (for old tournaments without organizer)
+          if tournament.organizer_id.blank?
+            umb_organizer = find_or_create_umb_organizer
+            if umb_organizer
+              tournament.organizer_id = umb_organizer.id
+              tournament.organizer_type = 'Region'
+              Rails.logger.info "[UmbScraper] Set missing organizer for: #{data[:name]}"
+            else
+              Rails.logger.error "[UmbScraper] Could not set organizer for: #{data[:name]}"
+            end
+          end
+          
           tournament.update(
             end_date: dates[:end_date],
             location_text: data[:location],
             source_url: data[:source_url],
+            organizer_id: tournament.organizer_id,
+            organizer_type: tournament.organizer_type,
             data: tournament_data.merge(
               umb_official: true,
               umb_type: data[:tournament_type_hint],

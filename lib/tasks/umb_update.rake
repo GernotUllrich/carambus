@@ -203,10 +203,10 @@ namespace :umb do
     puts ""
   end
   
-  desc "Fix all UMB tournament organizers"
+  desc "Fix all UMB tournament organizers and disciplines"
   task fix_organizers: :environment do
     puts "\n" + "="*80
-    puts "FIX UMB ORGANIZERS"
+    puts "FIX UMB ORGANIZERS & DISCIPLINES"
     puts "="*80 + "\n"
     
     scraper = UmbScraper.new
@@ -219,25 +219,55 @@ namespace :umb do
       exit 1
     end
     
-    puts "UMB Organizer: #{umb_organizer.name} (ID: #{umb_organizer.id})"
+    puts "UMB Organizer: #{umb_organizer.name} (ID: #{umb_organizer.id})\n"
     
-    tournaments = InternationalTournament
+    # Fix organizers
+    tournaments_without_org = InternationalTournament
       .where(international_source: umb_source)
       .where(organizer_id: nil)
     
-    puts "Found #{tournaments.count} tournaments without organizer"
+    puts "Organizers:"
+    puts "  Found #{tournaments_without_org.count} tournaments without organizer"
     
-    if tournaments.any?
-      updated = tournaments.update_all(
+    if tournaments_without_org.any?
+      updated = tournaments_without_org.update_all(
         organizer_id: umb_organizer.id,
         organizer_type: 'Region'
       )
-      puts "✓ Fixed #{updated} tournaments"
+      puts "  ✓ Fixed #{updated} tournaments"
     else
-      puts "✓ All tournaments already have organizer"
+      puts "  ✓ All tournaments already have organizer"
     end
     
-    puts ""
+    # Fix disciplines (including "Unknown Discipline")
+    unknown_discipline = Discipline.find_by(name: 'Unknown Discipline')
+    
+    tournaments_with_wrong_disc = InternationalTournament
+      .where(international_source: umb_source)
+      .where('discipline_id IS NULL OR discipline_id = ?', unknown_discipline&.id)
+    
+    puts "\nDisciplines:"
+    puts "  Found #{tournaments_with_wrong_disc.count} tournaments with missing/unknown discipline"
+    
+    if tournaments_with_wrong_disc.any?
+      fixed_count = 0
+      tournaments_with_wrong_disc.each do |tournament|
+        discipline_id = scraper.send(:detect_discipline_from_name, tournament.title)
+        if discipline_id && discipline_id != unknown_discipline&.id
+          old_disc = Discipline.find_by(id: tournament.discipline_id)
+          new_disc = Discipline.find(discipline_id)
+          tournament.update_column(:discipline_id, discipline_id)
+          fixed_count += 1
+          puts "  ✓ #{tournament.title}"
+          puts "    #{old_disc&.name || 'nil'} → #{new_disc.name}"
+        end
+      end
+      puts "\n  ✓ Fixed #{fixed_count} of #{tournaments_with_wrong_disc.count} tournaments"
+    else
+      puts "  ✓ All tournaments already have correct discipline"
+    end
+    
+    puts "\n" + "="*80 + "\n"
   end
   
   desc "Comprehensive UMB status report"
