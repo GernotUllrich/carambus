@@ -237,6 +237,12 @@ class UmbScraper
     # Prepare tournament attributes with enhanced location/season/organizer handling
     season = find_or_create_season_from_date(start_date)
     umb_organizer = find_or_create_umb_organizer
+    
+    # CRITICAL: Warn if organizer is missing
+    if umb_organizer.nil?
+      Rails.logger.error "[UmbScraper] WARNING: Creating tournament '#{data[:name]}' WITHOUT organizer!"
+    end
+    
     location_record = find_or_create_location_from_text(location) if location.present?
     
     tournament = InternationalTournament.new(
@@ -822,19 +828,30 @@ class UmbScraper
   
   # Find or create UMB organizer region
   def find_or_create_umb_organizer
-    Region.find_or_create_by!(shortname: 'UMB') do |r|
-      r.name = 'Union Mondiale de Billard'
-      r.email = 'info@umb-carom.org'
-      r.website = 'https://www.umb-carom.org'
-      r.scrape_data = {
+    # Try to find existing UMB region first
+    umb = Region.find_by(shortname: 'UMB')
+    return umb if umb
+    
+    # Create new UMB region
+    Region.create!(
+      shortname: 'UMB',
+      name: 'Union Mondiale de Billard',
+      email: 'info@umb-carom.org',
+      website: 'https://www.umb-carom.org',
+      scrape_data: {
         'created_from' => 'umb_scraper',
         'description' => 'World governing body for carom billiards',
         'created_at' => Time.current.iso8601
       }
-    end
+    )
   rescue ActiveRecord::RecordInvalid => e
-    Rails.logger.warn "[UmbScraper] Could not create UMB region: #{e.message}"
-    Region.find_by(shortname: 'UNKNOWN')
+    Rails.logger.error "[UmbScraper] CRITICAL: Could not create UMB region: #{e.message}"
+    # Try to find fallback, but log error if it doesn't exist
+    fallback = Region.find_by(shortname: 'UNKNOWN')
+    unless fallback
+      Rails.logger.error "[UmbScraper] CRITICAL: No UNKNOWN fallback region found! Tournament will be created without organizer!"
+    end
+    fallback
   end
   
   # Enhance date string with month/year context
