@@ -5,6 +5,10 @@
 class InternationalTournament < Tournament
   include PlaceholderAware
   
+  # Override parent's required associations - international tournaments may not have these initially
+  belongs_to :organizer, polymorphic: true, optional: true
+  belongs_to :season, optional: true
+  
   # International tournaments use international_source_id instead of region_id
   belongs_to :international_source, optional: true
   
