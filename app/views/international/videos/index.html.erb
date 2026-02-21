@@ -47,10 +47,10 @@
   <% if @videos.any? %>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
       <% @videos.each do |video| %>
-        <%= link_to international_video_path(video), class: 'flex flex-col bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow overflow-hidden' do %>
+        <%= link_to international_video_path(video), class: 'flex flex-col bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow p-3' do %>
           <!-- Thumbnail -->
           <% if video.thumbnail_url.present? %>
-            <div class="relative pb-[56.25%] flex-shrink-0">
+            <div class="relative pb-[56.25%] flex-shrink-0 rounded-lg overflow-hidden mb-3">
               <%= image_tag video.thumbnail_url, class: 'absolute inset-0 w-full h-full object-cover', alt: video.title %>
               
               <!-- Duration Badge -->
@@ -70,7 +70,7 @@
           <% end %>
 
           <!-- Video Info -->
-          <div class="p-4 flex-1 flex flex-col min-h-[180px]">
+          <div class="flex-1 flex flex-col min-h-[160px]">
             <!-- Title -->
             <h3 class="text-sm font-semibold text-gray-900 mb-3 line-clamp-2" title="<%= video.title %>">
               <%= video.translated_title(:en) %>
