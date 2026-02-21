@@ -72,7 +72,7 @@ class Tournament < ApplicationRecord
 
   belongs_to :discipline, optional: true
   belongs_to :region, optional: true
-  belongs_to :season, optional: -> { type == 'InternationalTournament' }
+  belongs_to :season
   belongs_to :tournament_plan, optional: true
   belongs_to :league, optional: true
   has_many :seedings, -> { order(position: :asc) }, as: :tournament, dependent: :destroy
@@ -83,7 +83,7 @@ class Tournament < ApplicationRecord
   has_one :tournament_cc, class_name: "TournamentCc", foreign_key: :tournament_id, dependent: :destroy
   has_one :setting, dependent: :destroy
   # noinspection RailsParamDefResolve
-  belongs_to :organizer, polymorphic: true, optional: -> { type == 'InternationalTournament' }
+  belongs_to :organizer, polymorphic: true
   belongs_to :location, optional: true
   has_one :tournament_local, dependent: :destroy
   

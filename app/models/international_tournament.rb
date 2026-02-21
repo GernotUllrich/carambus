@@ -12,7 +12,8 @@ class InternationalTournament < Tournament
   # has_many :seedings
   # has_many :games
   # has_many :players, through: :seedings
-  # Note: organizer and season are made optional in Tournament for InternationalTournament type
+  # belongs_to :organizer (polymorphic, required)
+  # belongs_to :season (required)
   
   validates :international_source_id, presence: true, if: -> { external_id.present? }
   validates :external_id, uniqueness: { scope: :international_source_id }, allow_nil: true
