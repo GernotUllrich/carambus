@@ -11,10 +11,12 @@ class InternationalController < ApplicationController
                                               .order(date: :asc)
                                               .limit(12)
     
-    # All upcoming international tournaments (other sources)
+    # Other upcoming international tournaments (non-UMB, next 6 months only)
     @upcoming_tournaments = Tournament.international
-                                      .upcoming
+                                      .where('date >= ? AND date <= ?', Date.today, six_months_from_now)
+                                      .where.not(id: @umb_tournaments.pluck(:id))
                                       .includes(:discipline, :international_source)
+                                      .order(date: :asc)
                                       .limit(10)
     
     # Videos - YouTube scraped videos (unassigned or assigned to tournaments)
