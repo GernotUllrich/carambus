@@ -441,6 +441,9 @@ Rails.application.routes.draw do
         post :keep_separate
       end
     end
+    
+    resources :international_sources
+    
     resources :pages do
       member do
         post :publish
