@@ -43,13 +43,13 @@ class TournamentDiscoveryService
     candidates = []
     
     # Group videos by tournament_type + year + season
-    InternationalVideo.where.not("metadata->>'tournament_type' IS NULL")
-                     .where("metadata->>'year' > '0'")
-                     .find_each do |video|
+    Video.youtube.where.not("data->>'tournament_type' IS NULL")
+                 .where("data->>'year' > '0'")
+                 .find_each do |video|
       
-      tournament_type = video.metadata['tournament_type']
-      year = video.metadata['year'].to_i
-      season = video.metadata['season']
+      tournament_type = video.data['tournament_type']
+      year = video.data['year'].to_i
+      season = video.data['season']
       
       # Create unique key for grouping
       key = [tournament_type, year, season].compact.join('_')
