@@ -360,4 +360,54 @@ namespace :international do
     puts "Processed videos: #{InternationalVideo.processed.count}"
     puts "Videos with players: #{InternationalVideo.where("metadata->>'players' IS NOT NULL").count}"
   end
+
+  desc 'Process all untagged videos (for cron)'
+  task process_untagged_videos: :environment do
+    puts "\n=== Processing Untagged Videos ==="
+    
+    untagged = Video.youtube.where(metadata_extracted: false)
+    count = untagged.count
+    
+    if count.zero?
+      puts "All videos already tagged!"
+      next
+    end
+    
+    puts "Found #{count} untagged videos"
+    processed = 0
+    
+    untagged.find_each do |video|
+      video.auto_tag!
+      processed += 1
+      print "." if processed % 10 == 0
+    end
+    
+    puts "\n✅ Processed #{processed} videos"
+  end
+
+  desc 'Update video statistics and tag counts (for cron)'
+  task update_statistics: :environment do
+    puts "\n=== Updating Video Statistics ==="
+    
+    # Recalculate all tag counts
+    puts "Recalculating tag counts..."
+    Video.youtube.where(metadata_extracted: false).find_each do |video|
+      video.auto_tag!
+    end
+    
+    # Update source statistics
+    puts "Updating source statistics..."
+    InternationalSource.active.find_each do |source|
+      video_count = source.videos.count
+      source.update(
+        metadata: source.metadata.merge(
+          'video_count' => video_count,
+          'last_stats_update' => Time.current.iso8601
+        )
+      )
+      puts "  #{source.name}: #{video_count} videos"
+    end
+    
+    puts "✅ Statistics updated"
+  end
 end
