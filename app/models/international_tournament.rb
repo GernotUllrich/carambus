@@ -5,11 +5,6 @@
 class InternationalTournament < Tournament
   include PlaceholderAware
   
-  # WORKAROUND: Rails STI polymorphic association bug - organizer association doesn't work properly
-  # in subclasses, so we make it optional and handle validation manually
-  belongs_to :organizer, polymorphic: true, optional: true
-  belongs_to :season, optional: true
-  
   # International tournaments use international_source_id instead of region_id
   belongs_to :international_source, optional: true
   
@@ -17,13 +12,10 @@ class InternationalTournament < Tournament
   # has_many :seedings
   # has_many :games
   # has_many :players, through: :seedings
+  # Note: organizer and season are made optional in Tournament for InternationalTournament type
   
   validates :international_source_id, presence: true, if: -> { external_id.present? }
   validates :external_id, uniqueness: { scope: :international_source_id }, allow_nil: true
-  
-  # Manual validation: Require organizer_id (since association doesn't work properly in STI)
-  validates :organizer_id, presence: { message: "muss ausgefüllt werden" }
-  validates :organizer_type, presence: true
   
   # Scopes
   scope :from_umb, -> { joins(:international_source).where(international_sources: { source_type: 'umb' }) }
