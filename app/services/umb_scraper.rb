@@ -984,6 +984,11 @@ class UmbScraper
           umb_organizer = find_or_create_umb_organizer
           location_record = find_or_create_location_from_text(data[:location]) if data[:location].present?
           
+          # DEBUG: Log organizer info
+          Rails.logger.info "[UmbScraper] DEBUG for #{data[:name]}:"
+          Rails.logger.info "[UmbScraper]   → umb_organizer: #{umb_organizer.inspect}"
+          Rails.logger.info "[UmbScraper]   → umb_organizer.id: #{umb_organizer&.id}"
+          
           tournament.assign_attributes(
             end_date: dates[:end_date],
             location_text: data[:location],
@@ -1006,6 +1011,10 @@ class UmbScraper
               scraped_at: Time.current.iso8601
             }
           )
+          
+          # DEBUG: Log what was set
+          Rails.logger.info "[UmbScraper]   → assigned organizer_id: #{tournament.organizer_id}"
+          Rails.logger.info "[UmbScraper]   → assigned organizer_type: #{tournament.organizer_type}"
           
           if tournament.save
             Rails.logger.info "[UmbScraper] Created tournament: #{data[:name]} (#{dates[:start_date]})"
