@@ -94,19 +94,37 @@ namespace :international do
     puts "\n=== International Extension Statistics ===\n"
     puts "Sources: #{InternationalSource.count}"
     puts "Tournaments: #{InternationalTournament.count}"
-    puts "Videos: #{InternationalVideo.count}"
-    puts "  - Processed: #{InternationalVideo.processed.count}"
-    puts "  - Unprocessed: #{InternationalVideo.unprocessed.count}"
-    puts "Results: #{InternationalResult.count}"
-    puts "Participations: #{InternationalParticipation.count}"
+    
+    youtube_videos = Video.youtube
+    puts "Videos: #{youtube_videos.count}"
+    puts "  - Tagged: #{youtube_videos.where(metadata_extracted: true).count}"
+    puts "  - Untagged: #{youtube_videos.where(metadata_extracted: false).count}"
+    
+    if defined?(InternationalResult)
+      puts "Results: #{InternationalResult.count}"
+      puts "Participations: #{InternationalParticipation.count}"
+    end
     puts ""
     
-    if InternationalVideo.any?
+    if youtube_videos.any?
       puts "Latest 5 videos:"
-      InternationalVideo.recent.limit(5).each do |video|
+      youtube_videos.order(published_at: :desc).limit(5).each do |video|
         puts "  - #{video.title[0..70]}..."
         puts "    #{video.international_source.name} | #{video.published_at&.strftime('%Y-%m-%d')}"
       end
+    end
+    
+    puts "\nTag Statistics:"
+    tag_counts = Video.youtube
+                     .where.not("data->'tags' IS NULL")
+                     .pluck(Arel.sql("jsonb_array_elements_text(data->'tags')"))
+                     .group_by(&:itself)
+                     .transform_values(&:count)
+                     .sort_by { |_k, v| -v }
+                     .first(10)
+    
+    tag_counts.each do |tag, count|
+      puts "  #{tag}: #{count}"
     end
   end
 
