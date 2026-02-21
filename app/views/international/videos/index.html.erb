@@ -47,7 +47,7 @@
   <% if @videos.any? %>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
       <% @videos.each do |video| %>
-        <%= link_to international_video_path(video), class: 'block bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow overflow-hidden h-full flex flex-col' do %>
+        <%= link_to international_video_path(video), class: 'flex flex-col bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow overflow-hidden' do %>
           <!-- Thumbnail -->
           <% if video.thumbnail_url.present? %>
             <div class="relative pb-[56.25%] flex-shrink-0">
@@ -70,19 +70,19 @@
           <% end %>
 
           <!-- Video Info -->
-          <div class="p-4 flex-1 flex flex-col">
-            <!-- Title (fixed 2 lines) -->
-            <h3 class="text-sm font-semibold text-gray-900 mb-2 line-clamp-2 min-h-[2.5rem]" title="<%= video.title %>">
+          <div class="p-4 flex-1 flex flex-col min-h-[180px]">
+            <!-- Title -->
+            <h3 class="text-sm font-semibold text-gray-900 mb-3 line-clamp-2" title="<%= video.title %>">
               <%= video.translated_title(:en) %>
             </h3>
             
-            <!-- Tags (max 3, fixed height) -->
-            <div class="mb-2 min-h-[1.5rem]">
+            <!-- Tags -->
+            <div class="mb-3">
               <%= render 'video_tags', video: video, limit: 3, size: 'xs', spacing: true %>
             </div>
             
-            <!-- Meta Info (compact, single line items) -->
-            <div class="text-xs text-gray-600 space-y-1 mt-auto">
+            <!-- Meta Info -->
+            <div class="text-xs text-gray-600 space-y-1.5 mt-auto">
               <p class="truncate"><%= video.international_source.name %></p>
               
               <% if video.published_at.present? %>
