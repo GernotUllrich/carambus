@@ -3,7 +3,15 @@
 # Main controller for international section
 class InternationalController < ApplicationController
   def index
-    # Use STI: Tournament with type = 'InternationalTournament'
+    # Official UMB Tournaments (next 6 months only)
+    six_months_from_now = 6.months.from_now.to_date
+    @umb_tournaments = InternationalTournament.from_umb
+                                              .where('date >= ? AND date <= ?', Date.today, six_months_from_now)
+                                              .includes(:discipline, :international_source)
+                                              .order(date: :asc)
+                                              .limit(12)
+    
+    # All upcoming international tournaments (other sources)
     @upcoming_tournaments = Tournament.international
                                       .upcoming
                                       .includes(:discipline, :international_source)
