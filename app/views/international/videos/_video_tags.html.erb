@@ -10,10 +10,10 @@
 %>
 
 <% if tags.present? && tags.any? %>
-  <div class="flex flex-wrap gap-1">
+  <div class="flex flex-wrap gap-1 leading-none">
     <% tags.take(limit).each do |tag| %>
       <%= link_to international_videos_path(tag: tag),
-          class: "inline-flex items-center px-2 py-0.5 text-#{size} font-medium rounded transition-colors #{video_tag_badge_class(tag)} hover:opacity-80",
+          class: "inline-flex items-center px-1.5 py-0 text-#{size} font-medium rounded transition-colors #{video_tag_badge_class(tag)} hover:opacity-80",
           title: "Filter by: #{tag.titleize}" do %>
         <% if show_icon %>
           <% if InternationalHelper::VIDEO_TAG_GROUPS['Content Type'][:tags].include?(tag) %>
