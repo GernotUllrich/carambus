@@ -21,8 +21,8 @@ class InternationalTournament < Tournament
   validates :international_source_id, presence: true, if: -> { external_id.present? }
   validates :external_id, uniqueness: { scope: :international_source_id }, allow_nil: true
   
-  # Manual validation: Require organizer_id (since association doesn't work)
-  validates :organizer_id, presence: true, message: "muss ausgefüllt werden"
+  # Manual validation: Require organizer_id (since association doesn't work properly in STI)
+  validates :organizer_id, presence: { message: "muss ausgefüllt werden" }
   validates :organizer_type, presence: true
   
   # Scopes
