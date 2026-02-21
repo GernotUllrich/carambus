@@ -73,7 +73,7 @@ namespace :international do
     
     if count > 0
       puts "\nLatest videos:"
-      InternationalVideo.where('created_at > ?', 1.minute.ago).limit(5).each do |video|
+      Video.where('created_at > ?', 1.minute.ago).limit(5).each do |video|
         puts "  - #{video.title}"
         puts "    Published: #{video.published_at}"
         puts "    Duration: #{video.duration_formatted}"

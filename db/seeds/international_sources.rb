@@ -64,7 +64,9 @@ end
   ['Bao Phương Vinh', 'UCXkAGi8082zIUw4zqCMfk_Q', 2, 'Vietnamese carom player channel'],
   ['Predator Cues', 'UCvHY60Bb4z7simxzpsRIb5Q', 3, 'Official Predator brand channel'],
   ['케롬 당구 연구소 (Carom Billiards Lab)', 'UCsMn2OGmEEeLBxMQkCmlXug', 2, 'Korean carom research'],
-  ['Andykin Sports MESA 1', 'UCF2hMcLklanWE6YyUffen7w', 3, 'Spanish billiards channel']
+  ['Andykin Sports MESA 1', 'UCF2hMcLklanWE6YyUffen7w', 3, 'Spanish billiards channel'],
+  ['웃음만땅', 'UC5j1KZZRKX2axhW7EwMbdVA', 2, 'Korean billiards channel'],
+  ['SBS Sports', 'UCqsKWTIu7IhBjLFZS2s1ULQ', 2, 'Korean sports broadcaster with billiards content']
 ].each do |name, channel_id, priority, description|
   InternationalSource.find_or_create_by!(
     name: name,

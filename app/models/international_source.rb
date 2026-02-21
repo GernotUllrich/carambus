@@ -141,10 +141,21 @@ class InternationalSource < ApplicationRecord
       base_url: 'https://www.youtube.com/@AndykinMESA1',
       priority: 3,
       description: 'Spanish billiards channel with international carom content'
+    },
+    'useum_mantang' => {
+      name: '웃음만땅',
+      channel_id: 'UC5j1KZZRKX2axhW7EwMbdVA', # Verified 2026-02-20
+      base_url: 'https://www.youtube.com/channel/UC5j1KZZRKX2axhW7EwMbdVA',
+      priority: 2,
+      description: 'Korean billiards channel'
+    },
+    'sbs_sports' => {
+      name: 'SBS Sports',
+      channel_id: 'UCqsKWTIu7IhBjLFZS2s1ULQ', # Verified 2026-02-20
+      base_url: 'https://www.youtube.com/channel/UCqsKWTIu7IhBjLFZS2s1ULQ',
+      priority: 2,
+      description: 'Korean sports broadcaster with billiards content'
     }
-    # Note: Five & Six and CEB Carom channels need to be verified
-    # Use: rails international:find_channel_id[fiveandsix]
-    # Use: rails international:find_channel_id[ceb]
   }.freeze
 
   # Known federation websites
