@@ -47,7 +47,7 @@
   <% if @videos.any? %>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
       <% @videos.each do |video| %>
-        <%= link_to international_video_path(video), class: 'flex flex-col bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow p-3 overflow-hidden' do %>
+        <%= link_to international_video_path(video), class: 'flex flex-col bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow p-3 min-h-[400px]' do %>
           <!-- Thumbnail -->
           <% if video.thumbnail_url.present? %>
             <div class="relative pb-[56.25%] flex-shrink-0 rounded-lg overflow-hidden mb-3">
