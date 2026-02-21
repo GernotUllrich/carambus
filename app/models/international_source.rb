@@ -35,7 +35,8 @@ class InternationalSource < ApplicationRecord
   SOURCE_TYPES = [YOUTUBE, KOZOOM, FIVESIX, UMB, CEB, MANUAL].freeze
 
   # Associations
-  has_many :international_videos, dependent: :destroy
+  has_many :videos, dependent: :destroy, foreign_key: :international_source_id
+  has_many :international_videos, dependent: :destroy  # Legacy, kept for compatibility
   has_many :international_tournaments, dependent: :nullify
 
   # Validations
