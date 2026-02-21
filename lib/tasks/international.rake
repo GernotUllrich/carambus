@@ -197,36 +197,28 @@ namespace :international do
     end
   end
 
-  desc 'Process all unprocessed videos (metadata extraction)'
+  desc 'Process all videos (auto-tagging)'
   task process_all_videos: :environment do
-    puts "\n=== Processing All Unprocessed Videos ==="
+    puts "\n=== Auto-Tagging All YouTube Videos ==="
     
-    total_unprocessed = InternationalVideo.unprocessed.count
-    puts "Unprocessed videos: #{total_unprocessed}"
+    total_videos = Video.youtube.count
+    puts "Total YouTube videos: #{total_videos}"
     
-    if total_unprocessed.zero?
-      puts "All videos already processed!"
+    if total_videos.zero?
+      puts "No videos found!"
       next
     end
     
-    processed_total = 0
-    batch_size = 50
+    tagged_count = 0
     
-    while InternationalVideo.unprocessed.any?
-      puts "\nProcessing batch #{(processed_total / batch_size) + 1}..."
-      ProcessUnprocessedVideosJob.perform_now
-      
-      processed_total += batch_size
-      remaining = InternationalVideo.unprocessed.count
-      
-      puts "  Processed: #{processed_total}"
-      puts "  Remaining: #{remaining}"
-      
-      break if remaining.zero?
+    Video.youtube.find_each do |video|
+      video.auto_tag!
+      tagged_count += 1
+      print '.' if tagged_count % 50 == 0
     end
     
-    puts "\n✅ All videos processed!"
-    puts "Total processed: #{processed_total}"
+    puts "\n\n✅ All videos tagged!"
+    puts "Total processed: #{tagged_count}"
   end
 
   desc 'Daily automated scrape (run via cron)'
