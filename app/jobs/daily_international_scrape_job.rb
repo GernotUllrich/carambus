@@ -52,8 +52,19 @@ class DailyInternationalScrapeJob < ApplicationJob
     # Step 5: Update source statistics
     InternationalSource.active.each do |source|
       video_count = source.videos.count
+      
+      # Ensure metadata is a hash (handle both Hash and String cases)
+      current_metadata = case source.metadata
+                        when Hash
+                          source.metadata
+                        when String
+                          JSON.parse(source.metadata) rescue {}
+                        else
+                          {}
+                        end
+      
       source.update(
-        metadata: source.metadata.merge(
+        metadata: current_metadata.merge(
           'video_count' => video_count,
           'last_stats_update' => Time.current.iso8601
         )
