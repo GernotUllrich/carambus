@@ -11,8 +11,12 @@
 set :output, "log/cron.log"
 set :environment, ENV.fetch('RAILS_ENV', 'production')
 
-# Use absolute paths for commands
-job_type :rake, "cd :path && :environment_variable=:environment bundle exec rake :task :output"
+# Use current symlink for Capistrano deployments
+set :path, '/var/www/carambus_api/current'
+
+# Use absolute paths for commands with proper rbenv
+job_type :rake, "cd :path && RAILS_ENV=:environment /var/www/.rbenv/shims/bundle exec rake :task :output"
+job_type :runner, "cd :path && RAILS_ENV=:environment /var/www/.rbenv/shims/bundle exec rails runner -e :environment ':task' :output"
 
 # ============================================================================
 # INTERNATIONAL CONTENT SCRAPING
@@ -37,11 +41,11 @@ every 1.day, at: '3:00 am' do
 end
 
 # Weekly cleanup: Process all remaining untagged videos
-# Runs every Sunday at 4:00 AM
+# Runs every Sunday at 5:00 AM (after daily_update at 4am)
 # - Ensures no videos are left unprocessed
 # - Catches any videos that were skipped during daily runs
-every :sunday, at: '4:00 am' do
-  runner "Video.youtube.where(metadata_extracted: false).find_each(&:auto_tag!)"
+every :sunday, at: '5:00 am' do
+  rake "international:process_untagged_videos"
 end
 
 # ============================================================================
@@ -58,30 +62,15 @@ end
 # ============================================================================
 
 # Weekly: Clean up old logs (keep last 90 days)
-# Runs every Sunday at 5:00 AM
-every :sunday, at: '5:00 am' do
+# Runs every Sunday at 6:00 AM
+every :sunday, at: '6:00 am' do
   rake "scrape:cleanup_logs[90]"
 end
 
 # Monthly: Update video statistics and tag counts
-# Runs on the 1st of each month at 6:00 AM
-every '0 6 1 * *' do
-  runner <<-RUBY
-    # Recalculate all tag counts
-    Video.youtube.find_each do |video|
-      video.auto_tag! unless video.metadata_extracted
-    end
-    
-    # Update source statistics
-    InternationalSource.active.find_each do |source|
-      source.update(
-        metadata: source.metadata.merge(
-          'video_count' => source.videos.count,
-          'last_stats_update' => Time.current.iso8601
-        )
-      )
-    end
-  RUBY
+# Runs on the 1st of each month at 7:00 AM
+every '0 7 1 * *' do
+  rake "international:update_statistics"
 end
 
 # ============================================================================
