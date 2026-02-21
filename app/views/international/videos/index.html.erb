@@ -47,7 +47,7 @@
   <% if @videos.any? %>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
       <% @videos.each do |video| %>
-        <%= link_to international_video_path(video), class: 'flex flex-col bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow p-3' do %>
+        <%= link_to international_video_path(video), class: 'flex flex-col bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow p-3 overflow-hidden' do %>
           <!-- Thumbnail -->
           <% if video.thumbnail_url.present? %>
             <div class="relative pb-[56.25%] flex-shrink-0 rounded-lg overflow-hidden mb-3">
@@ -70,14 +70,14 @@
           <% end %>
 
           <!-- Video Info -->
-          <div class="flex-1 flex flex-col min-h-[160px]">
+          <div class="flex-1 flex flex-col min-h-[200px]">
             <!-- Title -->
-            <h3 class="text-sm font-semibold text-gray-900 mb-3 line-clamp-2" title="<%= video.title %>">
+            <h3 class="text-sm font-semibold text-gray-900 mb-3 line-clamp-2 min-h-[2.5rem]" title="<%= video.title %>">
               <%= video.translated_title(:en) %>
             </h3>
             
             <!-- Tags -->
-            <div class="mb-3">
+            <div class="mb-3 min-h-[2rem]">
               <%= render 'video_tags', video: video, limit: 3, size: 'xs', spacing: true %>
             </div>
             
