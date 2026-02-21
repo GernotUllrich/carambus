@@ -1,0 +1,5 @@
+<% page.attributes(controller.action_name).each do |attribute| %>
+  <div class="field-unit field-unit--<%= attribute.html_class %>">
+    <%= render_field attribute, f: form %>
+  </div>
+<% end %>
