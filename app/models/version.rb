@@ -292,7 +292,6 @@ class Version < PaperTrail::Version
               end
             rescue StandardError => e
               Rails.logger.info "#{e} #{e.backtrace.inspect}"
-              return
             end
           when "update"
             args = if h["object_changes"].present?
