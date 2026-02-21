@@ -40,8 +40,11 @@
     <% end %>
   </div>
 
-  <!-- Tag Filter -->
+  <!-- Tag Filter (Simple) -->
   <%= render 'tag_filter' %>
+
+  <!-- Advanced Tag Filter (Multi-Select with AND/OR) -->
+  <%= render 'advanced_tag_filter' %>
 
   <!-- Video Grid -->
   <% if @videos.any? %>

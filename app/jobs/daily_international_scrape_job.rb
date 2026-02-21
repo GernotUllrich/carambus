@@ -12,37 +12,45 @@ class DailyInternationalScrapeJob < ApplicationJob
     scraped_count = ScrapeYoutubeJob.perform_now(days_back: days_back)
     Rails.logger.info "[DailyInternationalScrape] Scraped #{scraped_count} videos"
     
-    # Step 2: Process metadata for unprocessed videos
+    # Step 2: Process metadata for unprocessed videos (auto-tagging)
     process_count = 0
     max_to_process = 200 # Process up to 200 videos per day
     
-    while InternationalVideo.unprocessed.any? && process_count < max_to_process
-      ProcessUnprocessedVideosJob.perform_now
-      process_count += 50
+    videos_to_process = Video.youtube.where(metadata_extracted: false).limit(max_to_process)
+    videos_to_process.each do |video|
+      video.auto_tag!
+      process_count += 1
     end
-    Rails.logger.info "[DailyInternationalScrape] Processed #{process_count} videos"
+    Rails.logger.info "[DailyInternationalScrape] Auto-tagged #{process_count} videos"
     
-    # Step 3: Discover new tournaments
-    discovery_service = TournamentDiscoveryService.new
-    discovery_result = discovery_service.discover_from_videos
-    Rails.logger.info "[DailyInternationalScrape] Discovered #{discovery_result[:tournaments].size} tournaments"
+    # Step 3: Discover new tournaments (if service exists)
+    tournament_count = 0
+    if defined?(TournamentDiscoveryService)
+      discovery_service = TournamentDiscoveryService.new
+      discovery_result = discovery_service.discover_from_videos
+      tournament_count = discovery_result[:tournaments].size
+      Rails.logger.info "[DailyInternationalScrape] Discovered #{tournament_count} tournaments"
+    end
     
     # Step 4: Translate new videos (limit to 100 per day to save costs)
-    translation_service = VideoTranslationService.new
-    if translation_service.translator
-      videos_to_translate = InternationalVideo.where("metadata->>'translated_title' IS NULL")
-                                             .order(published_at: :desc)
-                                             .limit(100)
-      
-      if videos_to_translate.any?
-        translated_count = translation_service.translate_batch(videos_to_translate)
-        Rails.logger.info "[DailyInternationalScrape] Translated #{translated_count} video titles"
+    translated_count = 0
+    if defined?(VideoTranslationService)
+      translation_service = VideoTranslationService.new
+      if translation_service.translator
+        videos_to_translate = Video.youtube.where("data->>'translated_title' IS NULL")
+                                           .order(published_at: :desc)
+                                           .limit(100)
+        
+        if videos_to_translate.any?
+          translated_count = translation_service.translate_batch(videos_to_translate)
+          Rails.logger.info "[DailyInternationalScrape] Translated #{translated_count} video titles"
+        end
       end
     end
     
     # Step 5: Update source statistics
     InternationalSource.active.each do |source|
-      video_count = source.international_videos.count
+      video_count = source.videos.count
       source.update(
         metadata: source.metadata.merge(
           'video_count' => video_count,
@@ -56,8 +64,8 @@ class DailyInternationalScrapeJob < ApplicationJob
     {
       scraped: scraped_count,
       processed: process_count,
-      tournaments: discovery_result[:tournaments].size,
-      translated: translation_service.translator ? videos_to_translate&.size || 0 : 0
+      tournaments: tournament_count,
+      translated: translated_count
     }
   end
 end

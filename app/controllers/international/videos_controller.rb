@@ -24,9 +24,18 @@ module International
       if params[:tag].present?
         @videos = @videos.with_tag(params[:tag])
       elsif params[:tags].present?
-        # Multiple tags (OR logic)
+        # Multiple tags with OR/AND logic
         tags = params[:tags].is_a?(Array) ? params[:tags] : [params[:tags]]
-        @videos = @videos.with_any_tag(tags.compact.reject(&:blank?))
+        tags = tags.compact.reject(&:blank?)
+        
+        if tags.any?
+          # Check tag_mode: 'and' or 'or' (default: 'or')
+          if params[:tag_mode] == 'and'
+            @videos = @videos.with_all_tags(tags)
+          else
+            @videos = @videos.with_any_tag(tags)
+          end
+        end
       end
       
       # Filter by tag group (e.g., all players from a country)
@@ -99,8 +108,8 @@ module International
     def calculate_tag_counts
       # Get tag counts from all videos (limited scope for performance)
       tag_data = Video.youtube
-                      .where("data->'tags' IS NOT NULL")
-                      .pluck(Arel.sql("jsonb_array_elements_text(data->'tags')"))
+                      .where("videos.data->'tags' IS NOT NULL")
+                      .pluck(Arel.sql("jsonb_array_elements_text(videos.data->'tags')"))
                       .group_by(&:itself)
                       .transform_values(&:count)
       

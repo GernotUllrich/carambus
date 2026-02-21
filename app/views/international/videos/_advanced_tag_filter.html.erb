@@ -1,0 +1,206 @@
+<%# Advanced Multi-Tag Filter with AND/OR Logic %>
+
+<div class="bg-white rounded-lg shadow-md p-6 mb-8">
+  <div class="flex items-center justify-between mb-4">
+    <h3 class="text-lg font-semibold text-gray-900 flex items-center">
+      <svg class="w-5 h-5 mr-2 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+        <path d="M3 3a1 1 0 000 2h11a1 1 0 100-2H3zM3 7a1 1 0 000 2h5a1 1 0 000-2H3zM3 11a1 1 0 100 2h4a1 1 0 100-2H3zM13 16a1 1 0 102 0v-5.586l1.293 1.293a1 1 0 001.414-1.414l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 101.414 1.414L13 10.414V16z"/>
+      </svg>
+      Advanced Tag Filter
+    </h3>
+    <button type="button" 
+            onclick="this.closest('.bg-white').querySelector('.advanced-content').classList.toggle('hidden')"
+            class="text-sm text-blue-600 hover:text-blue-800 font-medium">
+      <span class="toggle-text">Show</span> ▼
+    </button>
+  </div>
+
+  <div class="advanced-content hidden">
+    <%= form_with url: international_videos_path, method: :get, id: 'advanced-tag-form', class: 'space-y-4' do |f| %>
+      
+      <!-- Tag Mode Selection (AND/OR) -->
+      <div class="bg-blue-50 rounded-lg p-4 mb-4">
+        <div class="flex items-center space-x-4">
+          <span class="text-sm font-semibold text-gray-700">Match:</span>
+          
+          <label class="inline-flex items-center cursor-pointer">
+            <%= radio_button_tag :tag_mode, 'or', params[:tag_mode] != 'and', class: 'mr-2' %>
+            <span class="text-sm font-medium text-gray-700">
+              ANY selected tags (OR)
+              <span class="text-xs text-gray-500">- Videos with at least one tag</span>
+            </span>
+          </label>
+          
+          <label class="inline-flex items-center cursor-pointer">
+            <%= radio_button_tag :tag_mode, 'and', params[:tag_mode] == 'and', class: 'mr-2' %>
+            <span class="text-sm font-medium text-gray-700">
+              ALL selected tags (AND)
+              <span class="text-xs text-gray-500">- Videos with all tags</span>
+            </span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Selected Tags Display -->
+      <% 
+        selected_tags = params[:tags].is_a?(Array) ? params[:tags] : (params[:tags].present? ? [params[:tags]] : [])
+        selected_tags = selected_tags.compact.reject(&:blank?)
+      %>
+      
+      <% if selected_tags.any? %>
+        <div class="bg-green-50 rounded-lg p-3 mb-4">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-sm font-semibold text-green-900">
+              Selected Tags (<%= selected_tags.size %>):
+            </span>
+            <%= link_to 'Clear All', international_videos_path(request.query_parameters.except(:tags, :tag_mode)), 
+                class: 'text-sm text-green-700 hover:text-green-900 font-medium' %>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <% selected_tags.each do |tag| %>
+              <%= link_to international_videos_path(request.query_parameters.merge(tags: selected_tags - [tag])),
+                  class: "inline-flex items-center px-3 py-1 text-sm font-medium rounded-full bg-green-200 text-green-900 hover:bg-green-300" do %>
+                <%= tag.titleize %>
+                <svg class="ml-1 w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                </svg>
+              <% end %>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+
+      <!-- Content Type Tags -->
+      <div class="mb-4">
+        <h4 class="text-sm font-semibold text-gray-700 mb-3 flex items-center">
+          <span class="mr-2">🎬</span>
+          Content Type
+        </h4>
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-2">
+          <% InternationalHelper::VIDEO_TAG_GROUPS['Content Type'][:tags].each do |tag| %>
+            <label class="inline-flex items-center p-2 rounded border <%= selected_tags.include?(tag) ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:bg-gray-50' %> cursor-pointer">
+              <%= check_box_tag 'tags[]', tag, selected_tags.include?(tag), class: 'mr-2' %>
+              <span class="text-sm font-medium text-gray-700"><%= tag.titleize %></span>
+            </label>
+          <% end %>
+        </div>
+      </div>
+
+      <!-- Top Players -->
+      <div class="mb-4">
+        <h4 class="text-sm font-semibold text-gray-700 mb-3 flex items-center">
+          <span class="mr-2">⭐</span>
+          Top Players
+        </h4>
+        
+        <!-- Country Tabs -->
+        <div class="mb-3">
+          <div class="text-xs font-medium text-gray-600 mb-2">Filter by Country:</div>
+          <div class="flex flex-wrap gap-1" id="country-tabs">
+            <button type="button" 
+                    onclick="showAllPlayers()" 
+                    class="country-tab active px-3 py-1 text-xs font-medium bg-gray-200 hover:bg-gray-300 rounded"
+                    data-country="all">
+              All
+            </button>
+            <% InternationalHelper.player_tags_by_country.keys.sort.each do |country| %>
+              <button type="button" 
+                      onclick="filterPlayersByCountry('<%= country %>')" 
+                      class="country-tab px-3 py-1 text-xs font-medium bg-gray-100 hover:bg-gray-200 rounded"
+                      data-country="<%= country %>">
+                <%= country %> (<%= InternationalHelper.player_tags_by_country[country].size %>)
+              </button>
+            <% end %>
+          </div>
+        </div>
+
+        <!-- Player Checkboxes -->
+        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2">
+          <% InternationalHelper::WORLD_CUP_TOP_32.sort_by { |_, info| info[:rank] }.each do |tag, info| %>
+            <label class="player-checkbox inline-flex items-center p-2 rounded border <%= selected_tags.include?(tag.downcase) ? 'border-yellow-500 bg-yellow-50' : 'border-gray-200 hover:bg-gray-50' %> cursor-pointer"
+                   data-country="<%= info[:country] %>">
+              <%= check_box_tag 'tags[]', tag.downcase, selected_tags.include?(tag.downcase), class: 'mr-2' %>
+              <span class="text-xs font-medium text-gray-700" title="<%= info[:full_name] %> - Rank #<%= info[:rank] %>">
+                <span class="text-gray-400">#<%= info[:rank] %></span> <%= tag %>
+              </span>
+            </label>
+          <% end %>
+        </div>
+      </div>
+
+      <!-- Quality Tags -->
+      <div class="mb-4">
+        <h4 class="text-sm font-semibold text-gray-700 mb-3 flex items-center">
+          <span class="mr-2">🎥</span>
+          Quality
+        </h4>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+          <% InternationalHelper::VIDEO_TAG_GROUPS['Quality'][:tags].each do |tag| %>
+            <label class="inline-flex items-center p-2 rounded border <%= selected_tags.include?(tag) ? 'border-indigo-500 bg-indigo-50' : 'border-gray-200 hover:bg-gray-50' %> cursor-pointer">
+              <%= check_box_tag 'tags[]', tag, selected_tags.include?(tag), class: 'mr-2' %>
+              <span class="text-sm font-medium text-gray-700"><%= tag.upcase %></span>
+            </label>
+          <% end %>
+        </div>
+      </div>
+
+      <!-- Submit Button -->
+      <div class="flex items-center justify-between pt-4 border-t border-gray-200">
+        <div class="text-sm text-gray-600">
+          <% if selected_tags.any? %>
+            Will show videos with <strong><%= params[:tag_mode] == 'and' ? 'ALL' : 'ANY' %></strong> of the <%= selected_tags.size %> selected tags
+          <% else %>
+            Select tags above to filter videos
+          <% end %>
+        </div>
+        <%= f.submit 'Apply Filter', class: 'px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors' %>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<script>
+  function filterPlayersByCountry(country) {
+    // Update tab styling
+    document.querySelectorAll('.country-tab').forEach(tab => {
+      tab.classList.remove('active', 'bg-gray-200');
+      tab.classList.add('bg-gray-100');
+    });
+    event.target.classList.add('active', 'bg-gray-200');
+    event.target.classList.remove('bg-gray-100');
+    
+    // Show/hide players
+    document.querySelectorAll('.player-checkbox').forEach(checkbox => {
+      if (checkbox.dataset.country === country) {
+        checkbox.style.display = 'inline-flex';
+      } else {
+        checkbox.style.display = 'none';
+      }
+    });
+  }
+  
+  function showAllPlayers() {
+    // Update tab styling
+    document.querySelectorAll('.country-tab').forEach(tab => {
+      tab.classList.remove('active', 'bg-gray-200');
+      tab.classList.add('bg-gray-100');
+    });
+    event.target.classList.add('active', 'bg-gray-200');
+    event.target.classList.remove('bg-gray-100');
+    
+    // Show all players
+    document.querySelectorAll('.player-checkbox').forEach(checkbox => {
+      checkbox.style.display = 'inline-flex';
+    });
+  }
+  
+  // Toggle button text
+  document.querySelector('.advanced-content').addEventListener('toggle', function() {
+    const toggleText = document.querySelector('.toggle-text');
+    if (this.classList.contains('hidden')) {
+      toggleText.textContent = 'Show';
+    } else {
+      toggleText.textContent = 'Hide';
+    }
+  });
+</script>

@@ -36,7 +36,7 @@ module InternationalHelper
     'HWANG' => { full_name: 'HWANG Bong Joo', country: 'KR', rank: 21 },
     'SALMAN' => { full_name: 'Gokhan SALMAN', country: 'TR', rank: 22 },
     'THAI' => { full_name: 'THAI Hong Chiem', country: 'VN', rank: 23 },
-    'CHA' => { full_name: 'CHA Myeong Jong', country: 'KR', rank: 24 },
+    # 'CHA' => { full_name: 'CHA Myeong Jong', country: 'KR', rank: 24 }, # Disabled: too many false positives (Championship, etc.)
     'POLYCHRONOPOULOS' => { full_name: 'Nikos POLYCHRONOPOULOS', country: 'GR', rank: 25 },
     'FORTHOMME' => { full_name: 'Roland FORTHOMME', country: 'BE', rank: 26 },
     'DAO' => { full_name: 'DAO Van Ly', country: 'VN', rank: 27 },

@@ -176,3 +176,6 @@ gem 'prawn-table', '~> 0.2'
 
 # OCR for screenshot/image text extraction (requires tesseract-ocr system package)
 gem 'rtesseract', '~> 3.1'
+
+# Cron job management for scheduled tasks
+gem 'whenever', require: false

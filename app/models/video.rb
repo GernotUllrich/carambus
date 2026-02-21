@@ -64,10 +64,10 @@ class Video < ApplicationRecord
   scope :youtube, -> { joins(:international_source).where(international_sources: { source_type: 'youtube' }) }
   
   # Tag filtering scopes
-  scope :with_tag, ->(tag) { where("data @> ?", { tags: [tag] }.to_json) }
-  scope :with_any_tag, ->(tags) { where("data->'tags' ?| array[?]", tags) }
-  scope :with_all_tags, ->(tags) { where("data->'tags' ?& array[?]", tags) }
-  scope :without_tags, -> { where("data->'tags' IS NULL OR jsonb_array_length(data->'tags') = 0") }
+  scope :with_tag, ->(tag) { where("videos.data @> ?", { tags: [tag] }.to_json) }
+  scope :with_any_tag, ->(tags) { where("videos.data->'tags' ?| ARRAY[:tags]::text[]", tags: tags) }
+  scope :with_all_tags, ->(tags) { where("videos.data->'tags' ?& ARRAY[:tags]::text[]", tags: tags) }
+  scope :without_tags, -> { where("videos.data->'tags' IS NULL OR jsonb_array_length(videos.data->'tags') = 0") }
 
   # Display methods
   def display_title
@@ -248,9 +248,17 @@ class Video < ApplicationRecord
   # Content type detection patterns
   CONTENT_TYPE_DETECTORS = {
     'full_game' => lambda { |video|
-      video.duration && video.duration > 1800 &&
-        video.title.match?(/\bvs\.?\b|\bgegen\b|\-/i) &&
-        video.extracted_players.size >= 2
+      # Long duration + matchup pattern + player names detected
+      has_duration = video.duration && video.duration > 1800
+      has_vs_pattern = video.title.match?(/\bvs\.?\b|\bgegen\b/i)
+      has_dash_pattern = video.title.match?(/\s+\-\s+/) # Dash with spaces (common in matchups)
+      has_matchup = has_vs_pattern || has_dash_pattern
+      
+      # Check if we can detect 2+ player names in title
+      detected_players = video.detect_player_tags
+      has_players = detected_players.size >= 2
+      
+      has_duration && has_matchup && has_players
     },
     'shot_of_the_day' => lambda { |video|
       video.duration && video.duration < 300 &&
