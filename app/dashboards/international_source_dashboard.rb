@@ -20,7 +20,7 @@ class InternationalSourceDashboard < Administrate::BaseDashboard
     last_scraped_at: Field::DateTime,
     created_at: Field::DateTime,
     updated_at: Field::DateTime,
-    videos: Field::HasMany
+    video_count: Field::Number.with_options(searchable: false)
   }.freeze
 
   # COLLECTION_ATTRIBUTES
@@ -43,13 +43,12 @@ class InternationalSourceDashboard < Administrate::BaseDashboard
     name
     source_type
     base_url
-    api_credentials
     active
     metadata
     last_scraped_at
+    video_count
     created_at
     updated_at
-    videos
   ].freeze
 
   # FORM_ATTRIBUTES

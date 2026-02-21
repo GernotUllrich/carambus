@@ -38,6 +38,11 @@ class InternationalSource < ApplicationRecord
   has_many :videos, dependent: :destroy, foreign_key: :international_source_id
   has_many :international_videos, dependent: :destroy  # Legacy, kept for compatibility
   has_many :international_tournaments, dependent: :nullify
+  
+  # For admin display
+  def video_count
+    videos.count
+  end
 
   # Validations
   validates :name, presence: true
