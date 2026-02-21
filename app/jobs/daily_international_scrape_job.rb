@@ -37,9 +37,10 @@ class DailyInternationalScrapeJob < ApplicationJob
     if defined?(VideoTranslationService)
       translation_service = VideoTranslationService.new
       if translation_service.translator
-        videos_to_translate = InternationalVideo.where("metadata->>'translated_title' IS NULL")
-                                                .order(published_at: :desc)
-                                                .limit(100)
+        videos_to_translate = Video.youtube
+                                   .where("data->>'translated_title' IS NULL")
+                                   .order(published_at: :desc)
+                                   .limit(100)
         
         if videos_to_translate.any?
           translated_count = translation_service.translate_batch(videos_to_translate, target_language: 'en')
