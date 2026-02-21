@@ -1004,7 +1004,7 @@ class UmbScraper
               umb_organization: data[:organization],
               tournament_type: tournament_type,
               scraped_at: Time.current.iso8601
-            }.to_json
+            }
           )
           
           if tournament.save
@@ -1046,7 +1046,7 @@ class UmbScraper
               umb_type: data[:tournament_type_hint],
               umb_organization: data[:organization],
               last_updated: Time.current.iso8601
-            ).to_json
+            )
           )
           Rails.logger.info "[UmbScraper] Updated tournament: #{data[:name]}"
         end
