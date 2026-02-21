@@ -10,7 +10,7 @@
 %>
 
 <% if tags.present? && tags.any? %>
-  <div class="flex flex-wrap gap-1 <%= 'mt-2' if local_assigns[:spacing] != false %>">
+  <div class="flex flex-wrap gap-1">
     <% tags.take(limit).each do |tag| %>
       <%= link_to international_videos_path(tag: tag),
           class: "inline-flex items-center px-2 py-0.5 text-#{size} font-medium rounded transition-colors #{video_tag_badge_class(tag)} hover:opacity-80",
