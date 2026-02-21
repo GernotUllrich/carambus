@@ -1,6 +1,50 @@
 # frozen_string_literal: true
 
 namespace :umb do
+  desc "Setup UMB infrastructure (create UMB organizer region)"
+  task setup: :environment do
+    puts "\n=== UMB Infrastructure Setup ==="
+    
+    # Check if UMB region exists
+    umb = Region.find_by(shortname: 'UMB')
+    
+    if umb
+      puts "✓ UMB Region already exists (ID: #{umb.id})"
+    else
+      puts "Creating UMB Region..."
+      
+      # Find or create International country
+      international_country = Country.find_or_create_by!(name: 'International') do |c|
+        c.code = 'INT'
+      end
+      
+      umb = Region.create!(
+        shortname: 'UMB',
+        name: 'Union Mondiale de Billard',
+        email: 'info@umb-carom.org',
+        website: 'https://www.umb-carom.org',
+        country_id: international_country.id,
+        scrape_data: {
+          'created_from' => 'umb_setup_task',
+          'description' => 'World governing body for carom billiards',
+          'created_at' => Time.current.iso8601
+        }
+      )
+      
+      puts "✓ UMB Region created (ID: #{umb.id})"
+    end
+    
+    # Check InternationalSource
+    umb_source = InternationalSource.find_by(source_type: 'umb')
+    if umb_source
+      puts "✓ UMB Source exists (ID: #{umb_source.id})"
+    else
+      puts "⚠️ UMB Source missing - run: rails runner db/seeds/international_sources.rb"
+    end
+    
+    puts "\n✅ UMB infrastructure ready!"
+  end
+
   desc "Scrape UMB future tournaments"
   task scrape_future: :environment do
     puts "Scraping UMB future tournaments..."
