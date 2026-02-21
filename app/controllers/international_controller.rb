@@ -3,21 +3,20 @@
 # Main controller for international section
 class InternationalController < ApplicationController
   def index
-    # Official UMB Tournaments (next 6 months only)
+    # Upcoming Tournaments (next 6 months, only 3 for landing page)
     six_months_from_now = 6.months.from_now.to_date
-    @umb_tournaments = InternationalTournament.from_umb
-                                              .where('date >= ? AND date <= ?', Date.today, six_months_from_now)
-                                              .includes(:discipline, :international_source)
-                                              .order(date: :asc)
-                                              .limit(12)
-    
-    # Other upcoming international tournaments (non-UMB, next 6 months only)
     @upcoming_tournaments = Tournament.international
                                       .where('date >= ? AND date <= ?', Date.today, six_months_from_now)
-                                      .where.not(id: @umb_tournaments.pluck(:id))
                                       .includes(:discipline, :international_source)
                                       .order(date: :asc)
-                                      .limit(10)
+                                      .limit(3)
+    
+    # Recent Tournaments (6 recently finished tournaments)
+    @recent_tournaments = Tournament.international
+                                    .where('date < ?', Date.today)
+                                    .includes(:discipline, :international_source)
+                                    .order(date: :desc)
+                                    .limit(6)
     
     # Videos - YouTube scraped videos (unassigned or assigned to tournaments)
     @recent_videos = Video.youtube

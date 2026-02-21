@@ -7,9 +7,26 @@ module International
 
     def index
       # Use STI: Tournament.international
+      six_months_from_now = 6.months.from_now.to_date
+      
       tournaments_query = Tournament.international
                                     .includes(:discipline, :international_source, :videos)
-                                    .order(date: :desc)
+      
+      # Filter by time period
+      if params[:filter] == 'past'
+        # Only past tournaments
+        tournaments_query = tournaments_query.where('date < ?', Date.today)
+                                            .order(date: :desc)
+      elsif params[:filter] == 'upcoming'
+        # Only upcoming tournaments (max 6 months)
+        tournaments_query = tournaments_query.where('date >= ? AND date <= ?', Date.today, six_months_from_now)
+                                            .order(date: :asc)
+      else
+        # Default: All tournaments (but future limited to 6 months)
+        tournaments_query = tournaments_query.where('date < ? OR (date >= ? AND date <= ?)', 
+                                                    Date.today, Date.today, six_months_from_now)
+                                            .order(date: :desc)
+      end
       
       # SQL Filters (can use database)
       # Handle discipline filter (including group filters)

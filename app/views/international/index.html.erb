@@ -4,65 +4,11 @@
     <p class="text-xl text-gray-600">World Cups, Championships, and Tournament Coverage</p>
   </div>
 
-  <!-- Official UMB Tournaments (Next 6 Months) -->
-  <% if @umb_tournaments.any? %>
-    <section class="mb-12">
-      <div class="flex justify-between items-center mb-6">
-        <div class="flex items-center gap-3">
-          <h2 class="text-3xl font-bold text-gray-900">Official UMB Tournaments</h2>
-          <span class="inline-flex items-center px-3 py-1 text-sm font-semibold bg-blue-600 text-white rounded-full">
-            <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-            </svg>
-            Next 6 Months
-          </span>
-        </div>
-        <%= link_to 'View All →', international_tournaments_path, class: 'text-blue-600 hover:text-blue-800 font-semibold' %>
-      </div>
-      
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <% @umb_tournaments.each do |tournament| %>
-          <%= link_to international_tournament_path(tournament), class: 'block bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg shadow-md hover:shadow-xl transition-all p-6 border-2 border-blue-200' do %>
-            <div class="mb-3 flex items-center justify-between">
-              <span class="inline-block px-3 py-1 text-sm font-semibold text-blue-800 bg-blue-200 rounded-full">
-                <%= tournament.tournament_type&.humanize || 'Tournament' %>
-              </span>
-              <span class="inline-flex items-center px-2 py-1 text-xs font-bold bg-blue-600 text-white rounded-full">
-                <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                </svg>
-                UMB
-              </span>
-            </div>
-            <h3 class="text-xl font-bold text-gray-900 mb-3"><%= tournament.name %></h3>
-            <div class="text-gray-700 space-y-2">
-              <p class="font-medium"><%= tournament.discipline.translated_name(:en) %></p>
-              <p class="flex items-center text-blue-700 font-semibold">
-                <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
-                </svg>
-                <%= tournament.date_range %>
-              </p>
-              <% if tournament.location.present? %>
-                <p class="flex items-center">
-                  <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
-                  </svg>
-                  <%= tournament.location %>
-                </p>
-              <% end %>
-            </div>
-          <% end %>
-        <% end %>
-      </div>
-    </section>
-  <% end %>
-
   <!-- Upcoming Tournaments -->
   <section class="mb-12">
     <div class="flex justify-between items-center mb-6">
       <h2 class="text-3xl font-bold text-gray-900">Upcoming Tournaments</h2>
-      <%= link_to 'View All →', international_tournaments_path, class: 'text-blue-600 hover:text-blue-800 font-semibold' %>
+      <%= link_to 'View All →', international_tournaments_path(filter: 'upcoming'), class: 'text-blue-600 hover:text-blue-800 font-semibold' %>
     </div>
     
     <% if @upcoming_tournaments.any? %>
@@ -141,46 +87,48 @@
     <% end %>
   </section>
 
-  <!-- Recent Results -->
+  <!-- Recent Tournaments -->
   <section>
     <div class="flex justify-between items-center mb-6">
-      <h2 class="text-3xl font-bold text-gray-900">Recent Results</h2>
-      <%= link_to 'All Tournaments →', international_tournaments_path, class: 'text-blue-600 hover:text-blue-800 font-semibold' %>
+      <h2 class="text-3xl font-bold text-gray-900">Recent Tournaments</h2>
+      <%= link_to 'All Tournaments →', international_tournaments_path(filter: 'past'), class: 'text-blue-600 hover:text-blue-800 font-semibold' %>
     </div>
     
-    <% if @recent_results.any? %>
-      <div class="bg-white rounded-lg shadow-md overflow-hidden">
-        <table class="min-w-full divide-y divide-gray-200">
-          <thead class="bg-gray-50">
-            <tr>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Position</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Player</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tournament</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-            </tr>
-          </thead>
-          <tbody class="bg-white divide-y divide-gray-200">
-            <% @recent_results.each_with_index do |result, index| %>
-              <tr class="hover:bg-gray-50">
-                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                  <%= index + 1 %>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  <%= result.player&.fl_name || result.player&.name || '-' %>
-                </td>
-                <td class="px-6 py-4 text-sm text-gray-900">
-                  <%= link_to result.game.tournament.title, international_tournament_path(result.game.tournament), class: 'text-blue-600 hover:text-blue-800' %>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                  <%= result.game.tournament.end_date&.strftime('%b %Y') || result.game.tournament.date&.strftime('%b %Y') %>
-                </td>
-              </tr>
-            <% end %>
-          </tbody>
-        </table>
+    <% if @recent_tournaments.any? %>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <% @recent_tournaments.each do |tournament| %>
+          <%= link_to international_tournament_path(tournament), class: 'block bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow p-6' do %>
+            <div class="mb-4 flex items-center gap-2">
+              <span class="inline-block px-3 py-1 text-sm font-semibold text-gray-700 bg-gray-100 rounded-full">
+                <%= tournament.tournament_type&.humanize || 'Tournament' %>
+              </span>
+              <% if tournament.official_umb? %>
+                <span class="inline-flex items-center px-2 py-0.5 text-xs font-semibold bg-blue-100 text-blue-800 rounded-full">
+                  <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                  </svg>
+                  UMB
+                </span>
+              <% end %>
+            </div>
+            <h3 class="text-xl font-bold text-gray-900 mb-2"><%= tournament.name %></h3>
+            <div class="text-gray-600 space-y-1">
+              <p><%= tournament.discipline.translated_name(:en) %></p>
+              <p><%= tournament.date_range %></p>
+              <% if tournament.location.present? %>
+                <p class="flex items-center">
+                  <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
+                  </svg>
+                  <%= tournament.location %>
+                </p>
+              <% end %>
+            </div>
+          <% end %>
+        <% end %>
       </div>
     <% else %>
-      <p class="text-gray-600 italic">No recent results available.</p>
+      <p class="text-gray-600 italic">No recent tournaments found.</p>
     <% end %>
   </section>
 </div>
