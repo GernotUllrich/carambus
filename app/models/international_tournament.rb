@@ -17,18 +17,6 @@ class InternationalTournament < Tournament
   validates :international_source_id, presence: true, if: -> { external_id.present? }
   validates :external_id, uniqueness: { scope: :international_source_id }, allow_nil: true
   
-  # WORKAROUND: Override broken polymorphic association
-  # The inherited organizer association doesn't work in STI subclasses
-  # Provide manual getter that bypasses ActiveRecord association
-  def read_organizer
-    return nil unless organizer_id && organizer_type
-    organizer_type.constantize.find_by(id: organizer_id)
-  end
-  
-  def read_season
-    return nil unless season_id
-    Season.find_by(id: season_id)
-  end
   
   # Scopes
   scope :from_umb, -> { joins(:international_source).where(international_sources: { source_type: 'umb' }) }
@@ -95,7 +83,7 @@ class InternationalTournament < Tournament
     json_data['country']
   end
   
-  def organizer
+  def organizer_name
     json_data['organizer']
   end
   

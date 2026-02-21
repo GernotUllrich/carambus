@@ -984,8 +984,10 @@ class UmbScraper
           umb_organizer = find_or_create_umb_organizer
           location_record = find_or_create_location_from_text(data[:location]) if data[:location].present?
           
-          # WORKAROUND: InternationalTournament has broken polymorphic associations
-          # Set IDs directly instead of using association objects
+          # Set associations properly
+          tournament.organizer = umb_organizer
+          tournament.season = season
+          
           tournament.assign_attributes(
             end_date: dates[:end_date],
             location_text: data[:location],
@@ -993,9 +995,6 @@ class UmbScraper
             discipline: discipline,
             international_source: @umb_source,
             source_url: data[:source_url],
-            season_id: season&.id,
-            organizer_id: umb_organizer&.id,
-            organizer_type: 'Region',
             modus: 'international',
             single_or_league: 'single',
             plan_or_show: 'show',
