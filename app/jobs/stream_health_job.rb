@@ -11,9 +11,9 @@ class StreamHealthJob < ApplicationJob
     @config = StreamConfiguration.find(stream_config_id)
     @raspi_ip = @config.raspi_ip
     @raspi_port = @config.raspi_ssh_port || 22
-    @table_number = @config.table.number
+    @table_id = @config.table.id
     
-    Rails.logger.info "[StreamHealth] Checking health for Table #{@table_number}"
+    Rails.logger.info "[StreamHealth] Checking health for Table ID #{@table_id} (#{@config.table.name})"
     
     # Check if service is running
     service_active = check_service_active
@@ -58,7 +58,7 @@ class StreamHealthJob < ApplicationJob
   private
   
   def check_service_active
-    cmd = "sudo systemctl is-active carambus-stream@#{@table_number}.service"
+    cmd = "sudo systemctl is-active carambus-stream@#{@table_id}.service"
     result = execute_ssh_command(cmd)
     result.success? && result.output.strip == 'active'
   end
@@ -76,7 +76,7 @@ class StreamHealthJob < ApplicationJob
   
   def check_for_errors
     # Get last 50 lines of journal and look for errors
-    cmd = "sudo journalctl -u carambus-stream@#{@table_number}.service -n 50 --no-pager | grep -i 'error\\|failed\\|fatal' || true"
+    cmd = "sudo journalctl -u carambus-stream@#{@table_id}.service -n 50 --no-pager | grep -i 'error\\|failed\\|fatal' || true"
     result = execute_ssh_command(cmd)
     
     return [] unless result.success?
@@ -87,7 +87,7 @@ class StreamHealthJob < ApplicationJob
   end
   
   def get_stream_uptime
-    cmd = "systemctl show carambus-stream@#{@table_number}.service --property=ActiveEnterTimestamp --value"
+    cmd = "systemctl show carambus-stream@#{@table_id}.service --property=ActiveEnterTimestamp --value"
     result = execute_ssh_command(cmd)
     
     return nil unless result.success?
