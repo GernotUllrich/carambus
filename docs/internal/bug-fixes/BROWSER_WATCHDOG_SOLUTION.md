@@ -329,6 +329,34 @@ journalctl -u scoreboard-browser-restart.service --since "7 days ago" | grep "Br
 [2025-02-10 14:30:05] ✅ Browser restarted successfully
 ```
 
+## 📄 config/scoreboard_url und sb_state
+
+**Lokal-Server (z. B. BCW):** Der Kiosk liest die URL beim Start aus `config/scoreboard_url` (bzw. auf dem Server aus `/var/www/…/shared/config/scoreboard_url`). Welche Ansicht geöffnet wird, hängt vom Parameter **`sb_state`** ab:
+
+- `sb_state=welcome` – Willkommensseite
+- `sb_state=table_scores` – Tischübersicht (für große Anzeige empfohlen)
+
+**Wichtig:** Die gewünschte URL muss **vor dem ersten Start bzw. vor jedem Neustart** in der Datei stehen. Nach einem Watchdog-Neustart startet der Browser exakt mit der URL aus dieser Datei.
+
+**Beispiel für BCW (lokaler Server, Port 3131):**
+```text
+http://localhost:3131/locations/0819bf0d7893e629200c20497ef9cfff?sb_state=table_scores
+```
+
+Die App überschreibt `config/scoreboard_url` nicht. Die Datei ist die einzige Quelle für die Kiosk-URL; Änderungen nimmt man direkt in der Datei vor (Fix 2025-02).
+
+**Auf dem Produktionsserver prüfen/setzen:**
+```bash
+# Auf bcw (oder dem Pi) – Pfad je nach Deployment
+cat /var/www/carambus_bcw/shared/config/scoreboard_url
+# Sollte sb_state=table_scores enthalten, wenn die Tischübersicht gewünscht ist
+
+# Manuell setzen (Beispiel):
+echo 'http://localhost:3131/locations/0819bf0d7893e629200c20497ef9cfff?sb_state=table_scores' | sudo tee /var/www/carambus_bcw/shared/config/scoreboard_url
+# Anschließend: Browser-Neustart (oder warten bis zum nächsten Watchdog-Lauf)
+sudo systemctl restart scoreboard-kiosk
+```
+
 ## 🔗 Zusammenspiel mit JavaScript-Lösung
 
 Die vorherige JavaScript-Lösung (`table_scores_monitor_controller.js`) bleibt aktiv und ergänzt den Watchdog:

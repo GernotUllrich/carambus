@@ -2,11 +2,27 @@
 
 ## Server Info
 
-- **Host:** bc-wedel.duckdns.org (192.168.2.210)
+- **Host:** bc-wedel.duckdns.org (192.168.2.210), lokal: 192.168.2.200, SSH alias: `bcw`
 - **System:** Raspberry Pi 5 Model B
 - **Service:** scoreboard-kiosk.service (bereits vorhanden!)
 - **Display:** Große Übersichtstafel (table_scores)
 - **SSH:** Port 8910, User: www-data
+
+### Scoreboard-URL für lokalen Server (wichtig)
+
+Damit nach einem Watchdog-Neustart die **Tischübersicht** (`table_scores`) und nicht die Willkommensseite geladen wird, muss `config/scoreboard_url` auf dem Server die gewünschte URL inkl. **`sb_state=table_scores`** enthalten. Beispiel:
+
+```text
+http://localhost:3131/locations/0819bf0d7893e629200c20497ef9cfff?sb_state=table_scores
+```
+
+Die Location-ID ist die MD5 der Location (Scoreboard-User `scoreboard@carambus.de`). Prüfen/setzen auf dem Server:
+
+```bash
+ssh bcw  # oder ssh -p 8910 www-data@bc-wedel.duckdns.org
+cat /var/www/carambus_bcw/shared/config/scoreboard_url
+# Falls sb_state=welcome: Datei anpassen (siehe docs/internal/bug-fixes/BROWSER_WATCHDOG_SOLUTION.md)
+```
 
 ## Quick Installation (2 Minuten)
 
