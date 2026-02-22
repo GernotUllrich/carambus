@@ -36,11 +36,13 @@ class Version < PaperTrail::Version
 
   # Helper method to perform HTTP GET requests with SSL verification disabled
   # This is useful in development environments where SSL certificates might not be properly configured
+  # (e.g. connecting by IP when the cert is for a hostname, or self-signed certs)
   def self.http_get_with_ssl_bypass(uri)
     http = Net::HTTP.new(uri.host, uri.port)
     if uri.scheme == "https"
       http.use_ssl = true
       http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+      http.verify_hostname = false
     end
     request = Net::HTTP::Get.new(uri.request_uri)
     response = http.request(request)
