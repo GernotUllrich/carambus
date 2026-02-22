@@ -15,9 +15,9 @@ class StreamControlJob < ApplicationJob
     @config = StreamConfiguration.find(stream_config_id)
     @raspi_ip = @config.raspi_ip
     @raspi_port = @config.raspi_ssh_port || 22
-    @table_number = @config.table.number
+    @table_id = @config.table.id
     
-    Rails.logger.info "[StreamControl] #{action.upcase} stream for Table #{@table_number} at #{@raspi_ip}"
+    Rails.logger.info "[StreamControl] #{action.upcase} stream for Table ID #{@table_id} (#{@config.table.name}) at #{@raspi_ip}"
     
     case action
     when 'start'
@@ -49,7 +49,7 @@ class StreamControlJob < ApplicationJob
     deploy_config_file
     
     # Start the systemd service
-    cmd = "sudo systemctl start carambus-stream@#{@table_number}.service"
+    cmd = "sudo systemctl start carambus-stream@#{@table_id}.service"
     result = execute_ssh_command(cmd)
     
     if result.success?
@@ -68,7 +68,7 @@ class StreamControlJob < ApplicationJob
   end
   
   def handle_stop
-    cmd = "sudo systemctl stop carambus-stream@#{@table_number}.service"
+    cmd = "sudo systemctl stop carambus-stream@#{@table_id}.service"
     result = execute_ssh_command(cmd)
     
     if result.success?
@@ -93,14 +93,14 @@ class StreamControlJob < ApplicationJob
   
   # Check if the stream service is running
   def stream_running?
-    cmd = "systemctl is-active carambus-stream@#{@table_number}.service"
+    cmd = "systemctl is-active carambus-stream@#{@table_id}.service"
     result = execute_ssh_command(cmd)
     result.success? && result.output.strip == 'active'
   end
   
   # Get error message from systemd journal
   def get_stream_error
-    cmd = "sudo journalctl -u carambus-stream@#{@table_number}.service -n 20 --no-pager"
+    cmd = "sudo journalctl -u carambus-stream@#{@table_id}.service -n 20 --no-pager"
     result = execute_ssh_command(cmd)
     result.success? ? result.output.lines.last(5).join : "Unknown error"
   end
@@ -108,8 +108,8 @@ class StreamControlJob < ApplicationJob
   # Deploy updated configuration file to Raspberry Pi
   def deploy_config_file
     config_content = generate_config_file
-    temp_file = "/tmp/stream-table-#{@table_number}.conf"
-    target_file = "/etc/carambus/stream-table-#{@table_number}.conf"
+    temp_file = "/tmp/stream-table-#{@table_id}.conf"
+    target_file = "/etc/carambus/stream-table-#{@table_id}.conf"
     
     # Upload file using base64 encoding (works over SSH exec)
     Net::SSH.start(@raspi_ip, ssh_user, ssh_options) do |ssh|
@@ -130,8 +130,11 @@ class StreamControlJob < ApplicationJob
   
   # Generate configuration file content
   def generate_config_file
+    table = @config.table
+    location = @config.location
+    
     <<~CONFIG
-      # Carambus Stream Configuration for Table #{@table_number}
+      # Carambus Stream Configuration for Table ID #{@table_id} (#{table.name})
       # Generated: #{Time.current}
       
       # Stream Destination
@@ -147,6 +150,7 @@ class StreamControlJob < ApplicationJob
       # Overlay Settings
       OVERLAY_ENABLED=#{@config.overlay_enabled ? 'true' : 'false'}
       OVERLAY_URL=#{@config.scoreboard_overlay_url}
+      OVERLAY_URL_BASE=#{@config.scoreboard_overlay_url&.split('/locations')&.first || ENV['STREAMING_SERVER_URL'] || 'http://localhost:3131'}
       OVERLAY_POSITION=#{@config.overlay_position}
       OVERLAY_HEIGHT=#{@config.overlay_height}
       
@@ -154,10 +158,25 @@ class StreamControlJob < ApplicationJob
       VIDEO_BITRATE=#{@config.video_bitrate}
       AUDIO_BITRATE=#{@config.audio_bitrate}
       
+      # Perspective Correction
+      PERSPECTIVE_ENABLED=#{@config.perspective_enabled ? 'true' : 'false'}
+      PERSPECTIVE_COORDS=#{@config.perspective_coords || '0:0:W:0:W:H:0:H'}
+      
+      # Camera Manual Settings
+      FOCUS_AUTO=#{@config.focus_auto || 0}
+      EXPOSURE_AUTO=#{@config.exposure_auto || 1}
+      FOCUS_ABSOLUTE=#{@config.focus_absolute || ''}
+      EXPOSURE_ABSOLUTE=#{@config.exposure_absolute || ''}
+      BRIGHTNESS=#{@config.brightness || ''}
+      CONTRAST=#{@config.contrast || ''}
+      SATURATION=#{@config.saturation || ''}
+      
       # Metadata
-      TABLE_ID=#{@config.table.id}
-      TABLE_NUMBER=#{@table_number}
-      LOCATION_NAME="#{@config.location.name}"
+      TABLE_ID=#{@table_id}
+      TABLE_NAME="#{table.name}"
+      LOCATION_MD5=#{location.md5}
+      SERVER_URL=#{ENV['STREAMING_SERVER_URL'] || 'http://localhost:3131'}
+      LOCATION_NAME="#{location.name}"
       GENERATED_AT="#{Time.current}"
     CONFIG
   end

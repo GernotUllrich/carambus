@@ -85,3 +85,4 @@ Thumbs.db
 /doc/doc-local/**/*.log
 /doc/doc-local/**/*.md
 import_all.log
+/app/assets/builds/**/*
