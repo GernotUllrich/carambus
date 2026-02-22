@@ -6,7 +6,7 @@
 
   <!-- Search and Filters -->
   <div class="bg-white rounded-lg shadow-md p-6 mb-8">
-    <%= form_with url: videos_path, method: :get, class: 'space-y-4' do |f| %>
+    <%= form_with url: international_videos_path, method: :get, class: 'space-y-4' do |f| %>
       <!-- Search -->
       <div>
         <%= f.text_field :search,
@@ -48,7 +48,7 @@
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8 auto-rows-fr">
       <% @videos.each do |video| %>
         <div class="bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow overflow-hidden">
-          <%= link_to video_path(video), class: 'block' do %>
+          <%= link_to international_video_path(video), class: 'block' do %>
             <!-- Thumbnail -->
             <% if video.thumbnail_url.present? %>
               <div class="relative pb-[56.25%] bg-gray-200">

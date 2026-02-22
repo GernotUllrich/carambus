@@ -53,13 +53,13 @@
   <section class="mb-12">
     <div class="flex justify-between items-center mb-6">
       <h2 class="text-3xl font-bold text-gray-900">Latest Videos</h2>
-      <%= link_to 'View All →', videos_path, class: 'text-blue-600 hover:text-blue-800 font-semibold' %>
+      <%= link_to 'View All →', international_videos_path, class: 'text-blue-600 hover:text-blue-800 font-semibold' %>
     </div>
     
     <% if @recent_videos.any? %>
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         <% @recent_videos.each do |video| %>
-          <%= link_to video_path(video), class: 'block bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow overflow-hidden' do %>
+          <%= link_to international_video_path(video), class: 'block bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow overflow-hidden' do %>
             <% if video.thumbnail_url.present? %>
               <div class="relative pb-[56.25%]">
                 <%= image_tag video.thumbnail_url, class: 'absolute inset-0 w-full h-full object-cover', alt: video.title %>
