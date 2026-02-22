@@ -167,4 +167,71 @@ namespace :youtube do
     puts "Total channels: #{InternationalSource::KNOWN_YOUTUBE_CHANNELS.size}"
     puts "="*80
   end
+
+  desc 'Add a new YouTube channel as InternationalSource'
+  task :add_source, [:name, :channel_id] => :environment do |_t, args|
+    name = args[:name]
+    channel_id = args[:channel_id]
+    
+    if name.blank? || channel_id.blank?
+      puts "\n❌ Usage: rake youtube:add_source[\"Channel Name\",\"UCxxxxxxxxxx\"]"
+      puts "Example: rake youtube:add_source[\"My Carom Channel\",\"UCOwcct1FjXWzlvmQxaR4Y8Q\"]"
+      exit 1
+    end
+    
+    puts "\n" + "="*80
+    puts "ADDING YOUTUBE CHANNEL AS INTERNATIONAL SOURCE"
+    puts "="*80
+    puts "Name: #{name}"
+    puts "Channel ID: #{channel_id}"
+    puts "="*80 + "\n"
+    
+    # Check if source already exists
+    existing = InternationalSource.find_by(name: name, source_type: InternationalSource::YOUTUBE)
+    if existing
+      puts "⚠️  Source '#{name}' already exists!"
+      puts "   ID: #{existing.id}"
+      puts "   Base URL: #{existing.base_url}"
+      puts "   Active: #{existing.active}"
+      puts "   Last scraped: #{existing.last_scraped_at&.strftime('%Y-%m-%d %H:%M') || 'Never'}"
+      puts "\nUse this source ID or update it manually in the database."
+      exit 0
+    end
+    
+    begin
+      # Create the source
+      source = InternationalSource.create!(
+        name: name,
+        source_type: InternationalSource::YOUTUBE,
+        base_url: "https://www.youtube.com/channel/#{channel_id}",
+        active: true,
+        metadata: {
+          channel_id: channel_id,
+          priority: 3,
+          description: "Manually added YouTube channel",
+          added_at: Time.current
+        }
+      )
+      
+      puts "✅ Successfully created InternationalSource!"
+      puts "\n📊 Details:"
+      puts "   ID: #{source.id}"
+      puts "   Name: #{source.name}"
+      puts "   Type: #{source.source_type}"
+      puts "   Base URL: #{source.base_url}"
+      puts "   Active: #{source.active}"
+      
+      puts "\n🎬 Next steps:"
+      puts "   1. Scrape the channel: rake youtube:scrape_channel[#{channel_id},30]"
+      puts "   2. Check statistics: rake youtube:stats"
+      puts "   3. View videos: rails console -> Video.where(international_source_id: #{source.id})"
+    rescue ActiveRecord::RecordInvalid => e
+      puts "❌ Error creating source: #{e.message}"
+      exit 1
+    rescue StandardError => e
+      puts "❌ Unexpected error: #{e.message}"
+      puts e.backtrace.first(5)
+      exit 1
+    end
+  end
 end
