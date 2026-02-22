@@ -74,10 +74,10 @@ Das sollte einige Videos von Kozoom, Five & Six und CEB scrapen.
 ```bash
 rails runner "
 puts '=== Scraping Results ==='
-puts \"Videos found: #{InternationalVideo.count}\"
+puts \"Videos found: #{Video.count}\"
 puts ''
 puts 'Latest 5 videos:'
-InternationalVideo.recent.limit(5).each do |v|
+Video.recent.limit(5).each do |v|
   puts \"  - #{v.title[0..60]}...\"
   puts \"    Source: #{v.international_source.name}\"
   puts \"    Published: #{v.published_at&.strftime('%Y-%m-%d')}\"
@@ -192,7 +192,7 @@ YouTube API hat 10.000 Units/Tag Limit. Jedes Video kostet ~3 Units.
 
 ### Problem: Keine Videos gefunden
 - Prüfe ob Kanäle Videos haben
-- Prüfe Keyword-Matching in `InternationalVideo::CAROM_KEYWORDS`
+- Prüfe Keyword-Matching in `Video::CAROM_KEYWORDS`
 - Logs prüfen: `tail -f log/development.log`
 
 ---

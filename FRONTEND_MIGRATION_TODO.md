@@ -8,7 +8,7 @@
 ```ruby
 # ALT:
 @upcoming_tournaments = InternationalTournament.upcoming
-@recent_videos = InternationalVideo.recent.limit(12)  # ❌ Tabelle gelöscht!
+@recent_videos = Video.recent.limit(12)  # ❌ Tabelle gelöscht!
 @recent_results = InternationalResult.includes(...)   # ❌ Tabelle gelöscht!
 
 # NEU:

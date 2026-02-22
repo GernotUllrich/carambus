@@ -109,17 +109,17 @@ whenever --update-crontab
 
 ```ruby
 # Alle Videos
-videos = InternationalVideo.all
+videos = Video.all
 
 # Nur Dreiband
-videos = InternationalVideo.joins(:discipline)
+videos = Video.joins(:discipline)
                            .where(disciplines: { name: 'Dreiband groß' })
 
 # Eines spezifischen Turniers
-videos = InternationalVideo.where(international_tournament_id: tournament.id)
+videos = Video.where(international_tournament_id: tournament.id)
 
 # Unverarbeitete Videos
-videos = InternationalVideo.unprocessed
+videos = Video.unprocessed
 ```
 
 ### Turniere verwalten
@@ -231,7 +231,7 @@ scraper = YoutubeScraper.new
 scraper.scrape_channel('CHANNEL_ID', days_back: 7)
 
 # Videos anzeigen
-InternationalVideo.recent.limit(10).each do |v|
+Video.recent.limit(10).each do |v|
   puts "#{v.title} (#{v.published_at})"
 end
 ```
@@ -249,10 +249,10 @@ end
 
 ```ruby
 # Prüfe Keywords
-InternationalVideo::CAROM_KEYWORDS
+Video::CAROM_KEYWORDS
 
 # Manuell zuordnen
-video = InternationalVideo.find(id)
+video = Video.find(id)
 video.auto_assign_discipline!
 ```
 

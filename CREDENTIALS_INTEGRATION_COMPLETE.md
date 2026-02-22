@@ -241,7 +241,7 @@ tail -f log/youtube_scraper.log
 
 ```bash
 RAILS_ENV=production rails runner "
-puts \"Videos: #{InternationalVideo.count}\"
+puts \"Videos: #{Video.count}\"
 puts \"Tournaments: #{InternationalTournament.count}\"
 puts \"Last scraping: #{InternationalSource.order(:last_scraped_at).last&.last_scraped_at}\"
 "

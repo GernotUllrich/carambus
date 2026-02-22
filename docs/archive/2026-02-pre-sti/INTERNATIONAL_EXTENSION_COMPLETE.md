@@ -17,7 +17,7 @@ Die internationale Erweiterung für Carambus wurde erfolgreich implementiert und
 - `InternationalSource` - Verwaltung von YouTube-Kanälen & Verbänden
 - `InternationalTournament` - Internationale Turniere (WM, EM, World Cups)
 - `InternationalResult` - Turnierergebnisse mit Spieler-Matching
-- `InternationalVideo` - Video-Archiv mit automatischer Kategorisierung
+- `lVideo` - Video-Archiv mit automatischer Kategorisierung
 - `InternationalParticipation` - Spieler-Teilnahmen
 
 ### 3. YouTube-Integration ✅
@@ -236,7 +236,7 @@ rails console
 InternationalSource.all
 
 # Videos prüfen
-InternationalVideo.recent.limit(10).each do |v|
+Video.recent.limit(10).each do |v|
   puts "#{v.title} - #{v.discipline&.name}"
 end
 
@@ -318,7 +318,7 @@ scraper = YoutubeScraper.new
 ### Tracking:
 ```ruby
 # Console-Check
-puts "Videos: #{InternationalVideo.count}"
+puts "Videos: #{Video.count}"
 puts "Tournaments: #{InternationalTournament.count}"
 puts "Results: #{InternationalResult.count}"
 puts "Participations: #{InternationalParticipation.count}"

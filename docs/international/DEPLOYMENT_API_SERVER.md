@@ -134,7 +134,7 @@ RAILS_ENV=production rails runner "
 puts '=== Production Database Check ==='
 puts \"InternationalSource: #{InternationalSource.count}\"
 puts \"InternationalTournament: #{InternationalTournament.count}\"
-puts \"InternationalVideo: #{InternationalVideo.count}\"
+puts \"Video: #{Video.count}\"
 puts ''
 puts 'Sources:'
 InternationalSource.all.each { |s| puts \"  - #{s.display_name}\" }
@@ -241,9 +241,9 @@ grep -i "error" log/production.log | grep -i "international" | tail -10
 ```bash
 RAILS_ENV=production rails runner "
 puts '=== Scraping Statistics ==='
-puts \"Total Videos: #{InternationalVideo.count}\"
-puts \"Processed: #{InternationalVideo.processed.count}\"
-puts \"Unprocessed: #{InternationalVideo.unprocessed.count}\"
+puts \"Total Videos: #{Video.count}\"
+puts \"Processed: #{Video.processed.count}\"
+puts \"Unprocessed: #{Video.unprocessed.count}\"
 puts \"Last scraping: #{InternationalSource.order(:last_scraped_at).last&.last_scraped_at}\"
 "
 ```
@@ -310,7 +310,7 @@ scraper.scrape_channel('CHANNEL_ID', days_back: 7)
 
 ```ruby
 # Batch-Processing für große Mengen
-InternationalVideo.unprocessed.find_in_batches(batch_size: 100) do |batch|
+Video.unprocessed.find_in_batches(batch_size: 100) do |batch|
   batch.each { |video| video.auto_assign_discipline! }
 end
 ```

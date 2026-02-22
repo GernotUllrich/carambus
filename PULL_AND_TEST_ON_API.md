@@ -76,7 +76,7 @@ RAILS_ENV=production rails runner "
 puts '=== Database Check ==='
 puts \"InternationalSource: #{InternationalSource.count}\"
 puts \"InternationalTournament: #{InternationalTournament.count}\"
-puts \"InternationalVideo: #{InternationalVideo.count}\"
+puts \"Video: #{Video.count}\"
 puts ''
 puts 'Sources:'
 InternationalSource.all.each { |s| puts \"  - #{s.display_name}\" }
@@ -88,7 +88,7 @@ InternationalSource.all.each { |s| puts \"  - #{s.display_name}\" }
 === Database Check ===
 InternationalSource: 5
 InternationalTournament: 0
-InternationalVideo: 0
+Video: 0
 
 Sources:
   - Kozoom (YOUTUBE)
@@ -171,12 +171,12 @@ end
 ```bash
 RAILS_ENV=production rails runner "
 puts '=== Scraping Results ==='
-puts \"Total Videos: #{InternationalVideo.count}\"
-puts \"Processed: #{InternationalVideo.processed.count}\"
-puts \"Unprocessed: #{InternationalVideo.unprocessed.count}\"
+puts \"Total Videos: #{Video.count}\"
+puts \"Processed: #{Video.processed.count}\"
+puts \"Unprocessed: #{Video.unprocessed.count}\"
 puts ''
 puts 'Latest 5 videos:'
-InternationalVideo.recent.limit(5).each do |v|
+Video.recent.limit(5).each do |v|
   puts \"  - #{v.title[0..60]}...\"
   puts \"    Source: #{v.international_source.name}\"
   puts \"    Published: #{v.published_at&.strftime('%Y-%m-%d')}\"
@@ -239,10 +239,10 @@ grep -i error log/production.log | grep -i international | tail -20
 ```bash
 RAILS_ENV=production rails runner "
 puts '=== Statistics ==='
-puts \"Videos: #{InternationalVideo.count}\"
-puts \"  - YouTube: #{InternationalVideo.youtube.count}\"
-puts \"  - With discipline: #{InternationalVideo.where.not(discipline_id: nil).count}\"
-puts \"  - Processed: #{InternationalVideo.processed.count}\"
+puts \"Videos: #{Video.count}\"
+puts \"  - YouTube: #{Video.youtube.count}\"
+puts \"  - With discipline: #{Video.where.not(discipline_id: nil).count}\"
+puts \"  - Processed: #{Video.processed.count}\"
 puts ''
 puts \"Sources:\"
 InternationalSource.all.each do |source|

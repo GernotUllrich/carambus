@@ -381,7 +381,7 @@ Wenn auf Production noch `international_videos` Daten vorhanden sind:
 
 ```ruby
 # Migration Script
-InternationalVideo.find_each do |old_video|
+Video.find_each do |old_video|
   Video.find_or_create_by(external_id: old_video.external_id) do |video|
     video.title = old_video.title
     video.description = old_video.description

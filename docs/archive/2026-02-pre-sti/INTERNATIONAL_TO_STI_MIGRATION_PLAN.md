@@ -29,7 +29,7 @@ InternationalParticipation                →    GameParticipation (für Seeding
 InternationalResult                       →    Game + GameParticipation (für finale Platzierung)
 InternationalGame (nicht existent)        →    Game (type: 'InternationalGame')
 InternationalSource                       →    Bleibt bestehen (Metadaten-Quelle)
-InternationalVideo                        →    Bleibt bestehen (Video-Archiv)
+Video                        →    Bleibt bestehen (Video-Archiv)
 Player.international_player               →    Player (bleibt, kein STI nötig)
 ```
 
@@ -244,7 +244,7 @@ end
 
 **BEHALTEN:**
 - ✅ `InternationalSource` - Metadaten für Scraping-Quellen
-- ✅ `InternationalVideo` - Video-Archiv
+- ✅ `Video` - Video-Archiv
 - ✅ `InternationalParticipation` - Seeding/Anmeldungen (KEIN Spiel!)
 - ✅ `InternationalResult` - Finale Ranglisten (KEIN Spiel!)
 
@@ -285,7 +285,7 @@ Bevor ich weitermache - bitte bestätige:
 2. ✅ BEHALTEN: `InternationalParticipation` (für Seedings)
 3. ✅ BEHALTEN: `InternationalResult` (für finale Ranglisten)
 4. ✅ NEU: `Game` (type: 'InternationalGame') für Match-Results aus PDFs
-5. ✅ `InternationalSource` & `InternationalVideo` bleiben
+5. ✅ `InternationalSource` & `Video` bleiben
 
 **Begründung:**
 - Participation und Result sind **Meta-Daten**, keine Spiele
