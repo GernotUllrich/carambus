@@ -15,10 +15,13 @@
     <%- url = URI("#{Carambus.config.carambus_api_url}/versions/current_revision") -%>
     <%- Rails.logger.info ">>>>>>>>>>>>>>>> GET #{url} <<<<<<<<<<<<<<<<" -%>
     <%- uri = URI(url) -%>
-
-    <%- json_io = Version.http_get_with_ssl_bypass(uri) -%>
-    <%- vers = JSON.parse(json_io) -%>
-    <%- revision = vers["current_revision"] -%>
+    <%- begin -%>
+      <%- json_io = Version.http_get_with_ssl_bypass(uri) -%>
+      <%- revision = json_io.present? ? JSON.parse(json_io).dig("current_revision") : nil -%>
+    <%- rescue => e -%>
+      <%- Rails.logger.warn "Repo version: could not fetch API revision (#{e.message})" -%>
+      <%- revision = nil -%>
+    <%- end -%>
   <%- end %>
   <pre>
     Rails:    <%= Rails.version %>
@@ -29,7 +32,7 @@
     Last: <%= version %>
   </pre>
 
-  <%- if local_server? && revision != repo_version -%>
+  <%- if local_server? && revision.present? && revision != repo_version -%>
     <%- # Check if API server version is newer using git merge-base -%>
     <%- begin -%>
       <%- if Rails.env.development? -%>
