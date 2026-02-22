@@ -1,7 +1,11 @@
 # frozen_string_literal: true
 
 require "#{Rails.root}/app/helpers/application_helper"
-require "aasm-diagram" if Rails.env == "development"
+begin
+  require "aasm-diagram" if Rails.env == "development"
+rescue LoadError
+  # aasm-diagram not available - diagram generation tasks will be skipped
+end
 
 namespace :adhoc do
   desc "Find club_ids from season_participations that don't exist in clubs table"
