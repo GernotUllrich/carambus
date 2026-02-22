@@ -39,7 +39,7 @@
 | `tournament.name`              | `tournament.title`        | ❌     |
 | `tournament.location`          | `tournament.location_text`| ❌     |
 | `tournament.start_date`        | `tournament.date`         | ❌     |
-| `tournament.international_videos` | TBD                    | ❌     |
+| `tournament.videos` | TBD                    | ❌     |
 | `tournament.international_results` | `tournament.game_participations` | ❌ |
 | `tournament.international_participations` | `tournament.seedings` | ❌ |
 

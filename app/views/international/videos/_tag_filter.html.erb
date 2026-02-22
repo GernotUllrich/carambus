@@ -11,13 +11,13 @@
     <div class="mb-4 p-3 bg-blue-50 rounded-lg">
       <div class="flex items-center justify-between mb-2">
         <span class="text-sm font-medium text-blue-900">Active Filters:</span>
-        <%= link_to 'Clear All', international_videos_path(request.query_parameters.except(:tag, :tags, :tag_group, :tag_group_value)), 
+        <%= link_to 'Clear All', videos_path(request.query_parameters.except(:tag, :tags, :tag_group, :tag_group_value)),
             class: 'text-sm text-blue-600 hover:text-blue-800 font-medium' %>
       </div>
       <div class="flex flex-wrap gap-2">
         <% active_tags = [params[:tag], params[:tags]].flatten.compact %>
         <% active_tags.each do |tag| %>
-          <%= link_to international_videos_path(request.query_parameters.except(:tag, :tags).merge(tags: active_tags - [tag])),
+          <%= link_to videos_path(request.query_parameters.except(:tag, :tags).merge(tags: active_tags - [tag])),
               class: "inline-flex items-center px-3 py-1 text-sm font-medium rounded-full transition-colors #{video_tag_badge_class(tag)}" do %>
             <%= tag.titleize %>
             <svg class="ml-1 w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -39,7 +39,7 @@
       <% InternationalHelper::VIDEO_TAG_GROUPS['Content Type'][:tags].each do |tag| %>
         <% count = @tag_counts.dig(:content_types, tag) || 0 %>
         <% is_active = params[:tag] == tag %>
-        <%= link_to international_videos_path(request.query_parameters.except(:tag, :tags, :tag_group, :tag_group_value).merge(tag: tag)),
+        <%= link_to videos_path(request.query_parameters.except(:tag, :tags, :tag_group, :tag_group_value).merge(tag: tag)),
             class: "inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-full transition-all #{is_active ? video_tag_badge_class(tag) + ' ring-2 ring-offset-2 ring-blue-500' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}" do %>
           <%= tag.titleize %>
           <% if count > 0 %>
@@ -59,14 +59,14 @@
       Top Players
       <span class="ml-auto text-xs text-gray-500 font-normal">(Top 20 with videos)</span>
     </h4>
-    
+
     <!-- Quick Country Filter -->
     <div class="mb-3">
       <div class="text-xs font-medium text-gray-600 mb-2">Filter by Country:</div>
       <div class="flex flex-wrap gap-1">
         <% InternationalHelper.player_tags_by_country.keys.sort.each do |country| %>
           <% player_count = InternationalHelper.player_tags_by_country[country].size %>
-          <%= link_to international_videos_path(request.query_parameters.except(:tag, :tags).merge(tag_group: 'player_country', tag_group_value: country)),
+          <%= link_to videos_path(request.query_parameters.except(:tag, :tags).merge(tag_group: 'player_country', tag_group_value: country)),
               class: "inline-flex items-center px-2 py-1 text-xs font-medium bg-gray-100 hover:bg-gray-200 text-gray-700 rounded transition-colors" do %>
             <%= country %>
             <span class="ml-1 text-gray-500">(<%=player_count%>)</span>
@@ -82,7 +82,7 @@
         <% if player_info %>
           <% player_key, player_data = player_info %>
           <% is_active = params[:tag] == tag %>
-          <%= link_to international_videos_path(request.query_parameters.except(:tag, :tags, :tag_group, :tag_group_value).merge(tag: tag)),
+          <%= link_to videos_path(request.query_parameters.except(:tag, :tags, :tag_group, :tag_group_value).merge(tag: tag)),
               class: "inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-full transition-all #{is_active ? 'bg-yellow-100 text-yellow-800 ring-2 ring-offset-2 ring-yellow-500' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}",
               title: "#{player_data[:full_name]} (#{player_data[:country]}) - Rank ##{player_data[:rank]}" do %>
             <span class="inline-block w-5 text-center mr-1">#<%= player_data[:rank] %></span>
@@ -97,7 +97,7 @@
 
     <% if @tag_counts[:players].size > 20 %>
       <div class="mt-2">
-        <button type="button" 
+        <button type="button"
                 onclick="this.parentElement.nextElementSibling.classList.toggle('hidden')"
                 class="text-sm text-blue-600 hover:text-blue-800 font-medium">
           Show more players (<%= @tag_counts[:players].size - 20 %> more) ▼
@@ -109,7 +109,7 @@
           <% if player_info %>
             <% player_key, player_data = player_info %>
             <% is_active = params[:tag] == tag %>
-            <%= link_to international_videos_path(request.query_parameters.except(:tag, :tags, :tag_group, :tag_group_value).merge(tag: tag)),
+            <%= link_to videos_path(request.query_parameters.except(:tag, :tags, :tag_group, :tag_group_value).merge(tag: tag)),
                 class: "inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-full transition-all #{is_active ? 'bg-yellow-100 text-yellow-800 ring-2 ring-offset-2 ring-yellow-500' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}",
                 title: "#{player_data[:full_name]} (#{player_data[:country]}) - Rank ##{player_data[:rank]}" do %>
               <span class="inline-block w-5 text-center mr-1">#<%= player_data[:rank] %></span>
@@ -134,7 +134,7 @@
       <% InternationalHelper::VIDEO_TAG_GROUPS['Quality'][:tags].each do |tag| %>
         <% count = @tag_counts.dig(:quality, tag) || 0 %>
         <% is_active = params[:tag] == tag %>
-        <%= link_to international_videos_path(request.query_parameters.except(:tag, :tags, :tag_group, :tag_group_value).merge(tag: tag)),
+        <%= link_to videos_path(request.query_parameters.except(:tag, :tags, :tag_group, :tag_group_value).merge(tag: tag)),
             class: "inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-full transition-all #{is_active ? video_tag_badge_class(tag) + ' ring-2 ring-offset-2 ring-indigo-500' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}" do %>
           <%= tag.upcase %>
           <% if count > 0 %>

@@ -8,7 +8,7 @@
       </svg>
       Filter by Tags
     </h3>
-    <button type="button" 
+    <button type="button"
             onclick="this.closest('.bg-white').querySelector('.advanced-content').classList.toggle('hidden'); this.querySelector('.toggle-text').textContent = this.querySelector('.toggle-text').textContent === 'Show' ? 'Hide' : 'Show';"
             class="text-sm text-blue-600 hover:text-blue-800 font-medium">
       <span class="toggle-text">Show</span> ▼
@@ -16,13 +16,13 @@
   </div>
 
   <div class="advanced-content hidden">
-    <%= form_with url: international_videos_path, method: :get, id: 'advanced-tag-form', class: 'space-y-4' do |f| %>
-      
+    <%= form_with url: videos_path, method: :get, id: 'advanced-tag-form', class: 'space-y-4' do |f| %>
+
       <!-- Tag Mode Selection (AND/OR) -->
       <div class="bg-blue-50 rounded-lg p-4 mb-4">
         <div class="flex items-center space-x-4">
           <span class="text-sm font-semibold text-gray-700">Match:</span>
-          
+
           <label class="inline-flex items-center cursor-pointer">
             <%= radio_button_tag :tag_mode, 'or', params[:tag_mode] != 'and', class: 'mr-2' %>
             <span class="text-sm font-medium text-gray-700">
@@ -30,7 +30,7 @@
               <span class="text-xs text-gray-500">- Videos with at least one tag</span>
             </span>
           </label>
-          
+
           <label class="inline-flex items-center cursor-pointer">
             <%= radio_button_tag :tag_mode, 'and', params[:tag_mode] == 'and', class: 'mr-2' %>
             <span class="text-sm font-medium text-gray-700">
@@ -42,23 +42,23 @@
       </div>
 
       <!-- Selected Tags Display -->
-      <% 
+      <%
         selected_tags = params[:tags].is_a?(Array) ? params[:tags] : (params[:tags].present? ? [params[:tags]] : [])
         selected_tags = selected_tags.compact.reject(&:blank?)
       %>
-      
+
       <% if selected_tags.any? %>
         <div class="bg-green-50 rounded-lg p-3 mb-4">
           <div class="flex items-center justify-between mb-2">
             <span class="text-sm font-semibold text-green-900">
               Selected Tags (<%= selected_tags.size %>):
             </span>
-            <%= link_to 'Clear All', international_videos_path(request.query_parameters.except(:tags, :tag_mode)), 
+            <%= link_to 'Clear All', videos_path(request.query_parameters.except(:tags, :tag_mode)),
                 class: 'text-sm text-green-700 hover:text-green-900 font-medium' %>
           </div>
           <div class="flex flex-wrap gap-2">
             <% selected_tags.each do |tag| %>
-              <%= link_to international_videos_path(request.query_parameters.merge(tags: selected_tags - [tag])),
+              <%= link_to videos_path(request.query_parameters.merge(tags: selected_tags - [tag])),
                   class: "inline-flex items-center px-3 py-1 text-sm font-medium rounded-full bg-green-200 text-green-900 hover:bg-green-300" do %>
                 <%= tag.titleize %>
                 <svg class="ml-1 w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -92,20 +92,20 @@
           <span class="mr-2">⭐</span>
           Top Players
         </h4>
-        
+
         <!-- Country Tabs -->
         <div class="mb-3">
           <div class="text-xs font-medium text-gray-600 mb-2">Filter by Country:</div>
           <div class="flex flex-wrap gap-1" id="country-tabs">
-            <button type="button" 
-                    onclick="showAllPlayers()" 
+            <button type="button"
+                    onclick="showAllPlayers()"
                     class="country-tab active px-3 py-1 text-xs font-medium bg-gray-200 hover:bg-gray-300 rounded"
                     data-country="all">
               All
             </button>
             <% InternationalHelper.player_tags_by_country.keys.sort.each do |country| %>
-              <button type="button" 
-                      onclick="filterPlayersByCountry('<%= country %>')" 
+              <button type="button"
+                      onclick="filterPlayersByCountry('<%= country %>')"
                       class="country-tab px-3 py-1 text-xs font-medium bg-gray-100 hover:bg-gray-200 rounded"
                       data-country="<%= country %>">
                 <%= country %> (<%= InternationalHelper.player_tags_by_country[country].size %>)
@@ -168,7 +168,7 @@
     });
     event.target.classList.add('active', 'bg-gray-200');
     event.target.classList.remove('bg-gray-100');
-    
+
     // Show/hide players
     document.querySelectorAll('.player-checkbox').forEach(checkbox => {
       if (checkbox.dataset.country === country) {
@@ -178,7 +178,7 @@
       }
     });
   }
-  
+
   function showAllPlayers() {
     // Update tab styling
     document.querySelectorAll('.country-tab').forEach(tab => {
@@ -187,13 +187,13 @@
     });
     event.target.classList.add('active', 'bg-gray-200');
     event.target.classList.remove('bg-gray-100');
-    
+
     // Show all players
     document.querySelectorAll('.player-checkbox').forEach(checkbox => {
       checkbox.style.display = 'inline-flex';
     });
   }
-  
+
   // Toggle button text
   document.querySelector('.advanced-content').addEventListener('toggle', function() {
     const toggleText = document.querySelector('.toggle-text');

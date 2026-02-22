@@ -12,7 +12,7 @@
 <% if tags.present? && tags.any? %>
   <div class="flex flex-wrap gap-1 leading-none">
     <% tags.take(limit).each do |tag| %>
-      <%= link_to international_videos_path(tag: tag),
+      <%= link_to videos_path(tag: tag),
           class: "inline-flex items-center px-1.5 py-0 text-#{size} font-medium rounded transition-colors #{video_tag_badge_class(tag)} hover:opacity-80",
           title: "Filter by: #{tag.titleize}" do %>
         <% if show_icon %>
@@ -27,7 +27,7 @@
         <%= tag.titleize %>
       <% end %>
     <% end %>
-    
+
     <% if tags.size > limit %>
       <span class="inline-flex items-center px-2 py-0.5 text-#{size} font-medium rounded bg-gray-100 text-gray-600"
             title="<%= (tags.drop(limit)).join(', ') %>">

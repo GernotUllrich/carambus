@@ -105,17 +105,17 @@
   <!-- Tournament Videos -->
   <section class="mb-12">
     <h2 class="text-2xl font-bold text-gray-900 mb-6">Tournament Videos</h2>
-    
+
     <% if @videos.any? %>
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         <% @videos.each do |video| %>
-          <a href="<%= international_video_path(video) %>" 
+          <a href="<%= video_path(video) %>"
              class="block bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow overflow-hidden">
             <!-- Thumbnail -->
             <% if video.thumbnail_url.present? %>
               <div class="relative pb-[56.25%]">
                 <%= image_tag video.thumbnail_url, class: 'absolute inset-0 w-full h-full object-cover', alt: video.title %>
-                
+
                 <!-- Duration Badge -->
                 <% if video.duration.present? %>
                   <span class="absolute bottom-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
@@ -130,7 +130,7 @@
               <h3 class="text-sm font-semibold text-gray-900 mb-2 line-clamp-2" title="<%= video.title %>">
                 <%= video.translated_title(:en) %>
               </h3>
-              
+
               <div class="text-xs text-gray-600 space-y-1">
                 <p><%= video.international_source.name %></p>
                 <% if video.published_at.present? %>
@@ -159,12 +159,12 @@
   <% if @all_participations.any? %>
     <section class="mb-12">
       <h2 class="text-2xl font-bold text-gray-900 mb-6">Ranglisten</h2>
-      
+
       <div class="bg-white rounded-lg shadow-md overflow-hidden">
         <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
           <h3 class="text-lg font-semibold text-gray-900">Gesamtrangliste</h3>
         </div>
-        
+
         <div class="overflow-x-auto">
           <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
@@ -215,15 +215,15 @@
   <% if @phase_games.any? %>
     <section class="mb-12">
       <h2 class="text-2xl font-bold text-gray-900 mb-6">Spiele</h2>
-      
+
       <div class="space-y-6">
         <% @phase_games.each do |phase_game| %>
-          <% 
+          <%
             phase_matches = @matches_by_phase[phase_game.id] || []
             next if phase_matches.empty?
             matches_by_group = phase_matches.group_by { |g| g.data['group'] || g.group_no || 'A' }
           %>
-          
+
           <div class="bg-white rounded-lg shadow-md overflow-hidden">
             <!-- Phase Header -->
             <div class="px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-700">
@@ -236,7 +236,7 @@
                 <div class="px-6 py-3 bg-gray-50">
                   <h4 class="font-semibold text-gray-700">Gruppe <%= group %></h4>
                 </div>
-                
+
                 <div class="overflow-x-auto">
                   <table class="min-w-full">
                     <thead class="bg-gray-50 border-b border-gray-200">
@@ -252,7 +252,7 @@
                     </thead>
                     <tbody class="divide-y divide-gray-100">
                       <% matches.sort_by { |m| m.data['umb_match_number'] || 0 }.each do |match| %>
-                        <% 
+                        <%
                           participations = match.game_participations.includes(:player).to_a
                           home = participations[0]
                           away = participations[1]
