@@ -16,7 +16,7 @@
     <%- Rails.logger.info ">>>>>>>>>>>>>>>> GET #{url} <<<<<<<<<<<<<<<<" -%>
     <%- uri = URI(url) -%>
 
-    <%- json_io = Rails.env == 'development' ?  Version.http_get_with_ssl_bypass(uri) : Net::HTTP.get(uri) -%>
+    <%- json_io = Version.http_get_with_ssl_bypass(uri) -%>
     <%- vers = JSON.parse(json_io) -%>
     <%- revision = vers["current_revision"] -%>
   <%- end %>
