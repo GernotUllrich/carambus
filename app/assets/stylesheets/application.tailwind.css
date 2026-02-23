@@ -360,3 +360,17 @@ a[class*="btn-primary"]:is(.dark *) {
   color: rgb(255, 255, 255) !important;
   -webkit-text-fill-color: rgb(255, 255, 255) !important;
 }
+
+/* Video Cards Dark Mode */
+.dark [data-theme-target="card"] {
+  background-color: rgb(31, 41, 55) !important; /* gray-800 */
+  border-color: rgb(55, 65, 81) !important; /* gray-700 */
+}
+
+.dark [data-theme-target="card-title"] {
+  color: rgb(243, 244, 246) !important; /* gray-100 */
+}
+
+.dark [data-theme-target="card-meta"] {
+  color: rgb(156, 163, 175) !important; /* gray-400 */
+}
