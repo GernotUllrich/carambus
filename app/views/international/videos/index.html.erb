@@ -47,13 +47,13 @@
   <% if @videos.any? %>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8 auto-rows-fr">
       <% @videos.each do |video| %>
-        <div class="bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow overflow-hidden">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-xl transition-shadow overflow-hidden">
           <%= link_to international_video_path(video), class: 'block' do %>
             <!-- Thumbnail -->
             <% if video.thumbnail_url.present? %>
-              <div class="relative pb-[56.25%] bg-gray-200">
+              <div class="relative pb-[56.25%] bg-gray-200 dark:bg-gray-700">
                 <%= image_tag video.thumbnail_url, class: 'absolute inset-0 w-full h-full object-cover', alt: video.title %>
-
+                
                 <!-- Duration Badge -->
                 <% if video.duration.present? %>
                   <span class="absolute bottom-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
@@ -73,25 +73,25 @@
             <!-- Video Info -->
             <div class="p-3">
               <!-- Title -->
-              <h3 class="text-sm font-semibold text-gray-900 mb-2 line-clamp-2" title="<%= video.title %>">
+              <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2 line-clamp-2" title="<%= video.title %>">
                 <%= video.translated_title(:en) %>
               </h3>
-
+              
               <!-- Tags -->
               <% if video.tags.any? %>
                 <div class="mb-2">
                   <%= render 'video_tags', video: video, limit: 3, size: 'xs', spacing: true %>
                 </div>
               <% end %>
-
+              
               <!-- Meta Info -->
-              <div class="text-xs text-gray-600 space-y-1">
+              <div class="text-xs text-gray-600 dark:text-gray-400 space-y-1">
                 <p class="truncate"><%= video.international_source.name %></p>
-
+                
                 <% if video.published_at.present? %>
                   <p><%= time_ago_in_words(video.published_at) %> ago</p>
                 <% end %>
-
+                
                 <% if video.view_count.present? && video.view_count > 0 %>
                   <p><%= number_to_human(video.view_count, precision: 1) %> views</p>
                 <% end %>
