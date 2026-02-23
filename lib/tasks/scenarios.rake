@@ -4925,8 +4925,6 @@ EOF
         --disable-features=VizDisplayCompositor,TranslateUI \
         --disable-translate \
         --disable-dev-shm-usage \
-        --disable-web-security \
-        --disable-site-isolation-trials \
         --allow-running-insecure-content \
         --app="$SCOREBOARD_URL" \
         # --no-sandbox \
@@ -4942,8 +4940,6 @@ EOF
         --disable-features=VizDisplayCompositor,TranslateUI \
         --disable-translate \
         --disable-dev-shm-usage \
-        --disable-web-security \
-        --disable-site-isolation-trials \
         --allow-running-insecure-content \
         --disable-setuid-sandbox \
         --disable-gpu \
