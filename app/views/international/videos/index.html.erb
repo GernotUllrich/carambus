@@ -1,36 +1,36 @@
 <div class="container mx-auto px-4 py-8">
   <div class="mb-8">
-    <h1 class="text-4xl font-bold text-gray-900 mb-2">International Videos</h1>
-    <p class="text-xl text-gray-600">Browse carom billiards videos from around the world</p>
+    <h1 class="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-2">International Videos</h1>
+    <p class="text-xl text-gray-600 dark:text-gray-400">Browse carom billiards videos from around the world</p>
   </div>
 
   <!-- Search and Filters -->
-  <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+  <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-8">
     <%= form_with url: international_videos_path, method: :get, class: 'space-y-4' do |f| %>
       <!-- Search -->
       <div>
-        <%= f.text_field :search,
-            value: params[:search],
-            placeholder: 'Search videos...',
-            class: 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent' %>
+        <%= f.text_field :search, 
+            value: params[:search], 
+            placeholder: 'Search videos...', 
+            class: 'w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent' %>
       </div>
 
       <!-- Filters -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
-          <%= f.label :source_id, 'Source', class: 'block text-sm font-medium text-gray-700 mb-1' %>
-          <%= f.select :source_id,
+          <%= f.label :source_id, 'Source', class: 'block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1' %>
+          <%= f.select :source_id, 
               options_from_collection_for_select(@sources, :id, :name, params[:source_id]),
               { include_blank: 'All Sources' },
-              class: 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500' %>
+              class: 'w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500' %>
         </div>
 
         <div>
-          <%= f.label :discipline_id, 'Discipline', class: 'block text-sm font-medium text-gray-700 mb-1' %>
+          <%= f.label :discipline_id, 'Discipline', class: 'block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1' %>
           <%= f.select :discipline_id,
               options_from_collection_for_select(@disciplines, :id, :name, params[:discipline_id]),
               { include_blank: 'All Disciplines' },
-              class: 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500' %>
+              class: 'w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500' %>
         </div>
 
         <div class="flex items-end">
