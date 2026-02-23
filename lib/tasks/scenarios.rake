@@ -1394,6 +1394,17 @@ ENV
         puts "   ⚠️  RubyMine .idea configuration not found in master"
       end
 
+      # Set ownership to www-data:www-data if www-data user exists (production server)
+      if system("id -u www-data > /dev/null 2>&1")
+        puts "   🔐 Setting ownership to www-data:www-data..."
+        if system("sudo chown -R www-data:www-data #{rails_root}")
+          puts "   ✅ Ownership set to www-data:www-data"
+        else
+          puts "   ⚠️  Failed to set ownership (may require sudo permissions)"
+        end
+      else
+        puts "   ℹ️  www-data user not found - keeping current ownership (development mode)"
+      end
 
       puts "✅ Rails root folder created: #{rails_root}"
       true
