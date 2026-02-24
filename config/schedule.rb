@@ -32,12 +32,14 @@ every 1.day, at: '2:00 am' do
   rake "international:daily_scrape"
 end
 
-# Daily UMB tournament data scraping
+# Daily UMB tournament data scraping & maintenance
 # Runs at 3:00 AM every day
-# - Fetches official UMB tournament data
-# - Updates tournament information
+# - Scrapes future tournaments
+# - Finds new tournament IDs
+# - Auto-fixes missing organizers (ensures all have UMB as organizer)
+# - Updates recent tournaments with results
 every 1.day, at: '3:00 am' do
-  rake "international:scrape_umb"
+  rake "umb:update"
 end
 
 # Weekly cleanup: Process all remaining untagged videos
