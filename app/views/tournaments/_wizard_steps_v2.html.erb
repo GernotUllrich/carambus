@@ -158,7 +158,16 @@
           </div>
         <% end %>
 
-        <% if wizard_step_status(tournament, 2) == :active && !tournament.data['invitation_filename'].present? %>
+        <%# Zeige Info wenn bereits Spieler manuell hinzugefügt wurden %>
+        <% non_local_seedings_count = tournament.seedings.where("seedings.id < #{Seeding::MIN_ID}").count %>
+        <% if non_local_seedings_count > 0 && wizard_step_status(tournament, 2) == :active %>
+          <div class="step-info mt-2" style="background: #dff0d8; padding: 8px; border-radius: 4px; border: 1px solid #3c763d;">
+            ℹ️ <strong>Es sind bereits #{non_local_seedings_count} Spieler vorhanden</strong>
+            <br>Sie können diese direkt übernehmen (siehe unten)
+          </div>
+        <% end %>
+
+        <% if wizard_step_status(tournament, 2) == :active && !tournament.data['invitation_filename'].present? && non_local_seedings_count == 0 %>
           <div class="step-warning">
             <span class="warning-icon">⚠️</span>
             Dieser Schritt ist noch offen
@@ -187,31 +196,36 @@
 
     <div class="wizard-step-actions">
       <% step_2_status = wizard_step_status(tournament, 2) %>
-      <%# Zähle ClubCloud-Seedings (aus Schritt 1) %>
-      <% clubcloud_seedings_count = tournament.seedings.where("seedings.id < #{Seeding::MIN_ID}").count %>
-      <%# Zeige Button auch wenn keine ClubCloud-Daten, aber wenn Turnier Seedings hat %>
-      <% has_any_seedings = tournament.seedings.any? %>
-      <% show_alternative_button = clubcloud_seedings_count > 0 || (has_any_seedings && step_2_status == :active) %>
+      <%# Zähle alle Seeding-Typen %>
+      <% non_local_seedings_count = tournament.seedings.where("seedings.id < #{Seeding::MIN_ID}").count %>
+      <% local_seedings_count = tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").count %>
+      <% total_seedings = tournament.seedings.count %>
 
       <% if step_2_status == :active %>
         <%= button_to tournament.data['invitation_filename'].present? ? 'Setzliste prüfen' : 'Einladung hochladen',
             compare_seedings_tournament_path(tournament),
             method: :get,
-            class: "btn btn-primary #{'btn-pulse' if !tournament.data['invitation_filename'].present?}" %>
+            class: "btn btn-primary #{'btn-pulse' if !tournament.data['invitation_filename'].present? && total_seedings == 0}" %>
 
-        <%# Zeige alternativen Button wenn Seedings vorhanden sind %>
-        <% if show_alternative_button %>
-          <div class="mt-3 p-3 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded">
-            <p class="text-sm text-gray-700 dark:text-gray-300 mb-2">
-              <strong>Wenn keine Einladung zum Upload vorliegt:</strong>
+        <%# IMMER anzeigen wenn Seedings vorhanden sind (egal ob ClubCloud oder manuell) %>
+        <% if total_seedings > 0 %>
+          <div class="mt-3 p-3 bg-gradient-to-r from-blue-50 to-green-50 dark:from-blue-900/20 dark:to-green-900/20 border-2 border-blue-300 dark:border-blue-600 rounded-lg shadow-sm">
+            <p class="text-sm font-semibold text-blue-900 dark:text-blue-200 mb-2">
+              ✓ <strong>Es sind bereits <%= total_seedings %> Spieler vorhanden</strong>
             </p>
-            <% seedings_count = clubcloud_seedings_count > 0 ? clubcloud_seedings_count : tournament.seedings.count %>
-            <%= button_to "→ Mit Meldeliste zu Schritt 3 (#{seedings_count} Spieler, nach Rangliste sortiert)",
+            <p class="text-xs text-gray-700 dark:text-gray-300 mb-3">
+              <% if non_local_seedings_count > 0 && local_seedings_count == 0 %>
+                Übernehmen Sie diese Spieler, um mit Schritt 3 fortzufahren.
+              <% elsif local_seedings_count > 0 %>
+                <%= local_seedings_count %> Spieler bereits als Teilnehmer übernommen.
+              <% end %>
+            </p>
+            <%= button_to "→ Weiter zu Schritt 3 mit diesen #{total_seedings} Spielern",
                 use_clubcloud_as_participants_tournament_path(tournament),
                 method: :post,
-                class: 'btn btn-primary',
-                data: { confirm: "Meldeliste als Teilnehmerliste übernehmen und nach Rangliste sortieren?\n\n#{seedings_count} Spieler werden übernommen und automatisch nach der Carambus-Rangliste für #{tournament.discipline.name} sortiert." },
-                title: 'Übernimmt Meldeliste und sortiert automatisch nach Rangliste' %>
+                class: 'btn btn-success btn-lg w-full',
+                data: { confirm: "Diese #{total_seedings} Spieler als Teilnehmerliste übernehmen?\n\nDie Spieler werden automatisch nach ihrer Position sortiert." },
+                title: 'Übernimmt die vorhandenen Spieler und aktiviert Schritt 3' %>
           </div>
         <% end %>
 
@@ -220,21 +234,6 @@
             compare_seedings_tournament_path(tournament),
             method: :get,
             class: 'btn btn-secondary btn-sm' %>
-
-        <%# Zeige alternativen Button auch bei completed wenn Seedings vorhanden sind %>
-        <% if clubcloud_seedings_count > 0 %>
-          <div class="mt-2 p-2 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded">
-            <p class="text-xs text-gray-700 dark:text-gray-300 mb-2">
-              <strong>Wenn keine Einladung zum Upload vorliegt:</strong>
-            </p>
-            <%= button_to "→ Mit Meldeliste zu Schritt 3 (#{clubcloud_seedings_count} Spieler, nach Rangliste)",
-                use_clubcloud_as_participants_tournament_path(tournament),
-                method: :post,
-                class: 'btn btn-primary btn-sm',
-                data: { confirm: "Meldeliste als Teilnehmerliste übernehmen und nach Rangliste sortieren?\n\n#{clubcloud_seedings_count} Spieler werden übernommen und automatisch nach der Carambus-Rangliste sortiert." },
-                title: 'Übernimmt Meldeliste und sortiert automatisch nach Rangliste' %>
-          </div>
-        <% end %>
 
       <% else %>
         <span class="disabled-text">
@@ -259,10 +258,11 @@
       danger: false,
       help: "Passen Sie die <strong>Teilnehmerliste</strong> direkt am Turniertag an:<br>
              • ☑️ Checkboxen: Teilnehmer aktivieren/deaktivieren (No-Shows)<br>
-             #{tournament.handicap_tournier ? '• 🎯 <strong>Vorgaben korrigieren</strong> falls nötig (Punktzahlen)<br>' : ''}
+             #{tournament.handicap_tournier? ? '• 🎯 <strong>Vorgaben korrigieren</strong> falls nötig (Punktzahlen)<br>' : ''}
              • ✏️ Änderungen werden sofort gespeichert<br>
              • ➕ Kurzfristige Nachmeldungen: Spieler aus Meldeliste aktivieren<br><br>
-             <strong>Wichtig:</strong> Dieser Schritt bleibt aktiv bis Sie in Schritt 4 die Liste finalisieren!" %>
+             <strong>Wichtig:</strong> Dieser Schritt bleibt aktiv bis Sie in Schritt 4 die Liste finalisieren!<br><br>
+             <strong>Für Tests:</strong> #{link_to '📝 Direkt zur Teilnehmerliste (für manuelle Eingabe)', define_participants_tournament_path(tournament), class: 'text-blue-600 dark:text-blue-400 underline'}" %>
 
   <!-- Schritt 4: Teilnehmerliste finalisieren -->
   <%= render 'wizard_step',

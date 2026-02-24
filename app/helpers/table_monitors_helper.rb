@@ -9,7 +9,7 @@ module TableMonitorsHelper
                   "<td>#{results["rank"]}</td>"
                 end).to_s + "<td>#{Player[player].andand.shortname}</td><td>#{results["points"]}</td><td>#{results["result"]}#{if opts[:points_only].blank?
                                                                                                                                  "</td><td>#{results["innings"]}</td><td>#{results["hs"]}</td><td>#{results["gd"]}</td><td>#{results["bed"]}</td>#{if tournament_monitor.tournament.handicap_tournier?
-                                                                                                                                                                                                                                                     "<td>#{results["bg"]}</td><td>#{results["bg_p"]}</td>"
+                                                                                                                                                                                                                                                     "<td>#{results["balls_goal"]}</td><td>#{results["gd_pct"]}</td>"
                                                                                                                                                                                                                                                    end}"
                                                                                                                                end}
 </tr>"
@@ -21,7 +21,7 @@ module TableMonitorsHelper
                                                               "<th>Rank</th>"
                                                             end).to_s + "<th>Name</th><th>Pkt</th><th>Res</th>#{if opts[:points_only].blank?
                                                                                                                   "<th>Aufn.</th><th>HS</th><th>GD</th><th>BED</th>#{if tournament_monitor.tournament.handicap_tournier?
-                                                                                                                                                                       "<th>BG</th><th>BG_PCT</th>"
+                                                                                                                                                                       "<th>BG</th><th>GD_PCT</th>"
                                                                                                                                                                      end}"
                                                                                                                 end}</tr></thead><tbody></tbody>#{lines.html_safe}</table></div>").html_safe
   end

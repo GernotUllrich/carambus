@@ -337,7 +337,7 @@ class TournamentMonitor < ApplicationRecord
                                   order: (
                                     if tournament.handicap_tournier?
                                       %i[points
-                                         bg_p]
+                                         gd_pct]
                                     else
                                       %i[points
                                          gd]
@@ -347,7 +347,7 @@ class TournamentMonitor < ApplicationRecord
                                   order: (
                                     if tournament.handicap_tournier?
                                       %i[points
-                                         bg_p]
+                                         gd_pct]
                                     else
                                       %i[points
                                          gd]
@@ -360,7 +360,7 @@ class TournamentMonitor < ApplicationRecord
                                 order: (
                                   if tournament.handicap_tournier?
                                     %i[points
-                                       bg_p]
+                                       gd_pct]
                                   else
                                     %i[points
                                        gd]
@@ -394,9 +394,9 @@ class TournamentMonitor < ApplicationRecord
   def random_from_group_ranks(match, ordered_ranking_nos, rule_str)
     ordered_ranking_nos[rule_str] ||= (match[2].to_i..match[3].to_i).to_a.shuffle
     inter_group_order = if tournament.gd_has_prio?
-                          tournament.handicap_tournier? ? %i[bg_p points] : %i[gd points]
+                          tournament.handicap_tournier? ? %i[gd_pct points] : %i[gd points]
                         else
-                          (tournament.handicap_tournier? ? %i[points bg_p] : %i[points gd])
+                          (tournament.handicap_tournier? ? %i[points gd_pct] : %i[points gd])
                         end
     players = match[1]
     rank = ordered_ranking_nos[rule_str].pop
@@ -414,7 +414,7 @@ class TournamentMonitor < ApplicationRecord
                                     order: (
                                       if tournament.handicap_tournier?
                                         %i[points
-                                           bg_p]
+                                           gd_pct]
                                       else
                                         %i[points gd]
                                       end))[rk_no.to_i - 1]
@@ -423,7 +423,7 @@ class TournamentMonitor < ApplicationRecord
                                     order: (
                                       if tournament.handicap_tournier?
                                         %i[points
-                                           bg_p]
+                                           gd_pct]
                                       else
                                         %i[points gd]
                                       end))[rk_no.to_i - 1]
@@ -437,9 +437,9 @@ class TournamentMonitor < ApplicationRecord
 
   def rank_from_group_ranks(match, opts = {})
     inter_group_order = if tournament.gd_has_prio?
-                          tournament.handicap_tournier? ? %i[bg_p points] : %i[gd points]
+                          tournament.handicap_tournier? ? %i[gd_pct points] : %i[gd points]
                         else
-                          (tournament.handicap_tournier? ? %i[points bg_p] : %i[points gd])
+                          (tournament.handicap_tournier? ? %i[points gd_pct] : %i[points gd])
                         end
     players = match[1]
     rank = match[2]
@@ -459,7 +459,7 @@ class TournamentMonitor < ApplicationRecord
                                     order: (
                                       if tournament.handicap_tournier?
                                         %i[points
-                                           bg_p]
+                                           gd_pct]
                                       else
                                         %i[points gd]
                                       end))[rk_no.to_i - 1]
@@ -468,7 +468,7 @@ class TournamentMonitor < ApplicationRecord
                                     order: (
                                       if tournament.handicap_tournier?
                                         %i[points
-                                           bg_p]
+                                           gd_pct]
                                       else
                                         %i[points gd]
                                       end))[rk_no.to_i - 1]
