@@ -83,7 +83,9 @@ namespace :umb do
       end
     end
     
-    # Step 3: Fix missing organizers
+    # Step 3: Fix missing organizers (IMPORTANT: runs on every update)
+    # This ensures all UMB tournaments have the UMB organizer set,
+    # even if they were imported before the organizer logic was added
     puts "\nStep 3: Fixing missing organizers..."
     puts "-"*80
     tournaments_without_organizer = InternationalTournament
@@ -101,7 +103,11 @@ namespace :umb do
         )
         stats[:fixed_organizers] += 1
       end
-      puts "✓ Fixed #{stats[:fixed_organizers]} tournaments"
+      if stats[:fixed_organizers] > 0
+        puts "✓ Fixed #{stats[:fixed_organizers]} tournaments"
+      else
+        puts "✓ All tournaments already have organizer"
+      end
     else
       puts "✗ Could not create UMB organizer"
     end

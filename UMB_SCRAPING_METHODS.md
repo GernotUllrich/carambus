@@ -9,12 +9,17 @@ rake umb:update RAILS_ENV=production
 
 **Vorteile:**
 - ✅ Kombiniert alle Strategien (Future + New IDs + Updates)
-- ✅ Fixt automatisch fehlende Organizer
+- ✅ **Fixt automatisch fehlende Organizer** (alle UMB Turniere bekommen UMB als Organizer)
 - ✅ Updated kürzliche Turniere mit neuen Ergebnissen
 - ✅ Findet neue Turniere über aktuelles Maximum hinaus
 - ✅ Intelligent & effizient (nur was nötig ist)
 
-**Verwendung:** Für regelmäßige Updates (z.B. wöchentlich/monatlich)
+**Was wird automatisch gefixt:**
+- Fehlende Organizer (setzt UMB als Organizer für alle Turniere ohne Organizer)
+- Neue zukünftige Turniere werden erkannt
+- Bestehende Turniere werden mit aktuellen Ergebnissen aktualisiert
+
+**Verwendung:** Für regelmäßige Updates (z.B. täglich/wöchentlich)
 
 ---
 
