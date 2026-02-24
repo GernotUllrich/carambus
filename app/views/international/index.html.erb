@@ -10,7 +10,7 @@
       <h2 class="text-3xl font-bold text-gray-900 dark:text-gray-100">Upcoming Tournaments</h2>
       <%= link_to 'View All →', international_tournaments_path(filter: 'upcoming'), class: 'text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-semibold' %>
     </div>
-    
+
     <% if @upcoming_tournaments.any? %>
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <% @upcoming_tournaments.each do |tournament| %>
@@ -55,14 +55,14 @@
       <h2 class="text-3xl font-bold text-gray-900 dark:text-gray-100">Latest Videos</h2>
       <%= link_to 'View All →', international_videos_path, class: 'text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-semibold' %>
     </div>
-    
+
     <% if @recent_videos.any? %>
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         <% @recent_videos.each do |video| %>
           <%= link_to international_video_path(video), class: 'block bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-xl transition-shadow overflow-hidden' do %>
             <% if video.thumbnail_url.present? %>
               <div class="relative pb-[56.25%] bg-gray-200 dark:bg-gray-700">
-                <%= image_tag video.thumbnail_url, class: 'absolute inset-0 w-full h-full object-cover', alt: video.title %>
+                <%= image_tag video.thumbnail_url, class: 'absolute inset-0 w-full h-full object-cover', alt: video.translated_title || video.title %>
                 <% if video.duration.present? %>
                   <span class="absolute bottom-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
                     <%= video.duration_formatted %>
@@ -71,7 +71,7 @@
               </div>
             <% end %>
             <div class="p-4">
-              <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2 line-clamp-2"><%= video.title %></h3>
+              <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2 line-clamp-2"><%= video.translated_title || video.title %></h3>
               <div class="text-xs text-gray-600 dark:text-gray-400">
                 <p><%= video.international_source.name %></p>
                 <% if video.published_at.present? %>
