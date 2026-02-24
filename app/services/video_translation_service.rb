@@ -16,8 +16,19 @@ class VideoTranslationService
     return video.title if video.title.blank?
     return video.json_data['translated_title'] if video.json_data['translated_title'].present?
 
-    # Skip if already in target language (heuristic: mostly ASCII)
-    return video.title if mostly_ascii?(video.title)
+    # If already in target language (heuristic: mostly ASCII), save as-is
+    if mostly_ascii?(video.title)
+      current_data = video.json_data
+      video.update(
+        data: current_data.merge(
+          'translated_title' => video.title,
+          'original_language' => 'en',
+          'translated_at' => Time.current.iso8601
+        )
+      )
+      video.instance_variable_set(:@json_data, nil) # Clear memoization
+      return video.title
+    end
     
     # Skip if no translator available
     return video.title if @translator.nil?
@@ -38,6 +49,7 @@ class VideoTranslationService
           'translated_at' => Time.current.iso8601
         )
       )
+      video.instance_variable_set(:@json_data, nil) # Clear memoization
 
       Rails.logger.info "[VideoTranslation] Translated: #{video.title[0..50]} → #{translated_text[0..50]}"
       translated_text
@@ -52,8 +64,18 @@ class VideoTranslationService
     return video.description if video.description.blank?
     return video.json_data['translated_description'] if video.json_data['translated_description'].present?
 
-    # Skip if already in target language
-    return video.description if mostly_ascii?(video.description)
+    # If already in target language, save as-is
+    if mostly_ascii?(video.description)
+      current_data = video.json_data
+      video.update(
+        data: current_data.merge(
+          'translated_description' => video.description,
+          'translated_at' => Time.current.iso8601
+        )
+      )
+      video.instance_variable_set(:@json_data, nil) # Clear memoization
+      return video.description
+    end
     
     # Skip if no translator available
     return video.description if @translator.nil?
@@ -71,6 +93,7 @@ class VideoTranslationService
           'translated_at' => Time.current.iso8601
         )
       )
+      video.instance_variable_set(:@json_data, nil) # Clear memoization
 
       translated_text
     rescue StandardError => e
