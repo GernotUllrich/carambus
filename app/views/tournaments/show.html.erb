@@ -175,6 +175,13 @@
 
       <!-- Regular Admin Actions (only for tournaments without ClubCloud results) -->
       <% if !@tournament.has_clubcloud_results? %>
+        <!-- Direct link to participants/seedings management (always visible) -->
+        <%= link_to '📝 Teilnehmerliste bearbeiten', 
+            define_participants_tournament_path(@tournament), 
+            class: 'btn btn-flat btn-secondary', 
+            style: 'float: left; margin-right: 10px;',
+            title: 'Teilnehmer hinzufügen, bearbeiten oder entfernen' %>
+        
         <%- if !@tournament.tournament_started %>
           <%= button_to I18n.t("tournaments.show.reset_tournament_monitor"), reset_tournament_path(@tournament), method: :post, class: "btn btn-flat btn-primary", data: { confirm: 'Are you sure?' }, style: "float: left; margin-right: 10px;" %>
         <%- end %>
