@@ -440,7 +440,7 @@ class PartyMonitor < ApplicationRecord
           add_result_to(gp, rankings["endgames"]["groups"]["total"])
           rankings["endgames"]["groups"]["fg#{group_no}"] ||= {}
           add_result_to(gp, rankings["endgames"]["groups"]["fg#{group_no}"])
-        elsif (m = game.gname.match(/^(af|qf|vf|hf|fin|p<\d+(?:\.\.|-)\d+>)(\d+)?$/))
+        elsif (m = game.gname.match(/^(64f|32f|16f|8f|af|qf|vf|hf|fin|p<\d+(?:\.\.|-)\d+>)(\d+)?$/))
           level = m[1]
           group_no = m[2]
           add_result_to(gp, rankings["total"])
@@ -542,7 +542,7 @@ class PartyMonitor < ApplicationRecord
   def get_attribute_by_gname(gname, key_)
     key = key_.to_sym
     seqno = gname.split("-")[0].to_i
-    type = gname.split("-")[1..].join("-")
+    type = gname.split("-").drop(1).join("-")
     ix = data["rows"].find_index { |row| row["seqno"] == seqno && row["type"] == type }
     ix.present? ? data["rows"][ix][key] : nil
   rescue StandardError => e
@@ -554,7 +554,7 @@ class PartyMonitor < ApplicationRecord
   def get_game_plan_attribute_by_gname(gname, key_)
     key = key_.to_sym
     seqno = gname.split("-")[0].to_i
-    type = gname.split("-")[1..].join("-")
+    type = gname.split("-").drop(1).join("-")
     data = party.league.game_plan.data
     ix = data["rows"].find_index { |row| row[:seqno] == seqno && row[:type] == type }
     ix.present? ? data["rows"][ix][key] : nil

@@ -108,7 +108,7 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
           add_result_to(gp, rankings["endgames"]["groups"]["total"])
           rankings["endgames"]["groups"]["fg#{group_no}"] ||= {}
           add_result_to(gp, rankings["endgames"]["groups"]["fg#{group_no}"])
-        elsif (m = game.gname.match(/^(af|qf|vf|hf|fin|p<\d+(?:\.\.|-)\d+>)(\d+)?$/))
+        elsif (m = game.gname.match(/^(64f|32f|16f|8f|af|qf|vf|hf|fin|p<\d+(?:\.\.|-)\d+>)(\d+)?$/))
           level = m[1]
           group_no = m[2]
           add_result_to(gp, rankings["total"])
@@ -136,7 +136,7 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
       "hs" => 0,
       "bed" => 0,
       "gd" => 0,
-      "balls_goal" => nil,  # Player's handicap balls_goal (not sum!)
+      "balls_goal" => nil, # Player's handicap balls_goal (not sum!)
       "gd_pct" => 0.0
 
     }
@@ -146,7 +146,7 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
     hash[player_id]["bed"] = gp.gd if gp.gd > hash[player_id]["bed"]
     hash[player_id]["hs"] = gp.hs if gp.hs > hash[player_id]["hs"]
     hash[player_id]["gd"] = format("%.2f", hash[player_id]["result"].to_f / hash[player_id]["innings"]).to_f
-    
+
     # Get player's balls_goal from seeding (not from game!)
     if hash[player_id]["balls_goal"].nil?
       seeding = tournament.seedings
@@ -154,7 +154,7 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
                           .find_by(player_id: player_id)
       hash[player_id]["balls_goal"] = seeding&.balls_goal || gp.data["results"]["BG"]
     end
-    
+
     # Calculate gd_pct: achieved GD vs expected GD
     # Expected GD = balls_goal / innings_goal
     # gd_pct = 100 * gd_achieved / gd_expected
@@ -207,9 +207,9 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
           TournamentMonitorUpdateResultsJob.perform_later(self)
           # Broadcast Status-Update für Tournament View
           TournamentStatusUpdateJob.perform_later(tournament)
-        else
+        elsif tournament.tournament_started
           # Auch bei einzelnen Spiel-Updates broadcasten (wenn Spiel läuft)
-          TournamentStatusUpdateJob.perform_later(tournament) if tournament.tournament_started
+          TournamentStatusUpdateJob.perform_later(tournament)
         end
       rescue StandardError => e
         Rails.logger.info "StandardError #{e}, #{e.backtrace&.join("\n")}"
@@ -257,7 +257,9 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
       # Fallback auf alte Logik, falls Mapping fehlschlägt
       unless gruppe.present?
         Rails.logger.warn "[CSV-Export] Could not map game.gname '#{game.gname}' to ClubCloud group name, using fallback"
-        gruppe = "#{game.gname =~ /^group/ ? "Gruppe" : game.gname}#{" #{game.group_no}" if game.group_no.present?}"
+        gruppe = "#{/^group/.match?(game.gname) ? "Gruppe" : game.gname}#{if game.group_no.present?
+                                                                            " #{game.group_no}"
+                                                                          end}"
       end
 
       partie = game.seqno
@@ -278,10 +280,10 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
     f.write(game_data.join("\n"))
     f.close
     NotifierMailer.result(tournament, current_admin.email, "Turnierergebnisse -\
-    #{tournament.title}", "result-#{tournament.id}.csv"\
+    #{tournament.title}", "result-#{tournament.id}.csv" \
     , "#{Rails.root}/tmp/result-#{tournament.id}.csv").deliver
-    NotifierMailer.result(tournament, 'gernot.ullrich@gmx.de', "Turnierergebnisse - #{tournament.title}",
-                        "result-#{tournament.id}.csv", "#{Rails.root}/tmp/result-#{tournament.id}.csv").deliver
+    NotifierMailer.result(tournament, "gernot.ullrich@gmx.de", "Turnierergebnisse - #{tournament.title}",
+                          "result-#{tournament.id}.csv", "#{Rails.root}/tmp/result-#{tournament.id}.csv").deliver
   end
 
   def initialize_table_monitors
@@ -364,7 +366,7 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
                            .joins(:game)
                            .joins("left outer join tournaments on tournaments.id = games.tournament_id")
                            .where("games.id >= ?", Seeding::MIN_ID)
-                           .where(games: { round_no: 1, group_no: group_no, tournament_id: tournament.id})
+                           .where(games: { round_no: 1, group_no: group_no, tournament_id: tournament.id })
                            .order("points desc, game_id asc")
                   table_from_winner = winner.where(points: 2).count == 2
                   winner_arr = winner.to_a
@@ -579,7 +581,7 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
                 end
               end
             end
-          elsif /(?:vf|hf|af|qf|fin|p<\d+(?:\.\.|-)\d+>)(\d+)?/.match?(k)
+          elsif /(?:64f|32f|16f|8f|vf|hf|af|qf|fin|p<\d+(?:\.\.|-)\d+>)(\d+)?/.match?(k)
             r_no = executor_params[k].keys.find { |kk| kk =~ /r[*\d+]/ }.match(/r([*\d+])/)[1].to_i
             if current_round == r_no
               t_no = nil
@@ -604,7 +606,8 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
               game.save
               ("a".."b").each_with_index do |pl_no, ix|
                 rule_str = players[ix]
-                player_id = player_id_from_ranking(rule_str, executor_params: executor_params, ordered_ranking_nos: ordered_ranking_nos)
+                player_id = player_id_from_ranking(rule_str, executor_params: executor_params,
+                                                             ordered_ranking_nos: ordered_ranking_nos)
                 if player_id.present?
                   gp = game.game_participations.where(player_id: player_id, role: "player#{pl_no}").first
                   gp || game.game_participations.create(player_id: player_id, role: "player#{pl_no}")
@@ -621,7 +624,7 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
                     do_placement(game, r_no, t_no, sets, balls, innings)
                   end
                 end
-                if tno_str == "t-rand*" && game.game_participations.map(&:player_id).compact.count == 2
+                if tno_str == "t-rand*" && game.game_participations.filter_map(&:player_id).count == 2
                   if tournament.continuous_placements
                     @placement_candidates.push([game.id, game.gname, r_no, t_no])
                   else
@@ -688,196 +691,216 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
     # Jobs reload TableMonitor - if they run before transaction commits, they corrupt in-memory state
     ActiveRecord::Base.transaction do
       try do
-      @placements ||= data["placements"].presence
-      @placement_candidates ||= data["placement_candidates"].presence
-      @placements ||= {}
-      @placement_candidates ||= []
-      @placements_done = @placements.keys.map do |k|
-        @placements[k]
-      end.flatten.first.andand.values.to_a.flatten
-      info = "+++ 8a - tournament_monitor#do_placement new_game, r_no, t_no:\
+        @placements ||= data["placements"].presence
+        @placement_candidates ||= data["placement_candidates"].presence
+        @placements ||= {}
+        @placement_candidates ||= []
+        @placements_done = @placements.keys.map do |k|
+          @placements[k]
+        end.flatten.first.andand.values.to_a.flatten
+        info = "+++ 8a - tournament_monitor#do_placement new_game, r_no, t_no:\
  #{new_game.attributes.inspect}, #{r_no}, #{t_no}"
-      Rails.logger.info info
-      Rails.logger.info ">>>>> CHECK 1: @placements_done.include?(#{new_game.id})=#{@placements_done.include?(new_game.id)}, new_game.data.blank?=#{new_game.data.blank?}"
-      if !@placements_done.include?(new_game.id) || new_game.data.blank? || new_game.data.keys == ["tmp_results"]
-        info = "+++ 8b - tournament_monitor#do_placement"
         Rails.logger.info info
-        Rails.logger.info ">>>>> CHECK 1 PASSED"
-        table_ids = tournament.data["table_ids"]
+        Rails.logger.info ">>>>> CHECK 1: @placements_done.include?(#{new_game.id})=#{@placements_done.include?(new_game.id)}, new_game.data.blank?=#{new_game.data.blank?}"
+        if !@placements_done.include?(new_game.id) || new_game.data.blank? || new_game.data.keys == ["tmp_results"]
+          info = "+++ 8b - tournament_monitor#do_placement"
+          Rails.logger.info info
+          Rails.logger.info ">>>>> CHECK 1 PASSED"
+          table_ids = tournament.data["table_ids"]
 
-        # Wenn vorgesehener Tisch belegt ist: Suche freien Tisch
-        if t_no.to_i.positive? && current_round == r_no && new_game.present? &&
-           @placements.andand["round#{r_no}"].andand["table#{t_no}"].present? &&
-           !tournament.continuous_placements
-          Tournament.logger.warn "[do_placement] Tisch #{t_no} bereits belegt in Runde #{r_no}, suche freien Tisch..."
+          # Wenn vorgesehener Tisch belegt ist: Suche freien Tisch
+          if t_no.to_i.positive? && current_round == r_no && new_game.present? &&
+             @placements.andand["round#{r_no}"].andand["table#{t_no}"].present? &&
+             !tournament.continuous_placements
+            Tournament.logger.warn "[do_placement] Tisch #{t_no} bereits belegt in Runde #{r_no}, suche freien Tisch..."
 
-          # Finde ersten freien Tisch
-          # Bestimme Anzahl verfügbarer Tische
-          available_tables = if table_ids.is_a?(Array)
-            # table_ids könnte ein Array von Arrays sein (pro Runde) oder ein flaches Array
-            if table_ids.first.is_a?(Array)
-              table_ids[r_no - 1]&.length || table_ids.first.length
-            else
-              table_ids.length
-            end
-          else
-            # Fallback: Anzahl aus TournamentPlan oder Location
-            tournament.tournament_plan&.tables.to_i > 0 ? tournament.tournament_plan.tables : 4
-          end
+            # Finde ersten freien Tisch
+            # Bestimme Anzahl verfügbarer Tische
+            available_tables = if table_ids.is_a?(Array)
+                                 # table_ids könnte ein Array von Arrays sein (pro Runde) oder ein flaches Array
+                                 if table_ids.first.is_a?(Array)
+                                   table_ids[r_no - 1]&.length || table_ids.first.length
+                                 else
+                                   table_ids.length
+                                 end
+                               else
+                                 # Fallback: Anzahl aus TournamentPlan oder Location
+                                 tournament.tournament_plan&.tables.to_i > 0 ? tournament.tournament_plan.tables : 4
+                               end
 
-          original_t_no = t_no
-          t_no = nil
-          (1..available_tables).each do |check_t_no|
-            if @placements.andand["round#{r_no}"].andand["table#{check_t_no}"].blank?
+            original_t_no = t_no
+            t_no = nil
+            (1..available_tables).each do |check_t_no|
+              next unless @placements.andand["round#{r_no}"].andand["table#{check_t_no}"].blank?
+
               t_no = check_t_no
               Tournament.logger.info "[do_placement] Gefundener freier Tisch: #{t_no} (ursprünglich #{original_t_no})"
               break
             end
-          end
 
-          unless t_no.present?
-            Tournament.logger.error "[do_placement] ERROR: Kein freier Tisch gefunden in Runde #{r_no} für Spiel #{new_game.gname} (verfügbar: #{available_tables} Tische)"
-            return
-          end
-        end
-
-        Rails.logger.info ">>>>> CHECK 2: t_no=#{t_no}, current_round=#{current_round}, r_no=#{r_no}, continuous=#{tournament.continuous_placements}"
-        if t_no.to_i.positive? &&
-           ((current_round == r_no &&
-             new_game.present? &&
-             @placements.andand["round#{r_no}"].andand["table#{t_no}"].blank?) || tournament.continuous_placements)
-
-          Rails.logger.info ">>>>> CHECK 2 PASSED - will do placement"
-          seqno = new_game.seqno.to_i.positive? ? new_game.seqno : next_seqno
-          new_game.update(round_no: r_no.to_i, table_no: t_no, seqno: seqno)
-          @placements ||= {}
-          @placements["round#{r_no}"] ||= {}
-          @placements["round#{r_no}"]["table#{t_no}"] ||= []
-          @placements["round#{r_no}"]["table#{t_no}"].push(new_game.id)
-          Tournament.logger.info "DO PLACEMENT round=#{r_no} table#{t_no} assign_game(#{new_game.gname})"
-
-          @table = Table.find(table_ids[t_no - 1])
-          @table_monitor = @table.table_monitor || @table.table_monitor!
-          old_game = @table_monitor.game
-          if old_game.present?
-            # noinspection RubyResolve
-            @table_monitor.data_will_change!
-            info = "+++ 8c - tournament_monitor#do_placement - save current game"
-            Rails.logger.info info
-            tmp_results = {}
-            tmp_results["playera"] = @table_monitor.deep_delete!("playera", false)
-            tmp_results["playerb"] = @table_monitor.deep_delete!("playerb", false)
-            tmp_results["current_inning"] = @table_monitor.deep_delete!("current_inning", false)
-            if @table_monitor.data["ba_results"].present?
-              tmp_results["ba_results"] =
-                @table_monitor.deep_delete!("ba_results", false)
+            unless t_no.present?
+              Tournament.logger.error "[do_placement] ERROR: Kein freier Tisch gefunden in Runde #{r_no} für Spiel #{new_game.gname} (verfügbar: #{available_tables} Tische)"
+              return
             end
-            tmp_results["state"] = @table_monitor.state
-            old_game.deep_merge_data!("tmp_results" => tmp_results)
-            old_game.save!
-            # noinspection RubyResolve
-            @table_monitor.data_will_change!
-            @table_monitor.state = "ready"
-            @table_monitor.game_id = nil
-            @table_monitor.save!
           end
-          if @table_monitor.present?
-            attrs = {}
-            attrs["sets_to_play"] = sets unless sets.nil?
-            # PRIORITÄT: Formular (tournament_monitor) > Tournament > executor_params
-            Rails.logger.info "===== PLACEMENT DEBUG ====="
-            Rails.logger.info "self.class: #{self.class.name}"
-            Rails.logger.info "self.id: #{self.id.inspect}"
-            Rails.logger.info "self.innings_goal: #{self.innings_goal.inspect}"
-            Rails.logger.info "self.attributes['innings_goal']: #{self.attributes['innings_goal'].inspect}"
-            Rails.logger.info "tournament.id: #{tournament.id.inspect}"
-            Rails.logger.info "tournament.innings_goal: #{tournament.innings_goal.inspect}"
-            Rails.logger.info "innings (executor_params): #{innings.inspect}"
-            Rails.logger.info "self.balls_goal: #{self.balls_goal.inspect}"
-            Rails.logger.info "tournament.balls_goal: #{tournament.balls_goal.inspect}"
-            Rails.logger.info "balls (executor_params): #{balls.inspect}"
-            Rails.logger.info "tournament.handicap_tournier?: #{tournament.handicap_tournier?.inspect}"
 
-            attrs["innings_goal"] = self.innings_goal || tournament.innings_goal || innings
+          Rails.logger.info ">>>>> CHECK 2: t_no=#{t_no}, current_round=#{current_round}, r_no=#{r_no}, continuous=#{tournament.continuous_placements}"
+          if t_no.to_i.positive? &&
+             ((current_round == r_no &&
+               new_game.present? &&
+               @placements.andand["round#{r_no}"].andand["table#{t_no}"].blank?) || tournament.continuous_placements)
 
-            # Bei Handicap-Turnieren: Individuelle Vorgaben aus Seeding holen
-            if tournament.handicap_tournier?
-              Rails.logger.info "HANDICAP TURNIER: Hole individuelle balls_goal aus Seeding"
+            Rails.logger.info ">>>>> CHECK 2 PASSED - will do placement"
+            seqno = new_game.seqno.to_i.positive? ? new_game.seqno : next_seqno
+            new_game.update(round_no: r_no.to_i, table_no: t_no, seqno: seqno)
+            @placements ||= {}
+            @placements["round#{r_no}"] ||= {}
+            @placements["round#{r_no}"]["table#{t_no}"] ||= []
+            @placements["round#{r_no}"]["table#{t_no}"].push(new_game.id)
+            Tournament.logger.info "DO PLACEMENT round=#{r_no} table#{t_no} assign_game(#{new_game.gname})"
 
-              # Reload game um sicherzustellen dass GameParticipations geladen sind
-              new_game.reload
-
-              # Hole die Spieler aus den GameParticipations
-              gp_a = new_game.game_participations.find { |gp| gp.role == "playera" }
-              gp_b = new_game.game_participations.find { |gp| gp.role == "playerb" }
-
-              Rails.logger.info "GameParticipation A: player_id=#{gp_a&.player_id}, role=#{gp_a&.role}"
-              Rails.logger.info "GameParticipation B: player_id=#{gp_b&.player_id}, role=#{gp_b&.role}"
-
-              # Hole die Seedings der Spieler (priorisiere lokale Seedings >= MIN_ID)
-              seeding_a = if gp_a&.player_id
-                            # Erst lokale Seedings probieren
-                            tournament.seedings.where("id >= ?", Seeding::MIN_ID).find_by(player_id: gp_a.player_id) ||
-                            # Fallback: ClubCloud Seedings
-                            tournament.seedings.where("id < ?", Seeding::MIN_ID).find_by(player_id: gp_a.player_id)
-                          end
-              seeding_b = if gp_b&.player_id
-                            # Erst lokale Seedings probieren
-                            tournament.seedings.where("id >= ?", Seeding::MIN_ID).find_by(player_id: gp_b.player_id) ||
-                            # Fallback: ClubCloud Seedings
-                            tournament.seedings.where("id < ?", Seeding::MIN_ID).find_by(player_id: gp_b.player_id)
-                          end
-
-              Rails.logger.info "Seeding A (Player #{gp_a&.player_id}): balls_goal=#{seeding_a&.balls_goal.inspect}"
-              Rails.logger.info "Seeding B (Player #{gp_b&.player_id}): balls_goal=#{seeding_b&.balls_goal.inspect}"
-
-              attrs["playera"] = {}
-              attrs["playera"]["balls_goal"] = seeding_a&.balls_goal&.presence || self.balls_goal || tournament.balls_goal || balls
-              attrs["playerb"] = {}
-              attrs["playerb"]["balls_goal"] = seeding_b&.balls_goal&.presence || self.balls_goal || tournament.balls_goal || balls
-            else
-              # Bei normalen Turnieren: Einheitliches balls_goal für beide Spieler
-              attrs["playera"] = {}
-              attrs["playera"]["balls_goal"] = self.balls_goal || tournament.balls_goal || balls
-              attrs["playerb"] = {}
-              attrs["playerb"]["balls_goal"] = self.balls_goal || tournament.balls_goal || balls
+            @table = Table.find(table_ids[t_no - 1])
+            @table_monitor = @table.table_monitor || @table.table_monitor!
+            old_game = @table_monitor.game
+            if old_game.present?
+              # noinspection RubyResolve
+              @table_monitor.data_will_change!
+              info = "+++ 8c - tournament_monitor#do_placement - save current game"
+              Rails.logger.info info
+              tmp_results = {}
+              tmp_results["playera"] = @table_monitor.deep_delete!("playera", false)
+              tmp_results["playerb"] = @table_monitor.deep_delete!("playerb", false)
+              tmp_results["current_inning"] = @table_monitor.deep_delete!("current_inning", false)
+              if @table_monitor.data["ba_results"].present?
+                tmp_results["ba_results"] =
+                  @table_monitor.deep_delete!("ba_results", false)
+              end
+              tmp_results["state"] = @table_monitor.state
+              old_game.deep_merge_data!("tmp_results" => tmp_results)
+              old_game.save!
+              # noinspection RubyResolve
+              @table_monitor.data_will_change!
+              @table_monitor.state = "ready"
+              @table_monitor.game_id = nil
+              @table_monitor.save!
             end
+            if @table_monitor.present?
+              attrs = {}
+              attrs["sets_to_play"] = sets unless sets.nil?
+              # PRIORITÄT: Formular (tournament_monitor) > Tournament > executor_params
+              Rails.logger.info "===== PLACEMENT DEBUG ====="
+              Rails.logger.info "self.class: #{self.class.name}"
+              Rails.logger.info "self.id: #{id.inspect}"
+              Rails.logger.info "self.innings_goal: #{innings_goal.inspect}"
+              Rails.logger.info "self.attributes['innings_goal']: #{attributes["innings_goal"].inspect}"
+              Rails.logger.info "tournament.id: #{tournament.id.inspect}"
+              Rails.logger.info "tournament.innings_goal: #{tournament.innings_goal.inspect}"
+              Rails.logger.info "innings (executor_params): #{innings.inspect}"
+              Rails.logger.info "self.balls_goal: #{balls_goal.inspect}"
+              Rails.logger.info "tournament.balls_goal: #{tournament.balls_goal.inspect}"
+              Rails.logger.info "balls (executor_params): #{balls.inspect}"
+              Rails.logger.info "tournament.handicap_tournier?: #{tournament.handicap_tournier?.inspect}"
 
-            Rails.logger.info "attrs['innings_goal']: #{attrs['innings_goal'].inspect}"
-            Rails.logger.info "attrs['playera']['balls_goal']: #{attrs['playera']['balls_goal'].inspect}"
-            Rails.logger.info "attrs['playerb']['balls_goal']: #{attrs['playerb']['balls_goal'].inspect}"
-            Rails.logger.info "=========================="
+              attrs["innings_goal"] = innings_goal || tournament.innings_goal || innings
 
-            Rails.logger.info "BEFORE deep_merge: @table_monitor.data['playera']&.[]('balls_goal') = #{@table_monitor.data.dig('playera', 'balls_goal').inspect}"
-            Rails.logger.info "BEFORE deep_merge: @table_monitor.data['playerb']&.[]('balls_goal') = #{@table_monitor.data.dig('playerb', 'balls_goal').inspect}"
+              # Bei Handicap-Turnieren: Individuelle Vorgaben aus Seeding holen
+              if tournament.handicap_tournier?
+                Rails.logger.info "HANDICAP TURNIER: Hole individuelle balls_goal aus Seeding"
 
-            @table_monitor.deep_merge_data!(attrs)
-            @table_monitor.data_will_change!
+                # Reload game um sicherzustellen dass GameParticipations geladen sind
+                new_game.reload
 
-            Rails.logger.info "AFTER deep_merge: @table_monitor.data['playera']&.[]('balls_goal') = #{@table_monitor.data.dig('playera', 'balls_goal').inspect}"
-            Rails.logger.info "AFTER deep_merge: @table_monitor.data['playerb']&.[]('balls_goal') = #{@table_monitor.data.dig('playerb', 'balls_goal').inspect}"
+                # Hole die Spieler aus den GameParticipations
+                gp_a = new_game.game_participations.find { |gp| gp.role == "playera" }
+                gp_b = new_game.game_participations.find { |gp| gp.role == "playerb" }
 
-            @table_monitor.assign_attributes(tournament_monitor: self)
-            @table_monitor.save!  # Muss save! sein, nicht save
+                Rails.logger.info "GameParticipation A: player_id=#{gp_a&.player_id}, role=#{gp_a&.role}"
+                Rails.logger.info "GameParticipation B: player_id=#{gp_b&.player_id}, role=#{gp_b&.role}"
 
-            Rails.logger.info "AFTER SAVE: @table_monitor.data['innings_goal'] = #{@table_monitor.data['innings_goal'].inspect}"
-            Rails.logger.info "AFTER SAVE: @table_monitor.data['playera']&.[]('balls_goal') = #{@table_monitor.data.dig('playera', 'balls_goal').inspect}"
-            Rails.logger.info "AFTER SAVE: @table_monitor.data['playerb']&.[]('balls_goal') = #{@table_monitor.data.dig('playerb', 'balls_goal').inspect}"
-            @table_monitor.reload
-            Rails.logger.info "AFTER RELOAD: @table_monitor.data['innings_goal'] = #{@table_monitor.data['innings_goal'].inspect}"
-            Rails.logger.info "AFTER RELOAD: @table_monitor.data['playera']&.[]('balls_goal') = #{@table_monitor.data.dig('playera', 'balls_goal').inspect}"
-            Rails.logger.info "AFTER RELOAD: @table_monitor.data['playerb']&.[]('balls_goal') = #{@table_monitor.data.dig('playerb', 'balls_goal').inspect}"
-          end
-          @table_monitor.andand.assign_game(new_game.reload)
-        elsif tournament.continuous_placements?
-          @placement_candidates.push(new_game.id)
-        else
-          info = "+++ 8a - tournament_monitor#do_placement FAILED new_game.data:\
+                # Hole die Seedings der Spieler (priorisiere lokale Seedings >= MIN_ID)
+                seeding_a = if gp_a&.player_id
+                              # Erst lokale Seedings probieren
+                              tournament.seedings.where("id >= ?",
+                                                        Seeding::MIN_ID).find_by(player_id: gp_a.player_id) ||
+                                # Fallback: ClubCloud Seedings
+                                tournament.seedings.where("id < ?", Seeding::MIN_ID).find_by(player_id: gp_a.player_id)
+                            end
+                seeding_b = if gp_b&.player_id
+                              # Erst lokale Seedings probieren
+                              tournament.seedings.where("id >= ?",
+                                                        Seeding::MIN_ID).find_by(player_id: gp_b.player_id) ||
+                                # Fallback: ClubCloud Seedings
+                                tournament.seedings.where("id < ?", Seeding::MIN_ID).find_by(player_id: gp_b.player_id)
+                            end
+
+                Rails.logger.info "Seeding A (Player #{gp_a&.player_id}): balls_goal=#{seeding_a&.balls_goal.inspect}"
+                Rails.logger.info "Seeding B (Player #{gp_b&.player_id}): balls_goal=#{seeding_b&.balls_goal.inspect}"
+
+                attrs["playera"] = {}
+                attrs["playera"]["balls_goal"] =
+                  seeding_a&.balls_goal&.presence || balls_goal || tournament.balls_goal || balls
+                attrs["playerb"] = {}
+                attrs["playerb"]["balls_goal"] =
+                  seeding_b&.balls_goal&.presence || balls_goal || tournament.balls_goal || balls
+              else
+                # Bei normalen Turnieren: Einheitliches balls_goal für beide Spieler
+                attrs["playera"] = {}
+                attrs["playera"]["balls_goal"] = balls_goal || tournament.balls_goal || balls
+                attrs["playerb"] = {}
+                attrs["playerb"]["balls_goal"] = balls_goal || tournament.balls_goal || balls
+              end
+
+              Rails.logger.info "attrs['innings_goal']: #{attrs["innings_goal"].inspect}"
+              Rails.logger.info "attrs['playera']['balls_goal']: #{attrs["playera"]["balls_goal"].inspect}"
+              Rails.logger.info "attrs['playerb']['balls_goal']: #{attrs["playerb"]["balls_goal"].inspect}"
+              Rails.logger.info "=========================="
+
+              Rails.logger.info "BEFORE deep_merge: @table_monitor.data['playera']&.[]('balls_goal') = #{@table_monitor.data.dig(
+                "playera", "balls_goal"
+              ).inspect}"
+              Rails.logger.info "BEFORE deep_merge: @table_monitor.data['playerb']&.[]('balls_goal') = #{@table_monitor.data.dig(
+                "playerb", "balls_goal"
+              ).inspect}"
+
+              @table_monitor.deep_merge_data!(attrs)
+              @table_monitor.data_will_change!
+
+              Rails.logger.info "AFTER deep_merge: @table_monitor.data['playera']&.[]('balls_goal') = #{@table_monitor.data.dig(
+                "playera", "balls_goal"
+              ).inspect}"
+              Rails.logger.info "AFTER deep_merge: @table_monitor.data['playerb']&.[]('balls_goal') = #{@table_monitor.data.dig(
+                "playerb", "balls_goal"
+              ).inspect}"
+
+              @table_monitor.assign_attributes(tournament_monitor: self)
+              @table_monitor.save! # Muss save! sein, nicht save
+
+              Rails.logger.info "AFTER SAVE: @table_monitor.data['innings_goal'] = #{@table_monitor.data["innings_goal"].inspect}"
+              Rails.logger.info "AFTER SAVE: @table_monitor.data['playera']&.[]('balls_goal') = #{@table_monitor.data.dig(
+                "playera", "balls_goal"
+              ).inspect}"
+              Rails.logger.info "AFTER SAVE: @table_monitor.data['playerb']&.[]('balls_goal') = #{@table_monitor.data.dig(
+                "playerb", "balls_goal"
+              ).inspect}"
+              @table_monitor.reload
+              Rails.logger.info "AFTER RELOAD: @table_monitor.data['innings_goal'] = #{@table_monitor.data["innings_goal"].inspect}"
+              Rails.logger.info "AFTER RELOAD: @table_monitor.data['playera']&.[]('balls_goal') = #{@table_monitor.data.dig(
+                "playera", "balls_goal"
+              ).inspect}"
+              Rails.logger.info "AFTER RELOAD: @table_monitor.data['playerb']&.[]('balls_goal') = #{@table_monitor.data.dig(
+                "playerb", "balls_goal"
+              ).inspect}"
+            end
+            @table_monitor.andand.assign_game(new_game.reload)
+          elsif tournament.continuous_placements?
+            @placement_candidates.push(new_game.id)
+          else
+            info = "+++ 8a - tournament_monitor#do_placement FAILED new_game.data:\
  #{new_game.data.inspect}, @placements: #{@placements.inspect}, new_game:\
  #{new_game.andand.attributes.inspect}, current_round: #{current_round}"
-          Rails.logger.info info
+            Rails.logger.info info
+          end
         end
-      end
       rescue StandardError => e
         Rails.logger.info "StandardError #{e}, #{e.backtrace&.join("\n")}"
         raise ActiveRecord::Rollback
