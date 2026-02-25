@@ -3,13 +3,17 @@
 module International
   # Controller for international videos
   class VideosController < ApplicationController
-    before_action :set_video, only: [:show]
+    before_action :set_video, only: [:show, :hide, :unhide]
+    before_action :require_admin!, only: [:hide, :unhide]
 
     def index
       # Use new Video model (YouTube videos)
       @videos = Video.youtube
                      .includes(:international_source, :discipline)
                      .recent
+      
+      # Show hidden videos only for admins
+      @videos = @videos.visible unless current_user&.admin?
       
       # Filters
       @videos = @videos.where(international_source_id: params[:source_id]) if params[:source_id].present?
@@ -97,12 +101,39 @@ module International
                                .recent
                                .limit(6)
       end
+      
+      # Filter hidden videos for non-admins
+      @related_videos = @related_videos.visible unless current_user&.admin?
+    end
+
+    # Admin: Hide video
+    def hide
+      if @video.hide!
+        redirect_to international_video_path(@video), notice: 'Video hidden successfully.'
+      else
+        redirect_to international_video_path(@video), alert: 'Failed to hide video.'
+      end
+    end
+
+    # Admin: Unhide video
+    def unhide
+      if @video.unhide!
+        redirect_to international_video_path(@video), notice: 'Video is now visible.'
+      else
+        redirect_to international_video_path(@video), alert: 'Failed to unhide video.'
+      end
     end
 
     private
 
     def set_video
       @video = Video.includes(:international_source, :discipline).find(params[:id])
+    end
+
+    def require_admin!
+      unless current_user&.admin?
+        redirect_to root_path, alert: 'Access denied. Admin privileges required.'
+      end
     end
 
     def calculate_tag_counts

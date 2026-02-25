@@ -3,7 +3,12 @@ Rails.application.routes.draw do
   # International section
   namespace :international do
     resources :tournaments, only: [:index, :show]
-    resources :videos, only: [:index, :show]
+    resources :videos, only: [:index, :show] do
+      member do
+        post :hide
+        post :unhide
+      end
+    end
   end
   get 'international', to: 'international#index', as: :international
   

@@ -62,6 +62,8 @@ class Video < ApplicationRecord
   scope :by_source, ->(source_id) { where(international_source_id: source_id) }
   scope :by_discipline, ->(discipline_id) { where(discipline_id: discipline_id) }
   scope :youtube, -> { joins(:international_source).where(international_sources: { source_type: 'youtube' }) }
+  scope :visible, -> { where(hidden: false) }
+  scope :hidden_videos, -> { where(hidden: true) }
   
   # Tag filtering scopes
   scope :with_tag, ->(tag) { where("videos.data @> ?", { tags: [tag] }.to_json) }
@@ -373,5 +375,18 @@ class Video < ApplicationRecord
   # Get auto-detected tags (without saving)
   def suggested_tags
     detect_all_tags - tags
+  end
+
+  # Admin methods for hiding/showing videos
+  def hide!
+    update(hidden: true)
+  end
+
+  def unhide!
+    update(hidden: false)
+  end
+
+  def toggle_hidden!
+    update(hidden: !hidden)
   end
 end

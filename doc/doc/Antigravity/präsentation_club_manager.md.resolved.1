@@ -1,0 +1,90 @@
+# 🎱 Carambus: Die digitale Revolution für Ihren Billardverein
+
+Sehr geehrte Vorstände und Sportwarte,
+
+die Organisation von Turnieren und Ligaspieltagen ist das Herzstück unseres Vereinslebens – aber oft auch ein enormer administrativer Aufwand. Mit **Carambus** stellen wir Ihnen heute eine Lösung vor, die diese Arbeit drastisch vereinfacht und professionalisiert.
+
+Carambus ist ein modernes, webbasiertes und 100% kostenfreies Open-Source-System, das von Billardspielern für Billardvereine entwickelt wurde. Es digitalisiert Ihren gesamten Spielbetrieb: Von der Planung über das Live-Scoreboard am Tisch bis zur automatischen Ergebnismeldung an den Verband.
+
+---
+
+## 🌟 Warum Carambus? Die 4 größten Vorteile für Ihren Verein
+
+### 1. ⏱️ Massive Zeitersparnis durch Automatisierung
+Schluss mit Zettelwirtschaft, Stoppuhren und manueller Tabellenkalkulation!
+- **Turnierplanung in Minuten:** Spielpläne (KO-System, Schweizer System, Jeder-gegen-Jeden) werden automatisch anhand von Setzlisten, Rankings und verfügbaren Tischen berechnet.
+- **Ligaspieltage (PartyMonitor):** Mannschaftsaufstellungen und Tischzuordnungen erfolgen vollständig digital. Das System führt Sie sicher und fehlerfrei durch den gesamten Spieltag.
+- **Aufwand:** Sie sparen 80-90% der üblichen administrativen Zeit bei der Turnier- und Ligaleitung.
+
+### 2. 🔄 Perfekte ClubCloud-Integration (DBU)
+Nie wieder Ergebnisse doppelt abtippen!
+- Carambus synchronisiert **automatisch** alle relevanten Daten (Spieler, Vereine, Turniere, Ligen, Setzlisten) direkt aus der ClubCloud Ihres Landesverbandes.
+- **Live-Upload in Echtzeit:** Sobald eine Partie am Tisch beendet ist, sendet Carambus das Ergebnis sofort und automatisch an die ClubCloud zurück.
+- Volle Unterstützung von DBU-IDs und ein intelligentes Synonym-System vermeiden lästige Spieler-Duplikate.
+
+```mermaid
+graph LR
+    subgraph DBU / Landesverband
+        CC[(ClubCloud)]
+    end
+    
+    subgraph Vereinsheim
+        CS[Carambus Server]
+        SM[Sportwart/Turnierleitung]
+        
+        subgraph Billardtische
+            T1[Scoreboard Tisch 1]
+            T2[Scoreboard Tisch 2]
+            T3[Scoreboard Tisch 3]
+            T1 --- T2 --- T3
+        end
+    end
+
+    CC -- "1. Automatischer Import\n(Spielpläne & Meldelisten)" --> CS
+    CS -- "2. Partie-Zuweisung" --> Billardtische
+    Billardtische -- "3. Live-Scoring\n(Touch-Eingabe)" --> CS
+    SM -. "Kontrolle & Freigabe" .-> CS
+    CS -- "4. Automatischer Upload\nder Endergebnisse" --> CC
+    
+    style CC fill:#0052cc,stroke:#003d99,stroke-width:2px,color:#fff
+    style CS fill:#2ea44f,stroke:#22863a,stroke-width:2px,color:#fff
+    style Billardtische fill:#f6f8fa,stroke:#d1d5da,stroke-width:2px,color:#333
+```
+
+### 3. 🖥️ Professionelle Präsentation & "Wow"-Effekt im Vereinsheim
+Bieten Sie Ihren Mitgliedern und Zuschauern ein Erlebnis wie bei Profi-Turnieren!
+- **Digitale Scoreboards mit "Single Page Feeling":** An jedem Tisch kann ein Touch-Display (Tablet/Monitor) angebracht werden. Spieler geben ihre Punkte, Fouls oder Aufnahmen im Spiel intuitiv selbst ein.
+- **Tournament- & Party-Monitore:** Große Bildschirme im Vereinsheim zeigen alle laufenden Partien, Zwischenstände und Gruppentabellen in Echtzeit an.
+- **Alle Disziplinen:** Volle Unterstützung für Pool (8-, 9-, 10-Ball, 14.1 endlos), Karambolage (Freie Partie, Einband, Dreiband etc.) und Snooker.
+
+### 4. 💰 Keine Lizenzkosten & maximal flexibler Betrieb
+Da Carambus Open-Source ist, fallen für Sie **keinerlei monatliche oder jährliche Lizenzkosten** an.
+- **Hardware-Optionen:** Sie können Carambus zentral in der Cloud betreiben, auf einem vereinseigenen PC installieren oder als All-in-One Kiosk-Lösung für ca. 100-150 € auf einem stromsparenden **Raspberry Pi** laufen lassen.
+- **Zukunftssicher:** Entwickelt mit modernen Web-Technologien (Ruby on Rails, Hotwire, Websockets), blitzschnell und DSGVO-konform.
+
+---
+
+## 🛠️ Ein Blick in die Praxis: Ein Ligaspieltag mit Carambus
+
+1. **Vorbereitung:** Der Sportwart aktualisiert per einfachem Klick die Mannschaftsaufstellungen aus der ClubCloud.
+2. **Setup:** Der PartyMonitor führt intuitiv durch die Tisch- und Spielerzuordnung der ersten Runde.
+3. **Das Spiel:** Die Spieler gehen an die Tische. Das Tablet am Tisch zeigt bereits das Spiel ("Spieler A vs. Spieler B") an. Ein Klick auf "Runde starten".
+4. **Erfassung:** Einfaches, fehlertolerantes Scoring direkt über die Touch-Displays (inkl. Undo-Funktion und Timer für Timeouts). Bei Partieende bestätigen die Spieler das Ergebnis am Screen.
+5. **Abschluss:** Die Turnierleitung wirft einen kurzen Blick auf den PartyMonitor und klickt "Runde abschließen" – die nächste Runde startet automatisch und das Ergebnis ist bereits sekundenaktuell in der ClubCloud!
+
+---
+
+## 💡 Smarte Zusatz-Features für Ihren Alltag
+- **Tischreservierung & Heizungssteuerung:** Mitglieder buchen Tische online (auch vom Smartphone aus). Carambus steuert die Billard-Tischheizung automatisch anhand der Buchung – das spart bis zu 40% Energiekosten!
+- **KI-gestützte Suche:** Fragen Sie das System einfach per Texteingabe: *"Wer hat die Hamburger Meisterschaft 2023 gewonnen?"*
+- **Trainingsmodus:** Nutzen Sie die Scoreboards auch für private Ad-hoc-Spiele inklusive ausführlicher Langzeit-Statistiken über die eigene Leistungsentwicklung (z.B. Generaldurchschnitt).
+
+---
+
+## 🎯 Fazit
+
+Carambus ist nicht einfach nur ein digitales Zählbrett. Es ist eine **End-to-End Komplettlösung**, die Ihnen die lästige Verwaltungsarbeit abnimmt, Übertragungsfehler eliminiert und Ihr Vereinsheim optisch wie technologisch massiv aufwertet. Sie können sich wieder auf das konzentrieren, was wirklich zählt: **Den Billardsport.**
+
+Wir laden Sie ein, Carambus live in Aktion zu erleben – zum Beispiel beim *Billardclub Wedel 61 e.V.*, dessen Spielbetrieb seit 2022 erfolgreich komplett digitalisiert ist.
+
+**Machen wir gemeinsam Ihren Verein fit für die digitale Zukunft!**
