@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_02_18_193951) do
+ActiveRecord::Schema[7.2].define(version: 2026_02_25_182209) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -1364,8 +1364,10 @@ ActiveRecord::Schema[7.2].define(version: 2026_02_18_193951) do
     t.bigint "discipline_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean "hidden", default: false, null: false
     t.index ["discipline_id"], name: "index_videos_on_discipline_id"
     t.index ["external_id"], name: "index_videos_on_external_id", unique: true
+    t.index ["hidden"], name: "index_videos_on_hidden"
     t.index ["international_source_id"], name: "index_videos_on_international_source_id"
     t.index ["metadata_extracted"], name: "index_videos_on_metadata_extracted"
     t.index ["published_at"], name: "index_videos_on_published_at"
