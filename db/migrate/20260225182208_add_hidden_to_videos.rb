@@ -3,6 +3,6 @@ class AddHiddenToVideos < ActiveRecord::Migration[7.2]
 
   def change
     add_column :videos, :hidden, :boolean, default: false, null: false
-    add_index :videos, :hidden, algorithm: :concurrently
+    #add_index :videos, :hidden, algorithm: :concurrently
   end
 end
