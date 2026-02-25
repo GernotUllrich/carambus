@@ -10,25 +10,26 @@ class InternationalController < ApplicationController
                                       .includes(:discipline, :international_source)
                                       .order(date: :asc)
                                       .limit(3)
-    
+
     # Recent Tournaments (6 recently finished tournaments)
     @recent_tournaments = Tournament.international
                                     .where('date < ?', Date.today)
                                     .includes(:discipline, :international_source)
                                     .order(date: :desc)
                                     .limit(6)
-    
+
     # Videos - YouTube scraped videos (unassigned or assigned to tournaments)
     @recent_videos = Video.youtube
                           .recent
                           .limit(12)
-    
+    @recent_videos = @recent_videos.visible unless current_user&.admin?
+
     # Recent results from international tournaments via GameParticipation
     recent_tournament_ids = Tournament.international
-                                      .where('end_date >= ? OR (end_date IS NULL AND date >= ?)', 
+                                      .where('end_date >= ? OR (end_date IS NULL AND date >= ?)',
                                              6.months.ago, 6.months.ago)
                                       .pluck(:id)
-    
+
     if recent_tournament_ids.any?
       @recent_results = GameParticipation
                          .joins(:game, :player)
