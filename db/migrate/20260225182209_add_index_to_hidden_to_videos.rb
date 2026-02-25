@@ -1,4 +1,4 @@
-class AddHiddenToVideos < ActiveRecord::Migration[7.2]
+class AddIndexToHiddenToVideos < ActiveRecord::Migration[7.2]
   disable_ddl_transaction!
 
   def change
