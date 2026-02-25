@@ -47,12 +47,19 @@
   <% if @videos.any? %>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8 auto-rows-fr">
       <% @videos.each do |video| %>
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-xl transition-shadow overflow-hidden">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-xl transition-shadow overflow-hidden <%= 'opacity-60' if video.hidden? && current_user&.admin? %>">
           <%= link_to international_video_path(video), class: 'block' do %>
             <!-- Thumbnail -->
             <% if video.thumbnail_url.present? %>
               <div class="relative pb-[56.25%] bg-gray-200 dark:bg-gray-700">
                 <%= image_tag video.thumbnail_url, class: 'absolute inset-0 w-full h-full object-cover', alt: video.title %>
+                
+                <!-- Hidden Badge (Admin Only) -->
+                <% if video.hidden? && current_user&.admin? %>
+                  <span class="absolute top-2 left-2 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded">
+                    HIDDEN
+                  </span>
+                <% end %>
                 
                 <!-- Duration Badge -->
                 <% if video.duration.present? %>
