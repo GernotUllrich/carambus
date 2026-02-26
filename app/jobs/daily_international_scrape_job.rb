@@ -8,7 +8,7 @@ class DailyInternationalScrapeJob < ApplicationJob
   def perform(days_back: 3)
     Rails.logger.info "[DailyInternationalScrape] Starting daily scrape (days_back: #{days_back})"
     
-    # Step 1: Scrape new videos (YouTube and SoopLive)
+    # Step 1: Scrape new videos (YouTube, SoopLive, and Kozoom)
     scraped_count = ScrapeYoutubeJob.perform_now(days_back: days_back)
     Rails.logger.info "[DailyInternationalScrape] Scraped #{scraped_count} YouTube videos"
     
@@ -23,6 +23,23 @@ class DailyInternationalScrapeJob < ApplicationJob
     end
     scraped_count += soop_count
     Rails.logger.info "[DailyInternationalScrape] Scraped #{soop_count} SoopLive videos"
+
+    kozoom_count = 0
+    begin
+      email = Setting.key_get_value('kozoom_email')
+      password = Setting.key_get_value('kozoom_password')
+      
+      if email.present? && password.present?
+        kozoom_scraper = KozoomScraper.new(email: email, password: password)
+        kozoom_count = kozoom_scraper.scrape(days_back: days_back)
+      else
+        Rails.logger.warn "[DailyInternationalScrape] Kozoom credentials not configured in Settings"
+      end
+    rescue StandardError => e
+      Rails.logger.error "[DailyInternationalScrape] Error scraping Kozoom: #{e.message}"
+    end
+    scraped_count += kozoom_count
+    Rails.logger.info "[DailyInternationalScrape] Scraped #{kozoom_count} Kozoom videos"
     
     # Step 2: Process metadata for unprocessed videos (auto-tagging)
     process_count = 0
