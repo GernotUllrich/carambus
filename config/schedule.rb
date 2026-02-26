@@ -7,16 +7,21 @@
 # Clear with: whenever --clear-crontab
 # View cron: crontab -l
 
-# Set environment variables
-set :output, "log/cron.log"
-set :environment, ENV.fetch('RAILS_ENV', 'production')
+# Capistrano passes variables via the `--set` option (see config/deploy.rb).
+# We provide fallback defaults for local execution without Capistrano.
+@environment  ||= ENV.fetch("RAILS_ENV", "production")
+@path         ||= "/var/www/carambus_api/current"
+@scenarioname ||= "carambus_api"
+@location_id  ||= "1"
 
-# Use current symlink for Capistrano deployments
-set :path, '/var/www/carambus_api/current'
+set :output, "log/cron.log"
+set :environment, @environment
+set :path, @path
 
 # Use absolute paths for commands with proper rbenv
 job_type :rake, "cd :path && RAILS_ENV=:environment /var/www/.rbenv/shims/bundle exec rake :task :output"
-job_type :runner, "cd :path && RAILS_ENV=:environment /var/www/.rbenv/shims/bundle exec rails runner -e :environment ':task' :output"
+job_type :runner,
+         "cd :path && RAILS_ENV=:environment /var/www/.rbenv/shims/bundle exec rails runner -e :environment ':task' :output"
 
 # ============================================================================
 # INTERNATIONAL CONTENT SCRAPING
@@ -28,7 +33,7 @@ job_type :runner, "cd :path && RAILS_ENV=:environment /var/www/.rbenv/shims/bund
 # - Auto-tags videos (players, content type, quality)
 # - Discovers tournaments
 # - Translates titles (if configured)
-every 1.day, at: '2:00 am' do
+every 1.day, at: "2:00 am", roles: [:app] do
   rake "international:daily_scrape"
 end
 
@@ -38,7 +43,7 @@ end
 # - Finds new tournament IDs
 # - Auto-fixes missing organizers (ensures all have UMB as organizer)
 # - Updates recent tournaments with results
-every 1.day, at: '3:00 am' do
+every 1.day, at: "3:00 am", roles: [:app] do
   rake "umb:update"
 end
 
@@ -46,7 +51,7 @@ end
 # Runs every Sunday at 5:00 AM (after daily_update at 4am)
 # - Ensures no videos are left unprocessed
 # - Catches any videos that were skipped during daily runs
-every :sunday, at: '5:00 am' do
+every :sunday, at: "5:00 am", roles: [:app] do
   rake "international:process_untagged_videos"
 end
 
@@ -65,14 +70,25 @@ end
 
 # Weekly: Clean up old logs (keep last 90 days)
 # Runs every Sunday at 6:00 AM
-every :sunday, at: '6:00 am' do
+every :sunday, at: "6:00 am", roles: [:app] do
   rake "scrape:cleanup_logs[90]"
 end
 
 # Monthly: Update video statistics and tag counts
 # Runs on the 1st of each month at 7:00 AM
-every '0 7 1 * *' do
+every "0 7 1 * *", roles: [:app] do
   rake "international:update_statistics"
+end
+
+# ============================================================================
+# LOCAL SERVER TASKS
+# ============================================================================
+
+# Every hour, or any desired interval for local sync tasks
+every 1.hour, roles: [:local] do
+  # Updates local data from the central API server.
+  # the scenario and location are passed via Capistrano variables.
+  rake "carambus:retrieve_updates[#{@location_id}]"
 end
 
 # ============================================================================
