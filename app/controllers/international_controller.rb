@@ -18,8 +18,8 @@ class InternationalController < ApplicationController
                                     .order(date: :desc)
                                     .limit(6)
 
-    # Videos - YouTube scraped videos (unassigned or assigned to tournaments)
-    @recent_videos = Video.youtube
+    # Videos - YouTube and SOOP videos (unassigned or assigned to tournaments)
+    @recent_videos = Video.supported_platforms
                           .recent
                           .limit(12)
     @recent_videos = @recent_videos.visible unless current_user&.admin?

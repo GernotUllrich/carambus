@@ -55,6 +55,8 @@ class InternationalSource < ApplicationRecord
   # Scopes
   scope :active, -> { where(active: true) }
   scope :youtube, -> { where(source_type: YOUTUBE) }
+  scope :fivesix, -> { where(source_type: FIVESIX) }
+  scope :supported_platforms, -> { where(source_type: [YOUTUBE, FIVESIX]) }
   scope :need_scraping, lambda { |hours_ago = 24|
     where(active: true)
       .where('last_scraped_at IS NULL OR last_scraped_at < ?', hours_ago.hours.ago)
@@ -164,6 +166,38 @@ class InternationalSource < ApplicationRecord
     }
   }.freeze
 
+  # Known SoopLive channels
+  KNOWN_FIVESIX_CHANNELS = {
+    'afbilliards1' => {
+      name: 'Five and Six (afbilliards1)',
+      channel_id: 'afbilliards1',
+      base_url: 'https://billiards.sooplive.co.kr',
+      priority: 2,
+      description: 'Official SOOP Live channel for UMB & Five and Six billiards'
+    },
+    'afbilliards2' => {
+      name: 'Five and Six (afbilliards2)',
+      channel_id: 'afbilliards2',
+      base_url: 'https://billiards.sooplive.co.kr',
+      priority: 2,
+      description: 'Official SOOP Live channel for UMB & Five and Six billiards'
+    },
+    'afbilliards3' => {
+      name: 'Five and Six (afbilliards3)',
+      channel_id: 'afbilliards3',
+      base_url: 'https://billiards.sooplive.co.kr',
+      priority: 2,
+      description: 'Official SOOP Live channel for UMB & Five and Six billiards'
+    },
+    'afbilliards4' => {
+      name: 'Five and Six (afbilliards4)',
+      channel_id: 'afbilliards4',
+      base_url: 'https://billiards.sooplive.co.kr',
+      priority: 1,
+      description: 'Official SOOP Live channel for UMB & Five and Six billiards'
+    }
+  }.freeze
+
   # Known federation websites
   KNOWN_FEDERATIONS = {
     'umb' => {
@@ -186,6 +220,21 @@ class InternationalSource < ApplicationRecord
         find_or_create_by!(
           name: data[:name],
           source_type: YOUTUBE
+        ) do |source|
+          source.base_url = data[:base_url]
+          source.metadata = {
+            key: key,
+            priority: data[:priority],
+            description: data[:description]
+          }
+        end
+      end
+
+      # Seed SoopLive channels
+      KNOWN_FIVESIX_CHANNELS.each do |key, data|
+        find_or_create_by!(
+          name: data[:name],
+          source_type: FIVESIX
         ) do |source|
           source.base_url = data[:base_url]
           source.metadata = {

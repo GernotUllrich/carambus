@@ -7,8 +7,8 @@ module International
     before_action :require_admin!, only: [:hide, :unhide]
 
     def index
-      # Use new Video model (YouTube videos)
-      @videos = Video.youtube
+      # Use new Video model (Supported videos: YouTube, SoopLive)
+      @videos = Video.supported_platforms
                      .includes(:international_source, :discipline)
                      .recent
       
@@ -67,7 +67,7 @@ module International
       @pagy, @videos = pagy(@videos, items: 24)
       
       # For filters
-      @sources = InternationalSource.youtube.active.order(:name)
+      @sources = InternationalSource.supported_platforms.active.order(:name)
       @tournaments = Tournament.international.order(date: :desc).limit(50)
       @disciplines = Discipline.all.order(:name)
       
@@ -138,7 +138,7 @@ module International
 
     def calculate_tag_counts
       # Get tag counts from all videos (limited scope for performance)
-      tag_data = Video.youtube
+      tag_data = Video.supported_platforms
                       .where("videos.data->'tags' IS NOT NULL")
                       .pluck(Arel.sql("jsonb_array_elements_text(videos.data->'tags')"))
                       .group_by(&:itself)

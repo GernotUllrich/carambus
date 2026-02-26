@@ -62,6 +62,8 @@ class Video < ApplicationRecord
   scope :by_source, ->(source_id) { where(international_source_id: source_id) }
   scope :by_discipline, ->(discipline_id) { where(discipline_id: discipline_id) }
   scope :youtube, -> { joins(:international_source).where(international_sources: { source_type: 'youtube' }) }
+  scope :fivesix, -> { joins(:international_source).where(international_sources: { source_type: 'fivesix' }) }
+  scope :supported_platforms, -> { joins(:international_source).where(international_sources: { source_type: ['youtube', 'fivesix'] }) }
   scope :visible, -> { where(hidden: false) }
   scope :hidden_videos, -> { where(hidden: true) }
   
@@ -123,13 +125,39 @@ class Video < ApplicationRecord
   end
 
   def youtube_url
-    return nil unless international_source&.source_type == 'youtube'
-    "https://www.youtube.com/watch?v=#{external_id}"
+    watch_url
   end
 
   def youtube_embed_url
-    return nil unless international_source&.source_type == 'youtube'
-    "https://www.youtube.com/embed/#{external_id}"
+    embed_url
+  end
+
+  def watch_url
+    case international_source&.source_type
+    when 'youtube'
+      "https://www.youtube.com/watch?v=#{external_id}"
+    when 'fivesix'
+      "https://vod.sooplive.co.kr/player/#{external_id}"
+    else
+      nil
+    end
+  end
+
+  def embed_url
+    case international_source&.source_type
+    when 'youtube'
+      # Keep original behavior for youtube
+      "https://www.youtube.com/embed/#{external_id}"
+    when 'fivesix'
+      is_live = !!(json_data['is_live'] || data.is_a?(Hash) && data['is_live'])
+      if is_live
+        "https://play.sooplive.co.kr/embed/#{external_id}?wMode=transparent&szIframeWidth=100%25&szIframeHeight=100%25&szLanguage=en_US"
+      else
+        "https://vod.sooplive.co.kr/player/#{external_id}/embed?wMode=transparent&szIframeWidth=100%25&szIframeHeight=100%25&szLanguage=en_US&bChat=false"
+      end
+    else
+      nil
+    end
   end
 
   # Metadata accessors
