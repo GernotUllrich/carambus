@@ -211,3 +211,13 @@ namespace :puma do
     end
   end
 end
+
+# Whenever settings
+set :whenever_roles, ->{ [:app, :local] }
+set :whenever_identifier, ->{ fetch(:basename) }
+set :whenever_variables, -> {
+  "environment=#{fetch(:rails_env, 'production')}&" \
+  "path=#{fetch(:deploy_to)}/current&" \
+  "scenarioname=#{fetch(:basename)}&" \
+  "location_id=<%= @scenario['location_id'] || '1' %>" 
+}
