@@ -12,12 +12,15 @@
       display: flex;
       flex-direction: column;
       justify-content: space-around;
-      min-width: 250px;
+      min-width: 140px;
+      max-width: 140px;
     }
     .bracket-match {
       display: flex;
       flex-direction: column;
-      margin: 10px 0;
+      margin-top: 10px;
+      margin-bottom: 0;
+      padding-bottom: 0;
       position: relative;
     }
     .bracket-match::after {
@@ -35,10 +38,10 @@
       position: relative;
     }
     .bracket-player {
-      padding: 8px 12px;
+      padding: 4px 6px;
       border: 1px solid #cbd5e1;
       background: white;
-      font-size: 14px;
+      font-size: 12px;
       display: flex;
       justify-content: space-between;
       cursor: pointer;
@@ -192,6 +195,17 @@
     %>
 
     <% bracket_groups.each do |group| %>
+      <% 
+        # Skip evaluating levels where every match resolves to TBD
+        group[:levels].reject! do |round_matches|
+          round_matches.all? do |match_name|
+            entry = executor_params[match_name]
+            rules = entry.values.first.values.first rescue ["TBD", "TBD"]
+            (rules[0] || "TBD") == "TBD" && (rules[1] || "TBD") == "TBD"
+          end
+        end
+        next if group[:levels].empty?
+      %>
       <h3 class="text-lg font-semibold text-blue-800 mb-3 mt-6"><%= group[:title] %></h3>
       <div class="bracket-container shadow-inner bg-slate-50 dark:bg-slate-900 rounded-lg">
         <% group[:levels].each_with_index do |round_matches, index| %>
