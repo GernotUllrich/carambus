@@ -1,0 +1,212 @@
+<% if tournament.tournament_plan&.name&.start_with?("KO") || JSON.parse(tournament.tournament_plan&.executor_params || "{}").key?("fin") %>
+  <style>
+    .bracket-container {
+      display: flex;
+      flex-direction: row;
+      overflow-x: auto;
+      padding: 20px;
+      gap: 30px;
+      font-family: sans-serif;
+    }
+    .bracket-round {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-around;
+      min-width: 250px;
+    }
+    .bracket-match {
+      display: flex;
+      flex-direction: column;
+      margin: 10px 0;
+      position: relative;
+    }
+    .bracket-match::after {
+      content: '';
+      position: absolute;
+      right: -15px;
+      top: 50%;
+      width: 15px;
+      border-top: 2px solid #94a3b8;
+    }
+    .bracket-round:last-child .bracket-match::after {
+      display: none;
+    }
+    .bracket-match-connector {
+      position: relative;
+    }
+    .bracket-player {
+      padding: 8px 12px;
+      border: 1px solid #cbd5e1;
+      background: white;
+      font-size: 14px;
+      display: flex;
+      justify-content: space-between;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .bracket-player:hover {
+      background-color: #f8fafc;
+    }
+    .bracket-player.bracket-highlight {
+      background-color: #fef08a !important; /* yellow-200 */
+      border-color: #eab308 !important; /* yellow-500 */
+      font-weight: bold;
+    }
+    .bracket-player.winner {
+      font-weight: bold;
+      background-color: #f0fdf4;
+    }
+    .bracket-player-top {
+      border-radius: 4px 4px 0 0;
+      border-bottom: 0;
+    }
+    .bracket-player-bottom {
+      border-radius: 0 0 4px 4px;
+    }
+    /* Simple connecting lines */
+    .bracket-round:not(:first-child) .bracket-match::before {
+      content: '';
+      position: absolute;
+      left: -15px;
+      top: 50%;
+      width: 15px;
+      border-top: 2px solid #94a3b8;
+    }
+  </style>
+
+  <script>
+    document.addEventListener('click', (e) => {
+      const playerDiv = e.target.closest('.bracket-player');
+      if (!playerDiv) return;
+      
+      const nameSpan = playerDiv.querySelector('span.bracket-player-name');
+      if (!nameSpan) return;
+      const nameTxt = nameSpan.textContent.trim();
+      
+      // Ignore placeholders
+      if(!nameTxt || nameTxt === "TBD" || nameTxt === "-" || nameTxt === "Freilos / Bye" || nameTxt.startsWith("Sieger") || nameTxt.startsWith("Verlierer")) {
+        return;
+      }
+      
+      const isHighlighted = playerDiv.classList.contains('bracket-highlight');
+      document.querySelectorAll('.bracket-player').forEach(p => p.classList.remove('bracket-highlight'));
+      
+      if (!isHighlighted) {
+        document.querySelectorAll('.bracket-player').forEach(p => {
+          const pName = p.querySelector('span.bracket-player-name');
+          if (pName && pName.textContent.trim() === nameTxt) {
+            p.classList.add('bracket-highlight');
+          }
+        });
+      }
+    });
+  </script>
+
+  <%
+    # Bracket parsing logic
+    begun = false
+    begin
+      executor_params = JSON.parse(tournament.tournament_plan.executor_params)
+      
+      # Determine depths and games
+      levels = []
+      
+      fetch_tree = ->(match_name, depth) {
+        return if match_name.start_with?("sl.") || match_name.start_with?("g") || match_name.start_with?("rule")
+        levels[depth] ||= []
+        levels[depth] << match_name
+        
+        entry = executor_params[match_name]
+        return unless entry
+        
+        rules = entry.values.first.values.first rescue []
+        rules.each do |r|
+          src = r.split('.').first
+          fetch_tree.call(src, depth + 1)
+        end
+      }
+      
+      if executor_params["fin"]
+        fetch_tree.call("fin", 0)
+      end
+      
+      # Reverse levels to match [1st round, 2nd round, ...]
+      levels = levels.reverse
+      
+      # Calculate positions for proper spacing? The flex layout handles it mostly nicely
+      # when using justify-content: space-around.
+      
+      # Get all current game data
+      game_data = tournament.games.where("id >= 50000000").index_by(&:gname)
+      
+      # Helper to get player display
+      def display_player(tournament, game, rule, is_player_a)
+        if game.present?
+          # Fetch from game participations
+          role = is_player_a ? "playera" : "playerb"
+          gp = game.game_participations.find { |p| p.role == role }
+          if gp&.player
+            result = gp.game.data.dig(role, "result") || "-"
+            return [gp.player.shortname || gp.player.fullname, result.to_s, gp.game.data.dig(role, "result").to_i]
+          end
+        end
+        
+        # If no game or no player yet, describe the rule
+        if rule.start_with?("sl.")
+          pos = rule.split('.').last.gsub('rk', '').to_i
+          seeding = tournament.seedings.where("id >= 50000000").find_by(position: pos)
+          if seeding&.player
+            return [seeding.player.fullname, "-", -1]
+          else
+            return ["Freilos / Bye", "-", -1]
+          end
+        elsif rule.include?(".rk1")
+          src = rule.split('.').first
+          return ["Sieger #{src}", "-", -1]
+        elsif rule.include?(".rk2")
+          src = rule.split('.').first
+          return ["Verlierer #{src}", "-", -1]
+        end
+        [rule, "-", -1]
+      end
+  %>
+
+  <div class="mt-8 pt-4 border-t border-blue-300" id="tournament-bracket-<%= tournament.id %>">
+    <h3 class="text-lg font-semibold text-blue-800 mb-3">🏆 Turnierbaum</h3>
+    <div class="bracket-container shadow-inner bg-slate-50 dark:bg-slate-900 rounded-lg">
+      <% levels.each_with_index do |round_matches, index| %>
+        <div class="bracket-round">
+          <% round_matches.each do |match_name| %>
+            <% 
+               game = game_data[match_name]
+               entry = executor_params[match_name]
+               rules = entry.values.first.values.first rescue ["TBD", "TBD"]
+               p1_rule = rules[0] || "TBD"
+               p2_rule = rules[1] || "TBD"
+               
+               p1_name, p1_score, p1_val = display_player(tournament, game, p1_rule, true)
+               p2_name, p2_score, p2_val = display_player(tournament, game, p2_rule, false)
+               
+               p1_winner = p1_val > p2_val && p1_val > -1
+               p2_winner = p2_val > p1_val && p2_val > -1
+            %>
+            <div class="bracket-match">
+              <div class="text-xs text-slate-500 mb-1 font-semibold"><%= match_name.upcase %></div>
+              <div class="bracket-player bracket-player-top dark:text-slate-800 <%= 'winner' if p1_winner %>">
+                <span class="truncate pr-2 bracket-player-name" title="<%= p1_name %>"><%= p1_name %></span>
+                <span class="font-mono text-slate-500"><%= p1_score %></span>
+              </div>
+              <div class="bracket-player bracket-player-bottom dark:text-slate-800 <%= 'winner' if p2_winner %>">
+                <span class="truncate pr-2 bracket-player-name" title="<%= p2_name %>"><%= p2_name %></span>
+                <span class="font-mono text-slate-500"><%= p2_score %></span>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+  <% rescue StandardError => e %>
+    <!-- Bracket ERROR: <%= e.message %> -->
+  <% end %>
+<% end %>

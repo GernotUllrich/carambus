@@ -17,7 +17,7 @@
       <tr class="group border-t border-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
         <td class="p-3"><%= custom_link_to game.tournament.title, tournament_path(game.tournament) if game.tournament.present? %></td>
         <td class="p-3"><%= game.data %></td>
-        <td class="p-3"><%= game.gname %></td>
+        <td class="p-3"><%= game.display_gname %></td>
         <td class="p-3"><%= game.tournament&.date %></td>
 
         <td>

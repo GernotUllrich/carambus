@@ -33,6 +33,7 @@ class TournamentMonitor < ApplicationRecord
   include TournamentMonitorSupport
   include TournamentMonitorState
   include ApiProtector
+
   cattr_accessor :current_admin
   cattr_accessor :allow_change_tables
 
@@ -43,7 +44,7 @@ class TournamentMonitor < ApplicationRecord
   belongs_to :tournament
   has_many :table_monitors, as: :tournament_monitor, class_name: "TableMonitor", dependent: :nullify
   has_many :was_table_monitors, as: :tournament_monitor, foreign_key: :prev_tournament_monitor_id,
-           class_name: "TableMonitor", dependent: :nullify
+                                class_name: "TableMonitor", dependent: :nullify
 
   serialize :data, coder: JSON, type: Hash
 
@@ -135,7 +136,7 @@ class TournamentMonitor < ApplicationRecord
     hash.to_a.sort_by do |_player, results|
       val = 0
       opts[:order].each do |k|
-        val = val * 1000.0 + results[k.to_s].to_f
+        val = (val * 1000.0) + results[k.to_s].to_f
       end
       val
     end.reverse
@@ -143,7 +144,7 @@ class TournamentMonitor < ApplicationRecord
 
   def player_id_from_ranking(rule_str, opts = {})
     ordered_ranking_nos = opts[:ordered_ranking_nos]
-    if (mm = rule_str.match(/\((.*)\)\.rk(\d)$/).presence)
+    if (mm = rule_str.match(/\((.*)\)\.rk(\d+)$/).presence)
       # rule_str: "(g1.rk4 + g2.rk4 +g3.rk4).rk2"
       rank_from_group_ranks(mm, opts)
     elsif (mm = rule_str.match(/\((.*)\)\.rk-rand-(\d+)-(\d+)$/).presence)
@@ -177,7 +178,7 @@ class TournamentMonitor < ApplicationRecord
     13 => [[1, 2, 3, 4], [8, 6, 7, 5], [9, 12, 10, 11], [13, 0, 0, 0]],
     14 => [[1, 2, 3, 4], [8, 6, 7, 5], [9, 12, 10, 11], [13, 14, 0, 0]],
     15 => [[1, 2, 3, 4], [8, 6, 7, 5], [9, 10, 11, 12], [15, 14, 13, 0]],
-    16 => [[1, 2, 3, 4], [8, 6, 7, 5], [9, 10, 11, 12], [16, 15, 14, 13]],
+    16 => [[1, 2, 3, 4], [8, 6, 7, 5], [9, 10, 11, 12], [16, 15, 14, 13]]
   }.freeze
 
   GROUP_RULES = {
@@ -279,6 +280,7 @@ class TournamentMonitor < ApplicationRecord
       GROUP_RULES[players_count].each_with_index do |group_positions, ix|
         group_positions.each do |pos|
           next if pos == 0 # Skip placeholder positions
+
           player_id = players[pos - 1].is_a?(Integer) ? players[pos - 1] : players[pos - 1].id
           groups["group#{ix + 1}"] << player_id
         end
@@ -327,7 +329,7 @@ class TournamentMonitor < ApplicationRecord
   private
 
   def ko_ranking(rule_str)
-    g_no, _game_no, rk_no = rule_str.match(/^(?:(?:fg|g)(\d+)|sl|rule|vf|hf|af|qf|fin|p<\d+(?:\.\.|-)\d+>)(\d+)?\.rk(\d)$/)[1..3]
+    g_no, _game_no, rk_no = rule_str.match(/^(?:(?:fg|g)(\d+)|sl|rule|\d+f|vf|hf|af|qf|fin|p<\d+(?:\.\.|-)\d+>)(\d+)?\.rk(\d+)$/)[1..3]
     if g_no.present?
       case rule_str
       when /^sl/
@@ -355,7 +357,7 @@ class TournamentMonitor < ApplicationRecord
       else
         nil
       end
-    elsif (m = rule_str.match(/^(vf|hf|rule|af|qf|fin|p<\d+(?:-|\.\.)\d+>)(\d+)?/))
+    elsif (m = rule_str.match(/^(\d+f|vf|hf|rule|af|qf|fin|p<\d+(?:-|\.\.)\d+>)(\d+)?/))
       TournamentMonitor.ranking(data["rankings"]["endgames"]["#{m[1]}#{m[2]}"],
                                 order: (
                                   if tournament.handicap_tournier?
@@ -375,9 +377,9 @@ class TournamentMonitor < ApplicationRecord
     group_no = match[1]
     seeding_index = match[2].to_i
     seeding_scope = if tournament
-                         .seedings
-                         .where("seedings.id >= #{Seeding::MIN_ID}")
-                         .count.positive?
+                       .seedings
+                       .where("seedings.id >= #{Seeding::MIN_ID}")
+                       .count.positive?
                       "seedings.id >= #{Seeding::MIN_ID}"
                     else
                       "seedings.id< #{Seeding::MIN_ID}"
@@ -403,8 +405,7 @@ class TournamentMonitor < ApplicationRecord
     subset = {}
     members = players.split(/\s*\+\s*/)
     members.each do |member|
-      g_no, _game_no, rk_no = member.match(/^(?:(?:fg|g)(\d+)|sl|rule|vf|hf|af|qf|fin
-|p<\d+(?:\.\.|-)\d+>)(\d+)?\.rk(\d)$/)[1..3]
+      g_no, _game_no, rk_no = member.match(/^(?:(?:fg|g)(\d+)|sl|rule|\d+f|vf|hf|af|qf|fin|p<\d+(?:\.\.|-)\d+>)(\d+)?\.rk(\d+)$/)[1..3]
       rk =
         case member
         when /^sl/
@@ -446,10 +447,8 @@ class TournamentMonitor < ApplicationRecord
     subset = {}
     members = players.split(/\s*\+\s*/)
     members.each do |member|
-      if member =~ /rule\d/
-        member = member + ".rk1"
-      end
-      g_no, _game_no, rk_no = member.match(/^(?:(?:fg|g)(\d+)|sl|vf|hf|af|qf|rule|fin|p<\d+(?:\.\.|-)\d+>)(\d+)?\.rk(\d)$/)[1..3]
+      member += ".rk1" if /rule\d/.match?(member)
+      g_no, _game_no, rk_no = member.match(/^(?:(?:fg|g)(\d+)|sl|\d+f|vf|hf|af|qf|rule|fin|p<\d+(?:\.\.|-)\d+>)(\d+)?\.rk(\d+)$/)[1..3]
       rk =
         case member
         when /^sl/

@@ -33,7 +33,7 @@
       <td colspan="3" class="text-1vw">
         <div class="p-1">
           <%- if table_monitor.game&.gname.present? %>
-            <%= "#{table_monitor.game.gname.gsub("group", "Gruppe ").gsub(":", ": ")} - " %>
+            <%= "#{table_monitor.game.display_gname_lines.join(' ')} - " %>
           <%- else %>
             <%= "#{table_monitor.discipline} - " %>
           <%- end %>

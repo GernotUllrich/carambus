@@ -26,8 +26,13 @@ class GameParticipation < ApplicationRecord
   include CableReady::Broadcaster
   include RegionTaggable
   include Searchable
+
   belongs_to :player, optional: true
   belongs_to :game
+
+  def display_gname
+    game&.display_gname || Game.display_ranking_key(gname) || gname
+  end
 
   before_save :set_paper_trail_whodunnit
 
@@ -68,12 +73,12 @@ class GameParticipation < ApplicationRecord
     "discipline_id" => "disciplines.id",
     "player_id" => "players.id",
     "club_id" => "clubs.id",
-    
+
     # Referenzen (Dropdown/Select)
     "Tournament" => "tournaments.title",
     "Discipline" => "disciplines.name",
     "Club" => "clubs.shortname",
-    
+
     # Eigene Felder
     "Game" => "games.gname",
     "Date" => "tournaments.date::date",
@@ -98,7 +103,7 @@ class GameParticipation < ApplicationRecord
      or (players.firstname ilike :search)
      or (clubs.shortname ilike :search)"
   end
-  
+
   def self.search_joins
     [
       "LEFT JOIN games on (game_participations.game_id = games.id)",
@@ -109,35 +114,35 @@ class GameParticipation < ApplicationRecord
       "LEFT JOIN clubs ON clubs.id = season_participations.club_id"
     ]
   end
-  
+
   def self.search_distinct?
     true # wegen season_participations können Duplikate entstehen
   end
-  
+
   def self.cascading_filters
     {
-      'tournament_id' => [],
-      'discipline_id' => []
+      "tournament_id" => [],
+      "discipline_id" => []
     }
   end
-  
+
   def self.field_examples(field_name)
     case field_name
-    when 'Game'
+    when "Game"
       { description: "Partie-Name/Nummer", examples: ["Partie 1", "Finale"] }
-    when 'Tournament'
+    when "Tournament"
       { description: "Turnier auswählen", examples: [] }
-    when 'Discipline'
+    when "Discipline"
       { description: "Disziplin auswählen", examples: [] }
-    when 'Player'
+    when "Player"
       { description: "Spieler-Name", examples: ["Meyer, Hans"] }
-    when 'Club'
+    when "Club"
       { description: "Verein", examples: [] }
-    when 'Date'
+    when "Date"
       { description: "Spiel-Datum", examples: ["2024-01-15", "> 2024-01-01"] }
-    when 'Role'
-      { description: "Spieler-Rolle", examples: ["home", "guest", "playera", "playerb"] }
-    when 'Points', 'Result', 'Innings', 'GD', 'HS'
+    when "Role"
+      { description: "Spieler-Rolle", examples: %w[home guest playera playerb] }
+    when "Points", "Result", "Innings", "GD", "HS"
       { description: "Numerischer Wert", examples: ["> 100", "= 50", "<= 200"] }
     else
       super

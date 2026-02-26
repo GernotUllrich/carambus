@@ -30,7 +30,7 @@ class Game < ApplicationRecord
   has_many :game_participations, dependent: :destroy
   has_one :table_monitor, dependent: :nullify
   has_one :was_table_monitor, foreign_key: :prev_game_id, class_name: "TableMonitor", dependent: :nullify
-  
+
   # Polymorphe Video Association
   has_many :videos, as: :videoable, dependent: :nullify
 
@@ -45,15 +45,15 @@ class Game < ApplicationRecord
 
     # Try JSON first
     begin
-      return JSON.parse(raw_data)
+      JSON.parse(raw_data)
     rescue JSON::ParserError
       # If JSON fails, try YAML with safe loading
       begin
         # Use YAML.load instead of safe_load for better compatibility with old data
-        return YAML.load(raw_data)
+        YAML.load(raw_data)
       rescue Psych::SyntaxError => e
         Rails.logger.error "Failed to parse data: #{e.message}"
-        return {}
+        {}
       end
     end
   end
@@ -64,7 +64,7 @@ class Game < ApplicationRecord
     decoded_data = self.class.safe_decode_data(raw_data)
 
     # If we successfully decoded YAML data, convert it to JSON
-    if decoded_data.present? && raw_data.start_with?('---')
+    if decoded_data.present? && raw_data.start_with?("---")
       begin
         self.data = decoded_data # This will serialize it as JSON
         save!
@@ -168,10 +168,10 @@ class Game < ApplicationRecord
       )",
       joins: [
         "LEFT JOIN tournaments ON (games.tournament_id = tournaments.id)",
-        'LEFT JOIN regions ON (regions.id = tournaments.organizer_id AND tournaments.organizer_type = \'Region\')',
-        'LEFT JOIN seasons ON (seasons.id = tournaments.season_id)',
-        'LEFT JOIN game_participations ON game_participations.game_id = games.id',
-        'LEFT JOIN players ON players.id = game_participations.player_id'
+        "LEFT JOIN regions ON (regions.id = tournaments.organizer_id AND tournaments.organizer_type = 'Region')",
+        "LEFT JOIN seasons ON (seasons.id = tournaments.season_id)",
+        "LEFT JOIN game_participations ON game_participations.game_id = games.id",
+        "LEFT JOIN players ON players.id = game_participations.player_id"
       ]
     }
   end
@@ -179,10 +179,10 @@ class Game < ApplicationRecord
   def self.legacy_role_joins
     # Define legacy roles with their exact database values
     legacy_roles = {
-      'guest' => 'Gast',
-      'home' => 'Heim',
-      'playera' => 'playera',
-      'playerb' => 'playerb'
+      "guest" => "Gast",
+      "home" => "Heim",
+      "playera" => "playera",
+      "playerb" => "playerb"
     }
 
     legacy_roles.map do |alias_name, role_value|
@@ -216,10 +216,11 @@ class Game < ApplicationRecord
     h.deep_merge!(hash)
 
     # Only call data_will_change! if the data actually changed
-    if h != data
-      data_will_change!
-      self.data = JSON.parse(h.to_json)
-    end
+    return unless h != data
+
+    data_will_change!
+    self.data = JSON.parse(h.to_json)
+
     # save!
   end
 
@@ -240,16 +241,28 @@ class Game < ApplicationRecord
   end
 
   RANKING_KEY_PATTERNS = {
-    %r{group(\d+):(\d+)-(\d+)(?:\/(\d+))} => ->(m) { I18n.t("game.display_group_game_name_rp", group_no: m[1], playera: m[2], playerb: m[3], rp: m[4]).html_safe },
-    /group(\d+):(\d+)-(\d+)/ => ->(m) { I18n.t("game.display_group_game_name", group_no: m[1], playera: m[2], playerb: m[3]).html_safe },
-    /group(\d+)/i => ->(m) { I18n.t("game.display_group_game_name_short", group_no: self.clean_key(m[1])).html_safe },
-    /p<(\d*)-(\d*)>/i => -> (m) {"Spiel um Platz #{m[1]} und #{m[2]}".html_safe},
-    /hf(\d*)/i => -> (m) {"Halbfinale #{m[1]}"},
-    /fin/i => -> (m) {"Finale".html_safe},
+    %r{group(\d+):(\d+)-(\d+)(?:/(\d+))} => lambda { |m|
+      I18n.t("game.display_group_game_name_rp", group_no: (m[1].to_i + 64).chr, playera: m[2], playerb: m[3],
+                                                rp: m[4]).html_safe
+    },
+    /group(\d+):(\d+)-(\d+)/ => lambda { |m|
+      I18n.t("game.display_group_game_name", group_no: (m[1].to_i + 64).chr, playera: m[2], playerb: m[3]).html_safe
+    },
+    /group(\d+)/i => lambda { |m|
+      I18n.t("game.display_group_game_name_short", group_no: (clean_key(m[1]).to_i + 64).chr).html_safe
+    },
+    /p<(\d*)-(\d*)>/i => ->(m) { "Spiel um Platz #{m[1]} und #{m[2]}".html_safe },
+    /64f(\d*)/i => ->(m) { "1/64 Finale#{" " + m[1] if m[1].present?}" },
+    /32f(\d*)/i => ->(m) { "1/32 Finale#{" " + m[1] if m[1].present?}" },
+    /16f(\d*)/i => ->(m) { "1/16 Finale#{" " + m[1] if m[1].present?}" },
+    /8f(\d*)/i => ->(m) { "Achtelfinale#{" " + m[1] if m[1].present?}" },
+    /qf(\d*)/i => ->(m) { "Viertelfinale#{" " + m[1] if m[1].present?}" },
+    /hf(\d*)/i => ->(m) { "Halbfinale#{" " + m[1] if m[1].present?}" },
+    /fin/i => ->(_m) { "Finale".html_safe }
   }.freeze
 
   def self.clean_key(key)
-    key.to_str.gsub("/", "")
+    key.to_str.delete("/")
   end
 
   def self.display_ranking_key(ranking_key)
@@ -266,6 +279,10 @@ class Game < ApplicationRecord
 
   def display_gname
     Game.display_ranking_key(gname)
+  end
+
+  def display_gname_lines
+    display_gname.to_s.split(%r{<br\s*/?>}i).map(&:html_safe)
   end
 
   def self.fix_participation(game, opts = {})
@@ -300,8 +317,8 @@ class Game < ApplicationRecord
         gp_a_results = {}
         gp_b_results = {}
         game.data.each do |k, v|
-          if /:/.match?(v)
-            heim, gast = v.split(":").map(&:strip).map { |str| str =~ /,/ ? str.tr(",", ".").to_f : str.to_i }
+          if v.include?(":")
+            heim, gast = v.split(":").map(&:strip).map { |str| str.include?(",") ? str.tr(",", ".").to_f : str.to_i }
             gp_a_results[k] = heim
             gp_b_results[k] = gast
           elsif k == "Gr."
@@ -342,7 +359,7 @@ class Game < ApplicationRecord
   # Allow NULL values for tournament_id and gname (for training games)
   # But maintain uniqueness when values are present
   validates :seqno, uniqueness: {
-    scope: [:tournament_id, :gname],
+    scope: %i[tournament_id gname],
     message: "Duplicate game in group",
     allow_nil: true
   }

@@ -143,6 +143,9 @@
       </div>
     <% end %>
 
+    <!-- Bracket (falls KO Modus) -->
+    <%= render partial: "tournaments/bracket", locals: { tournament: tournament } %>
+
     <!-- Platzierungen (falls vorhanden) -->
     <% if tournament_monitor.data['rankings'].present? %>
       <div class="mt-6 pt-4 border-t border-blue-300" id="tournament-rankings-<%= tournament.id %>">
