@@ -8,15 +8,27 @@ class DailyInternationalScrapeJob < ApplicationJob
   def perform(days_back: 3)
     Rails.logger.info "[DailyInternationalScrape] Starting daily scrape (days_back: #{days_back})"
     
-    # Step 1: Scrape new videos
+    # Step 1: Scrape new videos (YouTube and SoopLive)
     scraped_count = ScrapeYoutubeJob.perform_now(days_back: days_back)
-    Rails.logger.info "[DailyInternationalScrape] Scraped #{scraped_count} videos"
+    Rails.logger.info "[DailyInternationalScrape] Scraped #{scraped_count} YouTube videos"
+    
+    soop_count = 0
+    InternationalSource::KNOWN_FIVESIX_CHANNELS.keys.each do |channel_id|
+      begin
+        scraper = SoopliveScraper.new
+        soop_count += scraper.scrape_channel(channel_id, days_back: days_back)
+      rescue StandardError => e
+        Rails.logger.error "[DailyInternationalScrape] Error scraping SoopLive #{channel_id}: #{e.message}"
+      end
+    end
+    scraped_count += soop_count
+    Rails.logger.info "[DailyInternationalScrape] Scraped #{soop_count} SoopLive videos"
     
     # Step 2: Process metadata for unprocessed videos (auto-tagging)
     process_count = 0
     max_to_process = 200 # Process up to 200 videos per day
     
-    videos_to_process = Video.youtube.where(metadata_extracted: false).limit(max_to_process)
+    videos_to_process = Video.supported_platforms.where(metadata_extracted: false).limit(max_to_process)
     videos_to_process.each do |video|
       video.auto_tag!
       process_count += 1
@@ -37,7 +49,7 @@ class DailyInternationalScrapeJob < ApplicationJob
     if defined?(VideoTranslationService)
       translation_service = VideoTranslationService.new
       if translation_service.translator
-        videos_to_translate = Video.youtube
+        videos_to_translate = Video.supported_platforms
                                    .where("data->>'translated_title' IS NULL")
                                    .order(published_at: :desc)
                                    .limit(100)
