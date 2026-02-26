@@ -1,4 +1,4 @@
-<% if tournament.tournament_plan&.name&.start_with?("KO") || JSON.parse(tournament.tournament_plan&.executor_params || "{}").key?("fin") %>
+<% if tournament.tournament_plan&.name&.match?(/^(KO|DKO)/) || JSON.parse(tournament.tournament_plan&.executor_params || "{}").key?("fin") %>
   <style>
     .bracket-container {
       display: flex;
@@ -126,7 +126,7 @@
         end
       }
       
-      if executor_params["fin"]
+      if !tournament.tournament_plan&.name&.start_with?("DKO") && executor_params["fin"]
         fetch_tree.call("fin", 0)
       end
       
@@ -172,9 +172,29 @@
   %>
 
   <div class="mt-8 pt-4 border-t border-blue-300" id="tournament-bracket-<%= tournament.id %>">
-    <h3 class="text-lg font-semibold text-blue-800 mb-3">🏆 Turnierbaum</h3>
-    <div class="bracket-container shadow-inner bg-slate-50 dark:bg-slate-900 rounded-lg">
-      <% levels.each_with_index do |round_matches, index| %>
+    
+    <%
+      is_dko = tournament.tournament_plan&.name&.start_with?("DKO")
+      bracket_groups = []
+      
+      if is_dko
+        w_rounds = executor_params.keys.select { |k| k.start_with?('w') }.group_by { |k| k[/w(\d+)\.\d+/, 1].to_i }.sort.map(&:last)
+        l_rounds = executor_params.keys.select { |k| k.start_with?('l') }.group_by { |k| k[/l(\d+)\.\d+/, 1].to_i }.sort.map(&:last)
+        sko_order = ['32f', '16f', 'qf', 'hf', 'fin']
+        sko_rounds = sko_order.map { |prefix| executor_params.keys.select { |k| k.start_with?(prefix) || k == prefix }.sort_by { |m| m[/\d+$/].to_i } }.reject(&:empty?)
+        
+        bracket_groups << { title: "🏆 Gewinnerrunde", levels: w_rounds }
+        bracket_groups << { title: "💥 Verliererrunde", levels: l_rounds }
+        bracket_groups << { title: "👑 Finalrunde", levels: sko_rounds }
+      else
+        bracket_groups << { title: "🏆 Turnierbaum", levels: levels }
+      end
+    %>
+
+    <% bracket_groups.each do |group| %>
+      <h3 class="text-lg font-semibold text-blue-800 mb-3 mt-6"><%= group[:title] %></h3>
+      <div class="bracket-container shadow-inner bg-slate-50 dark:bg-slate-900 rounded-lg">
+        <% group[:levels].each_with_index do |round_matches, index| %>
         <div class="bracket-round">
           <% round_matches.each do |match_name| %>
             <% 
@@ -204,7 +224,8 @@
           <% end %>
         </div>
       <% end %>
-    </div>
+      </div>
+    <% end %>
   </div>
   <% rescue StandardError => e %>
     <!-- Bracket ERROR: <%= e.message %> -->

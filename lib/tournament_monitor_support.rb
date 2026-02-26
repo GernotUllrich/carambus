@@ -345,7 +345,7 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
       end
       if @placement_candidates.empty?
         keys = executor_params.keys
-        if tournament.tournament_plan&.name&.start_with?("KO")
+        if tournament.tournament_plan&.name&.match?(/^(KO|DKO)/)
           tier_map = { "fin" => 1, "hf" => 2, "qf" => 4 }
           keys = keys.sort_by do |k|
             prefix = k.gsub(/\d+$/, "")
@@ -592,7 +592,7 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
             end
           elsif /(?:\d+f|vf|hf|af|qf|fin|p<\d+(?:\.\.|-)\d+>)(\d+)?/.match?(k)
             r_no = executor_params[k].keys.find { |kk| kk =~ /r[*\d+]/ }.match(/r([*\d+])/)[1].to_i
-            is_ko_plan = tournament.tournament_plan&.name&.start_with?("KO")
+            is_ko_plan = tournament.tournament_plan&.name&.match?(/^(KO|DKO)/)
             if is_ko_plan || current_round == r_no
               t_no = nil
               sets = executor_params[k]["sets"]
@@ -719,7 +719,7 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
           table_ids = tournament.data["table_ids"]
 
           # Wenn vorgesehener Tisch belegt ist ODER noch kein Tisch zugewiesen wurde (z.B. t-rand*): Suche freien Tisch
-          is_ko_plan = tournament.tournament_plan&.name&.start_with?("KO")
+          is_ko_plan = tournament.tournament_plan&.name&.match?(/^(KO|DKO)/)
           if (t_no.blank? || t_no.to_i <= 0 || @placements.andand["round#{r_no}"].andand["table#{t_no}"].present?) &&
              (is_ko_plan || current_round == r_no) && new_game.present? && !tournament.continuous_placements
             Rails.logger.warn "[do_placement] Tisch #{t_no} nicht gesetzt oder belegt in Runde #{r_no}, suche freien Tisch..."
@@ -768,7 +768,7 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
           end
 
           Rails.logger.info ">>>>> CHECK 2: t_no=#{t_no}, current_round=#{current_round}, r_no=#{r_no}, continuous=#{tournament.continuous_placements}"
-          is_ko_plan = tournament.tournament_plan&.name&.start_with?("KO")
+          is_ko_plan = tournament.tournament_plan&.name&.match?(/^(KO|DKO)/)
           if t_no.to_i.positive? &&
              (((is_ko_plan || current_round == r_no) &&
                new_game.present? &&

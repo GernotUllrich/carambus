@@ -251,6 +251,8 @@ class Game < ApplicationRecord
     /group(\d+)/i => lambda { |m|
       I18n.t("game.display_group_game_name_short", group_no: (clean_key(m[1]).to_i + 64).chr).html_safe
     },
+    /w(\d+)\.(\d+)/i => ->(m) { "#{m[1]}. Gewinnerrunde<br />Partie #{m[2]}".html_safe },
+    /l(\d+)\.(\d+)/i => ->(m) { "#{m[1]}. Verliererrunde<br />Partie #{m[2]}".html_safe },
     /p<(\d*)-(\d*)>/i => ->(m) { "Spiel um Platz #{m[1]} und #{m[2]}".html_safe },
     /64f(\d*)/i => ->(m) { "1/64 Finale#{" " + m[1] if m[1].present?}" },
     /32f(\d*)/i => ->(m) { "1/32 Finale#{" " + m[1] if m[1].present?}" },
