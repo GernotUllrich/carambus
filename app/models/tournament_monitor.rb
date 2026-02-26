@@ -329,7 +329,7 @@ class TournamentMonitor < ApplicationRecord
   private
 
   def ko_ranking(rule_str)
-    g_no, _game_no, rk_no = rule_str.match(/^(?:(?:fg|g)(\d+)|sl|rule|\d+f|vf|hf|af|qf|fin|p<\d+(?:\.\.|-)\d+>)(\d+)?\.rk(\d+)$/)[1..3]
+    g_no, _game_no, rk_no = rule_str.match(/^(?:(?:fg|g)(\d+)|sl|rule|64f|32f|16f|8f|vf|hf|af|qf|fin|p<\d+(?:\.\.|-)\d+>)(\d+)?\.rk(\d)$/)[1..3]
     if g_no.present?
       case rule_str
       when /^sl/
@@ -357,7 +357,7 @@ class TournamentMonitor < ApplicationRecord
       else
         nil
       end
-    elsif (m = rule_str.match(/^(\d+f|vf|hf|rule|af|qf|fin|p<\d+(?:-|\.\.)\d+>)(\d+)?/))
+    elsif (m = rule_str.match(/^(64f|32f|16f|8f|vf|hf|rule|af|qf|fin|p<\d+(?:-|\.\.)\d+>)(\d+)?/))
       TournamentMonitor.ranking(data["rankings"]["endgames"]["#{m[1]}#{m[2]}"],
                                 order: (
                                   if tournament.handicap_tournier?
@@ -405,7 +405,8 @@ class TournamentMonitor < ApplicationRecord
     subset = {}
     members = players.split(/\s*\+\s*/)
     members.each do |member|
-      g_no, _game_no, rk_no = member.match(/^(?:(?:fg|g)(\d+)|sl|rule|\d+f|vf|hf|af|qf|fin|p<\d+(?:\.\.|-)\d+>)(\d+)?\.rk(\d+)$/)[1..3]
+      g_no, _game_no, rk_no = member.match(/^(?:(?:fg|g)(\d+)|sl|rule|64f|32f|16f|8f|vf|hf|af|qf|fin
+|p<\d+(?:\.\.|-)\d+>)(\d+)?\.rk(\d)$/)[1..3]
       rk =
         case member
         when /^sl/
@@ -448,7 +449,7 @@ class TournamentMonitor < ApplicationRecord
     members = players.split(/\s*\+\s*/)
     members.each do |member|
       member += ".rk1" if /rule\d/.match?(member)
-      g_no, _game_no, rk_no = member.match(/^(?:(?:fg|g)(\d+)|sl|\d+f|vf|hf|af|qf|rule|fin|p<\d+(?:\.\.|-)\d+>)(\d+)?\.rk(\d+)$/)[1..3]
+      g_no, _game_no, rk_no = member.match(/^(?:(?:fg|g)(\d+)|sl|64f|32f|16f|8f|vf|hf|af|qf|rule|fin|p<\d+(?:\.\.|-)\d+>)(\d+)?\.rk(\d)$/)[1..3]
       rk =
         case member
         when /^sl/

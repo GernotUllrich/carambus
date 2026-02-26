@@ -108,7 +108,7 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
           add_result_to(gp, rankings["endgames"]["groups"]["total"])
           rankings["endgames"]["groups"]["fg#{group_no}"] ||= {}
           add_result_to(gp, rankings["endgames"]["groups"]["fg#{group_no}"])
-        elsif (m = game.gname.match(/^(\d+f|af|qf|vf|hf|fin|p<\d+(?:\.\.|-)\d+>)(\d+)?$/))
+        elsif (m = game.gname.match(/^(64f|32f|16f|8f|af|qf|vf|hf|fin|p<\d+(?:\.\.|-)\d+>)(\d+)?$/))
           level = m[1]
           group_no = m[2]
           add_result_to(gp, rankings["total"])
@@ -590,7 +590,7 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
                 end
               end
             end
-          elsif /(?:\d+f|vf|hf|af|qf|fin|p<\d+(?:\.\.|-)\d+>)(\d+)?/.match?(k)
+          elsif /(?:64f|32f|16f|8f|vf|hf|af|qf|fin|p<\d+(?:\.\.|-)\d+>)(\d+)?/.match?(k)
             r_no = executor_params[k].keys.find { |kk| kk =~ /r[*\d+]/ }.match(/r([*\d+])/)[1].to_i
             is_ko_plan = tournament.tournament_plan&.name&.match?(/^(KO|DKO)/)
             if is_ko_plan || current_round == r_no
@@ -718,17 +718,17 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
           Rails.logger.info ">>>>> CHECK 1 PASSED"
           table_ids = tournament.data["table_ids"]
 
-          # Wenn vorgesehener Tisch belegt ist ODER noch kein Tisch zugewiesen wurde (z.B. t-rand*): Suche freien Tisch
-          is_ko_plan = tournament.tournament_plan&.name&.match?(/^(KO|DKO)/)
-          if (t_no.blank? || t_no.to_i <= 0 || @placements.andand["round#{r_no}"].andand["table#{t_no}"].present?) &&
-             (is_ko_plan || current_round == r_no) && new_game.present? && !tournament.continuous_placements
-            Rails.logger.warn "[do_placement] Tisch #{t_no} nicht gesetzt oder belegt in Runde #{r_no}, suche freien Tisch..."
+          # Wenn vorgesehener Tisch belegt ist: Suche freien Tisch
+          if t_no.to_i.positive? && current_round == r_no && new_game.present? &&
+             @placements.andand["round#{r_no}"].andand["table#{t_no}"].present? &&
+             !tournament.continuous_placements
+            Tournament.logger.warn "[do_placement] Tisch #{t_no} bereits belegt in Runde #{r_no}, suche freien Tisch..."
 
             # Finde ersten freien Tisch
             # Bestimme Anzahl verfügbarer Tische
             available_tables = if table_ids.is_a?(Array)
                                  # table_ids könnte ein Array von Arrays sein (pro Runde) oder ein flaches Array
-                                 if table_ids.present? && table_ids.first.is_a?(Array)
+                                 if table_ids.first.is_a?(Array)
                                    table_ids[r_no - 1]&.length || table_ids.first.length
                                  else
                                    table_ids.length
@@ -741,19 +741,7 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
             original_t_no = t_no
             t_no = nil
             (1..available_tables).each do |check_t_no|
-              is_free = false
-              if is_ko_plan
-                table_id = Array(tournament.data["table_ids"]).map(&:to_i)[check_t_no - 1]
-                table = Table.find_by(id: table_id)
-                table_monitor = table&.table_monitor
-                is_free = table_monitor.nil? || table_monitor.game_id.blank? || %w[free not_ready
-                                                                                   ready_for_new_match].include?(table_monitor.state)
-              else
-                # Für normale Turniere: Tisch ist frei, wenn er in der Runde r_no noch nie belegt war
-                is_free = @placements.andand["round#{r_no}"].andand["table#{check_t_no}"].blank?
-              end
-
-              next unless is_free
+              next unless @placements.andand["round#{r_no}"].andand["table#{check_t_no}"].blank?
 
               t_no = check_t_no
               Rails.logger.info "[do_placement] Gefundener freier Tisch: #{t_no} (ursprünglich #{original_t_no})"
@@ -761,18 +749,16 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
             end
 
             unless t_no.present?
-              Rails.logger.error "[do_placement] ERROR: Kein freier Tisch gefunden in Runde #{r_no} für Spiel #{new_game.gname} (verfügbar: #{available_tables} Tische)"
-              # We shouldn't return immediately, maybe just drop to the continuous fallback below. However we'll return to prevent crashing
+              Tournament.logger.error "[do_placement] ERROR: Kein freier Tisch gefunden in Runde #{r_no} für Spiel #{new_game.gname} (verfügbar: #{available_tables} Tische)"
               return
             end
           end
 
           Rails.logger.info ">>>>> CHECK 2: t_no=#{t_no}, current_round=#{current_round}, r_no=#{r_no}, continuous=#{tournament.continuous_placements}"
-          is_ko_plan = tournament.tournament_plan&.name&.match?(/^(KO|DKO)/)
           if t_no.to_i.positive? &&
-             (((is_ko_plan || current_round == r_no) &&
+             ((current_round == r_no &&
                new_game.present? &&
-               (@placements.andand["round#{r_no}"].andand["table#{t_no}"].blank? || is_ko_plan)) || tournament.continuous_placements)
+               @placements.andand["round#{r_no}"].andand["table#{t_no}"].blank?) || tournament.continuous_placements)
 
             Rails.logger.info ">>>>> CHECK 2 PASSED - will do placement"
             seqno = new_game.seqno.to_i.positive? ? new_game.seqno : next_seqno
