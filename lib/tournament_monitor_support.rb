@@ -279,11 +279,16 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
     f = File.new("#{Rails.root}/tmp/result-#{tournament.cc_id}.csv", "w")
     f.write(game_data.join("\n"))
     f.close
-    NotifierMailer.result(tournament, current_admin.email, "Turnierergebnisse -\
-    #{tournament.title}", "result-#{tournament.id}.csv" \
-    , "#{Rails.root}/tmp/result-#{tournament.id}.csv").deliver
-    NotifierMailer.result(tournament, "gernot.ullrich@gmx.de", "Turnierergebnisse - #{tournament.title}",
-                          "result-#{tournament.id}.csv", "#{Rails.root}/tmp/result-#{tournament.id}.csv").deliver
+    begin
+      if defined?(current_admin) && current_admin.present?
+        NotifierMailer.result(tournament, current_admin.email, "Turnierergebnisse - #{tournament.title}", 
+                              "result-#{tournament.id}.csv", "#{Rails.root}/tmp/result-#{tournament.id}.csv").deliver
+      end
+      NotifierMailer.result(tournament, "gernot.ullrich@gmx.de", "Turnierergebnisse - #{tournament.title}",
+                            "result-#{tournament.id}.csv", "#{Rails.root}/tmp/result-#{tournament.id}.csv").deliver
+    rescue StandardError => e
+      Rails.logger.error "[write_finale_csv_for_upload] Error sending result mail: #{e.message}"
+    end
   end
 
   def initialize_table_monitors
