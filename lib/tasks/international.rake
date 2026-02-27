@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 namespace :international do
-  desc 'Find YouTube channel ID from handle or username'
+  desc "Find YouTube channel ID from handle or username"
   task :find_channel_id, [:handle] => :environment do |_t, args|
     handle = args[:handle]
 
@@ -18,9 +18,9 @@ namespace :international do
 
     begin
       response = scraper.youtube.list_searches(
-        'snippet',
+        "snippet",
         q: handle,
-        type: 'channel',
+        type: "channel",
         max_results: 5
       )
 
@@ -34,12 +34,12 @@ namespace :international do
       else
         puts "No channels found for: #{handle}"
       end
-    rescue => e
+    rescue StandardError => e
       puts "Error: #{e.message}"
     end
   end
 
-  desc 'Test YouTube API access'
+  desc "Test YouTube API access"
   task test_api: :environment do
     scraper = YoutubeScraper.new
 
@@ -51,8 +51,8 @@ namespace :international do
     end
   end
 
-  desc 'Test scraping a specific channel'
-  task :test_channel, [:channel_id, :days_back] => :environment do |_t, args|
+  desc "Test scraping a specific channel"
+  task :test_channel, %i[channel_id days_back] => :environment do |_t, args|
     channel_id = args[:channel_id]
     days_back = (args[:days_back] || 3).to_i
 
@@ -73,7 +73,7 @@ namespace :international do
 
     if count > 0
       puts "\nLatest videos:"
-      Video.where('created_at > ?', 1.minute.ago).limit(5).each do |video|
+      Video.where("created_at > ?", 1.minute.ago).limit(5).each do |video|
         puts "  - #{video.title}"
         puts "    Published: #{video.published_at}"
         puts "    Duration: #{video.duration_formatted}"
@@ -81,7 +81,7 @@ namespace :international do
     end
   end
 
-  desc 'Scrape all known YouTube channels'
+  desc "Scrape all known YouTube channels"
   task :scrape_all, [:days_back] => :environment do |_t, args|
     days_back = (args[:days_back] || 7).to_i
 
@@ -89,13 +89,13 @@ namespace :international do
     ScrapeYoutubeJob.perform_now(days_back: days_back)
   end
 
-  desc 'Show statistics'
+  desc "Show statistics"
   task stats: :environment do
     puts "\n=== International Extension Statistics ===\n"
     puts "Sources: #{InternationalSource.count}"
     puts "Tournaments: #{InternationalTournament.count}"
 
-    youtube_videos = Video.youtube
+    youtube_videos = Video.supported_platforms
     puts "Videos: #{youtube_videos.count}"
     puts "  - Tagged: #{youtube_videos.where(metadata_extracted: true).count}"
     puts "  - Untagged: #{youtube_videos.where(metadata_extracted: false).count}"
@@ -110,25 +110,25 @@ namespace :international do
       puts "Latest 5 videos:"
       youtube_videos.order(published_at: :desc).limit(5).each do |video|
         puts "  - #{video.title[0..70]}..."
-        puts "    #{video.international_source.name} | #{video.published_at&.strftime('%Y-%m-%d')}"
+        puts "    #{video.international_source.name} | #{video.published_at&.strftime("%Y-%m-%d")}"
       end
     end
 
     puts "\nTag Statistics:"
-    tag_counts = Video.youtube
-                     .where.not("data->'tags' IS NULL")
-                     .pluck(Arel.sql("jsonb_array_elements_text(data->'tags')"))
-                     .group_by(&:itself)
-                     .transform_values(&:count)
-                     .sort_by { |_k, v| -v }
-                     .first(10)
+    tag_counts = Video.supported_platforms
+                      .where.not("data->'tags' IS NULL")
+                      .pluck(Arel.sql("jsonb_array_elements_text(data->'tags')"))
+                      .group_by(&:itself)
+                      .transform_values(&:count)
+                      .sort_by { |_k, v| -v }
+                      .first(10)
 
     tag_counts.each do |tag, count|
       puts "  #{tag}: #{count}"
     end
   end
 
-  desc 'Discover tournaments from existing videos'
+  desc "Discover tournaments from existing videos"
   task discover_tournaments: :environment do
     puts "\n=== Tournament Discovery ==="
     service = TournamentDiscoveryService.new
@@ -139,7 +139,7 @@ namespace :international do
       puts "  #{tournament.name}"
       puts "    Type: #{tournament.tournament_type}"
       puts "    Discipline: #{tournament.discipline&.name}"
-      puts "    Dates: #{tournament.start_date&.strftime('%Y-%m-%d')} - #{tournament.end_date&.strftime('%Y-%m-%d')}"
+      puts "    Dates: #{tournament.start_date&.strftime("%Y-%m-%d")} - #{tournament.end_date&.strftime("%Y-%m-%d")}"
       puts "    Videos: #{tournament.international_videos.count}"
       puts ""
     end
@@ -149,7 +149,7 @@ namespace :international do
     puts "  Videos assigned: #{result[:videos_assigned]}"
   end
 
-  desc 'Translate video titles to English'
+  desc "Translate video titles to English"
   task :translate_videos, [:limit] => :environment do |_t, args|
     limit = (args[:limit] || 100).to_i
 
@@ -169,8 +169,8 @@ namespace :international do
 
     # Get untranslated videos (prioritize non-English)
     videos = Video.where("metadata->>'translated_title' IS NULL")
-                               .order(published_at: :desc)
-                               .limit(limit)
+                  .order(published_at: :desc)
+                  .limit(limit)
 
     if videos.empty?
       puts "No videos to translate!"
@@ -179,7 +179,7 @@ namespace :international do
 
     puts "Found #{videos.size} videos to translate"
 
-    count = service.translate_batch(videos, target_language: 'en')
+    count = service.translate_batch(videos, target_language: "en")
 
     puts "\nTranslation complete!"
     puts "  Videos translated: #{count}"
@@ -188,21 +188,21 @@ namespace :international do
     # Show sample translations
     puts "\nSample translations:"
     Video.where("metadata->>'translated_title' IS NOT NULL")
-                     .order(updated_at: :desc)
-                     .limit(5)
-                     .each do |v|
+         .order(updated_at: :desc)
+         .limit(5)
+         .each do |v|
       puts "  Original: #{v.title[0..60]}"
-      puts "  Translated: #{v.metadata['translated_title'][0..60]}"
+      puts "  Translated: #{v.metadata["translated_title"][0..60]}"
       puts ""
     end
   end
 
-  desc 'Process all videos (auto-tagging)'
+  desc "Process all videos (auto-tagging)"
   task process_all_videos: :environment do
     puts "\n=== Auto-Tagging All YouTube Videos ==="
 
-    total_videos = Video.youtube.count
-    puts "Total YouTube videos: #{total_videos}"
+    total_videos = Video.supported_platforms.count
+    puts "Total supported videos: #{total_videos}"
 
     if total_videos.zero?
       puts "No videos found!"
@@ -211,17 +211,17 @@ namespace :international do
 
     tagged_count = 0
 
-    Video.youtube.find_each do |video|
+    Video.supported_platforms.find_each do |video|
       video.auto_tag!
       tagged_count += 1
-      print '.' if tagged_count % 50 == 0
+      print "." if tagged_count % 50 == 0
     end
 
     puts "\n\n✅ All videos tagged!"
     puts "Total processed: #{tagged_count}"
   end
 
-  desc 'Daily automated scrape (run via cron)'
+  desc "Daily automated scrape (run via cron)"
   task daily_scrape: :environment do
     puts "\n=== Daily International Scrape ==="
     result = DailyInternationalScrapeJob.perform_now(days_back: 3)
@@ -235,7 +235,7 @@ namespace :international do
     puts "\n✅ Daily scrape complete!"
   end
 
-  desc 'Scrape official UMB tournament data'
+  desc "Scrape official UMB tournament data"
   task scrape_umb: :environment do
     puts "\n=== UMB Tournament Scraper ==="
     puts "Fetching official tournament data from UMB..."
@@ -249,12 +249,12 @@ namespace :international do
 
       puts "\nOfficial UMB Tournaments:"
       InternationalTournament.joins(:international_source)
-                            .where(international_sources: { source_type: 'umb' })
-                            .order(start_date: :asc)
-                            .each do |t|
+                             .where(international_sources: { source_type: "umb" })
+                             .order(start_date: :asc)
+                             .each do |t|
         puts "  #{t.name}"
         puts "    Date: #{t.date_range}"
-        puts "    Location: #{t.location || 'TBA'}"
+        puts "    Location: #{t.location || "TBA"}"
         puts "    Discipline: #{t.discipline.name}"
         puts ""
       end
@@ -264,12 +264,12 @@ namespace :international do
     end
   end
 
-  desc 'Clean up malformed UMB tournament entries'
+  desc "Clean up malformed UMB tournament entries"
   task cleanup_umb_fragments: :environment do
     puts "\n=== UMB Tournament Cleanup ==="
     puts "Finding malformed tournament entries..."
 
-    umb_source = InternationalSource.find_by(source_type: 'umb')
+    umb_source = InternationalSource.find_by(source_type: "umb")
     unless umb_source
       puts "No UMB source found!"
       next
@@ -278,15 +278,15 @@ namespace :international do
     # Find entries that are ONLY date fragments (not tournament names that contain dates)
     # Match patterns like: "26 -", "- 01", "05 - 11" but NOT "World Cup 3-Cushion"
     date_only = InternationalTournament.where(international_source: umb_source)
-                                      .where("name ~ ?", '^-?\s*\d{1,2}\s*-\s*\d{0,2}\s*$')
+                                       .where("name ~ ?", '^-?\s*\d{1,2}\s*-\s*\d{0,2}\s*$')
 
     # Find entries that are just "Date", "Tournament" etc
     meta_labels = InternationalTournament.where(international_source: umb_source)
-                                        .where("name IN ('Date', 'Tournament', 'Type', 'Organization', 'Place')")
+                                         .where("name IN ('Date', 'Tournament', 'Type', 'Organization', 'Place')")
 
     # Find entries with extremely malformed names (huge text blocks)
     huge_names = InternationalTournament.where(international_source: umb_source)
-                                       .where("LENGTH(name) > 200")
+                                        .where("LENGTH(name) > 200")
 
     all_bad = (date_only.to_a + meta_labels.to_a + huge_names.to_a).uniq
 
@@ -316,11 +316,11 @@ namespace :international do
     puts "  Remaining UMB tournaments: #{InternationalTournament.where(international_source: umb_source).count}"
   end
 
-  desc 'Full pipeline: scrape → process → discover tournaments → translate'
+  desc "Full pipeline: scrape → process → discover tournaments → translate"
   task :full_pipeline, [:days_back] => :environment do |_t, args|
     days_back = (args[:days_back] || 7).to_i
 
-    puts "\n" + "=" * 80
+    puts "\n" + ("=" * 80)
     puts "INTERNATIONAL CONTENT PIPELINE"
     puts "=" * 80
 
@@ -353,8 +353,8 @@ namespace :international do
     translate_service = VideoTranslationService.new
     if translate_service.translator
       videos_to_translate = Video.where("metadata->>'translated_title' IS NULL")
-                                             .where.not("metadata->>'players' IS NULL")
-                                             .limit(50)
+                                 .where.not("metadata->>'players' IS NULL")
+                                 .limit(50)
       translated = translate_service.translate_batch(videos_to_translate)
       puts "  Translated: #{translated}"
     else
@@ -362,7 +362,7 @@ namespace :international do
     end
 
     # Final stats
-    puts "\n" + "=" * 80
+    puts "\n" + ("=" * 80)
     puts "PIPELINE COMPLETE"
     puts "=" * 80
     puts "Total videos: #{Video.count}"
@@ -371,11 +371,11 @@ namespace :international do
     puts "Videos with players: #{Video.where("metadata->>'players' IS NOT NULL").count}"
   end
 
-  desc 'Process all untagged videos (for cron)'
+  desc "Process all untagged videos (for cron)"
   task process_untagged_videos: :environment do
     puts "\n=== Processing Untagged Videos ==="
 
-    untagged = Video.youtube.where(metadata_extracted: false)
+    untagged = Video.supported_platforms.where(metadata_extracted: false)
     count = untagged.count
 
     if count.zero?
@@ -395,13 +395,13 @@ namespace :international do
     puts "\n✅ Processed #{processed} videos"
   end
 
-  desc 'Update video statistics and tag counts (for cron)'
+  desc "Update video statistics and tag counts (for cron)"
   task update_statistics: :environment do
     puts "\n=== Updating Video Statistics ==="
 
     # Recalculate all tag counts
     puts "Recalculating tag counts..."
-    Video.youtube.where(metadata_extracted: false).find_each do |video|
+    Video.supported_platforms.where(metadata_extracted: false).find_each do |video|
       video.auto_tag!
     end
 
@@ -411,8 +411,8 @@ namespace :international do
       video_count = source.videos.count
       source.update(
         metadata: source.metadata.merge(
-          'video_count' => video_count,
-          'last_stats_update' => Time.current.iso8601
+          "video_count" => video_count,
+          "last_stats_update" => Time.current.iso8601
         )
       )
       puts "  #{source.name}: #{video_count} videos"
