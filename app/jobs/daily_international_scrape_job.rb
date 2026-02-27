@@ -26,14 +26,14 @@ class DailyInternationalScrapeJob < ApplicationJob
 
     kozoom_count = 0
     begin
-      email = Setting.key_get_value('kozoom_email')
-      password = Setting.key_get_value('kozoom_password')
+      email = Rails.application.credentials.dig(:kozoom, :email)
+      password = Rails.application.credentials.dig(:kozoom, :password)
       
       if email.present? && password.present?
         kozoom_scraper = KozoomScraper.new(email: email, password: password)
         kozoom_count = kozoom_scraper.scrape(days_back: days_back)
       else
-        Rails.logger.warn "[DailyInternationalScrape] Kozoom credentials not configured in Settings"
+        Rails.logger.warn "[DailyInternationalScrape] Kozoom credentials not configured in Rails.application.credentials"
       end
     rescue StandardError => e
       Rails.logger.error "[DailyInternationalScrape] Error scraping Kozoom: #{e.message}"

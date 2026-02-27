@@ -8,8 +8,8 @@ class KozoomScraper
   API_BASE_URL = "https://api.kozoom.com"
 
   def initialize(email: nil, password: nil)
-    @email = email || Setting.key_get_value("kozoom_email")
-    @password = password || Setting.key_get_value("kozoom_password")
+    @email = email || Rails.application.credentials.dig(:kozoom, :email)
+    @password = password || Rails.application.credentials.dig(:kozoom, :password)
     @token = nil
   end
 
@@ -17,7 +17,7 @@ class KozoomScraper
     return true if @token
 
     unless @email.present? && @password.present?
-      Rails.logger.error "[KozoomScraper] Missing credentials. Please set kozoom_email and kozoom_password in Settings."
+      Rails.logger.error "[KozoomScraper] Missing credentials. Please set kozoom credentials in Rails.application.credentials."
       return false
     end
 
