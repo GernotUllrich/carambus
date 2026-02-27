@@ -64,7 +64,7 @@ class Video < ApplicationRecord
   scope :youtube, -> { joins(:international_source).where(international_sources: { source_type: "youtube" }) }
   scope :fivesix, -> { joins(:international_source).where(international_sources: { source_type: "fivesix" }) }
   scope :supported_platforms, lambda {
-    joins(:international_source).where(international_sources: { source_type: %w[youtube fivesix] })
+    joins(:international_source).where(international_sources: { source_type: %w[youtube fivesix kozoom] })
   }
   scope :visible, -> { where(hidden: false) }
   scope :hidden_videos, -> { where(hidden: true) }
