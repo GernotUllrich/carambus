@@ -140,6 +140,8 @@ class Video < ApplicationRecord
       "https://www.youtube.com/watch?v=#{external_id}"
     when "fivesix"
       "https://vod.sooplive.co.kr/player/#{external_id}"
+    when "kozoom"
+      json_data["url"].presence || "https://tv.kozoom.com/en/event/#{json_data["eventId"] || external_id}"
     else
       nil
     end
@@ -157,6 +159,8 @@ class Video < ApplicationRecord
       else
         "https://vod.sooplive.co.kr/player/#{external_id}/embed?wMode=transparent&szIframeWidth=100%25&szIframeHeight=100%25&szLanguage=en_US&bChat=false"
       end
+    when "kozoom"
+      json_data["url"].presence || "https://tv.kozoom.com/en/event/#{json_data["eventId"] || external_id}"
     else
       nil
     end
