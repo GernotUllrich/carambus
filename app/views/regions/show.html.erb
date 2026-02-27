@@ -18,7 +18,8 @@
         <%= @region.shortname %>
         <%- if @region.region_cc.present? %>
           (-> <%= custom_link_to('Club Cloud', @region.public_cc_url_base.presence || @region.region_cc.public_url.presence || @region.region_cc.base_url, class: "green_link") %>
-          , <%= custom_link_to 'Migration Check', migration_cc_region_path(@region) %>)
+<!--  TODO Migration Check to be fixed        , <%#= custom_link_to 'Migration Check', migration_cc_region_path(@region) %>-->
+          )
         <%- else %>
           (-> <%= custom_link_to 'Migrate to Club Cloud', migration_cc_region_path(@region) %> )
         <%- end %>
