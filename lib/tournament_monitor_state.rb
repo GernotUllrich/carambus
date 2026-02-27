@@ -58,7 +58,8 @@ module TournamentMonitorState
     update_game_participations(table_monitor)
     # noinspection RubyResolve
     table_monitor.close_match!
-    args = { game_id: nil }
+    args = { game_id: nil, prev_game_id: game.id, prev_data: table_monitor.data.dup }
+    args[:prev_tournament_monitor] = self unless tournament.continuous_placements
     args[:tournament_monitor] = nil unless tournament.continuous_placements
     table_monitor.update(args)
   end
@@ -110,6 +111,12 @@ module TournamentMonitorState
       update_game_participations(tabmon)
       # noinspection RubyResolve
       tabmon.close_match!
+      tabmon.update(
+        game_id: nil,
+        prev_game_id: game.id,
+        prev_data: tabmon.data.dup,
+        prev_tournament_monitor: self
+      )
     end
     accumulate_results
   end
