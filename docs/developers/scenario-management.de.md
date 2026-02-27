@@ -245,6 +245,9 @@ rake "scenario:deploy[carambus_location_5101]"
 ### Granulare Kontrolle
 
 ```bash
+# Produktionsdatenbank in die lokale Development-Umgebung spiegeln (Pull & Restore in einem Schritt)
+rake "scenario:sync_production_db[carambus_api]"
+
 # Nur Konfigurationsdateien neu generieren
 rake "scenario:generate_configs[carambus_location_5101,development]"
 

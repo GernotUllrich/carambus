@@ -42,6 +42,19 @@ namespace :scenario do
     restore_database_dump(scenario_name, environment)
   end
 
+  desc "Sync production database to local development environment"
+  task :sync_production_db, [:scenario_name] => :environment do |task, args|
+    scenario_name = args[:scenario_name]
+
+    if scenario_name.nil?
+      puts "Usage: rake scenario:sync_production_db[scenario_name]"
+      puts "Example: rake scenario:sync_production_db[carambus_api]"
+      exit 1
+    end
+
+    sync_production_database(scenario_name)
+  end
+
   desc "Generate configuration files from carambus_data/scenarios/"
   task :generate_configs, [:scenario_name, :environment] => :environment do |task, args|
     scenario_name = args[:scenario_name]
@@ -1412,6 +1425,75 @@ ENV
       puts "❌ Git clone failed"
       false
     end
+  end
+
+  def sync_production_database(scenario_name)
+    puts "Syncing production database for #{scenario_name} to local development environment..."
+
+    # Step 1: Create a dump from production
+    puts "\n📥 Step 1: Creating production database dump..."
+    unless create_database_dump(scenario_name, 'production')
+      puts "❌ Failed to create production dump"
+      return false
+    end
+
+    # Step 2: Find the newly created dump
+    dump_dir = File.join(scenarios_path, scenario_name, 'database_dumps')
+    dump_files = Dir.glob(File.join(dump_dir, "#{scenario_name}_production_*.sql.gz"))
+    if dump_files.empty?
+      puts "❌ Error: Could not find the generated production dump in #{dump_dir}"
+      return false
+    end
+    latest_dump = dump_files.sort.last
+    puts "\n📦 Step 2: Using production dump: #{File.basename(latest_dump)}"
+
+    # Step 3: Determine local database name
+    config_file = File.join(scenarios_path, scenario_name, 'config.yml')
+    unless File.exist?(config_file)
+      puts "❌ Error: Scenario configuration not found: #{config_file}"
+      return false
+    end
+    scenario_config = YAML.load_file(config_file)
+    dev_config = scenario_config['environments']['development']
+    dev_db_name = dev_config['database_name']
+
+    puts "\n🔄 Step 3: Preparing local development database (#{dev_db_name})..."
+    
+    # Drop and recreate database natively via postgres tools to avoid active connections block
+    puts "Dropping local database #{dev_db_name}..."
+    system("dropdb #{dev_db_name}") if system("psql -lqt | cut -d \\| -f 1 | grep -qw #{dev_db_name}")
+
+    puts "Creating local database #{dev_db_name}..."
+    unless system("createdb #{dev_db_name}")
+      puts "❌ Failed to create local development database"
+      return false
+    end
+
+    # Step 4: Restore dump
+    puts "\n📤 Step 4: Restoring dump into local development database..."
+    if system("gunzip -c #{latest_dump} | psql #{dev_db_name} -q")
+      puts "✅ Database restored successfully"
+    else
+      puts "❌ Database restore failed"
+      return false
+    end
+
+    # Step 5: Fix environments metadata and run migrations
+    puts "\n🚀 Step 5: Fixing Rails environment metadata and running migrations..."
+    # If the rake task is run inside the scenario rails root, this works right away.
+    # Otherwise, they might need to run it themselves, but we try:
+    rails_root = File.expand_path("../#{scenario_name}", carambus_data_path)
+    if Dir.exist?(rails_root)
+      system("cd #{rails_root} && RAILS_ENV=development bundle exec rails db:environment:set RAILS_ENV=development")
+      system("cd #{rails_root} && RAILS_ENV=development bundle exec rails db:migrate")
+    else
+      # Fallback if we are already in the correct Rails env context, though less reliable if cross-scenario
+      system("RAILS_ENV=development bundle exec rails db:environment:set RAILS_ENV=development")
+      system("RAILS_ENV=development bundle exec rails db:migrate")
+    end
+
+    puts "\n🎉 Success! The production database for #{scenario_name} has been imported to your local development environment."
+    true
   end
 
   def prepare_scenario_for_development(scenario_name, environment, force = false)

@@ -245,6 +245,9 @@ rake "scenario:deploy[carambus_location_5101]"
 ### Granular Control
 
 ```bash
+# Mirror production database to local development environment (Pull & Restore in one step)
+rake "scenario:sync_production_db[carambus_api]"
+
 # Only regenerate configuration files
 rake "scenario:generate_configs[carambus_location_5101,development]"
 
