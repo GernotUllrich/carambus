@@ -2,19 +2,19 @@
 Rails.application.routes.draw do
   # International section
   namespace :international do
-    resources :tournaments, only: [:index, :show]
-    resources :videos, only: [:index, :show] do
+    resources :tournaments, only: %i[index show]
+    resources :videos, only: %i[index show] do
       member do
         post :hide
         post :unhide
       end
     end
   end
-  get 'international', to: 'international#index', as: :international
-  
+  get "international", to: "international#index", as: :international
+
   # Admin section
   namespace :admin do
-    resources :incomplete_records, only: [:index, :show, :update] do
+    resources :incomplete_records, only: %i[index show update] do
       collection do
         post :auto_fix_all
       end
@@ -24,26 +24,26 @@ Rails.application.routes.draw do
     end
   end
 
- devise_for :users,
+  devise_for :users,
              controllers: {
-               registrations: 'registrations'
+               registrations: "registrations"
              },
-             path: '',
+             path: "",
              path_names: {
-               sign_in: 'login',
-               sign_out: 'logout',
-               registration: 'users',
-               edit: 'edit'
+               sign_in: "login",
+               sign_out: "logout",
+               registration: "users",
+               edit: "edit"
              }
 
   # API routes
   namespace :api do
     # AI-powered search
     resources :ai_search, only: [:create]
-    
+
     # AI-powered documentation search
     resources :ai_docs, only: [:create]
-    
+
     resources :players, only: [] do
       collection do
         get :autocomplete
@@ -60,9 +60,9 @@ Rails.application.routes.draw do
   # Debug routes (development only)
   if Rails.env.development? || Rails.env.test?
     namespace :debug do
-      get 'scoreboard_status', to: 'debug#scoreboard_status'
-      get 'dom_health', to: 'debug#dom_health'
-      delete 'clear_logs', to: 'debug#clear_debug_logs'
+      get "scoreboard_status", to: "debug#scoreboard_status"
+      get "dom_health", to: "debug#dom_health"
+      delete "clear_logs", to: "debug#clear_debug_logs"
     end
   end
 
@@ -322,8 +322,8 @@ Rails.application.routes.draw do
     get :database_syncing
 
     # Neue Routen für integrierte MkDocs-Dokumentation
-    get 'docs_page/:locale/:path' => :docs_page, as: :docs_page_with_locale, constraints: { locale: /de|en/ }
-    get 'docs_page/:path' => :docs_page, as: :docs_page, defaults: { locale: 'de' }
+    get "docs_page/:locale/:path" => :docs_page, as: :docs_page_with_locale, constraints: { locale: /de|en/ }
+    get "docs_page/:path" => :docs_page, as: :docs_page, defaults: { locale: "de" }
   end
 
   match "/404", to: "errors#not_found", via: :all
@@ -347,12 +347,12 @@ Rails.application.routes.draw do
 
   # Cable health check
   namespace :cable do
-    get 'health', to: 'cable_health#show'
-    post 'health/check', to: 'cable_health#check'
+    get "health", to: "cable_health#show"
+    post "health/check", to: "cable_health#check"
   end
 
   # Mount ActionCable
-  mount ActionCable.server => '/cable'
+  mount ActionCable.server => "/cable"
 
   # Public marketing homepage
   root to: "static#index"
@@ -413,18 +413,18 @@ Rails.application.routes.draw do
 
   namespace :admin do
     resources :users
-    resources :settings, only: [:index, :create, :update] do
+    resources :settings, only: %i[index create update] do
       collection do
         patch :update
       end
     end
-    
+
     resources :scoreboard_messages do
       member do
         post :acknowledge
       end
     end
-    
+
     resources :stream_configurations do
       member do
         post :start
@@ -436,8 +436,8 @@ Rails.application.routes.draw do
         post :deploy_all
       end
     end
-    
-    resources :player_duplicates, only: [:index, :show] do
+
+    resources :player_duplicates, only: %i[index show] do
       collection do
         get :stats
       end
@@ -446,9 +446,10 @@ Rails.application.routes.draw do
         post :keep_separate
       end
     end
-    
+
     resources :international_sources
-    
+    resources :videos
+
     resources :pages do
       member do
         post :publish
@@ -466,7 +467,7 @@ Rails.application.routes.draw do
   end
 
   scope module: :users do
-    resource :profile, only: [:edit, :update], controller: 'profiles'
+    resource :profile, only: %i[edit update], controller: "profiles"
   end
 
   # Add routes for pages
@@ -481,12 +482,12 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :rankings, only: [:index, :show]
-  
+  resources :rankings, only: %i[index show]
+
   # Scraping Monitor Dashboard
-  get 'scraping_monitor', to: 'scraping_monitor#index', as: :scraping_monitor
-  get 'scraping_monitor/:id', to: 'scraping_monitor#operation', as: :scraping_monitor_operation
+  get "scraping_monitor", to: "scraping_monitor#index", as: :scraping_monitor
+  get "scraping_monitor/:id", to: "scraping_monitor#operation", as: :scraping_monitor_operation
 
   # Demo route for testing optimistic updates
-  get 'demo/scoreboard', to: 'table_monitors#demo_scoreboard'
+  get "demo/scoreboard", to: "table_monitors#demo_scoreboard"
 end
