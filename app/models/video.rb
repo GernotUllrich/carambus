@@ -170,6 +170,15 @@ class Video < ApplicationRecord
     json_data["player"]
   end
 
+  def thumbnail_url
+    url = super
+    return nil if url.blank?
+    return url if url.start_with?("http://", "https://", "//")
+
+    # Don't return relative paths as they crash the Rails asset pipeline
+    nil
+  end
+
   # Metadata accessors
   def json_data
     @json_data ||= begin
