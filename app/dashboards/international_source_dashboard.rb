@@ -11,7 +11,7 @@ class InternationalSourceDashboard < Administrate::BaseDashboard
     id: Field::Number,
     name: Field::String,
     source_type: Field::Select.with_options(
-      collection: ['youtube', 'umb', 'ceb', 'acc', 'other']
+      collection: %w[youtube umb ceb acc other]
     ),
     base_url: Field::String,
     api_credentials: Field::Text,
@@ -20,7 +20,8 @@ class InternationalSourceDashboard < Administrate::BaseDashboard
     last_scraped_at: Field::DateTime,
     created_at: Field::DateTime,
     updated_at: Field::DateTime,
-    video_count: Field::Number.with_options(searchable: false)
+    video_count: Field::Number.with_options(searchable: false),
+    videos: Field::HasMany
   }.freeze
 
   # COLLECTION_ATTRIBUTES
@@ -47,6 +48,7 @@ class InternationalSourceDashboard < Administrate::BaseDashboard
     metadata
     last_scraped_at
     video_count
+    videos
     created_at
     updated_at
   ].freeze
