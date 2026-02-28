@@ -686,8 +686,10 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
       if @placement_candidates.present? && tournament.continuous_placements?
         found = false
         until found
-          @placement_candidates.sort_by { |pc| [pc[1]] }.each_with_index do |placement_candidate, ix|
-            game = Game[placement_candidate[0]]
+          # Use safe handling for pc elements as some legacy items might just be integers.
+          @placement_candidates.sort_by { |pc| [pc.is_a?(Array) ? pc[1].to_s : Game[pc].gname] }.each_with_index do |placement_candidate, ix|
+            game_params = placement_candidate.is_a?(Array) ? placement_candidate : [placement_candidate]
+            game = Game[game_params[0]]
             required_players = game.game_participations.map(&:player_id)
             next if (required_players & current_players).present?
 
@@ -696,11 +698,18 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
             next unless next_available_table.present?
 
             t_no = table_ids.index(next_available_table.id) + 1
-            do_placement(game, current_round, t_no, nil, nil, nil)
-            @placement_candidates.delete(@placement_candidates[ix])
+            if game_params.length >= 7
+              do_placement(game, current_round, t_no, game_params[4], game_params[5], game_params[6])
+            else
+              do_placement(game, current_round, t_no, nil, nil, nil)
+            end
+            
+            @placement_candidates.delete_at(ix)
             found = true
-            next if found
+            break if found
           end
+          # Prevent infinite loop if no more candidates can be placed
+          break unless found
         end
       end
       deep_merge_data!("placements" => @placements, "placement_candidates" => @placement_candidates)
@@ -930,7 +939,7 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
             end
             @table_monitor.andand.assign_game(new_game.reload)
           elsif tournament.continuous_placements?
-            @placement_candidates.push(new_game.id)
+            @placement_candidates.push([new_game.id, new_game.gname, r_no, t_no, sets, balls, innings])
           else
             info = "+++ 8a - tournament_monitor#do_placement FAILED new_game.data:\
  #{new_game.data.inspect}, @placements: #{@placements.inspect}, new_game:\
