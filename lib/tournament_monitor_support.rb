@@ -824,7 +824,7 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
             if @table_monitor.present?
               attrs = {}
               attrs["sets_to_play"] = sets unless sets.nil?
-              # PRIORITÄT: Formular (tournament_monitor) > Tournament > executor_params
+              # PRIORITÄT: executor_params > Formular (tournament_monitor) > Tournament > Seeding
               Rails.logger.info "===== PLACEMENT DEBUG ====="
               Rails.logger.info "self.class: #{self.class.name}"
               Rails.logger.info "self.id: #{id.inspect}"
@@ -838,7 +838,7 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
               Rails.logger.info "balls (executor_params): #{balls.inspect}"
               Rails.logger.info "tournament.handicap_tournier?: #{tournament.handicap_tournier?.inspect}"
 
-              attrs["innings_goal"] = innings_goal || tournament.innings_goal || innings
+              attrs["innings_goal"] = innings.presence || innings_goal || tournament.innings_goal
 
               # Bei Handicap-Turnieren: Individuelle Vorgaben aus Seeding holen
               if tournament.handicap_tournier?
@@ -875,16 +875,16 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
 
                 attrs["playera"] = {}
                 attrs["playera"]["balls_goal"] =
-                  seeding_a&.balls_goal&.presence || balls_goal || tournament.balls_goal || balls
+                  balls.presence || seeding_a&.balls_goal&.presence || balls_goal || tournament.balls_goal
                 attrs["playerb"] = {}
                 attrs["playerb"]["balls_goal"] =
-                  seeding_b&.balls_goal&.presence || balls_goal || tournament.balls_goal || balls
+                  balls.presence || seeding_b&.balls_goal&.presence || balls_goal || tournament.balls_goal
               else
                 # Bei normalen Turnieren: Einheitliches balls_goal für beide Spieler
                 attrs["playera"] = {}
-                attrs["playera"]["balls_goal"] = balls_goal || tournament.balls_goal || balls
+                attrs["playera"]["balls_goal"] = balls.presence || balls_goal || tournament.balls_goal
                 attrs["playerb"] = {}
-                attrs["playerb"]["balls_goal"] = balls_goal || tournament.balls_goal || balls
+                attrs["playerb"]["balls_goal"] = balls.presence || balls_goal || tournament.balls_goal
               end
 
               Rails.logger.info "attrs['innings_goal']: #{attrs["innings_goal"].inspect}"
