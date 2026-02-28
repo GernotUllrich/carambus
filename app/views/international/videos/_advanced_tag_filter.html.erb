@@ -116,7 +116,7 @@
 
         <!-- Player Checkboxes -->
         <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2">
-          <% InternationalHelper::WORLD_CUP_TOP_32.sort_by { |_, info| info[:rank] }.each do |tag, info| %>
+          <% InternationalHelper::WORLD_CUP_TOP_32.sort_by { |tag, _| tag }.each do |tag, info| %>
             <label class="player-checkbox inline-flex items-center p-2 rounded border <%= selected_tags.include?(tag.downcase) ? 'border-yellow-500 bg-yellow-50 dark:bg-yellow-900/20' : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700' %> cursor-pointer"
                    data-country="<%= info[:country] %>">
               <%= check_box_tag 'tags[]', tag.downcase, selected_tags.include?(tag.downcase), class: 'mr-2' %>
