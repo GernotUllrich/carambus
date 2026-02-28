@@ -168,7 +168,7 @@ namespace :international do
     end
 
     # Get untranslated videos (prioritize non-English)
-    videos = Video.where("metadata->>'translated_title' IS NULL")
+    videos = Video.where("data->>'translated_title' IS NULL")
                   .order(published_at: :desc)
                   .limit(limit)
 
@@ -187,12 +187,12 @@ namespace :international do
 
     # Show sample translations
     puts "\nSample translations:"
-    Video.where("metadata->>'translated_title' IS NOT NULL")
+    Video.where("data->>'translated_title' IS NOT NULL")
          .order(updated_at: :desc)
          .limit(5)
          .each do |v|
       puts "  Original: #{v.title[0..60]}"
-      puts "  Translated: #{v.metadata["translated_title"][0..60]}"
+      puts "  Translated: #{v.data["translated_title"][0..60]}"
       puts ""
     end
   end
@@ -352,8 +352,8 @@ namespace :international do
     puts "\n[4/4] Translating titles (first 50)..."
     translate_service = VideoTranslationService.new
     if translate_service.translator
-      videos_to_translate = Video.where("metadata->>'translated_title' IS NULL")
-                                 .where.not("metadata->>'players' IS NULL")
+      videos_to_translate = Video.where("data->>'translated_title' IS NULL")
+                                 .where.not("data->>'players' IS NULL")
                                  .limit(50)
       translated = translate_service.translate_batch(videos_to_translate)
       puts "  Translated: #{translated}"
@@ -368,7 +368,7 @@ namespace :international do
     puts "Total videos: #{Video.count}"
     puts "Total tournaments: #{InternationalTournament.count}"
     puts "Processed videos: #{Video.processed.count}"
-    puts "Videos with players: #{Video.where("metadata->>'players' IS NOT NULL").count}"
+    puts "Videos with players: #{Video.where("data->>'players' IS NOT NULL").count}"
   end
 
   desc "Process all untagged videos (for cron)"
