@@ -439,7 +439,7 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
                                      .where(gname: gname_a).first
                   Tournament.logger.info "+++008 do_placement(game a = #{game_a.gname}, r_no = #{r_no}, t_no = #{t_no})"
                   if tournament.continuous_placements
-                    @placement_candidates.push([game_a.id, game_a.gname, r_no, t_no])
+                    @placement_candidates.push([game_a.id, game_a.gname, r_no, t_no, sets, balls, innings])
                   else
                     do_placement(game_a, r_no, t_no, sets, balls, innings)
                   end
@@ -469,7 +469,7 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
                            .where(gname: gname_b).first
                   Tournament.logger.info "+++011 do_placement(game b = #{game_b.gname}, r_no = #{r_no}, t_no = #{t_no})"
                   if tournament.continuous_placements
-                    @placement_candidates.push([game_b.id, game_b.gname, r_no, t_no])
+                    @placement_candidates.push([game_b.id, game_b.gname, r_no, t_no, sets, balls, innings])
                   else
                     do_placement(game_b, r_no, t_no, sets, balls, innings)
                   end
@@ -511,7 +511,7 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
                   Tournament.logger.info "+++013 do_placement(game = #{game.attributes.inspect},\
  r_no = #{r_no}, t_no = #{t_no})"
                   if tournament.continuous_placements
-                    @placement_candidates.push([game.id, game.gname, r_no, t_no])
+                    @placement_candidates.push([game.id, game.gname, r_no, t_no, sets, balls, innings])
                   else
                     do_placement(game, r_no, t_no, sets, balls, innings)
                   end
@@ -523,7 +523,7 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
                          .first
                   Tournament.logger.info "+++014 do_placement(game = #{game.attributes.inspect}, r_no = #{r_no}, t_no = #{t_no})"
                   if tournament.continuous_placements
-                    @placement_candidates.push([game.id, game.gname, r_no, t_no])
+                    @placement_candidates.push([game.id, game.gname, r_no, t_no, sets, balls, innings])
                   else
                     do_placement(game, r_no, t_no, sets, balls, innings)
                   end
@@ -566,7 +566,7 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
                   if game.present?
                     Tournament.logger.info "+++015 do_placement(game = #{game.gname}, r_no = #{r_no}, t_no = #{t_no})"
                     if tournament.continuous_placements
-                      @placement_candidates.push([game.id, game.gname, r_no, t_no])
+                      @placement_candidates.push([game.id, game.gname, r_no, t_no, sets, balls, innings])
                     else
                       do_placement(game, r_no, t_no, sets, balls, innings)
                     end
@@ -586,7 +586,7 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
                     if game.present?
                       Tournament.logger.info "+++015 do_placement(game = #{game.gname}, r_no = #{r_no}, t_no = #{t_no})"
                       if tournament.continuous_placements
-                        @placement_candidates.push([game.id, game.gname, r_no, t_no])
+                        @placement_candidates.push([game.id, game.gname, r_no, t_no, sets, balls, innings])
                       else
                         do_placement(game, r_no, t_no, sets, balls, innings)
                       end
@@ -607,7 +607,7 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
                         Tournament.logger.info "+++016 do_placement(game = #{game.attributes.inspect},\
  r_no = #{r_no}, t_no = #{t_no})"
                         if tournament.continuous_placements
-                          @placement_candidates.push([game.id, game.gname, r_no, t_no])
+                          @placement_candidates.push([game.id, game.gname, r_no, t_no, sets, balls, innings])
                         else
                           do_placement(game, r_no, t_no, sets, balls, innings)
                         end
@@ -656,14 +656,14 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
                   Tournament.logger.info "+++016 do_placement(game = #{game.attributes.inspect},\
  r_no = #{r_no}, t_no = #{t_no})"
                   if tournament.continuous_placements
-                    @placement_candidates.push([game.id, game.gname, r_no, t_no])
+                    @placement_candidates.push([game.id, game.gname, r_no, t_no, sets, balls, innings])
                   else
                     do_placement(game, r_no, t_no, sets, balls, innings)
                   end
                 end
                 if tno_str == "t-rand*" && game.game_participations.filter_map(&:player_id).count == 2
                   if tournament.continuous_placements
-                    @placement_candidates.push([game.id, game.gname, r_no, t_no])
+                    @placement_candidates.push([game.id, game.gname, r_no, t_no, sets, balls, innings])
                   else
                     do_placement(game, r_no, t_no, sets, balls, innings)
                   end
