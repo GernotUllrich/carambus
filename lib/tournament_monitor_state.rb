@@ -16,7 +16,7 @@ module TournamentMonitorState
     #     "Tischnummer": 2
     # }
     game = table_monitor.game
-    
+    return unless game.present? && game.data.present?
     # SCHUTZ: Prüfe ob finalize_game_result bereits aufgerufen wurde
     # (kann passieren wenn finish_match! mehrfach aufgerufen wird)
     if game.data["finalized_at"].present?
@@ -26,7 +26,7 @@ module TournamentMonitorState
         return
       end
     end
-    
+
     # Markiere als finalisiert
     game.deep_merge_data!(
       "ba_results" => table_monitor.data["ba_results"],
