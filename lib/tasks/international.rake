@@ -97,8 +97,8 @@ namespace :international do
 
     youtube_videos = Video.supported_platforms
     puts "Videos: #{youtube_videos.count}"
-    puts "  - Tagged: #{youtube_videos.where(metadata_extracted: true).count}"
-    puts "  - Untagged: #{youtube_videos.where(metadata_extracted: false).count}"
+    puts "  - Tagged: #{youtube_videos.where.not("data->'tags' IS NULL OR jsonb_array_length(data->'tags') = 0").count}"
+    puts "  - Untagged: #{youtube_videos.without_tags.count}"
 
     if defined?(InternationalResult)
       puts "Results: #{InternationalResult.count}"
@@ -375,7 +375,7 @@ namespace :international do
   task process_untagged_videos: :environment do
     puts "\n=== Processing Untagged Videos ==="
 
-    untagged = Video.supported_platforms.where(metadata_extracted: false)
+    untagged = Video.supported_platforms.without_tags
     count = untagged.count
 
     if count.zero?
@@ -401,7 +401,7 @@ namespace :international do
 
     # Recalculate all tag counts
     puts "Recalculating tag counts..."
-    Video.supported_platforms.where(metadata_extracted: false).find_each do |video|
+    Video.supported_platforms.without_tags.find_each do |video|
       video.auto_tag!
     end
 
