@@ -279,15 +279,37 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
     f = File.new("#{Rails.root}/tmp/result-#{tournament.cc_id}.csv", "w")
     f.write(game_data.join("\n"))
     f.close
+    emails = ["gernot.ullrich@gmx.de"]
+    
+    # Safely try to fetch current_admin email without crashing
     begin
-      if defined?(current_admin) && current_admin.present?
-        NotifierMailer.result(tournament, current_admin.email, "Turnierergebnisse - #{tournament.title}", 
-                              "result-#{tournament.id}.csv", "#{Rails.root}/tmp/result-#{tournament.id}.csv").deliver
+      if respond_to?(:current_admin) && current_admin.present?
+        emails << current_admin.email
       end
-      NotifierMailer.result(tournament, "gernot.ullrich@gmx.de", "Turnierergebnisse - #{tournament.title}",
-                            "result-#{tournament.id}.csv", "#{Rails.root}/tmp/result-#{tournament.id}.csv").deliver
-    rescue StandardError => e
-      Rails.logger.error "[write_finale_csv_for_upload] Error sending result mail: #{e.message}"
+    rescue StandardError, NameError
+    end
+
+    # Safely try to fetch current_user email without crashing
+    begin
+      if respond_to?(:current_user) && current_user.present?
+        emails << current_user.email
+      end
+    rescue StandardError, NameError
+    end
+
+    # Send emails and isolate each attempt
+    emails.compact.uniq.each do |recipient|
+      begin
+        NotifierMailer.result(
+          tournament, 
+          recipient, 
+          "Turnierergebnisse - #{tournament.title}",
+          "result-#{tournament.id}.csv", 
+          "#{Rails.root}/tmp/result-#{tournament.id}.csv"
+        ).deliver
+      rescue StandardError => e
+        Rails.logger.error "[write_finale_csv_for_upload] Error sending result mail to #{recipient}: #{e.message}"
+      end
     end
   end
 
