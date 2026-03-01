@@ -256,6 +256,7 @@
                         <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase">Aufn.</th>
                         <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase">HS</th>
                         <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase">Durchschnitt</th>
+                        <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase">Video</th>
                       </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100">
@@ -301,6 +302,18 @@
                               <%= number_with_precision(home.gd, precision: 2) %>/<%= number_with_precision(away.gd, precision: 2) %>
                             <% else %>
                               -
+                            <% end %>
+                          </td>
+                          <td class="px-4 py-3 text-center">
+                            <% video = @game_videos_by_game_id[match.id] %>
+                            <% if video %>
+                              <%= link_to international_video_path(video), 
+                                  class: 'inline-flex items-center justify-center text-red-600 hover:text-red-800 transition-colors',
+                                  title: 'Watch Video' do %>
+                                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
+                                </svg>
+                              <% end %>
                             <% end %>
                           </td>
                         </tr>

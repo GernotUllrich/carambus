@@ -226,23 +226,66 @@
         </div>
       </div>
 
-      <!-- Tournament Info -->
-      <% if @video.videoable_type == 'Tournament' && @video.videoable.present? %>
+      <!-- Relation Info (Tournament / Game) -->
+      <% if @video.videoable.present? %>
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-          <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">Tournament</h2>
-          <a href="<%= international_tournament_path(@video.videoable) %>"
-             class="block p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-gray-700 transition-all">
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
-              <%= @video.videoable.name %>
-            </h3>
-            <div class="text-sm text-gray-600 dark:text-gray-400 space-y-1">
-              <p><%= @video.videoable.tournament_type&.humanize %></p>
-              <p><%= @video.videoable.date_range %></p>
-              <% if @video.videoable.location.present? %>
-                <p><%= @video.videoable.location %></p>
+          
+          <% if @video.videoable_type == 'Tournament' %>
+            <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">Tournament</h2>
+            <a href="<%= international_tournament_path(@video.videoable) %>"
+               class="block p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-gray-700 transition-all">
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                <%= @video.videoable.name %>
+              </h3>
+              <div class="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+                <p><%= @video.videoable.tournament_type&.humanize %></p>
+                <p><%= @video.videoable.date_range %></p>
+                <% if @video.videoable.location.present? %>
+                  <p><%= @video.videoable.location %></p>
+                <% end %>
+              </div>
+            </a>
+          
+          <% elsif @video.videoable_type == 'Game' %>
+            <% game = @video.videoable %>
+            <% tournament = game.tournament %>
+            
+            <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">Match Information</h2>
+            
+            <div class="p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-900/50 mb-4">
+              <h3 class="text-md font-semibold text-gray-900 dark:text-gray-100 mb-2"><%= game.gname %></h3>
+              
+              <% if game.game_participations.any? %>
+                <% p1, p2 = game.game_participations.to_a %>
+                <div class="grid grid-cols-3 gap-2 text-sm text-center font-mono py-2 bg-white dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700">
+                  <div class="px-2 py-1 flex flex-col justify-center <%= p1 && p2 && p1.result > p2.result ? 'font-bold text-green-700 dark:text-green-500' : 'text-gray-700 dark:text-gray-300' %>">
+                    <%= p1&.player&.fl_name || '-' %>
+                    <div class="text-xs text-gray-500 mt-1"><%= p1&.result %> Pkt (<%= p1&.innings %> Aufn.)</div>
+                  </div>
+                  <div class="px-2 py-1 font-bold text-gray-400 flex items-center justify-center">vs</div>
+                  <div class="px-2 py-1 flex flex-col justify-center <%= p1 && p2 && p2.result > p1.result ? 'font-bold text-green-700 dark:text-green-500' : 'text-gray-700 dark:text-gray-300' %>">
+                    <%= p2&.player&.fl_name || '-' %>
+                    <div class="text-xs text-gray-500 mt-1"><%= p2&.result %> Pkt (<%= p2&.innings %> Aufn.)</div>
+                  </div>
+                </div>
               <% end %>
             </div>
-          </a>
+
+            <% if tournament %>
+              <h2 class="text-md font-bold text-gray-700 dark:text-gray-300 mb-2 mt-6">Played at Tournament</h2>
+              <a href="<%= international_tournament_path(tournament) %>"
+                 class="block p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-gray-700 transition-all">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                  <%= tournament.name %>
+                </h3>
+                <div class="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+                  <p><%= tournament.tournament_type&.humanize %></p>
+                  <p><%= tournament.date_range %></p>
+                </div>
+              </a>
+            <% end %>
+          <% end %>
+
         </div>
       <% end %>
     </div>
