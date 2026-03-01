@@ -3,27 +3,27 @@
 module International
   # Controller for international videos
   class VideosController < ApplicationController
-    before_action :set_video, only: [:show, :hide, :unhide]
-    before_action :require_admin!, only: [:hide, :unhide]
+    before_action :set_video, only: %i[show hide unhide]
+    before_action :require_admin!, only: %i[hide unhide]
 
     def index
       # Use new Video model (Supported videos: YouTube, SoopLive)
       @videos = Video.supported_platforms
                      .includes(:international_source, :discipline)
                      .recent
-      
+
       # Show hidden videos only for admins
       @videos = @videos.visible unless current_user&.admin?
-      
+
       # Filters
       @videos = @videos.where(international_source_id: params[:source_id]) if params[:source_id].present?
       @videos = @videos.where(discipline_id: params[:discipline_id]) if params[:discipline_id].present?
-      
+
       # Filter by tournament (polymorphic)
       if params[:tournament_id].present?
-        @videos = @videos.where(videoable_type: 'Tournament', videoable_id: params[:tournament_id])
+        @videos = @videos.where(videoable_type: "Tournament", videoable_id: params[:tournament_id])
       end
-      
+
       # Tag Filtering
       if params[:tag].present?
         @videos = @videos.with_tag(params[:tag])
@@ -31,46 +31,62 @@ module International
         # Multiple tags with OR/AND logic
         tags = params[:tags].is_a?(Array) ? params[:tags] : [params[:tags]]
         tags = tags.compact.reject(&:blank?)
-        
+
         if tags.any?
           # Check tag_mode: 'and' or 'or' (default: 'or')
-          if params[:tag_mode] == 'and'
-            @videos = @videos.with_all_tags(tags)
-          else
-            @videos = @videos.with_any_tag(tags)
-          end
+          @videos = if params[:tag_mode] == "and"
+                      @videos.with_all_tags(tags)
+                    else
+                      @videos.with_any_tag(tags)
+                    end
         end
       end
-      
+
       # Filter by tag group (e.g., all players from a country)
       if params[:tag_group].present? && params[:tag_group_value].present?
         case params[:tag_group]
-        when 'content_type'
+        when "content_type"
           @videos = @videos.with_tag(params[:tag_group_value])
-        when 'player_country'
+        when "player_country"
           # Get all players from this country
           country_players = InternationalHelper::WORLD_CUP_TOP_32.select { |_, info| info[:country] == params[:tag_group_value] }
           player_tags = country_players.keys.map(&:downcase)
           @videos = @videos.with_any_tag(player_tags) if player_tags.any?
-        when 'quality'
+        when "quality"
           @videos = @videos.with_tag(params[:tag_group_value])
         end
       end
-      
-      # Search
-      if params[:search].present?
+
+      # Search generic and by player uniquely
+      if params[:player_name].present?
+        player = Player.where(international_player: true).find_by(fl_name: params[:player_name])
+        if player
+          game_ids = GameParticipation.where(player_id: player.id).select(:game_id)
+
+          # Match video if it has the player tag or belongs to a game the player played in
+          @videos = @videos.where(
+            "videos.data->'tags' ? :tag OR (videos.videoable_type = 'Game' AND videos.videoable_id IN (:game_ids))",
+            tag: "player_#{player.id}",
+            game_ids: game_ids
+          )
+        else
+          # Fallback to search if not an exact match
+          search_term = "%#{params[:player_name]}%"
+          @videos = @videos.where("title ILIKE ? OR description ILIKE ?", search_term, search_term)
+        end
+      elsif params[:search].present?
         search_term = "%#{params[:search]}%"
-        @videos = @videos.where('title ILIKE ? OR description ILIKE ?', search_term, search_term)
+        @videos = @videos.where("title ILIKE ? OR description ILIKE ?", search_term, search_term)
       end
-      
+
       # Pagination
       @pagy, @videos = pagy(@videos, items: 24)
-      
+
       # For filters
       @sources = InternationalSource.supported_platforms.active.order(:name)
       @tournaments = Tournament.international.order(date: :desc).limit(50)
       @disciplines = Discipline.all.order(:name)
-      
+
       # Tag statistics for filter counts
       @tag_counts = calculate_tag_counts
     end
@@ -78,22 +94,22 @@ module International
     def show
       # Related videos from same tournament
       @related_videos = []
-      
-      if @video.videoable_type == 'Tournament'
-        @related_videos = Video.where(videoable_type: 'Tournament', videoable_id: @video.videoable_id)
+
+      if @video.videoable_type == "Tournament"
+        @related_videos = Video.where(videoable_type: "Tournament", videoable_id: @video.videoable_id)
                                .where.not(id: @video.id)
                                .recent
                                .limit(6)
-      elsif @video.videoable_type == 'Game'
+      elsif @video.videoable_type == "Game"
         # Videos from same tournament via game
         game = Game.find(@video.videoable_id)
         if game&.tournament
-          @related_videos = Video.where(videoable_type: 'Tournament', videoable_id: game.tournament_id)
+          @related_videos = Video.where(videoable_type: "Tournament", videoable_id: game.tournament_id)
                                  .recent
                                  .limit(6)
         end
       end
-      
+
       # Fallback: Videos from same source
       if @related_videos.empty?
         @related_videos = Video.where(international_source_id: @video.international_source_id)
@@ -101,7 +117,7 @@ module International
                                .recent
                                .limit(6)
       end
-      
+
       # Filter hidden videos for non-admins
       @related_videos = @related_videos.visible unless current_user&.admin?
     end
@@ -109,18 +125,18 @@ module International
     # Admin: Hide video
     def hide
       if @video.hide!
-        redirect_to international_video_path(@video), notice: 'Video hidden successfully.'
+        redirect_to international_video_path(@video), notice: "Video hidden successfully."
       else
-        redirect_to international_video_path(@video), alert: 'Failed to hide video.'
+        redirect_to international_video_path(@video), alert: "Failed to hide video."
       end
     end
 
     # Admin: Unhide video
     def unhide
       if @video.unhide!
-        redirect_to international_video_path(@video), notice: 'Video is now visible.'
+        redirect_to international_video_path(@video), notice: "Video is now visible."
       else
-        redirect_to international_video_path(@video), alert: 'Failed to unhide video.'
+        redirect_to international_video_path(@video), alert: "Failed to unhide video."
       end
     end
 
@@ -131,9 +147,9 @@ module International
     end
 
     def require_admin!
-      unless current_user&.admin?
-        redirect_to root_path, alert: 'Access denied. Admin privileges required.'
-      end
+      return if current_user&.admin?
+
+      redirect_to root_path, alert: "Access denied. Admin privileges required."
     end
 
     def calculate_tag_counts
@@ -143,18 +159,18 @@ module International
                       .pluck(Arel.sql("jsonb_array_elements_text(videos.data->'tags')"))
                       .group_by(&:itself)
                       .transform_values(&:count)
-      
+
       # Group by categories
       {
-        content_types: InternationalHelper::VIDEO_TAG_GROUPS['Content Type'][:tags]
-                         .map { |tag| [tag, tag_data[tag] || 0] }.to_h,
+        content_types: InternationalHelper::VIDEO_TAG_GROUPS["Content Type"][:tags]
+          .to_h { |tag| [tag, tag_data[tag] || 0] },
         players: InternationalHelper::WORLD_CUP_TOP_32.keys
-                   .map { |tag| [tag.downcase, tag_data[tag.downcase] || 0] }.to_h
-                   .select { |_, count| count > 0 }
-                   .sort_by { |_, count| -count }
-                   .take(20).to_h,
-        quality: InternationalHelper::VIDEO_TAG_GROUPS['Quality'][:tags]
-                   .map { |tag| [tag, tag_data[tag] || 0] }.to_h
+                                                      .to_h { |tag| [tag.downcase, tag_data[tag.downcase] || 0] }
+                                                      .select { |_, count| count.positive? }
+                                                      .sort_by { |_, count| -count }
+                                                      .take(20).to_h,
+        quality: InternationalHelper::VIDEO_TAG_GROUPS["Quality"][:tags]
+          .to_h { |tag| [tag, tag_data[tag] || 0] }
       }
     rescue StandardError => e
       Rails.logger.error("Tag count calculation failed: #{e.message}")

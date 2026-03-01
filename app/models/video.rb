@@ -81,7 +81,7 @@ class Video < ApplicationRecord
   end
 
   # Get translated title (English) if available, otherwise build from metadata or use original
-  def translated_title(locale = :en)
+  def translated_title(_locale = :en)
     # Priority 1: Use cached Google Translate translation
     return json_data["translated_title"] if json_data["translated_title"].present?
 

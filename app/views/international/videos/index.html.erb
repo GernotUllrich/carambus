@@ -16,7 +16,8 @@
       </div>
 
       <!-- Filters -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <!-- Filter: Source -->
         <div>
           <%= f.label :source_id, 'Source', class: 'block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1' %>
           <%= f.select :source_id, 
@@ -25,6 +26,23 @@
               class: 'w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500' %>
         </div>
 
+        <!-- Filter: Player Name Autocomplete -->
+        <div>
+          <%= f.label :player_name, 'Player Search', class: 'block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1' %>
+          <%= f.text_field :player_name, 
+              value: params[:player_name], 
+              list: 'international-players-list',
+              autocomplete: 'off',
+              placeholder: 'Type player name...',
+              class: 'w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500' %>
+          <datalist id="international-players-list">
+            <% Player.where(international_player: true).order(:lastname).each do |p| %>
+              <option value="<%= p.fl_name %>"></option>
+            <% end %>
+          </datalist>
+        </div>
+
+        <!-- Filter: Discipline -->
         <div>
           <%= f.label :discipline_id, 'Discipline', class: 'block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1' %>
           <%= f.select :discipline_id,
