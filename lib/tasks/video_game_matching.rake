@@ -29,21 +29,37 @@ namespace :videos do
       # Finde Games, an denen beide erkannten Spieler teilnehmen
       # Game -> GameParticipation -> Player
 
+      # Extrahiere IDs aus "player_-1234" oder suche nach Namen
+      p1_id = player1.to_s.start_with?("player_") ? player1.to_s.split("_").last : nil
+      p2_id = player2.to_s.start_with?("player_") ? player2.to_s.split("_").last : nil
+
+      # Subqueries for players
       games_p1 = Game.joins(game_participations: :player)
-                     .where("players.fl_name ILIKE :p1 OR players.lastname ILIKE :p1", p1: "%#{player1}%")
                      .select(:id)
+      games_p1 = if p1_id
+                   games_p1.where(game_participations: { player_id: p1_id })
+                 else
+                   games_p1.where("players.fl_name ILIKE :p1 OR players.lastname ILIKE :p1", p1: "%#{player1}%")
+                 end
 
       games_p2 = Game.joins(game_participations: :player)
-                     .where("players.fl_name ILIKE :p2 OR players.lastname ILIKE :p2", p2: "%#{player2}%")
                      .select(:id)
+      games_p2 = if p2_id
+                   games_p2.where(game_participations: { player_id: p2_id })
+                 else
+                   games_p2.where("players.fl_name ILIKE :p2 OR players.lastname ILIKE :p2", p2: "%#{player2}%")
+                 end
 
-      # Schnittmenge an Games bilden, in denen BEIDE vorkommen
-      possible_games = Game.where(id: games_p1).where(id: games_p2)
+      # Schnittmenge an Games bilden, in denen BEIDE vorkommen, und NUR InternationalTournaments
+      possible_games = Game.joins(:tournament)
+                           .where(id: games_p1)
+                           .where(id: games_p2)
+                           .where(tournaments: { type: "InternationalTournament" })
 
       # Optional: filtern nach Datum (ein Game sollte zum Turnier-Datum oder Video-Datum passen)
       if video.published_at.present? && possible_games.count > 1
         # Wir versuchen das Game auf +- 30 Tage vom published_at des Videos einzugrenzen
-        possible_games = possible_games.joins(:tournament).where(
+        possible_games = possible_games.where(
           "tournaments.date >= ? AND tournaments.date <= ?",
           video.published_at - 30.days,
           video.published_at + 30.days
@@ -57,14 +73,14 @@ namespace :videos do
         # Eindeutiger Treffer :)
         game = possible_games.first
         video.update(videoable_type: "Game", videoable_id: game.id)
-        puts "✓ Video [#{video.id}] '#{video.title.truncate(40)}' -> Game [#{game.id}]"
+        puts "✓ Video [#{video.id}] '#{video.title.truncate(40)}' -> Game [#{game.id}] (Tournament: #{game.tournament.name})"
         success_count += 1
       else
         # Es gibt mehrere mögliche Matches (vielleicht spielen sie öfter gegeneinander).
         # Nehmen wir das aktuellste oder loggen es.
         game = possible_games.last
         video.update(videoable_type: "Game", videoable_id: game.id)
-        puts "⚠ Mehrdeutig (#{possible_games.count} Matches) - ordne Video [#{video.id}] zu Game [#{game.id}] zu."
+        puts "⚠ Mehrdeutig (#{possible_games.count} Matches) - ordne Video [#{video.id}] zu Game [#{game.id}] zu (Tournament: #{game.tournament.name})."
         ambiguous_count += 1
         success_count += 1
       end
