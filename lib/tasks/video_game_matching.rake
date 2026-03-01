@@ -57,12 +57,12 @@ namespace :videos do
                            .where(tournaments: { type: "InternationalTournament" })
 
       # Optional: filtern nach Datum (ein Game sollte zum Turnier-Datum oder Video-Datum passen)
-      if video.published_at.present? && possible_games.count > 1
-        # Wir versuchen das Game auf +- 30 Tage vom published_at des Videos einzugrenzen
+      if video.published_at.present?
+        # Wir versuchen das Game auf +- 14 Tage vom published_at des Videos einzugrenzen
         possible_games = possible_games.where(
           "tournaments.date >= ? AND tournaments.date <= ?",
-          video.published_at - 30.days,
-          video.published_at + 30.days
+          video.published_at - 14.days,
+          video.published_at + 14.days
         )
       end
 
