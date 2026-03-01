@@ -47,6 +47,14 @@ every 1.day, at: "3:00 am", roles: [:app] do
   rake "umb:update"
 end
 
+# Daily Cuesco (Five&Six) tournament and live results scraping
+# Runs at 4:00 AM every day
+# - Syncs recent/active tournaments from cuesco.net
+# - Resolves game participations and maps to videos
+every 1.day, at: "4:00 am", roles: [:app] do
+  rake "cuesco:scrape_live"
+end
+
 # Weekly cleanup: Process all remaining untagged videos
 # Runs every Sunday at 5:00 AM (after daily_update at 4am)
 # - Ensures no videos are left unprocessed
