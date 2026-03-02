@@ -2921,7 +2921,7 @@ ENV
           if [ -d "/tmp/#{basename}_shared_backup" ]; then
             sudo mkdir -p /var/www/#{basename}
             sudo cp -r /tmp/#{basename}_shared_backup /var/www/#{basename}/shared
-            sudo chown -R www-data:www-data /var/www/#{basename}/shared
+            sudo chown -R www-data:www-data /var/www/#{basename}
             sudo rm -rf /tmp/#{basename}_shared_backup
             echo "✅ Shared directory restored"
           else
