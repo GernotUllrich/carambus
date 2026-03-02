@@ -5,7 +5,7 @@ tournament = Tournament.find(tournament_id)
 
 puts "Tournament: #{tournament.name}"
 
-doc = Nokogiri::HTML(File.read("cuesco_202.html"))
+doc = Nokogiri::HTML(File.read("/tmp/cuesco_202.html"))
 
 # Delete existing games to avoid duplicates
 tournament.games.destroy_all

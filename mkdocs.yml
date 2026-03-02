@@ -99,6 +99,17 @@ plugins:
             Region Tagging: Regions-Tagging
             YouTube Streaming Architecture: YouTube Streaming Architektur
             Pool Scoreboard Changelog: Pool Scoreboard Changelog
+            Deployment Checklist Production: Deployment-Checkliste (Prod)
+            UMB Deployment Checklist: UMB Deployment-Checkliste
+            Scenario Workflow: Scenario-Workflow
+            RubyMine Setup: RubyMine Setup
+            Testing: Testing
+            Testing Quickstart: Testing Quickstart
+            Fixture Collection Guide: Fixture Sammlung Anleitung
+            UMB Scraping: UMB Scraping
+            UMB Scraping Implementation: UMB Scraping Implementierung
+            UMB Scraping Methods: UMB Scraping Methoden
+            Frontend STI Migration: Frontend STI Migration
             Reference: Referenz
             API: API
             Glossary: Glossar
@@ -152,6 +163,15 @@ nav:
       - ER Diagram: developers/er-diagram.md
       - API Reference: reference/API.md
       - Scenario Management: developers/scenario-management.md
+      - Scenario Workflow: developers/scenario-workflow.md
+      - RubyMine Setup: developers/rubymine-setup.md
+      - Testing:
+          - Testing Quickstart: developers/testing/testing-quickstart.md
+          - Fixture Collection Guide: developers/testing/fixture-collection-guide.md
+      - UMB Scraping:
+          - UMB Scraping Implementation: developers/umb-scraping-implementation.md
+          - UMB Scraping Methods: developers/umb-scraping-methods.md
+      - Frontend STI Migration: developers/frontend-sti-migration.md
       - Testing & Debugging: developers/rake-tasks-debugging.md
       - Deployment Workflow: developers/deployment-workflow.md
       - Data Management: developers/data-management.md
@@ -162,6 +182,8 @@ nav:
       - Region Tagging: developers/region-tagging-cleanup-summary.md
       - YouTube Streaming Architecture: developers/streaming-architecture.md
       - Pool Scoreboard Changelog: developers/pool-scoreboard-changelog.md
+      - Deployment Checklist Production: developers/deployment-checklist.md
+      - UMB Deployment Checklist: developers/umb-deployment-checklist.md
   - Reference:
       - API: reference/API.md
       - Glossary: reference/glossary.md
