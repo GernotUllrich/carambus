@@ -35,22 +35,29 @@
   <%- if local_server? && revision.present? && revision != repo_version -%>
     <%- # Check if API server version is newer using git merge-base -%>
     <%- begin -%>
+      <%- request_ip = request.remote_ip rescue 'unknown' -%>
       <%- if Rails.env.development? -%>
         <%- # In development, check if local commit is ancestor of API commit -%>
         <%- api_is_newer = system("cd #{Rails.root} && git merge-base --is-ancestor #{repo_version} #{revision} 2>/dev/null") -%>
+        <%- Rails.logger.info "🔍 [#{request_ip}] Version check (dev): api_is_newer=#{api_is_newer}, local=#{repo_version[0..8]}, api=#{revision[0..8]}" -%>
       <%- else -%>
         <%- repo_path = get_repo_path -%>
+        <%- Rails.logger.info "🔍 [#{request_ip}] Version check: repo_path=#{repo_path.inspect}, exists=#{repo_path && File.directory?(repo_path)}" -%>
         <%- if repo_path && File.directory?(repo_path) -%>
           <%- # Fetch latest commits from origin to ensure we have the API commit -%>
-          <%- `git --git-dir=#{repo_path} fetch origin 2>/dev/null` -%>
+          <%- fetch_output = `git --git-dir=#{repo_path} fetch origin 2>&1` -%>
+          <%- fetch_success = $?.success? -%>
+          <%- Rails.logger.info "🔍 [#{request_ip}] Git fetch: success=#{fetch_success}, output=#{fetch_output[0..200]}" -%>
           <%- # Check if local commit is ancestor of API commit (means API is ahead) -%>
-          <%- api_is_newer = system("git --git-dir=#{repo_path} merge-base --is-ancestor #{repo_version} #{revision} 2>/dev/null") -%>
+          <%- api_is_newer = system("git --git-dir=#{repo_path} merge-base --is-ancestor #{repo_version} #{revision} 2>&1") -%>
+          <%- Rails.logger.info "🔍 [#{request_ip}] Git merge-base: api_is_newer=#{api_is_newer}, local=#{repo_version[0..8]}, api=#{revision[0..8]}" -%>
         <%- else -%>
+          <%- Rails.logger.warn "🔍 [#{request_ip}] Repo path not found or not a directory: #{repo_path.inspect}" -%>
           <%- api_is_newer = false -%>
         <%- end -%>
       <%- end -%>
     <%- rescue => e -%>
-      <%- Rails.logger.error "Error comparing versions: #{e.message}" -%>
+      <%- Rails.logger.error "❌ [#{request_ip}] Error comparing versions: #{e.message}\n#{e.backtrace.first(5).join("\n")}" -%>
       <%- api_is_newer = false -%>
     <%- end -%>
 
@@ -62,6 +69,17 @@
       <div class="text-green-700 mb-4">
         ✓ Version differs from API server (local: <%= repo_version[0..8] %>, API: <%= revision[0..8] %>)
       </div>
+      <%- if Rails.env.production? -%>
+        <div class="text-sm text-gray-600 dark:text-gray-400 mb-4 p-3 bg-gray-100 dark:bg-gray-800 rounded">
+          <strong>🔍 Diagnostic Info:</strong><br>
+          • Request from: <%= request.remote_ip %><br>
+          • Repo path: <%= get_repo_path.inspect %><br>
+          • Local commit: <%= repo_version[0..8] %><br>
+          • API commit: <%= revision[0..8] %><br>
+          • Git merge-base determined local is NOT behind API<br>
+          <em>→ Check server logs for git operation details</em>
+        </div>
+      <%- end -%>
     <%- end -%>
 
     <%- if api_is_newer -%>

@@ -35,11 +35,22 @@ class StaticController < ApplicationController
   def repo_version
     # This method is called by the view to display version information
     # and prepare git changelog if out of date
+    
+    # Prevent caching to ensure version check is always current
+    response.headers["Cache-Control"] = "no-cache, no-store, max-age=0, must-revalidate"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
   end
 
   def update_version
     unless local_server?
       redirect_to repo_version_path, alert: "Update is only available on local servers"
+      return
+    end
+
+    # Security: Only allow updates from local network
+    if remote_request?
+      redirect_to repo_version_path, alert: "Update is only available from local network (request from: #{request.remote_ip})"
       return
     end
 
