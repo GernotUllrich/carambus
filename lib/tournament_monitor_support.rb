@@ -618,8 +618,10 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
               end
             end
           elsif /(?:64f|32f|16f|8f|vf|hf|af|qf|fin|p<\d+(?:\.\.|-)\d+>)(\d+)?/.match?(k)
+            Tournament.logger.info "+++012A matched KO game pattern for k=#{k}"
             r_no = executor_params[k].keys.find { |kk| kk =~ /r[*\d+]/ }.match(/r([*\d+])/)[1].to_i
             is_ko_plan = tournament.tournament_plan&.name&.match?(/^(KO|DKO)/)
+            Tournament.logger.info "+++012A2 r_no=#{r_no}, is_ko_plan=#{is_ko_plan}, current_round=#{current_round}, plan_name=#{tournament.tournament_plan&.name}"
             if is_ko_plan || current_round == r_no
               t_no = nil
               sets = executor_params[k]["sets"]
