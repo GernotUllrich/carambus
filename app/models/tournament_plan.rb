@@ -82,6 +82,11 @@ or (tournament_plans.rulesystem ilike :search)",
     return nil if nplayers < 2 || nplayers > 64
 
     plan = TournamentPlan.find_by_name("KO_#{nplayers}")
+    
+    # If plan exists and is persisted, return it as-is (don't try to update)
+    # This prevents LocalProtector from blocking updates to global plans on local servers
+    return plan if plan&.persisted?
+    
     plan ||= TournamentPlan.new(
       name: "KO_#{nplayers}",
       players: nplayers
@@ -148,6 +153,11 @@ or (tournament_plans.rulesystem ilike :search)",
     return nil if nplayers < 8 || nplayers > 64
 
     plan = TournamentPlan.find_by_name("DKO_#{nplayers}_#{cut_to_sko}")
+    
+    # If plan exists and is persisted, return it as-is (don't try to update)
+    # This prevents LocalProtector from blocking updates to global plans on local servers
+    return plan if plan&.persisted?
+    
     plan ||= TournamentPlan.new(
       name: "DKO_#{nplayers}_#{cut_to_sko}",
       players: nplayers
