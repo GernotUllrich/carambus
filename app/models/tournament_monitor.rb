@@ -329,7 +329,7 @@ class TournamentMonitor < ApplicationRecord
   private
 
   def ko_ranking(rule_str)
-    g_no, _game_no, rk_no = rule_str.match(/^(?:(?:fg|g)(\d+)|sl|rule|64f|32f|16f|8f|vf|hf|af|qf|fin|p<\d+(?:\.\.|-)\d+>)(\d+)?\.rk(\d)$/)[1..3]
+    g_no, _game_no, rk_no = rule_str.match(/^(?:(?:fg|g)(\d+)|sl|rule|64f|32f|16f|8f|vf|hf|af|qf|fin|p<\d+(?:\.\.|-)\d+>)(\d+)?\.rk(\d+)$/)[1..3]
     if g_no.present?
       case rule_str
       when /^sl/
