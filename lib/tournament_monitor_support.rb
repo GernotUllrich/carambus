@@ -618,10 +618,8 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
               end
             end
           elsif /(?:64f|32f|16f|8f|vf|hf|af|qf|fin|p<\d+(?:\.\.|-)\d+>)(\d+)?/.match?(k)
-            Tournament.logger.info "+++012A matched KO game pattern for k=#{k}"
             r_no = executor_params[k].keys.find { |kk| kk =~ /r[*\d+]/ }.match(/r([*\d+])/)[1].to_i
             is_ko_plan = tournament.tournament_plan&.name&.match?(/^(KO|DKO)/)
-            Tournament.logger.info "+++012A2 r_no=#{r_no}, is_ko_plan=#{is_ko_plan}, current_round=#{current_round}, plan_name=#{tournament.tournament_plan&.name}"
             if is_ko_plan || current_round == r_no
               t_no = nil
               sets = executor_params[k]["sets"]
@@ -640,29 +638,18 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
                 self.allow_change_tables = true
               end
               Tournament.logger.info "+++012D k,v = [#{k} => #{executor_params[k].inspect}] find or create game #{k}"
-              puts "DEBUG: Creating game #{k}, players=#{players.inspect}"
               game = tournament.games.where("games.id >= #{Game::MIN_ID}").find_or_create_by(gname: k)
               # game.game_participations = []
               game.save
               ("a".."b").each_with_index do |pl_no, ix|
                 rule_str = players[ix]
-                puts "DEBUG: iter #{ix}, pl_no=#{pl_no}, rule_str=#{rule_str}"
                 player_id = player_id_from_ranking(rule_str, executor_params: executor_params,
                                                              ordered_ranking_nos: ordered_ranking_nos)
-                puts "DEBUG: iter #{ix}, resolved player_id=#{player_id}"
                 if player_id.present?
                   gp = game.game_participations.where(player_id: player_id, role: "player#{pl_no}").first
-                  unless gp
-                    gp = game.game_participations.create!(player_id: player_id, role: "player#{pl_no}")
-                    puts "DEBUG: Created GP[#{gp.id}] - role=player#{pl_no}, player_id=#{player_id}"
-                  else
-                    puts "DEBUG: Found existing GP[#{gp.id}]"
-                  end
-                else
-                  puts "DEBUG: WARNING - player_id is NIL for rule_str=#{rule_str}"
+                  gp || game.game_participations.create!(player_id: player_id, role: "player#{pl_no}")
                 end
               end
-              puts "DEBUG: Game #{k} final count = #{game.game_participations.count}"
               reload
               unless @placements_done.include?(game.id)
                 if t_no.present?
