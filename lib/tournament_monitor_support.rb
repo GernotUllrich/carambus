@@ -640,25 +640,29 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
                 self.allow_change_tables = true
               end
               Tournament.logger.info "+++012D k,v = [#{k} => #{executor_params[k].inspect}] find or create game #{k}"
-              Tournament.logger.info "+++012E players array = #{players.inspect}, size = #{players&.size}"
+              puts "DEBUG: Creating game #{k}, players=#{players.inspect}"
               game = tournament.games.where("games.id >= #{Game::MIN_ID}").find_or_create_by(gname: k)
               # game.game_participations = []
               game.save
               ("a".."b").each_with_index do |pl_no, ix|
                 rule_str = players[ix]
-                Tournament.logger.info "+++012F iteration #{ix}: pl_no=#{pl_no}, rule_str=#{rule_str}"
+                puts "DEBUG: iter #{ix}, pl_no=#{pl_no}, rule_str=#{rule_str}"
                 player_id = player_id_from_ranking(rule_str, executor_params: executor_params,
                                                              ordered_ranking_nos: ordered_ranking_nos)
-                Tournament.logger.info "+++012G iteration #{ix}: player_id=#{player_id}"
+                puts "DEBUG: iter #{ix}, resolved player_id=#{player_id}"
                 if player_id.present?
                   gp = game.game_participations.where(player_id: player_id, role: "player#{pl_no}").first
-                  created_gp = gp || game.game_participations.create(player_id: player_id, role: "player#{pl_no}")
-                  Tournament.logger.info "+++012H iteration #{ix}: created/found GP[#{created_gp.id}] for player#{pl_no}"
+                  unless gp
+                    gp = game.game_participations.create!(player_id: player_id, role: "player#{pl_no}")
+                    puts "DEBUG: Created GP[#{gp.id}] - role=player#{pl_no}, player_id=#{player_id}"
+                  else
+                    puts "DEBUG: Found existing GP[#{gp.id}]"
+                  end
                 else
-                  Tournament.logger.warn "+++012I iteration #{ix}: player_id is nil/blank for rule_str=#{rule_str}"
+                  puts "DEBUG: WARNING - player_id is NIL for rule_str=#{rule_str}"
                 end
               end
-              Tournament.logger.info "+++012J game #{k} now has #{game.game_participations.count} participations"
+              puts "DEBUG: Game #{k} final count = #{game.game_participations.count}"
               reload
               unless @placements_done.include?(game.id)
                 if t_no.present?
