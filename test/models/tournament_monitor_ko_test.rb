@@ -3,58 +3,26 @@
 require "test_helper"
 
 class TournamentMonitorKoTest < ActiveSupport::TestCase
+  include KoTournamentTestHelper
+  
+  # Use transactions for isolation
+  self.use_transactional_tests = true
+  
   setup do
-    @discipline = disciplines(:carom_3band)
-    @season = seasons(:current)
-    @region = regions(:nbv)
-    
-    # Create tournament with KO plan
-    @tournament = Tournament.create!(
-      id: 50_000_200,
-      title: "TM KO Test Tournament",
-      season: @season,
-      organizer: @region,
-      organizer_type: "Region",
-      discipline: @discipline,
-      state: "initialized",
-      date: 2.weeks.from_now,
+    # Create 8-player tournament for faster tests
+    @test_data = create_ko_tournament_with_seedings(8, {
       balls_goal: 30,
-      innings_goal: 25,
-      tournament_plan: TournamentPlan.ko_plan(8) # Smaller for faster tests
-    )
-    
-    # Create 8 test players
-    @players = (1..8).map do |i|
-      Player.create!(
-        id: 50_000_200 + i,
-        firstname: "KO",
-        lastname: "Player#{i}",
-        shortname: "KOP#{i}",
-        ba_id: 9_200_000 + i
-      )
-    end
-    
-    # Create seedings
-    @players.each_with_index do |player, idx|
-      Seeding.create!(
-        id: 50_000_200 + idx + 1,
-        tournament: @tournament,
-        player: player,
-        position: idx + 1,
-        region: @region
-      )
-    end
+      innings_goal: 25
+    })
+    @tournament = @test_data[:tournament]
+    @players = @test_data[:players]
     
     @tournament.initialize_tournament_monitor
     @tm = @tournament.tournament_monitor
   end
 
   teardown do
-    @tournament&.games&.destroy_all
-    @tournament&.seedings&.destroy_all
-    @tournament&.tournament_monitor&.destroy
-    @tournament&.destroy
-    @players&.each(&:destroy)
+    cleanup_ko_tournament(@test_data) if @test_data
   end
 
   # ============================================================================

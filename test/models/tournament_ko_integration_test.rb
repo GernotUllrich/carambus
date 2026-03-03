@@ -3,53 +3,23 @@
 require "test_helper"
 
 class TournamentKoIntegrationTest < ActiveSupport::TestCase
+  include KoTournamentTestHelper
+  
+  # Use transactions to ensure complete test isolation
+  self.use_transactional_tests = true
+  
   setup do
-    @discipline = disciplines(:carom_3band)
-    @season = seasons(:current)
-    @region = regions(:nbv)
-    
-    # Create a KO tournament with 16 players
-    @tournament = Tournament.create!(
-      id: 50_000_100,
-      title: "Test KO Tournament 16",
-      season: @season,
-      organizer: @region,
-      organizer_type: "Region",
-      discipline: @discipline,
-      state: "initialized",
-      date: 2.weeks.from_now,
-      tournament_plan: TournamentPlan.ko_plan(16)
-    )
-    
-    # Create 16 test players
-    @players = (1..16).map do |i|
-      Player.create!(
-        id: 50_000_000 + i,
-        firstname: "Player",
-        lastname: "#{i}",
-        shortname: "P#{i}",
-        ba_id: 9_000_000 + i
-      )
-    end
-    
-    # Create seedings in order
-    @players.each_with_index do |player, idx|
-      Seeding.create!(
-        id: 50_000_000 + idx + 1,
-        tournament: @tournament,
-        player: player,
-        position: idx + 1,
-        region: @region
-      )
-    end
+    # Create test tournament using helper (ensures unique IDs)
+    @test_data = create_ko_tournament_with_seedings(16)
+    @tournament = @test_data[:tournament]
+    @players = @test_data[:players]
+    @seedings = @test_data[:seedings]
   end
 
   teardown do
-    # Clean up test data
-    @tournament&.games&.destroy_all
-    @tournament&.seedings&.destroy_all
-    @tournament&.destroy
-    @players&.each(&:destroy)
+    # Cleanup handled by transaction rollback
+    # But explicit cleanup for non-transactional safety
+    cleanup_ko_tournament(@test_data) if @test_data
   end
 
   # ============================================================================
@@ -155,18 +125,9 @@ class TournamentKoIntegrationTest < ActiveSupport::TestCase
     first_round_games.each do |game|
       gps = game.game_participations.order(:role).to_a
       winner = gps[0] # playera wins
-      loser = gps[1]
       
-      # Simulate game result
-      game.data = {
-        "results" => {
-          "playera" => { "balls" => 30, "innings" => 20, "hs" => 5 },
-          "playerb" => { "balls" => 20, "innings" => 20, "hs" => 4 }
-        },
-        "finished_at" => Time.current.iso8601
-      }
-      game.save!
-      
+      # Use helper to finish game
+      finish_game(game, "playera")
       winners << winner.player_id
     end
     
@@ -193,12 +154,9 @@ class TournamentKoIntegrationTest < ActiveSupport::TestCase
     @tournament.initialize_tournament_monitor
     tm = @tournament.tournament_monitor
     
-    # Test resolving seeding list reference
-    player_id = tm.ko_ranking("sl.rk1")
-    assert_equal @players[0].id, player_id, "sl.rk1 should resolve to first seeded player"
-    
-    player_id = tm.ko_ranking("sl.rk16")
-    assert_equal @players[15].id, player_id, "sl.rk16 should resolve to 16th seeded player"
+    # Test resolving seeding list reference using helper
+    assert_player_reference_resolves(tm, "sl.rk1", @players[0].id)
+    assert_player_reference_resolves(tm, "sl.rk16", @players[15].id)
   end
 
   # ============================================================================
@@ -206,38 +164,9 @@ class TournamentKoIntegrationTest < ActiveSupport::TestCase
   # ============================================================================
 
   test "24-player tournament creates pre-qualifying round" do
-    tournament_24 = Tournament.create!(
-      id: 50_000_101,
-      title: "Test KO Tournament 24",
-      season: @season,
-      organizer: @region,
-      organizer_type: "Region",
-      discipline: @discipline,
-      state: "initialized",
-      date: 2.weeks.from_now,
-      tournament_plan: TournamentPlan.ko_plan(24)
-    )
-    
-    # Create 24 players and seedings
-    players_24 = (1..24).map do |i|
-      Player.create!(
-        id: 50_000_100 + i,
-        firstname: "Player",
-        lastname: "T24-#{i}",
-        shortname: "T24P#{i}",
-        ba_id: 9_100_000 + i
-      )
-    end
-    
-    players_24.each_with_index do |player, idx|
-      Seeding.create!(
-        id: 50_000_100 + idx + 1,
-        tournament: tournament_24,
-        player: player,
-        position: idx + 1,
-        region: @region
-      )
-    end
+    # Create separate 24-player tournament
+    data_24 = create_ko_tournament_with_seedings(24)
+    tournament_24 = data_24[:tournament]
     
     tournament_24.initialize_tournament_monitor
     tm = tournament_24.tournament_monitor
@@ -251,22 +180,14 @@ class TournamentKoIntegrationTest < ActiveSupport::TestCase
     assert_equal 8, pre_qual_games.count, "Should have 8 pre-qualifying games"
     
     # Pre-qualifying games should have players assigned
-    pre_qual_games.each do |game|
-      assert_equal 2, game.game_participations.count
-      game.game_participations.each do |gp|
-        assert_not_nil gp.player_id, "Pre-qualifying game should have players"
-      end
-    end
+    assert_first_round_has_players(tournament_24)
     
     # 16f games should initially be empty (waiting for 32f results)
     round_16_games = tournament_24.games.where("gname LIKE '16f%'")
     assert_equal 8, round_16_games.count
     
-    # Cleanup
-    tournament_24.games.destroy_all
-    tournament_24.seedings.destroy_all
-    tournament_24.destroy
-    players_24.each(&:destroy)
+    # Cleanup (will also be handled by transaction rollback)
+    cleanup_ko_tournament(data_24)
   end
 
   # ============================================================================
@@ -277,6 +198,9 @@ class TournamentKoIntegrationTest < ActiveSupport::TestCase
     @tournament.initialize_tournament_monitor
     tm = @tournament.tournament_monitor
     tm.do_reset_tournament_monitor
+    
+    # Use helper to verify bracket structure
+    assert_valid_ko_bracket(@tournament)
     
     # Tournament should have games organized by round
     games_by_round = @tournament.games.group_by { |g| g.gname[/^[a-z]+/] }

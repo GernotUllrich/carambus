@@ -31,6 +31,9 @@ require "minitest/mock"
 require "webmock/minitest"
 require 'factory_bot_rails'
 
+# Load test support files
+Dir[Rails.root.join('test', 'support', '**', '*.rb')].each { |f| require f }
+
 # Disable LocalProtector for all test records
 module LocalProtectorTestOverride
   def disallow_saving_global_records
