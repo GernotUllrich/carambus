@@ -681,48 +681,74 @@ class TournamentsController < ApplicationController
 
   # POST /tournaments/:id/add_player_by_dbu
   def add_player_by_dbu
-    dbu_nr = params[:dbu_nr]
+    dbu_input = params[:dbu_nr]
 
-    if dbu_nr.blank?
+    if dbu_input.blank?
       redirect_to define_participants_tournament_path(@tournament),
-                  alert: "Bitte DBU-Nummer eingeben"
+                  alert: "Bitte DBU-Nummer(n) eingeben"
       return
     end
 
-    # Suche Spieler anhand DBU-Nummer
-    player = Player.find_by(dbu_nr: dbu_nr)
+    # Split by comma and clean up whitespace
+    dbu_numbers = dbu_input.split(',').map(&:strip).reject(&:blank?)
 
-    unless player
-      redirect_to define_participants_tournament_path(@tournament),
-                  alert: "❌ Kein Spieler mit DBU-Nummer #{dbu_nr} gefunden"
-      return
-    end
-
-    # Prüfe ob Spieler bereits in der Teilnehmerliste ist
+    # Determine seeding scope once
     seeding_scope = if @tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").any?
                       "seedings.id >= #{Seeding::MIN_ID}"
                     else
                       "seedings.id < #{Seeding::MIN_ID}"
                     end
 
-    existing_seeding = @tournament.seedings.where(seeding_scope).where(player_id: player.id).first
+    # Track results
+    added = []
+    already_exists = []
+    not_found = []
 
-    if existing_seeding
-      redirect_to define_participants_tournament_path(@tournament),
-                  notice: "ℹ️ #{player.fullname} ist bereits in der Liste (Position #{existing_seeding.position})"
-      return
+    # Process each DBU number
+    dbu_numbers.each do |dbu_nr|
+      # Find player by DBU number
+      player = Player.find_by(dbu_nr: dbu_nr)
+
+      unless player
+        not_found << dbu_nr
+        next
+      end
+
+      # Check if player already in tournament
+      existing_seeding = @tournament.seedings.where(seeding_scope).where(player_id: player.id).first
+
+      if existing_seeding
+        already_exists << "#{player.fullname} (#{dbu_nr}, Pos. #{existing_seeding.position})"
+        next
+      end
+
+      # Add player to seeding list
+      max_position = @tournament.seedings.where(seeding_scope).maximum(:position) || 0
+
+      @tournament.seedings.create!(
+        player_id: player.id,
+        position: max_position + 1
+      )
+
+      added << "#{player.fullname} (#{dbu_nr}, Pos. #{max_position + 1})"
     end
 
-    # Füge Spieler ans Ende der Setzliste hinzu
-    max_position = @tournament.seedings.where(seeding_scope).maximum(:position) || 0
+    # Build summary message
+    messages = []
+    messages << "✅ #{added.size} Spieler hinzugefügt: #{added.join(', ')}" if added.any?
+    messages << "ℹ️ #{already_exists.size} bereits vorhanden: #{already_exists.join(', ')}" if already_exists.any?
+    messages << "❌ #{not_found.size} nicht gefunden (DBU): #{not_found.join(', ')}" if not_found.any?
 
-    @tournament.seedings.create!(
-      player_id: player.id,
-      position: max_position + 1
-    )
+    message_type = if added.any?
+                     :notice
+                   elsif not_found.any?
+                     :alert
+                   else
+                     :notice
+                   end
 
     redirect_to define_participants_tournament_path(@tournament),
-                notice: "✅ #{player.fullname} (DBU #{dbu_nr}) als Nachmelder hinzugefügt (Position #{max_position + 1})"
+                message_type => messages.join(' | ')
   end
 
   # POST /tournaments/:id/apply_seeding_order
