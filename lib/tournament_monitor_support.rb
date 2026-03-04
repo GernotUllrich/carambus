@@ -739,6 +739,11 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
       # This is needed when games finish and winners need to be assigned to next round
       if tournament.tournament_plan&.name&.match?(/^(KO|DKO)/)
         Tournament.logger.info "[tmon-populate_tables] Updating KO game participations with resolved player_ids..."
+        
+        # CRITICAL: Ensure rankings are up to date first (needed for player_id_from_ranking)
+        accumulate_results
+        reload
+        
         updated_count = 0
         
         tournament.games.where("games.id >= #{Game::MIN_ID}").includes(:game_participations).each do |game|
