@@ -56,6 +56,29 @@ module TournamentMonitorState
     return unless tournament.manual_assignment || tournament.continuous_placements
 
     update_game_participations(table_monitor)
+    
+    # For KO tournaments: Remove finished game from placements to free up the table
+    if tournament.tournament_plan&.name&.match?(/^(KO|DKO)/) && game.present?
+      Rails.logger.info "[finalize_game_result] KO tournament - removing game #{game.gname} from placements"
+      removed = false
+      data["placements"]&.each do |round_key, tables|
+        tables&.each do |table_key, game_ids|
+          if game_ids.is_a?(Array)
+            if game_ids.include?(game.id)
+              game_ids.delete(game.id)
+              removed = true
+              Rails.logger.info "[finalize_game_result] Removed game #{game.gname} from #{round_key}/#{table_key}"
+            end
+          elsif game_ids == game.id
+            tables.delete(table_key)
+            removed = true
+            Rails.logger.info "[finalize_game_result] Removed game #{game.gname} from #{round_key}/#{table_key}"
+          end
+        end
+      end
+      save! if removed
+    end
+    
     # noinspection RubyResolve
     table_monitor.close_match!
     args = { game_id: nil }
