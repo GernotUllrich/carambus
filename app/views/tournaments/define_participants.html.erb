@@ -396,12 +396,12 @@
           <%= form_with url: add_player_by_dbu_tournament_path(@tournament), method: :post, local: true, class: 'flex gap-2 items-start' do |f| %>
             <div class="flex-1">
               <%= text_field_tag :dbu_nr, nil,
-                  placeholder: "DBU-Nummer eingeben (z.B. 12345)",
+                  placeholder: "DBU-Nummer(n) eingeben (z.B. 12345 oder 12345, 67890, 11111)",
                   class: 'form-control',
-                  pattern: '\d+',
+                  pattern: '[\d,\s]+',
                   required: true %>
               <p class="text-xs text-yellow-700 mt-1">
-                💡 Mit DBU-Nummer: Spieler eindeutig identifiziert (empfohlen)
+                💡 Mit DBU-Nummer: Spieler eindeutig identifiziert (empfohlen) | Mehrere durch Komma getrennt möglich
               </p>
             </div>
             <%= f.submit 'Spieler hinzufügen',
