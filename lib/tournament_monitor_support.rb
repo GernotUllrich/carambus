@@ -685,13 +685,7 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
                     do_placement(game, r_no, t_no, sets, balls, innings)
                   end
                 end
-                if tno_str == "t-rand*" && game.game_participations.filter_map(&:player_id).count == 2
-                  if tournament.continuous_placements
-                    @placement_candidates.push([game.id, game.gname, r_no, t_no, sets, balls, innings])
-                  else
-                    do_placement(game, r_no, t_no, sets, balls, innings)
-                  end
-                end
+                # Note: t-rand* is now handled above by setting t_no, so no separate handling needed
               end
             end
           elsif k != "RK" && k != "GK" && k != "rules"
