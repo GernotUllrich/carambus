@@ -20,10 +20,11 @@ puts "Starting regeneration..."
 puts ""
 
 # Delete all existing KO/DKO plans
+# IMPORTANT: Use .destroy (not .delete) to trigger callbacks and PaperTrail versioning
 deleted_count = 0
 TournamentPlan.where("name LIKE ? OR name LIKE ?", "KO_%", "DKO_%").each do |plan|
-  puts "Deleting: #{plan.name} (ID #{plan.id})"
-  plan.delete
+  puts "Destroying: #{plan.name} (ID #{plan.id})"
+  plan.destroy  # Use .destroy to trigger callbacks and PaperTrail
   deleted_count += 1
 end
 
