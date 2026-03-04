@@ -34,6 +34,11 @@ touch tmp/restart.txt     # for Passenger
 
 **⚠️ IMPORTANT:** This must be run on the **API server** (the master database where TournamentPlans are stored).
 
+**✅ NOTE:** The script uses `.destroy` (not `.delete`) to ensure:
+- PaperTrail versioning is preserved
+- Synchronization to local servers works correctly
+- Audit trail is maintained
+
 ```bash
 # SSH to production API server
 ssh production-api-server
