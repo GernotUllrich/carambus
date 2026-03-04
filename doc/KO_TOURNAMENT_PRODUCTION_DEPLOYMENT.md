@@ -30,7 +30,27 @@ systemctl restart puma    # or whatever your app server is
 touch tmp/restart.txt     # for Passenger
 ```
 
-### 2. Regenerate TournamentPlans on Production API Server
+### 2. Clean Up Orphaned PaperTrail Versions (API Server Only)
+
+**⚠️ CRITICAL:** If old plans were deleted with `.delete` (bypassing PaperTrail), you need to clean up orphaned version records first.
+
+```bash
+# SSH to production API server
+ssh production-api-server
+
+# Navigate to app directory
+cd /path/to/carambus
+
+# Run cleanup script to remove orphaned versions
+RAILS_ENV=production bin/rails runner db/seeds/cleanup_ko_plans_versions.rb
+```
+
+This script:
+- Finds PaperTrail versions for KO/DKO plans that no longer exist
+- Deletes those orphaned versions
+- Has confirmation prompts for safety
+
+### 3. Regenerate TournamentPlans on Production API Server
 
 **⚠️ IMPORTANT:** This must be run on the **API server** (the master database where TournamentPlans are stored).
 
@@ -40,10 +60,7 @@ touch tmp/restart.txt     # for Passenger
 - Audit trail is maintained
 
 ```bash
-# SSH to production API server
-ssh production-api-server
-
-# Navigate to app directory
+# Still on production API server
 cd /path/to/carambus
 
 # Run the regeneration script
@@ -72,17 +89,34 @@ KO_31 Round distribution:
 ✅ VERIFICATION PASSED!
 ```
 
-### 3. Verify Plans on Scenario Servers (if applicable)
+### 4. Clean Up Local Servers (BCW, PHAT, etc.)
 
-If you have separate scenario servers (like bcw, phat) with their own databases:
+If local servers have already synced the old (incorrect) plans, they need manual cleanup:
 
 ```bash
-# On each scenario server
+# SSH to each local server (BCW, PHAT, etc.)
+ssh bcw-server
+
 cd /path/to/carambus
+
+# Run local cleanup script
+RAILS_ENV=production bin/rails runner db/seeds/cleanup_local_ko_plans.rb
+```
+
+**Why .delete is OK here:**
+- Local servers have copies, not authoritative records
+- They're already out of sync due to original .delete on API
+- We don't want local versions conflicting with API
+- New plans will sync from API automatically
+
+**Alternative:** Regenerate plans locally (same as API server):
+
+```bash
+# On local server
 RAILS_ENV=production bin/rails runner db/seeds/regenerate_ko_plans_production.rb
 ```
 
-### 4. Impact on Active Tournaments
+### 5. Impact on Active Tournaments
 
 **⚠️ CRITICAL:** Any tournaments currently using KO/DKO plans will need to be **re-initialized**:
 
@@ -95,7 +129,7 @@ RAILS_ENV=production bin/rails runner db/seeds/regenerate_ko_plans_production.rb
 - Old tournaments will continue to work with the old (incorrect) logic
 - Only **NEW** KO tournaments created after this deployment will use the corrected plans
 
-### 5. Verification Checklist
+### 6. Verification Checklist
 
 After deployment, verify on production:
 
