@@ -665,20 +665,29 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
               game = tournament.games.where("games.id >= #{Game::MIN_ID}").find_or_create_by(gname: k)
               # game.game_participations = []
               game.save
-              ("a".."b").each_with_index do |pl_no, ix|
-                rule_str = players[ix]
-                player_id = player_id_from_ranking(rule_str, executor_params: executor_params,
-                                                             ordered_ranking_nos: ordered_ranking_nos)
-                # Always create game_participation, even if player_id is nil (will be updated later)
-                gp = game.game_participations.where(role: "player#{pl_no}").first
-                if gp
-                  # Update existing participation with player_id (if resolved)
-                  gp.update(player_id: player_id) if player_id.present? && gp.player_id != player_id
-                else
-                  # Create new participation (player_id can be nil if waiting for game result)
-                  game.game_participations.create!(player_id: player_id, role: "player#{pl_no}")
-                end
-              end
+        ("a".."b").each_with_index do |pl_no, ix|
+          rule_str = players[ix]
+          player_id = player_id_from_ranking(rule_str, executor_params: executor_params,
+                                                       ordered_ranking_nos: ordered_ranking_nos)
+          # Always create game_participation, even if player_id is nil (will be updated later)
+          gp = game.game_participations.where(role: "player#{pl_no}").first
+          if gp
+            # Update existing participation
+            # Store rule_str for later winner resolution
+            gp.data ||= {}
+            gp.data["rule_str"] = rule_str
+            gp.data_will_change!
+            gp.player_id = player_id if player_id.present? && gp.player_id != player_id
+            gp.save! if gp.changed?
+          else
+            # Create new participation with rule_str stored in data
+            game.game_participations.create!(
+              player_id: player_id, 
+              role: "player#{pl_no}",
+              data: { "rule_str" => rule_str }
+            )
+          end
+        end
               reload
               unless @placements_done.include?(game.id)
                 if t_no.present?
@@ -746,25 +755,15 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
         
         updated_count = 0
         
+        # Find all game_participations that are waiting for player assignment
+        # (have rule_str stored but player_id is nil)
         tournament.games.where("games.id >= #{Game::MIN_ID}").includes(:game_participations).each do |game|
           game.game_participations.where(player_id: nil).each do |gp|
-            # Try to find the rule_str from executor_params
-            # We need to reverse-engineer which reference this participation represents
-            game_key = game.gname
-            next unless executor_params[game_key].present?
+            # Get the stored rule_str (e.g., "16f1.rk1")
+            rule_str = gp.data&.[]("rule_str")
+            next unless rule_str.present?
             
-            r_no = executor_params[game_key].keys.find { |kk| kk =~ /r[*\d+]/ }&.match(/r([*\d+])/)[1]&.to_i
-            next unless r_no
-            
-            tno_str, players = executor_params[game_key]["r#{r_no}"].to_a[0]
-            next unless players.is_a?(Array)
-            
-            # Determine which player slot this is (a or b)
-            slot_index = gp.role == "playera" ? 0 : 1
-            rule_str = players[slot_index]
-            next unless rule_str
-            
-            # Try to resolve the player_id
+            # Try to resolve the player_id now that more games may have finished
             player_id = player_id_from_ranking(rule_str, executor_params: executor_params,
                                                          ordered_ranking_nos: ordered_ranking_nos)
             if player_id.present?
