@@ -165,7 +165,7 @@ class InternationalSource < ApplicationRecord
       description: "Korean sports broadcaster with billiards content"
     },
     "fred_coudron" => {
-      name: "Fred Coudron",
+      name: "Fred Caudron",  # Corrected spelling (YouTube uses 'Caudron' not 'Coudron')
       channel_id: "UCpkOaTxfSpYa6npVpBcn-TA", # Verified 2026-02-20
       base_url: "https://www.youtube.com/channel/UCpkOaTxfSpYa6npVpBcn-TA",
       priority: 2,
