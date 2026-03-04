@@ -163,7 +163,7 @@ class InternationalSource < ApplicationRecord
       base_url: "https://www.youtube.com/channel/UCqsKWTIu7IhBjLFZS2s1ULQ",
       priority: 2,
       description: "Korean sports broadcaster with billiards content"
-    }
+    },
     "fred_coudron" => {
       name: "Fred Coudron",
       channel_id: "UCpkOaTxfSpYa6npVpBcn-TA", # Verified 2026-02-20
