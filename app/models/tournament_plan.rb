@@ -116,9 +116,15 @@ or (tournament_plans.rulesystem ilike :search)",
       end
       rk.unshift(rk_sub) if lev < cl
       gn = 1
-      # FIX: Use proper round numbers for each level (r1 for first round, r2 for second, etc.)
-      # lev goes from cl down to 1, so round number should be (cl - lev + 1)
-      round_no = cl - lev + 1
+      # FIX: Use proper round numbers for each level
+      # For KO_31 (cl=4):
+      #   16f (bye section, level 2^4) → r1 (first round)
+      #   8f  (lev=4, creates 2^3 level) → r2 (second round)
+      #   qf  (lev=3, creates 2^2 level) → r3
+      #   hf  (lev=2, creates 2^1 level) → r4
+      #   fin (lev=1, creates 2^0 level) → r5
+      # Formula: round_no = cl - lev + 2
+      round_no = cl - lev + 2
       hash.merge!(games.each_with_object({}) do |a, memo|
         memo[rf("#{2**(lev - 1)}f#{gn}")] = { "r#{round_no}" => { "t-rand*" => a } }
         gk += 1
