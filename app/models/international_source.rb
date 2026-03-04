@@ -164,6 +164,13 @@ class InternationalSource < ApplicationRecord
       priority: 2,
       description: "Korean sports broadcaster with billiards content"
     }
+    "fred_coudron" => {
+      name: "Fred Coudron",
+      channel_id: "UCpkOaTxfSpYa6npVpBcn-TA", # Verified 2026-02-20
+      base_url: "https://www.youtube.com/channel/UCpkOaTxfSpYa6npVpBcn-TA",
+      priority: 2,
+      description: "Billiard videos from Frédéric Caudron"
+    }
   }.freeze
 
   # Known SoopLive channels
