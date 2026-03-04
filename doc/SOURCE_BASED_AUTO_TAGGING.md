@@ -47,6 +47,26 @@ default_tags: ["highlights"]
 default_tags: ["training", "high_quality", "instructional"]
 ```
 
+### Skipping the Carom Filter
+
+By default, the YouTube scraper only saves videos that contain carom-related keywords (e.g., "3-cushion", "carom", "dreiband"). However, some channels produce only carom content but their video titles might not contain these keywords (e.g., training videos titled "Exercise #5").
+
+For these channels, add `skip_carom_filter: true`:
+
+```ruby
+"fred_coudron" => {
+  name: "Fred Coudron",
+  channel_id: "UCpkOaTxfSpYa6npVpBcn-TA",
+  base_url: "https://www.youtube.com/channel/UCpkOaTxfSpYa6npVpBcn-TA",
+  priority: 2,
+  description: "Billiard videos from Frédéric Caudron",
+  default_tags: ["training"],
+  skip_carom_filter: true  # ← All videos from this channel are carom-related
+}
+```
+
+This ensures **all videos** from the channel are scraped, not just those with carom keywords.
+
 ## Applying Tags to Existing Sources
 
 After adding default_tags to the configuration, you need to:
@@ -94,9 +114,15 @@ All tags are combined and deduplicated automatically.
 Here are some recommended default_tags for existing channels:
 
 ```ruby
-# Training/Educational Content
-"fred_coudron" => { default_tags: ["training"] }
-"carom_lab_korea" => { default_tags: ["training", "educational"] }
+# Training/Educational Content (skip filter - may not have carom keywords in titles)
+"fred_coudron" => { 
+  default_tags: ["training"],
+  skip_carom_filter: true  # Training videos may not mention "carom" or "3-cushion"
+}
+"carom_lab_korea" => { 
+  default_tags: ["training", "educational"],
+  skip_carom_filter: true
+}
 
 # Official Tournament Coverage
 "kozoom_carom" => { default_tags: ["official", "tournament"] }

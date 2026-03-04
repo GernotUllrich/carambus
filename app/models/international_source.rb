@@ -170,7 +170,8 @@ class InternationalSource < ApplicationRecord
       base_url: "https://www.youtube.com/channel/UCpkOaTxfSpYa6npVpBcn-TA",
       priority: 2,
       description: "Billiard videos from Frédéric Caudron",
-      default_tags: ["training"]
+      default_tags: ["training"],
+      skip_carom_filter: true # All videos from this channel are carom-related
     }
   }.freeze
 
@@ -234,7 +235,8 @@ class InternationalSource < ApplicationRecord
             key: key,
             priority: data[:priority],
             description: data[:description],
-            default_tags: data[:default_tags] || []
+            default_tags: data[:default_tags] || [],
+            skip_carom_filter: data[:skip_carom_filter] || false
           }
         end
       end
@@ -307,5 +309,28 @@ class InternationalSource < ApplicationRecord
     end
 
     []
+  end
+
+  # Check if carom filter should be skipped for this source
+  # Some channels (like training channels) are 100% carom content but videos
+  # might not contain typical carom keywords
+  def skip_carom_filter?
+    # Try to get from metadata first (stored in DB)
+    skip = metadata&.dig("skip_carom_filter")
+    return skip if skip.present?
+
+    # Fallback: Look up in KNOWN_YOUTUBE_CHANNELS configuration
+    if source_type == YOUTUBE
+      key = metadata&.dig("key")
+      return KNOWN_YOUTUBE_CHANNELS.dig(key, :skip_carom_filter) || false if key.present?
+    end
+
+    # Fallback: Look up in KNOWN_FIVESIX_CHANNELS configuration
+    if source_type == FIVESIX
+      key = metadata&.dig("key")
+      return KNOWN_FIVESIX_CHANNELS.dig(key, :skip_carom_filter) || false if key.present?
+    end
+
+    false
   end
 end

@@ -80,9 +80,14 @@ class YoutubeScraper
     Rails.logger.info "[YoutubeScraper] Found #{videos.size} total videos from channel"
     
     # Filter for carom-related videos and save
-    carom_videos = videos.select { |v| carom_related?(v) }
-    
-    Rails.logger.info "[YoutubeScraper] Filtered to #{carom_videos.size} carom-related videos"
+    # Skip filter for channels marked as 100% carom content (e.g., training channels)
+    if source.skip_carom_filter?
+      Rails.logger.info "[YoutubeScraper] Skipping carom filter for #{source.name} (all videos assumed carom-related)"
+      carom_videos = videos
+    else
+      carom_videos = videos.select { |v| carom_related?(v) }
+      Rails.logger.info "[YoutubeScraper] Filtered to #{carom_videos.size} carom-related videos"
+    end
     
     saved_count = save_videos(carom_videos, source)
     
