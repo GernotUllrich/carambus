@@ -105,6 +105,12 @@ or (tournament_plans.rulesystem ilike :search)",
       end
     end
     hash = {}
+    # Round counter for batch-based round assignment
+    # rn = 4-game batches (corresponding to number of tables)
+    # First all 16f batches (r1, r2, r3, r4), then all 8f batches (r5, r6), etc.
+    batch_size = 4
+    batch_counter = 1
+    
     (1..(cl)).to_a.reverse_each do |lev|
       games = []
       rk_sub = []
@@ -116,37 +122,40 @@ or (tournament_plans.rulesystem ilike :search)",
       end
       rk.unshift(rk_sub) if lev < cl
       gn = 1
-      # FIX: Use proper round numbers for each level
-      # For KO_31 (cl=4):
-      #   16f (bye section, level 2^4) → r1 (first round)
-      #   8f  (lev=4, creates 2^3 level) → r2 (second round)
-      #   qf  (lev=3, creates 2^2 level) → r3
-      #   hf  (lev=2, creates 2^1 level) → r4
-      #   fin (lev=1, creates 2^0 level) → r5
-      # Formula: round_no = cl - lev + 2
-      round_no = cl - lev + 2
-      hash.merge!(games.each_with_object({}) do |a, memo|
-        memo[rf("#{2**(lev - 1)}f#{gn}")] = { "r#{round_no}" => { "t-rand*" => a } }
-        gk += 1
-        gn += 1
-      end)
+      
+      # Assign games in this level to batches of batch_size (4) games each
+      games.each_slice(batch_size) do |batch_games|
+        batch_games.each do |player_pair|
+          game_name = rf("#{2**(lev - 1)}f#{gn}")
+          hash[game_name] = { "r#{batch_counter}" => { "t-rand*" => player_pair } }
+          gk += 1
+          gn += 1
+        end
+        # Next batch gets next round number
+        batch_counter += 1
+      end
     end
     rk.unshift("fin.rk2")
     rk.unshift("fin.rk1")
     rk_sub = []
-    # Bye games (for non-power-of-2 player counts) are at the highest level (cl) which maps to round 1
-    bye_round_no = 1
     ((complete_games[cl] + 1)..nplayers).to_a.each_with_index do |r, ix|
       sq = complete_games[cl] - ix
       dx = (seq[cl].index(sq) / 2) + 1
       dxr = seq[cl].index(sq) % 2
-      # The parent game is at level (cl-1), which has round number 2
-      parent_round_no = 2
-      repl = hash[rf("#{2**(cl - 1)}f#{dx}")]["r#{parent_round_no}"]["t-rand*"][dxr]
-      hash[rf("#{2**(cl - 1)}f#{dx}")]["r#{parent_round_no}"]["t-rand*"][dxr] = rf("#{2**cl}f#{ix + 1}.rk1")
+      
+      # Find the parent game's round number (which batch it's in)
+      parent_game_name = rf("#{2**(cl - 1)}f#{dx}")
+      parent_round_key = hash[parent_game_name].keys.first  # e.g., "r5"
+      
+      repl = hash[parent_game_name][parent_round_key]["t-rand*"][dxr]
+      hash[parent_game_name][parent_round_key]["t-rand*"][dxr] = rf("#{2**cl}f#{ix + 1}.rk1")
       rk_sub.push(rf("#{2**cl}f#{ix + 1}.rk2"))
       a = [repl, "sl.rk#{r}"]
-      hash[rf("#{2**cl}f#{ix + 1}")] = { "r#{bye_round_no}" => { "t-rand*" => a } }
+      
+      # Bye games are part of the first batch(es) of 16f level
+      bye_batch_number = (ix / batch_size) + 1
+      
+      hash[rf("#{2**cl}f#{ix + 1}")] = { "r#{bye_batch_number}" => { "t-rand*" => a } }
       gk += 1
     end
     rk.push(rk_sub)
@@ -194,75 +203,119 @@ or (tournament_plans.rulesystem ilike :search)",
     w_matches = {}
     l_matches = {}
     gk = 0
+    batch_size = 4
+    batch_counter = 1
 
+    # Winners bracket level 1 - assign to batches
     w_matches[1] = []
+    w1_games = []
     (1..(nplayers / 2)).each do |i|
       p1 = "sl.rk#{seeding_order[(2 * i) - 2]}"
       p2 = "sl.rk#{seeding_order[(2 * i) - 1]}"
-      # FIX: Use proper round numbers - winners bracket level 1 is round 1
-      hash["w1.#{i}"] = { "r1" => { "t-rand*" => [p1, p2] } }
+      w1_games << ["w1.#{i}", [p1, p2]]
       w_matches[1] << "w1.#{i}"
-      gk += 1
+    end
+    
+    w1_games.each_slice(batch_size).with_index do |batch_games, batch_idx|
+      batch_games.each do |game_name, players|
+        hash[game_name] = { "r#{batch_counter}" => { "t-rand*" => players } }
+        gk += 1
+      end
+      batch_counter += 1
     end
 
+    # Winners bracket further levels
     (2..r).each do |lvl|
       w_matches[lvl] = []
+      wlvl_games = []
       (1..(w_matches[lvl - 1].size / 2)).each do |i|
         p1 = "#{w_matches[lvl - 1][(2 * i) - 2]}.rk1"
         p2 = "#{w_matches[lvl - 1][(2 * i) - 1]}.rk1"
-        # FIX: Each level gets its own round number
-        hash["w#{lvl}.#{i}"] = { "r#{lvl}" => { "t-rand*" => [p1, p2] } }
+        wlvl_games << ["w#{lvl}.#{i}", [p1, p2]]
         w_matches[lvl] << "w#{lvl}.#{i}"
-        gk += 1
+      end
+      
+      wlvl_games.each_slice(batch_size).with_index do |batch_games, batch_idx|
+        batch_games.each do |game_name, players|
+          hash[game_name] = { "r#{batch_counter}" => { "t-rand*" => players } }
+          gk += 1
+        end
+        batch_counter += 1
       end
     end
 
+    # Losers bracket level 1
     l_matches[1] = []
+    l1_games = []
     (1..(w_matches[1].size / 2)).each do |i|
       p1 = "#{w_matches[1][(2 * i) - 2]}.rk2"
       p2 = "#{w_matches[1][(2 * i) - 1]}.rk2"
-      hash["l1.#{i}"] = { "r1" => { "t-rand*" => [p1, p2] } }
+      l1_games << ["l1.#{i}", [p1, p2]]
       l_matches[1] << "l1.#{i}"
-      gk += 1
+    end
+    
+    l1_games.each_slice(batch_size).with_index do |batch_games, batch_idx|
+      batch_games.each do |game_name, players|
+        hash[game_name] = { "r#{batch_counter}" => { "t-rand*" => players } }
+        gk += 1
+      end
+      batch_counter += 1
     end
 
+    # Losers bracket further levels
     (2..((2 * r) - 2)).each do |lvl|
       l_matches[lvl] = []
+      llvl_games = []
       if lvl.even?
         w_lvl = (lvl / 2) + 1
         size = l_matches[lvl - 1].size
         (1..size).each do |i|
           p1 = "#{l_matches[lvl - 1][i - 1]}.rk1"
           p2 = "#{w_matches[w_lvl][size - i]}.rk2" # 0-based index cross
-          hash["l#{lvl}.#{i}"] = { "r1" => { "t-rand*" => [p1, p2] } }
+          llvl_games << ["l#{lvl}.#{i}", [p1, p2]]
           l_matches[lvl] << "l#{lvl}.#{i}"
-          gk += 1
         end
       else
         (1..(l_matches[lvl - 1].size / 2)).each do |i|
           p1 = "#{l_matches[lvl - 1][(2 * i) - 2]}.rk1"
           p2 = "#{l_matches[lvl - 1][(2 * i) - 1]}.rk1"
-          hash["l#{lvl}.#{i}"] = { "r1" => { "t-rand*" => [p1, p2] } }
+          llvl_games << ["l#{lvl}.#{i}", [p1, p2]]
           l_matches[lvl] << "l#{lvl}.#{i}"
+        end
+      end
+      
+      llvl_games.each_slice(batch_size).with_index do |batch_games, batch_idx|
+        batch_games.each do |game_name, players|
+          hash[game_name] = { "r#{batch_counter}" => { "t-rand*" => players } }
           gk += 1
         end
+        batch_counter += 1
       end
     end
 
     sko_prefixes = { 32 => "32f", 16 => "16f", 8 => "qf", 4 => "hf", 2 => "fin" }
     sko_matches = {}
 
+    # SKO (Single Knockout) finals after DKO - also use batch logic
     sko_lvl = 1
     prefix = sko_prefixes[cut_to_sko]
     sko_matches[sko_lvl] = []
+    sko1_games = []
 
     (1..(cut_to_sko / 2)).each do |i|
       p1 = "#{w_matches[r][i - 1]}.rk1"
       p2 = "#{l_matches[(2 * r) - 2][(cut_to_sko / 2) - i + 1 - 1]}.rk1"
       match_name = prefix == "fin" ? "fin" : "#{prefix}#{i}"
-      hash[match_name] = { "r1" => { "t-rand*" => [p1, p2] } }
+      sko1_games << [match_name, [p1, p2]]
       sko_matches[sko_lvl] << match_name
-      gk += 1
+    end
+    
+    sko1_games.each_slice(batch_size).with_index do |batch_games, batch_idx|
+      batch_games.each do |game_name, players|
+        hash[game_name] = { "r#{batch_counter}" => { "t-rand*" => players } }
+        gk += 1
+      end
+      batch_counter += 1
     end
 
     curr_cut = cut_to_sko / 2
@@ -270,15 +323,24 @@ or (tournament_plans.rulesystem ilike :search)",
       sko_lvl += 1
       prefix = sko_prefixes[curr_cut]
       sko_matches[sko_lvl] = []
+      skolvl_games = []
 
       (1..(curr_cut / 2)).each do |i|
         p1 = "#{sko_matches[sko_lvl - 1][(2 * i) - 2]}.rk1"
         p2 = "#{sko_matches[sko_lvl - 1][(2 * i) - 1]}.rk1"
         match_name = prefix == "fin" ? "fin" : "#{prefix}#{i}"
-        hash[match_name] = { "r1" => { "t-rand*" => [p1, p2] } }
+        skolvl_games << [match_name, [p1, p2]]
         sko_matches[sko_lvl] << match_name
-        gk += 1
       end
+      
+      skolvl_games.each_slice(batch_size).with_index do |batch_games, batch_idx|
+        batch_games.each do |game_name, players|
+          hash[game_name] = { "r#{batch_counter}" => { "t-rand*" => players } }
+          gk += 1
+        end
+        batch_counter += 1
+      end
+      
       curr_cut /= 2
     end
 
