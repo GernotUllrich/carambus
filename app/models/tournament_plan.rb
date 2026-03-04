@@ -116,8 +116,11 @@ or (tournament_plans.rulesystem ilike :search)",
       end
       rk.unshift(rk_sub) if lev < cl
       gn = 1
+      # FIX: Use proper round numbers for each level (r1 for first round, r2 for second, etc.)
+      # lev goes from cl down to 1, so round number should be (cl - lev + 1)
+      round_no = cl - lev + 1
       hash.merge!(games.each_with_object({}) do |a, memo|
-        memo[rf("#{2**(lev - 1)}f#{gn}")] = { "r1" => { "t-rand*" => a } }
+        memo[rf("#{2**(lev - 1)}f#{gn}")] = { "r#{round_no}" => { "t-rand*" => a } }
         gk += 1
         gn += 1
       end)
@@ -125,15 +128,19 @@ or (tournament_plans.rulesystem ilike :search)",
     rk.unshift("fin.rk2")
     rk.unshift("fin.rk1")
     rk_sub = []
+    # Bye games (for non-power-of-2 player counts) are at the highest level (cl) which maps to round 1
+    bye_round_no = 1
     ((complete_games[cl] + 1)..nplayers).to_a.each_with_index do |r, ix|
       sq = complete_games[cl] - ix
       dx = (seq[cl].index(sq) / 2) + 1
       dxr = seq[cl].index(sq) % 2
-      repl = hash[rf("#{2**(cl - 1)}f#{dx}")]["r1"]["t-rand*"][dxr]
-      hash[rf("#{2**(cl - 1)}f#{dx}")]["r1"]["t-rand*"][dxr] = rf("#{2**cl}f#{ix + 1}.rk1")
+      # The parent game is at level (cl-1), which has round number 2
+      parent_round_no = 2
+      repl = hash[rf("#{2**(cl - 1)}f#{dx}")]["r#{parent_round_no}"]["t-rand*"][dxr]
+      hash[rf("#{2**(cl - 1)}f#{dx}")]["r#{parent_round_no}"]["t-rand*"][dxr] = rf("#{2**cl}f#{ix + 1}.rk1")
       rk_sub.push(rf("#{2**cl}f#{ix + 1}.rk2"))
       a = [repl, "sl.rk#{r}"]
-      hash[rf("#{2**cl}f#{ix + 1}")] = { "r1" => { "t-rand*" => a } }
+      hash[rf("#{2**cl}f#{ix + 1}")] = { "r#{bye_round_no}" => { "t-rand*" => a } }
       gk += 1
     end
     rk.push(rk_sub)
@@ -186,6 +193,7 @@ or (tournament_plans.rulesystem ilike :search)",
     (1..(nplayers / 2)).each do |i|
       p1 = "sl.rk#{seeding_order[(2 * i) - 2]}"
       p2 = "sl.rk#{seeding_order[(2 * i) - 1]}"
+      # FIX: Use proper round numbers - winners bracket level 1 is round 1
       hash["w1.#{i}"] = { "r1" => { "t-rand*" => [p1, p2] } }
       w_matches[1] << "w1.#{i}"
       gk += 1
@@ -196,7 +204,8 @@ or (tournament_plans.rulesystem ilike :search)",
       (1..(w_matches[lvl - 1].size / 2)).each do |i|
         p1 = "#{w_matches[lvl - 1][(2 * i) - 2]}.rk1"
         p2 = "#{w_matches[lvl - 1][(2 * i) - 1]}.rk1"
-        hash["w#{lvl}.#{i}"] = { "r1" => { "t-rand*" => [p1, p2] } }
+        # FIX: Each level gets its own round number
+        hash["w#{lvl}.#{i}"] = { "r#{lvl}" => { "t-rand*" => [p1, p2] } }
         w_matches[lvl] << "w#{lvl}.#{i}"
         gk += 1
       end
