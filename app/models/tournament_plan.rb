@@ -111,16 +111,37 @@ or (tournament_plans.rulesystem ilike :search)",
     batch_size = 4
     batch_counter = 1
     
+    # STEP 1: Process bye games FIRST (16f level for non-power-of-2 player counts)
+    # These must be assigned to r1, r2, r3, r4, etc. BEFORE the next level (8f) starts
+    rk_sub = []
+    bye_game_refs = {}  # Store references to bye games for later parent game updates
+    ((complete_games[cl] + 1)..nplayers).to_a.each_with_index do |r, ix|
+      a = ["PLACEHOLDER#{ix}", "sl.rk#{r}"]
+      bye_game_name = rf("#{2**cl}f#{ix + 1}")
+      bye_batch_number = (ix / batch_size) + batch_counter
+      hash[bye_game_name] = { "r#{bye_batch_number}" => { "t-rand*" => a } }
+      rk_sub.push(rf("#{2**cl}f#{ix + 1}.rk2"))
+      bye_game_refs[ix] = bye_game_name
+      gk += 1
+    end
+    # Advance batch counter past all bye game batches
+    if nplayers > complete_games[cl]
+      num_bye_games = nplayers - complete_games[cl]
+      num_bye_batches = (num_bye_games.to_f / batch_size).ceil
+      batch_counter += num_bye_batches
+    end
+    
+    # STEP 2: Process regular tournament levels (8f, qf, hf, fin) with continued batch counter
     (1..(cl)).to_a.reverse_each do |lev|
       games = []
-      rk_sub = []
+      rk_sub_level = []
       seq[lev].each.with_index do |n, ix|
         games[ix / 2] ||= []
         # sl is seedingslist
         games[ix / 2].push(lev == cl ? "sl.rk#{n}" : rf("#{2**lev}f#{ix + 1}.rk1"))
-        rk_sub.unshift(rf("#{2**lev}f#{ix + 1}.rk2")) if lev < cl
+        rk_sub_level.unshift(rf("#{2**lev}f#{ix + 1}.rk2")) if lev < cl
       end
-      rk.unshift(rk_sub) if lev < cl
+      rk.unshift(rk_sub_level) if lev < cl
       gn = 1
       
       # Assign games in this level to batches of batch_size (4) games each
@@ -135,30 +156,31 @@ or (tournament_plans.rulesystem ilike :search)",
         batch_counter += 1
       end
     end
+    
+    # STEP 3: Update bye game placeholders with actual parent game references
     rk.unshift("fin.rk2")
     rk.unshift("fin.rk1")
-    rk_sub = []
     ((complete_games[cl] + 1)..nplayers).to_a.each_with_index do |r, ix|
       sq = complete_games[cl] - ix
       dx = (seq[cl].index(sq) / 2) + 1
       dxr = seq[cl].index(sq) % 2
       
-      # Find the parent game's round number (which batch it's in)
+      # Find the bye game and update its placeholder
+      bye_game_name = bye_game_refs[ix]
+      bye_round_key = hash[bye_game_name].keys.first
+      
+      # Find the parent game reference (8f game that this bye feeds into)
       parent_game_name = rf("#{2**(cl - 1)}f#{dx}")
-      parent_round_key = hash[parent_game_name].keys.first  # e.g., "r5"
+      parent_round_key = hash[parent_game_name].keys.first
       
       repl = hash[parent_game_name][parent_round_key]["t-rand*"][dxr]
       hash[parent_game_name][parent_round_key]["t-rand*"][dxr] = rf("#{2**cl}f#{ix + 1}.rk1")
-      rk_sub.push(rf("#{2**cl}f#{ix + 1}.rk2"))
-      a = [repl, "sl.rk#{r}"]
       
-      # Bye games are part of the first batch(es) of 16f level
-      bye_batch_number = (ix / batch_size) + 1
-      
-      hash[rf("#{2**cl}f#{ix + 1}")] = { "r#{bye_batch_number}" => { "t-rand*" => a } }
-      gk += 1
+      # Update bye game with actual player reference
+      hash[bye_game_name][bye_round_key]["t-rand*"][0] = repl
     end
-    rk.push(rk_sub)
+    # Add bye game rankings if any
+    rk.push(rk_sub) unless rk_sub.empty?
     hash["GK"] = gk
     hash["RK"] = rk
     plan.update(
