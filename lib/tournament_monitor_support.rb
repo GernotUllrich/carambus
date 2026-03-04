@@ -690,7 +690,9 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
         end
               reload
               # Skip placement if game is already placed OR if game is already finished
-              unless @placements_done.include?(game.id) || game.ended_at.present?
+              # For KO tournaments: Also skip if not all players are known yet
+              all_players_known = game.game_participations.reload.all? { |gp| gp.player_id.present? }
+              unless @placements_done.include?(game.id) || game.ended_at.present? || (is_ko_plan && !all_players_known)
                 if t_no.present?
                   Tournament.logger.info "+++016 do_placement(game = #{game.attributes.inspect},\
  r_no = #{r_no}, t_no = #{t_no})"
