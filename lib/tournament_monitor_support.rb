@@ -735,6 +735,44 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
           break unless found
         end
       end
+      # Update game_participations with resolved player_ids for KO tournaments
+      # This is needed when games finish and winners need to be assigned to next round
+      if tournament.tournament_plan&.name&.match?(/^(KO|DKO)/)
+        Tournament.logger.info "[tmon-populate_tables] Updating KO game participations with resolved player_ids..."
+        updated_count = 0
+        
+        tournament.games.where("games.id >= #{Game::MIN_ID}").includes(:game_participations).each do |game|
+          game.game_participations.where(player_id: nil).each do |gp|
+            # Try to find the rule_str from executor_params
+            # We need to reverse-engineer which reference this participation represents
+            game_key = game.gname
+            next unless executor_params[game_key].present?
+            
+            r_no = executor_params[game_key].keys.find { |kk| kk =~ /r[*\d+]/ }&.match(/r([*\d+])/)[1]&.to_i
+            next unless r_no
+            
+            tno_str, players = executor_params[game_key]["r#{r_no}"].to_a[0]
+            next unless players.is_a?(Array)
+            
+            # Determine which player slot this is (a or b)
+            slot_index = gp.role == "playera" ? 0 : 1
+            rule_str = players[slot_index]
+            next unless rule_str
+            
+            # Try to resolve the player_id
+            player_id = player_id_from_ranking(rule_str, executor_params: executor_params,
+                                                         ordered_ranking_nos: ordered_ranking_nos)
+            if player_id.present?
+              gp.update(player_id: player_id)
+              updated_count += 1
+              Tournament.logger.info "[tmon-populate_tables] Updated #{game.gname} #{gp.role}: #{rule_str} → Player[#{player_id}]"
+            end
+          end
+        end
+        
+        Tournament.logger.info "[tmon-populate_tables] Updated #{updated_count} game participations with resolved player_ids"
+      end
+      
       deep_merge_data!("placements" => @placements, "placement_candidates" => @placement_candidates)
       save!
       Tournament.logger.info "[tmon-populate_tables] placements: #{@placements.inspect}"
