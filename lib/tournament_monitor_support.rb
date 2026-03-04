@@ -689,7 +689,8 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
           end
         end
               reload
-              unless @placements_done.include?(game.id)
+              # Skip placement if game is already placed OR if game is already finished
+              unless @placements_done.include?(game.id) || game.ended_at.present?
                 if t_no.present?
                   Tournament.logger.info "+++016 do_placement(game = #{game.attributes.inspect},\
  r_no = #{r_no}, t_no = #{t_no})"
