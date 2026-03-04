@@ -400,9 +400,16 @@ class Video < ApplicationRecord
     detected
   end
 
-  # Detect all tags (players + content types + quality)
+  # Detect source-based tags (tags assigned automatically based on video source)
+  def detect_source_tags
+    return [] unless international_source.present?
+    
+    international_source.default_tags
+  end
+
+  # Detect all tags (players + content types + quality + source-based)
   def detect_all_tags
-    (detect_player_tags + detect_content_type_tags + detect_quality_tags).uniq
+    (detect_player_tags + detect_content_type_tags + detect_quality_tags + detect_source_tags).uniq
   end
 
   # Auto-tag video with detected tags

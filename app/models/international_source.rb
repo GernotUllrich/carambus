@@ -169,7 +169,8 @@ class InternationalSource < ApplicationRecord
       channel_id: "UCpkOaTxfSpYa6npVpBcn-TA", # Verified 2026-02-20
       base_url: "https://www.youtube.com/channel/UCpkOaTxfSpYa6npVpBcn-TA",
       priority: 2,
-      description: "Billiard videos from Frédéric Caudron"
+      description: "Billiard videos from Frédéric Caudron",
+      default_tags: ["training"]
     }
   }.freeze
 
@@ -232,7 +233,8 @@ class InternationalSource < ApplicationRecord
           source.metadata = {
             key: key,
             priority: data[:priority],
-            description: data[:description]
+            description: data[:description],
+            default_tags: data[:default_tags] || []
           }
         end
       end
@@ -247,7 +249,8 @@ class InternationalSource < ApplicationRecord
           source.metadata = {
             key: key,
             priority: data[:priority],
-            description: data[:description]
+            description: data[:description],
+            default_tags: data[:default_tags] || []
           }
         end
       end
@@ -283,5 +286,26 @@ class InternationalSource < ApplicationRecord
   # Display name with type
   def display_name
     "#{name} (#{source_type.upcase})"
+  end
+
+  # Get default tags for this source
+  def default_tags
+    # Try to get from metadata first (stored in DB)
+    metadata_tags = metadata&.dig("default_tags")
+    return metadata_tags if metadata_tags.present?
+
+    # Fallback: Look up in KNOWN_YOUTUBE_CHANNELS configuration
+    if source_type == YOUTUBE
+      key = metadata&.dig("key")
+      return KNOWN_YOUTUBE_CHANNELS.dig(key, :default_tags) || [] if key.present?
+    end
+
+    # Fallback: Look up in KNOWN_FIVESIX_CHANNELS configuration
+    if source_type == FIVESIX
+      key = metadata&.dig("key")
+      return KNOWN_FIVESIX_CHANNELS.dig(key, :default_tags) || [] if key.present?
+    end
+
+    []
   end
 end
