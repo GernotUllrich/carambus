@@ -119,9 +119,9 @@ namespace :carambus do
             upcoming_events << full_entry
             summaries << summary_day_hour
           end
-          # Use maximum pre-heating time from affected tables (2h for small tables, 3h for large tables)
+          # Use maximum pre-heating time from affected tables (2h for small tables, 4h for large tables)
           # This ensures we don't skip events that are within the pre-heating window for any table
-          max_pre_heating_time = tables_to_be_heated.map(&:pre_heating_time_in_hours).max || 3
+          max_pre_heating_time = tables_to_be_heated.map(&:pre_heating_time_in_hours).max || 4
           unless ((start.to_i - DateTime.now.to_i) / 1.hour) < max_pre_heating_time &&
             (ende.to_i - DateTime.now.to_i).positive?
             next

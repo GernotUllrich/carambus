@@ -69,7 +69,7 @@ class Table < ApplicationRecord
     # Only log if heater is actually being turned ON (state change)
     was_off = heater_switched_off_at.present? || heater_switched_on_at.blank?
     return unless was_off # Already on, skip
-    
+
     res = {}
     if Rails.env == "production"
       Rails.logger.info "🔥 HEATER ON - #{name} (reason: #{reason})" if DEBUG_CALENDAR
@@ -91,7 +91,7 @@ class Table < ApplicationRecord
     # Only log if heater is actually being turned OFF (state change)
     was_on = heater_switched_on_at.present? && heater_switched_off_at.blank?
     return unless was_on # Already off, skip
-    
+
     # Enhanced logging with full context for debugging (only on state change)
     if DEBUG_CALENDAR
       context = {
@@ -110,7 +110,7 @@ class Table < ApplicationRecord
       }
       Rails.logger.warn "🔥 HEATER OFF: #{JSON.pretty_generate(context)}"
     end
-    
+
     res = {}
     if Rails.env == "production"
       res = perform("off")
@@ -156,16 +156,16 @@ class Table < ApplicationRecord
     if ["Snooker", "Match Billard"].include?(table_kind.name) ||
       (((event.start.date || event.start.date_time).to_i - DateTime.now.to_i) / 1.hour) < pre_heating_time_in_hours &&
         ((event.end.date || event.end.date_time).to_i - DateTime.now.to_i).positive?
-      
+
       new_event_start = event.start.date || event.start.date_time
       new_event_end = event.end.date || event.end.date_time
-      
+
       # Check if event is new or has been modified (times or summary changed)
-      event_changed = event_id != event.id || 
-                      event_start != new_event_start || 
+      event_changed = event_id != event.id ||
+                      event_start != new_event_start ||
                       event_end != new_event_end ||
                       event_summary != event.summary
-      
+
       if event_changed
         # Log what changed
         if event_id != event.id
@@ -177,7 +177,7 @@ class Table < ApplicationRecord
           changes << "summary: '#{event_summary}' → '#{event.summary}'" if event_summary != event.summary
           Rails.logger.info "📅 #{name}: Event modified - #{changes.join(", ")}" if DEBUG_CALENDAR
         end
-        
+
         self.event_id = event.id
         self.event_summary = event.summary
         self.event_start = new_event_start
@@ -200,7 +200,7 @@ class Table < ApplicationRecord
   def heater_protected?
     event_summary.andand.include?("(!)")
   end
-  
+
   # Deprecated: Use heater_protected? instead
   # This name was confusing because it returns TRUE when heater should NOT auto-off
   alias_method :heater_auto_off?, :heater_protected?
@@ -223,7 +223,7 @@ class Table < ApplicationRecord
 
   def pre_heating_time_in_hours
     if %w[Match Billard Snooker].include? self.table_kind.name
-      3
+      4
     else
       2
     end
@@ -247,7 +247,7 @@ class Table < ApplicationRecord
       self.event_start = nil
       self.event_end = nil
       save if id >= Table::MIN_ID # heater is updated on TableLocal record
-      
+
       # IMPORTANT: If event finished, turn off heater immediately
       # even if scoreboard is still on (player might forget to turn it off)
       if event_finished && heater_switched_on_at.present? && heater_switched_off_at.blank?
@@ -255,9 +255,9 @@ class Table < ApplicationRecord
         return
       end
     end
-    
+
     scoreboard_really_on = scoreboard_on?
-    
+
     # Scoreboard state changes - only log when state actually changes
     if scoreboard_really_on
       unless scoreboard?
@@ -283,7 +283,7 @@ class Table < ApplicationRecord
         if event_start.to_i > DateTime.now.to_i && (event_start.to_i - DateTime.now.to_i) / 1.minute < 120
           return
         end
-        
+
         # Event bereits gestartet: Heizung nur an lassen, wenn innerhalb der ersten 30 Minuten
         # (gibt dem Spieler Zeit, das Scoreboard einzuschalten)
         # Nach 30 Minuten ohne Scoreboard-Aktivität wird die Heizung ausgeschaltet
@@ -291,7 +291,7 @@ class Table < ApplicationRecord
         if event_start.to_i <= DateTime.now.to_i && (DateTime.now.to_i - event_start.to_i) / 1.minute < 30
           return
         end
-        
+
         # Protected events (with "(!)" in title) keep heater ON during the event
         # But protection only applies while event is still active (event_id present)
         if heater_protected?
