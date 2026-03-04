@@ -858,21 +858,11 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
             end
           end
 
-          is_ko_plan = tournament.tournament_plan&.name&.match?(/^(KO|DKO)/)
-          Rails.logger.info ">>>>> CHECK 2: t_no=#{t_no}, current_round=#{current_round}, r_no=#{r_no}, continuous=#{tournament.continuous_placements}, is_ko=#{is_ko_plan}"
-          
-          # For KO tournaments: ALWAYS enforce round progression (batch control)
-          # For other tournaments: continuous_placements can bypass round check
-          round_check_passes = if is_ko_plan
-                                 current_round == r_no
-                               else
-                                 current_round == r_no || tournament.continuous_placements
-                               end
-          
+          Rails.logger.info ">>>>> CHECK 2: t_no=#{t_no}, current_round=#{current_round}, r_no=#{r_no}, continuous=#{tournament.continuous_placements}"
           if t_no.to_i.positive? &&
-             round_check_passes &&
-             new_game.present? &&
-             @placements.andand["round#{r_no}"].andand["table#{t_no}"].blank?
+             ((current_round == r_no &&
+               new_game.present? &&
+               @placements.andand["round#{r_no}"].andand["table#{t_no}"].blank?) || tournament.continuous_placements)
 
             Rails.logger.info ">>>>> CHECK 2 PASSED - will do placement"
             seqno = new_game.seqno.to_i.positive? ? new_game.seqno : next_seqno
