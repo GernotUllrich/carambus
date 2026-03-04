@@ -636,6 +636,30 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
                 admin_table_nos[tno_str] ||= (mm[1].to_i..mm[2].to_i).to_a
                 t_no = admin_table_nos[tno_str].shift
                 self.allow_change_tables = true
+              elsif tno_str == "t-rand*"
+                # Find next available table for t-rand* pattern
+                available_tables = if table_ids.is_a?(Array)
+                                     if table_ids.first.is_a?(Array)
+                                       table_ids[r_no - 1]&.length || table_ids.first.length
+                                     else
+                                       table_ids.length
+                                     end
+                                   else
+                                     tournament.tournament_plan&.tables.to_i > 0 ? tournament.tournament_plan.tables : 4
+                                   end
+                
+                # Find first free table in this round
+                (1..available_tables).each do |check_t_no|
+                  if @placements.andand["round#{r_no}"].andand["table#{check_t_no}"].blank?
+                    t_no = check_t_no
+                    Tournament.logger.info "+++012C t-rand* assigned to table #{t_no} for game #{k}"
+                    break
+                  end
+                end
+                
+                unless t_no.present?
+                  Tournament.logger.warn "+++012C-WARN No free table found for t-rand* game #{k} in round #{r_no}"
+                end
               end
               Tournament.logger.info "+++012D k,v = [#{k} => #{executor_params[k].inspect}] find or create game #{k}"
               game = tournament.games.where("games.id >= #{Game::MIN_ID}").find_or_create_by(gname: k)
