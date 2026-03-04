@@ -669,9 +669,14 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
                 rule_str = players[ix]
                 player_id = player_id_from_ranking(rule_str, executor_params: executor_params,
                                                              ordered_ranking_nos: ordered_ranking_nos)
-                if player_id.present?
-                  gp = game.game_participations.where(player_id: player_id, role: "player#{pl_no}").first
-                  gp || game.game_participations.create!(player_id: player_id, role: "player#{pl_no}")
+                # Always create game_participation, even if player_id is nil (will be updated later)
+                gp = game.game_participations.where(role: "player#{pl_no}").first
+                if gp
+                  # Update existing participation with player_id (if resolved)
+                  gp.update(player_id: player_id) if player_id.present? && gp.player_id != player_id
+                else
+                  # Create new participation (player_id can be nil if waiting for game result)
+                  game.game_participations.create!(player_id: player_id, role: "player#{pl_no}")
                 end
               end
               reload
