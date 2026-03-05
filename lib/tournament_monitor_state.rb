@@ -53,9 +53,8 @@ module TournamentMonitorState
       end
     end
 
-    return unless tournament.manual_assignment || tournament.continuous_placements
-
-    update_game_participations(table_monitor)
+    # Update game participations unless manual assignment is enabled
+    update_game_participations(table_monitor) unless tournament.manual_assignment
     
     # For KO tournaments: Remove finished game from placements to free up the table
     if tournament.tournament_plan&.name&.match?(/^(KO|DKO)/) && game.present?
