@@ -2753,7 +2753,9 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
         save!
         return
       elsif set_over?
+        Rails.logger.info "[evaluate_result] set_over? branch - sets_to_win=#{data["sets_to_win"]}, sets_to_play=#{data["sets_to_play"]}"
         if data["sets_to_win"].to_i > 1 # TODO: sets to play not implemented correctly
+          Rails.logger.info "[evaluate_result] Branch A: sets_to_win > 1"
           save_current_set
           max_number_of_wins = get_max_number_of_wins
           if automatic_next_set && data["sets_to_win"].to_i > 1 && max_number_of_wins < data["sets_to_win"].to_i # && (data["sets_to_play"].to_i > Array(data["sets"]).count)
@@ -2763,6 +2765,7 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
           end
           return
         elsif data["sets_to_play"].to_i > 1
+          Rails.logger.info "[evaluate_result] Branch B: sets_to_play > 1"
           if automatic_next_set && sets_played < data["sets_to_play"].to_i
             switch_to_next_set
           else
@@ -2770,10 +2773,14 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
           end
           return
         else
+          Rails.logger.info "[evaluate_result] Branch C: Single set game - calling acknowledge_result and report_result"
           acknowledge_result! if may_acknowledge_result?
           if final_set_score?
+            Rails.logger.info "[evaluate_result] Calling report_result! state=#{state}"
             tournament_monitor&.report_result(self)
             finish_match! if may_finish_match?
+          else
+            Rails.logger.warn "[evaluate_result] NOT calling report_result - state is #{state}, not final_set_score!"
           end
         end
       elsif final_set_score?
