@@ -166,7 +166,7 @@ class TableMonitorReflex < ApplicationReflex
     elsif @table_monitor.final_set_score?
       if @table_monitor.tournament_monitor.present?
         @table_monitor.evaluate_result
-        # @table_monitor.tournament_monitor.report_result(@table_monitor)
+        @table_monitor.tournament_monitor.report_result(@table_monitor)
       else
         # noinspection RubyResolve
         # Tournament.logger.info "[table_monitor_reflex#keyb] #{caller[0..4].select{|s| s.include?("/app/").join("\n")}"
@@ -233,7 +233,7 @@ class TableMonitorReflex < ApplicationReflex
     elsif @table_monitor.final_set_score?
       if @table_monitor.tournament_monitor.present?
         @table_monitor.evaluate_result
-        # @table_monitor.tournament_monitor.report_result(@table_monitor)
+        @table_monitor.tournament_monitor.report_result(@table_monitor)
       else
         # noinspection RubyResolve
         # Tournament.logger.info "[table_monitor_reflex#keyb] #{caller[0..4].select{|s| s.include?("/app/").join("\n")}"
