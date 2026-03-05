@@ -1,14 +1,20 @@
 # frozen_string_literal: true
 
 module TournamentMonitorSupport
+  # Old version: kept for backward compatibility, delegates to new version
   def update_game_participations(tabmon)
-    game = tabmon.game
+    update_game_participations_for_game(tabmon.game, tabmon.data)
+  end
+
+  # New version: accepts game and data directly to avoid race conditions
+  # This prevents issues where table_monitor.game gets reassigned during populate_tables
+  def update_game_participations_for_game(game, table_monitor_data)
     sets = nil
     rank = {}
     points = {}
     
-    # Use data from game.data["tmp_results"] if available, otherwise from tabmon.data
-    data_source = game.data["tmp_results"].present? ? game.data["tmp_results"] : tabmon.data
+    # Use data from game.data["tmp_results"] if available, otherwise from table_monitor_data
+    data_source = game.data["tmp_results"].present? ? game.data["tmp_results"] : table_monitor_data
     
     if sets_to_play > 1
       ("a".."b").each do |c|
@@ -49,15 +55,15 @@ module TournamentMonitorSupport
           "gp_id" => gp.id
         }
       else
-        result = tabmon.data["player#{c}"]["result"].to_i
-        innings = tabmon.data["player#{c}"]["innings"].to_i
-        bg = tabmon.data["player#{c}"]["balls_goal"].to_i
-        gd = format("%.2f", tabmon.data["player#{c}"]["result"].to_f /
-                            tabmon.data["player#{c}"]["innings"].to_i).to_f
+        result = data_source["player#{c}"]["result"].to_i
+        innings = data_source["player#{c}"]["innings"].to_i
+        bg = data_source["player#{c}"]["balls_goal"].to_i
+        gd = format("%.2f", data_source["player#{c}"]["result"].to_f /
+                            data_source["player#{c}"]["innings"].to_i).to_f
         # bg_p is the percentage of achieving the balls_goal in this game
-        bg_p = format("%.2f", 100.0 * tabmon.data["player#{c}"]["result"].to_f /
-                              tabmon.data["player#{c}"]["balls_goal"].to_i).to_f
-        hs = tabmon.data["player#{c}"]["hs"].to_i
+        bg_p = format("%.2f", 100.0 * data_source["player#{c}"]["result"].to_f /
+                              data_source["player#{c}"]["balls_goal"].to_i).to_f
+        hs = data_source["player#{c}"]["hs"].to_i
         results = {
           "Gr." => game.gname,
           "Ergebnis" => result,
@@ -175,12 +181,14 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
   end
 
   def report_result(table_monitor)
+    Rails.logger.info "[report_result] START for TM #{table_monitor.id}, game=#{table_monitor.game&.gname}"
     TournamentMonitor.transaction do
       try do
         # noinspection RubyResolve
         # Tournament.logger.info "[tournament_monitor#report_result]\
         # #{caller[0..4].select{|s| s.include?("/app/").join("\n")}" if table_monitor.may_finish_match?
         table_monitor.finish_match! if table_monitor.may_finish_match?
+        Rails.logger.info "[report_result] Calling finalize_game_result for TM #{table_monitor.id}"
         finalize_game_result(table_monitor)
         accumulate_results
         reload

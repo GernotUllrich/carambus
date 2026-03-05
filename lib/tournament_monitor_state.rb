@@ -15,8 +15,10 @@ module TournamentMonitorState
     #     "Höchstserie2": 0,
     #     "Tischnummer": 2
     # }
+    Rails.logger.info "[finalize_game_result] START for TM #{table_monitor.id}"
     game = table_monitor.game
-    return unless game.present? && game.data.present?
+    Rails.logger.info "[finalize_game_result] game=#{game&.id} (#{game&.gname}), game.present?=#{game.present?}, game.data.nil?=#{game&.data.nil?}"
+    return unless game.present? && !game.data.nil?
     # SCHUTZ: Prüfe ob finalize_game_result bereits aufgerufen wurde
     # (kann passieren wenn finish_match! mehrfach aufgerufen wird)
     if game.data["finalized_at"].present?
@@ -28,12 +30,14 @@ module TournamentMonitorState
     end
 
     # Markiere als finalisiert und speichere alle TableMonitor-Daten für update_game_participations
+    Rails.logger.info "[finalize_game_result] Saving game data: ba_results=#{table_monitor.data['ba_results'].present?}"
     game.deep_merge_data!(
       "tmp_results" => table_monitor.data,
       "ba_results" => table_monitor.data["ba_results"],
       "finalized_at" => Time.current.iso8601
     )
     game.save!
+    Rails.logger.info "[finalize_game_result] Game #{game.id} saved with ba_results"
 
     # Automatische Übertragung in die ClubCloud
     if tournament.tournament_cc.present? && tournament.auto_upload_to_cc?
@@ -55,7 +59,11 @@ module TournamentMonitorState
     end
 
     # Update game participations unless manual assignment is enabled
-    update_game_participations(table_monitor) unless tournament.manual_assignment
+    # WICHTIG: Wir übergeben das GAME (nicht table_monitor), weil table_monitor.game
+    # durch populate_tables zu einem neuen Game reassigned werden könnte!
+    Rails.logger.info "[finalize_game_result] manual_assignment=#{tournament.manual_assignment}, calling update_game_participations=#{!tournament.manual_assignment}"
+    update_game_participations_for_game(game, table_monitor.data) unless tournament.manual_assignment
+    Rails.logger.info "[finalize_game_result] DONE"
     
     # For KO tournaments: Remove finished game from placements to free up the table
     if tournament.tournament_plan&.name&.match?(/^(KO|DKO)/) && game.present?
@@ -79,11 +87,8 @@ module TournamentMonitorState
       save! if removed
     end
     
-    # noinspection RubyResolve
-    table_monitor.close_match!
-    args = { game_id: nil }
-    args[:tournament_monitor] = nil unless tournament.continuous_placements
-    table_monitor.update(args)
+    # TableMonitor wird NICHT hier gecleared - das passiert erst in populate_tables,
+    # wenn alle Games der Runde fertig sind. So bleiben die Ergebnisse am Scoreboard sichtbar.
   end
 
   def all_table_monitors_finished?
@@ -130,7 +135,11 @@ module TournamentMonitorState
       game = tabmon.game
       next unless game.present? && game.data.present?
 
-      update_game_participations(tabmon)
+      # NOTE: update_game_participations wurde bereits in finalize_game_result aufgerufen!
+      # Hier nochmal aufzurufen würde Race-Conditions verursachen, weil populate_tables
+      # die TableMonitors zu neuen Games reassignen könnte.
+      # update_game_participations(tabmon)
+      
       # noinspection RubyResolve
       tabmon.close_match!
       tabmon.update(game_id: nil)
