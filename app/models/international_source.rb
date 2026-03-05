@@ -293,18 +293,19 @@ class InternationalSource < ApplicationRecord
   # Get default tags for this source
   def default_tags
     # Try to get from metadata first (stored in DB)
-    metadata_tags = metadata&.dig("default_tags")
+    meta_hash = parse_metadata
+    metadata_tags = meta_hash&.dig("default_tags")
     return metadata_tags if metadata_tags.present?
 
     # Fallback: Look up in KNOWN_YOUTUBE_CHANNELS configuration
     if source_type == YOUTUBE
-      key = metadata&.dig("key")
+      key = meta_hash&.dig("key")
       return KNOWN_YOUTUBE_CHANNELS.dig(key, :default_tags) || [] if key.present?
     end
 
     # Fallback: Look up in KNOWN_FIVESIX_CHANNELS configuration
     if source_type == FIVESIX
-      key = metadata&.dig("key")
+      key = meta_hash&.dig("key")
       return KNOWN_FIVESIX_CHANNELS.dig(key, :default_tags) || [] if key.present?
     end
 
@@ -316,21 +317,36 @@ class InternationalSource < ApplicationRecord
   # might not contain typical carom keywords
   def skip_carom_filter?
     # Try to get from metadata first (stored in DB)
-    skip = metadata&.dig("skip_carom_filter")
+    meta_hash = parse_metadata
+    skip = meta_hash&.dig("skip_carom_filter")
     return skip if skip.present?
 
     # Fallback: Look up in KNOWN_YOUTUBE_CHANNELS configuration
     if source_type == YOUTUBE
-      key = metadata&.dig("key")
+      key = meta_hash&.dig("key")
       return KNOWN_YOUTUBE_CHANNELS.dig(key, :skip_carom_filter) || false if key.present?
     end
 
     # Fallback: Look up in KNOWN_FIVESIX_CHANNELS configuration
     if source_type == FIVESIX
-      key = metadata&.dig("key")
+      key = meta_hash&.dig("key")
       return KNOWN_FIVESIX_CHANNELS.dig(key, :skip_carom_filter) || false if key.present?
     end
 
     false
+  end
+
+  private
+
+  # Safely parse metadata (handle both Hash and String)
+  def parse_metadata
+    case metadata
+    when Hash
+      metadata
+    when String
+      JSON.parse(metadata) rescue {}
+    else
+      {}
+    end
   end
 end
