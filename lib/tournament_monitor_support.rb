@@ -6,14 +6,18 @@ module TournamentMonitorSupport
     sets = nil
     rank = {}
     points = {}
+    
+    # Use data from game.data["tmp_results"] if available, otherwise from tabmon.data
+    data_source = game.data["tmp_results"].present? ? game.data["tmp_results"] : tabmon.data
+    
     if sets_to_play > 1
       ("a".."b").each do |c|
-        rank["player#{c}"] = tabmon.data["ba_results"]["Sets#{c == "a" ? 1 : 2}"]
+        rank["player#{c}"] = data_source["ba_results"]["Sets#{c == "a" ? 1 : 2}"]
       end
     else
       ("a".."b").each do |c|
         rank["player#{c}"] =
-          tabmon.data["player#{c}"]["result"].to_f / tabmon.data["player#{c}"]["balls_goal"] * 100.0
+          data_source["player#{c}"]["result"].to_f / data_source["player#{c}"]["balls_goal"] * 100.0
       end
     end
     points["playera"] = if rank["playera"] > rank["playerb"]
@@ -30,11 +34,11 @@ module TournamentMonitorSupport
       gp = game.game_participations.where(role: "player#{c}").first
       if sets_to_play > 1
         n = c == "a" ? 1 : 2
-        result = tabmon.data["ba_results"]["Ergebnis#{n}"].to_i
-        innings = tabmon.data["ba_results"]["Aufnahmen#{n}"].to_i
+        result = data_source["ba_results"]["Ergebnis#{n}"].to_i
+        innings = data_source["ba_results"]["Aufnahmen#{n}"].to_i
         gd = format("%.2f", result.to_f / innings).to_f
-        hs = tabmon.data["ba_results"]["Höchstserie#{n}"].to_i
-        sets = tabmon.data["ba_results"]["Sets#{n}"].to_i
+        hs = data_source["ba_results"]["Höchstserie#{n}"].to_i
+        sets = data_source["ba_results"]["Sets#{n}"].to_i
         results = {
           "Gr." => game.gname,
           "Ergebnis" => result,

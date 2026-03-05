@@ -27,8 +27,9 @@ module TournamentMonitorState
       end
     end
 
-    # Markiere als finalisiert
+    # Markiere als finalisiert und speichere alle TableMonitor-Daten für update_game_participations
     game.deep_merge_data!(
+      "tmp_results" => table_monitor.data,
       "ba_results" => table_monitor.data["ba_results"],
       "finalized_at" => Time.current.iso8601
     )
