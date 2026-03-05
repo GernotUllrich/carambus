@@ -19,6 +19,14 @@ module TournamentMonitorState
     game = table_monitor.game
     Rails.logger.info "[finalize_game_result] game=#{game&.id} (#{game&.gname}), game.present?=#{game.present?}, game.data.nil?=#{game&.data.nil?}"
     return unless game.present? && !game.data.nil?
+    
+    # SCHUTZ: Prüfe ob table_monitor.data valide Result-Daten enthält
+    # (verhindert dass leere Games beim populate_tables finalisiert werden)
+    if table_monitor.data.blank? || table_monitor.data["ba_results"].blank?
+      Rails.logger.warn "[TournamentMonitorState] ⊘ Skipping finalize_game_result for game[#{game.id}] - table_monitor.data has no results"
+      return
+    end
+    
     # SCHUTZ: Prüfe ob finalize_game_result bereits aufgerufen wurde
     # (kann passieren wenn finish_match! mehrfach aufgerufen wird)
     if game.data["finalized_at"].present?
