@@ -27,6 +27,14 @@ module TournamentMonitorState
       return
     end
     
+    # SCHUTZ: Prüfe ob das Game wirklich abgeschlossen wurde
+    # (verhindert dass neue Games mit alten TableMonitor-Daten finalisiert werden)
+    # Ein Game ist nur dann fertig, wenn der TableMonitor im finalen State ist
+    unless %w[final_match_score final_set_score].include?(table_monitor.state)
+      Rails.logger.warn "[TournamentMonitorState] ⊘ Skipping finalize_game_result for game[#{game.id}] - table_monitor not in final state (current: #{table_monitor.state})"
+      return
+    end
+    
     # SCHUTZ: Prüfe ob finalize_game_result bereits aufgerufen wurde
     # (kann passieren wenn finish_match! mehrfach aufgerufen wird)
     if game.data["finalized_at"].present?
