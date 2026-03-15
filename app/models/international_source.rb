@@ -172,6 +172,13 @@ class InternationalSource < ApplicationRecord
       description: "Billiard videos from Frédéric Caudron",
       default_tags: ["training"],
       skip_carom_filter: true # All videos from this channel are carom-related
+    },
+    "a3cvn" => {
+      name: "#billiards #billiards3C #3c #bida3c #3cushion #trending",
+      channel_id: "UCcJA2VrWUnZFSYK0WAmXqBw",
+      base_url: "https://www.youtube.com/channel/UCcJA2VrWUnZFSYK0WAmXqBw",
+      priority: 2,
+      description: "#billiards #billiards3C #3c #bida3c #3cushion #trending"
     }
   }.freeze
 
