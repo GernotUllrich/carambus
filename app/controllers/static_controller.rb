@@ -35,7 +35,7 @@ class StaticController < ApplicationController
   def repo_version
     # This method is called by the view to display version information
     # and prepare git changelog if out of date
-    
+
     # Prevent caching to ensure version check is always current
     response.headers["Cache-Control"] = "no-cache, no-store, max-age=0, must-revalidate"
     response.headers["Pragma"] = "no-cache"
@@ -49,7 +49,7 @@ class StaticController < ApplicationController
     end
 
     # Security: Only allow updates from local network
-    if remote_request?
+    if remote_request? && !current_user.admin?
       redirect_to repo_version_path, alert: "Update is only available from local network (request from: #{request.remote_ip})"
       return
     end
@@ -58,7 +58,7 @@ class StaticController < ApplicationController
     # Rails.root is something like: /var/www/carambus_bcw/releases/20260120120005
     # We need to get: /var/www/carambus_bcw
     rails_root = Rails.root.to_s
-    
+
     if rails_root.include?('/releases/')
       # Extract deployment path from releases directory
       deploy_path = rails_root.split('/releases/').first
@@ -70,7 +70,7 @@ class StaticController < ApplicationController
       deploy_script = "#{Rails.root}/bin/deploy.sh"
       log_file = Rails.root.join('log', 'deploy.log').to_s
     end
-    
+
     unless File.exist?(deploy_script)
       redirect_to repo_version_path, alert: "Deploy script not found at #{deploy_script}"
       return
@@ -78,13 +78,13 @@ class StaticController < ApplicationController
 
     # Start deployment in background, completely outside of Bundler context
     # Use nohup and bash to ensure it runs independently
-    
+
     # Build command that runs outside of bundler
     cmd = [
       'bash', '-c',
       "nohup bash #{deploy_script} > #{log_file} 2>&1 &"
     ]
-    
+
     # Spawn without any bundler environment
     # CRITICAL: Must unset ALL bundler/gem environment variables
     # Otherwise Ruby will try to load bundler from the old path
@@ -101,13 +101,13 @@ class StaticController < ApplicationController
       'GEM_PATH' => nil,
       'RAILS_ENV' => 'production'  # Always production for deployment
     }
-    
+
     # Also unset all BUNDLER_ORIG_* variables
     # Bundler uses these to preserve/restore the original environment
     ENV.keys.select { |k| k.start_with?('BUNDLER_ORIG_') }.each do |key|
       clean_env[key] = nil
     end
-    
+
     pid = Process.spawn(
       clean_env,
       *cmd,
@@ -115,7 +115,7 @@ class StaticController < ApplicationController
     )
     Process.detach(pid)
 
-    redirect_to repo_version_path, 
+    redirect_to repo_version_path,
                 notice: "Deployment started in background (PID: #{pid}). The application will restart automatically. Please refresh this page in 1-2 minutes. Check log/deploy.log for progress."
   end
 
@@ -150,20 +150,20 @@ class StaticController < ApplicationController
     # Pfad aus der URL extrahieren (z.B. "tournament" oder "about" oder "managers/tournament-management")
     path = params[:path]
     locale = params[:locale] || I18n.locale.to_s
-    
+
     # Sicherheitscheck: Verhindere Directory Traversal
     if path.include?('..') || path.start_with?('/')
       render_404
       return
     end
-    
+
     # Versuche verschiedene Pfadstrukturen
     possible_paths = [
       Rails.root.join('docs', "#{path}.#{locale}.md"),              # Neue Struktur: about.de.md
       Rails.root.join('docs', locale, "#{path}.md"),                # Alte Struktur: de/about.md
       Rails.root.join('docs', path, "#{locale}.md"),                # Sehr alte Struktur: about/de.md
     ]
-    
+
     # Auch mit anderem Locale versuchen falls nicht gefunden
     other_locale = locale == 'de' ? 'en' : 'de'
     possible_paths += [
@@ -171,33 +171,33 @@ class StaticController < ApplicationController
       Rails.root.join('docs', other_locale, "#{path}.md"),
       Rails.root.join('docs', path, "#{other_locale}.md"),
     ]
-    
+
     # Erste existierende Datei verwenden
     docs_path = possible_paths.find { |p| File.exist?(p) }
-    
+
     # Wenn keine Datei gefunden, 404
     unless docs_path
       render_404
       return
     end
-    
+
     # Sprache aus gefundenem Pfad extrahieren
     if docs_path.to_s.include?(".#{other_locale}.md")
       locale = other_locale
     end
-    
+
     # Markdown-Inhalt laden
     markdown_content = File.read(docs_path)
-    
+
     # Front Matter extrahieren (falls vorhanden)
     front_matter, content = extract_front_matter(markdown_content)
-    
+
     # Titel aus Front Matter oder Pfad extrahieren
     @page_title = front_matter['title'] || path.split('/').last.humanize
-    
+
     # Markdown mit Redcarpet zu HTML rendern
     @rendered_content = render_markdown(content)
-    
+
     # Layout rendern
     render 'docs_page', layout: 'application'
   end
