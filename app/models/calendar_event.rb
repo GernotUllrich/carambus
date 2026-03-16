@@ -35,13 +35,13 @@ class CalendarEvent < ApplicationRecord
 
         tables_to_be_heated.map { |t| t.check_heater_on(event) }
       else
-        remove_event(service, calendar_id, event)
+        CalendarEvent.remove_event(service, calendar_id, event)
       end
     end
     tables_to_be_heated
   end
 
-  def remove_event(service, calendar_id, event)
+  def self.remove_event(service, calendar_id, event)
     ret = service.delete_event(calendar_id, event.id, send_notifications: true)
     Rails.logger.info "Reservations: WARNING - nonconformant event #{event.summary} deleted"
     ret

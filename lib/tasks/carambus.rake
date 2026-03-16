@@ -77,7 +77,7 @@ namespace :carambus do
       next if CalendarEvent.tables_from_summary(title, location).present?
 
       # delete event
-      response = remove_event(service, calendar_id, event)
+      response = CalendarEvent.remove_event(service, calendar_id, event)
     end
   end
 
@@ -130,7 +130,7 @@ namespace :carambus do
           tables_to_be_heated.map { |t| t.check_heater_on(event, event_ids: event_ids) }
           tables_to_be_heated_all |= tables_to_be_heated
         else
-          remove_event(service, calendar_id, event)
+          CalendarEvent.remove_event(service, calendar_id, event)
         end
       end
       #
