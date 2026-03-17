@@ -196,7 +196,7 @@ class StaticController < ApplicationController
     @page_title = front_matter['title'] || path.split('/').last.humanize
 
     # Markdown mit Redcarpet zu HTML rendern
-    @rendered_content = render_markdown(content)
+    @rendered_content = render_markdown(content, locale: locale)
 
     # Layout rendern
     render 'docs_page', layout: 'application'
@@ -223,10 +223,10 @@ class StaticController < ApplicationController
   end
 
   # Markdown mit Redcarpet zu HTML rendern
-  def render_markdown(content)
+  def render_markdown(content, options = {})
     return '' if content.blank?
 
-    renderer = MarkdownRenderer.new
+    renderer = MarkdownRenderer.new(locale: options[:locale])
     markdown = Redcarpet::Markdown.new(renderer, {
       autolink: true,
       tables: true,
