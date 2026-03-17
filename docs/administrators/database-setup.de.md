@@ -145,7 +145,7 @@ psql -d carambus_development -c "\dt" | grep -E "(users|clubs|tournaments|league
 
 - [PostgreSQL Dokumentation](https://www.postgresql.org/docs/)
 - [Rails Database Guide](https://guides.rubyonrails.org/active_record_migrations.html)
-- [Carambus Entwicklerhandbuch](../developers/developer-guide.de.md)
+- [Carambus Entwicklerhandbuch](../developers/developer-guide.md)
 
 ---
 

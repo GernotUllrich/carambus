@@ -253,5 +253,5 @@ puts "✅ Stream gestartet!" if config.starting? || config.active?
 
 - [Camera Calibration](./camera-calibration.md)
 - [Perspective Correction](./perspective-correction.md)
-- [Streaming Architecture](../developers/streaming-architecture.de.md)
+- [Streaming Architecture](../developers/streaming-architecture.md)
 

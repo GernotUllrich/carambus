@@ -47,7 +47,7 @@ yarn build:css
 rails server
 ```
 
-➡️ **[Detailed Getting Started Guide](getting-started.en.md)**
+➡️ **[Detailed Getting Started Guide](getting-started.md)**
 
 ### 2. First Steps (30 minutes)
 
@@ -57,7 +57,7 @@ rails server
 4. **First change**: Implement small improvement
 5. **Pull request**: Submit contribution
 
-➡️ **[Developer Guide](developer-guide.en.md)**
+➡️ **[Developer Guide](developer-guide.md)**
 
 ## 📚 Main Topics
 
@@ -69,7 +69,7 @@ rails server
 - Configure credentials
 - First steps
 
-➡️ **[Getting Started for Developers](getting-started.en.md)**
+➡️ **[Getting Started for Developers](getting-started.md)**
 
 ### 2. Architecture & Design
 
@@ -103,8 +103,8 @@ rails server
 - Avoid N+1 problem
 - Caching strategies
 
-➡️ **[Database Design](database-design.en.md)**  
-➡️ **[ER Diagram](er-diagram.en.md)**
+➡️ **[Database Design](database-design.md)**  
+➡️ **[ER Diagram](er-diagram.md)**
 
 ### 4. API & Integration
 
@@ -120,7 +120,7 @@ rails server
 - Client integration
 - Troubleshooting
 
-➡️ **[API Reference](../reference/API.en.md)**
+➡️ **[API Reference](../reference/API.md)**
 
 ### 5. Frontend Development
 
@@ -154,7 +154,7 @@ rails server
 - Fixtures vs. Factories
 - Mocking & Stubbing
 
-➡️ **[Testing & Debugging](rake-tasks-debugging.en.md)**
+➡️ **[Testing & Debugging](rake-tasks-debugging.md)**
 
 ### 7. Deployment & DevOps
 
@@ -172,8 +172,8 @@ rails server
 - Multi-environment setup
 - Deployment scripts
 
-➡️ **[Deployment Workflow](deployment-workflow.en.md)**  
-➡️ **[Scenario Management](scenario-management.en.md)**
+➡️ **[Deployment Workflow](deployment-workflow.md)**  
+➡️ **[Scenario Management](scenario-management.md)**
 
 ### 8. Performance & Optimization
 
@@ -189,7 +189,7 @@ rails server
 - Asset optimization
 - Background jobs
 
-➡️ **[Paper Trail Optimization](paper-trail-optimization.en.md)**
+➡️ **[Paper Trail Optimization](paper-trail-optimization.md)**
 
 ### 9. Data Management
 
@@ -206,8 +206,8 @@ rails server
 - Database partitioning
 - Sharding strategies
 
-➡️ **[Data Management](data-management.en.md)**  
-➡️ **[Database Partitioning](database-partitioning.en.md)**
+➡️ **[Data Management](data-management.md)**  
+➡️ **[Database Partitioning](database-partitioning.md)**
 
 ## 🔧 Important Rake Tasks
 
@@ -242,7 +242,7 @@ rails clubcloud:sync         # Sync ClubCloud data
 rails tournament:reconstruct # Reconstruct schedule
 ```
 
-➡️ **[Rake Tasks & Debugging](rake-tasks-debugging.en.md)**
+➡️ **[Rake Tasks & Debugging](rake-tasks-debugging.md)**
 
 ## 🤝 Contribution Guidelines
 
@@ -281,14 +281,14 @@ chore: Update dependencies
 
 ### Internal Documentation
 
-- **[Getting Started](getting-started.en.md)**: Development environment
-- **[Developer Guide](developer-guide.en.md)**: Comprehensive developer handbook
-- **[Database Design](database-design.en.md)**: Database schema
-- **[ER Diagram](er-diagram.en.md)**: Visual database overview
-- **[API Reference](../reference/API.en.md)**: API documentation
-- **[Deployment Workflow](deployment-workflow.en.md)**: Deployment processes
-- **[Scenario Management](scenario-management.en.md)**: Multi-environment
-- **[Testing & Debugging](rake-tasks-debugging.en.md)**: Test strategies
+- **[Getting Started](getting-started.md)**: Development environment
+- **[Developer Guide](developer-guide.md)**: Comprehensive developer handbook
+- **[Database Design](database-design.md)**: Database schema
+- **[ER Diagram](er-diagram.md)**: Visual database overview
+- **[API Reference](../reference/API.md)**: API documentation
+- **[Deployment Workflow](deployment-workflow.md)**: Deployment processes
+- **[Scenario Management](scenario-management.md)**: Multi-environment
+- **[Testing & Debugging](rake-tasks-debugging.md)**: Test strategies
 
 ### External Resources
 
@@ -310,24 +310,24 @@ chore: Update dependencies
 
 ## 🔗 All Developer Documents
 
-1. **[Getting Started](getting-started.en.md)** - Set up development environment
-2. **[Developer Guide](developer-guide.en.md)** - Comprehensive developer handbook
-3. **[Database Design](database-design.en.md)** - Database schema and models
-4. **[ER Diagram](er-diagram.en.md)** - Visual database overview
-5. **[API Reference](../reference/API.en.md)** - REST API documentation
-6. **[Scenario Management](scenario-management.en.md)** - Multi-environment setup
-7. **[Testing & Debugging](rake-tasks-debugging.en.md)** - Test strategies
-8. **[Deployment Workflow](deployment-workflow.en.md)** - Deployment processes
-9. **[Server Management Scripts](../administrators/server-scripts.en.md)** - Automation scripts
-10. **[Raspberry Pi Scripts](../administrators/raspberry_pi_scripts.en.md)** - RasPi-specific tools
-11. **[Data Management](data-management.en.md)** - Data management
-12. **[Database Partitioning](database-partitioning.en.md)** - Partitioning strategies
-13. **[Paper Trail Optimization](paper-trail-optimization.en.md)** - Audit log performance
-14. **[Game Plan Reconstruction](game-plan-reconstruction.en.md)** - Schedule algorithms
-15. **[Tournament Duplicates](tournament-duplicate-handling.en.md)** - Duplicate handling
-16. **[Region Tagging](region-tagging-cleanup-summary.en.md)** - Geographic assignment
-17. **[ClubCloud Upload System](clubcloud-upload.en.md)** - Automatic upload & CSV export
-18. **[YouTube Streaming Architecture](streaming-architecture.en.md)** - Live streaming system (architecture, FFmpeg, hardware)
+1. **[Getting Started](getting-started.md)** - Set up development environment
+2. **[Developer Guide](developer-guide.md)** - Comprehensive developer handbook
+3. **[Database Design](database-design.md)** - Database schema and models
+4. **[ER Diagram](er-diagram.md)** - Visual database overview
+5. **[API Reference](../reference/API.md)** - REST API documentation
+6. **[Scenario Management](scenario-management.md)** - Multi-environment setup
+7. **[Testing & Debugging](rake-tasks-debugging.md)** - Test strategies
+8. **[Deployment Workflow](deployment-workflow.md)** - Deployment processes
+9. **[Server Management Scripts](../administrators/server-scripts.md)** - Automation scripts
+10. **[Raspberry Pi Scripts](../administrators/raspberry_pi_scripts.md)** - RasPi-specific tools
+11. **[Data Management](data-management.md)** - Data management
+12. **[Database Partitioning](database-partitioning.md)** - Partitioning strategies
+13. **[Paper Trail Optimization](paper-trail-optimization.md)** - Audit log performance
+14. **[Game Plan Reconstruction](game-plan-reconstruction.md)** - Schedule algorithms
+15. **[Tournament Duplicates](tournament-duplicate-handling.md)** - Duplicate handling
+16. **[Region Tagging](region-tagging-cleanup-summary.md)** - Geographic assignment
+17. **[ClubCloud Upload System](clubcloud-upload.md)** - Automatic upload & CSV export
+18. **[YouTube Streaming Architecture](streaming-architecture.md)** - Live streaming system (architecture, FFmpeg, hardware)
 
 ---
 

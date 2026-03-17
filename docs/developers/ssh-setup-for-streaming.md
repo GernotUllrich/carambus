@@ -266,6 +266,6 @@ Dies zeigt:
 ## Weitere Informationen
 
 - [SSH Key Management](https://www.ssh.com/academy/ssh/key)
-- [Streaming Architecture](../developers/streaming-architecture.de.md)
+- [Streaming Architecture](../developers/streaming-architecture.md)
 - [Where to Run Rake Tasks](./where-to-run-rake-tasks.md)
 

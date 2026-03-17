@@ -20,7 +20,7 @@ Choose your deployment variant:
 **Setup time**: 30-60 minutes  
 **Difficulty**: ⭐ Easy
 
-➡️ **[Raspberry Pi Quickstart Guide](raspberry-pi-quickstart.en.md)**
+➡️ **[Raspberry Pi Quickstart Guide](raspberry-pi-quickstart.md)**
 
 ### Option 2: Cloud Hosting (Recommended for Federations)
 **Setup time**: 2-4 hours  
@@ -45,12 +45,12 @@ Choose your deployment variant:
 - Deploy Carambus
 - Initial configuration
 
-➡️ **[Complete Installation Guide](installation-overview.en.md)**
+➡️ **[Complete Installation Guide](installation-overview.md)**
 
 **Special installations**:
-- **[Raspberry Pi Setup](raspberry-pi-quickstart.en.md)**: All-in-One kiosk system
-- **[Raspberry Pi Client](raspberry-pi-client.en.md)**: Display/Scoreboard only
-- **[Database Setup](database-setup.en.md)**: Configure PostgreSQL
+- **[Raspberry Pi Setup](raspberry-pi-quickstart.md)**: All-in-One kiosk system
+- **[Raspberry Pi Client](raspberry-pi-client.md)**: Display/Scoreboard only
+- **[Database Setup](database-setup.md)**: Configure PostgreSQL
 
 ### 2. Configuration
 
@@ -60,14 +60,14 @@ Choose your deployment variant:
 - SSL/TLS certificates
 - Backup strategies
 
-➡️ **[Email Configuration](email-configuration.en.md)**
+➡️ **[Email Configuration](email-configuration.md)**
 
 **Scoreboard setup**:
 - Automatic start on boot
 - Configure kiosk mode
 - Manage multiple displays
 
-➡️ **[Scoreboard Autostart Setup](scoreboard-autostart.en.md)**
+➡️ **[Scoreboard Autostart Setup](scoreboard-autostart.md)**
 
 ### 3. Server Architecture
 
@@ -78,7 +78,7 @@ Choose your deployment variant:
 - WebSocket communication
 - Caching strategies
 
-➡️ **[Server Architecture Documentation](server-architecture.en.md)**
+➡️ **[Server Architecture Documentation](server-architecture.md)**
 
 ### 4. Maintenance & Updates
 
@@ -142,7 +142,7 @@ Choose your deployment variant:
 - Relay modules
 - Timer switches
 
-➡️ **[Table Reservation & Heating Control](../managers/table-reservation.en.md)**
+➡️ **[Table Reservation & Heating Control](../managers/table-reservation.md)**
 
 ### 8. YouTube Live Streaming
 
@@ -154,9 +154,9 @@ Choose your deployment variant:
 - Central management in admin interface
 
 **Documentation**:
-- 🚀 **[Quick Start (5 Steps)](streaming-quickstart.en.md)** - Get your first stream in 5 minutes
-- 📖 **[Complete Setup Guide](streaming-setup.en.md)** - Hardware, YouTube setup, configuration, troubleshooting
-- 💻 **[Developer Architecture](../developers/streaming-architecture.en.md)** - Technical details for developers
+- 🚀 **[Quick Start (5 Steps)](streaming-quickstart.md)** - Get your first stream in 5 minutes
+- 📖 **[Complete Setup Guide](streaming-setup.md)** - Hardware, YouTube setup, configuration, troubleshooting
+- 💻 **[Developer Architecture](../developers/streaming-architecture.md)** - Technical details for developers
 
 **Features**:
 - ✅ Table-based streaming (each table independent)
@@ -182,7 +182,7 @@ Choose your deployment variant:
 3. **Initial configuration**: WiFi, club name, admin account
 4. **Done!**: System boots in kiosk mode
 
-➡️ **[Detailed Raspberry Pi Guide](raspberry-pi-quickstart.en.md)**
+➡️ **[Detailed Raspberry Pi Guide](raspberry-pi-quickstart.md)**
 
 ### Cloud Hosting (VPS)
 
@@ -293,12 +293,12 @@ rails log:clear
 
 ### Documentation
 
-- **[Installation Overview](installation-overview.en.md)**: All deployment options
-- **[Raspberry Pi Quickstart](raspberry-pi-quickstart.en.md)**: RasPi setup
-- **[Server Architecture](server-architecture.en.md)**: System overview
-- **[Database Setup](database-setup.en.md)**: Configure PostgreSQL
-- **[Email Configuration](email-configuration.en.md)**: Set up SMTP
-- **[Scoreboard Autostart](scoreboard-autostart.en.md)**: Kiosk mode
+- **[Installation Overview](installation-overview.md)**: All deployment options
+- **[Raspberry Pi Quickstart](raspberry-pi-quickstart.md)**: RasPi setup
+- **[Server Architecture](server-architecture.md)**: System overview
+- **[Database Setup](database-setup.md)**: Configure PostgreSQL
+- **[Email Configuration](email-configuration.md)**: Set up SMTP
+- **[Scoreboard Autostart](scoreboard-autostart.md)**: Kiosk mode
 
 ### Community & Help
 
@@ -312,14 +312,14 @@ rails log:clear
 
 ## 🔗 All Administrator Documents
 
-1. **[Installation Overview](installation-overview.en.md)** - All deployment options
-2. **[Raspberry Pi Quickstart](raspberry-pi-quickstart.en.md)** - All-in-One setup
-3. **[Raspberry Pi Client](raspberry-pi-client.en.md)** - Display/Scoreboard only
-4. **[Scoreboard Autostart](scoreboard-autostart.en.md)** - Set up kiosk mode
-5. **[Server Architecture](server-architecture.en.md)** - System components
-6. **[Email Configuration](email-configuration.en.md)** - Set up SMTP
-7. **[Database Setup](database-setup.en.md)** - Configure PostgreSQL
-8. **[Table Reservation & Heating](../managers/table-reservation.en.md)** - Hardware integration
+1. **[Installation Overview](installation-overview.md)** - All deployment options
+2. **[Raspberry Pi Quickstart](raspberry-pi-quickstart.md)** - All-in-One setup
+3. **[Raspberry Pi Client](raspberry-pi-client.md)** - Display/Scoreboard only
+4. **[Scoreboard Autostart](scoreboard-autostart.md)** - Set up kiosk mode
+5. **[Server Architecture](server-architecture.md)** - System components
+6. **[Email Configuration](email-configuration.md)** - Set up SMTP
+7. **[Database Setup](database-setup.md)** - Configure PostgreSQL
+8. **[Table Reservation & Heating](../managers/table-reservation.md)** - Hardware integration
 
 ---
 

@@ -8,7 +8,7 @@
 
 Dieses Verzeichnis enthält interne Entwicklungsnotizen, Bug-Fix-Dokumentation, Implementierungsdetails und historische Analysen.
 
-**Hinweis:** Für aktuelle Entwickler-Dokumentation siehe: [`docs/developers/`](../developers/index.de.md)
+**Hinweis:** Für aktuelle Entwickler-Dokumentation siehe: [`docs/developers/`](../developers/index.md)
 
 ## Struktur
 
@@ -28,7 +28,7 @@ internal/
 Detaillierte Dokumentation zu behobenen Bugs:
 
 ### Critical Fixes
-- **[Parameter Migration Fix](bug-fixes/parameter-migration-fix.de.md)** - Boolean-Parameter konnten nicht auf `false` gesetzt werden
+- **[Parameter Migration Fix](bug-fixes/parameter-migration-fix.md)** - Boolean-Parameter konnten nicht auf `false` gesetzt werden
 - **[Party Monitor Reflex Fix](bug-fixes/PARTY_MONITOR_REFLEX_FIX.md)** - Reflex-Fehler in Party Monitor
 - **[Tournament Monitor Groups Fix](bug-fixes/TOURNAMENT_MONITOR_GROUPS_FIX.md)** - Gruppen-Anzeigefehler
 
@@ -81,7 +81,7 @@ Feature-Implementierungen und technische Details:
 - **[Script Cleanup Analysis](implementation-notes/SCRIPT_CLEANUP_ANALYSIS.md)** - Script-Aufräumung
 
 ### Feature Implementations
-- **[Automatische Tischreservierung](implementation-notes/auto-table-reservation.de.md)** - Tischreservierungs-Feature
+- **[Automatische Tischreservierung](implementation-notes/auto-table-reservation.md)** - Tischreservierungs-Feature
 - **[Tournament Wizard Scroll Position](implementation-notes/TOURNAMENT_WIZARD_SCROLL_POSITION.md)** - Scroll-Position speichern
 
 ## Performance Analysis
@@ -96,7 +96,7 @@ Performance-Messungen und Optimierungsanalysen:
 
 ### 2026-01 (Januar 2026)
 
-Email-Konfiguration (konsolidiert in [`docs/developers/setup/email-configuration.de.md`](../developers/setup/email-configuration.de.md)):
+Email-Konfiguration (konsolidiert in [`docs/developers/setup/email-configuration.de.md`](../developers/setup/email-configuration.md)):
 - `EMAIL_CONFIGURATION_FIX.md` - Original Fix-Dokumentation
 - `QUICK_FIX_EMAIL.md` - Quick-Fix-Anleitung
 - `GMAIL_SETUP_SUMMARY.md` - Gmail-Setup-Zusammenfassung
@@ -163,8 +163,8 @@ Dieses `internal/`-Verzeichnis bietet:
 
 ## Siehe auch
 
-- [Developer Documentation](../developers/index.de.md) - Aktuelle Entwickler-Doku
-- [Administrator Documentation](../administrators/index.de.md) - Admin-Dokumentation
+- [Developer Documentation](../developers/index.md) - Aktuelle Entwickler-Doku
+- [Administrator Documentation](../administrators/index.md) - Admin-Dokumentation
 - [Changelog](../../CHANGELOG.md) - Öffentliches Changelog
 
 ---

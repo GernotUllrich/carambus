@@ -185,7 +185,7 @@ nav:
       - Deployment Checklist Production: developers/deployment-checklist.md
       - UMB Deployment Checklist: developers/umb-deployment-checklist.md
   - Reference:
-      - API: reference/API.md
+      - API: reference/api.md
       - Glossary: reference/glossary.md
       - Terms: reference/terms.md
       - Privacy: reference/privacy.md

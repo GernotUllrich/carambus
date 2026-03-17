@@ -20,7 +20,7 @@ Wählen Sie Ihre Deployment-Variante:
 **Setup-Zeit**: 30-60 Minuten  
 **Schwierigkeit**: ⭐ Einfach
 
-➡️ **[Raspberry Pi Quickstart-Anleitung](raspberry-pi-quickstart.de.md)**
+➡️ **[Raspberry Pi Quickstart-Anleitung](raspberry-pi-quickstart.md)**
 
 ### Option 2: Cloud-Hosting (Empfohlen für Verbände)
 **Setup-Zeit**: 2-4 Stunden  
@@ -45,12 +45,12 @@ Wählen Sie Ihre Deployment-Variante:
 - Carambus deployen
 - Erste Konfiguration
 
-➡️ **[Vollständige Installationsanleitung](installation-overview.de.md)**
+➡️ **[Vollständige Installationsanleitung](installation-overview.md)**
 
 **Spezielle Installationen**:
-- **[Raspberry Pi Setup](raspberry-pi-quickstart.de.md)**: All-in-One Kiosk-System
-- **[Raspberry Pi Client](raspberry-pi-client.de.md)**: Nur als Display/Scoreboard
-- **[Datenbank-Setup](database-setup.de.md)**: PostgreSQL konfigurieren
+- **[Raspberry Pi Setup](raspberry-pi-quickstart.md)**: All-in-One Kiosk-System
+- **[Raspberry Pi Client](raspberry-pi-client.md)**: Nur als Display/Scoreboard
+- **[Datenbank-Setup](database-setup.md)**: PostgreSQL konfigurieren
 
 ### 2. Konfiguration
 
@@ -60,14 +60,14 @@ Wählen Sie Ihre Deployment-Variante:
 - SSL/TLS-Zertifikate
 - Backup-Strategien
 
-➡️ **[Email-Konfiguration](email-configuration.de.md)**
+➡️ **[Email-Konfiguration](email-configuration.md)**
 
 **Scoreboard-Setup**:
 - Automatischer Start beim Booten
 - Kiosk-Modus konfigurieren
 - Multiple Displays verwalten
 
-➡️ **[Scoreboard Autostart-Setup](scoreboard-autostart.de.md)**
+➡️ **[Scoreboard Autostart-Setup](scoreboard-autostart.md)**
 
 ### 3. Server-Architektur
 
@@ -78,7 +78,7 @@ Wählen Sie Ihre Deployment-Variante:
 - WebSocket-Kommunikation
 - Caching-Strategien
 
-➡️ **[Server-Architektur-Dokumentation](server-architecture.de.md)**
+➡️ **[Server-Architektur-Dokumentation](server-architecture.md)**
 
 ### 4. Wartung & Updates
 
@@ -142,7 +142,7 @@ Wählen Sie Ihre Deployment-Variante:
 - Relais-Module
 - Zeitschaltuhren
 
-➡️ **[Tischreservierung & Heizungssteuerung](../managers/table-reservation.de.md)**
+➡️ **[Tischreservierung & Heizungssteuerung](../managers/table-reservation.md)**
 
 ### 8. YouTube Live Streaming
 
@@ -154,9 +154,9 @@ Wählen Sie Ihre Deployment-Variante:
 - Zentrale Verwaltung im Admin-Interface
 
 **Dokumentation**:
-- 🚀 **[Quick Start (5 Schritte)](streaming-quickstart.de.md)** - In 5 Minuten zum ersten Stream
-- 📖 **[Vollständige Setup-Anleitung](streaming-setup.de.md)** - Hardware, YouTube-Setup, Konfiguration, Troubleshooting
-- 💻 **[Entwickler-Architektur](../developers/streaming-architecture.de.md)** - Technische Details für Entwickler
+- 🚀 **[Quick Start (5 Schritte)](streaming-quickstart.md)** - In 5 Minuten zum ersten Stream
+- 📖 **[Vollständige Setup-Anleitung](streaming-setup.md)** - Hardware, YouTube-Setup, Konfiguration, Troubleshooting
+- 💻 **[Entwickler-Architektur](../developers/streaming-architecture.md)** - Technische Details für Entwickler
 
 **Features**:
 - ✅ Tischbezogenes Streaming (jeder Tisch unabhängig)
@@ -192,7 +192,7 @@ Wählen Sie Ihre Deployment-Variante:
 - ❌ Begrenzte Performance (für kleine Vereine ausreichend)
 - ❌ SD-Karte kann ausfallen (regelmäßige Backups!)
 
-➡️ **[Detaillierte Raspberry Pi-Anleitung](raspberry-pi-quickstart.de.md)**
+➡️ **[Detaillierte Raspberry Pi-Anleitung](raspberry-pi-quickstart.md)**
 
 ### Cloud-Hosting (VPS)
 
@@ -499,13 +499,13 @@ sudo systemctl status certbot.timer
 
 ### Dokumentation
 
-- **[Installations-Übersicht](installation-overview.de.md)**: Alle Deployment-Optionen
-- **[Raspberry Pi Quickstart](raspberry-pi-quickstart.de.md)**: RasPi-Setup
-- **[Raspberry Pi Client](raspberry-pi-client.de.md)**: RasPi als Display
-- **[Server-Architektur](server-architecture.de.md)**: System-Überblick
-- **[Datenbank-Setup](database-setup.de.md)**: PostgreSQL konfigurieren
-- **[Email-Konfiguration](email-configuration.de.md)**: SMTP einrichten
-- **[Scoreboard Autostart](scoreboard-autostart.de.md)**: Kiosk-Modus
+- **[Installations-Übersicht](installation-overview.md)**: Alle Deployment-Optionen
+- **[Raspberry Pi Quickstart](raspberry-pi-quickstart.md)**: RasPi-Setup
+- **[Raspberry Pi Client](raspberry-pi-client.md)**: RasPi als Display
+- **[Server-Architektur](server-architecture.md)**: System-Überblick
+- **[Datenbank-Setup](database-setup.md)**: PostgreSQL konfigurieren
+- **[Email-Konfiguration](email-configuration.md)**: SMTP einrichten
+- **[Scoreboard Autostart](scoreboard-autostart.md)**: Kiosk-Modus
 
 ### Community & Hilfe
 
@@ -534,14 +534,14 @@ sudo systemctl status certbot.timer
 
 ## 🔗 Alle Administrator-Dokumente
 
-1. **[Installations-Übersicht](installation-overview.de.md)** - Alle Deployment-Optionen
-2. **[Raspberry Pi Quickstart](raspberry-pi-quickstart.de.md)** - All-in-One Setup
-3. **[Raspberry Pi Client](raspberry-pi-client.de.md)** - Nur Display/Scoreboard
-4. **[Scoreboard Autostart](scoreboard-autostart.de.md)** - Kiosk-Modus einrichten
-5. **[Server-Architektur](server-architecture.de.md)** - System-Komponenten
-6. **[Email-Konfiguration](email-configuration.de.md)** - SMTP einrichten
-7. **[Datenbank-Setup](database-setup.de.md)** - PostgreSQL konfigurieren
-8. **[Tischreservierung & Heizung](../managers/table-reservation.de.md)** - Hardware-Integration
+1. **[Installations-Übersicht](installation-overview.md)** - Alle Deployment-Optionen
+2. **[Raspberry Pi Quickstart](raspberry-pi-quickstart.md)** - All-in-One Setup
+3. **[Raspberry Pi Client](raspberry-pi-client.md)** - Nur Display/Scoreboard
+4. **[Scoreboard Autostart](scoreboard-autostart.md)** - Kiosk-Modus einrichten
+5. **[Server-Architektur](server-architecture.md)** - System-Komponenten
+6. **[Email-Konfiguration](email-configuration.md)** - SMTP einrichten
+7. **[Datenbank-Setup](database-setup.md)** - PostgreSQL konfigurieren
+8. **[Tischreservierung & Heizung](../managers/table-reservation.md)** - Hardware-Integration
 
 ---
 

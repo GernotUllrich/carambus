@@ -174,7 +174,7 @@ A **GameParticipation** is a player's participation in a single game.
 - Carambus is **independent** and works without ClubCloud
 - Results can be exported back to ClubCloud via CSV
 
-**See:** [ClubCloud Integration](../managers/clubcloud-integration.en.md) for scraping process details
+**See:** [ClubCloud Integration](../managers/clubcloud-integration.md) for scraping process details
 
 ---
 
@@ -188,7 +188,7 @@ The **API Server** is the central data source for all Carambus installations.
 
 **Example:** carambus.de
 
-**Data source:** Scraping from ClubCloud instances (see [ClubCloud Integration](../managers/clubcloud-integration.en.md))
+**Data source:** Scraping from ClubCloud instances (see [ClubCloud Integration](../managers/clubcloud-integration.md))
 
 ### Local Server (Regional/Club Server)
 A **Local Server** is a Carambus installation for a specific location.
@@ -235,7 +235,7 @@ Club tournament:     ID 50,001,234 (club only)
 Training game:       ID 50,100,567 (Tuesday training)
 ```
 
-**See also:** [Server Architecture](../administrators/server-architecture.en.md)
+**See also:** [Server Architecture](../administrators/server-architecture.md)
 
 ---
 
@@ -406,10 +406,10 @@ Region (Association)
 
 ## 📚 See Also
 
-- [Tournament Management](../managers/tournament-management.en.md) - Individual tournaments
-- [League Match Days](../managers/league-management.en.md) - Team competitions
-- [Database Design](../developers/database-design.en.md) - ER Diagram
-- [Filter & Search](../search.en.md) - Finding data
+- [Tournament Management](../managers/tournament-management.md) - Individual tournaments
+- [League Match Days](../managers/league-management.md) - Team competitions
+- [Database Design](../developers/database-design.md) - ER Diagram
+- [Filter & Search](../search.md) - Finding data
 
 ---
 

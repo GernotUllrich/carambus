@@ -680,10 +680,10 @@ sudo systemctl restart nginx
 
 ## Siehe auch
 
-- [Deployment Workflow](../developers/deployment-workflow.de.md) - Vollständiger Deployment-Prozess
-- [Scenario Management](../developers/scenario-management.de.md) - Scenario-System-Übersicht  
-- [Raspberry Pi Scripts](raspberry_pi_scripts.de.md) - RasPi-Client-Management
-- [Database Syncing](../developers/database-partitioning.de.md) - Datenbank-Synchronisation
+- [Deployment Workflow](../developers/deployment-workflow.md) - Vollständiger Deployment-Prozess
+- [Scenario Management](../developers/scenario-management.md) - Scenario-System-Übersicht  
+- [Raspberry Pi Scripts](raspberry_pi_scripts.md) - RasPi-Client-Management
+- [Database Syncing](../developers/database-partitioning.md) - Datenbank-Synchronisation
 
 
 

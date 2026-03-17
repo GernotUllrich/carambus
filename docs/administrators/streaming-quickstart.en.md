@@ -121,7 +121,7 @@ If `/dev/video1` instead of `video0`:
 ## 📖 More Information
 
 Complete documentation:
-- [docs/administrators/streaming-setup.en.md](streaming-setup.en.md)
+- [docs/administrators/streaming-setup.en.md](streaming-setup.md)
 
 Command reference:
 ```bash

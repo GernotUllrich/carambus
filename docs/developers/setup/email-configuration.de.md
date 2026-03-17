@@ -350,8 +350,8 @@ config.action_mailer.delivery_method = :sendmail
 
 ## Siehe auch
 
-- [Deployment-Workflow](../deployment-workflow.de.md)
-- [Administrator Email-Konfiguration](../../administrators/email-configuration.de.md)
+- [Deployment-Workflow](../deployment-workflow.md)
+- [Administrator Email-Konfiguration](../../administrators/email-configuration.md)
 - [Rails ActionMailer Docs](https://guides.rubyonrails.org/action_mailer_basics.html)
 - [Devise Configuration](https://github.com/heartcombo/devise)
 

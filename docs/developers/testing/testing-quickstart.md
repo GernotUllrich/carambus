@@ -280,8 +280,8 @@ Badge im README:
 
 ## 📚 Weitere Dokumentation
 
-- **[Test README](test/README.md)** - Detaillierte Anleitung
-- **[Testing Strategy](docs/developers/testing-strategy.de.md)** - Konzept & Philosophie
+- **[Test README](../developers/testing/testing-quickstart.md)** - Detaillierte Anleitung
+- **[Testing Strategy](../developers/testing-strategy.md)** - Konzept & Philosophie
 - **[Snapshots README](test/snapshots/README.md)** - VCR & Snapshots
 
 ## ❓ FAQ
@@ -361,6 +361,6 @@ Die Tests sind vorbereitet, aber wir brauchen noch:
 
 ---
 
-**Fragen?** Siehe [test/README.md](test/README.md) oder [Testing Strategy](docs/developers/testing-strategy.de.md)
+**Fragen?** Siehe [test/README.md](../developers/testing/testing-quickstart.md) oder [Testing Strategy](../developers/testing-strategy.md)
 
 **Beitragen?** Pull Requests für Tests sind sehr willkommen! 🎉

@@ -3,7 +3,7 @@
 
 **Version:** 1.0  
 **Datum:** 14. Januar 2026  
-**Kontext:** [Docker Feasibility Study](DOCKER_RASPI_FEASIBILITY_STUDY.de.md)
+**Kontext:** [Docker Feasibility Study](DOCKER_RASPI_FEASIBILITY_STUDY.md)
 
 ---
 

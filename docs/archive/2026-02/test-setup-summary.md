@@ -303,9 +303,9 @@ Tests sind ein perfekter Einstiegspunkt für Contributors:
 
 ## 📞 Support
 
-- **Dokumentation:** [test/README.md](test/README.md)
-- **Strategie:** [docs/developers/testing-strategy.de.md](docs/developers/testing-strategy.de.md)
-- **Quick Start:** [TESTING.md](TESTING.md)
+- **Dokumentation:** [test/README.md](../developers/testing/testing-quickstart.md)
+- **Strategie:** [docs/developers/testing-strategy.de.md](../developers/testing-strategy.md)
+- **Quick Start:** [TESTING.md](../developers/testing/testing-quickstart.md)
 - **Issues:** GitHub Issues mit Label `testing`
 
 ---

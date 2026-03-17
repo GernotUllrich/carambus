@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-> 🇩🇪 **German Version**: [CHANGELOG.de.md](CHANGELOG.de.md)
+> 🇩🇪 **German Version**: [CHANGELOG.de.md](CHANGELOG.md)
 
 ## [Unreleased]
 
@@ -199,7 +199,7 @@ Earlier versions experimented with a Docker-based deployment approach. This was 
 - Nginx as reverse proxy
 - Direct server installation (no containers)
 
-For details see [Deployment Workflow](../developers/deployment-workflow.en.md).
+For details see [Deployment Workflow](../developers/deployment-workflow.md).
 
 
 

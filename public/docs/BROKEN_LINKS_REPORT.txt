@@ -1,0 +1,254 @@
+Mode: Excluding archives, internal, and obsolete documents
+
+================================================================================
+Documentation Link Checker
+================================================================================
+Docs root: /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api/docs
+
+Found 177 markdown files
+
+
+================================================================================
+Summary
+================================================================================
+Files checked: 177
+Total links: 833
+External links: 194
+Broken links: 78
+
+[31m✗ Found 78 broken links:[0m
+
+[34mMKDOCS_DEVELOPMENT.md[0m
+  [31mLine 361:[0m [Link](/docs/managers/tournament-management/)
+    [33mSuggestions:[0m
+      • managers/tournament-management.de.md
+      • managers/tournament-management.en.md
+
+  [31mLine 362:[0m [Link](/docs/managers/tournament-management)
+    [33mSuggestions:[0m
+      • managers/tournament-management.de.md
+      • managers/tournament-management.en.md
+
+[34madministrators/index.de.md[0m
+  [31mLine 145:[0m [Tischreservierung & Heizungssteuerung](../managers/table-reservation.de.md)
+
+  [31mLine 544:[0m [Tischreservierung & Heizung](../managers/table-reservation.de.md)
+
+[34madministrators/streaming-production-deployment.md[0m
+  [31mLine 571:[0m [Systemd Services](systemd-streaming-services.md)
+
+[34mdevelopers/developer-guide.en.md[0m
+  [31mLine 366:[0m [Enhanced Mode System](../developers/enhanced_mode_system.de.md)
+
+  [31mLine 458:[0m [Enhanced Mode System](../developers/enhanced_mode_system.de.md)
+
+[34mdevelopers/operations/tournament-game-protection.de.md[0m
+  [31mLine 254:[0m [FLASH_MESSAGES_SCOREBOARD.md](FLASH_MESSAGES_SCOREBOARD.md)
+
+[34mdevelopers/rake-tasks-debugging.de.md[0m
+  [31mLine 423:[0m [Scenario Management Workflow](./scenario-system-workflow.de.md)
+
+[34mdevelopers/rake-tasks-debugging.en.md[0m
+  [31mLine 419:[0m [Scenario Management Workflow](./scenario-system-workflow.en.md)
+
+[34mdevelopers/scenario-workflow.md[0m
+  [31mLine 136:[0m [CONTRIBUTING.de.md](CONTRIBUTING.de.md)
+
+  [31mLine 137:[0m [README.de.md](README.de.md)
+
+  [31mLine 138:[0m [carambus_master/docs/developers/](carambus_master/docs/developers/)
+
+[34mdevelopers/testing/fixture-collection-guide.md[0m
+  [31mLine 14:[0m [test/FIXTURES_QUICK_START.md](test/FIXTURES_QUICK_START.md)
+
+  [31mLine 19:[0m [test/FIXTURES_SAMMELN.md](test/FIXTURES_SAMMELN.md)
+
+  [31mLine 25:[0m [test/fixtures/html/README.md](test/fixtures/html/README.md)
+    [33mSuggestions:[0m
+      • managers/AUTO_RESERVE_README.md
+      • international/README.md
+
+  [31mLine 31:[0m [test/FIXTURE_WORKFLOW.md](test/FIXTURE_WORKFLOW.md)
+
+  [31mLine 416:[0m [FIXTURES_QUICK_START.md](test/FIXTURES_QUICK_START.md)
+
+  [31mLine 521:[0m [FIXTURES_QUICK_START.md](test/FIXTURES_QUICK_START.md)
+
+[34mdevelopers/testing/testing-quickstart.md[0m
+  [31mLine 283:[0m [Test README](../developers/testing/testing-quickstart.md)
+    [33mSuggestions:[0m
+      • developers/testing/testing-quickstart.md
+
+  [31mLine 284:[0m [Testing Strategy](../developers/testing-strategy.de.md)
+    [33mSuggestions:[0m
+      • developers/testing-strategy.de.md
+
+  [31mLine 285:[0m [Snapshots README](test/snapshots/README.md)
+    [33mSuggestions:[0m
+      • managers/AUTO_RESERVE_README.md
+      • international/README.md
+
+  [31mLine 364:[0m [test/README.md](../developers/testing/testing-quickstart.md)
+    [33mSuggestions:[0m
+      • developers/testing/testing-quickstart.md
+
+  [31mLine 364:[0m [Testing Strategy](../developers/testing-strategy.de.md)
+    [33mSuggestions:[0m
+      • developers/testing-strategy.de.md
+
+[34minternational/umb_scraper.md[0m
+  [31mLine 237:[0m [International Videos System](./international_videos.md)
+
+  [31mLine 238:[0m [YouTube Scraper](./youtube_scraper.md)
+
+[34mmanagers/clubcloud_upload_feedback.md[0m
+  [31mLine 237:[0m [ClubCloud Name Mapping](../bin/test-cc-name-mapping.rb)
+
+  [31mLine 238:[0m [Log Prefixes Reference](logging_conventions.md)
+
+[34mplayers/ai-search.de.md[0m
+  [31mLine 391:[0m [Carambus Filter-Dokumentation](../search.de.md)
+    [33mSuggestions:[0m
+      • players/ai-search.de.md
+      • reference/search.de.md
+
+[34mplayers/ai-search.en.md[0m
+  [31mLine 352:[0m [Carambus Filter Documentation](../search.en.md)
+    [33mSuggestions:[0m
+      • players/ai-search.en.md
+      • reference/search.en.md
+
+[34mplayers/pool_scoreboard_benutzerhandbuch.de.md[0m
+  [31mLine 60:[0m [Tischübersicht](screenshots/pool_tables_overview.png)
+
+  [31mLine 157:[0m [14.1 endlos Scoreboard - Spielstart](screenshots/pool_14_1_scoreboard_start.png)
+
+  [31mLine 161:[0m [14.1 endlos Scoreboard - Während des Spiels](screenshots/pool_14_1_scoreboard_playing.png)
+
+  [31mLine 165:[0m [14.1 endlos Scoreboard - Nach Spielerwechsel](screenshots/pool_14_1_after_switch.png)
+
+  [31mLine 405:[0m [Pool Quickstart Buttons](screenshots/pool_quickstart_buttons.png)
+
+[34mplayers/pool_scoreboard_benutzerhandbuch.en.md[0m
+  [31mLine 60:[0m [Table Overview](screenshots/pool_tables_overview.png)
+
+  [31mLine 157:[0m [14.1 Continuous Scoreboard - Game Start](screenshots/pool_14_1_scoreboard_start.png)
+
+  [31mLine 161:[0m [14.1 Continuous Scoreboard - During Game](screenshots/pool_14_1_scoreboard_playing.png)
+
+  [31mLine 165:[0m [14.1 Continuous Scoreboard - After Player Switch](screenshots/pool_14_1_after_switch.png)
+
+  [31mLine 405:[0m [Pool Quickstart Buttons](screenshots/pool_quickstart_buttons.png)
+
+[34mplayers/scoreboard-guide.de.md[0m
+  [31mLine 43:[0m [Willkommensbildschirm](screenshots/scoreboard_welcome.png)
+
+  [31mLine 170:[0m [Einspielzeit](screenshots/scoreboard_warmup.png)
+
+  [31mLine 186:[0m [Ausstoßen](screenshots/scoreboard_shootout.png)
+
+  [31mLine 201:[0m [Spiel läuft](screenshots/scoreboard_playing.png)
+
+  [31mLine 304:[0m [Dark Mode](screenshots/scoreboard_dark.png)
+
+  [31mLine 424:[0m [Tischauswahl](screenshots/scoreboard_tables.png)
+
+  [31mLine 436:[0m [Spielform wählen](screenshots/scoreboard_game_choice.png)
+
+  [31mLine 451:[0m [Spieler auswählen](screenshots/scoreboard_player_selection.png)
+
+  [31mLine 476:[0m [Freie Partie Setup](screenshots/scoreboard_free_game_setup.png)
+
+  [31mLine 502:[0m [Quick Game](screenshots/scoreboard_quick_game.png)
+
+  [31mLine 519:[0m [Pool Setup](screenshots/scoreboard_pool_setup.png)
+
+[34mplayers/scoreboard-guide.en.md[0m
+  [31mLine 42:[0m [Welcome Screen](screenshots/scoreboard_welcome.png)
+
+  [31mLine 169:[0m [Warm-up](screenshots/scoreboard_warmup.png)
+
+  [31mLine 185:[0m [Shootout](screenshots/scoreboard_shootout.png)
+
+  [31mLine 200:[0m [Game Running](screenshots/scoreboard_playing.png)
+
+  [31mLine 303:[0m [Dark Mode](screenshots/scoreboard_dark.png)
+
+  [31mLine 423:[0m [Table Selection](screenshots/scoreboard_tables.png)
+
+  [31mLine 435:[0m [Choose Game Type](screenshots/scoreboard_game_choice.png)
+
+  [31mLine 450:[0m [Player Selection](screenshots/scoreboard_player_selection.png)
+
+  [31mLine 475:[0m [Straight Rail Setup](screenshots/scoreboard_free_game_setup.png)
+
+  [31mLine 501:[0m [Quick Game](screenshots/scoreboard_quick_game.png)
+
+  [31mLine 518:[0m [Pool Setup](screenshots/scoreboard_pool_setup.png)
+
+[34mreference/config-lock-files.de.md[0m
+  [31mLine 152:[0m [Produktions-Setup](PRODUCTION_SETUP.md)
+
+[34mreference/config-lock-files.en.md[0m
+  [31mLine 152:[0m [Production Setup](PRODUCTION_SETUP.md)
+
+[34mreference/glossary.de.md[0m
+  [31mLine 412:[0m [Filter & Suche](../search.de.md)
+    [33mSuggestions:[0m
+      • players/ai-search.de.md
+      • reference/search.de.md
+
+[34mreference/glossary.en.md[0m
+  [31mLine 412:[0m [Filter & Search](../search.en.md)
+    [33mSuggestions:[0m
+      • players/ai-search.en.md
+      • reference/search.en.md
+
+[34mreference/mkdocs_documentation.en.md[0m
+  [31mLine 264:[0m [Text](file.md)
+    [33mSuggestions:[0m
+      • reference/config-lock-files.de.md
+      • reference/config-lock-files.en.md
+
+  [31mLine 265:[0m [Text](file.md)
+    [33mSuggestions:[0m
+      • reference/config-lock-files.de.md
+      • reference/config-lock-files.en.md
+
+  [31mLine 271:[0m [Alt text](assets/image.png)
+
+  [31mLine 272:[0m [Alt text](assets/image.png)
+
+[34mreference/mkdocs_dokumentation.de.md[0m
+  [31mLine 264:[0m [Text](datei.md)
+
+  [31mLine 265:[0m [Text](datei.md)
+
+  [31mLine 271:[0m [Alt-Text](assets/bild.png)
+
+  [31mLine 272:[0m [Alt-Text](assets/bild.png)
+
+[34mreference/mkdocs_dokumentation.en.md[0m
+  [31mLine 264:[0m [Text](file.md)
+    [33mSuggestions:[0m
+      • reference/config-lock-files.de.md
+      • reference/config-lock-files.en.md
+
+  [31mLine 265:[0m [Text](file.md)
+    [33mSuggestions:[0m
+      • reference/config-lock-files.de.md
+      • reference/config-lock-files.en.md
+
+  [31mLine 271:[0m [Alt Text](assets/image.png)
+
+  [31mLine 272:[0m [Alt Text](assets/image.png)
+
+
+Broken links by directory:
+  MKDOCS_DEVELOPMENT.md: 2
+  administrators: 3
+  developers: 19
+  international: 2
+  managers: 2
+  players: 34
+  reference: 16

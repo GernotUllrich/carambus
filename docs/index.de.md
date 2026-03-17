@@ -6,23 +6,23 @@ Willkommen bei der Carambus-Dokumentation! Dieses Verzeichnis enthält umfassend
 
 ### 🎯 Für Entscheider
 Sie evaluieren Carambus für Ihren Verein oder Verband?
-**Start**: [Entscheider-Übersicht](decision-makers/index.de.md)
+**Start**: [Entscheider-Übersicht](decision-makers/index.md)
 
 ### 🎮 Für Spieler
 Sie nutzen Carambus als Turnierteilnehmer?
-**Start**: [Spieler-Übersicht](players/index.de.md)
+**Start**: [Spieler-Übersicht](players/index.md)
 
 ### 🏆 Für Turniermanager
 Sie organisieren Turniere und Ligaspieltage?
-**Start**: [Manager-Übersicht](managers/index.de.md)
+**Start**: [Manager-Übersicht](managers/index.md)
 
 ### 🖥️ Für Systemadministratoren
 Sie installieren und betreiben Carambus?
-**Start**: [Administrator-Übersicht](administrators/index.de.md)
+**Start**: [Administrator-Übersicht](administrators/index.md)
 
 ### 💻 Für Entwickler
 Sie entwickeln mit oder an Carambus?
-**Start**: [Entwickler-Übersicht](developers/index.de.md)
+**Start**: [Entwickler-Übersicht](developers/index.md)
 
 ## 📚 Dokumentationsstruktur
 
@@ -87,29 +87,29 @@ docs/
 ## 🔍 Wichtigste Dokumente
 
 ### Einstieg
-- **[Hauptindex](index.de.md)**: Übersicht über alle Zielgruppen
-- **[Über das Projekt](about.de.md)**: Hintergrund und Geschichte
+- **[Hauptindex](index.md)**: Übersicht über alle Zielgruppen
+- **[Über das Projekt](about.md)**: Hintergrund und Geschichte
 
 ### Für Entscheider
-- **[Executive Summary](decision-makers/executive-summary.de.md)**: Kompakter Überblick
-- **[Feature-Übersicht](decision-makers/features-overview.de.md)**: Alle Funktionen
-- **[Deployment-Optionen](decision-makers/deployment-options.de.md)**: Betriebsmodelle im Vergleich
+- **[Executive Summary](decision-makers/executive-summary.md)**: Kompakter Überblick
+- **[Feature-Übersicht](decision-makers/features-overview.md)**: Alle Funktionen
+- **[Deployment-Optionen](decision-makers/deployment-options.md)**: Betriebsmodelle im Vergleich
 
 ### Für Benutzer
-- **[Scoreboard-Anleitung](players/scoreboard-guide.de.md)**: Bedienung am Tisch
-- **[Turnierverwaltung](managers/tournament-management.de.md)**: Turniere organisieren
-- **[Liga-Management](managers/league-management.de.md)**: Ligaspieltage durchführen
+- **[Scoreboard-Anleitung](players/scoreboard-guide.md)**: Bedienung am Tisch
+- **[Turnierverwaltung](managers/tournament-management.md)**: Turniere organisieren
+- **[Liga-Management](managers/league-management.md)**: Ligaspieltage durchführen
 
 ### Für Administratoren
-- **[Installation](administrators/installation-overview.de.md)**: Alle Installationsoptionen
-- **[Raspberry Pi Setup](administrators/raspberry-pi-quickstart.de.md)**: RasPi in 30 Minuten
-- **[Server-Architektur](administrators/server-architecture.de.md)**: System-Übersicht
+- **[Installation](administrators/installation-overview.md)**: Alle Installationsoptionen
+- **[Raspberry Pi Setup](administrators/raspberry-pi-quickstart.md)**: RasPi in 30 Minuten
+- **[Server-Architektur](administrators/server-architecture.md)**: System-Übersicht
 
 ### Für Entwickler
-- **[Getting Started](developers/getting-started.de.md)**: Entwicklungsumgebung
-- **[Developer Guide](developers/developer-guide.de.md)**: Umfassendes Handbuch
-- **[Datenbank-Design](developers/database-design.de.md)**: Schema und Modelle
-- **[API-Referenz](reference/API.de.md)**: REST-API Dokumentation
+- **[Getting Started](developers/getting-started.md)**: Entwicklungsumgebung
+- **[Developer Guide](developers/developer-guide.md)**: Umfassendes Handbuch
+- **[Datenbank-Design](developers/database-design.md)**: Schema und Modelle
+- **[API-Referenz](reference/API.md)**: REST-API Dokumentation
 
 ## 🌍 Sprachen
 
@@ -122,7 +122,7 @@ Zum Sprachwechsel verwenden Sie den Language-Selector in der mkdocs-Navigation.
 ## 🔄 Dokumentationswartung
 
 ### Beitrag zur Dokumentation
-- Folgen Sie dem [Contribution Guide](developers/developer-guide.de.md)
+- Folgen Sie dem [Contribution Guide](developers/developer-guide.md)
 - Aktualisieren Sie relevante Dokumentation beim Hinzufügen von Features
 - Fügen Sie Code-Beispiele für neue APIs ein
 - Behalten Sie Konsistenz über alle Dokumente hinweg
@@ -143,7 +143,7 @@ Zum Sprachwechsel verwenden Sie den Language-Selector in der mkdocs-Navigation.
 ### Dokumentation durchsuchen
 - Verwenden Sie die **Suchfunktion** (oben rechts in mkdocs)
 - Nutzen Sie die **Inhaltsverzeichnisse** jeder Seite
-- Prüfen Sie das **[Glossar](reference/glossary.de.md)** für Fachbegriffe
+- Prüfen Sie das **[Glossar](reference/glossary.md)** für Fachbegriffe
 
 ### Support-Kanäle
 - **GitHub Issues**: [https://github.com/GernotUllrich/carambus/issues](https://github.com/GernotUllrich/carambus/issues)
@@ -159,14 +159,14 @@ Wenn Sie Dokumentation vermissen oder Fehler finden:
 ## 🚀 Schnelle Links
 
 ### Für neue Benutzer
-- [Was ist Carambus?](about.de.md)
-- [Für welche Zielgruppe bin ich?](index.de.md)
-- [Wie installiere ich Carambus?](administrators/installation-overview.de.md)
+- [Was ist Carambus?](about.md)
+- [Für welche Zielgruppe bin ich?](index.md)
+- [Wie installiere ich Carambus?](administrators/installation-overview.md)
 
 ### Für erfahrene Benutzer
-- [API-Dokumentation](reference/API.de.md)
-- [Datenbank-Schema](developers/database-design.de.md)
-- [Deployment-Workflow](developers/deployment-workflow.de.md)
+- [API-Dokumentation](reference/API.md)
+- [Datenbank-Schema](developers/database-design.md)
+- [Deployment-Workflow](developers/deployment-workflow.md)
 
 ---
 

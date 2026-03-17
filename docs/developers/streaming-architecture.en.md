@@ -1316,10 +1316,10 @@ telnet 192.168.1.100 22
 
 ### Internal Links
 
-- [Administratoren-Handbuch](../administrators/streaming-setup.de.md)
-- [Schnellstart-Guide](../administrators/streaming-quickstart.de.md)
-- [Server-Architektur](../administrators/server-architecture.de.md)
-- [Scoreboard-Setup](../administrators/scoreboard-autostart.de.md)
+- [Administratoren-Handbuch](../administrators/streaming-setup.md)
+- [Schnellstart-Guide](../administrators/streaming-quickstart.md)
+- [Server-Architektur](../administrators/server-architecture.md)
+- [Scoreboard-Setup](../administrators/scoreboard-autostart.md)
 
 ### External Resources
 

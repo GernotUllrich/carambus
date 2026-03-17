@@ -279,10 +279,10 @@ Badge ins README:
 
 | Dokument | Inhalt | Für wen? |
 |----------|--------|----------|
-| [TESTING.md](TESTING.md) | Quick Start | Alle |
-| [test/README.md](test/README.md) | Detaillierte Anleitung | Entwickler |
+| [TESTING.md](../developers/testing/testing-quickstart.md) | Quick Start | Alle |
+| [test/README.md](../developers/testing/testing-quickstart.md) | Detaillierte Anleitung | Entwickler |
 | [test/ARCHITECTURE.md](test/ARCHITECTURE.md) | Architektur | Fortgeschrittene |
-| [docs/developers/testing-strategy.de.md](docs/developers/testing-strategy.de.md) | Strategie & Konzept | Interessierte |
+| [docs/developers/testing-strategy.de.md](../developers/testing-strategy.md) | Strategie & Konzept | Interessierte |
 
 ## 🎓 Beispiel-Test
 
@@ -335,12 +335,12 @@ Das Test-System ist installiert und einsatzbereit.
 
 **Nächste Schritte:**
 1. ✅ Tests laufen lassen: `bin/rails test`
-2. 📖 [TESTING.md](TESTING.md) lesen
+2. 📖 [TESTING.md](../developers/testing/testing-quickstart.md) lesen
 3. 🧪 Ersten eigenen Test schreiben
 
 **Bei Fragen:**
-- Siehe [test/README.md](test/README.md)
-- Siehe [TESTING.md](TESTING.md)
+- Siehe [test/README.md](../developers/testing/testing-quickstart.md)
+- Siehe [TESTING.md](../developers/testing/testing-quickstart.md)
 - GitHub Issues erstellen
 
 ---

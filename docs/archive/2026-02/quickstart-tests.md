@@ -82,8 +82,8 @@ SAFETY_ASSURED=true bin/rails db:test:prepare
 ## 📚 Mehr erfahren
 
 - **Detaillierte Installation:** [INSTALL_TESTS.md](INSTALL_TESTS.md)
-- **Test schreiben:** [TESTING.md](TESTING.md)
-- **Vollständige Anleitung:** [test/README.md](test/README.md)
+- **Test schreiben:** [TESTING.md](../developers/testing/testing-quickstart.md)
+- **Vollständige Anleitung:** [test/README.md](../developers/testing/testing-quickstart.md)
 
 ---
 

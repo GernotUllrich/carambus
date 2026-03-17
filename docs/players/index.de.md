@@ -27,7 +27,7 @@ Lernen Sie, wie Sie Punkte während des Spiels eintragen:
 - ✅ Spiel beenden und bestätigen
 - ✅ Statistiken live verfolgen (GD, Höchstserie)
 
-➡️ **[Zur ausführlichen Scoreboard-Anleitung](scoreboard-guide.de.md)**
+➡️ **[Zur ausführlichen Scoreboard-Anleitung](scoreboard-guide.md)**
 
 ### 2. Turnierteilnahme
 
@@ -39,7 +39,7 @@ Alles, was Sie über Turnierteilnahme wissen müssen:
 - **Ergebnisse prüfen**: Sind alle meine Ergebnisse korrekt?
 - **Benachrichtigungen**: Wie werde ich über meine Spiele informiert?
 
-➡️ **[Zur Turnierteilnahme-Anleitung](tournament-participation.de.md)**
+➡️ **[Zur Turnierteilnahme-Anleitung](tournament-participation.md)**
 
 ### 3. KI-gestützte Suche
 
@@ -52,7 +52,7 @@ Finden Sie schnell, was Sie suchen - in natürlicher Sprache:
 - "Alle Spiele gegen Müller"
 - "Rangliste Liga Gruppe A"
 
-➡️ **[Zur Suche-Anleitung](ai-search.de.md)**
+➡️ **[Zur Suche-Anleitung](ai-search.md)**
 
 ### 4. Persönliche Statistiken
 
@@ -274,17 +274,17 @@ Senden Sie Ihre Vorschläge an: gernot.ullrich@gmx.de
 
 ## 🔗 Weiterführende Links
 
-- **[Turniermanager-Dokumentation](../managers/index.de.md)**: Falls Sie selbst ein Turnier organisieren
-- **[Glossar](../reference/glossary.de.md)**: Erklärung aller Fachbegriffe
-- **[API-Dokumentation](../reference/API.de.md)**: Für technisch Interessierte
+- **[Turniermanager-Dokumentation](../managers/index.md)**: Falls Sie selbst ein Turnier organisieren
+- **[Glossar](../reference/glossary.md)**: Erklärung aller Fachbegriffe
+- **[API-Dokumentation](../reference/API.md)**: Für technisch Interessierte
 
 ---
 
 ## 📖 Alle Spieler-Dokumente
 
-1. **[Scoreboard-Bedienungsanleitung](scoreboard-guide.de.md)** - Detaillierte Anleitung für alle Disziplinen
-2. **[Turnierteilnahme-Leitfaden](tournament-participation.de.md)** - Von Anmeldung bis Siegerehrung
-3. **[KI-gestützte Suche](ai-search.de.md)** - So finden Sie schnell, was Sie brauchen
+1. **[Scoreboard-Bedienungsanleitung](scoreboard-guide.md)** - Detaillierte Anleitung für alle Disziplinen
+2. **[Turnierteilnahme-Leitfaden](tournament-participation.md)** - Von Anmeldung bis Siegerehrung
+3. **[KI-gestützte Suche](ai-search.md)** - So finden Sie schnell, was Sie brauchen
 
 ---
 

@@ -145,8 +145,8 @@ module ApplicationHelper
     text ||= path.split('/').last.humanize
     
     # Korrekte URL-Struktur für MkDocs-Seiten
-    # Beispiel: path = "about" -> /docs/about/
-    url = "/docs/#{path}/"
+    # Beispiel: path = "about" -> /docs/about
+    url = "/docs/#{path}"
     link_to text, url, options.merge(target: '_blank', rel: 'noopener')
   end
 

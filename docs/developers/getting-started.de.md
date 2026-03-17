@@ -197,13 +197,13 @@ Diese Fehler sind normal, wenn die Datenbank bereits teilweise initialisiert wur
 
 ## 📚 **Nächste Schritte**
 
-- [Entwicklerhandbuch](developer-guide.de.md) lesen
-- [API-Dokumentation](../reference/API.de.md) studieren
-- [Datenbankdesign](database-design.de.md) verstehen
-- [Scenario Management](scenario-management.de.md) für Deployment-Konfiguration
+- [Entwicklerhandbuch](developer-guide.md) lesen
+- [API-Dokumentation](../reference/API.md) studieren
+- [Datenbankdesign](database-design.md) verstehen
+- [Scenario Management](scenario-management.md) für Deployment-Konfiguration
 - Mit dem Team sprechen über aktuelle Tasks
 
-> ⚠️ **Hinweis:** Das alte "Enhanced Mode System" ist obsolet. Siehe [docs/obsolete/](obsolete/) für Migrations-Hinweise.
+> ⚠️ **Hinweis:** Das alte "Enhanced Mode System" ist obsolet. Siehe [docs/obsolete/](../developers/) für Migrations-Hinweise.
 
 ## 🆘 **Hilfe benötigt?**
 

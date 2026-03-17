@@ -310,9 +310,9 @@ Einzige Kosten: Hardware (Kameras, Raspberry Pis)
 
 ## Siehe auch
 
-- [Streaming Setup](streaming-setup.de.md)
-- [Streaming Quickstart](streaming-quickstart.de.md)
-- [Streaming Development Setup](../developers/streaming-dev-setup.de.md)
+- [Streaming Setup](streaming-setup.md)
+- [Streaming Quickstart](streaming-quickstart.md)
+- [Streaming Development Setup](../developers/streaming-dev-setup.md)
 
 
 

@@ -3,7 +3,7 @@
 
 **Version:** 1.0  
 **Datum:** 14. Januar 2026  
-**Kontext:** [Docker Database Complexity Analysis](DOCKER_DATABASE_COMPLEXITY_ANALYSIS.de.md)
+**Kontext:** [Docker Database Complexity Analysis](DOCKER_DATABASE_COMPLEXITY_ANALYSIS.md)
 
 ---
 

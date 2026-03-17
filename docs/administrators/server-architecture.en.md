@@ -407,10 +407,10 @@ rake sync:to_api[local_data]
 
 ## 📚 See Also
 
-- [Database Partitioning](../developers/database-partitioning.en.md) - Technical details
-- [Scenario Management](../developers/scenario-management.en.md) - Development with multiple scenarios
-- [Installation](installation-overview.en.md) - Setting up servers
-- [Raspberry Pi Setup](raspberry-pi-quickstart.en.md) - Local Server on Raspberry Pi
+- [Database Partitioning](../developers/database-partitioning.md) - Technical details
+- [Scenario Management](../developers/scenario-management.md) - Development with multiple scenarios
+- [Installation](installation-overview.md) - Setting up servers
+- [Raspberry Pi Setup](raspberry-pi-quickstart.md) - Local Server on Raspberry Pi
 
 ---
 

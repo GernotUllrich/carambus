@@ -487,10 +487,10 @@ ping -c 10 a.rtmp.youtube.com >> stream.log
 
 ### Internal Links
 
-- [Quick Start Guide](streaming-quickstart.en.md)
-- [Developer Architecture](../developers/streaming-architecture.en.md)
-- [Server Architecture](server-architecture.en.md)
-- [Scoreboard Setup](scoreboard-autostart.en.md)
+- [Quick Start Guide](streaming-quickstart.md)
+- [Developer Architecture](../developers/streaming-architecture.md)
+- [Server Architecture](server-architecture.md)
+- [Scoreboard Setup](scoreboard-autostart.md)
 
 ### External Resources
 

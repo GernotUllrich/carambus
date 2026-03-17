@@ -122,7 +122,7 @@ Falls `/dev/video1` statt `video0`:
 ## 📖 Weiterführend
 
 Vollständige Dokumentation:
-- [docs/administrators/streaming-setup.de.md](streaming-setup.de.md)
+- [docs/administrators/streaming-setup.de.md](streaming-setup.md)
 
 Befehls-Referenz:
 ```bash

@@ -118,6 +118,6 @@ sudo systemctl start carambus-stream@7.service
 
 ## Weitere Informationen
 
-- [Streaming Architecture](../developers/streaming-architecture.de.md)
+- [Streaming Architecture](../developers/streaming-architecture.md)
 - [Where to Run Tasks](./where-to-run-rake-tasks.md)
 

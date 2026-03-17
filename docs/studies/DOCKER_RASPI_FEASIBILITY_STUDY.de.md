@@ -1026,9 +1026,9 @@ Ergebnis:
 ### C. Referenzen & Weitere Dokumentation
 
 - [Docker-Trial Obsolete README](../docker-trial/obsolete/README.md)
-- [Scenario Management System](../developers/scenario-management.de.md)
-- [Deployment Workflow](../developers/deployment-workflow.de.md)
-- [Streaming Architecture](../developers/streaming-architecture.de.md)
+- [Scenario Management System](../developers/scenario-management.md)
+- [Deployment Workflow](../developers/deployment-workflow.md)
+- [Streaming Architecture](../developers/streaming-architecture.md)
 - [Raspberry Pi Setup Script](../../bin/setup-raspi-table-client.sh)
 
 ---

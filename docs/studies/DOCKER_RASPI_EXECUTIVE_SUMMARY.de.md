@@ -4,7 +4,7 @@
 **Version:** 1.0  
 **Datum:** 14. Januar 2026  
 **Status:** Empfehlung  
-**Vollständige Studie:** [DOCKER_RASPI_FEASIBILITY_STUDY.de.md](DOCKER_RASPI_FEASIBILITY_STUDY.de.md)
+**Vollständige Studie:** [DOCKER_RASPI_FEASIBILITY_STUDY.de.md](DOCKER_RASPI_FEASIBILITY_STUDY.md)
 
 ---
 
@@ -332,10 +332,10 @@ Der Hybrid-Ansatz ist **future-proof** und **risikominimiert**.
 
 ## 🔗 Weitere Informationen
 
-- **Vollständige Studie:** [DOCKER_RASPI_FEASIBILITY_STUDY.de.md](DOCKER_RASPI_FEASIBILITY_STUDY.de.md)
-- **Technische Architektur:** [docs/developers/streaming-architecture.de.md](../developers/streaming-architecture.de.md)
-- **Deployment-Workflow:** [docs/developers/deployment-workflow.de.md](../developers/deployment-workflow.de.md)
-- **Scenario-Management:** [docs/developers/scenario-management.de.md](../developers/scenario-management.de.md)
+- **Vollständige Studie:** [DOCKER_RASPI_FEASIBILITY_STUDY.de.md](DOCKER_RASPI_FEASIBILITY_STUDY.md)
+- **Technische Architektur:** [docs/developers/streaming-architecture.de.md](../developers/streaming-architecture.md)
+- **Deployment-Workflow:** [docs/developers/deployment-workflow.de.md](../developers/deployment-workflow.md)
+- **Scenario-Management:** [docs/developers/scenario-management.de.md](../developers/scenario-management.md)
 
 ---
 

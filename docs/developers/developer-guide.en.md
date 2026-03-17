@@ -133,7 +133,7 @@ The application uses Rails concerns to share functionality:
 
 For setting up a new development database, it is recommended to import an existing database dump. Detailed instructions can be found in the separate documentation:
 
-**[🗄️ Database Setup Guide](../administrators/database-setup.en.md)**
+**[🗄️ Database Setup Guide](../administrators/database-setup.md)**
 
 ### Quick Start
 ```bash
@@ -266,7 +266,7 @@ The scoreboard system provides live updates for tournament displays:
 - **WebSocket Integration**: Live updates via Action Cable
 
 #### Setup
-See [Scoreboard Autostart Setup](../administrators/../administrators/scoreboard-autostart.en.md) for detailed configuration.
+See [Scoreboard Autostart Setup](../administrators/../administrators/scoreboard-autostart.md) for detailed configuration.
 
 ### Data Synchronization
 Integration with external billiards databases:
@@ -362,8 +362,8 @@ rake scenario:deploy[scenario_name,target_environment]
 rake scenario:deploy[carambus_location_5101,production]
 ```
 
-**[🚀 Current: Scenario Management Documentation](scenario-management.en.md)**  
-~~**Old (Obsolete): [Enhanced Mode System](obsolete/enhanced_mode_system.de.md)**~~
+**[🚀 Current: Scenario Management Documentation](scenario-management.md)**  
+~~**Old (Obsolete): [Enhanced Mode System](../developers/enhanced_mode_system.md)**~~
 
 ### Production Setup
 The application is designed for deployment on Raspberry Pi or similar hardware:
@@ -375,7 +375,7 @@ The application is designed for deployment on Raspberry Pi or similar hardware:
 - **Web Server**: Nginx + Puma
 
 #### Deployment Process
-1. **Server Setup**: See [Runbook](doc/doc/Runbook) for detailed server configuration
+1. **Server Setup**: See [Runbook](../developers/developer-guide.de.md#operations) for detailed server configuration
 2. **Enhanced Mode Configuration**: Use the Enhanced Mode System for deployment configuration
 3. **Application Deployment**: Capistrano-based deployment
 4. **Service Management**: Systemd services for autostart
@@ -450,12 +450,12 @@ sudo systemctl status carambus
 ## Additional Resources
 
 ### Documentation
-- [Database Design](database-design.en.md): Detailed database schema
-- [Scoreboard Setup](../administrators/scoreboard-autostart.en.md): Scoreboard configuration
-- [Tournament Management](../managers/tournament-management.en.md): Tournament workflows
-- [Installation Overview](../administrators/installation-overview.en.md): Installation overview
-- [Scenario Management](scenario-management.en.md): Deployment configuration and multi-environment support
-- ~~[Enhanced Mode System](obsolete/enhanced_mode_system.de.md)~~ - **OBSOLETE** (replaced by Scenario Management)
+- [Database Design](database-design.md): Detailed database schema
+- [Scoreboard Setup](../administrators/scoreboard-autostart.md): Scoreboard configuration
+- [Tournament Management](../managers/tournament-management.md): Tournament workflows
+- [Installation Overview](../administrators/installation-overview.md): Installation overview
+- [Scenario Management](scenario-management.md): Deployment configuration and multi-environment support
+- ~~[Enhanced Mode System](../developers/enhanced_mode_system.md)~~ - **OBSOLETE** (replaced by Scenario Management)
 
 ### External Links
 - [Ruby on Rails Guides](https://guides.rubyonrails.org/)

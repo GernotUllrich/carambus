@@ -174,7 +174,7 @@ Die **[ClubCloud](https://club-cloud.de/)** ist eine webbasierte Verwaltungssoft
 - Carambus ist **unabhängig** und funktioniert auch ohne ClubCloud
 - Ergebnisse können per CSV zurück zu ClubCloud exportiert werden
 
-**Siehe:** [ClubCloud-Integration](../managers/clubcloud-integration.de.md) für Details zum Scraping-Prozess
+**Siehe:** [ClubCloud-Integration](../managers/clubcloud-integration.md) für Details zum Scraping-Prozess
 
 ---
 
@@ -188,7 +188,7 @@ Der **API Server** ist die zentrale Datenquelle für alle Carambus-Installatione
 
 **Beispiel:** carambus.de
 
-**Datenquelle:** Scraping von ClubCloud-Instanzen (siehe [ClubCloud-Integration](../managers/clubcloud-integration.de.md))
+**Datenquelle:** Scraping von ClubCloud-Instanzen (siehe [ClubCloud-Integration](../managers/clubcloud-integration.md))
 
 ### Local Server (Regionaler/Vereins-Server)
 Ein **Local Server** ist eine Carambus-Installation für einen spezifischen Standort.
@@ -235,7 +235,7 @@ Vereinsturnier (lokal): ID 50.001.234 (nur im Verein)
 Training-Game (lokal):  ID 50.100.567 (Dienstag-Training)
 ```
 
-**Siehe auch:** [Server-Architektur](../administrators/server-architecture.de.md)
+**Siehe auch:** [Server-Architektur](../administrators/server-architecture.md)
 
 ---
 
@@ -406,10 +406,10 @@ Region (Verband)
 
 ## 📚 Siehe auch
 
-- [Turnierverwaltung](../managers/tournament-management.de.md) - Einzelturniere
-- [Ligaspieltage](../managers/league-management.de.md) - Mannschaftswettbewerbe
-- [Datenbank-Design](../developers/database-design.de.md) - ER-Diagramm
-- [Filter & Suche](../search.de.md) - Daten finden
+- [Turnierverwaltung](../managers/tournament-management.md) - Einzelturniere
+- [Ligaspieltage](../managers/league-management.md) - Mannschaftswettbewerbe
+- [Datenbank-Design](../developers/database-design.md) - ER-Diagramm
+- [Filter & Suche](../search.md) - Daten finden
 
 ---
 

@@ -133,8 +133,8 @@ WICHTIGE REGEL:
 
 ## 📖 Verwandte Dokumentation
 
-- [CONTRIBUTING.de.md](CONTRIBUTING.de.md) - Allgemeine Beitrags-Richtlinien
-- [README.de.md](README.de.md) - Projekt-Übersicht
+- [CONTRIBUTING.de.md](CONTRIBUTING.md) - Allgemeine Beitrags-Richtlinien
+- [README.de.md](README.md) - Projekt-Übersicht
 - [carambus_master/docs/developers/](carambus_master/docs/developers/) - Developer-Dokumentation
 
 ---

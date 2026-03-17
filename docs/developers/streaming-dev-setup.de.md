@@ -197,9 +197,9 @@ Nach erfolgreichem Setup:
 
 ## Siehe auch
 
-- [Streaming Setup (Administrator)](../administrators/streaming-setup.de.md)
-- [Streaming Architektur (Entwickler)](./streaming-architecture.de.md)
-- [Streaming Quickstart (Administrator)](../administrators/streaming-quickstart.de.md)
+- [Streaming Setup (Administrator)](../administrators/streaming-setup.md)
+- [Streaming Architektur (Entwickler)](./streaming-architecture.md)
+- [Streaming Quickstart (Administrator)](../administrators/streaming-quickstart.md)
 
 
 

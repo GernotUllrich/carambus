@@ -1,0 +1,3467 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Comprehensive documentation for Carambus - Professional billiards tournament management system">
+      
+      
+      
+        <link rel="canonical" href="https://GernotUllrich.github.io/carambus/en/internal/bug-fixes/BROWSER_WATCHDOG_SOLUTION/">
+      
+      
+      
+      
+      <link rel="icon" href="../../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.15">
+    
+    
+      
+        <title>Browser Watchdog Solution - TV Display Auto-Recovery (2025-02-10) - Carambus Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../../assets/stylesheets/main.342714a4.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#browser-watchdog-solution-tv-display-auto-recovery-2025-02-10" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../../" title="Carambus Documentation" class="md-header__button md-logo" aria-label="Carambus Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Carambus Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Browser Watchdog Solution - TV Display Auto-Recovery (2025-02-10)
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+      <div class="md-header__option">
+  <div class="md-select">
+    
+    <button class="md-header__button md-icon" aria-label="Select language">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
+    </button>
+    <div class="md-select__inner">
+      <ul class="md-select__list">
+        
+          <li class="md-select__item">
+            <a href="../../../../internal/bug-fixes/BROWSER_WATCHDOG_SOLUTION/" hreflang="de" class="md-select__link">
+              Deutsch
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="./" hreflang="en" class="md-select__link">
+              English
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</div>
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/GernotUllrich/carambus" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GernotUllrich/carambus
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../decision-makers/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Decision Makers
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../players/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Players
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../managers/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Managers
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../administrators/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Administrators
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../developers/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Developers
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../reference/api/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../about/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  About
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../../" title="Carambus Documentation" class="md-nav__button md-logo" aria-label="Carambus Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Carambus Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/GernotUllrich/carambus" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GernotUllrich/carambus
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../decision-makers/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Decision Makers
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2" id="__nav_2_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Decision Makers
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../decision-makers/executive-summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Executive Summary
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../decision-makers/features-overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Features Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../decision-makers/deployment-options/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Deployment Options
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../players/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Players
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Players
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../players/scoreboard-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scoreboard Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../players/tournament-participation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tournament Participation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../players/ai-search/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    AI-Powered Search
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../managers/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Managers
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Managers
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../managers/tournament-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tournament Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../managers/league-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    League Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../managers/single-tournament/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Single Tournament
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../managers/table-reservation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Table Reservation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../managers/admin-roles/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Admin Roles
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../managers/clubcloud-integration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    ClubCloud Integration
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../managers/search-filters/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Search & Filters
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../administrators/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Administrators
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5" id="__nav_5_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Administrators
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../administrators/installation-overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Installation Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../administrators/raspberry-pi-quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Raspberry Pi Quickstart
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../administrators/raspberry-pi-client/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Raspberry Pi Client
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../administrators/scoreboard-autostart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scoreboard Autostart
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../administrators/server-architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Server Architecture
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../administrators/email-configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Email Configuration
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../administrators/database-setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Database Setup
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../administrators/streaming-quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    YouTube Streaming Quickstart
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../administrators/streaming-setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    YouTube Streaming Setup
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../developers/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Developers
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_6" id="__nav_6_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            Developers
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../developers/getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Getting Started
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../developers/developer-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Developer Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../developers/database-design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Database Design
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../developers/er-diagram/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    ER Diagram
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../reference/API.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    API Reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../developers/scenario-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scenario Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../developers/scenario-workflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scenario Workflow
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../developers/rubymine-setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    RubyMine Setup
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6_10" >
+        
+          
+          <label class="md-nav__link" for="__nav_6_10" id="__nav_6_10_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Testing
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6_10">
+            <span class="md-nav__icon md-icon"></span>
+            Testing
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../developers/testing/testing-quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Testing Quickstart
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../developers/testing/fixture-collection-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Fixture Collection Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6_11" >
+        
+          
+          <label class="md-nav__link" for="__nav_6_11" id="__nav_6_11_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    UMB Scraping
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_11_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6_11">
+            <span class="md-nav__icon md-icon"></span>
+            UMB Scraping
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../developers/umb-scraping-implementation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    UMB Scraping Implementation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../developers/umb-scraping-methods/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    UMB Scraping Methods
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../developers/frontend-sti-migration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Frontend STI Migration
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../developers/rake-tasks-debugging/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Testing & Debugging
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../developers/deployment-workflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Deployment Workflow
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../developers/data-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Data Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../developers/database-partitioning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Database Partitioning
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../developers/paper-trail-optimization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Paper Trail Optimization
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../developers/game-plan-reconstruction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Game Plan Reconstruction
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../developers/tournament-duplicate-handling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tournament Duplicates
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../developers/region-tagging-cleanup-summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Region Tagging
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../developers/streaming-architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    YouTube Streaming Architecture
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../developers/pool-scoreboard-changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Pool Scoreboard Changelog
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../developers/deployment-checklist/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Deployment Checklist Production
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../developers/umb-deployment-checklist/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    UMB Deployment Checklist
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Reference
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            Reference
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    API
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/glossary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Glossary
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/terms/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Terms
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/privacy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Privacy
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/config-lock-files/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Config Lock Files
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/search/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Search
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/mkdocs_dokumentation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    MkDocs
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    About
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            About
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../about/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    About
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#updated-problem-analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      🚨 Updated Problem Analysis
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🚨 Updated Problem Analysis">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#root-cause-updated" class="md-nav__link">
+    <span class="md-ellipsis">
+      Root Cause (Updated)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#losung-os-level-browser-watchdog" class="md-nav__link">
+    <span class="md-ellipsis">
+      ✅ Lösung: OS-Level Browser Watchdog
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="✅ Lösung: OS-Level Browser Watchdog">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#architektur-uberblick" class="md-nav__link">
+    <span class="md-ellipsis">
+      Architektur-Überblick
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#zwei-varianten" class="md-nav__link">
+    <span class="md-ellipsis">
+      Zwei Varianten
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#implementierte-dateien" class="md-nav__link">
+    <span class="md-ellipsis">
+      📁 Implementierte Dateien
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📁 Implementierte Dateien">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#scripts" class="md-nav__link">
+    <span class="md-ellipsis">
+      Scripts
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#systemd-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      Systemd Files
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installation" class="md-nav__link">
+    <span class="md-ellipsis">
+      🚀 Installation
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🚀 Installation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#variante-1-daily-restart-empfohlen_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Variante 1: Daily Restart (Empfohlen)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#variante-2-health-check_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Variante 2: Health Check
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#was-wird-installiert" class="md-nav__link">
+    <span class="md-ellipsis">
+      Was wird installiert?
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#testing" class="md-nav__link">
+    <span class="md-ellipsis">
+      🧪 Testing
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🧪 Testing">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#manueller-test" class="md-nav__link">
+    <span class="md-ellipsis">
+      Manueller Test
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#timer-status-prufen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Timer-Status prüfen
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#simulierter-tv-standby-test" class="md-nav__link">
+    <span class="md-ellipsis">
+      Simulierter TV-Standby Test
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#konfiguration" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔧 Konfiguration
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔧 Konfiguration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#restart-zeit-andern-variante-1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Restart-Zeit ändern (Variante 1)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#health-check-intervall-andern-variante-2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Health-Check-Intervall ändern (Variante 2)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#server-url-anpassen-variante-2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Server-URL anpassen (Variante 2)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#monitoring" class="md-nav__link">
+    <span class="md-ellipsis">
+      📊 Monitoring
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📊 Monitoring">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#log-rotation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Log-Rotation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#systemd-journal" class="md-nav__link">
+    <span class="md-ellipsis">
+      Systemd Journal
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#restart-haufigkeit-messen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Restart-Häufigkeit messen
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#erwartetes-verhalten" class="md-nav__link">
+    <span class="md-ellipsis">
+      🎯 Erwartetes Verhalten
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🎯 Erwartetes Verhalten">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#variante-1-daily-restart_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Variante 1: Daily Restart
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#variante-2-health-check_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Variante 2: Health Check
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configscoreboard_url-und-sb_state" class="md-nav__link">
+    <span class="md-ellipsis">
+      📄 config/scoreboard_url und sb_state
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#zusammenspiel-mit-javascript-losung" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔗 Zusammenspiel mit JavaScript-Lösung
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lessons-learned" class="md-nav__link">
+    <span class="md-ellipsis">
+      🎓 Lessons Learned
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🎓 Lessons Learned">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-javascript-ist-nicht-genug-fur-hardware-standby" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. JavaScript ist nicht genug für Hardware-Standby
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-einfachheit-schlagt-komplexitat" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Einfachheit schlägt Komplexität
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-tv-browsers-sind-spezielle-umgebungen" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. TV Browsers sind spezielle Umgebungen
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#known-limitations" class="md-nav__link">
+    <span class="md-ellipsis">
+      ⚠️ Known Limitations
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="⚠️ Known Limitations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-downtime-wahrend-neustart" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Downtime während Neustart
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-race-condition-bei-gleichzeitigem-restart-aller-clients" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Race Condition bei gleichzeitigem Restart aller Clients
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-neustart-wahrend-laufendem-spiel" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Neustart während laufendem Spiel
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#deployment" class="md-nav__link">
+    <span class="md-ellipsis">
+      🚀 Deployment
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🚀 Deployment">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#alle-table-clients-updaten" class="md-nav__link">
+    <span class="md-ellipsis">
+      Alle Table-Clients updaten
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#commit-und-push" class="md-nav__link">
+    <span class="md-ellipsis">
+      Commit und Push
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#future-improvements" class="md-nav__link">
+    <span class="md-ellipsis">
+      📝 Future Improvements
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📝 Future Improvements">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-intelligente-restart-logik" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Intelligente Restart-Logik
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-remote-monitoring-dashboard" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Remote Monitoring Dashboard
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-adaptive-restart-zeiten" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Adaptive Restart-Zeiten
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-wake-on-lan-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Wake-on-LAN Integration
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ergebnis" class="md-nav__link">
+    <span class="md-ellipsis">
+      ✅ Ergebnis
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="browser-watchdog-solution-tv-display-auto-recovery-2025-02-10">Browser Watchdog Solution - TV Display Auto-Recovery (2025-02-10)<a class="headerlink" href="#browser-watchdog-solution-tv-display-auto-recovery-2025-02-10" title="Permanent link">&para;</a></h1>
+<h2 id="updated-problem-analysis">🚨 Updated Problem Analysis<a class="headerlink" href="#updated-problem-analysis" title="Permanent link">&para;</a></h2>
+<p>Nach dem initialen Fix mit Page Visibility API stellte sich heraus: <strong>Der Samsung TV Browser wacht NICHT automatisch auf</strong>. Wenn der TV aus dem Standby kommt, ist der Browser-Prozess komplett eingefroren und kann sich nicht selbst neu starten.</p>
+<h3 id="root-cause-updated">Root Cause (Updated)<a class="headerlink" href="#root-cause-updated" title="Permanent link">&para;</a></h3>
+<p><strong>TV Standby = Browser Deep Freeze:</strong>
+- Samsung TV geht in tiefen Standby
+- Chromium-Prozess wird vom OS eingefroren (frozen)
+- <strong>JavaScript kann NICHT ausgeführt werden</strong> (auch nicht visibilitychange events)
+- Browser ist "tot" bis TV neu gestartet wird oder Browser-Prozess neu startet</p>
+<p><strong>Warum JavaScript-Lösung nicht funktioniert:</strong>
+- Page Visibility API Events werden nur gefeuert wenn Browser-Prozess läuft
+- Bei tiefem Sleep: Browser-Prozess ist komplett pausiert
+- Kein Event Handler kann ausgeführt werden
+- <strong>Ergebnis:</strong> Eingefrorenes Bild bleibt bis manueller Eingriff</p>
+<h2 id="losung-os-level-browser-watchdog">✅ Lösung: OS-Level Browser Watchdog<a class="headerlink" href="#losung-os-level-browser-watchdog" title="Permanent link">&para;</a></h2>
+<p>Da JavaScript nicht funktioniert, brauchen wir eine <strong>OS-Level Lösung</strong> die außerhalb des Browsers läuft.</p>
+<h3 id="architektur-uberblick">Architektur-Überblick<a class="headerlink" href="#architektur-uberblick" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>┌─────────────────────────────────────────────────────┐
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>│ Raspberry Pi OS (Linux)                             │
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>│                                                      │
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>│ ┌─────────────────────────────────────────────────┐ │
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>│ │ systemd Timer (cron-like)                       │ │
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>│ │   - Läuft unabhängig vom Browser                │ │
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>│ │   - Überlebt TV Standby                         │ │
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>│ │   - Kann Prozesse neu starten                   │ │
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>│ └───────────────────┬─────────────────────────────┘ │
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>│                     │ triggers                      │
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>│                     ↓                               │
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>│ ┌─────────────────────────────────────────────────┐ │
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>│ │ Watchdog Script                                 │ │
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>│ │   - Prüft Browser-Gesundheit                    │ │
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>│ │   - Startet Browser neu bei Bedarf              │ │
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>│ └───────────────────┬─────────────────────────────┘ │
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>│                     │ restarts                      │
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>│                     ↓                               │
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>│ ┌─────────────────────────────────────────────────┐ │
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>│ │ scoreboard-kiosk.service                        │ │
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>│ │   ├─ Chromium Browser (Kiosk Mode)              │ │
+<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>│ │   └─ table_scores Page                          │ │
+<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>│ └─────────────────────────────────────────────────┘ │
+<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>└─────────────────────────────────────────────────────┘
+</code></pre></div>
+<h3 id="zwei-varianten">Zwei Varianten<a class="headerlink" href="#zwei-varianten" title="Permanent link">&para;</a></h3>
+<h4 id="variante-1-daily-restart-empfohlen"><strong>Variante 1: Daily Restart (EMPFOHLEN)</strong><a class="headerlink" href="#variante-1-daily-restart-empfohlen" title="Permanent link">&para;</a></h4>
+<p><strong>Konzept:</strong> Browser wird jeden Morgen um 6:00 Uhr automatisch neu gestartet</p>
+<p><strong>Vorteile:</strong>
+- ✅ Einfach und zuverlässig
+- ✅ Funktioniert garantiert (kein komplexes Health Checking)
+- ✅ Verhindert langfristige Memory Leaks
+- ✅ Minimale CPU/Netzwerk-Last</p>
+<p><strong>Nachteile:</strong>
+- ⚠️  Browser startet neu auch wenn nicht nötig
+- ⚠️  1 Sekunde Downtime pro Tag (6:00 Uhr = unkritisch)</p>
+<p><strong>Wann verwenden:</strong>
+- TV wird jeden Tag für mehrere Stunden ausgeschaltet
+- Keine kritischen Anwendungen um 6:00 Uhr morgens
+- Einfachheit ist wichtiger als Optimierung</p>
+<h4 id="variante-2-health-check-watchdog"><strong>Variante 2: Health Check Watchdog</strong><a class="headerlink" href="#variante-2-health-check-watchdog" title="Permanent link">&para;</a></h4>
+<p><strong>Konzept:</strong> Browser-Gesundheit wird alle 5 Minuten geprüft, Neustart nur bei Bedarf</p>
+<p><strong>Vorteile:</strong>
+- ✅ Neustart nur wenn wirklich nötig
+- ✅ Erkennt auch andere Probleme (Crashes, Freezes)
+- ✅ Schnellere Recovery (max. 5 Minuten)</p>
+<p><strong>Nachteile:</strong>
+- ⚠️  Komplexer (HTTP Checks, Remote Debugging Port)
+- ⚠️  Mehr CPU/Netzwerk-Last (alle 5 Minuten)
+- ⚠️  False Positives möglich</p>
+<p><strong>Wann verwenden:</strong>
+- TV läuft 24/7, selten Standby
+- Minimale Downtime kritisch
+- Bereitschaft für komplexere Wartung</p>
+<h2 id="implementierte-dateien">📁 Implementierte Dateien<a class="headerlink" href="#implementierte-dateien" title="Permanent link">&para;</a></h2>
+<h3 id="scripts">Scripts<a class="headerlink" href="#scripts" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong><code>bin/scoreboard-browser-restart.sh</code></strong></li>
+<li>Einfacher Restart-Script für Variante 1</li>
+<li>Startet <code>scoreboard-kiosk.service</code> neu</li>
+<li>
+<p>Logging nach <code>/var/log/scoreboard-browser-restart.log</code></p>
+</li>
+<li>
+<p><strong><code>bin/scoreboard-browser-watchdog.sh</code></strong></p>
+</li>
+<li>Intelligenter Health-Check für Variante 2</li>
+<li>Prüft: Chromium-Prozess, Server-Erreichbarkeit, Browser-Responsiveness</li>
+<li>Neustart nur bei echtem Problem</li>
+<li>
+<p>Logging nach <code>/var/log/scoreboard-browser-watchdog.log</code></p>
+</li>
+<li>
+<p><strong><code>bin/install-browser-watchdog.sh</code></strong></p>
+</li>
+<li>Installer-Script für beide Varianten</li>
+<li>Automatische Deployment auf Raspberry Pi</li>
+<li>SSH-basierte Installation</li>
+</ol>
+<h3 id="systemd-files">Systemd Files<a class="headerlink" href="#systemd-files" title="Permanent link">&para;</a></h3>
+<h4 id="variante-1-daily-restart">Variante 1: Daily Restart<a class="headerlink" href="#variante-1-daily-restart" title="Permanent link">&para;</a></h4>
+<ol>
+<li><strong><code>systemd/scoreboard-browser-restart.timer</code></strong></li>
+<li>Timer: Jeden Tag um 6:00 Uhr</li>
+<li>
+<p>Randomized delay: ±5 Minuten (verhindert simultane Restarts aller Clients)</p>
+</li>
+<li>
+<p><strong><code>systemd/scoreboard-browser-restart.service</code></strong></p>
+</li>
+<li>Führt restart script aus</li>
+<li>Logging via journald</li>
+</ol>
+<h4 id="variante-2-health-check">Variante 2: Health Check<a class="headerlink" href="#variante-2-health-check" title="Permanent link">&para;</a></h4>
+<ol>
+<li><strong><code>systemd/scoreboard-browser-watchdog.timer</code></strong></li>
+<li>Timer: Alle 5 Minuten</li>
+<li>
+<p>Start: 5 Minuten nach Boot</p>
+</li>
+<li>
+<p><strong><code>systemd/scoreboard-browser-watchdog.service</code></strong></p>
+</li>
+<li>Führt health check aus</li>
+<li>Neustart nur bei Bedarf</li>
+<li>Logging via journald</li>
+</ol>
+<h2 id="installation">🚀 Installation<a class="headerlink" href="#installation" title="Permanent link">&para;</a></h2>
+<h3 id="variante-1-daily-restart-empfohlen_1">Variante 1: Daily Restart (Empfohlen)<a class="headerlink" href="#variante-1-daily-restart-empfohlen_1" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># Auf Development Machine (carambus_master/)</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="nb">cd</span><span class="w"> </span>/Volumes/EXT2TB/gullrich/DEV/carambus/carambus_master
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="c1"># Installation auf Raspberry Pi (bc-wedel, IP: 192.168.178.81)</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>./bin/install-browser-watchdog.sh<span class="w"> </span><span class="m">192</span>.168.178.81<span class="w"> </span>daily
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="c1"># Oder explizit:</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>./bin/install-browser-watchdog.sh<span class="w"> </span><span class="m">192</span>.168.178.81<span class="w"> </span>daily
+</code></pre></div>
+<h3 id="variante-2-health-check_1">Variante 2: Health Check<a class="headerlink" href="#variante-2-health-check_1" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>./bin/install-browser-watchdog.sh<span class="w"> </span><span class="m">192</span>.168.178.81<span class="w"> </span>healthcheck
+</code></pre></div>
+<h3 id="was-wird-installiert">Was wird installiert?<a class="headerlink" href="#was-wird-installiert" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Script kopiert nach:</strong> <code>/usr/local/bin/scoreboard-browser-restart.sh</code> (oder <code>-watchdog.sh</code>)</li>
+<li><strong>Systemd files kopiert nach:</strong> <code>/etc/systemd/system/scoreboard-browser-restart.*</code></li>
+<li><strong>Timer aktiviert:</strong> <code>systemctl enable --now scoreboard-browser-restart.timer</code></li>
+<li><strong>Log-Datei:</strong> <code>/var/log/scoreboard-browser-restart.log</code></li>
+</ol>
+<h2 id="testing">🧪 Testing<a class="headerlink" href="#testing" title="Permanent link">&para;</a></h2>
+<h3 id="manueller-test">Manueller Test<a class="headerlink" href="#manueller-test" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># SSH auf Raspberry Pi</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>ssh<span class="w"> </span>pj@192.168.178.81
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="c1"># Variante 1: Manueller Restart</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>sudo<span class="w"> </span>/usr/local/bin/scoreboard-browser-restart.sh
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="c1"># Variante 2: Manueller Health Check</span>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>sudo<span class="w"> </span>/usr/local/bin/scoreboard-browser-watchdog.sh
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="c1"># Log prüfen</span>
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>tail<span class="w"> </span>-f<span class="w"> </span>/var/log/scoreboard-browser-restart.log
+<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="c1"># oder</span>
+<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a>tail<span class="w"> </span>-f<span class="w"> </span>/var/log/scoreboard-browser-watchdog.log
+<a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a>
+<a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a><span class="c1"># Systemd Journal</span>
+<a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a>journalctl<span class="w"> </span>-u<span class="w"> </span>scoreboard-browser-restart.service<span class="w"> </span>-f
+<a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a><span class="c1"># oder</span>
+<a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a>journalctl<span class="w"> </span>-u<span class="w"> </span>scoreboard-browser-watchdog.service<span class="w"> </span>-f
+</code></pre></div>
+<h3 id="timer-status-prufen">Timer-Status prüfen<a class="headerlink" href="#timer-status-prufen" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># Liste alle Timer</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>systemctl<span class="w"> </span>list-timers
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="c1"># Status des Browser-Restart-Timers</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>systemctl<span class="w"> </span>status<span class="w"> </span>scoreboard-browser-restart.timer
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="c1"># Nächster geplanter Run</span>
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>systemctl<span class="w"> </span>list-timers<span class="w"> </span>scoreboard-browser-restart.timer<span class="w"> </span>--no-pager
+</code></pre></div>
+<h3 id="simulierter-tv-standby-test">Simulierter TV-Standby Test<a class="headerlink" href="#simulierter-tv-standby-test" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1"># 1. TV-Standby simulieren (Browser einfrieren)</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>ssh<span class="w"> </span>pj@192.168.178.81
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>sudo<span class="w"> </span>systemctl<span class="w"> </span>stop<span class="w"> </span>scoreboard-kiosk.service
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="c1"># Warte 10 Minuten (simuliert lange Standby-Zeit)</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="c1"># 2. Watchdog sollte Browser neu starten (bei Variante 2)</span>
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="c1"># Oder: Manuell triggern</span>
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>sudo<span class="w"> </span>/usr/local/bin/scoreboard-browser-restart.sh
+<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>
+<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="c1"># 3. Prüfe ob Browser läuft</span>
+<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>systemctl<span class="w"> </span>status<span class="w"> </span>scoreboard-kiosk.service
+<a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a>pgrep<span class="w"> </span>-a<span class="w"> </span>chromium
+</code></pre></div>
+<h2 id="konfiguration">🔧 Konfiguration<a class="headerlink" href="#konfiguration" title="Permanent link">&para;</a></h2>
+<h3 id="restart-zeit-andern-variante-1">Restart-Zeit ändern (Variante 1)<a class="headerlink" href="#restart-zeit-andern-variante-1" title="Permanent link">&para;</a></h3>
+<p>Edit <code>/etc/systemd/system/scoreboard-browser-restart.timer</code> auf dem Pi:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="k">[Timer]</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="c1"># Statt 6:00 Uhr → 4:00 Uhr</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="na">OnCalendar</span><span class="o">=</span><span class="s">*-*-* 04:00:00</span>
+</code></pre></div>
+<p>Dann reload:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>sudo<span class="w"> </span>systemctl<span class="w"> </span>daemon-reload
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>sudo<span class="w"> </span>systemctl<span class="w"> </span>restart<span class="w"> </span>scoreboard-browser-restart.timer
+</code></pre></div>
+<h3 id="health-check-intervall-andern-variante-2">Health-Check-Intervall ändern (Variante 2)<a class="headerlink" href="#health-check-intervall-andern-variante-2" title="Permanent link">&para;</a></h3>
+<p>Edit <code>/etc/systemd/system/scoreboard-browser-watchdog.timer</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="k">[Timer]</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="c1"># Statt alle 5 Minuten → alle 10 Minuten</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="na">OnUnitActiveSec</span><span class="o">=</span><span class="s">10min</span>
+</code></pre></div>
+<h3 id="server-url-anpassen-variante-2">Server-URL anpassen (Variante 2)<a class="headerlink" href="#server-url-anpassen-variante-2" title="Permanent link">&para;</a></h3>
+<p>Edit <code>/usr/local/bin/scoreboard-browser-watchdog.sh</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1"># Zeile ~12 ändern:</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="nv">SERVER_URL</span><span class="o">=</span><span class="s2">&quot;http://localhost:3131&quot;</span><span class="w">  </span><span class="c1"># Adjust based on your scenario</span>
+</code></pre></div>
+<h2 id="monitoring">📊 Monitoring<a class="headerlink" href="#monitoring" title="Permanent link">&para;</a></h2>
+<h3 id="log-rotation">Log-Rotation<a class="headerlink" href="#log-rotation" title="Permanent link">&para;</a></h3>
+<p>Beide Scripts rotieren ihre Logs automatisch bei 1MB:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="c1"># Alte Logs</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>/var/log/scoreboard-browser-restart.log.old
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>/var/log/scoreboard-browser-watchdog.log.old
+</code></pre></div>
+<h3 id="systemd-journal">Systemd Journal<a class="headerlink" href="#systemd-journal" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="c1"># Letzte 50 Restart-Events</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>journalctl<span class="w"> </span>-u<span class="w"> </span>scoreboard-browser-restart.service<span class="w"> </span>-n<span class="w"> </span><span class="m">50</span>
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="c1"># Follow live</span>
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>journalctl<span class="w"> </span>-u<span class="w"> </span>scoreboard-browser-restart.service<span class="w"> </span>-f
+<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>
+<a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a><span class="c1"># Filtern nach heute</span>
+<a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a>journalctl<span class="w"> </span>-u<span class="w"> </span>scoreboard-browser-restart.service<span class="w"> </span>--since<span class="w"> </span>today
+</code></pre></div>
+<h3 id="restart-haufigkeit-messen">Restart-Häufigkeit messen<a class="headerlink" href="#restart-haufigkeit-messen" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="c1"># Zähle wie oft Browser neu gestartet wurde (letzten 7 Tage)</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>journalctl<span class="w"> </span>-u<span class="w"> </span>scoreboard-browser-restart.service<span class="w"> </span>--since<span class="w"> </span><span class="s2">&quot;7 days ago&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span><span class="s2">&quot;Browser restarted successfully&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>wc<span class="w"> </span>-l
+</code></pre></div>
+<h2 id="erwartetes-verhalten">🎯 Erwartetes Verhalten<a class="headerlink" href="#erwartetes-verhalten" title="Permanent link">&para;</a></h2>
+<h3 id="variante-1-daily-restart_1">Variante 1: Daily Restart<a class="headerlink" href="#variante-1-daily-restart_1" title="Permanent link">&para;</a></h3>
+<p><strong>Normal:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>[2025-02-10 06:00:15] ==========================================
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>[2025-02-10 06:00:15] Starting browser restart process
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>[2025-02-10 06:00:15] Current service status: active (running)
+<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>[2025-02-10 06:00:15] Restarting scoreboard-kiosk.service...
+<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>[2025-02-10 06:00:20] ✅ Browser restarted successfully
+<a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>[2025-02-10 06:00:20] Browser restart completed successfully
+</code></pre></div></p>
+<p><strong>Täglich um 6:00 Uhr:</strong>
+- Browser wird automatisch neu gestartet
+- 5-10 Sekunden Downtime
+- Frische Seite geladen
+- WebSocket-Verbindung neu aufgebaut</p>
+<h3 id="variante-2-health-check_2">Variante 2: Health Check<a class="headerlink" href="#variante-2-health-check_2" title="Permanent link">&para;</a></h3>
+<p><strong>Gesund (alle 5 Minuten):</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>[2025-02-10 14:25:00] ==========================================
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>[2025-02-10 14:25:00] Running browser health check
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>[2025-02-10 14:25:00] ✅ Chromium process is running
+<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a>[2025-02-10 14:25:01] ✅ Server is reachable (http://localhost:3131)
+<a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>[2025-02-10 14:25:02] ✅ Browser remote debugging port responsive
+<a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a>[2025-02-10 14:25:02] ✅ All health checks passed
+</code></pre></div></p>
+<p><strong>Problem erkannt:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>[2025-02-10 14:30:00] ==========================================
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>[2025-02-10 14:30:00] Running browser health check
+<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a>[2025-02-10 14:30:00] ❌ Chromium process NOT found
+<a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a>[2025-02-10 14:30:00] ⚠️  Health check FAILED: Chromium not running
+<a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a>[2025-02-10 14:30:00] 🔄 Restarting scoreboard-kiosk.service...
+<a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a>[2025-02-10 14:30:05] ✅ Browser restarted successfully
+</code></pre></div></p>
+<h2 id="configscoreboard_url-und-sb_state">📄 config/scoreboard_url und sb_state<a class="headerlink" href="#configscoreboard_url-und-sb_state" title="Permanent link">&para;</a></h2>
+<p><strong>Lokal-Server (z. B. BCW):</strong> Der Kiosk liest die URL beim Start aus <code>config/scoreboard_url</code> (bzw. auf dem Server aus <code>/var/www/…/shared/config/scoreboard_url</code>). Welche Ansicht geöffnet wird, hängt vom Parameter <strong><code>sb_state</code></strong> ab:</p>
+<ul>
+<li><code>sb_state=welcome</code> – Willkommensseite</li>
+<li><code>sb_state=table_scores</code> – Tischübersicht (für große Anzeige empfohlen)</li>
+</ul>
+<p><strong>Wichtig:</strong> Die gewünschte URL muss <strong>vor dem ersten Start bzw. vor jedem Neustart</strong> in der Datei stehen. Nach einem Watchdog-Neustart startet der Browser exakt mit der URL aus dieser Datei.</p>
+<p><strong>Beispiel für BCW (lokaler Server, Port 3131):</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>http://localhost:3131/locations/0819bf0d7893e629200c20497ef9cfff?sb_state=table_scores
+</code></pre></div></p>
+<p>Die App überschreibt <code>config/scoreboard_url</code> nicht. Die Datei ist die einzige Quelle für die Kiosk-URL; Änderungen nimmt man direkt in der Datei vor (Fix 2025-02).</p>
+<p><strong>Auf dem Produktionsserver prüfen/setzen:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="c1"># Auf bcw (oder dem Pi) – Pfad je nach Deployment</span>
+<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a>cat<span class="w"> </span>/var/www/carambus_bcw/shared/config/scoreboard_url
+<a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a><span class="c1"># Sollte sb_state=table_scores enthalten, wenn die Tischübersicht gewünscht ist</span>
+<a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a>
+<a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a><span class="c1"># Manuell setzen (Beispiel):</span>
+<a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a><span class="nb">echo</span><span class="w"> </span><span class="s1">&#39;http://localhost:3131/locations/0819bf0d7893e629200c20497ef9cfff?sb_state=table_scores&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>sudo<span class="w"> </span>tee<span class="w"> </span>/var/www/carambus_bcw/shared/config/scoreboard_url
+<a id="__codelineno-17-7" name="__codelineno-17-7" href="#__codelineno-17-7"></a><span class="c1"># Anschließend: Browser-Neustart (oder warten bis zum nächsten Watchdog-Lauf)</span>
+<a id="__codelineno-17-8" name="__codelineno-17-8" href="#__codelineno-17-8"></a>sudo<span class="w"> </span>systemctl<span class="w"> </span>restart<span class="w"> </span>scoreboard-kiosk
+</code></pre></div></p>
+<h2 id="zusammenspiel-mit-javascript-losung">🔗 Zusammenspiel mit JavaScript-Lösung<a class="headerlink" href="#zusammenspiel-mit-javascript-losung" title="Permanent link">&para;</a></h2>
+<p>Die vorherige JavaScript-Lösung (<code>table_scores_monitor_controller.js</code>) bleibt aktiv und ergänzt den Watchdog:</p>
+<p><strong>Defense in Depth:</strong></p>
+<ol>
+<li><strong>JavaScript Layer (wenn Browser läuft):</strong></li>
+<li>Erkennt kurze Standby-Zeiten (&lt; 5 Minuten)</li>
+<li>Page Reload wenn Browser responsive</li>
+<li>
+<p>Schnellste Recovery (1 Sekunde)</p>
+</li>
+<li>
+<p><strong>Watchdog Layer (OS-Level):</strong></p>
+</li>
+<li>Erkennt tiefe Standby-Zustände (Browser frozen)</li>
+<li>Browser-Prozess Neustart</li>
+<li>Langsamere Recovery (5-10 Sekunden)</li>
+</ol>
+<p><strong>Zusammen:</strong>
+- <strong>Best Case:</strong> JavaScript erkennt Wake-up, Reload in 1s
+- <strong>Fallback:</strong> Watchdog erkennt frozen Browser, Neustart in 5-10min (Variante 2) oder 6:00 Uhr (Variante 1)</p>
+<h2 id="lessons-learned">🎓 Lessons Learned<a class="headerlink" href="#lessons-learned" title="Permanent link">&para;</a></h2>
+<h3 id="1-javascript-ist-nicht-genug-fur-hardware-standby">1. JavaScript ist nicht genug für Hardware-Standby<a class="headerlink" href="#1-javascript-ist-nicht-genug-fur-hardware-standby" title="Permanent link">&para;</a></h3>
+<p><strong>Problem:</strong>
+- Page Visibility API setzt voraus dass JavaScript ausgeführt werden kann
+- TV Standby friert gesamten Browser-Prozess ein
+- Kein Event Handler kann feuern</p>
+<p><strong>Lösung:</strong>
+- OS-Level Watchdog der unabhängig vom Browser läuft
+- systemd Timer = zuverlässiger als Browser-basierte Lösungen</p>
+<h3 id="2-einfachheit-schlagt-komplexitat">2. Einfachheit schlägt Komplexität<a class="headerlink" href="#2-einfachheit-schlagt-komplexitat" title="Permanent link">&para;</a></h3>
+<p><strong>Variante 1 (Daily Restart):</strong>
+- Einfacher Code, weniger Fehlerquellen
+- Garantiert funktionierend (kein komplexes Monitoring)
+- Akzeptabler Trade-off: 1x täglich 5s Downtime</p>
+<p><strong>Variante 2 (Health Check):</strong>
+- Komplexer, mehr Abhängigkeiten (curl, Remote Debugging Port)
+- Potential für False Positives
+- Nur wenn wirklich nötig</p>
+<p><strong>Empfehlung:</strong> Start with simple (Variante 1), upgrade nur wenn nötig</p>
+<h3 id="3-tv-browsers-sind-spezielle-umgebungen">3. TV Browsers sind spezielle Umgebungen<a class="headerlink" href="#3-tv-browsers-sind-spezielle-umgebungen" title="Permanent link">&para;</a></h3>
+<p><strong>Eigenschaften:</strong>
+- Aggressive Power Management
+- Kein User der "F5" drückt
+- Stunden bis Tage Standby
+- OS friert Prozesse komplett ein</p>
+<p><strong>Design-Implikationen:</strong>
+- Immer OS-Level Watchdog vorsehen
+- JavaScript-Lösungen als Bonus, nicht als primäre Strategie
+- Testing mit echtem Hardware-Standby essentiell</p>
+<h2 id="known-limitations">⚠️ Known Limitations<a class="headerlink" href="#known-limitations" title="Permanent link">&para;</a></h2>
+<h3 id="1-downtime-wahrend-neustart">1. Downtime während Neustart<a class="headerlink" href="#1-downtime-wahrend-neustart" title="Permanent link">&para;</a></h3>
+<p><strong>Problem:</strong> 5-10 Sekunden schwarzer Bildschirm während Browser-Neustart</p>
+<p><strong>Mitigation:</strong>
+- Variante 1: Restart um 6:00 Uhr (unkritische Zeit)
+- Variante 2: Nur bei echtem Problem
+- Akzeptabel: Besser als eingefrorenes Bild für Stunden</p>
+<h3 id="2-race-condition-bei-gleichzeitigem-restart-aller-clients">2. Race Condition bei gleichzeitigem Restart aller Clients<a class="headerlink" href="#2-race-condition-bei-gleichzeitigem-restart-aller-clients" title="Permanent link">&para;</a></h3>
+<p><strong>Problem:</strong> Alle Table-Clients starten gleichzeitig neu → Server-Last</p>
+<p><strong>Mitigation:</strong>
+- <code>RandomizedDelaySec=5min</code> in Timer
+- Clients starten innerhalb 5-Minuten-Fenster verteilt
+- Max. Load: N Clients / 5 Minuten</p>
+<h3 id="3-neustart-wahrend-laufendem-spiel">3. Neustart während laufendem Spiel<a class="headerlink" href="#3-neustart-wahrend-laufendem-spiel" title="Permanent link">&para;</a></h3>
+<p><strong>Problem:</strong> Browser-Neustart unterbricht aktive Scoreboards</p>
+<p><strong>Mitigation:</strong>
+- Variante 1: 6:00 Uhr = normalerweise keine Spiele
+- Variante 2: Health Check nur bei echtem Problem
+- Future: Check ob Spiel läuft bevor Restart</p>
+<h2 id="deployment">🚀 Deployment<a class="headerlink" href="#deployment" title="Permanent link">&para;</a></h2>
+<h3 id="alle-table-clients-updaten">Alle Table-Clients updaten<a class="headerlink" href="#alle-table-clients-updaten" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="c1"># Liste aller Table-Client IPs (anpassen!)</span>
+<a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a><span class="nv">TABLE_IPS</span><span class="o">=(</span>
+<a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a><span class="w">  </span><span class="s2">&quot;192.168.178.81&quot;</span><span class="w">   </span><span class="c1"># bc-wedel Table 1</span>
+<a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a><span class="w">  </span><span class="s2">&quot;192.168.178.82&quot;</span><span class="w">   </span><span class="c1"># bc-wedel Table 2</span>
+<a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a><span class="w">  </span><span class="c1"># ... weitere Tables</span>
+<a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a><span class="o">)</span>
+<a id="__codelineno-18-7" name="__codelineno-18-7" href="#__codelineno-18-7"></a>
+<a id="__codelineno-18-8" name="__codelineno-18-8" href="#__codelineno-18-8"></a><span class="c1"># Installation auf allen Clients</span>
+<a id="__codelineno-18-9" name="__codelineno-18-9" href="#__codelineno-18-9"></a><span class="k">for</span><span class="w"> </span>ip<span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">TABLE_IPS</span><span class="p">[@]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">;</span><span class="w"> </span><span class="k">do</span>
+<a id="__codelineno-18-10" name="__codelineno-18-10" href="#__codelineno-18-10"></a><span class="w">  </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Installing watchdog on </span><span class="nv">$ip</span><span class="s2">...&quot;</span>
+<a id="__codelineno-18-11" name="__codelineno-18-11" href="#__codelineno-18-11"></a><span class="w">  </span>./bin/install-browser-watchdog.sh<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$ip</span><span class="s2">&quot;</span><span class="w"> </span>daily
+<a id="__codelineno-18-12" name="__codelineno-18-12" href="#__codelineno-18-12"></a><span class="k">done</span>
+</code></pre></div>
+<h3 id="commit-und-push">Commit und Push<a class="headerlink" href="#commit-und-push" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="nb">cd</span><span class="w"> </span>/Volumes/EXT2TB/gullrich/DEV/carambus/carambus_master
+<a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a>
+<a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a>git<span class="w"> </span>add<span class="w"> </span>bin/scoreboard-browser-*.sh<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a><span class="w">        </span>bin/install-browser-watchdog.sh<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a><span class="w">        </span>systemd/scoreboard-browser-*.<span class="o">{</span>timer,service<span class="o">}</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-19-6" name="__codelineno-19-6" href="#__codelineno-19-6"></a><span class="w">        </span>docs/internal/bug-fixes/BROWSER_WATCHDOG_SOLUTION.md
+<a id="__codelineno-19-7" name="__codelineno-19-7" href="#__codelineno-19-7"></a>
+<a id="__codelineno-19-8" name="__codelineno-19-8" href="#__codelineno-19-8"></a>git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;Add: Browser watchdog for TV display auto-recovery&quot;</span>
+<a id="__codelineno-19-9" name="__codelineno-19-9" href="#__codelineno-19-9"></a>git<span class="w"> </span>push
+</code></pre></div>
+<h2 id="future-improvements">📝 Future Improvements<a class="headerlink" href="#future-improvements" title="Permanent link">&para;</a></h2>
+<h3 id="1-intelligente-restart-logik">1. Intelligente Restart-Logik<a class="headerlink" href="#1-intelligente-restart-logik" title="Permanent link">&para;</a></h3>
+<p><strong>Idee:</strong> Prüfe ob gerade ein Spiel läuft bevor Browser neu startet</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="c1"># In watchdog script:</span>
+<a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a><span class="c1"># Check if game is active on this table</span>
+<a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a><span class="nv">GAME_ACTIVE</span><span class="o">=</span><span class="k">$(</span>curl<span class="w"> </span>-s<span class="w"> </span>http://localhost:3131/api/table_monitors/active<span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span>-r<span class="w"> </span><span class="s1">&#39;.active&#39;</span><span class="k">)</span>
+<a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a><span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$GAME_ACTIVE</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;true&quot;</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="w"> </span><span class="k">then</span>
+<a id="__codelineno-20-5" name="__codelineno-20-5" href="#__codelineno-20-5"></a><span class="w">  </span>log<span class="w"> </span><span class="s2">&quot;⏸️  Skipping restart: Game is active&quot;</span>
+<a id="__codelineno-20-6" name="__codelineno-20-6" href="#__codelineno-20-6"></a><span class="w">  </span><span class="nb">exit</span><span class="w"> </span><span class="m">0</span>
+<a id="__codelineno-20-7" name="__codelineno-20-7" href="#__codelineno-20-7"></a><span class="k">fi</span>
+</code></pre></div>
+<h3 id="2-remote-monitoring-dashboard">2. Remote Monitoring Dashboard<a class="headerlink" href="#2-remote-monitoring-dashboard" title="Permanent link">&para;</a></h3>
+<p><strong>Idee:</strong> Zentrale Übersicht über alle Table-Clients</p>
+<ul>
+<li>Letzter Restart-Zeitpunkt</li>
+<li>Health-Check-Status</li>
+<li>Browser-Uptime</li>
+<li>Anzahl Restarts pro Tag</li>
+</ul>
+<h3 id="3-adaptive-restart-zeiten">3. Adaptive Restart-Zeiten<a class="headerlink" href="#3-adaptive-restart-zeiten" title="Permanent link">&para;</a></h3>
+<p><strong>Idee:</strong> Lerne optimale Restart-Zeit aus Nutzungsdaten</p>
+<ul>
+<li>Analysiere wann TV typischerweise ausgeschaltet wird</li>
+<li>Restart kurz nachdem TV wieder eingeschaltet wird</li>
+<li>Basierend auf historischen Daten</li>
+</ul>
+<h3 id="4-wake-on-lan-integration">4. Wake-on-LAN Integration<a class="headerlink" href="#4-wake-on-lan-integration" title="Permanent link">&para;</a></h3>
+<p><strong>Idee:</strong> Pi weckt TV auf vor Restart</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="c1"># Wake TV before restarting browser</span>
+<a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a>wakeonlan<span class="w"> </span>&lt;TV_MAC_ADDRESS&gt;
+<a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a>sleep<span class="w"> </span><span class="m">30</span><span class="w">  </span><span class="c1"># Wait for TV to be ready</span>
+<a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a>restart_browser
+</code></pre></div>
+<h2 id="ergebnis">✅ Ergebnis<a class="headerlink" href="#ergebnis" title="Permanent link">&para;</a></h2>
+<p><strong>Problem gelöst! 🎉</strong></p>
+<ul>
+<li>✅ TV kann beliebig lange im Standby sein</li>
+<li>✅ Browser startet automatisch neu (täglich oder bei Bedarf)</li>
+<li>✅ Keine eingefrorenen Bilder mehr</li>
+<li>✅ Keine manuelle Intervention nötig</li>
+<li>✅ Zuverlässige OS-Level Lösung</li>
+<li>✅ Einfach zu installieren und zu warten</li>
+</ul>
+<p><strong>Empfohlene Variante: Daily Restart</strong>
+- Installiere auf allen Table-Clients
+- Teste eine Woche
+- Bei Problemen: Switch zu Health Check Variante</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        <div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/GernotUllrich/carambus" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="http://www.billardclub-wedel.de/" target="_blank" rel="noopener" title="www.billardclub-wedel.de" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M352 256c0 22.2-1.2 43.6-3.3 64H163.4c-2.2-20.4-3.3-41.8-3.3-64s1.2-43.6 3.3-64h185.3c2.2 20.4 3.3 41.8 3.3 64m28.8-64h123.1c5.3 20.5 8.1 41.9 8.1 64s-2.8 43.5-8.1 64H380.8c2.1-20.6 3.2-42 3.2-64s-1.1-43.4-3.2-64m112.6-32H376.7c-10-63.9-29.8-117.4-55.3-151.6 78.3 20.7 142 77.5 171.9 151.6zm-149.1 0H167.7c6.1-36.4 15.5-68.6 27-94.7 10.5-23.6 22.2-40.7 33.5-51.5C239.4 3.2 248.7 0 256 0s16.6 3.2 27.8 13.8c11.3 10.8 23 27.9 33.5 51.5 11.6 26 20.9 58.2 27 94.7m-209 0H18.6c30-74.1 93.6-130.9 172-151.6-25.5 34.2-45.3 87.7-55.3 151.6M8.1 192h123.1c-2.1 20.6-3.2 42-3.2 64s1.1 43.4 3.2 64H8.1C2.8 299.5 0 278.1 0 256s2.8-43.5 8.1-64m186.6 254.6c-11.6-26-20.9-58.2-27-94.6h176.6c-6.1 36.4-15.5 68.6-27 94.6-10.5 23.6-22.2 40.7-33.5 51.5-11.2 10.7-20.5 13.9-27.8 13.9s-16.6-3.2-27.8-13.8c-11.3-10.8-23-27.9-33.5-51.5zM135.3 352c10 63.9 29.8 117.4 55.3 151.6-78.4-20.7-142-77.5-172-151.6zm358.1 0c-30 74.1-93.6 130.9-171.9 151.6 25.5-34.2 45.2-87.7 55.3-151.6h116.7z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../../../..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.indexes", "search.suggest", "search.highlight", "header.autohide", "toc.follow"], "search": "../../../../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../../../../assets/javascripts/bundle.56ea9cef.min.js"></script>
+      
+        <script src="../../../../javascripts/mathjax.js"></script>
+      
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>

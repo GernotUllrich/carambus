@@ -197,13 +197,13 @@ These errors are normal if the database was already partially initialized.
 
 ## 📚 **Next Steps**
 
-- Read [Developer Guide](developer-guide.en.md)
-- Study [API Documentation](../reference/API.en.md)
-- Understand [Database Design](database-design.en.md)
-- [Scenario Management](scenario-management.en.md) for deployment configuration
+- Read [Developer Guide](developer-guide.md)
+- Study [API Documentation](../reference/API.md)
+- Understand [Database Design](database-design.md)
+- [Scenario Management](scenario-management.md) for deployment configuration
 - Talk to the team about current tasks
 
-> ⚠️ **Note:** The old "Enhanced Mode System" is obsolete. See [docs/obsolete/](obsolete/) for migration notes.
+> ⚠️ **Note:** The old "Enhanced Mode System" is obsolete. See [docs/obsolete/](../developers/) for migration notes.
 
 ## 🆘 **Need Help?**
 

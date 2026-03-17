@@ -6,23 +6,23 @@ Welcome to the Carambus documentation! This directory contains comprehensive doc
 
 ### 🎯 For Decision Makers
 Evaluating Carambus for your club or federation?
-**Start**: [Decision Makers Overview](decision-makers/index.en.md)
+**Start**: [Decision Makers Overview](decision-makers/index.md)
 
 ### 🎮 For Players
 Using Carambus as tournament participant?
-**Start**: [Players Overview](players/index.en.md)
+**Start**: [Players Overview](players/index.md)
 
 ### 🏆 For Tournament Managers
 Organizing tournaments and league match days?
-**Start**: [Managers Overview](managers/index.en.md)
+**Start**: [Managers Overview](managers/index.md)
 
 ### 🖥️ For System Administrators
 Installing and operating Carambus?
-**Start**: [Administrators Overview](administrators/index.en.md)
+**Start**: [Administrators Overview](administrators/index.md)
 
 ### 💻 For Developers
 Developing with or on Carambus?
-**Start**: [Developers Overview](developers/index.en.md)
+**Start**: [Developers Overview](developers/index.md)
 
 ## 📚 Documentation Structure
 
@@ -87,29 +87,29 @@ docs/
 ## 🔍 Most Important Documents
 
 ### Getting Started
-- **[Main Index](index.en.md)**: Overview of all target audiences
-- **[About the Project](about.en.md)**: Background and history
+- **[Main Index](index.md)**: Overview of all target audiences
+- **[About the Project](about.md)**: Background and history
 
 ### For Decision Makers
-- **[Executive Summary](decision-makers/executive-summary.en.md)**: Compact overview
-- **[Features Overview](decision-makers/features-overview.en.md)**: All features
-- **[Deployment Options](decision-makers/deployment-options.en.md)**: Operating models compared
+- **[Executive Summary](decision-makers/executive-summary.md)**: Compact overview
+- **[Features Overview](decision-makers/features-overview.md)**: All features
+- **[Deployment Options](decision-makers/deployment-options.md)**: Operating models compared
 
 ### For Users
-- **[Scoreboard Guide](players/scoreboard-guide.en.md)**: Operation at the table
-- **[Tournament Management](managers/tournament-management.en.md)**: Organize tournaments
-- **[League Management](managers/league-management.en.md)**: Conduct league match days
+- **[Scoreboard Guide](players/scoreboard-guide.md)**: Operation at the table
+- **[Tournament Management](managers/tournament-management.md)**: Organize tournaments
+- **[League Management](managers/league-management.md)**: Conduct league match days
 
 ### For Administrators
-- **[Installation](administrators/installation-overview.en.md)**: All installation options
-- **[Raspberry Pi Setup](administrators/raspberry-pi-quickstart.en.md)**: RasPi in 30 minutes
-- **[Server Architecture](administrators/server-architecture.en.md)**: System overview
+- **[Installation](administrators/installation-overview.md)**: All installation options
+- **[Raspberry Pi Setup](administrators/raspberry-pi-quickstart.md)**: RasPi in 30 minutes
+- **[Server Architecture](administrators/server-architecture.md)**: System overview
 
 ### For Developers
-- **[Getting Started](developers/getting-started.en.md)**: Development environment
-- **[Developer Guide](developers/developer-guide.en.md)**: Comprehensive handbook
-- **[Database Design](developers/database-design.en.md)**: Schema and models
-- **[API Reference](reference/API.en.md)**: REST API documentation
+- **[Getting Started](developers/getting-started.md)**: Development environment
+- **[Developer Guide](developers/developer-guide.md)**: Comprehensive handbook
+- **[Database Design](developers/database-design.md)**: Schema and models
+- **[API Reference](reference/API.md)**: REST API documentation
 
 ## 🌍 Languages
 
@@ -122,7 +122,7 @@ Use the language selector in the mkdocs navigation to switch languages.
 ## 🔄 Documentation Maintenance
 
 ### Contributing to Documentation
-- Follow the [Contribution Guide](developers/developer-guide.en.md)
+- Follow the [Contribution Guide](developers/developer-guide.md)
 - Update relevant documentation when adding features
 - Add code examples for new APIs
 - Maintain consistency across all documents
@@ -143,7 +143,7 @@ Use the language selector in the mkdocs navigation to switch languages.
 ### Search Documentation
 - Use the **search function** (top right in mkdocs)
 - Use the **table of contents** on each page
-- Check the **[Glossary](reference/glossary.en.md)** for technical terms
+- Check the **[Glossary](reference/glossary.md)** for technical terms
 
 ### Support Channels
 - **GitHub Issues**: [https://github.com/GernotUllrich/carambus/issues](https://github.com/GernotUllrich/carambus/issues)
@@ -159,14 +159,14 @@ If you find missing documentation or errors:
 ## 🚀 Quick Links
 
 ### For New Users
-- [What is Carambus?](about.en.md)
-- [Which target audience am I?](index.en.md)
-- [How do I install Carambus?](administrators/installation-overview.en.md)
+- [What is Carambus?](about.md)
+- [Which target audience am I?](index.md)
+- [How do I install Carambus?](administrators/installation-overview.md)
 
 ### For Experienced Users
-- [API Documentation](reference/API.en.md)
-- [Database Schema](developers/database-design.en.md)
-- [Deployment Workflow](developers/deployment-workflow.en.md)
+- [API Documentation](reference/API.md)
+- [Database Schema](developers/database-design.md)
+- [Deployment Workflow](developers/deployment-workflow.md)
 
 ---
 

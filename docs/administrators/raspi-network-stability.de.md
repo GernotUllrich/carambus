@@ -240,8 +240,8 @@ Instabile Netzwerkverbindung = Stream-Abbrüche!
 
 ## 📚 Siehe auch
 
-- [Streaming Setup](streaming-setup.de.md)
-- [Streaming Development Setup](../developers/streaming-dev-setup.de.md)
+- [Streaming Setup](streaming-setup.md)
+- [Streaming Development Setup](../developers/streaming-dev-setup.md)
 - [Raspberry Pi Official Documentation](https://www.raspberrypi.org/documentation/)
 
 

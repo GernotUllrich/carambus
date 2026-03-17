@@ -12,12 +12,12 @@ A comprehensive evaluation of containerizing the Scoreboard & Streaming infrastr
 
 **Documents:**
 
-1. **[Executive Summary](DOCKER_RASPI_EXECUTIVE_SUMMARY.de.md)** (⏱️ 5 min read)
+1. **[Executive Summary](DOCKER_RASPI_EXECUTIVE_SUMMARY.md)** (⏱️ 5 min read)
    - For: Management & Decision Makers
    - Content: Key findings, cost-benefit, recommendation
    - Use when: Quick decision needed
 
-2. **[Full Feasibility Study](DOCKER_RASPI_FEASIBILITY_STUDY.de.md)** (⏱️ 45 min read)
+2. **[Full Feasibility Study](DOCKER_RASPI_FEASIBILITY_STUDY.md)** (⏱️ 45 min read)
    - For: Technical Team, Architects
    - Content: Detailed analysis, performance metrics, technical risks
    - Use when: Deep technical understanding needed
