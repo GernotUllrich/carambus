@@ -322,8 +322,9 @@ Rails.application.routes.draw do
     get :database_syncing
 
     # Neue Routen für integrierte MkDocs-Dokumentation
-    get "docs_page/:locale/:path" => :docs_page, as: :docs_page_with_locale, constraints: { locale: /de|en/ }
-    get "docs_page/:path" => :docs_page, as: :docs_page, defaults: { locale: "de" }
+    # Use *path to match paths with slashes (e.g., managers/tournament-management)
+    get "docs_page/:locale/*path" => :docs_page, as: :docs_page_with_locale, constraints: { locale: /de|en/ }
+    get "docs_page/*path" => :docs_page, as: :docs_page, defaults: { locale: "de" }
   end
 
   match "/404", to: "errors#not_found", via: :all
