@@ -139,14 +139,14 @@ module ApplicationHelper
     link_to text, docs_page_path(path: path, locale: locale), options
   end
 
-  # Hilfsmethode für externe MkDocs-Links
+  # Hilfsmethode für lokale MkDocs-Links
   def mkdocs_link(path, locale: nil, text: nil, options: {})
     locale ||= I18n.locale.to_s
     text ||= path.split('/').last.humanize
     
     # Korrekte URL-Struktur für MkDocs-Seiten
-    # Beispiel: path = "about" -> https://gernotullrich.github.io/carambus/about/
-    url = "https://gernotullrich.github.io/carambus/#{path}/"
+    # Beispiel: path = "about" -> /docs/about/
+    url = "/docs/#{path}/"
     link_to text, url, options.merge(target: '_blank', rel: 'noopener')
   end
 
