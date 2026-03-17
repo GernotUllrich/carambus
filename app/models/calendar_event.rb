@@ -45,6 +45,9 @@ class CalendarEvent < ApplicationRecord
     ret = service.delete_event(calendar_id, event.id, send_notifications: true)
     Rails.logger.info "Reservations: WARNING - nonconformant event #{event.summary} deleted"
     ret
+  rescue Google::Apis::ClientError => e
+    Rails.logger.warn "Reservations: WARNING - cannot delete nonconformant event #{event.summary}: #{e.message}"
+    nil
   end
 
   def self.tables_from_summary(string, location)
