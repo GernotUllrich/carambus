@@ -12,7 +12,15 @@
       
       <!-- External MkDocs Link -->
       <div class="flex items-center">
-        <%= link_to "/docs/#{params[:path]}", target: "_blank", class: "inline-flex items-center px-3 py-1 text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300" do %>
+        <% mkdocs_path = Array(params[:path]).join('/') %>
+        <%# For 'index' pages at directory level, don't add trailing slash; for pages in subdirectories, add it %>
+        <% is_index_file = mkdocs_path.end_with?('/index') || mkdocs_path == 'index' %>
+        <% mkdocs_url = if params[:locale] == 'en'
+                          is_index_file ? "/docs/en/#{mkdocs_path}" : "/docs/en/#{mkdocs_path}/"
+                        else
+                          is_index_file ? "/docs/#{mkdocs_path}" : "/docs/#{mkdocs_path}/"
+                        end %>
+        <%= link_to mkdocs_url, target: "_blank", class: "inline-flex items-center px-3 py-1 text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300" do %>
           <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
           </svg>
@@ -39,7 +47,7 @@
       
       <div class="flex space-x-4">
         <!-- View in MkDocs Button -->
-        <%= link_to "/docs/#{params[:path]}", target: "_blank", class: "inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600" do %>
+        <%= link_to mkdocs_url, target: "_blank", class: "inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600" do %>
           <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
           </svg>

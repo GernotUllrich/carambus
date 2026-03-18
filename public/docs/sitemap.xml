@@ -1009,6 +1009,13 @@
         <xhtml:link rel="alternate" hreflang="en" href="https://GernotUllrich.github.io/carambus/en/internal/INDEX/"/>
     </url>
     <url>
+        <loc>https://GernotUllrich.github.io/carambus/internal/MKDOCS_STYLING_FIX_2026_03_18/</loc>
+        <lastmod>2026-03-18</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="de" href="https://GernotUllrich.github.io/carambus/internal/MKDOCS_STYLING_FIX_2026_03_18/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://GernotUllrich.github.io/carambus/en/internal/MKDOCS_STYLING_FIX_2026_03_18/"/>
+    </url>
+    <url>
         <loc>https://GernotUllrich.github.io/carambus/internal/RAILS_DOCS_PAGE_FIX_2026_03/</loc>
         <lastmod>2026-03-18</lastmod>
         <changefreq>daily</changefreq>
@@ -2903,6 +2910,13 @@
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://GernotUllrich.github.io/carambus/en/internal/INDEX/"/>
         <xhtml:link rel="alternate" hreflang="de" href="https://GernotUllrich.github.io/carambus/internal/INDEX/"/>
+    </url>
+    <url>
+        <loc>https://GernotUllrich.github.io/carambus/en/internal/MKDOCS_STYLING_FIX_2026_03_18/</loc>
+        <lastmod>2026-03-18</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://GernotUllrich.github.io/carambus/en/internal/MKDOCS_STYLING_FIX_2026_03_18/"/>
+        <xhtml:link rel="alternate" hreflang="de" href="https://GernotUllrich.github.io/carambus/internal/MKDOCS_STYLING_FIX_2026_03_18/"/>
     </url>
     <url>
         <loc>https://GernotUllrich.github.io/carambus/en/internal/RAILS_DOCS_PAGE_FIX_2026_03/</loc>
