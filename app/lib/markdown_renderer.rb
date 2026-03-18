@@ -17,10 +17,17 @@ class MarkdownRenderer < Redcarpet::Render::HTML
 
   # Override link rendering to transform internal .md links to Rails routes
   def link(link, title, content)
-    # Check if this is an internal .md link
-    if link.end_with?('.md') && !link.start_with?('http://', 'https://', '//')
+    # Check if this is an internal .md link (with or without anchor)
+    if link.match?(/\.md(#|$)/) && !link.start_with?('http://', 'https://', '//')
+      # Split anchor from path
+      path, anchor = link.split('#', 2)
+      
       # Remove .md extension
-      path = link.sub(/\.md$/, '')
+      path = path.sub(/\.md$/, '')
+      
+      # Remove language suffixes (.de, .en) if present
+      # This handles both old-style links and ensures compatibility
+      path = path.sub(/\.(de|en)$/, '')
       
       # Remove any leading '../' or './' - we'll use absolute paths from docs root
       # This matches how MkDocs resolves links
@@ -28,6 +35,9 @@ class MarkdownRenderer < Redcarpet::Render::HTML
       
       # Convert to Rails docs_page route with locale
       rails_path = "/docs_page/#{@locale}/#{path}"
+      
+      # Re-add anchor if present
+      rails_path += "##{anchor}" if anchor
       
       # Build the link tag (internal links stay in same window)
       title_attr = title ? " title=\"#{title}\"" : ""
