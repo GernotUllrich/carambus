@@ -1,0 +1,32 @@
+/* Carambus Custom Styles */
+
+/* Fix for better readability */
+.md-typeset {
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+/* Improve code blocks */
+.md-typeset code {
+  background-color: rgba(0, 0, 0, 0.05);
+  padding: 0.1em 0.4em;
+  border-radius: 3px;
+}
+
+/* Better table styling */
+.md-typeset table:not([class]) {
+  display: table;
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.md-typeset table:not([class]) th,
+.md-typeset table:not([class]) td {
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  padding: 0.6em 1em;
+}
+
+/* Admonitions styling */
+.md-typeset .admonition {
+  margin: 1.5em 0;
+}

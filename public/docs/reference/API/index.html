@@ -24,7 +24,7 @@
     
     
       
-        <title>API - Carambus Documentation</title>
+        <title>API-Referenz - Carambus Documentation</title>
       
     
     
@@ -118,7 +118,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              API
+              API-Referenz
             
           </span>
         </div>
@@ -1513,10 +1513,32 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../API.md" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    API-Referenz
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -1527,6 +1549,407 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Inhaltsverzeichnis">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Inhaltsverzeichnis
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#ubersicht" class="md-nav__link">
+    <span class="md-ellipsis">
+      Übersicht
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#authentifizierung" class="md-nav__link">
+    <span class="md-ellipsis">
+      Authentifizierung
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Authentifizierung">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#session-basierte-authentifizierung" class="md-nav__link">
+    <span class="md-ellipsis">
+      Session-basierte Authentifizierung
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#api-token-authentifizierung-zukunft" class="md-nav__link">
+    <span class="md-ellipsis">
+      API-Token-Authentifizierung (Zukunft)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#basis-url" class="md-nav__link">
+    <span class="md-ellipsis">
+      Basis-URL
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#antwortformat" class="md-nav__link">
+    <span class="md-ellipsis">
+      Antwortformat
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#fehlerantworten" class="md-nav__link">
+    <span class="md-ellipsis">
+      Fehlerantworten
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#kern-endpunkte" class="md-nav__link">
+    <span class="md-ellipsis">
+      Kern-Endpunkte
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Kern-Endpunkte">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#turniere" class="md-nav__link">
+    <span class="md-ellipsis">
+      Turniere
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#turnier-aktionen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Turnier-Aktionen
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#spieler" class="md-nav__link">
+    <span class="md-ellipsis">
+      Spieler
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ligen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Ligen
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parties-spiele" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parties (Spiele)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tisch-monitore" class="md-nav__link">
+    <span class="md-ellipsis">
+      Tisch-Monitore
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tisch-monitor-aktionen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Tisch-Monitor-Aktionen
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#echtzeit-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      Echtzeit-API
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Echtzeit-API">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#action-cable-channels" class="md-nav__link">
+    <span class="md-ellipsis">
+      Action Cable Channels
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#websocket-nachrichtenformat" class="md-nav__link">
+    <span class="md-ellipsis">
+      WebSocket-Nachrichtenformat
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#datensynchronisations-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      Datensynchronisations-API
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Datensynchronisations-API">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#externe-datenquellen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Externe Datenquellen
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#regionsverwaltung" class="md-nav__link">
+    <span class="md-ellipsis">
+      Regionsverwaltung
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#admin-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      Admin-API
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Admin-API">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#benutzerverwaltung" class="md-nav__link">
+    <span class="md-ellipsis">
+      Benutzerverwaltung
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#systemeinstellungen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Systemeinstellungen
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#rate-limiting" class="md-nav__link">
+    <span class="md-ellipsis">
+      Rate Limiting
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#paginierung" class="md-nav__link">
+    <span class="md-ellipsis">
+      Paginierung
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#filterung-und-sortierung" class="md-nav__link">
+    <span class="md-ellipsis">
+      Filterung und Sortierung
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Filterung und Sortierung">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#filterung" class="md-nav__link">
+    <span class="md-ellipsis">
+      Filterung
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sortierung" class="md-nav__link">
+    <span class="md-ellipsis">
+      Sortierung
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#fehlercodes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Fehlercodes
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sdks-und-bibliotheken" class="md-nav__link">
+    <span class="md-ellipsis">
+      SDKs und Bibliotheken
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="SDKs und Bibliotheken">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#javascripttypescript" class="md-nav__link">
+    <span class="md-ellipsis">
+      JavaScript/TypeScript
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ruby" class="md-nav__link">
+    <span class="md-ellipsis">
+      Ruby
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#beispiele" class="md-nav__link">
+    <span class="md-ellipsis">
+      Beispiele
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Beispiele">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#vollstandiger-turnier-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      Vollständiger Turnier-Workflow
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#echtzeit-scoreboard-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Echtzeit-Scoreboard-Integration
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#support" class="md-nav__link">
+    <span class="md-ellipsis">
+      Support
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -2202,7 +2625,7 @@
   
   
   <span class="md-ellipsis">
-    API
+    API-Referenz
     
   </span>
   
@@ -2215,7 +2638,7 @@
   
   
   <span class="md-ellipsis">
-    API
+    API-Referenz
     
   </span>
   

@@ -3,8 +3,8 @@
 # Controller für MkDocs-Dokumentation
 class DocsController < ApplicationController
   def show
-    # Pfad aus der URL extrahieren
-    path = params[:path]
+    # Pfad aus der URL extrahieren (glob route gibt Array zurück)
+    path = Array(params[:path]).join('/')
 
     # Sicherheitscheck: Verhindere Directory Traversal
     if path.include?('..') || path.start_with?('/')
@@ -12,7 +12,7 @@ class DocsController < ApplicationController
       return
     end
 
-    # HTML-Datei aus public/docs laden
+    # Datei aus public/docs laden
     docs_path = Rails.root.join('public', 'docs', path)
 
     # Wenn es ein Verzeichnis ist, index.html verwenden
@@ -31,20 +31,30 @@ class DocsController < ApplicationController
       return
     end
 
-    # HTML-Datei laden und rendern
-    content = File.read(docs_path)
-
-    # Content-Type auf HTML setzen
-    response.headers['Content-Type'] = 'text/html; charset=utf-8'
-
-    # HTML-Inhalt rendern
-    render html: content.html_safe, layout: false
+    # Prüfe Dateiendung und serviere entsprechend
+    case File.extname(docs_path)
+    when '.css'
+      send_file docs_path, type: 'text/css', disposition: 'inline'
+    when '.js'
+      send_file docs_path, type: 'application/javascript', disposition: 'inline'
+    when '.png', '.jpg', '.jpeg', '.gif', '.svg', '.ico', '.webp'
+      send_file docs_path, type: "image/#{File.extname(docs_path)[1..-1]}", disposition: 'inline'
+    when '.woff', '.woff2', '.ttf', '.eot'
+      send_file docs_path, type: 'font/woff', disposition: 'inline'
+    when '.json'
+      send_file docs_path, type: 'application/json', disposition: 'inline'
+    else
+      # HTML-Datei laden und rendern
+      content = File.read(docs_path)
+      response.headers['Content-Type'] = 'text/html; charset=utf-8'
+      render html: content.html_safe, layout: false
+    end
   end
 
   # Neue Methode für Assets (CSS, JS, Bilder)
   def assets
-    # Pfad aus der URL extrahieren
-    path = params[:path]
+    # Pfad aus der URL extrahieren (glob route gibt Array zurück)
+    path = Array(params[:path]).join('/')
 
     # Sicherheitscheck: Verhindere Directory Traversal
     if path.include?('..') || path.start_with?('/')
