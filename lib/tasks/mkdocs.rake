@@ -69,6 +69,6 @@ namespace :mkdocs do
   desc "Build and deploy MkDocs documentation"
   task deploy: [:clean, :build] do
     puts "MkDocs documentation deployed successfully!"
-    puts "Available at: #{Rails.application.routes.url_helpers.root_url}docs/"
+    puts "Available at: /docs/"
   end
 end 
