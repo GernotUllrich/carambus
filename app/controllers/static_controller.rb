@@ -249,6 +249,10 @@ class StaticController < ApplicationController
   end
 
   def render_404
-    render file: Rails.root.join('public', '404.html'), status: :not_found, layout: false
+    # Use a more reliable 404 rendering that works with Capistrano deployments
+    respond_to do |format|
+      format.html { render plain: "404 - Page Not Found", status: :not_found }
+      format.all { head :not_found }
+    end
   end
 end
