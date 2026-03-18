@@ -9,6 +9,7 @@ class MarkdownRenderer < Redcarpet::Render::HTML
 
   def initialize(options = {})
     @locale = options[:locale] || I18n.locale.to_s
+    @current_path = options[:current_path] || ''
     super options.merge(
       hard_wrap: true,
       link_attributes: { target: '_blank', rel: 'noopener' }
@@ -29,9 +30,18 @@ class MarkdownRenderer < Redcarpet::Render::HTML
       # This handles both old-style links and ensures compatibility
       path = path.sub(/\.(de|en)$/, '')
       
-      # Remove any leading '../' or './' - we'll use absolute paths from docs root
-      # This matches how MkDocs resolves links
-      path = path.gsub(/^\.\.\//, '').gsub(/^\.\//, '')
+      # Handle relative vs absolute paths
+      if path.start_with?('../')
+        # Parent directory reference - remove ../
+        path = path.gsub(/^\.\.\//, '')
+      elsif path.start_with?('./')
+        # Current directory reference - remove ./ and add current_path
+        path = path.sub(/^\.\//, '')
+        path = "#{@current_path}/#{path}" unless @current_path.empty?
+      elsif !path.start_with?('/')
+        # Relative path (no prefix) - it's in the same directory
+        path = "#{@current_path}/#{path}" unless @current_path.empty?
+      end
       
       # Convert to Rails docs_page route with locale
       rails_path = "/docs_page/#{@locale}/#{path}"
