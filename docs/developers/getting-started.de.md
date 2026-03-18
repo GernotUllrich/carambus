@@ -198,7 +198,7 @@ Diese Fehler sind normal, wenn die Datenbank bereits teilweise initialisiert wur
 ## 📚 **Nächste Schritte**
 
 - [Entwicklerhandbuch](developer-guide.md) lesen
-- [API-Dokumentation](../reference/API.md) studieren
+- [API-Dokumentation](../reference/api.md) studieren
 - [Datenbankdesign](database-design.md) verstehen
 - [Scenario Management](scenario-management.md) für Deployment-Konfiguration
 - Mit dem Team sprechen über aktuelle Tasks

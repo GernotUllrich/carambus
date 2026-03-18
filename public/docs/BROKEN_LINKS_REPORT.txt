@@ -14,47 +14,34 @@ Summary
 Files checked: 177
 Total links: 833
 External links: 194
-Broken links: 78
+Broken links: 74
 
-[31m✗ Found 78 broken links:[0m
-
-[34mMKDOCS_DEVELOPMENT.md[0m
-  [31mLine 361:[0m [Link](/docs/managers/tournament-management/)
-    [33mSuggestions:[0m
-      • managers/tournament-management.de.md
-      • managers/tournament-management.en.md
-
-  [31mLine 362:[0m [Link](/docs/managers/tournament-management)
-    [33mSuggestions:[0m
-      • managers/tournament-management.de.md
-      • managers/tournament-management.en.md
-
-[34madministrators/index.de.md[0m
-  [31mLine 145:[0m [Tischreservierung & Heizungssteuerung](../managers/table-reservation.de.md)
-
-  [31mLine 544:[0m [Tischreservierung & Heizung](../managers/table-reservation.de.md)
+[31m✗ Found 74 broken links:[0m
 
 [34madministrators/streaming-production-deployment.md[0m
   [31mLine 571:[0m [Systemd Services](systemd-streaming-services.md)
 
 [34mdevelopers/developer-guide.en.md[0m
-  [31mLine 366:[0m [Enhanced Mode System](../developers/enhanced_mode_system.de.md)
+  [31mLine 366:[0m [Enhanced Mode System](../developers/enhanced_mode_system.md)
 
-  [31mLine 458:[0m [Enhanced Mode System](../developers/enhanced_mode_system.de.md)
+  [31mLine 458:[0m [Enhanced Mode System](../developers/enhanced_mode_system.md)
 
 [34mdevelopers/operations/tournament-game-protection.de.md[0m
   [31mLine 254:[0m [FLASH_MESSAGES_SCOREBOARD.md](FLASH_MESSAGES_SCOREBOARD.md)
 
 [34mdevelopers/rake-tasks-debugging.de.md[0m
-  [31mLine 423:[0m [Scenario Management Workflow](./scenario-system-workflow.de.md)
+  [31mLine 423:[0m [Scenario Management Workflow](./scenario-system-workflow.md)
 
 [34mdevelopers/rake-tasks-debugging.en.md[0m
-  [31mLine 419:[0m [Scenario Management Workflow](./scenario-system-workflow.en.md)
+  [31mLine 419:[0m [Scenario Management Workflow](./scenario-system-workflow.md)
 
 [34mdevelopers/scenario-workflow.md[0m
-  [31mLine 136:[0m [CONTRIBUTING.de.md](CONTRIBUTING.de.md)
+  [31mLine 136:[0m [CONTRIBUTING.de.md](CONTRIBUTING.md)
 
-  [31mLine 137:[0m [README.de.md](README.de.md)
+  [31mLine 137:[0m [README.de.md](README.md)
+    [33mSuggestions:[0m
+      • managers/AUTO_RESERVE_README.md
+      • international/README.md
 
   [31mLine 138:[0m [carambus_master/docs/developers/](carambus_master/docs/developers/)
 
@@ -79,7 +66,7 @@ Broken links: 78
     [33mSuggestions:[0m
       • developers/testing/testing-quickstart.md
 
-  [31mLine 284:[0m [Testing Strategy](../developers/testing-strategy.de.md)
+  [31mLine 284:[0m [Testing Strategy](../developers/testing-strategy.md)
     [33mSuggestions:[0m
       • developers/testing-strategy.de.md
 
@@ -92,7 +79,7 @@ Broken links: 78
     [33mSuggestions:[0m
       • developers/testing/testing-quickstart.md
 
-  [31mLine 364:[0m [Testing Strategy](../developers/testing-strategy.de.md)
+  [31mLine 364:[0m [Testing Strategy](../developers/testing-strategy.md)
     [33mSuggestions:[0m
       • developers/testing-strategy.de.md
 
@@ -107,16 +94,18 @@ Broken links: 78
   [31mLine 238:[0m [Log Prefixes Reference](logging_conventions.md)
 
 [34mplayers/ai-search.de.md[0m
-  [31mLine 391:[0m [Carambus Filter-Dokumentation](../search.de.md)
+  [31mLine 391:[0m [Carambus Filter-Dokumentation](../search.md)
     [33mSuggestions:[0m
       • players/ai-search.de.md
-      • reference/search.de.md
+      • players/ai-search.en.md
+      • managers/search-filters.de.md
 
 [34mplayers/ai-search.en.md[0m
-  [31mLine 352:[0m [Carambus Filter Documentation](../search.en.md)
+  [31mLine 352:[0m [Carambus Filter Documentation](../search.md)
     [33mSuggestions:[0m
+      • players/ai-search.de.md
       • players/ai-search.en.md
-      • reference/search.en.md
+      • managers/search-filters.de.md
 
 [34mplayers/pool_scoreboard_benutzerhandbuch.de.md[0m
   [31mLine 60:[0m [Tischübersicht](screenshots/pool_tables_overview.png)
@@ -193,16 +182,18 @@ Broken links: 78
   [31mLine 152:[0m [Production Setup](PRODUCTION_SETUP.md)
 
 [34mreference/glossary.de.md[0m
-  [31mLine 412:[0m [Filter & Suche](../search.de.md)
+  [31mLine 412:[0m [Filter & Suche](../search.md)
     [33mSuggestions:[0m
       • players/ai-search.de.md
-      • reference/search.de.md
+      • players/ai-search.en.md
+      • managers/search-filters.de.md
 
 [34mreference/glossary.en.md[0m
-  [31mLine 412:[0m [Filter & Search](../search.en.md)
+  [31mLine 412:[0m [Filter & Search](../search.md)
     [33mSuggestions:[0m
+      • players/ai-search.de.md
       • players/ai-search.en.md
-      • reference/search.en.md
+      • managers/search-filters.de.md
 
 [34mreference/mkdocs_documentation.en.md[0m
   [31mLine 264:[0m [Text](file.md)
@@ -245,8 +236,7 @@ Broken links: 78
 
 
 Broken links by directory:
-  MKDOCS_DEVELOPMENT.md: 2
-  administrators: 3
+  administrators: 1
   developers: 19
   international: 2
   managers: 2

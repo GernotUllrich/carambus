@@ -198,7 +198,7 @@ These errors are normal if the database was already partially initialized.
 ## 📚 **Next Steps**
 
 - Read [Developer Guide](developer-guide.md)
-- Study [API Documentation](../reference/API.md)
+- Study [API Documentation](../reference/api.md)
 - Understand [Database Design](database-design.md)
 - [Scenario Management](scenario-management.md) for deployment configuration
 - Talk to the team about current tasks

@@ -120,7 +120,7 @@ rails server
 - Client integration
 - Troubleshooting
 
-➡️ **[API Reference](../reference/API.md)**
+➡️ **[API Reference](../reference/api.md)**
 
 ### 5. Frontend Development
 
@@ -285,7 +285,7 @@ chore: Update dependencies
 - **[Developer Guide](developer-guide.md)**: Comprehensive developer handbook
 - **[Database Design](database-design.md)**: Database schema
 - **[ER Diagram](er-diagram.md)**: Visual database overview
-- **[API Reference](../reference/API.md)**: API documentation
+- **[API Reference](../reference/api.md)**: API documentation
 - **[Deployment Workflow](deployment-workflow.md)**: Deployment processes
 - **[Scenario Management](scenario-management.md)**: Multi-environment
 - **[Testing & Debugging](rake-tasks-debugging.md)**: Test strategies
@@ -314,7 +314,7 @@ chore: Update dependencies
 2. **[Developer Guide](developer-guide.md)** - Comprehensive developer handbook
 3. **[Database Design](database-design.md)** - Database schema and models
 4. **[ER Diagram](er-diagram.md)** - Visual database overview
-5. **[API Reference](../reference/API.md)** - REST API documentation
+5. **[API Reference](../reference/api.md)** - REST API documentation
 6. **[Scenario Management](scenario-management.md)** - Multi-environment setup
 7. **[Testing & Debugging](rake-tasks-debugging.md)** - Test strategies
 8. **[Deployment Workflow](deployment-workflow.md)** - Deployment processes

@@ -276,7 +276,7 @@ Send your suggestions to: gernot.ullrich@gmx.de
 
 - **[Tournament Manager Documentation](../managers/index.md)**: If you organize a tournament yourself
 - **[Glossary](../reference/glossary.md)**: Explanation of all technical terms
-- **[API Documentation](../reference/API.md)**: For technically interested people
+- **[API Documentation](../reference/api.md)**: For technically interested people
 
 ---
 

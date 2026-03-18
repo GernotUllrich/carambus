@@ -91,7 +91,7 @@ Das Scenario Management konfiguriert automatisch:
 
 - **[Scenario Management](../developers/scenario-management.md)** - Vollständiger Deployment-Guide
 - **[Entwicklerleitfaden](../developers/developer-guide.md)** - Entwicklerdokumentation
-- **[API-Dokumentation](../reference/API.md)** - API-Referenz
+- **[API-Dokumentation](../reference/api.md)** - API-Referenz
 
 ## 🆘 Support
 

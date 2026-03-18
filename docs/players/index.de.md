@@ -276,7 +276,7 @@ Senden Sie Ihre Vorschläge an: gernot.ullrich@gmx.de
 
 - **[Turniermanager-Dokumentation](../managers/index.md)**: Falls Sie selbst ein Turnier organisieren
 - **[Glossar](../reference/glossary.md)**: Erklärung aller Fachbegriffe
-- **[API-Dokumentation](../reference/API.md)**: Für technisch Interessierte
+- **[API-Dokumentation](../reference/api.md)**: Für technisch Interessierte
 
 ---
 

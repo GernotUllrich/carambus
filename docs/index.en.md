@@ -109,7 +109,7 @@ docs/
 - **[Getting Started](developers/getting-started.md)**: Development environment
 - **[Developer Guide](developers/developer-guide.md)**: Comprehensive handbook
 - **[Database Design](developers/database-design.md)**: Schema and models
-- **[API Reference](reference/API.md)**: REST API documentation
+- **[API Reference](reference/api.md)**: REST API documentation
 
 ## 🌍 Languages
 
@@ -164,7 +164,7 @@ If you find missing documentation or errors:
 - [How do I install Carambus?](administrators/installation-overview.md)
 
 ### For Experienced Users
-- [API Documentation](reference/API.md)
+- [API Documentation](reference/api.md)
 - [Database Schema](developers/database-design.md)
 - [Deployment Workflow](developers/deployment-workflow.md)
 
