@@ -9,7 +9,9 @@ class StaticController < ApplicationController
 
   def about
     # Redirect to docs_page for about documentation
-    redirect_to docs_page_path(path: 'about', locale: I18n.locale.to_s)
+    # Respect locale parameter from query string
+    locale = params[:locale] || I18n.locale.to_s
+    redirect_to docs_page_path(path: 'about', locale: locale)
   end
 
   def start
@@ -18,12 +20,16 @@ class StaticController < ApplicationController
 
   def search
     # Redirect to search documentation
-    redirect_to docs_page_path(path: 'search', locale: I18n.locale.to_s)
+    # Respect locale parameter from query string
+    locale = params[:locale] || I18n.locale.to_s
+    redirect_to docs_page_path(path: 'search', locale: locale)
   end
 
   def intro
     # Redirect to main documentation index
-    redirect_to docs_page_path(path: 'index', locale: I18n.locale.to_s)
+    # Respect locale parameter from query string
+    locale = params[:locale] || I18n.locale.to_s
+    redirect_to docs_page_path(path: 'index', locale: locale)
   end
 
   def index_t; end
