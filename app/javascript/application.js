@@ -6,6 +6,9 @@ import "./src/console_silencer"
 // Auto-reload when new version is deployed (must be early to catch all page loads)
 import "./src/version_checker"
 
+// Manual monitor refresh admin function
+import "./src/manual_monitor_refresh"
+
 import "@hotwired/turbo-rails"
 import { Turbo } from "@hotwired/turbo-rails"
 Turbo.session.debug = true
