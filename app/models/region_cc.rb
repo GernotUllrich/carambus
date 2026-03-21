@@ -475,14 +475,29 @@ class RegionCc < ApplicationRecord
   # Discovers the admin ClubCloud URL from the public website's "Anmeldung" link
   # Returns the discovered URL or nil if not found
   def discover_admin_url_from_public_site
-    return nil unless region.present? && region.public_cc_url_base.present?
+    unless region.present?
+      Rails.logger.warn "[discover_admin_url] No region association found"
+      return nil
+    end
+    
+    unless region.public_cc_url_base.present?
+      Rails.logger.warn "[discover_admin_url] No public_cc_url_base for region: #{region.shortname}"
+      return nil
+    end
     
     public_url = region.public_cc_url_base.chomp("/")
     Rails.logger.info "[discover_admin_url] Scraping public site: #{public_url}"
     
     begin
       uri = URI(public_url)
-      response = Net::HTTP.get_response(uri)
+      http = Net::HTTP.new(uri.host, uri.port)
+      http.use_ssl = (uri.scheme == 'https')
+      http.verify_mode = OpenSSL::SSL::VERIFY_NONE if http.use_ssl?
+      http.open_timeout = 5
+      http.read_timeout = 10
+      
+      request = Net::HTTP::Get.new(uri.request_uri)
+      response = http.request(request)
       
       unless response.is_a?(Net::HTTPSuccess)
         Rails.logger.warn "[discover_admin_url] Failed to fetch public site: #{response.code}"
@@ -513,37 +528,41 @@ class RegionCc < ApplicationRecord
       nil
     rescue StandardError => e
       Rails.logger.error "[discover_admin_url] Error scraping public site: #{e.message}"
+      Rails.logger.error "[discover_admin_url] Backtrace: #{e.backtrace.first(3).join("\n")}"
       nil
     end
   end
 
   # Ensures base_url is set correctly for admin operations
   # Auto-discovers from public site if needed
+  # Returns the base_url to use (may update database or use fallback)
   def ensure_admin_base_url!
-    # If base_url is blank or points to the public site (wrong URL), discover the correct one
-    needs_discovery = base_url.blank? || 
-                      base_url.include?("ndbv.de") ||
-                      !base_url.include?("club-cloud.de")
-    
-    if needs_discovery
-      Rails.logger.info "[ensure_admin_base_url] Current base_url is invalid (#{base_url}), attempting auto-discovery..."
-      
-      discovered_url = discover_admin_url_from_public_site
-      
-      if discovered_url.present?
-        Rails.logger.info "[ensure_admin_base_url] Updating base_url from '#{base_url}' to '#{discovered_url}'"
-        update_column(:base_url, discovered_url)
-        reload
-        return true
-      else
-        Rails.logger.error "[ensure_admin_base_url] Could not auto-discover admin URL, falling back to BASE_URL constant"
-        update_column(:base_url, BASE_URL)
-        reload
-        return true
-      end
+    # If base_url is already valid, return early
+    if base_url.present? && !base_url.include?("ndbv.de") && base_url.include?("club-cloud.de")
+      return base_url
     end
     
-    true
+    Rails.logger.info "[ensure_admin_base_url] Current base_url is invalid (#{base_url}), attempting auto-discovery..."
+    
+    # Try to discover the correct URL
+    discovered_url = discover_admin_url_from_public_site
+    target_url = discovered_url.presence || BASE_URL
+    
+    # Try to update the database (may fail on local servers due to LocalProtector)
+    begin
+      if base_url != target_url
+        Rails.logger.info "[ensure_admin_base_url] Updating base_url from '#{base_url}' to '#{target_url}'"
+        update_column(:base_url, target_url)
+        reload
+      end
+    rescue StandardError => e
+      Rails.logger.warn "[ensure_admin_base_url] Could not update base_url in database: #{e.message}"
+      Rails.logger.warn "[ensure_admin_base_url] Using fallback URL: #{target_url}"
+      # Set the attribute in memory (won't persist, but will work for this request)
+      self.base_url = target_url
+    end
+    
+    base_url
   end
 
   def self.save_log(name)
