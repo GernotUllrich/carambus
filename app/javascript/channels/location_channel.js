@@ -143,13 +143,15 @@ class LocationChannelHealthMonitor {
     this.reconnectTimeout = setTimeout(() => {
       const state = consumer.connection.getState()
       if (state !== "open") {
+        // TEMPORARY: Disable reload to diagnose loop
+        console.error("🚫 RELOAD DISABLED FOR DEBUGGING - connection not open but skipping reload")
         // Store reload time in localStorage BEFORE reloading (survives reload!)
-        localStorage.setItem(RELOAD_KEY, Date.now().toString())
+        // localStorage.setItem(RELOAD_KEY, Date.now().toString())
         
         // Only log page reloads (important for debugging monitor wake-up issues)
-        console.log("🔄 Monitor wake-up: Reloading page for fresh data...")
-        this.updateStatusIndicator('reloading')
-        window.location.reload()
+        // console.log("🔄 Monitor wake-up: Reloading page for fresh data...")
+        // this.updateStatusIndicator('reloading')
+        // window.location.reload()
       } else {
         if (PERF_LOGGING && !NO_LOGGING) {
           console.log("✅ Location Channel reconnection successful")

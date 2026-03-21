@@ -132,13 +132,15 @@ export default class extends Controller {
         timeSinceActivity: `${Math.round(timeSinceActivity / 1000)}s`
       })
       
-      // Only reload if page is old enough (prevent reload loops)
-      if (pageAge >= MIN_PAGE_AGE) {
-        this.log("🔄 Forcing reload due to heartbeat failure")
-        window.location.reload()
-      } else {
-        this.log(`⏭️  Skipping reload - page too fresh (${Math.round(pageAge/1000)}s)`)
-      }
+      // TEMPORARY: Disable reload to diagnose loop
+      this.log("🚫 RELOAD DISABLED FOR DEBUGGING - heartbeat failed but skipping reload")
+      // // Only reload if page is old enough (prevent reload loops)
+      // if (pageAge >= MIN_PAGE_AGE) {
+      //   this.log("🔄 Forcing reload due to heartbeat failure")
+      //   window.location.reload()
+      // } else {
+      //   this.log(`⏭️  Skipping reload - page too fresh (${Math.round(pageAge/1000)}s)`)
+      // }
     } else {
       // Update activity timestamp (we're still alive)
       this.lastActivityAt = now
