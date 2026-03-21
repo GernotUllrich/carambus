@@ -439,18 +439,14 @@ class LocationsController < ApplicationController
     @navbar = @footer = false
     @tournament = nil
     @table = Table.find(params[:table_id])
-    info = "+++ 1a - locations_controller#placement @table"
-    Rails.logger.info info
+    Rails.logger.debug "+++ 1a - locations_controller#placement @table"
     @location = Location.find(params[:id])
-    info = "+++ 1b - locations_controller#placement @location"
-    Rails.logger.info info
+    Rails.logger.debug "+++ 1b - locations_controller#placement @location"
     if params[:tournament_id].present?
       @tournament = Tournament.find(params[:tournament_id])
       if @tournament.present?
-        info = "+++ 1c - locations_controller#placement @tournament"
-        Rails.logger.info info
-        info = "+++ 3l - locations_controller#placement"
-        Rails.logger.info info
+        Rails.logger.debug "+++ 1c - locations_controller#placement @tournament"
+        Rails.logger.debug "+++ 3l - locations_controller#placement"
         @games = @tournament.games.joins(game_participations: :player).where(
           game_participations: { role: "playera" }
         ).to_a.sort_by do |game|
@@ -493,7 +489,7 @@ class LocationsController < ApplicationController
   def edit; end
 
   def create_event
-    Rails.logger.info "create_event"
+    Rails.logger.debug "create_event"
     # Setup Google Calendar API service
     service = GoogleCalendarService.calendar_service
     calendar_id = GoogleCalendarService.calendar_id
@@ -516,7 +512,7 @@ class LocationsController < ApplicationController
       }
     )
     response = service.insert_event(calendar_id, event_object)
-    Rails.logger.info response.inspect
+    Rails.logger.debug response.inspect
   end
 
   def toggle_dark_mode
@@ -546,7 +542,7 @@ class LocationsController < ApplicationController
     end
     redirect_to location_path(@location)
   rescue StandardError => e
-    Rails.logger.info "#{e} #{e.backtrace}"
+    Rails.logger.error "#{e} #{e.backtrace.first(5).join("\n")}"
   end
 
   def new_league_tournament
@@ -598,7 +594,7 @@ class LocationsController < ApplicationController
 
   # Use callbacks to share common setup or constraints between actions.
   def set_location
-    Rails.logger.debug "Session Data: #{session.to_hash}"
+    # REMOVED: Logging session data is a security risk (contains CSRF tokens, encrypted passwords)
     # Optimize query with eager loading
     @location = Location.includes(
       tables: [
@@ -629,7 +625,6 @@ class LocationsController < ApplicationController
         @user = User.scoreboard
         if @user&.valid?
           bypass_sign_in @user, scope: :user
-          Rails.logger.info "Session Data after auto sign_in: #{session.to_hash}"
           Current.user = @user
         else
           flash[:error] = @user.errors.full_messages

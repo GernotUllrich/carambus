@@ -208,7 +208,9 @@ class ConnectionHealthMonitor {
   }
 
   start() {
-    console.log("🏥 Health monitor started")
+    if (PERF_LOGGING && !NO_LOGGING) {
+      console.log("🏥 Health monitor started")
+    }
     this.healthCheckInterval = setInterval(() => {
       this.checkHealth()
     }, this.healthCheckFrequency)
@@ -216,7 +218,9 @@ class ConnectionHealthMonitor {
     // Also check on page visibility change
     document.addEventListener('visibilitychange', () => {
       if (!document.hidden) {
-        console.log("📱 Page became visible, checking health...")
+        if (PERF_LOGGING && !NO_LOGGING) {
+          console.log("📱 Page became visible, checking health...")
+        }
         this.checkHealth()
       }
     })
@@ -231,7 +235,9 @@ class ConnectionHealthMonitor {
       clearTimeout(this.reconnectTimeout)
       this.reconnectTimeout = null
     }
-    console.log("🏥 Health monitor stopped")
+    if (PERF_LOGGING && !NO_LOGGING) {
+      console.log("🏥 Health monitor stopped")
+    }
   }
 
   checkHealth() {
@@ -249,14 +255,18 @@ class ConnectionHealthMonitor {
 
       // Check 1: Connection not open
       if (state !== "open") {
-        console.warn("⚠️ Connection not open, state:", state)
+        if (PERF_LOGGING && !NO_LOGGING) {
+          console.warn("⚠️ Connection not open, state:", state)
+        }
         this.triggerReconnect("connection_not_open")
         return
       }
 
       // Check 2: No messages for too long
       if (timeSinceLastMessage > this.maxSilenceTime) {
-        console.warn("⚠️ No messages received for", Math.round(timeSinceLastMessage / 1000), "seconds")
+        if (PERF_LOGGING && !NO_LOGGING) {
+          console.warn("⚠️ No messages received for", Math.round(timeSinceLastMessage / 1000), "seconds")
+        }
         this.triggerReconnect("message_timeout")
         return
       }
@@ -267,13 +277,17 @@ class ConnectionHealthMonitor {
       }
       this.updateStatusIndicator('healthy')
     } catch (error) {
-      console.error("❌ Health check failed:", error)
+      if (PERF_LOGGING && !NO_LOGGING) {
+        console.error("❌ Health check failed:", error)
+      }
       this.triggerReconnect("health_check_error")
     }
   }
 
   triggerReconnect(reason) {
-    console.warn("🔄 Triggering reconnection, reason:", reason)
+    if (PERF_LOGGING && !NO_LOGGING) {
+      console.warn("🔄 Triggering reconnection, reason:", reason)
+    }
     this.updateStatusIndicator('reconnecting')
     
     // Try to reopen connection
@@ -283,11 +297,16 @@ class ConnectionHealthMonitor {
     this.reconnectTimeout = setTimeout(() => {
       const state = consumer.connection.getState()
       if (state !== "open") {
-        console.error("🔄 Reconnection failed, reloading page...")
+        // Only log page reloads (important for debugging monitor wake-up issues)
+        if (!NO_LOGGING) {
+          console.log("🔄 Monitor wake-up: Reloading page for fresh data...")
+        }
         this.updateStatusIndicator('reloading')
         window.location.reload()
       } else {
-        console.log("✅ Reconnection successful")
+        if (PERF_LOGGING && !NO_LOGGING) {
+          console.log("✅ Reconnection successful")
+        }
         this.updateStatusIndicator('healthy')
       }
     }, this.reconnectDelay)

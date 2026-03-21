@@ -19,7 +19,7 @@ class LocationChannelHealthMonitor {
   }
 
   start() {
-    if (!NO_LOGGING) {
+    if (PERF_LOGGING && !NO_LOGGING) {
       console.log("🏥 Location Channel health monitor started for location", this.locationId)
     }
     
@@ -72,14 +72,18 @@ class LocationChannelHealthMonitor {
 
       // Check 1: Connection not open
       if (state !== "open") {
-        console.warn("⚠️ Location Channel connection not open, state:", state)
+        if (PERF_LOGGING && !NO_LOGGING) {
+          console.warn("⚠️ Location Channel connection not open, state:", state)
+        }
         this.triggerReconnect("connection_not_open")
         return
       }
 
       // Check 2: No messages for too long (but only if page is visible)
       if (!document.hidden && timeSinceLastMessage > this.maxSilenceTime) {
-        console.warn("⚠️ Location Channel: No messages received for", Math.round(timeSinceLastMessage / 1000), "seconds")
+        if (PERF_LOGGING && !NO_LOGGING) {
+          console.warn("⚠️ Location Channel: No messages received for", Math.round(timeSinceLastMessage / 1000), "seconds")
+        }
         this.triggerReconnect("message_timeout")
         return
       }
@@ -96,7 +100,9 @@ class LocationChannelHealthMonitor {
   }
 
   triggerReconnect(reason) {
-    console.warn("🔄 Location Channel triggering reconnection, reason:", reason)
+    if (PERF_LOGGING && !NO_LOGGING) {
+      console.warn("🔄 Location Channel triggering reconnection, reason:", reason)
+    }
     this.updateStatusIndicator('reconnecting')
     
     // Try to reopen connection
@@ -106,11 +112,16 @@ class LocationChannelHealthMonitor {
     this.reconnectTimeout = setTimeout(() => {
       const state = consumer.connection.getState()
       if (state !== "open") {
-        console.error("🔄 Location Channel reconnection failed, reloading page...")
+        // Only log page reloads (important for debugging monitor wake-up issues)
+        if (!NO_LOGGING) {
+          console.log("🔄 Monitor wake-up: Reloading page for fresh data...")
+        }
         this.updateStatusIndicator('reloading')
         window.location.reload()
       } else {
-        console.log("✅ Location Channel reconnection successful")
+        if (PERF_LOGGING && !NO_LOGGING) {
+          console.log("✅ Location Channel reconnection successful")
+        }
         this.updateStatusIndicator('healthy')
       }
     }, this.reconnectDelay)
@@ -153,7 +164,7 @@ if (locationElement) {
       },
 
       connected() {
-        if (!NO_LOGGING) {
+        if (PERF_LOGGING && !NO_LOGGING) {
           console.log("🏢 Location Channel connected for location", locationId)
         }
         this.connectionAttempts = 0
@@ -197,7 +208,7 @@ if (locationElement) {
       },
 
       disconnected() {
-        if (!NO_LOGGING) {
+        if (PERF_LOGGING && !NO_LOGGING) {
           console.warn("🏢 Location Channel disconnected for location", locationId)
         }
         this.connectionAttempts++
