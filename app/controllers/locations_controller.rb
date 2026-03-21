@@ -33,22 +33,22 @@ class LocationsController < ApplicationController
   # GET /locations/1
   def show
     @table_kind_all = TableKind.all.order(:name).to_a
-    Rails.logger.info "params[:table_id] = #{params[:table_id]}"
-    Rails.logger.info "params[:sb_state] = #{params[:sb_state]}"
-    Rails.logger.info "Current.user = #{Current.user&.email}"
-    Rails.logger.info "User.scoreboard = #{User.scoreboard&.email}"
+    Rails.logger.debug "params[:table_id] = #{params[:table_id]}"
+    Rails.logger.debug "params[:sb_state] = #{params[:sb_state]}"
+    Rails.logger.debug "Current.user = #{Current.user&.email}"
+    Rails.logger.debug "User.scoreboard = #{User.scoreboard&.email}"
     # Erlaube Scoreboard-Zugriff wenn: Scoreboard-User angemeldet ODER table_id vorhanden ODER sb_state vorhanden
     return unless Current.user == User.scoreboard || params[:table_id].present? || params[:sb_state].present?
 
     table = game = table_monitor = player_b = player_a = nil
     session[:sb_state] ||= "welcome"
     session[:sb_state] = params[:sb_state] if params[:sb_state].present?
-    
+
     # Clear table selection when entering "start" or "tables" state without explicit table_id
     # This ensures users can select a table fresh instead of being stuck with an old session table
     if (session[:sb_state] == "start" || session[:sb_state] == "tables") && params[:table_id].blank?
       session[:scoreboard_table_id] = nil
-      Rails.logger.info "[Scoreboard] 🎯 Cleared session table_id for fresh selection (sb_state: #{session[:sb_state]})"
+      Rails.logger.debug "[Scoreboard] 🎯 Cleared session table_id for fresh selection (sb_state: #{session[:sb_state]})"
     end
     tournament = Tournament.find(params[:tournament_id]) if params[:tournament_id].present?
     @navbar = @footer = false
@@ -61,15 +61,15 @@ class LocationsController < ApplicationController
       @table = Table.find(params[:table_id])
       # Update session with current table_id
       session[:scoreboard_table_id] = params[:table_id]
-      Rails.logger.info "[Scoreboard] 🎯 Table set from params: #{@table.id} (location: #{@location.id})"
+      Rails.logger.debug "[Scoreboard] 🎯 Table set from params: #{@table.id} (location: #{@location.id})"
     elsif session[:scoreboard_table_id].present? && !%w[start tables].include?(session[:sb_state])
       # Only restore from session if not in "start" or "tables" state (which should show table selection)
       @table = Table.find(session[:scoreboard_table_id])
-      Rails.logger.info "[Scoreboard] 🎯 Table restored from session: #{@table.id} (location: #{@location.id})"
+      Rails.logger.debug "[Scoreboard] 🎯 Table restored from session: #{@table.id} (location: #{@location.id})"
     else
       # Clear table for "start" and "tables" states to ensure fresh table selection
       @table = nil
-      Rails.logger.info "[Scoreboard] 🎯 Table cleared for fresh selection (sb_state: #{session[:sb_state]})"
+      Rails.logger.debug "[Scoreboard] 🎯 Table cleared for fresh selection (sb_state: #{session[:sb_state]})"
     end
 
     # Preload data based on state
@@ -134,7 +134,7 @@ class LocationsController < ApplicationController
             redirect_to location_path(@location, sb_state: "welcome") and return
           end
         end
-        
+
         player_a = Player.find(params[:player_a_id]) if params[:player_a_id].to_i.positive?
         player_b = Player.find(params[:player_b_id]) if params[:player_b_id].to_i.positive?
         Table.transaction do
@@ -165,7 +165,7 @@ class LocationsController < ApplicationController
           players = Player.joins(:season_participations).where(season_participations: {
             season_id: Season.current_season&.id, club_id: club.id
           }).where(id: (guest_player_ids + club_player_ids)).to_a
-          
+
           guest_players_default = Player.where(id: [default_guest_a.player.id,
                                                     default_guest_b.player.id]).order("fl_name")
           guest_players_other = Player.joins(season_participations: %i[club season])
@@ -177,7 +177,7 @@ class LocationsController < ApplicationController
                                       .order("fl_name")
 
           club_players = Player.where(id: club_player_ids).order("fl_name")
-          
+
           if @table.present?
             @bg_color ||= "#1B0909"
             render "scoreboard_free_game_karambol_quick",
@@ -206,7 +206,7 @@ class LocationsController < ApplicationController
             redirect_to location_path(@location, sb_state: "welcome") and return
           end
         end
-        
+
         player_a = Player.find(params[:player_a_id]) if params[:player_a_id].to_i.positive?
         player_b = Player.find(params[:player_b_id]) if params[:player_b_id].to_i.positive?
         Table.transaction do
@@ -293,14 +293,14 @@ class LocationsController < ApplicationController
   def scoreboard
     session[:location_id] = @location.id
     sb_state = params[:sb_state] || "welcome"
-    
+
     # IMPORTANT: Persist table_id in session to prevent scoreboard mix-ups
     # This ensures that after page reloads, the correct table is displayed
     if params[:table_id].present?
       session[:scoreboard_table_id] = params[:table_id]
-      Rails.logger.info "[Scoreboard] 🎯 Session table_id set: #{session[:scoreboard_table_id]} (location: #{@location.id})"
+      Rails.logger.debug "[Scoreboard] 🎯 Session table_id set: #{session[:scoreboard_table_id]} (location: #{@location.id})"
     end
-    
+
     # Auto-Login zum Scoreboard-User nur wenn kein User angemeldet ist
     # Wenn ein User bereits angemeldet ist, bleibt current_user erhalten
     unless current_user.present?
@@ -308,7 +308,7 @@ class LocationsController < ApplicationController
       bypass_sign_in @user, scope: :user
       Current.user = @user
     end
-    
+
     # config/scoreboard_url is never overwritten by the app. For the local server (e.g. kiosk),
     # set it once (e.g. with sb_state=table_scores); the browser reads it on start/restart.
     redirect_to location_url(@location, sb_state: sb_state, locale: params[:locale], host: request.server_name, port: request.server_port)
@@ -319,7 +319,7 @@ class LocationsController < ApplicationController
   def scoreboard_overlay
     @navbar = @footer = false
     @minimal = true
-    
+
     # Get table from params - use table_id for uniqueness (not table number!)
     # Table numbers can be ambiguous (e.g., "Tisch 1" for both small and large tables)
     if params[:table_id].present?
@@ -329,15 +329,15 @@ class LocationsController < ApplicationController
       table_number = params[:table]&.to_i
       @table = @location.tables.find_by(name: "Tisch #{table_number}")
     end
-    
+
     @table ||= @location.tables.first # Fallback to first table
-    
+
     # Get current game on this table
     @table_monitor = @table&.table_monitor
     @game = @table_monitor&.game
     @tournament_monitor = @table_monitor&.tournament_monitor
     @tournament = @tournament_monitor&.tournament
-    
+
     # Render minimal overlay layout
     render layout: 'streaming_overlay'
   end
@@ -351,23 +351,23 @@ class LocationsController < ApplicationController
       table_number = params[:table]&.to_i
       @table = @location.tables.find_by(name: "Tisch #{table_number}")
     end
-    
+
     @table ||= @location.tables.first
-    
+
     # Get current game on this table
     @table_monitor = @table&.table_monitor
     @game = @table_monitor&.game
     @tournament_monitor = @table_monitor&.tournament_monitor
     @tournament = @tournament_monitor&.tournament
-    
+
     # Build text output
     text_lines = []
-    
+
     if @game.present? && @table_monitor.present?
       # Get fresh options from table monitor
       @table_monitor.get_options!(I18n.locale)
       options = @table_monitor.options
-      
+
       if options.present?
         # Use the same logic as scoreboard_overlay view
         left_player = options[:current_left_player] == "playera" ? options[:player_a] : options[:player_b]
@@ -376,37 +376,37 @@ class LocationsController < ApplicationController
         right_player_id = options[:current_left_player] == "playera" ? "playerb" : "playera"
         left_player_active = options[:current_left_player] == "playera" ? options[:player_a_active] : options[:player_b_active]
         right_player_active = options[:current_left_player] == "playera" ? options[:player_b_active] : options[:player_a_active]
-        
+
         # Get current scores and inning balls
         left_inning_balls = @table_monitor.data[left_player_id]&.[]("innings_redo_list")&.last.to_i || 0
         right_inning_balls = @table_monitor.data[right_player_id]&.[]("innings_redo_list")&.last.to_i || 0
         left_score = left_player[:result].to_i + left_inning_balls
         right_score = right_player[:result].to_i + right_inning_balls
-        
+
         # Format player names (remove "Dr. ")
         left_name = (left_player[:firstname].presence || left_player[:lastname]).to_s.gsub("Dr. ", "")
         right_name = (right_player[:firstname].presence || right_player[:lastname]).to_s.gsub("Dr. ", "")
-        
+
         # Build player lines with right-aligned scores and inning balls
         # Format: "  Name:       Score (Balls)" with right alignment
         max_name_length = [left_name.length, right_name.length].max
         max_score_length = [left_score.to_s.length, right_score.to_s.length].max
-        
+
         # Line 1: Table and LIVE indicator
         text_lines << "T#{@table&.number || '?'} • LIVE"
-        
+
         # Line 2: Left player (with active indicator, right-aligned score)
         left_indicator = left_player_active ? '▶' : ' '
         left_inning_display = left_inning_balls > 0 ? " (#{left_inning_balls})" : ""
         left_line = "#{left_indicator} #{left_name.ljust(max_name_length)}:  #{left_score.to_s.rjust(max_score_length)}#{left_inning_display}"
         text_lines << left_line
-        
+
         # Line 3: Right player (with active indicator, right-aligned score)
         right_indicator = right_player_active ? '▶' : ' '
         right_inning_display = right_inning_balls > 0 ? " (#{right_inning_balls})" : ""
         right_line = "#{right_indicator} #{right_name.ljust(max_name_length)}:  #{right_score.to_s.rjust(max_score_length)}#{right_inning_display}"
         text_lines << right_line
-        
+
         # Line 4: Tournament info
         if @tournament.present?
           tournament_name = @tournament.try(:title) || @tournament.try(:name) || "Turnier"
@@ -422,7 +422,7 @@ class LocationsController < ApplicationController
       text_lines << "#{@location&.name || 'Carambus'}"
       text_lines << "Tisch #{@table&.number || '?'} • Kein Spiel"
     end
-    
+
     render plain: text_lines.join("\n"), content_type: 'text/plain'
   end
 
@@ -582,7 +582,7 @@ class LocationsController < ApplicationController
 
   def scoreboard_free_game_karambol_new
     authorize! :manage, TableMonitor
-    
+
     # Blockiere Zugriff wenn Turnierspiel läuft
     table = Table.find(params[:table_id]) if params[:table_id].present?
     if table&.table_monitor&.tournament_monitor_id.present?
@@ -590,7 +590,7 @@ class LocationsController < ApplicationController
                             default: 'Spielmanipulationen sind während eines Turniers nicht erlaubt.')
       redirect_to location_path(table.location) and return
     end
-    
+
     # controller logic
   end
 
@@ -598,7 +598,7 @@ class LocationsController < ApplicationController
 
   # Use callbacks to share common setup or constraints between actions.
   def set_location
-    Rails.logger.info "Session Data: #{session.to_hash}"
+    Rails.logger.debug "Session Data: #{session.to_hash}"
     # Optimize query with eager loading
     @location = Location.includes(
       tables: [
@@ -717,7 +717,7 @@ class LocationsController < ApplicationController
                          ]
                        )
                        .to_a
-    
+
     # Set @table_kinds based on actual tables present (not just free tables)
     # Filter out tables without table_kind and ensure uniqueness
     # This ensures only table kinds that actually have tables are shown
