@@ -285,10 +285,11 @@ class TournamentsController < ApplicationController
   end
 
   def start
-    # Validiere ClubCloud-Zugriff falls konfiguriert
-    if @tournament.tournament_cc.present?
+    # Validiere ClubCloud-Zugriff nur wenn auto_upload aktiviert ist
+    auto_upload_enabled = params[:auto_upload_to_cc].to_i == 1
+    if @tournament.tournament_cc.present? && auto_upload_enabled
       begin
-        Rails.logger.info "[TournamentsController#start] Validating ClubCloud access..."
+        Rails.logger.info "[TournamentsController#start] Validating ClubCloud access (auto_upload enabled)..."
         Setting.ensure_logged_in
         flash[:notice] = "ClubCloud-Zugriff validiert ✓"
       rescue StandardError => e
