@@ -3,6 +3,9 @@
 // Console silencer must be first to intercept all console calls
 import "./src/console_silencer"
 
+// Auto-reload when new version is deployed (must be early to catch all page loads)
+import "./src/version_checker"
+
 import "@hotwired/turbo-rails"
 import { Turbo } from "@hotwired/turbo-rails"
 Turbo.session.debug = true
