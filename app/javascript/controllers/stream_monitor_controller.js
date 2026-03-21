@@ -6,7 +6,7 @@ export default class extends Controller {
   static values = {
     streamId: Number,
     autoRefresh: { type: Boolean, default: true },
-    refreshInterval: { type: Number, default: 30000 } // 30 seconds
+    refreshInterval: { type: Number, default: 300000 } // 5 minutes (was: 30 seconds - reduced due to multiple browser tabs)
   }
 
   connect() {

@@ -201,7 +201,7 @@ class ConnectionHealthMonitor {
     this.subscription = subscription
     this.healthCheckInterval = null
     this.reconnectTimeout = null
-    this.healthCheckFrequency = 30000 // 30 seconds
+    this.healthCheckFrequency = 300000 // 5 minutes (was: 30 seconds - reduced due to multiple browser tabs)
     this.maxSilenceTime = 120000 // 2 minutes without any message
     this.reconnectDelay = 5000 // 5 seconds
     this.forceReloadDelay = 10000 // 10 seconds if reconnect fails

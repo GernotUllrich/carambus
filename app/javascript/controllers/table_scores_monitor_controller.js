@@ -44,10 +44,10 @@ export default class extends Controller {
     this.connectionStatusHandler = this.handleConnectionStatus.bind(this)
     window.addEventListener('connection-status-change', this.connectionStatusHandler)
     
-    // Optional: Periodic heartbeat check (every 30 seconds)
+    // Optional: Periodic heartbeat check (uses heartbeatIntervalValue from config)
     this.heartbeatInterval = setInterval(() => {
       this.checkHeartbeat()
-    }, 30000)
+    }, this.heartbeatIntervalValue)
     
     this.log("✅ Monitoring started", {
       sleepThreshold: `${this.sleepThresholdValue / 1000}s`,
