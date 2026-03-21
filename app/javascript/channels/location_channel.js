@@ -103,6 +103,18 @@ class LocationChannelHealthMonitor {
     if (PERF_LOGGING && !NO_LOGGING) {
       console.warn("🔄 Location Channel triggering reconnection, reason:", reason)
     }
+    
+    // CRITICAL: Prevent reload loops - only reload if page has been visible for at least 60 seconds
+    const pageAge = Date.now() - this.subscription.lastReceived
+    const MIN_PAGE_AGE = 60000 // 60 seconds
+    
+    if (pageAge < MIN_PAGE_AGE) {
+      if (PERF_LOGGING && !NO_LOGGING) {
+        console.log(`⏭️  Skipping reload - page too fresh (${Math.round(pageAge/1000)}s < ${MIN_PAGE_AGE/1000}s)`)
+      }
+      return
+    }
+    
     this.updateStatusIndicator('reconnecting')
     
     // Try to reopen connection

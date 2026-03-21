@@ -122,15 +122,23 @@ export default class extends Controller {
     const now = Date.now()
     const timeSinceActivity = now - this.lastActivityAt
     
+    // CRITICAL: Prevent reload loops - never reload if page is younger than 60 seconds
+    const pageAge = now - this.lastActivityAt
+    const MIN_PAGE_AGE = 60000 // 60 seconds
+    
     // If no activity for longer than threshold and page is visible, something is wrong
     if (!document.hidden && timeSinceActivity > this.sleepThresholdValue) {
       this.log("💔 Heartbeat failed - no activity for too long", {
         timeSinceActivity: `${Math.round(timeSinceActivity / 1000)}s`
       })
       
-      // Force reload
-      this.log("🔄 Forcing reload due to heartbeat failure")
-      window.location.reload()
+      // Only reload if page is old enough (prevent reload loops)
+      if (pageAge >= MIN_PAGE_AGE) {
+        this.log("🔄 Forcing reload due to heartbeat failure")
+        window.location.reload()
+      } else {
+        this.log(`⏭️  Skipping reload - page too fresh (${Math.round(pageAge/1000)}s)`)
+      }
     } else {
       // Update activity timestamp (we're still alive)
       this.lastActivityAt = now
