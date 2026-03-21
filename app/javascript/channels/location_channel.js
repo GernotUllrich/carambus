@@ -104,13 +104,18 @@ class LocationChannelHealthMonitor {
   triggerReconnect(reason) {
     const now = Date.now()
     
+    // CRITICAL: Use localStorage to persist reload timestamp across page reloads
+    const RELOAD_KEY = 'location_channel_last_reload'
+    const lastReloadStr = localStorage.getItem(RELOAD_KEY)
+    const lastReloadTime = lastReloadStr ? parseInt(lastReloadStr) : 0
+    
     // CRITICAL: Prevent reload loops
     // 1. Page must be at least 60 seconds old
     const pageAge = now - this.pageLoadedAt
     const MIN_PAGE_AGE = 60000 // 60 seconds
     
-    // 2. Must be at least 60 seconds since last reload
-    const timeSinceLastReload = this.lastReloadAt ? (now - this.lastReloadAt) : Infinity
+    // 2. Must be at least 60 seconds since last reload (persisted in localStorage!)
+    const timeSinceLastReload = now - lastReloadTime
     const MIN_RELOAD_INTERVAL = 60000 // 60 seconds
     
     if (pageAge < MIN_PAGE_AGE) {
@@ -121,9 +126,7 @@ class LocationChannelHealthMonitor {
     }
     
     if (timeSinceLastReload < MIN_RELOAD_INTERVAL) {
-      if (PERF_LOGGING && !NO_LOGGING) {
-        console.log(`⏭️  Skipping reconnect - reloaded too recently (${Math.round(timeSinceLastReload/1000)}s ago)`)
-      }
+      console.warn(`🛑 RELOAD LOOP PREVENTED! Last reload was ${Math.round(timeSinceLastReload/1000)}s ago (minimum: ${MIN_RELOAD_INTERVAL/1000}s)`)
       return
     }
     
@@ -140,13 +143,11 @@ class LocationChannelHealthMonitor {
     this.reconnectTimeout = setTimeout(() => {
       const state = consumer.connection.getState()
       if (state !== "open") {
-        // Mark reload time BEFORE reloading
-        this.lastReloadAt = Date.now()
+        // Store reload time in localStorage BEFORE reloading (survives reload!)
+        localStorage.setItem(RELOAD_KEY, Date.now().toString())
         
         // Only log page reloads (important for debugging monitor wake-up issues)
-        if (!NO_LOGGING) {
-          console.log("🔄 Monitor wake-up: Reloading page for fresh data...")
-        }
+        console.log("🔄 Monitor wake-up: Reloading page for fresh data...")
         this.updateStatusIndicator('reloading')
         window.location.reload()
       } else {
