@@ -472,6 +472,80 @@ class RegionCc < ApplicationRecord
     REPORT_LOGGER
   end
 
+  # Discovers the admin ClubCloud URL from the public website's "Anmeldung" link
+  # Returns the discovered URL or nil if not found
+  def discover_admin_url_from_public_site
+    return nil unless region.present? && region.public_cc_url_base.present?
+    
+    public_url = region.public_cc_url_base.chomp("/")
+    Rails.logger.info "[discover_admin_url] Scraping public site: #{public_url}"
+    
+    begin
+      uri = URI(public_url)
+      response = Net::HTTP.get_response(uri)
+      
+      unless response.is_a?(Net::HTTPSuccess)
+        Rails.logger.warn "[discover_admin_url] Failed to fetch public site: #{response.code}"
+        return nil
+      end
+      
+      doc = Nokogiri::HTML(response.body)
+      
+      # Look for the "Anmeldung" (Login) link in the navigation
+      # <li><a href="https://e12112e2454d41f1824088919da39bc0.club-cloud.de" title="Anmeldung..." target="_blank">Anmeldung</a></li>
+      anmeldung_link = doc.css('a[title*="Anmeldung"]').first
+      
+      if anmeldung_link && anmeldung_link['href'].present?
+        discovered_url = anmeldung_link['href'].chomp("/")
+        Rails.logger.info "[discover_admin_url] ✓ Discovered admin URL from Anmeldung link: #{discovered_url}"
+        return discovered_url
+      end
+      
+      # Fallback: Look for any link pointing to club-cloud.de
+      club_cloud_link = doc.css('a[href*="club-cloud.de"]').first
+      if club_cloud_link && club_cloud_link['href'].present?
+        discovered_url = club_cloud_link['href'].chomp("/")
+        Rails.logger.info "[discover_admin_url] ✓ Discovered admin URL from club-cloud.de link: #{discovered_url}"
+        return discovered_url
+      end
+      
+      Rails.logger.warn "[discover_admin_url] No Anmeldung or club-cloud.de link found on public site"
+      nil
+    rescue StandardError => e
+      Rails.logger.error "[discover_admin_url] Error scraping public site: #{e.message}"
+      nil
+    end
+  end
+
+  # Ensures base_url is set correctly for admin operations
+  # Auto-discovers from public site if needed
+  def ensure_admin_base_url!
+    # If base_url is blank or points to the public site (wrong URL), discover the correct one
+    needs_discovery = base_url.blank? || 
+                      base_url.include?("ndbv.de") ||
+                      !base_url.include?("club-cloud.de")
+    
+    if needs_discovery
+      Rails.logger.info "[ensure_admin_base_url] Current base_url is invalid (#{base_url}), attempting auto-discovery..."
+      
+      discovered_url = discover_admin_url_from_public_site
+      
+      if discovered_url.present?
+        Rails.logger.info "[ensure_admin_base_url] Updating base_url from '#{base_url}' to '#{discovered_url}'"
+        update_column(:base_url, discovered_url)
+        reload
+        return true
+      else
+        Rails.logger.error "[ensure_admin_base_url] Could not auto-discover admin URL, falling back to BASE_URL constant"
+        update_column(:base_url, BASE_URL)
+        reload
+        return true
+      end
+    end
+    
+    true
+  end
+
   def self.save_log(name)
     FileUtils.mv(REPORT_LOGGER_FILE, "#{Rails.root}/log/#{name}.log")
     REPORT_LOGGER.reopen

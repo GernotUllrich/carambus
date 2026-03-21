@@ -331,6 +331,9 @@ class TournamentCc < ApplicationRecord
     branch_cc = self.branch_cc
     raise "BranchCc not found for tournament_cc[#{id}]" unless branch_cc.present?
 
+    # Ensure we have the correct admin URL before proceeding
+    region_cc.ensure_admin_base_url!
+
     # WICHTIG: Verwende die übergebene session_id, falls vorhanden!
     # Sonst stelle sicher, dass wir eingeloggt sind (mit Session-Validierung)
     session_id = opts[:session_id]

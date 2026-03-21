@@ -108,6 +108,9 @@ class Setting < ApplicationRecord
 
     region_cc = region.region_cc
     raise "RegionCc not found for region: #{region.shortname}" unless region_cc
+    
+    # Ensure we have the correct admin URL (auto-discover if needed)
+    region_cc.ensure_admin_base_url!
     raise "RegionCc base_url not set for region: #{region.shortname}" unless region_cc.base_url.present?
     
     # Hole Credentials aus Rails Credentials (lokal, verschlüsselt) oder als Fallback aus RegionCc
@@ -902,6 +905,9 @@ class Setting < ApplicationRecord
 
     region_cc = region.region_cc
     return { success: false, error: "No region_cc configuration" } unless region_cc.present?
+    
+    # Ensure we have the correct admin URL (auto-discover if needed)
+    region_cc.ensure_admin_base_url!
     return { success: false, error: "No region_cc.base_url" } unless region_cc.base_url.present?
 
     # Stelle sicher, dass wir eingeloggt sind (mit Session-Validierung)
