@@ -16,6 +16,8 @@ class LocationChannelHealthMonitor {
     this.maxSilenceTime = 120000 // 2 minutes without any message
     this.reconnectDelay = 5000 // 5 seconds
     this.forceReloadDelay = 10000 // 10 seconds if reconnect fails
+    this.pageLoadedAt = Date.now() // Track when page was loaded
+    this.lastReloadAt = null // Track last reload to prevent loops
   }
 
   start() {
@@ -100,19 +102,33 @@ class LocationChannelHealthMonitor {
   }
 
   triggerReconnect(reason) {
-    if (PERF_LOGGING && !NO_LOGGING) {
-      console.warn("🔄 Location Channel triggering reconnection, reason:", reason)
-    }
+    const now = Date.now()
     
-    // CRITICAL: Prevent reload loops - only reload if page has been visible for at least 60 seconds
-    const pageAge = Date.now() - this.subscription.lastReceived
+    // CRITICAL: Prevent reload loops
+    // 1. Page must be at least 60 seconds old
+    const pageAge = now - this.pageLoadedAt
     const MIN_PAGE_AGE = 60000 // 60 seconds
+    
+    // 2. Must be at least 60 seconds since last reload
+    const timeSinceLastReload = this.lastReloadAt ? (now - this.lastReloadAt) : Infinity
+    const MIN_RELOAD_INTERVAL = 60000 // 60 seconds
     
     if (pageAge < MIN_PAGE_AGE) {
       if (PERF_LOGGING && !NO_LOGGING) {
-        console.log(`⏭️  Skipping reload - page too fresh (${Math.round(pageAge/1000)}s < ${MIN_PAGE_AGE/1000}s)`)
+        console.log(`⏭️  Skipping reconnect - page too fresh (${Math.round(pageAge/1000)}s)`)
       }
       return
+    }
+    
+    if (timeSinceLastReload < MIN_RELOAD_INTERVAL) {
+      if (PERF_LOGGING && !NO_LOGGING) {
+        console.log(`⏭️  Skipping reconnect - reloaded too recently (${Math.round(timeSinceLastReload/1000)}s ago)`)
+      }
+      return
+    }
+    
+    if (PERF_LOGGING && !NO_LOGGING) {
+      console.warn("🔄 Location Channel triggering reconnection, reason:", reason)
     }
     
     this.updateStatusIndicator('reconnecting')
@@ -124,6 +140,9 @@ class LocationChannelHealthMonitor {
     this.reconnectTimeout = setTimeout(() => {
       const state = consumer.connection.getState()
       if (state !== "open") {
+        // Mark reload time BEFORE reloading
+        this.lastReloadAt = Date.now()
+        
         // Only log page reloads (important for debugging monitor wake-up issues)
         if (!NO_LOGGING) {
           console.log("🔄 Monitor wake-up: Reloading page for fresh data...")
