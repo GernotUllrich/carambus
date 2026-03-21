@@ -277,6 +277,15 @@ if (locationElement) {
         const receiveTime = Date.now()
         this.lastReceived = receiveTime
 
+        // Handle remote force reload (admin trigger)
+        if (data.type === 'force_reload') {
+          console.warn("🔄 REMOTE RELOAD triggered by admin")
+          setTimeout(() => {
+            window.location.reload()
+          }, 1000) // Small delay to show message
+          return
+        }
+
         // Handle performance timestamp message
         if (data.type === "performance_timestamp") {
           this.pendingBroadcastTimestamp = data.timestamp

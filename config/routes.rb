@@ -419,6 +419,10 @@ Rails.application.routes.draw do
         patch :update
       end
     end
+    
+    # Monitor controls
+    get 'monitor_controls', to: 'monitor_controls#index'
+    post 'monitor_controls/force_reload', to: 'monitor_controls#force_reload'
 
     resources :scoreboard_messages do
       member do
