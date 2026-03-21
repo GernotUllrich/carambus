@@ -146,6 +146,11 @@ class LocationChannelHealthMonitor {
 const locationElement = document.querySelector('[data-location-id]')
 if (locationElement) {
   const locationId = locationElement.dataset.locationId
+  
+  // Skip health monitoring if table_scores_monitor is already active
+  // (to avoid duplicate health checks causing excessive reloads)
+  const hasTableScoresMonitor = document.querySelector('[data-controller*="table-scores-monitor"]')
+  const skipHealthMonitor = hasTableScoresMonitor !== null
 
   // Create subscription for this location
   const locationSubscription = consumer.subscriptions.create(
@@ -159,8 +164,13 @@ if (locationElement) {
         this.pendingBroadcastTimestamp = null
         this.connectionAttempts = 0
         
-        // Initialize health monitor
-        this.healthMonitor = new LocationChannelHealthMonitor(this, locationId)
+        // Initialize health monitor only if table_scores_monitor is not active
+        // (prevents duplicate health checks)
+        if (!skipHealthMonitor) {
+          this.healthMonitor = new LocationChannelHealthMonitor(this, locationId)
+        } else if (PERF_LOGGING && !NO_LOGGING) {
+          console.log("⏭️  Skipping LocationChannel health monitor (table_scores_monitor is active)")
+        }
       },
 
       connected() {
@@ -169,7 +179,7 @@ if (locationElement) {
         }
         this.connectionAttempts = 0
         
-        // Start health monitoring
+        // Start health monitoring (only if initialized)
         if (this.healthMonitor) {
           this.healthMonitor.start()
         }

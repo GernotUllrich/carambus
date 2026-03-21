@@ -22,6 +22,12 @@ export default class extends Controller {
   connect() {
     this.log("🖥️ Table Scores Monitor connected")
     
+    // IMPORTANT: Clear any existing interval first to prevent stacking
+    if (this.heartbeatInterval) {
+      clearInterval(this.heartbeatInterval)
+      this.heartbeatInterval = null
+    }
+    
     // Track when page becomes hidden
     this.hiddenAt = null
     
