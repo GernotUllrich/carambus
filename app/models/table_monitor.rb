@@ -1134,7 +1134,17 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
     if DEBUG
       Rails.logger.info "-------------m6[#{id}]-------->>> set_end_time <<<------------------------------------------"
     end
-    game.update(ended_at: Time.now)
+    
+    # IDEMPOTENCY: Only set end time if not already set (prevents race conditions)
+    # CRITICAL: Reload game to get fresh state from DB (prevents stale reads in race conditions)
+    game.reload
+    
+    if game.ended_at.blank?
+      game.update(ended_at: Time.now)
+      Rails.logger.info "✅ m6[#{id}] set_end_time: Game[#{game_id}] ended_at set to #{Time.now}"
+    else
+      Rails.logger.warn "⚠️  IDEMPOTENCY: m6[#{id}] set_end_time: Game[#{game_id}] already has ended_at=#{game.ended_at}, SKIPPING duplicate (race prevented!)"
+    end
   rescue StandardError => e
     Rails.logger.info "ERROR: #{e}, #{e.backtrace&.join("\n")}" if DEBUG
     raise StandardError unless Rails.env == "production"
@@ -2777,25 +2787,43 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
           acknowledge_result! if may_acknowledge_result?
           if final_set_score?
             Rails.logger.info "[evaluate_result] Calling report_result! state=#{state}"
+            # FIX: finish_match! is now called INSIDE report_result with lock
+            # This prevents race condition and ensures data is written BEFORE state change
             tournament_monitor&.report_result(self)
-            finish_match! if may_finish_match?
+            
+            # Training game (no tournament_monitor): Automatically start rematch with swapped players
+            if tournament_monitor.blank? && game.present?
+              Rails.logger.info "[evaluate_result] Training game finished - creating rematch with swapped players"
+              revert_players
+              update(state: "playing")
+              do_play
+              return
+            end
           else
             Rails.logger.warn "[evaluate_result] NOT calling report_result - state is #{state}, not final_set_score!"
           end
         end
       elsif final_set_score?
+        # FIX: Only call report_result (finish_match! happens inside it)
         tournament_monitor&.report_result(self)
-        finish_match! if may_finish_match?
-      elsif tournament_monitor.blank? && game.present?
-        revert_players
-        update(state: "playing")
-        do_play
-        return
+        
+        # Training game (no tournament_monitor): Automatically start rematch with swapped players
+        if tournament_monitor.blank? && game.present?
+          Rails.logger.info "[evaluate_result] Training game finished - creating rematch with swapped players"
+          revert_players
+          update(state: "playing")
+          do_play
+          return
+        end
       end
       save! if changes.present?
       reload
-      prepare_final_game_result
-      tournament_monitor&.report_result(self)
+      
+      # FIX: Only call prepare_final_game_result if we're in a final state
+      # report_result should only be called once per result, not multiple times
+      if final_match_score?
+        prepare_final_game_result
+      end
     elsif debug
       Rails.logger.info("eval ***** K:  ! (playing? || set_over? || final_set_score? || final_match_score?) && end_of_set?")
     end
@@ -3817,14 +3845,56 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
     to_state = aasm.to_state
     event_name = aasm.current_event
 
-    total_innings = data["playera"]["innings"].to_i + data["playerb"]["innings"].to_i rescue 0
-    total_points = data["playera"]["result"].to_i + data["playerb"]["result"].to_i rescue 0
+    # Get temporary values from TableMonitor data hash
+    temp_innings = data["playera"]["innings"].to_i + data["playerb"]["innings"].to_i rescue 0
+    temp_points = data["playera"]["result"].to_i + data["playerb"]["result"].to_i rescue 0
 
-    Rails.logger.info "[🔄 STATE TRANSITION] TM[#{id}] Game[#{game_id}]: #{from_state} → #{to_state} (event: #{event_name}, innings: #{total_innings}, points: #{total_points})"
+    # Get actual DB values - depends on the event
+    db_innings = 0
+    db_points = 0
+    mismatch = false
+    
+    if game.present?
+      game.reload # Ensure fresh data
+      
+      # For finish_match! event, check game.data (where we write results)
+      # For other events, check game_participations (updated later)
+      if event_name.to_s == 'finish_match!'
+        # Check game.data["ba_results"] - this is where write_game_result_data writes to
+        ba_results = game.data&.dig("ba_results")
+        if ba_results.present?
+          db_innings = ba_results["Aufnahmen1"].to_i + ba_results["Aufnahmen2"].to_i
+          db_points = ba_results["Ergebnis1"].to_i + ba_results["Ergebnis2"].to_i
+          mismatch = (temp_innings != db_innings || temp_points != db_points)
+        else
+          # No ba_results in game.data yet - this is a problem for finish_match!
+          mismatch = (temp_innings > 0 || temp_points > 0)
+        end
+      else
+        # For other events (end_of_set!, acknowledge_result!, etc.)
+        # it's NORMAL that game_participations are not yet updated
+        # So we only log info, no mismatch warning
+        gps = game.game_participations.reload
+        if gps.any?
+          db_innings = gps.map { |gp| gp.innings.to_i }.sum
+          db_points = gps.map { |gp| gp.result.to_i }.sum
+        end
+        # Don't flag as mismatch for non-finish events
+        mismatch = false
+      end
+    end
 
-    # ALERT: Suspicious state transitions
-    if to_state.to_s.in?(['set_over', 'final_set_score', 'final_match_score']) && total_innings == 0 && total_points == 0
-      Rails.logger.error "[⚠️  SUSPICIOUS TRANSITION] TM[#{id}] Game[#{game_id}] moved to #{to_state} with ZERO innings and ZERO points! Event: #{event_name}, Caller: #{caller[0..3].join(' <- ')}"
+    if mismatch
+      Rails.logger.warn "[⚠️  DATA MISMATCH] TM[#{id}] Game[#{game_id}]: #{from_state} → #{to_state} (event: #{event_name}) - TEMP: #{temp_innings}i/#{temp_points}p vs DB: #{db_innings}i/#{db_points}p (POSSIBLE RACE CONDITION!)"
+    else
+      Rails.logger.info "[🔄 STATE TRANSITION] TM[#{id}] Game[#{game_id}]: #{from_state} → #{to_state} (event: #{event_name}, TEMP: #{temp_innings}i/#{temp_points}p, DB: #{db_innings}i/#{db_points}p)"
+    end
+
+    # ALERT: Suspicious state transitions - only for finish_match! to final_match_score
+    if event_name.to_s == 'finish_match!' && to_state.to_s == 'final_match_score'
+      if temp_innings == 0 && temp_points == 0
+        Rails.logger.error "[⚠️  SUSPICIOUS TRANSITION] TM[#{id}] Game[#{game_id}] moved to #{to_state} with ZERO temp data! Event: #{event_name}, Caller: #{caller[0..3].join(' <- ')}"
+      end
     end
   rescue StandardError => e
     Rails.logger.error "[log_state_transition ERROR] #{e.message}: #{e.backtrace&.first(3)&.join(' <- ')}"

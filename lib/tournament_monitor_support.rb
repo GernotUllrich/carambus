@@ -184,12 +184,54 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
     Rails.logger.info "[report_result] START for TM #{table_monitor.id}, game=#{table_monitor.game&.gname}"
     TournamentMonitor.transaction do
       try do
-        # noinspection RubyResolve
-        # Tournament.logger.info "[tournament_monitor#report_result]\
-        # #{caller[0..4].select{|s| s.include?("/app/").join("\n")}" if table_monitor.may_finish_match?
-        table_monitor.finish_match! if table_monitor.may_finish_match?
+        game = table_monitor.game
+        
+        # CRITICAL FIX: Wrap data writing and state transition in a pessimistic lock
+        # This prevents race condition where:
+        # 1. Thread A reads game.data (sees old data)
+        # 2. Thread B writes game.data and transitions state
+        # 3. Thread A writes game.data (overwrites B's data)
+        # 4. Thread A transitions state (triggers broadcast with wrong data)
+        #
+        # With the lock, the sequence becomes atomic:
+        # 1. Thread A acquires lock
+        # 2. Thread A writes data + transitions state
+        # 3. Thread A releases lock
+        # 4. Thread B acquires lock (sees new state, skips via idempotency check)
+        
+        if game.present? && table_monitor.may_finish_match?
+          Rails.logger.info "🔒 [TournamentMonitorSupport#report_result] Acquiring lock for Game[#{game.id}]..."
+          
+          game.with_lock do
+            # Reload to get latest state inside lock
+            table_monitor.reload
+            game.reload
+            
+            # Step 1: Write game data (idempotent, has guards)
+            write_game_result_data(table_monitor)
+            
+            # CRITICAL: Reload BOTH game and table_monitor to clear ALL cached associations
+            # The AASM callback reads table_monitor.game, so we must reload table_monitor
+            # to ensure the game association is fresh and the callback sees the new data
+            game.reload
+            table_monitor.reload  # This refreshes table_monitor.game association!
+            
+            # Step 2: Transition state (triggers ActionCable broadcast)
+            # By doing this AFTER data write, the broadcast will see correct data
+            if table_monitor.may_finish_match?
+              Rails.logger.info "🔒 [TournamentMonitorSupport#report_result] Calling finish_match! inside lock"
+              table_monitor.finish_match!
+            end
+          end
+          
+          Rails.logger.info "✅ [TournamentMonitorSupport#report_result] Lock released for Game[#{game.id}], data written + state transitioned"
+        end
+        
+        # Step 3: Finalize (ClubCloud upload, game participations, etc.)
+        # This happens OUTSIDE the lock to avoid long lock duration
         Rails.logger.info "[report_result] Calling finalize_game_result for TM #{table_monitor.id}"
         finalize_game_result(table_monitor)
+        
         accumulate_results
         reload
         if all_table_monitors_finished? || tournament.manual_assignment || tournament.continuous_placements

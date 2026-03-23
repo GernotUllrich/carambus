@@ -160,20 +160,11 @@ class TableMonitorReflex < ApplicationReflex
         end
       end
     elsif (@table_monitor.set_over? && @table_monitor.player_controlled?) || @table_monitor.final_match_score? || @table_monitor.final_set_score?
+      # FIX: Remove duplicate elsif block - evaluate_result handles everything
+      # including calling report_result and finish_match! (inside lock)
       @table_monitor.evaluate_result
       # @table_monitor.acknowledge_result!
       # @table_monitor.prepare_final_game_result
-    elsif @table_monitor.final_set_score?
-      if @table_monitor.tournament_monitor.present?
-        @table_monitor.evaluate_result
-        @table_monitor.tournament_monitor.report_result(@table_monitor)
-      else
-        # noinspection RubyResolve
-        # Tournament.logger.info "[table_monitor_reflex#keyb] #{caller[0..4].select{|s| s.include?("/app/").join("\n")}"
-        @table_monitor.tournament_monitor.andand.report_result(self)
-        @table_monitor.finish_match! if @table_monitor.may_finish_match?
-        @table_monitor.reset_table_monitor
-      end
     end
     @table_monitor.skip_update_callbacks = false
     @table_monitor.save
@@ -227,20 +218,11 @@ class TableMonitorReflex < ApplicationReflex
         end
       end
     elsif (@table_monitor.set_over? && @table_monitor.player_controlled?) || @table_monitor.final_match_score? || @table_monitor.final_set_score?
+      # FIX: Remove duplicate elsif block - evaluate_result handles everything
+      # including calling report_result and finish_match! (inside lock)
       @table_monitor.evaluate_result
       # @table_monitor.acknowledge_result!
       # @table_monitor.prepare_final_game_result
-    elsif @table_monitor.final_set_score?
-      if @table_monitor.tournament_monitor.present?
-        @table_monitor.evaluate_result
-        @table_monitor.tournament_monitor.report_result(@table_monitor)
-      else
-        # noinspection RubyResolve
-        # Tournament.logger.info "[table_monitor_reflex#keyb] #{caller[0..4].select{|s| s.include?("/app/").join("\n")}"
-        @table_monitor.tournament_monitor.andand.report_result(self)
-        @table_monitor.finish_match! if @table_monitor.may_finish_match?
-        @table_monitor.reset_table_monitor
-      end
     end
     @table_monitor.skip_update_callbacks = false
     @table_monitor.save

@@ -148,8 +148,9 @@ class TournamentsController < ApplicationController
       @tournament.unprotected = true
       @tournament.assign_attributes(tournament_plan_id: @tournament.league.league_plan.id)
       @tournament.save
-      @tournament.unprotected = false
-      @tournament.finish_mode_selection!
+      # Keep unprotected=true for the AASM state transition (auto-saves)
+      @tournament.finish_mode_selection!  # AASM auto-saves
+      @tournament.unprotected = false     # Reset after state transition
       @tournament.reload
     else
       @tournament.seedings.where(player_id: nil).destroy_all
@@ -249,9 +250,9 @@ class TournamentsController < ApplicationController
       @tournament.unprotected = true
       @tournament.assign_attributes(tournament_plan_id: TournamentPlan.find_by_id(params[:tournament_plan_id]).id)
       @tournament.save
-      @tournament.unprotected = false
-      @tournament.finish_mode_selection!
-      @tournament.save
+      # Keep unprotected=true for the AASM state transition (auto-saves)
+      @tournament.finish_mode_selection!  # AASM auto-saves
+      @tournament.unprotected = false     # Reset after state transition
       @tournament.reload
     rescue StandardError => e
       flash[:alert] = e.message
@@ -293,9 +294,16 @@ class TournamentsController < ApplicationController
         Setting.ensure_logged_in
         flash[:notice] = "ClubCloud-Zugriff validiert ✓"
       rescue StandardError => e
-        flash[:alert] = "ClubCloud-Login fehlgeschlagen: #{e.message}. Bitte prüfen Sie die ClubCloud-Zugangsdaten."
-        redirect_to tournament_path(@tournament)
-        return
+        # In development: Allow tournament start without ClubCloud (credentials may not be configured)
+        if Rails.env.development?
+          Rails.logger.warn "[TournamentsController#start] ClubCloud not available in development, continuing anyway..."
+          flash[:warning] = "⚠️ ClubCloud nicht verfügbar (Development Mode) - Turnier wird trotzdem gestartet"
+        else
+          # In production: Block tournament start if ClubCloud validation fails
+          flash[:alert] = "ClubCloud-Login fehlgeschlagen: #{e.message}. Bitte prüfen Sie die ClubCloud-Zugangsdaten."
+          redirect_to tournament_path(@tournament)
+          return
+        end
       end
     end
 
@@ -315,16 +323,30 @@ class TournamentsController < ApplicationController
     data_["allow_overflow"] = params[:allow_overflow]
     data_["allow_follow_up"] = params[:allow_follow_up]
     data_["auto_upload_to_cc"] = params[:auto_upload_to_cc]
+    
+    Rails.logger.info "🔍 [START] BEFORE unprotected: #{@tournament.unprotected.inspect}"
     @tournament.unprotected = true
+    Rails.logger.info "🔍 [START] AFTER unprotected: #{@tournament.unprotected.inspect}"
+    
     @tournament.data_will_change!
     @tournament.assign_attributes(data: data_)
+    
+    Rails.logger.info "🔍 [START] AFTER assign_attributes: unprotected=#{@tournament.unprotected.inspect}"
+    
+    # Allow saving global tournament for admin-initiated tournament start
+    # This is a conscious admin action (starting tournament) that should be allowed
+    # even for global (API) tournaments, as it only changes local state
+    @tournament.unprotected = true
+    Rails.logger.info "🔍 [START] BEFORE save: unprotected=#{@tournament.unprotected.inspect}, id=#{@tournament.id}"
     @tournament.save
+    Rails.logger.info "🔍 [START] AFTER save succeeded"
+    
     if @tournament.valid?
       Tournament.transaction do
         @tournament.initialize_tournament_monitor
         @tournament.reload
-        @tournament.start_tournament!
-        @tournament.save
+        @tournament.unprotected = true  # Still needed for state transition
+        @tournament.start_tournament!   # AASM auto-saves with the state change
         @tournament.reload
         innings_goal_value = (params[:innings_goal].presence || @tournament.innings_goal).to_i
         balls_goal_value = (params[:balls_goal].presence || @tournament.balls_goal).to_i

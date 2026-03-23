@@ -1,59 +1,64 @@
 # frozen_string_literal: true
 
 module TournamentMonitorState
-  def finalize_game_result(table_monitor)
-    # "ba_results": {
-    #     "Gruppe": null,
-    #     "Partie": 16,
-    #     "Spieler1": 228105,
-    #     "Spieler2": 353803,
-    #     "Ergebnis1": 0,
-    #     "Ergebnis2": 0,
-    #     "Aufnahmen1": 20,
-    #     "Aufnahmen2": 20,
-    #     "Höchstserie1": 0,
-    #     "Höchstserie2": 0,
-    #     "Tischnummer": 2
-    # }
-    Rails.logger.info "[finalize_game_result] START for TM #{table_monitor.id}"
+  # NEW METHOD: Write game result data (called inside lock in report_result)
+  # This method is responsible ONLY for writing TableMonitor data to Game
+  # It does NOT perform state transitions or broadcasts
+  def write_game_result_data(table_monitor)
     game = table_monitor.game
-    Rails.logger.info "[finalize_game_result] game=#{game&.id} (#{game&.gname}), game.present?=#{game.present?}, game.data.nil?=#{game&.data.nil?}"
     return unless game.present? && !game.data.nil?
     
-    # SCHUTZ: Prüfe ob table_monitor.data valide Result-Daten enthält
-    # (verhindert dass leere Games beim populate_tables finalisiert werden)
+    # GUARD: Check if table_monitor.data has valid result data
     if table_monitor.data.blank? || table_monitor.data["ba_results"].blank?
-      Rails.logger.warn "[TournamentMonitorState] ⊘ Skipping finalize_game_result for game[#{game.id}] - table_monitor.data has no results"
+      Rails.logger.warn "[write_game_result_data] ⊘ Skipping for game[#{game.id}] - table_monitor.data has no results"
       return
     end
     
-    # SCHUTZ: Prüfe ob das Game wirklich abgeschlossen wurde
-    # (verhindert dass neue Games mit alten TableMonitor-Daten finalisiert werden)
-    # Ein Game ist nur dann fertig, wenn der TableMonitor im finalen State ist
+    # GUARD: Check if table_monitor is in final state
     unless %w[final_match_score final_set_score].include?(table_monitor.state)
-      Rails.logger.warn "[TournamentMonitorState] ⊘ Skipping finalize_game_result for game[#{game.id}] - table_monitor not in final state (current: #{table_monitor.state})"
+      Rails.logger.warn "[write_game_result_data] ⊘ Skipping for game[#{game.id}] - table_monitor not in final state (current: #{table_monitor.state})"
       return
     end
     
-    # SCHUTZ: Prüfe ob finalize_game_result bereits aufgerufen wurde
-    # (kann passieren wenn finish_match! mehrfach aufgerufen wird)
+    # IDEMPOTENCY: Check if already written (within last minute)
     if game.data["finalized_at"].present?
       finalized_at = Time.parse(game.data["finalized_at"]) rescue nil
       if finalized_at && finalized_at > 1.minute.ago
-        Rails.logger.warn "[TournamentMonitorState] ⊘ Skipping finalize_game_result for game[#{game.id}] - already finalized at #{finalized_at.strftime('%H:%M:%S')}"
+        Rails.logger.warn "[write_game_result_data] ⊘ Already written at #{finalized_at.strftime('%H:%M:%S')} for game[#{game.id}]"
         return
       end
     end
-
-    # Markiere als finalisiert und speichere alle TableMonitor-Daten für update_game_participations
-    Rails.logger.info "[finalize_game_result] Saving game data: ba_results=#{table_monitor.data['ba_results'].present?}"
+    
+    Rails.logger.info "[write_game_result_data] 💾 Writing game data for Game[#{game.id}], ba_results present: #{table_monitor.data['ba_results'].present?}"
+    
+    # Write all TableMonitor data to Game
     game.deep_merge_data!(
       "tmp_results" => table_monitor.data,
       "ba_results" => table_monitor.data["ba_results"],
       "finalized_at" => Time.current.iso8601
     )
     game.save!
-    Rails.logger.info "[finalize_game_result] Game #{game.id} saved with ba_results"
+    
+    Rails.logger.info "[write_game_result_data] ✅ Game[#{game.id}] data written successfully"
+  end
+  
+  def finalize_game_result(table_monitor)
+    # This method is called AFTER data has been written and state transitioned in report_result
+    # It handles: ClubCloud upload, game participation updates, and KO tournament cleanup
+    # 
+    # NOTE: Data writing is now done in write_game_result_data (called inside lock in report_result)
+    # So we no longer write data here to avoid race conditions
+    
+    Rails.logger.info "[finalize_game_result] START for TM #{table_monitor.id}"
+    game = table_monitor.game
+    Rails.logger.info "[finalize_game_result] game=#{game&.id} (#{game&.gname})"
+    return unless game.present? && !game.data.nil?
+    
+    # GUARD: Check table_monitor state (data should already be written at this point)
+    unless %w[final_match_score final_set_score].include?(table_monitor.state)
+      Rails.logger.warn "[finalize_game_result] ⊘ Skipping for game[#{game.id}] - table_monitor not in final state (current: #{table_monitor.state})"
+      return
+    end
 
     # Automatische Übertragung in die ClubCloud
     if tournament.tournament_cc.present? && tournament.auto_upload_to_cc?
