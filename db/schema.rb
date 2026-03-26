@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_03_26_103441) do
+ActiveRecord::Schema[7.2].define(version: 2026_03_26_152148) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -248,8 +248,19 @@ ActiveRecord::Schema[7.2].define(version: 2026_03_26_103441) do
     t.text "end_position_description"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "source_language", default: "de", null: false
+    t.jsonb "translations", default: {}
+    t.string "title_de"
+    t.string "title_en"
+    t.text "stroke_parameters_text_de"
+    t.text "stroke_parameters_text_en"
+    t.text "end_position_description_de"
+    t.text "end_position_description_en"
+    t.datetime "translations_synced_at"
+    t.index ["source_language"], name: "index_error_examples_on_source_language"
     t.index ["training_example_id", "sequence_number"], name: "index_error_examples_on_example_and_sequence", unique: true
     t.index ["training_example_id"], name: "index_error_examples_on_training_example_id"
+    t.index ["translations"], name: "index_error_examples_on_translations", using: :gin
   end
 
   create_table "game_participations", force: :cascade do |t|
@@ -954,7 +965,14 @@ ActiveRecord::Schema[7.2].define(version: 2026_03_26_103441) do
     t.jsonb "position_variants", default: []
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "source_language", default: "de", null: false
+    t.jsonb "translations", default: {}
+    t.text "description_text_de"
+    t.text "description_text_en"
+    t.datetime "translations_synced_at"
+    t.index ["source_language"], name: "index_starting_positions_on_source_language"
     t.index ["training_example_id"], name: "index_starting_positions_on_training_example_id", unique: true
+    t.index ["translations"], name: "index_starting_positions_on_translations", using: :gin
   end
 
   create_table "stream_configurations", force: :cascade do |t|
@@ -1096,13 +1114,53 @@ ActiveRecord::Schema[7.2].define(version: 2026_03_26_103441) do
     t.index ["region_id"], name: "index_tables_on_region_id"
   end
 
+  create_table "taggings", force: :cascade do |t|
+    t.bigint "tag_id", null: false
+    t.string "taggable_type", null: false
+    t.bigint "taggable_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["tag_id", "taggable_type", "taggable_id"], name: "index_taggings_on_tag_and_taggable", unique: true
+    t.index ["tag_id"], name: "index_taggings_on_tag_id"
+    t.index ["taggable_type", "taggable_id"], name: "index_taggings_on_taggable"
+    t.index ["taggable_type", "taggable_id"], name: "index_taggings_on_taggable_type_and_taggable_id"
+  end
+
+  create_table "tags", force: :cascade do |t|
+    t.string "name", null: false
+    t.text "description"
+    t.string "category"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "source_language", default: "de", null: false
+    t.jsonb "translations", default: {}
+    t.string "name_de"
+    t.string "name_en"
+    t.text "description_de"
+    t.text "description_en"
+    t.datetime "translations_synced_at"
+    t.index ["category"], name: "index_tags_on_category"
+    t.index ["name"], name: "index_tags_on_name", unique: true
+    t.index ["name_de"], name: "index_tags_on_name_de"
+    t.index ["name_en"], name: "index_tags_on_name_en"
+    t.index ["source_language"], name: "index_tags_on_source_language"
+    t.index ["translations"], name: "index_tags_on_translations", using: :gin
+  end
+
   create_table "target_positions", force: :cascade do |t|
     t.bigint "training_example_id", null: false
     t.text "description_text"
     t.jsonb "ball_measurements", default: {}
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "source_language", default: "de", null: false
+    t.jsonb "translations", default: {}
+    t.text "description_text_de"
+    t.text "description_text_en"
+    t.datetime "translations_synced_at"
+    t.index ["source_language"], name: "index_target_positions_on_source_language"
     t.index ["training_example_id"], name: "index_target_positions_on_training_example_id", unique: true
+    t.index ["translations"], name: "index_target_positions_on_translations", using: :gin
   end
 
   create_table "tournament_ccs", force: :cascade do |t|
@@ -1316,7 +1374,16 @@ ActiveRecord::Schema[7.2].define(version: 2026_03_26_103441) do
     t.jsonb "translations", default: {}
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "title_de"
+    t.string "title_en"
+    t.text "short_description_de"
+    t.text "short_description_en"
+    t.text "full_description_de"
+    t.text "full_description_en"
+    t.datetime "translations_synced_at"
     t.index ["source_language"], name: "index_training_concepts_on_source_language"
+    t.index ["title_de"], name: "index_training_concepts_on_title_de"
+    t.index ["title_en"], name: "index_training_concepts_on_title_en"
     t.index ["translations"], name: "index_training_concepts_on_translations", using: :gin
   end
 
@@ -1328,8 +1395,17 @@ ActiveRecord::Schema[7.2].define(version: 2026_03_26_103441) do
     t.jsonb "ideal_stroke_parameters_data", default: {}
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "source_language", default: "de", null: false
+    t.jsonb "translations", default: {}
+    t.string "title_de"
+    t.string "title_en"
+    t.text "ideal_stroke_parameters_text_de"
+    t.text "ideal_stroke_parameters_text_en"
+    t.datetime "translations_synced_at"
+    t.index ["source_language"], name: "index_training_examples_on_source_language"
     t.index ["training_concept_id", "sequence_number"], name: "index_training_examples_on_concept_and_sequence", unique: true
     t.index ["training_concept_id"], name: "index_training_examples_on_training_concept_id"
+    t.index ["translations"], name: "index_training_examples_on_translations", using: :gin
   end
 
   create_table "uploads", force: :cascade do |t|
@@ -1466,6 +1542,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_03_26_103441) do
   add_foreign_key "tables", "locations"
   add_foreign_key "tables", "regions", validate: false
   add_foreign_key "tables", "table_kinds"
+  add_foreign_key "taggings", "tags"
   add_foreign_key "target_positions", "training_examples"
   add_foreign_key "tournament_monitors", "tournaments"
   add_foreign_key "tournament_plan_games", "tournament_plans"

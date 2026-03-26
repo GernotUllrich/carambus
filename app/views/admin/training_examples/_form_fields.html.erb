@@ -1,0 +1,146 @@
+<%= render "admin/application/multilingual_form_header", form: form %>
+
+<div class="field-unit field-unit--sequence-number" style="background: #e3f2fd; padding: 15px; border-radius: 6px; margin-bottom: 20px;">
+  <%= form.label :sequence_number, "📍 Beispiel-Nummer", class: "field-unit__label" %>
+  <div class="field-unit__field">
+    <%= form.number_field :sequence_number, class: "field-unit__input" %>
+    <p class="field-hint">Wird automatisch gesetzt, falls leer</p>
+  </div>
+</div>
+
+<div class="multilingual-input-section">
+  <h3 style="margin-bottom: 15px; color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 5px;">
+    📝 Texte in allen Sprachen
+  </h3>
+  
+  <% unless form.object.translations_in_sync? %>
+    <div class="alert alert-warning" style="background: #fff3cd; border: 1px solid #ffc107; padding: 12px; border-radius: 6px; margin-bottom: 20px;">
+      ⚠️ <strong>Übersetzungen nicht synchronisiert</strong>
+    </div>
+  <% end %>
+  
+  <%= render "admin/application/multilingual_text_fields",
+             form: form,
+             resource: form.object,
+             fields: [
+               { name: :title, type: :text_field, label: "Titel des Beispiels" },
+               { name: :ideal_stroke_parameters_text, type: :text_area, label: "Ideale Stoßparameter (Text)", rows: 5 }
+             ] %>
+  
+  <% if form.object.persisted? && form.object.translations_synced_at.present? %>
+    <div class="sync-info" style="background: #d4edda; border: 1px solid #28a745; padding: 10px; border-radius: 6px; margin-top: 15px;">
+      ✅ Zuletzt synchronisiert: <%= form.object.translations_synced_at.strftime('%d.%m.%Y %H:%M') %>
+    </div>
+  <% end %>
+</div>
+
+<div class="field-unit field-unit--ideal-stroke-parameters-data">
+  <%= form.label :ideal_stroke_parameters_data, "Stoßparameter (JSON)", class: "field-unit__label" %>
+  <div class="field-unit__field">
+    <%= form.text_area :ideal_stroke_parameters_data, 
+                       rows: 8, 
+                       class: "field-unit__textarea",
+                       placeholder: '{ "kraft": 0.7, "effect": "links", "zielpunkt": "oben" }' %>
+    <p class="field-hint">Optionale strukturierte Daten im JSON-Format</p>
+  </div>
+</div>
+
+<% if params[:training_concept_id].blank? %>
+  <div class="field-unit field-unit--training-concept">
+    <%= form.label :training_concept_id, class: "field-unit__label" %>
+    <div class="field-unit__field">
+      <%= form.collection_select :training_concept_id, 
+                                  TrainingConcept.order(:title), 
+                                  :id, 
+                                  :title,
+                                  { prompt: "Trainingskonzept auswählen" },
+                                  class: "field-unit__select" %>
+    </div>
+  </div>
+<% end %>
+
+<div class="field-unit field-unit--tags">
+  <%= form.label :tags, "Tags", class: "field-unit__label" %>
+  <div class="field-unit__field">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+      <p class="field-hint" style="margin: 0;">Wählen Sie relevante Tags (Technik, Spielart, etc.):</p>
+      <%= link_to "Neue Tags erstellen", admin_tags_path, target: "_blank", class: "button", 
+                  style: "padding: 5px 10px; background: #4CAF50; color: white; text-decoration: none; border-radius: 3px; font-size: 0.9em;" %>
+    </div>
+    
+    <% relevant_categories = ['Technik', 'Spielart', 'Schwierigkeit', 'Spezial'] %>
+    <% relevant_categories.each do |category| %>
+      <% category_tags = Tag.where(category: category).order(:name) %>
+      <% if category_tags.any? %>
+        <div class="tag-category-compact">
+          <strong><%= category %>:</strong>
+          <%= form.collection_check_boxes :tag_ids, 
+                                          category_tags, 
+                                          :id, 
+                                          :name,
+                                          { checked: form.object.tag_ids } do |b| %>
+            <label class="tag-checkbox-inline">
+              <%= b.check_box %>
+              <%= b.label_text %>
+            </label>
+          <% end %>
+        </div>
+      <% end %>
+    <% end %>
+  </div>
+</div>
+
+<style>
+  .field-unit__input,
+  .field-unit__textarea,
+  .field-unit__select {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  
+  .field-hint {
+    color: #666;
+    font-size: 0.9em;
+    font-style: italic;
+    margin-top: 5px;
+  }
+  .multilingual-input-section {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 25px;
+  }
+  .field-unit__input,
+  .field-unit__textarea {
+    width: 100%;
+    padding: 10px;
+    border: 2px solid #ddd;
+    border-radius: 4px;
+    font-size: 1em;
+    transition: border-color 0.3s;
+  }
+  .field-unit__input:focus,
+  .field-unit__textarea:focus {
+    border-color: #667eea;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  }
+  .tag-category-compact {
+    margin: 8px 0;
+    padding: 8px;
+    background: #f9f9f9;
+    border-radius: 4px;
+  }
+  .tag-checkbox-inline {
+    display: inline-flex;
+    align-items: center;
+    margin-right: 15px;
+    margin-bottom: 5px;
+    cursor: pointer;
+  }
+  .tag-checkbox-inline input[type="checkbox"] {
+    margin-right: 5px;
+  }
+</style>

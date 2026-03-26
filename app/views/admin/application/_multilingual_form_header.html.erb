@@ -1,0 +1,36 @@
+<div class="language-selector-banner">
+  <div class="field-unit field-unit--source-language">
+    <%= form.label :source_language, "🌍 Eingabesprache", class: "field-unit__label" %>
+    <div class="field-unit__field">
+      <%= form.select :source_language, 
+                     [['🇩🇪 Deutsch', 'de'], ['🇬🇧 English', 'en'], ['🇳🇱 Nederlands', 'nl'], ['🇫🇷 Français', 'fr']],
+                     {},
+                     class: "field-unit__select language-select" %>
+      <p class="field-hint" style="color: #ecf0f1;">
+        Wählen Sie die Sprache, in der Sie die Texte eingeben. Nach dem Speichern wird automatisch in DE und EN übersetzt.
+      </p>
+    </div>
+  </div>
+</div>
+
+<style>
+  .language-selector-banner {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 25px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  }
+  .language-selector-banner .field-unit__label {
+    color: white;
+    font-size: 1.1em;
+    font-weight: bold;
+  }
+  .language-select {
+    font-size: 1.1em;
+    padding: 10px;
+    background: white;
+    border: 2px solid #764ba2;
+  }
+</style>

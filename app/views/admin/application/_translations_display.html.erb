@@ -1,0 +1,59 @@
+<% if resource.persisted? && resource.translations.present? %>
+  <div class="translations-display">
+    <h3 style="margin: 20px 0 15px; color: #2c3e50; border-bottom: 2px solid #27ae60; padding-bottom: 5px;">
+      🌐 Automatische Übersetzungen
+    </h3>
+    
+    <% Translatable::TARGET_LANGUAGES.each do |lang| %>
+      <% next if lang == resource.source_language %>
+      <% if resource.translations[lang].present? %>
+        <div class="translation-block">
+          <h4 style="color: #16a085; margin-bottom: 10px;">
+            <%= {'de' => '🇩🇪 Deutsch', 'en' => '🇬🇧 English', 'nl' => '🇳🇱 Nederlands', 'fr' => '🇫🇷 Français'}[lang] %>
+            <span style="font-size: 0.8em; color: #7f8c8d;">
+              (Übersetzt am <%= Time.parse(resource.translations[lang]['translated_at']).strftime('%d.%m.%Y %H:%M') %>)
+            </span>
+          </h4>
+          
+          <div class="translation-content">
+            <% resource.translatable_fields.each do |field| %>
+              <% if resource.translations[lang][field.to_s].present? %>
+                <p>
+                  <strong><%= field.to_s.humanize %>:</strong><br>
+                  <%= simple_format(resource.translations[lang][field.to_s]) %>
+                </p>
+              <% end %>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    <% end %>
+    
+    <p class="field-hint" style="margin-top: 15px;">
+      💡 Um neu zu übersetzen, klicken Sie nach dem Speichern auf "Translate" (falls verfügbar) oder speichern Sie erneut.
+    </p>
+  </div>
+  
+  <style>
+    .translations-display {
+      background: #e8f5e9;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 25px 0;
+    }
+    .translation-block {
+      background: white;
+      padding: 15px;
+      border-radius: 6px;
+      margin-bottom: 15px;
+      border-left: 4px solid #27ae60;
+    }
+    .translation-content {
+      font-size: 0.95em;
+      line-height: 1.6;
+    }
+    .translation-content p {
+      margin: 10px 0;
+    }
+  </style>
+<% end %>

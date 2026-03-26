@@ -1,4 +1,7 @@
 class TrainingExample < ApplicationRecord
+  include Taggable
+  include Translatable
+  
   belongs_to :training_concept
   has_one :starting_position, dependent: :destroy
   has_one :target_position, dependent: :destroy
@@ -14,6 +17,10 @@ class TrainingExample < ApplicationRecord
   before_validation :set_sequence_number
   
   scope :ordered, -> { order(:sequence_number) }
+  
+  def translatable_fields
+    [:title, :ideal_stroke_parameters_text]
+  end
   
   private
   

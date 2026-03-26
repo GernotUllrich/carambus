@@ -1,4 +1,6 @@
 class ErrorExample < ApplicationRecord
+  include Translatable
+  
   belongs_to :training_example
   # TODO: Add image attachment once ActiveStorage is properly configured
   # has_one_attached :image
@@ -9,6 +11,10 @@ class ErrorExample < ApplicationRecord
   before_validation :set_sequence_number
   
   scope :ordered, -> { order(:sequence_number) }
+  
+  def translatable_fields
+    [:title, :stroke_parameters_text, :end_position_description]
+  end
   
   # stroke_parameters_data structure example:
   # {

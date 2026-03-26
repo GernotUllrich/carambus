@@ -479,6 +479,12 @@ Rails.application.routes.draw do
     # Standalone route for Administrate dashboard navigation
     resources :training_examples, only: [:index]
     
+    resources :tags do
+      member do
+        post :translate
+      end
+    end
+    
     root to: "users#index"
   end
 

@@ -1,0 +1,56 @@
+<%= render "admin/application/multilingual_form_header", form: form %>
+
+<div class="field-unit field-unit--category" style="background: #e3f2fd; padding: 15px; border-radius: 6px; margin-bottom: 20px;">
+  <%= form.label :category, "🗂️ Kategorie", class: "field-unit__label" %>
+  <div class="field-unit__field">
+    <%= form.select :category, 
+                   Tag::CATEGORIES,
+                   { include_blank: "Keine Kategorie" },
+                   class: "field-unit__select" %>
+    <p class="field-hint">Gruppierung für bessere Organisation</p>
+  </div>
+</div>
+
+<div class="multilingual-input-section">
+  <h3 style="margin-bottom: 15px; color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 5px;">
+    📝 Tag-Texte in allen Sprachen
+  </h3>
+  
+  <% unless form.object.translations_in_sync? %>
+    <div class="alert alert-warning" style="background: #fff3cd; border: 1px solid #ffc107; padding: 12px; border-radius: 6px; margin-bottom: 20px;">
+      ⚠️ <strong>Übersetzungen nicht synchronisiert</strong>
+    </div>
+  <% end %>
+  
+  <%= render "admin/application/multilingual_text_fields",
+             form: form,
+             resource: form.object,
+             fields: [
+               { name: :name, type: :text_field, label: "Tag-Name" },
+               { name: :description, type: :text_area, label: "Beschreibung", rows: 5 }
+             ] %>
+  
+  <% if form.object.persisted? && form.object.translations_synced_at.present? %>
+    <div class="sync-info" style="background: #d4edda; border: 1px solid #28a745; padding: 10px; border-radius: 6px; margin-top: 15px;">
+      ✅ Zuletzt synchronisiert: <%= form.object.translations_synced_at.strftime('%d.%m.%Y %H:%M') %>
+    </div>
+  <% end %>
+</div>
+
+<style>
+  .field-unit__input,
+  .field-unit__textarea,
+  .field-unit__select {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  
+  .field-hint {
+    color: #666;
+    font-size: 0.9em;
+    font-style: italic;
+    margin-top: 5px;
+  }
+</style>

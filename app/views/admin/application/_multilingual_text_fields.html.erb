@@ -1,0 +1,183 @@
+<%# 
+  Usage: 
+  <%= render "admin/application/multilingual_text_fields", 
+             form: form, 
+             resource: form.object,
+             fields: [
+               { name: :title, type: :text_field, label: "Titel" },
+               { name: :description, type: :text_area, label: "Beschreibung", rows: 5 }
+             ] 
+  %>
+%>
+
+<% fields.each do |field_config| %>
+  <div class="multilingual-field-group">
+    <h4 class="multilingual-field-title">
+      <%= field_config[:label] || field_config[:name].to_s.humanize %>
+    </h4>
+    
+    <div class="multilingual-field-grid">
+      <%# Original field in source language %>
+      <div class="language-field-box original-field">
+        <div class="language-label">
+          <span class="flag-emoji">
+            <%= {'de' => '🇩🇪', 'en' => '🇬🇧', 'nl' => '🇳🇱', 'fr' => '🇫🇷'}[resource.source_language || 'de'] %>
+          </span>
+          <strong>Original (<%= (resource.source_language || 'de').upcase %>)</strong>
+          <% unless resource.translations_in_sync? %>
+            <span class="sync-warning" title="Übersetzungen nicht aktuell">⚠️</span>
+          <% end %>
+        </div>
+        
+        <% if field_config[:type] == :text_area %>
+          <%= form.text_area field_config[:name], 
+                            rows: field_config[:rows] || 5, 
+                            class: "multilingual-textarea" %>
+        <% else %>
+          <%= form.text_field field_config[:name], 
+                             class: "multilingual-input" %>
+        <% end %>
+      </div>
+      
+      <%# German translation %>
+      <div class="language-field-box <%= 'current-source' if resource.source_language == 'de' %>">
+        <div class="language-label">
+          <span class="flag-emoji">🇩🇪</span>
+          <strong>Deutsch</strong>
+          <% if resource.source_language == 'de' %>
+            <span class="badge-source">Quelle</span>
+          <% end %>
+        </div>
+        
+        <% if field_config[:type] == :text_area %>
+          <%= form.text_area "#{field_config[:name]}_de", 
+                            rows: field_config[:rows] || 5, 
+                            class: "multilingual-textarea",
+                            placeholder: resource.source_language == 'de' ? '(= Original)' : 'Wird automatisch übersetzt' %>
+        <% else %>
+          <%= form.text_field "#{field_config[:name]}_de", 
+                             class: "multilingual-input",
+                             placeholder: resource.source_language == 'de' ? '(= Original)' : 'Wird automatisch übersetzt' %>
+        <% end %>
+      </div>
+      
+      <%# English translation %>
+      <div class="language-field-box <%= 'current-source' if resource.source_language == 'en' %>">
+        <div class="language-label">
+          <span class="flag-emoji">🇬🇧</span>
+          <strong>English</strong>
+          <% if resource.source_language == 'en' %>
+            <span class="badge-source">Source</span>
+          <% end %>
+        </div>
+        
+        <% if field_config[:type] == :text_area %>
+          <%= form.text_area "#{field_config[:name]}_en", 
+                            rows: field_config[:rows] || 5, 
+                            class: "multilingual-textarea",
+                            placeholder: resource.source_language == 'en' ? '(= Original)' : 'Auto-translated' %>
+        <% else %>
+          <%= form.text_field "#{field_config[:name]}_en", 
+                             class: "multilingual-input",
+                             placeholder: resource.source_language == 'en' ? '(= Original)' : 'Auto-translated' %>
+        <% end %>
+      </div>
+    </div>
+  </div>
+<% end %>
+
+<style>
+  .multilingual-field-group {
+    margin: 25px 0;
+    padding: 20px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  }
+  
+  .multilingual-field-title {
+    margin: 0 0 15px 0;
+    color: #2c3e50;
+    font-size: 1.1em;
+    border-bottom: 2px solid #3498db;
+    padding-bottom: 8px;
+  }
+  
+  .multilingual-field-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 15px;
+  }
+  
+  .language-field-box {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 6px;
+    border: 2px solid #e9ecef;
+    transition: all 0.3s;
+  }
+  
+  .language-field-box:hover {
+    border-color: #667eea;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.1);
+  }
+  
+  .language-field-box.original-field {
+    background: #fff3cd;
+    border-color: #ffc107;
+  }
+  
+  .language-field-box.current-source {
+    background: #d4edda;
+    border-color: #28a745;
+  }
+  
+  .language-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    font-size: 0.95em;
+  }
+  
+  .flag-emoji {
+    font-size: 1.3em;
+  }
+  
+  .sync-warning {
+    font-size: 1.2em;
+    cursor: help;
+  }
+  
+  .badge-source {
+    background: #28a745;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.75em;
+    font-weight: bold;
+  }
+  
+  .multilingual-input,
+  .multilingual-textarea {
+    width: 100%;
+    padding: 10px;
+    border: 2px solid #ddd;
+    border-radius: 4px;
+    font-size: 1em;
+    font-family: inherit;
+    transition: border-color 0.3s;
+  }
+  
+  .multilingual-input:focus,
+  .multilingual-textarea:focus {
+    border-color: #667eea;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+  }
+  
+  .multilingual-textarea {
+    resize: vertical;
+    min-height: 100px;
+  }
+</style>

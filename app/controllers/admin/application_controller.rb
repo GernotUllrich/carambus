@@ -14,6 +14,11 @@ module Admin
       # authenticate_user!
       # redirect_to root_path unless current_user.admin?
     end
+    
+    # Override redirect_to to allow lvh.me redirects
+    def redirect_to(options = {}, response_options = {})
+      super(options, response_options.merge(allow_other_host: true))
+    end
 
     # Override this value to specify the number of elements to display at a time
     # on index pages. Defaults to 20.
@@ -30,7 +35,8 @@ module Admin
       [
         :users,
         :settings,
-        :training_concepts
+        :training_concepts,
+        :tags
       ]
     end
 
@@ -39,7 +45,8 @@ module Admin
       @_resources ||= [
         User,
         Setting,
-        TrainingConcept
+        TrainingConcept,
+        Tag
       ]
     end
   end

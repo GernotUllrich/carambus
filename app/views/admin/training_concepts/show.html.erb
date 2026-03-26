@@ -1,0 +1,60 @@
+<%#
+# Show
+%>
+
+<% content_for(:title) { t("administrate.actions.show_resource", name: page.page_title) } %>
+
+<header class="main-content__header">
+  <h1 class="main-content__page-title">
+    <%= content_for(:title) %>
+  </h1>
+
+  <div>
+    <%= link_to(
+      t("administrate.actions.edit_resource", name: page.page_title),
+      [:edit, namespace, page.resource],
+      class: "button",
+    ) if accessible_action?(page.resource, :edit) %>
+    
+    <%= button_to(
+      "🌐 Translate",
+      translate_admin_training_concept_path(page.resource),
+      method: :post,
+      class: "button button--translate",
+      style: "background: #27ae60; color: white; display: inline-block; margin-left: 10px;",
+      title: "Übersetze in DE und EN",
+      form: { style: "display: inline-block;" }
+    ) if valid_action?(:translate) %>
+
+    <%= link_to(
+      t("administrate.actions.destroy"),
+      [namespace, page.resource],
+      class: "button button--danger",
+      method: :delete,
+      data: { confirm: t("administrate.actions.confirm") }
+    ) if accessible_action?(page.resource, :destroy) %>
+  </div>
+</header>
+
+<section class="main-content__body">
+  <dl>
+    <% page.attributes.each do |attribute| %>
+      <dt class="attribute-label" id="<%= attribute.name %>">
+      <%= t(
+        "helpers.label.#{resource_name}.#{attribute.name}",
+        default: page.resource.class.human_attribute_name(attribute.name),
+      ) %>
+      </dt>
+
+      <dd class="attribute-data attribute-data--<%= attribute.html_class %>">
+        <%= render_field attribute, page: page %>
+      </dd>
+    <% end %>
+  </dl>
+</section>
+
+<style>
+  .button--translate:hover {
+    background: #229954 !important;
+  }
+</style>

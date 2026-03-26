@@ -1,32 +1,33 @@
-<div class="field-unit field-unit--title">
-  <%= form.label :title, class: "field-unit__label" %>
-  <div class="field-unit__field">
-    <%= form.text_field :title, class: "field-unit__input" %>
-  </div>
-</div>
+<%= render "admin/application/multilingual_form_header", form: form %>
 
-<div class="field-unit field-unit--short-description">
-  <%= form.label :short_description, class: "field-unit__label" %>
-  <div class="field-unit__field">
-    <%= form.text_area :short_description, rows: 3, class: "field-unit__textarea" %>
-  </div>
-</div>
-
-<div class="field-unit field-unit--full-description">
-  <%= form.label :full_description, class: "field-unit__label" %>
-  <div class="field-unit__field">
-    <%= form.text_area :full_description, rows: 10, class: "field-unit__textarea" %>
-  </div>
-</div>
-
-<div class="field-unit field-unit--source-language">
-  <%= form.label :source_language, class: "field-unit__label" %>
-  <div class="field-unit__field">
-    <%= form.select :source_language, 
-                   TrainingConcept::SUPPORTED_LANGUAGES.map { |l| [l.upcase, l] },
-                   {},
-                   class: "field-unit__select" %>
-  </div>
+<div class="multilingual-input-section">
+  <h3 style="margin-bottom: 15px; color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 5px;">
+    📝 Texte in allen Sprachen
+  </h3>
+  
+  <% unless form.object.translations_in_sync? %>
+    <div class="alert alert-warning" style="background: #fff3cd; border: 1px solid #ffc107; padding: 12px; border-radius: 6px; margin-bottom: 20px;">
+      ⚠️ <strong>Übersetzungen nicht synchronisiert</strong><br>
+      <span style="font-size: 0.9em;">
+        Original-Text wurde geändert. Klicken Sie nach dem Speichern auf "Translate" um die Übersetzungen zu aktualisieren.
+      </span>
+    </div>
+  <% end %>
+  
+  <%= render "admin/application/multilingual_text_fields",
+             form: form,
+             resource: form.object,
+             fields: [
+               { name: :title, type: :text_field, label: "Titel" },
+               { name: :short_description, type: :text_area, label: "Kurzbeschreibung", rows: 3 },
+               { name: :full_description, type: :text_area, label: "Ausführliche Beschreibung", rows: 10 }
+             ] %>
+  
+  <% if form.object.persisted? && form.object.translations_synced_at.present? %>
+    <div class="sync-info" style="background: #d4edda; border: 1px solid #28a745; padding: 10px; border-radius: 6px; margin-top: 15px;">
+      ✅ Zuletzt synchronisiert: <%= form.object.translations_synced_at.strftime('%d.%m.%Y %H:%M') %>
+    </div>
+  <% end %>
 </div>
 
 <div class="field-unit field-unit--disciplines">
@@ -78,7 +79,59 @@
   </div>
 </div>
 
+<div class="field-unit field-unit--tags">
+  <%= form.label :tags, "Tags", class: "field-unit__label" %>
+  <div class="field-unit__field">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+      <p class="field-hint" style="margin: 0;">Wählen Sie bestehende Tags aus den Kategorien:</p>
+      <%= link_to "Tag-Verwaltung", admin_tags_path, target: "_blank", class: "button", 
+                  style: "padding: 5px 10px; background: #4CAF50; color: white; text-decoration: none; border-radius: 3px; font-size: 0.9em;" %>
+    </div>
+    
+    <% Tag::CATEGORIES.each do |category| %>
+      <% category_tags = Tag.where(category: category).order(:name) %>
+      <% if category_tags.any? %>
+        <div class="tag-category">
+          <strong><%= category %>:</strong>
+          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 5px;">
+            <%= form.collection_check_boxes :tag_ids, 
+                                            category_tags, 
+                                            :id, 
+                                            :name,
+                                            { checked: form.object.tag_ids } do |b| %>
+              <div class="checkbox-wrapper">
+                <%= b.check_box %>
+                <%= b.label %>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    <% end %>
+    
+    <% if Tag.count == 0 %>
+      <div class="tag-input-wrapper" style="margin-top: 15px;">
+        <p style="color: #ff6b6b; font-weight: bold;">⚠ Noch keine Tags vorhanden!</p>
+        <p>Bitte erstellen Sie zuerst Tags über die <%= link_to "Tag-Verwaltung", admin_tags_path, target: "_blank" %>, 
+           um Redundanz zu vermeiden.</p>
+        <p style="font-size: 0.9em; margin-top: 10px;">
+          Oder laden Sie Beispiel-Tags: 
+          <code style="background: #f4f4f4; padding: 2px 5px; border-radius: 3px;">
+            rails runner db/seeds/tags.rb
+          </code>
+        </p>
+      </div>
+    <% end %>
+  </div>
+</div>
+
 <style>
+  .multilingual-input-section {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 25px;
+  }
   .checkbox-wrapper {
     margin: 5px 0;
   }
@@ -91,10 +144,32 @@
     border: 1px solid #ccc;
     border-radius: 4px;
   }
+  .field-unit__input,
+  .field-unit__textarea {
+    width: 100%;
+    padding: 10px;
+    border: 2px solid #ddd;
+    border-radius: 4px;
+    font-size: 1em;
+    transition: border-color 0.3s;
+  }
+  .field-unit__input:focus,
+  .field-unit__textarea:focus {
+    border-color: #667eea;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  }
   .field-hint {
     color: #666;
     font-size: 0.9em;
     font-style: italic;
+    margin-top: 5px;
     margin-bottom: 10px;
+  }
+  .tag-category {
+    margin: 10px 0;
+    padding: 10px;
+    background: #f9f9f9;
+    border-radius: 4px;
   }
 </style>

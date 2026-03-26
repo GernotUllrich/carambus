@@ -1,9 +1,16 @@
 class StartingPosition < ApplicationRecord
+  include Taggable
+  include Translatable
+  
   belongs_to :training_example
   # TODO: Add image attachment once ActiveStorage is properly configured
   # has_one_attached :image
   
   validates :training_example_id, uniqueness: true
+  
+  def translatable_fields
+    [:description_text]
+  end
   
   # ball_measurements structure example:
   # {
