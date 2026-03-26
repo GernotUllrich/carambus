@@ -1,0 +1,100 @@
+<div class="field-unit field-unit--title">
+  <%= form.label :title, class: "field-unit__label" %>
+  <div class="field-unit__field">
+    <%= form.text_field :title, class: "field-unit__input" %>
+  </div>
+</div>
+
+<div class="field-unit field-unit--short-description">
+  <%= form.label :short_description, class: "field-unit__label" %>
+  <div class="field-unit__field">
+    <%= form.text_area :short_description, rows: 3, class: "field-unit__textarea" %>
+  </div>
+</div>
+
+<div class="field-unit field-unit--full-description">
+  <%= form.label :full_description, class: "field-unit__label" %>
+  <div class="field-unit__field">
+    <%= form.text_area :full_description, rows: 10, class: "field-unit__textarea" %>
+  </div>
+</div>
+
+<div class="field-unit field-unit--source-language">
+  <%= form.label :source_language, class: "field-unit__label" %>
+  <div class="field-unit__field">
+    <%= form.select :source_language, 
+                   TrainingConcept::SUPPORTED_LANGUAGES.map { |l| [l.upcase, l] },
+                   {},
+                   class: "field-unit__select" %>
+  </div>
+</div>
+
+<div class="field-unit field-unit--disciplines">
+  <%= form.label :disciplines, "Disziplinen (optional)", class: "field-unit__label" %>
+  <div class="field-unit__field">
+    <p class="field-hint">Keine Auswahl = Konzept gilt für alle Disziplinen</p>
+    
+    <div style="display: grid; grid-template-columns: 200px 1fr; gap: 20px; margin-top: 10px;">
+      <!-- Hauptdisziplinen -->
+      <div>
+        <strong>Hauptdisziplin:</strong>
+        <% 
+          main_disciplines = Discipline.where(name: ["Dreiband", "Cadre", "Einband", "Freie Partie"])
+                                       .order(:name)
+        %>
+        <%= form.collection_check_boxes :discipline_ids, 
+                                        main_disciplines, 
+                                        :id, 
+                                        :name do |b| %>
+          <div class="checkbox-wrapper">
+            <%= b.check_box %>
+            <%= b.label %>
+          </div>
+        <% end %>
+      </div>
+      
+      <!-- Tischgröße (optional) -->
+      <div>
+        <strong>Tischgröße (optional):</strong>
+        <p class="field-hint" style="margin: 5px 0;">Nur auswählen, wenn spezifisch für eine Tischgröße</p>
+        <% 
+          # Hole alle TableKinds
+          table_kinds = TableKind.where(name: ["Small Billard", "Half Match Billard", "Match Billard"])
+                                 .order(:name)
+        %>
+        <% table_kinds.each do |tk| %>
+          <div class="checkbox-wrapper">
+            <input type="checkbox" 
+                   name="table_kind_filter[]" 
+                   value="<%= tk.name %>" 
+                   id="table_kind_<%= tk.id %>"
+                   disabled>
+            <label for="table_kind_<%= tk.id %>"><%= tk.name %></label>
+            <span class="field-hint">(in Entwicklung)</span>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .checkbox-wrapper {
+    margin: 5px 0;
+  }
+  .checkbox-wrapper input[type="checkbox"] {
+    margin-right: 8px;
+  }
+  .field-unit__select {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  .field-hint {
+    color: #666;
+    font-size: 0.9em;
+    font-style: italic;
+    margin-bottom: 10px;
+  }
+</style>

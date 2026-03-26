@@ -54,4 +54,13 @@ class TrainingConceptDashboard < Administrate::BaseDashboard
   def display_resource(training_concept)
     training_concept.title
   end
+  
+  # Override disciplines display to show "Alle" when empty
+  def disciplines_display(resource)
+    if resource.disciplines.any?
+      resource.disciplines.pluck(:name).join(", ")
+    else
+      "Alle Disziplinen"
+    end
+  end
 end
