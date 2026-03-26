@@ -29,7 +29,8 @@ module Admin
     def navigation_resources
       [
         :users,
-        :settings
+        :settings,
+        :training_concepts
       ]
     end
 
@@ -37,7 +38,8 @@ module Admin
     def resources
       @_resources ||= [
         User,
-        Setting
+        Setting,
+        TrainingConcept
       ]
     end
   end
