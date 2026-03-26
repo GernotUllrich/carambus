@@ -476,6 +476,9 @@ Rails.application.routes.draw do
       resources :training_examples, shallow: true
     end
     
+    # Standalone route for Administrate dashboard navigation
+    resources :training_examples, only: [:index]
+    
     root to: "users#index"
   end
 
