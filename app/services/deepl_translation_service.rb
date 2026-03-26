@@ -3,7 +3,7 @@ require 'uri'
 require 'json'
 
 class DeeplTranslationService
-  DEEPL_API_URL = "https://api-free.deepl.com/v2/translate"
+  DEEPL_API_URL = "https://api.deepl.com/v2/translate"
 
   def self.translate(text, source_language = "DE", target_language = "EN")
     # Split content into front matter and body if present
