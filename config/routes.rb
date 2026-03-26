@@ -473,11 +473,21 @@ Rails.application.routes.draw do
       member do
         post :translate
       end
-      resources :training_examples, shallow: true
+      resources :training_examples, shallow: true do
+        member do
+          patch :move_up
+          patch :move_down
+        end
+      end
     end
     
     # Standalone route for Administrate dashboard navigation
-    resources :training_examples, only: [:index]
+    resources :training_examples, only: [:index] do
+      member do
+        patch :move_up
+        patch :move_down
+      end
+    end
     
     resources :tags do
       member do

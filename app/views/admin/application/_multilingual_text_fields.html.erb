@@ -1,15 +1,4 @@
-<%# 
-  Usage: 
-  <%= render "admin/application/multilingual_text_fields", 
-             form: form, 
-             resource: form.object,
-             fields: [
-               { name: :title, type: :text_field, label: "Titel" },
-               { name: :description, type: :text_area, label: "Beschreibung", rows: 5 }
-             ] 
-  %>
-%>
-
+<%# Multilingual text fields partial - renders form fields for all languages %>
 <% fields.each do |field_config| %>
   <div class="multilingual-field-group">
     <h4 class="multilingual-field-title">

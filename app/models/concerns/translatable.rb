@@ -12,7 +12,7 @@ module Translatable
   TARGET_LANGUAGES = %w[de en].freeze
   
   # Translate all translatable fields to DE and EN
-  def translate_to_target_languages!(force: false)
+  def translate_to_target_languages!(force: false, method: 'deepl')
     return unless should_translate?
     
     TARGET_LANGUAGES.each do |target_lang|
@@ -32,14 +32,15 @@ module Translatable
                           current_value == original_value
         
         if should_translate
-          translated_value = translate_field(field, target_lang)
+          translated_value = translate_field(field, target_lang, method: method)
           send("#{target_field}=", translated_value) if translated_value.present?
         end
       end
     end
     
-    self.translations_synced_at = Time.current
     save!
+    # Set sync timestamp AFTER save to ensure it's >= updated_at
+    update_column(:translations_synced_at, updated_at)
   end
   
   # Get field value in specific language (for I18n integration)
@@ -131,17 +132,24 @@ module Translatable
     end
   end
   
-  def translate_field(field_name, target_language)
+  def translate_field(field_name, target_language, method: 'deepl')
     field_value = send(field_name)
     return nil if field_value.blank?
     
-    DeeplTranslationService.new.translate(
+    service = case method.to_s
+    when 'ai'
+      AiTranslationService.new
+    else
+      DeeplTranslationService.new
+    end
+    
+    service.translate(
       text: field_value,
       source_lang: source_language.upcase,
       target_lang: target_language.upcase
     )
   rescue => e
-    Rails.logger.error("Translation failed for #{field_name}: #{e.message}")
+    Rails.logger.error("Translation (#{method}) failed for #{field_name}: #{e.message}")
     nil
   end
 end

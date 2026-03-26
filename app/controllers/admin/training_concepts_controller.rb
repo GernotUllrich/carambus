@@ -1,6 +1,33 @@
 module Admin
   class TrainingConceptsController < Admin::ApplicationController
-    before_action :check_translation_needed, only: [:update]
+    def update
+      should_translate = params[:training_concept]&.[](:translate_after_save) == '1'
+      translation_method = params[:training_concept]&.[](:translation_method) || 'deepl'
+      
+      if requested_resource.update(resource_params)
+        if should_translate
+          begin
+            method_name = translation_method == 'ai' ? 'AI (Claude)' : 'DeepL mit Glossar'
+            requested_resource.translate_to_target_languages!(force: true, method: translation_method)
+            notice_message = "Trainingskonzept wurde gespeichert und erfolgreich übersetzt (#{method_name})."
+          rescue => e
+            Rails.logger.error "Translation error: #{e.message}\n#{e.backtrace.join("\n")}"
+            notice_message = "Trainingskonzept wurde gespeichert, aber Übersetzung fehlgeschlagen: #{e.message}"
+          end
+        else
+          notice_message = "Trainingskonzept wurde erfolgreich aktualisiert."
+        end
+        
+        redirect_to(
+          admin_training_concept_url(requested_resource, host: request.host, port: request.port),
+          notice: notice_message
+        )
+      else
+        render :edit, locals: {
+          page: Administrate::Page::Form.new(dashboard, requested_resource),
+        }, status: :unprocessable_entity
+      end
+    end
     
     def translate
       requested_resource.translate_to_target_languages!
@@ -13,23 +40,6 @@ module Admin
     
     def valid_action?(name, resource = resource_class)
       %w[translate].include?(name.to_s) || super
-    end
-    
-    private
-    
-    def check_translation_needed
-      return unless params[:training_concept]
-      
-      changed_fields = params[:training_concept].keys & %w[title short_description full_description source_language]
-      @should_translate = changed_fields.any?
-    end
-    
-    def after_resource_updated(resource)
-      if @should_translate
-        resource.translate_to_target_languages!
-      end
-    rescue => e
-      Rails.logger.error("Auto-translation failed: #{e.message}")
     end
   end
 end

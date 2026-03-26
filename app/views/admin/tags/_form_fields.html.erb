@@ -35,6 +35,62 @@
       ✅ Zuletzt synchronisiert: <%= form.object.translations_synced_at.strftime('%d.%m.%Y %H:%M') %>
     </div>
   <% end %>
+  
+  <div class="field-unit" style="background: #fff9e6; border: 2px solid #ffc107; padding: 15px; border-radius: 6px; margin-top: 20px;">
+    <label class="field-unit__label">
+      <%= check_box_tag 'tag[translate_after_save]', '1', false, style: "margin-right: 8px;", id: 'translate_checkbox' %>
+      🌐 <strong>Nach dem Speichern automatisch übersetzen</strong>
+    </label>
+    
+    <div id="translation_method" style="margin-left: 24px; margin-top: 10px;">
+      <p class="field-hint" style="margin-bottom: 8px;">
+        <strong>Übersetzungsmethode:</strong>
+      </p>
+      <label style="display: block; margin-bottom: 6px;">
+        <%= radio_button_tag 'tag[translation_method]', 'deepl', true, style: "margin-right: 6px;" %>
+        💰 <strong>DeepL mit Glossar</strong> (schnell, günstig, gut für EN↔DE)
+      </label>
+      <label style="display: block;">
+        <%= radio_button_tag 'tag[translation_method]', 'ai', false, style: "margin-right: 6px;" %>
+        🤖 <strong>AI (Claude)</strong> (beste Qualität, versteht Kontext, für alle Sprachen)
+      </label>
+    </div>
+    
+    <p class="field-hint" style="margin-left: 24px; margin-top: 10px;">
+      Die geänderten Felder werden nach dem Speichern in alle Sprachen übersetzt
+    </p>
+  </div>
+  
+  <script>
+    function setupTranslationToggle() {
+      const checkbox = document.getElementById('translate_checkbox');
+      const methodDiv = document.getElementById('translation_method');
+      
+      if (checkbox && methodDiv) {
+        // Initial state
+        methodDiv.style.display = checkbox.checked ? 'block' : 'none';
+        
+        // Toggle on change
+        checkbox.addEventListener('change', function() {
+          methodDiv.style.display = this.checked ? 'block' : 'none';
+        });
+      }
+    }
+    
+    // Run on DOMContentLoaded
+    document.addEventListener('DOMContentLoaded', setupTranslationToggle);
+    
+    // Run on Turbo load (for Hotwire/Turbo)
+    document.addEventListener('turbo:load', setupTranslationToggle);
+    
+    // Run immediately if already loaded
+    if (document.readyState === 'loading') {
+      // Still loading, wait for DOMContentLoaded
+    } else {
+      // DOM already loaded, run immediately
+      setupTranslationToggle();
+    }
+  </script>
 </div>
 
 <style>

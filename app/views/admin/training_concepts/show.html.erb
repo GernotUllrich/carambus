@@ -53,6 +53,128 @@
   </dl>
 </section>
 
+<!-- Trainingsbeispiele Section -->
+<section class="main-content__body" style="margin-top: 40px;">
+  <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #3498db; padding-bottom: 10px;">
+    <h2 style="color: #2c3e50; margin: 0;">
+      📚 Trainingsbeispiele 
+      <span style="color: #7f8c8d; font-size: 0.8em;">(<%= page.resource.training_examples.count %>)</span>
+    </h2>
+    <%= link_to(
+      "➕ Neues Beispiel",
+      new_admin_training_concept_training_example_path(page.resource),
+      class: "button",
+      style: "background: #27ae60; color: white;"
+    ) %>
+  </header>
+
+  <% if page.resource.training_examples.any? %>
+    <table class="table" style="width: 100%; border-collapse: collapse;">
+      <thead>
+        <tr style="background: #ecf0f1;">
+          <th style="padding: 10px; text-align: left; width: 60px;">#</th>
+          <th style="padding: 10px; text-align: left;">Titel</th>
+          <th style="padding: 10px; text-align: left;">Sprache</th>
+          <th style="padding: 10px; text-align: center;">Übersetzt</th>
+          <th style="padding: 10px; text-align: center; width: 80px;">Sortierung</th>
+          <th style="padding: 10px; text-align: right; width: 200px;">Aktionen</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% examples = page.resource.training_examples.order(:sequence_number).to_a %>
+        <% examples.each_with_index do |example, index| %>
+          <tr style="border-bottom: 1px solid #ddd;">
+            <td style="padding: 10px; font-weight: bold; color: #7f8c8d;">
+              <%= example.sequence_number %>
+            </td>
+            <td style="padding: 10px;">
+              <strong><%= example.title %></strong>
+              <% if example.ideal_stroke_parameters_text.present? %>
+                <br>
+                <span style="color: #7f8c8d; font-size: 0.85em;">
+                  <%= truncate(example.ideal_stroke_parameters_text, length: 80) %>
+                </span>
+              <% end %>
+            </td>
+            <td style="padding: 10px;">
+              <span class="badge" style="background: #3498db; color: white; padding: 3px 8px; border-radius: 3px; font-size: 0.85em;">
+                <%= example.source_language.upcase %>
+              </span>
+            </td>
+            <td style="padding: 10px; text-align: center;">
+              <% if example.translations_in_sync? %>
+                <span style="color: #27ae60; font-size: 1.2em;" title="Übersetzungen synchronisiert">✅</span>
+              <% else %>
+                <span style="color: #e74c3c; font-size: 1.2em;" title="Übersetzungen nicht synchronisiert">⚠️</span>
+              <% end %>
+            </td>
+            <td style="padding: 10px; text-align: center;">
+              <% if index > 0 %>
+                <%= button_to(
+                  "↑",
+                  move_up_admin_training_example_path(example),
+                  method: :patch,
+                  class: "button button--small",
+                  style: "background: #95a5a6; color: white; padding: 3px 8px; display: inline-block; margin-right: 3px;",
+                  title: "Nach oben",
+                  form: { style: "display: inline-block;" }
+                ) %>
+              <% end %>
+              <% if index < examples.size - 1 %>
+                <%= button_to(
+                  "↓",
+                  move_down_admin_training_example_path(example),
+                  method: :patch,
+                  class: "button button--small",
+                  style: "background: #95a5a6; color: white; padding: 3px 8px; display: inline-block;",
+                  title: "Nach unten",
+                  form: { style: "display: inline-block;" }
+                ) %>
+              <% end %>
+            </td>
+            <td style="padding: 10px; text-align: right;">
+              <%= link_to(
+                "👁️ Anzeigen",
+                admin_training_example_path(example),
+                class: "button button--small",
+                style: "background: #3498db; color: white; padding: 5px 10px; margin-right: 5px;"
+              ) %>
+              <%= link_to(
+                "✏️ Bearbeiten",
+                edit_admin_training_example_path(example),
+                class: "button button--small",
+                style: "background: #f39c12; color: white; padding: 5px 10px; margin-right: 5px;"
+              ) %>
+              <%= button_to(
+                "🗑️",
+                admin_training_example_path(example),
+                method: :delete,
+                data: { confirm: "Trainingsbeispiel '#{example.title}' wirklich löschen?" },
+                class: "button button--small button--danger",
+                style: "background: #e74c3c; color: white; padding: 5px 10px; display: inline-block;",
+                form: { style: "display: inline-block;" }
+              ) %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <div style="background: #ecf0f1; padding: 30px; text-align: center; border-radius: 6px; color: #7f8c8d;">
+      <p style="margin: 0; font-size: 1.1em;">
+        📝 Noch keine Trainingsbeispiele vorhanden.
+      </p>
+      <p style="margin: 10px 0 0 0;">
+        <%= link_to(
+          "Erstes Beispiel hinzufügen →",
+          new_admin_training_concept_training_example_path(page.resource),
+          style: "color: #3498db; text-decoration: underline;"
+        ) %>
+      </p>
+    </div>
+  <% end %>
+</section>
+
 <style>
   .button--translate:hover {
     background: #229954 !important;

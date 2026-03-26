@@ -1,0 +1,20 @@
+<header class="header">
+  <div class="header__heading">
+    <h1 class="header__heading__name">
+      <%= display_resource_name(page.resource_name) %>
+    </h1>
+
+    <%= render(
+      "search",
+      search_term: search_term,
+      resource_name: display_resource_name(page.resource_name)
+    ) if show_search_bar %>
+  </div>
+
+  <div class="header__actions">
+    <%# Kein "New" Button für TrainingExamples, da diese nur über TrainingConcepts erstellt werden können %>
+    <div class="header__hint" style="color: #666; font-size: 0.9em; font-style: italic;">
+      💡 Trainingsbeispiele werden über <a href="<%= admin_training_concepts_path %>">Trainingskonzepte</a> erstellt
+    </div>
+  </div>
+</header>
