@@ -48,10 +48,31 @@ discipline_mappings.each do |discipline_name, config|
   puts "Processing: #{discipline_name}"
   puts "-" * 40
   
-  # Find or create the intermediate discipline (table-independent)
-  intermediate_discipline = Discipline.find_or_create_by!(name: discipline_name) do |d|
-    d.super_discipline_id = karambol.id
-    d.table_kind_id = nil  # No table kind for intermediate disciplines
+  # Check for duplicates first
+  existing = Discipline.where(name: discipline_name, table_kind_id: nil)
+  if existing.count > 1
+    puts "  ⚠ Found #{existing.count} duplicates, cleaning up..."
+    keep = existing.order(:id).first
+    duplicates = existing.where.not(id: keep.id)
+    
+    duplicates.each do |dup|
+      # Reassign children
+      Discipline.where(super_discipline_id: dup.id).update_all(super_discipline_id: keep.id)
+      # Reassign training concepts
+      TrainingConceptDiscipline.where(discipline_id: dup.id).update_all(discipline_id: keep.id)
+      dup.destroy
+      puts "    Removed duplicate ID #{dup.id}"
+    end
+    
+    intermediate_discipline = keep
+  else
+    # Find or create the intermediate discipline (table-independent)
+    intermediate_discipline = Discipline.find_or_create_by!(
+      name: discipline_name,
+      table_kind_id: nil
+    ) do |d|
+      d.super_discipline_id = karambol.id
+    end
   end
   
   # If it already exists but has wrong parent, update it
