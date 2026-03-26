@@ -36,6 +36,8 @@ class Discipline < ApplicationRecord
   has_many :seeding_plays, class_name: "Seeding", foreign_key: :playing_discipline_id
   has_one :competition_cc, foreign_key: :discipline_id, dependent: :destroy
   has_one :branch_cc, foreign_key: :discipline_id, dependent: :destroy
+  has_many :training_concept_disciplines, dependent: :destroy
+  has_many :training_concepts, through: :training_concept_disciplines
 
   before_save :update_synonyms
 

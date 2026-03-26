@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_02_25_182209) do
+ActiveRecord::Schema[7.2].define(version: 2026_03_26_103441) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -237,6 +237,19 @@ ActiveRecord::Schema[7.2].define(version: 2026_02_25_182209) do
     t.integer "team_size"
     t.index ["name", "table_kind_id"], name: "index_disciplines_on_foreign_keys", unique: true
     t.index ["name", "table_kind_id"], name: "index_disciplines_on_name_and_table_kind_id", unique: true
+  end
+
+  create_table "error_examples", force: :cascade do |t|
+    t.bigint "training_example_id", null: false
+    t.string "title"
+    t.integer "sequence_number", default: 1, null: false
+    t.text "stroke_parameters_text"
+    t.jsonb "stroke_parameters_data", default: {}
+    t.text "end_position_description"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["training_example_id", "sequence_number"], name: "index_error_examples_on_example_and_sequence", unique: true
+    t.index ["training_example_id"], name: "index_error_examples_on_training_example_id"
   end
 
   create_table "game_participations", force: :cascade do |t|
@@ -934,6 +947,16 @@ ActiveRecord::Schema[7.2].define(version: 2026_02_25_182209) do
     t.datetime "updated_at", null: false
   end
 
+  create_table "starting_positions", force: :cascade do |t|
+    t.bigint "training_example_id", null: false
+    t.text "description_text"
+    t.jsonb "ball_measurements", default: {}
+    t.jsonb "position_variants", default: []
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["training_example_id"], name: "index_starting_positions_on_training_example_id", unique: true
+  end
+
   create_table "stream_configurations", force: :cascade do |t|
     t.bigint "table_id", null: false
     t.string "youtube_stream_key"
@@ -1071,6 +1094,15 @@ ActiveRecord::Schema[7.2].define(version: 2026_02_25_182209) do
     t.boolean "global_context", default: false
     t.index ["global_context"], name: "index_tables_on_global_context"
     t.index ["region_id"], name: "index_tables_on_region_id"
+  end
+
+  create_table "target_positions", force: :cascade do |t|
+    t.bigint "training_example_id", null: false
+    t.text "description_text"
+    t.jsonb "ball_measurements", default: {}
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["training_example_id"], name: "index_target_positions_on_training_example_id", unique: true
   end
 
   create_table "tournament_ccs", force: :cascade do |t|
@@ -1266,6 +1298,40 @@ ActiveRecord::Schema[7.2].define(version: 2026_02_25_182209) do
     t.index ["type"], name: "index_tournaments_on_type"
   end
 
+  create_table "training_concept_disciplines", force: :cascade do |t|
+    t.bigint "training_concept_id", null: false
+    t.bigint "discipline_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["discipline_id"], name: "index_training_concept_disciplines_on_discipline_id"
+    t.index ["training_concept_id", "discipline_id"], name: "index_training_concept_disciplines_unique", unique: true
+    t.index ["training_concept_id"], name: "index_training_concept_disciplines_on_training_concept_id"
+  end
+
+  create_table "training_concepts", force: :cascade do |t|
+    t.string "title", null: false
+    t.text "short_description"
+    t.text "full_description"
+    t.string "source_language", default: "de", null: false
+    t.jsonb "translations", default: {}
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["source_language"], name: "index_training_concepts_on_source_language"
+    t.index ["translations"], name: "index_training_concepts_on_translations", using: :gin
+  end
+
+  create_table "training_examples", force: :cascade do |t|
+    t.bigint "training_concept_id", null: false
+    t.string "title"
+    t.integer "sequence_number", default: 1, null: false
+    t.text "ideal_stroke_parameters_text"
+    t.jsonb "ideal_stroke_parameters_data", default: {}
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["training_concept_id", "sequence_number"], name: "index_training_examples_on_concept_and_sequence", unique: true
+    t.index ["training_concept_id"], name: "index_training_examples_on_training_concept_id"
+  end
+
   create_table "uploads", force: :cascade do |t|
     t.string "filename"
     t.integer "user_id"
@@ -1378,6 +1444,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_02_25_182209) do
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "club_locations", "regions", validate: false
   add_foreign_key "clubs", "regions", validate: false
+  add_foreign_key "error_examples", "training_examples"
   add_foreign_key "game_participations", "regions", validate: false
   add_foreign_key "game_plans", "regions", validate: false
   add_foreign_key "games", "regions", validate: false
@@ -1394,14 +1461,19 @@ ActiveRecord::Schema[7.2].define(version: 2026_02_25_182209) do
   add_foreign_key "settings", "clubs"
   add_foreign_key "settings", "regions"
   add_foreign_key "settings", "tournaments"
+  add_foreign_key "starting_positions", "training_examples"
   add_foreign_key "stream_configurations", "tables"
   add_foreign_key "tables", "locations"
   add_foreign_key "tables", "regions", validate: false
   add_foreign_key "tables", "table_kinds"
+  add_foreign_key "target_positions", "training_examples"
   add_foreign_key "tournament_monitors", "tournaments"
   add_foreign_key "tournament_plan_games", "tournament_plans"
   add_foreign_key "tournaments", "international_sources", validate: false
   add_foreign_key "tournaments", "regions", validate: false
+  add_foreign_key "training_concept_disciplines", "disciplines"
+  add_foreign_key "training_concept_disciplines", "training_concepts"
+  add_foreign_key "training_examples", "training_concepts"
   add_foreign_key "users", "players"
   add_foreign_key "versions", "regions", validate: false
   add_foreign_key "videos", "disciplines"

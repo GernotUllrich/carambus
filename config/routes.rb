@@ -468,6 +468,14 @@ Rails.application.routes.draw do
         get :preview, defaults: { format: :json }
       end
     end
+    
+    resources :training_concepts do
+      member do
+        post :translate
+      end
+      resources :training_examples, shallow: true
+    end
+    
     root to: "users#index"
   end
 

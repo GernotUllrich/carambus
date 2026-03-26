@@ -15,6 +15,11 @@ class DeeplTranslationService
     # Recombine front matter with translated content
     [front_matter, translated_content]
   end
+  
+  # Instance method for direct translation without front matter handling
+  def translate(text:, source_lang:, target_lang:)
+    self.class.translate_content(text, source_lang, target_lang)
+  end
 
   private
 
