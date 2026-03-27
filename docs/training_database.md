@@ -2,47 +2,86 @@
 
 ## Überblick
 
-Die Trainings-Datenbank ermöglicht die Verwaltung von Billard-Trainingskonzepten mit detaillierten Übungsbeispielen, Ausgangs- und Zielpositionen sowie häufigen Fehlern.
+Die Trainings-Datenbank ermöglicht die Verwaltung von Billard-Trainingskonzepten mit detaillierten Übungsbeispielen, Ausgangs- und Endpositionen sowie häufigen Fehlern. Das System wurde im März 2026 grundlegend überarbeitet, um eine klarere Terminologie und flexiblere Struktur zu bieten.
+
+## Kernkonzepte
+
+### Terminologie
+
+- **StartPosition**: Die Ausgangsposition der Bälle (B1, B2, B3) mit optionalen Varianten
+- **Shot**: Ein konkreter Stoß von der StartPosition zu einer EndPosition
+  - **Ideal Shot**: Führt zu einer günstigen EndPosition
+  - **Alternative Shot**: Andere Methode zu einer günstigen EndPosition
+  - **Error Shot**: Häufiger Fehler, der zu einer ungünstigen EndPosition führt
+- **EndPosition**: Die Position der Bälle nach dem Stoß
+- **Trajectories**: Die Laufwege der Bälle (im Shot-Image visualisiert)
 
 ## Datenmodell
 
 ### TrainingConcept (Trainingskonzept)
-Das Hauptmodell für ein Trainingskonzept.
+Das Hauptmodell für ein Trainingskonzept, das mehrere TrainingExamples zusammenfasst.
 
 **Felder:**
-- `title` (String, Pflicht): Titel des Konzepts
-- `short_description` (Text): Kurzbeschreibung
-- `full_description` (Text): Ausführliche Beschreibung
+- `title` (String, mehrsprachig): Titel des Konzepts
+- `short_description` (Text, mehrsprachig): Kurzbeschreibung
+- `full_description` (Text, mehrsprachig): Ausführliche Beschreibung
 - `source_language` (String): Quellsprache (de, en, nl, fr)
 - `translations` (JSONB): Übersetzungen in andere Sprachen
+- `translations_synced_at` (DateTime): Zeitpunkt der letzten Übersetzung
 
 **Beziehungen:**
 - `disciplines`: Many-to-Many Beziehung zu Disziplinen
 - `training_examples`: Hat viele Übungsbeispiele
+- `tags`: Tagging-System für Kategorisierung
+
+**Features:**
+- ✅ Mehrsprachigkeit (DE, EN als Zielsprachen)
+- ✅ DeepL-Integration mit Glossaren
+- ✅ AI-Übersetzung (Claude/GPT) für komplexe Begriffe
+- ✅ Übersetzungs-Sync-Status
+
+---
 
 ### TrainingExample (Übungsbeispiel)
-Konkrete Übungsbeispiele für ein Trainingskonzept.
+Konkrete Übungsbeispiele für ein Trainingskonzept. Kann hierarchisch organisiert werden (z.B. Varianten derselben Grundposition).
 
 **Felder:**
-- `title` (String): Titel des Beispiels
-- `sequence_number` (Integer): Laufende Nummer
-- `ideal_stroke_parameters_text` (Text): Freitext für Stoßparameter
+- `title` (String, mehrsprachig): Titel des Beispiels
+- `sequence_number` (Integer): Laufende Nummer für Sortierung
+- `parent_id` (Integer, optional): Referenz auf übergeordnetes TrainingExample
+- `ideal_stroke_parameters_text` (Text, mehrsprachig): Freitext für Stoßparameter
 - `ideal_stroke_parameters_data` (JSONB): Strukturierte Stoßparameter
+- `source_notes` (Text): Interne Notizen zur Quelle
 
 **Beziehungen:**
 - `training_concept`: Gehört zu einem Konzept
-- `starting_position`: Hat eine Ausgangsposition (1:1)
-- `target_position`: Hat eine Zielposition (1:1)
-- `error_examples`: Hat mehrere Fehlerbeispiele
+- `parent`: Optionales übergeordnetes TrainingExample
+- `children`: Untergeordnete TrainingExamples (Varianten)
+- `start_position`: Hat eine Ausgangsposition (1:1)
+- `shots`: Hat mehrere Shots (1:n)
+- `source_attributions`: Verweise auf Quelldokumente
+- `training_sources`: Quelldokumente (via source_attributions)
+- `tags`: Tagging-System
 
-### StartingPosition (Ausgangsposition)
-Beschreibt die Ausgangsposition der Bälle.
+**Hierarchie-Beispiel:**
+```
+TrainingExample: "Dreibander von der langen Bande"
+  ├─ Child: "Variante mit B1 links"
+  └─ Child: "Variante mit B1 rechts"
+```
+
+---
+
+### StartPosition (Ausgangsposition)
+Beschreibt die Ausgangsposition der Bälle. Eine StartPosition gehört zu genau einem TrainingExample.
 
 **Felder:**
-- `description_text` (Text): Freitext-Beschreibung
+- `description_text` (Text, mehrsprachig): Freitext-Beschreibung
 - `ball_measurements` (JSONB): Strukturierte Ballpositionen (B1, B2, B3)
-- `position_variants` (JSONB): Array von Positionsvarianten
-- `image`: Bild der Ausgangsposition (TODO: ActiveStorage)
+- `position_variants` (JSONB): Array von Positionsvarianten für B1
+- `image` (ActiveStorage): Bild der Ausgangsposition
+
+**Tabelle:** `starting_positions` (historischer Name, Model heißt `StartPosition`)
 
 **JSON-Struktur für ball_measurements:**
 ```json
@@ -57,37 +96,147 @@ Beschreibt die Ausgangsposition der Bälle.
 ```json
 [
   {
-    "name": "Variant A",
-    "b1": { "x": 105, "y": 205 },
-    "b2": { "x": 155, "y": 255 }
+    "name": "Variant A (B1 links)",
+    "b1": { "x": 105, "y": 205 }
+  },
+  {
+    "name": "Variant B (B1 rechts)",
+    "b1": { "x": 95, "y": 195 }
   }
 ]
 ```
 
-### TargetPosition (Zielposition)
-Beschreibt die ideale Zielposition.
+---
+
+### Shot (Stoß)
+**NEU seit März 2026**: Vereinheitlichtes Model für alle Stoß-Typen. Ersetzt die alten Models `TargetPosition` und `ErrorExample`.
+
+Ein Shot beschreibt einen konkreten Stoß von der StartPosition zu einer EndPosition, inklusive Laufwege (Trajectories).
 
 **Felder:**
-- `description_text` (Text): Freitext-Beschreibung
-- `ball_measurements` (JSONB): Strukturierte Zielposition
-- `image`: Bild der Zielposition (TODO: ActiveStorage)
+- `shot_type` (String, Pflicht): Typ des Shots
+  - `'ideal'`: Führt zu günstiger EndPosition (Standard-Methode)
+  - `'alternative'`: Alternative Methode zu günstiger EndPosition
+  - `'error'`: Häufiger Fehler zu ungünstiger EndPosition
+- `sequence_number` (Integer): Sortierung innerhalb des TrainingExamples
+- `title` (String, mehrsprachig): Titel/Name des Shots
+- `notes` (Text, mehrsprachig): Allgemeine Notizen
+- `end_position_description` (Text, mehrsprachig): Beschreibung der EndPosition
+- `shot_description` (Text, mehrsprachig): Beschreibung der Stoß-Ausführung
+- `end_position_type` (String): Typ der EndPosition
+  - `'exact'`: Exakte Koordinaten
+  - `'area'`: Fläche (z.B. Rechteck)
+  - `'concept'`: Konzeptionelle Beschreibung (z.B. "Amerika-Position")
+  - `'named_area'`: Benannte Fläche (z.B. "Cadre-Bereich", "Halb-voll")
+- `end_position_data` (JSONB): Strukturierte Daten zur EndPosition
+- `shot_parameters` (JSONB): Strukturierte Stoß-Parameter
+- `shot_image` (ActiveStorage): Visualisierung des Shots (StartPosition + Trajectories + EndPosition)
+- `translations_synced_at` (DateTime): Zeitpunkt der letzten Übersetzung
 
-### ErrorExample (Fehlerbeispiel)
-Beschreibt häufige Fehler und deren Auswirkungen.
+**Beziehungen:**
+- `training_example`: Gehört zu einem TrainingExample
+
+**JSON-Struktur für end_position_data (Beispiele):**
+
+```json
+// Exakte Koordinaten
+{
+  "b1": {"x": 150, "y": 200},
+  "b2": {"x": 300, "y": 250},
+  "b3": {"x": 450, "y": 180}
+}
+
+// Fläche mit Koordinaten
+{
+  "type": "rectangle",
+  "x1": 100, "y1": 150,
+  "x2": 200, "y2": 250
+}
+
+// Benannte Fläche
+{
+  "type": "named_area",
+  "name": "Cadre-Bereich"
+}
+
+// Kombiniert
+{
+  "b1": {"type": "area", "name": "Halb-voll"},
+  "b2": {"x": 300, "y": 250},
+  "b3": {"type": "area", "name": "Effet 3"}
+}
+```
+
+**JSON-Struktur für shot_parameters (Beispiele):**
+```json
+{
+  "ball_contact": "Halb-voll",
+  "effect": 3,
+  "cue_angle": 45,
+  "energy": 0.7,
+  "aim_point": "Viertel-Billard"
+}
+```
+
+---
+
+### TrainingSource (Quelldokument)
+**NEU seit März 2026**: Verwaltung von Quelldokumenten (PDFs, Bilder) für bibliographische Referenzen.
 
 **Felder:**
-- `title` (String): Titel des Fehlers
-- `sequence_number` (Integer): Laufende Nummer
-- `stroke_parameters_text` (Text): Freitext für fehlerhafte Parameter
-- `stroke_parameters_data` (JSONB): Strukturierte Fehlerparameter
-- `end_position_description` (Text): Beschreibung der fehlerhaften Endposition
-- `image`: Bild der fehlerhaften Position (TODO: ActiveStorage)
+- `title` (String, Pflicht): Titel der Quelle
+- `author` (String): Autor(en)
+- `publication_year` (Integer): Erscheinungsjahr
+- `publisher` (String): Verlag/Herausgeber
+- `language` (String): Sprache (de, en, nl, fr)
+- `notes` (Text): Zusätzliche Notizen
+- `source_files` (ActiveStorage, many): PDF/Bild-Dateien
+
+**Beziehungen:**
+- `source_attributions`: Zuordnungen zu TrainingConcepts/TrainingExamples
+- `training_concepts`: Verknüpfte Konzepte (via source_attributions)
+- `training_examples`: Verknüpfte Beispiele (via source_attributions)
+
+**Storage:**
+- Dateien werden in `:local_sources` gespeichert
+- **NICHT** via rsync synchronisiert (lokale Quelldateien)
+- Training-Images hingegen werden synchronisiert
+
+---
+
+### SourceAttribution (Quellenverweis)
+**NEU seit März 2026**: Polymorphe Zuordnung zwischen TrainingSource und TrainingConcept/TrainingExample.
+
+**Felder:**
+- `training_source_id` (Integer): Referenz auf TrainingSource
+- `sourceable_type` (String): Typ des verknüpften Objekts ('TrainingConcept' oder 'TrainingExample')
+- `sourceable_id` (Integer): ID des verknüpften Objekts
+- `reference` (String): Spezifische Referenz (z.B. "S. 23-25", "Kap. 4.2")
+- `notes` (Text): Zusätzliche Notizen zum Verweis
+
+**Beziehungen:**
+- `training_source`: Quelldokument
+- `sourceable`: Polymorphe Beziehung zu TrainingConcept oder TrainingExample
+
+**Beispiel:**
+```ruby
+# TrainingExample #42 verwendet Seiten 23-25 aus TrainingSource #5
+SourceAttribution.create!(
+  training_source_id: 5,
+  sourceable_type: 'TrainingExample',
+  sourceable_id: 42,
+  reference: 'S. 23-25',
+  notes: 'Grundposition und erste Variante'
+)
+```
+
+---
 
 ## Mehrsprachigkeit
 
-Das System unterstützt mehrere Sprachen:
+### Unterstützte Sprachen
 
-**Unterstützte Quellsprachen:**
+**Quellsprachen:**
 - Deutsch (de)
 - Englisch (en)
 - Niederländisch (nl)
@@ -97,184 +246,197 @@ Das System unterstützt mehrere Sprachen:
 - Deutsch (de)
 - Englisch (en)
 
-### Übersetzung
+### Übersetzungssystem
 
-TrainingConcepts können automatisch mit DeepL übersetzt werden:
+Das System bietet eine hybride Übersetzungslösung:
 
-```ruby
-concept = TrainingConcept.find(1)
-concept.translate_to_target_languages!
-```
+**1. DeepL mit Glossaren**
+- Bevorzugte Methode für präzise Fachbegriffe
+- Glossar mit Billard-spezifischen Begriffen
+- Automatische HTML-Entity-Dekodierung
 
-Die Übersetzungen werden im `translations` JSONB-Feld gespeichert:
+**2. AI-Übersetzung (Claude/GPT)**
+- Für komplexe Beschreibungen und Kontext
+- Billard-spezifischer Prompt
+- Versteht Spielsituationen besser
 
-```json
-{
-  "en": {
-    "title": "Counter Play",
-    "short_description": "Basics of counter play in three-cushion billiards",
-    "full_description": "...",
-    "translated_at": "2026-03-26T10:34:35Z"
-  }
-}
-```
+**3. Übersetzungs-Workflow**
+- Checkbox "Nach dem Speichern übersetzen"
+- Auswahl: DeepL oder AI
+- Automatische Aktualisierung von `translations_synced_at`
+- Sync-Status wird in Listen angezeigt (✅/⚠️)
 
-### Zugriff auf Übersetzungen
+### Sprachfelder
 
-```ruby
-concept.title_in('en')              # Gibt den Titel in Englisch zurück
-concept.short_description_in('de')  # Gibt die Kurzbeschreibung in Deutsch zurück
-concept.full_description_in('nl')   # Gibt die ausführliche Beschreibung zurück
-```
+Mehrsprachige Felder haben Suffixe: `_de`, `_en`, `_fr`, `_nl`
 
-## Verwaltung
+**Beispiel:**
+- `title_de`: "Dreibander von der langen Bande"
+- `title_en`: "Three-cushion from the long rail"
 
-### Admin-Interface
+**UI-Darstellung:**
+- Primär: DE und EN (immer sichtbar)
+- Sekundär: FR und NL (ausklappbar unter "Quelle anzeigen")
+- Badges: 🔷 Übersetzt | 🔶 Quelle
 
-Die Trainingskonzepte können über das Administrate-Interface verwaltet werden:
+---
 
-**URL:** `/admin/training_concepts`
+## Storage-Strategie
 
-**Berechtigungen:**
-- Erstellen/Bearbeiten/Löschen: Nur Admins
-- Ansehen: Alle authentifizierten Benutzer
+### Zwei Storage-Locations
 
-### Beispieldaten laden
+**1. `:local` (Standard)**
+- Für Training-Images (StartPosition, Shot-Images)
+- Pfad: `storage/`
+- **Wird synchronisiert** via rsync zu lokalen Servern
+
+**2. `:local_sources`**
+- Für Quelldokumente (TrainingSource#source_files)
+- Pfad: `storage_local/`
+- **NICHT synchronisiert** (bleiben auf API-Server)
+
+### Rsync-Konfiguration
 
 ```bash
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_master
-rails runner "load 'db/seeds/training_concepts.rb'"
+# Nur storage/ synchronisieren, storage_local/ auslassen
+rsync -avz api-server:/path/to/storage/ ./storage/
+# storage_local/ wird NICHT synchronisiert
 ```
 
-## Beispiel-Workflow
+---
 
-### 1. Trainingskonzept erstellen
+## Hierarchie-Konzept
 
+### Parent-Child Beziehung
+
+TrainingExamples können hierarchisch organisiert werden:
+
+```
+Hauptbeispiel: "Dreibander über die Bande"
+  ├─ Kind 1: "Variante mit B1 in Ecke"
+  ├─ Kind 2: "Variante mit B1 an langer Bande"
+  └─ Kind 3: "Variante mit hoher Effet"
+```
+
+**Nutzen:**
+- Gruppierung ähnlicher Positionen
+- Variationen einer Grundstellung
+- Fortschreitende Schwierigkeitsgrade
+
+**Implementierung:**
+- `parent_id` Feld in TrainingExample
+- Self-referential Association
+- Administrate unterstützt parent/children Felder
+
+---
+
+## Tagging-System
+
+Alle Hauptmodelle unterstützen Tags:
+- TrainingConcept
+- TrainingExample
+- StartPosition
+
+**Verwendung:**
 ```ruby
-concept = TrainingConcept.create!(
-  title: "Konterspiel",
-  short_description: "Grundlagen des Konterspiels",
-  full_description: "Detaillierte Erklärung...",
-  source_language: 'de',
-  discipline_ids: [dreiband.id]
-)
+concept.tag_list = "Dreiband, Fortgeschritten, Bande"
+concept.save
 ```
 
-### 2. Übungsbeispiel hinzufügen
+**Admin-Interface:**
+- Tag-Eingabefeld in Forms
+- Automatische Tag-Cloud-Darstellung
 
-```ruby
-example = concept.training_examples.create!(
-  title: "Einfaches Konterspiel",
-  ideal_stroke_parameters_text: "Effet: Rechts, Kraft: Mittel"
-)
-```
+---
 
-### 3. Ausgangsposition definieren
+## JSONB-Datenstrukturen
 
-```ruby
-example.create_starting_position!(
-  description_text: "Ball 1 nahe der kurzen Bande...",
-  ball_measurements: {
-    b1: { x: 50, y: 150, description: "Spielball" },
-    b2: { x: 142, y: 142, description: "Ball 2" },
-    b3: { x: 234, y: 50, description: "Ball 3" }
-  }
-)
-```
+JSONB-Felder bieten Flexibilität für sich entwickelnde Anforderungen:
 
-### 4. Zielposition definieren
+### Vorteile
+- Keine Schema-Änderungen für neue Attribute
+- Flexibel für verschiedene Datenformate
+- Performant durch Indexierung
 
-```ruby
-example.create_target_position!(
-  description_text: "Spielball trifft Ball 2 und Ball 3",
-  ball_measurements: {
-    b1: { x: 50, y: 150 },
-    b2: { x: 142, y: 142 },
-    b3: { x: 234, y: 50 }
-  }
-)
-```
+### Best Practices
+- Konsistente Struktur innerhalb eines Feldes
+- Dokumentation der erwarteten Struktur (siehe Beispiele oben)
+- JSON-Editor in Admin-UI für einfache Bearbeitung
 
-### 5. Fehlerbeispiel hinzufügen
+---
 
-```ruby
-example.error_examples.create!(
-  title: "Zu wenig Effet",
-  stroke_parameters_text: "Zu wenig Rechtseffet führt zu...",
-  end_position_description: "Ball erreicht Ziel nicht"
-)
-```
+## Workflow-Beispiel
 
-### 6. Übersetzung generieren
+### Typischer Erfassungsablauf
 
-```ruby
-concept.translate_to_target_languages!
-```
+1. **TrainingConcept erstellen**
+   - Titel, Beschreibung (in Quellsprache)
+   - Disziplin zuordnen
+   - Optional: Übersetzen lassen
 
-## TODO
+2. **TrainingSource anlegen** (falls nötig)
+   - Quelldokument hochladen (PDF/Bild)
+   - Metadaten erfassen (Autor, Jahr, etc.)
 
-- [ ] ActiveStorage-Konfiguration für Bilder einrichten
-- [ ] Frontend-Interface für Trainingsverwaltung
-- [ ] Visualisierung der Ballpositionen
-- [ ] Export-Funktion für PDF-Trainingsanleitungen
-- [ ] Filterfunktion nach Disziplin
-- [ ] Suchfunktion für Trainingskonzepte
+3. **TrainingExample erstellen**
+   - Zu Konzept zuordnen
+   - Titel, Parameter
+   - Source Attribution hinzufügen (Referenz auf Quelle)
 
-## Datenbankschema
+4. **StartPosition definieren**
+   - Beschreibung
+   - Ball-Koordinaten (JSON)
+   - Optional: Bild hochladen
 
-```
-training_concepts
-├── id
-├── title
-├── short_description
-├── full_description
-├── source_language
-├── translations (jsonb)
-├── created_at
-└── updated_at
+5. **Shots hinzufügen**
+   - Ideal Shot(s): Richtige Methode(n)
+   - Alternative Shots: Andere Lösungswege
+   - Error Shots: Häufige Fehler
+   - Jeweils mit Beschreibung, Image, EndPosition
 
-training_concept_disciplines
-├── id
-├── training_concept_id → training_concepts
-├── discipline_id → disciplines
-├── created_at
-└── updated_at
+6. **Übersetzen**
+   - Checkbox aktivieren
+   - DeepL oder AI wählen
+   - Speichern → automatische Übersetzung
 
-training_examples
-├── id
-├── training_concept_id → training_concepts
-├── title
-├── sequence_number
-├── ideal_stroke_parameters_text
-├── ideal_stroke_parameters_data (jsonb)
-├── created_at
-└── updated_at
+---
 
-starting_positions
-├── id
-├── training_example_id → training_examples (unique)
-├── description_text
-├── ball_measurements (jsonb)
-├── position_variants (jsonb)
-├── created_at
-└── updated_at
+## Validierungen
 
-target_positions
-├── id
-├── training_example_id → training_examples (unique)
-├── description_text
-├── ball_measurements (jsonb)
-├── created_at
-└── updated_at
+### TrainingConcept
+- `title` muss vorhanden sein
 
-error_examples
-├── id
-├── training_example_id → training_examples
-├── title
-├── sequence_number
-├── stroke_parameters_text
-├── stroke_parameters_data (jsonb)
-├── end_position_description
-├── created_at
-└── updated_at
-```
+### TrainingExample
+- `sequence_number` muss eindeutig sein (pro training_concept_id)
+
+### Shot
+- `shot_type` muss 'ideal', 'alternative' oder 'error' sein
+- `sequence_number` muss eindeutig sein (pro training_example_id)
+
+### TrainingSource
+- `title` muss vorhanden sein
+- `language` muss de, en, nl oder fr sein (falls vorhanden)
+
+---
+
+## Migration von altem System
+
+Falls Daten aus dem alten System (vor März 2026) migriert werden:
+
+**Automatische Migrations:**
+- `TargetPosition` → `Shot` (shot_type: 'ideal')
+- `ErrorExample` → `Shot` (shot_type: 'error')
+- `StartingPosition` → `StartPosition` (nur Model-Name, Tabelle bleibt)
+
+**Manuelle Anpassungen:**
+- Alte Daten nutzen nur DE/EN Felder
+- FR/NL Felder sind leer
+- Bei Bedarf nachträglich übersetzen
+
+---
+
+## Siehe auch
+
+- [Implementierungs-Details](training_database_implementation.md)
+- [Übersetzungs-System](TRANSLATION.md)
+- [API-Dokumentation](../README.md)
