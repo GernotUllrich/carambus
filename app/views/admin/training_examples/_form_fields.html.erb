@@ -33,6 +33,18 @@
     </div>
   <% end %>
   
+  <div class="field-unit" style="background: #f8f9fa; padding: 15px; border-radius: 6px; margin-top: 20px; border: 1px solid #dee2e6;">
+    <%= form.label :source_notes, "📚 Quellenangabe (optional)", class: "field-unit__label", style: "color: #6c757d; font-size: 0.9em;" %>
+    <%= form.text_area :source_notes, 
+                       rows: 2, 
+                       class: "field-unit__textarea",
+                       style: "width: 100%; margin-top: 5px; font-size: 0.9em;",
+                       placeholder: "z.B. 'Ceulemans, Dreiband Trainingsprogramm, 1998, S.45' oder 'Kozoom Video XYZ'" %>
+    <p class="field-hint" style="color: #6c757d; font-size: 0.85em; margin-top: 5px;">
+      Informelle Quellenangabe für interne Zwecke
+    </p>
+  </div>
+  
   <div class="field-unit" style="background: #fff9e6; border: 2px solid #ffc107; padding: 15px; border-radius: 6px; margin-top: 20px;">
     <label class="field-unit__label">
       <%= check_box_tag 'training_example[translate_after_save]', '1', false, style: "margin-right: 8px;", id: 'translate_checkbox' %>
@@ -106,6 +118,8 @@
     </div>
   </div>
 <% end %>
+
+<%= render "admin/application/source_attributions_fields", form: form, resource: form.object %>
 
 <div class="field-unit field-unit--tags">
   <%= form.label :tags, "Tags", class: "field-unit__label" %>

@@ -1,79 +1,116 @@
 <%# Multilingual text fields partial - renders form fields for all languages %>
 <% fields.each do |field_config| %>
+  <% source_lang = resource.source_language || 'de' %>
+  <% show_source_block = !['de', 'en'].include?(source_lang) %>
+  <% field_id = "#{resource.class.name.underscore}_#{resource.id || 'new'}_#{field_config[:name]}" %>
+  
   <div class="multilingual-field-group">
     <h4 class="multilingual-field-title">
       <%= field_config[:label] || field_config[:name].to_s.humanize %>
+      <% unless resource.translations_in_sync? %>
+        <span class="sync-warning" title="Übersetzungen nicht aktuell" style="color: #e74c3c; margin-left: 8px;">⚠️</span>
+      <% end %>
     </h4>
     
-    <div class="multilingual-field-grid">
-      <%# Original field in source language %>
-      <div class="language-field-box original-field">
-        <div class="language-label">
-          <span class="flag-emoji">
-            <%= {'de' => '🇩🇪', 'en' => '🇬🇧', 'nl' => '🇳🇱', 'fr' => '🇫🇷'}[resource.source_language || 'de'] %>
-          </span>
-          <strong>Original (<%= (resource.source_language || 'de').upcase %>)</strong>
-          <% unless resource.translations_in_sync? %>
-            <span class="sync-warning" title="Übersetzungen nicht aktuell">⚠️</span>
-          <% end %>
-        </div>
+    <%# Collapsible source block for non-DE/EN languages %>
+    <% if show_source_block %>
+      <div class="source-block-container" style="margin-bottom: 15px;">
+        <button type="button" 
+                class="source-toggle-btn" 
+                onclick="toggleSource('<%= field_id %>')"
+                style="background: #95a5a6; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; width: 100%; text-align: left; font-weight: bold;">
+          <span id="<%= field_id %>_toggle_icon">▶</span> 
+          Quelle anzeigen (<%= source_lang.upcase %>)
+        </button>
         
-        <% if field_config[:type] == :text_area %>
-          <%= form.text_area field_config[:name], 
-                            rows: field_config[:rows] || 5, 
-                            class: "multilingual-textarea" %>
-        <% else %>
-          <%= form.text_field field_config[:name], 
-                             class: "multilingual-input" %>
-        <% end %>
+        <div id="<%= field_id %>_source" class="source-block" style="display: none; margin-top: 10px;">
+          <div class="language-field-box original-field">
+            <div class="language-label">
+              <span class="flag-emoji">
+                <%= {'nl' => '🇳🇱', 'fr' => '🇫🇷'}[source_lang] || '🌐' %>
+              </span>
+              <strong>Quelle (<%= source_lang.upcase %>)</strong>
+            </div>
+            
+            <% if field_config[:type] == :text_area %>
+              <%= form.text_area field_config[:name], 
+                                rows: field_config[:rows] || 5, 
+                                class: "multilingual-textarea" %>
+            <% else %>
+              <%= form.text_field field_config[:name], 
+                                 class: "multilingual-input" %>
+            <% end %>
+          </div>
+        </div>
       </div>
-      
-      <%# German translation %>
-      <div class="language-field-box <%= 'current-source' if resource.source_language == 'de' %>">
+    <% end %>
+    
+    <div class="multilingual-field-grid">
+      <%# German field %>
+      <div class="language-field-box <%= 'current-source' if source_lang == 'de' %>">
         <div class="language-label">
           <span class="flag-emoji">🇩🇪</span>
           <strong>Deutsch</strong>
-          <% if resource.source_language == 'de' %>
+          <% if source_lang == 'de' %>
             <span class="badge-source">Quelle</span>
+          <% else %>
+            <span class="badge-translated">übersetzt</span>
           <% end %>
         </div>
         
         <% if field_config[:type] == :text_area %>
-          <%= form.text_area "#{field_config[:name]}_de", 
+          <%= form.text_area source_lang == 'de' ? field_config[:name] : "#{field_config[:name]}_de", 
                             rows: field_config[:rows] || 5, 
                             class: "multilingual-textarea",
-                            placeholder: resource.source_language == 'de' ? '(= Original)' : 'Wird automatisch übersetzt' %>
+                            placeholder: source_lang == 'de' ? '' : 'Wird automatisch übersetzt' %>
         <% else %>
-          <%= form.text_field "#{field_config[:name]}_de", 
+          <%= form.text_field source_lang == 'de' ? field_config[:name] : "#{field_config[:name]}_de", 
                              class: "multilingual-input",
-                             placeholder: resource.source_language == 'de' ? '(= Original)' : 'Wird automatisch übersetzt' %>
+                             placeholder: source_lang == 'de' ? '' : 'Wird automatisch übersetzt' %>
         <% end %>
       </div>
       
-      <%# English translation %>
-      <div class="language-field-box <%= 'current-source' if resource.source_language == 'en' %>">
+      <%# English field %>
+      <div class="language-field-box <%= 'current-source' if source_lang == 'en' %>">
         <div class="language-label">
           <span class="flag-emoji">🇬🇧</span>
           <strong>English</strong>
-          <% if resource.source_language == 'en' %>
+          <% if source_lang == 'en' %>
             <span class="badge-source">Source</span>
+          <% else %>
+            <span class="badge-translated">translated</span>
           <% end %>
         </div>
         
         <% if field_config[:type] == :text_area %>
-          <%= form.text_area "#{field_config[:name]}_en", 
+          <%= form.text_area source_lang == 'en' ? field_config[:name] : "#{field_config[:name]}_en", 
                             rows: field_config[:rows] || 5, 
                             class: "multilingual-textarea",
-                            placeholder: resource.source_language == 'en' ? '(= Original)' : 'Auto-translated' %>
+                            placeholder: source_lang == 'en' ? '' : 'Auto-translated' %>
         <% else %>
-          <%= form.text_field "#{field_config[:name]}_en", 
+          <%= form.text_field source_lang == 'en' ? field_config[:name] : "#{field_config[:name]}_en", 
                              class: "multilingual-input",
-                             placeholder: resource.source_language == 'en' ? '(= Original)' : 'Auto-translated' %>
+                             placeholder: source_lang == 'en' ? '' : 'Auto-translated' %>
         <% end %>
       </div>
     </div>
   </div>
 <% end %>
+
+<script>
+function toggleSource(fieldId) {
+  const sourceBlock = document.getElementById(fieldId + '_source');
+  const toggleIcon = document.getElementById(fieldId + '_toggle_icon');
+  
+  if (sourceBlock.style.display === 'none') {
+    sourceBlock.style.display = 'block';
+    toggleIcon.textContent = '▼';
+  } else {
+    sourceBlock.style.display = 'none';
+    toggleIcon.textContent = '▶';
+  }
+}
+</script>
 
 <style>
   .multilingual-field-group {
@@ -145,6 +182,41 @@
     border-radius: 12px;
     font-size: 0.75em;
     font-weight: bold;
+  }
+  
+  .badge-translated {
+    background: #6c757d;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.75em;
+    font-weight: bold;
+  }
+  
+  .source-block-container {
+    background: #f8f9fa;
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #ddd;
+  }
+  
+  .source-toggle-btn:hover {
+    background: #7f8c8d !important;
+  }
+  
+  .source-block {
+    animation: slideDown 0.3s ease-out;
+  }
+  
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
   
   .multilingual-input,

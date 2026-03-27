@@ -1,0 +1,164 @@
+<%#
+# Show
+%>
+
+<% content_for(:title) { t("administrate.actions.show_resource", name: page.page_title) } %>
+
+<header class="main-content__header">
+  <h1 class="main-content__page-title">
+    <%= content_for(:title) %>
+  </h1>
+
+  <div>
+    <%= link_to(
+      t("administrate.actions.edit_resource", name: page.page_title),
+      [:edit, namespace, page.resource],
+      class: "button",
+    ) if accessible_action?(page.resource, :edit) %>
+
+    <%= link_to(
+      t("administrate.actions.destroy"),
+      [namespace, page.resource],
+      class: "button button--danger",
+      method: :delete,
+      data: { confirm: t("administrate.actions.confirm") }
+    ) if accessible_action?(page.resource, :destroy) %>
+  </div>
+</header>
+
+<section class="main-content__body">
+  <dl>
+    <% page.attributes.each do |attribute| %>
+      <dt class="attribute-label" id="<%= attribute.name %>">
+      <%= t(
+        "helpers.label.#{resource_name}.#{attribute.name}",
+        default: page.resource.class.human_attribute_name(attribute.name),
+      ) %>
+      </dt>
+
+      <dd class="attribute-data attribute-data--<%= attribute.html_class %>">
+        <%= render_field attribute, page: page %>
+      </dd>
+    <% end %>
+  </dl>
+</section>
+
+<!-- Shots Section -->
+<section class="main-content__body" style="margin-top: 40px; clear: both;">
+  <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #3498db; padding-bottom: 10px; width: 100%;">
+    <h2 style="color: #2c3e50; margin: 0; flex: 1;">
+      🎯 Shots 
+      <span style="color: #7f8c8d; font-size: 0.8em;">(<%= page.resource.shots.count %>)</span>
+    </h2>
+    <%= link_to(
+      "➕ Neuer Shot",
+      new_admin_training_example_shot_path(page.resource),
+      class: "button",
+      style: "background: #27ae60; color: white; flex-shrink: 0;"
+    ) %>
+  </header>
+
+  <% if page.resource.shots.any? %>
+    <table class="table" style="width: 100%; border-collapse: collapse;">
+      <thead>
+        <tr style="background: #ecf0f1;">
+          <th style="padding: 10px; text-align: left; width: 60px;">#</th>
+          <th style="padding: 10px; text-align: left; width: 100px;">Typ</th>
+          <th style="padding: 10px; text-align: left;">Titel</th>
+          <th style="padding: 10px; text-align: center; width: 80px;">Sortierung</th>
+          <th style="padding: 10px; text-align: right; width: 200px;">Aktionen</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% shots = page.resource.shots.order(:sequence_number).to_a %>
+        <% shots.each_with_index do |shot, index| %>
+          <tr style="border-bottom: 1px solid #ddd;">
+            <td style="padding: 10px; font-weight: bold; color: #7f8c8d;">
+              <%= shot.sequence_number %>
+            </td>
+            <td style="padding: 10px;">
+              <% badge_color = case shot.shot_type
+                when 'ideal' then '#27ae60'
+                when 'alternative' then '#3498db'
+                when 'error' then '#e74c3c'
+                else '#95a5a6'
+                end %>
+              <span class="badge" style="background: <%= badge_color %>; color: white; padding: 3px 8px; border-radius: 3px; font-size: 0.85em;">
+                <%= shot.shot_type.upcase %>
+              </span>
+            </td>
+            <td style="padding: 10px;">
+              <strong><%= shot.title_de || shot.title_en || "Unbenannt" %></strong>
+              <% if shot.end_position_description_de.present? %>
+                <br>
+                <span style="color: #7f8c8d; font-size: 0.85em;">
+                  <%= truncate(shot.end_position_description_de, length: 60) %>
+                </span>
+              <% end %>
+            </td>
+            <td style="padding: 10px; text-align: center;">
+              <% if index > 0 %>
+                <%= button_to(
+                  "↑",
+                  move_up_admin_shot_path(shot),
+                  method: :patch,
+                  class: "button button--small",
+                  style: "background: #95a5a6; color: white; padding: 3px 8px; display: inline-block; margin-right: 3px;",
+                  title: "Nach oben",
+                  form: { style: "display: inline-block;" }
+                ) %>
+              <% end %>
+              <% if index < shots.size - 1 %>
+                <%= button_to(
+                  "↓",
+                  move_down_admin_shot_path(shot),
+                  method: :patch,
+                  class: "button button--small",
+                  style: "background: #95a5a6; color: white; padding: 3px 8px; display: inline-block;",
+                  title: "Nach unten",
+                  form: { style: "display: inline-block;" }
+                ) %>
+              <% end %>
+            </td>
+            <td style="padding: 10px; text-align: right;">
+              <%= link_to(
+                "👁️ Anzeigen",
+                admin_shot_path(shot),
+                class: "button button--small",
+                style: "background: #3498db; color: white; padding: 5px 10px; margin-right: 5px;"
+              ) %>
+              <%= link_to(
+                "✏️ Bearbeiten",
+                edit_admin_shot_path(shot),
+                class: "button button--small",
+                style: "background: #f39c12; color: white; padding: 5px 10px; margin-right: 5px;"
+              ) %>
+              <%= button_to(
+                "🗑️",
+                admin_shot_path(shot),
+                method: :delete,
+                data: { confirm: "Shot wirklich löschen?" },
+                class: "button button--small button--danger",
+                style: "background: #e74c3c; color: white; padding: 5px 10px; display: inline-block;",
+                form: { style: "display: inline-block;" }
+              ) %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <div style="background: #ecf0f1; padding: 30px; text-align: center; border-radius: 6px; color: #7f8c8d;">
+      <p style="margin: 0; font-size: 1.1em;">
+        🎯 Noch keine Shots vorhanden.
+      </p>
+      <p style="margin: 10px 0 0 0;">
+        <%= link_to(
+          "Ersten Shot hinzufügen →",
+          new_admin_training_example_shot_path(page.resource),
+          style: "color: #3498db; text-decoration: underline;"
+        ) %>
+      </p>
+    </div>
+  <% end %>
+</section>

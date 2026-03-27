@@ -54,9 +54,9 @@
 </section>
 
 <!-- Trainingsbeispiele Section -->
-<section class="main-content__body" style="margin-top: 40px;">
-  <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #3498db; padding-bottom: 10px;">
-    <h2 style="color: #2c3e50; margin: 0;">
+<section class="main-content__body" style="margin-top: 40px; clear: both;">
+  <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #3498db; padding-bottom: 10px; width: 100%;">
+    <h2 style="color: #2c3e50; margin: 0; flex: 1;">
       📚 Trainingsbeispiele 
       <span style="color: #7f8c8d; font-size: 0.8em;">(<%= page.resource.training_examples.count %>)</span>
     </h2>
@@ -64,7 +64,7 @@
       "➕ Neues Beispiel",
       new_admin_training_concept_training_example_path(page.resource),
       class: "button",
-      style: "background: #27ae60; color: white;"
+      style: "background: #27ae60; color: white; flex-shrink: 0;"
     ) %>
   </header>
 

@@ -1,0 +1,103 @@
+<%#
+# Show
+
+This view is the template for the show page.
+It renders the attributes of a resource,
+as well as a link to its edit page.
+%>
+
+<% content_for(:title) { t("administrate.actions.show_resource", name: page.page_title) } %>
+
+<header class="main-content__header">
+  <h1 class="main-content__page-title">
+    <%= content_for(:title) %>
+  </h1>
+
+  <div>
+    <%= link_to(
+      t("administrate.actions.edit_resource", name: page.page_title),
+      [:edit, namespace, page.resource],
+      class: "button",
+    ) if accessible_action?(page.resource, :edit) %>
+
+    <%= link_to(
+      t("administrate.actions.destroy"),
+      [namespace, page.resource],
+      class: "button button--danger",
+      method: :delete,
+      data: { confirm: t("administrate.actions.confirm") }
+    ) if accessible_action?(page.resource, :destroy) %>
+  </div>
+</header>
+
+<section class="main-content__body">
+  <dl>
+    <% page.attributes.each do |attribute| %>
+      <dt class="attribute-label" id="<%= attribute.name %>">
+      <%= t(
+        "helpers.label.#{resource_name}.#{attribute.name}",
+        default: page.resource.class.human_attribute_name(attribute.name),
+      ) %>
+      </dt>
+
+      <dd class="attribute-data attribute-data--<%= attribute.html_class %>">
+        <%= render_field attribute, page: page %>
+      </dd>
+    <% end %>
+  </dl>
+  
+  <%# Custom section for source files %>
+  <% if page.resource.source_files.attached? %>
+    <div style="margin-top: 40px; padding: 20px; background: #f8f9fa; border-radius: 8px; border: 2px solid #dee2e6;">
+      <h3 style="margin: 0 0 20px 0; color: #2c3e50; border-bottom: 2px solid #6c757d; padding-bottom: 10px;">
+        📎 Quelldateien (<%= page.resource.source_files.count %>)
+      </h3>
+      
+      <div class="source-files-grid" style="display: grid; gap: 15px;">
+        <% page.resource.source_files.each do |file| %>
+          <div style="background: white; padding: 15px; border-radius: 6px; border-left: 4px solid #28a745;">
+            <div style="display: flex; justify-content: space-between; align-items: start; gap: 15px;">
+              <div style="flex: 1;">
+                <strong style="color: #2c3e50; font-size: 1.1em;">
+                  <%= file.filename %>
+                </strong>
+                <br>
+                <span style="color: #6c757d; font-size: 0.9em;">
+                  <%= file.content_type %> • <%= number_to_human_size(file.byte_size) %>
+                </span>
+                
+                <% if file.representable? %>
+                  <div style="margin-top: 10px;">
+                    <%= image_tag file.representation(resize_to_limit: [300, 300]), 
+                                 style: "max-width: 100%; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" %>
+                  </div>
+                <% end %>
+              </div>
+              
+              <div style="display: flex; flex-direction: column; gap: 8px;">
+                <%= link_to "👁️ Ansehen", 
+                           rails_blob_path(file, disposition: "inline"), 
+                           target: "_blank",
+                           class: "button",
+                           style: "padding: 8px 16px; background: #28a745; color: white; text-decoration: none; border-radius: 4px; white-space: nowrap;" %>
+                           
+                <%= link_to "⬇️ Download", 
+                           rails_blob_path(file, disposition: "attachment"), 
+                           class: "button",
+                           style: "padding: 8px 16px; background: #007bff; color: white; text-decoration: none; border-radius: 4px; white-space: nowrap;" %>
+                
+                <%= button_to "🗑️ Löschen", 
+                             delete_attachment_admin_training_source_path(page.resource, attachment_id: file.id),
+                             method: :delete,
+                             data: { confirm: "Datei '#{file.filename}' wirklich löschen?" },
+                             class: "button",
+                             style: "padding: 8px 16px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; white-space: nowrap;",
+                             form: { style: "display: inline;" } %>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+</section>

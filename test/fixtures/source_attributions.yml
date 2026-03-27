@@ -1,0 +1,15 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  training_source: one
+  sourceable: one
+  sourceable_type: Sourceable
+  reference: MyString
+  notes: MyText
+
+two:
+  training_source: two
+  sourceable: two
+  sourceable_type: Sourceable
+  reference: MyString
+  notes: MyText

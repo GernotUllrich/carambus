@@ -17,6 +17,8 @@ class TrainingConceptDashboard < Administrate::BaseDashboard
     ),
     translations: Administrate::Field::Jsonb,
     translations_synced_at: Administrate::Field::DateTime,
+    source_attributions: Administrate::Field::HasMany,
+    training_sources: Administrate::Field::HasMany,
     disciplines: Administrate::Field::HasMany,
     training_examples: Administrate::Field::HasMany,
     tags: Administrate::Field::HasMany,

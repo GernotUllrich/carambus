@@ -1,0 +1,78 @@
+<div class="source-attributions-section" style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-top: 30px; border: 2px solid #dee2e6;">
+  <h3 style="color: #2c3e50; margin: 0 0 15px 0; border-bottom: 2px solid #6c757d; padding-bottom: 8px;">
+    📚 Quellenangaben
+  </h3>
+  
+  <% if resource.training_sources.any? %>
+    <div class="existing-sources" style="margin-bottom: 20px;">
+      <p style="font-weight: bold; color: #495057;">Zugeordnete Quellen:</p>
+      <% resource.source_attributions.each do |attribution| %>
+        <div style="background: white; padding: 12px; border-radius: 6px; margin-bottom: 10px; border-left: 4px solid #28a745;">
+          <div style="display: flex; justify-content: space-between; align-items: start;">
+            <div>
+              <strong style="color: #2c3e50;"><%= attribution.training_source.display_name %></strong>
+              <% if attribution.reference.present? %>
+                <br>
+                <span style="color: #6c757d; font-size: 0.9em;">
+                  📍 <%= attribution.reference %>
+                </span>
+              <% end %>
+              <% if attribution.notes.present? %>
+                <br>
+                <span style="color: #6c757d; font-size: 0.85em; font-style: italic;">
+                  <%= truncate(attribution.notes, length: 100) %>
+                </span>
+              <% end %>
+            </div>
+            <%= link_to "🗑️", 
+                        [:admin, attribution], 
+                        method: :delete,
+                        data: { confirm: "Quellenangabe wirklich entfernen?" },
+                        style: "color: #dc3545; text-decoration: none; font-size: 1.2em;" if false %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  <% else %>
+    <p style="color: #6c757d; font-style: italic; margin-bottom: 15px;">
+      Noch keine Quellen zugeordnet.
+    </p>
+  <% end %>
+  
+  <div class="add-source-form" style="background: white; padding: 15px; border-radius: 6px; border: 1px dashed #adb5bd;">
+    <p style="font-weight: bold; color: #495057; margin: 0 0 10px 0;">Neue Quelle hinzufügen:</p>
+    
+    <%= form.fields_for :source_attributions, resource.source_attributions.build do |sa_form| %>
+      <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 10px; margin-bottom: 10px;">
+        <div>
+          <%= sa_form.label :training_source_id, "Quelle auswählen", style: "display: block; font-size: 0.9em; color: #495057; margin-bottom: 5px;" %>
+          <%= sa_form.collection_select :training_source_id,
+                                        TrainingSource.order(:title),
+                                        :id,
+                                        :display_name,
+                                        { include_blank: "-- Quelle auswählen --" },
+                                        { style: "width: 100%; padding: 8px; border: 1px solid #ced4da; border-radius: 4px;" } %>
+        </div>
+        
+        <div>
+          <%= sa_form.label :reference, "Referenz (z.B. S. 23-25)", style: "display: block; font-size: 0.9em; color: #495057; margin-bottom: 5px;" %>
+          <%= sa_form.text_field :reference,
+                                 placeholder: "z.B. Seiten 23-25",
+                                 style: "width: 100%; padding: 8px; border: 1px solid #ced4da; border-radius: 4px;" %>
+        </div>
+      </div>
+      
+      <div style="margin-bottom: 10px;">
+        <%= sa_form.label :notes, "Notizen (optional)", style: "display: block; font-size: 0.9em; color: #495057; margin-bottom: 5px;" %>
+        <%= sa_form.text_area :notes,
+                              rows: 2,
+                              placeholder: "Zusätzliche Notizen zur Quelle...",
+                              style: "width: 100%; padding: 8px; border: 1px solid #ced4da; border-radius: 4px; font-size: 0.9em;" %>
+      </div>
+    <% end %>
+    
+    <p class="field-hint" style="color: #6c757d; font-size: 0.85em; margin: 10px 0 0 0;">
+      💡 Tipp: Legen Sie zuerst eine neue Quelle unter <a href="/admin/training_sources/new" target="_blank" style="color: #007bff;">Training Sources</a> an, falls diese noch nicht existiert.
+    </p>
+  </div>
+</div>

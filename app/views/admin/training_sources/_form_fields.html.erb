@@ -1,0 +1,49 @@
+<%# Use default Administrate form fields %>
+<% page.attributes(action_name).each do |attribute| %>
+  <div class="field-unit field-unit--<%= attribute.html_class %> field-unit--<%= requireness(attribute) %>">
+    <%= render_field attribute, f: form %>
+  </div>
+<% end %>
+
+<%# Custom file upload field %>
+<div class="field-unit" style="margin-top: 30px; background: #f8f9fa; padding: 20px; border-radius: 8px; border: 2px solid #dee2e6;">
+  <h4 style="margin: 0 0 15px 0; color: #2c3e50; border-bottom: 2px solid #6c757d; padding-bottom: 8px;">
+    📎 Quelldateien
+  </h4>
+  
+  <%= form.label :source_files, "PDFs, Videos, Bilder hochladen", class: "field-unit__label" %>
+  <div class="field-unit__field">
+    <%= form.file_field :source_files, 
+                        multiple: true, 
+                        class: "field-unit__input",
+                        style: "margin-top: 10px;" %>
+    <p class="field-hint" style="margin-top: 8px; color: #6c757d;">
+      Mehrere Dateien gleichzeitig möglich. Unterstützte Formate: PDF, JPG, PNG, MP4
+    </p>
+  </div>
+  
+  <% if page.resource.source_files.attached? %>
+    <div class="attached-files" style="margin-top: 20px;">
+      <p style="font-weight: bold; color: #495057; margin-bottom: 10px;">Vorhandene Dateien:</p>
+      <% page.resource.source_files.each do |file| %>
+        <div style="background: white; padding: 12px; margin-bottom: 8px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid #28a745;">
+          <div>
+            <strong style="color: #2c3e50;"><%= file.filename %></strong>
+            <span style="color: #6c757d; font-size: 0.9em; margin-left: 8px;">
+              (<%= number_to_human_size(file.byte_size) %>)
+            </span>
+            <% if file.representable? %>
+              <br>
+              <%= image_tag file.representation(resize_to_limit: [200, 200]), 
+                           style: "max-width: 200px; margin-top: 8px; border-radius: 4px;" %>
+            <% end %>
+          </div>
+          <%= link_to "⬇️ Download", 
+                      rails_blob_path(file, disposition: "attachment"), 
+                      class: "button",
+                      style: "padding: 5px 12px; font-size: 0.9em; background: #007bff; color: white;" %>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+</div>

@@ -478,6 +478,12 @@ Rails.application.routes.draw do
           patch :move_up
           patch :move_down
         end
+        resources :shots, shallow: true do
+          member do
+            patch :move_up
+            patch :move_down
+          end
+        end
       end
     end
     
@@ -486,6 +492,19 @@ Rails.application.routes.draw do
       member do
         patch :move_up
         patch :move_down
+      end
+    end
+    
+    resources :shots, only: [:index] do
+      member do
+        patch :move_up
+        patch :move_down
+      end
+    end
+    
+    resources :training_sources do
+      member do
+        delete :delete_attachment
       end
     end
     

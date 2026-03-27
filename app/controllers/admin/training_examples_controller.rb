@@ -58,6 +58,20 @@ module Admin
       end
     end
     
+    def destroy
+      # Get training_concept BEFORE destroying the example
+      training_concept_id = requested_resource.training_concept_id
+      training_concept = TrainingConcept.find(training_concept_id)
+      
+      if requested_resource.destroy
+        redirect_to admin_training_concept_url(training_concept, host: request.host, port: request.port),
+                    notice: "Trainingsbeispiel wurde erfolgreich gelöscht."
+      else
+        redirect_to admin_training_example_url(requested_resource, host: request.host, port: request.port),
+                    alert: "Trainingsbeispiel konnte nicht gelöscht werden: #{requested_resource.errors.full_messages.join(', ')}"
+      end
+    end
+    
     def move_up
       example = requested_resource
       training_concept = example.training_concept
@@ -111,6 +125,15 @@ module Admin
         TrainingConcept.find(params[:training_concept_id]).training_examples
       else
         TrainingExample
+      end
+    end
+    
+    def resource_params
+      params.require(resource_name).permit(
+        dashboard.permitted_attributes,
+        source_attributions_attributes: [:id, :training_source_id, :reference, :notes, :_destroy]
+      ).tap do |whitelisted|
+        whitelisted[:tag_list] = params[resource_name][:tag_list] if params[resource_name][:tag_list]
       end
     end
   end

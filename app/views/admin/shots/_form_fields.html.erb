@@ -1,0 +1,144 @@
+<%#
+# Shot Form Fields
+#%>
+
+<% 
+  source_language = f.object.respond_to?(:source_language) ? f.object.source_language : 'de'
+%>
+
+<!-- Basic Fields -->
+<div class="field-unit">
+  <%= f.label :training_example_id %>
+  <%= f.collection_select :training_example_id, 
+      TrainingExample.all.order(:sequence_number), 
+      :id, 
+      ->(te) { "#{te.training_concept.title} - #{te.sequence_number}. #{te.title}" },
+      { include_blank: false },
+      class: "field-unit__field" %>
+</div>
+
+<div class="field-unit">
+  <%= f.label :shot_type %>
+  <%= f.select :shot_type, 
+      [['Ideal', 'ideal'], ['Alternative', 'alternative'], ['Fehler', 'error']], 
+      { include_blank: false },
+      class: "field-unit__field" %>
+</div>
+
+<div class="field-unit">
+  <%= f.label :sequence_number %>
+  <%= f.number_field :sequence_number, class: "field-unit__field" %>
+</div>
+
+<!-- Shot Image -->
+<div class="field-unit">
+  <%= f.label :shot_image, "Shot Image (Trajectories + EndPosition)" %>
+  <%= f.file_field :shot_image, class: "field-unit__field" %>
+  
+  <% if f.object.shot_image.attached? %>
+    <div style="margin-top: 10px;">
+      <strong>Aktuelles Image:</strong>
+      <%= image_tag f.object.shot_image, style: "max-width: 400px; border: 1px solid #ddd; padding: 5px;" %>
+    </div>
+  <% end %>
+</div>
+
+<!-- Multilingual Text Fields -->
+<%= render partial: 'admin/application/multilingual_text_fields', locals: { 
+  form: f, 
+  field_name: 'title', 
+  label: 'Title',
+  source_language: source_language,
+  field_type: 'text_field'
+} %>
+
+<%= render partial: 'admin/application/multilingual_text_fields', locals: { 
+  form: f, 
+  field_name: 'notes', 
+  label: 'Notes',
+  source_language: source_language,
+  field_type: 'text_area',
+  rows: 3
+} %>
+
+<%= render partial: 'admin/application/multilingual_text_fields', locals: { 
+  form: f, 
+  field_name: 'end_position_description', 
+  label: 'EndPosition Description',
+  source_language: source_language,
+  field_type: 'text_area',
+  rows: 4
+} %>
+
+<%= render partial: 'admin/application/multilingual_text_fields', locals: { 
+  form: f, 
+  field_name: 'shot_description', 
+  label: 'Shot Description',
+  source_language: source_language,
+  field_type: 'text_area',
+  rows: 5
+} %>
+
+<!-- Structured Data Fields -->
+<div class="field-unit">
+  <%= f.label :end_position_type, "EndPosition Type" %>
+  <%= f.select :end_position_type, 
+      [['Exakt (Koordinaten)', 'exact'], ['Fläche', 'area'], ['Konzept', 'concept'], ['Benannte Fläche', 'named_area']], 
+      { include_blank: true },
+      class: "field-unit__field" %>
+  <p class="field-unit__hint">Typ der End-Position (exakte Koordinaten, Fläche, Konzept wie "Amerika-Position")</p>
+</div>
+
+<div class="field-unit">
+  <%= f.label :end_position_data, "EndPosition Data (JSON)" %>
+  <%= f.text_area :end_position_data, 
+      value: f.object.end_position_data.present? ? JSON.pretty_generate(f.object.end_position_data) : '',
+      class: "field-unit__field",
+      rows: 6,
+      style: "font-family: monospace;" %>
+  <p class="field-unit__hint">
+    JSON-Daten für die End-Position:<br>
+    - exact: <code>{"b1": {"x": 150, "y": 200}, "b2": {...}, "b3": {...}}</code><br>
+    - area: <code>{"type": "rectangle", "x1": 100, "y1": 150, "x2": 200, "y2": 250}</code><br>
+    - named_area: <code>{"type": "named_area", "name": "Cadre-Bereich"}</code>
+  </p>
+</div>
+
+<div class="field-unit">
+  <%= f.label :shot_parameters, "Shot Parameters (JSON)" %>
+  <%= f.text_area :shot_parameters, 
+      value: f.object.shot_parameters.present? ? JSON.pretty_generate(f.object.shot_parameters) : '',
+      class: "field-unit__field",
+      rows: 6,
+      style: "font-family: monospace;" %>
+  <p class="field-unit__hint">
+    JSON-Daten für Stoß-Parameter:<br>
+    <code>{"ball_contact": "Halb-voll", "effect": 3, "cue_angle": 45, "energy": 0.7}</code>
+  </p>
+</div>
+
+<!-- Translation Toggle -->
+<div class="field-unit" style="background: #f8f9fa; padding: 15px; border-radius: 6px; border-left: 4px solid #3498db;">
+  <div style="display: flex; align-items: center; gap: 20px;">
+    <%= check_box_tag :translate_after_save, '1', false, 
+        id: 'translate_after_save',
+        style: "width: auto; margin: 0;" %>
+    <%= label_tag :translate_after_save, "Nach dem Speichern übersetzen", 
+        style: "margin: 0; font-weight: bold;" %>
+  </div>
+  
+  <div style="margin-top: 10px;">
+    <label style="margin-right: 15px;">
+      <%= radio_button_tag :translation_method, 'deepl', true, style: "width: auto; margin: 0 5px 0 0;" %>
+      DeepL (mit Glossar)
+    </label>
+    <label>
+      <%= radio_button_tag :translation_method, 'ai', false, style: "width: auto; margin: 0 5px 0 0;" %>
+      AI (Claude/GPT mit Billard-Kontext)
+    </label>
+  </div>
+  
+  <p style="margin: 10px 0 0 0; color: #7f8c8d; font-size: 0.9em;">
+    ℹ️ Übersetzt automatisch alle Felder in die Zielsprachen (DE/EN).
+  </p>
+</div>

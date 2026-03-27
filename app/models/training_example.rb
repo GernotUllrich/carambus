@@ -2,17 +2,22 @@ class TrainingExample < ApplicationRecord
   include Taggable
   include Translatable
   
+  # Self-referential hierarchy for position variants
+  belongs_to :parent, class_name: 'TrainingExample', optional: true
+  has_many :children, class_name: 'TrainingExample', foreign_key: :parent_id, dependent: :destroy
+  
   belongs_to :training_concept
-  has_one :starting_position, dependent: :destroy
-  has_one :target_position, dependent: :destroy
-  has_many :error_examples, dependent: :destroy
+  has_one :start_position, dependent: :destroy
+  has_many :shots, dependent: :destroy
+  has_many :source_attributions, as: :sourceable, dependent: :destroy
+  has_many :training_sources, through: :source_attributions
   
   validates :sequence_number, presence: true, 
             uniqueness: { scope: :training_concept_id }
   
-  accepts_nested_attributes_for :starting_position, allow_destroy: true
-  accepts_nested_attributes_for :target_position, allow_destroy: true
-  accepts_nested_attributes_for :error_examples, allow_destroy: true, reject_if: :all_blank
+  accepts_nested_attributes_for :start_position, allow_destroy: true
+  accepts_nested_attributes_for :shots, allow_destroy: true, reject_if: :all_blank
+  accepts_nested_attributes_for :source_attributions, allow_destroy: true, reject_if: :all_blank
   
   before_validation :set_sequence_number
   
