@@ -18,8 +18,14 @@ class DeeplTranslationService
   end
   
   # Instance method for direct translation without front matter handling
-  def translate(text:, source_lang:, target_lang:)
-    self.class.translate_content(text, source_lang, target_lang)
+  def translate(text:, source_lang:, target_lang:, use_glossary: true)
+    glossary_id = nil
+    if use_glossary
+      glossary_service = DeeplGlossaryService.new
+      glossary_id = glossary_service.get_or_create_glossary_id(source_lang.downcase, target_lang.downcase)
+    end
+    
+    self.class.translate_content(text, source_lang.upcase, target_lang.upcase, glossary_id: glossary_id)
   end
 
   private
@@ -29,7 +35,7 @@ class DeeplTranslationService
     [before+sep, after]
   end
 
-  def self.translate_content(text, source_language = "DE", target_language = "EN")
+  def self.translate_content(text, source_language = "DE", target_language = "EN", glossary_id: nil)
     return nil if text.blank?
 
     api_key = ENV['DEEPL_API_KEY'].presence || Rails.application.credentials.fetch(:deepl_key)
@@ -40,23 +46,26 @@ class DeeplTranslationService
     request = Net::HTTP::Post.new(uri)
     request["Authorization"] = "DeepL-Auth-Key #{api_key}"
 
-    # Versuche, passendes Billard-Glossar zu verwenden
-    glossary_id = nil
-    supported_pairs = [
-      ["EN", "DE"], 
-      ["NL", "DE"], 
-      ["NL", "EN"]
-    ]
-    
-    if supported_pairs.include?([source_language.upcase, target_language.upcase])
-      begin
-        glossary_service = DeeplGlossaryService.new
-        glossary_id = glossary_service.get_or_create_glossary_id(
-          source_language.downcase, 
-          target_language.downcase
-        )
-      rescue => e
-        Rails.logger.warn("Could not load glossary, continuing without: #{e.message}")
+    # If no glossary_id provided, try to get one
+    if glossary_id.nil?
+      supported_pairs = [
+        ["EN", "DE"], 
+        ["NL", "DE"], 
+        ["NL", "EN"],
+        ["FR", "DE"],
+        ["FR", "EN"]
+      ]
+      
+      if supported_pairs.include?([source_language.upcase, target_language.upcase])
+        begin
+          glossary_service = DeeplGlossaryService.new
+          glossary_id = glossary_service.get_or_create_glossary_id(
+            source_language.downcase, 
+            target_language.downcase
+          )
+        rescue => e
+          Rails.logger.warn("Could not load glossary, continuing without: #{e.message}")
+        end
       end
     end
 
@@ -65,7 +74,7 @@ class DeeplTranslationService
       "source_lang" => source_language,
       "target_lang" => target_language,
       "preserve_formatting" => "1",
-      "tag_handling" => "html"
+      "formality" => "default"
     }
     
     # Glossar nur hinzufügen, wenn vorhanden
@@ -80,8 +89,13 @@ class DeeplTranslationService
     if response.is_a?(Net::HTTPSuccess)
       result = JSON.parse(response.body)
       translated_text = result["translations"]&.first&.dig("text")
-      # Decode HTML entities (DeepL returns &gt; instead of >, etc.)
-      translated_text ? CGI.unescapeHTML(translated_text) : nil
+      
+      if translated_text
+        # Decode HTML entities (DeepL returns &gt; instead of >, etc.)
+        CGI.unescapeHTML(translated_text)
+      else
+        nil
+      end
     else
       Rails.logger.error("DeepL API Error: #{response.body}")
       nil

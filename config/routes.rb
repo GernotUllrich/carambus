@@ -14,6 +14,8 @@ Rails.application.routes.draw do
 
   # Admin section
   namespace :admin do
+    resources :translations, only: [:index]
+    
     resources :incomplete_records, only: %i[index show update] do
       collection do
         post :auto_fix_all

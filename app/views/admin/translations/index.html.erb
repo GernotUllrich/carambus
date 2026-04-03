@@ -1,0 +1,430 @@
+<% content_for(:title) do %>
+  Carambol-Übersetzungen
+<% end %>
+
+<header class="main-content__header">
+  <h1 class="main-content__page-title">
+    <i class="fas fa-language"></i>
+    Carambol-Übersetzungen
+  </h1>
+  <div class="header__subtitle">
+    Ad-hoc Übersetzungen mit Billard-spezifischem Glossar
+  </div>
+</header>
+
+<section class="main-content__body">
+  <%= form_with url: admin_translations_path, method: :get, class: "translation-form" do |f| %>
+    
+    <!-- Language Selection -->
+    <div class="field-group">
+      <h3><i class="fas fa-globe"></i> Sprachauswahl</h3>
+      
+      <div class="language-selector">
+        <div class="field-unit">
+          <div class="field-unit__label">
+            <%= label_tag "source_lang", "Quellsprache" %>
+          </div>
+          <div class="field-unit__field">
+            <%= select_tag "source_lang", 
+                          options_for_select([
+                            ['Niederländisch', 'nl'],
+                            ['Französisch', 'fr'],
+                            ['Englisch', 'en'],
+                            ['Deutsch', 'de']
+                          ], @source_lang),
+                          class: "field-unit__input language-select" %>
+          </div>
+        </div>
+        
+        <div class="arrow-icon">
+          <i class="fas fa-arrow-right"></i>
+        </div>
+        
+        <div class="field-unit">
+          <div class="field-unit__label">
+            <%= label_tag "target_lang", "Zielsprache" %>
+          </div>
+          <div class="field-unit__field">
+            <%= select_tag "target_lang",
+                          options_for_select([
+                            ['Deutsch', 'de'],
+                            ['Englisch', 'en']
+                          ], @target_lang),
+                          class: "field-unit__input language-select" %>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Translation Method -->
+    <div class="field-group">
+      <h3><i class="fas fa-cog"></i> Übersetzungsmethode</h3>
+      
+      <div class="method-selector">
+        <label class="method-option <%= 'selected' if @translation_method == 'deepl' %>">
+          <%= radio_button_tag "translation_method", "deepl", @translation_method == 'deepl' %>
+          <span class="method-label">
+            <strong>DeepL API</strong>
+            <small>Standard - Mit Billard-Glossar</small>
+          </span>
+        </label>
+        
+        <label class="method-option <%= 'selected' if @translation_method == 'anthropic' %>">
+          <%= radio_button_tag "translation_method", "anthropic", @translation_method == 'anthropic' %>
+          <span class="method-label">
+            <strong>Claude (Anthropic)</strong>
+            <small>KI-basiert - Sehr präzise</small>
+          </span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Source Text Input -->
+    <div class="field-group">
+      <h3><i class="fas fa-file-import"></i> Originaltext</h3>
+      
+      <div class="field-unit">
+        <div class="field-unit__field">
+          <%= text_area_tag "source_text", 
+                           @source_text,
+                           class: "field-unit__input text-area",
+                           rows: 10,
+                           placeholder: "Text hier einfügen..." %>
+        </div>
+      </div>
+      
+      <div class="form-actions">
+        <%= submit_tag "Übersetzen", class: "button button-primary", data: { disable_with: "Übersetze..." } %>
+        <% if @source_text.present? %>
+          <%= link_to "Zurücksetzen", admin_translations_path, class: "button button-secondary" %>
+        <% end %>
+      </div>
+    </div>
+
+    <!-- Translation Result -->
+    <% if @translated_text.present? || @error.present? %>
+      <div class="field-group result-group">
+        <h3>
+          <i class="fas <%= @error.present? ? 'fa-exclamation-triangle' : 'fa-file-export' %>"></i>
+          <%= @error.present? ? 'Fehler' : 'Übersetzung' %>
+        </h3>
+        
+        <% if @error.present? %>
+          <div class="error-message">
+            <%= @error %>
+          </div>
+        <% else %>
+          <div class="field-unit">
+            <div class="field-unit__field result-field">
+              <div class="text-result" id="translatedText">
+                <%= simple_format(@translated_text, {}, sanitize: false) %>
+              </div>
+              <button type="button" class="copy-button" onclick="copyTranslation()">
+                <i class="fas fa-copy"></i>
+                <span>In Zwischenablage kopieren</span>
+              </button>
+            </div>
+          </div>
+          
+          <div class="translation-info">
+            <small>
+              <i class="fas fa-info-circle"></i>
+              Übersetzt von <strong><%= @source_lang.upcase %></strong> nach <strong><%= @target_lang.upcase %></strong>
+              mit <strong><%= 
+                case @translation_method
+                when 'deepl' then 'DeepL API'
+                when 'anthropic' then 'Claude (Anthropic)'
+                when 'openai' then 'OpenAI GPT-4'
+                else @translation_method
+                end
+              %></strong>
+            </small>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+
+  <% end %>
+</section>
+
+<script>
+function copyTranslation() {
+  const textElement = document.getElementById('translatedText');
+  const text = textElement.innerText;
+  
+  // Try modern Clipboard API first, fallback to old method
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(() => {
+      showCopySuccess();
+    }).catch(err => {
+      fallbackCopy(text);
+    });
+  } else {
+    fallbackCopy(text);
+  }
+}
+
+function fallbackCopy(text) {
+  // Create temporary textarea
+  const textarea = document.createElement('textarea');
+  textarea.value = text;
+  textarea.style.position = 'fixed';
+  textarea.style.opacity = '0';
+  document.body.appendChild(textarea);
+  textarea.select();
+  
+  try {
+    const successful = document.execCommand('copy');
+    document.body.removeChild(textarea);
+    
+    if (successful) {
+      showCopySuccess();
+    } else {
+      alert('Fehler beim Kopieren. Bitte manuell markieren und kopieren.');
+    }
+  } catch (err) {
+    document.body.removeChild(textarea);
+    alert('Fehler beim Kopieren: ' + err);
+  }
+}
+
+function showCopySuccess() {
+  const button = document.querySelector('.copy-button');
+  const originalContent = button.innerHTML;
+  button.innerHTML = '<i class="fas fa-check"></i> <span>Kopiert!</span>';
+  button.classList.add('copied');
+  
+  setTimeout(() => {
+    button.innerHTML = originalContent;
+    button.classList.remove('copied');
+  }, 2000);
+}
+</script>
+
+<% content_for :styles do %>
+  <style>
+    .header__subtitle {
+      color: #666;
+      font-size: 0.9rem;
+      margin-top: 0.5rem;
+    }
+
+    .field-group {
+      margin-bottom: 2rem;
+      padding: 1.5rem;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      background: #fafafa;
+    }
+
+    .field-group h3 {
+      margin-top: 0;
+      margin-bottom: 1.25rem;
+      color: #333;
+      font-size: 1.1rem;
+    }
+
+    .field-group h3 i {
+      margin-right: 0.5rem;
+      color: #666;
+    }
+
+    .language-selector {
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+    }
+
+    .arrow-icon {
+      font-size: 1.5rem;
+      color: #999;
+      flex-shrink: 0;
+    }
+
+    .language-selector .field-unit {
+      flex: 1;
+    }
+
+    .language-select {
+      font-size: 1.1rem;
+      padding: 0.75rem;
+    }
+
+    .method-selector {
+      display: flex;
+      gap: 1rem;
+    }
+
+    .method-option {
+      flex: 1;
+      padding: 1rem;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: white;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+    }
+
+    .method-option:hover {
+      border-color: #999;
+      background: #f5f5f5;
+    }
+
+    .method-option.selected {
+      border-color: #0066cc;
+      background: #e6f2ff;
+    }
+
+    .method-option input[type="radio"] {
+      margin-top: 0.25rem;
+    }
+
+    .method-label {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .method-label strong {
+      font-size: 1rem;
+      color: #333;
+    }
+
+    .method-label small {
+      color: #666;
+      font-size: 0.85rem;
+    }
+
+    .text-area {
+      width: 100%;
+      padding: 1rem;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 1rem;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      resize: vertical;
+    }
+
+    .text-area:focus {
+      outline: none;
+      border-color: #0066cc;
+      box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+    }
+
+    .form-actions {
+      margin-top: 1rem;
+      display: flex;
+      gap: 0.75rem;
+    }
+
+    .button {
+      padding: 0.75rem 1.5rem;
+      border-radius: 6px;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: none;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .button-primary {
+      background: #0066cc;
+      color: white;
+    }
+
+    .button-primary:hover {
+      background: #0052a3;
+    }
+
+    .button-secondary {
+      background: #666;
+      color: white;
+    }
+
+    .button-secondary:hover {
+      background: #444;
+    }
+
+    .result-group {
+      background: #f0f8ff;
+      border-color: #0066cc;
+    }
+
+    .result-field {
+      position: relative;
+    }
+
+    .text-result {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 6px;
+      min-height: 100px;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      font-size: 1rem;
+      line-height: 1.6;
+      border: 1px solid #ddd;
+    }
+
+    .copy-button {
+      margin-top: 1rem;
+      padding: 0.75rem 1.5rem;
+      background: #0066cc;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.2s;
+    }
+
+    .copy-button:hover {
+      background: #0052a3;
+    }
+
+    .copy-button.copied {
+      background: #28a745;
+    }
+
+    .translation-info {
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid #ddd;
+    }
+
+    .translation-info i {
+      margin-right: 0.5rem;
+    }
+
+    .error-message {
+      background: #fff3cd;
+      border: 1px solid #ffc107;
+      color: #856404;
+      padding: 1rem;
+      border-radius: 6px;
+    }
+
+    @media (max-width: 768px) {
+      .language-selector {
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      .arrow-icon {
+        transform: rotate(90deg);
+      }
+
+      .method-selector {
+        flex-direction: column;
+      }
+    }
+  </style>
+<% end %>

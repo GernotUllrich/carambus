@@ -35,6 +35,7 @@ module Admin
       [
         :users,
         :settings,
+        :translations,
         :training_concepts,
         :tags
       ]
