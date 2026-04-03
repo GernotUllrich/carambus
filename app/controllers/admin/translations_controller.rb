@@ -1,4 +1,12 @@
 module Admin
+  # Controller for the ad-hoc translation tool in the admin dashboard
+  # 
+  # Provides a UI for translating arbitrary text using:
+  # - DeepL API with billiard-specific glossaries (default)
+  # - Anthropic Claude for AI-powered translation
+  # - OpenAI GPT-4 (optional)
+  #
+  # Accessible at: /admin/translations
   class TranslationsController < Admin::ApplicationController
     def index
       @source_lang = params[:source_lang] || 'nl'

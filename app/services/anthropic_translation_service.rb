@@ -2,6 +2,25 @@ require 'net/http'
 require 'uri'
 require 'json'
 
+# Service for translating text using Anthropic's Claude API
+#
+# This service provides AI-powered translation with understanding of
+# carom billiard terminology. It uses the DeeplGlossaryService to include
+# domain-specific terms in the translation context.
+#
+# Configuration:
+#   Requires anthropic.api_key in Rails credentials
+#
+# Usage:
+#   service = AnthropicTranslationService.new
+#   translated = service.translate(
+#     text: "De speelbal moet de eerste band raken",
+#     source_lang: "nl",
+#     target_lang: "de"
+#   )
+#
+# Model: Claude Sonnet 4.6 (March 2026)
+# Cost: ~$3 per million input tokens
 class AnthropicTranslationService
   ANTHROPIC_API_URL = "https://api.anthropic.com/v1/messages"
   

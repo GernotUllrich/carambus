@@ -237,7 +237,7 @@ rails server
 ### 9. Datenverwaltung
 
 **Migrations**:
-- Schema-Änderungen
+- Schema-Ändrungen
 - Data Migrations
 - Rollback-Strategien
 
@@ -251,6 +251,28 @@ rails server
 
 ➡️ **[Datenverwaltung](data-management.md)**  
 ➡️ **[Datenbank-Partitionierung](database-partitioning.md)**
+
+### 10. Übersetzungssystem
+
+**Translation Tool (NEU!)**:
+- Ad-hoc Übersetzungstool im Admin-Dashboard
+- DeepL API mit Billard-spezifischen Glossaren
+- AI-Translation mit Anthropic Claude
+- Automatische Übersetzung für Models
+
+**Glossar-Verwaltung**:
+- NL→DE, NL→EN, EN→DE, FR→DE, FR→EN
+- ~50 Billard-Fachbegriffe pro Glossar
+- Glossare erweitern und aktualisieren
+- Rake Tasks für Glossar-Management
+
+**Services**:
+- `DeeplTranslationService`: DeepL Pro mit Glossar
+- `DeeplGlossaryService`: Glossar CRUD
+- `AnthropicTranslationService`: Claude Sonnet 4.6
+- `OpenaiTranslationService`: GPT-4 (optional)
+
+➡️ **[Translation System Dokumentation](../TRANSLATION.md)**
 
 ## 🏗️ Projekt-Struktur
 
@@ -565,6 +587,7 @@ chore: Update dependencies
 17. **[ClubCloud Upload System](clubcloud-upload.md)** - Automatischer Upload & CSV-Export
 18. **[YouTube Streaming Architecture](streaming-architecture.md)** - Live-Streaming System (Architektur, FFmpeg, Hardware)
 19. **[YouTube Streaming Development Setup](streaming-dev-setup.md)** - Entwicklungsumgebung für Streaming (SSH-Keys, Custom Port)
+20. **[Translation System](../TRANSLATION.md)** - Übersetzungssystem mit DeepL, Claude und Billard-Glossaren
 
 ---
 

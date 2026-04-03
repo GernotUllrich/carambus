@@ -209,6 +209,28 @@ rails server
 ➡️ **[Data Management](data-management.md)**  
 ➡️ **[Database Partitioning](database-partitioning.md)**
 
+### 10. Translation System
+
+**Translation Tool (NEW!)**:
+- Ad-hoc translation tool in admin dashboard
+- DeepL API with billiard-specific glossaries
+- AI translation with Anthropic Claude
+- Automatic translation for models
+
+**Glossary Management**:
+- NL→DE, NL→EN, EN→DE, FR→DE, FR→EN
+- ~50 billiard terms per glossary
+- Extend and update glossaries
+- Rake tasks for glossary management
+
+**Services**:
+- `DeeplTranslationService`: DeepL Pro with glossary
+- `DeeplGlossaryService`: Glossary CRUD
+- `AnthropicTranslationService`: Claude Sonnet 4.6
+- `OpenaiTranslationService`: GPT-4 (optional)
+
+➡️ **[Translation System Documentation](../TRANSLATION.md)**
+
 ## 🔧 Important Rake Tasks
 
 ```bash
@@ -328,6 +350,8 @@ chore: Update dependencies
 16. **[Region Tagging](region-tagging-cleanup-summary.md)** - Geographic assignment
 17. **[ClubCloud Upload System](clubcloud-upload.md)** - Automatic upload & CSV export
 18. **[YouTube Streaming Architecture](streaming-architecture.md)** - Live streaming system (architecture, FFmpeg, hardware)
+19. **[YouTube Streaming Development Setup](streaming-dev-setup.md)** - Development environment for streaming (SSH keys, custom port)
+20. **[Translation System](../TRANSLATION.md)** - Translation system with DeepL, Claude, and billiard glossaries
 
 ---
 
