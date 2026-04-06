@@ -276,9 +276,9 @@ class Video < ApplicationRecord
     DISCIPLINE_PATTERNS.each do |discipline_name, patterns|
       next unless patterns.any? { |pattern| text.include?(pattern.downcase) }
 
-      # Try to find discipline, prefer klein (small table) if ambiguous
+      # Try to find discipline, prefer super term (shortest name, e.g., "Dreiband" over "Dreiband klein")
       found = Discipline.where("name ILIKE ?", "%#{discipline_name}%")
-                        .order(Arel.sql("CASE WHEN name ILIKE '%klein%' THEN 0 ELSE 1 END"))
+                        .order(Arel.sql("LENGTH(name)"))
                         .first
       return found if found
     end
