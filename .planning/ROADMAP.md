@@ -12,7 +12,7 @@ This project extracts two Rails god-objects — TableMonitor (3903 lines) and Re
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Characterization Tests & Hardening** - Pin existing behavior with tests; fix AASM and transactional test config before any extraction
+- [x] **Phase 1: Characterization Tests & Hardening** - Pin existing behavior with tests; fix AASM and transactional test config before any extraction (completed 2026-04-09)
 - [ ] **Phase 2: RegionCc Extraction** - Extract HttpClient and all sync services from RegionCc; re-record VCR cassettes
 - [ ] **Phase 3: TableMonitor ScoreEngine** - Extract pure data hash mutation logic; validate lazy accessor delegation pattern
 - [ ] **Phase 4: TableMonitor GameSetup & OptionsPresenter** - Extract start_game entanglement; replace skip_update_callbacks flag
@@ -30,10 +30,10 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. AASM whiny_transitions: true is set and existing tests still pass (no silent guard failures hidden)
   4. Non-transactional test configuration is in place for after_commit coverage; after_commit callbacks fire in test context
   5. Reek baseline report is committed to .planning/ documenting LargeClass and TooManyMethods smells on TableMonitor and RegionCc before any extraction
-**Plans:** 2 plans
+**Plans:** 2/2 plans complete
 Plans:
 - [x] 01-01-PLAN.md — Infrastructure setup (test_after_commit, AASM whiny_transitions, test directory) + TableMonitor characterization tests
-- [ ] 01-02-PLAN.md — RegionCc characterization tests with VCR cassettes + Reek baseline reports
+- [x] 01-02-PLAN.md — RegionCc characterization tests with VCR cassettes + Reek baseline reports
 
 ### Phase 2: RegionCc Extraction
 **Goal**: RegionCc is reduced from 2728 lines to ~200-300 lines by extracting all HTTP and sync logic into independently testable service objects
@@ -84,7 +84,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Characterization Tests & Hardening | 0/2 | Not started | - |
+| 1. Characterization Tests & Hardening | 2/2 | Complete   | 2026-04-09 |
 | 2. RegionCc Extraction | 0/? | Not started | - |
 | 3. TableMonitor ScoreEngine | 0/? | Not started | - |
 | 4. TableMonitor GameSetup & OptionsPresenter | 0/? | Not started | - |

@@ -10,7 +10,7 @@ Requirements for initial release. Each maps to roadmap phases.
 ### Characterization Testing
 
 - [x] **TEST-01**: Characterization tests for TableMonitor critical paths (state transitions, callbacks, broadcasts)
-- [ ] **TEST-02**: Characterization tests for RegionCc sync operations (HTTP calls, data transformation)
+- [x] **TEST-02**: Characterization tests for RegionCc sync operations (HTTP calls, data transformation)
 
 ### TableMonitor Extraction
 
@@ -32,7 +32,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Quality Metrics
 
-- [ ] **QUAL-01**: Reek baseline measurement before and after extraction
+- [x] **QUAL-01**: Reek baseline measurement before and after extraction
 
 ## v2 Requirements
 
@@ -67,8 +67,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | TEST-01 | Phase 1 | Complete |
-| TEST-02 | Phase 1 | Pending |
-| QUAL-01 | Phase 1 | Pending |
+| TEST-02 | Phase 1 | Complete |
+| QUAL-01 | Phase 1 | Complete |
 | RGCC-01 | Phase 2 | Pending |
 | RGCC-02 | Phase 2 | Pending |
 | RGCC-03 | Phase 2 | Pending |
