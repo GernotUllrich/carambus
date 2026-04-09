@@ -12,6 +12,10 @@
 #     **opts
 #   )
 class RegionCc::MetadataSyncer < ApplicationService
+  def self.call(**kwargs)
+    new(**kwargs).call
+  end
+
   def initialize(region_cc:, client:, operation:, **opts)
     @region_cc = region_cc
     @client = client

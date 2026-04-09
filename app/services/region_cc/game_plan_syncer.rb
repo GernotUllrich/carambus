@@ -14,6 +14,10 @@
 #     context: "nbv"
 #   )
 class RegionCc::GamePlanSyncer < ApplicationService
+  def self.call(**kwargs)
+    new(**kwargs).call
+  end
+
   def initialize(region_cc:, client:, operation:, **opts)
     @region_cc = region_cc
     @client = client

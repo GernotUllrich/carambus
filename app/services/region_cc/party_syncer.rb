@@ -18,6 +18,10 @@
 #     parties_todo_ids: [1, 2, 3]
 #   )
 class RegionCc::PartySyncer < ApplicationService
+  def self.call(**kwargs)
+    new(**kwargs).call
+  end
+
   def initialize(region_cc:, client:, operation:, parties_todo_ids: nil, **opts)
     @region_cc = region_cc
     @client = client
