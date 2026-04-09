@@ -49,7 +49,6 @@ class RegionCc::PartySyncer < ApplicationService
         competition_cc.season_ccs.each do |season_cc|
           season_cc.league_ccs.order(:cc_id).each do |league_cc|
             next unless season_cc.name == @opts[:season_name]
-            next unless league_cc.id == 177
 
             _, doc = @client.post(
               "admin_report_showLeague",
