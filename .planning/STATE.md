@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 1 context gathered
-last_updated: "2026-04-09T18:38:06.904Z"
-last_activity: 2026-04-09 -- Phase 01 execution started
+stopped_at: Completed 01-characterization-tests-hardening/01-01-PLAN.md
+last_updated: "2026-04-09T19:12:22.962Z"
+last_activity: 2026-04-09
 progress:
   total_phases: 5
   completed_phases: 0
   total_plans: 2
-  completed_plans: 0
-  percent: 0
+  completed_plans: 1
+  percent: 50
 ---
 
 # Project State
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-04-09)
 ## Current Position
 
 Phase: 01 (Characterization Tests & Hardening) — EXECUTING
-Plan: 1 of 2
-Status: Executing Phase 01
-Last activity: 2026-04-09 -- Phase 01 execution started
+Plan: 2 of 2
+Status: Ready to execute
+Last activity: 2026-04-09
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -52,6 +52,7 @@ Progress: [░░░░░░░░░░] 0%
 - Trend: —
 
 *Updated after each plan completion*
+| Phase 01-characterization-tests-hardening P01 | 8 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -64,6 +65,9 @@ Recent decisions affecting current work:
 - RegionCc extracted before TableMonitor (lower real-time risk; failure mode is data inconsistency, not live match breakage)
 - AASM whiny_transitions: true must be set in Phase 1 before any extraction (silent guard failures risk)
 - Non-transactional test config required for after_commit coverage before characterization tests are written
+- [Phase 01-characterization-tests-hardening]: test_after_commit gem incompatible with Rails 5+; Rails 7.2 fires after_commit natively in transactional tests
+- [Phase 01-characterization-tests-hardening]: PartyMonitor is NOT an STI subclass of TableMonitor — separate table (party_monitors), inherits from ApplicationRecord
+- [Phase 01-characterization-tests-hardening]: AASM whiny_transitions: true in TableMonitor causes zero regressions; 31 existing failures are pre-existing unrelated bugs
 
 ### Pending Todos
 
@@ -76,6 +80,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-09T18:19:05.816Z
-Stopped at: Phase 1 context gathered
-Resume file: .planning/phases/01-characterization-tests-hardening/01-CONTEXT.md
+Last session: 2026-04-09T19:12:22.960Z
+Stopped at: Completed 01-characterization-tests-hardening/01-01-PLAN.md
+Resume file: None

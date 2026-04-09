@@ -32,7 +32,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   5. Reek baseline report is committed to .planning/ documenting LargeClass and TooManyMethods smells on TableMonitor and RegionCc before any extraction
 **Plans:** 2 plans
 Plans:
-- [ ] 01-01-PLAN.md — Infrastructure setup (test_after_commit, AASM whiny_transitions, test directory) + TableMonitor characterization tests
+- [x] 01-01-PLAN.md — Infrastructure setup (test_after_commit, AASM whiny_transitions, test directory) + TableMonitor characterization tests
 - [ ] 01-02-PLAN.md — RegionCc characterization tests with VCR cassettes + Reek baseline reports
 
 ### Phase 2: RegionCc Extraction
