@@ -164,17 +164,17 @@ class RegionCc::GamePlanSyncer < ApplicationService
                     pg_line_ix += 1
                   end
                   sc_ = pg.data["result"][pg.data["result"].keys[0]].gsub("Bälle (x0.00):",
-                                                                        "").split(":").map(&:@strip).map(&:to_i)
+                                                                        "").split(":").map(&:strip).map(&:to_i)
                   in_ = if pg.data["result"].keys[1].present?
                           pg.data["result"][pg.data["result"].keys[1]].gsub(
                             "Aufn. (x0.00):", ""
-                          ).split(":").map(&:@strip).map(&:to_i)
+                          ).split(":").map(&:strip).map(&:to_i)
                         else
                           []
                         end
                   br_ = if pg.data["result"].keys[2].present?
                           pg.data["result"][pg.data["result"].keys[2]].gsub("HS:",
-                                                                          "").split(":").map(&:@strip).map(&:to_i)
+                                                                          "").split(":").map(&:strip).map(&:to_i)
                         else
                           []
                         end
