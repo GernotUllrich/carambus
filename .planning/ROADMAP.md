@@ -47,11 +47,11 @@ Plans:
   4. All sync service unit tests pass with injected doubles; characterization tests pass through delegation layer
 **Plans:** 5 plans
 Plans:
-- [ ] 02-01-PLAN.md — Extract ClubCloudClient (HTTP transport + PATH_MAP)
-- [ ] 02-02-PLAN.md — Extract LeagueSyncer, ClubSyncer, BranchSyncer
-- [ ] 02-03-PLAN.md — Extract TournamentSyncer, RegistrationSyncer, CompetitionSyncer
-- [ ] 02-04-PLAN.md — Extract PartySyncer, GamePlanSyncer, MetadataSyncer
-- [ ] 02-05-PLAN.md — Wire delegation in RegionCc + full verification + Reek measurement
+- [x] 02-01-PLAN.md — Extract ClubCloudClient (HTTP transport + PATH_MAP)
+- [x] 02-02-PLAN.md — Extract LeagueSyncer, ClubSyncer, BranchSyncer
+- [x] 02-03-PLAN.md — Extract TournamentSyncer, RegistrationSyncer, CompetitionSyncer
+- [x] 02-04-PLAN.md — Extract PartySyncer, GamePlanSyncer, MetadataSyncer
+- [x] 02-05-PLAN.md — Wire delegation in RegionCc + full verification + Reek measurement
 
 ### Phase 3: TableMonitor ScoreEngine
 **Goal**: Score mutation logic is extracted from TableMonitor into a pure data service, validating the lazy accessor delegation pattern for subsequent extractions
