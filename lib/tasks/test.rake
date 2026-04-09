@@ -116,6 +116,12 @@ namespace :test do
     end
   end
   
+  desc "Run characterization tests (behavior pins for extraction safety)"
+  task :characterization do
+    puts "Running characterization tests..."
+    system("bin/rails test test/characterization/")
+  end
+
   desc "Validate test setup"
   task :validate => :environment do
     puts "🔍 Validating test setup...\n\n"

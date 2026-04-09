@@ -49,6 +49,7 @@ LocalProtector.prepend(LocalProtectorTestOverride)
 
 if defined?(Sidekiq)
   require "sidekiq/testing"
+  Sidekiq::Testing.fake!
   Sidekiq.logger.level = Logger::WARN
 end
 

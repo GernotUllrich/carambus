@@ -304,7 +304,7 @@ class TableMonitor < ApplicationRecord
 
   # TODO: I18n
 
-  aasm column: "state" do
+  aasm column: "state", whiny_transitions: true do
     state :new, initial: true, after_enter: [:reset_table_monitor]
     state :ready
     state :warmup
