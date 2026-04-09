@@ -366,6 +366,73 @@ class TableMonitorCharTest < ActiveSupport::TestCase
       "simple_score_update? should return true when only safe keys changed for one player"
   end
 
+  test "end-to-end ultra_fast_score_update triggers score_data job via data pipeline" do
+    # End-to-End-Test: Aendert NUR innings_redo_list eines Spielers ueber update!(data: ...).
+    # Prueft den vollstaendigen Pfad: before_save log_state_change ->
+    # @collected_data_changes -> after_update_commit ultra_fast-Ast -> score_data Job.
+    #
+    # Hinweis: Nach create! enthaelt @collected_data_changes noch die Initialdaten von
+    # log_state_change (after_update_commit feuert nicht bei create!). Deshalb wird der
+    # Record per find() neu geladen — ein frisches Objekt ohne Instanzvariablen.
+    initial_data = {
+      "playera" => { "discipline" => "Freie Partie", "innings_redo_list" => [5, 3], "result" => 10 },
+      "playerb" => { "discipline" => "Freie Partie", "innings_redo_list" => [4], "result" => 8 }
+    }
+    tm = TableMonitor.find(TableMonitor.create!(state: "playing", data: initial_data).id)
+
+    # Nur innings_redo_list von playera aendern — kein anderer Key, kein state-Wechsel
+    modified_data = initial_data.deep_dup
+    modified_data["playera"]["innings_redo_list"] = [5, 3, 7]
+
+    ApplicationRecord.stub(:local_server?, true) do
+      tm.stub(:get_options!, nil) do
+        enqueued = capture_enqueued_jobs do
+          tm.update!(data: modified_data)
+        end
+        score_data_jobs = enqueued.select { |j| j[:args]&.include?("score_data") }
+        assert_not_empty score_data_jobs,
+          "Expected score_data job for ultra_fast path, got: #{enqueued.map { |j| j[:args] }.inspect}"
+        assert score_data_jobs.any? { |j| j[:args]&.any? { |a| a.is_a?(Hash) && a["player"] == "playera" } },
+          "Expected score_data job with player: playera"
+      end
+    end
+  end
+
+  test "end-to-end simple_score_update triggers player_score_panel job via data pipeline" do
+    # End-to-End-Test: Aendert result (safe key, aber nicht nur innings_redo_list) via update!(data: ...).
+    # ultra_fast schlaegt fehl (result != innings_redo_list), simple greift -> player_score_panel Job.
+    # Prueft den vollstaendigen Pfad: before_save log_state_change ->
+    # @collected_data_changes -> after_update_commit simple-Ast -> player_score_panel Job.
+    #
+    # Hinweis: Record per find() neu laden, damit @collected_data_changes/@collected_changes
+    # sauber nil sind (keine Residuen aus create!).
+    initial_data = {
+      "playera" => { "discipline" => "Freie Partie", "result" => 10, "innings_redo_list" => [5, 3] },
+      "playerb" => { "discipline" => "Freie Partie", "result" => 8, "innings_redo_list" => [4] }
+    }
+    tm = TableMonitor.find(TableMonitor.create!(state: "playing", data: initial_data).id)
+
+    # Nur result von playera aendern — ultra_fast schlaegt fehl, simple greift
+    modified_data = initial_data.deep_dup
+    modified_data["playera"]["result"] = 15
+
+    ApplicationRecord.stub(:local_server?, true) do
+      tm.stub(:get_options!, nil) do
+        enqueued = capture_enqueued_jobs do
+          tm.update!(data: modified_data)
+        end
+        panel_jobs = enqueued.select { |j| j[:args]&.include?("player_score_panel") }
+        assert_not_empty panel_jobs,
+          "Expected player_score_panel job for simple path, got: #{enqueued.map { |j| j[:args] }.inspect}"
+        assert panel_jobs.any? { |j| j[:args]&.any? { |a| a.is_a?(Hash) && a["player"] == "playera" } },
+          "Expected player_score_panel job with player: playera"
+        score_data_jobs = enqueued.select { |j| j[:args]&.include?("score_data") }
+        assert_empty score_data_jobs,
+          "score_data job must NOT be enqueued on simple path (ultra_fast should not fire)"
+      end
+    end
+  end
+
   # ===========================================================================
   # D. log_state_transition Callback Test
   # ===========================================================================
