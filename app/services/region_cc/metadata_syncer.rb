@@ -117,8 +117,7 @@ class RegionCc::MetadataSyncer < ApplicationService
       options = doc.css("select[name=\"selectedDisciplinId\"] > option")
       options.each do |option|
         option_cc_id = option["value"].to_i
-        @strip = option.text.strip
-        name = @strip
+        name = option.text.strip
         discipline_cc = DisciplineCc.find_or_initialize_by(cc_id: option_cc_id)
         discipline = Discipline.find_by_name(name.gsub("(großes Billard)", "groß").gsub("(kleines Billard)", "klein").gsub("5-Kegel", "5 Kegel").gsub("14/1 endlos", "14.1 endlos").gsub("15-reds", "Snooker").gsub(
                                                "Billard Kegeln", "Billard-Kegeln"
