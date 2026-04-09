@@ -184,7 +184,7 @@ class RegionCc::TournamentSyncer < ApplicationService
             tournament_cc.attributes
           end
         end
-      rescue Exception => e
+      rescue StandardError => e
         Rails.logger.error "Errror: #{e} #{e.backtrace.join("\n")}"
       end
     end
@@ -310,7 +310,7 @@ class RegionCc::TournamentSyncer < ApplicationService
               break
             end
           end
-        rescue Exception => e
+        rescue StandardError => e
           Rails.logger.error "Error: #{e} Tournament[#{tournament.id}]"
           return
         end

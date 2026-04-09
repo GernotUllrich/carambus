@@ -105,8 +105,8 @@ class RegionCc::RegistrationSyncer < ApplicationService
         end
         registration_list_cc.update(season_id: season.id, discipline_id: discipline_id, category_cc_id: category_cc_id,
                                     context: context, branch_cc_id: branch_cc.id, name: name, status: "Freigegeben", deadline: deadline, qualifying_date: qualifying_date)
-      rescue Exception
-        Rails.logger.error "Error"
+      rescue StandardError => e
+        Rails.logger.error "Error: #{e.message}"
       end
     end
   end
