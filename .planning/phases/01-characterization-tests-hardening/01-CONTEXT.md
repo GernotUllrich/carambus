@@ -24,7 +24,7 @@ Pin existing behavior of TableMonitor (3903 lines) and RegionCc (2728 lines) wit
 
 ### AASM Hardening
 - **D-06:** Enable `whiny_transitions: true` globally in the TableMonitor AASM block. If existing tests break, fix them — those are real bugs being surfaced by silent guard failures.
-- **D-07:** Include PartyMonitor (STI subclass) in characterization tests. It inherits from TableMonitor and extraction will affect it — pin both now.
+- **D-07:** Include PartyMonitor in characterization tests. PartyMonitor has its own table and inherits from ApplicationRecord (NOT an STI subclass of TableMonitor). It connects via a polymorphic `tournament_monitor` relationship. Extraction may affect shared interfaces — pin both now.
 
 ### Reek Integration
 - **D-08:** One-time Reek report only. Run reek on TableMonitor and RegionCc, save output to `.planning/` as baseline. Run again after Phase 5 for comparison. No gem addition to Gemfile, no CI integration.
@@ -44,7 +44,7 @@ Pin existing behavior of TableMonitor (3903 lines) and RegionCc (2728 lines) wit
 ### Models Under Test
 - `app/models/table_monitor.rb` — Primary extraction target (3903 lines, AASM state machine, 96 methods)
 - `app/models/region_cc.rb` — Secondary extraction target (2728 lines, ClubCloud sync)
-- `app/models/party_monitor.rb` — STI subclass of TableMonitor, must be characterized
+- `app/models/party_monitor.rb` — Separate model (own table, inherits ApplicationRecord), connected via polymorphic `tournament_monitor` relationship
 
 ### Test Infrastructure
 - `test/test_helper.rb` — Main test config, LocalProtector override, FactoryBot setup
