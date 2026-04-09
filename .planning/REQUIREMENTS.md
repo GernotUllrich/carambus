@@ -66,27 +66,27 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| TEST-01 | Pending | Pending |
-| TEST-02 | Pending | Pending |
-| TMON-01 | Pending | Pending |
-| TMON-02 | Pending | Pending |
-| TMON-03 | Pending | Pending |
-| TMON-04 | Pending | Pending |
-| TMON-05 | Pending | Pending |
-| TMON-06 | Pending | Pending |
-| RGCC-01 | Pending | Pending |
-| RGCC-02 | Pending | Pending |
-| RGCC-03 | Pending | Pending |
-| RGCC-04 | Pending | Pending |
-| RGCC-05 | Pending | Pending |
-| RGCC-06 | Pending | Pending |
-| QUAL-01 | Pending | Pending |
+| TEST-01 | Phase 1 | Pending |
+| TEST-02 | Phase 1 | Pending |
+| QUAL-01 | Phase 1 | Pending |
+| RGCC-01 | Phase 2 | Pending |
+| RGCC-02 | Phase 2 | Pending |
+| RGCC-03 | Phase 2 | Pending |
+| RGCC-04 | Phase 2 | Pending |
+| RGCC-05 | Phase 2 | Pending |
+| RGCC-06 | Phase 2 | Pending |
+| TMON-01 | Phase 3 | Pending |
+| TMON-05 | Phase 3 | Pending |
+| TMON-02 | Phase 4 | Pending |
+| TMON-04 | Phase 4 | Pending |
+| TMON-03 | Phase 5 | Pending |
+| TMON-06 | Phase 5 | Pending |
 
 **Coverage:**
 - v1 requirements: 15 total
-- Mapped to phases: 0
-- Unmapped: 15 ⚠️
+- Mapped to phases: 15
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-04-09*
-*Last updated: 2026-04-09 after initial definition*
+*Last updated: 2026-04-09 after roadmap creation*
