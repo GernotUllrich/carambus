@@ -854,7 +854,7 @@ DEPENDENCIES
   puma (~> 6.6)
   pundit (~> 2.1)
   rack-mini-profiler
-  rails (~> 7.2.0.beta2)
+  rails (~> 7.2.2)
   rails-i18n
   redcarpet (~> 3.5)
   redis (~> 5.1)
