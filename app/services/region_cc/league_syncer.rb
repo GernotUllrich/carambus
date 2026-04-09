@@ -14,14 +14,14 @@
 #   RegionCc::LeagueSyncer.call(region_cc: rc, client: cc, operation: :sync_team_players, league_team: lt, **opts)
 #   RegionCc::LeagueSyncer.call(region_cc: rc, client: cc, operation: :sync_team_players_structure, **opts)
 class RegionCc::LeagueSyncer < ApplicationService
-  def initialize(region_cc:, client:, operation:, league_cc: nil, league: nil, league_team: nil, **opts)
-    @region_cc = region_cc
-    @client = client
-    @operation = operation
-    @league_cc = league_cc
-    @league = league
-    @league_team = league_team
-    @opts = opts
+  def initialize(kwargs = {})
+    @region_cc = kwargs[:region_cc]
+    @client = kwargs[:client]
+    @operation = kwargs[:operation]
+    @league_cc = kwargs[:league_cc]
+    @league = kwargs[:league]
+    @league_team = kwargs[:league_team]
+    @opts = kwargs.except(:region_cc, :client, :operation, :league_cc, :league, :league_team)
   end
 
   # Dispatcher: leitet an die jeweilige private Sync-Methode weiter.

@@ -6,10 +6,10 @@
 # Verwendung:
 #   RegionCc::BranchSyncer.call(region_cc: region_cc, client: club_cloud_client, **opts)
 class RegionCc::BranchSyncer < ApplicationService
-  def initialize(region_cc:, client:, **opts)
-    @region_cc = region_cc
-    @client = client
-    @opts = opts
+  def initialize(kwargs = {})
+    @region_cc = kwargs[:region_cc]
+    @client = kwargs[:client]
+    @opts = kwargs.except(:region_cc, :client)
   end
 
   # Liest Branch-Optionen aus der CC-API und legt BranchCc-Datensaetze an/aktualisiert sie.

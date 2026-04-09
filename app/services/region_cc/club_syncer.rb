@@ -8,10 +8,10 @@
 class RegionCc::ClubSyncer < ApplicationService
   STATUS_MAP = { active: 1, passive: 2 }.freeze
 
-  def initialize(region_cc:, client:, **opts)
-    @region_cc = region_cc
-    @client = client
-    @opts = opts
+  def initialize(kwargs = {})
+    @region_cc = kwargs[:region_cc]
+    @client = kwargs[:client]
+    @opts = kwargs.except(:region_cc, :client)
   end
 
   # Liest Club-Optionen aus der CC-API und aktualisiert Club-Datensaetze.
