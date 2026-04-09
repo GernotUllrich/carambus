@@ -34,7 +34,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 Plans:
 - [x] 01-01-PLAN.md — Infrastructure setup (test_after_commit, AASM whiny_transitions, test directory) + TableMonitor characterization tests
 - [x] 01-02-PLAN.md — RegionCc characterization tests with VCR cassettes + Reek baseline reports
-- [ ] 01-03-PLAN.md — Gap closure: end-to-end tests for ultra_fast and simple after_update_commit speed branches
+- [x] 01-03-PLAN.md — Gap closure: end-to-end tests for ultra_fast and simple after_update_commit speed branches
 
 ### Phase 2: RegionCc Extraction
 **Goal**: RegionCc is reduced from 2728 lines to ~200-300 lines by extracting all HTTP and sync logic into independently testable service objects
