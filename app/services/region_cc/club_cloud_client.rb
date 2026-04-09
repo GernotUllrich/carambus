@@ -1,5 +1,6 @@
-require "net/http/post/multipart"
 # frozen_string_literal: true
+
+require "net/http/post/multipart"
 
 # Standalone HTTP-Transport-Client fuer das ClubCloud-API.
 # Kapselt alle Netzwerkoperationen (GET, POST, multipart POST) gegen das
