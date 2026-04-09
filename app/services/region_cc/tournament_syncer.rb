@@ -233,8 +233,10 @@ class RegionCc::TournamentSyncer < ApplicationService
             end
           elsif /Mannschaften/.match?(tr.css("td")[0].text.strip)
             zeilen = tr.css("table > tr.odd td")
-            zeilen.each do |_zeile|
-              pos_hash[]
+            zeilen.each do |zeile|
+              pos = zeile.css("td").andand[0].andand.text.andand.to_i
+              val = zeile.css("td").andand[1].andand.text
+              pos_hash[pos] = val if pos.present?
             end
           end
         end
