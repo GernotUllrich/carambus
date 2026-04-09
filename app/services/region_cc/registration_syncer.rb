@@ -10,13 +10,13 @@
 #     season: season, branch_cc: branch_cc
 #   )
 class RegionCc::RegistrationSyncer < ApplicationService
-  def initialize(region_cc:, client:, operation:, season: nil, branch_cc: nil, **opts)
-    @region_cc = region_cc
-    @client = client
-    @operation = operation
-    @season = season
-    @branch_cc = branch_cc
-    @opts = opts
+  def initialize(options = {})
+    @region_cc = options.fetch(:region_cc)
+    @client = options.fetch(:client)
+    @operation = options.fetch(:operation)
+    @season = options[:season]
+    @branch_cc = options[:branch_cc]
+    @opts = options.except(:region_cc, :client, :operation, :season, :branch_cc)
   end
 
   def call

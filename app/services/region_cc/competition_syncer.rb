@@ -9,11 +9,11 @@
 #     operation: :sync_competitions, context: "nbv"
 #   )
 class RegionCc::CompetitionSyncer < ApplicationService
-  def initialize(region_cc:, client:, operation:, **opts)
-    @region_cc = region_cc
-    @client = client
-    @operation = operation
-    @opts = opts
+  def initialize(options = {})
+    @region_cc = options.fetch(:region_cc)
+    @client = options.fetch(:client)
+    @operation = options.fetch(:operation)
+    @opts = options.except(:region_cc, :client, :operation)
   end
 
   def call
