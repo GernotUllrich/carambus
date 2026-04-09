@@ -157,8 +157,6 @@ class RegionCc::LeagueSyncer < ApplicationService
     season = Season.find_by_name(season_name)
     raise ArgumentError, "unknown season name #{season_name}", caller if season.blank?
 
-    Region.find_by_shortname("DBU").id
-
     league_teams = []
     league_team_ccs = []
     BranchCc.where(context: context).each do |branch_cc|
@@ -293,8 +291,6 @@ class RegionCc::LeagueSyncer < ApplicationService
     region = Region.find_by_shortname(context.upcase)
     season = Season.find_by_name(season_name)
     raise ArgumentError, "unknown season name #{season_name}", caller if season.blank?
-
-    Region.find_by_shortname("portal").id
 
     league_teams = []
     league_team_ccs = []
