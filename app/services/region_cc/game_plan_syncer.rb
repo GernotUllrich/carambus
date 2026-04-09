@@ -75,7 +75,7 @@ class RegionCc::GamePlanSyncer < ApplicationService
           tables.each do |table|
             next if table.css("> tr > th")[0].andand.text == "Partie-Nr."
 
-            try do
+            begin
               table.css("> tr").each_with_index do |tr, _ix|
                 tds = tr.css("> td")
                 if tds.blank?
