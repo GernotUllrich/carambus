@@ -13,7 +13,7 @@ This project extracts two Rails god-objects — TableMonitor (3903 lines) and Re
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Characterization Tests & Hardening** - Pin existing behavior with tests; fix AASM and transactional test config before any extraction (completed 2026-04-09)
-- [ ] **Phase 2: RegionCc Extraction** - Extract HttpClient and all sync services from RegionCc; re-record VCR cassettes
+- [ ] **Phase 2: RegionCc Extraction** - Extract ClubCloudClient and all sync services from RegionCc; verify VCR cassette compatibility
 - [ ] **Phase 3: TableMonitor ScoreEngine** - Extract pure data hash mutation logic; validate lazy accessor delegation pattern
 - [ ] **Phase 4: TableMonitor GameSetup & OptionsPresenter** - Extract start_game entanglement; replace skip_update_callbacks flag
 - [ ] **Phase 5: TableMonitor ResultRecorder & Final Cleanup** - Extract highest-risk AASM-coupled service; full test coverage; Reek final measurement
@@ -37,15 +37,21 @@ Plans:
 - [x] 01-03-PLAN.md — Gap closure: end-to-end tests for ultra_fast and simple after_update_commit speed branches
 
 ### Phase 2: RegionCc Extraction
-**Goal**: RegionCc is reduced from 2728 lines to ~200-300 lines by extracting all HTTP and sync logic into independently testable service objects
+**Goal**: RegionCc is reduced from 2728 lines to under 500 lines by extracting all HTTP and sync logic into independently testable service objects
 **Depends on**: Phase 1
 **Requirements**: RGCC-01, RGCC-02, RGCC-03, RGCC-04, RGCC-05, RGCC-06
 **Success Criteria** (what must be TRUE):
-  1. RegionCc::HttpClient exists as a pure I/O service with zero ActiveRecord coupling; existing VCR cassettes are re-recorded against the new calling pattern
-  2. RegionCc::LeagueSyncer, RegionCc::TournamentSyncer, and RegionCc::PartySyncer each exist as standalone services that inject HttpClient; all sync operations still produce correct database records
+  1. RegionCc::ClubCloudClient exists as a pure I/O service with zero ActiveRecord coupling; existing VCR cassettes replay correctly through the new calling pattern
+  2. Nine syncer services (LeagueSyncer, ClubSyncer, BranchSyncer, TournamentSyncer, RegistrationSyncer, CompetitionSyncer, PartySyncer, GamePlanSyncer, MetadataSyncer) each exist as standalone services that inject ClubCloudClient; all sync operations still produce correct database records
   3. RegionCc model is under 500 lines; the public model interface (all sync_* and fix method signatures) is unchanged
-  4. All sync service unit tests pass with injected doubles; assert_requested count assertions guard against cassette drift
-**Plans**: TBD
+  4. All sync service unit tests pass with injected doubles; characterization tests pass through delegation layer
+**Plans:** 5 plans
+Plans:
+- [ ] 02-01-PLAN.md — Extract ClubCloudClient (HTTP transport + PATH_MAP)
+- [ ] 02-02-PLAN.md — Extract LeagueSyncer, ClubSyncer, BranchSyncer
+- [ ] 02-03-PLAN.md — Extract TournamentSyncer, RegistrationSyncer, CompetitionSyncer
+- [ ] 02-04-PLAN.md — Extract PartySyncer, GamePlanSyncer, MetadataSyncer
+- [ ] 02-05-PLAN.md — Wire delegation in RegionCc + full verification + Reek measurement
 
 ### Phase 3: TableMonitor ScoreEngine
 **Goal**: Score mutation logic is extracted from TableMonitor into a pure data service, validating the lazy accessor delegation pattern for subsequent extractions
@@ -85,8 +91,8 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Characterization Tests & Hardening | 2/3 | Gap closure | 2026-04-09 |
-| 2. RegionCc Extraction | 0/? | Not started | - |
+| 1. Characterization Tests & Hardening | 3/3 | Complete | 2026-04-09 |
+| 2. RegionCc Extraction | 0/5 | Planned | - |
 | 3. TableMonitor ScoreEngine | 0/? | Not started | - |
 | 4. TableMonitor GameSetup & OptionsPresenter | 0/? | Not started | - |
 | 5. TableMonitor ResultRecorder & Final Cleanup | 0/? | Not started | - |
