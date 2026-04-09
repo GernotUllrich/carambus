@@ -165,7 +165,7 @@ class RegionCc::PartySyncer < ApplicationService
         #   # partienr: party_cc.cc_id,
         #   # seekBut: ""}, opts
       )
-      err_msg = doc.present && doc.css('input[name="errMsg"]')[0].andand["value"]
+      err_msg = doc.present? && doc.css('input[name="errMsg"]')[0].andand["value"]
       raise ArgumentError, err_msg if err_msg.present? || doc.blank?
     end
   end
