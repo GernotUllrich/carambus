@@ -275,7 +275,7 @@ class RegionCc::TournamentSyncer < ApplicationService
 
   def fix_tournament_structure
     season = Season.find_by_name(@opts[:season_name])
-    raise ArgumentError, "unknown season name #{season_name}", caller if season.blank?
+    raise ArgumentError, "unknown season name #{@opts[:season_name]}", caller if season.blank?
 
     tournaments = Tournament
                   .where(season: season, organizer_type: "Region", organizer_id: @region_cc.region.id)
