@@ -33,6 +33,10 @@ class RegionCc::CompetitionSyncer < ApplicationService
     BranchCc.where(context: context).each do |branch_cc|
       _, doc = @client.post("showLeagueList", { fedId: @region_cc.cc_id, branchId: branch_cc.cc_id }, @opts)
       selector = doc.css('select[name="subBranchId"]')[0]
+      unless selector.present?
+        RegionCc.logger.error "[sync_competitions] No subBranchId select found in response"
+        next
+      end
       option_tags = selector.css("option")
       option_tags.each do |option|
         cc_id = option["value"].to_i

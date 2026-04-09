@@ -22,6 +22,10 @@ class RegionCc::BranchSyncer < ApplicationService
     opts.delete("armed")
     _, doc = @client.get("showClubList", {}, opts)
     selector = doc.css('select[name="branchId"]')[0]
+    unless selector.present?
+      RegionCc.logger.error "[get_branches_from_cc] No branchId select found in response"
+      return []
+    end
     option_tags = selector.css("option")
     option_tags.each do |option|
       cc_id = option["value"].to_i
