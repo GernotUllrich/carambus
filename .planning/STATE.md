@@ -4,8 +4,8 @@ milestone: v2.1
 milestone_name: Tournament & TournamentMonitor Refactoring
 status: executing
 stopped_at: Phase 13 context gathered
-last_updated: "2026-04-10T22:40:40.681Z"
-last_activity: 2026-04-10 -- Phase 13 planning complete
+last_updated: "2026-04-10T22:43:40.144Z"
+last_activity: 2026-04-10 -- Phase 13 execution started
 progress:
   total_phases: 6
   completed_phases: 2
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-10)
 
 **Core value:** A maintainable, well-tested codebase where every test is trustworthy and every model is appropriately sized.
-**Current focus:** Phase 12 — Tournament Characterization
+**Current focus:** Phase 13 — Low-Risk Extractions
 
 ## Current Position
 
-Phase: 12 (Tournament Characterization) — EXECUTING
+Phase: 13 (Low-Risk Extractions) — EXECUTING
 Plan: 1 of 3
-Status: Ready to execute
-Last activity: 2026-04-10 -- Phase 13 planning complete
+Status: Executing Phase 13
+Last activity: 2026-04-10 -- Phase 13 execution started
 
 Progress: [░░░░░░░░░░] 0%
 

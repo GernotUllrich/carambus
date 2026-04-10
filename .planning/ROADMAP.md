@@ -176,7 +176,7 @@ Plans:
 
 - [x] **Phase 11: TournamentMonitor Characterization** - Pin TournamentMonitor behavior (AASM, result pipeline, game sequencing, player distribution) before any extraction (completed 2026-04-10)
 - [x] **Phase 12: Tournament Characterization** - Pin Tournament behavior (AASM, scraping pipeline, dynamic attributes, PaperTrail baselines) before any extraction (completed 2026-04-10)
-- [ ] **Phase 13: Low-Risk Extractions** - Extract three smallest services (RankingCalculator, TableReservationService, PlayerGroupDistributor) to prove the pattern
+- [x] **Phase 13: Low-Risk Extractions** - Extract three smallest services (RankingCalculator, TableReservationService, PlayerGroupDistributor) to prove the pattern (completed 2026-04-10)
 - [ ] **Phase 14: Medium-Risk Extractions** - Extract PublicCcScraper and RankingResolver, the largest complexity reductions requiring VCR cassettes
 - [ ] **Phase 15: High-Risk Extractions** - Extract ResultProcessor and TablePopulator, which involve DB locks, AASM, and complex algorithms
 - [ ] **Phase 16: Controller, Job & Channel Coverage** - Add test coverage for controllers, jobs, and channels that touch Tournament and TournamentMonitor; verify quality metrics
@@ -222,11 +222,11 @@ Plans:
   2. Tournament::TableReservationService exists in app/services/tournament/ with unit tests; Tournament delegates to it and table reservation behavior is unchanged
   3. TournamentMonitor::PlayerGroupDistributor exists in app/services/tournament_monitor/ with unit tests covering the pure distribution algorithm; TournamentMonitor delegates to it and group assignments are identical to before extraction
   4. All existing characterization tests from Phases 11-12 pass without modification after these extractions
-**Plans:** 3 plans
+**Plans:** 3/3 plans complete
 Plans:
-- [ ] 13-01-PLAN.md — Extract PlayerGroupDistributor PORO from TournamentMonitor + wire delegation
-- [ ] 13-02-PLAN.md — Extract RankingCalculator PORO from Tournament + wire delegation
-- [ ] 13-03-PLAN.md — Extract TableReservationService ApplicationService from Tournament + wire delegation
+- [x] 13-01-PLAN.md — Extract PlayerGroupDistributor PORO from TournamentMonitor + wire delegation
+- [x] 13-02-PLAN.md — Extract RankingCalculator PORO from Tournament + wire delegation
+- [x] 13-03-PLAN.md — Extract TableReservationService ApplicationService from Tournament + wire delegation
 
 ### Phase 14: Medium-Risk Extractions
 **Goal**: PublicCcScraper (700 lines, VCR required) and RankingResolver (regex rule parser) are extracted — the two largest complexity reductions in this milestone
@@ -281,7 +281,7 @@ Phases execute in numeric order: 11 -> 12 -> 13 -> 14 -> 15 -> 16
 | 10. Final Pass & Green Suite | v2.0 | 3/3 | Complete | 2026-04-10 |
 | 11. TournamentMonitor Characterization | v2.1 | 2/2 | Complete   | 2026-04-10 |
 | 12. Tournament Characterization | v2.1 | 3/3 | Complete   | 2026-04-10 |
-| 13. Low-Risk Extractions | v2.1 | 0/3 | Planned | - |
+| 13. Low-Risk Extractions | v2.1 | 3/3 | Complete   | 2026-04-10 |
 | 14. Medium-Risk Extractions | v2.1 | 0/? | Not started | - |
 | 15. High-Risk Extractions | v2.1 | 0/? | Not started | - |
 | 16. Controller, Job & Channel Coverage | v2.1 | 0/? | Not started | - |
