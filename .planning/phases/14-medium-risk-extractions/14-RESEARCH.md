@@ -589,17 +589,19 @@ All findings in this research are VERIFIED via direct codebase reading. No ASSUM
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Should tournament_scraping_test.rb be updated in Phase 14 or was it updated in Phase 12/13?**
    - What we know: The test calls `@tournament.send(:parse_table_tr, ...)` at line 338. After extraction, this call breaks.
    - What's unclear: Whether Phase 12 characterization tests are locked (D-10 says "must pass without modification") or whether the test itself needs to migrate.
    - Recommendation: D-10 says characterization tests must pass "after extraction." The test calls a private method on Tournament that will no longer exist there. The planner must include a task to update `tournament_scraping_test.rb` to call the same method on the service instead, OR verify that the test already passes through the delegation wrapper (it won't — it uses `send`). This is a mandatory task, not optional.
+   - RESOLVED: Plan 14-02 Task 2 Part B explicitly updates tournament_scraping_test.rb to call parse_table_tr on the service instance.
 
 2. **Does `parse_table_td` need to be tested separately?**
    - What we know: It is dead code — no callers. Existing characterization tests do not cover it.
    - What's unclear: Whether it should be deleted or just moved.
    - Recommendation: Move with the scraper cluster. Mark as dead code in a comment. Deletion is a separate cleanup decision.
+   - RESOLVED: Plan 14-02 Task 1 moves parse_table_td with the cluster. Dead code comment added.
 
 ---
 
