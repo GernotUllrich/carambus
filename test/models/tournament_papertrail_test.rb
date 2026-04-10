@@ -32,9 +32,12 @@ class TournamentPapertrailTest < ActiveSupport::TestCase
       organizer: regions(:nbv),
       organizer_type: "Region"
     )
-    # Baseline: create! produces exactly 1 version.
+    # Capture baseline version count. We do NOT assert exactly 1 here because
+    # AASM after_enter callbacks (reset_tournament, calculate_and_cache_rankings)
+    # may produce additional versions depending on fixture state and test ordering.
+    # The dedicated "create! produces exactly 1 version" test pins the count
+    # in isolation without setup-ordering interference.
     @initial_count = @tournament.versions.count
-    assert_equal 1, @initial_count, "create! must produce exactly 1 version"
   end
 
   # Baseline: create! -> 1 version.
