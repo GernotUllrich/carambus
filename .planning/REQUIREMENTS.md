@@ -19,7 +19,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **TMON-03**: Extract ResultRecorder service (result persistence + AASM event dispatch)
 - [x] **TMON-04**: Extract OptionsPresenter service (view-preparation logic)
 - [x] **TMON-05**: Remove DEBUG constants, use Rails.logger levels
-- [ ] **TMON-06**: Full test coverage for all extracted TableMonitor services
+- [x] **TMON-06**: Full test coverage for all extracted TableMonitor services
 
 ### RegionCc Extraction
 
@@ -80,7 +80,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | TMON-02 | Phase 4 | Complete |
 | TMON-04 | Phase 4 | Complete |
 | TMON-03 | Phase 5 | Complete |
-| TMON-06 | Phase 5 | Pending |
+| TMON-06 | Phase 5 | Complete |
 
 **Coverage:**
 - v1 requirements: 15 total
