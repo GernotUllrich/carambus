@@ -1,5 +1,24 @@
 # Milestones
 
+## v2.0 Test Suite Audit & Improvement (Shipped: 2026-04-10)
+
+**Phases completed:** 5 phases, 11 plans, 14 tasks
+
+**Key accomplishments:**
+
+- STANDARDS.md created with 6-section conventions rubric covering fixtures-first setup, MiniTest assertion style, test naming, 4 support file analysis with usage data, file structure template, and 7 issue category codes for the Phase 7-9 audit.
+- Per-file issue catalogue for all 72 test files — 10 empty scaffold stubs, 26 files with weak assertions, 2 skipped tests, 40 files missing frozen_string_literal, zero naming or FactoryBot violations.
+- 10 empty scaffold test stubs deleted from test/models/ and frozen_string_literal: true added to 2 clean model test files
+- Sole assert_nothing_raised and assert_not_nil weak assertions fixed in 5 test files; 6 pre-existing bugs auto-fixed including ko_ranking nil guard and test helper attribute errors
+- One-liner:
+- 3 presence-only and sole-assertion weak spots fixed in GameSetup and ResultRecorder tests — game_id now verified by value; evaluate_result path confirmed via state and panel_state assertions
+- 6 targeted test quality fixes: deleted non-test script, removed always-passing assertion, rewrote phantom-method tests against actual helper, strengthened sync_date assertion, replaced brittle CSRF regex, removed hardcoded sleep
+- ApiProtectorTestOverride added and 5 fixture files fixed, reducing errors from 75 to 66 and revealing 82 pre-existing failures previously masked by setup errors
+- 1. [Rule 1 - Bug] League::DBU_ID crashes in test env without safe navigation
+- 7 VCR cassettes created for RegionCcCharTest — all 17 tests now green (0 failures, 0 errors, 0 skips), QUAL-04 resolved
+
+---
+
 ## v1.0 Model Refactoring (Shipped: 2026-04-10)
 
 **Phases completed:** 5 phases, 18 plans, 28 tasks

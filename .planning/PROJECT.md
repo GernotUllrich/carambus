@@ -1,23 +1,12 @@
-# Carambus API — Test Suite Audit & Improvement
+# Carambus API — Model Refactoring & Test Coverage
 
 ## What This Is
 
-A systematic audit and improvement of the existing 72 test files (538 methods, 8770 lines) in the Carambus API codebase. Reviewing every test for quality, consistency, and correctness — fixing brittle tests, resolving skipped/pending tests, removing dead code, and establishing consistent patterns. Follows the v1.0 model refactoring milestone.
+A focused improvement effort on the Carambus API codebase. v1.0 broke down the two largest model classes into smaller, well-tested components. v2.0 audited and improved the entire existing test suite — fixing weak assertions, removing dead tests, resolving skips, standardizing conventions, and achieving a green suite (475 runs, 0 failures, 0 errors).
 
 ## Core Value
 
-Every existing test file is reviewed, consistent, and trustworthy — no dead tests, no skipped tests without justification, no brittle patterns.
-
-## Current Milestone: v2.0 Test Suite Audit & Improvement
-
-**Goal:** Review and improve all 72 existing test files for quality, consistency, and correctness.
-
-**Target features:**
-- Audit every existing test file for quality issues (brittle tests, weak assertions, dead code)
-- Fix or remove all skipped/pending tests (8 files identified)
-- Establish consistent patterns (fixtures vs factories, setup conventions, assertion style)
-- Remove dead/redundant tests
-- All tests green after improvements
+A maintainable, well-tested codebase where every test is trustworthy and every model is appropriately sized.
 
 ## Requirements
 
@@ -32,44 +21,42 @@ Every existing test file is reviewed, consistent, and trustworthy — no dead te
 - ✓ Extract service classes from RegionCc — v1.0 (ClubCloudClient + 9 syncers)
 - ✓ Tests for all extracted service classes — v1.0 (140 tests total)
 - ✓ RegionCc reduced to 491 lines — v1.0
-- ✓ TableMonitor reduced to 1611 lines — v1.0 (target was 800, accepted at 1611)
+- ✓ TableMonitor reduced to 1611 lines — v1.0
 - ✓ Reek quality improvement measured — v1.0 (TableMonitor 781→306, RegionCc 460→54)
+- ✓ Every test file reviewed for quality issues — v2.0 (72 files audited, STANDARDS.md + AUDIT-REPORT.md)
+- ✓ All skipped/pending tests resolved — v2.0 (VCR cassettes recorded, skips justified or fixed)
+- ✓ Consistent patterns established — v2.0 (frozen_string_literal, fixtures-first, test naming)
+- ✓ Dead/redundant tests removed — v2.0 (10 empty stubs + 1 non-test script deleted)
+- ✓ All tests green after improvements — v2.0 (475 runs, 0 failures, 0 errors, 11 justified skips)
 
 ### Active
 
-- [ ] Every test file reviewed for quality issues
-- [ ] All skipped/pending tests resolved (fixed or removed with justification)
-- [ ] Consistent patterns established across test suite
-- [ ] Dead/redundant tests removed
-- [ ] All tests green after improvements
+(None — v2.0 milestone complete. Start v3.0 with `/gsd-new-milestone`)
 
 ### Out of Scope
 
-- League model refactoring (2219 lines) — tackle after TableMonitor and RegionCc
-- Tournament model refactoring (1775 lines) — tackle after TableMonitor and RegionCc
-- Architecture or stack changes — explicitly excluded per project goals
-- New features — this is purely test improvement
+- League model refactoring (2219 lines) — tackle in future milestone
+- Tournament model refactoring (1775 lines) — tackle in future milestone
+- New test coverage for 78 untested models, 60 controllers, 24 services — separate milestone
+- Architecture or stack changes — not in scope for current project
 - Scraper consolidation (UmbScraper v1/v2) — separate concern
-- New test coverage for untested models/controllers/services — future milestone
-- Writing tests for code that has none — this milestone improves existing tests only
 
 ## Context
 
 - Brownfield Rails 7.2 app for carom billiard tournament management
 - Ruby 3.2.1, PostgreSQL, Redis, ActionCable, StimulusReflex
 - **v1.0 shipped 2026-04-10:** TableMonitor 3903→1611 lines (4 services), RegionCc 2728→491 lines (10 services)
-- 140 service unit tests + 58 characterization tests = 198 total extraction tests
-- Reek: TableMonitor 781→306 warnings (61%), RegionCc 460→54 warnings (88%)
-- Extracted services: ScoreEngine (PORO), GameSetup (ApplicationService), OptionsPresenter (PORO), ResultRecorder (ApplicationService), ClubCloudClient + 9 syncers
-- **v2.0 test audit scope:** 72 existing test files, 538 methods, 8770 lines; 8 files with skipped/pending tests
-- `LocalProtector` concern prevents modification of global records (id < 50_000_000) — disabled in tests
+- **v2.0 shipped 2026-04-10:** 72 test files audited, 475 runs green, 1121 assertions, ApiProtectorTestOverride added
+- Test suite: 475 runs, 1121 assertions, 0 failures, 0 errors, 11 justified skips
+- ApiProtector + LocalProtector both have test overrides in test_helper.rb
+- Extracted services: ScoreEngine, GameSetup, OptionsPresenter, ResultRecorder, ClubCloudClient + 9 syncers
 - Codebase map available at `.planning/codebase/`
 
 ## Constraints
 
 - **Behavior preservation**: All existing functionality must continue to work identically
-- **Incremental**: Each extraction must be independently deployable
-- **Test-first**: Characterization tests before any refactoring
+- **Incremental**: Each change must be independently deployable
+- **Test-first**: Tests before any refactoring
 
 ## Key Decisions
 
@@ -79,9 +66,12 @@ Every existing test file is reviewed, consistent, and trustworthy — no dead te
 | Write characterization tests before extracting | Ensures refactoring doesn't break existing behavior | ✓ Good — 58 char tests caught every regression |
 | Extract to service classes, not concerns | Services are more testable and explicit than concerns | ✓ Good — 14 services extracted with clear boundaries |
 | ScoreEngine as PORO, not ApplicationService | Stateful hash wrapper called many times per game | ✓ Good — lazy accessor pattern reused by OptionsPresenter |
-| GameSetup/ResultRecorder as ApplicationService | One-shot operations with AR writes | ✓ Good — consistent .call(kwargs) pattern |
 | Fine-grained RegionCc syncers (9 classes) | User chose focused services over 3 large ones | ✓ Good — each syncer independently testable |
 | suppress_broadcast replacing skip_update_callbacks | Explicit flag with no leaked state | ✓ Good — 79 call sites migrated cleanly |
+| Fixtures primary, not FactoryBot | Already dominant, no factory definitions existed | ✓ Good — zero FactoryBot usage confirmed by audit |
+| Delete empty test stubs rather than backfill | False confidence worse than no test file | ✓ Good — 10 stubs removed cleanly |
+| Fix sole-assertion cases only | Precondition checks (followed by stronger assertions) are acceptable | ✓ Good — targeted fixes, no over-correction |
+| ApiProtectorTestOverride in test_helper.rb | Prevents silent save rollbacks in API server context tests | ✓ Good — resolved hidden test failures |
 
 ## Evolution
 
@@ -101,4 +91,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-10 after v2.0 milestone start*
+*Last updated: 2026-04-10 after v2.0 milestone*
