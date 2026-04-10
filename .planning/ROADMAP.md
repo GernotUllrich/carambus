@@ -92,7 +92,7 @@ Plans:
 
 ---
 
-### 🚧 v2.0 Test Suite Audit & Improvement (In Progress)
+### v2.0 Test Suite Audit & Improvement (In Progress)
 
 **Milestone Goal:** Every existing test file is reviewed, consistent, and trustworthy — no dead tests, no skipped tests without justification, no brittle patterns.
 
@@ -140,7 +140,10 @@ Plans:
   1. All 12 service test files have been reviewed against Phase 6 standards; every weak or missing assertion is fixed
   2. RegionCc syncer tests use injected doubles consistently; no syncer test depends on live HTTP or real ActiveRecord writes where a double suffices
   3. Service tests pass after improvements; no regressions introduced
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 08-01-PLAN.md — Strengthen RegionCc syncer + client test assertions (8 files)
+- [ ] 08-02-PLAN.md — Strengthen TableMonitor service test assertions (2 files)
 
 ### Phase 9: Controller, System & Other Tests Review
 **Goal**: All 27 remaining test files (controller, system, other) are reviewed and improved against Phase 6 standards
@@ -167,7 +170,7 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 6 → 7 → 8 → 9 → 10
+Phases execute in numeric order: 6 -> 7 -> 8 -> 9 -> 10
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -177,7 +180,7 @@ Phases execute in numeric order: 6 → 7 → 8 → 9 → 10
 | 4. TableMonitor GameSetup & OptionsPresenter | v1.0 | 4/4 | Complete | 2026-04-10 |
 | 5. TableMonitor ResultRecorder & Final Cleanup | v1.0 | 3/3 | Complete | 2026-04-10 |
 | 6. Audit Baseline & Standards | v2.0 | 2/2 | Complete | 2026-04-10 |
-| 7. Model Tests Review | v2.0 | 0/2 | Planning complete | - |
-| 8. Service Tests Review | v2.0 | 0/TBD | Not started | - |
+| 7. Model Tests Review | v2.0 | 2/2 | Complete | 2026-04-10 |
+| 8. Service Tests Review | v2.0 | 0/2 | Planning complete | - |
 | 9. Controller, System & Other Tests Review | v2.0 | 0/TBD | Not started | - |
 | 10. Final Pass & Green Suite | v2.0 | 0/TBD | Not started | - |
