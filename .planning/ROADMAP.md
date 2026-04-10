@@ -154,7 +154,10 @@ Plans:
   2. All 13 system test files have been reviewed; brittle selectors or timing dependencies are identified and fixed
   3. All other test files (characterization 2, scraping 3, concerns 2, helpers 2, integration 1, tasks 1, optimistic_updates 1) have been reviewed and improved
   4. All 27 reviewed files pass after improvements; no regressions introduced
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 09-01-PLAN.md — Bulk frozen_string_literal sweep (22 controller/system/integration/task test files)
+- [ ] 09-02-PLAN.md — 6 targeted logic fixes (delete non-test, fix assertions, replace regex, remove sleep)
 
 ### Phase 10: Final Pass & Green Suite
 **Goal**: All cross-cutting quality issues are resolved — skipped tests are fixed or removed, brittle tests are hardened, dead tests are deleted, and the full test suite is green
@@ -182,5 +185,5 @@ Phases execute in numeric order: 6 -> 7 -> 8 -> 9 -> 10
 | 6. Audit Baseline & Standards | v2.0 | 2/2 | Complete | 2026-04-10 |
 | 7. Model Tests Review | v2.0 | 2/2 | Complete | 2026-04-10 |
 | 8. Service Tests Review | v2.0 | 0/2 | Planning complete | - |
-| 9. Controller, System & Other Tests Review | v2.0 | 0/TBD | Not started | - |
+| 9. Controller, System & Other Tests Review | v2.0 | 0/2 | Planning complete | - |
 | 10. Final Pass & Green Suite | v2.0 | 0/TBD | Not started | - |
