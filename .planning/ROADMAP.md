@@ -76,11 +76,12 @@ Plans:
   1. TableMonitor::GameSetup exists and handles start_game, initialize_game, assign_game, and player sequence/switching; Game and GameParticipation record creation occurs inside GameSetup, not the model
   2. The skip_update_callbacks flag is gone; batch operations use an explicit broadcast: false keyword argument; job enqueue count assertions verify no extra jobs fire during batch saves
   3. TableMonitor::OptionsPresenter exists and handles all view-preparation logic; reflex interactions that render options produce identical UI output to before extraction
-**Plans:** 3 plans
+**Plans:** 4 plans (3 complete + 1 gap closure)
 Plans:
-- [ ] 04-01-PLAN.md — Create GameSetup ApplicationService with unit tests
-- [ ] 04-02-PLAN.md — Wire GameSetup delegation + replace skip_update_callbacks with suppress_broadcast
-- [ ] 04-03-PLAN.md — Create OptionsPresenter PORO + wire delegation in get_options!
+- [x] 04-01-PLAN.md — Create GameSetup ApplicationService with unit tests
+- [x] 04-02-PLAN.md — Wire GameSetup delegation + replace skip_update_callbacks with suppress_broadcast
+- [x] 04-03-PLAN.md — Create OptionsPresenter PORO + wire delegation in get_options!
+- [ ] 04-04-PLAN.md — Gap closure: remove skip_update_callbacks name from all call sites, replace with suppress_broadcast
 
 ### Phase 5: TableMonitor ResultRecorder & Final Cleanup
 **Goal**: The highest-risk extraction is complete; TableMonitor is under 800 lines; full test coverage for all extracted services is verified; Reek final measurement confirms quality improvement
@@ -95,12 +96,12 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
+Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Characterization Tests & Hardening | 3/3 | Complete | 2026-04-09 |
 | 2. RegionCc Extraction | 0/5 | Planned | - |
-| 3. TableMonitor ScoreEngine | 2/3 | In Progress | - |
-| 4. TableMonitor GameSetup & OptionsPresenter | 0/3 | Planned | - |
+| 3. TableMonitor ScoreEngine | 3/3 | Complete | 2026-04-10 |
+| 4. TableMonitor GameSetup & OptionsPresenter | 3/4 | In Progress | - |
 | 5. TableMonitor ResultRecorder & Final Cleanup | 0/? | Not started | - |
