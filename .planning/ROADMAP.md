@@ -14,7 +14,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Characterization Tests & Hardening** - Pin existing behavior with tests; fix AASM and transactional test config before any extraction (completed 2026-04-09)
 - [ ] **Phase 2: RegionCc Extraction** - Extract ClubCloudClient and all sync services from RegionCc; verify VCR cassette compatibility
-- [ ] **Phase 3: TableMonitor ScoreEngine** - Extract pure data hash mutation logic; validate lazy accessor delegation pattern
+- [x] **Phase 3: TableMonitor ScoreEngine** - Extract pure data hash mutation logic; validate lazy accessor delegation pattern (completed 2026-04-10)
 - [ ] **Phase 4: TableMonitor GameSetup & OptionsPresenter** - Extract start_game entanglement; replace skip_update_callbacks flag
 - [ ] **Phase 5: TableMonitor ResultRecorder & Final Cleanup** - Extract highest-risk AASM-coupled service; full test coverage; Reek final measurement
 
@@ -66,7 +66,7 @@ Plans:
 Plans:
 - [x] 03-01-PLAN.md — Create ScoreEngine PORO with all pure hash mutation methods + unit tests
 - [x] 03-02-PLAN.md — Wire delegation in TableMonitor + remove DEBUG constants + verify extraction
-- [ ] 03-03-PLAN.md — Gap closure: convert remaining 55 `if DEBUG` guards to Rails.logger level calls
+- [x] 03-03-PLAN.md — Gap closure: convert remaining 55 `if DEBUG` guards to Rails.logger level calls
 
 ### Phase 4: TableMonitor GameSetup & OptionsPresenter
 **Goal**: The most entangled method cluster (start_game) and view-preparation logic are extracted; the skip_update_callbacks flag is replaced with an explicit broadcast: false keyword argument

@@ -18,7 +18,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **TMON-02**: Extract GameSetup service (game/participation creation, replace skip_update_callbacks)
 - [ ] **TMON-03**: Extract ResultRecorder service (result persistence + AASM event dispatch)
 - [ ] **TMON-04**: Extract OptionsPresenter service (view-preparation logic)
-- [ ] **TMON-05**: Remove DEBUG constants, use Rails.logger levels
+- [x] **TMON-05**: Remove DEBUG constants, use Rails.logger levels
 - [ ] **TMON-06**: Full test coverage for all extracted TableMonitor services
 
 ### RegionCc Extraction
@@ -76,7 +76,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | RGCC-05 | Phase 2 | Pending |
 | RGCC-06 | Phase 2 | Pending |
 | TMON-01 | Phase 3 | Pending |
-| TMON-05 | Phase 3 | Pending |
+| TMON-05 | Phase 3 | Complete |
 | TMON-02 | Phase 4 | Pending |
 | TMON-04 | Phase 4 | Pending |
 | TMON-03 | Phase 5 | Pending |
