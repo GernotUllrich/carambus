@@ -314,6 +314,7 @@ class TournamentScrapingTest < ActiveSupport::TestCase
   end
 
   # Call private parse_table_tr with zero-initialized state and return named result hash.
+  # After extraction to Tournament::PublicCcScraper, parse_table_tr lives on the service instance.
   def call_parse_table_tr(header, tr)
     nbsp = NBSP
     region = @region
@@ -335,7 +336,9 @@ class TournamentScrapingTest < ActiveSupport::TestCase
     result_url = ""
     player_list = {}
 
-    out = @tournament.send(
+    # Build service instance for calling private parse_table_tr
+    scraper = Tournament::PublicCcScraper.new(tournament: @tournament)
+    out = scraper.send(
       :parse_table_tr,
       region, frame1_lines, frame_points, frame_result, frames, gd, group, hb,
       header, hs, mp, innings, nbsp, no, player_list, playera_fl_name, playerb_fl_name,
