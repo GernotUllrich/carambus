@@ -120,6 +120,13 @@ class TableMonitor::ResultRecorderTest < ActiveSupport::TestCase
     assert_nothing_raised do
       TableMonitor::ResultRecorder.call(table_monitor: @tm)
     end
+    # Nachbedingungen: Spieler A hat balls_goal erreicht (100 >= 100) bei gleichen Innings (5==5)
+    # => end_of_set? ist true => Zustand wechselt auf set_over, panel_state auf protocol_final
+    @tm.reload
+    assert_equal "set_over", @tm.state,
+      "Zustand muss nach evaluate_result auf set_over stehen (Set-Ende erkannt)"
+    assert_equal "protocol_final", @tm.panel_state,
+      "panel_state muss auf protocol_final stehen nach Set-Ende"
   end
 
   # ---------------------------------------------------------------------------
@@ -236,6 +243,14 @@ class TableMonitor::ResultRecorderTest < ActiveSupport::TestCase
             assert_nothing_raised do
               TableMonitor::ResultRecorder.call(table_monitor: @tm)
             end
+            # Nachbedingungen: automatic_next_set=true und max_wins(1) < sets_to_win(2),
+            # daher ruft evaluate_result switch_to_next_set auf => Zustand wechselt zu playing.
+            # Das Spiel muss weiterhin mit dem TableMonitor verknuepft sein.
+            @tm.reload
+            assert_equal "playing", @tm.state,
+              "Zustand muss nach switch_to_next_set wieder playing sein (naechster Satz)"
+            assert_equal @game.id, @tm.game_id,
+              "game_id muss unveraendert auf das urspruengliche Spiel zeigen"
           end
         end
       end

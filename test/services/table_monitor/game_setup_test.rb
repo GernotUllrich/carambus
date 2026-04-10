@@ -95,6 +95,8 @@ class TableMonitor::GameSetupTest < ActiveSupport::TestCase
 
     @tm.reload
     assert_not_nil @tm.game_id, "game_id muss nach GameSetup gesetzt sein"
+    assert_equal Game.last.id, @tm.game_id,
+      "game_id muss dem zuletzt angelegten Game entsprechen"
     # Game hat has_one :table_monitor (Fremdschluessel game_id liegt auf table_monitors)
     assert_equal @tm.id, Game.find(@tm.game_id).table_monitor&.id
   end
