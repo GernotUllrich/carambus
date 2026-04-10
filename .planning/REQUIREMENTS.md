@@ -1,101 +1,112 @@
-# Requirements: Carambus API — Test Suite Audit & Improvement
+# Requirements: Carambus API — Tournament & TournamentMonitor Refactoring
 
 **Defined:** 2026-04-10
-**Core Value:** Every existing test file is reviewed, consistent, and trustworthy — no dead tests, no skipped tests without justification, no brittle patterns.
+**Core Value:** A maintainable, well-tested codebase where every test is trustworthy and every model is appropriately sized.
 
-## v2.0 Requirements
+## v2.1 Requirements
 
-Requirements for test suite audit milestone. Each maps to roadmap phases.
+Requirements for milestone v2.1. Each maps to roadmap phases.
 
-### Quality Audit
+### Characterization Tests
 
-- [ ] **QUAL-01**: Every test file reviewed for weak/missing assertions (tests that pass without actually testing anything)
-- [ ] **QUAL-02**: Brittle tests identified and fixed (time-dependent, order-dependent, external-state-dependent)
-- [ ] **QUAL-03**: Dead/redundant tests removed (duplicate assertions, unreachable code, tests for deleted features)
-- [ ] **QUAL-04**: All 8 files with skipped/pending tests resolved (fixed or removed with documented justification)
+- [ ] **CHAR-01**: TournamentMonitor AASM state machine transitions characterized with tests
+- [ ] **CHAR-02**: TournamentMonitor result pipeline (report_result, write_game_result_data) characterized
+- [ ] **CHAR-03**: TournamentMonitor populate_tables game sequencing characterized
+- [ ] **CHAR-04**: TournamentMonitor player distribution (distribute_to_group) characterized
+- [ ] **CHAR-05**: Tournament AASM state machine transitions characterized with tests
+- [ ] **CHAR-06**: Tournament scraping pipeline (scrape_single_tournament_public) characterized with VCR
+- [ ] **CHAR-07**: Tournament dynamic attribute delegation (12 define_method getters/setters) characterized
+- [ ] **CHAR-08**: Tournament PaperTrail version baselines established
+- [ ] **CHAR-09**: ApiProtectorTestOverride verified for TournamentMonitor
 
-### Consistency
+### Service Extraction — Tournament
 
-- [ ] **CONS-01**: Consistent setup patterns across test files (fixtures vs factories usage clarified and standardized)
-- [ ] **CONS-02**: Consistent assertion style across test files (no mixing of assert/refute styles unnecessarily)
-- [ ] **CONS-03**: Consistent test naming conventions (method naming, describe/test block usage)
-- [ ] **CONS-04**: Test helper and support file usage reviewed and standardized
+- [ ] **TEXT-01**: Tournament::RankingCalculator extracted (~47 lines) with unit tests
+- [ ] **TEXT-02**: Tournament::TableReservationService extracted (~100 lines) with unit tests
+- [ ] **TEXT-03**: Tournament::PublicCcScraper extracted (~700 lines) with VCR-backed tests
 
-### Model Tests
+### Service Extraction — TournamentMonitor
 
-- [ ] **MODL-01**: All 22 model test files reviewed and improved
-- [ ] **MODL-02**: Large test files assessed for structure (score_engine 703L, table_heater 824L, tournament_auto_reserve 586L)
+- [ ] **TMEX-01**: TournamentMonitor::PlayerGroupDistributor extracted (pure algorithm) with unit tests
+- [ ] **TMEX-02**: TournamentMonitor::RankingResolver extracted (regex rule parser) with unit tests
+- [ ] **TMEX-03**: TournamentMonitor::ResultProcessor extracted (DB lock + AASM) with unit tests
+- [ ] **TMEX-04**: TournamentMonitor::TablePopulator extracted (populate_tables algorithm) with unit tests
 
-### Service Tests
+### Test Coverage
 
-- [ ] **SRVC-01**: All 12 service test files reviewed and improved (10 RegionCc syncers + 2 TableMonitor services)
+- [ ] **COV-01**: TournamentsController test coverage (1047 lines, 20+ actions)
+- [ ] **COV-02**: TournamentMonitorsController test coverage (214 lines, game pipeline actions)
+- [ ] **COV-03**: TournamentMonitorChannel test coverage
+- [ ] **COV-04**: TournamentChannel test coverage
+- [ ] **COV-05**: TournamentStatusUpdateJob test coverage
+- [ ] **COV-06**: TournamentMonitorUpdateResultsJob test coverage
 
-### Controller Tests
+### Quality Verification
 
-- [ ] **CTRL-01**: All 11 controller test files reviewed and improved
-
-### System & Other Tests
-
-- [ ] **SYST-01**: All 13 system test files reviewed and improved
-- [ ] **OTHR-01**: Characterization (2), scraping (3), concerns (2), helpers (2), integration (1), tasks (1), optimistic_updates (1) reviewed and improved
-
-### Green Suite
-
-- [ ] **PASS-01**: Full test suite passes after all improvements (`bin/rails test`)
+- [ ] **QUAL-01**: Tournament model line count reduced (target: under 1000 lines)
+- [ ] **QUAL-02**: All existing tests remain green after all extractions
+- [ ] **QUAL-03**: PaperTrail version counts unchanged per operation (sync contract preserved)
 
 ## Future Requirements
 
-### Test Coverage Expansion
+Deferred to future milestones.
 
-- **COVR-01**: New tests for 78 untested models
-- **COVR-02**: New tests for 60 untested controllers
-- **COVR-03**: New tests for 24 untested services
+### Model Refactoring
 
-### Additional Model Refactoring
+- **MREF-01**: League model refactoring (2219 lines)
+- **MREF-02**: Remaining untested models, controllers, services coverage
 
-- **LEAK-01**: Extract service classes from League model (2219 lines)
-- **TOUR-01**: Extract service classes from Tournament model (1775 lines)
+### Code Consolidation
 
-### Additional Improvements
-
-- **SCRP-01**: Consolidate UmbScraper v1/v2 into single implementation
-- **SECU-01**: Re-enable ActionCable CSRF protection with proper origin validation
-- **PERF-01**: Add circuit breaker pattern for external API calls
+- **CONS-01**: Scraper consolidation (UmbScraper v1/v2)
+- **CONS-02**: Move lib/tournament_monitor_support.rb and lib/tournament_monitor_state.rb to app/models/concerns/ (Rails convention)
 
 ## Out of Scope
 
 | Feature | Reason |
 |---------|--------|
-| Writing new tests for untested code | Separate milestone — this one improves existing tests only |
-| Refactoring application code | Test-only changes; app code stays as-is |
-| CI/CD pipeline changes | Infrastructure concern, not test quality |
-| Coverage enforcement (SimpleCov thresholds) | Premature without coverage expansion milestone |
+| StimulusReflex reflex direct testing | SR 3.5.3 has no test adapter for Rails 7.2; test extracted service methods instead |
+| Architecture or stack changes | Not in scope for current project — refactoring only |
+| New feature development | Behavior preservation only — no external interface changes |
+| TournamentMonitor lib/ → concerns/ migration | Convention change deferred to avoid scope creep; new services go in app/services/ |
 
 ## Traceability
 
+Which phases cover which requirements. Updated during roadmap creation.
+
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| QUAL-01 | Phase 6 | Pending |
-| QUAL-02 | Phase 10 | Pending |
-| QUAL-03 | Phase 10 | Pending |
-| QUAL-04 | Phase 10 | Pending |
-| CONS-01 | Phase 6 | Pending |
-| CONS-02 | Phase 6 | Pending |
-| CONS-03 | Phase 6 | Pending |
-| CONS-04 | Phase 6 | Pending |
-| MODL-01 | Phase 7 | Pending |
-| MODL-02 | Phase 7 | Pending |
-| SRVC-01 | Phase 8 | Pending |
-| CTRL-01 | Phase 9 | Pending |
-| SYST-01 | Phase 9 | Pending |
-| OTHR-01 | Phase 9 | Pending |
-| PASS-01 | Phase 10 | Pending |
+| CHAR-01 | — | Pending |
+| CHAR-02 | — | Pending |
+| CHAR-03 | — | Pending |
+| CHAR-04 | — | Pending |
+| CHAR-05 | — | Pending |
+| CHAR-06 | — | Pending |
+| CHAR-07 | — | Pending |
+| CHAR-08 | — | Pending |
+| CHAR-09 | — | Pending |
+| TEXT-01 | — | Pending |
+| TEXT-02 | — | Pending |
+| TEXT-03 | — | Pending |
+| TMEX-01 | — | Pending |
+| TMEX-02 | — | Pending |
+| TMEX-03 | — | Pending |
+| TMEX-04 | — | Pending |
+| COV-01 | — | Pending |
+| COV-02 | — | Pending |
+| COV-03 | — | Pending |
+| COV-04 | — | Pending |
+| COV-05 | — | Pending |
+| COV-06 | — | Pending |
+| QUAL-01 | — | Pending |
+| QUAL-02 | — | Pending |
+| QUAL-03 | — | Pending |
 
 **Coverage:**
-- v2.0 requirements: 15 total
-- Mapped to phases: 15
-- Unmapped: 0 ✓
+- v2.1 requirements: 25 total
+- Mapped to phases: 0
+- Unmapped: 25 ⚠️
 
 ---
 *Requirements defined: 2026-04-10*
-*Last updated: 2026-04-10 after roadmap creation*
+*Last updated: 2026-04-10 after initial definition*
