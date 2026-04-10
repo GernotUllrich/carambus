@@ -1,12 +1,23 @@
-# Carambus API — Model Refactoring & Test Coverage
+# Carambus API — Test Suite Audit & Improvement
 
 ## What This Is
 
-A focused improvement effort on the Carambus API codebase that broke down the two largest model classes into smaller, well-tested components. TableMonitor went from 3903 to 1611 lines (4 extracted services), RegionCc from 2728 to 491 lines (10 extracted services). v1.0 milestone shipped 2026-04-10.
+A systematic audit and improvement of the existing 72 test files (538 methods, 8770 lines) in the Carambus API codebase. Reviewing every test for quality, consistency, and correctness — fixing brittle tests, resolving skipped/pending tests, removing dead code, and establishing consistent patterns. Follows the v1.0 model refactoring milestone.
 
 ## Core Value
 
-Reduce the two worst god-object models into maintainable, testable units without changing external behavior.
+Every existing test file is reviewed, consistent, and trustworthy — no dead tests, no skipped tests without justification, no brittle patterns.
+
+## Current Milestone: v2.0 Test Suite Audit & Improvement
+
+**Goal:** Review and improve all 72 existing test files for quality, consistency, and correctness.
+
+**Target features:**
+- Audit every existing test file for quality issues (brittle tests, weak assertions, dead code)
+- Fix or remove all skipped/pending tests (8 files identified)
+- Establish consistent patterns (fixtures vs factories, setup conventions, assertion style)
+- Remove dead/redundant tests
+- All tests green after improvements
 
 ## Requirements
 
@@ -26,15 +37,21 @@ Reduce the two worst god-object models into maintainable, testable units without
 
 ### Active
 
-(None — v1.0 milestone complete. Start v2.0 with `/gsd-new-milestone`)
+- [ ] Every test file reviewed for quality issues
+- [ ] All skipped/pending tests resolved (fixed or removed with justification)
+- [ ] Consistent patterns established across test suite
+- [ ] Dead/redundant tests removed
+- [ ] All tests green after improvements
 
 ### Out of Scope
 
 - League model refactoring (2219 lines) — tackle after TableMonitor and RegionCc
 - Tournament model refactoring (1775 lines) — tackle after TableMonitor and RegionCc
 - Architecture or stack changes — explicitly excluded per project goals
-- New features — this is purely refactoring and test coverage
+- New features — this is purely test improvement
 - Scraper consolidation (UmbScraper v1/v2) — separate concern
+- New test coverage for untested models/controllers/services — future milestone
+- Writing tests for code that has none — this milestone improves existing tests only
 
 ## Context
 
@@ -44,6 +61,7 @@ Reduce the two worst god-object models into maintainable, testable units without
 - 140 service unit tests + 58 characterization tests = 198 total extraction tests
 - Reek: TableMonitor 781→306 warnings (61%), RegionCc 460→54 warnings (88%)
 - Extracted services: ScoreEngine (PORO), GameSetup (ApplicationService), OptionsPresenter (PORO), ResultRecorder (ApplicationService), ClubCloudClient + 9 syncers
+- **v2.0 test audit scope:** 72 existing test files, 538 methods, 8770 lines; 8 files with skipped/pending tests
 - `LocalProtector` concern prevents modification of global records (id < 50_000_000) — disabled in tests
 - Codebase map available at `.planning/codebase/`
 
@@ -83,4 +101,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-10 after v1.0 milestone*
+*Last updated: 2026-04-10 after v2.0 milestone start*
