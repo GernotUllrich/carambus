@@ -62,10 +62,11 @@ Plans:
   2. TableMonitor delegates to ScoreEngine via a lazy accessor; all reflex interactions that trigger score changes produce identical results to before extraction
   3. DEBUG constants are removed from TableMonitor; equivalent behavior is available via Rails.logger levels
   4. TableMonitor line count is reduced by approximately 500-600 lines from pre-extraction baseline
-**Plans:** 2 plans
+**Plans:** 3 plans (2 complete + 1 gap closure)
 Plans:
-- [ ] 03-01-PLAN.md — Create ScoreEngine PORO with all pure hash mutation methods + unit tests
-- [ ] 03-02-PLAN.md — Wire delegation in TableMonitor + remove DEBUG constants + verify extraction
+- [x] 03-01-PLAN.md — Create ScoreEngine PORO with all pure hash mutation methods + unit tests
+- [x] 03-02-PLAN.md — Wire delegation in TableMonitor + remove DEBUG constants + verify extraction
+- [ ] 03-03-PLAN.md — Gap closure: convert remaining 55 `if DEBUG` guards to Rails.logger level calls
 
 ### Phase 4: TableMonitor GameSetup & OptionsPresenter
 **Goal**: The most entangled method cluster (start_game) and view-preparation logic are extracted; the skip_update_callbacks flag is replaced with an explicit broadcast: false keyword argument
@@ -96,6 +97,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 |-------|----------------|--------|-----------|
 | 1. Characterization Tests & Hardening | 3/3 | Complete | 2026-04-09 |
 | 2. RegionCc Extraction | 0/5 | Planned | - |
-| 3. TableMonitor ScoreEngine | 0/2 | Planned | - |
+| 3. TableMonitor ScoreEngine | 2/3 | In Progress | - |
 | 4. TableMonitor GameSetup & OptionsPresenter | 0/? | Not started | - |
 | 5. TableMonitor ResultRecorder & Final Cleanup | 0/? | Not started | - |
