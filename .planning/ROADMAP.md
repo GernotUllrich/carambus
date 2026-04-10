@@ -168,7 +168,11 @@ Plans:
   2. No brittle tests remain — time-dependent, order-dependent, and external-state-dependent tests are fixed or explicitly guarded
   3. All dead and redundant tests are removed — no duplicate assertions, no tests for deleted features, no unreachable code
   4. `bin/rails test` passes with zero failures and zero errors after all improvements
-**Plans**: TBD
+**Plans:** 3 plans
+Plans:
+- [ ] 10-01-PLAN.md — Infrastructure fixes: ApiProtectorTestOverride, missing fixtures, invalid JSON fixtures
+- [ ] 10-02-PLAN.md — Fix remaining failures: PG::UniqueViolation, controller scaffolds, KO integration, misc
+- [ ] 10-03-PLAN.md — VCR cassette recording attempt for 7 skipped RegionCcCharTest tests
 
 ## Progress
 
@@ -186,4 +190,4 @@ Phases execute in numeric order: 6 -> 7 -> 8 -> 9 -> 10
 | 7. Model Tests Review | v2.0 | 2/2 | Complete | 2026-04-10 |
 | 8. Service Tests Review | v2.0 | 0/2 | Planning complete | - |
 | 9. Controller, System & Other Tests Review | v2.0 | 0/2 | Planning complete | - |
-| 10. Final Pass & Green Suite | v2.0 | 0/TBD | Not started | - |
+| 10. Final Pass & Green Suite | v2.0 | 0/3 | Planning complete | - |
