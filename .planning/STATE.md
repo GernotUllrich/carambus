@@ -4,8 +4,8 @@ milestone: v2.1
 milestone_name: Tournament & TournamentMonitor Refactoring
 status: executing
 stopped_at: Phase 14 context gathered
-last_updated: "2026-04-10T23:29:12.591Z"
-last_activity: 2026-04-10 -- Phase 14 planning complete
+last_updated: "2026-04-10T23:30:21.878Z"
+last_activity: 2026-04-10 -- Phase 14 execution started
 progress:
   total_phases: 6
   completed_phases: 3
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-10)
 
 **Core value:** A maintainable, well-tested codebase where every test is trustworthy and every model is appropriately sized.
-**Current focus:** Phase 13 — Low-Risk Extractions
+**Current focus:** Phase 14 — Medium-Risk Extractions
 
 ## Current Position
 
-Phase: 13 (Low-Risk Extractions) — EXECUTING
-Plan: 1 of 3
-Status: Ready to execute
-Last activity: 2026-04-10 -- Phase 14 planning complete
+Phase: 14 (Medium-Risk Extractions) — EXECUTING
+Plan: 1 of 2
+Status: Executing Phase 14
+Last activity: 2026-04-10 -- Phase 14 execution started
 
 Progress: [░░░░░░░░░░] 0%
 
