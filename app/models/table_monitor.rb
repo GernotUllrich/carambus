@@ -67,13 +67,23 @@ class TableMonitor < ApplicationRecord
 
   delegate :name, to: :table, allow_nil: true
 
-  # Flag to skip callbacks during batch operations (e.g. start_game)
-  attr_accessor :skip_update_callbacks
+  # Broadcast suppression flag — set by GameSetup during batch saves
+  # to prevent redundant TableMonitorJob enqueues.
+  attr_writer :suppress_broadcast
+
+  def suppress_broadcast
+    @suppress_broadcast || false
+  end
+
+  # Transitional shim — reflex still uses skip_update_callbacks at 30+ call sites.
+  # Remove when reflex is updated in a future phase.
+  alias_method :skip_update_callbacks=, :suppress_broadcast=
+  alias_method :skip_update_callbacks, :suppress_broadcast
 
   after_update_commit lambda {
     # Skip callbacks if flag is set (used in start_game to prevent redundant job enqueues)
-    if skip_update_callbacks
-      Rails.logger.info "🔔 Skipping callbacks (skip_update_callbacks=true)"
+    if suppress_broadcast
+      Rails.logger.info "🔔 Skipping callbacks (suppress_broadcast=true)"
       Rails.logger.info "🔔 ========== after_update_commit END (skipped) =========="
       # @collected_data_changes = nil ## ! still collect changes!
       return
