@@ -1,42 +1,55 @@
-# Requirements: Carambus API — Model Refactoring & Test Coverage
+# Requirements: Carambus API — Test Suite Audit & Improvement
 
-**Defined:** 2026-04-09
-**Core Value:** Reduce the two worst god-object models into maintainable, testable units without changing external behavior.
+**Defined:** 2026-04-10
+**Core Value:** Every existing test file is reviewed, consistent, and trustworthy — no dead tests, no skipped tests without justification, no brittle patterns.
 
-## v1 Requirements
+## v2.0 Requirements
 
-Requirements for initial release. Each maps to roadmap phases.
+Requirements for test suite audit milestone. Each maps to roadmap phases.
 
-### Characterization Testing
+### Quality Audit
 
-- [x] **TEST-01**: Characterization tests for TableMonitor critical paths (state transitions, callbacks, broadcasts)
-- [x] **TEST-02**: Characterization tests for RegionCc sync operations (HTTP calls, data transformation)
+- [ ] **QUAL-01**: Every test file reviewed for weak/missing assertions (tests that pass without actually testing anything)
+- [ ] **QUAL-02**: Brittle tests identified and fixed (time-dependent, order-dependent, external-state-dependent)
+- [ ] **QUAL-03**: Dead/redundant tests removed (duplicate assertions, unreachable code, tests for deleted features)
+- [ ] **QUAL-04**: All 8 files with skipped/pending tests resolved (fixed or removed with documented justification)
 
-### TableMonitor Extraction
+### Consistency
 
-- [ ] **TMON-01**: Extract ScoreEngine service (pure hash mutation logic)
-- [x] **TMON-02**: Extract GameSetup service (game/participation creation, replace skip_update_callbacks)
-- [x] **TMON-03**: Extract ResultRecorder service (result persistence + AASM event dispatch)
-- [x] **TMON-04**: Extract OptionsPresenter service (view-preparation logic)
-- [x] **TMON-05**: Remove DEBUG constants, use Rails.logger levels
-- [x] **TMON-06**: Full test coverage for all extracted TableMonitor services
+- [ ] **CONS-01**: Consistent setup patterns across test files (fixtures vs factories usage clarified and standardized)
+- [ ] **CONS-02**: Consistent assertion style across test files (no mixing of assert/refute styles unnecessarily)
+- [ ] **CONS-03**: Consistent test naming conventions (method naming, describe/test block usage)
+- [ ] **CONS-04**: Test helper and support file usage reviewed and standardized
 
-### RegionCc Extraction
+### Model Tests
 
-- [ ] **RGCC-01**: Extract ClubCloudClient (HTTP transport layer, zero AR coupling)
-- [ ] **RGCC-02**: Extract LeagueSyncer service
-- [ ] **RGCC-03**: Extract TournamentSyncer service
-- [ ] **RGCC-04**: Extract PartySyncer service
-- [ ] **RGCC-05**: Re-record VCR cassettes after HTTP layer extraction
-- [ ] **RGCC-06**: Full test coverage for all extracted RegionCc services
+- [ ] **MODL-01**: All 22 model test files reviewed and improved
+- [ ] **MODL-02**: Large test files assessed for structure (score_engine 703L, table_heater 824L, tournament_auto_reserve 586L)
 
-### Quality Metrics
+### Service Tests
 
-- [x] **QUAL-01**: Reek baseline measurement before and after extraction
+- [ ] **SRVC-01**: All 12 service test files reviewed and improved (10 RegionCc syncers + 2 TableMonitor services)
 
-## v2 Requirements
+### Controller Tests
 
-Deferred to future release. Tracked but not in current roadmap.
+- [ ] **CTRL-01**: All 11 controller test files reviewed and improved
+
+### System & Other Tests
+
+- [ ] **SYST-01**: All 13 system test files reviewed and improved
+- [ ] **OTHR-01**: Characterization (2), scraping (3), concerns (2), helpers (2), integration (1), tasks (1), optimistic_updates (1) reviewed and improved
+
+### Green Suite
+
+- [ ] **PASS-01**: Full test suite passes after all improvements (`bin/rails test`)
+
+## Future Requirements
+
+### Test Coverage Expansion
+
+- **COVR-01**: New tests for 78 untested models
+- **COVR-02**: New tests for 60 untested controllers
+- **COVR-03**: New tests for 24 untested services
 
 ### Additional Model Refactoring
 
@@ -53,40 +66,36 @@ Deferred to future release. Tracked but not in current roadmap.
 
 | Feature | Reason |
 |---------|--------|
-| Architecture changes | Explicitly excluded — refactoring only |
-| Stack/framework changes | Explicitly excluded — no new frameworks |
-| New features | This is purely refactoring and test coverage |
-| League model refactoring | Deferred to v2 — tackle after TableMonitor and RegionCc |
-| Tournament model refactoring | Deferred to v2 — tackle after TableMonitor and RegionCc |
-| Replace Net::HTTP with Faraday in ClubCloudClient | Crosses the line from refactoring into rewrite |
+| Writing new tests for untested code | Separate milestone — this one improves existing tests only |
+| Refactoring application code | Test-only changes; app code stays as-is |
+| CI/CD pipeline changes | Infrastructure concern, not test quality |
+| Coverage enforcement (SimpleCov thresholds) | Premature without coverage expansion milestone |
 
 ## Traceability
 
-Which phases cover which requirements. Updated during roadmap creation.
-
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| TEST-01 | Phase 1 | Complete |
-| TEST-02 | Phase 1 | Complete |
-| QUAL-01 | Phase 1 | Complete |
-| RGCC-01 | Phase 2 | Pending |
-| RGCC-02 | Phase 2 | Pending |
-| RGCC-03 | Phase 2 | Pending |
-| RGCC-04 | Phase 2 | Pending |
-| RGCC-05 | Phase 2 | Pending |
-| RGCC-06 | Phase 2 | Pending |
-| TMON-01 | Phase 3 | Pending |
-| TMON-05 | Phase 3 | Complete |
-| TMON-02 | Phase 4 | Complete |
-| TMON-04 | Phase 4 | Complete |
-| TMON-03 | Phase 5 | Complete |
-| TMON-06 | Phase 5 | Complete |
+| QUAL-01 | — | Pending |
+| QUAL-02 | — | Pending |
+| QUAL-03 | — | Pending |
+| QUAL-04 | — | Pending |
+| CONS-01 | — | Pending |
+| CONS-02 | — | Pending |
+| CONS-03 | — | Pending |
+| CONS-04 | — | Pending |
+| MODL-01 | — | Pending |
+| MODL-02 | — | Pending |
+| SRVC-01 | — | Pending |
+| CTRL-01 | — | Pending |
+| SYST-01 | — | Pending |
+| OTHR-01 | — | Pending |
+| PASS-01 | — | Pending |
 
 **Coverage:**
-- v1 requirements: 15 total
-- Mapped to phases: 15
-- Unmapped: 0 ✓
+- v2.0 requirements: 15 total
+- Mapped to phases: 0
+- Unmapped: 15 ⚠️
 
 ---
-*Requirements defined: 2026-04-09*
-*Last updated: 2026-04-09 after roadmap creation*
+*Requirements defined: 2026-04-10*
+*Last updated: 2026-04-10 after initial definition*
