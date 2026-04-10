@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 test "club_admin cannot edit imported tournaments" do
   login_as users(:club_admin)
   visit edit_admin_tournament_path(tournaments(:imported))

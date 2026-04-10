@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 test "system admin can change roles" do
   sign_in users(:system_admin)
   visit edit_admin_user_path(users(:player))
