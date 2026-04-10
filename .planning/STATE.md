@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Tournament & TournamentMonitor Refactoring
 status: executing
-stopped_at: Phase 13 context gathered
-last_updated: "2026-04-10T22:43:40.144Z"
+stopped_at: Phase 14 context gathered
+last_updated: "2026-04-10T23:15:05.743Z"
 last_activity: 2026-04-10 -- Phase 13 execution started
 progress:
   total_phases: 6
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 8
-  completed_plans: 5
-  percent: 63
+  completed_plans: 8
+  percent: 100
 ---
 
 # Project State
@@ -71,6 +71,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-10T22:27:36.928Z
-Stopped at: Phase 13 context gathered
-Resume file: .planning/phases/13-low-risk-extractions/13-CONTEXT.md
+Last session: 2026-04-10T23:15:05.739Z
+Stopped at: Phase 14 context gathered
+Resume file: .planning/phases/14-medium-risk-extractions/14-CONTEXT.md
