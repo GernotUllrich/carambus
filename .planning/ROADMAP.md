@@ -207,7 +207,11 @@ Plans:
   2. The scraping pipeline (scrape_single_tournament_public) is covered by VCR-backed tests that verify the exact records created or updated from a known cassette
   3. All 12 dynamic attribute define_method getters and setters are covered by tests that verify each getter returns the correct value and each setter persists the correct value
   4. PaperTrail version baselines are established — tests assert the exact version count produced by each significant operation (create, update, state transition) so regressions are caught immediately
-**Plans**: TBD
+**Plans:** 3 plans
+Plans:
+- [ ] 12-01-PLAN.md — AASM state machine + dynamic attribute delegation characterization
+- [ ] 12-02-PLAN.md — PaperTrail version count baselines
+- [ ] 12-03-PLAN.md — VCR-backed scraping pipeline characterization + full verification
 
 ### Phase 13: Low-Risk Extractions
 **Goal**: Three small, pure-logic services are extracted from Tournament and TournamentMonitor — proving the delegation pattern on the easiest targets before tackling larger extractions
@@ -218,7 +222,11 @@ Plans:
   2. Tournament::TableReservationService exists in app/services/tournament/ with unit tests; Tournament delegates to it and table reservation behavior is unchanged
   3. TournamentMonitor::PlayerGroupDistributor exists in app/services/tournament_monitor/ with unit tests covering the pure distribution algorithm; TournamentMonitor delegates to it and group assignments are identical to before extraction
   4. All existing characterization tests from Phases 11-12 pass without modification after these extractions
-**Plans**: TBD
+**Plans:** 3 plans
+Plans:
+- [ ] 12-01-PLAN.md — AASM state machine + dynamic attribute delegation characterization
+- [ ] 12-02-PLAN.md — PaperTrail version count baselines
+- [ ] 12-03-PLAN.md — VCR-backed scraping pipeline characterization + full verification
 
 ### Phase 14: Medium-Risk Extractions
 **Goal**: PublicCcScraper (700 lines, VCR required) and RankingResolver (regex rule parser) are extracted — the two largest complexity reductions in this milestone
@@ -229,7 +237,11 @@ Plans:
   2. TournamentMonitor::RankingResolver exists in app/services/tournament_monitor/ with unit tests covering the regex rule parser; all ranking resolution outcomes match the Phase 11 characterization baseline
   3. Tournament model line count is meaningfully reduced from the Phase 12 baseline (PublicCcScraper extraction alone removes ~700 lines)
   4. All existing characterization tests from Phases 11-12 pass without modification after these extractions
-**Plans**: TBD
+**Plans:** 3 plans
+Plans:
+- [ ] 12-01-PLAN.md — AASM state machine + dynamic attribute delegation characterization
+- [ ] 12-02-PLAN.md — PaperTrail version count baselines
+- [ ] 12-03-PLAN.md — VCR-backed scraping pipeline characterization + full verification
 
 ### Phase 15: High-Risk Extractions
 **Goal**: ResultProcessor (DB lock + AASM) and TablePopulator (complex sequencing algorithm) are extracted — the highest-risk TournamentMonitor extractions, dependent on all prior characterization work
@@ -240,7 +252,11 @@ Plans:
   2. TournamentMonitor::ResultProcessor fires AASM events on the TournamentMonitor model reference; after_enter callbacks execute correctly when events are fired from the service
   3. TournamentMonitor::TablePopulator exists in app/services/tournament_monitor/ with unit tests; populate_tables output is identical to the Phase 11 characterization baseline for all tested input scenarios
   4. All existing characterization tests from Phases 11-12 pass without modification after these extractions
-**Plans**: TBD
+**Plans:** 3 plans
+Plans:
+- [ ] 12-01-PLAN.md — AASM state machine + dynamic attribute delegation characterization
+- [ ] 12-02-PLAN.md — PaperTrail version count baselines
+- [ ] 12-03-PLAN.md — VCR-backed scraping pipeline characterization + full verification
 
 ### Phase 16: Controller, Job & Channel Coverage
 **Goal**: Test coverage exists for all controllers, jobs, and channels that touch Tournament and TournamentMonitor; Tournament is under 1000 lines; all tests are green; PaperTrail version counts are unchanged
@@ -252,7 +268,11 @@ Plans:
   3. TournamentMonitorChannel and TournamentChannel each have test coverage — subscription, broadcast triggering, and message format are verified
   4. TournamentStatusUpdateJob and TournamentMonitorUpdateResultsJob each have test coverage — job execution produces the expected model state changes
   5. Tournament model is under 1000 lines; `bin/rails test` passes with zero failures and zero errors; PaperTrail version counts per operation match the Phase 12 baselines
-**Plans**: TBD
+**Plans:** 3 plans
+Plans:
+- [ ] 12-01-PLAN.md — AASM state machine + dynamic attribute delegation characterization
+- [ ] 12-02-PLAN.md — PaperTrail version count baselines
+- [ ] 12-03-PLAN.md — VCR-backed scraping pipeline characterization + full verification
 
 ## Progress
 
