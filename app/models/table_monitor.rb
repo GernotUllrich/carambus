@@ -90,7 +90,7 @@ class TableMonitor < ApplicationRecord
     Rails.logger.info "🔔 ========== after_update_commit TRIGGERED =========="
     Rails.logger.info "🔔 TableMonitor ID: #{id}"
     Rails.logger.info "🔔 Previous changes: #{@collected_changes.inspect}"
-    Rails.logger.info "🔔 Previous data changes: #{@collected_dada_changes.inspect}"
+    Rails.logger.info "🔔 Previous data changes: #{@collected_data_changes.inspect}"
 
     # broadcast_replace_later_to self
     relevant_keys = (previous_changes.keys - %w[data nnn panel_state pointer_mode current_element updated_at])
