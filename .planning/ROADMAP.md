@@ -175,7 +175,7 @@ Plans:
 **Milestone Goal:** Reduce Tournament (1775 lines) and TournamentMonitor (499 lines) into maintainable, well-tested components with comprehensive test coverage across models, services, controllers, channels, and jobs.
 
 - [x] **Phase 11: TournamentMonitor Characterization** - Pin TournamentMonitor behavior (AASM, result pipeline, game sequencing, player distribution) before any extraction (completed 2026-04-10)
-- [ ] **Phase 12: Tournament Characterization** - Pin Tournament behavior (AASM, scraping pipeline, dynamic attributes, PaperTrail baselines) before any extraction
+- [x] **Phase 12: Tournament Characterization** - Pin Tournament behavior (AASM, scraping pipeline, dynamic attributes, PaperTrail baselines) before any extraction (completed 2026-04-10)
 - [ ] **Phase 13: Low-Risk Extractions** - Extract three smallest services (RankingCalculator, TableReservationService, PlayerGroupDistributor) to prove the pattern
 - [ ] **Phase 14: Medium-Risk Extractions** - Extract PublicCcScraper and RankingResolver, the largest complexity reductions requiring VCR cassettes
 - [ ] **Phase 15: High-Risk Extractions** - Extract ResultProcessor and TablePopulator, which involve DB locks, AASM, and complex algorithms
@@ -207,11 +207,11 @@ Plans:
   2. The scraping pipeline (scrape_single_tournament_public) is covered by VCR-backed tests that verify the exact records created or updated from a known cassette
   3. All 12 dynamic attribute define_method getters and setters are covered by tests that verify each getter returns the correct value and each setter persists the correct value
   4. PaperTrail version baselines are established — tests assert the exact version count produced by each significant operation (create, update, state transition) so regressions are caught immediately
-**Plans:** 3 plans
+**Plans:** 3/3 plans complete
 Plans:
-- [ ] 12-01-PLAN.md — AASM state machine + dynamic attribute delegation characterization
-- [ ] 12-02-PLAN.md — PaperTrail version count baselines
-- [ ] 12-03-PLAN.md — VCR-backed scraping pipeline characterization + full verification
+- [x] 12-01-PLAN.md — AASM state machine + dynamic attribute delegation characterization
+- [x] 12-02-PLAN.md — PaperTrail version count baselines
+- [x] 12-03-PLAN.md — VCR-backed scraping pipeline characterization + full verification
 
 ### Phase 13: Low-Risk Extractions
 **Goal**: Three small, pure-logic services are extracted from Tournament and TournamentMonitor — proving the delegation pattern on the easiest targets before tackling larger extractions
@@ -224,8 +224,8 @@ Plans:
   4. All existing characterization tests from Phases 11-12 pass without modification after these extractions
 **Plans:** 3 plans
 Plans:
-- [ ] 12-01-PLAN.md — AASM state machine + dynamic attribute delegation characterization
-- [ ] 12-02-PLAN.md — PaperTrail version count baselines
+- [x] 12-01-PLAN.md — AASM state machine + dynamic attribute delegation characterization
+- [x] 12-02-PLAN.md — PaperTrail version count baselines
 - [ ] 12-03-PLAN.md — VCR-backed scraping pipeline characterization + full verification
 
 ### Phase 14: Medium-Risk Extractions
@@ -239,8 +239,8 @@ Plans:
   4. All existing characterization tests from Phases 11-12 pass without modification after these extractions
 **Plans:** 3 plans
 Plans:
-- [ ] 12-01-PLAN.md — AASM state machine + dynamic attribute delegation characterization
-- [ ] 12-02-PLAN.md — PaperTrail version count baselines
+- [x] 12-01-PLAN.md — AASM state machine + dynamic attribute delegation characterization
+- [x] 12-02-PLAN.md — PaperTrail version count baselines
 - [ ] 12-03-PLAN.md — VCR-backed scraping pipeline characterization + full verification
 
 ### Phase 15: High-Risk Extractions
@@ -292,7 +292,7 @@ Phases execute in numeric order: 11 -> 12 -> 13 -> 14 -> 15 -> 16
 | 9. Controller, System & Other Tests Review | v2.0 | 2/2 | Complete | 2026-04-10 |
 | 10. Final Pass & Green Suite | v2.0 | 3/3 | Complete | 2026-04-10 |
 | 11. TournamentMonitor Characterization | v2.1 | 2/2 | Complete   | 2026-04-10 |
-| 12. Tournament Characterization | v2.1 | 0/? | Not started | - |
+| 12. Tournament Characterization | v2.1 | 3/3 | Complete   | 2026-04-10 |
 | 13. Low-Risk Extractions | v2.1 | 0/? | Not started | - |
 | 14. Medium-Risk Extractions | v2.1 | 0/? | Not started | - |
 | 15. High-Risk Extractions | v2.1 | 0/? | Not started | - |

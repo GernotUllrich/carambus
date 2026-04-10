@@ -4,8 +4,8 @@ milestone: v2.1
 milestone_name: Tournament & TournamentMonitor Refactoring
 status: executing
 stopped_at: Phase 12 context gathered
-last_updated: "2026-04-10T21:49:11.613Z"
-last_activity: 2026-04-10 -- Phase 12 planning complete
+last_updated: "2026-04-10T21:52:13.115Z"
+last_activity: 2026-04-10 -- Phase 12 execution started
 progress:
   total_phases: 6
   completed_phases: 1
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-10)
 
 **Core value:** A maintainable, well-tested codebase where every test is trustworthy and every model is appropriately sized.
-**Current focus:** Phase 11 — TournamentMonitor Characterization
+**Current focus:** Phase 12 — Tournament Characterization
 
 ## Current Position
 
-Phase: 11 of 16 (TournamentMonitor Characterization)
-Plan: — of —
-Status: Ready to execute
-Last activity: 2026-04-10 -- Phase 12 planning complete
+Phase: 12 (Tournament Characterization) — EXECUTING
+Plan: 1 of 3
+Status: Executing Phase 12
+Last activity: 2026-04-10 -- Phase 12 execution started
 
 Progress: [░░░░░░░░░░] 0%
 
