@@ -205,7 +205,10 @@ class TableMonitor::ScoreEngine
         if data["biathlon_phase"] != "3b" || n_balls <= to_play_3b
           if n_balls <= to_play || data["allow_overflow"].present?
             if data["biathlon_phase"] == "3b"
-              [n_balls, to_play_3b].min
+              add_3b = [n_balls, to_play_3b].min
+              add = add_3b
+              data[current_role]["fouls_1"] = 0
+              data[current_role]["innings_redo_list"][-1] = add_3b
               recompute_result(current_role)
               Rails.logger.debug { "set_n_balls (biathlon 3b): n_balls <= to_play || allow_overflow" }
               if (data[current_role]["innings_list"]&.sum.to_i + data[current_role]["innings_redo_list"][-1].to_i) == balls_goal_3b
