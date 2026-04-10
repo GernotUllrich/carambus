@@ -12,10 +12,10 @@
 
 one:
   footprint: MyString
-  data: MyText
+  data: '{}'
   name: MyString
 
 two:
   footprint: MyString
-  data: MyText
+  data: '{}'
   name: MyString

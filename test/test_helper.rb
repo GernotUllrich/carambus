@@ -44,6 +44,16 @@ end
 
 LocalProtector.prepend(LocalProtectorTestOverride)
 
+# Disable ApiProtector for all test records
+module ApiProtectorTestOverride
+  def disallow_saving_local_records
+    # Skip protection in test environment
+    true
+  end
+end
+
+ApiProtector.prepend(ApiProtectorTestOverride)
+
 # Uncomment to view full stack trace in tests
 # Rails.backtrace_cleaner.remove_silencers!
 

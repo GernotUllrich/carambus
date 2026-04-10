@@ -1,0 +1,28 @@
+# == Schema Information
+#
+# Table name: table_monitors
+#
+#  id                       :bigint           not null, primary key
+#  state                    :string
+#  name                     :string
+#  data                     :text
+#  ip_address               :string
+#  tournament_monitor_id    :integer
+#  game_id                  :integer
+#  next_game_id             :integer
+#  panel_state              :string           default("pointer_mode"), not null
+#  current_element          :string           default("pointer_mode"), not null
+#  created_at               :datetime         not null
+#  updated_at               :datetime         not null
+#
+
+one:
+  id: 50_000_001
+  state: "new"
+  name: "Table Monitor 1"
+  data: '{}'
+  ip_address: "192.168.1.1"
+  panel_state: "pointer_mode"
+  current_element: "pointer_mode"
+  created_at: <%= 1.year.ago %>
+  updated_at: <%= 1.day.ago %>
