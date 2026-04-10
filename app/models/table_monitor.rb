@@ -744,42 +744,7 @@ class TableMonitor < ApplicationRecord
   end
 
   def assign_game(game_p)
-    Rails.logger.debug { "--------------m6[#{id}]------->>> assign_game(#{game_p.attributes.inspect}) <<<------------------------------------------" }
-    info = "+++ 8c - tournament_monitor#assign_game - game_p"
-    Rails.logger.debug { info }
-    info = "+++ 8d - tournament_monitor#assign_game - table_monitor"
-    Rails.logger.debug { info }
-    self.allow_change_tables = tournament_monitor&.allow_change_tables
-    tmp_results = game_p.deep_delete!("tmp_results")
-    if tmp_results.andand["state"].present?
-      info = "+++ 8e - tournament_monitor#assign_game - table_monitor"
-      Rails.logger.debug { info }
-      state = tmp_results.delete("state")
-      deep_merge_data!(tmp_results)
-      assign_attributes(game_id: game_p.id, state:)
-      save!
-    else
-      assign_attributes(game_id: game_p.id, state: "ready")
-      save!
-      reload
-      info = "+++ 8f - m6[#{id}]tournament_monitor#assign_game - table_monitor"
-      Rails.logger.debug { info }
-      initialize_game
-      save!
-      if %i[ready ready_for_new_match warmup final_match_score
-            final_set_score].include?(self.state.to_sym)
-        info = "+++ 8g - m6[#{id}]tournament_monitor#assign_game - start_new_match"
-        Rails.logger.debug { info }
-        # noinspection RubyResolve
-        assign_attributes(ip_address: Time.now.to_i.to_s)
-        start_new_match!
-        finish_warmup! if /shootout/i.match?(game_p.data["player_a"].andand["discipline"])
-        # sleep 1.0
-      end
-    end
-  rescue StandardError => e
-    Rails.logger.error "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}"
-    raise StandardError
+    TableMonitor::GameSetup.assign(table_monitor: self, game_participation: game_p)
   end
 
   def initialize_game
@@ -1840,134 +1805,7 @@ class TableMonitor < ApplicationRecord
   end
 
   def start_game(options_ = {})
-    options = HashWithIndifferentAccess.new(options_)
-    Rails.logger.debug { "-------------m6[#{id}]-------->>> start_game(#{options.inspect}) <<<------------------------------------------" }
-
-    # Disable callbacks during start_game to prevent redundant background jobs
-    # (start_game does 3 saves which would trigger 6 background jobs otherwise)
-    self.skip_update_callbacks = true
-
-    # Check if we have an existing Party/Tournament game that should be preserved
-    existing_party_game = game if game.present? && game.tournament_type.present?
-
-    if existing_party_game.present?
-      # Use the existing Party/Tournament game - don't create a new one
-      @game = existing_party_game
-      Rails.logger.debug { "Using existing #{game.tournament_type} game #{@game.id} for table monitor #{id}" }
-
-      # Update or create game participations
-      players = Player.where(id: options["player_a_id"]).order(:dbu_nr).to_a
-      team = Player.team_from_players(players)
-      gp_a = @game.game_participations.find_or_initialize_by(role: "playera")
-      gp_a.update!(player: team)
-
-      players = Player.where(id: options["player_b_id"]).order(:dbu_nr).to_a
-      team = Player.team_from_players(players)
-      gp_b = @game.game_participations.find_or_initialize_by(role: "playerb")
-      gp_b.update!(player: team)
-    else
-      # Unlink any existing game from this table monitor (preserve game history)
-      if game.present?
-        existing_game_id = game.id
-        game.update(table_monitor: nil)
-        Rails.logger.debug { "Unlinked existing game #{existing_game_id} from table monitor #{id}" }
-      end
-
-      # Create a new game for this table monitor
-      @game = Game.new(table_monitor: self)
-      reload
-      @game.update(data: {})
-      players = Player.where(id: options["player_a_id"]).order(:dbu_nr).to_a
-      team = Player.team_from_players(players)
-      GameParticipation.create!(
-        game_id: @game.id, player: team, role: "playera"
-      )
-      @game.save
-      players = Player.where(id: options["player_b_id"]).order(:dbu_nr).to_a
-      team = Player.team_from_players(players)
-      GameParticipation.create!(
-        game_id: @game.id, player: team, role: "playerb"
-      )
-    end
-    @game.save
-    kickoff_switches_with = options["kickoff_switches_with"].presence || "set"
-    color_remains_with_set = options["color_remains_with_set"]
-    fixed_display_left = options["fixed_display_left"]
-    result = {
-      "free_game_form" => options["free_game_form"],
-      "first_break_choice" => options["first_break_choice"],
-      "extra_balls" => 0,
-      "balls_on_table" => (options["balls_on_table"].presence || 15).to_i,
-      "initial_red_balls" => (options["initial_red_balls"].presence || 15).to_i,
-      "warntime" => options["warntime"].to_i,
-      "gametime" => options["gametime"].to_i,
-      "timeouts" => options["timeouts"].to_i,
-      "timeout" => options["timeout"].to_i,
-      "sets_to_play" => options["sets_to_play"].to_i,
-      "sets_to_win" => options["sets_to_win"].to_i,
-      "kickoff_switches_with" => kickoff_switches_with,
-      "allow_follow_up" => options["allow_follow_up"],
-      "color_remains_with_set" => color_remains_with_set,
-      "allow_overflow" => options["allow_overflow"],
-      "fixed_display_left" => fixed_display_left,
-      "current_kickoff_player" => "playera",
-      "current_left_player" => fixed_display_left.present? ? fixed_display_left : "playera",
-      "current_left_color" => fixed_display_left == "playerb" ? "yellow" : "white",
-      "innings_goal" => options["innings_goal"],
-      "playera" => {
-        "balls_goal" => if options["free_game_form"] == "pool"
-                          options["discipline_a"] == "14.1 endlos" ? options["balls_goal_a"] : 1
-                        else
-                          options["balls_goal_a"]
-                        end,
-        "tc" => options["timeouts"].to_i,
-        "discipline" => options["discipline_a"],
-        "result" => 0,
-        "fouls_1" => 0,
-        "innings" => 0,
-        "innings_list" => [],
-        "innings_foul_list" => [],
-        "innings_redo_list" => [],
-        "innings_foul_redo_list" => [],
-        "hs" => 0,
-        "gd" => "0.00"
-      },
-      "playerb" => {
-        "balls_goal" => if options["free_game_form"] == "pool"
-                          options["discipline_b"] == "14.1 endlos" ? options["balls_goal_b"] : 1
-                        else
-                          options["balls_goal_b"]
-                        end,
-        "tc" => options["timeouts"].to_i,
-        "discipline" => options["discipline_b"],
-        "result" => 0,
-        "fouls_1" => 0,
-        "innings" => 0,
-        "innings_list" => [],
-        "innings_foul_list" => [],
-        "innings_redo_list" => [],
-        "innings_foul_redo_list" => [],
-        "hs" => 0,
-        "gd" => "0.00"
-      }
-    }
-    result["sets_to_win"] = 8 if /shootout/i.match?(options["discipline_a"])
-    initialize_game
-    deep_merge_data!(result)
-    self.copy_from = nil
-    save!
-
-    # Re-enable callbacks and manually enqueue table_scores job
-    # (full_screen_update is NOT needed because controller does redirect_to @table_monitor)
-    self.skip_update_callbacks = false
-    TableMonitorJob.perform_later(self.id, "table_scores")
-
-    finish_warmup! if options["discipline_a"] =~ /shootout/i && may_finish_warmup?
-    true
-  rescue StandardError => e
-    Rails.logger.error "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}"
-    self.skip_update_callbacks = false # Ensure callbacks are re-enabled on error
-    raise StandardError unless Rails.env == "production"
+    TableMonitor::GameSetup.call(table_monitor: self, options: options_)
   end
 
   def revert_players
@@ -2004,18 +1842,6 @@ class TableMonitor < ApplicationRecord
   rescue StandardError => e
     Rails.logger.error "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}"
     raise StandardError
-  end
-
-  def set_player_sequence(players)
-    Rails.logger.debug { "--------------m6[#{id}]------->>> set_player_sequence#{players.inspect} <<<------------------------------------------" }
-    (a..d).each_with_index do |ab_seqno, ix|
-      next if ix >= players.count
-
-      data["player_map"]["player#{ab_seqno}"] = players[ix]
-    end
-  rescue StandardError => e
-    Rails.logger.error "ERROR: #{e}, #{e.backtrace&.join("\n")}"
-    raise StandardError unless Rails.env == "production"
   end
 
   def end_of_set?
