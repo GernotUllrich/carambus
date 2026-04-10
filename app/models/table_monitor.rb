@@ -36,8 +36,6 @@ class TableMonitor < ApplicationRecord
 
   # broadcasts_to ->(table_monitor) { [table_monitor, :table_show2] }, inserts_by: :prepend, updates_by: :replace
 
-  DEBUG = Rails.env != "production"
-
   cattr_accessor :allow_change_tables
 
   # the following exist to avoid db access from partials
@@ -373,24 +371,30 @@ class TableMonitor < ApplicationRecord
     aasm.events
   end
 
+  # Lazy accessor for the pure-hash ScoreEngine collaborator.
+  # Invalidated on reload so the engine always wraps the freshly-loaded data hash.
+  def score_engine
+    @score_engine ||= TableMonitor::ScoreEngine.new(data, discipline: discipline)
+  end
+
+  def reload(...)
+    @score_engine = nil
+    super
+  end
+
   def internal_name
-    if DEBUG
-      Rails.logger.info "-----------m6[#{id}]---------->>> internal_name <<<------------------------------------------"
-    end
+    Rails.logger.debug { "-----------m6[#{id}]---------->>> internal_name <<<------------------------------------------" }
     read_attribute(:name)
   rescue StandardError => e
-    Rails.logger.info "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}" if DEBUG
+    Rails.logger.error "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}"
     raise StandardError
   end
 
   def on_create
-    if DEBUG
-      Rails.logger.info "-----------m6[#{id}]---------->>> on_create <<<------------------------------------------"
-    end
-    info = "+++ 8xxx - table_monitor#on_create"
-    Rails.logger.info info if DEBUG
+    Rails.logger.debug { "-----------m6[#{id}]---------->>> on_create <<<------------------------------------------" }
+    Rails.logger.debug { "+++ 8xxx - table_monitor#on_create" }
   rescue StandardError => e
-    Rails.logger.info "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}" if DEBUG
+    Rails.logger.error "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}"
     raise StandardError
   end
 
@@ -411,7 +415,7 @@ class TableMonitor < ApplicationRecord
       I18n.t("table_monitor.status.#{state}")
     end
   rescue StandardError => e
-    Rails.logger.info "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}" if DEBUG
+    Rails.logger.error "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}"
     raise StandardError
   end
 
@@ -430,16 +434,12 @@ class TableMonitor < ApplicationRecord
       changes['data']&.count == 2 && @collected_data_changes << deep_diff(*changes['data'])
       @collected_changes << changes.except('data') if changes.except('data').present?
     end
-    if DEBUG
-      Rails.logger.info "-------------m6[#{id}]-------->>> log_state_change #{self.changes.inspect} <<<\
-------------------------------------------"
-    end
+    Rails.logger.debug { "-------------m6[#{id}]-------->>> log_state_change #{self.changes.inspect} <<<------------------------------------------" }
     if state_changed?
-      Tournament.logger.info "[TableMonitor] STATE_CHANGED [#{id}]: #{state_change[0]} -> #{state_change[1]}" if DEBUG
-      Rails.logger.info "[TableMonitor] STATE_CHANGED [#{id}]: #{state_change[0]} -> #{state_change[1]}" if DEBUG
+      Rails.logger.debug { "[TableMonitor] STATE_CHANGED [#{id}]: #{state_change[0]} -> #{state_change[1]}" }
     end
   rescue StandardError => e
-    Rails.logger.info "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}" if DEBUG
+    Rails.logger.error "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}"
     raise StandardError
   end
 
@@ -448,9 +448,7 @@ class TableMonitor < ApplicationRecord
   end
 
   def set_game_over
-    if DEBUG
-      Rails.logger.info "--------------m6[#{id}]------->>> set_game_over (state=#{state}) <<<------------------------------------------"
-    end
+    Rails.logger.debug { "--------------m6[#{id}]------->>> set_game_over (state=#{state}) <<<------------------------------------------" }
 
     # Only show protocol_final modal when entering set_over state ("Partie beendet - OK?")
     # Not when entering final_set_score ("Ergebnis erfasst") or final_match_score
@@ -460,54 +458,45 @@ class TableMonitor < ApplicationRecord
       save
     end
   rescue StandardError => e
-    Rails.logger.info "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}" if DEBUG
+    Rails.logger.error "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}"
     raise StandardError
   end
 
   def numbers
-    Rails.logger.info "-------------m6[#{id}]-------->>> numbers <<<------------------------------------------" if DEBUG
+    Rails.logger.debug { "-------------m6[#{id}]-------->>> numbers <<<------------------------------------------" }
     active_player = data["current_inning"].andand["active_player"]
     nnn_val = data[active_player].andand["innings_redo_list"].andand[-1].to_i
     update(nnn: nnn_val)
-    Rails.logger.warn "numbers +++++m6[#{id}]++ C: SUBMIT JOB" if DEBUG
+    Rails.logger.debug { "numbers +++++m6[#{id}]++ C: SUBMIT JOB" }
   rescue StandardError => e
-    Rails.logger.info "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}" if DEBUG
+    Rails.logger.error "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}"
     raise StandardError
   end
 
   def update_every_n_seconds(n_secs)
-    if DEBUG
-      Rails.logger.info "--------------------->>> #{"update_every_n_seconds(#{n_secs})"} <<<\
-------------------------------------------"
-    end
+    Rails.logger.debug { "--------------------->>> update_every_n_seconds(#{n_secs}) <<<------------------------------------------" }
     TableMonitorClockJob.perform_later(self, n_secs, data["current_inning"]["active_player"],
                                        data[data["current_inning"]["active_player"]].andand["innings_redo_list"].andand[-1].to_i,
                                        data[data["current_inning"]["active_player"]].andand["innings"])
   rescue StandardError => e
-    Rails.logger.info "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}" if DEBUG
+    Rails.logger.error "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}"
     raise StandardError
   end
 
   def player_a_on_table_before
-    if DEBUG
-      Rails.logger.info "-------------m6[#{id}]-------->>> player_a_on_table_before <<<\
-------------------------------------------"
-    end
+    Rails.logger.debug { "-------------m6[#{id}]-------->>> player_a_on_table_before <<<------------------------------------------" }
     # TODO: player_a_on_table_before
     false
   end
 
   def player_b_on_table_before
-    if DEBUG
-      Rails.logger.info "-------------m6[#{id}]-------->>> player_b_on_table_before <<<\
-------------------------------------------"
-    end
+    Rails.logger.debug { "-------------m6[#{id}]-------->>> player_b_on_table_before <<<------------------------------------------" }
     # TODO: player_b_on_table_before
     false
   end
 
   def do_play
-    Rails.logger.info "--------------m6[#{id}]------->>> do_play <<<------------------------------------------" if DEBUG
+    Rails.logger.debug { "--------------m6[#{id}]------->>> do_play <<<------------------------------------------" }
     return unless tournament_monitor&.id.present? || data["timeout"].to_i.positive?
 
     active_timer = "timeout"
@@ -523,10 +512,7 @@ class TableMonitor < ApplicationRecord
       finish_at = timer_finish_at + extend.seconds
     end
     if finish_at.present?
-      if DEBUG
-        Rails.logger.info "[table_monitor#do_play] m6[#{id}]active_timer, start_at, \
-finish_at: #{[active_timer, start_at, finish_at].inspect}"
-      end
+      Rails.logger.debug { "[table_monitor#do_play] m6[#{id}]active_timer, start_at, finish_at: #{[active_timer, start_at, finish_at].inspect}" }
       update(
         active_timer:,
         timer_halt_at: nil,
@@ -536,73 +522,14 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
       update_every_n_seconds(1)
     end
   rescue StandardError => e
-    Rails.logger.info "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}" if DEBUG
+    Rails.logger.error "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}"
     raise StandardError
   end
 
   def render_innings_list(role)
-    if DEBUG
-      Rails.logger.info "---------------m6[#{id}]------>>> #{"render_innings_list(#{role})"} <<<\
-------------------------------------------"
-    end
-
-    # Return empty string if role is nil or not valid
-    return "".html_safe if role.nil? || !data.key?(role)
-
-    innings = data["playera"]["innings"].to_i
-    cols = [(innings / 15.0).ceil, 2].max
-    show_innings = Array(data[role].andand["innings_list"])
-    show_fouls = Array(data[role].andand["innings_foul_list"])
-    ret = ["<style>
-    table, th, td {
-        border: 1px solid black;
-        border-collapse: collapse;
-    }
-
-    .space-above {
-        margin-top: 15px;
-    }
-
-    th, td {
-    }
-    </style><table class=\"tracking-wide\"><thead><tr>"]
-    (1..cols).each do |_icol|
-      ret << "<th>Aufn</th><th>Pkt</th>#{
-        "<th>Foul</th>" if data["playera"].andand["discipline"] == "14.1 endlos"}<th>∑</th>"
-    end
-    ret << "</tr></thead><tbody>"
-    sum = 0
-    sums = []
-    show_innings.each_with_index do |inning, ix|
-      sum += inning + show_fouls[ix]
-      sums[ix] = sum
-    end
-    15.times do |ix|
-      ret << "<tr>"
-      (1..cols).each_with_index do |_col, icol|
-        ret << "<td><span class=\"sm:text-xs lg:text-lg sm:px-2 lg:px-4\">#{ix + 1 + (icol * 15)}</span></td>
-<td><span class=\"sm:text-xs lg:text-lg sm:px-2 lg:px-4\">\
-#{(ix + (icol * 15)) == sums.length ? "GD" : show_innings[ix + (icol * 15)]}</span></td>
-#{
-          if data["playera"].andand["discipline"] == "14.1 endlos"
-            "<td><span class=\"sm:text-xs lg:text-lg sm:px-2 lg:px-4\">\
-#{(ix + (icol * 15)) == sums.length ? "" : show_fouls[ix + (icol * 15)]}</span></td>"
-          end}
-<td><span class=\"sm:text-xs lg:text-lg sm:px-2 lg:px-4\">#{
-          if (ix + (icol * 15)) == sums.length
-            format("%0.2f", (sums.last.to_i / innings.to_f))
-          elsif (ix + (icol * 15)) == sums.length - 1
-            "<strong class=\"text-3vw\">#{sums[ix + (icol * 15)]}</strong>"
-          else
-            sums[ix + (icol * 15)]
-          end}</span></td>"
-      end
-      ret << "</tr>"
-    end
-    ret << "</tbody></table>"
-    ret.join("\n").html_safe
+    score_engine.render_innings_list(role)
   rescue StandardError => e
-    Rails.logger.info "ERROR:m6[#{id}] #{e}, #{e.backtrace&.join("\n")}" if DEBUG
+    Rails.logger.error "ERROR:m6[#{id}] #{e}, #{e.backtrace&.join("\n")}"
     raise StandardError unless Rails.env == "production"
   end
 
@@ -611,60 +538,11 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
   end
 
   def render_last_innings(last_n, role)
-    # debug = DEBUG
-    debug = false
-    if debug
-      Rails.logger.info "-------------m6[#{id}]-------->>> #{"render_last_innings(#{last_n}, #{role})"} <<<\
-------------------------------------------"
-    end
-
-    # Return empty string if role is nil or not valid
-    return "".html_safe if role.nil? || !data.key?(role)
-
-    player_ix = role == "playera" ? 1 : 2
-    show_innings = Array(data[role].andand["innings_list"])
-    show_innings_fouls = Array(data[role].andand["innings_foul_list"])
-    prefix = ""
-    if data["sets_to_play"].to_i > 1
-      # S1:0, S2:20
-      Array(data["sets"]).each_with_index do |set, ix|
-        prefix += "S#{ix + 1}: #{set["Ergebnis#{player_ix}"]}, "
-      end
-    end
-    ret = []
-    show_innings.each_with_index do |inning_value, ix|
-      foul = show_innings_fouls[ix].to_i
-      if foul.zero?
-        ret << inning_value.to_s
-      else
-        ret << "#{inning_value},F#{foul}"
-      end
-    end
-    Array(data[role].andand["innings_redo_list"]).reverse.each_with_index do |inning_value, ix|
-      if ix.zero?
-        ret << "<strong class=\"border-4 border-solid border-gray-400 p-1\">#{inning_value}</strong>"
-      else
-        ret << "<span class=\"text-[0.7em]\">#{inning_value}</span>"
-      end
-    end
-    # Wrap all regular innings in smaller spans
-    ret = ret.map.with_index do |item, idx|
-      if idx < show_innings.length && !item.include?('<')
-        "<span class=\"text-[0.7em]\">#{item}</span>"
-      else
-        item
-      end
-    end
-    if ret.length > last_n
-      "#{prefix}...#{ret[-last_n..].join(", ")}".html_safe
-    else
-      (prefix.to_s + ret.join(", ")).html_safe
-    end
+    score_engine.render_last_innings(last_n, role)
   rescue StandardError => e
     Rails.logger.error "ERROR in render_last_innings: #{e.class}: #{e.message}"
     Rails.logger.error "Backtrace: #{e.backtrace&.first(10)&.join("\n")}"
     Rails.logger.error "Data: role=#{role}, innings_list=#{data[role].andand['innings_list'].inspect}, innings_redo_list=#{data[role].andand['innings_redo_list'].inspect}"
-    Tournament.logger.info "ERROR: #{e}, #{e.backtrace&.join("\n")}"
     raise StandardError, "render_last_innings failed: #{e.message}" unless Rails.env == "production"
   end
 
@@ -672,7 +550,7 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
     # noinspection RubyResolve
     warmup? || warmup_a? || warmup_b?
   rescue StandardError => e
-    Rails.logger.info "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}" if DEBUG
+    Rails.logger.error "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}"
     raise StandardError
   end
 
@@ -680,7 +558,7 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
     # noinspection RubyResolve
     match_shootout?
   rescue StandardError => e
-    Rails.logger.info "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}" if DEBUG
+    Rails.logger.error "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}"
     raise StandardError
   end
 
@@ -692,189 +570,44 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
     # noinspection RubyResolve
     nnn.present? || panel_state == "numbers"
   rescue StandardError => e
-    Rails.logger.info "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}" if DEBUG
+    Rails.logger.error "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}"
     raise StandardError
   end
 
   def protocol_modal_should_be_open?
     panel_state == "protocol" || panel_state == "protocol_edit" || panel_state == "protocol_final"
   rescue StandardError => e
-    Rails.logger.info "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}" if DEBUG
+    Rails.logger.error "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}"
     false
   end
 
   def foul_modal_should_be_open?
     panel_state == "foul"
   rescue StandardError => e
-    Rails.logger.info "ERROR: foul_modal_should_be_open?[#{id}]#{e}, #{e.backtrace&.join("\n")}" if DEBUG
+    Rails.logger.error "ERROR: foul_modal_should_be_open?[#{id}]#{e}, #{e.backtrace&.join("\n")}"
     false
   end
 
   def snooker_inning_edit_modal_should_be_open?
     panel_state == "snooker_inning_edit"
   rescue StandardError => e
-    Rails.logger.info "ERROR: snooker_inning_edit_modal_should_be_open?[#{id}]#{e}, #{e.backtrace&.join("\n")}" if DEBUG
+    Rails.logger.error "ERROR: snooker_inning_edit_modal_should_be_open?[#{id}]#{e}, #{e.backtrace&.join("\n")}"
     false
   end
 
   # Returns the initial number of red balls for snooker (6, 10, or 15)
   # Default is 15 (standard snooker)
-  def initial_red_balls
-    return 15 unless data["free_game_form"] == "snooker"
-
-    value = data["initial_red_balls"].to_i
-    # Only allow valid values: 6, 10, or 15
-    if [6, 10, 15].include?(value)
-      value
-    else
-      15 # Default to 15 if invalid value
-    end
-  end
+  def initial_red_balls = score_engine.initial_red_balls
 
   # Undo the last potted ball for snooker
   # Removes last ball from protocol, recalculates score and game state
-  def undo_snooker_ball(player_role)
-    return unless data["free_game_form"] == "snooker"
-
-    # Initialize if not present
-    data[player_role]["break_balls_redo_list"] ||= [[]]
-
-    # Get current break balls
-    current_break_balls = data[player_role]["break_balls_redo_list"][-1] || []
-
-    # Remove last ball from the list
-    if current_break_balls.any?
-      removed_ball = current_break_balls.pop
-
-      # Recalculate score from remaining balls in current break
-      new_score = current_break_balls.sum
-      data[player_role]["innings_redo_list"][-1] = new_score
-
-      # Recalculate reds_remaining from ALL balls in protocol
-      recalculate_snooker_state_from_protocol
-
-      # Update last_potted_ball to the previous ball (if any)
-      if current_break_balls.any?
-        data["snooker_state"]["last_potted_ball"] = current_break_balls.last
-      else
-        # Check other player's last ball if current player has no balls
-        other_player = (player_role == "playera" ? "playerb" : "playera")
-        other_break_balls = data[other_player]["break_balls_redo_list"]&.[](-1) || []
-        if other_break_balls.any?
-          data["snooker_state"]["last_potted_ball"] = other_break_balls.last
-        else
-          # Check last completed break
-          if data[player_role]["break_balls_list"]&.any?
-            last_completed = data[player_role]["break_balls_list"].last
-            data["snooker_state"]["last_potted_ball"] = last_completed&.last if last_completed&.any?
-          elsif data[other_player]["break_balls_list"]&.any?
-            last_completed = data[other_player]["break_balls_list"].last
-            data["snooker_state"]["last_potted_ball"] = last_completed&.last if last_completed&.any?
-          else
-            data["snooker_state"]["last_potted_ball"] = nil
-          end
-        end
-      end
-    end
-
-    # Recompute result (sum of completed innings only)
-    recompute_result(player_role)
-  end
+  def undo_snooker_ball(player_role) = score_engine.undo_snooker_ball(player_role)
 
   # Recalculate snooker state (reds_remaining, colors_sequence) from protocol
-  def recalculate_snooker_state_from_protocol
-    return unless data["free_game_form"] == "snooker"
-    return unless data["snooker_state"].present?
-
-    initial_reds = initial_red_balls
-    reds_potted = 0
-    all_potted_balls = []
-
-    # Collect all potted balls from both players (completed + current breaks)
-    ["playera", "playerb"].each do |player|
-      # Completed breaks
-      if data[player]["break_balls_list"].present?
-        data[player]["break_balls_list"].each do |break_balls|
-          all_potted_balls += Array(break_balls) if break_balls.present?
-        end
-      end
-      # Current break
-      if data[player]["break_balls_redo_list"].present? && data[player]["break_balls_redo_list"][-1].present?
-        all_potted_balls += Array(data[player]["break_balls_redo_list"][-1])
-      end
-    end
-
-    # Count reds
-    reds_potted = all_potted_balls.count(1)
-    data["snooker_state"]["reds_remaining"] = [initial_reds - reds_potted, 0].max
-
-    # Recalculate colors_sequence (if all reds are gone)
-    if data["snooker_state"]["reds_remaining"] <= 0
-      # Start with all colors
-      all_colors = [2, 3, 4, 5, 6, 7]
-      # Remove colors that have been potted (after reds were gone)
-      # Find when reds became 0
-      balls_before_reds_gone = []
-      temp_reds = initial_reds
-      all_potted_balls.each do |ball|
-        if temp_reds > 0
-          balls_before_reds_gone << ball
-          temp_reds -= 1 if ball == 1
-        else
-          # Reds are gone, this ball is part of color clearance
-          all_colors.delete(ball) if ball >= 2 && ball <= 7
-        end
-      end
-      data["snooker_state"]["colors_sequence"] = all_colors
-    else
-      # Reds still on table, all colors available
-      data["snooker_state"]["colors_sequence"] = [2, 3, 4, 5, 6, 7]
-    end
-  end
+  def recalculate_snooker_state_from_protocol = score_engine.recalculate_snooker_state_from_protocol
 
   # Updates snooker game state when a ball is potted
-  def update_snooker_state(ball_value)
-    return unless data["free_game_form"] == "snooker"
-
-    # Initialize snooker state tracking if not present
-    initial_reds = initial_red_balls
-    data["snooker_state"] ||= {
-      "reds_remaining" => initial_reds,
-      "last_potted_ball" => nil,
-      "free_ball_active" => false,
-      "colors_sequence" => [2, 3, 4, 5, 6, 7]
-    }
-
-    state = data["snooker_state"]
-
-    # Track if free ball was active before this pot
-    free_ball_was_active = state["free_ball_active"] || false
-
-    # If free ball was just potted, deactivate free ball status
-    if free_ball_was_active
-      state["free_ball_active"] = false
-      # After free ball, the potted ball counts as the nominated ball
-      # Continue with normal rules based on what was potted
-    end
-
-    # Update based on ball value
-    if ball_value == 1
-      # Red ball potted - decrement reds remaining
-      current_reds = state["reds_remaining"].to_i
-      state["reds_remaining"] = [current_reds - 1, 0].max
-      state["last_potted_ball"] = 1
-    elsif ball_value >= 2 && ball_value <= 7
-      # Color ball potted
-      state["last_potted_ball"] = ball_value
-
-      # If all reds are gone, remove this color from sequence
-      if state["reds_remaining"].to_i <= 0
-        state["colors_sequence"] = state["colors_sequence"].reject { |c| c == ball_value }
-      end
-    end
-  rescue StandardError => e
-    Rails.logger.info "ERROR: update_snooker_state[#{id}]#{e}, #{e.backtrace&.join("\n")}" if DEBUG
-  end
+  def update_snooker_state(ball_value) = score_engine.update_snooker_state(ball_value)
 
   # Determines which balls are "on" (playable) in snooker according to official rules
   # Returns a hash with ball values (1-7) as keys and status values:
@@ -882,140 +615,16 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
   #   :addable - ball can be added (red after red, can pot multiple reds in same shot)
   #   :off - ball is not playable
   # Ball 1 = Red, 2 = Yellow, 3 = Green, 4 = Brown, 5 = Blue, 6 = Pink, 7 = Black
-  def snooker_balls_on
-    return {} unless data["free_game_form"] == "snooker"
-
-    # Initialize snooker state tracking if not present
-    initial_reds = initial_red_balls
-    data["snooker_state"] ||= {
-      "reds_remaining" => initial_reds,
-      "last_potted_ball" => nil, # 1 for red, 2-7 for colors
-      "free_ball_active" => false,
-      "colors_sequence" => [2, 3, 4, 5, 6, 7] # Remaining colors in order
-    }
-
-    state = data["snooker_state"]
-    reds_remaining = state["reds_remaining"] || initial_reds
-    last_potted = state["last_potted_ball"]
-    free_ball_active = state["free_ball_active"] || false
-    colors_sequence = state["colors_sequence"] || [2, 3, 4, 5, 6, 7]
-
-    # If free ball is active, all balls are playable (player can nominate any ball)
-    if free_ball_active
-      return { 1 => :on, 2 => :on, 3 => :on, 4 => :on, 5 => :on, 6 => :on, 7 => :on }
-    end
-
-    # If all reds are potted, only colors in sequence are "on"
-    if reds_remaining <= 0
-      next_color = colors_sequence.first
-      if next_color.nil?
-        # All colors potted - game should be over, but allow all as fallback
-        return { 1 => :off, 2 => :on, 3 => :on, 4 => :on, 5 => :on, 6 => :on, 7 => :on }
-      end
-      result = {}
-      (1..7).each do |ball|
-        result[ball] = (ball == next_color) ? :on : :off
-      end
-      return result
-    end
-
-    # If reds are still on the table:
-    # - After a red: all colors are "on", red is "addable" (can pot additional reds)
-    # - After a color: back to reds
-    # - At start: only reds are "on"
-
-    if last_potted == 1
-      # After a red ball: all colors are "on", red is "addable" ONLY if reds remain
-      if reds_remaining > 0
-        { 1 => :addable, 2 => :on, 3 => :on, 4 => :on, 5 => :on, 6 => :on, 7 => :on }
-      else
-        # Last red was just potted - now only colors in sequence
-        next_color = colors_sequence.first
-        if next_color.nil?
-          { 1 => :off, 2 => :off, 3 => :off, 4 => :off, 5 => :off, 6 => :off, 7 => :off }
-        else
-          result = {}
-          (1..7).each do |ball|
-            result[ball] = (ball == next_color) ? :on : :off
-          end
-          result
-        end
-      end
-    elsif last_potted && last_potted >= 2 && last_potted <= 7
-      # After a color: back to reds (if reds remain)
-      if reds_remaining > 0
-        { 1 => :on, 2 => :off, 3 => :off, 4 => :off, 5 => :off, 6 => :off, 7 => :off }
-      else
-        # All reds gone, but color was just potted - next color in sequence
-        next_color = colors_sequence.first
-        if next_color.nil?
-          { 1 => :off, 2 => :off, 3 => :off, 4 => :off, 5 => :off, 6 => :off, 7 => :off }
-        else
-          result = {}
-          (1..7).each do |ball|
-            result[ball] = (ball == next_color) ? :on : :off
-          end
-          result
-        end
-      end
-    else
-      # At start or after player change: only reds are "on" (if reds remain)
-      if reds_remaining > 0
-        { 1 => :on, 2 => :off, 3 => :off, 4 => :off, 5 => :off, 6 => :off, 7 => :off }
-      else
-        # No reds left - next color in sequence
-        next_color = colors_sequence.first
-        if next_color.nil?
-          { 1 => :off, 2 => :off, 3 => :off, 4 => :off, 5 => :off, 6 => :off, 7 => :off }
-        else
-          result = {}
-          (1..7).each do |ball|
-            result[ball] = (ball == next_color) ? :on : :off
-          end
-          result
-        end
-      end
-    end
-  rescue StandardError => e
-    Rails.logger.info "ERROR: snooker_balls_on[#{id}]#{e}, #{e.backtrace&.join("\n")}" if DEBUG
-    # Default: all enabled if error
-    { 1 => :on, 2 => :on, 3 => :on, 4 => :on, 5 => :on, 6 => :on, 7 => :on }
-  end
+  def snooker_balls_on = score_engine.snooker_balls_on
 
   # Calculate remaining points on the table in a Snooker frame
   # Returns total points that can still be scored
-  def snooker_remaining_points
-    return 0 unless data["free_game_form"] == "snooker"
-
-    state = data["snooker_state"] || {}
-    reds_remaining = state["reds_remaining"].to_i
-    colors_sequence = state["colors_sequence"] || [2, 3, 4, 5, 6, 7]
-
-    # Each red is worth 1 point
-    red_points = reds_remaining * 1
-
-    # Color points: sum of remaining colors
-    color_points = colors_sequence.sum
-
-    # If reds remain, all 6 colors are on the table (they respawn)
-    # So total = reds + 27 (2+3+4+5+6+7)
-    # If no reds, only count colors still in sequence
-    if reds_remaining > 0
-      # All colors are on table (they respawn after each red)
-      red_points + 27  # 2+3+4+5+6+7 = 27
-    else
-      # Only colors in sequence remain
-      color_points
-    end
-  rescue StandardError => e
-    Rails.logger.info "ERROR: snooker_remaining_points[#{id}]#{e}, #{e.backtrace&.join("\n")}" if DEBUG
-    0
-  end
+  def snooker_remaining_points = score_engine.snooker_remaining_points
 
   def final_protocol_modal_should_be_open?
     panel_state == "protocol_final"
   rescue StandardError => e
-    Rails.logger.info "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}" if DEBUG
+    Rails.logger.error "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}"
     false
   end
 
@@ -1414,69 +1023,36 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
   end
 
   def balls_left(n_balls_left)
-    if DEBUG
-      Rails.logger.info "---------------m6[#{id}]------>>> #{"balls_left(#{n_balls_left})"} <<<\
-------------------------------------------"
-    end
-    balls_added = data["balls_on_table"].to_i - n_balls_left
-    add_n_balls(balls_added)
+    result = score_engine.balls_left(n_balls_left)
+    data_will_change!
+    self.copy_from = nil
+    terminate_current_inning if result == :goal_reached
   rescue StandardError => e
-    Rails.logger.info "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}" if DEBUG
+    Rails.logger.error "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}"
     raise StandardError
   end
 
   def foul_two
-    debug = DEBUG
-    if debug
-      Rails.logger.info "---------------m6[#{id}]------>>> foul_two <<<\
-------------------------------------------"
-    end
-    if playing?
-      Rails.logger.info("foul_two +++++ m6[#{id}]A: playing?") if debug
-      current_role = data["current_inning"]["active_player"]
-      init_lists(current_role)
-      data[current_role]["innings_foul_redo_list"][-1] = data[current_role]["innings_foul_redo_list"][-1] - 2
-      innings_sum = data[current_role]["innings_list"]&.sum.to_i
-      data[current_role]["result"] =
-        innings_sum + data[current_role]["innings_foul_list"].to_a.sum +
-          data[current_role]["innings_foul_redo_list"].to_a.sum
-      data_will_change!
-      self.copy_from = nil
-      terminate_current_inning
-    end
+    return unless playing?
+
+    result = score_engine.foul_two
+    data_will_change!
+    self.copy_from = nil
+    terminate_current_inning if result == :inning_terminated
   rescue StandardError => e
-    Rails.logger.info "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}" if DEBUG
+    Rails.logger.error "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}"
     raise StandardError
   end
 
   def foul_one
-    debug = DEBUG
-    if debug
-      Rails.logger.info "-------------m6[#{id}]-------->>> foul_two <<<\
-------------------------------------------"
-    end
-    if playing?
-      Rails.logger.info("foul_one +++++ A: playing?") if debug
-      current_role = data["current_inning"]["active_player"]
-      init_lists(current_role)
-      data[current_role]["innings_foul_redo_list"][-1] = data[current_role]["innings_foul_redo_list"][-1].to_i - 1
-      data[current_role]["fouls_1"] = data[current_role]["fouls_1"].to_i + 1
-      recompute_result(current_role)
-      if data[current_role]["fouls_1"] > 2
-        data[current_role]["fouls_1"] = 0
-        data[current_role]["innings_foul_redo_list"][-1] = data[current_role]["innings_foul_redo_list"][-1].to_i - 15
-        data["extra_balls"] = data["extra_balls"].to_i + (15 - data["balls_on_table"].to_i)
-        recompute_result(current_role)
-        self.copy_from = nil
-        data_will_change!
-      else
-        data_will_change!
-        self.copy_from = nil
-        terminate_current_inning
-      end
-    end
+    return unless playing?
+
+    result = score_engine.foul_one
+    data_will_change!
+    self.copy_from = nil
+    terminate_current_inning if result == :inning_terminated
   rescue StandardError => e
-    Rails.logger.info "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}" if DEBUG
+    Rails.logger.error "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}"
     raise StandardError
   end
 
@@ -1484,233 +1060,32 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
     data["free_game_form"] != "pool"
   end
 
-  def recompute_result(current_role)
-    innings_sum = data[current_role]["innings_list"]&.sum.to_i
-    other_player = current_role == "playera" ? "playerb" : "playera"
-    other_innings_sum = data[other_player]["innings_list"]&.sum.to_i
-    # Include current inning balls from both players for correct balls_on_table calculation
-    current_redo = data[current_role]["innings_redo_list"]&.last.to_i
-    other_redo = data[other_player]["innings_redo_list"]&.last.to_i
-    total_sum = innings_sum + other_innings_sum + current_redo + other_redo - data["extra_balls"].to_i
-    data["balls_on_table"] = 15 - ((total_sum % 14).zero? ? 0 : total_sum % 14)
-    # For snooker, result should only include completed innings, not current break
-    # The score is displayed as result + current_break
-    if data["free_game_form"] == "snooker"
-      data[current_role]["result"] = innings_sum + data[current_role]["innings_foul_list"].to_a.sum
-    else
-      data[current_role]["result"] =
-        innings_sum + data[current_role]["innings_foul_list"].to_a.sum +
-          data[current_role]["innings_foul_redo_list"].to_a.sum
-    end
-  rescue StandardError => e
-    Rails.logger.info "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}" if DEBUG
-    raise StandardError
-  end
+  def recompute_result(current_role) = score_engine.recompute_result(current_role)
 
-  def init_lists(current_role)
-    data[current_role]["innings_list"] ||= []
-    data[current_role]["innings_foul_list"] ||= []
-    data[current_role]["innings_redo_list"] = [0] if data[current_role]["innings_redo_list"].blank?
-    return unless data[current_role]["innings_foul_redo_list"].blank?
-
-    data[current_role]["innings_foul_redo_list"] = [0]
-
-    # Initialize snooker break tracking
-    if data["free_game_form"] == "snooker"
-      data[current_role]["break_balls_redo_list"] ||= []
-      if data[current_role]["break_balls_redo_list"].empty?
-        data[current_role]["break_balls_redo_list"] = [[]]
-      end
-      data[current_role]["break_balls_list"] ||= []
-      data[current_role]["break_fouls_list"] ||= []
-    end
-  end
+  def init_lists(current_role) = score_engine.init_lists(current_role)
 
   def add_n_balls(n_balls, player = nil, skip_snooker_state_update: false)
-    if DEBUG
-      Rails.logger.info "-------------m6[#{id}]-------->>> #{"add_n_balls(#{n_balls})"} <<<\
-------------------------------------------"
+    result = score_engine.add_n_balls(n_balls, player, skip_snooker_state_update: skip_snooker_state_update)
+    if result == :snooker_frame_complete
+      # All snooker balls potted — persist and trigger end-of-frame evaluation
+      Rails.logger.info "[add_n_balls] Snooker frame[#{game_id}] on TM[#{id}]: All balls potted, evaluating result"
+      data_will_change!
+      self.copy_from = nil
+      save!
+      evaluate_result
+      return
     end
-    if discipline == "Biathlon"
-      balls_goal_3b = 15
-      data["biathlon_phase"] ||= "3b"
-    end
-    n_balls_left = data["balls_on_table"].to_i - n_balls
-    if [1, 0].include?(n_balls_left)
-      current_role = data["current_inning"]["active_player"]
-      to_play = if data[current_role].andand["balls_goal"].to_i <= 0
-                  99_999
-                else
-                  data[current_role].andand["balls_goal"].to_i -
-                    (data[current_role].andand["result"].to_i +
-                      data[current_role]["innings_redo_list"][-1].to_i)
-                end
-      if n_balls <= to_play || data["allow_overflow"].present?
-        data["balls_counter_stack"] << data["balls_counter"].to_i
-        data["balls_counter"] += 14 + (1 - n_balls_left)
-      end
-    end
-    debug = DEBUG # true
-    @msg = nil
-    # noinspection RubyResolve
-    if playing?
-      Rails.logger.info("addn +++++ m6[#{id}]A: playing?") if debug
-      if player.present?
-        current_role = player.presence
-        other_player = current_role == "playera" ? "playerb" : "playera"
-        init_lists(other_player)
-        if data["current_inning"]["active_player"] != player
-          data[other_player]["innings"] += 1
-          data[other_player]["innings_list"] << 0
-          data[other_player]["innings_foul_list"] << 0
-        end
-      else
-        current_role = data["current_inning"]["active_player"]
-      end
-      init_lists(current_role)
-      to_play = if data[current_role].andand["balls_goal"].to_i <= 0
-                  99_999
-                else
-                  data[current_role].andand["balls_goal"].to_i - (data[current_role].andand["result"].to_i +
-                    data[current_role]["innings_redo_list"][-1].to_i)
-                end
-      if data["biathlon_phase"] == "3b"
-        to_play_3b = balls_goal_3b - (data[current_role].andand["result"].to_i +
-          data[current_role]["innings_redo_list"][-1].to_i)
-      end
-      if data["biathlon_phase"] != "3b" || n_balls <= to_play_3b
-        # Check if input should be processed based on allow_overflow setting
-        # If allow_overflow is false: silently reject inputs that exceed remaining points (to_play)
-        # If allow_overflow is true: allow inputs beyond goal (for special game modes)
-        # For negative inputs: only allow if they don't make current inning negative
-        current_inning_value = data[current_role]["innings_redo_list"][-1].to_i
-        
-        should_process_input = if data["allow_overflow"].present?
-                                 to_play > 0  # With overflow: process if goal not yet reached
-                               elsif n_balls > 0
-                                 n_balls <= to_play && to_play > 0  # Without overflow: only if input doesn't exceed goal
-                               elsif n_balls < 0
-                                 # Negative corrections: only allow if they don't make inning negative
-                                 (current_inning_value + n_balls) >= 0
-                               else
-                                 false  # n_balls == 0 shouldn't happen
-                               end
-        
-        if should_process_input
-          if data["biathlon_phase"] == "3b"
-            # For Biathlon: cap at goal if allow_overflow is false
-            add = if data["allow_overflow"].present?
-                    n_balls  # No capping when overflow allowed
-                  else
-                    [n_balls, to_play_3b].min  # Cap at goal
-                  end
-            data[current_role]["innings_redo_list"][-1] =
-              [(data[current_role]["innings_redo_list"][-1].to_i + add.to_i), 0].max
-            recompute_result(current_role)
-            if debug
-              Rails.logger.info("addn +++++ m6[#{id}]B: Processing Biathlon 3b input (n_balls=#{n_balls}, add=#{add})")
-            end
-            # Check if Biathlon 3b phase is complete
-            if (data[current_role]["innings_list"]&.sum.to_i +
-              data[current_role]["innings_redo_list"][-1].to_i) == balls_goal_3b
-              other_player = current_role == "playera" ? "playerb" : "playera"
-              data["biathlon_phase"] = "5k"
-              Array(data[current_role]["innings_list"]).each_with_index do |val, ix|
-                data[current_role]["innings_list"][ix] = val.to_i * 6
-              end
-              data[current_role]["result"] = data[current_role]["result"].to_i * 6
-              data[current_role]["innings_redo_list"][-1] = data[current_role]["innings_redo_list"][-1].to_i * 6
-              Array(data[other_player]["innings_list"]).each_with_index do |val, ix|
-                data[other_player]["innings_list"][ix] = val.to_i * 6
-              end
-              data[other_player]["result"] = data[other_player]["result"] * 6
-              if data[other_player]["innings_redo_list"].present?
-                data[other_player]["innings_redo_list"][-1] =
-                  data[other_player]["innings_redo_list"][-1].to_i * 6
-              end
-              data[current_role]["result_3b"] =
-                (data[current_role]["innings_list"]&.sum.to_i + data[current_role]["innings_redo_list"][-1].to_i) / 6
-              data[other_player]["result_3b"] =
-                (data[other_player]["innings_list"]&.sum.to_i + data[other_player]["innings_redo_list"][-1].to_i) / 6
-              data[current_role]["innings_3b"] = data[current_role]["innings"].to_i
-              data[other_player]["innings_3b"] = data[other_player]["innings"].to_i
-            end
-          else
-            Rails.logger.info("addn +++++ m6[#{id}]B: Processing input (n_balls=#{n_balls}, to_play=#{to_play}, allow_overflow=#{data["allow_overflow"].inspect})") if debug
-            # When allow_overflow is false: inputs that exceed goal are already rejected (should_process_input)
-            # When allow_overflow is true: allow inputs beyond goal (cap at goal for game logic)
-            # Always allow negative corrections without capping
-            add = if data["allow_overflow"].present?
-                    # With overflow: cap at goal to prevent issues, but allow beyond in special cases
-                    n_balls > 0 ? [n_balls, to_play].min : n_balls
-                  else
-                    # Without overflow: input was already validated, just use it
-                    n_balls
-                  end
-            data[current_role]["fouls_1"] = 0
-            data[current_role]["innings_redo_list"][-1] =
-              [(data[current_role]["innings_redo_list"][-1].to_i + add.to_i), 0].max
-            recompute_result(current_role)
-
-            # Update snooker state when ball is potted (unless it's a foul)
-            if data["free_game_form"] == "snooker" && !skip_snooker_state_update
-              update_snooker_state(n_balls)
-              # Track balls potted in current break for protocol display
-              data[current_role]["break_balls_redo_list"] ||= []
-              if data[current_role]["break_balls_redo_list"].empty?
-                data[current_role]["break_balls_redo_list"] = [[]]
-              end
-              data[current_role]["break_balls_redo_list"][-1] ||= []
-              data[current_role]["break_balls_redo_list"][-1] = Array(data[current_role]["break_balls_redo_list"][-1]) + [n_balls]
-
-              # Clear last_foul when a new ball is potted (foul display is over)
-              data.delete("last_foul")
-              
-              # Check if all balls are potted (frame end)
-              snooker_state = data["snooker_state"] || {}
-              reds_remaining = snooker_state["reds_remaining"].to_i
-              colors_sequence = snooker_state["colors_sequence"] || []
-              
-              if reds_remaining <= 0 && colors_sequence.empty?
-                # All balls potted - frame is over
-                # Set flag so end_of_set? knows frame is complete
-                Rails.logger.info "[add_n_balls] Snooker frame[#{game_id}] on TM[#{id}]: All balls potted, setting frame_complete flag"
-                data["snooker_frame_complete"] = true
-                data_will_change!
-                self.copy_from = nil
-                save!
-                evaluate_result
-                return
-              end
-            end
-          end
-          # Terminate inning (and potentially end game) if goal was reached exactly
-          if add == to_play
-            Rails.logger.info("addn +++++ m6[#{id}]C: add == to_play (terminating inning)") if debug
-            data_will_change!
-            self.copy_from = nil
-            terminate_current_inning(player)
-          else
-            Rails.logger.info("addn +++++ m6[#{id}]D: add != to_play (#{add} != #{to_play})") if debug
-            self.copy_from = nil
-            data_will_change!
-          end
-        end
-      else
-        @msg = "Game Finished - no more inputs allowed"
-        nil
-      end
-    end
+    data_will_change!
+    self.copy_from = nil
+    terminate_current_inning(player) if result == :goal_reached
   rescue StandardError => e
-    Rails.logger.info "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}" if DEBUG
+    Rails.logger.error "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}"
     Tournament.logger.info "ERROR: #{e}, #{e.backtrace&.join("\n")}"
     raise StandardError
   end
 
   def reset_timer!
-    if DEBUG
-      Rails.logger.info "---------------m6[#{id}]------>>> reset_timer! <<<------------------------------------------"
-    end
+    Rails.logger.debug { "---------------m6[#{id}]------>>> reset_timer! <<<------------------------------------------" }
     assign_attributes(
       active_timer: nil,
       timer_start_at: nil,
@@ -1719,7 +1094,7 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
     )
   rescue StandardError => e
     Tournament.logger.info "#{e}, #{e.backtrace.to_a.join("\n")}"
-    Rails.logger.info "ERROR: m6[#{id}]#{e}, #{e.backtrace.to_a.join("\n")}" if DEBUG
+    Rails.logger.error "ERROR: m6[#{id}]#{e}, #{e.backtrace.to_a.join("\n")}"
     raise StandardError unless Rails.env == "production"
   end
 
@@ -2034,113 +1409,24 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
   end
 
   def set_n_balls(n_balls, change_to_pointer_mode = false)
-    if DEBUG
-      Rails.logger.info "-------------m6[#{id}]--------\
->>> #{"set_n_balls(#{n_balls}, #{change_to_pointer_mode})"} <<<\
-------------------------------------------"
-    end
-    if discipline == "Biathlon"
-      balls_goal_3b = 15
-      data["biathlon_phase"] ||= "3b"
-    end
-    debug = true # true
-    Rails.logger.info("setn ++++m6[#{id}]+  : ") if debug
-    @msg = nil
-    if playing?
-      Rails.logger.info("setn +++++ m6[#{id}]A: playing?") if debug
-      current_role = data["current_inning"]["active_player"]
-      init_lists(current_role)
-      to_play = data[current_role].andand["balls_goal"].to_i <= 0 ? 99_999 : data[current_role].andand["balls_goal"].to_i - data[current_role].andand["result"].to_i
-      if n_balls <= to_play || data["allow_overflow"].present?
-        Rails.logger.info("setn +++++ m6[#{id}]B: n_balls <= to_play || data[\"allow_overflow\"].present?") if debug
-        set = [n_balls, to_play].min
-        data[current_role]["innings_redo_list"][-1] = set
-        to_play_3b = balls_goal_3b - data[current_role].andand["result"].to_i if data["biathlon_phase"] == "3b"
-        if data["biathlon_phase"] != "3b" || n_balls <= to_play_3b
-          if set == to_play
-            Rails.logger.info("setn +++++ m6[#{id}]C: add == to_play") if debug
-            data_will_change!
-            assign_attributes(nnn: nil, panel_state: change_to_pointer_mode ? "pointer_mode" : panel_state)
-            save
-            terminate_current_inning
-          else
-            Rails.logger.info("setn +++++ m6[#{id}]D: add != to_play") if debug
-            # data[current_role]["innings_redo_list"].pop if Array(data[current_role]["innings_redo_list"]).last.to_i > 10000
-            data_will_change!
-            assign_attributes(nnn: nil, panel_state: change_to_pointer_mode ? "pointer_mode" : panel_state)
-            save
-          end
+    return unless playing?
 
-          to_play_3b = balls_goal_3b - data[current_role].andand["result"].to_i if data["biathlon_phase"] == "3b"
-          if data["biathlon_phase"] != "3b" || n_balls <= to_play_3b
-            if n_balls <= to_play || data["allow_overflow"].present?
-              if data["biathlon_phase"] == "3b"
-                [n_balls, to_play_3b].min
-                # data[current_role]['innings_redo_list'][-1] = set
-                recompute_result(current_role)
-                if debug
-                  Rails.logger.info("addn +++++ m6[#{id}]B: n_balls <= to_play || data[\"allow_overflow\"].present?")
-                end
-                if (data[current_role]["innings_list"]&.sum.to_i + data[current_role]["innings_redo_list"][-1].to_i) == balls_goal_3b
-                  other_player = current_role == "playera" ? "playerb" : "playera"
-                  data["biathlon_phase"] = "5k"
-                  Array(data[current_role]["innings_list"]).each_with_index do |val, ix|
-                    data[current_role]["innings_list"][ix] = val.to_i * 6
-                  end
-                  data[current_role]["result"] = data[current_role]["result"].to_i * 6
-                  data[current_role]["innings_redo_list"][-1] = data[current_role]["innings_redo_list"][-1].to_i * 6
-                  Array(data[other_player]["innings_list"]).each_with_index do |val, ix|
-                    data[other_player]["innings_list"][ix] = val.to_i * 6
-                  end
-                  data[other_player]["result"] = data[other_player]["result"].to_i * 6
-                  data[other_player]["innings_redo_list"][-1] = data[other_player]["innings_redo_list"][-1].to_i * 6
-                  data[current_role]["result_3b"] =
-                    (data[current_role]["innings_list"]&.sum.to_i + data[current_role]["innings_redo_list"][-1].to_i) / 6
-                  data[other_player]["result_3b"] =
-                    (data[other_player]["innings_list"]&.sum.to_i + data[other_player]["innings_redo_list"][-1].to_i) / 6
-                  data[current_role]["innings_3b"] = data[current_role]["innings"].to_i
-                  data[other_player]["innings_3b"] = data[other_player]["innings"].to_i
-                end
-              else
-                if debug
-                  Rails.logger.info("addn +++++ m6[#{id}]B: n_balls <= to_play || data[\"allow_overflow\"].present?")
-                end
-                add = [n_balls, to_play].min
-                data[current_role]["fouls_1"] = 0
-                data[current_role]["innings_redo_list"][-1] =
-                  [add, 0].max
-                recompute_result(current_role)
-              end
-              if add == to_play
-                Rails.logger.info("addn +++++ m6[#{id}]C: add == to_play") if debug
-                data_will_change!
-                self.copy_from = nil
-                terminate_current_inning(player)
-              else
-                Rails.logger.info("addn +++++ m6[#{id}]D: add != to_play") if debug
-                self.copy_from = nil
-                data_will_change!
-              end
-            end
-          else
-            @msg = "Game Finished - no more inputs allowed"
-            nil
-          end
-        end
-      end
+    result = score_engine.set_n_balls(n_balls, change_to_pointer_mode)
+    data_will_change!
+    assign_attributes(nnn: nil, panel_state: change_to_pointer_mode ? "pointer_mode" : panel_state)
+    if result == :goal_reached
+      save
+      terminate_current_inning
     else
-      @msg = "Game Finished - no more inputs allowed"
-      nil
+      save
     end
   rescue StandardError => e
-    Rails.logger.info "ERROR: #{e}, #{e.backtrace&.join("\n")}" if DEBUG
+    Rails.logger.error "ERROR: #{e}, #{e.backtrace&.join("\n")}"
     raise StandardError unless Rails.env == "production"
   end
 
   def terminate_current_inning(player = nil)
-    if DEBUG
-      Rails.logger.info "--------------m6[#{id}]------->>> terminate_current_inning <<<------------------------------------------"
-    end
+    Rails.logger.debug { "--------------m6[#{id}]------->>> terminate_current_inning <<<------------------------------------------" }
     @msg = nil
     TableMonitor.transaction do
       current_role = player.presence || data["current_inning"]["active_player"]
@@ -2247,7 +1533,7 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
     end
   rescue StandardError => e
     Tournament.logger.info "#{e}, #{e.backtrace&.join("\n")}"
-    Rails.logger.info "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}" if DEBUG
+    Rails.logger.error "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}"
     raise StandardError unless Rails.env == "production"
   end
 
@@ -2268,18 +1554,15 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
         (kickoff_player_has_balls_goal && has_reached_balls_goal ||
           (innings_goal_exists && kickoff_player_has_reached_innings_goal))
       )
-    if DEBUG
-      Rails.logger.info("+++++ FOLLOW_UP? returns #{ret}: (active_player_is_follow_up_player:#{active_player_is_follow_up_player} && (kickoff_player_has_balls_goal:#{kickoff_player_has_balls_goal} && has_reached_balls_goal:#{has_reached_balls_goal} || (innings_goal_exists:#{innings_goal_exists} && kickoff_player_has_reached_innings_goal:#{kickoff_player_has_reached_innings_goal}))")
-    end
+    Rails.logger.debug { "+++++ FOLLOW_UP? returns #{ret}: (active_player_is_follow_up_player:#{active_player_is_follow_up_player} && (kickoff_player_has_balls_goal:#{kickoff_player_has_balls_goal} && has_reached_balls_goal:#{has_reached_balls_goal} || (innings_goal_exists:#{innings_goal_exists} && kickoff_player_has_reached_innings_goal:#{kickoff_player_has_reached_innings_goal}))" }
     ret
   rescue StandardError => e
-    Rails.logger.info "--------------m6[#{id}]------->>> numbers <<<------------------------------------------" if DEBUG
-    Rails.logger.info "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}" if DEBUG
+    Rails.logger.error "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}"
     raise StandardError
   end
 
   def redo
-    Rails.logger.info "----------------m6[#{id}]----->>> redo <<<------------------------------------------" if DEBUG
+    Rails.logger.debug { "----------------m6[#{id}]----->>> redo <<<------------------------------------------" }
     return unless playing?
 
     current_role = data["current_inning"]["active_player"]
@@ -2300,11 +1583,6 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
       return
     end
 
-    # For other disciplines, redo works like next_step: terminate current inning
-    # until we reach the current state (no more undone state)
-    # Check if there's a current inning with points to terminate
-    innings_redo = Array(data[current_role]["innings_redo_list"]).last.to_i
-
     # If we're in an undone state, restore forward through versions first
     if copy_from.present? && copy_from < versions.last.index
       next_copy_from = copy_from + 1
@@ -2318,8 +1596,9 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
       end
     end
 
-    # If we're at current state and there's a current inning with points, terminate it
-    if innings_redo > 0
+    # For other disciplines: delegate hash-based redo to ScoreEngine
+    result = score_engine.redo_hash
+    if result == :inning_terminated
       terminate_current_inning
     end
   end
@@ -2367,11 +1646,11 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
   end
 
   def undo
-    Rails.logger.info "-----------------m6[#{id}]---->>> undo <<<------------------------------------------" if DEBUG
+    Rails.logger.debug { "-----------------m6[#{id}]---->>> undo <<<------------------------------------------" }
     if playing? || set_over?
       current_role = data["current_inning"]["active_player"]
-      the_other_player = (current_role == "playera" ? "playerb" : "playera")
       if data[current_role]["discipline"] == "14.1 endlos"
+        # PaperTrail-based undo for 14.1 endlos — stays in TableMonitor
         if (data["playera"]["innings"].to_i + data["playerb"]["innings"].to_i +
           data["playera"]["result"].to_i + data["playerb"]["result"].to_i +
           data["sets"].to_a.length +
@@ -2379,14 +1658,10 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
           self.state = "match_shootout"
         elsif self.copy_from.present?
           copy_from_ = self.copy_from - 1
-          # w = versions[self.copy_from].reify(dup: true)
-          # w.attributes
-          # save!
           prev_version = versions[copy_from_].reify
           prev_version.copy_from = copy_from_
           prev_version.save!
           reload
-          # deep_merge_data!(versions[self.copy_from].reify.data)
         else
           if set_over?
             play_versions = versions.where("whodunnit ilike '%in `do_play''%'").to_a
@@ -2401,15 +1676,16 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
           prev_version.copy_from = copy_from_
           prev_version.save!
           reload
-          # deep_merge_data!(versions.last.reify.data)
         end
       elsif set_over?
+        # PaperTrail-based undo for set_over state — stays in TableMonitor
         version = self.versions[-3]
         tt = version.reify
         tt.copy_from = version.index
         tt.save!
         reload
       elsif simple_set_game? && data["sets"].present?
+        # PaperTrail-based undo for multi-set games — stays in TableMonitor
         play_versions = if self.copy_from.present?
                           versions.where("whodunnit ilike '%in `switch_to_next_set''%'").select do |v|
                             v.index < self.copy_from
@@ -2417,90 +1693,25 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
                         else
                           versions.where("whodunnit ilike '%in `switch_to_next_set''%'")
                         end
-        p_version = PaperTrail::Version[
-          play_versions[-2].id + 1
-        ]
+        p_version = PaperTrail::Version[play_versions[-2].id + 1]
         copy_from_ = p_version.index
         prev_version = p_version.reify
         prev_version.copy_from = copy_from_
         prev_version.save!
         reload
-      # LIFO order: Check most recent action first (current player's break)
-      elsif (data[current_role]["innings_redo_list"].andand[-1].to_i).positive?
-        # Reduce current break for active player (most recent action)
-        if data["free_game_form"] == "snooker"
-          undo_snooker_ball(current_role)
-        else
-          # For non-snooker: simple decrement
-          current_break = data[current_role]["innings_redo_list"][-1].to_i
-          data[current_role]["innings_redo_list"][-1] = [current_break - 1, 0].max
-          recompute_result(current_role)
-        end
-      # Check other player's break (when player was switched but other player still has break)
-      elsif data["free_game_form"] == "snooker" && (data[the_other_player]["innings_redo_list"].andand[-1].to_i).positive?
-        # For snooker only: Reduce break for other player and switch back
-        undo_snooker_ball(the_other_player)
-        # Switch back to other player
-        data["current_inning"]["active_player"] = the_other_player
-      # Check other player's completed innings (oldest action, checked last in LIFO order)
-      elsif (data[the_other_player]["innings"]).to_i.positive?
-        # For snooker: restore the completed inning to redo_list AND restore break_balls
-        if data["free_game_form"] == "snooker"
-          # Move last completed inning back to redo
-          if data[the_other_player]["innings_list"].present?
-            arr = Array(data[the_other_player]["innings_list"])
-            data[the_other_player]["innings_redo_list"] << arr.pop.to_i if arr.present?
-          end
-
-          # Restore break_balls from break_balls_list to break_balls_redo_list
-          if data[the_other_player]["break_balls_list"].present?
-            last_break_balls = data[the_other_player]["break_balls_list"].pop
-            data[the_other_player]["break_balls_redo_list"] ||= []
-            data[the_other_player]["break_balls_redo_list"] << (last_break_balls || [])
-          end
-
-          # Recalculate snooker state from protocol
-          recalculate_snooker_state_from_protocol
-
-          # Update last_potted_ball to last ball in the restored break
-          if data[the_other_player]["break_balls_redo_list"]&.[](-1)&.any?
-            data["snooker_state"]["last_potted_ball"] = data[the_other_player]["break_balls_redo_list"][-1].last
-          end
-
-          data[the_other_player]["innings"] -= 1
-          recompute_result(the_other_player)
-          data[the_other_player]["hs"] = data[the_other_player]["innings_list"]&.max.to_i
-          data[the_other_player]["gd"] =
-            format("%.2f", data[the_other_player]["result"].to_f / data[the_other_player]["innings"].to_i) if data[the_other_player]["innings"].to_i > 0
-          data["current_inning"]["active_player"] = the_other_player
-        else
-          # For non-snooker: standard logic
-          if data[the_other_player]["innings_list"].present?
-            arr = Array(data[the_other_player]["innings_list"])
-            data[the_other_player]["innings_redo_list"] << arr.pop.to_i if arr.present?
-          end
-          data[the_other_player]["innings"] -= 1
-          data[the_other_player]["result"] = data[the_other_player]["innings_list"]&.sum.to_i
-          data[the_other_player]["hs"] = data[the_other_player]["innings_list"]&.max.to_i
-          data[the_other_player]["gd"] =
-            format("%.2f", data[the_other_player]["result"].to_f / data[current_role]["innings"].to_i)
-          data["current_inning"]["active_player"] = the_other_player
-        end
-      elsif (data["playera"]["innings"].to_i + data["playerb"]["innings"].to_i +
-        data["playera"]["result"].to_i + data["playerb"]["result"].to_i +
-        data["sets"].to_a.length +
-        data["playera"]["innings_redo_list"].andand[-1].to_i + data["playerb"]["innings_redo_list"].andand[-1].to_i).zero?
-        self.state = "match_shootout"
+      else
+        # Non-PaperTrail hash mutation — delegate to ScoreEngine
+        score_engine.undo_hash
+        data_will_change!
+        save!
       end
-      data_will_change!
-      save!
     else
       @msg = "Game Finished - no more inputs allowed"
       nil
     end
   rescue StandardError => e
     Tournament.logger.info "#{e}, #{e.backtrace&.join("\n")}"
-    Rails.logger.info "ERROR: #{e}, #{e.backtrace&.join("\n")}" if DEBUG
+    Rails.logger.error "ERROR: #{e}, #{e.backtrace&.join("\n")}"
     raise StandardError unless Rails.env == "production"
   end
 
@@ -3216,188 +2427,15 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
 
   # Game Protocol Modal - Get innings history for both players
   def innings_history
-    Rails.logger.warn "=" * 80
-    Rails.logger.warn "📋 INNINGS_HISTORY_DEBUG 📋 START for TableMonitor #{id}"
-
-    gps = game&.game_participations&.order(:role).to_a
-
-    # Get completed and current innings (FIX: Handle empty arrays correctly!)
-    innings_list_a = Array(data.dig('playera', 'innings_list'))
-    innings_redo_a = Array(data.dig('playera', 'innings_redo_list'))
-    innings_redo_a = [0] if innings_redo_a.empty?
-
-    innings_list_b = Array(data.dig('playerb', 'innings_list'))
-    innings_redo_b = Array(data.dig('playerb', 'innings_redo_list'))
-    innings_redo_b = [0] if innings_redo_b.empty?
-
-    innings_counter_a = data.dig('playera', 'innings').to_i
-    innings_counter_b = data.dig('playerb', 'innings').to_i
-
-    # Get active player
-    active_player = data.dig('current_inning', 'active_player')
-
-    Rails.logger.warn "📋 INNINGS_HISTORY_DEBUG 📋 INPUT DATA:"
-    Rails.logger.warn "  Player A: counter=#{innings_counter_a}, list=#{innings_list_a.inspect}, redo=#{innings_redo_a.inspect}"
-    Rails.logger.warn "  Player B: counter=#{innings_counter_b}, list=#{innings_list_b.inspect}, redo=#{innings_redo_b.inspect}"
-    Rails.logger.warn "  Active player: #{active_player}"
-
-    # Number of rows = completed innings + 1 for current inning
-    # An inning is only complete when BOTH players have played
-    # So we use MIN, not MAX of the list lengths
-    completed_innings = [innings_list_a.length, innings_list_b.length].min
-    num_rows = completed_innings + 1
-    num_rows = [num_rows, 1].max # At least 1
-
-    Rails.logger.warn "📋 INNINGS_HISTORY_DEBUG 📋 CALCULATION:"
-    Rails.logger.warn "  completed_innings (MIN of list lengths) = #{completed_innings}"
-    Rails.logger.warn "  num_rows (completed + 1) = #{num_rows}"
-
-    # Build arrays with EXACTLY num_rows
-    innings_a = []
-    innings_b = []
-
-    (0...num_rows).each do |i|
-      # For Player A at row i
-      if i < innings_list_a.length
-        # Completed inning from list
-        innings_a << innings_list_a[i]
-      elsif i == innings_list_a.length && (active_player == 'playera' || data.dig('playera', 'innings').to_i > innings_list_a.length)
-        # Current inning from redo_list - only if A is active OR A's innings counter is ahead
-        innings_a << (innings_redo_a[0] || 0)
-      else
-        # Not yet started or other player is active - empty/nil
-        innings_a << nil
-      end
-
-      # For Player B at row i
-      if i < innings_list_b.length
-        # Completed inning from list
-        innings_b << innings_list_b[i]
-      elsif i == innings_list_b.length && (active_player == 'playerb' || data.dig('playerb', 'innings').to_i > innings_list_b.length)
-        # Current inning from redo_list - only if B is active OR B's innings counter is ahead
-        innings_b << (innings_redo_b[0] || 0)
-      else
-        # Not yet started or other player is active - empty/nil
-        innings_b << nil
-      end
-    end
-
-    # Calculate running totals from the complete innings arrays
-    # Skip nil values (player hasn't played that inning yet)
-    totals_a = []
-    totals_b = []
-    sum_a = 0
-    sum_b = 0
-    innings_a.each_with_index do |points, i|
-      if points.nil?
-        totals_a << nil
-      else
-        sum_a += points.to_i
-        totals_a << sum_a
-      end
-    end
-    innings_b.each_with_index do |points, i|
-      if points.nil?
-        totals_b << nil
-      else
-        sum_b += points.to_i
-        totals_b << sum_b
-      end
-    end
-
-    # Get break balls and fouls for snooker
-    break_balls_a = []
-    break_balls_b = []
-    break_fouls_a = []
-    break_fouls_b = []
-
-    if data["free_game_form"] == "snooker"
-      break_balls_list_a = Array(data.dig('playera', 'break_balls_list'))
-      break_balls_list_b = Array(data.dig('playerb', 'break_balls_list'))
-      break_fouls_list_a = Array(data.dig('playera', 'break_fouls_list'))
-      break_fouls_list_b = Array(data.dig('playerb', 'break_fouls_list'))
-      break_balls_redo_a = Array(data.dig('playera', 'break_balls_redo_list')).last || []
-      break_balls_redo_b = Array(data.dig('playerb', 'break_balls_redo_list')).last || []
-
-      (0...num_rows).each do |i|
-        if i < break_balls_list_a.length
-          break_balls_a << break_balls_list_a[i]
-        elsif i == break_balls_list_a.length && active_player == 'playera'
-          break_balls_a << break_balls_redo_a
-        else
-          break_balls_a << nil
-        end
-
-        if i < break_balls_list_b.length
-          break_balls_b << break_balls_list_b[i]
-        elsif i == break_balls_list_b.length && active_player == 'playerb'
-          break_balls_b << break_balls_redo_b
-        else
-          break_balls_b << nil
-        end
-
-        if i < break_fouls_list_a.length
-          break_fouls_a << break_fouls_list_a[i]
-        else
-          break_fouls_a << nil
-        end
-
-        if i < break_fouls_list_b.length
-          break_fouls_b << break_fouls_list_b[i]
-        else
-          break_fouls_b << nil
-        end
-      end
-    end
-
-    Rails.logger.warn "📋 INNINGS_HISTORY_DEBUG 📋 RESULT:"
-    Rails.logger.warn "  Player A innings (#{innings_a.length} items): #{innings_a.inspect}"
-    Rails.logger.warn "  Player B innings (#{innings_b.length} items): #{innings_b.inspect}"
-    Rails.logger.warn "  Will display #{[innings_a.length, innings_b.length].max} rows in protocol"
-    Rails.logger.warn "📋 INNINGS_HISTORY_DEBUG 📋 END"
-    Rails.logger.warn "=" * 80
-
-    result = {
-      player_a: {
-        name: gps[0]&.player&.fullname || "Spieler A",
-        shortname: gps[0]&.player&.shortname || "Spieler A",
-        innings: innings_a,
-        totals: totals_a,
-        result: data.dig('playera', 'result').to_i,
-        innings_count: data.dig('playera', 'innings').to_i
-      },
-      player_b: {
-        name: gps[1]&.player&.fullname || "Spieler B",
-        shortname: gps[1]&.player&.shortname || "Spieler B",
-        innings: innings_b,
-        totals: totals_b,
-        result: data.dig('playerb', 'result').to_i,
-        innings_count: data.dig('playerb', 'innings').to_i
-      },
-      current_inning: {
-        number: num_rows, # Current inning = number of rows
-        active_player: data.dig('current_inning', 'active_player')
-      },
-      discipline: data.dig('playera', 'discipline'),
-      balls_goal: data.dig('playera', 'balls_goal').to_i
-    }
-
-    # Add snooker-specific data
-    if data["free_game_form"] == "snooker"
-      result[:player_a][:break_balls] = break_balls_a
-      result[:player_a][:break_fouls] = break_fouls_a
-      result[:player_b][:break_balls] = break_balls_b
-      result[:player_b][:break_fouls] = break_fouls_b
-    end
-
-    result
+    gps = game&.game_participations&.order(:role).to_a || []
+    score_engine.innings_history(gps: gps)
   rescue StandardError => e
-    Rails.logger.info "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}" if DEBUG
+    Rails.logger.error "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}"
     {
-      player_a: { name: 'Spieler A', innings: [], totals: [], result: 0, innings_count: 0 },
-      player_b: { name: 'Spieler B', innings: [], totals: [], result: 0, innings_count: 0 },
-      current_inning: { number: 1, active_player: 'playera' },
-      discipline: '',
+      player_a: { name: "Spieler A", innings: [], totals: [], result: 0, innings_count: 0 },
+      player_b: { name: "Spieler B", innings: [], totals: [], result: 0, innings_count: 0 },
+      current_inning: { number: 1, active_player: "playera" },
+      discipline: "",
       balls_goal: 0
     }
   end
