@@ -156,8 +156,8 @@ Plans:
   4. All 27 reviewed files pass after improvements; no regressions introduced
 **Plans:** 2 plans
 Plans:
-- [ ] 09-01-PLAN.md — Bulk frozen_string_literal sweep (22 controller/system/integration/task test files)
-- [ ] 09-02-PLAN.md — 6 targeted logic fixes (delete non-test, fix assertions, replace regex, remove sleep)
+- [x] 09-01-PLAN.md — Bulk frozen_string_literal sweep (22 controller/system/integration/task test files)
+- [x] 09-02-PLAN.md — 6 targeted logic fixes (delete non-test, fix assertions, replace regex, remove sleep)
 
 ### Phase 10: Final Pass & Green Suite
 **Goal**: All cross-cutting quality issues are resolved — skipped tests are fixed or removed, brittle tests are hardened, dead tests are deleted, and the full test suite is green
