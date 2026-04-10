@@ -4,34 +4,34 @@ require "test_helper"
 require "rake"
 
 class AutoReserveTablesTaskTest < ActiveSupport::TestCase
+  # IDs >= Table::MIN_ID (50_000_000) so tpl_ip_address is read directly from table
+  TABLE_BASE_ID = 52_000_000
+  LOCATION_BASE_ID = 52_000_100
+  REGION_BASE_ID = 52_000_200
+  DISCIPLINE_BASE_ID = 52_000_300
+  TABLE_KIND_BASE_ID = 52_000_400
+
   setup do
     # Load rake tasks
     Rails.application.load_tasks if Rake::Task.tasks.empty?
-    
-    @season = Season.create!(name: "2025/2026")
-    @region = Region.create!(shortname: "TEST", name: "Test Region")
-    
+
+    @season = seasons(:current)
+    @region = Region.create!(id: REGION_BASE_ID + 1, shortname: "TASK", name: "Task Test Region")
+
     # Create table kinds and disciplines
-    @table_kind_small = TableKind.create!(name: "Small Billard")
-    @discipline_cadre = Discipline.create!(
-      name: "Cadre 35/2",
-      table_kind: @table_kind_small
-    )
-    
-    # Create location with tables
-    @location = Location.create!(
-      name: "Test Club",
-      address: "Test Street 1",
-      organizer: @region
-    )
-    
-    # Create tables with heaters
+    @table_kind_small = TableKind.create!(id: TABLE_KIND_BASE_ID + 1, name: "Small Billard Task")
+    @discipline_cadre = Discipline.create!(id: DISCIPLINE_BASE_ID + 1, name: "Cadre 35/2 Task", table_kind: @table_kind_small)
+
+    # Create location with tables — IDs >= MIN_ID
+    @location = Location.create!(id: LOCATION_BASE_ID + 1, name: "Task Test Club", address: "Task Street 1", organizer: @region)
+
     3.times do |i|
       Table.create!(
-        name: "T#{i+1}",
+        id: TABLE_BASE_ID + i + 1,
+        name: "T#{i + 1}",
         location: @location,
         table_kind: @table_kind_small,
-        tpl_ip_address: i+1
+        tpl_ip_address: i + 1
       )
     end
   end
@@ -41,62 +41,68 @@ class AutoReserveTablesTaskTest < ActiveSupport::TestCase
     Rake::Task.clear
   end
 
+  # Helper: stub create_google_calendar_event to return a fake response
+  def stub_calendar_event(tournament, response: nil)
+    fake_response = response || OpenStruct.new(id: "test_event_stub", summary: "stubbed")
+    tournament.stub(:create_google_calendar_event, ->(_summary, _start, _end) { fake_response }) do
+      yield
+    end
+  end
+
   test "task finds tournaments with registration deadline in last 7 days" do
-    # Create tournament with deadline yesterday
-    tournament_recent = Tournament.create!(
-      title: "Recent Tournament",
-      season: @season,
-      organizer: @region,
-      discipline: @discipline_cadre,
-      location: @location,
-      single_or_league: "single",
-      date: 1.week.from_now,
-      accredation_end: 1.day.ago
-    )
-    
-    # Add participants
-    4.times do |i|
-      player = Player.create!(firstname: "Player", lastname: "#{i+1}")
-      Seeding.create!(tournament_id: tournament_recent.id, tournament_type: "Tournament", player: player, state: "registered")
+    freeze_time = Time.current
+
+    travel_to freeze_time do
+      # Create tournament with deadline yesterday
+      tournament_recent = Tournament.create!(
+        title: "Recent Tournament",
+        season: @season,
+        organizer: @region,
+        discipline: @discipline_cadre,
+        location: @location,
+        single_or_league: "single",
+        date: 1.week.from_now,
+        accredation_end: 1.day.ago
+      )
+
+      # Add participants
+      4.times do |i|
+        player = Player.create!(firstname: "Player", lastname: "#{i + 1}")
+        Seeding.create!(tournament_id: tournament_recent.id, tournament_type: "Tournament", player: player, state: "registered")
+      end
+
+      # Create tournament with deadline 10 days ago (should be ignored)
+      Tournament.create!(
+        title: "Old Tournament",
+        season: @season,
+        organizer: @region,
+        discipline: @discipline_cadre,
+        location: @location,
+        single_or_league: "single",
+        date: 1.week.from_now,
+        accredation_end: 10.days.ago
+      )
+
+      # Find tournaments (simulate what task does)
+      cutoff_date = 7.days.ago
+      now = freeze_time
+
+      tournaments = Tournament
+        .where(single_or_league: "single")
+        .where.not(location_id: nil)
+        .where.not(discipline_id: nil)
+        .where("date >= ?", now)
+        .where("accredation_end IS NOT NULL")
+        .where("accredation_end >= ? AND accredation_end <= ?", cutoff_date, now)
+
+      assert_equal 1, tournaments.count
+      assert_equal tournament_recent.id, tournaments.first.id
     end
-    
-    # Create tournament with deadline 10 days ago (should be ignored)
-    tournament_old = Tournament.create!(
-      title: "Old Tournament",
-      season: @season,
-      organizer: @region,
-      discipline: @discipline_cadre,
-      location: @location,
-      single_or_league: "single",
-      date: 1.week.from_now,
-      accredation_end: 10.days.ago
-    )
-    
-    # Add participants
-    4.times do |i|
-      player = Player.create!(firstname: "OldPlayer", lastname: "#{i+1}")
-      Seeding.create!(tournament_id: tournament_old.id, tournament_type: "Tournament", player: player, state: "registered")
-    end
-    
-    # Find tournaments (simulate what task does)
-    cutoff_date = 7.days.ago
-    now = Time.current
-    
-    tournaments = Tournament
-      .where(single_or_league: 'single')
-      .where.not(location_id: nil)
-      .where.not(discipline_id: nil)
-      .where('date >= ?', now)
-      .where('accredation_end IS NOT NULL')
-      .where('accredation_end >= ? AND accredation_end <= ?', cutoff_date, now)
-    
-    assert_equal 1, tournaments.count
-    assert_equal tournament_recent.id, tournaments.first.id
   end
 
   test "task ignores league tournaments" do
     # Create league tournament
-    tournament_league = Tournament.create!(
+    Tournament.create!(
       title: "League Tournament",
       season: @season,
       organizer: @region,
@@ -106,30 +112,23 @@ class AutoReserveTablesTaskTest < ActiveSupport::TestCase
       date: 1.week.from_now,
       accredation_end: 1.day.ago
     )
-    
-    # Add participants
-    4.times do |i|
-      player = Player.create!(firstname: "Player", lastname: "#{i+1}")
-      Seeding.create!(tournament_id: tournament_league.id, tournament_type: "Tournament", player: player, state: "registered")
-    end
-    
-    # Find tournaments
+
     cutoff_date = 7.days.ago
     now = Time.current
-    
+
     tournaments = Tournament
-      .where(single_or_league: 'single')
+      .where(single_or_league: "single")
       .where.not(location_id: nil)
       .where.not(discipline_id: nil)
-      .where('date >= ?', now)
-      .where('accredation_end IS NOT NULL')
-      .where('accredation_end >= ? AND accredation_end <= ?', cutoff_date, now)
-    
+      .where("date >= ?", now)
+      .where("accredation_end IS NOT NULL")
+      .where("accredation_end >= ? AND accredation_end <= ?", cutoff_date, now)
+
     assert_equal 0, tournaments.count
   end
 
   test "task ignores tournaments without location" do
-    tournament = Tournament.create!(
+    Tournament.create!(
       title: "No Location Tournament",
       season: @season,
       organizer: @region,
@@ -139,30 +138,23 @@ class AutoReserveTablesTaskTest < ActiveSupport::TestCase
       date: 1.week.from_now,
       accredation_end: 1.day.ago
     )
-    
-    # Add participants
-    4.times do |i|
-      player = Player.create!(firstname: "Player", lastname: "#{i+1}")
-      Seeding.create!(tournament_id: tournament.id, tournament_type: "Tournament", player: player, state: "registered")
-    end
-    
-    # Find tournaments
+
     cutoff_date = 7.days.ago
     now = Time.current
-    
+
     tournaments = Tournament
-      .where(single_or_league: 'single')
+      .where(single_or_league: "single")
       .where.not(location_id: nil)
       .where.not(discipline_id: nil)
-      .where('date >= ?', now)
-      .where('accredation_end IS NOT NULL')
-      .where('accredation_end >= ? AND accredation_end <= ?', cutoff_date, now)
-    
+      .where("date >= ?", now)
+      .where("accredation_end IS NOT NULL")
+      .where("accredation_end >= ? AND accredation_end <= ?", cutoff_date, now)
+
     assert_equal 0, tournaments.count
   end
 
   test "task ignores tournaments without discipline" do
-    tournament = Tournament.create!(
+    Tournament.create!(
       title: "No Discipline Tournament",
       season: @season,
       organizer: @region,
@@ -172,30 +164,23 @@ class AutoReserveTablesTaskTest < ActiveSupport::TestCase
       date: 1.week.from_now,
       accredation_end: 1.day.ago
     )
-    
-    # Add participants
-    4.times do |i|
-      player = Player.create!(firstname: "Player", lastname: "#{i+1}")
-      Seeding.create!(tournament_id: tournament.id, tournament_type: "Tournament", player: player, state: "registered")
-    end
-    
-    # Find tournaments
+
     cutoff_date = 7.days.ago
     now = Time.current
-    
+
     tournaments = Tournament
-      .where(single_or_league: 'single')
+      .where(single_or_league: "single")
       .where.not(location_id: nil)
       .where.not(discipline_id: nil)
-      .where('date >= ?', now)
-      .where('accredation_end IS NOT NULL')
-      .where('accredation_end >= ? AND accredation_end <= ?', cutoff_date, now)
-    
+      .where("date >= ?", now)
+      .where("accredation_end IS NOT NULL")
+      .where("accredation_end >= ? AND accredation_end <= ?", cutoff_date, now)
+
     assert_equal 0, tournaments.count
   end
 
   test "task ignores tournaments in the past" do
-    tournament = Tournament.create!(
+    Tournament.create!(
       title: "Past Tournament",
       season: @season,
       organizer: @region,
@@ -205,30 +190,23 @@ class AutoReserveTablesTaskTest < ActiveSupport::TestCase
       date: 1.week.ago,
       accredation_end: 1.day.ago
     )
-    
-    # Add participants
-    4.times do |i|
-      player = Player.create!(firstname: "Player", lastname: "#{i+1}")
-      Seeding.create!(tournament_id: tournament.id, tournament_type: "Tournament", player: player, state: "registered")
-    end
-    
-    # Find tournaments
+
     cutoff_date = 7.days.ago
     now = Time.current
-    
+
     tournaments = Tournament
-      .where(single_or_league: 'single')
+      .where(single_or_league: "single")
       .where.not(location_id: nil)
       .where.not(discipline_id: nil)
-      .where('date >= ?', now)
-      .where('accredation_end IS NOT NULL')
-      .where('accredation_end >= ? AND accredation_end <= ?', cutoff_date, now)
-    
+      .where("date >= ?", now)
+      .where("accredation_end IS NOT NULL")
+      .where("accredation_end >= ? AND accredation_end <= ?", cutoff_date, now)
+
     assert_equal 0, tournaments.count
   end
 
   test "task ignores tournaments without accredation_end" do
-    tournament = Tournament.create!(
+    Tournament.create!(
       title: "No Deadline Tournament",
       season: @season,
       organizer: @region,
@@ -238,25 +216,18 @@ class AutoReserveTablesTaskTest < ActiveSupport::TestCase
       date: 1.week.from_now,
       accredation_end: nil
     )
-    
-    # Add participants
-    4.times do |i|
-      player = Player.create!(firstname: "Player", lastname: "#{i+1}")
-      Seeding.create!(tournament_id: tournament.id, tournament_type: "Tournament", player: player, state: "registered")
-    end
-    
-    # Find tournaments
+
     cutoff_date = 7.days.ago
     now = Time.current
-    
+
     tournaments = Tournament
-      .where(single_or_league: 'single')
+      .where(single_or_league: "single")
       .where.not(location_id: nil)
       .where.not(discipline_id: nil)
-      .where('date >= ?', now)
-      .where('accredation_end IS NOT NULL')
-      .where('accredation_end >= ? AND accredation_end <= ?', cutoff_date, now)
-    
+      .where("date >= ?", now)
+      .where("accredation_end IS NOT NULL")
+      .where("accredation_end >= ? AND accredation_end <= ?", cutoff_date, now)
+
     assert_equal 0, tournaments.count
   end
 
@@ -271,33 +242,20 @@ class AutoReserveTablesTaskTest < ActiveSupport::TestCase
       date: 1.week.from_now,
       accredation_end: 1.day.ago
     )
-    
+
     # Add participants
     4.times do |i|
-      player = Player.create!(firstname: "Player", lastname: "#{i+1}")
+      player = Player.create!(firstname: "Player", lastname: "#{i + 1}")
       Seeding.create!(tournament_id: tournament.id, tournament_type: "Tournament", player: player, state: "registered")
     end
-    
-    # Mock Google Calendar API
-    mock_service = Minitest::Mock.new
-    mock_response = OpenStruct.new(
-      id: "test_event_999",
-      summary: "T1, T2 Valid Tournament Cadre 35/2",
-      start: OpenStruct.new(date_time: Time.current),
-      end: OpenStruct.new(date_time: Time.current + 9.hours)
-    )
-    
-    mock_service.expect(:insert_event, mock_response, [String, Google::Apis::CalendarV3::Event])
-    
-    Google::Apis::CalendarV3::CalendarService.stub(:new, mock_service) do
-      Google::Auth::ServiceAccountCredentials.stub(:make_creds, ->(*) { "mock_auth" }) do
-        # Simulate task execution
-        result = tournament.create_table_reservation
-        
-        assert_not_nil result
-        assert_equal "test_event_999", result.id
-        mock_service.verify
-      end
+
+    fake_response = OpenStruct.new(id: "test_event_999", summary: "T1, T2 Valid Tournament Cadre 35/2 Task")
+
+    stub_calendar_event(tournament, response: fake_response) do
+      result = tournament.create_table_reservation
+
+      assert_not_nil result
+      assert_equal "test_event_999", result.id
     end
   end
 
@@ -312,10 +270,8 @@ class AutoReserveTablesTaskTest < ActiveSupport::TestCase
       date: 1.week.from_now,
       accredation_end: 1.day.ago
     )
-    
-    # No participants added
-    
-    # Should return nil (skipped)
+
+    # No participants added — should return nil (skipped)
     assert_nil tournament.create_table_reservation
   end
 
@@ -330,119 +286,106 @@ class AutoReserveTablesTaskTest < ActiveSupport::TestCase
       date: 1.week.from_now,
       accredation_end: 1.day.ago
     )
-    
+
     # Add only no_show participants
     4.times do |i|
-      player = Player.create!(firstname: "NoShow", lastname: "#{i+1}")
+      player = Player.create!(firstname: "NoShow", lastname: "#{i + 1}")
       Seeding.create!(tournament_id: tournament.id, tournament_type: "Tournament", player: player, state: "no_show")
     end
-    
+
     # Should return nil (no active participants)
     assert_nil tournament.create_table_reservation
   end
 
   test "task processes multiple tournaments" do
     # Create 3 valid tournaments
-    tournaments = []
     3.times do |i|
-      tournament = Tournament.create!(
-        title: "Tournament #{i+1}",
+      Tournament.create!(
+        title: "Tournament #{i + 1}",
         season: @season,
         organizer: @region,
         discipline: @discipline_cadre,
         location: @location,
         single_or_league: "single",
-        date: (i+1).weeks.from_now,
+        date: (i + 1).weeks.from_now,
         accredation_end: 1.day.ago
       )
-      
-      # Add participants
-      4.times do |j|
-        player = Player.create!(firstname: "Player#{i}", lastname: "#{j+1}")
-        Seeding.create!(tournament_id: tournament.id, tournament_type: "Tournament", player: player, state: "registered")
-      end
-      
-      tournaments << tournament
     end
-    
-    # Find tournaments
+
     cutoff_date = 7.days.ago
     now = Time.current
-    
+
     found_tournaments = Tournament
-      .where(single_or_league: 'single')
+      .where(single_or_league: "single")
       .where.not(location_id: nil)
       .where.not(discipline_id: nil)
-      .where('date >= ?', now)
-      .where('accredation_end IS NOT NULL')
-      .where('accredation_end >= ? AND accredation_end <= ?', cutoff_date, now)
-    
+      .where("date >= ?", now)
+      .where("accredation_end IS NOT NULL")
+      .where("accredation_end >= ? AND accredation_end <= ?", cutoff_date, now)
+
     assert_equal 3, found_tournaments.count
   end
 
   test "task boundary: deadline exactly 7 days ago should be included" do
-    tournament = Tournament.create!(
-      title: "Boundary Tournament",
-      season: @season,
-      organizer: @region,
-      discipline: @discipline_cadre,
-      location: @location,
-      single_or_league: "single",
-      date: 1.week.from_now,
-      accredation_end: 7.days.ago
-    )
-    
-    # Add participants
-    4.times do |i|
-      player = Player.create!(firstname: "Player", lastname: "#{i+1}")
-      Seeding.create!(tournament_id: tournament.id, tournament_type: "Tournament", player: player, state: "registered")
+    # Use travel_to to freeze time and avoid millisecond drift
+    freeze_time = Time.current
+
+    travel_to freeze_time do
+      exactly_7_days_ago = 7.days.ago
+
+      Tournament.create!(
+        title: "Boundary Tournament",
+        season: @season,
+        organizer: @region,
+        discipline: @discipline_cadre,
+        location: @location,
+        single_or_league: "single",
+        date: 1.week.from_now,
+        accredation_end: exactly_7_days_ago
+      )
+
+      cutoff_date = 7.days.ago
+      now = freeze_time
+
+      tournaments = Tournament
+        .where(single_or_league: "single")
+        .where.not(location_id: nil)
+        .where.not(discipline_id: nil)
+        .where("date >= ?", now)
+        .where("accredation_end IS NOT NULL")
+        .where("accredation_end >= ? AND accredation_end <= ?", cutoff_date, now)
+
+      assert_equal 1, tournaments.count
     end
-    
-    # Find tournaments
-    cutoff_date = 7.days.ago
-    now = Time.current
-    
-    tournaments = Tournament
-      .where(single_or_league: 'single')
-      .where.not(location_id: nil)
-      .where.not(discipline_id: nil)
-      .where('date >= ?', now)
-      .where('accredation_end IS NOT NULL')
-      .where('accredation_end >= ? AND accredation_end <= ?', cutoff_date, now)
-    
-    assert_equal 1, tournaments.count
   end
 
   test "task boundary: deadline exactly now should be included" do
-    tournament = Tournament.create!(
-      title: "Current Deadline Tournament",
-      season: @season,
-      organizer: @region,
-      discipline: @discipline_cadre,
-      location: @location,
-      single_or_league: "single",
-      date: 1.week.from_now,
-      accredation_end: Time.current
-    )
-    
-    # Add participants
-    4.times do |i|
-      player = Player.create!(firstname: "Player", lastname: "#{i+1}")
-      Seeding.create!(tournament_id: tournament.id, tournament_type: "Tournament", player: player, state: "registered")
+    freeze_time = Time.current
+
+    travel_to freeze_time do
+      Tournament.create!(
+        title: "Current Deadline Tournament",
+        season: @season,
+        organizer: @region,
+        discipline: @discipline_cadre,
+        location: @location,
+        single_or_league: "single",
+        date: 1.week.from_now,
+        accredation_end: freeze_time
+      )
+
+      cutoff_date = 7.days.ago
+      now = freeze_time
+
+      tournaments = Tournament
+        .where(single_or_league: "single")
+        .where.not(location_id: nil)
+        .where.not(discipline_id: nil)
+        .where("date >= ?", now)
+        .where("accredation_end IS NOT NULL")
+        .where("accredation_end >= ? AND accredation_end <= ?", cutoff_date, now)
+
+      assert_equal 1, tournaments.count
     end
-    
-    # Find tournaments
-    cutoff_date = 7.days.ago
-    now = Time.current
-    
-    tournaments = Tournament
-      .where(single_or_league: 'single')
-      .where.not(location_id: nil)
-      .where.not(discipline_id: nil)
-      .where('date >= ?', now)
-      .where('accredation_end IS NOT NULL')
-      .where('accredation_end >= ? AND accredation_end <= ?', cutoff_date, now)
-    
-    assert_equal 1, tournaments.count
   end
 end
