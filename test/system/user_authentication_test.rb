@@ -1,6 +1,8 @@
+# frozen_string_literal: true
+
 # test/system/user_authentication_test.rb
-require 'test_helper'
-require 'application_system_test_case'
+require "test_helper"
+require "application_system_test_case"
 
 class UserAuthenticationTest < ApplicationSystemTestCase
   test 'user can register with valid credentials' do
@@ -10,7 +12,7 @@ class UserAuthenticationTest < ApplicationSystemTestCase
     fill_in 'Password', with: 'password123'
     fill_in 'Password confirmation', with: 'password123'
     check 'I accept the Terms of Service'
-    sleep 3 # Simulate the time it takes for a human to fill out the form
+    travel 4.seconds # advance past invisible_captcha timestamp threshold
     click_button 'Sign up'
     assert_text 'Welcome! You have signed up successfully.'
   end
