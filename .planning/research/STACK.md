@@ -1,215 +1,346 @@
-# Technology Stack: Rails God-Model Refactoring
+# Stack Research: Tournament & TournamentMonitor Refactoring (v2.1)
 
-**Project:** Carambus API — TableMonitor & RegionCc extraction
-**Researched:** 2026-04-09
-**Scope:** Tools and patterns for extracting service objects from oversized ActiveRecord models in a Rails 7.2 / Minitest brownfield app
+**Domain:** Rails brownfield model refactoring with ActionCable, StimulusReflex, and ActiveJob coverage
+**Researched:** 2026-04-10
+**Confidence:** HIGH (codebase read directly; patterns verified from existing v1.0 and v2.0 work)
 
 ---
 
 ## Decision Summary
 
-This is a **no-new-framework** refactoring. The goal is extracting logic from two god-models into Plain Old Ruby Objects (POROs). The tooling question is narrow: what assists characterization testing, code smell detection, and safe service extraction? The answer is a small, targeted addition of dev/test gems — not a new architectural framework like dry-rb or interactor.
+This milestone is still a **no-new-framework** refactoring. The question is narrower than v1.0: what testing tools and patterns are needed to test the new surface area — ActionCable channels, StimulusReflex reflexes, controller actions, and ActiveJob jobs — beyond plain model unit tests?
+
+The answer is: **Rails 7.2 ships everything needed natively**. No new gems are required for the core work. One conditional addition (`stimulus_reflex` test adapter, if direct reflex testing is pursued) is discussed below with a recommendation to skip it.
 
 ---
 
 ## Recommended Stack
 
-### Service Object Convention
+### Core Technologies (unchanged from v1.0)
 
-| Approach | Rationale |
-|----------|-----------|
-| PORO with `call` convention | No gem needed. Conventions: single public method `call`, `initialize` takes explicit dependencies, returns a result struct or raises. Consistent with what already exists in `app/services/`. Adding dry-monads or interactor would require rewriting existing services to match the new convention — a risk with no proportionate gain for this scope. |
+| Technology | Version | Purpose | Status |
+|------------|---------|---------|--------|
+| Rails | 7.2.2 | Framework | Already installed |
+| Ruby | 3.2.1 | Runtime | Already installed |
+| PostgreSQL | current | Database | Already installed |
+| Minitest | (Rails built-in) | Test runner | Already installed |
+| ActiveJob::TestHelper | (Rails built-in) | Job queue assertions | Already in use (table_monitor_char_test.rb) |
 
-**Pattern to standardize on:**
+### Testing Patterns for New Surface Area
+
+#### ActionCable Channels
+
+Rails 7.2 ships `ActionCable::Channel::TestCase` as a built-in. No gem needed.
 
 ```ruby
-# app/services/table_monitor/state_broadcaster.rb
-module TableMonitor
-  class StateBroadcaster
-    def initialize(table_monitor:)
-      @table_monitor = table_monitor
-    end
+# test/channels/tournament_channel_test.rb
+require "test_helper"
 
-    def call
-      # single responsibility: CableReady broadcast for state change
-    end
+class TournamentChannelTest < ActionCable::Channel::TestCase
+  test "subscribes to tournament-specific stream when tournament_id given" do
+    subscribe tournament_id: tournaments(:local).id
+    assert subscription.confirmed?
+    assert_has_stream "tournament-stream-#{tournaments(:local).id}"
+  end
 
-    private
-
-    attr_reader :table_monitor
+  test "subscribes to global tournament stream when no tournament_id" do
+    subscribe
+    assert subscription.confirmed?
+    assert_has_stream "tournament-stream"
   end
 end
-```
 
-Result: call it with `TableMonitor::StateBroadcaster.new(table_monitor: tm).call`. No new dependency. Immediately testable with Minitest.
+# test/channels/tournament_monitor_channel_test.rb
+class TournamentMonitorChannelTest < ActionCable::Channel::TestCase
+  test "rejects subscription on API server" do
+    ApplicationRecord.stub(:local_server?, false) do
+      subscribe
+      assert subscription.rejected?
+    end
+  end
 
-**Confidence: HIGH** — Established Rails convention. No version to track.
-
----
-
-### Static Analysis: Code Smell Detection
-
-#### Reek 6.5.0
-
-**Install:** `gem "reek", require: false` (dev group)
-
-**Why:** Reek is the standard Ruby static analysis tool for code smell detection. Its `LargeClass`, `TooManyMethods`, `FeatureEnvy`, and `DataClump` detectors directly map to the problems in TableMonitor and RegionCc. Running Reek before and after extraction gives objective evidence of improvement.
-
-**Version:** 6.5.0 (released 2025-03-24) — current.
-
-**Confidence: HIGH** — RubyGems verified.
-
-**What it detects relevant to this project:**
-- `LargeClass` — flags TableMonitor (3903 lines) and RegionCc (2728 lines)
-- `TooManyMethods` — flags TableMonitor (96 methods)
-- `FeatureEnvy` — methods that belong in another class (extraction targets)
-- `DataClump` — groups of data that should become a value object
-
-**Do NOT use RubyCritic** as a substitute here — it wraps Reek but adds HTML report overhead. Use Reek directly on the target files.
-
----
-
-#### RuboCop Metrics Cops (already in project via `standard`)
-
-The project already has `standard` (which wraps RuboCop). No new gem needed. Configure `.rubocop.yml` overrides for Metrics cops during the refactoring:
-
-```yaml
-# .rubocop.yml additions for refactoring visibility
-Metrics/ClassLength:
-  Max: 500          # target for extracted models
-  CountAsOne: ['array', 'hash', 'heredoc']
-
-Metrics/MethodLength:
-  Max: 15
-  CountAsOne: ['array', 'hash', 'heredoc']
-
-Metrics/AbcSize:
-  Max: 25
-```
-
-These are **aspirational targets for new extracted classes**, not enforced on legacy files yet. Use `rubocop:todo` inline comments to exclude the legacy files explicitly.
-
-**Confidence: HIGH** — Already installed, configuration only.
-
----
-
-### Characterization Testing
-
-#### Minitest (already in project)
-
-No new test framework. The project uses Minitest with fixtures and FactoryBot. Characterization tests fit naturally:
-
-```ruby
-# test/models/table_monitor_characterization_test.rb
-class TableMonitorCharacterizationTest < ActiveSupport::TestCase
-  # Pin current behavior before refactoring.
-  # These tests describe what the code DOES, not what it SHOULD do.
-  test "state transition from available to playing triggers broadcast" do
-    tm = table_monitors(:available_table)
-    assert_difference -> { CableReady::... } do
-      tm.start_game!(game)
+  test "subscribes on local server" do
+    ApplicationRecord.stub(:local_server?, true) do
+      subscribe
+      assert subscription.confirmed?
+      assert_has_stream "tournament-monitor-stream"
     end
   end
 end
 ```
 
-**Confidence: HIGH** — Project standard, no change.
+**Key assertions available:**
+- `assert subscription.confirmed?` / `assert subscription.rejected?`
+- `assert_has_stream "stream-name"` / `assert_no_streams`
+- `perform :method_name, args` — call channel actions directly
+- `assert_broadcasts "stream", 1` — count broadcasts on a stream
+
+**Confidence: HIGH** — Rails built-in since Rails 5. Verified in Rails 7.2 guides.
 
 ---
 
-#### suture gem — NOT RECOMMENDED
+#### ActiveJob (Jobs)
 
-Suture records production call signatures and auto-generates characterization tests. It looks appealing for a 3900-line god class.
-
-**Why to skip it:**
-- Last release: 1.1.2 in **2018**. No updates in 7 years. Last GitHub push was September 2023 (minor tooling), not a maintenance release.
-- Requires a SQLite side database for recording; adds an environment dependency.
-- Recording requires running the app and exercising code paths, which is slower than reading the code and writing targeted tests manually.
-- The existing VCR cassettes and FactoryBot fixtures already provide the infrastructure. The gap is effort, not tooling.
-
-**Instead:** Write characterization tests by hand using the existing Minitest + FactoryBot setup. Focus on the explicit input/output of each method you plan to extract. This is slower but produces tests that remain maintainable.
-
-**Confidence: HIGH** — Suture abandonment verified via RubyGems (1.1.2 / 2018-11-12).
-
----
-
-### Callback Isolation
-
-#### after_commit_everywhere 1.6.0
-
-**Install:** `gem "after_commit_everywhere", "~> 1.6"` (main group, not dev-only)
-
-**Why:** TableMonitor has complex `after_update_commit` callbacks. When extracting state broadcasting logic, you often need to fire transactional callbacks from service objects that live outside models. `after_commit_everywhere` lets service objects register `after_commit` hooks without inheriting from ActiveRecord.
-
-**Version:** 1.6.0 (released 2025-02-07) — current. Actively maintained.
-
-**When to use it:** Only if extracted services need to ensure their side effects (CableReady broadcasts, job enqueues) happen after the transaction commits, not mid-transaction.
-
-**When NOT to use it:** If the service is called explicitly from a controller or job outside a model callback chain, plain `after_commit` in the model calling the service is sufficient and cleaner.
-
-**Confidence: MEDIUM** — RubyGems verified current. Usage pattern is well-documented but conditional on how TableMonitor's callback chain is restructured.
-
----
-
-## Alternatives Considered and Rejected
-
-| Category | Recommended | Alternative | Why Rejected |
-|----------|-------------|-------------|--------------|
-| Service structure | PORO + `call` convention | `interactor` gem (3.2.0 / Jul 2025) | Interactor's context object and organizers add indirection with no benefit for single-responsibility extractions. The project has no multi-step orchestration needs that POROs can't handle. Brownfield cost: no existing services use interactor. |
-| Service structure | PORO + `call` convention | `dry-monads` (1.9.0 / Jun 2025) + `dry-transaction` (0.16.0 / Jan 2024) | dry-monads is the right tool for complex error-railway pipelines. But dry-transaction is stagnating (last release Jan 2024) and the pattern requires team familiarity with monadic programming. For a single-engineer brownfield refactoring, the cognitive overhead exceeds the benefit. RegionCc's HTTP error handling can be addressed with explicit rescue blocks in plain POROs. |
-| Characterization testing | Hand-written Minitest | `suture` gem | Abandoned in 2018, no maintenance. See above. |
-| Code analysis | Reek + RuboCop Metrics | RubyCritic | RubyCritic wraps Reek + adds HTML overhead. Overkill for targeted file-by-file analysis during refactoring. |
-| State machine | Keep AASM as-is | Migrate to Rails 7.1 enum | AASM is in-use across TableMonitor with dozens of events and callbacks. Migrating the state machine is a separate concern and orthogonal to extracting service logic. The PROJECT.md explicitly excludes architecture changes. |
-
----
-
-## What to Install
+`ActiveJob::TestHelper` is already in use for `TableMonitorCharTest` and `GameSetupTest`. Same pattern applies to `TournamentStatusUpdateJob` and `TournamentMonitorUpdateResultsJob`.
 
 ```ruby
-# Gemfile additions
+# test/jobs/tournament_status_update_job_test.rb
+require "test_helper"
 
-group :development do
-  gem "reek", "~> 6.5", require: false    # Code smell detection; run on extraction targets
+class TournamentStatusUpdateJobTest < ActiveJob::TestCase
+  include ActiveJob::TestHelper
+
+  test "discards job when tournament not found" do
+    # discard_on ActiveRecord::RecordNotFound is configured in the job
+    assert_nothing_raised do
+      TournamentStatusUpdateJob.perform_now(nil)
+    end
+  end
+
+  test "skips broadcast when tournament has no monitor" do
+    tournament = tournaments(:local)
+    # tournament_monitor is nil by default in fixture
+    assert_no_enqueued_jobs do
+      TournamentStatusUpdateJob.perform_now(tournament)
+    end
+  end
+
+  test "skips broadcast on local_server (TournamentMonitorUpdateResultsJob)" do
+    ApplicationRecord.stub(:local_server?, false) do
+      tm = tournament_monitors(:one)
+      assert_nothing_raised do
+        TournamentMonitorUpdateResultsJob.perform_now(tm)
+      end
+    end
+  end
 end
-
-gem "after_commit_everywhere", "~> 1.6"   # Only if service objects need after_commit hooks
-                                           # outside model callbacks; defer adding until needed
 ```
 
-No other new gems are required. The characterization testing, assertion, and factory infrastructure already exists (Minitest, FactoryBot, WebMock, VCR).
+**Key patterns from existing tests to reuse:**
+- `include ActiveJob::TestHelper` in the test class
+- `assert_enqueued_jobs(N, only: [JobClass])` — count enqueued jobs of specific type
+- `ApplicationRecord.stub(:local_server?, true/false)` — flip server context per test
+- `Sidekiq::Testing.fake!` is configured in `test_helper.rb` — jobs do not run automatically
+
+**Confidence: HIGH** — Pattern confirmed in `test/characterization/table_monitor_char_test.rb:16`.
 
 ---
 
-## Naming Convention for Extracted Services
+#### Controllers
 
-Namespace under the model name to keep `app/services/` navigable:
+Pattern established by `TableMonitorsControllerTest`. Use `ActionDispatch::IntegrationTest` with Devise sign-in helpers. Tournament controller has `ensure_local_server` guards — test both API server (should redirect/fail) and local server contexts.
+
+```ruby
+# test/controllers/tournaments_controller_test.rb
+require "test_helper"
+
+class TournamentsControllerTest < ActionDispatch::IntegrationTest
+  include Devise::Test::IntegrationHelpers
+
+  setup do
+    @tournament = tournaments(:local)
+    @user = users(:one)
+    sign_in @user
+  end
+
+  test "GET index returns success" do
+    get tournaments_url
+    assert_response :success
+  end
+
+  test "reset action triggers AASM event and redirects" do
+    # Tournament must not be started yet
+    @tournament.update_column(:state, "new_tournament")
+    post reset_tournament_url(@tournament)
+    assert_redirected_to tournament_path(@tournament)
+  end
+
+  test "ensure_local_server blocks edit on API server" do
+    # API server: local_server? == false
+    ApplicationRecord.stub(:local_server?, false) do
+      get edit_tournament_url(@tournament)
+      assert_redirected_to root_path  # or wherever ensure_local_server redirects
+    end
+  end
+end
+```
+
+**Confidence: HIGH** — Existing controller test pattern verified across 10+ controller test files.
+
+---
+
+#### StimulusReflex Reflexes
+
+**Recommendation: Do NOT write direct reflex tests. Skip them as the existing `TableMonitorsControllerTest` does.**
+
+The existing codebase explicitly documents this decision:
+
+```ruby
+# test/controllers/table_monitors_controller_test.rb:73-85
+test "should handle optimistic score updates" do
+  skip "StimulusReflex endpoints are not testable via standard HTTP integration tests"
+end
+```
+
+**Why reflexes are untestable via standard Minitest:**
+- StimulusReflex actions are triggered over WebSocket, not HTTP. There is no HTTP endpoint to hit.
+- The `stimulus_reflex` gem (3.5.3) does not ship a test adapter for Rails 7.2 — its testing story relies on system tests (Capybara + Chrome) or manual browser verification.
+- Adding `cable_ready` and `stimulus_reflex` mocking layers to unit tests produces brittle, hard-to-maintain tests that test the mocking infrastructure, not the business logic.
+
+**What to test instead:** Extract the business logic out of reflexes into service objects or model methods, then test those directly. The reflex becomes a thin adapter (find record, call service, morph). `TournamentReflex` already demonstrates this — its ATTRIBUTE_METHODS loop delegates to `tournament.send("#{attribute}=", val)` + `tournament.save!`. Test the model setter, not the reflex.
+
+**If reflex coverage is required:** Use system tests (`ApplicationSystemTestCase` + Capybara + Selenium) which exercise the full WebSocket cycle. Scope those to specific high-risk reflex actions only.
+
+**Confidence: HIGH** — Decision documented and verified in existing codebase. StimulusReflex 3.5.3 test adapter absence confirmed.
+
+---
+
+### Service Object Convention (unchanged from v1.0)
+
+Namespace extracted services under the model name:
 
 ```
 app/services/
-  table_monitor/
-    state_broadcaster.rb        # CableReady broadcast logic
-    callback_handler.rb         # after_update_commit orchestration
-    game_timer_service.rb       # timer start/stop logic
-  region_cc/
-    club_cloud_sync.rb          # HTTP + sync orchestration
-    player_data_transformer.rb  # raw response → ActiveRecord attributes
-    league_importer.rb          # league creation/update logic
+  tournament/
+    ranking_calculator.rb     # extract from TournamentMonitor#ranking + #player_id_from_ranking
+    group_distributor.rb      # extract distribute_to_group + distribute_with_sizes (pure algorithm)
+    monitor_initializer.rb    # extract initialize_tournament_monitor
+    scraper.rb                # extract scrape_single_tournament_public (optional — risky)
+  tournament_monitor/
+    game_sequencer.rb         # game sequence logic (next_seqno, ko_ranking resolution)
+    player_assigner.rb        # player → game assignment from ranking rules
+    table_allocator.rb        # table assignment coordination
+    state_broadcaster.rb      # after_update_commit → TournamentStatusUpdateJob
 ```
 
-Each service: one public `call` method, explicit `initialize` dependencies, no ActiveRecord callbacks inside the service itself.
+PORO with explicit `initialize` dependencies and single `call` method. No new gem needed.
+
+**The `group_distributor` is the highest-value first extraction** — `distribute_to_group` and `distribute_with_sizes` are pure algorithms with no database calls. They have documented edge cases (GROUP_RULES, GROUP_SIZES constants), testable input/output, and are currently tested only implicitly via integration tests.
+
+---
+
+### Static Analysis (unchanged from v1.0)
+
+```ruby
+# Gemfile — group :development
+gem "reek", "~> 6.5", require: false
+```
+
+Run Reek before and after extraction to measure improvement objectively:
+
+```bash
+bundle exec reek app/models/tournament.rb
+bundle exec reek app/models/tournament_monitor.rb
+```
+
+---
+
+## Key Patterns from v1.0/v2.0 to Reuse
+
+### suppress_broadcast Pattern
+
+Tournament and TournamentMonitor have `after_update_commit` callbacks that enqueue jobs. When a service object makes multiple saves, use `suppress_broadcast` to batch:
+
+```ruby
+# app/services/tournament/monitor_initializer.rb
+class Tournament::MonitorInitializer
+  def call
+    tournament.suppress_broadcast = true
+    # ... multiple saves ...
+  ensure
+    tournament.suppress_broadcast = false
+  end
+end
+```
+
+Test this by verifying `suppress_broadcast` state inside save callbacks — same approach used in `GameSetupTest` (line 188-203).
+
+### local_server? Stub
+
+Both channels and both jobs gate behavior on `ApplicationRecord.local_server?`. Stub it per test:
+
+```ruby
+ApplicationRecord.stub(:local_server?, true) do
+  # test local server behavior
+end
+```
+
+This pattern is confirmed in `table_monitor_char_test.rb` across 6+ tests.
+
+### ApiProtectorTestOverride
+
+`TournamentMonitor` includes `ApiProtector`. The `test_helper.rb` already patches all `ApiProtector`-including classes at boot. No per-test action needed.
+
+### AASM State Tests
+
+Tournament has 8 AASM states with guards. Test state transitions with real fixture data:
+
+```ruby
+test "reset_tmt_monitor! fails when tournament already started" do
+  @tournament.update_column(:state, "tournament_started")
+  assert_raises(AASM::InvalidTransition) do
+    @tournament.reset_tmt_monitor!
+  end
+end
+```
+
+---
+
+## What NOT to Add
+
+| Avoid | Why | Use Instead |
+|-------|-----|-------------|
+| `stimulus_reflex` test adapter / custom WebSocket mocking | Does not exist for SR 3.5.3; any homebrew solution tests the mock, not the reflex | Extract business logic to service methods, test those |
+| `test-after-commit` gem | Rails 7.2 fires `after_commit` natively in transactional tests (confirmed in table_monitor_char_test.rb comment) | None needed |
+| RSpec or system-test-only coverage for channels | ActionCable::Channel::TestCase handles channel logic without a browser | Use built-in test case |
+| VCR cassettes for Tournament scraper tests | Scraper is already smoke-tested; adding VCR cassettes for the 1775-line scraper is out of scope for this milestone (behavior preservation, not scraper coverage) | Stub HTTP with WebMock only |
+| FactoryBot factories for Tournament | Project uses fixtures-first, no factory definitions exist, `KoTournamentTestHelper` handles complex setup | Use fixtures + `KoTournamentTestHelper` |
+
+---
+
+## Installation
+
+No new gems required. The only optional addition from v1.0 that may be needed:
+
+```ruby
+# Gemfile — group :development (only if not already present from v1.0)
+gem "reek", "~> 6.5", require: false
+```
+
+```ruby
+# Gemfile — only if extracted service objects need transactional after_commit hooks
+gem "after_commit_everywhere", "~> 1.6"
+```
+
+Both were already recommended in v1.0 STACK.md. Check if `reek` is already in the Gemfile before adding.
+
+---
+
+## Confidence Assessment
+
+| Area | Confidence | Basis |
+|------|------------|-------|
+| ActionCable channel testing | HIGH | Rails 7.2 built-in, pattern verified in Rails guides |
+| Job testing (`ActiveJob::TestHelper`) | HIGH | Already in use in `table_monitor_char_test.rb` |
+| Controller testing | HIGH | 10+ existing controller test files with identical pattern |
+| Reflex testing (skip) | HIGH | Skip rationale documented in existing codebase |
+| Service extraction patterns | HIGH | Verified from v1.0 extractions (14 services) |
+| suppress_broadcast reuse | HIGH | Pattern in `game_setup_test.rb` lines 188-253 |
 
 ---
 
 ## Sources
 
-- RubyGems API: reek 6.5.0 — https://rubygems.org/gems/reek
-- RubyGems API: after_commit_everywhere 1.6.0 — https://rubygems.org/gems/after_commit_everywhere
-- RubyGems API: interactor 3.2.0 — https://rubygems.org/gems/interactor
-- RubyGems API: dry-monads 1.9.0 — https://rubygems.org/gems/dry-monads
-- RubyGems API: dry-transaction 0.16.0 — https://rubygems.org/gems/dry-transaction
-- RubyGems API: suture 1.1.2 (2018) — https://rubygems.org/gems/suture
-- GitHub: testdouble/suture — last push 2023-09-29, not archived
-- after_commit_everywhere docs — https://github.com/Envek/after_commit_everywhere
-- Service Objects best practices — https://www.honeybadger.io/blog/refactor-ruby-rails-service-object/
-- Rails callback extraction pattern — https://guides.rubyonrails.org/active_record_callbacks.html
-- Reek code smells — https://github.com/troessner/reek
+- Rails 7.2 ActionCable Channel test docs — https://api.rubyonrails.org/classes/ActionCable/Channel/TestCase.html
+- `test/characterization/table_monitor_char_test.rb` — ActiveJob::TestHelper patterns, suppress_broadcast, local_server? stubs
+- `test/controllers/table_monitors_controller_test.rb` — skip rationale for StimulusReflex
+- `test/services/table_monitor/game_setup_test.rb` — suppress_broadcast lifecycle test pattern
+- `test_helper.rb` — ApiProtectorTestOverride, Sidekiq::Testing.fake! configuration
+- `app/channels/tournament_channel.rb`, `tournament_monitor_channel.rb` — channel subscription logic
+- `app/jobs/tournament_status_update_job.rb`, `tournament_monitor_update_results_job.rb` — job gating on local_server?
+- `app/reflexes/tournament_reflex.rb` — thin-adapter pattern that makes reflex testing unnecessary
+
+---
+
+*Stack research for: Tournament & TournamentMonitor refactoring (v2.1)*
+*Researched: 2026-04-10*
