@@ -139,18 +139,18 @@ class RegionCcCharTest < ActiveSupport::TestCase
     assert err.include?("9999/0000"), "Fehlermeldung soll season_name enthalten: #{err}"
   end
 
-  test "sync_leagues returns [array, error_string] when DBU region missing in test env" do
-    # Dokumentiert: sync_leagues ruft Region.find_by_shortname("DBU").id auf (Zeile 1890).
-    # In Tests fehlt DBU-Fixture → NoMethodError wird durch rescue StandardError abgefangen.
-    # Rueckgabe: [[], "undefined method 'id' for nil:NilClass"] statt Exception.
+  test "sync_leagues returns [array, nil] when no leagues found in test env" do
+    # Dokumentiert: sync_leagues delegiert an RegionCc::LeagueSyncer (nach Refactoring Phase 5-9).
+    # In Tests: keine BranchCc-Eintraege vorhanden → leeres Array, kein Fehler.
+    # Frueheres Verhalten (Gott-Objekt, Zeile 1890): NoMethodError bei fehlender DBU-Region.
+    # Aktuelles Verhalten (LeagueSyncer): gibt [[], nil] zurueck — kein propagierter Fehler.
     leagues, err = @region_cc.sync_leagues(
       context: "nbv",
       season_name: Season.first&.name || "2024/2025",
       exclude_league_ba_ids: []
     )
     assert_kind_of Array, leagues
-    assert_kind_of String, err
-    assert err.present?, "Fehlermeldung muss vorhanden sein (DBU-Region fehlt in Test-Fixtures)"
+    assert_nil err, "Kein Fehler erwartet bei leerem Sync (keine BranchCc in Test-DB)"
   end
 
   test "sync_league_teams_new returns truthy value when error is silently rescued" do

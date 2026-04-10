@@ -1,0 +1,58 @@
+---
+http_interactions:
+- request:
+    method: get
+    uri: https://e12112e2454d41f1824088919da39bc0.club-cloud.de/admin/report/showLeagueList.php?branchId=6&fedId=20&seasonId=8&subBranchId=1
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+      User-Agent:
+      - Ruby
+      Referer:
+      - https://e12112e2454d41f1824088919da39bc0.club-cloud.de
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Content-Type:
+      - text/html
+      Transfer-Encoding:
+      - chunked
+      Connection:
+      - keep-alive
+      X-Ws-Origin:
+      - available
+      X-Ws-Ratelimit-Limit:
+      - '1000'
+      X-Ws-Ratelimit-Remaining:
+      - '999'
+      Date:
+      - Fri, 10 Apr 2026 18:38:40 GMT
+      Server:
+      - Apache
+      Expires:
+      - Thu, 19 Nov 1981 08:52:00 GMT
+      Cache-Control:
+      - no-store, no-cache, must-revalidate, post-check=0, pre-check=0
+      Pragma:
+      - no-cache
+      Set-Cookie:
+      - PHPSESSID=4bebd4c4ad711fade4b640b4022be7cf; path=/
+    body:
+      encoding: ASCII-8BIT
+      string: "<!DOCTYPE html>\r\n<html>\r\n<head>\r\n<title>Massen&auml;nderung Liga-Spielplan
+        - Liga-Auswahl</title>\r\n<meta charset=\"utf-8\"/>\r\n<link rel=\"stylesheet\"
+        href=\"../../00styles/billardStyle.css\" type=\"text/css\">\r\n<script type='text/javascript'>
+        \ function goOut(){    document.forms[0].submit();  }</script></head><body
+        onLoad='goOut()'><form name='billard' method='post' action='https://e12112e2454d41f1824088919da39bc0.club-cloud.de'><input
+        type='hidden' name='errMsg' value='Die Sitzung ist ausgelaufen. Bitte neu
+        anmelden.'><input type='hidden' name='errMsgNew' value='Die Sitzung ist ausgelaufen.
+        Bitte neu anmelden.'></form></body></html>"
+  recorded_at: Fri, 10 Apr 2026 18:38:40 GMT
+recorded_with: VCR 6.4.0
