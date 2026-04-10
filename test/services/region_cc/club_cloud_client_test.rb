@@ -45,8 +45,7 @@ class RegionCc::ClubCloudClientTest < ActiveSupport::TestCase
 
     res, doc = @client.get("showLeagueList", {}, {session_id: TEST_SESSION_ID})
 
-    assert_not_nil res
-    assert_not_nil doc
+    assert_equal "200", res.code
     assert_kind_of Nokogiri::HTML::Document, doc
 
     # Verify cookie was sent
@@ -62,7 +61,8 @@ class RegionCc::ClubCloudClientTest < ActiveSupport::TestCase
 
     res, doc = @client.post("createLeagueSave", {fedId: 20}, {session_id: TEST_SESSION_ID, armed: "1"})
 
-    assert_not_nil res
+    assert_equal "200", res.code
+    assert_kind_of Nokogiri::HTML::Document, doc
     assert_requested :post, /createLeagueSave/,
       headers: {
         "Cookie" => "PHPSESSID=#{TEST_SESSION_ID}",
@@ -91,7 +91,8 @@ class RegionCc::ClubCloudClientTest < ActiveSupport::TestCase
 
     res, doc = @client.post("showLeagueList", {}, {session_id: TEST_SESSION_ID})
 
-    assert_not_nil res
+    assert_equal "200", res.code
+    assert_kind_of Nokogiri::HTML::Document, doc
     assert_requested :post, /showLeagueList/
   end
 
@@ -108,7 +109,8 @@ class RegionCc::ClubCloudClientTest < ActiveSupport::TestCase
       {session_id: TEST_SESSION_ID, armed: "1"}
     )
 
-    assert_not_nil res
+    assert_equal "200", res.code
+    assert_kind_of Nokogiri::HTML::Document, doc
     assert_requested :post, /createLeagueSave/,
       headers: {"Cookie" => "PHPSESSID=#{TEST_SESSION_ID}"}
   end
@@ -134,19 +136,18 @@ class RegionCc::ClubCloudClientTest < ActiveSupport::TestCase
 
     res, doc = @client.get_with_url("home", custom_url, {param: "value"}, {session_id: TEST_SESSION_ID})
 
-    assert_not_nil res
-    assert_not_nil doc
+    assert_equal "200", res.code
+    assert_kind_of Nokogiri::HTML::Document, doc
     assert_requested :get, /custom\/path/
   end
 
   # ---------------------------------------------------------------------------
-  # Test 7: PATH_MAP ist als Konstante zugaenglich
+  # Test 7: PATH_MAP enthält bekannte Eintraege mit korrekten Pfaden und read_only-Flags
   # ---------------------------------------------------------------------------
-  test "PATH_MAP is accessible as a class constant" do
-    assert_not_nil RegionCc::ClubCloudClient::PATH_MAP
+  test "PATH_MAP contains known entries with correct paths and read_only flags" do
     assert_kind_of Hash, RegionCc::ClubCloudClient::PATH_MAP
 
-    # Verify some known entries
+    # Verify known entries: [path, read_only]
     assert_equal ["", true], RegionCc::ClubCloudClient::PATH_MAP["home"]
     assert_equal ["/admin/report/showLeagueList.php", true], RegionCc::ClubCloudClient::PATH_MAP["showLeagueList"]
     assert_equal ["/admin/league/createLeagueSave.php", false], RegionCc::ClubCloudClient::PATH_MAP["createLeagueSave"]
