@@ -65,14 +65,18 @@ class RegionCc::GamePlanSyncerTest < ActiveSupport::TestCase
   test "sync_game_plans dispatches without error when no branch_ccs exist" do
     client = Minitest::Mock.new
     # region_cc.branch_ccs ist leer im Test — kein HTTP-Aufruf erwartet
+    result = nil
     assert_nothing_raised do
-      RegionCc::GamePlanSyncer.call(
+      result = RegionCc::GamePlanSyncer.call(
         region_cc: @region_cc,
         client: client,
         operation: :sync_game_plans,
         **@opts
       )
     end
+    # Leere branch_ccs: kein Ergebnis-Record erzeugt, kein HTTP-Aufruf
+    assert_kind_of Array, result
+    assert_empty result
     client.verify
   end
 
@@ -81,14 +85,18 @@ class RegionCc::GamePlanSyncerTest < ActiveSupport::TestCase
   # ---------------------------------------------------------------------------
   test "sync_game_details dispatches without error when no branch_ccs exist" do
     client = Minitest::Mock.new
+    result = nil
     assert_nothing_raised do
-      RegionCc::GamePlanSyncer.call(
+      result = RegionCc::GamePlanSyncer.call(
         region_cc: @region_cc,
         client: client,
         operation: :sync_game_details,
         **@opts
       )
     end
+    # Leere branch_ccs: kein Ergebnis-Record erzeugt, kein HTTP-Aufruf
+    assert_kind_of Array, result
+    assert_empty result
     client.verify
   end
 

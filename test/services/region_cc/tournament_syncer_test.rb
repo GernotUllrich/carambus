@@ -35,13 +35,16 @@ class RegionCc::TournamentSyncerTest < ActiveSupport::TestCase
 
     Region.stub(:find_by_shortname, region_stub) do
       Season.stub(:find_by_name, season) do
+        result = nil
         assert_nothing_raised do
-          RegionCc::TournamentSyncer.call(
+          result = RegionCc::TournamentSyncer.call(
             region_cc: @region_cc, client: @client,
             operation: :sync_tournament_ccs,
             context: "nbv", season_name: "2023/2024"
           )
         end
+        # Dispatcher hat den richtigen Zweig durchlaufen
+        assert_kind_of Array, result
       end
     end
 
@@ -71,13 +74,16 @@ class RegionCc::TournamentSyncerTest < ActiveSupport::TestCase
 
     Region.stub(:find_by_shortname, region_stub) do
       Season.stub(:find_by_name, season) do
+        result = nil
         assert_nothing_raised do
-          RegionCc::TournamentSyncer.call(
+          result = RegionCc::TournamentSyncer.call(
             region_cc: @region_cc, client: @client,
             operation: :sync_tournament_series_ccs,
             context: "nbv", season_name: "2023/2024"
           )
         end
+        # Dispatcher hat den richtigen Zweig durchlaufen
+        assert_kind_of Array, result
       end
     end
 
@@ -114,13 +120,16 @@ class RegionCc::TournamentSyncerTest < ActiveSupport::TestCase
       Tournament.stub(:where, tournament_scope) do
         TournamentCc.stub(:find_by, nil) do
           # fehlendes TournamentCc wird geloggt (Rails.logger.error), kein Exception
+          result = nil
           assert_nothing_raised do
-            RegionCc::TournamentSyncer.call(
+            result = RegionCc::TournamentSyncer.call(
               region_cc: @region_cc, client: @client,
               operation: :fix_tournament_structure,
               season_name: "2023/2024"
             )
           end
+          # Kein TournamentCc gefunden: Fehler geloggt, Schleife ueber tournaments durchlaufen
+          assert_kind_of Array, result
         end
       end
     end

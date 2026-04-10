@@ -37,13 +37,15 @@ class RegionCc::CompetitionSyncerTest < ActiveSupport::TestCase
         }) do
           CompetitionCc.stub(:new, CompetitionCc.new) do
             # Ergebnis testen: keine Exception bedeutet Success-Pfad wurde genommen
+            result = nil
             assert_nothing_raised do
-              RegionCc::CompetitionSyncer.call(
+              result = RegionCc::CompetitionSyncer.call(
                 region_cc: @region_cc, client: @client,
                 operation: :sync_competitions,
                 context: "nbv"
               )
             end
+            assert_kind_of Array, result
           end
         end
       end
@@ -80,13 +82,15 @@ class RegionCc::CompetitionSyncerTest < ActiveSupport::TestCase
             s.define_singleton_method(:assign_attributes) { |_h| }
             s.define_singleton_method(:save) { true }
           }) do
+            result = nil
             assert_nothing_raised do
-              RegionCc::CompetitionSyncer.call(
+              result = RegionCc::CompetitionSyncer.call(
                 region_cc: @region_cc, client: @client,
                 operation: :sync_seasons_in_competitions,
                 season_name: "2023/2024"
               )
             end
+            assert_kind_of Array, result
           end
         end
       end

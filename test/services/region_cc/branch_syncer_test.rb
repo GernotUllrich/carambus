@@ -50,7 +50,7 @@ class RegionCc::BranchSyncerTest < ActiveSupport::TestCase
     assert_equal branch, result.first
 
     branch_cc = BranchCc.find_by_cc_id(6)
-    assert_not_nil branch_cc
+    assert_equal 6, branch_cc&.cc_id
     assert_equal @region_cc.id, branch_cc.region_cc_id
     assert_equal "nbv", branch_cc.context
 

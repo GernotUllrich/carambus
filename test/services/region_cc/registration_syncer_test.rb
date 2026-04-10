@@ -44,14 +44,18 @@ class RegionCc::RegistrationSyncerTest < ActiveSupport::TestCase
     registration_list_cc.define_singleton_method(:cc_id) { 66 }
 
     RegistrationListCc.stub(:find_or_initialize_by, registration_list_cc) do
+      result = nil
       assert_nothing_raised do
-        RegionCc::RegistrationSyncer.call(
+        result = RegionCc::RegistrationSyncer.call(
           region_cc: @region_cc, client: @client,
           operation: :sync_registration_list_ccs_detail,
           season: @season, branch_cc: @branch_cc,
           context: "nbv", update_from_cc: true
         )
       end
+      # Beide HTTP-Aufrufe (showMeldelistenList + showMeldeliste) wurden abgesetzt;
+      # @client.verify bestätigt, dass genau diese Aufrufe gemacht wurden
+      assert_not_nil result
     end
 
     @client.verify

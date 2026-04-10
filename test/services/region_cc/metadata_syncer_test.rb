@@ -74,14 +74,18 @@ class RegionCc::MetadataSyncerTest < ActiveSupport::TestCase
   test "sync_category_ccs calls client post with showCategoryList" do
     client = Minitest::Mock.new
     # branch_ccs ist leer im Test, daher kein HTTP-Aufruf erwartet.
+    result = nil
     assert_nothing_raised do
-      RegionCc::MetadataSyncer.call(
+      result = RegionCc::MetadataSyncer.call(
         region_cc: @region_cc,
         client: client,
         operation: :sync_category_ccs,
         **@opts
       )
     end
+    # Leere branch_ccs: kein HTTP-Aufruf, leeres Array zurueck
+    assert_kind_of Array, result
+    assert_empty result
     client.verify
   end
 
@@ -90,14 +94,18 @@ class RegionCc::MetadataSyncerTest < ActiveSupport::TestCase
   # ---------------------------------------------------------------------------
   test "sync_group_ccs dispatches without error" do
     client = Minitest::Mock.new
+    result = nil
     assert_nothing_raised do
-      RegionCc::MetadataSyncer.call(
+      result = RegionCc::MetadataSyncer.call(
         region_cc: @region_cc,
         client: client,
         operation: :sync_group_ccs,
         **@opts
       )
     end
+    # Leere branch_ccs: kein HTTP-Aufruf, leeres Array zurueck
+    assert_kind_of Array, result
+    assert_empty result
     client.verify
   end
 
@@ -106,14 +114,18 @@ class RegionCc::MetadataSyncerTest < ActiveSupport::TestCase
   # ---------------------------------------------------------------------------
   test "sync_discipline_ccs dispatches without error" do
     client = Minitest::Mock.new
+    result = nil
     assert_nothing_raised do
-      RegionCc::MetadataSyncer.call(
+      result = RegionCc::MetadataSyncer.call(
         region_cc: @region_cc,
         client: client,
         operation: :sync_discipline_ccs,
         **@opts
       )
     end
+    # Leere branch_ccs: kein HTTP-Aufruf, leeres Array zurueck
+    assert_kind_of Array, result
+    assert_empty result
     client.verify
   end
 

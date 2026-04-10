@@ -75,8 +75,9 @@ class RegionCc::PartySyncerTest < ActiveSupport::TestCase
   # ---------------------------------------------------------------------------
   test "sync_party_games dispatches without error for empty parties_todo_ids" do
     client = Minitest::Mock.new
+    result = nil
     assert_nothing_raised do
-      RegionCc::PartySyncer.call(
+      result = RegionCc::PartySyncer.call(
         region_cc: @region_cc,
         client: client,
         operation: :sync_party_games,
@@ -84,6 +85,9 @@ class RegionCc::PartySyncerTest < ActiveSupport::TestCase
         **@opts
       )
     end
+    # Leere parties_todo_ids: kein HTTP-Aufruf, leeres Array zurueck
+    assert_kind_of Array, result
+    assert_empty result
     client.verify
   end
 
