@@ -52,19 +52,19 @@ class TableHeaterManagementTest < ActiveSupport::TestCase
   # Test: pre_heating_time_in_hours
   # ============================================================================
   
-  test "pre_heating_time_in_hours returns 3 for Snooker tables" do
+  test "pre_heating_time_in_hours returns 4 for Snooker tables" do
     @table.update!(table_kind: @table_kind_snooker)
-    assert_equal 3, @table.pre_heating_time_in_hours
+    assert_equal 4, @table.pre_heating_time_in_hours
   end
-  
-  test "pre_heating_time_in_hours returns 3 for Match tables" do
+
+  test "pre_heating_time_in_hours returns 4 for Match tables" do
     @table.update!(table_kind: @table_kind_match)
-    assert_equal 3, @table.pre_heating_time_in_hours
+    assert_equal 4, @table.pre_heating_time_in_hours
   end
-  
-  test "pre_heating_time_in_hours returns 3 for Billard tables" do
+
+  test "pre_heating_time_in_hours returns 4 for Billard tables" do
     @table.update!(table_kind: @table_kind_billard)
-    assert_equal 3, @table.pre_heating_time_in_hours
+    assert_equal 4, @table.pre_heating_time_in_hours
   end
   
   test "pre_heating_time_in_hours returns 2 for Karambol tables" do

@@ -329,11 +329,14 @@ class TournamentMonitor < ApplicationRecord
   private
 
   def ko_ranking(rule_str)
-    g_no, _game_no, rk_no = rule_str.match(/^(?:(?:fg|g)(\d+)|sl|rule|64f|32f|16f|8f|vf|hf|af|qf|fin|p<\d+(?:\.\.|-)\d+>)(\d+)?\.rk(\d+)$/)[1..3]
+    match_result = rule_str.match(/^(?:(?:fg|g)(\d+)|sl|rule|64f|32f|16f|8f|vf|hf|af|qf|fin|p<\d+(?:\.\.|-)\d+>)(\d+)?\.rk(\d+)$/)
+    return nil unless match_result
+
+    g_no, _game_no, rk_no = match_result[1..3]
     if g_no.present?
       case rule_str
       when /^sl/
-        tournament.seedings.where("id > #{Seeding::MIN_ID}").to_a[rk_no.to_i - 1].player_id
+        tournament.seedings.where("id > #{Seeding::MIN_ID}").to_a[rk_no.to_i - 1]&.player_id
       when /^fg/
         TournamentMonitor.ranking(data["rankings"]["endgames"]["group#{g_no}"],
                                   order: (
@@ -369,7 +372,7 @@ class TournamentMonitor < ApplicationRecord
                                   end))[rk_no.to_i - 1].andand[0]
 
     elsif /^sl/.match?(rule_str)
-      tournament.seedings.where("id > #{Seeding::MIN_ID}").to_a[rk_no.to_i - 1].player_id
+      tournament.seedings.where("id > #{Seeding::MIN_ID}").to_a[rk_no.to_i - 1]&.player_id
     end
   end
 

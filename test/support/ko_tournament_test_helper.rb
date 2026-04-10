@@ -39,7 +39,6 @@ module KoTournamentTestHelper
         id: tournament_id + i,
         firstname: "Test",
         lastname: "Player#{i}",
-        shortname: "TP#{i}",
         ba_id: tournament_id + 1_000_000 + i
       )
     end
@@ -50,8 +49,7 @@ module KoTournamentTestHelper
         id: tournament_id + 1000 + idx,
         tournament: tournament,
         player: player,
-        position: idx + 1,
-        region: region
+        position: idx + 1
       )
     end
     
