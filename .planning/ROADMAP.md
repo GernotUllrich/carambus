@@ -114,7 +114,10 @@ Plans:
   3. A consistent assertion style (assert/refute) is chosen and documented; files that violate the standard are listed for correction
   4. Test naming conventions are documented (method naming, describe block usage); files that deviate are listed
   5. Test helper and support file usage is reviewed; redundant or unused helpers are identified
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 06-01-PLAN.md — Create STANDARDS.md (test suite conventions for Phases 7-9)
+- [ ] 06-02-PLAN.md — Automated scan + compile AUDIT-REPORT.md (per-file issue catalogue)
 
 ### Phase 7: Model Tests Review
 **Goal**: All 22 model test files are reviewed and improved — weak assertions fixed, large files restructured if needed, and all model tests reflect the Phase 6 standards
