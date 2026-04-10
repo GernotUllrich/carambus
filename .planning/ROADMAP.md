@@ -170,7 +170,7 @@ Plans:
 
 ---
 
-### 🚧 v2.1 Tournament & TournamentMonitor Refactoring (In Progress)
+### v2.1 Tournament & TournamentMonitor Refactoring (In Progress)
 
 **Milestone Goal:** Reduce Tournament (1775 lines) and TournamentMonitor (499 lines) into maintainable, well-tested components with comprehensive test coverage across models, services, controllers, channels, and jobs.
 
@@ -193,7 +193,10 @@ Plans:
   3. populate_tables game sequencing is covered by tests that verify which games are assigned to which tables in deterministic input scenarios
   4. distribute_to_group player distribution is covered by tests that verify group membership and ordering for given player sets
   5. ApiProtectorTestOverride is confirmed active for TournamentMonitor tests — saves succeed without silent rollback in API server context
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 11-01-PLAN.md — T04 (round-robin) characterization: AASM transitions, distribute_to_group, game sequencing, ApiProtector verification
+- [ ] 11-02-PLAN.md — T06 (with finals) characterization: full AASM lifecycle, result pipeline, group-to-finals transition, Reek baseline
 
 ### Phase 12: Tournament Characterization
 **Goal**: Tournament's critical behavior is fully pinned — AASM, scraping pipeline, dynamic attribute delegation, and PaperTrail version counts — making all Tournament extractions safe to begin
@@ -268,7 +271,7 @@ Phases execute in numeric order: 11 -> 12 -> 13 -> 14 -> 15 -> 16
 | 8. Service Tests Review | v2.0 | 2/2 | Complete | 2026-04-10 |
 | 9. Controller, System & Other Tests Review | v2.0 | 2/2 | Complete | 2026-04-10 |
 | 10. Final Pass & Green Suite | v2.0 | 3/3 | Complete | 2026-04-10 |
-| 11. TournamentMonitor Characterization | v2.1 | 0/? | Not started | - |
+| 11. TournamentMonitor Characterization | v2.1 | 0/2 | Planning | - |
 | 12. Tournament Characterization | v2.1 | 0/? | Not started | - |
 | 13. Low-Risk Extractions | v2.1 | 0/? | Not started | - |
 | 14. Medium-Risk Extractions | v2.1 | 0/? | Not started | - |
