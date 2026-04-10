@@ -142,8 +142,8 @@ Plans:
   3. Service tests pass after improvements; no regressions introduced
 **Plans:** 2 plans
 Plans:
-- [ ] 08-01-PLAN.md — Strengthen RegionCc syncer + client test assertions (8 files)
-- [ ] 08-02-PLAN.md — Strengthen TableMonitor service test assertions (2 files)
+- [x] 08-01-PLAN.md — Strengthen RegionCc syncer + client test assertions (8 files)
+- [x] 08-02-PLAN.md — Strengthen TableMonitor service test assertions (2 files)
 
 ### Phase 9: Controller, System & Other Tests Review
 **Goal**: All 27 remaining test files (controller, system, other) are reviewed and improved against Phase 6 standards
