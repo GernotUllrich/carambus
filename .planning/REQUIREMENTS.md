@@ -76,37 +76,37 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CHAR-01 | — | Pending |
-| CHAR-02 | — | Pending |
-| CHAR-03 | — | Pending |
-| CHAR-04 | — | Pending |
-| CHAR-05 | — | Pending |
-| CHAR-06 | — | Pending |
-| CHAR-07 | — | Pending |
-| CHAR-08 | — | Pending |
-| CHAR-09 | — | Pending |
-| TEXT-01 | — | Pending |
-| TEXT-02 | — | Pending |
-| TEXT-03 | — | Pending |
-| TMEX-01 | — | Pending |
-| TMEX-02 | — | Pending |
-| TMEX-03 | — | Pending |
-| TMEX-04 | — | Pending |
-| COV-01 | — | Pending |
-| COV-02 | — | Pending |
-| COV-03 | — | Pending |
-| COV-04 | — | Pending |
-| COV-05 | — | Pending |
-| COV-06 | — | Pending |
-| QUAL-01 | — | Pending |
-| QUAL-02 | — | Pending |
-| QUAL-03 | — | Pending |
+| CHAR-01 | Phase 11 | Pending |
+| CHAR-02 | Phase 11 | Pending |
+| CHAR-03 | Phase 11 | Pending |
+| CHAR-04 | Phase 11 | Pending |
+| CHAR-09 | Phase 11 | Pending |
+| CHAR-05 | Phase 12 | Pending |
+| CHAR-06 | Phase 12 | Pending |
+| CHAR-07 | Phase 12 | Pending |
+| CHAR-08 | Phase 12 | Pending |
+| TEXT-01 | Phase 13 | Pending |
+| TEXT-02 | Phase 13 | Pending |
+| TMEX-01 | Phase 13 | Pending |
+| TEXT-03 | Phase 14 | Pending |
+| TMEX-02 | Phase 14 | Pending |
+| TMEX-03 | Phase 15 | Pending |
+| TMEX-04 | Phase 15 | Pending |
+| COV-01 | Phase 16 | Pending |
+| COV-02 | Phase 16 | Pending |
+| COV-03 | Phase 16 | Pending |
+| COV-04 | Phase 16 | Pending |
+| COV-05 | Phase 16 | Pending |
+| COV-06 | Phase 16 | Pending |
+| QUAL-01 | Phase 16 | Pending |
+| QUAL-02 | Phase 16 | Pending |
+| QUAL-03 | Phase 16 | Pending |
 
 **Coverage:**
 - v2.1 requirements: 25 total
-- Mapped to phases: 0
-- Unmapped: 25 ⚠️
+- Mapped to phases: 25
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-04-10*
-*Last updated: 2026-04-10 after initial definition*
+*Last updated: 2026-04-10 after roadmap creation*

@@ -3,7 +3,8 @@
 ## Milestones
 
 - ✅ **v1.0 Model Refactoring** - Phases 1-5 (shipped 2026-04-10)
-- 🚧 **v2.0 Test Suite Audit & Improvement** - Phases 6-10 (in progress)
+- ✅ **v2.0 Test Suite Audit & Improvement** - Phases 6-10 (shipped 2026-04-10)
+- 🚧 **v2.1 Tournament & TournamentMonitor Refactoring** - Phases 11-16 (in progress)
 
 ## Phases
 
@@ -92,17 +93,8 @@ Plans:
 
 ---
 
-### v2.0 Test Suite Audit & Improvement (In Progress)
-
-**Milestone Goal:** Every existing test file is reviewed, consistent, and trustworthy — no dead tests, no skipped tests without justification, no brittle patterns.
-
-- [ ] **Phase 6: Audit Baseline & Standards** - Survey all 72 test files; document quality issues; establish consistent patterns for the suite
-- [ ] **Phase 7: Model Tests Review** - Review and improve all 22 model test files, including the three largest (table_heater_management 824L, score_engine 703L, tournament_auto_reserve 586L)
-- [ ] **Phase 8: Service Tests Review** - Review and improve all 12 service test files (10 RegionCc syncers + 2 TableMonitor services)
-- [ ] **Phase 9: Controller, System & Other Tests Review** - Review and improve all 27 remaining test files (11 controller + 13 system + 3 other categories)
-- [x] **Phase 10: Final Pass & Green Suite** - Resolve all skipped/pending tests; remove dead/redundant tests; fix brittle tests; verify full suite passes (completed 2026-04-10)
-
-## Phase Details
+<details>
+<summary>✅ v2.0 Test Suite Audit & Improvement (Phases 6-10) - SHIPPED 2026-04-10</summary>
 
 ### Phase 6: Audit Baseline & Standards
 **Goal**: A documented quality baseline exists for all 72 test files and consistent patterns are established, so every subsequent review phase applies the same standard
@@ -174,10 +166,95 @@ Plans:
 - [x] 10-02-PLAN.md — Fix remaining failures: PG::UniqueViolation, controller scaffolds, KO integration, misc
 - [x] 10-03-PLAN.md — VCR cassette recording attempt for 7 skipped RegionCcCharTest tests
 
+</details>
+
+---
+
+### 🚧 v2.1 Tournament & TournamentMonitor Refactoring (In Progress)
+
+**Milestone Goal:** Reduce Tournament (1775 lines) and TournamentMonitor (499 lines) into maintainable, well-tested components with comprehensive test coverage across models, services, controllers, channels, and jobs.
+
+- [ ] **Phase 11: TournamentMonitor Characterization** - Pin TournamentMonitor behavior (AASM, result pipeline, game sequencing, player distribution) before any extraction
+- [ ] **Phase 12: Tournament Characterization** - Pin Tournament behavior (AASM, scraping pipeline, dynamic attributes, PaperTrail baselines) before any extraction
+- [ ] **Phase 13: Low-Risk Extractions** - Extract three smallest services (RankingCalculator, TableReservationService, PlayerGroupDistributor) to prove the pattern
+- [ ] **Phase 14: Medium-Risk Extractions** - Extract PublicCcScraper and RankingResolver, the largest complexity reductions requiring VCR cassettes
+- [ ] **Phase 15: High-Risk Extractions** - Extract ResultProcessor and TablePopulator, which involve DB locks, AASM, and complex algorithms
+- [ ] **Phase 16: Controller, Job & Channel Coverage** - Add test coverage for controllers, jobs, and channels that touch Tournament and TournamentMonitor; verify quality metrics
+
+## Phase Details
+
+### Phase 11: TournamentMonitor Characterization
+**Goal**: TournamentMonitor's critical behavior is fully pinned by characterization tests and ApiProtectorTestOverride is verified, making all TournamentMonitor extractions safe to begin
+**Depends on**: Phase 10
+**Requirements**: CHAR-01, CHAR-02, CHAR-03, CHAR-04, CHAR-09
+**Success Criteria** (what must be TRUE):
+  1. TournamentMonitor AASM state machine transitions are covered by tests — every valid transition fires, every invalid transition is rejected, and after_enter callbacks execute correctly
+  2. The result pipeline (report_result, write_game_result_data) is covered by tests that verify the exact sequence of DB writes and state changes
+  3. populate_tables game sequencing is covered by tests that verify which games are assigned to which tables in deterministic input scenarios
+  4. distribute_to_group player distribution is covered by tests that verify group membership and ordering for given player sets
+  5. ApiProtectorTestOverride is confirmed active for TournamentMonitor tests — saves succeed without silent rollback in API server context
+**Plans**: TBD
+
+### Phase 12: Tournament Characterization
+**Goal**: Tournament's critical behavior is fully pinned — AASM, scraping pipeline, dynamic attribute delegation, and PaperTrail version counts — making all Tournament extractions safe to begin
+**Depends on**: Phase 11
+**Requirements**: CHAR-05, CHAR-06, CHAR-07, CHAR-08
+**Success Criteria** (what must be TRUE):
+  1. Tournament AASM state machine transitions are covered by tests — every valid transition fires and guard methods are verified before extraction moves them
+  2. The scraping pipeline (scrape_single_tournament_public) is covered by VCR-backed tests that verify the exact records created or updated from a known cassette
+  3. All 12 dynamic attribute define_method getters and setters are covered by tests that verify each getter returns the correct value and each setter persists the correct value
+  4. PaperTrail version baselines are established — tests assert the exact version count produced by each significant operation (create, update, state transition) so regressions are caught immediately
+**Plans**: TBD
+
+### Phase 13: Low-Risk Extractions
+**Goal**: Three small, pure-logic services are extracted from Tournament and TournamentMonitor — proving the delegation pattern on the easiest targets before tackling larger extractions
+**Depends on**: Phase 12
+**Requirements**: TEXT-01, TEXT-02, TMEX-01
+**Success Criteria** (what must be TRUE):
+  1. Tournament::RankingCalculator exists in app/services/tournament/ with unit tests; Tournament delegates to it and produces identical ranking output to before extraction
+  2. Tournament::TableReservationService exists in app/services/tournament/ with unit tests; Tournament delegates to it and table reservation behavior is unchanged
+  3. TournamentMonitor::PlayerGroupDistributor exists in app/services/tournament_monitor/ with unit tests covering the pure distribution algorithm; TournamentMonitor delegates to it and group assignments are identical to before extraction
+  4. All existing characterization tests from Phases 11-12 pass without modification after these extractions
+**Plans**: TBD
+
+### Phase 14: Medium-Risk Extractions
+**Goal**: PublicCcScraper (700 lines, VCR required) and RankingResolver (regex rule parser) are extracted — the two largest complexity reductions in this milestone
+**Depends on**: Phase 13
+**Requirements**: TEXT-03, TMEX-02
+**Success Criteria** (what must be TRUE):
+  1. Tournament::PublicCcScraper exists in app/services/tournament/ with VCR-backed tests; Tournament delegates to it and the scraping pipeline produces identical records to the Phase 12 characterization baseline
+  2. TournamentMonitor::RankingResolver exists in app/services/tournament_monitor/ with unit tests covering the regex rule parser; all ranking resolution outcomes match the Phase 11 characterization baseline
+  3. Tournament model line count is meaningfully reduced from the Phase 12 baseline (PublicCcScraper extraction alone removes ~700 lines)
+  4. All existing characterization tests from Phases 11-12 pass without modification after these extractions
+**Plans**: TBD
+
+### Phase 15: High-Risk Extractions
+**Goal**: ResultProcessor (DB lock + AASM) and TablePopulator (complex sequencing algorithm) are extracted — the highest-risk TournamentMonitor extractions, dependent on all prior characterization work
+**Depends on**: Phase 14
+**Requirements**: TMEX-03, TMEX-04
+**Success Criteria** (what must be TRUE):
+  1. TournamentMonitor::ResultProcessor exists in app/services/tournament_monitor/ with unit tests; DB lock behavior is preserved — concurrent result submissions do not produce duplicate records or corrupt state
+  2. TournamentMonitor::ResultProcessor fires AASM events on the TournamentMonitor model reference; after_enter callbacks execute correctly when events are fired from the service
+  3. TournamentMonitor::TablePopulator exists in app/services/tournament_monitor/ with unit tests; populate_tables output is identical to the Phase 11 characterization baseline for all tested input scenarios
+  4. All existing characterization tests from Phases 11-12 pass without modification after these extractions
+**Plans**: TBD
+
+### Phase 16: Controller, Job & Channel Coverage
+**Goal**: Test coverage exists for all controllers, jobs, and channels that touch Tournament and TournamentMonitor; Tournament is under 1000 lines; all tests are green; PaperTrail version counts are unchanged
+**Depends on**: Phase 15
+**Requirements**: COV-01, COV-02, COV-03, COV-04, COV-05, COV-06, QUAL-01, QUAL-02, QUAL-03
+**Success Criteria** (what must be TRUE):
+  1. TournamentsController has test coverage for all 20+ actions — auth, routing, and response assertions present for each action
+  2. TournamentMonitorsController has test coverage for all game pipeline actions — result submission, table assignment, and state transition responses are verified
+  3. TournamentMonitorChannel and TournamentChannel each have test coverage — subscription, broadcast triggering, and message format are verified
+  4. TournamentStatusUpdateJob and TournamentMonitorUpdateResultsJob each have test coverage — job execution produces the expected model state changes
+  5. Tournament model is under 1000 lines; `bin/rails test` passes with zero failures and zero errors; PaperTrail version counts per operation match the Phase 12 baselines
+**Plans**: TBD
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 6 -> 7 -> 8 -> 9 -> 10
+Phases execute in numeric order: 11 -> 12 -> 13 -> 14 -> 15 -> 16
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -188,6 +265,12 @@ Phases execute in numeric order: 6 -> 7 -> 8 -> 9 -> 10
 | 5. TableMonitor ResultRecorder & Final Cleanup | v1.0 | 3/3 | Complete | 2026-04-10 |
 | 6. Audit Baseline & Standards | v2.0 | 2/2 | Complete | 2026-04-10 |
 | 7. Model Tests Review | v2.0 | 2/2 | Complete | 2026-04-10 |
-| 8. Service Tests Review | v2.0 | 0/2 | Planning complete | - |
-| 9. Controller, System & Other Tests Review | v2.0 | 0/2 | Planning complete | - |
-| 10. Final Pass & Green Suite | v2.0 | 3/3 | Complete    | 2026-04-10 |
+| 8. Service Tests Review | v2.0 | 2/2 | Complete | 2026-04-10 |
+| 9. Controller, System & Other Tests Review | v2.0 | 2/2 | Complete | 2026-04-10 |
+| 10. Final Pass & Green Suite | v2.0 | 3/3 | Complete | 2026-04-10 |
+| 11. TournamentMonitor Characterization | v2.1 | 0/? | Not started | - |
+| 12. Tournament Characterization | v2.1 | 0/? | Not started | - |
+| 13. Low-Risk Extractions | v2.1 | 0/? | Not started | - |
+| 14. Medium-Risk Extractions | v2.1 | 0/? | Not started | - |
+| 15. High-Risk Extractions | v2.1 | 0/? | Not started | - |
+| 16. Controller, Job & Channel Coverage | v2.1 | 0/? | Not started | - |
