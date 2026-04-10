@@ -129,8 +129,8 @@ Plans:
   3. Model tests pass after improvements; no regressions introduced
 **Plans:** 2 plans
 Plans:
-- [ ] 07-01-PLAN.md — Delete 10 empty stubs + add frozen_string_literal to clean model test files
-- [ ] 07-02-PLAN.md — Fix weak assertions and skipped test in 5 model test files
+- [x] 07-01-PLAN.md — Delete 10 empty stubs + add frozen_string_literal to clean model test files
+- [x] 07-02-PLAN.md — Fix weak assertions and skipped test in 5 model test files
 
 ### Phase 8: Service Tests Review
 **Goal**: All 12 service test files are reviewed and improved — the 10 RegionCc syncer tests and 2 TableMonitor service tests meet the Phase 6 standards

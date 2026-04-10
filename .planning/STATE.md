@@ -4,14 +4,14 @@ milestone: v2.0
 milestone_name: Test Suite Audit & Improvement
 status: executing
 stopped_at: Phase 7 context gathered
-last_updated: "2026-04-10T14:25:52.116Z"
-last_activity: 2026-04-10 -- Phase 7 planning complete
+last_updated: "2026-04-10T15:10:29.493Z"
+last_activity: 2026-04-10
 progress:
   total_phases: 5
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 4
-  completed_plans: 2
-  percent: 50
+  completed_plans: 4
+  percent: 100
 ---
 
 # Project State
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-10)
 
 **Core value:** Every existing test file is reviewed, consistent, and trustworthy — no dead tests, no skipped tests without justification, no brittle patterns.
-**Current focus:** Phase 06 — audit-baseline-standards
+**Current focus:** Phase 07 — model-tests-review
 
 ## Current Position
 
-Phase: 7
+Phase: 8
 Plan: Not started
-Status: Ready to execute
-Last activity: 2026-04-10 -- Phase 7 planning complete
+Status: Executing Phase 07
+Last activity: 2026-04-10
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -36,7 +36,7 @@ Progress: [░░░░░░░░░░] 0%
 
 **Velocity:**
 
-- Total plans completed: 20 (v1.0)
+- Total plans completed: 22 (v1.0)
 - Average duration: unknown
 - Total execution time: unknown
 
@@ -46,6 +46,7 @@ Progress: [░░░░░░░░░░] 0%
 |-------|-------|-------|----------|
 | v1.0 (Phases 1-5) | 18 | - | - |
 | 06 | 2 | - | - |
+| 07 | 2 | - | - |
 
 **Recent Trend:**
 
@@ -64,7 +65,7 @@ Recent decisions affecting current work:
 
 ### Pending Todos
 
-None yet.
+- **TODO-01**: ApiProtector has no test override — models with `include ApiProtector` (TournamentMonitor, PartyMonitor, TableMonitor, TableLocal, TournamentLocal, StreamConfiguration, CalendarEvent) silently rollback saves of local records (id > MIN_ID) in test env because `local_server?` returns false. LocalProtectorTestOverride is a no-op in this context. Need: either add ApiProtectorTestOverride in test_helper.rb, or make test env explicitly set server context. tournament_test.rb first test name is misleading. Address in Phase 10 or future milestone.
 
 ### Blockers/Concerns
 
