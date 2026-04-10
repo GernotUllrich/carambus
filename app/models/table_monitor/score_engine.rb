@@ -405,7 +405,7 @@ class TableMonitor::ScoreEngine
         data[the_other_player]["result"] = data[the_other_player]["innings_list"]&.sum.to_i
         data[the_other_player]["hs"] = data[the_other_player]["innings_list"]&.max.to_i
         data[the_other_player]["gd"] =
-          format("%.2f", data[the_other_player]["result"].to_f / data[current_role]["innings"].to_i)
+          format("%.2f", data[the_other_player]["result"].to_f / data[the_other_player]["innings"].to_i)
         data["current_inning"]["active_player"] = the_other_player
       end
     end
