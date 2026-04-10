@@ -127,7 +127,10 @@ Plans:
   1. All 22 model test files have been reviewed against Phase 6 standards; every weak or missing assertion is fixed
   2. The three largest model test files (table_heater_management 824L, score_engine 703L, tournament_auto_reserve 586L) are assessed and any structural problems (duplicate tests, unclear grouping) are resolved
   3. Model tests pass after improvements; no regressions introduced
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 07-01-PLAN.md — Delete 10 empty stubs + add frozen_string_literal to clean model test files
+- [ ] 07-02-PLAN.md — Fix weak assertions and skipped test in 5 model test files
 
 ### Phase 8: Service Tests Review
 **Goal**: All 12 service test files are reviewed and improved — the 10 RegionCc syncer tests and 2 TableMonitor service tests meet the Phase 6 standards
@@ -173,8 +176,8 @@ Phases execute in numeric order: 6 → 7 → 8 → 9 → 10
 | 3. TableMonitor ScoreEngine | v1.0 | 3/3 | Complete | 2026-04-10 |
 | 4. TableMonitor GameSetup & OptionsPresenter | v1.0 | 4/4 | Complete | 2026-04-10 |
 | 5. TableMonitor ResultRecorder & Final Cleanup | v1.0 | 3/3 | Complete | 2026-04-10 |
-| 6. Audit Baseline & Standards | v2.0 | 0/TBD | Not started | - |
-| 7. Model Tests Review | v2.0 | 0/TBD | Not started | - |
+| 6. Audit Baseline & Standards | v2.0 | 2/2 | Complete | 2026-04-10 |
+| 7. Model Tests Review | v2.0 | 0/2 | Planning complete | - |
 | 8. Service Tests Review | v2.0 | 0/TBD | Not started | - |
 | 9. Controller, System & Other Tests Review | v2.0 | 0/TBD | Not started | - |
 | 10. Final Pass & Green Suite | v2.0 | 0/TBD | Not started | - |
