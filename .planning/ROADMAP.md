@@ -94,7 +94,7 @@ Plans:
   4. TableMonitor model is under 1500 lines; Reek post-extraction report shows measurable reduction in LargeClass and TooManyMethods smells relative to the Phase 1 baseline
 **Plans:** 3 plans
 Plans:
-- [ ] 05-01-PLAN.md — Create ResultRecorder ApplicationService + wire delegation in TableMonitor
+- [x] 05-01-PLAN.md — Create ResultRecorder ApplicationService + wire delegation in TableMonitor
 - [ ] 05-02-PLAN.md — Wire 8 ScoreEngine delegations + clean up DEBUG references in game_protocol_reflex.rb
 - [ ] 05-03-PLAN.md — Verify full test coverage for all 4 services + Reek final measurement
 

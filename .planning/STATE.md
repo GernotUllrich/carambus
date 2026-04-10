@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 5 context gathered (discuss mode)
-last_updated: "2026-04-10T11:40:35.134Z"
-last_activity: 2026-04-10 -- Phase 05 planning complete
+stopped_at: Completed 05-tablemonitor-resultrecorder-final-cleanup-05-01-PLAN.md
+last_updated: "2026-04-10T11:48:26.952Z"
+last_activity: 2026-04-10
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 18
-  completed_plans: 15
-  percent: 83
+  completed_plans: 16
+  percent: 89
 ---
 
 # Project State
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-09)
 
 **Core value:** Reduce the two worst god-object models into maintainable, testable units without changing external behavior.
-**Current focus:** Phase 01 — Characterization Tests & Hardening
+**Current focus:** Phase 05 — tablemonitor-resultrecorder-final-cleanup
 
 ## Current Position
 
-Phase: 5
-Plan: Not started
+Phase: 05 (tablemonitor-resultrecorder-final-cleanup) — EXECUTING
+Plan: 2 of 3
 Status: Ready to execute
-Last activity: 2026-04-10 -- Phase 05 planning complete
+Last activity: 2026-04-10
 
 Progress: [██████████] 100%
 
@@ -57,6 +57,7 @@ Progress: [██████████] 100%
 | Phase 01-characterization-tests-hardening P01 | 8 | 2 tasks | 5 files |
 | Phase 01-characterization-tests-hardening P02 | 2min | 3 tasks | 3 files |
 | Phase 01-characterization-tests-hardening P03 | 12 | 1 tasks | 1 files |
+| Phase 05-tablemonitor-resultrecorder-final-cleanup P01 | 5 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -75,6 +76,8 @@ Recent decisions affecting current work:
 - [Phase 01-characterization-tests-hardening]: VCR cassettes deferred for 7 RegionCc tests — acceptable when ClubCloud credentials not in test env; cassettes recorded later
 - [Phase 01-characterization-tests-hardening]: Reek NOT in Gemfile (D-08) — globally installed one-time tool; TableMonitor 781 warnings, RegionCc 460 warnings baseline established
 - [Phase 01-characterization-tests-hardening]: Use TableMonitor.find(id) after create! to get fresh instance — clears log_state_change residue from create before_save so end-to-end update! tests start with nil @collected_data_changes
+- [Phase 05-tablemonitor-resultrecorder-final-cleanup]: AASM events (end_of_set!, finish_match!) called directly on @tm from ResultRecorder — guards remain model-side, no wrapping needed
+- [Phase 05-tablemonitor-resultrecorder-final-cleanup]: No CableReady in ResultRecorder — broadcasts happen via after_update_commit on TableMonitor model (D-04)
 
 ### Pending Todos
 
@@ -87,5 +90,5 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-10T11:16:57.276Z
-Stopped at: Phase 5 context gathered (discuss mode)
+Last session: 2026-04-10T11:48:26.949Z
+Stopped at: Completed 05-tablemonitor-resultrecorder-final-cleanup-05-01-PLAN.md
