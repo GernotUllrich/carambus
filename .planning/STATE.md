@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 05-tablemonitor-resultrecorder-final-cleanup-05-01-PLAN.md
-last_updated: "2026-04-10T11:48:26.952Z"
+stopped_at: Completed 05-tablemonitor-resultrecorder-final-cleanup 05-02-PLAN.md
+last_updated: "2026-04-10T11:58:23.111Z"
 last_activity: 2026-04-10
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 18
-  completed_plans: 16
-  percent: 89
+  completed_plans: 17
+  percent: 94
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-09)
 ## Current Position
 
 Phase: 05 (tablemonitor-resultrecorder-final-cleanup) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 Status: Ready to execute
 Last activity: 2026-04-10
 
@@ -58,6 +58,7 @@ Progress: [██████████] 100%
 | Phase 01-characterization-tests-hardening P02 | 2min | 3 tasks | 3 files |
 | Phase 01-characterization-tests-hardening P03 | 12 | 1 tasks | 1 files |
 | Phase 05-tablemonitor-resultrecorder-final-cleanup P01 | 5 | 2 tasks | 3 files |
+| Phase 05-tablemonitor-resultrecorder-final-cleanup P02 | 35 | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -78,6 +79,8 @@ Recent decisions affecting current work:
 - [Phase 01-characterization-tests-hardening]: Use TableMonitor.find(id) after create! to get fresh instance — clears log_state_change residue from create before_save so end-to-end update! tests start with nil @collected_data_changes
 - [Phase 05-tablemonitor-resultrecorder-final-cleanup]: AASM events (end_of_set!, finish_match!) called directly on @tm from ResultRecorder — guards remain model-side, no wrapping needed
 - [Phase 05-tablemonitor-resultrecorder-final-cleanup]: No CableReady in ResultRecorder — broadcasts happen via after_update_commit on TableMonitor model (D-04)
+- [Phase 05-tablemonitor-resultrecorder-final-cleanup]: ScoreEngine#terminate_inning_data accepts playing: kwarg (not @tm reference) — consistent with existing delete_inning(playing_or_set_over:) pattern; ScoreEngine remains a pure hash collaborator
+- [Phase 05-tablemonitor-resultrecorder-final-cleanup]: recalculate_player_stats removed from TableMonitor entirely — all 4 callers were methods being replaced; ScoreEngine handles recalculation internally
 
 ### Pending Todos
 
@@ -90,5 +93,5 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-10T11:48:26.949Z
-Stopped at: Completed 05-tablemonitor-resultrecorder-final-cleanup-05-01-PLAN.md
+Last session: 2026-04-10T11:58:23.108Z
+Stopped at: Completed 05-tablemonitor-resultrecorder-final-cleanup 05-02-PLAN.md
