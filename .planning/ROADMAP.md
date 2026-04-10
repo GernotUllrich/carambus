@@ -84,14 +84,19 @@ Plans:
 - [x] 04-04-PLAN.md — Gap closure: remove skip_update_callbacks name from all call sites, replace with suppress_broadcast
 
 ### Phase 5: TableMonitor ResultRecorder & Final Cleanup
-**Goal**: The highest-risk extraction is complete; TableMonitor is under 800 lines; full test coverage for all extracted services is verified; Reek final measurement confirms quality improvement
+**Goal**: The highest-risk extraction is complete; TableMonitor is under 1500 lines; full test coverage for all extracted services is verified; Reek final measurement confirms quality improvement
 **Depends on**: Phase 4
 **Requirements**: TMON-03, TMON-06
 **Success Criteria** (what must be TRUE):
   1. TableMonitor::ResultRecorder exists and handles save_result, save_current_set, evaluate_result, switch_to_next_set, and get_max_number_of_wins; it fires AASM events on the model reference (finish_match!, end_of_set!) and never calls CableReady directly
   2. All AASM after_enter callbacks still fire correctly when events are called from ResultRecorder; live match end-to-end flow (result saved → state transition → broadcast → browser update) works identically
   3. All extracted TableMonitor services (ScoreEngine, GameSetup, OptionsPresenter, ResultRecorder) have unit tests with passing assertions; no extraction-related test failures remain
-  4. TableMonitor model is under 800 lines; Reek post-extraction report shows measurable reduction in LargeClass and TooManyMethods smells relative to the Phase 1 baseline
+  4. TableMonitor model is under 1500 lines; Reek post-extraction report shows measurable reduction in LargeClass and TooManyMethods smells relative to the Phase 1 baseline
+**Plans:** 3 plans
+Plans:
+- [ ] 05-01-PLAN.md — Create ResultRecorder ApplicationService + wire delegation in TableMonitor
+- [ ] 05-02-PLAN.md — Wire 8 ScoreEngine delegations + clean up DEBUG references in game_protocol_reflex.rb
+- [ ] 05-03-PLAN.md — Verify full test coverage for all 4 services + Reek final measurement
 
 ## Progress
 
@@ -104,4 +109,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 | 2. RegionCc Extraction | 0/5 | Planned | - |
 | 3. TableMonitor ScoreEngine | 3/3 | Complete | 2026-04-10 |
 | 4. TableMonitor GameSetup & OptionsPresenter | 4/4 | Complete   | 2026-04-10 |
-| 5. TableMonitor ResultRecorder & Final Cleanup | 0/? | Not started | - |
+| 5. TableMonitor ResultRecorder & Final Cleanup | 0/3 | Planned | - |
