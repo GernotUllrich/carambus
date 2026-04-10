@@ -180,25 +180,25 @@ class TableMonitor::GameSetupTest < ActiveSupport::TestCase
   end
 
   # ---------------------------------------------------------------------------
-  # Test 6: suppress_broadcast (skip_update_callbacks) wird vor Saves gesetzt
+  # Test 6: suppress_broadcast wird vor Saves gesetzt
   # ---------------------------------------------------------------------------
 
-  test "call sets skip_update_callbacks=true before saves, resets after" do
+  test "call sets suppress_broadcast=true before saves, resets after" do
     callbacks_during = []
     original_save = @tm.method(:save!)
 
-    # Wir pruefen: wenn save! aufgerufen wird, ist skip_update_callbacks true
+    # Wir pruefen: wenn save! aufgerufen wird, ist suppress_broadcast true
     @tm.stub(:save!, -> {
-      callbacks_during << @tm.skip_update_callbacks
+      callbacks_during << @tm.suppress_broadcast
       original_save.call
     }) do
       call_setup
     end
 
     assert callbacks_during.any? { |v| v == true },
-      "skip_update_callbacks muss waehrend save! true sein"
+      "suppress_broadcast muss waehrend save! true sein"
     # Nach dem Call muss es false sein
-    assert_equal false, @tm.skip_update_callbacks
+    assert_equal false, @tm.suppress_broadcast
   end
 
   # ---------------------------------------------------------------------------
@@ -237,7 +237,7 @@ class TableMonitor::GameSetupTest < ActiveSupport::TestCase
   # Test 9: suppress_broadcast wird in ensure zurueckgesetzt, auch bei Ausnahme
   # ---------------------------------------------------------------------------
 
-  test "call resets skip_update_callbacks=false in ensure block even on exception" do
+  test "call resets suppress_broadcast=false in ensure block even on exception" do
     # initialize_game wird explodieren lassen
     @tm.stub(:initialize_game, -> { raise StandardError, "Test-Fehler" }) do
       assert_raises(StandardError) do
@@ -247,8 +247,8 @@ class TableMonitor::GameSetupTest < ActiveSupport::TestCase
       end
     end
 
-    assert_equal false, @tm.skip_update_callbacks,
-      "skip_update_callbacks muss false sein, auch nach Ausnahme"
+    assert_equal false, @tm.suppress_broadcast,
+      "suppress_broadcast muss false sein, auch nach Ausnahme"
   end
 
   # ---------------------------------------------------------------------------

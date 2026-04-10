@@ -75,11 +75,6 @@ class TableMonitor < ApplicationRecord
     @suppress_broadcast || false
   end
 
-  # Transitional shim — reflex still uses skip_update_callbacks at 30+ call sites.
-  # Remove when reflex is updated in a future phase.
-  alias_method :skip_update_callbacks=, :suppress_broadcast=
-  alias_method :skip_update_callbacks, :suppress_broadcast
-
   after_update_commit lambda {
     # Skip callbacks if flag is set (used in start_game to prevent redundant job enqueues)
     if suppress_broadcast

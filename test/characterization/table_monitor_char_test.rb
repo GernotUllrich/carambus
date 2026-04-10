@@ -252,10 +252,10 @@ class TableMonitorCharTest < ActiveSupport::TestCase
   # C. after_update_commit Branch Tests
   # ===========================================================================
 
-  test "skip_update_callbacks = true suppresses all TableMonitorJob enqueues" do
+  test "suppress_broadcast = true suppresses all TableMonitorJob enqueues" do
     ApplicationRecord.stub(:local_server?, true) do
       assert_no_enqueued_jobs only: [TableMonitorJob] do
-        @tm.skip_update_callbacks = true
+        @tm.suppress_broadcast = true
         @tm.update!(state: "warmup")
       end
     end
