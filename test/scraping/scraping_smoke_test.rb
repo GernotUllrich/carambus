@@ -143,13 +143,9 @@ class ScrapingSmokeTest < ActiveSupport::TestCase
     end
   end
 
-  test "scraping continues after individual tournament fails" do
-    # In der Praxis: Wenn ein Turnier fehlschlägt, sollte das nächste trotzdem gescraped werden
-    # Das wird durch rescue-Blöcke in den Scraping-Methoden sichergestellt
-    
-    # Dieser Test dokumentiert das erwartete Verhalten
-    assert true, "Individual failures should not stop batch scraping"
-  end
+  # Removed: assert-true-only test for batch continuation (not testable without scraper refactor)
+  # The behavior (individual scraper failure does not stop batch) is enforced by rescue blocks
+  # in the scraping methods and is validated by daily production scraping.
 
   # ============================================================================
   # PERFORMANCE SMOKE TESTS

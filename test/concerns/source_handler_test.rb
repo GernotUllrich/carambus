@@ -66,8 +66,10 @@ class SourceHandlerTest < ActiveSupport::TestCase
     )
     
     initial_sync = tournament.reload.sync_date
-    
-    # Save without changes
+
+    # Save without changes — sync_date should not change
     assert_nothing_raised { tournament.save! }
+    assert_equal initial_sync, tournament.reload.sync_date,
+                 "sync_date should not update when there are no changes"
   end
 end
