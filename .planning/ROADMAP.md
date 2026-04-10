@@ -1,24 +1,14 @@
 # Roadmap: Carambus API — Model Refactoring & Test Coverage
 
-## Overview
+## Milestones
 
-This project extracts two Rails god-objects — TableMonitor (3903 lines) and RegionCc (2728 lines) — into focused service objects without changing external behavior. The approach is strictly incremental: characterization tests pin existing behavior as a hard gate, RegionCc is extracted first (lower real-time risk), then TableMonitor in three passes ordered by coupling surface (ScoreEngine first, ResultRecorder last). Reek baselines are measured before and after to confirm quality improvement.
+- ✅ **v1.0 Model Refactoring** - Phases 1-5 (shipped 2026-04-10)
+- 🚧 **v2.0 Test Suite Audit & Improvement** - Phases 6-10 (in progress)
 
 ## Phases
 
-**Phase Numbering:**
-- Integer phases (1, 2, 3): Planned milestone work
-- Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
-
-Decimal phases appear between their surrounding integers in numeric order.
-
-- [x] **Phase 1: Characterization Tests & Hardening** - Pin existing behavior with tests; fix AASM and transactional test config before any extraction (completed 2026-04-09)
-- [ ] **Phase 2: RegionCc Extraction** - Extract ClubCloudClient and all sync services from RegionCc; verify VCR cassette compatibility
-- [x] **Phase 3: TableMonitor ScoreEngine** - Extract pure data hash mutation logic; validate lazy accessor delegation pattern (completed 2026-04-10)
-- [x] **Phase 4: TableMonitor GameSetup & OptionsPresenter** - Extract start_game entanglement; replace skip_update_callbacks flag (completed 2026-04-10)
-- [x] **Phase 5: TableMonitor ResultRecorder & Final Cleanup** - Extract highest-risk AASM-coupled service; full test coverage; Reek final measurement (completed 2026-04-10)
-
-## Phase Details
+<details>
+<summary>✅ v1.0 Model Refactoring (Phases 1-5) - SHIPPED 2026-04-10</summary>
 
 ### Phase 1: Characterization Tests & Hardening
 **Goal**: Existing behavior is fully pinned by characterization tests and structural issues that would corrupt tests are fixed, making extraction safe to begin
@@ -30,7 +20,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. AASM whiny_transitions: true is set and existing tests still pass (no silent guard failures hidden)
   4. Non-transactional test configuration is in place for after_commit coverage; after_commit callbacks fire in test context
   5. Reek baseline report is committed to .planning/ documenting LargeClass and TooManyMethods smells on TableMonitor and RegionCc before any extraction
-**Plans:** 3 plans (2 complete + 1 gap closure)
+**Plans:** 3 plans
 Plans:
 - [x] 01-01-PLAN.md — Infrastructure setup (test_after_commit, AASM whiny_transitions, test directory) + TableMonitor characterization tests
 - [x] 01-02-PLAN.md — RegionCc characterization tests with VCR cassettes + Reek baseline reports
@@ -62,7 +52,7 @@ Plans:
   2. TableMonitor delegates to ScoreEngine via a lazy accessor; all reflex interactions that trigger score changes produce identical results to before extraction
   3. DEBUG constants are removed from TableMonitor; equivalent behavior is available via Rails.logger levels
   4. TableMonitor line count is reduced by approximately 500-600 lines from pre-extraction baseline
-**Plans:** 3 plans (2 complete + 1 gap closure)
+**Plans:** 3 plans
 Plans:
 - [x] 03-01-PLAN.md — Create ScoreEngine PORO with all pure hash mutation methods + unit tests
 - [x] 03-02-PLAN.md — Wire delegation in TableMonitor + remove DEBUG constants + verify extraction
@@ -76,7 +66,7 @@ Plans:
   1. TableMonitor::GameSetup exists and handles start_game, initialize_game, assign_game, and player sequence/switching; Game and GameParticipation record creation occurs inside GameSetup, not the model
   2. The skip_update_callbacks flag is gone; batch operations use an explicit broadcast: false keyword argument; job enqueue count assertions verify no extra jobs fire during batch saves
   3. TableMonitor::OptionsPresenter exists and handles all view-preparation logic; reflex interactions that render options produce identical UI output to before extraction
-**Plans:** 4/4 plans complete
+**Plans:** 4 plans
 Plans:
 - [x] 04-01-PLAN.md — Create GameSetup ApplicationService with unit tests
 - [x] 04-02-PLAN.md — Wire GameSetup delegation + replace skip_update_callbacks with suppress_broadcast
@@ -92,21 +82,96 @@ Plans:
   2. All AASM after_enter callbacks still fire correctly when events are called from ResultRecorder; live match end-to-end flow (result saved → state transition → broadcast → browser update) works identically
   3. All extracted TableMonitor services (ScoreEngine, GameSetup, OptionsPresenter, ResultRecorder) have unit tests with passing assertions; no extraction-related test failures remain
   4. TableMonitor model is under 1500 lines; Reek post-extraction report shows measurable reduction in LargeClass and TooManyMethods smells relative to the Phase 1 baseline
-**Plans:** 3/3 plans complete
+**Plans:** 3 plans
 Plans:
 - [x] 05-01-PLAN.md — Create ResultRecorder ApplicationService + wire delegation in TableMonitor
 - [x] 05-02-PLAN.md — Wire 8 ScoreEngine delegations + clean up DEBUG references in game_protocol_reflex.rb
 - [x] 05-03-PLAN.md — Verify full test coverage for all 4 services + Reek final measurement
 
+</details>
+
+---
+
+### 🚧 v2.0 Test Suite Audit & Improvement (In Progress)
+
+**Milestone Goal:** Every existing test file is reviewed, consistent, and trustworthy — no dead tests, no skipped tests without justification, no brittle patterns.
+
+- [ ] **Phase 6: Audit Baseline & Standards** - Survey all 72 test files; document quality issues; establish consistent patterns for the suite
+- [ ] **Phase 7: Model Tests Review** - Review and improve all 22 model test files, including the three largest (table_heater_management 824L, score_engine 703L, tournament_auto_reserve 586L)
+- [ ] **Phase 8: Service Tests Review** - Review and improve all 12 service test files (10 RegionCc syncers + 2 TableMonitor services)
+- [ ] **Phase 9: Controller, System & Other Tests Review** - Review and improve all 27 remaining test files (11 controller + 13 system + 3 other categories)
+- [ ] **Phase 10: Final Pass & Green Suite** - Resolve all skipped/pending tests; remove dead/redundant tests; fix brittle tests; verify full suite passes
+
+## Phase Details
+
+### Phase 6: Audit Baseline & Standards
+**Goal**: A documented quality baseline exists for all 72 test files and consistent patterns are established, so every subsequent review phase applies the same standard
+**Depends on**: Phase 5
+**Requirements**: QUAL-01, CONS-01, CONS-02, CONS-03, CONS-04
+**Success Criteria** (what must be TRUE):
+  1. Every test file has been read and catalogued — a written audit list identifies which files have weak assertions, inconsistent setup, naming violations, or bad helper usage
+  2. A decision on fixtures vs factories is documented and applied as the project standard going forward
+  3. A consistent assertion style (assert/refute) is chosen and documented; files that violate the standard are listed for correction
+  4. Test naming conventions are documented (method naming, describe block usage); files that deviate are listed
+  5. Test helper and support file usage is reviewed; redundant or unused helpers are identified
+**Plans**: TBD
+
+### Phase 7: Model Tests Review
+**Goal**: All 22 model test files are reviewed and improved — weak assertions fixed, large files restructured if needed, and all model tests reflect the Phase 6 standards
+**Depends on**: Phase 6
+**Requirements**: MODL-01, MODL-02
+**Success Criteria** (what must be TRUE):
+  1. All 22 model test files have been reviewed against Phase 6 standards; every weak or missing assertion is fixed
+  2. The three largest model test files (table_heater_management 824L, score_engine 703L, tournament_auto_reserve 586L) are assessed and any structural problems (duplicate tests, unclear grouping) are resolved
+  3. Model tests pass after improvements; no regressions introduced
+**Plans**: TBD
+
+### Phase 8: Service Tests Review
+**Goal**: All 12 service test files are reviewed and improved — the 10 RegionCc syncer tests and 2 TableMonitor service tests meet the Phase 6 standards
+**Depends on**: Phase 6
+**Requirements**: SRVC-01
+**Success Criteria** (what must be TRUE):
+  1. All 12 service test files have been reviewed against Phase 6 standards; every weak or missing assertion is fixed
+  2. RegionCc syncer tests use injected doubles consistently; no syncer test depends on live HTTP or real ActiveRecord writes where a double suffices
+  3. Service tests pass after improvements; no regressions introduced
+**Plans**: TBD
+
+### Phase 9: Controller, System & Other Tests Review
+**Goal**: All 27 remaining test files (controller, system, other) are reviewed and improved against Phase 6 standards
+**Depends on**: Phase 6
+**Requirements**: CTRL-01, SYST-01, OTHR-01
+**Success Criteria** (what must be TRUE):
+  1. All 11 controller test files have been reviewed; auth, routing, and response assertions are present and meaningful
+  2. All 13 system test files have been reviewed; brittle selectors or timing dependencies are identified and fixed
+  3. All other test files (characterization 2, scraping 3, concerns 2, helpers 2, integration 1, tasks 1, optimistic_updates 1) have been reviewed and improved
+  4. All 27 reviewed files pass after improvements; no regressions introduced
+**Plans**: TBD
+
+### Phase 10: Final Pass & Green Suite
+**Goal**: All cross-cutting quality issues are resolved — skipped tests are fixed or removed, brittle tests are hardened, dead tests are deleted, and the full test suite is green
+**Depends on**: Phase 9
+**Requirements**: QUAL-02, QUAL-03, QUAL-04, PASS-01
+**Success Criteria** (what must be TRUE):
+  1. All 8 files with skipped/pending tests have been resolved — each skip is either fixed (test now runs) or removed with a documented justification committed to the codebase
+  2. No brittle tests remain — time-dependent, order-dependent, and external-state-dependent tests are fixed or explicitly guarded
+  3. All dead and redundant tests are removed — no duplicate assertions, no tests for deleted features, no unreachable code
+  4. `bin/rails test` passes with zero failures and zero errors after all improvements
+**Plans**: TBD
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
+Phases execute in numeric order: 6 → 7 → 8 → 9 → 10
 
-| Phase | Plans Complete | Status | Completed |
-|-------|----------------|--------|-----------|
-| 1. Characterization Tests & Hardening | 3/3 | Complete | 2026-04-09 |
-| 2. RegionCc Extraction | 0/5 | Planned | - |
-| 3. TableMonitor ScoreEngine | 3/3 | Complete | 2026-04-10 |
-| 4. TableMonitor GameSetup & OptionsPresenter | 4/4 | Complete   | 2026-04-10 |
-| 5. TableMonitor ResultRecorder & Final Cleanup | 3/3 | Complete   | 2026-04-10 |
+| Phase | Milestone | Plans Complete | Status | Completed |
+|-------|-----------|----------------|--------|-----------|
+| 1. Characterization Tests & Hardening | v1.0 | 3/3 | Complete | 2026-04-09 |
+| 2. RegionCc Extraction | v1.0 | 5/5 | Complete | 2026-04-10 |
+| 3. TableMonitor ScoreEngine | v1.0 | 3/3 | Complete | 2026-04-10 |
+| 4. TableMonitor GameSetup & OptionsPresenter | v1.0 | 4/4 | Complete | 2026-04-10 |
+| 5. TableMonitor ResultRecorder & Final Cleanup | v1.0 | 3/3 | Complete | 2026-04-10 |
+| 6. Audit Baseline & Standards | v2.0 | 0/TBD | Not started | - |
+| 7. Model Tests Review | v2.0 | 0/TBD | Not started | - |
+| 8. Service Tests Review | v2.0 | 0/TBD | Not started | - |
+| 9. Controller, System & Other Tests Review | v2.0 | 0/TBD | Not started | - |
+| 10. Final Pass & Green Suite | v2.0 | 0/TBD | Not started | - |

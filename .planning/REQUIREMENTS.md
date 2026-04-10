@@ -75,27 +75,27 @@ Requirements for test suite audit milestone. Each maps to roadmap phases.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| QUAL-01 | — | Pending |
-| QUAL-02 | — | Pending |
-| QUAL-03 | — | Pending |
-| QUAL-04 | — | Pending |
-| CONS-01 | — | Pending |
-| CONS-02 | — | Pending |
-| CONS-03 | — | Pending |
-| CONS-04 | — | Pending |
-| MODL-01 | — | Pending |
-| MODL-02 | — | Pending |
-| SRVC-01 | — | Pending |
-| CTRL-01 | — | Pending |
-| SYST-01 | — | Pending |
-| OTHR-01 | — | Pending |
-| PASS-01 | — | Pending |
+| QUAL-01 | Phase 6 | Pending |
+| QUAL-02 | Phase 10 | Pending |
+| QUAL-03 | Phase 10 | Pending |
+| QUAL-04 | Phase 10 | Pending |
+| CONS-01 | Phase 6 | Pending |
+| CONS-02 | Phase 6 | Pending |
+| CONS-03 | Phase 6 | Pending |
+| CONS-04 | Phase 6 | Pending |
+| MODL-01 | Phase 7 | Pending |
+| MODL-02 | Phase 7 | Pending |
+| SRVC-01 | Phase 8 | Pending |
+| CTRL-01 | Phase 9 | Pending |
+| SYST-01 | Phase 9 | Pending |
+| OTHR-01 | Phase 9 | Pending |
+| PASS-01 | Phase 10 | Pending |
 
 **Coverage:**
 - v2.0 requirements: 15 total
-- Mapped to phases: 0
-- Unmapped: 15 ⚠️
+- Mapped to phases: 15
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-04-10*
-*Last updated: 2026-04-10 after initial definition*
+*Last updated: 2026-04-10 after roadmap creation*
