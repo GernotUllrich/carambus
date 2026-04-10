@@ -224,9 +224,9 @@ Plans:
   4. All existing characterization tests from Phases 11-12 pass without modification after these extractions
 **Plans:** 3 plans
 Plans:
-- [x] 12-01-PLAN.md — AASM state machine + dynamic attribute delegation characterization
-- [x] 12-02-PLAN.md — PaperTrail version count baselines
-- [ ] 12-03-PLAN.md — VCR-backed scraping pipeline characterization + full verification
+- [ ] 13-01-PLAN.md — Extract PlayerGroupDistributor PORO from TournamentMonitor + wire delegation
+- [ ] 13-02-PLAN.md — Extract RankingCalculator PORO from Tournament + wire delegation
+- [ ] 13-03-PLAN.md — Extract TableReservationService ApplicationService from Tournament + wire delegation
 
 ### Phase 14: Medium-Risk Extractions
 **Goal**: PublicCcScraper (700 lines, VCR required) and RankingResolver (regex rule parser) are extracted — the two largest complexity reductions in this milestone
@@ -237,11 +237,7 @@ Plans:
   2. TournamentMonitor::RankingResolver exists in app/services/tournament_monitor/ with unit tests covering the regex rule parser; all ranking resolution outcomes match the Phase 11 characterization baseline
   3. Tournament model line count is meaningfully reduced from the Phase 12 baseline (PublicCcScraper extraction alone removes ~700 lines)
   4. All existing characterization tests from Phases 11-12 pass without modification after these extractions
-**Plans:** 3 plans
-Plans:
-- [x] 12-01-PLAN.md — AASM state machine + dynamic attribute delegation characterization
-- [x] 12-02-PLAN.md — PaperTrail version count baselines
-- [ ] 12-03-PLAN.md — VCR-backed scraping pipeline characterization + full verification
+**Plans:** [To be planned]
 
 ### Phase 15: High-Risk Extractions
 **Goal**: ResultProcessor (DB lock + AASM) and TablePopulator (complex sequencing algorithm) are extracted — the highest-risk TournamentMonitor extractions, dependent on all prior characterization work
@@ -252,11 +248,7 @@ Plans:
   2. TournamentMonitor::ResultProcessor fires AASM events on the TournamentMonitor model reference; after_enter callbacks execute correctly when events are fired from the service
   3. TournamentMonitor::TablePopulator exists in app/services/tournament_monitor/ with unit tests; populate_tables output is identical to the Phase 11 characterization baseline for all tested input scenarios
   4. All existing characterization tests from Phases 11-12 pass without modification after these extractions
-**Plans:** 3 plans
-Plans:
-- [ ] 12-01-PLAN.md — AASM state machine + dynamic attribute delegation characterization
-- [ ] 12-02-PLAN.md — PaperTrail version count baselines
-- [ ] 12-03-PLAN.md — VCR-backed scraping pipeline characterization + full verification
+**Plans:** [To be planned]
 
 ### Phase 16: Controller, Job & Channel Coverage
 **Goal**: Test coverage exists for all controllers, jobs, and channels that touch Tournament and TournamentMonitor; Tournament is under 1000 lines; all tests are green; PaperTrail version counts are unchanged
@@ -268,11 +260,7 @@ Plans:
   3. TournamentMonitorChannel and TournamentChannel each have test coverage — subscription, broadcast triggering, and message format are verified
   4. TournamentStatusUpdateJob and TournamentMonitorUpdateResultsJob each have test coverage — job execution produces the expected model state changes
   5. Tournament model is under 1000 lines; `bin/rails test` passes with zero failures and zero errors; PaperTrail version counts per operation match the Phase 12 baselines
-**Plans:** 3 plans
-Plans:
-- [ ] 12-01-PLAN.md — AASM state machine + dynamic attribute delegation characterization
-- [ ] 12-02-PLAN.md — PaperTrail version count baselines
-- [ ] 12-03-PLAN.md — VCR-backed scraping pipeline characterization + full verification
+**Plans:** [To be planned]
 
 ## Progress
 
@@ -293,7 +281,7 @@ Phases execute in numeric order: 11 -> 12 -> 13 -> 14 -> 15 -> 16
 | 10. Final Pass & Green Suite | v2.0 | 3/3 | Complete | 2026-04-10 |
 | 11. TournamentMonitor Characterization | v2.1 | 2/2 | Complete   | 2026-04-10 |
 | 12. Tournament Characterization | v2.1 | 3/3 | Complete   | 2026-04-10 |
-| 13. Low-Risk Extractions | v2.1 | 0/? | Not started | - |
+| 13. Low-Risk Extractions | v2.1 | 0/3 | Planned | - |
 | 14. Medium-Risk Extractions | v2.1 | 0/? | Not started | - |
 | 15. High-Risk Extractions | v2.1 | 0/? | Not started | - |
 | 16. Controller, Job & Channel Coverage | v2.1 | 0/? | Not started | - |
