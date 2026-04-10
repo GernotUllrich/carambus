@@ -46,11 +46,13 @@ class TournamentAutoReserveTest < ActiveSupport::TestCase
     @tournament_plan = TournamentPlan.create!(name: "T21", players: 12, tables: 6, ngroups: 3, nrepeats: 1)
   end
 
-  # Helper: stub create_google_calendar_event to return a fake response,
-  # bypassing the credential guard entirely.
+  # Helper: stub Tournament::TableReservationService.call to return a fake response,
+  # bypassing the Google Calendar credential guard entirely.
+  # After extraction, create_table_reservation delegates to the service, so we
+  # stub the service's .call class method rather than a private tournament method.
   def stub_calendar_event(tournament, response: nil)
     fake_response = response || OpenStruct.new(id: "test_event_stub", summary: "stubbed")
-    tournament.stub(:create_google_calendar_event, ->(_summary, _start, _end) { fake_response }) do
+    Tournament::TableReservationService.stub(:call, ->(_kwargs) { fake_response }) do
       yield
     end
   end
@@ -381,25 +383,17 @@ class TournamentAutoReserveTest < ActiveSupport::TestCase
       Seeding.create!(tournament_id: tournament.id, tournament_type: "Tournament", player: player, state: "registered")
     end
 
-    # Stub GoogleCalendarService to raise — the rescue inside create_google_calendar_event catches it
+    # Stub GoogleCalendarService to raise — the rescue inside
+    # Tournament::TableReservationService#create_google_calendar_event catches it.
+    # Bypass credential guard by stubbing Rails credentials to return a fake key.
     error_service = Object.new
     def error_service.insert_event(*_args)
       raise Google::Apis::Error.new("API Error")
     end
 
-    GoogleCalendarService.stub(:calendar_service, error_service) do
-      GoogleCalendarService.stub(:calendar_id, "test_cal") do
-        # Bypass credential guard by stubbing the method that checks credentials
-        tournament.stub(:create_google_calendar_event, ->(summary, start_time, end_time) {
-          begin
-            service = GoogleCalendarService.calendar_service
-            calendar_id = GoogleCalendarService.calendar_id
-            event_object = Google::Apis::CalendarV3::Event.new(summary: summary, start: { date_time: start_time }, end: { date_time: end_time })
-            service.insert_event(calendar_id, event_object)
-          rescue StandardError
-            nil
-          end
-        }) do
+    Rails.application.credentials.stub(:dig, "fake-private-key") do
+      GoogleCalendarService.stub(:calendar_service, error_service) do
+        GoogleCalendarService.stub(:calendar_id, "test_cal") do
           assert_nil tournament.create_table_reservation
         end
       end

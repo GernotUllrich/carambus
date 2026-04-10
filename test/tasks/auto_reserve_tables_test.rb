@@ -41,10 +41,12 @@ class AutoReserveTablesTaskTest < ActiveSupport::TestCase
     Rake::Task.clear
   end
 
-  # Helper: stub create_google_calendar_event to return a fake response
+  # Helper: stub Tournament::TableReservationService.call to return a fake response,
+  # bypassing the Google Calendar credential guard entirely.
+  # After extraction, create_table_reservation delegates to the service.
   def stub_calendar_event(tournament, response: nil)
     fake_response = response || OpenStruct.new(id: "test_event_stub", summary: "stubbed")
-    tournament.stub(:create_google_calendar_event, ->(_summary, _start, _end) { fake_response }) do
+    Tournament::TableReservationService.stub(:call, ->(_kwargs) { fake_response }) do
       yield
     end
   end

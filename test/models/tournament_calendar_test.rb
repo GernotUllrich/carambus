@@ -97,13 +97,16 @@ class TournamentCalendarTest < ActiveSupport::TestCase
   end
 
   # ===== create_google_calendar_event guard and integration =====
+  # Note: create_google_calendar_event is now a private method on Tournament::TableReservationService.
+  # These tests invoke it through the service object.
 
   # Baseline: create_google_calendar_event returns nil when Google credentials are missing.
   # Guard: return nil unless Rails.application.credentials.dig(:google_service, :private_key).present?
   test "create_google_calendar_event returns nil when credentials missing" do
+    service = Tournament::TableReservationService.new(tournament: @tournament)
     # Stub credentials to return nil for the private_key path
     Rails.application.credentials.stub(:dig, nil) do
-      result = @tournament.send(:create_google_calendar_event,
+      result = service.send(:create_google_calendar_event,
         "Test Summary",
         "2026-01-01T10:00:00Z",
         "2026-01-01T18:00:00Z")
@@ -125,10 +128,11 @@ class TournamentCalendarTest < ActiveSupport::TestCase
       mock_response
     end
 
+    service = Tournament::TableReservationService.new(tournament: @tournament)
     Rails.application.credentials.stub(:dig, fake_key) do
       GoogleCalendarService.stub(:calendar_service, mock_service) do
         GoogleCalendarService.stub(:calendar_id, "test-calendar-id") do
-          result = @tournament.send(:create_google_calendar_event,
+          result = service.send(:create_google_calendar_event,
             "Test Summary",
             "2026-01-01T10:00:00Z",
             "2026-01-01T18:00:00Z")
@@ -149,10 +153,11 @@ class TournamentCalendarTest < ActiveSupport::TestCase
   # When GoogleCalendarService.calendar_service raises, the method must rescue and return nil.
   test "create_google_calendar_event rescues StandardError and returns nil on failure" do
     fake_key = "fake-private-key"
+    service = Tournament::TableReservationService.new(tournament: @tournament)
 
     Rails.application.credentials.stub(:dig, fake_key) do
       GoogleCalendarService.stub(:calendar_service, ->{ raise StandardError.new("API unavailable") }) do
-        result = @tournament.send(:create_google_calendar_event,
+        result = service.send(:create_google_calendar_event,
           "Test Summary",
           "2026-01-01T10:00:00Z",
           "2026-01-01T18:00:00Z")
