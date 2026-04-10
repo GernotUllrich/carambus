@@ -419,10 +419,14 @@ class TableMonitor::ScoreEngine
   def redo_hash
     current_role = data["current_inning"]["active_player"]
     innings_redo = Array(data[current_role]["innings_redo_list"]).last.to_i
+    return nil unless innings_redo > 0
 
-    if innings_redo > 0
-      :inning_terminated
-    end
+    data[current_role]["innings_list"] ||= []
+    data[current_role]["innings_list"] << innings_redo
+    data[current_role]["innings_redo_list"][-1] = 0
+    data[current_role]["innings"] = (data[current_role]["innings"].to_i + 1)
+    recompute_result(current_role)
+    :inning_terminated
   end
 
   # -------------------------------------------------------------------------
