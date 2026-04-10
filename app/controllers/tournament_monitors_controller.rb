@@ -18,13 +18,13 @@ class TournamentMonitorsController < ApplicationController
     # Transition all table monitors with games to playing state
     @tournament_monitor.table_monitors.includes(:game).where.not(game_id: nil).each do |table_monitor|
       # Skip warmup and go directly to playing state for manual entry
-      table_monitor.skip_update_callbacks = true
+      table_monitor.suppress_broadcast = true
       if %i[ready warmup warmup_a warmup_b].include?(table_monitor.state.to_sym)
         table_monitor.start_new_match! if table_monitor.may_start_new_match?
         table_monitor.finish_warmup! if table_monitor.may_finish_warmup?
         table_monitor.finish_shootout! if table_monitor.may_finish_shootout?
       end
-      table_monitor.skip_update_callbacks = false
+      table_monitor.suppress_broadcast = false
       table_monitor.save!
     end
     flash[:notice] = "Alle Spiele der Runde wurden gestartet und sind bereit für die manuelle Eingabe."
@@ -90,7 +90,7 @@ class TournamentMonitorsController < ApplicationController
       Rails.logger.info "[TournamentMonitorsController#update_games] Game[#{game.id}] validation PASSED, updating..."
 
       # Ensure table_monitor is in playing state for evaluate_result to work
-      table_monitor.skip_update_callbacks = true
+      table_monitor.suppress_broadcast = true
       if %i[ready warmup warmup_a warmup_b match_shootout].include?(table_monitor.state.to_sym)
         table_monitor.start_new_match! if table_monitor.may_start_new_match?
         table_monitor.finish_warmup! if table_monitor.may_finish_warmup?
@@ -108,7 +108,7 @@ class TournamentMonitorsController < ApplicationController
       table_monitor.data["playerb"]["gd"] =
         format("%.2f", table_monitor.data["playerb"]["result"].to_f / table_monitor.data["playerb"]["innings"])
       table_monitor.data_will_change!
-      table_monitor.skip_update_callbacks = false
+      table_monitor.suppress_broadcast = false
       table_monitor.save
       game.update(ended_at: Time.now)
       @tournament_monitor.update_game_participations(table_monitor)

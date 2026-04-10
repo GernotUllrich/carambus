@@ -83,7 +83,7 @@ class TableMonitorReflex < ApplicationReflex
     morph :nothing
     table_monitor_id = element.andand.dataset[:id]
     @table_monitor = TableMonitor.find(table_monitor_id)
-    @table_monitor.skip_update_callbacks = true
+    @table_monitor.suppress_broadcast = true
     @table_monitor.reset_timer!
 
     if TableMonitor::NNN == "db"
@@ -92,7 +92,7 @@ class TableMonitorReflex < ApplicationReflex
       session_key = :"nnn_#{table_monitor_id}"
       @table_monitor.set_n_balls(session[session_key].to_i, true)
     end
-    @table_monitor.skip_update_callbacks = false
+    @table_monitor.suppress_broadcast = false
     @table_monitor.save
   end
 
@@ -101,10 +101,10 @@ class TableMonitorReflex < ApplicationReflex
     morph :nothing
     table_monitor_id = element.andand.dataset[:id]
     @table_monitor = TableMonitor.find(table_monitor_id)
-    @table_monitor.skip_update_callbacks = true
+    @table_monitor.suppress_broadcast = true
     @table_monitor.touch
     @table_monitor.assign_attributes(nnn: nil, panel_state: "pointer_mode", current_element: "pointer_mode")
-    @table_monitor.skip_update_callbacks = false
+    @table_monitor.suppress_broadcast = false
     @table_monitor.save
   end
 
@@ -117,7 +117,7 @@ class TableMonitorReflex < ApplicationReflex
     Rails.logger.info "+++++++++++++++++>>> key_a <<<++++++++++++++++++++++++++++++++++++++"
     morph :nothing
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
-    @table_monitor.skip_update_callbacks = true
+    @table_monitor.suppress_broadcast = true
     return if @table_monitor.locked_scoreboard
 
     # noinspection RubyResolve
@@ -166,7 +166,7 @@ class TableMonitorReflex < ApplicationReflex
       # @table_monitor.acknowledge_result!
       # @table_monitor.prepare_final_game_result
     end
-    @table_monitor.skip_update_callbacks = false
+    @table_monitor.suppress_broadcast = false
     @table_monitor.save
     Rails.logger.info "key_a completed"
   end
@@ -175,7 +175,7 @@ class TableMonitorReflex < ApplicationReflex
     Rails.logger.info "+++++++++++++++++>>> key_b <<<++++++++++++++++++++++++++++++++++++++"
     morph :nothing
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
-    @table_monitor.skip_update_callbacks = true
+    @table_monitor.suppress_broadcast = true
     return if @table_monitor.locked_scoreboard
 
     # noinspection RubyResolve
@@ -224,7 +224,7 @@ class TableMonitorReflex < ApplicationReflex
       # @table_monitor.acknowledge_result!
       # @table_monitor.prepare_final_game_result
     end
-    @table_monitor.skip_update_callbacks = false
+    @table_monitor.suppress_broadcast = false
     @table_monitor.save
     Rails.logger.info "key_b completed"
   end
@@ -233,7 +233,7 @@ class TableMonitorReflex < ApplicationReflex
     Rails.logger.info "+++++++++++++++++>>> key_c <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     morph :nothing
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
-    @table_monitor.skip_update_callbacks = true
+    @table_monitor.suppress_broadcast = true
     # noinspection RubyResolve
     if @table_monitor.warmup_modal_should_be_open?
       # noinspection RubyResolve
@@ -247,7 +247,7 @@ class TableMonitorReflex < ApplicationReflex
     elsif @table_monitor.final_set_score?
       @table_monitor.evaluate_result
     end
-    @table_monitor.skip_update_callbacks = false
+    @table_monitor.suppress_broadcast = false
     @table_monitor.save
   end
 
@@ -255,7 +255,7 @@ class TableMonitorReflex < ApplicationReflex
     Rails.logger.info "+++++++++++++++++>>> key_dc <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     morph :nothing
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
-    @table_monitor.skip_update_callbacks = true
+    @table_monitor.suppress_broadcast = true
     # noinspection RubyResolve
     if @table_monitor.warmup_modal_should_be_open?
       # noinspection RubyResolve
@@ -280,7 +280,7 @@ class TableMonitorReflex < ApplicationReflex
       @table_monitor.evaluate_result
       # @table_monitor.tournament_monitor.report_result(@table_monitor)
     end
-    @table_monitor.skip_update_callbacks = false
+    @table_monitor.suppress_broadcast = false
     @table_monitor.save
   end
 
@@ -288,10 +288,10 @@ class TableMonitorReflex < ApplicationReflex
     Rails.logger.info "+++++++++++++++++>>> undo <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     morph :nothing
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
-    @table_monitor.skip_update_callbacks = true
+    @table_monitor.suppress_broadcast = true
     @table_monitor.panel_state = "inputs"
     @table_monitor.undo
-    @table_monitor.skip_update_callbacks = false
+    @table_monitor.suppress_broadcast = false
     @table_monitor.save
   end
 
@@ -299,10 +299,10 @@ class TableMonitorReflex < ApplicationReflex
     Rails.logger.info "+++++++++++++++++>>> redo <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     morph :nothing
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
-    @table_monitor.skip_update_callbacks = true
+    @table_monitor.suppress_broadcast = true
     @table_monitor.panel_state = "inputs"
     @table_monitor.redo
-    @table_monitor.skip_update_callbacks = false
+    @table_monitor.suppress_broadcast = false
     @table_monitor.save
   end
 
@@ -318,12 +318,12 @@ class TableMonitorReflex < ApplicationReflex
     end
 
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
-    @table_monitor.skip_update_callbacks = true
+    @table_monitor.suppress_broadcast = true
     @table_monitor.panel_state = "inputs"
     @table_monitor.current_element = "minus_#{n}"
     @table_monitor.reset_timer!
     @table_monitor.add_n_balls(-n)
-    @table_monitor.skip_update_callbacks = false
+    @table_monitor.suppress_broadcast = false
     @table_monitor.save! # Use save! to ensure commit
     Rails.logger.info "minus_#{n} completed successfully" if DEBUG
   rescue StandardError => e
@@ -336,7 +336,7 @@ class TableMonitorReflex < ApplicationReflex
     Rails.logger.info "+++++++++++++++++>>> switch_players <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     morph :nothing
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
-    @table_monitor.skip_update_callbacks = true
+    @table_monitor.suppress_broadcast = true
     # @table_monitor.panel_state = 'input
     @table_monitor.switch_players
     @table_monitor.reset_timer!
@@ -344,7 +344,7 @@ class TableMonitorReflex < ApplicationReflex
     @table_monitor.finish_shootout!
     @table_monitor.panel_state = "pointer_mode"
     @table_monitor.do_play
-    @table_monitor.skip_update_callbacks = false
+    @table_monitor.suppress_broadcast = false
     @table_monitor.save!
     # morph dom_id(@table_monitor), render(@table_monitor)
   end
@@ -353,13 +353,13 @@ class TableMonitorReflex < ApplicationReflex
     Rails.logger.info "+++++++++++++++++>>> start_game <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     morph :nothing
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
-    @table_monitor.skip_update_callbacks = true
+    @table_monitor.suppress_broadcast = true
     @table_monitor.reset_timer!
     # noinspection RubyResolve
     @table_monitor.finish_shootout!
     @table_monitor.panel_state = "pointer_mode"
     @table_monitor.do_play
-    @table_monitor.skip_update_callbacks = false
+    @table_monitor.suppress_broadcast = false
     @table_monitor.save!
     # morph dom_id(@table_monitor), render(@table_monitor)
   end
@@ -380,13 +380,13 @@ class TableMonitorReflex < ApplicationReflex
     end
 
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
-    @table_monitor.skip_update_callbacks = true
+    @table_monitor.suppress_broadcast = true
     @table_monitor.panel_state = "inputs"
     @table_monitor.current_element = "add_#{n}"
     @table_monitor.reset_timer!
     @table_monitor.add_n_balls(n)
     @table_monitor.do_play
-    @table_monitor.skip_update_callbacks = false
+    @table_monitor.suppress_broadcast = false
     @table_monitor.save! # Use save! to ensure commit before broadcasts
     Rails.logger.info "add_#{n} completed successfully" if DEBUG
   rescue StandardError => e
@@ -570,7 +570,7 @@ class TableMonitorReflex < ApplicationReflex
       return
     end
     
-    @table_monitor.skip_update_callbacks = true
+    @table_monitor.suppress_broadcast = true
     
     foul_data = @table_monitor.data["foul"] || {}
     ball_value = foul_data["ball_value"] || foul_data["ball"] || 4  # Fallback for old format
@@ -670,7 +670,7 @@ class TableMonitorReflex < ApplicationReflex
     
     @table_monitor.do_play
     @table_monitor.reset_timer!
-    @table_monitor.skip_update_callbacks = false
+    @table_monitor.suppress_broadcast = false
     @table_monitor.save!
   end
 
@@ -756,9 +756,9 @@ class TableMonitorReflex < ApplicationReflex
     from_admin = element.andand.dataset[:from_admin]
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
     return if @table_monitor.locked_scoreboard && !from_admin
-    @table_monitor.skip_update_callbacks = true
+    @table_monitor.suppress_broadcast = true
     @table_monitor.force_next_state
-    @table_monitor.skip_update_callbacks = false
+    @table_monitor.suppress_broadcast = false
     @table_monitor.save!
   end
 
@@ -774,11 +774,11 @@ class TableMonitorReflex < ApplicationReflex
     Rails.logger.info "+++++++++++++++++>>> warm_up_finished <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     morph :nothing
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
-    @table_monitor.skip_update_callbacks = true
+    @table_monitor.suppress_broadcast = true
     @table_monitor.reset_timer!
     # noinspection RubyResolve
     @table_monitor.finish_warmup!
-    @table_monitor.skip_update_callbacks = false
+    @table_monitor.suppress_broadcast = false
     @table_monitor.save!
   end
 
@@ -786,9 +786,9 @@ class TableMonitorReflex < ApplicationReflex
     Rails.logger.info "+++++++++++++++++>>> play_warm_up_a <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     morph :nothing
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
-    @table_monitor.skip_update_callbacks = true
+    @table_monitor.suppress_broadcast = true
     warmup_state_change("a")
-    @table_monitor.skip_update_callbacks = false
+    @table_monitor.suppress_broadcast = false
     @table_monitor.save
   end
 
@@ -796,9 +796,9 @@ class TableMonitorReflex < ApplicationReflex
     Rails.logger.info "+++++++++++++++++>>> play_warm_up_b <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     morph :nothing
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
-    @table_monitor.skip_update_callbacks = true
+    @table_monitor.suppress_broadcast = true
     warmup_state_change("b")
-    @table_monitor.skip_update_callbacks = false
+    @table_monitor.suppress_broadcast = false
     @table_monitor.save
   end
 
@@ -806,12 +806,12 @@ class TableMonitorReflex < ApplicationReflex
     Rails.logger.info "+++++++++++++++++>>> balls_left <<<------------------------------------------" if DEBUG
     morph :nothing
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
-    @table_monitor.skip_update_callbacks = true
+    @table_monitor.suppress_broadcast = true
     n_balls_left = element.andand.dataset[:ball_no].to_i
     @table_monitor.balls_left(n_balls_left)
     @table_monitor.do_play
     @table_monitor.assign_attributes(panel_state: "pointer_mode", current_element: "pointer_mode")
-    @table_monitor.skip_update_callbacks = false
+    @table_monitor.suppress_broadcast = false
     @table_monitor.save
   end
 
@@ -819,11 +819,11 @@ class TableMonitorReflex < ApplicationReflex
     Rails.logger.info "+++++++++++++++++>>> foul_two <<<------------------------------------------" if DEBUG
     morph :nothing
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
-    @table_monitor.skip_update_callbacks = true
+    @table_monitor.suppress_broadcast = true
     @table_monitor.foul_two
     @table_monitor.do_play
     @table_monitor.assign_attributes(panel_state: "pointer_mode", current_element: "pointer_mode")
-    @table_monitor.skip_update_callbacks = false
+    @table_monitor.suppress_broadcast = false
     @table_monitor.save!
   end
 
@@ -831,11 +831,11 @@ class TableMonitorReflex < ApplicationReflex
     Rails.logger.info "+++++++++++++++++>>> foul_one <<<------------------------------------------" if DEBUG
     morph :nothing
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
-    @table_monitor.skip_update_callbacks = true
+    @table_monitor.suppress_broadcast = true
     @table_monitor.foul_one
     @table_monitor.do_play
     @table_monitor.assign_attributes(panel_state: "pointer_mode", current_element: "pointer_mode")
-    @table_monitor.skip_update_callbacks = false
+    @table_monitor.suppress_broadcast = false
     @table_monitor.save!
   end
 
@@ -843,11 +843,11 @@ class TableMonitorReflex < ApplicationReflex
     Rails.logger.info "+++++++++++++++++>>> play <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     morph :nothing
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
-    @table_monitor.skip_update_callbacks = true
+    @table_monitor.suppress_broadcast = true
     @table_monitor.panel_state = "timer"
     @table_monitor.current_element = "play"
     @table_monitor.do_play
-    @table_monitor.skip_update_callbacks = false
+    @table_monitor.suppress_broadcast = false
     @table_monitor.save
   end
 
@@ -865,7 +865,7 @@ class TableMonitorReflex < ApplicationReflex
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
     # noinspection RubyResolve
     if @table_monitor.playing?
-      @table_monitor.skip_update_callbacks = true
+      @table_monitor.suppress_broadcast = true
       data = @table_monitor.data
       current_role = data["current_inning"]["active_player"]
       if data["timeout"].to_i.positive? && data[current_role]["tc"].to_i.positive?
@@ -882,7 +882,7 @@ class TableMonitorReflex < ApplicationReflex
           data: data
         )
       end
-      @table_monitor.skip_update_callbacks = false
+      @table_monitor.suppress_broadcast = false
       @table_monitor.save
     end
   rescue StandardError => e
@@ -906,7 +906,7 @@ class TableMonitorReflex < ApplicationReflex
     # morph :nothing
     other_player = player == "a" ? "b" : "a"
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
-    @table_monitor.skip_update_callbacks = true
+    @table_monitor.suppress_broadcast = true
     active_timer = if @table_monitor.send(:"player_#{player}_on_table_before")
                      "time_out_warm_up_follow_up_min"
                    else
@@ -934,7 +934,7 @@ class TableMonitorReflex < ApplicationReflex
     else
       Time.now
     end
-    @table_monitor.skip_update_callbacks = false
+    @table_monitor.suppress_broadcast = false
     @table_monitor.save
   rescue StandardError => e
     Rails.logger.info("[add_one] ERROR: #{e} #{e.backtrace.to_a.join("\n")}")

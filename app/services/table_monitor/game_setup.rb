@@ -21,11 +21,11 @@ class TableMonitor::GameSetup < ApplicationService
 
   # Setzt suppress_broadcast vor Batch-Saves und garantiert Reset im ensure-Block.
   def call
-    @tm.skip_update_callbacks = true
+    @tm.suppress_broadcast = true
     perform_start_game
     true
   ensure
-    @tm.skip_update_callbacks = false
+    @tm.suppress_broadcast = false
   end
 
   # Zweiter Klassenmethoden-Einstiegspunkt fuer assign_game-Logik.
@@ -87,7 +87,7 @@ class TableMonitor::GameSetup < ApplicationService
     @tm.save!
 
     # Callbacks wieder aktivieren und genau einen Job einreihen
-    @tm.skip_update_callbacks = false
+    @tm.suppress_broadcast = false
     TableMonitorJob.perform_later(@tm.id, "table_scores")
 
     @tm.finish_warmup! if @options["discipline_a"] =~ /shootout/i && @tm.may_finish_warmup?

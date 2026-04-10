@@ -11,10 +11,10 @@ class GameProtocolReflex < ApplicationReflex
   def open_protocol
     morph :nothing
     Rails.logger.info "🎯 GameProtocolReflex#open_protocol" if TableMonitor::DEBUG
-    @table_monitor.skip_update_callbacks = true
+    @table_monitor.suppress_broadcast = true
     @table_monitor.panel_state = "protocol"
     @table_monitor.save!
-    @table_monitor.skip_update_callbacks = false
+    @table_monitor.suppress_broadcast = false
     send_modal_update(render_protocol_modal)
   end
   
@@ -22,10 +22,10 @@ class GameProtocolReflex < ApplicationReflex
   def close_protocol
     morph :nothing
     Rails.logger.info "🎯 GameProtocolReflex#close_protocol" if TableMonitor::DEBUG
-    @table_monitor.skip_update_callbacks = true
+    @table_monitor.suppress_broadcast = true
     @table_monitor.panel_state = "pointer_mode"
     @table_monitor.save!
-    @table_monitor.skip_update_callbacks = false
+    @table_monitor.suppress_broadcast = false
     send_modal_update("")
     TableMonitorJob.perform_later(@table_monitor.id, "")
   end
@@ -34,10 +34,10 @@ class GameProtocolReflex < ApplicationReflex
   def switch_to_edit_mode
     morph :nothing
     Rails.logger.info "🎯 GameProtocolReflex#switch_to_edit_mode" if TableMonitor::DEBUG
-    @table_monitor.skip_update_callbacks = true
+    @table_monitor.suppress_broadcast = true
     @table_monitor.panel_state = "protocol_edit"
     @table_monitor.save!
-    @table_monitor.skip_update_callbacks = false
+    @table_monitor.suppress_broadcast = false
     send_modal_update(render_protocol_modal)
   end
   
@@ -45,10 +45,10 @@ class GameProtocolReflex < ApplicationReflex
   def switch_to_view_mode
     morph :nothing
     Rails.logger.info "🎯 GameProtocolReflex#switch_to_view_mode" if TableMonitor::DEBUG
-    @table_monitor.skip_update_callbacks = true
+    @table_monitor.suppress_broadcast = true
     @table_monitor.panel_state = "protocol"
     @table_monitor.save!
-    @table_monitor.skip_update_callbacks = false
+    @table_monitor.suppress_broadcast = false
     send_modal_update(render_protocol_modal)
   end
   
@@ -60,9 +60,9 @@ class GameProtocolReflex < ApplicationReflex
     
     Rails.logger.info "🎯 GameProtocolReflex#increment_points: inning=#{inning_index}, player=#{player}" if TableMonitor::DEBUG
     
-    @table_monitor.skip_update_callbacks = true
+    @table_monitor.suppress_broadcast = true
     @table_monitor.increment_inning_points(inning_index, player)
-    @table_monitor.skip_update_callbacks = false
+    @table_monitor.suppress_broadcast = false
     send_table_update(render_protocol_table_body)
   end
   
@@ -74,9 +74,9 @@ class GameProtocolReflex < ApplicationReflex
     
     Rails.logger.info "🎯 GameProtocolReflex#decrement_points: inning=#{inning_index}, player=#{player}" if TableMonitor::DEBUG
     
-    @table_monitor.skip_update_callbacks = true
+    @table_monitor.suppress_broadcast = true
     @table_monitor.decrement_inning_points(inning_index, player)
-    @table_monitor.skip_update_callbacks = false
+    @table_monitor.suppress_broadcast = false
     send_table_update(render_protocol_table_body)
   end
   
@@ -87,9 +87,9 @@ class GameProtocolReflex < ApplicationReflex
     
     Rails.logger.info "🎯 GameProtocolReflex#delete_inning: inning=#{inning_index}" if TableMonitor::DEBUG
     
-    @table_monitor.skip_update_callbacks = true
+    @table_monitor.suppress_broadcast = true
     result = @table_monitor.delete_inning(inning_index)
-    @table_monitor.skip_update_callbacks = false
+    @table_monitor.suppress_broadcast = false
     send_table_update(render_protocol_table_body) if result[:success]
   end
   
@@ -100,9 +100,9 @@ class GameProtocolReflex < ApplicationReflex
     
     Rails.logger.info "🎯 GameProtocolReflex#insert_inning: before=#{before_index}" if TableMonitor::DEBUG
     
-    @table_monitor.skip_update_callbacks = true
+    @table_monitor.suppress_broadcast = true
     @table_monitor.insert_inning(before_index)
-    @table_monitor.skip_update_callbacks = false
+    @table_monitor.suppress_broadcast = false
     send_table_update(render_protocol_table_body)
   end
 
@@ -117,10 +117,10 @@ class GameProtocolReflex < ApplicationReflex
     
     # Now trigger the result confirmation via evaluate_result
     # This will handle the state transition (acknowledge_result!, finish_match!, etc.)
-    @table_monitor.skip_update_callbacks = true
+    @table_monitor.suppress_broadcast = true
     @table_monitor.panel_state = "pointer_mode"
     @table_monitor.save!
-    @table_monitor.skip_update_callbacks = false
+    @table_monitor.suppress_broadcast = false
     
     # Call evaluate_result to proceed with the game flow
     @table_monitor.evaluate_result
@@ -157,11 +157,11 @@ class GameProtocolReflex < ApplicationReflex
     # Store previous panel state to restore after edit
     @table_monitor.data["previous_panel_state"] = @table_monitor.panel_state
     
-    @table_monitor.skip_update_callbacks = true
+    @table_monitor.suppress_broadcast = true
     @table_monitor.panel_state = "snooker_inning_edit"
     @table_monitor.data_will_change!
     @table_monitor.save!
-    @table_monitor.skip_update_callbacks = false
+    @table_monitor.suppress_broadcast = false
     
     Rails.logger.info "🎯 Panel state changed to: #{@table_monitor.panel_state}" if TableMonitor::DEBUG
     
@@ -228,11 +228,11 @@ class GameProtocolReflex < ApplicationReflex
     # Clear edit state
     @table_monitor.data.delete("snooker_inning_edit")
     @table_monitor.data.delete("previous_panel_state")
-    @table_monitor.skip_update_callbacks = true
+    @table_monitor.suppress_broadcast = true
     @table_monitor.panel_state = previous_state
     @table_monitor.data_will_change!
     @table_monitor.save!
-    @table_monitor.skip_update_callbacks = false
+    @table_monitor.suppress_broadcast = false
     
     Rails.logger.info "🎯 Restored panel state to: #{previous_state}" if TableMonitor::DEBUG
     
@@ -308,11 +308,11 @@ class GameProtocolReflex < ApplicationReflex
     # Clear edit state
     @table_monitor.data.delete("snooker_inning_edit")
     @table_monitor.data.delete("previous_panel_state")
-    @table_monitor.skip_update_callbacks = true
+    @table_monitor.suppress_broadcast = true
     @table_monitor.panel_state = previous_state
     @table_monitor.data_will_change!
     @table_monitor.save!
-    @table_monitor.skip_update_callbacks = false
+    @table_monitor.suppress_broadcast = false
     
     Rails.logger.info "💾 Saved and restored panel state to: #{previous_state}" if TableMonitor::DEBUG
     
