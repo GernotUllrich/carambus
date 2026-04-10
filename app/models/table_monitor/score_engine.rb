@@ -437,7 +437,7 @@ class TableMonitor::ScoreEngine
   def render_innings_list(role)
     return "".html_safe if role.nil? || !data.key?(role)
 
-    innings = data["playera"]["innings"].to_i
+    innings = data[role]["innings"].to_i
     cols = [(innings / 15.0).ceil, 2].max
     show_innings = Array(data[role].andand["innings_list"])
     show_fouls = Array(data[role].andand["innings_foul_list"])
