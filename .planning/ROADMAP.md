@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Characterization Tests & Hardening** - Pin existing behavior with tests; fix AASM and transactional test config before any extraction (completed 2026-04-09)
 - [ ] **Phase 2: RegionCc Extraction** - Extract ClubCloudClient and all sync services from RegionCc; verify VCR cassette compatibility
 - [x] **Phase 3: TableMonitor ScoreEngine** - Extract pure data hash mutation logic; validate lazy accessor delegation pattern (completed 2026-04-10)
-- [ ] **Phase 4: TableMonitor GameSetup & OptionsPresenter** - Extract start_game entanglement; replace skip_update_callbacks flag
+- [x] **Phase 4: TableMonitor GameSetup & OptionsPresenter** - Extract start_game entanglement; replace skip_update_callbacks flag (completed 2026-04-10)
 - [ ] **Phase 5: TableMonitor ResultRecorder & Final Cleanup** - Extract highest-risk AASM-coupled service; full test coverage; Reek final measurement
 
 ## Phase Details
@@ -76,12 +76,12 @@ Plans:
   1. TableMonitor::GameSetup exists and handles start_game, initialize_game, assign_game, and player sequence/switching; Game and GameParticipation record creation occurs inside GameSetup, not the model
   2. The skip_update_callbacks flag is gone; batch operations use an explicit broadcast: false keyword argument; job enqueue count assertions verify no extra jobs fire during batch saves
   3. TableMonitor::OptionsPresenter exists and handles all view-preparation logic; reflex interactions that render options produce identical UI output to before extraction
-**Plans:** 4 plans (3 complete + 1 gap closure)
+**Plans:** 4/4 plans complete
 Plans:
 - [x] 04-01-PLAN.md — Create GameSetup ApplicationService with unit tests
 - [x] 04-02-PLAN.md — Wire GameSetup delegation + replace skip_update_callbacks with suppress_broadcast
 - [x] 04-03-PLAN.md — Create OptionsPresenter PORO + wire delegation in get_options!
-- [ ] 04-04-PLAN.md — Gap closure: remove skip_update_callbacks name from all call sites, replace with suppress_broadcast
+- [x] 04-04-PLAN.md — Gap closure: remove skip_update_callbacks name from all call sites, replace with suppress_broadcast
 
 ### Phase 5: TableMonitor ResultRecorder & Final Cleanup
 **Goal**: The highest-risk extraction is complete; TableMonitor is under 800 lines; full test coverage for all extracted services is verified; Reek final measurement confirms quality improvement
@@ -103,5 +103,5 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 | 1. Characterization Tests & Hardening | 3/3 | Complete | 2026-04-09 |
 | 2. RegionCc Extraction | 0/5 | Planned | - |
 | 3. TableMonitor ScoreEngine | 3/3 | Complete | 2026-04-10 |
-| 4. TableMonitor GameSetup & OptionsPresenter | 3/4 | In Progress | - |
+| 4. TableMonitor GameSetup & OptionsPresenter | 4/4 | Complete   | 2026-04-10 |
 | 5. TableMonitor ResultRecorder & Final Cleanup | 0/? | Not started | - |
