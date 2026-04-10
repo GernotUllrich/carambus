@@ -37,8 +37,9 @@ class GamePlansControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "should update game_plan" do
+    # data must be sent as a JSON string (controller uses eval() on it)
     patch game_plan_url(@game_plan),
-      params: {game_plan: {data: @game_plan.data, footprint: @game_plan.footprint, name: @game_plan.name}}
+      params: { game_plan: { data: @game_plan.data.to_json, footprint: @game_plan.footprint, name: @game_plan.name } }
     assert_redirected_to game_plan_url(@game_plan)
   end
 

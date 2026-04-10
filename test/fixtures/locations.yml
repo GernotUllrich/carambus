@@ -1,0 +1,9 @@
+# Locations fixture for testing
+
+one:
+  name: "Test Location One"
+  md5: "abc123def456abc123def456abc12301"
+  organizer: nbv (Region)
+  organizer_type: "Region"
+  created_at: <%= 2.years.ago %>
+  updated_at: <%= 1.day.ago %>

@@ -18,8 +18,15 @@ class ClubLocationsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "should create club_location" do
+    # Use a different club (club_bochum, id: 50_000_003) to avoid uniqueness conflict
+    # with the existing fixture pair (bcw + location_one)
+    club_bochum = clubs(:club_bochum)
     assert_difference("ClubLocation.count") do
-      post club_locations_url, params: {club_location: {club_id: @club_location.club_id, location_id: @club_location.location_id, status: @club_location.status}}
+      post club_locations_url, params: { club_location: {
+        club_id: club_bochum.id,
+        location_id: @club_location.location_id,
+        status: @club_location.status
+      } }
     end
 
     assert_redirected_to club_location_url(ClubLocation.last)

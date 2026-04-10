@@ -13,9 +13,9 @@
 one:
   tpl_ip_address: MyString
   ip_address: MyString
-  table_id: 1
+  table_id: 50000001
 
 two:
   tpl_ip_address: MyString
   ip_address: MyString
-  table_id: 1
+  table_id: 50000001

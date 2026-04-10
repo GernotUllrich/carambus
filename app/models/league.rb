@@ -65,7 +65,7 @@ class League < ApplicationRecord
     message: "must be unique within the same region, season, and staffel"
   }, if: -> { organizer_type == 'Region' && cc_id.blank? }
 
-  DBU_ID = Region.find_by_shortname("DBU").id.freeze
+  DBU_ID = Region.find_by_shortname("DBU")&.id.freeze
 
   GAME_PARAMETER_DEFAULTS = {
     pool: {

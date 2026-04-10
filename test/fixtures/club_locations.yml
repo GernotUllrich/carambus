@@ -11,11 +11,11 @@
 #
 
 one:
-  club_id: 1
-  location_id: 1
-  status: MyString
+  club: bcw
+  location: one
+  status: active
 
 two:
-  club_id: 1
-  location_id: 1
-  status: MyString
+  club: example_club
+  location: one
+  status: active

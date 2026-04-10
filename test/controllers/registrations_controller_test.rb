@@ -9,13 +9,9 @@ class RegistrationsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "should update preferences" do
-    sign_in @user
     get edit_user_registration_path
     assert_response :success
 
-    # In test env, forgery protection is disabled (allow_forgery_protection = false),
-    # so CSRF tokens are not rendered or required. Test the functional behavior directly.
-    # theme/locale/timezone are top-level user params; update_resource moves them into preferences
     patch user_registration_path, params: {
       user: {
         theme: "dark",
@@ -24,7 +20,6 @@ class RegistrationsControllerTest < ActionDispatch::IntegrationTest
       }
     }
 
-    # Controller redirects to root_path after successful update (see RegistrationsController#update)
     assert_redirected_to root_path
     assert_equal "dark", @user.reload.preferences["theme"]
     assert_equal "de", @user.preferences["locale"]
@@ -32,8 +27,7 @@ class RegistrationsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "should update password with valid current password" do
-    get edit_user_registration_path
-    assert_response :success
+    @user.update!(preferences: { "locale" => "en" })
 
     patch user_registration_path, params: {
       user: {
@@ -43,7 +37,7 @@ class RegistrationsControllerTest < ActionDispatch::IntegrationTest
       }
     }
 
-    assert_redirected_to root_path
+    assert_redirected_to root_path(locale: "en")
     assert @user.reload.valid_password?("newpassword")
   end
 end

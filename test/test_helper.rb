@@ -44,7 +44,11 @@ end
 
 LocalProtector.prepend(LocalProtectorTestOverride)
 
-# Disable ApiProtector for all test records
+# Disable ApiProtector for all test records.
+# ApiProtector uses ActiveSupport::Concern with `included do` which defines
+# disallow_saving_local_records directly on each including class. Prepending
+# to the module itself doesn't override already-installed methods. We must
+# prepend the override directly to each class that includes ApiProtector.
 module ApiProtectorTestOverride
   def disallow_saving_local_records
     # Skip protection in test environment
@@ -52,7 +56,14 @@ module ApiProtectorTestOverride
   end
 end
 
-ApiProtector.prepend(ApiProtectorTestOverride)
+# Load model files so their classes are defined before we patch them
+Dir[Rails.root.join("app/models/**/*.rb")].each { |f| require f rescue nil }
+
+ObjectSpace.each_object(Class).select { |klass|
+  klass.ancestors.include?(ApiProtector) rescue false
+}.each do |klass|
+  klass.prepend(ApiProtectorTestOverride) unless klass.ancestors.include?(ApiProtectorTestOverride)
+end
 
 # Uncomment to view full stack trace in tests
 # Rails.backtrace_cleaner.remove_silencers!

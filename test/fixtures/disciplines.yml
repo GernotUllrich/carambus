@@ -16,3 +16,15 @@ pool_9ball:
   name: "9-Ball"
   created_at: <%= 2.years.ago %>
   updated_at: <%= 1.day.ago %>
+
+discipline_freie_partie_klein:
+  id: 50_000_004
+  name: "Freie Partie klein"
+  created_at: <%= 2.years.ago %>
+  updated_at: <%= 1.day.ago %>
+
+one:
+  id: 50_000_005
+  name: "Dreiband Test"
+  created_at: <%= 2.years.ago %>
+  updated_at: <%= 1.day.ago %>

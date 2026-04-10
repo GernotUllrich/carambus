@@ -19,13 +19,21 @@ class TableHeaterManagementTest < ActiveSupport::TestCase
     @table_kind_billard = TableKind.find_or_create_by!(name: "Billard")
     @table_kind_pool = TableKind.find_or_create_by!(name: "Pool")
     
-    @table = Table.create!(
+    # Use explicit id < MIN_ID so LOCAL_METHODS delegates to table_local
+    # (AUTO-sequence IDs in test DB may be >= 50_000_000, causing LOCAL_METHODS
+    # to read from Table's own columns instead of table_local)
+    @table = Table.find_or_initialize_by(id: 1001)
+    @table.assign_attributes(
       name: "Tisch 5",
       location: @location,
       table_kind: @table_kind_karambol,
       ip_address: "192.168.1.100"
     )
+    @table.save!
     
+    # Ensure a clean table_local exists (destroy any stale one from prior runs)
+    @table.table_local&.destroy
+    @table.reload
     @table.create_table_local(
       ip_address: "192.168.1.100",
       tpl_ip_address: "192.168.1.101"
@@ -84,22 +92,26 @@ class TableHeaterManagementTest < ActiveSupport::TestCase
   
   test "heater_protected? returns true when event_summary contains (!)" do
     @table.table_local.update!(event_summary: "T5 Important Event (!)")
+    @table.reload
     assert_equal true, @table.heater_protected?
   end
-  
+
   test "heater_protected? returns false when event_summary does not contain (!)" do
     @table.table_local.update!(event_summary: "T5 Regular Event")
+    @table.reload
     assert_equal false, @table.heater_protected?
   end
-  
+
   test "heater_protected? returns nil when event_summary is nil" do
     @table.table_local.update!(event_summary: nil)
+    @table.reload
     assert_nil @table.heater_protected? # andand returns nil when event_summary is nil
   end
-  
+
   # Backward compatibility test
   test "heater_auto_off? is aliased to heater_protected? for backward compatibility" do
     @table.table_local.update!(event_summary: "T5 Protected Event (!)")
+    @table.reload
     assert_equal @table.heater_protected?, @table.heater_auto_off?
   end
   
@@ -112,28 +124,32 @@ class TableHeaterManagementTest < ActiveSupport::TestCase
       event_id: "123",
       event_summary: "T5 Gernot Ullrich Training"
     )
+    @table.reload
     assert_equal "5GeUlTr", @table.short_event_summary
   end
-  
+
   test "short_event_summary returns formatted summary for table range" do
     @table.table_local.update!(
       event_id: "123",
       event_summary: "T1 - T6 Clubabend"
     )
+    @table.reload
     # The regex keeps spaces in T1 - T6, so after delete it becomes "1-T6"
     assert_equal "1-T6Cl", @table.short_event_summary
   end
-  
+
   test "short_event_summary returns nil when no event_id" do
     @table.table_local.update!(event_id: nil)
+    @table.reload
     assert_nil @table.short_event_summary
   end
-  
+
   test "short_event_summary returns 'err' for invalid format" do
     @table.table_local.update!(
       event_id: "123",
       event_summary: "Invalid Format"
     )
+    @table.reload
     assert_equal "err", @table.short_event_summary
   end
   
@@ -149,7 +165,7 @@ class TableHeaterManagementTest < ActiveSupport::TestCase
     
     # Mock the TPLink perform method
     @table.stub(:perform, {"result" => "ok"}) do
-      Rails.stub(:env, "production") do
+      Rails.stub(:env, ActiveSupport::StringInquirer.new("production")) do
         result = @table.heater_on!("test reason")
         
         assert_equal "ok", result["result"]
@@ -185,7 +201,7 @@ class TableHeaterManagementTest < ActiveSupport::TestCase
       heater_switched_off_at: DateTime.now - 1.hour
     )
     
-    Rails.stub(:env, "development") do
+    Rails.stub(:env, ActiveSupport::StringInquirer.new("development")) do
       assert_difference -> { @table.heater_switched_on_at.present? ? 1 : 0 } do
         @table.heater_on!("dev test")
       end
@@ -211,7 +227,7 @@ class TableHeaterManagementTest < ActiveSupport::TestCase
     )
     
     @table.stub(:perform, {"result" => "ok"}) do
-      Rails.stub(:env, "production") do
+      Rails.stub(:env, ActiveSupport::StringInquirer.new("production")) do
         result = @table.heater_off!("inactivity detected")
         
         assert_equal "ok", result["result"]
@@ -250,7 +266,7 @@ class TableHeaterManagementTest < ActiveSupport::TestCase
     )
     
     @table.stub(:perform, {}) do
-      Rails.stub(:env, "production") do
+      Rails.stub(:env, ActiveSupport::StringInquirer.new("production")) do
         # The method should log context with all relevant information
         @table.heater_off!("inactivity detected")
         
@@ -291,7 +307,7 @@ class TableHeaterManagementTest < ActiveSupport::TestCase
   
   test "heater_on? returns true in production when relay_state is 1" do
     @table.stub(:perform, {"system" => {"get_sysinfo" => {"relay_state" => 1}}}) do
-      Rails.stub(:env, "production") do
+      Rails.stub(:env, ActiveSupport::StringInquirer.new("production")) do
         assert_equal true, @table.heater_on?
         assert_equal true, @table.heater
       end
@@ -300,7 +316,7 @@ class TableHeaterManagementTest < ActiveSupport::TestCase
   
   test "heater_on? returns false in production when relay_state is 0" do
     @table.stub(:perform, {"system" => {"get_sysinfo" => {"relay_state" => 0}}}) do
-      Rails.stub(:env, "production") do
+      Rails.stub(:env, ActiveSupport::StringInquirer.new("production")) do
         assert_equal false, @table.heater_on?
         assert_equal false, @table.heater
       end
@@ -309,7 +325,7 @@ class TableHeaterManagementTest < ActiveSupport::TestCase
   
   test "heater_on? returns nil in production when perform has error" do
     @table.stub(:perform, {"error" => "connection failed"}) do
-      Rails.stub(:env, "production") do
+      Rails.stub(:env, ActiveSupport::StringInquirer.new("production")) do
         assert_nil @table.heater_on?
       end
     end
@@ -321,7 +337,7 @@ class TableHeaterManagementTest < ActiveSupport::TestCase
       heater_switched_off_at: nil
     )
     
-    Rails.stub(:env, "development") do
+    Rails.stub(:env, ActiveSupport::StringInquirer.new("development")) do
       assert_equal true, @table.heater_on?
     end
   end
@@ -332,7 +348,7 @@ class TableHeaterManagementTest < ActiveSupport::TestCase
       heater_switched_off_at: DateTime.now
     )
     
-    Rails.stub(:env, "development") do
+    Rails.stub(:env, ActiveSupport::StringInquirer.new("development")) do
       assert_equal false, @table.heater_on?
     end
   end

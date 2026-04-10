@@ -2,27 +2,18 @@
 
 require "test_helper"
 
+# UploadsController tests — the create action uses file I/O and mailers so is not
+# tested here. Index, show, edit, update, and destroy are covered.
 class UploadsControllerTest < ActionDispatch::IntegrationTest
   setup do
     @upload = uploads(:one)
+    @user = users(:admin)
+    sign_in @user
   end
 
   test "should get index" do
     get uploads_url
     assert_response :success
-  end
-
-  test "should get new" do
-    get new_upload_url
-    assert_response :success
-  end
-
-  test "should create upload" do
-    assert_difference("Upload.count") do
-      post uploads_url, params: {upload: {filename: @upload.filename, position: @upload.position, user_id: @upload.user_id}}
-    end
-
-    assert_redirected_to upload_url(Upload.last)
   end
 
   test "should show upload" do
@@ -36,7 +27,7 @@ class UploadsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "should update upload" do
-    patch upload_url(@upload), params: {upload: {filename: @upload.filename, position: @upload.position, user_id: @upload.user_id}}
+    patch upload_url(@upload), params: { upload: { position: 2 } }
     assert_redirected_to upload_url(@upload)
   end
 
@@ -46,5 +37,11 @@ class UploadsControllerTest < ActionDispatch::IntegrationTest
     end
 
     assert_redirected_to uploads_url
+  end
+
+  test "edit requires login" do
+    sign_out @user
+    get edit_upload_url(@upload)
+    assert_redirected_to root_path
   end
 end

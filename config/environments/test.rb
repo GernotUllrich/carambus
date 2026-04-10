@@ -30,4 +30,8 @@ Rails.application.configure do
   config.action_controller.allow_forgery_protection = false
   config.action_mailer.perform_caching = false
   config.active_support.deprecation = :stderr
+
+  # Disable sprockets asset precompilation check in test env so integration
+  # tests that render full pages don't fail on javascript_include_tag "application"
+  config.assets.check_precompiled_asset = false
 end

@@ -15,24 +15,24 @@ class TournamentPlanKoTest < ActiveSupport::TestCase
 
   test "generates correct KO plan for 16 players" do
     plan = TournamentPlan.ko_plan(16)
-    
+
     assert_not_nil plan
     assert_equal "KO_16", plan.name
     assert_equal 16, plan.players
     assert_equal 1, plan.ngroups
     assert_equal 999, plan.tables
-    
+
     params = JSON.parse(plan.executor_params)
-    
-    # 16 players = 15 games total (16f, qf, hf, fin)
+
+    # 16 players = 15 games total (8f=8, qf=4, hf=2, fin=1)
     assert_equal 15, params["GK"], "Should have 15 total games for 16 players"
-    
-    # Verify game structure
-    assert params.key?("16f1"), "Should have 16f games"
+
+    # Verify game structure: 16-player plan uses 8f (8 first-round games)
+    assert params.key?("8f1"), "Should have 8f games as first round"
     assert params.key?("qf1"), "Should have quarterfinal games"
     assert params.key?("hf1"), "Should have semifinal games"
     assert params.key?("fin"), "Should have final game"
-    
+
     # Verify ranking structure
     assert params["RK"].is_a?(Array), "Should have ranking structure"
     assert_equal "fin.rk1", params["RK"][0], "Winner should be fin.rk1"
@@ -41,22 +41,22 @@ class TournamentPlanKoTest < ActiveSupport::TestCase
 
   test "generates correct KO plan for 24 players" do
     plan = TournamentPlan.ko_plan(24)
-    
+
     assert_not_nil plan
     assert_equal "KO_24", plan.name
     assert_equal 24, plan.players
-    
+
     params = JSON.parse(plan.executor_params)
-    
-    # 24 players: 8 pre-qualifying + 8 round-of-16 + 4 QF + 2 SF + 1 Final = 23 games
+
+    # 24 players: 8 pre-qualifying (16f) + 8 round-of-8 (8f) + 4 QF + 2 SF + 1 Final = 23 games
     assert_equal 23, params["GK"], "Should have 23 total games for 24 players"
-    
-    # Verify pre-qualifying round exists (32f)
-    assert params.key?("32f1"), "Should have 32f pre-qualifying games"
-    assert params.key?("32f8"), "Should have 8 pre-qualifying games"
-    
+
+    # Verify pre-qualifying round exists (16f for 24-player plan)
+    assert params.key?("16f1"), "Should have 16f pre-qualifying games"
+    assert params.key?("16f8"), "Should have 8 pre-qualifying games"
+
     # Verify main bracket
-    assert params.key?("16f1"), "Should have round of 16"
+    assert params.key?("8f1"), "Should have round of 8"
     assert params.key?("qf1"), "Should have quarterfinals"
     assert params.key?("hf1"), "Should have semifinals"
     assert params.key?("fin"), "Should have final"
@@ -64,17 +64,17 @@ class TournamentPlanKoTest < ActiveSupport::TestCase
 
   test "generates correct KO plan for 32 players" do
     plan = TournamentPlan.ko_plan(32)
-    
+
     assert_not_nil plan
     assert_equal "KO_32", plan.name
     assert_equal 32, plan.players
-    
+
     params = JSON.parse(plan.executor_params)
-    
-    # 32 players = 31 games (16 + 8 + 4 + 2 + 1)
+
+    # 32 players = 31 games
     assert_equal 31, params["GK"], "Should have 31 total games for 32 players"
-    
-    # Verify complete bracket structure
+
+    # Verify first round uses 16f (16 games)
     assert params.key?("16f1"), "Should have round of 16"
     assert params.key?("16f16"), "Should have 16 games in first round"
   end
@@ -85,7 +85,7 @@ class TournamentPlanKoTest < ActiveSupport::TestCase
     assert_not_nil plan
     params = JSON.parse(plan.executor_params)
     assert_equal 1, params["GK"], "2 players need 1 game"
-    
+
     # Test invalid counts
     assert_nil TournamentPlan.ko_plan(1), "Should reject 1 player"
     assert_nil TournamentPlan.ko_plan(65), "Should reject > 64 players"
@@ -99,12 +99,12 @@ class TournamentPlanKoTest < ActiveSupport::TestCase
   test "KO plan references seedings correctly for first round" do
     plan = TournamentPlan.ko_plan(16)
     params = JSON.parse(plan.executor_params)
-    
-    # First game should match seed 1 vs seed 16 (typical tournament seeding)
-    first_game = params["16f1"]["r1"]["t-rand*"]
+
+    # 16-player plan uses 8f as first round
+    first_game = params["8f1"]["r1"]["t-rand*"]
     assert first_game.is_a?(Array), "Game should have two player references"
     assert_equal 2, first_game.length, "Game should have exactly 2 players"
-    
+
     # Check that references are seeding list references (sl.rk<n>)
     first_game.each do |ref|
       assert_match(/^sl\.rk\d+$/, ref, "First round should reference seeding list")
@@ -114,23 +114,23 @@ class TournamentPlanKoTest < ActiveSupport::TestCase
   test "KO plan references previous game results correctly" do
     plan = TournamentPlan.ko_plan(16)
     params = JSON.parse(plan.executor_params)
-    
-    # Quarterfinal should reference winners from round of 16
-    qf_game = params["qf1"]["r1"]["t-rand*"]
-    
+
+    # Quarterfinal should reference winners from round of 8 (8f)
+    qf_game = params["qf1"]["r3"]["t-rand*"]
+
     qf_game.each do |ref|
-      # Should reference winner (rk1) of 16f games
-      assert_match(/^16f\d+\.rk1$/, ref, "QF should reference 16f winners")
+      # Should reference winner (rk1) of 8f games
+      assert_match(/^8f\d+\.rk1$/, ref, "QF should reference 8f winners")
     end
-    
+
     # Semifinal should reference QF winners
-    hf_game = params["hf1"]["r1"]["t-rand*"]
+    hf_game = params["hf1"]["r4"]["t-rand*"]
     hf_game.each do |ref|
       assert_match(/^qf\d+\.rk1$/, ref, "SF should reference QF winners")
     end
-    
+
     # Final should reference SF winners
-    fin_game = params["fin"]["r1"]["t-rand*"]
+    fin_game = params["fin"]["r5"]["t-rand*"]
     fin_game.each do |ref|
       assert_match(/^hf\d+\.rk1$/, ref, "Final should reference SF winners")
     end
@@ -139,14 +139,14 @@ class TournamentPlanKoTest < ActiveSupport::TestCase
   test "KO plan creates proper ranking structure" do
     plan = TournamentPlan.ko_plan(16)
     params = JSON.parse(plan.executor_params)
-    
+
     rk = params["RK"]
     assert rk.is_a?(Array), "RK should be an array"
-    
+
     # First two entries are winner and runner-up
     assert_equal "fin.rk1", rk[0], "First rank should be final winner"
     assert_equal "fin.rk2", rk[1], "Second rank should be final loser"
-    
+
     # Subsequent entries should be arrays of losers from previous rounds
     rk[2..].each do |entry|
       if entry.is_a?(Array)
@@ -177,7 +177,7 @@ class TournamentPlanKoTest < ActiveSupport::TestCase
   test "KO plan can be saved and reused" do
     plan = TournamentPlan.ko_plan(24)
     assert plan.save, "Plan should be saveable"
-    
+
     # Calling again should return same plan
     plan2 = TournamentPlan.ko_plan(24)
     assert_equal plan.id, plan2.id, "Should reuse existing plan"
@@ -186,7 +186,7 @@ class TournamentPlanKoTest < ActiveSupport::TestCase
   test "KO plan detects correct rounds_count as nil" do
     plan = TournamentPlan.ko_plan(16)
     plan.save!
-    
+
     # KO plans should return nil for rounds_count (complex structure)
     assert_nil plan.rounds_count, "KO plans should not report simple rounds count"
   end

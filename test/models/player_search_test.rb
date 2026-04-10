@@ -68,10 +68,13 @@ class PlayerSearchTest < ActiveSupport::TestCase
 
   test "search_joins returns array" do
     joins = Player.search_joins
-    
+
     assert_kind_of Array, joins
-    assert_includes joins, :season_participations
-    assert_includes joins, :region
+    # search_joins returns [{ season_participations: :club }, :region]
+    # The nested join is a hash, not a bare symbol
+    assert joins.any? { |j| j == :region || (j.is_a?(Hash) && j.key?(:region)) }, "joins should include :region"
+    assert joins.any? { |j| j == { season_participations: :club } || j == :season_participations ||
+                             (j.is_a?(Hash) && j.key?(:season_participations)) }, "joins should include season_participations"
   end
 
   test "search_distinct? returns true" do

@@ -65,11 +65,14 @@ class TournamentSearchTest < ActiveSupport::TestCase
 
   test "search_joins includes polymorphic organizer" do
     joins = Tournament.search_joins
-    
+
     assert_kind_of Array, joins
-    assert joins.any? { |j| j.is_a?(String) && j.include?('organizer_id') }
-    assert_includes joins, :season
-    assert_includes joins, :discipline
+    assert joins.any? { |j| j.is_a?(String) && j.include?("organizer_id") },
+      "joins should include polymorphic organizer SQL"
+    assert joins.any? { |j| j.is_a?(String) && j.include?("seasons") },
+      "joins should include seasons table"
+    assert joins.any? { |j| j.is_a?(String) && j.include?("disciplines") },
+      "joins should include disciplines table"
   end
 
   test "SearchService finds tournament by title" do

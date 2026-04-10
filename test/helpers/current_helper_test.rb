@@ -1,21 +1,18 @@
-# frozen_string_literal: true
-
 require "test_helper"
 
 class CurrentHelperTest < ActionView::TestCase
+  # CurrentHelper provides local_server? based on Carambus config.
+  # Controller-level current_user/current_account methods are not part of this helper.
+
   test "local_server? returns false when carambus_api_url is blank" do
-    original = Carambus.config.carambus_api_url
-    Carambus.config.carambus_api_url = nil
-    assert_not local_server?, "local_server? should be false when carambus_api_url is blank"
-  ensure
-    Carambus.config.carambus_api_url = original
+    Carambus.config.stub(:carambus_api_url, "") do
+      assert_equal false, local_server?
+    end
   end
 
-  test "local_server? returns true when carambus_api_url is set" do
-    original = Carambus.config.carambus_api_url
-    Carambus.config.carambus_api_url = "https://api.example.com"
-    assert local_server?, "local_server? should be true when carambus_api_url is present"
-  ensure
-    Carambus.config.carambus_api_url = original
+  test "local_server? returns true when carambus_api_url is present" do
+    Carambus.config.stub(:carambus_api_url, "https://api.carambus.de") do
+      assert_equal true, local_server?
+    end
   end
 end
