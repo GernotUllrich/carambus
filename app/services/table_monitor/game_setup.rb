@@ -28,6 +28,200 @@ class TableMonitor::GameSetup < ApplicationService
     @tm.suppress_broadcast = false
   end
 
+  # Initialisiert den Spielstatus in data fuer eine neue Partie.
+  # Enthaelt den extrahierten Body aus TableMonitor#initialize_game.
+  # Aufgerufen via TableMonitor#initialize_game (thin delegation wrapper).
+  def self.initialize_game(table_monitor:)
+    tm = table_monitor
+    Rails.logger.debug { "--------------------->>> initialize_game <<<------------------------------------------" }
+    Rails.logger.debug { "+++ 7 - m6[#{tm.id}]table_monitor#initialize_game" }
+    current_kickoff_player = "playera"
+    tm.copy_from = nil
+
+    # Werte die aus do_placement kommen sollen NICHT überschrieben werden
+    existing_innings_goal = tm.data["innings_goal"]
+    existing_balls_goal_a = tm.data.dig("playera", "balls_goal")
+    existing_balls_goal_b = tm.data.dig("playerb", "balls_goal")
+
+    Rails.logger.info "===== initialize_game DEBUG ====="
+    Rails.logger.info "BEFORE deep_merge: data['innings_goal'] = #{tm.data['innings_goal'].inspect}"
+    Rails.logger.info "BEFORE deep_merge: data['playera']&.[]('balls_goal') = #{tm.data.dig('playera', 'balls_goal').inspect}"
+    Rails.logger.info "BEFORE deep_merge: data['playerb']&.[]('balls_goal') = #{tm.data.dig('playerb', 'balls_goal').inspect}"
+    Rails.logger.info "existing_innings_goal = #{existing_innings_goal.inspect}"
+    Rails.logger.info "existing_balls_goal_a = #{existing_balls_goal_a.inspect}"
+    Rails.logger.info "existing_balls_goal_b = #{existing_balls_goal_b.inspect}"
+    Rails.logger.info "tournament_monitor.innings_goal = #{tm.tournament_monitor&.innings_goal.inspect}"
+
+    # Initialize initial_red_balls for snooker (default 15)
+    initial_reds = if tm.tournament_monitor.is_a?(PartyMonitor) && tm.game.data["free_game_form"] == "snooker"
+                     tm.game.data["initial_red_balls"] || 15
+                   elsif tm.data["free_game_form"] == "snooker"
+                     tm.data["initial_red_balls"] || 15
+                   else
+                     15
+                   end
+    # Ensure valid value (6, 10, or 15)
+    initial_reds = [6, 10, 15].include?(initial_reds.to_i) ? initial_reds.to_i : 15
+
+    tm.deep_merge_data!({
+                          "free_game_form" => tm.tournament_monitor.is_a?(PartyMonitor) ? tm.game.data["free_game_form"] : nil,
+                          "initial_red_balls" => initial_reds,
+                          "balls_on_table" => 15,
+                          "balls_counter" => 15,
+                          "balls_counter_stack" => [],
+                          "extra_balls" => 0,
+                          "current_kickoff_player" => current_kickoff_player,
+                          "current_left_player" => current_kickoff_player,
+                          "current_left_color" => "white",
+                          "biathlon_phase" => if tm.tournament_monitor&.tournament.is_a?(Tournament) &&
+                            tm.tournament_monitor&.tournament&.discipline&.name == "Biathlon"
+                                                "3b"
+                                              else
+                                                nil
+                                              end,
+                          "allow_overflow" => if tm.tournament_monitor.is_a?(PartyMonitor)
+                                                tm.game.data["allow_overflow"]
+                                              else
+                                                tm.tournament_monitor&.allow_overflow
+                                              end,
+                          "kickoff_switches_with" => (
+                            if tm.tournament_monitor.is_a?(PartyMonitor)
+                              tm.game.data["kickoff_switches_with"]
+                            else
+                              tm.tournament_monitor&.kickoff_switches_with ||
+                                tm.tournament_monitor&.tournament&.kickoff_switches_with
+                            end).presence || "set",
+                          "allow_follow_up" => if tm.tournament_monitor.is_a?(PartyMonitor)
+                                                  tm.game.data["allow_follow_up"]
+                                                else
+                                                  tm.tournament_monitor&.allow_follow_up ||
+                                                    tm.tournament_monitor&.tournament&.allow_follow_up
+                                                end,
+                          "sets_to_win" => if tm.tournament_monitor.is_a?(PartyMonitor)
+                                             tm.game.data["sets_to_win"]
+                                           else
+                                             tm.tournament_monitor&.sets_to_win ||
+                                               tm.tournament_monitor&.tournament&.sets_to_win
+                                           end,
+                          "sets_to_play" => if tm.tournament_monitor.is_a?(PartyMonitor)
+                                              tm.game.data["sets_to_play"]
+                                            else
+                                              tm.tournament_monitor&.sets_to_play ||
+                                                tm.tournament_monitor&.tournament&.sets_to_play
+                                            end,
+                          "team_size" => if tm.tournament_monitor.is_a?(PartyMonitor)
+                                           tm.game.data["team_size"]
+                                         else
+                                           (tm.tournament_monitor&.team_size ||
+                                             tm.tournament_monitor&.tournament&.team_size).presence || 1
+                                         end,
+                          "innings_goal" => if tm.tournament_monitor.is_a?(PartyMonitor)
+                                              tm.game.data["innings_goal"]
+                                            else
+                                              # PRIORITÄT: Bereits in data gesetzt (aus do_placement) > tournament_monitor > tournament
+                                              existing_innings_goal ||
+                                                tm.tournament_monitor&.innings_goal ||
+                                                tm.tournament_monitor&.tournament&.innings_goal ||
+                                                tm.tournament_monitor&.tournament&.data.andand[:innings_goal]
+                                            end,
+                          "playera" => {
+                            "result" => 0,
+                            "innings" => 0,
+                            "fouls_1" => 0,
+                            "innings_list" => [],
+                            "innings_redo_list" => [],
+                            "result_3b" => 0,
+                            "hs" => 0,
+                            "discipline" => if tm.tournament_monitor&.tournament.is_a?(Tournament)
+                                              tm.tournament_monitor&.tournament&.discipline&.name
+                                            else
+                                              nil
+                                            end,
+                            "gd" => 0.0,
+                            "balls_goal" => if tm.tournament_monitor.is_a?(PartyMonitor)
+                                              tm.game.data["balls_goal_a"]
+                                            else
+                                              # PRIORITÄT: Bereits in data gesetzt (aus do_placement) > handicap > tournament_monitor > tournament
+                                              existing_balls_goal_a ||
+                                                (tm.tournament_monitor&.tournament&.handicap_tournier? &&
+                                                  tm.seeding_from("playera").balls_goal.presence) ||
+                                                tm.tournament_monitor&.balls_goal ||
+                                                tm.tournament_monitor&.tournament&.balls_goal ||
+                                                tm.tournament_monitor&.tournament&.data.andand[:balls_goal]
+                                            end,
+                            "tc" => if tm.tournament_monitor.is_a?(PartyMonitor)
+                                       tm.game.data["timeouts"]
+                                     else
+                                       tm.tournament_monitor&.timeouts ||
+                                         tm.tournament_monitor&.tournament&.timeouts ||
+                                         tm.tournament_monitor&.tournament&.data.andand[:timeouts] ||
+                                         0
+                                     end
+                          },
+                          "playerb" => {
+                            "result" => 0,
+                            "innings" => 0,
+                            "fouls_1" => 0,
+                            "innings_list" => [],
+                            "innings_redo_list" => [],
+                            "result_3b" => 0,
+                            "hs" => 0,
+                            "discipline" => if tm.tournament_monitor&.tournament.is_a?(Tournament)
+                                              tm.tournament_monitor&.tournament&.discipline&.name
+                                            else
+                                              nil
+                                            end,
+                            "gd" => 0.0,
+                            "balls_goal" => if tm.tournament_monitor.is_a?(PartyMonitor)
+                                              tm.game.data["balls_goal_a"]
+                                            else
+                                              # PRIORITÄT: Bereits in data gesetzt (aus do_placement) > handicap > tournament_monitor > tournament
+                                              existing_balls_goal_b ||
+                                                (tm.tournament_monitor&.tournament&.handicap_tournier? &&
+                                                  tm.seeding_from("playerb").balls_goal.presence) ||
+                                                tm.tournament_monitor&.balls_goal ||
+                                                tm.tournament_monitor&.tournament&.balls_goal ||
+                                                tm.tournament_monitor&.tournament&.data.andand[:balls_goal]
+                                            end,
+                            "tc" => if tm.tournament_monitor.is_a?(PartyMonitor)
+                                       tm.game.data["timeouts"]
+                                     else
+                                       tm.tournament_monitor&.timeouts ||
+                                         tm.tournament_monitor&.tournament&.timeouts ||
+                                         tm.tournament_monitor&.tournament&.data.andand["timeouts"] ||
+                                         0
+                                     end
+                          },
+                          "current_inning" => {
+                            "active_player" => current_kickoff_player,
+                            "balls" => 0
+                          }
+                        })
+
+    Rails.logger.info "AFTER deep_merge: data['innings_goal'] = #{tm.data['innings_goal'].inspect}"
+    Rails.logger.info "AFTER deep_merge: data['playera']&.[]('balls_goal') = #{tm.data.dig('playera', 'balls_goal').inspect}"
+    Rails.logger.info "AFTER deep_merge: data['playerb']&.[]('balls_goal') = #{tm.data.dig('playerb', 'balls_goal').inspect}"
+    Rails.logger.info "===== initialize_game DEBUG END ====="
+
+    # Initialize snooker state for first frame if this is a snooker game
+    if tm.data["free_game_form"] == "snooker"
+      tm.deep_merge_data!({
+        "snooker_state" => {
+          "reds_remaining" => initial_reds,
+          "last_potted_ball" => nil,
+          "free_ball_active" => false,
+          "colors_sequence" => [2, 3, 4, 5, 6, 7]
+        },
+        "snooker_frame_complete" => false
+      })
+    end
+
+    tm.data.except!("ba_results", "sets")
+  rescue StandardError => e
+    Rails.logger.error "ERROR: m6[#{tm.id}]#{e}, #{e.backtrace&.join("\n")}"
+    raise StandardError
+  end
+
   # Zweiter Klassenmethoden-Einstiegspunkt fuer assign_game-Logik.
   # Erhaelt ein Game-Objekt (game_p = party game parameter) und weist das Spiel dem TableMonitor zu.
   def self.assign(table_monitor:, game_participation:)

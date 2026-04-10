@@ -1198,6 +1198,95 @@ class TableMonitor::ScoreEngine
     0
   end
 
+  # Mutate the data hash for terminate_current_inning.
+  # Handles fouls reset, innings append, snooker state, biathlon phase, active player switch.
+  # Returns :game_finished when the innings_goal has been reached or the state is not playing.
+  # Returns :ok on success so the caller (TableMonitor) can persist and call evaluate_result.
+  def terminate_inning_data(player, playing:)
+    current_role = player.presence || data["current_inning"]["active_player"]
+    return :game_finished unless playing && (data["innings_goal"].to_i.zero? || data[current_role]["innings"].to_i < data["innings_goal"].to_i)
+
+    if data[current_role]["fouls_1"].to_i > 2
+      data[current_role]["fouls_1"] = 0
+      data[current_role]["innings_foul_redo_list"][-1] = data[current_role]["innings_foul_redo_list"][-1].to_i - 15
+    end
+    n_balls = Array(data[current_role]["innings_redo_list"]).pop.to_i
+    n_fouls = Array(data[current_role]["innings_foul_redo_list"]).pop.to_i
+    data["balls_counter_stack"] << data["balls_counter"].to_i if n_balls != 0
+    data["balls_counter"] -= n_balls
+    init_lists(current_role)
+    data[current_role]["innings_list"] << n_balls
+    data[current_role]["innings_foul_list"] << n_fouls
+
+    # Store break balls and foul info for snooker protocol
+    if data["free_game_form"] == "snooker"
+      break_balls = Array(data[current_role]["break_balls_redo_list"]).pop || []
+      data[current_role]["break_balls_list"] ||= []
+      data[current_role]["break_balls_list"] << break_balls
+
+      data[current_role]["break_fouls_list"] ||= []
+
+      last_foul = data["last_foul"]
+      made_foul = last_foul && last_foul["fouling_player"] == current_role
+      pending_foul = data[current_role]["pending_foul"]
+
+      if made_foul
+        data[current_role]["break_fouls_list"] << last_foul
+      elsif pending_foul
+        data[current_role]["break_fouls_list"] << pending_foul
+        data[current_role].delete("pending_foul")
+      else
+        data[current_role]["break_fouls_list"] << nil
+      end
+    end
+
+    recompute_result(current_role)
+    if data["innings_goal"].to_i.zero? || data[current_role]["innings"].to_i < data["innings_goal"].to_i
+      data[current_role]["innings"] += 1
+    end
+    data[current_role]["hs"] = n_balls if n_balls > data[current_role]["hs"].to_i
+    data[current_role]["gd"] =
+      format("%.2f", data[current_role]["result"].to_f / data[current_role].andand["innings"].to_i)
+
+    if data["free_game_form"] == "snooker" && data["snooker_state"].present?
+      data["snooker_state"]["last_potted_ball"] = nil
+    end
+
+    if discipline == "Biathlon" && current_role == "playerb"
+      innings_goal_3b = 30
+      if data["biathlon_phase"] == "3b" && discipline == "Biathlon" && data[current_role]["innings"] == innings_goal_3b
+        data["biathlon_phase"] = "5k"
+        other_player = current_role == "playera" ? "playerb" : "playera"
+        Array(data[current_role]["innings_list"]).each_with_index do |val, ix|
+          data[current_role]["innings_list"][ix] = val * 6
+        end
+        data[current_role]["result"] = data[current_role]["result"] * 6
+        data[current_role]["innings_redo_list"][-1] = data[current_role]["innings_redo_list"][-1] * 6
+        Array(data[other_player]["innings_list"]).each_with_index do |val, ix|
+          data[other_player]["innings_list"][ix] = val * 6
+        end
+        data[other_player]["result"] = data[other_player]["result"] * 6
+        if data[other_player]["innings_redo_list"].present?
+          data[other_player]["innings_redo_list"][-1] = data[other_player]["innings_redo_list"][-1] * 6
+        end
+        data[current_role]["result_3b"] =
+          (data[current_role]["innings_list"]&.sum.to_i + data[current_role]["innings_redo_list"][-1].to_i) / 6
+        data[other_player]["result_3b"] =
+          (data[other_player]["innings_list"]&.sum.to_i + data[other_player]["innings_redo_list"][-1].to_i) / 6
+        data[current_role]["innings_3b"] = data[current_role]["innings"].to_i
+        data[other_player]["innings_3b"] = data[other_player]["innings"].to_i
+      end
+    end
+
+    other_player = current_role == "playera" ? "playerb" : "playera"
+    data["current_inning"]["active_player"] = other_player
+    if data[current_role]["innings_redo_list"]&.blank?
+      data[other_player]["innings_redo_list"] = [0]
+    end
+
+    :ok
+  end
+
   private
 
   attr_reader :data, :discipline
