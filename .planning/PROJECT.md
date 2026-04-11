@@ -2,7 +2,7 @@
 
 ## What This Is
 
-A focused improvement effort on the Carambus API codebase. v1.0–v2.1 broke down the four largest model classes and audited the test suite. v3.0 verifies that TableMonitor ActionCable broadcasts are correctly isolated per-table through end-to-end system tests, ensuring scoreboards never show state changes from unrelated tables.
+A focused improvement effort on the Carambus API codebase. v1.0–v2.1 broke down the four largest model classes and audited the test suite. v3.0 verified broadcast isolation per-table. v4.0 refactors League (2219 lines) and PartyMonitor (605 lines) — the team-competition counterpart to the Tournament/TournamentMonitor system — with comprehensive test coverage.
 
 ## Core Value
 
@@ -42,9 +42,24 @@ A maintainable, well-tested codebase where every test is trustworthy and every m
 - ✓ Concurrent/load broadcast isolation — v3.0 (rapid-fire 6-iteration loop, 3-session all-pairs, 0 failures)
 - ✓ Broadcast gap report — v3.0 (all 11 requirements PASS, FIX-01/FIX-02 deferred)
 
+## Current Milestone: v4.0 League & PartyMonitor Refactoring
+
+**Goal:** Break down League (2219 lines) and PartyMonitor (605 lines) into smaller, well-tested service classes — following the characterization-first, test-driven extraction pattern proven in v1.0 and v2.1.
+
+**Target features:**
+- Characterization tests for League, PartyMonitor, Party critical paths
+- Extract service classes from League (main god object, 2219 lines)
+- Extract service classes from PartyMonitor (game sequencing, player assignment, table placement)
+- Controller/channel/job test coverage for League/Party/PartyMonitor
+- All tests green, behavior preserved
+
 ### Active
 
-(None — v3.0 milestone complete. Start next milestone with `/gsd-new-milestone`)
+- [ ] Characterization tests for League critical paths (AASM, sync, scheduling)
+- [ ] Characterization tests for PartyMonitor critical paths (sequencing, player assignment, table placement)
+- [ ] Extract service classes from League
+- [ ] Extract service classes from PartyMonitor
+- [ ] Controller/channel/job test coverage for League/Party/PartyMonitor ecosystem
 
 ### Out of Scope
 
@@ -118,4 +133,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-11 after v3.0 milestone*
+*Last updated: 2026-04-11 after v4.0 milestone started*
