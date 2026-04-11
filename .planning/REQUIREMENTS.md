@@ -53,25 +53,25 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CHAR-01 | — | Pending |
-| CHAR-02 | — | Pending |
-| CHAR-03 | — | Pending |
-| CHAR-04 | — | Pending |
-| CHAR-05 | — | Pending |
-| CHAR-06 | — | Pending |
-| EXTR-01 | — | Pending |
-| EXTR-02 | — | Pending |
-| EXTR-03 | — | Pending |
-| EXTR-04 | — | Pending |
-| COV-01 | — | Pending |
-| COV-02 | — | Pending |
-| COV-03 | — | Pending |
+| CHAR-01 | Phase 20 | Pending |
+| CHAR-02 | Phase 20 | Pending |
+| CHAR-03 | Phase 20 | Pending |
+| CHAR-04 | Phase 20 | Pending |
+| CHAR-05 | Phase 20 | Pending |
+| CHAR-06 | Phase 20 | Pending |
+| EXTR-01 | Phase 21 | Pending |
+| EXTR-02 | Phase 22 | Pending |
+| EXTR-03 | Phase 21 | Pending |
+| EXTR-04 | Phase 21 | Pending |
+| COV-01 | Phase 23 | Pending |
+| COV-02 | Phase 23 | Pending |
+| COV-03 | Phase 23 | Pending |
 
 **Coverage:**
 - v1 requirements: 13 total
-- Mapped to phases: 0
-- Unmapped: 13 ⚠️
+- Mapped to phases: 13
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-04-11*
-*Last updated: 2026-04-11 after initial definition*
+*Last updated: 2026-04-11 after roadmap creation*
