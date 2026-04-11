@@ -51,8 +51,8 @@ A maintainable, well-tested codebase where every test is trustworthy and every m
 
 - ✓ Capybara/Selenium system test infrastructure set up and working — v3.0 Phase 17 (async adapter, local_server? override, multi-session helpers, smoke test)
 - ✓ Multi-scoreboard end-to-end tests for TableMonitor AASM state changes — v3.0 Phase 18 (morph path, score:update dispatch, table_scores overview, console.warn filter proof)
-- [ ] Concurrent/load scenarios verifying broadcast isolation under race conditions
-- [ ] Gap documentation for any broadcast bleed found (fix deferred to future milestone)
+- ✓ Concurrent/load scenarios verifying broadcast isolation under race conditions — v3.0 Phase 19 (rapid-fire 6-iteration loop, 3-session all-pairs isolation, 0 failures)
+- ✓ Gap documentation for any broadcast bleed found — v3.0 Phase 19 (BROADCAST-GAP-REPORT.md, all tests pass, FIX-01/FIX-02 deferred)
 
 ### Out of Scope
 
@@ -120,4 +120,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-11 after Phase 18 completed*
+*Last updated: 2026-04-11 after Phase 19 completed — milestone v3.0 complete*
