@@ -313,7 +313,10 @@ Plans:
   1. Rapid-fire AASM state transitions (multiple transitions per second) with two simultaneous sessions produce no broadcast bleed — scoreboard A never reflects table B state during high-frequency firing
   2. Three or more simultaneous browser sessions on different tables all show correct isolated state after concurrent state changes — no session receives a broadcast intended for a different table
   3. A gap report exists at .planning/BROADCAST-GAP-REPORT.md documenting every isolation failure observed during Phases 18-19 testing, with reproduction steps and the deferred fix reference (FIX-01, FIX-02)
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 19-01-PLAN.md — Concurrent isolation tests: rapid-fire AASM transitions (CONC-01) + three-session isolation (CONC-02)
+- [ ] 19-02-PLAN.md — Broadcast gap report documenting all Phase 17-19 findings (DOC-01)
 
 ## Progress
 
@@ -340,4 +343,4 @@ Phases execute in numeric order: 17 -> 18 -> 19
 | 16. Controller, Job & Channel Coverage | v2.1 | 3/3 | Complete | 2026-04-11 |
 | 17. Infrastructure & Configuration | v3.0 | 2/2 | Complete    | 2026-04-11 |
 | 18. Core Isolation Tests | v3.0 | 2/2 | Complete    | 2026-04-11 |
-| 19. Concurrent Scenarios & Gap Documentation | v3.0 | 0/? | Not started | - |
+| 19. Concurrent Scenarios & Gap Documentation | v3.0 | 0/2 | Not started | - |
