@@ -55,8 +55,8 @@ A maintainable, well-tested codebase where every test is trustworthy and every m
 
 ### Active
 
-- [ ] Characterization tests for League critical paths (AASM, sync, scheduling)
-- [ ] Characterization tests for PartyMonitor critical paths (sequencing, player assignment, table placement)
+- [x] Characterization tests for League critical paths (AASM, sync, scheduling) — Validated in Phase 20: Characterization (25 tests)
+- [x] Characterization tests for PartyMonitor critical paths (sequencing, player assignment, table placement) — Validated in Phase 20: Characterization (40 tests)
 - [ ] Extract service classes from League
 - [ ] Extract service classes from PartyMonitor
 - [ ] Controller/channel/job test coverage for League/Party/PartyMonitor ecosystem
