@@ -162,8 +162,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 22-01-PLAN.md — TablePopulator extraction (do_placement, initialize_table_monitors, reset_party_monitor)
-- [ ] 22-02-PLAN.md — ResultProcessor extraction (report_result, finalize pipeline, accumulate_results) + full verification
+- [x] 22-01-PLAN.md — TablePopulator extraction (do_placement, initialize_table_monitors, reset_party_monitor)
+- [x] 22-02-PLAN.md — ResultProcessor extraction (report_result, finalize pipeline, accumulate_results) + full verification
 
 ### Phase 23: Coverage
 **Goal**: Controller, channel, and job test coverage for the League/Party/PartyMonitor ecosystem is in place and the full suite is green
@@ -188,5 +188,5 @@ Phases execute in numeric order: 20 → 21 → 22 → 23
 | 17-19. v3.0 phases | v3.0 | Complete | Complete | 2026-04-11 |
 | 20. Characterization | v4.0 | 3/3 | Complete    | 2026-04-11 |
 | 21. League Extraction | v4.0 | 2/2 | Complete    | 2026-04-11 |
-| 22. PartyMonitor Extraction | v4.0 | 0/2 | Not started | - |
+| 22. PartyMonitor Extraction | v4.0 | 2/2 | Complete    | 2026-04-11 |
 | 23. Coverage | v4.0 | 0/? | Not started | - |
