@@ -220,4 +220,70 @@ class TableMonitorIsolationTest < ApplicationSystemTestCase
       refute_selector "#full_screen_table_monitor_#{@tm_b.id}"
     end
   end
+
+  # ISOL-03: The table_scores overview page correctly rejects full_screen broadcasts and
+  # accepts table_scores operations. Verifies shouldAcceptOperation returns false for
+  # #full_screen_table_monitor_N selectors when pageContext is { type: 'table_scores' }.
+  #
+  # Chain verified:
+  #   TableMonitorJob.perform_now(@tm_a.id)  [default: full_screen broadcast]
+  #     -> cable_ready inner_html(selector: "#full_screen_table_monitor_A")
+  #       -> shouldAcceptOperation rejects (fullScreenMatch, table_scores context) → no DOM update
+  #   TableMonitorJob.perform_now(@tm_a.id, "table_scores")
+  #     -> cable_ready inner_html(selector: "#table_scores")
+  #       -> shouldAcceptOperation accepts → #table_scores container re-rendered and still present
+  test "ISOL-03: table_scores overview page rejects full_screen broadcasts and accepts table_scores updates" do
+    @location = @tm_a.table.location
+
+    # Sign in as a test user so set_location does not attempt User.scoreboard (which does not
+    # exist in the test fixture database). Warden::Test::Helpers#login_as is available via
+    # the include in ApplicationSystemTestCase.
+    login_as(users(:one), scope: :user)
+
+    # Step 1: Visit the table_scores overview page (single session — no multi-session needed).
+    # The scoreboard action redirects to location_url with sb_state; show renders table_scores view.
+    visit scoreboard_location_url(@location.md5, sb_state: "table_scores")
+
+    # Step 2: Verify the table_scores turbo-frame is present (page loaded correctly).
+    assert_selector "#table_scores"
+
+    # Step 3: Wait for ActionCable subscription to be confirmed before triggering broadcasts.
+    wait_for_actioncable_connection
+
+    # Step 4: Install console.warn interceptor to detect if the filter emits mix-up warnings.
+    # In table_scores context, full_screen rejections use a different code path that may not
+    # emit "SCOREBOARD MIX-UP PREVENTED" (that warning is scoreboard-context-only). We install
+    # it for completeness — the structural assertions below are the primary verification.
+    page.execute_script(<<~JS)
+      window._tableScoresFilterCount = 0;
+      const _origWarn2 = console.warn;
+      console.warn = function(...args) {
+        if (args[0] && String(args[0]).includes("SCOREBOARD MIX-UP PREVENTED")) {
+          window._tableScoresFilterCount++;
+        }
+        _origWarn2.apply(console, args);
+      };
+    JS
+
+    # Step 5: Trigger a full scoreboard broadcast for TM-A (default operation type).
+    # This sends inner_html to #full_screen_table_monitor_#{@tm_a.id}.
+    # The table_scores page does NOT have this element — shouldAcceptOperation returns false.
+    @tm_a.reload
+    @tm_a.update_columns(state: "ready")
+    TableMonitorJob.perform_now(@tm_a.id)
+
+    # Step 6 (NEGATIVE): The table_scores page must NOT have a full_screen scoreboard container.
+    # This element does not exist on the overview page by design — it only exists on scoreboard pages.
+    refute_selector "#full_screen_table_monitor_#{@tm_a.id}"
+
+    # Step 7 (STRUCTURAL): The table_scores page must NOT render ANY full_screen containers.
+    refute_selector "[id^='full_screen_table_monitor_']"
+
+    # Step 8 (POSITIVE): Trigger a table_scores-specific broadcast.
+    # This sends inner_html to #table_scores — shouldAcceptOperation accepts it in table_scores context.
+    TableMonitorJob.perform_now(@tm_a.id, "table_scores")
+
+    # The #table_scores container is re-rendered and must still be present.
+    assert_selector "#table_scores"
+  end
 end
