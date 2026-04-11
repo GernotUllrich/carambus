@@ -272,7 +272,7 @@ Plans:
 **Milestone Goal:** Verify that TableMonitor ActionCable broadcasts are correctly filtered client-side so scoreboards never show state changes from unrelated tables — even under concurrent load.
 
 - [x] **Phase 17: Infrastructure & Configuration** - Set up Capybara/Selenium system test infrastructure with ActionCable, local_server?, multi-session helpers, and a smoke test proving end-to-end broadcast delivery (completed 2026-04-11)
-- [ ] **Phase 18: Core Isolation Tests** - Two-session tests covering the morph path, score:update dispatch path, table_scores overview context, and console.warn filter verification
+- [x] **Phase 18: Core Isolation Tests** - Two-session tests covering the morph path, score:update dispatch path, table_scores overview context, and console.warn filter verification (completed 2026-04-11)
 - [ ] **Phase 19: Concurrent Scenarios & Gap Documentation** - Rapid-fire AASM transitions, three+ simultaneous browser sessions, and a gap report documenting any broadcast bleed found
 
 ## Phase Details
@@ -300,10 +300,10 @@ Plans:
   2. The score:update dispatch path isolation test passes: the JS event handler on scoreboard A does not fire when table B emits a score:update event (separate code path, paired positive/negative assertion)
   3. The table_scores overview page shows correct per-table state without cross-table contamination when multiple tables have simultaneous state changes
   4. console.warn output is captured in the browser session — a rejected broadcast produces a warn log, confirming the JS filter actually ran rather than silently passing everything through
-**Plans:** 2 plans
+**Plans:** 2/2 plans complete
 Plans:
-- [ ] 18-01-PLAN.md — Fixtures + morph path isolation test with console.warn capture (ISOL-01, ISOL-04)
-- [ ] 18-02-PLAN.md — score:update dispatch event + table_scores overview tests (ISOL-02, ISOL-03)
+- [x] 18-01-PLAN.md — Fixtures + morph path isolation test with console.warn capture (ISOL-01, ISOL-04)
+- [x] 18-02-PLAN.md — score:update dispatch event + table_scores overview tests (ISOL-02, ISOL-03)
 
 ### Phase 19: Concurrent Scenarios & Gap Documentation
 **Goal**: Broadcast isolation holds under concurrent load across three or more simultaneous browser sessions, and any failures are documented in a gap report for future remediation
@@ -339,5 +339,5 @@ Phases execute in numeric order: 17 -> 18 -> 19
 | 15. High-Risk Extractions | v2.1 | 2/2 | Complete | 2026-04-11 |
 | 16. Controller, Job & Channel Coverage | v2.1 | 3/3 | Complete | 2026-04-11 |
 | 17. Infrastructure & Configuration | v3.0 | 2/2 | Complete    | 2026-04-11 |
-| 18. Core Isolation Tests | v3.0 | 0/2 | Not started | - |
+| 18. Core Isolation Tests | v3.0 | 2/2 | Complete    | 2026-04-11 |
 | 19. Concurrent Scenarios & Gap Documentation | v3.0 | 0/? | Not started | - |
