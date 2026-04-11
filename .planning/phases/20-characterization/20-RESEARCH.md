@@ -502,22 +502,16 @@ Tests only — no new production code, no new endpoints, no authentication paths
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Does Region have `public_cc_url_base` column?**
-   - What we know: `LeagueTeam#cc_id_link` calls `league.organizer.public_cc_url_base` — this is a Region method or attribute
-   - What's unclear: Whether the `nbv` Region fixture sets this column, or whether it must be stubbed/added
-   - Recommendation: Planner should read `app/models/region.rb` and `test/fixtures/regions.yml` before writing the LeagueTeam cc_id_link test
+1. **Does Region have `public_cc_url_base` column?** — RESOLVED
+   - Resolution: Executor reads `app/models/region.rb` and `test/fixtures/regions.yml` at task time (Plan 20-01 Task 1 read_first includes region.rb). Adapts test setup based on findings.
 
-2. **Should League scraping tests use VCR cassettes or WebMock HTML stubs?**
-   - What we know: `region_cc_char_test.rb` uses VCR with `RECORD_VCR=true` env var; `tournament_scraper_test.rb` uses static HTML fixture files; both patterns work
-   - What's unclear: Whether real ClubCloud HTML is available for NBV league pages
-   - Recommendation (Claude's Discretion): Use WebMock HTML stubs with pre-saved HTML fixtures for deterministic tests. VCR only if full integration smoke test is wanted.
+2. **Should League scraping tests use VCR cassettes or WebMock HTML stubs?** — RESOLVED
+   - Resolution: Plan 20-02 Task 2 chose WebMock HTML stubs (Claude's Discretion per CONTEXT.md). Deterministic, no external dependencies.
 
-3. **Does `next_seqno` exist on PartyMonitor?**
-   - What we know: `do_placement` calls `next_seqno` (L174) but this method was not found in the grep of PartyMonitor method definitions
-   - What's unclear: Whether `next_seqno` is defined in a concern or missing (causing a potential NoMethodError)
-   - Recommendation: Planner should grep `app/models/` for `def next_seqno` before writing do_placement tests
+3. **Does `next_seqno` exist on PartyMonitor?** — RESOLVED
+   - Resolution: Executor greps for `def next_seqno` at task time (Plan 20-03 Task 2 read_first). Adapts do_placement tests based on findings.
 
 ---
 
