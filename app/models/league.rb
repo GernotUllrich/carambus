@@ -538,7 +538,8 @@ class League < ApplicationRecord
 
   def scrape_league_optimized(opts = {})
     # Check if we need to sync league teams (only if no party games have been reported)
-    has_reported_party_games = parties.joins(:party_games).where.not(party_games: { result: nil }).exists?
+    # result is stored in party_games.data JSON, not a separate column
+    has_reported_party_games = parties.joins(:party_games).where("party_games.data IS NOT NULL AND party_games.data NOT IN ('null', '{}', '')").exists?
 
     if !has_reported_party_games
       Rails.logger.info "===== scrape ===== Syncing league teams for league #{name} (no reported party games)"
@@ -553,7 +554,8 @@ class League < ApplicationRecord
 
   def scrape_league_teams_optimized(opts = {})
     # Only sync league teams if no party games have been reported
-    return if parties.joins(:party_games).where.not(party_games: { result: nil }).exists?
+    # result is stored in party_games.data JSON, not a separate column
+    return if parties.joins(:party_games).where("party_games.data IS NOT NULL AND party_games.data NOT IN ('null', '{}', '')").exists?
 
     Rails.logger.info "===== scrape ===== Syncing league teams for league #{name}"
     # This would call the existing league team scraping logic
