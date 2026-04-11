@@ -178,7 +178,7 @@ Plans:
 - [x] **Phase 12: Tournament Characterization** - Pin Tournament behavior (AASM, scraping pipeline, dynamic attributes, PaperTrail baselines) before any extraction (completed 2026-04-10)
 - [x] **Phase 13: Low-Risk Extractions** - Extract three smallest services (RankingCalculator, TableReservationService, PlayerGroupDistributor) to prove the pattern (completed 2026-04-10)
 - [x] **Phase 14: Medium-Risk Extractions** - Extract PublicCcScraper and RankingResolver, the largest complexity reductions requiring VCR cassettes (completed 2026-04-10)
-- [ ] **Phase 15: High-Risk Extractions** - Extract ResultProcessor and TablePopulator, which involve DB locks, AASM, and complex algorithms
+- [x] **Phase 15: High-Risk Extractions** - Extract ResultProcessor and TablePopulator, which involve DB locks, AASM, and complex algorithms (completed 2026-04-11)
 - [ ] **Phase 16: Controller, Job & Channel Coverage** - Add test coverage for controllers, jobs, and channels that touch Tournament and TournamentMonitor; verify quality metrics
 
 ## Phase Details
@@ -251,10 +251,10 @@ Plans:
   2. TournamentMonitor::ResultProcessor fires AASM events on the TournamentMonitor model reference; after_enter callbacks execute correctly when events are fired from the service
   3. TournamentMonitor::TablePopulator exists in app/services/tournament_monitor/ with unit tests; populate_tables output is identical to the Phase 11 characterization baseline for all tested input scenarios
   4. All existing characterization tests from Phases 11-12 pass without modification after these extractions
-**Plans:** 2 plans
+**Plans:** 2/2 plans complete
 Plans:
-- [ ] 15-01-PLAN.md — Extract ResultProcessor service from lib modules + wire delegation
-- [ ] 15-02-PLAN.md — Extract TablePopulator service from lib modules + wire delegation + lib cleanup
+- [x] 15-01-PLAN.md — Extract ResultProcessor service from lib modules + wire delegation
+- [x] 15-02-PLAN.md — Extract TablePopulator service from lib modules + wire delegation + lib cleanup
 
 ### Phase 16: Controller, Job & Channel Coverage
 **Goal**: Test coverage exists for all controllers, jobs, and channels that touch Tournament and TournamentMonitor; Tournament is under 1000 lines; all tests are green; PaperTrail version counts are unchanged
@@ -289,5 +289,5 @@ Phases execute in numeric order: 11 -> 12 -> 13 -> 14 -> 15 -> 16
 | 12. Tournament Characterization | v2.1 | 3/3 | Complete   | 2026-04-10 |
 | 13. Low-Risk Extractions | v2.1 | 3/3 | Complete   | 2026-04-10 |
 | 14. Medium-Risk Extractions | v2.1 | 2/2 | Complete   | 2026-04-10 |
-| 15. High-Risk Extractions | v2.1 | 0/2 | Not started | - |
+| 15. High-Risk Extractions | v2.1 | 2/2 | Complete   | 2026-04-11 |
 | 16. Controller, Job & Channel Coverage | v2.1 | 0/? | Not started | - |
