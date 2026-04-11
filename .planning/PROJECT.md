@@ -2,11 +2,21 @@
 
 ## What This Is
 
-A focused improvement effort on the Carambus API codebase. v1.0 broke down the two largest model classes into smaller, well-tested components. v2.0 audited and improved the entire existing test suite. v2.1 refactors Tournament (API Server) and TournamentMonitor (Local Server orchestrator) — the most critical Carambus models for live tournament management — with comprehensive test coverage across models, services, controllers, channels, and jobs.
+A focused improvement effort on the Carambus API codebase. v1.0–v2.1 broke down the four largest model classes and audited the test suite. v3.0 verifies that TableMonitor ActionCable broadcasts are correctly isolated per-table through end-to-end system tests, ensuring scoreboards never show state changes from unrelated tables.
 
 ## Core Value
 
 A maintainable, well-tested codebase where every test is trustworthy and every model is appropriately sized.
+
+## Current Milestone: v3.0 Broadcast Isolation Testing
+
+**Goal:** Verify that TableMonitor state change broadcasts are correctly filtered client-side, so scoreboards never show actions from unrelated tables — even under concurrent load.
+
+**Target features:**
+- Capybara/Selenium system test infrastructure (new — none exists yet)
+- Multi-scoreboard end-to-end tests exercising TableMonitor AASM state changes with two+ browser sessions on different tables
+- Concurrent/load scenarios to expose race-condition broadcast bleed
+- Gap documentation for any isolation failures found (fix deferred)
 
 ## Requirements
 
@@ -39,7 +49,10 @@ A maintainable, well-tested codebase where every test is trustworthy and every m
 
 ### Active
 
-(None — v2.1 milestone complete. Start next milestone with `/gsd-new-milestone`)
+- [ ] Capybara/Selenium system test infrastructure set up and working
+- [ ] Multi-scoreboard end-to-end tests for TableMonitor AASM state changes
+- [ ] Concurrent/load scenarios verifying broadcast isolation under race conditions
+- [ ] Gap documentation for any broadcast bleed found (fix deferred to future milestone)
 
 ### Out of Scope
 
@@ -107,4 +120,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-11 after v2.1 milestone completed*
+*Last updated: 2026-04-11 after v3.0 milestone started*
