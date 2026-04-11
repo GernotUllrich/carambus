@@ -392,17 +392,19 @@ Step 2.6: SKIPPED (no external dependencies — pure code refactoring, no extern
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **`add_result_to` port: balls_goal seeding lookup**
    - What we know: TournamentMonitor's `add_result_to` queries `@tournament_monitor.tournament.seedings.where(...)` for player `balls_goal`. PartyMonitor uses `party.games` for `accumulate_results`.
    - What's unclear: Does PartyMonitor need `balls_goal` at all, or is that a tournament-specific concept? The `accumulate_results` in party_monitor uses a simpler rankings hash without `balls_goal` or `gd_pct` fields.
    - Recommendation: Compare the `accumulate_results` ranking hash structure in party_monitor.rb (lines 446-494) vs tournament_monitor. The party_monitor version is simpler (no `balls_goal`, no `gd_pct`). The `add_result_to` helper for PartyMonitor should be written from scratch to match only what `accumulate_results` in party_monitor needs.
+   - RESOLVED: Plan 22-02 implements a party-specific `add_result_to` from scratch without balls_goal/gd_pct fields.
 
 2. **`next_seqno` implementation**
    - What we know: Called in `do_placement` line 174. Defined in `TournamentMonitor` at line 173. NOT on PartyMonitor — characterization test pins this.
    - What's unclear: The exact logic needed (counting existing games? incrementing a counter?).
    - Recommendation: Read `TournamentMonitor#next_seqno` at app/models/tournament_monitor.rb line 173 before implementing. The planner should include this as a required read for the executor.
+   - RESOLVED: Plan 22-01 implements `next_seqno` as a private method in TablePopulator, adapted from TournamentMonitor pattern.
 
 ---
 
