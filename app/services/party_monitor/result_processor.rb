@@ -309,7 +309,7 @@ class PartyMonitor::ResultProcessor
         bg = tabmon.data["player#{c}"]["balls_goal"].to_i
         bg_p = format("%.2f",
           100.0 * tabmon.data["player#{c}"]["result"].to_f / tabmon.data["player#{c}"]["balls_goal"].to_i).to_f
-        gd = format("%.2f", tabmon.data["player#{c}"]["result"].to_f / tabmon.data["player#{c}"]["innings"].to_i).to_f
+        gd = innings.positive? ? format("%.2f", result.to_f / innings).to_f : 0.0
         hs = tabmon.data["player#{c}"]["hs"].to_i
         results = {
           "Gr.": game.gname,
