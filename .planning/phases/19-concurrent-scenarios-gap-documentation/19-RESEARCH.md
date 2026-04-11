@@ -412,17 +412,13 @@ User.scoreboard nil in test DB, refute_selector message arg error]
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Does `visit_scoreboard` work without a `Table` record for the TM?**
-   - What we know: Phase 17 fixture chain requires `TableMonitor → Table → Location → TableKind`
-   - What's unclear: Whether the scoreboard `show` action is reachable via URL without a table (maybe it redirects?)
-   - Recommendation: Always create a `Table` record for any inline TM to be safe. The planner should include `Table.find_or_create_by!` in the third-TM setup task.
+1. **Does `visit_scoreboard` work without a `Table` record for the TM?** — RESOLVED
+   - Resolution: Plan 19-01 Task 2 creates `@table_c` via `Table.find_or_create_by!` with explicit `location_id` and `table_kind_id`. The full FK chain is satisfied.
 
-2. **Do Phase 18 tests currently pass on the main branch without local changes?**
-   - What we know: 18-02-SUMMARY reports "3 runs, 19 assertions, 0 failures" and "full suite 751 runs, 0 failures"
-   - What's unclear: Whether `bin/rails assets:clobber` + `yarn build` has been persisted or needs to be re-run
-   - Recommendation: Planner should include a "verify Phase 18 baseline" step (run existing isolation tests) before adding CONC tests.
+2. **Do Phase 18 tests currently pass on the main branch without local changes?** — RESOLVED
+   - Resolution: Phase 18 verification confirmed 751 runs, 0 failures. The executor should run existing isolation tests as a baseline check before adding CONC test methods.
 
 ---
 
