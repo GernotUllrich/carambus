@@ -30,7 +30,6 @@ require "csv"
 #  fk_rails_...  (tournament_id => tournaments.id)
 #
 class TournamentMonitor < ApplicationRecord
-  include TournamentMonitorSupport
   include TournamentMonitorState
   include ApiProtector
 
@@ -174,6 +173,19 @@ class TournamentMonitor < ApplicationRecord
   def next_seqno
     # select max(seqno) from tournament.games
     tournament.games.where("games.id >= #{Game::MIN_ID}").where.not(seqno: nil).map(&:seqno).max.to_i + 1
+  end
+
+  # Delegation wrappers — table population lives in TournamentMonitor::TablePopulator
+  def do_reset_tournament_monitor
+    TournamentMonitor::TablePopulator.new(self).do_reset_tournament_monitor
+  end
+
+  def populate_tables
+    TournamentMonitor::TablePopulator.new(self).populate_tables
+  end
+
+  def initialize_table_monitors
+    TournamentMonitor::TablePopulator.new(self).initialize_table_monitors
   end
 
   # Delegation wrappers — algorithm lives in TournamentMonitor::PlayerGroupDistributor
