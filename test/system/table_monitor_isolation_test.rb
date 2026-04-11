@@ -28,6 +28,23 @@ class TableMonitorIsolationTest < ApplicationSystemTestCase
     @game_b = Game.find_or_create_by!(id: 50_000_101)
     @tm_a.update_columns(game_id: @game_a.id)
     @tm_b.update_columns(game_id: @game_b.id)
+
+    # Third TM for CONC-02 (inline creation — no fixture needed per D-04).
+    # Uses find_or_create_by! for idempotency across test runs. update_columns after
+    # creation ensures all required NOT NULL columns are set even when the record
+    # already exists (find path skips the create block). See Research Pitfall 5.
+    @tm_c = TableMonitor.find_or_create_by!(id: 50_000_003)
+    @tm_c.update_columns(state: "new", data: {}, panel_state: "pointer_mode", current_element: "pointer_mode", ip_address: "192.168.1.3")
+    # A corresponding Table record is required for visit_scoreboard to resolve
+    # the full TableMonitor -> Table -> Location FK chain (Research Pitfall 2).
+    @table_c = Table.find_or_create_by!(id: 50_000_003) do |t|
+      t.name = "Table Three"
+      t.table_monitor_id = 50_000_003
+      t.location_id = @tm_a.table.location.id
+      t.table_kind_id = 50_000_001
+    end
+    @game_c = Game.find_or_create_by!(id: 50_000_102)
+    @tm_c.update_columns(game_id: @game_c.id)
   end
 
   teardown do
@@ -36,6 +53,13 @@ class TableMonitorIsolationTest < ApplicationSystemTestCase
     @tm_b.update_columns(game_id: nil, state: "new", data: {})
     @game_a&.destroy
     @game_b&.destroy
+
+    # Clean up inline-created CONC-02 records. @table_c must be destroyed before
+    # @tm_c is modified (FK constraint). @tm_c itself is kept (find_or_create_by!
+    # pattern — destroying would remove the record that future runs expect to find).
+    @tm_c&.update_columns(game_id: nil, state: "new", data: {})
+    @table_c&.destroy
+    @game_c&.destroy
   end
 
   # ISOL-01: Scoreboard A DOM is unchanged when table B fires a state change broadcast.
@@ -218,6 +242,216 @@ class TableMonitorIsolationTest < ApplicationSystemTestCase
       # Session A must not have a TM-B scoreboard container — structural proof
       # that the session is correctly bound to TM-A only.
       refute_selector "#full_screen_table_monitor_#{@tm_b.id}"
+    end
+  end
+
+  # CONC-01: Rapid-fire AASM transitions — no broadcast bleed under high-frequency alternating broadcasts.
+  #
+  # Simulates the original production bug condition: rapid state changes on two different
+  # TableMonitors while two browser sessions are open. The synchronous `perform_now` pattern
+  # cannot produce real thread races, but it verifies that N consecutive cross-table broadcasts
+  # are ALL filtered by the JS `shouldAcceptOperation` function with zero leakage.
+  #
+  # Why `update_columns` instead of AASM events:
+  #   `ready!` raises AASM::InvalidTransition on the second call because `ready` only
+  #   transitions from `new` or `ready_for_new_match` — not from `ready` itself. For a
+  #   rapid-fire loop where both TMs fire the same transition repeatedly, `update_columns`
+  #   resets state before each `TableMonitorJob.perform_now` call, allowing N broadcast
+  #   cycles without AASM errors. See Research Pitfall 1.
+  #
+  # Verified: CONC-01 requirement — rapid-fire loop of 6 alternating broadcasts (3 per TM)
+  # produces no DOM bleed in either session. The JS filter counter proves the filter ran
+  # on every cross-table broadcast.
+  test "CONC-01: rapid-fire AASM transitions — no broadcast bleed under high-frequency alternating broadcasts" do
+    # RAPID_FIRE_COUNT must be even so both TMs fire equally (3 broadcasts each).
+    rapid_fire_count = 6
+
+    # Step 1: Open Session A on TM-A scoreboard and install console.warn interceptor.
+    # The interceptor counts SCOREBOARD MIX-UP PREVENTED warnings — one should fire
+    # for each TM-B broadcast arriving at Session A's JS filter.
+    in_session(:scoreboard_a) do
+      visit_scoreboard(@tm_a, locale: :de)
+      assert_selector "#full_screen_table_monitor_#{@tm_a.id}"
+      wait_for_actioncable_connection
+
+      page.execute_script(<<~JS)
+        window._mixupPreventedCount = 0;
+        const _origWarnA = console.warn;
+        console.warn = function(...args) {
+          if (args[0] && String(args[0]).includes("SCOREBOARD MIX-UP PREVENTED")) {
+            window._mixupPreventedCount++;
+          }
+          _origWarnA.apply(console, args);
+        };
+      JS
+    end
+
+    # Step 2: Open Session B on TM-B scoreboard and install its own mix-up counter.
+    # Session B will receive TM-A broadcasts and should filter each one.
+    in_session(:scoreboard_b) do
+      visit_scoreboard(@tm_b, locale: :de)
+      assert_selector "#full_screen_table_monitor_#{@tm_b.id}"
+      wait_for_actioncable_connection
+
+      page.execute_script(<<~JS)
+        window._mixupPreventedCount = 0;
+        const _origWarnB = console.warn;
+        console.warn = function(...args) {
+          if (args[0] && String(args[0]).includes("SCOREBOARD MIX-UP PREVENTED")) {
+            window._mixupPreventedCount++;
+          }
+          _origWarnB.apply(console, args);
+        };
+      JS
+    end
+
+    # Step 3: Rapid-fire loop — alternate broadcasts between TM-A (even) and TM-B (odd).
+    # update_columns resets state each iteration to avoid AASM::InvalidTransition errors.
+    # With perform_now all 6 broadcasts are synchronous; the browser receives them
+    # over the WebSocket after the loop completes.
+    rapid_fire_count.times do |i|
+      if i.even?
+        @tm_a.update_columns(state: "ready")
+        TableMonitorJob.perform_now(@tm_a.id)
+      else
+        @tm_b.update_columns(state: "ready")
+        TableMonitorJob.perform_now(@tm_b.id)
+      end
+    end
+
+    # Step 4 (POSITIVE — Session B): Last TM-B broadcast (iteration 5) updates Session B's DOM.
+    in_session(:scoreboard_b) do
+      assert_selector "#full_screen_table_monitor_#{@tm_b.id}", text: /Frei/i, wait: 10
+    end
+
+    # Step 5 (POSITIVE — Session A): Last TM-A broadcast (iteration 4) updates Session A's DOM.
+    in_session(:scoreboard_a) do
+      assert_selector "#full_screen_table_monitor_#{@tm_a.id}", text: /Frei/i, wait: 10
+    end
+
+    # Step 6 (NEGATIVE — Session A): No TM-B content leaked; filter ran >= 3 times (3 TM-B broadcasts).
+    # sleep 2 is acceptable here — we are asserting absence of DOM change, so there is
+    # no element to poll. The _mixupPreventedCount check confirms broadcasts actually arrived.
+    # See Research Pitfall 4.
+    in_session(:scoreboard_a) do
+      sleep 2
+      expected_b_broadcasts = rapid_fire_count / 2
+      count = page.evaluate_script("window._mixupPreventedCount")
+      assert count.to_i >= expected_b_broadcasts,
+        "CONC-01: Session A JS filter should have blocked >= #{expected_b_broadcasts} TM-B broadcasts " \
+        "(one SCOREBOARD MIX-UP PREVENTED per TM-B broadcast), but counter is #{count}. " \
+        "Verify: (1) interceptor installed before broadcasts, (2) broadcasts reached browser"
+      refute_selector "#full_screen_table_monitor_#{@tm_b.id}"
+    end
+
+    # Step 7 (NEGATIVE — Session B): No TM-A content leaked; filter ran >= 3 times (3 TM-A broadcasts).
+    in_session(:scoreboard_b) do
+      sleep 2
+      expected_a_broadcasts = rapid_fire_count / 2
+      count = page.evaluate_script("window._mixupPreventedCount")
+      assert count.to_i >= expected_a_broadcasts,
+        "CONC-01: Session B JS filter should have blocked >= #{expected_a_broadcasts} TM-A broadcasts " \
+        "(one SCOREBOARD MIX-UP PREVENTED per TM-A broadcast), but counter is #{count}."
+      refute_selector "#full_screen_table_monitor_#{@tm_a.id}"
+    end
+  end
+
+  # CONC-02: Three simultaneous browser sessions — all tables isolated under concurrent state changes.
+  #
+  # Extends the two-session ISOL-01 pattern to three simultaneous sessions on three different
+  # TableMonitors. Each TM receives one state-change broadcast while the other two sessions
+  # verify their DOM was not affected. This proves all six cross-table directions are isolated:
+  #   A->B, A->C, B->A, B->C, C->A, C->B.
+  #
+  # Third TM (@tm_c, id: 50_000_003) is created inline in setup (not a fixture) per D-04 and
+  # Research recommendation — inline creation follows the Phase 18 @game_a/@game_b pattern and
+  # keeps all state local to this test file. See Research Pitfall 2 for why @table_c is required.
+  #
+  # Verified: CONC-02 requirement — three simultaneous sessions on three different tables each
+  # show correct isolated state, with all six cross-table broadcast directions verified.
+  test "CONC-02: three simultaneous sessions — all tables isolated under concurrent state changes" do
+    # Step 1: Open three sessions, each on a different TM scoreboard.
+    # Wait for ActionCable subscription confirmation in each before proceeding.
+    [:scoreboard_a, :scoreboard_b, :scoreboard_c].zip([@tm_a, @tm_b, @tm_c]).each do |session_name, tm|
+      in_session(session_name) do
+        visit_scoreboard(tm, locale: :de)
+        assert_selector "#full_screen_table_monitor_#{tm.id}"
+        wait_for_actioncable_connection
+      end
+    end
+
+    # Step 2: Install console.warn mix-up counter on all three sessions.
+    # Sessions B and C will receive TM-A broadcasts — both should filter them.
+    [:scoreboard_a, :scoreboard_b, :scoreboard_c].each do |session_name|
+      in_session(session_name) do
+        page.execute_script(<<~JS)
+          window._mixupPreventedCount = 0;
+          const _origWarnConc02 = console.warn;
+          console.warn = function(...args) {
+            if (args[0] && String(args[0]).includes("SCOREBOARD MIX-UP PREVENTED")) {
+              window._mixupPreventedCount++;
+            }
+            _origWarnConc02.apply(console, args);
+          };
+        JS
+      end
+    end
+
+    # Round 1: Fire TM-A state change — only Session A should update.
+    @tm_a.update_columns(state: "ready")
+    TableMonitorJob.perform_now(@tm_a.id)
+
+    # Positive: Session A sees the TM-A update.
+    in_session(:scoreboard_a) do
+      assert_selector "#full_screen_table_monitor_#{@tm_a.id}", text: /Frei/i, wait: 10
+    end
+
+    # Negative: Sessions B and C must not have TM-A content.
+    # sleep + counter check confirms the broadcast arrived before refute_selector (Research Pitfall 4).
+    [:scoreboard_b, :scoreboard_c].each do |session_name|
+      in_session(session_name) do
+        sleep 2
+        count = page.evaluate_script("window._mixupPreventedCount")
+        assert count.to_i > 0,
+          "CONC-02: #{session_name} should have filtered at least one TM-A broadcast " \
+          "(SCOREBOARD MIX-UP PREVENTED expected), but counter is #{count}"
+        refute_selector "#full_screen_table_monitor_#{@tm_a.id}"
+      end
+    end
+
+    # Round 2: Fire TM-B state change — only Session B should update.
+    @tm_b.update_columns(state: "ready")
+    TableMonitorJob.perform_now(@tm_b.id)
+
+    # Positive: Session B sees the TM-B update.
+    in_session(:scoreboard_b) do
+      assert_selector "#full_screen_table_monitor_#{@tm_b.id}", text: /Frei/i, wait: 10
+    end
+
+    # Negative: Sessions A and C must not have TM-B content.
+    [:scoreboard_a, :scoreboard_c].each do |session_name|
+      in_session(session_name) do
+        sleep 2
+        refute_selector "#full_screen_table_monitor_#{@tm_b.id}"
+      end
+    end
+
+    # Round 3: Fire TM-C state change — only Session C should update.
+    @tm_c.update_columns(state: "ready")
+    TableMonitorJob.perform_now(@tm_c.id)
+
+    # Positive: Session C sees the TM-C update.
+    in_session(:scoreboard_c) do
+      assert_selector "#full_screen_table_monitor_#{@tm_c.id}", text: /Frei/i, wait: 10
+    end
+
+    # Negative: Sessions A and B must not have TM-C content.
+    # This completes the all-pairs verification: no direction leaks (C->A, C->B covered here).
+    [:scoreboard_a, :scoreboard_b].each do |session_name|
+      in_session(session_name) do
+        sleep 2
+        refute_selector "#full_screen_table_monitor_#{@tm_c.id}"
+      end
     end
   end
 
