@@ -488,17 +488,19 @@ end
 
 **If this table is empty:** All other claims were verified against actual source files in this session.
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **GamePlanReconstructor: single `.call` or multiple entry points?**
    - What we know: `reconstruct_game_plan_from_existing_data` (instance) and `reconstruct_game_plans_for_season` (class-level) are different signatures
    - What's unclear: Whether the dispatcher pattern (with `operation:`) is cleaner than two separate class-level entry points
    - Recommendation: Dispatcher pattern (like RegionCc::LeagueSyncer) handles both cleanly; `call(league: l, operation: :reconstruct)` vs `call(season: s, operation: :reconstruct_for_season)`
+   - RESOLVED: Dispatcher pattern adopted per D-06. Plan 21-01 Task 2 implements `case @operation` dispatcher.
 
 2. **`records_to_tag` return value from BBV scraping**
    - What we know: `scrape_bbv_leagues` returns an array, `scrape_single_bbv_league` returns `[league_url, records_to_tag]`
    - What's unclear: Whether these return values are used at the call site in `scrape_leagues_from_cc`
    - Recommendation: Verify by reading `scrape_leagues_from_cc` fully before extracting BBV; preserve whatever return value exists
+   - RESOLVED: Return values preserved per Pitfall 4 handling in Plan 21-02 Task 2. BbvScraper maintains identical return signatures.
 
 ## Environment Availability
 
