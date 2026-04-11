@@ -26,3 +26,14 @@ one:
   current_element: "pointer_mode"
   created_at: <%= 1.year.ago %>
   updated_at: <%= 1.day.ago %>
+
+two:
+  id: 50_000_002
+  state: "new"
+  name: "Table Monitor 2"
+  data: '{}'
+  ip_address: "192.168.1.2"
+  panel_state: "pointer_mode"
+  current_element: "pointer_mode"
+  created_at: <%= 1.year.ago %>
+  updated_at: <%= 1.day.ago %>
