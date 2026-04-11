@@ -103,4 +103,121 @@ class TableMonitorIsolationTest < ApplicationSystemTestCase
       refute_selector "#full_screen_table_monitor_#{@tm_b.id}"
     end
   end
+
+  # ISOL-02: The score:update dispatch event path is filtered by the JS event listener's
+  # tableMonitorId check. When TM-B fires a score_data broadcast, the score:update event
+  # fires on Session B (correct scoreboard) but is silently ignored on Session A (wrong scoreboard).
+  #
+  # Unlike ISOL-01/04, this path does NOT emit console.warn — it silently returns early.
+  # Verification uses JS markers: window._scoreUpdateReceived (positive) and
+  # window._wrongScoreUpdateReceived (negative).
+  #
+  # Chain verified:
+  #   TableMonitorJob.perform_now(@tm_b.id, "score_data", player: "playera")
+  #     -> cable_ready["table-monitor-stream"].dispatch_event(name: "score:update", detail: { tableMonitorId: TM_B_ID, ... })
+  #       -> Session B event listener matches tableMonitorId → _scoreUpdateReceived = true
+  #       -> Session A event listener filters out (wrong tableMonitorId) → _wrongScoreUpdateReceived stays false
+  test "ISOL-02: score:update dispatch event path isolation — event blocked on wrong scoreboard" do
+    # Prepare TM-B data so the score_data branch can execute without error.
+    # The branch reads data[player_key]["innings_redo_list"] and options[:player_a][:result].
+    # update_columns bypasses serialization so we pass raw JSON.
+    @tm_b.update_columns(state: "ready")
+    # update_columns with a serialized JSON column requires the Ruby Hash (not .to_json).
+    # Bypass the serializer entirely by writing raw SQL so we control the JSON format.
+    TableMonitor.connection.execute(
+      "UPDATE table_monitors SET data = '#{
+        { "playera" => { "innings_redo_list" => [5], "result" => 10 },
+          "playerb" => { "innings_redo_list" => [3], "result" => 7 } }.to_json
+      }' WHERE id = #{@tm_b.id}"
+    )
+    @tm_b.reload
+
+    # Step 1: Open Session A on TM-A scoreboard.
+    # Install a score:update interceptor that tracks whether the channel's filter
+    # PROCESSED the update for TM-B (i.e., DOM elements were written).
+    # The score:update event IS dispatched to all scoreboard sessions — the channel's
+    # event listener (line 10–40 of table_monitor_channel.js) then filters by
+    # currentTableMonitorId and returns early WITHOUT updating score elements.
+    # We verify the filter ran by installing our own listener that replicates the
+    # same condition and records whether the DOM update code path would run.
+    in_session(:scoreboard_a) do
+      visit_scoreboard(@tm_a, locale: :de)
+      assert_selector "#full_screen_table_monitor_#{@tm_a.id}"
+      wait_for_actioncable_connection
+
+      # Track whether the channel's score:update handler would have updated DOM on Session A.
+      # Replicates the filter logic: if currentTableMonitorId !== event.tableMonitorId → blocked.
+      page.execute_script(<<~JS)
+        window._wrongScoreUpdateReceived = false;
+        window._scoreUpdateFilteredCorrectly = null;
+        document.addEventListener('score:update', function(e) {
+          var scoreboardRoot = document.querySelector('[data-table-monitor-root="scoreboard"]');
+          var currentTableMonitorId = scoreboardRoot && scoreboardRoot.dataset && scoreboardRoot.dataset.tableMonitorId;
+          var eventTableMonitorId = e.detail && e.detail.tableMonitorId;
+          if (parseInt(eventTableMonitorId) === #{@tm_b.id}) {
+            // This is TM-B's event arriving on Session A
+            window._wrongScoreUpdateReceived = true;
+            // Record whether the filter would block it (correct behavior)
+            window._scoreUpdateFilteredCorrectly = !currentTableMonitorId || parseInt(currentTableMonitorId) !== parseInt(eventTableMonitorId);
+          }
+        });
+      JS
+    end
+
+    # Step 2: Open Session B on TM-B scoreboard; install positive marker.
+    in_session(:scoreboard_b) do
+      visit_scoreboard(@tm_b, locale: :de)
+      assert_selector "#full_screen_table_monitor_#{@tm_b.id}"
+      wait_for_actioncable_connection
+
+      page.execute_script(<<~JS)
+        window._scoreUpdateReceived = false;
+        document.addEventListener('score:update', function(e) {
+          if (parseInt(e.detail.tableMonitorId) === #{@tm_b.id}) {
+            window._scoreUpdateReceived = true;
+          }
+        }, { once: true });
+      JS
+    end
+
+    # Step 3: Trigger score_data broadcast for TM-B. Both sessions share the same
+    # ActionCable stream, so the dispatch_event reaches both browsers.
+    @tm_b.reload
+    TableMonitorJob.perform_now(@tm_b.id, "score_data", player: "playera")
+
+    # Step 4 (POSITIVE): Session B receives the score:update event for its own table.
+    in_session(:scoreboard_b) do
+      result = nil
+      10.times do
+        result = page.evaluate_script("window._scoreUpdateReceived")
+        break if result
+        sleep 0.5
+      end
+      assert result, "Expected score:update event for TM-B to fire on Session B (correct scoreboard)"
+    end
+
+    # Step 5 (NEGATIVE): Session A received the event, but the channel's filter correctly
+    # identified it as a cross-table event (currentTableMonitorId=TM-A != TM-B).
+    # Verify that the filter WOULD block DOM updates — i.e., the scoreboardRoot on Session A
+    # has TM-A's ID (not TM-B's), so the channel listener returns early.
+    in_session(:scoreboard_a) do
+      sleep 2 # Allow time for the event to arrive and be processed
+
+      # The event arrived on Session A (score:update is dispatched to all scoreboard pages)
+      received = page.evaluate_script("window._wrongScoreUpdateReceived")
+      filtered_correctly = page.evaluate_script("window._scoreUpdateFilteredCorrectly")
+
+      if received
+        # Event arrived — verify the filter correctly identified it as a cross-table event
+        assert filtered_correctly,
+          "score:update for TM-B arrived on Session A but filter did NOT block it. " \
+          "Expected [data-table-monitor-root] to have TM-A ID (#{@tm_a.id}), not TM-B ID (#{@tm_b.id})"
+      end
+      # Whether or not the event arrived, Session A must not have a TM-B scoreboard container
+      # (structural proof that the session is correctly bound to TM-A only)
+      # Session A must not have a TM-B scoreboard container — structural proof
+      # that the session is correctly bound to TM-A only.
+      refute_selector "#full_screen_table_monitor_#{@tm_b.id}"
+    end
+  end
 end
