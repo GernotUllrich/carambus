@@ -355,17 +355,19 @@ end
 | A1 | `users(:one)` has player role (default) and `admin?` returns false | Auth guard tests | If one@carambus.de has admin privileges, auth guard tests would not verify the block correctly |
 | A2 | The PartyMonitorPlacement failure is due to stale characterization expectation after Phase 22 extraction, not a regression | Pre-existing failure | If it's a real regression in ResultProcessor, fix scope expands |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **PartyMonitorReflex unit test infrastructure**
    - What we know: StimulusReflex reflexes cannot be called via HTTP; they require direct method invocation
    - What's unclear: Whether `element.dataset` can be mocked simply enough for direct invocation tests, or whether reflex tests require a full Action Cable test setup
    - Recommendation: Attempt direct unit tests using `Minitest::Mock` for element; if complexity exceeds 1 wave, document the limitation and defer reflex tests (D-04 already scopes to 5-6 methods)
+   - RESOLVED: Plan 23-02 Task 2 implements direct unit tests with Minitest::Mock for element. If infrastructure is too complex, limitation is documented per D-04 scope.
 
 2. **Pre-existing test failure disposition**
    - What we know: `PartyMonitorPlacementTest#test_report_result_with_table_monitor_having_no_game_completes_without_raising` fails (StandardError expected but not raised)
    - What's unclear: Whether the test expectation is stale (Phase 22 changed behavior) or whether ResultProcessor has a latent bug
    - Recommendation: Read `ResultProcessor#report_result` — if it rescues and swallows the error, update the characterization test to match actual behavior; if the error should still propagate, fix the implementation
+   - RESOLVED: Plan 23-01 Task 1 investigates and fixes the assertion (change assert_raises to assert_nothing_raised if behavior changed, or fix implementation if bug).
 
 ## Environment Availability
 
