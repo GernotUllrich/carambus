@@ -1,288 +1,171 @@
-# Stack Research: Tournament & TournamentMonitor Refactoring (v2.1)
+# Stack Research: Broadcast Isolation System Tests (v3.0)
 
-**Domain:** Rails brownfield model refactoring with ActionCable, StimulusReflex, and ActiveJob coverage
-**Researched:** 2026-04-10
-**Confidence:** HIGH (codebase read directly; patterns verified from existing v1.0 and v2.0 work)
+**Domain:** Rails 7.2 end-to-end system tests for ActionCable broadcast isolation
+**Researched:** 2026-04-11
+**Confidence:** HIGH (codebase read directly; key libraries verified from official docs and Rails source)
 
 ---
 
 ## Decision Summary
 
-This milestone is still a **no-new-framework** refactoring. The question is narrower than v1.0: what testing tools and patterns are needed to test the new surface area — ActionCable channels, StimulusReflex reflexes, controller actions, and ActiveJob jobs — beyond plain model unit tests?
+The milestone goal is browser-level end-to-end proof that a scoreboard showing TableMonitor A never receives DOM updates intended for TableMonitor B. The isolation logic is client-side JavaScript in `table_monitor_channel.js` — not server-side per-table channels. System tests must run real browsers and observe real DOM changes through real WebSocket connections.
 
-The answer is: **Rails 7.2 ships everything needed natively**. No new gems are required for the core work. One conditional addition (`stimulus_reflex` test adapter, if direct reflex testing is pursued) is discussed below with a recommendation to skip it.
+**All required infrastructure is already in the Gemfile.** No new gems are needed. The work is configuration and test-writing only.
+
+The three constraints that drive every decision below:
+
+1. **ActionCable adapter must be `async` (or `test`) for system tests** — the browser connects to the same Puma process as the test runner. The async adapter works within a single OS process, which is exactly the system test topology. Switching to Redis for tests is unnecessary overhead.
+2. **`use_transactional_tests` must stay `true` in system tests** — Rails 5.1+ makes the test thread and Puma server share the same database connection, so fixture data is visible to the browser without truncation or `database_cleaner`. The existing `ApplicationSystemTestCase` inherits this default.
+3. **Multi-session is `Capybara.using_session`** — standard Capybara API, no additional gems. Each named session is a separate browser context (independent cookies, separate WebSocket connection) driven by the same Selenium Chrome process.
 
 ---
 
 ## Recommended Stack
 
-### Core Technologies (unchanged from v1.0)
+### Core Technologies (all already installed)
 
-| Technology | Version | Purpose | Status |
-|------------|---------|---------|--------|
-| Rails | 7.2.2 | Framework | Already installed |
-| Ruby | 3.2.1 | Runtime | Already installed |
-| PostgreSQL | current | Database | Already installed |
-| Minitest | (Rails built-in) | Test runner | Already installed |
-| ActiveJob::TestHelper | (Rails built-in) | Job queue assertions | Already in use (table_monitor_char_test.rb) |
+| Technology | Version in Gemfile.lock | Purpose | Status |
+|------------|------------------------|---------|--------|
+| Capybara | 3.40.0 | Browser session management, multi-session via `using_session`, DOM assertions | Already in Gemfile |
+| selenium-webdriver | 4.38.0 | Chrome automation driver | Already in Gemfile |
+| Minitest | Rails built-in | Test runner; system tests inherit `ActionDispatch::SystemTestCase` | Already in use |
+| ActionCable (async adapter) | Rails 7.2 built-in | Pub/sub within the same Puma process during tests | Already configured in `cable.yml` |
+| Rails fixtures | Rails built-in | TableMonitor + tournament test data | Already used project-wide |
 
-### Testing Patterns for New Surface Area
+### Supporting Patterns (no new code required)
 
-#### ActionCable Channels
-
-Rails 7.2 ships `ActionCable::Channel::TestCase` as a built-in. No gem needed.
-
-```ruby
-# test/channels/tournament_channel_test.rb
-require "test_helper"
-
-class TournamentChannelTest < ActionCable::Channel::TestCase
-  test "subscribes to tournament-specific stream when tournament_id given" do
-    subscribe tournament_id: tournaments(:local).id
-    assert subscription.confirmed?
-    assert_has_stream "tournament-stream-#{tournaments(:local).id}"
-  end
-
-  test "subscribes to global tournament stream when no tournament_id" do
-    subscribe
-    assert subscription.confirmed?
-    assert_has_stream "tournament-stream"
-  end
-end
-
-# test/channels/tournament_monitor_channel_test.rb
-class TournamentMonitorChannelTest < ActionCable::Channel::TestCase
-  test "rejects subscription on API server" do
-    ApplicationRecord.stub(:local_server?, false) do
-      subscribe
-      assert subscription.rejected?
-    end
-  end
-
-  test "subscribes on local server" do
-    ApplicationRecord.stub(:local_server?, true) do
-      subscribe
-      assert subscription.confirmed?
-      assert_has_stream "tournament-monitor-stream"
-    end
-  end
-end
-```
-
-**Key assertions available:**
-- `assert subscription.confirmed?` / `assert subscription.rejected?`
-- `assert_has_stream "stream-name"` / `assert_no_streams`
-- `perform :method_name, args` — call channel actions directly
-- `assert_broadcasts "stream", 1` — count broadcasts on a stream
-
-**Confidence: HIGH** — Rails built-in since Rails 5. Verified in Rails 7.2 guides.
+| Pattern | Purpose | Integration Point |
+|---------|---------|-------------------|
+| `Capybara.using_session("name") { ... }` | Open a second browser session on a different URL | Inside `ApplicationSystemTestCase` test methods |
+| `ApplicationRecord.stub(:local_server?, true)` | Enable TableMonitorChannel subscription (channel rejects on API server) | `setup` block in broadcast isolation tests |
+| `Capybara.default_max_wait_time = 10` | Wait for async DOM updates from ActionCable | Already set in `application_system_test_case.rb` line 29 |
+| `assert_no_text` / `assert_text` | Verify that DOM element did or did not change | Standard Capybara assertions |
+| `WebMock.disable_net_connect!(allow_localhost: true)` | Allow Puma local server connections; already configured | Already in `test_helper.rb` line 110 |
 
 ---
 
-#### ActiveJob (Jobs)
+## Architecture of the Test
 
-`ActiveJob::TestHelper` is already in use for `TableMonitorCharTest` and `GameSetupTest`. Same pattern applies to `TournamentStatusUpdateJob` and `TournamentMonitorUpdateResultsJob`.
+Understanding the broadcast topology is required to write the right tests:
 
-```ruby
-# test/jobs/tournament_status_update_job_test.rb
-require "test_helper"
+**Single shared channel stream.** `TableMonitorChannel` uses `stream_from "table-monitor-stream"` — all clients subscribe to the same stream regardless of which table they are watching. There are no per-table channels.
 
-class TournamentStatusUpdateJobTest < ActiveJob::TestCase
-  include ActiveJob::TestHelper
+**Client-side isolation via `shouldAcceptOperation`.** The JavaScript in `table_monitor_channel.js` reads the current page context (scoreboard DOM element `[data-table-monitor-root="scoreboard"]` or meta tag `scoreboard-table-monitor-id`) and rejects CableReady operations whose selector targets a different `full_screen_table_monitor_N` element.
 
-  test "discards job when tournament not found" do
-    # discard_on ActiveRecord::RecordNotFound is configured in the job
-    assert_nothing_raised do
-      TournamentStatusUpdateJob.perform_now(nil)
-    end
-  end
+**What system tests must verify:** Session A watching TableMonitor 1 does not show a DOM change when a broadcast for TableMonitor 2 fires. This requires two live browser sessions, each visiting a different scoreboard page, with a server-side state change on one table.
 
-  test "skips broadcast when tournament has no monitor" do
-    tournament = tournaments(:local)
-    # tournament_monitor is nil by default in fixture
-    assert_no_enqueued_jobs do
-      TournamentStatusUpdateJob.perform_now(tournament)
-    end
-  end
-
-  test "skips broadcast on local_server (TournamentMonitorUpdateResultsJob)" do
-    ApplicationRecord.stub(:local_server?, false) do
-      tm = tournament_monitors(:one)
-      assert_nothing_raised do
-        TournamentMonitorUpdateResultsJob.perform_now(tm)
-      end
-    end
-  end
-end
-```
-
-**Key patterns from existing tests to reuse:**
-- `include ActiveJob::TestHelper` in the test class
-- `assert_enqueued_jobs(N, only: [JobClass])` — count enqueued jobs of specific type
-- `ApplicationRecord.stub(:local_server?, true/false)` — flip server context per test
-- `Sidekiq::Testing.fake!` is configured in `test_helper.rb` — jobs do not run automatically
-
-**Confidence: HIGH** — Pattern confirmed in `test/characterization/table_monitor_char_test.rb:16`.
+**What the test does NOT need:** A second Redis process, multiple Puma workers, or a separate server. All sessions share the same single Puma thread pool and async ActionCable event loop within the test process.
 
 ---
 
-#### Controllers
+## Configuration Changes Required
 
-Pattern established by `TableMonitorsControllerTest`. Use `ActionDispatch::IntegrationTest` with Devise sign-in helpers. Tournament controller has `ensure_local_server` guards — test both API server (should redirect/fail) and local server contexts.
+### 1. `config/cable.yml` — add async for test environment
+
+The current `cable.yml` uses `adapter: test` for the test environment. The test adapter stores broadcasts in memory for assertion (used in unit tests via `ActionCable::TestHelper`) but does **not** deliver them to real WebSocket connections in system tests.
+
+Change test environment to `async`:
+
+```yaml
+# config/cable.yml
+development:
+  adapter: redis
+  url: <%= ENV.fetch("REDIS_URL") { "redis://localhost:6379/2" } %>
+
+test:
+  adapter: async          # ← changed from "test" to "async" for system tests
+
+production:
+  adapter: redis
+  url: <%= ENV.fetch("REDIS_URL") { "redis://localhost:6379/2" } %>
+  channel_prefix: carambus_bcw_development
+```
+
+**Important:** Existing `ActionCable::Channel::TestCase` tests that use `assert_broadcasts` / `assert_broadcast_on` (via `ActionCable::TestHelper`) rely on the `test` adapter's in-memory store. These will break if `cable.yml` globally switches to `async`.
+
+**Solution:** Keep `adapter: test` as the default for the test environment and override to `async` only inside system test files:
 
 ```ruby
-# test/controllers/tournaments_controller_test.rb
-require "test_helper"
-
-class TournamentsControllerTest < ActionDispatch::IntegrationTest
-  include Devise::Test::IntegrationHelpers
-
+# test/application_system_test_case.rb  (or a subclass for broadcast tests)
+class BroadcastIsolationSystemTestCase < ApplicationSystemTestCase
   setup do
-    @tournament = tournaments(:local)
-    @user = users(:one)
-    sign_in @user
+    # Override adapter to async so broadcasts reach the browser WebSocket
+    ActionCable.server.config.cable = { "adapter" => "async" }
+    ActionCable.server.restart
   end
 
-  test "GET index returns success" do
-    get tournaments_url
-    assert_response :success
+  teardown do
+    # Restore test adapter for channel unit tests
+    ActionCable.server.config.cable = { "adapter" => "test" }
+    ActionCable.server.restart
+  end
+end
+```
+
+Confidence: MEDIUM — the `ActionCable.server.restart` approach is the community workaround pattern. Verified as the mechanism in the `action-cable-testing` gem's RSpec feature integration. The exact API is not in official Rails docs but is consistent with ActionCable's runtime reconfigurability.
+
+### 2. `test/application_system_test_case.rb` — local_server? override
+
+`TableMonitorChannel#subscribed` calls `reject` when `ApplicationRecord.local_server?` is false (API server mode). System tests run in API server mode by default. The stub must be active for the duration of the test.
+
+Use `Carambus.config` to set the flag if possible, or stub at the class level:
+
+```ruby
+class BroadcastIsolationSystemTestCase < ApplicationSystemTestCase
+  setup do
+    # Allow TableMonitorChannel to accept subscriptions
+    ApplicationRecord.stubs(:local_server?).returns(true)
+    # (or: use mocha, or set Carambus.config.carambus_api_url = nil)
+  end
+end
+```
+
+**Verify the mechanism** by reading `ApplicationRecord.local_server?` implementation — if it reads from `Carambus.config`, set the config key directly (no mock needed, avoids Mocha dependency).
+
+---
+
+## Multi-Session Test Pattern
+
+```ruby
+# test/system/broadcast_isolation_test.rb
+require "application_system_test_case"
+
+class BroadcastIsolationTest < BroadcastIsolationSystemTestCase
+  setup do
+    @tm1 = table_monitors(:one)   # fixture for table 1
+    @tm2 = table_monitors(:two)   # fixture for table 2
+    sign_in users(:valid)
   end
 
-  test "reset action triggers AASM event and redirects" do
-    # Tournament must not be started yet
-    @tournament.update_column(:state, "new_tournament")
-    post reset_tournament_url(@tournament)
-    assert_redirected_to tournament_path(@tournament)
-  end
+  test "scoreboard A does not update when table B changes state" do
+    # Session A: scoreboard for table 1
+    visit table_monitor_scoreboard_path(@tm1, locale: :de)
+    assert_selector "[data-table-monitor-root='scoreboard']"
 
-  test "ensure_local_server blocks edit on API server" do
-    # API server: local_server? == false
-    ApplicationRecord.stub(:local_server?, false) do
-      get edit_tournament_url(@tournament)
-      assert_redirected_to root_path  # or wherever ensure_local_server redirects
+    # Session B: scoreboard for table 2 (separate browser context)
+    using_session("scoreboard_b") do
+      visit table_monitor_scoreboard_path(@tm2, locale: :de)
+      assert_selector "[data-table-monitor-root='scoreboard']"
     end
+
+    # Trigger a state change on table 2 from a third context (admin/API)
+    using_session("trigger") do
+      # POST to trigger AASM transition on @tm2
+      # e.g.: post table_monitor_transition_path(@tm2), params: { event: "start_game" }
+    end
+
+    # Session A must NOT show table 2's broadcast
+    assert_no_selector "#full_screen_table_monitor_#{@tm2.id}"
+    # Session A's own content is unchanged
+    assert_selector "#full_screen_table_monitor_#{@tm1.id}"
   end
 end
 ```
 
-**Confidence: HIGH** — Existing controller test pattern verified across 10+ controller test files.
-
----
-
-#### StimulusReflex Reflexes
-
-**Recommendation: Do NOT write direct reflex tests. Skip them as the existing `TableMonitorsControllerTest` does.**
-
-The existing codebase explicitly documents this decision:
-
-```ruby
-# test/controllers/table_monitors_controller_test.rb:73-85
-test "should handle optimistic score updates" do
-  skip "StimulusReflex endpoints are not testable via standard HTTP integration tests"
-end
-```
-
-**Why reflexes are untestable via standard Minitest:**
-- StimulusReflex actions are triggered over WebSocket, not HTTP. There is no HTTP endpoint to hit.
-- The `stimulus_reflex` gem (3.5.3) does not ship a test adapter for Rails 7.2 — its testing story relies on system tests (Capybara + Chrome) or manual browser verification.
-- Adding `cable_ready` and `stimulus_reflex` mocking layers to unit tests produces brittle, hard-to-maintain tests that test the mocking infrastructure, not the business logic.
-
-**What to test instead:** Extract the business logic out of reflexes into service objects or model methods, then test those directly. The reflex becomes a thin adapter (find record, call service, morph). `TournamentReflex` already demonstrates this — its ATTRIBUTE_METHODS loop delegates to `tournament.send("#{attribute}=", val)` + `tournament.save!`. Test the model setter, not the reflex.
-
-**If reflex coverage is required:** Use system tests (`ApplicationSystemTestCase` + Capybara + Selenium) which exercise the full WebSocket cycle. Scope those to specific high-risk reflex actions only.
-
-**Confidence: HIGH** — Decision documented and verified in existing codebase. StimulusReflex 3.5.3 test adapter absence confirmed.
-
----
-
-### Service Object Convention (unchanged from v1.0)
-
-Namespace extracted services under the model name:
-
-```
-app/services/
-  tournament/
-    ranking_calculator.rb     # extract from TournamentMonitor#ranking + #player_id_from_ranking
-    group_distributor.rb      # extract distribute_to_group + distribute_with_sizes (pure algorithm)
-    monitor_initializer.rb    # extract initialize_tournament_monitor
-    scraper.rb                # extract scrape_single_tournament_public (optional — risky)
-  tournament_monitor/
-    game_sequencer.rb         # game sequence logic (next_seqno, ko_ranking resolution)
-    player_assigner.rb        # player → game assignment from ranking rules
-    table_allocator.rb        # table assignment coordination
-    state_broadcaster.rb      # after_update_commit → TournamentStatusUpdateJob
-```
-
-PORO with explicit `initialize` dependencies and single `call` method. No new gem needed.
-
-**The `group_distributor` is the highest-value first extraction** — `distribute_to_group` and `distribute_with_sizes` are pure algorithms with no database calls. They have documented edge cases (GROUP_RULES, GROUP_SIZES constants), testable input/output, and are currently tested only implicitly via integration tests.
-
----
-
-### Static Analysis (unchanged from v1.0)
-
-```ruby
-# Gemfile — group :development
-gem "reek", "~> 6.5", require: false
-```
-
-Run Reek before and after extraction to measure improvement objectively:
-
-```bash
-bundle exec reek app/models/tournament.rb
-bundle exec reek app/models/tournament_monitor.rb
-```
-
----
-
-## Key Patterns from v1.0/v2.0 to Reuse
-
-### suppress_broadcast Pattern
-
-Tournament and TournamentMonitor have `after_update_commit` callbacks that enqueue jobs. When a service object makes multiple saves, use `suppress_broadcast` to batch:
-
-```ruby
-# app/services/tournament/monitor_initializer.rb
-class Tournament::MonitorInitializer
-  def call
-    tournament.suppress_broadcast = true
-    # ... multiple saves ...
-  ensure
-    tournament.suppress_broadcast = false
-  end
-end
-```
-
-Test this by verifying `suppress_broadcast` state inside save callbacks — same approach used in `GameSetupTest` (line 188-203).
-
-### local_server? Stub
-
-Both channels and both jobs gate behavior on `ApplicationRecord.local_server?`. Stub it per test:
-
-```ruby
-ApplicationRecord.stub(:local_server?, true) do
-  # test local server behavior
-end
-```
-
-This pattern is confirmed in `table_monitor_char_test.rb` across 6+ tests.
-
-### ApiProtectorTestOverride
-
-`TournamentMonitor` includes `ApiProtector`. The `test_helper.rb` already patches all `ApiProtector`-including classes at boot. No per-test action needed.
-
-### AASM State Tests
-
-Tournament has 8 AASM states with guards. Test state transitions with real fixture data:
-
-```ruby
-test "reset_tmt_monitor! fails when tournament already started" do
-  @tournament.update_column(:state, "tournament_started")
-  assert_raises(AASM::InvalidTransition) do
-    @tournament.reset_tmt_monitor!
-  end
-end
-```
+**Key mechanics:**
+- `using_session("name")` creates an isolated Selenium session (separate cookies, separate WebSocket). Returns to original session when block exits.
+- The `sign_in` helper from `Warden::Test::Helpers` signs in within the current session. Each `using_session` block needs its own sign-in.
+- `Capybara.default_max_wait_time = 10` (already configured) provides retry window for async DOM updates.
 
 ---
 
@@ -290,29 +173,51 @@ end
 
 | Avoid | Why | Use Instead |
 |-------|-----|-------------|
-| `stimulus_reflex` test adapter / custom WebSocket mocking | Does not exist for SR 3.5.3; any homebrew solution tests the mock, not the reflex | Extract business logic to service methods, test those |
-| `test-after-commit` gem | Rails 7.2 fires `after_commit` natively in transactional tests (confirmed in table_monitor_char_test.rb comment) | None needed |
-| RSpec or system-test-only coverage for channels | ActionCable::Channel::TestCase handles channel logic without a browser | Use built-in test case |
-| VCR cassettes for Tournament scraper tests | Scraper is already smoke-tested; adding VCR cassettes for the 1775-line scraper is out of scope for this milestone (behavior preservation, not scraper coverage) | Stub HTTP with WebMock only |
-| FactoryBot factories for Tournament | Project uses fixtures-first, no factory definitions exist, `KoTournamentTestHelper` handles complex setup | Use fixtures + `KoTournamentTestHelper` |
+| `database_cleaner` gem | Rails 5.1+ system tests share the DB connection via `use_transactional_tests = true`, so fixtures are visible to the browser without truncation. Adding database_cleaner adds complexity and slows tests by orders of magnitude. | Rails built-in transactional test isolation |
+| Redis adapter in test environment | The async adapter works within a single Puma process (system test topology). Redis adds a dependency on a live Redis instance, increases test fragility, and provides no benefit here since there is only one Rails server process under test. | `adapter: async` in system test setup |
+| `cuprite` / Playwright / `ferrum` | These are alternatives to Selenium+Chrome. Selenium is already configured and proven working in this app. Switching drivers is a scope change, not a testing improvement. | Existing Selenium headless Chrome configuration |
+| `action-cable-testing` gem | Was absorbed into Rails 6+. `ActionCable::Channel::TestCase` and `ActionCable::TestHelper` are built-in since Rails 6. Adding this gem is redundant. | Rails built-in `ActionCable::Channel::TestCase` |
+| FactoryBot for TableMonitor fixtures | Project is strictly fixtures-first; FactoryBot is in the Gemfile but zero factories are defined. Creating factories for this milestone contradicts the established convention. | Add fixture rows to `test/fixtures/table_monitors.yml` |
+| Parallel test execution | `parallelize(workers: :number_of_processors)` is commented out in `test_helper.rb` ("Disabled to avoid database issues with fixtures"). System tests with shared ActionCable state would make parallelism even more problematic. | Sequential test execution |
+| JavaScript `console.log` assertions via CDP | The JS in `table_monitor_channel.js` logs `"SCOREBOARD MIX-UP PREVENTED"` to the console when it rejects an operation. Asserting on browser console output requires Chrome DevTools Protocol integration and fragile log scraping. | Assert on the DOM outcome (element absent / unchanged), not the log message |
+
+---
+
+## Version Compatibility
+
+| Package | Version | Compatibility Notes |
+|---------|---------|---------------------|
+| Capybara 3.40.0 | selenium-webdriver 4.38.0 | Compatible. Capybara 3.39+ with selenium-webdriver 4.20.1+ is the documented requirement in the Gemfile. |
+| selenium-webdriver 4.38.0 | Chrome/Chromium | Requires matching ChromeDriver. Selenium 4.6+ manages ChromeDriver automatically via Selenium Manager — no manual chromedriver install needed. |
+| Rails 7.2.2 | ActionCable async adapter | `adapter: async` is built into Rails and is the default in development. Fully supported in 7.2. |
+| Capybara `using_session` | Minitest / ActionDispatch::SystemTestCase | `using_session` is a Capybara::DSL method, available in any Capybara-backed test including `ActionDispatch::SystemTestCase`. No compatibility issues. |
+| Warden::Test::Helpers | Devise + Capybara multi-session | Each `using_session` block has its own cookie jar, so `sign_in` must be called within each session. `login_as` (Warden's helper) works across sessions from outside `using_session` blocks — use the right helper depending on context. |
 
 ---
 
 ## Installation
 
-No new gems required. The only optional addition from v1.0 that may be needed:
+No new gems required. Zero Gemfile changes needed.
+
+If the ActionCable adapter-per-test-class override pattern proves unstable, the only gem addition worth considering is:
 
 ```ruby
-# Gemfile — group :development (only if not already present from v1.0)
-gem "reek", "~> 6.5", require: false
+# Gemfile — group :test (only if needed)
+# NOT recommended — use built-in ActionCable::Channel::TestCase instead
+# gem "action-cable-testing"  # merged into Rails 6+, redundant
 ```
 
-```ruby
-# Gemfile — only if extracted service objects need transactional after_commit hooks
-gem "after_commit_everywhere", "~> 1.6"
-```
+The correct install action is to add fixture rows:
 
-Both were already recommended in v1.0 STACK.md. Check if `reek` is already in the Gemfile before adding.
+```yaml
+# test/fixtures/table_monitors.yml — add a second fixture if only one exists
+two:
+  name: "Table 2"
+  state: pointer_mode
+  panel_state: pointer_mode
+  current_element: pointer_mode
+  # ... other required columns
+```
 
 ---
 
@@ -320,27 +225,38 @@ Both were already recommended in v1.0 STACK.md. Check if `reek` is already in th
 
 | Area | Confidence | Basis |
 |------|------------|-------|
-| ActionCable channel testing | HIGH | Rails 7.2 built-in, pattern verified in Rails guides |
-| Job testing (`ActiveJob::TestHelper`) | HIGH | Already in use in `table_monitor_char_test.rb` |
-| Controller testing | HIGH | 10+ existing controller test files with identical pattern |
-| Reflex testing (skip) | HIGH | Skip rationale documented in existing codebase |
-| Service extraction patterns | HIGH | Verified from v1.0 extractions (14 services) |
-| suppress_broadcast reuse | HIGH | Pattern in `game_setup_test.rb` lines 188-253 |
+| Capybara `using_session` multi-session pattern | HIGH | Capybara 3.x official API. Confirmed in community tutorials and official docs. |
+| Async adapter working in system tests (same process) | HIGH | The "async only works in same process" property is exactly the system test topology — Puma and tests share the OS process. Documented in Rails ActionCable overview. |
+| `adapter: test` breaking real WebSocket delivery | HIGH | Test adapter stores in-memory only; does not route to WebSocket connections. Confirmed via Rails API docs. |
+| Per-test-class ActionCable adapter override | MEDIUM | `ActionCable.server.restart` pattern is community-verified but not in official Rails docs. Needs validation against Rails 7.2 server internals. |
+| `use_transactional_tests = true` fixture visibility | HIGH | Rails 5.1+ PR #28083 explicitly solved the shared-connection problem for system tests. Confirmed in Rails guides. |
+| Broadcast isolation being client-side JS only | HIGH | Read directly from `table_monitor_channel.js` and `app/channels/table_monitor_channel.rb` — single stream, client filters by DOM element id. |
+
+---
+
+## Open Questions
+
+1. **`ApplicationRecord.local_server?` implementation** — needs to be read to determine whether `Carambus.config` is the toggle (cleaner) or `stub` is required. The channel reject path must be bypassed for system tests.
+2. **Scoreboard URL** — what is the actual route for the per-table scoreboard page? The `table_monitor_channel.js` context detection reads `[data-table-monitor-root="scoreboard"]`. Confirm which view renders this attribute and which route serves it.
+3. **Fixture completeness** — `test/fixtures/table_monitors.yml` must have at least two rows with valid `state`, `panel_state`, and `current_element` columns. Check before writing tests.
+4. **ActionCable adapter restart stability** — if `ActionCable.server.restart` causes test isolation issues, the alternative is a dedicated test environment (`RAILS_ENV=system_test`) with its own `cable.yml` section that uses `async`.
 
 ---
 
 ## Sources
 
-- Rails 7.2 ActionCable Channel test docs — https://api.rubyonrails.org/classes/ActionCable/Channel/TestCase.html
-- `test/characterization/table_monitor_char_test.rb` — ActiveJob::TestHelper patterns, suppress_broadcast, local_server? stubs
-- `test/controllers/table_monitors_controller_test.rb` — skip rationale for StimulusReflex
-- `test/services/table_monitor/game_setup_test.rb` — suppress_broadcast lifecycle test pattern
-- `test_helper.rb` — ApiProtectorTestOverride, Sidekiq::Testing.fake! configuration
-- `app/channels/tournament_channel.rb`, `tournament_monitor_channel.rb` — channel subscription logic
-- `app/jobs/tournament_status_update_job.rb`, `tournament_monitor_update_results_job.rb` — job gating on local_server?
-- `app/reflexes/tournament_reflex.rb` — thin-adapter pattern that makes reflex testing unnecessary
+- `app/javascript/channels/table_monitor_channel.js` — client-side isolation logic (`shouldAcceptOperation`, `getPageContext`)
+- `app/channels/table_monitor_channel.rb` — `stream_from "table-monitor-stream"` (single shared stream)
+- `test/application_system_test_case.rb` — existing driver config, `Capybara.default_max_wait_time = 10`
+- `config/cable.yml` — current adapter configuration (`adapter: test` for test environment)
+- `test/test_helper.rb` — `WebMock.disable_net_connect!(allow_localhost: true)` confirmed
+- Rails API: ActionCable::SubscriptionAdapter::Test — https://edgeapi.rubyonrails.org/classes/ActionCable/SubscriptionAdapter/Test.html (in-memory only, no WebSocket delivery)
+- Rails PR #28083 — shared DB connection for system tests (transactional fixture visibility)
+- Capybara `using_session` — https://rubydoc.info/gems/capybara/Capybara/Session (multi-session API)
+- Boring Rails: Testing multiple sessions — https://boringrails.com/tips/capybara-multiple-user-sessions (pattern confirmed)
+- Action Cable Overview — https://guides.rubyonrails.org/action_cable_overview.html (async adapter same-process constraint)
 
 ---
 
-*Stack research for: Tournament & TournamentMonitor refactoring (v2.1)*
-*Researched: 2026-04-10*
+*Stack research for: ActionCable broadcast isolation system tests (v3.0)*
+*Researched: 2026-04-11*
