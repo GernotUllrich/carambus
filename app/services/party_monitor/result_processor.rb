@@ -355,7 +355,7 @@ class PartyMonitor::ResultProcessor
     # IDEMPOTENCY: Check if already written (within last minute)
     if game.data["finalized_at"].present?
       finalized_at = begin
-        Time.parse(game.data["finalized_at"])
+        Time.zone.parse(game.data["finalized_at"])
       rescue
         nil
       end
