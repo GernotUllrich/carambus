@@ -273,7 +273,7 @@ Plans:
 
 - [x] **Phase 17: Infrastructure & Configuration** - Set up Capybara/Selenium system test infrastructure with ActionCable, local_server?, multi-session helpers, and a smoke test proving end-to-end broadcast delivery (completed 2026-04-11)
 - [x] **Phase 18: Core Isolation Tests** - Two-session tests covering the morph path, score:update dispatch path, table_scores overview context, and console.warn filter verification (completed 2026-04-11)
-- [ ] **Phase 19: Concurrent Scenarios & Gap Documentation** - Rapid-fire AASM transitions, three+ simultaneous browser sessions, and a gap report documenting any broadcast bleed found
+- [x] **Phase 19: Concurrent Scenarios & Gap Documentation** - Rapid-fire AASM transitions, three+ simultaneous browser sessions, and a gap report documenting any broadcast bleed found (completed 2026-04-11)
 
 ## Phase Details
 
@@ -313,10 +313,10 @@ Plans:
   1. Rapid-fire AASM state transitions (multiple transitions per second) with two simultaneous sessions produce no broadcast bleed — scoreboard A never reflects table B state during high-frequency firing
   2. Three or more simultaneous browser sessions on different tables all show correct isolated state after concurrent state changes — no session receives a broadcast intended for a different table
   3. A gap report exists at .planning/BROADCAST-GAP-REPORT.md documenting every isolation failure observed during Phases 18-19 testing, with reproduction steps and the deferred fix reference (FIX-01, FIX-02)
-**Plans:** 2 plans
+**Plans:** 2/2 plans complete
 Plans:
-- [ ] 19-01-PLAN.md — Concurrent isolation tests: rapid-fire AASM transitions (CONC-01) + three-session isolation (CONC-02)
-- [ ] 19-02-PLAN.md — Broadcast gap report documenting all Phase 17-19 findings (DOC-01)
+- [x] 19-01-PLAN.md — Concurrent isolation tests: rapid-fire AASM transitions (CONC-01) + three-session isolation (CONC-02)
+- [x] 19-02-PLAN.md — Broadcast gap report documenting all Phase 17-19 findings (DOC-01)
 
 ## Progress
 
@@ -343,4 +343,4 @@ Phases execute in numeric order: 17 -> 18 -> 19
 | 16. Controller, Job & Channel Coverage | v2.1 | 3/3 | Complete | 2026-04-11 |
 | 17. Infrastructure & Configuration | v3.0 | 2/2 | Complete    | 2026-04-11 |
 | 18. Core Isolation Tests | v3.0 | 2/2 | Complete    | 2026-04-11 |
-| 19. Concurrent Scenarios & Gap Documentation | v3.0 | 0/2 | Not started | - |
+| 19. Concurrent Scenarios & Gap Documentation | v3.0 | 2/2 | Complete    | 2026-04-11 |
