@@ -436,17 +436,15 @@ Step 2.5 SKIPPED — this is a greenfield test infrastructure phase with no rena
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Queue adapter in Puma server thread during system tests**
+1. **Queue adapter in Puma server thread during system tests** — RESOLVED
    - What we know: Test env has `config.active_job.queue_adapter = :test`. The smoke test is driven by the test process, but the Rails app (including `after_update_commit`) runs in the Puma server thread.
-   - What's unclear: Does the Puma server thread share the same `:test` adapter queue as the test process? If so, `perform_later` enqueues in the Puma thread's `:test` adapter but the test process cannot drain it.
-   - Recommendation: Use `TableMonitorJob.perform_now` explicitly in the smoke test to avoid this ambiguity entirely.
+   - Resolution: Use `TableMonitorJob.perform_now` explicitly in the smoke test to bypass queue adapter ambiguity. Plan 17-02 implements this.
 
-2. **Complete fixture chain for get_options!**
+2. **Complete fixture chain for get_options!** — RESOLVED
    - What we know: `get_options!` is called by `TableMonitorJob`. It loads from `table.location`.
-   - What's unclear: Whether existing fixtures provide a `Table -> Location` chain, or if the smoke test needs to create the whole chain via FactoryBot.
-   - Recommendation: Check fixture files for `tables.yml` and `locations.yml` during planning to decide whether to use fixtures or `FactoryBot.create`.
+   - Resolution: Executor reads fixture files (`tables.yml`, `locations.yml`) during implementation and adjusts smoke test setup accordingly. Plan 17-02 Task 1 `read_first` includes relevant fixture files.
 
 ---
 
