@@ -1,5 +1,20 @@
 # Milestones
 
+## v3.0 Broadcast Isolation Testing (Shipped: 2026-04-11)
+
+**Phases completed:** 3 phases, 6 plans, 10 tasks
+
+**Key accomplishments:**
+
+- ActionCable async adapter + scoped local_server? override in ApplicationSystemTestCase enabling Phase 18 Selenium broadcast isolation tests
+- Passing Capybara/Selenium smoke test proving AASM state change -> TableMonitorJob.perform_now -> CableReady inner_html -> browser DOM update via ActionCable async adapter
+- One-liner:
+- One-liner:
+- Six rapid-fire alternating broadcasts and three simultaneous browser sessions all prove zero broadcast bleed via JS filter counter verification
+- Comprehensive gap report documenting all 11 v1 broadcast isolation requirements as PASS, architectural risk of global stream with client-side filtering, 4 Phase 18 development findings, and FIX-01/FIX-02 deferred v2 fix references.
+
+---
+
 ## v2.1 Tournament & TournamentMonitor Refactoring (Shipped: 2026-04-11)
 
 **Phases completed:** 6 phases, 15 plans, 21 tasks

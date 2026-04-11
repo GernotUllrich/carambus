@@ -8,15 +8,6 @@ A focused improvement effort on the Carambus API codebase. v1.0–v2.1 broke dow
 
 A maintainable, well-tested codebase where every test is trustworthy and every model is appropriately sized.
 
-## Current Milestone: v3.0 Broadcast Isolation Testing
-
-**Goal:** Verify that TableMonitor state change broadcasts are correctly filtered client-side, so scoreboards never show actions from unrelated tables — even under concurrent load.
-
-**Target features:**
-- Capybara/Selenium system test infrastructure (new — none exists yet)
-- Multi-scoreboard end-to-end tests exercising TableMonitor AASM state changes with two+ browser sessions on different tables
-- Concurrent/load scenarios to expose race-condition broadcast bleed
-- Gap documentation for any isolation failures found (fix deferred)
 
 ## Requirements
 
@@ -46,13 +37,14 @@ A maintainable, well-tested codebase where every test is trustworthy and every m
 - ✓ Controller/channel/job test coverage — v2.1 (74 tests: TournamentsController, TournamentMonitorsController, channels, jobs)
 - ✓ All tests green — v2.1 (751 runs, 0 failures, 0 errors)
 - ✓ PaperTrail version baselines unchanged — v2.1 (sync contract preserved)
+- ✓ Capybara/Selenium system test infrastructure — v3.0 (async adapter, local_server? override, multi-session helpers, smoke test)
+- ✓ Multi-scoreboard broadcast isolation tests — v3.0 (morph path, score:update dispatch, table_scores overview, console.warn filter proof)
+- ✓ Concurrent/load broadcast isolation — v3.0 (rapid-fire 6-iteration loop, 3-session all-pairs, 0 failures)
+- ✓ Broadcast gap report — v3.0 (all 11 requirements PASS, FIX-01/FIX-02 deferred)
 
 ### Active
 
-- ✓ Capybara/Selenium system test infrastructure set up and working — v3.0 Phase 17 (async adapter, local_server? override, multi-session helpers, smoke test)
-- ✓ Multi-scoreboard end-to-end tests for TableMonitor AASM state changes — v3.0 Phase 18 (morph path, score:update dispatch, table_scores overview, console.warn filter proof)
-- ✓ Concurrent/load scenarios verifying broadcast isolation under race conditions — v3.0 Phase 19 (rapid-fire 6-iteration loop, 3-session all-pairs isolation, 0 failures)
-- ✓ Gap documentation for any broadcast bleed found — v3.0 Phase 19 (BROADCAST-GAP-REPORT.md, all tests pass, FIX-01/FIX-02 deferred)
+(None — v3.0 milestone complete. Start next milestone with `/gsd-new-milestone`)
 
 ### Out of Scope
 
@@ -73,6 +65,8 @@ A maintainable, well-tested codebase where every test is trustworthy and every m
 - ApiProtector + LocalProtector both have test overrides in test_helper.rb
 - Extracted services (21 total): ScoreEngine, GameSetup, OptionsPresenter, ResultRecorder, ClubCloudClient + 9 syncers (v1.0), RankingCalculator, TableReservationService, PublicCcScraper, PlayerGroupDistributor, RankingResolver, ResultProcessor, TablePopulator (v2.1)
 - Codebase map available at `.planning/codebase/`
+- **v3.0 shipped 2026-04-11:** Capybara/Selenium system test infrastructure, 5 broadcast isolation tests (morph, score:update, table_scores, rapid-fire, 3-session), BROADCAST-GAP-REPORT.md documenting all results + deferred FIX-01/FIX-02
+- Broadcast isolation: client-side JS filtering on global `table-monitor-stream` verified correct; server-side targeted broadcasts deferred (FIX-01/FIX-02)
 
 ## Constraints
 
@@ -101,6 +95,10 @@ A maintainable, well-tested codebase where every test is trustworthy and every m
 | DB lock stays inside ResultProcessor service | Pessimistic lock is result processing logic, not model infrastructure | ✓ Good — lock behavior preserved exactly |
 | AASM events fired on @tournament_monitor from services | After_enter callbacks execute correctly through model reference | ✓ Good — no AASM coupling leaks |
 | Delete lib/tournament_monitor_support.rb after extraction | File empty after all methods moved to services | ✓ Good — eliminated 1078-line legacy module |
+| Global async cable adapter for system tests | Simpler than per-test override; ActionCable::TestHelper swaps adapter for channel unit tests | ✓ Good — zero channel test regressions |
+| local_server? via ApplicationSystemTestCase setup/teardown | Global carambus.yml change would break 50+ tests; scoped override safer | ✓ Good — established pattern, zero regressions |
+| DOM marker for console.warn capture (not Selenium logs API) | More portable across ChromeDriver versions | ✓ Good — reliable filter proof |
+| Verify-only milestone (no broadcast fix) | Document gaps, defer FIX-01/FIX-02 to future milestone | ✓ Good — clean separation of concerns |
 
 ## Evolution
 
@@ -120,4 +118,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-11 after Phase 19 completed — milestone v3.0 complete*
+*Last updated: 2026-04-11 after v3.0 milestone*
