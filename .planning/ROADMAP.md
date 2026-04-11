@@ -112,7 +112,7 @@ Plans:
 
 ---
 
-### 🚧 v4.0 League & PartyMonitor Refactoring (In Progress)
+### v4.0 League & PartyMonitor Refactoring (In Progress)
 
 **Milestone Goal:** Break down League (2219 lines) and PartyMonitor (605 lines) into smaller, well-tested service classes — following the characterization-first, test-driven extraction pattern proven in v1.0 and v2.1.
 
@@ -173,7 +173,11 @@ Plans:
   1. LeaguesController and PartiesController (or equivalent action set) have integration tests covering key actions including access guards
   2. PartyMonitor-related channels and background jobs have unit or integration tests
   3. Full test suite is green (0 failures, 0 errors) after all coverage additions
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 23-01-PLAN.md — Fix fixtures + pre-existing failure + LeaguesController + LeagueTeamsController tests
+- [ ] 23-02-PLAN.md — PartyMonitorsController fix/extend + PartiesController + PartyMonitorReflex tests + COV-02
 
 ## Progress
 
@@ -189,4 +193,4 @@ Phases execute in numeric order: 20 → 21 → 22 → 23
 | 20. Characterization | v4.0 | 3/3 | Complete    | 2026-04-11 |
 | 21. League Extraction | v4.0 | 2/2 | Complete    | 2026-04-11 |
 | 22. PartyMonitor Extraction | v4.0 | 2/2 | Complete    | 2026-04-11 |
-| 23. Coverage | v4.0 | 0/? | Not started | - |
+| 23. Coverage | v4.0 | 0/2 | Not started | - |
