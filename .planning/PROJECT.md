@@ -58,7 +58,7 @@ A maintainable, well-tested codebase where every test is trustworthy and every m
 - [x] Characterization tests for League critical paths (AASM, sync, scheduling) — Validated in Phase 20: Characterization (25 tests)
 - [x] Characterization tests for PartyMonitor critical paths (sequencing, player assignment, table placement) — Validated in Phase 20: Characterization (40 tests)
 - [x] Extract service classes from League — Validated in Phase 21: League Extraction (4 services: StandingsCalculator, GamePlanReconstructor, ClubCloudScraper, BbvScraper; 2221→663 lines, 70.2% reduction)
-- [ ] Extract service classes from PartyMonitor
+- [x] Extract service classes from PartyMonitor — Validated in Phase 22: PartyMonitor Extraction (2 services: TablePopulator, ResultProcessor; 605→217 lines, 64% reduction)
 - [ ] Controller/channel/job test coverage for League/Party/PartyMonitor ecosystem
 
 ### Out of Scope
@@ -76,10 +76,11 @@ A maintainable, well-tested codebase where every test is trustworthy and every m
 - **v2.0 shipped 2026-04-10:** 72 test files audited, 475 runs green, 1121 assertions, ApiProtectorTestOverride added
 - **v2.1 shipped 2026-04-11:** Tournament 1775→575 lines (3 services), TournamentMonitor 499→181 lines (4 services), lib/tournament_monitor_support.rb deleted
 - **v4.0 Phase 21 shipped 2026-04-11:** League 2221→663 lines (4 services: StandingsCalculator, GamePlanReconstructor, ClubCloudScraper, BbvScraper)
-- Test suite: 856 runs, 2031 assertions, 0 failures, 0 errors, 14 skips
+- **v4.0 Phase 22 shipped 2026-04-12:** PartyMonitor 605→217 lines (2 services: TablePopulator, ResultProcessor)
+- Test suite: 867 runs, 2048 assertions, 0 failures, 0 errors, 14 skips
 - Sync: PaperTrail + RegionTaggable filtering, local servers pull via Version.update_from_carambus_api
 - ApiProtector + LocalProtector both have test overrides in test_helper.rb
-- Extracted services (25 total): ScoreEngine, GameSetup, OptionsPresenter, ResultRecorder, ClubCloudClient + 9 syncers (v1.0), RankingCalculator, TableReservationService, PublicCcScraper, PlayerGroupDistributor, RankingResolver, ResultProcessor, TablePopulator (v2.1), StandingsCalculator, GamePlanReconstructor, ClubCloudScraper, BbvScraper (v4.0)
+- Extracted services (27 total): ScoreEngine, GameSetup, OptionsPresenter, ResultRecorder, ClubCloudClient + 9 syncers (v1.0), RankingCalculator, TableReservationService, PublicCcScraper, PlayerGroupDistributor, RankingResolver, ResultProcessor, TablePopulator (v2.1), League::StandingsCalculator, League::GamePlanReconstructor, League::ClubCloudScraper, League::BbvScraper, PartyMonitor::TablePopulator, PartyMonitor::ResultProcessor (v4.0)
 - Codebase map available at `.planning/codebase/`
 - **v3.0 shipped 2026-04-11:** Capybara/Selenium system test infrastructure, 5 broadcast isolation tests (morph, score:update, table_scores, rapid-fire, 3-session), BROADCAST-GAP-REPORT.md documenting all results + deferred FIX-01/FIX-02
 - Broadcast isolation: client-side JS filtering on global `table-monitor-stream` verified correct; server-side targeted broadcasts deferred (FIX-01/FIX-02)
