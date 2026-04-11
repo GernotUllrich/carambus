@@ -1,5 +1,28 @@
 # Milestones
 
+## v2.1 Tournament & TournamentMonitor Refactoring (Shipped: 2026-04-11)
+
+**Phases completed:** 6 phases, 15 plans, 21 tasks
+
+**Key accomplishments:**
+
+- 23 Minitest characterization tests pinning TournamentMonitor T04 round-robin behavior: AASM transitions, GROUP_RULES-based player distribution, game creation sequencing, and ApiProtectorTestOverride verification — backed by production-exported fixture plans
+- 24 Minitest characterization tests pinning TournamentMonitor T06 with-finals behavior: AASM full lifecycle through group and finals phases, group game creation, result pipeline (update_game_participations, write_game_result_data, accumulate_results), and group phase detection — plus pre-extraction size baseline
+- 53 characterization tests pinning Tournament AASM state machine (8 events, 2 guards, 2 callbacks) and all 13 dynamic define_method getter/setter paths before extraction work begins
+- PaperTrail version baselines and Google Calendar guard conditions pinned for Tournament — 21 characterization tests establish exact counts for all state-changing operations and verify the full create_table_reservation -> GoogleCalendarService wiring.
+- One-liner:
+- Pure distribution algorithm (DIST_RULES, GROUP_RULES, GROUP_SIZES + distribute_to_group/distribute_with_sizes) extracted from TournamentMonitor into a PORO service class with delegation wrappers preserving all callers
+- Tournament::RankingCalculator PORO extracted from tournament.rb — calculate_and_cache_rankings and reorder_seedings delegated, 50 lines removed
+- One-liner:
+- RankingResolver PORO extracted from TournamentMonitor with 5 methods, cross-service call to PlayerGroupDistributor (D-05), and delegation wrapper reducing TournamentMonitor by ~168 lines
+- One-liner:
+- 500+ line table population algorithm extracted from lib modules into TournamentMonitor::TablePopulator PORO service, with lib/tournament_monitor_support.rb fully deleted and tournament_monitor_state.rb reduced to 5 query methods
+- 55 Minitest integration tests covering all 20+ TournamentsController actions, verifying ensure_local_server guard, public access behavior, CRUD, state transitions, and data manipulation actions
+- 19 new tests covering TournamentMonitorsController (10), TournamentChannel (2), TournamentMonitorChannel (2), TournamentStatusUpdateJob (3), and TournamentMonitorUpdateResultsJob (2) — all passing
+- v2.1 milestone final quality gates confirmed: Tournament model at 575 lines, 751-run test suite green with 0 failures, and all 12 PaperTrail baseline assertions passing
+
+---
+
 ## v2.0 Test Suite Audit & Improvement (Shipped: 2026-04-10)
 
 **Phases completed:** 5 phases, 11 plans, 14 tasks
