@@ -1,52 +1,51 @@
-# Requirements: Carambus API v3.0
+# Requirements: Carambus API v4.0
 
 **Defined:** 2026-04-11
 **Core Value:** A maintainable, well-tested codebase where every test is trustworthy and every model is appropriately sized.
 
 ## v1 Requirements
 
-Requirements for v3.0 Broadcast Isolation Testing. Each maps to roadmap phases.
+Requirements for v4.0 League & PartyMonitor Refactoring. Each maps to roadmap phases.
 
-### Infrastructure
+### Characterization
 
-- [ ] **INFRA-01**: System test cable adapter configured so ActionCable broadcasts reach real browser WebSocket connections
-- [ ] **INFRA-02**: `local_server?` returns true in system test environment so channel subscriptions are accepted
-- [ ] **INFRA-03**: `ApplicationSystemTestCase` base class with multi-session Capybara helpers, AR connection pool config, and suppress_broadcast reset
-- [ ] **INFRA-04**: Single-session smoke test proving end-to-end broadcast delivery (state change → job → ActionCable → DOM update)
+- [ ] **CHAR-01**: League AASM state machine transitions pinned by tests
+- [ ] **CHAR-02**: League sync operations (schedule, standings, team management) pinned by tests
+- [ ] **CHAR-03**: PartyMonitor AASM state machine and game sequencing pinned by tests
+- [ ] **CHAR-04**: PartyMonitor player-to-game assignment and table placement pinned by tests
+- [ ] **CHAR-05**: Party critical paths pinned by tests (associations, state, scoring)
+- [ ] **CHAR-06**: LeagueTeam critical paths pinned by tests (associations, roster, home/guest)
 
-### Isolation
+### Extraction
 
-- [ ] **ISOL-01**: Two-session morph path isolation test — scoreboard A unchanged when table B state changes (paired positive/negative)
-- [ ] **ISOL-02**: Two-session `score:update` dispatch event path isolation test (separate JS code path, paired positive/negative)
-- [ ] **ISOL-03**: `table_scores` overview page context isolation test
-- [ ] **ISOL-04**: `console.warn` capture verifying JS filter actually runs on rejected broadcasts (prevents vacuous assertions)
+- [ ] **EXTR-01**: Extract service classes from League reducing line count significantly
+- [ ] **EXTR-02**: Extract service classes from PartyMonitor reducing line count significantly
+- [ ] **EXTR-03**: All existing characterization tests pass after extractions
+- [ ] **EXTR-04**: All existing tests green after extractions (751+ runs, 0 failures)
 
-### Concurrency
+### Coverage
 
-- [ ] **CONC-01**: Rapid-fire AASM state transitions with multiple simultaneous sessions verifying no broadcast bleed
-- [ ] **CONC-02**: Three+ simultaneous browser sessions on different tables under concurrent state changes
-
-### Documentation
-
-- [ ] **DOC-01**: Gap report documenting any broadcast isolation failures found during testing (fix deferred)
+- [ ] **COV-01**: Controller test coverage for League/Party controllers
+- [ ] **COV-02**: Channel/job test coverage for PartyMonitor-related channels and jobs
+- [ ] **COV-03**: All tests green after coverage additions
 
 ## v2 Requirements
 
 Deferred to future milestone. Tracked but not in current roadmap.
 
-### Broadcast Fix
+### Further Refactoring
 
-- **FIX-01**: Server-side targeted broadcasts scoped per-table (replace client-side filtering)
-- **FIX-02**: Refactor `TableMonitorChannel` to use per-table stream names instead of global stream
+- **REF-01**: Server-side targeted broadcasts (FIX-01/FIX-02 from v3.0)
+- **REF-02**: Scraper consolidation (UmbScraper v1/v2)
 
 ## Out of Scope
 
 | Feature | Reason |
 |---------|--------|
-| Server-side broadcast targeting fix | This milestone is verification only — fix deferred |
-| Refactoring channel subscription JS | Document gaps, don't fix them |
-| Performance benchmarking of broadcasts | Focus is correctness, not performance |
-| System tests for non-TableMonitor channels | Scope limited to TableMonitor broadcast isolation |
+| Server-side broadcast targeting fix | Deferred from v3.0 — separate concern |
+| Scraper consolidation | Separate concern, not model refactoring |
+| Architecture or stack changes | Not in scope for this project |
+| New features | Refactoring only — no new functionality |
 
 ## Traceability
 
@@ -54,23 +53,25 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| INFRA-01 | Phase 17 | Pending |
-| INFRA-02 | Phase 17 | Pending |
-| INFRA-03 | Phase 17 | Pending |
-| INFRA-04 | Phase 17 | Pending |
-| ISOL-01 | Phase 18 | Pending |
-| ISOL-02 | Phase 18 | Pending |
-| ISOL-03 | Phase 18 | Pending |
-| ISOL-04 | Phase 18 | Pending |
-| CONC-01 | Phase 19 | Pending |
-| CONC-02 | Phase 19 | Pending |
-| DOC-01 | Phase 19 | Pending |
+| CHAR-01 | — | Pending |
+| CHAR-02 | — | Pending |
+| CHAR-03 | — | Pending |
+| CHAR-04 | — | Pending |
+| CHAR-05 | — | Pending |
+| CHAR-06 | — | Pending |
+| EXTR-01 | — | Pending |
+| EXTR-02 | — | Pending |
+| EXTR-03 | — | Pending |
+| EXTR-04 | — | Pending |
+| COV-01 | — | Pending |
+| COV-02 | — | Pending |
+| COV-03 | — | Pending |
 
 **Coverage:**
-- v1 requirements: 11 total
-- Mapped to phases: 11
-- Unmapped: 0 ✓
+- v1 requirements: 13 total
+- Mapped to phases: 0
+- Unmapped: 13 ⚠️
 
 ---
 *Requirements defined: 2026-04-11*
-*Last updated: 2026-04-11 after roadmap creation*
+*Last updated: 2026-04-11 after initial definition*
