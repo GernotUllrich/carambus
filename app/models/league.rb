@@ -645,136 +645,13 @@ class League < ApplicationRecord
   end
 
   def self.scrape_bbv_leagues(region, season, opts = {})
-    url = "https://bbv-billard.liga.nu"
-    %w[Pool Snooker Karambol].each do |branch_str|
-      branch = Branch.find_by_name(branch_str)
-      leagues_url = "https://bbv-billard.liga.nu/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/leaguePage?championship=BBV%20#{branch_str}%#{season.name.gsub("/20", "/")}"
-      Rails.logger.info "reading #{leagues_url}"
-      uri = URI(leagues_url)
-      leagues_html = Net::HTTP.get(uri)
-      leagues_html = leagues_html.force_encoding('ISO-8859-1').encode('UTF-8')
-      leagues_doc = Nokogiri::HTML(leagues_html)
-      league_table = leagues_doc.css("table")[0]
-      cols = league_table.css("td")
-      cols.each do |td|
-        header = td.css("h2")[0].text
-        td.css("a").each do |league_a|
-          league_url = url + league_a.attributes["href"]
-          league_shortname = league_a.text.strip
-          league_doc, league_uri = get_league_doc(league_url)
-          league_data = league_doc.css("h1")[0].inner_html.split('<br>').map(&:strip)
-          name_arr = league_data[1].split(/\s+/)
-          league_name = name_arr[0]
-          staffel_text = name_arr[1..].join(" ")
-          attrs = { organizer: region, staffel_text: staffel_text, name: league_name, season: season,
-          }.compact
-          league = League.where(attrs).first || League.new(attrs)
-
-          attrs = { shortname: league_shortname, discipline: branch }.compact
-          league.assign_attributes(attrs)
-          league.source_url = league_uri
-          if league.changed?
-            records_to_tag |= Array(league)
-            league.save
-          end
-          records_to_tag |= Array(league.scrape_single_league_from_cc(opts.merge(league_doc: league_doc))) if opts[:league_details]
-        end
-      end
-    end
-    return records_to_tag
+    League::BbvScraper.scrape_all(region: region, season: season, opts: opts)
   end
 
   def scrape_single_bbv_league(region, opts = {})
-    url = "https://bbv-billard.liga.nu"
-    records_to_tag = []
-    logger = opts[:logger] || Logger.new("#{Rails.root}/log/scrape.log")
-    season = self.season
-    league_url = self.source_url
-    league_doc = opts[:league_doc]
-    league_doc, league_uri = get_league_doc(league_url) unless league_doc.present?
-    # scrape league teams with results
-    records_to_tag |= Array(scrape_bbv_league_teams(league_doc, league_url, url))
-    parties_table_url = url + league_doc.css("#sub-navigation a").select { |a| a.text =~ /Spielplan \(Gesamt\)/ }[0].attributes["href"].value
-    parties_table_url
-
-    [league_url, records_to_tag]
+    League::BbvScraper.call(league: self, region: region, **opts)
   end
 
-  # scrape bbv league teams with results
-  def scrape_bbv_league_teams(league_doc, league_url, url)
-    team_table_url = league_url
-    records_to_tag = []
-    team_table_doc = league_doc
-    html = team_table_doc.css("table")[0]
-    headers = html.css("th").map(&:text)
-    html.css("tr").each do |tr|
-      next if tr.css("td").count == 0
-      args = tr.css("td").map(&:inner_html)
-      rang = args[1].to_i
-      if tr.css("td")[2].css("a")[0].present?
-        team_url = url + tr.css("td")[2].css("a")[0].andand.attributes.andand["href"]
-        Rails.logger.info "reading #{team_url}"
-        team_uri = URI(team_url)
-        team_html = Net::HTTP.get(team_uri).gsub("//--", "--").
-          gsub('id="banner-groupPage-content"', "").
-          gsub(/<meta name="uLigaStatsRefUrl"\s*\/>/, "").
-          gsub('</meta>', '')
-        team_doc = Nokogiri::HTML.fragment(team_html)
-        club_url = url + team_doc.css("#content-row1 a:nth-child(1)")[0].attributes["href"]
-        club_cc_id = club_url.match(/club=(\d+)/)[1].to_i
-        club = Club.where(region: organizer, cc_id: club_cc_id).first
-        team_name = tr.css("td")[2].css("a")[0].text.strip
-        team_cc_id = team_url.match(/teamtable=(\d+)/)[1]
-      else
-        team_name = tr.css("td")[2].text.strip
-        club = Club.where(region: organizer).where("clubs.name ilike '%#{team_name.gsub(/ [IV]+$/, '')}%'").first
-        Rails.logger.info "===== scrape ===== scrape leagues - cannot match club from Teamname #{team_name}, league: #{self.name} #{self.staffel_text}"
-      end
-      parties = args[3].to_i
-      wins = args[4].to_i
-      draws = args[5].to_i
-      losts = args[6].to_i
-      result = args[7].strip
-      diff = args[8].strip
-      points = args[9].strip
-      data = {
-        parties: parties,
-        wins: wins,
-        draws: draws,
-        losts: losts,
-        result: result,
-        diff: diff,
-        points: points
-      }
-      league_team = league_teams.where(cc_id: team_cc_id).first
-      league_team ||= league_teams.new(cc_id: team_cc_id)
-      attrs = {
-        name: team_name,
-        club_id: club&.id,
-        data: data
-      }
-      league_team.assign_attributes(attrs)
-      league_team.source_url = league_url
-      if league_team.changed?
-        records_to_tag |= Array(league_team)
-        league_team.save
-      end
-    end
-    return records_to_tag
-  end
-
-  def self.get_league_doc(league_url)
-    Rails.logger.info "reading #{league_url}"
-    league_uri = URI(league_url)
-    # fix some unused faulty code
-    league_html = Net::HTTP.get(league_uri).gsub("//--", "--").
-      gsub('id="banner-groupPage-content"', "").
-      gsub('<meta name="uLigaStatsRefUrl"/>', "").
-      gsub('</meta>', '')
-    # league_html = league_html.force_encoding('ISO-8859-1').encode('UTF-8')
-    league_doc = Nokogiri::HTML.fragment(league_html)
-    return league_doc, league_uri
-  end
 
   def self.reconstruct_game_plans_for_season(season, opts = {})
     League::GamePlanReconstructor.call(season: season, operation: :reconstruct_for_season, **opts)
