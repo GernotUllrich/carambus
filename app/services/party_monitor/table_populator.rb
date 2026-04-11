@@ -69,88 +69,84 @@ class PartyMonitor::TablePopulator
   end
 
   def do_placement(new_game, r_no, t_no, row = nil, row_nr = nil)
-    try do
-      @placements ||= @party_monitor.data["placements"].presence
-      @placement_candidates ||= @party_monitor.data["placement_candidates"].presence
-      @placements ||= {}
-      @placement_candidates ||= []
-      @placements_done = @placements.keys.map do |k|
-        @placements[k]
-      end.flatten.first.andand.values.to_a.flatten
-      info = "+++ 8a - tournament_monitor#do_placement new_game, r_no, t_no: #{new_game.attributes.inspect}, #{r_no}, #{t_no}"
+    @placements ||= @party_monitor.data["placements"].presence
+    @placement_candidates ||= @party_monitor.data["placement_candidates"].presence
+    @placements ||= {}
+    @placement_candidates ||= []
+    @placements_done = @placements.keys.map do |k|
+      @placements[k]
+    end.flatten.first.andand.values.to_a.flatten
+    info = "+++ 8a - tournament_monitor#do_placement new_game, r_no, t_no: #{new_game.attributes.inspect}, #{r_no}, #{t_no}"
+    Rails.logger.info info
+    if !@placements_done.include?(new_game.id) || new_game.data.blank? || new_game.data.keys == ["tmp_results"]
+      info = "+++ 8b - tournament_monitor#do_placement"
       Rails.logger.info info
-      if !@placements_done.include?(new_game.id) || new_game.data.blank? || new_game.data.keys == ["tmp_results"]
-        info = "+++ 8b - tournament_monitor#do_placement"
-        Rails.logger.info info
-        table_ids = @party_monitor.data["table_ids"][r_no - 1]
-        if t_no.to_i > 0 &&
-            ((@party_monitor.current_round == r_no &&
-              new_game.present? &&
-              @placements.andand["round#{r_no}"].andand["table#{t_no}"].blank?) || @party_monitor.tournament.continuous_placements)
+      table_ids = @party_monitor.data["table_ids"][r_no - 1]
+      if t_no.to_i > 0 &&
+          ((@party_monitor.current_round == r_no &&
+            new_game.present? &&
+            @placements.andand["round#{r_no}"].andand["table#{t_no}"].blank?) || @party_monitor.tournament.continuous_placements)
 
-          seqno = new_game.seqno.to_i.positive? ? new_game.seqno : next_seqno
-          new_game.update(round_no: r_no.to_i, table_no: t_no, seqno: seqno)
-          @placements ||= {}
-          @placements["round#{r_no}"] ||= {}
-          @placements["round#{r_no}"]["table#{t_no}"] ||= []
-          @placements["round#{r_no}"]["table#{t_no}"].push(new_game.id)
-          Tournament.logger.info "DO PLACEMENT round=#{r_no} table#{t_no} assign_game(#{new_game.gname})" if PartyMonitor::DEBUG
+        seqno = new_game.seqno.to_i.positive? ? new_game.seqno : next_seqno
+        new_game.update(round_no: r_no.to_i, table_no: t_no, seqno: seqno)
+        @placements ||= {}
+        @placements["round#{r_no}"] ||= {}
+        @placements["round#{r_no}"]["table#{t_no}"] ||= []
+        @placements["round#{r_no}"]["table#{t_no}"].push(new_game.id)
+        Tournament.logger.info "DO PLACEMENT round=#{r_no} table#{t_no} assign_game(#{new_game.gname})" if PartyMonitor::DEBUG
 
-          @table = Table.find(table_ids[t_no - 1])
-          @table_monitor = @table.table_monitor || @table.table_monitor!
-          old_game = @table_monitor.game
-          if old_game.present?
-            # noinspection RubyResolve
-            @table_monitor.data_will_change!
-            info = "+++ 8c - tournament_monitor#do_placement - save current game"
-            Rails.logger.info info
-            tmp_results = {}
-            tmp_results["playera"] = @table_monitor.deep_delete!("playera", false)
-            tmp_results["playerb"] = @table_monitor.deep_delete!("playerb", false)
-            tmp_results["current_inning"] = @table_monitor.deep_delete!("current_inning", false)
-            if @table_monitor.data["ba_results"].present?
-              tmp_results["ba_results"] =
-                @table_monitor.deep_delete!("ba_results", false)
-            end
-            tmp_results["state"] = @table_monitor.state
-            old_game.deep_merge_data!("tmp_results" => tmp_results)
-            old_game.save!
-            # noinspection RubyResolve
-            @table_monitor.data_will_change!
-            @table_monitor.state = "ready"
-            @table_monitor.game_id = nil
-            @table_monitor.save!
-          end
-          @table_monitor.deep_merge_data!(
-            row: row.andand.dup,
-            row_nr: row_nr,
-            t_no: t_no,
-            sets_to_play: @party_monitor.sets_to_play,
-            sets_to_win: new_game.data["sets_to_win"],
-            team_size: @party_monitor.team_size,
-            kickoff_switches_with: new_game.data["kickoff_switches_with"],
-            allow_follow_up: @party_monitor.allow_follow_up,
-            fixed_display_left: @party_monitor.fixed_display_left,
-            color_remains_with_set: @party_monitor.color_remains_with_set
-          )
-
-          @table_monitor.assign_attributes(tournament_monitor: @party_monitor)
-          @table_monitor.andand.assign_game(new_game.reload)
-        elsif @party_monitor.tournament.continuous_placements?
-          @placement_candidates.push(new_game.id)
-        else
-          info = "+++ 8a - tournament_monitor#do_placement FAILED new_game.data: #{new_game.data.inspect}, @placements: #{@placements.inspect}, new_game: #{new_game.andand.attributes.inspect}, current_round: #{@party_monitor.current_round}"
+        @table = Table.find(table_ids[t_no - 1])
+        @table_monitor = @table.table_monitor || @table.table_monitor!
+        old_game = @table_monitor.game
+        if old_game.present?
+          # noinspection RubyResolve
+          @table_monitor.data_will_change!
+          info = "+++ 8c - tournament_monitor#do_placement - save current game"
           Rails.logger.info info
+          tmp_results = {}
+          tmp_results["playera"] = @table_monitor.deep_delete!("playera", false)
+          tmp_results["playerb"] = @table_monitor.deep_delete!("playerb", false)
+          tmp_results["current_inning"] = @table_monitor.deep_delete!("current_inning", false)
+          if @table_monitor.data["ba_results"].present?
+            tmp_results["ba_results"] =
+              @table_monitor.deep_delete!("ba_results", false)
+          end
+          tmp_results["state"] = @table_monitor.state
+          old_game.deep_merge_data!("tmp_results" => tmp_results)
+          old_game.save!
+          # noinspection RubyResolve
+          @table_monitor.data_will_change!
+          @table_monitor.state = "ready"
+          @table_monitor.game_id = nil
+          @table_monitor.save!
         end
-        @table_monitor.save
-        @bg_color = "#1B0909"
-      end
-    rescue => e
-      Rails.logger.info "StandardError #{e}, #{e.backtrace.to_a.join("\n")}"
-      raise StandardError unless Rails.env == "production"
+        @table_monitor.deep_merge_data!(
+          row: row.andand.dup,
+          row_nr: row_nr,
+          t_no: t_no,
+          sets_to_play: @party_monitor.sets_to_play,
+          sets_to_win: new_game.data["sets_to_win"],
+          team_size: @party_monitor.team_size,
+          kickoff_switches_with: new_game.data["kickoff_switches_with"],
+          allow_follow_up: @party_monitor.allow_follow_up,
+          fixed_display_left: @party_monitor.fixed_display_left,
+          color_remains_with_set: @party_monitor.color_remains_with_set
+        )
 
-      raise ActiveRecord::Rollback
+        @table_monitor.assign_attributes(tournament_monitor: @party_monitor)
+        @table_monitor.andand.assign_game(new_game.reload)
+      elsif @party_monitor.tournament.continuous_placements?
+        @placement_candidates.push(new_game.id)
+      else
+        info = "+++ 8a - tournament_monitor#do_placement FAILED new_game.data: #{new_game.data.inspect}, @placements: #{@placements.inspect}, new_game: #{new_game.andand.attributes.inspect}, current_round: #{@party_monitor.current_round}"
+        Rails.logger.info info
+      end
+      @table_monitor.save
+      @bg_color = "#1B0909"
     end
+  rescue => e
+    Rails.logger.error "StandardError #{e.class}: #{e.message}\n#{e.backtrace.to_a.first(10).join("\n")}"
+    raise
   end
 
   private
