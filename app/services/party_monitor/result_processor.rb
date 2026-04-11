@@ -398,6 +398,7 @@ class PartyMonitor::ResultProcessor
     hash[player_id]["hs"] = gp.hs if gp.hs > hash[player_id]["hs"]
     hash[player_id]["gd"] = format("%.2f", hash[player_id]["result"].to_f / hash[player_id]["innings"]).to_f
   rescue => e
-    e
+    Rails.logger.error "[add_result_to] Error for player #{gp.player_id}: #{e.message}\n#{e.backtrace.to_a.first(5).join("\n")}"
+    raise e
   end
 end
