@@ -49,6 +49,7 @@ class TableMonitor < ApplicationRecord
   serialize :options, coder: YAML, type: Hash
 
   include AASM
+
   belongs_to :tournament_monitor, polymorphic: true, optional: true
   belongs_to :game, optional: true
   belongs_to :prev_game, class_name: "Game", optional: true
@@ -56,7 +57,7 @@ class TableMonitor < ApplicationRecord
   has_one :table, dependent: :nullify
   before_save :set_paper_trail_whodunnit
   before_destroy :log_state_change_destroy
-  
+
   # Check if this table has an active stream configuration
   def has_active_stream?
     table&.stream_configuration&.active?
@@ -103,29 +104,27 @@ class TableMonitor < ApplicationRecord
 
     get_options!(I18n.locale)
     if tournament_monitor.is_a?(PartyMonitor) &&
-      (relevant_keys.include?("state") || state != "playing")
+       (relevant_keys.include?("state") || state != "playing")
       Rails.logger.info "🔔 Enqueuing: party_monitor_scores job"
-      TableMonitorJob.perform_later(self.id,
+      TableMonitorJob.perform_later(id,
                                     "party_monitor_scores")
     end
     # Update table_scores overview (if structural changes) OR individual teaser (if score changes only)
     if previous_changes.keys.present? && relevant_keys.present?
       Rails.logger.info "🔔 Enqueuing: table_scores job (relevant_keys present)"
-      TableMonitorJob.perform_later(self.id, "table_scores")
+      TableMonitorJob.perform_later(id, "table_scores")
       # Also send teaser for tournament_scores page (which doesn't have #table_scores container)
       Rails.logger.info "🔔 Enqueuing: teaser job (for tournament_scores page)"
-      TableMonitorJob.perform_later(self.id, "teaser")
-    else
-      if @collected_changes.present? || @collected_data_changes.select{ |a| a.present? }.present?
-        Rails.logger.info "🔔 Enqueuing: teaser job (no relevant_keys)"
-        TableMonitorJob.perform_later(self.id, "teaser")
-      end
+      TableMonitorJob.perform_later(id, "teaser")
+    elsif @collected_changes.present? || @collected_data_changes.select(&:present?).present?
+      Rails.logger.info "🔔 Enqueuing: teaser job (no relevant_keys)"
+      TableMonitorJob.perform_later(id, "teaser")
     end
 
     # ULTRA-FAST PATH: Only score/innings changed - send just data, no HTML
     if ultra_fast_score_update?
-      player_key = (@collected_data_changes.flat_map(&:keys) & ['playera', 'playerb']).first
-      TableMonitorJob.perform_later(self.id, "score_data", player: player_key)
+      player_key = (@collected_data_changes.flat_map(&:keys) & %w[playera playerb]).first
+      TableMonitorJob.perform_later(id, "score_data", player: player_key)
       @collected_data_changes = nil
       return
     end
@@ -133,11 +132,11 @@ class TableMonitor < ApplicationRecord
     # FAST PATH: Check for simple score changes that can use targeted updates
     # If only one player's score changed (plus balls_on_table), use partial update instead of full render
     if simple_score_update?
-      player_key = (@collected_data_changes.flat_map(&:keys) & ['playera', 'playerb']).first
+      player_key = (@collected_data_changes.flat_map(&:keys) & %w[playera playerb]).first
 
       Rails.logger.info "🔔 ⚡ FAST PATH: Simple score update detected for #{player_key}"
       Rails.logger.info "🔔 ⚡ Changed keys: #{@collected_data_changes.flat_map(&:keys).uniq.inspect}"
-      TableMonitorJob.perform_later(self.id, "player_score_panel", player: player_key)
+      TableMonitorJob.perform_later(id, "player_score_panel", player: player_key)
 
       @collected_data_changes = nil
       Rails.logger.info "🔔 ========== after_update_commit END (fast path) =========="
@@ -149,32 +148,56 @@ class TableMonitor < ApplicationRecord
     # which renders and broadcasts the full scoreboard HTML (#full_screen_table_monitor_X).
     # See docs/EMPTY_STRING_JOB_ANALYSIS.md for detailed explanation.
     Rails.logger.info "🔔 Enqueuing: score_update job (empty string for full screen)"
-    TableMonitorJob.perform_later(self.id, "")
+    TableMonitorJob.perform_later(id, "")
     @collected_data_changes = nil
     Rails.logger.info "🔔 ========== after_update_commit END =========="
 
     # Broadcast Tournament Status Update wenn sich Spielstände während des Turniers ändern
     if tournament_monitor.is_a?(TournamentMonitor) &&
-      tournament_monitor.tournament.present? &&
-      tournament_monitor.tournament.tournament_started &&
-      previous_changes.key?("data")
+       tournament_monitor.tournament.present? &&
+       tournament_monitor.tournament.tournament_started &&
+       previous_changes.key?("data")
       # Prüfe ob sich relevante Spiel-Daten geändert haben
-      old_data = previous_changes["data"][0] rescue {}
-      new_data = previous_changes["data"][1] rescue {}
+      old_data = begin
+        previous_changes["data"][0]
+      rescue StandardError
+        {}
+      end
+      new_data = begin
+        previous_changes["data"][1]
+      rescue StandardError
+        {}
+      end
 
       # Prüfe ob result oder innings_redo_list sich geändert haben
       data_changed = false
       %w[playera playerb].each do |role|
-        old_result = old_data.dig(role, "result").to_i rescue 0
-        new_result = new_data.dig(role, "result").to_i rescue 0
-        old_inning = Array(old_data.dig(role, "innings_redo_list")).last.to_i rescue 0
-        new_inning = Array(new_data.dig(role, "innings_redo_list")).last.to_i rescue 0
-
-        if old_result != new_result || old_inning != new_inning
-          data_changed = true
-          Rails.logger.info "TournamentStatusUpdate: Data changed for #{role} - result: #{old_result}->#{new_result}, inning: #{old_inning}->#{new_inning}"
-          break
+        old_result = begin
+          old_data.dig(role, "result").to_i
+        rescue StandardError
+          0
         end
+        new_result = begin
+          new_data.dig(role, "result").to_i
+        rescue StandardError
+          0
+        end
+        old_inning = begin
+          Array(old_data.dig(role, "innings_redo_list")).last.to_i
+        rescue StandardError
+          0
+        end
+        new_inning = begin
+          Array(new_data.dig(role, "innings_redo_list")).last.to_i
+        rescue StandardError
+          0
+        end
+
+        next unless old_result != new_result || old_inning != new_inning
+
+        data_changed = true
+        Rails.logger.info "TournamentStatusUpdate: Data changed for #{role} - result: #{old_result}->#{new_result}, inning: #{old_inning}->#{new_inning}"
+        break
       end
 
       if data_changed
@@ -217,7 +240,7 @@ class TableMonitor < ApplicationRecord
 
     # Ultra-fast path: ONLY score/innings changed for one player
     # Check if only one player changed and only innings_redo_list
-    player_keys = all_keys & ['playera', 'playerb']
+    player_keys = all_keys & %w[playera playerb]
     return false unless player_keys.size == 1
 
     player_key = player_keys.first
@@ -226,7 +249,7 @@ class TableMonitor < ApplicationRecord
 
     # Check if only innings_redo_list changed for this player
     player_change_keys = player_changes[player_key].keys
-    player_change_keys == ['innings_redo_list']
+    player_change_keys == ["innings_redo_list"]
   end
 
   def simple_score_update?
@@ -240,8 +263,8 @@ class TableMonitor < ApplicationRecord
     all_keys = @collected_data_changes.flat_map(&:keys).uniq
 
     # Fast path: only balls_on_table and/or one player changed
-    safe_keys = ['balls_on_table', 'playera', 'playerb']
-    player_keys = all_keys & ['playera', 'playerb']
+    safe_keys = %w[balls_on_table playera playerb]
+    player_keys = all_keys & %w[playera playerb]
 
     # Must have exactly one player key, and only safe keys
     player_keys.size == 1 && (all_keys - safe_keys).empty?
@@ -388,7 +411,9 @@ class TableMonitor < ApplicationRecord
   end
 
   def internal_name
-    Rails.logger.debug { "-----------m6[#{id}]---------->>> internal_name <<<------------------------------------------" }
+    Rails.logger.debug do
+      "-----------m6[#{id}]---------->>> internal_name <<<------------------------------------------"
+    end
     read_attribute(:name)
   rescue StandardError => e
     Rails.logger.error "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}"
@@ -436,10 +461,12 @@ class TableMonitor < ApplicationRecord
     @collected_data_changes ||= []
     @collected_changes ||= []
     if changes.present?
-      changes['data']&.count == 2 && @collected_data_changes << deep_diff(*changes['data'])
-      @collected_changes << changes.except('data') if changes.except('data').present?
+      changes["data"]&.count == 2 && (@collected_data_changes << deep_diff(*changes["data"]))
+      @collected_changes << changes.except("data") if changes.except("data").present?
     end
-    Rails.logger.debug { "-------------m6[#{id}]-------->>> log_state_change #{self.changes.inspect} <<<------------------------------------------" }
+    Rails.logger.debug do
+      "-------------m6[#{id}]-------->>> log_state_change #{changes.inspect} <<<------------------------------------------"
+    end
     if state_changed?
       Rails.logger.debug { "[TableMonitor] STATE_CHANGED [#{id}]: #{state_change[0]} -> #{state_change[1]}" }
     end
@@ -453,7 +480,9 @@ class TableMonitor < ApplicationRecord
   end
 
   def set_game_over
-    Rails.logger.debug { "--------------m6[#{id}]------->>> set_game_over (state=#{state}) <<<------------------------------------------" }
+    Rails.logger.debug do
+      "--------------m6[#{id}]------->>> set_game_over (state=#{state}) <<<------------------------------------------"
+    end
 
     # Only show protocol_final modal when entering set_over state ("Partie beendet - OK?")
     # Not when entering final_set_score ("Ergebnis erfasst") or final_match_score
@@ -479,7 +508,9 @@ class TableMonitor < ApplicationRecord
   end
 
   def update_every_n_seconds(n_secs)
-    Rails.logger.debug { "--------------------->>> update_every_n_seconds(#{n_secs}) <<<------------------------------------------" }
+    Rails.logger.debug do
+      "--------------------->>> update_every_n_seconds(#{n_secs}) <<<------------------------------------------"
+    end
     TableMonitorClockJob.perform_later(self, n_secs, data["current_inning"]["active_player"],
                                        data[data["current_inning"]["active_player"]].andand["innings_redo_list"].andand[-1].to_i,
                                        data[data["current_inning"]["active_player"]].andand["innings"])
@@ -489,13 +520,17 @@ class TableMonitor < ApplicationRecord
   end
 
   def player_a_on_table_before
-    Rails.logger.debug { "-------------m6[#{id}]-------->>> player_a_on_table_before <<<------------------------------------------" }
+    Rails.logger.debug do
+      "-------------m6[#{id}]-------->>> player_a_on_table_before <<<------------------------------------------"
+    end
     # TODO: player_a_on_table_before
     false
   end
 
   def player_b_on_table_before
-    Rails.logger.debug { "-------------m6[#{id}]-------->>> player_b_on_table_before <<<------------------------------------------" }
+    Rails.logger.debug do
+      "-------------m6[#{id}]-------->>> player_b_on_table_before <<<------------------------------------------"
+    end
     # TODO: player_b_on_table_before
     false
   end
@@ -508,8 +543,8 @@ class TableMonitor < ApplicationRecord
     units = "seconds"
     start_at = Time.now
     delta = tournament_monitor&.tournament&.send(active_timer.to_sym)
-              &.send(units.to_sym) ||
-      (data["timeout"].to_i.positive? ? data["timeout"].to_i.seconds : nil)
+                              &.send(units.to_sym) ||
+            (data["timeout"].to_i.positive? ? data["timeout"].to_i.seconds : nil)
     finish_at = delta.to_i != 0 && delta.present? ? start_at + delta.to_i : nil
     if timer_halt_at.present? && finish_at.present?
       extend = Time.now.to_i - timer_halt_at.to_i
@@ -517,7 +552,10 @@ class TableMonitor < ApplicationRecord
       finish_at = timer_finish_at + extend.seconds
     end
     if finish_at.present?
-      Rails.logger.debug { "[table_monitor#do_play] m6[#{id}]active_timer, start_at, finish_at: #{[active_timer, start_at, finish_at].inspect}" }
+      Rails.logger.debug do
+        "[table_monitor#do_play] m6[#{id}]active_timer, start_at, finish_at: #{[active_timer, start_at,
+                                                                                finish_at].inspect}"
+      end
       update(
         active_timer:,
         timer_halt_at: nil,
@@ -547,7 +585,7 @@ class TableMonitor < ApplicationRecord
   rescue StandardError => e
     Rails.logger.error "ERROR in render_last_innings: #{e.class}: #{e.message}"
     Rails.logger.error "Backtrace: #{e.backtrace&.first(10)&.join("\n")}"
-    Rails.logger.error "Data: role=#{role}, innings_list=#{data[role].andand['innings_list'].inspect}, innings_redo_list=#{data[role].andand['innings_redo_list'].inspect}"
+    Rails.logger.error "Data: role=#{role}, innings_list=#{data[role].andand["innings_list"].inspect}, innings_redo_list=#{data[role].andand["innings_redo_list"].inspect}"
     raise StandardError, "render_last_innings failed: #{e.message}" unless Rails.env == "production"
   end
 
@@ -580,7 +618,7 @@ class TableMonitor < ApplicationRecord
   end
 
   def protocol_modal_should_be_open?
-    panel_state == "protocol" || panel_state == "protocol_edit" || panel_state == "protocol_final"
+    %w[protocol protocol_edit protocol_final].include?(panel_state)
   rescue StandardError => e
     Rails.logger.error "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}"
     false
@@ -634,7 +672,9 @@ class TableMonitor < ApplicationRecord
   end
 
   def get_progress_bar_status(n_bars)
-    Rails.logger.debug { "------------m6[#{id}]--------->>> get_progress_bar_status(#{n_bars}) <<<------------------------------------------" }
+    Rails.logger.debug do
+      "------------m6[#{id}]--------->>> get_progress_bar_status(#{n_bars}) <<<------------------------------------------"
+    end
     time_counter = green_bars = do_green_bars = do_yellow_bars = do_orange_bars = do_lightred_bars = do_red_bars = 0
     finish = timer_finish_at
     start = timer_start_at
@@ -644,14 +684,18 @@ class TableMonitor < ApplicationRecord
       halted = Time.now.to_i - timer_halt_at.to_i
       finish += halted.seconds
       start += halted.seconds
-      Rails.logger.debug { "[table_monitor#get_progress_bar_status] halted, finish, start: #{[halted, finish, start].inspect}" }
+      Rails.logger.debug do
+        "[table_monitor#get_progress_bar_status] halted, finish, start: #{[halted, finish, start].inspect}"
+      end
     end
     if finish.present? && (Time.now < finish)
       Rails.logger.debug { "[table_monitor#get_progress_bar_status] finish.present && Time.now < finish ..." }
       delta_total = (finish - start).to_i
       delta_rest = (finish - Time.now)
       units = active_timer =~ /min$/ ? "minutes" : "seconds"
-      Rails.logger.debug { "[table_monitor#get_progress_bar_status] halted, finish, start: #{[delta_total, delta_rest, units].inspect}" }
+      Rails.logger.debug do
+        "[table_monitor#get_progress_bar_status] halted, finish, start: #{[delta_total, delta_rest, units].inspect}"
+      end
       if units == "minutes"
         minutes = (delta_rest / 1.send(units)).to_i
         seconds = ((((delta_rest / 1.send(units)) - (delta_rest.to_i / 1.send(units))) *
@@ -667,9 +711,15 @@ class TableMonitor < ApplicationRecord
       do_orange_bars = [[do_bars - 20, 10].min, 0].max
       do_lightred_bars = [[do_bars - 10, 10].min, 0].max
       do_red_bars = [[do_bars, 10].min, 0].max
-      Rails.logger.debug { "[table_monitor#get_progress_bar_status] m6[#{id}]time_counter, green_bars: #{[time_counter, green_bars].inspect}" }
+      Rails.logger.debug do
+        "[table_monitor#get_progress_bar_status] m6[#{id}]time_counter, green_bars: #{[time_counter,
+                                                                                       green_bars].inspect}"
+      end
     end
-    Rails.logger.debug { "[table_monitor#get_progress_bar_status] m6[#{id}]return [time_counter, green_bars]: #{[time_counter, green_bars].inspect}" }
+    Rails.logger.debug do
+      "[table_monitor#get_progress_bar_status] m6[#{id}]return [time_counter, green_bars]: #{[time_counter,
+                                                                                              green_bars].inspect}"
+    end
     [time_counter, green_bars, do_green_bars, do_yellow_bars, do_orange_bars, do_lightred_bars, do_red_bars]
   rescue StandardError => e
     Rails.logger.error "ERROR: #{e}, #{e.backtrace&.join("\n")}"
@@ -677,7 +727,9 @@ class TableMonitor < ApplicationRecord
   end
 
   def switch_players
-    Rails.logger.debug { "--------------m6[#{id}]------->>> switch_players <<<------------------------------------------" }
+    Rails.logger.debug do
+      "--------------m6[#{id}]------->>> switch_players <<<------------------------------------------"
+    end
     if game.present?
       if tournament_monitor&.fixed_display_left?
         deep_merge_data!(
@@ -713,7 +765,9 @@ class TableMonitor < ApplicationRecord
   end
 
   def set_start_time
-    Rails.logger.debug { "------------m6[#{id}]--------->>> set_start_time <<<------------------------------------------" }
+    Rails.logger.debug do
+      "------------m6[#{id}]--------->>> set_start_time <<<------------------------------------------"
+    end
     game.update(started_at: Time.now)
   rescue StandardError => e
     Rails.logger.error "ERROR: #{e}, #{e.backtrace&.join("\n")}"
@@ -721,12 +775,14 @@ class TableMonitor < ApplicationRecord
   end
 
   def set_end_time
-    Rails.logger.debug { "-------------m6[#{id}]-------->>> set_end_time <<<------------------------------------------" }
-    
+    Rails.logger.debug do
+      "-------------m6[#{id}]-------->>> set_end_time <<<------------------------------------------"
+    end
+
     # IDEMPOTENCY: Only set end time if not already set (prevents race conditions)
     # CRITICAL: Reload game to get fresh state from DB (prevents stale reads in race conditions)
     game.reload
-    
+
     if game.ended_at.blank?
       game.update(ended_at: Time.now)
       Rails.logger.info "✅ m6[#{id}] set_end_time: Game[#{game_id}] ended_at set to #{Time.now}"
@@ -747,8 +803,10 @@ class TableMonitor < ApplicationRecord
   end
 
   def display_name
-    Rails.logger.debug { "------------m6[#{id}]--------->>> display_name <<<------------------------------------------" }
-    t_no = (name || table.name)&.match(/.*(\d+)/).andand[1]
+    Rails.logger.debug do
+      "------------m6[#{id}]--------->>> display_name <<<------------------------------------------"
+    end
+    t_no = (name || table.name)&.match(/.*(\d+)/)&.andand&.[](1)
     I18n.t("table_monitors.display_name", t_no:)
   rescue StandardError => e
     Rails.logger.error "ERROR:m6[#{id}] #{e}, #{e.backtrace&.join("\n")}"
@@ -756,7 +814,9 @@ class TableMonitor < ApplicationRecord
   end
 
   def seeding_from(role)
-    Rails.logger.debug { "-------------m6[#{id}]-------->>> seeding_from(#{role}) <<<------------------------------------------" }
+    Rails.logger.debug do
+      "-------------m6[#{id}]-------->>> seeding_from(#{role}) <<<------------------------------------------"
+    end
     # TODO: - puh can't this be easiere?
     player = game.game_participations.where(role:).first&.player
     if player.present?
@@ -831,7 +891,9 @@ class TableMonitor < ApplicationRecord
   end
 
   def reset_timer!
-    Rails.logger.debug { "---------------m6[#{id}]------>>> reset_timer! <<<------------------------------------------" }
+    Rails.logger.debug do
+      "---------------m6[#{id}]------>>> reset_timer! <<<------------------------------------------"
+    end
     assign_attributes(
       active_timer: nil,
       timer_start_at: nil,
@@ -855,9 +917,7 @@ class TableMonitor < ApplicationRecord
     # Cache-Key includes locale and updated_at timestamp
     cache_key = "#{locale}_#{updated_at.to_i}"
 
-    if @cached_options && @cached_options_key == cache_key
-      return @cached_options
-    end
+    return @cached_options if @cached_options && @cached_options_key == cache_key
 
     presenter = TableMonitor::OptionsPresenter.new(self, locale: locale)
     options = presenter.call
@@ -884,7 +944,9 @@ class TableMonitor < ApplicationRecord
   def evaluate_panel_and_current
     return unless remote_control_detected
 
-    Rails.logger.debug { "--------------m6[#{id}]------->>> evaluate_panel_and_current <<<------------------------------------------" }
+    Rails.logger.debug do
+      "--------------m6[#{id}]------->>> evaluate_panel_and_current <<<------------------------------------------"
+    end
     element_to_panel_state = {
       "undo" => "inputs",
       "minus_1" => "inputs",
@@ -1000,7 +1062,9 @@ class TableMonitor < ApplicationRecord
   end
 
   def terminate_current_inning(player = nil)
-    Rails.logger.debug { "--------------m6[#{id}]------->>> terminate_current_inning <<<------------------------------------------" }
+    Rails.logger.debug do
+      "--------------m6[#{id}]------->>> terminate_current_inning <<<------------------------------------------"
+    end
     @msg = nil
     TableMonitor.transaction do
       result = score_engine.terminate_inning_data(player, playing: playing?)
@@ -1032,11 +1096,12 @@ class TableMonitor < ApplicationRecord
     innings_goal_exists = data["innings_goal"].presence.to_i.positive?
     kickoff_player_has_reached_innings_goal = data["innings_goal"].presence.to_i.positive? && data[left_player_id].andand["innings"].to_i >= data["innings_goal"].to_i
     ret = data.present? &&
-      (active_player_is_follow_up_player &&
-        (kickoff_player_has_balls_goal && has_reached_balls_goal ||
-          (innings_goal_exists && kickoff_player_has_reached_innings_goal))
-      )
-    Rails.logger.debug { "+++++ FOLLOW_UP? returns #{ret}: (active_player_is_follow_up_player:#{active_player_is_follow_up_player} && (kickoff_player_has_balls_goal:#{kickoff_player_has_balls_goal} && has_reached_balls_goal:#{has_reached_balls_goal} || (innings_goal_exists:#{innings_goal_exists} && kickoff_player_has_reached_innings_goal:#{kickoff_player_has_reached_innings_goal}))" }
+          active_player_is_follow_up_player &&
+          ((kickoff_player_has_balls_goal && has_reached_balls_goal) ||
+            (innings_goal_exists && kickoff_player_has_reached_innings_goal))
+    Rails.logger.debug do
+      "+++++ FOLLOW_UP? returns #{ret}: (active_player_is_follow_up_player:#{active_player_is_follow_up_player} && (kickoff_player_has_balls_goal:#{kickoff_player_has_balls_goal} && has_reached_balls_goal:#{has_reached_balls_goal} || (innings_goal_exists:#{innings_goal_exists} && kickoff_player_has_reached_innings_goal:#{kickoff_player_has_reached_innings_goal}))"
+    end
     ret
   rescue StandardError => e
     Rails.logger.error "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}"
@@ -1052,6 +1117,7 @@ class TableMonitor < ApplicationRecord
     # For "14.1 endlos" discipline, use PaperTrail-based redo
     if data[current_role]["discipline"] == "14.1 endlos"
       return unless copy_from.present?
+
       next_copy_from = copy_from + 1
       if next_copy_from <= versions.last.index
         next_version = versions[next_copy_from]
@@ -1080,50 +1146,53 @@ class TableMonitor < ApplicationRecord
 
     # For other disciplines: delegate hash-based redo to ScoreEngine
     result = score_engine.redo_hash
-    if result == :inning_terminated
-      terminate_current_inning
-    end
+    return unless result == :inning_terminated
+
+    terminate_current_inning
   end
 
   def can_redo?
     return false unless playing?
+
     current_role = data["current_inning"]["active_player"]
 
     # For "14.1 endlos", check if copy_from allows redo
-    if data[current_role]["discipline"] == "14.1 endlos"
-      return copy_from.present? && copy_from < versions.last.index
-    end
+    return copy_from.present? && copy_from < versions.last.index if data[current_role]["discipline"] == "14.1 endlos"
 
     # For other disciplines, check if there's a current inning with points or undone state
     innings_redo = Array(data[current_role]["innings_redo_list"]).last.to_i
-    return true if innings_redo > 0
+    return true if innings_redo.positive?
     return true if copy_from.present? && copy_from < versions.last.index
+
     false
   end
 
   def can_undo?
     return false unless playing? || set_over?
+
     current_role = data["current_inning"]["active_player"]
 
     # For "14.1 endlos", check if we can go back
     if data[current_role]["discipline"] == "14.1 endlos"
       # Can undo if we have versions and either copy_from is set or we have game data
-      return true if copy_from.present? && copy_from > 0
+      return true if copy_from.present? && copy_from.positive?
       return true if versions.any? && (data["playera"]["innings"].to_i + data["playerb"]["innings"].to_i +
         data["playera"]["result"].to_i + data["playerb"]["result"].to_i +
         data["sets"].to_a.length +
-        data["playera"]["innings_redo_list"].andand[-1].to_i + data["playerb"]["innings_redo_list"].andand[-1].to_i) > 0
+        data["playera"]["innings_redo_list"].andand[-1].to_i + data["playerb"]["innings_redo_list"].andand[-1].to_i).positive?
+
       return false
     end
 
     # For other disciplines, check if we have innings to undo
     the_other_player = (current_role == "playera" ? "playerb" : "playera")
-    return true if (data[the_other_player]["innings"]).to_i.positive?
-    return true if copy_from.present? && copy_from > 0
+    return true if data[the_other_player]["innings"].to_i.positive?
+    return true if copy_from.present? && copy_from.positive?
     return true if versions.any? && (data["playera"]["innings"].to_i + data["playerb"]["innings"].to_i +
       data["playera"]["result"].to_i + data["playerb"]["result"].to_i +
       data["sets"].to_a.length +
-      data["playera"]["innings_redo_list"].andand[-1].to_i + data["playerb"]["innings_redo_list"].andand[-1].to_i) > 0
+      data["playera"]["innings_redo_list"].andand[-1].to_i + data["playerb"]["innings_redo_list"].andand[-1].to_i).positive?
+
     false
   end
 
@@ -1138,8 +1207,8 @@ class TableMonitor < ApplicationRecord
           data["sets"].to_a.length +
           data["playera"]["innings_redo_list"].andand[-1].to_i + data["playerb"]["innings_redo_list"].andand[-1].to_i).zero?
           self.state = "match_shootout"
-        elsif self.copy_from.present?
-          copy_from_ = self.copy_from - 1
+        elsif copy_from.present?
+          copy_from_ = copy_from - 1
           prev_version = versions[copy_from_].reify
           prev_version.copy_from = copy_from_
           prev_version.save!
@@ -1161,16 +1230,16 @@ class TableMonitor < ApplicationRecord
         end
       elsif set_over?
         # PaperTrail-based undo for set_over state — stays in TableMonitor
-        version = self.versions[-3]
+        version = versions[-3]
         tt = version.reify
         tt.copy_from = version.index
         tt.save!
         reload
       elsif simple_set_game? && data["sets"].present?
         # PaperTrail-based undo for multi-set games — stays in TableMonitor
-        play_versions = if self.copy_from.present?
+        play_versions = if copy_from.present?
                           versions.where("whodunnit ilike '%in `switch_to_next_set''%'").select do |v|
-                            v.index < self.copy_from
+                            v.index < copy_from
                           end
                         else
                           versions.where("whodunnit ilike '%in `switch_to_next_set''%'")
@@ -1228,7 +1297,9 @@ class TableMonitor < ApplicationRecord
   end
 
   def revert_players
-    Rails.logger.debug { "--------------m6[#{id}]------->>> revert_players <<<------------------------------------------" }
+    Rails.logger.debug do
+      "--------------m6[#{id}]------->>> revert_players <<<------------------------------------------"
+    end
     fixed_display_left = data["fixed_display_left"]
     options = {
       "player_a_id" => game.game_participations.where(role: "playerb").first&.player&.id,
@@ -1275,7 +1346,7 @@ class TableMonitor < ApplicationRecord
       total_points += total_redo_points
     end
 
-    if total_innings == 0 && total_points == 0
+    if total_innings.zero? && total_points.zero?
       Rails.logger.warn "[TableMonitor#end_of_set?] GUARD: Game[#{game_id}] on TM[#{id}] has 0 innings and 0 points - NOT ending set (state: #{state})"
       return false
     end
@@ -1292,13 +1363,13 @@ class TableMonitor < ApplicationRecord
       return false
     end
 
-    if data["playera"]["balls_goal"].to_i.positive? && ((data["playera"]["result"].to_i >= data["playera"]["balls_goal"].to_i ||
+    if data["playera"]["balls_goal"].to_i.positive? && (data["playera"]["result"].to_i >= data["playera"]["balls_goal"].to_i ||
       data["playerb"]["result"].to_i >= data["playerb"]["balls_goal"].to_i) &&
-      (data["playera"]["innings"] == data["playerb"]["innings"] || !data["allow_follow_up"]))
+       (data["playera"]["innings"] == data["playerb"]["innings"] || !data["allow_follow_up"])
       Rails.logger.info "[TableMonitor#end_of_set?] Game[#{game_id}] on TM[#{id}] ended: balls_goal reached (A:#{data["playera"]["result"]}/#{data["playera"]["balls_goal"]}, B:#{data["playerb"]["result"]}/#{data["playerb"]["balls_goal"]})"
       return true
     elsif data["innings_goal"].to_i.positive? && data["playera"]["innings"].to_i >= data["innings_goal"].to_i &&
-      (data["playera"]["innings"] == data["playerb"]["innings"] || !data["allow_follow_up"])
+          (data["playera"]["innings"] == data["playerb"]["innings"] || !data["allow_follow_up"])
       Rails.logger.info "[TableMonitor#end_of_set?] Game[#{game_id}] on TM[#{id}] ended: innings_goal reached (A:#{data["playera"]["innings"]}, B:#{data["playerb"]["innings"]}, goal:#{data["innings_goal"]})"
       return true
     end
@@ -1325,7 +1396,9 @@ class TableMonitor < ApplicationRecord
   end
 
   def deep_delete!(key, do_save = true)
-    Rails.logger.debug { "--------------m6[#{id}]------->>> deep_delete!(#{key}, #{do_save}) <<<------------------------------------------" }
+    Rails.logger.debug do
+      "--------------m6[#{id}]------->>> deep_delete!(#{key}, #{do_save}) <<<------------------------------------------"
+    end
     h = data.dup
     res = nil
     if h[key].present?
@@ -1342,7 +1415,9 @@ class TableMonitor < ApplicationRecord
   end
 
   def prepare_final_game_result
-    Rails.logger.debug { "--------------m6[#{id}]------->>> prepare_final_game_result <<<------------------------------------------" }
+    Rails.logger.debug do
+      "--------------m6[#{id}]------->>> prepare_final_game_result <<<------------------------------------------"
+    end
     if game.present?
       game_ba_result = {
         "Gruppe" => game.group_no,
@@ -1376,7 +1451,7 @@ class TableMonitor < ApplicationRecord
 
   def simple_set_game?
     (data["free_game_form"] == "pool" && data["playera"]["discipline"] != "14.1 endlos") ||
-    data["free_game_form"] == "snooker"
+      data["free_game_form"] == "snooker"
   end
 
   def admin_ack_result
@@ -1435,7 +1510,9 @@ class TableMonitor < ApplicationRecord
   end
 
   def reset_table_monitor
-    Rails.logger.debug { "--------------m6[#{id}]------->>> reset_table_monitor <<<------------------------------------------" }
+    Rails.logger.debug do
+      "--------------m6[#{id}]------->>> reset_table_monitor <<<------------------------------------------"
+    end
     if tournament_monitor.present? && !tournament_monitor.tournament.manual_assignment? && tournament_monitor.state != "closed"
       info = "+++ 8 - m6[#{id}]IGNORING table_monitor#reset_table_monitor - cannot reset managed tournament"
       Rails.logger.info info
@@ -1469,7 +1546,9 @@ class TableMonitor < ApplicationRecord
 
   # Update innings history from game protocol modal
   def update_innings_history(innings_params)
-    Rails.logger.debug { "-----------m6[#{id}]---------->>> update_innings_history <<<------------------------------------------" }
+    Rails.logger.debug do
+      "-----------m6[#{id}]---------->>> update_innings_history <<<------------------------------------------"
+    end
     result = score_engine.update_innings_history(innings_params, playing_or_set_over: playing? || set_over?)
     return result unless result[:success]
 
@@ -1554,29 +1633,37 @@ class TableMonitor < ApplicationRecord
     event_name = aasm.current_event
 
     # Get temporary values from TableMonitor data hash
-    temp_innings = data["playera"]["innings"].to_i + data["playerb"]["innings"].to_i rescue 0
-    temp_points = data["playera"]["result"].to_i + data["playerb"]["result"].to_i rescue 0
+    temp_innings = begin
+      data["playera"]["innings"].to_i + data["playerb"]["innings"].to_i
+    rescue StandardError
+      0
+    end
+    temp_points = begin
+      data["playera"]["result"].to_i + data["playerb"]["result"].to_i
+    rescue StandardError
+      0
+    end
 
     # Get actual DB values - depends on the event
     db_innings = 0
     db_points = 0
     mismatch = false
-    
+
     if game.present?
       game.reload # Ensure fresh data
-      
+
       # For finish_match! event, check game.data (where we write results)
       # For other events, check game_participations (updated later)
-      if event_name.to_s == 'finish_match!'
+      if event_name.to_s == "finish_match!"
         # Check game.data["ba_results"] - this is where write_game_result_data writes to
         ba_results = game.data&.dig("ba_results")
         if ba_results.present?
           db_innings = ba_results["Aufnahmen1"].to_i + ba_results["Aufnahmen2"].to_i
           db_points = ba_results["Ergebnis1"].to_i + ba_results["Ergebnis2"].to_i
-          mismatch = (temp_innings != db_innings || temp_points != db_points)
+          mismatch = temp_innings != db_innings || temp_points != db_points
         else
           # No ba_results in game.data yet - this is a problem for finish_match!
-          mismatch = (temp_innings > 0 || temp_points > 0)
+          mismatch = temp_innings.positive? || temp_points.positive?
         end
       else
         # For other events (end_of_set!, acknowledge_result!, etc.)
@@ -1599,13 +1686,10 @@ class TableMonitor < ApplicationRecord
     end
 
     # ALERT: Suspicious state transitions - only for finish_match! to final_match_score
-    if event_name.to_s == 'finish_match!' && to_state.to_s == 'final_match_score'
-      if temp_innings == 0 && temp_points == 0
-        Rails.logger.error "[⚠️  SUSPICIOUS TRANSITION] TM[#{id}] Game[#{game_id}] moved to #{to_state} with ZERO temp data! Event: #{event_name}, Caller: #{caller[0..3].join(' <- ')}"
-      end
+    if event_name.to_s == "finish_match!" && to_state.to_s == "final_match_score" && temp_innings.zero? && temp_points.zero?
+      Rails.logger.error "[⚠️  SUSPICIOUS TRANSITION] TM[#{id}] Game[#{game_id}] moved to #{to_state} with ZERO temp data! Event: #{event_name}, Caller: #{caller[0..3].join(" <- ")}"
     end
   rescue StandardError => e
-    Rails.logger.error "[log_state_transition ERROR] #{e.message}: #{e.backtrace&.first(3)&.join(' <- ')}"
+    Rails.logger.error "[log_state_transition ERROR] #{e.message}: #{e.backtrace&.first(3)&.join(" <- ")}"
   end
-
 end
