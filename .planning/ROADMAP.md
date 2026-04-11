@@ -131,9 +131,9 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 20-01-PLAN.md — LeagueTeam + Party characterization (associations, computed properties, fixtures)
-- [ ] 20-02-PLAN.md — League standings, game plan reconstruction, and scraping pipeline characterization
-- [ ] 20-03-PLAN.md — PartyMonitor AASM state machine + placement/result/round management characterization
+- [x] 20-01-PLAN.md — LeagueTeam + Party characterization (associations, computed properties, fixtures)
+- [x] 20-02-PLAN.md — League standings, game plan reconstruction, and scraping pipeline characterization
+- [x] 20-03-PLAN.md — PartyMonitor AASM state machine + placement/result/round management characterization
 
 ### Phase 21: League Extraction
 **Goal**: Service classes are extracted from League, model line count is reduced significantly, and all characterization tests remain green
@@ -178,7 +178,7 @@ Phases execute in numeric order: 20 → 21 → 22 → 23
 | 6-10. v2.0 phases | v2.0 | Complete | Complete | 2026-04-10 |
 | 11-16. v2.1 phases | v2.1 | Complete | Complete | 2026-04-11 |
 | 17-19. v3.0 phases | v3.0 | Complete | Complete | 2026-04-11 |
-| 20. Characterization | v4.0 | 0/3 | Planning complete | - |
+| 20. Characterization | v4.0 | 3/3 | Complete    | 2026-04-11 |
 | 21. League Extraction | v4.0 | 0/? | Not started | - |
 | 22. PartyMonitor Extraction | v4.0 | 0/? | Not started | - |
 | 23. Coverage | v4.0 | 0/? | Not started | - |
