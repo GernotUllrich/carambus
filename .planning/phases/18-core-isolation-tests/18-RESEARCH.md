@@ -535,7 +535,7 @@ Three test methods in one class. Clean, no cross-file fixture duplication.
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Selenium browser logs API availability**
    - What we know: Chrome/ChromeDriver supports `logs.get(:browser)` via the WebDriver protocol; Selenium gem wraps this
