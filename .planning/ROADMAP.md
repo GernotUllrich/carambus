@@ -4,7 +4,8 @@
 
 - ✅ **v1.0 Model Refactoring** - Phases 1-5 (shipped 2026-04-10)
 - ✅ **v2.0 Test Suite Audit & Improvement** - Phases 6-10 (shipped 2026-04-10)
-- 🚧 **v2.1 Tournament & TournamentMonitor Refactoring** - Phases 11-16 (in progress)
+- ✅ **v2.1 Tournament & TournamentMonitor Refactoring** - Phases 11-16 (shipped 2026-04-11)
+- 🚧 **v3.0 Broadcast Isolation Testing** - Phases 17-19 (in progress)
 
 ## Phases
 
@@ -170,18 +171,8 @@ Plans:
 
 ---
 
-### v2.1 Tournament & TournamentMonitor Refactoring (In Progress)
-
-**Milestone Goal:** Reduce Tournament (1775 lines) and TournamentMonitor (499 lines) into maintainable, well-tested components with comprehensive test coverage across models, services, controllers, channels, and jobs.
-
-- [x] **Phase 11: TournamentMonitor Characterization** - Pin TournamentMonitor behavior (AASM, result pipeline, game sequencing, player distribution) before any extraction (completed 2026-04-10)
-- [x] **Phase 12: Tournament Characterization** - Pin Tournament behavior (AASM, scraping pipeline, dynamic attributes, PaperTrail baselines) before any extraction (completed 2026-04-10)
-- [x] **Phase 13: Low-Risk Extractions** - Extract three smallest services (RankingCalculator, TableReservationService, PlayerGroupDistributor) to prove the pattern (completed 2026-04-10)
-- [x] **Phase 14: Medium-Risk Extractions** - Extract PublicCcScraper and RankingResolver, the largest complexity reductions requiring VCR cassettes (completed 2026-04-10)
-- [x] **Phase 15: High-Risk Extractions** - Extract ResultProcessor and TablePopulator, which involve DB locks, AASM, and complex algorithms (completed 2026-04-11)
-- [x] **Phase 16: Controller, Job & Channel Coverage** - Add test coverage for controllers, jobs, and channels that touch Tournament and TournamentMonitor; verify quality metrics (completed 2026-04-11)
-
-## Phase Details
+<details>
+<summary>✅ v2.1 Tournament & TournamentMonitor Refactoring (Phases 11-16) - SHIPPED 2026-04-11</summary>
 
 ### Phase 11: TournamentMonitor Characterization
 **Goal**: TournamentMonitor's critical behavior is fully pinned by characterization tests and ApiProtectorTestOverride is verified, making all TournamentMonitor extractions safe to begin
@@ -272,10 +263,57 @@ Plans:
 - [x] 16-02-PLAN.md — TournamentMonitorsController + channels + jobs test coverage
 - [x] 16-03-PLAN.md — Quality gate verification (line count, green suite, PaperTrail baselines)
 
+</details>
+
+---
+
+### v3.0 Broadcast Isolation Testing (In Progress)
+
+**Milestone Goal:** Verify that TableMonitor ActionCable broadcasts are correctly filtered client-side so scoreboards never show state changes from unrelated tables — even under concurrent load.
+
+- [ ] **Phase 17: Infrastructure & Configuration** - Set up Capybara/Selenium system test infrastructure with ActionCable, local_server?, multi-session helpers, and a smoke test proving end-to-end broadcast delivery
+- [ ] **Phase 18: Core Isolation Tests** - Two-session tests covering the morph path, score:update dispatch path, table_scores overview context, and console.warn filter verification
+- [ ] **Phase 19: Concurrent Scenarios & Gap Documentation** - Rapid-fire AASM transitions, three+ simultaneous browser sessions, and a gap report documenting any broadcast bleed found
+
+## Phase Details
+
+### Phase 17: Infrastructure & Configuration
+**Goal**: A working system test environment exists where ActionCable broadcasts reach real browser WebSocket connections and multi-session Capybara helpers are available, proven by a passing smoke test
+**Depends on**: Phase 16
+**Requirements**: INFRA-01, INFRA-02, INFRA-03, INFRA-04
+**Success Criteria** (what must be TRUE):
+  1. A system test can open a browser session connected to the test app over WebSocket — the ActionCable cable adapter is configured so broadcasts are not silently dropped
+  2. Channel subscriptions are accepted in system test context — local_server? returns true so the TableMonitorChannel subscription guard does not reject connections
+  3. A test helper method opens two named Capybara sessions on different table scoreboard URLs without Rails AR connection conflicts
+  4. The smoke test passes: triggering a TableMonitor AASM state change causes a visible DOM update in the browser session subscribed to that table's scoreboard — end-to-end broadcast delivery is confirmed
+**Plans**: TBD
+
+### Phase 18: Core Isolation Tests
+**Goal**: The two broadcast delivery paths (morph and score:update dispatch) are each verified to be isolated per-table, with JS filter execution confirmed via console.warn capture
+**Depends on**: Phase 17
+**Requirements**: ISOL-01, ISOL-02, ISOL-03, ISOL-04
+**Success Criteria** (what must be TRUE):
+  1. The morph path isolation test passes: scoreboard A shows no DOM change when table B fires a state change, while scoreboard B updates correctly (paired positive/negative assertion)
+  2. The score:update dispatch path isolation test passes: the JS event handler on scoreboard A does not fire when table B emits a score:update event (separate code path, paired positive/negative assertion)
+  3. The table_scores overview page shows correct per-table state without cross-table contamination when multiple tables have simultaneous state changes
+  4. console.warn output is captured in the browser session — a rejected broadcast produces a warn log, confirming the JS filter actually ran rather than silently passing everything through
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 19: Concurrent Scenarios & Gap Documentation
+**Goal**: Broadcast isolation holds under concurrent load across three or more simultaneous browser sessions, and any failures are documented in a gap report for future remediation
+**Depends on**: Phase 18
+**Requirements**: CONC-01, CONC-02, DOC-01
+**Success Criteria** (what must be TRUE):
+  1. Rapid-fire AASM state transitions (multiple transitions per second) with two simultaneous sessions produce no broadcast bleed — scoreboard A never reflects table B state during high-frequency firing
+  2. Three or more simultaneous browser sessions on different tables all show correct isolated state after concurrent state changes — no session receives a broadcast intended for a different table
+  3. A gap report exists at .planning/BROADCAST-GAP-REPORT.md documenting every isolation failure observed during Phases 18-19 testing, with reproduction steps and the deferred fix reference (FIX-01, FIX-02)
+**Plans**: TBD
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 11 -> 12 -> 13 -> 14 -> 15 -> 16
+Phases execute in numeric order: 17 -> 18 -> 19
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -289,9 +327,12 @@ Phases execute in numeric order: 11 -> 12 -> 13 -> 14 -> 15 -> 16
 | 8. Service Tests Review | v2.0 | 2/2 | Complete | 2026-04-10 |
 | 9. Controller, System & Other Tests Review | v2.0 | 2/2 | Complete | 2026-04-10 |
 | 10. Final Pass & Green Suite | v2.0 | 3/3 | Complete | 2026-04-10 |
-| 11. TournamentMonitor Characterization | v2.1 | 2/2 | Complete   | 2026-04-10 |
-| 12. Tournament Characterization | v2.1 | 3/3 | Complete   | 2026-04-10 |
-| 13. Low-Risk Extractions | v2.1 | 3/3 | Complete   | 2026-04-10 |
-| 14. Medium-Risk Extractions | v2.1 | 2/2 | Complete   | 2026-04-10 |
-| 15. High-Risk Extractions | v2.1 | 2/2 | Complete   | 2026-04-11 |
-| 16. Controller, Job & Channel Coverage | v2.1 | 3/3 | Complete   | 2026-04-11 |
+| 11. TournamentMonitor Characterization | v2.1 | 2/2 | Complete | 2026-04-10 |
+| 12. Tournament Characterization | v2.1 | 3/3 | Complete | 2026-04-10 |
+| 13. Low-Risk Extractions | v2.1 | 3/3 | Complete | 2026-04-10 |
+| 14. Medium-Risk Extractions | v2.1 | 2/2 | Complete | 2026-04-10 |
+| 15. High-Risk Extractions | v2.1 | 2/2 | Complete | 2026-04-11 |
+| 16. Controller, Job & Channel Coverage | v2.1 | 3/3 | Complete | 2026-04-11 |
+| 17. Infrastructure & Configuration | v3.0 | 0/? | Not started | - |
+| 18. Core Isolation Tests | v3.0 | 0/? | Not started | - |
+| 19. Concurrent Scenarios & Gap Documentation | v3.0 | 0/? | Not started | - |

@@ -54,23 +54,23 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| INFRA-01 | — | Pending |
-| INFRA-02 | — | Pending |
-| INFRA-03 | — | Pending |
-| INFRA-04 | — | Pending |
-| ISOL-01 | — | Pending |
-| ISOL-02 | — | Pending |
-| ISOL-03 | — | Pending |
-| ISOL-04 | — | Pending |
-| CONC-01 | — | Pending |
-| CONC-02 | — | Pending |
-| DOC-01 | — | Pending |
+| INFRA-01 | Phase 17 | Pending |
+| INFRA-02 | Phase 17 | Pending |
+| INFRA-03 | Phase 17 | Pending |
+| INFRA-04 | Phase 17 | Pending |
+| ISOL-01 | Phase 18 | Pending |
+| ISOL-02 | Phase 18 | Pending |
+| ISOL-03 | Phase 18 | Pending |
+| ISOL-04 | Phase 18 | Pending |
+| CONC-01 | Phase 19 | Pending |
+| CONC-02 | Phase 19 | Pending |
+| DOC-01 | Phase 19 | Pending |
 
 **Coverage:**
 - v1 requirements: 11 total
-- Mapped to phases: 0
-- Unmapped: 11 ⚠️
+- Mapped to phases: 11
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-04-11*
-*Last updated: 2026-04-11 after initial definition*
+*Last updated: 2026-04-11 after roadmap creation*
