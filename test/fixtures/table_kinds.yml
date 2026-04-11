@@ -1,0 +1,18 @@
+# == Schema Information
+#
+# Table name: table_kinds
+#
+#  id         :bigint           not null, primary key
+#  name       :string
+#  short      :string
+#  measures   :text
+#  created_at :datetime         not null
+#  updated_at :datetime         not null
+#
+
+one:
+  id: 50_000_001
+  name: "Karambol"
+  short: "K"
+  created_at: <%= 2.years.ago %>
+  updated_at: <%= 1.day.ago %>

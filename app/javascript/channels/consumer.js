@@ -8,4 +8,8 @@ console.log("Initializing ActionCable consumer...")
 const consumer = createConsumer("/cable")
 console.log("ActionCable consumer initialized")
 
+// Expose consumer globally so system tests can check WebSocket connection state
+// via page.evaluate_script("window.consumer.connection.getState()")
+window.consumer = consumer
+
 export default consumer

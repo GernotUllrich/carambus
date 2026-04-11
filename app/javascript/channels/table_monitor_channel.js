@@ -350,10 +350,16 @@ const tableMonitorSubscription = consumer.subscriptions.create("TableMonitorChan
       console.log("🔌 Consumer state:", consumer.connection.getState())
     }
     this.connectionAttempts = 0
-    
+
     // Start health monitoring
     this.healthMonitor.start()
     this.healthMonitor.updateStatusIndicator('healthy')
+
+    // Mark WebSocket as confirmed-connected on the document element.
+    // System tests poll this attribute via assert_selector to synchronize
+    // before triggering broadcasts (avoids the race where broadcast is sent
+    // before the subscription is established server-side).
+    document.documentElement.setAttribute("data-cable-connected", "true")
   },
 
   disconnected() {

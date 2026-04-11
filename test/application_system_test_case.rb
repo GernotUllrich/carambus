@@ -48,6 +48,17 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
   def visit_scoreboard(table_monitor, locale: :de)
     visit table_monitor_url(table_monitor, locale: locale)
   end
+
+  # Wait for the TableMonitorChannel WebSocket subscription to be confirmed
+  # by the server (i.e., the connected() callback has fired in the browser).
+  # The JS sets data-cable-connected="true" on <html> in the connected() callback.
+  # Uses Capybara's assert_selector retry loop (no sleep — Capybara polls the DOM).
+  # Call this after visiting a scoreboard page, before triggering broadcasts,
+  # to avoid the race where the broadcast is sent before the subscription is
+  # established server-side.
+  def wait_for_actioncable_connection(timeout: 5)
+    assert_selector "html[data-cable-connected='true']", wait: timeout
+  end
 end
 
 Capybara.default_max_wait_time = 10

@@ -3,3 +3,5 @@ one:
   id: 50_000_001
   name: "Table One"
   table_monitor_id: 50_000_001
+  location: one
+  table_kind_id: 50_000_001
