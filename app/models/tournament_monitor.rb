@@ -146,6 +146,31 @@ class TournamentMonitor < ApplicationRecord
     TournamentMonitor::RankingResolver.new(self).player_id_from_ranking(rule_str, opts)
   end
 
+  # Delegation wrappers — result pipeline lives in TournamentMonitor::ResultProcessor
+  def report_result(table_monitor)
+    TournamentMonitor::ResultProcessor.new(self).report_result(table_monitor)
+  end
+
+  def update_game_participations(tabmon)
+    TournamentMonitor::ResultProcessor.new(self).update_game_participations(tabmon)
+  end
+
+  def update_game_participations_for_game(game, data)
+    TournamentMonitor::ResultProcessor.new(self).send(:update_game_participations_for_game, game, data)
+  end
+
+  def accumulate_results
+    TournamentMonitor::ResultProcessor.new(self).accumulate_results
+  end
+
+  def update_ranking
+    TournamentMonitor::ResultProcessor.new(self).update_ranking
+  end
+
+  def write_game_result_data(table_monitor)
+    TournamentMonitor::ResultProcessor.new(self).send(:write_game_result_data, table_monitor)
+  end
+
   def next_seqno
     # select max(seqno) from tournament.games
     tournament.games.where("games.id >= #{Game::MIN_ID}").where.not(seqno: nil).map(&:seqno).max.to_i + 1
