@@ -38,8 +38,8 @@ class PartyMonitor::TablePopulator
       color_remains_with_set: @party_monitor.tournament.andand.color_remains_with_set
     )
     # TODO: initialize all PartyMonitor attributes
-    @party_monitor.party.games.where("games.id >= #{Game::MIN_ID}").destroy_all
-    @party_monitor.party.seedings.where("id > #{Game::MIN_ID}").destroy_all
+    @party_monitor.party.games.where("games.id >= ?", Game::MIN_ID).destroy_all
+    @party_monitor.party.seedings.where("id > ?", Game::MIN_ID).destroy_all
     @party_monitor.update(data: {}) unless @party_monitor.new_record?
     @league ||= @party_monitor.party.league
     @game_plan ||= @league.game_plan
@@ -152,6 +152,6 @@ class PartyMonitor::TablePopulator
   private
 
   def next_seqno
-    @party_monitor.party.games.where("games.id >= #{Game::MIN_ID}").where.not(seqno: nil).map(&:seqno).max.to_i + 1
+    @party_monitor.party.games.where("games.id >= ?", Game::MIN_ID).where.not(seqno: nil).map(&:seqno).max.to_i + 1
   end
 end
