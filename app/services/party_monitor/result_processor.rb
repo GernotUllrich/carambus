@@ -102,9 +102,7 @@ class PartyMonitor::ResultProcessor
           TournamentMonitorUpdateResultsJob.perform_later(@party_monitor)
         end
       rescue => e
-        Rails.logger.info "StandardError #{e}, #{e.backtrace.to_a.join("\n")}"
-        raise StandardError unless Rails.env == "production"
-
+        Rails.logger.error "StandardError #{e.class}: #{e.message}\n#{e.backtrace.to_a.first(10).join("\n")}"
         raise ActiveRecord::Rollback
       end
     end
@@ -193,8 +191,8 @@ class PartyMonitor::ResultProcessor
       @party_monitor.save!
     end
   rescue => e
-    Rails.logger.info "ERROR: #{e}, #{e.backtrace.join("\n")}" if PartyMonitor::DEBUG
-    raise StandardError unless Rails.env == "production"
+    Rails.logger.error "ERROR #{e.class}: #{e.message}\n#{e.backtrace.to_a.first(10).join("\n")}"
+    raise
   end
 
   # Aggregiert alle GameParticipation-Ergebnisse in @party_monitor.data["rankings"].
