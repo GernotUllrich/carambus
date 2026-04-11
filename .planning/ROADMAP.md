@@ -179,7 +179,7 @@ Plans:
 - [x] **Phase 13: Low-Risk Extractions** - Extract three smallest services (RankingCalculator, TableReservationService, PlayerGroupDistributor) to prove the pattern (completed 2026-04-10)
 - [x] **Phase 14: Medium-Risk Extractions** - Extract PublicCcScraper and RankingResolver, the largest complexity reductions requiring VCR cassettes (completed 2026-04-10)
 - [x] **Phase 15: High-Risk Extractions** - Extract ResultProcessor and TablePopulator, which involve DB locks, AASM, and complex algorithms (completed 2026-04-11)
-- [ ] **Phase 16: Controller, Job & Channel Coverage** - Add test coverage for controllers, jobs, and channels that touch Tournament and TournamentMonitor; verify quality metrics
+- [x] **Phase 16: Controller, Job & Channel Coverage** - Add test coverage for controllers, jobs, and channels that touch Tournament and TournamentMonitor; verify quality metrics (completed 2026-04-11)
 
 ## Phase Details
 
@@ -266,11 +266,11 @@ Plans:
   3. TournamentMonitorChannel and TournamentChannel each have test coverage — subscription, broadcast triggering, and message format are verified
   4. TournamentStatusUpdateJob and TournamentMonitorUpdateResultsJob each have test coverage — job execution produces the expected model state changes
   5. Tournament model is under 1000 lines; `bin/rails test` passes with zero failures and zero errors; PaperTrail version counts per operation match the Phase 12 baselines
-**Plans:** 3 plans
+**Plans:** 3/3 plans complete
 Plans:
-- [ ] 16-01-PLAN.md — TournamentsController test coverage (20+ actions, auth + local server guards)
-- [ ] 16-02-PLAN.md — TournamentMonitorsController + channels + jobs test coverage
-- [ ] 16-03-PLAN.md — Quality gate verification (line count, green suite, PaperTrail baselines)
+- [x] 16-01-PLAN.md — TournamentsController test coverage (20+ actions, auth + local server guards)
+- [x] 16-02-PLAN.md — TournamentMonitorsController + channels + jobs test coverage
+- [x] 16-03-PLAN.md — Quality gate verification (line count, green suite, PaperTrail baselines)
 
 ## Progress
 
@@ -294,4 +294,4 @@ Phases execute in numeric order: 11 -> 12 -> 13 -> 14 -> 15 -> 16
 | 13. Low-Risk Extractions | v2.1 | 3/3 | Complete   | 2026-04-10 |
 | 14. Medium-Risk Extractions | v2.1 | 2/2 | Complete   | 2026-04-10 |
 | 15. High-Risk Extractions | v2.1 | 2/2 | Complete   | 2026-04-11 |
-| 16. Controller, Job & Channel Coverage | v2.1 | 0/3 | Not started | - |
+| 16. Controller, Job & Channel Coverage | v2.1 | 3/3 | Complete   | 2026-04-11 |
