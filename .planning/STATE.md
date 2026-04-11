@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v4.0
 milestone_name: League & PartyMonitor Refactoring
 status: executing
-stopped_at: Phase 21 context gathered
-last_updated: "2026-04-11T21:02:08.594Z"
+stopped_at: Phase 22 context gathered
+last_updated: "2026-04-11T21:27:17.835Z"
 last_activity: 2026-04-11
 progress:
   total_phases: 4
@@ -76,6 +76,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-11T19:42:06.600Z
-Stopped at: Phase 21 context gathered
-Resume file: .planning/phases/21-league-extraction/21-CONTEXT.md
+Last session: 2026-04-11T21:27:17.832Z
+Stopped at: Phase 22 context gathered
+Resume file: .planning/phases/22-partymonitor-extraction/22-CONTEXT.md
