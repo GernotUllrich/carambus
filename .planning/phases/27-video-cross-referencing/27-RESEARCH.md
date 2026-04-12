@@ -392,19 +392,19 @@ end
 
 ## Open Questions
 
-1. **Does Kozoom's `/videos?eventId={id}` response include an `eventId` field in each video object?**
+1. **Does Kozoom's `/videos?eventId={id}` response include an `eventId` field in each video object? (RESOLVED)**
    - What we know: `KozoomScraper` saves `data: v.merge({"url" => ..., "player" => "kozoom"})`. The `watch_url` method in `Video` references `json_data["eventId"]`, suggesting production data has this field.
    - What's unclear: Whether the raw Kozoom API `v` object contains `"eventId"` as a key (so it gets stored) or whether it was stored manually/elsewhere.
-   - Recommendation: Add a `where("data->>'eventId' IS NOT NULL")` guard in VIDEO-03 logic. If 0 matches result during verification, revisit the Kozoom scraper to explicitly store `eventId` during save.
+   - Resolution: Accepted assumption defended by SQL guard — `where("data->>'eventId' IS NOT NULL")` in Plan 27-02 Task 3 filters out any records where eventId is absent. If 0 matches result during verification, revisit KozoomScraper to explicitly store eventId during save.
 
-2. **Are `InternationalTournament` records from Kozoom source present in the database?**
+2. **Are `InternationalTournament` records from Kozoom source present in the database? (RESOLVED)**
    - What we know: `KozoomScraper#scrape` creates `Video` records but does not create `InternationalTournament` records.
    - What's unclear: Whether another job/service populates `InternationalTournament.where(international_source: kozoom_source)`.
-   - Recommendation: VIDEO-03 cross-reference may need to fall back to date+title matching if no Kozoom-sourced tournaments exist. The planner should flag this as a conditional.
+   - Resolution: Graceful degradation implemented — `cross_reference_kozoom_videos` returns `{ assigned_count: 0 }` early if no Kozoom source exists, and silently skips individual videos when no matching tournament is found. No fallback to fuzzy matching required; 0 results is acceptable.
 
-3. **Does `TournamentDiscoveryService` in Step 3 stay or get replaced?**
+3. **Does `TournamentDiscoveryService` in Step 3 stay or get replaced? (RESOLVED)**
    - What we know: Step 3 currently calls `TournamentDiscoveryService` (creates tournament stubs from video metadata). `Video::TournamentMatcher` (assigns videos to existing tournaments) is complementary, not a replacement.
-   - Recommendation: Keep `TournamentDiscoveryService` in Step 3a, add `Video::TournamentMatcher` as Step 3b after it, so newly discovered tournaments are immediately available for matching.
+   - Resolution: Resolved as Step 3a/3b in Plan 27-03. `TournamentDiscoveryService` stays as Step 3a; `Video::TournamentMatcher` is added as Step 3b immediately after, so newly discovered tournaments are available for matching in the same job run.
 
 ---
 
