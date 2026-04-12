@@ -4,14 +4,15 @@
 
 1. [Overview](#overview)
 2. [Architecture](#architecture)
-3. [Getting Started](#getting-started)
-4. [Database Setup](#database-setup)
-5. [Database Design](#database-design)
-6. [Core Models](#core-models)
-7. [Key Features](#key-features)
-8. [Development Workflow](#development-workflow)
-9. [Deployment](#deployment)
-10. [Contributing](#contributing)
+3. [Extracted Services](#extracted-services)
+4. [Getting Started](#getting-started)
+5. [Database Setup](#database-setup)
+6. [Database Design](#database-design)
+7. [Core Models](#core-models)
+8. [Key Features](#key-features)
+9. [Development Workflow](#development-workflow)
+10. [Deployment](#deployment)
+11. [Contributing](#contributing)
 
 ## Overview
 
@@ -65,6 +66,82 @@ The application uses Rails concerns to share functionality:
 - **Action Cable**: WebSocket connections for live updates
 - **Stimulus Reflex**: Server-side reflexes for reactive UI
 - **Cable Ready**: Client-side DOM manipulation
+
+## Extracted Services
+
+35 services have been extracted from the original god-objects into 7 namespaces. Each service has a single, clearly bounded responsibility.
+
+### TableMonitor:: (2 Services)
+
+| Service Class | File | Description |
+|---|---|---|
+| `TableMonitor::GameSetup` | `app/services/table_monitor/game_setup.rb` | Encapsulates start_game logic — creates Game/GameParticipation records, builds result hash, and queues TableMonitorJob |
+| `TableMonitor::ResultRecorder` | `app/services/table_monitor/result_recorder.rb` | Encapsulates result persistence — saves set data, navigates between sets, and coordinates AASM state transitions |
+
+### RegionCc:: (10 Services)
+
+| Service Class | File | Description |
+|---|---|---|
+| `RegionCc::BranchSyncer` | `app/services/region_cc/branch_syncer.rb` | Synchronizes BranchCc (discipline) records from the ClubCloud API |
+| `RegionCc::ClubCloudClient` | `app/services/region_cc/club_cloud_client.rb` | Stateless HTTP transport for the ClubCloud admin interface — no ORM coupling, supports sessions and dry-run mode |
+| `RegionCc::ClubSyncer` | `app/services/region_cc/club_syncer.rb` | Synchronizes Club records from the ClubCloud API |
+| `RegionCc::CompetitionSyncer` | `app/services/region_cc/competition_syncer.rb` | Synchronizes competition and season data from ClubCloud |
+| `RegionCc::GamePlanSyncer` | `app/services/region_cc/game_plan_syncer.rb` | Synchronizes GamePlanCc and GameDetailCc records including complex HTML table parsing |
+| `RegionCc::LeagueSyncer` | `app/services/region_cc/league_syncer.rb` | Dispatcher for league sync — coordinates leagues, teams, game plans, and player synchronization |
+| `RegionCc::MetadataSyncer` | `app/services/region_cc/metadata_syncer.rb` | Synchronizes metadata reference objects (categories, groups, disciplines) from ClubCloud |
+| `RegionCc::PartySyncer` | `app/services/region_cc/party_syncer.rb` | Synchronizes PartyCc records and match data from ClubCloud |
+| `RegionCc::RegistrationSyncer` | `app/services/region_cc/registration_syncer.rb` | Synchronizes registration list records from ClubCloud |
+| `RegionCc::TournamentSyncer` | `app/services/region_cc/tournament_syncer.rb` | Synchronizes tournament, tournament series, and championship type data from ClubCloud |
+
+### Tournament:: (3 Services)
+
+| Service Class | File | Description |
+|---|---|---|
+| `Tournament::PublicCcScraper` | `app/services/tournament/public_cc_scraper.rb` | Scrapes tournament data from the public ClubCloud URL — processes seedings, games, and rankings |
+| `Tournament::RankingCalculator` | `app/services/tournament/ranking_calculator.rb` | Calculates and caches effective player rankings; reorders seedings after competition |
+| `Tournament::TableReservationService` | `app/services/tournament/table_reservation_service.rb` | Creates Google Calendar events for table reservations with guard condition validation |
+
+### TournamentMonitor:: (4 Services)
+
+| Service Class | File | Description |
+|---|---|---|
+| `TournamentMonitor::PlayerGroupDistributor` | `app/services/tournament_monitor/player_group_distributor.rb` | Pure PORO — distributes players across groups using zig-zag or round-robin per NBV rules |
+| `TournamentMonitor::RankingResolver` | `app/services/tournament_monitor/ranking_resolver.rb` | Pure PORO — resolves player IDs from ranking rule strings (group ranks, KO bracket references) |
+| `TournamentMonitor::ResultProcessor` | `app/services/tournament_monitor/result_processor.rb` | Processes game results with pessimistic DB lock — coordinates ClubCloud upload and GameParticipation updates |
+| `TournamentMonitor::TablePopulator` | `app/services/tournament_monitor/table_populator.rb` | Assigns games to tournament tables — initializes TableMonitor records and runs the placement algorithm |
+
+### League:: (4 Services)
+
+| Service Class | File | Description |
+|---|---|---|
+| `League::BbvScraper` | `app/services/league/bbv_scraper.rb` | Scrapes BBV-specific league data (teams and results) |
+| `League::ClubCloudScraper` | `app/services/league/club_cloud_scraper.rb` | Scrapes league data from ClubCloud — teams, parties, and game plans |
+| `League::GamePlanReconstructor` | `app/services/league/game_plan_reconstructor.rb` | Reconstructs GamePlan from existing Parties and PartyGames |
+| `League::StandingsCalculator` | `app/services/league/standings_calculator.rb` | Calculates league standings tables for Karambol, Snooker, and Pool disciplines |
+
+### PartyMonitor:: (2 Services)
+
+| Service Class | File | Description |
+|---|---|---|
+| `PartyMonitor::ResultProcessor` | `app/services/party_monitor/result_processor.rb` | Processes game results in the PartyMonitor context with pessimistic DB lock |
+| `PartyMonitor::TablePopulator` | `app/services/party_monitor/table_populator.rb` | Resets PartyMonitor and assigns TableMonitor records to Party tables |
+
+### Umb:: (10 Services)
+
+Detailed architecture documentation: [UMB Scraping — Architecture](umb-scraping-implementation.md) and [UMB Scraping — Method Reference](umb-scraping-methods.md).
+
+| Service Class | File | Description |
+|---|---|---|
+| `Umb::HttpClient` | `app/services/umb/http_client.rb` | Stateless HTTP transport — fetches HTML and PDF content from UMB URLs, handles SSL, redirects, and timeouts |
+| `Umb::DisciplineDetector` | `app/services/umb/discipline_detector.rb` | Stateless PORO — maps tournament names to `Discipline` DB records via regex and DB-ILIKE fallback |
+| `Umb::DateHelpers` | `app/services/umb/date_helpers.rb` | Module with `module_function` — parses UMB date range strings (same-month and cross-month formats) into `{start_date:, end_date:}` |
+| `Umb::PlayerResolver` | `app/services/umb/player_resolver.rb` | Finds or creates `Player` records from UMB caps/mixed name pairs with umb_player_id and nationality enrichment |
+| `Umb::FutureScraper` | `app/services/umb/future_scraper.rb` | Scrapes `FutureTournaments.aspx`, parses HTML table including cross-month events, and upserts `InternationalTournament` records |
+| `Umb::ArchiveScraper` | `app/services/umb/archive_scraper.rb` | Sequential ID scan of `TournametDetails.aspx?ID=N` — discovers and saves historical tournament records |
+| `Umb::DetailsScraper` | `app/services/umb/details_scraper.rb` | Scrapes a tournament detail page, extracts PDF links, creates `InternationalGame` records, and orchestrates the PDF pipeline |
+| `Umb::PdfParser::PlayerListParser` | `app/services/umb/pdf_parser/player_list_parser.rb` | Pure PORO — parses player seeding list PDF text into `{caps_name:, mixed_name:, nationality:, position:}` hashes |
+| `Umb::PdfParser::GroupResultParser` | `app/services/umb/pdf_parser/group_result_parser.rb` | Pure PORO — parses group result PDF text into match pairs using a pair-accumulator pattern |
+| `Umb::PdfParser::RankingParser` | `app/services/umb/pdf_parser/ranking_parser.rb` | Pure PORO — parses final or weekly ranking PDF text; supports `:final` and `:weekly` type modes |
 
 ## Getting Started
 

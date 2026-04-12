@@ -4,14 +4,15 @@
 
 1. [Übersicht](#uebersicht)
 2. [Architektur](#architektur)
-3. [Erste Schritte](#erste-schritte)
-4. [Datenbank-Setup](#datenbank-setup)
-5. [Datenbankdesign](#datenbankdesign)
-6. [Kern-Models](#kern-models)
-7. [Hauptfunktionen](#hauptfunktionen)
-8. [Entwicklungsworkflow](#entwicklungsworkflow)
-9. [Deployment](#deployment)
-10. [Mitwirken](#mitwirken)
+3. [Extrahierte Services](#extrahierte-services)
+4. [Erste Schritte](#erste-schritte)
+5. [Datenbank-Setup](#datenbank-setup)
+6. [Datenbankdesign](#datenbankdesign)
+7. [Kern-Models](#kern-models)
+8. [Hauptfunktionen](#hauptfunktionen)
+9. [Entwicklungsworkflow](#entwicklungsworkflow)
+10. [Deployment](#deployment)
+11. [Mitwirken](#mitwirken)
 
 ## Übersicht {#uebersicht}
 
@@ -65,6 +66,82 @@ Die Anwendung verwendet Rails Concerns, um Funktionalität zu teilen:
 - **Action Cable**: WebSocket-Verbindungen für Live-Updates
 - **Stimulus Reflex**: Server-seitige Reflexe für reaktive UI
 - **Cable Ready**: Client-seitige DOM-Manipulation
+
+## Extrahierte Services
+
+Aus den ursprünglichen God-Objects wurden 35 Services in 7 Namespaces extrahiert. Jeder Service hat eine einzige, klar abgegrenzte Verantwortlichkeit.
+
+### TableMonitor:: (2 Services)
+
+| Service-Klasse | Datei | Beschreibung |
+|---|---|---|
+| `TableMonitor::GameSetup` | `app/services/table_monitor/game_setup.rb` | Kapselt die start_game-Logik — erstellt Game/GameParticipation-Records, baut Result-Hash auf und stellt TableMonitorJob in die Warteschlange |
+| `TableMonitor::ResultRecorder` | `app/services/table_monitor/result_recorder.rb` | Ergebnis-Persistierung — speichert Set-Daten, navigiert zwischen Sets und koordiniert AASM-State-Transitions |
+
+### RegionCc:: (10 Services)
+
+| Service-Klasse | Datei | Beschreibung |
+|---|---|---|
+| `RegionCc::BranchSyncer` | `app/services/region_cc/branch_syncer.rb` | Synchronisiert BranchCc-Records (Disziplinen) von der ClubCloud-API |
+| `RegionCc::ClubCloudClient` | `app/services/region_cc/club_cloud_client.rb` | Zustandsloser HTTP-Transport für die ClubCloud-Admin-Schnittstelle — keine ORM-Kopplung, unterstützt Sessions und Dry-Run-Modus |
+| `RegionCc::ClubSyncer` | `app/services/region_cc/club_syncer.rb` | Synchronisiert Club-Records von der ClubCloud-API |
+| `RegionCc::CompetitionSyncer` | `app/services/region_cc/competition_syncer.rb` | Synchronisiert Wettbewerbs- und Saison-Daten von ClubCloud |
+| `RegionCc::GamePlanSyncer` | `app/services/region_cc/game_plan_syncer.rb` | Synchronisiert GamePlanCc- und GameDetailCc-Records einschließlich komplexem HTML-Tabellen-Parsing |
+| `RegionCc::LeagueSyncer` | `app/services/region_cc/league_syncer.rb` | Dispatcher für Liga-Sync — koordiniert Ligen, Teams, Spielpläne und Spieler-Synchronisation |
+| `RegionCc::MetadataSyncer` | `app/services/region_cc/metadata_syncer.rb` | Synchronisiert Metadaten-Referenzobjekte (Kategorien, Gruppen, Disziplinen) von ClubCloud |
+| `RegionCc::PartySyncer` | `app/services/region_cc/party_syncer.rb` | Synchronisiert PartyCc-Records und Match-Daten von ClubCloud |
+| `RegionCc::RegistrationSyncer` | `app/services/region_cc/registration_syncer.rb` | Synchronisiert Meldelisten-Records von ClubCloud |
+| `RegionCc::TournamentSyncer` | `app/services/region_cc/tournament_syncer.rb` | Synchronisiert Turnier-, Turnierserie- und Meisterschaftstyp-Daten von ClubCloud |
+
+### Tournament:: (3 Services)
+
+| Service-Klasse | Datei | Beschreibung |
+|---|---|---|
+| `Tournament::PublicCcScraper` | `app/services/tournament/public_cc_scraper.rb` | Scrapet Turnierdaten von öffentlicher ClubCloud-URL — verarbeitet Setzlisten, Spiele und Rankings |
+| `Tournament::RankingCalculator` | `app/services/tournament/ranking_calculator.rb` | Berechnet und cached effektive Spieler-Rankings; ordnet Setzlisten nach Wettbewerb neu |
+| `Tournament::TableReservationService` | `app/services/tournament/table_reservation_service.rb` | Erstellt Google-Calendar-Events für Tischreservierungen mit Guard-Condition-Validierung |
+
+### TournamentMonitor:: (4 Services)
+
+| Service-Klasse | Datei | Beschreibung |
+|---|---|---|
+| `TournamentMonitor::PlayerGroupDistributor` | `app/services/tournament_monitor/player_group_distributor.rb` | Reines PORO — verteilt Spieler auf Gruppen mittels Zickzack- oder Round-Robin-Verfahren nach NBV-Regeln |
+| `TournamentMonitor::RankingResolver` | `app/services/tournament_monitor/ranking_resolver.rb` | Reines PORO — löst Spieler-IDs aus Ranking-Rule-Strings auf (Gruppenränge, KO-Bracket-Referenzen) |
+| `TournamentMonitor::ResultProcessor` | `app/services/tournament_monitor/result_processor.rb` | Verarbeitet Spielergebnisse mit pessimistischem DB-Lock — koordiniert ClubCloud-Upload und GameParticipation-Updates |
+| `TournamentMonitor::TablePopulator` | `app/services/tournament_monitor/table_populator.rb` | Weist Spiele Turniertischen zu — initialisiert TableMonitor-Records und führt den Platzierungs-Algorithmus aus |
+
+### League:: (4 Services)
+
+| Service-Klasse | Datei | Beschreibung |
+|---|---|---|
+| `League::BbvScraper` | `app/services/league/bbv_scraper.rb` | Scrapet BBV-spezifische Ligadaten (Teams und Ergebnisse) |
+| `League::ClubCloudScraper` | `app/services/league/club_cloud_scraper.rb` | Scrapet Ligadaten von ClubCloud — Teams, Partien und Spielpläne |
+| `League::GamePlanReconstructor` | `app/services/league/game_plan_reconstructor.rb` | Rekonstruiert GamePlan aus bestehenden Parties und PartyGames |
+| `League::StandingsCalculator` | `app/services/league/standings_calculator.rb` | Berechnet Liga-Tabellen für Karambol, Snooker und Pool |
+
+### PartyMonitor:: (2 Services)
+
+| Service-Klasse | Datei | Beschreibung |
+|---|---|---|
+| `PartyMonitor::ResultProcessor` | `app/services/party_monitor/result_processor.rb` | Verarbeitet Spielergebnisse im PartyMonitor-Kontext mit pessimistischem DB-Lock |
+| `PartyMonitor::TablePopulator` | `app/services/party_monitor/table_populator.rb` | Setzt PartyMonitor zurück und weist TableMonitor-Records den Party-Tischen zu |
+
+### Umb:: (10 Services)
+
+Detaillierte Architekturdokumentation: [UMB Scraping — Architektur](umb-scraping-implementation.md) und [UMB Scraping — Methoden-Referenz](umb-scraping-methods.md).
+
+| Service-Klasse | Datei | Beschreibung |
+|---|---|---|
+| `Umb::HttpClient` | `app/services/umb/http_client.rb` | Zustandsloser HTTP-Transport — ruft HTML- und PDF-Inhalte von UMB-URLs ab, behandelt SSL, Weiterleitungen und Timeouts |
+| `Umb::DisciplineDetector` | `app/services/umb/discipline_detector.rb` | Zustandsloses PORO — ordnet Turniernamen via Regex und DB-ILIKE-Fallback `Discipline`-Records zu |
+| `Umb::DateHelpers` | `app/services/umb/date_helpers.rb` | Modul mit `module_function` — parst UMB-Datumsbereichs-Strings (gleicher Monat und monatsübergreifend) in `{start_date:, end_date:}` |
+| `Umb::PlayerResolver` | `app/services/umb/player_resolver.rb` | Findet oder erstellt `Player`-Records aus UMB-Caps/Misch-Namenspaaren mit umb_player_id- und Nationalitäts-Anreicherung |
+| `Umb::FutureScraper` | `app/services/umb/future_scraper.rb` | Scrapet `FutureTournaments.aspx`, parst HTML-Tabelle einschließlich monatsübergreifender Events und upserted `InternationalTournament`-Records |
+| `Umb::ArchiveScraper` | `app/services/umb/archive_scraper.rb` | Sequenzieller ID-Scan von `TournametDetails.aspx?ID=N` — entdeckt und speichert historische Turnier-Records |
+| `Umb::DetailsScraper` | `app/services/umb/details_scraper.rb` | Scrapet eine Turnier-Detailseite, extrahiert PDF-Links, erstellt `InternationalGame`-Records und orchestriert die PDF-Pipeline |
+| `Umb::PdfParser::PlayerListParser` | `app/services/umb/pdf_parser/player_list_parser.rb` | Reines PORO — parst Spieler-Setzlisten-PDF-Text in `{caps_name:, mixed_name:, nationality:, position:}`-Hashes |
+| `Umb::PdfParser::GroupResultParser` | `app/services/umb/pdf_parser/group_result_parser.rb` | Reines PORO — parst Gruppenresultat-PDF-Text in Match-Paare mittels Paar-Akkumulator-Muster |
+| `Umb::PdfParser::RankingParser` | `app/services/umb/pdf_parser/ranking_parser.rb` | Reines PORO — parst Abschluss- oder Wochen-Ranking-PDF-Text; unterstützt die Modi `:final` und `:weekly` |
 
 ## Erste Schritte
 
