@@ -2,11 +2,21 @@
 
 ## What This Is
 
-A focused improvement effort on the Carambus API codebase. v1.0–v4.0 broke down all six god-object models (27 extracted services), audited the test suite, and verified broadcast isolation. v5.0 refactored the 2718-line UMB scraper into 10 Umb:: services, discovered and integrated a SoopLive JSON API, implemented video cross-referencing with confidence-scored matching, and added UMB ranking PDF parsing. All seven original large service/model files are now appropriately sized.
+A focused improvement effort on the Carambus API codebase. v1.0–v5.0 broke down all large models/services (37 extracted services), audited tests, verified broadcast isolation, refactored scrapers, and built video cross-referencing. v6.0 ensures the mkdocs-based documentation accurately reflects the post-refactoring codebase.
 
 ## Core Value
 
 A maintainable, well-tested codebase where every test is trustworthy and every model is appropriately sized.
+
+## Current Milestone: v6.0 Documentation Quality
+
+**Goal:** Ensure mkdocs-based documentation accurately reflects the post-refactoring codebase — every implemented feature documented, no references to unimplemented or deleted features, documentation quality on par with code quality.
+
+**Target features:**
+- Audit existing docs against actual codebase state
+- Remove/update references to deleted code (UmbScraperV2, old model structures)
+- Document new services and features from v1.0–v5.0
+- Verify multilingual consistency (de/en)
 
 
 ## Requirements
@@ -58,7 +68,10 @@ A maintainable, well-tested codebase where every test is trustworthy and every m
 
 ### Active
 
-(None — next milestone will define new requirements)
+- [ ] Audit docs against codebase — identify stale, missing, and incorrect documentation
+- [ ] Update/remove references to deleted or refactored code
+- [ ] Document new features and services from v1.0–v5.0
+- [ ] Verify multilingual consistency (de/en)
 
 ### Out of Scope
 
@@ -150,4 +163,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-12 after v5.0 milestone completed*
+*Last updated: 2026-04-12 after v6.0 milestone started*
