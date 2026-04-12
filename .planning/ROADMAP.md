@@ -61,7 +61,7 @@ Phases 24-27 delivered: SoopLive JSON API discovered and integrated, UmbScraper 
 - [x] **Phase 28: Audit & Triage** - Build complete staleness inventory and two new audit scripts before any content editing (completed 2026-04-12)
 - [x] **Phase 29: Break-Fix** - Fix all 74 broken links and remove stale deleted-code references (completed 2026-04-12)
 - [x] **Phase 30: Content Updates** - Rewrite UMB scraping docs and update developer guide services sections to reflect post-v5.0 reality (completed 2026-04-12)
-- [ ] **Phase 31: New Documentation** - Create namespace overview pages for all 37 extracted services and the video cross-referencing system
+- [x] **Phase 31: New Documentation** - Create namespace overview pages for all 37 extracted services and the video cross-referencing system (completed 2026-04-12)
 - [ ] **Phase 32: Nav, i18n & Verification** - Add new docs to mkdocs.yml nav, resolve bilingual gaps, and verify clean build
 
 ## Phase Details
@@ -117,11 +117,11 @@ Plans:
   1. 8 namespace overview pages exist covering all 37 extracted services (TableMonitor::, RegionCc::, Tournament::, TournamentMonitor::, League::, PartyMonitor::, Umb::, Video::) — each page describes namespace role, public interface, and data contract; no private method documentation
   2. A `Video::` cross-referencing page (both `.de.md` and `.en.md`) documents Video::TournamentMatcher confidence scoring (0.75 threshold, two-path matching), Video::MetadataExtractor (regex-first + AI fallback), SoopliveBilliardsClient (replay_no linking), and the operational workflow for backfill vs incremental matching
   3. All new pages are written in both `.de.md` and `.en.md` — the EN version is not a stub; it has the same architecture coverage as DE
-**Plans:** 3 plans
+**Plans:** 3/3 plans complete
 Plans:
-- [ ] 31-01-PLAN.md — Create TableMonitor::, RegionCc::, Tournament::, TournamentMonitor:: namespace pages (DE+EN)
-- [ ] 31-02-PLAN.md — Create League::, PartyMonitor::, Umb:: namespace pages (DE+EN)
-- [ ] 31-03-PLAN.md — Create Video:: cross-referencing page (DE+EN)
+- [x] 31-01-PLAN.md — Create TableMonitor::, RegionCc::, Tournament::, TournamentMonitor:: namespace pages (DE+EN)
+- [x] 31-02-PLAN.md — Create League::, PartyMonitor::, Umb:: namespace pages (DE+EN)
+- [x] 31-03-PLAN.md — Create Video:: cross-referencing page (DE+EN)
 
 ### Phase 32: Nav, i18n & Verification
 **Goal**: All new Phase 31 documentation is reachable from the mkdocs.yml nav in both languages, in-nav bilingual gaps are resolved, and `mkdocs build --strict` passes with zero warnings
@@ -153,5 +153,5 @@ Phases execute in numeric order: 28 → 29 → 30 → 31 → 32
 | 28. Audit & Triage | v6.0 | 2/2 | Complete    | 2026-04-12 |
 | 29. Break-Fix | v6.0 | 2/2 | Complete    | 2026-04-12 |
 | 30. Content Updates | v6.0 | 2/2 | Complete    | 2026-04-12 |
-| 31. New Documentation | v6.0 | 0/3 | Not started | - |
+| 31. New Documentation | v6.0 | 3/3 | Complete    | 2026-04-12 |
 | 32. Nav, i18n & Verification | v6.0 | 0/TBD | Not started | - |
