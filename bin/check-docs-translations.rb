@@ -41,13 +41,14 @@ class DocsTranslationChecker
     if @nav_only
       nav_bases = collect_nav_bases
       check_nav_pairs(nav_bases)
+      print_findings
+      print_summary(nav_bases.size, nav_bases.size)
     else
       @missing_en = (de_bases - en_bases).sort
       @missing_de = (en_bases - de_bases).sort
+      print_findings
+      print_summary(de_bases.size, en_bases.size)
     end
-
-    print_findings
-    print_summary(de_bases.size, en_bases.size)
   end
 
   private
