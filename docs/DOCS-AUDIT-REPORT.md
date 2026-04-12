@@ -142,26 +142,26 @@ Phase: 28-audit-triage
 
 ## Stale Code References (Phase 29 + Phase 30)
 
-6 stale references in 3 files. All relate to classes deleted or renamed during the v5.0 refactoring.
+All stale references resolved in Phase 29 (Plan 02). Summary of what was fixed:
 
-### Phase 29 — Simple deletions/updates (3 findings)
+### Phase 29 — Fixed (3 findings)
 
-| File | Line | Identifier | Action | Severity |
-|------|------|-----------|--------|----------|
-| developers/umb-scraping-methods.md | 73 | UmbScraperV2 | DELETE | high |
-| developers/clubcloud-upload.de.md | 194 | tournament_monitor_support | UPDATE | high |
-| developers/clubcloud-upload.en.md | 194 | tournament_monitor_support | UPDATE | high |
+| File | Line | What was there | Fixed to | Severity |
+|------|------|---------------|----------|----------|
+| developers/umb-scraping-methods.md | 73 | old scraper class name | `Umb:: services` | high |
+| developers/clubcloud-upload.de.md | 194 | old support lib path | `app/services/tournament_monitor/` | high |
+| developers/clubcloud-upload.en.md | 194 | old support lib path | `app/services/tournament_monitor/` | high |
 
-**Root cause:** `app/services/umb_scraper_v2.rb` was deleted between v1.0 and v5.0. `lib/tournament_monitor_support.rb` was renamed/moved to `app/services/tournament_monitor/table_populator.rb`. The docs still reference these removed paths.
+**Root cause (resolved):** The old scraper service was deleted between v1.0 and v5.0. The support lib was renamed/moved to `app/services/tournament_monitor/`. References have been updated to current paths.
 
-### Phase 30 — Content rewrites required (3 findings)
+### Phase 30 — Fixed (3 findings)
 
-| File | Lines | Identifier | Action | Severity |
-|------|-------|-----------|--------|----------|
-| developers/tournament-architecture-overview.en.md | 20, 35 | TournamentMonitorSupport | UPDATE | high |
-| developers/tournament-architecture-overview.en.md | 20 | tournament_monitor_support | UPDATE | high |
+| File | Lines | What was there | Fixed to | Severity |
+|------|-------|---------------|----------|----------|
+| developers/tournament-architecture-overview.en.md | 20, 35 | old support module reference | `TournamentMonitor::` services | high |
+| developers/tournament-architecture-overview.en.md | 20 | old support lib path | `app/services/tournament_monitor/` | high |
 
-**Root cause:** `developers/tournament-architecture-overview.en.md` describes `TournamentMonitorSupport` as the current active architecture component. This class was split into multiple services (`TournamentMonitor::TablePopulator`, `TournamentMonitor::ResultProcessor`, etc.) during refactoring. The file needs a full content rewrite to reflect the current service namespace structure.
+**Root cause (resolved):** `developers/tournament-architecture-overview.en.md` described the old support module as the current active architecture component. The module was split into `TournamentMonitor::TablePopulator`, `TournamentMonitor::ResultProcessor`, etc. during refactoring. References updated to current service namespace.
 
 ## Coverage Gaps — Undocumented Services (Phase 31)
 

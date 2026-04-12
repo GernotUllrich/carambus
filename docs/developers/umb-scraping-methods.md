@@ -70,7 +70,7 @@ rake umb_v2:scrape_range[300,400] RAILS_ENV=production
 
 **Besonderheiten:**
 - ✅ Verbessertes KO-Runden-Parsing
-- ✅ Moderne Code-Struktur (UmbScraperV2)
+- ✅ Moderne Code-Struktur (Umb:: services)
 - ⚠️ Noch in Entwicklung
 
 **Verwendung:** Für spezielle Fälle oder Testing
