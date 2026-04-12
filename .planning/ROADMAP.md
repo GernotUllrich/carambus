@@ -67,7 +67,10 @@ Phases 20-23 delivered: League 2221→663 lines (4 services: StandingsCalculator
   2. `umb.cuesco.net` network traffic is inspected and any AJAX/JSON endpoints for match data are listed with sample responses
   3. `billiards.sooplive.com/schedule/` pages are inspected and any structured VOD/match data endpoints are documented including `data-seq` attribute behavior
   4. A written findings document exists in `.planning/` covering data availability, completeness vs current UMB scraping, and go/no-go decision for API integration
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 24-01-PLAN.md — Script-based probes for umbevents and SoopLive endpoints
+- [ ] 24-02-PLAN.md — Cuesco browser inspection + consolidated findings document
 
 ### Phase 25: Characterization Tests & Bug Fixes
 **Goal**: Every public UmbScraper method has a VCR-backed characterization test, and three pre-existing bugs are fixed before extraction begins
