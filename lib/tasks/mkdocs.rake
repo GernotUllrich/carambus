@@ -83,7 +83,7 @@ namespace :mkdocs do
     # Build to temp dir to avoid polluting project with site/ artifacts
     tmp_dir = "/tmp/mkdocs-check-#{Process.pid}"
     puts "Running mkdocs build --strict (output to #{tmp_dir})..."
-    success = system("mkdocs build --strict --site-dir #{tmp_dir} 2>&1")
+    success = system("mkdocs", "build", "--strict", "--site-dir", tmp_dir)
 
     # Cleanup temp build artifacts
     FileUtils.rm_rf(tmp_dir) if Dir.exist?(tmp_dir)
