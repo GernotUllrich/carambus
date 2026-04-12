@@ -27,6 +27,20 @@ class DailyInternationalScrapeJob < ApplicationJob
     scraped_count += soop_count
     Rails.logger.info "[DailyInternationalScrape] Scraped #{soop_count} SoopLive videos"
 
+    # Step 1b: Sync SoopLive billiards match data (NEW - per D-04)
+    begin
+      if defined?(SoopliveBilliardsClient)
+        client = SoopliveBilliardsClient.new
+        games = client.fetch_games
+        if games.present?
+          Rails.logger.info "[DailyInternationalScrape] Fetched #{games.size} SoopLive billiards tournaments"
+          # Match data is fetched on-demand during VOD linking, not bulk-fetched here
+        end
+      end
+    rescue StandardError => e
+      Rails.logger.error "[DailyInternationalScrape] Error syncing SoopLive billiards: #{e.message}"
+    end
+
     kozoom_count = 0
     begin
       email = Rails.application.credentials.dig(:kozoom, :email)
@@ -56,13 +70,41 @@ class DailyInternationalScrapeJob < ApplicationJob
     end
     Rails.logger.info "[DailyInternationalScrape] Auto-tagged #{process_count} videos"
 
-    # Step 3: Discover new tournaments (if service exists)
+    # Step 3a: Discover new tournaments from video metadata (existing)
     tournament_count = 0
     if defined?(TournamentDiscoveryService)
-      discovery_service = TournamentDiscoveryService.new
-      discovery_result = discovery_service.discover_from_videos
-      tournament_count = discovery_result[:tournaments].size
-      Rails.logger.info "[DailyInternationalScrape] Discovered #{tournament_count} tournaments"
+      begin
+        discovery_service = TournamentDiscoveryService.new
+        discovery_result = discovery_service.discover_from_videos
+        tournament_count = discovery_result[:tournaments].size
+        Rails.logger.info "[DailyInternationalScrape] Discovered #{tournament_count} tournaments"
+      rescue StandardError => e
+        Rails.logger.error "[DailyInternationalScrape] Error discovering tournaments: #{e.message}"
+      end
+    end
+
+    # Step 3b: Match unassigned videos to tournaments (NEW - per D-08)
+    match_count = 0
+    begin
+      if defined?(Video::TournamentMatcher)
+        result = Video::TournamentMatcher.call
+        match_count = result[:assigned_count]
+        Rails.logger.info "[DailyInternationalScrape] Matched #{match_count} videos to tournaments"
+      end
+    rescue StandardError => e
+      Rails.logger.error "[DailyInternationalScrape] Error matching videos: #{e.message}"
+    end
+
+    # Step 3c: Kozoom eventId cross-referencing (NEW - VIDEO-03)
+    kozoom_match_count = 0
+    begin
+      if defined?(SoopliveBilliardsClient)
+        kozoom_result = SoopliveBilliardsClient.cross_reference_kozoom_videos
+        kozoom_match_count = kozoom_result[:assigned_count]
+        Rails.logger.info "[DailyInternationalScrape] Kozoom cross-referenced #{kozoom_match_count} videos"
+      end
+    rescue StandardError => e
+      Rails.logger.error "[DailyInternationalScrape] Error in Kozoom cross-ref: #{e.message}"
     end
 
     # Step 4: Translate new videos (limit to 100 per day to save costs)
@@ -114,7 +156,8 @@ class DailyInternationalScrapeJob < ApplicationJob
       scraped: scraped_count,
       processed: process_count,
       tournaments: tournament_count,
-      translated: translated_count
+      translated: translated_count,
+      matched: match_count + kozoom_match_count
     }
   end
 end
