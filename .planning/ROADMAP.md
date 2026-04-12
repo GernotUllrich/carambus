@@ -176,8 +176,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 23-01-PLAN.md — Fix fixtures + pre-existing failure + LeaguesController + LeagueTeamsController tests
-- [ ] 23-02-PLAN.md — PartyMonitorsController fix/extend + PartiesController + PartyMonitorReflex tests + COV-02
+- [x] 23-01-PLAN.md — Fix fixtures + pre-existing failure + LeaguesController + LeagueTeamsController tests
+- [x] 23-02-PLAN.md — PartyMonitorsController fix/extend + PartiesController + PartyMonitorReflex tests + COV-02
 
 ## Progress
 
@@ -193,4 +193,4 @@ Phases execute in numeric order: 20 → 21 → 22 → 23
 | 20. Characterization | v4.0 | 3/3 | Complete    | 2026-04-11 |
 | 21. League Extraction | v4.0 | 2/2 | Complete    | 2026-04-11 |
 | 22. PartyMonitor Extraction | v4.0 | 2/2 | Complete    | 2026-04-11 |
-| 23. Coverage | v4.0 | 0/2 | Not started | - |
+| 23. Coverage | v4.0 | 2/2 | Complete    | 2026-04-12 |
