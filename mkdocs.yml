@@ -164,7 +164,6 @@ nav:
       - Developer Guide: developers/developer-guide.md
       - Database Design: developers/database-design.md
       - ER Diagram: developers/er-diagram.md
-      - API Reference: reference/api.md
       - Scenario Management: developers/scenario-management.md
       - Scenario Workflow: developers/scenario-workflow.md
       - RubyMine Setup: developers/rubymine-setup.md
