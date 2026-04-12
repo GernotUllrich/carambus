@@ -1,59 +1,34 @@
 ---
 gsd_state_version: 1.0
-milestone: v4.0
-milestone_name: League & PartyMonitor Refactoring
-status: executing
-stopped_at: Phase 23 context gathered
-last_updated: "2026-04-12T09:19:58.552Z"
+milestone: v5.0
+milestone_name: UMB Scraper Überarbeitung
+status: defining
+stopped_at: null
+last_updated: "2026-04-12"
 last_activity: 2026-04-12
 progress:
-  total_phases: 4
-  completed_phases: 4
-  total_plans: 9
-  completed_plans: 9
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-04-11)
+See: .planning/PROJECT.md (updated 2026-04-12)
 
 **Core value:** A maintainable, well-tested codebase where every test is trustworthy and every model is appropriately sized.
-**Current focus:** Phase 20 — Characterization (League, PartyMonitor, Party, LeagueTeam)
+**Current focus:** Defining requirements for v5.0
 
 ## Current Position
 
-Phase: 23 of 23 (coverage)
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-04-12
-
-Progress: [░░░░░░░░░░] 0% (v4.0 phases)
-
-## Performance Metrics
-
-**Velocity:**
-
-- Total plans completed: 9 (v4.0)
-- Average duration: ~15 min (prior milestones)
-- Total execution time: 0
-
-**By Phase:**
-
-| Phase | Plans | Total | Avg/Plan |
-|-------|-------|-------|----------|
-| 20. Characterization | TBD | - | - |
-| 21. League Extraction | TBD | - | - |
-| 22. PartyMonitor Extraction | TBD | - | - |
-| 23. Coverage | TBD | - | - |
-| 20 | 3 | - | - |
-| 21 | 2 | - | - |
-| 22 | 2 | - | - |
-| 23 | 2 | - | - |
-
-*Updated after each plan completion*
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-04-12 — Milestone v5.0 started
 
 ## Accumulated Context
 
@@ -62,10 +37,9 @@ Progress: [░░░░░░░░░░] 0% (v4.0 phases)
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
-- League (2219 lines) and PartyMonitor (605 lines) are primary extraction targets
-- Party (216 lines) and LeagueTeam (63 lines) get characterization only (not extraction)
-- Follow v2.1 pattern: characterize → extract League (high-risk) → extract PartyMonitor → coverage
-- Services namespace: follow app/services/league/ and app/services/party_monitor/ pattern from v1.0/v2.1
+- UMB scraper gets refactored regardless of whether better data sources are found
+- Video cross-referencing covers YouTube + Kozoom + SoopLive + UMB video pages
+- Core data scope: tournaments, results, player info
 
 ### Pending Todos
 
@@ -73,11 +47,5 @@ None yet.
 
 ### Blockers/Concerns
 
-- League is 2219 lines — largest model tackled so far; characterization scope may need scoping decisions before extraction
-- Review TournamentMonitor extraction patterns before planning Phase 22 (closest analog to PartyMonitor)
-
-## Session Continuity
-
-Last session: 2026-04-11T23:17:32.011Z
-Stopped at: Phase 23 context gathered
-Resume file: .planning/phases/23-coverage/23-CONTEXT.md
+- UMB website structure is poorly documented — research phase critical before committing to architecture
+- Two scraper files (v1: 2133 lines, v2: 585 lines) — relationship and overlap needs mapping

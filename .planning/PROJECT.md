@@ -2,11 +2,21 @@
 
 ## What This Is
 
-A focused improvement effort on the Carambus API codebase. v1.0–v2.1 broke down the four largest model classes and audited the test suite. v3.0 verified broadcast isolation per-table. v4.0 broke down League (2221→663 lines) and PartyMonitor (605→217 lines) with 6 extracted services and comprehensive test coverage. All six original god-object models are now appropriately sized.
+A focused improvement effort on the Carambus API codebase. v1.0–v4.0 broke down all six god-object models (27 extracted services), audited the test suite, and verified broadcast isolation. v5.0 investigates better-structured UMB data sources and refactors the 2718-line UMB scraper, adding video cross-referencing to tournaments.
 
 ## Core Value
 
 A maintainable, well-tested codebase where every test is trustworthy and every model is appropriately sized.
+
+## Current Milestone: v5.0 UMB Scraper Überarbeitung
+
+**Goal:** Investigate better-structured UMB data sources (APIs, alternative sites, feeds), add cleaner data paths where found, refactor the existing 2718-line scraper code, and cross-reference videos to UMB tournaments.
+
+**Target features:**
+- Investigate alternative sources for UMB tournaments, results, and player info
+- Cross-reference videos (YouTube, Kozoom, SoopLive, UMB video) to live and historic UMB events
+- Refactor umb_scraper.rb (2133 lines) and umb_scraper_v2.rb (585 lines) into maintainable services
+- Integrate discovered cleaner data sources alongside or replacing current scraping
 
 
 ## Requirements
@@ -47,11 +57,18 @@ A maintainable, well-tested codebase where every test is trustworthy and every m
 - ✓ Extract service classes from PartyMonitor — v4.0 (2 services: TablePopulator, ResultProcessor; 605→217 lines, 64% reduction)
 - ✓ Controller/channel/job test coverage for League/Party/PartyMonitor — v4.0 (30 controller + 10 reflex tests, COV-02 documented, 901 runs green)
 
+### Active
+
+- [ ] Investigate alternative UMB data sources (APIs, alternative websites, data feeds)
+- [ ] Cross-reference videos (YouTube, Kozoom, SoopLive, UMB video) to live and historic UMB events
+- [ ] Refactor umb_scraper.rb (2133 lines) into maintainable service classes
+- [ ] Refactor umb_scraper_v2.rb (585 lines) into maintainable service classes
+- [ ] Integrate discovered cleaner data sources alongside or replacing current scraping
+
 ### Out of Scope
 
 - New test coverage for remaining untested models, controllers, services — separate milestone
 - Architecture or stack changes — not in scope for current project
-- Scraper consolidation (UmbScraper v1/v2) — separate concern
 
 ## Context
 
@@ -125,4 +142,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-12 after v4.0 milestone completed*
+*Last updated: 2026-04-12 after v5.0 milestone started*
