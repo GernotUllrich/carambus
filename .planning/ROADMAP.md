@@ -53,8 +53,7 @@ Phases 20-23 delivered: League 2221→663 lines (4 services: StandingsCalculator
 - [x] **Phase 24: Data Source Investigation** - Probe Cuesco, SoopLive, and UMB events endpoints; document go/no-go findings (completed 2026-04-12)
 - [x] **Phase 25: Characterization Tests & Bug Fixes** - VCR cassettes for all UmbScraper public methods; fix three pre-existing bugs (completed 2026-04-12)
 - [ ] **Phase 26: UmbScraper Service Extraction** - Extract six `Umb::` namespaced service classes bottom-up; reduce UmbScraper to thin facade
-- [ ] **Phase 27: UmbScraperV2 Resolution** - Merge overlapping V2 logic into `Umb::` services; reduce UmbScraperV2 to thin facade
-- [ ] **Phase 28: Video Cross-Referencing** - Build `Video::TournamentMatcher` and `Video::MetadataExtractor`; wire into DailyInternationalScrapeJob
+- [ ] **Phase 27: Video Cross-Referencing** - Build `Video::TournamentMatcher` and `Video::MetadataExtractor`; wire into DailyInternationalScrapeJob
 
 ## Phase Details
 
@@ -88,29 +87,21 @@ Plans:
 - [x] 25-02-PLAN.md — UmbScraper characterization tests with VCR cassettes (SCRP-01)
 - [x] 25-03-PLAN.md — UmbScraperV2 characterization tests with VCR cassettes (SCRP-02)
 
-### Phase 26: UmbScraper Service Extraction
-**Goal**: `app/services/umb/` contains six focused service classes extracted bottom-up; `umb_scraper.rb` is a thin delegation wrapper and all existing callers are unchanged
+### Phase 26: UmbScraper Service Extraction + V2 Absorption
+**Goal**: `app/services/umb/` contains focused service classes extracted from both UmbScraper and UmbScraperV2; V2's PDF parsing is absorbed as `Umb::PdfParser` (first-class service for match-level data); `umb_scraper.rb` is a thin delegation wrapper; `umb_scraper_v2.rb` is deprecated
 **Depends on**: Phase 25
-**Requirements**: SCRP-06
+**Requirements**: SCRP-06, SCRP-07
 **Success Criteria** (what must be TRUE):
   1. `Umb::HttpClient` (PORO) exists with environment-guarded SSL handling, replacing all per-scraper `fetch_url` duplication
   2. `Umb::PlayerResolver`, `Umb::PdfParser`, `Umb::DetailsScraper`, `Umb::FutureScraper`, `Umb::ArchiveScraper` each exist as independently testable service classes in `app/services/umb/`
-  3. `umb_scraper.rb` is reduced to a thin delegation wrapper: all three callers (`ScrapeUmbJob`, `ScrapeUmbArchiveJob`, `Admin::IncompleteRecordsController`) and the `umb:update` rake task are unchanged
-  4. All Phase 25 characterization tests still pass after extraction; `bin/rails test` is green; `brakeman` reports no new warnings
+  3. `Umb::PdfParser` absorbs UmbScraperV2's PDF parsing logic (player lists, group results) as the primary match-level data source for video correlation
+  4. `umb_scraper.rb` is reduced to a thin delegation wrapper: all three callers (`ScrapeUmbJob`, `ScrapeUmbArchiveJob`, `Admin::IncompleteRecordsController`) and the `umb:update` rake task are unchanged
+  5. `umb_scraper_v2.rb` is deprecated: its unique PDF parsing logic lives in `Umb::PdfParser`; overlapping HTML parsing routes through Phase 26 services
+  6. All Phase 25 characterization tests still pass after extraction; `bin/rails test` is green; `brakeman` reports no new warnings
 **Plans**: TBD
 **UI hint**: no
 
-### Phase 27: UmbScraperV2 Resolution
-**Goal**: Duplicate logic between UmbScraper and UmbScraperV2 is eliminated by routing V2 through the extracted `Umb::` services; UmbScraperV2 is a thin facade with no dead code
-**Depends on**: Phase 26
-**Requirements**: SCRP-07
-**Success Criteria** (what must be TRUE):
-  1. `UmbScraperV2` overlapping methods (`find_player_by_name`, `make_absolute_url`, `parse_date_range`, PDF reading) are removed and routed through the corresponding `Umb::` service classes from Phase 26
-  2. `umb_scraper_v2.rb` is reduced to a thin facade with no logic duplication; no dead code remains
-  3. All tests pass; `bin/rails test` is green with no regressions in V2-dependent code paths
-**Plans**: TBD
-
-### Phase 28: Video Cross-Referencing
+### Phase 27: Video Cross-Referencing
 **Goal**: Unassigned video records are automatically linked to `InternationalTournament` records by a confidence-scored matcher; `Video.unassigned.count` measurably decreases after each daily job run
 **Depends on**: Phase 26
 **Requirements**: VIDEO-01, VIDEO-02, VIDEO-03
@@ -125,7 +116,7 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 24 → 25 → 26 → 27 → 28
+Phases execute in numeric order: 24 → 25 → 26 → 27
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -137,5 +128,4 @@ Phases execute in numeric order: 24 → 25 → 26 → 27 → 28
 | 24. Data Source Investigation | v5.0 | 2/2 | Complete   | 2026-04-12 |
 | 25. Characterization Tests & Bug Fixes | v5.0 | 3/3 | Complete   | 2026-04-12 |
 | 26. UmbScraper Service Extraction | v5.0 | 0/TBD | Not started | - |
-| 27. UmbScraperV2 Resolution | v5.0 | 0/TBD | Not started | - |
-| 28. Video Cross-Referencing | v5.0 | 0/TBD | Not started | - |
+| 27. Video Cross-Referencing | v5.0 | 0/TBD | Not started | - |

@@ -4,10 +4,10 @@ milestone: v5.0
 milestone_name: UMB Scraper Überarbeitung
 status: executing
 stopped_at: Phase 25 execution complete
-last_updated: "2026-04-12T13:36:37.745Z"
+last_updated: "2026-04-12T13:50:50.644Z"
 last_activity: 2026-04-12 -- Phase 25 planning complete
 progress:
-  total_phases: 5
+  total_phases: 4
   completed_phases: 2
   total_plans: 5
   completed_plans: 5
@@ -25,7 +25,7 @@ See: .planning/PROJECT.md (updated 2026-04-12)
 
 ## Current Position
 
-Phase: 24 of 28 (Data Source Investigation)
+Phase: 24 of 27 (Data Source Investigation)
 Plan: — of — (not yet planned)
 Status: Ready to execute
 Last activity: 2026-04-12 -- Phase 25 planning complete

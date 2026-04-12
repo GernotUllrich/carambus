@@ -72,10 +72,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SCRP-04 | Phase 25 | Pending |
 | SCRP-05 | Phase 25 | Pending |
 | SCRP-06 | Phase 26 | Pending |
-| SCRP-07 | Phase 27 | Pending |
-| VIDEO-01 | Phase 28 | Pending |
-| VIDEO-02 | Phase 28 | Pending |
-| VIDEO-03 | Phase 28 | Pending |
+| SCRP-07 | Phase 26 | Pending |
+| VIDEO-01 | Phase 27 | Pending |
+| VIDEO-02 | Phase 27 | Pending |
+| VIDEO-03 | Phase 27 | Pending |
 
 **Coverage:**
 - v5.0 requirements: 14 total
