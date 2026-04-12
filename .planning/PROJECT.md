@@ -163,4 +163,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-12 after v6.0 milestone started*
+*Last updated: 2026-04-12 after Phase 28 (Audit & Triage) complete — staleness inventory produced, audit tooling deployed*
