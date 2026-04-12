@@ -261,15 +261,15 @@ For automatic online deployment:
 
 ### 🔗 Links and Navigation
 
-- **Use relative links**: `[Text](file.md)`
-- **Anchor links** for sections: `[Text](file.md#section)`
+- **Use relative links**: `[Text]&#40;file.md&#41;`
+- **Anchor links** for sections: `[Text]&#40;file.md#section&#41;`
 - **External links** with full URL
 
 ### 🖼️ Images and Media
 
 ```markdown
-![Alt text](assets/image.png){width="100%"}
-![Alt text](assets/image.png){: .center width="50%"}
+![Alt text]&#40;assets/image.png&#41;{width="100%"}
+![Alt text]&#40;assets/image.png&#41;{: .center width="50%"}
 ```
 
 ### ⚠️ Warnings and Notes

@@ -40,7 +40,7 @@ Das Carambus Scoreboard ist ein vollständiges Anzeigesystem für Billardspiele,
 
 ### Willkommensbildschirm
 
-![Willkommensbildschirm](screenshots/scoreboard_welcome.png)
+*[Willkommensbildschirm — Screenshot ausstehend]*
 
 Der Willkommensbildschirm ist der Startpunkt für alle Scoreboard-Aktivitäten. Von hier aus können Sie:
 
@@ -167,7 +167,7 @@ Siehe [Anhang: Training-Spiele einrichten](#anhang-training-spiele-einrichten)
 
 ### 2. Einspielzeit (Warm-up)
 
-![Einspielzeit](screenshots/scoreboard_warmup.png)
+*[Einspielzeit — Screenshot ausstehend]*
 
 Beide Spieler haben Zeit zum Einspielen:
 
@@ -183,7 +183,7 @@ Beide Spieler haben Zeit zum Einspielen:
 
 ### 3. Ausstoßen (Shootout)
 
-![Ausstoßen](screenshots/scoreboard_shootout.png)
+*[Ausstoßen — Screenshot ausstehend]*
 
 Bestimmen Sie, wer das Spiel beginnt:
 
@@ -198,7 +198,7 @@ Bestimmen Sie, wer das Spiel beginnt:
 
 ### 4. Spiel läuft
 
-![Spiel läuft](screenshots/scoreboard_playing.png)
+*[Spiel läuft — Screenshot ausstehend]*
 
 Das Scoreboard wechselt in den **Spielmodus**.
 
@@ -301,7 +301,7 @@ Der Fullscreen-Modus ist ideal für:
 
 ### Dark Mode
 
-![Dark Mode](screenshots/scoreboard_dark.png)
+*[Dark Mode — Screenshot ausstehend]*
 
 **Umschalten:**
 - Klicken Sie auf das **Dark Mode Icon** 🌓 in der Menüleiste
@@ -421,7 +421,7 @@ Dieser Abschnitt erklärt, wie Sie schnell und einfach Trainingsspiele für frei
 
 #### 1. Tisch auswählen
 
-![Tischauswahl](screenshots/scoreboard_tables.png)
+*[Tischauswahl — Screenshot ausstehend]*
 
 1. Vom **Willkommensbildschirm** aus wählen Sie **"Tische"**
 2. Es erscheint eine Übersicht aller Tische der Location
@@ -433,7 +433,7 @@ Dieser Abschnitt erklärt, wie Sie schnell und einfach Trainingsspiele für frei
 
 #### 2. Spielform wählen
 
-![Spielform wählen](screenshots/scoreboard_game_choice.png)
+*[Spielform wählen — Screenshot ausstehend]*
 
 Nach Auswahl des Tisches erscheint ein Dialog zur Spielform-Auswahl:
 
@@ -448,7 +448,7 @@ Nach Auswahl des Tisches erscheint ein Dialog zur Spielform-Auswahl:
 
 #### 3. Spieler auswählen
 
-![Spieler auswählen](screenshots/scoreboard_player_selection.png)
+*[Spieler auswählen — Screenshot ausstehend]*
 
 ##### Spieler A
 
@@ -473,7 +473,7 @@ Je nach gewählter Spielform stehen verschiedene Parameter zur Verfügung:
 
 ##### Karambolage - Freie Partie
 
-![Freie Partie Setup](screenshots/scoreboard_free_game_setup.png)
+*[Freie Partie Setup — Screenshot ausstehend]*
 
 **Grundeinstellungen:**
 
@@ -499,7 +499,7 @@ Je nach gewählter Spielform stehen verschiedene Parameter zur Verfügung:
 
 ##### Karambolage - Quick Game (Schnellstart)
 
-![Quick Game](screenshots/scoreboard_quick_game.png)
+*[Quick Game — Screenshot ausstehend]*
 
 Für schnelles Starten ohne viele Einstellungen:
 
@@ -516,7 +516,7 @@ Für schnelles Starten ohne viele Einstellungen:
 
 ##### Pool-Billard
 
-![Pool Setup](screenshots/scoreboard_pool_setup.png)
+*[Pool Setup — Screenshot ausstehend]*
 
 **Disziplinen:**
 - **8-Ball** - Klassisches 8-Ball
