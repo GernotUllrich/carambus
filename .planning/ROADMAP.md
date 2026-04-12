@@ -82,7 +82,11 @@ Plans:
   3. `TournamentDiscoveryService` bug is fixed: `video.update(videoable: tournament)` replaces the non-existent `international_tournament_id` column reference, and `DailyInternationalScrapeJob` Steps 4-5 no longer abort
   4. `ScrapeUmbArchiveJob` keyword argument mismatch is fixed: `discipline:`, `year:`, `event_type:` are correctly passed to `UmbScraper#scrape_tournament_archive`
   5. SSL verification is environment-guarded across all scrapers: `VERIFY_NONE` only in development/test; `brakeman` reports no SSL warnings
-**Plans**: TBD
+**Plans:** 3 plans
+Plans:
+- [ ] 25-01-PLAN.md — Umb::HttpClient PORO + three bug fixes (SCRP-03, SCRP-04, SCRP-05)
+- [ ] 25-02-PLAN.md — UmbScraper characterization tests with VCR cassettes (SCRP-01)
+- [ ] 25-03-PLAN.md — UmbScraperV2 characterization tests with VCR cassettes (SCRP-02)
 
 ### Phase 26: UmbScraper Service Extraction
 **Goal**: `app/services/umb/` contains six focused service classes extracted bottom-up; `umb_scraper.rb` is a thin delegation wrapper and all existing callers are unchanged
@@ -131,7 +135,7 @@ Phases execute in numeric order: 24 → 25 → 26 → 27 → 28
 | 17-19. Broadcast Isolation | v3.0 | 6/6 | Complete | 2026-04-11 |
 | 20-23. League & PartyMonitor | v4.0 | 9/9 | Complete | 2026-04-12 |
 | 24. Data Source Investigation | v5.0 | 2/2 | Complete   | 2026-04-12 |
-| 25. Characterization Tests & Bug Fixes | v5.0 | 0/TBD | Not started | - |
+| 25. Characterization Tests & Bug Fixes | v5.0 | 0/3 | Not started | - |
 | 26. UmbScraper Service Extraction | v5.0 | 0/TBD | Not started | - |
 | 27. UmbScraperV2 Resolution | v5.0 | 0/TBD | Not started | - |
 | 28. Video Cross-Referencing | v5.0 | 0/TBD | Not started | - |
