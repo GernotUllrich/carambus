@@ -1,0 +1,10 @@
+Players List - UMB 3-Cushion World Cup 2022 Antalya
+
+Nr  Name                                    Nat  Rank  RankPts  PlayerID  Status
+
+1   JASPERS Dick                            NL   1     480      0106      Main Tournament    Confirmed
+2   CAUDRON Frederic                        BE   2     456      0215      Main Tournament    Confirmed
+3   BLOMDAHL Torbjorn                       SE   3     432      0087      Main Tournament    Confirmed
+4   CHO Jaeho                               KR   4     410      0312      Main Tournament    Confirmed
+5   SIDHOM Haytham                          EG   5     398      0445      Main Tournament    Confirmed
+
