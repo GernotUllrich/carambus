@@ -113,7 +113,7 @@ Plans:
 **Success Criteria** (what must be TRUE):
   1. `Video::TournamentMatcher` (ApplicationService) assigns unassigned videos to `InternationalTournament` by date range + player name intersection + title similarity; only assigns above 0.75 confidence threshold
   2. `Video::MetadataExtractor` (PORO) extracts tournament type, year, players, round, and discipline from video titles and feeds `Video::TournamentMatcher`
-  3. SoopLive VODs with `data-seq` attributes are linked to specific game records via the embedded VOD ID
+  3. SoopLive VODs are linked to specific game records via `replay_no` from the SoopLive JSON API (Phase 24 pivot from `data-seq` HTML attributes to structured JSON)
   4. Kozoom videos with `eventId` mappings are cross-referenced to `InternationalTournament` records
   5. `DailyInternationalScrapeJob` Step 3 is wired to `Video::TournamentMatcher`; `Video.unassigned.count` decreases after a job run against real fixture data
 **Plans:** 3 plans

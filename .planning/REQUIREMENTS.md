@@ -27,7 +27,7 @@ Requirements for UMB Scraper Überarbeitung. Each maps to roadmap phases.
 ### Video Cross-Referencing
 
 - [ ] **VIDEO-01**: `Video::TournamentMatcher` service assigns unassigned videos to `InternationalTournament` by date range + player name intersection + title similarity
-- [ ] **VIDEO-02**: SoopLive VOD linking via embedded `data-seq` IDs to specific game records
+- [ ] **VIDEO-02**: SoopLive VOD linking via `replay_no` from SoopLive JSON API to specific game records
 - [ ] **VIDEO-03**: Kozoom event cross-referencing via existing `eventId` mapping to `InternationalTournament`
 
 ## Future Requirements
