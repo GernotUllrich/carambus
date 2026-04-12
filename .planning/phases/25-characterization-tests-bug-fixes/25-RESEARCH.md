@@ -129,7 +129,7 @@ end
 ### Umb::HttpClient PORO Pattern [VERIFIED: D-07, RegionCc::ClubCloudClient as model]
 
 The `RegionCc::ClubCloudClient` in `app/services/region_cc/club_cloud_client.rb` is the exact structural model:
-- Namespace matches service directory: `app/services/umb/http_client.rb` → `Umb::HttpClient`
+- Namespace matches service directory: `app/services/umb/http_client.rb` -> `Umb::HttpClient`
 - PORO: no `< ApplicationService` inheritance
 - Stateless: single `fetch_url` entry point
 - Environment-guarded SSL: `VERIFY_NONE` only in `development? || test?`
@@ -232,9 +232,9 @@ end
 # CURRENT (BROKEN) — job signature:
 def perform(discipline: '3-Cushion', year: nil, event_type: nil)
   scraper.scrape_tournament_archive(
-    discipline: discipline,   # ← WRONG: method doesn't accept this kwarg
-    year: year,               # ← WRONG: method doesn't accept this kwarg
-    event_type: event_type    # ← WRONG: method doesn't accept this kwarg
+    discipline: discipline,   # <- WRONG: method doesn't accept this kwarg
+    year: year,               # <- WRONG: method doesn't accept this kwarg
+    event_type: event_type    # <- WRONG: method doesn't accept this kwarg
   )
 end
 
@@ -255,7 +255,7 @@ def perform(start_id: 1, end_id: 500, batch_size: 50)
 end
 ```
 
-**Note:** `ScrapeUmbArchiveJob` is called by the `umb:scan_archive` rake task in `lib/tasks/umb_update.rake` and potentially by admin UI. The rake task invocation must be checked and updated too.
+**Note on callers:** `lib/tasks/umb_update.rake` does NOT call `ScrapeUmbArchiveJob` — it uses `UmbScraper.new` directly. [VERIFIED: read of full umb_update.rake, 413 lines; grep confirms `ScrapeUmbArchiveJob` only appears in its own job file]. No rake task callers need updating.
 
 ### SCRP-05: SSL Verification via Umb::HttpClient
 
@@ -357,16 +357,15 @@ Both are included in `ActiveSupport::TestCase` (test_helper.rb lines 99-100). Av
 
 ### Pitfall 5: TournamentDiscoveryService Uses Wrong Column Names
 
-**What goes wrong:** `TournamentDiscoveryService#find_or_create_tournament` (lines 100-109) uses `.where('LOWER(name) = ?', ...)` and `InternationalTournament.new(name: ..., start_date: ...)`. These are alias methods, not column names — the WHERE clause will fail because there's no `name` column, and `new(name: ...)` will raise `ActiveModel::UnknownAttributeError` or silently do nothing via the `#name=` writer if one is defined.
+**What goes wrong:** `TournamentDiscoveryService#find_or_create_tournament` (lines 100-109) uses `.where('LOWER(name) = ?', ...)` and `InternationalTournament.new(name: ..., start_date: ...)`. These are alias methods, not column names — the WHERE clause will fail because there's no `name` column, and `new(name: ...)` will raise `ActiveModel::UnknownAttributeError` because no `name=` writer is defined. [VERIFIED: `grep -n "def name=\|attr_writer.*name\|alias_attribute.*name" app/models/` returns zero matches across all model files.]
 
 **Impact on SCRP-03:** After fixing `assign_videos_to_tournament`, the `find_or_create_tournament` method has additional bugs. These should be characterized (document current behavior) without fixing them in Phase 25 — they are out of scope. Scope: fix only `assign_videos_to_tournament`.
 
-### Pitfall 6: ScrapeUmbArchiveJob Rake Task
+### Pitfall 6: ScrapeUmbArchiveJob Callers — RESOLVED
 
-**What goes wrong:** Fixing `ScrapeUmbArchiveJob#perform` signature without checking its callers will leave rake tasks passing wrong arguments at runtime.
+**Original concern:** Fixing `ScrapeUmbArchiveJob#perform` signature without checking its callers will leave rake tasks passing wrong arguments at runtime.
 
-**How to avoid:** After fixing the job, search for all callers: `grep -rn "ScrapeUmbArchiveJob" app/ lib/` and update any `.perform_later(discipline: ..., year: ...)` calls.
-[VERIFIED: The rake task at `lib/tasks/umb_update.rake` calls `ScrapeUmbArchiveJob` — must be verified during fix]
+**Resolution:** [VERIFIED: read of full `lib/tasks/umb_update.rake`, 413 lines] The rake file does NOT call `ScrapeUmbArchiveJob`. It defines tasks `umb:update`, `umb:check_new`, `umb:fix_organizers`, `umb:fix_locations`, and `umb:status` — all use `UmbScraper.new` directly and call instance methods. `grep -rn "ScrapeUmbArchiveJob" app/ lib/` confirms the job class only appears in its own file (`app/jobs/scrape_umb_archive_job.rb`). No callers need updating beyond the job itself.
 
 ---
 
@@ -481,14 +480,17 @@ class Umb::HttpClient
     nil
   end
 
+  # Public class method for use by scrapers that manage their own Net::HTTP
+  # but want centralized SSL mode. Used by UmbScraper#fetch_url, #download_pdf,
+  # and UmbScraperV2#fetch_url.
+  def self.ssl_verify_mode
+    Rails.env.production? ? OpenSSL::SSL::VERIFY_PEER : OpenSSL::SSL::VERIFY_NONE
+  end
+
   private
 
   def ssl_verify_mode
-    if Rails.env.production?
-      OpenSSL::SSL::VERIFY_PEER
-    else
-      OpenSSL::SSL::VERIFY_NONE
-    end
+    self.class.ssl_verify_mode
   end
 end
 ```
@@ -519,26 +521,22 @@ end
 
 ## Assumptions Log
 
-| # | Claim | Section | Risk if Wrong |
-|---|-------|---------|---------------|
-| A1 | `InternationalTournament.new(name: ...)` in TournamentDiscoveryService will raise at runtime because `name=` might not be defined as a writer | Common Pitfalls / Pitfall 5 | If there is a `name=` writer alias, the bug is silent rather than raising — either way, the record won't be found by `.where('LOWER(name) = ?', ...)` | 
-| A2 | The `umb:scan_archive` rake task calls `ScrapeUmbArchiveJob.perform_later(discipline: ...)` | Common Pitfalls / Pitfall 6 | If the rake task calls `scrape_tournament_archive` directly (not through the job), only the job needs updating | 
-
-If this table has only 2 entries, both assumptions are low-risk and easily verified during implementation.
+| # | Claim | Section | Risk if Wrong | Status |
+|---|-------|---------|---------------|--------|
+| A1 | `InternationalTournament.new(name: ...)` in TournamentDiscoveryService will raise at runtime because `name=` is not defined as a writer | Common Pitfalls / Pitfall 5 | If there is a `name=` writer alias, the bug is silent rather than raising — either way, the record won't be found by `.where('LOWER(name) = ?', ...)` | CONFIRMED: `grep -n "def name=\|attr_writer.*name\|alias_attribute.*name" app/models/` returns zero matches. No `name=` writer exists. `new(name: ...)` will raise `ActiveModel::UnknownAttributeError`. |
+| A2 | The `umb:scan_archive` rake task calls `ScrapeUmbArchiveJob.perform_later(discipline: ...)` | Common Pitfalls / Pitfall 6 | If the rake task calls `scrape_tournament_archive` directly (not through the job), only the job needs updating | DISPROVEN: `lib/tasks/umb_update.rake` does NOT call `ScrapeUmbArchiveJob` at all. No `umb:scan_archive` task exists. The rake file uses `UmbScraper.new` directly. Only the job file itself needs updating. |
 
 ---
 
-## Open Questions
+## Open Questions — RESOLVED
 
-1. **Does `InternationalTournament` define `name=`?**
-   - What we know: `def name; title; end` is defined (line 57 of international_tournament.rb). No `name=` writer was found.
-   - What's unclear: Whether `Tournament` parent defines `name=` via `attr_writer` or `alias_attribute`.
-   - Recommendation: Check `grep -n "name=" app/models/tournament.rb` during Plan writing. If no writer, `new(name: ...)` will raise `ActiveModel::UnknownAttributeError`. Either way, SCRP-03 scope is only `assign_videos_to_tournament` — don't fix the rest of TournamentDiscoveryService.
+1. **Does `InternationalTournament` define `name=`?** — RESOLVED (2026-04-12)
+   - **Answer:** No. `grep -n "def name=\|attr_writer.*name\|alias_attribute.*name" app/models/` across all model files returns zero matches. `InternationalTournament` defines only `def name; title; end` (reader, line 57). Neither `Tournament` nor any parent defines a `name=` writer. Calling `InternationalTournament.new(name: ...)` will raise `ActiveModel::UnknownAttributeError`.
+   - **Impact on Phase 25:** None — SCRP-03 scope is only `assign_videos_to_tournament`, which does not use `name=`. The `find_or_create_tournament` method (lines 100-109) has this separate bug but is out of scope.
 
-2. **Does the rake task `umb:scan_archive` pass kwargs to ScrapeUmbArchiveJob?**
-   - What we know: `lib/tasks/umb_update.rake` references `ScrapeUmbArchiveJob` [VERIFIED: grep].
-   - What's unclear: Exact call signature in the rake task.
-   - Recommendation: Read `lib/tasks/umb_update.rake` during SCRP-04 implementation and update any `.perform_later(discipline: ..., year: ..., event_type: ...)` calls to the corrected signature.
+2. **Does the rake task `umb:scan_archive` pass kwargs to ScrapeUmbArchiveJob?** — RESOLVED (2026-04-12)
+   - **Answer:** No. `lib/tasks/umb_update.rake` does NOT call `ScrapeUmbArchiveJob` at all. The rake file (413 lines) defines tasks `umb:update`, `umb:check_new`, `umb:fix_organizers`, `umb:fix_locations`, and `umb:status`. All tasks use `UmbScraper.new` directly and call instance methods (`scrape_future_tournaments`, `fetch_tournament_basic_data`, `scrape_tournament_details`). The original grep match was a false positive — `ScrapeUmbArchiveJob` only appears in its own job file (`app/jobs/scrape_umb_archive_job.rb`).
+   - **Impact on Phase 25:** Simplifies SCRP-04 — only the job's `perform` signature needs updating, no rake task callers to fix.
 
 ---
 
@@ -585,6 +583,8 @@ Step 4: SKIPPED — `workflow.nyquist_validation` is explicitly `false` in `.pla
 - `app/jobs/scrape_umb_archive_job.rb` — direct inspection, kwargs mismatch confirmed
 - `db/schema.rb` lines 1507-1535 — confirmed `videos` table has no `international_tournament_id`
 - `app/models/video.rb` lines 19-59 — `videoable` polymorphic association confirmed
+- `app/models/international_tournament.rb` — confirmed no `name=` writer, only `def name; title; end` reader
+- `lib/tasks/umb_update.rake` — confirmed does NOT call `ScrapeUmbArchiveJob`; uses `UmbScraper.new` directly
 - `test/characterization/region_cc_char_test.rb` — established char test pattern
 - `test/support/vcr_setup.rb` — VCR configuration confirmed
 - `test/test_helper.rb` — WebMock, VCR, fixture setup confirmed
@@ -600,10 +600,11 @@ Step 4: SKIPPED — `workflow.nyquist_validation` is explicitly `false` in `.pla
 **Confidence breakdown:**
 - Public method inventory: HIGH — verified from source files with `private` boundary markers
 - Bug analysis (SCRP-03): HIGH — schema confirmation, model inspection, service code inspection
-- Bug analysis (SCRP-04): HIGH — direct comparison of job signature vs method signature
+- Bug analysis (SCRP-04): HIGH — direct comparison of job signature vs method signature; all callers verified
 - Bug analysis (SCRP-05): HIGH — grep confirmed all SSL usages
 - Test infrastructure: HIGH — VCR setup, WebMock config, helper inclusion all verified
 - Umb::HttpClient design: HIGH — exact pattern from RegionCc::ClubCloudClient exists
+- Open questions: HIGH — both resolved via direct code inspection (2026-04-12)
 
 **Research date:** 2026-04-12
 **Valid until:** 2026-05-12 (UMB site HTML structure may change, but code-internal findings are stable)
