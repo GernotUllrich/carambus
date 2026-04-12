@@ -59,13 +59,13 @@ class DocsCoderefChecker
       puts ""
     end
 
-    scan_docs(stale_only)
+    scanned_count = scan_docs(stale_only)
 
     if @json_output
       puts JSON.generate(@findings)
     else
       print_findings
-      print_summary(stale_only.size)
+      print_summary(stale_only.size, scanned_count)
     end
   end
 
@@ -120,13 +120,13 @@ class DocsCoderefChecker
   end
 
   def scan_docs(stale_identifiers)
-    return if stale_identifiers.empty?
-
     doc_files = Dir.glob(DOCS_ROOT.join("**", "*.md").to_s)
 
     if @exclude_archives
       doc_files = doc_files.reject { |f| archive_path?(f) }
     end
+
+    return doc_files.size if stale_identifiers.empty?
 
     pattern = Regexp.union(stale_identifiers.to_a)
 
@@ -146,6 +146,8 @@ class DocsCoderefChecker
         end
       end
     end
+
+    doc_files.size
   end
 
   def archive_path?(path)
@@ -159,17 +161,12 @@ class DocsCoderefChecker
     end
   end
 
-  def print_summary(stale_count)
-    doc_files = Dir.glob(DOCS_ROOT.join("**", "*.md").to_s)
-    if @exclude_archives
-      doc_files = doc_files.reject { |f| archive_path?(f) }
-    end
-
+  def print_summary(stale_count, scanned_count)
     puts ""
     puts "=" * 80
     puts "Summary"
     puts "=" * 80
-    puts "Files scanned:              #{doc_files.size}"
+    puts "Files scanned:              #{scanned_count}"
     puts "Stale identifiers checked:  #{stale_count}"
     puts "Findings:                   #{@findings.size}"
     puts ""
