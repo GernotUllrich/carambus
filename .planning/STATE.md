@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v5.0
 milestone_name: UMB Scraper Überarbeitung
 status: executing
-stopped_at: Phase 25 execution complete
-last_updated: "2026-04-12T13:50:50.644Z"
+stopped_at: Phase 26 context gathered
+last_updated: "2026-04-12T13:58:11.554Z"
 last_activity: 2026-04-12 -- Phase 25 planning complete
 progress:
   total_phases: 4
@@ -70,6 +70,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-12T13:36:37.743Z
-Stopped at: Phase 25 execution complete
-Resume file: .planning/phases/25-characterization-tests-bug-fixes/25-01-SUMMARY.md
+Last session: 2026-04-12T13:58:11.552Z
+Stopped at: Phase 26 context gathered
+Resume file: .planning/phases/26-umbscraper-service-extraction-v2-absorption/26-CONTEXT.md
