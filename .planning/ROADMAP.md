@@ -106,8 +106,8 @@ Plans:
   4. Every content change updates both the `.de.md` and `.en.md` files in the same commit — confirmed by diff before marking done
 **Plans:** 2 plans
 Plans:
-- [ ] 28-01-PLAN.md — Create audit tooling (translation checker, code reference checker, mkdocs:check task, archive exclusion)
-- [ ] 28-02-PLAN.md — Run audit tools and produce staleness inventory (audit.json + DOCS-AUDIT-REPORT.md)
+- [ ] 30-01-PLAN.md — Rewrite umb-scraping-implementation and umb-scraping-methods as bilingual pairs (UPDATE-01)
+- [ ] 30-02-PLAN.md — Add extracted services section to developer guide DE+EN (UPDATE-02)
 
 ### Phase 31: New Documentation
 **Goal**: Developers can find accurate architecture-level documentation for all 37 extracted services across 8 namespaces and for the video cross-referencing system — with both German and English coverage
