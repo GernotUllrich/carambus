@@ -2,21 +2,11 @@
 
 ## What This Is
 
-A focused improvement effort on the Carambus API codebase. v1.0–v4.0 broke down all six god-object models (27 extracted services), audited the test suite, and verified broadcast isolation. v5.0 investigates better-structured UMB data sources and refactors the 2718-line UMB scraper, adding video cross-referencing to tournaments.
+A focused improvement effort on the Carambus API codebase. v1.0–v4.0 broke down all six god-object models (27 extracted services), audited the test suite, and verified broadcast isolation. v5.0 refactored the 2718-line UMB scraper into 10 Umb:: services, discovered and integrated a SoopLive JSON API, implemented video cross-referencing with confidence-scored matching, and added UMB ranking PDF parsing. All seven original large service/model files are now appropriately sized.
 
 ## Core Value
 
 A maintainable, well-tested codebase where every test is trustworthy and every model is appropriately sized.
-
-## Current Milestone: v5.0 UMB Scraper Überarbeitung
-
-**Goal:** Investigate better-structured UMB data sources (APIs, alternative sites, feeds), add cleaner data paths where found, refactor the existing 2718-line scraper code, and cross-reference videos to UMB tournaments.
-
-**Target features:**
-- Investigate alternative sources for UMB tournaments, results, and player info
-- Cross-reference videos (YouTube, Kozoom, SoopLive, UMB video) to live and historic UMB events
-- Refactor umb_scraper.rb (2133 lines) and umb_scraper_v2.rb (585 lines) into maintainable services
-- Integrate discovered cleaner data sources alongside or replacing current scraping
 
 
 ## Requirements
@@ -56,19 +46,25 @@ A maintainable, well-tested codebase where every test is trustworthy and every m
 - ✓ Extract service classes from League — v4.0 (4 services: StandingsCalculator, GamePlanReconstructor, ClubCloudScraper, BbvScraper; 2221→663 lines, 70.2% reduction)
 - ✓ Extract service classes from PartyMonitor — v4.0 (2 services: TablePopulator, ResultProcessor; 605→217 lines, 64% reduction)
 - ✓ Controller/channel/job test coverage for League/Party/PartyMonitor — v4.0 (30 controller + 10 reflex tests, COV-02 documented, 901 runs green)
+- ✓ Alternative UMB data sources investigated — v5.0 (SoopLive JSON API GO, umbevents/Cuesco NO-GO)
+- ✓ UmbScraper reduced to 175 lines — v5.0 (10 Umb:: services: HttpClient, DisciplineDetector, DateHelpers, PlayerResolver, PlayerListParser, GroupResultParser, RankingParser, FutureScraper, ArchiveScraper, DetailsScraper)
+- ✓ UmbScraperV2 deleted — v5.0 (585 lines absorbed into Umb::PdfParser::* services)
+- ✓ 3 pre-existing bugs fixed — v5.0 (TournamentDiscoveryService column, ScrapeUmbArchiveJob kwargs, SSL inconsistency)
+- ✓ UMB ranking PDF parsing implemented — v5.0 (RANK-01: weekly + final rankings via Umb::PdfParser::RankingParser)
+- ✓ Video cross-referencing system — v5.0 (Video::TournamentMatcher + Video::MetadataExtractor + SoopliveBilliardsClient)
+- ✓ SoopLive VOD linking via replay_no — v5.0 (VIDEO-02)
+- ✓ Kozoom event cross-referencing via eventId — v5.0 (VIDEO-03)
+- ✓ DailyInternationalScrapeJob Steps 3a/3b/3c wired — v5.0 (incremental matching + backfill rake task)
 
 ### Active
 
-- [ ] Investigate alternative UMB data sources (APIs, alternative websites, data feeds)
-- [ ] Cross-reference videos (YouTube, Kozoom, SoopLive, UMB video) to live and historic UMB events
-- [ ] Refactor umb_scraper.rb (2133 lines) into maintainable service classes
-- [ ] Refactor umb_scraper_v2.rb (585 lines) into maintainable service classes
-- [ ] Integrate discovered cleaner data sources alongside or replacing current scraping
+(None — next milestone will define new requirements)
 
 ### Out of Scope
 
 - New test coverage for remaining untested models, controllers, services — separate milestone
 - Architecture or stack changes — not in scope for current project
+- Scraper consolidation (UmbScraper v1/v2) — completed in v5.0, no longer relevant
 
 ## Context
 
@@ -78,10 +74,12 @@ A maintainable, well-tested codebase where every test is trustworthy and every m
 - **v2.0 shipped 2026-04-10:** 72 test files audited, 475 runs green, 1121 assertions, ApiProtectorTestOverride added
 - **v2.1 shipped 2026-04-11:** Tournament 1775→575 lines (3 services), TournamentMonitor 499→181 lines (4 services), lib/tournament_monitor_support.rb deleted
 - **v4.0 shipped 2026-04-12:** League 2221→663 lines (4 services), PartyMonitor 605→217 lines (2 services), 30 controller + 10 reflex tests
-- Test suite: 901 runs, 2118 assertions, 0 failures, 0 errors, 9 skips
+- **v5.0 shipped 2026-04-12:** UmbScraper 2133→175 lines (10 services), UmbScraperV2 deleted (585 lines absorbed), SoopLive JSON API integrated, video cross-referencing built
+- Test suite: 1130 runs, 0 failures, 0 errors
 - Sync: PaperTrail + RegionTaggable filtering, local servers pull via Version.update_from_carambus_api
 - ApiProtector + LocalProtector both have test overrides in test_helper.rb
-- Extracted services (27 total): ScoreEngine, GameSetup, OptionsPresenter, ResultRecorder, ClubCloudClient + 9 syncers (v1.0), RankingCalculator, TableReservationService, PublicCcScraper, PlayerGroupDistributor, RankingResolver, ResultProcessor, TablePopulator (v2.1), League::StandingsCalculator, League::GamePlanReconstructor, League::ClubCloudScraper, League::BbvScraper, PartyMonitor::TablePopulator, PartyMonitor::ResultProcessor (v4.0)
+- Extracted services (37 total): ScoreEngine, GameSetup, OptionsPresenter, ResultRecorder, ClubCloudClient + 9 syncers (v1.0), RankingCalculator, TableReservationService, PublicCcScraper, PlayerGroupDistributor, RankingResolver, ResultProcessor, TablePopulator (v2.1), League::StandingsCalculator, League::GamePlanReconstructor, League::ClubCloudScraper, League::BbvScraper, PartyMonitor::TablePopulator, PartyMonitor::ResultProcessor (v4.0), Umb::HttpClient, Umb::DisciplineDetector, Umb::DateHelpers, Umb::PlayerResolver, Umb::PdfParser::PlayerListParser, Umb::PdfParser::GroupResultParser, Umb::PdfParser::RankingParser, Umb::FutureScraper, Umb::ArchiveScraper, Umb::DetailsScraper (v5.0)
+- Video services (v5.0): Video::MetadataExtractor, Video::TournamentMatcher, SoopliveBilliardsClient
 - Codebase map available at `.planning/codebase/`
 - **v3.0 shipped 2026-04-11:** Capybara/Selenium system test infrastructure, 5 broadcast isolation tests (morph, score:update, table_scores, rapid-fire, 3-session), BROADCAST-GAP-REPORT.md documenting all results + deferred FIX-01/FIX-02
 - Broadcast isolation: client-side JS filtering on global `table-monitor-stream` verified correct; server-side targeted broadcasts deferred (FIX-01/FIX-02)
@@ -123,6 +121,16 @@ A maintainable, well-tested codebase where every test is trustworthy and every m
 | Pessimistic lock stays in model for PartyMonitor | Lock boundary and AASM events are model responsibilities | ✓ Good — services do data work only, model owns state |
 | Thin delegation wrappers (permanent API) | Zero caller changes, wrappers are permanent not transitional | ✓ Good — all controllers/reflexes/jobs unmodified |
 | Fix fixtures before controller tests | Party fixture chain broken (party_id → nonexistent party) | ✓ Good — unblocked 4 skipped tests immediately |
+| Research-first for UMB data sources | Complexity may be inherent to data source, not just code | ✓ Good — discovered SoopLive JSON API, avoided wasted effort on umbevents/Cuesco |
+| Umb:: namespace for all extracted services | Consistent with League::, Tournament::, etc. | ✓ Good — 10 services in clean namespace |
+| Delete UmbScraperV2 entirely (not facade) | Zero production callers; only PDF parsing was valuable | ✓ Good — clean break, PDF logic in first-class Umb::PdfParser::* POROs |
+| Pull Umb::HttpClient into Phase 25 (early) | SSL fix needed before extraction; reused in Phase 26 | ✓ Good — single SSL config point from the start |
+| Split PdfParser by type (3 classes) | Player lists, group results, rankings have distinct formats | ✓ Good — independently testable, clean D-08 output contracts |
+| Merge Phase 27 (V2 Resolution) into Phase 26 | V2 unused; PDF parsing is V2's only value | ✓ Good — eliminated unnecessary phase, tighter milestone |
+| SoopLive replay_no over data-seq HTML | JSON API provides same data structured; no HTML scraping needed | ✓ Good — higher precision, simpler implementation |
+| Regex-first + AI fallback for MetadataExtractor | Most titles have known patterns; AI only for outliers | ✓ Good — avoids API cost for majority of videos |
+| Confidence scoring with 0.75 threshold | Auto-assign above threshold; below requires review | ✓ Good — measurable, tunable |
+| Both backfill + incremental for video matching | Rake task for existing backlog, daily job for new videos | ✓ Good — enables measuring match rate before automation |
 
 ## Evolution
 
@@ -142,4 +150,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-12 after v5.0 milestone started*
+*Last updated: 2026-04-12 after v5.0 milestone completed*

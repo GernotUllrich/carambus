@@ -1,5 +1,23 @@
 # Milestones
 
+## v5.0 UMB Scraper Überarbeitung (Shipped: 2026-04-12)
+
+**Phases completed:** 4 phases, 12 plans
+**Timeline:** 2026-04-12 (single day)
+**Git stats:** 71 commits, 129 files changed, +16144/-9355 lines
+
+**Key accomplishments:**
+
+- Discovered undocumented SoopLive JSON API (`/api/games`, `/api/game/{id}/matches`, `/api/game/{id}/results`) — `replay_no` enables direct VOD linking; umbevents and Cuesco confirmed NO-GO (HTML only)
+- UmbScraper reduced from 2133 to 175 lines (91.8% reduction) via 10 extracted `Umb::` services: HttpClient, DisciplineDetector, DateHelpers, PlayerResolver, PlayerListParser, GroupResultParser, RankingParser, FutureScraper, ArchiveScraper, DetailsScraper
+- UmbScraperV2 (585 lines) fully absorbed into Umb:: services and deleted; PDF parsing promoted to first-class `Umb::PdfParser::*` POROs
+- Fixed 3 pre-existing bugs: TournamentDiscoveryService column reference, ScrapeUmbArchiveJob kwargs mismatch, SSL verification inconsistency
+- Implemented RANK-01: UMB ranking PDF parsing for both weekly and final tournament rankings
+- Built video cross-referencing system: `Video::TournamentMatcher` (confidence scoring), `Video::MetadataExtractor` (regex-first + AI fallback), `SoopliveBilliardsClient` (full adapter), Kozoom eventId cross-ref
+- Wired `DailyInternationalScrapeJob` Steps 3a/3b/3c for incremental matching; `rake videos:match_tournaments` for backfill
+
+---
+
 ## v4.0 League & PartyMonitor Refactoring (Shipped: 2026-04-12)
 
 **Phases completed:** 4 phases, 9 plans, 13 tasks
