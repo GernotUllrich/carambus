@@ -486,7 +486,7 @@ class UmbScraper
       loop do
         http = Net::HTTP.new(uri.host, uri.port)
         http.use_ssl = (uri.scheme == 'https')
-        http.verify_mode = OpenSSL::SSL::VERIFY_NONE if Rails.env.development?
+        http.verify_mode = Umb::HttpClient.ssl_verify_mode
         http.open_timeout = TIMEOUT
         http.read_timeout = TIMEOUT
         
@@ -1564,7 +1564,7 @@ class UmbScraper
     uri = URI(full_url)
     http = Net::HTTP.new(uri.host, uri.port)
     http.use_ssl = (uri.scheme == 'https')
-    http.verify_mode = OpenSSL::SSL::VERIFY_NONE if Rails.env.development?
+    http.verify_mode = Umb::HttpClient.ssl_verify_mode
     http.open_timeout = TIMEOUT
     http.read_timeout = TIMEOUT * 2  # PDFs can be larger
     
