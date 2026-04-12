@@ -317,6 +317,8 @@ The previously reported de-only gap count of 26 files applies to the full docs/ 
 
 **Warning signs:** Script reports hundreds of "stale" identifiers including "English", "Rails", "German".
 
+**Note on plan approach:** The plan (28-01) avoids this pitfall entirely by using git-diff-scoped identifiers rather than broad CamelCase extraction. See "Open Questions (RESOLVED)" item 1 below for the rationale.
+
 ### Pitfall 2: exclude_docs Removes Archive Pages from Site Build Entirely
 
 **What goes wrong:** Decision D-05 says "prevent archive/ from appearing in site search results." Using `exclude_docs: archive/**` removes those pages from the build entirely — they cannot be reached by URL either. If someone has a direct link to an archive page, it returns 404.
@@ -411,17 +413,17 @@ comm -13 /tmp/de_bases.txt /tmp/en_bases.txt  # EN-only
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **False positive handling in check-docs-coderef.rb**
    - What we know: CamelCase extraction from markdown produces false positives (YouTube, GitHub, JavaScript, etc.)
    - What's unclear: Should the script use an explicit ignore list, or restrict scanning to code fences only?
-   - Recommendation: Restrict to code fences for Phase 28 scope — the known stale identifiers (`UmbScraperV2`, `TournamentMonitorSupport`) appear in code blocks, not prose. Add a `--full-text` flag for future use.
+   - RESOLVED: The plan uses a git-diff-scoped identifier set (only deleted/renamed filenames from `v1.0..v5.0`) matched against full file content via `Regexp.union`. This eliminates false positives entirely because the search terms are a tiny, specific set derived from git (e.g., `UmbScraperV2`, `TournamentMonitorSupport`, `tournament_monitor_support`) — not broad CamelCase extraction from markdown. The research recommendation to restrict to code fences was designed for a different approach (extracting all CamelCase tokens from docs, then checking against live codebase). With git-diff-scoped identifiers, full-text scanning is safe and preferable: it catches references in prose, headings, and inline code — not just fenced blocks. No `--full-text` flag needed; full-text is the only mode.
 
 2. **audit.json severity classification for reference/mkdocs_dokumentation placeholder links**
    - What we know: 8 of the 16 broken links in reference/ are intentional documentation syntax examples (`[Text](file.md)`)
    - What's unclear: Should these be classified as `low FIX` items or excluded from the audit entirely?
-   - Recommendation: Include with `severity: low`, `note: "intentional documentation example"` — keeps the audit complete; Phase 29 planner can explicitly decide to skip them.
+   - RESOLVED: Include with `severity: low`, `note: "intentional documentation example"` — keeps the audit complete while clearly flagging these as non-urgent. Phase 29 planner can explicitly decide to skip them.
 
 ---
 
