@@ -58,7 +58,7 @@ Phases 24-27 delivered: SoopLive JSON API discovered and integrated, UmbScraper 
 
 **Milestone Goal:** Ensure mkdocs-based documentation accurately reflects the post-refactoring codebase — every implemented feature documented, no references to unimplemented or deleted features, documentation quality on par with code quality.
 
-- [ ] **Phase 28: Audit & Triage** - Build complete staleness inventory and two new audit scripts before any content editing
+- [x] **Phase 28: Audit & Triage** - Build complete staleness inventory and two new audit scripts before any content editing (completed 2026-04-12)
 - [ ] **Phase 29: Break-Fix** - Fix all 74 broken links and remove stale deleted-code references
 - [ ] **Phase 30: Content Updates** - Rewrite UMB scraping docs and update developer guide services sections to reflect post-v5.0 reality
 - [ ] **Phase 31: New Documentation** - Create namespace overview pages for all 37 extracted services and the video cross-referencing system
@@ -76,10 +76,10 @@ Phases 24-27 delivered: SoopLive JSON API discovered and integrated, UmbScraper 
   3. `bin/check-docs-coderef.rb` exists as a runnable stdlib-Ruby script that extracts CamelCase class names from docs and verifies each exists in `app/` — confirming or denying the presence of stale deleted-class references
   4. `lib/tasks/mkdocs.rake` contains a `mkdocs:check` task that wraps `mkdocs build --strict`, exits non-zero on any warning, and is documented as CI-ready
   5. Archive directory indexing status is confirmed (mkdocs.yml `exclude_docs` or `not_in_nav` coverage checked) and any gap is recorded in the inventory
-**Plans:** 2 plans
+**Plans:** 2/2 plans complete
 Plans:
-- [ ] 28-01-PLAN.md — Create audit tooling (translation checker, code reference checker, mkdocs:check task, archive exclusion)
-- [ ] 28-02-PLAN.md — Run audit tools and produce staleness inventory (audit.json + DOCS-AUDIT-REPORT.md)
+- [x] 28-01-PLAN.md — Create audit tooling (translation checker, code reference checker, mkdocs:check task, archive exclusion)
+- [x] 28-02-PLAN.md — Run audit tools and produce staleness inventory (audit.json + DOCS-AUDIT-REPORT.md)
 
 ### Phase 29: Break-Fix
 **Goal**: The active docs site has zero broken internal links and zero references to deleted code — a clean structural baseline before any semantic content is rewritten
@@ -92,8 +92,8 @@ Plans:
   4. `mkdocs build --strict` completes with zero missing-file warnings for all nav entries
 **Plans:** 2 plans
 Plans:
-- [ ] 28-01-PLAN.md — Create audit tooling (translation checker, code reference checker, mkdocs:check task, archive exclusion)
-- [ ] 28-02-PLAN.md — Run audit tools and produce staleness inventory (audit.json + DOCS-AUDIT-REPORT.md)
+- [x] 28-01-PLAN.md — Create audit tooling (translation checker, code reference checker, mkdocs:check task, archive exclusion)
+- [x] 28-02-PLAN.md — Run audit tools and produce staleness inventory (audit.json + DOCS-AUDIT-REPORT.md)
 
 ### Phase 30: Content Updates
 **Goal**: The two most actively stale developer docs accurately describe the current Umb:: architecture and the developer guide services section reflects all 37 extracted services across 7 namespaces — both in German and English
@@ -150,7 +150,7 @@ Phases execute in numeric order: 28 → 29 → 30 → 31 → 32
 | 17-19. Broadcast Isolation | v3.0 | 6/6 | Complete | 2026-04-11 |
 | 20-23. League & PartyMonitor | v4.0 | 9/9 | Complete | 2026-04-12 |
 | 24-27. UMB Scraper | v5.0 | 12/12 | Complete | 2026-04-12 |
-| 28. Audit & Triage | v6.0 | 0/2 | Not started | - |
+| 28. Audit & Triage | v6.0 | 2/2 | Complete    | 2026-04-12 |
 | 29. Break-Fix | v6.0 | 0/TBD | Not started | - |
 | 30. Content Updates | v6.0 | 0/TBD | Not started | - |
 | 31. New Documentation | v6.0 | 0/TBD | Not started | - |
