@@ -11,24 +11,24 @@ Ich habe ein **vollständiges System zum Sammeln und Verwenden von ClubCloud HTM
 
 ### 📚 Dokumentation (4 neue Dokumente)
 
-1. **[test/FIXTURES_QUICK_START.md](test/FIXTURES_QUICK_START.md)**
+1. **test/FIXTURES_QUICK_START.md**
    - 5-Minuten Schnellstart
    - Schritt-für-Schritt mit Checkboxen
    - Perfekt für den ersten Fixture-Sammlung
 
-2. **[test/FIXTURES_SAMMELN.md](test/FIXTURES_SAMMELN.md)**
+2. **test/FIXTURES_SAMMELN.md**
    - Vollständige Anleitung (60 Seiten)
    - Alle Scraping-Entitäten (Tournaments, Leagues, Clubs, Players)
    - Browser DevTools Methode
    - Edge Cases & Troubleshooting
 
-3. **[test/fixtures/html/README.md](test/fixtures/html/README.md)**
+3. **test/fixtures/html/README.md**
    - Fixture-Verwaltung
    - Namenskonventionen
    - Verwendung in Tests
    - Security Best Practices
 
-4. **[test/FIXTURE_WORKFLOW.md](test/FIXTURE_WORKFLOW.md)**
+4. **test/FIXTURE_WORKFLOW.md**
    - Visueller ASCII-Art Workflow
    - Diagramme für alle Prozesse
    - Learning Path für Contributors
@@ -413,7 +413,7 @@ Sammle ClubCloud HTML Fixture für [Tournament Liste / Details / etc.]
 - [ ] Fixture einbinden (siehe Quick Start)
 
 **Dokumentation:**
-- [FIXTURES_QUICK_START.md](test/FIXTURES_QUICK_START.md)
+- FIXTURES_QUICK_START.md
 
 **Aufwand:** 15-30 Minuten  
 **Labels:** `good first issue`, `testing`, `scraping`
@@ -518,6 +518,6 @@ bin/rails test:scraping
 ---
 
 **Status:** ✅ Bereit zum Sammeln!  
-**Nächster Schritt:** [FIXTURES_QUICK_START.md](test/FIXTURES_QUICK_START.md)
+**Nächster Schritt:** FIXTURES_QUICK_START.md
 
 🎉 **Viel Erfolg beim Fixture-Sammeln!**

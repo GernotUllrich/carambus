@@ -234,6 +234,6 @@ tournament.save!
 ## Siehe auch
 
 - [ClubCloud Credentials Setup](clubcloud_credentials.md)
-- [ClubCloud Name Mapping](../bin/test-cc-name-mapping.rb)
-- [Log Prefixes Reference](logging_conventions.md)
+- ClubCloud Name Mapping (Skript: bin/test-cc-name-mapping.rb)
+- Log Prefixes Reference
 

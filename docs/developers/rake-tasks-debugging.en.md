@@ -416,7 +416,7 @@ end
 
 ## Further Documentation
 
-- [Scenario Management Workflow](./scenario-system-workflow.md)
+- [Scenario Management Workflow](./scenario-workflow.md)
 - [Database Partitioning & Sync](database-partitioning.md)
 - [Raspberry Pi Scripts Reference](../administrators/raspberry_pi_scripts.md) *(to be translated)*
 - [Server Management Scripts](../administrators/server-scripts.md) *(to be translated)*

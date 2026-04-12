@@ -363,7 +363,7 @@ rake scenario:deploy[carambus_location_5101,production]
 ```
 
 **[🚀 Current: Scenario Management Documentation](scenario-management.md)**  
-~~**Old (Obsolete): [Enhanced Mode System](../developers/enhanced_mode_system.md)**~~
+~~**Old (Obsolete): Enhanced Mode System**~~
 
 ### Production Setup
 The application is designed for deployment on Raspberry Pi or similar hardware:
@@ -455,7 +455,7 @@ sudo systemctl status carambus
 - [Tournament Management](../managers/tournament-management.md): Tournament workflows
 - [Installation Overview](../administrators/installation-overview.md): Installation overview
 - [Scenario Management](scenario-management.md): Deployment configuration and multi-environment support
-- ~~[Enhanced Mode System](../developers/enhanced_mode_system.md)~~ - **OBSOLETE** (replaced by Scenario Management)
+- ~~Enhanced Mode System~~ - **OBSOLETE** (replaced by Scenario Management)
 
 ### External Links
 - [Ruby on Rails Guides](https://guides.rubyonrails.org/)

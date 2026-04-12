@@ -234,8 +234,8 @@ Rake Task: international:scrape_umb
 
 ## Verwandte Dokumentation
 
-- [International Videos System](./international_videos.md)
-- [YouTube Scraper](./youtube_scraper.md)
+- International Videos System
+- YouTube Scraper
 - [Tournament Management](../managers/table_reservation_heating_control.md)
 
 ---
