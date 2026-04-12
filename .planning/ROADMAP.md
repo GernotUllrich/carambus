@@ -98,10 +98,10 @@ Plans:
   4. `umb_scraper.rb` is reduced to a thin delegation wrapper: all three callers (`ScrapeUmbJob`, `ScrapeUmbArchiveJob`, `Admin::IncompleteRecordsController`) and the `umb:update` rake task are unchanged
   5. `umb_scraper_v2.rb` is deprecated: its unique PDF parsing logic lives in `Umb::PdfParser`; overlapping HTML parsing routes through Phase 26 services
   6. All Phase 25 characterization tests still pass after extraction; `bin/rails test` is green; `brakeman` reports no new warnings
-**Plans:** 4 plans
+**Plans:** 1/4 plans executed
 Plans:
 - [ ] 26-01-PLAN.md — Foundation services: HttpClient fetch_pdf_text, PlayerResolver, DisciplineDetector, DateHelpers
-- [ ] 26-02-PLAN.md — PDF parsers: PlayerListParser, GroupResultParser, RankingParser (RANK-01)
+- [x] 26-02-PLAN.md — PDF parsers: PlayerListParser, GroupResultParser, RankingParser (RANK-01)
 - [ ] 26-03-PLAN.md — HTML scrapers: DetailsScraper, FutureScraper, ArchiveScraper
 - [ ] 26-04-PLAN.md — Thin wrapper reduction + V2 deletion + full suite verification
 **UI hint**: no
@@ -132,5 +132,5 @@ Phases execute in numeric order: 24 → 25 → 26 → 27
 | 20-23. League & PartyMonitor | v4.0 | 9/9 | Complete | 2026-04-12 |
 | 24. Data Source Investigation | v5.0 | 2/2 | Complete   | 2026-04-12 |
 | 25. Characterization Tests & Bug Fixes | v5.0 | 3/3 | Complete   | 2026-04-12 |
-| 26. UmbScraper Service Extraction | v5.0 | 0/4 | Not started | - |
+| 26. UmbScraper Service Extraction | v5.0 | 1/4 | In Progress|  |
 | 27. Video Cross-Referencing | v5.0 | 0/TBD | Not started | - |
