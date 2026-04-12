@@ -60,7 +60,7 @@ Phases 24-27 delivered: SoopLive JSON API discovered and integrated, UmbScraper 
 
 - [x] **Phase 28: Audit & Triage** - Build complete staleness inventory and two new audit scripts before any content editing (completed 2026-04-12)
 - [x] **Phase 29: Break-Fix** - Fix all 74 broken links and remove stale deleted-code references (completed 2026-04-12)
-- [ ] **Phase 30: Content Updates** - Rewrite UMB scraping docs and update developer guide services sections to reflect post-v5.0 reality
+- [x] **Phase 30: Content Updates** - Rewrite UMB scraping docs and update developer guide services sections to reflect post-v5.0 reality (completed 2026-04-12)
 - [ ] **Phase 31: New Documentation** - Create namespace overview pages for all 37 extracted services and the video cross-referencing system
 - [ ] **Phase 32: Nav, i18n & Verification** - Add new docs to mkdocs.yml nav, resolve bilingual gaps, and verify clean build
 
@@ -104,10 +104,10 @@ Plans:
   2. `developers/umb-scraping-methods.md` (both `.de.md` and `.en.md`) method inventory matches the Umb::* namespace; UmbScraperV2 section is removed or replaced with Umb::PdfParser breakdown
   3. The developer guide services section (both `.de.md` and `.en.md`) lists all 37 extracted services organized by namespace (TableMonitor::, RegionCc::, Tournament::, TournamentMonitor::, League::, PartyMonitor::, Umb::)
   4. Every content change updates both the `.de.md` and `.en.md` files in the same commit — confirmed by diff before marking done
-**Plans:** 2 plans
+**Plans:** 2/2 plans complete
 Plans:
-- [ ] 30-01-PLAN.md — Rewrite umb-scraping-implementation and umb-scraping-methods as bilingual pairs (UPDATE-01)
-- [ ] 30-02-PLAN.md — Add extracted services section to developer guide DE+EN (UPDATE-02)
+- [x] 30-01-PLAN.md — Rewrite umb-scraping-implementation and umb-scraping-methods as bilingual pairs (UPDATE-01)
+- [x] 30-02-PLAN.md — Add extracted services section to developer guide DE+EN (UPDATE-02)
 
 ### Phase 31: New Documentation
 **Goal**: Developers can find accurate architecture-level documentation for all 37 extracted services across 8 namespaces and for the video cross-referencing system — with both German and English coverage
@@ -152,6 +152,6 @@ Phases execute in numeric order: 28 → 29 → 30 → 31 → 32
 | 24-27. UMB Scraper | v5.0 | 12/12 | Complete | 2026-04-12 |
 | 28. Audit & Triage | v6.0 | 2/2 | Complete    | 2026-04-12 |
 | 29. Break-Fix | v6.0 | 2/2 | Complete    | 2026-04-12 |
-| 30. Content Updates | v6.0 | 0/TBD | Not started | - |
+| 30. Content Updates | v6.0 | 2/2 | Complete    | 2026-04-12 |
 | 31. New Documentation | v6.0 | 0/TBD | Not started | - |
 | 32. Nav, i18n & Verification | v6.0 | 0/TBD | Not started | - |
