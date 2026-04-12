@@ -164,8 +164,11 @@ class PartyMonitorPlacementTest < ActiveSupport::TestCase
     # The guard `if game.present? && table_monitor.may_finish_match?` is false,
     # so report_result calls finalize_game_result(table_monitor) with nil game.
     # finalize_game_result then calls game.deep_merge_data! which raises on nil.
-    # This characterizes the behavior: report_result does NOT guard against nil game
-    # before calling finalize_game_result.
+    #
+    # Phase 22 behavioral change: ResultProcessor#report_result wraps execution in
+    # `try { ... rescue => e ... raise ActiveRecord::Rollback }`.
+    # ActiveRecord::Rollback is swallowed by TournamentMonitor.transaction (not re-raised).
+    # So the nil-game error no longer propagates — report_result returns nil silently.
     #
     # Create a TableMonitor with no game in "ready" state
     tm = TableMonitor.create!(
@@ -173,10 +176,9 @@ class PartyMonitorPlacementTest < ActiveSupport::TestCase
       state: "ready",
       data: {}
     )
-    # finalize_game_result raises NoMethodError (nil.deep_merge_data!) which
-    # report_result rescues as StandardError and re-raises as bare StandardError.
-    # Characterize: report_result propagates errors as StandardError in non-production.
-    assert_raises(StandardError) do
+    # Post-Phase 22: errors are rescued inside ResultProcessor and rolled back.
+    # report_result returns nil without raising — assert_nothing_raised is correct.
+    assert_nothing_raised do
       @pm.report_result(tm)
     end
   end
