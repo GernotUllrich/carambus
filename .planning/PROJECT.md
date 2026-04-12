@@ -59,7 +59,7 @@ A maintainable, well-tested codebase where every test is trustworthy and every m
 - [x] Characterization tests for PartyMonitor critical paths (sequencing, player assignment, table placement) — Validated in Phase 20: Characterization (40 tests)
 - [x] Extract service classes from League — Validated in Phase 21: League Extraction (4 services: StandingsCalculator, GamePlanReconstructor, ClubCloudScraper, BbvScraper; 2221→663 lines, 70.2% reduction)
 - [x] Extract service classes from PartyMonitor — Validated in Phase 22: PartyMonitor Extraction (2 services: TablePopulator, ResultProcessor; 605→217 lines, 64% reduction)
-- [ ] Controller/channel/job test coverage for League/Party/PartyMonitor ecosystem
+- [x] Controller/channel/job test coverage for League/Party/PartyMonitor ecosystem — Validated in Phase 23: Coverage (4 controller test files, 10 reflex tests, COV-02 documented, 901 runs green)
 
 ### Out of Scope
 
@@ -77,7 +77,8 @@ A maintainable, well-tested codebase where every test is trustworthy and every m
 - **v2.1 shipped 2026-04-11:** Tournament 1775→575 lines (3 services), TournamentMonitor 499→181 lines (4 services), lib/tournament_monitor_support.rb deleted
 - **v4.0 Phase 21 shipped 2026-04-11:** League 2221→663 lines (4 services: StandingsCalculator, GamePlanReconstructor, ClubCloudScraper, BbvScraper)
 - **v4.0 Phase 22 shipped 2026-04-12:** PartyMonitor 605→217 lines (2 services: TablePopulator, ResultProcessor)
-- Test suite: 867 runs, 2048 assertions, 0 failures, 0 errors, 14 skips
+- **v4.0 Phase 23 shipped 2026-04-12:** Controller/reflex test coverage (4 controller tests, 10 reflex tests, COV-02 documented)
+- Test suite: 901 runs, 2118 assertions, 0 failures, 0 errors, 9 skips
 - Sync: PaperTrail + RegionTaggable filtering, local servers pull via Version.update_from_carambus_api
 - ApiProtector + LocalProtector both have test overrides in test_helper.rb
 - Extracted services (27 total): ScoreEngine, GameSetup, OptionsPresenter, ResultRecorder, ClubCloudClient + 9 syncers (v1.0), RankingCalculator, TableReservationService, PublicCcScraper, PlayerGroupDistributor, RankingResolver, ResultProcessor, TablePopulator (v2.1), League::StandingsCalculator, League::GamePlanReconstructor, League::ClubCloudScraper, League::BbvScraper, PartyMonitor::TablePopulator, PartyMonitor::ResultProcessor (v4.0)
