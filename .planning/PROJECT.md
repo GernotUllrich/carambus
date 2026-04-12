@@ -163,4 +163,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-13 after Phase 30 (Content Updates) complete — Umb docs rewritten as bilingual pairs, 35 services documented in developer guide*
+*Last updated: 2026-04-13 after Phase 31 (New Documentation) complete — 8 namespace overview pages + Video:: cross-referencing, all bilingual*
