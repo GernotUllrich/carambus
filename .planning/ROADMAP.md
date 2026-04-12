@@ -76,7 +76,10 @@ Phases 24-27 delivered: SoopLive JSON API discovered and integrated, UmbScraper 
   3. `bin/check-docs-coderef.rb` exists as a runnable stdlib-Ruby script that extracts CamelCase class names from docs and verifies each exists in `app/` — confirming or denying the presence of stale deleted-class references
   4. `lib/tasks/mkdocs.rake` contains a `mkdocs:check` task that wraps `mkdocs build --strict`, exits non-zero on any warning, and is documented as CI-ready
   5. Archive directory indexing status is confirmed (mkdocs.yml `exclude_docs` or `not_in_nav` coverage checked) and any gap is recorded in the inventory
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 28-01-PLAN.md — Create audit tooling (translation checker, code reference checker, mkdocs:check task, archive exclusion)
+- [ ] 28-02-PLAN.md — Run audit tools and produce staleness inventory (audit.json + DOCS-AUDIT-REPORT.md)
 
 ### Phase 29: Break-Fix
 **Goal**: The active docs site has zero broken internal links and zero references to deleted code — a clean structural baseline before any semantic content is rewritten
@@ -87,7 +90,10 @@ Phases 24-27 delivered: SoopLive JSON API discovered and integrated, UmbScraper 
   2. No active doc references `UmbScraperV2`, `tournament_monitor_support`, or pre-refactoring god-object class descriptions — confirmed by `bin/check-docs-coderef.rb` output
   3. Every file deletion was preceded by an inbound-link grep confirming no other active doc links to the deleted file
   4. `mkdocs build --strict` completes with zero missing-file warnings for all nav entries
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 28-01-PLAN.md — Create audit tooling (translation checker, code reference checker, mkdocs:check task, archive exclusion)
+- [ ] 28-02-PLAN.md — Run audit tools and produce staleness inventory (audit.json + DOCS-AUDIT-REPORT.md)
 
 ### Phase 30: Content Updates
 **Goal**: The two most actively stale developer docs accurately describe the current Umb:: architecture and the developer guide services section reflects all 37 extracted services across 7 namespaces — both in German and English
@@ -98,7 +104,10 @@ Phases 24-27 delivered: SoopLive JSON API discovered and integrated, UmbScraper 
   2. `developers/umb-scraping-methods.md` (both `.de.md` and `.en.md`) method inventory matches the Umb::* namespace; UmbScraperV2 section is removed or replaced with Umb::PdfParser breakdown
   3. The developer guide services section (both `.de.md` and `.en.md`) lists all 37 extracted services organized by namespace (TableMonitor::, RegionCc::, Tournament::, TournamentMonitor::, League::, PartyMonitor::, Umb::)
   4. Every content change updates both the `.de.md` and `.en.md` files in the same commit — confirmed by diff before marking done
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 28-01-PLAN.md — Create audit tooling (translation checker, code reference checker, mkdocs:check task, archive exclusion)
+- [ ] 28-02-PLAN.md — Run audit tools and produce staleness inventory (audit.json + DOCS-AUDIT-REPORT.md)
 
 ### Phase 31: New Documentation
 **Goal**: Developers can find accurate architecture-level documentation for all 37 extracted services across 8 namespaces and for the video cross-referencing system — with both German and English coverage
@@ -108,7 +117,10 @@ Phases 24-27 delivered: SoopLive JSON API discovered and integrated, UmbScraper 
   1. 8 namespace overview pages exist covering all 37 extracted services (TableMonitor::, RegionCc::, Tournament::, TournamentMonitor::, League::, PartyMonitor::, Umb::, Video::) — each page describes namespace role, public interface, and data contract; no private method documentation
   2. A `Video::` cross-referencing page (both `.de.md` and `.en.md`) documents Video::TournamentMatcher confidence scoring (0.75 threshold, two-path matching), Video::MetadataExtractor (regex-first + AI fallback), SoopliveBilliardsClient (replay_no linking), and the operational workflow for backfill vs incremental matching
   3. All new pages are written in both `.de.md` and `.en.md` — the EN version is not a stub; it has the same architecture coverage as DE
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 28-01-PLAN.md — Create audit tooling (translation checker, code reference checker, mkdocs:check task, archive exclusion)
+- [ ] 28-02-PLAN.md — Run audit tools and produce staleness inventory (audit.json + DOCS-AUDIT-REPORT.md)
 **UI hint**: no
 
 ### Phase 32: Nav, i18n & Verification
@@ -120,7 +132,10 @@ Phases 24-27 delivered: SoopLive JSON API discovered and integrated, UmbScraper 
   2. Every in-nav page identified in the Phase 28 bilingual audit has a corresponding `.en.md` file — no in-nav page is silently falling back to DE for English users
   3. `mkdocs build --strict` completes with zero warnings — no missing files, no broken nav references, no unresolved i18n fallbacks for nav-linked pages
   4. `bin/check-docs-links.rb` final run shows zero broken links — broken link count is at or below the Phase 29 baseline
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 28-01-PLAN.md — Create audit tooling (translation checker, code reference checker, mkdocs:check task, archive exclusion)
+- [ ] 28-02-PLAN.md — Run audit tools and produce staleness inventory (audit.json + DOCS-AUDIT-REPORT.md)
 
 ## Progress
 
@@ -135,7 +150,7 @@ Phases execute in numeric order: 28 → 29 → 30 → 31 → 32
 | 17-19. Broadcast Isolation | v3.0 | 6/6 | Complete | 2026-04-11 |
 | 20-23. League & PartyMonitor | v4.0 | 9/9 | Complete | 2026-04-12 |
 | 24-27. UMB Scraper | v5.0 | 12/12 | Complete | 2026-04-12 |
-| 28. Audit & Triage | v6.0 | 0/TBD | Not started | - |
+| 28. Audit & Triage | v6.0 | 0/2 | Not started | - |
 | 29. Break-Fix | v6.0 | 0/TBD | Not started | - |
 | 30. Content Updates | v6.0 | 0/TBD | Not started | - |
 | 31. New Documentation | v6.0 | 0/TBD | Not started | - |
