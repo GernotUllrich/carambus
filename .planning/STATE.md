@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v5.0
 milestone_name: UMB Scraper Überarbeitung
-status: ready_to_plan
-stopped_at: null
-last_updated: "2026-04-12"
-last_activity: 2026-04-12
+status: planning
+stopped_at: Phase 24 context gathered
+last_updated: "2026-04-12T10:59:50.483Z"
+last_activity: 2026-04-12 — Roadmap created for v5.0
 progress:
   total_phases: 5
   completed_phases: 0
@@ -35,6 +35,7 @@ Progress: [░░░░░░░░░░] 0% (v5.0)
 ## Performance Metrics
 
 **Prior milestones:**
+
 - v1.0: 18 plans, 2118 assertions, shipped 2026-04-10
 - v2.0: 11 plans, shipped 2026-04-10
 - v2.1: 15 plans, shipped 2026-04-11
@@ -69,6 +70,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-12
-Stopped at: Roadmap created — Phase 24 ready to plan
-Resume file: None
+Last session: 2026-04-12T10:59:50.479Z
+Stopped at: Phase 24 context gathered
+Resume file: .planning/phases/24-data-source-investigation/24-CONTEXT.md
