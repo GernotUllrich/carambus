@@ -2,7 +2,7 @@
 
 ## What This Is
 
-A focused improvement effort on the Carambus API codebase. v1.0–v2.1 broke down the four largest model classes and audited the test suite. v3.0 verified broadcast isolation per-table. v4.0 refactors League (2219 lines) and PartyMonitor (605 lines) — the team-competition counterpart to the Tournament/TournamentMonitor system — with comprehensive test coverage.
+A focused improvement effort on the Carambus API codebase. v1.0–v2.1 broke down the four largest model classes and audited the test suite. v3.0 verified broadcast isolation per-table. v4.0 broke down League (2221→663 lines) and PartyMonitor (605→217 lines) with 6 extracted services and comprehensive test coverage. All six original god-object models are now appropriately sized.
 
 ## Core Value
 
@@ -41,29 +41,14 @@ A maintainable, well-tested codebase where every test is trustworthy and every m
 - ✓ Multi-scoreboard broadcast isolation tests — v3.0 (morph path, score:update dispatch, table_scores overview, console.warn filter proof)
 - ✓ Concurrent/load broadcast isolation — v3.0 (rapid-fire 6-iteration loop, 3-session all-pairs, 0 failures)
 - ✓ Broadcast gap report — v3.0 (all 11 requirements PASS, FIX-01/FIX-02 deferred)
-
-## Current Milestone: v4.0 League & PartyMonitor Refactoring
-
-**Goal:** Break down League (2219 lines) and PartyMonitor (605 lines) into smaller, well-tested service classes — following the characterization-first, test-driven extraction pattern proven in v1.0 and v2.1.
-
-**Target features:**
-- Characterization tests for League, PartyMonitor, Party critical paths
-- Extract service classes from League (main god object, 2219 lines)
-- Extract service classes from PartyMonitor (game sequencing, player assignment, table placement)
-- Controller/channel/job test coverage for League/Party/PartyMonitor
-- All tests green, behavior preserved
-
-### Active
-
-- [x] Characterization tests for League critical paths (AASM, sync, scheduling) — Validated in Phase 20: Characterization (25 tests)
-- [x] Characterization tests for PartyMonitor critical paths (sequencing, player assignment, table placement) — Validated in Phase 20: Characterization (40 tests)
-- [x] Extract service classes from League — Validated in Phase 21: League Extraction (4 services: StandingsCalculator, GamePlanReconstructor, ClubCloudScraper, BbvScraper; 2221→663 lines, 70.2% reduction)
-- [x] Extract service classes from PartyMonitor — Validated in Phase 22: PartyMonitor Extraction (2 services: TablePopulator, ResultProcessor; 605→217 lines, 64% reduction)
-- [x] Controller/channel/job test coverage for League/Party/PartyMonitor ecosystem — Validated in Phase 23: Coverage (4 controller test files, 10 reflex tests, COV-02 documented, 901 runs green)
+- ✓ Characterization tests for League critical paths — v4.0 (25 tests: standings, game plan, scraping)
+- ✓ Characterization tests for PartyMonitor critical paths — v4.0 (40 tests: AASM, placement, result pipeline)
+- ✓ Extract service classes from League — v4.0 (4 services: StandingsCalculator, GamePlanReconstructor, ClubCloudScraper, BbvScraper; 2221→663 lines, 70.2% reduction)
+- ✓ Extract service classes from PartyMonitor — v4.0 (2 services: TablePopulator, ResultProcessor; 605→217 lines, 64% reduction)
+- ✓ Controller/channel/job test coverage for League/Party/PartyMonitor — v4.0 (30 controller + 10 reflex tests, COV-02 documented, 901 runs green)
 
 ### Out of Scope
 
-- League model refactoring (2219 lines) — tackle in future milestone
 - New test coverage for remaining untested models, controllers, services — separate milestone
 - Architecture or stack changes — not in scope for current project
 - Scraper consolidation (UmbScraper v1/v2) — separate concern
@@ -75,9 +60,7 @@ A maintainable, well-tested codebase where every test is trustworthy and every m
 - **v1.0 shipped 2026-04-10:** TableMonitor 3903→1611 lines (4 services), RegionCc 2728→491 lines (10 services)
 - **v2.0 shipped 2026-04-10:** 72 test files audited, 475 runs green, 1121 assertions, ApiProtectorTestOverride added
 - **v2.1 shipped 2026-04-11:** Tournament 1775→575 lines (3 services), TournamentMonitor 499→181 lines (4 services), lib/tournament_monitor_support.rb deleted
-- **v4.0 Phase 21 shipped 2026-04-11:** League 2221→663 lines (4 services: StandingsCalculator, GamePlanReconstructor, ClubCloudScraper, BbvScraper)
-- **v4.0 Phase 22 shipped 2026-04-12:** PartyMonitor 605→217 lines (2 services: TablePopulator, ResultProcessor)
-- **v4.0 Phase 23 shipped 2026-04-12:** Controller/reflex test coverage (4 controller tests, 10 reflex tests, COV-02 documented)
+- **v4.0 shipped 2026-04-12:** League 2221→663 lines (4 services), PartyMonitor 605→217 lines (2 services), 30 controller + 10 reflex tests
 - Test suite: 901 runs, 2118 assertions, 0 failures, 0 errors, 9 skips
 - Sync: PaperTrail + RegionTaggable filtering, local servers pull via Version.update_from_carambus_api
 - ApiProtector + LocalProtector both have test overrides in test_helper.rb
@@ -117,6 +100,12 @@ A maintainable, well-tested codebase where every test is trustworthy and every m
 | local_server? via ApplicationSystemTestCase setup/teardown | Global carambus.yml change would break 50+ tests; scoped override safer | ✓ Good — established pattern, zero regressions |
 | DOM marker for console.warn capture (not Selenium logs API) | More portable across ChromeDriver versions | ✓ Good — reliable filter proof |
 | Verify-only milestone (no broadcast fix) | Document gaps, defer FIX-01/FIX-02 to future milestone | ✓ Good — clean separation of concerns |
+| League:: namespace for extracted services | Matches Tournament::, TournamentMonitor::, TableMonitor:: patterns | ✓ Good — consistent namespace hierarchy |
+| PORO for standings, ApplicationService for scraping | Pure calculation vs side-effect-heavy operations | ✓ Good — StandingsCalculator PORO, scrapers as ApplicationService |
+| PartyMonitor PORO matching TournamentMonitor | Direct analog — same AASM-driven extraction pattern | ✓ Good — TablePopulator + ResultProcessor mirror TournamentMonitor services |
+| Pessimistic lock stays in model for PartyMonitor | Lock boundary and AASM events are model responsibilities | ✓ Good — services do data work only, model owns state |
+| Thin delegation wrappers (permanent API) | Zero caller changes, wrappers are permanent not transitional | ✓ Good — all controllers/reflexes/jobs unmodified |
+| Fix fixtures before controller tests | Party fixture chain broken (party_id → nonexistent party) | ✓ Good — unblocked 4 skipped tests immediately |
 
 ## Evolution
 
@@ -136,4 +125,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-11 after v4.0 milestone started*
+*Last updated: 2026-04-12 after v4.0 milestone completed*

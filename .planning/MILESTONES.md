@@ -1,5 +1,23 @@
 # Milestones
 
+## v4.0 League & PartyMonitor Refactoring (Shipped: 2026-04-12)
+
+**Phases completed:** 4 phases, 9 plans, 13 tasks
+
+**Key accomplishments:**
+
+- 18 characterization tests pinning LeagueTeam (associations, cc_id_link, scrape stub) and Party (associations, name/intermediate_result/party_nr, boolean flags, data) with fixture infrastructure for dependent plans
+- Created `test/models/league_standings_test.rb`
+- One-liner:
+- League::StandingsCalculator PORO and League::GamePlanReconstructor ApplicationService extracted from league.rb, reducing model by 618 lines (2221 -> 1603) while preserving all 25 Phase 20 characterization tests unchanged
+- 1. [Rule 1 - Bug] Fixed undefined `records_to_tag` variable in scrape_bbv_leagues
+- One-liner:
+- PartyMonitor::ResultProcessor PORO extracts 5-method result pipeline + 2 private helpers from 489-line model, reducing it to 217 lines with thin delegation wrappers
+- Fixed party_monitors fixture chain, resolved Phase 22 behavioral regression in placement test, and added 13 integration tests for LeaguesController and LeagueTeamsController.
+- Fixed PartyMonitorsController tests (0 skips), created PartiesController integration tests, added PartyMonitorReflex unit tests for 5 critical paths, and documented COV-02 (no channels/jobs to test). Full suite green.
+
+---
+
 ## v3.0 Broadcast Isolation Testing (Shipped: 2026-04-11)
 
 **Phases completed:** 3 phases, 6 plans, 10 tasks
