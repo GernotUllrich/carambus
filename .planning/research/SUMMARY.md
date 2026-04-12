@@ -1,167 +1,180 @@
 # Project Research Summary
 
-**Project:** UMB Scraper Overhaul & Video Cross-Referencing (v5.0)
-**Domain:** Web scraping refactoring + video cross-referencing in Rails 7.2
+**Project:** Carambus API — Documentation Quality Audit (v6.0)
+**Domain:** Documentation audit and update for mkdocs-material + multilingual docs against a Rails 7.2 codebase
 **Researched:** 2026-04-12
-**Confidence:** HIGH (primary source: direct codebase inspection throughout)
+**Confidence:** HIGH
 
 ## Executive Summary
 
-This milestone has three parallel work streams inside an existing Rails 7.2 carom billiards tournament management app: (1) investigate whether better-structured data sources exist for UMB tournament data, (2) refactor the 2718-line UMB scraper monolith into namespaced service classes following the established project pattern, and (3) build a `Video::TournamentMatcher` service that assigns unlinked video records to `InternationalTournament` records. Zero new gems are required — every tool needed is already in the Gemfile. The codebase already has the polymorphic `videoable` association, the `Text::Levenshtein` gem, `pdf-reader`, and a well-established `Umb::` namespace convention from four prior refactoring milestones.
+v6.0 is a pure documentation audit milestone. The codebase underwent five milestones of significant refactoring (v1.0–v5.0), extracting 37 service classes across 8 namespaces and deleting multiple large classes (UmbScraperV2, lib/tournament_monitor_support.rb), but documentation was not updated alongside those changes. The result is a docs site with 74 confirmed broken links, active developer docs referencing deleted classes, and zero documentation coverage for any of the 37 extracted services. The goal is to bring the docs into accurate alignment with the current codebase — no new features, no tooling changes, no new infrastructure.
 
-The recommended approach is investigation-first, refactor-second, cross-reference-third. The investigation phase gates the refactoring strategy: if `umbevents.umb-carom.org/Reports/` endpoints return JSON under `Accept: application/json`, the HTML parsing layer becomes a fallback rather than the primary path and the refactoring plan changes. If no JSON API exists, the extraction proceeds as a pure code reorganization. Either way, characterization tests using VCR cassettes must be written before a single line of `UmbScraper` is changed — this is the non-negotiable project convention validated across v1.0–v4.0.
+The recommended approach is audit-first: produce a complete inventory of broken links, stale code references, and documentation gaps before writing a single content update. This avoids the classic pitfall of fixing visible issues while missing deeper staleness embedded in code blocks and diagrams. The existing toolchain (mkdocs 1.6.1, mkdocs-material 9.6.15, mkdocs-static-i18n 1.3.0, Ruby link-checking scripts) is fully sufficient. The only new tooling required is two small Ruby scripts (~30–50 lines each) for translation coverage reporting and stale-identifier detection — both are stdlib-only additions to the existing pattern.
 
-The key risks are three pre-existing bugs that will silently corrupt results if not fixed before new code is written: `TournamentDiscoveryService` references a non-existent `international_tournament_id` column (the correct polymorphic API is `video.update(videoable: tournament)`), `ScrapeUmbArchiveJob` passes keyword arguments that `UmbScraper#scrape_tournament_archive` silently ignores, and `KozoomScraper` sets `VERIFY_NONE` unconditionally in all environments. These must be corrected as the first act of the scraper refactoring phase, not deferred.
+The primary risk is scope creep: the docs corpus contains 177 markdown files and 342 total .md files across active, archive, and internal directories. The audit must stay focused on nav-linked active docs, resist translating non-nav DE-only internal files, and avoid auto-generating API reference docs. A secondary risk is language pair discipline: the mkdocs i18n plugin silently serves German content to English users when `.en.md` files are missing, making English staleness invisible unless actively checked. Every content change must update both language files in the same commit.
 
 ## Key Findings
 
 ### Recommended Stack
 
-No new dependencies are needed. All tooling is already installed and actively used. The stack decision is clear: `net/http` for HTTP, `nokogiri` for HTML parsing, `pdf-reader 2.15.x` for PDF extraction, `Text::Levenshtein` for fuzzy name matching, and the established ApplicationService/PORO pattern for service class design. The only open question is whether `umbevents.umb-carom.org/Reports/` responds to JSON requests — that investigation should run before committing to the refactoring plan.
+No new dependencies are required. The entire v6.0 toolchain is already installed and working. The only additions are two small stdlib-Ruby scripts that extend the existing link-checking pattern.
 
 **Core technologies:**
-- `net/http` (stdlib): HTTP requests to UMB and all scrapers — no HTTP client gem swap needed or warranted
-- `nokogiri >= 1.12.5`: HTML parsing of UMB ASP.NET pages — already used in both UmbScraper and UmbScraperV2
-- `pdf-reader ~> 2.12` (current 2.15.x): PDF extraction for UMB result and ranking PDFs — already used in UmbScraperV2
-- `text` gem: `Text::Levenshtein.distance` for video-to-tournament name similarity — already used in `Club#similarity_score`
-- ApplicationService/PORO split: established project pattern across 27 prior extractions — pure logic as PORO, I/O side effects as ApplicationService
-- VCR cassettes: record/replay HTTP for deterministic scraper tests — infrastructure already in `test/snapshots/vcr/`
+- `mkdocs` 1.6.1: Build/serve/validate docs — already configured; `mkdocs build --strict` provides CI-style validation
+- `mkdocs-material` 9.6.15: Theme with i18n integration — already configured, no changes needed
+- `mkdocs-static-i18n` 1.3.0: `.de.md`/`.en.md` suffix-based multilingual docs — already working with `fallback_to_default: true`
+- `bin/check-docs-links.rb` (existing): Link checker — already identified 74 broken links; use as baseline
+- `bin/fix-docs-links.rb` (existing): Pattern-based batch fixer — useful for automatable link repairs
+- `bin/check-docs-translations.rb` (to create, ~30 lines): Identifies `.de.md` files missing `.en.md` counterparts and vice versa
+- `bin/check-docs-coderef.rb` (to create, ~50 lines): Extracts CamelCase class names from docs and verifies they exist in `app/` — catches deleted-class references
 
 ### Expected Features
 
-**Must have (table stakes):**
-- Cuesco/SoopLive data source investigation — gates the entire refactoring strategy; skip this and the architecture decision is blind
-- UmbScraper split into `Umb::` namespaced service classes — 2133-line file is unmaintainable and the project convention demands this structure
-- UmbScraperV2 merge or deprecation decision — two overlapping scrapers create duplicated bugs; must be resolved
-- `Video::TournamentMatcher` service — core deliverable of the video track; assigns unlinked `Video` records to `InternationalTournament` by date + player name intersection
-- SoopLive schedule/results scraping for platform-native VOD linking — highest-precision cross-reference path (VOD IDs embedded directly in match pages)
+**Must have (P1 — milestone not complete without these):**
+- Fix all 74 broken internal links — docs are broken without this; a pre-existing report already enumerates them
+- Rewrite `umb-scraping-implementation.md` and `umb-scraping-methods.md` — both reference `UmbScraperV2` (deleted v5.0) as current architecture
+- Add developer reference for all 37 extracted services, grouped by namespace (8 groups) — zero current coverage of 5-milestone refactoring
+- Verify all mkdocs.yml nav entries resolve to existing files — build warnings surface missing pages
 
-**Should have (competitive):**
-- Cuesco JSON API integration if the `umbevents.umb-carom.org/Reports/` endpoint returns structured data — replaces brittle HTML parsing for recent events
-- Video-to-game (individual match) assignment — more precise than tournament-level; achievable via SoopLive `data-seq` VOD attributes once schedule scraping is in place
-- AI-assisted title parsing for non-English video titles — fills matching gaps for Korean/Vietnamese/Spanish content; uses existing `AiSearchService` infrastructure
+**Should have (P2 — strong quality improvement):**
+- Document video cross-referencing system (`Video::TournamentMatcher`, confidence scoring, operational workflow) — non-obvious v5.0 architecture with zero docs
+- Create EN stubs for in-nav pages currently DE-only — English users silently receive German content via fallback
+- Stale content pass on 10 most likely stale developer docs (game-plan-reconstruction, league-management, clubcloud-integration)
 
-**Defer (v2+):**
-- Ranking PDF integration — `scrape_rankings` stub exists, high effort, low immediate display value
-- UMB archive backfill — already implemented operationally; treat as a run-task, not a phase deliverable
-- Bulk video translation — OpenAI cost risk at scale; `Video#translated_title` already exists for on-demand use
+**Defer (P3 — not this milestone):**
+- Full translation of non-nav DE-only docs (internal, archive, studies) — 26 files × ~200 lines each; translation cost far exceeds value for docs users never see
+- Automated stale content detection in CI — multi-week project; known stale files are already identified
+- New screenshots for scoreboard guide — fix 34 existing broken screenshot refs first; do not add new placeholders without actual images
 
 ### Architecture Approach
 
-The architecture follows the identical pattern used in v1.0–v4.0: extract logic from the monolith into `Umb::` namespaced services, reduce `umb_scraper.rb` to a thin delegation wrapper (permanent, not transitional), and add a parallel `Video::` namespace for the cross-referencing domain. The original `UmbScraper` public interface is never changed — the three callers (`ScrapeUmbJob`, `ScrapeUmbArchiveJob`, `Admin::IncompleteRecordsController`) and the `umb:update` rake task are untouched. Video cross-referencing integrates as Step 3 of `DailyInternationalScrapeJob`, sitting between video scraping/auto-tagging and translation.
+The audit operates on the existing five-audience docs structure (decision-makers, players, managers, administrators, developers) with no restructuring required. The primary audit target is `developers/` — the only section significantly affected by v1.0–v5.0 refactoring. Work proceeds in four sequential phases: structural triage (audit and classify all findings as DELETE/UPDATE/CREATE), break-fix (link repairs and stale-reference removal), content updates (rewrite inaccurate sections), and new content creation (document undocumented v1.0–v5.0 work). Language pair discipline is non-negotiable: every content change must update both `.de.md` and `.en.md` in the same commit.
 
 **Major components:**
-1. `Umb::HttpClient` (PORO) — shared HTTP fetcher with environment-guarded SSL; replaces per-scraper `fetch_url` duplication
-2. `Umb::PlayerResolver` (PORO) — `find_or_create_international_player` lookup logic, no DB write; caller decides persistence
-3. `Umb::PdfParser` (ApplicationService) — downloads and reads group results, KO bracket, and player list PDFs
-4. `Umb::DetailsScraper`, `Umb::FutureScraper`, `Umb::ArchiveScraper` (ApplicationService) — one HTTP+parse+persist service per scraping concern
-5. `Video::MetadataExtractor` (PORO) — extracts tournament type, year, players, round, discipline from video title; extends existing `Video#detect_player_tags`
-6. `Video::TournamentMatcher` (ApplicationService) — scores unassigned videos against `InternationalTournament` candidates; writes `videoable` association above confidence threshold (default 0.75)
-7. `UmbScraper`, `UmbScraperV2` (thin facades, permanent) — unchanged public interface; delegate to `Umb::*` services
+1. `mkdocs.yml` nav (42 entries) — source of truth for what is published; some entries currently lack `.de.md`/`.en.md` pairs
+2. Active docs (~255 files, non-archive/non-obsolete) — audit target; mixed state from stale pre-v5.0 to current
+3. `docs/archive/` (87 files) + `docs/obsolete/` (2 files) — frozen; do not modify content; verify they are excluded from mkdocs search indexing
+4. Language pairs (`.de.md`/`.en.md`) — 87 DE files vs 63 EN files; 27 DE-only gaps, 3 EN-only gaps; every update must maintain or improve parity
+5. Two new Ruby audit scripts — extend existing link-checking toolchain without adding Python dependencies
 
 ### Critical Pitfalls
 
-1. **`TournamentDiscoveryService` references non-existent column** — fix `video.update(videoable: tournament)` before writing any cross-referencing logic; this bug silently aborts `DailyInternationalScrapeJob` Steps 4-5 today
-2. **No characterization tests before extraction** — VCR cassettes for every public `UmbScraper` method are mandatory before any code change; skipping this breaks the 901-test regression harness silently
-3. **`ScrapeUmbArchiveJob` argument mismatch** — `discipline:`, `year:`, `event_type:` kwargs are silently ignored by `UmbScraper#scrape_tournament_archive`; fix the interface alignment before extraction propagates the wrong signature
-4. **PaperTrail version bloat during bulk scrape** — wrap bulk save loops in `PaperTrail.request(enabled: false)` for first-time imports; daily re-scrapes create 200+ version rows per run, degrading local server sync
-5. **`KozoomScraper` unconditional `VERIFY_NONE`** — fix during extraction of shared `Umb::HttpClient`; do not copy the unguarded pattern into new services; run `brakeman` after each extraction step
-6. **Video-to-tournament name matching brittleness** — "World Cup Antalya 2025" vs "3C World Cup Antalya 2025" breaks fuzzy match; normalize both sides before comparing and instrument `Video.unassigned.count` after every run
+1. **Auditing only prose, missing embedded code identifiers** — grep for class names, file paths, and method references in docs BEFORE reading any file. `UmbScraperV2` and `tournament_monitor_support` were confirmed via grep, not prose reading. Build a code-identifier inventory as Phase A.
+
+2. **Updating one language file without its pair** — `fallback_to_default: true` silently hides the divergence. Every file change must include both `.de.md` and `.en.md` in the same commit; verify with `diff` before marking a file done.
+
+3. **Deleting stale content without checking inbound links** — grep the full `docs/` tree for any file's name before deleting it; check `mkdocs.yml` nav; verify broken link count did not increase after deletion.
+
+4. **Over-documenting extracted service internals** — document architecture (namespace role, public interface, data contract) not implementation. No published page should describe private methods. 37 services across 8 namespaces maps to 8 namespace-level overview sections, not 37 per-class pages.
+
+5. **Treating archived docs as harmless** — mkdocs indexes all files under `docs/` unless explicitly excluded. Verify `mkdocs.yml` has `exclude_docs` or `not_in_nav` directives covering `docs/archive/` and `docs/internal/`; add "Archived — this feature no longer exists" notices to archive pages containing deleted-code examples.
 
 ## Implications for Roadmap
 
-Based on research, the investigation result is a hard gate on everything else. The phase structure must treat that decision point as a real checkpoint, not a formality.
+Based on research, the natural phase structure is audit-before-fix, structural-before-semantic, and existing-accuracy-before-new-content.
 
-### Phase 1: Data Source Investigation
-**Rationale:** The Cuesco/SoopLive investigation gates the refactoring strategy. If `umbevents.umb-carom.org/Reports/` returns JSON, the HTML parser is demoted to a fallback and the service class design changes materially. Building before investigating wastes effort. This is also the phase to audit rate-limiting behavior and design the archive scan strategy.
-**Delivers:** A written decision memo — either (a) HTML-only confirmed, proceed with pure code reorganization, or (b) JSON API found, describe data shape and integration plan. Also: 429-handling strategy for archive scans.
-**Addresses:** Cuesco/SoopLive investigation (P1 table stake), sequential ID scan rate-limiting (Pitfall 8)
-**Avoids:** Speculative adapter layer (Architecture Anti-Pattern 3), misdesigned archive scan (Pitfall 8)
+### Phase 1: Audit and Triage
 
-### Phase 2: UmbScraper Characterization Tests
-**Rationale:** Project convention is test-first before any extraction. The 901-test suite has no coverage for `UmbScraper` public methods today. Writing characterization tests first creates the regression harness that makes all subsequent extraction safe. This phase also fixes the two pre-existing bugs (job argument mismatch, `TournamentDiscoveryService` column error) because both surface during test writing.
-**Delivers:** VCR cassettes for all `UmbScraper` public methods; smoke tests for `ScrapeUmbJob` and `ScrapeUmbArchiveJob`; pre-existing bug fixes for job argument mismatch and `VERIFY_NONE` inconsistency
-**Addresses:** All table-stake characterization work from FEATURES.md
-**Avoids:** Silent regression during extraction (Pitfall 3), argument mismatch propagation (Pitfall 2)
+**Rationale:** Cannot estimate or execute fix work without knowing the full scope. Two Ruby scripts need to be created; the identifier-grep inventory must be built before any content is touched. A complete DELETE/UPDATE/CREATE classification prevents context-switching between audit and fix modes.
 
-### Phase 3: UmbScraper Service Extraction
-**Rationale:** With characterization tests in place, extract bottom-up: `Umb::HttpClient` first (all others depend on it), then `Umb::PlayerResolver`, `Umb::PdfParser`, `Umb::DetailsScraper`, `Umb::FutureScraper`, `Umb::ArchiveScraper`. Each extraction commits independently and leaves `bin/rails test` green. Reduce `umb_scraper.rb` to a thin delegation wrapper at each step.
-**Delivers:** `app/services/umb/` with 6 focused service classes; `UmbScraper` and `UmbScraperV2` as thin facades; PaperTrail versioning suppression on bulk import paths; Brakeman-clean SSL handling
-**Uses:** ApplicationService/PORO pattern, `net/http`, `nokogiri`, `pdf-reader`, VCR cassettes
-**Implements:** `Umb::*` component layer from Architecture diagram
-**Avoids:** PaperTrail bloat (Pitfall 5), SSL `VERIFY_NONE` propagation (Pitfall 7), facade deletion before callers update (Anti-Pattern 2)
+**Delivers:** Complete staleness inventory (broken links by category, stale class references with file/line citations, documentation gaps per namespace, bilingual coverage gaps for nav-linked files), plus the two new audit scripts (`bin/check-docs-translations.rb`, `bin/check-docs-coderef.rb`).
 
-### Phase 4: UmbScraperV2 Resolution
-**Rationale:** After Phase 3, `UmbScraper` and `UmbScraperV2` share much overlapping logic now extracted into `Umb::*`. The V2 merge-or-deprecate decision becomes straightforward: merge overlapping V2 logic into the Phase 3 services, point `UmbScraperV2` at the same `Umb::*` services. This phase is short but must follow Phase 3 (dependencies on extracted services).
-**Delivers:** `UmbScraperV2` reduced to a thin facade; duplicate `find_player_by_name` / `make_absolute_url` / `parse_date_range` logic consolidated; no dead code
-**Addresses:** UmbScraperV2 merge/deprecate decision (P1 table stake from FEATURES.md)
+**Addresses:** FEATURES P1 "audit nav against actual file existence"; establishes baseline for all subsequent work
 
-### Phase 5: Video Cross-Referencing
-**Rationale:** `Video::TournamentMatcher` depends on `InternationalTournament` fixture records being populated (from Phase 3 work) but is otherwise independent of the scraper structure. The pre-existing `TournamentDiscoveryService` bug must be fixed first (done in Phase 2). Build `Video::MetadataExtractor` (PORO) first, then `Video::TournamentMatcher` (ApplicationService), then integrate into `DailyInternationalScrapeJob` Step 3. SoopLive schedule scraping for platform-native match linking can be added in the same phase if time permits.
-**Delivers:** `app/services/video/tournament_matcher.rb` and `metadata_extractor.rb`; `DailyInternationalScrapeJob` Step 3 wired; `Video.unassigned.count` measurably decreasing after each daily job run; `TournamentDiscoveryService` column bug fixed
-**Addresses:** VideoMatcher service (P1), SoopLive schedule scraping (P2), video-to-game assignment foundation (P2)
-**Avoids:** Non-existent column bug (Pitfall 1), name matching brittleness (Pitfall 6), auto-assignment below confidence threshold (Anti-Pattern 5), merging with `TournamentDiscoveryService` (Anti-Pattern 4)
+**Avoids:** Pitfall 1 (editing while auditing creates moving target); Pitfall 3 (deletion without inbound-link check)
+
+### Phase 2: Break-Fix (DELETE and Link Repairs)
+
+**Rationale:** Fixes things that are actively wrong with low content risk. Removing and repairing is safer than rewriting; establishes a clean link baseline against which update work can be verified.
+
+**Delivers:** Zero (or near-zero) broken links in active nav docs; no active doc references deleted classes (UmbScraperV2, tournament_monitor_support); nav file existence verified; duplicate nav entries resolved.
+
+**Uses:** `bin/check-docs-links.rb` (verification), `bin/fix-docs-links.rb` (automatable repairs), `bin/check-docs-coderef.rb` (identifier sweep)
+
+**Avoids:** Pitfall 3 (inbound-link grep before every deletion); Pitfall 5 (archive exclusion verification in mkdocs.yml)
+
+### Phase 3: Update Existing Docs
+
+**Rationale:** Rewriting inaccurate content has semantic risk — requires reading both the doc and the corresponding code. Must happen after the audit inventory is complete (scope is known) and after link repairs (updated docs don't inherit broken links).
+
+**Delivers:** `umb-scraping-implementation.md` reflects actual v5.0 `Umb::` architecture; `umb-scraping-methods.md` method inventory matches `Umb::*` namespace; `international/umb_scraper.md` describes facade + 10 services; `developer-guide.{de,en}.md` services section updated; concern descriptions verified.
+
+**Avoids:** Pitfall 2 (both language files updated per commit); Pitfall 6 (code examples verified runnable against current codebase)
+
+### Phase 4: Create New Documentation
+
+**Rationale:** Highest effort, highest value. Done last because structural accuracy issues are resolved, and new docs can reference the already-corrected architecture. Grouped by namespace for tractability (8 namespace overviews, not 37 individual class pages).
+
+**Delivers:** Developer reference for all 37 extracted services (8 namespace sections, both languages); `Umb::` architecture doc (10 services, PdfParser breakdown, facade pattern); `Video::` cross-referencing doc (TournamentMatcher, MetadataExtractor, confidence scoring, operational workflow); updated architecture overview per refactored domain.
+
+**Addresses:** FEATURES P1 "document 37 extracted services"; FEATURES P2 "video cross-referencing docs"
+
+**Avoids:** Pitfall 4 (architecture overview before any method-level docs; no private-method documentation); Pitfall 7 (every namespace gets at least one architecture-level reference)
+
+### Phase 5: Nav, i18n, and Verification
+
+**Rationale:** Final integration pass. New Phase 4 docs must be added to `mkdocs.yml` nav with nav_translations entries; bilingual gap decisions resolved for in-nav pages; final build must pass clean.
+
+**Delivers:** All Phase 4 docs in mkdocs.yml nav with DE nav_translations; EN stubs for in-nav developer docs currently DE-only; `mkdocs build --strict` passes; broken link count at or below Phase 2 baseline.
+
+**Addresses:** FEATURES P2 "EN stubs for in-nav DE-only pages"; FEATURES P1 "verify nav file existence"
+
+**Avoids:** Architecture Anti-Pattern 4 (new docs without nav entries); Pitfall 2 (language pair parity verified)
 
 ### Phase Ordering Rationale
 
-- Investigation must precede extraction because the refactoring design depends on whether a JSON API is available. Building HTML-only services and then discovering a JSON API means structural rework.
-- Characterization tests must precede code changes — project convention established across v1.0–v4.0; `UmbScraper` is the only major scraper with zero characterization test coverage.
-- Bottom-up extraction (leaf services before composites) prevents a partially extracted service from being called by another service that also still has the original logic inline.
-- Video cross-referencing last because it reads from `InternationalTournament` records that the refactored scrapers populate; starting earlier risks testing against an incomplete fixture set.
-- Each phase is independently deployable — the facade pattern guarantees this; callers never change.
+- Audit must precede all fix work — without the full inventory, scope is unknown and fixes create a moving target
+- Link and structural repairs precede semantic rewrites — a clean link baseline makes it possible to verify that updates don't introduce new breakage
+- Existing accuracy before new content — correcting stale information in active docs is higher priority than adding new pages for undocumented services
+- Nav and i18n last — new nav entries can only be added after new content is written; final verification can only happen after all changes land
 
 ### Research Flags
 
-Phases likely needing deeper research during planning:
-- **Phase 1 (Investigation):** Cuesco/SoopLive AJAX endpoint behavior is unknown — requires live network inspection, cannot be determined from static analysis. Confidence is LOW on JSON API availability.
-- **Phase 5 (Video Cross-Referencing):** SoopLive match page scraping requires probing the schedule/results URL structure in detail; existing `SoopliveScraper` does not cover these pages.
-
 Phases with standard patterns (skip research-phase):
-- **Phase 2 (Characterization Tests):** VCR cassette pattern is established; smoke test pattern is in `test/scraping/scraping_smoke_test.rb`. No new patterns needed.
-- **Phase 3 (Extraction):** Identical to v1.0–v4.0 extractions. 27 prior service class extractions in this codebase; pattern fully established.
-- **Phase 4 (V2 Resolution):** Simple facade reduction following the Phase 3 pattern.
+- **Phase 2 (Break-Fix):** Well-documented patterns; existing link checker script handles verification; deletion checklist is mechanical
+- **Phase 5 (Nav/i18n Cleanup):** mkdocs.yml nav editing and i18n plugin behavior already understood from current working state
+
+Phases likely needing codebase verification during planning (not exploratory research, but careful code reading):
+- **Phase 3 (Update Existing Docs):** Each UMB docs rewrite requires reading the corresponding `app/services/umb/` source files to verify current behavior before writing
+- **Phase 4 (Create New Docs):** Writing accurate architecture overviews requires reading each service's source; especially `Video::TournamentMatcher` (confidence scoring, two-path matching) and `Umb::PdfParser` subclasses — non-obvious architectures that need careful inspection before documentation
 
 ## Confidence Assessment
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | HIGH | All tooling read directly from Gemfile.lock and active usage confirmed in source files |
-| Features | MEDIUM | Codebase analysis HIGH; Cuesco/SoopLive API availability LOW — that gap is the milestone's primary risk |
-| Architecture | HIGH | All findings from direct codebase inspection; patterns confirmed across 27 prior extractions |
-| Pitfalls | HIGH | Bugs (column mismatch, argument mismatch, VERIFY_NONE) confirmed by reading actual source and schema files |
+| Stack | HIGH | All tools read directly from installed packages and existing scripts; no speculation |
+| Features | HIGH | Work items derived from direct file inventory: 74 broken links confirmed, 37 services confirmed absent from docs, stale references confirmed via grep with file/line citations |
+| Architecture | HIGH | Phase structure derived from direct inspection of docs corpus; all findings have file/line citations |
+| Pitfalls | HIGH | All pitfalls confirmed via grep on live repo; specific stale references cited with file and line number, not inferred |
 
-**Overall confidence:** HIGH for the refactoring work stream; MEDIUM for the video cross-referencing work stream (gated on investigation outcome)
+**Overall confidence:** HIGH
 
 ### Gaps to Address
 
-- **Cuesco/SoopLive JSON API availability:** Cannot be resolved without live HTTP inspection. Phase 1 must answer this before any architecture commitment on the data source layer. If JSON is available, add a `Umb::CuescoClient` ApplicationService and demote HTML parsing to fallback.
-- **`umbevents.umb-carom.org` rate-limiting behavior:** Unknown. Phase 1 investigation should probe request frequency tolerance and determine whether exponential backoff is necessary for archive scans.
-- **UMB archive maximum ID:** `InternationalTournament.maximum(:external_id)` determines the correct `start_id` for archive scans. Confirm current value before writing the extracted `Umb::ArchiveScraper` to avoid re-scanning known IDs on every run.
-- **SoopLive VOD retention window:** Historical cross-referencing for past tournaments depends on whether SoopLive archives VODs beyond the current season. Needs confirmation before designing the backfill strategy.
+- **In-nav DE-only gap count:** Research identified 27 DE-only gaps total, but not all are in the mkdocs.yml nav. The exact count of in-nav pages lacking `.en.md` must be determined in Phase 1 before estimating EN stub effort for Phase 5.
+- **Archive search indexing status:** `mkdocs.yml` has no `exclude_docs` directive for archive directories. Whether archive content is currently indexed requires `mkdocs build` + `site/search/search_index.json` inspection — to be done in Phase 1.
+- **`managers/` and `international/` broken links (4 total):** Root causes noted as "unknown — verify during audit" in BROKEN_LINKS_REPORT.txt; to be confirmed in Phase 1.
+- **`lib/tournament_monitor_support.rb` doc references:** Grep confirmed references in `tournament-architecture-overview.en.md` and `clubcloud-upload.{de,en}.md`; a full sweep may surface additional files not yet identified.
 
 ## Sources
 
 ### Primary (HIGH confidence)
-- `app/services/umb_scraper.rb` (2133 lines) — URL patterns, method signatures, SSL handling, duplicate detection logic
-- `app/services/umb_scraper_v2.rb` (585 lines) — V2 implementation, PDF::Reader usage, STI-based approach
-- `app/services/tournament_discovery_service.rb` — `international_tournament_id` column bug confirmed against schema
-- `app/models/video.rb` — polymorphic `videoable`, `unassigned` scope, player/discipline detection methods
-- `db/schema.rb` — `videos` table confirms no `international_tournament_id` column
-- `app/jobs/scrape_umb_archive_job.rb` — argument mismatch with `UmbScraper#scrape_tournament_archive` confirmed
-- `app/jobs/daily_international_scrape_job.rb` — Step 3 integration point, no rescue on discovery service call
-- `.planning/PROJECT.md` — Key Decisions log, v1.0–v4.0 namespace/facade/PORO patterns
-- Confirmed namespace directories: `app/services/league/`, `tournament/`, `tournament_monitor/`, `table_monitor/`, `party_monitor/`, `region_cc/`
+
+All findings from direct codebase inspection — no external sources required.
+
+- `docs/BROKEN_LINKS_REPORT.txt` — 74 confirmed broken links, pre-audit baseline; scope and exclusions documented
+- `mkdocs.yml` — nav structure (42 entries), i18n plugin config (`fallback_to_default: true`, suffix pattern), no `exclude_docs` directive
+- `.planning/PROJECT.md` — 37 extracted services inventory, deleted files (UmbScraperV2, lib/tournament_monitor_support.rb), v1.0–v5.0 milestone record
+- `bin/check-docs-links.rb`, `bin/fix-docs-links.rb`, `lib/tasks/mkdocs.rake` — existing toolchain
+- `docs/developers/umb-scraping-methods.md:73` — confirmed `UmbScraperV2` stale reference (active nav page)
+- `docs/developers/tournament-architecture-overview.en.md` — confirmed `tournament_monitor_support` stale reference
+- File tree analysis: 89 `.de.md` files, 63 `.en.md` files, 342 total `.md` files across docs/
+- Installed packages verified: mkdocs 1.6.1, mkdocs-material 9.6.15, mkdocs-static-i18n 1.3.0, pymdown-extensions 10.16
 
 ### Secondary (MEDIUM confidence)
-- Direct HTTP probe of `files.umb-carom.org/public/FutureTournaments.aspx` — confirmed static HTML, no JSON API
-- Direct HTTP probe of `umbevents.umb-carom.org/` — HTML + jQuery confirmed; `/Reports/` URLs discovered but JSON response not tested
-- `billiards.sooplive.com/schedule/129?sub1=result` — JS-template rendering with `data-seq` VOD ID attributes confirmed
-- `https://github.com/yob/pdf-reader` — version 2.15.x actively maintained (Jan 2025)
-- `https://github.com/threedaymonk/text` — `Text::Levenshtein` version 1.2.3 confirmed available
 
-### Tertiary (LOW confidence)
-- `umbevents.umb-carom.org/Reports/` JSON API availability — URL patterns found but response format under `Accept: application/json` not confirmed; needs live probe in Phase 1
-- `cuesco.eu/about-us` — no public API documented; AJAX endpoint behavior unknown without network inspection
+- https://github.com/ultrabug/mkdocs-static-i18n — no built-in consistency check; missing translations silently fall back (documented plugin behavior)
+- https://pypi.org/project/mkdocs-linkcheck/ — external link checker; assessed as out-of-scope for v6.0 (74 known broken links are all internal)
 
 ---
 *Research completed: 2026-04-12*

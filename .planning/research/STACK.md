@@ -1,22 +1,30 @@
-# Stack Research: UMB Scraper Overhaul & Video Cross-Referencing (v5.0)
+# Stack Research: Documentation Quality Audit (v6.0)
 
-**Domain:** Web scraping, PDF extraction, multi-platform video cross-referencing in a Rails 7.2 app
+**Domain:** Documentation audit and update for mkdocs-material + multilingual docs against a Rails 7.2 codebase
 **Researched:** 2026-04-12
-**Confidence:** HIGH (codebase read directly; UMB site probed; key libraries verified)
+**Confidence:** HIGH (existing toolchain read directly from codebase; no speculation about installed versions)
 
 ---
 
 ## Decision Summary
 
-The v5.0 milestone has three distinct work streams, each with different stack implications:
+v6.0 is a documentation audit milestone, not a code milestone. The four work streams are:
 
-1. **Investigate alternative UMB data sources** — UMB runs two sites (`files.umb-carom.org` and `umbevents.umb-carom.org`). Both are server-rendered HTML with no public JSON API. No REST/GraphQL endpoints were found. Data is embedded in HTML tables or loaded from PDF files. The only structured data path is PDF downloads for results/rankings and sequential HTML scraping for tournament lists. No new HTTP library is needed — `net/http` (already used) is sufficient.
+1. **Audit docs against codebase** — find stale references to deleted classes (UmbScraperV2, old model structures)
+2. **Fix/remove broken internal links** — 74 broken links already identified by `bin/check-docs-links.rb`
+3. **Document 37 new services from v1.0–v5.0** — services exist in code with no corresponding doc pages
+4. **Verify multilingual consistency** — 89 `.de.md` files vs. 63 `.en.md` files, 26 pages missing English translation
 
-2. **Refactor the 2718-line UMB scraper** — Pure service-class extraction following the established project pattern (ApplicationService for side effects, POROs for pure logic). No new libraries. The key tool is the `reek` quality measurement already in the workflow.
+**Net result: Zero new gems, zero new Python packages required for this milestone.**
 
-3. **Video cross-referencing** — The `Video` model (polymorphic `videoable`) and `InternationalTournament` model are already in place. Cross-referencing is a matching problem: given a video title/description + date, find the best-matching `InternationalTournament`. The `text` gem (already installed, `Text::Levenshtein`) covers the similarity algorithm. No new gem is needed.
+The codebase already has all the tooling needed:
 
-**Net result: Zero new gems required for this milestone.**
+- `bin/check-docs-links.rb` — link checker (already ran, identified 74 broken links)
+- `bin/fix-docs-links.rb` — pattern-based link fixer (dry-run mode)
+- `lib/tasks/mkdocs.rake` — `mkdocs:build`, `mkdocs:serve`, `mkdocs:deploy`
+- `mkdocs` 1.6.1 + `mkdocs-material` 9.6.15 + `mkdocs-static-i18n` 1.3.0 (all installed at `~/Library/Python/3.12/`)
+
+The only "stack" question for v6.0 is: which scripts/approaches handle the four audit tasks, and what (if anything) is missing from the existing toolchain.
 
 ---
 
@@ -24,104 +32,64 @@ The v5.0 milestone has three distinct work streams, each with different stack im
 
 ### Core Technologies (all already installed)
 
-| Technology | Version in Gemfile | Purpose | Why Sufficient |
-|------------|--------------------|---------|----------------|
-| `net/http` | Ruby stdlib | HTTP requests to UMB, Kozoom, SoopLive | Already used in all 5 scrapers. No additional gem gives meaningful benefit for this use case. |
-| `nokogiri` | >= 1.12.5 | HTML parsing of UMB tournament pages | Already used in UmbScraper and UmbScraperV2. CSS selectors handle the table-based UMB markup. |
-| `pdf-reader` | ~> 2.12 | Parse UMB result/ranking PDFs | Already in Gemfile. UmbScraperV2 already uses `PDF::Reader.new(StringIO.new(pdf_data))` for group results and player lists. Current upstream is 2.15.x (Aug 2025) — gem is actively maintained. |
-| `text` gem | present in Gemfile | Levenshtein string similarity for name matching | Already used in `Club#similarity_score`. `Text::Levenshtein.distance` is the right tool for fuzzy player/tournament name matching during cross-referencing. |
-| `google-apis-youtube_v3` | ~> 0.40.0 | YouTube video metadata | Already used in `YoutubeScraper`. Cross-referencing uses the video records already fetched; no new YouTube calls needed. |
-| ApplicationService PORO pattern | project convention | Extracted scraper service classes | Established pattern in 27 prior extractions. Use ApplicationService for I/O-heavy operations, PORO for pure matching logic. |
+| Technology | Version | Purpose | Why Sufficient |
+|------------|---------|---------|----------------|
+| `mkdocs` | 1.6.1 | Build/serve docs site, strict mode | `mkdocs build --strict` exits non-zero on warnings including unresolved nav entries. Use for CI-style validation. |
+| `mkdocs-material` | 9.6.15 | Theme with i18n integration | Already configured. No changes to theme needed. |
+| `mkdocs-static-i18n` | 1.3.0 | `.de.md` / `.en.md` suffix-based multilingual docs | Already configured with `docs_structure: suffix`. Source of truth for which translations exist. |
+| Ruby (stdlib) | 3.2.1 | `bin/check-docs-links.rb`, `bin/fix-docs-links.rb` | Custom scripts already exist. Use them; extend rather than replace. |
 
-### Supporting Patterns (no new code required)
+### Existing Audit Scripts
 
-| Pattern | Purpose | Integration Point |
-|---------|---------|-------------------|
-| `VCR` cassettes | Record/replay HTTP for scraper tests | `test/snapshots/vcr/` — already used for ClubCloud and CEB scraper tests. New UMB service classes get their own cassettes. |
-| `WebMock` | Block real HTTP in test suite | Already active via `test_helper.rb`. All new scraper tests automatically covered. |
-| `InternationalSource` model | Registry for all external data sources | UMB is already seeded (`source_type: 'umb'`). New source types (if any found) follow the same `find_or_create_by!` pattern. |
-| `Video#videoable` polymorphic | Attach video to tournament | Assign `videoable_type: 'Tournament'`, `videoable_id: tournament.id` when a cross-reference match is found. Field already exists in schema. |
-| `Text::Levenshtein.distance` | Fuzzy name matching | `require 'text'` inline (as done in `Club`). Build a similarity score: `1.0 - distance / max_length`. Threshold ~0.8 for confident match. |
+| Script | What It Does | Current Gaps |
+|--------|-------------|--------------|
+| `bin/check-docs-links.rb` | Checks all 177 markdown files for broken internal links; reports 74 broken as of last run | Does not check `mkdocs.yml` nav entries against files on disk; does not validate anchors |
+| `bin/fix-docs-links.rb` | Pattern-based batch fixer for common broken link patterns (language suffix removal, path prefix fixes) | Fix patterns hardcoded for old v1/v2 restructure; some patterns may no longer apply |
+| `lib/tasks/mkdocs.rake` | `build`, `clean`, `serve`, `deploy` via `bundle exec rake mkdocs:*` | No `mkdocs:lint` or `mkdocs:check` task; would be useful addition |
 
----
+### What Is Missing (and Needs to be Built)
 
-## UMB Data Source Investigation Findings
+The audit requires three things the existing tools do not cover:
 
-This section documents what was verified through direct site inspection — critical input for the investigation work stream.
+#### 1. Stale-Reference Detector (new Ruby script, ~40 lines)
 
-### files.umb-carom.org (current scraping target)
+A script that walks `docs/**/*.md`, extracts class/module names (`CamelCase` tokens), and checks each against the live codebase (`app/**/*.rb`, `lib/**/*.rb`) — flagging names that appear in docs but not in code. This catches references to deleted classes like `UmbScraperV2`, `tournament_monitor_support`, old model names.
 
-- **Format:** Server-rendered HTML, minimal JavaScript, no XHR or JSON
-- **Technology:** Static or simple server-rendered pages (no ASP.NET WebForms `__VIEWSTATE`, no React/Vue)
-- **Known URL patterns scraped today:**
-  - `/public/FutureTournaments.aspx` — upcoming tournaments as HTML table
-  - `/public/TournametDetails.aspx?ID={n}` — per-tournament detail page (sequential integer IDs)
-  - `/Public/Ranking/1_WP_Ranking/{year}/W{week}_{year}.pdf` — weekly ranking PDFs
-  - Result PDFs linked from tournament detail pages
-- **Assessment:** No undiscovered API layer. The sequential ID scan (`start_id..end_id`) in `UmbScraper#scrape_tournament_archive` is the correct discovery mechanism. IDs up to ~500 appear to be the full archive.
+**Implementation:** Shell one-liner or simple Ruby. No gem required.
 
-### umbevents.umb-carom.org (secondary site, requires investigation)
+```bash
+# Quick version (finds CamelCase doc references not in code):
+grep -roh '\b[A-Z][a-zA-Z0-9]*\b' docs/ | sort -u > /tmp/doc_names.txt
+grep -roh '\b[A-Z][a-zA-Z0-9]*\b' app/ lib/ | sort -u > /tmp/code_names.txt
+comm -23 /tmp/doc_names.txt /tmp/code_names.txt
+```
 
-- **Format:** HTML pages with jQuery-based filtering UI
-- **Known URL patterns (discovered via site inspection):**
-  - `/Reports/EntryFormViewOnly` — entry/registration forms
-  - `/Reports/ViewPlayers` — player lists
-  - `/Reports/ViewPlayersData` — player statistics
-  - `/Reports/ViewTimetable` — match timetables
-  - `/Reports/ViewAllRanks` — rankings
-  - `/Reports/ViewFinalRanking` — final standings
-  - `/Login/Login` — authentication
-- **Assessment:** These `/Reports/` paths may return structured data (HTML tables or potentially JSON) depending on their Accept headers or parameters. This is the primary investigation target: check whether these endpoints respond to `Accept: application/json` or have query parameters that return structured data. This needs live investigation — cannot determine from static inspection.
-- **Confidence:** LOW for API availability. Requires manual HTTP probing in Phase 1 of v5.0.
+This is a starting point, not a complete solution — the output has false positives (English words, abbreviations). The real value is scoping the work: look at which service class names in docs don't exist in `app/services/`.
 
-### Kozoom API (already partially integrated)
+#### 2. Translation Coverage Report (new Ruby script, ~30 lines)
 
-- The existing `KozoomScraper` authenticates to `api.kozoom.com` and calls `/events/days`. This is a real JSON API.
-- **Cross-referencing use:** Kozoom event IDs in `Video#data["eventId"]` can be matched to `InternationalTournament` records by date range + discipline. This is a reliable path — no additional investigation needed.
+A script that compares `.de.md` files against `.en.md` files and reports which pages have only one language. The current situation: 89 `.de.md` vs 63 `.en.md` — 26 pages lack English translations (or vice versa). `mkdocs-static-i18n` silently falls back to the default language (`de`) for missing translations; there is no built-in warning.
 
-### SoopLive / Five&Six (already integrated)
+**Implementation:** Walk `docs/` directory, group by base name (strip locale suffix), report bases with only one locale.
 
-- `SoopliveScraper` calls the public SoopLive API. Videos are saved with `videoable_id: nil`.
-- **Cross-referencing use:** Title parsing + date window is the matching strategy. Same approach as YouTube.
+```ruby
+# ~15 lines: find base names with missing locale counterpart
+de_files = Dir.glob('docs/**/*.de.md').map { |f| f.sub('.de.md', '') }.to_set
+en_files = Dir.glob('docs/**/*.en.md').map { |f| f.sub('.en.md', '') }.to_set
+(de_files - en_files).each { |f| puts "Missing EN: #{f}.en.md" }
+(en_files - de_files).each { |f| puts "Missing DE: #{f}.de.md" }
+```
 
----
+Add as `bin/check-docs-translations.rb`.
 
-## Scraper Refactoring: Decomposition Strategy
+#### 3. Extend `mkdocs.rake` with Lint Task
 
-The 2718 lines across two files should extract to the same pattern used for League (4 services) and TournamentMonitor (4 services).
+Add `mkdocs:check` that runs `mkdocs build --strict 2>&1` and reports errors. MkDocs `--strict` mode converts warnings to errors, catching:
+- Nav entries referencing non-existent files
+- Broken nav structure
+- Plugin configuration errors
 
-### Recommended service boundaries for UmbScraper (2133 lines)
-
-| Service Class | Responsibility | Type |
-|--------------|---------------|------|
-| `Umb::TournamentListScraper` | Fetches and parses future/archive tournament HTML pages | ApplicationService |
-| `Umb::TournamentDetailParser` | Parses a single tournament detail HTML doc → structured hash | PORO |
-| `Umb::PdfResultParser` | Reads result PDFs, extracts player/game data | PORO |
-| `Umb::DisciplineDetector` | Maps tournament name → discipline ID via regex patterns | PORO |
-| `Umb::TournamentPersister` | Saves tournament + seedings + games to DB | ApplicationService |
-
-### Recommended service boundaries for UmbScraperV2 (585 lines)
-
-| Service Class | Responsibility | Type |
-|--------------|---------------|------|
-| `Umb::V2::TournamentScraper` | Orchestrates fetch → parse → persist for a single tournament | ApplicationService |
-| `Umb::V2::PdfListParser` | Parses players-list PDFs (already in `scrape_players_list_pdf`) | PORO |
-
-PORO rule: pure parsing/calculation, no DB or HTTP calls. ApplicationService rule: has side effects (DB writes or HTTP requests).
-
----
-
-## Video Cross-Referencing: Matching Strategy
-
-No new infrastructure needed. The algorithm is:
-
-1. **Candidate selection:** For each unassigned video (`videoable_id: nil`), find `InternationalTournament` records within ±14 days of `video.published_at`.
-2. **Name similarity:** Use `Text::Levenshtein` to compare normalized video title tokens against tournament title. Threshold: similarity >= 0.75.
-3. **Player overlap:** Extract player names from video title using `Video#detect_player_tags` (already implemented). If 1+ players match a tournament seeding, boost confidence.
-4. **Assignment:** Set `video.videoable_type = 'Tournament'` and `video.videoable_id = tournament.id`. Call `video.auto_assign_discipline!` (already implemented).
-5. **Fallback:** Videos with confidence < threshold remain unassigned for manual review.
-
-This logic belongs in a new `Umb::VideoMatcher` PORO — pure input/output, no DB writes. A separate `Umb::VideoMatcherJob` or ApplicationService handles the batch persistence.
+This is a one-liner rake task wrapping the existing `mkdocs build`.
 
 ---
 
@@ -129,67 +97,100 @@ This logic belongs in a new `Umb::VideoMatcher` PORO — pure input/output, no D
 
 | Avoid | Why | Use Instead |
 |-------|-----|-------------|
-| `faraday` or `httparty` | Both scrapers use `net/http` directly with custom redirect handling. Replacing HTTP client mid-refactor introduces risk for zero benefit. | `net/http` (already used in all 5 scrapers) |
-| `mechanize` | Designed for browser-simulation scraping. UMB HTML is static server-rendered — no form submission or JS rendering needed. Adds a heavyweight dependency. | `net/http` + `nokogiri` |
-| `ferrum` or `watir` (headless browser) | UMB pages are plain HTML. No JavaScript rendering is required to access the data. The existing Chrome/Selenium setup is for system tests only. | `nokogiri` HTML parsing |
-| `fuzzy_match` gem | Heavyweight library combining multiple algorithms. `Text::Levenshtein` (already installed) is sufficient for the matching precision needed. | `text` gem (already in Gemfile) |
-| `iguvium` (PDF table extraction) | For structured PDF tables. UMB PDFs are text-based and already parsed character-by-character by `pdf-reader`. The existing custom row-parsing logic in `UmbScraperV2` works. | `pdf-reader` (already used) |
-| FactoryBot factories for new services | Zero factories exist in this project. All tests use fixtures. | Add fixture rows to existing YAML files |
+| `mkdocs-linkcheck` (PyPI) | Adds Python dependency for external URL checking only. 74 known broken links are all internal. External link checking is out of scope for v6.0. | `bin/check-docs-links.rb` (already handles internal links correctly) |
+| `linkcheckmd` (PyPI) | Same problem — external link focus, no value for internal link audit. | Existing Ruby script |
+| Automated translation services (DeepL, Google Translate) | v6.0 goal is consistency verification, not generating new translations. Auto-translated docs with wrong content are worse than acknowledged gaps. | Flag missing translations; write them manually or explicitly defer |
+| `rdoc` / YARD integration with mkdocs | Complex toolchain to auto-generate API docs from Ruby source. Adds build pipeline complexity not warranted for an audit milestone. | Manual service documentation following existing patterns in `docs/developers/` |
+| `mike` (versioning) | Already in `mkdocs.yml` as version provider but not actively used. Do not activate for v6.0 — adds deployment complexity, no audit value. | Leave in config, do not configure |
+| Sphinx / ReadTheDocs migration | Major infrastructure change. mkdocs-material is already well-configured and working. | Stay with existing mkdocs setup |
 
 ---
 
-## Testing Strategy for New Services
+## Audit Workflow (No New Stack Required)
 
-Pattern established in v1.0–v4.0 extractions:
+For each of the four work streams, the approach using existing tools:
 
-1. **Characterization tests first** — before extracting any service, write tests against the current `UmbScraper`/`UmbScraperV2` that pin existing behavior. Use VCR cassettes.
-2. **VCR cassettes for HTTP** — record real responses from `files.umb-carom.org` during cassette recording session. Store in `test/snapshots/vcr/umb/`.
-3. **Fixture PDFs for PDF parsing** — save representative PDF bytes in `test/fixtures/files/umb/` for deterministic `PDF::Reader` tests.
-4. **Unit test extracted POROs** — no HTTP, no DB. Input: raw HTML doc or PDF bytes. Output: structured hash. Fast.
-5. **Integration test ApplicationServices** — VCR cassette + fixtures DB. Verify `InternationalTournament.count` delta.
+**Stream 1 — Stale references:**
+```bash
+# Find docs that mention deleted class names
+grep -rl "UmbScraperV2\|tournament_monitor_support\|TableMonitor.*3900\|RegionCc.*2700" docs/
+# Extend to: any CamelCase name in docs not found in app/ (see stale-reference script above)
+```
+
+**Stream 2 — Broken links:**
+```bash
+ruby bin/check-docs-links.rb --exclude-archives
+# Then: ruby bin/fix-docs-links.rb --live  (for automatable patterns)
+# Manual fix for the rest (74 broken links, grouped by file)
+```
+
+**Stream 3 — New service documentation:**
+```bash
+# Cross-reference: which services have no doc page
+ls app/services/**/*.rb | sed 's|app/services/||; s|\.rb||' > /tmp/services.txt
+# grep docs/ for each service name, flag undocumented ones
+```
+
+**Stream 4 — Multilingual consistency:**
+```bash
+ruby bin/check-docs-translations.rb  # (new script to create)
+```
 
 ---
 
-## Confidence Assessment
+## Version Compatibility
 
-| Area | Confidence | Basis |
-|------|------------|-------|
-| No public UMB JSON API exists | HIGH | Direct HTTP inspection of both UMB domains. HTML-only responses, no XHR patterns, no API docs found. |
-| `umbevents.umb-carom.org/Reports/` endpoints | LOW | URL patterns discovered but response format under `Accept: application/json` not tested. Needs live probe. |
-| `text` gem sufficient for matching | HIGH | `Text::Levenshtein` already used in `Club#similarity_score`. Same pattern, same gem. |
-| `pdf-reader` sufficient for UMB PDFs | HIGH | Already used in `UmbScraperV2` for result and player list PDFs. Version 2.15.x actively maintained as of Aug 2025. |
-| `Video#videoable` polymorphic ready | HIGH | Schema confirmed: `videoable_type`, `videoable_id` columns exist, scopes exist, no migration needed. |
-| Kozoom API as reliable cross-ref path | HIGH | `KozoomScraper` already authenticates to `api.kozoom.com`. Event IDs in `Video#data["eventId"]` are a direct match key. |
-| Refactoring pattern (PORO/ApplicationService split) | HIGH | Identical to 27 prior extractions. Pattern is well-established in this codebase. |
+| Package | Version | Compatible With | Notes |
+|---------|---------|-----------------|-------|
+| mkdocs | 1.6.1 | mkdocs-material 9.6.15 | MEDIUM confidence — mkdocs 1.6.x + material 9.6.x is the current stable pairing. No known incompatibilities. |
+| mkdocs-material | 9.6.15 | mkdocs-static-i18n 1.3.0 | HIGH confidence — `reconfigure_material: true` in mkdocs.yml already works (docs build currently succeeds). |
+| mkdocs-static-i18n | 1.3.0 | mkdocs 1.6.1 | HIGH confidence — installed and configured with `docs_structure: suffix`, `fallback_to_default: true`. Current working state. |
+| pymdown-extensions | 10.16 | mkdocs-material 9.6.15 | HIGH confidence — installed, all extensions in mkdocs.yml are loading without error. |
 
 ---
 
-## Open Questions for Phase 1 Investigation
+## Installation (nothing new required)
 
-1. **`umbevents.umb-carom.org` response format** — Do the `/Reports/` endpoints accept query parameters or `Accept: application/json`? Probe with `curl -H "Accept: application/json" https://umbevents.umb-carom.org/Reports/ViewAllRanks`. If JSON is returned, a lightweight structured data path becomes available without scraping HTML.
-2. **UMB event IDs vs. Kozoom event IDs** — Is there a stable mapping between UMB tournament IDs (e.g., `TournametDetails.aspx?ID=123`) and Kozoom event IDs in `api.kozoom.com/events`? If yes, video-to-UMB-tournament linking via Kozoom becomes trivial.
-3. **UMB ranking PDF schedule** — The pattern `Public/Ranking/1_WP_Ranking/{year}/W{week}_{year}.pdf` is known. Are all weeks populated? Are discipline-specific sub-paths available (e.g., for 1-cushion, 5-pin)?
-4. **SoopLive VOD availability** — SoopLive archives VODs after live events end. What is the retention window? This affects whether historic cross-referencing for past events is feasible.
+```bash
+# Already installed — verify with:
+mkdocs --version
+# mkdocs, version 1.6.1
+
+# Serve locally:
+bundle exec rake mkdocs:serve
+# OR directly:
+mkdocs serve
+
+# Build with strict mode (proposed new task):
+mkdocs build --strict
+```
+
+New scripts to create (no dependencies):
+
+```bash
+# Translations coverage report
+bin/check-docs-translations.rb  # ~30 lines of stdlib Ruby
+
+# Stale reference scanner (optional, can be a one-liner)
+bin/check-docs-coderef.rb       # ~50 lines of stdlib Ruby
+```
 
 ---
 
 ## Sources
 
-- `app/services/umb_scraper.rb` (2133 lines) — current implementation, URL patterns, PDF path patterns
-- `app/services/umb_scraper_v2.rb` (585 lines) — current V2 implementation, PDF::Reader usage
-- `app/services/kozoom_scraper.rb` — Kozoom JSON API authentication pattern
-- `app/services/youtube_scraper.rb` — existing YouTube integration
-- `app/services/sooplive_scraper.rb` — SoopLive integration
-- `app/models/video.rb` — polymorphic videoable, existing keyword/tag/similarity logic
-- `app/models/international_source.rb` — source registry, known channels
-- `app/models/international_tournament.rb` — STI subclass of Tournament
-- `app/models/club.rb:743` — `Text::Levenshtein.distance` usage (confirmed pattern)
-- Direct HTTP probe of `https://files.umb-carom.org/public/FutureTournaments.aspx` — confirmed static HTML, no JSON API
-- Direct HTTP probe of `https://umbevents.umb-carom.org/` — confirmed HTML + jQuery, `/Reports/` URL patterns discovered
-- https://github.com/yob/pdf-reader — version 2.15.x, actively maintained (latest commit Jan 2025)
-- https://github.com/threedaymonk/text — `Text::Levenshtein` confirmed available (1.2.3)
+- `bin/check-docs-links.rb` — custom link checker, already identifies 74 broken links
+- `bin/fix-docs-links.rb` — pattern-based link fixer with dry-run mode
+- `lib/tasks/mkdocs.rake` — existing mkdocs Rake task
+- `mkdocs.yml` — current configuration: material 9.x, static-i18n 1.3.0, suffix structure, de default
+- `requirements.txt` — Python deps: mkdocs-material>=9.5.0, mkdocs-static-i18n>=1.0.0, pymdown-extensions>=10.0.0
+- `docs/BROKEN_LINKS_REPORT.txt` — 74 broken links across 177 markdown files (current state)
+- Installed packages: mkdocs 1.6.1, mkdocs-material 9.6.15, mkdocs-static-i18n 1.3.0, pymdown-extensions 10.16
+- `find docs -name "*.de.md" | wc -l` → 89; `find docs -name "*.en.md" | wc -l` → 63 (26-page translation gap)
+- https://pypi.org/project/mkdocs-linkcheck/ — external link checker, assessed as out-of-scope for v6.0
+- https://github.com/ultrabug/mkdocs-static-i18n — no built-in consistency check; missing translations silently fall back
 
 ---
 
-*Stack research for: UMB Scraper Overhaul & Video Cross-Referencing (v5.0)*
+*Stack research for: Documentation Quality Audit (v6.0)*
 *Researched: 2026-04-12*

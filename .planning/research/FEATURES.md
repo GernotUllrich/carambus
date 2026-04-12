@@ -1,167 +1,136 @@
 # Feature Research
 
-**Domain:** UMB scraper overhaul and video cross-referencing (v5.0 milestone)
+**Domain:** Documentation quality audit and update for Rails app with mkdocs-material
 **Researched:** 2026-04-12
-**Confidence:** MEDIUM — codebase analysis HIGH, external API availability LOW (no public UMB/Cuesco API documented)
+**Confidence:** HIGH — full codebase + docs inventory available; domain is the existing docs themselves
 
 ---
 
 ## What This Document Maps
 
-This is a **work-item map for a subsequent milestone** on an existing Rails 7.2 carom billiards tournament management app. "Table stakes" means work items without which the milestone goal is not met. "Differentiators" means items that significantly increase the value of the milestone but are not blockers. "Anti-features" means tempting directions to explicitly reject.
+This is a **work-item map for milestone v6.0** on an existing Rails 7.2 carom billiards tournament management app. The codebase underwent major refactoring in v1.0–v5.0 (37 services extracted, 3 models deleted, 1 scraper replaced). Documentation was not updated alongside those code changes. The docs site uses mkdocs-material with de/en i18n (suffix strategy, German default), five audience sections (decision-makers, players, managers, administrators, developers), and a broken links report showing 74 broken links across 177 markdown files.
 
-The milestone has two parallel tracks:
-1. **Data source track** — Find better-structured alternatives to the current UMB HTML scraper, integrate what is found, and refactor the 2718-line scraper into service classes
-2. **Video track** — Cross-reference scraped videos (YouTube, Kozoom, SoopLive) to specific UMB tournaments and games
-
-Both tracks feed the same domain model: `Video` (polymorphic `videoable` → `Tournament`, `Game`, `Player`), `InternationalTournament`, `InternationalSource`.
+"Table stakes" = work items without which the milestone goal is not met (docs accurately reflect codebase).
+"Differentiators" = items that significantly raise quality but are not blockers.
+"Anti-features" = tempting directions to explicitly reject.
 
 ---
 
 ## Ecosystem Context
 
-### What Exists for UMB Data
+### Current State of the Docs
 
-**files.umb-carom.org** (current scrape target):
-- HTML pages: `FutureTournaments.aspx`, `TournametDetails.aspx?ID=N` (sequential IDs), ranking archives at `nrankarchive.aspx`
-- PDFs: player lists, group results, knockout brackets, final rankings — hosted at `files.umb-carom.org/Public/...`
-- No public API documented anywhere. HTML is ASP.NET WebForms (span IDs, aspx pages, postback forms). HIGH complexity to scrape correctly.
-- Rankings are PDF-only (weekly editions, 200+ editions from 2013). No machine-readable format confirmed.
+**What exists:**
+- 177 markdown files across `docs/`, of which 89 are `.de.md` and 63 are `.en.md`
+- `BROKEN_LINKS_REPORT.txt` already generated: 74 broken links in 6 directories (developers: 19, players: 34, reference: 16, administrators: 1, international: 2, managers: 2)
+- `docs/obsolete/` folder exists — prior cleanup was started but not finished
+- `docs/archive/` contains 2026-02 and 2026-02-pre-sti subdirectories — these are internal process notes, not user docs, but they pollute the docs corpus
 
-**umb.cuesco.net** (Five&Six platform):
-- Cuesco manages live scoring for nearly every UMB event. Real-time match data (match number, time, status, players, scores, round, group, table) is rendered via JavaScript templating against a backend API (jsRender-style `{{:match_no}}` template variables seen in DOM). The underlying API endpoint is not publicly documented.
-- The `billiards.sooplive.com/schedule/N?sub1=result` pages expose match data in the same template-bound pattern — data attributes like `data-seq`, `data-no`, click handlers with numeric IDs reference VOD endpoints at `vod.sooplive.com/player/[ID]`.
-- **Key insight**: `umb.cuesco.net` and `billiards.sooplive.com` are the same data feed — Cuesco operates both the scoring hardware and the UMB results website. If an undocumented JSON API exists behind the template variables, it would be the best structured UMB data source available.
+**What is stale after v1.0–v5.0 refactoring:**
+- `docs/developers/umb-scraping-implementation.md` and `umb-scraping-methods.md` — reference `UmbScraperV2` (deleted in v5.0) and the old monolithic `UmbScraper` (2133→175 lines). These are significantly stale.
+- `docs/international/umb_scraper.md` — references old scraper architecture
+- No docs exist for any of the 37 extracted service classes (ScoreEngine, Umb::*, League::*, Video::*, etc.)
+- No docs cover the SoopLive JSON API integration or video cross-referencing system built in v5.0
 
-**Kozoom API** (already partially integrated via `KozoomScraper`):
-- `api.kozoom.com` — authenticated REST API already used by the codebase. Events endpoint: `/events/days?startDate=...&endDate=...&sportId=1`. Kozoom covers major UMB events. Data is structured JSON with event metadata. Does not provide individual game results — event-level only.
-- Kozoom VOD URLs: `tv.kozoom.com/en/event/[eventId]`. Already stored in `Video#json_data["eventId"]`.
+**Multilingual sync gaps (confirmed by file count analysis):**
+- 26 German docs have no English counterpart (out of `internal/`, `studies/`, `administrators/`, `developers/` subdirs)
+- 3 English docs have no German counterpart (`managers/table-reservation.en.md`, `reference/mkdocs_documentation.en.md`, `developers/tournament-architecture-overview.en.md`)
+- i18n plugin uses `fallback_to_default: true` — missing EN pages silently render DE content; users see correct language label but wrong language content
 
-**SoopLive** (already partially integrated via `SoopliveScraper`):
-- `billiards.sooplive.com/schedule/[N]` — tournament schedule and results pages. Data available: contest title, dates, location, match list, player names (English), scores, round, group, table, match VOD IDs. Structure is browser-rendered JS templates; likely requires either a browser scraper or reverse-engineering the AJAX endpoint.
-- Existing `SoopliveScraper` covers channel VODs but does not touch the schedule/results pages.
-- SOOP has a public Open API at `openapi.sooplive.co.kr/apidoc` for VOD embed access (JSON responses confirmed), but it covers VOD metadata, not match results.
-
-**No sports data aggregator provides carom billiards data** — no SportsRadar, Sportradar, or similar commercial API was found covering UMB events. The ecosystem is entirely platform-specific.
-
-### What Exists for Video Cross-Referencing
-
-**Current state in codebase**:
-- `Video` model has a polymorphic `videoable` association to `Tournament`, `Game`, and `Player`. The association is optional (`videoable_id` nullable).
-- Scrapers (`YoutubeScraper`, `SoopliveScraper`, `KozoomScraper`) save videos without tournament/game assignment. Videos sit as `unassigned` records.
-- `Video` has `detect_player_tags`, `detect_content_type_tags`, player name detection via `InternationalHelper::WORLD_CUP_TOP_32`, event name extraction via `json_data["event_name"]`, and round extraction via `json_data["round"]`.
-- `Video#title` contains structured information: player names, tournament name, round, year — but in non-uniform formats across sources (Korean, Vietnamese, Spanish, French titles from different channels).
-
-**Cross-referencing approaches in practice** (observed from community sources):
-1. **Date + player name intersection**: A video published during a tournament's date window, mentioning known players who participated, is likely from that tournament.
-2. **Platform-native linking**: `umb.cuesco.net` links livestream URLs to each match. SoopLive match pages embed VOD IDs directly (`data-seq` attributes). This is the highest-confidence linking — platform handles it.
-3. **Title parsing**: Tournament name and round in video title matched against `InternationalTournament#title` and known round labels (PPPQ, PPQ, PQ, Q, R32, R16, Quarter Final, Semi Final, Final). Known patterns from `UmbScraper::GAME_TYPE_MAPPINGS` already in codebase.
-4. **AI-assisted extraction**: GPT-4 or similar used to extract player names, tournament name, round from non-English titles — already in codebase as `AiSearchService` and `AiTranslationService`.
+**Broken links breakdown (from BROKEN_LINKS_REPORT.txt):**
+- `players/scoreboard-guide.de.md` and `.en.md` — 11 broken screenshot image links each (22 total)
+- `developers/` — 19 broken links to files like `enhanced_mode_system.md` (in obsolete/), `scenario-system-workflow.md` (missing), `test/FIXTURES_*.md` (outside docs root), `CONTRIBUTING.md` (missing)
+- `reference/` — 16 broken links including placeholder `file.md` and `assets/image.png` examples left in mkdocs_dokumentation
+- `administrators/streaming-production-deployment.md` — 1 link to missing `systemd-streaming-services.md`
 
 ---
 
 ## Feature Landscape
 
-### Table Stakes (Users Expect These)
-
-Features without which the milestone goal is not achieved.
+### Table Stakes (Without These, Milestone Goal Not Met)
 
 | Feature | Why Expected | Complexity | Notes |
 |---------|--------------|------------|-------|
-| Investigation of Cuesco/SoopLive structured data | Core milestone goal is to find better sources before refactoring; if Cuesco has a JSON API it changes the refactoring strategy entirely | MEDIUM | Requires: network inspection of `umb.cuesco.net` and `billiards.sooplive.com` AJAX calls to find hidden API endpoints; if found, evaluate data completeness vs current UMB HTML scraping |
-| UMB scraper split into focused service classes | 2133-line `umb_scraper.rb` is unmaintainable. Minimum split: HTTP fetching, HTML parsing, PDF parsing, entity persistence — following the pattern already used for League, TournamentMonitor, TableMonitor | HIGH | Established pattern: characterization tests first, then extract. At least 4 service classes expected: `Umb::TournamentFetcher`, `Umb::HtmlParser`, `Umb::PdfParser`, `Umb::EntityPersister` |
-| UmbScraperV2 absorbs or supersedes UmbScraper | Two scrapers doing overlapping work (both scrape `TournametDetails.aspx`, both parse PDFs) creates confusion and duplicated bugs | MEDIUM | Decision required: merge into one namespace under `Umb::` or deprecate the 585-line V2 in favor of a refactored V1. Depends on discovery from Cuesco investigation. |
-| Video-to-tournament assignment via date+player matching | Current state: all scraped videos are unassigned (`videoable_id = nil`). Assigning them to tournaments is the defined milestone deliverable | HIGH | Core algorithm: `published_at` within tournament date range AND player name intersection. `Video` model already has `detect_player_tags`, `InternationalTournament` has `date`/`end_date`. Service class: `VideoMatcher` |
-| Platform-native video linking for SoopLive matches | SoopLive match pages embed VOD IDs directly in `data-seq` attributes. This is the highest-precision cross-reference available — direct match-to-video links | MEDIUM | Requires extending `SoopliveScraper` to scrape schedule/results pages in addition to channel VODs. Dependency: needs `InternationalTournament` records with SoopLive tournament IDs in `data` JSON |
+| Fix 74 broken internal links | A docs site with 74 broken links is broken; every link checker run will surface these; developer trust erodes | LOW–MEDIUM | Breakdown: 22 missing screenshots (delete or add), 19 developer links (fix paths, consolidate, or remove), 16 reference meta-examples (clean up mkdocs_dokumentation placeholder links), 17 others. Each fix is a one-liner; volume is the complexity. |
+| Update UMB scraping docs for v5.0 reality | `umb-scraping-implementation.md` and `umb-scraping-methods.md` reference `UmbScraperV2` (deleted) and old 2133-line monolith. Any developer reading these will implement against the wrong architecture. | MEDIUM | `UmbScraperV2` deleted in v5.0; `UmbScraper` reduced from 2133→175 lines; 10 `Umb::*` services extracted. Docs need full rewrite to reflect `Umb::` namespace, the 10 service classes, and SoopLive JSON API integration. Two files: `umb-scraping-implementation.md` (plan → reality), `umb-scraping-methods.md` (rake tasks still accurate, service internals not). |
+| Document the 37 extracted services (developer reference) | After v1.0–v5.0, none of the extracted services appear in any doc. Zero mentions of ScoreEngine, Umb::HttpClient, Video::TournamentMatcher, League::StandingsCalculator, etc. Developers onboarding have no map. | HIGH | 37 services across 8 namespaces: `table_monitor/`, `region_cc/`, `tournament/`, `tournament_monitor/`, `league/`, `party_monitor/`, `umb/`, `video/`. A single developer reference page (or section) per namespace grouping is the right scope. Not API reference — purpose, responsibility, and public interface per class. |
+| Remove or update references to deleted code | `UmbScraperV2`, old `TableMonitor` 3900-line monolith, `lib/tournament_monitor_support.rb` (deleted) — any doc citing these as the current implementation misleads developers. | LOW | Mostly in UMB scraping docs + archive. Archive files can stay as historical record but should be clearly labeled. Active nav docs must not reference deleted code. |
+| Audit nav against actual file existence | `mkdocs.yml` nav references 40+ pages; some may have been created as stubs or not yet written. Any nav entry pointing to a missing file causes mkdocs build warnings (or errors with strict mode). | LOW | Verify each nav entry has a corresponding `.de.md` file. Cross-check against `docs/developers/` inventory. |
 
-### Differentiators (Competitive Advantage)
-
-Features that make the result significantly better but are not blockers.
+### Differentiators (Significantly Raise Quality, Not Blockers)
 
 | Feature | Value Proposition | Complexity | Notes |
 |---------|-------------------|------------|-------|
-| Cuesco JSON API integration (if endpoint found) | Replaces brittle HTML parsing with structured match data — player names, scores, round, status in JSON; would eliminate PDF parsing entirely for recent events | HIGH | Confidence: LOW that a public or semi-public endpoint exists. Investigation phase determines whether this is buildable. If found, becomes highest-priority item. |
-| Video-to-game (individual match) assignment | Currently target is tournament-level assignment. Game-level is more precise — "this video is Caudron vs Merckx QF, World Cup Bogota 2026" | HIGH | Requires: game records with player_a/player_b + round, video with extracted player pair and round. Platform-native linking from SoopLive match data makes this achievable for recent tournaments. |
-| AI-assisted title parsing for non-English videos | Korean, Vietnamese, Spanish video titles contain player names and tournament references in non-standard formats. GPT-4 extraction already works in `AiTranslationService` | MEDIUM | Use existing `AiSearchService` infrastructure. Apply to `Video.unassigned` records. Cost consideration: OpenAI API calls per video. Should be optional/configurable, not run on every scrape. |
-| Ranking data integration (PDF extraction) | UMB world rankings are published weekly as PDFs at `files.umb-carom.org/Public/Ranking/`. Parsing them would provide player ranking history. `scrape_rankings` method exists but is a stub. | HIGH | `pdf-reader` gem already in Gemfile. PDF format is tabular. Could extract: player name, country, points, rank. Deferred in `UmbScraper#scrape_rankings` ("not yet implemented"). |
-| UMB archive backfill via sequential ID scan | `UmbScraper#scrape_tournament_archive` already implements ID scanning (1..500). Running it comprehensively would fill historical gaps. Not new code — it's an operational task. | LOW | Already implemented. Needs VCR cassettes for testing. Main value: complete historical tournament coverage. |
+| Synchronize missing EN counterparts for in-nav DE docs | 26 DE docs have no EN version; `fallback_to_default: true` silently serves wrong language. Any English-speaking developer hits German-only content with no indication. | MEDIUM | Priority subset: only docs that are in the mkdocs.yml nav. `internal/`, `studies/`, `archive/` are not in nav — skip. For in-nav pages, an EN stub saying "Translation pending, DE version available" beats silent fallback. |
+| Add video cross-referencing system to developer docs | `Video::TournamentMatcher`, `Video::MetadataExtractor`, `SoopliveBilliardsClient` (v5.0) are entirely undocumented. The confidence scoring system (0.75 threshold), the two-path matching (regex-first + AI fallback), and the backfill rake task are non-obvious architecture decisions. | MEDIUM | This is the highest-value new feature from v5.0. One developer-section page: architecture overview, confidence scoring, operational workflow (daily job + backfill rake). |
+| Stale content detection pass (beyond broken links) | Broken links are mechanical. Stale content is semantic: docs that reference correct filenames but describe wrong behavior. The UMB docs are the confirmed example. Other candidates: `developers/game-plan-reconstruction.de.md` (describes `GamePlanReconstructor` as part of `League` — check it matches v4.0 extraction), `managers/league-management` (may reference old League model size). | MEDIUM | Manual review of each developer doc against corresponding service class. Not automated — requires reading both doc and code. Scope: 10–15 most likely stale files based on what changed in v1.0–v5.0. |
+| Consolidate orphaned docs outside nav | 177 files in docs but nav covers ~40 pages. ~137 files are not in nav: `internal/`, `archive/`, `studies/`, `testing/`, `features/`, `changelog/`, `international/`, etc. Some are legitimately internal; others are abandoned drafts. Labeling them clearly (or moving to a discoverable location) reduces confusion. | LOW | Not a full audit — just flag the known categories: `archive/` = historical, `internal/` = internal, `obsolete/` = delete candidates. A `docs/README.md` or `docs/internal/INDEX.md` explaining the structure is enough. |
+| Verify multilingual nav translations in mkdocs.yml | The `nav_translations` section in `mkdocs.yml` covers ~60 key names for DE. If new nav entries were added for v6.0 docs, their DE translations need to be added here or EN strings appear in the DE nav. | LOW | Mechanical check: for every nav entry added in v6.0, add a corresponding `nav_translations` entry. Low effort but easy to forget. |
 
-### Anti-Features (Commonly Requested, Often Problematic)
+### Anti-Features (Tempting, Explicitly Reject)
 
 | Feature | Why Requested | Why Problematic | Alternative |
 |---------|---------------|-----------------|-------------|
-| Full replacement of HTML scraping with browser automation (Selenium/Puppeteer) | Some UMB/Cuesco pages are JS-rendered, seemingly requiring a real browser | Adds Selenium dependency to background jobs; non-deterministic, slow, hard to test with VCR. Current pages parse with Nokogiri successfully for HTML content. | Investigate AJAX endpoints first (network tab inspection). If JSON API exists, use it. If not, Nokogiri scraping of server-rendered HTML is sufficient for current data. |
-| Real-time video matching (match videos as they are scraped) | Appealing to have instant video-tournament links | Video scraping and tournament scraping run on different schedules. Tight coupling creates fragile dependencies. A video may arrive before the tournament is fully loaded. | Run video matching as a separate background job after both tournament and video records exist. Decouple matching from scraping. |
-| Replacing UmbScraper with third-party sports data API | A commercial sports data API might seem like a clean solution | No commercial API covers UMB carom billiards. Kozoom covers events but not results. Cuesco is the best candidate but has no public API. | Investigate Cuesco AJAX endpoints; integrate if found. Otherwise refactor existing scrapers into maintainable service classes. |
-| Automatic video hiding/moderation | Admin task: hide irrelevant videos | Not in scope; behavioral change, not data quality improvement. Existing `Video#hide!` method already exists for manual use. | Keep admin-manual. Auto-hiding based on confidence thresholds is a separate feature. |
-| Multi-language title generation for all videos | Translate all non-English titles | OpenAI API cost and quota risk at scale (thousands of videos). Translation value is high for display but not needed for cross-referencing. | Translate on-demand (already exists as `Video#translated_title`). Do not bulk-translate during scrape. |
+| Full translation of all 26 DE-only docs into EN | Completeness appeal; "real" i18n means both languages everywhere | 26 files × average 200 lines = 5200 lines of translation. Most are internal/archive files not in nav. Translation cost far exceeds value for docs users never see. | Translate only docs that appear in mkdocs.yml nav and are user-facing. Mark internal/archive explicitly as DE-only. |
+| Automated stale content detection (CI script) | Appealing as a long-term quality gate | Writing a reliable "code-to-docs sync checker" for a Rails app requires parsing Ruby AST and matching to prose. This is a multi-week project. The actual stale content in v6.0 is already known from PROJECT.md. | Do the manual audit for the known-stale files now. Consider a code comment convention (`# @docs: docs/path.md`) for future maintenance — low-tech, zero tooling. |
+| Generating API reference from code (YARD/RDoc) | Automated, always-current docs from docstrings | UMB scraping docs are the only place developers need reference accuracy. The 37 services are well-named POROs with clear responsibilities. Auto-generated API docs for POROs add visual noise without navigational value. | Write one prose overview page per service namespace (8 namespaces), listing each class and its responsibility in a table. That's the right fidelity for this codebase. |
+| Rewriting all docs in both languages from scratch | "Start fresh" appeal after major refactoring | Only a subset of docs are actually stale. Most audience docs (players, managers, decision-makers) describe user-facing features that haven't changed. Rewriting them risks introducing errors. | Audit-first: identify which files are stale (broken refs to deleted code = stale). Update only those. Preserve everything else. |
+| Adding screenshots for all UI features | Docs without screenshots "feel incomplete" | Screenshots are maintenance debt: every UI change breaks them. Scoreboard guide already has 34 broken screenshot links — adding more screenshots without adding the actual images makes this worse. | Fix the 22 existing broken screenshot links first (either add images or remove the broken `![alt](path)` references). Do not add new screenshot placeholders that don't yet have images. |
 
 ---
 
 ## Feature Dependencies
 
 ```
-Cuesco/SoopLive investigation
-    └── gates ──> Cuesco JSON API integration (if endpoint found)
-    └── informs ──> UmbScraper refactoring strategy (replace vs refactor)
+Broken link audit
+    └── precedes ──> any other fix (establishes clean baseline)
+    └── informs ──> which nav entries need attention
 
-UmbScraper characterization tests
-    └── required before ──> UmbScraper service extraction
-    └── required before ──> UmbScraperV2 merge decision
+UMB scraping docs rewrite
+    └── requires knowing ──> actual v5.0 service structure (from codebase, already analyzed)
+    └── clears stale content ──> removes UmbScraperV2 references from active docs
 
-UmbScraper service extraction
-    └── enables ──> replacing PDF parsing with structured data (if Cuesco found)
-    └── enables ──> ranking data integration (UmbScraper::RankingFetcher)
+Document 37 extracted services
+    └── depends on ──> knowing the service inventory (complete: 37 services listed in PROJECT.md)
+    └── informs structure ──> one section per namespace, not one page per service
 
-InternationalTournament records with correct date ranges
-    └── required for ──> Video-to-tournament date+player matching
-    └── required for ──> Platform-native SoopLive match linking
+Multilingual gap fill (in-nav pages only)
+    └── requires ──> knowing which pages are in nav (mkdocs.yml, already read)
+    └── precedes ──> nav_translations update in mkdocs.yml
 
-SoopLive schedule/results scraping
-    └── required for ──> Platform-native video-to-game linking
-    └── enhances ──> Video-to-game assignment (higher precision than title parsing)
-
-VideoMatcher service (date+player)
-    └── required for ──> bulk assignment of existing unassigned videos
-    └── enhanced by ──> AI-assisted title parsing (fills gaps where player names not in known list)
-
-Video-to-tournament assignment
-    └── precedes ──> Video-to-game assignment (coarser first, then refine)
+Nav_translations update
+    └── required by ──> any new nav entries added in this milestone
 ```
 
 ### Dependency Notes
 
-- **Investigation gates everything.** If Cuesco has a JSON API, the refactoring strategy changes — the HTML parser becomes less important than the API client. Run investigation before committing to a refactoring plan.
-- **Characterization tests before any refactoring.** The established project pattern (see all v1.0–v4.0 decisions). `UmbScraper` has VCR cassettes in `test/snapshots/vcr/` for scraping tests. Extend before extracting services.
-- **Video matching is independent of scraper refactoring.** The `VideoMatcher` service works on existing `Video` and `InternationalTournament` records. It can be built while scraper refactoring proceeds in parallel.
-- **SoopLive match-level linking is higher precision but higher effort.** Build tournament-level date+player matching first. Add match-level SoopLive linking only after tournament matching is validated.
+- **Link audit first.** It's mechanical, yields a clean pass/fail signal, and unblocks everything else. The BROKEN_LINKS_REPORT.txt already exists — this is executing the fixes, not finding them.
+- **UMB docs rewrite is independent** of the link audit. It's semantic, not mechanical. Can run in parallel.
+- **Service documentation is the largest single work item.** 37 services × average half-page each = ~20 pages of prose. Group by namespace to make it tractable (8 groups, not 37 individual pages).
+- **Multilingual gaps only matter for in-nav docs.** The 26 missing EN files are mostly in `internal/`, `studies/`, `archive/` — not in nav. The actual in-nav gap is smaller. Confirm before estimating effort.
 
 ---
 
 ## MVP Definition
 
-### Phase 1: Investigation (blocks strategy decisions)
+### Must-Do (Milestone Not Complete Without These)
 
-- [ ] Inspect network traffic from `umb.cuesco.net` and `billiards.sooplive.com` to find AJAX/JSON endpoints — determines whether a structured Cuesco API exists
-- [ ] Document what data is available from each source: Kozoom API (event-level, structured), SoopLive schedule pages (match-level, JS-rendered), UMB files (tournament+PDF, HTML), Cuesco (match-level, unknown structure)
-- [ ] Make go/no-go decision on Cuesco API integration vs. HTML scraping continuation
+1. Fix all 74 broken internal links (mechanical, high-visibility)
+2. Rewrite `umb-scraping-implementation.md` and `umb-scraping-methods.md` to reflect v5.0 reality (UmbScraperV2 deleted, `Umb::` namespace, 10 services)
+3. Add developer reference for all 37 extracted services (grouped by namespace, one overview section per group)
+4. Verify all mkdocs.yml nav entries resolve to existing files
 
-### Phase 2: UMB Scraper Refactoring (core structural work)
+### Should-Do (Strong Value, Include If Feasible)
 
-- [ ] Characterization tests for `UmbScraper` critical paths (future tournaments, archive scan, detail page, PDF parsing)
-- [ ] Extract service classes: `Umb::TournamentFetcher` (HTTP), `Umb::HtmlParser`, `Umb::PdfParser`, `Umb::EntityPersister`
-- [ ] Decide fate of `UmbScraperV2` (merge or deprecate), execute decision
-- [ ] If Cuesco JSON API found: add `Umb::CuescoClient` as primary data path, demote HTML parsing to fallback
+5. Add video cross-referencing system docs (Video::TournamentMatcher architecture, confidence scoring, operational workflow)
+6. Fill EN stubs for in-nav pages currently DE-only (check which nav entries lack EN files)
+7. Stale content pass on top-10 most likely stale developer docs (game-plan-reconstruction, league-management, clubcloud-integration)
 
-### Phase 3: Video Cross-Referencing
+### Defer (Not This Milestone)
 
-- [ ] `VideoMatcher` service: assign unassigned `Video` records to `InternationalTournament` by date range intersection + player name match
-- [ ] If SoopLive match data accessible: extend `SoopliveScraper` to scrape schedule pages, link VOD IDs directly to game records
-
-### Future Consideration
-
-- [ ] Ranking data integration (PDF extraction from `files.umb-carom.org/Public/Ranking/`) — stub already exists, high effort for marginal display value
-- [ ] AI-assisted title parsing for unmatched non-English videos — adds cost, best deferred until match rate of rule-based matching is measured
+8. Full translation of non-nav DE-only docs (internal, archive, studies)
+9. Automated stale content detection in CI
+10. New screenshots for scoreboard guide (fix broken refs first, add new ones later)
 
 ---
 
@@ -169,50 +138,34 @@ Video-to-tournament assignment
 
 | Feature | User Value | Implementation Cost | Priority |
 |---------|------------|---------------------|----------|
-| Cuesco/SoopLive investigation | HIGH — gates strategy | LOW (investigation only) | P1 |
-| UmbScraper characterization tests | HIGH — gates refactoring | MEDIUM | P1 |
-| UmbScraper service extraction | HIGH — maintainability | HIGH | P1 |
-| UmbScraperV2 merge/deprecate decision | MEDIUM — removes confusion | LOW after extraction | P1 |
-| VideoMatcher (date+player) | HIGH — fills unassigned backlog | MEDIUM | P1 |
-| SoopLive schedule/results scraping | HIGH — precise match linking | MEDIUM | P2 |
-| Cuesco JSON API integration (if found) | HIGH — replaces brittle HTML | HIGH | P2 (conditional) |
-| Video-to-game assignment | MEDIUM — display quality | HIGH | P2 |
-| AI-assisted title parsing | MEDIUM — fills gaps | MEDIUM | P3 |
-| Ranking PDF integration | LOW — historical curiosity | HIGH | P3 |
-| UMB archive backfill | LOW — operational task | LOW | P3 |
+| Fix 74 broken links | HIGH — docs are broken without this | LOW (mechanical, report already exists) | P1 |
+| UMB scraping docs rewrite | HIGH — misleads developers with deleted code | MEDIUM (2 files, full rewrite) | P1 |
+| Document 37 extracted services | HIGH — zero coverage of 5-milestone refactoring | HIGH (volume, but well-structured) | P1 |
+| Verify nav file existence | MEDIUM — build warnings, missing pages | LOW (mechanical) | P1 |
+| Video cross-referencing docs | HIGH — non-obvious v5.0 architecture | MEDIUM (1 new page) | P2 |
+| EN stubs for in-nav DE-only pages | MEDIUM — EN users see wrong language | LOW (stubs, not full translation) | P2 |
+| Stale content pass on top developer docs | MEDIUM — semantic accuracy | MEDIUM (manual review) | P2 |
+| Consolidate orphaned non-nav docs | LOW — reduces confusion for maintainers | LOW | P3 |
+| Nav_translations completeness check | LOW — nav label accuracy | LOW | P3 |
 
 **Priority key:**
-- P1: Required for milestone completion
-- P2: Strong value add; include if Phase 1+2 complete cleanly
-- P3: Defer unless time permits or strong user demand
-
----
-
-## Competitor Feature Analysis
-
-| Feature | Cuesco/SoopLive | Kozoom | 3cushionbilliards.com | Our Approach |
-|---------|-----------------|--------|----------------------|--------------|
-| Tournament results | Live + historical, match-level | Event-level, no results | Links only | Scrape + persist in DB |
-| Video per match | SoopLive VOD ID embedded per match | VOD per event on tv.kozoom.com | External links | Polymorphic videoable on Game |
-| Player rankings | Via UMB PDF links | No structured rankings | Links to UMB PDFs | PDF extraction (deferred) |
-| Structured API | Unknown (AJAX suspected) | Yes (api.kozoom.com, auth required) | None | Use Kozoom; investigate Cuesco |
-| Historic archive | 2009+ World Cup seasons on SoopLive schedule pages | Partial | Wikipedia + community | UMB sequential ID archive scan |
+- P1: Required for milestone goal ("docs accurately reflect codebase")
+- P2: Strong quality improvement; include if P1 work completes cleanly
+- P3: Housekeeping; defer unless time permits
 
 ---
 
 ## Sources
 
-- Direct analysis: `app/services/umb_scraper.rb` (2133 lines), `app/services/umb_scraper_v2.rb` (585 lines)
-- Direct analysis: `app/models/video.rb`, `app/models/international_source.rb` (known channel lists, source types)
-- Direct analysis: `app/services/kozoom_scraper.rb`, `app/services/sooplive_scraper.rb`, `app/services/youtube_scraper.rb`
-- Direct analysis: `.planning/PROJECT.md` (milestone requirements), memory notes (UmbScraper milestone direction)
-- WebFetch: `files.umb-carom.org/Public/nrankarchive.aspx` — confirmed PDF-only rankings structure
-- WebFetch: `billiards.sooplive.com/schedule/129?sub1=result` — confirmed JS-template rendering with `data-seq` VOD ID attributes
-- WebFetch: `cuesco.eu/about-us` — confirmed no public API documented; hardware/service marketing only
-- WebFetch: `samvanetten.nl/2025/world-cup-driebanden-info-2/` — confirmed community cross-referencing workflow: umb.cuesco.net → SoopLive match pages → VOD
-- WebSearch: UMB data source alternatives, Kozoom API, SoopLive structured data, sports video cross-referencing patterns
+- Direct analysis: `/Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api/docs/BROKEN_LINKS_REPORT.txt` (74 broken links, 177 files)
+- Direct analysis: `mkdocs.yml` (nav structure, i18n config, fallback_to_default: true)
+- Direct analysis: `.planning/PROJECT.md` (v1.0–v5.0 change history, 37 service inventory)
+- File inventory: `find docs -name "*.de.md"` (89 files) vs `*.en.md` (63 files) — 26 DE-only, 3 EN-only
+- Direct analysis: `docs/developers/umb-scraping-methods.md` — confirmed stale V2 reference at line 62
+- Grep analysis: zero mentions of any v1.0–v5.0 service class names across all 177 doc files
+- Grep analysis: `UmbScraperV2` references in active docs (umb-scraping-implementation.md, umb-scraping-methods.md, international/umb_scraper.md) — archive refs excluded
 
 ---
 
-*Feature research for: UMB scraper overhaul and video cross-referencing (v5.0 milestone)*
+*Feature research for: documentation quality audit and update (v6.0 milestone)*
 *Researched: 2026-04-12*

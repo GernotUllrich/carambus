@@ -1,448 +1,394 @@
 # Architecture Research
 
-**Domain:** UMB scraper overhaul and video cross-referencing in Rails 7.2 carom billiard tournament management app
+**Domain:** Documentation audit and update for mkdocs-based Rails app docs
 **Researched:** 2026-04-12
-**Confidence:** HIGH (all findings from direct codebase inspection)
+**Confidence:** HIGH (all findings from direct inspection of docs/, mkdocs.yml, PROJECT.md)
 
 ## Standard Architecture
 
 ### System Overview
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                        Jobs Layer                               │
-│  ScrapeUmbJob  ScrapeUmbArchiveJob  DailyInternationalScrapeJob │
-│         │              │                       │                │
-├─────────┴──────────────┴───────────────────────┴────────────────┤
-│                      Services Layer (app/services/)             │
-│                                                                 │
-│  ┌───────────────────────────┐   ┌──────────────────────────┐   │
-│  │  Umb:: namespace (NEW)    │   │  Video:: namespace (NEW) │   │
-│  │  ├─ FutureScraper         │   │  ├─ TournamentMatcher     │   │
-│  │  ├─ ArchiveScraper        │   │  └─ MetadataExtractor     │   │
-│  │  ├─ DetailsScraper        │   └──────────────────────────┘   │
-│  │  ├─ PdfParser             │                                   │
-│  │  ├─ PlayerResolver        │   ┌──────────────────────────┐   │
-│  │  └─ HttpClient            │   │  Existing (unchanged)    │   │
-│  └───────────────────────────┘   │  YoutubeScraper          │   │
-│                                  │  SoopliveScraper         │   │
-│  ┌───────────────────────────┐   │  KozoomScraper           │   │
-│  │  Facades (MODIFIED)       │   │  VideoTranslationService │   │
-│  │  UmbScraper (thin wrapper)│   │  TournamentDiscovery-    │   │
-│  │  UmbScraperV2 (thin wrap) │   │  Service                 │   │
-│  └───────────────────────────┘   └──────────────────────────┘   │
-│                                                                 │
-├─────────────────────────────────────────────────────────────────┤
-│                       Models Layer                              │
-│  InternationalTournament (STI)   Video (polymorphic videoable)  │
-│  Tournament  Game  Player        InternationalSource            │
-├─────────────────────────────────────────────────────────────────┤
-│                    PostgreSQL + Redis                           │
-└─────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────┐
+│                     mkdocs-material site                             │
+│                                                                      │
+│  ┌──────────────┐  ┌────────────┐  ┌────────────┐  ┌────────────┐  │
+│  │decision-makers│  │  players   │  │  managers  │  │administrators│ │
+│  └──────────────┘  └────────────┘  └────────────┘  └────────────┘  │
+│                                                                      │
+│  ┌────────────────────────────────────────────────────────────────┐ │
+│  │                      developers/                               │ │
+│  │  getting-started · developer-guide · database-design           │ │
+│  │  umb-scraping-* · streaming-architecture · testing/            │ │
+│  └────────────────────────────────────────────────────────────────┘ │
+│                                                                      │
+│  ┌─────────────────────────┐  ┌──────────────────────────────────┐  │
+│  │       reference/        │  │       about / changelog          │  │
+│  └─────────────────────────┘  └──────────────────────────────────┘  │
+│                                                                      │
+├──────────────────────────────────────────────────────────────────────┤
+│              docs/ file storage (342 .md files total)                │
+│                                                                      │
+│  ┌────────────────────┐  ┌────────────────────┐                     │
+│  │  Active: ~255 files │  │  Archive/Obsolete  │                    │
+│  │  (in nav + extras) │  │  87 files (frozen) │                    │
+│  └────────────────────┘  └────────────────────┘                     │
+│                                                                      │
+├──────────────────────────────────────────────────────────────────────┤
+│                   i18n plugin (mkdocs-material)                      │
+│     locale: de (default) · locale: en · suffix pattern              │
+│     file.de.md / file.en.md · fallback_to_default: true             │
+└──────────────────────────────────────────────────────────────────────┘
 ```
 
 ### Component Responsibilities
 
-| Component | Responsibility | Classification |
-|-----------|----------------|----------------|
-| `Umb::FutureScraper` | Fetches `FutureTournaments.aspx`, parses HTML table, saves tournaments | ApplicationService |
-| `Umb::ArchiveScraper` | Walks sequential IDs (`TournametDetails.aspx?ID=N`), builds archive | ApplicationService |
-| `Umb::DetailsScraper` | Fetches and parses a single tournament details page | ApplicationService |
-| `Umb::PdfParser` | Downloads and reads group results, player list, and KO bracket PDFs | ApplicationService |
-| `Umb::PlayerResolver` | `find_or_create_international_player` logic, name normalization | PORO |
-| `Umb::HttpClient` | `fetch_url` with redirect handling, timeout, User-Agent header | PORO |
-| `Video::TournamentMatcher` | Assigns unmatched `Video` records to `InternationalTournament` | ApplicationService |
-| `Video::MetadataExtractor` | Parses tournament/player/round metadata from video titles | PORO |
+| Component | Responsibility | Current State |
+|-----------|----------------|---------------|
+| `mkdocs.yml` nav | Source of truth for what is published | 42 nav entries; some nav items lack `.de.md`/`.en.md` pairs |
+| `docs/` active files | ~255 files; audience sections + reference + internal | Mixed: some current, many stale re: v1.0–v5.0 changes |
+| `docs/archive/` | Frozen historical docs (2026-02 epoch) | 87 files — do not touch |
+| `docs/obsolete/` | Explicitly superseded content | 2 files — do not touch |
+| `docs/internal/` | Developer notes, bug-fix records, implementation summaries | Not in mkdocs nav; maintenance reference only |
+| Language pair (`.de.md` / `.en.md`) | Both files required for each published nav entry | 87 de-files, 63 en-files — 27 de-only gaps, 3 en-only gaps |
+| `BROKEN_LINKS_REPORT.txt` | Pre-existing link audit | 74 broken links across 6 directories |
 
-## Recommended Project Structure
+## Recommended Project Structure (Audit Target)
+
+The audit operates on the existing structure — no restructuring is needed. The task is to assess correctness of content within this layout:
 
 ```
-app/services/
-├── umb/                          # NEW — replaces logic in flat umb_scraper.rb
-│   ├── future_scraper.rb         # scrape_future_tournaments
-│   ├── archive_scraper.rb        # scrape_tournament_archive
-│   ├── details_scraper.rb        # scrape_tournament_details, fetch_tournament_basic_data
-│   ├── pdf_parser.rb             # All PDF scraping (group results, KO, player list)
-│   ├── player_resolver.rb        # find_or_create_international_player
-│   └── http_client.rb            # fetch_url, make_absolute_url, download_pdf
-├── video/                        # NEW — video cross-referencing
-│   ├── tournament_matcher.rb     # Match Video records to InternationalTournament
-│   └── metadata_extractor.rb    # Extract structured data from video titles
-├── umb_scraper.rb                # MODIFIED — thin facade delegating to Umb::*
-├── umb_scraper_v2.rb             # MODIFIED — thin facade delegating to Umb::*
-├── youtube_scraper.rb            # UNCHANGED
-├── sooplive_scraper.rb           # UNCHANGED
-├── kozoom_scraper.rb             # UNCHANGED
-├── video_translation_service.rb  # UNCHANGED
-└── tournament_discovery_service.rb # UNCHANGED
-
-test/services/
-├── umb/                          # NEW — mirrors service structure
-│   ├── future_scraper_test.rb
-│   ├── archive_scraper_test.rb
-│   ├── details_scraper_test.rb
-│   ├── pdf_parser_test.rb
-│   ├── player_resolver_test.rb
-│   └── http_client_test.rb
-└── video/                        # NEW
-    ├── tournament_matcher_test.rb
-    └── metadata_extractor_test.rb
+docs/
+├── decision-makers/          # Audience: business stakeholders
+│   ├── index.{de,en}.md
+│   ├── executive-summary.{de,en}.md
+│   ├── features-overview.{de,en}.md
+│   └── deployment-options.{de,en}.md
+├── players/                  # Audience: end-user players
+│   ├── index.{de,en}.md
+│   ├── scoreboard-guide.{de,en}.md      ← 34 broken image links (screenshots missing)
+│   ├── tournament-participation.{de,en}.md
+│   └── ai-search.{de,en}.md
+├── managers/                 # Audience: tournament managers
+│   └── [9 nav entries, all bilingual]
+├── administrators/           # Audience: sysadmins
+│   └── [10 nav entries; streaming docs partially de-only]
+├── developers/               # Audience: contributors/maintainers  ← PRIMARY AUDIT TARGET
+│   ├── developer-guide.{de,en}.md      ← references deleted enhanced_mode_system.md (x2)
+│   ├── umb-scraping-implementation.md  ← entire file is stale (pre-v5.0 plan)
+│   ├── umb-scraping-methods.md         ← references UmbScraperV2 (deleted in v5.0)
+│   ├── testing/
+│   │   ├── testing-quickstart.md       ← links to test/ files that may have moved
+│   │   └── fixture-collection-guide.md ← 5 broken links to test/ paths
+│   └── [scenario-workflow.md]          ← 3 broken links (CONTRIBUTING.md, README.md, etc.)
+├── reference/                # Glossary, API, terms, config
+│   ├── glossary.{de,en}.md             ← broken link to ../search.md
+│   └── mkdocs_dokumentation.{de,en}.md ← example links are placeholder (intentional)
+├── internal/                 # NOT in nav — internal notes only
+├── archive/                  # Frozen — do not modify
+└── obsolete/                 # Superseded — do not modify
 ```
 
 ### Structure Rationale
 
-- **`umb/` namespace:** Follows the established pattern from `tournament/`, `tournament_monitor/`, `league/`, `party_monitor/`, `region_cc/` (all introduced in v1.0–v4.0). Every Key Decision in PROJECT.md validates this approach.
-- **`video/` namespace:** Video cross-referencing is a new capability domain, not a subset of UMB scraping. Separate namespace keeps the responsibility boundary clear and avoids inflating the `umb/` namespace with non-scraping logic.
-- **Thin facade retention:** `umb_scraper.rb` and `umb_scraper_v2.rb` stay as thin delegation wrappers. `ScrapeUmbJob`, `ScrapeUmbArchiveJob`, and `Admin::IncompleteRecordsController` call `UmbScraper` by name — changing those callers is unnecessary churn and directly contradicts the "permanent API" decision from v4.0.
+- **Audience-first hierarchy:** The five top-level sections (decision-makers, players, managers, administrators, developers) match the mkdocs nav tabs exactly. Audit work scopes to the section most affected by v1.0–v5.0 changes: `developers/`.
+- **Language pairs at file level:** The i18n plugin uses the `suffix` docs_structure: `file.de.md` for German (default), `file.en.md` for English. Both must exist for a nav entry to render correctly in both languages. `fallback_to_default: true` means a missing `.en.md` silently serves the German version to English users — correct behavior, but invisible staleness.
+- **Archive/obsolete are frozen:** 87 archive files and 2 obsolete files are explicitly out of scope. They document historical decisions and must not be modified or moved.
 
 ## Architectural Patterns
 
-### Pattern 1: PORO for Pure Logic, ApplicationService for Side Effects
+### Pattern 1: Audit-First, Then Fix
 
-**What:** Stateless, pure-computation classes are POROs (`initialize` + methods, no `ApplicationService`). Classes that write to the database or make network calls are `ApplicationService` subclasses (`.call` class method, `new(kwargs).call` invocation pattern).
+**What:** Complete the full audit pass across all nav-linked files before writing a single content update. Produce a structured staleness inventory (file, issue type, codebase reference) before any edits.
 
-**When to use:** Every extracted class must be classified into exactly one category. Rule: does it have side effects (network, DB write)? ApplicationService. Otherwise? PORO.
+**When to use:** Always. Editing while auditing creates a moving target and makes it impossible to estimate remaining work. The broken links report already exists — the first phase extends that into content correctness.
 
-**Trade-offs:** POROs are easier to unit-test without database setup. ApplicationServices are harder to isolate but the `.call` pattern keeps caller syntax uniform across the codebase.
+**Trade-offs:** Slightly slower start (no visible doc improvements on day one). Massive benefit: the fix phase has explicit, enumerable work items and no surprises.
 
-**Applied to UMB:**
-- `Umb::HttpClient` — PORO (returns body string; no DB write)
-- `Umb::PlayerResolver` — PORO (lookup/build logic; the caller decides whether to persist)
-- `Umb::FutureScraper`, `Umb::ArchiveScraper`, `Umb::DetailsScraper`, `Umb::PdfParser` — ApplicationService (each writes to DB)
-- `Video::MetadataExtractor` — PORO (parses text; returns structured hash)
-- `Video::TournamentMatcher` — ApplicationService (writes `videoable` association to DB)
+**Why not interleave:** 255 active files across 6 audience sections. Interleaving means context-switching between audit mode (what is wrong?) and fix mode (how do I rewrite this?). Separate passes allow better pattern recognition across the whole corpus.
 
-**Established precedent:**
-```ruby
-# PORO (v1.0 pattern — TableMonitor::ScoreEngine)
-class Umb::PlayerResolver
-  def initialize(umb_source:)
-    @umb_source = umb_source
-  end
+### Pattern 2: Issue Triage into Three Buckets
 
-  def find_or_create(firstname:, lastname:, nationality:, region:, umb_player_id: nil)
-    # pure lookup/build; caller decides to save
-  end
-end
+**What:** During the audit pass, classify every finding into exactly one of:
 
-# ApplicationService (v4.0 pattern — League::ClubCloudScraper)
-class Umb::FutureScraper < ApplicationService
-  def initialize(kwargs = {})
-    @umb_source = kwargs[:umb_source]
-  end
+- **DELETE** — references deleted code or features that no longer exist (UmbScraperV2, pre-refactoring service names, old model line counts). Remove the section or the whole file.
+- **UPDATE** — content exists but is inaccurate (wrong class names, outdated flow diagrams, stale method signatures). Rewrite in-place.
+- **CREATE** — a feature or service from v1.0–v5.0 has no documentation at all. Write new content.
 
-  def call
-    html = Umb::HttpClient.new.fetch_url(FUTURE_TOURNAMENTS_URL)
-    # ... parse and save
-  end
-end
-```
+**When to use:** For every file touched. Triage happens during audit, execution happens during fix.
 
-### Pattern 2: Thin Delegation Wrapper (Permanent, Not Transitional)
+**Example:**
 
-**What:** The original flat class (`UmbScraper`) is reduced to a wrapper that instantiates `@umb_source` once and delegates each public method to the corresponding namespaced service. The wrapper is the permanent public API — callers are never touched.
+| File | Bucket | Reason |
+|------|--------|--------|
+| `developers/umb-scraping-implementation.md` | DELETE or REPLACE | Entire file describes a pre-v5.0 plan; current reality is 10 `Umb::` services + thin facade |
+| `developers/umb-scraping-methods.md` | UPDATE | References `UmbScraperV2` (deleted v5.0); update method inventory to match `Umb::*` namespace |
+| `international/umb_scraper.md` | UPDATE | Pre-v5.0 description of `UmbScraper`; needs to describe current facade + `Umb::` services |
+| `developers/developer-guide.en.md` | UPDATE | Two broken links to `enhanced_mode_system.md` (moved to obsolete) |
+| *(no file)* | CREATE | `Umb::` service architecture: 10 services, PdfParser subclasses, HttpClient |
+| *(no file)* | CREATE | Video cross-referencing: `Video::TournamentMatcher`, `Video::MetadataExtractor`, confidence scoring |
+| *(no file)* | CREATE | 37 extracted services inventory: what was extracted from which model, in which milestone |
 
-**When to use:** Whenever the old class name is referenced from jobs, controllers, or stable external entry points. PROJECT.md Key Decisions explicitly validated this in v4.0: "Thin delegation wrappers (permanent API) — Zero caller changes, wrappers are permanent not transitional."
+### Pattern 3: Language Pair Discipline
 
-**Trade-offs:** One extra indirection layer per call. The alternative — updating every caller — risks missed call sites and increases diff size without behavioral benefit.
+**What:** For every content change, update both `.de.md` and `.en.md` in the same commit. Never update one without the other. For new files, create both simultaneously.
 
-```ruby
-# app/services/umb_scraper.rb — after refactoring (entire file)
-class UmbScraper
-  def initialize
-    @umb_source = InternationalSource.find_or_create_by!(
-      name: 'Union Mondiale de Billard', source_type: 'umb'
-    ) { |s| s.base_url = Umb::FutureScraper::BASE_URL }
-  end
+**When to use:** Every content fix. No exceptions.
 
-  def scrape_future_tournaments
-    Umb::FutureScraper.call(umb_source: @umb_source)
-  end
+**Exception — de-only gaps (27 files):** These exist intentionally (DE-only operational docs for German-speaking admins). Do not create `.en.md` stubs for these. Only create English counterparts for files that are referenced in the mkdocs nav or that address international developer audiences.
 
-  def scrape_tournament_archive(start_id: 1, end_id: 500, batch_size: 50)
-    Umb::ArchiveScraper.call(
-      start_id: start_id, end_id: end_id, batch_size: batch_size, umb_source: @umb_source
-    )
-  end
+**How to check parity after writing:** Content sections should mirror structurally (same headings, same code blocks). Prose can be translation-natural rather than word-for-word, but topic coverage must match.
 
-  def scrape_tournament_details(tournament_id_or_record, create_games: true, parse_pdfs: false)
-    Umb::DetailsScraper.call(
-      tournament_id_or_record: tournament_id_or_record,
-      create_games: create_games, parse_pdfs: parse_pdfs, umb_source: @umb_source
-    )
-  end
-end
-```
+**Trade-offs:** Doubles the writing work for bilingual nav entries. Non-negotiable given the DE-first user base and the `fallback_to_default: true` setting that silently serves German to English users when `.en.md` is absent.
 
-### Pattern 3: Video Cross-Referencing via Matcher Service
+### Pattern 4: Systematic Codebase-to-Docs Mapping
 
-**What:** `Video::TournamentMatcher` queries `Video.unassigned` (scoped: `where(videoable_id: nil)`) and scores each video against `InternationalTournament` candidates using title heuristics, date proximity, and discipline. It writes the `videoable` association only when confidence exceeds a threshold.
+**What:** Use the 37-service inventory from PROJECT.md as the authoritative "what was built" list. Cross-reference each service against the docs corpus to find documentation gaps.
 
-**When to use:** Runs in `DailyInternationalScrapeJob` Step 3, after video scraping and auto-tagging, before translation. This is tournament-led matching: given UMB-scraped tournaments, find videos that belong to them.
+**When to use:** During the CREATE bucket work in the audit phase. A service with no docs mention is a documentation gap. A docs mention with no corresponding service file is a staleness hit.
 
-**Relationship to existing `TournamentDiscoveryService`:** These services move in opposite directions. `TournamentDiscoveryService` creates `InternationalTournament` records from video metadata (video-led). `Video::TournamentMatcher` assigns existing videos to UMB-scraped tournaments (tournament-led). They are complementary — run sequentially, not merged.
+**Mapping sources:**
 
-**Trade-offs:** Heuristic matching can produce false positives. Confidence scoring plus an optional `min_confidence` threshold prevents automatic assignment of ambiguous matches. Unmatched videos remain `videoable_id: nil` and can be manually assigned via admin.
-
-```ruby
-# app/services/video/tournament_matcher.rb
-class Video::TournamentMatcher < ApplicationService
-  DEFAULT_CONFIDENCE_THRESHOLD = 0.75
-
-  def initialize(kwargs = {})
-    @video = kwargs[:video]
-    @confidence_threshold = kwargs.fetch(:confidence_threshold, DEFAULT_CONFIDENCE_THRESHOLD)
-  end
-
-  def call
-    metadata = Video::MetadataExtractor.new(@video).extract
-    candidates = candidate_tournaments(metadata)
-    best = candidates.max_by { |c| c[:score] }
-    return nil unless best && best[:score] >= @confidence_threshold
-
-    @video.update!(videoable: best[:tournament])
-    best[:tournament]
-  end
-
-  private
-
-  def candidate_tournaments(metadata)
-    scope = InternationalTournament.from_umb
-    scope = scope.where(discipline: metadata[:discipline]) if metadata[:discipline]
-    scope = scope.where("EXTRACT(year FROM date) = ?", metadata[:year]) if metadata[:year]
-
-    scope.map { |t| { tournament: t, score: score(t, metadata) } }
-  end
-
-  def score(tournament, metadata)
-    # weighted sum of: title keyword overlap, year match, discipline match, player name overlap
-  end
-end
-```
+| Codebase Truth | Where to check | Method |
+|----------------|----------------|--------|
+| 37 extracted services (PROJECT.md) | `docs/developers/` | `grep -r "ServiceName"` across active docs |
+| Deleted: UmbScraperV2, lib/tournament_monitor_support.rb | All active docs | Grep for class names — every hit is a DELETE or UPDATE item |
+| New: `Umb::*` namespace (10 services) | All active docs | No matches → CREATE needed |
+| New: `Video::TournamentMatcher`, `Video::MetadataExtractor` | All active docs | No matches → CREATE needed |
+| Existing concerns (LocalProtector, RegionTaggable, etc.) | `docs/developers/developer-guide.*` | Verify descriptions still accurate |
 
 ## Data Flow
 
-### UMB Scraping Flow (After Refactoring)
+### Audit Execution Flow
 
 ```
-ScrapeUmbJob#perform
-  → UmbScraper#scrape_future_tournaments           (thin wrapper — public interface unchanged)
-    → Umb::FutureScraper.call(umb_source:)
-      → Umb::HttpClient#fetch_url(FUTURE_TOURNAMENTS_URL)
-          → HTML body (string)
-      → parse_future_tournaments(Nokogiri doc)
-          → array of tournament attribute hashes
-      → InternationalTournament.find_or_create_by(external_id:, international_source:)
-      → Umb::PlayerResolver#find_or_create(...)    (per player in tournament)
-      → umb_source.mark_scraped!
+Phase 1: Pre-Audit Inventory
+  → Read mkdocs.yml nav (42 entries × 2 languages = up to 84 files)
+  → Identify all nav-linked files
+  → Cross-reference against file system: missing? present?
+  → Output: nav-to-file coverage matrix
+
+Phase 2: Content Audit (per file)
+  → Read each active nav-linked file
+  → Check: references to deleted code? (UmbScraperV2, old method names, pre-v5 service names)
+  → Check: missing coverage? (37 services — how many appear in docs?)
+  → Check: broken internal links? (74 already known from BROKEN_LINKS_REPORT.txt)
+  → Classify: DELETE / UPDATE / CREATE
+  → Output: staleness inventory with line-level citations
+
+Phase 3: Fix Execution (per work item)
+  → DELETE items: remove stale sections, archive whole files if fully superseded
+  → UPDATE items: rewrite inaccurate sections with codebase-verified content
+  → CREATE items: write new docs for undocumented v1.0–v5.0 features
+  → For each change: update both .de.md and .en.md
+  → Run mkdocs build to verify no new broken links introduced
+
+Phase 4: nav Verification
+  → Confirm mkdocs.yml nav entries match existing files
+  → Fix any nav references pointing to nonexistent paths
+  → Verify i18n plugin resolves all nav entries in both locales
 ```
 
-### Video Cross-Referencing Flow
+### Content Staleness Flow (Known Issues at Audit Start)
 
 ```
-DailyInternationalScrapeJob#perform
-  Step 1: YouTube/SoopLive/Kozoom scrapers → Video records saved (UNCHANGED)
-  Step 2: Video.auto_tag! loop              (UNCHANGED)
-  Step 3 (NEW/UPDATED): Video::TournamentMatcher
-    → Video.unassigned.supported_platforms.find_each
-        → Video::MetadataExtractor#extract(video)
-            → { tournament_type:, year:, players:, round:, discipline: }
-        → InternationalTournament.from_umb scoped by year + discipline
-            → scored candidates
-        → video.update!(videoable: tournament)  if score >= threshold
-  Step 4: VideoTranslationService              (UNCHANGED)
-  Step 5: InternationalSource stats update     (UNCHANGED)
+Deleted in v5.0: UmbScraperV2 (585 lines)
+  → Referenced in: docs/developers/umb-scraping-methods.md:73
+  → Action: UPDATE — replace reference with Umb::PdfParser::* description
+
+Deleted in v2.1: lib/tournament_monitor_support.rb (1078 lines)
+  → Search needed: any doc mentioning "tournament_monitor_support"
+  → Action: DELETE references, UPDATE to point at extracted services
+
+Deleted in v2.1: TournamentMonitor reduced 499→181 lines (4 services extracted)
+  → No known doc references yet — audit will confirm
+
+Broken link cluster: players/scoreboard-guide.{de,en}.md
+  → 34 broken image links (screenshots/*.png missing)
+  → Action: Provide screenshots or remove img references
+
+Broken link cluster: developers/ (19 broken links)
+  → enhanced_mode_system.md (deleted → moved to obsolete): 2 occurrences in developer-guide.en.md
+  → scenario-system-workflow.md (missing): rake-tasks-debugging.{de,en}.md
+  → fixture-collection-guide.md → test/ paths (5 occurrences)
+  → Action: fix links or remove dead references
+
+Broken link: reference/glossary.{de,en}.md → ../search.md
+  → Action: update link to reference/search.md (correct path exists)
 ```
 
-### Key Data Relationships
+## New vs Documented Components
 
-```
-InternationalSource (source_type: 'umb')
-  └── has_many :videos       (direct UMB platform videos, if any)
-
-InternationalTournament (STI < Tournament)
-  ├── belongs_to :international_source  (always the UMB source record)
-  └── has_many :videos, as: :videoable  (YouTube/Kozoom/SoopLive videos linked here)
-
-Video
-  ├── belongs_to :international_source  (YouTube / Kozoom / SoopLive — the video platform)
-  └── belongs_to :videoable (polymorphic)
-        → InternationalTournament  (cross-referenced by Video::TournamentMatcher)
-        → Game                     (future: per-game video linking)
-        → Player                   (future: player highlight videos)
-```
-
-The `videoable` polymorphic association already supports all three targets. No schema migration is required for cross-referencing — the infrastructure is in place.
-
-## New vs Modified Components
-
-| Component | Status | Notes |
-|-----------|--------|-------|
-| `app/services/umb/` (6 files) | NEW | Extracted from `UmbScraper` |
-| `app/services/video/tournament_matcher.rb` | NEW | No existing equivalent |
-| `app/services/video/metadata_extractor.rb` | NEW | Extends logic from `Video#detect_player_tags`, `Video#detect_discipline` |
-| `app/services/umb_scraper.rb` | MODIFIED (facade) | Public interface unchanged — 3 callers unaffected |
-| `app/services/umb_scraper_v2.rb` | MODIFIED (facade) | Public interface unchanged |
-| `app/jobs/daily_international_scrape_job.rb` | MODIFIED (Step 3) | Calls `Video::TournamentMatcher` |
-| `app/jobs/scrape_umb_job.rb` | UNCHANGED | Calls `UmbScraper` facade |
-| `app/jobs/scrape_umb_archive_job.rb` | UNCHANGED | Calls `UmbScraper` facade |
-| `app/controllers/admin/incomplete_records_controller.rb` | UNCHANGED | Calls `UmbScraper` facade |
-| `app/models/video.rb` | UNCHANGED | `videoable` polymorphic already supports Tournament |
-| `app/models/international_tournament.rb` | UNCHANGED | No structural change needed |
-| `app/models/international_source.rb` | UNCHANGED | `umb` source_type already defined |
-
-## Suggested Build Order
-
-Build order respects three constraints: (1) dependencies — leaf services before composites, (2) test-first — characterization tests before extraction, (3) behavior preservation — each step must leave the full test suite green.
-
-### Phase 1: Characterization Tests for UmbScraper (before any code change)
-
-Pin current behavior with characterization tests using VCR cassettes. These become the regression harness for all subsequent extraction.
-
-| Test file | What to pin |
-|-----------|-------------|
-| `test/services/umb/future_scraper_test.rb` | parse_future_tournaments output shape, save_tournaments upsert behavior |
-| `test/services/umb/archive_scraper_test.rb` | sequential ID walking, 404-gap handling, batch_size behavior |
-| `test/services/umb/details_scraper_test.rb` | single tournament parse, field mapping, error handling |
-| `test/services/umb/pdf_parser_test.rb` | group results PDF → game records, player list PDF → seedings |
-| `test/services/umb/player_resolver_test.rb` | find by umb_player_id, find by name, create new, save failure |
-
-### Phase 2: Extract Umb:: Services (Bottom-Up)
-
-Extract leaf services first (no internal deps), then upward toward composites.
-
-1. **`Umb::HttpClient`** — no internal deps, pure HTTP. All other scrapers depend on it. Extract first.
-2. **`Umb::PlayerResolver`** — depends only on `Player` model. Extract second.
-3. **`Umb::PdfParser`** — depends on `Umb::HttpClient`. Extract third.
-4. **`Umb::DetailsScraper`** — depends on `Umb::HttpClient`, `Umb::PdfParser`, `Umb::PlayerResolver`. Extract fourth.
-5. **`Umb::FutureScraper`** — depends on `Umb::HttpClient`. Extract fifth.
-6. **`Umb::ArchiveScraper`** — depends on `Umb::HttpClient`, `Umb::DetailsScraper`. Extract last.
-
-After each extraction: reduce `UmbScraper` to a thin delegation call, run `bin/rails test`, commit independently. Each commit must be independently deployable.
-
-### Phase 3: Investigate Alternative UMB Data Sources
-
-Research before building any adapter layer. The investigation determines whether an adapter pattern is warranted at all.
-
-Questions to answer:
-- Does `files.umb-carom.org` expose a JSON/XML API alongside the ASPX pages?
-- Is the ranking PDF structure consistent enough to replace HTML scraping for player world-ranking data?
-- Is the `umb-carom.org/PG342L2/` archive page structured enough to replace sequential ID scanning?
-- What data does the UMB website provide that the existing scraper misses?
-
-Output: a decision memo (not a code change) that either (a) confirms the HTML-only approach is sufficient, (b) identifies a supplementary JSON feed to add alongside existing scraping, or (c) identifies a full replacement path. Only if (b) or (c) is true does a `UmbDataSource` adapter interface get built.
-
-### Phase 4: UmbScraperV2 Refactor
-
-`UmbScraperV2` (585 lines) operates on the same `InternationalTournament`/`Seeding`/`Game` domain but with different method decomposition. Extract using the same `Umb::` namespace.
-
-Where logic overlaps with Phase 2 extractions (e.g., `find_player_by_name`, `parse_date_range`, `make_absolute_url`), consolidate into the existing `Umb::` services rather than creating V2-specific variants. Where logic is distinct (e.g., `Seeding`-based player linking), add to the appropriate existing service or create a focused new one.
-
-Reduce `UmbScraperV2` to a thin facade over `Umb::*` services, matching the pattern from Phase 2.
-
-### Phase 5: Video Cross-Referencing
-
-Can begin in parallel with Phase 3/4 since the `videoable` polymorphic association and `InternationalTournament` model already exist. Requires Phase 1-2 to have populated UMB tournament records in the test fixtures.
-
-1. **`Video::MetadataExtractor`** (PORO) — extend and unit-test the extraction logic from `Video#detect_player_tags` and `Video#detect_discipline`. No DB dependency; test with plain Ruby objects.
-2. **`Video::TournamentMatcher`** (ApplicationService) — build on top of MetadataExtractor. Requires `InternationalTournament` fixture records. Test with confidence scoring edge cases: exact match, fuzzy match, no match, multiple candidates above threshold.
-3. **Integrate into `DailyInternationalScrapeJob` Step 3** — replace/augment the existing `TournamentDiscoveryService` call with `Video::TournamentMatcher`.
-4. Test job integration: assert that unassigned videos with matching tournament metadata get `videoable` set after job execution.
+| Component | v-milestone | Documented? | Action |
+|-----------|-------------|-------------|--------|
+| ScoreEngine, GameSetup, OptionsPresenter, ResultRecorder | v1.0 | No | CREATE |
+| ClubCloudClient + 9 region_cc syncers | v1.0 | No | CREATE |
+| RankingCalculator, TableReservationService, PublicCcScraper | v2.1 | No | CREATE |
+| PlayerGroupDistributor, RankingResolver, ResultProcessor, TablePopulator | v2.1 | No | CREATE |
+| League::StandingsCalculator, GamePlanReconstructor, ClubCloudScraper, BbvScraper | v4.0 | No | CREATE |
+| PartyMonitor::TablePopulator, ResultProcessor | v4.0 | No | CREATE |
+| Umb::HttpClient, DisciplineDetector, DateHelpers, PlayerResolver | v5.0 | No | CREATE |
+| Umb::FutureScraper, ArchiveScraper, DetailsScraper | v5.0 | No | CREATE |
+| Umb::PdfParser::{PlayerListParser, GroupResultParser, RankingParser} | v5.0 | No | CREATE |
+| Video::TournamentMatcher, Video::MetadataExtractor | v5.0 | No | CREATE |
+| SoopliveBilliardsClient | v5.0 | No | CREATE |
+| UmbScraperV2 | DELETED v5.0 | Yes (stale ref) | DELETE ref |
+| lib/tournament_monitor_support.rb | DELETED v2.1 | Unknown | AUDIT first |
+| UmbScraper (thin facade, 175 lines) | MODIFIED v5.0 | Partially | UPDATE |
 
 ## Anti-Patterns
 
-### Anti-Pattern 1: Namespace-Skipping (Flat Names)
+### Anti-Pattern 1: Edit While Auditing
 
-**What people do:** Extract `UmbFutureScraper` (flat) rather than `Umb::FutureScraper` (namespaced).
+**What people do:** Spot a stale sentence, fix it immediately, continue the audit.
 
-**Why it's wrong:** Every prior extraction in this codebase used namespacing (`League::`, `TournamentMonitor::`, `TableMonitor::`, etc.). Flat names pollute the top-level service namespace and make it harder to discover related services as a group.
+**Why it's wrong:** Creates half-audited state. Missing the full picture — one file may reference a concept that five other files also get wrong. Fixing one without fixing the others creates inconsistency that requires a second pass.
 
-**Do this instead:** Always use the `Umb::` namespace. File goes in `app/services/umb/`, class name is `Umb::FutureScraper`.
+**Do this instead:** During audit, add a comment or inventory entry. Fix only after the full audit inventory is complete.
 
-### Anti-Pattern 2: Deleting the Facade Before Callers Are Updated
+### Anti-Pattern 2: Updating Only One Language
 
-**What people do:** Delete `umb_scraper.rb` once all logic is in `Umb::*` and update the 3 callers directly.
+**What people do:** Fix the German version, forget to update the English version.
 
-**Why it's wrong:** PROJECT.md Key Decisions log explicitly validates the facade-as-permanent-API approach. The wrappers are "permanent not transitional" — removing them changes the public interface, risks overlooked call sites, and provides no behavioral benefit.
+**Why it's wrong:** `fallback_to_default: true` hides the gap — English users silently get the German version. When someone later audits only the EN files, they see the stale content and don't know it's already correct in DE.
 
-**Do this instead:** Keep the facade permanently. Three lines of wrapper code per method are cheaper than the audit cost of hunting every call site.
+**Do this instead:** Every file pair is a single atomic unit of work. `{file}.de.md` and `{file}.en.md` are updated in the same commit.
 
-### Anti-Pattern 3: Building the Adapter Layer Speculatively
+### Anti-Pattern 3: Rewriting Archive or Obsolete Files
 
-**What people do:** Build a `UmbDataSource` adapter interface before investigating whether alternative sources exist.
+**What people do:** Find a `docs/archive/2026-02/` file that references the old UmbScraper and "fix" it.
 
-**Why it's wrong:** Phase 3 investigation may reveal no viable alternatives, making the adapter dead infrastructure. Or it may reveal a data shape that doesn't fit an already-built adapter. Speculative infrastructure adds complexity without return.
+**Why it's wrong:** Archive files are historical records. They document what was true at a point in time. Modifying them destroys the record.
 
-**Do this instead:** Complete Phase 3 investigation first. Build the adapter only if two real data sources with materially different shapes need to coexist.
+**Do this instead:** If a file's content is entirely obsolete and not providing historical value, move it from `docs/` to `docs/archive/` with a datestamp. Never edit `docs/archive/` or `docs/obsolete/` content.
 
-### Anti-Pattern 4: Merging Video::TournamentMatcher into TournamentDiscoveryService
+### Anti-Pattern 4: Creating New Docs Without Nav Entries
 
-**What people do:** Extend `TournamentDiscoveryService` to also do reverse matching (video → existing tournament).
+**What people do:** Write `docs/developers/extracted-services.md` without adding it to `mkdocs.yml`.
 
-**Why it's wrong:** The two services have inverted data flows and different inputs. `TournamentDiscoveryService` creates tournaments from videos (video-led). `Video::TournamentMatcher` links videos to scraper-sourced tournaments (tournament-led). Merging creates a class with two distinct responsibilities — precisely what the v1.0–v4.0 refactoring effort removed from the codebase.
+**Why it's wrong:** Files not in the nav are invisible in the published site. The mkdocs i18n plugin won't translate them. They accumulate as orphan files and become the next audit's cleanup work.
 
-**Do this instead:** Run them sequentially from the job. `TournamentDiscoveryService` first (creates any missing tournament records), then `Video::TournamentMatcher` (links videos to existing tournaments including those just created).
+**Do this instead:** For every new file created, add it to `mkdocs.yml` nav simultaneously. Add both `.de.md` and `.en.md` nav entries.
 
-### Anti-Pattern 5: Auto-Assigning Videos Below the Confidence Threshold
+### Anti-Pattern 5: Documenting Implementation Details That Change
 
-**What people do:** Set a low threshold or skip confidence scoring to maximize auto-assignment coverage.
+**What people do:** Document that "UmbScraper has 175 lines" or "TableMonitor was reduced from 3903 lines."
 
-**Why it's wrong:** A video about "World Cup 2023" could match multiple tournaments (Vigo, Antalya, Seoul). A wrongly assigned video creates confusing tournament pages that require manual correction, which is worse than leaving the video unassigned.
+**Why it's wrong:** Line counts are already stale. They will change again with the next refactoring milestone. Documenting them creates guaranteed future staleness.
 
-**Do this instead:** Default to a conservative threshold (0.75). Leave ambiguous videos as `videoable_id: nil`. Expose an admin interface for manual assignment. Log all scoring results for review.
+**Do this instead:** Document architecture (what classes exist, what they do, how they relate) not implementation metrics. Line counts belong in retrospectives and planning documents, not in user-facing developer documentation.
+
+### Anti-Pattern 6: Treating "No English Version" as a Bug for Internal Dev Docs
+
+**What people do:** See 27 de-only files and create placeholder English stubs for all of them.
+
+**Why it's wrong:** Many of those 27 files are German-specific operational docs (streaming-obs-setup.de.md, raspi-network-stability.de.md) aimed at German-speaking administrators. They do not need English counterparts. Creating empty stubs adds noise and may cause the i18n plugin to serve empty pages.
+
+**Do this instead:** Evaluate intent. Docs in `developers/` with technical content (no cultural specificity) should have English counterparts. Ops docs targeting German sysadmins do not.
 
 ## Integration Points
 
-### External Service Boundaries
+### External: codebase ↔ docs
 
-| Service | Integration Pattern | Notes |
-|---------|---------------------|-------|
-| `files.umb-carom.org` | Net::HTTP, HTML scraping | Encapsulated in `Umb::HttpClient`; SSL verify mode conditional on environment |
-| UMB PDF files | `Umb::HttpClient#download_pdf` + `pdf-reader` gem | PDF content extracted in `Umb::PdfParser`; binary download separate from HTML fetch |
-| YouTube API | `YoutubeScraper` (UNCHANGED) | Videos land in `videos` table; `Video::TournamentMatcher` reads them afterward |
-| Kozoom API | `KozoomScraper` (UNCHANGED) | Same pipeline |
-| SoopLive | `SoopliveScraper` (UNCHANGED) | Same pipeline |
+| Codebase Element | Relevant Doc Files | Sync Direction |
+|------------------|-------------------|----------------|
+| `app/services/umb/` (10 files) | `developers/umb-scraping-implementation.md`, `developers/umb-scraping-methods.md`, `international/umb_scraper.md` | Code is truth → docs must update |
+| `app/services/video/` (2 files) | No current docs | Code is truth → CREATE needed |
+| `app/services/league/` (4 files) | `managers/league-management.{de,en}.md` (partial) | Code is truth → UPDATE needed |
+| `app/services/table_monitor/` (4 files) | No dedicated docs; mentioned in developer-guide | Code is truth → UPDATE needed |
+| `app/services/region_cc/` (10 files) | No docs | Code is truth → CREATE or UPDATE needed |
+| Deleted: `UmbScraperV2` | `developers/umb-scraping-methods.md:73` | Code is truth → DELETE reference |
+| Concerns: LocalProtector, APIProtector | `developers/developer-guide.{de,en}.md` | Likely accurate — VERIFY |
+| Test suite: 1130 runs, Minitest | `developers/testing/testing-quickstart.md`, `fixture-collection-guide.md` | Partially stale links → FIX |
 
-### Internal Module Boundaries
+### Internal: mkdocs.yml ↔ docs/
 
-| Boundary | Communication | Notes |
-|----------|---------------|-------|
-| `Umb::*` ↔ `UmbScraper` facade | Direct delegation with kwargs pass-through | Facade owns `@umb_source` instantiation; services receive it as a keyword arg |
-| `Umb::PdfParser` ↔ `Umb::HttpClient` | Composition — PdfParser calls HttpClient for downloads | Prefer dependency injection over instantiating HttpClient inside PdfParser |
-| `Umb::DetailsScraper` ↔ `Umb::PdfParser` | Composition — DetailsScraper calls PdfParser | DetailsScraper orchestrates; PdfParser is a focused collaborator |
-| `Video::TournamentMatcher` ↔ `Video::MetadataExtractor` | Composition — Matcher instantiates Extractor | MetadataExtractor is a PORO; Matcher owns the scoring and DB write |
-| `Video::TournamentMatcher` ↔ `DailyInternationalScrapeJob` | `.call(video:)` per video | Job iterates; service is single-video scoped |
-| `Umb::*` ↔ `Video::*` | None (phases are sequential, not coupled) | UMB scraper populates tournaments; video matcher reads them |
+| Nav Entry | File Pair Status | Action |
+|-----------|-----------------|--------|
+| `managers/table-reservation` | Only `.en.md` exists | CREATE `.de.md` or add nav guard |
+| `developers/tournament-architecture-overview` | Only `.en.md` exists | CREATE `.de.md` or add nav guard |
+| `reference/mkdocs_dokumentation` | Both `.de.md` and `.en.md` exist | Nav references `.de.md` variant; also `mkdocs_dokumentation.en.md` exists but is not referenced separately |
+| `reference/api` | Referenced twice in nav (Developer section + Reference section) | Deduplication — verify intentional |
 
-## Scaling Considerations
+### Internal: broken links (74 known)
 
-This is a single-operator, background-job-driven scraping system. Scaling concerns are operational.
+| Directory | Count | Primary Cause |
+|-----------|-------|---------------|
+| `players/` | 34 | Missing screenshot images (scoreboard-guide) |
+| `developers/` | 19 | Deleted files (enhanced_mode_system, scenario-system-workflow), wrong test/ paths |
+| `reference/` | 16 | Placeholder example links in mkdocs_dokumentation (may be intentional), broken ../search.md |
+| `managers/` | 2 | Unknown — verify during audit |
+| `administrators/` | 1 | Missing systemd-streaming-services.md |
+| `international/` | 2 | Unknown — verify during audit |
 
-| Concern | Current State | Approach |
-|---------|--------------|----------|
-| UMB archive scan (500+ sequential HTTP requests) | Sync, single job, `batch_size` param | Already rate-limited by sequential HTTP; `batch_size` controls memory; no change needed |
-| PDF parsing memory | Large PDFs parsed with `pdf-reader` | Extract one tournament at a time; do not buffer multiple PDFs in memory |
-| Video-to-tournament matching at scale | O(V * T) naive | Scope candidates by year + discipline before scoring; realistic V and T counts are small (<5K videos, <200 tournaments) |
-| Duplicate prevention | `external_id` unique index + `find_or_create_by` pattern | Already in place on `InternationalTournament`; no change needed |
-| Wrong video assignment | Manual correction required | Conservative confidence threshold + admin override interface avoids bulk cleanup scenarios |
+## Suggested Build Order
+
+Phase ordering rationale: (1) structural clarity before content changes, (2) high-impact/low-effort fixes first, (3) new content last (hardest, most time-consuming).
+
+### Phase A: Structural Triage (no content edits)
+
+1. Build the full nav-to-file coverage matrix from `mkdocs.yml` × file system
+2. Extend `BROKEN_LINKS_REPORT.txt` findings with content-level staleness inventory
+3. Classify all findings: DELETE / UPDATE / CREATE
+4. Prioritize by: (a) broken published nav entries, (b) stale UmbScraperV2/deleted-code references, (c) missing v5.0 services, (d) bilingual gaps
+
+### Phase B: Break-Fix (DELETE and link repairs)
+
+Fix things that are actively wrong — broken links, references to deleted classes, dead nav entries. These have no content risk (removing is safer than rewriting).
+
+1. Fix 74 broken links from existing report
+   - Screenshot placeholders in scoreboard-guide: add images or replace img refs with text descriptions
+   - `enhanced_mode_system.md` refs in developer-guide.en.md: remove or redirect to obsolete notice
+   - `scenario-system-workflow.md` refs: update to correct file path
+   - test/ path refs in fixture-collection-guide.md: verify current paths
+   - `../search.md` refs in glossary: update to `reference/search.md`
+2. Remove/update references to deleted code
+   - `umb-scraping-methods.md:73` — UmbScraperV2 reference
+   - Any reference to `lib/tournament_monitor_support.rb` (grep will surface these)
+3. Fix duplicate `reference/api` nav entry
+
+### Phase C: UPDATE Existing Docs
+
+Rewrite inaccurate sections. These have content risk — verify against codebase before writing.
+
+1. `developers/umb-scraping-implementation.md` — Entirely a pre-v5.0 plan. Options: (a) archive the old plan, create new doc describing actual Umb:: architecture; (b) rewrite in place. Recommend (a) — preserves history, creates clean current doc.
+2. `developers/umb-scraping-methods.md` — Update method inventory from flat UmbScraper methods to `Umb::*` service breakdown
+3. `international/umb_scraper.md` — Update to describe facade + 10 Umb:: services
+4. `developers/developer-guide.{de,en}.md` — Update services section; add Umb::, Video::, extracted service namespaces
+5. Verify concern descriptions (LocalProtector, APIProtector, RegionTaggable) still accurate
+
+### Phase D: CREATE New Docs
+
+New content for undocumented v1.0–v5.0 work. Highest effort; do last when structural/accuracy issues are resolved.
+
+Priority order (most cross-referenced first):
+1. Extracted services overview (all 37 services, grouped by milestone and namespace) — one reference doc, both languages
+2. `Umb::` architecture doc (10 services, PdfParser breakdown, HttpClient, facade pattern) — both languages
+3. `Video::` cross-referencing doc (TournamentMatcher + MetadataExtractor + confidence scoring) — both languages
+4. Test suite architecture doc (1130 tests, Minitest, VCR, fixture-first approach, ApiProtectorTestOverride) — both languages
+5. Broadcast isolation notes (ActionCable architecture, suppress_broadcast, deferred FIX-01/FIX-02) — developer audience
+
+### Phase E: nav and i18n Cleanup
+
+1. Add new Phase D docs to `mkdocs.yml` nav
+2. Resolve de-only gap decisions (create EN counterparts for developer-facing files, leave admin-ops files as de-only)
+3. Final `mkdocs build` — verify zero broken links in output
+4. Verify i18n plugin renders both languages for all nav entries
 
 ## Sources
 
-All findings from direct codebase inspection — no external sources required for this architecture research.
+All findings from direct codebase inspection — no external sources required.
 
-- `app/services/umb_scraper.rb` (2133 lines) — method inventory, constant definitions, URL structure
-- `app/services/umb_scraper_v2.rb` (585 lines) — STI-based approach, V2 method inventory
-- `app/models/video.rb` — `videoable` polymorphic, `unassigned` scope, discipline/player detection
-- `app/models/international_tournament.rb` — STI structure, `from_umb` scope, `json_data` accessor
-- `app/models/international_source.rb` — source_type constants, `umb` type definition
-- `app/services/tournament_discovery_service.rb` — video-led tournament discovery (complementary service)
-- `app/jobs/daily_international_scrape_job.rb` — existing job pipeline, Step 3 integration point
-- `app/jobs/scrape_umb_job.rb`, `scrape_umb_archive_job.rb` — callers of UmbScraper facade
-- `app/controllers/admin/incomplete_records_controller.rb:82` — third caller of UmbScraper
-- `.planning/PROJECT.md` — Key Decisions log, v1.0–v4.0 extraction patterns (namespace strategy, PORO vs ApplicationService, facade-as-permanent-API)
-- Existing namespace directories confirmed: `app/services/league/`, `app/services/tournament/`, `app/services/tournament_monitor/`, `app/services/table_monitor/`, `app/services/party_monitor/`, `app/services/region_cc/`
-- Existing test directory structure confirmed: `test/services/league/`, `test/services/tournament/`, etc.
+- `mkdocs.yml` — nav structure, 42 nav entries, i18n plugin configuration (suffix pattern, fallback_to_default)
+- `docs/BROKEN_LINKS_REPORT.txt` — 74 broken links across 6 directories
+- `docs/` file system inventory — 342 total .md files; 255 active (non-archive/non-obsolete)
+- `.planning/PROJECT.md` — 37 extracted services inventory, v1.0–v5.0 milestone record, deleted files (UmbScraperV2, lib/tournament_monitor_support.rb)
+- Language pair analysis: 87 de-files, 63 en-files, 27 de-only gaps, 3 en-only gaps
+- `docs/developers/developer-guide.en.md` — 2 broken links to deleted enhanced_mode_system.md
+- `docs/developers/umb-scraping-methods.md:73` — reference to deleted UmbScraperV2
+- `docs/developers/umb-scraping-implementation.md` — 727-line pre-v5.0 plan (entirely stale)
+- `.planning/codebase/STRUCTURE.md` — codebase directory layout and naming conventions
 
 ---
-*Architecture research for: UMB scraper overhaul and video cross-referencing (v5.0)*
+*Architecture research for: documentation audit and update (v6.0)*
 *Researched: 2026-04-12*
