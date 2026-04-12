@@ -1,507 +1,448 @@
-# Architecture Research: ActionCable Broadcast Isolation Testing (v3.0)
+# Architecture Research
 
-**Domain:** End-to-end system tests for ActionCable broadcast isolation in Rails 7.2 + CableReady
-**Researched:** 2026-04-11
-**Confidence:** HIGH (all conclusions from direct codebase inspection)
+**Domain:** UMB scraper overhaul and video cross-referencing in Rails 7.2 carom billiard tournament management app
+**Researched:** 2026-04-12
+**Confidence:** HIGH (all findings from direct codebase inspection)
 
----
+## Standard Architecture
 
-## What This Document Covers
-
-This milestone adds system tests that verify broadcast isolation. It does NOT change the production broadcast architecture. Everything here is about the test infrastructure layer and how it integrates with the existing production components.
-
----
-
-## Existing Production Architecture (Read-Only Context)
-
-Understanding what the tests must exercise — not change.
-
-### Broadcast Path: From State Change to DOM Update
+### System Overview
 
 ```
-TableMonitor#update! (AASM state change)
-    |
-    v
-after_update_commit callback (table_monitor.rb:79)
-    |-- guard: ApplicationRecord.local_server? must be true
-    |-- guard: suppress_broadcast must be false
-    |-- enqueues TableMonitorJob.perform_later(id, operation_type)
-    |
-    v
-TableMonitorJob#perform (table_monitor_job.rb)
-    |-- receives Integer ID only (race condition prevention)
-    |-- loads fresh TableMonitor.find(id)
-    |-- renders partial to HTML string
-    |-- sends to cable_ready["table-monitor-stream"]
-    |-- key: ALL operations use the SAME stream name "table-monitor-stream"
-    |-- broadcasts selector: "#full_screen_table_monitor_{id}" (full update)
-    |-- broadcasts selector: "#teaser_{id}" (teaser update)
-    |-- broadcasts selector: "#table_scores" (overview update)
-    |-- broadcasts dispatch_event name: "score:update" with tableMonitorId in detail
-    |
-    v
-ActionCable server.broadcast("table-monitor-stream", payload)
-    |-- ALL connected clients receive ALL broadcasts
-    |-- No server-side filtering by table_monitor_id
-    |
-    v
-TableMonitorChannel (server, table_monitor_channel.rb)
-    |-- subscribed: stream_from "table-monitor-stream" (shared for all clients)
-    |-- rejects subscription if !ApplicationRecord.local_server?
-    |
-    v
-table_monitor_channel.js (client)
-    |-- received(data) — called for every broadcast on the stream
-    |-- getPageContext() — detects: scoreboard / table_scores / tournament_scores / unknown
-    |   |-- scoreboard: reads data-table-monitor-root="scoreboard" + data-table-monitor-id
-    |   |-- meta tag fallback: <meta name="scoreboard-table-monitor-id" content="{id}">
-    |   |-- DOM ID fallback: #full_screen_table_monitor_{id}
-    |-- shouldAcceptOperation(op, pageContext) — filters each CableReady operation
-    |   |-- scoreboard context: accept only ops with selector #full_screen_table_monitor_{context.tableMonitorId}
-    |   |-- rejects selectors for other table monitors
-    |   |-- logs console.warn for SCOREBOARD MIX-UP PREVENTED on rejection
-    |-- CableReady.perform(applicableOperations) — applies accepted ops to DOM
+┌─────────────────────────────────────────────────────────────────┐
+│                        Jobs Layer                               │
+│  ScrapeUmbJob  ScrapeUmbArchiveJob  DailyInternationalScrapeJob │
+│         │              │                       │                │
+├─────────┴──────────────┴───────────────────────┴────────────────┤
+│                      Services Layer (app/services/)             │
+│                                                                 │
+│  ┌───────────────────────────┐   ┌──────────────────────────┐   │
+│  │  Umb:: namespace (NEW)    │   │  Video:: namespace (NEW) │   │
+│  │  ├─ FutureScraper         │   │  ├─ TournamentMatcher     │   │
+│  │  ├─ ArchiveScraper        │   │  └─ MetadataExtractor     │   │
+│  │  ├─ DetailsScraper        │   └──────────────────────────┘   │
+│  │  ├─ PdfParser             │                                   │
+│  │  ├─ PlayerResolver        │   ┌──────────────────────────┐   │
+│  │  └─ HttpClient            │   │  Existing (unchanged)    │   │
+│  └───────────────────────────┘   │  YoutubeScraper          │   │
+│                                  │  SoopliveScraper         │   │
+│  ┌───────────────────────────┐   │  KozoomScraper           │   │
+│  │  Facades (MODIFIED)       │   │  VideoTranslationService │   │
+│  │  UmbScraper (thin wrapper)│   │  TournamentDiscovery-    │   │
+│  │  UmbScraperV2 (thin wrap) │   │  Service                 │   │
+│  └───────────────────────────┘   └──────────────────────────┘   │
+│                                                                 │
+├─────────────────────────────────────────────────────────────────┤
+│                       Models Layer                              │
+│  InternationalTournament (STI)   Video (polymorphic videoable)  │
+│  Tournament  Game  Player        InternationalSource            │
+├─────────────────────────────────────────────────────────────────┤
+│                    PostgreSQL + Redis                           │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
-### The Isolation Guarantee: Client-Side Only
+### Component Responsibilities
 
-The critical architectural fact: broadcast isolation is **entirely client-side**. The server sends every broadcast to every client on "table-monitor-stream". The client JavaScript decides which operations to apply based on the page's `data-table-monitor-id` attribute.
+| Component | Responsibility | Classification |
+|-----------|----------------|----------------|
+| `Umb::FutureScraper` | Fetches `FutureTournaments.aspx`, parses HTML table, saves tournaments | ApplicationService |
+| `Umb::ArchiveScraper` | Walks sequential IDs (`TournametDetails.aspx?ID=N`), builds archive | ApplicationService |
+| `Umb::DetailsScraper` | Fetches and parses a single tournament details page | ApplicationService |
+| `Umb::PdfParser` | Downloads and reads group results, player list, and KO bracket PDFs | ApplicationService |
+| `Umb::PlayerResolver` | `find_or_create_international_player` logic, name normalization | PORO |
+| `Umb::HttpClient` | `fetch_url` with redirect handling, timeout, User-Agent header | PORO |
+| `Video::TournamentMatcher` | Assigns unmatched `Video` records to `InternationalTournament` | ApplicationService |
+| `Video::MetadataExtractor` | Parses tournament/player/round metadata from video titles | PORO |
 
-This means:
-- Tests must run a real browser (Capybara + Selenium) — there is no server-side isolation to test with unit tests
-- Tests must verify JavaScript filtering behavior, not Ruby behavior
-- Two browser sessions on different scoreboards must independently validate their isolation
-
-### local_server? Guard
-
-`ApplicationRecord.local_server?` returns `Carambus.config.carambus_api_url.present?`. In the test environment, `carambus_api_url` is blank (see `config/carambus.yml`), so `local_server?` returns **false** in tests.
-
-This means:
-- `TableMonitorChannel` rejects subscriptions in the test environment by default
-- `TableMonitorJob` skips execution in the test environment by default
-- Tests need `ApplicationRecord.stub(:local_server?, true)` or a test-environment config override
-
-Existing unit tests already use `ApplicationRecord.stub(:local_server?, true)` (see `table_monitor_char_test.rb:256`).
-
-System tests cannot use `stub` across processes (Selenium runs in a separate browser process). The system test process itself must be configured so that `local_server?` returns true for the duration of the test.
-
----
-
-## Test Infrastructure Components
-
-### Component Map: New vs Existing
+## Recommended Project Structure
 
 ```
-EXISTING (do not modify)                    NEW (build for v3.0)
--------------------------------             ----------------------------------
-test/test_helper.rb                         test/support/system/broadcast_helpers.rb
-test/application_system_test_case.rb        test/support/system/cable_ready_helpers.rb
-app/channels/table_monitor_channel.rb       test/system/broadcast_isolation_test.rb
-app/jobs/table_monitor_job.rb               config/environments/test.rb (small addition)
-app/javascript/channels/table_monitor_channel.js
-app/views/table_monitors/_scoreboard.html.erb
-app/views/table_monitors/_table_monitor.html.erb
+app/services/
+├── umb/                          # NEW — replaces logic in flat umb_scraper.rb
+│   ├── future_scraper.rb         # scrape_future_tournaments
+│   ├── archive_scraper.rb        # scrape_tournament_archive
+│   ├── details_scraper.rb        # scrape_tournament_details, fetch_tournament_basic_data
+│   ├── pdf_parser.rb             # All PDF scraping (group results, KO, player list)
+│   ├── player_resolver.rb        # find_or_create_international_player
+│   └── http_client.rb            # fetch_url, make_absolute_url, download_pdf
+├── video/                        # NEW — video cross-referencing
+│   ├── tournament_matcher.rb     # Match Video records to InternationalTournament
+│   └── metadata_extractor.rb    # Extract structured data from video titles
+├── umb_scraper.rb                # MODIFIED — thin facade delegating to Umb::*
+├── umb_scraper_v2.rb             # MODIFIED — thin facade delegating to Umb::*
+├── youtube_scraper.rb            # UNCHANGED
+├── sooplive_scraper.rb           # UNCHANGED
+├── kozoom_scraper.rb             # UNCHANGED
+├── video_translation_service.rb  # UNCHANGED
+└── tournament_discovery_service.rb # UNCHANGED
+
+test/services/
+├── umb/                          # NEW — mirrors service structure
+│   ├── future_scraper_test.rb
+│   ├── archive_scraper_test.rb
+│   ├── details_scraper_test.rb
+│   ├── pdf_parser_test.rb
+│   ├── player_resolver_test.rb
+│   └── http_client_test.rb
+└── video/                        # NEW
+    ├── tournament_matcher_test.rb
+    └── metadata_extractor_test.rb
 ```
 
-### What Changes vs What Does Not
+### Structure Rationale
 
-**Does not change:**
-- `TableMonitorChannel` — no test hooks needed
-- `TableMonitorJob` — no test hooks needed
-- The JavaScript filtering code — tests verify it, do not change it
-- All existing test files
-- Production broadcast behavior
+- **`umb/` namespace:** Follows the established pattern from `tournament/`, `tournament_monitor/`, `league/`, `party_monitor/`, `region_cc/` (all introduced in v1.0–v4.0). Every Key Decision in PROJECT.md validates this approach.
+- **`video/` namespace:** Video cross-referencing is a new capability domain, not a subset of UMB scraping. Separate namespace keeps the responsibility boundary clear and avoids inflating the `umb/` namespace with non-scraping logic.
+- **Thin facade retention:** `umb_scraper.rb` and `umb_scraper_v2.rb` stay as thin delegation wrappers. `ScrapeUmbJob`, `ScrapeUmbArchiveJob`, and `Admin::IncompleteRecordsController` call `UmbScraper` by name — changing those callers is unnecessary churn and directly contradicts the "permanent API" decision from v4.0.
 
-**Must be added or modified:**
-- `config/cable.yml` test adapter: currently `adapter: test` which does NOT support async broadcast. Must switch to `async` for system tests (see below)
-- `config/carambus.yml` or test environment override: `local_server?` must return true in system test context
-- System test support helpers (two files)
-- System test file(s)
+## Architectural Patterns
 
----
+### Pattern 1: PORO for Pure Logic, ApplicationService for Side Effects
 
-## The `adapter: test` Problem
+**What:** Stateless, pure-computation classes are POROs (`initialize` + methods, no `ApplicationService`). Classes that write to the database or make network calls are `ApplicationService` subclasses (`.call` class method, `new(kwargs).call` invocation pattern).
 
-`cable.yml` currently configures the test environment with `adapter: test`. The Rails `test` adapter is synchronous and designed for `ActionCable::Channel::TestCase` unit tests — it does not route broadcasts to actual WebSocket connections.
+**When to use:** Every extracted class must be classified into exactly one category. Rule: does it have side effects (network, DB write)? ApplicationService. Otherwise? PORO.
 
-System tests open real browser sessions via Selenium. Those browser sessions connect via real WebSockets. The `test` adapter does not forward broadcasts to those WebSocket connections.
+**Trade-offs:** POROs are easier to unit-test without database setup. ApplicationServices are harder to isolate but the `.call` pattern keeps caller syntax uniform across the codebase.
 
-**Solution:** Switch the system test run to use `adapter: async` (in-process pub/sub). The `async` adapter is already used in development (queue_adapter) and supports real WebSocket routing within a single process.
+**Applied to UMB:**
+- `Umb::HttpClient` — PORO (returns body string; no DB write)
+- `Umb::PlayerResolver` — PORO (lookup/build logic; the caller decides whether to persist)
+- `Umb::FutureScraper`, `Umb::ArchiveScraper`, `Umb::DetailsScraper`, `Umb::PdfParser` — ApplicationService (each writes to DB)
+- `Video::MetadataExtractor` — PORO (parses text; returns structured hash)
+- `Video::TournamentMatcher` — ApplicationService (writes `videoable` association to DB)
 
-Options for switching:
-1. Change `cable.yml` test adapter to `async` — affects all tests, but `ActionCable::Channel::TestCase` tests work with both `test` and `async`
-2. Override per-test with `ActionCable.server.config.cable = { adapter: "async" }` in system test setup
-3. Add a separate `cable.yml` section for `system_test` and select it via ENV
-
-Option 1 is simplest and safe. `ActionCable::Channel::TestCase` (used in `test/channels/`) does not use the configured adapter — it injects its own test infrastructure. Changing the cable.yml test adapter to `async` will not break existing channel tests.
-
-**Confidence:** MEDIUM — based on Rails 7.2 ActionCable test documentation and community patterns. Verify `ActionCable::Channel::TestCase` is adapter-independent before committing to option 1.
-
----
-
-## The local_server? Problem in System Tests
-
-`TableMonitorChannel#subscribed` does:
+**Established precedent:**
 ```ruby
-unless ApplicationRecord.local_server?
-  reject
-  return
+# PORO (v1.0 pattern — TableMonitor::ScoreEngine)
+class Umb::PlayerResolver
+  def initialize(umb_source:)
+    @umb_source = umb_source
+  end
+
+  def find_or_create(firstname:, lastname:, nationality:, region:, umb_player_id: nil)
+    # pure lookup/build; caller decides to save
+  end
+end
+
+# ApplicationService (v4.0 pattern — League::ClubCloudScraper)
+class Umb::FutureScraper < ApplicationService
+  def initialize(kwargs = {})
+    @umb_source = kwargs[:umb_source]
+  end
+
+  def call
+    html = Umb::HttpClient.new.fetch_url(FUTURE_TOURNAMENTS_URL)
+    # ... parse and save
+  end
 end
 ```
 
-`TableMonitorJob#perform` does:
-```ruby
-unless ApplicationRecord.local_server?
-  Rails.logger.info "📡 TableMonitorJob skipped"
-  return
-end
-```
+### Pattern 2: Thin Delegation Wrapper (Permanent, Not Transitional)
 
-For system tests to work end-to-end, both must be enabled. `ApplicationRecord.stub` is per-process and does not persist across the Rails server process that Capybara drives.
+**What:** The original flat class (`UmbScraper`) is reduced to a wrapper that instantiates `@umb_source` once and delegates each public method to the corresponding namespaced service. The wrapper is the permanent public API — callers are never touched.
 
-**Solution:** Set `carambus_api_url` in the test environment. The simplest approach is to add to `config/carambus.yml`:
+**When to use:** Whenever the old class name is referenced from jobs, controllers, or stable external entry points. PROJECT.md Key Decisions explicitly validated this in v4.0: "Thin delegation wrappers (permanent API) — Zero caller changes, wrappers are permanent not transitional."
 
-```yaml
-test:
-  carambus_api_url: "http://localhost:3000"  # Makes local_server? return true
-```
-
-This makes ALL tests run as if on a local server. Check whether any existing tests rely on `local_server?` returning false. From the codebase search: existing characterization tests use `ApplicationRecord.stub(:local_server?, false)` explicitly for the "API server" case — they do not rely on the default. Setting `carambus_api_url` in the test config should be safe.
-
-**Alternative:** Add `BroadcastIsolationSystemTestCase < ApplicationSystemTestCase` that overrides `local_server?` via a test-only controller endpoint or Rails configuration hook before the browser session starts.
-
----
-
-## System Test Architecture: Two-Session Pattern
-
-The core test pattern for isolation verification:
-
-```
-Test process (Rails server in Capybara)
-    |
-    |-- Session 1: Capybara opens scoreboard for TableMonitor A (TM_ID=101)
-    |       browser tab displays #full_screen_table_monitor_101
-    |       data-table-monitor-id="101" on scoreboard root
-    |
-    |-- Session 2: Capybara opens scoreboard for TableMonitor B (TM_ID=102)
-    |       browser tab displays #full_screen_table_monitor_102
-    |       data-table-monitor-id="102" on scoreboard root
-    |
-    |-- Test triggers state change on TableMonitor A via HTTP/ActiveRecord
-    |       TableMonitorJob runs (same process as Rails server)
-    |       ActionCable broadcasts to "table-monitor-stream"
-    |
-    |-- Both sessions receive the broadcast
-    |-- Session 1 (TM_ID=101): shouldAcceptOperation accepts #full_screen_table_monitor_101
-    |       DOM update applied
-    |-- Session 2 (TM_ID=102): shouldAcceptOperation rejects #full_screen_table_monitor_101
-    |       DOM not updated (stale content preserved)
-    |
-    |-- Assert: Session 1 DOM reflects TM A state change
-    |-- Assert: Session 2 DOM does NOT reflect TM A state change
-```
-
-### Capybara Session Switching
-
-Capybara supports multiple named sessions via `using_session`:
+**Trade-offs:** One extra indirection layer per call. The alternative — updating every caller — risks missed call sites and increases diff size without behavioral benefit.
 
 ```ruby
-using_session(:scoreboard_a) do
-  visit table_monitor_path(table_monitor_a)
-  # wait for WebSocket connection
+# app/services/umb_scraper.rb — after refactoring (entire file)
+class UmbScraper
+  def initialize
+    @umb_source = InternationalSource.find_or_create_by!(
+      name: 'Union Mondiale de Billard', source_type: 'umb'
+    ) { |s| s.base_url = Umb::FutureScraper::BASE_URL }
+  end
+
+  def scrape_future_tournaments
+    Umb::FutureScraper.call(umb_source: @umb_source)
+  end
+
+  def scrape_tournament_archive(start_id: 1, end_id: 500, batch_size: 50)
+    Umb::ArchiveScraper.call(
+      start_id: start_id, end_id: end_id, batch_size: batch_size, umb_source: @umb_source
+    )
+  end
+
+  def scrape_tournament_details(tournament_id_or_record, create_games: true, parse_pdfs: false)
+    Umb::DetailsScraper.call(
+      tournament_id_or_record: tournament_id_or_record,
+      create_games: create_games, parse_pdfs: parse_pdfs, umb_source: @umb_source
+    )
+  end
 end
+```
 
-using_session(:scoreboard_b) do
-  visit table_monitor_path(table_monitor_b)
-  # wait for WebSocket connection
+### Pattern 3: Video Cross-Referencing via Matcher Service
+
+**What:** `Video::TournamentMatcher` queries `Video.unassigned` (scoped: `where(videoable_id: nil)`) and scores each video against `InternationalTournament` candidates using title heuristics, date proximity, and discipline. It writes the `videoable` association only when confidence exceeds a threshold.
+
+**When to use:** Runs in `DailyInternationalScrapeJob` Step 3, after video scraping and auto-tagging, before translation. This is tournament-led matching: given UMB-scraped tournaments, find videos that belong to them.
+
+**Relationship to existing `TournamentDiscoveryService`:** These services move in opposite directions. `TournamentDiscoveryService` creates `InternationalTournament` records from video metadata (video-led). `Video::TournamentMatcher` assigns existing videos to UMB-scraped tournaments (tournament-led). They are complementary — run sequentially, not merged.
+
+**Trade-offs:** Heuristic matching can produce false positives. Confidence scoring plus an optional `min_confidence` threshold prevents automatic assignment of ambiguous matches. Unmatched videos remain `videoable_id: nil` and can be manually assigned via admin.
+
+```ruby
+# app/services/video/tournament_matcher.rb
+class Video::TournamentMatcher < ApplicationService
+  DEFAULT_CONFIDENCE_THRESHOLD = 0.75
+
+  def initialize(kwargs = {})
+    @video = kwargs[:video]
+    @confidence_threshold = kwargs.fetch(:confidence_threshold, DEFAULT_CONFIDENCE_THRESHOLD)
+  end
+
+  def call
+    metadata = Video::MetadataExtractor.new(@video).extract
+    candidates = candidate_tournaments(metadata)
+    best = candidates.max_by { |c| c[:score] }
+    return nil unless best && best[:score] >= @confidence_threshold
+
+    @video.update!(videoable: best[:tournament])
+    best[:tournament]
+  end
+
+  private
+
+  def candidate_tournaments(metadata)
+    scope = InternationalTournament.from_umb
+    scope = scope.where(discipline: metadata[:discipline]) if metadata[:discipline]
+    scope = scope.where("EXTRACT(year FROM date) = ?", metadata[:year]) if metadata[:year]
+
+    scope.map { |t| { tournament: t, score: score(t, metadata) } }
+  end
+
+  def score(tournament, metadata)
+    # weighted sum of: title keyword overlap, year match, discipline match, player name overlap
+  end
 end
-
-# Trigger broadcast
-table_monitor_a.update!(state: "playing")
-
-# Verify isolation
-using_session(:scoreboard_a) do
-  assert_text "Playing"           # TM A updated
-end
-
-using_session(:scoreboard_b) do
-  assert_no_text "Playing"        # TM B NOT updated with TM A content
-  # assert TM B still shows its original content
-end
 ```
 
-Each Capybara session opens an independent browser context but shares the same Selenium driver. Both sessions connect to the same Puma server over ActionCable.
+## Data Flow
 
----
-
-## Component Boundaries
-
-### test/support/system/broadcast_helpers.rb (NEW)
-
-Provides helpers for system tests that involve ActionCable broadcasts:
-
-| Method | Responsibility |
-|--------|---------------|
-| `wait_for_cable_connection` | Polls until `consumer.connection.getState()` == "open" via JS eval |
-| `wait_for_broadcast(selector)` | Waits for a selector to appear/change after a broadcast |
-| `assert_broadcast_applied(selector, text)` | Asserts selector exists and contains text |
-| `assert_broadcast_rejected(selector, original_text)` | Asserts selector still contains original (un-updated) text |
-| `trigger_state_change(table_monitor, state)` | Triggers AASM state change + flushes job queue |
-
-### test/support/system/cable_ready_helpers.rb (NEW)
-
-Utilities for CableReady-specific assertions:
-
-| Method | Responsibility |
-|--------|---------------|
-| `flush_broadcasts` | Ensures all enqueued CableReady operations are broadcast (waits for Sidekiq/async) |
-| `assert_no_console_warnings(pattern)` | Checks browser console for "SCOREBOARD MIX-UP" warnings |
-| `capture_console_warnings` | Returns console.warn entries from the browser session |
-
-The "SCOREBOARD MIX-UP PREVENTED" console.warn in `table_monitor_channel.js:127` is the existing diagnostic hook. System tests can read browser console logs via Selenium's `driver.logs.get(:browser)` to verify the JS filtering is active without needing DOM-level assertions.
-
-### test/system/broadcast_isolation_test.rb (NEW)
-
-The test file itself. Structure:
+### UMB Scraping Flow (After Refactoring)
 
 ```
-BroadcastIsolationTest < ApplicationSystemTestCase
-  setup: create two TableMonitors with fixture-based data
-  setup: open two Capybara sessions, navigate each to respective scoreboard
-  setup: wait for both WebSocket connections
-
-  test "state change on TM A updates TM A scoreboard"
-  test "state change on TM A does NOT update TM B scoreboard"
-  test "state change on TM B does NOT update TM A scoreboard"
-  test "concurrent state changes update only respective scoreboards"
-  test "score update event (score:update) filtered by tableMonitorId"
-  test "teaser update on TM A does not appear on TM B scoreboard page"
-  teardown: close sessions, clean up fixtures
+ScrapeUmbJob#perform
+  → UmbScraper#scrape_future_tournaments           (thin wrapper — public interface unchanged)
+    → Umb::FutureScraper.call(umb_source:)
+      → Umb::HttpClient#fetch_url(FUTURE_TOURNAMENTS_URL)
+          → HTML body (string)
+      → parse_future_tournaments(Nokogiri doc)
+          → array of tournament attribute hashes
+      → InternationalTournament.find_or_create_by(external_id:, international_source:)
+      → Umb::PlayerResolver#find_or_create(...)    (per player in tournament)
+      → umb_source.mark_scraped!
 ```
 
----
-
-## Data Flow for Multi-Session Tests
+### Video Cross-Referencing Flow
 
 ```
-Test Setup
-    |
-    |-- fixtures: table_monitors(:alpha), table_monitors(:beta)
-    |       alpha: state: "ready", id: 50_000_001
-    |       beta:  state: "ready", id: 50_000_002
-    |
-    |-- login_as users(:admin) [Warden helper, shared across sessions]
-    |
-    |-- using_session(:alpha) { visit scoreboard_path(table_monitors(:alpha)) }
-    |-- using_session(:beta)  { visit scoreboard_path(table_monitors(:beta)) }
-    |
-    |-- wait_for_cable_connection in both sessions
-    |
-Test Trigger
-    |
-    |-- table_monitors(:alpha).update!(state: "warmup")
-    |       NOTE: must be done in the TEST process (not a browser action)
-    |       after_update_commit fires in Rails server process
-    |       TableMonitorJob runs inline (async adapter) or enqueued
-    |       cable_ready broadcasts to "table-monitor-stream"
-    |       Both sessions receive the WebSocket message
-    |
-Test Assertion
-    |
-    |-- using_session(:alpha) { assert_selector "#full_screen_table_monitor_50000001" }
-    |-- using_session(:beta)  { assert_no_selector "[new alpha content]" }
+DailyInternationalScrapeJob#perform
+  Step 1: YouTube/SoopLive/Kozoom scrapers → Video records saved (UNCHANGED)
+  Step 2: Video.auto_tag! loop              (UNCHANGED)
+  Step 3 (NEW/UPDATED): Video::TournamentMatcher
+    → Video.unassigned.supported_platforms.find_each
+        → Video::MetadataExtractor#extract(video)
+            → { tournament_type:, year:, players:, round:, discipline: }
+        → InternationalTournament.from_umb scoped by year + discipline
+            → scored candidates
+        → video.update!(videoable: tournament)  if score >= threshold
+  Step 4: VideoTranslationService              (UNCHANGED)
+  Step 5: InternationalSource stats update     (UNCHANGED)
 ```
 
-### Job Execution in System Tests
+### Key Data Relationships
 
-`Sidekiq::Testing.fake!` is active in test_helper (via `Sidekiq::Testing.fake!`). This means jobs are NOT executed inline by default — they are queued in memory.
+```
+InternationalSource (source_type: 'umb')
+  └── has_many :videos       (direct UMB platform videos, if any)
 
-For system tests, jobs must execute immediately so broadcasts happen during the test. Options:
-1. Call `Sidekiq::Worker.drain_all` after each trigger to flush all jobs
-2. Switch to `Sidekiq::Testing.inline!` in system test setup (executes jobs synchronously)
-3. Use `perform_enqueued_jobs` from ActiveJob test helpers
+InternationalTournament (STI < Tournament)
+  ├── belongs_to :international_source  (always the UMB source record)
+  └── has_many :videos, as: :videoable  (YouTube/Kozoom/SoopLive videos linked here)
 
-Option 2 is the simplest for system tests: override in `BroadcastIsolationSystemTestCase` setup.
+Video
+  ├── belongs_to :international_source  (YouTube / Kozoom / SoopLive — the video platform)
+  └── belongs_to :videoable (polymorphic)
+        → InternationalTournament  (cross-referenced by Video::TournamentMatcher)
+        → Game                     (future: per-game video linking)
+        → Player                   (future: player highlight videos)
+```
 
-However, note that `async` queue adapter (not Sidekiq) is configured in `config/carambus.yml`. The `queue_adapter: async` means Rails dispatches jobs to an in-process thread pool. With `async` adapter, jobs execute without Sidekiq in the test process. This avoids the Sidekiq drain problem entirely.
+The `videoable` polymorphic association already supports all three targets. No schema migration is required for cross-referencing — the infrastructure is in place.
 
-Confirm at test time whether jobs execute synchronously or asynchronously with the `async` adapter and add a `sleep`/`wait` if needed.
+## New vs Modified Components
 
----
+| Component | Status | Notes |
+|-----------|--------|-------|
+| `app/services/umb/` (6 files) | NEW | Extracted from `UmbScraper` |
+| `app/services/video/tournament_matcher.rb` | NEW | No existing equivalent |
+| `app/services/video/metadata_extractor.rb` | NEW | Extends logic from `Video#detect_player_tags`, `Video#detect_discipline` |
+| `app/services/umb_scraper.rb` | MODIFIED (facade) | Public interface unchanged — 3 callers unaffected |
+| `app/services/umb_scraper_v2.rb` | MODIFIED (facade) | Public interface unchanged |
+| `app/jobs/daily_international_scrape_job.rb` | MODIFIED (Step 3) | Calls `Video::TournamentMatcher` |
+| `app/jobs/scrape_umb_job.rb` | UNCHANGED | Calls `UmbScraper` facade |
+| `app/jobs/scrape_umb_archive_job.rb` | UNCHANGED | Calls `UmbScraper` facade |
+| `app/controllers/admin/incomplete_records_controller.rb` | UNCHANGED | Calls `UmbScraper` facade |
+| `app/models/video.rb` | UNCHANGED | `videoable` polymorphic already supports Tournament |
+| `app/models/international_tournament.rb` | UNCHANGED | No structural change needed |
+| `app/models/international_source.rb` | UNCHANGED | `umb` source_type already defined |
 
-## Build Order
+## Suggested Build Order
 
-Dependencies drive the order: infrastructure must exist before tests, and the local_server? fix must come before any browser session can subscribe to the channel.
+Build order respects three constraints: (1) dependencies — leaf services before composites, (2) test-first — characterization tests before extraction, (3) behavior preservation — each step must leave the full test suite green.
 
-### Step 1: Unblock the channel and job (configuration)
+### Phase 1: Characterization Tests for UmbScraper (before any code change)
 
-**What:** Enable `local_server?` in test environment and switch cable adapter to `async`.
-**Files:**
-- `config/carambus.yml` — add `carambus_api_url: "http://localhost:3000"` to test section
-- `config/cable.yml` — change test adapter from `test` to `async`
+Pin current behavior with characterization tests using VCR cassettes. These become the regression harness for all subsequent extraction.
 
-**Why first:** Nothing works until the channel accepts subscriptions and the job executes.
+| Test file | What to pin |
+|-----------|-------------|
+| `test/services/umb/future_scraper_test.rb` | parse_future_tournaments output shape, save_tournaments upsert behavior |
+| `test/services/umb/archive_scraper_test.rb` | sequential ID walking, 404-gap handling, batch_size behavior |
+| `test/services/umb/details_scraper_test.rb` | single tournament parse, field mapping, error handling |
+| `test/services/umb/pdf_parser_test.rb` | group results PDF → game records, player list PDF → seedings |
+| `test/services/umb/player_resolver_test.rb` | find by umb_player_id, find by name, create new, save failure |
 
-**Risk:** LOW. Existing channel unit tests (`ActionCable::Channel::TestCase`) use their own test adapter internally. Existing characterization tests use explicit stubs. Verify no test currently depends on `local_server?` returning false by default.
+### Phase 2: Extract Umb:: Services (Bottom-Up)
 
-### Step 2: Build ApplicationSystemTestCase extensions
+Extract leaf services first (no internal deps), then upward toward composites.
 
-**What:** Create `test/support/system/broadcast_helpers.rb` with `wait_for_cable_connection`, session helpers, and trigger utilities. Include in `ApplicationSystemTestCase`.
-**Files:**
-- `test/support/system/broadcast_helpers.rb` (new)
-- `test/application_system_test_case.rb` (add one `Dir.glob` include line)
+1. **`Umb::HttpClient`** — no internal deps, pure HTTP. All other scrapers depend on it. Extract first.
+2. **`Umb::PlayerResolver`** — depends only on `Player` model. Extract second.
+3. **`Umb::PdfParser`** — depends on `Umb::HttpClient`. Extract third.
+4. **`Umb::DetailsScraper`** — depends on `Umb::HttpClient`, `Umb::PdfParser`, `Umb::PlayerResolver`. Extract fourth.
+5. **`Umb::FutureScraper`** — depends on `Umb::HttpClient`. Extract fifth.
+6. **`Umb::ArchiveScraper`** — depends on `Umb::HttpClient`, `Umb::DetailsScraper`. Extract last.
 
-**Why second:** Shared helpers used by all subsequent test files.
+After each extraction: reduce `UmbScraper` to a thin delegation call, run `bin/rails test`, commit independently. Each commit must be independently deployable.
 
-**Risk:** LOW. Adding files to `test/support/system/` is already handled by the existing `Dir[...support/system/**/*.rb]` line in `application_system_test_case.rb`.
+### Phase 3: Investigate Alternative UMB Data Sources
 
-### Step 3: Smoke test the infrastructure
+Research before building any adapter layer. The investigation determines whether an adapter pattern is warranted at all.
 
-**What:** Write a single minimal system test that visits a scoreboard page and asserts the WebSocket connects. No broadcast assertion yet.
-**File:** `test/system/broadcast_isolation_test.rb` (initial version, single test)
+Questions to answer:
+- Does `files.umb-carom.org` expose a JSON/XML API alongside the ASPX pages?
+- Is the ranking PDF structure consistent enough to replace HTML scraping for player world-ranking data?
+- Is the `umb-carom.org/PG342L2/` archive page structured enough to replace sequential ID scanning?
+- What data does the UMB website provide that the existing scraper misses?
 
-**Why third:** Confirms the infrastructure works before investing in multi-session test complexity.
+Output: a decision memo (not a code change) that either (a) confirms the HTML-only approach is sufficient, (b) identifies a supplementary JSON feed to add alongside existing scraping, or (c) identifies a full replacement path. Only if (b) or (c) is true does a `UmbDataSource` adapter interface get built.
 
-**Risk:** LOW. If this fails, Step 1 configuration is the culprit.
+### Phase 4: UmbScraperV2 Refactor
 
-### Step 4: Add fixture support for scoreboard routes
+`UmbScraperV2` (585 lines) operates on the same `InternationalTournament`/`Seeding`/`Game` domain but with different method decomposition. Extract using the same `Umb::` namespace.
 
-**What:** Ensure `table_monitors.yml` has fixtures suitable for scoreboard rendering (associated `table`, `location`, valid `data` hash). The scoreboard view requires `options`, which requires `get_options!(locale)`, which requires `table.location`.
-**Files:**
-- `test/fixtures/table_monitors.yml` (verify/extend)
-- `test/fixtures/tables.yml` (verify)
-- `test/fixtures/locations.yml` (verify)
+Where logic overlaps with Phase 2 extractions (e.g., `find_player_by_name`, `parse_date_range`, `make_absolute_url`), consolidate into the existing `Umb::` services rather than creating V2-specific variants. Where logic is distinct (e.g., `Seeding`-based player linking), add to the appropriate existing service or create a focused new one.
 
-**Why fourth:** Without valid fixture data, the scoreboard partial will raise errors during rendering in tests.
+Reduce `UmbScraperV2` to a thin facade over `Umb::*` services, matching the pattern from Phase 2.
 
-**Risk:** MEDIUM. The `options` computation via `get_options!` touches `table.location.table_kinds` and potentially other associations. May require stubbing or additional fixtures.
+### Phase 5: Video Cross-Referencing
 
-### Step 5: Build two-session isolation tests
+Can begin in parallel with Phase 3/4 since the `videoable` polymorphic association and `InternationalTournament` model already exist. Requires Phase 1-2 to have populated UMB tournament records in the test fixtures.
 
-**What:** Add multi-session tests to `broadcast_isolation_test.rb`. Cover: full scoreboard update, score:update event, teaser update.
-**File:** `test/system/broadcast_isolation_test.rb` (extend)
-
-**Why fifth:** Core milestone requirement. Depends on all prior steps.
-
-**Risk:** HIGH. Timing issues with async broadcasts, job execution order, and WebSocket connection establishment require careful use of Capybara's `assert_selector` with `wait:` parameter.
-
-### Step 6: Add concurrent/load scenarios
-
-**What:** Tests that trigger state changes on multiple table monitors simultaneously and verify isolation holds under concurrent broadcasts.
-**File:** `test/system/broadcast_isolation_test.rb` (extend) or `test/system/broadcast_load_test.rb` (separate)
-
-**Why last:** Requires working isolation tests as a baseline. Concurrent tests are the most flaky and require the most tuning.
-
-**Risk:** HIGH. Race conditions in tests are hard to diagnose. Use generous `wait:` values and deterministic DOM markers.
-
----
-
-## Integration Points with Existing Architecture
-
-### Integration Point 1: TableMonitorChannel subscription guard
-
-**Location:** `app/channels/table_monitor_channel.rb:5`
-**Current behavior:** Rejects subscriptions when `!ApplicationRecord.local_server?`
-**Test requirement:** `local_server?` must return `true` when system tests run
-**Solution:** `config/carambus.yml` test section with `carambus_api_url` set
-**No code change required** to the channel itself
-
-### Integration Point 2: TableMonitorJob execution guard
-
-**Location:** `app/jobs/table_monitor_job.rb:8`
-**Current behavior:** Returns early when `!ApplicationRecord.local_server?`
-**Test requirement:** Same as above — same config change unblocks both
-**No code change required** to the job itself
-
-### Integration Point 3: Client-side filtering in table_monitor_channel.js
-
-**Location:** `app/javascript/channels/table_monitor_channel.js:107–196`
-**What tests verify:** `shouldAcceptOperation` correctly rejects operations for a different `tableMonitorId`
-**How tests observe this:** DOM assertion (TM B scoreboard content unchanged) + console.warn capture
-**No code change required** — tests observe existing behavior
-
-### Integration Point 4: DOM structure for context detection
-
-**Location:** `app/views/table_monitors/_scoreboard.html.erb:34–35`
-**Structure:** `data-table-monitor-root="scoreboard" data-table-monitor-id="{id}"`
-**Required by:** `getPageContext()` in `table_monitor_channel.js`
-**Test dependency:** System tests must navigate to the actual scoreboard view (not a stub) so this DOM structure is present
-**No code change required**
-
-### Integration Point 5: CableReady broadcast channel name
-
-**Key fact:** `TableMonitorJob` always broadcasts to `"table-monitor-stream"` (shared stream). The selector in the broadcast payload encodes which table monitor the operation targets: `"#full_screen_table_monitor_{id}"`.
-**Test implication:** Tests verify isolation at the selector level, not at the stream level. Both sessions are on the same stream; isolation is purely in JS.
-
-### Integration Point 6: score:update dispatch_event path
-
-**Location:** `table_monitor_job.rb:159` + `table_monitor_channel.js:480–498`
-**Structure:** CableReady `dispatch_event` with `name: "score:update"` and `detail: { tableMonitorId: ... }`
-**Client filtering:** `document.addEventListener('score:update', ...)` checks `currentTableMonitorId !== tableMonitorId`
-**Test requirement:** Separate test for this path — it uses a different filtering mechanism than the DOM selector path
-
----
+1. **`Video::MetadataExtractor`** (PORO) — extend and unit-test the extraction logic from `Video#detect_player_tags` and `Video#detect_discipline`. No DB dependency; test with plain Ruby objects.
+2. **`Video::TournamentMatcher`** (ApplicationService) — build on top of MetadataExtractor. Requires `InternationalTournament` fixture records. Test with confidence scoring edge cases: exact match, fuzzy match, no match, multiple candidates above threshold.
+3. **Integrate into `DailyInternationalScrapeJob` Step 3** — replace/augment the existing `TournamentDiscoveryService` call with `Video::TournamentMatcher`.
+4. Test job integration: assert that unassigned videos with matching tournament metadata get `videoable` set after job execution.
 
 ## Anti-Patterns
 
-### Anti-Pattern 1: Stubbing local_server? per-test in system tests
+### Anti-Pattern 1: Namespace-Skipping (Flat Names)
 
-**What people do:** Add `ApplicationRecord.stub(:local_server?, true)` inside system test blocks.
-**Why it's wrong:** `stub` is per-process. The Selenium browser makes HTTP requests to the Rails Puma server, which is in the same process for Capybara. However, the stub is set in the test thread, while ActionCable callbacks fire in the Puma thread. Thread-local stubs do not cross thread boundaries reliably.
-**Do this instead:** Set `carambus_api_url` in `config/carambus.yml` test section so `local_server?` is globally true in the test process.
+**What people do:** Extract `UmbFutureScraper` (flat) rather than `Umb::FutureScraper` (namespaced).
 
-### Anti-Pattern 2: Using adapter: test for system tests
+**Why it's wrong:** Every prior extraction in this codebase used namespacing (`League::`, `TournamentMonitor::`, `TableMonitor::`, etc.). Flat names pollute the top-level service namespace and make it harder to discover related services as a group.
 
-**What people do:** Leave `cable.yml` test adapter as `test`.
-**Why it's wrong:** The `test` adapter does not forward broadcasts to real WebSocket connections opened by Selenium. Broadcasts will appear to happen (no error) but the browser never receives them.
-**Do this instead:** Use `adapter: async` for system tests. The `async` adapter routes broadcasts to real WebSocket connections in the same process.
+**Do this instead:** Always use the `Umb::` namespace. File goes in `app/services/umb/`, class name is `Umb::FutureScraper`.
 
-### Anti-Pattern 3: Asserting on the absence of all content after a rejected broadcast
+### Anti-Pattern 2: Deleting the Facade Before Callers Are Updated
 
-**What people do:** `assert_no_text "Playing"` on TM B after TM A transitions to "playing".
-**Why it's wrong:** TM B may legitimately show "Playing" if its own state is "playing". The test is asserting isolation, not absence of a word.
-**Do this instead:** Assert TM B shows its specific original content (fixture state), and that the HTML rendered for TM A's scoreboard content has not appeared in TM B's DOM.
+**What people do:** Delete `umb_scraper.rb` once all logic is in `Umb::*` and update the 3 callers directly.
 
-### Anti-Pattern 4: Multi-session tests without waiting for WebSocket connections
+**Why it's wrong:** PROJECT.md Key Decisions log explicitly validates the facade-as-permanent-API approach. The wrappers are "permanent not transitional" — removing them changes the public interface, risks overlooked call sites, and provides no behavioral benefit.
 
-**What people do:** Open two sessions, immediately trigger a broadcast, assert.
-**Why it's wrong:** WebSocket connections take time to establish (ActionCable handshake + subscription confirmation). If the broadcast fires before a session subscribes, that session never receives it.
-**Do this instead:** Use `wait_for_cable_connection` (polling `consumer.connection.getState()` via JS) in both sessions before triggering any broadcasts.
+**Do this instead:** Keep the facade permanently. Three lines of wrapper code per method are cheaper than the audit cost of hunting every call site.
 
-### Anti-Pattern 5: Using perform_enqueued_jobs to flush TableMonitorJob
+### Anti-Pattern 3: Building the Adapter Layer Speculatively
 
-**What people do:** Call `perform_enqueued_jobs` from ActiveJob test helpers.
-**Why it's wrong:** `perform_enqueued_jobs` is designed for the `:test` queue adapter, not `async`. When the `async` adapter is active, jobs execute in background threads — `perform_enqueued_jobs` may not catch them.
-**Do this instead:** With the `async` adapter, add a short `assert_selector`-with-`wait:` after the trigger. Capybara's built-in wait loop will retry until the DOM updates or the wait times out.
+**What people do:** Build a `UmbDataSource` adapter interface before investigating whether alternative sources exist.
 
----
+**Why it's wrong:** Phase 3 investigation may reveal no viable alternatives, making the adapter dead infrastructure. Or it may reveal a data shape that doesn't fit an already-built adapter. Speculative infrastructure adds complexity without return.
+
+**Do this instead:** Complete Phase 3 investigation first. Build the adapter only if two real data sources with materially different shapes need to coexist.
+
+### Anti-Pattern 4: Merging Video::TournamentMatcher into TournamentDiscoveryService
+
+**What people do:** Extend `TournamentDiscoveryService` to also do reverse matching (video → existing tournament).
+
+**Why it's wrong:** The two services have inverted data flows and different inputs. `TournamentDiscoveryService` creates tournaments from videos (video-led). `Video::TournamentMatcher` links videos to scraper-sourced tournaments (tournament-led). Merging creates a class with two distinct responsibilities — precisely what the v1.0–v4.0 refactoring effort removed from the codebase.
+
+**Do this instead:** Run them sequentially from the job. `TournamentDiscoveryService` first (creates any missing tournament records), then `Video::TournamentMatcher` (links videos to existing tournaments including those just created).
+
+### Anti-Pattern 5: Auto-Assigning Videos Below the Confidence Threshold
+
+**What people do:** Set a low threshold or skip confidence scoring to maximize auto-assignment coverage.
+
+**Why it's wrong:** A video about "World Cup 2023" could match multiple tournaments (Vigo, Antalya, Seoul). A wrongly assigned video creates confusing tournament pages that require manual correction, which is worse than leaving the video unassigned.
+
+**Do this instead:** Default to a conservative threshold (0.75). Leave ambiguous videos as `videoable_id: nil`. Expose an admin interface for manual assignment. Log all scoring results for review.
+
+## Integration Points
+
+### External Service Boundaries
+
+| Service | Integration Pattern | Notes |
+|---------|---------------------|-------|
+| `files.umb-carom.org` | Net::HTTP, HTML scraping | Encapsulated in `Umb::HttpClient`; SSL verify mode conditional on environment |
+| UMB PDF files | `Umb::HttpClient#download_pdf` + `pdf-reader` gem | PDF content extracted in `Umb::PdfParser`; binary download separate from HTML fetch |
+| YouTube API | `YoutubeScraper` (UNCHANGED) | Videos land in `videos` table; `Video::TournamentMatcher` reads them afterward |
+| Kozoom API | `KozoomScraper` (UNCHANGED) | Same pipeline |
+| SoopLive | `SoopliveScraper` (UNCHANGED) | Same pipeline |
+
+### Internal Module Boundaries
+
+| Boundary | Communication | Notes |
+|----------|---------------|-------|
+| `Umb::*` ↔ `UmbScraper` facade | Direct delegation with kwargs pass-through | Facade owns `@umb_source` instantiation; services receive it as a keyword arg |
+| `Umb::PdfParser` ↔ `Umb::HttpClient` | Composition — PdfParser calls HttpClient for downloads | Prefer dependency injection over instantiating HttpClient inside PdfParser |
+| `Umb::DetailsScraper` ↔ `Umb::PdfParser` | Composition — DetailsScraper calls PdfParser | DetailsScraper orchestrates; PdfParser is a focused collaborator |
+| `Video::TournamentMatcher` ↔ `Video::MetadataExtractor` | Composition — Matcher instantiates Extractor | MetadataExtractor is a PORO; Matcher owns the scoring and DB write |
+| `Video::TournamentMatcher` ↔ `DailyInternationalScrapeJob` | `.call(video:)` per video | Job iterates; service is single-video scoped |
+| `Umb::*` ↔ `Video::*` | None (phases are sequential, not coupled) | UMB scraper populates tournaments; video matcher reads them |
 
 ## Scaling Considerations
 
-Not applicable to this milestone — this is a test infrastructure build, not production scaling. The broadcast architecture (single shared stream with client-side filtering) is an intentional design choice from the existing codebase and is not being changed.
+This is a single-operator, background-job-driven scraping system. Scaling concerns are operational.
 
----
+| Concern | Current State | Approach |
+|---------|--------------|----------|
+| UMB archive scan (500+ sequential HTTP requests) | Sync, single job, `batch_size` param | Already rate-limited by sequential HTTP; `batch_size` controls memory; no change needed |
+| PDF parsing memory | Large PDFs parsed with `pdf-reader` | Extract one tournament at a time; do not buffer multiple PDFs in memory |
+| Video-to-tournament matching at scale | O(V * T) naive | Scope candidates by year + discipline before scoring; realistic V and T counts are small (<5K videos, <200 tournaments) |
+| Duplicate prevention | `external_id` unique index + `find_or_create_by` pattern | Already in place on `InternationalTournament`; no change needed |
+| Wrong video assignment | Manual correction required | Conservative confidence threshold + admin override interface avoids bulk cleanup scenarios |
 
 ## Sources
 
-All findings from direct inspection of production code and test infrastructure:
+All findings from direct codebase inspection — no external sources required for this architecture research.
 
-- `app/channels/table_monitor_channel.rb` — subscription guard, stream name
-- `app/jobs/table_monitor_job.rb` — execution guard, selector naming, operation types
-- `app/javascript/channels/table_monitor_channel.js` — client-side filtering logic (shouldAcceptOperation, getPageContext, score:update listener)
-- `app/views/table_monitors/_scoreboard.html.erb` — data-table-monitor-id DOM attribute
-- `config/cable.yml` — test adapter: test (current, needs change)
-- `config/carambus.yml` — local_server? configuration (test section has blank carambus_api_url)
-- `test/test_helper.rb` — Sidekiq.fake!, WebMock config, LocalProtector/ApiProtector overrides
-- `test/application_system_test_case.rb` — Capybara/Selenium driver config, TrixSystemTestHelper
-- `test/characterization/table_monitor_char_test.rb` — local_server? stub pattern
-- `test/channels/tournament_channel_test.rb` — existing ActionCable::Channel::TestCase pattern
-- `test/system/party_monitors_test.rb` — existing system test pattern (no ActionCable)
-- `.planning/codebase/TESTING.md` — test infrastructure inventory
-
-Confidence: HIGH — all conclusions from reading actual production code and test files. The cable adapter switching recommendation is MEDIUM confidence pending verification that ActionCable::Channel::TestCase is adapter-independent in Rails 7.2.
+- `app/services/umb_scraper.rb` (2133 lines) — method inventory, constant definitions, URL structure
+- `app/services/umb_scraper_v2.rb` (585 lines) — STI-based approach, V2 method inventory
+- `app/models/video.rb` — `videoable` polymorphic, `unassigned` scope, discipline/player detection
+- `app/models/international_tournament.rb` — STI structure, `from_umb` scope, `json_data` accessor
+- `app/models/international_source.rb` — source_type constants, `umb` type definition
+- `app/services/tournament_discovery_service.rb` — video-led tournament discovery (complementary service)
+- `app/jobs/daily_international_scrape_job.rb` — existing job pipeline, Step 3 integration point
+- `app/jobs/scrape_umb_job.rb`, `scrape_umb_archive_job.rb` — callers of UmbScraper facade
+- `app/controllers/admin/incomplete_records_controller.rb:82` — third caller of UmbScraper
+- `.planning/PROJECT.md` — Key Decisions log, v1.0–v4.0 extraction patterns (namespace strategy, PORO vs ApplicationService, facade-as-permanent-API)
+- Existing namespace directories confirmed: `app/services/league/`, `app/services/tournament/`, `app/services/tournament_monitor/`, `app/services/table_monitor/`, `app/services/party_monitor/`, `app/services/region_cc/`
+- Existing test directory structure confirmed: `test/services/league/`, `test/services/tournament/`, etc.
 
 ---
-
-*Architecture research for: ActionCable broadcast isolation end-to-end testing (v3.0)*
-*Researched: 2026-04-11*
+*Architecture research for: UMB scraper overhaul and video cross-referencing (v5.0)*
+*Researched: 2026-04-12*

@@ -1,22 +1,22 @@
-# Stack Research: Broadcast Isolation System Tests (v3.0)
+# Stack Research: UMB Scraper Overhaul & Video Cross-Referencing (v5.0)
 
-**Domain:** Rails 7.2 end-to-end system tests for ActionCable broadcast isolation
-**Researched:** 2026-04-11
-**Confidence:** HIGH (codebase read directly; key libraries verified from official docs and Rails source)
+**Domain:** Web scraping, PDF extraction, multi-platform video cross-referencing in a Rails 7.2 app
+**Researched:** 2026-04-12
+**Confidence:** HIGH (codebase read directly; UMB site probed; key libraries verified)
 
 ---
 
 ## Decision Summary
 
-The milestone goal is browser-level end-to-end proof that a scoreboard showing TableMonitor A never receives DOM updates intended for TableMonitor B. The isolation logic is client-side JavaScript in `table_monitor_channel.js` — not server-side per-table channels. System tests must run real browsers and observe real DOM changes through real WebSocket connections.
+The v5.0 milestone has three distinct work streams, each with different stack implications:
 
-**All required infrastructure is already in the Gemfile.** No new gems are needed. The work is configuration and test-writing only.
+1. **Investigate alternative UMB data sources** — UMB runs two sites (`files.umb-carom.org` and `umbevents.umb-carom.org`). Both are server-rendered HTML with no public JSON API. No REST/GraphQL endpoints were found. Data is embedded in HTML tables or loaded from PDF files. The only structured data path is PDF downloads for results/rankings and sequential HTML scraping for tournament lists. No new HTTP library is needed — `net/http` (already used) is sufficient.
 
-The three constraints that drive every decision below:
+2. **Refactor the 2718-line UMB scraper** — Pure service-class extraction following the established project pattern (ApplicationService for side effects, POROs for pure logic). No new libraries. The key tool is the `reek` quality measurement already in the workflow.
 
-1. **ActionCable adapter must be `async` (or `test`) for system tests** — the browser connects to the same Puma process as the test runner. The async adapter works within a single OS process, which is exactly the system test topology. Switching to Redis for tests is unnecessary overhead.
-2. **`use_transactional_tests` must stay `true` in system tests** — Rails 5.1+ makes the test thread and Puma server share the same database connection, so fixture data is visible to the browser without truncation or `database_cleaner`. The existing `ApplicationSystemTestCase` inherits this default.
-3. **Multi-session is `Capybara.using_session`** — standard Capybara API, no additional gems. Each named session is a separate browser context (independent cookies, separate WebSocket connection) driven by the same Selenium Chrome process.
+3. **Video cross-referencing** — The `Video` model (polymorphic `videoable`) and `InternationalTournament` model are already in place. Cross-referencing is a matching problem: given a video title/description + date, find the best-matching `InternationalTournament`. The `text` gem (already installed, `Text::Levenshtein`) covers the similarity algorithm. No new gem is needed.
+
+**Net result: Zero new gems required for this milestone.**
 
 ---
 
@@ -24,148 +24,104 @@ The three constraints that drive every decision below:
 
 ### Core Technologies (all already installed)
 
-| Technology | Version in Gemfile.lock | Purpose | Status |
-|------------|------------------------|---------|--------|
-| Capybara | 3.40.0 | Browser session management, multi-session via `using_session`, DOM assertions | Already in Gemfile |
-| selenium-webdriver | 4.38.0 | Chrome automation driver | Already in Gemfile |
-| Minitest | Rails built-in | Test runner; system tests inherit `ActionDispatch::SystemTestCase` | Already in use |
-| ActionCable (async adapter) | Rails 7.2 built-in | Pub/sub within the same Puma process during tests | Already configured in `cable.yml` |
-| Rails fixtures | Rails built-in | TableMonitor + tournament test data | Already used project-wide |
+| Technology | Version in Gemfile | Purpose | Why Sufficient |
+|------------|--------------------|---------|----------------|
+| `net/http` | Ruby stdlib | HTTP requests to UMB, Kozoom, SoopLive | Already used in all 5 scrapers. No additional gem gives meaningful benefit for this use case. |
+| `nokogiri` | >= 1.12.5 | HTML parsing of UMB tournament pages | Already used in UmbScraper and UmbScraperV2. CSS selectors handle the table-based UMB markup. |
+| `pdf-reader` | ~> 2.12 | Parse UMB result/ranking PDFs | Already in Gemfile. UmbScraperV2 already uses `PDF::Reader.new(StringIO.new(pdf_data))` for group results and player lists. Current upstream is 2.15.x (Aug 2025) — gem is actively maintained. |
+| `text` gem | present in Gemfile | Levenshtein string similarity for name matching | Already used in `Club#similarity_score`. `Text::Levenshtein.distance` is the right tool for fuzzy player/tournament name matching during cross-referencing. |
+| `google-apis-youtube_v3` | ~> 0.40.0 | YouTube video metadata | Already used in `YoutubeScraper`. Cross-referencing uses the video records already fetched; no new YouTube calls needed. |
+| ApplicationService PORO pattern | project convention | Extracted scraper service classes | Established pattern in 27 prior extractions. Use ApplicationService for I/O-heavy operations, PORO for pure matching logic. |
 
 ### Supporting Patterns (no new code required)
 
 | Pattern | Purpose | Integration Point |
 |---------|---------|-------------------|
-| `Capybara.using_session("name") { ... }` | Open a second browser session on a different URL | Inside `ApplicationSystemTestCase` test methods |
-| `ApplicationRecord.stub(:local_server?, true)` | Enable TableMonitorChannel subscription (channel rejects on API server) | `setup` block in broadcast isolation tests |
-| `Capybara.default_max_wait_time = 10` | Wait for async DOM updates from ActionCable | Already set in `application_system_test_case.rb` line 29 |
-| `assert_no_text` / `assert_text` | Verify that DOM element did or did not change | Standard Capybara assertions |
-| `WebMock.disable_net_connect!(allow_localhost: true)` | Allow Puma local server connections; already configured | Already in `test_helper.rb` line 110 |
+| `VCR` cassettes | Record/replay HTTP for scraper tests | `test/snapshots/vcr/` — already used for ClubCloud and CEB scraper tests. New UMB service classes get their own cassettes. |
+| `WebMock` | Block real HTTP in test suite | Already active via `test_helper.rb`. All new scraper tests automatically covered. |
+| `InternationalSource` model | Registry for all external data sources | UMB is already seeded (`source_type: 'umb'`). New source types (if any found) follow the same `find_or_create_by!` pattern. |
+| `Video#videoable` polymorphic | Attach video to tournament | Assign `videoable_type: 'Tournament'`, `videoable_id: tournament.id` when a cross-reference match is found. Field already exists in schema. |
+| `Text::Levenshtein.distance` | Fuzzy name matching | `require 'text'` inline (as done in `Club`). Build a similarity score: `1.0 - distance / max_length`. Threshold ~0.8 for confident match. |
 
 ---
 
-## Architecture of the Test
+## UMB Data Source Investigation Findings
 
-Understanding the broadcast topology is required to write the right tests:
+This section documents what was verified through direct site inspection — critical input for the investigation work stream.
 
-**Single shared channel stream.** `TableMonitorChannel` uses `stream_from "table-monitor-stream"` — all clients subscribe to the same stream regardless of which table they are watching. There are no per-table channels.
+### files.umb-carom.org (current scraping target)
 
-**Client-side isolation via `shouldAcceptOperation`.** The JavaScript in `table_monitor_channel.js` reads the current page context (scoreboard DOM element `[data-table-monitor-root="scoreboard"]` or meta tag `scoreboard-table-monitor-id`) and rejects CableReady operations whose selector targets a different `full_screen_table_monitor_N` element.
+- **Format:** Server-rendered HTML, minimal JavaScript, no XHR or JSON
+- **Technology:** Static or simple server-rendered pages (no ASP.NET WebForms `__VIEWSTATE`, no React/Vue)
+- **Known URL patterns scraped today:**
+  - `/public/FutureTournaments.aspx` — upcoming tournaments as HTML table
+  - `/public/TournametDetails.aspx?ID={n}` — per-tournament detail page (sequential integer IDs)
+  - `/Public/Ranking/1_WP_Ranking/{year}/W{week}_{year}.pdf` — weekly ranking PDFs
+  - Result PDFs linked from tournament detail pages
+- **Assessment:** No undiscovered API layer. The sequential ID scan (`start_id..end_id`) in `UmbScraper#scrape_tournament_archive` is the correct discovery mechanism. IDs up to ~500 appear to be the full archive.
 
-**What system tests must verify:** Session A watching TableMonitor 1 does not show a DOM change when a broadcast for TableMonitor 2 fires. This requires two live browser sessions, each visiting a different scoreboard page, with a server-side state change on one table.
+### umbevents.umb-carom.org (secondary site, requires investigation)
 
-**What the test does NOT need:** A second Redis process, multiple Puma workers, or a separate server. All sessions share the same single Puma thread pool and async ActionCable event loop within the test process.
+- **Format:** HTML pages with jQuery-based filtering UI
+- **Known URL patterns (discovered via site inspection):**
+  - `/Reports/EntryFormViewOnly` — entry/registration forms
+  - `/Reports/ViewPlayers` — player lists
+  - `/Reports/ViewPlayersData` — player statistics
+  - `/Reports/ViewTimetable` — match timetables
+  - `/Reports/ViewAllRanks` — rankings
+  - `/Reports/ViewFinalRanking` — final standings
+  - `/Login/Login` — authentication
+- **Assessment:** These `/Reports/` paths may return structured data (HTML tables or potentially JSON) depending on their Accept headers or parameters. This is the primary investigation target: check whether these endpoints respond to `Accept: application/json` or have query parameters that return structured data. This needs live investigation — cannot determine from static inspection.
+- **Confidence:** LOW for API availability. Requires manual HTTP probing in Phase 1 of v5.0.
 
----
+### Kozoom API (already partially integrated)
 
-## Configuration Changes Required
+- The existing `KozoomScraper` authenticates to `api.kozoom.com` and calls `/events/days`. This is a real JSON API.
+- **Cross-referencing use:** Kozoom event IDs in `Video#data["eventId"]` can be matched to `InternationalTournament` records by date range + discipline. This is a reliable path — no additional investigation needed.
 
-### 1. `config/cable.yml` — add async for test environment
+### SoopLive / Five&Six (already integrated)
 
-The current `cable.yml` uses `adapter: test` for the test environment. The test adapter stores broadcasts in memory for assertion (used in unit tests via `ActionCable::TestHelper`) but does **not** deliver them to real WebSocket connections in system tests.
-
-Change test environment to `async`:
-
-```yaml
-# config/cable.yml
-development:
-  adapter: redis
-  url: <%= ENV.fetch("REDIS_URL") { "redis://localhost:6379/2" } %>
-
-test:
-  adapter: async          # ← changed from "test" to "async" for system tests
-
-production:
-  adapter: redis
-  url: <%= ENV.fetch("REDIS_URL") { "redis://localhost:6379/2" } %>
-  channel_prefix: carambus_bcw_development
-```
-
-**Important:** Existing `ActionCable::Channel::TestCase` tests that use `assert_broadcasts` / `assert_broadcast_on` (via `ActionCable::TestHelper`) rely on the `test` adapter's in-memory store. These will break if `cable.yml` globally switches to `async`.
-
-**Solution:** Keep `adapter: test` as the default for the test environment and override to `async` only inside system test files:
-
-```ruby
-# test/application_system_test_case.rb  (or a subclass for broadcast tests)
-class BroadcastIsolationSystemTestCase < ApplicationSystemTestCase
-  setup do
-    # Override adapter to async so broadcasts reach the browser WebSocket
-    ActionCable.server.config.cable = { "adapter" => "async" }
-    ActionCable.server.restart
-  end
-
-  teardown do
-    # Restore test adapter for channel unit tests
-    ActionCable.server.config.cable = { "adapter" => "test" }
-    ActionCable.server.restart
-  end
-end
-```
-
-Confidence: MEDIUM — the `ActionCable.server.restart` approach is the community workaround pattern. Verified as the mechanism in the `action-cable-testing` gem's RSpec feature integration. The exact API is not in official Rails docs but is consistent with ActionCable's runtime reconfigurability.
-
-### 2. `test/application_system_test_case.rb` — local_server? override
-
-`TableMonitorChannel#subscribed` calls `reject` when `ApplicationRecord.local_server?` is false (API server mode). System tests run in API server mode by default. The stub must be active for the duration of the test.
-
-Use `Carambus.config` to set the flag if possible, or stub at the class level:
-
-```ruby
-class BroadcastIsolationSystemTestCase < ApplicationSystemTestCase
-  setup do
-    # Allow TableMonitorChannel to accept subscriptions
-    ApplicationRecord.stubs(:local_server?).returns(true)
-    # (or: use mocha, or set Carambus.config.carambus_api_url = nil)
-  end
-end
-```
-
-**Verify the mechanism** by reading `ApplicationRecord.local_server?` implementation — if it reads from `Carambus.config`, set the config key directly (no mock needed, avoids Mocha dependency).
+- `SoopliveScraper` calls the public SoopLive API. Videos are saved with `videoable_id: nil`.
+- **Cross-referencing use:** Title parsing + date window is the matching strategy. Same approach as YouTube.
 
 ---
 
-## Multi-Session Test Pattern
+## Scraper Refactoring: Decomposition Strategy
 
-```ruby
-# test/system/broadcast_isolation_test.rb
-require "application_system_test_case"
+The 2718 lines across two files should extract to the same pattern used for League (4 services) and TournamentMonitor (4 services).
 
-class BroadcastIsolationTest < BroadcastIsolationSystemTestCase
-  setup do
-    @tm1 = table_monitors(:one)   # fixture for table 1
-    @tm2 = table_monitors(:two)   # fixture for table 2
-    sign_in users(:valid)
-  end
+### Recommended service boundaries for UmbScraper (2133 lines)
 
-  test "scoreboard A does not update when table B changes state" do
-    # Session A: scoreboard for table 1
-    visit table_monitor_scoreboard_path(@tm1, locale: :de)
-    assert_selector "[data-table-monitor-root='scoreboard']"
+| Service Class | Responsibility | Type |
+|--------------|---------------|------|
+| `Umb::TournamentListScraper` | Fetches and parses future/archive tournament HTML pages | ApplicationService |
+| `Umb::TournamentDetailParser` | Parses a single tournament detail HTML doc → structured hash | PORO |
+| `Umb::PdfResultParser` | Reads result PDFs, extracts player/game data | PORO |
+| `Umb::DisciplineDetector` | Maps tournament name → discipline ID via regex patterns | PORO |
+| `Umb::TournamentPersister` | Saves tournament + seedings + games to DB | ApplicationService |
 
-    # Session B: scoreboard for table 2 (separate browser context)
-    using_session("scoreboard_b") do
-      visit table_monitor_scoreboard_path(@tm2, locale: :de)
-      assert_selector "[data-table-monitor-root='scoreboard']"
-    end
+### Recommended service boundaries for UmbScraperV2 (585 lines)
 
-    # Trigger a state change on table 2 from a third context (admin/API)
-    using_session("trigger") do
-      # POST to trigger AASM transition on @tm2
-      # e.g.: post table_monitor_transition_path(@tm2), params: { event: "start_game" }
-    end
+| Service Class | Responsibility | Type |
+|--------------|---------------|------|
+| `Umb::V2::TournamentScraper` | Orchestrates fetch → parse → persist for a single tournament | ApplicationService |
+| `Umb::V2::PdfListParser` | Parses players-list PDFs (already in `scrape_players_list_pdf`) | PORO |
 
-    # Session A must NOT show table 2's broadcast
-    assert_no_selector "#full_screen_table_monitor_#{@tm2.id}"
-    # Session A's own content is unchanged
-    assert_selector "#full_screen_table_monitor_#{@tm1.id}"
-  end
-end
-```
+PORO rule: pure parsing/calculation, no DB or HTTP calls. ApplicationService rule: has side effects (DB writes or HTTP requests).
 
-**Key mechanics:**
-- `using_session("name")` creates an isolated Selenium session (separate cookies, separate WebSocket). Returns to original session when block exits.
-- The `sign_in` helper from `Warden::Test::Helpers` signs in within the current session. Each `using_session` block needs its own sign-in.
-- `Capybara.default_max_wait_time = 10` (already configured) provides retry window for async DOM updates.
+---
+
+## Video Cross-Referencing: Matching Strategy
+
+No new infrastructure needed. The algorithm is:
+
+1. **Candidate selection:** For each unassigned video (`videoable_id: nil`), find `InternationalTournament` records within ±14 days of `video.published_at`.
+2. **Name similarity:** Use `Text::Levenshtein` to compare normalized video title tokens against tournament title. Threshold: similarity >= 0.75.
+3. **Player overlap:** Extract player names from video title using `Video#detect_player_tags` (already implemented). If 1+ players match a tournament seeding, boost confidence.
+4. **Assignment:** Set `video.videoable_type = 'Tournament'` and `video.videoable_id = tournament.id`. Call `video.auto_assign_discipline!` (already implemented).
+5. **Fallback:** Videos with confidence < threshold remain unassigned for manual review.
+
+This logic belongs in a new `Umb::VideoMatcher` PORO — pure input/output, no DB writes. A separate `Umb::VideoMatcherJob` or ApplicationService handles the batch persistence.
 
 ---
 
@@ -173,51 +129,24 @@ end
 
 | Avoid | Why | Use Instead |
 |-------|-----|-------------|
-| `database_cleaner` gem | Rails 5.1+ system tests share the DB connection via `use_transactional_tests = true`, so fixtures are visible to the browser without truncation. Adding database_cleaner adds complexity and slows tests by orders of magnitude. | Rails built-in transactional test isolation |
-| Redis adapter in test environment | The async adapter works within a single Puma process (system test topology). Redis adds a dependency on a live Redis instance, increases test fragility, and provides no benefit here since there is only one Rails server process under test. | `adapter: async` in system test setup |
-| `cuprite` / Playwright / `ferrum` | These are alternatives to Selenium+Chrome. Selenium is already configured and proven working in this app. Switching drivers is a scope change, not a testing improvement. | Existing Selenium headless Chrome configuration |
-| `action-cable-testing` gem | Was absorbed into Rails 6+. `ActionCable::Channel::TestCase` and `ActionCable::TestHelper` are built-in since Rails 6. Adding this gem is redundant. | Rails built-in `ActionCable::Channel::TestCase` |
-| FactoryBot for TableMonitor fixtures | Project is strictly fixtures-first; FactoryBot is in the Gemfile but zero factories are defined. Creating factories for this milestone contradicts the established convention. | Add fixture rows to `test/fixtures/table_monitors.yml` |
-| Parallel test execution | `parallelize(workers: :number_of_processors)` is commented out in `test_helper.rb` ("Disabled to avoid database issues with fixtures"). System tests with shared ActionCable state would make parallelism even more problematic. | Sequential test execution |
-| JavaScript `console.log` assertions via CDP | The JS in `table_monitor_channel.js` logs `"SCOREBOARD MIX-UP PREVENTED"` to the console when it rejects an operation. Asserting on browser console output requires Chrome DevTools Protocol integration and fragile log scraping. | Assert on the DOM outcome (element absent / unchanged), not the log message |
+| `faraday` or `httparty` | Both scrapers use `net/http` directly with custom redirect handling. Replacing HTTP client mid-refactor introduces risk for zero benefit. | `net/http` (already used in all 5 scrapers) |
+| `mechanize` | Designed for browser-simulation scraping. UMB HTML is static server-rendered — no form submission or JS rendering needed. Adds a heavyweight dependency. | `net/http` + `nokogiri` |
+| `ferrum` or `watir` (headless browser) | UMB pages are plain HTML. No JavaScript rendering is required to access the data. The existing Chrome/Selenium setup is for system tests only. | `nokogiri` HTML parsing |
+| `fuzzy_match` gem | Heavyweight library combining multiple algorithms. `Text::Levenshtein` (already installed) is sufficient for the matching precision needed. | `text` gem (already in Gemfile) |
+| `iguvium` (PDF table extraction) | For structured PDF tables. UMB PDFs are text-based and already parsed character-by-character by `pdf-reader`. The existing custom row-parsing logic in `UmbScraperV2` works. | `pdf-reader` (already used) |
+| FactoryBot factories for new services | Zero factories exist in this project. All tests use fixtures. | Add fixture rows to existing YAML files |
 
 ---
 
-## Version Compatibility
+## Testing Strategy for New Services
 
-| Package | Version | Compatibility Notes |
-|---------|---------|---------------------|
-| Capybara 3.40.0 | selenium-webdriver 4.38.0 | Compatible. Capybara 3.39+ with selenium-webdriver 4.20.1+ is the documented requirement in the Gemfile. |
-| selenium-webdriver 4.38.0 | Chrome/Chromium | Requires matching ChromeDriver. Selenium 4.6+ manages ChromeDriver automatically via Selenium Manager — no manual chromedriver install needed. |
-| Rails 7.2.2 | ActionCable async adapter | `adapter: async` is built into Rails and is the default in development. Fully supported in 7.2. |
-| Capybara `using_session` | Minitest / ActionDispatch::SystemTestCase | `using_session` is a Capybara::DSL method, available in any Capybara-backed test including `ActionDispatch::SystemTestCase`. No compatibility issues. |
-| Warden::Test::Helpers | Devise + Capybara multi-session | Each `using_session` block has its own cookie jar, so `sign_in` must be called within each session. `login_as` (Warden's helper) works across sessions from outside `using_session` blocks — use the right helper depending on context. |
+Pattern established in v1.0–v4.0 extractions:
 
----
-
-## Installation
-
-No new gems required. Zero Gemfile changes needed.
-
-If the ActionCable adapter-per-test-class override pattern proves unstable, the only gem addition worth considering is:
-
-```ruby
-# Gemfile — group :test (only if needed)
-# NOT recommended — use built-in ActionCable::Channel::TestCase instead
-# gem "action-cable-testing"  # merged into Rails 6+, redundant
-```
-
-The correct install action is to add fixture rows:
-
-```yaml
-# test/fixtures/table_monitors.yml — add a second fixture if only one exists
-two:
-  name: "Table 2"
-  state: pointer_mode
-  panel_state: pointer_mode
-  current_element: pointer_mode
-  # ... other required columns
-```
+1. **Characterization tests first** — before extracting any service, write tests against the current `UmbScraper`/`UmbScraperV2` that pin existing behavior. Use VCR cassettes.
+2. **VCR cassettes for HTTP** — record real responses from `files.umb-carom.org` during cassette recording session. Store in `test/snapshots/vcr/umb/`.
+3. **Fixture PDFs for PDF parsing** — save representative PDF bytes in `test/fixtures/files/umb/` for deterministic `PDF::Reader` tests.
+4. **Unit test extracted POROs** — no HTTP, no DB. Input: raw HTML doc or PDF bytes. Output: structured hash. Fast.
+5. **Integration test ApplicationServices** — VCR cassette + fixtures DB. Verify `InternationalTournament.count` delta.
 
 ---
 
@@ -225,38 +154,42 @@ two:
 
 | Area | Confidence | Basis |
 |------|------------|-------|
-| Capybara `using_session` multi-session pattern | HIGH | Capybara 3.x official API. Confirmed in community tutorials and official docs. |
-| Async adapter working in system tests (same process) | HIGH | The "async only works in same process" property is exactly the system test topology — Puma and tests share the OS process. Documented in Rails ActionCable overview. |
-| `adapter: test` breaking real WebSocket delivery | HIGH | Test adapter stores in-memory only; does not route to WebSocket connections. Confirmed via Rails API docs. |
-| Per-test-class ActionCable adapter override | MEDIUM | `ActionCable.server.restart` pattern is community-verified but not in official Rails docs. Needs validation against Rails 7.2 server internals. |
-| `use_transactional_tests = true` fixture visibility | HIGH | Rails 5.1+ PR #28083 explicitly solved the shared-connection problem for system tests. Confirmed in Rails guides. |
-| Broadcast isolation being client-side JS only | HIGH | Read directly from `table_monitor_channel.js` and `app/channels/table_monitor_channel.rb` — single stream, client filters by DOM element id. |
+| No public UMB JSON API exists | HIGH | Direct HTTP inspection of both UMB domains. HTML-only responses, no XHR patterns, no API docs found. |
+| `umbevents.umb-carom.org/Reports/` endpoints | LOW | URL patterns discovered but response format under `Accept: application/json` not tested. Needs live probe. |
+| `text` gem sufficient for matching | HIGH | `Text::Levenshtein` already used in `Club#similarity_score`. Same pattern, same gem. |
+| `pdf-reader` sufficient for UMB PDFs | HIGH | Already used in `UmbScraperV2` for result and player list PDFs. Version 2.15.x actively maintained as of Aug 2025. |
+| `Video#videoable` polymorphic ready | HIGH | Schema confirmed: `videoable_type`, `videoable_id` columns exist, scopes exist, no migration needed. |
+| Kozoom API as reliable cross-ref path | HIGH | `KozoomScraper` already authenticates to `api.kozoom.com`. Event IDs in `Video#data["eventId"]` are a direct match key. |
+| Refactoring pattern (PORO/ApplicationService split) | HIGH | Identical to 27 prior extractions. Pattern is well-established in this codebase. |
 
 ---
 
-## Open Questions
+## Open Questions for Phase 1 Investigation
 
-1. **`ApplicationRecord.local_server?` implementation** — needs to be read to determine whether `Carambus.config` is the toggle (cleaner) or `stub` is required. The channel reject path must be bypassed for system tests.
-2. **Scoreboard URL** — what is the actual route for the per-table scoreboard page? The `table_monitor_channel.js` context detection reads `[data-table-monitor-root="scoreboard"]`. Confirm which view renders this attribute and which route serves it.
-3. **Fixture completeness** — `test/fixtures/table_monitors.yml` must have at least two rows with valid `state`, `panel_state`, and `current_element` columns. Check before writing tests.
-4. **ActionCable adapter restart stability** — if `ActionCable.server.restart` causes test isolation issues, the alternative is a dedicated test environment (`RAILS_ENV=system_test`) with its own `cable.yml` section that uses `async`.
+1. **`umbevents.umb-carom.org` response format** — Do the `/Reports/` endpoints accept query parameters or `Accept: application/json`? Probe with `curl -H "Accept: application/json" https://umbevents.umb-carom.org/Reports/ViewAllRanks`. If JSON is returned, a lightweight structured data path becomes available without scraping HTML.
+2. **UMB event IDs vs. Kozoom event IDs** — Is there a stable mapping between UMB tournament IDs (e.g., `TournametDetails.aspx?ID=123`) and Kozoom event IDs in `api.kozoom.com/events`? If yes, video-to-UMB-tournament linking via Kozoom becomes trivial.
+3. **UMB ranking PDF schedule** — The pattern `Public/Ranking/1_WP_Ranking/{year}/W{week}_{year}.pdf` is known. Are all weeks populated? Are discipline-specific sub-paths available (e.g., for 1-cushion, 5-pin)?
+4. **SoopLive VOD availability** — SoopLive archives VODs after live events end. What is the retention window? This affects whether historic cross-referencing for past events is feasible.
 
 ---
 
 ## Sources
 
-- `app/javascript/channels/table_monitor_channel.js` — client-side isolation logic (`shouldAcceptOperation`, `getPageContext`)
-- `app/channels/table_monitor_channel.rb` — `stream_from "table-monitor-stream"` (single shared stream)
-- `test/application_system_test_case.rb` — existing driver config, `Capybara.default_max_wait_time = 10`
-- `config/cable.yml` — current adapter configuration (`adapter: test` for test environment)
-- `test/test_helper.rb` — `WebMock.disable_net_connect!(allow_localhost: true)` confirmed
-- Rails API: ActionCable::SubscriptionAdapter::Test — https://edgeapi.rubyonrails.org/classes/ActionCable/SubscriptionAdapter/Test.html (in-memory only, no WebSocket delivery)
-- Rails PR #28083 — shared DB connection for system tests (transactional fixture visibility)
-- Capybara `using_session` — https://rubydoc.info/gems/capybara/Capybara/Session (multi-session API)
-- Boring Rails: Testing multiple sessions — https://boringrails.com/tips/capybara-multiple-user-sessions (pattern confirmed)
-- Action Cable Overview — https://guides.rubyonrails.org/action_cable_overview.html (async adapter same-process constraint)
+- `app/services/umb_scraper.rb` (2133 lines) — current implementation, URL patterns, PDF path patterns
+- `app/services/umb_scraper_v2.rb` (585 lines) — current V2 implementation, PDF::Reader usage
+- `app/services/kozoom_scraper.rb` — Kozoom JSON API authentication pattern
+- `app/services/youtube_scraper.rb` — existing YouTube integration
+- `app/services/sooplive_scraper.rb` — SoopLive integration
+- `app/models/video.rb` — polymorphic videoable, existing keyword/tag/similarity logic
+- `app/models/international_source.rb` — source registry, known channels
+- `app/models/international_tournament.rb` — STI subclass of Tournament
+- `app/models/club.rb:743` — `Text::Levenshtein.distance` usage (confirmed pattern)
+- Direct HTTP probe of `https://files.umb-carom.org/public/FutureTournaments.aspx` — confirmed static HTML, no JSON API
+- Direct HTTP probe of `https://umbevents.umb-carom.org/` — confirmed HTML + jQuery, `/Reports/` URL patterns discovered
+- https://github.com/yob/pdf-reader — version 2.15.x, actively maintained (latest commit Jan 2025)
+- https://github.com/threedaymonk/text — `Text::Levenshtein` confirmed available (1.2.3)
 
 ---
 
-*Stack research for: ActionCable broadcast isolation system tests (v3.0)*
-*Researched: 2026-04-11*
+*Stack research for: UMB Scraper Overhaul & Video Cross-Referencing (v5.0)*
+*Researched: 2026-04-12*
