@@ -34,27 +34,25 @@ namespace :videos do
       p2_id = player2.to_s.start_with?("player_") ? player2.to_s.split("_").last : nil
 
       # Subqueries for players
-      games_p1 = Game.joins(game_participations: :player)
-                     .select(:id)
+      games_p1 = Game.joins(game_participations: :player).select(:id)
       games_p1 = if p1_id
-                   games_p1.where(game_participations: { player_id: p1_id })
-                 else
-                   games_p1.where("players.fl_name ILIKE :p1 OR players.lastname ILIKE :p1", p1: "%#{player1}%")
-                 end
+        games_p1.where(game_participations: {player_id: p1_id})
+      else
+        games_p1.where("players.fl_name ILIKE :p1 OR players.lastname ILIKE :p1", p1: "%#{player1}%")
+      end
 
-      games_p2 = Game.joins(game_participations: :player)
-                     .select(:id)
+      games_p2 = Game.joins(game_participations: :player).select(:id)
       games_p2 = if p2_id
-                   games_p2.where(game_participations: { player_id: p2_id })
-                 else
-                   games_p2.where("players.fl_name ILIKE :p2 OR players.lastname ILIKE :p2", p2: "%#{player2}%")
-                 end
+        games_p2.where(game_participations: {player_id: p2_id})
+      else
+        games_p2.where("players.fl_name ILIKE :p2 OR players.lastname ILIKE :p2", p2: "%#{player2}%")
+      end
 
       # Schnittmenge an Games bilden, in denen BEIDE vorkommen, und NUR InternationalTournaments
       possible_games = Game.joins(:tournament)
-                           .where(id: games_p1)
-                           .where(id: games_p2)
-                           .where(tournaments: { type: "InternationalTournament" })
+        .where(id: games_p1)
+        .where(id: games_p2)
+        .where(tournaments: {type: "InternationalTournament"})
 
       # Optional: filtern nach Datum (ein Game sollte zum Turnier-Datum oder Video-Datum passen)
       if video.published_at.present?

@@ -55,7 +55,7 @@ class Video::MetadataExtractor
   # Detects tournament type (world_cup, world_championship, european_championship, etc.)
   # from combined title + description text.
   def extract_tournament_type
-    text = "#{video.title} #{video.description}".to_s
+    text = "#{video.title} #{video.description}"
     TOURNAMENT_TYPE_PATTERNS.each do |type, regex|
       return type if text.match?(regex)
     end
@@ -101,8 +101,8 @@ class Video::MetadataExtractor
     response = client.chat(
       parameters: {
         model: "gpt-4o-mini",
-        response_format: { type: "json_object" },
-        messages: [{ role: "user", content: prompt }],
+        response_format: {type: "json_object"},
+        messages: [{role: "user", content: prompt}],
         temperature: 0.0
       }
     )
@@ -117,12 +117,12 @@ class Video::MetadataExtractor
       tournament_type: parsed["tournament_type"].presence,
       year: parsed["year"]&.to_i
     }
-  rescue StandardError => e
+  rescue => e
     Rails.logger.error("Video::MetadataExtractor AI fallback failed: #{e.message}")
     empty_result
   end
 
   def empty_result
-    { players: [], round: nil, tournament_type: nil, year: nil }
+    {players: [], round: nil, tournament_type: nil, year: nil}
   end
 end

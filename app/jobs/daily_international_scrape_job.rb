@@ -12,7 +12,7 @@ class DailyInternationalScrapeJob < ApplicationJob
     begin
       scraped_count = ScrapeYoutubeJob.perform_now(days_back: days_back)
       Rails.logger.info "[DailyInternationalScrape] Scraped #{scraped_count} YouTube videos"
-    rescue StandardError => e
+    rescue => e
       Rails.logger.error "[DailyInternationalScrape] Error scraping YouTube: #{e.message}"
       scraped_count = 0
     end
@@ -21,7 +21,7 @@ class DailyInternationalScrapeJob < ApplicationJob
     InternationalSource::KNOWN_FIVESIX_CHANNELS.each_key do |channel_id|
       scraper = SoopliveScraper.new
       soop_count += scraper.scrape_channel(channel_id, days_back: days_back)
-    rescue StandardError => e
+    rescue => e
       Rails.logger.error "[DailyInternationalScrape] Error scraping SoopLive #{channel_id}: #{e.message}"
     end
     scraped_count += soop_count
@@ -37,7 +37,7 @@ class DailyInternationalScrapeJob < ApplicationJob
           # Match data is fetched on-demand during VOD linking, not bulk-fetched here
         end
       end
-    rescue StandardError => e
+    rescue => e
       Rails.logger.error "[DailyInternationalScrape] Error syncing SoopLive billiards: #{e.message}"
     end
 
@@ -53,7 +53,7 @@ class DailyInternationalScrapeJob < ApplicationJob
       else
         Rails.logger.warn "[DailyInternationalScrape] Kozoom credentials not configured in Rails.application.credentials"
       end
-    rescue StandardError => e
+    rescue => e
       Rails.logger.error "[DailyInternationalScrape] Error scraping Kozoom: #{e.message}"
     end
     scraped_count += kozoom_count
@@ -78,7 +78,7 @@ class DailyInternationalScrapeJob < ApplicationJob
         discovery_result = discovery_service.discover_from_videos
         tournament_count = discovery_result[:tournaments].size
         Rails.logger.info "[DailyInternationalScrape] Discovered #{tournament_count} tournaments"
-      rescue StandardError => e
+      rescue => e
         Rails.logger.error "[DailyInternationalScrape] Error discovering tournaments: #{e.message}"
       end
     end
@@ -91,7 +91,7 @@ class DailyInternationalScrapeJob < ApplicationJob
         match_count = result[:assigned_count]
         Rails.logger.info "[DailyInternationalScrape] Matched #{match_count} videos to tournaments"
       end
-    rescue StandardError => e
+    rescue => e
       Rails.logger.error "[DailyInternationalScrape] Error matching videos: #{e.message}"
     end
 
@@ -103,7 +103,7 @@ class DailyInternationalScrapeJob < ApplicationJob
         kozoom_match_count = kozoom_result[:assigned_count]
         Rails.logger.info "[DailyInternationalScrape] Kozoom cross-referenced #{kozoom_match_count} videos"
       end
-    rescue StandardError => e
+    rescue => e
       Rails.logger.error "[DailyInternationalScrape] Error in Kozoom cross-ref: #{e.message}"
     end
 
@@ -113,9 +113,9 @@ class DailyInternationalScrapeJob < ApplicationJob
       translation_service = VideoTranslationService.new
       if translation_service.translator
         videos_to_translate = Video.supported_platforms
-                                   .where("data->>'translated_title' IS NULL")
-                                   .order(published_at: :desc)
-                                   .limit(100)
+          .where("data->>'translated_title' IS NULL")
+          .order(published_at: :desc)
+          .limit(100)
 
         if videos_to_translate.any?
           translated_count = translation_service.translate_batch(videos_to_translate, target_language: "en")
@@ -130,17 +130,17 @@ class DailyInternationalScrapeJob < ApplicationJob
 
       # Ensure metadata is a hash (handle both Hash and String cases)
       current_metadata = case source.metadata
-                         when Hash
-                           source.metadata
-                         when String
-                           begin
-                             JSON.parse(source.metadata)
-                           rescue StandardError
-                             {}
-                           end
-                         else
-                           {}
-                         end
+      when Hash
+        source.metadata
+      when String
+        begin
+          JSON.parse(source.metadata)
+        rescue
+          {}
+        end
+      else
+        {}
+      end
 
       source.update(
         metadata: current_metadata.merge(
