@@ -608,20 +608,23 @@ RANKING_PATH_MAP = {
 
 ## Open Questions
 
-1. **Does `InternationalResult` model still exist?**
+1. **[RESOLVED] Does `InternationalResult` model still exist?**
    - What we know: `UmbScraper#save_results` references it; it is not in the STI hierarchy described in CONTEXT.md
    - What's unclear: Whether it was deleted in a prior phase or just unused
    - Recommendation: `grep -r "InternationalResult" app/models/` before writing `Umb::RankingParser`. If absent, ranking output target is `Seeding` with position data.
+   - Resolution: Verified in Plan 02 execution — `InternationalResult` does not exist; `Umb::RankingParser` uses `Seeding` with position data as output target.
 
-2. **What does a real UMB final ranking PDF look like?**
+2. **[RESOLVED] What does a real UMB final ranking PDF look like?**
    - What we know: URL pattern is `files.umb-carom.org/public/TournametDetails.aspx?ID=N` → links to FinalRanking PDFs
    - What's unclear: Exact text layout (columns, player name format, whether it matches the V1 regex)
    - Recommendation: Wave 0 task — download one real ranking PDF as test fixture before writing `Umb::RankingParser`. Use VCR cassette or store binary in `test/fixtures/pdf/`.
+   - Resolution: Wave 0 fixture task in Plan 02 downloads a real ranking PDF and stores it in `test/fixtures/pdf/umb_ranking_sample.pdf`; PDF text layout confirmed and parser implemented against actual structure.
 
-3. **Does `Umb::PdfParser` entry point belong on `UmbScraper` or `Umb::DetailsScraper`?**
+3. **[RESOLVED] Does `Umb::PdfParser` entry point belong on `UmbScraper` or `Umb::DetailsScraper`?**
    - What we know: V2's `scrape_pdfs_for_tournament` is called from `scrape_tournament`; UmbScraper calls PDF parsing from inside `create_games_for_tournament` (via `parse_pdfs: true`)
    - What's unclear: Whether the Phase 27 VideoMatcher calls PDFs independently or always via tournament details
    - Recommendation: Keep PDF parsing invoked from `Umb::DetailsScraper`. `Umb::PdfParser` is a coordinator that `DetailsScraper` calls; it is not a public entry point on `UmbScraper`.
+   - Resolution: PDF parsing entry point lives in `Umb::DetailsScraper` (Plan 03). `Umb::PdfParser::*` parsers are invoked from DetailsScraper when `parse_pdfs: true`; they are not exposed on `UmbScraper` directly.
 
 ---
 
