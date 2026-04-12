@@ -2,6 +2,8 @@
 
 require "net/http"
 require "openssl"
+require "pdf-reader"
+require "stringio"
 
 # Stateless HTTP transport for UMB scrapers.
 # SSL-Verifikation: VERIFY_NONE nur in development/test; VERIFY_PEER in production.
@@ -50,6 +52,20 @@ class Umb::HttpClient
     end
   rescue StandardError => e
     Rails.logger.error "[Umb::HttpClient] Error fetching #{url}: #{e.message}"
+    nil
+  end
+
+  # Lädt eine PDF-Datei von der angegebenen URL und gibt den extrahierten Text zurück.
+  # Gibt nil zurück bei HTTP-Fehler, leerer Antwort oder ungültigem PDF-Inhalt.
+  # T-26-02: StandardError abfangen — ungültige PDFs dürfen den Prozess nicht zum Absturz bringen.
+  def fetch_pdf_text(url)
+    raw = fetch_url(url)
+    return nil if raw.blank?
+
+    reader = PDF::Reader.new(StringIO.new(raw))
+    reader.pages.map(&:text).join("\n")
+  rescue StandardError => e
+    Rails.logger.error "[Umb::HttpClient] PDF parsing error for #{url}: #{e.message}"
     nil
   end
 
