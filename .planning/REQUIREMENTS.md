@@ -62,26 +62,26 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| INVEST-01 | — | Pending |
-| INVEST-02 | — | Pending |
-| INVEST-03 | — | Pending |
-| INVEST-04 | — | Pending |
-| SCRP-01 | — | Pending |
-| SCRP-02 | — | Pending |
-| SCRP-03 | — | Pending |
-| SCRP-04 | — | Pending |
-| SCRP-05 | — | Pending |
-| SCRP-06 | — | Pending |
-| SCRP-07 | — | Pending |
-| VIDEO-01 | — | Pending |
-| VIDEO-02 | — | Pending |
-| VIDEO-03 | — | Pending |
+| INVEST-01 | Phase 24 | Pending |
+| INVEST-02 | Phase 24 | Pending |
+| INVEST-03 | Phase 24 | Pending |
+| INVEST-04 | Phase 24 | Pending |
+| SCRP-01 | Phase 25 | Pending |
+| SCRP-02 | Phase 25 | Pending |
+| SCRP-03 | Phase 25 | Pending |
+| SCRP-04 | Phase 25 | Pending |
+| SCRP-05 | Phase 25 | Pending |
+| SCRP-06 | Phase 26 | Pending |
+| SCRP-07 | Phase 27 | Pending |
+| VIDEO-01 | Phase 28 | Pending |
+| VIDEO-02 | Phase 28 | Pending |
+| VIDEO-03 | Phase 28 | Pending |
 
 **Coverage:**
 - v5.0 requirements: 14 total
-- Mapped to phases: 0
-- Unmapped: 14 ⚠️
+- Mapped to phases: 14
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-04-12*
-*Last updated: 2026-04-12 after initial definition*
+*Last updated: 2026-04-12 after roadmap creation*
