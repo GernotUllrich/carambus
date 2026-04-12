@@ -1,4 +1,43 @@
 # Tournaments for testing
+#
+# InternationalTournament fixtures (STI subclass) live here too.
+# They require type: "InternationalTournament" and an international_source.
+
+# World Cup 2024 - used in video/tournament_matcher_test.rb
+# IDs use 50_002_xxx range to avoid conflicts with inline Tournament.create!(id: 50_000_010/011...)
+# calls in source_handler_test.rb.
+wc_2024:
+  id: 50_002_001
+  type: "InternationalTournament"
+  title: "UMB World Cup 2024 Antwerp"
+  season: current
+  organizer: nbv (Region)
+  organizer_type: "Region"
+  discipline: carom_3band
+  state: "registration"
+  date: <%= Date.new(2024, 9, 1) %>
+  end_date: <%= Date.new(2024, 9, 7) %>
+  international_source: youtube_source
+  created_at: <%= 1.year.ago %>
+  updated_at: <%= 1.day.ago %>
+
+# World Cup without end_date - used to test 7-day fallback
+# date is dynamic (18 months ago) to stay within the matcher's 2-year lookback window
+wc_no_end_date:
+  id: 50_002_002
+  type: "InternationalTournament"
+  title: "UMB World Cup Hurghada"
+  season: current
+  organizer: nbv (Region)
+  organizer_type: "Region"
+  discipline: carom_3band
+  state: "registration"
+  date: <%= 18.months.ago.to_date %>
+  international_source: youtube_source
+  created_at: <%= 2.years.ago %>
+  updated_at: <%= 1.day.ago %>
+
+
 
 # Local tournament (id >= 50M)
 local:
