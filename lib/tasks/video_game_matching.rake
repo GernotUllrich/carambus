@@ -91,4 +91,29 @@ namespace :videos do
     puts "Kein Match gefunden:    #{no_match_count}"
     puts "=" * 40
   end
+
+  desc "Match unassigned videos to InternationalTournaments above 0.75 confidence"
+  task match_tournaments: :environment do
+    puts "\n=== Matching unassigned Videos to InternationalTournaments ==="
+
+    before_count = Video.unassigned.count
+    puts "Unassigned videos before: #{before_count}"
+
+    # Step 1: Fuzzy matching via TournamentMatcher (VIDEO-01)
+    puts "\n--- Step 1: Confidence-scored matching ---"
+    result = Video::TournamentMatcher.call
+    puts "Matched: #{result[:assigned_count]}, Skipped: #{result[:skipped_count]}"
+
+    # Step 2: Kozoom eventId cross-referencing (VIDEO-03)
+    puts "\n--- Step 2: Kozoom eventId cross-referencing ---"
+    kozoom_result = SoopliveBilliardsClient.cross_reference_kozoom_videos
+    puts "Kozoom matched: #{kozoom_result[:assigned_count]}"
+
+    after_count = Video.unassigned.count
+    puts "\n=== Summary ==="
+    puts "Unassigned before: #{before_count}"
+    puts "Unassigned after:  #{after_count}"
+    puts "Total assigned:    #{before_count - after_count}"
+    puts "=" * 40
+  end
 end
