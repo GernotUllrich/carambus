@@ -116,7 +116,7 @@ Plans:
   3. SoopLive VODs are linked to specific game records via `replay_no` from the SoopLive JSON API (Phase 24 pivot from `data-seq` HTML attributes to structured JSON)
   4. Kozoom videos with `eventId` mappings are cross-referenced to `InternationalTournament` records
   5. `DailyInternationalScrapeJob` Step 3 is wired to `Video::TournamentMatcher`; `Video.unassigned.count` decreases after a job run against real fixture data
-**Plans:** 3 plans
+**Plans:** 0/3 plans executed
 Plans:
 - [ ] 27-01-PLAN.md — Video::MetadataExtractor + Video::TournamentMatcher (VIDEO-01)
 - [ ] 27-02-PLAN.md — SoopliveBilliardsClient + SoopLive VOD linking + Kozoom cross-ref (VIDEO-02, VIDEO-03)
@@ -137,4 +137,4 @@ Phases execute in numeric order: 24 → 25 → 26 → 27
 | 24. Data Source Investigation | v5.0 | 2/2 | Complete   | 2026-04-12 |
 | 25. Characterization Tests & Bug Fixes | v5.0 | 3/3 | Complete   | 2026-04-12 |
 | 26. UmbScraper Service Extraction | v5.0 | 1/4 | In Progress|  |
-| 27. Video Cross-Referencing | v5.0 | 0/3 | Not started | - |
+| 27. Video Cross-Referencing | v5.0 | 0/3 | Planned    |  |
