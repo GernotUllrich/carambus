@@ -117,11 +117,11 @@ Plans:
   1. 8 namespace overview pages exist covering all 37 extracted services (TableMonitor::, RegionCc::, Tournament::, TournamentMonitor::, League::, PartyMonitor::, Umb::, Video::) — each page describes namespace role, public interface, and data contract; no private method documentation
   2. A `Video::` cross-referencing page (both `.de.md` and `.en.md`) documents Video::TournamentMatcher confidence scoring (0.75 threshold, two-path matching), Video::MetadataExtractor (regex-first + AI fallback), SoopliveBilliardsClient (replay_no linking), and the operational workflow for backfill vs incremental matching
   3. All new pages are written in both `.de.md` and `.en.md` — the EN version is not a stub; it has the same architecture coverage as DE
-**Plans:** 2 plans
+**Plans:** 3 plans
 Plans:
-- [ ] 28-01-PLAN.md — Create audit tooling (translation checker, code reference checker, mkdocs:check task, archive exclusion)
-- [ ] 28-02-PLAN.md — Run audit tools and produce staleness inventory (audit.json + DOCS-AUDIT-REPORT.md)
-**UI hint**: no
+- [ ] 31-01-PLAN.md — Create TableMonitor::, RegionCc::, Tournament::, TournamentMonitor:: namespace pages (DE+EN)
+- [ ] 31-02-PLAN.md — Create League::, PartyMonitor::, Umb:: namespace pages (DE+EN)
+- [ ] 31-03-PLAN.md — Create Video:: cross-referencing page (DE+EN)
 
 ### Phase 32: Nav, i18n & Verification
 **Goal**: All new Phase 31 documentation is reachable from the mkdocs.yml nav in both languages, in-nav bilingual gaps are resolved, and `mkdocs build --strict` passes with zero warnings
@@ -153,5 +153,5 @@ Phases execute in numeric order: 28 → 29 → 30 → 31 → 32
 | 28. Audit & Triage | v6.0 | 2/2 | Complete    | 2026-04-12 |
 | 29. Break-Fix | v6.0 | 2/2 | Complete    | 2026-04-12 |
 | 30. Content Updates | v6.0 | 2/2 | Complete    | 2026-04-12 |
-| 31. New Documentation | v6.0 | 0/TBD | Not started | - |
+| 31. New Documentation | v6.0 | 0/3 | Not started | - |
 | 32. Nav, i18n & Verification | v6.0 | 0/TBD | Not started | - |
