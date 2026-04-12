@@ -46,7 +46,7 @@ Phases 20-23 delivered: League 2221→663 lines (4 services: StandingsCalculator
 
 </details>
 
-### 🚧 v5.0 UMB Scraper Überarbeitung (In Progress)
+### v5.0 UMB Scraper Überarbeitung (In Progress)
 
 **Milestone Goal:** Investigate better-structured UMB data sources, refactor the 2718-line UMB scraper monolith into `Umb::` namespaced services, and build `Video::TournamentMatcher` to cross-reference videos to UMB tournament records.
 
@@ -116,7 +116,11 @@ Plans:
   3. SoopLive VODs with `data-seq` attributes are linked to specific game records via the embedded VOD ID
   4. Kozoom videos with `eventId` mappings are cross-referenced to `InternationalTournament` records
   5. `DailyInternationalScrapeJob` Step 3 is wired to `Video::TournamentMatcher`; `Video.unassigned.count` decreases after a job run against real fixture data
-**Plans**: TBD
+**Plans:** 3 plans
+Plans:
+- [ ] 27-01-PLAN.md — Video::MetadataExtractor + Video::TournamentMatcher (VIDEO-01)
+- [ ] 27-02-PLAN.md — SoopliveBilliardsClient + SoopLive VOD linking + Kozoom cross-ref (VIDEO-02, VIDEO-03)
+- [ ] 27-03-PLAN.md — Wire into DailyInternationalScrapeJob + rake task backfill
 
 ## Progress
 
@@ -133,4 +137,4 @@ Phases execute in numeric order: 24 → 25 → 26 → 27
 | 24. Data Source Investigation | v5.0 | 2/2 | Complete   | 2026-04-12 |
 | 25. Characterization Tests & Bug Fixes | v5.0 | 3/3 | Complete   | 2026-04-12 |
 | 26. UmbScraper Service Extraction | v5.0 | 1/4 | In Progress|  |
-| 27. Video Cross-Referencing | v5.0 | 0/TBD | Not started | - |
+| 27. Video Cross-Referencing | v5.0 | 0/3 | Not started | - |
