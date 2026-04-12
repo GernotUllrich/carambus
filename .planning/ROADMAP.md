@@ -50,7 +50,7 @@ Phases 20-23 delivered: League 2221→663 lines (4 services: StandingsCalculator
 
 **Milestone Goal:** Investigate better-structured UMB data sources, refactor the 2718-line UMB scraper monolith into `Umb::` namespaced services, and build `Video::TournamentMatcher` to cross-reference videos to UMB tournament records.
 
-- [ ] **Phase 24: Data Source Investigation** - Probe Cuesco, SoopLive, and UMB events endpoints; document go/no-go findings
+- [x] **Phase 24: Data Source Investigation** - Probe Cuesco, SoopLive, and UMB events endpoints; document go/no-go findings (completed 2026-04-12)
 - [ ] **Phase 25: Characterization Tests & Bug Fixes** - VCR cassettes for all UmbScraper public methods; fix three pre-existing bugs
 - [ ] **Phase 26: UmbScraper Service Extraction** - Extract six `Umb::` namespaced service classes bottom-up; reduce UmbScraper to thin facade
 - [ ] **Phase 27: UmbScraperV2 Resolution** - Merge overlapping V2 logic into `Umb::` services; reduce UmbScraperV2 to thin facade
@@ -67,10 +67,10 @@ Phases 20-23 delivered: League 2221→663 lines (4 services: StandingsCalculator
   2. `umb.cuesco.net` network traffic is inspected and any AJAX/JSON endpoints for match data are listed with sample responses
   3. `billiards.sooplive.com/schedule/` pages are inspected and any structured VOD/match data endpoints are documented including `data-seq` attribute behavior
   4. A written findings document exists in `.planning/` covering data availability, completeness vs current UMB scraping, and go/no-go decision for API integration
-**Plans:** 2 plans
+**Plans:** 2/2 plans complete
 Plans:
-- [ ] 24-01-PLAN.md — Script-based probes for umbevents and SoopLive endpoints
-- [ ] 24-02-PLAN.md — Cuesco browser inspection + consolidated findings document
+- [x] 24-01-PLAN.md — Script-based probes for umbevents and SoopLive endpoints
+- [x] 24-02-PLAN.md — Cuesco browser inspection + consolidated findings document
 
 ### Phase 25: Characterization Tests & Bug Fixes
 **Goal**: Every public UmbScraper method has a VCR-backed characterization test, and three pre-existing bugs are fixed before extraction begins
@@ -130,7 +130,7 @@ Phases execute in numeric order: 24 → 25 → 26 → 27 → 28
 | 11-16. Tournament Refactoring | v2.1 | 15/15 | Complete | 2026-04-11 |
 | 17-19. Broadcast Isolation | v3.0 | 6/6 | Complete | 2026-04-11 |
 | 20-23. League & PartyMonitor | v4.0 | 9/9 | Complete | 2026-04-12 |
-| 24. Data Source Investigation | v5.0 | 0/TBD | Not started | - |
+| 24. Data Source Investigation | v5.0 | 2/2 | Complete   | 2026-04-12 |
 | 25. Characterization Tests & Bug Fixes | v5.0 | 0/TBD | Not started | - |
 | 26. UmbScraper Service Extraction | v5.0 | 0/TBD | Not started | - |
 | 27. UmbScraperV2 Resolution | v5.0 | 0/TBD | Not started | - |
