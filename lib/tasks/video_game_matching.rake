@@ -34,27 +34,25 @@ namespace :videos do
       p2_id = player2.to_s.start_with?("player_") ? player2.to_s.split("_").last : nil
 
       # Subqueries for players
-      games_p1 = Game.joins(game_participations: :player)
-                     .select(:id)
+      games_p1 = Game.joins(game_participations: :player).select(:id)
       games_p1 = if p1_id
-                   games_p1.where(game_participations: { player_id: p1_id })
-                 else
-                   games_p1.where("players.fl_name ILIKE :p1 OR players.lastname ILIKE :p1", p1: "%#{player1}%")
-                 end
+        games_p1.where(game_participations: {player_id: p1_id})
+      else
+        games_p1.where("players.fl_name ILIKE :p1 OR players.lastname ILIKE :p1", p1: "%#{player1}%")
+      end
 
-      games_p2 = Game.joins(game_participations: :player)
-                     .select(:id)
+      games_p2 = Game.joins(game_participations: :player).select(:id)
       games_p2 = if p2_id
-                   games_p2.where(game_participations: { player_id: p2_id })
-                 else
-                   games_p2.where("players.fl_name ILIKE :p2 OR players.lastname ILIKE :p2", p2: "%#{player2}%")
-                 end
+        games_p2.where(game_participations: {player_id: p2_id})
+      else
+        games_p2.where("players.fl_name ILIKE :p2 OR players.lastname ILIKE :p2", p2: "%#{player2}%")
+      end
 
       # Schnittmenge an Games bilden, in denen BEIDE vorkommen, und NUR InternationalTournaments
       possible_games = Game.joins(:tournament)
-                           .where(id: games_p1)
-                           .where(id: games_p2)
-                           .where(tournaments: { type: "InternationalTournament" })
+        .where(id: games_p1)
+        .where(id: games_p2)
+        .where(tournaments: {type: "InternationalTournament"})
 
       # Optional: filtern nach Datum (ein Game sollte zum Turnier-Datum oder Video-Datum passen)
       if video.published_at.present?
@@ -89,6 +87,31 @@ namespace :videos do
     puts "\n=== Zusammenfassung ==="
     puts "Erfolgreich zugewiesen: #{success_count} (davon mehrdeutig: #{ambiguous_count})"
     puts "Kein Match gefunden:    #{no_match_count}"
+    puts "=" * 40
+  end
+
+  desc "Match unassigned videos to InternationalTournaments above 0.75 confidence"
+  task match_tournaments: :environment do
+    puts "\n=== Matching unassigned Videos to InternationalTournaments ==="
+
+    before_count = Video.unassigned.count
+    puts "Unassigned videos before: #{before_count}"
+
+    # Step 1: Fuzzy matching via TournamentMatcher (VIDEO-01)
+    puts "\n--- Step 1: Confidence-scored matching ---"
+    result = Video::TournamentMatcher.call
+    puts "Matched: #{result[:assigned_count]}, Skipped: #{result[:skipped_count]}"
+
+    # Step 2: Kozoom eventId cross-referencing (VIDEO-03)
+    puts "\n--- Step 2: Kozoom eventId cross-referencing ---"
+    kozoom_result = SoopliveBilliardsClient.cross_reference_kozoom_videos
+    puts "Kozoom matched: #{kozoom_result[:assigned_count]}"
+
+    after_count = Video.unassigned.count
+    puts "\n=== Summary ==="
+    puts "Unassigned before: #{before_count}"
+    puts "Unassigned after:  #{after_count}"
+    puts "Total assigned:    #{before_count - after_count}"
     puts "=" * 40
   end
 end

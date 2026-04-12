@@ -79,7 +79,7 @@ class SoopliveBilliardsClient
 
       if international_game
         video.update(videoable: international_game)
-        linked << { video_id: video.id, replay_no: replay_no }
+        linked << {video_id: video.id, replay_no: replay_no}
       end
     end
 
@@ -97,20 +97,20 @@ class SoopliveBilliardsClient
   # Returns { assigned_count: N }
   def self.cross_reference_kozoom_videos
     kozoom_source = InternationalSource.find_by(source_type: InternationalSource::KOZOOM)
-    return { assigned_count: 0 } unless kozoom_source
+    return {assigned_count: 0} unless kozoom_source
 
     assigned = 0
 
     Video.where(international_source: kozoom_source)
-         .unassigned
-         .where("data->>'eventId' IS NOT NULL")
-         .find_each do |video|
+      .unassigned
+      .where("data->>'eventId' IS NOT NULL")
+      .find_each do |video|
       event_id = video.json_data["eventId"]
       next if event_id.blank?
 
       tournament = InternationalTournament
-                     .where(international_source: kozoom_source)
-                     .find_by(external_id: event_id.to_s)
+        .where(international_source: kozoom_source)
+        .find_by(external_id: event_id.to_s)
 
       next unless tournament
 
@@ -118,7 +118,7 @@ class SoopliveBilliardsClient
       assigned += 1
     end
 
-    { assigned_count: assigned }
+    {assigned_count: assigned}
   end
 
   private
@@ -130,15 +130,15 @@ class SoopliveBilliardsClient
     request["User-Agent"] = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)"
 
     response = Net::HTTP.start(uri.hostname, uri.port,
-                               use_ssl: true,
-                               verify_mode: ssl_verify_mode) do |http|
+      use_ssl: true,
+      verify_mode: ssl_verify_mode) do |http|
       http.open_timeout = 10
       http.read_timeout = 30
       http.request(request)
     end
 
     JSON.parse(response.body) if response.is_a?(Net::HTTPSuccess)
-  rescue StandardError => e
+  rescue => e
     Rails.logger.error "[SoopliveBilliardsClient] #{e.class}: #{e.message}"
     nil
   end

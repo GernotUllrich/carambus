@@ -57,13 +57,13 @@ class Video::TournamentMatcher < ApplicationService
       if best_score >= CONFIDENCE_THRESHOLD && best_tournament
         video.update(videoable: best_tournament)
         assigned += 1
-        @results << { video_id: video.id, tournament_id: best_tournament.id, confidence: best_score }
+        @results << {video_id: video.id, tournament_id: best_tournament.id, confidence: best_score}
       else
         skipped += 1
       end
     end
 
-    { assigned_count: assigned, skipped_count: skipped, results: @results }
+    {assigned_count: assigned, skipped_count: skipped, results: @results}
   end
 
   # Public so tests can call it directly.
@@ -98,7 +98,7 @@ class Video::TournamentMatcher < ApplicationService
 
     intersection = (detected_tags & seeded_tags).size
     union = (detected_tags | seeded_tags).size
-    union > 0 ? intersection.to_f / union : 0.0
+    (union > 0) ? intersection.to_f / union : 0.0
   end
 
   # Maps tournament seedings to lowercase WORLD_CUP_TOP_32 tag keys.
