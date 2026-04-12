@@ -56,22 +56,22 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| AUDIT-01 | — | Pending |
-| AUDIT-02 | — | Pending |
-| AUDIT-03 | — | Pending |
-| FIX-01 | — | Pending |
-| FIX-02 | — | Pending |
-| UPDATE-01 | — | Pending |
-| UPDATE-02 | — | Pending |
-| DOC-01 | — | Pending |
-| DOC-02 | — | Pending |
-| DOC-03 | — | Pending |
+| AUDIT-01 | Phase 28 | Pending |
+| AUDIT-02 | Phase 28 | Pending |
+| AUDIT-03 | Phase 28 | Pending |
+| FIX-01 | Phase 29 | Pending |
+| FIX-02 | Phase 29 | Pending |
+| UPDATE-01 | Phase 30 | Pending |
+| UPDATE-02 | Phase 30 | Pending |
+| DOC-01 | Phase 31 | Pending |
+| DOC-02 | Phase 31 | Pending |
+| DOC-03 | Phase 32 | Pending |
 
 **Coverage:**
 - v6.0 requirements: 10 total
-- Mapped to phases: 0
-- Unmapped: 10 ⚠️
+- Mapped to phases: 10
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-04-12*
-*Last updated: 2026-04-12 after initial definition*
+*Last updated: 2026-04-12 after roadmap creation*

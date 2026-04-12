@@ -7,7 +7,8 @@
 - ✅ **v2.1 Tournament Refactoring** - Phases 11-16 (shipped 2026-04-11)
 - ✅ **v3.0 Broadcast Isolation Testing** - Phases 17-19 (shipped 2026-04-11)
 - ✅ **v4.0 League & PartyMonitor Refactoring** - Phases 20-23 (shipped 2026-04-12)
-- 🚧 **v5.0 UMB Scraper Überarbeitung** - Phases 24-28 (in progress)
+- ✅ **v5.0 UMB Scraper Überarbeitung** - Phases 24-27 (shipped 2026-04-12)
+- 🚧 **v6.0 Documentation Quality** - Phases 28-32 (in progress)
 
 ## Phases
 
@@ -46,86 +47,85 @@ Phases 20-23 delivered: League 2221→663 lines (4 services: StandingsCalculator
 
 </details>
 
-### v5.0 UMB Scraper Überarbeitung (In Progress)
+<details>
+<summary>✅ v5.0 UMB Scraper Überarbeitung (Phases 24-27) - SHIPPED 2026-04-12</summary>
 
-**Milestone Goal:** Investigate better-structured UMB data sources, refactor the 2718-line UMB scraper monolith into `Umb::` namespaced services, and build `Video::TournamentMatcher` to cross-reference videos to UMB tournament records.
+Phases 24-27 delivered: SoopLive JSON API discovered and integrated, UmbScraper 2133→175 lines (10 Umb:: services), UmbScraperV2 deleted (585 lines absorbed into Umb::PdfParser::*), 3 pre-existing bugs fixed, RANK-01 implemented, Video::TournamentMatcher + Video::MetadataExtractor + SoopliveBilliardsClient built, DailyInternationalScrapeJob Steps 3a/3b/3c wired.
 
-- [x] **Phase 24: Data Source Investigation** - Probe Cuesco, SoopLive, and UMB events endpoints; document go/no-go findings (completed 2026-04-12)
-- [x] **Phase 25: Characterization Tests & Bug Fixes** - VCR cassettes for all UmbScraper public methods; fix three pre-existing bugs (completed 2026-04-12)
-- [ ] **Phase 26: UmbScraper Service Extraction** - Extract six `Umb::` namespaced service classes bottom-up; reduce UmbScraper to thin facade
-- [ ] **Phase 27: Video Cross-Referencing** - Build `Video::TournamentMatcher` and `Video::MetadataExtractor`; wire into DailyInternationalScrapeJob
+</details>
+
+### v6.0 Documentation Quality (In Progress)
+
+**Milestone Goal:** Ensure mkdocs-based documentation accurately reflects the post-refactoring codebase — every implemented feature documented, no references to unimplemented or deleted features, documentation quality on par with code quality.
+
+- [ ] **Phase 28: Audit & Triage** - Build complete staleness inventory and two new audit scripts before any content editing
+- [ ] **Phase 29: Break-Fix** - Fix all 74 broken links and remove stale deleted-code references
+- [ ] **Phase 30: Content Updates** - Rewrite UMB scraping docs and update developer guide services sections to reflect post-v5.0 reality
+- [ ] **Phase 31: New Documentation** - Create namespace overview pages for all 37 extracted services and the video cross-referencing system
+- [ ] **Phase 32: Nav, i18n & Verification** - Add new docs to mkdocs.yml nav, resolve bilingual gaps, and verify clean build
 
 ## Phase Details
 
-### Phase 24: Data Source Investigation
-**Goal**: Know exactly what structured data each alternative UMB source exposes, and have a written go/no-go decision that gates the refactoring architecture
-**Depends on**: Phase 23
-**Requirements**: INVEST-01, INVEST-02, INVEST-03, INVEST-04
+### Phase 28: Audit & Triage
+**Goal**: A complete, classified inventory of every documentation problem exists — broken links by category, stale code identifiers with file/line citations, coverage gaps per namespace, and bilingual pair gaps for nav-linked files — so that all subsequent editing is scoped and verifiable
+**Depends on**: Phase 27
+**Requirements**: AUDIT-01, AUDIT-02, AUDIT-03
 **Success Criteria** (what must be TRUE):
-  1. `umbevents.umb-carom.org/Reports/` endpoints are probed under `Accept: application/json` and the response format is documented (JSON or HTML-only confirmed)
-  2. `umb.cuesco.net` network traffic is inspected and any AJAX/JSON endpoints for match data are listed with sample responses
-  3. `billiards.sooplive.com/schedule/` pages are inspected and any structured VOD/match data endpoints are documented including `data-seq` attribute behavior
-  4. A written findings document exists in `.planning/` covering data availability, completeness vs current UMB scraping, and go/no-go decision for API integration
-**Plans:** 2/2 plans complete
-Plans:
-- [x] 24-01-PLAN.md — Script-based probes for umbevents and SoopLive endpoints
-- [x] 24-02-PLAN.md — Cuesco browser inspection + consolidated findings document
+  1. A staleness inventory document exists that classifies every finding as DELETE, UPDATE, or CREATE, covering all 74 known broken links, all stale class identifier references (UmbScraperV2, tournament_monitor_support, pre-refactoring god-object descriptions), all 37 undocumented service namespaces, and all in-nav bilingual gaps
+  2. `bin/check-docs-translations.rb` exists as a runnable stdlib-Ruby script that reports which `.de.md` files lack `.en.md` counterparts and vice versa, producing actionable output with file paths
+  3. `bin/check-docs-coderef.rb` exists as a runnable stdlib-Ruby script that extracts CamelCase class names from docs and verifies each exists in `app/` — confirming or denying the presence of stale deleted-class references
+  4. `lib/tasks/mkdocs.rake` contains a `mkdocs:check` task that wraps `mkdocs build --strict`, exits non-zero on any warning, and is documented as CI-ready
+  5. Archive directory indexing status is confirmed (mkdocs.yml `exclude_docs` or `not_in_nav` coverage checked) and any gap is recorded in the inventory
+**Plans**: TBD
 
-### Phase 25: Characterization Tests & Bug Fixes
-**Goal**: Every public UmbScraper method has a VCR-backed characterization test, and three pre-existing bugs are fixed before extraction begins
-**Depends on**: Phase 24
-**Requirements**: SCRP-01, SCRP-02, SCRP-03, SCRP-04, SCRP-05
+### Phase 29: Break-Fix
+**Goal**: The active docs site has zero broken internal links and zero references to deleted code — a clean structural baseline before any semantic content is rewritten
+**Depends on**: Phase 28
+**Requirements**: FIX-01, FIX-02
 **Success Criteria** (what must be TRUE):
-  1. VCR cassettes exist for all UmbScraper critical paths (future tournaments, archive scan, detail page, PDF parsing) and all characterization tests pass
-  2. VCR cassettes exist for all UmbScraperV2 critical paths and all characterization tests pass
-  3. `TournamentDiscoveryService` bug is fixed: `video.update(videoable: tournament)` replaces the non-existent `international_tournament_id` column reference, and `DailyInternationalScrapeJob` Steps 4-5 no longer abort
-  4. `ScrapeUmbArchiveJob` keyword argument mismatch is fixed: `discipline:`, `year:`, `event_type:` are correctly passed to `UmbScraper#scrape_tournament_archive`
-  5. SSL verification is environment-guarded across all scrapers: `VERIFY_NONE` only in development/test; `brakeman` reports no SSL warnings
-**Plans:** 3/3 plans complete
-Plans:
-- [x] 25-01-PLAN.md — Umb::HttpClient PORO + three bug fixes (SCRP-03, SCRP-04, SCRP-05)
-- [x] 25-02-PLAN.md — UmbScraper characterization tests with VCR cassettes (SCRP-01)
-- [x] 25-03-PLAN.md — UmbScraperV2 characterization tests with VCR cassettes (SCRP-02)
+  1. `bin/check-docs-links.rb` reports zero broken links in all active (non-archive, non-obsolete) nav-linked documentation
+  2. No active doc references `UmbScraperV2`, `tournament_monitor_support`, or pre-refactoring god-object class descriptions — confirmed by `bin/check-docs-coderef.rb` output
+  3. Every file deletion was preceded by an inbound-link grep confirming no other active doc links to the deleted file
+  4. `mkdocs build --strict` completes with zero missing-file warnings for all nav entries
+**Plans**: TBD
 
-### Phase 26: UmbScraper Service Extraction + V2 Absorption
-**Goal**: `app/services/umb/` contains focused service classes extracted from both UmbScraper and UmbScraperV2; V2's PDF parsing is absorbed as `Umb::PdfParser` (first-class service for match-level data); `umb_scraper.rb` is a thin delegation wrapper; `umb_scraper_v2.rb` is deprecated
-**Depends on**: Phase 25
-**Requirements**: SCRP-06, SCRP-07
+### Phase 30: Content Updates
+**Goal**: The two most actively stale developer docs accurately describe the current Umb:: architecture and the developer guide services section reflects all 37 extracted services across 7 namespaces — both in German and English
+**Depends on**: Phase 29
+**Requirements**: UPDATE-01, UPDATE-02
 **Success Criteria** (what must be TRUE):
-  1. `Umb::HttpClient` (PORO) exists with environment-guarded SSL handling, replacing all per-scraper `fetch_url` duplication
-  2. `Umb::PlayerResolver`, `Umb::PdfParser`, `Umb::DetailsScraper`, `Umb::FutureScraper`, `Umb::ArchiveScraper` each exist as independently testable service classes in `app/services/umb/`
-  3. `Umb::PdfParser` absorbs UmbScraperV2's PDF parsing logic (player lists, group results) as the primary match-level data source for video correlation
-  4. `umb_scraper.rb` is reduced to a thin delegation wrapper: all three callers (`ScrapeUmbJob`, `ScrapeUmbArchiveJob`, `Admin::IncompleteRecordsController`) and the `umb:update` rake task are unchanged
-  5. `umb_scraper_v2.rb` is deprecated: its unique PDF parsing logic lives in `Umb::PdfParser`; overlapping HTML parsing routes through Phase 26 services
-  6. All Phase 25 characterization tests still pass after extraction; `bin/rails test` is green; `brakeman` reports no new warnings
-**Plans:** 1/4 plans executed
-Plans:
-- [ ] 26-01-PLAN.md — Foundation services: HttpClient fetch_pdf_text, PlayerResolver, DisciplineDetector, DateHelpers
-- [x] 26-02-PLAN.md — PDF parsers: PlayerListParser, GroupResultParser, RankingParser (RANK-01)
-- [ ] 26-03-PLAN.md — HTML scrapers: DetailsScraper, FutureScraper, ArchiveScraper
-- [ ] 26-04-PLAN.md — Thin wrapper reduction + V2 deletion + full suite verification
+  1. `developers/umb-scraping-implementation.md` (both `.de.md` and `.en.md`) describes the Umb:: namespace with 10 services — HttpClient, DisciplineDetector, DateHelpers, PlayerResolver, PlayerListParser, GroupResultParser, RankingParser, FutureScraper, ArchiveScraper, DetailsScraper — and contains no reference to UmbScraperV2
+  2. `developers/umb-scraping-methods.md` (both `.de.md` and `.en.md`) method inventory matches the Umb::* namespace; UmbScraperV2 section is removed or replaced with Umb::PdfParser breakdown
+  3. The developer guide services section (both `.de.md` and `.en.md`) lists all 37 extracted services organized by namespace (TableMonitor::, RegionCc::, Tournament::, TournamentMonitor::, League::, PartyMonitor::, Umb::)
+  4. Every content change updates both the `.de.md` and `.en.md` files in the same commit — confirmed by diff before marking done
+**Plans**: TBD
+
+### Phase 31: New Documentation
+**Goal**: Developers can find accurate architecture-level documentation for all 37 extracted services across 8 namespaces and for the video cross-referencing system — with both German and English coverage
+**Depends on**: Phase 30
+**Requirements**: DOC-01, DOC-02
+**Success Criteria** (what must be TRUE):
+  1. 8 namespace overview pages exist covering all 37 extracted services (TableMonitor::, RegionCc::, Tournament::, TournamentMonitor::, League::, PartyMonitor::, Umb::, Video::) — each page describes namespace role, public interface, and data contract; no private method documentation
+  2. A `Video::` cross-referencing page (both `.de.md` and `.en.md`) documents Video::TournamentMatcher confidence scoring (0.75 threshold, two-path matching), Video::MetadataExtractor (regex-first + AI fallback), SoopliveBilliardsClient (replay_no linking), and the operational workflow for backfill vs incremental matching
+  3. All new pages are written in both `.de.md` and `.en.md` — the EN version is not a stub; it has the same architecture coverage as DE
+**Plans**: TBD
 **UI hint**: no
 
-### Phase 27: Video Cross-Referencing
-**Goal**: Unassigned video records are automatically linked to `InternationalTournament` records by a confidence-scored matcher; `Video.unassigned.count` measurably decreases after each daily job run
-**Depends on**: Phase 26
-**Requirements**: VIDEO-01, VIDEO-02, VIDEO-03
+### Phase 32: Nav, i18n & Verification
+**Goal**: All new Phase 31 documentation is reachable from the mkdocs.yml nav in both languages, in-nav bilingual gaps are resolved, and `mkdocs build --strict` passes with zero warnings
+**Depends on**: Phase 31
+**Requirements**: DOC-03
 **Success Criteria** (what must be TRUE):
-  1. `Video::TournamentMatcher` (ApplicationService) assigns unassigned videos to `InternationalTournament` by date range + player name intersection + title similarity; only assigns above 0.75 confidence threshold
-  2. `Video::MetadataExtractor` (PORO) extracts tournament type, year, players, round, and discipline from video titles and feeds `Video::TournamentMatcher`
-  3. SoopLive VODs are linked to specific game records via `replay_no` from the SoopLive JSON API (Phase 24 pivot from `data-seq` HTML attributes to structured JSON)
-  4. Kozoom videos with `eventId` mappings are cross-referenced to `InternationalTournament` records
-  5. `DailyInternationalScrapeJob` Step 3 is wired to `Video::TournamentMatcher`; `Video.unassigned.count` decreases after a job run against real fixture data
-**Plans:** 0/3 plans executed
-Plans:
-- [ ] 27-01-PLAN.md — Video::MetadataExtractor + Video::TournamentMatcher (VIDEO-01)
-- [ ] 27-02-PLAN.md — SoopliveBilliardsClient + SoopLive VOD linking + Kozoom cross-ref (VIDEO-02, VIDEO-03)
-- [ ] 27-03-PLAN.md — Wire into DailyInternationalScrapeJob + rake task backfill
+  1. All Phase 31 namespace overview pages and the Video:: cross-referencing page appear in `mkdocs.yml` nav with correct DE nav_translations entries
+  2. Every in-nav page identified in the Phase 28 bilingual audit has a corresponding `.en.md` file — no in-nav page is silently falling back to DE for English users
+  3. `mkdocs build --strict` completes with zero warnings — no missing files, no broken nav references, no unresolved i18n fallbacks for nav-linked pages
+  4. `bin/check-docs-links.rb` final run shows zero broken links — broken link count is at or below the Phase 29 baseline
+**Plans**: TBD
 
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 24 → 25 → 26 → 27
+Phases execute in numeric order: 28 → 29 → 30 → 31 → 32
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -134,7 +134,9 @@ Phases execute in numeric order: 24 → 25 → 26 → 27
 | 11-16. Tournament Refactoring | v2.1 | 15/15 | Complete | 2026-04-11 |
 | 17-19. Broadcast Isolation | v3.0 | 6/6 | Complete | 2026-04-11 |
 | 20-23. League & PartyMonitor | v4.0 | 9/9 | Complete | 2026-04-12 |
-| 24. Data Source Investigation | v5.0 | 2/2 | Complete   | 2026-04-12 |
-| 25. Characterization Tests & Bug Fixes | v5.0 | 3/3 | Complete   | 2026-04-12 |
-| 26. UmbScraper Service Extraction | v5.0 | 1/4 | In Progress|  |
-| 27. Video Cross-Referencing | v5.0 | 0/3 | Planned    |  |
+| 24-27. UMB Scraper | v5.0 | 12/12 | Complete | 2026-04-12 |
+| 28. Audit & Triage | v6.0 | 0/TBD | Not started | - |
+| 29. Break-Fix | v6.0 | 0/TBD | Not started | - |
+| 30. Content Updates | v6.0 | 0/TBD | Not started | - |
+| 31. New Documentation | v6.0 | 0/TBD | Not started | - |
+| 32. Nav, i18n & Verification | v6.0 | 0/TBD | Not started | - |
