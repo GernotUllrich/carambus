@@ -51,7 +51,7 @@ Phases 20-23 delivered: League 2221→663 lines (4 services: StandingsCalculator
 **Milestone Goal:** Investigate better-structured UMB data sources, refactor the 2718-line UMB scraper monolith into `Umb::` namespaced services, and build `Video::TournamentMatcher` to cross-reference videos to UMB tournament records.
 
 - [x] **Phase 24: Data Source Investigation** - Probe Cuesco, SoopLive, and UMB events endpoints; document go/no-go findings (completed 2026-04-12)
-- [ ] **Phase 25: Characterization Tests & Bug Fixes** - VCR cassettes for all UmbScraper public methods; fix three pre-existing bugs
+- [x] **Phase 25: Characterization Tests & Bug Fixes** - VCR cassettes for all UmbScraper public methods; fix three pre-existing bugs (completed 2026-04-12)
 - [ ] **Phase 26: UmbScraper Service Extraction** - Extract six `Umb::` namespaced service classes bottom-up; reduce UmbScraper to thin facade
 - [ ] **Phase 27: UmbScraperV2 Resolution** - Merge overlapping V2 logic into `Umb::` services; reduce UmbScraperV2 to thin facade
 - [ ] **Phase 28: Video Cross-Referencing** - Build `Video::TournamentMatcher` and `Video::MetadataExtractor`; wire into DailyInternationalScrapeJob
@@ -82,11 +82,11 @@ Plans:
   3. `TournamentDiscoveryService` bug is fixed: `video.update(videoable: tournament)` replaces the non-existent `international_tournament_id` column reference, and `DailyInternationalScrapeJob` Steps 4-5 no longer abort
   4. `ScrapeUmbArchiveJob` keyword argument mismatch is fixed: `discipline:`, `year:`, `event_type:` are correctly passed to `UmbScraper#scrape_tournament_archive`
   5. SSL verification is environment-guarded across all scrapers: `VERIFY_NONE` only in development/test; `brakeman` reports no SSL warnings
-**Plans:** 3 plans
+**Plans:** 3/3 plans complete
 Plans:
-- [ ] 25-01-PLAN.md — Umb::HttpClient PORO + three bug fixes (SCRP-03, SCRP-04, SCRP-05)
-- [ ] 25-02-PLAN.md — UmbScraper characterization tests with VCR cassettes (SCRP-01)
-- [ ] 25-03-PLAN.md — UmbScraperV2 characterization tests with VCR cassettes (SCRP-02)
+- [x] 25-01-PLAN.md — Umb::HttpClient PORO + three bug fixes (SCRP-03, SCRP-04, SCRP-05)
+- [x] 25-02-PLAN.md — UmbScraper characterization tests with VCR cassettes (SCRP-01)
+- [x] 25-03-PLAN.md — UmbScraperV2 characterization tests with VCR cassettes (SCRP-02)
 
 ### Phase 26: UmbScraper Service Extraction
 **Goal**: `app/services/umb/` contains six focused service classes extracted bottom-up; `umb_scraper.rb` is a thin delegation wrapper and all existing callers are unchanged
@@ -135,7 +135,7 @@ Phases execute in numeric order: 24 → 25 → 26 → 27 → 28
 | 17-19. Broadcast Isolation | v3.0 | 6/6 | Complete | 2026-04-11 |
 | 20-23. League & PartyMonitor | v4.0 | 9/9 | Complete | 2026-04-12 |
 | 24. Data Source Investigation | v5.0 | 2/2 | Complete   | 2026-04-12 |
-| 25. Characterization Tests & Bug Fixes | v5.0 | 0/3 | Not started | - |
+| 25. Characterization Tests & Bug Fixes | v5.0 | 3/3 | Complete   | 2026-04-12 |
 | 26. UmbScraper Service Extraction | v5.0 | 0/TBD | Not started | - |
 | 27. UmbScraperV2 Resolution | v5.0 | 0/TBD | Not started | - |
 | 28. Video Cross-Referencing | v5.0 | 0/TBD | Not started | - |
