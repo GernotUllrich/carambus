@@ -59,7 +59,7 @@ Phases 24-27 delivered: SoopLive JSON API discovered and integrated, UmbScraper 
 **Milestone Goal:** Ensure mkdocs-based documentation accurately reflects the post-refactoring codebase — every implemented feature documented, no references to unimplemented or deleted features, documentation quality on par with code quality.
 
 - [x] **Phase 28: Audit & Triage** - Build complete staleness inventory and two new audit scripts before any content editing (completed 2026-04-12)
-- [ ] **Phase 29: Break-Fix** - Fix all 74 broken links and remove stale deleted-code references
+- [x] **Phase 29: Break-Fix** - Fix all 74 broken links and remove stale deleted-code references (completed 2026-04-12)
 - [ ] **Phase 30: Content Updates** - Rewrite UMB scraping docs and update developer guide services sections to reflect post-v5.0 reality
 - [ ] **Phase 31: New Documentation** - Create namespace overview pages for all 37 extracted services and the video cross-referencing system
 - [ ] **Phase 32: Nav, i18n & Verification** - Add new docs to mkdocs.yml nav, resolve bilingual gaps, and verify clean build
@@ -90,10 +90,10 @@ Plans:
   2. No active doc references `UmbScraperV2`, `tournament_monitor_support`, or pre-refactoring god-object class descriptions — confirmed by `bin/check-docs-coderef.rb` output
   3. Every file deletion was preceded by an inbound-link grep confirming no other active doc links to the deleted file
   4. `mkdocs build --strict` completes with zero missing-file warnings for all nav entries
-**Plans:** 2 plans
+**Plans:** 2/2 plans complete
 Plans:
-- [ ] 29-01-PLAN.md — Run automated fixer and resolve 44 pattern-based broken links (screenshots + template examples)
-- [ ] 29-02-PLAN.md — Fix 31 remaining broken links manually and update 3 stale code references
+- [x] 29-01-PLAN.md — Run automated fixer and resolve 44 pattern-based broken links (screenshots + template examples)
+- [x] 29-02-PLAN.md — Fix 31 remaining broken links manually and update 3 stale code references
 
 ### Phase 30: Content Updates
 **Goal**: The two most actively stale developer docs accurately describe the current Umb:: architecture and the developer guide services section reflects all 37 extracted services across 7 namespaces — both in German and English
@@ -151,7 +151,7 @@ Phases execute in numeric order: 28 → 29 → 30 → 31 → 32
 | 20-23. League & PartyMonitor | v4.0 | 9/9 | Complete | 2026-04-12 |
 | 24-27. UMB Scraper | v5.0 | 12/12 | Complete | 2026-04-12 |
 | 28. Audit & Triage | v6.0 | 2/2 | Complete    | 2026-04-12 |
-| 29. Break-Fix | v6.0 | 0/2 | Not started | - |
+| 29. Break-Fix | v6.0 | 2/2 | Complete    | 2026-04-12 |
 | 30. Content Updates | v6.0 | 0/TBD | Not started | - |
 | 31. New Documentation | v6.0 | 0/TBD | Not started | - |
 | 32. Nav, i18n & Verification | v6.0 | 0/TBD | Not started | - |
