@@ -1,196 +1,276 @@
-# Stack Research: Documentation Quality Audit (v6.0)
+# Stack Research: Manager Experience (v7.0)
 
-**Domain:** Documentation audit and update for mkdocs-material + multilingual docs against a Rails 7.2 codebase
-**Researched:** 2026-04-12
-**Confidence:** HIGH (existing toolchain read directly from codebase; no speculation about installed versions)
+**Domain:** Volunteer-friendly tournament manager UX + task-first documentation
+**Researched:** 2026-04-13
+**Confidence:** HIGH — all findings based on reading actual codebase files; no guesses about installed versions or capabilities
 
 ---
 
 ## Decision Summary
 
-v6.0 is a documentation audit milestone, not a code milestone. The four work streams are:
+**No new gems. No new pip packages required for the core v7.0 scope.**
 
-1. **Audit docs against codebase** — find stale references to deleted classes (UmbScraperV2, old model structures)
-2. **Fix/remove broken internal links** — 74 broken links already identified by `bin/check-docs-links.rb`
-3. **Document 37 new services from v1.0–v5.0** — services exist in code with no corresponding doc pages
-4. **Verify multilingual consistency** — 89 `.de.md` files vs. 63 `.en.md` files, 26 pages missing English translation
-
-**Net result: Zero new gems, zero new Python packages required for this milestone.**
-
-The codebase already has all the tooling needed:
-
-- `bin/check-docs-links.rb` — link checker (already ran, identified 74 broken links)
-- `bin/fix-docs-links.rb` — pattern-based link fixer (dry-run mode)
-- `lib/tasks/mkdocs.rake` — `mkdocs:build`, `mkdocs:serve`, `mkdocs:deploy`
-- `mkdocs` 1.6.1 + `mkdocs-material` 9.6.15 + `mkdocs-static-i18n` 1.3.0 (all installed at `~/Library/Python/3.12/`)
-
-The only "stack" question for v6.0 is: which scripts/approaches handle the four audit tasks, and what (if anything) is missing from the existing toolchain.
+Every capability needed — printable reference card, in-app docs deep links, wizard UX enhancements — can be delivered with what is already installed. The two things that need adding are both cost-free: a `print.css` file (new file, no dependency) and a bug fix in the existing `mkdocs_link` helper (locale prefix missing for English). The wizard already has progress bars, step icons, and contextual help; no JS library is justified against the volunteer persona filter.
 
 ---
 
 ## Recommended Stack
 
-### Core Technologies (all already installed)
+### Core Technologies (already installed — do not change)
 
-| Technology | Version | Purpose | Why Sufficient |
-|------------|---------|---------|----------------|
-| `mkdocs` | 1.6.1 | Build/serve docs site, strict mode | `mkdocs build --strict` exits non-zero on warnings including unresolved nav entries. Use for CI-style validation. |
-| `mkdocs-material` | 9.6.15 | Theme with i18n integration | Already configured. No changes to theme needed. |
-| `mkdocs-static-i18n` | 1.3.0 | `.de.md` / `.en.md` suffix-based multilingual docs | Already configured with `docs_structure: suffix`. Source of truth for which translations exist. |
-| Ruby (stdlib) | 3.2.1 | `bin/check-docs-links.rb`, `bin/fix-docs-links.rb` | Custom scripts already exist. Use them; extend rather than replace. |
+| Technology | Version | Purpose | Status |
+|------------|---------|---------|--------|
+| mkdocs-material | 9.6.15 (installed) / >=9.5.0 (pinned) | Docs site theme | Already working; print via custom CSS |
+| mkdocs-static-i18n | 1.3.0 (installed) / >=1.0.0 (pinned) | DE/EN bilingual docs (suffix structure) | Already working; locale URLs confirmed |
+| pymdownx.tasklist | bundled with pymdown-extensions 10.16 | `- [ ]` checkbox syntax for quick-reference card | Already enabled in mkdocs.yml |
+| pymdownx (attr_list, md_in_html) | bundled | CSS class injection in Markdown for print page-breaks | Already enabled in mkdocs.yml |
+| Rails 7.2 / Tailwind CSS | existing | Wizard UI | Wizard already fully implemented |
+| Stimulus.js | existing | In-app interactivity | No new controller needed for help links |
+| ApplicationHelper | existing | `mkdocs_link` + `docs_page_link` helpers | Both exist; `mkdocs_link` has a locale bug to fix |
 
-### Existing Audit Scripts
+### Supporting Additions (CSS-only, zero dependencies)
 
-| Script | What It Does | Current Gaps |
-|--------|-------------|--------------|
-| `bin/check-docs-links.rb` | Checks all 177 markdown files for broken internal links; reports 74 broken as of last run | Does not check `mkdocs.yml` nav entries against files on disk; does not validate anchors |
-| `bin/fix-docs-links.rb` | Pattern-based batch fixer for common broken link patterns (language suffix removal, path prefix fixes) | Fix patterns hardcoded for old v1/v2 restructure; some patterns may no longer apply |
-| `lib/tasks/mkdocs.rake` | `build`, `clean`, `serve`, `deploy` via `bundle exec rake mkdocs:*` | No `mkdocs:lint` or `mkdocs:check` task; would be useful addition |
+| Addition | File | Purpose | Work Required |
+|----------|------|---------|---------------|
+| Print stylesheet | `docs/stylesheets/print.css` (new) | Hide nav chrome for browser print; page setup for A4 | Write ~30 lines of `@media print` CSS |
+| Register print.css | `mkdocs.yml` `extra_css` list | Activates print CSS for all pages | Add one line |
+| Fix `mkdocs_link` locale bug | `app/helpers/application_helper.rb:149` | Locale-aware deep links from wizard steps | Change 1 line |
 
-### What Is Missing (and Needs to be Built)
+### Optional pip addition (only if offline PDF export is a hard requirement)
 
-The audit requires three things the existing tools do not cover:
+| Package | Version | Purpose | Recommendation |
+|---------|---------|---------|----------------|
+| mkdocs-print-site-plugin | ~2.3.x | Merges all nav pages into single `/print_page/` URL | Do NOT add for v7.0. See anti-recommendations below. |
 
-#### 1. Stale-Reference Detector (new Ruby script, ~40 lines)
+---
 
-A script that walks `docs/**/*.md`, extracts class/module names (`CamelCase` tokens), and checks each against the live codebase (`app/**/*.rb`, `lib/**/*.rb`) — flagging names that appear in docs but not in code. This catches references to deleted classes like `UmbScraperV2`, `tournament_monitor_support`, old model names.
+## mkdocs-material Print Features (verified against installed 9.6.15)
 
-**Implementation:** Shell one-liner or simple Ruby. No gem required.
+mkdocs-material OSS does **not** have a built-in print plugin. It does provide clean semantic HTML that prints correctly with custom `@media print` CSS. This is the right approach for a single quick-reference card page.
 
-```bash
-# Quick version (finds CamelCase doc references not in code):
-grep -roh '\b[A-Z][a-zA-Z0-9]*\b' docs/ | sort -u > /tmp/doc_names.txt
-grep -roh '\b[A-Z][a-zA-Z0-9]*\b' app/ lib/ | sort -u > /tmp/code_names.txt
-comm -23 /tmp/doc_names.txt /tmp/code_names.txt
+### What is already available (no additions needed)
+
+**`@media print` CSS hooks** — The 9.x theme uses well-known semantic CSS classes. Hiding nav/header/footer is straightforward by targeting `.md-header`, `.md-sidebar--primary`, `.md-sidebar--secondary`, `.md-footer`, `.md-tabs`.
+
+**`attr_list` extension** — Already enabled in mkdocs.yml. Allows adding CSS classes directly in Markdown: `## Before the Tournament { .print-break }`. Use this to insert `page-break-before: always` at section boundaries in the reference card.
+
+**`pymdownx.tasklist`** — Already enabled. `- [ ]` / `- [x]` renders as checkboxes in browser and prints correctly as a physical checklist.
+
+### Minimum print.css implementation
+
+```css
+@media print {
+  /* Hide navigation chrome */
+  .md-header,
+  .md-tabs,
+  .md-sidebar,
+  .md-footer,
+  .md-search,
+  [data-md-component="toc"],
+  .md-top,
+  .md-source {
+    display: none !important;
+  }
+
+  /* Full-width content without sidebar offset */
+  .md-content {
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .md-main__inner {
+    margin-top: 0 !important;
+  }
+
+  /* Page setup (A4 portrait, standard margins) */
+  @page {
+    size: A4 portrait;
+    margin: 15mm;
+  }
+
+  /* Page breaks: use { .print-break } in Markdown with attr_list */
+  .print-break {
+    page-break-before: always;
+  }
+
+  /* Print tasklist checkboxes at legible size */
+  .task-list-item input[type="checkbox"] {
+    display: inline-block !important;
+    width: 14px;
+    height: 14px;
+    margin-right: 6px;
+  }
+}
 ```
 
-This is a starting point, not a complete solution — the output has false positives (English words, abbreviations). The real value is scoping the work: look at which service class names in docs don't exist in `app/services/`.
+**Confidence note:** The CSS selectors above are based on mkdocs-material 9.x DOM structure (training knowledge, Aug 2025 cutoff). Web access was blocked during research so selectors could not be re-verified against live 9.6.15 docs. The class names `.md-header`, `.md-sidebar`, `.md-footer`, `.md-tabs` are stable across the 9.x series and unlikely to have changed. If any selector does not work, inspect the rendered HTML with browser DevTools.
 
-#### 2. Translation Coverage Report (new Ruby script, ~30 lines)
+Register in mkdocs.yml:
+```yaml
+extra_css:
+  - stylesheets/extra.css
+  - stylesheets/print.css   # add this line
+```
 
-A script that compares `.de.md` files against `.en.md` files and reports which pages have only one language. The current situation: 89 `.de.md` vs 63 `.en.md` — 26 pages lack English translations (or vice versa). `mkdocs-static-i18n` silently falls back to the default language (`de`) for missing translations; there is no built-in warning.
+---
 
-**Implementation:** Walk `docs/` directory, group by base name (strip locale suffix), report bases with only one locale.
+## In-App → mkdocs Deep Linking (Rails helpers)
 
+### Current state (verified by reading codebase)
+
+Two helpers already exist in `app/helpers/application_helper.rb`:
+
+**`docs_page_link(path, locale:, text:, options:)`** (line 135) — links to the Rails-embedded doc proxy route (`docs_page_path`). Renders markdown inline within the app layout. Use this when you want embedded doc content inside the app.
+
+**`mkdocs_link(path, locale:, text:, options:)`** (line 143) — links directly to the served mkdocs site at `/docs/#{path}`. **Bug on line 149:** always generates `/docs/#{path}` regardless of locale. English pages should be at `/docs/en/#{path}/`.
+
+The correct locale URL pattern is already implemented correctly in `app/views/static/docs_page.html.erb` lines 18-22:
 ```ruby
-# ~15 lines: find base names with missing locale counterpart
-de_files = Dir.glob('docs/**/*.de.md').map { |f| f.sub('.de.md', '') }.to_set
-en_files = Dir.glob('docs/**/*.en.md').map { |f| f.sub('.en.md', '') }.to_set
-(de_files - en_files).each { |f| puts "Missing EN: #{f}.en.md" }
-(en_files - de_files).each { |f| puts "Missing DE: #{f}.de.md" }
+mkdocs_url = if params[:locale] == 'en'
+  is_index_file ? "/docs/en/#{mkdocs_path}" : "/docs/en/#{mkdocs_path}/"
+else
+  is_index_file ? "/docs/#{mkdocs_path}" : "/docs/#{mkdocs_path}/"
+end
 ```
 
-Add as `bin/check-docs-translations.rb`.
+### Required fix for `mkdocs_link` (one line change)
 
-#### 3. Extend `mkdocs.rake` with Lint Task
+Current (broken for EN):
+```ruby
+url = "/docs/#{path}"
+```
 
-Add `mkdocs:check` that runs `mkdocs build --strict 2>&1` and reports errors. MkDocs `--strict` mode converts warnings to errors, catching:
-- Nav entries referencing non-existent files
-- Broken nav structure
-- Plugin configuration errors
+Fixed:
+```ruby
+url = locale == 'en' ? "/docs/en/#{path}/" : "/docs/#{path}/"
+```
 
-This is a one-liner rake task wrapping the existing `mkdocs build`.
+The full corrected method:
+```ruby
+def mkdocs_link(path, locale: nil, text: nil, **options)
+  locale ||= I18n.locale.to_s
+  text ||= path.split('/').last.humanize
+  url = locale == 'en' ? "/docs/en/#{path}/" : "/docs/#{path}/"
+  link_to text, url, target: '_blank', rel: 'noopener', **options
+end
+```
+
+### Pattern for adding links to wizard steps
+
+The `_wizard_step.html.erb` partial already has a `help:` parameter that renders `help.html_safe` inside a `<details>` element. Add deep links directly in the `help:` string using the fixed `mkdocs_link`:
+
+```erb
+help: "Sortiert die Spieler automatisch nach ihrer Rangliste. " \
+      "#{mkdocs_link('managers/tournament-management', text: 'Hilfe in der Dokumentation', locale: I18n.locale.to_s)}"
+```
+
+No new partial, no new controller, no new Stimulus controller required.
+
+### Anchor targeting for section deep links
+
+mkdocs-material auto-generates heading anchors from heading text. `toc.permalink: true` is already enabled in mkdocs.yml. Use `#section-slug` suffixes:
+
+- DE: `/docs/managers/tournament-management/#nach-rangliste-sortieren`
+- EN: `/docs/en/managers/tournament-management/#sorting-the-seeding-list`
+
+**Important:** anchor slugs will change when the doc rewrite renames headings. Verify anchors after the rewrite by viewing source in the built site, not by guessing from heading text.
+
+---
+
+## Wizard UX — No New Dependencies Needed
+
+### Current wizard state (verified by reading `_wizard_steps_v2.html.erb` and `_wizard_step.html.erb`)
+
+The wizard already implements:
+- Progress bar with percentage via `wizard_progress_percent` helper
+- Step counter text ("Schritt X von 6")
+- Status icons per step (`:completed` checkmark, `:active` active, `:pending` locked)
+- Danger/irreversible step indicator
+- Contextual help via native `<details>`/`<summary>` (no JS required)
+- Inline troubleshooting sections with `<details>`
+- Terminology explanation box at bottom of `_wizard_steps_v2.html.erb`
+- Disabled state text ("Erst verfügbar nach vorherigem Schritt")
+
+The wizard UX friction for volunteers is not a missing component — it is content friction (unclear step labels when the wizard renders for a returning user who forgot the terminology, absence of doc links, no printed fallback). These are doc and content problems, not component problems.
+
+### Wizard implementation notes for v7.0 changes
+
+- There are **two wizard partial versions**: `_wizard_steps.html.erb` (original) and `_wizard_steps_v2.html.erb` (current, with revised step order). The `show.html.erb` view determines which is rendered. Confirm which is active before editing.
+- Steps are German-only in the partials (hardcoded strings). If the wizard needs to render in EN for non-German users, the `title:` parameters in `_wizard_steps_v2.html.erb` need `I18n.t` calls. The original `_wizard_steps.html.erb` already uses `I18n.t` with fallbacks for most steps.
+- The `help:` parameter in `_wizard_step.html.erb` renders `help.html_safe`. Any `mkdocs_link` calls in `help:` strings will produce correct HTML links.
 
 ---
 
 ## What NOT to Add
 
-| Avoid | Why | Use Instead |
-|-------|-----|-------------|
-| `mkdocs-linkcheck` (PyPI) | Adds Python dependency for external URL checking only. 74 known broken links are all internal. External link checking is out of scope for v6.0. | `bin/check-docs-links.rb` (already handles internal links correctly) |
-| `linkcheckmd` (PyPI) | Same problem — external link focus, no value for internal link audit. | Existing Ruby script |
-| Automated translation services (DeepL, Google Translate) | v6.0 goal is consistency verification, not generating new translations. Auto-translated docs with wrong content are worse than acknowledged gaps. | Flag missing translations; write them manually or explicitly defer |
-| `rdoc` / YARD integration with mkdocs | Complex toolchain to auto-generate API docs from Ruby source. Adds build pipeline complexity not warranted for an audit milestone. | Manual service documentation following existing patterns in `docs/developers/` |
-| `mike` (versioning) | Already in `mkdocs.yml` as version provider but not actively used. Do not activate for v6.0 — adds deployment complexity, no audit value. | Leave in config, do not configure |
-| Sphinx / ReadTheDocs migration | Major infrastructure change. mkdocs-material is already well-configured and working. | Stay with existing mkdocs setup |
+| Avoid | Why | Volunteer Persona Impact |
+|-------|-----|--------------------------|
+| `mkdocs-print-site-plugin` | Creates a `/print_page/` nav entry visible to all users. Requires suppression config. Merges the entire site, not just the reference card. For a single page, custom print CSS is 10x simpler. | No impact on volunteer; adds build complexity for developer |
+| `mkdocs-pdf-export-plugin` | Requires `weasyprint` system dependency; complex install; produces full-site PDF by default | No benefit; print-to-PDF from browser on a print-CSS page achieves the same result |
+| Intro.js / Shepherd.js JS tour | Volunteer uses app 2-3x/year; they forget guided tours between uses; adds 40-80 KB JS; requires maintenance when UI changes | Negative: tour is stale within one release cycle |
+| ViewComponent gem | Wizard partials work fine; adding ViewComponent requires component tests, contradicts targeted-fixes scope, adds architecture layer | No volunteer benefit |
+| Turbo Frames per wizard step | Wizard state transitions require server-side AASM events and page reload. Adding Turbo Frames would require client-side state that duplicates AASM. | No volunteer benefit; adds hidden failure modes |
+| New breadcrumb gem | Rails `content_for` + manual breadcrumb in layout already works | No volunteer benefit |
+| Step-by-step JS tooltip library (Tippy.js etc.) | Native `<details>` already provides contextual help without JS. Prints correctly. Zero maintenance. | Simpler is better for low-frequency users |
+| New i18n helper for doc URLs | `mkdocs_link` and `docs_page_link` already exist; adding a third helper creates confusion about which to use | No benefit; fix the existing helper instead |
 
 ---
 
-## Audit Workflow (No New Stack Required)
+## Alternatives Considered
 
-For each of the four work streams, the approach using existing tools:
-
-**Stream 1 — Stale references:**
-```bash
-# Find docs that mention deleted class names
-grep -rl "UmbScraperV2\|tournament_monitor_support\|TableMonitor.*3900\|RegionCc.*2700" docs/
-# Extend to: any CamelCase name in docs not found in app/ (see stale-reference script above)
-```
-
-**Stream 2 — Broken links:**
-```bash
-ruby bin/check-docs-links.rb --exclude-archives
-# Then: ruby bin/fix-docs-links.rb --live  (for automatable patterns)
-# Manual fix for the rest (74 broken links, grouped by file)
-```
-
-**Stream 3 — New service documentation:**
-```bash
-# Cross-reference: which services have no doc page
-ls app/services/**/*.rb | sed 's|app/services/||; s|\.rb||' > /tmp/services.txt
-# grep docs/ for each service name, flag undocumented ones
-```
-
-**Stream 4 — Multilingual consistency:**
-```bash
-ruby bin/check-docs-translations.rb  # (new script to create)
-```
+| Recommended | Alternative | Why Not |
+|-------------|-------------|---------|
+| Custom `print.css` in `extra_css` | `mkdocs-print-site-plugin` | Plugin creates a `/print_page/` route visible to all users; adds full-site merge build step; not scoped to a single reference card page |
+| Fix existing `mkdocs_link` locale bug | Build a new locale-aware URL helper | A one-line fix is preferable to a new helper that creates two competing APIs |
+| `docs_page_link` for in-app embedded doc views | External mkdocs link only | Some wizard help contexts benefit from inline rendering without leaving the wizard flow; the existing proxy already handles this |
+| Native `<details>` for contextual help | Stimulus disclosure controller | `<details>` renders without JS, prints correctly, needs zero JS, is already the established pattern in both wizard partials |
+| `I18n.t` with fallback strings for wizard step titles | Separate DE/EN wizard templates | Single template with `I18n.t` is maintainable; two templates would diverge |
 
 ---
 
 ## Version Compatibility
 
-| Package | Version | Compatible With | Notes |
-|---------|---------|-----------------|-------|
-| mkdocs | 1.6.1 | mkdocs-material 9.6.15 | MEDIUM confidence — mkdocs 1.6.x + material 9.6.x is the current stable pairing. No known incompatibilities. |
-| mkdocs-material | 9.6.15 | mkdocs-static-i18n 1.3.0 | HIGH confidence — `reconfigure_material: true` in mkdocs.yml already works (docs build currently succeeds). |
-| mkdocs-static-i18n | 1.3.0 | mkdocs 1.6.1 | HIGH confidence — installed and configured with `docs_structure: suffix`, `fallback_to_default: true`. Current working state. |
-| pymdown-extensions | 10.16 | mkdocs-material 9.6.15 | HIGH confidence — installed, all extensions in mkdocs.yml are loading without error. |
+| Package | Installed | Pinned in requirements.txt | Notes |
+|---------|-----------|---------------------------|-------|
+| mkdocs | 1.6.1 | not pinned | Compatible with material 9.6.15 |
+| mkdocs-material | 9.6.15 | >=9.5.0 | Stable 9.x series; print CSS selectors unchanged across 9.x |
+| mkdocs-static-i18n | 1.3.0 | >=1.0.0 | Suffix-based locale structure; confirmed working with 9.6.15 |
+| pymdown-extensions | 10.16 | >=10.0.0 | All extensions in mkdocs.yml active without errors |
+| mkdocs-print-site-plugin | not installed | not pinned | Only add if offline single-file PDF is a hard requirement; version ~2.3.x compatible with mkdocs 1.6 |
 
 ---
 
-## Installation (nothing new required)
+## Installation
+
+Nothing new to install. Changes are file additions and one code fix:
 
 ```bash
-# Already installed — verify with:
-mkdocs --version
-# mkdocs, version 1.6.1
+# 1. Create print stylesheet
+touch docs/stylesheets/print.css
+# (write @media print rules as shown above)
 
-# Serve locally:
-bundle exec rake mkdocs:serve
-# OR directly:
-mkdocs serve
+# 2. Register in mkdocs.yml extra_css — add one line:
+#    - stylesheets/print.css
 
-# Build with strict mode (proposed new task):
-mkdocs build --strict
-```
-
-New scripts to create (no dependencies):
-
-```bash
-# Translations coverage report
-bin/check-docs-translations.rb  # ~30 lines of stdlib Ruby
-
-# Stale reference scanner (optional, can be a one-liner)
-bin/check-docs-coderef.rb       # ~50 lines of stdlib Ruby
+# 3. Fix mkdocs_link helper — one line change in:
+#    app/helpers/application_helper.rb line 149
 ```
 
 ---
 
 ## Sources
 
-- `bin/check-docs-links.rb` — custom link checker, already identifies 74 broken links
-- `bin/fix-docs-links.rb` — pattern-based link fixer with dry-run mode
-- `lib/tasks/mkdocs.rake` — existing mkdocs Rake task
-- `mkdocs.yml` — current configuration: material 9.x, static-i18n 1.3.0, suffix structure, de default
-- `requirements.txt` — Python deps: mkdocs-material>=9.5.0, mkdocs-static-i18n>=1.0.0, pymdown-extensions>=10.0.0
-- `docs/BROKEN_LINKS_REPORT.txt` — 74 broken links across 177 markdown files (current state)
-- Installed packages: mkdocs 1.6.1, mkdocs-material 9.6.15, mkdocs-static-i18n 1.3.0, pymdown-extensions 10.16
-- `find docs -name "*.de.md" | wc -l` → 89; `find docs -name "*.en.md" | wc -l` → 63 (26-page translation gap)
-- https://pypi.org/project/mkdocs-linkcheck/ — external link checker, assessed as out-of-scope for v6.0
-- https://github.com/ultrabug/mkdocs-static-i18n — no built-in consistency check; missing translations silently fall back
+- `requirements.txt` — confirmed pip packages and version constraints (HIGH)
+- `mkdocs.yml` — confirmed installed plugins 9.6.15, static-i18n 1.3.0, enabled extensions, extra_css list (HIGH)
+- `docs/stylesheets/extra.css` — confirmed no print rules exist; safe to add separate print.css (HIGH)
+- `app/helpers/application_helper.rb:135-151` — confirmed both helpers exist; confirmed `mkdocs_link` locale bug on line 149 (HIGH)
+- `app/views/static/docs_page.html.erb:18-22` — confirmed correct locale URL pattern already in production use (HIGH)
+- `app/views/tournaments/_wizard_steps_v2.html.erb` — confirmed wizard features already implemented; confirmed hardcoded German strings (HIGH)
+- `app/views/tournaments/_wizard_step.html.erb` — confirmed `help:` parameter renders `.html_safe` inside `<details>` (HIGH)
+- mkdocs-material 9.x print CSS selector names — training knowledge (Aug 2025 cutoff); web access blocked during research; MEDIUM confidence on exact selector names; verify with DevTools if any selector does not match
 
 ---
 
-*Stack research for: Documentation Quality Audit (v6.0)*
-*Researched: 2026-04-12*
+*Stack research for: v7.0 Manager Experience — Carambus Rails 7.2 app*
+*Researched: 2026-04-13*

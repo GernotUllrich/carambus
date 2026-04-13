@@ -1,159 +1,239 @@
 # Pitfalls Research
 
-**Domain:** Documentation quality audit — mkdocs-based docs for Rails app after 5 milestones of significant refactoring
-**Researched:** 2026-04-12
-**Confidence:** HIGH (primary sources: direct inspection of docs/, mkdocs.yml, BROKEN_LINKS_REPORT.txt, PROJECT.md, and confirmed stale references in tournament-architecture-overview.en.md, umb-scraping-methods.md, streaming-architecture.de.md)
+**Domain:** Volunteer-facing doc rewrite + UX review on existing Rails wizard (v7.0 Manager Experience)
+**Researched:** 2026-04-13
+**Confidence:** HIGH — all pitfalls derived from direct inspection of `app/models/tournament.rb` (AASM block), `app/views/tournaments/_wizard_steps*.html.erb`, `app/controllers/tournaments_controller.rb`, `docs/managers/tournament-management.en.md`, and `.planning/PROJECT.md`. No generic advice.
 
 ---
 
 ## Critical Pitfalls
 
-### Pitfall 1: Auditing Only Visible Text, Missing Embedded Stale Class and File References
+### Pitfall 1: Two Wizard Partials Exist — Docs Can't Describe Both
 
 **What goes wrong:**
-A doc audit that reads for prose accuracy misses class names, file paths, and method references embedded in code blocks, diagrams, and bullet lists. In this codebase, `docs/developers/tournament-architecture-overview.en.md` references `lib/tournament_monitor_support.rb` and `TournamentMonitorSupport` directly — a file deleted in v2.1. `docs/developers/umb-scraping-methods.md` explicitly praises `UmbScraperV2` as "Moderne Code-Struktur" — a class deleted in v5.0. Both were found via grep, not by reading. A manual read-through would likely miss both.
+The wizard is rendered by two separate partials: `_wizard_steps.html.erb` (v1, 6 steps with English labels mixed in) and `_wizard_steps_v2.html.erb` (v2, restructured with a new "Setzliste aus Einladung" step 2, a always-visible glossary box, and the wizard hiding itself after `tournament_started`). These are two completely different UIs. A doc that says "Step 2 is ClubCloud sync" is correct for v1 but wrong for v2, where Step 2 is "Import Seeding from Invitation PDF." If `show.html.erb` conditionally renders one or the other, the condition is part of the truth that the doc must either describe or the UX review must resolve.
 
 **Why it happens:**
-Code references in docs are treated as decorative context, not as facts that break. The audit instinct is to check whether concepts are accurate; it does not automatically check whether every referenced identifier still exists in the codebase.
+The developer added v2 as a safe parallel rollout without retiring v1. Doc authors assume one canonical wizard exists.
 
 **How to avoid:**
-Build a grep inventory before reading any doc. Extract all class names, file paths, and method calls from docs (pattern: `ClassName`, `path/to/file.rb`, `#method_name`) and verify each against the actual file tree. Run this as a first phase: audit = grep list first, prose review second. The `BROKEN_LINKS_REPORT.txt` already exists and covers hyperlinks — replicate that discipline for code identifiers.
+Before writing a single doc line, run `grep -rn "wizard_steps" app/views/tournaments/show.html.erb` to identify which partial is rendered and under what condition. If both are live, the UX review phase must retire v1 (or document it as the legacy path) before the doc phase begins. Never write docs against a partial that may not be what users see.
 
 **Warning signs:**
-- Docs reference classes that return zero results in `grep -rn "ClassName" app/`.
-- Docs mention files with paths that don't exist: `ls app/services/umb_scraper_v2.rb` returns no such file.
-- Docs describe a class as having N lines when the current file has M lines (e.g., "TournamentMonitorSupport — the operational workhorse" when the file is gone).
+- Doc says "Step 2: ClubCloud sync" but wizard shows "Setzliste aus Einladung" as step 2
+- Step numbers in doc don't match volunteer's screen
+- Both `_wizard_steps.html.erb` and `_wizard_steps_v2.html.erb` are present without a clear gate in `show.html.erb`
 
 **Phase to address:**
-Audit phase (first phase of v6.0) — build the identifier grep list before writing a single update.
+UX review phase — confirm canonical partial as a pre-condition before doc phase opens.
 
 ---
 
-### Pitfall 2: Updating One Language File Without Its Pair
+### Pitfall 2: AASM Has Two States With No Entry Event — Docs Will Fabricate a Path
 
 **What goes wrong:**
-The mkdocs-i18n plugin pairs `foo.de.md` and `foo.en.md`. If a stale reference is fixed in the `.de.md` file but not the `.en.md` file, the published English site still contains the wrong information. Worse: the plugin's `fallback_to_default: true` setting means that if only one language is built, the fallback silently serves the other language's content — so a broken English file is invisible during German-only testing.
-
-In this repo, asymmetry already exists: `developers/streaming-dev-setup.de.md` has no `.en.md` counterpart; `developers/tournament-architecture-overview.en.md` has no `.de.md` counterpart; `developers/test-implementation-summary.de.md` has no `.en.md` counterpart. Every update must explicitly decide: fix both, or document why one language intentionally lacks the page.
+The AASM defines 9 states: `new_tournament`, `accreditation_finished`, `tournament_seeding_finished`, `tournament_mode_defined`, `tournament_started_waiting_for_monitors`, `tournament_started`, `tournament_finished`, `results_published`, `closed`. Of these, `accreditation_finished` has no declared event that transitions into it (no `from:` clause in any event points to it as a target). `closed` has no event at all. `results_published` is reachable only via `have_results_published` which has no visible UI surface. A doc author reading the state list as a sequence will either invent wizard steps for these states or describe them as part of the happy path when they are not.
 
 **Why it happens:**
-Writers fix what they find broken and move on. The connection between `foo.de.md` and `foo.en.md` is a filename convention, not enforced by the editor or CI. There is no tooling that warns "you edited the German file — did you update the English one too?"
+The AASM state list looks like a sequential workflow. In practice, 5 of the 9 states are the wizard path; the rest are legacy, background-set, or future states. This is invisible without tracing each state to a controller action.
 
 **How to avoid:**
-Treat every doc as a pair. Before marking any file updated, open both language versions simultaneously. For each change: apply to both files. For asymmetric files (one language exists, the other doesn't): make an explicit decision — create the missing file, or move the page to a language-neutral `.md` file that the i18n plugin serves to both. Never leave the pair in different states silently.
+Before writing, map each AASM state to a controller action or background job that drives it. States with no inbound transition from any controller are not part of the wizard path — say so explicitly in the doc audit. The doc should describe only controller-driven states.
 
 **Warning signs:**
-- Running `diff docs/foo.de.md docs/foo.en.md` shows structural divergence beyond translation differences.
-- A feature is documented in German sections but returns no results searching the English site.
-- `ls docs/developers/ | grep "\.de\.md$" | sed 's/\.de\.md$//' | sort` vs the same for `.en.md` shows different counts.
+- Doc section describes an "accreditation step" or "close tournament" action that has no route in `routes.rb`
+- A numbered wizard step in the doc has no corresponding `POST`/`GET` action in `TournamentsController`
+- `closed` or `accreditation_finished` appears in a wizard step description
 
 **Phase to address:**
-Every update phase — pair-checking is a per-file discipline, not a separate phase. Enforce it at the task level: "for every file changed, its pair is changed or the asymmetry is documented."
+Doc rewrite phase — add a pre-condition: each documented step must map to a named controller action.
 
 ---
 
-### Pitfall 3: Removing Stale Content Without Auditing Inbound Links
+### Pitfall 3: `tournament_started_waiting_for_monitors` Is Transient — Docs Will Skip It and Users Will Be Confused
 
 **What goes wrong:**
-Deleting or heavily rewriting a doc page that other docs link to creates broken links. The `BROKEN_LINKS_REPORT.txt` already documents 74 broken links before the audit work begins. Removing a page like `developers/umb-scraping-methods.md` (which covers the deleted UmbScraperV2) without checking what links to it would increase the broken link count. The mkdocs nav also explicitly lists this page — removing the file without updating `mkdocs.yml` causes a build error.
+`start_tournament!` (called from `TournamentsController#start`) transitions the tournament to `tournament_started_waiting_for_monitors`, not directly to `tournament_started`. A separate event, `signal_tournament_monitors_ready`, transitions to `tournament_started`. The wizard step 6 links to `tournament_monitor_tournament_path` (a GET), not to the start POST. A doc that says "click Start, tournament is running" skips the transient state entirely. If any user-visible loading behavior or waiting screen exists during this state, volunteers who see it will be confused because the doc gave no warning.
 
 **Why it happens:**
-The natural instinct is to delete the wrong page and move on. Checking all inbound references requires a reverse-link lookup that grep can provide but that is easy to skip under time pressure.
+The transient state passes quickly during developer testing, making it effectively invisible. The happy path "works" without noticing it.
 
 **How to avoid:**
-Before deleting or renaming any doc page: (1) grep the entire `docs/` tree for the target filename, (2) grep for the anchor heading text (used in cross-doc links), (3) check `mkdocs.yml` nav for the page entry. For each inbound reference: update or remove it before deleting the target. After any deletion: run the link checker script that produced `BROKEN_LINKS_REPORT.txt` and verify the broken link count did not increase.
+During the UX review phase, test the actual start flow in a browser and observe whether the transient state surfaces any UI. Check the `tournament_monitor` controller action for whether it triggers `signal_tournament_monitors_ready` automatically or whether the transition requires a separate action. Document what the volunteer sees between clicking Start and the tournament monitor opening — even if it is only a loading flash.
 
 **Warning signs:**
-- Broken link count in the report increases after a deletion.
-- `mkdocs build` fails with "page not found" during build.
-- A page deletion causes 5+ broken links in other files that seemed unrelated.
+- Doc says "tournament starts immediately" with no mention of monitor initialization
+- Volunteer reports "after clicking Start, nothing seems to happen for a moment"
+- `tournament_started_waiting_for_monitors` never appears in any doc section or note
 
 **Phase to address:**
-The removal/update phase of the audit. Every deletion must be preceded by the inbound-link grep.
+UX review phase — observe the transient state behavior before doc phase writes about the start step.
 
 ---
 
-### Pitfall 4: Over-Documenting Extracted Service Internals
+### Pitfall 4: The `auto_upload_to_cc` Checkbox Is Not in the Wizard Step Panel — Current Doc Gets the Location Wrong
 
 **What goes wrong:**
-After extracting 37 services across 7 namespaces, the temptation is to document every service class — its constructor, private methods, and implementation details. This produces documentation that is immediately stale (implementation changes every refactoring cycle) and that conflates API documentation with architecture documentation. For internal services like `Umb::DateHelpers` or `PartyMonitor::TablePopulator`, implementation docs add maintenance overhead with zero user value.
+The existing EN doc states: "Activation: Checkbox 'Automatically upload results to ClubCloud' in Step 6 of the wizard (default: enabled)." But wizard step 6 in `_wizard_steps_v2.html.erb` contains no form or checkbox — it is a single link button to `tournament_monitor_tournament_path`. The `auto_upload_to_cc` param is consumed by `TournamentsController#start` via `params[:auto_upload_to_cc]`, meaning the checkbox lives in the tournament-monitor start form, not the wizard overview. A volunteer following the doc will look for a checkbox in the wizard step panel that does not exist there.
 
 **Why it happens:**
-"We added this service, we should document it" is a reasonable instinct that doesn't distinguish between what callers need to know and what the service itself does internally. The result is docs that describe `private` methods that no external caller ever touches.
+The doc was written describing intent or a slightly different version of the UI, not the current rendered view. The checkbox exists in the code but in a different location than described.
 
 **How to avoid:**
-Apply a strict two-tier rule: (1) **Architecture docs** describe the service's role in the system, its public interface, and the data contract it satisfies. (2) **Implementation notes** (if they belong in docs at all) go in code comments, not published docs. For the 37 extracted services: document the namespace boundary and the responsibility allocation (e.g., "TableMonitor delegates score calculation to ScoreEngine, game setup to GameSetup") — not each service's method list. The reader needs to understand the architecture, not re-read the source.
+For every UI element the doc references, verify its location with `grep -rn "auto_upload_to_cc" app/views/`. Document the checkbox in the context where it actually appears (the tournament start form), not where the doc currently claims it is.
 
 **Warning signs:**
-- A doc page for a service begins with "This class has the following private methods..."
-- Documentation of a service method that is already fully described by its name (`calculate_standings`).
-- A doc page changes every time the service is refactored internally, even when the external behavior is unchanged.
+- Doc references a checkbox in a wizard step panel; grep finds the checkbox only in a non-wizard view
+- A volunteer says "I can't find that option on the page the doc describes"
 
 **Phase to address:**
-New documentation phase (documenting v1.0–v5.0 additions). Write the architecture overview first; only add method-level detail where the method's behavior is non-obvious and not captured in tests.
+Doc rewrite phase — every documented UI interaction must be verified against a `grep` before being written.
 
 ---
 
-### Pitfall 5: Treating Archived Docs as Harmless
+### Pitfall 5: Wizard Step Numbers Are Conditional on Organizer Type — Hard-Coded Step Numbers Break Half the Cases
 
 **What goes wrong:**
-The `docs/archive/` and `docs/internal/archive/` directories contain documents that explicitly reference deleted code (`UmbScraperV2`, `lib/tournament_monitor_support.rb`) and outdated architectures. These directories are excluded from the broken-link checker report (`Mode: Excluding archives, internal, and obsolete documents`) — but they are still rendered and served in the mkdocs site unless explicitly excluded in `mkdocs.yml`. A developer searching the docs site will find archived pages in search results, read a code example with `UmbScraperV2.new`, and be misled.
+Both wizard partials render different step numbers depending on `tournament.organizer.is_a?(Region)`. Club tournaments skip the ClubCloud sync step (or renumber it), so a club officer sees 5 steps numbered 1-5, while a regional officer sees 6 steps. The EN doc refers to "Step 6" for auto_upload activation with no qualifier. A club officer reading the doc will look for a "Step 6" that does not exist on their screen.
 
 **Why it happens:**
-Archive directories are created to preserve history, but mkdocs serves everything under `docs/` unless explicitly excluded. The assumption that "archive = not read" does not hold when site search indexes all pages.
+Developer experience is always with the regional tournament case. The conditional rendering is present in the code but invisible to anyone not looking for it.
 
 **How to avoid:**
-Verify that `mkdocs.yml` excludes archive directories from the nav AND from search indexing. The `exclude_docs` option (mkdocs-material) or `search.exclude: true` front matter on archive index pages prevents stale content from surfacing in search. Audit which archive pages are indexed by checking `site/search/search_index.json` after a build. For archive pages that describe deleted code, add a prominent "Archived — this feature no longer exists" notice at the top rather than updating the content.
+The doc rewrite must describe steps by name, not number. "In the Start step..." rather than "In Step 6...". If steps must be numbered, fork the description explicitly: "For regional tournaments (6 steps)... / For club tournaments (5 steps)...". The volunteer persona filter makes option (a) clearly better — volunteers will not remember whether their tournament is "regional" or "club" type.
 
 **Warning signs:**
-- Site search for "UmbScraperV2" returns results from archive pages.
-- A developer follows a search result and finds instructions for code that doesn't compile.
-- `mkdocs.yml` has no `exclude_docs` or `not_in_nav` directive for archive directories.
+- Any doc line contains "Step [0-9]" as a bare number with no organizer-type qualifier
+- A club officer reports their screen shows different step numbers than the doc
 
 **Phase to address:**
-Audit phase — verify archive exclusion before starting the update work. Adding notices to archive pages is a task, not a separate phase.
+Doc rewrite phase — enforce step-name-not-number as a writing rule; verify by `grep "Step [0-9]\|Schritt [0-9]"` on the doc output.
 
 ---
 
-### Pitfall 6: Updating Prose Without Verifying the Corresponding Code Path Still Works
+### Pitfall 6: The "Sympathetic Developer" Terminology Leak
 
 **What goes wrong:**
-A documentation update replaces "see `UmbScraperV2`" with "see `Umb::ArchiveScraper`" — and the new content accurately describes what the service does — but the rake task or job that invokes it was also changed, and the doc doesn't reflect the new invocation path. The reader follows the updated doc, runs the wrong command, and gets an error. This happened with `ScrapeUmbArchiveJob`: the public method signature changed, but docs that showed how to invoke the job were not updated.
+The doc author is the Rails developer. The current EN doc already opens with: "Technically speaking, Carambus is a hierarchy of web services," "the so-called Carambus API server," "based on standardized HTML protocols." A task-first rewrite will likely re-introduce implementation detail under the guise of explaining *why* something works — "the sync button works because the local server requests from the API server which retrieves from ClubCloud instances" is a developer explanation, not user task guidance. The existing doc puts architecture content first (first 60% of the file) and workflow last, which is the direct product of this pitfall.
 
 **Why it happens:**
-Docs are updated at the class level ("here is what this service does") without verifying the full call chain: job → service → method arguments. Class-level updates are faster and feel complete.
+Developer-authors conflate "explaining the feature" with "explaining the system." They know why things work and assume users share that curiosity.
 
 **How to avoid:**
-For every service mentioned in updated docs, trace the full call chain from the entry point (rake task, job, controller action, reflex) to the service and verify the method signatures match. When a doc includes a code example with a method call, run that exact call in a Rails console or test to confirm it works. Docs that include code examples are integration tests for documentation accuracy.
+Apply the "2-3x/year volunteer" filter to every paragraph: does this sentence tell the user what to do, or what to expect next? If it explains infrastructure, move it to `docs/developers/`. Use the existing doc's "Tournament Management - Detailed Workflow" section as the content nucleus — it describes tasks. Architecture content already lives there erroneously and must move, not be rewritten.
 
 **Warning signs:**
-- A doc shows `SomeJob.perform_now(discipline: '3-Cushion')` but the job's `perform` signature takes different arguments.
-- A rake task invocation in docs produces `NoMethodError` when run verbatim.
-- Code examples in docs reference private methods or constants that are no longer exported.
+- Rewritten opening paragraph contains a diagram of system layers or the word "server"
+- The phrase "technically speaking" appears anywhere in the managers doc
+- Any reference to Rails, ActiveRecord, AASM, API server architecture, or gem names in user-facing content
 
 **Phase to address:**
-Update phase — every code example in updated docs must be verified as runnable.
+Doc rewrite phase — add a review pass: remove any sentence not answering "what does the user do" or "what will the user see."
 
 ---
 
-### Pitfall 7: New Services Have No Documentation Coverage at All
+### Pitfall 7: Bilingual Drift During a Large Rewrite
 
 **What goes wrong:**
-The opposite of over-documenting is under-documenting: 37 services were extracted across 7 namespaces (v1.0–v5.0), but the existing docs still describe the god-object models as the units of responsibility. A developer reading `developers/tournament-architecture-overview.en.md` sees `TournamentMonitorSupport` (deleted) described as "the operational workhorse" with no mention of `PlayerGroupDistributor`, `RankingResolver`, `ResultProcessor`, or `TablePopulator` that replaced it. The video cross-referencing system (`Video::TournamentMatcher`, `Video::MetadataExtractor`, `SoopliveBilliardsClient`) and the `Umb::*` namespace have zero documentation coverage outside internal notes.
+DE and EN docs are separate files. A rewrite that proceeds EN-first then "translates" DE will produce structural divergence: section headers won't match (making anchor names differ), callouts added to EN mid-rewrite won't exist in DE, and steps added in one language will be missing in the other. v6.0 closed 17 bilingual gaps; a large v7.0 rewrite will open new ones at a higher rate unless structure is locked before content is written. Diverged anchor names between DE and EN break cross-locale links and make future `diff`-based gap-checking unreliable.
 
 **Why it happens:**
-Documentation was written when the god-object models existed. After extraction, the code changed but the doc update was deferred — a standard pattern in delivery-focused milestones. The result is a growing divergence where new developers get an increasingly wrong map of the codebase.
+The natural workflow is "write one language, translate the other." Translation happens at the end when the structure is already frozen. Any mid-rewrite addition in one language is not mirrored.
 
 **How to avoid:**
-The audit phase must produce a gap inventory: for each namespace introduced in v1.0–v5.0, determine whether any public-facing or developer-facing doc covers it. Services that are internal implementation details of a model do not need separate pages — but they should appear in an updated architecture overview that shows the current responsibility allocation. Create one "current architecture" page per major domain (tournament monitoring, scraping, video cross-referencing) that reflects post-refactoring structure, and link from old pages to the new ones rather than attempting an in-place update of outdated architecture docs.
+Define the section skeleton (H2/H3 headers with matching anchor names) in both DE and EN before writing any prose. Commit the skeleton. Then write prose for each section in both languages before moving to the next section. Do not write all of EN then translate all of DE.
 
 **Warning signs:**
-- Grepping docs for "ScoreEngine", "Umb::", "Video::TournamentMatcher" returns no results in non-archive, non-internal docs.
-- The developers section describes class responsibilities in terms of the pre-refactoring god objects.
-- A new developer's onboarding question ("where does scoring logic live?") cannot be answered from the docs.
+- EN doc has a "Quick Reference Card" section; DE does not
+- `diff <(grep "^#" docs/managers/tournament-management.en.md) <(grep "^#" docs/managers/tournament-management.de.md)` produces mismatches
+- Anchor names in DE use German words while EN uses English words
 
 **Phase to address:**
-New documentation phase — write the current-state architecture overview pages before updating old pages. Update old pages to reference the new overview.
+Doc rewrite phase — enforce skeleton-first commit as a gate before prose writing begins.
+
+---
+
+### Pitfall 8: In-App Doc Links Will Point to Sections That Move During the Rewrite
+
+**What goes wrong:**
+v7.0 adds in-app links from wizard steps to mkdocs pages. If those links are added in the same milestone as the doc rewrite, they will be written against the current doc structure. When the rewrite moves or renames sections (e.g., the architecture section moves to developer docs), the in-app links will point to removed anchors. `mkdocs build --strict` does not validate external URL references from ERB files — the build passes but the links are broken.
+
+**Why it happens:**
+The feature (in-app links) and the doc structure change are in the same milestone. The link targets move while the link sources are being written.
+
+**How to avoid:**
+Implement in-app links in a phase that runs *after* the doc rewrite is committed and anchor names are stable. Alternatively, introduce named anchor comments at the top of each wizard-relevant section (e.g., `<!-- anchor: wizard-seeding -->`) that are treated as immutable regardless of section reorganization, and link to those.
+
+**Warning signs:**
+- An in-app link is added in the same commit that restructures the target doc
+- After `mkdocs build --strict` passes, a manual click-test finds the in-app link hits a 404 within the docs site
+- ERB views reference anchor names that no longer exist in the doc after the rewrite
+
+**Phase to address:**
+In-app links phase — must be sequenced after the doc rewrite phase closes and anchor names are stable.
+
+---
+
+### Pitfall 9: "Documented But Missing" vs "Intentionally Removed" — No Signal Exists Without Research
+
+**What goes wrong:**
+The current EN doc describes features that may or may not exist in code: "Future Project: Simplified Referee Operation," "statistics on training games are planned," and a "Manual upload" path described as a present alternative. The doc has no record of intent. If the UX review surfaces these as "documented but not implemented," there is no way to tell from the doc alone whether they were intentionally deferred (a prior decision), never built (oversight), or removed after building (a decision). The v7.0 constraint evolution says "feature additions are newly allowed," which increases the risk of treating deferred decisions as open invitations without checking prior intent.
+
+**Why it happens:**
+Historical context for deferrals lives in developer memory or old commits, not in the doc. The looser constraint makes "implement what the doc promises" feel justified.
+
+**How to avoid:**
+For each "documented but not implemented" finding: (1) run `git log --all -S "feature keyword"` to see if it was ever implemented and removed; (2) check PROJECT.md "Out of Scope" and "Key Decisions" sections; (3) if neither has a record, classify as "intent unknown" and require explicit decision before implementing. Never scope implementation on the basis of "the doc says it should exist."
+
+**Warning signs:**
+- A UX review finding says "the doc mentions X but there's no controller action for it" and the next phase immediately scopes X as a new feature without a decision record
+- The "Future Project" section of the doc gets promoted to an active v7.0 requirement
+- `git log` shows a feature was removed with an explanatory commit message that was not consulted
+
+**Phase to address:**
+UX review phase — findings output must include "intent unknown" as a category, not just "missing" vs "present."
+
+---
+
+### Pitfall 10: Wizard UX Review Without Real Users Produces Cosmetic Fixes, Not Task Fixes
+
+**What goes wrong:**
+A developer reviewing the wizard happy path will notice: visual inconsistency between v1 and v2 partials, button label mismatches ("Setzliste finalisieren" vs "Rangliste abschließen"), mixed DE/EN labels in v1 ("Tournament -> Update Seeding List" in English inside a German context), opacity-25 on inactive steps without tooltips. These are visible, fixable, and satisfying. What the developer will not notice without user observation: whether the seeding/Setzliste/Teilnehmerliste terminology distinction is understood by a volunteer who uses this 2-3 times per year, whether the irreversible finalize confirmation is read or clicked through, whether the wizard hiding itself after `tournament_started` (v2 behavior) confuses a returning volunteer who expects to see where they were.
+
+**Why it happens:**
+Cosmetic problems are immediately visible. Task-level friction requires simulating a user who is not the developer. Without UAT data, developers default to what they can see.
+
+**How to avoid:**
+Write 3 task scenarios before opening any view file: "Volunteer, 8 players, 2 no-shows, first use this season," "Regional officer, day-of, one late withdrawal," "Club officer running their own tournament." Walk each scenario step by step, narrating user uncertainty, not developer knowledge. Document friction as "user question at this point" — not "visual issue." Cosmetic issues go on a separate list and are not prioritized above task friction.
+
+**Warning signs:**
+- UX review issue list is 80% label/styling changes and 0% "user might not know what to do next"
+- The "Step 4 is irreversible" confirmation dialog is noted as "working correctly" without evaluating whether a non-technical user would read it before clicking
+- Review budget is consumed by renaming buttons without evaluating step ordering or warning placement
+
+**Phase to address:**
+UX review phase — write task scenarios before opening any view file; task friction findings must outnumber cosmetic findings before the review is considered complete.
+
+---
+
+### Pitfall 11: Newly Loosened Constraints Create Improvement Cascade Risk
+
+**What goes wrong:**
+The constraint evolution says "feature additions are newly allowed." The wizard has 9 AASM states and approximately 30 controller actions. The UX review will surface real friction — but each fix can pull in a new controller action, new AASM event, new view partial, new i18n keys in DE and EN, and new test coverage. "Small UX fixes" that touch the AASM definition are not small: they risk invalidating the 85 tournament AASM characterization tests from v2.1, affecting `tournament_started_waiting_for_monitors` broadcast behavior, and requiring full wizard regression. The looser constraint is an invitation to scope creep if each fix is not classified by impact before being accepted.
+
+**Why it happens:**
+Each fix looks small in isolation. "Just add an event" is true of the AASM change in isolation, but not true of its downstream implications in tests, broadcasts, and the two existing wizard partials that both need updating.
+
+**How to avoid:**
+Classify each UX finding by impact tier before accepting it into scope: Tier 1 = view/copy change only (no controller, no AASM); Tier 2 = controller action change, no AASM change; Tier 3 = AASM change or new state. Tier 3 findings require an explicit test coverage plan before being scoped. Cap Tier 3 items at 1-2 per milestone. "Fix the label" is Tier 1; "add a confirmation screen between steps 4 and 5" is a new state (Tier 3).
+
+**Warning signs:**
+- A UX fix "just adds a state" to the AASM for a cleaner UI transition
+- A finding says "add a review screen between finalize and mode selection" — this implies a new AASM state
+- Phase scope grows after the UX review to include "while we're in here" changes not in the original review findings
+
+**Phase to address:**
+Cross-cutting concern across all v7.0 phases — each phase plan must require explicit impact tier classification before accepting a fix.
 
 ---
 
@@ -161,12 +241,12 @@ New documentation phase — write the current-state architecture overview pages 
 
 | Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
 |----------|-------------------|----------------|-----------------|
-| Update only the `.de.md` file and defer `.en.md` | Faster per-file, easier to review | English docs diverge; fallback behavior silently serves stale content | Never — do both at the same time or document the asymmetry explicitly |
-| Leave archive docs without "archived" notices | No extra work | Site search surfaces stale code examples to new developers | Never for pages that contain runnable code examples pointing to deleted code |
-| Document only the class, not the call chain | Accurate at the class level | Reader cannot use the information without additional investigation | Acceptable only for internal implementation classes with no external callers |
-| Describe new services in a changelog rather than updating architecture docs | Quick, preserves history | Architecture overview grows stale; changelogs are not reference material | Acceptable as a supplement, never as a replacement for architecture doc updates |
-| Rely on `BROKEN_LINKS_REPORT.txt` as the complete audit | Link audit already exists | File-path links are checked but code-identifier references are not | Use as a starting point, not a completion criterion |
-| Skip verifying code examples | Saves time per doc | Code examples that don't work destroy reader trust faster than outdated prose | Never for docs that target developers |
+| Write EN doc first, translate DE after | Faster first draft | Structural drift, anchor mismatch, re-sync effort in v8.0 | Never for structural changes; acceptable for small prose-only corrections |
+| Reference wizard step numbers (not names) in docs | Concise | Breaks when organizer type changes numbering; requires doc update on any step reorder | Never — use step names |
+| Add in-app doc links in same PR as doc restructure | Single PR | Links point to moved anchors on deploy | Never — sequence as a separate phase |
+| Describe AASM states as user steps | Matches source code | States and user steps are different abstractions; "accreditation_finished" has no user meaning | Never in user-facing docs |
+| Fix cosmetic UX issues before completing task UX review | Quick wins, visible progress | Cosmetic fixes consume budget; task friction remains invisible until post-release | Only after all task-friction findings are documented and prioritized |
+| Implement "documented but missing" features without intent check | Satisfies the doc | May contradict a prior decision to defer or remove the feature | Never without checking `git log` and PROJECT.md first |
 
 ---
 
@@ -174,25 +254,36 @@ New documentation phase — write the current-state architecture overview pages 
 
 | Integration | Common Mistake | Correct Approach |
 |-------------|----------------|------------------|
-| mkdocs-i18n plugin (`suffix` structure) | Assuming `foo.md` is served to all locales | Files without `.de.md`/`.en.md` suffix are served as-is; the plugin does not auto-translate or duplicate them — they appear only in the locale that matches or as a fallback |
-| mkdocs nav with i18n | Listing a `.md` key in nav without suffix — mkdocs resolves this to the default locale file | Nav entries should use the base name without suffix; the plugin resolves to the correct language file automatically |
-| `fallback_to_default: true` | Assuming missing-language pages are invisible | The fallback serves the default locale (German) content to English-locale visitors — stale German content becomes the English page silently |
-| mkdocs `exclude_docs` | Assuming `docs/archive/` is not indexed because it's not in nav | mkdocs serves and indexes all files under `docs_dir` unless explicitly excluded via `exclude_docs` or `not_in_nav` |
-| Link checker script | Assuming it checks code identifier references | The existing checker only checks markdown hyperlinks and image paths — it does not verify that class names, method names, or file paths in code blocks exist in the codebase |
-| mkdocs build errors | Fixing broken nav entries by removing the nav entry rather than the broken file | Removing a nav entry leaves an orphaned file that is still indexed by search — remove both the nav entry and the file (or redirect) |
+| ClubCloud sync in wizard | Doc says sync is "Step 2" — it is optional and conditional on organizer type | Describe as conditional: present for regional tournaments, absent for club tournaments |
+| `auto_upload_to_cc` checkbox | Documented as in "Step 6 wizard panel" — actually in the tournament-start form | `grep -rn "auto_upload_to_cc" app/views/` before writing its location |
+| mkdocs anchor links from ERB | Written against current doc structure during a doc restructure | Anchor names must be frozen before in-app links are written; sequence phases accordingly |
+| AASM `skip_validation_on_save: true` | Characterization tests may not catch silent validation bypass during state transitions | Assert tournament validity explicitly after each AASM transition in new tests |
+| Wizard partial (v1 vs v2) | Doc written against one partial that may not be the rendered one | Confirm which partial is canonical in `show.html.erb` before writing any doc |
+
+---
+
+## UX Pitfalls
+
+| Pitfall | User Impact | Better Approach |
+|---------|-------------|-----------------|
+| Irreversible "Finalize" step confirmation uses billiards/developer terminology | Volunteer clicks through without reading; cannot undo seeding | Plain-language confirmation: "After this, you cannot add or remove players. Groups will be calculated from this list." |
+| Wizard v2 hides itself after `tournament_started` | Returning volunteer sees no wizard and cannot find where they were | Document explicitly: once started, the wizard is done — use the Tournament Monitor link |
+| Disabled steps (opacity-25) have no tooltip | Volunteer does not know which prior step to complete | Add "Complete step [Name] first" tooltip to disabled buttons |
+| Meldeliste/Setzliste/Teilnehmerliste glossary is collapsed in `<details>` | Volunteer with 2-3x/year usage cannot recall terminology distinction under time pressure | The v2 partial has a glossary box — make it always visible, not collapsed |
+| Mixed DE/EN labels in v1 partial | Volunteer's screen shows English action labels; German doc refers to German labels | Resolve DE/EN label consistency before writing docs that reference UI labels |
 
 ---
 
 ## "Looks Done But Isn't" Checklist
 
-- [ ] **Stale identifier audit complete:** `grep -rn "UmbScraperV2\|tournament_monitor_support\|lib/tournament_monitor_support" docs/` returns only archive-flagged files — not active docs.
-- [ ] **Pair coverage verified:** `diff <(ls docs/developers/*.de.md | sed 's/\.de\.md//') <(ls docs/developers/*.en.md | sed 's/\.en\.md//')` shows no unexpected asymmetry.
-- [ ] **mkdocs.yml nav is consistent with file tree:** Every file listed in nav exists; every file edited has a corresponding nav entry (or is intentionally not-in-nav).
-- [ ] **Broken link count did not increase:** Running the link checker after all updates produces <= 74 broken links (the pre-audit baseline), ideally fewer.
-- [ ] **Archive pages have stale-content notices:** Every archived page that references deleted classes has a visible "Archived" header.
-- [ ] **New architecture overview exists:** At least one updated page per refactored domain (tournament monitoring, scraping, video) reflects post-v5.0 structure.
-- [ ] **Code examples are runnable:** Every developer-facing code example in updated docs was verified against the current codebase (class exists, method signature matches, invocation path works).
-- [ ] **mkdocs build passes:** `mkdocs build --strict` (or without strict mode if warnings are acceptable) completes without errors after all updates.
+- [ ] **Wizard partial confirmed:** `grep -rn "wizard_steps" app/views/tournaments/show.html.erb` identifies exactly one canonical partial and the condition under which it renders.
+- [ ] **`auto_upload_to_cc` checkbox located:** `grep -rn "auto_upload_to_cc" app/views/` run before writing the doc section that describes this checkbox.
+- [ ] **AASM dead states mapped:** `accreditation_finished` and `closed` traced to determine if any controller action or background job transitions into them — not assumed to be wizard steps.
+- [ ] **Bilingual skeleton committed:** DE and EN section headers match before any prose is written.
+- [ ] **In-app links sequenced after doc freeze:** No in-app doc link written until the doc rewrite phase closes and anchor names are tagged as stable.
+- [ ] **Wizard v1 retirement decision made:** Either v1 partial is retired, or both paths are explicitly documented before the doc rewrite begins.
+- [ ] **Each "documented but missing" finding triaged:** Categorized as "never implemented," "was removed," or "intent unknown" before any implementation is scoped.
+- [ ] **Each UX fix classified by tier:** Tier 1 (view only), Tier 2 (controller change), Tier 3 (AASM change) — Tier 3 items have a test coverage plan before entering scope.
 
 ---
 
@@ -200,12 +291,12 @@ New documentation phase — write the current-state architecture overview pages 
 
 | Pitfall | Recovery Cost | Recovery Steps |
 |---------|---------------|----------------|
-| Stale class reference found post-publication | LOW | Grep for all occurrences, update both language files, rebuild site |
-| Broken link count increased after update | LOW | Run link checker, find new broken links, fix or remove the source reference |
-| Language files diverged (one updated, one not) | MEDIUM | Diff both files, identify structural gaps, apply missing changes to the lagging file |
-| Archive content surfacing in search | LOW | Add `search: exclude: true` front matter to archive index or add `exclude_docs` to mkdocs.yml |
-| Nav entry removed but file still served | LOW | Add file to `not_in_nav` or delete the file; rebuild and verify search_index.json |
-| New architecture doc contradicts old page | MEDIUM | Add a deprecation notice to old page linking to new one; do not delete old page until all inbound links are updated |
+| Doc describes wrong wizard partial | MEDIUM | Identify canonical partial, rewrite affected sections, update anchors, re-check in-app links |
+| Step numbers in doc wrong for club users | LOW | Replace all step numbers with step names in a single pass |
+| In-app links point to moved anchors | LOW | Add stable anchor comments to doc, update in-app link targets |
+| Bilingual structural drift | HIGH | Diff H2/H3 between DE/EN, reconcile structure, retranslate affected sections |
+| AASM Tier 3 fix breaks characterization tests | HIGH | Revert AASM change, write new characterization tests first, then re-implement |
+| "Future feature" implemented without intent check | MEDIUM | Check git history and PROJECT.md, document the decision, re-scope if feature was previously deferred |
 
 ---
 
@@ -213,27 +304,29 @@ New documentation phase — write the current-state architecture overview pages 
 
 | Pitfall | Prevention Phase | Verification |
 |---------|------------------|--------------|
-| Stale class/file identifiers in docs | Audit phase — grep inventory first | `grep -rn "UmbScraperV2\|tournament_monitor_support" docs/` returns zero active-doc results |
-| Language pair divergence | Every update task — pair discipline | Diff of de/en file shows only translation differences, not structural differences |
-| Broken links from deletions | Removal/update phase — inbound-link grep before every deletion | Broken link count <= baseline after all changes |
-| Over-documenting service internals | New documentation phase — architecture overview first | No published page describes private methods or implementation internals of extracted services |
-| Archive content indexed in search | Audit phase — verify mkdocs exclude configuration | `site/search/search_index.json` contains no entries from `docs/archive/` or `docs/internal/` |
-| Code examples not runnable | Update phase — verify each example against codebase | Zero "NoMethodError" or "uninitialized constant" when running examples from updated docs |
-| New services undocumented | New documentation phase — gap inventory | Grepping published docs for `Umb::`, `Video::TournamentMatcher`, `ScoreEngine` returns at least one architecture-level reference per namespace |
+| Two wizard partials, wrong one documented | UX review phase (pre-condition) | `grep -rn "wizard_steps" app/views/tournaments/show.html.erb` confirms one canonical partial |
+| AASM dead states fabricated as wizard steps | Doc rewrite phase | Each documented step maps to a named controller action; dead states explicitly annotated |
+| Transient waiting state missing from docs | UX review phase | Happy-path start flow observed in browser; transient state behavior documented or confirmed invisible |
+| `auto_upload_to_cc` in wrong doc location | Doc rewrite phase | Checkbox location confirmed by `grep` before writing |
+| Step numbers conditional on organizer type | Doc rewrite phase | Doc output contains no bare "Step N" without organizer qualifier; verified by grep |
+| Sympathetic developer terminology leak | Doc rewrite phase | Review pass removes every sentence not answering "what does user do/see" |
+| Bilingual drift | Doc rewrite phase (skeleton gate) | `diff` of H2/H3 headers between DE/EN passes before prose phase begins |
+| In-app links to moving targets | In-app links phase (after doc freeze) | In-app links phase does not open until doc rewrite phase is closed and anchors are tagged stable |
+| "Documented but missing" intent unknown | UX review phase | Each finding labeled "never implemented / was removed / intent unknown"; no Tier-3 feature scoped without decision record |
+| Cosmetic over task UX fixes | UX review phase | Task-scenario findings written before any view file is opened; task findings outnumber cosmetic findings |
+| Improvement cascade from loosened constraints | Cross-cutting all v7.0 phases | Each fix tier-classified; Tier 3 items have test coverage plan before scoping |
 
 ---
 
 ## Sources
 
-- `docs/BROKEN_LINKS_REPORT.txt` — 74 confirmed broken links as pre-audit baseline; link checker scope and exclusions documented
-- `docs/developers/tournament-architecture-overview.en.md` — confirmed reference to deleted `lib/tournament_monitor_support.rb` and `TournamentMonitorSupport`
-- `docs/developers/umb-scraping-methods.md` — confirmed reference to deleted `UmbScraperV2` class as active documentation (not archived)
-- `mkdocs.yml` — i18n plugin configuration (`fallback_to_default: true`, `docs_structure: suffix`), full nav inventory, no `exclude_docs` directive for archive directories
-- `.planning/PROJECT.md` — complete list of 37 extracted services, deleted files (`UmbScraperV2`, `lib/tournament_monitor_support.rb`), and milestone history
-- `grep -rn "UmbScraperV2" docs/` — live execution confirmed stale references in `developers/umb-scraping-methods.md` (active nav page) and multiple archive pages
-- `grep -rn "tournament_monitor_support" docs/` — live execution confirmed stale references in `developers/tournament-architecture-overview.en.md` and `developers/clubcloud-upload.de.md` / `.en.md`
-- File tree comparison of `.de.md` vs `.en.md` in `docs/developers/` — confirmed asymmetric pairs: `streaming-dev-setup.de.md` (no en), `tournament-architecture-overview.en.md` (no de), `test-implementation-summary.de.md` (no en), `testing-strategy.de.md` (no en)
+- Direct inspection: `app/models/tournament.rb` AASM block (lines 271-311) — 9 states, event definitions, missing inbound transitions for `accreditation_finished` and `closed`
+- Direct inspection: `app/views/tournaments/_wizard_steps.html.erb` and `_wizard_steps_v2.html.erb` — two parallel wizard UIs with different step structure and numbering
+- Direct inspection: `app/controllers/tournaments_controller.rb` lines 288-350 — `start` action reads `auto_upload_to_cc` from params; `start_tournament!` transitions to `tournament_started_waiting_for_monitors` not `tournament_started`
+- Direct inspection: `docs/managers/tournament-management.en.md` — current claims about step numbers, `auto_upload_to_cc` location, architecture-first structure
+- Direct inspection: `.planning/PROJECT.md` — v7.0 scope, constraint evolution ("behavior preservation scoped"), out-of-scope decisions
+- Pattern from v6.0: 17 bilingual gaps closed in the previous milestone confirms structural drift is a recurring pattern in this codebase's doc workflow
 
 ---
-*Pitfalls research for: documentation quality audit after 5 milestones of codebase refactoring*
-*Researched: 2026-04-12*
+*Pitfalls research for: v7.0 Manager Experience — task-first doc rewrite + wizard UX review on Carambus Rails app*
+*Researched: 2026-04-13*

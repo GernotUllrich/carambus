@@ -1,136 +1,120 @@
 # Feature Research
 
-**Domain:** Documentation quality audit and update for Rails app with mkdocs-material
-**Researched:** 2026-04-12
-**Confidence:** HIGH — full codebase + docs inventory available; domain is the existing docs themselves
+**Domain:** Volunteer-friendly tournament manager UX + task-first documentation (v7.0 scope)
+**Researched:** 2026-04-13
+**Confidence:** HIGH (based on direct code inspection + existing doc review; external web research unavailable this session)
 
 ---
 
-## What This Document Maps
+## Scope Boundary
 
-This is a **work-item map for milestone v6.0** on an existing Rails 7.2 carom billiards tournament management app. The codebase underwent major refactoring in v1.0–v5.0 (37 services extracted, 3 models deleted, 1 scraper replaced). Documentation was not updated alongside those code changes. The docs site uses mkdocs-material with de/en i18n (suffix strategy, German default), five audience sections (decision-makers, players, managers, administrators, developers), and a broken links report showing 74 broken links across 177 markdown files.
+This research covers **v7.0 only**: docs rewrite, quick-reference card, in-app help links, wizard UX polish, and small documented-but-missing feature implementations. No new capabilities are in scope. Every feature below is evaluated against the persona: volunteer club officer, 2-3 tournaments/year, low tech comfort, German-speaking.
 
-"Table stakes" = work items without which the milestone goal is not met (docs accurately reflect codebase).
-"Differentiators" = items that significantly raise quality but are not blockers.
-"Anti-features" = tempting directions to explicitly reject.
-
----
-
-## Ecosystem Context
-
-### Current State of the Docs
-
-**What exists:**
-- 177 markdown files across `docs/`, of which 89 are `.de.md` and 63 are `.en.md`
-- `BROKEN_LINKS_REPORT.txt` already generated: 74 broken links in 6 directories (developers: 19, players: 34, reference: 16, administrators: 1, international: 2, managers: 2)
-- `docs/obsolete/` folder exists — prior cleanup was started but not finished
-- `docs/archive/` contains 2026-02 and 2026-02-pre-sti subdirectories — these are internal process notes, not user docs, but they pollute the docs corpus
-
-**What is stale after v1.0–v5.0 refactoring:**
-- `docs/developers/umb-scraping-implementation.md` and `umb-scraping-methods.md` — reference `UmbScraperV2` (deleted in v5.0) and the old monolithic `UmbScraper` (2133→175 lines). These are significantly stale.
-- `docs/international/umb_scraper.md` — references old scraper architecture
-- No docs exist for any of the 37 extracted service classes (ScoreEngine, Umb::*, League::*, Video::*, etc.)
-- No docs cover the SoopLive JSON API integration or video cross-referencing system built in v5.0
-
-**Multilingual sync gaps (confirmed by file count analysis):**
-- 26 German docs have no English counterpart (out of `internal/`, `studies/`, `administrators/`, `developers/` subdirs)
-- 3 English docs have no German counterpart (`managers/table-reservation.en.md`, `reference/mkdocs_documentation.en.md`, `developers/tournament-architecture-overview.en.md`)
-- i18n plugin uses `fallback_to_default: true` — missing EN pages silently render DE content; users see correct language label but wrong language content
-
-**Broken links breakdown (from BROKEN_LINKS_REPORT.txt):**
-- `players/scoreboard-guide.de.md` and `.en.md` — 11 broken screenshot image links each (22 total)
-- `developers/` — 19 broken links to files like `enhanced_mode_system.md` (in obsolete/), `scenario-system-workflow.md` (missing), `test/FIXTURES_*.md` (outside docs root), `CONTRIBUTING.md` (missing)
-- `reference/` — 16 broken links including placeholder `file.md` and `assets/image.png` examples left in mkdocs_dokumentation
-- `administrators/streaming-production-deployment.md` — 1 link to missing `systemd-streaming-services.md`
+Carambus status codes used throughout:
+- **EXISTS** — code exists and works today
+- **PARTIAL** — code exists but is incomplete or inconsistent
+- **NEW** — does not exist, would need implementation
 
 ---
 
 ## Feature Landscape
 
-### Table Stakes (Without These, Milestone Goal Not Met)
+### Table Stakes (Users Expect These)
 
-| Feature | Why Expected | Complexity | Notes |
-|---------|--------------|------------|-------|
-| Fix 74 broken internal links | A docs site with 74 broken links is broken; every link checker run will surface these; developer trust erodes | LOW–MEDIUM | Breakdown: 22 missing screenshots (delete or add), 19 developer links (fix paths, consolidate, or remove), 16 reference meta-examples (clean up mkdocs_dokumentation placeholder links), 17 others. Each fix is a one-liner; volume is the complexity. |
-| Update UMB scraping docs for v5.0 reality | `umb-scraping-implementation.md` and `umb-scraping-methods.md` reference `UmbScraperV2` (deleted) and old 2133-line monolith. Any developer reading these will implement against the wrong architecture. | MEDIUM | `UmbScraperV2` deleted in v5.0; `UmbScraper` reduced from 2133→175 lines; 10 `Umb::*` services extracted. Docs need full rewrite to reflect `Umb::` namespace, the 10 service classes, and SoopLive JSON API integration. Two files: `umb-scraping-implementation.md` (plan → reality), `umb-scraping-methods.md` (rake tasks still accurate, service internals not). |
-| Document the 37 extracted services (developer reference) | After v1.0–v5.0, none of the extracted services appear in any doc. Zero mentions of ScoreEngine, Umb::HttpClient, Video::TournamentMatcher, League::StandingsCalculator, etc. Developers onboarding have no map. | HIGH | 37 services across 8 namespaces: `table_monitor/`, `region_cc/`, `tournament/`, `tournament_monitor/`, `league/`, `party_monitor/`, `umb/`, `video/`. A single developer reference page (or section) per namespace grouping is the right scope. Not API reference — purpose, responsibility, and public interface per class. |
-| Remove or update references to deleted code | `UmbScraperV2`, old `TableMonitor` 3900-line monolith, `lib/tournament_monitor_support.rb` (deleted) — any doc citing these as the current implementation misleads developers. | LOW | Mostly in UMB scraping docs + archive. Archive files can stay as historical record but should be clearly labeled. Active nav docs must not reference deleted code. |
-| Audit nav against actual file existence | `mkdocs.yml` nav references 40+ pages; some may have been created as stubs or not yet written. Any nav entry pointing to a missing file causes mkdocs build warnings (or errors with strict mode). | LOW | Verify each nav entry has a corresponding `.de.md` file. Cross-check against `docs/developers/` inventory. |
+Features that, if missing, cause the volunteer to fail or call for help.
 
-### Differentiators (Significantly Raise Quality, Not Blockers)
+| Feature | Why Expected | Complexity | Carambus Status | Notes |
+|---------|--------------|------------|-----------------|-------|
+| Task-first doc opening ("Running a tournament") | Volunteer opens docs once a year; an architecture overview as the first thing they see is a failure | LOW | PARTIAL | `tournament-management.en.md` opens with architecture/system overview, not a user task. `single-tournament.en.md` is closer but buried under index |
+| Happy-path wizard walkthrough doc (steps 1-6 only) | The full doc mixes setup, edge cases, technical details, and troubleshooting — volunteer needs a single linear flow | LOW | PARTIAL | `single-tournament.en.md` covers all 6 steps but mixes happy-path with troubleshooting inline |
+| State badge on wizard (what state am I in?) | 2-3x/year user forgets between uses; needs immediate orientation | LOW | EXISTS | `wizard_status_text` + progress bar already present in `_wizard_steps_v2.html.erb`; progress text shows "Schritt X von 6" |
+| Numeric step counter visible throughout wizard | Volunteers can count; "Step 3 of 6" is orientation, not hand-holding | LOW | EXISTS | `_wizard_steps_v2` renders "Schritt X von 6" in header; both v1 and v2 templates have this |
+| Irreversible-action warning before finalize steps | Step 4 (finalize participant list) cannot be undone; volunteer must know before clicking | LOW | EXISTS | Confirm dialog on finish_seeding; "danger" flag on wizard step renders red styling; warning text present |
+| Troubleshooting section per doc page | Volunteer arrives at the doc when something is wrong, not when planning; needs problem-to-solution structure | LOW | PARTIAL | `single-tournament.en.md` has a Troubleshooting section; `tournament-management.en.md` does not; `index.en.md` has Common Problems but describes a different workflow than the actual wizard |
+| Glossary inline or linked (Meldeliste vs. Setzliste vs. Teilnehmerliste) | These three terms are genuinely confusing and not standard German outside billiards administration | LOW | EXISTS | `_wizard_steps_v2` has a "Begriffserklärung" box; `single-tournament.en.md` has a dedicated section; full glossary exists at `/docs/reference/glossary.md` but is not linked from wizard |
+| Before/During/After mental model in docs | Volunteers think in tournament phases, not in system states | LOW | PARTIAL | `index.en.md` "Best Practices" section has this structure but it references features that don't match the actual wizard (e.g., "Create tournament" as step 1, but Carambus starts from a ClubCloud-sourced tournament) |
+| In-app link from wizard to relevant doc section | When stuck in the wizard, the volunteer needs to reach the relevant doc without leaving the page to search | MEDIUM | NEW | `docs_page.html.erb` exists and is a complete in-app doc renderer; `TournamentsController` has no links to it from wizard steps; no `help_url` pattern or doc-link helper in wizard views |
+| Printable quick-reference card (Before/During/After) | On tournament day, no one reads docs on a laptop; a laminated one-pager is the real UX | LOW | NEW | No quick-reference document exists in `docs/managers/` |
 
-| Feature | Value Proposition | Complexity | Notes |
-|---------|-------------------|------------|-------|
-| Synchronize missing EN counterparts for in-nav DE docs | 26 DE docs have no EN version; `fallback_to_default: true` silently serves wrong language. Any English-speaking developer hits German-only content with no indication. | MEDIUM | Priority subset: only docs that are in the mkdocs.yml nav. `internal/`, `studies/`, `archive/` are not in nav — skip. For in-nav pages, an EN stub saying "Translation pending, DE version available" beats silent fallback. |
-| Add video cross-referencing system to developer docs | `Video::TournamentMatcher`, `Video::MetadataExtractor`, `SoopliveBilliardsClient` (v5.0) are entirely undocumented. The confidence scoring system (0.75 threshold), the two-path matching (regex-first + AI fallback), and the backfill rake task are non-obvious architecture decisions. | MEDIUM | This is the highest-value new feature from v5.0. One developer-section page: architecture overview, confidence scoring, operational workflow (daily job + backfill rake). |
-| Stale content detection pass (beyond broken links) | Broken links are mechanical. Stale content is semantic: docs that reference correct filenames but describe wrong behavior. The UMB docs are the confirmed example. Other candidates: `developers/game-plan-reconstruction.de.md` (describes `GamePlanReconstructor` as part of `League` — check it matches v4.0 extraction), `managers/league-management` (may reference old League model size). | MEDIUM | Manual review of each developer doc against corresponding service class. Not automated — requires reading both doc and code. Scope: 10–15 most likely stale files based on what changed in v1.0–v5.0. |
-| Consolidate orphaned docs outside nav | 177 files in docs but nav covers ~40 pages. ~137 files are not in nav: `internal/`, `archive/`, `studies/`, `testing/`, `features/`, `changelog/`, `international/`, etc. Some are legitimately internal; others are abandoned drafts. Labeling them clearly (or moving to a discoverable location) reduces confusion. | LOW | Not a full audit — just flag the known categories: `archive/` = historical, `internal/` = internal, `obsolete/` = delete candidates. A `docs/README.md` or `docs/internal/INDEX.md` explaining the structure is enough. |
-| Verify multilingual nav translations in mkdocs.yml | The `nav_translations` section in `mkdocs.yml` covers ~60 key names for DE. If new nav entries were added for v6.0 docs, their DE translations need to be added here or EN strings appear in the DE nav. | LOW | Mechanical check: for every nav entry added in v6.0, add a corresponding `nav_translations` entry. Low effort but easy to forget. |
+### Differentiators (Nice to Have, Improves the Experience)
 
-### Anti-Features (Tempting, Explicitly Reject)
+| Feature | Value Proposition | Complexity | Carambus Status | Notes |
+|---------|-------------------|------------|-----------------|-------|
+| Anchor-targeted in-app doc links (link to specific heading, not just page) | Wizard step 2 should link directly to "Step 2: Import Seeding List" heading, not the full 400-line doc | LOW | PARTIAL | `docs_page.html.erb` renders full page; no anchor-fragment support visible; mkdocs generates anchor IDs so the URL pattern exists, just needs wiring |
+| State badge as primary orientation cue | A badge reading "Setzliste konfigurieren" is more meaningful than "33%" for a low-frequency user | LOW | PARTIAL | Both exist (`wizard_status_text` + progress bar); the badge text is visually secondary to the progress bar in current CSS; reordering is a layout change |
+| Collapsed help section open by default for active step only | Expanding `<details>` manually is friction; the active step's help should be visible without a click | LOW | PARTIAL | All `<details>` elements in wizard steps are collapsed by default; adding `open` attribute conditionally when `status == :active` would fix this with one ERB change |
+| "What changed since last time" note at top of doc | 2-3x/year user doesn't re-read the whole doc; a "Changed in this version" note saves time | LOW | NEW | No changelog section in manager docs |
+| Quick-reference card in DE + EN | German is primary but some club officers run mixed events | LOW | NEW | All existing manager docs are bilingual; card should follow the same pattern |
+| Wizard disappears after tournament start (or collapses) | After step 6, the wizard is replaced by the tournament status view — this is the right behavior | LOW | EXISTS | `_wizard_steps_v2` has `unless tournament.tournament_started` guard; tournament status section always renders |
+| Step-level context always visible (not in `<details>`) | Active step context should not require a click to reveal | LOW | PARTIAL | All step help is behind `<details summary="Was macht dieser Schritt?">` — user must click to read context |
 
-| Feature | Why Requested | Why Problematic | Alternative |
-|---------|---------------|-----------------|-------------|
-| Full translation of all 26 DE-only docs into EN | Completeness appeal; "real" i18n means both languages everywhere | 26 files × average 200 lines = 5200 lines of translation. Most are internal/archive files not in nav. Translation cost far exceeds value for docs users never see. | Translate only docs that appear in mkdocs.yml nav and are user-facing. Mark internal/archive explicitly as DE-only. |
-| Automated stale content detection (CI script) | Appealing as a long-term quality gate | Writing a reliable "code-to-docs sync checker" for a Rails app requires parsing Ruby AST and matching to prose. This is a multi-week project. The actual stale content in v6.0 is already known from PROJECT.md. | Do the manual audit for the known-stale files now. Consider a code comment convention (`# @docs: docs/path.md`) for future maintenance — low-tech, zero tooling. |
-| Generating API reference from code (YARD/RDoc) | Automated, always-current docs from docstrings | UMB scraping docs are the only place developers need reference accuracy. The 37 services are well-named POROs with clear responsibilities. Auto-generated API docs for POROs add visual noise without navigational value. | Write one prose overview page per service namespace (8 namespaces), listing each class and its responsibility in a table. That's the right fidelity for this codebase. |
-| Rewriting all docs in both languages from scratch | "Start fresh" appeal after major refactoring | Only a subset of docs are actually stale. Most audience docs (players, managers, decision-makers) describe user-facing features that haven't changed. Rewriting them risks introducing errors. | Audit-first: identify which files are stale (broken refs to deleted code = stale). Update only those. Preserve everything else. |
-| Adding screenshots for all UI features | Docs without screenshots "feel incomplete" | Screenshots are maintenance debt: every UI change breaks them. Scoreboard guide already has 34 broken screenshot links — adding more screenshots without adding the actual images makes this worse. | Fix the 22 existing broken screenshot links first (either add images or remove the broken `![alt](path)` references). Do not add new screenshot placeholders that don't yet have images. |
+### Anti-Features (Tempting to Add, Actively Harmful for 2-3x/Year Users)
+
+| Anti-Feature | Why It Looks Good | Why It Hurts Volunteers | Alternative |
+|--------------|-------------------|------------------------|-------------|
+| Comprehensive onboarding tour / interactive walkthrough | Seems welcoming; guides first-time users | 2-3x/year users forget the tour by next use; on return visits it becomes an obstacle; tours go stale when UI changes | Write the doc to be re-readable in 2 minutes; use the state badge for orientation on return |
+| Modal help dialogs on wizard steps | Centralizes contextual help | Modals block the UI; on tournament day the volunteer is under time pressure; dismiss-to-proceed is friction | Use inline `<details>` open by default for the active step (already the structural pattern) |
+| Over-explanation on the quick-reference card | More information feels safer | A card that doesn't fit on one A4 side is not a card — it's a doc that won't get printed | Strict rule: Before column 5 items max, During 5 items max, After 3 items max; link to full doc for anything longer |
+| Multiple help entry points per step (tooltip + link + modal + inline) | Redundancy seems thorough | Cognitive overload; volunteer doesn't know which one to click; inconsistency erodes trust | One help mechanism per step; `<details>` open by default for the active step |
+| Searchable documentation inside the app | Seems convenient | Low-frequency users don't know what to search for; they recognize context, not keywords; search requires knowing what to ask | Context-sensitive link from each wizard step directly to the relevant doc section |
+| Feature-complete documentation index as the entry point | Looks professional | A volunteer arriving at `docs/managers/index.en.md` sees 8 sections, 10 tournament formats, statistics, PWA features — none relevant to running a single regional tournament | Make the entry point "Running Your First Tournament" as an H1, with everything else linked below |
+| Undo/rollback button on finalize steps | Feels safer | If implemented incorrectly it creates ambiguity about state; AASM transitions are intentionally one-way; a partial rollback is worse than none | Make the confirmation dialog concrete ("12 players will be locked. No-shows cannot be re-added.") |
+| "Advanced" / "Expert" mode toggle | Seems to serve power users | Volunteers are the only users of the wizard; there is no second audience; a toggle creates two UX paths to maintain | Design the happy path for the volunteer; expose edge cases through troubleshooting sections, not a mode switch |
+| Progress percentage (33%, 66%) as primary metric | Numbers seem informative | Percentage implies granularity that doesn't exist (6 steps are not uniform work); "33%" while waiting on tournament day for players to arrive has no actionable meaning | State badge ("Setzliste konfigurieren", "Bereit zum Start") is more actionable than a percentage |
+| Video tutorial embedded in wizard | Looks modern | Videos don't work offline, are painful to watch under time pressure on tournament day, and go stale when UI changes | Short inline text + printable card; in-app link to the relevant doc section |
 
 ---
 
 ## Feature Dependencies
 
 ```
-Broken link audit
-    └── precedes ──> any other fix (establishes clean baseline)
-    └── informs ──> which nav entries need attention
+Printable quick-reference card
+    └──requires──> Task-first doc content (happy-path only, decided first)
+                       └──requires──> Wizard UX review (what actually happens in each step)
 
-UMB scraping docs rewrite
-    └── requires knowing ──> actual v5.0 service structure (from codebase, already analyzed)
-    └── clears stale content ──> removes UmbScraperV2 references from active docs
+In-app doc links from wizard steps
+    └──requires──> URL mapping: wizard step number → doc section anchor
+    └──enhances──> Collapsed help (doc link as fallback when details is closed)
 
-Document 37 extracted services
-    └── depends on ──> knowing the service inventory (complete: 37 services listed in PROJECT.md)
-    └── informs structure ──> one section per namespace, not one page per service
+Open-by-default help for active step
+    └──enhances──> State badge as primary orientation
+                       └──conflicts──> Progress percentage as primary orientation
+                                           (one should be demoted; badge to primary, bar to secondary)
 
-Multilingual gap fill (in-nav pages only)
-    └── requires ──> knowing which pages are in nav (mkdocs.yml, already read)
-    └── precedes ──> nav_translations update in mkdocs.yml
-
-Nav_translations update
-    └── required by ──> any new nav entries added in this milestone
+Anchor-targeted in-app doc links
+    └──requires──> docs_page.html.erb anchor-fragment support (partial implementation exists)
+    └──requires──> Task-first doc rewrite (anchors only useful once headings are well-structured)
 ```
 
 ### Dependency Notes
 
-- **Link audit first.** It's mechanical, yields a clean pass/fail signal, and unblocks everything else. The BROKEN_LINKS_REPORT.txt already exists — this is executing the fixes, not finding them.
-- **UMB docs rewrite is independent** of the link audit. It's semantic, not mechanical. Can run in parallel.
-- **Service documentation is the largest single work item.** 37 services × average half-page each = ~20 pages of prose. Group by namespace to make it tractable (8 groups, not 37 individual pages).
-- **Multilingual gaps only matter for in-nav docs.** The 26 missing EN files are mostly in `internal/`, `studies/`, `archive/` — not in nav. The actual in-nav gap is smaller. Confirm before estimating effort.
+- **Quick-reference card requires task-first doc rewrite first:** The card content must be derived from the same happy-path walkthrough. Writing them in parallel risks inconsistency between card and doc.
+- **In-app doc links require wizard UX review first:** We need to confirm which steps have friction before wiring links to specific doc sections. Linking to the wrong sections adds noise.
+- **State badge vs. progress bar:** Both exist in `_wizard_steps_v2`. The progress bar is visually primary (wide, colored, prominent). The status text is secondary in the current layout. Demoting the bar and promoting the badge is a CSS/layout change with no logic risk.
+- **Open-by-default details:** The `_wizard_step.html.erb` partial uses a static `<details>` tag. Adding `open` conditionally when `status == :active` is one ERB condition. Risk: if multiple steps are simultaneously active (steps 3+4 can both be active), both would be open — which is correct behavior.
 
 ---
 
 ## MVP Definition
 
-### Must-Do (Milestone Not Complete Without These)
+### Launch With (v7.0)
 
-1. Fix all 74 broken internal links (mechanical, high-visibility)
-2. Rewrite `umb-scraping-implementation.md` and `umb-scraping-methods.md` to reflect v5.0 reality (UmbScraperV2 deleted, `Umb::` namespace, 10 services)
-3. Add developer reference for all 37 extracted services (grouped by namespace, one overview section per group)
-4. Verify all mkdocs.yml nav entries resolve to existing files
+Minimum deliverables for the milestone.
 
-### Should-Do (Strong Value, Include If Feasible)
+- [ ] **Task-first doc rewrite** of `docs/managers/tournament-management.{de,en}.md` — "Running a tournament from ClubCloud to finish" replaces the architecture overview; technical details move to appendix. Reason: This is the entry point volunteers find first; its current form fails the volunteer persona.
+- [ ] **Printable quick-reference card** (one A4 page, Before/During/After, DE + EN) in `docs/managers/`. Reason: On tournament day, no one reads docs on a laptop. The card is the actual runtime UX for a low-frequency user.
+- [ ] **In-app doc links from wizard steps** — Each of the 6 steps in `_wizard_steps_v2` gets a link to the corresponding section of the rewritten doc. Reason: `docs_page.html.erb` renderer already exists; wiring the link is LOW complexity and HIGH volunteer value.
+- [ ] **Open-by-default help for the active step** — The `<details>` element on the active step renders with `open` attribute. Reason: One ERB condition; eliminates one click of friction at the moment of highest confusion.
 
-5. Add video cross-referencing system docs (Video::TournamentMatcher architecture, confidence scoring, operational workflow)
-6. Fill EN stubs for in-nav pages currently DE-only (check which nav entries lack EN files)
-7. Stale content pass on top-10 most likely stale developer docs (game-plan-reconstruction, league-management, clubcloud-integration)
+### Add After Validation (v7.x)
 
-### Defer (Not This Milestone)
+- [ ] **Anchor-targeted doc links** — Link from step 2 directly to "Step 2" heading in the doc, not the top of the page. Trigger: Volunteers scroll past the heading when landing on the full page.
+- [ ] **State badge as primary orientation cue** — Demote progress bar, elevate `wizard_status_text`. Trigger: Observed that volunteers misread the % bar or find it meaningless.
 
-8. Full translation of non-nav DE-only docs (internal, archive, studies)
-9. Automated stale content detection in CI
-10. New screenshots for scoreboard guide (fix broken refs first, add new ones later)
+### Future Consideration (v8+)
+
+- [ ] **"What changed" section in manager docs** — Adds maintenance burden; only worthwhile if the wizard is actively evolving and the user base is large enough to read it.
+- [ ] **Simplified referee UI** — Already flagged in `tournament-management.en.md` as a future project; out of v7.0 scope.
 
 ---
 
@@ -138,34 +122,45 @@ Nav_translations update
 
 | Feature | User Value | Implementation Cost | Priority |
 |---------|------------|---------------------|----------|
-| Fix 74 broken links | HIGH — docs are broken without this | LOW (mechanical, report already exists) | P1 |
-| UMB scraping docs rewrite | HIGH — misleads developers with deleted code | MEDIUM (2 files, full rewrite) | P1 |
-| Document 37 extracted services | HIGH — zero coverage of 5-milestone refactoring | HIGH (volume, but well-structured) | P1 |
-| Verify nav file existence | MEDIUM — build warnings, missing pages | LOW (mechanical) | P1 |
-| Video cross-referencing docs | HIGH — non-obvious v5.0 architecture | MEDIUM (1 new page) | P2 |
-| EN stubs for in-nav DE-only pages | MEDIUM — EN users see wrong language | LOW (stubs, not full translation) | P2 |
-| Stale content pass on top developer docs | MEDIUM — semantic accuracy | MEDIUM (manual review) | P2 |
-| Consolidate orphaned non-nav docs | LOW — reduces confusion for maintainers | LOW | P3 |
-| Nav_translations completeness check | LOW — nav label accuracy | LOW | P3 |
+| Task-first doc rewrite | HIGH | LOW (writing, no code) | P1 |
+| Printable quick-reference card | HIGH | LOW (writing, no code) | P1 |
+| In-app doc links from wizard steps | HIGH | LOW (ERB + route helper) | P1 |
+| Open-by-default help for active step | MEDIUM | LOW (one ERB condition) | P1 |
+| State badge as primary orientation | MEDIUM | LOW (CSS reorder) | P2 |
+| Anchor-targeted doc links | MEDIUM | MEDIUM (fragment routing in docs_page) | P2 |
+| "What changed" note in docs | LOW | LOW | P3 |
 
-**Priority key:**
-- P1: Required for milestone goal ("docs accurately reflect codebase")
-- P2: Strong quality improvement; include if P1 work completes cleanly
-- P3: Housekeeping; defer unless time permits
+---
+
+## Competitor Feature Analysis
+
+Analogous patterns from volunteer-oriented admin software (sports management, event management, club administration tools).
+
+| Pattern | How Analogous Products Do It | Carambus Current State | v7.0 Approach |
+|---------|------------------------------|------------------------|---------------|
+| Task-first docs | "Create your first bracket in 3 steps" as the opening; Challonge opens with a tournament type picker — task, not architecture | Opens with architecture/system overview | Rewrite opening to "Run a tournament in 6 steps" |
+| Quick-reference / cheat sheet | Club software often includes a laminated card in onboarding; "Day Of" checklist pattern common in event management tools | Does not exist | One-page Before/During/After printable card |
+| Inline contextual help | Modern SaaS wizards use always-visible or on-hover help adjacent to the action button; collapsed by default is a known friction point for infrequent users | Behind `<details>` collapsed by default | Open by default for active step |
+| In-app doc navigation | Context-sensitive help links (Intercom-style, or simpler "?" icon linking to relevant doc section) are table stakes in any wizard flow | `docs_page.html.erb` exists but wizard has zero links to it | Wire one link per wizard step |
+| Step numbering | Universal pattern; "Step 3 of 6" always present in multi-step flows | EXISTS (`_wizard_steps_v2` renders "Schritt X von 6") | No change needed |
+| State/phase label | Sports tools use phase names ("Registration", "In Progress", "Complete") rather than percentages as the primary status indicator | EXISTS as secondary element (`wizard_status_text`); progress bar is primary | Promote state label, demote percentage bar |
+| Glossary for domain terms | Low-frequency-admin products (government portals, club management software) that use specialized terminology always provide a glossary; key terms are explained inline near first use | EXISTS in wizard (Begriffserklärung box) and in separate page; not linked from wizard | Verify link from wizard to glossary exists; add if missing |
 
 ---
 
 ## Sources
 
-- Direct analysis: `/Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api/docs/BROKEN_LINKS_REPORT.txt` (74 broken links, 177 files)
-- Direct analysis: `mkdocs.yml` (nav structure, i18n config, fallback_to_default: true)
-- Direct analysis: `.planning/PROJECT.md` (v1.0–v5.0 change history, 37 service inventory)
-- File inventory: `find docs -name "*.de.md"` (89 files) vs `*.en.md` (63 files) — 26 DE-only, 3 EN-only
-- Direct analysis: `docs/developers/umb-scraping-methods.md` — confirmed stale V2 reference at line 62
-- Grep analysis: zero mentions of any v1.0–v5.0 service class names across all 177 doc files
-- Grep analysis: `UmbScraperV2` references in active docs (umb-scraping-implementation.md, umb-scraping-methods.md, international/umb_scraper.md) — archive refs excluded
+- Direct code inspection: `app/views/tournaments/_wizard_steps.html.erb`, `_wizard_steps_v2.html.erb`, `_wizard_step.html.erb`
+- Direct code inspection: `app/helpers/tournament_wizard_helper.rb`, `app/helpers/tournaments_helper.rb`
+- Direct code inspection: `app/controllers/tournaments_controller.rb` (happy-path action list)
+- Direct code inspection: `app/views/tournaments/show.html.erb` (wizard render conditions)
+- Existing documentation: `docs/managers/tournament-management.en.md`, `docs/managers/index.en.md`, `docs/managers/single-tournament.en.md`, `docs/decision-makers/features-overview.en.md`
+- Project context: `.planning/PROJECT.md` (v7.0 milestone definition, volunteer persona constraint)
+- In-app doc infrastructure: `app/views/static/docs_page.html.erb` (confirms renderer exists and is fully functional)
+- Confidence for Carambus-status assessments: HIGH (all from direct code inspection)
+- Confidence for analogous-product patterns: MEDIUM (training knowledge; no external search available this session)
 
 ---
 
-*Feature research for: documentation quality audit and update (v6.0 milestone)*
-*Researched: 2026-04-12*
+*Feature research for: Carambus v7.0 Manager Experience — docs + wizard UX for volunteer club officers*
+*Researched: 2026-04-13*
