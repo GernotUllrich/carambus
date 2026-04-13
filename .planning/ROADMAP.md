@@ -58,7 +58,11 @@ Phases 1-32 completed across six milestones. See MILESTONES.md for details.
   3. A glossary section exists in both language files defining at least: ClubCloud, Setzliste/seeding list, tournament mode, AASM status, scoreboard
   4. A troubleshooting section exists in both language files covering the four common failure cases (invitation upload failed, player not in ClubCloud, wrong mode selected, tournament already started)
   5. The `docs/managers/index.{de,en}.md` Quick Start corrects the workflow to "sync from ClubCloud" and does not describe creating a tournament from scratch
-**Plans**: TBD
+**Plans**: 4 plans
+- [ ] 34-01-bilingual-skeleton-PLAN.md — Lay down the bilingual H2/H3/anchor skeleton (D-05 gate) in all four target files in carambus_master; commit before any prose
+- [ ] 34-02-de-prose-PLAN.md — DE walkthrough (14 steps + 4 mandatory admonition callouts), glossary (15+ terms grouped), troubleshooting (4 cases Problem/Ursache/Lösung), index.de.md Quick Start teaser
+- [ ] 34-03-en-prose-PLAN.md — EN walkthrough (14 steps + 4 callouts), glossary (5 mandated + Karambol), troubleshooting (Problem/Cause/Fix), index.en.md Quick Start teaser (parallel with 34-02)
+- [ ] 34-04-screenshots-and-validate-PLAN.md — Copy 3 reused Phase 33 screenshots, embed at steps 2/6/10, run mkdocs build --strict, grep-verify all 5 success criteria
 **UI hint**: yes
 
 ### Phase 35: Printable Quick-Reference Card
@@ -106,7 +110,7 @@ Phases 1-32 completed across six milestones. See MILESTONES.md for details.
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 33. UX Review & Wizard Audit | v7.0 | 3/3 | Complete    | 2026-04-13 |
-| 34. Task-First Doc Rewrite | v7.0 | 0/TBD | Not started | - |
+| 34. Task-First Doc Rewrite | v7.0 | 0/4 | Not started | - |
 | 35. Printable Quick-Reference Card | v7.0 | 0/TBD | Not started | - |
 | 36. Small UX Fixes | v7.0 | 0/TBD | Not started | - |
 | 37. In-App Doc Links | v7.0 | 0/TBD | Not started | - |
