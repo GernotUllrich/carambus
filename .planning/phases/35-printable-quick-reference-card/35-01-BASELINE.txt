@@ -1,0 +1,8 @@
+phase: 35
+plan: 01
+baseline_measured_at: 2026-04-13T17:33:21Z
+mkdocs_build_strict_exit_code: 1
+warning_log_lines: 191
+warning_entries: 191
+phase_34_documented_baseline: 94 warnings (191 WARNING log lines per 34-VERIFICATION.md)
+notes: Baseline recorded BEFORE Plan 35-01 edits. Downstream plans MUST NOT exceed warning_log_lines count.
