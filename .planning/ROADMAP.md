@@ -26,7 +26,7 @@ Phases 1-32 completed across six milestones. See MILESTONES.md for details.
 
 - [x] **Phase 33: UX Review & Wizard Audit** - Identify the canonical wizard partial, observe transient state behavior, and classify all happy-path UX findings by impact tier before any doc or code work begins (completed 2026-04-13)
 - [x] **Phase 34: Task-First Doc Rewrite** - Rewrite `docs/managers/tournament-management.{de,en}.md` as a volunteer task walkthrough with glossary, troubleshooting, and corrected index Quick Start (completed 2026-04-13)
-- [ ] **Phase 35: Printable Quick-Reference Card** - Create bilingual Before/During/After printable A4 card with print CSS registered in mkdocs
+- [x] **Phase 35: Printable Quick-Reference Card** - Create bilingual Before/During/After printable A4 card with print CSS registered in mkdocs (completed 2026-04-13)
 - [x] **Phase 36: Small UX Fixes** - Implement Tier 1 and Tier 2 UX fixes surfaced by Phase 33: open-by-default help, auto_upload_to_cc alignment, step name display, AASM badge prominence (completed 2026-04-13)
 - [ ] **Phase 37: In-App Doc Links** - Fix the mkdocs_link locale bug and wire doc links from each wizard step to the corresponding stable doc anchors from Phase 34
 
@@ -116,6 +116,6 @@ Phases 1-32 completed across six milestones. See MILESTONES.md for details.
 |-------|-----------|----------------|--------|-----------|
 | 33. UX Review & Wizard Audit | v7.0 | 3/3 | Complete    | 2026-04-13 |
 | 34. Task-First Doc Rewrite | v7.0 | 4/4 | Complete    | 2026-04-13 |
-| 35. Printable Quick-Reference Card | v7.0 | 5/5 | In Progress|  |
+| 35. Printable Quick-Reference Card | v7.0 | 5/5 | Complete    | 2026-04-13 |
 | 36. Small UX Fixes | v7.0 | 0/TBD | Not started | - |
 | 37. In-App Doc Links | v7.0 | 0/TBD | Not started | - |
