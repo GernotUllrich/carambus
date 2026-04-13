@@ -44,7 +44,7 @@ must_haves:
       pattern: "diff of '^#' lines returns empty"
     - from: both tournament-management files
       to: English anchor slugs (D-05a)
-      via: HTML anchor comments (e.g. <!-- anchor: walkthrough -->) or native mkdocs slug generation from English H2 text
+      via: "HTML anchor comments (e.g. <!-- anchor: walkthrough -->) or native mkdocs slug generation from English H2 text"
       pattern: "#walkthrough, #glossary, #troubleshooting, #sync-from-clubcloud"
 ---
 
