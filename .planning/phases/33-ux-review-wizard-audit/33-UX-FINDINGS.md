@@ -2,7 +2,7 @@
 
 **Phase:** 33-ux-review-wizard-audit
 **Date:** 2026-04-13
-**Status:** In progress — Plan 01 scaffold
+**Status:** Complete — Phase 33 final (2026-04-13)
 
 ---
 
@@ -167,7 +167,7 @@ The six sections below correspond to the six wizard actions that comprise the ha
 
 | ID | Type | Finding | Tier | Gate |
 |----|------|---------|------|------|
-| F-TMP-01 | missing-feature | `/tournaments/new` is exposed as a top-level action but is irrelevant for the typical synced-tournament workflow. Could be hidden behind an admin menu, or moved under a "Locally verwaltetes Turnier" sub-flow so volunteers don't encounter it on their main path. | ? | ? |
+| F-01 | missing-feature | `/tournaments/new` is exposed as a top-level action but is irrelevant for the typical synced-tournament workflow. Could be hidden behind an admin menu, or moved under a "Locally verwaltetes Turnier" sub-flow so volunteers don't encounter it on their main path. | 2 | open |
 
 ---
 
@@ -179,7 +179,7 @@ The six sections below correspond to the six wizard actions that comprise the ha
 
 | ID | Type | Finding | Tier | Gate |
 |----|------|---------|------|------|
-| F-TMP-02 | missing-feature | `create` has no volunteer-facing use case for the Manager Experience milestone. It exists for completeness and for the rare locally-invented tournament. Consider grouping `new`+`create`+direct-edit of identity fields into an "Admin" path separate from the wizard happy path, so the wizard doesn't need to account for "what if this tournament wasn't synced". | ? | ? |
+| F-02 | missing-feature | `create` has no volunteer-facing use case for the Manager Experience milestone. It exists for completeness and for the rare locally-invented tournament. Consider grouping `new`+`create`+direct-edit of identity fields into an "Admin" path separate from the wizard happy path, so the wizard doesn't need to account for "what if this tournament wasn't synced". | 2 | open |
 
 ---
 
@@ -194,12 +194,12 @@ The six sections below correspond to the six wizard actions that comprise the ha
 
 | ID | Type | Finding | Tier | Gate |
 |----|------|---------|------|------|
-| F-TMP-03 | bug | ClubCloud sync for tournament 17403 pulled only 1 player registration when the expected count was 5+. Root cause not observed in this audit — could be sync timing, permission, or a silent partial-success path. The wizard does not detect or warn about suspiciously low counts. | ? | ? |
-| F-TMP-04 | ux | The "Weiter zu Schritt 3 mit diesen 1 Spielern" green button misleads volunteers into thinking the sync is complete. A 1-player carom tournament is almost certainly wrong; the button should be de-emphasised and a warning ("Nur 1 Spieler geladen — erwartet mindestens N?") should surface. | ? | ? |
-| F-TMP-05 | ux | "Setzliste aus Einladung übernehmen" step frames PDF upload as primary and ClubCloud as "Alternative". For clubs using ClubCloud as their canonical registration source this framing is backwards. | ? | ? |
-| F-TMP-06 | missing-feature | No player search by name in the Teilnehmerliste view — only DBU-number lookup. Volunteers without DBU numbers at hand have no recovery path. Consider fuzzy name search with DBU disambiguation. | ? | ? |
-| F-TMP-07 | ux | The `tournament_plan_id` auto-suggest panel ("Mögliche Turnierpläne für 5 Teilnehmer — automatisch vorgeschlagen: T04") is excellent — clear recommendation, clear participant count, "Plan anzeigen" affordance. Keep this as the gold standard for wizard feedback elsewhere. | ? | ? |
-| F-TMP-08 | ux | "Alle Änderungen werden sofort gespeichert" is a great ambient auto-save cue. Good pattern. | ? | ? |
+| F-03 | bug | ClubCloud sync for tournament 17403 pulled only 1 player registration when the expected count was 5+. Root cause not observed in this audit — could be sync timing, permission, or a silent partial-success path. The wizard does not detect or warn about suspiciously low counts. | 2 | open |
+| F-04 | ux | The "Weiter zu Schritt 3 mit diesen 1 Spielern" green button misleads volunteers into thinking the sync is complete. A 1-player carom tournament is almost certainly wrong; the button should be de-emphasised and a warning ("Nur 1 Spieler geladen — erwartet mindestens N?") should surface. | 1 | open |
+| F-05 | ux | "Setzliste aus Einladung übernehmen" step frames PDF upload as primary and ClubCloud as "Alternative". For clubs using ClubCloud as their canonical registration source this framing is backwards. | 1 | open |
+| F-06 | missing-feature | No player search by name in the Teilnehmerliste view — only DBU-number lookup. Volunteers without DBU numbers at hand have no recovery path. Consider fuzzy name search with DBU disambiguation. | 2 | open |
+| F-07 | ux | The `tournament_plan_id` auto-suggest panel ("Mögliche Turnierpläne für 5 Teilnehmer — automatisch vorgeschlagen: T04") is excellent — clear recommendation, clear participant count, "Plan anzeigen" affordance. Keep this as the gold standard for wizard feedback elsewhere. | 1 | open |
+| F-08 | ux | "Alle Änderungen werden sofort gespeichert" is a great ambient auto-save cue. Good pattern. | 1 | open |
 
 ---
 
@@ -211,11 +211,11 @@ The six sections below correspond to the six wizard actions that comprise the ha
 
 | ID | Type | Finding | Tier | Gate |
 |----|------|---------|------|------|
-| F-TMP-09 | ux | "Teilnehmerliste abschließen" button has no confirmation dialog before triggering an irreversible AASM transition. A volunteer doing this 2–3x/year may click by mistake. Add an `onclick="return confirm(...)"` or a modal listing the consequences. | ? | ? |
-| F-TMP-10 | ux | Step 3 label "Dieser Schritt ist nicht zu erledigen sondern erledigt sich fortlaufend mit Schritt 4" is confusing — the volunteer cannot tell whether step 3 is actionable or passive. Either collapse step 3 into step 4 in the UI, or rewrite the label to state plainly "Schritt 3 läuft automatisch — siehe Schritt 4 für den Abschluss". | ? | ? |
-| F-TMP-11 | ux | After clicking "Teilnehmerliste abschließen", the wizard progress skips from Schritt 3 to Schritt 5 without visibly "doing" step 4. This is likely correct behavior (step 4 is atomic with step 3's button), but the jump is disorienting. Consider showing a brief "Schritt 4 erledigt ✓" confirmation before advancing. | ? | ? |
-| F-TMP-12 | ux | The "Abschließende Auswahl des Austragungsmodus" page (`04a-mode-selection.png`) presents 3 tournament plans as alternatives with dense technical specs but no explanation of trade-offs. For a volunteer making ~3 tournaments a year, the choice between T04/T05/DefaultS is effectively blind. Add a "Warum T04?" tooltip or a recommended-default highlight. | ? | ? |
-| F-TMP-13 | missing-feature | Tournament plan is applied immediately on button click in the mode-selection page — no confirmation, no "zurück" safety net beyond browser back. A mistake-recovery path (even just "Modus ändern" on the wizard overview) would help. | ? | ? |
+| F-09 | ux | "Teilnehmerliste abschließen" button has no confirmation dialog before triggering an irreversible AASM transition. A volunteer doing this 2–3x/year may click by mistake. Add an `onclick="return confirm(...)"` or a modal listing the consequences. | 1 | open |
+| F-10 | ux | Step 3 label "Dieser Schritt ist nicht zu erledigen sondern erledigt sich fortlaufend mit Schritt 4" is confusing — the volunteer cannot tell whether step 3 is actionable or passive. Either collapse step 3 into step 4 in the UI, or rewrite the label to state plainly "Schritt 3 läuft automatisch — siehe Schritt 4 für den Abschluss". | 1 | open |
+| F-11 | ux | After clicking "Teilnehmerliste abschließen", the wizard progress skips from Schritt 3 to Schritt 5 without visibly "doing" step 4. This is likely correct behavior (step 4 is atomic with step 3's button), but the jump is disorienting. Consider showing a brief "Schritt 4 erledigt ✓" confirmation before advancing. | 1 | open |
+| F-12 | ux | The "Abschließende Auswahl des Austragungsmodus" page (`04a-mode-selection.png`) presents 3 tournament plans as alternatives with dense technical specs but no explanation of trade-offs. For a volunteer making ~3 tournaments a year, the choice between T04/T05/DefaultS is effectively blind. Add a "Warum T04?" tooltip or a recommended-default highlight. | 1 | open |
+| F-13 | missing-feature | Tournament plan is applied immediately on button click in the mode-selection page — no confirmation, no "zurück" safety net beyond browser back. A mistake-recovery path (even just "Modus ändern" on the wizard overview) would help. | 1 | open |
 
 ---
 
@@ -227,11 +227,11 @@ The six sections below correspond to the six wizard actions that comprise the ha
 
 | ID | Type | Finding | Tier | Gate |
 |----|------|---------|------|------|
-| F-TMP-14 | bug | Severe i18n regression on the start form: the majority of parameter labels are in English or garbled German-English mix. Examples: "Tournament manager checks results before acceptance", "Gd hat prio ein inter-group comparisons", "Der arbeit wechselt zwischen den sätzen", "Bälle einsam nach dritt", "Die farblau bleibt gesetzt beim satz", "Kein weiteres anstellen des tables waterbefund", "Darstellung binauwang". A volunteer at a German carom club cannot realistically configure these. Root cause likely: missing or broken entries in `config/locales/de.yml` for tournament start-form keys. | ? | ? |
-| F-TMP-15 | ux | "Back to Mode Selection" link (bottom-left of the start form) is in English while the surrounding UI is nominally German. Translate. | ? | ? |
-| F-TMP-16 | ux | The Turnier-Parameter form lists ~15 fields with no grouping, no help text, and no visible required/optional indicators. For a volunteer making ~3 tournaments a year this is cognitively overwhelming. Group into sections (Spielziele / Timing / Tischwechsel / Darstellung) and collapse advanced parameters behind "Erweiterte Einstellungen". | ? | ? |
-| F-TMP-17 | missing-feature | No discipline-aware defaults for `Bälle vor` and `Aufnahmebegrenzung`. For a Freie-Partie-klein tournament these values are near-constants in practice; the system could propose sensible defaults (e.g. from the last tournament of the same discipline in the same region) and let the volunteer override. | ? | ? |
-| F-TMP-18 | ux | "Zuordnung der Tische" section lists dev-DB placeholder names ("Tisch 2 Meine Tisch - Vereinsheim BG Hamburg") — cosmetic, not a production concern, but worth noting that the table dropdown uses raw DB names without formatting. | ? | ? |
+| F-14 | bug | Severe i18n regression on the start form: the majority of parameter labels are in English or garbled German-English mix. Examples: "Tournament manager checks results before acceptance", "Gd hat prio ein inter-group comparisons", "Der arbeit wechselt zwischen den sätzen", "Bälle einsam nach dritt", "Die farblau bleibt gesetzt beim satz", "Kein weiteres anstellen des tables waterbefund", "Darstellung binauwang". A volunteer at a German carom club cannot realistically configure these. Root cause likely: missing or broken entries in `config/locales/de.yml` for tournament start-form keys. | 1 | open |
+| F-15 | ux | "Back to Mode Selection" link (bottom-left of the start form) is in English while the surrounding UI is nominally German. Translate. | 1 | open |
+| F-16 | ux | The Turnier-Parameter form lists ~15 fields with no grouping, no help text, and no visible required/optional indicators. For a volunteer making ~3 tournaments a year this is cognitively overwhelming. Group into sections (Spielziele / Timing / Tischwechsel / Darstellung) and collapse advanced parameters behind "Erweiterte Einstellungen". | 1 | open |
+| F-17 | missing-feature | No discipline-aware defaults for `Bälle vor` and `Aufnahmebegrenzung`. For a Freie-Partie-klein tournament these values are near-constants in practice; the system could propose sensible defaults (e.g. from the last tournament of the same discipline in the same region) and let the volunteer override. | 2 | open |
+| F-18 | ux | "Zuordnung der Tische" section lists dev-DB placeholder names ("Tisch 2 Meine Tisch - Vereinsheim BG Hamburg") — cosmetic, not a production concern, but worth noting that the table dropdown uses raw DB names without formatting. | 1 | open |
 
 ---
 
@@ -246,17 +246,52 @@ The post-transition Tournament Monitor landing (`06-start-transient-state.png` /
 
 | ID | Type | Finding | Tier | Gate |
 |----|------|---------|------|------|
-| F-TMP-19 | bug | `tournament_started_waiting_for_monitors` passes invisibly for several seconds with no UI feedback. The volunteer cannot tell whether the click registered, whether the system is working, or whether they need to retry. This risks double-clicks, page back-navigation, or frustrated page-reloads during a live AASM transition — any of which may leave the tournament in a partially-started state. **This IS the UX-02 answer**: the transient state should either (a) be made visible with a progress/waiting screen, or (b) be eliminated structurally by not advancing the state until monitors are connected. Fixing this requires AASM surface changes. | ? | ? |
-| F-TMP-20 | ux | After the transition, the Tournament Monitor landing page shows no explicit success confirmation ("Turnier wurde gestartet ✓"). Absence-of-feedback at a critical state transition for a low-frequency workflow. Add a flash notice or a one-time banner. | ? | ? |
-| F-TMP-21 | ux | "Turnierphase: playing group" on the Tournament Monitor landing is English. Should be "Turnierphase: Gruppenspiel läuft" or similar German. | ? | ? |
-| F-TMP-22 | ux | Orange/red "edit on" badge appears next to one player's name on each table card on the Tournament Monitor landing. Meaning is not self-evident from the UI — could be "Spieleingabe aktiv", "Spieler ist am Zug", or a debug badge. Needs clear label or a tooltip. | ? | ? |
-| F-TMP-23 | missing-feature | The `start` controller action does not appear to surface progress for the TableMonitor setup phase. For a volunteer running a multi-table tournament, knowing "2 of 2 monitors connected, waiting..." would be valuable — today the transient state is opaque. | ? | ? |
+| F-19 | bug | `tournament_started_waiting_for_monitors` passes invisibly for several seconds with no UI feedback. The volunteer cannot tell whether the click registered, whether the system is working, or whether they need to retry. This risks double-clicks, page back-navigation, or frustrated page-reloads during a live AASM transition — any of which may leave the tournament in a partially-started state. **This IS the UX-02 answer**: the transient state should either (a) be made visible with a progress/waiting screen, or (b) be eliminated structurally by not advancing the state until monitors are connected. Fixing this requires AASM surface changes. | 3 | blocked-needs-test-plan |
+| F-20 | ux | After the transition, the Tournament Monitor landing page shows no explicit success confirmation ("Turnier wurde gestartet ✓"). Absence-of-feedback at a critical state transition for a low-frequency workflow. Add a flash notice or a one-time banner. | 2 | open |
+| F-21 | ux | "Turnierphase: playing group" on the Tournament Monitor landing is English. Should be "Turnierphase: Gruppenspiel läuft" or similar German. | 1 | open |
+| F-22 | ux | Orange/red "edit on" badge appears next to one player's name on each table card on the Tournament Monitor landing. Meaning is not self-evident from the UI — could be "Spieleingabe aktiv", "Spieler ist am Zug", or a debug badge. Needs clear label or a tooltip. | 1 | open |
+| F-23 | missing-feature | The `start` controller action does not appear to surface progress for the TableMonitor setup phase. For a volunteer running a multi-table tournament, knowing "2 of 2 monitors connected, waiting..." would be valuable — today the transient state is opaque. | 2 | open |
+
+---
+
+## retirement
+
+**Intent:** Document the retirement decision for non-canonical wizard partials so Phase 36 has an explicit Tier 1 task. No files are deleted in Phase 33 (D-09). The grep evidence proving these partials are unused is in §Canonical wizard partial — grep evidence (UX-01) above.
+
+| ID | Type | Finding | Tier | Gate |
+|----|------|---------|------|------|
+| F-24 | ux | Retire non-canonical wizard partials `app/views/tournaments/_wizard_steps.html.erb` and `app/views/tournaments/_wizard_step.html.erb` — canonical is `_wizard_steps_v2.html.erb` per grep evidence in §Canonical wizard partial — grep evidence above. Neither partial is rendered by `show.html.erb` or `_show.html.erb` (Command 2 output shows only one render call: `show.html.erb:35` → `wizard_steps_v2`). Deletion executed in Phase 36. | 1 | open |
 
 ---
 
 ## Non-happy-path actions (not reviewed)
 
-_to be filled by Plan 03 per D-07_
+These actions were deliberately not reviewed in Phase 33. Any UX review of these is out of scope for v7.0 per ROADMAP.md.
+
+- `index`
+- `show`
+- `edit_games`
+- `reset`
+- `test_tournament_status_update`
+- `order_by_ranking_or_handicap`
+- `reload_from_cc`
+- `finalize_modus`
+- `select_modus`
+- `tournament_monitor`
+- `placement`
+- `update`
+- `destroy`
+- `define_participants`
+- `new_team`
+- `add_team`
+- `compare_seedings`
+- `upload_invitation`
+- `parse_invitation`
+- `recalculate_groups`
+- `add_player_by_dbu`
+- `apply_seeding_order`
+- `use_clubcloud_as_participants`
+- `update_seeding_position`
 
 ---
 
