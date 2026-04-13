@@ -8,37 +8,46 @@
 
 ## Reproduction recipe
 
-Use these shell and `rails console` snippets to reproduce the wizard walkthrough. A future auditor can copy-paste these commands verbatim to re-run the walkthrough without hunting for context.
+**⚠ Scenario: `carambus_bcw` (NOT `carambus_api`)**
+
+The walkthrough MUST run against a `context: LOCAL` scenario. `carambus_api` runs in API mode in dev — `LocalProtector` blocks writes on global records and many tournament management actions behave differently or are blocked. `carambus_bcw` is the canonical local-server checkout with a populated tournament DB and unrestricted writes.
+
+GSD planning artifacts (this file, screenshots, PLAN.md) still live in `carambus_api/.planning/` — only the runtime dev server runs in `carambus_bcw`. Source code is identical (same git commit), so all line-number references to `tournaments_controller.rb` / `tournament.rb` / `show.html.erb` apply unchanged.
 
 ```bash
-# Start dev server
+# Start dev server FROM carambus_bcw (not carambus_api)
+cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_bcw
 foreman start -f Procfile.dev
-# Or, if foreman unavailable:
-# bin/rails server
+# Or: bin/rails server
 
-# In another shell, pick a reproduction tournament (note: state column, not aasm_state)
-bin/rails runner 'Tournament.where("id >= 50000000").where(state: %w[new_tournament tournament_seeding_finished tournament_mode_defined]).order(created_at: :desc).limit(5).each { |t| puts "#{t.id} | #{t.title} | #{t.state}" }'
+# In another shell, confirm there's a local tournament in new_tournament state
+cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_bcw
+psql carambus_bcw_development -c "SELECT id, title, state FROM tournaments WHERE id >= 50000000 AND state = 'new_tournament' ORDER BY id DESC LIMIT 5;"
 
-# Chosen tournament for this walkthrough:
-# TOURNAMENT_ID=50999005
-# TITLE="X"  (test tournament — create a better-named one via rails console if needed; see below)
+# Chosen tournament for this walkthrough (queried 2026-04-13):
+# TOURNAMENT_ID=50000005
+# TITLE="CEB Ladies R5"
 # AASM_STATE=new_tournament
-# URL: http://localhost:3000/tournaments/50999005
+# URL: http://localhost:3000/tournaments/50000005
 
-# Optional: rename the test tournament for clarity before walking through
+# If you need participants for the finish_seeding / start steps, add one via console:
+# cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_bcw
 # bin/rails console
-# > t = Tournament.find(50999005); t.unprotected = true; t.update!(title: "UX Audit Test 2026"); t.title
+# > t = Tournament.find(50000005)
+# > # verify it has players / seeding set up; if empty, create a minimal seeding
+# > t.tournament_players.count
+
+# Tip: if tournament 50000005 is already too far along (e.g. already seeded),
+# create a fresh one via the walkthrough itself — Step 1 (new/create) produces
+# a brand-new tournament with id >= 50_000_000 you can drive cleanly.
 ```
 
-**Preconditions verified by Plan 02 (pre-browser):**
-- Tournament 50999005 exists, `state=new_tournament`, `id >= 50_000_000` (local record, writable)
-- `has_clubcloud_results?` returns `false` (no CC results blocking wizard display)
-- Wizard is displayed when: `tournament_director?(current_user)` is true AND `local_server?` is true AND `!@tournament.has_clubcloud_results?`
-- Ensure you are logged in as a user with `tournament_director` role before starting the walkthrough
-
-**Instructions for Plan 02 auditor:** The reproduction recipe above is pre-filled with concrete values. Start the dev server, log in as a tournament director, and navigate to `http://localhost:3000/tournaments/50999005`. Commit screenshots and observed prose as you walk through each action.
-
-The wizard is only visible when all three conditions are true: the current user is a `tournament_director`, the server is `local_server?` (not the API server), and the tournament does not have ClubCloud results (`!@tournament.has_clubcloud_results?`). Verify these preconditions are met before walking through each action.
+**Preconditions before starting:**
+- You are on the `carambus_bcw` checkout, `ApplicationRecord.local_server?` returns `true`
+- Logged in as a user with the `tournament_director` role (`User.first.roles.map(&:name)` to check)
+- The tournament you walk through has `id >= 50_000_000` (otherwise `LocalProtector` blocks writes)
+- `has_clubcloud_results?` returns `false` for the tournament (otherwise the wizard is hidden)
+- The wizard only renders when: `tournament_director?(current_user)` is true AND `local_server?` is true AND `!@tournament.has_clubcloud_results?`
 
 ---
 
