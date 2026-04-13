@@ -14,40 +14,42 @@ The walkthrough MUST run against a `context: LOCAL` scenario. `carambus_api` run
 
 GSD planning artifacts (this file, screenshots, PLAN.md) still live in `carambus_api/.planning/` — only the runtime dev server runs in `carambus_bcw`. Source code is identical (same git commit), so all line-number references to `tournaments_controller.rb` / `tournament.rb` / `show.html.erb` apply unchanged.
 
+**Why a global (synced) tournament, not a local one:** The realistic volunteer workflow operates on tournaments that were SYNCED from the central API server (`id < 50_000_000`). A central carambus.net API publishes e.g. an NBV Bezirksmeisterschaft; a LOCAL-scenario club like BCW syncs it down and runs it. `LocalProtector` has carve-outs that allow the operations the wizard triggers (state transitions, scoring, monitoring) on these synced records even though it blocks writes to identity fields (title, dates, organizer). Using a purely local tournament (`id >= 50_000_000`) would bypass exactly the code paths the volunteer actually exercises. This is the "normal case".
+
 ```bash
 # Start dev server FROM carambus_bcw (not carambus_api)
 cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_bcw
 foreman start -f Procfile.dev
 # Or: bin/rails server
 
-# In another shell, confirm there's a local tournament in new_tournament state
+# In another shell, list synced (global) tournaments available in the BCW dev DB
 cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_bcw
-psql carambus_bcw_development -c "SELECT id, title, state FROM tournaments WHERE id >= 50000000 AND state = 'new_tournament' ORDER BY id DESC LIMIT 5;"
+psql carambus_bcw_development -c "SELECT id, title, state, region_id FROM tournaments WHERE id < 50000000 AND state = 'new_tournament' ORDER BY id DESC LIMIT 15;"
 
-# Chosen tournament for this walkthrough (queried 2026-04-13):
-# TOURNAMENT_ID=50000005
-# TITLE="CEB Ladies R5"
+# Chosen tournament for this walkthrough (queried 2026-04-13, BCW = Region 1 / NBV):
+# TOURNAMENT_ID=17775
+# TITLE="TEST Pinneberg"           # explicit sandbox tournament, disposable
 # AASM_STATE=new_tournament
-# URL: http://localhost:3000/tournaments/50000005
+# region_id=1 (NBV), organizer=Region, id < 50_000_000 (GLOBAL / synced)
+# URL: http://localhost:3000/tournaments/17775
+#
+# Alternative realistic candidates (pick one instead if "TEST Pinneberg" is unsuitable):
+#   17704/17705/17706 — Bezirksmeisterschaft 14/1 / 8-Ball / 10-Ball
+#   18165/18166       — NDJM Pool 14/1 / Pool 8-Ball U14-U18
+#   18301/18302       — NDJM Pool 8-Ball U14-U18 M/W
 
-# If you need participants for the finish_seeding / start steps, add one via console:
+# If the tournament needs participants for the finish_seeding / start steps, inspect first:
 # cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_bcw
-# bin/rails console
-# > t = Tournament.find(50000005)
-# > # verify it has players / seeding set up; if empty, create a minimal seeding
-# > t.tournament_players.count
-
-# Tip: if tournament 50000005 is already too far along (e.g. already seeded),
-# create a fresh one via the walkthrough itself — Step 1 (new/create) produces
-# a brand-new tournament with id >= 50_000_000 you can drive cleanly.
+# bin/rails runner 't = Tournament.find(17775); puts "players=#{t.tournament_players.count}, monitors=#{t.table_monitors.count rescue "n/a"}"'
 ```
 
 **Preconditions before starting:**
 - You are on the `carambus_bcw` checkout, `ApplicationRecord.local_server?` returns `true`
 - Logged in as a user with the `tournament_director` role (`User.first.roles.map(&:name)` to check)
-- The tournament you walk through has `id >= 50_000_000` (otherwise `LocalProtector` blocks writes)
+- The tournament you walk through is a GLOBAL/synced record (`id < 50_000_000`) — not a locally-invented one — so that the audit covers the real volunteer workflow
 - `has_clubcloud_results?` returns `false` for the tournament (otherwise the wizard is hidden)
 - The wizard only renders when: `tournament_director?(current_user)` is true AND `local_server?` is true AND `!@tournament.has_clubcloud_results?`
+- **Expect LocalProtector carve-outs:** some fields (title, date, organizer) will be read-only because `LocalProtector` blocks identity-field writes on global records. That is correct behavior and itself a finding to document if the UI doesn't communicate it clearly.
 
 ---
 
