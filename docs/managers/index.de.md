@@ -14,16 +14,16 @@ Als Turniermanager sind Sie verantwortlich für:
 
 ## 🚀 Schnellstart: Turnier synchronisieren und durchführen in 10 Schritten
 
-1. **Turnier aus ClubCloud synchronisieren** → _(Inhalt folgt in Plan 34-02)_
-2. _(Schritt 2 — folgt)_
-3. _(Schritt 3 — folgt)_
-4. _(Schritt 4 — folgt)_
-5. _(Schritt 5 — folgt)_
-6. _(Schritt 6 — folgt)_
-7. _(Schritt 7 — folgt)_
-8. _(Schritt 8 — folgt)_
-9. _(Schritt 9 — folgt)_
-10. _(Schritt 10 — folgt)_
+1. **Turnier aus ClubCloud synchronisieren** → [Schritt 2](tournament-management.md#step-2-load-clubcloud)
+2. **Setzliste übernehmen** → [Schritt 3](tournament-management.md#step-3-seeding-list)
+3. **Teilnehmerliste prüfen und ergänzen** → [Schritt 4](tournament-management.md#step-4-participants)
+4. **Teilnehmerliste abschließen** → [Schritt 5](tournament-management.md#step-5-finish-seeding)
+5. **Turniermodus auswählen** → [Schritt 6](tournament-management.md#step-6-mode-selection)
+6. **Start-Parameter ausfüllen** → [Schritt 7](tournament-management.md#step-7-start-form)
+7. **Tische zuordnen und Turnier starten** → [Schritt 8–9](tournament-management.md#step-8-tables)
+8. **Warmup und Spielbeginn** → [Schritt 10–11](tournament-management.md#step-10-warmup)
+9. **Ergebnisse verfolgen und finalisieren** → [Schritt 12–13](tournament-management.md#step-12-monitor)
+10. **Ergebnis-Upload nach ClubCloud** → [Schritt 14](tournament-management.md#step-14-upload)
 
 ➡️ **[Zur vollständigen Durchführungs-Anleitung](tournament-management.md#walkthrough)**
 
