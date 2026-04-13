@@ -176,8 +176,8 @@ These require targeted edits to 5 files:
 
 | File | Broken Link | Fix |
 |------|-------------|-----|
-| `administrators/index.de.md` | `../managers/table-reservation.md` | Fixed when table-reservation.de.md is created (×2 occurrences) |
-| `managers/index.de.md` | `table-reservation.md` | Fixed when table-reservation.de.md is created (×2 occurrences) |
+| `administrators/index.de.md` | `../managers/table-reservation.md` | Fixed when table-reservation.de.md is created (x2 occurrences) |
+| `managers/index.de.md` | `table-reservation.md` | Fixed when table-reservation.de.md is created (x2 occurrences) |
 | `developers/developer-guide.en.md` line 455 | `../developers/developer-guide.de.md#operations` | Change to `developer-guide.md#operations` (cross-language link; suffix stripping makes .de.md invalid) |
 | `developers/rake-tasks-debugging.de.md` lines 49/83/312 | `../../lib/tasks/obsolete/README.md` | Points outside docs root — update text/link or remove link |
 | `developers/rake-tasks-debugging.en.md` lines 49/83/312 | `../../lib/tasks/obsolete/README.md` | Same as above |
@@ -208,14 +208,14 @@ All 8 files exist as `filename.md` (no suffix). Each counts as BOTH MISSING_DE a
 
 | Nav Label | Source File | Language | Action |
 |-----------|-------------|----------|--------|
-| Deployment Checklist Production | `developers/deployment-checklist.md` | DE (content in German) | rename → `.de.md`, create `.en.md` |
-| Frontend STI Migration | `developers/frontend-sti-migration.md` | DE | rename → `.de.md`, create `.en.md` |
-| Pool Scoreboard Changelog | `developers/pool-scoreboard-changelog.md` | DE | rename → `.de.md`, create `.en.md` |
-| RubyMine Setup | `developers/rubymine-setup.md` | EN (content in English) | rename → `.en.md`, create `.de.md` |
-| Scenario Workflow | `developers/scenario-workflow.md` | DE | rename → `.de.md`, create `.en.md` |
-| UMB Deployment Checklist | `developers/umb-deployment-checklist.md` | DE (mixed, primarily DE) | rename → `.de.md`, create `.en.md` |
-| Fixture Collection Guide | `developers/testing/fixture-collection-guide.md` | DE | rename → `.de.md`, create `.en.md` |
-| Testing Quickstart | `developers/testing/testing-quickstart.md` | DE | rename → `.de.md`, create `.en.md` |
+| Deployment Checklist Production | `developers/deployment-checklist.md` | DE (content in German) | rename -> `.de.md`, create `.en.md` |
+| Frontend STI Migration | `developers/frontend-sti-migration.md` | DE | rename -> `.de.md`, create `.en.md` |
+| Pool Scoreboard Changelog | `developers/pool-scoreboard-changelog.md` | DE | rename -> `.de.md`, create `.en.md` |
+| RubyMine Setup | `developers/rubymine-setup.md` | EN (content in English) | rename -> `.en.md`, create `.de.md` |
+| Scenario Workflow | `developers/scenario-workflow.md` | DE | rename -> `.de.md`, create `.en.md` |
+| UMB Deployment Checklist | `developers/umb-deployment-checklist.md` | DE (mixed, primarily DE) | rename -> `.de.md`, create `.en.md` |
+| Fixture Collection Guide | `developers/testing/fixture-collection-guide.md` | DE | rename -> `.de.md`, create `.en.md` |
+| Testing Quickstart | `developers/testing/testing-quickstart.md` | DE | rename -> `.de.md`, create `.en.md` |
 
 **Nav entries stay unchanged** — the nav uses plain `.md` paths which the i18n plugin resolves to the appropriate suffix.
 
@@ -271,7 +271,7 @@ All 8 service pairs + video-crossref exist as bilingual `.de.md`/`.en.md`. The c
 | Translation gap detection | Custom scan | `bin/check-docs-translations.rb --nav-only` |
 | Link validation | Manual check | `bin/check-docs-links.rb` |
 | Strict build validation | Manual invocation | `bin/rails mkdocs:check` (uses `--strict` + temp dir) |
-| i18n routing | Custom redirect | mkdocs-static-i18n plugin — nav `.md` → `.de.md`/`.en.md` automatically |
+| i18n routing | Custom redirect | mkdocs-static-i18n plugin — nav `.md` -> `.de.md`/`.en.md` automatically |
 
 ---
 
@@ -284,14 +284,14 @@ All 8 service pairs + video-crossref exist as bilingual `.de.md`/`.en.md`. The c
 **Warning signs:** N/A — use `git mv` as standard practice
 
 ### Pitfall 2: Nav entry still references plain .md after rename — file disappears
-**What goes wrong:** After renaming `scenario-workflow.md` → `scenario-workflow.de.md`, if the nav still says `developers/scenario-workflow.md` and only `.de.md` exists, the nav works fine (plugin resolves it). But if someone manually checks for `scenario-workflow.md` in the filesystem it won't be there.
+**What goes wrong:** After renaming `scenario-workflow.md` -> `scenario-workflow.de.md`, if the nav still says `developers/scenario-workflow.md` and only `.de.md` exists, the nav works fine (plugin resolves it). But if someone manually checks for `scenario-workflow.md` in the filesystem it won't be there.
 **How to avoid:** Do NOT change nav entries for the renamed files — the plain `.md` reference in nav is exactly correct for the i18n plugin.
 
 ### Pitfall 3: Cross-language links use language-suffixed paths
 **What goes wrong:** A `.en.md` file linking to `another-file.de.md` fails because the i18n plugin processes suffixes — the correct cross-language link omits the suffix
-**Why it happens:** This is exactly the `developer-guide.en.md` → `developer-guide.de.md#operations` bug (line 455)
+**Why it happens:** This is exactly the `developer-guide.en.md` -> `developer-guide.de.md#operations` bug (line 455)
 **How to avoid:** Internal links in any language file should use plain `.md` paths (no suffix)
-**Example fix:** `[Runbook](../developers/developer-guide.de.md#operations)` → `[Runbook](../developers/developer-guide.md#operations)`
+**Example fix:** `[Runbook](../developers/developer-guide.de.md#operations)` -> `[Runbook](../developers/developer-guide.md#operations)`
 
 ### Pitfall 4: exclude_docs only excludes at build time, not from link checking
 **What goes wrong:** Adding `internal/**` to `exclude_docs` fixes mkdocs strict warnings but `bin/check-docs-links.rb` (without `--exclude-archives`) will still report those as broken
@@ -364,17 +364,17 @@ ruby bin/check-docs-coderef.rb                          # must report 0 stale re
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **lib/tasks/obsolete/README.md broken link fix strategy**
    - What we know: `rake-tasks-debugging.de.md` and `.en.md` both link to `../../lib/tasks/obsolete/README.md` (outside docs root, 3 occurrences each). The file exists at `lib/tasks/obsolete/README.md` in the project but is outside the docs root so mkdocs cannot resolve it.
    - What's unclear: Should the link be removed, replaced with prose, or replaced with a link to a docs page about the obsolete tasks?
-   - Recommendation (Claude's discretion): Replace the three links with a plain text note (no hyperlink) since the file is not renderable via mkdocs. This is the minimal change.
+   - RESOLVED: Replace the three links with a plain text note (no hyperlink) since the file is not renderable via mkdocs. This is the minimal change. (Claude's discretion)
 
 2. **reference/api.md broken link fix strategy**
    - What we know: `reference/api.de.md` and `.en.md` both link to `API.md` (reference/API.md does not exist — only `api.de.md`/`api.en.md`)
    - What's unclear: What was `API.md` supposed to be? A legacy file?
-   - Recommendation: Remove the link or replace with a self-referential note — the api pages ARE the API reference.
+   - RESOLVED: Remove the link or replace with a self-referential note — the api pages ARE the API reference. (Claude's discretion)
 
 ---
 

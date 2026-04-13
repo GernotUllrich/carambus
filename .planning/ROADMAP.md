@@ -132,10 +132,11 @@ Plans:
   2. Every in-nav page identified in the Phase 28 bilingual audit has a corresponding `.en.md` file — no in-nav page is silently falling back to DE for English users
   3. `mkdocs build --strict` completes with zero warnings — no missing files, no broken nav references, no unresolved i18n fallbacks for nav-linked pages
   4. `bin/check-docs-links.rb` final run shows zero broken links — broken link count is at or below the Phase 29 baseline
-**Plans:** 2 plans
+**Plans:** 3 plans
 Plans:
 - [ ] 32-01-PLAN.md — Update mkdocs.yml (exclude_docs, Services nav block, nav_translations) and fix 7 broken links
-- [ ] 32-02-PLAN.md — Resolve 17 bilingual gaps (rename + translate) and run final verification sweep
+- [ ] 32-02-PLAN.md — Rename and translate first 5 bilingual pairs (deployment-checklist, frontend-sti-migration, pool-scoreboard-changelog, rubymine-setup, scenario-workflow)
+- [ ] 32-03-PLAN.md — Complete remaining 4 bilingual pairs (umb-deployment-checklist, fixture-collection-guide, testing-quickstart, table-reservation) and run final verification sweep
 
 ## Progress
 
@@ -154,4 +155,4 @@ Phases execute in numeric order: 28 → 29 → 30 → 31 → 32
 | 29. Break-Fix | v6.0 | 2/2 | Complete    | 2026-04-12 |
 | 30. Content Updates | v6.0 | 2/2 | Complete    | 2026-04-12 |
 | 31. New Documentation | v6.0 | 3/3 | Complete    | 2026-04-12 |
-| 32. Nav, i18n & Verification | v6.0 | 0/2 | Not started | - |
+| 32. Nav, i18n & Verification | v6.0 | 0/3 | Not started | - |
