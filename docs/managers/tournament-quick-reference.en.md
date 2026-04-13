@@ -58,4 +58,27 @@ This page is a one-page checklist for tournament day — designed to be printed,
 <a id="scoreboard-shortcuts"></a>
 ## Scoreboard Keyboard Shortcuts (Within Arm's Reach)
 
-_(Shortcut table and ASCII button strip TBD in Plan 35-04.)_
+Full explanations: [Scoreboard Guide](../players/scoreboard-guide.md).
+
+| Key | Action | When |
+|-----|--------|------|
+| ← / Page Up | +1 for Player A (left) | Pointer mode |
+| → / Page Down | +1 for Player B (right) | Pointer mode, after player switch |
+| `+1` / `+5` / `+10` | Add points | Input mode (buttons) |
+| `-1` / `-5` / `-10` | Subtract points | Correction |
+| `Numbers` → `0`–`9` | Direct numeric entry | Larger scores |
+| `Del` | Delete last digit | Number pad |
+| `Esc` | Cancel number pad | Number pad |
+| `Enter` | Confirm score / activate focused button | Number pad / Input mode |
+| `Next` | Player switch | Input mode |
+| `Protocol` | Open game protocol (all innings) | Input mode |
+| `B` | Move right through buttons | Navigation |
+| `Down` | Activate focused button | Navigation |
+| `Ctrl+Z` (`^v`) | Undo last entry | Input mode |
+| `B` → `Down` | Start / pause / resume timer | Timer area |
+
+On the scoreboard you see this button row at the bottom (verbatim from the Scoreboard Guide):
+
+```
+[Protocol] [-1] [-5] [-10] [Next] [+10] [+5] [+1] [Numbers]
+```
