@@ -12,18 +12,31 @@ Use these shell and `rails console` snippets to reproduce the wizard walkthrough
 
 ```bash
 # Start dev server
-bin/rails server
+foreman start -f Procfile.dev
+# Or, if foreman unavailable:
+# bin/rails server
 
-# In another shell, pick a reproduction tournament
-bin/rails runner 'puts Tournament.order(created_at: :desc).where(aasm_state: %w[prepared seeding_open new_tournament]).limit(5).pluck(:id, :title, :aasm_state)'
+# In another shell, pick a reproduction tournament (note: state column, not aasm_state)
+bin/rails runner 'Tournament.where("id >= 50000000").where(state: %w[new_tournament tournament_seeding_finished tournament_mode_defined]).order(created_at: :desc).limit(5).each { |t| puts "#{t.id} | #{t.title} | #{t.state}" }'
 
-# Record the chosen tournament here:
-# TOURNAMENT_ID=<fill_in_from_output>
-# AASM_STATE=<fill_in>
-# URL: http://localhost:3000/tournaments/<TOURNAMENT_ID>
+# Chosen tournament for this walkthrough:
+# TOURNAMENT_ID=50999005
+# TITLE="X"  (test tournament — create a better-named one via rails console if needed; see below)
+# AASM_STATE=new_tournament
+# URL: http://localhost:3000/tournaments/50999005
+
+# Optional: rename the test tournament for clarity before walking through
+# bin/rails console
+# > t = Tournament.find(50999005); t.unprotected = true; t.update!(title: "UX Audit Test 2026"); t.title
 ```
 
-**Instructions for Plan 02 auditor:** Before beginning the browser walkthrough, run the `rails runner` command above, pick a tournament with an early AASM state (`prepared`, `seeding_open`, or `new_tournament`), and fill in `TOURNAMENT_ID` and `AASM_STATE` in the lines above. Commit those values so Phase 34/36 can re-observe the same tournament without having to search again.
+**Preconditions verified by Plan 02 (pre-browser):**
+- Tournament 50999005 exists, `state=new_tournament`, `id >= 50_000_000` (local record, writable)
+- `has_clubcloud_results?` returns `false` (no CC results blocking wizard display)
+- Wizard is displayed when: `tournament_director?(current_user)` is true AND `local_server?` is true AND `!@tournament.has_clubcloud_results?`
+- Ensure you are logged in as a user with `tournament_director` role before starting the walkthrough
+
+**Instructions for Plan 02 auditor:** The reproduction recipe above is pre-filled with concrete values. Start the dev server, log in as a tournament director, and navigate to `http://localhost:3000/tournaments/50999005`. Commit screenshots and observed prose as you walk through each action.
 
 The wizard is only visible when all three conditions are true: the current user is a `tournament_director`, the server is `local_server?` (not the API server), and the tournament does not have ClubCloud results (`!@tournament.has_clubcloud_results?`). Verify these preconditions are met before walking through each action.
 
@@ -120,9 +133,9 @@ The six sections below correspond to the six wizard actions that comprise the ha
 
 ## new
 
-**Intent:** _to be filled by Plan 02_
-**Observed:** _to be filled by Plan 02_
-**Screenshot:** _to be filled by Plan 02_
+**Intent:** The tournament director creates a brand-new tournament record — filling in the minimum required fields (title, discipline, date, organizer) so the system can assign it an id and advance it to `new_tournament` state, at which point the wizard becomes visible on the show page. Source: `tournaments_controller.rb:428` — `new` builds a blank `Tournament.new` and renders the form; `create` (line 436) saves it and redirects to the show page.
+**Observed:** _to be filled by Plan 02 — observe the form in browser_
+**Screenshot:** screenshots/01-new-empty-form.png
 
 | ID | Type | Finding | Tier | Gate |
 |----|------|---------|------|------|
@@ -132,9 +145,9 @@ The six sections below correspond to the six wizard actions that comprise the ha
 
 ## create
 
-**Intent:** _to be filled by Plan 02_
-**Observed:** _to be filled by Plan 02_
-**Screenshot:** _to be filled by Plan 02_
+**Intent:** The tournament director submits the new-tournament form to persist the record and land on the show page with the wizard at Step 1 active. Source: `tournaments_controller.rb:436` — `create` builds `Tournament.new(tournament_params)`, optionally attaches a league, saves, and redirects to `@tournament` (the show page) with a "Tournament was successfully created." notice; on failure it redirects back.
+**Observed:** _to be filled by Plan 02 — observe the show page immediately after submit_
+**Screenshot:** screenshots/02-create-after-submit.png
 
 | ID | Type | Finding | Tier | Gate |
 |----|------|---------|------|------|
@@ -144,9 +157,9 @@ The six sections below correspond to the six wizard actions that comprise the ha
 
 ## edit
 
-**Intent:** _to be filled by Plan 02_
-**Observed:** _to be filled by Plan 02_
-**Screenshot:** _to be filled by Plan 02_
+**Intent:** The tournament director corrects or extends the tournament's basic attributes (title, date, location, discipline settings) after it has been created. Source: `tournaments_controller.rb:433` — `edit` is a bare action (no body beyond implicit `@tournament` set by `before_action`); it renders `edit.html.erb`, which re-presents the same form as `new` but pre-populated.
+**Observed:** _to be filled by Plan 02 — observe the edit form and how it differs visually from the new form_
+**Screenshot:** screenshots/03-edit-wizard-step.png
 
 | ID | Type | Finding | Tier | Gate |
 |----|------|---------|------|------|
@@ -156,9 +169,9 @@ The six sections below correspond to the six wizard actions that comprise the ha
 
 ## finish_seeding
 
-**Intent:** _to be filled by Plan 02_
-**Observed:** _to be filled by Plan 02_
-**Screenshot:** _to be filled by Plan 02_
+**Intent:** The tournament director closes the participant list ("Setzliste abschließen"), locking in the draw order and triggering ranking calculation, so the tournament can advance to `tournament_seeding_finished` state and the next wizard step becomes active. Source: `tournaments_controller.rb:107` — `finish_seeding` calls `@tournament.finish_seeding!` (AASM event, transitions to `tournament_seeding_finished`), then calls `calculate_and_cache_rankings` if rankings are blank, and redirects back to the show page; only permitted on `local_server?`.
+**Observed:** _to be filled by Plan 02 — observe before and after clicking; note confirmation dialog presence/absence_
+**Screenshot:** screenshots/04-finish_seeding-before.png (before), screenshots/05-finish_seeding-after.png (after)
 
 | ID | Type | Finding | Tier | Gate |
 |----|------|---------|------|------|
@@ -168,9 +181,9 @@ The six sections below correspond to the six wizard actions that comprise the ha
 
 ## start
 
-**Intent:** _to be filled by Plan 02_
-**Observed:** _to be filled by Plan 02_
-**Screenshot:** _to be filled by Plan 02_
+**Intent:** The tournament director fills in the play parameters (table assignment, innings/balls goals, timeouts, sets, ClubCloud upload preference) and officially starts the tournament, which initialises the TournamentMonitor, fires the `start_tournament!` AASM event (→ `tournament_started_waiting_for_monitors`), and sets up all TableMonitors with the chosen parameters. Source: `tournaments_controller.rb:288` — saves play-param data to `@tournament.data`, calls `initialize_tournament_monitor`, fires `start_tournament!`, updates every TableMonitor, broadcasts teaser frames, then redirects to `tournament_monitor_path` if in `tournament_started_waiting_for_monitors` state, otherwise redirects back to the tournament show page.
+**Observed:** _to be filled by Plan 02 — observe the start form and the redirect destination after clicking_
+**Screenshot:** screenshots/06-start-form.png
 
 | ID | Type | Finding | Tier | Gate |
 |----|------|---------|------|------|
@@ -180,9 +193,9 @@ The six sections below correspond to the six wizard actions that comprise the ha
 
 ## tournament_started_waiting_for_monitors
 
-**Intent:** _to be filled by Plan 02_
-**Observed:** _to be filled by Plan 02_
-**Screenshot:** _to be filled by Plan 02_
+**Intent:** After `start_tournament!` fires, the system is in a transient state waiting for table monitor connections to signal readiness before the tournament is fully live. The controller check at line 415 (`@tournament.tournament_started_waiting_for_monitors?`) determines whether the volunteer is redirected to `tournament_monitor_path` (to oversee monitor setup) rather than back to the tournament show page. Source: `tournament.rb:276–295` — `tournament_started_waiting_for_monitors` is an explicit AASM state entered by `start_tournament!` and exited only by `signal_tournament_monitors_ready` (→ `tournament_started`). The controller at line 415 redirects to `tournament_monitor_path` when this state is active immediately after `#start`.
+**Observed:** _to be filled by Plan 02 — CRITICAL for UX-02: does any visible UI surface during this state, or does the redirect to tournament_monitor_path happen instantly with no intermediate screen? Measure approximate duration._
+**Screenshot:** screenshots/07-start-transient-state.png (attempt; document "too fast to screenshot" if applicable)
 
 | ID | Type | Finding | Tier | Gate |
 |----|------|---------|------|------|
