@@ -24,10 +24,10 @@ Phases 1-32 completed across six milestones. See MILESTONES.md for details.
 
 **Milestone Goal:** A volunteer club officer who runs 2-3 tournaments per year can manage one end-to-end using Carambus, with task-first documentation and a happy-path UX that doesn't trip them up each time they come back.
 
-- [ ] **Phase 33: UX Review & Wizard Audit** - Identify the canonical wizard partial, observe transient state behavior, and classify all happy-path UX findings by impact tier before any doc or code work begins
+- [x] **Phase 33: UX Review & Wizard Audit** - Identify the canonical wizard partial, observe transient state behavior, and classify all happy-path UX findings by impact tier before any doc or code work begins (completed 2026-04-13)
 - [ ] **Phase 34: Task-First Doc Rewrite** - Rewrite `docs/managers/tournament-management.{de,en}.md` as a volunteer task walkthrough with glossary, troubleshooting, and corrected index Quick Start
 - [ ] **Phase 35: Printable Quick-Reference Card** - Create bilingual Before/During/After printable A4 card with print CSS registered in mkdocs
-- [ ] **Phase 36: Small UX Fixes** - Implement Tier 1 and Tier 2 UX fixes surfaced by Phase 33: open-by-default help, auto_upload_to_cc alignment, step name display, AASM badge prominence
+- [x] **Phase 36: Small UX Fixes** - Implement Tier 1 and Tier 2 UX fixes surfaced by Phase 33: open-by-default help, auto_upload_to_cc alignment, step name display, AASM badge prominence (completed 2026-04-13)
 - [ ] **Phase 37: In-App Doc Links** - Fix the mkdocs_link locale bug and wire doc links from each wizard step to the corresponding stable doc anchors from Phase 34
 
 ## Phase Details
@@ -43,9 +43,9 @@ Phases 1-32 completed across six milestones. See MILESTONES.md for details.
   3. Every happy-path action from `new` through `start` is listed in UX-FINDINGS.md with its intent and observed behavior
   4. Every UX finding is classified Tier 1 (view/copy), Tier 2 (controller change), or Tier 3 (AASM change); Tier 3 items are explicitly gated from Phase 36 unless a test coverage plan is attached
 **Plans**: 3 plans
-- [ ] 33-01-setup-and-grep-evidence-PLAN.md — Create reproduction recipe, grep evidence for canonical partial (UX-01), and scaffold UX-FINDINGS.md skeleton
-- [ ] 33-02-browser-walkthrough-and-screenshots-PLAN.md — Drive happy-path walkthrough in real browser, capture 6–10 screenshots, observe transient state (UX-02, UX-04)
-- [ ] 33-03-tier-classification-and-finalize-PLAN.md — Assign stable IDs, tier-classify findings, apply gates, record retirement decision, finalize file (UX-03, UX-04, UX-01)
+- [x] 33-01-setup-and-grep-evidence-PLAN.md — Create reproduction recipe, grep evidence for canonical partial (UX-01), and scaffold UX-FINDINGS.md skeleton
+- [x] 33-02-browser-walkthrough-and-screenshots-PLAN.md — Drive happy-path walkthrough in real browser, capture 6–10 screenshots, observe transient state (UX-02, UX-04)
+- [x] 33-03-tier-classification-and-finalize-PLAN.md — Assign stable IDs, tier-classify findings, apply gates, record retirement decision, finalize file (UX-03, UX-04, UX-01)
 
 ### Phase 34: Task-First Doc Rewrite
 **Goal**: Both language files of `docs/managers/tournament-management.{de,en}.md` open with a task walkthrough the volunteer can follow end-to-end, with glossary and troubleshooting sections, and the index Quick Start reflects the actual ClubCloud-sourced workflow
@@ -105,7 +105,7 @@ Phases 1-32 completed across six milestones. See MILESTONES.md for details.
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 33. UX Review & Wizard Audit | v7.0 | 0/3 | Planned | - |
+| 33. UX Review & Wizard Audit | v7.0 | 3/3 | Complete    | 2026-04-13 |
 | 34. Task-First Doc Rewrite | v7.0 | 0/TBD | Not started | - |
 | 35. Printable Quick-Reference Card | v7.0 | 0/TBD | Not started | - |
 | 36. Small UX Fixes | v7.0 | 0/TBD | Not started | - |
