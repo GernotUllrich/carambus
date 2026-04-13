@@ -75,7 +75,12 @@ Phases 1-32 completed across six milestones. See MILESTONES.md for details.
   2. Printing either page from a browser hides all mkdocs navigation chrome and produces a clean A4-sized layout with legible font size
   3. The reference card includes the scoreboard keyboard shortcut cheat sheet (+1, -1, nnn, DEL, ^v, timer controls) in a format readable at arm's length
   4. `mkdocs build --strict` passes with zero warnings after adding both files and their nav entries
-**Plans**: TBD
+**Plans**: 5 plans
+- [ ] 35-01-PLAN.md — Record mkdocs strict baseline, create docs/stylesheets/print.css with @media print chrome-stripping + A4 layout, wire into mkdocs.yml extra_css (QREF-02)
+- [ ] 35-02-PLAN.md — Create bilingual tournament-quick-reference.{de,en}.md skeleton with #before/#during/#after/#scoreboard-shortcuts anchors AND mkdocs.yml nav entry + DE nav_translation label in a single atomic commit (QREF-01; D-07a + D-08a gates)
+- [ ] 35-03-PLAN.md — Fill DE + EN Before/During/After checklists with F-09/F-12/F-14/F-19 warning callouts and Phase 34 walkthrough deep-links (QREF-01)
+- [ ] 35-04-PLAN.md — Fill DE + EN scoreboard-shortcuts section with shortcut table and verbatim ASCII keycap strip copied from scoreboard-guide.{de,en}.md (QREF-03)
+- [ ] 35-05-PLAN.md — Final mkdocs --strict gate, automated success-criteria verification, cross-reference integrity checks, human smoke test of print preview (QREF-01/02/03)
 
 ### Phase 36: Small UX Fixes
 **Goal**: The four highest-value Tier 1 and Tier 2 UX friction points surfaced in Phase 33 are resolved: the active step's help is visible without a click, the auto_upload_to_cc doc/code alignment is corrected, step names replace bare numbers, and the AASM state badge is the primary orientation indicator
