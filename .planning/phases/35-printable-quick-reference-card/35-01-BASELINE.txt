@@ -25,3 +25,7 @@ post_plan_04_de_delta: 0
 post_plan_04_en_warning_log_lines: 191
 post_plan_04_en_measured_at: 2026-04-13T17:52:30Z
 post_plan_04_en_delta: 0
+final_mkdocs_build_strict_exit_code: 1
+final_warning_log_lines: 191
+final_measured_at: 2026-04-13T18:00:00Z
+delta_vs_baseline: 0
