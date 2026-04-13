@@ -1,12 +1,18 @@
 ---
 phase: 35-printable-quick-reference-card
 verified: 2026-04-13T18:00:00Z
-status: human_needed
-score: 3/4 success criteria fully verified (SC-2 automated portion PASS; visual portion awaits Task 2 checkpoint)
+updated: 2026-04-13T18:30:00Z
+status: passed
+score: 4/4 success criteria fully verified (SC-2 automated PASS + human print-preview smoke test approved-with-notes)
 human_verification:
-  - "Print-preview smoke test of /managers/tournament-quick-reference/ (DE + EN) at A4, confirm mkdocs chrome hidden and page fits one sheet — Task 2 of 35-05-PLAN.md"
+  - task: "Print-preview smoke test of /managers/tournament-quick-reference/ (DE + EN) at A4, confirm mkdocs chrome hidden and page fits one sheet — Task 2 of 35-05-PLAN.md"
+    result: approved-with-notes
+    resolved_at: 2026-04-13T18:30:00Z
 gaps: []
-deferred: []
+deferred:
+  - "Replace keyboard-shortcut cheat sheet with annotated scoreboard screenshots + handle table (user feedback Task 2)"
+  - "Add warm-up phase, shootout phase, and protocol editor coverage (user feedback Task 2)"
+  - "Relax D-04a one-page A4 soft ceiling to 2 pages to accommodate expanded content (user feedback Task 2)"
 ---
 
 # Phase 35: printable-quick-reference-card Verification Report
@@ -18,7 +24,7 @@ deferred: []
 | # | Criterion | Status | Evidence |
 |---|-----------|--------|----------|
 | 1 | Files exist, reachable from mkdocs nav, Before/During/After sections with checkbox items | PASS | DE + EN files present; `managers/tournament-quick-reference.md` in nav; DE nav_translation `Tournament Quick Reference: Turnier-Schnellreferenz` present; 21 task-list items in each file (within 19–25 range); anchors `before`, `during`, `after` all present in both files. |
-| 2 | Print preview hides mkdocs chrome + A4 layout + legible font | PASS (automated) / PENDING (visual) | `docs/stylesheets/print.css` exists with `@media print` block and `size: A4` rule; all 7 chrome selectors present (`.md-header`, `.md-sidebar`, `.md-footer`, `.md-tabs`, `.md-search`, `.md-nav`, `.md-top`); print.css wired in `mkdocs.yml` `extra_css`. **Visual confirmation deferred to Task 2 human checkpoint.** |
+| 2 | Print preview hides mkdocs chrome + A4 layout + legible font | PASS (automated + visual) | `docs/stylesheets/print.css` exists with `@media print` block and `size: A4` rule; all 7 chrome selectors present (`.md-header`, `.md-sidebar`, `.md-footer`, `.md-tabs`, `.md-search`, `.md-nav`, `.md-top`); print.css wired in `mkdocs.yml` `extra_css`. **Visual confirmation:** Human smoke test 2026-04-13 returned `approved-with-notes` — chrome hidden and A4 layout correct in both DE and EN; notes about content scope (shortcuts vs screenshots, warm-up/shootout/editor coverage, 2-page ceiling) captured in "Human Verification Required" section below and routed to follow-up phase. |
 | 3 | Scoreboard keyboard shortcut cheat sheet included | PASS | DE ASCII strip (`[Protokoll] [-1] [-5] [-10] [Nächster] [+10] [+5] [+1] [Numbers]`) and EN ASCII strip (`[Protocol] [-1] [-5] [-10] [Next] [+10] [+5] [+1] [Numbers]`) both match `scoreboard-guide.{de,en}.md` line 228/227 byte-for-byte via `grep -Fxq`; DE table header `\| Taste \| Aktion \| Wann \|` and EN table header `\| Key \| Action \| When \|` present; `#scoreboard-shortcuts` anchors present in both files. |
 | 4 | mkdocs build --strict zero new warnings vs baseline | PASS | `baseline=191` `final=191` `delta=0`. Full strict build log at `/tmp/35-05-mkdocs-final.log`. |
 
@@ -68,6 +74,31 @@ The only step Claude cannot automate is the printed-page visual smoke test (Task
 On `approved` (or `approved-with-notes: ...`): continuation agent updates `status:` to `passed`, flips SC-2 row to full PASS, appends notes to this section.
 
 On `rejected: <reason>`: continuation agent leaves `status:` as `human_needed`, adds entry to `gaps:` frontmatter array, escalates to orchestrator.
+
+### Result: approved-with-notes (2026-04-13)
+
+The human print-preview smoke test was executed against the local mkdocs dev server. Both DE (`/de/managers/tournament-quick-reference/`) and EN (`/en/managers/tournament-quick-reference/`) variants printed with mkdocs chrome hidden and correct A4 layout. The user returned **`approved-with-notes`** — the work ships as-is, with follow-up scope captured below.
+
+**Verbatim user observation (DE):**
+
+> "Scoreboard-Kürzel machen hier doch wenig Sinn. Es sollten Snapshots des Scoreboard sein mit markierten Handles, die tabellarisch kurz beschrieben werden. Warm-up und Shootout-Phasen werden nicht behandelt, ebenso der Protokoll-Editor. Das geht sicher nicht auf eine Seite - 2 Seiten dafür wären aber auch ok"
+
+**English translation / summary (3 follow-up observations):**
+
+1. **Wrong format for the shortcut reference.** Keyboard-shortcut cheat sheet does not fit the volunteer use case on this card. The section should instead use annotated scoreboard screenshots with marked handles, described in a compact table alongside the screenshots.
+2. **Missing phase coverage.** The card does not address three tournament-day surfaces that volunteers also need: the warm-up phase, the shootout phase, and the protocol editor.
+3. **One-page ceiling is too tight.** The D-04a one-page A4 soft ceiling cannot accommodate the expanded content above. A 2-page A4 card is acceptable.
+
+**These items represent follow-up scope — see follow-up phase routing below.** The orchestrator will route items 1–3 to a new follow-up phase (likely Phase 38+) after Plan 35-05 closes and Phase 35 is marked complete. Plan 35 as scoped and shipped satisfies all four ROADMAP success criteria; the observations above describe content reshape and expansion that were explicitly out of Phase 35's scope.
+
+### Follow-up phase routing
+
+The three observations above will be handed to the orchestrator upon Plan 35-05 completion. They will NOT be addressed in Plan 35-05 and do NOT block Phase 35 completion. Expected follow-up phase content:
+
+- Convert `#scoreboard-shortcuts` section from shortcut table + ASCII keycap strip to annotated scoreboard screenshots + handle-description table (images live under `docs/assets/` with bilingual captions).
+- Add `#warmup`, `#shootout`, and `#protocol-editor` sections to the card in both languages.
+- Update `docs/stylesheets/print.css` `@page { size: A4 }` rule and related `page-break-*` rules to permit a 2-page layout without clipping sections.
+- Update D-04a decision record to reflect the new 2-page ceiling.
 
 ## Evidence Files
 
