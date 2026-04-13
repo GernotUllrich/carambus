@@ -1,5 +1,26 @@
 # Milestones
 
+## v6.0 Documentation Quality (Shipped: 2026-04-13)
+
+**Phases completed:** 5 phases, 12 plans, 20 tasks
+
+**Key accomplishments:**
+
+- Three audit tools created: translation gap checker, stale code reference detector, and CI-ready mkdocs strict-build task — plus archive exclusion from search indexing
+- 133-finding staleness inventory in docs/audit.json + docs/DOCS-AUDIT-REPORT.md: 75 broken links, 6 stale refs, 9 coverage gaps, 43 bilingual gaps — all classified and phase-assigned to gate Phases 29-32
+- 44 broken links cleared in one pass: 32 missing screenshot image refs replaced with text placeholders and 12 template example links encoded with HTML entities to prevent checker false positives
+- 31 remaining broken links de-linked across 17 files and 3 stale code references updated to current names — both checker scripts report zero findings, completing Phase 29 FIX-01 and FIX-02
+- Stale UmbScraperV2 planning docs replaced with accurate bilingual Umb:: namespace documentation — 4 files covering 10 services, 3 entry points, and 3 PDF parser output contracts
+- Added 35-service inventory across 7 namespace tables to both German and English developer guides, with file paths and one-liner descriptions for every extracted service.
+- TableMonitor::
+- league.de.md / league.en.md
+- Bilingual DE+EN documentation for the Video:: cross-referencing system: TournamentMatcher confidence scoring (0.75 threshold, 3 weighted signals), MetadataExtractor regex+gpt-4o-mini AI fallback, and SoopliveBilliardsClient replay_no linking with operational workflow
+- Services nav block with 8 Phase 31 pages wired into mkdocs.yml, exclude_docs expanded to eliminate 24 orphan warnings, and 7 broken cross-doc links fixed — reducing strict build warnings from 62 to 5
+- 5 monolingual plain .md files renamed to language-suffixed pairs and full AI-assisted translations created — 10 doc files total, 5 git commits (one per pair per D-08)
+- 3 remaining monolingual files renamed to language-suffixed pairs, full AI-assisted translations created, table-reservation.de.md created — all 17 bilingual gaps resolved, v6.0 Documentation Quality milestone final gate PASSED with zero issues across all four verification scripts
+
+---
+
 ## v5.0 UMB Scraper Überarbeitung (Shipped: 2026-04-12)
 
 **Phases completed:** 4 phases, 12 plans

@@ -8,15 +8,9 @@ A focused improvement effort on the Carambus API codebase. v1.0–v5.0 broke dow
 
 A maintainable, well-tested codebase where every test is trustworthy and every model is appropriately sized.
 
-## Current Milestone: v6.0 Documentation Quality
+## Completed: v6.0 Documentation Quality (shipped 2026-04-13)
 
-**Goal:** Ensure mkdocs-based documentation accurately reflects the post-refactoring codebase — every implemented feature documented, no references to unimplemented or deleted features, documentation quality on par with code quality.
-
-**Target features:**
-- Audit existing docs against actual codebase state
-- Remove/update references to deleted code (UmbScraperV2, old model structures)
-- Document new services and features from v1.0–v5.0
-- Verify multilingual consistency (de/en)
+Audited, repaired, and documented the entire mkdocs site: zero broken links, zero stale code refs, 8 namespace overview pages, Video:: cross-referencing docs, 35-service developer guide index, 17 bilingual gaps closed, mkdocs build --strict passes with zero warnings.
 
 
 ## Requirements
@@ -66,18 +60,19 @@ A maintainable, well-tested codebase where every test is trustworthy and every m
 - ✓ Kozoom event cross-referencing via eventId — v5.0 (VIDEO-03)
 - ✓ DailyInternationalScrapeJob Steps 3a/3b/3c wired — v5.0 (incremental matching + backfill rake task)
 
+- ✓ Audit docs against codebase — v6.0 (133-finding staleness inventory, 3 audit scripts)
+- ✓ Update/remove references to deleted or refactored code — v6.0 (75 broken links fixed, 6 stale refs updated)
+- ✓ Document new features and services from v1.0–v5.0 — v6.0 (8 namespace pages, Video:: cross-ref, 35-service developer guide)
+- ✓ Verify multilingual consistency (de/en) — v6.0 (17 bilingual gaps closed, zero warnings)
+
 ### Active
 
-- [ ] Audit docs against codebase — identify stale, missing, and incorrect documentation
-- [ ] Update/remove references to deleted or refactored code
-- [ ] Document new features and services from v1.0–v5.0
-- [ ] Verify multilingual consistency (de/en)
+(No active requirements — next milestone not yet defined)
 
 ### Out of Scope
 
 - New test coverage for remaining untested models, controllers, services — separate milestone
 - Architecture or stack changes — not in scope for current project
-- Scraper consolidation (UmbScraper v1/v2) — completed in v5.0, no longer relevant
 
 ## Context
 
@@ -88,6 +83,7 @@ A maintainable, well-tested codebase where every test is trustworthy and every m
 - **v2.1 shipped 2026-04-11:** Tournament 1775→575 lines (3 services), TournamentMonitor 499→181 lines (4 services), lib/tournament_monitor_support.rb deleted
 - **v4.0 shipped 2026-04-12:** League 2221→663 lines (4 services), PartyMonitor 605→217 lines (2 services), 30 controller + 10 reflex tests
 - **v5.0 shipped 2026-04-12:** UmbScraper 2133→175 lines (10 services), UmbScraperV2 deleted (585 lines absorbed), SoopLive JSON API integrated, video cross-referencing built
+- **v6.0 shipped 2026-04-13:** Documentation audit + repair — 75 broken links fixed, 8 namespace pages, Video:: docs, 35-service guide, 17 bilingual pairs, zero mkdocs warnings
 - Test suite: 1130 runs, 0 failures, 0 errors
 - Sync: PaperTrail + RegionTaggable filtering, local servers pull via Version.update_from_carambus_api
 - ApiProtector + LocalProtector both have test overrides in test_helper.rb
@@ -163,4 +159,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-13 after Phase 31 (New Documentation) complete — 8 namespace overview pages + Video:: cross-referencing, all bilingual*
+*Last updated: 2026-04-13 after v6.0 milestone complete*
