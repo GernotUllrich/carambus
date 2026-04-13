@@ -58,4 +58,27 @@ Diese Seite ist eine einseitige Checkliste für den Turniertag — zum Ausdrucke
 <a id="scoreboard-shortcuts"></a>
 ## Scoreboard-Kürzel (Griffbereit)
 
-_(Tastenkürzel-Tabelle und ASCII-Button-Leiste folgen in Plan 35-04.)_
+Vollständige Erklärung: [Scoreboard-Anleitung](../players/scoreboard-guide.md).
+
+| Taste | Aktion | Wann |
+|-------|--------|------|
+| ← / Bild↑ | +1 für Spieler A (links) | Pointer-Modus |
+| → / Bild↓ | +1 für Spieler B (rechts) | Pointer-Modus, nach Spielerwechsel |
+| `+1` / `+5` / `+10` | Punkte hinzufügen | Eingabe-Modus (Buttons) |
+| `-1` / `-5` / `-10` | Punkte abziehen | Korrektur |
+| `Numbers` → `0`–`9` | Direkte Zahleneingabe | Größere Punktzahlen |
+| `Del` | Letzte Ziffer löschen | Zahlenfeld |
+| `Esc` | Zahlenfeld abbrechen | Zahlenfeld |
+| `Enter` | Punktzahl bestätigen / Button aktivieren | Zahlenfeld / Eingabe-Modus |
+| `Nächster` | Spielerwechsel | Eingabe-Modus |
+| `Protokoll` | Spielprotokoll öffnen (alle Aufnahmen) | Eingabe-Modus |
+| `B` | Nach rechts durch die Buttons | Navigation |
+| `Down` | Fokussierten Button aktivieren | Navigation |
+| `Ctrl+Z` (`^v`) | Letzte Eingabe rückgängig | Eingabe-Modus |
+| `B` → `Down` | Timer starten / pausieren / fortsetzen | Timer-Bereich |
+
+Auf dem Scoreboard sehen Sie unten diese Button-Leiste (verbatim aus der Scoreboard-Anleitung):
+
+```
+[Protokoll] [-1] [-5] [-10] [Nächster] [+10] [+5] [+1] [Numbers]
+```
