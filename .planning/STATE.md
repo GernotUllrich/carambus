@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v7.0
 milestone_name: Manager Experience
 status: executing
-stopped_at: Completed 35-02-PLAN.md (bilingual skeleton + mkdocs nav)
-last_updated: "2026-04-13T17:42:28.839Z"
+stopped_at: Completed 35-03-PLAN.md
+last_updated: "2026-04-13T17:48:54.500Z"
 last_activity: 2026-04-13
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 12
-  completed_plans: 9
-  percent: 75
+  completed_plans: 10
+  percent: 83
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-13)
 ## Current Position
 
 Phase: 35 (Printable Quick-Reference Card) — EXECUTING
-Plan: 3 of 5
+Plan: 4 of 5
 Status: Ready to execute
 Last activity: 2026-04-13
 
@@ -47,6 +47,8 @@ Recent decisions affecting current work:
 - Volunteer persona filter: every UX and doc decision judged against "2-3x/year club officer"
 - [Phase 35]: Phase 35 D-09 baseline recorded: 191 mkdocs strict WARNING log lines (matches Phase 34 post-rebase). print.css added with zero-delta.
 - [Phase 35]: Plan 35-02: D-07a atomicity + D-08a bilingual skeleton gates satisfied in single commit 2db7c09e; DE nav label Turnier-Schnellreferenz chosen; mkdocs strict delta 0 (191 WARNING log lines)
+- [Phase 35]: F-14 callout attached to start-form step 7 (not tables/scoreboards) per 33-UX-FINDINGS.md exact scope
+- [Phase 35]: Before=10/During=6/After=5 item distribution; Laptop shutdown item in After section (chronological)
 
 ### Pending Todos
 
@@ -59,6 +61,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-13T17:42:28.837Z
-Stopped at: Completed 35-02-PLAN.md (bilingual skeleton + mkdocs nav)
+Last session: 2026-04-13T17:48:47.845Z
+Stopped at: Completed 35-03-PLAN.md
 Resume file: None
