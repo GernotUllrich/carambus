@@ -21,10 +21,14 @@ GSD planning artifacts (this file, screenshots, PLAN.md) still live in `carambus
 3. **Upcoming and not yet played:** The tournament's `date` must be in the near future (so the wizard shows the full "pre-play" happy path) and its state must still be `new_tournament` (so none of the wizard steps have been completed yet). A tournament that already ran would skip straight past the steps Phase 33 needs to observe.
 
 ```bash
-# Start dev server FROM carambus_bcw (not carambus_api)
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_bcw
-foreman start -f Procfile.dev
-# Or: bin/rails server
+# Dev server: started via RubyMine run configuration against carambus_bcw
+# bind: 0.0.0.0  port: 3007  (note: non-standard port — NOT 3000)
+# Verified reachable: curl http://localhost:3007/tournaments/17403 → HTTP 200
+
+# If you need to start it from the shell instead:
+# cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_bcw
+# bin/rails server -b 0.0.0.0 -p 3007
+# or: foreman start -f Procfile.dev  (check Procfile.dev for the default port)
 
 # In another shell, list upcoming carom tournaments still in new_tournament state
 cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_bcw
@@ -47,7 +51,7 @@ psql carambus_bcw_development -c "
 # DATE=2026-04-19  (upcoming, 6 days out)
 # AASM_STATE=new_tournament
 # id < 50_000_000 (GLOBAL / synced), organizer=Region (NBV)
-# URL: http://localhost:3000/tournaments/17403
+# URL: http://localhost:3007/tournaments/17403
 
 # If the tournament needs participants for the finish_seeding / start steps, inspect first:
 # cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_bcw
