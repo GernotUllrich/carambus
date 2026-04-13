@@ -6,3 +6,6 @@ warning_log_lines: 191
 warning_entries: 191
 phase_34_documented_baseline: 94 warnings (191 WARNING log lines per 34-VERIFICATION.md)
 notes: Baseline recorded BEFORE Plan 35-01 edits. Downstream plans MUST NOT exceed warning_log_lines count.
+post_plan_01_warning_log_lines: 191
+post_plan_01_measured_at: 2026-04-13T17:34:00Z
+post_plan_01_delta: 0
