@@ -14,16 +14,16 @@ As a tournament manager, you are responsible for:
 
 ## 🚀 Quick Start: Sync and Run a Tournament in 10 Steps
 
-1. **Sync tournament from ClubCloud** → _(content TBD in Plan 34-03)_
-2. _(step 2 — TBD)_
-3. _(step 3 — TBD)_
-4. _(step 4 — TBD)_
-5. _(step 5 — TBD)_
-6. _(step 6 — TBD)_
-7. _(step 7 — TBD)_
-8. _(step 8 — TBD)_
-9. _(step 9 — TBD)_
-10. _(step 10 — TBD)_
+1. **Sync tournament from ClubCloud** → [Step 2](tournament-management.md#step-2-load-clubcloud)
+2. **Apply the seeding list** → [Step 3](tournament-management.md#step-3-seeding-list)
+3. **Review and add participants** → [Step 4](tournament-management.md#step-4-participants)
+4. **Close the participant list** → [Step 5](tournament-management.md#step-5-finish-seeding)
+5. **Select tournament mode** → [Step 6](tournament-management.md#step-6-mode-selection)
+6. **Fill in start parameters** → [Step 7](tournament-management.md#step-7-start-form)
+7. **Assign tables and start the tournament** → [Steps 8–9](tournament-management.md#step-8-tables)
+8. **Warmup and match release** → [Steps 10–11](tournament-management.md#step-10-warmup)
+9. **Monitor and finalize results** → [Steps 12–13](tournament-management.md#step-12-monitor)
+10. **Upload results to ClubCloud** → [Step 14](tournament-management.md#step-14-upload)
 
 ➡️ **[Full walkthrough](tournament-management.md#walkthrough)**
 
