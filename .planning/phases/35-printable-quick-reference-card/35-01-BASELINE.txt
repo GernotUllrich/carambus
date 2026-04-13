@@ -19,3 +19,9 @@ post_plan_03_measured_at: 2026-04-13T17:45:00Z
 post_plan_03_delta: 0
 plan_03_commit_sha_de: 079338e6
 plan_03_commit_sha_en: 867b097c
+post_plan_04_de_warning_log_lines: 191
+post_plan_04_de_measured_at: 2026-04-13T17:51:30Z
+post_plan_04_de_delta: 0
+post_plan_04_en_warning_log_lines: 191
+post_plan_04_en_measured_at: 2026-04-13T17:52:30Z
+post_plan_04_en_delta: 0

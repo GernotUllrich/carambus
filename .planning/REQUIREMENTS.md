@@ -26,7 +26,7 @@ Requirements for the Manager Experience milestone. Each maps to exactly one phas
 
 - [x] **QREF-01**: `docs/managers/tournament-quick-reference.de.md` and `docs/managers/tournament-quick-reference.en.md` exist as printable A4 single-page cards with Before / During / After checklist structure. `mkdocs.yml` nav entry and `nav_translations` DE label added in the same commit as the files.
 - [x] **QREF-02**: Print CSS is added at `docs/stylesheets/print.css` and registered in `mkdocs.yml` `extra_css`. Laminate-ready layout: margins safe for printing, font size readable at arm's length, no dependency on color to convey information.
-- [ ] **QREF-03**: The quick-reference card includes the scoreboard keyboard shortcut cheat sheet (+1, -1, nnn, DEL, ^v, timer controls) for tournament-day reference.
+- [x] **QREF-03**: The quick-reference card includes the scoreboard keyboard shortcut cheat sheet (+1, -1, nnn, DEL, ^v, timer controls) for tournament-day reference.
 
 ### Small UX Fixes
 
@@ -69,7 +69,7 @@ Requirements for the Manager Experience milestone. Each maps to exactly one phas
 | DOC-05 | Phase 34 | Pending |
 | QREF-01 | Phase 35 | Complete |
 | QREF-02 | Phase 35 | Complete |
-| QREF-03 | Phase 35 | Pending |
+| QREF-03 | Phase 35 | Complete |
 | FIX-01 | Phase 36 | Pending |
 | FIX-02 | Phase 36 | Pending |
 | FIX-03 | Phase 36 | Pending |

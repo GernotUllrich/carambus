@@ -79,7 +79,7 @@ Phases 1-32 completed across six milestones. See MILESTONES.md for details.
 - [x] 35-01-PLAN.md — Record mkdocs strict baseline, create docs/stylesheets/print.css with @media print chrome-stripping + A4 layout, wire into mkdocs.yml extra_css (QREF-02)
 - [x] 35-02-PLAN.md — Create bilingual tournament-quick-reference.{de,en}.md skeleton with #before/#during/#after/#scoreboard-shortcuts anchors AND mkdocs.yml nav entry + DE nav_translation label in a single atomic commit (QREF-01; D-07a + D-08a gates)
 - [x] 35-03-PLAN.md — Fill DE + EN Before/During/After checklists with F-09/F-12/F-14/F-19 warning callouts and Phase 34 walkthrough deep-links (QREF-01)
-- [ ] 35-04-PLAN.md — Fill DE + EN scoreboard-shortcuts section with shortcut table and verbatim ASCII keycap strip copied from scoreboard-guide.{de,en}.md (QREF-03)
+- [x] 35-04-PLAN.md — Fill DE + EN scoreboard-shortcuts section with shortcut table and verbatim ASCII keycap strip copied from scoreboard-guide.{de,en}.md (QREF-03)
 - [ ] 35-05-PLAN.md — Final mkdocs --strict gate, automated success-criteria verification, cross-reference integrity checks, human smoke test of print preview (QREF-01/02/03)
 
 ### Phase 36: Small UX Fixes
@@ -116,6 +116,6 @@ Phases 1-32 completed across six milestones. See MILESTONES.md for details.
 |-------|-----------|----------------|--------|-----------|
 | 33. UX Review & Wizard Audit | v7.0 | 3/3 | Complete    | 2026-04-13 |
 | 34. Task-First Doc Rewrite | v7.0 | 4/4 | Complete    | 2026-04-13 |
-| 35. Printable Quick-Reference Card | v7.0 | 3/5 | In Progress|  |
+| 35. Printable Quick-Reference Card | v7.0 | 4/5 | In Progress|  |
 | 36. Small UX Fixes | v7.0 | 0/TBD | Not started | - |
 | 37. In-App Doc Links | v7.0 | 0/TBD | Not started | - |

@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v7.0
 milestone_name: Manager Experience
 status: executing
-stopped_at: Completed 35-03-PLAN.md
-last_updated: "2026-04-13T17:48:54.500Z"
+stopped_at: Completed 35-04-PLAN.md
+last_updated: "2026-04-13T17:54:50.503Z"
 last_activity: 2026-04-13
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 12
-  completed_plans: 10
-  percent: 83
+  completed_plans: 11
+  percent: 92
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-13)
 ## Current Position
 
 Phase: 35 (Printable Quick-Reference Card) — EXECUTING
-Plan: 4 of 5
+Plan: 5 of 5
 Status: Ready to execute
 Last activity: 2026-04-13
 
@@ -49,6 +49,7 @@ Recent decisions affecting current work:
 - [Phase 35]: Plan 35-02: D-07a atomicity + D-08a bilingual skeleton gates satisfied in single commit 2db7c09e; DE nav label Turnier-Schnellreferenz chosen; mkdocs strict delta 0 (191 WARNING log lines)
 - [Phase 35]: F-14 callout attached to start-form step 7 (not tables/scoreboards) per 33-UX-FINDINGS.md exact scope
 - [Phase 35]: Before=10/During=6/After=5 item distribution; Laptop shutdown item in After section (chronological)
+- [Phase 35]: Plan 35-04: Fragment-less link to scoreboard-guide.md chosen over #keyboard-shortcuts (no such anchor exists bilingually); DE uses #tastenbelegung, EN uses #key-bindings — fragment-less preserves parity and avoids strict-build warning
 
 ### Pending Todos
 
@@ -61,6 +62,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-13T17:48:47.845Z
-Stopped at: Completed 35-03-PLAN.md
+Last session: 2026-04-13T17:54:50.501Z
+Stopped at: Completed 35-04-PLAN.md
 Resume file: None
