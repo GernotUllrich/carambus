@@ -24,6 +24,9 @@ Sie erhalten vom Landessportwart per E-Mail eine PDF-Einladung zur NDM. Die Einl
 
 **Achtung:** Die ClubCloud liefert manchmal weniger Spieler als erwartet — in der Praxis wurden bei einem 5-Spieler-Turnier zunächst nur 1–2 Registrierungen übertragen. Der Wizard zeigt einen grünen „Weiter zu Schritt 3 mit diesen N Spielern"-Button, auch wenn N verdächtig niedrig ist. Prüfen Sie die Zahl sorgfältig, bevor Sie weitergehen. Wenn Spieler fehlen, beheben Sie das in [Schritt 4](#step-4-participants). Weitere Details finden Sie unter [Spieler nicht in der ClubCloud-Meldeliste](#ts-player-not-in-cc).
 
+![Wizard-Übersicht nach ClubCloud-Sync](images/tournament-wizard-overview.png){ loading=lazy }
+*Abbildung: Turnier-Setup-Wizard direkt nach dem ClubCloud-Sync (Beispiel aus dem Phase-33-Audit, NDM Freie Partie Klasse 1–3).*
+
 <a id="step-3-seeding-list"></a>
 ### Schritt 3: Setzliste übernehmen — Einladung oder ClubCloud-Meldeliste
 
@@ -72,6 +75,9 @@ Wizard-Schritt 5 öffnet eine separate Seite „Abschließende Auswahl des Austr
 <!-- ref: F-12 -->
 
 Klicken Sie auf **„Weiter mit T04"** (oder dem vorgeschlagenen Plan). Die Auswahl wird **sofort und ohne Bestätigungsdialog** angewendet. Wenn Sie versehentlich den falschen Plan gewählt haben, lesen Sie [Falscher Turniermodus gewählt](#ts-wrong-mode).
+
+![Modus-Auswahl mit T04-Vorschlag](images/tournament-wizard-mode-selection.png){ loading=lazy }
+*Abbildung: Modus-Auswahl mit den drei Turnierplänen und automatischem Vorschlag T04 bei 5 Teilnehmern (Beispiel aus dem Phase-33-Audit).*
 
 <a id="step-7-start-form"></a>
 ### Schritt 7: Start-Parameter ausfüllen
@@ -125,6 +131,9 @@ Nachdem der Turnier-Monitor geöffnet ist, sehen Sie die Übersichtsseite „Tur
 In der Warmup-Phase können die Spieler die Tische und Bälle ausprobieren. Die Scoreboards sind bereits aktiv, aber die Punkte zählen noch nicht. Im Abschnitt „Aktuelle Spiele Runde 1" sehen Sie alle 4 Matches der ersten Runde mit den Spalten Tisch / Gruppe / Partie / Spieler und einem **„Spielbeginn"**-Button pro Zeile.
 
 Sie müssen hier nichts aktiv tun — beobachten Sie, ob alle Scoreboards verbunden sind (grüner Status), und warten Sie auf den Startschuss des Turniers.
+
+![Turnier-Monitor-Landingpage in der Warmup-Phase](images/tournament-monitor-landing.png){ loading=lazy }
+*Abbildung: Turnier-Monitor direkt nach dem Start — beide Tische zeigen Status „warmup" und die Paarungen der ersten Runde (Beispiel aus dem Phase-33-Audit).*
 
 <a id="step-11-release-match"></a>
 ### Schritt 11: Spielbeginn freigeben

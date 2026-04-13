@@ -24,6 +24,9 @@ Open the tournament detail page in Carambus. At the top of the page you see the 
 
 **Note:** ClubCloud sometimes delivers fewer players than expected — in practice, a 5-player tournament initially showed only 1–2 registrations. The wizard displays a green "Continue to Step 3 with these N players" button even when N is suspiciously low. Check the number carefully before proceeding. If players are missing, fix this in [Step 4](#step-4-participants). See also [Player not in ClubCloud](#ts-player-not-in-cc) in the troubleshooting section.
 
+![Wizard overview after ClubCloud sync](images/tournament-wizard-overview.png){ loading=lazy }
+*Figure: Tournament setup wizard right after ClubCloud sync (example from the Phase 33 audit, NDM Freie Partie Class 1–3).*
+
 <a id="step-3-seeding-list"></a>
 ### Step 3: Seeding list — invitation vs ClubCloud
 
@@ -70,6 +73,9 @@ Wizard Step 5 opens a separate page "Final selection of playing mode". You see t
 <!-- ref: F-12 -->
 
 Click **"Continue with T04"** (or the suggested plan). The selection is applied **immediately and without a confirmation dialog**. If you accidentally chose the wrong plan, see [Wrong mode selected](#ts-wrong-mode).
+
+![Mode selection with T04 suggestion](images/tournament-wizard-mode-selection.png){ loading=lazy }
+*Figure: Mode selection showing the three tournament plans with automatic T04 suggestion for 5 participants (example from the Phase 33 audit).*
 
 <a id="step-7-start-form"></a>
 ### Step 7: Fill in start parameters
@@ -125,6 +131,9 @@ Note: The label "Turnierphase: playing group" in the monitor header is an untran
 During the warmup phase, players can try out the tables and balls. The scoreboards are already active, but points do not count yet. In the "Current matches Round 1" section you see all matches in the first round with columns Table / Group / Match / Players and a **"Spielbeginn"** button per row.
 
 You do not need to do anything actively here — check that all scoreboards are connected (green status) and wait for the signal to start.
+
+![Tournament Monitor landing page during warmup](images/tournament-monitor-landing.png){ loading=lazy }
+*Figure: Tournament Monitor right after start — both tables show "warmup" status and the pairings for Round 1 (example from the Phase 33 audit).*
 
 <a id="step-11-release-match"></a>
 ### Step 11: Release each match
