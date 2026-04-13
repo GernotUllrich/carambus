@@ -58,33 +58,33 @@ Requirements for the Manager Experience milestone. Each maps to exactly one phas
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| UX-01 | TBD | Pending |
-| UX-02 | TBD | Pending |
-| UX-03 | TBD | Pending |
-| UX-04 | TBD | Pending |
-| DOC-01 | TBD | Pending |
-| DOC-02 | TBD | Pending |
-| DOC-03 | TBD | Pending |
-| DOC-04 | TBD | Pending |
-| DOC-05 | TBD | Pending |
-| QREF-01 | TBD | Pending |
-| QREF-02 | TBD | Pending |
-| QREF-03 | TBD | Pending |
-| FIX-01 | TBD | Pending |
-| FIX-02 | TBD | Pending |
-| FIX-03 | TBD | Pending |
-| FIX-04 | TBD | Pending |
-| LINK-01 | TBD | Pending |
-| LINK-02 | TBD | Pending |
-| LINK-03 | TBD | Pending |
-| LINK-04 | TBD | Pending |
+| UX-01 | Phase 33 | Pending |
+| UX-02 | Phase 33 | Pending |
+| UX-03 | Phase 33 | Pending |
+| UX-04 | Phase 33 | Pending |
+| DOC-01 | Phase 34 | Pending |
+| DOC-02 | Phase 34 | Pending |
+| DOC-03 | Phase 34 | Pending |
+| DOC-04 | Phase 34 | Pending |
+| DOC-05 | Phase 34 | Pending |
+| QREF-01 | Phase 35 | Pending |
+| QREF-02 | Phase 35 | Pending |
+| QREF-03 | Phase 35 | Pending |
+| FIX-01 | Phase 36 | Pending |
+| FIX-02 | Phase 36 | Pending |
+| FIX-03 | Phase 36 | Pending |
+| FIX-04 | Phase 36 | Pending |
+| LINK-01 | Phase 37 | Pending |
+| LINK-02 | Phase 37 | Pending |
+| LINK-03 | Phase 37 | Pending |
+| LINK-04 | Phase 37 | Pending |
 
 **Coverage:**
 - v7.0 requirements: 20 total
-- Mapped to phases: 0 (pending roadmap)
-- Unmapped: 20 ⚠️
+- Mapped to phases: 20 (complete)
+- Unmapped: 0 ✓
 
 ---
 
 *Requirements defined: 2026-04-13*
-*Last updated: 2026-04-13 after initial definition*
+*Last updated: 2026-04-13 after roadmap creation — all 20 requirements mapped to phases 33-37*

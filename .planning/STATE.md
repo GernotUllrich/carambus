@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v7.0
 milestone_name: Manager Experience
-status: defining_requirements
-stopped_at: Defining v7.0 requirements
-last_updated: "2026-04-13T03:00:00.000Z"
+status: ready_to_plan
+stopped_at: Roadmap created — Phase 33 ready to plan
+last_updated: "2026-04-13T04:00:00.000Z"
 last_activity: 2026-04-13
 progress:
-  total_phases: 0
+  total_phases: 5
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-13)
 
 **Core value:** Code and docs stay in sync — every documented feature works, every working feature is documented, and a volunteer user should never need to read the architecture to run a tournament.
-**Current focus:** v7.0 Manager Experience — defining requirements
+**Current focus:** v7.0 Manager Experience — Phase 33: UX Review & Wizard Audit
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-04-13 — Milestone v7.0 started
+Phase: 33 of 37 (UX Review & Wizard Audit)
+Plan: — of — in current phase
+Status: Ready to plan
+Last activity: 2026-04-13 — Roadmap created for v7.0 milestone (20 requirements, 5 phases)
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -40,11 +40,11 @@ Decisions are logged in PROJECT.md Key Decisions table.
 
 Recent decisions affecting current work:
 
-- Core Value broadened from cleanup-framed to code-docs sync
-- Behavior preservation narrowed: unchanged flows must work identically, new features may extend behavior
-- Phase type tagging (cleanup / feature / mixed) introduced for future phases
-- Volunteer club officer persona chosen as UX filter: 2-3x/year usage means each session is re-onboarding
-- Docs-first: task-first rewrite of manager docs drives the milestone; UX fixes follow the doc gaps
+- Phase 33 must run before Phase 34: two wizard partials coexist; writing docs against the wrong one wastes the milestone
+- Phase 37 must run last: in-app links require stable doc anchors from Phase 34
+- Phase type tagging introduced: cleanup (no behavior change), feature (new behavior), mixed
+- Tier classification gate: Tier 3 UX fixes (AASM changes) require explicit test coverage plan before entering Phase 36 scope
+- Volunteer persona filter: every UX and doc decision judged against "2-3x/year club officer"
 
 ### Pending Todos
 
@@ -52,10 +52,11 @@ None.
 
 ### Blockers/Concerns
 
-- No UAT data from actual volunteer club officers yet — milestone may need a real-user walkthrough early to validate assumptions
+- No UAT data from actual volunteer club officers — milestone proceeds from informed analysis; real-user validation deferred to post-release
+- Two wizard partials exist (`_wizard_steps.html.erb` and `_wizard_steps_v2.html.erb`); Phase 33 must resolve which is canonical before Phase 34 opens
 
 ## Session Continuity
 
 Last session: 2026-04-13
-Stopped at: Defining v7.0 requirements
-Resume file: .planning/PROJECT.md
+Stopped at: Roadmap created — ready to begin Phase 33 planning
+Resume file: .planning/ROADMAP.md
