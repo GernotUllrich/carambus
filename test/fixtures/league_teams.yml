@@ -1,0 +1,11 @@
+team_alpha:
+  id: 50_000_010
+  league_id: 50_000_001
+  name: "Team Alpha"
+  cc_id: 101
+
+team_beta:
+  id: 50_000_011
+  league_id: 50_000_001
+  name: "Team Beta"
+  cc_id: 102

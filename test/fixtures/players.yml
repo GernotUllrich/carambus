@@ -1,0 +1,31 @@
+# Players for testing
+#
+# IDs use 50_001_xxx range to avoid conflicts with inline Player.create!(id: 50_000_001...)
+# calls in other test files (e.g. table_monitor/game_setup_test.rb).
+
+jaspers:
+  id: 50_001_001
+  lastname: "JASPERS"
+  firstname: "Dick"
+  fl_name: "D. Jaspers"
+  guest: false
+  created_at: <%= 2.years.ago %>
+  updated_at: <%= 1.day.ago %>
+
+cho:
+  id: 50_001_002
+  lastname: "CHO"
+  firstname: "Myung Woo"
+  fl_name: "M. Cho"
+  guest: false
+  created_at: <%= 2.years.ago %>
+  updated_at: <%= 1.day.ago %>
+
+tasdemir:
+  id: 50_001_003
+  lastname: "TASDEMIR"
+  firstname: "Tayfun"
+  fl_name: "T. Tasdemir"
+  guest: false
+  created_at: <%= 2.years.ago %>
+  updated_at: <%= 1.day.ago %>

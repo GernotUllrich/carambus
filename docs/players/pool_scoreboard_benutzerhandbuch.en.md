@@ -57,7 +57,7 @@ The welcome screen is the starting point for all scoreboard activities. From her
 
 After selecting "Training", the table overview appears with all available pool and snooker tables:
 
-![Table Overview](screenshots/pool_tables_overview.png)
+*[Table Overview — screenshot pending]*
 
 - **Blue Buttons**: Free tables
 - **Player Names**: Tables with ongoing games
@@ -154,15 +154,15 @@ The most demanding pool game:
 
 ### 14.1 Continuous Scoreboard in Action
 
-![14.1 Continuous Scoreboard - Game Start](screenshots/pool_14_1_scoreboard_start.png)
+*[14.1 Continuous Scoreboard - Game Start — screenshot pending]*
 
 *Game start: Both players at 0, 15 balls on table*
 
-![14.1 Continuous Scoreboard - During Game](screenshots/pool_14_1_scoreboard_playing.png)
+*[14.1 Continuous Scoreboard - During Game — screenshot pending]*
 
 *During game: Player A (green frame) is active, has 6 points, 9 balls remain*
 
-![14.1 Continuous Scoreboard - After Player Switch](screenshots/pool_14_1_after_switch.png)
+*[14.1 Continuous Scoreboard - After Player Switch — screenshot pending]*
 
 *After player switch: Player B (green frame) is now active, Avg and HS updated*
 
@@ -402,7 +402,7 @@ Depending on discipline:
 
 ### Pool Presets
 
-![Pool Quickstart Buttons](screenshots/pool_quickstart_buttons.png)
+*[Pool Quickstart Buttons — screenshot pending]*
 
 *Quick selection for pool games: 8-ball, 9-ball, 10-ball and 14.1 continuous*
 

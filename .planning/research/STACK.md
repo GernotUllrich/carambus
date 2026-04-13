@@ -1,346 +1,276 @@
-# Stack Research: Tournament & TournamentMonitor Refactoring (v2.1)
+# Stack Research: Manager Experience (v7.0)
 
-**Domain:** Rails brownfield model refactoring with ActionCable, StimulusReflex, and ActiveJob coverage
-**Researched:** 2026-04-10
-**Confidence:** HIGH (codebase read directly; patterns verified from existing v1.0 and v2.0 work)
+**Domain:** Volunteer-friendly tournament manager UX + task-first documentation
+**Researched:** 2026-04-13
+**Confidence:** HIGH — all findings based on reading actual codebase files; no guesses about installed versions or capabilities
 
 ---
 
 ## Decision Summary
 
-This milestone is still a **no-new-framework** refactoring. The question is narrower than v1.0: what testing tools and patterns are needed to test the new surface area — ActionCable channels, StimulusReflex reflexes, controller actions, and ActiveJob jobs — beyond plain model unit tests?
+**No new gems. No new pip packages required for the core v7.0 scope.**
 
-The answer is: **Rails 7.2 ships everything needed natively**. No new gems are required for the core work. One conditional addition (`stimulus_reflex` test adapter, if direct reflex testing is pursued) is discussed below with a recommendation to skip it.
+Every capability needed — printable reference card, in-app docs deep links, wizard UX enhancements — can be delivered with what is already installed. The two things that need adding are both cost-free: a `print.css` file (new file, no dependency) and a bug fix in the existing `mkdocs_link` helper (locale prefix missing for English). The wizard already has progress bars, step icons, and contextual help; no JS library is justified against the volunteer persona filter.
 
 ---
 
 ## Recommended Stack
 
-### Core Technologies (unchanged from v1.0)
+### Core Technologies (already installed — do not change)
 
 | Technology | Version | Purpose | Status |
 |------------|---------|---------|--------|
-| Rails | 7.2.2 | Framework | Already installed |
-| Ruby | 3.2.1 | Runtime | Already installed |
-| PostgreSQL | current | Database | Already installed |
-| Minitest | (Rails built-in) | Test runner | Already installed |
-| ActiveJob::TestHelper | (Rails built-in) | Job queue assertions | Already in use (table_monitor_char_test.rb) |
+| mkdocs-material | 9.6.15 (installed) / >=9.5.0 (pinned) | Docs site theme | Already working; print via custom CSS |
+| mkdocs-static-i18n | 1.3.0 (installed) / >=1.0.0 (pinned) | DE/EN bilingual docs (suffix structure) | Already working; locale URLs confirmed |
+| pymdownx.tasklist | bundled with pymdown-extensions 10.16 | `- [ ]` checkbox syntax for quick-reference card | Already enabled in mkdocs.yml |
+| pymdownx (attr_list, md_in_html) | bundled | CSS class injection in Markdown for print page-breaks | Already enabled in mkdocs.yml |
+| Rails 7.2 / Tailwind CSS | existing | Wizard UI | Wizard already fully implemented |
+| Stimulus.js | existing | In-app interactivity | No new controller needed for help links |
+| ApplicationHelper | existing | `mkdocs_link` + `docs_page_link` helpers | Both exist; `mkdocs_link` has a locale bug to fix |
 
-### Testing Patterns for New Surface Area
+### Supporting Additions (CSS-only, zero dependencies)
 
-#### ActionCable Channels
+| Addition | File | Purpose | Work Required |
+|----------|------|---------|---------------|
+| Print stylesheet | `docs/stylesheets/print.css` (new) | Hide nav chrome for browser print; page setup for A4 | Write ~30 lines of `@media print` CSS |
+| Register print.css | `mkdocs.yml` `extra_css` list | Activates print CSS for all pages | Add one line |
+| Fix `mkdocs_link` locale bug | `app/helpers/application_helper.rb:149` | Locale-aware deep links from wizard steps | Change 1 line |
 
-Rails 7.2 ships `ActionCable::Channel::TestCase` as a built-in. No gem needed.
+### Optional pip addition (only if offline PDF export is a hard requirement)
 
-```ruby
-# test/channels/tournament_channel_test.rb
-require "test_helper"
-
-class TournamentChannelTest < ActionCable::Channel::TestCase
-  test "subscribes to tournament-specific stream when tournament_id given" do
-    subscribe tournament_id: tournaments(:local).id
-    assert subscription.confirmed?
-    assert_has_stream "tournament-stream-#{tournaments(:local).id}"
-  end
-
-  test "subscribes to global tournament stream when no tournament_id" do
-    subscribe
-    assert subscription.confirmed?
-    assert_has_stream "tournament-stream"
-  end
-end
-
-# test/channels/tournament_monitor_channel_test.rb
-class TournamentMonitorChannelTest < ActionCable::Channel::TestCase
-  test "rejects subscription on API server" do
-    ApplicationRecord.stub(:local_server?, false) do
-      subscribe
-      assert subscription.rejected?
-    end
-  end
-
-  test "subscribes on local server" do
-    ApplicationRecord.stub(:local_server?, true) do
-      subscribe
-      assert subscription.confirmed?
-      assert_has_stream "tournament-monitor-stream"
-    end
-  end
-end
-```
-
-**Key assertions available:**
-- `assert subscription.confirmed?` / `assert subscription.rejected?`
-- `assert_has_stream "stream-name"` / `assert_no_streams`
-- `perform :method_name, args` — call channel actions directly
-- `assert_broadcasts "stream", 1` — count broadcasts on a stream
-
-**Confidence: HIGH** — Rails built-in since Rails 5. Verified in Rails 7.2 guides.
+| Package | Version | Purpose | Recommendation |
+|---------|---------|---------|----------------|
+| mkdocs-print-site-plugin | ~2.3.x | Merges all nav pages into single `/print_page/` URL | Do NOT add for v7.0. See anti-recommendations below. |
 
 ---
 
-#### ActiveJob (Jobs)
+## mkdocs-material Print Features (verified against installed 9.6.15)
 
-`ActiveJob::TestHelper` is already in use for `TableMonitorCharTest` and `GameSetupTest`. Same pattern applies to `TournamentStatusUpdateJob` and `TournamentMonitorUpdateResultsJob`.
+mkdocs-material OSS does **not** have a built-in print plugin. It does provide clean semantic HTML that prints correctly with custom `@media print` CSS. This is the right approach for a single quick-reference card page.
 
-```ruby
-# test/jobs/tournament_status_update_job_test.rb
-require "test_helper"
+### What is already available (no additions needed)
 
-class TournamentStatusUpdateJobTest < ActiveJob::TestCase
-  include ActiveJob::TestHelper
+**`@media print` CSS hooks** — The 9.x theme uses well-known semantic CSS classes. Hiding nav/header/footer is straightforward by targeting `.md-header`, `.md-sidebar--primary`, `.md-sidebar--secondary`, `.md-footer`, `.md-tabs`.
 
-  test "discards job when tournament not found" do
-    # discard_on ActiveRecord::RecordNotFound is configured in the job
-    assert_nothing_raised do
-      TournamentStatusUpdateJob.perform_now(nil)
-    end
-  end
+**`attr_list` extension** — Already enabled in mkdocs.yml. Allows adding CSS classes directly in Markdown: `## Before the Tournament { .print-break }`. Use this to insert `page-break-before: always` at section boundaries in the reference card.
 
-  test "skips broadcast when tournament has no monitor" do
-    tournament = tournaments(:local)
-    # tournament_monitor is nil by default in fixture
-    assert_no_enqueued_jobs do
-      TournamentStatusUpdateJob.perform_now(tournament)
-    end
-  end
+**`pymdownx.tasklist`** — Already enabled. `- [ ]` / `- [x]` renders as checkboxes in browser and prints correctly as a physical checklist.
 
-  test "skips broadcast on local_server (TournamentMonitorUpdateResultsJob)" do
-    ApplicationRecord.stub(:local_server?, false) do
-      tm = tournament_monitors(:one)
-      assert_nothing_raised do
-        TournamentMonitorUpdateResultsJob.perform_now(tm)
-      end
-    end
-  end
-end
+### Minimum print.css implementation
+
+```css
+@media print {
+  /* Hide navigation chrome */
+  .md-header,
+  .md-tabs,
+  .md-sidebar,
+  .md-footer,
+  .md-search,
+  [data-md-component="toc"],
+  .md-top,
+  .md-source {
+    display: none !important;
+  }
+
+  /* Full-width content without sidebar offset */
+  .md-content {
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .md-main__inner {
+    margin-top: 0 !important;
+  }
+
+  /* Page setup (A4 portrait, standard margins) */
+  @page {
+    size: A4 portrait;
+    margin: 15mm;
+  }
+
+  /* Page breaks: use { .print-break } in Markdown with attr_list */
+  .print-break {
+    page-break-before: always;
+  }
+
+  /* Print tasklist checkboxes at legible size */
+  .task-list-item input[type="checkbox"] {
+    display: inline-block !important;
+    width: 14px;
+    height: 14px;
+    margin-right: 6px;
+  }
+}
 ```
 
-**Key patterns from existing tests to reuse:**
-- `include ActiveJob::TestHelper` in the test class
-- `assert_enqueued_jobs(N, only: [JobClass])` — count enqueued jobs of specific type
-- `ApplicationRecord.stub(:local_server?, true/false)` — flip server context per test
-- `Sidekiq::Testing.fake!` is configured in `test_helper.rb` — jobs do not run automatically
+**Confidence note:** The CSS selectors above are based on mkdocs-material 9.x DOM structure (training knowledge, Aug 2025 cutoff). Web access was blocked during research so selectors could not be re-verified against live 9.6.15 docs. The class names `.md-header`, `.md-sidebar`, `.md-footer`, `.md-tabs` are stable across the 9.x series and unlikely to have changed. If any selector does not work, inspect the rendered HTML with browser DevTools.
 
-**Confidence: HIGH** — Pattern confirmed in `test/characterization/table_monitor_char_test.rb:16`.
-
----
-
-#### Controllers
-
-Pattern established by `TableMonitorsControllerTest`. Use `ActionDispatch::IntegrationTest` with Devise sign-in helpers. Tournament controller has `ensure_local_server` guards — test both API server (should redirect/fail) and local server contexts.
-
-```ruby
-# test/controllers/tournaments_controller_test.rb
-require "test_helper"
-
-class TournamentsControllerTest < ActionDispatch::IntegrationTest
-  include Devise::Test::IntegrationHelpers
-
-  setup do
-    @tournament = tournaments(:local)
-    @user = users(:one)
-    sign_in @user
-  end
-
-  test "GET index returns success" do
-    get tournaments_url
-    assert_response :success
-  end
-
-  test "reset action triggers AASM event and redirects" do
-    # Tournament must not be started yet
-    @tournament.update_column(:state, "new_tournament")
-    post reset_tournament_url(@tournament)
-    assert_redirected_to tournament_path(@tournament)
-  end
-
-  test "ensure_local_server blocks edit on API server" do
-    # API server: local_server? == false
-    ApplicationRecord.stub(:local_server?, false) do
-      get edit_tournament_url(@tournament)
-      assert_redirected_to root_path  # or wherever ensure_local_server redirects
-    end
-  end
-end
-```
-
-**Confidence: HIGH** — Existing controller test pattern verified across 10+ controller test files.
-
----
-
-#### StimulusReflex Reflexes
-
-**Recommendation: Do NOT write direct reflex tests. Skip them as the existing `TableMonitorsControllerTest` does.**
-
-The existing codebase explicitly documents this decision:
-
-```ruby
-# test/controllers/table_monitors_controller_test.rb:73-85
-test "should handle optimistic score updates" do
-  skip "StimulusReflex endpoints are not testable via standard HTTP integration tests"
-end
-```
-
-**Why reflexes are untestable via standard Minitest:**
-- StimulusReflex actions are triggered over WebSocket, not HTTP. There is no HTTP endpoint to hit.
-- The `stimulus_reflex` gem (3.5.3) does not ship a test adapter for Rails 7.2 — its testing story relies on system tests (Capybara + Chrome) or manual browser verification.
-- Adding `cable_ready` and `stimulus_reflex` mocking layers to unit tests produces brittle, hard-to-maintain tests that test the mocking infrastructure, not the business logic.
-
-**What to test instead:** Extract the business logic out of reflexes into service objects or model methods, then test those directly. The reflex becomes a thin adapter (find record, call service, morph). `TournamentReflex` already demonstrates this — its ATTRIBUTE_METHODS loop delegates to `tournament.send("#{attribute}=", val)` + `tournament.save!`. Test the model setter, not the reflex.
-
-**If reflex coverage is required:** Use system tests (`ApplicationSystemTestCase` + Capybara + Selenium) which exercise the full WebSocket cycle. Scope those to specific high-risk reflex actions only.
-
-**Confidence: HIGH** — Decision documented and verified in existing codebase. StimulusReflex 3.5.3 test adapter absence confirmed.
-
----
-
-### Service Object Convention (unchanged from v1.0)
-
-Namespace extracted services under the model name:
-
-```
-app/services/
-  tournament/
-    ranking_calculator.rb     # extract from TournamentMonitor#ranking + #player_id_from_ranking
-    group_distributor.rb      # extract distribute_to_group + distribute_with_sizes (pure algorithm)
-    monitor_initializer.rb    # extract initialize_tournament_monitor
-    scraper.rb                # extract scrape_single_tournament_public (optional — risky)
-  tournament_monitor/
-    game_sequencer.rb         # game sequence logic (next_seqno, ko_ranking resolution)
-    player_assigner.rb        # player → game assignment from ranking rules
-    table_allocator.rb        # table assignment coordination
-    state_broadcaster.rb      # after_update_commit → TournamentStatusUpdateJob
-```
-
-PORO with explicit `initialize` dependencies and single `call` method. No new gem needed.
-
-**The `group_distributor` is the highest-value first extraction** — `distribute_to_group` and `distribute_with_sizes` are pure algorithms with no database calls. They have documented edge cases (GROUP_RULES, GROUP_SIZES constants), testable input/output, and are currently tested only implicitly via integration tests.
-
----
-
-### Static Analysis (unchanged from v1.0)
-
-```ruby
-# Gemfile — group :development
-gem "reek", "~> 6.5", require: false
-```
-
-Run Reek before and after extraction to measure improvement objectively:
-
-```bash
-bundle exec reek app/models/tournament.rb
-bundle exec reek app/models/tournament_monitor.rb
+Register in mkdocs.yml:
+```yaml
+extra_css:
+  - stylesheets/extra.css
+  - stylesheets/print.css   # add this line
 ```
 
 ---
 
-## Key Patterns from v1.0/v2.0 to Reuse
+## In-App → mkdocs Deep Linking (Rails helpers)
 
-### suppress_broadcast Pattern
+### Current state (verified by reading codebase)
 
-Tournament and TournamentMonitor have `after_update_commit` callbacks that enqueue jobs. When a service object makes multiple saves, use `suppress_broadcast` to batch:
+Two helpers already exist in `app/helpers/application_helper.rb`:
 
+**`docs_page_link(path, locale:, text:, options:)`** (line 135) — links to the Rails-embedded doc proxy route (`docs_page_path`). Renders markdown inline within the app layout. Use this when you want embedded doc content inside the app.
+
+**`mkdocs_link(path, locale:, text:, options:)`** (line 143) — links directly to the served mkdocs site at `/docs/#{path}`. **Bug on line 149:** always generates `/docs/#{path}` regardless of locale. English pages should be at `/docs/en/#{path}/`.
+
+The correct locale URL pattern is already implemented correctly in `app/views/static/docs_page.html.erb` lines 18-22:
 ```ruby
-# app/services/tournament/monitor_initializer.rb
-class Tournament::MonitorInitializer
-  def call
-    tournament.suppress_broadcast = true
-    # ... multiple saves ...
-  ensure
-    tournament.suppress_broadcast = false
-  end
+mkdocs_url = if params[:locale] == 'en'
+  is_index_file ? "/docs/en/#{mkdocs_path}" : "/docs/en/#{mkdocs_path}/"
+else
+  is_index_file ? "/docs/#{mkdocs_path}" : "/docs/#{mkdocs_path}/"
 end
 ```
 
-Test this by verifying `suppress_broadcast` state inside save callbacks — same approach used in `GameSetupTest` (line 188-203).
+### Required fix for `mkdocs_link` (one line change)
 
-### local_server? Stub
-
-Both channels and both jobs gate behavior on `ApplicationRecord.local_server?`. Stub it per test:
-
+Current (broken for EN):
 ```ruby
-ApplicationRecord.stub(:local_server?, true) do
-  # test local server behavior
+url = "/docs/#{path}"
+```
+
+Fixed:
+```ruby
+url = locale == 'en' ? "/docs/en/#{path}/" : "/docs/#{path}/"
+```
+
+The full corrected method:
+```ruby
+def mkdocs_link(path, locale: nil, text: nil, **options)
+  locale ||= I18n.locale.to_s
+  text ||= path.split('/').last.humanize
+  url = locale == 'en' ? "/docs/en/#{path}/" : "/docs/#{path}/"
+  link_to text, url, target: '_blank', rel: 'noopener', **options
 end
 ```
 
-This pattern is confirmed in `table_monitor_char_test.rb` across 6+ tests.
+### Pattern for adding links to wizard steps
 
-### ApiProtectorTestOverride
+The `_wizard_step.html.erb` partial already has a `help:` parameter that renders `help.html_safe` inside a `<details>` element. Add deep links directly in the `help:` string using the fixed `mkdocs_link`:
 
-`TournamentMonitor` includes `ApiProtector`. The `test_helper.rb` already patches all `ApiProtector`-including classes at boot. No per-test action needed.
-
-### AASM State Tests
-
-Tournament has 8 AASM states with guards. Test state transitions with real fixture data:
-
-```ruby
-test "reset_tmt_monitor! fails when tournament already started" do
-  @tournament.update_column(:state, "tournament_started")
-  assert_raises(AASM::InvalidTransition) do
-    @tournament.reset_tmt_monitor!
-  end
-end
+```erb
+help: "Sortiert die Spieler automatisch nach ihrer Rangliste. " \
+      "#{mkdocs_link('managers/tournament-management', text: 'Hilfe in der Dokumentation', locale: I18n.locale.to_s)}"
 ```
+
+No new partial, no new controller, no new Stimulus controller required.
+
+### Anchor targeting for section deep links
+
+mkdocs-material auto-generates heading anchors from heading text. `toc.permalink: true` is already enabled in mkdocs.yml. Use `#section-slug` suffixes:
+
+- DE: `/docs/managers/tournament-management/#nach-rangliste-sortieren`
+- EN: `/docs/en/managers/tournament-management/#sorting-the-seeding-list`
+
+**Important:** anchor slugs will change when the doc rewrite renames headings. Verify anchors after the rewrite by viewing source in the built site, not by guessing from heading text.
+
+---
+
+## Wizard UX — No New Dependencies Needed
+
+### Current wizard state (verified by reading `_wizard_steps_v2.html.erb` and `_wizard_step.html.erb`)
+
+The wizard already implements:
+- Progress bar with percentage via `wizard_progress_percent` helper
+- Step counter text ("Schritt X von 6")
+- Status icons per step (`:completed` checkmark, `:active` active, `:pending` locked)
+- Danger/irreversible step indicator
+- Contextual help via native `<details>`/`<summary>` (no JS required)
+- Inline troubleshooting sections with `<details>`
+- Terminology explanation box at bottom of `_wizard_steps_v2.html.erb`
+- Disabled state text ("Erst verfügbar nach vorherigem Schritt")
+
+The wizard UX friction for volunteers is not a missing component — it is content friction (unclear step labels when the wizard renders for a returning user who forgot the terminology, absence of doc links, no printed fallback). These are doc and content problems, not component problems.
+
+### Wizard implementation notes for v7.0 changes
+
+- There are **two wizard partial versions**: `_wizard_steps.html.erb` (original) and `_wizard_steps_v2.html.erb` (current, with revised step order). The `show.html.erb` view determines which is rendered. Confirm which is active before editing.
+- Steps are German-only in the partials (hardcoded strings). If the wizard needs to render in EN for non-German users, the `title:` parameters in `_wizard_steps_v2.html.erb` need `I18n.t` calls. The original `_wizard_steps.html.erb` already uses `I18n.t` with fallbacks for most steps.
+- The `help:` parameter in `_wizard_step.html.erb` renders `help.html_safe`. Any `mkdocs_link` calls in `help:` strings will produce correct HTML links.
 
 ---
 
 ## What NOT to Add
 
-| Avoid | Why | Use Instead |
-|-------|-----|-------------|
-| `stimulus_reflex` test adapter / custom WebSocket mocking | Does not exist for SR 3.5.3; any homebrew solution tests the mock, not the reflex | Extract business logic to service methods, test those |
-| `test-after-commit` gem | Rails 7.2 fires `after_commit` natively in transactional tests (confirmed in table_monitor_char_test.rb comment) | None needed |
-| RSpec or system-test-only coverage for channels | ActionCable::Channel::TestCase handles channel logic without a browser | Use built-in test case |
-| VCR cassettes for Tournament scraper tests | Scraper is already smoke-tested; adding VCR cassettes for the 1775-line scraper is out of scope for this milestone (behavior preservation, not scraper coverage) | Stub HTTP with WebMock only |
-| FactoryBot factories for Tournament | Project uses fixtures-first, no factory definitions exist, `KoTournamentTestHelper` handles complex setup | Use fixtures + `KoTournamentTestHelper` |
+| Avoid | Why | Volunteer Persona Impact |
+|-------|-----|--------------------------|
+| `mkdocs-print-site-plugin` | Creates a `/print_page/` nav entry visible to all users. Requires suppression config. Merges the entire site, not just the reference card. For a single page, custom print CSS is 10x simpler. | No impact on volunteer; adds build complexity for developer |
+| `mkdocs-pdf-export-plugin` | Requires `weasyprint` system dependency; complex install; produces full-site PDF by default | No benefit; print-to-PDF from browser on a print-CSS page achieves the same result |
+| Intro.js / Shepherd.js JS tour | Volunteer uses app 2-3x/year; they forget guided tours between uses; adds 40-80 KB JS; requires maintenance when UI changes | Negative: tour is stale within one release cycle |
+| ViewComponent gem | Wizard partials work fine; adding ViewComponent requires component tests, contradicts targeted-fixes scope, adds architecture layer | No volunteer benefit |
+| Turbo Frames per wizard step | Wizard state transitions require server-side AASM events and page reload. Adding Turbo Frames would require client-side state that duplicates AASM. | No volunteer benefit; adds hidden failure modes |
+| New breadcrumb gem | Rails `content_for` + manual breadcrumb in layout already works | No volunteer benefit |
+| Step-by-step JS tooltip library (Tippy.js etc.) | Native `<details>` already provides contextual help without JS. Prints correctly. Zero maintenance. | Simpler is better for low-frequency users |
+| New i18n helper for doc URLs | `mkdocs_link` and `docs_page_link` already exist; adding a third helper creates confusion about which to use | No benefit; fix the existing helper instead |
+
+---
+
+## Alternatives Considered
+
+| Recommended | Alternative | Why Not |
+|-------------|-------------|---------|
+| Custom `print.css` in `extra_css` | `mkdocs-print-site-plugin` | Plugin creates a `/print_page/` route visible to all users; adds full-site merge build step; not scoped to a single reference card page |
+| Fix existing `mkdocs_link` locale bug | Build a new locale-aware URL helper | A one-line fix is preferable to a new helper that creates two competing APIs |
+| `docs_page_link` for in-app embedded doc views | External mkdocs link only | Some wizard help contexts benefit from inline rendering without leaving the wizard flow; the existing proxy already handles this |
+| Native `<details>` for contextual help | Stimulus disclosure controller | `<details>` renders without JS, prints correctly, needs zero JS, is already the established pattern in both wizard partials |
+| `I18n.t` with fallback strings for wizard step titles | Separate DE/EN wizard templates | Single template with `I18n.t` is maintainable; two templates would diverge |
+
+---
+
+## Version Compatibility
+
+| Package | Installed | Pinned in requirements.txt | Notes |
+|---------|-----------|---------------------------|-------|
+| mkdocs | 1.6.1 | not pinned | Compatible with material 9.6.15 |
+| mkdocs-material | 9.6.15 | >=9.5.0 | Stable 9.x series; print CSS selectors unchanged across 9.x |
+| mkdocs-static-i18n | 1.3.0 | >=1.0.0 | Suffix-based locale structure; confirmed working with 9.6.15 |
+| pymdown-extensions | 10.16 | >=10.0.0 | All extensions in mkdocs.yml active without errors |
+| mkdocs-print-site-plugin | not installed | not pinned | Only add if offline single-file PDF is a hard requirement; version ~2.3.x compatible with mkdocs 1.6 |
 
 ---
 
 ## Installation
 
-No new gems required. The only optional addition from v1.0 that may be needed:
+Nothing new to install. Changes are file additions and one code fix:
 
-```ruby
-# Gemfile — group :development (only if not already present from v1.0)
-gem "reek", "~> 6.5", require: false
+```bash
+# 1. Create print stylesheet
+touch docs/stylesheets/print.css
+# (write @media print rules as shown above)
+
+# 2. Register in mkdocs.yml extra_css — add one line:
+#    - stylesheets/print.css
+
+# 3. Fix mkdocs_link helper — one line change in:
+#    app/helpers/application_helper.rb line 149
 ```
-
-```ruby
-# Gemfile — only if extracted service objects need transactional after_commit hooks
-gem "after_commit_everywhere", "~> 1.6"
-```
-
-Both were already recommended in v1.0 STACK.md. Check if `reek` is already in the Gemfile before adding.
-
----
-
-## Confidence Assessment
-
-| Area | Confidence | Basis |
-|------|------------|-------|
-| ActionCable channel testing | HIGH | Rails 7.2 built-in, pattern verified in Rails guides |
-| Job testing (`ActiveJob::TestHelper`) | HIGH | Already in use in `table_monitor_char_test.rb` |
-| Controller testing | HIGH | 10+ existing controller test files with identical pattern |
-| Reflex testing (skip) | HIGH | Skip rationale documented in existing codebase |
-| Service extraction patterns | HIGH | Verified from v1.0 extractions (14 services) |
-| suppress_broadcast reuse | HIGH | Pattern in `game_setup_test.rb` lines 188-253 |
 
 ---
 
 ## Sources
 
-- Rails 7.2 ActionCable Channel test docs — https://api.rubyonrails.org/classes/ActionCable/Channel/TestCase.html
-- `test/characterization/table_monitor_char_test.rb` — ActiveJob::TestHelper patterns, suppress_broadcast, local_server? stubs
-- `test/controllers/table_monitors_controller_test.rb` — skip rationale for StimulusReflex
-- `test/services/table_monitor/game_setup_test.rb` — suppress_broadcast lifecycle test pattern
-- `test_helper.rb` — ApiProtectorTestOverride, Sidekiq::Testing.fake! configuration
-- `app/channels/tournament_channel.rb`, `tournament_monitor_channel.rb` — channel subscription logic
-- `app/jobs/tournament_status_update_job.rb`, `tournament_monitor_update_results_job.rb` — job gating on local_server?
-- `app/reflexes/tournament_reflex.rb` — thin-adapter pattern that makes reflex testing unnecessary
+- `requirements.txt` — confirmed pip packages and version constraints (HIGH)
+- `mkdocs.yml` — confirmed installed plugins 9.6.15, static-i18n 1.3.0, enabled extensions, extra_css list (HIGH)
+- `docs/stylesheets/extra.css` — confirmed no print rules exist; safe to add separate print.css (HIGH)
+- `app/helpers/application_helper.rb:135-151` — confirmed both helpers exist; confirmed `mkdocs_link` locale bug on line 149 (HIGH)
+- `app/views/static/docs_page.html.erb:18-22` — confirmed correct locale URL pattern already in production use (HIGH)
+- `app/views/tournaments/_wizard_steps_v2.html.erb` — confirmed wizard features already implemented; confirmed hardcoded German strings (HIGH)
+- `app/views/tournaments/_wizard_step.html.erb` — confirmed `help:` parameter renders `.html_safe` inside `<details>` (HIGH)
+- mkdocs-material 9.x print CSS selector names — training knowledge (Aug 2025 cutoff); web access blocked during research; MEDIUM confidence on exact selector names; verify with DevTools if any selector does not match
 
 ---
 
-*Stack research for: Tournament & TournamentMonitor refactoring (v2.1)*
-*Researched: 2026-04-10*
+*Stack research for: v7.0 Manager Experience — Carambus Rails 7.2 app*
+*Researched: 2026-04-13*

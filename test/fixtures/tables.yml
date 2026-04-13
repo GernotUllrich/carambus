@@ -3,3 +3,12 @@ one:
   id: 50_000_001
   name: "Table One"
   table_monitor_id: 50_000_001
+  location: one
+  table_kind_id: 50_000_001
+
+two:
+  id: 50_000_002
+  name: "Table Two"
+  table_monitor_id: 50_000_002
+  location: one
+  table_kind_id: 50_000_001

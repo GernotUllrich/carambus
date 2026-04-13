@@ -213,8 +213,8 @@ class TournamentDiscoveryService
   # Assign videos to tournament
   def assign_videos_to_tournament(tournament, candidate)
     candidate[:videos].each do |video|
-      if video.international_tournament_id != tournament.id
-        video.update(international_tournament_id: tournament.id)
+      unless video.videoable == tournament
+        video.update(videoable: tournament)
         @videos_assigned += 1
       end
     end

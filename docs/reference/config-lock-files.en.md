@@ -149,5 +149,5 @@ Check:
 
 - [Deployment Process](../developers/deployment-workflow.md)
 - [Scenario Management](../developers/scenario-management.md)
-- [Production Setup](PRODUCTION_SETUP.md)
+- Production Setup
 

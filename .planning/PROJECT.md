@@ -1,12 +1,29 @@
-# Carambus API — Model Refactoring & Test Coverage
+# Carambus API — Quality & Manager Experience
 
 ## What This Is
 
-A focused improvement effort on the Carambus API codebase. v1.0 broke down the two largest model classes into smaller, well-tested components. v2.0 audited and improved the entire existing test suite. v2.1 refactors Tournament (API Server) and TournamentMonitor (Local Server orchestrator) — the most critical Carambus models for live tournament management — with comprehensive test coverage across models, services, controllers, channels, and jobs.
+A Rails tournament management system for carom billiards that Sports Managers (volunteer club officers) use to run regional tournaments. v1.0–v5.0 rebuilt the model/service layer for maintainability; v6.0 made the documentation match the refactored codebase. v7.0 onward focuses on making the product usable for the volunteer club officer persona through task-first docs and a UX that respects their 2-3x/year usage pattern.
 
 ## Core Value
 
-A maintainable, well-tested codebase where every test is trustworthy and every model is appropriately sized.
+Code and docs stay in sync — every documented feature works, every working feature is documented, and a volunteer user should never need to read the architecture to run a tournament.
+
+## Current Milestone: v7.0 Manager Experience
+
+**Goal:** A volunteer club officer who runs 2-3 tournaments per year can manage one end-to-end using Carambus, with task-first documentation and a happy-path UX that doesn't trip them up each time they come back.
+
+**Target features:**
+- Task-first rewrite of `docs/managers/tournament-management.{de,en}.md` — "Running your first tournament" replaces architecture-heavy opening
+- Happy-path wizard coverage only: new_tournament → seeding → mode → start → finished
+- Printable one-page quick reference card (Before / During / After checklist)
+- UX review of the TournamentsController wizard along the happy path
+- Small documented-but-missing feature implementations as surfaced during the review
+- In-app links from wizard steps to relevant mkdocs pages
+
+## Completed: v6.0 Documentation Quality (shipped 2026-04-13)
+
+Audited, repaired, and documented the entire mkdocs site: zero broken links, zero stale code refs, 8 namespace overview pages, Video:: cross-referencing docs, 35-service developer guide index, 17 bilingual gaps closed, mkdocs build --strict passes with zero warnings.
+
 
 ## Requirements
 
@@ -36,17 +53,44 @@ A maintainable, well-tested codebase where every test is trustworthy and every m
 - ✓ Controller/channel/job test coverage — v2.1 (74 tests: TournamentsController, TournamentMonitorsController, channels, jobs)
 - ✓ All tests green — v2.1 (751 runs, 0 failures, 0 errors)
 - ✓ PaperTrail version baselines unchanged — v2.1 (sync contract preserved)
+- ✓ Capybara/Selenium system test infrastructure — v3.0 (async adapter, local_server? override, multi-session helpers, smoke test)
+- ✓ Multi-scoreboard broadcast isolation tests — v3.0 (morph path, score:update dispatch, table_scores overview, console.warn filter proof)
+- ✓ Concurrent/load broadcast isolation — v3.0 (rapid-fire 6-iteration loop, 3-session all-pairs, 0 failures)
+- ✓ Broadcast gap report — v3.0 (all 11 requirements PASS, FIX-01/FIX-02 deferred)
+- ✓ Characterization tests for League critical paths — v4.0 (25 tests: standings, game plan, scraping)
+- ✓ Characterization tests for PartyMonitor critical paths — v4.0 (40 tests: AASM, placement, result pipeline)
+- ✓ Extract service classes from League — v4.0 (4 services: StandingsCalculator, GamePlanReconstructor, ClubCloudScraper, BbvScraper; 2221→663 lines, 70.2% reduction)
+- ✓ Extract service classes from PartyMonitor — v4.0 (2 services: TablePopulator, ResultProcessor; 605→217 lines, 64% reduction)
+- ✓ Controller/channel/job test coverage for League/Party/PartyMonitor — v4.0 (30 controller + 10 reflex tests, COV-02 documented, 901 runs green)
+- ✓ Alternative UMB data sources investigated — v5.0 (SoopLive JSON API GO, umbevents/Cuesco NO-GO)
+- ✓ UmbScraper reduced to 175 lines — v5.0 (10 Umb:: services: HttpClient, DisciplineDetector, DateHelpers, PlayerResolver, PlayerListParser, GroupResultParser, RankingParser, FutureScraper, ArchiveScraper, DetailsScraper)
+- ✓ UmbScraperV2 deleted — v5.0 (585 lines absorbed into Umb::PdfParser::* services)
+- ✓ 3 pre-existing bugs fixed — v5.0 (TournamentDiscoveryService column, ScrapeUmbArchiveJob kwargs, SSL inconsistency)
+- ✓ UMB ranking PDF parsing implemented — v5.0 (RANK-01: weekly + final rankings via Umb::PdfParser::RankingParser)
+- ✓ Video cross-referencing system — v5.0 (Video::TournamentMatcher + Video::MetadataExtractor + SoopliveBilliardsClient)
+- ✓ SoopLive VOD linking via replay_no — v5.0 (VIDEO-02)
+- ✓ Kozoom event cross-referencing via eventId — v5.0 (VIDEO-03)
+- ✓ DailyInternationalScrapeJob Steps 3a/3b/3c wired — v5.0 (incremental matching + backfill rake task)
+
+- ✓ Audit docs against codebase — v6.0 (133-finding staleness inventory, 3 audit scripts)
+- ✓ Update/remove references to deleted or refactored code — v6.0 (75 broken links fixed, 6 stale refs updated)
+- ✓ Document new features and services from v1.0–v5.0 — v6.0 (8 namespace pages, Video:: cross-ref, 35-service developer guide)
+- ✓ Verify multilingual consistency (de/en) — v6.0 (17 bilingual gaps closed, zero warnings)
 
 ### Active
 
-(None — v2.1 milestone complete. Start next milestone with `/gsd-new-milestone`)
+- [ ] Task-first rewrite of `docs/managers/tournament-management.{de,en}.md` — volunteer-friendly walkthrough, architecture moved to appendix or developer docs
+- [ ] Printable one-page quick reference card (Before / During / After checklist) in `docs/managers/`
+- [ ] UX review of the TournamentsController wizard happy path — identify friction points and documented-but-missing features
+- [ ] Fix small UX issues and implement documented-but-missing features along the happy path
+- [ ] Add in-app links from wizard steps to the corresponding docs sections
 
 ### Out of Scope
 
-- League model refactoring (2219 lines) — tackle in future milestone
+- Full TournamentsController redesign — targeted fixes only this milestone
+- Edge-case wizard branches (reset, manual overrides, partial retries) — happy path first
 - New test coverage for remaining untested models, controllers, services — separate milestone
 - Architecture or stack changes — not in scope for current project
-- Scraper consolidation (UmbScraper v1/v2) — separate concern
 
 ## Context
 
@@ -55,17 +99,24 @@ A maintainable, well-tested codebase where every test is trustworthy and every m
 - **v1.0 shipped 2026-04-10:** TableMonitor 3903→1611 lines (4 services), RegionCc 2728→491 lines (10 services)
 - **v2.0 shipped 2026-04-10:** 72 test files audited, 475 runs green, 1121 assertions, ApiProtectorTestOverride added
 - **v2.1 shipped 2026-04-11:** Tournament 1775→575 lines (3 services), TournamentMonitor 499→181 lines (4 services), lib/tournament_monitor_support.rb deleted
-- Test suite: 751 runs, 1769 assertions, 0 failures, 0 errors, 13 skips
+- **v4.0 shipped 2026-04-12:** League 2221→663 lines (4 services), PartyMonitor 605→217 lines (2 services), 30 controller + 10 reflex tests
+- **v5.0 shipped 2026-04-12:** UmbScraper 2133→175 lines (10 services), UmbScraperV2 deleted (585 lines absorbed), SoopLive JSON API integrated, video cross-referencing built
+- **v6.0 shipped 2026-04-13:** Documentation audit + repair — 75 broken links fixed, 8 namespace pages, Video:: docs, 35-service guide, 17 bilingual pairs, zero mkdocs warnings
+- Test suite: 1130 runs, 0 failures, 0 errors
 - Sync: PaperTrail + RegionTaggable filtering, local servers pull via Version.update_from_carambus_api
 - ApiProtector + LocalProtector both have test overrides in test_helper.rb
-- Extracted services (21 total): ScoreEngine, GameSetup, OptionsPresenter, ResultRecorder, ClubCloudClient + 9 syncers (v1.0), RankingCalculator, TableReservationService, PublicCcScraper, PlayerGroupDistributor, RankingResolver, ResultProcessor, TablePopulator (v2.1)
+- Extracted services (37 total): ScoreEngine, GameSetup, OptionsPresenter, ResultRecorder, ClubCloudClient + 9 syncers (v1.0), RankingCalculator, TableReservationService, PublicCcScraper, PlayerGroupDistributor, RankingResolver, ResultProcessor, TablePopulator (v2.1), League::StandingsCalculator, League::GamePlanReconstructor, League::ClubCloudScraper, League::BbvScraper, PartyMonitor::TablePopulator, PartyMonitor::ResultProcessor (v4.0), Umb::HttpClient, Umb::DisciplineDetector, Umb::DateHelpers, Umb::PlayerResolver, Umb::PdfParser::PlayerListParser, Umb::PdfParser::GroupResultParser, Umb::PdfParser::RankingParser, Umb::FutureScraper, Umb::ArchiveScraper, Umb::DetailsScraper (v5.0)
+- Video services (v5.0): Video::MetadataExtractor, Video::TournamentMatcher, SoopliveBilliardsClient
 - Codebase map available at `.planning/codebase/`
+- **v3.0 shipped 2026-04-11:** Capybara/Selenium system test infrastructure, 5 broadcast isolation tests (morph, score:update, table_scores, rapid-fire, 3-session), BROADCAST-GAP-REPORT.md documenting all results + deferred FIX-01/FIX-02
+- Broadcast isolation: client-side JS filtering on global `table-monitor-stream` verified correct; server-side targeted broadcasts deferred (FIX-01/FIX-02)
 
 ## Constraints
 
-- **Behavior preservation**: All existing functionality must continue to work identically
+- **Behavior preservation (scoped)**: Unchanged flows must continue to work identically. New features may extend behavior. Phases marked `cleanup` enforce absolute preservation; phases marked `feature` or `mixed` are allowed to add behavior that didn't exist before.
 - **Incremental**: Each change must be independently deployable
-- **Test-first**: Tests before any refactoring
+- **Test-first**: Tests before any refactoring or feature addition
+- **Volunteer persona filter**: UX and doc decisions are judged against "would a volunteer club officer who uses this 2-3x/year understand this?"
 
 ## Key Decisions
 
@@ -88,6 +139,26 @@ A maintainable, well-tested codebase where every test is trustworthy and every m
 | DB lock stays inside ResultProcessor service | Pessimistic lock is result processing logic, not model infrastructure | ✓ Good — lock behavior preserved exactly |
 | AASM events fired on @tournament_monitor from services | After_enter callbacks execute correctly through model reference | ✓ Good — no AASM coupling leaks |
 | Delete lib/tournament_monitor_support.rb after extraction | File empty after all methods moved to services | ✓ Good — eliminated 1078-line legacy module |
+| Global async cable adapter for system tests | Simpler than per-test override; ActionCable::TestHelper swaps adapter for channel unit tests | ✓ Good — zero channel test regressions |
+| local_server? via ApplicationSystemTestCase setup/teardown | Global carambus.yml change would break 50+ tests; scoped override safer | ✓ Good — established pattern, zero regressions |
+| DOM marker for console.warn capture (not Selenium logs API) | More portable across ChromeDriver versions | ✓ Good — reliable filter proof |
+| Verify-only milestone (no broadcast fix) | Document gaps, defer FIX-01/FIX-02 to future milestone | ✓ Good — clean separation of concerns |
+| League:: namespace for extracted services | Matches Tournament::, TournamentMonitor::, TableMonitor:: patterns | ✓ Good — consistent namespace hierarchy |
+| PORO for standings, ApplicationService for scraping | Pure calculation vs side-effect-heavy operations | ✓ Good — StandingsCalculator PORO, scrapers as ApplicationService |
+| PartyMonitor PORO matching TournamentMonitor | Direct analog — same AASM-driven extraction pattern | ✓ Good — TablePopulator + ResultProcessor mirror TournamentMonitor services |
+| Pessimistic lock stays in model for PartyMonitor | Lock boundary and AASM events are model responsibilities | ✓ Good — services do data work only, model owns state |
+| Thin delegation wrappers (permanent API) | Zero caller changes, wrappers are permanent not transitional | ✓ Good — all controllers/reflexes/jobs unmodified |
+| Fix fixtures before controller tests | Party fixture chain broken (party_id → nonexistent party) | ✓ Good — unblocked 4 skipped tests immediately |
+| Research-first for UMB data sources | Complexity may be inherent to data source, not just code | ✓ Good — discovered SoopLive JSON API, avoided wasted effort on umbevents/Cuesco |
+| Umb:: namespace for all extracted services | Consistent with League::, Tournament::, etc. | ✓ Good — 10 services in clean namespace |
+| Delete UmbScraperV2 entirely (not facade) | Zero production callers; only PDF parsing was valuable | ✓ Good — clean break, PDF logic in first-class Umb::PdfParser::* POROs |
+| Pull Umb::HttpClient into Phase 25 (early) | SSL fix needed before extraction; reused in Phase 26 | ✓ Good — single SSL config point from the start |
+| Split PdfParser by type (3 classes) | Player lists, group results, rankings have distinct formats | ✓ Good — independently testable, clean D-08 output contracts |
+| Merge Phase 27 (V2 Resolution) into Phase 26 | V2 unused; PDF parsing is V2's only value | ✓ Good — eliminated unnecessary phase, tighter milestone |
+| SoopLive replay_no over data-seq HTML | JSON API provides same data structured; no HTML scraping needed | ✓ Good — higher precision, simpler implementation |
+| Regex-first + AI fallback for MetadataExtractor | Most titles have known patterns; AI only for outliers | ✓ Good — avoids API cost for majority of videos |
+| Confidence scoring with 0.75 threshold | Auto-assign above threshold; below requires review | ✓ Good — measurable, tunable |
+| Both backfill + incremental for video matching | Rake task for existing backlog, daily job for new videos | ✓ Good — enables measuring match rate before automation |
 
 ## Evolution
 
@@ -107,4 +178,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-11 after v2.1 milestone completed*
+*Last updated: 2026-04-13 after starting v7.0 Manager Experience milestone — Core Value broadened to code-docs sync, behavior preservation scoped to unchanged flows, feature work allowed*

@@ -1,5 +1,77 @@
 # Milestones
 
+## v6.0 Documentation Quality (Shipped: 2026-04-13)
+
+**Phases completed:** 5 phases, 12 plans, 20 tasks
+
+**Key accomplishments:**
+
+- Three audit tools created: translation gap checker, stale code reference detector, and CI-ready mkdocs strict-build task — plus archive exclusion from search indexing
+- 133-finding staleness inventory in docs/audit.json + docs/DOCS-AUDIT-REPORT.md: 75 broken links, 6 stale refs, 9 coverage gaps, 43 bilingual gaps — all classified and phase-assigned to gate Phases 29-32
+- 44 broken links cleared in one pass: 32 missing screenshot image refs replaced with text placeholders and 12 template example links encoded with HTML entities to prevent checker false positives
+- 31 remaining broken links de-linked across 17 files and 3 stale code references updated to current names — both checker scripts report zero findings, completing Phase 29 FIX-01 and FIX-02
+- Stale UmbScraperV2 planning docs replaced with accurate bilingual Umb:: namespace documentation — 4 files covering 10 services, 3 entry points, and 3 PDF parser output contracts
+- Added 35-service inventory across 7 namespace tables to both German and English developer guides, with file paths and one-liner descriptions for every extracted service.
+- TableMonitor::
+- league.de.md / league.en.md
+- Bilingual DE+EN documentation for the Video:: cross-referencing system: TournamentMatcher confidence scoring (0.75 threshold, 3 weighted signals), MetadataExtractor regex+gpt-4o-mini AI fallback, and SoopliveBilliardsClient replay_no linking with operational workflow
+- Services nav block with 8 Phase 31 pages wired into mkdocs.yml, exclude_docs expanded to eliminate 24 orphan warnings, and 7 broken cross-doc links fixed — reducing strict build warnings from 62 to 5
+- 5 monolingual plain .md files renamed to language-suffixed pairs and full AI-assisted translations created — 10 doc files total, 5 git commits (one per pair per D-08)
+- 3 remaining monolingual files renamed to language-suffixed pairs, full AI-assisted translations created, table-reservation.de.md created — all 17 bilingual gaps resolved, v6.0 Documentation Quality milestone final gate PASSED with zero issues across all four verification scripts
+
+---
+
+## v5.0 UMB Scraper Überarbeitung (Shipped: 2026-04-12)
+
+**Phases completed:** 4 phases, 12 plans
+**Timeline:** 2026-04-12 (single day)
+**Git stats:** 71 commits, 129 files changed, +16144/-9355 lines
+
+**Key accomplishments:**
+
+- Discovered undocumented SoopLive JSON API (`/api/games`, `/api/game/{id}/matches`, `/api/game/{id}/results`) — `replay_no` enables direct VOD linking; umbevents and Cuesco confirmed NO-GO (HTML only)
+- UmbScraper reduced from 2133 to 175 lines (91.8% reduction) via 10 extracted `Umb::` services: HttpClient, DisciplineDetector, DateHelpers, PlayerResolver, PlayerListParser, GroupResultParser, RankingParser, FutureScraper, ArchiveScraper, DetailsScraper
+- UmbScraperV2 (585 lines) fully absorbed into Umb:: services and deleted; PDF parsing promoted to first-class `Umb::PdfParser::*` POROs
+- Fixed 3 pre-existing bugs: TournamentDiscoveryService column reference, ScrapeUmbArchiveJob kwargs mismatch, SSL verification inconsistency
+- Implemented RANK-01: UMB ranking PDF parsing for both weekly and final tournament rankings
+- Built video cross-referencing system: `Video::TournamentMatcher` (confidence scoring), `Video::MetadataExtractor` (regex-first + AI fallback), `SoopliveBilliardsClient` (full adapter), Kozoom eventId cross-ref
+- Wired `DailyInternationalScrapeJob` Steps 3a/3b/3c for incremental matching; `rake videos:match_tournaments` for backfill
+
+---
+
+## v4.0 League & PartyMonitor Refactoring (Shipped: 2026-04-12)
+
+**Phases completed:** 4 phases, 9 plans, 13 tasks
+
+**Key accomplishments:**
+
+- 18 characterization tests pinning LeagueTeam (associations, cc_id_link, scrape stub) and Party (associations, name/intermediate_result/party_nr, boolean flags, data) with fixture infrastructure for dependent plans
+- Created `test/models/league_standings_test.rb`
+- One-liner:
+- League::StandingsCalculator PORO and League::GamePlanReconstructor ApplicationService extracted from league.rb, reducing model by 618 lines (2221 -> 1603) while preserving all 25 Phase 20 characterization tests unchanged
+- 1. [Rule 1 - Bug] Fixed undefined `records_to_tag` variable in scrape_bbv_leagues
+- One-liner:
+- PartyMonitor::ResultProcessor PORO extracts 5-method result pipeline + 2 private helpers from 489-line model, reducing it to 217 lines with thin delegation wrappers
+- Fixed party_monitors fixture chain, resolved Phase 22 behavioral regression in placement test, and added 13 integration tests for LeaguesController and LeagueTeamsController.
+- Fixed PartyMonitorsController tests (0 skips), created PartiesController integration tests, added PartyMonitorReflex unit tests for 5 critical paths, and documented COV-02 (no channels/jobs to test). Full suite green.
+
+---
+
+## v3.0 Broadcast Isolation Testing (Shipped: 2026-04-11)
+
+**Phases completed:** 3 phases, 6 plans, 10 tasks
+
+**Key accomplishments:**
+
+- ActionCable async adapter + scoped local_server? override in ApplicationSystemTestCase enabling Phase 18 Selenium broadcast isolation tests
+- Passing Capybara/Selenium smoke test proving AASM state change -> TableMonitorJob.perform_now -> CableReady inner_html -> browser DOM update via ActionCable async adapter
+- One-liner:
+- One-liner:
+- Six rapid-fire alternating broadcasts and three simultaneous browser sessions all prove zero broadcast bleed via JS filter counter verification
+- Comprehensive gap report documenting all 11 v1 broadcast isolation requirements as PASS, architectural risk of global stream with client-side filtering, 4 Phase 18 development findings, and FIX-01/FIX-02 deferred v2 fix references.
+
+---
+
 ## v2.1 Tournament & TournamentMonitor Refactoring (Shipped: 2026-04-11)
 
 **Phases completed:** 6 phases, 15 plans, 21 tasks

@@ -568,7 +568,7 @@ Currently using password authentication via environment variables. Consider swit
 
 - [Streaming Architecture](../developers/streaming-architecture.md)
 - [Streaming Setup Guide](streaming-setup.md)
-- [Systemd Services](systemd-streaming-services.md)
+- Systemd Services
 
 ---
 

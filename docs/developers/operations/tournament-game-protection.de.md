@@ -251,7 +251,7 @@ Die Flash-Messages sind:
 - Automatisch verschwindend bei nächster Navigation
 - In der gewählten Sprache (DE/EN)
 
-Details siehe: [FLASH_MESSAGES_SCOREBOARD.md](FLASH_MESSAGES_SCOREBOARD.md)
+Details siehe: FLASH_MESSAGES_SCOREBOARD.md
 
 ## Changelog
 

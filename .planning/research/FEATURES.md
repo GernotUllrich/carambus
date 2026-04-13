@@ -1,222 +1,166 @@
 # Feature Research
 
-**Domain:** Tournament + TournamentMonitor refactoring (v2.1 milestone)
-**Researched:** 2026-04-10
-**Confidence:** HIGH — direct codebase analysis, no external sources needed
+**Domain:** Volunteer-friendly tournament manager UX + task-first documentation (v7.0 scope)
+**Researched:** 2026-04-13
+**Confidence:** HIGH (based on direct code inspection + existing doc review; external web research unavailable this session)
 
 ---
 
-## What This Document Maps
+## Scope Boundary
 
-This is a **refactoring work-item map**, not a product feature map. "Table stakes" means work that must happen for the milestone to succeed. "Differentiators" means work that makes the result meaningfully better. "Anti-features" means tempting scope that should be explicitly rejected.
+This research covers **v7.0 only**: docs rewrite, quick-reference card, in-app help links, wizard UX polish, and small documented-but-missing feature implementations. No new capabilities are in scope. Every feature below is evaluated against the persona: volunteer club officer, 2-3 tournaments/year, low tech comfort, German-speaking.
 
----
-
-## Tournament Model: Responsibility Clusters
-
-Tournament (1775 lines) contains seven distinct responsibility areas. Not all are extraction candidates.
-
-**Cluster 1 — Core AR model (keep in model):** Schema, associations, scopes, validations, constants, `data` serialization, `before_save` data migration. Lines ~60–240. Legitimate model code.
-
-**Cluster 2 — TournamentLocal delegation (keep in model):** The `define_method` loop (~lines 239–269) that reads from `tournament_local` for global records (id < MIN_ID) and writes back on update. Tightly coupled to dual-identity behavior. Not extractable without major interface changes.
-
-**Cluster 3 — AASM state machine (keep in model):** States: `new_tournament`, `accreditation_finished`, `tournament_seeding_finished`, `tournament_mode_defined`, `tournament_started_waiting_for_monitors`, `tournament_started`, `tournament_finished`, `results_published`, `closed`. Callbacks into `reset_tournament` and `calculate_and_cache_rankings`. Standard model code.
-
-**Cluster 4 — ClubCloud scraping (EXTRACT → `TournamentCcScraper`):** `scrape_single_tournament_public` (~lines 392–810): 400-line method that fetches tournament details, participant list, game results, and rankings from ClubCloud HTML. Contains 9 distinct parse-variant private methods. Highest-value extraction candidate. Precedented by `CuescoScraper` and `UmbScraperV2`.
-
-**Cluster 5 — Scraped game creation (EXTRACT with `TournamentCcScraper`):** `handle_game`, `parse_table_tr`, and all `variant0..variant8` parse helpers (~lines 1061–1349). Pure HTML row → `Game`/`GameParticipation` data transformation. These belong with the scraper, not the model.
-
-**Cluster 6 — Ranking calculation (EXTRACT → `TournamentRankingCalculator`):** `calculate_and_cache_rankings` (~lines 886–932): loads `PlayerRanking` across 3 seasons, computes effective GD, stores in `data['player_rankings']`. Pure computation with no state side-effects beyond `save!`. Clean extraction target.
-
-**Cluster 7 — Google Calendar reservation (EXTRACT → `TournamentCalendarReservation`):** `create_table_reservation`, `available_tables_with_heaters`, `required_tables_count`, `format_table_list`, `build_event_summary`, `calculate_start_time`, `calculate_end_time`, `create_google_calendar_event` (~lines 980–1774): self-contained feature, already publicly/privately split. Existing tests in `tournament_auto_reserve_test.rb` already document behavior.
-
----
-
-## TournamentMonitor Model: Responsibility Clusters
-
-TournamentMonitor (499 lines in model + 1078 lines in `lib/tournament_monitor_support.rb` + 522 lines in `lib/tournament_monitor_state.rb`) is already partially decomposed into lib modules. Total footprint: ~2100 lines.
-
-**Cluster 1 — Core AR model + AASM (keep in model):** States: `new_tournament_monitor`, `playing_groups`, `playing_finals`, `tournament_finished`, `party_result_reporting_mode`, `closed`. State machine, `broadcast_status_update`, `log_state_change`. Lines 1–99.
-
-**Cluster 2 — Round counter (keep in model):** `current_round`, `current_round!`, `incr_current_round!`, `decr_current_round!`. Simple data accessors on the `data` JSON blob. Too small to extract.
-
-**Cluster 3 — Player distribution / group seeding (EXTRACT → `PlayerDistributor`):** `self.distribute_to_group`, `self.distribute_with_sizes`, `DIST_RULES`, `GROUP_RULES`, `GROUP_SIZES` constants (~lines 170–327). Pure algorithms with no AR dependencies — take player arrays, return group hashes. Highest testability gain for effort.
-
-**Cluster 4 — Ranking rule resolution (EXTRACT → `RankingRuleResolver`):** `player_id_from_ranking`, `ko_ranking`, `group_rank`, `random_from_group_ranks`, `rank_from_group_ranks` (~lines 145–487 private section). Complex regex-based rule string parser resolving placement rules like `(g1.rk4 + g2.rk4).rk2` to player IDs via `data["rankings"]`. Most complex algorithm in the model — untested inline, valuable when isolated.
-
-**Cluster 5 — Result accumulation (in `TournamentMonitorSupport` — evaluate extraction):** `accumulate_results`, `add_result_to`, `update_game_participations`, `update_game_participations_for_game`. Already in a module; evaluate as `ResultAccumulator` service following `ScoreEngine` precedent from v1.0.
-
-**Cluster 6 — Game lifecycle (in `TournamentMonitorState` — evaluate extraction):** `write_game_result_data`, `finalize_game_result`, `report_result`, `finalize_round`, `group_phase_finished?`, `finals_finished?`, `all_table_monitors_finished?`. The main game-result pipeline. Already in a lib module; evaluate whether each pipeline stage warrants its own service class.
+Carambus status codes used throughout:
+- **EXISTS** — code exists and works today
+- **PARTIAL** — code exists but is incomplete or inconsistent
+- **NEW** — does not exist, would need implementation
 
 ---
 
 ## Feature Landscape
 
-### Table Stakes (Must Have for Milestone)
+### Table Stakes (Users Expect These)
 
-| Feature | Why Expected | Complexity | Notes |
-|---------|--------------|------------|-------|
-| Characterization tests for Tournament | Must document behavior before touching anything; gate for all extractions | HIGH | 1775 lines, 7 clusters; VCR cassettes needed for `scrape_single_tournament_public` |
-| Characterization tests for TournamentMonitor | Same — model + 2 lib modules = ~2100 lines; must cover group, KO, finals paths | HIGH | `tournament_monitor_ko_test.rb` partially covers KO path — extend, do not duplicate |
-| Extract `TournamentCcScraper` | Biggest single complexity reduction in Tournament model; removes 400+ lines + 9 variant helpers | HIGH | Follows `CuescoScraper` / `ClubCloudClient` patterns; VCR cassettes required |
-| Extract `PlayerDistributor` | Pure algorithm, no AR dependencies, highest testability gain per effort | MEDIUM | `DIST_RULES`, `GROUP_RULES`, `GROUP_SIZES` constants move with it; `self.ranking` may accompany |
-| Extract `RankingRuleResolver` | Densest algorithm in TournamentMonitor, regex rule strings, currently untested in isolation | HIGH | Careful characterization first; depends on `data["rankings"]` structure being documented |
-| Extract `TournamentRankingCalculator` | Self-contained, ~47 lines, already side-effect-clean | LOW | Straightforward; existing behavior documented by char tests |
-| Extract `TournamentCalendarReservation` | Already isolated with public/private split, existing tests provide coverage | LOW | ~90 lines; uses `GoogleCalendarService` |
-| Controller tests: `TournamentsController` | 1047-line controller with 20+ actions, zero tests currently | HIGH | Focus on `reset`, `start`, `finish_seeding`, `define_participants`, `select_modus`, `reload_from_cc` |
-| Controller tests: `TournamentMonitorsController` | 214-line controller with game pipeline actions, zero tests | MEDIUM | Focus on `update_games`, `start_round_games`, `switch_players` |
-| Job tests: `TournamentStatusUpdateJob` | Broadcasts live tournament status via CableReady; 101 lines | MEDIUM | Test broadcast output, not just invocation; test renderer fallback path |
-| Job tests: `TournamentMonitorUpdateResultsJob` | 32 lines; exercises the async game-result path | LOW | Simple but covers the only async route into `report_result` |
+Features that, if missing, cause the volunteer to fail or call for help.
 
-### Differentiators (Make the Result Better, Not Just Done)
+| Feature | Why Expected | Complexity | Carambus Status | Notes |
+|---------|--------------|------------|-----------------|-------|
+| Task-first doc opening ("Running a tournament") | Volunteer opens docs once a year; an architecture overview as the first thing they see is a failure | LOW | PARTIAL | `tournament-management.en.md` opens with architecture/system overview, not a user task. `single-tournament.en.md` is closer but buried under index |
+| Happy-path wizard walkthrough doc (steps 1-6 only) | The full doc mixes setup, edge cases, technical details, and troubleshooting — volunteer needs a single linear flow | LOW | PARTIAL | `single-tournament.en.md` covers all 6 steps but mixes happy-path with troubleshooting inline |
+| State badge on wizard (what state am I in?) | 2-3x/year user forgets between uses; needs immediate orientation | LOW | EXISTS | `wizard_status_text` + progress bar already present in `_wizard_steps_v2.html.erb`; progress text shows "Schritt X von 6" |
+| Numeric step counter visible throughout wizard | Volunteers can count; "Step 3 of 6" is orientation, not hand-holding | LOW | EXISTS | `_wizard_steps_v2` renders "Schritt X von 6" in header; both v1 and v2 templates have this |
+| Irreversible-action warning before finalize steps | Step 4 (finalize participant list) cannot be undone; volunteer must know before clicking | LOW | EXISTS | Confirm dialog on finish_seeding; "danger" flag on wizard step renders red styling; warning text present |
+| Troubleshooting section per doc page | Volunteer arrives at the doc when something is wrong, not when planning; needs problem-to-solution structure | LOW | PARTIAL | `single-tournament.en.md` has a Troubleshooting section; `tournament-management.en.md` does not; `index.en.md` has Common Problems but describes a different workflow than the actual wizard |
+| Glossary inline or linked (Meldeliste vs. Setzliste vs. Teilnehmerliste) | These three terms are genuinely confusing and not standard German outside billiards administration | LOW | EXISTS | `_wizard_steps_v2` has a "Begriffserklärung" box; `single-tournament.en.md` has a dedicated section; full glossary exists at `/docs/reference/glossary.md` but is not linked from wizard |
+| Before/During/After mental model in docs | Volunteers think in tournament phases, not in system states | LOW | PARTIAL | `index.en.md` "Best Practices" section has this structure but it references features that don't match the actual wizard (e.g., "Create tournament" as step 1, but Carambus starts from a ClubCloud-sourced tournament) |
+| In-app link from wizard to relevant doc section | When stuck in the wizard, the volunteer needs to reach the relevant doc without leaving the page to search | MEDIUM | NEW | `docs_page.html.erb` exists and is a complete in-app doc renderer; `TournamentsController` has no links to it from wizard steps; no `help_url` pattern or doc-link helper in wizard views |
+| Printable quick-reference card (Before/During/After) | On tournament day, no one reads docs on a laptop; a laminated one-pager is the real UX | LOW | NEW | No quick-reference document exists in `docs/managers/` |
 
-| Feature | Value Proposition | Complexity | Notes |
-|---------|-------------------|------------|-------|
-| Reflex tests: `TournamentReflex` | 244-line reflex handles all live attribute updates; untested; `ATTRIBUTE_METHODS` codegen + seeding mutations | MEDIUM | Tests the metaprogrammed setters and `change_seeding`, `sort_by_ranking`, `sort_by_handicap` |
-| `ResultAccumulator` service extraction | `accumulate_results` + `add_result_to` in support module; isolation makes the ranking accumulation path unit-testable | MEDIUM | Follows `ScoreEngine` pattern from v1.0 |
-| Move `TournamentMonitorSupport`/`State` from `lib/` to `app/models/concerns/` | `lib/` is not always autoloaded consistently; concerns are the Rails convention for AR mixins | LOW | Low-risk rename + move; improves discoverability; no behavior change |
-| Channel tests: `TournamentChannel`, `TournamentMonitorChannel` | Both are tiny (17/19 lines) but verify subscription correctness | LOW | Only meaningful once ActionCable test infrastructure is confirmed in place |
-| Reek quality measurement before/after extraction | Proves refactoring reduced complexity, not just line count | LOW | Already part of v1.0 playbook — run before and after each extraction |
+### Differentiators (Nice to Have, Improves the Experience)
 
-### Anti-Features (Explicitly Out of Scope)
+| Feature | Value Proposition | Complexity | Carambus Status | Notes |
+|---------|-------------------|------------|-----------------|-------|
+| Anchor-targeted in-app doc links (link to specific heading, not just page) | Wizard step 2 should link directly to "Step 2: Import Seeding List" heading, not the full 400-line doc | LOW | PARTIAL | `docs_page.html.erb` renders full page; no anchor-fragment support visible; mkdocs generates anchor IDs so the URL pattern exists, just needs wiring |
+| State badge as primary orientation cue | A badge reading "Setzliste konfigurieren" is more meaningful than "33%" for a low-frequency user | LOW | PARTIAL | Both exist (`wizard_status_text` + progress bar); the badge text is visually secondary to the progress bar in current CSS; reordering is a layout change |
+| Collapsed help section open by default for active step only | Expanding `<details>` manually is friction; the active step's help should be visible without a click | LOW | PARTIAL | All `<details>` elements in wizard steps are collapsed by default; adding `open` attribute conditionally when `status == :active` would fix this with one ERB change |
+| "What changed since last time" note at top of doc | 2-3x/year user doesn't re-read the whole doc; a "Changed in this version" note saves time | LOW | NEW | No changelog section in manager docs |
+| Quick-reference card in DE + EN | German is primary but some club officers run mixed events | LOW | NEW | All existing manager docs are bilingual; card should follow the same pattern |
+| Wizard disappears after tournament start (or collapses) | After step 6, the wizard is replaced by the tournament status view — this is the right behavior | LOW | EXISTS | `_wizard_steps_v2` has `unless tournament.tournament_started` guard; tournament status section always renders |
+| Step-level context always visible (not in `<details>`) | Active step context should not require a click to reveal | LOW | PARTIAL | All step help is behind `<details summary="Was macht dieser Schritt?">` — user must click to read context |
 
-| Feature | Why Requested | Why Problematic | Alternative |
-|---------|---------------|-----------------|-------------|
-| Refactor `TournamentsController` (1047 lines) | Large controller is an obvious target | Controller refactoring is a different milestone; touching it during model extraction risks cascading view/partial changes | Write tests that pin current behavior; refactor in a dedicated future milestone |
-| Extract `TournamentLocal` delegation logic | The `define_method` loop is messy | Tightly coupled to the dual-identity (global vs local) model contract; extraction requires changing call sites across the entire codebase | Document in characterization tests, leave in place |
-| Add new tournament features | Tempting when working deep in the model | "No new features" is the project constraint (PROJECT.md) | File issues for later milestones |
-| Consolidate `UmbScraperV2` + scraper variations | Real inconsistency | Explicitly Out of Scope in PROJECT.md ("Scraper consolidation (UmbScraper v1/v2) — separate concern") | Future milestone |
-| League model refactoring (2219 lines) | Same God-object pattern | Explicitly Out of Scope in PROJECT.md ("League model refactoring — tackle in future milestone") | Future milestone |
-| System/integration browser tests for scraping | Coverage seems good | System tests require browser + full stack; VCR cassettes are the right tool for scraper validation | Integration tests with VCR cassettes are sufficient |
-| Changing public method signatures | Caller cleanup seems cleaner | Reflexes, jobs, and controllers call model methods directly; signature changes require a coordinated sweep | Preserve all public method names; delegate from model to extracted services |
+### Anti-Features (Tempting to Add, Actively Harmful for 2-3x/Year Users)
+
+| Anti-Feature | Why It Looks Good | Why It Hurts Volunteers | Alternative |
+|--------------|-------------------|------------------------|-------------|
+| Comprehensive onboarding tour / interactive walkthrough | Seems welcoming; guides first-time users | 2-3x/year users forget the tour by next use; on return visits it becomes an obstacle; tours go stale when UI changes | Write the doc to be re-readable in 2 minutes; use the state badge for orientation on return |
+| Modal help dialogs on wizard steps | Centralizes contextual help | Modals block the UI; on tournament day the volunteer is under time pressure; dismiss-to-proceed is friction | Use inline `<details>` open by default for the active step (already the structural pattern) |
+| Over-explanation on the quick-reference card | More information feels safer | A card that doesn't fit on one A4 side is not a card — it's a doc that won't get printed | Strict rule: Before column 5 items max, During 5 items max, After 3 items max; link to full doc for anything longer |
+| Multiple help entry points per step (tooltip + link + modal + inline) | Redundancy seems thorough | Cognitive overload; volunteer doesn't know which one to click; inconsistency erodes trust | One help mechanism per step; `<details>` open by default for the active step |
+| Searchable documentation inside the app | Seems convenient | Low-frequency users don't know what to search for; they recognize context, not keywords; search requires knowing what to ask | Context-sensitive link from each wizard step directly to the relevant doc section |
+| Feature-complete documentation index as the entry point | Looks professional | A volunteer arriving at `docs/managers/index.en.md` sees 8 sections, 10 tournament formats, statistics, PWA features — none relevant to running a single regional tournament | Make the entry point "Running Your First Tournament" as an H1, with everything else linked below |
+| Undo/rollback button on finalize steps | Feels safer | If implemented incorrectly it creates ambiguity about state; AASM transitions are intentionally one-way; a partial rollback is worse than none | Make the confirmation dialog concrete ("12 players will be locked. No-shows cannot be re-added.") |
+| "Advanced" / "Expert" mode toggle | Seems to serve power users | Volunteers are the only users of the wizard; there is no second audience; a toggle creates two UX paths to maintain | Design the happy path for the volunteer; expose edge cases through troubleshooting sections, not a mode switch |
+| Progress percentage (33%, 66%) as primary metric | Numbers seem informative | Percentage implies granularity that doesn't exist (6 steps are not uniform work); "33%" while waiting on tournament day for players to arrive has no actionable meaning | State badge ("Setzliste konfigurieren", "Bereit zum Start") is more actionable than a percentage |
+| Video tutorial embedded in wizard | Looks modern | Videos don't work offline, are painful to watch under time pressure on tournament day, and go stale when UI changes | Short inline text + printable card; in-app link to the relevant doc section |
 
 ---
 
 ## Feature Dependencies
 
 ```
-Characterization tests (Tournament)
-    └── required before ──> TournamentCcScraper extraction
-    └── required before ──> TournamentRankingCalculator extraction
-    └── required before ──> TournamentCalendarReservation extraction
+Printable quick-reference card
+    └──requires──> Task-first doc content (happy-path only, decided first)
+                       └──requires──> Wizard UX review (what actually happens in each step)
 
-Characterization tests (TournamentMonitor)
-    └── required before ──> PlayerDistributor extraction
-    └── required before ──> RankingRuleResolver extraction
-    └── required before ──> ResultAccumulator extraction (if pursued)
+In-app doc links from wizard steps
+    └──requires──> URL mapping: wizard step number → doc section anchor
+    └──enhances──> Collapsed help (doc link as fallback when details is closed)
 
-TournamentCcScraper extraction
-    └── includes ──> All variant helpers (variant0..variant8, handle_game, parse_table_tr)
-    └── requires ──> VCR cassettes for scrape paths (details, participants, results, rankings)
+Open-by-default help for active step
+    └──enhances──> State badge as primary orientation
+                       └──conflicts──> Progress percentage as primary orientation
+                                           (one should be demoted; badge to primary, bar to secondary)
 
-RankingRuleResolver extraction
-    └── depends on ──> data["rankings"] structure documented by char tests
-    └── calls ──> PlayerDistributor.distribute_to_group (group_rank method)
-
-PlayerDistributor extraction
-    └── self-contained ──> No AR dependencies; pure algorithm
-    └── must export ──> class methods: .distribute_to_group, .distribute_with_sizes, .ranking
+Anchor-targeted in-app doc links
+    └──requires──> docs_page.html.erb anchor-fragment support (partial implementation exists)
+    └──requires──> Task-first doc rewrite (anchors only useful once headings are well-structured)
 ```
 
 ### Dependency Notes
 
-- **Characterization tests before any extraction** is the project's test-first constraint. Every extraction is gated by tests documenting the behavior being preserved.
-- **`TournamentCcScraper` owns all variant helpers** — `handle_game`, `parse_table_tr`, and all `variant*` methods should move as a unit. Splitting them creates an incoherent model with parse logic split across two files.
-- **`PlayerDistributor` is the best early win** — no AR dependencies, extractable immediately after characterization tests, useful as a proof-of-pattern before tackling the harder extractions.
-- **`RankingRuleResolver` depends on `PlayerDistributor`** — `group_rank` calls `distribute_to_group`. After extraction, `RankingRuleResolver` must call `PlayerDistributor.distribute_to_group` explicitly.
+- **Quick-reference card requires task-first doc rewrite first:** The card content must be derived from the same happy-path walkthrough. Writing them in parallel risks inconsistency between card and doc.
+- **In-app doc links require wizard UX review first:** We need to confirm which steps have friction before wiring links to specific doc sections. Linking to the wrong sections adds noise.
+- **State badge vs. progress bar:** Both exist in `_wizard_steps_v2`. The progress bar is visually primary (wide, colored, prominent). The status text is secondary in the current layout. Demoting the bar and promoting the badge is a CSS/layout change with no logic risk.
+- **Open-by-default details:** The `_wizard_step.html.erb` partial uses a static `<details>` tag. Adding `open` conditionally when `status == :active` is one ERB condition. Risk: if multiple steps are simultaneously active (steps 3+4 can both be active), both would be open — which is correct behavior.
 
 ---
 
 ## MVP Definition
 
-### Phase 1: Characterization (must come first, gates everything)
+### Launch With (v7.0)
 
-- [ ] Characterization tests for Tournament — all 7 clusters documented, VCR cassettes recorded for scrape paths
-- [ ] Characterization tests for TournamentMonitor — group/KO/finals paths, player distribution, ranking resolution
-- [ ] Verify existing `tournament_monitor_ko_test.rb` passes, identify gaps in coverage
+Minimum deliverables for the milestone.
 
-### Phase 2: Clean Extractions (independent, low-risk)
+- [ ] **Task-first doc rewrite** of `docs/managers/tournament-management.{de,en}.md` — "Running a tournament from ClubCloud to finish" replaces the architecture overview; technical details move to appendix. Reason: This is the entry point volunteers find first; its current form fails the volunteer persona.
+- [ ] **Printable quick-reference card** (one A4 page, Before/During/After, DE + EN) in `docs/managers/`. Reason: On tournament day, no one reads docs on a laptop. The card is the actual runtime UX for a low-frequency user.
+- [ ] **In-app doc links from wizard steps** — Each of the 6 steps in `_wizard_steps_v2` gets a link to the corresponding section of the rewritten doc. Reason: `docs_page.html.erb` renderer already exists; wiring the link is LOW complexity and HIGH volunteer value.
+- [ ] **Open-by-default help for the active step** — The `<details>` element on the active step renders with `open` attribute. Reason: One ERB condition; eliminates one click of friction at the moment of highest confusion.
 
-- [ ] Extract `PlayerDistributor` — pure algorithm, best testability gain/risk ratio; move with constants
-- [ ] Extract `TournamentRankingCalculator` — already isolated computation, ~47 lines
-- [ ] Extract `TournamentCalendarReservation` — already isolated, existing tests provide coverage
+### Add After Validation (v7.x)
 
-### Phase 3: Complex Extractions (require Phase 1 char tests)
+- [ ] **Anchor-targeted doc links** — Link from step 2 directly to "Step 2" heading in the doc, not the top of the page. Trigger: Volunteers scroll past the heading when landing on the full page.
+- [ ] **State badge as primary orientation cue** — Demote progress bar, elevate `wizard_status_text`. Trigger: Observed that volunteers misread the % bar or find it meaningless.
 
-- [ ] Extract `TournamentCcScraper` with all variant helpers — VCR cassettes required
-- [ ] Extract `RankingRuleResolver` — most complex algorithm, highest regression risk
+### Future Consideration (v8+)
 
-### Phase 4: Controller / Job / Reflex Coverage
-
-- [ ] `TournamentsController` tests — 20+ actions; pin current behavior before future controller work
-- [ ] `TournamentMonitorsController` tests — focus on `update_games`, `start_round_games`
-- [ ] `TournamentStatusUpdateJob` tests — verify CableReady broadcast output and renderer fallback
-- [ ] `TournamentReflex` tests — verify `ATTRIBUTE_METHODS` metaprogramming, seeding mutations
+- [ ] **"What changed" section in manager docs** — Adds maintenance burden; only worthwhile if the wizard is actively evolving and the user base is large enough to read it.
+- [ ] **Simplified referee UI** — Already flagged in `tournament-management.en.md` as a future project; out of v7.0 scope.
 
 ---
 
 ## Feature Prioritization Matrix
 
-| Work Item | Correctness Value | Implementation Cost | Priority |
-|-----------|-------------------|---------------------|----------|
-| Characterization tests (Tournament) | HIGH — blocks all extractions | HIGH | P1 |
-| Characterization tests (TournamentMonitor) | HIGH — blocks all extractions | HIGH | P1 |
-| `PlayerDistributor` extraction | HIGH — most testable algorithm, pure | LOW | P1 |
-| `TournamentRankingCalculator` extraction | MEDIUM — isolated computation | LOW | P1 |
-| `TournamentCalendarReservation` extraction | MEDIUM — already isolated | LOW | P1 |
-| `TournamentCcScraper` extraction | HIGH — biggest complexity reduction | HIGH | P2 |
-| `RankingRuleResolver` extraction | HIGH — removes regex soup from model | HIGH | P2 |
-| `TournamentsController` tests | HIGH — 1047-line controller untested | HIGH | P2 |
-| `TournamentMonitorsController` tests | MEDIUM — game pipeline actions | MEDIUM | P2 |
-| `TournamentStatusUpdateJob` tests | MEDIUM — async broadcast path | MEDIUM | P2 |
-| `TournamentReflex` tests | MEDIUM — live attribute updates | MEDIUM | P3 |
-| `ResultAccumulator` extraction | MEDIUM — already in module | MEDIUM | P3 |
-| Move lib modules to concerns | LOW — cosmetic Rails convention | LOW | P3 |
-| Channel tests | LOW — tiny files | LOW | P3 |
+| Feature | User Value | Implementation Cost | Priority |
+|---------|------------|---------------------|----------|
+| Task-first doc rewrite | HIGH | LOW (writing, no code) | P1 |
+| Printable quick-reference card | HIGH | LOW (writing, no code) | P1 |
+| In-app doc links from wizard steps | HIGH | LOW (ERB + route helper) | P1 |
+| Open-by-default help for active step | MEDIUM | LOW (one ERB condition) | P1 |
+| State badge as primary orientation | MEDIUM | LOW (CSS reorder) | P2 |
+| Anchor-targeted doc links | MEDIUM | MEDIUM (fragment routing in docs_page) | P2 |
+| "What changed" note in docs | LOW | LOW | P3 |
 
 ---
 
-## Test Coverage Gap Analysis
+## Competitor Feature Analysis
 
-### No tests exist for:
+Analogous patterns from volunteer-oriented admin software (sports management, event management, club administration tools).
 
-- `TournamentsController` (1047 lines, 20+ actions) — highest priority gap in the project
-- `TournamentMonitorsController` (214 lines)
-- `TournamentStatusUpdateJob` (101 lines)
-- `TournamentReflex` (244 lines)
-- `TournamentChannel` / `TournamentMonitorChannel` (17/19 lines each)
-- `TournamentMonitorUpdateResultsJob` (32 lines)
-- `scrape_single_tournament_public` in Tournament model (400+ lines, 9 variant helpers)
-- `TournamentMonitorState#report_result` pipeline (core game-result flow)
-
-### Partial tests exist for:
-
-- `tournament_test.rb` — 3 tests: LocalProtector, data field, PaperTrail; not characterization-level
-- `tournament_monitor_ko_test.rb` — KO path, `ko_ranking`, `distribute_to_group`; a starting point
-- `tournament_search_test.rb` — search behavior
-- `tournament_auto_reserve_test.rb` — Google Calendar reservation; provides characterization for `TournamentCalendarReservation`
-
-### Already well-tested (no new work needed here):
-
-- `TableMonitor` and its 4 extracted services (v1.0 complete)
-- `RegionCc` and its 10 extracted services (v1.0 complete)
+| Pattern | How Analogous Products Do It | Carambus Current State | v7.0 Approach |
+|---------|------------------------------|------------------------|---------------|
+| Task-first docs | "Create your first bracket in 3 steps" as the opening; Challonge opens with a tournament type picker — task, not architecture | Opens with architecture/system overview | Rewrite opening to "Run a tournament in 6 steps" |
+| Quick-reference / cheat sheet | Club software often includes a laminated card in onboarding; "Day Of" checklist pattern common in event management tools | Does not exist | One-page Before/During/After printable card |
+| Inline contextual help | Modern SaaS wizards use always-visible or on-hover help adjacent to the action button; collapsed by default is a known friction point for infrequent users | Behind `<details>` collapsed by default | Open by default for active step |
+| In-app doc navigation | Context-sensitive help links (Intercom-style, or simpler "?" icon linking to relevant doc section) are table stakes in any wizard flow | `docs_page.html.erb` exists but wizard has zero links to it | Wire one link per wizard step |
+| Step numbering | Universal pattern; "Step 3 of 6" always present in multi-step flows | EXISTS (`_wizard_steps_v2` renders "Schritt X von 6") | No change needed |
+| State/phase label | Sports tools use phase names ("Registration", "In Progress", "Complete") rather than percentages as the primary status indicator | EXISTS as secondary element (`wizard_status_text`); progress bar is primary | Promote state label, demote percentage bar |
+| Glossary for domain terms | Low-frequency-admin products (government portals, club management software) that use specialized terminology always provide a glossary; key terms are explained inline near first use | EXISTS in wizard (Begriffserklärung box) and in separate page; not linked from wizard | Verify link from wizard to glossary exists; add if missing |
 
 ---
 
 ## Sources
 
-- Direct analysis of `app/models/tournament.rb` (1775 lines)
-- Direct analysis of `app/models/tournament_monitor.rb` (499 lines)
-- Direct analysis of `lib/tournament_monitor_support.rb` (1078 lines)
-- Direct analysis of `lib/tournament_monitor_state.rb` (522 lines)
-- Direct analysis of `app/controllers/tournaments_controller.rb` (1047 lines)
-- Direct analysis of `app/controllers/tournament_monitors_controller.rb` (214 lines)
-- Direct analysis of `app/reflexes/tournament_reflex.rb` (244 lines)
-- Direct analysis of `app/jobs/tournament_status_update_job.rb` (101 lines)
-- Direct analysis of existing test files in `test/models/`
-- `.planning/PROJECT.md` for constraints and prior decisions
+- Direct code inspection: `app/views/tournaments/_wizard_steps.html.erb`, `_wizard_steps_v2.html.erb`, `_wizard_step.html.erb`
+- Direct code inspection: `app/helpers/tournament_wizard_helper.rb`, `app/helpers/tournaments_helper.rb`
+- Direct code inspection: `app/controllers/tournaments_controller.rb` (happy-path action list)
+- Direct code inspection: `app/views/tournaments/show.html.erb` (wizard render conditions)
+- Existing documentation: `docs/managers/tournament-management.en.md`, `docs/managers/index.en.md`, `docs/managers/single-tournament.en.md`, `docs/decision-makers/features-overview.en.md`
+- Project context: `.planning/PROJECT.md` (v7.0 milestone definition, volunteer persona constraint)
+- In-app doc infrastructure: `app/views/static/docs_page.html.erb` (confirms renderer exists and is fully functional)
+- Confidence for Carambus-status assessments: HIGH (all from direct code inspection)
+- Confidence for analogous-product patterns: MEDIUM (training knowledge; no external search available this session)
 
 ---
 
-*Feature research for: Tournament + TournamentMonitor refactoring (v2.1)*
-*Researched: 2026-04-10*
+*Feature research for: Carambus v7.0 Manager Experience — docs + wizard UX for volunteer club officers*
+*Researched: 2026-04-13*

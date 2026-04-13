@@ -12,7 +12,7 @@ class DailyInternationalScrapeJob < ApplicationJob
     begin
       scraped_count = ScrapeYoutubeJob.perform_now(days_back: days_back)
       Rails.logger.info "[DailyInternationalScrape] Scraped #{scraped_count} YouTube videos"
-    rescue StandardError => e
+    rescue => e
       Rails.logger.error "[DailyInternationalScrape] Error scraping YouTube: #{e.message}"
       scraped_count = 0
     end
@@ -21,11 +21,25 @@ class DailyInternationalScrapeJob < ApplicationJob
     InternationalSource::KNOWN_FIVESIX_CHANNELS.each_key do |channel_id|
       scraper = SoopliveScraper.new
       soop_count += scraper.scrape_channel(channel_id, days_back: days_back)
-    rescue StandardError => e
+    rescue => e
       Rails.logger.error "[DailyInternationalScrape] Error scraping SoopLive #{channel_id}: #{e.message}"
     end
     scraped_count += soop_count
     Rails.logger.info "[DailyInternationalScrape] Scraped #{soop_count} SoopLive videos"
+
+    # Step 1b: Sync SoopLive billiards match data (NEW - per D-04)
+    begin
+      if defined?(SoopliveBilliardsClient)
+        client = SoopliveBilliardsClient.new
+        games = client.fetch_games
+        if games.present?
+          Rails.logger.info "[DailyInternationalScrape] Fetched #{games.size} SoopLive billiards tournaments"
+          # Match data is fetched on-demand during VOD linking, not bulk-fetched here
+        end
+      end
+    rescue => e
+      Rails.logger.error "[DailyInternationalScrape] Error syncing SoopLive billiards: #{e.message}"
+    end
 
     kozoom_count = 0
     begin
@@ -39,7 +53,7 @@ class DailyInternationalScrapeJob < ApplicationJob
       else
         Rails.logger.warn "[DailyInternationalScrape] Kozoom credentials not configured in Rails.application.credentials"
       end
-    rescue StandardError => e
+    rescue => e
       Rails.logger.error "[DailyInternationalScrape] Error scraping Kozoom: #{e.message}"
     end
     scraped_count += kozoom_count
@@ -56,13 +70,41 @@ class DailyInternationalScrapeJob < ApplicationJob
     end
     Rails.logger.info "[DailyInternationalScrape] Auto-tagged #{process_count} videos"
 
-    # Step 3: Discover new tournaments (if service exists)
+    # Step 3a: Discover new tournaments from video metadata (existing)
     tournament_count = 0
     if defined?(TournamentDiscoveryService)
-      discovery_service = TournamentDiscoveryService.new
-      discovery_result = discovery_service.discover_from_videos
-      tournament_count = discovery_result[:tournaments].size
-      Rails.logger.info "[DailyInternationalScrape] Discovered #{tournament_count} tournaments"
+      begin
+        discovery_service = TournamentDiscoveryService.new
+        discovery_result = discovery_service.discover_from_videos
+        tournament_count = discovery_result[:tournaments].size
+        Rails.logger.info "[DailyInternationalScrape] Discovered #{tournament_count} tournaments"
+      rescue => e
+        Rails.logger.error "[DailyInternationalScrape] Error discovering tournaments: #{e.message}"
+      end
+    end
+
+    # Step 3b: Match unassigned videos to tournaments (NEW - per D-08)
+    match_count = 0
+    begin
+      if defined?(Video::TournamentMatcher)
+        result = Video::TournamentMatcher.call
+        match_count = result[:assigned_count]
+        Rails.logger.info "[DailyInternationalScrape] Matched #{match_count} videos to tournaments"
+      end
+    rescue => e
+      Rails.logger.error "[DailyInternationalScrape] Error matching videos: #{e.message}"
+    end
+
+    # Step 3c: Kozoom eventId cross-referencing (NEW - VIDEO-03)
+    kozoom_match_count = 0
+    begin
+      if defined?(SoopliveBilliardsClient)
+        kozoom_result = SoopliveBilliardsClient.cross_reference_kozoom_videos
+        kozoom_match_count = kozoom_result[:assigned_count]
+        Rails.logger.info "[DailyInternationalScrape] Kozoom cross-referenced #{kozoom_match_count} videos"
+      end
+    rescue => e
+      Rails.logger.error "[DailyInternationalScrape] Error in Kozoom cross-ref: #{e.message}"
     end
 
     # Step 4: Translate new videos (limit to 100 per day to save costs)
@@ -71,9 +113,9 @@ class DailyInternationalScrapeJob < ApplicationJob
       translation_service = VideoTranslationService.new
       if translation_service.translator
         videos_to_translate = Video.supported_platforms
-                                   .where("data->>'translated_title' IS NULL")
-                                   .order(published_at: :desc)
-                                   .limit(100)
+          .where("data->>'translated_title' IS NULL")
+          .order(published_at: :desc)
+          .limit(100)
 
         if videos_to_translate.any?
           translated_count = translation_service.translate_batch(videos_to_translate, target_language: "en")
@@ -88,17 +130,17 @@ class DailyInternationalScrapeJob < ApplicationJob
 
       # Ensure metadata is a hash (handle both Hash and String cases)
       current_metadata = case source.metadata
-                         when Hash
-                           source.metadata
-                         when String
-                           begin
-                             JSON.parse(source.metadata)
-                           rescue StandardError
-                             {}
-                           end
-                         else
-                           {}
-                         end
+      when Hash
+        source.metadata
+      when String
+        begin
+          JSON.parse(source.metadata)
+        rescue
+          {}
+        end
+      else
+        {}
+      end
 
       source.update(
         metadata: current_metadata.merge(
@@ -114,7 +156,8 @@ class DailyInternationalScrapeJob < ApplicationJob
       scraped: scraped_count,
       processed: process_count,
       tournaments: tournament_count,
-      translated: translated_count
+      translated: translated_count,
+      matched: match_count + kozoom_match_count
     }
   end
 end

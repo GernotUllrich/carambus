@@ -1,0 +1,52 @@
+# Videos for testing
+#
+# Used by Video::TournamentMatcher tests.
+# wc_2024 tournament runs 2024-09-01..2024-09-07 (id 50_002_001)
+# wc_no_end_date starts 18.months.ago (id 50_002_002, fallback range: date..date+7days+3grace)
+#
+# NOTE: Uses youtube_source (not umb_source) to avoid FK teardown conflicts
+# with archive_scraper_test.rb which deletes all umb-type international_sources
+# in its teardown.
+
+# High-confidence match: published during wc_2024, title contains JASPERS + CHO
+jaspers_cho_wc_2024:
+  id: 50_000_001
+  external_id: "yt_jaspers_cho_wc2024"
+  title: "UMB World Cup 2024 Final - JASPERS vs CHO"
+  published_at: <%= DateTime.new(2024, 9, 5, 12, 0, 0) %>
+  international_source: youtube_source
+  created_at: <%= 1.year.ago %>
+  updated_at: <%= 1.day.ago %>
+
+# No date overlap: published 2022 (far from any tournament)
+no_date_overlap_video:
+  id: 50_000_002
+  external_id: "yt_no_overlap_2022"
+  title: "UMB World Cup 2022 JASPERS vs CHO Final"
+  published_at: <%= DateTime.new(2022, 3, 15, 10, 0, 0) %>
+  international_source: youtube_source
+  created_at: <%= 2.years.ago %>
+  updated_at: <%= 1.day.ago %>
+
+# Already assigned video: videoable_id set to wc_2024 (explicit id 50_002_001)
+already_assigned_video:
+  id: 50_000_003
+  external_id: "yt_already_assigned"
+  title: "World Cup 2024 JASPERS highlight"
+  published_at: <%= DateTime.new(2024, 9, 3, 10, 0, 0) %>
+  videoable_id: 50_002_001
+  videoable_type: "Tournament"
+  international_source: youtube_source
+  created_at: <%= 1.year.ago %>
+  updated_at: <%= 1.day.ago %>
+
+# Within 7-day fallback range of wc_no_end_date (date = 18.months.ago).
+# Published 4 days after tournament start, within the 7+3 day fallback window.
+video_within_7day_range:
+  id: 50_000_004
+  external_id: "yt_wc_hurghada_jaspers"
+  title: "UMB World Cup Hurghada Final - JASPERS wins"
+  published_at: <%= (18.months.ago.to_date + 4).to_datetime %>
+  international_source: youtube_source
+  created_at: <%= 2.years.ago %>
+  updated_at: <%= 1.day.ago %>

@@ -1,0 +1,9 @@
+Final Ranking - UMB 3-Cushion World Cup 2022 Antalya
+
+Rank  Name                         Nat   Points   Innings   Average
+
+1.    JASPERS Dick                 NL    150      60        2.500
+2.    CAUDRON Frederic             BE    140      65        2.153
+3.    BLOMDAHL Torbjorn            SE    130      68        1.911
+4.    CHO Jaeho                    KR    120      72        1.666
+

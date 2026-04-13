@@ -1,0 +1,45 @@
+# Seedings for testing
+#
+# Links players to InternationalTournament fixtures.
+# These are used by Video::TournamentMatcher player_intersection_score.
+#
+# NOTE: Uses explicit IDs for all foreign keys because both players.yml and
+# tournaments.yml use explicit IDs (>= 50M). Label-based references would
+# generate hash IDs that don't match.
+#
+# IMPORTANT: tournament_type must be "Tournament" (the STI base class name),
+# NOT "InternationalTournament". Rails polymorphic `as: :tournament` always
+# queries with the base class name when the association is defined on Tournament.
+#
+# ID ranges:
+#   Players:     50_001_xxx (players.yml)
+#   Tournaments: 50_002_xxx (wc_2024=001, wc_no_end_date=002)
+
+# Seedings for wc_2024 (JASPERS and CHO play in World Cup 2024)
+wc_2024_jaspers:
+  id: 50_000_001
+  player_id: 50_001_001
+  tournament_id: 50_002_001
+  tournament_type: "Tournament"
+  state: "seeded"
+  created_at: <%= 1.year.ago %>
+  updated_at: <%= 1.day.ago %>
+
+wc_2024_cho:
+  id: 50_000_002
+  player_id: 50_001_002
+  tournament_id: 50_002_001
+  tournament_type: "Tournament"
+  state: "seeded"
+  created_at: <%= 1.year.ago %>
+  updated_at: <%= 1.day.ago %>
+
+# Seedings for wc_no_end_date (only JASPERS)
+wc_no_end_date_jaspers:
+  id: 50_000_003
+  player_id: 50_001_001
+  tournament_id: 50_002_002
+  tournament_type: "Tournament"
+  state: "seeded"
+  created_at: <%= 2.years.ago %>
+  updated_at: <%= 1.day.ago %>

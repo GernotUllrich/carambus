@@ -39,7 +39,7 @@ The Carambus Scoreboard is a complete display system for billiards games that ca
 
 ### Welcome Screen
 
-![Welcome Screen](screenshots/scoreboard_welcome.png)
+*[Welcome Screen — screenshot pending]*
 
 The welcome screen is the starting point for all scoreboard activities. From here you can:
 
@@ -166,7 +166,7 @@ See [Appendix: Setting up Training Games](#appendix-setting-up-training-games)
 
 ### 2. Warm-up Period
 
-![Warm-up](screenshots/scoreboard_warmup.png)
+*[Warm-up — screenshot pending]*
 
 Both players have time for warm-up:
 
@@ -182,7 +182,7 @@ Both players have time for warm-up:
 
 ### 3. Shootout
 
-![Shootout](screenshots/scoreboard_shootout.png)
+*[Shootout — screenshot pending]*
 
 Determine who starts the game:
 
@@ -197,7 +197,7 @@ Determine who starts the game:
 
 ### 4. Game Running
 
-![Game Running](screenshots/scoreboard_playing.png)
+*[Game Running — screenshot pending]*
 
 The scoreboard switches to **Game Mode**.
 
@@ -300,7 +300,7 @@ Fullscreen mode is ideal for:
 
 ### Dark Mode
 
-![Dark Mode](screenshots/scoreboard_dark.png)
+*[Dark Mode — screenshot pending]*
 
 **Toggle:**
 - Click on the **Dark Mode Icon** 🌓 in the menu bar
@@ -420,7 +420,7 @@ This section explains how to quickly and easily set up training games for free p
 
 #### 1. Select Table
 
-![Table Selection](screenshots/scoreboard_tables.png)
+*[Table Selection — screenshot pending]*
 
 1. From the **Welcome Screen** select **"Tables"**
 2. An overview of all tables at the location appears
@@ -432,7 +432,7 @@ This section explains how to quickly and easily set up training games for free p
 
 #### 2. Choose Game Type
 
-![Choose Game Type](screenshots/scoreboard_game_choice.png)
+*[Choose Game Type — screenshot pending]*
 
 After selecting the table, a dialog for game type selection appears:
 
@@ -447,7 +447,7 @@ After selecting the table, a dialog for game type selection appears:
 
 #### 3. Select Players
 
-![Player Selection](screenshots/scoreboard_player_selection.png)
+*[Player Selection — screenshot pending]*
 
 ##### Player A
 
@@ -472,7 +472,7 @@ Depending on the chosen game type, different parameters are available:
 
 ##### Carom - Straight Rail
 
-![Straight Rail Setup](screenshots/scoreboard_free_game_setup.png)
+*[Straight Rail Setup — screenshot pending]*
 
 **Basic Settings:**
 
@@ -498,7 +498,7 @@ Depending on the chosen game type, different parameters are available:
 
 ##### Carom - Quick Game (Quick Start)
 
-![Quick Game](screenshots/scoreboard_quick_game.png)
+*[Quick Game — screenshot pending]*
 
 For quick start without many settings:
 
@@ -515,7 +515,7 @@ For quick start without many settings:
 
 ##### Pool Billiards
 
-![Pool Setup](screenshots/scoreboard_pool_setup.png)
+*[Pool Setup — screenshot pending]*
 
 **Disciplines:**
 - **8-Ball** - Classic 8-Ball

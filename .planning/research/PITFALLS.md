@@ -1,337 +1,302 @@
-# Pitfalls Research: Tournament & TournamentMonitor Refactoring (v2.1)
+# Pitfalls Research
 
-**Domain:** God-model extraction — Tournament (API Server, 1775 lines) and TournamentMonitor (Local Server orchestrator, 499 lines + 600+ lines in lib/)
-**Researched:** 2026-04-10
-**Confidence:** HIGH — based on direct code reading of both models, existing test files, concern implementations, and v1.0 lessons learned
+**Domain:** Volunteer-facing doc rewrite + UX review on existing Rails wizard (v7.0 Manager Experience)
+**Researched:** 2026-04-13
+**Confidence:** HIGH — all pitfalls derived from direct inspection of `app/models/tournament.rb` (AASM block), `app/views/tournaments/_wizard_steps*.html.erb`, `app/controllers/tournaments_controller.rb`, `docs/managers/tournament-management.en.md`, and `.planning/PROJECT.md`. No generic advice.
 
 ---
 
 ## Critical Pitfalls
 
-These cause silent behavioral breakage, regressions in production, or require rewrites.
-
----
-
-### Pitfall 1: LocalProtector and ApiProtector fire in opposite server contexts — silence is the failure mode
+### Pitfall 1: Two Wizard Partials Exist — Docs Can't Describe Both
 
 **What goes wrong:**
-`Tournament` includes `LocalProtector`, which blocks saves of global records (id < 50_000_000) on the local server via `after_save :disallow_saving_global_records`. `TournamentMonitor` includes `ApiProtector`, which blocks saves of local records on the API server via `after_save :disallow_saving_local_records`. Both raise `ActiveRecord::Rollback` silently — the save appears to succeed, the caller continues, but no row was written to the database. Extracted services or characterization tests that create or save records without understanding which server context is active will produce phantom "successes" that leave the database unchanged.
+The wizard is rendered by two separate partials: `_wizard_steps.html.erb` (v1, 6 steps with English labels mixed in) and `_wizard_steps_v2.html.erb` (v2, restructured with a new "Setzliste aus Einladung" step 2, a always-visible glossary box, and the wizard hiding itself after `tournament_started`). These are two completely different UIs. A doc that says "Step 2 is ClubCloud sync" is correct for v1 but wrong for v2, where Step 2 is "Import Seeding from Invitation PDF." If `show.html.erb` conditionally renders one or the other, the condition is part of the truth that the doc must either describe or the UX review must resolve.
 
 **Why it happens:**
-`ApplicationRecord.local_server?` returns `true` when `Carambus.config.carambus_api_url.present?`. In the test environment, `LocalProtector#disallow_saving_global_records` explicitly returns `true` early (`return true if Rails.env.test?`), making it harmless. But `ApiProtector#disallow_saving_local_records` is installed via `included do ... after_save` directly on each including class — prepending `ApiProtectorTestOverride` to the module itself does NOT override already-installed methods (this is documented in test_helper.rb). The workaround is `ObjectSpace.each_object` patching, but any model class required AFTER that patch runs will not be covered.
-
-Critically: `TournamentMonitor` includes `ApiProtector`. If a test loads `TournamentMonitor` for the first time after the `ObjectSpace` sweep, `disallow_saving_local_records` is the original method, and every `tournament_monitor.save` silently rolls back.
+The developer added v2 as a safe parallel rollout without retiring v1. Doc authors assume one canonical wizard exists.
 
 **How to avoid:**
-1. Run `bin/rails test` once before writing any tests to confirm `TournamentMonitor` is already in the patched set. If it is not, add it explicitly to the patch loop or ensure it is required before the `ObjectSpace.each_object` sweep.
-2. In every new test that saves a `TournamentMonitor`, add an assertion immediately after `save` / `save!` that the record `persisted?` and `id` is set. Silent rollback will cause `persisted?` to return false.
-3. For any extracted service that calls `tournament_monitor.save`, wrap the assertion in the service's test: `assert tournament_monitor.reload.updated_at > 1.second.ago`.
-4. Never trust a green test that does not assert database state — especially for models including `ApiProtector`.
+Before writing a single doc line, run `grep -rn "wizard_steps" app/views/tournaments/show.html.erb` to identify which partial is rendered and under what condition. If both are live, the UX review phase must retire v1 (or document it as the legacy path) before the doc phase begins. Never write docs against a partial that may not be what users see.
 
 **Warning signs:**
-- Test passes but `TournamentMonitor.count` does not change
-- `tournament_monitor.save` returns false with no errors on `tournament_monitor.errors`
-- Extracted service creates a `TournamentMonitor` but subsequent `TournamentMonitor.find(id)` raises `RecordNotFound`
+- Doc says "Step 2: ClubCloud sync" but wizard shows "Setzliste aus Einladung" as step 2
+- Step numbers in doc don't match volunteer's screen
+- Both `_wizard_steps.html.erb` and `_wizard_steps_v2.html.erb` are present without a clear gate in `show.html.erb`
 
-**Phase to address:** Characterization phase — before writing any characterization test for TournamentMonitor, verify the ApiProtector override is active for that class in the test environment.
+**Phase to address:**
+UX review phase — confirm canonical partial as a pre-condition before doc phase opens.
 
 ---
 
-### Pitfall 2: PaperTrail versioning fires conditionally based on server context — extracting Tournament without this breaks sync
+### Pitfall 2: AASM Has Two States With No Entry Event — Docs Will Fabricate a Path
 
 **What goes wrong:**
-`LocalProtector` calls `has_paper_trail(skip: lambda {...})` only when `carambus_api_url` is NOT present (i.e., on the API server). `ApiProtector` calls `has_paper_trail` only when `carambus_api_url` IS present (i.e., on the local server). This means:
-- On the API server, `Tournament` (LocalProtector) generates PaperTrail versions for sync to local servers.
-- On the local server, `TournamentMonitor` (ApiProtector) generates PaperTrail versions.
-- Neither model versions itself in the wrong context.
-
-When extracting logic from `Tournament` into service objects that call `tournament.save!` directly, every such save on the API server creates a new PaperTrail `Version`. Local servers consume these versions via `Version.update_from_carambus_api`. If extracted services produce additional save calls (e.g., splitting one `save!` into two to separate concerns), they create double versions, which can cause the local server to apply the same logical change twice — producing duplicate records or stale field overwrites.
+The AASM defines 9 states: `new_tournament`, `accreditation_finished`, `tournament_seeding_finished`, `tournament_mode_defined`, `tournament_started_waiting_for_monitors`, `tournament_started`, `tournament_finished`, `results_published`, `closed`. Of these, `accreditation_finished` has no declared event that transitions into it (no `from:` clause in any event points to it as a target). `closed` has no event at all. `results_published` is reachable only via `have_results_published` which has no visible UI surface. A doc author reading the state list as a sequence will either invent wizard steps for these states or describe them as part of the happy path when they are not.
 
 **Why it happens:**
-PaperTrail creates a version on every `save!` call where the `skip:` lambda returns false. The `skip:` lambda skips only when ALL changes are `updated_at` or `sync_date`. Any extraction that splits a multi-field update into sequential saves changes how many versions are created and what each version contains.
+The AASM state list looks like a sequential workflow. In practice, 5 of the 9 states are the wizard path; the rest are legacy, background-set, or future states. This is invisible without tracing each state to a controller action.
 
 **How to avoid:**
-1. Before extraction, count the number of `save!`/`update!` calls in each method being extracted. This is the baseline version count per operation.
-2. After extraction, add assertions to tests: `assert_difference "tournament.versions.count", 1 do ... end`. If the count changes, the extraction changed the version footprint.
-3. When a service must make multiple saves, wrap them in `PaperTrail.request(enabled: false) do ... end` for all but the final authoritative save — or batch all field changes into a single `update!`.
-4. Never call `save!` at the end of a service method if the caller will also call `save!` — this double-saves and double-versions.
-5. The `skip:` lambda is on `LocalProtector`, not on the model. Extracted services do not bypass it, but they can inadvertently trigger more versions by calling save multiple times.
+Before writing, map each AASM state to a controller action or background job that drives it. States with no inbound transition from any controller are not part of the wizard path — say so explicitly in the doc audit. The doc should describe only controller-driven states.
 
 **Warning signs:**
-- Service method ends with `record.save!` AND the caller also calls `record.save!` after the service returns
-- `tournament.versions.count` grows faster than expected during a sync operation
-- Local server `update_from_carambus_api` job processes the same `tournament_id` twice in quick succession
+- Doc section describes an "accreditation step" or "close tournament" action that has no route in `routes.rb`
+- A numbered wizard step in the doc has no corresponding `POST`/`GET` action in `TournamentsController`
+- `closed` or `accreditation_finished` appears in a wizard step description
 
-**Phase to address:** Characterization phase for Tournament — establish version-count baselines for every method before extracting. Enforce via `assert_difference` in extraction tests.
+**Phase to address:**
+Doc rewrite phase — add a pre-condition: each documented step must map to a named controller action.
 
 ---
 
-### Pitfall 3: AASM's `skip_validation_on_save: true` hides data integrity bugs during extraction
+### Pitfall 3: `tournament_started_waiting_for_monitors` Is Transient — Docs Will Skip It and Users Will Be Confused
 
 **What goes wrong:**
-`Tournament` uses `aasm column: "state", skip_validation_on_save: true`. This means AASM-triggered state transitions call `save!` but skip ActiveRecord validations. The `validates_each :data` validator — which checks `table_ids` for completeness, heterogeneity, and consistency — is bypassed on every state transition. Extracted services that trigger state transitions (e.g., `tournament.finish_seeding!`) will also bypass validations, silently persisting invalid `data` structures.
-
-If a service extracts logic that combines a state transition with a data field update (e.g., seeding calculation + `finish_seeding!`), and the service sets `data[:table_ids]` to an inconsistent value before calling the transition, the validator will not fire and the inconsistency will persist to production.
+`start_tournament!` (called from `TournamentsController#start`) transitions the tournament to `tournament_started_waiting_for_monitors`, not directly to `tournament_started`. A separate event, `signal_tournament_monitors_ready`, transitions to `tournament_started`. The wizard step 6 links to `tournament_monitor_tournament_path` (a GET), not to the start POST. A doc that says "click Start, tournament is running" skips the transient state entirely. If any user-visible loading behavior or waiting screen exists during this state, volunteers who see it will be confused because the doc gave no warning.
 
 **Why it happens:**
-`skip_validation_on_save: true` is AASM's mechanism for avoiding double validation — it assumes the model was valid before the transition. But it becomes dangerous when extracted services modify `data` as part of the same operation that triggers a transition, because the modification is never validated.
+The transient state passes quickly during developer testing, making it effectively invisible. The happy path "works" without noticing it.
 
 **How to avoid:**
-1. Never combine data mutation with state transition in a single service method. Separate them: one service validates and mutates data, a second (or the controller) calls the transition.
-2. When characterizing Tournament state transitions, always add an explicit `assert tournament.valid?` after calling `finish_seeding!` or similar — AASM will not raise even if invalid.
-3. In extracted services that modify `data`, call `tournament.valid?` before `save!` even when the caller plans to run a transition afterward.
+During the UX review phase, test the actual start flow in a browser and observe whether the transient state surfaces any UI. Check the `tournament_monitor` controller action for whether it triggers `signal_tournament_monitors_ready` automatically or whether the transition requires a separate action. Document what the volunteer sees between clicking Start and the tournament monitor opening — even if it is only a loading flash.
 
 **Warning signs:**
-- Service method calls `tournament.finish_seeding!` immediately after `tournament.data[:table_ids] = [...]`
-- No test calls `assert tournament.valid?` after a state transition in Tournament
-- `validates_each :data` block is not covered by any test
+- Doc says "tournament starts immediately" with no mention of monitor initialization
+- Volunteer reports "after clicking Start, nothing seems to happen for a moment"
+- `tournament_started_waiting_for_monitors` never appears in any doc section or note
 
-**Phase to address:** Characterization phase for Tournament — add tests that verify validator fires on non-transition saves, and document that transition saves bypass it.
+**Phase to address:**
+UX review phase — observe the transient state behavior before doc phase writes about the start step.
 
 ---
 
-### Pitfall 4: `TournamentMonitor#data` JSON blob is the single source of truth for live tournament state — mutations must be atomic
+### Pitfall 4: The `auto_upload_to_cc` Checkbox Is Not in the Wizard Step Panel — Current Doc Gets the Location Wrong
 
 **What goes wrong:**
-`TournamentMonitor#data` (serialized JSON hash) stores: groups, placements, rankings, current_round, executor_params results, error messages, and KO bracket state. Multiple methods mutate this hash with `deep_merge_data!` followed by `save!`. The `deep_merge_data!` method does NOT call `save!` itself — it only modifies the in-memory hash and marks it dirty. The `save!` must be called separately.
-
-During extraction, if a service extracts a subset of the data-mutation logic, it may call `deep_merge_data!` but then return without calling `save!`, or conversely, a second service may call `save!` before the first service's changes are merged — overwriting them.
-
-Specifically: `do_reset_tournament_monitor` makes over a dozen sequential `deep_merge_data!` + `save!` pairs. If this is split across services, interleaved saves will cause earlier in-memory merges to be lost when a later `save!` reads the stale record from the database before merging.
+The existing EN doc states: "Activation: Checkbox 'Automatically upload results to ClubCloud' in Step 6 of the wizard (default: enabled)." But wizard step 6 in `_wizard_steps_v2.html.erb` contains no form or checkbox — it is a single link button to `tournament_monitor_tournament_path`. The `auto_upload_to_cc` param is consumed by `TournamentsController#start` via `params[:auto_upload_to_cc]`, meaning the checkbox lives in the tournament-monitor start form, not the wizard overview. A volunteer following the doc will look for a checkbox in the wizard step panel that does not exist there.
 
 **Why it happens:**
-`deep_merge_data!` operates on `self.data` in memory. If another `save!` has committed a different version of `data` to the database since the last `reload`, the in-memory merge accumulates on top of stale data. Concurrent processes are not the only risk — sequential service calls in the same request are sufficient to trigger this if one service reads from the database mid-sequence.
+The doc was written describing intent or a slightly different version of the UI, not the current rendered view. The checkbox exists in the code but in a different location than described.
 
 **How to avoid:**
-1. Treat `data` mutations as a unit: accumulate all changes in memory, then flush once with a single `save!`. Never let two service calls each do `deep_merge_data! + save!` sequentially if either might read from the database in between.
-2. If splitting `do_reset_tournament_monitor` into sub-services, pass the in-memory `data` hash through as a parameter rather than letting each service read `tournament_monitor.reload.data`.
-3. Add a test that verifies two sequential `deep_merge_data!` calls followed by one `save!` persist both changes correctly — this is the intended usage pattern.
-4. If services must each save independently, use pessimistic locking: `TournamentMonitor.lock.find(id)` before each mutation sequence.
+For every UI element the doc references, verify its location with `grep -rn "auto_upload_to_cc" app/views/`. Document the checkbox in the context where it actually appears (the tournament start form), not where the doc currently claims it is.
 
 **Warning signs:**
-- Two extracted services each call `deep_merge_data!` and then `save!` independently
-- Service calls `tournament_monitor.reload` before `deep_merge_data!` (correct but signals the caller is not batching)
-- Test only verifies final state, not intermediate states, so data loss between saves is invisible
+- Doc references a checkbox in a wizard step panel; grep finds the checkbox only in a non-wizard view
+- A volunteer says "I can't find that option on the page the doc describes"
 
-**Phase to address:** TournamentMonitor extraction — establish the data-mutation contract (accumulate in memory, flush once) before splitting any methods.
+**Phase to address:**
+Doc rewrite phase — every documented UI interaction must be verified against a `grep` before being written.
 
 ---
 
-### Pitfall 5: `after_update_commit :broadcast_status_update` in TournamentMonitor fires a Sidekiq job in tests — silently enqueuing jobs that nobody asserts on
+### Pitfall 5: Wizard Step Numbers Are Conditional on Organizer Type — Hard-Coded Step Numbers Break Half the Cases
 
 **What goes wrong:**
-`TournamentMonitor` has `after_update_commit :broadcast_status_update, if: :saved_change_to_state?`. This fires `TournamentStatusUpdateJob.perform_later(tournament)` whenever the AASM `state` column changes. In tests using transactional fixtures (`use_transactional_tests = true`), `after_commit` callbacks do NOT fire, so this job is never enqueued — tests pass without asserting on broadcast behavior. When `use_transactional_tests = false` (as in `TournamentMonitorKoTest`), the job IS enqueued.
+Both wizard partials render different step numbers depending on `tournament.organizer.is_a?(Region)`. Club tournaments skip the ClubCloud sync step (or renumber it), so a club officer sees 5 steps numbered 1-5, while a regional officer sees 6 steps. The EN doc refers to "Step 6" for auto_upload activation with no qualifier. A club officer reading the doc will look for a "Step 6" that does not exist on their screen.
 
-If Sidekiq is in `:fake` mode (as configured in test_helper.rb: `Sidekiq::Testing.fake!`), the job accumulates in `Sidekiq::Worker.jobs` without executing. Tests that change `TournamentMonitor` state without draining Sidekiq queues will have orphaned job queue state that pollutes subsequent tests.
-
-Additionally, `TournamentStatusUpdateJob` requires a working `tournament` association. If a test creates a `TournamentMonitor` with a fixture tournament that lacks required associations (discipline, region, season), the job will raise when eventually drained — but since it runs asynchronously in tests, the error appears in a different test's output, making it appear to be that test's fault.
+**Why it happens:**
+Developer experience is always with the regional tournament case. The conditional rendering is present in the code but invisible to anyone not looking for it.
 
 **How to avoid:**
-1. For any test that transitions TournamentMonitor state, add: `assert_enqueued_with(job: TournamentStatusUpdateJob) do ... end` when `use_transactional_tests = false`.
-2. In teardown for non-transactional tests, drain or clear the Sidekiq queue: `Sidekiq::Worker.clear_all`.
-3. When writing characterization tests that exercise AASM transitions on TournamentMonitor, explicitly decide whether to use transactional or non-transactional mode and document the choice.
-4. Never assume a green test means "the broadcast fired correctly" — it may mean the transaction wrapper prevented the callback from firing at all.
+The doc rewrite must describe steps by name, not number. "In the Start step..." rather than "In Step 6...". If steps must be numbered, fork the description explicitly: "For regional tournaments (6 steps)... / For club tournaments (5 steps)...". The volunteer persona filter makes option (a) clearly better — volunteers will not remember whether their tournament is "regional" or "club" type.
 
 **Warning signs:**
-- `TournamentMonitor` state transitions in tests use `use_transactional_tests = true` (default) — broadcasts are never tested
-- No `assert_enqueued_with` or `assert_enqueued_jobs` assertion in any TournamentMonitor test
-- Sidekiq job failures appear in a test different from the one that caused them
+- Any doc line contains "Step [0-9]" as a bare number with no organizer-type qualifier
+- A club officer reports their screen shows different step numbers than the doc
 
-**Phase to address:** Characterization phase for TournamentMonitor — decide transactional mode before writing tests, document broadcast behavior as explicitly untested if using transactional mode.
+**Phase to address:**
+Doc rewrite phase — enforce step-name-not-number as a writing rule; verify by `grep "Step [0-9]\|Schritt [0-9]"` on the doc output.
 
 ---
 
-### Pitfall 6: `TournamentMonitorSupport` and `TournamentMonitorState` live in `lib/` — not autoloaded in all contexts
+### Pitfall 6: The "Sympathetic Developer" Terminology Leak
 
 **What goes wrong:**
-The bulk of TournamentMonitor's business logic lives in `lib/tournament_monitor_support.rb` and `lib/tournament_monitor_state.rb`. These are Ruby modules included via `include TournamentMonitorSupport` and `include TournamentMonitorState` in the model. They are loaded because `lib/` is explicitly added to the autoload path (or via `require` at boot), but they are NOT autoloaded by Zeitwerk — they must be `require`d explicitly.
+The doc author is the Rails developer. The current EN doc already opens with: "Technically speaking, Carambus is a hierarchy of web services," "the so-called Carambus API server," "based on standardized HTML protocols." A task-first rewrite will likely re-introduce implementation detail under the guise of explaining *why* something works — "the sync button works because the local server requests from the API server which retrieves from ClubCloud instances" is a developer explanation, not user task guidance. The existing doc puts architecture content first (first 60% of the file) and workflow last, which is the direct product of this pitfall.
 
-When extracting these into service classes (e.g., moving `populate_tables` into a `TournamentMonitor::PopulateTablesService`), the new service file must be placed either in `app/services/` (Zeitwerk-autoloaded) or `lib/` (require-explicit). If placed in `app/` but still references constants from `lib/` modules, circular load ordering can cause `NameError` in development but not in tests (where the full app is booted before any test runs).
-
-Additionally, the modules reference `Game::MIN_ID`, `Seeding::MIN_ID`, and call `Tournament.logger` — all global constants assumed present. If a service is unit-tested in isolation (stub-first), these constants must be stubbed or the full app must load.
+**Why it happens:**
+Developer-authors conflate "explaining the feature" with "explaining the system." They know why things work and assume users share that curiosity.
 
 **How to avoid:**
-1. Place all extracted services in `app/services/tournament_monitor/` so Zeitwerk handles them. Do not extend the `lib/` pattern to new code.
-2. Gradually migrate `TournamentMonitorSupport` and `TournamentMonitorState` methods into services rather than creating new lib modules.
-3. Before each service extraction, identify all external constants it references. If more than 3 constants require stubbing for unit tests, the extraction boundary is too fine — coarsen it.
-4. Write a smoke test that requires each extracted service file in isolation to detect load-order issues early.
+Apply the "2-3x/year volunteer" filter to every paragraph: does this sentence tell the user what to do, or what to expect next? If it explains infrastructure, move it to `docs/developers/`. Use the existing doc's "Tournament Management - Detailed Workflow" section as the content nucleus — it describes tasks. Architecture content already lives there erroneously and must move, not be rewritten.
 
 **Warning signs:**
-- New service file placed in `lib/` instead of `app/services/`
-- Service references `Tournament.logger`, `Game::MIN_ID`, or `Seeding::MIN_ID` without those being passed as arguments
-- `NameError` in development but not in tests
+- Rewritten opening paragraph contains a diagram of system layers or the word "server"
+- The phrase "technically speaking" appears anywhere in the managers doc
+- Any reference to Rails, ActiveRecord, AASM, API server architecture, or gem names in user-facing content
 
-**Phase to address:** First TournamentMonitor extraction — establish the file placement convention before extracting any methods.
+**Phase to address:**
+Doc rewrite phase — add a review pass: remove any sentence not answering "what does the user do" or "what will the user see."
 
 ---
 
-### Pitfall 7: Tournament's dynamic attribute overrides via `define_method` break setter extraction
+### Pitfall 7: Bilingual Drift During a Large Rewrite
 
 **What goes wrong:**
-`Tournament` dynamically defines getter and setter methods for 12 attributes (`timeouts`, `timeout`, `gd_has_prio`, `admin_controlled`, `auto_upload_to_cc`, `sets_to_play`, `sets_to_win`, `team_size`, `kickoff_switches_with`, `allow_follow_up`, `allow_overflow`, `fixed_display_left`, `color_remains_with_set`) using a `%i[...].each do |meth| define_method(meth)` loop. The getter reads from `tournament_local` if the record is global (id < MIN_ID), otherwise from `read_attribute`. The setter creates or updates `tournament_local` for global records.
+DE and EN docs are separate files. A rewrite that proceeds EN-first then "translates" DE will produce structural divergence: section headers won't match (making anchor names differ), callouts added to EN mid-rewrite won't exist in DE, and steps added in one language will be missing in the other. v6.0 closed 17 bilingual gaps; a large v7.0 rewrite will open new ones at a higher rate unless structure is locked before content is written. Diverged anchor names between DE and EN break cross-locale links and make future `diff`-based gap-checking unreliable.
 
-These overrides mean `tournament.sets_to_play` does NOT always return `read_attribute(:sets_to_play)`. Any extracted service that calls `tournament.sets_to_play` assumes the dynamic dispatch is transparent. But if a service is tested with a fixture or stub that mocks `sets_to_play` directly on the attribute, while production code routes through `tournament_local`, the service test passes but production behavior differs.
-
-Critically: `initialize_tournament_monitor` in Tournament calls `timeout`, `timeouts`, `innings_goal`, etc. as method calls, not `read_attribute`. If this method is extracted to a service, those calls must still go through the dynamic dispatch chain — the service cannot use `read_attribute` directly.
+**Why it happens:**
+The natural workflow is "write one language, translate the other." Translation happens at the end when the structure is already frozen. Any mid-rewrite addition in one language is not mirrored.
 
 **How to avoid:**
-1. Never use `read_attribute` in extracted service code for any of the 12 dynamically overridden attributes. Always call the method (e.g., `tournament.sets_to_play`, not `tournament.read_attribute(:sets_to_play)`).
-2. When writing characterization tests for `initialize_tournament_monitor`, test with both a global tournament (id < MIN_ID, uses `tournament_local`) and a local tournament (id >= MIN_ID, uses direct attribute). Both paths must be covered.
-3. In fixtures, ensure the `local` tournament fixture does NOT have a `tournament_local` record, and the `imported` fixture DOES (or the test explicitly creates one) to exercise both paths.
+Define the section skeleton (H2/H3 headers with matching anchor names) in both DE and EN before writing any prose. Commit the skeleton. Then write prose for each section in both languages before moving to the next section. Do not write all of EN then translate all of DE.
 
 **Warning signs:**
-- Extracted service constructor calls `read_attribute(:sets_to_play)` or `[:timeout]` hash access on tournament
-- Characterization tests only use local tournament fixtures (id >= MIN_ID), never testing the `tournament_local` delegation path
-- `tournament.sets_to_play` returns a different value than `tournament.read_attribute(:sets_to_play)` in a test — the dynamic override is active
+- EN doc has a "Quick Reference Card" section; DE does not
+- `diff <(grep "^#" docs/managers/tournament-management.en.md) <(grep "^#" docs/managers/tournament-management.de.md)` produces mismatches
+- Anchor names in DE use German words while EN uses English words
 
-**Phase to address:** Characterization phase for Tournament — document all 12 dynamically overridden attributes and ensure both code paths are tested before extraction.
+**Phase to address:**
+Doc rewrite phase — enforce skeleton-first commit as a gate before prose writing begins.
 
 ---
 
-### Pitfall 8: `scrape_single_tournament_public` is a 400-line method with multiple HTTP calls — VCR cassette strategy must be planned before extraction
+### Pitfall 8: In-App Doc Links Will Point to Sections That Move During the Rewrite
 
 **What goes wrong:**
-`scrape_single_tournament_public` makes 4 sequential HTTP requests (tournament page, registration list, results page, ranking page) and interleaves parsing with database writes. VCR cassettes recorded against this method as a whole will not apply cleanly if the method is split into focused services (e.g., `TournamentScraper::RegistrationParser`, `TournamentScraper::ResultsParser`), because VCR matches requests in order against a cassette recorded in a different order.
+v7.0 adds in-app links from wizard steps to mkdocs pages. If those links are added in the same milestone as the doc rewrite, they will be written against the current doc structure. When the rewrite moves or renames sections (e.g., the architecture section moves to developer docs), the in-app links will point to removed anchors. `mkdocs build --strict` does not validate external URL references from ERB files — the build passes but the links are broken.
 
-If cassettes are not re-recorded against the new request sequence, tests silently replay wrong responses — registration data is parsed using the results page cassette, causing silent data corruption in test fixtures.
+**Why it happens:**
+The feature (in-app links) and the doc structure change are in the same milestone. The link targets move while the link sources are being written.
 
 **How to avoid:**
-1. Before any extraction of scraping logic, enumerate the exact URL sequence and HTTP methods made by `scrape_single_tournament_public` using the existing VCR cassettes as documentation.
-2. After extraction, re-record ALL cassettes that touch scraping logic. Treat cassette re-recording as mandatory, not optional.
-3. Give each extracted scraper service its own cassette, named after the service. Do not share cassettes between services.
-4. Add `assert_requested :get, /cc_url/, times: 4` (or whatever the count is) to integration tests so cassette drift is caught immediately.
+Implement in-app links in a phase that runs *after* the doc rewrite is committed and anchor names are stable. Alternatively, introduce named anchor comments at the top of each wizard-relevant section (e.g., `<!-- anchor: wizard-seeding -->`) that are treated as immutable regardless of section reorganization, and link to those.
 
 **Warning signs:**
-- VCR cassettes from before extraction are reused without re-recording after extraction
-- Scraper service test passes locally but scrapes different data than the pre-extraction test
-- No `assert_requested` count assertions in scraping tests
+- An in-app link is added in the same commit that restructures the target doc
+- After `mkdocs build --strict` passes, a manual click-test finds the in-app link hits a 404 within the docs site
+- ERB views reference anchor names that no longer exist in the doc after the rewrite
 
-**Phase to address:** Tournament scraping extraction — mandatory cassette re-record step, not optional.
+**Phase to address:**
+In-app links phase — must be sequenced after the doc rewrite phase closes and anchor names are stable.
 
 ---
 
-### Pitfall 9: AASM `after_enter` callbacks on state entry trigger side effects that must be preserved exactly
+### Pitfall 9: "Documented But Missing" vs "Intentionally Removed" — No Signal Exists Without Research
 
 **What goes wrong:**
-`Tournament` AASM state machine has `after_enter` callbacks on two states:
-- `new_tournament, after_enter: [:reset_tournament]` — destroys TournamentMonitor, games, reorders seedings
-- `tournament_seeding_finished, after_enter: [:calculate_and_cache_rankings]` — computes and caches player rankings in `data`
+The current EN doc describes features that may or may not exist in code: "Future Project: Simplified Referee Operation," "statistics on training games are planned," and a "Manual upload" path described as a present alternative. The doc has no record of intent. If the UX review surfaces these as "documented but not implemented," there is no way to tell from the doc alone whether they were intentionally deferred (a prior decision), never built (oversight), or removed after building (a decision). The v7.0 constraint evolution says "feature additions are newly allowed," which increases the risk of treating deferred decisions as open invitations without checking prior intent.
 
-`TournamentMonitor` AASM has:
-- `new_tournament_monitor, after_enter: [:do_reset_tournament_monitor]` — the 500+ line initialization chain
-
-These are NOT `after_commit` callbacks — they run synchronously inside the state transition, within the same database transaction as the `save!` that triggers the transition. If extracted services are called from these `after_enter` callbacks, and those services call `save!` internally, they create nested saves inside the transition's transaction. This is correct Rails behavior, but it means errors in the service's `save!` will cause the entire state transition to rollback — which may not be the intended behavior if the service's saves are meant to be independent.
-
-Additionally, `reset_tournament` calls `tournament_monitor.destroy` which triggers `TableMonitor#reset_table_monitor` for each associated table monitor. If `reset_tournament` is extracted into a service that calls `tournament_monitor.destroy` outside the transaction context, the cascading resets will fire after the state machine transaction commits — meaning the Tournament state is now `new_tournament` but the TableMonitors are still in their previous state for a brief window.
+**Why it happens:**
+Historical context for deferrals lives in developer memory or old commits, not in the doc. The looser constraint makes "implement what the doc promises" feel justified.
 
 **How to avoid:**
-1. Characterize the exact transaction boundary for each `after_enter` callback before extracting. Use `Tournament.connection.open_transactions` inside the callback to verify the transaction nesting level.
-2. If a service's internal `save!` must be independent (not rolled back if the state transition fails), execute it in a separate transaction: `ActiveRecord::Base.transaction(requires_new: true) { service.call }`.
-3. The `reset_tournament` → `TournamentMonitor#destroy` → `TableMonitor#reset_table_monitor` cascade must be tested end-to-end before any part is extracted.
+For each "documented but not implemented" finding: (1) run `git log --all -S "feature keyword"` to see if it was ever implemented and removed; (2) check PROJECT.md "Out of Scope" and "Key Decisions" sections; (3) if neither has a record, classify as "intent unknown" and require explicit decision before implementing. Never scope implementation on the basis of "the doc says it should exist."
 
 **Warning signs:**
-- Extracted service contains `save!` and is called from an AASM `after_enter` callback
-- Test only verifies the final state of Tournament, not whether TableMonitors were reset
-- No test verifies the rollback behavior when `calculate_and_cache_rankings` raises
+- A UX review finding says "the doc mentions X but there's no controller action for it" and the next phase immediately scopes X as a new feature without a decision record
+- The "Future Project" section of the doc gets promoted to an active v7.0 requirement
+- `git log` shows a feature was removed with an explanatory commit message that was not consulted
 
-**Phase to address:** Characterization phase — map all `after_enter` callbacks and their cascades before any extraction.
+**Phase to address:**
+UX review phase — findings output must include "intent unknown" as a category, not just "missing" vs "present."
 
 ---
 
-### Pitfall 10: `cattr_accessor :current_admin` and `cattr_accessor :allow_change_tables` on TournamentMonitor leak between tests
+### Pitfall 10: Wizard UX Review Without Real Users Produces Cosmetic Fixes, Not Task Fixes
 
 **What goes wrong:**
-`TournamentMonitor` declares `cattr_accessor :current_admin` and `cattr_accessor :allow_change_tables`. These are class-level variables shared across all instances and all tests in a test run. The `before_all_events` callback reads `current_admin` for authorization decisions. If one test sets `TournamentMonitor.current_admin = admin_user` and does not reset it, subsequent tests that call AASM events will use the polluted `current_admin`, potentially bypassing or triggering authorization guards they should not.
+A developer reviewing the wizard happy path will notice: visual inconsistency between v1 and v2 partials, button label mismatches ("Setzliste finalisieren" vs "Rangliste abschließen"), mixed DE/EN labels in v1 ("Tournament -> Update Seeding List" in English inside a German context), opacity-25 on inactive steps without tooltips. These are visible, fixable, and satisfying. What the developer will not notice without user observation: whether the seeding/Setzliste/Teilnehmerliste terminology distinction is understood by a volunteer who uses this 2-3 times per year, whether the irreversible finalize confirmation is read or clicked through, whether the wizard hiding itself after `tournament_started` (v2 behavior) confuses a returning volunteer who expects to see where they were.
 
-This is the same pattern as v1.0's `TableMonitor.tournament` / `TableMonitor.options` leakage, which was flagged as a critical issue in the original PITFALLS.md.
+**Why it happens:**
+Cosmetic problems are immediately visible. Task-level friction requires simulating a user who is not the developer. Without UAT data, developers default to what they can see.
 
 **How to avoid:**
-1. Add to every TournamentMonitor test's teardown: `TournamentMonitor.current_admin = nil; TournamentMonitor.allow_change_tables = nil`.
-2. If a `TournamentMonitorSupportHelper` or test helper is created for v2.1, include this teardown automatically.
-3. Extracted services must never read `TournamentMonitor.current_admin` directly. Pass the admin user as an argument.
-4. Search for all `TournamentMonitor.current_admin = ` call sites before extraction to ensure teardown coverage is complete.
+Write 3 task scenarios before opening any view file: "Volunteer, 8 players, 2 no-shows, first use this season," "Regional officer, day-of, one late withdrawal," "Club officer running their own tournament." Walk each scenario step by step, narrating user uncertainty, not developer knowledge. Document friction as "user question at this point" — not "visual issue." Cosmetic issues go on a separate list and are not prioritized above task friction.
 
 **Warning signs:**
-- Tests pass individually but fail in full suite run
-- AASM event guard authorization produces unexpected results in later tests
-- No `teardown` block in TournamentMonitor test classes that resets class-level accessors
+- UX review issue list is 80% label/styling changes and 0% "user might not know what to do next"
+- The "Step 4 is irreversible" confirmation dialog is noted as "working correctly" without evaluating whether a non-technical user would read it before clicking
+- Review budget is consumed by renaming buttons without evaluating step ordering or warning placement
 
-**Phase to address:** Characterization phase — add teardown resets before writing any tests.
+**Phase to address:**
+UX review phase — write task scenarios before opening any view file; task friction findings must outnumber cosmetic findings before the review is considered complete.
+
+---
+
+### Pitfall 11: Newly Loosened Constraints Create Improvement Cascade Risk
+
+**What goes wrong:**
+The constraint evolution says "feature additions are newly allowed." The wizard has 9 AASM states and approximately 30 controller actions. The UX review will surface real friction — but each fix can pull in a new controller action, new AASM event, new view partial, new i18n keys in DE and EN, and new test coverage. "Small UX fixes" that touch the AASM definition are not small: they risk invalidating the 85 tournament AASM characterization tests from v2.1, affecting `tournament_started_waiting_for_monitors` broadcast behavior, and requiring full wizard regression. The looser constraint is an invitation to scope creep if each fix is not classified by impact before being accepted.
+
+**Why it happens:**
+Each fix looks small in isolation. "Just add an event" is true of the AASM change in isolation, but not true of its downstream implications in tests, broadcasts, and the two existing wizard partials that both need updating.
+
+**How to avoid:**
+Classify each UX finding by impact tier before accepting it into scope: Tier 1 = view/copy change only (no controller, no AASM); Tier 2 = controller action change, no AASM change; Tier 3 = AASM change or new state. Tier 3 findings require an explicit test coverage plan before being scoped. Cap Tier 3 items at 1-2 per milestone. "Fix the label" is Tier 1; "add a confirmation screen between steps 4 and 5" is a new state (Tier 3).
+
+**Warning signs:**
+- A UX fix "just adds a state" to the AASM for a cleaner UI transition
+- A finding says "add a review screen between finalize and mode selection" — this implies a new AASM state
+- Phase scope grows after the UX review to include "while we're in here" changes not in the original review findings
+
+**Phase to address:**
+Cross-cutting concern across all v7.0 phases — each phase plan must require explicit impact tier classification before accepting a fix.
 
 ---
 
 ## Technical Debt Patterns
 
-Shortcuts that seem reasonable but create long-term problems.
-
 | Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
 |----------|-------------------|----------------|-----------------|
-| Keeping `do_reset_tournament_monitor` monolithic | Avoids complex service boundaries | 500+ lines in a single method, untestable in parts | Never — extract incrementally |
-| Testing only with local tournament fixtures (id >= MIN_ID) | No `tournament_local` complexity | Dynamic attribute overrides never exercised | Never — both contexts must be tested |
-| Reusing VCR cassettes across pre/post extraction | No re-recording cost | Silent mismatched responses; data corruption in tests | Never for scraping logic |
-| Calling `save!` at end of extracted service AND in caller | Simple return contract | Double PaperTrail versions; double sync to local servers | Never |
-| Using `DEBUG = Rails.env != "production"` in new files | Matches existing pattern | Constant redefinition warnings; always-on DEBUG in test | Never — use Rails.logger.debug |
-| Skipping `assert_difference "tournament.versions.count"` | Faster test writing | Version count drift undetected until sync failures | Only for non-LocalProtector models |
+| Write EN doc first, translate DE after | Faster first draft | Structural drift, anchor mismatch, re-sync effort in v8.0 | Never for structural changes; acceptable for small prose-only corrections |
+| Reference wizard step numbers (not names) in docs | Concise | Breaks when organizer type changes numbering; requires doc update on any step reorder | Never — use step names |
+| Add in-app doc links in same PR as doc restructure | Single PR | Links point to moved anchors on deploy | Never — sequence as a separate phase |
+| Describe AASM states as user steps | Matches source code | States and user steps are different abstractions; "accreditation_finished" has no user meaning | Never in user-facing docs |
+| Fix cosmetic UX issues before completing task UX review | Quick wins, visible progress | Cosmetic fixes consume budget; task friction remains invisible until post-release | Only after all task-friction findings are documented and prioritized |
+| Implement "documented but missing" features without intent check | Satisfies the doc | May contradict a prior decision to defer or remove the feature | Never without checking `git log` and PROJECT.md first |
 
 ---
 
 ## Integration Gotchas
 
-Common mistakes when connecting to external services or internal subsystems.
-
 | Integration | Common Mistake | Correct Approach |
 |-------------|----------------|------------------|
-| PaperTrail + LocalProtector | Extracting a method that calls `save!` twice, creating 2 versions instead of 1 | Batch all field changes; single `save!` per logical operation |
-| PaperTrail + ApiProtector | Assuming `tournament_monitor.save` succeeded because no exception raised | Always assert `persisted?` after save on ApiProtector models in tests |
-| AASM + `skip_validation_on_save: true` | Assuming `finish_seeding!` validates `data` field | Validators are bypassed on AASM saves; validate explicitly in services |
-| ActionCable + Sidekiq in tests | Missing job enqueue assertions when `use_transactional_tests = true` | `after_commit` never fires in wrapped transactions; choose the right mode |
-| TournamentMonitor + `data` JSON | Calling `deep_merge_data!` in one service, `save!` in another | Always flush `data` in the same service call that merges it |
-| `scrape_single_tournament_public` + VCR | Reusing pre-extraction cassettes after splitting HTTP logic | Re-record cassettes per extracted service; never reuse across extraction boundaries |
-| `tournament_local` + dynamic `define_method` | Using `read_attribute` in services for overridden attributes | Always call the method accessor, never `read_attribute` for the 12 dynamic attributes |
+| ClubCloud sync in wizard | Doc says sync is "Step 2" — it is optional and conditional on organizer type | Describe as conditional: present for regional tournaments, absent for club tournaments |
+| `auto_upload_to_cc` checkbox | Documented as in "Step 6 wizard panel" — actually in the tournament-start form | `grep -rn "auto_upload_to_cc" app/views/` before writing its location |
+| mkdocs anchor links from ERB | Written against current doc structure during a doc restructure | Anchor names must be frozen before in-app links are written; sequence phases accordingly |
+| AASM `skip_validation_on_save: true` | Characterization tests may not catch silent validation bypass during state transitions | Assert tournament validity explicitly after each AASM transition in new tests |
+| Wizard partial (v1 vs v2) | Doc written against one partial that may not be the rendered one | Confirm which partial is canonical in `show.html.erb` before writing any doc |
 
 ---
 
-## Performance Traps
+## UX Pitfalls
 
-Patterns that work at small scale but become problematic.
-
-| Trap | Symptoms | Prevention | When It Breaks |
-|------|----------|------------|----------------|
-| `tournament.games.where("games.id >= #{Game::MIN_ID}")` repeated in services | N+1 on game count queries per service call | Memoize game scope; pass game collection to services | At 50+ games per tournament (KO finals) |
-| `tournament.seedings.where(...).map(&:player)` in `do_reset_tournament_monitor` | Full seedings + players loaded into memory | Use `pluck(:player_id)` if only IDs needed | At 16+ players per tournament |
-| PaperTrail version accumulation during scrape | `tournament.versions.count` grows unboundedly | Scope version queries; prune old versions in maintenance jobs | At 100+ scrape cycles per tournament |
-| Sequential `save!` in `do_reset_tournament_monitor` | 10+ saves per tournament initialization | Batch into fewer saves or use `update_columns` for non-version-critical fields | Visible at > 5 tournament initializations per minute |
+| Pitfall | User Impact | Better Approach |
+|---------|-------------|-----------------|
+| Irreversible "Finalize" step confirmation uses billiards/developer terminology | Volunteer clicks through without reading; cannot undo seeding | Plain-language confirmation: "After this, you cannot add or remove players. Groups will be calculated from this list." |
+| Wizard v2 hides itself after `tournament_started` | Returning volunteer sees no wizard and cannot find where they were | Document explicitly: once started, the wizard is done — use the Tournament Monitor link |
+| Disabled steps (opacity-25) have no tooltip | Volunteer does not know which prior step to complete | Add "Complete step [Name] first" tooltip to disabled buttons |
+| Meldeliste/Setzliste/Teilnehmerliste glossary is collapsed in `<details>` | Volunteer with 2-3x/year usage cannot recall terminology distinction under time pressure | The v2 partial has a glossary box — make it always visible, not collapsed |
+| Mixed DE/EN labels in v1 partial | Volunteer's screen shows English action labels; German doc refers to German labels | Resolve DE/EN label consistency before writing docs that reference UI labels |
 
 ---
 
 ## "Looks Done But Isn't" Checklist
 
-Things that appear complete but are missing critical pieces.
-
-- [ ] **TournamentMonitor characterization tests:** Verify `ApiProtectorTestOverride` is active for `TournamentMonitor` in the test environment before asserting any saves
-- [ ] **Tournament characterization tests:** Baseline `tournament.versions.count` before and after each tested method — verify PaperTrail version count matches expected
-- [ ] **AASM extraction:** Verify `whiny_transitions` setting in both Tournament and TournamentMonitor AASM blocks — if absent, add before writing transition tests
-- [ ] **Dynamic attribute setters:** Ensure at least one characterization test uses a global tournament (id < MIN_ID) to exercise the `tournament_local` delegation path
-- [ ] **Broadcast assertions:** At least one TournamentMonitor test must use `use_transactional_tests = false` to verify `broadcast_status_update` fires correctly
-- [ ] **`cattr_accessor` teardown:** Every TournamentMonitor test class must reset `current_admin` and `allow_change_tables` in teardown
-- [ ] **Scraping extraction:** VCR cassettes re-recorded after extraction, not reused from pre-extraction captures
-- [ ] **Service placement:** All new services in `app/services/tournament/` or `app/services/tournament_monitor/`, not `lib/`
-- [ ] **Data flush discipline:** No extracted service calls `deep_merge_data!` without calling `save!` in the same method (or explicitly documented that the caller is responsible)
+- [ ] **Wizard partial confirmed:** `grep -rn "wizard_steps" app/views/tournaments/show.html.erb` identifies exactly one canonical partial and the condition under which it renders.
+- [ ] **`auto_upload_to_cc` checkbox located:** `grep -rn "auto_upload_to_cc" app/views/` run before writing the doc section that describes this checkbox.
+- [ ] **AASM dead states mapped:** `accreditation_finished` and `closed` traced to determine if any controller action or background job transitions into them — not assumed to be wizard steps.
+- [ ] **Bilingual skeleton committed:** DE and EN section headers match before any prose is written.
+- [ ] **In-app links sequenced after doc freeze:** No in-app doc link written until the doc rewrite phase closes and anchor names are tagged as stable.
+- [ ] **Wizard v1 retirement decision made:** Either v1 partial is retired, or both paths are explicitly documented before the doc rewrite begins.
+- [ ] **Each "documented but missing" finding triaged:** Categorized as "never implemented," "was removed," or "intent unknown" before any implementation is scoped.
+- [ ] **Each UX fix classified by tier:** Tier 1 (view only), Tier 2 (controller change), Tier 3 (AASM change) — Tier 3 items have a test coverage plan before entering scope.
 
 ---
 
 ## Recovery Strategies
 
-When pitfalls occur despite prevention, how to recover.
-
 | Pitfall | Recovery Cost | Recovery Steps |
 |---------|---------------|----------------|
-| Silent ApiProtector rollback discovered late | MEDIUM | Add `persisted?` assertions to all failing tests; patch ApiProtectorTestOverride to cover newly required classes |
-| Extra PaperTrail versions causing double-sync on local servers | HIGH | Write a migration to prune duplicate versions; audit `Version.update_from_carambus_api` for idempotency; add version-count assertions to all Tournament tests |
-| VCR cassettes not re-recorded after extraction | MEDIUM | Re-record cassettes; run with `VCR_RECORD=all` mode; verify request count assertions |
-| AASM silent transition failures from extracted guard | HIGH | Enable `whiny_transitions: true` on all AASM blocks; rerun full suite to find silent no-ops; fix guards to not raise inside guard check |
-| `cattr_accessor` test pollution discovered mid-milestone | LOW | Add teardown resets; rerun full suite in random order to confirm isolation |
-| `data` JSON overwrites from multi-service saves | HIGH | Roll back to single-service pattern; establish data-mutation contract; add explicit lock on `TournamentMonitor` before any mutation sequence |
+| Doc describes wrong wizard partial | MEDIUM | Identify canonical partial, rewrite affected sections, update anchors, re-check in-app links |
+| Step numbers in doc wrong for club users | LOW | Replace all step numbers with step names in a single pass |
+| In-app links point to moved anchors | LOW | Add stable anchor comments to doc, update in-app link targets |
+| Bilingual structural drift | HIGH | Diff H2/H3 between DE/EN, reconcile structure, retranslate affected sections |
+| AASM Tier 3 fix breaks characterization tests | HIGH | Revert AASM change, write new characterization tests first, then re-implement |
+| "Future feature" implemented without intent check | MEDIUM | Check git history and PROJECT.md, document the decision, re-scope if feature was previously deferred |
 
 ---
 
@@ -339,30 +304,29 @@ When pitfalls occur despite prevention, how to recover.
 
 | Pitfall | Prevention Phase | Verification |
 |---------|------------------|--------------|
-| ApiProtector silent rollback (Pitfall 1) | Phase 1: Characterization — TournamentMonitor | Assert `persisted?` after every TournamentMonitor `save` in tests; confirm `ApiProtectorTestOverride` covers class |
-| PaperTrail version count drift (Pitfall 2) | Phase 1: Characterization — Tournament | `assert_difference "tournament.versions.count", N` for each method under test |
-| AASM `skip_validation_on_save` bypasses validator (Pitfall 3) | Phase 1: Characterization — Tournament | Add explicit `assert tournament.valid?` after transition tests; cover `validates_each :data` |
-| `data` JSON mutation atomicity (Pitfall 4) | Phase 2: TournamentMonitor extraction | Service tests verify final `data` state; no service calls `deep_merge_data!` without flushing |
-| Broadcast job test pollution (Pitfall 5) | Phase 1: Characterization — TournamentMonitor | Decide transactional mode; add `assert_enqueued_with` or `Sidekiq::Worker.clear_all` |
-| `lib/` modules not Zeitwerk-managed (Pitfall 6) | Phase 2: TournamentMonitor extraction | All new services in `app/services/`; smoke test for isolated require |
-| Dynamic `define_method` setters (Pitfall 7) | Phase 1: Characterization — Tournament | Tests cover both global (tournament_local) and local (direct attribute) paths |
-| Scraping VCR cassettes (Pitfall 8) | Phase 3: Tournament scraping extraction | Mandatory cassette re-record in extraction checklist; `assert_requested` count assertions |
-| AASM `after_enter` cascade (Pitfall 9) | Phase 1: Characterization — both models | End-to-end test of `reset_tournament` cascade including TableMonitor state |
-| `cattr_accessor` test pollution (Pitfall 10) | Phase 1: Characterization — TournamentMonitor | Teardown resets in all TournamentMonitor test classes; suite runs in random order |
+| Two wizard partials, wrong one documented | UX review phase (pre-condition) | `grep -rn "wizard_steps" app/views/tournaments/show.html.erb` confirms one canonical partial |
+| AASM dead states fabricated as wizard steps | Doc rewrite phase | Each documented step maps to a named controller action; dead states explicitly annotated |
+| Transient waiting state missing from docs | UX review phase | Happy-path start flow observed in browser; transient state behavior documented or confirmed invisible |
+| `auto_upload_to_cc` in wrong doc location | Doc rewrite phase | Checkbox location confirmed by `grep` before writing |
+| Step numbers conditional on organizer type | Doc rewrite phase | Doc output contains no bare "Step N" without organizer qualifier; verified by grep |
+| Sympathetic developer terminology leak | Doc rewrite phase | Review pass removes every sentence not answering "what does user do/see" |
+| Bilingual drift | Doc rewrite phase (skeleton gate) | `diff` of H2/H3 headers between DE/EN passes before prose phase begins |
+| In-app links to moving targets | In-app links phase (after doc freeze) | In-app links phase does not open until doc rewrite phase is closed and anchors are tagged stable |
+| "Documented but missing" intent unknown | UX review phase | Each finding labeled "never implemented / was removed / intent unknown"; no Tier-3 feature scoped without decision record |
+| Cosmetic over task UX fixes | UX review phase | Task-scenario findings written before any view file is opened; task findings outnumber cosmetic findings |
+| Improvement cascade from loosened constraints | Cross-cutting all v7.0 phases | Each fix tier-classified; Tier 3 items have test coverage plan before scoping |
 
 ---
 
 ## Sources
 
-- Direct code reading: `app/models/tournament.rb` (1775 lines, all sections) — HIGH confidence
-- Direct code reading: `app/models/tournament_monitor.rb` (499 lines) — HIGH confidence
-- Direct code reading: `lib/tournament_monitor_support.rb`, `lib/tournament_monitor_state.rb` (600+ combined) — HIGH confidence
-- Direct code reading: `app/models/local_protector.rb`, `app/models/api_protector.rb` — HIGH confidence
-- Direct code reading: `test/test_helper.rb` (ApiProtectorTestOverride implementation and limitation) — HIGH confidence
-- Direct code reading: `test/models/tournament_test.rb`, `test/models/tournament_monitor_ko_test.rb` — HIGH confidence
-- v1.0 PITFALLS.md (lessons from TableMonitor/RegionCc extraction): `cattr_accessor` leakage, `after_commit` timing, VCR cassette drift, AASM silent failures — HIGH confidence (observed in production)
-- `.planning/PROJECT.md` (v1.0 Key Decisions: suppress_broadcast pattern, PORO vs ApplicationService, fixtures-first, ApiProtectorTestOverride rationale) — HIGH confidence
+- Direct inspection: `app/models/tournament.rb` AASM block (lines 271-311) — 9 states, event definitions, missing inbound transitions for `accreditation_finished` and `closed`
+- Direct inspection: `app/views/tournaments/_wizard_steps.html.erb` and `_wizard_steps_v2.html.erb` — two parallel wizard UIs with different step structure and numbering
+- Direct inspection: `app/controllers/tournaments_controller.rb` lines 288-350 — `start` action reads `auto_upload_to_cc` from params; `start_tournament!` transitions to `tournament_started_waiting_for_monitors` not `tournament_started`
+- Direct inspection: `docs/managers/tournament-management.en.md` — current claims about step numbers, `auto_upload_to_cc` location, architecture-first structure
+- Direct inspection: `.planning/PROJECT.md` — v7.0 scope, constraint evolution ("behavior preservation scoped"), out-of-scope decisions
+- Pattern from v6.0: 17 bilingual gaps closed in the previous milestone confirms structural drift is a recurring pattern in this codebase's doc workflow
 
 ---
-*Pitfalls research for: Tournament & TournamentMonitor refactoring (v2.1)*
-*Researched: 2026-04-10*
+*Pitfalls research for: v7.0 Manager Experience — task-first doc rewrite + wizard UX review on Carambus Rails app*
+*Researched: 2026-04-13*

@@ -191,7 +191,7 @@ end
 The CSV file is generated at tournament end:
 
 ```ruby
-# lib/tournament_monitor_support.rb
+# app/services/tournament_monitor/
 def write_finale_csv_for_upload
   game_data = []
   

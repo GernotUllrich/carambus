@@ -439,4 +439,4 @@ Falls Daten aus dem alten System (vor März 2026) migriert werden:
 
 - [Implementierungs-Details](training_database_implementation.md)
 - [Übersetzungs-System](TRANSLATION.md)
-- [API-Dokumentation](../README.md)
+- API-Dokumentation

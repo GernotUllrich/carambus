@@ -17,7 +17,7 @@ This document provides a concise, high-level overview of the most critical files
 
 *   **`TournamentMonitor` (`app/models/tournament_monitor.rb`)**: The active runtime representation of a tournament. This runs the logic that transitions the `TournamentPlan` blueprint into tangible next steps. It handles current rounds, algorithms for distributing players to groups (`distribute_to_group`, `distribute_with_sizes`), determining group ranks (`group_rank`), and KO rankings (`ko_ranking`).
 *   **`TournamentMonitorState` (`lib/tournament_monitor_state.rb`)**: Holds state machine logic to determine phases. (e.g., `finalize_game_result`, `all_table_monitors_finished?`, `finalize_round`, `group_phase_finished?`). It manages exactly *when* the tournament should step forward based on table progress.
-*   **`TournamentMonitorSupport` (`lib/tournament_monitor_support.rb`)**: The operational workhorse. Handles populating available tables (`populate_tables`), placing next matches (`do_placement`), and reacting to game completions (`accumulate_results`, `report_result`, `update_ranking`).
+*   **`TournamentMonitor::` services (`app/services/tournament_monitor/`)**: The operational workhorses, extracted from the former support module during v2.1 refactoring. `TablePopulator` handles populating available tables, `ResultProcessor` reacts to game completions (`accumulate_results`, `report_result`, `update_ranking`), and `PlayerGroupDistributor`/`RankingResolver` handle placement (`do_placement`) logic.
 
 ## 4. Controllers (The UI Connectors)
 
@@ -32,5 +32,5 @@ If you are debugging how a specific mode progresses or fails to place a player c
 
 1.  **Check `TournamentPlan#group_sizes` / `#rounds_count`** to see how the blueprint's `executor_params` is parsed.
 2.  **Trace `TournamentMonitor`** methods like `#rank_from_group_ranks` and `#distribute_to_group` to see how it mathematically resolves player positioning.
-3.  **Inspect `TournamentMonitorSupport#do_placement`** to step through how the next `Game` is actively scheduled based on those newly determined ranks.
+3.  **Inspect `TournamentMonitor::PlayerGroupDistributor#do_placement`** to step through how the next `Game` is actively scheduled based on those newly determined ranks.
 4.  **Inspect `TournamentMonitorState#finalize_round`** to see if the criteria to close the active segment are firing properly.

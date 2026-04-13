@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.1
-milestone_name: Tournament & TournamentMonitor Refactoring
-status: executing
-stopped_at: Phase 15 context gathered
-last_updated: "2026-04-11T08:26:37.607Z"
-last_activity: 2026-04-11
+milestone: v7.0
+milestone_name: Manager Experience
+status: completed
+stopped_at: Completed 35-05-PLAN.md (all Phase 35 plans closed; awaiting orchestrator phase-complete)
+last_updated: "2026-04-13T18:21:41.677Z"
+last_activity: 2026-04-13
 progress:
-  total_phases: 6
-  completed_phases: 6
-  total_plans: 15
-  completed_plans: 15
+  total_phases: 5
+  completed_phases: 3
+  total_plans: 12
+  completed_plans: 12
   percent: 100
 ---
 
@@ -18,59 +18,51 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-04-10)
+See: .planning/PROJECT.md (updated 2026-04-13)
 
-**Core value:** A maintainable, well-tested codebase where every test is trustworthy and every model is appropriately sized.
-**Current focus:** Phase 16 — Controller, Job & Channel Coverage
+**Core value:** Code and docs stay in sync — every documented feature works, every working feature is documented, and a volunteer user should never need to read the architecture to run a tournament.
+**Current focus:** Phase 35 — Printable Quick-Reference Card
 
 ## Current Position
 
-Phase: 16 (Controller, Job & Channel Coverage) — EXECUTING
-Plan: 1 of 3
-Status: Executing Phase 16
-Last activity: 2026-04-11
+Phase: 36
+Plan: Not started
+Status: All 5 plans complete; D-09 gate PASSED (delta 0); human smoke test approved-with-notes; ready for orchestrator `phase complete 35`
+Last activity: 2026-04-13
 
-Progress: [░░░░░░░░░░] 0%
-
-## Performance Metrics
-
-**Velocity:**
-
-- Total plans completed: 0 (v2.1)
-- Average duration: unknown
-- Total execution time: 0
-
-**By Phase:**
-
-| Phase | Plans | Total | Avg/Plan |
-|-------|-------|-------|----------|
-| - | - | - | - |
-
-*Updated after each plan completion*
+Progress: [██████████] 100%
 
 ## Accumulated Context
 
 ### Decisions
 
 Decisions are logged in PROJECT.md Key Decisions table.
+
 Recent decisions affecting current work:
 
-- v2.1 scope: Tournament (API Server, 1775 lines) + TournamentMonitor (Local Server, 499 lines)
-- Phase ordering: TM characterization first (gates all TM extractions), Tournament characterization second, then low → medium → high risk extractions, coverage last
-- TMEX-02 (RankingResolver) depends on TMEX-01 (PlayerGroupDistributor) — extraction order enforced by Phase 13 → 14 boundary
-- All new services go in app/services/tournament/ or app/services/tournament_monitor/ (not lib/)
-- ApiProtectorTestOverride already in test_helper.rb — verify it covers TournamentMonitor context (CHAR-09)
+- Phase 33 must run before Phase 34: two wizard partials coexist; writing docs against the wrong one wastes the milestone
+- Phase 37 must run last: in-app links require stable doc anchors from Phase 34
+- Phase type tagging introduced: cleanup (no behavior change), feature (new behavior), mixed
+- Tier classification gate: Tier 3 UX fixes (AASM changes) require explicit test coverage plan before entering Phase 36 scope
+- Volunteer persona filter: every UX and doc decision judged against "2-3x/year club officer"
+- [Phase 35]: Phase 35 D-09 baseline recorded: 191 mkdocs strict WARNING log lines (matches Phase 34 post-rebase). print.css added with zero-delta.
+- [Phase 35]: Plan 35-02: D-07a atomicity + D-08a bilingual skeleton gates satisfied in single commit 2db7c09e; DE nav label Turnier-Schnellreferenz chosen; mkdocs strict delta 0 (191 WARNING log lines)
+- [Phase 35]: F-14 callout attached to start-form step 7 (not tables/scoreboards) per 33-UX-FINDINGS.md exact scope
+- [Phase 35]: Before=10/During=6/After=5 item distribution; Laptop shutdown item in After section (chronological)
+- [Phase 35]: Plan 35-04: Fragment-less link to scoreboard-guide.md chosen over #keyboard-shortcuts (no such anchor exists bilingually); DE uses #tastenbelegung, EN uses #key-bindings — fragment-less preserves parity and avoids strict-build warning
+- [Phase 35]: Plan 35-05: D-09 gate PASSED (final=191, baseline=191, delta=0); all 4 ROADMAP success criteria PASS; human print-preview smoke test returned approved-with-notes (user observations routed to follow-up phase via VERIFICATION.md `deferred:` array — 3 items: scoreboard screenshots > shortcuts cheat sheet, warm-up/shootout/protocol-editor coverage, 2-page A4 ceiling). Plan 35-05 closes as PASS; orchestrator owns `phase complete 35`.
 
 ### Pending Todos
 
-None yet.
+None.
 
 ### Blockers/Concerns
 
-None yet.
+- No UAT data from actual volunteer club officers — milestone proceeds from informed analysis; real-user validation deferred to post-release
+- Two wizard partials exist (`_wizard_steps.html.erb` and `_wizard_steps_v2.html.erb`); Phase 33 must resolve which is canonical before Phase 34 opens
 
 ## Session Continuity
 
-Last session: 2026-04-10T23:47:56.562Z
-Stopped at: Phase 15 context gathered
-Resume file: .planning/phases/15-high-risk-extractions/15-CONTEXT.md
+Last session: 2026-04-13T18:30:00.000Z
+Stopped at: Completed 35-05-PLAN.md (all Phase 35 plans closed; awaiting orchestrator phase-complete)
+Resume file: None

@@ -670,7 +670,7 @@ async function updateScore(tableId, player, points) {
 
 Für API-Support und Fragen:
 
-- **Dokumentation**: [API.md](API.md)
+- **Dokumentation**: siehe oben (diese Seite)
 - **Issues**: [GitHub Issues](https://github.com/your-username/carambus/issues)
 - **Diskussionen**: [GitHub Discussions](https://github.com/your-username/carambus/discussions)
 

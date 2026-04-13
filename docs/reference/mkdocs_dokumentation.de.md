@@ -261,15 +261,15 @@ Für automatisches Online-Deployment:
 
 ### 🔗 Links und Navigation
 
-- **Relative Links** verwenden: `[Text](datei.md)`
-- **Anker-Links** für Abschnitte: `[Text](datei.md#abschnitt)`
+- **Relative Links** verwenden: `[Text]&#40;datei.md&#41;`
+- **Anker-Links** für Abschnitte: `[Text]&#40;datei.md#abschnitt&#41;`
 - **Externe Links** mit vollständiger URL
 
 ### 🖼️ Bilder und Medien
 
 ```markdown
-![Alt-Text](assets/bild.png){width="100%"}
-![Alt-Text](assets/bild.png){: .center width="50%"}
+![Alt-Text]&#40;assets/bild.png&#41;{width="100%"}
+![Alt-Text]&#40;assets/bild.png&#41;{: .center width="50%"}
 ```
 
 ### ⚠️ Warnungen und Hinweise

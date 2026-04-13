@@ -71,4 +71,29 @@ namespace :mkdocs do
     puts "MkDocs documentation deployed successfully!"
     puts "Available at: /docs/"
   end
-end 
+
+  desc "Validate MkDocs documentation — strict mode, exits non-zero on any warning (CI-ready)"
+  task check: :environment do
+    unless system("which mkdocs > /dev/null 2>&1")
+      puts "Error: mkdocs is not installed. Please install it first:"
+      puts "  pip install mkdocs-material mkdocs-static-i18n pymdown-extensions"
+      exit 1
+    end
+
+    # Build to temp dir to avoid polluting project with site/ artifacts
+    tmp_dir = "/tmp/mkdocs-check-#{Process.pid}"
+    puts "Running mkdocs build --strict (output to #{tmp_dir})..."
+    success = system("mkdocs", "build", "--strict", "--site-dir", tmp_dir)
+
+    # Cleanup temp build artifacts
+    FileUtils.rm_rf(tmp_dir) if Dir.exist?(tmp_dir)
+
+    unless success
+      puts "\nError: mkdocs build failed with warnings or errors."
+      puts "Fix all warnings before proceeding."
+      exit 1
+    end
+
+    puts "\nDocumentation validation passed — zero warnings."
+  end
+end

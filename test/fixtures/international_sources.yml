@@ -1,0 +1,18 @@
+# International sources for testing
+# Note: No explicit IDs — Rails assigns IDs via label hash so FK references work.
+
+umb_source:
+  name: "Union Mondiale de Billard"
+  source_type: "umb"
+  base_url: "https://files.umb-carom.org"
+  active: true
+  created_at: <%= 1.year.ago %>
+  updated_at: <%= 1.day.ago %>
+
+youtube_source:
+  name: "UMB YouTube Channel"
+  source_type: "youtube"
+  base_url: "https://www.youtube.com"
+  active: true
+  created_at: <%= 1.year.ago %>
+  updated_at: <%= 1.day.ago %>
