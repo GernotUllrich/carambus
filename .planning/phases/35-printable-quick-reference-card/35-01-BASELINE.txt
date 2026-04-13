@@ -9,3 +9,7 @@ notes: Baseline recorded BEFORE Plan 35-01 edits. Downstream plans MUST NOT exce
 post_plan_01_warning_log_lines: 191
 post_plan_01_measured_at: 2026-04-13T17:34:00Z
 post_plan_01_delta: 0
+post_plan_02_warning_log_lines: 191
+post_plan_02_measured_at: 2026-04-13T17:40:00Z
+post_plan_02_delta: 0
+plan_02_commit_sha: 2db7c09e
