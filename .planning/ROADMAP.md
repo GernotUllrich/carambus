@@ -42,7 +42,10 @@ Phases 1-32 completed across six milestones. See MILESTONES.md for details.
   2. `tournament_started_waiting_for_monitors` transient state behavior is observed in a browser and documented: does it surface any visible UI, or does it pass invisibly?
   3. Every happy-path action from `new` through `start` is listed in UX-FINDINGS.md with its intent and observed behavior
   4. Every UX finding is classified Tier 1 (view/copy), Tier 2 (controller change), or Tier 3 (AASM change); Tier 3 items are explicitly gated from Phase 36 unless a test coverage plan is attached
-**Plans**: TBD
+**Plans**: 3 plans
+- [ ] 33-01-setup-and-grep-evidence-PLAN.md — Create reproduction recipe, grep evidence for canonical partial (UX-01), and scaffold UX-FINDINGS.md skeleton
+- [ ] 33-02-browser-walkthrough-and-screenshots-PLAN.md — Drive happy-path walkthrough in real browser, capture 6–10 screenshots, observe transient state (UX-02, UX-04)
+- [ ] 33-03-tier-classification-and-finalize-PLAN.md — Assign stable IDs, tier-classify findings, apply gates, record retirement decision, finalize file (UX-03, UX-04, UX-01)
 
 ### Phase 34: Task-First Doc Rewrite
 **Goal**: Both language files of `docs/managers/tournament-management.{de,en}.md` open with a task walkthrough the volunteer can follow end-to-end, with glossary and troubleshooting sections, and the index Quick Start reflects the actual ClubCloud-sourced workflow
@@ -102,7 +105,7 @@ Phases 1-32 completed across six milestones. See MILESTONES.md for details.
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 33. UX Review & Wizard Audit | v7.0 | 0/TBD | Not started | - |
+| 33. UX Review & Wizard Audit | v7.0 | 0/3 | Planned | - |
 | 34. Task-First Doc Rewrite | v7.0 | 0/TBD | Not started | - |
 | 35. Printable Quick-Reference Card | v7.0 | 0/TBD | Not started | - |
 | 36. Small UX Fixes | v7.0 | 0/TBD | Not started | - |
