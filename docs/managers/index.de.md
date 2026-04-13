@@ -12,20 +12,20 @@ Als Turniermanager sind Sie verantwortlich für:
 - ✅ **Ergebniskontrolle**: Ergebnisse prüfen und ggf. korrigieren
 - ✅ **Turnierauswertung**: Ranglisten und Statistiken veröffentlichen
 
-## 🚀 Schnellstart: Ihr erstes Turnier in 10 Schritten
+## 🚀 Schnellstart: Turnier synchronisieren und durchführen in 10 Schritten
 
-1. **Turnier anlegen** → Neue Veranstaltung erstellen
-2. **Grunddaten eingeben** → Name, Datum, Disziplin
-3. **Turniermodus wählen** → Jeder-gegen-Jeden, KO, Schweizer System
-4. **Spieler anmelden** → Teilnehmer hinzufügen
-5. **Spielplan erstellen** → Automatisch generieren lassen
-6. **Tische zuweisen** → Spielplan veröffentlichen
-7. **Turnier starten** → Spieler können beginnen
-8. **Ergebnisse überwachen** → Live-Verfolgung
-9. **Rangliste prüfen** → Automatisch berechnet
-10. **Turnier abschließen** → Siegerehrung
+1. **Turnier aus ClubCloud synchronisieren** → _(Inhalt folgt in Plan 34-02)_
+2. _(Schritt 2 — folgt)_
+3. _(Schritt 3 — folgt)_
+4. _(Schritt 4 — folgt)_
+5. _(Schritt 5 — folgt)_
+6. _(Schritt 6 — folgt)_
+7. _(Schritt 7 — folgt)_
+8. _(Schritt 8 — folgt)_
+9. _(Schritt 9 — folgt)_
+10. _(Schritt 10 — folgt)_
 
-➡️ **[Zur ausführlichen Turnierverwaltungs-Anleitung](tournament-management.md)**
+➡️ **[Zur vollständigen Durchführungs-Anleitung](tournament-management.md#walkthrough)**
 
 ## 📚 Hauptthemen
 

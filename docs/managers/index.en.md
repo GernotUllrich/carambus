@@ -12,20 +12,20 @@ As a tournament manager, you are responsible for:
 - ✅ **Result control**: Check and correct results if necessary
 - ✅ **Tournament evaluation**: Publish rankings and statistics
 
-## 🚀 Quick Start: Your First Tournament in 10 Steps
+## 🚀 Quick Start: Sync and Run a Tournament in 10 Steps
 
-1. **Create tournament** → Create new event
-2. **Enter basic data** → Name, date, discipline
-3. **Choose tournament mode** → Round Robin, Knockout, Swiss System
-4. **Register players** → Add participants
-5. **Create schedule** → Generate automatically
-6. **Assign tables** → Publish schedule
-7. **Start tournament** → Players can begin
-8. **Monitor results** → Live tracking
-9. **Check rankings** → Automatically calculated
-10. **Complete tournament** → Award ceremony
+1. **Sync tournament from ClubCloud** → _(content TBD in Plan 34-03)_
+2. _(step 2 — TBD)_
+3. _(step 3 — TBD)_
+4. _(step 4 — TBD)_
+5. _(step 5 — TBD)_
+6. _(step 6 — TBD)_
+7. _(step 7 — TBD)_
+8. _(step 8 — TBD)_
+9. _(step 9 — TBD)_
+10. _(step 10 — TBD)_
 
-➡️ **[To detailed tournament management guide](tournament-management.md)**
+➡️ **[Full walkthrough](tournament-management.md#walkthrough)**
 
 ## 📚 Main Topics
 

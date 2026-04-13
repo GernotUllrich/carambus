@@ -1,316 +1,156 @@
 # Tournament Management
 
-## Introduction
+This page walks you through running a carom tournament synced from ClubCloud, step by step, from the moment you receive the invitation to the final upload of results.
 
-Carambus aims to automate all game operations at the regional and club level. It supports the most important billiard disciplines in Germany—carom, pool, snooker, and skittles — in individual tournaments and team competitions.
+<a id="scenario"></a>
+## Scenario
 
-> **Automation with Carambus means support for all phases of billiards**, from tournament planning, setting the tournament mode, assigning match pairings according to ranking and seed lists, table allocation, real-time recording of games via scoreboards, to evaluating results and transmitting them to the central associations.
+_(scenario framing — filled in Plan 34-03)_
 
-## Structure
+<a id="walkthrough"></a>
+## Walkthrough
 
-Technically speaking, Carambus is a hierarchy of web services. At the top is a web server, the so-called Carambus API server, which serves only to store external data as up-to-date and efficiently as possible. Consumers of this data are web servers at the regional level and at the event location or in the clubhouses, which manage local game operations.
+_(content TBD in Plan 34-03)_
 
-The end devices of these web servers are web browsers used by sports officials to plan and manage tournaments, as well as scoreboards with touch functionality at the event venue for game control by the players.
+<a id="step-1-invitation"></a>
+### Step 1: Receive the NBV invitation
 
-In training mode, the scoreboards are used to record game results. Player lists from the club's Carambus database are used to set up games. Games are recorded on the local web server, enabling player performance to be evaluated.
+_(content TBD in Plan 34-03)_
 
-As everything is based on standardized HTML protocols, Carambus is largely hardware-independent.
+<a id="step-2-load-clubcloud"></a>
+### Step 2: Load tournament from ClubCloud
 
-## Carambus API
+_(content TBD in Plan 34-03)_
 
-The data stored in the Carambus API server is synchronised with the local web server. The data area can be restricted to the region and the national tournaments of the DBU and their participants.
+<a id="step-3-seeding-list"></a>
+### Step 3: Seeding list — invitation vs ClubCloud
 
-The following data is supplied centrally by the API server:
+_(content TBD in Plan 34-03)_
 
-### Regional associations
-- ClubCloud-ID, name, short name, logo, e-mail, address, country
+<a id="step-4-participants"></a>
+### Step 4: Review and add participants
 
-### Clubs
-- ClubCloud-ID, region, name, short name, address, home page, e-mail, logo
+_(content TBD in Plan 34-03)_
 
-### Venues
-- Club[1], region, name, address
+<a id="step-5-finish-seeding"></a>
+### Step 5: Close participant list
 
-### Table equipment
-- Table types, number, size, names
+_(content TBD in Plan 34-03)_
 
-### Player data
-- ClubCloud-ID, club, surname, first name, title
+<a id="step-6-mode-selection"></a>
+### Step 6: Select tournament mode
 
-### Seasonal club affiliations
-- Player, season, club, club guests
+_(content TBD in Plan 34-03)_
 
-### Tournaments
-- ClubCloud-ID, title, discipline, division, mode, entry restriction, date, accreditation deadline, venue, season, region, closing date, entry limit, points target, organizer (club or region)
+<a id="step-7-start-form"></a>
+### Step 7: Fill in start parameters
 
-### Tournament mode plans
-- Name, rule system, number of players, number of tables, description, number of groups, formal procedure
+_(content TBD in Plan 34-03)_
 
-### Tournament/player seeding lists
-- Players, list position, tournament, specifications for handicap tournaments if applicable
+<a id="step-8-tables"></a>
+### Step 8: Assign tables
 
-### Games
-- Tournament, game name, PlayerA, PlayerB
+_(content TBD in Plan 34-03)_
 
-### Game results
-- Game, balls, innings, highest series, average
+<a id="step-9-start"></a>
+### Step 9: Start the tournament
 
-### Player rankings
-- Player, discipline, best individual average, best tournament average
+_(content TBD in Plan 34-03)_
 
-### Ligen
+<a id="step-10-warmup"></a>
+### Step 10: Warmup phase
 
-### Mannschaftskader
+_(content TBD in Plan 34-03)_
 
-### Spieltage
+<a id="step-11-release-match"></a>
+### Step 11: Release each match
 
-### Spieltagbegegnungen
+_(content TBD in Plan 34-03)_
 
-> **Note:** From 2022, the BillardArea has been replaced by the ClubCloud. Unlike the BA, there are no longer unique identifiers nationwide. The ClubCloud-IDs are only unique within the regional ClubCloud instances.
+<a id="step-12-monitor"></a>
+### Step 12: Monitor results
 
-## Account
+_(content TBD in Plan 34-03)_
 
-For Carambus tournament management, an account with admin rights on the Carambus Location Server is required. This can be set up by the club chairman or [Carambus developer](mailto:gernot.ullrich@gmx.de).
+<a id="step-13-finalize"></a>
+### Step 13: Finalize the tournament
 
-The URL can be derived from the scoreboard URLs, e.g., in Wedel http://192.168.2.143:3131.
+_(content TBD in Plan 34-03)_
 
-## Synchronization with ClubCloud
+<a id="step-14-upload"></a>
+### Step 14: Post-tournament upload to ClubCloud
 
-Tournaments can best be found via `Regional Associations -> Search -> View`. There, the currently known tournaments of the running season are listed. The tournament can be selected via the title.
+_(content TBD in Plan 34-03)_
 
-Btw - with the **[AI Assistent](../players/ai-search.md)** (available from October 2025), you could also simply search for “Tournaments in the NBV in the 2025/2026 season no older than 2 weeks.”
+<a id="glossary"></a>
+## Glossary
 
-If a tournament is not yet listed, this can have several reasons:
+_(content TBD in Plan 34-03)_
 
-* The tournament is not yet entered in the ClubCloud
-* The central Carambus API server does not yet know the tournament
-* The tournament has not yet been transferred to the local Location Server
+<a id="glossary-karambol"></a>
+### Karambol terms
 
-### The tournament is not yet entered in the ClubCloud
-It is the task of the state sports supervisor to enter the tournaments with the participant lists in the ClubCloud.
+- **Straight Rail (Freie Partie)** — _(definition TBD)_
+- **Balkline / Cadre (35/2, 47/1, 47/2, 71/2)** — _(definition TBD)_
+- **Three-Cushion (Dreiband)** — _(definition TBD)_
+- **One-Cushion (Einband)** — _(definition TBD)_
+- **Inning (Aufnahme)** — _(definition TBD)_
+- **Target balls / innings_goal (Bälle-Ziel)** — _(definition TBD)_
+- **High run / HS (Höchstserie)** — _(definition TBD)_
+- **General average / GD (Generaldurchschnitt)** — _(definition TBD)_
+- **Playing round (Spielrunde)** — _(definition TBD)_
+- **Table warmup (Tisch-Warmup)** — _(definition TBD)_
 
-### The central Carambus API server does not yet know the tournament
-The API server is currently maintained by the Carambus developer (mailto: gernot.ullrich@gmx.de). Tournament data from regions using Carambus is automatically updated daily at 20:00 from the associated regional ClubCloud server.
+<a id="glossary-wizard"></a>
+### Wizard terms
 
-Local servers always request updates from the ClubCloud via the central API server (api.carambus.de). This server retrieves data from the various ClubCloud instances. With the specific updates, all updates that were made on the API server in the meantime are also always transmitted.
+- **Seeding list (Setzliste)** — _(definition TBD)_
+- **Tournament mode (Turniermodus)** — _(definition TBD)_
+- **Tournament-plan codes (T04, T05, Default5)** — _(definition TBD)_
+- **Scoreboard** — _(definition TBD)_
 
-### The tournament has not yet been transferred to the local Location Server
-A locally non-existent tournament that exists on the API server is automatically loaded with every update request to the API server, because with every request to the API server, the entire database is synchronized.
+<a id="glossary-system"></a>
+### System terms
 
-Such an explicit request can be, for example, updating the club data:
-`Clubs -> Search -> View -> "Data synchronization with ClubCloud with all details"`
+- **ClubCloud** — _(definition TBD)_
+- **AASM status (AASM-Status)** — _(definition TBD)_
+- **DBU number (DBU-Nummer)** — _(definition TBD)_
+- **Ranking (Rangliste)** — _(definition TBD)_
 
-### Updating Regional Association, Club, Player, Tournament, Seeding Lists
-When explicitly retrieving data, the requested data is compared with the Billard Area on the API server.
+<a id="troubleshooting"></a>
+## Troubleshooting
 
-The following explicit data requests are implemented:
+_(content TBD in Plan 34-03)_
 
-* `Club -> Data synchronization with ClubCloud`
-* `Club -> Data synchronization with ClubCloud with all details`
-* `Regional Association -> Data synchronization with ClubCloud incl. Clubs`
-* `Regional Association -> Data synchronization with ClubCloud incl. Clubs and Players`
-* `Tournament -> Data synchronization with ClubCloud`
+<a id="ts-invitation-upload"></a>
+### Invitation upload failed
 
-## Regional Tournament Management
+**Problem:** _(TBD)_
+**Cause:** _(TBD)_
+**Fix:** _(TBD)_
 
-Tournament management is carried out in the following steps:
+<a id="ts-player-not-in-cc"></a>
+### Player not in ClubCloud
 
-### Updating tournament data
-Before the tournament starts, care should be taken to ensure that the tournament is updated with the seeding lists in the Billard-Area. The synchronization with the local Carambus tournament manager can then be initiated.
+**Problem:** _(TBD)_
+**Cause:** _(TBD)_
+**Fix:** _(TBD)_
 
-### Determining the seeding list
-With the synchronization, the list of participants is taken over. The seeding list is derived from the players' ranking list positions. The game leader can add additional players to fill in dropouts and make minor changes if necessary.
+<a id="ts-wrong-mode"></a>
+### Wrong mode selected
 
-### Selecting the tournament mode
-Once the ordered player list and thus also the number of players is established, the tournament mode is selected. In general, there are several possibilities (group games and main round, possibly with play-offs for places or everyone against everyone, etc.)
+**Problem:** _(TBD)_
+**Cause:** _(TBD)_
+**Fix:** _(TBD)_
 
-## Local Game Management
+<a id="ts-already-started"></a>
+### Tournament already started
 
-Once the tournament mode is established, the tournament can begin.
+**Problem:** _(TBD)_
+**Cause:** _(TBD)_
+**Fix:** _(TBD)_
 
-### Determining the tables
-From the set of tables available at the venue, tables 1-n are assigned from the tournament mode's game plan.
+<a id="architecture"></a>
+## More on the architecture
 
-### Setting some parameters
-Before the start, the following parameters can optionally be updated according to the tournament rules:
-
-* Inning limit
-* Ball target
-* Warm-up time on new table
-* Warm-up time when returning to a table
-* Thinking time before a shot
-
-### Start and course of the game
-From now on, everything runs automatically. The game pairings appear on the scoreboards with indication of the group numbers and game names (e.g., Group 2 Game 2-4, i.e., in group 2 the 2nd player against the 4th player).
-
-First, the invitation to warm up appears on the scoreboards with corresponding timers, e.g., 5 or 3 minutes.
-
-Next, the invitation to break appears. As a result, players can be swapped (White breaks, Yellow breaks after).
-
-Once the breaking player is established, the game starts.
-
-The following inputs are possible on the scoreboards:
-
-* **`+1`** - Increase the ball count of the current inning by one. (On touch displays, this can also be triggered by clicking on the respective number)
-* **`-1`** - Decrease the ball count of the current inning by one
-* **`nnn`** - Set the ball count of the current inning. Show the number field 0-9. Any positive number can be entered. Complete with Enter or cancel with C
-* **`DEL`** - With an Undo button, you can go back to any inning. After correction with +1, -1 or nnn input, you can browse to the current inning through multiple player changes
-* **`^v`** - Player change: The current ball count of the completed inning is saved and added to the sum. The other now active player is marked on the scoreboard. (On touch displays, this can also be triggered by clicking on the ball count of the respective other player)
-
-The referee can start **`>`**, end **`o`** or pause **`||`** the timer for thinking time
-
-## Operating Concepts
-
-Carambus supports two main categories of operation:
-
-### 1. Management Operation (Laptop/PC)
-
-Operation via laptop or PC with collapsible menus on the left side is the main interface for:
-
-* **Tournament Directors for Tournament Management** - Planning and execution of tournaments, management of game schedules, table assignments and tournament status
-* **Users for Research** - Access to tournament and league data, player statistics, club and regional association information
-* **Administrators** - System configuration and user management
-
-These menus can be expanded and collapsed as needed to ensure maximum clarity.
-
-### 2. Player Operation (Touch-Scoreboard)
-
-Players control the game flow directly on the scoreboard with touch functionality:
-
-* **Game Logging** - Input of points and innings via touch input
-* **Player Change** - By tapping the ball count of the other player
-* **Timer Control** - Start, stop and timeout management
-* **Direct Access** - Players optionally have access to billiard data by expanding the menu (not the standard case, but a feature for specialists)
-
-Touch operation is intuitive and enables quick, uncomplicated game management without additional hardware.
-
-### Future Project: Simplified Referee Operation
-
-Future developments include a greatly simplified operation by referees and scorers, which will be specifically tailored to the requirements of official competitions.
-
-### Timeout Handling
-
-During tournament planning or even at tournament start, the length of thinking time (timeout) and the number of possible timeout extensions (timeouts) can be specified. On the scoreboard, the timeout counter can be decreased by one during the running game. The remaining thinking time is then extended once more by the specified timeout.
-
-The timer functions (Stop, Halt, Play, Timeout) are accessible via touch operation on the scoreboard.
-
-### The end of the game
-is automatically recognized based on the inputs and the inning or ball count.
-
-A final protocol is displayed on the board. The players confirm the result with an input on the scoreboard.
-
-### Switch to next round
-As soon as all games of a round are finished, the next round starts automatically. The corresponding new pairings are displayed on the scoreboards.
-
-### End of tournament
-As soon as all games of the tournament are completed, the results are automatically transferred to ClubCloud (if enabled). Additionally, a final protocol is sent to the tournament director with a CSV file as backup, which can alternatively be used manually for uploading the results to the Billard-Area.
-
-## Training Mode
-At the scoreboards, the respective tables can be selected. Depending on the tournament status, free tables can be recognized and used for free training games.
-
-Ad-hoc games can be initialized via a parameter field. Input options are:
-
-* **Discipline** (according to the respective table properties, for both, can be specified separately for the individual player)
-* **Target ball count** (for both, can be specified separately for the individual player)
-* **Inning limit**
-* **Timeout** (optional)
-* **Timeouts** (optional number of timeout extensions)
-* **Players** (selection from club players or guests)
-* **Individual discipline** or target ball count
-
-For a future extension, statistics on training games are planned (per player and per game pairing)
-
-## Tournament Management - Detailed Workflow
-
-A tournament is generally managed in the following phases:
-
-* Synchronization with ClubCloud
-* Verification of relevant data
-* Sorting of seeding list according to rankings
-* Selection of tournament mode
-* Local adjustment of tournament parameters
-* Check of local scoreboards
-* Start of tournament
-* Comparison of game results with game protocols
-* **Automatic upload** of each game to ClubCloud (default, recommended)
-* Email with game results (csv) to tournament leader as backup
-* Alternatively: Manual upload of game results (csv) to ClubCloud
-* Synchronization with ClubCloud for final check
-
-### Verification of relevant data
-
-For the course of a tournament, the following data is important:
-
-* Organizer (Regional Association or Club)
-* Discipline (for table assignments)
-* Date
-* Season
-* Venue (for table assignments)
-
-This data is usually pulled automatically from the ClubCloud. A special case is the venue. Unfortunately, free text input is possible for the venue on the ClubCloud. However, for table assignment in Carambus, the selection of a formally defined venue with table configuration is necessary (table name, table type). Furthermore, it must be specified whether it is a handicap tournament.
-
-This data must be supplemented via `Tournament -> Edit -> Update Tournament`
-
-### Sorting of seeding list according to rankings
-
-With the BA synchronization, the participant list (seeding list) is transferred.
-
-For handicap tournaments, the handicaps can be entered: `Tournament -> Update Seeding List`
-
-This list can now be sorted locally according to player rankings: `Tournament -> Sort by Ranking or Handicap`
-
-The order can now still be changed by swapping places with the up/down arrows.
-
-The order is then finally completed with `Tournament -> Finalize Ranking List (not reversible)`
-
-### Selection of tournament mode
-Now jump to tournament mode selection: `Tournament -> Set Tournament Mode`
-
-In general, several options are available. The tournament leader can select a mode - usually already specified by the state sports supervisor for tournaments of regional associations.
-
-Selection by clicking e.g., `Continue with T07`
-
-### Local adjustment of tournament parameters
-
-The following parameters can now still be adjusted:
-
-* Assignment of tables (mapping internal table name to external names)
-* Ball target (possibly already specified for tournament)
-* Inning limit (possibly already specified for tournament)
-* Timeout in sec (0 or no input if no timeouts)
-* Timeouts (n timeout extensions maximum)
-* Checkbox "Tournament manager checks results before acceptance"
-* Warm-up time
-* shortened warm-up time (when switching to an already played table)
-
-**Regarding the checkbox:** Normally, players can advance the game status, e.g., after `Game ended - OK?`. If a check by tournament manager is required, this is prevented and the tournament leader can release the table after comparison with the game protocol.
-
-The new game pairings appear automatically on the scoreboards.
-
-### Automatic Upload to ClubCloud (recommended)
-
-**Standard procedure since version 2024:**
-- Each completed game is **immediately automatically** transferred to ClubCloud
-- The transfer happens in the background during the tournament
-- **Advantages:** Real-time updates, no manual work, automatic error handling
-- **Activation:** Checkbox "Automatically upload results to ClubCloud" in Step 6 of the wizard (default: enabled)
-
-### Email with game results (csv) to tournament leader
-
-After the tournament is completed, the tournament leader automatically receives an email with a CSV file containing the results in the format required for uploading to the ClubCloud. This file is also saved on the local server (`{carambus}/tmp/result-{ba_id}.csv`)
-
-**Function of the CSV file:**
-- **Backup:** Safety copy of all results
-- **Control:** Manual verification of results
-- **Offline tournaments:** Manual upload when internet connection is unavailable
-
-### Manual upload of game results (csv) to ClubCloud (Alternative)
-The tournament leader can upload the CSV file directly to the ClubCloud (he knows how to do it ;-)
-
-**When to upload manually?**
-- For offline tournaments without internet connection
-- As backup when automatic upload was disabled
-- In case of problems with automatic upload
-
-### Synchronization with ClubCloud for final check
-As a final step, another synchronization with the ClubCloud can take place. The data downloaded with this is the basis for later calculated rankings. 
+_(Architecture overview TBD — see [developer docs](../developers/index.md))_
