@@ -14,7 +14,11 @@ The walkthrough MUST run against a `context: LOCAL` scenario. `carambus_api` run
 
 GSD planning artifacts (this file, screenshots, PLAN.md) still live in `carambus_api/.planning/` — only the runtime dev server runs in `carambus_bcw`. Source code is identical (same git commit), so all line-number references to `tournaments_controller.rb` / `tournament.rb` / `show.html.erb` apply unchanged.
 
-**Why a global (synced) tournament, not a local one:** The realistic volunteer workflow operates on tournaments that were SYNCED from the central API server (`id < 50_000_000`). A central carambus.net API publishes e.g. an NBV Bezirksmeisterschaft; a LOCAL-scenario club like BCW syncs it down and runs it. `LocalProtector` has carve-outs that allow the operations the wizard triggers (state transitions, scoring, monitoring) on these synced records even though it blocks writes to identity fields (title, dates, organizer). Using a purely local tournament (`id >= 50_000_000`) would bypass exactly the code paths the volunteer actually exercises. This is the "normal case".
+**Why a global (synced) CAROM tournament that is upcoming and not-yet-played:** Three constraints compound:
+
+1. **Global/synced (`id < 50_000_000`):** The realistic volunteer workflow operates on tournaments synced from the central API server. A central carambus.net publishes e.g. an NBV Bezirksmeisterschaft; a LOCAL club like BCW syncs it and runs it. `LocalProtector` has carve-outs that allow wizard-triggered operations (state transitions, scoring, monitoring) on these synced records while still blocking writes to identity fields (title, dates, organizer). A purely local tournament (`id >= MIN_ID`) would bypass exactly the code paths the volunteer actually exercises.
+2. **Carom (Karambol) discipline — NOT Pool / Snooker:** Only carom disciplines have pre-built `TournamentPlan`s in the system (excepting single-elimination KO formats). The wizard's "Setup" step reads from these pre-built plans; a Pool or Snooker tournament forces a different (and less representative) code path. Observing the canonical wizard behavior requires a tournament whose discipline is one of `Freie Partie`, `Cadre 35/2`, `Cadre 47/1`, `Cadre 47/2`, `Cadre 71/2`, `Dreiband`, `Einband`, etc. — never Pool, never Snooker.
+3. **Upcoming and not yet played:** The tournament's `date` must be in the near future (so the wizard shows the full "pre-play" happy path) and its state must still be `new_tournament` (so none of the wizard steps have been completed yet). A tournament that already ran would skip straight past the steps Phase 33 needs to observe.
 
 ```bash
 # Start dev server FROM carambus_bcw (not carambus_api)
@@ -22,31 +26,40 @@ cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_bcw
 foreman start -f Procfile.dev
 # Or: bin/rails server
 
-# In another shell, list synced (global) tournaments available in the BCW dev DB
+# In another shell, list upcoming carom tournaments still in new_tournament state
 cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_bcw
-psql carambus_bcw_development -c "SELECT id, title, state, region_id FROM tournaments WHERE id < 50000000 AND state = 'new_tournament' ORDER BY id DESC LIMIT 15;"
+psql carambus_bcw_development -c "
+  SELECT t.id, t.title, t.state, t.date::date, d.name AS discipline
+  FROM tournaments t
+  JOIN disciplines d ON d.id = t.discipline_id
+  WHERE t.state = 'new_tournament'
+    AND t.id < 50000000
+    AND t.date >= CURRENT_DATE - INTERVAL '7 days'
+    AND d.name NOT ILIKE '%pool%'
+    AND d.name NOT ILIKE '%snooker%'
+  ORDER BY t.date ASC
+  LIMIT 15;"
 
-# Chosen tournament for this walkthrough (queried 2026-04-13, BCW = Region 1 / NBV):
-# TOURNAMENT_ID=17775
-# TITLE="TEST Pinneberg"           # explicit sandbox tournament, disposable
+# Chosen tournament for this walkthrough (queried 2026-04-13):
+# TOURNAMENT_ID=17403
+# TITLE="NDM Freie Partie Klasse 1-3"
+# DISCIPLINE="Freie Partie klein"  (carom — has pre-built TournamentPlan code path)
+# DATE=2026-04-19  (upcoming, 6 days out)
 # AASM_STATE=new_tournament
-# region_id=1 (NBV), organizer=Region, id < 50_000_000 (GLOBAL / synced)
-# URL: http://localhost:3000/tournaments/17775
-#
-# Alternative realistic candidates (pick one instead if "TEST Pinneberg" is unsuitable):
-#   17704/17705/17706 — Bezirksmeisterschaft 14/1 / 8-Ball / 10-Ball
-#   18165/18166       — NDJM Pool 14/1 / Pool 8-Ball U14-U18
-#   18301/18302       — NDJM Pool 8-Ball U14-U18 M/W
+# id < 50_000_000 (GLOBAL / synced), organizer=Region (NBV)
+# URL: http://localhost:3000/tournaments/17403
 
 # If the tournament needs participants for the finish_seeding / start steps, inspect first:
 # cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_bcw
-# bin/rails runner 't = Tournament.find(17775); puts "players=#{t.tournament_players.count}, monitors=#{t.table_monitors.count rescue "n/a"}"'
+# bin/rails runner 't = Tournament.find(17403); puts "players=#{t.tournament_players.count}, plan=#{t.tournament_plan_id.inspect}, modus=#{t.modus}"'
+# Note: t.tournament_plan_id starts as NULL — the wizard ASSIGNS it when the director
+# walks through the setup step. Observing this assignment is one of the audit targets.
 ```
 
 **Preconditions before starting:**
 - You are on the `carambus_bcw` checkout, `ApplicationRecord.local_server?` returns `true`
 - Logged in as a user with the `tournament_director` role (`User.first.roles.map(&:name)` to check)
-- The tournament you walk through is a GLOBAL/synced record (`id < 50_000_000`) — not a locally-invented one — so that the audit covers the real volunteer workflow
+- The tournament is GLOBAL/synced (`id < 50_000_000`), carom discipline, upcoming date, still `new_tournament`
 - `has_clubcloud_results?` returns `false` for the tournament (otherwise the wizard is hidden)
 - The wizard only renders when: `tournament_director?(current_user)` is true AND `local_server?` is true AND `!@tournament.has_clubcloud_results?`
 - **Expect LocalProtector carve-outs:** some fields (title, date, organizer) will be read-only because `LocalProtector` blocks identity-field writes on global records. That is correct behavior and itself a finding to document if the UI doesn't communicate it clearly.
