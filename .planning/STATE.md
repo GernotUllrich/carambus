@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v6.0
-milestone_name: Documentation Quality
-status: complete
-stopped_at: Milestone v6.0 complete
-last_updated: "2026-04-13T02:50:00.000Z"
+milestone: v7.0
+milestone_name: Manager Experience
+status: defining_requirements
+stopped_at: Defining v7.0 requirements
+last_updated: "2026-04-13T03:00:00.000Z"
 last_activity: 2026-04-13
 progress:
-  total_phases: 5
-  completed_phases: 5
-  total_plans: 12
-  completed_plans: 12
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -20,37 +20,17 @@ progress:
 
 See: .planning/PROJECT.md (updated 2026-04-13)
 
-**Core value:** A maintainable, well-tested codebase where every test is trustworthy and every model is appropriately sized.
-**Current focus:** Milestone v6.0 complete — planning next milestone
+**Core value:** Code and docs stay in sync — every documented feature works, every working feature is documented, and a volunteer user should never need to read the architecture to run a tournament.
+**Current focus:** v7.0 Manager Experience — defining requirements
 
 ## Current Position
 
-Phase: All complete (28-32)
-Plan: All complete (12/12)
-Status: Milestone v6.0 shipped
-Last activity: 2026-04-13
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-04-13 — Milestone v7.0 started
 
-Progress: [██████████] 100%
-
-## Performance Metrics
-
-**Velocity:**
-
-- Total plans completed: 12 (this milestone)
-- Average duration: —
-- Total execution time: —
-
-**By Phase:**
-
-| Phase | Plans | Total | Avg/Plan |
-|-------|-------|-------|----------|
-| 28 | 2 | - | - |
-| 29 | 2 | - | - |
-| 30 | 2 | - | - |
-| 31 | 3 | - | - |
-| 32 | 3 | - | - |
-
-*Updated after each plan completion*
+Progress: [░░░░░░░░░░] 0%
 
 ## Accumulated Context
 
@@ -58,16 +38,24 @@ Progress: [██████████] 100%
 
 Decisions are logged in PROJECT.md Key Decisions table.
 
+Recent decisions affecting current work:
+
+- Core Value broadened from cleanup-framed to code-docs sync
+- Behavior preservation narrowed: unchanged flows must work identically, new features may extend behavior
+- Phase type tagging (cleanup / feature / mixed) introduced for future phases
+- Volunteer club officer persona chosen as UX filter: 2-3x/year usage means each session is re-onboarding
+- Docs-first: task-first rewrite of manager docs drives the milestone; UX fixes follow the doc gaps
+
 ### Pending Todos
 
 None.
 
 ### Blockers/Concerns
 
-None — all v6.0 blockers resolved.
+- No UAT data from actual volunteer club officers yet — milestone may need a real-user walkthrough early to validate assumptions
 
 ## Session Continuity
 
 Last session: 2026-04-13
-Stopped at: Milestone v6.0 complete
-Resume file: .planning/MILESTONES.md
+Stopped at: Defining v7.0 requirements
+Resume file: .planning/PROJECT.md

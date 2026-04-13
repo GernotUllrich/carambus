@@ -1,12 +1,24 @@
-# Carambus API — Model Refactoring & Test Coverage
+# Carambus API — Quality & Manager Experience
 
 ## What This Is
 
-A focused improvement effort on the Carambus API codebase. v1.0–v5.0 broke down all large models/services (37 extracted services), audited tests, verified broadcast isolation, refactored scrapers, and built video cross-referencing. v6.0 ensures the mkdocs-based documentation accurately reflects the post-refactoring codebase.
+A Rails tournament management system for carom billiards that Sports Managers (volunteer club officers) use to run regional tournaments. v1.0–v5.0 rebuilt the model/service layer for maintainability; v6.0 made the documentation match the refactored codebase. v7.0 onward focuses on making the product usable for the volunteer club officer persona through task-first docs and a UX that respects their 2-3x/year usage pattern.
 
 ## Core Value
 
-A maintainable, well-tested codebase where every test is trustworthy and every model is appropriately sized.
+Code and docs stay in sync — every documented feature works, every working feature is documented, and a volunteer user should never need to read the architecture to run a tournament.
+
+## Current Milestone: v7.0 Manager Experience
+
+**Goal:** A volunteer club officer who runs 2-3 tournaments per year can manage one end-to-end using Carambus, with task-first documentation and a happy-path UX that doesn't trip them up each time they come back.
+
+**Target features:**
+- Task-first rewrite of `docs/managers/tournament-management.{de,en}.md` — "Running your first tournament" replaces architecture-heavy opening
+- Happy-path wizard coverage only: new_tournament → seeding → mode → start → finished
+- Printable one-page quick reference card (Before / During / After checklist)
+- UX review of the TournamentsController wizard along the happy path
+- Small documented-but-missing feature implementations as surfaced during the review
+- In-app links from wizard steps to relevant mkdocs pages
 
 ## Completed: v6.0 Documentation Quality (shipped 2026-04-13)
 
@@ -67,10 +79,16 @@ Audited, repaired, and documented the entire mkdocs site: zero broken links, zer
 
 ### Active
 
-(No active requirements — next milestone not yet defined)
+- [ ] Task-first rewrite of `docs/managers/tournament-management.{de,en}.md` — volunteer-friendly walkthrough, architecture moved to appendix or developer docs
+- [ ] Printable one-page quick reference card (Before / During / After checklist) in `docs/managers/`
+- [ ] UX review of the TournamentsController wizard happy path — identify friction points and documented-but-missing features
+- [ ] Fix small UX issues and implement documented-but-missing features along the happy path
+- [ ] Add in-app links from wizard steps to the corresponding docs sections
 
 ### Out of Scope
 
+- Full TournamentsController redesign — targeted fixes only this milestone
+- Edge-case wizard branches (reset, manual overrides, partial retries) — happy path first
 - New test coverage for remaining untested models, controllers, services — separate milestone
 - Architecture or stack changes — not in scope for current project
 
@@ -95,9 +113,10 @@ Audited, repaired, and documented the entire mkdocs site: zero broken links, zer
 
 ## Constraints
 
-- **Behavior preservation**: All existing functionality must continue to work identically
+- **Behavior preservation (scoped)**: Unchanged flows must continue to work identically. New features may extend behavior. Phases marked `cleanup` enforce absolute preservation; phases marked `feature` or `mixed` are allowed to add behavior that didn't exist before.
 - **Incremental**: Each change must be independently deployable
-- **Test-first**: Tests before any refactoring
+- **Test-first**: Tests before any refactoring or feature addition
+- **Volunteer persona filter**: UX and doc decisions are judged against "would a volunteer club officer who uses this 2-3x/year understand this?"
 
 ## Key Decisions
 
@@ -159,4 +178,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-13 after v6.0 milestone complete*
+*Last updated: 2026-04-13 after starting v7.0 Manager Experience milestone — Core Value broadened to code-docs sync, behavior preservation scoped to unchanged flows, feature work allowed*
