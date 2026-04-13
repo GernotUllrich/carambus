@@ -46,7 +46,7 @@ While shell scripts are ideal for automated deployments, **Rake tasks** offer de
 | - | ~~`mode:backup_local_changes`~~ ❌ OBSOLETE | Validate filter for id > 50000000 |
 | - | ~~`mode:check_version_safety[dump_file]`~~ ❌ OBSOLETE | Check version sequences |
 
-> ⚠️ **Note:** The `mode:*` tasks are **obsolete** and have been replaced by the Scenario Management System. See [lib/tasks/obsolete/README.md](../../lib/tasks/obsolete/README.md).
+> ⚠️ **Note:** The `mode:*` tasks are **obsolete** and have been replaced by the Scenario Management System. See `lib/tasks/obsolete/README.md` in the project repository.
 
 **Debugging Tip:**  
 ```ruby
@@ -83,7 +83,7 @@ puts "After Bump: #{TableLocal.where('id < 50000000').count}"
 | - | ~~`mode:prepare_db_dump`~~ ❌ OBSOLETE | Validate pg_dump commands |
 | - | ~~`mode:deploy_templates`~~ ❌ OBSOLETE | Debug SCP/SSH transfers |
 
-> ⚠️ **Note:** All `mode:*` tasks are **obsolete** and replaced by the Scenario Management System. For config management use `scenario:*` tasks. See [lib/tasks/obsolete/README.md](../../lib/tasks/obsolete/README.md).
+> ⚠️ **Note:** All `mode:*` tasks are **obsolete** and replaced by the Scenario Management System. For config management use `scenario:*` tasks. See `lib/tasks/obsolete/README.md` in the project repository.
 
 ---
 
@@ -309,7 +309,7 @@ end
 |------|--------|------|
 | ~~`mode:*` (all)~~ | ❌ **OBSOLETE** | **Mode system completely removed** - use `scenario:*` tasks |
 
-**Note:** The entire `lib/tasks/mode.rake` (2,132 lines) has been moved to `lib/tasks/obsolete/`. All Mode Management functionality is now part of the Scenario Management System. Details: [lib/tasks/obsolete/README.md](../../lib/tasks/obsolete/README.md)
+**Note:** The entire `lib/tasks/mode.rake` (2,132 lines) has been moved to `lib/tasks/obsolete/`. All Mode Management functionality is now part of the Scenario Management System. Details: `lib/tasks/obsolete/README.md` in the project repository.
 
 ### Database Operations (Core)
 

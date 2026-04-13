@@ -452,7 +452,7 @@ The application is designed for deployment on Raspberry Pi or similar hardware:
 - **Web Server**: Nginx + Puma
 
 #### Deployment Process
-1. **Server Setup**: See [Runbook](../developers/developer-guide.de.md#operations) for detailed server configuration
+1. **Server Setup**: See [Runbook](../developers/developer-guide.md#operations) for detailed server configuration
 2. **Enhanced Mode Configuration**: Use the Enhanced Mode System for deployment configuration
 3. **Application Deployment**: Capistrano-based deployment
 4. **Service Management**: Systemd services for autostart

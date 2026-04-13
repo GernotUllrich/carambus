@@ -46,7 +46,7 @@ Während Shell-Scripts ideal für automatisierte Deployments sind, bieten **Rake
 | - | ~~`mode:backup_local_changes`~~ ❌ OBSOLETE | Filter für id > 50000000 validieren |
 | - | ~~`mode:check_version_safety[dump_file]`~~ ❌ OBSOLETE | Version-Sequenzen prüfen |
 
-> ⚠️ **Hinweis:** Die `mode:*` Tasks sind **obsolet** und wurden durch das Scenario Management System ersetzt. Siehe [lib/tasks/obsolete/README.md](../../lib/tasks/obsolete/README.md).
+> ⚠️ **Hinweis:** Die `mode:*` Tasks sind **obsolet** und wurden durch das Scenario Management System ersetzt. Siehe `lib/tasks/obsolete/README.md` im Projekt-Repository.
 
 **Debugging-Tipp:**  
 ```ruby
@@ -80,7 +80,7 @@ puts "Nach Bump: #{TableLocal.where('id < 50000000').count}"
 | - | ~~`mode:local`~~ ❌ OBSOLETE | Config-Generierung für LOCAL-Modus debuggen |
 | - | ~~`mode:status[detailed,source]`~~ ❌ OBSOLETE | Config-Extraktion aus Prod-Server testen |
 
-> ⚠️ **Hinweis:** Alle `mode:*` Tasks sind **obsolet** und durch das Scenario Management System ersetzt. Für Config-Management nutze `scenario:*` Tasks. Siehe [lib/tasks/obsolete/README.md](../../lib/tasks/obsolete/README.md).
+> ⚠️ **Hinweis:** Alle `mode:*` Tasks sind **obsolet** und durch das Scenario Management System ersetzt. Für Config-Management nutze `scenario:*` Tasks. Siehe `lib/tasks/obsolete/README.md` im Projekt-Repository.
 | - | ~~`mode:generate_templates`~~ ❌ OBSOLETE | NGINX/Puma-Templates inspizieren |
 | - | ~~`mode:prepare_db_dump`~~ ❌ OBSOLETE | pg_dump-Kommandos validieren |
 | - | ~~`mode:deploy_templates`~~ ❌ OBSOLETE | SCP/SSH-Transfers debuggen |
@@ -309,7 +309,7 @@ end
 |------|--------|-------|
 | ~~`mode:*` (alle)~~ | ❌ **OBSOLETE** | **Mode-System vollständig entfernt** - nutze `scenario:*` Tasks |
 
-**Hinweis:** Die gesamte `lib/tasks/mode.rake` (2.132 Zeilen) wurde nach `lib/tasks/obsolete/` verschoben. Alle Mode-Management-Funktionen sind jetzt Teil des Scenario Management Systems. Details: [lib/tasks/obsolete/README.md](../../lib/tasks/obsolete/README.md)
+**Hinweis:** Die gesamte `lib/tasks/mode.rake` (2.132 Zeilen) wurde nach `lib/tasks/obsolete/` verschoben. Alle Mode-Management-Funktionen sind jetzt Teil des Scenario Management Systems. Details: `lib/tasks/obsolete/README.md` im Projekt-Repository.
 
 **Empfehlung:** `mode:*` Tasks sollten auf Duplikate/Obsoleszenz geprüft werden.
 
