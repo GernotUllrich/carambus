@@ -12,20 +12,20 @@ As a tournament manager, you are responsible for:
 - ✅ **Result control**: Check and correct results if necessary
 - ✅ **Tournament evaluation**: Publish rankings and statistics
 
-## 🚀 Quick Start: Your First Tournament in 10 Steps
+## 🚀 Quick Start: Sync and Run a Tournament in 10 Steps
 
-1. **Create tournament** → Create new event
-2. **Enter basic data** → Name, date, discipline
-3. **Choose tournament mode** → Round Robin, Knockout, Swiss System
-4. **Register players** → Add participants
-5. **Create schedule** → Generate automatically
-6. **Assign tables** → Publish schedule
-7. **Start tournament** → Players can begin
-8. **Monitor results** → Live tracking
-9. **Check rankings** → Automatically calculated
-10. **Complete tournament** → Award ceremony
+1. **Sync tournament from ClubCloud** → [Step 2](tournament-management.md#step-2-load-clubcloud)
+2. **Apply the seeding list** → [Step 3](tournament-management.md#step-3-seeding-list)
+3. **Review and add participants** → [Step 4](tournament-management.md#step-4-participants)
+4. **Close the participant list** → [Step 5](tournament-management.md#step-5-finish-seeding)
+5. **Select tournament mode** → [Step 6](tournament-management.md#step-6-mode-selection)
+6. **Fill in start parameters** → [Step 7](tournament-management.md#step-7-start-form)
+7. **Assign tables and start the tournament** → [Steps 8–9](tournament-management.md#step-8-tables)
+8. **Warmup and match release** → [Steps 10–11](tournament-management.md#step-10-warmup)
+9. **Monitor and finalize results** → [Steps 12–13](tournament-management.md#step-12-monitor)
+10. **Upload results to ClubCloud** → [Step 14](tournament-management.md#step-14-upload)
 
-➡️ **[To detailed tournament management guide](tournament-management.md)**
+➡️ **[Full walkthrough](tournament-management.md#walkthrough)**
 
 ## 📚 Main Topics
 

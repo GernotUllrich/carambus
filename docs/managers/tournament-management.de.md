@@ -1,316 +1,268 @@
 # Turnierverwaltung
 
-## Einführung
+Diese Seite führt Sie als Turnierleiter Schritt für Schritt durch ein aus der ClubCloud geladenes Karambol-Turnier — vom Eingang der Einladung bis zum Ergebnis-Upload.
 
-Carambus zielt darauf, den gesamten Spielbetrieb auf Regional- und Vereinsebene zu automatisieren. Es werden die wichtigsten Billarddisziplinen Karambol, Pool, Snooker und Kegel in Deutschland in Einzelturnieren und Mannschaftswettkämpfen unterstützt.
+<a id="scenario"></a>
+## Szenario
 
-> **Automatisierung mit Carambus bedeutet Unterstützung aller Phasen des Billardspiels** von der Turnierplanung, der Festsetzung des Turniermodus, der Einteilung der Spielpaarungen entsprechend der Rang- und Setzlisten, der Tischzuordnung, der Realzeiterfassung der Spiele über die Anzeigetafeln bis zur Auswertung der Ergebnisse und Übertragung an die zentralen Verbände.
+Sie haben als Turnierleiter Ihres Vereins vom NBV eine Einladung zur **NDM Freie Partie Klasse 1–3** erhalten. Das Turnier läuft an einem Samstag in Ihrem Spiellokal mit 5 gemeldeten Teilnehmern auf zwei Tischen. Diese Seite begleitet Sie Schritt für Schritt vom Eingang der Einladung bis zum Ergebnis-Upload zurück in die ClubCloud.
 
-## Struktur
+<a id="walkthrough"></a>
+## Durchführung Schritt für Schritt
 
-Technisch gesehen ist Carambus eine Hierarchie von Webservices. An der Spitze steht ein Webserver, der sog. Carambus API Server, der nur dazu dient, externe Daten so zeitaktuell und effizient wie möglich vorzuhalten. Konsumenten dieser Daten sind auf Regionalebene und am Veranstaltungsort, bzw. in den Clubheimen Webserver, die den lokalen Spielbetrieb verwalten.
+Die folgende Anleitung orientiert sich am tatsächlichen Ablauf des Carambus-Wizards — so wie er in der Praxis funktioniert. Wo die Oberfläche ungewohnte Formulierungen oder unerwartetes Verhalten zeigt, finden Sie einen farbigen Hinweiskasten.
 
-Endgeräte dieser Webserver sind Webbrowser der Sportbeauftragten zur Planung und Abwicklung der Turniere, sowie Scoreboards mit Touch-Funktionalität am Veranstaltungsort zur Spielsteuerung durch die Spieler.
+<a id="step-1-invitation"></a>
+### Schritt 1: Die NBV-Einladung erhalten
 
-Im sog. Trainingsmodus werden die Scoreboards zur Aufzeichnung der Spielergebnisse genutzt. Zum Aufsetzen der Spiele werden Spielerlisten des Clubs aus der Carambus Datenbank genutzt. Spiele werden im lokalen Webserver aufgezeichnet, sodass Auswertungen über die Performanz von Spielern möglich werden.
- 
-Da alles auf standardisierten HTML Protokollen basiert, ist Carambus weitgehend hardwareunabhängig.
+Sie erhalten vom Landessportwart per E-Mail eine PDF-Einladung zur NDM. Die Einladung enthält den offiziellen Turnierplan, die Teilnehmerliste (Setzliste) und die Startzeiten. Sie müssen in diesem Schritt noch nichts im System klicken — öffnen Sie die Einladung, legen Sie das PDF bereit, und öffnen Sie dann in Carambus die Turnier-Detailseite des NDM-Turniers.
 
-## Carambus API
+<a id="step-2-load-clubcloud"></a>
+### Schritt 2: Turnier aus ClubCloud laden (Wizard Schritt 1)
 
-Die Daten, die im Carambus API Server gespeichert werden amit den lokalen Webserver synchronisiert. Dabei kann der Datenbereich auf die Region und die überregionalen Turniere der DBU und deren Teilnehmer eingeschränkt werden.
+Öffnen Sie die Turnier-Detailseite in Carambus. Oben auf der Seite sehen Sie den Wizard-Fortschrittsbalken „Turnier-Setup". Schritt 1 „Meldeliste von ClubCloud laden" ist in der Regel bereits automatisch abgeschlossen — ein grüner Haken (GELADEN) zeigt an, dass Carambus die Meldeliste bereits synchronisiert hat.
 
-Folgende Daten werden vom API-Server zentral geliefert:
+**Achtung:** Die ClubCloud liefert manchmal weniger Spieler als erwartet — in der Praxis wurden bei einem 5-Spieler-Turnier zunächst nur 1–2 Registrierungen übertragen. Der Wizard zeigt einen grünen „Weiter zu Schritt 3 mit diesen N Spielern"-Button, auch wenn N verdächtig niedrig ist. Prüfen Sie die Zahl sorgfältig, bevor Sie weitergehen. Wenn Spieler fehlen, beheben Sie das in [Schritt 4](#step-4-participants). Weitere Details finden Sie unter [Spieler nicht in der ClubCloud-Meldeliste](#ts-player-not-in-cc).
 
-### Regionalverbände
-- ClubCloud-ID, Name, Kurzname, Logo, E-Mail, Adresse, Land
+![Wizard-Übersicht nach ClubCloud-Sync](images/tournament-wizard-overview.png){ loading=lazy }
+*Abbildung: Turnier-Setup-Wizard direkt nach dem ClubCloud-Sync (Beispiel aus dem Phase-33-Audit, NDM Freie Partie Klasse 1–3).*
 
-### Clubs
-- ClubCloud-ID, Region, Name, Kurzname, Adresse, Home-Page, E-Mail, Logo
+<a id="step-3-seeding-list"></a>
+### Schritt 3: Setzliste übernehmen — Einladung oder ClubCloud-Meldeliste
 
-### Spiellokale
-- ClubCloud-ID, Region, Name, Adresse
+In Wizard-Schritt 2 können Sie die Setzliste (die geordnete Teilnehmerliste) aus zwei Quellen übernehmen: entweder durch **Upload der PDF-Einladung** oder durch Übernahme der **ClubCloud-Meldeliste** als Alternative.
 
-### Tischausstattung
-- Tischarten, Zahl, Größe, Namen
+Die aktuelle Oberfläche stellt den PDF-Upload als primäre Option dar und ClubCloud als „Alternative" — für Vereine, die ClubCloud als offizielle Anmeldequelle nutzen, ist das umgekehrt. Wenn Sie das NBV-Einladungs-PDF hochladen, zeigt Carambus anschließend einen Vergleich beider Setzlisten nebeneinander, damit Sie Abweichungen erkennen können. Wenn das PDF-Upload fehlschlägt (häufig bei bestimmten Druckvorlagen), nutzen Sie direkt die ClubCloud-Liste — details dazu unter [Einladungs-PDF konnte nicht hochgeladen werden](#ts-invitation-upload).
 
-### Spielerdaten
-- ClubCloud-ID, Club, Nachname, Vorname, Titel
+<a id="step-4-participants"></a>
+### Schritt 4: Teilnehmerliste prüfen und ergänzen (Wizard Schritt 3)
 
-### Saisonale Vereinszugehörigkeiten
-- Spieler, Saison, Club, Clubgäste
+In Wizard-Schritt 3 „Teilnehmerliste bearbeiten" sehen Sie die aktuell vorhandenen Teilnehmer. Fehlen Spieler, fügen Sie diese über das Feld **„Spieler mit DBU-Nummer hinzufügen"** hinzu. Mehrere [DBU-Nummern](#glossary-system) können Sie komma-getrennt eintragen (Beispiel: `121308, 121291, 121341, 121332`).
 
-### Turniere
-- ClubCloud-ID, Titel, Disziplin, Spielklasse, Modus, Zugangsbeschränkung, Datum, Akkreditierungsschluss, Spiellokal, Saison, Region, Schlussdatum, Aufnahmegrenze, Punktziel, Organisator (Club oder Region)
+Klicken Sie oben auf **„Nach Ranking sortieren"**, um die Teilnehmerliste automatisch nach der aktuellen [Rangliste](#glossary-system) zu ordnen — das ist für eine NDM Freie Partie fast immer die richtige Reihenfolge.
 
-### Turniermoduspläne
-- Name, Regelsystem, Spielerzahl, Tischzahl, Beschreibung, Gruppenzahl, formaler Ablauf
+Sobald die Teilnehmerzahl einem vordefinierten [Turnierplan](#glossary-wizard) entspricht, erscheint unter der Teilnehmerliste ein gelb hervorgehobenes Panel **„Mögliche Turnierpläne für N Teilnehmer — automatisch vorgeschlagen: T04"**. Bei 5 Teilnehmern wird Ihnen T04 vorgeschlagen. Das ist der beste Hinweis, dass die Teilnehmerzahl stimmt — wenn kein Plan vorgeschlagen wird, überprüfen Sie die Teilnehmerzahl. Die endgültige Modusauswahl erfolgt erst in Schritt 6.
 
-### Turnier/Spieler Setzlisten
-- Spieler, Listenplatz, Turnier, ggf. Vorgaben bei Vorgabeturnieren
+Alle Änderungen werden sofort gespeichert; ein Bestätigungs-Klick ist nicht nötig.
 
-### Spiele
-- Turnier, Spielname, PlayerA, PlayerB
+<a id="step-5-finish-seeding"></a>
+### Schritt 5: Teilnehmerliste abschließen (Wizard Schritt 4)
 
-### Spielergebnisse
-- Spiel, Bälle, Aufnahmen, Höchstserie, Durchschnitt
+Wenn die Teilnehmerliste vollständig ist, klicken Sie in Wizard-Schritt 4 auf den blauen Button **„Teilnehmerliste abschließen"**. Damit wird die [Setzliste](#glossary-wizard) endgültig festgeschrieben und das Turnier geht in den Status `tournament_seeding_finished` über.
 
-### Spieler Rankings
-- Spieler, Disziplin, bester Einzeldurchschnitt, bester Turnierdurchschnitt
+!!! warning "Teilnehmerliste abschließen ist endgültig"
+    Der Klick auf **Teilnehmerliste abschließen** ist einmalig und nicht
+    rückgängig zu machen. Prüfen Sie vorher die Teilnehmerliste sorgfältig —
+    nach dem Abschließen springt der Wizard direkt zur Modus-Auswahl, und
+    eine spätere Änderung der Teilnehmerliste ist nur noch über Admin-Eingriff
+    möglich.
+<!-- ref: F-09 -->
 
-### Ligen
+Nach dem Klick springt der Wizard-Fortschrittsbalken von Schritt 3 direkt auf Schritt 5 — Schritt 4 wird im Hintergrund automatisch erledigt und erscheint als erledigt. Diese Sprung-Darstellung ist verwirrend, aber inhaltlich korrekt. Der nächste aktive Schritt ist die Modus-Auswahl.
 
-### Mannschaftskader
+<a id="step-6-mode-selection"></a>
+### Schritt 6: Turniermodus auswählen
 
-### Spieltage
+Wizard-Schritt 5 öffnet eine separate Seite „Abschließende Auswahl des Austragungsmodus". Sie sehen drei Karten mit den verfügbaren [Turnierplänen](#glossary-wizard): typischerweise **T04**, **T05** und **DefaultS**. Jede Karte zeigt die Spielrunden-Zahl und Turniertage. Bei 5 Teilnehmern lautet der Vorschlag meist T04 (5 Spielrunden, 1 Turniertag, 2 Tische).
 
-### Spieltagbegegnungen
+!!! tip "Welchen Turnierplan wählen?"
+    Bei der Modus-Auswahl schlägt Carambus meist einen Plan automatisch vor
+    (zum Beispiel **T04** bei 5 Teilnehmern). Übernehmen Sie den Vorschlag,
+    wenn Sie nicht bewusst eine Alternative bevorzugen. Die Alternativen
+    unterscheiden sich vor allem in der Zahl der Spielrunden und Turniertage
+    — für eine typische NDM Freie Partie Klasse 1–3 ist der Vorschlag fast
+    immer der richtige.
+<!-- ref: F-12 -->
 
-> **Hinweis:** Ab 2022 wurde die BilardArea (BA) durch die ClubCloud abgelöst. Im Gegensatz zur BA gibt es nun nicht mehr eindeutige Identifier deutschlandweit. Die CC-IDs sind nur eindeutig innerhalb der regionalen ClubCloud-Instanzen.  Carambus bemüht sich, Mehrdeutigkeiten soweit aufzulösen, dass die Daten global sauber bleiben.
+Klicken Sie auf **„Weiter mit T04"** (oder dem vorgeschlagenen Plan). Die Auswahl wird **sofort und ohne Bestätigungsdialog** angewendet. Wenn Sie versehentlich den falschen Plan gewählt haben, lesen Sie [Falscher Turniermodus gewählt](#ts-wrong-mode).
 
-## Account
+![Modus-Auswahl mit T04-Vorschlag](images/tournament-wizard-mode-selection.png){ loading=lazy }
+*Abbildung: Modus-Auswahl mit den drei Turnierplänen und automatischem Vorschlag T04 bei 5 Teilnehmern (Beispiel aus dem Phase-33-Audit).*
 
-Für das Carambus Turniermanagement ist ein Account mit Admin-Rechten auf dem lokalen Carambus Server erforderlich. Dieser kann vom Club-Vorsitzenden oder [Carambus-Entwickler](mailto:gernot.ullrich@gmx.de) eingerichtet werden.
+<a id="step-7-start-form"></a>
+### Schritt 7: Start-Parameter ausfüllen
 
-Die URL ist aus den URLs der Scoreboards ableitbar, z.B. in Wedel http://192.168.2.210:3131.
+Nach der Modusauswahl öffnet sich das Start-Formular. Oben sehen Sie eine Zusammenfassung des gewählten Modus, darunter den Abschnitt **„Zuordnung der Tische"** und ein Formular **„Turnier Parameter"** mit ca. 15 Feldern.
 
-## Abgleich mit der ClubCloud
+!!! tip "Englische Feldbezeichnungen im Start-Formular"
+    Einige Parameter im Start-Formular heißen derzeit auf Englisch oder sind
+    unklar beschriftet (zum Beispiel *Tournament manager checks results before
+    acceptance* oder *Assign games as tables become available*). Das
+    [Glossar](#glossary) unten erklärt die wichtigsten Begriffe. Im Zweifel
+    übernehmen Sie die Standardwerte und kontrollieren Sie die Einstellungen
+    nach dem Turnier.
+<!-- ref: F-14 -->
 
-Die Turniere findet man am besten über die `Regionalverbände -> Suchen -> Ansehen`. Dort sind die aktuell bekannten Turniere der laufenden Saison gelistet. Das Turnier kann über den Titel ausgewählt werden.
+Die wichtigsten Felder für eine NDM Freie Partie:
 
-Mit dem KI-Assistenten (ab Okt 2025) könntest Du auch einfach suchen mit "Turniere im NBV in der Saison 2025/2026 nicht älter als 2 Wochen"
+- **Bälle vor** / **Bälle-Ziel** ([innings_goal](#glossary-karambol)): Das Ziel in [Bällen](#glossary-karambol), das ein Spieler erreichen muss, um eine [Partie](#glossary-karambol) zu gewinnen. Für Freie Partie Klasse 1–3 liegen typische Werte zwischen 50 und 150 Bällen — prüfen Sie die Einladung.
+- **Aufnahmebegrenzung** ([Aufnahme](#glossary-karambol)): Maximale Zahl der Aufnahmen pro Partie. 0 = unbegrenzt.
+- **Tournament manager checks results before acceptance**: Wenn aktiviert, müssen Sie jedes Ergebnis manuell bestätigen, bevor es gezählt wird. Für kleine Turniere mit verlässlichen Scoreboard-Helfern können Sie das deaktivieren.
 
-Sollte ein Turnier noch nicht gelistet sein, so kann das mehrere Gründe haben:
+Füllen Sie die Felder aus und gehen Sie direkt zu [Schritt 8](#step-8-tables) für die Tischzuordnung.
 
-* Das Turnier ist noch nicht in der ClubCloud eingetragen
-* Der zentrale Carambus API Server kennt das Turnier noch nicht
-* Das Turnier ist noch nicht auf den lokalen Location Server übertragen
+<a id="step-8-tables"></a>
+### Schritt 8: Tische zuordnen
 
-### Das Turnier ist noch nicht in der ClubCloud eingetragen
-Aufgabe des Landessportwartes ist es, die Turniere mit den Teilnehmerlisten in der ClubCloud einzupflegen.
+Im Abschnitt **„Zuordnung der Tische"** weisen Sie den Turnier-Spielrunden die physischen Tische zu. Wählen Sie aus der Dropdown-Liste die zwei Tische in Ihrem Spiellokal aus. Die Tischnamen entsprechen den in Carambus angelegten Tisch-Datensätzen. Für unser NDM-Szenario wählen Sie Tisch 1 und Tisch 2.
 
-### Der zentrale Carambus API Server kennt das Turnier noch nicht
-Der API Server wird derzeit vom Carambus-Entwickler (mailto: gernot.ullrich@gmx.de) betreut. Turnierdaten der Carambus nutzenden Regionen werden automatisiert täglich aus dem zugehörigen regionalen ClubCloud Server aktualisiert.
+Die Zuordnung ist unkritisch — Sie können im Turnier-Monitor nachträglich keine Tische mehr tauschen, aber die Scoreboard-Verbindung funktioniert unabhängig von dieser Zuordnung (die Scoreboards verbinden sich nach dem Start automatisch mit dem zugewiesenen Tisch).
 
-Lokale Server fordern Updates aus der ClubCloud immer über den zentralen API Server (api.carambus.de) an. Dieser greift die Daten von den verschiedenen ClubCloud Instanzen ab. Mit den spezifischen Updates werden immer auch alle Updates übertragen, die zwischenzeitlich auf dem API Server gemacht wurden.
+<a id="step-9-start"></a>
+### Schritt 9: Turnier starten
 
-### Das Turnier ist noch nicht auf den lokalen Location Server übertragen
-Ein lokal nicht vorhandenes Turnier, welches aber auf dem API Server existiert, wird automatisch bei jeder Update-Anfrage an den API Server geladen, denn bei jeder Anfrage an den API Server wird der gesamte Datenbestand synchronisiert - ggf. eingeschränkz bzgl. Region und DBU.
+Wenn Tischzuordnung und Turnier-Parameter vollständig sind, klicken Sie unten auf **„Starte den Turnier Monitor"**.
 
-So eine explizite Anfrage kann z.B. das Aktualisieren der Club-Daten sein:
-`Clubs -> Suchen -> Ansehen -> "Datenabgleich mit der ClubCloud mit allen Details"`
+!!! warning "Warten, nicht erneut klicken"
+    Nach dem Klick auf **Starte den Turnier Monitor** sieht die Seite mehrere
+    Sekunden lang unverändert aus. Das ist normal — der Wizard bereitet im
+    Hintergrund die Tisch-Monitore vor. **Klicken Sie den Button nicht erneut**
+    und navigieren Sie nicht zurück. Nach wenigen Sekunden öffnet sich der
+    Turnier-Monitor automatisch.
+<!-- ref: F-19 -->
 
-### Aktualisieren von Regionalverband, Club, Spieler, Turnier, Setzlisten
-Beim expliziten Abholen von Daten werden auf dem API Server die angeforderten Daten mit der Billard Area abgeglichen.
+Im Hintergrund löst Carambus das AASM-Event `start_tournament!` aus (Übergang nach `tournament_started_waiting_for_monitors`), initialisiert alle TableMonitors und leitet Sie dann automatisch zur Turnier-Monitor-Seite weiter. Wenn sich die Seite nach 30 Sekunden nicht ändert, prüfen Sie, ob Redis und der ActionCable-Dienst laufen.
 
-Folgende explizite Datenanfragen sind implementiert:
+<a id="step-10-warmup"></a>
+### Schritt 10: Warmup-Phase beobachten
 
-* `Club -> Datenabgleich mit der ClubCloud`
-* `Club -> Datenabgleich mit der ClubCloud mit allen Details`
-* `Regionalverband -> Datenabgleich mit der ClubCloud inkl. Clubs`
-* `Regionalverband -> Datenabgleich mit der ClubCloud inkl. Clubs und Spieler`
-* `Turnier -> Datenabgleich mit der ClubCloud`
+Nachdem der Turnier-Monitor geöffnet ist, sehen Sie die Übersichtsseite „Turnier-Monitor · NDM Freie Partie Klasse 1–3". Jeder der zwei Tische zeigt einen Status-Badge **„warmup"** und die zugewiesenen Spielerpaare für Partie 1 (z. B. „Simon, Franzel / Smrcka, Martin" auf Tisch 1).
 
-## Regionales Turniermanagement
+In der Warmup-Phase können die Spieler die Tische und Bälle ausprobieren. Die Scoreboards sind bereits aktiv, aber die Punkte zählen noch nicht. Im Abschnitt „Aktuelle Spiele Runde 1" sehen Sie alle 4 Matches der ersten Runde mit den Spalten Tisch / Gruppe / Partie / Spieler und einem **„Spielbeginn"**-Button pro Zeile.
 
-Die Turnierverwaltung wird in folgenden Schritten vollzogen:
+Sie müssen hier nichts aktiv tun — beobachten Sie, ob alle Scoreboards verbunden sind (grüner Status), und warten Sie auf den Startschuss des Turniers.
 
-### Aktualisierung der Turnierdaten
-Vor dem Turnierstart sollte dafür gesorgt werden, dass das Turnier mit den Setzlisten in der Billard-Area aktualisiert ist. Die Synchronisierung mit dem lokalen Carambus Turniermanager kann dann angestoßen werden.
+![Turnier-Monitor-Landingpage in der Warmup-Phase](images/tournament-monitor-landing.png){ loading=lazy }
+*Abbildung: Turnier-Monitor direkt nach dem Start — beide Tische zeigen Status „warmup" und die Paarungen der ersten Runde (Beispiel aus dem Phase-33-Audit).*
 
-### Festlegung der Setzliste
-Mit der Synchronisierung wird die Liste der Teilnehmer übernommen. Aus den Ranglistenplätzen der Spieler wird die Setzliste abgeleitet. Der Spielleiter kann weitere Spieler zum Auffüllen von Ausfällen vornehmen und ggf. kleinere Umsetzungen vornehmen.
+<a id="step-11-release-match"></a>
+### Schritt 11: Spielbeginn freigeben
 
-### Auswahl des Turniermodus
-Sobald die geordnete Spielerliste und damit auch die Zahl der Spieler feststeht, wird der Turniermodus ausgewählt. Im Allgemeinen gibt es mehrere Möglichkeiten (Gruppenspiele und Hauptrunde, ggf. mit Ausspielen der Plätze oder jeder gegen jeden etc.)
+Wenn der Warmup abgeschlossen ist und alle Spieler bereit sind, klicken Sie für jede Partie in der Tabelle „Aktuelle Spiele Runde 1" auf den Button **„Spielbeginn"**. Dieser Klick startet die Zeitmessung und aktiviert die Ball-Eingabe am [Scoreboard](#glossary-wizard).
 
-## Lokales Spielmanagement
+In unserem Szenario mit 5 Teilnehmern und 2 Tischen laufen in Runde 1 gleichzeitig 2 Partien — klicken Sie also nacheinander auf zwei „Spielbeginn"-Buttons. Der fünfte Spieler sitzt in Runde 1 aus (Freilos, abhängig vom gewählten Turnierplan).
 
-Sobald der Turniermodus festgelegt ist, kann das Turnier beginnen.
+<a id="step-12-monitor"></a>
+### Schritt 12: Ergebnisse verfolgen
 
-### Festlegung der Tische
-Aus der Menge der im Spiellokal zur Verfügung stehenden Tische werden die Tische 1-n aus dem Spielplan des Turniermodus zugeordnet.
+Nach dem Spielbeginn übernehmen die Spieler die Scoreboard-Eingabe. Der Turnier-Monitor aktualisiert sich in Echtzeit über ActionCable — Sie müssen die Seite nicht neu laden.
 
-### Festlegung einiger Parameter
-Vor dem Start können ggf. entsprechend der Turnierregeln noch folgende Parameter aktualisiert werden:
+Beobachten Sie die Spaltenwerte **Bälle** / **Aufnahme** / **HS** ([Höchstserie](#glossary-karambol)) / **GD** ([Generaldurchschnitt](#glossary-karambol)) in der Spiele-Tabelle. Wenn eine Partie abgeschlossen ist, wechselt die Tischkarte automatisch zur nächsten Partie in der Runde. Nach Abschluss aller Partien einer [Spielrunde](#glossary-karambol) schaltet der Monitor auf Runde 2, und die nächste Paarung erscheint.
 
-* Aufnahmebegrenzung
-* Ballziel
-* Einspielzeit an neuem Tisch
-* Einspielzeit bei Rückkehr zu einem Tisch
-* Bedenkzeit vor einem Stoß
+Als Turnierleiter greifen Sie normalerweise nicht aktiv ein — außer wenn ein Spieler ein Ergebnis anfechtet oder ein Scoreboard-Problem vorliegt. Wenn Sie „Tournament manager checks results before acceptance" aktiviert haben, erscheint nach jedem Spiel ein Bestätigungs-Button für Sie.
 
-### Start und Ablauf des Spiels
-Von nun an läuft alles automatisch ab. Auf den Anzeigetafeln erscheinen die Spielpaarungen mit Angabe der Gruppennummern und der Spielnamen (z. B. Gruppe 2 Spiel 2–4, also in der Gruppe 2 der 2. Spieler gegen den 4. Spieler).
+<a id="step-13-finalize"></a>
+### Schritt 13: Turnier finalisieren
 
-Als erstes erscheint an den Anzeigetafeln die Aufforderung zum Einspielen mit entsprechenden Timern, z. B. 5 bzw. 3 Minuten.
+Nach Abschluss aller Runden erscheint im Turnier-Monitor eine Schaltfläche zum Finalisieren des Turniers. Klicken Sie darauf, um die Endrangliste zu berechnen und das Turnier in den Abschlussstatus zu setzen.
 
-Als nächstes erscheint die Aufforderung zum Anstoß. Im Ergebnis können die Spieler getauscht werden (Weiß stößt an, Gelb stößt nach).
+Falls Platzierungen noch angepasst werden müssen (z. B. wegen eines Steches oder einer manuellen Korrektur), lesen Sie die Details in der [Einzelturnier-Verwaltung](single-tournament.md), die den Platzierungs-Workflow ausführlich beschreibt.
 
-Sobald der anstoßende Spieler feststeht wird das Spiel gestartet.
+Nach dem Finalisieren ist das Turnier abgeschlossen — Änderungen an Ergebnissen sind nur noch über Admin-Eingriff möglich.
 
-Folgende Eingaben an den Anzeigetafeln sind möglich:
+<a id="step-14-upload"></a>
+### Schritt 14: Ergebnis-Upload nach ClubCloud
 
-* **`+1`** - Erhöhe die Ballzahl der laufenden Aufnahme um eins. (Bei Touch Displays kann dies auch durch Klick auf die jeweilige Zahl ausgelöst werden)
-* **`-1`** - Erniedrige die Ballzahl der laufenden Aufnahme um eins
-* **`nnn`** - Setze die Ballzahl der laufenden Aufnahme. Zeige das Nummernfeld 0-9. Eine beliebige positive Zahl kann eingegeben werden. Abschluss mit Enter oder Abbruch mit C
-* **`DEL`** - Mit einer Undo Taste kann auf eine beliebige Aufnahme zurückgegangen werden. Nach Korrektur mit +1, -1 oder nnn Eingabe wird durch mehrfachen Spielerwechsel bis zur aktuellen Aufnahme weitergeblättert
-* **`^v`** - Spielerwechsel: Die aktuelle Ballzahl der beendeten Aufnahme wird gespeichert und der Summe hinzugefügt. Der andere nun aktive Spieler wird an der Anzeigetafel markiert. (Bei Touch Displays kann dieses auch durch Klick auf die Ballzahl des jeweiligen anderen Spielers ausgelöst werden)
+Wenn im Start-Formular (Schritt 7) die Option **„auto_upload_to_cc"** aktiviert war, überträgt Carambus die Ergebnisse beim Finalisieren automatisch zurück an die ClubCloud. Sie sehen anschließend eine Bestätigung, dass der Upload erfolgreich war.
 
-Der Schiedsrichter kann den Timer für die Bedenkzeit **`>`** starten, **`o`** beenden oder **`||`** anhalten
+Wenn der automatische Upload deaktiviert ist oder fehlschlägt, können Sie den Upload manuell auf der Turnier-Detailseite anstoßen (Schaltfläche „Ergebnisse nach ClubCloud übertragen"). Prüfen Sie in der ClubCloud, ob die Ergebnisse angekommen sind — normalerweise sind sie innerhalb weniger Minuten sichtbar.
 
-## Bedienungskonzepte
+---
 
-Carambus unterstützt zwei Hauptkategorien der Bedienung:
+<a id="glossary"></a>
+## Glossar
 
-### 1. Management-Bedienung (Laptop/PC)
+<a id="glossary-karambol"></a>
+### Karambol-Begriffe
 
-Die Bedienung über Laptop oder PC mit ausklappbaren Menüs an der linken Seite ist die Hauptschnittstelle für:
+- **Freie Partie** — Die einfachste Karambol-Disziplin: Ein Punkt pro korrektem Karambolage (der gespielte Ball berührt beide anderen Bälle), keine Feldbeschränkung. Typische [Bälle-Ziele](#glossary-karambol) für NDM-Klassen liegen bei 50–150 Bällen. *Sie konfigurieren diesen Wert im [Start-Formular, Schritt 7](#step-7-start-form).*
 
-* **Spielleiter beim Turniermanagement** - Planung und Durchführung von Turnieren, Verwaltung der Spielpläne, Tischzuordnungen und Turnierstatus
-* **Anwender zur Recherche** - Zugriff auf Turnier- und Ligadaten, Spielerstatistiken, Vereins- und Regionalverbandsinfos
-* **Administratoren** - Systemkonfiguration und Benutzerverwaltung
+- **Cadre (35/2, 47/1, 47/2, 71/2)** — Karambol-Disziplinen mit Balken-Feldbeschränkung (Cadre = frz. Rahmen). Der erste Wert bezeichnet die Feldgröße in cm, der zweite die maximal erlaubten Bälle pro Feld. Cadre-Turniere verwenden dieselben Wizard-Schritte wie Freie Partie, aber mit anderen Standard-Bällezielen.
 
-Diese Menüs können bei Bedarf ein- und ausgefahren werden, um maximale Übersichtlichkeit zu gewährleisten.
+- **Dreiband** — [Karambol](#glossary-karambol)-Disziplin: Der gespielte Ball muss vor dem zweiten Objektball mindestens drei Banden berühren. Keine Feldbeschränkung. *Sie sehen diese Disziplin in der Turnier-Detailseite.*
 
-### 2. Spieler-Bedienung (Touch-Scoreboard)
+- **Einband** — Karambol-Disziplin: Der gespielte Ball muss mindestens eine Bande berühren, bevor er den zweiten Objektball trifft.
 
-Spieler steuern den Spielablauf direkt am Scoreboard mit Touch-Funktionalität:
+- **Aufnahme** — Eine Aufnahme (auch: Inning) ist ein Spielzug — der Spieler schlägt an, bis er keinen Punkt erzielt oder das [Bälle-Ziel](#glossary-karambol) erreicht. Die **Aufnahmebegrenzung** im Start-Formular legt die maximale Aufnahmen-Anzahl pro Partie fest (0 = unbegrenzt). *Sie sehen diesen Begriff im [Start-Formular, Schritt 7](#step-7-start-form).*
 
-* **Spielprotokollierung** - Eingabe von Punkten und Aufnahmen durch Touch-Eingabe
-* **Spielerwechsel** - Durch Antippen der Ballzahl des anderen Spielers
-* **Timer-Steuerung** - Start, Stopp und Timeout-Verwaltung
-* **Direkter Zugriff** - Die Spieler haben durch Ausklappen des Menüs optional auch Zugriff auf Billarddaten (kein Regelfall, sondern ein Feature für Spezialisten)
+- **Bälle-Ziel (innings_goal)** — Die Zahl der Punkte (Karambolagen), die ein Spieler erzielen muss, um eine Partie zu gewinnen. Im System-Code heißt das Feld `innings_goal` (englisch) — im Start-Formular erscheint es als „Bälle vor". *Sie konfigurieren diesen Wert im [Start-Formular, Schritt 7](#step-7-start-form). Weitere Erklärung zu den englischen Feldbezeichnungen im [dortigen Hinweiskasten](#step-7-start-form).*
 
-Die Touch-Bedienung ist intuitiv und ermöglicht eine schnelle, unkomplizierte Spielführung ohne zusätzliche Hardware.
+- **Höchstserie (HS)** — Die längste Serie an aufeinanderfolgenden Karambolagen in einer Partie oder im gesamten Turnier. Wird im [Turnier-Monitor](#step-12-monitor) in Echtzeit angezeigt.
 
-### Zukunftsprojekt: Vereinfachte Schiedsrichter-Bedienung
+- **Generaldurchschnitt (GD)** — Erzielte Bälle geteilt durch die Anzahl der Aufnahmen. Maßstab für die Spielstärke über ein Turnier. Wird im [Turnier-Monitor](#step-12-monitor) angezeigt.
 
-Für zukünftige Entwicklungen ist eine stark vereinfachte Bedienung durch Schiedsrichter und Schreiber geplant, die speziell auf die Anforderungen bei offiziellen Wettkämpfen zugeschnitten sein wird.
+- **Spielrunde** — Eine vollständige Runde des Turniers, in der jeder Spieler (oder jedes Paar) einmal antritt. Ein T04-Turnierplan hat 5 Spielrunden. Nach jeder Runde aktualisiert der Turnier-Monitor automatisch die Tabelle.
 
-### Timeout Behandlung
+- **Tisch-Warmup** — Die Phase nach dem [Turnier starten](#step-9-start), in der die Tische den Status `warmup` tragen und Spieler die Bälle und den Tisch ausprobieren können, ohne dass Punkte zählen. Endet, wenn Sie [Spielbeginn freigeben](#step-11-release-match).
 
-Bei der Turnierplanung oder auch erst beim Turnierstart können die Länge der Bedenkzeit (Timeout), sowie die Zahl der möglichen Timeoutverlängerungen (Timeouts) vorgegeben werden. Am Scoreboard kann im laufenden Spiel der Timeoutzähler um eins verringert werden. Die restliche Bedenkzeit wird dann noch einmal um das vorgegebene Timeout verlängert.
+<a id="glossary-wizard"></a>
+### Wizard-Begriffe
 
-Die Timer-Funktionen (Stop, Halt, Play, Timeout) sind über die Touch-Bedienung am Scoreboard zugänglich.
+- **Setzliste** — Die geordnete Teilnehmerliste mit Setzposition (Platz 1 = gesetzt, Platz N = ungesetzt). Wird in [Schritt 3](#step-3-seeding-list) aus der Einladung oder der ClubCloud übernommen und in [Schritt 4](#step-4-participants) ergänzt. Das Abschließen der Setzliste in [Schritt 5](#step-5-finish-seeding) ist irreversibel.
 
-### Das Ende des Spiels
-wird anhand der Eingaben und der Aufnahme- bzw. Ballzahl automatisch erkannt.
+- **Turniermodus / Austragungsmodus** — Die Spielform des Turniers (z. B. Jeder-gegen-Jeden, KO-System). Die Auswahl erfolgt in [Schritt 6](#step-6-mode-selection). Der Modus bestimmt den zugrunde liegenden Turnierplan (T04, T05, DefaultS) und damit Spielrunden-Zahl und Turniertage.
 
-An der Tafel wird ein Abschlussprotokoll angezeigt. Die Spieler bestätigen das Ergebnis mit einer Eingabe auf der Anzeigetafel.
+- **Turnierplan-Kürzel (T04, T05, Default5)** — Interne Bezeichnungen für vordefinierte Turnierpläne. **T** steht für Turnierplan, die Zahl für den Plancode. T04 und T05 sind die gängigen Pläne für 5-Spieler-Turniere im Jeder-gegen-Jeden-Format — sie unterscheiden sich hauptsächlich in der Zahl der Spielrunden. DefaultS ist ein flexibleres Format. *Sie wählen den Plan in [Schritt 6](#step-6-mode-selection).*
 
-### Wechsel zur nächsten Runde
-Sobald alle Spiele einer Runde beendet sind, startet automatisch die nächste Runde. Die entsprechenden neuen Paarungen werden an den Anzeigetafeln angezeigt.
+- **Scoreboard** — Das berührungsempfindliche Eingabegerät an jedem Tisch, über das die Spieler oder ein Helfer die Punkte live eingeben. Die Scoreboards verbinden sich nach dem [Turnier starten](#step-9-start) automatisch mit dem Turnier-Monitor. Ohne aktive Scoreboard-Verbindung können keine Punkte erfasst werden.
 
-### Ende des Turniers
-Sobald alle Spiele des Turniers abgeschlossen sind, werden die Ergebnisse automatisch an die ClubCloud übertragen (wenn aktiviert). Zusätzlich wird ein Endprotokoll an den Spielleiter gesendet mit einer CSV-Datei als Backup, die alternativ auch manuell zum Upload der Ergebnisse in die Billard-Area genutzt werden kann.
+<a id="glossary-system"></a>
+### System-Begriffe
 
-## Trainingsmodus
-An den Scoreboards können die jeweiligen Tische ausgewählt werden. Abhängig vom Turnierstatus können freie Tische erkannt werden und für das freie Trainingsspiel genutzt werden.
+- **ClubCloud** — Die regionale Anmeldeplattform des DBU (Deutscher Billard-Union). ClubCloud ist die Quelle der Wahrheit für Spieler-Registrierungen und Meldelisten. Carambus synchronisiert die Teilnehmerliste aus ClubCloud in [Schritt 2](#step-2-load-clubcloud). Weitere Informationen finden Sie in der [ClubCloud-Integration](clubcloud-integration.md).
 
-Ad-Hoc-Spiele können über ein Parameterfeld initialisiert werden. Eingabemöglichkeiten sind dabei:
+- **AASM-Status** — Der interne Zustand des Turniers im System, verwaltet durch die AASM-Zustandsmaschine (Acts As State Machine). Mögliche Zustände umfassen `new_tournament`, `tournament_seeding_finished`, `tournament_started_waiting_for_monitors`, `tournament_started` und weitere. Die Wizard-Schrittanzeige spiegelt diesen Status wider — Schritt 4 erledigt = `tournament_seeding_finished`, Turnier gestartet = `tournament_started`. *Phase 36 wird dieses Status-Badge im Wizard sichtbarer machen.*
 
-* **Disziplin** (entsprechend der jeweiligen Tischeigenschaften, für beide, kann für den einzelnen Spieler gesondert vorgegeben werden)
-* **Zielballzahl** (für beide, kann für den einzelnen Spieler gesondert vorgegeben werden)
-* **Aufnahmebegrenzung**
-* **Timeout** (optional)
-* **Timeouts** (optionale Anzahl der Timeoutverlängerungen)
-* **Spieler** (Selektion aus den Clubspielern oder Gästen)
-* **Individuelle Disziplin** bzw. Zielballzahl
+- **DBU-Nummer** — Die nationale Spieler-ID des Deutschen Billard-Union. Jeder lizenzierte Spieler hat eine eindeutige DBU-Nummer. In [Schritt 4](#step-4-participants) können Sie Spieler, die nicht in der ClubCloud-Meldeliste erscheinen, über ihre DBU-Nummer nachtragen (komma-getrennt im Eingabefeld).
 
-Für eine zukünftige Erweiterung sind Statistiken über Trainingsspiele geplant (pro Spieler und pro Spielpaarung)
+- **Rangliste** — Die regionale Spielerrangliste, die von der ClubCloud-Datenbank bezogen wird. In [Schritt 4](#step-4-participants) können Sie mit „Nach Ranking sortieren" die Teilnehmerliste automatisch nach Ranglistenposition ordnen — das entspricht der offiziellen Setzliste für die meisten NBV-Turniere.
 
-## Turnierverwaltung - Detaillierter Workflow
+---
 
-Ein Turnier wird generell in folgenden Phasen verwaltet:
+<a id="troubleshooting"></a>
+## Problembehebung
 
-* Abgleich mit der ClubCloud
-* Überprüfung der relevanten Daten
-* Sortierung der Setzliste gemäß Rankings
-* Auswahl des Turniermodus
-* Lokale Anpassung der Turnierparameter
-* Check der lokalen Scoreboards
-* Start des Turniers
-* Abgleich der Partieergebnisse mit den Spielprotokollen
-* **Automatischer Upload** jedes Spiels in die ClubCloud (Standard, empfohlen)
-* eMail mit den Spielergebnissen (csv) an den Turnierleiter als Backup
-* Alternativ: Manueller Upload der Spielergebnisse (csv) in die ClubCloud
-* Abgleich mit der ClubCloud zum letzten Check
+<a id="ts-invitation-upload"></a>
+### Einladungs-PDF konnte nicht hochgeladen werden
 
-### Überprüfung der relevanten Daten
+**Problem:** Der Upload-Dialog in Schritt 3 zeigt einen Fehler, dreht sich im Kreis (unendlicher Spinner) oder die PDF-Datei wird hochgeladen, aber die Setzliste bleibt leer.
 
-Für den Ablauf eines Turnieres sind folgende Daten wichtig:
+**Ursache:** Der PDF-Parser von Carambus kann bestimmte NBV- und DBU-Druckvorlagen nicht zuverlässig auslesen — besonders wenn die PDF-Datei gescannt (kein maschinenlesbarer Text), zu niedrig aufgelöst oder mit einem nicht-standardisierten Seitenformat erstellt wurde. OCR-Fehler sind häufig bei Einladungen, die als Bild-Scan vorliegen.
 
-* Veranstalter (Regionalverband oder Club)
-* Disziplin (für die Tischzuordnungen)
-* Datum
-* Saison
-* Spielort (für die Tischzuordnungen)
+**Lösung:** Nutzen Sie direkt die **ClubCloud-Meldeliste als Quelle** — das ist die „Alternative" in Schritt 3. Klicken Sie auf „ClubCloud-Meldeliste verwenden", um die Teilnehmer direkt aus dem ClubCloud-Sync zu übernehmen. Ergänzen Sie anschließend in [Schritt 4](#step-4-participants) ggf. fehlende Spieler über ihre DBU-Nummer. Die ClubCloud-Route ist für reine NBV-Turniere in der Praxis zuverlässiger als der PDF-Upload.
 
-Diese Daten werden in der Regel automatisiert von der ClubCloud gezogen. Ein Sonderfall ist der Spielort. Leider ist bezgl. des Spielortes auf der ClubCloud eine freie Texteingabe möglich. Für die Tischzuordnung ist in Carambus jedoch die Auswahl eines formal definierten Spielortes mit Konfigurierung der Tische notwendig (Tischname, Tischart). Weiterhin ist anzugeben, ob es sich um ein Vorgabeturnier handelt.
+<a id="ts-player-not-in-cc"></a>
+### Spieler nicht in der ClubCloud-Meldeliste
 
-Diese Daten müssen über `Turnier -> Edit -> Turnier aktualisieren` ergänzt werden
+**Problem:** Nach dem ClubCloud-Sync in Schritt 2 wurden weniger Spieler geladen als erwartet. Der Wizard zeigt „Weiter zu Schritt 3 mit diesen N Spielern" mit einem grünen Button, obwohl N zu niedrig ist (z. B. 1 statt 5).
 
-### Sortierung der Setzliste gemäß Rankings
+**Ursache:** Die ClubCloud-Synchronisation liefert manchmal unvollständige Ergebnisse — ein bekanntes Verhalten (F-03/F-04), das auftreten kann, wenn Anmeldungen in ClubCloud noch nicht vollständig bestätigt sind, oder wenn die Sync-Verbindung eine teilweise Antwort liefert. Der grüne Button wirkt irreführend vollständig, obwohl die Datenlage unvollständig ist.
 
-Mit dem BA-Abgleich wird die Teilnehmerliste (Setzliste) übertragen.
+**Lösung:** Klicken Sie **nicht** auf „Weiter" wenn die Spielerzahl zu niedrig ist. Navigieren Sie stattdessen zu **[Schritt 4](#step-4-participants)** und fügen Sie die fehlenden Spieler über das Feld „Spieler mit DBU-Nummer hinzufügen" manuell nach (mehrere DBU-Nummern komma-getrennt). Die Einladungs-PDF enthält typischerweise alle DBU-Nummern der angemeldeten Spieler.
 
-Für Vorgabeturniere können die Handicaps eingetragen werden: `Tournament -> Setzliste aktualisieren`
+<a id="ts-wrong-mode"></a>
+### Falscher Turniermodus gewählt
 
-Diese Liste kann jetzt lokal entsprechend der Spielerrankings sortiert werden: `Tournament -> Ordne nach Rangliste bzw. Handicap`
+**Problem:** Sie haben in Schritt 6 auf eine der drei Modus-Karten (T04, T05, DefaultS) geklickt und damit den falschen Plan aktiviert. Das Start-Formular hat sich bereits geöffnet.
 
-Die Reihenfolge kann jetzt noch geändert werden durch Tausch von Plätzen mit den Pfeilen oben/unten.
+**Ursache:** Die Modus-Auswahl wird in Carambus unmittelbar beim Klick angewendet — ohne Bestätigungsdialog (F-13). Es gibt keinen „Zurück"-Button, der den Modus sicher rückgängig macht.
 
-Die Reihenfolge wird dann endgültig abgeschlossen mit `Turnier -> Abschluss der Rangliste (nicht umkehrbar)`
+**Lösung:** Wenn das Turnier **noch nicht gestartet** ist (Schritt 9 noch nicht ausgeführt), navigieren Sie zur Wizard-Übersicht (Turnier-Detailseite) und wählen Sie über die Schaltfläche „Modus ändern" einen anderen Plan. Wenn **`start_tournament!` bereits ausgelöst** wurde, ist der Modus nicht mehr über die normale Oberfläche änderbar — lesen Sie dann [Turnier wurde bereits gestartet](#ts-already-started). Browser-Back ist in diesem Zustand riskant und sollte vermieden werden.
 
-### Auswahl des Turniermodus
-Jetzt in die Turniermodusauswahl springen: `Turnier -> Turniermodus festlegen`
+<a id="ts-already-started"></a>
+### Turnier wurde bereits gestartet
 
-In der Regel stehen mehrere Möglichkeiten zur Verfügung. Der Turnierleiter kann einen Modus auswählen - in der Regel schon vom Landessportwart vorgegeben bei Turnieren der Regionalverbände.
+**Problem:** Sie möchten Teilnehmer, Turniermodus oder Start-Parameter ändern, aber der Wizard zeigt bereits den Turnier-Monitor und die Detailseite zeigt „Turnier läuft".
 
-Auswahl durch Klick z.B. `Weiter mit T07`
+**Ursache:** Das AASM-Event `start_tournament!` (ausgelöst in [Schritt 9](#step-9-start)) ist irreversibel — es gibt in der aktuellen Version (v7.0 Scope) **keinen Undo-Pfad** für gestartete Turniere (F-19, Tier 3 Finding). Das ist eine bewusste Designentscheidung, um Datenkonsistenz bei laufenden Scoreboards zu gewährleisten.
 
-### Lokale Anpassung der Turnierparameter
+**Lösung:** Wenden Sie sich an einen **Carambus-Admin mit Datenbankzugang**. Eine typische Recovery-Methode ist: das laufende Turnier als fehlerhaft markieren, eine neue Turnier-Instanz mit korrekten Parametern anlegen und ggf. bereits eingetragene Ergebnisse manuell übertragen. Diese Operation ist nicht für Vereinsfunktionäre gedacht und sollte durch sorgfältiges Prüfen in [Schritt 5](#step-5-finish-seeding) (Teilnehmerliste) und [Schritt 6](#step-6-mode-selection) (Turniermodus) vermieden werden. Der Hinweiskasten in [Schritt 9](#step-9-start) weist ausdrücklich darauf hin, nicht erneut zu klicken oder zurückzunavigieren.
 
-Folgende Parameter können nun noch angepasst werden:
+---
 
-* Zuordnung der Tische (Mapping interner Tischname zu extern Namen)
-* Ballziel (ggf. bereits für Turnier vorgegeben)
-* Aufnahmebegrenzung (ggf. bereits für Turnier vorgegeben)
-* Timeout in sec (0 oder keine Eingabe, wenn keine Timeouts)
-* Timeouts (n Timeoutverlängerungen maximal)
-* Checkbox "Tournament manager checks results before acceptance"
-* Einspielzeit
-* verkürzte Einspielzeit (bei Wechsel an einen bereits bespielten Tisch)
+<a id="architecture"></a>
+## Mehr zur Technik
 
-**Zur Checkbox:** Normalerweise können die Spieler den Spielstatus fortschreiben z.B. nach `Partie beendet - OK?`. Wenn ein Check von Turniermanager erforderlich ist, wird dieses unterbunden und der Turnierleiter kann nach Abgleich mit dem Spielprotokoll den Tisch freigeben.
+Carambus ist ein verteiltes System aus mehreren Web-Diensten: Ein zentraler API-Server veröffentlicht Turniere und Spielerdaten (z. B. NBV-Turniere über carambus.net); regionale und vereinseigene Carambus-Server synchronisieren diese Daten und übernehmen die Turnierleitung vor Ort. Globale Datensätze — also Turniere, die vom API-Server synchronisiert wurden — sind für Identitätsfelder (Titel, Datum, Veranstalter) schreibgeschützt (LocalProtector); Ihre lokale Instanz verwaltet den Wizard-Status, die Teilnehmerliste und die Spielergebnisse.
 
-Die neuen Spielpaarungen erscheinen jeweils automatisch auf den Scoreboards.
-
-### Automatischer Upload in die ClubCloud (empfohlen)
-
-**Standardverfahren seit Version 2024:**
-- Jedes abgeschlossene Spiel wird **sofort automatisch** in die ClubCloud übertragen
-- Die Übertragung erfolgt im Hintergrund während des Turniers
-- **Vorteile:** Echtzeit-Updates, keine manuelle Arbeit, automatische Fehlerbehandlung
-- **Aktivierung:** Checkbox "Ergebnisse automatisch in ClubCloud hochladen" in Schritt 6 des Wizard (Standard: aktiviert)
-
-### eMail mit den Spielergebnissen (csv) an den Turnierleiter
-
-Nach Abschluss des Turniers erhält der Turnierleiter automatisch per eMail eine CSV-Datei mit den Ergebnissen in dem Format, welches für den Upload in die ClubCloud notwendig ist. Diese Datei wird auch auf dem lokalen Server gespeichert (`{carambus}/tmp/result-{ba_id}.csv`)
-
-**Funktion der CSV-Datei:**
-- **Backup:** Sicherheitskopie aller Ergebnisse
-- **Kontrolle:** Manuelle Überprüfung der Ergebnisse
-- **Offline-Turniere:** Manueller Upload bei fehlender Internet-Verbindung
-
-### Manueller Upload der Spielergebnisse (csv) in die ClubCloud (Alternative)
-Der Turnierleiter kann die CSV-Datei direkt in die ClubCloud hochladen (er weiß wie das geht ;-)
-
-**Wann manuell hochladen?**
-- Bei Offline-Turnieren ohne Internet-Verbindung
-- Als Backup, wenn automatischer Upload deaktiviert war
-- Bei Problemen mit dem automatischen Upload
-
-### Abgleich mit der ClubCloud zum letzten Check
-Als letzten Schritt kann noch einmal ein Abgleich mit der ClubCloud erfolgen. Die damit heruntergeladenen Daten sind Grundlage für später ausgerechnete Rankings.
+Für die Durchführung eines Turniers nach dieser Anleitung müssen Sie das Innenleben nicht verstehen. Wenn Sie die obigen Schritte befolgt haben, wissen Sie alles, was Sie für einen reibungslosen Turniertag brauchen. Für weiterführende technische Details — Datenbankstruktur, ActionCable-Konfiguration, Deployment — lesen Sie die [Entwickler-Dokumentation](../developers/index.md).
