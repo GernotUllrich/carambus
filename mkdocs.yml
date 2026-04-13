@@ -9,6 +9,9 @@ site_dir: site  # Explicitly set output directory (default, but good to be expli
 exclude_docs: |
   archive/**
   obsolete/**
+  internal/**
+  studies/**
+  changelog/**
 
 # Theme
 theme:
@@ -112,6 +115,15 @@ plugins:
             UMB Scraping: UMB Scraping
             UMB Scraping Implementation: UMB Scraping Implementierung
             UMB Scraping Methods: UMB Scraping Methoden
+            Services: Services
+            Table Monitor: Table Monitor
+            Region CC: Region CC
+            Tournament: Turnier
+            Tournament Monitor: Turnier-Monitor
+            League: Liga
+            Party Monitor: Party-Monitor
+            UMB Services: UMB-Services
+            Video Cross-Reference: Video-Querverweise
             Frontend STI Migration: Frontend STI Migration
             Reference: Referenz
             API: API
@@ -173,6 +185,15 @@ nav:
       - UMB Scraping:
           - UMB Scraping Implementation: developers/umb-scraping-implementation.md
           - UMB Scraping Methods: developers/umb-scraping-methods.md
+      - Services:
+          - Table Monitor: developers/services/table-monitor.md
+          - Region CC: developers/services/region-cc.md
+          - Tournament: developers/services/tournament.md
+          - Tournament Monitor: developers/services/tournament-monitor.md
+          - League: developers/services/league.md
+          - Party Monitor: developers/services/party-monitor.md
+          - UMB Services: developers/services/umb.md
+          - Video Cross-Reference: developers/services/video-crossref.md
       - Frontend STI Migration: developers/frontend-sti-migration.md
       - Testing & Debugging: developers/rake-tasks-debugging.md
       - Deployment Workflow: developers/deployment-workflow.md
