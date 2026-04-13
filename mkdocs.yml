@@ -63,6 +63,7 @@ plugins:
             Managers: Für Turniermanager
             Manager Guide: Manager-Leitfaden
             Tournament Management: Turnierverwaltung
+            Tournament Quick Reference: Turnier-Schnellreferenz
             League Management: Liga-Management
             Single Tournament: Einzelturnier
             Table Reservation: Tischreservierung
@@ -138,6 +139,7 @@ nav:
   - Managers:
       - managers/index.md
       - Tournament Management: managers/tournament-management.md
+      - Tournament Quick Reference: managers/tournament-quick-reference.md
       - League Management: managers/league-management.md
       - Single Tournament: managers/single-tournament.md
       - Table Reservation: managers/table-reservation.md
