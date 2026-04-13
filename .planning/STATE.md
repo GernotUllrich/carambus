@@ -2,8 +2,8 @@
 gsd_state_version: 1.0
 milestone: v7.0
 milestone_name: Manager Experience
-status: completed
-stopped_at: Completed 35-05-PLAN.md (all Phase 35 plans closed; awaiting orchestrator phase-complete)
+status: in_progress
+stopped_at: Phase 35 complete; Phase 36 (Small UX Fixes) ready to discuss/plan
 last_updated: "2026-04-13T18:21:41.677Z"
 last_activity: 2026-04-13
 progress:
@@ -21,13 +21,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-13)
 
 **Core value:** Code and docs stay in sync — every documented feature works, every working feature is documented, and a volunteer user should never need to read the architecture to run a tournament.
-**Current focus:** Phase 35 — Printable Quick-Reference Card
+**Current focus:** Phase 36 — Small UX Fixes
 
 ## Current Position
 
 Phase: 36
 Plan: Not started
-Status: All 5 plans complete; D-09 gate PASSED (delta 0); human smoke test approved-with-notes; ready for orchestrator `phase complete 35`
+Status: Phase 35 complete and pushed to origin; Phase 36 (Small UX Fixes — FIX-01..04) awaiting /gsd-discuss-phase 36
 Last activity: 2026-04-13
 
 Progress: [██████████] 100%
@@ -64,5 +64,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-04-13T18:30:00.000Z
-Stopped at: Completed 35-05-PLAN.md (all Phase 35 plans closed; awaiting orchestrator phase-complete)
+Stopped at: Phase 35 complete and pushed to origin; carambus_api now in development mode (all edits happen here, carambus_master pulls from origin); Phase 36 ready to discuss/plan
 Resume file: None

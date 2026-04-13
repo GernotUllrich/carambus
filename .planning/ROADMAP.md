@@ -27,7 +27,7 @@ Phases 1-32 completed across six milestones. See MILESTONES.md for details.
 - [x] **Phase 33: UX Review & Wizard Audit** - Identify the canonical wizard partial, observe transient state behavior, and classify all happy-path UX findings by impact tier before any doc or code work begins (completed 2026-04-13)
 - [x] **Phase 34: Task-First Doc Rewrite** - Rewrite `docs/managers/tournament-management.{de,en}.md` as a volunteer task walkthrough with glossary, troubleshooting, and corrected index Quick Start (completed 2026-04-13)
 - [x] **Phase 35: Printable Quick-Reference Card** - Create bilingual Before/During/After printable A4 card with print CSS registered in mkdocs (completed 2026-04-13)
-- [x] **Phase 36: Small UX Fixes** - Implement Tier 1 and Tier 2 UX fixes surfaced by Phase 33: open-by-default help, auto_upload_to_cc alignment, step name display, AASM badge prominence (completed 2026-04-13)
+- [ ] **Phase 36: Small UX Fixes** - Implement Tier 1 and Tier 2 UX fixes surfaced by Phase 33: open-by-default help, auto_upload_to_cc alignment, step name display, AASM badge prominence
 - [ ] **Phase 37: In-App Doc Links** - Fix the mkdocs_link locale bug and wire doc links from each wizard step to the corresponding stable doc anchors from Phase 34
 
 ## Phase Details
