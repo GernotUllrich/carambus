@@ -72,9 +72,6 @@
               <span class="w-1/2 text-right text-sm" data-controller="tooltip" data-tooltip-content-value="<%= t('tournaments.monitor_form.tooltips.timeouts') %>"><%= label_tag t('tournaments.monitor_form.labels.timeouts') %></span><span id="tournament_timeouts"><%= number_field_tag :timeouts, @tournament.timeouts, class: "border-2", data: { reflex: "change->TournamentReflex#timeouts", id: @tournament.id } %></span>
             </div>
             <div class="flex flex-row space-x-4 items-center">
-              <span class="w-1/2 text-right text-sm"><%= label_tag t('tournaments.monitor_form.labels.admin_controlled') %></span><span id="tournament_admin_controlled"><%= check_box_tag :admin_controlled, "1", @tournament.admin_controlled?, class: "border-2", data: { reflex: "change->TournamentReflex#admin_controlled", id: @tournament.id } %></span>
-            </div>
-            <div class="flex flex-row space-x-4 items-center">
               <span class="w-1/2 text-right text-sm" data-controller="tooltip" data-tooltip-content-value="<%= t('tournaments.monitor_form.tooltips.auto_upload_to_cc') %>"><%= label_tag t('tournaments.monitor_form.labels.auto_upload_to_cc') %></span><span id="tournament_auto_upload_to_cc"><%= check_box_tag :auto_upload_to_cc, "1", @tournament.auto_upload_to_cc?, class: "border-2", data: { reflex: "change->TournamentReflex#auto_upload_to_cc", id: @tournament.id } %></span>
             </div>
             <div class="flex flex-row space-x-4 items-center">
