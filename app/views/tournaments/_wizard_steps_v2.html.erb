@@ -2,22 +2,27 @@
 <%# Wizard wird nur angezeigt bis das Turnier tatsächlich gestartet ist %>
 <% unless tournament.tournament_started %>
 
-<!-- Wizard Header mit Progress -->
+<!-- Wizard Header: State badge + bucket chips (FIX-03, FIX-04) -->
 <div class="wizard-header">
   <h2 class="wizard-title">
     <span class="tournament-icon">🎯</span>
     Turnier-Setup: <%= tournament.title %>
   </h2>
-  <div class="wizard-progress">
-    <div class="progress-text">
-      Status: <%= wizard_status_text(tournament) %>
-    </div>
-    <div class="progress-bar-container">
-      <div class="progress-bar" style="width: <%= wizard_progress_percent(tournament) %>%"></div>
-    </div>
-    <div class="progress-steps">
-      Schritt <%= wizard_current_step(tournament) %> von 6
-    </div>
+
+  <!-- Dominant AASM state badge (FIX-04) -->
+  <div class="flex items-center justify-center my-4">
+    <span class="<%= wizard_state_badge_class(tournament) %> inline-block px-6 py-3 rounded-lg text-2xl font-bold shadow-md tracking-wide">
+      <%= wizard_state_badge_label(tournament) %>
+    </span>
+  </div>
+
+  <!-- Bucket chips (FIX-03, D-01) -->
+  <div class="flex flex-wrap justify-center gap-2 mb-2">
+    <% wizard_bucket_chips(tournament).each do |chip| %>
+      <span class="px-3 py-1 rounded-full text-sm font-medium border <%= chip[:active] ? 'bg-blue-600 text-white border-blue-700 shadow' : 'bg-gray-100 text-gray-600 border-gray-300' %>">
+        <%= chip[:label] %>
+      </span>
+    <% end %>
   </div>
 </div>
 
@@ -33,7 +38,6 @@
         </div>
         <div class="wizard-step-content">
           <div class="wizard-step-number-title">
-            <span class="step-number">1.</span>
             <h4 class="step-title">Meldeliste von ClubCloud laden</h4>
             <% if wizard_step_status(tournament, 1) == :completed %>
               <span class="status-badge badge-success">Geladen</span>
@@ -144,7 +148,6 @@
       </div>
       <div class="wizard-step-content">
         <div class="wizard-step-number-title">
-          <span class="step-number"><%= tournament.organizer.is_a?(Region) ? 2 : 1 %>.</span>
           <h4 class="step-title">Setzliste aus Einladung übernehmen</h4>
         </div>
 
@@ -307,7 +310,6 @@
       </div>
       <div class="wizard-step-content">
         <div class="wizard-step-number-title">
-          <span class="step-number"><%= tournament.organizer.is_a?(Region) ? 6 : 5 %>.</span>
           <h4 class="step-title">Verwaltung der Turnierspiele</h4>
           <% if tournament.tournament_started %>
             <span class="status-badge badge-success">Läuft</span>
