@@ -1,0 +1,70 @@
+#!/usr/bin/env bash
+#
+# bin/overcommit/mkdocs-build-on-docs-change
+#
+# Pre-commit hook script invoked by overcommit's MkDocsBuild CustomHook.
+#
+# WHAT IT DOES
+#   When a commit stages any file matching docs/**/*.md, this script:
+#     1. Runs `bin/rails mkdocs:build` to regenerate site/ and copy into public/docs/.
+#     2. Runs `git add public/docs/` so the regenerated files fold into the
+#        in-progress commit atomically.
+#
+# WHY IT EXISTS
+#   Rails serves the tracked `public/docs/` tree at `/docs/`, NOT the `docs/`
+#   source tree. Any drift between the two silently ships stale content to
+#   users. v7.0 UAT gap G-02 (commit 7cf16114) surfaced 4 weeks of drift and
+#   had to be rebuilt inline. This hook makes that class of bug structurally
+#   impossible on a workstation where the hook is active.
+#
+# WHEN IT FIRES
+#   Only when at least one staged path matches docs/**/*.md. Commits that
+#   touch only Ruby/JS/config/anything-else see zero overhead — overcommit's
+#   `include:` filter short-circuits the whole hook.
+#
+# HOW TO BYPASS (emergencies only)
+#   SKIP=MkDocsBuild git commit -m "..."
+#
+# HOW TO ACTIVATE (per fresh clone)
+#   bundle exec overcommit --install
+#   bundle exec overcommit --sign
+#
+set -euo pipefail
+
+PREFIX="[MkDocsBuild]"
+
+# Belt-and-suspenders: re-detect staged docs/**/*.md files even though
+# overcommit's `include:` should already guarantee this. Defending against
+# an accidentally empty filter is cheap and explicit.
+staged_docs=$(git diff --cached --name-only --diff-filter=ACMR | grep -E '^docs/.*\.md$' || true)
+if [ -z "${staged_docs}" ]; then
+  echo "${PREFIX} no docs/**/*.md in staged set, skipping."
+  exit 0
+fi
+
+# Pre-flight: mkdocs CLI must be available. The rake task also checks this,
+# but failing early here gives a cleaner message and avoids a Rails boot.
+if ! command -v mkdocs >/dev/null 2>&1; then
+  echo "${PREFIX} ERROR: mkdocs CLI not found." >&2
+  echo "${PREFIX} Install with:" >&2
+  echo "${PREFIX}   pip install mkdocs-material mkdocs-static-i18n pymdown-extensions" >&2
+  echo "${PREFIX} Or bypass this hook for one commit: SKIP=MkDocsBuild git commit ..." >&2
+  exit 1
+fi
+
+echo "${PREFIX} docs/**/*.md changed — running bin/rails mkdocs:build …"
+
+# Run the rake task. It already prints its own progress + error detail to
+# stdout/stderr; do NOT swallow its output.
+if ! bin/rails mkdocs:build; then
+  echo "${PREFIX} ERROR: bin/rails mkdocs:build failed — see output above. Aborting commit." >&2
+  exit 1
+fi
+
+# Fold the regenerated public/docs/ tree into the in-progress commit.
+# overcommit explicitly supports this: files `git add`ed inside a hook
+# script are picked up by the pending commit.
+git add public/docs/
+
+echo "${PREFIX} Regenerated public/docs/ and staged changes into current commit."
+exit 0

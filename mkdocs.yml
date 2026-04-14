@@ -96,6 +96,7 @@ plugins:
             Scenario Management: Scenario-Management
             Testing & Debugging: Testing & Debugging
             Deployment Workflow: Deployment-Workflow
+            Overcommit Hooks (MkDocsBuild): Overcommit-Hooks (MkDocsBuild)
             Server Scripts: Server-Scripts
             Raspberry Pi Scripts: Raspberry Pi-Scripts
             Data Management: Datenverwaltung
@@ -199,6 +200,7 @@ nav:
       - Frontend STI Migration: developers/frontend-sti-migration.md
       - Testing & Debugging: developers/rake-tasks-debugging.md
       - Deployment Workflow: developers/deployment-workflow.md
+      - Overcommit Hooks (MkDocsBuild): developers/overcommit-hooks.md
       - Data Management: developers/data-management.md
       - Database Partitioning: developers/database-partitioning.md
       - Paper Trail Optimization: developers/paper-trail-optimization.md
