@@ -1066,6 +1066,10 @@ en:
           order: "Order"
           name: "Player"
           club: "Club"
+    docs:
+      walkthrough_link: "📖 Full walkthrough in handbook →"
+      form_help_link: "📖 Full walkthrough in handbook →"
+      form_help_prefix: "Help for this step:"
     monitor_form:
       labels:
         balls_goal: "Balls goal"

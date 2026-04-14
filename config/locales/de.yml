@@ -1088,6 +1088,10 @@ de:
           order: "Reihenfolge"
           name: "Spieler"
           club: "Verein"
+    docs:
+      walkthrough_link: "📖 Detailanleitung im Handbuch →"
+      form_help_link: "📖 Detailanleitung im Handbuch →"
+      form_help_prefix: "Hilfe zu diesem Schritt:"
     monitor_form:
       labels:
         balls_goal: "Bälle-Ziel"
