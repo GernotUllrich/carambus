@@ -159,13 +159,13 @@ Phases 1-32 completed across six milestones. See MILESTONES.md for details.
   2. All 6 happy-path wizard steps in the canonical partial render a working doc link when the user clicks it; the link opens the pre-built mkdocs site in a new tab
   3. Form help text in TournamentsController (invitation upload, participant editing, mode selection, table assignment, start settings) includes doc links pointing volunteers to the relevant doc sections
   4. At least 3 wizard-step links use anchor fragments to deep-link into specific sections of the rewritten doc (e.g., `#seeding-list`, `#mode-selection`), not just the page top
-**Plans**: 6 plans
-- [x] 36B-01-wizard-header-rewrite-PLAN.md — Wizard header rewrite: six bucket chips + dominant AASM state badge + FIX-01 active help expansion (FIX-01, FIX-03, FIX-04)
-- [x] 36B-02-parameter-form-i18n-and-tooltips-PLAN.md — Full i18n conversion of tournament_monitor parameter labels + new Stimulus tooltip controller (UI-01, UI-02)
-- [x] 36B-03-admin-controlled-removal-PLAN.md — Remove admin_controlled checkbox, reflex handler, and simplify player_controlled? gate to always-true (UI-03)
-- [x] 36B-04-dead-code-cleanup-PLAN.md — Remove dead-code manual input UI from _current_games.html.erb + git rm _wizard_steps.html.erb after re-verification (UI-04, UI-05)
-- [x] 36B-05-confirmation-modal-and-reset-safety-PLAN.md — Shared Stimulus confirmation modal infrastructure + UI-06 reset-confirmation rewire on 3 reset buttons + Capybara system test (UI-06)
-- [x] 36B-06-parameter-verification-PLAN.md — Discipline#parameter_ranges + server-side pre-start range check + modal trigger + Minitest unit tests + Capybara system test (UI-07)
+**Plans**: 5 plans
+- [ ] 37-01-PLAN.md — Fix mkdocs_link helper (locale-aware URL + anchor support + text-required guard) + 3 new tournaments.docs.* i18n keys DE/EN (LINK-01)
+- [ ] 37-02-PLAN.md — Add 4 stable {#anchor} attrs on Schritt 3/4/6/7 headings in tournament-management.{de,en}.md + mkdocs strict build gate (LINK-02, LINK-04)
+- [ ] 37-03-PLAN.md — _wizard_step.html.erb partial API (docs_path/docs_anchor locals) + wire all 6 happy-path wizard steps to mkdocs_link in _wizard_steps_v2.html.erb (LINK-02, LINK-04)
+- [ ] 37-04-PLAN.md — Form help doc links in parse_invitation/define_participants/finalize_modus/tournament_monitor (Phase 36b tooltips NOT modified) (LINK-03)
+- [ ] 37-05-PLAN.md — Minitest helper tests (mkdocs_link/mkdocs_url contract) + Capybara system test (DE+EN locale wizard doc link) + final LINK-0X verification sweep (LINK-01..04)
+
 **UI hint**: yes
 
 ## Progress
