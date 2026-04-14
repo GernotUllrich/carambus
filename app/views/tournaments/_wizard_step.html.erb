@@ -45,7 +45,7 @@
 
       <% if help.present? %>
         <div class="step-help">
-          <details>
+          <details<%= " open" if status == :active %>>
             <summary>💡 Was macht dieser Schritt?</summary>
             <p><%= help.html_safe %></p>
           </details>

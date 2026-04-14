@@ -63,7 +63,7 @@
           <% end %>
 
           <div class="step-help">
-            <details>
+            <details<%= " open" if wizard_step_status(tournament, 1) == :active %>>
               <summary>💡 Was ist die Meldeliste?</summary>
               <p>
                 Die <strong>Meldeliste</strong> enthält alle Spieler, die sich für das Turnier
@@ -178,7 +178,7 @@
         <% end %>
 
         <div class="step-help">
-          <details>
+          <details<%= " open" if wizard_step_status(tournament, 2) == :active %>>
             <summary>💡 Was macht dieser Schritt?</summary>
             <p>
               Laden Sie die <strong>offizielle Einladung</strong> vom Landessportwart hoch.
@@ -324,7 +324,7 @@
         <% end %>
 
         <div class="step-help">
-          <details>
+          <details<%= " open" if wizard_step_status(tournament, 6) == :active %>>
             <summary>💡 Was macht dieser Schritt?</summary>
             <p>
               <% if tournament.tournament_started %>
