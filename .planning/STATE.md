@@ -4,7 +4,7 @@ milestone: v7.0
 milestone_name: Manager Experience
 status: verifying
 stopped_at: Completed 36A-07-PLAN.md (final verification); Phase 36A ready for close-out
-last_updated: "2026-04-14T08:42:50.189Z"
+last_updated: "2026-04-14T08:49:09.243Z"
 last_activity: 2026-04-14
 progress:
   total_phases: 5
@@ -25,8 +25,8 @@ See: .planning/PROJECT.md (updated 2026-04-13)
 
 ## Current Position
 
-Phase: 36a (Turnierverwaltung Doc Accuracy) — EXECUTING
-Plan: 7 of 7
+Phase: 36b
+Plan: Not started
 Status: Phase complete — ready for verification
 Last activity: 2026-04-14
 

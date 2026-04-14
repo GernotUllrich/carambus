@@ -167,7 +167,7 @@ Phases 1-32 completed across six milestones. See MILESTONES.md for details.
 | 33. UX Review & Wizard Audit | v7.0 | 3/3 | Complete    | 2026-04-13 |
 | 34. Task-First Doc Rewrite | v7.0 | 4/4 | Complete    | 2026-04-13 |
 | 35. Printable Quick-Reference Card | v7.0 | 5/5 | Complete    | 2026-04-13 |
-| 36a. Turnierverwaltung Doc Accuracy | v7.0 | 7/7 | Complete   | 2026-04-14 |
+| 36a. Turnierverwaltung Doc Accuracy | v7.0 | 7/7 | Complete    | 2026-04-14 |
 | 36b. UI Cleanup & Kleine Features | v7.0 | 0/TBD | Not started | - |
 | 36c. v7.1 Preparation / CC Groundwork | v7.0 | 0/TBD | Not started | - |
 | 37. In-App Doc Links | v7.0 | 0/TBD | Not started | - |
