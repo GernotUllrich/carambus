@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v7.0
 milestone_name: Manager Experience
 status: executing
-stopped_at: Phase 37 plans created and verified
-last_updated: "2026-04-14T20:43:24.673Z"
+stopped_at: Completed 37-02-PLAN.md
+last_updated: "2026-04-14T20:53:09.018Z"
 last_activity: 2026-04-14
 progress:
   total_phases: 5
@@ -21,13 +21,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-13)
 
 **Core value:** Code and docs stay in sync — every documented feature works, every working feature is documented, and a volunteer user should never need to read the architecture to run a tournament.
-**Current focus:** Phase 36B — UI Cleanup & Kleine Features
+**Current focus:** Phase 37 — in-app-doc-links
 
 ## Current Position
 
-Phase: 36B
-Plan: Not started
-Status: Executing Phase 36B
+Phase: 37 (in-app-doc-links) — EXECUTING
+Plan: 2 of 5
+Status: Ready to execute
 Last activity: 2026-04-14
 
 Progress: [██████████] 100%
@@ -60,6 +60,7 @@ Recent decisions affecting current work:
 - [Phase 36A]: Plan 36A-05: 'Mehr zur Technik' section replaced with single-line italic dev-docs pointer rather than deleted entirely — removes architectural monologue without pretending developer docs don't exist
 - [Phase 36A]: Plan 36A-06: Anhang section inserted with 6 sub-sections; all forward-link debt from Plans 01-05 resolved; CC-upload and CC-CSV flagged as first-pass with PREP-04 deferral for Phase 36c
 - [Phase 36A]: Plan 36A-07: mkdocs strict build exit 0, 0 warnings, 0 errors (baseline 191); all 7 phase success criteria PASS; all 6 DOC-ACC-NN requirements PASS; 57/58 F-36-NN findings addressed (F-36-55 deferred to 36b UI-07); zero broken same-file anchor references in DE or EN
+- [Phase 37]: Phase 37 Plan 02: Added 4 stable {#anchor} attrs (seeding-list, participants, mode-selection, start-parameters) on Schritt/Step 3,4,6,7 in tournament-management.{de,en}.md. Identical kebab-case IDs across locales. mkdocs --strict: 0 warnings.
 
 ### Pending Todos
 
@@ -78,6 +79,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-14T20:43:24.670Z
-Stopped at: Phase 37 plans created and verified
-Resume file: .planning/phases/37-in-app-doc-links/37-01-PLAN.md
+Last session: 2026-04-14T20:53:00.271Z
+Stopped at: Completed 37-02-PLAN.md
+Resume file: None

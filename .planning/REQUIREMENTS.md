@@ -67,9 +67,9 @@ Requirements for the Manager Experience milestone. Each maps to exactly one phas
 ### In-App Doc Links
 
 - [ ] **LINK-01**: The `mkdocs_link` locale bug in `app/helpers/application_helper.rb:149` is fixed. The helper generates `/docs/en/#{path}` for EN locale and `/docs/de/#{path}` (or root `/docs/`) for DE locale, matching the `docs_page_link` pattern at `app/views/static/docs_page.html.erb:18-22`.
-- [ ] **LINK-02**: Each wizard step in `_wizard_steps_v2.html.erb` (or canonical partial) accepts a `docs_path:` local and, when present, renders a `mkdocs_link` to the corresponding section of `tournament-management.{locale}.md`. All 6 happy-path wizard steps have working links.
+- [x] **LINK-02**: Each wizard step in `_wizard_steps_v2.html.erb` (or canonical partial) accepts a `docs_path:` local and, when present, renders a `mkdocs_link` to the corresponding section of `tournament-management.{locale}.md`. All 6 happy-path wizard steps have working links.
 - [ ] **LINK-03**: TournamentsController form help text (invitation upload, participant editing, mode selection, table assignment, start settings) includes doc links via `mkdocs_link`. Help text points volunteers at doc sections for context, not just inline hints.
-- [ ] **LINK-04**: At least 3 wizard-step links from LINK-02 use anchor fragments to deep-link into specific sections of the rewritten doc (e.g., `#seeding-list`, `#mode-selection`), not just page top. Requires stable anchors from DOC-01/DOC-02 to be frozen first.
+- [x] **LINK-04**: At least 3 wizard-step links from LINK-02 use anchor fragments to deep-link into specific sections of the rewritten doc (e.g., `#seeding-list`, `#mode-selection`), not just page top. Requires stable anchors from DOC-01/DOC-02 to be frozen first.
 
 ## Out of Scope
 
@@ -121,9 +121,9 @@ Requirements for the Manager Experience milestone. Each maps to exactly one phas
 | PREP-03 | Phase 36c | Pending |
 | PREP-04 | Phase 36c | Pending |
 | LINK-01 | Phase 37 | Pending |
-| LINK-02 | Phase 37 | Pending |
+| LINK-02 | Phase 37 | Complete |
 | LINK-03 | Phase 37 | Pending |
-| LINK-04 | Phase 37 | Pending |
+| LINK-04 | Phase 37 | Complete |
 
 **Coverage (after Phase 36 split, 2026-04-14):**
 - v7.0 requirements: **37 total** (was 20; +17 from scope evolution: +6 DOC-ACC, +7 UI, +4 PREP)
