@@ -8,17 +8,13 @@ A Rails tournament management system for carom billiards that Sports Managers (v
 
 Code and docs stay in sync — every documented feature works, every working feature is documented, and a volunteer user should never need to read the architecture to run a tournament.
 
-## Current Milestone: v7.0 Manager Experience
+## Current Milestone
 
-**Goal:** A volunteer club officer who runs 2-3 tournaments per year can manage one end-to-end using Carambus, with task-first documentation and a happy-path UX that doesn't trip them up each time they come back.
+_v7.0 Manager Experience shipped 2026-04-15. Next milestone is TBD — run `/gsd-new-milestone` to start the questioning → research → requirements → roadmap cycle. v7.1 ClubCloud Integration and v7.2 Shootout Support skeletons already exist at `.planning/milestones/v7.1-*` and `.planning/milestones/v7.2-*` as groundwork planted by Phase 36c._
 
-**Target features:**
-- Task-first rewrite of `docs/managers/tournament-management.{de,en}.md` — "Running your first tournament" replaces architecture-heavy opening
-- Happy-path wizard coverage only: new_tournament → seeding → mode → start → finished
-- Printable one-page quick reference card (Before / During / After checklist)
-- UX review of the TournamentsController wizard along the happy path
-- Small documented-but-missing feature implementations as surfaced during the review
-- In-app links from wizard steps to relevant mkdocs pages
+## Completed: v7.0 Manager Experience (shipped 2026-04-15)
+
+A volunteer club officer running 2-3 tournaments per year can now manage one end-to-end with task-first documentation and a happy-path UX. Delivered in 7 phases (33→34→35→36a→36b→36c→37): wizard partial consolidated and audited (Phase 33), tournament-management walkthrough rewritten task-first in DE and EN with glossary and troubleshooting (Phase 34), printable A4 quick-reference card with laminate-ready print CSS (Phase 35), 58-finding doc-accuracy review applied (Phase 36a), wizard header redesign with dominant AASM state badge + 6 bucket chips + 16 parameter tooltips + reset/parameter confirmation modals + admin_controlled auto-advance (Phase 36b), v7.1/v7.2 milestone skeletons + backlog seeds planted (Phase 36c), and in-app wizard-to-doc links with locale-aware `mkdocs_link` helper + 4 stable anchor IDs + 4 form-help info boxes (Phase 37). Human UAT confirmed all 7 functional criteria on 2026-04-15; 5 non-regression follow-up gaps (G-01..G-06, minus G-02 fixed inline) captured in seed `v71-ux-polish-i18n-debt.md` for next milestone. 37/37 requirements complete, 36 shipped + 1 closed as no-op.
 
 ## Completed: v6.0 Documentation Quality (shipped 2026-04-13)
 
@@ -77,13 +73,17 @@ Audited, repaired, and documented the entire mkdocs site: zero broken links, zer
 - ✓ Document new features and services from v1.0–v5.0 — v6.0 (8 namespace pages, Video:: cross-ref, 35-service developer guide)
 - ✓ Verify multilingual consistency (de/en) — v6.0 (17 bilingual gaps closed, zero warnings)
 
+- ✓ UX review of TournamentsController wizard happy path — v7.0 Phase 33 (UX-01..04: canonical partial identified, transient AASM state documented, 14 findings classified by impact tier)
+- ✓ Task-first rewrite of tournament-management.{de,en}.md — v7.0 Phase 34 (DOC-01..05: both languages rewritten with walkthrough, glossary, troubleshooting, corrected Quick Start)
+- ✓ Printable one-page quick reference card — v7.0 Phase 35 (QREF-01..03: A4 Before/During/After card + print.css + scoreboard shortcut cheat sheet, DE + EN)
+- ✓ Phase 36a Turnierverwaltung doc accuracy — v7.0 (DOC-ACC-01..06: 58 findings applied, Begriffshierarchie consistent, glossary expanded, appendix sections for special flows, "Mehr zur Technik" removed)
+- ✓ Phase 36b UI cleanup + safety features — v7.0 (FIX-01/03/04 + UI-01..07: wizard header with dominant AASM badge + 6 bucket chips, active-help auto-open, 16 parameter tooltips, full i18n of parameter labels, admin_controlled removed + auto-advance gate, dead-code manual input removed, unused partial deleted, reset confirmation modal, parameter verification modal with Discipline#parameter_ranges)
+- ✓ Phase 36c v7.1 preparation — v7.0 (PREP-01..04: v7.1 ClubCloud Integration skeleton, v7.2 Shootout skeleton, Match-Abbruch/Freilos + UI-consolidation backlog seeds, CC admin-side appendix content for DOC-ACC-04)
+- ✓ In-app wizard-to-doc links — v7.0 Phase 37 (LINK-01..04: locale-aware mkdocs_link helper, 4 stable `{#id}` anchors in both DE/EN doc files, all 6 wizard steps + 4 form-help info boxes wired, Minitest + controller integration tests)
+
 ### Active
 
-- [ ] Task-first rewrite of `docs/managers/tournament-management.{de,en}.md` — volunteer-friendly walkthrough, architecture moved to appendix or developer docs
-- [ ] Printable one-page quick reference card (Before / During / After checklist) in `docs/managers/`
-- [ ] UX review of the TournamentsController wizard happy path — identify friction points and documented-but-missing features
-- [ ] Fix small UX issues and implement documented-but-missing features along the happy path
-- [ ] Add in-app links from wizard steps to the corresponding docs sections
+_Next milestone TBD — run `/gsd-new-milestone` to populate this section. v7.1 ClubCloud Integration and v7.2 Shootout skeletons already exist in `.planning/milestones/` as groundwork from Phase 36c._
 
 ### Out of Scope
 
@@ -102,7 +102,8 @@ Audited, repaired, and documented the entire mkdocs site: zero broken links, zer
 - **v4.0 shipped 2026-04-12:** League 2221→663 lines (4 services), PartyMonitor 605→217 lines (2 services), 30 controller + 10 reflex tests
 - **v5.0 shipped 2026-04-12:** UmbScraper 2133→175 lines (10 services), UmbScraperV2 deleted (585 lines absorbed), SoopLive JSON API integrated, video cross-referencing built
 - **v6.0 shipped 2026-04-13:** Documentation audit + repair — 75 broken links fixed, 8 namespace pages, Video:: docs, 35-service guide, 17 bilingual pairs, zero mkdocs warnings
-- Test suite: 1130 runs, 0 failures, 0 errors
+- **v7.0 shipped 2026-04-15:** Manager Experience — 7 phases (33-37), 37/37 requirements, 31 plans, Turnierverwaltung walkthrough rewritten task-first in DE/EN, 58-finding doc accuracy review applied, wizard header redesign with dominant AASM state badge, 16 parameter tooltips, reset/parameter confirmation modals, `admin_controlled` removed with auto-advance gate, printable A4 Quick-Reference Card, in-app wizard-to-doc links with 4 stable anchors, `mkdocs_link` helper locale bug fixed. 145 test runs + 41 new assertions for Phase 37 helper contract. Human UAT (2026-04-15) confirmed all functional criteria; 5 follow-up gaps captured in `v71-ux-polish-i18n-debt.md` seed.
+- Test suite: 1145+ runs, 0 failures, 0 errors
 - Sync: PaperTrail + RegionTaggable filtering, local servers pull via Version.update_from_carambus_api
 - ApiProtector + LocalProtector both have test overrides in test_helper.rb
 - Extracted services (37 total): ScoreEngine, GameSetup, OptionsPresenter, ResultRecorder, ClubCloudClient + 9 syncers (v1.0), RankingCalculator, TableReservationService, PublicCcScraper, PlayerGroupDistributor, RankingResolver, ResultProcessor, TablePopulator (v2.1), League::StandingsCalculator, League::GamePlanReconstructor, League::ClubCloudScraper, League::BbvScraper, PartyMonitor::TablePopulator, PartyMonitor::ResultProcessor (v4.0), Umb::HttpClient, Umb::DisciplineDetector, Umb::DateHelpers, Umb::PlayerResolver, Umb::PdfParser::PlayerListParser, Umb::PdfParser::GroupResultParser, Umb::PdfParser::RankingParser, Umb::FutureScraper, Umb::ArchiveScraper, Umb::DetailsScraper (v5.0)
@@ -159,6 +160,16 @@ Audited, repaired, and documented the entire mkdocs site: zero broken links, zer
 | Regex-first + AI fallback for MetadataExtractor | Most titles have known patterns; AI only for outliers | ✓ Good — avoids API cost for majority of videos |
 | Confidence scoring with 0.75 threshold | Auto-assign above threshold; below requires review | ✓ Good — measurable, tunable |
 | Both backfill + incremental for video matching | Rake task for existing backlog, daily job for new videos | ✓ Good — enables measuring match rate before automation |
+| Split Phase 36 into 36a/36b/36c | 58-finding doc review exposed scope was 17 requirements too narrow; splitting preserved momentum | ✓ Good (v7.0) — each sub-phase shipped with tight scope, 36a landed doc accuracy while 36b did UI in parallel |
+| Bucket chips replace "Schritt N von 6" progress text | Linear framing overstates manager activity during passive phases (F-36-30) | ✓ Good (v7.0) — 6 chips with active highlight matches the actual 6 AASM bucket states |
+| Dominant AASM state badge as primary orientation | 2-3x/year volunteers need "where am I" at a glance more than "how far" | ✓ Good (v7.0) — colored 2xl badge with per-state mapping, Phase 36B UAT confirmed |
+| Shared Stimulus confirmation modal for UI-06 + UI-07 | Both are safety confirmations, same pattern cuts implementation work in half | ✓ Good (v7.0) — single controller + partial reused by reset and parameter-verification flows |
+| admin_controlled column kept, gate flipped to always-true | Preserves read-compatibility with global records; zero migration | ✓ Good (v7.0) — automatic round advance works, no schema churn |
+| Phase 37 doc deep-links via explicit `{#anchor}` attrs in both .de.md and .en.md | Locale-neutral stable anchors; Ruby helper stays locale-agnostic for fragments | ✓ Good (v7.0) — 4 anchors (seeding-list, participants, mode-selection, start-parameters) |
+| `mkdocs_link` helper follows `docs_page.html.erb:18-22` (DE root, EN prefix) | REQUIREMENTS wording said `/docs/de/` but actual mkdocs build has no DE prefix | ✓ Good (v7.0) — code is authoritative over requirements prose; zero mkdocs.yml changes |
+| `mkdocs_link` callers must pass `text:` explicitly (no humanize fallback) | Auto-humanize produces English text in DE views, which is wrong | ✓ Good (v7.0) — i18n keys under `tournaments.docs.*` keep link text localized |
+| Phase 36B human UAT gaps captured as seed, not todos | 5 non-regression items that belong together; seed surfaces at next milestone kickoff | ✓ Good (v7.0) — `v71-ux-polish-i18n-debt.md` planted with concrete fix sketches |
+| `bin/rails mkdocs:build` run at milestone-completion time as part of UAT | G-02 discovered `public/docs/` stale since Mar 18; inline fix closed the gap | ✓ Good (v7.0, but flagged as deployment-hardening debt) — structural fix deferred to v7.1 or later |
 
 ## Evolution
 
@@ -178,4 +189,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-13 after starting v7.0 Manager Experience milestone — Core Value broadened to code-docs sync, behavior preservation scoped to unchanged flows, feature work allowed*
+*Last updated: 2026-04-15 after shipping v7.0 Manager Experience — 7 phases, 37/37 requirements, Phase 36B human UAT confirmed, 5 follow-up gaps captured as v7.1 seed*

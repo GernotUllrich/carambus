@@ -1,5 +1,80 @@
 # Milestones
 
+## v7.0 Manager Experience (Shipped: 2026-04-15)
+
+**Phases completed:** 7 phases (33, 34, 35, 36a, 36b, 36c, 37), 31 plans, 37/37 requirements
+**Theme:** Make Carambus usable for the 2-3x/year volunteer club officer persona
+**Delivered:** Task-first walkthrough + happy-path UX polish + safety confirmations + in-app wizard-to-doc links
+
+**Key accomplishments by phase:**
+
+**Phase 33 — UX Review & Wizard Audit:**
+- Canonical wizard partial identified (`_wizard_steps_v2.html.erb`); non-canonical partial retired
+- 24 tournament wizard findings tier-classified (14 Tier 1 view, 7 Tier 2 controller, 1 Tier 3 AASM); UX-FINDINGS.md authored as spec for downstream phases
+- Transient `tournament_started_waiting_for_monitors` AASM state observed and documented
+
+**Phase 34 — Task-First Doc Rewrite:**
+- Both `tournament-management.{de,en}.md` rewritten as volunteer-friendly 14-step walkthrough (NDM Freie Partie scenario) with glossary, troubleshooting, and matching bilingual skeleton
+- `docs/managers/index.{de,en}.md` "Quick Start: 10 Steps" corrected to reflect the actual ClubCloud-sourced workflow
+- 3 Phase 33 screenshots embedded at walkthrough steps 2, 6, 10 in both languages
+- 18-term grouped glossary + 4-case Problem/Cause/Fix troubleshooting
+
+**Phase 35 — Printable Quick-Reference Card:**
+- A4 printable `tournament-quick-reference.{de,en}.md` with Before/During/After checklist (21 items per language) + scoreboard keyboard shortcut cheat sheet (14 rows + ASCII keycap strip)
+- Shared `@media print` stylesheet stripping mkdocs-material chrome; laminate-ready layout; mkdocs nav + DE label `Turnier-Schnellreferenz` wired in one atomic commit
+- 13 deep-links to Phase 34 walkthrough anchors; zero new strict warnings
+
+**Phase 36a — Turnierverwaltung Doc Accuracy:**
+- 57 of 58 F-36-NN findings applied across both language files (F-36-55 deferred to 36b UI-07)
+- Begriffshierarchie (Setzliste / Meldeliste / Teilnehmerliste) enforced consistently; Ballziel vs. Aufnahmebegrenzung disambiguated; Default{n} plan framing; logical vs. physical table mapping
+- Fictional UI elements removed ("Modus ändern" button, "Ergebnisse nach ClubCloud übertragen" Schaltfläche, DB-Admin recovery myth)
+- New glossary entries (Meldeliste, Teilnehmerliste, Logischer Tisch, Physikalischer Tisch, TableMonitor, Turnier-Monitor, Trainingsmodus, Freilos, T-Plan vs. Default-Plan)
+- 10 troubleshooting recipes (6 new + 4 rewritten)
+- New Anhang/Appendix with 6 special-flow sub-sections (no-invitation, missing-player, late-registration, CC 2-path upload, CC CSV detail, manual final-ranking)
+- Walkthrough restructured to honestly distinguish manager-action phases from passive phases
+
+**Phase 36b — UI Cleanup & Kleine Features:**
+- Wizard header redesign: dominant colored AASM state badge + 6 bucket chips (replacing "Schritt N von 6" progress bar), active step's help auto-opens via `<details open>`
+- Full i18n conversion of 16 parameter labels in `tournament_monitor.html.erb` + new Stimulus `tooltip_controller` rendering dark Tailwind hover cards
+- `admin_controlled` checkbox removed + reflex handler deleted + `Tournament#player_controlled?` gate flipped to always-true (column kept for global-record read compatibility)
+- Dead-code manual input removed from "Aktuelle Spiele" table (read-only table); unused `_wizard_steps.html.erb` partial deleted
+- Shared Stimulus confirmation modal infrastructure: reset modal (always shown regardless of AASM state) + parameter-verification modal triggered by `Discipline#parameter_ranges` out-of-range values before `start_tournament!`
+- Human UAT confirmed (2026-04-15) all 8 visual criteria; 5 non-regression follow-up gaps captured in seed
+
+**Phase 36c — v7.1 Preparation / ClubCloud Integration Groundwork:**
+- v7.1 ClubCloud Integration milestone skeleton (Endrangliste automatic calculation, Teilnehmerliste finalization via CC API, credentials delegation)
+- v7.2 Shootout/Stechen support milestone skeleton (AASM + TournamentPlan + scoreboard UI)
+- Backlog seeds planted: Match-Abbruch/Freilos handling (medium), UI consolidation of historically grown screens (large)
+- ClubCloud admin-side handling appendix content authored and supplied to Phase 36a DOC-ACC-04
+
+**Phase 37 — In-App Doc Links:**
+- `mkdocs_link` helper fixed for locale-aware URL generation (DE root `/docs/#{path}/`, EN `/docs/en/#{path}/`) matching `docs_page.html.erb:18-22` exactly; new `anchor:` kwarg; text-required guard (no humanize fallback); `target="_blank" rel="noopener"` preserved
+- 3 new i18n keys under `tournaments.docs.*` namespace in DE + EN (walkthrough_link, form_help_link, form_help_prefix)
+- 4 stable `{#anchor}` attrs added to both `.de.md` and `.en.md` (`#seeding-list`, `#participants`, `#mode-selection`, `#start-parameters`) — language-neutral kebab-case IDs, `attr_list` markdown extension already enabled
+- `_wizard_step.html.erb` partial extended with optional `docs_path:` + `docs_anchor:` locals; all 6 happy-path wizard steps wired (steps 3/4/5 via partial, steps 1/2/6 inline); 5 of 6 deep-linked, 1 page-top
+- 4 form-help info boxes added (`parse_invitation`, `define_participants`, `finalize_modus`, `tournament_monitor`) reusing Begriffserklärung Tailwind classes; Phase 36b tooltips on `tournament_monitor.html.erb` remain byte-identical (16 → 16)
+- Minitest helper tests (13 runs / 27 assertions) + controller integration test (2 runs / 14 assertions) for DE + EN wizard doc-link rendering; all green
+
+**Cross-cutting fix discovered during UAT:**
+- **G-02 inline fix**: `public/docs/` rebuilt via `bin/rails mkdocs:build` — `public/docs/` had been stale since 2026-03-18, so all Phase 34/35/36a/37 doc source changes were bypassed by the Rails server. Commit `7cf16114` regenerated 257 files (+70,891 / −14,984 lines). Structural deployment hardening (pre-commit hook / CI guard) deferred to a future milestone.
+
+**Follow-up debt (captured in seed `.planning/seeds/v71-ux-polish-i18n-debt.md`):**
+- G-01 (medium): Dark-mode contrast in wizard `<details>` help block + inline-styled info banners
+- G-03 (low): Tooltip labels lack visual affordance (dashed underline + cursor: help)
+- G-04 (low): Pre-existing DE-only hardcoded strings outside parameter form (NOT a v7.0 regression)
+- G-05 (low): EN "Training" should be "Warmup" at `config/locales/en.yml:844-846` (pre-existing bug)
+- G-06 (medium): `Discipline#parameter_ranges` derived from one specific scenario, needs widening
+- All 5 are candidates for a v7.1 "UX polish & i18n debt" micro-phase (1-3 plans, ~2h-1d total)
+
+**Stats:**
+- 7 phases, 31 plans, 37/37 requirements (36 shipped + 1 closed as no-op FIX-02)
+- Phase 37 added 41 new Minitest assertions
+- Phase 36a applied 57/58 doc findings (1 deferred to 36b)
+- Zero mkdocs `--strict` warnings (baseline 191 → 0 since Phase 36c groundwork tightening)
+- Test suite: 1145+ runs, 0 failures, 0 errors
+
+---
+
 ## v6.0 Documentation Quality (Shipped: 2026-04-13)
 
 **Phases completed:** 5 phases, 12 plans, 20 tasks
