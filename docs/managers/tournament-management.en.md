@@ -110,15 +110,11 @@ When the participant list is complete, click the **"Close participant list"** li
 <a id="step-6-mode-selection"></a>
 ### Step 6: Select tournament mode
 
-Wizard Step 5 opens a separate page "Final selection of playing mode". You see three cards with the available [tournament plans](#glossary-wizard): typically **T04**, **T05**, and **DefaultS**. Each card shows the number of rounds and tournament days. With 5 participants the suggestion is usually T04 (5 rounds, 1 tournament day, 2 tables).
+Wizard Step 5 opens a separate page "Final selection of playing mode". You see **one or more cards** with the available [tournament plans](#glossary-wizard) — the selection depends on the participant count and only shows plans that fit, plus the dynamically generated **`Default{n}`** plan where `{n}` is the current participant count.
 
-!!! tip "Which tournament plan should I pick?"
-    Carambus usually suggests one plan automatically (for example **T04**
-    for 5 participants). Accept the suggestion unless you have a specific
-    reason to prefer an alternative. The alternatives differ mainly in the
-    number of rounds and tournament days — for a typical NDM Freie Partie
-    Class 1–3, the suggested plan is almost always correct.
-<!-- ref: F-12 -->
+`Default{n}` is a **dynamically generated round-robin plan**; its required table count is computed from the participant count. The T-plans (T04, T05, …) by contrast have fixed match structures and table counts taken from the official Carom Tournament Regulations.
+
+With 5 participants, the typical suggestion is **T04** (the standard for 5 players in the regulations). The plan **specified in the invitation** is normally the binding one set by the regional sports officer — accept that suggestion.
 
 Click **"Continue with T04"** (or the suggested plan). The selection is applied **immediately and without a confirmation dialog**. If you accidentally chose the wrong plan, see [Wrong mode selected](#ts-wrong-mode).
 
@@ -126,33 +122,46 @@ Click **"Continue with T04"** (or the suggested plan). The selection is applied 
 *Figure: Mode selection showing the three tournament plans with automatic T04 suggestion for 5 participants (example from the Phase 33 audit).*
 
 <a id="step-7-start-form"></a>
-### Step 7: Fill in start parameters
+### Step 7: Start parameters and table assignment
 
-After mode selection the start form opens. At the top you see a summary of the selected mode, followed by the **"Table assignment"** section and a **"Tournament Parameters"** form with approximately 15 fields.
+!!! info "Steps 7 and 8 live on the same page"
+    After mode selection, **one** parametrisation page opens that contains
+    both the start parameters and the table assignment. The doc separates
+    them into two steps for didactic reasons — in the UI they are one page.
 
-!!! tip "English field labels on the start form"
-    A number of fields on the start form are currently labelled in English
-    or in garbled German (for example *Tournament manager checks results
+At the top you see a summary of the selected mode, then the **"Table assignment"** section, and a form **"Tournament parameters"** with the playing rules.
+
+!!! tip "English field labels in the start form"
+    Some parameters in the start form are currently labelled in English or
+    described unclearly (for example *Tournament manager checks results
     before acceptance* or *Assign games as tables become available*). The
-    [Glossary](#glossary) below explains the most important terms. When in
-    doubt, keep the default values and review the settings after the
-    tournament.
+    [glossary](#glossary) below explains the most important terms. When in
+    doubt, accept the defaults and verify the settings **before starting
+    the tournament**.
 <!-- ref: F-14 -->
 
-The most important fields for an NDM Freie Partie:
+**The essential parameters you need to know:**
 
-- **Target balls** / **innings_goal** ([Target balls / innings_goal](#glossary-karambol)): The number of points (caroms) a player must score to win a match. For Freie Partie Class 1–3, typical values range from 50 to 150 — check the invitation.
-- **Inning limit** ([Inning](#glossary-karambol)): Maximum number of innings per match. 0 = unlimited.
-- **Tournament manager checks results before acceptance**: When enabled, you must manually confirm each result before it is recorded. For small tournaments with reliable scoreboard operators you can disable this.
+- **Table assignment** (see the section further down in this step) — which **physical tables** in your venue map to the **logical tables** of the tournament plan
+- **Target balls** (`balls_goal`): The number of points (caroms) a player must score to win a match. For NDM Freie Partie Class 1–3 the value comes from the invitation (typically **150 balls**, optionally reduced by 20 %). The Carom Sport Regulations are authoritative.
+- **Inning limit** (`innings_goal`): Maximum number of innings per match. For Freie Partie Class 1–3 typically **50 innings** (optionally reduced by 20 %). **Empty field or 0 = unlimited** (the UI does not document this clearly — please read it here).
+- **Match closure** by the manager or by the players — who confirms the result at the scoreboard after a match ends
+- **`auto_upload_to_cc`** (checkbox "Upload results automatically to ClubCloud") — if enabled, every individual result is uploaded to ClubCloud immediately after the match ends. See the appendix [ClubCloud upload — two paths](#appendix-cc-upload) for prerequisites and alternatives.
+- **Timeout control** — referee timer per inning (discipline-dependent)
+- **Nachstoß** — rule variant in certain carom disciplines (if the player who reaches the target was not the opener, the opponent gets one final inning to equalise)
 
-Fill in the fields and proceed to [Step 8](#step-8-tables) for table assignment.
+Some parameters only appear for certain disciplines — for example the Nachstoß checkbox only shows when the chosen discipline uses that rule.
+
+> **Note on "Bälle vor":** The UI label "Bälle vor" sometimes appears next to target balls — that is an **individual handicap value used in handicap tournaments** (each player gets a different value), not to be confused with the general target-balls parameter.
 
 <a id="step-8-tables"></a>
-### Step 8: Assign tables
+#### Table assignment (sub-section of Step 7)
 
-In the **"Table assignment"** section you assign the physical tables to the tournament rounds. Select the two tables in your playing location from the drop-down list. The table names correspond to the table records set up in Carambus. For our NDM scenario, select Table 1 and Table 2.
+The chosen tournament plan defines **logical table names** (for example "Table 1" and "Table 2" for T04). In this sub-section you assign each **logical table** a **physical table** from your venue. Pick the two physical tables from the dropdown. For our NDM scenario, choose for example "BG Hamburg Table 1" and "BG Hamburg Table 2".
 
-The assignment is not critical — you cannot swap tables in the Tournament Monitor after starting, but the scoreboard connection works independently of this assignment (scoreboards connect to their assigned table automatically after start).
+The assignment of individual matches to logical tables happens **automatically** from the tournament plan — the tournament director only has to set up the logical-to-physical table mapping.
+
+**Scoreboard binding:** After the tournament starts, one or more **scoreboards** (table monitors, smartphones, web clients) are connected to each physical table. The scoreboard operator picks the matching physical table — the binding is **not fixed** and can be re-selected at the scoreboard at any time. Technically the routing happens through the [TableMonitor](#glossary-system) of the logical table.
 
 <a id="step-9-start"></a>
 ### Step 9: Start the tournament
@@ -250,9 +259,9 @@ If the automatic upload is disabled or fails, you can trigger the upload manuall
 
 - **Seeding list (Setzliste)** — The ordered participant list with seeding positions (position 1 = top seed, position N = lowest seed). Imported in [Step 3](#step-3-seeding-list) from the invitation or ClubCloud, extended in [Step 4](#step-4-participants). Closing the seeding list in [Step 5](#step-5-finish-seeding) is irreversible.
 
-- **Tournament mode (Turniermodus)** — The playing format of the tournament (for example round-robin, knockout). Selected in [Step 6](#step-6-mode-selection). The mode determines the underlying tournament plan (T04, T05, DefaultS) and thus the number of rounds and days.
+- **Tournament mode (Turniermodus)** — The playing format of the tournament (for example round-robin, knockout). Selected in [Step 6](#step-6-mode-selection). The mode determines the underlying tournament plan (T04, T05, `Default{n}`) and thus the number of rounds and days.
 
-- **Tournament-plan codes (T04, T05, Default5)** — Internal labels for predefined tournament plans. **T** stands for Turnierplan (tournament plan), the number is the plan code. T04 and T05 are the common plans for 5-player round-robin tournaments — they differ mainly in the number of rounds. Default5 is a more flexible format. *You select the plan in [Step 6](#step-6-mode-selection).*
+- **Tournament-plan codes (T04, T05, `Default{n}`)** — Internal labels for predefined tournament plans. **T** stands for Turnierplan (tournament plan), the number is the plan code. T04 and T05 are the common plans for 5-player round-robin tournaments — they differ mainly in the number of rounds. `Default{n}` is a dynamically generated round-robin format where `{n}` is the participant count. *You select the plan in [Step 6](#step-6-mode-selection).*
 
 - **Scoreboard** — The touch-enabled input device at each table, used by players or an assistant to enter points live during a match. Scoreboards connect automatically to the Tournament Monitor after [starting the tournament](#step-9-start). Without an active scoreboard connection, points cannot be recorded.
 
@@ -291,7 +300,7 @@ If the automatic upload is disabled or fails, you can trigger the upload manuall
 <a id="ts-wrong-mode"></a>
 ### Wrong mode selected
 
-**Problem:** In Step 6 you clicked one of the three mode cards (T04, T05, DefaultS) and the wrong plan is now active. The start form has already opened.
+**Problem:** In Step 6 you clicked one of the mode cards (T04, T05, `Default{n}`) and the wrong plan is now active. The start form has already opened.
 
 **Cause:** Mode selection is applied immediately on click — there is no confirmation dialog (F-13). There is no "Back" button that safely reverts the mode.
 
