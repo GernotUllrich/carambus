@@ -56,7 +56,7 @@ On the tournament detail page you see the wizard progress bar "Tournament Setup"
 *Figure: Tournament setup wizard after a successful ClubCloud sync — the typical default appearance when the sync completed in full (example from the Phase 33 audit, NDM Freie Partie Class 1–3). The 1-player edge case described in the warning callout is **not** illustrated here — it only occurs with an incomplete sync.*
 
 <a id="step-3-seeding-list"></a>
-### Step 3: Take over or generate the seeding list
+### Step 3: Take over or generate the seeding list {#seeding-list}
 
 The **seeding list** is a **result**: registration list plus an order. The order is normally provided by the regional sports officer in the invitation (based on his spreadsheets that consolidate prior tournament results). It is not a source you "download" from somewhere.
 
@@ -67,7 +67,7 @@ The **seeding list** is a **result**: registration list plus an order. The order
 If the PDF upload fails technically (common with certain print templates or when the internet connection is missing), see [Invitation upload failed](#ts-invitation-upload).
 
 <a id="step-4-participants"></a>
-### Step 4: Review and add participants (Wizard Step 3)
+### Step 4: Review and add participants (Wizard Step 3) {#participants}
 
 **How do I get into the participant edit page?** There are three possible entry points depending on the current wizard state:
 
@@ -108,7 +108,7 @@ When the participant list is complete, click the **"Close participant list"** li
 <!-- ref: F-09 -->
 
 <a id="step-6-mode-selection"></a>
-### Step 6: Select tournament mode
+### Step 6: Select tournament mode {#mode-selection}
 
 Wizard Step 5 opens a separate page "Final selection of playing mode". You see **one or more cards** with the available [tournament plans](#glossary-wizard) — the selection depends on the participant count and shows all plans that fit, including a dynamically generated **`Default{n}`** plan where `{n}` is the current participant count.
 
@@ -122,7 +122,7 @@ Click **"Continue with T04"** (or the suggested plan). The selection is applied 
 *Figure: Mode selection showing the three tournament plans with automatic T04 suggestion for 5 participants (example from the Phase 33 audit).*
 
 <a id="step-7-start-form"></a>
-### Step 7: Start parameters and table assignment
+### Step 7: Start parameters and table assignment {#start-parameters}
 
 !!! info "Steps 7 and 8 live on the same page"
     After mode selection, **one** parametrisation page opens that contains
