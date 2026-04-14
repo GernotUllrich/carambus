@@ -445,11 +445,11 @@ class TournamentsController < ApplicationController
       if @tournament.tournament_started_waiting_for_monitors?
         redirect_to tournament_monitor_path(@tournament.tournament_monitor)
       else
-        redirect_back_or_to(tournament_path(@tournament))
+        redirect_to tournament_path(@tournament)
       end
     else
       flash[:alert] = @tournament.errors.full_messages
-      redirect_back_or_to(tournament_path(@tournament))
+      redirect_to tournament_path(@tournament)
     end
     nil
   end
