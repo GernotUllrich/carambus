@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v7.0
 milestone_name: Manager Experience
 status: executing
-stopped_at: Completed 36A-04-PLAN.md (Block 6 glossary rewrite to tournament-management DE+EN)
-last_updated: "2026-04-14T08:22:06.128Z"
+stopped_at: Completed 36A-05-PLAN.md (Block 7 troubleshooting rewrite + Mehr-zur-Technik removal DE+EN)
+last_updated: "2026-04-14T08:29:47.495Z"
 last_activity: 2026-04-14
 progress:
   total_phases: 5
   completed_phases: 3
   total_plans: 19
-  completed_plans: 16
-  percent: 84
+  completed_plans: 17
+  percent: 89
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-13)
 ## Current Position
 
 Phase: 36a (Turnierverwaltung Doc Accuracy) — EXECUTING
-Plan: 5 of 7
+Plan: 6 of 7
 Status: Ready to execute
 Last activity: 2026-04-14
 
@@ -56,6 +56,8 @@ Recent decisions affecting current work:
 - [Phase 36A]: Plan 36A-03: Schritt 11 remains a numbered step despite containing 'no active role' content — preserves 1-14 continuity promised by walkthrough intro callout; walkthrough-as-phases reframing lives inside the body text
 - [Phase 36A]: Plan 36A-03: Rule-1 auto-fix extended to glossary Tisch-Warmup + troubleshooting ts-already-started for internal consistency with rewritten Schritte 9-11; AASM-Event and 'Spielbeginn freigeben' phrases removed everywhere in both DE and EN files
 - [Phase 36A]: Plan 36A-04: Meldeliste placed BEFORE Setzliste in Wizard-Begriffe for chronological top-down flow matching Schritt 1 walkthrough; Rule-1 auto-fix on Freie Partie entry link label (Bälle-Ziele → Ballziele) for consistency with rewritten karambol entry
+- [Phase 36A]: Plan 36A-05: TS-3 uses paraphrase ('Ein separater Button zum nachträglichen Wechseln'/'A separate button that would switch the tournament mode afterwards') to avoid literal 'Modus ändern'/'Change mode' strings while preserving reader context — satisfies plan-checker iteration 1 negative-grep gates
+- [Phase 36A]: Plan 36A-05: 'Mehr zur Technik' section replaced with single-line italic dev-docs pointer rather than deleted entirely — removes architectural monologue without pretending developer docs don't exist
 
 ### Pending Todos
 
@@ -68,6 +70,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-14T08:22:06.126Z
-Stopped at: Completed 36A-04-PLAN.md (Block 6 glossary rewrite to tournament-management DE+EN)
+Last session: 2026-04-14T08:29:47.492Z
+Stopped at: Completed 36A-05-PLAN.md (Block 7 troubleshooting rewrite + Mehr-zur-Technik removal DE+EN)
 Resume file: None
