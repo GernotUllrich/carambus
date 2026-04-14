@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v7.0
 milestone_name: Manager Experience
 status: executing
-stopped_at: Completed 36A-05-PLAN.md (Block 7 troubleshooting rewrite + Mehr-zur-Technik removal DE+EN)
-last_updated: "2026-04-14T08:29:47.495Z"
+stopped_at: Completed 36A-06-PLAN.md (Anhang/Appendix section DE+EN)
+last_updated: "2026-04-14T08:35:50.538Z"
 last_activity: 2026-04-14
 progress:
   total_phases: 5
   completed_phases: 3
   total_plans: 19
-  completed_plans: 17
-  percent: 89
+  completed_plans: 18
+  percent: 95
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-13)
 ## Current Position
 
 Phase: 36a (Turnierverwaltung Doc Accuracy) — EXECUTING
-Plan: 6 of 7
+Plan: 7 of 7
 Status: Ready to execute
 Last activity: 2026-04-14
 
@@ -58,6 +58,7 @@ Recent decisions affecting current work:
 - [Phase 36A]: Plan 36A-04: Meldeliste placed BEFORE Setzliste in Wizard-Begriffe for chronological top-down flow matching Schritt 1 walkthrough; Rule-1 auto-fix on Freie Partie entry link label (Bälle-Ziele → Ballziele) for consistency with rewritten karambol entry
 - [Phase 36A]: Plan 36A-05: TS-3 uses paraphrase ('Ein separater Button zum nachträglichen Wechseln'/'A separate button that would switch the tournament mode afterwards') to avoid literal 'Modus ändern'/'Change mode' strings while preserving reader context — satisfies plan-checker iteration 1 negative-grep gates
 - [Phase 36A]: Plan 36A-05: 'Mehr zur Technik' section replaced with single-line italic dev-docs pointer rather than deleted entirely — removes architectural monologue without pretending developer docs don't exist
+- [Phase 36A]: Plan 36A-06: Anhang section inserted with 6 sub-sections; all forward-link debt from Plans 01-05 resolved; CC-upload and CC-CSV flagged as first-pass with PREP-04 deferral for Phase 36c
 
 ### Pending Todos
 
@@ -70,6 +71,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-14T08:29:47.492Z
-Stopped at: Completed 36A-05-PLAN.md (Block 7 troubleshooting rewrite + Mehr-zur-Technik removal DE+EN)
+Last session: 2026-04-14T08:35:50.536Z
+Stopped at: Completed 36A-06-PLAN.md (Anhang/Appendix section DE+EN)
 Resume file: None
