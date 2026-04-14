@@ -103,16 +103,11 @@ Wenn die Teilnehmerliste vollständig ist, klicken Sie auf den Link **„Teilneh
 <a id="step-6-mode-selection"></a>
 ### Schritt 6: Turniermodus auswählen
 
-Wizard-Schritt 5 öffnet eine separate Seite „Abschließende Auswahl des Austragungsmodus". Sie sehen drei Karten mit den verfügbaren [Turnierplänen](#glossary-wizard): typischerweise **T04**, **T05** und **DefaultS**. Jede Karte zeigt die Spielrunden-Zahl und Turniertage. Bei 5 Teilnehmern lautet der Vorschlag meist T04 (5 Spielrunden, 1 Turniertag, 2 Tische).
+Wizard-Schritt 5 öffnet eine separate Seite „Abschließende Auswahl des Austragungsmodus". Sie sehen **eine oder mehrere Karten** mit den verfügbaren [Turnierplänen](#glossary-wizard) — die Auswahl hängt von der Teilnehmerzahl ab und enthält nur Pläne, die zur aktuellen Teilnehmerzahl passen, plus den dynamisch generierten Plan **`Default{n}`**, wobei `{n}` die aktuelle Teilnehmerzahl ist.
 
-!!! tip "Welchen Turnierplan wählen?"
-    Bei der Modus-Auswahl schlägt Carambus meist einen Plan automatisch vor
-    (zum Beispiel **T04** bei 5 Teilnehmern). Übernehmen Sie den Vorschlag,
-    wenn Sie nicht bewusst eine Alternative bevorzugen. Die Alternativen
-    unterscheiden sich vor allem in der Zahl der Spielrunden und Turniertage
-    — für eine typische NDM Freie Partie Klasse 1–3 ist der Vorschlag fast
-    immer der richtige.
-<!-- ref: F-12 -->
+`Default{n}` ist ein **dynamisch generierter Jeder-gegen-Jeden-Plan**, dessen benötigte Tischanzahl aus der Teilnehmerzahl berechnet wird. Die T-Pläne (T04, T05, …) haben dagegen feste Spielstruktur und Tischanzahl aus der Karambol-Turnierordnung.
+
+Bei 5 Teilnehmern lautet der Vorschlag typischerweise **T04** (Standard für 5 Spieler aus der Sportordnung). Der **in der Einladung angegebene Turnierplan** ist im Normalfall der vom Landessportwart verbindlich vorgegebene — übernehmen Sie diesen Vorschlag.
 
 Klicken Sie auf **„Weiter mit T04"** (oder dem vorgeschlagenen Plan). Die Auswahl wird **sofort und ohne Bestätigungsdialog** angewendet. Wenn Sie versehentlich den falschen Plan gewählt haben, lesen Sie [Falscher Turniermodus gewählt](#ts-wrong-mode).
 
@@ -120,9 +115,15 @@ Klicken Sie auf **„Weiter mit T04"** (oder dem vorgeschlagenen Plan). Die Ausw
 *Abbildung: Modus-Auswahl mit den drei Turnierplänen und automatischem Vorschlag T04 bei 5 Teilnehmern (Beispiel aus dem Phase-33-Audit).*
 
 <a id="step-7-start-form"></a>
-### Schritt 7: Start-Parameter ausfüllen
+### Schritt 7: Start-Parameter und Tischzuordnung ausfüllen
 
-Nach der Modusauswahl öffnet sich das Start-Formular. Oben sehen Sie eine Zusammenfassung des gewählten Modus, darunter den Abschnitt **„Zuordnung der Tische"** und ein Formular **„Turnier Parameter"** mit ca. 15 Feldern.
+!!! info "Schritte 7 und 8 leben auf derselben Seite"
+    Nach der Modusauswahl öffnet sich **eine** Parametrisierungsseite, die
+    sowohl die Start-Parameter als auch die Tischzuordnung enthält. Im Doc
+    sind sie aus didaktischen Gründen zwei Schritte — im UI ist es eine
+    Seite.
+
+Oben sehen Sie eine Zusammenfassung des gewählten Modus, darunter den Abschnitt **„Zuordnung der Tische"** und ein Formular **„Turnier Parameter"** mit den Spielregeln.
 
 !!! tip "Englische Feldbezeichnungen im Start-Formular"
     Einige Parameter im Start-Formular heißen derzeit auf Englisch oder sind
@@ -130,23 +131,31 @@ Nach der Modusauswahl öffnet sich das Start-Formular. Oben sehen Sie eine Zusam
     acceptance* oder *Assign games as tables become available*). Das
     [Glossar](#glossary) unten erklärt die wichtigsten Begriffe. Im Zweifel
     übernehmen Sie die Standardwerte und kontrollieren Sie die Einstellungen
-    nach dem Turnier.
+    **vor dem Start des Turniers**.
 <!-- ref: F-14 -->
 
-Die wichtigsten Felder für eine NDM Freie Partie:
+**Die wesentlichen Parameter, die Sie kennen müssen:**
 
-- **Bälle vor** / **Bälle-Ziel** ([innings_goal](#glossary-karambol)): Das Ziel in [Bällen](#glossary-karambol), das ein Spieler erreichen muss, um eine [Partie](#glossary-karambol) zu gewinnen. Für Freie Partie Klasse 1–3 liegen typische Werte zwischen 50 und 150 Bällen — prüfen Sie die Einladung.
-- **Aufnahmebegrenzung** ([Aufnahme](#glossary-karambol)): Maximale Zahl der Aufnahmen pro Partie. 0 = unbegrenzt.
-- **Tournament manager checks results before acceptance**: Wenn aktiviert, müssen Sie jedes Ergebnis manuell bestätigen, bevor es gezählt wird. Für kleine Turniere mit verlässlichen Scoreboard-Helfern können Sie das deaktivieren.
+- **Tischzuordnung** (siehe Abschnitt unten in diesem Schritt) — welche **physikalischen Tische** in Ihrem Spiellokal die **logischen Tische** des Turnierplans abbilden
+- **Ballziel** (`balls_goal`): Das Ziel in Bällen, das ein Spieler für den Partie-Gewinn erreichen muss. Für Freie Partie Klasse 1–3 steht der Wert in der Einladung (typischerweise **150 Bälle**, ggf. um 20 % reduziert). Maßgeblich ist die Karambol-Sportordnung.
+- **Aufnahmebegrenzung** (`innings_goal`): Maximale Aufnahmenzahl pro Partie. Für Freie Partie Klasse 1–3 typischerweise **50 Aufnahmen** (ggf. um 20 % reduziert). **Leerfeld oder 0 = unbegrenzt** (im UI nicht eindeutig dokumentiert — bitte hier nachlesen).
+- **Spielabschluss** durch Manager oder durch Spieler — wer bestätigt das Ergebnis am Scoreboard nach Partie-Ende
+- **`auto_upload_to_cc`** (Checkbox „Ergebnisse automatisch in ClubCloud hochladen") — wenn aktiviert, wird jedes Einzelergebnis sofort nach Spielende an die ClubCloud übertragen. Voraussetzungen und Alternativen siehe Anhang [ClubCloud-Upload — zwei Wege](#appendix-cc-upload).
+- **Timeout-Kontrolle** — Schiedsrichter-Timer pro Aufnahme (disziplinabhängig)
+- **Nachstoß** — Regelvariante in bestimmten Karambol-Disziplinen (wenn der Aufschläger das Ballziel erreicht, hat der Gegner einen Nachstoß)
 
-Füllen Sie die Felder aus und gehen Sie direkt zu [Schritt 8](#step-8-tables) für die Tischzuordnung.
+Manche Parameter erscheinen nur bei bestimmten Disziplinen — z. B. ist der Nachstoß-Schalter nur sichtbar, wenn die gewählte Disziplin diese Regel verwendet.
+
+> **Hinweis zu „Bälle vor":** In der UI-Beschriftung taucht zusätzlich der Ausdruck „Bälle vor" auf — das ist eine **individuelle Vorgabe bei Vorgabe-/Handikap-Turnieren** (jeder Spieler bekommt einen anderen Wert), nicht zu verwechseln mit dem allgemeinen Ballziel.
 
 <a id="step-8-tables"></a>
-### Schritt 8: Tische zuordnen
+#### Tischzuordnung (Unter-Abschnitt von Schritt 7)
 
-Im Abschnitt **„Zuordnung der Tische"** weisen Sie den Turnier-Spielrunden die physischen Tische zu. Wählen Sie aus der Dropdown-Liste die zwei Tische in Ihrem Spiellokal aus. Die Tischnamen entsprechen den in Carambus angelegten Tisch-Datensätzen. Für unser NDM-Szenario wählen Sie Tisch 1 und Tisch 2.
+Der gewählte Turnierplan definiert **logische Tischnamen** (z. B. „Tisch 1" und „Tisch 2" bei T04). In diesem Abschnitt ordnen Sie jedem **logischen Tisch** einen **physikalischen Tisch** aus Ihrem Spiellokal zu. Wählen Sie aus der Dropdown-Liste die zwei Tische in Ihrem Spiellokal aus. Für unser NDM-Szenario wählen Sie z. B. „BG Hamburg Tisch 1" und „BG Hamburg Tisch 2".
 
-Die Zuordnung ist unkritisch — Sie können im Turnier-Monitor nachträglich keine Tische mehr tauschen, aber die Scoreboard-Verbindung funktioniert unabhängig von dieser Zuordnung (die Scoreboards verbinden sich nach dem Start automatisch mit dem zugewiesenen Tisch).
+Die Zuordnung der einzelnen Spiele (Matches) zu den logischen Tischen erfolgt **automatisch** aus dem Turnierplan — der Turnierleiter muss nur die Verbindung logischer-Tisch → physikalischer-Tisch herstellen.
+
+**Scoreboard-Verbindung:** Nach dem Turnierstart werden auf jedem physikalischen Tisch ein oder mehrere **Scoreboards** (Tisch-Monitore, Smartphones, Web-Clients) mit dem zugehörigen Tisch verbunden. Dazu wählt der Bediener am Scoreboard den passenden physikalischen Tisch aus — die Verbindung ist **nicht fest vorgegeben** und kann bei Bedarf am Scoreboard neu gewählt werden. Technisch geschieht die Vermittlung über den [TableMonitor](#glossary-system) des logischen Tischs.
 
 <a id="step-9-start"></a>
 ### Schritt 9: Turnier starten
@@ -240,9 +249,9 @@ Wenn der automatische Upload deaktiviert ist oder fehlschlägt, können Sie den 
 
 - **Setzliste** — Die geordnete Teilnehmerliste mit Setzposition (Platz 1 = gesetzt, Platz N = ungesetzt). Wird in [Schritt 3](#step-3-seeding-list) aus der Einladung oder der ClubCloud übernommen und in [Schritt 4](#step-4-participants) ergänzt. Das Abschließen der Setzliste in [Schritt 5](#step-5-finish-seeding) ist irreversibel.
 
-- **Turniermodus / Austragungsmodus** — Die Spielform des Turniers (z. B. Jeder-gegen-Jeden, KO-System). Die Auswahl erfolgt in [Schritt 6](#step-6-mode-selection). Der Modus bestimmt den zugrunde liegenden Turnierplan (T04, T05, DefaultS) und damit Spielrunden-Zahl und Turniertage.
+- **Turniermodus / Austragungsmodus** — Die Spielform des Turniers (z. B. Jeder-gegen-Jeden, KO-System). Die Auswahl erfolgt in [Schritt 6](#step-6-mode-selection). Der Modus bestimmt den zugrunde liegenden Turnierplan (T04, T05, `Default{n}`) und damit Spielrunden-Zahl und Turniertage.
 
-- **Turnierplan-Kürzel (T04, T05, Default5)** — Interne Bezeichnungen für vordefinierte Turnierpläne. **T** steht für Turnierplan, die Zahl für den Plancode. T04 und T05 sind die gängigen Pläne für 5-Spieler-Turniere im Jeder-gegen-Jeden-Format — sie unterscheiden sich hauptsächlich in der Zahl der Spielrunden. DefaultS ist ein flexibleres Format. *Sie wählen den Plan in [Schritt 6](#step-6-mode-selection).*
+- **Turnierplan-Kürzel (T04, T05, `Default{n}`)** — Interne Bezeichnungen für vordefinierte Turnierpläne. **T** steht für Turnierplan, die Zahl für den Plancode. T04 und T05 sind die gängigen Pläne für 5-Spieler-Turniere im Jeder-gegen-Jeden-Format — sie unterscheiden sich hauptsächlich in der Zahl der Spielrunden. `Default{n}` ist ein dynamisch aus der Teilnehmerzahl `{n}` generiertes Jeder-gegen-Jeden-Format. *Sie wählen den Plan in [Schritt 6](#step-6-mode-selection).*
 
 - **Scoreboard** — Das berührungsempfindliche Eingabegerät an jedem Tisch, über das die Spieler oder ein Helfer die Punkte live eingeben. Die Scoreboards verbinden sich nach dem [Turnier starten](#step-9-start) automatisch mit dem Turnier-Monitor. Ohne aktive Scoreboard-Verbindung können keine Punkte erfasst werden.
 
@@ -283,7 +292,7 @@ Wenn der automatische Upload deaktiviert ist oder fehlschlägt, können Sie den 
 <a id="ts-wrong-mode"></a>
 ### Falscher Turniermodus gewählt
 
-**Problem:** Sie haben in Schritt 6 auf eine der drei Modus-Karten (T04, T05, DefaultS) geklickt und damit den falschen Plan aktiviert. Das Start-Formular hat sich bereits geöffnet.
+**Problem:** Sie haben in Schritt 6 auf eine der Modus-Karten (T04, T05, `Default{n}`) geklickt und damit den falschen Plan aktiviert. Das Start-Formular hat sich bereits geöffnet.
 
 **Ursache:** Die Modus-Auswahl wird in Carambus unmittelbar beim Klick angewendet — ohne Bestätigungsdialog (F-13). Es gibt keinen „Zurück"-Button, der den Modus sicher rückgängig macht.
 
