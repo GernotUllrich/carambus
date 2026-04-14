@@ -57,6 +57,46 @@ class TournamentsControllerTest < ActionDispatch::IntegrationTest
       "show is publicly accessible — no auth redirect expected"
   end
 
+  # Regression: commit 872f92a3 introduced `games.result_a` references in the
+  # reset-tournament and force-reset confirmation modal bodies of tournaments#show,
+  # but the `games` table has no `result_a` column — so opening a local, not-yet-
+  # started, non-CC tournament crashed with PG::UndefinedColumn. The fix swaps
+  # result_a for ended_at (the table monitor's "game finished" marker). This test
+  # pins that gating state and verifies show renders the modal trigger block.
+  test "GET show renders reset modal for local not-started non-CC tournament (regression: result_a PG::UndefinedColumn)" do
+    Carambus.config.carambus_api_url = "http://local.test"
+
+    # Repair fixture association rot: tournaments(:local) is inserted with Rails' auto-hashed
+    # polymorphic organizer_id / season_id, which do not resolve to the nbv Region (id
+    # 50_000_001) or the current Season. Without this, show.html.erb crashes on
+    # `tournament.organizer.shortname` / `tournament.season.name` before ever reaching the
+    # reset modal block. Use update_columns to skip callbacks and LocalProtector.
+    @tournament.update_columns(
+      organizer_id: regions(:nbv).id,
+      organizer_type: "Region",
+      season_id: seasons(:current).id
+    )
+    @tournament.reload
+
+    # Pin the exact gating state the buggy code path requires:
+    #   local_server? && !has_clubcloud_results? && !tournament_started
+    # The :local fixture is state "registration" with no games and no CC-result
+    # seedings, so both predicates are naturally false. Verify before the GET so
+    # the test fails loudly if a future fixture change moves us off this path.
+    assert_not @tournament.tournament_started,
+      "precondition: fixture must not have tournament_started games"
+    assert_not @tournament.has_clubcloud_results?,
+      "precondition: fixture must not have clubcloud results"
+    assert_not_nil @tournament.organizer, "precondition: organizer must resolve for header render"
+    assert_not_nil @tournament.season, "precondition: season must resolve for header render"
+
+    get tournament_url(@tournament)
+
+    assert_response :success
+    assert_match(/reset-tournament-form-#{@tournament.id}/, response.body,
+      "reset modal trigger must render — proves the games.where.not(...).count line executed")
+  end
+
   # ---------------------------------------------------------------------------
   # Auth guard: write actions require sign-in
   # ---------------------------------------------------------------------------
