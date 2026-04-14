@@ -47,6 +47,52 @@ class Discipline < ApplicationRecord
     self.synonyms = (synonyms.to_s.split("\n") + [name]).uniq.join("\n")
   end
 
+  # UI-07 D-17: Parameter-Bereiche pro Disziplin für die Verifikations-
+  # Abfrage vor dem Turnierstart. Key = Attributname (Symbol), Value = Range.
+  # Erste Implementierung mit fest kodierten Werten — später auslagerbar
+  # (z. B. in eine Tabelle discipline_parameter_ranges).
+  #
+  # Shared default keys (timeouts, warmup, set counts) are identical across
+  # disciplines for the first pass; only balls_goal / innings_goal / timeout
+  # differ. We factor the shared part out to keep the constant readable and
+  # standardrb-clean.
+  UI_07_SHARED_RANGES = {
+    time_out_warm_up_first_min: 1..10,
+    time_out_warm_up_follow_up_min: 0..5,
+    sets_to_play: 1..7,
+    sets_to_win: 1..4
+  }.freeze
+
+  UI_07_DISCIPLINE_SPECIFIC_RANGES = {
+    "Freie Partie" => {balls_goal: 50..500, innings_goal: 20..80, timeout: 30..90},
+    "Freie Partie klein" => {balls_goal: 50..500, innings_goal: 20..80, timeout: 30..90},
+    "Freie Partie groß" => {balls_goal: 50..500, innings_goal: 20..80, timeout: 30..90},
+    "Cadre 47/1" => {balls_goal: 50..300, innings_goal: 15..60, timeout: 30..90},
+    "Cadre 47/2" => {balls_goal: 50..300, innings_goal: 15..60, timeout: 30..90},
+    "Cadre 71/2" => {balls_goal: 50..300, innings_goal: 15..60, timeout: 30..90},
+    "Cadre 35/2" => {balls_goal: 50..300, innings_goal: 15..60, timeout: 30..90},
+    "Cadre 52/2" => {balls_goal: 50..300, innings_goal: 15..60, timeout: 30..90},
+    "Einband" => {balls_goal: 30..200, innings_goal: 15..60, timeout: 30..90},
+    "Einband klein" => {balls_goal: 30..200, innings_goal: 15..60, timeout: 30..90},
+    "Einband groß" => {balls_goal: 30..200, innings_goal: 15..60, timeout: 30..90},
+    "Dreiband" => {balls_goal: 10..80, innings_goal: 20..80, timeout: 30..90},
+    "Dreiband klein" => {balls_goal: 10..80, innings_goal: 20..80, timeout: 30..90},
+    "Dreiband groß" => {balls_goal: 10..80, innings_goal: 20..80, timeout: 30..90},
+    "5-Kegel-Billard" => {balls_goal: 60..300, innings_goal: 10..60, timeout: 30..120}
+  }.freeze
+
+  DISCIPLINE_PARAMETER_RANGES =
+    UI_07_DISCIPLINE_SPECIFIC_RANGES
+      .transform_values { |specific| UI_07_SHARED_RANGES.merge(specific) }
+      .freeze
+
+  # UI-07 D-17: Liefert ein Hash mit Field -> Range für die UI-07 Pre-Start-
+  # Verifikation. Unbekannte Disziplinen bekommen ein leeres Hash — der
+  # Controller interpretiert das als "keine Prüfung" (keine Exception).
+  def parameter_ranges
+    DISCIPLINE_PARAMETER_RANGES[name.to_s] || {}
+  end
+
   # Translation map for international frontend
   TRANSLATIONS = {
     'Karambol' => { en: 'Carom', fr: 'Carambole', es: 'Carambola', nl: 'Carambole', de: 'Karambol' },
