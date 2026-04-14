@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v7.0
 milestone_name: Manager Experience
-status: in_progress
-stopped_at: Phase 35 complete; Phase 36 (Small UX Fixes) ready to discuss/plan
-last_updated: "2026-04-13T18:21:41.677Z"
-last_activity: 2026-04-13
+status: executing
+stopped_at: Phase 35 complete and pushed to origin; carambus_api now in development mode (all edits happen here, carambus_master pulls from origin); Phase 36 ready to discuss/plan
+last_updated: "2026-04-14T00:58:31.161Z"
+last_activity: 2026-04-14 -- Phase 36a planning complete
 progress:
   total_phases: 5
   completed_phases: 3
-  total_plans: 12
+  total_plans: 19
   completed_plans: 12
-  percent: 100
+  percent: 63
 ---
 
 # Project State
@@ -27,8 +27,8 @@ See: .planning/PROJECT.md (updated 2026-04-13)
 
 Phase: 36
 Plan: Not started
-Status: Phase 35 complete and pushed to origin; Phase 36 (Small UX Fixes — FIX-01..04) awaiting /gsd-discuss-phase 36
-Last activity: 2026-04-13
+Status: Ready to execute
+Last activity: 2026-04-14 -- Phase 36a planning complete
 
 Progress: [██████████] 100%
 

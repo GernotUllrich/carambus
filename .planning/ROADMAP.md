@@ -99,8 +99,14 @@ Phases 1-32 completed across six milestones. See MILESTONES.md for details.
   5. Walkthrough is restructured to honestly distinguish manager-action phases from passive/observation phases
   6. "Mehr zur Technik" section is removed
   7. `mkdocs build --strict` passes with zero new warnings over the Phase 35 baseline
-**Plans**: TBD
-**UI hint**: no (docs-only)
+**Plans**: 7 plans
+- [ ] 36A-01-PLAN.md — Block 1+2 corrections (F-36-01..F-36-11): Szenario, Schritte 1-5 — Begriffshierarchie + Schritt-4-as-action-link
+- [ ] 36A-02-PLAN.md — Block 3 corrections (F-36-12..F-36-23): Schritte 6-8 merged — Ballziel/Aufnahmebegrenzung, logisch/physikalisch, auto_upload_to_cc
+- [ ] 36A-03-PLAN.md — Block 4+5 corrections (F-36-24..F-36-38): Schritte 9-14 — passive-phase restructure, Endrangliste/Shootout disclosure
+- [ ] 36A-04-PLAN.md — Glossar rewrite (F-36-39..F-36-50): 7 entries fixed + 6 new entries (Meldeliste, Teilnehmerliste, Logischer/Physikalischer Tisch, TableMonitor, Turnier-Monitor, Trainingsmodus, Freilos)
+- [ ] 36A-05-PLAN.md — Troubleshooting rewrite (F-36-51..F-36-58): 4 recipes rewritten + 6 new recipes; "Mehr zur Technik" removed
+- [ ] 36A-06-PLAN.md — New Anhang/Appendix section: 6 sub-sections (no-invitation, missing-player, nachmeldung, cc-upload, cc-csv-upload, rangliste-manual)
+- [ ] 36A-07-PLAN.md — Final verification: mkdocs --strict + coverage matrix + anchor integrity check
 
 ### Phase 36b: UI Cleanup & Kleine Features
 **Goal**: UI cleanup items from the Phase 36 doc review are implemented, plus the remaining original FIX-01/03/04 items, plus two small safety/verification features that reduce the risk of irreversible mistakes during tournament setup
@@ -120,7 +126,7 @@ Phases 1-32 completed across six milestones. See MILESTONES.md for details.
   9. UI-06: Reset confirms with a data-loss warning when invoked at `tournament_started` state or later
   10. UI-07: Parameter verification dialog shows unusual values before `start_tournament!` is triggered
 **Note**: FIX-02 (auto_upload_to_cc checkbox location) is **closed as verified-aligned** — code and docs already agree per Phase 36 review finding F-36-02/F-36-23. The broader ClubCloud upload model gap is tracked separately in Phase 36c.
-**Plans**: TBD
+**Plans**: 7 plans
 **UI hint**: yes
 
 ### Phase 36c: v7.1 Preparation / ClubCloud Integration Groundwork
@@ -134,7 +140,7 @@ Phases 1-32 completed across six milestones. See MILESTONES.md for details.
   2. PREP-02: A Shootout/Stechen support skeleton exists (either as part of v7.1 or its own milestone v7.2) covering AASM changes, tournament plan modifications, and scoreboard UI
   3. PREP-03: Backlog/seed entries exist for Match-Abbruch / Freilos handling and for UI consolidation of historically grown screens
   4. PREP-04: A ClubCloud admin-side handling appendix is written (as referenced by Phase 36a DOC-ACC-04) based on SME interview or further investigation
-**Plans**: TBD
+**Plans**: 7 plans
 **UI hint**: no (planning phase)
 
 ### Phase 37: In-App Doc Links
@@ -147,7 +153,7 @@ Phases 1-32 completed across six milestones. See MILESTONES.md for details.
   2. All 6 happy-path wizard steps in the canonical partial render a working doc link when the user clicks it; the link opens the pre-built mkdocs site in a new tab
   3. Form help text in TournamentsController (invitation upload, participant editing, mode selection, table assignment, start settings) includes doc links pointing volunteers to the relevant doc sections
   4. At least 3 wizard-step links use anchor fragments to deep-link into specific sections of the rewritten doc (e.g., `#seeding-list`, `#mode-selection`), not just the page top
-**Plans**: TBD
+**Plans**: 7 plans
 **UI hint**: yes
 
 ## Progress
@@ -161,7 +167,7 @@ Phases 1-32 completed across six milestones. See MILESTONES.md for details.
 | 33. UX Review & Wizard Audit | v7.0 | 3/3 | Complete    | 2026-04-13 |
 | 34. Task-First Doc Rewrite | v7.0 | 4/4 | Complete    | 2026-04-13 |
 | 35. Printable Quick-Reference Card | v7.0 | 5/5 | Complete    | 2026-04-13 |
-| 36a. Turnierverwaltung Doc Accuracy | v7.0 | 0/TBD | Not started | - |
+| 36a. Turnierverwaltung Doc Accuracy | v7.0 | 0/7    | Not started | - |
 | 36b. UI Cleanup & Kleine Features | v7.0 | 0/TBD | Not started | - |
 | 36c. v7.1 Preparation / CC Groundwork | v7.0 | 0/TBD | Not started | - |
 | 37. In-App Doc Links | v7.0 | 0/TBD | Not started | - |
