@@ -29,7 +29,7 @@ Phases 1-32 completed across six milestones. See MILESTONES.md for details.
 - [x] **Phase 35: Printable Quick-Reference Card** - Create bilingual Before/During/After printable A4 card with print CSS registered in mkdocs (completed 2026-04-13)
 - [x] **Phase 36a: Turnierverwaltung Doc Accuracy** - Apply 58 findings from Phase 36 sentence-by-sentence review: factual corrections, new glossary entries, new appendices, walkthrough restructure (completed 2026-04-14)
 - [x] **Phase 36b: UI Cleanup & Kleine Features** - FIX-01/03/04 + UI cleanup (tooltips, i18n, dead-code removal, reset safety, parameter verification dialog) (completed 2026-04-14)
-- [ ] **Phase 36c: v7.1 Preparation / ClubCloud Integration Groundwork** - Scope v7.1+ milestones for Endrangliste, Shootout, CC API integration, Match-Abbruch
+- [x] **Phase 36c: v7.1 Preparation / ClubCloud Integration Groundwork** - v7.1 CC integration skeleton, v7.2 Shootout skeleton, 2 backlog seeds, CC admin appendix draft (completed 2026-04-14)
 - [ ] **Phase 37: In-App Doc Links** - Fix the mkdocs_link locale bug and wire doc links from each wizard step to the corresponding stable doc anchors from Phase 34
 
 ## Phase Details
@@ -181,5 +181,5 @@ Phases 1-32 completed across six milestones. See MILESTONES.md for details.
 | 35. Printable Quick-Reference Card | v7.0 | 5/5 | Complete    | 2026-04-13 |
 | 36a. Turnierverwaltung Doc Accuracy | v7.0 | 7/7 | Complete    | 2026-04-14 |
 | 36b. UI Cleanup & Kleine Features | v7.0 | 6/6 | Complete    | 2026-04-14 |
-| 36c. v7.1 Preparation / CC Groundwork | v7.0 | 0/TBD | Not started | - |
+| 36c. v7.1 Preparation / CC Groundwork | v7.0 | — | Complete    | 2026-04-14 |
 | 37. In-App Doc Links | v7.0 | 0/TBD | Not started | - |
