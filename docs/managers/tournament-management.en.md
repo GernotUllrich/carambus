@@ -5,59 +5,107 @@ This page walks you through running a carom tournament synced from ClubCloud, st
 <a id="scenario"></a>
 ## Scenario
 
-As the tournament director for your club you have received an NBV invitation for the **NDM Freie Partie Class 1–3** — a regional carom tournament running one Saturday in your club's playing location with 5 registered players across two tables. This page walks you through running the tournament from the moment the invitation arrives to the moment the results are uploaded back to ClubCloud.
+As the tournament director for your club you have received an NBV invitation for the **NDM Freie Partie Class 1–3** by email as a PDF — a regional carom tournament running one Saturday in your club's playing location with 5 registered players across two tables. The PDF normally serves as your starting reference for managing the tournament. This page walks you through the run from the moment the invitation arrives to the moment the results reach ClubCloud.
+
+For deviating special cases, dedicated flows live in the appendix:
+
+- **[Invitation missing](#appendix-no-invitation)** — flow without a PDF invitation
+- **[Player missing](#appendix-missing-player)** — handling registered players who do not show up
+- **[Late registration on tournament day](#appendix-nachmeldung)** — on-site player registration
 
 <a id="walkthrough"></a>
 ## Walkthrough
 
 The following guide follows the actual flow of the Carambus wizard — as it works in practice. Where the interface uses unfamiliar labels or shows unexpected behaviour, you will find a coloured callout box explaining what to expect.
 
+!!! info "Step numbering is logical, not one-to-one with the UI"
+    The steps numbered 1–14 below are a **logical-chronological** breakdown.
+    The corresponding UI screens have grown historically and do not always
+    map one-to-one: Steps 2–5 all live on the wizard page, Step 6 has its
+    own mode-selection screen, Steps 7–8 are the same parametrisation page,
+    and from Step 9 onwards the action moves into the Tournament Monitor
+    and the table scoreboards. During match play (Steps 10–12) the
+    tournament director normally has **no active role** — all actions
+    happen at the scoreboards.
+
 <a id="step-1-invitation"></a>
 ### Step 1: Receive the NBV invitation
 
-You receive a PDF invitation from the regional sports officer by email for the NDM. The invitation contains the official tournament plan, the participant list (seeding list), and the start times. You do not need to click anything in the system yet — open the invitation, keep the PDF handy, and then open the tournament detail page in Carambus.
+You receive a PDF invitation from the regional sports officer by email for the NDM. The invitation contains the official tournament plan, the **registration list (Meldeliste)** — the seeding-list snapshot at the close of registration — and the start times. The invitation also lists the **playing targets** for the discipline: the **target balls** (a single value for normal tournaments, or an individual handicap value per player for handicap tournaments) and the **inning limit**. You enter these values into the start form in [Step 7](#step-7-start-form).
+
+Three terms describe the same players at different points in time — keep them straight:
+
+- **Seeding list (Setzliste)** — the seeded/ordered list of registrants, maintained throughout the registration period
+- **Registration list (Meldeliste)** — snapshot of the seeding list at the close of registration (this is what the invitation contains)
+- **Participant list (Teilnehmerliste)** — the players who **actually** show up on tournament day (finalised shortly before the tournament starts)
+
+The [glossary](#glossary-wizard) covers all three terms with their temporal relationship.
+
+You do not need to click anything in the system yet — open the invitation, keep the PDF handy, and then open the tournament detail page in Carambus.
 
 <a id="step-2-load-clubcloud"></a>
 ### Step 2: Load tournament from ClubCloud (Wizard Step 1)
 
-Open the tournament detail page in Carambus. At the top of the page you see the wizard progress bar "Tournament Setup". Step 1 "Load registration list from ClubCloud" is usually already completed automatically — a green tick (LOADED) indicates that Carambus has already synchronised the registration list.
+**Navigating to the tournament page:** From the Carambus main menu, open **Organisations → Regional Federations → NBV** and click the link **"Current tournaments in season 2025/2026"** (the season is dynamic). In the tournament list, pick the right tournament (in the example scenario "NDM Freie Partie Class 1–3").
+
+On the tournament detail page you see the wizard progress bar "Tournament Setup" at the top. Step 1 "Load registration list from ClubCloud" is usually already completed automatically — a green tick (LOADED) indicates that Carambus has already synchronised the registration list.
 
 **Note:** ClubCloud sometimes delivers fewer players than expected — in practice, a 5-player tournament initially showed only 1–2 registrations. The wizard displays a green "Continue to Step 3 with these N players" button even when N is suspiciously low. Check the number carefully before proceeding. If players are missing, fix this in [Step 4](#step-4-participants). See also [Player not in ClubCloud](#ts-player-not-in-cc) in the troubleshooting section.
 
 ![Wizard overview after ClubCloud sync](images/tournament-wizard-overview.png){ loading=lazy }
-*Figure: Tournament setup wizard right after ClubCloud sync (example from the Phase 33 audit, NDM Freie Partie Class 1–3).*
+*Figure: Tournament setup wizard after a successful ClubCloud sync — the typical default appearance when the sync completed in full (example from the Phase 33 audit, NDM Freie Partie Class 1–3). The 1-player edge case described in the warning callout is **not** illustrated here — it only occurs with an incomplete sync.*
 
 <a id="step-3-seeding-list"></a>
-### Step 3: Seeding list — invitation vs ClubCloud
+### Step 3: Take over or generate the seeding list
 
-In Wizard Step 2 you can import the seeding list (the ordered participant list) from two sources: either by **uploading the PDF invitation** or by using the **ClubCloud registration list** as an alternative.
+The **seeding list** is a **result**: registration list plus an order. The order is normally provided by the regional sports officer in the invitation (based on his spreadsheets that consolidate prior tournament results). It is not a source you "download" from somewhere.
 
-The current interface presents the PDF upload as the primary option and ClubCloud as the "alternative" — for clubs that use ClubCloud as their official registration source, the logic is the reverse. If you upload the NBV invitation PDF, Carambus shows a side-by-side comparison of both seeding lists so you can spot any discrepancies. If the PDF upload fails (common with certain print templates), use the ClubCloud list directly — see [Invitation upload failed](#ts-invitation-upload) for details.
+**The normal case (with invitation):** You upload the invitation PDF in Wizard Step 2. Carambus reads the seeding list from the PDF and reconciles it against the ClubCloud registration list. Discrepancies are surfaced for you to resolve.
+
+**Without an invitation:** You start from the ClubCloud registration list (a snapshot at the close of registration) and then in [Step 4](#step-4-participants) you click **"Sort by ranking"** to order it by the [ranking](#glossary-system) maintained per player in Carambus — the full flow lives in the appendix [Invitation missing](#appendix-no-invitation).
+
+If the PDF upload fails technically (common with certain print templates), see [Invitation upload failed](#ts-invitation-upload).
 
 <a id="step-4-participants"></a>
 ### Step 4: Review and add participants (Wizard Step 3)
 
-In Wizard Step 3 "Edit participant list" you see the currently registered participants. If players are missing, add them using the **"Add player by DBU number"** field. You can enter multiple [DBU numbers](#glossary-system) comma-separated (example: `121308, 121291, 121341, 121332`).
+**How do I get into the participant edit page?** There are three possible entry points depending on the current wizard state:
+
+1. **Directly from Step 3** — once you have taken over the seeding list in Step 3, the wizard forwards you automatically into the edit page
+2. **Via the button at the bottom of the tournament page** — even when Wizard Step 3 is not yet active, this bottom link gives you access
+3. **Via the "Upload invitation" action** — even without an invitation this entry point is usable: inside the invitation upload form there is a link **"→ With registration list to Step 3 (sorted by ranking)"**
+
+This multi-path UX has grown historically — all three paths land on the same edit page.
+
+In Wizard Step 3 "Edit participant list" you see the currently registered participants. If players are missing, enter their [DBU numbers](#glossary-system) comma-separated in the **"Add player by DBU number"** field (example: `121308, 121291, 121341, 121332`) and then click the **"Add player"** link to apply the entry.
 
 Click **"Sort by ranking"** at the top to automatically order the participant list by the current [ranking](#glossary-system) — this is almost always the correct order for an NDM Freie Partie.
 
-Once the number of participants matches a predefined [tournament plan](#glossary-wizard), a gold-highlighted panel **"Possible tournament plans for N participants — automatically suggested: T04"** appears below the participant list. With 5 participants, T04 is suggested. This is the best indicator that the participant count is correct — if no plan is suggested, check your participant count. The final mode selection happens in Step 6.
+Once the number of participants matches a predefined [tournament plan](#glossary-wizard), a gold-highlighted panel **"Possible tournament plans for N participants — automatically suggested: T04"** appears below the participant list. With 5 participants, T04 is suggested (the plan codes such as T04 come from the official Carom Tournament Regulations). This is the best indicator that the participant count is correct — if no plan is suggested, check your participant count. The final mode selection happens in Step 6.
 
-All changes are saved immediately; no confirmation click is required.
+Most changes — sorting and in-place edits of individual fields — are saved immediately. **Exception:** Adding a new player by DBU number requires a click on the **"Add player"** link to apply the entry.
 
 <a id="step-5-finish-seeding"></a>
-### Step 5: Close participant list (Wizard Step 4)
+### Step 5: Close the participant list
 
-When the participant list is complete, click the blue **"Close participant list"** button in Wizard Step 4. This locks the [seeding list](#glossary-wizard) and transitions the tournament to `tournament_seeding_finished` status.
+**Important conceptual note:** The wizard's "Step 4" and "Step 5" labels are **not separate wizard states** but **action links** on the participant list page:
 
-!!! warning "Closing the participant list is final"
-    Clicking **Close participant list** is a one-way action. Double-check
-    the participant list carefully before you click — after closing, the
-    wizard jumps straight to mode selection, and changing the participant
-    list later requires admin intervention.
+- **"Step 4: Edit participant list"** — link back to further editing
+- **"Step 5: Close participant list"** — link that triggers the state transition into mode selection
+
+There is no separate state between the two. The wizard progress bar therefore jumps straight to mode selection after closing — because "Step 4" was just an action link.
+
+When the participant list is complete, click the **"Close participant list"** link. The [seeding list](#glossary-wizard) is now committed and the tournament moves into the next wizard state ("Step 5: Choose tournament mode").
+
+!!! warning "Closing the participant list — what is and isn't possible"
+    Clicking **Close participant list** is normally binding: you move into
+    mode selection and can no longer change the participant list through
+    the normal wizard path. **In an emergency**, however, you can reset the
+    entire tournament setup via the **"Reset tournament monitor"** link at
+    the bottom of the tournament page — that is possible, but if the
+    tournament is already running it destroys data (see
+    [Step 12](#step-12-monitor) for details).
 <!-- ref: F-09 -->
-
-After clicking, the wizard progress bar jumps from Step 3 directly to Step 5 — Step 4 is handled automatically in the background and appears as completed. This jump in the display is confusing but correct. The next active step is mode selection.
 
 <a id="step-6-mode-selection"></a>
 ### Step 6: Select tournament mode
