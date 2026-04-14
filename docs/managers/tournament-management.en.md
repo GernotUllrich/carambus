@@ -168,63 +168,97 @@ The assignment of individual matches to logical tables happens **automatically**
 
 When the table assignment and tournament parameters are complete, click **"Starte den Turnier Monitor"** at the bottom of the page.
 
-!!! warning "Wait — do not click again"
-    After you click **Starte den Turnier Monitor** the page will appear
-    unchanged for several seconds. This is normal — the wizard is
-    preparing the table monitors in the background. **Do not click the
-    button again** and do not navigate back. The Tournament Monitor will
-    open automatically within a few seconds.
+!!! info "The start takes a few seconds"
+    After clicking **Start tournament monitor** the page may look unchanged
+    for a few seconds. That is normal — the wizard is preparing the table
+    monitors in the background. The button is disabled during the
+    operation, so an accidental double-click does nothing. After a few
+    seconds the Tournament Monitor opens automatically.
 <!-- ref: F-19 -->
 
-In the background Carambus fires the AASM event `start_tournament!` (transitioning to `tournament_started_waiting_for_monitors`), initialises all TableMonitors, and then automatically redirects you to the Tournament Monitor page. If the page does not change after 30 seconds, check that Redis and the ActionCable service are running.
+**Did the start succeed?** The most reliable check is to look at the **table scoreboards**: if they show the correct round-1 pairings, the start was successful.
 
 <a id="step-10-warmup"></a>
 ### Step 10: Warmup phase
 
-Once the Tournament Monitor has opened, you see the overview page "Tournament Monitor · NDM Freie Partie Class 1–3". Each of the two tables shows a **"warmup"** status badge and the assigned player pairs for Match 1 (for example "Simon, Franzel / Smrcka, Martin" on Table 1).
+After the Tournament Monitor opens, you see the overview page "Tournament Monitor · NDM Freie Partie Class 1–3". Each of the two tables shows a status badge **"warmup"** and the assigned player pairs for match 1 (for example "Simon, Franzel / Smrcka, Martin" on Table 1).
 
-Note: The label "Turnierphase: playing group" in the monitor header is an untranslated EN/DE mix — this is a known cosmetic issue and does not affect functionality.
+In the warmup phase the players **break in** the table (German: *einspielen* — the technical term for "try out the table and balls before they count"). The warmup time is started **at the scoreboard** and is typically 5 minutes (parameter **Warmup**). The scoreboards are already active, but points do not count yet.
 
-During the warmup phase, players can try out the tables and balls. The scoreboards are already active, but points do not count yet. In the "Current matches Round 1" section you see all matches in the first round with columns Table / Group / Match / Players and a **"Spielbeginn"** button per row.
+In the Tournament Monitor, the section "Current matches Round 1" shows the matches of the current round with columns Table / Group / Match / Players. **With 5 participants in Round 1 there are 2 matches with 2 players each; the fifth player has a [bye](#glossary-wizard) (Freilos) in this round.** (Not 4 matches — the count is determined by the tournament plan.)
 
-You do not need to do anything actively here — check that all scoreboards are connected (green status) and wait for the signal to start.
+> **Note:** Each row in this table also has buttons such as "Start match" — that is fallback UI for the emergency case (scoreboard failure with manual transcription from paper protocols). In the standard flow the tournament director does **not** need to click these buttons.
+
+As the tournament director you have nothing to do here actively — observe whether all scoreboards are connected (green status) and wait for the players to start the matches at their scoreboards.
 
 ![Tournament Monitor landing page during warmup](images/tournament-monitor-landing.png){ loading=lazy }
 *Figure: Tournament Monitor right after start — both tables show "warmup" status and the pairings for Round 1 (example from the Phase 33 audit).*
 
 <a id="step-11-release-match"></a>
-### Step 11: Release each match
+### Step 11: Match play (the scoreboards drive everything)
 
-When warmup is complete and all players are ready, click **"Spielbeginn"** for each match in the "Current matches Round 1" table. This click starts the time-keeping and activates ball entry on the [Scoreboard](#glossary-wizard).
+**In the standard flow the tournament director has no active role here.** Once warmup ends at a scoreboard, that scoreboard automatically starts the match — the start is triggered **at the scoreboard**, not in the Tournament Monitor.
 
-Note: There is no success flash or confirmation after clicking "Spielbeginn" — the button simply disappears from the row. This is normal behaviour.
+Steps 10, 11 and 12 are in truth three **phases** (warmup → match play → finalisation), not three "tournament-director actions". During these phases everything happens at the scoreboards. Your only job is observation and intervention if something goes wrong — see [Step 12](#step-12-monitor).
 
-In our scenario with 5 participants and 2 tables, 2 matches run simultaneously in Round 1 — click two "Spielbeginn" buttons in succession. The fifth player sits out Round 1 (bye, depending on the tournament plan).
+> **Special case: manual round-change control:** If you enabled the parameter "Tournament manager checks results before acceptance" in the start form, the round change will be blocked until you click "OK?" at every match end. This option is now disputed and is likely to be removed; in the standard case, leave it disabled.
 
 <a id="step-12-monitor"></a>
-### Step 12: Monitor results
+### Step 12: Observe and intervene as needed
 
-After match release, players handle score entry on the scoreboards. The Tournament Monitor updates in real time via ActionCable — you do not need to reload the page.
+During match play the players or scoreboard helpers handle point entry. The Tournament Monitor updates in real time — you do not need to reload the page.
 
-Watch the column values **Balls** / **Inning** / **HS** ([High run](#glossary-karambol)) / **GD** ([General average](#glossary-karambol)) in the matches table. When a match is finished, the table card automatically advances to the next match in the round. After all matches in a [playing round](#glossary-karambol) are complete, the Monitor switches to Round 2 and the next pairings appear.
+**What you see in the overview:** the columns **Balls** / **Innings** / **HS** ([high run](#glossary-karambol)) / **GD** ([general average](#glossary-karambol)) in the matches table. After a match ends, the table card automatically advances to the next match in the round; after all matches in a [round](#glossary-karambol) are finished the monitor advances to the next round.
 
-As tournament director you normally do not intervene actively — unless a player contests a result or a scoreboard problem arises. If you enabled "Tournament manager checks results before acceptance", a confirmation button appears for you after each match.
+**Browser-tab oversight:** From the Tournament Monitor you can open the individual table scoreboards in their own browser tabs (click the corresponding table link). This is the usual way to keep an eye on multiple tables at once and intervene when needed.
+
+**Common error sources during match play:**
+
+- **Nachstoß forgotten at the scoreboard** — in carom disciplines with the Nachstoß rule this is a recurring source of wrong final scores. If you observe it, address the scoreboard helper directly before the next break shot.
+
+!!! danger "Reset destroys all data while a tournament is running"
+    The link **"Reset tournament monitor"** at the bottom of the
+    tournament page is **always available** — even while the tournament
+    is running. While the tournament is running the reset destroys
+    **all results recorded so far**. A safety dialog is currently not
+    in place (planned for a follow-up phase). Use the reset during
+    match play only if you really intend to abort the tournament.
+<!-- ref: F-36-32 -->
+
+> **Special case manual control:** If you enabled "Tournament manager checks results before acceptance" in the start form, a confirmation button appears for you after each match. This button is part of the special operating mode from [Step 11](#step-11-release-match) and is likely to be removed.
 
 <a id="step-13-finalize"></a>
-### Step 13: Finalize the tournament
+### Step 13: Conclude the tournament
 
-After all rounds are complete, a finalize button appears in the Tournament Monitor. Click it to calculate the final rankings and move the tournament to its completed status.
+After all rounds are finished the Tournament Monitor moves the tournament into the finalisation status.
 
-If placements still need adjusting (for example because of a play-off or a manual correction), see [Single Tournament Management](single-tournament.md) for the full placement workflow.
+!!! warning "Final ranking is NOT calculated automatically"
+    Carambus correctly returns the individual match results, but the
+    **calculation of the final tournament ranking** (positions, tie-breakers,
+    discipline-specific rules) currently happens **manually in ClubCloud**.
+    The manual maintenance workflow is documented in the appendix
+    [Maintaining the final ranking in ClubCloud](#appendix-rangliste-manual).
+    Automatic calculation in Carambus is planned as a follow-up feature
+    for v7.1+.
+<!-- ref: F-36-34 -->
 
-After finalising, the tournament is closed — changes to results are only possible via admin intervention.
+!!! warning "Shootout / playoff matches are not supported"
+    Playoff matches in knock-out tournaments are **not supported** in the
+    current Carambus version. If a shootout is needed after the regular
+    match, you must run it **outside Carambus** (record the result on
+    paper at the table) and enter the result manually in ClubCloud.
+    Shootout support is planned as a critical feature for a later
+    milestone (v7.1 or v7.2).
+<!-- ref: F-36-35 -->
 
 <a id="step-14-upload"></a>
-### Step 14: Post-tournament upload to ClubCloud
+### Step 14: Transfer results to ClubCloud
 
-If the **"auto_upload_to_cc"** option was enabled in the start form (Step 7), Carambus automatically pushes the results back to ClubCloud on finalisation. You will see a confirmation that the upload was successful.
+If the option **"auto_upload_to_cc"** was enabled in the start form (Step 7), Carambus uploads each **individual result immediately when the corresponding match ends** — not at finalisation time. Prerequisite: the participant list must already be **finalised** in ClubCloud. The full explanation of both upload paths and their prerequisites is in the appendix [ClubCloud upload — two paths](#appendix-cc-upload).
 
-If the automatic upload is disabled or fails, you can trigger the upload manually from the tournament detail page (button "Upload results to ClubCloud"). Verify in ClubCloud that the results have arrived — they are normally visible within a few minutes.
+If automatic upload was not enabled or the prerequisites are missing, the upload runs through the **CSV batch path**: at the end Carambus produces a CSV file with all results, which must be imported manually into the (finalised) ClubCloud participant list. The appendix [CSV upload in ClubCloud](#appendix-cc-csv-upload) describes the path in detail.
+
+> An "Upload to ClubCloud"-button, as mentioned in earlier doc versions, does not exist in the current Carambus UI. Manual upload happens exclusively via the ClubCloud admin interface.
 
 ---
 
@@ -252,7 +286,7 @@ If the automatic upload is disabled or fails, you can trigger the upload manuall
 
 - **Playing round (Spielrunde)** — One complete round of the tournament in which each player (or pair) competes once. A T04 plan has 5 playing rounds. After each round the Tournament Monitor automatically updates the standings table.
 
-- **Table warmup (Tisch-Warmup)** — The phase after [starting the tournament](#step-9-start) in which tables carry `warmup` status and players can try out the balls and cloth without points counting. Ends when you [release each match](#step-11-release-match).
+- **Table warmup (Tisch-Warmup)** — The phase after [starting the tournament](#step-9-start) in which tables carry `warmup` status and players can break in the table without points counting. Warmup time is started at the scoreboard; after that the table automatically moves into [match play](#step-11-release-match).
 
 <a id="glossary-wizard"></a>
 ### Wizard terms
@@ -311,9 +345,9 @@ If the automatic upload is disabled or fails, you can trigger the upload manuall
 
 **Problem:** You need to change participants, the tournament mode, or start parameters, but the wizard is already showing the Tournament Monitor and the detail page shows "Tournament running".
 
-**Cause:** The AASM event `start_tournament!` (triggered in [Step 9](#step-9-start)) is irreversible — there is **no undo path** for started tournaments in the current version (v7.0 scope, F-19 / Tier 3 finding). This is a deliberate design decision to ensure data consistency with running scoreboards.
+**Cause:** The tournament start in [Step 9](#step-9-start) is irreversible — there is **no undo path** for started tournaments in the current version (v7.0 scope, F-19 / Tier 3 finding). This is a deliberate design decision to ensure data consistency with running scoreboards.
 
-**Fix:** Contact a **Carambus admin with database access**. A typical recovery is to mark the running tournament as erroneous, create a new tournament instance with the correct parameters, and manually transfer any already-recorded results. This is not a volunteer-friendly operation — the vast majority of errors at this point can be avoided by careful review in [Step 5](#step-5-finish-seeding) (participant list) and [Step 6](#step-6-mode-selection) (tournament mode). The warning callout in [Step 9](#step-9-start) explicitly advises against clicking again or navigating back.
+**Fix:** Contact a **Carambus admin with database access**. A typical recovery is to mark the running tournament as erroneous, create a new tournament instance with the correct parameters, and manually transfer any already-recorded results. This is not a volunteer-friendly operation — the vast majority of errors at this point can be avoided by careful review in [Step 5](#step-5-finish-seeding) (participant list) and [Step 6](#step-6-mode-selection) (tournament mode).
 
 ---
 
