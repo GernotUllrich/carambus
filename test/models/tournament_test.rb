@@ -49,4 +49,24 @@ class TournamentTest < ActiveSupport::TestCase
     assert_includes changes.keys, "title"
     assert_equal ["Test Tournament", "Updated Tournament Title"], changes["title"]
   end
-end 
+
+  test "player_controlled? always returns true regardless of admin_controlled (UI-03 D-10)" do
+    # D-10: the round-advance gate becomes unconditional — auto-advance always happens.
+    # Historically `player_controlled?` returned `!admin_controlled?`; the column still
+    # exists on global records (D-11) but must no longer block auto-advance.
+    #
+    # Uses tournaments(:local) fixture (id 50_000_001) to avoid fragile Tournament.create!
+    # with minimal attributes that may fail validation. The fixture already satisfies
+    # all required associations (season, organizer, discipline).
+    t = tournaments(:local)
+
+    t.admin_controlled = true
+    assert t.player_controlled?, "player_controlled? must ignore admin_controlled=true"
+
+    t.admin_controlled = false
+    assert t.player_controlled?, "player_controlled? must be true when admin_controlled=false"
+
+    t.admin_controlled = nil
+    assert t.player_controlled?, "player_controlled? must be true when admin_controlled=nil"
+  end
+end

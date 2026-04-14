@@ -379,8 +379,11 @@ class Tournament < ApplicationRecord
   end
 
   def player_controlled?
-    # players can advance from Game-Finished-OK without admin or referee interaction?
-    !admin_controlled?
+    # UI-03 D-10: Auto-advance ist jetzt der einheitliche Default — der Rundenwechsel
+    # erfolgt immer automatisch, sobald das letzte Spiel einer Runde am Scoreboard
+    # bestätigt ist. Die admin_controlled-Spalte bleibt (D-11) für Kompatibilität mit
+    # globalen Records, hat aber keine funktionale Wirkung mehr.
+    true
   end
 
   def match_location_from_location_text
