@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v7.0
 milestone_name: Manager Experience
 status: executing
-stopped_at: Phase 36b context gathered
-last_updated: "2026-04-14T17:40:44.633Z"
+stopped_at: Phase 37 context gathered
+last_updated: "2026-04-14T20:19:38.676Z"
 last_activity: 2026-04-14
 progress:
   total_phases: 5
@@ -78,6 +78,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-14T12:52:02.719Z
-Stopped at: Phase 36b context gathered
-Resume file: .planning/phases/36B-ui-cleanup-kleine-features/36B-CONTEXT.md
+Last session: 2026-04-14T20:19:38.673Z
+Stopped at: Phase 37 context gathered
+Resume file: .planning/phases/37-in-app-doc-links/37-CONTEXT.md
