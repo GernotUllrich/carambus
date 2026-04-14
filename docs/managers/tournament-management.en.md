@@ -458,4 +458,118 @@ When in doubt, keep the defaults and verify the values before clicking "Start to
 
 ---
 
+<a id="appendix"></a>
+## Appendix: special cases and deeper-dive flows
+
+The following sections describe complete alternative flows and topics that do not fit the linear walkthrough. They are linked to from the corresponding steps and troubleshooting recipes.
+
+<a id="appendix-no-invitation"></a>
+### Invitation missing — generating a seeding list without a PDF
+
+**When:** When you have exceptionally not received an official NBV invitation PDF (for example a spontaneous club tournament, an internal cup, or a forgotten invitation from the sports officer).
+
+**Procedure:**
+
+1. **Open Carambus** and create the tournament or sync it from ClubCloud as described in [Step 2](#step-2-load-clubcloud) — the ClubCloud sync runs even without a PDF, as long as the tournament exists in ClubCloud.
+2. **In Step 3 (seeding list)** skip the PDF upload path. Instead, take over the initial participant list directly from the ClubCloud registration list — via the link "→ With registration list to Step 3 (sorted by ranking)" inside the upload-invitation form (see [Step 4 navigation](#step-4-participants), entry point 3).
+3. **In Step 4 (participant list)** click **"Sort by ranking"** to order players by the [rankings](#glossary-system) maintained inside Carambus. This order replaces the missing official seeding list.
+4. **Manually re-sort** if the sports officer asked for a deviation (for example the title-defending player at position 1).
+5. **Close** as in [Step 5](#step-5-finish-seeding) — the wizard then continues normally.
+
+Note: this seeding list is **Carambus-internal** and not official. For NBV-relevant tournaments you should have the seeding list confirmed afterwards by the responsible sports officer.
+
+<a id="appendix-missing-player"></a>
+### A registered player does not show up
+
+**When:** A player listed on the registration list does not appear on tournament day.
+
+**Procedure:**
+
+1. **Before the tournament starts** (before [Step 5 "Close participant list"](#step-5-finish-seeding)): remove the missing player in [Step 4](#step-4-participants) using the "Remove player" action and check whether the remaining player count still fits the chosen tournament plan. If a different plan is needed, Carambus shows a new suggestion on the wizard page.
+2. **If the participant list is already closed** but the tournament is not yet started: you can reset the setup via **"Reset tournament monitor"** and rebuild the participant list. **Note:** before Step 9 the reset is risk-free, after that it is not — see [Step 12 reset warning](#step-12-monitor).
+3. **If the tournament is already started and the player is in a round that has not yet been played**, there is no clean path in the current Carambus version. Treat the dropped player de facto as a [bye](#glossary-system) — see [Player withdraws during the tournament](#ts-player-withdraws).
+
+**Prevention:** Confirm the presence of all players just before [Step 5](#step-5-finish-seeding), not after the tournament starts.
+
+<a id="appendix-nachmeldung"></a>
+### Late registration on tournament day
+
+**When:** A player who is not on the ClubCloud registration list wants to play on tournament day.
+
+**Procedure:**
+
+1. **First clarify eligibility:** Does the player have a valid DBU licence? Does the tournament regulation allow on-site late registrations? Has the sports officer agreed? When in doubt: call the regional sports officer.
+2. **Before tournament start** late registration is easy in Carambus: in [Step 4](#step-4-participants) enter the late player's DBU number in the **"Add player by DBU number"** field and click **"Add player"**. Then "Sort by ranking" or drag-and-drop into the right place.
+3. **Entry in ClubCloud:** For the late registration to appear in the official statistics and for the result upload to work, the player must **also be added to the ClubCloud participant list**. This requires a **club sports officer with the appropriate permissions** (see [Appendix ClubCloud upload](#appendix-cc-upload)). If the sports officer is not on site, you have to call them or have the late registration recorded later.
+4. **After tournament start** late registration is currently **not properly supported** in Carambus — the only workaround is resetting the tournament monitor with all consequences.
+
+<a id="appendix-cc-upload"></a>
+### ClubCloud upload — two paths
+
+> **Note:** This appendix is a first-pass version based on the SME information already captured. A complete version (including screenshots of the CC admin interface, exact menu paths, and a full list of typical validation errors) is planned as PREP-04 in Phase 36c and will be added here later.
+
+Carambus knows two ways to push tournament results back to ClubCloud — both have the same prerequisite but different workflows.
+
+**Common prerequisite:** The **participant list in ClubCloud must be finalised**. That means: every player who participates in the tournament (including [late registrations](#appendix-nachmeldung)) must be in the CC participant list before any result can be uploaded. Finalising the participant list via the CC API is **currently not implemented** in Carambus — it has to be done manually by a **club sports officer** in the ClubCloud admin interface. This permission is typically restricted to selected officers, not every club member.
+
+**Path 1: Per-match upload** (`auto_upload_to_cc` enabled)
+
+- Every individual result is uploaded to ClubCloud **immediately when the match ends**.
+- Technically this happens through form emulation in the ClubCloud admin interface.
+- **Prerequisite:** as above — the CC participant list must already be finalised **before** the first match ends.
+- **Advantage:** results are visible in ClubCloud in near real time (for example for live federation reports).
+- **Activate:** in the start form ([Step 7](#step-7-start-form)) tick the checkbox **"Upload results to ClubCloud automatically"** (`auto_upload_to_cc`).
+
+**Path 2: CSV batch upload at the end** (`auto_upload_to_cc` disabled or path 1 not possible)
+
+- All results are recorded only locally in Carambus during the tournament.
+- At the end of the tournament Carambus produces a **CSV file** with all match results.
+- The CSV is sent by email to the tournament director (or made available for download).
+- The tournament director forwards it to the club sports officer who imports it into the (now finalised) ClubCloud participant list — for the detailed procedure see [CSV upload in ClubCloud](#appendix-cc-csv-upload).
+- **Advantage over path 1:** the sports officer can finalise the CC participant list **after** the tournament — path 2 is robust against the permission gap.
+
+**Permission problem (open):** Adding missing players to the ClubCloud participant list is restricted to **club sports officers**. If none is on site, this fully blocks path 1 and at least delays path 2 until after the tournament. A possible solution — storing club sports officer credentials in Carambus exactly for this delegation case — is planned as a follow-up feature for v7.1+.
+
+<a id="appendix-cc-csv-upload"></a>
+### CSV upload in ClubCloud (path 2 in detail)
+
+> **Note:** This appendix is a first-pass version. A complete step-by-step guide with CC admin interface screenshots, exact menu paths, and a full list of common validation errors is planned as PREP-04 in Phase 36c. Until then:
+
+**Who:** A **club sports officer** with write permissions on the participant list and the result table in ClubCloud.
+
+**Prerequisites:** The **participant list in ClubCloud is finalised** (see [ClubCloud upload — two paths](#appendix-cc-upload)) and contains every player who appears in the CSV — otherwise the import fails with a validation error.
+
+**Where in ClubCloud:** In the ClubCloud admin interface under the corresponding tournament; the exact menu position varies by CC version. When in doubt, clarify with the federation sports officer.
+
+**Common error messages (first list, to be expanded in PREP-04):**
+
+- **"Player not found"** — the player is in the CSV but not in the CC participant list. Fix: add the player to the CC participant list (sports officer permission required) and re-import the CSV.
+- **"Format error"** — the CSV does not match the expected CC format. Very rare, since Carambus generates the CSV in the format the CC importer expects. If it does happen: clarify the exact format with the federation sports officer.
+- **"Duplicate entry"** — a player was already uploaded via path 1 (per-match) and now appears in the CSV as well. Fix: remove the duplicate entry from the CSV or configure the import explicitly as "update".
+
+<a id="appendix-rangliste-manual"></a>
+### Maintaining the final ranking in ClubCloud
+
+**Background:** Carambus does **not** currently calculate the tournament final ranking automatically (see [Step 13](#step-13-finalize) and [Final ranking missing after the tournament ends](#ts-endrangliste-missing)). The final ranking therefore has to be maintained manually in ClubCloud.
+
+**Who:** The tournament director or a club sports officer with write permissions on the result table.
+
+**When:** After the last match, once all results are recorded and the scores in Carambus or at the scoreboards are final.
+
+**Procedure:**
+
+1. **Collect the individual results** — either from the Carambus Tournament Monitor (overview page with all matches, balls, innings, HS, GD), or directly from the table scoreboards.
+2. **Calculate the positions** according to the rules of the discipline:
+    - Number of matches won (primary criterion)
+    - On a tie: general average (GD)
+    - On a further tie: high run (HS)
+    - Discipline-specific tie-breakers (for example head-to-head)
+    - For knock-out tournaments needing a playoff, see [Playoff / shootout match needed](#ts-shootout-needed)
+3. **Enter the final positions in ClubCloud.** The exact location in the CC admin interface varies by CC version.
+4. **Consistency check:** compare the Carambus match results with the ones entered in CC — if path 1 (per-match upload) was used, both should be identical.
+
+**Note:** an **automatic final ranking calculation in Carambus** (with all special cases) is planned as a large feature for v7.1+. When it ships, this appendix becomes obsolete.
+
+---
+
 *For further technical details, see the [developer documentation](../developers/index.md).*
