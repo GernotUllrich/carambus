@@ -16,7 +16,7 @@
         <link rel="prev" href="../umb-scraping-implementation/">
       
       
-        <link rel="next" href="../frontend-sti-migration/">
+        <link rel="next" href="../services/table-monitor/">
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
@@ -52,6 +52,8 @@
     
       <link rel="stylesheet" href="../../stylesheets/extra.css">
     
+      <link rel="stylesheet" href="../../stylesheets/print.css">
+    
     <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
@@ -78,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#umb-scraping-methoden-ubersicht" class="md-skip">
+        <a href="#umb-scraping-methoden-referenz" class="md-skip">
           Zum Inhalt
         </a>
       
@@ -804,6 +806,8 @@
       
         
       
+        
+      
     
     
     
@@ -881,6 +885,29 @@
   
   
     <li class="md-nav__item">
+      <a href="../../managers/tournament-quick-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Turnier-Schnellreferenz
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../managers/league-management/" class="md-nav__link">
         
   
@@ -927,7 +954,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../managers/table-reservation.md" class="md-nav__link">
+      <a href="../../managers/table-reservation/" class="md-nav__link">
         
   
   
@@ -1519,29 +1546,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/api/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    API-Referenz
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../scenario-management/" class="md-nav__link">
         
   
@@ -1635,10 +1639,10 @@
         
           
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6_10" >
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6_9" >
         
           
-          <label class="md-nav__link" for="__nav_6_10" id="__nav_6_10_label" tabindex="">
+          <label class="md-nav__link" for="__nav_6_9" id="__nav_6_9_label" tabindex="">
             
   
   
@@ -1651,8 +1655,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_10_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_6_10">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6_9">
             <span class="md-nav__icon md-icon"></span>
             Testing
           </label>
@@ -1743,10 +1747,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6_11" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6_10" checked>
         
           
-          <label class="md-nav__link" for="__nav_6_11" id="__nav_6_11_label" tabindex="">
+          <label class="md-nav__link" for="__nav_6_10" id="__nav_6_10_label" tabindex="">
             
   
   
@@ -1759,8 +1763,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_11_label" aria-expanded="true">
-          <label class="md-nav__title" for="__nav_6_11">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_10_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_6_10">
             <span class="md-nav__icon md-icon"></span>
             UMB Scraping
           </label>
@@ -1846,55 +1850,37 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#verfugbare-rake-tasks" class="md-nav__link">
+  <a href="#scraper-einstiegspunkte" class="md-nav__link">
     <span class="md-ellipsis">
-      Verfügbare Rake Tasks
+      Scraper-Einstiegspunkte
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Verfügbare Rake Tasks">
+    <nav class="md-nav" aria-label="Scraper-Einstiegspunkte">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#option-0-incremental-update-neu-beste-methode-fur-laufende-systeme" class="md-nav__link">
+  <a href="#umbfuturescraper" class="md-nav__link">
     <span class="md-ellipsis">
-      ⭐ Option 0: Incremental Update (NEU - BESTE Methode für laufende Systeme)
+      Umb::FutureScraper
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#option-1-import-all-schnellste-methode-fur-initial-import" class="md-nav__link">
+  <a href="#umbarchivescraper" class="md-nav__link">
     <span class="md-ellipsis">
-      Option 1: Import All (Schnellste Methode für Initial Import)
+      Umb::ArchiveScraper
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#option-2-archiv-scraping-sequentiell" class="md-nav__link">
+  <a href="#umbdetailsscraper" class="md-nav__link">
     <span class="md-ellipsis">
-      Option 2: Archiv-Scraping (Sequentiell)
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#option-3-umb-scraper-v2-experimental" class="md-nav__link">
-    <span class="md-ellipsis">
-      Option 3: UMB Scraper V2 (EXPERIMENTAL)
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#einzelne-tournaments-neu-scrapen" class="md-nav__link">
-    <span class="md-ellipsis">
-      Einzelne Tournaments neu scrapen
+      Umb::DetailsScraper
     </span>
   </a>
   
@@ -1906,46 +1892,37 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#zusatzliche-hilfreiche-tasks" class="md-nav__link">
+  <a href="#pdf-parser" class="md-nav__link">
     <span class="md-ellipsis">
-      Zusätzliche Hilfreiche Tasks
+      PDF-Parser
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Zusätzliche Hilfreiche Tasks">
+    <nav class="md-nav" aria-label="PDF-Parser">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#status-diagnose" class="md-nav__link">
+  <a href="#umbpdfparserplayerlistparser" class="md-nav__link">
     <span class="md-ellipsis">
-      Status &amp; Diagnose
+      Umb::PdfParser::PlayerListParser
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#neue-turniere-finden" class="md-nav__link">
+  <a href="#umbpdfparsergroupresultparser" class="md-nav__link">
     <span class="md-ellipsis">
-      Neue Turniere finden
+      Umb::PdfParser::GroupResultParser
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#fehlende-daten-nachtraglich-fixen" class="md-nav__link">
+  <a href="#umbpdfparserrankingparser" class="md-nav__link">
     <span class="md-ellipsis">
-      Fehlende Daten nachträglich fixen
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#discipline-analyse" class="md-nav__link">
-    <span class="md-ellipsis">
-      Discipline-Analyse
+      Umb::PdfParser::RankingParser
     </span>
   </a>
   
@@ -1957,230 +1934,11 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#empfohlener-workflow-fur-production" class="md-nav__link">
+  <a href="#hilfs-services" class="md-nav__link">
     <span class="md-ellipsis">
-      Empfohlener Workflow für Production
+      Hilfs-Services
     </span>
   </a>
-  
-    <nav class="md-nav" aria-label="Empfohlener Workflow für Production">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#erstmaliges-deployment-fresh-install" class="md-nav__link">
-    <span class="md-ellipsis">
-      Erstmaliges Deployment (Fresh Install)
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#laufendes-system-update-empfohlen" class="md-nav__link">
-    <span class="md-ellipsis">
-      Laufendes System (Update) - EMPFOHLEN
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#was-wird-automatisch-erstellt" class="md-nav__link">
-    <span class="md-ellipsis">
-      Was wird automatisch erstellt?
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Was wird automatisch erstellt?">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#1-locations" class="md-nav__link">
-    <span class="md-ellipsis">
-      1. Locations
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#2-seasons" class="md-nav__link">
-    <span class="md-ellipsis">
-      2. Seasons
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#3-organizer" class="md-nav__link">
-    <span class="md-ellipsis">
-      3. Organizer
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#4-disciplines" class="md-nav__link">
-    <span class="md-ellipsis">
-      4. Disciplines
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#5-fallback-zu-placeholders" class="md-nav__link">
-    <span class="md-ellipsis">
-      5. Fallback zu Placeholders
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#performance" class="md-nav__link">
-    <span class="md-ellipsis">
-      Performance
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Performance">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#umbimport_all" class="md-nav__link">
-    <span class="md-ellipsis">
-      umb:import_all
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#umbscrape_archive1500" class="md-nav__link">
-    <span class="md-ellipsis">
-      umb:scrape_archive[1,500]
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#umbscrape_all_details" class="md-nav__link">
-    <span class="md-ellipsis">
-      umb:scrape_all_details
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#troubleshooting" class="md-nav__link">
-    <span class="md-ellipsis">
-      Troubleshooting
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Troubleshooting">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#dont-know-how-to-build-task-umbscrape_overview" class="md-nav__link">
-    <span class="md-ellipsis">
-      "Don't know how to build task 'umb:scrape_overview'"
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#timeout-errors-beim-scraping" class="md-nav__link">
-    <span class="md-ellipsis">
-      Timeout-Errors beim Scraping
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#fehlende-locationsseasons" class="md-nav__link">
-    <span class="md-ellipsis">
-      Fehlende Locations/Seasons
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#falsche-disciplines" class="md-nav__link">
-    <span class="md-ellipsis">
-      Falsche Disciplines
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#zusammenfassung" class="md-nav__link">
-    <span class="md-ellipsis">
-      Zusammenfassung
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Zusammenfassung">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#fur-initial-production-deployment" class="md-nav__link">
-    <span class="md-ellipsis">
-      Für Initial Production Deployment:
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#fur-laufende-systeme-regelmaige-updates" class="md-nav__link">
-    <span class="md-ellipsis">
-      Für laufende Systeme (regelmäßige Updates):
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#quick-troubleshooting" class="md-nav__link">
-    <span class="md-ellipsis">
-      Quick Troubleshooting
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -2188,6 +1946,264 @@
   
 </nav>
       
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6_11" >
+        
+          
+          <label class="md-nav__link" for="__nav_6_11" id="__nav_6_11_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Services
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_11_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6_11">
+            <span class="md-nav__icon md-icon"></span>
+            Services
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../services/table-monitor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Table Monitor
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../services/region-cc/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Region CC
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../services/tournament/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Turnier
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../services/tournament-monitor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Turnier-Monitor
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../services/league/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Liga
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../services/party-monitor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Party-Monitor
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../services/umb/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    UMB-Services
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../services/video-crossref/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Video-Querverweise
+    
+  </span>
+  
+
+      </a>
     </li>
   
 
@@ -2580,7 +2596,7 @@
   
   
   <span class="md-ellipsis">
-    API-Referenz
+    API
     
   </span>
   
@@ -2842,55 +2858,37 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#verfugbare-rake-tasks" class="md-nav__link">
+  <a href="#scraper-einstiegspunkte" class="md-nav__link">
     <span class="md-ellipsis">
-      Verfügbare Rake Tasks
+      Scraper-Einstiegspunkte
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Verfügbare Rake Tasks">
+    <nav class="md-nav" aria-label="Scraper-Einstiegspunkte">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#option-0-incremental-update-neu-beste-methode-fur-laufende-systeme" class="md-nav__link">
+  <a href="#umbfuturescraper" class="md-nav__link">
     <span class="md-ellipsis">
-      ⭐ Option 0: Incremental Update (NEU - BESTE Methode für laufende Systeme)
+      Umb::FutureScraper
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#option-1-import-all-schnellste-methode-fur-initial-import" class="md-nav__link">
+  <a href="#umbarchivescraper" class="md-nav__link">
     <span class="md-ellipsis">
-      Option 1: Import All (Schnellste Methode für Initial Import)
+      Umb::ArchiveScraper
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#option-2-archiv-scraping-sequentiell" class="md-nav__link">
+  <a href="#umbdetailsscraper" class="md-nav__link">
     <span class="md-ellipsis">
-      Option 2: Archiv-Scraping (Sequentiell)
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#option-3-umb-scraper-v2-experimental" class="md-nav__link">
-    <span class="md-ellipsis">
-      Option 3: UMB Scraper V2 (EXPERIMENTAL)
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#einzelne-tournaments-neu-scrapen" class="md-nav__link">
-    <span class="md-ellipsis">
-      Einzelne Tournaments neu scrapen
+      Umb::DetailsScraper
     </span>
   </a>
   
@@ -2902,46 +2900,37 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#zusatzliche-hilfreiche-tasks" class="md-nav__link">
+  <a href="#pdf-parser" class="md-nav__link">
     <span class="md-ellipsis">
-      Zusätzliche Hilfreiche Tasks
+      PDF-Parser
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Zusätzliche Hilfreiche Tasks">
+    <nav class="md-nav" aria-label="PDF-Parser">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#status-diagnose" class="md-nav__link">
+  <a href="#umbpdfparserplayerlistparser" class="md-nav__link">
     <span class="md-ellipsis">
-      Status &amp; Diagnose
+      Umb::PdfParser::PlayerListParser
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#neue-turniere-finden" class="md-nav__link">
+  <a href="#umbpdfparsergroupresultparser" class="md-nav__link">
     <span class="md-ellipsis">
-      Neue Turniere finden
+      Umb::PdfParser::GroupResultParser
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#fehlende-daten-nachtraglich-fixen" class="md-nav__link">
+  <a href="#umbpdfparserrankingparser" class="md-nav__link">
     <span class="md-ellipsis">
-      Fehlende Daten nachträglich fixen
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#discipline-analyse" class="md-nav__link">
-    <span class="md-ellipsis">
-      Discipline-Analyse
+      Umb::PdfParser::RankingParser
     </span>
   </a>
   
@@ -2953,230 +2942,11 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#empfohlener-workflow-fur-production" class="md-nav__link">
+  <a href="#hilfs-services" class="md-nav__link">
     <span class="md-ellipsis">
-      Empfohlener Workflow für Production
+      Hilfs-Services
     </span>
   </a>
-  
-    <nav class="md-nav" aria-label="Empfohlener Workflow für Production">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#erstmaliges-deployment-fresh-install" class="md-nav__link">
-    <span class="md-ellipsis">
-      Erstmaliges Deployment (Fresh Install)
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#laufendes-system-update-empfohlen" class="md-nav__link">
-    <span class="md-ellipsis">
-      Laufendes System (Update) - EMPFOHLEN
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#was-wird-automatisch-erstellt" class="md-nav__link">
-    <span class="md-ellipsis">
-      Was wird automatisch erstellt?
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Was wird automatisch erstellt?">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#1-locations" class="md-nav__link">
-    <span class="md-ellipsis">
-      1. Locations
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#2-seasons" class="md-nav__link">
-    <span class="md-ellipsis">
-      2. Seasons
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#3-organizer" class="md-nav__link">
-    <span class="md-ellipsis">
-      3. Organizer
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#4-disciplines" class="md-nav__link">
-    <span class="md-ellipsis">
-      4. Disciplines
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#5-fallback-zu-placeholders" class="md-nav__link">
-    <span class="md-ellipsis">
-      5. Fallback zu Placeholders
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#performance" class="md-nav__link">
-    <span class="md-ellipsis">
-      Performance
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Performance">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#umbimport_all" class="md-nav__link">
-    <span class="md-ellipsis">
-      umb:import_all
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#umbscrape_archive1500" class="md-nav__link">
-    <span class="md-ellipsis">
-      umb:scrape_archive[1,500]
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#umbscrape_all_details" class="md-nav__link">
-    <span class="md-ellipsis">
-      umb:scrape_all_details
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#troubleshooting" class="md-nav__link">
-    <span class="md-ellipsis">
-      Troubleshooting
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Troubleshooting">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#dont-know-how-to-build-task-umbscrape_overview" class="md-nav__link">
-    <span class="md-ellipsis">
-      "Don't know how to build task 'umb:scrape_overview'"
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#timeout-errors-beim-scraping" class="md-nav__link">
-    <span class="md-ellipsis">
-      Timeout-Errors beim Scraping
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#fehlende-locationsseasons" class="md-nav__link">
-    <span class="md-ellipsis">
-      Fehlende Locations/Seasons
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#falsche-disciplines" class="md-nav__link">
-    <span class="md-ellipsis">
-      Falsche Disciplines
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#zusammenfassung" class="md-nav__link">
-    <span class="md-ellipsis">
-      Zusammenfassung
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Zusammenfassung">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#fur-initial-production-deployment" class="md-nav__link">
-    <span class="md-ellipsis">
-      Für Initial Production Deployment:
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#fur-laufende-systeme-regelmaige-updates" class="md-nav__link">
-    <span class="md-ellipsis">
-      Für laufende Systeme (regelmäßige Updates):
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#quick-troubleshooting" class="md-nav__link">
-    <span class="md-ellipsis">
-      Quick Troubleshooting
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -3199,231 +2969,198 @@
   
 
 
-<h1 id="umb-scraping-methoden-ubersicht">UMB Scraping Methoden - Übersicht<a class="headerlink" href="#umb-scraping-methoden-ubersicht" title="Permanent link">&para;</a></h1>
-<h2 id="verfugbare-rake-tasks">Verfügbare Rake Tasks<a class="headerlink" href="#verfugbare-rake-tasks" title="Permanent link">&para;</a></h2>
-<h3 id="option-0-incremental-update-neu-beste-methode-fur-laufende-systeme">⭐ Option 0: Incremental Update (NEU - BESTE Methode für laufende Systeme)<a class="headerlink" href="#option-0-incremental-update-neu-beste-methode-fur-laufende-systeme" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>rake<span class="w"> </span>umb:update<span class="w"> </span><span class="nv">RAILS_ENV</span><span class="o">=</span>production
+<h1 id="umb-scraping-methoden-referenz">UMB Scraping — Methoden-Referenz<a class="headerlink" href="#umb-scraping-methoden-referenz" title="Permanent link">&para;</a></h1>
+<p>Diese Seite dokumentiert die öffentlichen Einstiegspunkte und Schlüsselmethoden der <code>Umb::</code>-Namespace-Services. Eine Übersicht der Architektur und Designentscheidungen findet sich in der <a href="../umb-scraping-implementation/">Architektur-Dokumentation</a>.</p>
+<h2 id="scraper-einstiegspunkte">Scraper-Einstiegspunkte<a class="headerlink" href="#scraper-einstiegspunkte" title="Permanent link">&para;</a></h2>
+<h3 id="umbfuturescraper"><code>Umb::FutureScraper</code><a class="headerlink" href="#umbfuturescraper" title="Permanent link">&para;</a></h3>
+<p><strong>Datei:</strong> <code>app/services/umb/future_scraper.rb</code></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="no">Umb</span><span class="o">::</span><span class="no">FutureScraper</span><span class="o">.</span><span class="n">new</span><span class="o">.</span><span class="n">call</span>
 </code></pre></div>
-<p><strong>Vorteile:</strong>
-- ✅ Kombiniert alle Strategien (Future + New IDs + Updates)
-- ✅ <strong>Fixt automatisch fehlende Organizer</strong> (alle UMB Turniere bekommen UMB als Organizer)
-- ✅ Updated kürzliche Turniere mit neuen Ergebnissen
-- ✅ Findet neue Turniere über aktuelles Maximum hinaus
-- ✅ Intelligent &amp; effizient (nur was nötig ist)</p>
-<p><strong>Was wird automatisch gefixt:</strong>
-- Fehlende Organizer (setzt UMB als Organizer für alle Turniere ohne Organizer)
-- Neue zukünftige Turniere werden erkannt
-- Bestehende Turniere werden mit aktuellen Ergebnissen aktualisiert</p>
-<p><strong>Verwendung:</strong> Für regelmäßige Updates (z.B. täglich/wöchentlich)</p>
+<p><strong>Parameter:</strong> keine</p>
+<p><strong>Beschreibung:</strong> Scrapt <code>FutureTournaments.aspx</code> der UMB-Webseite. Parst die HTML-Tabelle inkl. monatsübergreifender Ereignisse und wendet Duplikat-Prüfung (Titel + Ort + Datum ±30 Tage) an.</p>
+<p><strong>DB-Effekte:</strong>
+- Erstellt oder aktualisiert <code>InternationalTournament</code>-Datensätze
+- Erstellt bei Bedarf <code>Location</code>-, <code>Season</code>- und <code>Region</code> (UMB Organizer)-Datensätze</p>
+<p><strong>Rückgabewert:</strong> <code>Integer</code> — Anzahl gespeicherter/aktualisierter Turniere</p>
 <hr />
-<h3 id="option-1-import-all-schnellste-methode-fur-initial-import">Option 1: Import All (Schnellste Methode für Initial Import)<a class="headerlink" href="#option-1-import-all-schnellste-methode-fur-initial-import" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>rake<span class="w"> </span>umb:import_all<span class="w"> </span><span class="nv">RAILS_ENV</span><span class="o">=</span>production
+<h3 id="umbarchivescraper"><code>Umb::ArchiveScraper</code><a class="headerlink" href="#umbarchivescraper" title="Permanent link">&para;</a></h3>
+<p><strong>Datei:</strong> <code>app/services/umb/archive_scraper.rb</code></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="no">Umb</span><span class="o">::</span><span class="no">ArchiveScraper</span><span class="o">.</span><span class="n">new</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="ss">start_id</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="ss">end_id</span><span class="p">:</span><span class="w"> </span><span class="mi">500</span><span class="p">)</span>
 </code></pre></div>
-<p><strong>Vorteile:</strong>
-- ✅ Schnellste Methode (überspringt nicht-existierende IDs)
-- ✅ Importiert alle bekannten Tournament IDs
-- ✅ Sortiert nach neuestem zuerst
-- ✅ Vollständiger Import (Tournaments + Games + Seedings)</p>
-<p><strong>Verwendung:</strong> Für Production Deployment empfohlen</p>
+<p><strong>Parameter:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Typ</th>
+<th>Standard</th>
+<th>Beschreibung</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>start_id:</code></td>
+<td>Integer</td>
+<td><code>1</code></td>
+<td>Erste zu prüfende Turnier-ID</td>
+</tr>
+<tr>
+<td><code>end_id:</code></td>
+<td>Integer</td>
+<td><code>500</code></td>
+<td>Letzte zu prüfende Turnier-ID (inklusiv)</td>
+</tr>
+<tr>
+<td><code>batch_size:</code></td>
+<td>Integer</td>
+<td><code>50</code></td>
+<td>Rate-Limiting: Sleep nach jeweils dieser Anzahl IDs</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Beschreibung:</strong> Scannt <code>TournametDetails.aspx?ID=N</code> sequentiell für jede ID im angegebenen Bereich. Bricht früh ab bei 50 aufeinanderfolgenden nicht gefundenen IDs. Überspringt bereits bekannte Turniere (per <code>external_id</code>).</p>
+<p><strong>DB-Effekte:</strong>
+- Erstellt neue <code>InternationalTournament</code>-Datensätze für entdeckte Turniere
+- Erstellt bei Bedarf <code>Location</code>-, <code>Season</code>- und <code>Region</code>-Datensätze</p>
+<p><strong>Rückgabewert:</strong> <code>Integer</code> — Anzahl gespeicherter Turniere</p>
 <hr />
-<h3 id="option-2-archiv-scraping-sequentiell">Option 2: Archiv-Scraping (Sequentiell)<a class="headerlink" href="#option-2-archiv-scraping-sequentiell" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># Phase 1: Tournaments erstellen (ID-Range)</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>rake<span class="w"> </span>umb:scrape_archive<span class="o">[</span><span class="m">1</span>,500<span class="o">]</span><span class="w"> </span><span class="nv">RAILS_ENV</span><span class="o">=</span>production
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="c1"># Phase 2: Details scrapen (Games, Players, Seedings)</span>
-<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>rake<span class="w"> </span>umb:scrape_all_details<span class="w"> </span><span class="nv">RAILS_ENV</span><span class="o">=</span>production
+<h3 id="umbdetailsscraper"><code>Umb::DetailsScraper</code><a class="headerlink" href="#umbdetailsscraper" title="Permanent link">&para;</a></h3>
+<p><strong>Datei:</strong> <code>app/services/umb/details_scraper.rb</code></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="no">Umb</span><span class="o">::</span><span class="no">DetailsScraper</span><span class="o">.</span><span class="n">new</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="n">tournament_id_or_record</span><span class="p">,</span><span class="w"> </span><span class="ss">create_games</span><span class="p">:</span><span class="w"> </span><span class="kp">true</span><span class="p">,</span><span class="w"> </span><span class="ss">parse_pdfs</span><span class="p">:</span><span class="w"> </span><span class="kp">false</span><span class="p">)</span>
 </code></pre></div>
-<p><strong>Vorteile:</strong>
-- ✅ Findet auch "versteckte" IDs in Lücken
-- ✅ 2-Phasen-Ansatz (erst Tournaments, dann Details)</p>
-<p><strong>Nachteile:</strong>
-- ❌ Langsamer (prüft jede ID einzeln)
-- ❌ Zwei separate Befehle notwendig</p>
-<p><strong>Verwendung:</strong> Wenn Sie sicherstellen wollen, dass wirklich ALLE IDs gecheckt wurden</p>
+<p><strong>Parameter:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Typ</th>
+<th>Standard</th>
+<th>Beschreibung</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>tournament_id_or_record</code></td>
+<td>Integer / InternationalTournament</td>
+<td>—</td>
+<td>ID aus der Datenbank oder ein bestehender Datensatz</td>
+</tr>
+<tr>
+<td><code>create_games:</code></td>
+<td>Boolean</td>
+<td><code>true</code></td>
+<td>Ob <code>InternationalGame</code>-Datensätze aus der HTML-Tabelle angelegt werden sollen</td>
+</tr>
+<tr>
+<td><code>parse_pdfs:</code></td>
+<td>Boolean</td>
+<td><code>false</code></td>
+<td>Ob die PDF-Pipeline (PlayerList, GroupResults, Ranking) ausgeführt wird</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Beschreibung:</strong> Scrapt eine Turnier-Detailseite von <code>TournametDetails.aspx?ID=N</code>. Extrahiert und kategorisiert PDF-Links, aktualisiert Turnierfelder (Ort, Season, Organizer). Wenn <code>create_games: true</code>, werden <code>InternationalGame</code>-Datensätze mit <code>type: 'InternationalGame'</code> (STI) angelegt. Wenn <code>parse_pdfs: true</code>, werden alle drei PdfParser-Services unabhängig ausgeführt.</p>
+<p><strong>DB-Effekte:</strong>
+- Aktualisiert bestehenden <code>InternationalTournament</code>-Datensatz
+- Erstellt <code>InternationalGame</code>-Datensätze (wenn <code>create_games: true</code>)
+- Erstellt <code>Seeding</code>- und <code>GameParticipation</code>-Datensätze (wenn <code>parse_pdfs: true</code>)</p>
+<p><strong>Rückgabewert:</strong> <code>InternationalTournament</code>-Datensatz bei Erfolg, <code>false</code> bei Fehler</p>
 <hr />
-<h3 id="option-3-umb-scraper-v2-experimental">Option 3: UMB Scraper V2 (EXPERIMENTAL)<a class="headerlink" href="#option-3-umb-scraper-v2-experimental" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># Einzelnes Tournament testen</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>rake<span class="w"> </span>umb_v2:scrape<span class="o">[</span><span class="m">310</span><span class="o">]</span><span class="w"> </span><span class="nv">RAILS_ENV</span><span class="o">=</span>production
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>
-<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="c1"># ID-Range scrapen</span>
-<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>rake<span class="w"> </span>umb_v2:scrape_range<span class="o">[</span><span class="m">300</span>,400<span class="o">]</span><span class="w"> </span><span class="nv">RAILS_ENV</span><span class="o">=</span>production
+<h2 id="pdf-parser">PDF-Parser<a class="headerlink" href="#pdf-parser" title="Permanent link">&para;</a></h2>
+<h3 id="umbpdfparserplayerlistparser"><code>Umb::PdfParser::PlayerListParser</code><a class="headerlink" href="#umbpdfparserplayerlistparser" title="Permanent link">&para;</a></h3>
+<p><strong>Datei:</strong> <code>app/services/umb/pdf_parser/player_list_parser.rb</code></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="no">Umb</span><span class="o">::</span><span class="no">PdfParser</span><span class="o">::</span><span class="no">PlayerListParser</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">pdf_text</span><span class="p">)</span><span class="o">.</span><span class="n">parse</span>
 </code></pre></div>
-<p><strong>Besonderheiten:</strong>
-- ✅ Verbessertes KO-Runden-Parsing
-- ✅ Moderne Code-Struktur (UmbScraperV2)
-- ⚠️ Noch in Entwicklung</p>
-<p><strong>Verwendung:</strong> Für spezielle Fälle oder Testing</p>
+<p><strong>Eingabe:</strong> Extrahierter PDF-Text (String) einer UMB-Spielerliste (Setzliste)</p>
+<p><strong>Ausgabe:</strong> Array von Hashes mit diesen Schlüsseln:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="o">[</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="ss">position</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="ss">caps_name</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;JASPERS&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">mixed_name</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Dick&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">nationality</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;NL&quot;</span><span class="w"> </span><span class="p">},</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="ss">position</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="ss">caps_name</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;CAUDRON&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">mixed_name</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Frederic&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">nationality</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;FR&quot;</span><span class="w"> </span><span class="p">},</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">  </span><span class="c1"># ...</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="o">]</span>
+</code></pre></div>
+<p><strong>Hinweise:</strong>
+- Reines PORO — kein DB-Zugriff
+- Gibt <code>[]</code> zurück bei nil/leerem Input oder fehlenden Spielerzeilen
+- <code>caps_name</code> ist der Nachname in Großbuchstaben (aus UMB-PDF-Konvention)
+- <code>mixed_name</code> ist der Vorname in gemischter Schreibweise</p>
 <hr />
-<h3 id="einzelne-tournaments-neu-scrapen">Einzelne Tournaments neu scrapen<a class="headerlink" href="#einzelne-tournaments-neu-scrapen" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># Einzelnes Tournament</span>
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>rake<span class="w"> </span>umb:scrape_tournament_details<span class="o">[</span><span class="m">375</span><span class="o">]</span><span class="w"> </span><span class="nv">RAILS_ENV</span><span class="o">=</span>production
-<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
-<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="c1"># Mehrere Tournaments (für Debugging)</span>
-<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>rake<span class="w"> </span>umb:debug_import<span class="o">[</span><span class="m">375</span>,376,377<span class="o">]</span><span class="w"> </span><span class="nv">RAILS_ENV</span><span class="o">=</span>production
+<h3 id="umbpdfparsergroupresultparser"><code>Umb::PdfParser::GroupResultParser</code><a class="headerlink" href="#umbpdfparsergroupresultparser" title="Permanent link">&para;</a></h3>
+<p><strong>Datei:</strong> <code>app/services/umb/pdf_parser/group_result_parser.rb</code></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="no">Umb</span><span class="o">::</span><span class="no">PdfParser</span><span class="o">::</span><span class="no">GroupResultParser</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">pdf_text</span><span class="p">)</span><span class="o">.</span><span class="n">parse</span>
 </code></pre></div>
+<p><strong>Eingabe:</strong> Extrahierter PDF-Text (String) eines UMB-Gruppenresultats</p>
+<p><strong>Ausgabe:</strong> Array von Match-Hashes:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="o">[</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span><span class="p">{</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">    </span><span class="ss">group</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;A&quot;</span><span class="p">,</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">    </span><span class="ss">player_a</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nb">name</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;JASPERS Dick&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">nationality</span><span class="p">:</span><span class="w"> </span><span class="kp">nil</span><span class="p">,</span><span class="w"> </span><span class="ss">points</span><span class="p">:</span><span class="w"> </span><span class="mi">30</span><span class="p">,</span><span class="w"> </span><span class="ss">innings</span><span class="p">:</span><span class="w"> </span><span class="mi">14</span><span class="p">,</span><span class="w"> </span><span class="ss">average</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="o">.</span><span class="mi">142</span><span class="p">,</span><span class="w"> </span><span class="ss">match_points</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="ss">hs</span><span class="p">:</span><span class="w"> </span><span class="mi">9</span><span class="w"> </span><span class="p">},</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="w">    </span><span class="ss">player_b</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nb">name</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;CAUDRON Frederic&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">nationality</span><span class="p">:</span><span class="w"> </span><span class="kp">nil</span><span class="p">,</span><span class="w"> </span><span class="ss">points</span><span class="p">:</span><span class="w"> </span><span class="mi">25</span><span class="p">,</span><span class="w"> </span><span class="ss">innings</span><span class="p">:</span><span class="w"> </span><span class="mi">14</span><span class="p">,</span><span class="w"> </span><span class="ss">average</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="o">.</span><span class="mi">785</span><span class="p">,</span><span class="w"> </span><span class="ss">match_points</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="ss">hs</span><span class="p">:</span><span class="w"> </span><span class="mi">5</span><span class="w"> </span><span class="p">},</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="w">    </span><span class="ss">winner_name</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;JASPERS Dick&quot;</span>
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="w">  </span><span class="p">},</span>
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="w">  </span><span class="c1"># ...</span>
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="o">]</span>
+</code></pre></div>
+<p><strong>Hinweise:</strong>
+- Reines PORO — kein DB-Zugriff
+- Verwendet Pair-Accumulator-Muster: erste Spielerzeile wird zwischengespeichert, zweite komplettiert das Match
+- Gibt <code>[]</code> zurück bei nil/leerem Input
+- <code>nationality</code> ist in Gruppenresultat-PDFs nicht enthalten (immer <code>nil</code>)</p>
 <hr />
-<h2 id="zusatzliche-hilfreiche-tasks">Zusätzliche Hilfreiche Tasks<a class="headerlink" href="#zusatzliche-hilfreiche-tasks" title="Permanent link">&para;</a></h2>
-<h3 id="status-diagnose">Status &amp; Diagnose<a class="headerlink" href="#status-diagnose" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1"># Umfassender Status-Report (NEU - empfohlen!)</span>
-<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>rake<span class="w"> </span>umb:status<span class="w"> </span><span class="nv">RAILS_ENV</span><span class="o">=</span>production
-<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>
-<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="c1"># Detaillierte Statistiken</span>
-<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>rake<span class="w"> </span>umb:stats<span class="w"> </span><span class="nv">RAILS_ENV</span><span class="o">=</span>production
-<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>rake<span class="w"> </span>umb_v2:stats<span class="w"> </span><span class="nv">RAILS_ENV</span><span class="o">=</span>production
+<h3 id="umbpdfparserrankingparser"><code>Umb::PdfParser::RankingParser</code><a class="headerlink" href="#umbpdfparserrankingparser" title="Permanent link">&para;</a></h3>
+<p><strong>Datei:</strong> <code>app/services/umb/pdf_parser/ranking_parser.rb</code></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="no">Umb</span><span class="o">::</span><span class="no">PdfParser</span><span class="o">::</span><span class="no">RankingParser</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">pdf_text</span><span class="p">,</span><span class="w"> </span><span class="ss">type</span><span class="p">:</span><span class="w"> </span><span class="ss">:final</span><span class="p">)</span><span class="o">.</span><span class="n">parse</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="no">Umb</span><span class="o">::</span><span class="no">PdfParser</span><span class="o">::</span><span class="no">RankingParser</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">pdf_text</span><span class="p">,</span><span class="w"> </span><span class="ss">type</span><span class="p">:</span><span class="w"> </span><span class="ss">:weekly</span><span class="p">)</span><span class="o">.</span><span class="n">parse</span>
 </code></pre></div>
-<h3 id="neue-turniere-finden">Neue Turniere finden<a class="headerlink" href="#neue-turniere-finden" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># Nur checken (ohne Import) - NEU!</span>
-<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>rake<span class="w"> </span>umb:check_new<span class="w"> </span><span class="nv">RAILS_ENV</span><span class="o">=</span>production
+<p><strong>Eingabe:</strong>
+- <code>pdf_text</code> — Extrahierter PDF-Text (String) eines UMB-Rankings
+- <code>type:</code> — <code>:final</code> (Turnier-Abschlussranking) oder <code>:weekly</code> (wöchentliches UMB-Weltranking)</p>
+<p><strong>Ausgabe für <code>type: :final</code>:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="o">[</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="ss">position</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="ss">player_name</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;JASPERS Dick&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">nationality</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;NL&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">points</span><span class="p">:</span><span class="w"> </span><span class="mi">150</span><span class="p">,</span><span class="w"> </span><span class="ss">average</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="o">.</span><span class="mi">500</span><span class="w"> </span><span class="p">},</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">  </span><span class="c1"># ...</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="o">]</span>
 </code></pre></div>
-<h3 id="fehlende-daten-nachtraglich-fixen">Fehlende Daten nachträglich fixen<a class="headerlink" href="#fehlende-daten-nachtraglich-fixen" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1"># Organizer fixen (WICHTIG wenn &quot;organizer not set&quot; Error!)</span>
-<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>rake<span class="w"> </span>umb:fix_organizers<span class="w"> </span><span class="nv">RAILS_ENV</span><span class="o">=</span>production
-<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>
-<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="c1"># Fehlende Locations nachträglich scrapen</span>
-<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>rake<span class="w"> </span>umb:rescrape_missing_locations<span class="w"> </span><span class="nv">RAILS_ENV</span><span class="o">=</span>production
-<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>
-<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="c1"># Disciplines automatisch korrigieren</span>
-<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>rake<span class="w"> </span>umb:fix_disciplines<span class="w"> </span><span class="nv">RAILS_ENV</span><span class="o">=</span>production
-<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>
-<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="c1"># Location/Season für alle UMB Tournaments fixen</span>
-<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a>rake<span class="w"> </span>umb:fix_tournaments<span class="w"> </span><span class="nv">RAILS_ENV</span><span class="o">=</span>production
+<p><strong>Ausgabe für <code>type: :weekly</code>:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="o">[</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="ss">rank</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="ss">player_name</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;JASPERS Dick&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">nationality</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;NL&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">points</span><span class="p">:</span><span class="w"> </span><span class="mi">1200</span><span class="w"> </span><span class="p">},</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="w">  </span><span class="c1"># ...</span>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="o">]</span>
 </code></pre></div>
-<h3 id="discipline-analyse">Discipline-Analyse<a class="headerlink" href="#discipline-analyse" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>rake<span class="w"> </span>umb:discipline_stats<span class="w"> </span><span class="nv">RAILS_ENV</span><span class="o">=</span>production
-</code></pre></div>
+<p><strong>Hinweise:</strong>
+- Reines PORO — kein DB-Zugriff
+- Gibt <code>[]</code> zurück bei nil/leerem Input oder unbekanntem Typ
+- Wöchentliche Rankings sind unter <code>files.umb-carom.org/Public/Ranking/</code> verfügbar</p>
 <hr />
-<h2 id="empfohlener-workflow-fur-production">Empfohlener Workflow für Production<a class="headerlink" href="#empfohlener-workflow-fur-production" title="Permanent link">&para;</a></h2>
-<h3 id="erstmaliges-deployment-fresh-install">Erstmaliges Deployment (Fresh Install)<a class="headerlink" href="#erstmaliges-deployment-fresh-install" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1"># 1. Placeholder Records erstellen</span>
-<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>rake<span class="w"> </span>placeholders:create<span class="w"> </span><span class="nv">RAILS_ENV</span><span class="o">=</span>production
-<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>
-<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="c1"># 2. UMB Tournaments importieren (EMPFOHLEN)</span>
-<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>rake<span class="w"> </span>umb:import_all<span class="w"> </span><span class="nv">RAILS_ENV</span><span class="o">=</span>production
-<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>
-<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="c1"># 3. Statistiken prüfen</span>
-<a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a>rake<span class="w"> </span>umb:stats<span class="w"> </span><span class="nv">RAILS_ENV</span><span class="o">=</span>production
-<a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a>rake<span class="w"> </span>placeholders:stats<span class="w"> </span><span class="nv">RAILS_ENV</span><span class="o">=</span>production
-<a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a>
-<a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a><span class="c1"># 4. Optional: Disciplines automatisch korrigieren</span>
-<a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a>rake<span class="w"> </span>umb:fix_disciplines<span class="w"> </span><span class="nv">RAILS_ENV</span><span class="o">=</span>production
-<a id="__codelineno-9-13" name="__codelineno-9-13" href="#__codelineno-9-13"></a>
-<a id="__codelineno-9-14" name="__codelineno-9-14" href="#__codelineno-9-14"></a><span class="c1"># 5. Incomplete Records im Admin Interface nachbearbeiten</span>
-<a id="__codelineno-9-15" name="__codelineno-9-15" href="#__codelineno-9-15"></a><span class="c1"># https://your-domain/admin/incomplete_records</span>
-</code></pre></div>
-<h3 id="laufendes-system-update-empfohlen">Laufendes System (Update) - EMPFOHLEN<a class="headerlink" href="#laufendes-system-update-empfohlen" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="c1"># BESTE METHODE: Inkrementelles Update (kombiniert alle Strategien)</span>
-<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>rake<span class="w"> </span>umb:update<span class="w"> </span><span class="nv">RAILS_ENV</span><span class="o">=</span>production
-<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>
-<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="c1"># Nur Status anzeigen (ohne Änderungen)</span>
-<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>rake<span class="w"> </span>umb:status<span class="w"> </span><span class="nv">RAILS_ENV</span><span class="o">=</span>production
-<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>
-<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="c1"># Nur neue Tournaments checken (ohne Import)</span>
-<a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a>rake<span class="w"> </span>umb:check_new<span class="w"> </span><span class="nv">RAILS_ENV</span><span class="o">=</span>production
-<a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a>
-<a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a><span class="c1"># Nur Organizer fixen</span>
-<a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a>rake<span class="w"> </span>umb:fix_organizers<span class="w"> </span><span class="nv">RAILS_ENV</span><span class="o">=</span>production
-</code></pre></div>
-<p><strong>Was macht <code>umb:update</code>?</strong>
-1. ✅ Scraped zukünftige Turniere von UMB Website
-2. ✅ Sucht nach neuen Tournament IDs (über aktuelles Maximum hinaus)
-3. ✅ Fixt fehlende Organizer (UMB Region)
-4. ✅ Updated kürzliche Turniere mit Ergebnissen (letzte 2 Jahre)
-5. ✅ Rate limiting &amp; Error handling</p>
-<p><strong>Alternative (bei Problemen):</strong>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="c1"># Manuell: Nur neue/zukünftige Tournaments</span>
-<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>rake<span class="w"> </span>umb:scrape_future<span class="w"> </span><span class="nv">RAILS_ENV</span><span class="o">=</span>production
-<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>
-<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="c1"># Manuell: Erneuter kompletter Import (überschreibt Updates)</span>
-<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>rake<span class="w"> </span>umb:import_all<span class="w"> </span><span class="nv">RAILS_ENV</span><span class="o">=</span>production
-</code></pre></div></p>
-<hr />
-<h2 id="was-wird-automatisch-erstellt">Was wird automatisch erstellt?<a class="headerlink" href="#was-wird-automatisch-erstellt" title="Permanent link">&para;</a></h2>
-<p>Der UMB Scraper (<code>umb:import_all</code> und <code>umb:scrape_archive</code>) erstellt automatisch:</p>
-<h3 id="1-locations">1. Locations<a class="headerlink" href="#1-locations" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>&quot;Nice (France)&quot; → Location: Nice, Country: FR
-<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>&quot;Ho Chi Minh City (Vietnam)&quot; → Location: Ho Chi Minh City, Country: VN
-</code></pre></div>
-<h3 id="2-seasons">2. Seasons<a class="headerlink" href="#2-seasons" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>Starts on: 15-January-2009 → Season: 2008/2009 (Juli-basiert)
-<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>Starts on: 01-August-2024 → Season: 2024/2025
-</code></pre></div>
-<h3 id="3-organizer">3. Organizer<a class="headerlink" href="#3-organizer" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>Alle UMB Tournaments → Organizer: Region &quot;Union Mondiale de Billard&quot; (UMB)
-</code></pre></div>
-<h3 id="4-disciplines">4. Disciplines<a class="headerlink" href="#4-disciplines" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>&quot;3-Cushion World Cup&quot; → Discipline: Dreiband groß
-<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>&quot;Cadre 47/2 World Cup&quot; → Discipline: Cadre 47/2
-</code></pre></div>
-<h3 id="5-fallback-zu-placeholders">5. Fallback zu Placeholders<a class="headerlink" href="#5-fallback-zu-placeholders" title="Permanent link">&para;</a></h3>
-<p>Wenn etwas nicht erkannt werden kann:
-- → Unknown Location
-- → Unknown Season<br />
-- → Unknown Discipline
-- → Unknown Region (Organizer)</p>
-<p>Diese können später im Admin Interface <code>/admin/incomplete_records</code> korrigiert werden.</p>
-<hr />
-<h2 id="performance">Performance<a class="headerlink" href="#performance" title="Permanent link">&para;</a></h2>
-<h3 id="umbimport_all">umb:import_all<a class="headerlink" href="#umbimport_all" title="Permanent link">&para;</a></h3>
-<ul>
-<li>~311 Tournaments (bekannte IDs)</li>
-<li>~5-10 Minuten (abhängig von Netzwerk)</li>
-<li>Überspringt nicht-existierende IDs automatisch</li>
-</ul>
-<h3 id="umbscrape_archive1500">umb:scrape_archive[1,500]<a class="headerlink" href="#umbscrape_archive1500" title="Permanent link">&para;</a></h3>
-<ul>
-<li>Prüft jede ID von 1-500 sequentiell</li>
-<li>~30-60 Minuten (viele IDs existieren nicht)</li>
-<li>Findet auch "versteckte" Tournaments</li>
-</ul>
-<h3 id="umbscrape_all_details">umb:scrape_all_details<a class="headerlink" href="#umbscrape_all_details" title="Permanent link">&para;</a></h3>
-<ul>
-<li>Nur für Tournaments ohne Details (Games/Seedings)</li>
-<li>~10-20 Minuten</li>
-</ul>
-<hr />
-<h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h2>
-<h3 id="dont-know-how-to-build-task-umbscrape_overview">"Don't know how to build task 'umb:scrape_overview'"<a class="headerlink" href="#dont-know-how-to-build-task-umbscrape_overview" title="Permanent link">&para;</a></h3>
-<p>✅ <strong>Lösung:</strong> Verwenden Sie stattdessen <code>rake umb:import_all</code></p>
-<h3 id="timeout-errors-beim-scraping">Timeout-Errors beim Scraping<a class="headerlink" href="#timeout-errors-beim-scraping" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="c1"># Kleinere Batches verwenden</span>
-<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>rake<span class="w"> </span>umb:scrape_archive<span class="o">[</span><span class="m">1</span>,100<span class="o">]</span><span class="w"> </span><span class="nv">RAILS_ENV</span><span class="o">=</span>production
-<a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>rake<span class="w"> </span>umb:scrape_archive<span class="o">[</span><span class="m">101</span>,200<span class="o">]</span><span class="w"> </span><span class="nv">RAILS_ENV</span><span class="o">=</span>production
-<a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a><span class="c1"># etc.</span>
-</code></pre></div>
-<h3 id="fehlende-locationsseasons">Fehlende Locations/Seasons<a class="headerlink" href="#fehlende-locationsseasons" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="c1"># Automatisch nachträglich fixen</span>
-<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a>rake<span class="w"> </span>umb:fix_tournaments<span class="w"> </span><span class="nv">RAILS_ENV</span><span class="o">=</span>production
-</code></pre></div>
-<h3 id="falsche-disciplines">Falsche Disciplines<a class="headerlink" href="#falsche-disciplines" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="c1"># Automatische Korrektur basierend auf Tournament-Titeln</span>
-<a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>rake<span class="w"> </span>umb:fix_disciplines<span class="w"> </span><span class="nv">RAILS_ENV</span><span class="o">=</span>production
-</code></pre></div>
-<hr />
-<h2 id="zusammenfassung">Zusammenfassung<a class="headerlink" href="#zusammenfassung" title="Permanent link">&para;</a></h2>
-<h3 id="fur-initial-production-deployment">Für Initial Production Deployment:<a class="headerlink" href="#fur-initial-production-deployment" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>rake<span class="w"> </span>placeholders:create<span class="w"> </span><span class="nv">RAILS_ENV</span><span class="o">=</span>production<span class="w">  </span><span class="c1"># ERST!</span>
-<a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a>rake<span class="w"> </span>umb:import_all<span class="w"> </span><span class="nv">RAILS_ENV</span><span class="o">=</span>production<span class="w">       </span><span class="c1"># DANN!</span>
-<a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a>rake<span class="w"> </span>umb:fix_organizers<span class="w"> </span><span class="nv">RAILS_ENV</span><span class="o">=</span>production<span class="w">   </span><span class="c1"># UMB Organizer setzen</span>
-</code></pre></div>
-<h3 id="fur-laufende-systeme-regelmaige-updates">Für laufende Systeme (regelmäßige Updates):<a class="headerlink" href="#fur-laufende-systeme-regelmaige-updates" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="c1"># Einmal pro Woche/Monat ausführen:</span>
-<a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a>rake<span class="w"> </span>umb:update<span class="w"> </span><span class="nv">RAILS_ENV</span><span class="o">=</span>production
-<a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a>
-<a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a><span class="c1"># Oder nur Status checken:</span>
-<a id="__codelineno-20-5" name="__codelineno-20-5" href="#__codelineno-20-5"></a>rake<span class="w"> </span>umb:status<span class="w"> </span><span class="nv">RAILS_ENV</span><span class="o">=</span>production
-</code></pre></div>
-<p><strong>Das war's!</strong> 🎉</p>
-<h3 id="quick-troubleshooting">Quick Troubleshooting<a class="headerlink" href="#quick-troubleshooting" title="Permanent link">&para;</a></h3>
-<p><strong>Problem: "organizer UMB not set" Fehler</strong>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>rake<span class="w"> </span>umb:fix_organizers<span class="w"> </span><span class="nv">RAILS_ENV</span><span class="o">=</span>production
-</code></pre></div></p>
-<p><strong>Problem: Keine zukünftigen Turniere</strong>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>rake<span class="w"> </span>umb:update<span class="w"> </span><span class="nv">RAILS_ENV</span><span class="o">=</span>production<span class="w">  </span><span class="c1"># Scraped future tournaments</span>
-</code></pre></div></p>
-<p><strong>Problem: Veraltete Ergebnisse</strong>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a>rake<span class="w"> </span>umb:update<span class="w"> </span><span class="nv">RAILS_ENV</span><span class="o">=</span>production<span class="w">  </span><span class="c1"># Updated recent tournaments</span>
-</code></pre></div></p>
-<p>Danach optional Statistiken prüfen und im Admin-Interface <code>/admin/incomplete_records</code> nachbearbeiten.</p>
+<h2 id="hilfs-services">Hilfs-Services<a class="headerlink" href="#hilfs-services" title="Permanent link">&para;</a></h2>
+<p>Die folgenden Services werden von den Scrapern intern verwendet und haben keine direkten öffentlichen Einstiegspunkte für den Betrieb:</p>
+<table>
+<thead>
+<tr>
+<th>Service</th>
+<th>Aufgerufen von</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Umb::HttpClient</code></td>
+<td>FutureScraper, ArchiveScraper, DetailsScraper</td>
+</tr>
+<tr>
+<td><code>Umb::DisciplineDetector</code></td>
+<td>FutureScraper, ArchiveScraper, DetailsScraper</td>
+</tr>
+<tr>
+<td><code>Umb::DateHelpers</code></td>
+<td>FutureScraper, ArchiveScraper, DetailsScraper</td>
+</tr>
+<tr>
+<td><code>Umb::PlayerResolver</code></td>
+<td>DetailsScraper</td>
+</tr>
+</tbody>
+</table>
+<p>Eine vollständige Beschreibung dieser Services findet sich in der <a href="../umb-scraping-implementation/">Architektur-Dokumentation</a>.</p>
 
 
 

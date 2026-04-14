@@ -1,0 +1,120 @@
+/* Carambus Print Styles — shared print stylesheet for mkdocs-material.
+   Active only under @media print. Primary target: the Phase 35
+   tournament-quick-reference cards. Other pages get the same chrome
+   stripping for free but are not explicitly tuned (D-02a). */
+
+@media print {
+  /* D-02: Hide mkdocs-material navigation chrome */
+  .md-header,
+  .md-header__button,
+  .md-tabs,
+  .md-search,
+  .md-sidebar,
+  .md-sidebar--primary,
+  .md-sidebar--secondary,
+  .md-nav,
+  .md-footer,
+  .md-top {
+    display: none !important;
+  }
+
+  /* D-02: Main content area expands to full A4 page width */
+  .md-main,
+  .md-main__inner,
+  .md-content,
+  .md-content__inner {
+    margin: 0 !important;
+    padding: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  /* D-02a: A4-safe page margins (15mm top/bottom, 12mm left/right) */
+  @page {
+    size: A4;
+    margin: 15mm 12mm 15mm 12mm;
+  }
+
+  /* D-02b: Font sizing — base 11pt, legible at arm's length */
+  .md-typeset {
+    font-size: 11pt !important;
+    line-height: 1.35 !important;
+  }
+
+  .md-typeset h1 {
+    font-size: 16pt !important;
+    margin: 0 0 0.4em 0 !important;
+  }
+
+  .md-typeset h2 {
+    font-size: 14pt !important;
+    margin: 0.6em 0 0.3em 0 !important;
+    page-break-after: avoid;
+  }
+
+  .md-typeset h3 {
+    font-size: 13pt !important;
+    margin: 0.5em 0 0.25em 0 !important;
+    page-break-after: avoid;
+  }
+
+  .md-typeset code,
+  .md-typeset pre {
+    font-size: 10pt !important;
+  }
+
+  /* D-02b: No dependency on color — force black-on-white legibility
+     for checklist markers, keycap borders, and section dividers. */
+  .md-typeset,
+  .md-typeset h1,
+  .md-typeset h2,
+  .md-typeset h3,
+  .md-typeset a,
+  .md-typeset code,
+  .md-typeset pre {
+    color: #000 !important;
+    background: #fff !important;
+  }
+
+  .md-typeset hr {
+    border-top: 1pt solid #000 !important;
+  }
+
+  /* D-05: On-screen deep-links are useful, in print they are visual
+     noise. Suppress link styling so the printed card reads as plain text. */
+  .md-typeset a {
+    text-decoration: none !important;
+    color: inherit !important;
+  }
+
+  /* Task-list boxes (D-04) — mkdocs-material uses pymdownx.tasklist
+     with custom_checkbox: true (see mkdocs.yml). Make sure the box
+     glyph is rendered as a bold black square with enough contrast. */
+  .md-typeset .task-list-indicator::before {
+    color: #000 !important;
+    border-color: #000 !important;
+  }
+
+  /* Avoid orphaned section breaks inside checklist blocks */
+  .md-typeset ul,
+  .md-typeset ol,
+  .md-typeset table {
+    page-break-inside: avoid;
+  }
+
+  /* Admonitions: keep the warning/tip callouts readable in black-and-white
+     (drop the tinted background that mkdocs-material uses on-screen). */
+  .md-typeset .admonition,
+  .md-typeset details {
+    border: 1pt solid #000 !important;
+    background: #fff !important;
+    padding: 0.3em 0.5em !important;
+    margin: 0.4em 0 !important;
+  }
+  .md-typeset .admonition-title,
+  .md-typeset summary {
+    background: #fff !important;
+    color: #000 !important;
+    font-weight: bold;
+  }
+}

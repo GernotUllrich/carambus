@@ -24,7 +24,7 @@
     
     
       
-        <title>API Reference - Carambus Documentation</title>
+        <title>API - Carambus Documentation</title>
       
     
     
@@ -51,6 +51,8 @@
     
     
       <link rel="stylesheet" href="../../../stylesheets/extra.css">
+    
+      <link rel="stylesheet" href="../../../stylesheets/print.css">
     
     <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
@@ -118,7 +120,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              API Reference
+              API
             
           </span>
         </div>
@@ -804,6 +806,8 @@
       
         
       
+        
+      
     
     
     
@@ -864,6 +868,29 @@
   
   <span class="md-ellipsis">
     Tournament Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../managers/tournament-quick-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tournament Quick Reference
     
   </span>
   
@@ -1513,452 +1540,6 @@
                 
   
   
-    
-  
-  
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    API Reference
-    
-  </span>
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
-        
-  
-  
-  <span class="md-ellipsis">
-    API Reference
-    
-  </span>
-  
-
-      </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#overview" class="md-nav__link">
-    <span class="md-ellipsis">
-      Overview
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#authentication" class="md-nav__link">
-    <span class="md-ellipsis">
-      Authentication
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Authentication">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#session-based-authentication" class="md-nav__link">
-    <span class="md-ellipsis">
-      Session-based Authentication
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#api-token-authentication-future" class="md-nav__link">
-    <span class="md-ellipsis">
-      API Token Authentication (Future)
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#base-url" class="md-nav__link">
-    <span class="md-ellipsis">
-      Base URL
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#response-format" class="md-nav__link">
-    <span class="md-ellipsis">
-      Response Format
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#error-responses" class="md-nav__link">
-    <span class="md-ellipsis">
-      Error Responses
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#core-endpoints" class="md-nav__link">
-    <span class="md-ellipsis">
-      Core Endpoints
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Core Endpoints">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#tournaments" class="md-nav__link">
-    <span class="md-ellipsis">
-      Tournaments
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#tournament-actions" class="md-nav__link">
-    <span class="md-ellipsis">
-      Tournament Actions
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#players" class="md-nav__link">
-    <span class="md-ellipsis">
-      Players
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#leagues" class="md-nav__link">
-    <span class="md-ellipsis">
-      Leagues
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#parties-matches" class="md-nav__link">
-    <span class="md-ellipsis">
-      Parties (Matches)
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#table-monitors" class="md-nav__link">
-    <span class="md-ellipsis">
-      Table Monitors
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#table-monitor-actions" class="md-nav__link">
-    <span class="md-ellipsis">
-      Table Monitor Actions
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#real-time-api" class="md-nav__link">
-    <span class="md-ellipsis">
-      Real-time API
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Real-time API">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#action-cable-channels" class="md-nav__link">
-    <span class="md-ellipsis">
-      Action Cable Channels
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#websocket-message-format" class="md-nav__link">
-    <span class="md-ellipsis">
-      WebSocket Message Format
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#data-synchronization-api" class="md-nav__link">
-    <span class="md-ellipsis">
-      Data Synchronization API
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Data Synchronization API">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#external-data-sources" class="md-nav__link">
-    <span class="md-ellipsis">
-      External Data Sources
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#region-management" class="md-nav__link">
-    <span class="md-ellipsis">
-      Region Management
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#admin-api" class="md-nav__link">
-    <span class="md-ellipsis">
-      Admin API
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Admin API">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#user-management" class="md-nav__link">
-    <span class="md-ellipsis">
-      User Management
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#system-settings" class="md-nav__link">
-    <span class="md-ellipsis">
-      System Settings
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#rate-limiting" class="md-nav__link">
-    <span class="md-ellipsis">
-      Rate Limiting
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#pagination" class="md-nav__link">
-    <span class="md-ellipsis">
-      Pagination
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#filtering-and-sorting" class="md-nav__link">
-    <span class="md-ellipsis">
-      Filtering and Sorting
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Filtering and Sorting">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#filtering" class="md-nav__link">
-    <span class="md-ellipsis">
-      Filtering
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#sorting" class="md-nav__link">
-    <span class="md-ellipsis">
-      Sorting
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#error-codes" class="md-nav__link">
-    <span class="md-ellipsis">
-      Error Codes
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#sdks-and-libraries" class="md-nav__link">
-    <span class="md-ellipsis">
-      SDKs and Libraries
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="SDKs and Libraries">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#javascripttypescript" class="md-nav__link">
-    <span class="md-ellipsis">
-      JavaScript/TypeScript
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#ruby" class="md-nav__link">
-    <span class="md-ellipsis">
-      Ruby
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#examples" class="md-nav__link">
-    <span class="md-ellipsis">
-      Examples
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Examples">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#complete-tournament-workflow" class="md-nav__link">
-    <span class="md-ellipsis">
-      Complete Tournament Workflow
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#real-time-scoreboard-integration" class="md-nav__link">
-    <span class="md-ellipsis">
-      Real-time Scoreboard Integration
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#support" class="md-nav__link">
-    <span class="md-ellipsis">
-      Support
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
   
   
     <li class="md-nav__item">
@@ -2052,10 +1633,10 @@
         
           
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6_10" >
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6_9" >
         
           
-          <label class="md-nav__link" for="__nav_6_10" id="__nav_6_10_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_6_9" id="__nav_6_9_label" tabindex="0">
             
   
   
@@ -2068,8 +1649,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_10_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_6_10">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6_9">
             <span class="md-nav__icon md-icon"></span>
             Testing
           </label>
@@ -2157,10 +1738,10 @@
         
           
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6_11" >
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6_10" >
         
           
-          <label class="md-nav__link" for="__nav_6_11" id="__nav_6_11_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_6_10" id="__nav_6_10_label" tabindex="0">
             
   
   
@@ -2173,8 +1754,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_11_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_6_11">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6_10">
             <span class="md-nav__icon md-icon"></span>
             UMB Scraping
           </label>
@@ -2216,6 +1797,261 @@
   
   <span class="md-ellipsis">
     UMB Scraping Methods
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6_11" >
+        
+          
+          <label class="md-nav__link" for="__nav_6_11" id="__nav_6_11_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Services
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_11_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6_11">
+            <span class="md-nav__icon md-icon"></span>
+            Services
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/services/table-monitor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Table Monitor
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/services/region-cc/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Region CC
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/services/tournament/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tournament
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/services/tournament-monitor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tournament Monitor
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/services/league/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    League
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/services/party-monitor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Party Monitor
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/services/umb/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    UMB Services
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/services/video-crossref/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Video Cross-Reference
     
   </span>
   
@@ -2625,7 +2461,7 @@
   
   
   <span class="md-ellipsis">
-    API Reference
+    API
     
   </span>
   
@@ -2638,7 +2474,7 @@
   
   
   <span class="md-ellipsis">
-    API Reference
+    API
     
   </span>
   
@@ -4255,7 +4091,7 @@
 <h2 id="support">Support<a class="headerlink" href="#support" title="Permanent link">&para;</a></h2>
 <p>For API support and questions:</p>
 <ul>
-<li><strong>Documentation</strong>: <a href="API.md">API.md</a></li>
+<li><strong>Documentation</strong>: see above (this page)</li>
 <li><strong>Issues</strong>: <a href="https://github.com/your-username/carambus/issues">GitHub Issues</a></li>
 <li><strong>Discussions</strong>: <a href="https://github.com/your-username/carambus/discussions">GitHub Discussions</a></li>
 </ul>
