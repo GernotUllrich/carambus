@@ -74,6 +74,9 @@
                 • <strong>Setzliste</strong> = Reihenfolge nach Ranking (kommt in Schritt 2)<br>
                 • <strong>Teilnehmerliste</strong> = Wer tatsächlich da ist (Schritt 3)
               </p>
+              <p class="step-docs-link mt-2">
+                <%= mkdocs_link('managers/tournament-management', text: t('tournaments.docs.walkthrough_link'), options: { class: 'text-blue-600 dark:text-blue-400 underline text-sm' }) %>
+              </p>
             </details>
           </div>
         </div>
@@ -191,6 +194,9 @@
               Meldeliste von ClubCloud (aus Schritt 1) zu Schritt 3 weitergehen.<br><br>
               <strong>Hinweis:</strong> Die Setzliste (Reihenfolge/Position der Spieler) können Sie in <strong>Schritt 3</strong>
               bei Bedarf anpassen (↑↓ Buttons oder direkte Positionseingabe).
+            </p>
+            <p class="step-docs-link mt-2">
+              <%= mkdocs_link('managers/tournament-management', anchor: 'seeding-list', text: t('tournaments.docs.walkthrough_link'), options: { class: 'text-blue-600 dark:text-blue-400 underline text-sm' }) %>
             </p>
           </details>
         </div>
@@ -342,6 +348,9 @@
               <% else %>
                 Startet das Turnier und öffnet den Tournament-Monitor für die Verwaltung der Spiele und Tischzuordnungen.
               <% end %>
+            </p>
+            <p class="step-docs-link mt-2">
+              <%= mkdocs_link('managers/tournament-management', anchor: 'start-parameters', text: t('tournaments.docs.walkthrough_link'), options: { class: 'text-blue-600 dark:text-blue-400 underline text-sm' }) %>
             </p>
           </details>
         </div>
