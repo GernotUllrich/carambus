@@ -123,6 +123,9 @@
 <% end %>
 
 <ninja-keys data-controller="command-palette" hideBreadcrumbs></ninja-keys>
+
+<%# Shared confirmation modal (UI-06 D-15) — rendered once per page, reused for UI-06 and UI-07 %>
+<%= render "shared/confirmation_modal" %>
 <%= yield :javascript %>
 </body>
 </html>
