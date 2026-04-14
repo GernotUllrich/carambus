@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v7.0
 milestone_name: Manager Experience
 status: executing
-stopped_at: Phase 35 complete and pushed to origin; carambus_api now in development mode (all edits happen here, carambus_master pulls from origin); Phase 36 ready to discuss/plan
-last_updated: "2026-04-14T00:58:31.161Z"
-last_activity: 2026-04-14 -- Phase 36a planning complete
+stopped_at: Completed 36A-01-PLAN.md (Block 1+2 corrections to tournament-management DE+EN)
+last_updated: "2026-04-14T07:55:45.250Z"
+last_activity: 2026-04-14
 progress:
   total_phases: 5
   completed_phases: 3
   total_plans: 19
-  completed_plans: 12
-  percent: 63
+  completed_plans: 13
+  percent: 68
 ---
 
 # Project State
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-13)
 
 **Core value:** Code and docs stay in sync — every documented feature works, every working feature is documented, and a volunteer user should never need to read the architecture to run a tournament.
-**Current focus:** Phase 36 — Small UX Fixes
+**Current focus:** Phase 36a — Turnierverwaltung Doc Accuracy
 
 ## Current Position
 
-Phase: 36
-Plan: Not started
+Phase: 36a (Turnierverwaltung Doc Accuracy) — EXECUTING
+Plan: 2 of 7
 Status: Ready to execute
-Last activity: 2026-04-14 -- Phase 36a planning complete
+Last activity: 2026-04-14
 
 Progress: [██████████] 100%
 
@@ -51,6 +51,7 @@ Recent decisions affecting current work:
 - [Phase 35]: Before=10/During=6/After=5 item distribution; Laptop shutdown item in After section (chronological)
 - [Phase 35]: Plan 35-04: Fragment-less link to scoreboard-guide.md chosen over #keyboard-shortcuts (no such anchor exists bilingually); DE uses #tastenbelegung, EN uses #key-bindings — fragment-less preserves parity and avoids strict-build warning
 - [Phase 35]: Plan 35-05: D-09 gate PASSED (final=191, baseline=191, delta=0); all 4 ROADMAP success criteria PASS; human print-preview smoke test returned approved-with-notes (user observations routed to follow-up phase via VERIFICATION.md `deferred:` array — 3 items: scoreboard screenshots > shortcuts cheat sheet, warm-up/shootout/protocol-editor coverage, 2-page A4 ceiling). Plan 35-05 closes as PASS; orchestrator owns `phase complete 35`.
+- [Phase 36A]: Plan 36A-01: Glossary AASM-Status entry left unchanged (out of Block 1+2 scope, will be reviewed by later 36A glossar-block plan); forward links to #appendix-no-invitation/#appendix-missing-player/#appendix-nachmeldung placed and will be resolved by Plan 36A-06
 
 ### Pending Todos
 
@@ -63,6 +64,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-13T18:30:00.000Z
-Stopped at: Phase 35 complete and pushed to origin; carambus_api now in development mode (all edits happen here, carambus_master pulls from origin); Phase 36 ready to discuss/plan
+Last session: 2026-04-14T07:55:39.263Z
+Stopped at: Completed 36A-01-PLAN.md (Block 1+2 corrections to tournament-management DE+EN)
 Resume file: None
