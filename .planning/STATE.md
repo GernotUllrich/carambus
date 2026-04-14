@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v7.0
 milestone_name: Manager Experience
-status: verifying
+status: executing
 stopped_at: Phase 36b context gathered
-last_updated: "2026-04-14T12:52:02.722Z"
-last_activity: 2026-04-14
+last_updated: "2026-04-14T14:24:59.081Z"
+last_activity: 2026-04-14 -- Phase 36B execution started
 progress:
   total_phases: 5
   completed_phases: 4
-  total_plans: 19
+  total_plans: 25
   completed_plans: 19
-  percent: 100
+  percent: 76
 ---
 
 # Project State
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-13)
 
 **Core value:** Code and docs stay in sync — every documented feature works, every working feature is documented, and a volunteer user should never need to read the architecture to run a tournament.
-**Current focus:** Phase 36a — Turnierverwaltung Doc Accuracy
+**Current focus:** Phase 36B — UI Cleanup & Kleine Features
 
 ## Current Position
 
-Phase: 36b
-Plan: Not started
-Status: Phase complete — ready for verification
-Last activity: 2026-04-14
+Phase: 36B (UI Cleanup & Kleine Features) — EXECUTING
+Plan: 1 of 6
+Status: Executing Phase 36B
+Last activity: 2026-04-14 -- Phase 36B execution started
 
 Progress: [██████████] 100%
 
