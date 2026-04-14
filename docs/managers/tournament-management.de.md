@@ -162,59 +162,98 @@ Die Zuordnung der einzelnen Spiele (Matches) zu den logischen Tischen erfolgt **
 
 Wenn Tischzuordnung und Turnier-Parameter vollständig sind, klicken Sie unten auf **„Starte den Turnier Monitor"**.
 
-!!! warning "Warten, nicht erneut klicken"
-    Nach dem Klick auf **Starte den Turnier Monitor** sieht die Seite mehrere
-    Sekunden lang unverändert aus. Das ist normal — der Wizard bereitet im
-    Hintergrund die Tisch-Monitore vor. **Klicken Sie den Button nicht erneut**
-    und navigieren Sie nicht zurück. Nach wenigen Sekunden öffnet sich der
-    Turnier-Monitor automatisch.
+!!! info "Der Start-Vorgang dauert einige Sekunden"
+    Nach dem Klick auf **Starte den Turnier Monitor** sieht die Seite kurz
+    unverändert aus. Das ist normal — der Wizard bereitet im Hintergrund
+    die Tisch-Monitore vor. Der Button ist während des Vorgangs gesperrt,
+    so dass ein versehentlicher Doppelklick nichts auslöst. Nach wenigen
+    Sekunden öffnet sich der Turnier-Monitor automatisch.
 <!-- ref: F-19 -->
 
-Im Hintergrund löst Carambus das AASM-Event `start_tournament!` aus (Übergang nach `tournament_started_waiting_for_monitors`), initialisiert alle TableMonitors und leitet Sie dann automatisch zur Turnier-Monitor-Seite weiter. Wenn sich die Seite nach 30 Sekunden nicht ändert, prüfen Sie, ob Redis und der ActionCable-Dienst laufen.
+**Erfolgreich gestartet?** Der zuverlässigste Check ist, an den **Tisch-Tafeln** nachzusehen: Wenn dort die korrekten Paarungen der ersten Runde erscheinen, ist der Start gelungen.
 
 <a id="step-10-warmup"></a>
 ### Schritt 10: Warmup-Phase beobachten
 
 Nachdem der Turnier-Monitor geöffnet ist, sehen Sie die Übersichtsseite „Turnier-Monitor · NDM Freie Partie Klasse 1–3". Jeder der zwei Tische zeigt einen Status-Badge **„warmup"** und die zugewiesenen Spielerpaare für Partie 1 (z. B. „Simon, Franzel / Smrcka, Martin" auf Tisch 1).
 
-In der Warmup-Phase können die Spieler die Tische und Bälle ausprobieren. Die Scoreboards sind bereits aktiv, aber die Punkte zählen noch nicht. Im Abschnitt „Aktuelle Spiele Runde 1" sehen Sie alle 4 Matches der ersten Runde mit den Spalten Tisch / Gruppe / Partie / Spieler und einem **„Spielbeginn"**-Button pro Zeile.
+In der Warmup-Phase können sich die Spieler **einspielen** (Fachterminus für „Tisch und Bälle ausprobieren bevor es zählt"). Die Einspielzeit wird **am Scoreboard** gestartet und beträgt typischerweise 5 Minuten (Parameter **Warmup**). Die Scoreboards sind bereits aktiv, aber Punkte zählen noch nicht.
 
-Sie müssen hier nichts aktiv tun — beobachten Sie, ob alle Scoreboards verbunden sind (grüner Status), und warten Sie auf den Startschuss des Turniers.
+Im Turnier-Monitor sehen Sie im Abschnitt „Aktuelle Spiele Runde 1" die Matches der laufenden Runde mit den Spalten Tisch / Gruppe / Partie / Spieler. **Bei 5 Teilnehmern in Runde 1 laufen 2 Matches mit je 2 Spielern; der fünfte Spieler hat in dieser Runde [Freilos](#glossary-wizard).** (Nicht 4 Matches — die Anzahl ergibt sich aus dem Turnierplan.)
+
+> **Hinweis:** In dieser Tabelle sehen Sie pro Zeile auch Buttons wie „Spielbeginn" — das ist ein Fallback-UI für den Notfall (Scoreboard-Ausfall mit manueller Übertragung von Papierprotokollen). Im Standardablauf braucht der Turnierleiter diese Buttons **nicht** zu klicken.
+
+Als Turnierleiter müssen Sie hier nichts aktiv tun — beobachten Sie, ob alle Scoreboards verbunden sind (grüner Status), und warten Sie auf den Startschuss durch die Spieler an den Scoreboards.
 
 ![Turnier-Monitor-Landingpage in der Warmup-Phase](images/tournament-monitor-landing.png){ loading=lazy }
 *Abbildung: Turnier-Monitor direkt nach dem Start — beide Tische zeigen Status „warmup" und die Paarungen der ersten Runde (Beispiel aus dem Phase-33-Audit).*
 
 <a id="step-11-release-match"></a>
-### Schritt 11: Spielbeginn freigeben
+### Schritt 11: Spielbetrieb läuft (Scoreboards steuern alles)
 
-Wenn der Warmup abgeschlossen ist und alle Spieler bereit sind, klicken Sie für jede Partie in der Tabelle „Aktuelle Spiele Runde 1" auf den Button **„Spielbeginn"**. Dieser Klick startet die Zeitmessung und aktiviert die Ball-Eingabe am [Scoreboard](#glossary-wizard).
+**Im Standardablauf hat der Turnierleiter hier keine aktive Rolle.** Sobald der Warmup an einem Scoreboard zu Ende ist, startet das jeweilige Spiel automatisch — der Spielbeginn wird **am Scoreboard** ausgelöst, nicht im Turnier-Monitor.
 
-In unserem Szenario mit 5 Teilnehmern und 2 Tischen laufen in Runde 1 gleichzeitig 2 Partien — klicken Sie also nacheinander auf zwei „Spielbeginn"-Buttons. Der fünfte Spieler sitzt in Runde 1 aus (Freilos, abhängig vom gewählten Turnierplan).
+Schritte 10, 11 und 12 sind in Wahrheit drei **Phasen** (Warmup → Spielbetrieb → Abschluss), nicht drei „Aktionen des Turnierleiters". Während dieser Phasen läuft alles an den Scoreboards. Ihre einzige Aufgabe ist Beobachtung und das Eingreifen bei Problemen — dafür siehe [Schritt 12](#step-12-monitor).
+
+> **Sonderfall Manuelle Rundenwechsel-Kontrolle:** Wenn Sie im Start-Formular den Parameter „Tournament manager checks results before acceptance" aktiviert haben, wird der Rundenwechsel blockiert, bis Sie bei jedem Spielende auf „OK?" klicken. Diese Option ist inzwischen umstritten und wird voraussichtlich entfernt; im Standardfall lassen Sie sie deaktiviert.
 
 <a id="step-12-monitor"></a>
-### Schritt 12: Ergebnisse verfolgen
+### Schritt 12: Beobachten und bei Bedarf eingreifen
 
-Nach dem Spielbeginn übernehmen die Spieler die Scoreboard-Eingabe. Der Turnier-Monitor aktualisiert sich in Echtzeit über ActionCable — Sie müssen die Seite nicht neu laden.
+Während des Spielbetriebs übernehmen die Spieler bzw. das Scoreboard-Personal die Punkteingabe. Der Turnier-Monitor aktualisiert sich in Echtzeit — Sie müssen die Seite nicht neu laden.
 
-Beobachten Sie die Spaltenwerte **Bälle** / **Aufnahme** / **HS** ([Höchstserie](#glossary-karambol)) / **GD** ([Generaldurchschnitt](#glossary-karambol)) in der Spiele-Tabelle. Wenn eine Partie abgeschlossen ist, wechselt die Tischkarte automatisch zur nächsten Partie in der Runde. Nach Abschluss aller Partien einer [Spielrunde](#glossary-karambol) schaltet der Monitor auf Runde 2, und die nächste Paarung erscheint.
+**Was Sie in der Übersicht sehen:** die Spaltenwerte **Bälle** / **Aufnahme** / **HS** ([Höchstserie](#glossary-karambol)) / **GD** ([Generaldurchschnitt](#glossary-karambol)) in der Spiele-Tabelle. Nach Partie-Ende wechselt die Tischkarte automatisch zur nächsten Partie der Runde; nach Abschluss aller Partien einer [Spielrunde](#glossary-karambol) schaltet der Monitor auf die nächste Runde.
 
-Als Turnierleiter greifen Sie normalerweise nicht aktiv ein — außer wenn ein Spieler ein Ergebnis anfechtet oder ein Scoreboard-Problem vorliegt. Wenn Sie „Tournament manager checks results before acceptance" aktiviert haben, erscheint nach jedem Spiel ein Bestätigungs-Button für Sie.
+**Beobachtung per Browser-Tab:** Vom Turnier-Monitor aus können Sie die einzelnen Tisch-Scoreboards in eigenen Browser-Tabs öffnen (Klick auf den jeweiligen Tisch-Link). Das ist die übliche Methode, um aus der Ferne den Spielstand mehrerer Tische gleichzeitig im Auge zu behalten und bei Bedarf einzugreifen.
+
+**Häufige Fehlerquellen während des Spielbetriebs:**
+
+- **Nachstoß vergessen am Scoreboard** — in Karambol-Disziplinen mit Nachstoß-Regel ist es eine wiederkehrende Quelle für falsche Endergebnisse. Wenn Sie das beobachten, sprechen Sie das Scoreboard-Personal direkt an, bevor der nächste Aufschlag passiert.
+
+!!! danger "Reset zerstört bei laufendem Turnier alle Daten"
+    Der Link **„Zurücksetzen des Turnier-Monitors"** am unteren Ende der
+    Turnierseite ist **jederzeit** verfügbar — auch während das Turnier
+    läuft. Bei laufendem Turnier zerstört der Reset jedoch **alle bisher
+    erfassten Spielergebnisse**. Eine Sicherheitsabfrage ist aktuell
+    nicht eingebaut (geplant für eine Folge-Phase). Verwenden Sie den
+    Reset während des Spielbetriebs nur, wenn Sie das Turnier wirklich
+    abbrechen wollen.
+<!-- ref: F-36-32 -->
+
+> **Sonderfall manuelle Kontrolle:** Wenn Sie im Start-Formular „Tournament manager checks results before acceptance" aktiviert haben, erscheint nach jedem Spiel ein Bestätigungs-Button für Sie. Dieser Button ist Teil der Sonderbetriebsart aus [Schritt 11](#step-11-release-match) und wird voraussichtlich entfallen.
 
 <a id="step-13-finalize"></a>
-### Schritt 13: Turnier finalisieren
+### Schritt 13: Turnier abschließen
 
-Nach Abschluss aller Runden erscheint im Turnier-Monitor eine Schaltfläche zum Finalisieren des Turniers. Klicken Sie darauf, um die Endrangliste zu berechnen und das Turnier in den Abschlussstatus zu setzen.
+Nach Abschluss aller Runden setzt der Turnier-Monitor das Turnier in den Abschlussstatus.
 
-Falls Platzierungen noch angepasst werden müssen (z. B. wegen eines Steches oder einer manuellen Korrektur), lesen Sie die Details in der [Einzelturnier-Verwaltung](single-tournament.md), die den Platzierungs-Workflow ausführlich beschreibt.
+!!! warning "Endrangliste wird derzeit NICHT automatisch berechnet"
+    Carambus liefert die einzelnen Spielergebnisse korrekt zurück, die
+    **Berechnung der Turnier-Endrangliste** (Platzierungen, Stechen,
+    Gleichstands-Kriterien) erfolgt aktuell **manuell in der ClubCloud**.
+    Den manuellen Pflege-Workflow finden Sie im Anhang
+    [Endrangliste in der ClubCloud pflegen](#appendix-rangliste-manual).
+    Eine automatische Berechnung in Carambus ist als Folge-Feature für
+    v7.1+ vorgesehen.
+<!-- ref: F-36-34 -->
 
-Nach dem Finalisieren ist das Turnier abgeschlossen — Änderungen an Ergebnissen sind nur noch über Admin-Eingriff möglich.
+!!! warning "Shootout / Stechen wird nicht unterstützt"
+    Stichspiele bei KO-Turnieren werden in der aktuellen Carambus-Version
+    **nicht unterstützt**. Wenn nach der regulären Partie ein Stechen nötig
+    ist, müssen Sie das **außerhalb von Carambus** durchführen (am Tisch
+    auf Papier protokollieren) und das Ergebnis manuell in der ClubCloud
+    eintragen. Shootout-Support ist als kritisches Feature für ein
+    späteres Milestone (v7.1 oder v7.2) eingeplant.
+<!-- ref: F-36-35 -->
 
 <a id="step-14-upload"></a>
-### Schritt 14: Ergebnis-Upload nach ClubCloud
+### Schritt 14: Ergebnisse in die ClubCloud übertragen
 
-Wenn im Start-Formular (Schritt 7) die Option **„auto_upload_to_cc"** aktiviert war, überträgt Carambus die Ergebnisse beim Finalisieren automatisch zurück an die ClubCloud. Sie sehen anschließend eine Bestätigung, dass der Upload erfolgreich war.
+Wenn im Start-Formular (Schritt 7) die Option **„auto_upload_to_cc"** aktiviert war, überträgt Carambus jedes **Einzelergebnis sofort nach dem jeweiligen Spielende** an die ClubCloud — nicht erst beim Finalisieren. Voraussetzung: Die Teilnehmerliste muss in der ClubCloud bereits **finalisiert** sein. Die volle Erklärung beider Upload-Pfade und ihrer Voraussetzungen finden Sie im Anhang [ClubCloud-Upload — zwei Wege](#appendix-cc-upload).
 
-Wenn der automatische Upload deaktiviert ist oder fehlschlägt, können Sie den Upload manuell auf der Turnier-Detailseite anstoßen (Schaltfläche „Ergebnisse nach ClubCloud übertragen"). Prüfen Sie in der ClubCloud, ob die Ergebnisse angekommen sind — normalerweise sind sie innerhalb weniger Minuten sichtbar.
+Wenn der automatische Upload nicht aktiviert war oder die Voraussetzungen fehlen, läuft der Upload über den **CSV-Batch-Pfad**: Carambus stellt am Ende eine CSV-Datei mit allen Ergebnissen bereit, die manuell in die (finalisierte) ClubCloud-Teilnehmerliste eingespielt werden muss. Der Anhang [CSV-Upload in der ClubCloud](#appendix-cc-csv-upload) beschreibt den Weg im Detail.
+
+> Eine „Übertragen nach ClubCloud"-Schaltfläche, wie sie in früheren Doc-Versionen erwähnt wurde, gibt es im aktuellen Carambus-UI nicht. Der manuelle Upload erfolgt ausschließlich über die ClubCloud-Admin-Oberfläche.
 
 ---
 
@@ -242,7 +281,7 @@ Wenn der automatische Upload deaktiviert ist oder fehlschlägt, können Sie den 
 
 - **Spielrunde** — Eine vollständige Runde des Turniers, in der jeder Spieler (oder jedes Paar) einmal antritt. Ein T04-Turnierplan hat 5 Spielrunden. Nach jeder Runde aktualisiert der Turnier-Monitor automatisch die Tabelle.
 
-- **Tisch-Warmup** — Die Phase nach dem [Turnier starten](#step-9-start), in der die Tische den Status `warmup` tragen und Spieler die Bälle und den Tisch ausprobieren können, ohne dass Punkte zählen. Endet, wenn Sie [Spielbeginn freigeben](#step-11-release-match).
+- **Tisch-Warmup** — Die Phase nach dem [Turnier starten](#step-9-start), in der die Tische den Status `warmup` tragen und sich die Spieler einspielen können, ohne dass Punkte zählen. Die Einspielzeit wird am Scoreboard gestartet; danach geht der Tisch automatisch in den [Spielbetrieb](#step-11-release-match) über.
 
 <a id="glossary-wizard"></a>
 ### Wizard-Begriffe
@@ -303,9 +342,9 @@ Wenn der automatische Upload deaktiviert ist oder fehlschlägt, können Sie den 
 
 **Problem:** Sie möchten Teilnehmer, Turniermodus oder Start-Parameter ändern, aber der Wizard zeigt bereits den Turnier-Monitor und die Detailseite zeigt „Turnier läuft".
 
-**Ursache:** Das AASM-Event `start_tournament!` (ausgelöst in [Schritt 9](#step-9-start)) ist irreversibel — es gibt in der aktuellen Version (v7.0 Scope) **keinen Undo-Pfad** für gestartete Turniere (F-19, Tier 3 Finding). Das ist eine bewusste Designentscheidung, um Datenkonsistenz bei laufenden Scoreboards zu gewährleisten.
+**Ursache:** Der Turnierstart in [Schritt 9](#step-9-start) ist irreversibel — es gibt in der aktuellen Version (v7.0 Scope) **keinen Undo-Pfad** für gestartete Turniere (F-19, Tier 3 Finding). Das ist eine bewusste Designentscheidung, um Datenkonsistenz bei laufenden Scoreboards zu gewährleisten.
 
-**Lösung:** Wenden Sie sich an einen **Carambus-Admin mit Datenbankzugang**. Eine typische Recovery-Methode ist: das laufende Turnier als fehlerhaft markieren, eine neue Turnier-Instanz mit korrekten Parametern anlegen und ggf. bereits eingetragene Ergebnisse manuell übertragen. Diese Operation ist nicht für Vereinsfunktionäre gedacht und sollte durch sorgfältiges Prüfen in [Schritt 5](#step-5-finish-seeding) (Teilnehmerliste) und [Schritt 6](#step-6-mode-selection) (Turniermodus) vermieden werden. Der Hinweiskasten in [Schritt 9](#step-9-start) weist ausdrücklich darauf hin, nicht erneut zu klicken oder zurückzunavigieren.
+**Lösung:** Wenden Sie sich an einen **Carambus-Admin mit Datenbankzugang**. Eine typische Recovery-Methode ist: das laufende Turnier als fehlerhaft markieren, eine neue Turnier-Instanz mit korrekten Parametern anlegen und ggf. bereits eingetragene Ergebnisse manuell übertragen. Diese Operation ist nicht für Vereinsfunktionäre gedacht und sollte durch sorgfältiges Prüfen in [Schritt 5](#step-5-finish-seeding) (Teilnehmerliste) und [Schritt 6](#step-6-mode-selection) (Turniermodus) vermieden werden.
 
 ---
 
