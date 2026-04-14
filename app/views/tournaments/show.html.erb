@@ -192,7 +192,7 @@
           <%
             reset_state_line = I18n.t("tournaments.show.reset_tournament_modal.state_line", default: "Aktueller Status:")
             reset_games_line = I18n.t("tournaments.show.reset_tournament_modal.games_line", default: "Gespielte Spiele:")
-            reset_games_count = @tournament.games.where.not(result_a: nil).count
+            reset_games_count = @tournament.games.where.not(ended_at: nil).count
             reset_body = I18n.t("tournaments.show.reset_tournament_modal.body",
                                 default: "Achtung: Alle lokalen Setzlisten, Spiele und Ergebnisse dieses Turniers gehen verloren.") +
                          "\n\n" + reset_state_line + " " + @tournament.state.to_s +
@@ -219,7 +219,7 @@
           <%
             force_state_line = I18n.t("tournaments.show.reset_tournament_modal.state_line", default: "Aktueller Status:")
             force_games_line = I18n.t("tournaments.show.reset_tournament_modal.games_line", default: "Gespielte Spiele:")
-            force_games_count = @tournament.games.where.not(result_a: nil).count
+            force_games_count = @tournament.games.where.not(ended_at: nil).count
             force_body = I18n.t("tournaments.show.force_reset_tournament_modal.body",
                                 default: "DATENVERLUST: Alle lokalen Setzlisten, laufenden Spiele, Ergebnisse und der Turnierstand gehen unwiderruflich verloren.") +
                          "\n\n" + force_state_line + " " + @tournament.state.to_s +

@@ -233,7 +233,7 @@
   <%
     fm_state_line = I18n.t("tournaments.show.reset_tournament_modal.state_line", default: "Aktueller Status:")
     fm_games_line = I18n.t("tournaments.show.reset_tournament_modal.games_line", default: "Gespielte Spiele:")
-    fm_games_count = @tournament.games.where.not(result_a: nil).count
+    fm_games_count = @tournament.games.where.not(ended_at: nil).count
     fm_body = I18n.t("tournaments.show.force_reset_tournament_modal.body",
                      default: "DATENVERLUST: Alle lokalen Setzlisten, laufenden Spiele, Ergebnisse und der Turnierstand gehen unwiderruflich verloren.") +
               "\n\n" + fm_state_line + " " + @tournament.state.to_s +
