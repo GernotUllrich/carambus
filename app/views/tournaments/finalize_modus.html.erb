@@ -15,6 +15,16 @@
 </style>
 <%= render :partial => "show", locals: {tournament: @tournament, subtitle: I18n.t("tournaments.finalize_modus.final_modus_selection"), drop_details: true } %>
 
+<!-- LINK-03: Detailanleitung im Handbuch -->
+<div class="container mx-auto mt-6 px-4">
+  <div class="max-w-3xl mx-auto bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-4 mb-6">
+    <p class="text-sm text-blue-900 dark:text-blue-200">
+      📖 <strong><%= t('tournaments.docs.form_help_prefix') %></strong>
+      <%= mkdocs_link('managers/tournament-management', anchor: 'mode-selection', text: t('tournaments.docs.form_help_link'), options: { class: 'underline font-medium' }) %>
+    </p>
+  </div>
+</div>
+
 <div flex flex-wrap>
   <div class="container mx-auto my-8 px-4">
     <div class="max-w-3xl mx-auto">

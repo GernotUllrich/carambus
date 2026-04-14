@@ -9,6 +9,14 @@
       <%= link_to '← Zurück', compare_seedings_tournament_path(@tournament), class: 'btn btn-secondary' %>
     </div>
 
+    <!-- LINK-03: Detailanleitung im Handbuch -->
+    <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-4 mb-6">
+      <p class="text-sm text-blue-900 dark:text-blue-200">
+        📖 <strong><%= t('tournaments.docs.form_help_prefix') %></strong>
+        <%= mkdocs_link('managers/tournament-management', anchor: 'seeding-list', text: t('tournaments.docs.form_help_link'), options: { class: 'underline font-medium' }) %>
+      </p>
+    </div>
+
     <% if @extraction_result[:success] %>
       <!-- Erfolgreiche Extraktion -->
       <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
