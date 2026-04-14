@@ -442,7 +442,7 @@ class TournamentsController < ApplicationController
           TableMonitorJob.perform_later(table_mon.id, "teaser") if table_mon.game.present?
         end
       end
-      if @tournament.tournament_started_waiting_for_monitors?
+      if @tournament.tournament_monitor.present?
         redirect_to tournament_monitor_path(@tournament.tournament_monitor)
       else
         redirect_to tournament_path(@tournament)
