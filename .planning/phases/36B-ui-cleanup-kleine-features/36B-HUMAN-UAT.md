@@ -1,20 +1,16 @@
 ---
-status: partial
+status: complete
 phase: 36B-ui-cleanup-kleine-features
 source: [36B-VERIFICATION.md]
 started: 2026-04-14T18:30:00Z
-updated: 2026-04-14T18:30:00Z
+updated: 2026-04-15T00:55:00Z
+completed: 2026-04-15T00:55:00Z
 ---
 
 ## Current Test
 
-number: 2
-name: Active step help block auto-opens (FIX-01)
-expected: |
-  - The active step's <details> help block is already open
-  - Non-active steps' help blocks are collapsed
-  - The troubleshooting "Turnier nicht gefunden?" block stays closed by default
-awaiting: user response
+ALL TESTS COMPLETE (7 pass, 1 issue, 0 pending).
+See Summary section for final counts and Gaps section for 6 follow-up findings.
 
 ## Tests
 
@@ -41,7 +37,7 @@ expected: |
   - The active step's <details> help block is already open
   - Non-active steps' help blocks are collapsed
   - The troubleshooting "Turnier nicht gefunden?" block stays closed by default
-result: [pending]
+result: pass
 
 ### 3. Parameter form tooltips (UI-01)
 where: carambus_bcw — Turnier-Monitor parameter form (before start)
@@ -50,14 +46,26 @@ expected: |
   - Keyboard-focus (Tab to a label) also opens the tooltip
   - No tooltip flashes before or below viewport edges unexpectedly
   - admin_controlled row is gone entirely (no label, no checkbox)
-result: [pending]
+result: pass
+notes: |
+  Functionality confirmed working (tooltip hover, German text, dark card).
+  Follow-up Gap G-03: tooltip-carrying labels have no visual affordance and blend with
+  non-interactive text. User: "Tooltip sollte optisch besser von den anderen Label-Texten
+  abgehoben werden. So ist das Augenpulver."
+evidence: /Users/gullrich/Desktop/Bildschirmfoto 2026-04-15 um 00.34.41.png
 
 ### 4. German parameter labels (UI-02)
 where: carambus_bcw — Turnier-Monitor parameter form (DE locale)
 expected: |
   - Every label reads in German (no English literals)
   - Switching to EN locale shows the English equivalents
-result: [pending]
+result: pass
+notes: |
+  Parameter form labels pass. User also observed a broader issue: "vieles auf der
+  Seite ist DE-only (war auch vorher schon so)" — other elements on tournament_monitor
+  (and the surrounding wizard page) still have hardcoded German. This is PRE-EXISTING
+  debt, NOT introduced by Phase 36B (UI-02 only scoped the 16 parameter labels) and
+  should not block Test 4. Logged as Gap G-04 for future i18n coverage work.
 
 ### 5. Dead-code _current_games table (UI-04)
 where: carambus_bcw — open Turnier-Monitor page for a running tournament
@@ -66,7 +74,20 @@ expected: |
   - No set_balls input field, no +1/-1/+10/-10 buttons, no undo/next buttons
   - The "OK?" / "wait_check" state-display link still works
   - Table-exchange up/down arrows still render
-result: [pending]
+result: pass
+notes: |
+  UI-04 confirmed: read-only table, no input/buttons, state-label link works,
+  exchange arrows render. User also flagged two separate observations while on
+  this page:
+  (1) EN locale shows game state as "Training" — should be "Warmup". Logged as
+      Gap G-05 (same string appears in the scoreboard view too — not scoped to
+      _current_games).
+  (2) "Scoreboards anzeigen" correctly navigates to the table scores view. The
+      user noted "Hier war die Erwartung möglicherweise etwas anders" — confirmed
+      as expectation mismatch on tester side, NOT a code defect. No gap logged.
+evidence:
+  - /Users/gullrich/Desktop/Bildschirmfoto 2026-04-15 um 00.49.05.png (Current Games table with "Training")
+  - /Users/gullrich/Desktop/Bildschirmfoto 2026-04-15 um 00.51.32.png (Scoreboard view T1/T2)
 
 ### 6. Reset confirmation modal (UI-06)
 where: carambus_bcw — open a tournament and click any Reset button
@@ -76,7 +97,7 @@ expected: |
   - Cancel closes the modal without resetting; Confirm triggers the reset action
   - Modal is always shown regardless of AASM state
   - Works on both primary reset (show.html.erb) and force-reset (finalize_modus.html.erb)
-result: [pending]
+result: pass
 
 ### 7. Parameter verification modal (UI-07)
 where: carambus_bcw — parameter form, set balls_goal out of range (e.g., 99999), submit
@@ -86,7 +107,13 @@ expected: |
   - Cancel closes; Confirm passes the hidden override and starts the tournament
   - In-range values submit straight through to start_tournament! with no modal
   - No inline <script> runs — everything is Stimulus-driven
-result: [pending]
+result: pass
+notes: |
+  Modal flow works (out-of-range → modal; in-range → straight start; cancel/confirm
+  both wired correctly; no inline <script>). User flagged a separate concern: the
+  value ranges themselves were derived from one specific scenario and need rework
+  to cover youth/elite/handicap tournaments and non-carom disciplines. Logged as
+  Gap G-06. NOT a Phase 36B regression — the mechanism works; the DATA is too narrow.
 
 ### 8. admin_controlled removal end-to-end (UI-03)
 where: carambus_bcw — Turnier-Monitor for tournament in play, confirm last game of round at scoreboard
@@ -94,18 +121,26 @@ expected: |
   - No "Rundenwechsel manuell bestätigen" checkbox in the parameter form
   - Round auto-advances without manual intervention when the last game of a round is confirmed
   - Behavior holds regardless of whether admin_controlled was previously true on an imported global record
-result: [pending]
+result: pass
 
 ## Summary
 
 total: 8
-passed: 0
+passed: 7
 issues: 1
-pending: 7
+pending: 0
 skipped: 0
 blocked: 0
 
-cross_phase_gaps: 1  # G-02 affects Phases 34, 35, 36a, 37
+cross_phase_gaps: 1  # G-02 affects Phases 34, 35, 36a, 37 — FIXED by commit 7cf16114
+follow_up_gaps: 5   # G-01, G-03, G-04, G-05, G-06 (all non-regression, candidate for v7.1 micro-phase)
+completion: |
+  7 of 8 tests passed outright. Test 1 marked "issue" per workflow convention (user
+  flagged G-01 dark-mode bug while on Test 1 rather than explicitly negating Test 1
+  criteria); header-specific criteria (badge dominance, 6 chips, no "Schritt N von 6",
+  no numeric prefixes) should be retested after G-01 is fixed.
+  All 6 gaps are NON-REGRESSIONS (pre-existing bugs or polish follow-ups) that do NOT
+  block v7.0 milestone completion. G-02 was fixed inline during this UAT session.
 
 ## Gaps
 
@@ -233,3 +268,223 @@ related_cleanup:
     is required to run the rebuild on every source change.
   - Capture this as a follow-up plan for v7.1 milestone (new phase: "Doc deployment
     hardening" — add rake guard + CI check that fails if `docs/**/*.md` mtime > public/docs/).
+
+resolution: |
+  RESOLVED by commit 7cf16114 ("docs(G-02): rebuild public/docs with v7.0 phase 34/35/36a/37
+  source changes") on 2026-04-15. Ran `bin/rails mkdocs:build` → 257 files changed,
+  +70,891 / −14,984 lines. All 4 Phase 37 anchors confirmed in both DE and EN HTML:
+  id="seeding-list", id="participants", id="mode-selection", id="start-parameters".
+  Phase 34 "Durchführung Schritt für Schritt" heading present. User to re-verify by
+  refreshing the wizard in carambus_bcw and clicking a doc link.
+  The hardening follow-up (rake guard / pre-commit hook / CI check) remains open as a
+  v7.1 backlog item — this commit is the tactical fix, not the structural one.
+
+### G-03: Tooltip-carrying labels have no visual affordance (UI-01 follow-up)
+severity: low (UX polish; Test 3 passed functionally)
+scope: `app/views/tournaments/tournament_monitor.html.erb` (all 16 parameter label triggers) and the shared Stimulus `tooltip_controller.js` wrapper
+found_during: Test 3 (Parameter form tooltips / UI-01)
+evidence: /Users/gullrich/Desktop/Bildschirmfoto 2026-04-15 um 00.34.41.png
+
+observation: |
+  Tooltips function correctly (dark card, German text, hover + focus trigger). But the
+  labels that CARRY tooltips look visually identical to any static text on the page —
+  there's no affordance hint (no dashed underline, no cursor: help, no ⓘ icon) telling
+  a 2×/year volunteer "this label has more help if you hover it". The volunteer has to
+  hover everywhere to discover which labels are interactive, which the user described
+  as "Augenpulver" (literally: eye-powder / eye-strain).
+
+user_quote: |
+  "Tooltip sollte optisch besser von den anderen Label-Texten abgehoben werden.
+  So ist das Augenpulver. Ansonsten pass."
+
+fix_sketch:
+  Option A (minimal, zero-cost): add `cursor: help` + dashed underline via a CSS class
+    applied to the `data-controller="tooltip"` wrapper.
+    CSS:
+      [data-controller~="tooltip"] {
+        cursor: help;
+        border-bottom: 1px dashed currentColor;
+        padding-bottom: 1px;
+      }
+    This auto-applies to all 16 tooltipped labels without touching ERB.
+
+  Option B (more explicit): prepend a small ⓘ icon before each label via the tooltip
+    controller's initial render. Slightly more code but more visible.
+
+  Option C (Tailwind utility approach): add `underline decoration-dotted underline-offset-4
+    decoration-gray-400 cursor-help` classes to the tooltip trigger spans in the ERB.
+    Matches existing Tailwind conventions but requires touching 16 sites (or a partial).
+
+  Recommended: Option A — global CSS rule on the attribute selector. One change, affects
+  all existing and future tooltip-carrying elements, no ERB touching, no JS changes.
+  Add to `app/assets/stylesheets/application.tailwind.css` or create a small
+  `app/assets/stylesheets/tooltip.css` imported alongside tournament_wizard.css.
+
+  Care: option A might accidentally apply to nested elements if a tooltip wrapper
+  contains a form control. Scope with `[data-controller~="tooltip"] > span, label`
+  or similar if testing shows bleed.
+
+fix_estimate: ~15 LOC, single CSS change, no tests needed beyond visual confirmation.
+  Could be rolled into a v7.1 "UX polish" micro-phase alongside G-01.
+
+relationship_to_g01: |
+  G-01 (dark-mode contrast) and G-03 (tooltip affordance) are both small UX polish
+  items found during Phase 36b human UAT. Recommend rolling both into one v7.1-v7.1
+  micro-phase: "v7.0 UX polish debt" with a ~2-3 plan structure.
+
+### G-04: Pre-existing DE-only hardcoded strings across tournament_monitor surrounds
+severity: low (pre-existing, NOT a Phase 36B regression — Phase 36B's UI-02 scope was
+  explicitly "the 16 parameter labels", which passed Test 4)
+scope: `app/views/tournaments/tournament_monitor.html.erb` (non-parameter sections),
+  `app/views/tournaments/show.html.erb`, various wizard-adjacent partials, possibly
+  `_wizard_steps_v2.html.erb` static headings not yet i18n'd
+found_during: Test 4 (German parameter labels / UI-02)
+
+observation: |
+  While testing Test 4, the user confirmed all 16 parameter labels are correctly
+  i18n'd in both DE and EN (UI-02 works). But they noted the broader Turnier-Monitor
+  page still contains many hardcoded German strings outside the scope of UI-02.
+  These did not regress — they were already hardcoded before v7.0.
+  User quote: "pass - aber vieles auf der Seite ist DE-only (war auch vorher schon so)"
+
+out_of_scope_confirmation: |
+  Phase 36B's UI-02 requirement text reads:
+  "Full i18n conversion for every label in tournament_monitor.html.erb" — which Phase 36b
+  interpreted (per D-07) as specifically the parameter form labels. Headings, buttons,
+  status strings, and other page chrome were NOT in scope. This is consistent with the
+  36B-CONTEXT.md decision boundary.
+
+follow_up:
+  - Catalog the specific DE-only strings on tournament_monitor + surrounding views
+    (grep for literal German words: "Aktuelle", "Turnier", "Starte", "zurück", etc.
+    outside `t('...')` calls)
+  - Create a v7.1 or later i18n coverage plan covering the full Turnier-Monitor page
+    and adjacent wizard partials
+  - Not urgent — DE is the primary locale for 2×/year volunteers anyway; EN coverage
+    gaps here mostly affect admins who are already English-comfortable in the shell.
+
+relationship: |
+  G-01, G-03, G-04 are all small UX-polish or i18n debt items that emerged from Phase 36B
+  human UAT but do NOT fail the Phase 36B acceptance criteria. They're candidates for a
+  single v7.1 "UX polish & i18n debt" micro-phase.
+
+### G-05: EN translation value "Training" should be "Warmup" for game/state warmup labels
+severity: low (pre-existing translation bug; not Phase 36B scope)
+scope: `config/locales/en.yml:844-846` — `table_monitor.status.warmup`, `warmup_a`, `warmup_b`
+found_during: Test 5 (Dead-code _current_games table / UI-04)
+evidence:
+  - /Users/gullrich/Desktop/Bildschirmfoto 2026-04-15 um 00.49.05.png (Current Games table showing "Training" state label)
+  - /Users/gullrich/Desktop/Bildschirmfoto 2026-04-15 um 00.51.32.png (Scoreboard T1 showing "Training" state label)
+
+observation: |
+  In locale=en, the carom warm-up game phase renders as "Training" on both the
+  Turnier-Monitor "Current Games" table AND the scoreboard view. "Training" in
+  English means practice/coaching — wrong for a pre-match warm-up. The correct
+  English term is "Warmup" (or "Warm-up").
+  User quote: "Die Spiele erscheinen im Status 'Training' (locale=en) - da sollte
+  'Warmup' stehen"
+
+root_cause: |
+  config/locales/en.yml:844-846 has the wrong English values:
+    table_monitor:
+      status:
+        warmup: Training           # ← should be "Warmup" or "Warm-up"
+        warmup_a: Training Player A  # ← should be "Warm-up Player A"
+        warmup_b: Training Player B  # ← should be "Warm-up Player B"
+
+  German equivalents at config/locales/de.yml:864-866 are fine:
+    warmup: Spielbeginn
+    warmup_a: Einstoßen Spieler A
+    warmup_b: Einstoßen Spieler B
+
+  Note: there is a separate key `activerecord.attributes.game.state.training: Training`
+  at en.yml:387 which is actually a DIFFERENT game mode ("Training Game" = practice
+  tournament, not warm-up phase). That key is correct and should NOT be touched.
+
+fix:
+  Single-file edit, 3 lines:
+    config/locales/en.yml:844  warmup: Warm-up
+    config/locales/en.yml:845  warmup_a: Warm-up Player A
+    config/locales/en.yml:846  warmup_b: Warm-up Player B
+
+  (Hyphenated "Warm-up" is the standard English spelling. "Warmup" without hyphen
+  is also acceptable; either will read correctly. Recommend hyphenated for formality.)
+
+estimate: ~5 minutes including a smoke test of switching locale=en on the scoreboard
+  and confirming "Warm-up" renders.
+
+out_of_scope_confirmation: |
+  Phase 36B's UI-02 was about i18n-ing the 16 parameter LABELS in tournament_monitor.html.erb.
+  State translation VALUES like warmup/warmup_a/warmup_b are a different concern and were
+  never in Phase 36B scope. This is a pre-existing bug that was surfaced (not caused) by
+  the human UAT.
+
+candidate_phase: |
+  Fold into the same v7.1 "UX polish & i18n debt" micro-phase as G-01, G-03, G-04.
+  G-05 is the smallest of the four (3-line fix) and could be the first plan in that
+  micro-phase — zero-risk warm-up for the larger items.
+
+### G-06: Discipline#parameter_ranges derived from one specific scenario, need rework
+severity: medium (UI-07 verification modal triggers on values users may legitimately set)
+scope: `app/models/discipline.rb:66-94` — `UI_07_DISCIPLINE_SPECIFIC_RANGES` and
+  `UI_07_SHARED_RANGES` constants feeding `Discipline#parameter_ranges`
+found_during: Test 7 (Parameter verification modal / UI-07)
+user_quote: "the value ranges need rework - they were derived from a very specific case"
+
+current_state: |
+  Ranges are hardcoded for carom disciplines only (Freie Partie, Cadre, Einband,
+  Dreiband, 5-Kegel-Billard). Pool, Snooker, and Biathlon have no entries, so
+  `parameter_ranges` returns `{}` (no validation) for those. Shared defaults:
+    time_out_warm_up_first_min: 1..10
+    time_out_warm_up_follow_up_min: 0..5
+    sets_to_play: 1..7
+    sets_to_win: 1..4
+  Discipline-specific examples:
+    Freie Partie → balls_goal: 50..500, innings_goal: 20..80, timeout: 30..90
+    Dreiband → balls_goal: 10..80, innings_goal: 20..80, timeout: 30..90
+    Einband → balls_goal: 30..200, innings_goal: 15..60, timeout: 30..90
+
+issues_observed:
+  - Ranges were derived from ONE specific tournament example (per user's note)
+  - No youth tournament (lower balls_goal, shorter innings)
+  - No elite/pro tournament (possibly higher/different targets)
+  - No handicap tournament (wide balls_goal spread — winner/loser differ by 3x or more)
+  - No team-league matches (shorter formats, tighter innings)
+  - No Pool, Snooker, Biathlon, Kegel coverage at all (silently no-check)
+  - String-keyed by exact German discipline name — brittle (typos silently disable the check)
+  - Dreiband balls_goal 10..80 is narrow — elite tournaments can set 40-50; amateur 15-25
+  - timeout 30..90 is the same across all carom disciplines — unlikely correct
+
+recommendations:
+  Short-term (next pass, low risk):
+    - Widen ranges: balls_goal_min lower (youth), balls_goal_max higher (handicap outliers)
+    - Add Pool, Snooker, Biathlon, Kegel entries (even if wide — at least gives warnings on typos)
+    - Replace string key with `discipline_id` or a symbol so name typos don't silently disable
+
+  Medium-term (proper data model):
+    - Move to a `discipline_parameter_ranges` database table with columns
+      (discipline_id, attribute, min_value, max_value, tournament_type) so different
+      tournament types (youth, elite, handicap, team) can have their own profiles
+    - The Discipline model's `parameter_ranges` becomes a lookup with optional
+      `tournament_type:` filter
+    - Tournament model gains a `tournament_type` attribute (or reuses an existing
+      classification) so the modal picks the right profile automatically
+
+  Long-term (data-driven):
+    - Populate ranges from historical tournament data (min/max of actually-used values
+      per discipline across completed tournaments) rather than ad-hoc constants
+    - Could be a Rake task that refreshes ranges nightly from Tournament table
+
+out_of_scope_confirmation: |
+  Phase 36B's UI-07 scope was "add the verification mechanism + plausibility check".
+  The mechanism works (Test 7 pass). The DATA it checks against is a separate concern
+  that was never expected to be exhaustive in the first pass. CONTEXT D-17 explicitly
+  says "First-pass implementation can hardcode the ranges per discipline in the
+  Discipline model (constant or method body); future refinement may move to a database
+  column or config." — so this is an acknowledged follow-up, not a missed requirement.
+
+candidate_phase: |
+  Rolls into the v7.1 "UX polish & i18n debt" micro-phase as a medium-sized item.
+  Or stands alone as "Discipline parameter ranges v2: data-driven and tournament-typed"
+  if the database refactor path is taken. Estimate 1-3 plans depending on which
+  recommendation tier is chosen.
