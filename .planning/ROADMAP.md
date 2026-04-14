@@ -101,7 +101,7 @@ Phases 1-32 completed across six milestones. See MILESTONES.md for details.
   7. `mkdocs build --strict` passes with zero new warnings over the Phase 35 baseline
 **Plans**: 7 plans
 - [x] 36A-01-PLAN.md — Block 1+2 corrections (F-36-01..F-36-11): Szenario, Schritte 1-5 — Begriffshierarchie + Schritt-4-as-action-link
-- [ ] 36A-02-PLAN.md — Block 3 corrections (F-36-12..F-36-23): Schritte 6-8 merged — Ballziel/Aufnahmebegrenzung, logisch/physikalisch, auto_upload_to_cc
+- [x] 36A-02-PLAN.md — Block 3 corrections (F-36-12..F-36-23): Schritte 6-8 merged — Ballziel/Aufnahmebegrenzung, logisch/physikalisch, auto_upload_to_cc
 - [ ] 36A-03-PLAN.md — Block 4+5 corrections (F-36-24..F-36-38): Schritte 9-14 — passive-phase restructure, Endrangliste/Shootout disclosure
 - [ ] 36A-04-PLAN.md — Glossar rewrite (F-36-39..F-36-50): 7 entries fixed + 6 new entries (Meldeliste, Teilnehmerliste, Logischer/Physikalischer Tisch, TableMonitor, Turnier-Monitor, Trainingsmodus, Freilos)
 - [ ] 36A-05-PLAN.md — Troubleshooting rewrite (F-36-51..F-36-58): 4 recipes rewritten + 6 new recipes; "Mehr zur Technik" removed
@@ -167,7 +167,7 @@ Phases 1-32 completed across six milestones. See MILESTONES.md for details.
 | 33. UX Review & Wizard Audit | v7.0 | 3/3 | Complete    | 2026-04-13 |
 | 34. Task-First Doc Rewrite | v7.0 | 4/4 | Complete    | 2026-04-13 |
 | 35. Printable Quick-Reference Card | v7.0 | 5/5 | Complete    | 2026-04-13 |
-| 36a. Turnierverwaltung Doc Accuracy | v7.0 | 1/7 | In Progress|  |
+| 36a. Turnierverwaltung Doc Accuracy | v7.0 | 2/7 | In Progress|  |
 | 36b. UI Cleanup & Kleine Features | v7.0 | 0/TBD | Not started | - |
 | 36c. v7.1 Preparation / CC Groundwork | v7.0 | 0/TBD | Not started | - |
 | 37. In-App Doc Links | v7.0 | 0/TBD | Not started | - |
