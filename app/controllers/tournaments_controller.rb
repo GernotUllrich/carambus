@@ -18,6 +18,21 @@ class TournamentsController < ApplicationController
                                                add_player_by_dbu use_clubcloud_as_participants update_seeding_position
                                                recalculate_groups]
 
+  # UI-07 D-18: Felder, die vor dem Turnierstart gegen
+  # Discipline#parameter_ranges geprüft werden. Reihenfolge matcht die
+  # Anzeige im Start-Formular, damit der Nutzer Ausreißer in derselben
+  # Reihenfolge sieht. CLASS-LEVEL Konstante (Ruby verbietet dynamische
+  # Konstanten-Zuweisung in Methoden-Bodies).
+  UI_07_FIELDS = %i[
+    balls_goal
+    innings_goal
+    timeout
+    time_out_warm_up_first_min
+    time_out_warm_up_follow_up_min
+    sets_to_play
+    sets_to_win
+  ].freeze
+
   # GET /tournaments
   def index
     # Default sort by date descending if no sort specified
@@ -286,6 +301,21 @@ class TournamentsController < ApplicationController
   end
 
   def start
+    # UI-07 D-17/D-18: Parameter-Verifikation vor start_tournament!
+    # Wenn der Nutzer noch nicht explizit die Ausreißer bestätigt hat
+    # (parameter_verification_confirmed != "1"), sammeln wir alle
+    # Out-of-Range-Werte und rendern das Formular mit aktivem
+    # Bestätigungs-Modal neu. Diese Prüfung läuft server-seitig — eine
+    # DOM-Manipulation am Hidden-Input schiebt die Abfrage nicht weg,
+    # weil der Server bei jedem Submit neu gegen parameter_ranges prüft.
+    unless params[:parameter_verification_confirmed].to_s == "1"
+      failures = verify_tournament_start_parameters(@tournament, params)
+      if failures.any?
+        @verification_failure = build_verification_failure_payload(failures)
+        render :tournament_monitor and return
+      end
+    end
+
     # Validiere ClubCloud-Zugriff nur wenn auto_upload aktiviert ist
     auto_upload_enabled = params[:auto_upload_to_cc].to_i == 1
     if @tournament.tournament_cc.present? && auto_upload_enabled
@@ -947,6 +977,54 @@ class TournamentsController < ApplicationController
   end
 
   private
+
+  # UI-07 D-17/D-18: vergleicht die im Start-Formular übermittelten
+  # Parameter mit Discipline#parameter_ranges und liefert eine Liste von
+  # Ausreißern. Liefert [] wenn alles in Ordnung.
+  #
+  # Shape des Rückgabewerts:
+  #   [{ field: :balls_goal, value: 9999, range: (50..500),
+  #      label: "Bälle-Ziel" }, ...]
+  def verify_tournament_start_parameters(tournament, raw_params)
+    ranges = tournament.discipline&.parameter_ranges || {}
+    return [] if ranges.empty?
+
+    UI_07_FIELDS.each_with_object([]) do |field, failures|
+      range = ranges[field]
+      next unless range
+
+      raw = raw_params[field]
+      next if raw.nil? || raw.to_s.strip.empty?
+
+      value = raw.to_i
+      next if range.cover?(value)
+
+      failures << {
+        field: field,
+        value: value,
+        range: range,
+        label: I18n.t("tournaments.monitor_form.labels.#{field}", default: field.to_s.humanize)
+      }
+    end
+  end
+
+  # UI-07: baut das Hash, das an shared/confirmation_modal übergeben wird,
+  # inklusive des Body-Textes, der alle Ausreißer inkl. Bereich auflistet.
+  # Der Body-String wird in echtem Ruby mit "\n" gebaut (echte Newlines),
+  # damit das Modal via whitespace-pre-line korrekt umbricht.
+  def build_verification_failure_payload(failures)
+    body_lines = failures.map do |f|
+      "#{f[:label]} = #{f[:value]} (üblich: #{f[:range].first}-#{f[:range].last})"
+    end
+    body_intro = I18n.t(
+      "tournaments.monitor_form.verification.body_intro",
+      default: "Die folgenden Werte liegen außerhalb des üblichen Bereichs für diese Disziplin. Bitte prüfen und bestätigen, wenn sie wirklich gewollt sind:"
+    )
+    {
+      failures: failures,
+      body_text: body_intro + "\n\n" + body_lines.join("\n")
+    }
+  end
 
   # Stellt sicher dass Rankings gecacht sind (für alte lokale Turniere)
   def ensure_rankings_cached
