@@ -28,6 +28,14 @@
 <div class="container mx-auto my-8 px-4">
   <div class="max-w-3xl mx-auto flex flex-col space-y-5 justify-center">
 
+    <!-- LINK-03: Detailanleitung im Handbuch (form-top link per D-16; Phase 36b tooltips on parameter fields below are NOT modified) -->
+    <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-4 mb-6">
+      <p class="text-sm text-blue-900 dark:text-blue-200">
+        📖 <strong><%= t('tournaments.docs.form_help_prefix') %></strong>
+        <%= mkdocs_link('managers/tournament-management', anchor: 'start-parameters', text: t('tournaments.docs.form_help_link'), options: { class: 'underline font-medium' }) %>
+      </p>
+    </div>
+
     <div class=" rounded shadow p-8">
       <p><%= @tournament.tournament_plan.rulesystem %></p>
       <p class="mt-4 mb-4"><%= @tournament.tournament_plan.more_description %></p>
