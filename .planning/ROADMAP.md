@@ -163,7 +163,7 @@ Phases 1-32 completed across six milestones. See MILESTONES.md for details.
 - [x] 37-01-PLAN.md — Fix mkdocs_link helper (locale-aware URL + anchor support + text-required guard) + 3 new tournaments.docs.* i18n keys DE/EN (LINK-01)
 - [x] 37-02-PLAN.md — Add 4 stable {#anchor} attrs on Schritt 3/4/6/7 headings in tournament-management.{de,en}.md + mkdocs strict build gate (LINK-02, LINK-04)
 - [x] 37-03-PLAN.md — _wizard_step.html.erb partial API (docs_path/docs_anchor locals) + wire all 6 happy-path wizard steps to mkdocs_link in _wizard_steps_v2.html.erb (LINK-02, LINK-04)
-- [ ] 37-04-PLAN.md — Form help doc links in parse_invitation/define_participants/finalize_modus/tournament_monitor (Phase 36b tooltips NOT modified) (LINK-03)
+- [x] 37-04-PLAN.md — Form help doc links in parse_invitation/define_participants/finalize_modus/tournament_monitor (Phase 36b tooltips NOT modified) (LINK-03)
 - [ ] 37-05-PLAN.md — Minitest helper tests (mkdocs_link/mkdocs_url contract) + Capybara system test (DE+EN locale wizard doc link) + final LINK-0X verification sweep (LINK-01..04)
 
 **UI hint**: yes
@@ -182,4 +182,4 @@ Phases 1-32 completed across six milestones. See MILESTONES.md for details.
 | 36a. Turnierverwaltung Doc Accuracy | v7.0 | 7/7 | Complete    | 2026-04-14 |
 | 36b. UI Cleanup & Kleine Features | v7.0 | 6/6 | Complete    | 2026-04-14 |
 | 36c. v7.1 Preparation / CC Groundwork | v7.0 | — | Complete    | 2026-04-14 |
-| 37. In-App Doc Links | v7.0 | 3/5 | In Progress|  |
+| 37. In-App Doc Links | v7.0 | 4/5 | In Progress|  |
