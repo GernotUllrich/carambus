@@ -36,7 +36,33 @@
         <%- unless @tournament.manual_assignment %>
           <h4 class="mb-2">Zuordnung der Tische</h4>
         <% end %>
+        <%# UI-07 D-17/D-18: bei Out-of-Range-Werten rendert der Controller %>
+        <%# tournament_monitor neu und setzt @verification_failure. Dann wird %>
+        <%# ein orangefarbener Banner eingeblendet und das gemeinsame %>
+        <%# confirmation_modal aus plan 36B-05 im auto_open-Modus gerendert. %>
+        <%# Der Stimulus-Controller aus plan 36B-05 fliegt das Modal beim %>
+        <%# connect() an, der Confirm-Button flippt das Hidden-Feld auf "1" %>
+        <%# und submittet das Start-Formular erneut. Keine inline JS-Tags %>
+        <%# (CLAUDE.md Stimulus-first-Policy). %>
+        <% if @verification_failure.present? %>
+          <div class="mb-4 p-3 border border-orange-300 bg-orange-50 rounded">
+            <p class="text-sm text-orange-900 font-semibold mb-2">
+              <%= I18n.t("tournaments.monitor_form.verification.banner",
+                         default: "Einige Werte weichen vom üblichen Bereich für diese Disziplin ab. Bitte prüfen und bestätigen.") %>
+            </p>
+          </div>
+
+          <%= render "shared/confirmation_modal",
+                     auto_open: true,
+                     auto_open_title: I18n.t("tournaments.monitor_form.verification.title", default: "Ungewöhnliche Turnierparameter"),
+                     auto_open_body: @verification_failure[:body_text],
+                     auto_open_confirm_label: I18n.t("tournaments.monitor_form.verification.confirm", default: "Ja, Werte übernehmen und Turnier starten"),
+                     auto_open_form_id: "start_tournament",
+                     hidden_override_name: "parameter_verification_confirmed",
+                     hidden_override_reset_on_cancel: true %>
+        <% end %>
         <%= form_tag start_tournament_path(@tournament), id: "start_tournament", method: :post do %>
+          <%= hidden_field_tag :parameter_verification_confirmed, "0" %>
           <ol class="flex flex-col">
             <%- available_fitting_table_ids = @tournament.location.andand.tables.andand.joins(:table_kind => :disciplines).andand.where(disciplines: { id: @tournament.discipline_id }).andand.order("name").andand.map(&:id).to_a %>
             <%- tournament_tables = @tournament.location.andand.tables.andand.joins(:table_kind => :disciplines).andand.where(disciplines: { id: @tournament.discipline_id }).andand.count.to_i %>
