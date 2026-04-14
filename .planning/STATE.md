@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-04-13)
 Phase: 36B (UI Cleanup & Kleine Features) — EXECUTING
 Plan: 1 of 6
 Status: Executing Phase 36B
-Last activity: 2026-04-14 -- Phase 36B execution started
+Last activity: 2026-04-14 - Completed quick task 260414-qb8: Fix PG::UndefinedColumn result_a crash in tournaments show/finalize_modus views
 
 Progress: [██████████] 100%
 
@@ -69,6 +69,12 @@ None.
 
 - No UAT data from actual volunteer club officers — milestone proceeds from informed analysis; real-user validation deferred to post-release
 - Two wizard partials exist (`_wizard_steps.html.erb` and `_wizard_steps_v2.html.erb`); Phase 33 must resolve which is canonical before Phase 34 opens
+
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 260414-qb8 | Fix PG::UndefinedColumn result_a crash in tournaments show/finalize_modus views | 2026-04-14 | b787da5e | [260414-qb8-fix-pg-undefinedcolumn-result-a-crash-in](./quick/260414-qb8-fix-pg-undefinedcolumn-result-a-crash-in/) |
 
 ## Session Continuity
 
