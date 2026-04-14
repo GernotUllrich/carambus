@@ -265,7 +265,9 @@
              • ✏️ Änderungen werden sofort gespeichert<br>
              • ➕ Kurzfristige Nachmeldungen: Spieler aus Meldeliste aktivieren<br><br>
              <strong>Wichtig:</strong> Dieser Schritt bleibt aktiv bis Sie in Schritt 4 die Liste finalisieren!<br><br>
-             <strong>Für Tests:</strong> #{link_to '📝 Direkt zur Teilnehmerliste (für manuelle Eingabe)', define_participants_tournament_path(tournament), class: 'text-blue-600 dark:text-blue-400 underline'}" %>
+             <strong>Für Tests:</strong> #{link_to '📝 Direkt zur Teilnehmerliste (für manuelle Eingabe)', define_participants_tournament_path(tournament), class: 'text-blue-600 dark:text-blue-400 underline'}",
+      docs_path: 'managers/tournament-management',
+      docs_anchor: 'participants' %>
 
   <!-- Schritt 4: Teilnehmerliste finalisieren -->
   <%= render 'wizard_step',
@@ -283,7 +285,9 @@
       warning: false,
       danger: true,
       help: "⚠️ WICHTIG: Diese Aktion ist nicht umkehrbar! Die finale <strong>Teilnehmerliste</strong>
-             wird fest gespeichert und die Gruppeneinteilung wird basierend auf dieser Reihenfolge berechnet." %>
+             wird fest gespeichert und die Gruppeneinteilung wird basierend auf dieser Reihenfolge berechnet.",
+      docs_path: 'managers/tournament-management',
+      docs_anchor: 'participants' %>
 
   <!-- Schritt 5: Turniermodus wählen -->
   <%= render 'wizard_step',
@@ -300,7 +304,9 @@
       warning: false,
       danger: false,
       help: "Wählen Sie den Turniermodus (z.B. T07, T10) basierend auf der Anzahl der Teilnehmer.
-             Der Modus bestimmt Gruppenaufteilung und K.O.-Runden." %>
+             Der Modus bestimmt Gruppenaufteilung und K.O.-Runden.",
+      docs_path: 'managers/tournament-management',
+      docs_anchor: 'mode-selection' %>
 
   <!-- Schritt 6: Turnier starten & verwalten -->
   <div class="wizard-step <%= step_class(wizard_step_status(tournament, 6)) %>">
