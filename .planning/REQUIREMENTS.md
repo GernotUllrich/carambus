@@ -34,7 +34,7 @@ Requirements for the Manager Experience milestone. Each maps to exactly one phas
 
 - [x] **DOC-ACC-01**: Begriffshierarchie (Setzliste / Meldeliste / Teilnehmerliste) is used consistently across `tournament-management.{de,en}.md` walkthrough and glossary. Setzliste = ordered snapshot (from invitation or Carambus rankings). Meldeliste = CC registration snapshot after deadline. Teilnehmerliste = who actually shows up, finalized on tournament day.
 - [x] **DOC-ACC-02**: All factual corrections from review blocks 1–7 (F-36-01..F-36-58) are applied to both language files. Includes Ballziel/Aufnahmebegrenzung disambiguation, Default{n} template fix, logische vs. physikalische Tische, scoreboard-TableMonitor binding, AASM state accuracy, ClubCloud upload paths, honest reset-with-data-loss warning, and removal of fictional UI elements ("Modus ändern"-button, "Ergebnisse nach ClubCloud übertragen"-Schaltfläche, DB-Admin recovery).
-- [ ] **DOC-ACC-03**: New glossary entries exist for Meldeliste, Teilnehmerliste, Logischer Tisch, Physikalischer Tisch, TableMonitor, Turnier-Monitor, Trainingsmodus, Freilos, T-Plan vs. Default-Plan — in both languages.
+- [x] **DOC-ACC-03**: New glossary entries exist for Meldeliste, Teilnehmerliste, Logischer Tisch, Physikalischer Tisch, TableMonitor, Turnier-Monitor, Trainingsmodus, Freilos, T-Plan vs. Default-Plan — in both languages.
 - [ ] **DOC-ACC-04**: New appendix sections are written covering: no-invitation special flow, missing-player special flow, player nachmeldung flow, ClubCloud CSV upload handling, and manual Rangliste maintenance in ClubCloud (as sourced from SME or further investigation).
 - [x] **DOC-ACC-05**: Walkthrough is restructured to honestly distinguish manager-action phases from passive/observation phases. Current linear "Schritt 1..14" framing (which overstates manager activity during game play per F-36-30) is replaced with an accurate model.
 - [ ] **DOC-ACC-06**: The "Mehr zur Technik" section is removed. "Phase 36 will make the status badge more prominent"-style forward promises are removed or made realistic.
@@ -101,7 +101,7 @@ Requirements for the Manager Experience milestone. Each maps to exactly one phas
 | QREF-03 | Phase 35 | Complete |
 | DOC-ACC-01 | Phase 36a | Complete |
 | DOC-ACC-02 | Phase 36a | Complete |
-| DOC-ACC-03 | Phase 36a | Pending |
+| DOC-ACC-03 | Phase 36a | Complete |
 | DOC-ACC-04 | Phase 36a | Pending |
 | DOC-ACC-05 | Phase 36a | Complete |
 | DOC-ACC-06 | Phase 36a | Pending |
