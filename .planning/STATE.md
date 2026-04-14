@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v7.0
 milestone_name: Manager Experience
 status: executing
-stopped_at: Completed 36A-02-PLAN.md (Block 3 corrections to tournament-management DE+EN)
-last_updated: "2026-04-14T08:03:45.911Z"
+stopped_at: Completed 36A-03-PLAN.md (Block 4+5 corrections to tournament-management DE+EN)
+last_updated: "2026-04-14T08:13:15.960Z"
 last_activity: 2026-04-14
 progress:
   total_phases: 5
   completed_phases: 3
   total_plans: 19
-  completed_plans: 14
-  percent: 74
+  completed_plans: 15
+  percent: 79
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-13)
 ## Current Position
 
 Phase: 36a (Turnierverwaltung Doc Accuracy) — EXECUTING
-Plan: 3 of 7
+Plan: 4 of 7
 Status: Ready to execute
 Last activity: 2026-04-14
 
@@ -53,6 +53,8 @@ Recent decisions affecting current work:
 - [Phase 35]: Plan 35-05: D-09 gate PASSED (final=191, baseline=191, delta=0); all 4 ROADMAP success criteria PASS; human print-preview smoke test returned approved-with-notes (user observations routed to follow-up phase via VERIFICATION.md `deferred:` array — 3 items: scoreboard screenshots > shortcuts cheat sheet, warm-up/shootout/protocol-editor coverage, 2-page A4 ceiling). Plan 35-05 closes as PASS; orchestrator owns `phase complete 35`.
 - [Phase 36A]: Plan 36A-01: Glossary AASM-Status entry left unchanged (out of Block 1+2 scope, will be reviewed by later 36A glossar-block plan); forward links to #appendix-no-invitation/#appendix-missing-player/#appendix-nachmeldung placed and will be resolved by Plan 36A-06
 - [Phase 36A]: Plan 36A-02: Block 3 corrections applied to Schritte 6-8 DE+EN; Step-8 anchor preserved despite demotion to H4 sub-section; Rule-3 auto-fix extended DefaultS→Default{n} into glossary/troubleshooting for doc-wide consistency
+- [Phase 36A]: Plan 36A-03: Schritt 11 remains a numbered step despite containing 'no active role' content — preserves 1-14 continuity promised by walkthrough intro callout; walkthrough-as-phases reframing lives inside the body text
+- [Phase 36A]: Plan 36A-03: Rule-1 auto-fix extended to glossary Tisch-Warmup + troubleshooting ts-already-started for internal consistency with rewritten Schritte 9-11; AASM-Event and 'Spielbeginn freigeben' phrases removed everywhere in both DE and EN files
 
 ### Pending Todos
 
@@ -65,6 +67,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-14T08:03:40.470Z
-Stopped at: Completed 36A-02-PLAN.md (Block 3 corrections to tournament-management DE+EN)
+Last session: 2026-04-14T08:13:15.957Z
+Stopped at: Completed 36A-03-PLAN.md (Block 4+5 corrections to tournament-management DE+EN)
 Resume file: None
