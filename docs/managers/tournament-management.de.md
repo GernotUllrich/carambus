@@ -49,7 +49,7 @@ Auf der Turnier-Detailseite siehst du oben den Wizard-Fortschrittsbalken „Turn
 *Abbildung: Turnier-Setup-Wizard nach erfolgreichem ClubCloud-Sync — die typische Standard-Darstellung, wenn der Sync vollständig durchgelaufen ist (Beispiel aus dem Phase-33-Audit, NDM Freie Partie Klasse 1–3). Den im Achtung-Block beschriebenen 1-Spieler-Fall illustriert dieses Bild **nicht** — er tritt nur bei unvollständigem Sync auf.*
 
 <a id="step-3-seeding-list"></a>
-### Schritt 3: Setzliste übernehmen oder erzeugen
+### Schritt 3: Setzliste übernehmen oder erzeugen {#seeding-list}
 
 Die **Setzliste** ist ein **Ergebnis**: Meldeliste plus Ordnung. Die Ordnung wird normalerweise vom Landessportwart in der Einladung vorgegeben (anhand seiner Spreadsheets mit den zusammengeführten Turnierergebnissen). Sie ist keine Quelle, die du irgendwoher „herunterladen" musst.
 
@@ -60,7 +60,7 @@ Die **Setzliste** ist ein **Ergebnis**: Meldeliste plus Ordnung. Die Ordnung wir
 Wenn der PDF-Upload technisch fehlschlägt (häufig bei bestimmten Druckvorlagen oder fehlender Internetverbindung), lies [Einladungs-PDF konnte nicht hochgeladen werden](#ts-invitation-upload).
 
 <a id="step-4-participants"></a>
-### Schritt 4: Teilnehmerliste prüfen und ergänzen (Wizard Schritt 3)
+### Schritt 4: Teilnehmerliste prüfen und ergänzen (Wizard Schritt 3) {#participants}
 
 **Wie komme ich in die Teilnehmerliste-Bearbeitung?** Es gibt drei mögliche Einstiegspunkte, abhängig vom aktuellen Wizard-Zustand:
 
@@ -101,7 +101,7 @@ Wenn die Teilnehmerliste vollständig ist, klick auf den Link **„Teilnehmerlis
 <!-- ref: F-09 -->
 
 <a id="step-6-mode-selection"></a>
-### Schritt 6: Turniermodus auswählen
+### Schritt 6: Turniermodus auswählen {#mode-selection}
 
 Wizard-Schritt 5 öffnet eine separate Seite „Abschließende Auswahl des Austragungsmodus". Du siehst **eine oder mehrere Karten** mit den verfügbaren [Turnierplänen](#glossary-wizard) — die Auswahl hängt von der Teilnehmerzahl ab und enthält alle Pläne, die zur aktuellen Teilnehmerzahl passen, darunter ein dynamisch generierter Plan **`Default{n}`**, wobei `{n}` die aktuelle Teilnehmerzahl ist.
 
@@ -115,7 +115,7 @@ Klick auf **„Weiter mit T04"** (oder dem vorgeschlagenen Plan). Die Auswahl wi
 *Abbildung: Modus-Auswahl mit den drei Turnierplänen und automatischem Vorschlag T04 bei 5 Teilnehmern (Beispiel aus dem Phase-33-Audit).*
 
 <a id="step-7-start-form"></a>
-### Schritt 7: Start-Parameter und Tischzuordnung ausfüllen
+### Schritt 7: Start-Parameter und Tischzuordnung ausfüllen {#start-parameters}
 
 !!! info "Schritte 7 und 8 leben auf derselben Seite"
     Nach der Modusauswahl öffnet sich **eine** Parametrisierungsseite, die
