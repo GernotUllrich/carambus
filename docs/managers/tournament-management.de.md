@@ -456,4 +456,118 @@ Im Zweifel behalten Sie die Standardwerte bei und verifizieren Sie die Werte vor
 
 ---
 
+<a id="appendix"></a>
+## Anhang: Spezialfälle und vertiefende Abläufe
+
+Die folgenden Abschnitte beschreiben vollständige Alternativ-Abläufe und vertiefende Themen, die nicht in den linearen Walkthrough passen. Sie werden aus den entsprechenden Schritten und Troubleshooting-Rezepten verlinkt.
+
+<a id="appendix-no-invitation"></a>
+### Einladung fehlt — Setzliste ohne PDF erzeugen
+
+**Wann:** Wenn Sie ausnahmsweise kein offizielles NBV-Einladungs-PDF erhalten haben (z. B. spontan organisiertes Vereinsturnier, internes Pokalturnier, vergessene Einladung des Sportwarts).
+
+**Vorgehen:**
+
+1. **Carambus öffnen** und das Turnier anlegen oder aus der ClubCloud synchronisieren wie in [Schritt 2](#step-2-load-clubcloud) beschrieben — auch ohne PDF läuft der ClubCloud-Sync, sofern das Turnier in der ClubCloud existiert.
+2. **In Schritt 3 (Setzliste)** überspringen Sie den PDF-Upload-Pfad. Stattdessen übernehmen Sie die initiale Teilnehmerliste direkt aus der ClubCloud-Meldeliste — über den Link „→ Mit Meldeliste zu Schritt 3 (nach Rangliste sortiert)" im Einladungs-Hochladen-Formular (siehe [Schritt 4 Navigation](#step-4-participants), Eingangspunkt 3).
+3. **In Schritt 4 (Teilnehmerliste)** klicken Sie auf **„Nach Ranking sortieren"**, um die Spieler nach den in Carambus gepflegten [Ranglisten](#glossary-system) zu ordnen. Diese Ordnung ersetzt die fehlende offizielle Setzliste.
+4. **Manuell nachsortieren**, falls der Sportwart einen abweichenden Wunsch geäußert hat (z. B. titelverteidigender Spieler an Position 1).
+5. **Abschließen** wie in [Schritt 5](#step-5-finish-seeding) — von dort läuft der Wizard normal weiter.
+
+Hinweis: Diese Setzliste ist eine **Carambus-interne** und nicht offiziell. Bei NBV-relevanten Turnieren sollten Sie die Setzliste nachträglich von der zuständigen Sportwart-Person bestätigen lassen.
+
+<a id="appendix-missing-player"></a>
+### Spieler erscheint nicht zum Turnier
+
+**Wann:** Ein in der Meldeliste aufgeführter Spieler erscheint nicht am Turniertag.
+
+**Vorgehen:**
+
+1. **Vor dem Turnierstart** (vor [Schritt 5 „Teilnehmerliste abschließen"](#step-5-finish-seeding)): Entfernen Sie den fehlenden Spieler in [Schritt 4](#step-4-participants) per „Spieler entfernen"-Aktion und prüfen Sie, ob die verbleibende Spielerzahl noch zum gewählten Turnierplan passt. Falls ein anderer Plan nötig wird, weist Carambus auf der Wizard-Seite einen neuen Vorschlag aus.
+2. **Falls die Teilnehmerliste schon abgeschlossen ist**, aber das Turnier noch nicht gestartet wurde: Sie können das Setup über **„Zurücksetzen des Turnier-Monitors"** zurücksetzen und die Teilnehmerliste neu zusammenstellen. **Achtung:** Vor Schritt 9 ist Reset risikolos, danach nicht — siehe [Schritt 12 Reset-Warnung](#step-12-monitor).
+3. **Wenn das Turnier bereits gestartet ist und der Spieler in einer noch nicht gespielten Runde steht**, gibt es keinen sauberen Pfad in der aktuellen Carambus-Version. Behandeln Sie den ausgefallenen Spieler de facto wie ein [Freilos](#glossary-system) — siehe [Spieler zieht während des Turniers zurück](#ts-player-withdraws).
+
+**Vorbeugung:** Bestätigen Sie die Anwesenheit aller Spieler kurz vor [Schritt 5](#step-5-finish-seeding), nicht erst nach Turnierstart.
+
+<a id="appendix-nachmeldung"></a>
+### Spieler-Nachmeldung am Turniertag
+
+**Wann:** Ein Spieler, der nicht in der ClubCloud-Meldeliste steht, möchte am Turniertag noch antreten.
+
+**Vorgehen:**
+
+1. **Klären Sie zuerst die Berechtigung:** Hat der Spieler eine gültige DBU-Lizenz? Erlaubt die Turnierordnung On-site-Nachmeldungen? Hat der Sportwart zugestimmt? Im Zweifel: Anruf beim Landessportwart.
+2. **Vor Turnierstart** ist Nachmeldung in Carambus einfach: In [Schritt 4](#step-4-participants) tragen Sie die DBU-Nummer des nachzumeldenden Spielers in das Feld **„Spieler mit DBU-Nummer hinzufügen"** ein und klicken auf **„Spieler hinzufügen"**. Anschließend „Nach Ranking sortieren" oder per Drag-and-Drop nachsortieren.
+3. **Eintragung in der ClubCloud:** Damit die Nachmeldung in die offizielle Statistik einfließt und der Endergebnis-Upload funktioniert, muss der Spieler **auch in der ClubCloud-Teilnehmerliste** ergänzt werden. Das kann nur ein **Club-Sportwart mit den entsprechenden Rechten** (siehe [Anhang ClubCloud-Upload](#appendix-cc-upload)). Wenn der Sportwart nicht vor Ort ist, müssen Sie ihn anrufen oder die Nachmeldung später nachpflegen lassen.
+4. **Nach Turnierstart** ist Nachmeldung in Carambus aktuell **nicht sauber unterstützt** — der einzige Workaround ist das Zurücksetzen des Turnier-Monitors mit allen Konsequenzen.
+
+<a id="appendix-cc-upload"></a>
+### ClubCloud-Upload — zwei Wege
+
+> **Hinweis:** Dieser Anhang ist eine erste Fassung auf Basis der bereits bekannten SME-Informationen. Eine vollständige Fassung (inkl. Screenshots der CC-Admin-Oberfläche, exakter Pfade und typischer Fehlermeldungen) ist als PREP-04 in Phase 36c vorgesehen und wird hier später ergänzt.
+
+Carambus kennt zwei Wege, um Turnier-Ergebnisse in die ClubCloud zurückzuspielen — beide haben dieselbe Voraussetzung, aber unterschiedliche Workflows.
+
+**Gemeinsame Voraussetzung:** Die **Teilnehmerliste muss in der ClubCloud finalisiert sein**. Das bedeutet: Jeder Spieler, der im Turnier antritt (auch [Nachmeldungen](#appendix-nachmeldung)), muss in der CC-Teilnehmerliste eingetragen sein, bevor irgendein Ergebnis hochgeladen werden kann. Die Finalisierung der Teilnehmerliste über die CC-API ist in Carambus **aktuell nicht implementiert** — sie muss manuell durch einen **Club-Sportwart** in der ClubCloud-Admin-Oberfläche erfolgen. Diese Berechtigung haben in der Regel nicht alle Vereinsmitglieder, sondern nur ausgewählte Funktionäre.
+
+**Pfad 1: Einzelübertragung pro Spiel** (`auto_upload_to_cc` aktiviert)
+
+- Jedes einzelne Ergebnis wird **sofort nach Match-Ende** an die ClubCloud übertragen.
+- Technisch erfolgt das durch Formular-Emulation in der ClubCloud-Admin-Schnittstelle.
+- **Voraussetzung:** Wie oben — die Teilnehmerliste in der CC muss bereits finalisiert sein, **bevor** das erste Spiel endet.
+- **Vorteil:** Ergebnisse sind in nahezu Echtzeit in der ClubCloud sichtbar (z. B. für Live-Berichte des Verbands).
+- **Aktivieren:** Im Start-Formular ([Schritt 7](#step-7-start-form)) die Checkbox **„Ergebnisse automatisch in ClubCloud hochladen"** (`auto_upload_to_cc`) setzen.
+
+**Pfad 2: CSV-Batch-Upload am Ende** (`auto_upload_to_cc` deaktiviert oder Pfad 1 nicht möglich)
+
+- Alle Ergebnisse werden während des Turniers nur lokal in Carambus erfasst.
+- Am Ende des Turniers stellt Carambus eine **CSV-Datei** mit allen Spielergebnissen bereit.
+- Die CSV wird per E-Mail an den Turnierleiter geschickt (oder steht zum Download bereit).
+- Der Turnierleiter leitet sie an den Club-Sportwart weiter, der sie in die (jetzt finalisierte) ClubCloud-Teilnehmerliste importiert — das Detail-Vorgehen siehe [CSV-Upload in der ClubCloud](#appendix-cc-csv-upload).
+- **Vorteil gegenüber Pfad 1:** Der Sportwart kann die CC-Teilnehmerliste auch **nach** dem Turnier finalisieren — Pfad 2 ist robust gegen die Berechtigungs-Lücke.
+
+**Berechtigungsproblem (offen):** Fehlende Spieler in der ClubCloud-Teilnehmerliste hinzufügen können nur **Club-Sportwarte**. Wenn keiner vor Ort ist, blockiert das Pfad 1 vollständig und Pfad 2 zumindest bis nach dem Turnier. Eine mögliche Lösung — die Hinterlegung von Club-Sportwart-Credentials in Carambus für genau diesen Delegations-Fall — ist als Folge-Feature für v7.1+ vorgesehen.
+
+<a id="appendix-cc-csv-upload"></a>
+### CSV-Upload in der ClubCloud (Pfad 2 im Detail)
+
+> **Hinweis:** Dieser Anhang ist eine erste Fassung. Eine vollständige Schritt-für-Schritt-Anleitung mit Screenshots der CC-Admin-Oberfläche, exakten Menü-Pfaden und Liste der häufigsten Validierungsfehler ist als PREP-04 in Phase 36c vorgesehen. Bis dahin gilt:
+
+**Wer:** Ein **Club-Sportwart** mit Schreibrechten auf die Teilnehmerliste und die Ergebnis-Tabelle in der ClubCloud.
+
+**Voraussetzungen:** Die **Teilnehmerliste in der CC ist finalisiert** (siehe [ClubCloud-Upload — zwei Wege](#appendix-cc-upload)) und enthält jeden Spieler, der im CSV vorkommt — sonst scheitert der Import an einem Validierungsfehler.
+
+**Wo in der ClubCloud:** In der ClubCloud-Admin-Oberfläche unter dem entsprechenden Turnier; die genaue Menü-Position variiert nach CC-Version. Bei Unsicherheit klären Sie mit dem Verbands-Sportwart.
+
+**Häufige Fehlermeldungen (erste Liste, wird in PREP-04 ergänzt):**
+
+- **„Spieler nicht gefunden"** — der Spieler ist im CSV, aber nicht in der CC-Teilnehmerliste. Lösung: Spieler in der CC-Teilnehmerliste ergänzen (Sportwart-Recht erforderlich) und CSV erneut importieren.
+- **„Format fehlerhaft"** — die CSV entspricht nicht dem erwarteten CC-Format. Sehr selten, da Carambus die CSV in dem Format generiert, das der CC-Importer erwartet. Wenn doch: das genaue Format mit dem Verbands-Sportwart abstimmen.
+- **„Doppelte Eintragung"** — ein Spieler wurde bereits per Pfad 1 (Einzelübertragung) hochgeladen und steht jetzt nochmal im CSV. Lösung: doppelten Eintrag in der CSV entfernen oder den Import explizit als „Update" konfigurieren.
+
+<a id="appendix-rangliste-manual"></a>
+### Endrangliste in der ClubCloud manuell pflegen
+
+**Hintergrund:** Carambus berechnet die Turnier-Endrangliste aktuell **nicht automatisch** (siehe [Schritt 13](#step-13-finalize) und [Endrangliste fehlt nach Turnierende](#ts-endrangliste-missing)). Die Endrangliste muss daher manuell in der ClubCloud gepflegt werden.
+
+**Wer:** Der Turnierleiter oder ein Club-Sportwart mit Schreibrechten auf die Ergebnis-Tabelle.
+
+**Wann:** Nach dem letzten Spiel, sobald alle Ergebnisse erfasst sind und die Punktstände in Carambus oder am Scoreboard final sind.
+
+**Vorgehen:**
+
+1. **Sammeln Sie die Einzelergebnisse** — entweder aus dem Carambus-Turnier-Monitor (Übersichtsseite mit allen Spielen, Bällen, Aufnahmen, HS, GD), oder direkt von den Tisch-Scoreboards.
+2. **Berechnen Sie die Platzierungen** nach den Regeln der jeweiligen Disziplin:
+    - Anzahl gewonnener Partien (Hauptkriterium)
+    - Bei Gleichstand: Generaldurchschnitt (GD)
+    - Bei weiterem Gleichstand: Höchstserie (HS)
+    - Disziplinabhängige Sonderregeln (z. B. direkter Vergleich)
+    - Bei KO-Turnieren mit Stechen-Bedarf siehe [Stechen / Shootout nötig](#ts-shootout-needed)
+3. **Tragen Sie die finalen Platzierungen in die ClubCloud ein.** Die genaue Stelle in der CC-Admin-Oberfläche variiert nach CC-Version.
+4. **Konsistenzprüfung:** Vergleichen Sie die Carambus-Spielergebnisse mit den in der CC eingetragenen — falls Pfad 1 (Einzelübertragung) genutzt wurde, sollten beide identisch sein.
+
+**Hinweis:** Eine **automatische Berechnung der Endrangliste in Carambus** (mit allen Sonderfällen) ist als großes Feature für v7.1+ eingeplant. Wenn das Feature ausgerollt ist, entfällt dieser Anhang.
+
+---
+
 *Für weiterführende technische Details siehe die [Entwickler-Dokumentation](../developers/index.md).*
