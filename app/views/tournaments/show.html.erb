@@ -183,10 +183,58 @@
             title: 'Teilnehmer hinzufügen, bearbeiten oder entfernen' %>
         
         <%- if !@tournament.tournament_started %>
-          <%= button_to I18n.t("tournaments.show.reset_tournament_monitor"), reset_tournament_path(@tournament), method: :post, class: "btn btn-flat btn-primary", data: { confirm: 'Are you sure?' }, style: "float: left; margin-right: 10px;" %>
+          <%# UI-06 (plan 36B-05): hidden form + trigger button opens shared confirmation modal %>
+          <%= form_tag reset_tournament_path(@tournament),
+                       method: :post,
+                       id: "reset-tournament-form-#{@tournament.id}",
+                       style: "display: inline;" do %>
+          <% end %>
+          <%
+            reset_state_line = I18n.t("tournaments.show.reset_tournament_modal.state_line", default: "Aktueller Status:")
+            reset_games_line = I18n.t("tournaments.show.reset_tournament_modal.games_line", default: "Gespielte Spiele:")
+            reset_games_count = @tournament.games.where.not(result_a: nil).count
+            reset_body = I18n.t("tournaments.show.reset_tournament_modal.body",
+                                default: "Achtung: Alle lokalen Setzlisten, Spiele und Ergebnisse dieses Turniers gehen verloren.") +
+                         "\n\n" + reset_state_line + " " + @tournament.state.to_s +
+                         "\n" + reset_games_line + " " + reset_games_count.to_s
+          %>
+          <button type="button"
+                  class="btn btn-flat btn-primary"
+                  style="float: left; margin-right: 10px;"
+                  data-action="click->confirmation-modal#open"
+                  data-confirmation-modal-form-id-param="reset-tournament-form-<%= @tournament.id %>"
+                  data-confirmation-modal-title-param="<%= I18n.t('tournaments.show.reset_tournament_modal.title', default: 'Turnier-Monitor zurücksetzen') %>"
+                  data-confirmation-modal-body-param="<%= reset_body %>"
+                  data-confirmation-modal-confirm-label-param="<%= I18n.t('tournaments.show.reset_tournament_modal.confirm', default: 'Ja, zurücksetzen') %>">
+            <%= I18n.t("tournaments.show.reset_tournament_monitor") %>
+          </button>
         <%- end %>
         <%- if (User::PRIVILEGED + [User.scoreboard.andand.email.andand.downcase]).include? current_user&.email&.downcase %>
-          <%= button_to I18n.t("tournaments.show.debugging_force_reset_tournament_monitor"), reset_tournament_path(@tournament, force_reset: true), method: :post, class: "btn btn-flat btn-primary", style: "float: left; margin-right: 10px;" %>
+          <%# UI-06 (plan 36B-05): force-reset goes through the same shared modal %>
+          <%= form_tag reset_tournament_path(@tournament, force_reset: true),
+                       method: :post,
+                       id: "force-reset-tournament-form-#{@tournament.id}",
+                       style: "display: inline;" do %>
+          <% end %>
+          <%
+            force_state_line = I18n.t("tournaments.show.reset_tournament_modal.state_line", default: "Aktueller Status:")
+            force_games_line = I18n.t("tournaments.show.reset_tournament_modal.games_line", default: "Gespielte Spiele:")
+            force_games_count = @tournament.games.where.not(result_a: nil).count
+            force_body = I18n.t("tournaments.show.force_reset_tournament_modal.body",
+                                default: "DATENVERLUST: Alle lokalen Setzlisten, laufenden Spiele, Ergebnisse und der Turnierstand gehen unwiderruflich verloren.") +
+                         "\n\n" + force_state_line + " " + @tournament.state.to_s +
+                         "\n" + force_games_line + " " + force_games_count.to_s
+          %>
+          <button type="button"
+                  class="btn btn-flat btn-primary"
+                  style="float: left; margin-right: 10px;"
+                  data-action="click->confirmation-modal#open"
+                  data-confirmation-modal-form-id-param="force-reset-tournament-form-<%= @tournament.id %>"
+                  data-confirmation-modal-title-param="<%= I18n.t('tournaments.show.force_reset_tournament_modal.title', default: 'Turnier-Monitor zwangsweise zurücksetzen') %>"
+                  data-confirmation-modal-body-param="<%= force_body %>"
+                  data-confirmation-modal-confirm-label-param="<%= I18n.t('tournaments.show.force_reset_tournament_modal.confirm', default: 'Ja, zwangsweise zurücksetzen') %>">
+            <%= I18n.t("tournaments.show.debugging_force_reset_tournament_monitor") %>
+          </button>
         <% end %>
       <% end %>
     </div>
