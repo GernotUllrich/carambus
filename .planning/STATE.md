@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v7.0
 milestone_name: Manager Experience
 status: executing
-stopped_at: Completed 37-05-PLAN.md
-last_updated: "2026-04-14T21:12:37.878Z"
+stopped_at: Phase 37 complete — verified
+last_updated: "2026-04-14T21:17:06.163Z"
 last_activity: 2026-04-14
 progress:
   total_phases: 5
@@ -79,6 +79,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-14T21:12:37.876Z
-Stopped at: Completed 37-05-PLAN.md
-Resume file: None
+Last session: 2026-04-14T21:17:06.159Z
+Stopped at: Phase 37 complete — verified
+Resume file: .planning/phases/37-in-app-doc-links/37-VERIFICATION.md
