@@ -1,20 +1,69 @@
 # frozen_string_literal: true
 
 module TournamentWizardHelper
+  # Die sechs Wizard-Buckets (konsistent mit wizard_status_text)
+  WIZARD_BUCKETS = [
+    "Vorbereitung",
+    "Setzliste konfigurieren",
+    "Modus-Auswahl",
+    "Bereit zum Start",
+    "Turnier läuft",
+    "Abgeschlossen"
+  ].freeze
+
+  # Tailwind-Klasse für das dominante AASM-State-Badge im Wizard-Header (FIX-04)
+  def wizard_state_badge_class(tournament)
+    case tournament.state.to_s
+    when "new_tournament" then "bg-orange-500 text-white"
+    when "accreditation_finished",
+         "tournament_seeding_finished" then "bg-blue-500 text-white"
+    when "tournament_mode_defined" then "bg-indigo-500 text-white"
+    when "tournament_started_waiting_for_monitors" then "bg-yellow-500 text-gray-900"
+    when "tournament_started" then "bg-green-600 text-white"
+    when "tournament_finished" then "bg-green-800 text-white"
+    when "results_published" then "bg-gray-700 text-white"
+    when "closed" then "bg-gray-500 text-white"
+    else "bg-gray-400 text-white"
+    end
+  end
+
+  # Kurzer deutscher Text für das AASM-State-Badge (FIX-04)
+  def wizard_state_badge_label(tournament)
+    case tournament.state.to_s
+    when "new_tournament" then "Vorbereitung"
+    when "accreditation_finished" then "Teilnehmer abgeschlossen"
+    when "tournament_seeding_finished" then "Setzliste finalisiert"
+    when "tournament_mode_defined" then "Modus gewählt"
+    when "tournament_started_waiting_for_monitors" then "Wartet auf Tische"
+    when "tournament_started" then "Turnier läuft"
+    when "tournament_finished" then "Turnier beendet"
+    when "results_published" then "Ergebnisse veröffentlicht"
+    when "closed" then "Geschlossen"
+    else tournament.state.to_s.humanize
+    end
+  end
+
+  # Liefert die sechs Bucket-Chips für den Wizard-Header (FIX-03)
+  # Jeder Chip enthält :label und :active (Boolean)
+  def wizard_bucket_chips(tournament)
+    current_label = wizard_status_text(tournament)
+    WIZARD_BUCKETS.map { |label| {label: label, active: label == current_label} }
+  end
+
   # Bestimmt den aktuellen Wizard-Schritt basierend auf Tournament State
   def wizard_current_step(tournament)
     case tournament.state
     when "new_tournament"
       # Check for local seedings first (for manual/test entries)
       has_local_seedings = tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").exists?
-      
+
       # If we have local seedings, we're at least at step 3 (editing participants)
       return 3 if has_local_seedings
-      
+
       # Schritt 1: Meldeliste laden (ClubCloud-Seedings vorhanden?)
       has_clubcloud_seedings = tournament.seedings.where("seedings.id < #{Seeding::MIN_ID}").exists?
       return 1 unless has_clubcloud_seedings
-      
+
       # Schritt 2: Setzliste übernehmen (ClubCloud vorhanden, aber noch nicht zu lokal konvertiert)
       2
     when "accreditation_finished"
@@ -98,24 +147,24 @@ module TournamentWizardHelper
       "Noch nicht synchronisiert"
     end
   end
-  
+
   # Prüft ob Synchronisierung notwendig ist
   def sync_needed?(tournament)
     return false unless tournament.accredation_end.present?
     return false unless tournament.sync_date.present?
-    
+
     # Sync ist nötig, wenn letzte Sync VOR dem Meldeschluss war
     tournament.sync_date < tournament.accredation_end
   end
-  
+
   # Sync-Status für Badge
   def sync_status_badge(tournament)
     if !tournament.sync_date
-      { text: "Empfohlen", class: "badge-warning" }
+      {text: "Empfohlen", class: "badge-warning"}
     elsif sync_needed?(tournament)
-      { text: "Empfohlen", class: "badge-warning" }
+      {text: "Empfohlen", class: "badge-warning"}
     else
-      { text: "Optional", class: "badge-info" }
+      {text: "Optional", class: "badge-info"}
     end
   end
 
@@ -129,29 +178,29 @@ module TournamentWizardHelper
   def mode_info_text(tournament)
     if tournament.tournament_plan
       "Gewählt: #{tournament.tournament_plan.name}"
-    elsif tournament.data['extracted_plan_info'].present?
+    elsif tournament.data["extracted_plan_info"].present?
       # Zeige extrahierte Plan-Info aus Einladung (z.B. "T21 - 3 Gruppen à 3, 4 und 4 Spieler")
       count = participant_count(tournament)
-      info = tournament.data['extracted_plan_info']
+      info = tournament.data["extracted_plan_info"]
       "#{count} Teilnehmer → #{info}"
     else
       count = participant_count(tournament)
       "#{count} Spieler"
     end
   end
-  
+
   # Intelligente Spielerzahl: Zählt entweder lokale ODER ClubCloud Seedings
   # Verhindert Doppelzählung bei parallelen Seeding-Sets
   def participant_count(tournament)
     has_local_seedings = tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").any?
-    seeding_scope = has_local_seedings ? 
-                      "seedings.id >= #{Seeding::MIN_ID}" : 
+    seeding_scope = has_local_seedings ?
+                      "seedings.id >= #{Seeding::MIN_ID}" :
                       "seedings.id < #{Seeding::MIN_ID}"
-    
+
     tournament.seedings
-              .where.not(state: "no_show")
-              .where(seeding_scope)
-              .count
+      .where.not(state: "no_show")
+      .where(seeding_scope)
+      .count
   end
 
   # Prüft ob Schritt aktivierbar ist
@@ -159,4 +208,3 @@ module TournamentWizardHelper
     wizard_step_status(tournament, step_number) == :active
   end
 end
-
