@@ -340,44 +340,120 @@ Wenn der automatische Upload nicht aktiviert war oder die Voraussetzungen fehlen
 <a id="ts-invitation-upload"></a>
 ### Einladungs-PDF konnte nicht hochgeladen werden
 
-**Problem:** Der Upload-Dialog in Schritt 3 zeigt einen Fehler, dreht sich im Kreis (unendlicher Spinner) oder die PDF-Datei wird hochgeladen, aber die Setzliste bleibt leer.
+**Problem:** Der Upload-Dialog zeigt einen Fehler, dreht sich im Kreis (unendlicher Spinner) oder die PDF-Datei wird hochgeladen, aber die Setzliste bleibt leer.
 
-**Ursache:** Der PDF-Parser von Carambus kann bestimmte NBV- und DBU-Druckvorlagen nicht zuverlässig auslesen — besonders wenn die PDF-Datei gescannt (kein maschinenlesbarer Text), zu niedrig aufgelöst oder mit einem nicht-standardisierten Seitenformat erstellt wurde. OCR-Fehler sind häufig bei Einladungen, die als Bild-Scan vorliegen.
+**Ursache:** Der PDF-Parser von Carambus erwartet das vom Landessportwart verwendete Standard-Template. Wenn das Template abweicht (gescanntes PDF ohne maschinenlesbaren Text, niedrige Auflösung, ungewöhnliches Seitenformat), kann der Parser die Setzliste nicht extrahieren. Im Normalbetrieb funktioniert der PDF-Upload zuverlässig, weil das Standard-Template wiederverwendet wird.
 
-**Lösung:** Nutzen Sie direkt die **ClubCloud-Meldeliste als Quelle** — das ist die „Alternative" in Schritt 3. Klicken Sie auf „ClubCloud-Meldeliste verwenden", um die Teilnehmer direkt aus dem ClubCloud-Sync zu übernehmen. Ergänzen Sie anschließend in [Schritt 4](#step-4-participants) ggf. fehlende Spieler über ihre DBU-Nummer. Die ClubCloud-Route ist für reine NBV-Turniere in der Praxis zuverlässiger als der PDF-Upload.
+**Lösung:** Wechseln Sie auf die **ClubCloud-Meldeliste als Backup-Quelle**. Sie ist nicht weniger zuverlässig als der PDF-Upload — sie ist eine gleichwertige Alternative für den Sonderfall, dass der PDF-Parser scheitert. Den vollen Ablauf finden Sie im Anhang [Einladung fehlt](#appendix-no-invitation), der die Setzliste-Erzeugung aus den Carambus-Ranglisten beschreibt.
 
 <a id="ts-player-not-in-cc"></a>
-### Spieler nicht in der ClubCloud-Meldeliste
+### Spieler fehlen in der ClubCloud-Meldeliste
 
-**Problem:** Nach dem ClubCloud-Sync in Schritt 2 wurden weniger Spieler geladen als erwartet. Der Wizard zeigt „Weiter zu Schritt 3 mit diesen N Spielern" mit einem grünen Button, obwohl N zu niedrig ist (z. B. 1 statt 5).
+**Problem:** Nach dem ClubCloud-Sync wurden weniger Spieler geladen als erwartet. Der Wizard zeigt „Weiter zu Schritt 3 mit diesen N Spielern" mit einem grünen Button, obwohl N zu niedrig ist.
 
-**Ursache:** Die ClubCloud-Synchronisation liefert manchmal unvollständige Ergebnisse — ein bekanntes Verhalten (F-03/F-04), das auftreten kann, wenn Anmeldungen in ClubCloud noch nicht vollständig bestätigt sind, oder wenn die Sync-Verbindung eine teilweise Antwort liefert. Der grüne Button wirkt irreführend vollständig, obwohl die Datenlage unvollständig ist.
+**Ursache:** Im Normalbetrieb sollte das nicht vorkommen — die Einladung und die ClubCloud-Meldeliste stellen denselben Meldeschluss-Snapshot dar. Es gibt drei realistische Auslöser:
 
-**Lösung:** Klicken Sie **nicht** auf „Weiter" wenn die Spielerzahl zu niedrig ist. Navigieren Sie stattdessen zu **[Schritt 4](#step-4-participants)** und fügen Sie die fehlenden Spieler über das Feld „Spieler mit DBU-Nummer hinzufügen" manuell nach (mehrere DBU-Nummern komma-getrennt). Die Einladungs-PDF enthält typischerweise alle DBU-Nummern der angemeldeten Spieler.
+1. **Sync wurde vor dem Meldeschluss durchgeführt** — Carambus hat die ClubCloud-Daten zu früh übernommen und kennt Spätanmelder noch nicht. Lösung: Den Sync nach dem Meldeschluss erneut auslösen.
+2. **Spieler wird am Turniertag nachgemeldet** — siehe [On-site-Nachmeldung](#appendix-nachmeldung).
+3. **Spieler war von Anfang an nicht gemeldet** — sie tauchen daher korrekterweise nicht auf, und sind kein Carambus-Bug.
+
+**Lösung:** Klären Sie zuerst, welcher der drei Fälle vorliegt. Wenn ein echter Spieler fehlt, fügen Sie ihn in [Schritt 4](#step-4-participants) per DBU-Nummer hinzu. Wenn die ClubCloud-Daten unvollständig sind, lassen Sie sie vom Club-Sportwart in der ClubCloud korrigieren und führen den Sync erneut aus.
 
 <a id="ts-wrong-mode"></a>
 ### Falscher Turniermodus gewählt
 
-**Problem:** Sie haben in Schritt 6 auf eine der Modus-Karten (T04, T05, `Default{n}`) geklickt und damit den falschen Plan aktiviert. Das Start-Formular hat sich bereits geöffnet.
+**Problem:** Sie haben in Schritt 6 auf eine Modus-Karte (z. B. T04, T05 oder `Default{n}`) geklickt und damit den falschen Plan aktiviert. Das Start-Formular hat sich bereits geöffnet.
 
-**Ursache:** Die Modus-Auswahl wird in Carambus unmittelbar beim Klick angewendet — ohne Bestätigungsdialog (F-13). Es gibt keinen „Zurück"-Button, der den Modus sicher rückgängig macht.
+**Ursache:** Die Modus-Auswahl wird in Carambus unmittelbar beim Klick angewendet — ohne Bestätigungsdialog (F-13).
 
-**Lösung:** Wenn das Turnier **noch nicht gestartet** ist (Schritt 9 noch nicht ausgeführt), navigieren Sie zur Wizard-Übersicht (Turnier-Detailseite) und wählen Sie über die Schaltfläche „Modus ändern" einen anderen Plan. Wenn **`start_tournament!` bereits ausgelöst** wurde, ist der Modus nicht mehr über die normale Oberfläche änderbar — lesen Sie dann [Turnier wurde bereits gestartet](#ts-already-started). Browser-Back ist in diesem Zustand riskant und sollte vermieden werden.
+**Lösung:** Solange das Turnier **noch nicht gestartet** ist (Schritt 9 noch nicht ausgeführt), benutzen Sie den Link **„Zurücksetzen des Turnier-Monitors"** am unteren Ende der Turnierseite, um das Setup zurückzusetzen, und gehen Sie dann erneut bis zur Modus-Auswahl. Ein separater Button zum nachträglichen Wechseln des Turniermodus existiert in der aktuellen Carambus-UI nicht.
+
+!!! warning "Reset bei laufendem Turnier ist gefährlich"
+    Wenn das Turnier bereits gestartet wurde (`tournament_started`), zerstört
+    der Reset alle bereits erfassten Spielergebnisse. Verwenden Sie den
+    Reset-Link in diesem Zustand nur, wenn Sie das Turnier wirklich
+    abbrechen wollen. Siehe [Turnier wurde bereits gestartet](#ts-already-started)
+    für Alternativen.
 
 <a id="ts-already-started"></a>
-### Turnier wurde bereits gestartet
+### Turnier wurde bereits gestartet — und etwas läuft schief
 
-**Problem:** Sie möchten Teilnehmer, Turniermodus oder Start-Parameter ändern, aber der Wizard zeigt bereits den Turnier-Monitor und die Detailseite zeigt „Turnier läuft".
+**Problem:** Sie möchten Teilnehmer, Turniermodus oder Start-Parameter ändern, oder ein gravierendes Problem ist während des laufenden Turniers aufgetreten. Der Wizard zeigt bereits den Turnier-Monitor und die Detailseite zeigt „Turnier läuft".
 
-**Ursache:** Der Turnierstart in [Schritt 9](#step-9-start) ist irreversibel — es gibt in der aktuellen Version (v7.0 Scope) **keinen Undo-Pfad** für gestartete Turniere (F-19, Tier 3 Finding). Das ist eine bewusste Designentscheidung, um Datenkonsistenz bei laufenden Scoreboards zu gewährleisten.
+**Ursache:** Das AASM-Event `start_tournament!` (ausgelöst in [Schritt 9](#step-9-start)) wechselt das Turnier in einen Zustand, in dem die Parameter nicht mehr nachträglich änderbar sind. Das ist eine **bewusste Designentscheidung**, um Datenkonsistenz bei laufenden Scoreboards zu gewährleisten, und kein Bug.
 
-**Lösung:** Wenden Sie sich an einen **Carambus-Admin mit Datenbankzugang**. Eine typische Recovery-Methode ist: das laufende Turnier als fehlerhaft markieren, eine neue Turnier-Instanz mit korrekten Parametern anlegen und ggf. bereits eingetragene Ergebnisse manuell übertragen. Diese Operation ist nicht für Vereinsfunktionäre gedacht und sollte durch sorgfältiges Prüfen in [Schritt 5](#step-5-finish-seeding) (Teilnehmerliste) und [Schritt 6](#step-6-mode-selection) (Turniermodus) vermieden werden.
+**Realität:** Es gibt **keinen** technischen Recovery-Pfad — auch nicht für einen Datenbank-Admin oder Entwickler. Die zu ändernden Datenstrukturen sind zu komplex.
+
+**Lösung im Notfall:**
+
+1. **UNDO einzelner Spiele** ist möglich — direkt am betroffenen Scoreboard.
+2. **Reset des gesamten Turniers** ist möglich, zerstört aber alle bereits erfassten Spielergebnisse (siehe [Schritt 12 Reset-Warnung](#step-12-monitor)).
+3. **Wenn beides nicht in Frage kommt:** Wechseln Sie auf die **herkömmliche Methode**: Spiele auf Papier protokollieren, Ergebnisse direkt in der ClubCloud erfassen. Die Scoreboards können Sie für die einzelnen Spiele im **[Trainingsmodus](#glossary-system)** weiterbenutzen (kein Turnier-Kontext, aber funktionierende Punkterfassung).
+
+Eine Sicherheitsabfrage vor dem Reset bei laufendem Turnier sowie ein Parameter-Verifikationsdialog vor dem Start sind als Folge-Features für eine spätere Phase eingeplant — sie reduzieren das Risiko, dass dieser Notfall überhaupt eintritt.
+
+<a id="ts-endrangliste-missing"></a>
+### Endrangliste fehlt nach Turnierende
+
+**Problem:** Das Turnier ist abgeschlossen, aber Carambus zeigt keine berechnete Endrangliste mit Platzierungen.
+
+**Ursache:** Carambus berechnet die **Turnier-Endrangliste derzeit nicht automatisch**. Diese Funktion ist als Folge-Feature für v7.1+ eingeplant.
+
+**Lösung:** Pflegen Sie die Endrangliste **manuell in der ClubCloud**. Den Workflow finden Sie im Anhang [Endrangliste in der ClubCloud pflegen](#appendix-rangliste-manual).
+
+<a id="ts-csv-upload"></a>
+### CSV-Upload in die ClubCloud funktioniert nicht
+
+**Problem:** Sie haben am Ende des Turniers eine CSV-Datei mit den Ergebnissen, aber die ClubCloud nimmt sie nicht an oder wirft Validierungsfehler.
+
+**Ursache:** Der CSV-Upload setzt voraus, dass die **Teilnehmerliste in der ClubCloud finalisiert** ist — wenn dort ein Spieler fehlt, der im CSV vorkommt, scheitert der Import. Die Teilnehmerliste-Finalisierung über die CC-API ist in Carambus aktuell nicht implementiert; sie muss manuell durch einen Club-Sportwart in der ClubCloud-Admin-Oberfläche erfolgen.
+
+**Lösung:** Den vollen Ablauf inkl. der nötigen Berechtigungen finden Sie im Anhang [CSV-Upload in der ClubCloud](#appendix-cc-csv-upload). Im Zweifel bitten Sie den Club-Sportwart Ihres Vereins, die Teilnehmerliste in der ClubCloud zuerst zu finalisieren.
+
+<a id="ts-player-withdraws"></a>
+### Spieler zieht während des Turniers zurück
+
+**Problem:** Ein Spieler kann während des Turniers nicht weiterspielen (Krankheit, Notfall, Rückzug).
+
+**Ursache:** Carambus unterstützt einen sauberen **Match-Abbruch / Spieler-Rückzug während des laufenden Turniers** in der aktuellen Version **nicht**. Die Funktion ist als mittelgroßes Folge-Feature für v7.1+ eingeplant.
+
+**Lösung (Workaround):** Beenden Sie das laufende Spiel des Spielers am Scoreboard mit dem zuletzt erfassten Stand. Für die folgenden Runden behandeln Sie den ausgefallenen Spieler de-facto wie ein [Freilos](#glossary-system) — die Gegner bekommen die Partie ggf. außerhalb von Carambus zugeschrieben. Dokumentieren Sie den Vorgang manuell im Turnierprotokoll und in der ClubCloud.
+
+<a id="ts-english-labels"></a>
+### Englische Feldbezeichnungen im Start-Formular
+
+**Problem:** Im Start-Formular (Schritt 7) erscheinen einige Parameter mit englischen oder unklaren Labels (z. B. *Tournament manager checks results before acceptance*, *Assign games as tables become available*).
+
+**Ursache:** Fehlende oder defekte Einträge in den i18n-Dateien (`config/locales/de.yml`). Die Korrektur ist als UI-Feature für eine Folge-Phase eingeplant.
+
+**Lösung (bis die i18n-Korrektur ausgerollt ist):** Nutzen Sie die folgende Übersetzungstabelle:
+
+| Englisches Label | Deutsche Bedeutung |
+|------------------|--------------------|
+| Tournament manager checks results before acceptance | Manager bestätigt Ergebnisse vor Annahme (manuelle Rundenwechsel-Kontrolle) |
+| Assign games as tables become available | Spiele zuweisen, sobald Tische frei werden |
+| auto_upload_to_cc | Ergebnisse automatisch in ClubCloud hochladen |
+
+Im Zweifel behalten Sie die Standardwerte bei und verifizieren Sie die Werte vor dem Klick auf „Starte den Turnier Monitor".
+
+<a id="ts-nachstoss-forgotten"></a>
+### Nachstoß am Scoreboard vergessen
+
+**Problem:** In einer Karambol-Disziplin mit Nachstoß-Regel hat das Scoreboard das Spiel beendet, ohne dass der Nachstoß durchgeführt wurde.
+
+**Ursache:** Bedienfehler am Scoreboard — die Nachstoß-Eingabe wird in der Praxis häufig vergessen.
+
+**Lösung:** Wenn das Spiel im Scoreboard noch offen ist (vor Bestätigung „Endergebnis erfasst"), kann das Scoreboard-Personal den Nachstoß noch nachholen. Wenn das Ergebnis bereits bestätigt ist, gibt es **keinen sauberen Nachträglich-Korrigieren-Pfad** — protokollieren Sie die Korrektur manuell und tragen Sie den korrigierten Wert in die ClubCloud ein. Für die Zukunft: Beim nächsten Turnier das Scoreboard-Personal explizit auf die Nachstoß-Eingabe hinweisen.
+
+<a id="ts-shootout-needed"></a>
+### Stechen / Shootout nötig (KO-Turnier)
+
+**Problem:** Bei einem KO-Turnier endet eine Partie unentschieden und es wäre ein Stechen erforderlich.
+
+**Ursache:** Stechen / Shootout wird in der aktuellen Carambus-Version **überhaupt nicht unterstützt**. Diese Funktion ist als kritisches Feature für ein späteres Milestone (v7.1 oder v7.2) eingeplant.
+
+**Lösung:** Führen Sie das Stechen **außerhalb von Carambus** durch — am Tisch auf Papier protokollieren — und tragen Sie das Endergebnis manuell in die ClubCloud ein. Der Carambus-Spielstand muss in solchen Fällen nicht weiter gepflegt werden, das Stechen ist außerhalb des Systems abgewickelt.
 
 ---
 
-<a id="architecture"></a>
-## Mehr zur Technik
-
-Carambus ist ein verteiltes System aus mehreren Web-Diensten: Ein zentraler API-Server veröffentlicht Turniere und Spielerdaten (z. B. NBV-Turniere über carambus.net); regionale und vereinseigene Carambus-Server synchronisieren diese Daten und übernehmen die Turnierleitung vor Ort. Globale Datensätze — also Turniere, die vom API-Server synchronisiert wurden — sind für Identitätsfelder (Titel, Datum, Veranstalter) schreibgeschützt (LocalProtector); Ihre lokale Instanz verwaltet den Wizard-Status, die Teilnehmerliste und die Spielergebnisse.
-
-Für die Durchführung eines Turniers nach dieser Anleitung müssen Sie das Innenleben nicht verstehen. Wenn Sie die obigen Schritte befolgt haben, wissen Sie alles, was Sie für einen reibungslosen Turniertag brauchen. Für weiterführende technische Details — Datenbankstruktur, ActionCable-Konfiguration, Deployment — lesen Sie die [Entwickler-Dokumentation](../developers/index.md).
+*Für weiterführende technische Details siehe die [Entwickler-Dokumentation](../developers/index.md).*
