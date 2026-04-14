@@ -124,8 +124,9 @@
 
 <ninja-keys data-controller="command-palette" hideBreadcrumbs></ninja-keys>
 
-<%# Shared confirmation modal (UI-06 D-15) — rendered once per page, reused for UI-06 and UI-07 %>
-<%= render "shared/confirmation_modal" %>
+<%# UI-06 D-15: the shared confirmation modal is rendered per-page (not at %>
+<%# layout level) so its Stimulus scope encloses the trigger buttons. See %>
+<%# app/views/shared/_confirmation_modal.html.erb for usage. %>
 <%= yield :javascript %>
 </body>
 </html>

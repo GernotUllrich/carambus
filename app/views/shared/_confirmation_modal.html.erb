@@ -1,8 +1,16 @@
 <%# Shared confirmation modal (UI-06 D-15, reused by UI-07 in Phase 36b plan 06) %>
-<%# Render this partial once per page that needs it (typically from the layout). %>
-<%# Triggers use data-action="click->confirmation-modal#open" with data-*-param attrs. %>
+<%# %>
+<%# Two usage modes: %>
+<%#   1. Click-trigger mode (UI-06): render with a block; put trigger buttons %>
+<%#      (and their hidden forms) inside the block. Buttons use %>
+<%#      data-action="click->confirmation-modal#open" and read per-click %>
+<%#      params. The outer <div> created by this partial is the Stimulus %>
+<%#      scope, so the triggers MUST live inside the block (not as siblings) %>
+<%#      — otherwise Stimulus cannot dispatch the action to this controller. %>
+<%#   2. Auto-open mode (UI-07): render without a block and pass auto_open: %>
+<%#      true plus auto_open_* locals. The controller auto-opens on connect(). %>
 <%#
-    Local parameters (all optional; defaults support the UI-06 click-trigger mode):
+    Local parameters (all optional):
       auto_open:                       Boolean (default false). When true, the controller
                                        auto-opens on connect() using the auto_open_* locals.
       auto_open_title:                 String — title shown when auto_open is true.
@@ -23,8 +31,10 @@
   local_hidden_override_name            = local_assigns.fetch(:hidden_override_name, "")
   local_hidden_override_reset_on_cancel = local_assigns.fetch(:hidden_override_reset_on_cancel, true)
 %>
+<%# Outer <div> is the Stimulus scope. display: contents keeps it out of the %>
+<%# visual/flex layout so wrapping trigger buttons in click-trigger mode does %>
+<%# not disturb sibling positioning in the caller. %>
 <div data-controller="confirmation-modal"
-     data-confirmation-modal-target="root"
      data-confirmation-modal-auto-open-value="<%= local_auto_open %>"
      data-confirmation-modal-auto-open-title-value="<%= local_auto_open_title %>"
      data-confirmation-modal-auto-open-body-value="<%= local_auto_open_body %>"
@@ -32,29 +42,33 @@
      data-confirmation-modal-auto-open-form-id-value="<%= local_auto_open_form_id %>"
      data-confirmation-modal-hidden-override-name-value="<%= local_hidden_override_name %>"
      data-confirmation-modal-hidden-override-reset-on-cancel-value="<%= local_hidden_override_reset_on_cancel %>"
-     class="hidden fixed inset-0 z-50 bg-black bg-opacity-50 items-center justify-center"
-     role="dialog"
-     aria-modal="true"
-     aria-labelledby="confirmation-modal-title">
-  <div data-confirmation-modal-target="dialog"
-       class="bg-white rounded-lg shadow-xl max-w-lg w-full mx-4 p-6">
-    <h3 id="confirmation-modal-title"
-        data-confirmation-modal-target="title"
-        class="text-lg font-bold text-gray-900 mb-3"></h3>
-    <div data-confirmation-modal-target="body"
-         class="text-sm text-gray-700 mb-5 whitespace-pre-line"></div>
-    <div class="flex justify-end gap-3">
-      <button type="button"
-              data-action="click->confirmation-modal#cancel"
-              class="btn btn-flat btn-secondary">
-        <%= I18n.t("shared.confirmation_modal.cancel", default: "Abbrechen") %>
-      </button>
-      <button type="button"
-              data-confirmation-modal-target="confirmButton"
-              data-action="click->confirmation-modal#confirm"
-              class="btn btn-flat btn-primary">
-        <%= I18n.t("shared.confirmation_modal.confirm", default: "Bestätigen") %>
-      </button>
+     style="display: contents;">
+  <%= yield if block_given? %>
+  <div data-confirmation-modal-target="root"
+       class="hidden fixed inset-0 z-50 bg-black bg-opacity-50 items-center justify-center"
+       role="dialog"
+       aria-modal="true"
+       aria-labelledby="confirmation-modal-title">
+    <div data-confirmation-modal-target="dialog"
+         class="bg-white rounded-lg shadow-xl max-w-lg w-full mx-4 p-6">
+      <h3 id="confirmation-modal-title"
+          data-confirmation-modal-target="title"
+          class="text-lg font-bold text-gray-900 mb-3"></h3>
+      <div data-confirmation-modal-target="body"
+           class="text-sm text-gray-700 mb-5 whitespace-pre-line"></div>
+      <div class="flex justify-end gap-3">
+        <button type="button"
+                data-action="click->confirmation-modal#cancel"
+                class="btn btn-flat btn-secondary">
+          <%= I18n.t("shared.confirmation_modal.cancel", default: "Abbrechen") %>
+        </button>
+        <button type="button"
+                data-confirmation-modal-target="confirmButton"
+                data-action="click->confirmation-modal#confirm"
+                class="btn btn-flat btn-primary">
+          <%= I18n.t("shared.confirmation_modal.confirm", default: "Bestätigen") %>
+        </button>
+      </div>
     </div>
   </div>
 </div>
