@@ -1,6 +1,6 @@
 <%#
   Partial für einzelne Wizard-Schritte
-  
+
   Parameter:
   - number: Schrittnummer (1-6)
   - title: Titel des Schritts
@@ -10,6 +10,8 @@
   - warning: Boolean - zeigt Warnung (optional)
   - danger: Boolean - markiert als gefährliche Aktion (optional)
   - help: Hilfetext (optional)
+  - docs_path: MkDocs-Pfad für Detaillink im Handbuch (optional, z.B. 'managers/tournament-management')
+  - docs_anchor: Anker-ID für Deep-Link (optional, z.B. 'seeding-list')
 %>
 <%
   # Set defaults for optional parameters using local_assigns
@@ -18,6 +20,8 @@
   danger = local_assigns.fetch(:danger, false)
   help = local_assigns.fetch(:help, nil)
   action = local_assigns.fetch(:action, nil)
+  docs_path = local_assigns.fetch(:docs_path, nil)
+  docs_anchor = local_assigns.fetch(:docs_anchor, nil)
 %>
 
 <div class="wizard-step <%= step_class(status) %> <%= 'wizard-step-danger' if danger %>">
@@ -48,6 +52,11 @@
           <details<%= " open" if status == :active %>>
             <summary>💡 Was macht dieser Schritt?</summary>
             <p><%= help.html_safe %></p>
+            <% if docs_path.present? %>
+              <p class="step-docs-link mt-2">
+                <%= mkdocs_link(docs_path, anchor: docs_anchor, text: t('tournaments.docs.walkthrough_link'), options: { class: 'text-blue-600 dark:text-blue-400 underline text-sm' }) %>
+              </p>
+            <% end %>
           </details>
         </div>
       <% end %>
