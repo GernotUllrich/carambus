@@ -5,60 +5,100 @@ Diese Seite führt Sie als Turnierleiter Schritt für Schritt durch ein aus der 
 <a id="scenario"></a>
 ## Szenario
 
-Sie haben als Turnierleiter Ihres Vereins vom NBV eine Einladung zur **NDM Freie Partie Klasse 1–3** erhalten. Das Turnier läuft an einem Samstag in Ihrem Spiellokal mit 5 gemeldeten Teilnehmern auf zwei Tischen. Diese Seite begleitet Sie Schritt für Schritt vom Eingang der Einladung bis zum Ergebnis-Upload zurück in die ClubCloud.
+Sie haben als Turnierleiter Ihres Vereins vom NBV eine Einladung zur **NDM Freie Partie Klasse 1–3** per E-Mail als PDF erhalten. Dieses PDF dient im Normalfall als Start-Unterlage für das Turnier-Management. Das Turnier läuft an einem Samstag in Ihrem Spiellokal mit 5 gemeldeten Teilnehmern auf zwei Tischen. Diese Seite begleitet Sie Schritt für Schritt vom Eingang der Einladung bis zur Abgabe der Ergebnisse an die ClubCloud.
+
+Für abweichende Spezialfälle finden sich im Anhang spezialisierte Abläufe:
+
+- **[Einladung fehlt](#appendix-no-invitation)** — Ablauf ohne PDF-Einladung
+- **[Spieler fehlt](#appendix-missing-player)** — Umgang mit nicht-erschienenen gemeldeten Spielern
+- **[Spieler wird nachgemeldet](#appendix-nachmeldung)** — On-site-Nachmeldung am Turniertag
 
 <a id="walkthrough"></a>
 ## Durchführung Schritt für Schritt
 
 Die folgende Anleitung orientiert sich am tatsächlichen Ablauf des Carambus-Wizards — so wie er in der Praxis funktioniert. Wo die Oberfläche ungewohnte Formulierungen oder unerwartetes Verhalten zeigt, finden Sie einen farbigen Hinweiskasten.
 
+!!! info "Schritt-Nummerierung ist logisch, nicht UI-eins-zu-eins"
+    Die im Folgenden nummerierten Schritte 1–14 sind eine **logisch-chronologische** Aufzählung. Die zugehörigen UI-Screens sind historisch gewachsen und zählen teilweise anders: Schritte 2–5 liegen alle auf der Wizard-Seite, Schritt 6 hat einen eigenen Mode-Selection-Screen, Schritte 7–8 sind dieselbe Parametrisierungsseite, ab Schritt 9 wechselt der Ablauf in den Turnier-Monitor und die Tisch-Scoreboards. Während des laufenden Spielbetriebs (Schritte 10–12) hat der Turnierleiter im Standardfall **keine aktive Rolle** — die Aktionen finden alle an den Scoreboards statt.
+
 <a id="step-1-invitation"></a>
 ### Schritt 1: Die NBV-Einladung erhalten
 
-Sie erhalten vom Landessportwart per E-Mail eine PDF-Einladung zur NDM. Die Einladung enthält den offiziellen Turnierplan, die Teilnehmerliste (Setzliste) und die Startzeiten. Sie müssen in diesem Schritt noch nichts im System klicken — öffnen Sie die Einladung, legen Sie das PDF bereit, und öffnen Sie dann in Carambus die Turnier-Detailseite des NDM-Turniers.
+Sie erhalten vom Landessportwart per E-Mail eine PDF-Einladung zur NDM. Die Einladung enthält den offiziellen Turnierplan, die **Meldeliste** (Setzliste-Snapshot nach dem Meldeschluss) und die Startzeiten. Außerdem stehen in der Einladung die **Ausspielziele** für die Disziplin: das **Ballziel** (allgemein für alle Spieler bei Normalturnieren, oder individuell pro Spieler bei Vorgabeturnieren) und die **Aufnahmebegrenzung**. Diese Werte tragen Sie später in [Schritt 7](#step-7-start-form) in das Start-Formular ein.
+
+Drei Begriffe sollten Sie auseinanderhalten — sie beschreiben dieselben Spieler zu unterschiedlichen Zeitpunkten:
+
+- **Setzliste** — geseedete/geordnete Liste der Anmelder, gepflegt während der Meldeperiode
+- **Meldeliste** — Snapshot der Setzliste nach dem Meldeschluss (das, was in der Einladung steht)
+- **Teilnehmerliste** — wer **tatsächlich** am Turniertag antritt (wird kurz vor Turnierbeginn finalisiert)
+
+Im [Glossar](#glossary-wizard) finden Sie die Begriffe noch einmal mit ihrem zeitlichen Zusammenhang.
+
+Sie müssen in diesem Schritt noch nichts im System klicken — öffnen Sie die Einladung, legen Sie das PDF bereit, und öffnen Sie dann in Carambus die Turnier-Detailseite des NDM-Turniers.
 
 <a id="step-2-load-clubcloud"></a>
 ### Schritt 2: Turnier aus ClubCloud laden (Wizard Schritt 1)
 
-Öffnen Sie die Turnier-Detailseite in Carambus. Oben auf der Seite sehen Sie den Wizard-Fortschrittsbalken „Turnier-Setup". Schritt 1 „Meldeliste von ClubCloud laden" ist in der Regel bereits automatisch abgeschlossen — ein grüner Haken (GELADEN) zeigt an, dass Carambus die Meldeliste bereits synchronisiert hat.
+**Navigation zur Turnierseite:** Im Carambus-Hauptmenü öffnen Sie **Organisationen → Regionalverbände → NBV** und klicken dort auf den Link **„Aktuelle Turniere in der Saison 2025/2026"** (die Saison ist dynamisch). In der Turnierliste wählen Sie das passende Turnier aus (im Beispielszenario „NDM Freie Partie Klasse 1–3").
+
+Auf der Turnier-Detailseite sehen Sie oben den Wizard-Fortschrittsbalken „Turnier-Setup". Schritt 1 „Meldeliste von ClubCloud laden" ist in der Regel bereits automatisch abgeschlossen — ein grüner Haken (GELADEN) zeigt an, dass Carambus die Meldeliste bereits synchronisiert hat.
 
 **Achtung:** Die ClubCloud liefert manchmal weniger Spieler als erwartet — in der Praxis wurden bei einem 5-Spieler-Turnier zunächst nur 1–2 Registrierungen übertragen. Der Wizard zeigt einen grünen „Weiter zu Schritt 3 mit diesen N Spielern"-Button, auch wenn N verdächtig niedrig ist. Prüfen Sie die Zahl sorgfältig, bevor Sie weitergehen. Wenn Spieler fehlen, beheben Sie das in [Schritt 4](#step-4-participants). Weitere Details finden Sie unter [Spieler nicht in der ClubCloud-Meldeliste](#ts-player-not-in-cc).
 
 ![Wizard-Übersicht nach ClubCloud-Sync](images/tournament-wizard-overview.png){ loading=lazy }
-*Abbildung: Turnier-Setup-Wizard direkt nach dem ClubCloud-Sync (Beispiel aus dem Phase-33-Audit, NDM Freie Partie Klasse 1–3).*
+*Abbildung: Turnier-Setup-Wizard nach erfolgreichem ClubCloud-Sync — die typische Standard-Darstellung, wenn der Sync vollständig durchgelaufen ist (Beispiel aus dem Phase-33-Audit, NDM Freie Partie Klasse 1–3). Den im Achtung-Block beschriebenen 1-Spieler-Fall illustriert dieses Bild **nicht** — er tritt nur bei unvollständigem Sync auf.*
 
 <a id="step-3-seeding-list"></a>
-### Schritt 3: Setzliste übernehmen — Einladung oder ClubCloud-Meldeliste
+### Schritt 3: Setzliste übernehmen oder erzeugen
 
-In Wizard-Schritt 2 können Sie die Setzliste (die geordnete Teilnehmerliste) aus zwei Quellen übernehmen: entweder durch **Upload der PDF-Einladung** oder durch Übernahme der **ClubCloud-Meldeliste** als Alternative.
+Die **Setzliste** ist ein **Ergebnis**: Meldeliste plus Ordnung. Die Ordnung wird normalerweise vom Landessportwart in der Einladung vorgegeben (anhand seiner Spreadsheets mit den zusammengeführten Turnierergebnissen). Sie ist keine Quelle, die Sie irgendwoher „herunterladen".
 
-Die aktuelle Oberfläche stellt den PDF-Upload als primäre Option dar und ClubCloud als „Alternative" — für Vereine, die ClubCloud als offizielle Anmeldequelle nutzen, ist das umgekehrt. Wenn Sie das NBV-Einladungs-PDF hochladen, zeigt Carambus anschließend einen Vergleich beider Setzlisten nebeneinander, damit Sie Abweichungen erkennen können. Wenn das PDF-Upload fehlschlägt (häufig bei bestimmten Druckvorlagen), nutzen Sie direkt die ClubCloud-Liste — details dazu unter [Einladungs-PDF konnte nicht hochgeladen werden](#ts-invitation-upload).
+**Im Normalfall (mit Einladung):** Sie laden das PDF der Einladung in Wizard-Schritt 2 hoch. Carambus liest die Setzliste aus dem PDF und gleicht sie anschließend mit der ClubCloud-Meldeliste ab. Abweichungen werden Ihnen zur Klärung angezeigt.
+
+**Wenn die Einladung fehlt:** Sie übernehmen die initiale Teilnehmerliste aus der ClubCloud-Meldeliste (orientiert am Meldestatus zum Meldeschluss) und ordnen sie anschließend in [Schritt 4](#step-4-participants) per Klick auf **„Nach Ranking sortieren"** anhand der in Carambus gepflegten [Rangliste](#glossary-system) — den vollständigen Ablauf finden Sie im Anhang [Einladung fehlt](#appendix-no-invitation).
+
+Wenn das PDF-Upload technisch fehlschlägt (häufig bei bestimmten Druckvorlagen), lesen Sie [Einladungs-PDF konnte nicht hochgeladen werden](#ts-invitation-upload).
 
 <a id="step-4-participants"></a>
 ### Schritt 4: Teilnehmerliste prüfen und ergänzen (Wizard Schritt 3)
 
-In Wizard-Schritt 3 „Teilnehmerliste bearbeiten" sehen Sie die aktuell vorhandenen Teilnehmer. Fehlen Spieler, fügen Sie diese über das Feld **„Spieler mit DBU-Nummer hinzufügen"** hinzu. Mehrere [DBU-Nummern](#glossary-system) können Sie komma-getrennt eintragen (Beispiel: `121308, 121291, 121341, 121332`).
+**Wie komme ich in die Teilnehmerliste-Bearbeitung?** Es gibt drei mögliche Einstiegspunkte, abhängig vom aktuellen Wizard-Zustand:
+
+1. **Direkt aus Schritt 3** — nachdem Sie in Schritt 3 die Setzliste übernommen haben, leitet Sie der Wizard automatisch in die Bearbeitung weiter
+2. **Über den Button am unteren Ende der Turnierseite** — auch wenn Wizard-Schritt 3 noch nicht aktiv ist, ist der Zugang über diesen Bottom-Link möglich
+3. **Über die Aktion „Einladung hochladen"** — auch wenn Sie keine Einladung haben, ist dieser Eingangspunkt nutzbar: im Einladungs-Hochladen-Formular finden Sie den Link **„→ Mit Meldeliste zu Schritt 3 (nach Rangliste sortiert)"**
+
+Die Mehrfach-UX ist historisch gewachsen — alle drei Wege landen auf derselben Bearbeitungsseite.
+
+In Wizard-Schritt 3 „Teilnehmerliste bearbeiten" sehen Sie die aktuell vorhandenen Teilnehmer. Fehlen Spieler, tragen Sie deren [DBU-Nummern](#glossary-system) komma-getrennt im Feld **„Spieler mit DBU-Nummer hinzufügen"** ein (Beispiel: `121308, 121291, 121341, 121332`) und klicken anschließend auf den Link **„Spieler hinzufügen"**, um die Eingabe anzuwenden.
 
 Klicken Sie oben auf **„Nach Ranking sortieren"**, um die Teilnehmerliste automatisch nach der aktuellen [Rangliste](#glossary-system) zu ordnen — das ist für eine NDM Freie Partie fast immer die richtige Reihenfolge.
 
-Sobald die Teilnehmerzahl einem vordefinierten [Turnierplan](#glossary-wizard) entspricht, erscheint unter der Teilnehmerliste ein gelb hervorgehobenes Panel **„Mögliche Turnierpläne für N Teilnehmer — automatisch vorgeschlagen: T04"**. Bei 5 Teilnehmern wird Ihnen T04 vorgeschlagen. Das ist der beste Hinweis, dass die Teilnehmerzahl stimmt — wenn kein Plan vorgeschlagen wird, überprüfen Sie die Teilnehmerzahl. Die endgültige Modusauswahl erfolgt erst in Schritt 6.
+Sobald die Teilnehmerzahl einem vordefinierten [Turnierplan](#glossary-wizard) entspricht, erscheint unter der Teilnehmerliste ein gelb hervorgehobenes Panel **„Mögliche Turnierpläne für N Teilnehmer — automatisch vorgeschlagen: T04"**. Bei 5 Teilnehmern wird Ihnen T04 vorgeschlagen (die Planbezeichnungen wie T04 stammen aus der offiziellen Karambol-Turnierordnung). Das ist der beste Hinweis, dass die Teilnehmerzahl stimmt — wenn kein Plan vorgeschlagen wird, überprüfen Sie die Teilnehmerzahl. Die endgültige Modusauswahl erfolgt erst in Schritt 6.
 
-Alle Änderungen werden sofort gespeichert; ein Bestätigungs-Klick ist nicht nötig.
+Die meisten Änderungen — Sortierung, in-place-Edits einzelner Felder — werden sofort gespeichert. **Ausnahme:** Für das Hinzufügen neuer Spieler per DBU-Nummer ist der Klick auf den Link **„Spieler hinzufügen"** erforderlich.
 
 <a id="step-5-finish-seeding"></a>
-### Schritt 5: Teilnehmerliste abschließen (Wizard Schritt 4)
+### Schritt 5: Teilnehmerliste abschließen
 
-Wenn die Teilnehmerliste vollständig ist, klicken Sie in Wizard-Schritt 4 auf den blauen Button **„Teilnehmerliste abschließen"**. Damit wird die [Setzliste](#glossary-wizard) endgültig festgeschrieben und das Turnier geht in den Status `tournament_seeding_finished` über.
+**Wichtig zum Verständnis:** Die im Wizard angezeigten „Schritt 4" und „Schritt 5" sind **keine eigenen Wizard-Zustände**, sondern **Aktions-Links** auf der Teilnehmerliste-Seite:
 
-!!! warning "Teilnehmerliste abschließen ist endgültig"
-    Der Klick auf **Teilnehmerliste abschließen** ist einmalig und nicht
-    rückgängig zu machen. Prüfen Sie vorher die Teilnehmerliste sorgfältig —
-    nach dem Abschließen springt der Wizard direkt zur Modus-Auswahl, und
-    eine spätere Änderung der Teilnehmerliste ist nur noch über Admin-Eingriff
-    möglich.
+- **„Schritt 4: Teilnehmerliste bearbeiten"** — Link zur weiteren Bearbeitung der Teilnehmerliste
+- **„Schritt 5: Teilnehmerliste abschließen"** — Link, der den State-Übergang auslöst und in die Turniermodus-Auswahl führt
+
+Zwischen den beiden gibt es im Wizard keinen separaten Zustand. Der Wizard-Fortschrittsbalken springt nach dem Abschließen direkt zur Modus-Auswahl, weil „Schritt 4" eben nur ein Aktions-Link war.
+
+Wenn die Teilnehmerliste vollständig ist, klicken Sie auf den Link **„Teilnehmerliste abschließen"**. Damit wird die [Setzliste](#glossary-wizard) festgeschrieben und das Turnier geht in den nächsten Wizard-Zustand über („Schritt 5: Turniermodus festlegen").
+
+!!! warning "Teilnehmerliste abschließen — was ist möglich, was nicht"
+    Der Klick auf **Teilnehmerliste abschließen** ist normalerweise verbindlich:
+    Sie wechseln in die Turniermodus-Auswahl und können die Teilnehmerliste
+    nicht über den normalen Wizard-Pfad mehr ändern. **Im Notfall** können Sie
+    aber das gesamte Turnier-Setup über den Link **„Zurücksetzen des
+    Turnier-Monitors"** am unteren Ende der Turnierseite zurücksetzen — das
+    ist möglich, aber bei bereits laufendem Turnier mit Datenverlust
+    verbunden (siehe [Schritt 12](#step-12-monitor) für die Details).
 <!-- ref: F-09 -->
-
-Nach dem Klick springt der Wizard-Fortschrittsbalken von Schritt 3 direkt auf Schritt 5 — Schritt 4 wird im Hintergrund automatisch erledigt und erscheint als erledigt. Diese Sprung-Darstellung ist verwirrend, aber inhaltlich korrekt. Der nächste aktive Schritt ist die Modus-Auswahl.
 
 <a id="step-6-mode-selection"></a>
 ### Schritt 6: Turniermodus auswählen
