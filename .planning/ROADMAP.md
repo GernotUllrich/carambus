@@ -27,7 +27,9 @@ Phases 1-32 completed across six milestones. See MILESTONES.md for details.
 - [x] **Phase 33: UX Review & Wizard Audit** - Identify the canonical wizard partial, observe transient state behavior, and classify all happy-path UX findings by impact tier before any doc or code work begins (completed 2026-04-13)
 - [x] **Phase 34: Task-First Doc Rewrite** - Rewrite `docs/managers/tournament-management.{de,en}.md` as a volunteer task walkthrough with glossary, troubleshooting, and corrected index Quick Start (completed 2026-04-13)
 - [x] **Phase 35: Printable Quick-Reference Card** - Create bilingual Before/During/After printable A4 card with print CSS registered in mkdocs (completed 2026-04-13)
-- [ ] **Phase 36: Small UX Fixes** - Implement Tier 1 and Tier 2 UX fixes surfaced by Phase 33: open-by-default help, auto_upload_to_cc alignment, step name display, AASM badge prominence
+- [ ] **Phase 36a: Turnierverwaltung Doc Accuracy** - Apply 58 findings from Phase 36 sentence-by-sentence review: factual corrections, new glossary entries, new appendices, walkthrough restructure
+- [ ] **Phase 36b: UI Cleanup & Kleine Features** - FIX-01/03/04 + UI cleanup (tooltips, i18n, dead-code removal, reset safety, parameter verification dialog)
+- [ ] **Phase 36c: v7.1 Preparation / ClubCloud Integration Groundwork** - Scope v7.1+ milestones for Endrangliste, Shootout, CC API integration, Match-Abbruch
 - [ ] **Phase 37: In-App Doc Links** - Fix the mkdocs_link locale bug and wire doc links from each wizard step to the corresponding stable doc anchors from Phase 34
 
 ## Phase Details
@@ -82,23 +84,63 @@ Phases 1-32 completed across six milestones. See MILESTONES.md for details.
 - [x] 35-04-PLAN.md — Fill DE + EN scoreboard-shortcuts section with shortcut table and verbatim ASCII keycap strip copied from scoreboard-guide.{de,en}.md (QREF-03)
 - [x] 35-05-PLAN.md — Final mkdocs --strict gate, automated success-criteria verification, cross-reference integrity checks, human smoke test of print preview (QREF-01/02/03)
 
-### Phase 36: Small UX Fixes
-**Goal**: The four highest-value Tier 1 and Tier 2 UX friction points surfaced in Phase 33 are resolved: the active step's help is visible without a click, the auto_upload_to_cc doc/code alignment is corrected, step names replace bare numbers, and the AASM state badge is the primary orientation indicator
-**Phase type**: mixed
-**Depends on**: Phase 33 (UX findings drive fix scope; Phase 34 recommended first so doc corrections can be aligned with code fixes)
-**Requirements**: FIX-01, FIX-02, FIX-03, FIX-04
+### Phase 36a: Turnierverwaltung Doc Accuracy
+**Goal**: All 58 findings from the Phase 36 sentence-by-sentence review of `docs/managers/tournament-management.de.md` are addressed — factual errors corrected, missing glossary entries added, new troubleshooting recipes created, special-case appendices written, and the walkthrough restructured to honestly reflect manager activity vs. passive phases
+**Phase type**: docs-only
+**Depends on**: Phase 34 (this phase corrects and extends Phase 34's output)
+**Requirements**: DOC-ACC-01, DOC-ACC-02, DOC-ACC-03, DOC-ACC-04, DOC-ACC-05, DOC-ACC-06
+**Input artifact**: `.planning/phases/36-small-ux-fixes/36-DOC-REVIEW-NOTES.md` (58 findings, F-36-01..58)
+**Scope evolution reference**: `.planning/v7.0-scope-evolution.md`
 **Success Criteria** (what must be TRUE):
-  1. The active wizard step's help block renders open by default; non-active steps remain collapsed
-  2. The `auto_upload_to_cc` checkbox location in the UI matches what the documentation describes — either the code and doc now agree, or a clear decision is recorded about which was changed
-  3. Wizard steps are identified by name (not bare numbers like "Step 6") everywhere they appear in the UI, conditional on organizer type
-  4. The AASM state badge is visually more prominent than the progress bar in the wizard UI; a volunteer returning to an in-progress tournament can immediately see the current state name
+  1. Begriffshierarchie (Setzliste / Meldeliste / Teilnehmerliste) is used consistently across walkthrough + glossary
+  2. All factual corrections from review blocks 1–7 are applied to both `tournament-management.de.md` and `tournament-management.en.md`
+  3. New glossary entries exist for: Meldeliste, Teilnehmerliste, Logischer Tisch, Physikalischer Tisch, TableMonitor, Turnier-Monitor, Trainingsmodus, Freilos, T-Plan vs. Default-Plan
+  4. New appendix sections cover: no-invitation flow, missing-player flow, player registration flow, ClubCloud CSV upload handling, manual Rangliste maintenance
+  5. Walkthrough is restructured to honestly distinguish manager-action phases from passive/observation phases
+  6. "Mehr zur Technik" section is removed
+  7. `mkdocs build --strict` passes with zero new warnings over the Phase 35 baseline
+**Plans**: TBD
+**UI hint**: no (docs-only)
+
+### Phase 36b: UI Cleanup & Kleine Features
+**Goal**: UI cleanup items from the Phase 36 doc review are implemented, plus the remaining original FIX-01/03/04 items, plus two small safety/verification features that reduce the risk of irreversible mistakes during tournament setup
+**Phase type**: mixed
+**Depends on**: Phase 33 (UX findings drive scope), Phase 36a (doc accuracy should land first so UI changes can be documented correctly)
+**Requirements**: FIX-01, FIX-03, FIX-04, UI-01, UI-02, UI-03, UI-04, UI-05, UI-06, UI-07
+**Scope evolution reference**: `.planning/v7.0-scope-evolution.md`
+**Success Criteria** (what must be TRUE):
+  1. FIX-01: The active wizard step's help block renders open by default; non-active steps remain collapsed
+  2. FIX-03: Wizard steps are identified by name (not bare numbers like "Step 6") everywhere they appear in the UI, conditional on organizer type
+  3. FIX-04: The AASM state badge is visually more prominent than the progress bar in the wizard UI (possibly coupled with UI-01 tooltip work)
+  4. UI-01: Parameter form fields have tooltips explaining their purpose
+  5. UI-02: Start-form labels are in German (no English/broken-German labels)
+  6. UI-03: Manual round-change control feature and its parameter are removed
+  7. UI-04: Dead-code manual input UI in the Turnier-Monitor "Aktuelle Spiele" table is removed
+  8. UI-05: The unused `app/views/tournaments/_wizard_steps.html.erb` partial is deleted (per F-24 from Phase 33)
+  9. UI-06: Reset confirms with a data-loss warning when invoked at `tournament_started` state or later
+  10. UI-07: Parameter verification dialog shows unusual values before `start_tournament!` is triggered
+**Note**: FIX-02 (auto_upload_to_cc checkbox location) is **closed as verified-aligned** — code and docs already agree per Phase 36 review finding F-36-02/F-36-23. The broader ClubCloud upload model gap is tracked separately in Phase 36c.
 **Plans**: TBD
 **UI hint**: yes
+
+### Phase 36c: v7.1 Preparation / ClubCloud Integration Groundwork
+**Goal**: The large code features uncovered by the Phase 36 doc review are scoped into v7.1+ milestone skeletons and backlog seeds, so v7.0 can close cleanly without carrying unresolved feature debt
+**Phase type**: planning
+**Depends on**: Phase 36a, Phase 36b (so the planning is informed by what's already been fixed)
+**Requirements**: PREP-01, PREP-02, PREP-03, PREP-04
+**Scope evolution reference**: `.planning/v7.0-scope-evolution.md`
+**Success Criteria** (what must be TRUE):
+  1. PREP-01: A v7.1-ClubCloud-Integration milestone skeleton exists covering Endrangliste automatic calculation, Teilnehmerliste finalization via CC API, and credentials delegation for Club-Sportwart rights
+  2. PREP-02: A Shootout/Stechen support skeleton exists (either as part of v7.1 or its own milestone v7.2) covering AASM changes, tournament plan modifications, and scoreboard UI
+  3. PREP-03: Backlog/seed entries exist for Match-Abbruch / Freilos handling and for UI consolidation of historically grown screens
+  4. PREP-04: A ClubCloud admin-side handling appendix is written (as referenced by Phase 36a DOC-ACC-04) based on SME interview or further investigation
+**Plans**: TBD
+**UI hint**: no (planning phase)
 
 ### Phase 37: In-App Doc Links
 **Goal**: Every wizard step has a working link to the corresponding section of the rewritten documentation, and the mkdocs_link helper generates correct locale-aware URLs for both DE and EN users
 **Phase type**: mixed
-**Depends on**: Phase 34 (LINK-02..04 require stable doc anchors), Phase 35 (LINK-01 fix enables all links to work correctly)
+**Depends on**: Phase 34 (LINK-02..04 require stable doc anchors), Phase 36a (walkthrough restructure may shift anchor positions — 37 must happen after 36a), Phase 35 (LINK-01 fix enables all links to work correctly)
 **Requirements**: LINK-01, LINK-02, LINK-03, LINK-04
 **Success Criteria** (what must be TRUE):
   1. `app/helpers/application_helper.rb` mkdocs_link helper generates `/docs/en/#{path}/` for EN locale and `/docs/#{path}/` for DE locale, matching the pattern in `docs_page.html.erb`
@@ -110,12 +152,16 @@ Phases 1-32 completed across six milestones. See MILESTONES.md for details.
 
 ## Progress
 
-**Execution Order:** 33 → 34 → 35 → 36 → 37
+**Execution Order:** 33 → 34 → 35 → 36a → 36b → 36c → 37
+
+**Scope Evolution Note:** Phase 36 was originally "Small UX Fixes" with FIX-01..04. A sentence-by-sentence review of the Turnierverwaltung walkthrough during discuss-phase produced 58 findings and exposed the original scope as significantly underestimated. Phase 36 was split into 36a (doc accuracy), 36b (UI cleanup + remaining small fixes), and 36c (v7.1 preparation for large code features). See `.planning/v7.0-scope-evolution.md` for the full rationale.
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 33. UX Review & Wizard Audit | v7.0 | 3/3 | Complete    | 2026-04-13 |
 | 34. Task-First Doc Rewrite | v7.0 | 4/4 | Complete    | 2026-04-13 |
 | 35. Printable Quick-Reference Card | v7.0 | 5/5 | Complete    | 2026-04-13 |
-| 36. Small UX Fixes | v7.0 | 0/TBD | Not started | - |
+| 36a. Turnierverwaltung Doc Accuracy | v7.0 | 0/TBD | Not started | - |
+| 36b. UI Cleanup & Kleine Features | v7.0 | 0/TBD | Not started | - |
+| 36c. v7.1 Preparation / CC Groundwork | v7.0 | 0/TBD | Not started | - |
 | 37. In-App Doc Links | v7.0 | 0/TBD | Not started | - |
