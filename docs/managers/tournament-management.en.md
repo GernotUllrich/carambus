@@ -276,9 +276,13 @@ If automatic upload was not enabled or the prerequisites are missing, the upload
 
 - **One-Cushion (Einband)** — Carom discipline in which the cue ball must contact at least one cushion before hitting the second object ball.
 
-- **Inning (Aufnahme)** — One inning is one turn at the table: the player continues shooting until they fail to score or reach the target. The **inning limit** on the start form sets the maximum number of innings per match (0 = unlimited). *You see this term in the [start form, Step 7](#step-7-start-form).*
+- **Inning (Aufnahme)** — One inning is one turn at the table: the player continues shooting until they fail to score or reach the [target balls](#glossary-karambol). The [inning limit](#glossary-karambol) sets the maximum number of innings per match. *You see this term in the [start form, Step 7](#step-7-start-form).*
 
-- **Target balls / innings_goal (Bälle-Ziel)** — The number of points (caroms) a player must score to win a match. The database field is called `innings_goal` in the code; the start form labels it "Bälle vor" or "Bälle-Ziel". *You configure this in the [start form, Step 7](#step-7-start-form). See the callout in that step for notes on the English labels.*
+- **Target balls (Ballziel, `balls_goal`)** — The number of points (caroms) a player must score to win a match. The database field is called `balls_goal`. For Freie Partie Class 1–3, typically **150 balls** (optionally reduced by 20 %). The Carom Sport Regulations are authoritative. *You configure this value in the [start form, Step 7](#step-7-start-form).*
+
+- **Inning limit (Aufnahmebegrenzung, `innings_goal`)** — Maximum number of innings per match. The database field is `innings_goal`. For Freie Partie Class 1–3, typically **50 innings** (optionally reduced by 20 %). **Empty field or 0 = unlimited.** *You configure this value in the [start form, Step 7](#step-7-start-form).*
+
+- **"Bälle vor" (handicap value)** — An **individual handicap value per player** used in handicap tournaments. Not to be confused with the general target-balls parameter — in handicap tournaments each player gets a different value.
 
 - **High run / HS (Höchstserie)** — The longest consecutive scoring run in a single match or across the whole tournament. Displayed in real time in the [Tournament Monitor, Step 12](#step-12-monitor).
 
@@ -291,24 +295,47 @@ If automatic upload was not enabled or the prerequisites are missing, the upload
 <a id="glossary-wizard"></a>
 ### Wizard terms
 
-- **Seeding list (Setzliste)** — The ordered participant list with seeding positions (position 1 = top seed, position N = lowest seed). Imported in [Step 3](#step-3-seeding-list) from the invitation or ClubCloud, extended in [Step 4](#step-4-participants). Closing the seeding list in [Step 5](#step-5-finish-seeding) is irreversible.
+- **Registration list (Meldeliste)** — **Snapshot of the seeding list at the close of registration** — who is officially registered for the tournament. Comes from ClubCloud and is provisional: it can still change up to tournament day (late registrations, withdrawals). Cross-reference the term hierarchy in [Step 1](#step-1-invitation).
+
+- **Seeding list (Setzliste)** — The **ordered** list of registrants (position 1 = top seed, position N = bottom). Three possible sources:
+    1. **Official seeding list from the invitation** (the normal case) — produced by the regional sports officer from his spreadsheets
+    2. **Carambus-internal seeding list** (the fallback case without invitation) — derived from the Carambus-internal [rankings](#glossary-system) via "Sort by ranking" in [Step 4](#step-4-participants)
+    3. **Not from ClubCloud** — ClubCloud only carries registration lists, not seeding lists
+
+- **Participant list (Teilnehmerliste)** — Who **actually** shows up on tournament day. Finalised shortly before the tournament starts. The result of the registration list minus no-shows plus any [late registrations](#appendix-nachmeldung). Finalisation happens in [Step 5](#step-5-finish-seeding).
 
 - **Tournament mode (Turniermodus)** — The playing format of the tournament (for example round-robin, knockout). Selected in [Step 6](#step-6-mode-selection). The mode determines the underlying tournament plan (T04, T05, `Default{n}`) and thus the number of rounds and days.
 
-- **Tournament-plan codes (T04, T05, `Default{n}`)** — Internal labels for predefined tournament plans. **T** stands for Turnierplan (tournament plan), the number is the plan code. T04 and T05 are the common plans for 5-player round-robin tournaments — they differ mainly in the number of rounds. `Default{n}` is a dynamically generated round-robin format where `{n}` is the participant count. *You select the plan in [Step 6](#step-6-mode-selection).*
+- **Tournament-plan codes (T-plan vs. Default plan)** — Carambus knows two kinds of tournament plans:
+    - **T-nn** (for example T04, T05) — predefined plans from the **Carom Tournament Regulations** with fixed match structure and fixed table count. Useful for standard player counts in round-robin format.
+    - **`Default{n}`** — a **dynamically generated** round-robin plan where `{n}` is the participant count. Created automatically when no T-plan fits; the required table count is computed from the participant count.
 
-- **Scoreboard** — The touch-enabled input device at each table, used by players or an assistant to enter points live during a match. Scoreboards connect automatically to the Tournament Monitor after [starting the tournament](#step-9-start). Without an active scoreboard connection, points cannot be recorded.
+  *You select the plan in [Step 6](#step-6-mode-selection).*
+
+- **Scoreboard** — The touch-enabled input device at each table (table monitor, smartphone, or web client) used by players or an assistant to enter points live during a match. The scoreboard-to-table binding is **not fixed**: at the scoreboard the operator picks the matching physical table, and the binding is established via the [TableMonitor](#glossary-system) of the logical table. The binding can be re-selected at the scoreboard when needed (for example if a table monitor fails).
 
 <a id="glossary-system"></a>
 ### System terms
 
 - **ClubCloud** — The regional registration platform of the DBU (Deutscher Billard-Union / German Billiards Union). ClubCloud is the authoritative source for player registrations and entry lists. Carambus synchronises the participant list from ClubCloud in [Step 2](#step-2-load-clubcloud). See the [ClubCloud Integration guide](clubcloud-integration.md) for further details.
 
-- **AASM status (AASM-Status)** — The internal state of the tournament managed by the AASM state machine (Acts As State Machine). Possible states include `new_tournament`, `tournament_seeding_finished`, `tournament_started_waiting_for_monitors`, `tournament_started`, and others. The wizard step display mirrors this status — Step 4 complete = `tournament_seeding_finished`, tournament started = `tournament_started`. *Phase 36 will make this status badge more prominent in the wizard.*
+- **AASM status (AASM-Status)** — The internal state of the tournament managed by the AASM state machine (Acts As State Machine). Possible states include `new_tournament`, `tournament_seeding_finished`, `tournament_started_waiting_for_monitors`, `tournament_started`, and others. Important: the wizard step display does **not** map one-to-one to AASM states — for example, Steps 4 and 5 are action links on a single state's page, not separate states (see [Step 5](#step-5-finish-seeding)). A more prominent status badge in the wizard is an open improvement area.
 
 - **DBU number (DBU-Nummer)** — The national player ID issued by the Deutscher Billard-Union. Every licensed player has a unique DBU number. In [Step 4](#step-4-participants) you can add players who are not in the ClubCloud registration list by entering their DBU number (comma-separated) in the input field.
 
-- **Ranking (Rangliste)** — The regional player ranking sourced from the ClubCloud database. In [Step 4](#step-4-participants) you can use "Sort by ranking" to automatically order the participant list by ranking position — this matches the official seeding order for most NBV tournaments.
+- **Ranking (Rangliste)** — A **Carambus-internal** player ranking that is updated per player from **Carambus's own tournament results** (so it is not sourced from ClubCloud). It serves as the default sort criterion when no official seeding list from an invitation is available. In [Step 4](#step-4-participants) you can use "Sort by ranking" to automatically order the participant list by ranking position.
+
+- **Logical table (Logischer Tisch)** — A TournamentPlan-internal table identity (for example "Table 1", "Table 2" within T04). Logical tables are mapped to physical tables when the tournament starts in [Step 7](#step-7-start-form). The TournamentPlan references only logical table names — individual matches are automatically assigned to logical tables.
+
+- **Physical table (Physikalischer Tisch)** — A specific, numbered playing table in the venue (for example "BG Hamburg Table 1"). From the players' perspective only physical tables exist — the numbers are on the tables and the who-plays-where information is on the scoreboards and table monitors. When the tournament starts, each logical table is mapped to a physical one (see [Step 7](#step-7-start-form), Table assignment).
+
+- **TableMonitor** — A technical record / "automaton" that drives the activity at a [logical table](#glossary-system) during a match: match assignments, score capture, round changes. From the players' perspective: a bot that decides which match runs at which table. Each logical table has one TableMonitor; all scoreboards that connect to the corresponding physical table receive match updates via this TableMonitor.
+
+- **Tournament Monitor (Turnier-Monitor)** — The top-level component that coordinates all [TableMonitors](#glossary-system) of a tournament. The Tournament Monitor is both the technical coordinator and the overview page that the tournament director opens from [Step 9](#step-9-start) onwards.
+
+- **Training mode (Trainingsmodus)** — A scoreboard operating mode **outside any tournament context**, for running individual matches (training, friendly games). Also used as a **fallback** when a running tournament can no longer be continued in Carambus (see [Tournament already started](#ts-already-started)).
+
+- **Bye (Freilos)** — When the participant count is odd (for example 5 players, 2 tables), one player cannot play in a given round — they have a bye. The assignment is automatic, derived from the [tournament plan](#glossary-wizard). Note: a mid-tournament match abort (for example when a player drops out during the tournament) is **not properly supported** in the current Carambus version — see follow-up phase v7.1+.
 
 <a id="troubleshooting"></a>
 ## Troubleshooting
