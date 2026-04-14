@@ -139,15 +139,32 @@ module ApplicationHelper
     link_to text, docs_page_path(path: path, locale: locale), options
   end
 
-  # Hilfsmethode für lokale MkDocs-Links
-  def mkdocs_link(path, locale: nil, text: nil, options: {})
+  # Hilfsmethode für lokale MkDocs-Links.
+  # Erzeugt lokale-aware URLs passend zum Schema in app/views/static/docs_page.html.erb:18-22
+  # und erlaubt optionale Anker-Fragmente.
+  # - DE (root): /docs/#{path}/
+  # - EN:        /docs/en/#{path}/
+  # - Index-Dateien (path endet auf "/index" oder ist "index") erhalten KEINEN Trailing-Slash.
+  # Der Aufrufer MUSS `text:` übergeben (kein humanize-Fallback).
+  def mkdocs_link(path, locale: nil, text: nil, anchor: nil, options: {})
+    raise ArgumentError, "mkdocs_link requires text: argument" if text.nil? || text.to_s.strip.empty?
+
     locale ||= I18n.locale.to_s
-    text ||= path.split('/').last.humanize
-    
-    # Korrekte URL-Struktur für MkDocs-Seiten
-    # Beispiel: path = "about" -> /docs/about
-    url = "/docs/#{path}"
-    link_to text, url, options.merge(target: '_blank', rel: 'noopener')
+    link_to text, mkdocs_url(path, locale: locale, anchor: anchor), options.merge(target: "_blank", rel: "noopener")
+  end
+
+  # Raw-URL-Variante für Aufrufer, die link_to selbst rendern wollen (Claude's discretion D-bonus).
+  # Replikation von app/views/static/docs_page.html.erb:17-22 — inklusive Index-Trailing-Slash-Handling.
+  def mkdocs_url(path, locale: nil, anchor: nil)
+    locale ||= I18n.locale.to_s
+    is_index_file = path.to_s.end_with?("/index") || path.to_s == "index"
+    base =
+      if locale == "en"
+        is_index_file ? "/docs/en/#{path}" : "/docs/en/#{path}/"
+      else
+        is_index_file ? "/docs/#{path}" : "/docs/#{path}/"
+      end
+    anchor.present? ? "#{base}##{anchor}" : base
   end
 
   def debug_translation(key)
