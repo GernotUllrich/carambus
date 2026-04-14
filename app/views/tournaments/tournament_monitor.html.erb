@@ -61,7 +61,7 @@
                      hidden_override_name: "parameter_verification_confirmed",
                      hidden_override_reset_on_cancel: true %>
         <% end %>
-        <%= form_tag start_tournament_path(@tournament), id: "start_tournament", method: :post do %>
+        <%= form_tag start_tournament_path(@tournament), id: "start_tournament", method: :post, data: { turbo: false } do %>
           <%= hidden_field_tag :parameter_verification_confirmed, "0" %>
           <ol class="flex flex-col">
             <%- available_fitting_table_ids = @tournament.location.andand.tables.andand.joins(:table_kind => :disciplines).andand.where(disciplines: { id: @tournament.discipline_id }).andand.order("name").andand.map(&:id).to_a %>
