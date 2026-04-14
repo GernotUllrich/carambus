@@ -263,7 +263,7 @@ Wenn der automatische Upload nicht aktiviert war oder die Voraussetzungen fehlen
 <a id="glossary-karambol"></a>
 ### Karambol-Begriffe
 
-- **Freie Partie** — Die einfachste Karambol-Disziplin: Ein Punkt pro korrektem Karambolage (der gespielte Ball berührt beide anderen Bälle), keine Feldbeschränkung. Typische [Bälle-Ziele](#glossary-karambol) für NDM-Klassen liegen bei 50–150 Bällen. *Sie konfigurieren diesen Wert im [Start-Formular, Schritt 7](#step-7-start-form).*
+- **Freie Partie** — Die einfachste Karambol-Disziplin: Ein Punkt pro korrektem Karambolage (der gespielte Ball berührt beide anderen Bälle), keine Feldbeschränkung. Typische [Ballziele](#glossary-karambol) für NDM-Klassen liegen bei 50–150 Bällen. *Sie konfigurieren diesen Wert im [Start-Formular, Schritt 7](#step-7-start-form).*
 
 - **Cadre (35/2, 47/1, 47/2, 71/2)** — Karambol-Disziplinen mit Balken-Feldbeschränkung (Cadre = frz. Rahmen). Der erste Wert bezeichnet die Feldgröße in cm, der zweite die maximal erlaubten Bälle pro Feld. Cadre-Turniere verwenden dieselben Wizard-Schritte wie Freie Partie, aber mit anderen Standard-Bällezielen.
 
@@ -271,9 +271,13 @@ Wenn der automatische Upload nicht aktiviert war oder die Voraussetzungen fehlen
 
 - **Einband** — Karambol-Disziplin: Der gespielte Ball muss mindestens eine Bande berühren, bevor er den zweiten Objektball trifft.
 
-- **Aufnahme** — Eine Aufnahme (auch: Inning) ist ein Spielzug — der Spieler schlägt an, bis er keinen Punkt erzielt oder das [Bälle-Ziel](#glossary-karambol) erreicht. Die **Aufnahmebegrenzung** im Start-Formular legt die maximale Aufnahmen-Anzahl pro Partie fest (0 = unbegrenzt). *Sie sehen diesen Begriff im [Start-Formular, Schritt 7](#step-7-start-form).*
+- **Aufnahme** — Eine Aufnahme (auch: Inning) ist ein Spielzug — der Spieler schlägt an, bis er keinen Punkt erzielt oder das [Ballziel](#glossary-karambol) erreicht. Die [Aufnahmebegrenzung](#glossary-karambol) legt die maximale Aufnahmen-Anzahl pro Partie fest. *Sie sehen diesen Begriff im [Start-Formular, Schritt 7](#step-7-start-form).*
 
-- **Bälle-Ziel (innings_goal)** — Die Zahl der Punkte (Karambolagen), die ein Spieler erzielen muss, um eine Partie zu gewinnen. Im System-Code heißt das Feld `innings_goal` (englisch) — im Start-Formular erscheint es als „Bälle vor". *Sie konfigurieren diesen Wert im [Start-Formular, Schritt 7](#step-7-start-form). Weitere Erklärung zu den englischen Feldbezeichnungen im [dortigen Hinweiskasten](#step-7-start-form).*
+- **Ballziel (`balls_goal`)** — Die Zahl der Punkte (Karambolagen), die ein Spieler erzielen muss, um eine Partie zu gewinnen. Im System-Code heißt das Feld `balls_goal`. Für Freie Partie Klasse 1–3 typischerweise **150 Bälle** (ggf. um 20 % reduziert). Maßgeblich ist die Karambol-Sportordnung. *Sie konfigurieren diesen Wert im [Start-Formular, Schritt 7](#step-7-start-form).*
+
+- **Aufnahmebegrenzung (`innings_goal`)** — Maximale Aufnahmenzahl pro Partie. Im System-Code heißt das Feld `innings_goal`. Für Freie Partie Klasse 1–3 typischerweise **50 Aufnahmen** (ggf. um 20 % reduziert). **Leerfeld oder 0 = unbegrenzt.** *Sie konfigurieren diesen Wert im [Start-Formular, Schritt 7](#step-7-start-form).*
+
+- **Bälle vor (Vorgabe-Wert)** — Eine **individuelle Vorgabe pro Spieler** in Vorgabe-/Handikap-Turnieren. Nicht zu verwechseln mit dem allgemeinen Ballziel — bei Vorgabeturnieren bekommt jeder Spieler einen anderen Wert.
 
 - **Höchstserie (HS)** — Die längste Serie an aufeinanderfolgenden Karambolagen in einer Partie oder im gesamten Turnier. Wird im [Turnier-Monitor](#step-12-monitor) in Echtzeit angezeigt.
 
@@ -286,24 +290,47 @@ Wenn der automatische Upload nicht aktiviert war oder die Voraussetzungen fehlen
 <a id="glossary-wizard"></a>
 ### Wizard-Begriffe
 
-- **Setzliste** — Die geordnete Teilnehmerliste mit Setzposition (Platz 1 = gesetzt, Platz N = ungesetzt). Wird in [Schritt 3](#step-3-seeding-list) aus der Einladung oder der ClubCloud übernommen und in [Schritt 4](#step-4-participants) ergänzt. Das Abschließen der Setzliste in [Schritt 5](#step-5-finish-seeding) ist irreversibel.
+- **Meldeliste** — **Snapshot der Setzliste nach dem Meldeschluss** — wer ist offiziell für das Turnier gemeldet. Kommt aus der ClubCloud und ist vorläufig: bis zum Turniertag kann sie sich noch ändern (Nachmeldungen, Abmeldungen). Cross-ref Begriffshierarchie in [Schritt 1](#step-1-invitation).
+
+- **Setzliste** — Die **geordnete** Liste der Anmelder (Platz 1 = top-gesetzt, Platz N = unten). Drei Herkunftsquellen sind möglich:
+    1. **Offizielle Setzliste aus der Einladung** (Normalfall) — vom Landessportwart aus seinen Spreadsheets erstellt
+    2. **Carambus-interne Setzliste** (Notfall ohne Einladung) — aus den Carambus-eigenen [Ranglisten](#glossary-system) per „Nach Ranking sortieren" in [Schritt 4](#step-4-participants)
+    3. **Nicht aus der ClubCloud** — die ClubCloud führt nur Meldelisten, keine Setzlisten
+
+- **Teilnehmerliste** — Wer **tatsächlich** am Turniertag antritt. Wird kurz vor Turnierbeginn finalisiert. Resultiert aus der Meldeliste minus Nichterschienene plus eventuelle [Nachmeldungen](#appendix-nachmeldung). Die Finalisierung erfolgt in [Schritt 5](#step-5-finish-seeding).
 
 - **Turniermodus / Austragungsmodus** — Die Spielform des Turniers (z. B. Jeder-gegen-Jeden, KO-System). Die Auswahl erfolgt in [Schritt 6](#step-6-mode-selection). Der Modus bestimmt den zugrunde liegenden Turnierplan (T04, T05, `Default{n}`) und damit Spielrunden-Zahl und Turniertage.
 
-- **Turnierplan-Kürzel (T04, T05, `Default{n}`)** — Interne Bezeichnungen für vordefinierte Turnierpläne. **T** steht für Turnierplan, die Zahl für den Plancode. T04 und T05 sind die gängigen Pläne für 5-Spieler-Turniere im Jeder-gegen-Jeden-Format — sie unterscheiden sich hauptsächlich in der Zahl der Spielrunden. `Default{n}` ist ein dynamisch aus der Teilnehmerzahl `{n}` generiertes Jeder-gegen-Jeden-Format. *Sie wählen den Plan in [Schritt 6](#step-6-mode-selection).*
+- **Turnierplan-Kürzel (T-Plan vs. Default-Plan)** — Carambus kennt zwei Arten von Turnierplänen:
+    - **T-nn** (z. B. T04, T05) — vordefinierte Pläne aus der **Karambol-Turnierordnung** mit fester Spielstruktur und fester Tischanzahl. Sinnvoll für Standard-Spielerzahlen mit Jeder-gegen-Jeden.
+    - **`Default{n}`** — ein **dynamisch generierter** Jeder-gegen-Jeden-Plan, wobei `{n}` die Teilnehmerzahl ist. Wird automatisch erstellt, wenn kein passender T-Plan existiert; die benötigte Tischanzahl wird aus der Teilnehmerzahl berechnet.
 
-- **Scoreboard** — Das berührungsempfindliche Eingabegerät an jedem Tisch, über das die Spieler oder ein Helfer die Punkte live eingeben. Die Scoreboards verbinden sich nach dem [Turnier starten](#step-9-start) automatisch mit dem Turnier-Monitor. Ohne aktive Scoreboard-Verbindung können keine Punkte erfasst werden.
+  *Sie wählen den Plan in [Schritt 6](#step-6-mode-selection).*
+
+- **Scoreboard** — Das berührungsempfindliche Eingabegerät an jedem Tisch (Tisch-Monitor, Smartphone oder Web-Client), über das die Spieler oder ein Helfer die Punkte live eingeben. Die Scoreboard-Verbindung zum Tisch ist **nicht fest vorgegeben**: am Scoreboard wählt der Bediener den passenden physikalischen Tisch aus, und die Bindung erfolgt über den [TableMonitor](#glossary-system) des logischen Tischs. Die Verbindung kann bei Bedarf am Scoreboard neu gewählt werden (z. B. bei Ausfall eines Tisch-Monitors).
 
 <a id="glossary-system"></a>
 ### System-Begriffe
 
 - **ClubCloud** — Die regionale Anmeldeplattform des DBU (Deutscher Billard-Union). ClubCloud ist die Quelle der Wahrheit für Spieler-Registrierungen und Meldelisten. Carambus synchronisiert die Teilnehmerliste aus ClubCloud in [Schritt 2](#step-2-load-clubcloud). Weitere Informationen finden Sie in der [ClubCloud-Integration](clubcloud-integration.md).
 
-- **AASM-Status** — Der interne Zustand des Turniers im System, verwaltet durch die AASM-Zustandsmaschine (Acts As State Machine). Mögliche Zustände umfassen `new_tournament`, `tournament_seeding_finished`, `tournament_started_waiting_for_monitors`, `tournament_started` und weitere. Die Wizard-Schrittanzeige spiegelt diesen Status wider — Schritt 4 erledigt = `tournament_seeding_finished`, Turnier gestartet = `tournament_started`. *Phase 36 wird dieses Status-Badge im Wizard sichtbarer machen.*
+- **AASM-Status** — Der interne Zustand des Turniers im System, verwaltet durch die AASM-Zustandsmaschine (Acts As State Machine). Mögliche Zustände umfassen `new_tournament`, `tournament_seeding_finished`, `tournament_started_waiting_for_monitors`, `tournament_started` und weitere. Wichtig: die im Wizard angezeigten „Schritte" entsprechen **nicht eins-zu-eins** den AASM-States — Schritte 4 und 5 sind beispielsweise Aktions-Links auf einer State-Seite, kein eigener Zustand (siehe [Schritt 5](#step-5-finish-seeding)). Die sichtbarere Darstellung des Status-Badges im Wizard ist ein offenes Verbesserungsfeld.
 
 - **DBU-Nummer** — Die nationale Spieler-ID des Deutschen Billard-Union. Jeder lizenzierte Spieler hat eine eindeutige DBU-Nummer. In [Schritt 4](#step-4-participants) können Sie Spieler, die nicht in der ClubCloud-Meldeliste erscheinen, über ihre DBU-Nummer nachtragen (komma-getrennt im Eingabefeld).
 
-- **Rangliste** — Die regionale Spielerrangliste, die von der ClubCloud-Datenbank bezogen wird. In [Schritt 4](#step-4-participants) können Sie mit „Nach Ranking sortieren" die Teilnehmerliste automatisch nach Ranglistenposition ordnen — das entspricht der offiziellen Setzliste für die meisten NBV-Turniere.
+- **Rangliste** — Eine **Carambus-interne** Spielerrangliste, die pro Spieler aus den **Carambus-eigenen Turnierergebnissen** fortgeschrieben wird (also nicht von der ClubCloud bezogen). Sie dient u. a. als Default-Sortierkriterium, wenn keine offizielle Setzliste aus der Einladung vorliegt. In [Schritt 4](#step-4-participants) können Sie mit „Nach Ranking sortieren" die Teilnehmerliste automatisch nach Ranglistenposition ordnen.
+
+- **Logischer Tisch** — Eine TournamentPlan-interne Tisch-Identität (z. B. „Tisch 1", „Tisch 2" innerhalb von T04). Logische Tische werden beim Turnierstart in [Schritt 7](#step-7-start-form) auf physikalische Tische abgebildet. Der TournamentPlan referenziert ausschließlich logische Tischnamen — die einzelnen Spiele werden automatisch logischen Tischen zugeordnet.
+
+- **Physikalischer Tisch** — Ein konkreter, nummerierter Spieltisch im Spiellokal (z. B. „BG Hamburg Tisch 1"). Aus Spielersicht existieren nur physikalische Tische — die Nummern stehen an den Tischen, und Wer-wo-spielt steht auf den Scoreboards und Tisch-Monitoren. Beim Turnierstart wird jeder logische Tisch einem physikalischen zugeordnet (siehe [Schritt 7](#step-7-start-form), Tischzuordnung).
+
+- **TableMonitor** — Technischer Datensatz / „Automat", der die Abläufe an einem [logischen Tisch](#glossary-system) während eines Spiels steuert: Match-Zuweisungen, Ergebnis-Erfassung, Rundenwechsel. Aus Spielersicht: ein Bot, der entscheidet, welches Spiel auf welchem Tisch läuft. Jeder logische Tisch hat einen TableMonitor; alle Scoreboards, die sich mit dem zugehörigen physikalischen Tisch verbinden, bekommen die Match-Updates über diesen TableMonitor.
+
+- **Turnier-Monitor** — Die übergeordnete Instanz, die alle [TableMonitors](#glossary-system) eines Turniers koordiniert. Der Turnier-Monitor ist sowohl der technische Koordinator als auch die Übersichtsseite, die der Turnierleiter ab [Schritt 9](#step-9-start) aufruft.
+
+- **Trainingsmodus** — Betriebsart eines Scoreboards **außerhalb eines Turnier-Kontexts**, zur Abwicklung einzelner Spiele (Training, Freundschaftsspiele). Wird auch als **Fallback** verwendet, wenn ein laufendes Turnier nicht mehr in Carambus weitergeführt werden kann (siehe [Turnier nicht mehr änderbar](#ts-already-started)).
+
+- **Freilos** — Wenn die Teilnehmerzahl ungerade ist (z. B. 5 Spieler, 2 Tische), kann ein Spieler in einer Spielrunde nicht antreten — er hat ein Freilos. Die Zuteilung erfolgt automatisch aus dem [Turnierplan](#glossary-wizard). Hinweis: Ein nachträglicher Match-Abbruch (z. B. wenn ein Spieler während des Turniers ausfällt) wird in der aktuellen Carambus-Version **nicht sauber unterstützt** — siehe Folge-Phase v7.1+.
 
 ---
 
