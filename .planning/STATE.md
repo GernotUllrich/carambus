@@ -4,8 +4,8 @@ milestone: none
 milestone_name: between milestones
 status: idle
 stopped_at: v7.0 Manager Experience shipped and archived
-last_updated: "2026-04-15T01:30:00.000Z"
-last_activity: 2026-04-15
+last_updated: "2026-04-15T01:45:00.000Z"
+last_activity: 2026-04-15 — Completed quick task 260415-26d: public/docs/ build hardening via overcommit pre-commit hook
 progress:
   total_phases: 0
   completed_phases: 0
@@ -48,13 +48,14 @@ None.
 None. All v7.0 blockers resolved. The 5 follow-up gaps from Phase 36B human UAT (G-01, G-03, G-04, G-05, G-06) are captured in seed `v71-ux-polish-i18n-debt.md` and will surface at next milestone kickoff.
 
 **Known tech debt carried into next milestone:**
-- `public/docs/` is git-tracked and must be manually rebuilt via `bin/rails mkdocs:build` after any `docs/**/*.md` edit. G-02 found and fixed this inline during v7.0 UAT (commit `7cf16114`), but the structural hardening (pre-commit hook or CI guard) is deferred. If the next milestone touches doc sources, include a pre-commit `rake mkdocs:build` step or a CI check that fails if `docs/**/*.md` mtime > `public/docs/**/*` mtime.
+- ~~`public/docs/` manual-rebuild gap~~ **RESOLVED 2026-04-15** by quick task `260415-26d` (commit `912bf72a`). Overcommit `MkDocsBuild` pre-commit hook now runs `bin/rails mkdocs:build` and auto-stages `public/docs/` whenever `docs/**/*.md` is staged. Activation on a fresh clone: `bundle exec overcommit --install && bundle exec overcommit --sign`. Bypass: `SKIP=MkDocsBuild git commit ...`. See `docs/developers/overcommit-hooks.{de,en}.md`.
 
 ### Quick Tasks Completed
 
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 260414-qb8 | Fix PG::UndefinedColumn result_a crash in tournaments show/finalize_modus views | 2026-04-14 | b787da5e | [260414-qb8-fix-pg-undefinedcolumn-result-a-crash-in](./quick/260414-qb8-fix-pg-undefinedcolumn-result-a-crash-in/) |
+| 260415-26d | public/docs/ build hardening via overcommit pre-commit hook | 2026-04-15 | 912bf72a | [260415-26d-public-docs-build-hardening-via-overcomm](./quick/260415-26d-public-docs-build-hardening-via-overcomm/) |
 
 ## Session Continuity
 
