@@ -343,44 +343,119 @@ If automatic upload was not enabled or the prerequisites are missing, the upload
 <a id="ts-invitation-upload"></a>
 ### Invitation upload failed
 
-**Problem:** The upload dialog in Step 3 shows an error, spins indefinitely, or the PDF is uploaded but the seeding list remains empty.
+**Problem:** The upload dialog shows an error, spins indefinitely, or the PDF is uploaded but the seeding list remains empty.
 
-**Cause:** The Carambus PDF parser cannot reliably read all NBV and DBU print templates — particularly when the PDF is a scanned image (no machine-readable text), has a very low scan resolution, or uses a non-standard page format. OCR failures are common with invitations that exist only as image scans.
+**Cause:** The Carambus PDF parser expects the standard template the regional sports officer uses. If the template deviates (scanned PDF without machine-readable text, low resolution, unusual page format), the parser cannot extract the seeding list. In normal operation the PDF upload is reliable because the standard template is reused.
 
-**Fix:** Use the **ClubCloud registration list as the source** instead — that is the "alternative" in Step 3. Click "Use ClubCloud registration list" to import participants directly from the ClubCloud sync. Then go to [Step 4](#step-4-participants) to add any missing players by DBU number. The ClubCloud route is more reliable in practice for NBV tournaments than the PDF upload.
+**Fix:** Switch to the **ClubCloud registration list as a backup source**. It is not less reliable than the PDF upload — it is a perfectly equivalent alternative for the special case where the PDF parser fails. The full flow is in the appendix [Invitation missing](#appendix-no-invitation), which describes seeding-list generation from Carambus rankings.
 
 <a id="ts-player-not-in-cc"></a>
-### Player not in ClubCloud
+### Players missing from the ClubCloud registration list
 
-**Problem:** After the ClubCloud sync in Step 2, fewer players were loaded than expected. The wizard shows a green "Continue to Step 3 with these N players" button even though N is too low (for example 1 instead of 5).
+**Problem:** After the ClubCloud sync, fewer players were loaded than expected. The wizard shows a green "Continue to Step 3 with these N players" button even though N is too low.
 
-**Cause:** The ClubCloud synchronisation sometimes delivers incomplete results — a known behaviour (F-03/F-04) that can occur when registrations in ClubCloud have not yet been fully confirmed, or when the sync connection returns a partial response. The green button appears to indicate completeness even when the data is incomplete.
+**Cause:** In normal operation this should not happen — the invitation and the ClubCloud registration list represent the same close-of-registration snapshot. Three realistic triggers:
 
-**Fix:** Do **not** click "Continue" if the player count is too low. Instead, go to [Step 4](#step-4-participants) and add the missing players manually using the "Add player by DBU number" field (enter multiple DBU numbers comma-separated). The invitation PDF typically lists all DBU numbers for registered participants.
+1. **The sync ran before the close of registration** — Carambus took the ClubCloud data too early and does not yet know about late registrations. Fix: re-trigger the sync after the registration deadline.
+2. **A player is registered late on tournament day** — see [Late registration on tournament day](#appendix-nachmeldung).
+3. **The player was never registered at all** — they correctly do not appear and that is not a Carambus bug.
+
+**Fix:** First clarify which of the three cases applies. If a real player is missing, add them in [Step 4](#step-4-participants) by DBU number. If the ClubCloud data is incomplete, ask your club sports officer to correct it in ClubCloud and run the sync again.
 
 <a id="ts-wrong-mode"></a>
 ### Wrong mode selected
 
-**Problem:** In Step 6 you clicked one of the mode cards (T04, T05, `Default{n}`) and the wrong plan is now active. The start form has already opened.
+**Problem:** In Step 6 you clicked one of the mode cards (for example T04, T05, or `Default{n}`) and the wrong plan is now active. The start form has already opened.
 
-**Cause:** Mode selection is applied immediately on click — there is no confirmation dialog (F-13). There is no "Back" button that safely reverts the mode.
+**Cause:** Mode selection is applied immediately on click — there is no confirmation dialog (F-13).
 
-**Fix:** If the tournament has **not yet been started** (Step 9 not yet executed), navigate to the wizard overview (tournament detail page) and use the "Change mode" button to select a different plan. If **`start_tournament!` has already fired**, the mode can no longer be changed through the normal interface — see [Tournament already started](#ts-already-started). Using browser Back in this state is risky and should be avoided.
+**Fix:** As long as the tournament has **not yet been started** (Step 9 has not yet run), use the **"Reset tournament monitor"** link at the bottom of the tournament page to reset the setup and then go back through the wizard up to the mode selection again. A separate button that would switch the tournament mode afterwards does not exist in the current Carambus UI.
+
+!!! warning "Reset is dangerous if the tournament is already running"
+    If the tournament has already been started (`tournament_started`), the
+    reset destroys all results recorded so far. Use the reset link in this
+    state only if you really intend to abort the tournament. See
+    [Tournament already started](#ts-already-started) for alternatives.
 
 <a id="ts-already-started"></a>
-### Tournament already started
+### Tournament already started — and something is going wrong
 
-**Problem:** You need to change participants, the tournament mode, or start parameters, but the wizard is already showing the Tournament Monitor and the detail page shows "Tournament running".
+**Problem:** You need to change participants, the tournament mode, or start parameters, or a serious problem has occurred during the running tournament. The wizard already shows the Tournament Monitor and the detail page shows "Tournament running".
 
-**Cause:** The tournament start in [Step 9](#step-9-start) is irreversible — there is **no undo path** for started tournaments in the current version (v7.0 scope, F-19 / Tier 3 finding). This is a deliberate design decision to ensure data consistency with running scoreboards.
+**Cause:** The AASM event `start_tournament!` (triggered in [Step 9](#step-9-start)) moves the tournament into a state where the parameters can no longer be changed retroactively. This is a **deliberate design decision** to ensure data consistency with running scoreboards, not a bug.
 
-**Fix:** Contact a **Carambus admin with database access**. A typical recovery is to mark the running tournament as erroneous, create a new tournament instance with the correct parameters, and manually transfer any already-recorded results. This is not a volunteer-friendly operation — the vast majority of errors at this point can be avoided by careful review in [Step 5](#step-5-finish-seeding) (participant list) and [Step 6](#step-6-mode-selection) (tournament mode).
+**Reality:** There is **no** technical recovery path — not even for a database admin or developer. The data structures involved are too complex to safely modify mid-run.
+
+**Emergency fix:**
+
+1. **Undo for individual matches** is possible — directly at the affected scoreboard.
+2. **Resetting the entire tournament** is possible, but destroys all results recorded so far (see [Step 12 reset warning](#step-12-monitor)).
+3. **If neither option is acceptable:** Switch to the **traditional method**: record matches on paper, enter results directly into ClubCloud. You can keep using the scoreboards in **[training mode](#glossary-system)** for the individual matches (no tournament context, but working point capture).
+
+A safety dialog before reset while a tournament is running, and a parameter verification dialog before start, are planned as follow-up features for a later phase — they reduce the risk of this emergency happening at all.
+
+<a id="ts-endrangliste-missing"></a>
+### Final ranking missing after the tournament ends
+
+**Problem:** The tournament is finished but Carambus does not show a calculated final ranking with positions.
+
+**Cause:** Carambus does **not** calculate the final tournament ranking automatically. This function is planned as a follow-up feature for v7.1+.
+
+**Fix:** Maintain the final ranking **manually in ClubCloud**. The workflow is in the appendix [Maintaining the final ranking in ClubCloud](#appendix-rangliste-manual).
+
+<a id="ts-csv-upload"></a>
+### CSV upload to ClubCloud does not work
+
+**Problem:** At the end of the tournament you have a CSV file with the results, but ClubCloud does not accept it or returns validation errors.
+
+**Cause:** The CSV upload requires the **participant list in ClubCloud to be finalised** — if a player who appears in the CSV is missing in ClubCloud, the import fails. Finalising the participant list via the CC API is currently not implemented in Carambus; it has to happen manually through a club sports officer in the ClubCloud admin interface.
+
+**Fix:** The full flow including the required permissions is in the appendix [CSV upload in ClubCloud](#appendix-cc-csv-upload). When in doubt, ask your club sports officer to finalise the participant list in ClubCloud first.
+
+<a id="ts-player-withdraws"></a>
+### A player withdraws during the tournament
+
+**Problem:** A player cannot continue during the tournament (illness, emergency, withdrawal).
+
+**Cause:** Carambus does **not** support a clean **mid-tournament match abort / player withdrawal** in the current version. The function is planned as a medium-sized follow-up feature for v7.1+.
+
+**Fix (workaround):** Close the affected player's current match at the scoreboard with the last recorded score. For the following rounds, treat the dropped player as a de-facto [bye](#glossary-system) — opponents are credited with the match outside Carambus if needed. Document the process manually in the tournament protocol and in ClubCloud.
+
+<a id="ts-english-labels"></a>
+### English field labels in the start form
+
+**Problem:** Some parameters in the start form (Step 7) appear with English or unclear labels (for example *Tournament manager checks results before acceptance*, *Assign games as tables become available*).
+
+**Cause:** Missing or broken entries in the i18n files (`config/locales/de.yml`). The fix is planned as a UI feature for a follow-up phase.
+
+**Fix (until the i18n correction ships):** Use the following translation table:
+
+| English label | German meaning |
+|---------------|----------------|
+| Tournament manager checks results before acceptance | Manager confirms results before acceptance (manual round-change control) |
+| Assign games as tables become available | Assign matches as tables become free |
+| auto_upload_to_cc | Upload results to ClubCloud automatically |
+
+When in doubt, keep the defaults and verify the values before clicking "Start tournament monitor".
+
+<a id="ts-nachstoss-forgotten"></a>
+### Nachstoß forgotten at the scoreboard
+
+**Problem:** In a carom discipline with the Nachstoß rule, the scoreboard has finished the match without the Nachstoß having been executed.
+
+**Cause:** Operator error at the scoreboard — Nachstoß entry is frequently forgotten in practice.
+
+**Fix:** If the match is still open in the scoreboard (before "Final result confirmed" has been clicked), the scoreboard helper can still record the Nachstoß. If the result has already been confirmed, there is **no clean retroactive correction path** — record the correction manually and enter the corrected value in ClubCloud. For the future: at the next tournament, brief the scoreboard helpers explicitly about Nachstoß entry.
+
+<a id="ts-shootout-needed"></a>
+### Playoff / shootout match needed (knock-out tournament)
+
+**Problem:** In a knock-out tournament a match ends in a draw and a playoff would be required.
+
+**Cause:** Playoff / shootout is **not supported at all** in the current Carambus version. This function is planned as a critical feature for a later milestone (v7.1 or v7.2).
+
+**Fix:** Run the playoff **outside Carambus** — record it on paper at the table — and enter the final result manually in ClubCloud. The Carambus state does not need to be maintained for these cases; the playoff is settled outside the system.
 
 ---
 
-<a id="architecture"></a>
-## More on the architecture
-
-Carambus is a distributed system of web services: a central API server publishes tournaments and player data (for example NBV tournaments via carambus.net); regional and club-owned Carambus servers synchronise this data and handle on-site tournament management. Global records — tournaments synced from the API server — are read-only for identity fields such as title, date, and organiser (LocalProtector); your local server manages wizard state transitions, the participant list, and match results.
-
-Day-to-day tournament management does not require understanding the architecture — if you followed the walkthrough above, you already know everything you need. For further technical details — database structure, ActionCable configuration, deployment — read the [Developer Documentation](../developers/index.md).
+*For further technical details, see the [developer documentation](../developers/index.md).*
