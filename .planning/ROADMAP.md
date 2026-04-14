@@ -129,7 +129,7 @@ Phases 1-32 completed across six milestones. See MILESTONES.md for details.
 **Plans**: 6 plans
 - [x] 36B-01-wizard-header-rewrite-PLAN.md — Wizard header rewrite: six bucket chips + dominant AASM state badge + FIX-01 active help expansion (FIX-01, FIX-03, FIX-04)
 - [x] 36B-02-parameter-form-i18n-and-tooltips-PLAN.md — Full i18n conversion of tournament_monitor parameter labels + new Stimulus tooltip controller (UI-01, UI-02)
-- [ ] 36B-03-admin-controlled-removal-PLAN.md — Remove admin_controlled checkbox, reflex handler, and simplify player_controlled? gate to always-true (UI-03)
+- [x] 36B-03-admin-controlled-removal-PLAN.md — Remove admin_controlled checkbox, reflex handler, and simplify player_controlled? gate to always-true (UI-03)
 - [x] 36B-04-dead-code-cleanup-PLAN.md — Remove dead-code manual input UI from _current_games.html.erb + git rm _wizard_steps.html.erb after re-verification (UI-04, UI-05)
 - [x] 36B-05-confirmation-modal-and-reset-safety-PLAN.md — Shared Stimulus confirmation modal infrastructure + UI-06 reset-confirmation rewire on 3 reset buttons + Capybara system test (UI-06)
 - [ ] 36B-06-parameter-verification-PLAN.md — Discipline#parameter_ranges + server-side pre-start range check + modal trigger + Minitest unit tests + Capybara system test (UI-07)
@@ -180,6 +180,6 @@ Phases 1-32 completed across six milestones. See MILESTONES.md for details.
 | 34. Task-First Doc Rewrite | v7.0 | 4/4 | Complete    | 2026-04-13 |
 | 35. Printable Quick-Reference Card | v7.0 | 5/5 | Complete    | 2026-04-13 |
 | 36a. Turnierverwaltung Doc Accuracy | v7.0 | 7/7 | Complete    | 2026-04-14 |
-| 36b. UI Cleanup & Kleine Features | v7.0 | 4/6 | In Progress|  |
+| 36b. UI Cleanup & Kleine Features | v7.0 | 5/6 | In Progress|  |
 | 36c. v7.1 Preparation / CC Groundwork | v7.0 | 0/TBD | Not started | - |
 | 37. In-App Doc Links | v7.0 | 0/TBD | Not started | - |
