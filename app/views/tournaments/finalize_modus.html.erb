@@ -224,5 +224,29 @@
 </div>
 
 <%- if User::PRIVILEGED.include?(current_user&.email&.downcase) %>
-  <%= button_to I18n.t("tournaments.show.debugging_force_reset_tournament_monitor"), reset_tournament_path(@tournament, force_reset: true), method: :post, class: "btn btn-flat btn-primary", style: "float: left; margin-right: 10px;" %>
+  <%# UI-06 (plan 36B-05): force-reset wired through the shared confirmation modal %>
+  <%= form_tag reset_tournament_path(@tournament, force_reset: true),
+               method: :post,
+               id: "force-reset-tournament-form-finalize-#{@tournament.id}",
+               style: "display: inline;" do %>
+  <% end %>
+  <%
+    fm_state_line = I18n.t("tournaments.show.reset_tournament_modal.state_line", default: "Aktueller Status:")
+    fm_games_line = I18n.t("tournaments.show.reset_tournament_modal.games_line", default: "Gespielte Spiele:")
+    fm_games_count = @tournament.games.where.not(result_a: nil).count
+    fm_body = I18n.t("tournaments.show.force_reset_tournament_modal.body",
+                     default: "DATENVERLUST: Alle lokalen Setzlisten, laufenden Spiele, Ergebnisse und der Turnierstand gehen unwiderruflich verloren.") +
+              "\n\n" + fm_state_line + " " + @tournament.state.to_s +
+              "\n" + fm_games_line + " " + fm_games_count.to_s
+  %>
+  <button type="button"
+          class="btn btn-flat btn-primary"
+          style="float: left; margin-right: 10px;"
+          data-action="click->confirmation-modal#open"
+          data-confirmation-modal-form-id-param="force-reset-tournament-form-finalize-<%= @tournament.id %>"
+          data-confirmation-modal-title-param="<%= I18n.t('tournaments.show.force_reset_tournament_modal.title', default: 'Turnier-Monitor zwangsweise zurücksetzen') %>"
+          data-confirmation-modal-body-param="<%= fm_body %>"
+          data-confirmation-modal-confirm-label-param="<%= I18n.t('tournaments.show.force_reset_tournament_modal.confirm', default: 'Ja, zwangsweise zurücksetzen') %>">
+    <%= I18n.t("tournaments.show.debugging_force_reset_tournament_monitor") %>
+  </button>
 <% end %>
