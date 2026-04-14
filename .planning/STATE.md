@@ -4,14 +4,14 @@ milestone: v7.0
 milestone_name: Manager Experience
 status: executing
 stopped_at: Phase 36b context gathered
-last_updated: "2026-04-14T14:24:59.081Z"
-last_activity: 2026-04-14 -- Phase 36B execution started
+last_updated: "2026-04-14T17:40:44.633Z"
+last_activity: 2026-04-14
 progress:
   total_phases: 5
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 25
-  completed_plans: 19
-  percent: 76
+  completed_plans: 25
+  percent: 100
 ---
 
 # Project State
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-04-13)
 
 ## Current Position
 
-Phase: 36B (UI Cleanup & Kleine Features) — EXECUTING
-Plan: 1 of 6
+Phase: 36B
+Plan: Not started
 Status: Executing Phase 36B
-Last activity: 2026-04-14 - Completed quick task 260414-qb8: Fix PG::UndefinedColumn result_a crash in tournaments show/finalize_modus views
+Last activity: 2026-04-14
 
 Progress: [██████████] 100%
 
