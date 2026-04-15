@@ -13,17 +13,17 @@
       <%- if @tournament.team_size > 1 %>
         <h1 class="h3"><%= @tournament.title %> - <%= @tournament.season.name %>
           - <%= @tournament.organizer.shortname %>
-          <br/>Teamliste</h1>
+          <br/><%= t('tournaments.define_participants.team_list_heading') %></h1>
         <table>
           <thead>
           <tr>
-            <th>Team</th>
-            <th>Teilnahme</th>
-            <th>Punktziel bzw. Ranking</th>
+            <th><%= t('tournaments.define_participants.col_team') %></th>
+            <th><%= t('tournaments.define_participants.col_participation') %></th>
+            <th><%= t('tournaments.define_participants.col_points_or_ranking') %></th>
           </tr>
           </thead>
           <tbody>
-          <%= custom_link_to "zurück", @tournament %>
+          <%= custom_link_to t('tournaments.define_participants.back'), @tournament %>
           <%- @tournament.teams.each do |team| %>
             <%- seeding = @tournament.seedings.where(player_id: team.id).first %>
             <tr>
@@ -38,7 +38,7 @@
           <% end %>
           </tbody>
         </table>
-        <%= custom_link_to "Neues Team", new_team_tournament_path %>
+        <%= custom_link_to t('tournaments.define_participants.new_team'), new_team_tournament_path %>
       <%- else %>
         <%- # Berechne Rankings basierend auf effective_gd (wie in rankings_controller.rb) %>
         <%- current_season = Season.current_season %>
@@ -79,31 +79,31 @@
         <div class="flex items-center justify-between mb-4">
           <h1 class="h3"><%= @tournament.title %> - <%= @tournament.season.name %>
             - <%= @tournament.organizer.shortname %>
-            - Teilnehmerliste</h1>
-          <%= custom_link_to "zurück", @tournament %>
+            - <%= t('tournaments.define_participants.heading') %></h1>
+          <%= custom_link_to t('tournaments.define_participants.back'), @tournament %>
         </div>
 
         <div class="mb-4 p-4 dark:bg-gray-800 bg-green-50 border border-green-200 rounded">
-          <h4 class="font-semibold text-green-900 mb-2">📝 Teilnehmerliste bearbeiten</h4>
+          <h4 class="font-semibold text-green-900 mb-2"><%= t('tournaments.define_participants.edit_heading') %></h4>
           <ul class="list-disc list-inside dark:text-green-400 text-green-800 text-sm space-y-1">
-            <li>✓ Haken setzen/entfernen = Spieler als Teilnehmer markieren/streichen</li>
-            <li><% if @tournament.handicap_tournier %>✓ Vorgaben (Punktziel) anpassen falls nötig<% else %>✓ Änderungen werden sofort gespeichert<% end %></li>
-            <li>🔢 <strong>Setzreihenfolge ändern:</strong> Neue Position direkt eingeben ODER Pfeile ⬆️⬇️ klicken</li>
-            <li>📊 <strong>Ranking-Spalte:</strong> Zeigt aktuelles Carambus-Ranking für <%= @tournament.discipline.name %> (letzten 2-3 Saisons), klickbar zur Rangliste</li>
-            <li>➕ Kurzfristig nachmelden? Checkbox aktivieren!</li>
+            <li><%= t('tournaments.define_participants.tip_check_boxes_html').html_safe %></li>
+            <li><% if @tournament.handicap_tournier %><%= t('tournaments.define_participants.tip_handicap_html').html_safe %><% else %><%= t('tournaments.define_participants.tip_auto_save') %><% end %></li>
+            <li><%= t('tournaments.define_participants.tip_position_html').html_safe %></li>
+            <li><%= t('tournaments.define_participants.tip_ranking_html', discipline: @tournament.discipline.name).html_safe %></li>
+            <li><%= t('tournaments.define_participants.tip_late_registration') %></li>
           </ul>
         </div>
 
         <table class="w-full">
           <thead>
           <tr>
-            <th class="w-16">Pos.</th>
-            <th class="w-20">Neue Pos.</th>
-            <th class="w-24">Reihenfolge</th>
-            <th>Name</th>
-            <th class="w-20 text-center">Ranking</th>
-            <th class="w-32 text-center">Teilnehmer</th>
-            <th class="w-32 text-right"><% if @tournament.handicap_tournier %>Vorgabe (Pkt)<% else %>Punktziel<% end %></th>
+            <th class="w-16"><%= t('tournaments.define_participants.col_pos') %></th>
+            <th class="w-20"><%= t('tournaments.define_participants.col_new_pos') %></th>
+            <th class="w-24"><%= t('tournaments.define_participants.col_order') %></th>
+            <th><%= t('tournaments.define_participants.col_name') %></th>
+            <th class="w-20 text-center"><%= t('tournaments.define_participants.col_ranking') %></th>
+            <th class="w-32 text-center"><%= t('tournaments.define_participants.col_participant') %></th>
+            <th class="w-32 text-right"><% if @tournament.handicap_tournier %><%= t('tournaments.define_participants.col_handicap') %><% else %><%= t('tournaments.define_participants.col_points_goal') %><% end %></th>
           </tr>
           </thead>
           <tbody>
@@ -160,25 +160,25 @@
                 <div class="flex flex-col gap-1">
                   <% if prev_seeding.present? %>
                     <button class="btn btn-xs btn-outline-secondary"
-                            title="Nach oben"
+                            title="<%= t('tournaments.define_participants.move_up') %>"
                             data-reflex="click->TournamentReflex#move_up"
                             data-tournament-id="<%= @tournament.id %>"
                             data-seeding-id="<%= seeding.id %>">
                       ↑
                     </button>
                   <% else %>
-                    <span class="btn btn-xs btn-disabled opacity-50 cursor-not-allowed" title="Bereits oben">↑</span>
+                    <span class="btn btn-xs btn-disabled opacity-50 cursor-not-allowed" title="<%= t('tournaments.define_participants.already_top') %>">↑</span>
                   <% end %>
                   <% if next_seeding.present? %>
                     <button class="btn btn-xs btn-outline-secondary"
-                            title="Nach unten"
+                            title="<%= t('tournaments.define_participants.move_down') %>"
                             data-reflex="click->TournamentReflex#move_down"
                             data-tournament-id="<%= @tournament.id %>"
                             data-seeding-id="<%= seeding.id %>">
                       ↓
                     </button>
                   <% else %>
-                    <span class="btn btn-xs btn-disabled opacity-50 cursor-not-allowed" title="Bereits unten">↓</span>
+                    <span class="btn btn-xs btn-disabled opacity-50 cursor-not-allowed" title="<%= t('tournaments.define_participants.already_bottom') %>">↓</span>
                   <% end %>
                 </div>
               </td>
@@ -188,7 +188,7 @@
                   <%= link_to rank,
                       ranking_path(player_region) + "#discipline-#{@tournament.discipline_id}",
                       class: 'text-blue-600 dark:text-blue-200 hover:text-blue-800 underline',
-                      title: "Rang #{rank} in #{@tournament.discipline.name} (#{player_region.shortname})",
+                      title: t('tournaments.define_participants.rank_title', rank: rank, discipline: @tournament.discipline.name, region: player_region.shortname),
                       target: '_blank' %>
                 <% else %>
                   <span class="text-gray-400">-</span>
@@ -227,7 +227,7 @@
                   <%= link_to rank,
                       ranking_path(player_region) + "#discipline-#{@tournament.discipline_id}",
                       class: 'text-blue-600 dark:text-blue-200 hover:text-blue-800 underline text-sm',
-                      title: "Rang #{rank} in #{@tournament.discipline.name} (#{player_region.shortname})",
+                      title: t('tournaments.define_participants.rank_title', rank: rank, discipline: @tournament.discipline.name, region: player_region.shortname),
                       target: '_blank' %>
                 <% else %>
                   <span class="text-gray-400 text-sm">-</span>
@@ -250,25 +250,25 @@
 
         <!-- Sortier-Buttons -->
         <div class="mt-6 p-4 bg-gray-50 dark:bg-gray-800 border border-gray-300 rounded">
-          <h4 class="font-semibold text-gray-900 dark:text-gray-200 mb-3">🔄 Teilnehmerliste sortieren</h4>
+          <h4 class="font-semibold text-gray-900 dark:text-gray-200 mb-3"><%= t('tournaments.define_participants.sort_heading') %></h4>
           <div class="flex gap-3">
             <button class="btn btn-primary"
                     data-reflex="click->TournamentReflex#sort_by_ranking"
                     data-id="<%= @tournament.id %>"
-                    title="Sortiert nach aktuellem Carambus-Ranking">
-              📊 Nach Ranking sortieren
+                    title="<%= t('tournaments.define_participants.sort_by_ranking_title') %>">
+              <%= t('tournaments.define_participants.sort_by_ranking') %>
             </button>
             <% if @tournament.handicap_tournier %>
               <button class="btn btn-secondary"
                       data-reflex="click->TournamentReflex#sort_by_handicap"
                       data-id="<%= @tournament.id %>"
-                      title="Sortiert nach Vorgabeziel (höheres Punktziel = stärker)">
-                🎯 Nach Vorgabeziel sortieren
+                      title="<%= t('tournaments.define_participants.sort_by_handicap_title') %>">
+                <%= t('tournaments.define_participants.sort_by_handicap') %>
               </button>
             <% end %>
           </div>
           <p class="text-xs text-gray-600 dark:text-gray-400 mt-2">
-            💡 Die Sortierung passt die Positionen automatisch an. Änderungen werden sofort gespeichert.
+            <%= t('tournaments.define_participants.sort_info') %>
           </p>
         </div>
         
@@ -276,7 +276,7 @@
         <% if @participant_count > 0 && @proposed_discipline_tournament_plan.present? %>
           <div class="mt-6 p-4 bg-blue-50 dark:bg-gray-800 border border-blue-200 rounded">
             <h4 class="font-semibold text-blue-900 dark:text-blue-200 mb-3">
-              📊 Mögliche Turnierpläne für <%= @participant_count %> Teilnehmer
+              <%= t('tournaments.define_participants.possible_plans_heading', count: @participant_count) %>
             </h4>
 
             <!-- Vorgeschlagener Plan (aus Einladung oder automatisch) -->
@@ -284,21 +284,21 @@
               <div class="flex items-center justify-between mb-2">
                 <div class="flex-1">
                   <% if @tournament.data['extracted_plan_info'].present? %>
-                    <span class="text-sm font-semibold text-green-700">📄 Aus Einladung:</span>
+                    <span class="text-sm font-semibold text-green-700"><%= t('tournaments.define_participants.from_invitation_label') %></span>
                   <% else %>
-                    <span class="text-sm font-semibold dark:text-blue-400 text-blue-700">🤖 Automatisch vorgeschlagen:</span>
+                    <span class="text-sm font-semibold dark:text-blue-400 text-blue-700"><%= t('tournaments.define_participants.auto_suggested_label') %></span>
                   <% end %>
                   <span class="text-sm font-bold ml-2"><%= @proposed_discipline_tournament_plan.name %></span>
                   <% if @groups_source == :extracted_differs_from_nbv %>
-                    <span class="ml-2 text-xs bg-red-100 text-red-700 px-2 py-1 rounded">⚠️ Weicht von NBV ab</span>
+                    <span class="ml-2 text-xs bg-red-100 text-red-700 px-2 py-1 rounded"><%= t('tournaments.define_participants.differs_from_nbv') %></span>
                   <% elsif @groups_source == :extracted_matches_nbv %>
-                    <span class="ml-2 text-xs bg-green-100 text-green-700 px-2 py-1 rounded">✓ NBV-konform</span>
+                    <span class="ml-2 text-xs bg-green-100 text-green-700 px-2 py-1 rounded"><%= t('tournaments.define_participants.nbv_conform') %></span>
                   <% end %>
                 </div>
                 <% rounds = @proposed_discipline_tournament_plan.rounds_count %>
                 <% if rounds.present? %>
                   <span class="text-xs dark:bg-gray-800 bg-gray-100 dark:text-gray-100 text-gray-700 px-2 py-1 rounded ml-2">
-                    <%= rounds %> Runde<%= rounds > 1 ? 'n' : '' %>
+                    <%= t('tournaments.define_participants.rounds', count: rounds) %>
                   </span>
                 <% end %>
               </div>
@@ -310,7 +310,7 @@
             <% if @alternatives_same_discipline.any? %>
               <details class="text-sm mb-3">
                 <summary class="cursor-pointer text-blue-800 dark:text-blue-400 hover:text-blue-900 font-semibold">
-                  🔄 <%= @alternatives_same_discipline.count %> Alternative Plan<%= @alternatives_same_discipline.count > 1 ? 'e' : '' %> (<%= @tournament.discipline.name %>) anzeigen
+                  <%= t('tournaments.define_participants.show_alternatives_same_discipline', count: @alternatives_same_discipline.count, discipline: @tournament.discipline.name) %>
                 </summary>
                 <div class="mt-3 space-y-2">
                   <% @alternatives_same_discipline.each do |alternative| %>
@@ -323,7 +323,7 @@
                         <% rounds = alternative.rounds_count %>
                         <% if rounds.present? %>
                           <span class="text-xs bg-gray-100 text-gray-700 dark:text-gray-200 px-2 py-1 rounded ml-2">
-                            <%= rounds %> Runde<%= rounds > 1 ? 'n' : '' %>
+                            <%= t('tournaments.define_participants.rounds', count: rounds) %>
                           </span>
                         <% end %>
                       </div>
@@ -342,9 +342,9 @@
             <% if @alternatives_other_disciplines.any? %>
               <details class="text-sm">
                 <summary class="cursor-pointer text-gray-700 dark:text-gray-200 hover:text-gray-900 font-semibold">
-                  ⚙️ <%= @alternatives_other_disciplines.count %> Weitere Plan<%= @alternatives_other_disciplines.count > 1 ? 'e' : '' %> anzeigen
+                  <%= t('tournaments.define_participants.show_other_plans', count: @alternatives_other_disciplines.count) %>
                   <% if @participant_count <= 6 %>
-                    <span class="ml-1 text-green-700">(inkl. "Jeder gegen Jeden")</span>
+                    <span class="ml-1 text-green-700"><%= t('tournaments.define_participants.incl_round_robin') %></span>
                   <% end %>
                 </summary>
                 <div class="mt-3 space-y-2">
@@ -354,7 +354,7 @@
                       <div class="flex items-center justify-between mb-2">
                         <div class="flex-1">
                           <% if is_round_robin %>
-                            <span class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded mr-2">🎯 Jeder gegen Jeden</span>
+                            <span class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded mr-2"><%= t('tournaments.define_participants.round_robin_tag') %></span>
                           <% end %>
                           <span class="text-sm font-bold"><%= alternative.name %></span>
                           <span class="text-xs text-gray-500 ml-2"><%= alternative.rulesystem %></span>
@@ -362,7 +362,7 @@
                         <% rounds = alternative.rounds_count %>
                         <% if rounds.present? %>
                           <span class="text-xs <%= is_round_robin ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700 dark:text-gray-200' %> px-2 py-1 rounded ml-2">
-                            <%= rounds %> Runde<%= rounds > 1 ? 'n' : '' %>
+                            <%= t('tournaments.define_participants.rounds', count: rounds) %>
                           </span>
                         <% end %>
                       </div>
@@ -378,11 +378,10 @@
             <% end %>
 
             <div class="text-xs dark:text-blue-400 text-blue-700 mt-3 space-y-1">
-              <p>💡 Die Gruppenzuordnungen ändern sich automatisch, wenn Sie die Teilnehmerliste bearbeiten.</p>
+              <p><%= t('tournaments.define_participants.groups_auto_update_info') %></p>
               <% if @alternatives_other_disciplines.any? %>
                 <p class="dark:text-gray-100 text-gray-600">
-                  ℹ️ Alternative Pläne können ggf. mit reduziertem Ausspielziel arbeiten (z.B. 25% weniger Aufnahmen/Punkte),
-                  um die Gesamtdauer zu verkürzen. Rundenzahl und durchschnittliche Spieldauer beachten.
+                  <%= t('tournaments.define_participants.reduced_mode_info_html').html_safe %>
                 </p>
               <% end %>
             </div>
@@ -390,48 +389,48 @@
         <% elsif @participant_count > 0 %>
           <div class="mt-6 p-4 bg-gray-50 border border-gray-300 rounded">
             <p class="text-sm text-gray-700 dark:text-gray-200">
-              ℹ️  Für <%= @participant_count %> Teilnehmer ist aktuell kein Turnierplan für <%= @tournament.discipline.name %> hinterlegt.
+              <%= t('tournaments.define_participants.no_plan_for_count', count: @participant_count, discipline: @tournament.discipline.name) %>
             </p>
           </div>
         <% end %>
 
         <!-- Spieler hinzufügen (kurzfristige Nachmeldung) -->
         <div class="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded">
-          <h4 class="font-semibold text-yellow-900 mb-2">➕ Kurzfristiger Nachmelder?</h4>
+          <h4 class="font-semibold text-yellow-900 mb-2"><%= t('tournaments.define_participants.late_registration_heading') %></h4>
           <p class="text-sm text-yellow-800 mb-3">
-            Spieler mit <strong>DBU-Nummer</strong> hinzufügen (wird automatisch zur Liste hinzugefügt):
+            <%= t('tournaments.define_participants.add_player_by_dbu_html').html_safe %>
           </p>
 
           <%= form_with url: add_player_by_dbu_tournament_path(@tournament), method: :post, local: true, class: 'flex gap-2 items-start' do |f| %>
             <div class="flex-1">
               <%= text_field_tag :dbu_nr, nil,
-                  placeholder: "DBU-Nummer(n) eingeben (z.B. 12345 oder 12345, 67890, 11111)",
+                  placeholder: t('tournaments.define_participants.dbu_nr_placeholder'),
                   class: 'form-control',
                   pattern: '[\d,\s]+',
                   required: true %>
               <p class="text-xs text-yellow-700 mt-1">
-                💡 Mit DBU-Nummer: Spieler eindeutig identifiziert (empfohlen) | Mehrere durch Komma getrennt möglich
+                <%= t('tournaments.define_participants.dbu_nr_hint') %>
               </p>
             </div>
-            <%= f.submit 'Spieler hinzufügen',
+            <%= f.submit t('tournaments.define_participants.add_player_button'),
                 class: 'btn btn-sm btn-warning',
-                data: { disable_with: 'Wird gesucht...' } %>
+                data: { disable_with: t('tournaments.define_participants.searching') } %>
           <% end %>
 
           <details class="mt-3">
             <summary class="cursor-pointer text-sm text-yellow-800 font-semibold">
-              ⚠️ Spieler ohne DBU-Nummer? (Klicken für Info)
+              <%= t('tournaments.define_participants.no_dbu_nr_question') %>
             </summary>
             <div class="mt-2 p-3 bg-yellow-100 rounded text-sm text-yellow-900">
-              <p class="font-semibold mb-2">Spieler ohne DBU-Nummer können nicht nachgemeldet werden.</p>
+              <p class="font-semibold mb-2"><%= t('tournaments.define_participants.no_dbu_nr_title') %></p>
               <p>
-                <strong>Grund:</strong> In der ClubCloud können nur Spieler mit DBU-Nummer eingetragen werden.
+                <%= t('tournaments.define_participants.no_dbu_nr_reason_html').html_safe %>
               </p>
               <p class="mt-2">
-                <strong>Lösung:</strong>
+                <strong><%= t('tournaments.define_participants.solution_label') %></strong>
                 <ol class="list-decimal list-inside ml-2 mt-1">
-                  <li>Spieler muss DBU-Nummer beantragen</li>
-                  <li>Oder: Turnierleiter trägt Spieler als Gast ein (kontaktieren Sie den Landessportwart)</li>
+                  <li><%= t('tournaments.define_participants.solution_apply_dbu_nr') %></li>
+                  <li><%= t('tournaments.define_participants.solution_add_guest') %></li>
                 </ol>
               </p>
             </div>
@@ -443,16 +442,16 @@
       <div class="mt-8 p-4 bg-blue-50 dark:bg-gray-800 border border-blue-200 rounded">
         <div class="flex items-center justify-between">
           <div>
-            <h4 class="font-semibold text-blue-900 dark:text-blue-200">💡 Wichtig</h4>
+            <h4 class="font-semibold text-blue-900 dark:text-blue-200"><%= t('tournaments.define_participants.important_label') %></h4>
             <p class="text-sm text-blue-800 dark:text-blue-400">
-              ✓ Alle Änderungen (Checkboxen, Vorgaben) werden <strong>sofort gespeichert</strong><br>
-              ✓ Sie können jederzeit hierher zurückkehren um weitere Anpassungen vorzunehmen
+              <%= t('tournaments.define_participants.all_changes_saved_html').html_safe %><br>
+              <%= t('tournaments.define_participants.can_return_anytime') %>
             </p>
             <p class="text-sm text-blue-900 dark:text-blue-200 mt-3 font-semibold bg-blue-100 dark:bg-gray-800 p-2 rounded">
-              ⏭️ Wenn Sie fertig sind: Gehen Sie zurück zum Wizard und klicken Sie <strong>Schritt 4: Teilnehmerliste finalisieren</strong>
+              <%= t('tournaments.define_participants.when_done_html').html_safe %>
             </p>
           </div>
-          <%= link_to '← Zurück zum Wizard', tournament_path(@tournament),
+          <%= link_to t('tournaments.define_participants.back_to_wizard'), tournament_path(@tournament),
               class: 'btn btn-secondary' %>
         </div>
       </div>

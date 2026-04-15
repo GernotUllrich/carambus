@@ -4,9 +4,9 @@
     <!-- Header -->
     <div class="flex items-center justify-between mb-6">
       <h1 class="text-3xl font-bold">
-        Setzliste automatisch erkannt
+        <%= t('tournaments.parse_invitation.heading') %>
       </h1>
-      <%= link_to '← Zurück', compare_seedings_tournament_path(@tournament), class: 'btn btn-secondary' %>
+      <%= link_to t('tournaments.parse_invitation.back'), compare_seedings_tournament_path(@tournament), class: 'btn btn-secondary' %>
     </div>
 
     <!-- LINK-03: Detailanleitung im Handbuch -->
@@ -21,17 +21,17 @@
       <!-- Erfolgreiche Extraktion -->
       <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
         <h3 class="font-semibold text-green-900 mb-2">
-          ✅ <%= @extraction_result[:count] %> Spieler automatisch erkannt!
+          <%= t('tournaments.parse_invitation.players_detected', count: @extraction_result[:count]) %>
           <% if @extraction_result[:group_assignment].present? %>
-            <span class="ml-2 text-sm">+ Gruppenbildung extrahiert 🎯</span>
+            <span class="ml-2 text-sm"><%= t('tournaments.parse_invitation.groups_extracted') %></span>
           <% end %>
         </h3>
         <p class="text-green-800">
-          Die Setzliste wurde aus der Einladung extrahiert.
+          <%= t('tournaments.parse_invitation.seeding_extracted') %>
           <% if @extraction_result[:group_assignment].present? %>
-            <br><strong>Bonus:</strong> Die Gruppenzuordnung wurde ebenfalls erkannt und wird automatisch verwendet.
+            <br><%= t('tournaments.parse_invitation.bonus_groups_html').html_safe %>
           <% end %>
-          Bitte prüfen Sie die erkannten Spieler und bestätigen Sie die Übernahme.
+          <%= t('tournaments.parse_invitation.please_review') %>
         </p>
       </div>
 
@@ -39,12 +39,12 @@
       <% if @extraction_result[:group_assignment].present? %>
         <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
           <h3 class="font-semibold text-blue-900 mb-3">
-            🎯 Extrahierte Gruppenbildung
+            <%= t('tournaments.parse_invitation.extracted_groups_heading') %>
           </h3>
           <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
             <% @extraction_result[:group_assignment].each do |group_no, player_positions| %>
               <div class="bg-white p-3 rounded border">
-                <h4 class="font-bold text-blue-900 mb-2">Gruppe <%= group_no %></h4>
+                <h4 class="font-bold text-blue-900 mb-2"><%= t('tournaments.parse_invitation.group_number', group_no: group_no) %></h4>
                 <ol class="list-decimal list-inside text-sm">
                   <% player_positions.each do |pos| %>
                     <% matched = @match_result[:matched].find { |m| m[:position] == pos } %>
@@ -52,7 +52,7 @@
                       <% if matched %>
                         <%= matched[:player].fullname %>
                       <% else %>
-                        Spieler <%= pos %>
+                        <%= t('tournaments.parse_invitation.player_fallback', pos: pos) %>
                       <% end %>
                     </li>
                   <% end %>
@@ -61,7 +61,7 @@
             <% end %>
           </div>
           <p class="text-sm text-blue-700 mt-3">
-            💡 Diese Zuordnung wird in Schritt 5 (Turniermodus) verwendet und überschreibt den Standard-Algorithmus.
+            <%= t('tournaments.parse_invitation.assignment_used_in_step5') %>
           </p>
         </div>
       <% end %>
@@ -69,18 +69,18 @@
       <!-- Matched Players -->
       <div class="bg-white  dark:bg-slate-900 rounded-lg shadow p-6 mb-6">
         <h2 class="text-xl font-bold mb-4">
-          Erkannte Spieler (<%= @match_result[:match_rate] %>% Übereinstimmung)
+          <%= t('tournaments.parse_invitation.detected_players_heading', rate: @match_result[:match_rate]) %>
         </h2>
 
         <%= form_with url: apply_seeding_order_tournament_path(@tournament), method: :post do |f| %>
           <table class="w-full">
             <thead>
               <tr class="bg-gray-100 dark:bg-slate-900">
-                <th class="p-3 text-left">Position</th>
-                <th class="p-3 text-left">Erkannter Name</th>
-                <th class="p-3 text-left">Zugeordneter Spieler</th>
-                <th class="p-3 text-left">Vorgabe (Pkt)</th>
-                <th class="p-3 text-left">Status</th>
+                <th class="p-3 text-left"><%= t('tournaments.parse_invitation.col_position') %></th>
+                <th class="p-3 text-left"><%= t('tournaments.parse_invitation.col_detected_name') %></th>
+                <th class="p-3 text-left"><%= t('tournaments.parse_invitation.col_matched_player') %></th>
+                <th class="p-3 text-left"><%= t('tournaments.parse_invitation.col_handicap') %></th>
+                <th class="p-3 text-left"><%= t('tournaments.parse_invitation.col_status') %></th>
               </tr>
             </thead>
             <tbody>
@@ -105,16 +105,16 @@
                   </td>
                   <td class="p-3">
                     <% if match[:balls_goal].present? %>
-                      <span class="font-semibold text-blue-600"><%= match[:balls_goal] %> Pkt</span>
+                      <span class="font-semibold text-blue-600"><%= t('tournaments.parse_invitation.points_suffix', balls_goal: match[:balls_goal]) %></span>
                     <% else %>
                       <span class="text-gray-400">–</span>
                     <% end %>
                   </td>
                   <td class="p-3">
                     <% if match[:confidence] == :high %>
-                      <span class="text-green-600 font-semibold">✓ Sicher</span>
+                      <span class="text-green-600 font-semibold"><%= t('tournaments.parse_invitation.confidence_high') %></span>
                     <% else %>
-                      <span class="text-yellow-600 font-semibold">⚠️ Vermutung</span>
+                      <span class="text-yellow-600 font-semibold"><%= t('tournaments.parse_invitation.confidence_low') %></span>
                     <% end %>
                   </td>
                 </tr>
@@ -125,25 +125,25 @@
           <% if @match_result[:unmatched].any? %>
             <div class="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded">
               <h4 class="font-semibold text-yellow-900 mb-2">
-                ⚠️ Nicht zugeordnet (<%= @match_result[:unmatched].count %>):
+                <%= t('tournaments.parse_invitation.unmatched_heading', count: @match_result[:unmatched].count) %>
               </h4>
               <ul class="list-disc list-inside text-yellow-800">
                 <% @match_result[:unmatched].each do |um| %>
-                  <li><%= um[:full_name] %> (Position <%= um[:position] %>)</li>
+                  <li><%= t('tournaments.parse_invitation.unmatched_item', name: um[:full_name], position: um[:position]) %></li>
                 <% end %>
               </ul>
               <p class="text-sm text-yellow-700 mt-2">
-                Diese Spieler sind nicht in der Meldeliste. Bitte fügen Sie sie manuell hinzu.
+                <%= t('tournaments.parse_invitation.unmatched_hint') %>
               </p>
             </div>
           <% end %>
 
           <div class="flex justify-between items-center mt-6">
-            <%= link_to 'Abbrechen', compare_seedings_tournament_path(@tournament),
+            <%= link_to t('tournaments.parse_invitation.cancel'), compare_seedings_tournament_path(@tournament),
                 class: 'btn btn-secondary' %>
-            <%= f.submit 'Setzliste übernehmen',
+            <%= f.submit t('tournaments.parse_invitation.apply_seeding'),
                 class: 'btn btn-success btn-lg',
-                data: { confirm: "Setzliste mit #{@match_result[:matched].count} Spielern übernehmen?" } %>
+                data: { confirm: t('tournaments.parse_invitation.apply_seeding_confirm', count: @match_result[:matched].count) } %>
           </div>
         <% end %>
       </div>
@@ -151,7 +151,7 @@
       <!-- Raw Text Preview (für Debugging) -->
       <details class="bg-gray-50 dark:bg-slate-900 rounded-lg p-4">
         <summary class="cursor-pointer font-semibold text-gray-700">
-          🔍 Extrahierter Text anzeigen (Debugging)
+          <%= t('tournaments.parse_invitation.show_extracted_text') %>
         </summary>
         <pre class="mt-4 p-4 bg-white dark:bg-slate-900 border rounded text-xs overflow-auto max-h-96"><%= @extraction_result[:raw_text] %></pre>
       </details>
@@ -160,25 +160,25 @@
       <!-- Fehler bei Extraktion -->
       <div class="bg-red-50 border border-red-200 rounded-lg p-6">
         <h3 class="font-semibold text-red-900 mb-2">
-          ❌ Automatische Extraktion fehlgeschlagen
+          <%= t('tournaments.parse_invitation.extraction_failed') %>
         </h3>
         <p class="text-red-800 mb-4">
           <%= @extraction_result[:error] %>
         </p>
 
         <div class="space-y-3">
-          <p class="text-red-700">Alternativen:</p>
+          <p class="text-red-700"><%= t('tournaments.parse_invitation.alternatives_label') %></p>
           <div class="flex gap-3">
-            <%= link_to 'Andere Datei hochladen', compare_seedings_tournament_path(@tournament),
+            <%= link_to t('tournaments.parse_invitation.upload_other_file'), compare_seedings_tournament_path(@tournament),
                 class: 'btn btn-primary' %>
-            <%= link_to 'Manuell sortieren', tournament_path(@tournament),
+            <%= link_to t('tournaments.parse_invitation.sort_manually'), tournament_path(@tournament),
                 class: 'btn btn-secondary' %>
           </div>
         </div>
 
         <% if @extraction_result[:raw_text].present? %>
           <details class="mt-4">
-            <summary class="cursor-pointer text-red-700">Extrahierter Text anzeigen</summary>
+            <summary class="cursor-pointer text-red-700"><%= t('tournaments.parse_invitation.show_extracted_text_short') %></summary>
             <pre class="mt-2 p-4 bg-white border rounded text-xs overflow-auto max-h-96"><%= @extraction_result[:raw_text] %></pre>
           </details>
         <% end %>
