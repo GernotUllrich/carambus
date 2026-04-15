@@ -372,13 +372,6 @@
         <xhtml:link rel="alternate" hreflang="en" href="https://GernotUllrich.github.io/carambus/en/developers/"/>
     </url>
     <url>
-        <loc>https://GernotUllrich.github.io/carambus/developers/overcommit-hooks/</loc>
-        <lastmod>2026-04-15</lastmod>
-        <changefreq>daily</changefreq>
-        <xhtml:link rel="alternate" hreflang="de" href="https://GernotUllrich.github.io/carambus/developers/overcommit-hooks/"/>
-        <xhtml:link rel="alternate" hreflang="en" href="https://GernotUllrich.github.io/carambus/en/developers/overcommit-hooks/"/>
-    </url>
-    <url>
         <loc>https://GernotUllrich.github.io/carambus/developers/paper-trail-optimization/</loc>
         <lastmod>2026-04-15</lastmod>
         <changefreq>daily</changefreq>
@@ -1301,13 +1294,6 @@
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://GernotUllrich.github.io/carambus/en/developers/"/>
         <xhtml:link rel="alternate" hreflang="de" href="https://GernotUllrich.github.io/carambus/developers/"/>
-    </url>
-    <url>
-        <loc>https://GernotUllrich.github.io/carambus/en/developers/overcommit-hooks/</loc>
-        <lastmod>2026-04-15</lastmod>
-        <changefreq>daily</changefreq>
-        <xhtml:link rel="alternate" hreflang="en" href="https://GernotUllrich.github.io/carambus/en/developers/overcommit-hooks/"/>
-        <xhtml:link rel="alternate" hreflang="de" href="https://GernotUllrich.github.io/carambus/developers/overcommit-hooks/"/>
     </url>
     <url>
         <loc>https://GernotUllrich.github.io/carambus/en/developers/paper-trail-optimization/</loc>

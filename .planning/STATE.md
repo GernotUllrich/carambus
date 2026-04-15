@@ -48,14 +48,14 @@ None.
 None. All v7.0 blockers resolved. The 5 follow-up gaps from Phase 36B human UAT (G-01, G-03, G-04, G-05, G-06) are captured in seed `v71-ux-polish-i18n-debt.md` and will surface at next milestone kickoff.
 
 **Known tech debt carried into next milestone:**
-- ~~`public/docs/` manual-rebuild gap~~ **RESOLVED 2026-04-15** by quick task `260415-26d` (commit `912bf72a`). Overcommit `MkDocsBuild` pre-commit hook now runs `bin/rails mkdocs:build` and auto-stages `public/docs/` whenever `docs/**/*.md` is staged. Activation on a fresh clone: `bundle exec overcommit --install && bundle exec overcommit --sign`. Bypass: `SKIP=MkDocsBuild git commit ...`. See `docs/developers/overcommit-hooks.{de,en}.md`.
+- **`public/docs/` manual-rebuild gap — STILL OPEN**. `public/docs/` is git-tracked and must be manually rebuilt via `bin/rails mkdocs:build` after any `docs/**/*.md` edit. G-02 found and fixed this inline during v7.0 UAT (commit `7cf16114`). Quick task `260415-26d` (2026-04-15) attempted structural hardening via overcommit pre-commit hook but **failed and was rolled back** — see `.planning/quick/260415-26d-public-docs-build-hardening-via-overcomm/260415-26d-POSTMORTEM.md` for the reproducible root-cause findings. Workflow discipline until a new approach is implemented: (1) run `bin/rails mkdocs:build` before every `git push` that touched `docs/**/*.md`; (2) `/gsd-complete-milestone` must include an explicit rebuild step; (3) a future quick task may implement a CI guard (GitHub Actions job that runs `mkdocs build` and fails on `public/docs/` drift) as the replacement.
 
 ### Quick Tasks Completed
 
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 260414-qb8 | Fix PG::UndefinedColumn result_a crash in tournaments show/finalize_modus views | 2026-04-14 | b787da5e | [260414-qb8-fix-pg-undefinedcolumn-result-a-crash-in](./quick/260414-qb8-fix-pg-undefinedcolumn-result-a-crash-in/) |
-| 260415-26d | public/docs/ build hardening via overcommit pre-commit hook | 2026-04-15 | 912bf72a | [260415-26d-public-docs-build-hardening-via-overcomm](./quick/260415-26d-public-docs-build-hardening-via-overcomm/) |
+| 260415-26d | public/docs/ build hardening via overcommit pre-commit hook — **ROLLED BACK** (hook approach failed, see POSTMORTEM) | 2026-04-15 | 912bf72a → rollback | [260415-26d-public-docs-build-hardening-via-overcomm](./quick/260415-26d-public-docs-build-hardening-via-overcomm/) |
 
 ## Session Continuity
 
