@@ -62,8 +62,8 @@ Phases 1-32 completed across six milestones. See `.planning/MILESTONES.md` for s
 **UI hint**: yes
 
 Plans:
-- [ ] 38-01: Quick wins bundle — G-01 dark-mode Tailwind class replacement on `_wizard_steps_v2.html.erb` (lines 167, 215, 268) + `tournament_wizard.css:287-295` specificity audit, G-03 single CSS attribute-selector rule for `[data-controller~="tooltip"]`, G-05 3-line `en.yml:844-846` warmup translation, plus the UX-POL-03 Phase 36B Test 1 retest checklist executed once G-01 ships
-- [ ] 38-02: Tournament views i18n audit — grep-based sweep of `app/views/tournaments/` for hardcoded German strings (excluding Phase 36B parameter form), new keys under `tournaments.monitor.*` / `tournaments.show.*`, DE + EN translations
+- [ ] `38-01-quick-wins-bundle-PLAN.md` — G-01 dark-mode Tailwind class replacement on `_wizard_steps_v2.html.erb` (lines 167, 215, 268) + `tournament_wizard.css:287-295` specificity audit, G-03 single CSS attribute-selector rule for `[data-controller~="tooltip"]`, G-05 3-line `en.yml:844-846` warmup translation, plus the UX-POL-03 Phase 36B Test 1 retest (manual UAT) executed once G-01 ships. Closes UX-POL-01, UX-POL-02, UX-POL-03, I18N-01.
+- [ ] `38-02-tournament-views-i18n-audit-PLAN.md` — grep-based sweep of `app/views/tournaments/` for hardcoded German strings (22 ERB files, excluding `_wizard_steps_v2.html.erb`), new keys under `tournaments.monitor.*` / `tournaments.show.*` / `tournaments.<action>.*`, DE + EN added in parallel per CONTEXT.md D-14. Closes I18N-02.
 
 ### Phase 39: DTP-Backed Parameter Ranges
 **Goal**: `Discipline#parameter_ranges` becomes context-aware — it queries the existing `discipline_tournament_plans` table for canonical points/innings values based on the tournament's plan, player count, and player_class, returns Ranges derived from the normal (exact) or reduced (80%) mode, and correctly handles `handicap_tournier=true` tournaments (skip innings check, widen balls_goal which is per-participant from the participant list). The parameter verification modal no longer false-fires on youth/handicap/pool/snooker/biathlon/kegel tournaments.
