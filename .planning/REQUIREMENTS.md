@@ -35,7 +35,7 @@ All 6 requirements are small, independently shippable. Phase 38 covers 5 of them
   - Fix sketch (from seed): 3-line edit in `config/locales/en.yml:844-846` (`warmup: Warm-up`, `warmup_a: Warm-up Player A`, `warmup_b: Warm-up Player B`). Do **not** touch `en.yml:387` (`training: Training` — that's a different key for the practice-tournament concept).
   - Source gap: G-05 (low severity)
 
-- [ ] **I18N-02**: Pre-existing DE-only hardcoded strings on tournament views are identified and covered by `t(...)` calls. Audit scope: `app/views/tournaments/` excluding the Phase 36B parameter form (already handled).
+- [x] **I18N-02**: Pre-existing DE-only hardcoded strings on tournament views are identified and covered by `t(...)` calls. Audit scope: `app/views/tournaments/` excluding the Phase 36B parameter form (already handled).
   - Fix sketch (from seed): `grep -rn 'Aktuelle\|Turnier\|Starte\|zurück' app/views/tournaments/ | grep -v "t('"` to locate candidates. Create new i18n keys under `tournaments.monitor.*` and `tournaments.show.*` namespaces. DE is primary locale for 2-3x/year volunteers, so EN-coverage gaps mostly affect admins, but still worth closing.
   - Source gap: G-04 (low severity)
 
@@ -67,7 +67,7 @@ Which phases cover which requirements. Filled in by the roadmapper during `/gsd-
 | UX-POL-02 | Phase 38 | Pending |
 | UX-POL-03 | Phase 38 | Pending |
 | I18N-01 | Phase 38 | Pending |
-| I18N-02 | Phase 38 | Pending |
+| I18N-02 | Phase 38 | Complete |
 | DATA-01 | Phase 39 | Pending |
 
 **Coverage:**
