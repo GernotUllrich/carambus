@@ -841,9 +841,9 @@ en:
       start_game: Start Game
       tournament_endresult: Tournament Result
       wait_check: "-OK?"
-      warmup: Training
-      warmup_a: Training Player A
-      warmup_b: Training Player B
+      warmup: Warm-up
+      warmup_a: Warm-up Player A
+      warmup_b: Warm-up Player B
     table_id: table id
     timer_finish_at: timer finish at
     timer_halt_at: timer halt at
