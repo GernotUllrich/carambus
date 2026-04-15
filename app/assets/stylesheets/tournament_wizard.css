@@ -290,6 +290,18 @@ html.dark .step-help summary:hover {
   color: #4b5563;
 }
 
+/* Spezifität erhöht wegen möglichem Tailwind dark:text-* Konflikt (G-01 Audit, CONTEXT.md D-04) */
+/* Audit-Befund: Kein Override in _wizard_steps_v2.html.erb (die <details><p> Elemente tragen keine  */
+/* Tailwind text-* Klassen). Defensive Bump auf .step-help details p für zukünftige Robustheit. */
+.step-help details p {
+  color: #4b5563;
+}
+
+html.dark .step-help details p {
+  color: #d1d5db;
+}
+
+/* Ursprüngliche Regel bleibt als Fallback für ggf. nicht-<details> Kontexte erhalten. */
 html.dark .step-help p {
   color: #d1d5db;
 }
