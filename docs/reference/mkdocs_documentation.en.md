@@ -170,6 +170,92 @@ mkdocs-static-i18n>=1.0.0     # Multilingual support
 pymdown-extensions>=10.0.0    # Markdown extensions
 ```
 
+## Pre-commit Hook: Local Auto-Rebuild
+
+Since `public/docs/` is git-tracked and served directly by Rails at `/docs/`, any drift between `docs/**/*.md` (source) and `public/docs/**/*` (generated output) silently ships stale content. This was the root cause of v7.0 UAT gap **G-02**, where `public/docs/` had been stale since 2026-03-18 and four weeks of doc edits had no user-visible effect.
+
+Quick task `260415-26d` (commit `912bf72a`) installed an **overcommit pre-commit hook** (`MkDocsBuild`) that eliminates this class of bug structurally on the developer's workstation.
+
+### How it fires
+
+```
+git commit
+    │
+    ├── Does the staged set contain any docs/**/*.md file?
+    │
+    ├── no  → Hook does not execute (0 ms overhead)
+    │          overcommit's `include:` filter short-circuits.
+    │          bin/rails is not even loaded.
+    │
+    └── yes → Hook runs bin/overcommit/mkdocs-build-on-docs-change
+              ├── Check `command -v mkdocs` (fail fast if CLI missing)
+              ├── Run `bin/rails mkdocs:build`
+              │     ├── mkdocs rebuilds ALL pages — not incremental
+              │     └── FileUtils.cp_r site/* → public/docs/
+              └── `git add public/docs/`
+                    Regenerated files are folded into the
+                    in-progress commit atomically.
+```
+
+### Fire conditions (what actually triggers a rebuild)
+
+| Commit touches | Hook fires? | Overhead |
+|---|---|---|
+| Only `.rb`, `.erb`, `.js`, `.yml`, etc. | No | 0 ms |
+| One `docs/foo.en.md` edit | Yes | ~7 s |
+| 30 doc files in one commit | Yes | ~7 s (same build) |
+| Only `public/docs/` (shouldn't happen, but...) | No | 0 ms |
+| `SKIP=MkDocsBuild git commit …` | No | 0 ms (documented bypass) |
+
+### Measured build time
+
+On this workstation a full `bin/rails mkdocs:build` takes **~7 seconds wall-clock** (5.2 s pure `mkdocs build` + site → public/docs copy). For the current ~270-page bilingual docset this is dominated by template rendering, not I/O.
+
+### Why the hook always does a FULL rebuild
+
+MkDocs does not support reliable incremental builds. The `--dirty` flag exists but is explicitly documented as a development-loop optimisation for `mkdocs serve`; it skips nav/cross-link regeneration and produces incorrect output when links between pages change. Since GSD workflows routinely touch cross-referenced pages, `--dirty` is unsafe here.
+
+### Expected overhead by commit pattern
+
+The hook is designed around the observation that **most GSD commits don't touch docs**. The `include:` filter makes code-heavy phases cost nothing.
+
+| Workflow pattern | Doc commits | Hook overhead |
+|---|---|---|
+| Pure code refactoring (e.g. v1.0 TableMonitor) | 0 | **0 s total** |
+| Mixed phase, 1–2 doc touches (e.g. typical v7.0 phase) | 1–2 | **7–14 s** |
+| Doc-heavy audit phase (e.g. v7.0 Phase 36a, 58 findings) | ~8 | **~56 s** over the entire phase |
+| Pure documentation milestone (e.g. v6.0, ~12 plans, mostly docs) | 15–20 | **~2 minutes** over the entire milestone |
+
+These are cumulative overheads across an entire phase/milestone, not per commit. The hook is not hot on the path of normal refactoring work.
+
+### Activation on a fresh clone
+
+The hook is **not automatically active** after `git clone` — overcommit requires explicit opt-in for safety (it will not run an unsigned hook config):
+
+```bash
+bundle exec overcommit --install
+bundle exec overcommit --sign
+```
+
+`--sign` must be re-run after every `.overcommit.yml` edit. Prerequisite: the mkdocs CLI must be installed locally (`pip install mkdocs-material mkdocs-static-i18n pymdown-extensions`). If the CLI is missing when the hook fires, the commit is aborted with a clear install instruction rather than silently skipped.
+
+### Bypass for emergencies
+
+```bash
+SKIP=MkDocsBuild git commit -m "..."
+```
+
+This is documented for exceptional cases (e.g. committing a fix while the mkdocs build is temporarily broken). The next commit that touches `docs/**/*.md` will regenerate everything anyway, so drift is recovered on the next doc commit.
+
+### See also
+
+- `docs/developers/overcommit-hooks.en.md` — activation walkthrough, troubleshooting, bypass details
+- `.overcommit.yml` — hook registration (MkDocsBuild is the only enabled hook; overcommit default hooks are intentionally disabled because `BrokenSymlinks` conflicted with pre-existing intentional external symlinks in this repo)
+- `bin/overcommit/mkdocs-build-on-docs-change` — the hook script itself
+- `lib/tasks/mkdocs.rake` — the underlying build task (unchanged by this work)
+
+---
+
 ## Local Development
 
 ### 🛠️ Setup

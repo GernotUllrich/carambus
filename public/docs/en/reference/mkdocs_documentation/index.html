@@ -2856,6 +2856,93 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#pre-commit-hook-local-auto-rebuild" class="md-nav__link">
+    <span class="md-ellipsis">
+      Pre-commit Hook: Local Auto-Rebuild
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Pre-commit Hook: Local Auto-Rebuild">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how-it-fires" class="md-nav__link">
+    <span class="md-ellipsis">
+      How it fires
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fire-conditions-what-actually-triggers-a-rebuild" class="md-nav__link">
+    <span class="md-ellipsis">
+      Fire conditions (what actually triggers a rebuild)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#measured-build-time" class="md-nav__link">
+    <span class="md-ellipsis">
+      Measured build time
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-the-hook-always-does-a-full-rebuild" class="md-nav__link">
+    <span class="md-ellipsis">
+      Why the hook always does a FULL rebuild
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#expected-overhead-by-commit-pattern" class="md-nav__link">
+    <span class="md-ellipsis">
+      Expected overhead by commit pattern
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#activation-on-a-fresh-clone" class="md-nav__link">
+    <span class="md-ellipsis">
+      Activation on a fresh clone
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bypass-for-emergencies" class="md-nav__link">
+    <span class="md-ellipsis">
+      Bypass for emergencies
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#see-also" class="md-nav__link">
+    <span class="md-ellipsis">
+      See also
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#local-development" class="md-nav__link">
     <span class="md-ellipsis">
       Local Development
@@ -3245,19 +3332,133 @@
 <a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>mkdocs-static-i18n&gt;=1.0.0     # Multilingual support
 <a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>pymdown-extensions&gt;=10.0.0    # Markdown extensions
 </code></pre></div>
+<h2 id="pre-commit-hook-local-auto-rebuild">Pre-commit Hook: Local Auto-Rebuild<a class="headerlink" href="#pre-commit-hook-local-auto-rebuild" title="Permanent link">&para;</a></h2>
+<p>Since <code>public/docs/</code> is git-tracked and served directly by Rails at <code>/docs/</code>, any drift between <code>docs/**/*.md</code> (source) and <code>public/docs/**/*</code> (generated output) silently ships stale content. This was the root cause of v7.0 UAT gap <strong>G-02</strong>, where <code>public/docs/</code> had been stale since 2026-03-18 and four weeks of doc edits had no user-visible effect.</p>
+<p>Quick task <code>260415-26d</code> (commit <code>912bf72a</code>) installed an <strong>overcommit pre-commit hook</strong> (<code>MkDocsBuild</code>) that eliminates this class of bug structurally on the developer's workstation.</p>
+<h3 id="how-it-fires">How it fires<a class="headerlink" href="#how-it-fires" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>git commit
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>    │
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>    ├── Does the staged set contain any docs/**/*.md file?
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>    │
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>    ├── no  → Hook does not execute (0 ms overhead)
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>    │          overcommit&#39;s `include:` filter short-circuits.
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>    │          bin/rails is not even loaded.
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>    │
+<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>    └── yes → Hook runs bin/overcommit/mkdocs-build-on-docs-change
+<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a>              ├── Check `command -v mkdocs` (fail fast if CLI missing)
+<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a>              ├── Run `bin/rails mkdocs:build`
+<a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a>              │     ├── mkdocs rebuilds ALL pages — not incremental
+<a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a>              │     └── FileUtils.cp_r site/* → public/docs/
+<a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a>              └── `git add public/docs/`
+<a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a>                    Regenerated files are folded into the
+<a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a>                    in-progress commit atomically.
+</code></pre></div>
+<h3 id="fire-conditions-what-actually-triggers-a-rebuild">Fire conditions (what actually triggers a rebuild)<a class="headerlink" href="#fire-conditions-what-actually-triggers-a-rebuild" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Commit touches</th>
+<th>Hook fires?</th>
+<th>Overhead</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Only <code>.rb</code>, <code>.erb</code>, <code>.js</code>, <code>.yml</code>, etc.</td>
+<td>No</td>
+<td>0 ms</td>
+</tr>
+<tr>
+<td>One <code>docs/foo.en.md</code> edit</td>
+<td>Yes</td>
+<td>~7 s</td>
+</tr>
+<tr>
+<td>30 doc files in one commit</td>
+<td>Yes</td>
+<td>~7 s (same build)</td>
+</tr>
+<tr>
+<td>Only <code>public/docs/</code> (shouldn't happen, but...)</td>
+<td>No</td>
+<td>0 ms</td>
+</tr>
+<tr>
+<td><code>SKIP=MkDocsBuild git commit …</code></td>
+<td>No</td>
+<td>0 ms (documented bypass)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="measured-build-time">Measured build time<a class="headerlink" href="#measured-build-time" title="Permanent link">&para;</a></h3>
+<p>On this workstation a full <code>bin/rails mkdocs:build</code> takes <strong>~7 seconds wall-clock</strong> (5.2 s pure <code>mkdocs build</code> + site → public/docs copy). For the current ~270-page bilingual docset this is dominated by template rendering, not I/O.</p>
+<h3 id="why-the-hook-always-does-a-full-rebuild">Why the hook always does a FULL rebuild<a class="headerlink" href="#why-the-hook-always-does-a-full-rebuild" title="Permanent link">&para;</a></h3>
+<p>MkDocs does not support reliable incremental builds. The <code>--dirty</code> flag exists but is explicitly documented as a development-loop optimisation for <code>mkdocs serve</code>; it skips nav/cross-link regeneration and produces incorrect output when links between pages change. Since GSD workflows routinely touch cross-referenced pages, <code>--dirty</code> is unsafe here.</p>
+<h3 id="expected-overhead-by-commit-pattern">Expected overhead by commit pattern<a class="headerlink" href="#expected-overhead-by-commit-pattern" title="Permanent link">&para;</a></h3>
+<p>The hook is designed around the observation that <strong>most GSD commits don't touch docs</strong>. The <code>include:</code> filter makes code-heavy phases cost nothing.</p>
+<table>
+<thead>
+<tr>
+<th>Workflow pattern</th>
+<th>Doc commits</th>
+<th>Hook overhead</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Pure code refactoring (e.g. v1.0 TableMonitor)</td>
+<td>0</td>
+<td><strong>0 s total</strong></td>
+</tr>
+<tr>
+<td>Mixed phase, 1–2 doc touches (e.g. typical v7.0 phase)</td>
+<td>1–2</td>
+<td><strong>7–14 s</strong></td>
+</tr>
+<tr>
+<td>Doc-heavy audit phase (e.g. v7.0 Phase 36a, 58 findings)</td>
+<td>~8</td>
+<td><strong>~56 s</strong> over the entire phase</td>
+</tr>
+<tr>
+<td>Pure documentation milestone (e.g. v6.0, ~12 plans, mostly docs)</td>
+<td>15–20</td>
+<td><strong>~2 minutes</strong> over the entire milestone</td>
+</tr>
+</tbody>
+</table>
+<p>These are cumulative overheads across an entire phase/milestone, not per commit. The hook is not hot on the path of normal refactoring work.</p>
+<h3 id="activation-on-a-fresh-clone">Activation on a fresh clone<a class="headerlink" href="#activation-on-a-fresh-clone" title="Permanent link">&para;</a></h3>
+<p>The hook is <strong>not automatically active</strong> after <code>git clone</code> — overcommit requires explicit opt-in for safety (it will not run an unsigned hook config):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>overcommit<span class="w"> </span>--install
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>overcommit<span class="w"> </span>--sign
+</code></pre></div>
+<p><code>--sign</code> must be re-run after every <code>.overcommit.yml</code> edit. Prerequisite: the mkdocs CLI must be installed locally (<code>pip install mkdocs-material mkdocs-static-i18n pymdown-extensions</code>). If the CLI is missing when the hook fires, the commit is aborted with a clear install instruction rather than silently skipped.</p>
+<h3 id="bypass-for-emergencies">Bypass for emergencies<a class="headerlink" href="#bypass-for-emergencies" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="nv">SKIP</span><span class="o">=</span>MkDocsBuild<span class="w"> </span>git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;...&quot;</span>
+</code></pre></div>
+<p>This is documented for exceptional cases (e.g. committing a fix while the mkdocs build is temporarily broken). The next commit that touches <code>docs/**/*.md</code> will regenerate everything anyway, so drift is recovered on the next doc commit.</p>
+<h3 id="see-also">See also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>docs/developers/overcommit-hooks.en.md</code> — activation walkthrough, troubleshooting, bypass details</li>
+<li><code>.overcommit.yml</code> — hook registration (MkDocsBuild is the only enabled hook; overcommit default hooks are intentionally disabled because <code>BrokenSymlinks</code> conflicted with pre-existing intentional external symlinks in this repo)</li>
+<li><code>bin/overcommit/mkdocs-build-on-docs-change</code> — the hook script itself</li>
+<li><code>lib/tasks/mkdocs.rake</code> — the underlying build task (unchanged by this work)</li>
+</ul>
+<hr />
 <h2 id="local-development">Local Development<a class="headerlink" href="#local-development" title="Permanent link">&para;</a></h2>
 <h3 id="setup">🛠️ Setup<a class="headerlink" href="#setup" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1"># Activate Python environment</span>
-<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="nb">cd</span><span class="w"> </span>carambus_api
-<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>
-<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="c1"># Install dependencies</span>
-<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt
-<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>
-<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="c1"># Start documentation locally</span>
-<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>mkdocs<span class="w"> </span>serve
-<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>
-<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="c1"># Build documentation</span>
-<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a>mkdocs<span class="w"> </span>build
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="c1"># Activate Python environment</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="nb">cd</span><span class="w"> </span>carambus_api
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="c1"># Install dependencies</span>
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt
+<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>
+<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="c1"># Start documentation locally</span>
+<a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a>mkdocs<span class="w"> </span>serve
+<a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a>
+<a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a><span class="c1"># Build documentation</span>
+<a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a>mkdocs<span class="w"> </span>build
 </code></pre></div>
 <h3 id="local-server">🌐 Local Server<a class="headerlink" href="#local-server" title="Permanent link">&para;</a></h3>
 <ul>
@@ -3333,32 +3534,32 @@
 <li><strong>External links</strong> with full URL</li>
 </ul>
 <h3 id="images-and-media">🖼️ Images and Media<a class="headerlink" href="#images-and-media" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>![Alt text]&amp;#40;assets/image.png&amp;#41;{width=&quot;100%&quot;}
-<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>![Alt text]&amp;#40;assets/image.png&amp;#41;{: .center width=&quot;50%&quot;}
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>![Alt text]&amp;#40;assets/image.png&amp;#41;{width=&quot;100%&quot;}
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>![Alt text]&amp;#40;assets/image.png&amp;#41;{: .center width=&quot;50%&quot;}
 </code></pre></div>
 <h3 id="warnings-and-notes">⚠️ Warnings and Notes<a class="headerlink" href="#warnings-and-notes" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>!!! warning &quot;Important Note&quot;
-<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>    Here is the important text.
-<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>
-<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>!!! info &quot;Information&quot;
-<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>    Here is an information.
-<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>
-<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a>!!! tip &quot;Tip&quot;
-<a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a>    Here is a useful tip.
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>!!! warning &quot;Important Note&quot;
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>    Here is the important text.
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a>!!! info &quot;Information&quot;
+<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>    Here is an information.
+<a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a>
+<a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a>!!! tip &quot;Tip&quot;
+<a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a>    Here is a useful tip.
 </code></pre></div>
 <h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h2>
 <h3 id="common-issues">🔧 Common Issues<a class="headerlink" href="#common-issues" title="Permanent link">&para;</a></h3>
 <h4 id="port-already-in-use">Port already in use<a class="headerlink" href="#port-already-in-use" title="Permanent link">&para;</a></h4>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="c1"># Use different port</span>
-<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>mkdocs<span class="w"> </span>serve<span class="w"> </span>--dev-addr<span class="o">=</span><span class="m">127</span>.0.0.1:8001
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="c1"># Use different port</span>
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>mkdocs<span class="w"> </span>serve<span class="w"> </span>--dev-addr<span class="o">=</span><span class="m">127</span>.0.0.1:8001
 </code></pre></div>
 <h4 id="missing-dependencies">Missing dependencies<a class="headerlink" href="#missing-dependencies" title="Permanent link">&para;</a></h4>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="c1"># Reinstall dependencies</span>
-<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt<span class="w"> </span>--upgrade
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="c1"># Reinstall dependencies</span>
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt<span class="w"> </span>--upgrade
 </code></pre></div>
 <h4 id="build-errors">Build errors<a class="headerlink" href="#build-errors" title="Permanent link">&para;</a></h4>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="c1"># Validate configuration</span>
-<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>mkdocs<span class="w"> </span>build<span class="w"> </span>--strict
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="c1"># Validate configuration</span>
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>mkdocs<span class="w"> </span>build<span class="w"> </span>--strict
 </code></pre></div>
 <h3 id="debugging">📋 Debugging<a class="headerlink" href="#debugging" title="Permanent link">&para;</a></h3>
 <ul>
