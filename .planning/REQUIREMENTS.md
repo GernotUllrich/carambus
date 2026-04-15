@@ -11,7 +11,7 @@ This milestone (v7.1) promotes that seed to active scope. The source of truth fo
 - `.planning/seeds/v71-ux-polish-i18n-debt.md`
 - `.planning/milestones/v7.0-phases/36B-ui-cleanup-kleine-features/36B-HUMAN-UAT.md`
 
-All 6 requirements are small, independently shippable, and together fit into **1–3 plans**. This is a warm-up milestone before the larger v7.2+ ClubCloud Integration / Shootout work resumes.
+All 6 requirements are small, independently shippable. Phase 38 covers 5 of them in 2 plans (polish + i18n surface). DATA-01 was promoted to its own **Phase 39: DTP-Backed Parameter Ranges** during the Phase 38 discuss-phase, after the codebase probe surfaced that the existing `discipline_tournament_plans` table should be the source of truth instead of a new hardcoded range constant. This is a warm-up milestone before the larger v7.2+ ClubCloud Integration / Shootout work resumes.
 
 ## v7.1 Requirements
 
@@ -41,10 +41,10 @@ All 6 requirements are small, independently shippable, and together fit into **1
 
 ### Data Model Tuning
 
-- [ ] **DATA-01**: `Discipline#parameter_ranges` is wide enough for real-world usage without false-positive warnings from the Phase 36B parameter verification modal. Youth, handicap, pool, snooker, biathlon, and kegel disciplines either have explicit range entries or are covered by widened existing ranges. Verification modal no longer fires on legitimate tournament configurations.
-  - Fix sketch (from seed): short-term = widen ranges in `app/models/discipline.rb:66-82` + add entries for missing disciplines, replace string keys with symbols to catch typos. Medium-term (may or may not be in scope) = `discipline_parameter_ranges` table with `discipline_id`, `attribute`, `min`, `max`, `tournament_type`. Long-term (out of scope) = nightly rake task populating ranges from historical tournament data.
+- [ ] **DATA-01** *(moved to Phase 39 — see §"Phase 39: DTP-Backed Parameter Ranges" in ROADMAP.md)*: `Discipline#parameter_ranges` is wide enough for real-world usage without false-positive warnings from the Phase 36B parameter verification modal. Youth, handicap, pool, snooker, biathlon, and kegel disciplines either have explicit range entries or are covered by the DTP-backed lookup. Verification modal no longer fires on legitimate tournament configurations.
+  - **Phase 38 discuss-phase finding:** the existing `discipline_tournament_plans` table already holds canonical `points`/`innings`/`players`/`player_class` per discipline+tournament_plan combination (12 disciplines populated: Karambol variants + Petit/Grand Prix + Nordcup). A widen of the hardcoded `DISCIPLINE_PARAMETER_RANGES` constant is therefore the wrong fix — the right fix queries DTPs. This is significantly larger than "widen hardcoded constants" and has been promoted to **Phase 39**.
+  - Fix direction (from Phase 38 CONTEXT.md D-19..D-21): `Discipline#parameter_ranges(tournament:)` queries `DisciplineTournamentPlan` by discipline + tournament_plan + players + player_class. Normal mode = exact-match Range; reduced mode = `(points*0.8).floor..points`. `handicap_tournier=true` skips innings check and widens/skips balls_goal (per-participant from participant list). Hardcoded fallback for Pool/Snooker/Kegel/Biathlon/5-Kegel disciplines with no DTP entry. Long-term nightly rake from historical data remains out of scope.
   - Source gap: G-06 (medium severity) — Phase 36B CONTEXT D-17 explicitly authorized the first-pass hardcoded approach as "first-pass; future refinement may move to a database column or config".
-  - **Scope boundary (decide in discuss-phase):** short-term widen only, or short-term + medium-term DB-backed table? The latter is 3-5× larger in scope and would justify its own phase. Roadmap currently assumes short-term widen only.
 
 ## Out of Scope
 
@@ -68,13 +68,13 @@ Which phases cover which requirements. Filled in by the roadmapper during `/gsd-
 | UX-POL-03 | Phase 38 | Pending |
 | I18N-01 | Phase 38 | Pending |
 | I18N-02 | Phase 38 | Pending |
-| DATA-01 | Phase 38 | Pending |
+| DATA-01 | Phase 39 | Pending |
 
 **Coverage:**
 - v7.1 requirements: 6 total
-- Mapped to phases: 6 ✓
+- Mapped to phases: 6 ✓ (5 → Phase 38, 1 → Phase 39)
 - Unmapped: 0
 
 ---
 *Requirements defined: 2026-04-15*
-*Last updated: 2026-04-15 — all 6 requirements mapped to Phase 38 (UX Polish & i18n Debt) in 3 plans*
+*Last updated: 2026-04-15 — Phase 38 discuss-phase promoted DATA-01 to a new Phase 39 (DTP-Backed Parameter Ranges) after surfacing that `discipline_tournament_plans` is the correct data source. Phase 38 now covers 5 requirements in 2 plans; Phase 39 covers DATA-01 separately.*
