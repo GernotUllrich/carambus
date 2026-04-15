@@ -44,7 +44,7 @@ All 6 requirements are small, independently shippable, and together fit into **1
 - [ ] **DATA-01**: `Discipline#parameter_ranges` is wide enough for real-world usage without false-positive warnings from the Phase 36B parameter verification modal. Youth, handicap, pool, snooker, biathlon, and kegel disciplines either have explicit range entries or are covered by widened existing ranges. Verification modal no longer fires on legitimate tournament configurations.
   - Fix sketch (from seed): short-term = widen ranges in `app/models/discipline.rb:66-82` + add entries for missing disciplines, replace string keys with symbols to catch typos. Medium-term (may or may not be in scope) = `discipline_parameter_ranges` table with `discipline_id`, `attribute`, `min`, `max`, `tournament_type`. Long-term (out of scope) = nightly rake task populating ranges from historical tournament data.
   - Source gap: G-06 (medium severity) — Phase 36B CONTEXT D-17 explicitly authorized the first-pass hardcoded approach as "first-pass; future refinement may move to a database column or config".
-  - **Scope boundary (decide in discuss-phase):** short-term widen only, or short-term + medium-term DB-backed table? The latter is 3-5× larger in scope and would justify its own phase.
+  - **Scope boundary (decide in discuss-phase):** short-term widen only, or short-term + medium-term DB-backed table? The latter is 3-5× larger in scope and would justify its own phase. Roadmap currently assumes short-term widen only.
 
 ## Out of Scope
 
@@ -63,18 +63,18 @@ Which phases cover which requirements. Filled in by the roadmapper during `/gsd-
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| UX-POL-01 | TBD | Pending |
-| UX-POL-02 | TBD | Pending |
-| UX-POL-03 | TBD | Pending |
-| I18N-01 | TBD | Pending |
-| I18N-02 | TBD | Pending |
-| DATA-01 | TBD | Pending |
+| UX-POL-01 | Phase 38 | Pending |
+| UX-POL-02 | Phase 38 | Pending |
+| UX-POL-03 | Phase 38 | Pending |
+| I18N-01 | Phase 38 | Pending |
+| I18N-02 | Phase 38 | Pending |
+| DATA-01 | Phase 38 | Pending |
 
 **Coverage:**
 - v7.1 requirements: 6 total
-- Mapped to phases: 0 (pending roadmap)
-- Unmapped: 6 ⚠️ (will resolve in roadmap step)
+- Mapped to phases: 6 ✓
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-04-15*
-*Last updated: 2026-04-15 after seed v71-ux-polish-i18n-debt.md promoted to active scope*
+*Last updated: 2026-04-15 — all 6 requirements mapped to Phase 38 (UX Polish & i18n Debt) in 3 plans*
