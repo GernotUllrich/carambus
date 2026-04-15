@@ -63,10 +63,10 @@ Which phases cover which requirements. Filled in by the roadmapper during `/gsd-
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| UX-POL-01 | Phase 38 | Pending |
-| UX-POL-02 | Phase 38 | Pending |
-| UX-POL-03 | Phase 38 | Pending |
-| I18N-01 | Phase 38 | Pending |
+| UX-POL-01 | Phase 38 | Complete |
+| UX-POL-02 | Phase 38 | Complete |
+| UX-POL-03 | Phase 38 | Complete |
+| I18N-01 | Phase 38 | Complete |
 | I18N-02 | Phase 38 | Complete |
 | DATA-01 | Phase 39 | Pending |
 
