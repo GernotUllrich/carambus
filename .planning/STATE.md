@@ -1,11 +1,11 @@
 ---
 gsd_state_version: 1.0
-milestone: none
-milestone_name: between milestones
-status: idle
-stopped_at: v7.0 Manager Experience shipped and archived
-last_updated: "2026-04-15T01:45:00.000Z"
-last_activity: 2026-04-15 — Completed quick task 260415-26d: public/docs/ build hardening via overcommit pre-commit hook
+milestone: v7.1
+milestone_name: UX Polish & i18n Debt
+status: defining_requirements
+stopped_at: Milestone v7.1 started — requirements pending
+last_updated: "2026-04-15T09:00:00.000Z"
+last_activity: 2026-04-15 — Started milestone v7.1 UX Polish & i18n Debt
 progress:
   total_phases: 0
   completed_phases: 0
@@ -21,13 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-15)
 
 **Core value:** Code and docs stay in sync — every documented feature works, every working feature is documented, and a volunteer user should never need to read the architecture to run a tournament.
-**Current focus:** Between milestones — run `/gsd-new-milestone` to start the next cycle. Two milestone skeletons already exist from Phase 36c groundwork: `v7.1 ClubCloud Integration` and `v7.2 Shootout Support`.
+**Current focus:** Milestone v7.1 UX Polish & i18n Debt — defining requirements. Source: seed `v71-ux-polish-i18n-debt.md` (5 Phase 36B UAT follow-up gaps).
 
 ## Current Position
 
-No active milestone. v7.0 Manager Experience shipped 2026-04-15 (7 phases, 31 plans, 37/37 requirements, human UAT confirmed).
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements for milestone v7.1
+Last activity: 2026-04-15 — Milestone v7.1 started
 
-Last milestone archived to:
+Previous milestone archived at:
 - `.planning/milestones/v7.0-ROADMAP.md`
 - `.planning/milestones/v7.0-REQUIREMENTS.md`
 - `.planning/milestones/v7.0-MILESTONE-AUDIT.md`

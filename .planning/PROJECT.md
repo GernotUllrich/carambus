@@ -8,9 +8,25 @@ A Rails tournament management system for carom billiards that Sports Managers (v
 
 Code and docs stay in sync — every documented feature works, every working feature is documented, and a volunteer user should never need to read the architecture to run a tournament.
 
-## Current Milestone
+## Current Milestone: v7.1 UX Polish & i18n Debt
 
-_v7.0 Manager Experience shipped 2026-04-15. Next milestone is TBD — run `/gsd-new-milestone` to start the questioning → research → requirements → roadmap cycle. v7.1 ClubCloud Integration and v7.2 Shootout Support skeletons already exist at `.planning/milestones/v7.1-*` and `.planning/milestones/v7.2-*` as groundwork planted by Phase 36c._
+**Goal:** Close the 5 Phase 36B UAT follow-up gaps (G-01, G-03, G-04, G-05, G-06) before they rot into larger debt. All 5 surfaced during the 2026-04-15 human UAT session but were non-regressions against v7.0's functional acceptance criteria, so they were captured as a seed instead of blocking v7.0 completion.
+
+**Target features:**
+- **G-01 Dark-mode contrast fix**: wizard `<details>` help block + inline-styled info banners use Tailwind `dark:*` classes so the help text is readable in dark mode
+- **G-03 Tooltip affordance**: 16 tooltipped labels on `tournament_monitor.html.erb` get a visible affordance (dashed underline + `cursor: help`) via a single CSS attribute-selector rule
+- **G-04 DE-only hardcoded strings audit**: pre-existing hardcoded German strings outside `t('...')` calls on `tournament_monitor` surroundings get i18n coverage so EN-locale admins don't see German
+- **G-05 Warmup EN translation fix**: `config/locales/en.yml:844-846` changes "Training" → "Warmup" for the 3 warm-up state keys (distinct from `training: Training` at line 387 which is a different concept)
+- **G-06 `Discipline#parameter_ranges` widening**: first-pass hardcoded ranges from Phase 36B D-17 get widened to cover youth/handicap/pool/snooker outliers; decision on short-term widen vs medium-term DB-backed table deferred to discuss-phase
+- **Phase 36B Test 1 retest**: the wizard header + 6-chips + no-"Schritt-N-von-6" criteria need explicit reconfirmation (original Test 1 was marked `issue` because G-01 was flagged mid-test)
+
+Scope is deliberately small — a warm-up milestone after the long overcommit-hook debugging session, before larger feature work resumes.
+
+**Deferred to a future milestone:**
+- v7.2 ClubCloud Integration (Endrangliste auto-calculation, CC API finalization, credentials delegation) — skeleton at `.planning/milestones/v7.2-{REQUIREMENTS,ROADMAP}.md` (retaining the old v7.1 skeleton content under a renamed target version)
+- v7.3 Shootout / Stechen Support — skeleton at `.planning/milestones/v7.2-*` (also retained; the milestone number assignment will be decided at next kickoff)
+- CI guard replacement for public/docs/ drift (the overcommit hook attempt from quick task 260415-26d failed and rolled back; a GitHub Actions-based guard is the proposed replacement, separate milestone)
+- G-06 medium-term DB-backed `discipline_parameter_ranges` table — in scope only if discuss-phase decides the short-term widen isn't enough
 
 ## Completed: v7.0 Manager Experience (shipped 2026-04-15)
 
@@ -83,7 +99,13 @@ Audited, repaired, and documented the entire mkdocs site: zero broken links, zer
 
 ### Active
 
-_Next milestone TBD — run `/gsd-new-milestone` to populate this section. v7.1 ClubCloud Integration and v7.2 Shootout skeletons already exist in `.planning/milestones/` as groundwork from Phase 36c._
+<!-- v7.1 UX Polish & i18n Debt — requirement IDs will land after /gsd-new-milestone REQUIREMENTS step -->
+- [ ] **G-01**: Wizard `<details>` help block and inline-styled info banners are readable in dark mode
+- [ ] **G-03**: Tooltip-decorated labels have a visible affordance (dashed underline + `cursor: help`)
+- [ ] **G-04**: Pre-existing DE-only hardcoded strings on `tournament_monitor` surroundings are covered by i18n
+- [ ] **G-05**: EN locale shows "Warmup" (not "Training") for the warm-up state on `table_monitor.status.*`
+- [ ] **G-06**: `Discipline#parameter_ranges` is wide enough for youth/handicap/pool/snooker outliers without false warnings
+- [ ] **Phase 36B Test 1 retest**: badge dominance, 6 chips, no "Schritt N von 6", no numeric prefixes — explicitly reconfirmed after G-01 fix ships
 
 ### Out of Scope
 
@@ -189,4 +211,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-15 after shipping v7.0 Manager Experience — 7 phases, 37/37 requirements, Phase 36B human UAT confirmed, 5 follow-up gaps captured as v7.1 seed*
+*Last updated: 2026-04-15 after starting milestone v7.1 UX Polish & i18n Debt — seed `v71-ux-polish-i18n-debt.md` promoted to active scope*
