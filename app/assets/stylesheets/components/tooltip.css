@@ -1,0 +1,25 @@
+/*
+ * Tooltip affordance (G-03 / UX-POL-02)
+ *
+ * Adds a visible hint (dashed underline + cursor: help) to elements that
+ * carry the Stimulus tooltip controller, so a first-time volunteer knows
+ * the label is hoverable without trial-and-error.
+ *
+ * Applies automatically to all [data-controller~="tooltip"] sites on
+ * tournament_monitor.html.erb (16 labels) and any future ones.
+ *
+ * Audit (CONTEXT.md D-07): All 16 sites on tournament_monitor.html.erb
+ * (lines 97, 100, 103, 106, 109, 112, 115, 118, 121, 124, 127, 130, 133,
+ * 136, 139, 142) are on <span class="w-1/2 text-right text-sm"> label
+ * elements. Zero sites are on <input>, <select>, or <textarea>. The
+ * form controls (number_field_tag / check_box_tag / select_tag) live
+ * inside sibling <span id="..."> wrappers that do NOT carry
+ * data-controller="tooltip". Broad selector is therefore safe and does
+ * not bleed into form controls.
+ */
+
+[data-controller~="tooltip"] {
+  cursor: help;
+  border-bottom: 1px dashed currentColor;
+  padding-bottom: 1px;
+}
