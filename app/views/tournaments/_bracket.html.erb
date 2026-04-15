@@ -186,11 +186,11 @@
         sko_order = ['32f', '16f', 'qf', 'hf', 'fin']
         sko_rounds = sko_order.map { |prefix| executor_params.keys.select { |k| k.start_with?(prefix) || k == prefix }.sort_by { |m| m[/\d+$/].to_i } }.reject(&:empty?)
         
-        bracket_groups << { title: "🏆 Gewinnerrunde", levels: w_rounds }
-        bracket_groups << { title: "💥 Verliererrunde", levels: l_rounds }
-        bracket_groups << { title: "👑 Finalrunde", levels: sko_rounds }
+        bracket_groups << { title: t('tournaments.monitor.bracket_winner_round'), levels: w_rounds }
+        bracket_groups << { title: t('tournaments.monitor.bracket_loser_round'), levels: l_rounds }
+        bracket_groups << { title: t('tournaments.monitor.bracket_final_round'), levels: sko_rounds }
       else
-        bracket_groups << { title: "🏆 Turnierbaum", levels: levels }
+        bracket_groups << { title: t('tournaments.monitor.bracket_tree'), levels: levels }
       end
     %>
 

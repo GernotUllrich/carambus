@@ -7,7 +7,7 @@
           <div class="flex flex-col sm:flex-row gap-8">
             <% (1..tournament_plan.ngroups).each do |n| %>
               <div class="flex flex-col flex-1">
-                <h5 class="font-semibold mb-2">Gruppe <%= n %></h5>
+                <h5 class="font-semibold mb-2"><%= t('tournaments.monitor.group_number', n: n) %></h5>
                 <% group_key = "group#{n}" %>
                 <% if groups[group_key].present? %>
                   <% groups[group_key].each do |player_id| %>
@@ -18,7 +18,7 @@
                     <% end %>
                   <% end %>
                 <% else %>
-                  <div class="text-gray-400 italic">Keine Spieler</div>
+                  <div class="text-gray-400 italic"><%= t('tournaments.monitor.no_players') %></div>
                 <% end %>
               </div>
             <% end %>
@@ -26,7 +26,7 @@
         </div>
       <% else %>
         <div class="p-4 text-gray-500 italic">
-          Keine Gruppenbildung verfügbar
+          <%= t('tournaments.monitor.no_groups') %>
         </div>
       <% end %>
     </div>

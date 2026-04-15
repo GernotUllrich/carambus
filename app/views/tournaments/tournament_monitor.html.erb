@@ -42,7 +42,7 @@
       <% if @tournament.tournament_monitor.present? %>
       <% else %>
         <%- unless @tournament.manual_assignment %>
-          <h4 class="mb-2">Zuordnung der Tische</h4>
+          <h4 class="mb-2"><%= t('tournaments.monitor.table_assignment_heading') %></h4>
         <% end %>
         <%# UI-07 D-17/D-18: bei Out-of-Range-Werten rendert der Controller %>
         <%# tournament_monitor neu und setzt @verification_failure. Dann wird %>
@@ -78,7 +78,7 @@
             <%- tournament_tables = [tournament_tables, (@tournament.tournament_plan.tables unless (@tournament.manual_assignment || @tournament.continuous_placements)).to_i].min if tables_from_plan > 0 %>
             <%- (1..tournament_tables).each_with_index do |t_no, ix| %>
               <li class="flex flex-row w-full space-x-4">
-                <div class="flex mt-1">Tisch <%= ix + 1 %>:</div>
+                <div class="flex mt-1"><%= t('tournaments.monitor.table_prefix') %> <%= ix + 1 %>:</div>
                 <div class="flex" id="location_table_#{ix+1}">
                   <%- if @tournament.organizer.is_a? Club %>
                     <%= select_tag "table_id[]", options_for_select(@tournament.location.tables.order("tables.name").map { |table| ["#{table.name} - #{table.table_kind.name.gsub("Small Billard", "kleiner Tisch").gsub("Match Billard", "großer Tisch")}", table.id]}), class: "border mt-1 w-full" %>
@@ -92,7 +92,7 @@
             <%- end %>
           </ol>
           <div class="space-y-3 rounded shadow p-8">
-            <h4 class="mb-4">Turnier Parameter</h4>
+            <h4 class="mb-4"><%= t('tournaments.monitor.tournament_parameters_heading') %></h4>
             <div class="flex flex-row space-x-4 items-center">
               <span class="w-1/2 text-right text-sm" data-controller="tooltip" data-tooltip-content-value="<%= t('tournaments.monitor_form.tooltips.balls_goal') %>"><%= label_tag t('tournaments.monitor_form.labels.balls_goal') %></span><span id="tournament_balls_goal"><%= number_field_tag :balls_goal, @tournament.balls_goal || @tournament.data['extracted_balls_goal'], class: "border-2", data: { reflex: "change->TournamentReflex#balls_goal", id: @tournament.id } %></span>
             </div>
@@ -146,7 +146,7 @@
           <div class="flex justify-end w-10/12"><%= submit_tag I18n.t("tournaments.start_tournament"), class: "btn btn-flat btn-primary mt-2" %></div>
         <%- end %>
         <div class="mt-4">
-          <%= custom_link_to "Back to Mode Selection", finalize_modus_tournament_path(@tournament) %>
+          <%= custom_link_to t('tournaments.monitor.back_to_mode_selection'), finalize_modus_tournament_path(@tournament) %>
         </div>
       <%- end %>
     </div>
