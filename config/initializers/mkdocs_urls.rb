@@ -102,11 +102,11 @@ module MkDocsUrls
     def mkdocs_documentation_url(locale = I18n.locale)
       case locale.to_s
       when 'de'
-        "#{BASE_URL}/de/mkdocs_dokumentation/"
+        "#{BASE_URL}/de/mkdocs_documentation/"
       when 'en'
         "#{BASE_URL}/en/mkdocs_documentation/"
       else
-        "#{BASE_URL}/de/mkdocs_dokumentation/" # Default to German
+        "#{BASE_URL}/de/mkdocs_documentation/" # Default to German
       end
     end
 

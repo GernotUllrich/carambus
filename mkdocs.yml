@@ -218,7 +218,7 @@ nav:
       - Privacy: reference/privacy.md
       - Config Lock Files: reference/config-lock-files.md
       - Search: reference/search.md
-      - MkDocs: reference/mkdocs_dokumentation.md
+      - MkDocs: reference/mkdocs_documentation.md
   - About:
       - About: about.md
 

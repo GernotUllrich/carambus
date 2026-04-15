@@ -170,6 +170,49 @@ mkdocs-static-i18n>=1.0.0     # Mehrsprachigkeit
 pymdown-extensions>=10.0.0    # Markdown-Erweiterungen
 ```
 
+## Manuelle Rebuild-Disziplin (keine automatische Absicherung)
+
+Da `public/docs/` git-getrackt ist und direkt von Rails unter `/docs/` ausgeliefert wird, führt jede Abweichung zwischen `docs/**/*.md` (Source) und `public/docs/**/*` (generiertes Output) dazu, dass stille, veraltete Inhalte ausgeliefert werden. Genau das war der Grund für v7.0 UAT-Lücke **G-02**, wo `public/docs/` seit dem 18.03.2026 veraltet war und vier Wochen Doc-Änderungen keinerlei sichtbare Wirkung hatten.
+
+**Aktuell gibt es keinen automatischen Schutz gegen diese Drift-Klasse.** Quick Task `260415-26d` (15.04.2026) hat versucht, einen overcommit pre-commit Hook (`MkDocsBuild`) zu installieren, und wurde zurückgerollt, nachdem festgestellt wurde, dass der Hook im produktiven `git commit` Pfad nicht zuverlässig feuert — trotz erfolgreicher `overcommit --run` Tests. Siehe `.planning/quick/260415-26d-public-docs-build-hardening-via-overcomm/260415-26d-POSTMORTEM.md` für die reproduzierbaren Findings und die Entscheidung, den Ansatz in einer zukünftigen Milestone durch einen CI-Guard zu ersetzen.
+
+Bis ein neuer Ansatz umgesetzt ist, läuft die Rebuild-Disziplin **manuell**:
+
+```bash
+# Nach jeder Änderung in docs/**/*.md
+bin/rails mkdocs:build
+git add docs/ public/docs/
+git commit -m "docs(topic): Beschreibung"
+```
+
+Gute Trigger-Momente für einen Rebuild:
+
+| Trigger | Grund |
+|---|---|
+| Vor jedem `git push` der `docs/**/*.md` angefasst hat | Erkennt Drift bevor sie die Workstation verlässt |
+| Bei jedem `/gsd-complete-milestone` | Milestone-Artifacts müssen synchron sein |
+| Nach jedem `/gsd-docs-update` Lauf | Hält generiertes Output aktuell zur Source |
+| Als letzter Schritt jeder Phase die Docs editiert hat | Hält Phase-Complete-Commits atomar |
+
+### Gemessene Build-Zeit
+
+Auf dieser Workstation dauert ein vollständiger `bin/rails mkdocs:build` **~7 Sekunden wall-clock** (5,2 s reiner `mkdocs build` + site → public/docs Kopie). Für das aktuell ~270-seitige zweisprachige Docset wird das vom Template-Rendering dominiert, nicht vom I/O.
+
+### Warum ein vollständiger Rebuild (kein inkrementeller Modus)
+
+MkDocs unterstützt keine zuverlässigen inkrementellen Builds. Der `--dirty` Flag existiert, ist aber explizit als Entwicklungs-Loop-Optimierung für `mkdocs serve` dokumentiert. Er überspringt Nav- und Cross-Link-Regeneration und produziert fehlerhaftes Output wenn sich Links zwischen Seiten ändern. Da Dokumentationsarbeiten routinemäßig quervernetzte Seiten anfassen, ist `--dirty` für verbindliche Builds unsicher — immer den Default `bin/rails mkdocs:build` verwenden.
+
+### Warum das Rollback passiert ist (Historie für zukünftige Maintainer)
+
+Falls in der git-Historie ein `MkDocsBuild` overcommit Hook, eine `.overcommit.yml` oder `bin/overcommit/mkdocs-build-on-docs-change` erwähnt wird: diese existierten kurzzeitig und wurden entfernt. Im produktiven `git commit` Pfad wurde das Hook-Skript nie wirklich ausgeführt, obwohl overcommit `[MkDocsBuild] OK` meldete. Ein Proof-of-Life `echo >> /tmp/proof.log` auf Zeile 2 des Skripts feuerte bei realen Commits nicht, wohl aber bei `bundle exec overcommit --run`. Der fehlschlagende Dog-Food-Commit war `59c0d7ee`, dessen `public/docs/` Tree zum Commit-Zeitpunkt veraltet war obwohl der Source-Edit gelandet ist — exakte G-02-Reproduktion. Das Rollback ist im Commit-Log dokumentiert; die vollständige Root-Cause-Analyse liegt in `.planning/quick/260415-26d-public-docs-build-hardening-via-overcomm/260415-26d-POSTMORTEM.md`. Der Ersatz-Ansatz für diese Drift-Klasse ist auf eine zukünftige Milestone verschoben und wird wahrscheinlich ein CI-Guard sein, kein weiterer pre-commit Hook.
+
+### Siehe auch
+
+- `lib/tasks/mkdocs.rake` — die zugrundeliegende Build-Task
+- `.planning/quick/260415-26d-public-docs-build-hardening-via-overcomm/260415-26d-POSTMORTEM.md` — warum der overcommit Hook zurückgerollt wurde
+
+---
+
 ## Lokale Entwicklung
 
 ### 🛠️ Setup
@@ -323,4 +366,4 @@ Die MkDocs-Integration bietet eine professionelle, mehrsprachige Dokumentation m
 - ✅ **Professionellem Material Theme**
 - ✅ **Einfacher Wartung** und Erweiterung
 
-Die Dokumentation ist ein wichtiger Bestandteil des Carambus-Projekts und wird kontinuierlich gepflegt und erweitert. 
+Die Dokumentation ist ein wichtiger Bestandteil des Carambus-Projekts und wird kontinuierlich gepflegt und erweitert.

@@ -36,7 +36,7 @@ vim docs/developers/feature-guide.en.md
    docs/DOCUMENTATION_SYSTEM.md      (AI created)
    docs/DOCUMENTATION_INDEX.md       (AI created)
    docs/MKDOCS_DEVELOPMENT.md        (AI updated)
-   docs/reference/mkdocs_dokumentation.de.md  (official)
+   docs/reference/mkdocs_documentation.de.md  (official)
    ```
    → **4 files about documentation!** Which one is current?
 
