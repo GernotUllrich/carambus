@@ -167,7 +167,7 @@
         <%# Zeige Info wenn bereits Spieler manuell hinzugefügt wurden %>
         <% non_local_seedings_count = tournament.seedings.where("seedings.id < #{Seeding::MIN_ID}").count %>
         <% if non_local_seedings_count > 0 && wizard_step_status(tournament, 2) == :active %>
-          <div class="step-info mt-2" style="background: #dff0d8; padding: 8px; border-radius: 4px; border: 1px solid #3c763d;">
+          <div class="step-info mt-2 bg-green-50 dark:bg-green-900/30 border border-green-600 dark:border-green-500 text-green-900 dark:text-green-100 p-2 rounded">
             ℹ️ <strong>Es sind bereits #{non_local_seedings_count} Spieler vorhanden</strong>
             <br>Sie können diese direkt übernehmen (siehe unten)
           </div>
