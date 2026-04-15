@@ -990,29 +990,246 @@ en:
   tournaments:
     edit:
       back: Back
+      cancel: Cancel
       editing_tournament: Editing Tournament
       show: Show
     finalize_modus:
       alternatives_other_disciplines: 'More Alternatives:'
       alternatives_same_discipline: 'Alternatives same discipline:'
+      calculated_likely_wrong: "🤖 Calculated (likely wrong):"
+      close: Close
       continue_with: Proceed with
+      current_workaround: "Currently: Use '🔄 Recalculate' or adjust the seeding list in step 3."
+      extracted_info: This information was automatically extracted from the uploaded invitation.
       final_modus_selection: Finale Auswahl des Spielmodus
+      from_invitation_nbv: "📄 From invitation (NBV specification):"
+      groups_auto_calculated_html: "<strong>🤖 Group assignment automatically calculated (NBV-compliant)</strong><br>The assignment was computed using the NBV standard algorithm."
+      groups_from_invitation_html: "<strong>✅ Group assignment taken from invitation</strong><br>The assignment was automatically extracted and is <strong>identical</strong> with the NBV standard algorithm."
+      in_development_html: "<strong>Note:</strong> This feature is under development."
+      invitation_specs_heading: "📄 Specs from invitation:"
+      landessportwart_quote: "\"Even the regional sports director is sometimes wrong\" 😊"
+      manual_correct_hint: You can correct the group assignment manually.
+      manually_adjust: ✏️ Adjust manually
       proposed_modus: 'Proposed Modus:'
+      proposed_from_invitation: 'Recommended from invitation:'
+      proposed_automatic: 'Automatically determined:'
+      recalculate: 🔄 Recalculate
+      recalculate_confirm: Discard extracted group assignment and recalculate?
+      recalculate_title: Discards invitation assignment and recalculates with NBV algorithm
+      show_comparison: 🔍 Show comparison
       teilnehmer: Select Tournament Modus for %{count} Players
+      use_algorithm: 🔄 Use algorithm (risk)
+      use_algorithm_confirm: "WARNING: The algorithm could be wrong!\n\nBetter use the invitation."
+      use_algorithm_title: Uses the computed algorithm (may deviate from NBV specs)
+      use_invitation: ✅ Use invitation (recommended)
+      use_invitation_confirm: "Use group assignment from invitation?\n\nThis is prescribed by the regional sports director."
+      use_invitation_title: Uses the official group assignment from the invitation
+      warning_nbv_differs: "⚠️  WARNING: Deviation from NBV standard detected!"
+      warning_nbv_differs_body_html: "The group assignment in the invitation <strong>differs</strong> from the computed algorithm.<br><strong>Reason:</strong> The NBV algorithm for %{plan} may not be correctly implemented yet."
     form:
+      clubcloud_url: ClubCloud URL
       discipline: Discipline
+      imported_tournament_note: Imported tournament - editing restricted
+      local_config_label: Local configuration
       player_class: Player Class
       prohibited_this_tournament_from_being_saved: " prohibited this tournament from being saved:"
+      save_tournament: Save Tournament
     groups:
       groups: Groups
     index:
+      api_server_readonly_body_html: "This is the central API server. Tournament management (create, edit, run) is only possible on <strong>local servers</strong>. Here you can only view tournaments and use them as a data source for local servers."
+      api_server_readonly_heading: API Server — Read-Only Mode
       listing_tournaments: Listing Tournaments
       new_tournament: New Tournament
+      new_tournament_button: New Tournament
+    monitor:
+      all_rankings_label: "💡 All rankings:"
+      back_to_mode_selection: Back to Mode Selection
+      bracket_bye: Bye
+      bracket_final_round: 👑 Final round
+      bracket_loser_of: Loser of %{src}
+      bracket_loser_round: 💥 Losers bracket
+      bracket_tree: 🏆 Tournament bracket
+      bracket_winner_of: Winner of %{src}
+      bracket_winner_round: 🏆 Winners bracket
+      club: Club
+      current_games: Current games
+      current_phase: Current phase
+      current_rankings: Current rankings
+      game_running: ▶️ Running
+      games_count: "%{finished} / %{total} games"
+      games_progress: Games progress
+      group_number: Group %{n}
+      group_short: "Gr. %{n}"
+      groups_heading: Groups
+      handicap_balls_goal: Handicap (balls goal)
+      no_active_games: No active games
+      no_group_assignment: No group assignment
+      no_groups: No group assignment available
+      no_players: No players
+      open_tournament_monitor: 🎮 Open Tournament Monitor
+      player: Player
+      position_short: Pos.
+      ranking: Ranking
+      region_ranking_link: "%{org} ranking %{discipline}"
+      round_label: Round %{round}
+      seeding_heading: 📋 Seeding list
+      show_scoreboards: 📺 Show scoreboards (read-only)
+      status_heading: "📊 Tournament status:"
+      table_assignment_heading: Table assignment
+      table_prefix: Table
+      test_update_button: 🔄 Test Update
+      tournament_parameters_heading: Tournament parameters
     new:
       back: Back
+      cancel: Cancel
       new_tournament: New Club Tournament
+    new_team:
+      add_team_button: Add Team to Seedings List
+      heading: New Tournament Team
+      player_ba_id_label: "Player%{n} BaID:"
+      player_ba_id_placeholder: "player %{n} BA ID"
+    wizard_step:
+      help_summary: 💡 What does this step do?
+      pending_default: This step is still open
+      pending_hint: Available only after the previous step
+    compare_seedings:
+      alt_clubcloud_body_html: "If no invitation is available, you can proceed with the <strong>ClubCloud registration list</strong> directly to step 3 (edit participants list)."
+      alt_clubcloud_heading: "📊 Alternative: Continue with ClubCloud registration list"
+      alt_manual_heading: "✏️ Alternative: Sort manually"
+      auto_extract_note: The seeding list will be extracted automatically!
+      back: ← Back
+      choose_file: Choose file
+      clubcloud_list_heading: "ClubCloud registration list (%{count} players):"
+      confirm_use_clubcloud_as_is: "Take the ClubCloud order exactly as-is as the seeding list and proceed to step 3?"
+      confirm_use_clubcloud_by_ranking: "Take the ClubCloud registration list as the participants list and sort by ranking?\n\nPlayers will be sorted automatically by the Carambus ranking."
+      drop_file_here: Drop file here
+      file_types: PDF or screenshot (PNG, JPG)
+      heading: "Apply seeding list:"
+      how_it_works: "💡 How it works:"
+      invitation_present: "✅ Invitation present:"
+      load_clubcloud_hint: Please first load the ClubCloud registration list in step 1.
+      manual_sort_body: "Or sort the list automatically by the current ranking:"
+      no_clubcloud_data: "⚠️ No ClubCloud data available."
+      open_clubcloud: 🔗 Open ClubCloud (for comparison)
+      option_as_clubcloud_html: "<strong>As in ClubCloud:</strong> Takes the order exactly as it appears in ClubCloud"
+      option_by_ranking_html: "<strong>Sorted by ranking:</strong> Carambus sorts automatically by the current ranking (recommended for regional tournaments)"
+      or_drag_file: 💡 Or drag a file here (e.g. from email)
+      processing: Processing...
+      reparse: Re-parse
+      sort_by_ranking: Sort by ranking
+      step_1_html: "Upload the <strong>official invitation</strong> (PDF or screenshot)"
+      step_2_html: "Carambus automatically extracts the <strong>seeding list</strong>"
+      step_3: You review and confirm the detected players
+      step_4: The order is applied
+      supported_formats: "Supported formats: PDF, PNG, JPEG"
+      two_options_label: "Two options:"
+      upload_and_parse: Upload & auto-parse
+      upload_heading: 📧 Upload official invitation
+      use_clubcloud_as_is: Use this order (as in ClubCloud)
+      use_clubcloud_by_ranking: "→ With registration list to step 3 (sorted by ranking)"
+    define_participants:
+      add_player_button: Add player
+      add_player_by_dbu_html: "Add player with <strong>DBU number</strong> (will be added to the list automatically):"
+      all_changes_saved_html: "✓ All changes (check boxes, handicaps) are <strong>saved immediately</strong>"
+      already_bottom: Already at bottom
+      already_top: Already at top
+      auto_suggested_label: "🤖 Automatically suggested:"
+      back: back
+      back_to_wizard: ← Back to wizard
+      can_return_anytime: ✓ You can return here at any time to make further adjustments
+      col_handicap: Handicap (pts)
+      col_name: Name
+      col_new_pos: New Pos.
+      col_order: Order
+      col_participant: Participant
+      col_participation: Participation
+      col_points_goal: Points goal
+      col_points_or_ranking: Points goal or ranking
+      col_pos: Pos.
+      col_ranking: Ranking
+      col_team: Team
+      dbu_nr_hint: "💡 With DBU number: player uniquely identified (recommended) | Multiple comma-separated possible"
+      dbu_nr_placeholder: "Enter DBU number(s) (e.g. 12345 or 12345, 67890, 11111)"
+      differs_from_nbv: ⚠️ Differs from NBV
+      edit_heading: 📝 Edit participants list
+      from_invitation_label: "📄 From invitation:"
+      groups_auto_update_info: 💡 Group assignments update automatically as you edit the participants list.
+      heading: Participants list
+      important_label: 💡 Important
+      incl_round_robin: "(incl. \"Round robin\")"
+      late_registration_heading: ➕ Late registration?
+      move_down: Move down
+      move_up: Move up
+      nbv_conform: ✓ NBV-compliant
+      new_team: New Team
+      no_dbu_nr_question: ⚠️ Player without DBU number? (click for info)
+      no_dbu_nr_reason_html: "<strong>Reason:</strong> Only players with a DBU number can be entered in ClubCloud."
+      no_dbu_nr_title: Players without a DBU number cannot be added after registration.
+      no_plan_for_count: "ℹ️ For %{count} participants there is currently no tournament plan stored for %{discipline}."
+      possible_plans_heading: 📊 Possible tournament plans for %{count} participants
+      rank_title: "Rank %{rank} in %{discipline} (%{region})"
+      reduced_mode_info_html: "ℹ️ Alternative plans may use a reduced target (e.g. 25% fewer innings/points) to shorten overall duration. Watch round count and average game length."
+      round_robin_tag: 🎯 Round robin
+      rounds:
+        one: "%{count} round"
+        other: "%{count} rounds"
+      searching: Searching...
+      show_alternatives_same_discipline: "🔄 %{count} alternative plans (%{discipline}) show"
+      show_other_plans: "⚙️ %{count} more plans show"
+      solution_add_guest: "Or: Tournament director enters the player as a guest (contact the regional sports director)"
+      solution_apply_dbu_nr: Player must apply for a DBU number
+      solution_label: "Solution:"
+      sort_by_handicap: 🎯 Sort by handicap target
+      sort_by_handicap_title: Sorted by handicap target (higher points goal = stronger)
+      sort_by_ranking: 📊 Sort by ranking
+      sort_by_ranking_title: Sorted by current Carambus ranking
+      sort_heading: 🔄 Sort participants list
+      sort_info: 💡 Sorting adjusts positions automatically. Changes are saved immediately.
+      team_list_heading: Team list
+      tip_auto_save: ✓ Changes are saved immediately
+      tip_check_boxes_html: "✓ Check/uncheck = mark/unmark player as participant"
+      tip_handicap_html: "✓ Adjust handicaps (points goal) if needed"
+      tip_late_registration: ➕ Late registration? Activate the checkbox!
+      tip_position_html: "🔢 <strong>Change seeding order:</strong> Enter new position directly OR click arrows ⬆️⬇️"
+      tip_ranking_html: "📊 <strong>Ranking column:</strong> Shows current Carambus ranking for %{discipline} (last 2-3 seasons), clickable to the ranking"
+      when_done_html: "⏭️ When you're done: go back to the wizard and click <strong>Step 4: Finalize participants list</strong>"
+    parse_invitation:
+      alternatives_label: "Alternatives:"
+      apply_seeding: Apply seeding list
+      apply_seeding_confirm: "Apply seeding list with %{count} players?"
+      assignment_used_in_step5: 💡 This assignment will be used in step 5 (tournament modus) and overrides the standard algorithm.
+      back: ← Back
+      bonus_groups_html: "<strong>Bonus:</strong> The group assignment was also detected and will be used automatically."
+      cancel: Cancel
+      col_detected_name: Detected name
+      col_handicap: Handicap (pts)
+      col_matched_player: Matched player
+      col_position: Position
+      col_status: Status
+      confidence_high: ✓ Certain
+      confidence_low: ⚠️ Guess
+      detected_players_heading: "Detected players (%{rate}% match)"
+      extracted_groups_heading: 🎯 Extracted group assignment
+      extraction_failed: ❌ Automatic extraction failed
+      group_number: Group %{group_no}
+      groups_extracted: + Group assignment extracted 🎯
+      heading: Seeding list auto-detected
+      player_fallback: Player %{pos}
+      players_detected: "✅ %{count} players automatically detected!"
+      please_review: Please review the detected players and confirm the application.
+      points_suffix: "%{balls_goal} pts"
+      seeding_extracted: The seeding list was extracted from the invitation.
+      show_extracted_text: 🔍 Show extracted text (debugging)
+      show_extracted_text_short: Show extracted text
+      sort_manually: Sort manually
+      unmatched_heading: "⚠️ Unmatched (%{count}):"
+      unmatched_hint: These players are not in the registration list. Please add them manually.
+      unmatched_item: "%{name} (position %{position})"
+      upload_other_file: Upload another file
     show:
       accredation_end: 'Register until:'
+      admin_heading: 🔧 Tournament director information
       age_restriction: 'Age restriction:'
       ba_id: 'Ba Id:'
       ba_state: 'BA State:'
@@ -1020,27 +1237,45 @@ en:
       balls_goal: Balls Goal
       auto_upload_to_cc: 'Automatically upload results to ClubCloud'
       club: Club
+      close: Close
       date: 'Date:'
       debugging_force_reset_tournament_monitor: 'Debugging: Force Reset Tournament Monitor'
       define_participants: Update Participants
       discipline: 'Discipline:'
       edit: Edit
+      edit_button: Edit
+      edit_participants_button: 📝 Edit participants list
+      edit_participants_button_admin: ✏️ Edit participants
+      edit_participants_title: Add, edit or remove participants
+      extracted_mode_label: "Extracted tournament mode:"
+      file_label: "File:"
       final_tournament_mode: 'Final Tournament Mode:'
       finalize_tournament_modus: Finalize Tournament Modus
       finish_seeding: Finish Seeding List (no easy return)
       games: Games
+      handicap_short: Handicap
       hosting_club: 'Hosting club:'
       innings_goal: Innings Goal
+      last_sync: "Last Sync:"
       location: 'Location:'
       mangage_tournament_group_phase: Monitor Tournament Games
       modus: 'Modus:'
+      more_players: "... and %{count} more players"
       name: Name
       new_position: Edit Position
+      no_invitation_uploaded: ⚠️ No invitation uploaded
       order_by_ranking_or_handicap: Order By Ranking or Handicap
+      parsed_invitation_heading: 📄 Parsed invitation
       party_monitor: Matchday Monitor
+      player: Player
       player_class: 'Player Class:'
       position: Position
+      position_fallback: Position %{pos}
+      position_short: Pos.
+      quick_links_heading: 🔗 Quick links
       rankings: Rankings
+      readonly_body_html: "This tournament already has <strong>results from ClubCloud</strong> and can no longer be edited. ClubCloud is the authoritative data source for completed tournaments."
+      readonly_heading: Tournament is read-only
       region: 'Region:'
       regions: 'Regional Organisations:'
       registrations: Registrations
@@ -1048,6 +1283,10 @@ en:
       reload_from_club_cloud_with_details: Reload From ClubCloud with all details
       reorder: Reorder
       reset_tournament_monitor: Reset Tournament Monitor
+      review_invitation_button: 📄 Review invitation
+      seeding_heading: 📋 Seeding list
+      show_extracted_groups: Show extracted group assignment
+      show_tournament_data: Show tournament data
       force_reload_from_api: 'Sysadmin: Force Reload Tournament from API Server'
       force_reload_confirm: 'Are you sure? This will completely reset the tournament and reload all data (including results) from the API server. This action cannot be undone!'
       sets_to_play: 'Sets To Play:'
@@ -1056,6 +1295,8 @@ en:
       syncing_with_club_cloud: With the StandardError of Club-organized tournaments almost all tournament data must be entered on the ClubCloud website. This form exists to add supplementary data, as far as they are necessary for the tournament handling (table assignments, locations etc.)
       team_size: 'Team Size:'
       title: 'Title:'
+      tournament_data_modal_title: "📊 Tournament data:"
+      tournament_monitor_button: 🎮 Tournament Monitor
       clubcloud_registration_list:
         title: "ClubCloud registration list"
         description: "As long as no results have been entered here, this list reflects the current registrations from ClubCloud."
@@ -1066,6 +1307,16 @@ en:
           order: "Order"
           name: "Player"
           club: "Club"
+      reset_tournament_modal:
+        body: "Warning: all local seeding lists, games and results of this tournament will be lost."
+        confirm: Yes, reset
+        games_line: "Games played:"
+        state_line: "Current state:"
+        title: Reset tournament monitor
+      force_reset_tournament_modal:
+        body: "DATA LOSS: all local seeding lists, running games, results and the tournament state will be irrecoverably lost."
+        confirm: Yes, force reset
+        title: Force reset tournament monitor
     docs:
       walkthrough_link: "📖 Full walkthrough in handbook →"
       form_help_link: "📖 Full walkthrough in handbook →"
