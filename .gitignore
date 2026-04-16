@@ -86,3 +86,5 @@ Thumbs.db
 /doc/doc-local/**/*.md
 import_all.log
 /app/assets/builds/**/*
+config/cable.yml
+.paul/
