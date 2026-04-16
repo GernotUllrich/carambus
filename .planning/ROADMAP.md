@@ -93,7 +93,7 @@ Phases execute in numeric order: 33 → 34 → 35 → 36a → 36b → 36c → 37
 | 36b. UI Cleanup & Kleine Features | v7.0 | 6/6 | Complete | 2026-04-14 |
 | 36c. v7.1 Preparation / CC Groundwork | v7.0 | — (planning phase) | Complete | 2026-04-14 |
 | 37. In-App Doc Links | v7.0 | 5/5 | Complete | 2026-04-15 |
-| 38. UX Polish & i18n Debt | v7.1 | 2/2 | Complete   | 2026-04-15 |
+| 38. UX Polish & i18n Debt | v7.1 | 2/2 | Complete    | 2026-04-16 |
 | 39. DTP-Backed Parameter Ranges | v7.1 | 0/TBD | Not started | - |
 
 **v7.0 total:** 7 phases, 31 plans, 37/37 requirements, ~2 weeks wall time.
