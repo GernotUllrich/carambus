@@ -1,4 +1,5 @@
 class StartPosition < ApplicationRecord
+  include LocalProtector
   include Taggable
   include Translatable
   

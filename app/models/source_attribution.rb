@@ -1,4 +1,5 @@
 class SourceAttribution < ApplicationRecord
+  include LocalProtector
   belongs_to :training_source
   belongs_to :sourceable, polymorphic: true
   

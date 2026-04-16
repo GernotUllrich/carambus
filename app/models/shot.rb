@@ -1,4 +1,5 @@
 class Shot < ApplicationRecord
+  include LocalProtector
   include Translatable
   
   belongs_to :training_example

@@ -1,4 +1,5 @@
 class TrainingConcept < ApplicationRecord
+  include LocalProtector
   include Taggable
   include Translatable
   

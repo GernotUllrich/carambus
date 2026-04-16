@@ -1,4 +1,5 @@
 class Tag < ApplicationRecord
+  include LocalProtector
   include Translatable
   
   has_many :taggings, dependent: :destroy

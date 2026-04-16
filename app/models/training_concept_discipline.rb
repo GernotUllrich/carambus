@@ -1,4 +1,5 @@
 class TrainingConceptDiscipline < ApplicationRecord
+  include LocalProtector
   belongs_to :training_concept
   belongs_to :discipline
   

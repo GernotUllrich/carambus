@@ -1,4 +1,5 @@
 class TrainingSource < ApplicationRecord
+  include LocalProtector
   has_many :source_attributions, dependent: :destroy
   has_many :training_concepts, through: :source_attributions, source: :sourceable, source_type: 'TrainingConcept'
   has_many :training_examples, through: :source_attributions, source: :sourceable, source_type: 'TrainingExample'
