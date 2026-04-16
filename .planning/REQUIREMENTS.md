@@ -17,21 +17,21 @@ All 6 requirements are small, independently shippable. Phase 38 covers 5 of them
 
 ### UX Polish (user-visible fixes)
 
-- [ ] **UX-POL-01**: Wizard `<details>` help block and inline-styled info banners are readable in dark mode. User can read all wizard help text and info banners without switching to light mode, with sufficient contrast against the dark background.
+- [x] **UX-POL-01**: Wizard `<details>` help block and inline-styled info banners are readable in dark mode. User can read all wizard help text and info banners without switching to light mode, with sufficient contrast against the dark background.
   - Fix sketch (from seed): replace inline `style="background: #dff0d8; …"` on `_wizard_steps_v2.html.erb:167` (and lines 215, 268) with Tailwind `bg-green-50 dark:bg-green-900/30 border border-green-600 dark:border-green-500 text-green-900 dark:text-green-100`. Audit `tournament_wizard.css:287-295` specificity.
   - Source gap: G-01 (medium severity)
 
-- [ ] **UX-POL-02**: Tooltip-decorated labels have a visible affordance. A user who has never seen the tournament_monitor form knows the labels are hoverable without trial-and-error, via dashed underline + `cursor: help` styling.
+- [x] **UX-POL-02**: Tooltip-decorated labels have a visible affordance. A user who has never seen the tournament_monitor form knows the labels are hoverable without trial-and-error, via dashed underline + `cursor: help` styling.
   - Fix sketch (from seed): one CSS attribute-selector rule on `[data-controller~="tooltip"]` in a new or existing stylesheet imported alongside `application.tailwind.css`. Auto-applies to all 16 existing tooltipped labels on `tournament_monitor.html.erb`.
   - Source gap: G-03 (low severity)
 
-- [ ] **UX-POL-03**: Phase 36B Wizard Header Test 1 criteria are explicitly reconfirmed after G-01 fix ships. AASM state badge is dominant, 6 bucket chips present, "Schritt N von 6" text absent, numeric prefixes absent — all observable in a fresh manual UAT pass.
+- [x] **UX-POL-03**: Phase 36B Wizard Header Test 1 criteria are explicitly reconfirmed after G-01 fix ships. AASM state badge is dominant, 6 bucket chips present, "Schritt N von 6" text absent, numeric prefixes absent — all observable in a fresh manual UAT pass.
   - Fix sketch: no code change — this is a retest of the existing Phase 36B UI against its original criteria. Test 1 was marked `issue` during the v7.0 UAT because G-01 was flagged mid-test rather than negating Test 1's header criteria.
   - Source gap: seed §Notes — "Test 1 retest must ship alongside G-01 fix"
 
 ### i18n Debt (translation coverage)
 
-- [ ] **I18N-01**: EN locale shows "Warmup" (not "Training") for the three `table_monitor.status.warmup*` keys. English-reading user sees "Warmup / Warm-up Player A / Warm-up Player B" on the scoreboard warm-up screen.
+- [x] **I18N-01**: EN locale shows "Warmup" (not "Training") for the three `table_monitor.status.warmup*` keys. English-reading user sees "Warmup / Warm-up Player A / Warm-up Player B" on the scoreboard warm-up screen.
   - Fix sketch (from seed): 3-line edit in `config/locales/en.yml:844-846` (`warmup: Warm-up`, `warmup_a: Warm-up Player A`, `warmup_b: Warm-up Player B`). Do **not** touch `en.yml:387` (`training: Training` — that's a different key for the practice-tournament concept).
   - Source gap: G-05 (low severity)
 
