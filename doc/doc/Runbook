@@ -12,7 +12,7 @@ OS mit Raspberry Pi Manager laden:
 * Mouse und Keyboard anschliessen und OS starten 
 * WLAN konfigurieren
   IP z.B. 192.168.178.52
-* Software update/upgrade
+* 
 
 * German Keyboard Layout (Preferences -> Mouse and Keyboard Settings)
 * root password ändern
@@ -25,21 +25,22 @@ OS mit Raspberry Pi Manager laden:
 
   check with systemctl status ssh
 
-* eventually adjust firewall
-  
-  ufw allow ssh
+  We use the iptables directly in ansible, so forget the following
+    * eventually adjust firewall\
+    ufw allow ssh
 
-* passwort-losen Zugang einrich ten:\
+* passwort-losen Zugang einrichten:\
   Login, and edit this file: sudo nano /etc/ssh/sshd_config\
   Find this line: PermitRootLogin without-password\
   Edit: PermitRootLogin yes\
   Close and save file\
-  reboot or restart sshd service using: /etc/init.d/ssh restart\
+  reboot or restart sshd service using: sudo systemctl status ssh\
   Set a root password if there isn't one already: sudo passwd root\
-  $ ssh-copy-id root@192.168.178.52       (ggf vorher, brew install ssh-copy-id)
+  $ ssh-copy-id root@192.168.178.84       (ggf vorher, brew install ssh-copy-id)
 * Anschliessesd auf dem raspi in /etc/ssh/sshd-config
-* für root den password zugang sperren:
-* PermitRootLogin prohibit-password
+The following isn't necessary, because ansible bootphase deals with this
+  * für root den password zugang sperren:
+  * PermitRootLogin prohibit-password
 
 ## Konfigurieren mit ansible
 
@@ -52,7 +53,8 @@ carambus5 ansible_host=192.168.178.107  node_name=web5x^x^.carambus.de provider=
 * ~/ansible/host_vars/carambus3\
   (copy/edit from carambus)
 * run ansible
-* eventually clear below ##### in carambus{n}
+* eventually clear below ##### in carambus{n} and update the switch bootstrap_done: {false,true}
+* see doc/doc/PI-LOCAL-SERVER-SETUP for example
   ansible-playbook -v -i hosts -l carambus5  master.yml
 
 rbenv install 2.7.2
