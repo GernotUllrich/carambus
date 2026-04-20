@@ -81,32 +81,22 @@
 
 <!-- Structured Data Fields -->
 <div class="field-unit">
-  <%= f.label :end_position_type, "EndPosition Type" %>
-  <%= f.select :end_position_type, 
-      [['Exakt (Koordinaten)', 'exact'], ['Fläche', 'area'], ['Konzept', 'concept'], ['Benannte Fläche', 'named_area']], 
-      { include_blank: true },
+  <%= f.label :end_ball_configuration_id, "EndPosition (BallConfiguration)" %>
+  <%= f.collection_select :end_ball_configuration_id,
+      BallConfiguration.order(:table_variant, :gather_state, :id),
+      :id,
+      ->(bc) { "##{bc.id} · #{bc.table_variant}/#{bc.gather_state}" },
+      { include_blank: "— keine strukturierte End-Position —" },
       class: "field-unit__field" %>
-  <p class="field-unit__hint">Typ der End-Position (exakte Koordinaten, Fläche, Konzept wie "Amerika-Position")</p>
-</div>
-
-<div class="field-unit">
-  <%= f.label :end_position_data, "EndPosition Data (JSON)" %>
-  <%= f.text_area :end_position_data, 
-      value: f.object.end_position_data.present? ? JSON.pretty_generate(f.object.end_position_data) : '',
-      class: "field-unit__field",
-      rows: 6,
-      style: "font-family: monospace;" %>
   <p class="field-unit__hint">
-    JSON-Daten für die End-Position:<br>
-    - exact: <code>{"b1": {"x": 150, "y": 200}, "b2": {...}, "b3": {...}}</code><br>
-    - area: <code>{"type": "rectangle", "x1": 100, "y1": 150, "x2": 200, "y2": 250}</code><br>
-    - named_area: <code>{"type": "named_area", "name": "Cadre-Bereich"}</code>
+    Endposition als typisierte BallConfiguration (normalisierte b1/b2/b3 + table_variant + gather_state).
+    Leer lassen, wenn der Stoß keine strukturierte Endposition liefert (z. B. reiner Fehlerfall, der nur textlich beschrieben wird).
   </p>
 </div>
 
 <div class="field-unit">
   <%= f.label :shot_parameters, "Shot Parameters (JSON)" %>
-  <%= f.text_area :shot_parameters, 
+  <%= f.text_area :shot_parameters,
       value: f.object.shot_parameters.present? ? JSON.pretty_generate(f.object.shot_parameters) : '',
       class: "field-unit__field",
       rows: 6,

@@ -1,9 +1,16 @@
 # Training Concepts Seed Data
-# This file contains example training concepts for billiards
+# Example training concepts for billiards.
+# Updated for ontology v0.7: ball positions live in typed BallConfiguration
+# records (normalized coords 0..1, table_variant, gather_state).
+#
+# NOTE: Shot seed data is intentionally omitted here. Shot includes the
+# Translatable concern but the shots table lacks the raw columns
+# (title, notes, ...) that the concern expects, so Shot.create raises.
+# Resolution is a separate project (align Shot with Translatable, or
+# remove the include). Revisit once that decision is made.
 
 puts "Creating training concepts..."
 
-# Find or create a discipline (Dreiband)
 dreiband = Discipline.find_or_create_by!(name: "Dreiband klein") do |d|
   d.table_kind = TableKind.find_by(name: "Small Billard")
 end
@@ -13,10 +20,10 @@ konterspiel = TrainingConcept.create!(
   title: "Konterspiel",
   short_description: "Grundlagen des Konterspiels beim Dreiband",
   full_description: <<~DESC,
-    Das Konterspiel ist eine fundamentale Technik im Dreiband-Billard. 
-    Dabei wird der erste Ball so angespielt, dass der Spielball über zwei 
+    Das Konterspiel ist eine fundamentale Technik im Dreiband-Billard.
+    Dabei wird der erste Ball so angespielt, dass der Spielball über zwei
     Banden zum zweiten Ball läuft.
-    
+
     Wichtig ist dabei:
     - Die richtige Bandenwahl
     - Die korrekte Kraftdosierung
@@ -26,7 +33,6 @@ konterspiel = TrainingConcept.create!(
   disciplines: [dreiband]
 )
 
-# Add a training example
 example1 = konterspiel.training_examples.create!(
   title: "Einfaches Konterspiel mit kurzer Linie",
   sequence_number: 1,
@@ -38,91 +44,36 @@ example1 = konterspiel.training_examples.create!(
   PARAMS
 )
 
-# Add starting position
-example1.create_starting_position!(
+start_config_1 = BallConfiguration.create!(
+  b1_x: 0.18, b1_y: 0.50,
+  b2_x: 0.50, b2_y: 0.50,
+  b3_x: 0.82, b3_y: 0.30,
+  table_variant: "match",
+  gather_state: "pre_gather",
+  notes: "Konterspiel, kurze Linie, Ausgangsposition"
+)
+
+example1.create_start_position!(
   description_text: <<~DESC,
     Ball 1 (Weiß): Position nahe der kurzen Bande, ca. 30cm vom Rand
     Ball 2 (Gelb): In der Mitte des Tisches
     Ball 3 (Rot): Nahe der gegenüberliegenden langen Bande
   DESC
-  ball_measurements: {
-    b1: { x: 50, y: 150, description: "Spielball nahe kurzer Bande" },
-    b2: { x: 142, y: 142, description: "Ball 2 in Tischmitte" },
-    b3: { x: 234, y: 50, description: "Ball 3 nahe langer Bande" }
-  },
-  position_variants: [
-    {
-      name: "Variant A - Engerer Winkel",
-      b1: { x: 45, y: 145 },
-      b2: { x: 140, y: 145 }
-    },
-    {
-      name: "Variant B - Weiterer Winkel",
-      b1: { x: 55, y: 155 },
-      b2: { x: 145, y: 140 }
-    }
-  ]
-)
-
-# Add target position
-example1.create_target_position!(
-  description_text: <<~DESC,
-    Nach dem Stoß sollte der Spielball:
-    - Von Ball 1 zur kurzen Bande laufen
-    - Dann zur langen Bande
-    - Anschließend Ball 2 treffen
-    - Und schließlich Ball 3 karambolieren
-  DESC
-  ball_measurements: {
-    b1: { x: 50, y: 150, description: "Ball 1 bleibt stehen" },
-    b2: { x: 142, y: 142, description: "Ball 2 wurde getroffen" },
-    b3: { x: 234, y: 50, description: "Ball 3 wurde karamboliert" },
-    cue_ball_path: [
-      { x: 50, y: 150 },
-      { x: 30, y: 50 },
-      { x: 180, y: 30 },
-      { x: 142, y: 142 },
-      { x: 234, y: 50 }
-    ]
-  }
-)
-
-# Add error examples
-example1.error_examples.create!(
-  title: "Zu wenig Effet",
-  sequence_number: 1,
-  stroke_parameters_text: <<~PARAMS,
-    - Effet: Zu wenig oder gar kein Rechtseffet
-    - Kraft: Mittel (60%)
-    - Folge: Der Ball läuft nicht weit genug zur zweiten Bande
-  PARAMS
-  end_position_description: "Der Spielball erreicht Ball 2 nicht und bleibt auf halber Strecke stehen."
-)
-
-example1.error_examples.create!(
-  title: "Zu viel Kraft",
-  sequence_number: 2,
-  stroke_parameters_text: <<~PARAMS,
-    - Effet: Korrekt (Rechtseffet)
-    - Kraft: Zu stark (über 80%)
-    - Folge: Der Ball läuft zu weit und verfehlt Ball 3
-  PARAMS
-  end_position_description: "Der Spielball trifft Ball 2, aber läuft zu weit über Ball 3 hinaus."
+  ball_configuration: start_config_1
 )
 
 puts "✓ Created training concept: #{konterspiel.title}"
 puts "  - #{konterspiel.training_examples.count} example(s)"
-puts "  - #{example1.error_examples.count} error example(s)"
 
 # Example 2: Rückläufer
 ruecklaufer = TrainingConcept.create!(
   title: "Rückläufer",
   short_description: "Technik des Rücklaufs mit Rückwärtseffet",
   full_description: <<~DESC,
-    Der Rückläufer ist eine Technik, bei der der Spielball nach dem 
-    Treffen der Objektbälle zurückläuft. Dies wird durch starkes 
+    Der Rückläufer ist eine Technik, bei der der Spielball nach dem
+    Treffen der Objektbälle zurückläuft. Dies wird durch starkes
     Rückwärtseffet erreicht.
-    
+
     Anwendung:
     - Positionsspiel
     - Defensive Stöße
@@ -143,30 +94,27 @@ example2 = ruecklaufer.training_examples.create!(
   PARAMS
 )
 
-example2.create_starting_position!(
-  description_text: "Drei Bälle in einer Linie, mittlerer Abstand",
-  ball_measurements: {
-    b1: { x: 100, y: 142, description: "Ball 1" },
-    b2: { x: 142, y: 142, description: "Ball 2" },
-    b3: { x: 184, y: 142, description: "Ball 3" }
-  }
+start_config_2 = BallConfiguration.create!(
+  b1_x: 0.35, b1_y: 0.50,
+  b2_x: 0.50, b2_y: 0.50,
+  b3_x: 0.65, b3_y: 0.50,
+  table_variant: "match",
+  gather_state: "pre_gather",
+  notes: "Rückläufer-Linienstellung"
 )
 
-example2.create_target_position!(
-  description_text: "Spielball läuft zurück nach dem Treffer",
-  ball_measurements: {
-    b1: { x: 100, y: 142 },
-    b2: { x: 142, y: 142 },
-    b3: { x: 184, y: 142 },
-    cue_ball_final: { x: 60, y: 142, description: "Spielball Position nach Rücklauf" }
-  }
+example2.create_start_position!(
+  description_text: "Drei Bälle in einer Linie, mittlerer Abstand",
+  ball_configuration: start_config_2
 )
 
 puts "✓ Created training concept: #{ruecklaufer.title}"
 puts "  - #{ruecklaufer.training_examples.count} example(s)"
 
-puts "\n" + "="*50
+puts "\n" + "=" * 50
 puts "Training Concepts seeding completed!"
-puts "Total concepts: #{TrainingConcept.count}"
-puts "Total examples: #{TrainingExample.count}"
-puts "="*50
+puts "Total concepts:            #{TrainingConcept.count}"
+puts "Total examples:            #{TrainingExample.count}"
+puts "Total start_positions:     #{StartPosition.count}"
+puts "Total ball_configurations: #{BallConfiguration.count}"
+puts "=" * 50

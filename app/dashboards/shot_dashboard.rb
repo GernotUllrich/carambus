@@ -9,7 +9,8 @@ class ShotDashboard < Administrate::BaseDashboard
       collection: ['ideal', 'alternative', 'error']
     ),
     sequence_number: Field::Number,
-    
+    end_ball_configuration: Field::BelongsTo.with_options(class_name: "BallConfiguration"),
+
     # Translatable fields
     title_de: Field::Text,
     title_en: Field::Text,
@@ -32,8 +33,6 @@ class ShotDashboard < Administrate::BaseDashboard
     shot_description_nl: Field::Text,
     
     # Structured data
-    end_position_type: Field::String,
-    end_position_data: Field::Text.with_options(searchable: false),
     shot_parameters: Field::Text.with_options(searchable: false),
     
     translations_synced_at: Field::DateTime,
@@ -64,8 +63,7 @@ class ShotDashboard < Administrate::BaseDashboard
     end_position_description_en
     shot_description_de
     shot_description_en
-    end_position_type
-    end_position_data
+    end_ball_configuration
     shot_parameters
     translations_synced_at
     created_at
@@ -77,6 +75,7 @@ class ShotDashboard < Administrate::BaseDashboard
     shot_type
     sequence_number
     shot_image
+    end_ball_configuration
   ].freeze
 
   COLLECTION_FILTERS = {
