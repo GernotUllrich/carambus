@@ -8,6 +8,8 @@ class TrainingConcept < ApplicationRecord
   has_many :training_examples, dependent: :destroy
   has_many :source_attributions, as: :sourceable, dependent: :destroy
   has_many :training_sources, through: :source_attributions
+  has_many :concept_principles, dependent: :destroy
+  has_many :principles, through: :concept_principles
   
   accepts_nested_attributes_for :source_attributions, allow_destroy: true, reject_if: :all_blank
 
