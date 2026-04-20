@@ -88,3 +88,4 @@ import_all.log
 /app/assets/builds/**/*
 config/cable.yml
 .paul/
+db/schema_baseline_*.backup
