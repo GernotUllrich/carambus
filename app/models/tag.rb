@@ -5,9 +5,8 @@ class Tag < ApplicationRecord
   has_many :taggings, dependent: :destroy
   has_many :training_concepts, through: :taggings, source: :taggable, source_type: 'TrainingConcept'
   has_many :training_examples, through: :taggings, source: :taggable, source_type: 'TrainingExample'
-  has_many :starting_positions, through: :taggings, source: :taggable, source_type: 'StartingPosition'
-  has_many :target_positions, through: :taggings, source: :taggable, source_type: 'TargetPosition'
-  
+  has_many :start_positions, through: :taggings, source: :taggable, source_type: 'StartPosition'
+
   validates :name, presence: true, uniqueness: true
   
   def translatable_fields
