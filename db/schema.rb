@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_04_20_150100) do
+ActiveRecord::Schema[7.2].define(version: 2026_04_20_160100) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -115,6 +115,21 @@ ActiveRecord::Schema[7.2].define(version: 2026_04_20_150100) do
     t.check_constraint "position_type::text = ANY (ARRAY['exact'::character varying, 'approximate'::character varying, 'qualitative'::character varying]::text[])", name: "ball_configs_position_type_check"
     t.check_constraint "table_variant::text = ANY (ARRAY['match'::character varying, 'halbmatch'::character varying, 'klein'::character varying]::text[])", name: "ball_configurations_table_variant_check"
     t.check_constraint "target_cushion IS NULL OR (target_cushion::text = ANY (ARRAY['short_left'::character varying, 'short_right'::character varying, 'long_near'::character varying, 'long_far'::character varying]::text[]))", name: "ball_configs_target_cushion_check"
+  end
+
+  create_table "ball_configuration_zones", force: :cascade do |t|
+    t.bigint "ball_configuration_id", null: false
+    t.bigint "table_zone_id", null: false
+    t.string "which_ball", null: false
+    t.string "role", null: false
+    t.text "notes"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["ball_configuration_id", "table_zone_id", "which_ball", "role"], name: "idx_ball_config_zone_unique", unique: true
+    t.index ["ball_configuration_id"], name: "index_ball_configuration_zones_on_ball_configuration_id"
+    t.index ["table_zone_id"], name: "index_ball_configuration_zones_on_table_zone_id"
+    t.check_constraint "role::text = ANY (ARRAY['target'::character varying, 'source'::character varying, 'via'::character varying]::text[])", name: "ball_configuration_zones_role_check"
+    t.check_constraint "which_ball::text = ANY (ARRAY['b1'::character varying, 'b2'::character varying, 'b3'::character varying, 'any'::character varying]::text[])", name: "ball_configuration_zones_which_ball_check"
   end
 
   create_table "branch_ccs", force: :cascade do |t|
@@ -1163,6 +1178,20 @@ ActiveRecord::Schema[7.2].define(version: 2026_04_20_150100) do
     t.string "prev_tournament_monitor_type"
   end
 
+  create_table "table_zones", force: :cascade do |t|
+    t.string "key", null: false
+    t.string "label", null: false
+    t.string "zone_type", null: false
+    t.jsonb "polygon_normalized", default: [], null: false
+    t.text "description"
+    t.string "gretillat_ref"
+    t.string "weingartner_ref"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["key"], name: "index_table_zones_on_key", unique: true
+    t.check_constraint "zone_type::text = ANY (ARRAY['band_strip'::character varying, 'corner_region'::character varying, 'line_passage'::character varying, 'custom'::character varying]::text[])", name: "table_zones_zone_type_check"
+  end
+
   create_table "tables", force: :cascade do |t|
     t.integer "location_id"
     t.integer "table_kind_id"
@@ -1634,6 +1663,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_04_20_150100) do
   add_foreign_key "tournaments", "regions", validate: false
   add_foreign_key "training_concept_disciplines", "disciplines"
   add_foreign_key "training_concept_disciplines", "training_concepts"
+  add_foreign_key "ball_configuration_zones", "ball_configurations"
+  add_foreign_key "ball_configuration_zones", "table_zones"
   add_foreign_key "concept_principles", "principles"
   add_foreign_key "concept_principles", "training_concepts"
   add_foreign_key "training_examples", "training_concepts"

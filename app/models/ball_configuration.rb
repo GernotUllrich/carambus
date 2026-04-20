@@ -13,6 +13,8 @@ class BallConfiguration < ApplicationRecord
            foreign_key: :end_ball_configuration_id,
            dependent: :nullify,
            inverse_of: :end_ball_configuration
+  has_many :ball_configuration_zones, dependent: :destroy
+  has_many :table_zones, through: :ball_configuration_zones
 
   enum :table_variant,   TABLE_VARIANTS.index_with(&:itself),  prefix: :table
   enum :gather_state,    GATHER_STATES.index_with(&:itself),   prefix: :gather
