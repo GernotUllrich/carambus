@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_03_27_000008) do
+ActiveRecord::Schema[7.2].define(version: 2026_04_20_130000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -84,6 +84,25 @@ ActiveRecord::Schema[7.2].define(version: 2026_03_27_000008) do
     t.index ["created_at"], name: "index_ai_search_logs_on_created_at"
     t.index ["success"], name: "index_ai_search_logs_on_success"
     t.index ["user_id"], name: "index_ai_search_logs_on_user_id"
+  end
+
+  create_table "ball_configurations", force: :cascade do |t|
+    t.float "b1_x", null: false
+    t.float "b1_y", null: false
+    t.float "b2_x", null: false
+    t.float "b2_y", null: false
+    t.float "b3_x", null: false
+    t.float "b3_y", null: false
+    t.string "table_variant", null: false
+    t.string "gather_state", null: false
+    t.text "notes"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["gather_state"], name: "index_ball_configurations_on_gather_state"
+    t.index ["table_variant", "gather_state"], name: "index_ball_configs_on_variant_and_gather_state"
+    t.check_constraint "b1_x >= 0::double precision AND b1_x <= 1::double precision AND b1_y >= 0::double precision AND b1_y <= 1::double precision AND b2_x >= 0::double precision AND b2_x <= 1::double precision AND b2_y >= 0::double precision AND b2_y <= 1::double precision AND b3_x >= 0::double precision AND b3_x <= 1::double precision AND b3_y >= 0::double precision AND b3_y <= 1::double precision", name: "ball_configurations_normalized_coords_check"
+    t.check_constraint "gather_state::text = ANY (ARRAY['pre_gather'::character varying, 'gathering'::character varying, 'post_gather'::character varying]::text[])", name: "ball_configurations_gather_state_check"
+    t.check_constraint "table_variant::text = ANY (ARRAY['match'::character varying, 'halbmatch'::character varying, 'klein'::character varying]::text[])", name: "ball_configurations_table_variant_check"
   end
 
   create_table "branch_ccs", force: :cascade do |t|
@@ -940,15 +959,19 @@ ActiveRecord::Schema[7.2].define(version: 2026_03_27_000008) do
     t.text "shot_description_en"
     t.text "shot_description_fr"
     t.text "shot_description_nl"
-    t.string "end_position_type"
-    t.jsonb "end_position_data", default: {}
     t.jsonb "shot_parameters", default: {}
     t.datetime "translations_synced_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "end_ball_configuration_id"
+    t.string "source_language", default: "de", null: false
+    t.jsonb "translations", default: {}
+    t.index ["end_ball_configuration_id"], name: "index_shots_on_end_ball_configuration_id"
     t.index ["shot_type"], name: "index_shots_on_shot_type"
+    t.index ["source_language"], name: "index_shots_on_source_language"
     t.index ["training_example_id", "sequence_number"], name: "index_shots_on_training_example_id_and_sequence_number", unique: true
     t.index ["training_example_id"], name: "index_shots_on_training_example_id"
+    t.index ["translations"], name: "index_shots_on_translations", using: :gin
   end
 
   create_table "slots", force: :cascade do |t|
@@ -980,8 +1003,6 @@ ActiveRecord::Schema[7.2].define(version: 2026_03_27_000008) do
   create_table "starting_positions", force: :cascade do |t|
     t.bigint "training_example_id", null: false
     t.text "description_text"
-    t.jsonb "ball_measurements", default: {}
-    t.jsonb "position_variants", default: []
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "source_language", default: "de", null: false
@@ -989,6 +1010,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_03_27_000008) do
     t.text "description_text_de"
     t.text "description_text_en"
     t.datetime "translations_synced_at"
+    t.bigint "ball_configuration_id", null: false
+    t.index ["ball_configuration_id"], name: "index_starting_positions_on_ball_configuration_id"
     t.index ["source_language"], name: "index_starting_positions_on_source_language"
     t.index ["training_example_id"], name: "index_starting_positions_on_training_example_id", unique: true
     t.index ["translations"], name: "index_starting_positions_on_translations", using: :gin
@@ -1553,8 +1576,10 @@ ActiveRecord::Schema[7.2].define(version: 2026_03_27_000008) do
   add_foreign_key "settings", "clubs"
   add_foreign_key "settings", "regions"
   add_foreign_key "settings", "tournaments"
+  add_foreign_key "shots", "ball_configurations", column: "end_ball_configuration_id"
   add_foreign_key "shots", "training_examples"
   add_foreign_key "source_attributions", "training_sources"
+  add_foreign_key "starting_positions", "ball_configurations"
   add_foreign_key "starting_positions", "training_examples"
   add_foreign_key "stream_configurations", "tables"
   add_foreign_key "tables", "locations"

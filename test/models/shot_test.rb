@@ -36,4 +36,25 @@ class ShotTest < ActiveSupport::TestCase
     config = build(:ball_configuration)
     assert_respond_to config, :ending_shots
   end
+
+  # Translatable wiring: shots were created without source_language / translations
+  # columns despite including the Translatable concern. Any Shot.create blew up
+  # on NoMethodError in the before_validation callback.
+
+  test "has source_language column" do
+    assert_includes Shot.column_names, "source_language"
+  end
+
+  test "has translations jsonb column" do
+    assert_includes Shot.column_names, "translations"
+  end
+
+  test "Translatable callback fills source_language to 'de'" do
+    # Call the callback directly; a full `valid?` pass also triggers
+    # set_sequence_number which needs training_example. We isolate the
+    # Translatable fix here.
+    shot = Shot.new
+    shot.send(:set_default_language)
+    assert_equal "de", shot.source_language
+  end
 end
