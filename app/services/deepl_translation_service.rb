@@ -48,14 +48,8 @@ class DeeplTranslationService
 
     # If no glossary_id provided, try to get one
     if glossary_id.nil?
-      supported_pairs = [
-        ["EN", "DE"], 
-        ["NL", "DE"], 
-        ["NL", "EN"],
-        ["FR", "DE"],
-        ["FR", "EN"]
-      ]
-      
+      supported_pairs = DeeplGlossaryService.supported_pairs_upcase
+
       if supported_pairs.include?([source_language.upcase, target_language.upcase])
         begin
           glossary_service = DeeplGlossaryService.new

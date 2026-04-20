@@ -100,10 +100,13 @@ class AnthropicTranslationService
     
     return "" unless glossary_data
     
-    terms = glossary_data.take(20).map do |source, target|
+    # Send the full glossary to Claude. At ~40-50 terms per pair plus the
+    # Spanish seed, this is well under the context budget and gives consistent
+    # term handling. Previous .take(20) dropped terms alphabetically late.
+    terms = glossary_data.map do |source, target|
       "- #{source} → #{target}"
     end
-    
+
     terms.join("\n")
   end
 end

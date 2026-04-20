@@ -5,6 +5,18 @@ require 'json'
 class DeeplGlossaryService
   DEEPL_API_URL = "https://api.deepl.com/v2"
 
+  # Supported language pairs, single source of truth for both this service
+  # and DeeplTranslationService. Lowercase for consistency with internal keys;
+  # use supported_pairs_upcase for the DeepL API which expects upper case.
+  SUPPORTED_PAIRS = [
+    ["en", "de"], ["nl", "de"], ["nl", "en"],
+    ["fr", "de"], ["fr", "en"], ["es", "de"], ["es", "en"]
+  ].freeze
+
+  def self.supported_pairs_upcase
+    SUPPORTED_PAIRS.map { |src, tgt| [src.upcase, tgt.upcase] }
+  end
+
   # Billard-spezifisches Glossar EN→DE
   BILLIARD_GLOSSARY_EN_DE = {
     # Positionsbegriffe
@@ -61,7 +73,40 @@ class DeeplGlossaryService
     "practice" => "Training",
     "exercise" => "Übung",
     "diagram" => "Diagramm",
-    "angle" => "Winkel"
+    "angle" => "Winkel",
+
+    # Additions 2026-04-19 — Gretillat four parameters
+    "quantity of ball"      => "Ballbreite",
+    "height of attack"      => "Treffhöhe",
+    "energy"                => "Stoßenergie",
+    "force"                 => "Kraft",
+    "speed"                 => "Stoßgeschwindigkeit",
+
+    # Quantity-of-ball values (Gretillat)
+    "full ball"             => "voller Ball",
+    "three quarter ball"    => "Dreiviertel-Ball",
+    "half ball"             => "halber Ball",
+    "quarter ball"          => "Viertel-Ball",
+
+    # Gather-shot vocabulary (Gretillat)
+    "gather shot"           => "Versammlungsstoß",
+    "long gather shot"      => "langer Versammlungsstoß",
+    "width gather shot"     => "kurzer Versammlungsstoß",
+    "gather zone"           => "Versammlungszone",
+    "placement"             => "Stellungsstoß",
+
+    # Gretillat Principles
+    "principle of dominance" => "Prinzip der Dominanz",
+    "margin of error"       => "Fehlertoleranz",
+    "risk factor analysis"  => "Risikofaktor-Analyse",
+
+    # Weingartner notation (confirmed)
+    "compulsory shot program" => "Pflichtstoßprogramm",
+    "cadre line"            => "Cadrelinie",
+    "ball-width"            => "Ballbreite",
+
+    # Cross-technique
+    "bank shot"             => "Doublé"
   }
 
   # Billard-Glossar NL→DE
@@ -119,9 +164,17 @@ class DeeplGlossaryService
 
     # Sonstiges
     "diagram" => "Diagramm",
-    "hoek" => "Winkel",
     "richting" => "Richtung",
     "kaderspel" => "Cadre-Spiel",
+
+    # Additions 2026-04-19
+    "verzamelstoten"        => "Versammlungsstöße",
+    "verzamelstoot"         => "Versammlungsstoß",
+    "trekstoot"             => "Rückläufer",
+    "masséstoot"            => "Massé-Stoß",
+    "libre"                 => "Freie Partie",
+    "vrij spel"             => "Freie Partie",
+    "kader"                 => "Cadre",
   }
 
   # Billard-Glossar NL→EN
@@ -179,7 +232,6 @@ class DeeplGlossaryService
 
     # Sonstiges
     "diagram" => "diagram",
-    "hoek" => "angle",
     "richting" => "direction"
   }
 
@@ -235,7 +287,28 @@ class DeeplGlossaryService
     # Autres
     "diagramme" => "Diagramm",
     "angle" => "Winkel",
-    "direction" => "Richtung"
+    "direction" => "Richtung",
+
+    # Additions 2026-04-19 — from Gretillat book 1 glossary (p. 3)
+    "bille joueuse"         => "Spielball",
+    "point de visée"        => "Anspielpunkt",
+    "point de bande"        => "Bandenpunkt",
+    "avec effet"            => "mit Effet",
+    "sans effet"            => "ohne Effet",
+    "vue de profil"         => "Seitenansicht",
+    "vue de dessus"         => "Draufsicht",
+    "surface de jeu"        => "Spielfläche",
+    "hauteur d'attaque"     => "Treffhöhe",
+    "quantité de bille"     => "Ballbreite",
+    "rétro"                 => "Rückläufer",
+    "coulé"                 => "Nachläufer",
+    "marge d'erreur"        => "Fehlertoleranz",
+    "rappel"                => "Versammlungsstoß",
+    "rappel long"           => "langer Versammlungsstoß",
+    "rappel en largeur"     => "kurzer Versammlungsstoß",
+    "trajectoire"           => "Laufweg",
+    "angle d'incidence"     => "Einfallswinkel",
+    "angle de réflexion"    => "Reflexionswinkel"
   }
 
   # FR→EN Glossar
@@ -289,7 +362,146 @@ class DeeplGlossaryService
     # Autres
     "diagramme" => "diagram",
     "angle" => "angle",
-    "direction" => "direction"
+    "direction" => "direction",
+
+    # Additions 2026-04-19 — from Gretillat book 1 glossary (p. 3)
+    "bille joueuse"         => "cue ball",
+    "point de visée"        => "aiming point",
+    "point de bande"        => "band point",
+    "avec effet"            => "with english",
+    "sans effet"            => "without english",
+    "hauteur d'attaque"     => "height of attack",
+    "quantité de bille"     => "quantity of ball",
+    "rétro"                 => "draw",
+    "coulé"                 => "follow",
+    "marge d'erreur"        => "margin of error",
+    "rappel"                => "gather shot",
+    "rappel long"           => "long gather shot",
+    "rappel en largeur"     => "width gather shot",
+    "trajectoire"           => "trajectory",
+    "passage de coin"       => "corner passage",
+    "petite ligne"          => "small line"
+  }
+
+  # Billard-Glossar ES→DE (initial seed, 2026-04-19)
+  # Source material: ACBillar blog archive (acbillar.blogspot.com), Bonacho compilation.
+  # NOTE: only VERIFIED terms here. 3-cushion-specific terms (rodadas, cabañas,
+  # bricol, semicorrido, valor de mesa) are HELD BACK pending 3-cushion expert review.
+  BILLIARD_GLOSSARY_ES_DE = {
+    # Bolas
+    "bola"                  => "Ball",
+    "bolas"                 => "Bälle",
+    "bola jugadora"         => "Spielball",
+    "bola objeto"           => "Objektball",
+    "bola roja"             => "roter Ball",
+    "bola blanca"           => "weißer Ball",
+    "bola amarilla"         => "gelber Ball",
+
+    # Tisch / Banden
+    "banda"                 => "Bande",
+    "bandas"                => "Banden",
+    "banda corta"           => "kurze Bande",
+    "banda larga"           => "lange Bande",
+    "banda opuesta"         => "gegenüberliegende Bande",
+    "diamante"              => "Diamant",
+    "rombo"                 => "Raute",
+    "esquina"               => "Ecke",
+
+    # Disziplinen
+    "tres bandas"           => "Dreiband",
+    "billar libre"          => "Freie Partie",
+    "cuadro"                => "Cadre",
+    "una banda"             => "Einband",
+
+    # Systeme (Eigennamen mostly unchanged)
+    "sistema de diamantes"  => "Diamantsystem",
+    "sistema diamantes"     => "Diamantsystem",
+    "sistema plus"          => "Plus-System",
+    "sistema 30"            => "System 30",
+    "sistema clásico"       => "klassisches System",
+
+    # Technik
+    "efecto"                => "Effet",
+    "efecto contrario"      => "Kontra-Effet",
+    "efecto inverso"        => "Kontra-Effet",
+    "masé"                  => "Massé",
+    "piqué"                 => "Piqué",
+    "carambole"             => "Karambolage",
+    "carambola"             => "Karambolage",
+    "cuarto de bola"        => "Viertelball",
+
+    # Spielbegriffe
+    "punto"                 => "Punkt",
+    "puntos"                => "Punkte",
+    "serie"                 => "Serie",
+    "tirada"                => "Aufnahme",
+
+    # Personen
+    "jugador"               => "Spieler",
+    "adversario"            => "Gegner"
+  }
+
+  # Billard-Glossar ES→EN (initial seed, 2026-04-19)
+  # Source: ACBillar blog archive (bilingual es/en posts by the author).
+  # English column trusted — it is the blog author's own translation.
+  BILLIARD_GLOSSARY_ES_EN = {
+    "bola"                  => "ball",
+    "bolas"                 => "balls",
+    "bola jugadora"         => "cue ball",
+    "bola objeto"           => "object ball",
+    "bola roja"             => "red ball",
+    "bola blanca"           => "white ball",
+    "bola amarilla"         => "yellow ball",
+
+    "banda"                 => "cushion",
+    "bandas"                => "cushions",
+    "banda corta"           => "short rail",
+    "banda larga"           => "long rail",
+    "banda opuesta"         => "opposite cushion",
+    "diamante"              => "diamond",
+    "rombo"                 => "diamond",
+    "esquina"               => "corner",
+
+    "tres bandas"           => "three-cushion",
+    "billar libre"          => "free game",
+    "una banda"             => "one cushion",
+
+    "sistema de diamantes"  => "diamond system",
+    "sistema diamantes"     => "diamond system",
+    "sistema plus"          => "plus system",
+    "sistema 30"            => "system 30",
+    "sistema tuzul"         => "tuzul system",
+
+    "efecto"                => "english",
+    "efecto contrario"      => "reverse english",
+    "masé"                  => "masse",
+    "piqué"                 => "piqué",
+    "carambole"             => "carom",
+    "cuarto de bola"        => "fourth ball",
+
+    "salida"                => "departure",
+    "ataque"                => "attack point",
+    "llegada"               => "arrival",
+    "bricol"                => "bricole",
+    "semicorrido"           => "half topspin",
+
+    "patrón"                => "pattern",
+    "patrones"              => "patterns",
+    "jugada patrón"         => "standard play",
+    "rodadas"               => "round-the-table shots",
+    "cabañas"               => "short boxes",
+    "pluses"                => "plus shots",
+    "tangentes interiores"  => "inner tangents",
+    "valor de mesa"         => "table value",
+    "compensaciones"        => "compensations",
+
+    "punto"                 => "point",
+    "puntos"                => "points",
+    "serie"                 => "run",
+    "tirada"                => "inning",
+
+    "jugador"               => "player",
+    "adversario"            => "opponent"
   }
 
   def initialize
@@ -343,6 +555,8 @@ class DeeplGlossaryService
     when "nl_en" then BILLIARD_GLOSSARY_NL_EN
     when "fr_de" then BILLIARD_GLOSSARY_FR_DE
     when "fr_en" then BILLIARD_GLOSSARY_FR_EN
+    when "es_de" then BILLIARD_GLOSSARY_ES_DE
+    when "es_en" then BILLIARD_GLOSSARY_ES_EN
     else nil
     end
   end
@@ -399,5 +613,14 @@ class DeeplGlossaryService
     return glossary_id if glossary_id
 
     create_glossary(source_lang, target_lang)
+  end
+
+  # Per-pair wrapper methods, kept for backward compatibility with docs and
+  # rake tasks that reference create_billiard_glossary_<pair>. Prefer
+  # create_glossary(source_lang, target_lang) for new code.
+  SUPPORTED_PAIRS.each do |src, tgt|
+    define_method("create_billiard_glossary_#{src}_#{tgt}") do
+      create_glossary(src, tgt)
+    end
   end
 end
