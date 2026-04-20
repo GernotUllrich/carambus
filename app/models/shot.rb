@@ -7,6 +7,7 @@ class Shot < ApplicationRecord
              class_name: "BallConfiguration",
              optional: true,
              inverse_of: :ending_shots
+  has_many :shot_events, -> { order(:sequence_number) }, dependent: :destroy
   has_one_attached :shot_image
   
   validates :shot_type, presence: true, inclusion: { in: %w[ideal alternative error] }

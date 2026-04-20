@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_04_20_170000) do
+ActiveRecord::Schema[7.2].define(version: 2026_04_20_180000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -993,6 +993,23 @@ ActiveRecord::Schema[7.2].define(version: 2026_04_20_170000) do
     t.datetime "updated_at", null: false
   end
 
+  create_table "shot_events", force: :cascade do |t|
+    t.bigint "shot_id", null: false
+    t.integer "sequence_number", null: false
+    t.string "event_type", null: false
+    t.string "ball_involved"
+    t.string "cushion_involved"
+    t.jsonb "contact_coords_normalized"
+    t.text "notes"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["shot_id", "sequence_number"], name: "idx_shot_events_on_shot_and_sequence", unique: true
+    t.index ["shot_id"], name: "index_shot_events_on_shot_id"
+    t.check_constraint "ball_involved IS NULL OR ball_involved::text = ANY (ARRAY['b1'::character varying, 'b2'::character varying, 'b3'::character varying]::text[])", name: "shot_events_ball_involved_check"
+    t.check_constraint "cushion_involved IS NULL OR cushion_involved::text = ANY (ARRAY['short_left'::character varying, 'short_right'::character varying, 'long_near'::character varying, 'long_far'::character varying]::text[])", name: "shot_events_cushion_involved_check"
+    t.check_constraint "event_type::text = ANY (ARRAY['initial_contact'::character varying, 'cushion_contact'::character varying, 'sperre'::character varying, 'austausch'::character varying, 'final_carambolage'::character varying, 'near_miss'::character varying]::text[])", name: "shot_events_event_type_check"
+  end
+
   create_table "shots", force: :cascade do |t|
     t.bigint "training_example_id", null: false
     t.string "shot_type", null: false
@@ -1655,6 +1672,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_04_20_170000) do
   add_foreign_key "settings", "clubs"
   add_foreign_key "settings", "regions"
   add_foreign_key "settings", "tournaments"
+  add_foreign_key "shot_events", "shots"
   add_foreign_key "shots", "ball_configurations", column: "end_ball_configuration_id"
   add_foreign_key "shots", "training_examples"
   add_foreign_key "source_attributions", "training_sources"
