@@ -8,7 +8,8 @@ class TrainingSource < ApplicationRecord
   has_many_attached :source_files, service: :local_sources
   
   validates :title, presence: true
-  validates :language, inclusion: { in: %w[de en nl fr], allow_blank: true }
+  # language is free-form (v0.8): historische Quellen können bilingual sein
+  # (z.B. Conti Studienheft "fr, de"), Einzelcode-Einschränkung war zu streng.
   
   def display_name
     parts = [title]

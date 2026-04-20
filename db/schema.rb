@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_04_20_130000) do
+ActiveRecord::Schema[7.2].define(version: 2026_04_20_140110) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -98,11 +98,23 @@ ActiveRecord::Schema[7.2].define(version: 2026_04_20_130000) do
     t.text "notes"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "flow_direction"
+    t.float "biais_degrees"
+    t.string "biais_class"
+    t.string "orientation"
+    t.string "target_cushion"
+    t.string "position_type", default: "exact", null: false
     t.index ["gather_state"], name: "index_ball_configurations_on_gather_state"
     t.index ["table_variant", "gather_state"], name: "index_ball_configs_on_variant_and_gather_state"
     t.check_constraint "b1_x >= 0::double precision AND b1_x <= 1::double precision AND b1_y >= 0::double precision AND b1_y <= 1::double precision AND b2_x >= 0::double precision AND b2_x <= 1::double precision AND b2_y >= 0::double precision AND b2_y <= 1::double precision AND b3_x >= 0::double precision AND b3_x <= 1::double precision AND b3_y >= 0::double precision AND b3_y <= 1::double precision", name: "ball_configurations_normalized_coords_check"
+    t.check_constraint "biais_class IS NULL OR (biais_class::text = ANY (ARRAY['imperceptible'::character varying, 'faible'::character varying, 'moyen'::character varying, 'prononce'::character varying, 'extreme'::character varying]::text[]))", name: "ball_configs_biais_class_check"
+    t.check_constraint "biais_degrees IS NULL OR biais_degrees >= '-180'::integer::double precision AND biais_degrees <= 180::double precision", name: "ball_configs_biais_degrees_check"
+    t.check_constraint "flow_direction IS NULL OR (flow_direction::text = ANY (ARRAY['centrifugal'::character varying, 'centripetal'::character varying]::text[]))", name: "ball_configs_flow_direction_check"
     t.check_constraint "gather_state::text = ANY (ARRAY['pre_gather'::character varying, 'gathering'::character varying, 'post_gather'::character varying]::text[])", name: "ball_configurations_gather_state_check"
+    t.check_constraint "orientation IS NULL OR (orientation::text = ANY (ARRAY['gather'::character varying, 'distribute'::character varying, 'hybrid'::character varying]::text[]))", name: "ball_configs_orientation_check"
+    t.check_constraint "position_type::text = ANY (ARRAY['exact'::character varying, 'approximate'::character varying, 'qualitative'::character varying]::text[])", name: "ball_configs_position_type_check"
     t.check_constraint "table_variant::text = ANY (ARRAY['match'::character varying, 'halbmatch'::character varying, 'klein'::character varying]::text[])", name: "ball_configurations_table_variant_check"
+    t.check_constraint "target_cushion IS NULL OR (target_cushion::text = ANY (ARRAY['short_left'::character varying, 'short_right'::character varying, 'long_near'::character varying, 'long_far'::character varying]::text[]))", name: "ball_configs_target_cushion_check"
   end
 
   create_table "branch_ccs", force: :cascade do |t|
@@ -1407,10 +1419,13 @@ ActiveRecord::Schema[7.2].define(version: 2026_04_20_130000) do
     t.text "full_description_de"
     t.text "full_description_en"
     t.datetime "translations_synced_at"
+    t.string "axis", default: "conception", null: false
+    t.index ["axis"], name: "index_training_concepts_on_axis"
     t.index ["source_language"], name: "index_training_concepts_on_source_language"
     t.index ["title_de"], name: "index_training_concepts_on_title_de"
     t.index ["title_en"], name: "index_training_concepts_on_title_en"
     t.index ["translations"], name: "index_training_concepts_on_translations", using: :gin
+    t.check_constraint "axis::text = ANY (ARRAY['technique'::character varying, 'conception'::character varying, 'psychology'::character varying, 'training'::character varying]::text[])", name: "training_concepts_axis_check"
   end
 
   create_table "training_examples", force: :cascade do |t|

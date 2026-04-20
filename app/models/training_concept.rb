@@ -10,8 +10,13 @@ class TrainingConcept < ApplicationRecord
   has_many :training_sources, through: :source_attributions
   
   accepts_nested_attributes_for :source_attributions, allow_destroy: true, reject_if: :all_blank
-  
+
+  # v0.8 Tier 1: Gretillats pedagogical axis spine.
+  AXES = %w[technique conception psychology training].freeze
+  enum :axis, AXES.index_with(&:itself)
+
   validates :title, presence: true
+  validates :axis, presence: true
   
   def translatable_fields
     [:title, :short_description, :full_description]

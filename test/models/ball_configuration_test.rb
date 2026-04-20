@@ -88,4 +88,62 @@ class BallConfigurationTest < ActiveSupport::TestCase
 
     assert_equal({ b1: [0.10, 0.20], b2: [0.30, 0.40], b3: [0.50, 0.60] }, config.balls)
   end
+
+  # v0.8 Tier 1 — classification attributes from ONTOLOGY.md
+
+  test "flow_direction enum exposes centrifugal and centripetal" do
+    assert_equal %w[centrifugal centripetal], BallConfiguration.flow_directions.keys
+  end
+
+  test "flow_direction is optional (nullable)" do
+    config = build(:ball_configuration, flow_direction: nil)
+    assert config.valid?, config.errors.full_messages.inspect
+  end
+
+  test "assigning unknown flow_direction raises ArgumentError" do
+    assert_raises(ArgumentError) do
+      BallConfiguration.new.flow_direction = "sideways"
+    end
+  end
+
+  test "orientation enum exposes gather, distribute, hybrid" do
+    assert_equal %w[gather distribute hybrid], BallConfiguration.orientations.keys
+  end
+
+  test "biais_class enum exposes five classes" do
+    assert_equal %w[imperceptible faible moyen prononce extreme], BallConfiguration.biais_classes.keys
+  end
+
+  test "target_cushion enum exposes four named cushions" do
+    assert_equal %w[short_left short_right long_near long_far], BallConfiguration.target_cushions.keys
+  end
+
+  test "position_type enum exposes exact, approximate, qualitative" do
+    assert_equal %w[exact approximate qualitative], BallConfiguration.position_types.keys
+  end
+
+  test "position_type defaults to exact" do
+    config = BallConfiguration.new
+    assert_equal "exact", config.position_type
+  end
+
+  test "biais_degrees must be in [-180, 180]" do
+    too_high = build(:ball_configuration, biais_degrees: 200)
+    assert_not too_high.valid?
+    assert too_high.errors.of_kind?(:biais_degrees, :less_than_or_equal_to)
+
+    too_low = build(:ball_configuration, biais_degrees: -200)
+    assert_not too_low.valid?
+    assert too_low.errors.of_kind?(:biais_degrees, :greater_than_or_equal_to)
+  end
+
+  test "biais_degrees accepts a legal value" do
+    config = build(:ball_configuration, biais_degrees: -106.6)
+    assert config.valid?, config.errors.full_messages.inspect
+  end
+
+  test "biais_degrees is optional (nullable)" do
+    config = build(:ball_configuration, biais_degrees: nil)
+    assert config.valid?
+  end
 end
