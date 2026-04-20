@@ -3,11 +3,11 @@
 # Updated for ontology v0.7: ball positions live in typed BallConfiguration
 # records (normalized coords 0..1, table_variant, gather_state).
 #
-# NOTE: Shot seed data is intentionally omitted here. Shot includes the
-# Translatable concern but the shots table lacks the raw columns
-# (title, notes, ...) that the concern expects, so Shot.create raises.
-# Resolution is a separate project (align Shot with Translatable, or
-# remove the include). Revisit once that decision is made.
+# v0.8 Tier 2C: Translatable-Blocker auf `shots` behoben. Die Raw-Spalten
+# title / notes / end_position_description / shot_description existieren
+# jetzt, sync_source_language_fields arbeitet korrekt. Shot-Seeds können
+# nach Bedarf hinzugefügt werden (kein Muss — dieses Seed hält sich auf
+# Concept/Example/BallConfiguration-Ebene).
 
 puts "Creating training concepts..."
 

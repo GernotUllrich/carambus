@@ -57,4 +57,42 @@ class ShotTest < ActiveSupport::TestCase
     shot.send(:set_default_language)
     assert_equal "de", shot.source_language
   end
+
+  # v0.8 Tier 2C — raw columns for Translatable's before_save sync
+
+  test "has raw text columns title, notes, end_position_description, shot_description" do
+    %w[title notes end_position_description shot_description].each do |col|
+      assert_includes Shot.column_names, col,
+        "Shot.#{col} must exist as raw column — Translatable#sync_source_language_fields reads it"
+    end
+  end
+
+  test "Shot.create with raw title/notes no longer raises and syncs into _de" do
+    concept = TrainingConcept.create!(title: "Tier 2C Test", axis: "conception")
+    example = concept.training_examples.create!(title: "Tier 2C Example", sequence_number: 1)
+
+    shot = example.shots.create!(
+      shot_type: "ideal",
+      sequence_number: 1,
+      title: "A Konterspiel opener",
+      notes: "Weich anspielen",
+      shot_description: "B1 trifft B2 voll",
+      end_position_description: "Bälle liegen in catches"
+    )
+
+    assert_predicate shot, :persisted?
+    assert_equal "A Konterspiel opener",  shot.title_de
+    assert_equal "Weich anspielen",       shot.notes_de
+    assert_equal "B1 trifft B2 voll",     shot.shot_description_de
+    assert_equal "Bälle liegen in catches", shot.end_position_description_de
+  end
+
+  test "field_in(:title, 'de') reads the DE-synced value" do
+    concept = TrainingConcept.create!(title: "Tier 2C Test 2", axis: "conception")
+    example = concept.training_examples.create!(title: "Tier 2C Example 2", sequence_number: 1)
+
+    shot = example.shots.create!(shot_type: "ideal", sequence_number: 1, title: "Title-DE")
+
+    assert_equal "Title-DE", shot.field_in(:title, "de")
+  end
 end
