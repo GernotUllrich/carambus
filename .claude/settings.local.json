@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(bundle exec *)",
+      "Bash(tee /tmp/bcw_test_run.log)",
+      "Bash(git *)"
+    ]
+  }
+}
