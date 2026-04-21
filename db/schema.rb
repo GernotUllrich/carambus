@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_04_20_180000) do
+ActiveRecord::Schema[7.2].define(version: 2026_04_21_090010) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -1470,12 +1470,19 @@ ActiveRecord::Schema[7.2].define(version: 2026_04_20_180000) do
     t.text "full_description_en"
     t.datetime "translations_synced_at"
     t.string "axis", default: "conception", null: false
+    t.string "kind"
+    t.string "key"
+    t.string "gretillat_ref"
+    t.string "weingartner_ref"
+    t.integer "importance_order"
     t.index ["axis"], name: "index_training_concepts_on_axis"
+    t.index ["key"], name: "index_training_concepts_on_key", unique: true, where: "(key IS NOT NULL)"
     t.index ["source_language"], name: "index_training_concepts_on_source_language"
     t.index ["title_de"], name: "index_training_concepts_on_title_de"
     t.index ["title_en"], name: "index_training_concepts_on_title_en"
     t.index ["translations"], name: "index_training_concepts_on_translations", using: :gin
     t.check_constraint "axis::text = ANY (ARRAY['technique'::character varying, 'conception'::character varying, 'psychology'::character varying, 'training'::character varying]::text[])", name: "training_concepts_axis_check"
+    t.check_constraint "kind IS NULL OR (kind::text = ANY (ARRAY['topic'::character varying, 'strategic_maxim'::character varying, 'measurable_dimension'::character varying, 'phenomenological'::character varying, 'technique'::character varying, 'system'::character varying]::text[]))", name: "training_concepts_kind_check"
   end
 
   create_table "training_examples", force: :cascade do |t|

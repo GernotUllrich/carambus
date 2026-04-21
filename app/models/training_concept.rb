@@ -15,8 +15,19 @@ class TrainingConcept < ApplicationRecord
   AXES = %w[technique conception psychology training].freeze
   enum :axis, AXES.index_with(&:itself)
 
+  # v0.9 Phase B: Concept absorbiert die Principle-Struktur.
+  # kind klassifiziert die Konzept-Natur (Thema vs. Regel vs. Messgröße
+  # vs. Beobachtung vs. Technik vs. System). Nullable — reine Topic-
+  # Concepts brauchen kein kind gesetzt, können aber zur Klarheit.
+  KINDS = %w[topic strategic_maxim measurable_dimension phenomenological technique system].freeze
+  enum :kind, KINDS.index_with(&:itself), prefix: :kind
+
   validates :title, presence: true
-  validates :axis, presence: true
+  validates :axis,  presence: true
+  validates :key,
+            uniqueness: true,
+            format: { with: /\A[a-z_][a-z0-9_]*\z/ },
+            allow_nil: true
   
   def translatable_fields
     [:title, :short_description, :full_description]
