@@ -224,9 +224,18 @@ class TableMonitor::GameSetup < ApplicationService
 
   # Zweiter Klassenmethoden-Einstiegspunkt fuer assign_game-Logik.
   # Erhaelt ein Game-Objekt (game_p = party game parameter) und weist das Spiel dem TableMonitor zu.
+  #
+  # Setzt analog zu #call suppress_broadcast vor den Batch-Saves und garantiert
+  # Reset im ensure-Block. Ohne das triggert der save! in perform_assign den
+  # after_update_commit-Scoreboard-Pfad (nur auf Local Servern aktiv) mitten im
+  # Setup — das produziert einen redundanten Broadcast und kann in Tests die
+  # OptionsPresenter-Pipeline ohne komplettes Table-Setup explodieren lassen.
   def self.assign(table_monitor:, game_participation:)
     instance = new(table_monitor: table_monitor)
+    table_monitor.suppress_broadcast = true
     instance.perform_assign(game_participation)
+  ensure
+    table_monitor.suppress_broadcast = false
   end
 
   def perform_assign(game_p)
