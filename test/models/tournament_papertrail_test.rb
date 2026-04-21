@@ -21,6 +21,10 @@ class TournamentPapertrailTest < ActiveSupport::TestCase
   fixtures :all
 
   def setup
+    # PaperTrail wird in LocalProtector nur aktiviert, wenn kein carambus_api_url gesetzt ist.
+    # Damit laufen diese Tests ausschließlich im API-Server-Szenario.
+    skip_unless_api_server
+
     # Sanity check: PaperTrail must be active in this test environment.
     # If this fails, version count assertions below are meaningless.
     assert PaperTrail.enabled?, "PaperTrail must be enabled — check LocalProtector configuration"
