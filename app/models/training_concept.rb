@@ -8,6 +8,20 @@ class TrainingConcept < ApplicationRecord
   has_many :training_examples, dependent: :destroy
   has_many :source_attributions, as: :sourceable, dependent: :destroy
   has_many :training_sources, through: :source_attributions
+
+  # v0.9 Phase C: self-referentielle Concept-Relationen
+  has_many :outgoing_relations,
+           class_name: "TrainingConceptRelation",
+           foreign_key: :source_concept_id,
+           inverse_of: :source_concept,
+           dependent: :destroy
+  has_many :incoming_relations,
+           class_name: "TrainingConceptRelation",
+           foreign_key: :target_concept_id,
+           inverse_of: :target_concept,
+           dependent: :destroy
+  has_many :related_concepts,   through: :outgoing_relations, source: :target_concept
+  has_many :referring_concepts, through: :incoming_relations, source: :source_concept
   
   accepts_nested_attributes_for :source_attributions, allow_destroy: true, reject_if: :all_blank
 

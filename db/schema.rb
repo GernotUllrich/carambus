@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_04_21_090010) do
+ActiveRecord::Schema[7.2].define(version: 2026_04_21_100000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -1454,6 +1454,20 @@ ActiveRecord::Schema[7.2].define(version: 2026_04_21_090010) do
     t.index ["training_concept_id"], name: "index_training_concept_disciplines_on_training_concept_id"
   end
 
+  create_table "training_concept_relations", force: :cascade do |t|
+    t.bigint "source_concept_id", null: false
+    t.bigint "target_concept_id", null: false
+    t.string "relation", null: false
+    t.text "notes"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["source_concept_id", "target_concept_id", "relation"], name: "idx_concept_relation_unique", unique: true
+    t.index ["source_concept_id"], name: "index_training_concept_relations_on_source_concept_id"
+    t.index ["target_concept_id"], name: "index_training_concept_relations_on_target_concept_id"
+    t.check_constraint "relation::text = ANY (ARRAY['teaches'::character varying, 'applies'::character varying, 'exemplifies'::character varying, 'specializes'::character varying, 'parallels'::character varying]::text[])", name: "training_concept_relations_relation_check"
+    t.check_constraint "source_concept_id <> target_concept_id", name: "training_concept_relations_no_self_loop"
+  end
+
   create_table "training_concepts", force: :cascade do |t|
     t.string "title", null: false
     t.text "short_description"
@@ -1667,6 +1681,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_04_21_090010) do
   add_foreign_key "tournaments", "regions", validate: false
   add_foreign_key "training_concept_disciplines", "disciplines"
   add_foreign_key "training_concept_disciplines", "training_concepts"
+  add_foreign_key "training_concept_relations", "training_concepts", column: "source_concept_id"
+  add_foreign_key "training_concept_relations", "training_concepts", column: "target_concept_id"
   add_foreign_key "training_examples", "training_concepts"
   add_foreign_key "training_examples", "training_examples", column: "parent_id"
   add_foreign_key "users", "players"
