@@ -32,15 +32,7 @@ safety_assured {
       unless index_exists?(:connected_accounts, [:owner_id, :owner_type])
         add_index :connected_accounts, [:owner_id, :owner_type], algorithm: :concurrently
       end
-    else
-      # If neither table exists, create the target table
-      create_table :connected_accounts do |t|
-        t.integer :owner_id
-        t.string :owner_type
-        t.timestamps
-      end
-
-      add_index :connected_accounts, [:owner_id, :owner_type], algorithm: :concurrently
+    # else: Skip creating connected_accounts - JumpStart Pro feature not used
     end
 }
   end

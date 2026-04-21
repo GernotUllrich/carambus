@@ -92,6 +92,19 @@ module ActiveSupport
       JSON.decode(response.body)
     end
 
+    # Scenario-Gate: Tests, die nur auf dem API-Server sinnvoll sind
+    # (z. B. PaperTrail-Verhalten, das per LocalProtector nur aktiviert wird,
+    # wenn `carambus_api_url` NICHT gesetzt ist).
+    def skip_unless_api_server
+      skip "Nur auf API-Server (carambus_api_url leer)" if Carambus.config.carambus_api_url.present?
+    end
+
+    # Scenario-Gate: Tests, die nur auf einem Local Server sinnvoll sind
+    # (z. B. Verhalten von ApiProtector, Sync-Logik gegen API-Server).
+    def skip_unless_local_server
+      skip "Nur auf Local Server (carambus_api_url gesetzt)" unless Carambus.config.carambus_api_url.present?
+    end
+
     include FactoryBot::Syntax::Methods
     
     # Load custom test helpers
