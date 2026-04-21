@@ -92,17 +92,26 @@ module ActiveSupport
       JSON.decode(response.body)
     end
 
+    # Scenario-Snapshot beim Laden des test_helpers einfrieren — einzelne Tests
+    # (tournament_scraping_test.rb, tournaments_controller_test.rb u. a.)
+    # mutieren Carambus.config.carambus_api_url zur Laufzeit. Dadurch würde ein
+    # spät evaluiertes present? das falsche Scenario liefern und Gates ins
+    # Leere laufen lassen. Der Snapshot entspricht dem Zustand bei Boot —
+    # genau der Wert, der auch has_paper_trail / local_server? in
+    # LocalProtector einmalig zur Class-Load-Zeit bestimmt hat.
+    LOCAL_SERVER_SCENARIO = Carambus.config.carambus_api_url.present?
+
     # Scenario-Gate: Tests, die nur auf dem API-Server sinnvoll sind
     # (z. B. PaperTrail-Verhalten, das per LocalProtector nur aktiviert wird,
     # wenn `carambus_api_url` NICHT gesetzt ist).
     def skip_unless_api_server
-      skip "Nur auf API-Server (carambus_api_url leer)" if Carambus.config.carambus_api_url.present?
+      skip "Nur auf API-Server (carambus_api_url leer)" if LOCAL_SERVER_SCENARIO
     end
 
     # Scenario-Gate: Tests, die nur auf einem Local Server sinnvoll sind
     # (z. B. Verhalten von ApiProtector, Sync-Logik gegen API-Server).
     def skip_unless_local_server
-      skip "Nur auf Local Server (carambus_api_url gesetzt)" unless Carambus.config.carambus_api_url.present?
+      skip "Nur auf Local Server (carambus_api_url gesetzt)" unless LOCAL_SERVER_SCENARIO
     end
 
     include FactoryBot::Syntax::Methods

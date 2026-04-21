@@ -84,6 +84,11 @@ class TournamentScrapingTest < ActiveSupport::TestCase
   setup do
     @id_counter = 0
 
+    # Originalwert merken, damit Tests, die carambus_api_url mutieren, im
+    # teardown nicht auf nil zurücksetzen und damit andere Tests in der
+    # Suite vergiften (z. B. PaperTrail-Gates in tournament_papertrail_test).
+    @original_api_url = Carambus.config.carambus_api_url
+
     # Ensure NBV region has public_cc_url_base set (stored in DB via fixture column)
     @region = regions(:nbv)
     @region.update_column(:public_cc_url_base, "https://ndbv.de/")
@@ -100,7 +105,7 @@ class TournamentScrapingTest < ActiveSupport::TestCase
 
   teardown do
     # Restore any Carambus.config mutations
-    Carambus.config.carambus_api_url = nil
+    Carambus.config.carambus_api_url = @original_api_url
   end
 
   # ---------------------------------------------------------------------------
