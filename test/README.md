@@ -14,6 +14,7 @@ Pragmatische Tests für kritische Funktionalität.
 | **README.md** (dieses Dokument) | Allgemeiner Testing-Guide | 20 Min |
 | **[ARCHITECTURE.md](ARCHITECTURE.md)** | Test-Architektur & Design-Prinzipien | 15 Min |
 | **[TEST_STRUCTURE.md](TEST_STRUCTURE.md)** | Visuelle Übersicht der Test-Struktur | 5 Min |
+| **[SCENARIO_TESTING.md](SCENARIO_TESTING.md)** | Scenario-Gates, cable.yml, Config-Pollution | 5 Min |
 
 ## 🚀 Schnellstart
 
