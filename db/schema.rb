@@ -226,19 +226,6 @@ ActiveRecord::Schema[7.2].define(version: 2026_04_20_180000) do
     t.index ["branch_cc_id", "cc_id", "context"], name: "index_competition_ccs_on_branch_cc_id_and_cc_id_and_context", unique: true
   end
 
-  create_table "concept_principles", force: :cascade do |t|
-    t.bigint "training_concept_id", null: false
-    t.bigint "principle_id", null: false
-    t.string "relation", null: false
-    t.text "notes"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["principle_id"], name: "index_concept_principles_on_principle_id"
-    t.index ["training_concept_id", "principle_id", "relation"], name: "idx_concept_principle_unique", unique: true
-    t.index ["training_concept_id"], name: "index_concept_principles_on_training_concept_id"
-    t.check_constraint "relation::text = ANY (ARRAY['teaches'::character varying, 'applies'::character varying, 'exemplifies'::character varying]::text[])", name: "concept_principles_relation_check"
-  end
-
   create_table "countries", force: :cascade do |t|
     t.string "name"
     t.string "code"
@@ -803,20 +790,6 @@ ActiveRecord::Schema[7.2].define(version: 2026_04_20_180000) do
     t.index ["region_id"], name: "index_players_on_region_id"
     t.index ["reviewed_duplicate"], name: "index_players_on_reviewed_duplicate"
     t.index ["umb_player_id"], name: "index_players_on_umb_player_id"
-  end
-
-  create_table "principles", force: :cascade do |t|
-    t.string "key", null: false
-    t.string "label", null: false
-    t.string "principle_type", null: false
-    t.text "description"
-    t.string "gretillat_ref"
-    t.string "weingartner_ref"
-    t.integer "importance_order"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["key"], name: "index_principles_on_key", unique: true
-    t.check_constraint "principle_type::text = ANY (ARRAY['strategic_maxim'::character varying, 'measurable_dimension'::character varying, 'phenomenological'::character varying]::text[])", name: "principles_principle_type_check"
   end
 
   create_table "region_ccs", force: :cascade do |t|
@@ -1654,8 +1627,6 @@ ActiveRecord::Schema[7.2].define(version: 2026_04_20_180000) do
   add_foreign_key "ball_configuration_zones", "table_zones"
   add_foreign_key "club_locations", "regions", validate: false
   add_foreign_key "clubs", "regions", validate: false
-  add_foreign_key "concept_principles", "principles"
-  add_foreign_key "concept_principles", "training_concepts"
   add_foreign_key "game_participations", "regions", validate: false
   add_foreign_key "game_plans", "regions", validate: false
   add_foreign_key "games", "regions", validate: false
