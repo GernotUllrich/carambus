@@ -16,6 +16,11 @@ class Tournament::PublicCcScraperTest < ActiveSupport::TestCase
   setup do
     @id_counter = 0
 
+    # Originalwert merken, damit Tests, die carambus_api_url mutieren, im
+    # teardown nicht hart auf nil zurücksetzen und damit andere Tests der
+    # Suite vergiften.
+    @original_api_url = Carambus.config.carambus_api_url
+
     @region = regions(:nbv)
     @region.update_column(:public_cc_url_base, "https://ndbv.de/")
 
@@ -28,7 +33,7 @@ class Tournament::PublicCcScraperTest < ActiveSupport::TestCase
   end
 
   teardown do
-    Carambus.config.carambus_api_url = nil
+    Carambus.config.carambus_api_url = @original_api_url
   end
 
   # ---------------------------------------------------------------------------
@@ -64,6 +69,10 @@ class Tournament::PublicCcScraperTest < ActiveSupport::TestCase
   # ---------------------------------------------------------------------------
 
   test "call executes without error when tournament_doc is provided" do
+    # Auf Local Servern (carambus_api_url gesetzt) returnt PublicCcScraper früh
+    # und setzt source_url nicht — der Integrationspfad ist nur auf API-Servern relevant.
+    skip_unless_api_server
+
     # Stub the 3 remaining HTTP calls (meldeliste, einzelergebnisse, einzelrangliste)
     stub_request(:get, /ndbv\.de/)
       .to_return(status: 200, body: minimal_html, headers: { "Content-Type" => "text/html" })
