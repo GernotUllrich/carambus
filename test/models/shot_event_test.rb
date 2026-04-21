@@ -9,7 +9,7 @@ class ShotEventTest < ActiveSupport::TestCase
   def shot
     @shot ||= begin
       concept = TrainingConcept.create!(title: "Tier 2D Test", axis: "conception")
-      example = concept.training_examples.create!(title: "Tier 2D Example", sequence_number: 1)
+      example = concept.training_examples.create!(title: "Tier 2D Example")
       example.shots.create!(
         shot_type: "ideal",
         sequence_number: 1,

@@ -69,7 +69,7 @@ class ShotTest < ActiveSupport::TestCase
 
   test "Shot.create with raw title/notes no longer raises and syncs into _de" do
     concept = TrainingConcept.create!(title: "Tier 2C Test", axis: "conception")
-    example = concept.training_examples.create!(title: "Tier 2C Example", sequence_number: 1)
+    example = concept.training_examples.create!(title: "Tier 2C Example")
 
     shot = example.shots.create!(
       shot_type: "ideal",
@@ -89,7 +89,7 @@ class ShotTest < ActiveSupport::TestCase
 
   test "field_in(:title, 'de') reads the DE-synced value" do
     concept = TrainingConcept.create!(title: "Tier 2C Test 2", axis: "conception")
-    example = concept.training_examples.create!(title: "Tier 2C Example 2", sequence_number: 1)
+    example = concept.training_examples.create!(title: "Tier 2C Example 2")
 
     shot = example.shots.create!(shot_type: "ideal", sequence_number: 1, title: "Title-DE")
 

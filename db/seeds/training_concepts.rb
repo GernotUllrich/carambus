@@ -8,6 +8,13 @@
 # jetzt, sync_source_language_fields arbeitet korrekt. Shot-Seeds können
 # nach Bedarf hinzugefügt werden (kein Muss — dieses Seed hält sich auf
 # Concept/Example/BallConfiguration-Ebene).
+#
+# v0.9 Phase D: TrainingExample.sequence_number und .training_concept_id
+# sind weg — durch den M2M-Join training_concept_examples ersetzt. Das
+# Muster `konzept.training_examples.create!(...)` erzeugt weiterhin einen
+# Join-Eintrag (weight=3 default). Wer Reihenfolge oder Gewichtung setzen
+# will, greift nach dem create auf den Join-Eintrag zu oder legt ihn
+# explizit als TrainingConceptExample.create! an.
 
 puts "Creating training concepts..."
 
@@ -35,7 +42,6 @@ konterspiel = TrainingConcept.create!(
 
 example1 = konterspiel.training_examples.create!(
   title: "Einfaches Konterspiel mit kurzer Linie",
-  sequence_number: 1,
   ideal_stroke_parameters_text: <<~PARAMS
     - Effet: Rechtseffet (ca. 1 Spitze)
     - Kraft: Mittel (ca. 60%)
@@ -85,7 +91,6 @@ ruecklaufer = TrainingConcept.create!(
 
 example2 = ruecklaufer.training_examples.create!(
   title: "Einfacher Rückläufer",
-  sequence_number: 1,
   ideal_stroke_parameters_text: <<~PARAMS
     - Effet: Starkes Rückwärtseffet (untere Hälfte des Balls)
     - Kraft: Kräftig (ca. 75%)

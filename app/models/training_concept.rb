@@ -5,7 +5,10 @@ class TrainingConcept < ApplicationRecord
   
   has_many :training_concept_disciplines, dependent: :destroy
   has_many :disciplines, through: :training_concept_disciplines
-  has_many :training_examples, dependent: :destroy
+  has_many :training_concept_examples,
+           -> { TrainingConceptExample.ordered },
+           dependent: :destroy
+  has_many :training_examples, through: :training_concept_examples
   has_many :source_attributions, as: :sourceable, dependent: :destroy
   has_many :training_sources, through: :source_attributions
 

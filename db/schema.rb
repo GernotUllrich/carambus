@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_04_21_100000) do
+ActiveRecord::Schema[7.2].define(version: 2026_04_21_110100) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -1454,6 +1454,23 @@ ActiveRecord::Schema[7.2].define(version: 2026_04_21_100000) do
     t.index ["training_concept_id"], name: "index_training_concept_disciplines_on_training_concept_id"
   end
 
+  create_table "training_concept_examples", force: :cascade do |t|
+    t.bigint "training_concept_id", null: false
+    t.bigint "training_example_id", null: false
+    t.integer "weight", default: 3, null: false
+    t.string "role"
+    t.integer "sequence_number"
+    t.text "notes"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["training_concept_id", "sequence_number"], name: "idx_concept_example_sequence_unique", unique: true, where: "(sequence_number IS NOT NULL)"
+    t.index ["training_concept_id", "training_example_id"], name: "idx_concept_example_unique", unique: true
+    t.index ["training_concept_id"], name: "index_training_concept_examples_on_training_concept_id"
+    t.index ["training_example_id"], name: "index_training_concept_examples_on_training_example_id"
+    t.check_constraint "role IS NULL OR (role::text = ANY (ARRAY['illustrates'::character varying, 'counter_example'::character varying]::text[]))", name: "training_concept_examples_role_check"
+    t.check_constraint "weight >= 1 AND weight <= 5", name: "training_concept_examples_weight_check"
+  end
+
   create_table "training_concept_relations", force: :cascade do |t|
     t.bigint "source_concept_id", null: false
     t.bigint "target_concept_id", null: false
@@ -1500,9 +1517,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_04_21_100000) do
   end
 
   create_table "training_examples", force: :cascade do |t|
-    t.bigint "training_concept_id", null: false
     t.string "title"
-    t.integer "sequence_number", default: 1, null: false
     t.text "ideal_stroke_parameters_text"
     t.jsonb "ideal_stroke_parameters_data", default: {}
     t.datetime "created_at", null: false
@@ -1518,8 +1533,6 @@ ActiveRecord::Schema[7.2].define(version: 2026_04_21_100000) do
     t.integer "parent_id"
     t.index ["parent_id"], name: "index_training_examples_on_parent_id"
     t.index ["source_language"], name: "index_training_examples_on_source_language"
-    t.index ["training_concept_id", "sequence_number"], name: "index_training_examples_on_concept_and_sequence", unique: true
-    t.index ["training_concept_id"], name: "index_training_examples_on_training_concept_id"
     t.index ["translations"], name: "index_training_examples_on_translations", using: :gin
   end
 
@@ -1681,9 +1694,10 @@ ActiveRecord::Schema[7.2].define(version: 2026_04_21_100000) do
   add_foreign_key "tournaments", "regions", validate: false
   add_foreign_key "training_concept_disciplines", "disciplines"
   add_foreign_key "training_concept_disciplines", "training_concepts"
+  add_foreign_key "training_concept_examples", "training_concepts"
+  add_foreign_key "training_concept_examples", "training_examples"
   add_foreign_key "training_concept_relations", "training_concepts", column: "source_concept_id"
   add_foreign_key "training_concept_relations", "training_concepts", column: "target_concept_id"
-  add_foreign_key "training_examples", "training_concepts"
   add_foreign_key "training_examples", "training_examples", column: "parent_id"
   add_foreign_key "users", "players"
   add_foreign_key "versions", "regions", validate: false
