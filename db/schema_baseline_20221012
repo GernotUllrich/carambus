@@ -24,112 +24,42 @@ SET default_table_access_method = heap;
 -- Name: account_invitations; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.account_invitations (
-    id bigint NOT NULL,
-    account_id bigint NOT NULL,
-    invited_by_id bigint,
-    token character varying,
-    name character varying,
-    email character varying,
-    roles jsonb DEFAULT '{}'::jsonb NOT NULL,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
-);
-
-
 --
 -- Name: account_invitations_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
-
-CREATE SEQUENCE public.account_invitations_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
 
 --
 -- Name: account_invitations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
-ALTER SEQUENCE public.account_invitations_id_seq OWNED BY public.account_invitations.id;
 
 
 --
 -- Name: account_users; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.account_users (
-    id bigint NOT NULL,
-    account_id bigint,
-    user_id bigint,
-    roles jsonb DEFAULT '{}'::jsonb NOT NULL,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
-);
-
-
 --
 -- Name: account_users_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
-
-CREATE SEQUENCE public.account_users_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
 
 --
 -- Name: account_users_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
-ALTER SEQUENCE public.account_users_id_seq OWNED BY public.account_users.id;
 
 
 --
 -- Name: accounts; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.accounts (
-    id bigint NOT NULL,
-    name character varying,
-    owner_id bigint,
-    personal boolean DEFAULT false,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL,
-    processor character varying,
-    processor_id character varying,
-    trial_ends_at timestamp without time zone,
-    card_type character varying,
-    card_last4 character varying,
-    card_exp_month character varying,
-    card_exp_year character varying,
-    extra_billing_info text,
-    domain character varying,
-    subdomain character varying
-);
-
-
 --
 -- Name: accounts_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
-
-CREATE SEQUENCE public.accounts_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
 
 --
 -- Name: accounts_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
-ALTER SEQUENCE public.accounts_id_seq OWNED BY public.accounts.id;
 
 
 --
@@ -235,70 +165,28 @@ ALTER SEQUENCE public.active_storage_attachments_id_seq OWNED BY public.active_s
 -- Name: announcements; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.announcements (
-    id bigint NOT NULL,
-    kind character varying,
-    title character varying,
-    published_at timestamp without time zone,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
-);
-
-
 --
 -- Name: announcements_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
-
-CREATE SEQUENCE public.announcements_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
 
 --
 -- Name: announcements_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
-ALTER SEQUENCE public.announcements_id_seq OWNED BY public.announcements.id;
 
 
 --
 -- Name: api_tokens; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.api_tokens (
-    id bigint NOT NULL,
-    user_id bigint NOT NULL,
-    token character varying,
-    name character varying,
-    metadata jsonb DEFAULT '{}'::jsonb,
-    transient boolean DEFAULT false,
-    last_used_at timestamp without time zone,
-    expires_at timestamp without time zone,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
-);
-
-
 --
 -- Name: api_tokens_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
-
-CREATE SEQUENCE public.api_tokens_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
 
 --
 -- Name: api_tokens_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
-ALTER SEQUENCE public.api_tokens_id_seq OWNED BY public.api_tokens.id;
 
 
 --
@@ -1283,37 +1171,14 @@ ALTER SEQUENCE public.meta_maps_id_seq OWNED BY public.meta_maps.id;
 -- Name: notifications; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.notifications (
-    id bigint NOT NULL,
-    account_id bigint NOT NULL,
-    recipient_type character varying NOT NULL,
-    recipient_id bigint NOT NULL,
-    type character varying,
-    params jsonb,
-    read_at timestamp without time zone,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL,
-    interacted_at timestamp without time zone
-);
-
-
 --
 -- Name: notifications_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
-
-CREATE SEQUENCE public.notifications_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
 
 --
 -- Name: notifications_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
-ALTER SEQUENCE public.notifications_id_seq OWNED BY public.notifications.id;
 
 
 --
@@ -1521,115 +1386,42 @@ ALTER SEQUENCE public.party_tournaments_id_seq OWNED BY public.party_tournaments
 -- Name: pay_charges; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.pay_charges (
-    id bigint NOT NULL,
-    owner_id bigint,
-    processor character varying NOT NULL,
-    processor_id character varying NOT NULL,
-    amount integer NOT NULL,
-    amount_refunded integer,
-    card_type character varying,
-    card_last4 character varying,
-    card_exp_month character varying,
-    card_exp_year character varying,
-    created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL,
-    owner_type character varying
-);
-
-
 --
 -- Name: pay_charges_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
-
-CREATE SEQUENCE public.pay_charges_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
 
 --
 -- Name: pay_charges_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
-ALTER SEQUENCE public.pay_charges_id_seq OWNED BY public.pay_charges.id;
 
 
 --
 -- Name: pay_subscriptions; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.pay_subscriptions (
-    id integer NOT NULL,
-    owner_id integer,
-    name character varying NOT NULL,
-    processor character varying NOT NULL,
-    processor_id character varying NOT NULL,
-    processor_plan character varying NOT NULL,
-    quantity integer DEFAULT 1 NOT NULL,
-    trial_ends_at timestamp without time zone,
-    ends_at timestamp without time zone,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone,
-    status character varying,
-    owner_type character varying
-);
-
-
 --
 -- Name: pay_subscriptions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
-
-CREATE SEQUENCE public.pay_subscriptions_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
 
 --
 -- Name: pay_subscriptions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
-ALTER SEQUENCE public.pay_subscriptions_id_seq OWNED BY public.pay_subscriptions.id;
 
 
 --
 -- Name: plans; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.plans (
-    id bigint NOT NULL,
-    name character varying,
-    amount integer DEFAULT 0 NOT NULL,
-    "interval" character varying,
-    details jsonb DEFAULT '{}'::jsonb NOT NULL,
-    created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL,
-    trial_period_days integer DEFAULT 0
-);
-
-
 --
 -- Name: plans_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
-
-CREATE SEQUENCE public.plans_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
 
 --
 -- Name: plans_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
-ALTER SEQUENCE public.plans_id_seq OWNED BY public.plans.id;
 
 
 --
@@ -2586,40 +2378,14 @@ ALTER SEQUENCE public.tournaments_id_seq OWNED BY public.tournaments.id;
 -- Name: user_connected_accounts; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.user_connected_accounts (
-    id bigint NOT NULL,
-    user_id bigint,
-    provider character varying,
-    uid character varying,
-    encrypted_access_token character varying,
-    encrypted_access_token_iv character varying,
-    encrypted_access_token_secret character varying,
-    encrypted_access_token_secret_iv character varying,
-    refresh_token character varying,
-    expires_at timestamp without time zone,
-    auth text,
-    created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
-);
-
-
 --
 -- Name: user_connected_accounts_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
-
-CREATE SEQUENCE public.user_connected_accounts_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
 
 --
 -- Name: user_connected_accounts_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
-ALTER SEQUENCE public.user_connected_accounts_id_seq OWNED BY public.user_connected_accounts.id;
 
 
 --
@@ -2726,28 +2492,6 @@ ALTER SEQUENCE public.versions_id_seq OWNED BY public.versions.id;
 -- Name: account_invitations id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.account_invitations ALTER COLUMN id SET DEFAULT nextval('public.account_invitations_id_seq'::regclass);
-
-
---
--- Name: account_users id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.account_users ALTER COLUMN id SET DEFAULT nextval('public.account_users_id_seq'::regclass);
-
-
---
--- Name: accounts id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.accounts ALTER COLUMN id SET DEFAULT nextval('public.accounts_id_seq'::regclass);
-
-
---
--- Name: action_text_embeds id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.action_text_embeds ALTER COLUMN id SET DEFAULT nextval('public.action_text_embeds_id_seq'::regclass);
 
 
 --
@@ -2768,21 +2512,6 @@ ALTER TABLE ONLY public.active_storage_attachments ALTER COLUMN id SET DEFAULT n
 -- Name: announcements id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.announcements ALTER COLUMN id SET DEFAULT nextval('public.announcements_id_seq'::regclass);
-
-
---
--- Name: api_tokens id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.api_tokens ALTER COLUMN id SET DEFAULT nextval('public.api_tokens_id_seq'::regclass);
-
-
---
--- Name: branch_ccs id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.branch_ccs ALTER COLUMN id SET DEFAULT nextval('public.branch_ccs_id_seq'::regclass);
 
 
 --
@@ -2964,14 +2693,6 @@ ALTER TABLE ONLY public.meta_maps ALTER COLUMN id SET DEFAULT nextval('public.me
 -- Name: notifications id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.notifications ALTER COLUMN id SET DEFAULT nextval('public.notifications_id_seq'::regclass);
-
-
---
--- Name: parties id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.parties ALTER COLUMN id SET DEFAULT nextval('public.parties_id_seq'::regclass);
 
 
 --
@@ -3006,28 +2727,6 @@ ALTER TABLE ONLY public.party_tournaments ALTER COLUMN id SET DEFAULT nextval('p
 -- Name: pay_charges id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.pay_charges ALTER COLUMN id SET DEFAULT nextval('public.pay_charges_id_seq'::regclass);
-
-
---
--- Name: pay_subscriptions id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.pay_subscriptions ALTER COLUMN id SET DEFAULT nextval('public.pay_subscriptions_id_seq'::regclass);
-
-
---
--- Name: plans id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.plans ALTER COLUMN id SET DEFAULT nextval('public.plans_id_seq'::regclass);
-
-
---
--- Name: player_classes id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.player_classes ALTER COLUMN id SET DEFAULT nextval('public.player_classes_id_seq'::regclass);
 
 
 --
@@ -3188,14 +2887,6 @@ ALTER TABLE ONLY public.tournaments ALTER COLUMN id SET DEFAULT nextval('public.
 -- Name: user_connected_accounts id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.user_connected_accounts ALTER COLUMN id SET DEFAULT nextval('public.user_connected_accounts_id_seq'::regclass);
-
-
---
--- Name: users id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.users ALTER COLUMN id SET DEFAULT nextval('public.users_id_seq'::regclass);
 
 
 --
@@ -3209,24 +2900,18 @@ ALTER TABLE ONLY public.versions ALTER COLUMN id SET DEFAULT nextval('public.ver
 -- Name: account_invitations account_invitations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.account_invitations
-    ADD CONSTRAINT account_invitations_pkey PRIMARY KEY (id);
 
 
 --
 -- Name: account_users account_users_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.account_users
-    ADD CONSTRAINT account_users_pkey PRIMARY KEY (id);
 
 
 --
 -- Name: accounts accounts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.accounts
-    ADD CONSTRAINT accounts_pkey PRIMARY KEY (id);
 
 
 --
@@ -3257,16 +2942,12 @@ ALTER TABLE ONLY public.active_storage_attachments
 -- Name: announcements announcements_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.announcements
-    ADD CONSTRAINT announcements_pkey PRIMARY KEY (id);
 
 
 --
 -- Name: api_tokens api_tokens_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.api_tokens
-    ADD CONSTRAINT api_tokens_pkey PRIMARY KEY (id);
 
 
 --
@@ -3481,8 +3162,6 @@ ALTER TABLE ONLY public.meta_maps
 -- Name: notifications notifications_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.notifications
-    ADD CONSTRAINT notifications_pkey PRIMARY KEY (id);
 
 
 --
@@ -3529,24 +3208,18 @@ ALTER TABLE ONLY public.party_tournaments
 -- Name: pay_charges pay_charges_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.pay_charges
-    ADD CONSTRAINT pay_charges_pkey PRIMARY KEY (id);
 
 
 --
 -- Name: pay_subscriptions pay_subscriptions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.pay_subscriptions
-    ADD CONSTRAINT pay_subscriptions_pkey PRIMARY KEY (id);
 
 
 --
 -- Name: plans plans_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.plans
-    ADD CONSTRAINT plans_pkey PRIMARY KEY (id);
 
 
 --
@@ -3745,8 +3418,6 @@ ALTER TABLE ONLY public.tournaments
 -- Name: user_connected_accounts user_connected_accounts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.user_connected_accounts
-    ADD CONSTRAINT user_connected_accounts_pkey PRIMARY KEY (id);
 
 
 --
@@ -3769,42 +3440,36 @@ ALTER TABLE ONLY public.versions
 -- Name: index_account_invitations_on_account_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_account_invitations_on_account_id ON public.account_invitations USING btree (account_id);
 
 
 --
 -- Name: index_account_invitations_on_invited_by_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_account_invitations_on_invited_by_id ON public.account_invitations USING btree (invited_by_id);
 
 
 --
 -- Name: index_account_invitations_on_token; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX index_account_invitations_on_token ON public.account_invitations USING btree (token);
 
 
 --
 -- Name: index_account_users_on_account_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_account_users_on_account_id ON public.account_users USING btree (account_id);
 
 
 --
 -- Name: index_account_users_on_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_account_users_on_user_id ON public.account_users USING btree (user_id);
 
 
 --
 -- Name: index_accounts_on_owner_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_accounts_on_owner_id ON public.accounts USING btree (owner_id);
 
 
 --
@@ -3832,14 +3497,12 @@ CREATE UNIQUE INDEX index_active_storage_attachments_uniqueness ON public.active
 -- Name: index_api_tokens_on_token; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX index_api_tokens_on_token ON public.api_tokens USING btree (token);
 
 
 --
 -- Name: index_api_tokens_on_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_api_tokens_on_user_id ON public.api_tokens USING btree (user_id);
 
 
 --
@@ -3874,14 +3537,12 @@ CREATE UNIQUE INDEX index_competition_ccs_on_branch_cc_id_and_cc_id_and_context 
 -- Name: index_connected_accounts_access_token_iv; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX index_connected_accounts_access_token_iv ON public.user_connected_accounts USING btree (encrypted_access_token_iv);
 
 
 --
 -- Name: index_connected_accounts_access_token_secret_iv; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX index_connected_accounts_access_token_secret_iv ON public.user_connected_accounts USING btree (encrypted_access_token_secret_iv);
 
 
 --
@@ -3944,21 +3605,18 @@ CREATE UNIQUE INDEX index_locations_on_md5 ON public.locations USING btree (md5)
 -- Name: index_notifications_on_account_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_notifications_on_account_id ON public.notifications USING btree (account_id);
 
 
 --
 -- Name: index_notifications_on_recipient_type_and_recipient_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_notifications_on_recipient_type_and_recipient_id ON public.notifications USING btree (recipient_type, recipient_id);
 
 
 --
 -- Name: index_pay_charges_on_owner_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_pay_charges_on_owner_id ON public.pay_charges USING btree (owner_id);
 
 
 --
@@ -4084,7 +3742,6 @@ CREATE INDEX index_tournaments_on_foreign_keys ON public.tournaments USING btree
 -- Name: index_user_connected_accounts_on_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_user_connected_accounts_on_user_id ON public.user_connected_accounts USING btree (user_id);
 
 
 --
@@ -4168,8 +3825,6 @@ CREATE UNIQUE INDEX unique_schema_migrations ON public.schema_migrations USING b
 -- Name: account_invitations fk_rails_04a176d6ed; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.account_invitations
-    ADD CONSTRAINT fk_rails_04a176d6ed FOREIGN KEY (invited_by_id) REFERENCES public.users(id);
 
 
 --
@@ -4200,24 +3855,18 @@ ALTER TABLE ONLY public.tournament_monitors
 -- Name: accounts fk_rails_37ced7af95; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.accounts
-    ADD CONSTRAINT fk_rails_37ced7af95 FOREIGN KEY (owner_id) REFERENCES public.users(id);
 
 
 --
 -- Name: account_users fk_rails_685e030c15; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.account_users
-    ADD CONSTRAINT fk_rails_685e030c15 FOREIGN KEY (user_id) REFERENCES public.users(id);
 
 
 --
 -- Name: account_invitations fk_rails_7a9e106543; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.account_invitations
-    ADD CONSTRAINT fk_rails_7a9e106543 FOREIGN KEY (account_id) REFERENCES public.accounts(id);
 
 
 --
@@ -4232,8 +3881,6 @@ ALTER TABLE ONLY public.settings
 -- Name: user_connected_accounts fk_rails_b4ef7ca86f; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.user_connected_accounts
-    ADD CONSTRAINT fk_rails_b4ef7ca86f FOREIGN KEY (user_id) REFERENCES public.users(id);
 
 
 --
@@ -4248,8 +3895,6 @@ ALTER TABLE ONLY public.tournament_plan_games
 -- Name: account_users fk_rails_c96445f213; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.account_users
-    ADD CONSTRAINT fk_rails_c96445f213 FOREIGN KEY (account_id) REFERENCES public.accounts(id);
 
 
 --
@@ -4280,8 +3925,6 @@ ALTER TABLE ONLY public.settings
 -- Name: api_tokens fk_rails_f16b5e0447; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.api_tokens
-    ADD CONSTRAINT fk_rails_f16b5e0447 FOREIGN KEY (user_id) REFERENCES public.users(id);
 
 
 --

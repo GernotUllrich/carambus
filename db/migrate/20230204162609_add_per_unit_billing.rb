@@ -2,6 +2,9 @@ class AddPerUnitBilling < ActiveRecord::Migration[7.0]
   StrongMigrations.disable_check(:rename_column)
 
   def self.up
+    # Only execute if JumpStart Pro accounts table exists (legacy migration)
+    return unless table_exists?(:accounts) && table_exists?(:plans)
+
     # Introduce counter cache for per-user billing
     add_column :accounts, :account_users_count, :integer, default: 0
     # Backfill account_users_count efficiently
@@ -17,6 +20,8 @@ class AddPerUnitBilling < ActiveRecord::Migration[7.0]
   end
 
   def self.down
+    return unless table_exists?(:accounts) && table_exists?(:plans)
+
     remove_column :accounts, :account_users_count
     remove_column :plans, :charge_per_unit
     if column_exists?(:plans, :unit_label)

@@ -84,6 +84,11 @@ class TournamentScrapingTest < ActiveSupport::TestCase
   setup do
     @id_counter = 0
 
+    # Originalwert merken, damit Tests, die carambus_api_url mutieren, im
+    # teardown nicht auf nil zurücksetzen und damit andere Tests in der
+    # Suite vergiften (z. B. PaperTrail-Gates in tournament_papertrail_test).
+    @original_api_url = Carambus.config.carambus_api_url
+
     # Ensure NBV region has public_cc_url_base set (stored in DB via fixture column)
     @region = regions(:nbv)
     @region.update_column(:public_cc_url_base, "https://ndbv.de/")
@@ -100,7 +105,7 @@ class TournamentScrapingTest < ActiveSupport::TestCase
 
   teardown do
     # Restore any Carambus.config mutations
-    Carambus.config.carambus_api_url = nil
+    Carambus.config.carambus_api_url = @original_api_url
   end
 
   # ---------------------------------------------------------------------------
@@ -132,6 +137,10 @@ class TournamentScrapingTest < ActiveSupport::TestCase
   # ---------------------------------------------------------------------------
 
   test "scrape_single_tournament_public with tournament_doc skips meisterschaft HTTP call" do
+    # Auf Local Servern (carambus_api_url gesetzt) returnt scrape_single_tournament_public
+    # früh und setzt source_url nicht — der Integrationspfad ist nur auf API-Servern relevant.
+    skip_unless_api_server
+
     # Passing tournament_doc bypasses the first Net::HTTP.get call.
     # Only 3 HTTP calls are made (meldeliste, einzelergebnisse, einzelrangliste).
     stub_remaining_calls
@@ -149,6 +158,9 @@ class TournamentScrapingTest < ActiveSupport::TestCase
   # ---------------------------------------------------------------------------
 
   test "scrape_single_tournament_public with reload_seedings destroys existing seedings" do
+    # Nur auf API-Server relevant — auf Local Servern returnt scrape früh, seedings bleiben.
+    skip_unless_api_server
+
     # Create a local player and seeding inline (no players fixture exists)
     player = Player.create!(
       id: SCRAPING_TEST_ID_BASE + 900,
@@ -178,6 +190,9 @@ class TournamentScrapingTest < ActiveSupport::TestCase
   # ---------------------------------------------------------------------------
 
   test "scrape_single_tournament_public with reload_game_results destroys existing games" do
+    # Nur auf API-Server relevant — auf Local Servern returnt scrape früh, games bleiben.
+    skip_unless_api_server
+
     # Game uses polymorphic tournament association — tournament_type must be set
     # so has_many :games, as: :tournament on Tournament returns the game.
     existing_game = Game.create!(

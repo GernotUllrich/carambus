@@ -3,12 +3,12 @@
     <div class="flex-col justify-between items-center mb-4">
       <h1 class="h3"><%= @tournament.title %> - <%= @tournament.season.name %>
         - <%= @tournament.organizer.shortname %>
-        - Neues TurnierTeam</h1>
+        - <%= t('tournaments.new_team.heading') %></h1>
       <%= form_tag add_team_tournament_path(@tournament), method: :post do %>
         <%- (1..@tournament.team_size).each do |n|%>
-          <%= label_tag "Player#{n} BaID:" %><%= number_field_tag "player_#{n}_ba_id", nil, placeholder: "player #{n} BA ID" %>
+          <%= label_tag t('tournaments.new_team.player_ba_id_label', n: n) %><%= number_field_tag "player_#{n}_ba_id", nil, placeholder: t('tournaments.new_team.player_ba_id_placeholder', n: n) %>
         <%- end %>
-        <%= submit_tag "Add Team to Seedings List", class: "btn btn-primary" %>
+        <%= submit_tag t('tournaments.new_team.add_team_button'), class: "btn btn-primary" %>
       <% end %>
     </div>
   </div>

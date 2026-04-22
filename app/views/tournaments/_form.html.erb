@@ -127,19 +127,19 @@
   </div>
 
   <div class="field-unit">
-    <%= form.label :source_url, "ClubCloud URL" %>
+    <%= form.label :source_url, t('tournaments.form.clubcloud_url') %>
     <%= form.text_field :source_url, disabled: @tournament.id < Tournament::MIN_ID %>
     <% if @tournament.id < Tournament::MIN_ID %>
-      <small class="hint">Importiertes Turnier - Bearbeitung eingeschränkt</small>
+      <small class="hint"><%= t('tournaments.form.imported_tournament_note') %></small>
     <% end %>
   </div>
 
   <div class="field-unit">
-    <%= form.label :data, "Lokale Konfiguration" %>
+    <%= form.label :data, t('tournaments.form.local_config_label') %>
     <%= form.text_area :data, rows: 8 %>
   </div>
 
   <div class="form-group flex justify-between">
-    <%= form.button "Save Tournament", class: "btn btn-primary" %>
+    <%= form.button t('tournaments.form.save_tournament'), class: "btn btn-primary" %>
   </div>
 <% end %>

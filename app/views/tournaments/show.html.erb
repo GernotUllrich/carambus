@@ -18,10 +18,9 @@
           <div class="flex items-start">
             <span class="text-2xl mr-3">🔒</span>
             <div>
-              <h3 class="font-semibold text-yellow-900 dark:text-yellow-200 mb-1">Turnier ist schreibgeschützt</h3>
+              <h3 class="font-semibold text-yellow-900 dark:text-yellow-200 mb-1"><%= t('tournaments.show.readonly_heading') %></h3>
               <p class="text-yellow-800 dark:text-yellow-300">
-                Dieses Turnier hat bereits <strong>Ergebnisse aus der ClubCloud</strong> und kann nicht mehr bearbeitet werden.
-                Die ClubCloud ist die führende Datenquelle für abgeschlossene Turniere.
+                <%= t('tournaments.show.readonly_body_html').html_safe %>
               </p>
             </div>
           </div>
@@ -176,11 +175,11 @@
       <!-- Regular Admin Actions (only for tournaments without ClubCloud results) -->
       <% if !@tournament.has_clubcloud_results? %>
         <!-- Direct link to participants/seedings management (always visible) -->
-        <%= link_to '📝 Teilnehmerliste bearbeiten', 
-            define_participants_tournament_path(@tournament), 
-            class: 'btn btn-flat btn-secondary', 
+        <%= link_to t('tournaments.show.edit_participants_button'),
+            define_participants_tournament_path(@tournament),
+            class: 'btn btn-flat btn-secondary',
             style: 'float: left; margin-right: 10px;',
-            title: 'Teilnehmer hinzufügen, bearbeiten oder entfernen' %>
+            title: t('tournaments.show.edit_participants_title') %>
         
         <%# UI-06 (plan 36B-05): trigger buttons must live inside the shared %>
         <%# confirmation-modal Stimulus scope so click actions can dispatch. %>
@@ -192,11 +191,10 @@
                          style: "display: inline;" do %>
             <% end %>
             <%
-              reset_state_line = I18n.t("tournaments.show.reset_tournament_modal.state_line", default: "Aktueller Status:")
-              reset_games_line = I18n.t("tournaments.show.reset_tournament_modal.games_line", default: "Gespielte Spiele:")
+              reset_state_line = I18n.t("tournaments.show.reset_tournament_modal.state_line")
+              reset_games_line = I18n.t("tournaments.show.reset_tournament_modal.games_line")
               reset_games_count = @tournament.games.where.not(ended_at: nil).count
-              reset_body = I18n.t("tournaments.show.reset_tournament_modal.body",
-                                  default: "Achtung: Alle lokalen Setzlisten, Spiele und Ergebnisse dieses Turniers gehen verloren.") +
+              reset_body = I18n.t("tournaments.show.reset_tournament_modal.body") +
                            "\n\n" + reset_state_line + " " + @tournament.state.to_s +
                            "\n" + reset_games_line + " " + reset_games_count.to_s
             %>
@@ -205,9 +203,9 @@
                     style="float: left; margin-right: 10px;"
                     data-action="click->confirmation-modal#open"
                     data-confirmation-modal-form-id-param="reset-tournament-form-<%= @tournament.id %>"
-                    data-confirmation-modal-title-param="<%= I18n.t('tournaments.show.reset_tournament_modal.title', default: 'Turnier-Monitor zurücksetzen') %>"
+                    data-confirmation-modal-title-param="<%= I18n.t('tournaments.show.reset_tournament_modal.title') %>"
                     data-confirmation-modal-body-param="<%= reset_body %>"
-                    data-confirmation-modal-confirm-label-param="<%= I18n.t('tournaments.show.reset_tournament_modal.confirm', default: 'Ja, zurücksetzen') %>">
+                    data-confirmation-modal-confirm-label-param="<%= I18n.t('tournaments.show.reset_tournament_modal.confirm') %>">
               <%= I18n.t("tournaments.show.reset_tournament_monitor") %>
             </button>
           <%- end %>
@@ -218,11 +216,10 @@
                          style: "display: inline;" do %>
             <% end %>
             <%
-              force_state_line = I18n.t("tournaments.show.reset_tournament_modal.state_line", default: "Aktueller Status:")
-              force_games_line = I18n.t("tournaments.show.reset_tournament_modal.games_line", default: "Gespielte Spiele:")
+              force_state_line = I18n.t("tournaments.show.reset_tournament_modal.state_line")
+              force_games_line = I18n.t("tournaments.show.reset_tournament_modal.games_line")
               force_games_count = @tournament.games.where.not(ended_at: nil).count
-              force_body = I18n.t("tournaments.show.force_reset_tournament_modal.body",
-                                  default: "DATENVERLUST: Alle lokalen Setzlisten, laufenden Spiele, Ergebnisse und der Turnierstand gehen unwiderruflich verloren.") +
+              force_body = I18n.t("tournaments.show.force_reset_tournament_modal.body") +
                            "\n\n" + force_state_line + " " + @tournament.state.to_s +
                            "\n" + force_games_line + " " + force_games_count.to_s
             %>
@@ -231,9 +228,9 @@
                     style="float: left; margin-right: 10px;"
                     data-action="click->confirmation-modal#open"
                     data-confirmation-modal-form-id-param="force-reset-tournament-form-<%= @tournament.id %>"
-                    data-confirmation-modal-title-param="<%= I18n.t('tournaments.show.force_reset_tournament_modal.title', default: 'Turnier-Monitor zwangsweise zurücksetzen') %>"
+                    data-confirmation-modal-title-param="<%= I18n.t('tournaments.show.force_reset_tournament_modal.title') %>"
                     data-confirmation-modal-body-param="<%= force_body %>"
-                    data-confirmation-modal-confirm-label-param="<%= I18n.t('tournaments.show.force_reset_tournament_modal.confirm', default: 'Ja, zwangsweise zurücksetzen') %>">
+                    data-confirmation-modal-confirm-label-param="<%= I18n.t('tournaments.show.force_reset_tournament_modal.confirm') %>">
               <%= I18n.t("tournaments.show.debugging_force_reset_tournament_monitor") %>
             </button>
           <% end %>

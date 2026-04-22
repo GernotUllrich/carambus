@@ -23,6 +23,9 @@ class TournamentTest < ActiveSupport::TestCase
   end
 
   test "PaperTrail ignores updated_at and sync_date changes" do
+    # PaperTrail ist in LocalProtector nur aktiv, wenn kein carambus_api_url gesetzt ist.
+    skip_unless_api_server
+
     tournament = Tournament.create!(
       title: "Test Tournament",
       season: Season.first,

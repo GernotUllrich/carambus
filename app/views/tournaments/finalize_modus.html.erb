@@ -32,12 +32,12 @@
       
       <% if @tournament.data['extracted_plan_info'].present? %>
         <div class="mt-4 p-4 bg-green-50 border border-green-200 rounded">
-          <h4 class="font-semibold text-green-900 mb-2">📄 Vorgaben aus Einladung:</h4>
+          <h4 class="font-semibold text-green-900 mb-2"><%= t('tournaments.finalize_modus.invitation_specs_heading') %></h4>
           <p class="text-green-900">
             <strong><%= @tournament.data['extracted_plan_info'] %></strong>
           </p>
           <p class="text-xs text-green-700 mt-2">
-            Diese Informationen wurden automatisch aus der hochgeladenen Einladung extrahiert.
+            <%= t('tournaments.finalize_modus.extracted_info') %>
           </p>
         </div>
       <% end %>
@@ -63,58 +63,56 @@
               <div class="flex items-center justify-between">
                 <div>
                   <p class="text-green-900 text-sm">
-                    <strong>✅ Gruppenbildung aus Einladung übernommen</strong><br>
-                    Die Zuordnung wurde automatisch extrahiert und ist <strong>identisch</strong> mit dem NBV-Standard-Algorithmus.
+                    <%= t('tournaments.finalize_modus.groups_from_invitation_html').html_safe %>
                   </p>
                 </div>
                 <div class="flex gap-2">
-                  <%= button_to '🔄 Neu berechnen',
+                  <%= button_to t('tournaments.finalize_modus.recalculate'),
                       recalculate_groups_tournament_path(@tournament),
                       method: :post,
                       class: 'btn btn-sm btn-secondary',
-                      data: { confirm: 'Extrahierte Gruppenbildung verwerfen und neu berechnen?' },
-                      title: 'Verwirft Einladungs-Zuordnung und berechnet mit NBV-Algorithmus' %>
+                      data: { confirm: t('tournaments.finalize_modus.recalculate_confirm') },
+                      title: t('tournaments.finalize_modus.recalculate_title') %>
                 </div>
               </div>
             </div>
           <% elsif @groups_source == :extracted_differs_from_nbv %>
             <div class="mb-4 p-4 bg-red-50 border-2 border-red-300 rounded">
               <p class="text-red-900 font-semibold mb-2">
-                ⚠️  WARNUNG: Abweichung vom NBV-Standard erkannt!
+                <%= t('tournaments.finalize_modus.warning_nbv_differs') %>
               </p>
               <p class="text-red-800 text-sm mb-3 max-w-4xl">
-                Die Gruppenbildung in der Einladung <strong>unterscheidet sich</strong> vom berechneten Algorithmus.<br>
-                <strong>Grund:</strong> Der NBV-Algorithmus für <%= @proposed_discipline_tournament_plan.name %> ist möglicherweise noch nicht korrekt implementiert.
+                <%= t('tournaments.finalize_modus.warning_nbv_differs_body_html', plan: @proposed_discipline_tournament_plan.name).html_safe %>
               </p>
-              
+
               <div class="flex gap-2 mb-3">
-                <%= button_to '✅ Einladung verwenden (empfohlen)',
+                <%= button_to t('tournaments.finalize_modus.use_invitation'),
                     select_modus_tournament_path(@tournament, tournament_plan_id: @proposed_discipline_tournament_plan.id),
                     method: :post,
                     class: 'btn btn-sm btn-success',
-                    data: { confirm: 'Gruppenbildung aus Einladung verwenden?\n\nDiese ist vom Landessportwart vorgegeben.' },
-                    title: 'Verwendet die offizielle Gruppenbildung aus der Einladung' %>
-                
-                <%= button_to '🔄 Algorithmus verwenden (Risiko)',
+                    data: { confirm: t('tournaments.finalize_modus.use_invitation_confirm') },
+                    title: t('tournaments.finalize_modus.use_invitation_title') %>
+
+                <%= button_to t('tournaments.finalize_modus.use_algorithm'),
                     recalculate_groups_tournament_path(@tournament),
                     method: :post,
                     class: 'btn btn-sm btn-outline-warning',
-                    data: { confirm: 'ACHTUNG: Der Algorithmus könnte falsch sein!\n\nBesser die Einladung verwenden.' },
-                    title: 'Verwendet berechneten Algorithmus (könnte von NBV-Vorgaben abweichen)' %>
+                    data: { confirm: t('tournaments.finalize_modus.use_algorithm_confirm') },
+                    title: t('tournaments.finalize_modus.use_algorithm_title') %>
               </div>
-              
+
               <!-- Vergleich: Extrahiert vs. Berechnet -->
               <details class="bg-white p-3 rounded border border-red-200">
                 <summary class="cursor-pointer font-semibold text-red-900">
-                  🔍 Vergleich anzeigen
+                  <%= t('tournaments.finalize_modus.show_comparison') %>
                 </summary>
                 <div class="mt-3 grid grid-cols-2 gap-4">
                   <div>
-                    <h5 class="font-bold text-green-900 mb-2">📄 Aus Einladung (NBV-Vorgabe):</h5>
+                    <h5 class="font-bold text-green-900 mb-2"><%= t('tournaments.finalize_modus.from_invitation_nbv') %></h5>
                     <%= render partial: "groups", locals: {tournament_plan: @proposed_discipline_tournament_plan, groups: @extracted_groups} %>
                   </div>
                   <div>
-                    <h5 class="font-bold text-orange-900 mb-2">🤖 Berechnet (vermutlich falsch):</h5>
+                    <h5 class="font-bold text-orange-900 mb-2"><%= t('tournaments.finalize_modus.calculated_likely_wrong') %></h5>
                     <%= render partial: "groups", locals: {tournament_plan: @proposed_discipline_tournament_plan, groups: @nbv_groups} %>
                   </div>
                 </div>
@@ -125,26 +123,25 @@
               <div class="flex items-center justify-between">
                 <div>
                   <p class="text-blue-900 text-sm">
-                    <strong>🤖 Gruppenbildung automatisch berechnet (NBV-konform)</strong><br>
-                    Die Zuordnung wurde nach NBV-Standard-Algorithmus berechnet.
+                    <%= t('tournaments.finalize_modus.groups_auto_calculated_html').html_safe %>
                   </p>
                 </div>
                 <div>
                   <details class="inline-block">
                     <summary class="btn btn-sm btn-outline-secondary cursor-pointer">
-                      ✏️ Manuell anpassen
+                      <%= t('tournaments.finalize_modus.manually_adjust') %>
                     </summary>
                     <div class="absolute z-10 mt-2 p-4 bg-white border border-gray-300 rounded shadow-lg" style="min-width: 300px;">
                       <p class="text-sm text-gray-700 mb-3">
-                        <strong>"Auch der Landessportwart irrt manchmal" 😊</strong><br>
-                        Sie können die Gruppenzuordnung manuell korrigieren.
+                        <strong><%= t('tournaments.finalize_modus.landessportwart_quote') %></strong><br>
+                        <%= t('tournaments.finalize_modus.manual_correct_hint') %>
                       </p>
                       <p class="text-xs text-gray-600 mb-3">
-                        <strong>Hinweis:</strong> Diese Funktion ist in Entwicklung.<br>
-                        Aktuell: Verwenden Sie '🔄 Neu berechnen' oder passen Sie die Setzliste in Schritt 3 an.
+                        <%= t('tournaments.finalize_modus.in_development_html').html_safe %><br>
+                        <%= t('tournaments.finalize_modus.current_workaround') %>
                       </p>
                       <button onclick="this.closest('details').open=false" class="btn btn-sm btn-secondary w-full">
-                        Schließen
+                        <%= t('tournaments.finalize_modus.close') %>
                       </button>
                     </div>
                   </details>
@@ -243,11 +240,10 @@
                  style: "display: inline;" do %>
     <% end %>
     <%
-      fm_state_line = I18n.t("tournaments.show.reset_tournament_modal.state_line", default: "Aktueller Status:")
-      fm_games_line = I18n.t("tournaments.show.reset_tournament_modal.games_line", default: "Gespielte Spiele:")
+      fm_state_line = I18n.t("tournaments.show.reset_tournament_modal.state_line")
+      fm_games_line = I18n.t("tournaments.show.reset_tournament_modal.games_line")
       fm_games_count = @tournament.games.where.not(ended_at: nil).count
-      fm_body = I18n.t("tournaments.show.force_reset_tournament_modal.body",
-                       default: "DATENVERLUST: Alle lokalen Setzlisten, laufenden Spiele, Ergebnisse und der Turnierstand gehen unwiderruflich verloren.") +
+      fm_body = I18n.t("tournaments.show.force_reset_tournament_modal.body") +
                 "\n\n" + fm_state_line + " " + @tournament.state.to_s +
                 "\n" + fm_games_line + " " + fm_games_count.to_s
     %>
@@ -256,9 +252,9 @@
             style="float: left; margin-right: 10px;"
             data-action="click->confirmation-modal#open"
             data-confirmation-modal-form-id-param="force-reset-tournament-form-finalize-<%= @tournament.id %>"
-            data-confirmation-modal-title-param="<%= I18n.t('tournaments.show.force_reset_tournament_modal.title', default: 'Turnier-Monitor zwangsweise zurücksetzen') %>"
+            data-confirmation-modal-title-param="<%= I18n.t('tournaments.show.force_reset_tournament_modal.title') %>"
             data-confirmation-modal-body-param="<%= fm_body %>"
-            data-confirmation-modal-confirm-label-param="<%= I18n.t('tournaments.show.force_reset_tournament_modal.confirm', default: 'Ja, zwangsweise zurücksetzen') %>">
+            data-confirmation-modal-confirm-label-param="<%= I18n.t('tournaments.show.force_reset_tournament_modal.confirm') %>">
       <%= I18n.t("tournaments.show.debugging_force_reset_tournament_monitor") %>
     </button>
   <% end %>

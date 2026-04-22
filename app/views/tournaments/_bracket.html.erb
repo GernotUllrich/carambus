@@ -87,7 +87,7 @@
       const nameTxt = nameSpan.textContent.trim();
       
       // Ignore placeholders
-      if(!nameTxt || nameTxt === "TBD" || nameTxt === "-" || nameTxt === "Freilos / Bye" || nameTxt.startsWith("Sieger") || nameTxt.startsWith("Verlierer")) {
+      if(!nameTxt || nameTxt === "TBD" || nameTxt === "-" || playerDiv.dataset.placeholder === "true") {
         return;
       }
       
@@ -161,14 +161,14 @@
           if seeding&.player
             return [seeding.player.fullname, "-", -1]
           else
-            return ["Freilos / Bye", "-", -1]
+            return [t('tournaments.monitor.bracket_bye'), "-", -1]
           end
         elsif rule.include?(".rk1")
           src = rule.split('.').first
-          return ["Sieger #{src}", "-", -1]
+          return [t('tournaments.monitor.bracket_winner_of', src: src), "-", -1]
         elsif rule.include?(".rk2")
           src = rule.split('.').first
-          return ["Verlierer #{src}", "-", -1]
+          return [t('tournaments.monitor.bracket_loser_of', src: src), "-", -1]
         end
         [rule, "-", -1]
       end
@@ -186,11 +186,11 @@
         sko_order = ['32f', '16f', 'qf', 'hf', 'fin']
         sko_rounds = sko_order.map { |prefix| executor_params.keys.select { |k| k.start_with?(prefix) || k == prefix }.sort_by { |m| m[/\d+$/].to_i } }.reject(&:empty?)
         
-        bracket_groups << { title: "🏆 Gewinnerrunde", levels: w_rounds }
-        bracket_groups << { title: "💥 Verliererrunde", levels: l_rounds }
-        bracket_groups << { title: "👑 Finalrunde", levels: sko_rounds }
+        bracket_groups << { title: t('tournaments.monitor.bracket_winner_round'), levels: w_rounds }
+        bracket_groups << { title: t('tournaments.monitor.bracket_loser_round'), levels: l_rounds }
+        bracket_groups << { title: t('tournaments.monitor.bracket_final_round'), levels: sko_rounds }
       else
-        bracket_groups << { title: "🏆 Turnierbaum", levels: levels }
+        bracket_groups << { title: t('tournaments.monitor.bracket_tree'), levels: levels }
       end
     %>
 
@@ -226,11 +226,11 @@
             %>
             <div class="bracket-match">
               <div class="text-xs text-slate-500 mb-1 font-semibold"><%= match_name.upcase %></div>
-              <div class="bracket-player bracket-player-top dark:text-slate-800 <%= 'winner' if p1_winner %>">
+              <div class="bracket-player bracket-player-top dark:text-slate-800 <%= 'winner' if p1_winner %>"<%= ' data-placeholder="true"' if p1_val == -1 %>>
                 <span class="truncate pr-2 bracket-player-name" title="<%= p1_name %>"><%= p1_name %></span>
                 <span class="font-mono text-slate-500"><%= p1_score %></span>
               </div>
-              <div class="bracket-player bracket-player-bottom dark:text-slate-800 <%= 'winner' if p2_winner %>">
+              <div class="bracket-player bracket-player-bottom dark:text-slate-800 <%= 'winner' if p2_winner %>"<%= ' data-placeholder="true"' if p2_val == -1 %>>
                 <span class="truncate pr-2 bracket-player-name" title="<%= p2_name %>"><%= p2_name %></span>
                 <span class="font-mono text-slate-500"><%= p2_score %></span>
               </div>

@@ -160,7 +160,9 @@ class TableMonitor::OptionsPresenter
 
       disambiguate_player_names!(options, @gps, show_tournament_monitor)
 
-      @location = @tm.table.location
+      # table kann im Zuge von Detach/Delete-Flows oder in isolierten Tests
+      # fehlen — dann existieren weder Location noch Scoreboard-Kontext.
+      @location = @tm.table&.location
       @show_tournament = if @tm.tournament_monitor.is_a?(PartyMonitor)
                            @tm.tournament_monitor&.party
                          else

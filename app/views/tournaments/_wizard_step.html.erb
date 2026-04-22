@@ -43,14 +43,14 @@
       <% if warning %>
         <div class="step-warning">
           <span class="warning-icon">⚠️</span>
-          <%= warning.is_a?(String) ? warning : "Dieser Schritt ist noch offen" %>
+          <%= warning.is_a?(String) ? warning : t('tournaments.wizard_step.pending_default') %>
         </div>
       <% end %>
 
       <% if help.present? %>
         <div class="step-help">
           <details<%= " open" if status == :active %>>
-            <summary>💡 Was macht dieser Schritt?</summary>
+            <summary><%= t('tournaments.wizard_step.help_summary') %></summary>
             <p><%= help.html_safe %></p>
             <% if docs_path.present? %>
               <p class="step-docs-link mt-2">
@@ -75,7 +75,7 @@
           class: "btn btn-secondary btn-sm #{action[:class]}" %>
     <% elsif status == :pending %>
       <span class="disabled-text">
-        Erst verfügbar nach vorherigem Schritt
+        <%= t('tournaments.wizard_step.pending_hint') %>
       </span>
     <% end %>
   </div>

@@ -2,6 +2,9 @@
 
 This guide explains how to configure and run tests in complete isolation from your development database.
 
+> **Ergänzend:** [SCENARIO_TESTING.md](SCENARIO_TESTING.md) erklärt die scenario-
+> spezifischen Fallen (cable.yml, skip_unless_api_server, Config-Pollution).
+
 ## Overview
 
 The test suite uses **separate test databases** that are:

@@ -5,7 +5,7 @@
         - <%= tournament.organizer.shortname %> - <%= tournament.season.name %></h1>
       <h3><%= subtitle %></h3>
       <% if local_server? && !tournament.has_clubcloud_results? %>
-        <%= button_to('Edit', edit_tournament_path(tournament), method: :get, disabled: !current_user&.admin?, class: "btn btn-link") %>
+        <%= button_to(t('tournaments.show.edit_button'), edit_tournament_path(tournament), method: :get, disabled: !current_user&.admin?, class: "btn btn-link") %>
       <% end %>
     </div>
     <%- unless local_assigns[:drop_details].present? %>
@@ -40,10 +40,10 @@
         <% if tournament.data.present? && tournament_director?(current_user) %>
           <div class="w-3/12 mb-4 m-w-full pr-8">
             <h5><%= t('activerecord.attributes.tournament.data') %></h5>
-            <button type="button" 
+            <button type="button"
                     onclick="document.getElementById('tournament-data-modal-<%= tournament.id %>').classList.remove('hidden')"
                     class="btn btn-sm btn-secondary cursor-pointer">
-              Turnierdaten anzeigen
+              <%= t('tournaments.show.show_tournament_data') %>
             </button>
           </div>
           
@@ -59,7 +59,7 @@
                 <!-- Header -->
                 <div class="flex items-center justify-between pb-4 border-b border-gray-200">
                   <h3 class="text-2xl font-bold text-gray-900">
-                    📊 Turnier-Daten: <%= tournament.title %>
+                    <%= t('tournaments.show.tournament_data_modal_title') %> <%= tournament.title %>
                   </h3>
                   <button type="button"
                           class="text-gray-400 hover:text-gray-600 transition-colors close-modal-btn">
@@ -78,7 +78,7 @@
                 <div class="flex justify-end mt-6 pt-4 border-t border-gray-200">
                   <button type="button"
                           class="btn btn-primary close-modal-btn">
-                    Schließen
+                    <%= t('tournaments.show.close') %>
                   </button>
                 </div>
               </div>
@@ -169,7 +169,7 @@
         <div class="w-3/12 mb-4 m-w-full pr-8">
           <h5><%= t('activerecord.attributes.tournament.source') %></h5><%= link_to_if tournament.source_url.present?, tournament.source_url.present? ? URI.parse(tournament.source_url).host : "", tournament.source_url, class: "green_link", target: :_blank %>
         </div>
-        <div class="w-3/12 mb-4 m-w-full pr-8"><h5><%= "Last Sync:" %></h5><%= tournament.sync_date.andand.to_date %></div>
+        <div class="w-3/12 mb-4 m-w-full pr-8"><h5><%= t('tournaments.show.last_sync') %></h5><%= tournament.sync_date.andand.to_date %></div>
       </div>
       </div>
     <%- end %>
