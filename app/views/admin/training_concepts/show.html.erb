@@ -76,7 +76,6 @@
           <th style="padding: 10px; text-align: left;">Titel</th>
           <th style="padding: 10px; text-align: left;">Sprache</th>
           <th style="padding: 10px; text-align: center;">Übersetzt</th>
-          <th style="padding: 10px; text-align: center; width: 80px;">Sortierung</th>
           <th style="padding: 10px; text-align: right; width: 200px;">Aktionen</th>
         </tr>
       </thead>
@@ -108,30 +107,6 @@
                 <span style="color: #27ae60; font-size: 1.2em;" title="Übersetzungen synchronisiert">✅</span>
               <% else %>
                 <span style="color: #e74c3c; font-size: 1.2em;" title="Übersetzungen nicht synchronisiert">⚠️</span>
-              <% end %>
-            </td>
-            <td style="padding: 10px; text-align: center;">
-              <% if index > 0 %>
-                <%= button_to(
-                  "↑",
-                  move_up_admin_training_example_path(example),
-                  method: :patch,
-                  class: "button button--small",
-                  style: "background: #95a5a6; color: white; padding: 3px 8px; display: inline-block; margin-right: 3px;",
-                  title: "Nach oben",
-                  form: { style: "display: inline-block;" }
-                ) %>
-              <% end %>
-              <% if index < examples.size - 1 %>
-                <%= button_to(
-                  "↓",
-                  move_down_admin_training_example_path(example),
-                  method: :patch,
-                  class: "button button--small",
-                  style: "background: #95a5a6; color: white; padding: 3px 8px; display: inline-block;",
-                  title: "Nach unten",
-                  form: { style: "display: inline-block;" }
-                ) %>
               <% end %>
             </td>
             <td style="padding: 10px; text-align: right;">

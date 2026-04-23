@@ -476,10 +476,6 @@ Rails.application.routes.draw do
         post :translate
       end
       resources :training_examples, shallow: true do
-        member do
-          patch :move_up
-          patch :move_down
-        end
         resources :shots, shallow: true do
           member do
             patch :move_up
@@ -488,15 +484,10 @@ Rails.application.routes.draw do
         end
       end
     end
-    
+
     # Standalone route for Administrate dashboard navigation
-    resources :training_examples, only: [:index] do
-      member do
-        patch :move_up
-        patch :move_down
-      end
-    end
-    
+    resources :training_examples, only: [:index]
+
     resources :shots, only: [:index] do
       member do
         patch :move_up

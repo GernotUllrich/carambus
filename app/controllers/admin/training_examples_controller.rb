@@ -15,8 +15,6 @@ module Admin
     def valid_action?(name, resource = resource_class)
       # "new" ist nur gültig, wenn wir von einem TrainingConcept kommen
       return false if name.to_s == 'new' && params[:training_concept_id].blank?
-      # Sortier-Actions erlauben
-      return true if %w[move_up move_down].include?(name.to_s)
       super
     end
     
@@ -59,61 +57,18 @@ module Admin
     end
     
     def destroy
-      # Get training_concept BEFORE destroying the example
-      training_concept_id = requested_resource.training_concept_id
-      training_concept = TrainingConcept.find(training_concept_id)
-      
+      # v0.9 Phase D: TrainingExample ↔ TrainingConcept ist jetzt M2M
+      # (training_concept_examples mit weight + sequence_number). Es gibt
+      # keinen eindeutigen Parent-Concept mehr, daher Redirect zum Index.
       if requested_resource.destroy
-        redirect_to admin_training_concept_url(training_concept, host: request.host, port: request.port),
+        redirect_to admin_training_examples_path,
                     notice: "Trainingsbeispiel wurde erfolgreich gelöscht."
       else
         redirect_to admin_training_example_url(requested_resource, host: request.host, port: request.port),
                     alert: "Trainingsbeispiel konnte nicht gelöscht werden: #{requested_resource.errors.full_messages.join(', ')}"
       end
     end
-    
-    def move_up
-      example = requested_resource
-      training_concept = example.training_concept
-      examples = training_concept.training_examples.order(:sequence_number)
-      current_index = examples.index(example)
-      
-      if current_index && current_index > 0
-        # Swap sequence numbers with previous example
-        prev_example = examples[current_index - 1]
-        example_seq = example.sequence_number
-        example.update_column(:sequence_number, prev_example.sequence_number)
-        prev_example.update_column(:sequence_number, example_seq)
-        
-        redirect_to admin_training_concept_path(training_concept), 
-                    notice: "Reihenfolge aktualisiert."
-      else
-        redirect_to admin_training_concept_path(training_concept), 
-                    alert: "Kann nicht nach oben verschoben werden."
-      end
-    end
-    
-    def move_down
-      example = requested_resource
-      training_concept = example.training_concept
-      examples = training_concept.training_examples.order(:sequence_number)
-      current_index = examples.index(example)
-      
-      if current_index && current_index < examples.size - 1
-        # Swap sequence numbers with next example
-        next_example = examples[current_index + 1]
-        example_seq = example.sequence_number
-        example.update_column(:sequence_number, next_example.sequence_number)
-        next_example.update_column(:sequence_number, example_seq)
-        
-        redirect_to admin_training_concept_path(training_concept), 
-                    notice: "Reihenfolge aktualisiert."
-      else
-        redirect_to admin_training_concept_path(training_concept), 
-                    alert: "Kann nicht nach unten verschoben werden."
-      end
-    end
-    
+
     private
     
     def set_training_concept
