@@ -66,7 +66,7 @@ class Bk2Kombi::ScoreShotTest < ActiveSupport::TestCase
 
   test "test 2: middle_pin_only from full_pin_image → raw_total=2 (not 1)" do
     result = Bk2Kombi::ScoreShot.call(
-      shot_payload: shot({ fallen_pins: 1, middle_pin_only: true }, { full_pin_image: true }),
+      shot_payload: shot({fallen_pins: 1, middle_pin_only: true}, {full_pin_image: true}),
       state: @default_state
     )
 
@@ -77,7 +77,7 @@ class Bk2Kombi::ScoreShotTest < ActiveSupport::TestCase
 
   test "test 3: middle_pin_only WITHOUT full_pin_image → raw_total=1 (regular pin)" do
     result = Bk2Kombi::ScoreShot.call(
-      shot_payload: shot({ fallen_pins: 1, middle_pin_only: true }, { full_pin_image: false }),
+      shot_payload: shot({fallen_pins: 1, middle_pin_only: true}, {full_pin_image: false}),
       state: @default_state
     )
 
