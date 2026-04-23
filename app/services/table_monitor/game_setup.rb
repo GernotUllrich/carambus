@@ -43,14 +43,16 @@ class TableMonitor::GameSetup < ApplicationService
     existing_balls_goal_a = tm.data.dig("playera", "balls_goal")
     existing_balls_goal_b = tm.data.dig("playerb", "balls_goal")
 
-    Rails.logger.info "===== initialize_game DEBUG ====="
-    Rails.logger.info "BEFORE deep_merge: data['innings_goal'] = #{tm.data["innings_goal"].inspect}"
-    Rails.logger.info "BEFORE deep_merge: data['playera']&.[]('balls_goal') = #{tm.data.dig("playera", "balls_goal").inspect}"
-    Rails.logger.info "BEFORE deep_merge: data['playerb']&.[]('balls_goal') = #{tm.data.dig("playerb", "balls_goal").inspect}"
-    Rails.logger.info "existing_innings_goal = #{existing_innings_goal.inspect}"
-    Rails.logger.info "existing_balls_goal_a = #{existing_balls_goal_a.inspect}"
-    Rails.logger.info "existing_balls_goal_b = #{existing_balls_goal_b.inspect}"
-    Rails.logger.info "tournament_monitor.innings_goal = #{tm.tournament_monitor&.innings_goal.inspect}"
+    # 38.1 IN-02: downgraded from .info to .debug (block form avoids string
+    # interpolation cost when debug level is off).
+    Rails.logger.debug { "===== initialize_game DEBUG =====" }
+    Rails.logger.debug { "BEFORE deep_merge: data['innings_goal'] = #{tm.data["innings_goal"].inspect}" }
+    Rails.logger.debug { "BEFORE deep_merge: data['playera']&.[]('balls_goal') = #{tm.data.dig("playera", "balls_goal").inspect}" }
+    Rails.logger.debug { "BEFORE deep_merge: data['playerb']&.[]('balls_goal') = #{tm.data.dig("playerb", "balls_goal").inspect}" }
+    Rails.logger.debug { "existing_innings_goal = #{existing_innings_goal.inspect}" }
+    Rails.logger.debug { "existing_balls_goal_a = #{existing_balls_goal_a.inspect}" }
+    Rails.logger.debug { "existing_balls_goal_b = #{existing_balls_goal_b.inspect}" }
+    Rails.logger.debug { "tournament_monitor.innings_goal = #{tm.tournament_monitor&.innings_goal.inspect}" }
 
     # Initialize initial_red_balls for snooker (default 15)
     initial_reds = if tm.tournament_monitor.is_a?(PartyMonitor) && tm.game.data["free_game_form"] == "snooker"
@@ -196,10 +198,11 @@ class TableMonitor::GameSetup < ApplicationService
       }
     })
 
-    Rails.logger.info "AFTER deep_merge: data['innings_goal'] = #{tm.data["innings_goal"].inspect}"
-    Rails.logger.info "AFTER deep_merge: data['playera']&.[]('balls_goal') = #{tm.data.dig("playera", "balls_goal").inspect}"
-    Rails.logger.info "AFTER deep_merge: data['playerb']&.[]('balls_goal') = #{tm.data.dig("playerb", "balls_goal").inspect}"
-    Rails.logger.info "===== initialize_game DEBUG END ====="
+    # 38.1 IN-02: downgraded from .info to .debug.
+    Rails.logger.debug { "AFTER deep_merge: data['innings_goal'] = #{tm.data["innings_goal"].inspect}" }
+    Rails.logger.debug { "AFTER deep_merge: data['playera']&.[]('balls_goal') = #{tm.data.dig("playera", "balls_goal").inspect}" }
+    Rails.logger.debug { "AFTER deep_merge: data['playerb']&.[]('balls_goal') = #{tm.data.dig("playerb", "balls_goal").inspect}" }
+    Rails.logger.debug { "===== initialize_game DEBUG END =====" }
 
     # Initialize snooker state for first frame if this is a snooker game
     if tm.data["free_game_form"] == "snooker"

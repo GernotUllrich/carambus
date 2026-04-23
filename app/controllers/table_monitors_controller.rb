@@ -123,15 +123,17 @@ class TableMonitorsController < ApplicationController
         p[:bk2_options] = { "set_target_points" => set_target }
       end
 
-      Rails.logger.info "=== QUICK GAME START ==="
-      Rails.logger.info "quick_game_form: #{p[:quick_game_form]}"
-      Rails.logger.info "discipline_a: #{p[:discipline_a]}"
-      Rails.logger.info "balls_goal_a: #{p[:balls_goal_a]}"
-      Rails.logger.info "innings_goal: #{p[:innings_goal]}"
-      Rails.logger.info "sets_to_win: #{p[:sets_to_win]}"
-      Rails.logger.info "sets_to_play: #{p[:sets_to_play]}"
-      Rails.logger.info "kickoff_switches_with: #{p[:kickoff_switches_with]}"
-      Rails.logger.info "======================="
+      # 38.1 IN-02: downgraded from .info to .debug (block form avoids string
+      # interpolation cost when debug level is off).
+      Rails.logger.debug { "=== QUICK GAME START ===" }
+      Rails.logger.debug { "quick_game_form: #{p[:quick_game_form]}" }
+      Rails.logger.debug { "discipline_a: #{p[:discipline_a]}" }
+      Rails.logger.debug { "balls_goal_a: #{p[:balls_goal_a]}" }
+      Rails.logger.debug { "innings_goal: #{p[:innings_goal]}" }
+      Rails.logger.debug { "sets_to_win: #{p[:sets_to_win]}" }
+      Rails.logger.debug { "sets_to_play: #{p[:sets_to_play]}" }
+      Rails.logger.debug { "kickoff_switches_with: #{p[:kickoff_switches_with]}" }
+      Rails.logger.debug { "=======================" }
     end
     # 38.1 WR-01: guard the `four_ball` branch against silently bulldozing
     # BK2-Kombi state. BK2 quick/detail forms never emit `four_ball`, but a
@@ -168,14 +170,15 @@ class TableMonitorsController < ApplicationController
         p[:discipline_a] = p[:discipline_b] = Discipline::KARAMBOL_DISCIPLINE_MAP[p.delete(:discipline_choice).to_i]
       elsif p[:free_game_form] == "snooker"
         # Snooker parameters
-        Rails.logger.info "=== SNOOKER PARAMS DEBUG ==="
-        Rails.logger.info "sets_to_win: #{p[:sets_to_win].inspect}"
-        Rails.logger.info "sets_to_play: #{p[:sets_to_play].inspect}"
-        Rails.logger.info "frames_to_win: #{p[:frames_to_win].inspect}"
-        Rails.logger.info "frames_to_win_choice: #{p[:frames_to_win_choice].inspect}"
-        Rails.logger.info "frames_to_win_2_choice: #{p[:frames_to_win_2_choice].inspect}"
-        Rails.logger.info "initial_red_balls: #{p[:initial_red_balls].inspect}"
-        Rails.logger.info "============================"
+        # 38.1 IN-02: downgraded from .info to .debug.
+        Rails.logger.debug { "=== SNOOKER PARAMS DEBUG ===" }
+        Rails.logger.debug { "sets_to_win: #{p[:sets_to_win].inspect}" }
+        Rails.logger.debug { "sets_to_play: #{p[:sets_to_play].inspect}" }
+        Rails.logger.debug { "frames_to_win: #{p[:frames_to_win].inspect}" }
+        Rails.logger.debug { "frames_to_win_choice: #{p[:frames_to_win_choice].inspect}" }
+        Rails.logger.debug { "frames_to_win_2_choice: #{p[:frames_to_win_2_choice].inspect}" }
+        Rails.logger.debug { "initial_red_balls: #{p[:initial_red_balls].inspect}" }
+        Rails.logger.debug { "============================" }
 
         p[:initial_red_balls] = p.delete(:initial_red_balls).to_i
         p[:warntime] = p.delete(:warntime).to_i
@@ -191,11 +194,12 @@ class TableMonitorsController < ApplicationController
         p[:sets_to_win] = frames_to_win.to_i
         p[:sets_to_play] = (frames_to_win.to_i * 2 - 1)
 
-        Rails.logger.info "=== SNOOKER RESULT ==="
-        Rails.logger.info "Calculated frames_to_win: #{frames_to_win}"
-        Rails.logger.info "Final sets_to_win: #{p[:sets_to_win]}"
-        Rails.logger.info "Final sets_to_play: #{p[:sets_to_play]}"
-        Rails.logger.info "======================"
+        # 38.1 IN-02: downgraded from .info to .debug.
+        Rails.logger.debug { "=== SNOOKER RESULT ===" }
+        Rails.logger.debug { "Calculated frames_to_win: #{frames_to_win}" }
+        Rails.logger.debug { "Final sets_to_win: #{p[:sets_to_win]}" }
+        Rails.logger.debug { "Final sets_to_play: #{p[:sets_to_play]}" }
+        Rails.logger.debug { "======================" }
       elsif p[:free_game_form] == "bk2_kombi"
         # 38.1-06: Submitted by scoreboard_free_game_karambol_new.html.erb
         # (detail form, via Alpine computed getters) OR by

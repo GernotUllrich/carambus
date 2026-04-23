@@ -22,12 +22,15 @@
             config.dig('default', 'quick_game_presets', table_kind_key) || []
   
   # DEBUG
-  Rails.logger.info "=== QUICK GAME DEBUG ==="
-  Rails.logger.info "table_kind_name: #{table_kind_name}"
-  Rails.logger.info "table_kind_key: #{table_kind_key}"
-  Rails.logger.info "is_pool: #{is_pool}, is_snooker: #{is_snooker}"
-  Rails.logger.info "presets count: #{presets.size}"
-  Rails.logger.info "========================"
+  # 38.1 IN-02: downgraded from .info to .debug (block form avoids string
+  # interpolation cost when debug level is off); the partial is rendered on
+  # every quick-game entry screen hit, so this noise otherwise adds up.
+  Rails.logger.debug { "=== QUICK GAME DEBUG ===" }
+  Rails.logger.debug { "table_kind_name: #{table_kind_name}" }
+  Rails.logger.debug { "table_kind_key: #{table_kind_key}" }
+  Rails.logger.debug { "is_pool: #{is_pool}, is_snooker: #{is_snooker}" }
+  Rails.logger.debug { "presets count: #{presets.size}" }
+  Rails.logger.debug { "========================" }
 %>
 
 <div class="w-full max-w-6xl mx-auto">
