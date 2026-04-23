@@ -43,6 +43,42 @@
   </dl>
 </section>
 
+<!-- Ball-Konfigurations-Diagramm Section -->
+<section class="main-content__body" style="margin-top: 40px; clear: both;">
+  <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #16a085; padding-bottom: 10px; width: 100%;">
+    <h2 style="color: #2c3e50; margin: 0; flex: 1;">
+      🎱 Ball-Konfigurationen
+      <span style="color: #7f8c8d; font-size: 0.7em; font-weight: normal;">
+        (Ontologie-Validierung — Koordinaten visuell prüfen)
+      </span>
+    </h2>
+  </header>
+
+  <% start_bc = page.resource.start_position&.ball_configuration %>
+  <% end_configs = page.resource.shots.order(:sequence_number).map { |s| [s, s.end_ball_configuration] }.reject { |_, bc| bc.nil? } %>
+
+  <% if start_bc || end_configs.any? %>
+    <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+      <% if start_bc %>
+        <%= render "admin/shared/ball_configuration_diagram",
+                    ball_configuration: start_bc,
+                    title: truncate(start_bc.notes.to_s, length: 70),
+                    subtitle: "Start" %>
+      <% end %>
+      <% end_configs.each do |shot, bc| %>
+        <%= render "admin/shared/ball_configuration_diagram",
+                    ball_configuration: bc,
+                    title: "Shot ##{shot.sequence_number}: #{shot.title_de.presence || shot.title_en.presence || 'Unbenannt'}",
+                    subtitle: "Ende (Shot #{shot.sequence_number})" %>
+      <% end %>
+    </div>
+  <% else %>
+    <div style="background: #ecf0f1; padding: 20px; text-align: center; border-radius: 6px; color: #7f8c8d;">
+      <p style="margin: 0;">Keine Ball-Konfigurationen verknüpft.</p>
+    </div>
+  <% end %>
+</section>
+
 <!-- Shots Section -->
 <section class="main-content__body" style="margin-top: 40px; clear: both;">
   <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #3498db; padding-bottom: 10px; width: 100%;">

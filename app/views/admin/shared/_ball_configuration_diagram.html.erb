@@ -1,0 +1,142 @@
+<%#
+  Ball-Konfigurations-Diagramm (SVG, interaktiv zoombar im Browser).
+
+  Zweck: Koordinaten-Validierung für die v0.9-Ontologie. Menschen
+  können x/y-Werte nicht im Kopf gegen ein Diagramm mappen.
+
+  Locals:
+    ball_configuration  — BallConfiguration-Instance (required)
+    title               — Optionaler Überschrift-String
+    subtitle            — Optionaler Untertitel (z.B. "Start" / "Ende")
+
+  Konvention:
+    x ∈ [0, 1] = normalisierte Länge (lange Tisch-Achse)
+    y ∈ [0, 1] = normalisierte Breite
+    Der Tisch wird landscape gezeichnet: Länge horizontal.
+
+  Seitenverhältnis: alle Carambol-Tische ~2:1 (Länge:Breite).
+  Tatsächliche Werte:
+    klein     = 2.10 × 1.05 m  (belgisch)
+    halbmatch = 2.30 × 1.15 m  (Approximation)
+    match     = 2.84 × 1.42 m  (französisch)
+%>
+
+<% bc = local_assigns[:ball_configuration] %>
+<% return unless bc %>
+
+<% title = local_assigns[:title] %>
+<% subtitle = local_assigns[:subtitle] %>
+
+<% table_dimensions = {
+     "klein"     => { length_cm: 210, width_cm: 105 },
+     "halbmatch" => { length_cm: 230, width_cm: 115 },
+     "match"     => { length_cm: 284, width_cm: 142 }
+   } %>
+<% dims = table_dimensions[bc.table_variant] || table_dimensions["match"] %>
+
+<%# SVG-Geometrie. padding = Rahmen um den Tisch herum (für Banden-Dicke). %>
+<% svg_width   = 600 %>
+<% svg_height  = 300 %>
+<% padding     = 20 %>
+<% table_w     = svg_width  - 2 * padding %>
+<% table_h     = svg_height - 2 * padding %>
+<% ball_radius = 14 %>
+
+<%#
+  Koordinaten-Mapping:
+    normal [0,1] auf x → [padding, padding + table_w]
+    normal [0,1] auf y → [padding, padding + table_h]
+%>
+<% to_svg_x = ->(nx) { padding + nx * table_w } %>
+<% to_svg_y = ->(ny) { padding + ny * table_h } %>
+
+<% ball_colors = {
+     b1: { fill: "#ffffff", stroke: "#2c3e50", label_color: "#2c3e50" }, # Spielball weiß
+     b2: { fill: "#f1c40f", stroke: "#b7950b", label_color: "#2c3e50" }, # B 2 gelb
+     b3: { fill: "#e74c3c", stroke: "#922b21", label_color: "#ffffff" }  # B 3 rot
+   } %>
+
+<div style="display: inline-block; vertical-align: top; margin: 10px; padding: 12px; border: 1px solid #bdc3c7; border-radius: 6px; background: #fdfefe;">
+  <% if title || subtitle %>
+    <div style="margin-bottom: 8px; font-size: 0.95em;">
+      <% if subtitle %>
+        <span style="color: #7f8c8d; font-weight: bold; text-transform: uppercase; font-size: 0.85em;"><%= subtitle %></span>
+      <% end %>
+      <% if title %>
+        <span style="color: #2c3e50; margin-left: 6px;"><%= title %></span>
+      <% end %>
+    </div>
+  <% end %>
+
+  <svg width="<%= svg_width %>" height="<%= svg_height %>" viewBox="0 0 <%= svg_width %> <%= svg_height %>" xmlns="http://www.w3.org/2000/svg" style="background: #ecf0f1; border-radius: 4px;">
+    <%# Bandenrahmen (braun) %>
+    <rect x="0" y="0" width="<%= svg_width %>" height="<%= svg_height %>"
+          fill="#8b5a2b" rx="6" ry="6" />
+
+    <%# Tuch (grün) %>
+    <rect x="<%= padding %>" y="<%= padding %>"
+          width="<%= table_w %>" height="<%= table_h %>"
+          fill="#0a7c3e" />
+
+    <%# Diamantenmarkierungen auf den Banden (je 7 innere entlang der Länge, 3 innere entlang der Breite) %>
+    <% (1..7).each do |i| %>
+      <% dx = padding + i * table_w / 8.0 %>
+      <circle cx="<%= dx %>" cy="<%= padding / 2 %>" r="2" fill="#f8f9f9" />
+      <circle cx="<%= dx %>" cy="<%= svg_height - padding / 2 %>" r="2" fill="#f8f9f9" />
+    <% end %>
+    <% (1..3).each do |i| %>
+      <% dy = padding + i * table_h / 4.0 %>
+      <circle cx="<%= padding / 2 %>" cy="<%= dy %>" r="2" fill="#f8f9f9" />
+      <circle cx="<%= svg_width - padding / 2 %>" cy="<%= dy %>" r="2" fill="#f8f9f9" />
+    <% end %>
+
+    <%# Bälle %>
+    <% bc.balls.each do |role, (nx, ny)| %>
+      <% cx = to_svg_x.call(nx) %>
+      <% cy = to_svg_y.call(ny) %>
+      <% color = ball_colors[role] %>
+      <circle cx="<%= cx %>" cy="<%= cy %>" r="<%= ball_radius %>"
+              fill="<%= color[:fill] %>" stroke="<%= color[:stroke] %>" stroke-width="2" />
+      <text x="<%= cx %>" y="<%= cy + 4 %>" text-anchor="middle"
+            font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="bold"
+            fill="<%= color[:label_color] %>">
+        <%= role.to_s[-1] %>
+      </text>
+    <% end %>
+  </svg>
+
+  <div style="margin-top: 8px; font-size: 0.8em; color: #7f8c8d; font-family: monospace;">
+    <div>
+      <strong>Tisch:</strong> <%= bc.table_variant %>
+      (<%= dims[:length_cm] %> × <%= dims[:width_cm] %> cm)
+      &nbsp;|&nbsp;
+      <strong>Position-Typ:</strong>
+      <span style="color: <%= bc.position_type == 'exact' ? '#27ae60' : (bc.position_type == 'qualitative' ? '#e67e22' : '#3498db') %>;">
+        <%= bc.position_type %>
+      </span>
+      <% if bc.gather_state %>
+        &nbsp;|&nbsp;
+        <strong>Formation:</strong> <%= bc.gather_state %>
+      <% end %>
+    </div>
+    <div style="margin-top: 4px;">
+      <% bc.balls.each do |role, (nx, ny)| %>
+        <span style="margin-right: 12px;">
+          <%= role.to_s.upcase %>: (<%= format('%.3f', nx) %>, <%= format('%.3f', ny) %>)
+          ≈ <%= format('%d', nx * dims[:length_cm]) %>×<%= format('%d', ny * dims[:width_cm]) %> cm
+        </span>
+      <% end %>
+    </div>
+    <% if bc.biais_degrees || bc.biais_class || bc.flow_direction || bc.orientation %>
+      <div style="margin-top: 4px; color: #95a5a6;">
+        <% attrs = [
+             ("biais=#{bc.biais_degrees}°" if bc.biais_degrees),
+             ("class=#{bc.biais_class}" if bc.biais_class),
+             ("flow=#{bc.flow_direction}" if bc.flow_direction),
+             ("orient=#{bc.orientation}" if bc.orientation)
+           ].compact %>
+        <%= attrs.join(" | ") %>
+      </div>
+    <% end %>
+  </div>
+</div>
