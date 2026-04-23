@@ -700,4 +700,118 @@ class TableMonitor::ScoreEngineTest < ActiveSupport::TestCase
     # 2 reds potted in break_balls_list → 15 - 2 = 13 remaining
     assert_equal 13, data.dig("snooker_state", "reds_remaining")
   end
+
+  # ---------------------------------------------------------------------------
+  # BK2-Kombi negative-score gate bypass (Phase 38.1, Plan 01)
+  # ---------------------------------------------------------------------------
+
+  # Helper that builds a minimal BK2-Kombi data hash.
+  # free_game_form: override to test edge cases (e.g. "karambol", nil, uppercase)
+  # current_inning_value: initial innings_redo_list[-1] for playera
+  def bk2_kombi_data(free_game_form: "bk2_kombi", current_inning_value: 0)
+    {
+      "free_game_form" => free_game_form,
+      "balls_on_table" => 0,
+      "balls_counter" => 0,
+      "balls_counter_stack" => [],
+      "playera" => {
+        "result" => current_inning_value,
+        "innings" => 0,
+        "innings_list" => [],
+        "innings_redo_list" => [current_inning_value],
+        "innings_foul_list" => [],
+        "innings_foul_redo_list" => [0],
+        "balls_goal" => "0",
+        "fouls_1" => 0,
+        "discipline" => "BK2-Kombi"
+      },
+      "playerb" => {
+        "result" => 0,
+        "innings" => 0,
+        "innings_list" => [],
+        "innings_redo_list" => [0],
+        "innings_foul_list" => [],
+        "innings_foul_redo_list" => [0],
+        "balls_goal" => "0",
+        "fouls_1" => 0,
+        "discipline" => "BK2-Kombi"
+      },
+      "current_inning" => { "active_player" => "playera" },
+      "allow_overflow" => nil,
+      "innings_goal" => "0"
+    }
+  end
+
+  # --- BK2 bypass tests (fail on master, pass after Task 2) ---
+
+  test "allow_negative_scores? is true iff free_game_form == 'bk2_kombi'" do
+    # exact match → true
+    e_bk2 = engine(bk2_kombi_data(free_game_form: "bk2_kombi"), discipline: "BK2-Kombi")
+    assert_equal true, e_bk2.allow_negative_scores?
+
+    # different free_game_form → false
+    e_kara = engine(bk2_kombi_data(free_game_form: "karambol"), discipline: "Freie Partie")
+    assert_equal false, e_kara.allow_negative_scores?
+
+    # nil → false
+    e_nil = engine(bk2_kombi_data(free_game_form: nil), discipline: "Freie Partie")
+    assert_equal false, e_nil.allow_negative_scores?
+
+    # uppercase → false (strict equality)
+    e_upper = engine(bk2_kombi_data(free_game_form: "BK2_KOMBI"), discipline: "BK2-Kombi")
+    assert_equal false, e_upper.allow_negative_scores?
+  end
+
+  test "site A (:84 guard): BK2-Kombi accepts negative n_balls even when current + n_balls < 0" do
+    # current_inning_value=2, n_balls=-5 → would underflow (2 + -5 = -3 < 0)
+    # For BK2-Kombi the guard must be bypassed and -3 stored
+    data = bk2_kombi_data(current_inning_value: 2)
+    e = engine(data, discipline: "BK2-Kombi")
+    e.add_n_balls(-5)
+    assert_equal(-3, data.dig("playera", "innings_redo_list", -1),
+                 "BK2-Kombi: negative n_balls that underflow should be accepted (not rejected by guard)")
+  end
+
+  test "site B (:135 clamp): BK2-Kombi stores negative innings_redo_list values" do
+    # Same setup as site A — after guard bypass the clamp at 0 must also be skipped
+    data = bk2_kombi_data(current_inning_value: 2)
+    e = engine(data, discipline: "BK2-Kombi")
+    e.add_n_balls(-5)
+    assert_operator data.dig("playera", "innings_redo_list", -1), :<, 0,
+                    "BK2-Kombi: innings_redo_list[-1] must be allowed to go negative (no [v,0].max clamp)"
+  end
+
+  test "site C (:690-692): update_innings_history accepts negative entries for BK2-Kombi" do
+    data = bk2_kombi_data
+    e = engine(data, discipline: "BK2-Kombi")
+    result = e.update_innings_history(
+      { "playera" => ["-3", "2"], "playerb" => ["1", "-1"] },
+      playing_or_set_over: true
+    )
+    assert_equal true, result[:success],
+                 "BK2-Kombi: update_innings_history must accept negative entries (not return 'Negative Punktzahlen...' error)"
+  end
+
+  # --- Karambol regression tests (must pass both before AND after Task 2) ---
+
+  test "site A (:84 guard): karambol still rejects negative n_balls that underflow" do
+    # free_game_form=karambol, current=2, n_balls=-5 → 2+-5 = -3 < 0 → guard blocks
+    data = bk2_kombi_data(free_game_form: "karambol", current_inning_value: 2)
+    e = engine(data, discipline: "Freie Partie")
+    before_value = data.dig("playera", "innings_redo_list", -1)
+    e.add_n_balls(-5)
+    assert_equal before_value, data.dig("playera", "innings_redo_list", -1),
+                 "Karambol: negative underflow must still be rejected by guard (value unchanged)"
+  end
+
+  test "site B/C combined: karambol update_innings_history still rejects negative entries" do
+    data = bk2_kombi_data(free_game_form: "karambol")
+    e = engine(data, discipline: "Freie Partie")
+    result = e.update_innings_history(
+      { "playera" => ["-1"], "playerb" => [] },
+      playing_or_set_over: true
+    )
+    assert_equal({ success: false, error: "Negative Punktzahlen sind nicht erlaubt" }, result,
+                 "Karambol: update_innings_history must still reject negative entries")
+  end
 end

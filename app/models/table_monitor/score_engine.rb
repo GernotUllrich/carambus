@@ -81,7 +81,7 @@ class TableMonitor::ScoreEngine
                                elsif n_balls.positive?
                                  n_balls <= to_play && to_play.positive?
                                elsif n_balls.negative?
-                                 (current_inning_value + n_balls) >= 0
+                                 allow_negative_scores? || (current_inning_value + n_balls) >= 0
                                else
                                  false
                                end
@@ -131,8 +131,9 @@ class TableMonitor::ScoreEngine
                     n_balls
                   end
             data[current_role]["fouls_1"] = 0
+            new_value = data[current_role]["innings_redo_list"][-1].to_i + add.to_i
             data[current_role]["innings_redo_list"][-1] =
-              [(data[current_role]["innings_redo_list"][-1].to_i + add.to_i), 0].max
+              allow_negative_scores? ? new_value : [new_value, 0].max
             recompute_result(current_role)
 
             if data["free_game_form"] == "snooker" && !skip_snooker_state_update
@@ -687,8 +688,10 @@ class TableMonitor::ScoreEngine
       new_playera_innings = innings_params["playera"] || []
       new_playerb_innings = innings_params["playerb"] || []
 
-      if new_playera_innings.any? { |v| v.to_i.negative? } || new_playerb_innings.any? { |v| v.to_i.negative? }
-        return { success: false, error: "Negative Punktzahlen sind nicht erlaubt" }
+      unless allow_negative_scores?
+        if new_playera_innings.any? { |v| v.to_i.negative? } || new_playerb_innings.any? { |v| v.to_i.negative? }
+          return { success: false, error: "Negative Punktzahlen sind nicht erlaubt" }
+        end
       end
 
       innings_a = new_playera_innings.map(&:to_i)
@@ -1282,6 +1285,13 @@ class TableMonitor::ScoreEngine
       data[other_player]["innings_redo_list"] = [0] if data[current_role]["innings_redo_list"]&.blank?
 
       :ok
+    end
+
+    # Returns true iff this ScoreEngine was built for a BK2-Kombi match.
+    # Strict string equality — does NOT match via .present? or substring; karambol etc. stay unaffected.
+    # See phase 38.1 CONTEXT.md D-06.
+    def allow_negative_scores?
+      data["free_game_form"] == "bk2_kombi"
     end
 
     private
