@@ -133,7 +133,12 @@ class TableMonitorsController < ApplicationController
       Rails.logger.info "kickoff_switches_with: #{p[:kickoff_switches_with]}"
       Rails.logger.info "======================="
     end
-    if p[:four_ball].present?
+    # 38.1 WR-01: guard the `four_ball` branch against silently bulldozing
+    # BK2-Kombi state. BK2 quick/detail forms never emit `four_ball`, but a
+    # tampered POST carrying both `quick_game_form=bk2_kombi` (or
+    # `free_game_form=bk2_kombi`) AND `four_ball=1` must NOT drop BK2
+    # settings. Consistent with the CLAMP posture (T-38.1-06-01).
+    if p[:four_ball].present? && p[:quick_game_form] != "bk2_kombi" && p[:free_game_form] != "bk2_kombi"
       p[:discipline_a] = p[:discipline_b] = "4 Ball"
       p[:balls_goal_a] = p[:balls_goal_b] = 120
       p[:innings_goal] = 0
@@ -234,7 +239,9 @@ class TableMonitorsController < ApplicationController
       p[:timeouts] = 0
       p[:timeout] = p[:gametime]
     end
-    if p[:four_ball].present?
+    # 38.1 WR-01: same BK2 guard as the earlier `four_ball` branch. See
+    # comment above at the first occurrence.
+    if p[:four_ball].present? && p[:quick_game_form] != "bk2_kombi" && p[:free_game_form] != "bk2_kombi"
       p[:discipline_a] = p[:discipline_b] = "4 Ball"
       p[:balls_goal_a] = p[:balls_goal_b] = 120
       p[:innings_goal] = 0
