@@ -46,7 +46,7 @@ class Bk2Kombi::AdvanceMatchStateTest < ActiveSupport::TestCase
 
   # Helper to build a simple non-foul shot payload.
   def pin_shot(fallen_pins:, player_at_table: nil)
-    payload = {
+    {
       observations: {
         fallen_pins: fallen_pins,
         middle_pin_only: false,
@@ -59,7 +59,6 @@ class Bk2Kombi::AdvanceMatchStateTest < ActiveSupport::TestCase
       },
       table_snapshot: {full_pin_image: false}
     }
-    payload
   end
 
   def foul_shot(foul_code:, fallen_pins: 0)
