@@ -5,13 +5,13 @@ milestone_name: UX Polish & i18n Debt
 status: executing
 stopped_at: Phase 38.1 context gathered (BK2-Kombi live scoring scope; 2026-05-02 deadline)
 last_updated: "2026-04-23T09:48:25.741Z"
-last_activity: 2026-04-23 -- Phase 38.1 Wave 1 complete (plans 01, 02)
+last_activity: 2026-04-23 -- Phase 38.1 Waves 1-3 dev complete; UAT deferred to separate session
 progress:
   total_phases: 3
   completed_phases: 1
   total_plans: 7
-  completed_plans: 4
-  percent: 57
+  completed_plans: 6
+  percent: 86
 ---
 
 # Project State
@@ -25,10 +25,25 @@ See: .planning/PROJECT.md (updated 2026-04-15)
 
 ## Current Position
 
-Phase: 38.1 (bk2-kombi-minimum-viable-support) — EXECUTING
-Plan: 3 of 5 (Wave 2 next)
-Status: Wave 1 complete — Wave 2 ready
-Last activity: 2026-04-23 -- Phase 38.1 Wave 1 complete (plans 01, 02)
+Phase: 38.1 (bk2-kombi-minimum-viable-support) — DEV COMPLETE, UAT PENDING
+Plan: 4 of 5 complete (Plan 38.1-05 dry-run UAT + fallback drill deferred)
+Status: Waves 1-3 merged to master; user will verify dev before scheduling real-club UAT
+Last activity: 2026-04-23 -- Phase 38.1 Waves 1-3 dev complete; UAT deferred to separate session
+
+**Deferred to Wave 4 / later session:**
+- Plan 38.1-05 Task 1 (scaffold UAT + fallback-drill templates) — agent-runnable, not yet executed
+- Plan 38.1-05 Task 2 (dry-run BK2-Kombi match at real BCW club table with volunteer scorer) — **human-only, tournament-gating**
+- Plan 38.1-05 Task 3 (karambol fallback drill rehearsal) — human-only
+- Plan 38.1-05 Task 4 (final artifact commit) — agent-runnable after Tasks 2+3
+- Phase goal verification (`/gsd-verify-phase 38.1` or via `execute-phase` resume) — waits until all plans are complete
+- Code review gate (`/gsd-code-review 38.1`) — not yet run
+
+**To resume Phase 38.1:**
+```
+/gsd-verify-work 38.1            # manual UI testing on BCW dev
+/gsd-code-review 38.1            # optional advisory review of scoring code
+/gsd-execute-phase 38.1          # resumes at Wave 4 (skips completed waves)
+```
 
 Previous milestone archived at:
 
