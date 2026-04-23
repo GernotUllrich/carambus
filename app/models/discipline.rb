@@ -144,6 +144,15 @@ class Discipline < ApplicationRecord
     "Biathlon"
   ].freeze
 
+  # BK2-Kombi is a distinct Kegel-family discipline served by a dedicated
+  # scoreboard partial (_scoreboard_bk2_kombi.html.erb). It is intentionally
+  # kept OUT of KARAMBOL_DISCIPLINE_MAP — widening that constant would shift
+  # the index basis consumed by scoreboard_free_game_karambol_new.html.erb
+  # (indices 0..5 for the Small Billard karambol radio-select) and would be
+  # a breaking change for existing karambol quick starts.
+  # See Plan 38.1-06 (D-08: Discipline id 107 is the canonical BK2-Kombi).
+  BK2_DISCIPLINE_MAP = ["BK2-Kombi"].freeze
+
   DISCIPLINE_CLASS_LIMITS =
     { # GD-Min oder [GD-Min, Bälle-Min]
       "Freie Partie groß" => {

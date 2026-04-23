@@ -68,4 +68,57 @@ class DisciplineTest < ActiveSupport::TestCase
         "parameter_ranges must always return a Hash (got #{result.class} for id=#{d.id} name=#{d.name})"
     end
   end
+
+  # ---------------------------------------------------------------------
+  # 38.1-06: BK2-Kombi discipline map (Task 1)
+  # BK2-Kombi is a distinct Kegel-family discipline served by a dedicated
+  # scoreboard partial. It is intentionally kept OUT of KARAMBOL_DISCIPLINE_MAP
+  # to avoid shifting the index basis consumed by the karambol free-game
+  # detail view's radio-selects.
+  # ---------------------------------------------------------------------
+
+  # Snapshot of KARAMBOL_DISCIPLINE_MAP as it exists at plan 38.1-06 time.
+  # If this list changes without an intentional refactor, the karambol
+  # detail view's radio-select indices will silently drift (see
+  # scoreboard_free_game_karambol_new.html.erb uses indices 0..5).
+  KARAMBOL_DISCIPLINE_MAP_SNAPSHOT_38_1_06 = [
+    "Dreiband klein",
+    "Freie Partie klein",
+    "Einband klein",
+    "Cadre 52/2",
+    "Cadre 35/2",
+    "Eurokegel",
+    "Dreiband groß",
+    "Freie Partie groß",
+    "Einband groß",
+    "Cadre 71/2",
+    "Cadre 47/2",
+    "Cadre 47/1",
+    "5-Pin Billards",
+    "Biathlon"
+  ].freeze
+
+  test "BK2_DISCIPLINE_MAP contains 'BK2-Kombi' as the sole canonical entry" do
+    assert defined?(Discipline::BK2_DISCIPLINE_MAP),
+      "Discipline::BK2_DISCIPLINE_MAP must be defined (38.1-06 Task 1)"
+    assert_instance_of Array, Discipline::BK2_DISCIPLINE_MAP
+    assert_equal ["BK2-Kombi"], Discipline::BK2_DISCIPLINE_MAP,
+      "BK2_DISCIPLINE_MAP must be exactly ['BK2-Kombi']"
+    assert Discipline::BK2_DISCIPLINE_MAP.frozen?,
+      "BK2_DISCIPLINE_MAP must be frozen"
+    assert_includes Discipline::BK2_DISCIPLINE_MAP, "BK2-Kombi"
+  end
+
+  test "KARAMBOL_DISCIPLINE_MAP is UNCHANGED by 38.1-06 (regression snapshot)" do
+    # Widening KARAMBOL_DISCIPLINE_MAP would shift the indices that
+    # scoreboard_free_game_karambol_new.html.erb relies on for its
+    # small-billard radio-select (indices 0..5). BK2-Kombi must live in its
+    # OWN constant (BK2_DISCIPLINE_MAP).
+    assert_equal KARAMBOL_DISCIPLINE_MAP_SNAPSHOT_38_1_06,
+      Discipline::KARAMBOL_DISCIPLINE_MAP,
+      "KARAMBOL_DISCIPLINE_MAP must not be widened — BK2-Kombi goes in BK2_DISCIPLINE_MAP"
+    assert_equal 14, Discipline::KARAMBOL_DISCIPLINE_MAP.size
+    refute_includes Discipline::KARAMBOL_DISCIPLINE_MAP, "BK2-Kombi",
+      "BK2-Kombi must NOT be in KARAMBOL_DISCIPLINE_MAP"
+  end
 end
