@@ -3,7 +3,7 @@ require "administrate/base_dashboard"
 class TrainingExampleDashboard < Administrate::BaseDashboard
   ATTRIBUTE_TYPES = {
     id: Administrate::Field::Number,
-    training_concept: Administrate::Field::BelongsTo,
+    training_concepts: Administrate::Field::HasMany,
     parent: Administrate::Field::BelongsTo.with_options(class_name: 'TrainingExample'),
     children: Administrate::Field::HasMany.with_options(class_name: 'TrainingExample'),
     title: Administrate::Field::String,
@@ -33,13 +33,13 @@ class TrainingExampleDashboard < Administrate::BaseDashboard
   COLLECTION_ATTRIBUTES = %i[
     sequence_number
     title
-    training_concept
+    training_concepts
     updated_at
   ].freeze
 
   SHOW_PAGE_ATTRIBUTES = %i[
     id
-    training_concept
+    training_concepts
     parent
     children
     title
@@ -57,7 +57,6 @@ class TrainingExampleDashboard < Administrate::BaseDashboard
 
   FORM_ATTRIBUTES = %i[
     source_language
-    training_concept
     sequence_number
     title
     title_de
