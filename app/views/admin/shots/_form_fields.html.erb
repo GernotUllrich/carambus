@@ -9,10 +9,12 @@
 <!-- Basic Fields -->
 <div class="field-unit">
   <%= f.label :training_example_id %>
-  <%= f.collection_select :training_example_id, 
-      TrainingExample.all.order(:sequence_number), 
-      :id, 
-      ->(te) { "#{te.training_concept.title} - #{te.sequence_number}. #{te.title}" },
+  <%# v0.9 Phase D: sequence_number und training_concept (singular) sind weg.
+      Label zeigt erstes M2M-Concept und Example-ID. %>
+  <%= f.collection_select :training_example_id,
+      TrainingExample.includes(:training_concepts).order(:id),
+      :id,
+      ->(te) { "#{te.training_concepts.first&.title || '—'} · ##{te.id} #{te.title}" },
       { include_blank: false },
       class: "field-unit__field" %>
 </div>

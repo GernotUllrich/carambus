@@ -66,6 +66,6 @@ class TrainingExampleDashboard < Administrate::BaseDashboard
   ].freeze
 
   def display_resource(training_example)
-    "#{training_example.sequence_number}. #{training_example.title || 'Beispiel'}"
+    "##{training_example.id} #{training_example.title || 'Beispiel'}"
   end
 end

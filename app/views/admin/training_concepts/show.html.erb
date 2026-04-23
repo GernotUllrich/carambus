@@ -81,11 +81,13 @@
         </tr>
       </thead>
       <tbody>
-        <% examples = page.resource.training_examples.order(:sequence_number).to_a %>
-        <% examples.each_with_index do |example, index| %>
+        <%# v0.9 Phase D: sequence_number wanderte ins Join training_concept_examples. %>
+        <% tces = page.resource.training_concept_examples.includes(:training_example).to_a.sort_by { |t| t.sequence_number || Float::INFINITY } %>
+        <% tces.each_with_index do |tce, index| %>
+          <% example = tce.training_example %>
           <tr style="border-bottom: 1px solid #ddd;">
             <td style="padding: 10px; font-weight: bold; color: #7f8c8d;">
-              <%= example.sequence_number %>
+              <%= tce.sequence_number || "—" %>
             </td>
             <td style="padding: 10px;">
               <strong><%= example.title %></strong>
