@@ -562,6 +562,35 @@ en:
       warmup: Warm-up
       warmup_a: Warm-up Player A
       warmup_b: Warm-up Player B
+    bk2_kombi:
+      phase:
+        direkter_zweikampf: "Direct duel"
+        serienspiel: "Series play"
+      shots_left:
+        one: "%{count} shot left"
+        other: "%{count} shots left"
+      form:
+        fallen_pins: "Fallen pins"
+        middle_pin_only: "Middle pin only"
+        full_pin_image: "Full pin image before shot"
+        full_pin_image_help: "All 5 pins were standing before the shot — enables the 2-point rule for middle-pin-only"
+        true_carom: "True carom"
+        false_carom: "False carom"
+        passages: "Passages"
+        foul: "Foul"
+        foul_codes:
+          wrong_ball: "Wrong ball"
+          no_object_ball_hit: "Object ball missed"
+          premature_shot: "Premature shot"
+          direct_play_on_pins: "Direct play on pins"
+          other: "Other"
+        band_hit: "Band hit"
+        submit: "Record shot"
+      set:
+        current: "Set %{n}"
+        target: "Target: %{points}"
+      match_score: "Sets: %{a}:%{b}"
+      match_finished: "Match finished — winner: %{winner}"
     table_id: table id
     timer_finish_at: timer finish at
     timer_halt_at: timer halt at

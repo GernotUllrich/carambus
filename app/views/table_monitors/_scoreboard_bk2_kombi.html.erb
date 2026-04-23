@@ -1,0 +1,255 @@
+<%- bk2_state = table_monitor.data["bk2_state"] || {} %>
+<%- current_set  = bk2_state["current_set_number"].to_i %>
+<%- current_phase = bk2_state["current_phase"].to_s %>
+<%- player_at_table = bk2_state["player_at_table"].to_s %>
+<%- shots_left = bk2_state["shots_left_in_turn"].to_i %>
+<%- set_scores = bk2_state["set_scores"] || {} %>
+<%- sets_won = bk2_state["sets_won"] || {"playera" => 0, "playerb" => 0} %>
+<%- set_target = bk2_state["set_target_points"].to_i %>
+<%- match_finished = bk2_state["match_finished"] %>
+<%- match_winner = bk2_state["match_winner"].to_s %>
+<%- player_a_name = options.andand[:player_a].andand[:fullname] || "Player A" %>
+<%- player_b_name = options.andand[:player_b].andand[:fullname] || "Player B" %>
+
+<div class="bk2-kombi-scoreboard flex flex-col h-full w-full dark:bg-black dark:text-gray-200"
+     data-table-monitor-root="scoreboard"
+     data-table-monitor-id="<%= table_monitor.id %>"
+     data-game-id="<%= table_monitor.game_id %>">
+
+  <%# ========== MATCH FINISHED BANNER ========== %>
+  <%- if match_finished %>
+    <div class="flex items-center justify-center bg-green-500 text-white text-3vw font-bold py-4 px-6">
+      <%= t("table_monitor.bk2_kombi.match_finished",
+            winner: match_winner == "playera" ? player_a_name : player_b_name) %>
+    </div>
+  <%- end %>
+
+  <%# ========== HEADER: SET + PHASE + SHOTS LEFT ========== %>
+  <div class="flex flex-row items-center justify-between px-4 py-2 bg-gray-100 dark:bg-gray-900">
+
+    <%# Current set + target %>
+    <div class="flex flex-col text-center">
+      <span class="text-2vw font-bold">
+        <%= t("table_monitor.bk2_kombi.set.current", n: current_set) %>
+      </span>
+      <span class="text-1vw text-gray-500 dark:text-gray-400">
+        <%= t("table_monitor.bk2_kombi.set.target", points: set_target) %>
+      </span>
+    </div>
+
+    <%# Phase indicator chip %>
+    <%- phase_bg = current_phase == "serienspiel" ? "bg-sky-100 dark:bg-sky-900/30 text-sky-800 dark:text-sky-200" : "bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-200" %>
+    <div class="px-4 py-1 rounded-full font-semibold text-1-5vw <%= phase_bg %>">
+      <%= t("table_monitor.bk2_kombi.phase.#{current_phase}", default: current_phase.humanize) %>
+    </div>
+
+    <%# Shots left badge (only in direkter_zweikampf phase) %>
+    <%- if current_phase == "direkter_zweikampf" %>
+      <div class="flex flex-col text-center">
+        <span class="text-1-5vw font-bold text-orange-600 dark:text-orange-400">
+          <%= t("table_monitor.bk2_kombi.shots_left", count: shots_left) %>
+        </span>
+      </div>
+    <%- else %>
+      <div class="w-24"></div>
+    <%- end %>
+
+    <%# Match score %>
+    <div class="text-2vw font-bold">
+      <%= t("table_monitor.bk2_kombi.match_score",
+            a: sets_won["playera"].to_i,
+            b: sets_won["playerb"].to_i) %>
+    </div>
+  </div>
+
+  <%# ========== PLAYER CARDS (2-column) ========== %>
+  <div class="flex flex-row flex-1 min-h-0">
+
+    <%# Player A card %>
+    <div class="flex flex-col w-2/5 <%= player_at_table == "playera" ? "border-green-400 border-8" : "border-gray-300 dark:border-gray-700 border-4" %> dark:bg-black">
+      <div class="flex items-center justify-between px-3 py-2 <%= player_at_table == "playera" ? "bg-green-400 text-black" : "dark:bg-black" %>">
+        <span class="font-bold text-2vw truncate"><%= player_a_name %></span>
+        <span class="text-1-5vw font-semibold">
+          <%= t("table_monitor.bk2_kombi.match_score",
+                a: sets_won["playera"].to_i,
+                b: "").gsub(/:\s*$/, "") rescue sets_won["playera"].to_i %>
+        </span>
+      </div>
+
+      <%# 3-set score grid for Player A %>
+      <div class="flex flex-row justify-around px-3 py-2 text-1-5vw">
+        <%- (1..3).each do |n| %>
+          <%- s = (set_scores[n.to_s] || set_scores[n] || {}) %>
+          <%- closed = bk2_state["set_finished_#{n}"] %>
+          <div class="flex flex-col items-center <%= closed ? "opacity-50" : "" %>">
+            <span class="text-0-8vw text-gray-500 dark:text-gray-400">S<%= n %></span>
+            <span class="font-bold text-2vw <%= n == current_set && !closed ? "text-green-500" : "" %>">
+              <%= s["playera"].to_i %>
+            </span>
+          </div>
+        <%- end %>
+      </div>
+    </div>
+
+    <%# ========== CENTER: Shot-input form ========== %>
+    <div class="flex flex-col w-1/5 items-center justify-start overflow-y-auto px-2 py-1 dark:bg-gray-900 bg-gray-50">
+
+      <%# Shot input form — BK2-Kombi scorer enters one shot at a time %>
+      <%- unless match_finished %>
+        <div data-controller="bk2-kombi-shot" class="flex flex-col w-full space-y-2 text-0-9vw">
+
+          <%# ---------- B2 FIX: full_pin_image checkbox (TOP of form) ---------- %>
+          <%# Represents pre-shot table state. Must be set BEFORE entering fallen_pins. %>
+          <%# Enables the D-15 2-point rule: middle-pin-only from full pin image = 2 pts. %>
+          <div class="flex flex-col bg-amber-50 dark:bg-amber-900/20 border border-amber-300 dark:border-amber-700 rounded p-2">
+            <label class="flex items-center gap-2 font-semibold text-amber-800 dark:text-amber-300 cursor-pointer">
+              <input type="checkbox"
+                     id="bk2_full_pin_image_<%= table_monitor.id %>"
+                     class="w-5 h-5 accent-amber-500"
+                     data-bk2-kombi-shot-target="fullPinImage">
+              <%= t("table_monitor.bk2_kombi.form.full_pin_image") %>
+            </label>
+            <p class="text-0-7vw text-amber-700 dark:text-amber-400 mt-1">
+              <%= t("table_monitor.bk2_kombi.form.full_pin_image_help") %>
+            </p>
+          </div>
+
+          <%# Fallen pins select %>
+          <div class="flex flex-col">
+            <label class="text-0-8vw text-gray-600 dark:text-gray-400 font-medium"
+                   for="bk2_fallen_pins_<%= table_monitor.id %>">
+              <%= t("table_monitor.bk2_kombi.form.fallen_pins") %>
+            </label>
+            <select id="bk2_fallen_pins_<%= table_monitor.id %>"
+                    class="border rounded px-2 py-1 dark:bg-gray-800 dark:border-gray-600 text-1vw"
+                    data-bk2-kombi-shot-target="fallenPins">
+              <%- (0..5).each do |n| %>
+                <option value="<%= n %>"><%= n %></option>
+              <%- end %>
+            </select>
+          </div>
+
+          <%# middle_pin_only checkbox %>
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox"
+                   id="bk2_middle_pin_only_<%= table_monitor.id %>"
+                   class="w-4 h-4"
+                   data-bk2-kombi-shot-target="middlePinOnly">
+            <span class="text-0-8vw"><%= t("table_monitor.bk2_kombi.form.middle_pin_only") %></span>
+          </label>
+
+          <%# true_carom checkbox %>
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox"
+                   id="bk2_true_carom_<%= table_monitor.id %>"
+                   class="w-4 h-4"
+                   data-bk2-kombi-shot-target="trueCarom">
+            <span class="text-0-8vw"><%= t("table_monitor.bk2_kombi.form.true_carom") %></span>
+          </label>
+
+          <%# false_carom checkbox %>
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox"
+                   id="bk2_false_carom_<%= table_monitor.id %>"
+                   class="w-4 h-4"
+                   data-bk2-kombi-shot-target="falseCarom">
+            <span class="text-0-8vw"><%= t("table_monitor.bk2_kombi.form.false_carom") %></span>
+          </label>
+
+          <%# Passages number input %>
+          <div class="flex flex-col">
+            <label class="text-0-8vw text-gray-600 dark:text-gray-400 font-medium"
+                   for="bk2_passages_<%= table_monitor.id %>">
+              <%= t("table_monitor.bk2_kombi.form.passages") %>
+            </label>
+            <input type="number"
+                   id="bk2_passages_<%= table_monitor.id %>"
+                   min="0" max="3" value="0"
+                   autocomplete="off"
+                   class="border rounded px-2 py-1 w-20 dark:bg-gray-800 dark:border-gray-600 text-1vw"
+                   data-bk2-kombi-shot-target="passages">
+          </div>
+
+          <%# Foul master checkbox %>
+          <label class="flex items-center gap-2 font-semibold text-red-600 dark:text-red-400 cursor-pointer">
+            <input type="checkbox"
+                   id="bk2_foul_<%= table_monitor.id %>"
+                   class="w-4 h-4 accent-red-500"
+                   data-bk2-kombi-shot-target="foul"
+                   data-action="change->bk2-kombi-shot#toggleFoulFields">
+            <span class="text-0-8vw"><%= t("table_monitor.bk2_kombi.form.foul") %></span>
+          </label>
+
+          <%# Foul sub-fields (hidden until foul is checked) %>
+          <div id="bk2_foul_fields_<%= table_monitor.id %>" class="hidden flex flex-col space-y-2 pl-4 border-l-2 border-red-300 dark:border-red-700">
+
+            <%# foul_code select %>
+            <div class="flex flex-col">
+              <label class="text-0-8vw text-gray-600 dark:text-gray-400 font-medium"
+                     for="bk2_foul_code_<%= table_monitor.id %>">
+                <%= t("table_monitor.bk2_kombi.form.foul") %>
+              </label>
+              <select id="bk2_foul_code_<%= table_monitor.id %>"
+                      class="border rounded px-2 py-1 dark:bg-gray-800 dark:border-gray-600 text-0-9vw"
+                      data-bk2-kombi-shot-target="foulCode"
+                      data-action="change->bk2-kombi-shot#toggleBandHit">
+                <option value="wrong_ball"><%= t("table_monitor.bk2_kombi.form.foul_codes.wrong_ball") %></option>
+                <option value="no_object_ball_hit"><%= t("table_monitor.bk2_kombi.form.foul_codes.no_object_ball_hit") %></option>
+                <option value="premature_shot"><%= t("table_monitor.bk2_kombi.form.foul_codes.premature_shot") %></option>
+                <option value="direct_play_on_pins"><%= t("table_monitor.bk2_kombi.form.foul_codes.direct_play_on_pins") %></option>
+                <option value="other"><%= t("table_monitor.bk2_kombi.form.foul_codes.other") %></option>
+              </select>
+            </div>
+
+            <%# band_hit checkbox (visible only when foul_code == no_object_ball_hit) %>
+            <div id="bk2_band_hit_row_<%= table_monitor.id %>" class="hidden">
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox"
+                       id="bk2_band_hit_<%= table_monitor.id %>"
+                       class="w-4 h-4"
+                       data-bk2-kombi-shot-target="bandHit">
+                <span class="text-0-8vw"><%= t("table_monitor.bk2_kombi.form.band_hit") %></span>
+              </label>
+            </div>
+          </div>
+
+          <%# Submit button %>
+          <button id="bk2_submit_<%= table_monitor.id %>"
+                  class="w-full mt-2 py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded text-1vw focus:outline-none focus:ring-4 focus:ring-blue-500"
+                  data-bk2-kombi-shot-target="submit"
+                  data-action="click->bk2-kombi-shot#submit"
+                  data-reflex="click->TableMonitor#bk2_kombi_submit_shot"
+                  data-id="<%= table_monitor.id %>">
+            <%= t("table_monitor.bk2_kombi.form.submit") %>
+          </button>
+        </div>
+      <%- end %>
+    </div>
+
+    <%# Player B card %>
+    <div class="flex flex-col w-2/5 <%= player_at_table == "playerb" ? "border-green-400 border-8" : "border-gray-300 dark:border-gray-700 border-4" %> dark:bg-black">
+      <div class="flex items-center justify-between px-3 py-2 <%= player_at_table == "playerb" ? "bg-green-400 text-black" : "dark:bg-black" %>">
+        <span class="text-1-5vw font-semibold">
+          <%= sets_won["playerb"].to_i %>
+        </span>
+        <span class="font-bold text-2vw truncate"><%= player_b_name %></span>
+      </div>
+
+      <%# 3-set score grid for Player B %>
+      <div class="flex flex-row justify-around px-3 py-2 text-1-5vw">
+        <%- (1..3).each do |n| %>
+          <%- s = (set_scores[n.to_s] || set_scores[n] || {}) %>
+          <%- closed = bk2_state["set_finished_#{n}"] %>
+          <div class="flex flex-col items-center <%= closed ? "opacity-50" : "" %>">
+            <span class="text-0-8vw text-gray-500 dark:text-gray-400">S<%= n %></span>
+            <span class="font-bold text-2vw <%= n == current_set && !closed ? "text-green-500" : "" %>">
+              <%= s["playerb"].to_i %>
+            </span>
+          </div>
+        <%- end %>
+      </div>
+    </div>
+
+  </div><%# end flex-row player cards %>
+
+</div><%# end bk2-kombi-scoreboard %>
