@@ -70,7 +70,7 @@ Plans:
 **Goal**: Ship live-scoring scoreboard support for a BK2-Kombi tournament at the BCW club on Saturday 2026-05-02. Full shot-by-shot live scoring for the BK2-Kombi discipline: negative-score engine gate, discipline derivation, two playing phases (Direkter Zweikampf / Serienspiel), bonus-shot rule, foul handling with D-16 literal values, best-of-3 sets to configurable target (50/60/70), match winner = first to 2 sets. Karambol-with-negative-scores remains a rehearsed fallback.
 **Depends on:** Phase 38
 **Decisions addressed:** D-01..D-17 (see 38.1-CONTEXT.md)
-**Plans:** 4/5 plans executed
+**Plans:** 5/6 plans executed
 
 Plans:
 - [ ] `38.1-01-engine-negative-score-gate-PLAN.md` — Bypass the three `score_engine.rb` negative-score gates (:84 guard, :135 clamp, :690-692 protocol rejection) for `data["free_game_form"] == "bk2_kombi"` via a new `allow_negative_scores?` helper. Includes characterization tests that prove karambol still clamps/rejects. Wave 1.
@@ -78,6 +78,13 @@ Plans:
 - [ ] `38.1-03-bk2-kombi-scoring-services-PLAN.md` — `Bk2Kombi::ScoreShot` (pure evaluator, DEFAULT_RULES frozen constant, exact D-15/D-16 literals) + `Bk2Kombi::AdvanceMatchState` (set/match close, idempotency via `shot_sequence_number`). TDD with 22 unit + 11 state-mutation + integration tests. Wave 2.
 - [ ] `38.1-04-scoreboard-partial-and-input-PLAN.md` — Dedicated `_scoreboard_bk2_kombi.html.erb` partial + `_show_bk2_kombi` wrapper, shot-input form, `bk2_kombi_submit_shot` reflex action with scoped CableReady broadcast, Stimulus controller with 500ms submit debounce, DE+EN i18n keys under `table_monitor.bk2_kombi.*`. Wave 3.
 - [ ] `38.1-05-dry-run-uat-and-fallback-drill-PLAN.md` — Pre-dry-run gate (critical suite + lint + brakeman + production data sanity), physical BCW club-table dry run with explicit GO/NO-GO verdict (D-02 UAT gate), karambol-fallback drill runbook + rehearsal (D-03/D-07), phase closure updates in STATE.md + ROADMAP.md. Wave 4, autonomous:false.
+
+### Phase 38.2: BK2-Kombi scoreboard UX re-alignment (INSERTED)
+
+**Goal**: Replace the dedicated BK2-Kombi scoreboard UI from Phase 38.1 Plan 04 with a karambol-layout-preserving variant so that players familiar with the existing Carambol scoreboards are not disoriented on tournament day. Structural 1:1 copy of the karambol scoreboard (`_show.html.erb` + `_scoreboard_free_game_karambol.html.erb`) is used as the baseline; BK2-specific deltas (phase indicator, set counter, shot-entry form replacing the +1/-5 buttons) are additive only. Also closes UAT-GAP-02..GAP-05 from the Phase 38.1 dry-run feedback: detail-view Alpine scope bug, `bk2_state` initialization fallback, missing Home/Cancel nav, and i18n phase key guard.
+**Depends on:** Phase 38.1
+**Decisions addressed:** D-08 (BK2 entry-point UX alignment), D-18..Dxx (see 38.2-CONTEXT.md once written)
+**Plans:** TBD (to be created by `/gsd-plan-phase 38.2`)
 
 ### Phase 39: DTP-Backed Parameter Ranges
 **Goal**: `Discipline#parameter_ranges` becomes context-aware — it queries the existing `discipline_tournament_plans` table for canonical points/innings values based on the tournament's plan, player count, and player_class, returns Ranges derived from the normal (exact) or reduced (80%) mode, and correctly handles `handicap_tournier=true` tournaments (skip innings check, widen balls_goal which is per-participant from the participant list). The parameter verification modal no longer false-fires on youth/handicap/pool/snooker/biathlon/kegel tournaments.
@@ -108,7 +115,9 @@ Phases execute in numeric order: 33 → 34 → 35 → 36a → 36b → 36c → 37
 | 36c. v7.1 Preparation / CC Groundwork | v7.0 | — (planning phase) | Complete | 2026-04-14 |
 | 37. In-App Doc Links | v7.0 | 5/5 | Complete | 2026-04-15 |
 | 38. UX Polish & i18n Debt | v7.1 | 2/2 | Complete    | 2026-04-16 |
+| 38.1. BK2-Kombi minimum viable support | v7.1 | 5/6 | In Progress | - |
+| 38.2. BK2-Kombi scoreboard UX re-alignment | v7.1 | 0/TBD | Not started | - |
 | 39. DTP-Backed Parameter Ranges | v7.1 | 0/TBD | Not started | - |
 
 **v7.0 total:** 7 phases, 31 plans, 37/37 requirements, ~2 weeks wall time.
-**v7.1 total (planned):** 2 phases, 2+TBD plans, 6 requirements (5 in Phase 38, 1 in Phase 39).
+**v7.1 total (planned):** 4 phases, 7+TBD plans, 6+ requirements (5 in Phase 38, 1 in Phase 39, gap closure in 38.1/38.2).
