@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v7.1
 milestone_name: UX Polish & i18n Debt
-status: executing
-stopped_at: Phase 38.1 context gathered (BK2-Kombi live scoring scope; 2026-05-02 deadline)
-last_updated: "2026-04-23T09:48:25.741Z"
+status: verifying
+stopped_at: Phase 38.2 context gathered (Karambol-layout BK2 redesign; UAT bugs bundled)
+last_updated: "2026-04-23T21:05:09.182Z"
 last_activity: 2026-04-23 -- Phase 38.1 Waves 1-3 dev complete; UAT deferred to separate session
 progress:
-  total_phases: 3
+  total_phases: 4
   completed_phases: 1
-  total_plans: 7
-  completed_plans: 6
-  percent: 86
+  total_plans: 8
+  completed_plans: 7
+  percent: 88
 ---
 
 # Project State
@@ -31,6 +31,7 @@ Status: Waves 1-3 merged to master; user will verify dev before scheduling real-
 Last activity: 2026-04-23 -- Phase 38.1 Waves 1-3 dev complete; UAT deferred to separate session
 
 **Deferred to Wave 4 / later session:**
+
 - Plan 38.1-05 Task 1 (scaffold UAT + fallback-drill templates) — agent-runnable, not yet executed
 - Plan 38.1-05 Task 2 (dry-run BK2-Kombi match at real BCW club table with volunteer scorer) — **human-only, tournament-gating**
 - Plan 38.1-05 Task 3 (karambol fallback drill rehearsal) — human-only
@@ -39,6 +40,7 @@ Last activity: 2026-04-23 -- Phase 38.1 Waves 1-3 dev complete; UAT deferred to 
 - Code review gate (`/gsd-code-review 38.1`) — not yet run
 
 **To resume Phase 38.1:**
+
 ```
 /gsd-verify-work 38.1            # manual UI testing on BCW dev
 /gsd-code-review 38.1            # optional advisory review of scoring code
@@ -94,6 +96,6 @@ None blocking Phase 38.1 execution. Reconciliation debt above is tracked but not
 
 ## Session Continuity
 
-Last session: 2026-04-23T08:52:02.971Z
-Stopped at: Phase 38.1 context gathered (BK2-Kombi live scoring scope; 2026-05-02 deadline)
+Last session: 2026-04-23T21:05:09.178Z
+Stopped at: Phase 38.2 context gathered (Karambol-layout BK2 redesign; UAT bugs bundled)
 Resume: `/gsd-plan-phase 38` to break Phase 38 into 3 executable plans
