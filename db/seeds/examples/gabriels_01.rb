@@ -290,6 +290,7 @@ puts "  ✓ ShotEvents: #{shot.shot_events.count} (initial → cushion → final
 # Zusammenfassung
 # -----------------------------------------------------------------
 
+example.reload
 puts "=" * 60
 puts "Gabriëls Stoß 1 v0.9 end-to-end gelandet:"
 puts "  Example ##{example.id} → #{example.training_concepts.count} Concepts " \

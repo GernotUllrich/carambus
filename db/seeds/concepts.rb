@@ -163,6 +163,72 @@ CONCEPTS_SEED = [
     gretillat_ref: "book 1 Part 2 Conception, S. 182-271 (Gather shot grid)",
     weingartner_ref: "Pflichtstoßprogramm, Versammlungszone p. 59",
     importance_order: 9
+  },
+
+  # --- Topic: Linienserie (Conti-Heft Einführungs-Kapitel) -----------
+
+  {
+    key: "line_series",
+    title: "Linienserie",
+    kind: "topic",
+    axis: "conception",
+    short_description: "Serienspiel an der langen Bande mit Bällen à " \
+                       "cheval in Linien-Formation.",
+    full_description: "Die Linienserie (fr. série de la ligne, en. " \
+                      "American Series) ist eine eigenständige " \
+                      "Serienform in der Freien Partie: alle drei " \
+                      "Bälle werden in einer ungefähren Linie nahe " \
+                      "der langen Ziel-Bande gehalten, und jeder Stoß " \
+                      "bewegt die Formation minimal entlang der Bande. " \
+                      "Historisch bei Vignaux (10.4.1880) kodifiziert. " \
+                      "Unterscheidet sich vom gather_shot: kein Cluster, " \
+                      "sondern eine vermittelnde Linien-Geometrie.",
+    gretillat_ref: "book 1 Part 2 Conception § The Small Line (S. 317-375)",
+    importance_order: 10
+  },
+
+  # --- Topic: Amorti (Dämpfungs-Technik) ------------------------------
+
+  {
+    key: "amorti",
+    title: "Amorti",
+    kind: "topic",
+    axis: "technique",
+    short_description: "Gedämpfter Stoß mit minimaler Endverschiebung " \
+                       "des getroffenen Balls.",
+    full_description: "Amorti (fr. rester en amorti, dt. Dämpfung) " \
+                      "bezeichnet eine Technik, bei der die Energie " \
+                      "des Stoßes so kalibriert wird, dass der " \
+                      "getroffene Ball (typisch B 3) nur minimal " \
+                      "verschoben wird — idealerweise wenige " \
+                      "Zentimeter. Kontrollmerkmal der " \
+                      "Serienspiel-Reife. Das fünfte kanonische " \
+                      "Stoßparameter (`amorti_target_cm`) in v0.6+ " \
+                      "formalisiert diese Intention. Conti-Heft " \
+                      "behandelt Amorti als zentrale Technik in " \
+                      "mehreren Coups (2, 10, 17, 43, 109).",
+    importance_order: 11
+  },
+
+  # --- Strategic Maxim: B 2-Wahl-Regel (Seite-1-Nota Conti-Heft) -----
+
+  {
+    key: "b2_selection_by_closer_cushion",
+    title: "B 2-Wahl nach günstigerer Bande",
+    kind: "strategic_maxim",
+    axis: "conception",
+    short_description: "B 2 = der Ball, dessen nächstgelegene Bande " \
+                       "die günstigere Folgestellung ermöglicht.",
+    full_description: "In ambiguen Stellungen (beide Bälle gleich gut " \
+                      "als B 2 spielbar) wählt man den Ball als B 2, " \
+                      "dessen nächstgelegene Bande die günstigere " \
+                      "Folgeposition eröffnet. Kodifiziert in der " \
+                      "Seite-1-Nota des Conti-Studienheftes als " \
+                      "Grundregel für Linienserien-Spiel; gilt " \
+                      "analog für Sammel- und Passage-Vorbereitungen. " \
+                      "Operationalisiert das abstrakte " \
+                      "follow_over_point-Prinzip.",
+    importance_order: 12
   }
 ].freeze
 
