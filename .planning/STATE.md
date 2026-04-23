@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-04-15)
 Phase: 39
 Plan: Not started
 Status: Ready to execute
-Last activity: 2026-04-23 -- Completed quick task 260423-k9v: Fix Season.current_season typo + remove class-level caching
+Last activity: 2026-04-23 -- Completed quick task 260423-qvm: Admin Show-page fix + controller cleanup + smoke tests (5 code commits)
 
 Previous milestone archived at:
 
@@ -73,6 +73,7 @@ None. All v7.0 blockers resolved.
 | 260415-26d | public/docs/ build hardening via overcommit pre-commit hook — **ROLLED BACK** (hook approach failed, see POSTMORTEM) | 2026-04-15 | 912bf72a → rollback | [260415-26d-public-docs-build-hardening-via-overcomm](./quick/260415-26d-public-docs-build-hardening-via-overcomm/) |
 | 260422-pz0 | Merge origin/master into feature/training-system per Claudia handoff | 2026-04-23 | 8aabcab9 | [260422-pz0-merge-origin-master-into-feature-trainin](./quick/260422-pz0-merge-origin-master-into-feature-trainin/) |
 | 260423-k9v | Fix Season.current_season typo + remove class-level caching (follow-up to 260422-pz0 flake) | 2026-04-23 | 372c6344 | [260423-k9v-fix-season-current-season-typo-and-remov](./quick/260423-k9v-fix-season-current-season-typo-and-remov/) |
+| 260423-qvm | Admin Show-page 500 fix (Administrate × Rails 7.1 shim) + P1 controller M2M cleanup + P2 smoke tests | 2026-04-23 | 96d5f1b5 | [260423-qvm-admin-show-page-500-fix-administrate-0-1](./quick/260423-qvm-admin-show-page-500-fix-administrate-0-1/) |
 
 ## Session Continuity
 
