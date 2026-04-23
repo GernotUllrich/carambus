@@ -37,7 +37,6 @@ class TrainingExampleDashboard < Administrate::BaseDashboard
 
   SHOW_PAGE_ATTRIBUTES = %i[
     id
-    training_concepts
     parent
     children
     title
@@ -51,6 +50,12 @@ class TrainingExampleDashboard < Administrate::BaseDashboard
     created_at
     updated_at
   ].freeze
+  # Hinweis: training_concepts (M2M, has_many :through) wurde bewusst
+  # aus SHOW_PAGE_ATTRIBUTES entfernt. Triggert in Administrate 0.19.0
+  # ein ActiveSupport::Deprecation.warn-Klassenmethodenaufruf, der
+  # unter Rails 7.1+ privat ist. Sichtbar bleiben die Concepts über
+  # /admin/training_concepts/:id/training_examples. Fix des Admin-
+  # Deprecation-Pfads ist Paul/gsd-Scope (Gem-Update oder Patch).
 
   FORM_ATTRIBUTES = %i[
     source_language
