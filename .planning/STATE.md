@@ -4,14 +4,14 @@ milestone: v7.1
 milestone_name: UX Polish & i18n Debt
 status: executing
 stopped_at: Phase 38.1 context gathered (BK2-Kombi live scoring scope; 2026-05-02 deadline)
-last_updated: "2026-04-23T09:43:42.787Z"
-last_activity: 2026-04-23 -- Phase 38.1 planning complete
+last_updated: "2026-04-23T09:48:25.741Z"
+last_activity: 2026-04-23 -- Phase 38.1 Wave 1 complete (plans 01, 02)
 progress:
   total_phases: 3
   completed_phases: 1
   total_plans: 7
-  completed_plans: 2
-  percent: 29
+  completed_plans: 4
+  percent: 57
 ---
 
 # Project State
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-15)
 
 **Core value:** Code and docs stay in sync — every documented feature works, every working feature is documented, and a volunteer user should never need to read the architecture to run a tournament.
-**Current focus:** Phase 38 — UX Polish & i18n Debt
+**Current focus:** Phase 38.1 — bk2-kombi-minimum-viable-support
 
 ## Current Position
 
-Phase: 39
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-04-23 -- Phase 38.1 planning complete
+Phase: 38.1 (bk2-kombi-minimum-viable-support) — EXECUTING
+Plan: 3 of 5 (Wave 2 next)
+Status: Wave 1 complete — Wave 2 ready
+Last activity: 2026-04-23 -- Phase 38.1 Wave 1 complete (plans 01, 02)
 
 Previous milestone archived at:
 
@@ -55,11 +55,12 @@ Decisions are logged in PROJECT.md Key Decisions table. Full v7.0 cross-phase de
 
 ### Pending Todos
 
-None.
+- **Sync bug — `sync-version-yaml-load-json-collision`** (2026-04-23). `Version#update_from_carambus_api` fallback (version.rb:330/338) calls `YAML.load` on JSON-encoded text columns and returns a Hash → `update_columns` fails for text columns. See `.planning/todos/pending/2026-04-23-sync-version-yaml-load-json-collision.md`. Until fixed, **every local server** (carambus_phat, carambus_master, additional BCW instances) needs a manual Path B `unprotected=true` write for `Discipline.find(107).data = { "free_game_form" => "bk2_kombi" }.to_json` before the 2026-05-02 tournament.
+- **Production API disk — `api-server-disk-cleanup`** (2026-04-23). PostgreSQL 14 cluster on the API server went down 2026-04-22 23:02 UTC due to disk-full. Freed 8 GB; now at 89% (8.1 GB free). Worth a deeper pass on old Capistrano releases and rotated Rails logs before the next crisis.
 
 ### Blockers/Concerns
 
-None. All v7.0 blockers resolved.
+None blocking Phase 38.1 execution. Reconciliation debt above is tracked but not blocking — name-match fallback keeps the tournament working on any server that's missing the `discipline.data` write.
 
 **Open question for discuss-phase (Phase 38):**
 
