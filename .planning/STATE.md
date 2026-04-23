@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-04-15)
 Phase: 39
 Plan: Not started
 Status: Ready to execute
-Last activity: 2026-04-16
+Last activity: 2026-04-23 -- Completed quick task 260422-pz0: Merge origin/master into feature/training-system per Claudia handoff
 
 Previous milestone archived at:
 
@@ -71,6 +71,7 @@ None. All v7.0 blockers resolved.
 |---|-------------|------|--------|-----------|
 | 260414-qb8 | Fix PG::UndefinedColumn result_a crash in tournaments show/finalize_modus views | 2026-04-14 | b787da5e | [260414-qb8-fix-pg-undefinedcolumn-result-a-crash-in](./quick/260414-qb8-fix-pg-undefinedcolumn-result-a-crash-in/) |
 | 260415-26d | public/docs/ build hardening via overcommit pre-commit hook — **ROLLED BACK** (hook approach failed, see POSTMORTEM) | 2026-04-15 | 912bf72a → rollback | [260415-26d-public-docs-build-hardening-via-overcomm](./quick/260415-26d-public-docs-build-hardening-via-overcomm/) |
+| 260422-pz0 | Merge origin/master into feature/training-system per Claudia handoff | 2026-04-23 | 8aabcab9 | [260422-pz0-merge-origin-master-into-feature-trainin](./quick/260422-pz0-merge-origin-master-into-feature-trainin/) |
 
 ## Session Continuity
 
