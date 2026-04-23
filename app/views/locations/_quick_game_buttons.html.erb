@@ -16,10 +16,12 @@
   is_snooker = table_kind_key == 'snooker'
   is_karambol = !is_pool && !is_snooker
   
-  config = YAML.load_file(Rails.root.join('config', 'carambus.yml'))
-  # Try environment-specific presets first, fallback to default
-  presets = config.dig(Rails.env, 'quick_game_presets', table_kind_key) || 
-            config.dig('default', 'quick_game_presets', table_kind_key) || []
+  # 38.1 IN-06: use Carambus.config (cached OpenStruct) instead of
+  # YAML.load_file on every partial render. Carambus.config merges
+  # `default` + Rails.env-specific settings (see config/application.rb:10),
+  # so env-specific overrides of quick_game_presets are still honoured
+  # without a per-render disk read.
+  presets = Carambus.config.quick_game_presets&.dig(table_kind_key) || []
   
   # DEBUG
   # 38.1 IN-02: downgraded from .info to .debug (block form avoids string
