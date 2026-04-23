@@ -980,4 +980,56 @@ class TableMonitorReflex < ApplicationReflex
   def balls_goal_b
     Rails.logger.info "+++++++++++++++++>>> balls_goal_b <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
   end
+
+  # BK2-Kombi: Volunteer submits one shot from the scoreboard form.
+  #
+  # Client-side Stimulus controller (bk2_kombi_shot_controller.js) packs all
+  # form field values into the submit button's dataset before the reflex fires.
+  #
+  # D-13 shape — observations + table_snapshot. Every field from the B2
+  # inventory must be populated (no silently-missing fields).
+  #
+  # T-38.1-13 (double-tap): second guard layer — AdvanceMatchState idempotency
+  # on shot_sequence_number. Stimulus controller debounces 500ms (first layer).
+  #
+  # T-38.1-17 (broadcast scope): morph :nothing avoids global CableReady
+  # broadcast. TableMonitor's CableReady::Updatable callbacks handle scoped
+  # broadcast via broadcast_to(@table_monitor) when tm.save! is called.
+  def bk2_kombi_submit_shot
+    Rails.logger.info "+++++++++++++++++>>> bk2_kombi_submit_shot <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
+    morph :nothing
+
+    @table_monitor = TableMonitor.find(element.dataset["id"])
+
+    # Discipline gate — mirrors the snooker action pattern exactly.
+    return unless @table_monitor.data["free_game_form"] == "bk2_kombi"
+
+    payload = {
+      observations: {
+        fallen_pins: element.dataset["fallen_pins"].to_i,
+        middle_pin_only: element.dataset["middle_pin_only"] == "true",
+        true_carom: element.dataset["true_carom"] == "true",
+        false_carom: element.dataset["false_carom"] == "true",
+        passages: element.dataset["passages"].to_i,
+        foul: element.dataset["foul"] == "true",
+        foul_code: element.dataset["foul_code"].presence&.to_sym,
+        band_hit: element.dataset["band_hit"] == "true"
+      },
+      table_snapshot: {
+        # B2 FIX — Stimulus controller populates full_pin_image from the
+        # dedicated fullPinImage checkbox target. Without this field the
+        # D-15 middle_pin_only_from_full_image=2 rule is unreachable.
+        full_pin_image: element.dataset["full_pin_image"] == "true"
+      },
+      shot_sequence_number: element.dataset["shot_sequence_number"]
+    }
+
+    Bk2Kombi::AdvanceMatchState.call(
+      table_monitor: @table_monitor,
+      shot_payload: payload
+    )
+  rescue => e
+    Rails.logger.error("[bk2_kombi_submit_shot] #{e.class}: #{e.message}\n#{e.backtrace.first(5).join("\n")}")
+    morph :nothing
+  end
 end

@@ -595,6 +595,35 @@ de:
       warmup: Spielbeginn
       warmup_a: Einstoßen Spieler A
       warmup_b: Einstoßen Spieler B
+    bk2_kombi:
+      phase:
+        direkter_zweikampf: "Direkter Zweikampf"
+        serienspiel: "Serienspiel"
+      shots_left:
+        one: "noch %{count} Stoß"
+        other: "noch %{count} Stöße"
+      form:
+        fallen_pins: "Gefallene Kegel"
+        middle_pin_only: "Nur Mittelkegel"
+        full_pin_image: "Volles Kegelbild vor Stoß"
+        full_pin_image_help: "Alle 5 Kegel standen vor dem Stoß — aktiviert 2-Punkte-Regel für nur Mittelkegel"
+        true_carom: "Echter Karambolage"
+        false_carom: "Unechter Karambolage"
+        passages: "Durchläufe"
+        foul: "Fehler"
+        foul_codes:
+          wrong_ball: "Falsche Kugel"
+          no_object_ball_hit: "Ball nicht getroffen"
+          premature_shot: "Zu früh gestoßen"
+          direct_play_on_pins: "Direkt auf Kegel"
+          other: "Sonstiges"
+        band_hit: "Bande berührt"
+        submit: "Stoß erfassen"
+      set:
+        current: "Satz %{n}"
+        target: "Ziel: %{points}"
+      match_score: "Sätze: %{a}:%{b}"
+      match_finished: "Spiel beendet — Sieger: %{winner}"
     table_id: Tisch
     timer_finish_at: Timerende
     timer_halt_at: Timer angehalten
