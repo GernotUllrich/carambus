@@ -67,13 +67,17 @@ Plans:
 
 ### Phase 38.1: BK2-Kombi minimum viable support (INSERTED)
 
-**Goal:** [Urgent work - to be planned]
-**Requirements**: TBD
+**Goal**: Ship live-scoring scoreboard support for a BK2-Kombi tournament at the BCW club on Saturday 2026-05-02. Full shot-by-shot live scoring for the BK2-Kombi discipline: negative-score engine gate, discipline derivation, two playing phases (Direkter Zweikampf / Serienspiel), bonus-shot rule, foul handling with D-16 literal values, best-of-3 sets to configurable target (50/60/70), match winner = first to 2 sets. Karambol-with-negative-scores remains a rehearsed fallback.
 **Depends on:** Phase 38
-**Plans:** 0 plans
+**Decisions addressed:** D-01..D-17 (see 38.1-CONTEXT.md)
+**Plans:** 5 plans
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 38.1 to break down)
+- [ ] `38.1-01-engine-negative-score-gate-PLAN.md` — Bypass the three `score_engine.rb` negative-score gates (:84 guard, :135 clamp, :690-692 protocol rejection) for `data["free_game_form"] == "bk2_kombi"` via a new `allow_negative_scores?` helper. Includes characterization tests that prove karambol still clamps/rejects. Wave 1.
+- [ ] `38.1-02-dispatch-and-discipline-data-PLAN.md` — `GameSetup` derivation from `discipline.data["free_game_form"]` with name-match fallback and warning log; `OptionsPresenter` passthrough verification; `ResultRecorder` BK2 dispatch branch to `Bk2Kombi::AdvanceMatchState`; D-10 `discipline.data` write on id 107 (primary carambus_api path + BCW unprotected fallback with reconciliation runbook). Wave 1.
+- [ ] `38.1-03-bk2-kombi-scoring-services-PLAN.md` — `Bk2Kombi::ScoreShot` (pure evaluator, DEFAULT_RULES frozen constant, exact D-15/D-16 literals) + `Bk2Kombi::AdvanceMatchState` (set/match close, idempotency via `shot_sequence_number`). TDD with 22 unit + 11 state-mutation + integration tests. Wave 2.
+- [ ] `38.1-04-scoreboard-partial-and-input-PLAN.md` — Dedicated `_scoreboard_bk2_kombi.html.erb` partial + `_show_bk2_kombi` wrapper, shot-input form, `bk2_kombi_submit_shot` reflex action with scoped CableReady broadcast, Stimulus controller with 500ms submit debounce, DE+EN i18n keys under `table_monitor.bk2_kombi.*`. Wave 3.
+- [ ] `38.1-05-dry-run-uat-and-fallback-drill-PLAN.md` — Pre-dry-run gate (critical suite + lint + brakeman + production data sanity), physical BCW club-table dry run with explicit GO/NO-GO verdict (D-02 UAT gate), karambol-fallback drill runbook + rehearsal (D-03/D-07), phase closure updates in STATE.md + ROADMAP.md. Wave 4, autonomous:false.
 
 ### Phase 39: DTP-Backed Parameter Ranges
 **Goal**: `Discipline#parameter_ranges` becomes context-aware — it queries the existing `discipline_tournament_plans` table for canonical points/innings values based on the tournament's plan, player count, and player_class, returns Ranges derived from the normal (exact) or reduced (80%) mode, and correctly handles `handicap_tournier=true` tournaments (skip innings check, widen balls_goal which is per-participant from the participant list). The parameter verification modal no longer false-fires on youth/handicap/pool/snooker/biathlon/kegel tournaments.
