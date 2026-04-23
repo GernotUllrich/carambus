@@ -81,10 +81,17 @@ Plans:
 
 ### Phase 38.2: BK2-Kombi scoreboard UX re-alignment (INSERTED)
 
-**Goal**: Replace the dedicated BK2-Kombi scoreboard UI from Phase 38.1 Plan 04 with a karambol-layout-preserving variant so that players familiar with the existing Carambol scoreboards are not disoriented on tournament day. Structural 1:1 copy of the karambol scoreboard (`_show.html.erb` + `_scoreboard_free_game_karambol.html.erb`) is used as the baseline; BK2-specific deltas (phase indicator, set counter, shot-entry form replacing the +1/-5 buttons) are additive only. Also closes UAT-GAP-02..GAP-05 from the Phase 38.1 dry-run feedback: detail-view Alpine scope bug, `bk2_state` initialization fallback, missing Home/Cancel nav, and i18n phase key guard.
+**Goal**: Replace the dedicated BK2-Kombi scoreboard UI from Phase 38.1 Plan 04 with a karambol-layout-preserving variant so that players familiar with the existing Carambol scoreboards are not disoriented on tournament day. Structural 1:1 copy of the karambol scoreboard (`_show.html.erb` + `_scoreboard.html.erb`) is used as the baseline; BK2-specific deltas (phase chip, set counter, phase-sensitive remaining badge, full-width shot-entry bottom bar replacing the +1/-5 button row) are additive only. Also closes UAT-GAP-02..GAP-05 from the Phase 38.1 dry-run feedback: detail-view Alpine scope bug, missing Home/Cancel nav, i18n phase key guard, and `bk2_state` initialization fallback.
 **Depends on:** Phase 38.1
-**Decisions addressed:** D-08 (BK2 entry-point UX alignment), D-18..Dxx (see 38.2-CONTEXT.md once written)
-**Plans:** TBD (to be created by `/gsd-plan-phase 38.2`)
+**Decisions addressed:** D-01..D-20 (see 38.2-CONTEXT.md)
+**Plans:** 5 plans
+
+Plans:
+- [ ] `38.2-01-PLAN.md` — Service-layer + config + i18n scaffolding: `Bk2Kombi::AdvanceMatchState` augmented with `innings_left_in_set` + `first_set_mode` fields (D-19); `bk2_options` gains `direkter_zweikampf_max_shots_per_turn` (default 2), `serienspiel_max_innings_per_set` (default 5), `first_set_mode` (D-20); `TableMonitor#bk2_state_uninitialized?` predicate for GAP-05 fallback banner; `TableMonitorsController#start_game` BK2 branch whitelists + persists `bk2_options[:first_set_mode]`; DE + EN i18n keys for Plans 02/03/04 consumption. `Bk2Kombi::ScoreShot` untouched (scope guard per D-02). Wave 1.
+- [ ] `38.2-02-PLAN.md` — Detail-view mode selector (D-14) + Alpine scope fix (GAP-02): lift the single `x-data` scope in `scoreboard_free_game_karambol_new.html.erb` onto an outer wrapper covering both the hidden inputs and the radio/button block; replace single "Spieler A stösst an" with four buttons (A-DZ, A-SP, B-DZ, B-SP) each encoding `first_break_choice` + `bk2_options[first_set_mode]` in one click. Wave 2, depends on 01.
+- [ ] `38.2-03-PLAN.md` — Karambol-parallel scoreboard rewrite (D-01, D-03..D-13, D-17) + GAP-03/04/05 closure: `_show_bk2_kombi.html.erb` becomes a structural 1:1 copy of `_show.html.erb` with Home/Cancel/Continue warning modal (closes GAP-04) + `bk2_state_uninitialized?` fallback banner (closes GAP-05); `_scoreboard_bk2_kombi.html.erb` re-maps Karambol slots per D-03..D-13 (Satz header + phase chip center, sets_won next to names, Ziel = current set target, current-set score as large number, GD/HS/inning-counter/set-history removed, phase-sensitive "remaining" badge reads shots_left_in_turn for DZ / innings_left_in_set for SP); `current_phase.present?` guard closes GAP-03; placeholder marks Plan 04 insertion point. Wave 2, depends on 01.
+- [ ] `38.2-04-PLAN.md` — Shot-entry bottom bar (D-15, D-16) + Stimulus controller rewrite: replace Plan 03 placeholder with full-width 3-row form (Row 1 amber full_pin_image + hint; Row 2 Gefallene Kegel + Mittelpin + Echter/Unechter Karambol; Row 3 Durchläufe + Fehler → Fehlercode + Bande + STOSS ERFASSEN); `bk2_kombi_shot_controller.js` targets new DOM but preserves all 10 target names + dataset keys + 500ms debounce + UUID seq number → reflex endpoint `TableMonitorReflex#bk2_kombi_submit_shot` UNCHANGED. Wave 3, depends on 03.
+- [ ] `38.2-05-PLAN.md` — System + integration tests rewrite (D-17): full inplace rewrite of `test/system/bk2_kombi_scoreboard_test.rb` covering Plan-02/03/04 DOM + Plan-01 service augmentations + explicit GAP-02/03/04/05 regression probes; 38.1 B2 full_pin_image + wrong_ball foul regression tests preserved (scope-guard proof that ScoreShot stayed untouched). Wave 4, depends on 01+02+03+04.
 
 ### Phase 39: DTP-Backed Parameter Ranges
 **Goal**: `Discipline#parameter_ranges` becomes context-aware — it queries the existing `discipline_tournament_plans` table for canonical points/innings values based on the tournament's plan, player count, and player_class, returns Ranges derived from the normal (exact) or reduced (80%) mode, and correctly handles `handicap_tournier=true` tournaments (skip innings check, widen balls_goal which is per-participant from the participant list). The parameter verification modal no longer false-fires on youth/handicap/pool/snooker/biathlon/kegel tournaments.
@@ -116,8 +123,8 @@ Phases execute in numeric order: 33 → 34 → 35 → 36a → 36b → 36c → 37
 | 37. In-App Doc Links | v7.0 | 5/5 | Complete | 2026-04-15 |
 | 38. UX Polish & i18n Debt | v7.1 | 2/2 | Complete    | 2026-04-16 |
 | 38.1. BK2-Kombi minimum viable support | v7.1 | 5/6 | In Progress | - |
-| 38.2. BK2-Kombi scoreboard UX re-alignment | v7.1 | 0/TBD | Not started | - |
+| 38.2. BK2-Kombi scoreboard UX re-alignment | v7.1 | 0/5 | Not started | - |
 | 39. DTP-Backed Parameter Ranges | v7.1 | 0/TBD | Not started | - |
 
 **v7.0 total:** 7 phases, 31 plans, 37/37 requirements, ~2 weeks wall time.
-**v7.1 total (planned):** 4 phases, 7+TBD plans, 6+ requirements (5 in Phase 38, 1 in Phase 39, gap closure in 38.1/38.2).
+**v7.1 total (planned):** 4 phases, 12+TBD plans, 6+ requirements (5 in Phase 38, 1 in Phase 39, gap closure in 38.1/38.2).
