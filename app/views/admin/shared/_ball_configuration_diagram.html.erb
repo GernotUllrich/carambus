@@ -34,13 +34,24 @@
    } %>
 <% dims = table_dimensions[bc.table_variant] || table_dimensions["match"] %>
 
-<%# SVG-Geometrie. padding = Rahmen um den Tisch herum (für Banden-Dicke). %>
-<% svg_width   = 600 %>
-<% svg_height  = 300 %>
+<%# SVG-Geometrie. Seitenverhältnis table_w : table_h = 2 : 1 (Carambol-
+    Standard). padding = Rahmen um den Tisch herum (für Banden-Dicke). %>
+<% svg_width   = 900 %>
+<% svg_height  = 470 %>
 <% padding     = 20 %>
 <% table_w     = svg_width  - 2 * padding %>
 <% table_h     = svg_height - 2 * padding %>
-<% ball_radius = 14 %>
+
+<%# Ball-Durchmesser physikalisch korrekt: Karambol-Kugel 6 cm Durchmesser,
+    also 3 cm Radius. SVG-Radius skaliert mit der tatsaechlichen Tisch-
+    Länge (dims[:length_cm]), damit ein Ball auf klein groesser aussieht
+    als auf match (weil klein kompakter ist pro Pixel).
+    Match (284 cm)     → ca.  9 px Radius
+    Halbmatch (230 cm) → ca. 11 px Radius
+    Klein (210 cm)     → ca. 12 px Radius %>
+<% ball_radius_cm = 3.0 %>
+<% ball_radius    = ball_radius_cm * table_w / dims[:length_cm] %>
+<% label_font_size = (ball_radius * 0.9).round %>
 
 <%#
   Koordinaten-Mapping:
@@ -97,8 +108,8 @@
       <% color = ball_colors[role] %>
       <circle cx="<%= cx %>" cy="<%= cy %>" r="<%= ball_radius %>"
               fill="<%= color[:fill] %>" stroke="<%= color[:stroke] %>" stroke-width="2" />
-      <text x="<%= cx %>" y="<%= cy + 4 %>" text-anchor="middle"
-            font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="bold"
+      <text x="<%= cx %>" y="<%= cy + label_font_size / 3 %>" text-anchor="middle"
+            font-family="Helvetica, Arial, sans-serif" font-size="<%= label_font_size %>" font-weight="bold"
             fill="<%= color[:label_color] %>">
         <%= role.to_s[-1] %>
       </text>
