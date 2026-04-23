@@ -173,7 +173,17 @@
     <%- options = table_monitor.options %>
     <!--    <h1 style="text-shadow: 2px 2px #000000" class="text-2vw flex text-gray-300"><%#= @location.name %></h1>-->
     <%= form_tag start_game_table_monitor_path(table_monitor), data: {turbo: false}, method: :post, class: "flex flex-col text-gray-300 max-h-screen overflow-y-auto" do %>
-      <input name='free_game_form' value='karambol' type='hidden'/>
+      <%# 38.1-06: free_game_form flips to 'bk2_kombi' when user selects BK2
+          radio below (bk2_selected Alpine getter drives :value). Fallback
+          value='karambol' is a safety net if Alpine fails to hydrate. %>
+      <input name='free_game_form' :value="bk2_selected ? 'bk2_kombi' : 'karambol'" value='karambol' type='hidden'/>
+      <%# BK2-Kombi hidden fields — emit empty string when BK2 not selected;
+          controller's karambol/pool branch ignores them. %>
+      <input name='set_target_points' :value="bk2_selected ? bk2_target : ''" type='hidden'/>
+      <input name='discipline_a' :value="bk2_selected ? 'BK2-Kombi' : ''" type='hidden'/>
+      <input name='discipline_b' :value="bk2_selected ? 'BK2-Kombi' : ''" type='hidden'/>
+      <input name='sets_to_win' :value="bk2_selected ? '2' : ''" type='hidden'/>
+      <input name='sets_to_play' :value="bk2_selected ? '3' : ''" type='hidden'/>
       <input name='allow_follow_up' value='<%= allow_follow_up ? '1' : '0' %>' type='hidden'/>
       <div class="flex justify-center mt-4 text-center sticky top-0 bg-opacity-90 z-10" style="background-image: url('<%= @location.background_image.gsub(".", "-.") %>')">
         <div id="submit" tabindex=1 class="focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 min-w-min focus:border-0 rounded-lg">
@@ -210,7 +220,10 @@
       discipline_a: <%= Discipline::KARAMBOL_DISCIPLINE_MAP.index(options[:player_a][:discipline].presence || "Freie Partie klein").to_i %>,
       discipline_b: <%= Discipline::KARAMBOL_DISCIPLINE_MAP.index(options[:player_b][:discipline].presence || "Freie Partie klein").to_i %>,
       increment: 0,
-      allow_follow_up: <%= options[:allow_follow_up] ? "true" : "false" %>
+      allow_follow_up: <%= options[:allow_follow_up] ? "true" : "false" %>,
+      bk2_choice: null,
+      get bk2_selected() { return this.bk2_choice !== null && this.bk2_choice !== '' && this.bk2_choice !== undefined; },
+      get bk2_target() { return [50, 60, 70][this.bk2_choice] || 50; }
       }" class="mt-8 text-2vw grid grid-cols-6 gap-3 items-center">
         <div class="  flex flex-row">Spieler</div>
         <div class="col-span-4 flex flex-row">
@@ -258,6 +271,23 @@
             maxval: 5,
             displays: ["3Band".html_safe, "Frei", "1Band".html_safe, "52/2", "35/2", "Eurok"],
             cols: 6,
+            increment: 1,
+            no_counter: true }
+          %>
+          <%# 38.1-06: BK2-Kombi alternative selection for Small Billard.
+              When a BK2 radio is clicked, Alpine bk2_choice becomes 0/1/2,
+              bk2_selected flips to true, and bk2_target returns 50/60/70.
+              Those drive the hidden fields at the top of the form to
+              submit free_game_form=bk2_kombi with set_target_points set. %>
+          <%= render partial: "radio_select", locals: {
+            table: table,
+            show: "table_kind == 'Small Billard' && parameters == 0",
+            header: "BK2-Kombi (alt. zu oben)",
+            varname: "bk2_choice",
+            values: [0, 1, 2],
+            maxval: 2,
+            displays: ["BK2 50", "BK2 60", "BK2 70"],
+            cols: 3,
             increment: 1,
             no_counter: true }
           %>

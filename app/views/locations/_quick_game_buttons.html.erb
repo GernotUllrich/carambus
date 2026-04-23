@@ -36,24 +36,31 @@
   </h2>
   
   <% presets.each do |category_group| %>
+    <%# 38.1-06: is_bk2_kombi is PER-CATEGORY (BK2 lives inside small_billard
+        alongside karambol categories — branch only when rendering the BK2
+        category's buttons; leave the existing is_karambol fallback for
+        all other small_billard categories). %>
+    <% is_bk2_kombi = !is_pool && !is_snooker && category_group.present? && category_group['category'] == 'BK2-Kombi' %>
     <div class="mb-8">
       <h3 class="text-3xl font-bold mb-4 text-white" style="text-shadow: 2px 2px #000000">
         <%= category_group['category'] %>
       </h3>
-      
+
       <div class="flex flex-wrap gap-4 justify-center">
         <% category_group['buttons'].each do |button| %>
-          <% 
+          <%
             # Generate unique button ID
             if is_pool && button['sets_to_win']
               button_id = "#{button['discipline']}_#{button['sets_to_win']}_#{button['kickoff_switches_with']}"
             elsif is_snooker && button['frames_to_win']
               button_id = "snooker_#{button['frames_to_win']}"
+            elsif is_bk2_kombi && button['set_target_points']
+              button_id = "bk2_kombi_#{button['set_target_points']}"
             else
               button_id = "#{button['balls']}_#{button['innings']}"
             end
             button_id = button_id.to_s.gsub(/[^a-zA-Z0-9]/, '_')
-            
+
             # Generate label
             if button['label']
               label = button['label']
@@ -62,6 +69,8 @@
               label = "#{button['sets_to_win']} (#{kickoff})"
             elsif is_snooker && button['frames_to_win']
               label = "Best of #{button['frames_to_win'] * 2 - 1}"
+            elsif is_bk2_kombi && button['set_target_points']
+              label = "BK2 #{button['set_target_points']}"
             else
               balls_str = button['balls'] == 0 ? '-' : button['balls'].to_s
               innings_str = button['innings'] == 0 ? '-' : button['innings'].to_s
@@ -106,6 +115,22 @@
               <%= hidden_field_tag :sets_to_win, button['frames_to_win'] || 3 %>
               <%= hidden_field_tag :sets_to_play, (button['frames_to_win'] || 3) * 2 - 1 %>
               <%= hidden_field_tag :first_break_choice, 0 %>
+            <% elsif is_bk2_kombi %>
+              <%# 38.1-06: BK2-Kombi quick-start. Packs set_target_points (not
+                  balls_goal) and best-of-3 defaults. Controller#start_game
+                  CLAMPS discipline_a/b to "BK2-Kombi" (T-38.1-06-01). %>
+              <%= hidden_field_tag :quick_game_form, 'bk2_kombi' %>
+              <%= hidden_field_tag :free_game_form, 'bk2_kombi' %>
+              <%= hidden_field_tag :discipline_a, button['discipline'] %>
+              <%= hidden_field_tag :discipline_b, button['discipline'] %>
+              <%= hidden_field_tag :set_target_points, button['set_target_points'] || 50 %>
+              <%= hidden_field_tag :sets_to_win, button['sets_to_win'] || 2 %>
+              <%= hidden_field_tag :sets_to_play, button['sets_to_play'] || 3 %>
+              <%= hidden_field_tag :balls_goal_a, 0 %>
+              <%= hidden_field_tag :balls_goal_b, 0 %>
+              <%= hidden_field_tag :innings_goal, 0 %>
+              <%= hidden_field_tag :first_break_choice, 0 %>
+              <%= hidden_field_tag :kickoff_switches_with, 'set' %>
             <% else %>
               <%# Karambol %>
               <%= hidden_field_tag :quick_game_form, 'karambol' %>
