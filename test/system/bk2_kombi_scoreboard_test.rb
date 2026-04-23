@@ -25,6 +25,12 @@ class Bk2KombiScoreboardTest < ApplicationSystemTestCase
 
     # Minimal Game so the show action does not redirect.
     # System tests do not wrap in transactions; use find_or_create_by!.
+    #
+    # 38.1 WR-02: track whether THIS test created the Game, so teardown only
+    # destroys what setup created. Without this guard, a prior failed/aborted
+    # run (or a future fixture) that left a Game at id 50_000_200 would be
+    # silently wiped by our teardown — leaking test-to-test state.
+    @game_created_by_test = !Game.exists?(id: 50_000_200)
     @game = Game.find_or_create_by!(id: 50_000_200)
 
     @bk2_data = {
@@ -52,7 +58,10 @@ class Bk2KombiScoreboardTest < ApplicationSystemTestCase
   teardown do
     @tm.update_columns(game_id: nil, state: "new")
     @tm.update!(data: {})
-    @game&.destroy
+    # 38.1 WR-02: only destroy what this test created. If a pre-existing
+    # Game at id 50_000_200 was found during setup (e.g. fixture, stray
+    # record from a prior aborted run), leave it alone.
+    @game.destroy if @game_created_by_test && @game&.persisted?
   end
 
   # -----------------------------------------------------------------------
