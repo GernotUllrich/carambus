@@ -254,6 +254,116 @@ class TableMonitor::GameSetupTest < ActiveSupport::TestCase
   end
 
   # ---------------------------------------------------------------------------
+  # BK2-Kombi derivation tests (Phase 38.1 Plan 02)
+  # ---------------------------------------------------------------------------
+
+  # Baut einen Mock-TournamentMonitor, der einen Mock-Tournament mit der
+  # angegebenen Discipline zurueckgibt. Vermeidet komplexe DB-Aufbauten
+  # (Season, Region/Organizer) fuer reine Derivations-Unit-Tests.
+  def build_mock_tournament_monitor(discipline_name:, discipline_data_json: nil)
+    mock_discipline = OpenStruct.new(
+      id: 107,
+      name: discipline_name,
+      data: discipline_data_json
+    )
+    mock_tournament = OpenStruct.new(
+      discipline: mock_discipline,
+      is_a?: ->(klass) { klass == Tournament }
+    )
+    mock_tournament.define_singleton_method(:is_a?) { |klass| klass == Tournament }
+    mock_tm_monitor = OpenStruct.new(
+      tournament: mock_tournament,
+      innings_goal: nil,
+      sets_to_win: nil,
+      sets_to_play: nil,
+      team_size: nil,
+      timeouts: nil,
+      timeout: nil,
+      balls_goal: nil,
+      allow_overflow: nil,
+      allow_follow_up: nil,
+      kickoff_switches_with: nil,
+      allow_change_tables: nil,
+      is_a?: ->(klass) { false }
+    )
+    mock_tm_monitor.define_singleton_method(:is_a?) { |klass| false }
+    mock_tm_monitor
+  end
+
+  # Stub-Hilfsmethode: fuehrt GameSetup.call mit einem mock tournament_monitor aus
+  def call_setup_with_mock_tm_monitor(mock_tm_monitor, extra_options: {})
+    @tm.define_singleton_method(:tournament_monitor) { mock_tm_monitor }
+    warnings = []
+    Rails.logger.stub(:warn, ->(msg) { warnings << msg }) do
+      TableMonitorJob.stub(:perform_later, ->(*) {}) do
+        TableMonitor::GameSetup.call(table_monitor: @tm, options: @options.merge(extra_options))
+      end
+    end
+    @tm.reload
+    warnings
+  end
+
+  test "GameSetup derives free_game_form=bk2_kombi when discipline.data contains it" do
+    data_json = JSON.generate({"free_game_form" => "bk2_kombi"})
+    mock_tm_monitor = build_mock_tournament_monitor(
+      discipline_name: "BK2-Kombi",
+      discipline_data_json: data_json
+    )
+
+    warnings = call_setup_with_mock_tm_monitor(mock_tm_monitor, extra_options: {"free_game_form" => nil})
+
+    assert_equal "bk2_kombi", @tm.data["free_game_form"],
+      "free_game_form muss bk2_kombi sein wenn discipline.data es enthaelt"
+    # Kein Warning bei authoritative path
+    refute warnings.any? { |msg| msg.to_s.match?(/reconcil/i) },
+      "Kein Reconciliation-Warning bei authoritative discipline.data"
+  end
+
+  test "GameSetup falls back to name match when discipline.data is nil; logs reconciliation warning" do
+    mock_tm_monitor = build_mock_tournament_monitor(
+      discipline_name: "BK2-Kombi",
+      discipline_data_json: nil
+    )
+
+    warnings = call_setup_with_mock_tm_monitor(mock_tm_monitor, extra_options: {"free_game_form" => nil})
+
+    assert_equal "bk2_kombi", @tm.data["free_game_form"],
+      "free_game_form muss bk2_kombi sein beim Name-Fallback"
+    assert warnings.any? { |msg| msg.to_s.match?(/reconcil|BK2.*discipline\.data/i) },
+      "Reconciliation-Warnung muss geloggt werden (gefunden: #{warnings.inspect})"
+  end
+
+  test "GameSetup does NOT set free_game_form=bk2_kombi for unrelated disciplines" do
+    mock_tm_monitor = build_mock_tournament_monitor(
+      discipline_name: "Freie Partie",
+      discipline_data_json: nil
+    )
+
+    call_setup_with_mock_tm_monitor(mock_tm_monitor, extra_options: {"free_game_form" => nil})
+
+    refute_equal "bk2_kombi", @tm.data["free_game_form"],
+      "free_game_form darf nicht bk2_kombi sein fuer nicht-BK2-Disziplinen"
+  end
+
+  test "GameSetup preserves existing pool/snooker derivation logic" do
+    # Wenn discipline.data free_game_form=snooker enthaelt, muss snooker erhalten bleiben
+    data_json = JSON.generate({"free_game_form" => "snooker"})
+    mock_tm_monitor = build_mock_tournament_monitor(
+      discipline_name: "Snooker",
+      discipline_data_json: data_json
+    )
+
+    call_setup_with_mock_tm_monitor(mock_tm_monitor, extra_options: {
+      "free_game_form" => "snooker",
+      "balls_on_table" => 15,
+      "initial_red_balls" => 15
+    })
+
+    assert_equal "snooker", @tm.data["free_game_form"],
+      "free_game_form muss snooker bleiben (kein Regression fuer bestehende Pfade)"
+  end
+
+  # ---------------------------------------------------------------------------
   # Test 10: assign-Zweig — weist game_id zu, ruft initialize_game und
   #           start_new_match! auf (ready-Zweig ohne tmp_results)
   # ---------------------------------------------------------------------------
