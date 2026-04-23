@@ -39,11 +39,16 @@
   </h2>
   
   <% presets.each do |category_group| %>
+    <%# 38.1 IN-05: guard that category_group is a Hash with a 'category' key
+        (proper structural check replaces the previous `category_group.present?`
+        which was redundant given the `category_group['buttons'].each` below
+        would crash on nil anyway). %>
+    <% next unless category_group.is_a?(Hash) && category_group['category'] %>
     <%# 38.1-06: is_bk2_kombi is PER-CATEGORY (BK2 lives inside small_billard
         alongside karambol categories — branch only when rendering the BK2
         category's buttons; leave the existing is_karambol fallback for
         all other small_billard categories). %>
-    <% is_bk2_kombi = !is_pool && !is_snooker && category_group.present? && category_group['category'] == 'BK2-Kombi' %>
+    <% is_bk2_kombi = !is_pool && !is_snooker && category_group['category'] == 'BK2-Kombi' %>
     <div class="mb-8">
       <h3 class="text-3xl font-bold mb-4 text-white" style="text-shadow: 2px 2px #000000">
         <%= category_group['category'] %>
