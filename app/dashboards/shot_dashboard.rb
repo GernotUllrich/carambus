@@ -4,7 +4,6 @@ class ShotDashboard < Administrate::BaseDashboard
   ATTRIBUTE_TYPES = {
     id: Field::Number,
     training_example: Field::BelongsTo,
-    shot_image: Field::ActiveStorage,
     shot_type: Field::Select.with_options(
       collection: ['ideal', 'alternative', 'error']
     ),
@@ -54,7 +53,6 @@ class ShotDashboard < Administrate::BaseDashboard
     training_example
     shot_type
     sequence_number
-    shot_image
     title_de
     title_en
     notes_de
@@ -74,7 +72,6 @@ class ShotDashboard < Administrate::BaseDashboard
     training_example
     shot_type
     sequence_number
-    shot_image
     end_ball_configuration
   ].freeze
 
