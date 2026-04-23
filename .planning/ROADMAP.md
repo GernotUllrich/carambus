@@ -70,7 +70,7 @@ Plans:
 **Goal**: Ship live-scoring scoreboard support for a BK2-Kombi tournament at the BCW club on Saturday 2026-05-02. Full shot-by-shot live scoring for the BK2-Kombi discipline: negative-score engine gate, discipline derivation, two playing phases (Direkter Zweikampf / Serienspiel), bonus-shot rule, foul handling with D-16 literal values, best-of-3 sets to configurable target (50/60/70), match winner = first to 2 sets. Karambol-with-negative-scores remains a rehearsed fallback.
 **Depends on:** Phase 38
 **Decisions addressed:** D-01..D-17 (see 38.1-CONTEXT.md)
-**Plans:** 2/5 plans executed
+**Plans:** 3/5 plans executed
 
 Plans:
 - [ ] `38.1-01-engine-negative-score-gate-PLAN.md` — Bypass the three `score_engine.rb` negative-score gates (:84 guard, :135 clamp, :690-692 protocol rejection) for `data["free_game_form"] == "bk2_kombi"` via a new `allow_negative_scores?` helper. Includes characterization tests that prove karambol still clamps/rejects. Wave 1.
