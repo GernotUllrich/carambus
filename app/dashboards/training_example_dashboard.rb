@@ -9,7 +9,6 @@ class TrainingExampleDashboard < Administrate::BaseDashboard
     title: Administrate::Field::String,
     title_de: Administrate::Field::String,
     title_en: Administrate::Field::String,
-    sequence_number: Administrate::Field::Number,
     source_language: Administrate::Field::Select.with_options(
       collection: Translatable::SUPPORTED_LANGUAGES.map { |l| [l.upcase, l] }
     ),
@@ -25,13 +24,12 @@ class TrainingExampleDashboard < Administrate::BaseDashboard
     start_position: Administrate::Field::HasOne,
     shots: Administrate::Field::HasMany,
     tags: Administrate::Field::HasMany,
-    tag_list: Administrate::Field::String,
     created_at: Administrate::Field::DateTime,
     updated_at: Administrate::Field::DateTime,
   }.freeze
 
   COLLECTION_ATTRIBUTES = %i[
-    sequence_number
+    id
     title
     training_concepts
     updated_at
@@ -43,7 +41,6 @@ class TrainingExampleDashboard < Administrate::BaseDashboard
     parent
     children
     title
-    sequence_number
     source_notes
     training_sources
     ideal_stroke_parameters_text
@@ -57,7 +54,6 @@ class TrainingExampleDashboard < Administrate::BaseDashboard
 
   FORM_ATTRIBUTES = %i[
     source_language
-    sequence_number
     title
     title_de
     title_en
@@ -67,7 +63,6 @@ class TrainingExampleDashboard < Administrate::BaseDashboard
     ideal_stroke_parameters_text_de
     ideal_stroke_parameters_text_en
     ideal_stroke_parameters_data
-    tag_list
   ].freeze
 
   def display_resource(training_example)
