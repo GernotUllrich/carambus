@@ -73,7 +73,11 @@ class TableMonitorsController < ApplicationController
                 :allow_overflow, :allow_follow_up, :free_game_form, :quick_game_form, :preset,
                 :discipline_choice, :next_break_choice, :games_choice, :games_2_choice, :four_ball,
                 :points_choice, :points_2_choice, :innings_choice, :innings_2_choice, :warntime, :gametime, :commit,
-                :first_break_choice, :initial_red_balls, :frames_to_win, :frames_to_win_choice, :frames_to_win_2_choice)
+                :first_break_choice, :initial_red_balls, :frames_to_win, :frames_to_win_choice, :frames_to_win_2_choice,
+                # 38.1-06: BK2-Kombi params — set_target_points (50/60/70) is
+                # the raw user input; the BK2 branch below packs it into
+                # p[:bk2_options] which then flows to GameSetup whitelist.
+                :set_target_points)
 
     # Process standard form parameters (unless quick_game_form)
     unless p[:quick_game_form].present?
@@ -106,6 +110,18 @@ class TableMonitorsController < ApplicationController
         p[:sets_to_play] = 1 if p[:sets_to_play].to_i <= 0
       end
       p[:allow_follow_up] = (p[:allow_follow_up] == "true" || p[:allow_follow_up] == true)
+      # 38.1-06: BK2-Kombi quick-start also packs bk2_options + CLAMPS discipline.
+      # The _quick_game_buttons partial emits quick_game_form=bk2_kombi +
+      # set_target_points; we mirror the detail-form branch's logic here.
+      # CLAMP (T-38.1-06-01) applies here too — discipline_a/b MUST be
+      # "BK2-Kombi" even if an attacker submits a different value.
+      if p[:quick_game_form] == "bk2_kombi"
+        p[:discipline_a] = "BK2-Kombi"
+        p[:discipline_b] = "BK2-Kombi"
+        set_target = p.delete(:set_target_points).to_i
+        set_target = 50 unless [50, 60, 70].include?(set_target)
+        p[:bk2_options] = { "set_target_points" => set_target }
+      end
 
       Rails.logger.info "=== QUICK GAME START ==="
       Rails.logger.info "quick_game_form: #{p[:quick_game_form]}"
@@ -155,26 +171,53 @@ class TableMonitorsController < ApplicationController
         Rails.logger.info "frames_to_win_2_choice: #{p[:frames_to_win_2_choice].inspect}"
         Rails.logger.info "initial_red_balls: #{p[:initial_red_balls].inspect}"
         Rails.logger.info "============================"
-        
+
         p[:initial_red_balls] = p.delete(:initial_red_balls).to_i
         p[:warntime] = p.delete(:warntime).to_i
         p[:gametime] = p.delete(:gametime).to_i
         p[:first_break_choice] = p[:first_break_choice].to_i
         # sets_to_win and sets_to_play: try from hidden fields first, fallback to _choice params
         # Use .presence to convert empty strings to nil
-        frames_to_win = p.delete(:sets_to_win).presence || 
-                        p.delete(:frames_to_win_choice).presence || 
-                        p.delete(:frames_to_win_2_choice).presence || 
-                        p.delete(:frames_to_win).presence || 
+        frames_to_win = p.delete(:sets_to_win).presence ||
+                        p.delete(:frames_to_win_choice).presence ||
+                        p.delete(:frames_to_win_2_choice).presence ||
+                        p.delete(:frames_to_win).presence ||
                         2
         p[:sets_to_win] = frames_to_win.to_i
         p[:sets_to_play] = (frames_to_win.to_i * 2 - 1)
-        
+
         Rails.logger.info "=== SNOOKER RESULT ==="
         Rails.logger.info "Calculated frames_to_win: #{frames_to_win}"
         Rails.logger.info "Final sets_to_win: #{p[:sets_to_win]}"
         Rails.logger.info "Final sets_to_play: #{p[:sets_to_play]}"
         Rails.logger.info "======================"
+      elsif p[:free_game_form] == "bk2_kombi"
+        # 38.1-06: Submitted by scoreboard_free_game_karambol_new.html.erb
+        # (detail form, via Alpine computed getters) OR by
+        # _quick_game_buttons.html.erb (BK2 branch). The view packs
+        # discipline_a / discipline_b = "BK2-Kombi" as string literals (NOT
+        # as indices into KARAMBOL_DISCIPLINE_MAP — BK2-Kombi is not in that
+        # map; see Discipline::BK2_DISCIPLINE_MAP for the canonical list).
+        #
+        # CLAMP (T-38.1-06-01): hard-assign BK2-Kombi rather than `||=` — an
+        # attacker POSTing free_game_form=bk2_kombi with a tampered
+        # discipline_a must have that overwritten. BK2-Kombi is the ONLY
+        # legitimate discipline for this form value per D-08.
+        p[:discipline_a] = "BK2-Kombi"
+        p[:discipline_b] = "BK2-Kombi"
+        set_target = p.delete(:set_target_points).to_i
+        set_target = 50 unless [50, 60, 70].include?(set_target)
+        p[:bk2_options] = { "set_target_points" => set_target }
+        # BK2-Kombi scoring is shot-by-shot against a set target, not balls_goal.
+        p[:balls_goal_a] = 0
+        p[:balls_goal_b] = 0
+        p[:innings_goal] = 0
+        p[:sets_to_win]  = (p[:sets_to_win].presence  || 2).to_i
+        p[:sets_to_play] = (p[:sets_to_play].presence || 3).to_i
+        p[:kickoff_switches_with] = (p[:kickoff_switches_with].presence || "set")
+        p[:first_break_choice] = p[:first_break_choice].to_i
+        # Drop stray karambol/pool params that the shared form may have submitted
+        p.delete(:discipline_choice)
       end
     end
 

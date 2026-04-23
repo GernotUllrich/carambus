@@ -406,6 +406,11 @@ class TableMonitor::GameSetup < ApplicationService
       "current_left_player" => fixed_display_left.present? ? fixed_display_left : "playera",
       "current_left_color" => (fixed_display_left == "playerb") ? "yellow" : "white",
       "innings_goal" => @options["innings_goal"],
+      # 38.1-06: BK2-Kombi configuration passthrough. Consumed by
+      # Bk2Kombi::AdvanceMatchState#derive_set_target via
+      # @tm.data.dig("bk2_options", "set_target_points"). Without this
+      # whitelist entry the controller's p[:bk2_options] is silently dropped.
+      "bk2_options" => @options["bk2_options"],
       "playera" => {
         "balls_goal" => if @options["free_game_form"] == "pool"
                           (@options["discipline_a"] == "14.1 endlos") ? @options["balls_goal_a"] : 1
