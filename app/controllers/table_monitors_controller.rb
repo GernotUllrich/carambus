@@ -234,6 +234,17 @@ class TableMonitorsController < ApplicationController
                           else
                             (p[:allow_follow_up] == "1") && p[:discipline_a] != "14.1 endlos"
                           end
+    # 38.1 WR-03: `set_target_points` is whitelisted in the `.slice(...)` list
+    # at the top of this action as a raw BK2 input. The BK2 branches (quick
+    # and detail) both `p.delete(:set_target_points)` and pack it into
+    # `p[:bk2_options]`. For every other form path (pool/snooker/karambol/
+    # 4-Ball), if a client submits `set_target_points` (the shared detail
+    # form always emits it, usually as ""), it would leak into
+    # `GameSetup#build_result_hash` / `@options` and clutter logs. Drop it
+    # unconditionally unless this is a BK2 submission.
+    unless p[:free_game_form] == "bk2_kombi" || p[:quick_game_form] == "bk2_kombi"
+      p.delete(:set_target_points)
+    end
     if p[:commit] == "Start Shootout"
       p[:discipline_b] = p[:discipline_a] = p[:discipline] = "shootout"
       p[:timeouts] = 0
