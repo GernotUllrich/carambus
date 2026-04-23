@@ -265,4 +265,47 @@ class TableMonitor::ResultRecorderTest < ActiveSupport::TestCase
     refute File.read(RESULT_RECORDER_PATH).include?("CableReady"),
       "ResultRecorder darf keine CableReady-Aufrufe enthalten (Broadcasts via after_update_commit)"
   end
+
+  # ---------------------------------------------------------------------------
+  # BK2-Kombi dispatch branch tests (Phase 38.1 Plan 02)
+  # ---------------------------------------------------------------------------
+  # Stub-Muster (B4-Fix, Zeitwerk-kompatibel):
+  # app/services/bk2_kombi/advance_match_state.rb stellt den Stub bereit, damit
+  # Zeitwerk den Konstanten-Lookup aufloesen kann. Die Tests ersetzen die Klasse
+  # temporaer via Minitest-stub auf der Singleton-Methode.
+
+  test "ResultRecorder dispatches to Bk2Kombi::AdvanceMatchState when free_game_form=='bk2_kombi'" do
+    call_args = nil
+    fake_call = ->(**kwargs) {
+      call_args = kwargs
+      {scoring: {points_for_current_player: 0}, transitions: {}, state: {}}
+    }
+
+    @tm.data["free_game_form"] = "bk2_kombi"
+    @tm.save!
+
+    Bk2Kombi::AdvanceMatchState.stub(:call, fake_call) do
+      TableMonitor::ResultRecorder.save_result(table_monitor: @tm)
+    end
+
+    assert_not_nil call_args,
+      "Bk2Kombi::AdvanceMatchState.call muss aufgerufen worden sein"
+    assert_equal @tm, call_args[:table_monitor],
+      "table_monitor muss als Keyword-Argument uebergeben werden"
+  end
+
+  test "ResultRecorder does NOT touch Bk2Kombi path for karambol/snooker" do
+    call_count = 0
+    counting_call = ->(**_kwargs) { call_count += 1 }
+
+    @tm.data["free_game_form"] = "snooker"
+    @tm.save!
+
+    Bk2Kombi::AdvanceMatchState.stub(:call, counting_call) do
+      TableMonitor::ResultRecorder.save_result(table_monitor: @tm)
+    end
+
+    assert_equal 0, call_count,
+      "Bk2Kombi::AdvanceMatchState darf NICHT aufgerufen werden fuer free_game_form='snooker'"
+  end
 end

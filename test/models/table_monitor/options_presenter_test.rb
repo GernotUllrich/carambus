@@ -265,6 +265,19 @@ class TableMonitor::OptionsPresenterTest < ActiveSupport::TestCase
   end
 
   # ---------------------------------------------------------------------------
+  # BK2-Kombi passthrough test (Phase 38.1 Plan 02)
+  # ---------------------------------------------------------------------------
+
+  test "OptionsPresenter exposes free_game_form='bk2_kombi' when TableMonitor.data is set" do
+    tm, _, _, _ = build_tm_with_game(data_overrides: {"free_game_form" => "bk2_kombi"})
+    presenter = TableMonitor::OptionsPresenter.new(tm, locale: :de)
+    result = presenter.call
+
+    assert_equal "bk2_kombi", result["free_game_form"],
+      "OptionsPresenter muss free_game_form='bk2_kombi' aus tm.data durchreichen"
+  end
+
+  # ---------------------------------------------------------------------------
   # Test: No disambiguation when tournament_monitor present
   # ---------------------------------------------------------------------------
 

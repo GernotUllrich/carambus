@@ -57,7 +57,16 @@ class TableMonitor::ResultRecorder < ApplicationService
       ergebnis1 = @tm.data["playera"]["result"].to_i
       ergebnis2 = @tm.data["playerb"]["result"].to_i
 
-      if @tm.data["free_game_form"] == "snooker"
+      if @tm.data["free_game_form"] == "bk2_kombi"
+        # BK2-Kombi Satz-Ergebnis: Plan 03 implementiert Bk2Kombi::AdvanceMatchState vollstaendig.
+        # Signatur: .call(table_monitor:, shot_payload:) → { scoring:, transitions:, state: }
+        # Dispatch-Zweig sitzt neben dem Snooker-Zweig (Pattern: Phase 38.1 CONTEXT.md D-11).
+        # Bk2Kombi::AdvanceMatchState — Plan 03 ersetzt den Stub mit der Implementierung.
+        Bk2Kombi::AdvanceMatchState.call(
+          table_monitor: @tm,
+          shot_payload: @tm.data.fetch("current_bk2_shot_payload", {})
+        )
+      elsif @tm.data["free_game_form"] == "snooker"
         # Alle Break-Punkte summieren: innings_list (abgeschlossene Breaks) + innings_redo_list (aktueller Break)
         # Wenn ein Spieler wechselt, wandert sein Break von redo_list in list
         ergebnis1 = Array(@tm.data["playera"]["innings_list"]).sum(&:to_i) + Array(@tm.data["playera"]["innings_redo_list"]).sum(&:to_i)
@@ -144,10 +153,10 @@ class TableMonitor::ResultRecorder < ApplicationService
         # Pruefen ob der zuletzt gespeicherte Frame dasselbe Ergebnis hat
         last_saved_set = Array(@tm.data["sets"]).last
         if last_saved_set &&
-           last_saved_set["Ergebnis1"] == ergebnis1 &&
-           last_saved_set["Ergebnis2"] == ergebnis2 &&
-           last_saved_set["Aufnahmen1"] == aufnahmen1 &&
-           last_saved_set["Aufnahmen2"] == aufnahmen2
+            last_saved_set["Ergebnis1"] == ergebnis1 &&
+            last_saved_set["Ergebnis2"] == ergebnis2 &&
+            last_saved_set["Aufnahmen1"] == aufnahmen1 &&
+            last_saved_set["Aufnahmen2"] == aufnahmen2
           Rails.logger.info "[save_current_set] m6[#{@tm.id}] Frame already saved (duplicate result: #{ergebnis1}:#{ergebnis2}, #{aufnahmen1}:#{aufnahmen2} innings) - skipping"
           return
         end
@@ -162,7 +171,7 @@ class TableMonitor::ResultRecorder < ApplicationService
     else
       Rails.logger.info "[prepare_final_game_result] m6[#{@tm.id}]ignored - no game"
     end
-  rescue StandardError => e
+  rescue => e
     Rails.logger.error "ERROR: m6[#{@tm.id}]#{e}, #{e.backtrace&.join("\n")}"
     raise StandardError
   end
@@ -170,7 +179,7 @@ class TableMonitor::ResultRecorder < ApplicationService
   def perform_get_max_number_of_wins
     Rails.logger.debug { "---------------m6[#{@tm.id}]------>>> get_max_number_of_wins <<<------------------------------------------" }
     [@tm.data["ba_results"].andand["Sets1"].to_i, @tm.data["ba_results"].andand["Sets2"].to_i].max
-  rescue StandardError => e
+  rescue => e
     Rails.logger.error "ERROR:m6[#{@tm.id}] #{e}, #{e.backtrace&.join("\n")}"
     raise StandardError unless Rails.env == "production"
   end
@@ -181,9 +190,9 @@ class TableMonitor::ResultRecorder < ApplicationService
     current_kickoff_player = @tm.data["current_kickoff_player"]
     case kickoff_switches_with
     when "set"
-      current_kickoff_player = current_kickoff_player == "playera" ? "playerb" : "playera"
+      current_kickoff_player = (current_kickoff_player == "playera") ? "playerb" : "playera"
     when "winner"
-      current_kickoff_player = @tm.data["sets"][-1]["Innings1"][-1].to_i > @tm.data["sets"][-1]["Innings2"][-1].to_i ? "playera" : "playerb"
+      current_kickoff_player = (@tm.data["sets"][-1]["Innings1"][-1].to_i > @tm.data["sets"][-1]["Innings2"][-1].to_i) ? "playera" : "playerb"
     end
     options = {
       "Gruppe" => @tm.game.group_no,
@@ -200,19 +209,19 @@ class TableMonitor::ResultRecorder < ApplicationService
       "Tischnummer" => @tm.game.table_no,
       "current_kickoff_player" => current_kickoff_player,
       "playera" =>
-        { "result" => 0,
-          "innings" => 0,
-          "innings_list" => [],
-          "innings_redo_list" => [],
-          "hs" => 0,
-          "gd" => "0.00" },
+        {"result" => 0,
+         "innings" => 0,
+         "innings_list" => [],
+         "innings_redo_list" => [],
+         "hs" => 0,
+         "gd" => "0.00"},
       "playerb" =>
-        { "result" => 0,
-          "innings" => 0,
-          "innings_list" => [],
-          "innings_redo_list" => [],
-          "hs" => 0,
-          "gd" => "0.00" },
+        {"result" => 0,
+         "innings" => 0,
+         "innings_list" => [],
+         "innings_redo_list" => [],
+         "hs" => 0,
+         "gd" => "0.00"},
       "current_inning" => {
         "active_player" => current_kickoff_player,
         "balls" => 0
@@ -240,7 +249,7 @@ class TableMonitor::ResultRecorder < ApplicationService
     @tm.deep_merge_data!(options)
     @tm.assign_attributes(state: "playing", panel_state: "pointer_mode", current_element: "pointer_mode")
     @tm.save!
-  rescue StandardError => e
+  rescue => e
     Rails.logger.error "ERROR: m6[#{@tm.id}]#{e}, #{e.backtrace&.join("\n")}"
     raise StandardError
   end
@@ -284,13 +293,12 @@ class TableMonitor::ResultRecorder < ApplicationService
           @tm.panel_state = "protocol_final"
           @tm.current_element = "confirm_result"
           @tm.save!
-          return
         else
           # Weitere Saetze zu spielen - automatisch zum naechsten Satz wechseln (kein Modal)
           Rails.logger.info "[evaluate_result] Match NOT won - switching to next frame"
           perform_switch_to_next_set
-          return
         end
+        return
       elsif was_playing && !is_simple_set
         @tm.end_of_set! if @tm.playing? && @tm.may_end_of_set?
         # protocol_final-Modal fuer Ergebnispruefung bei JEDEM Satz-Ende zeigen
@@ -365,7 +373,7 @@ class TableMonitor::ResultRecorder < ApplicationService
     else
       Rails.logger.debug { "eval ***** K:  ! (playing? || set_over? || final_set_score? || final_match_score?) && end_of_set?" }
     end
-  rescue StandardError => e
+  rescue => e
     Rails.logger.error "ERROR: #{e}, #{e.backtrace&.join("\n")}"
     raise StandardError unless Rails.env == "production"
   end
