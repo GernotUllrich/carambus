@@ -22,22 +22,15 @@ class Season < ApplicationRecord
   has_many :season_ccs
   has_many :leagues
 
-  @year = (Date.today - 6.month).year
-  @current_season = Season.find_by_name("#{@year}/#{@year + 1}")
-
   REFLECTION_KEYS = %w[tournaments season_participations]
   MAX_BA_SEASON = "2021/2022"
 
   def self.current_season
-    if (Date.today - 6.month).year != @year
-      @year = (Date.today - 6.month).year
-      @current_season = Season.find_by_name("#{@year}/#{@year + 1}")
-      unless @current_season.present?
-        Season.update_seasons
-        @current_season = Season.find_by_name("#{year}/#{year + 1}")
-      end
-    end
-    @current_season
+    year = (Date.today - 6.month).year
+    Season.find_by_name("#{year}/#{year + 1}") || (
+      Season.update_seasons
+      Season.find_by_name("#{year}/#{year + 1}")
+    )
   end
 
   def self.season_from_date(date)
