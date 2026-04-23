@@ -1,7 +1,35 @@
 module Admin
   class ShotsController < Admin::ApplicationController
     before_action :set_training_example, only: [:new, :create]
-    
+
+    # Override Administrate's before_action to skip finding resource for index and new
+    def requested_resource
+      if action_name == "new" || action_name == "index"
+        nil
+      else
+        super
+      end
+    end
+
+    # Shots können nur über TrainingExamples erstellt werden
+    def valid_action?(name, resource = resource_class)
+      # "new" ist nur gültig, wenn wir von einem TrainingExample kommen
+      return false if name.to_s == "new" && params[:training_example_id].blank?
+      super
+    end
+
+    # Administrate enumeriert fuer den Namespace ALLE /admin/shots-Routen,
+    # inkl. der nested :new unter /admin/training_examples/:id/shots/new.
+    # Dadurch haelt es `accessible_action?(:new)` fuer true, rendert im
+    # Index-Header aber `new_admin_shot_path` — das existiert nicht, weil
+    # der Standalone-Mount `only: [:index]` ist. Wir suppressen daher den
+    # "new"-Button auf der Top-Level-Index-Page.
+    def existing_action?(resource, action_name)
+      return false if action_name.to_s == "new" && params[:training_example_id].blank?
+      super
+    end
+    helper_method :existing_action?
+
     # Override destroy to redirect to parent TrainingExample
     def destroy
       training_example_id = requested_resource.training_example_id
