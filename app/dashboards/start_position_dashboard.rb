@@ -5,7 +5,6 @@ class StartPositionDashboard < Administrate::BaseDashboard
     id: Administrate::Field::Number,
     training_example: Administrate::Field::BelongsTo,
     ball_configuration: Administrate::Field::BelongsTo,
-    image: Field::ActiveStorage,
     description_text: Administrate::Field::Text,
     description_text_de: Administrate::Field::Text,
     description_text_en: Administrate::Field::Text,
@@ -26,7 +25,6 @@ class StartPositionDashboard < Administrate::BaseDashboard
     id
     training_example
     ball_configuration
-    image
     description_text_de
     description_text_en
     tags
@@ -37,7 +35,6 @@ class StartPositionDashboard < Administrate::BaseDashboard
   FORM_ATTRIBUTES = %i[
     training_example
     ball_configuration
-    image
     tag_list
   ].freeze
 
