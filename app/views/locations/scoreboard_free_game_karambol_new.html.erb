@@ -172,25 +172,15 @@
     <%- table_monitor.get_options!(I18n.locale) %>
     <%- options = table_monitor.options %>
     <!--    <h1 style="text-shadow: 2px 2px #000000" class="text-2vw flex text-gray-300"><%#= @location.name %></h1>-->
-    <%= form_tag start_game_table_monitor_path(table_monitor), data: {turbo: false}, method: :post, class: "flex flex-col text-gray-300 max-h-screen overflow-y-auto" do %>
-      <%# 38.1-06: free_game_form flips to 'bk2_kombi' when user selects BK2
-          radio below (bk2_selected Alpine getter drives :value). Fallback
-          value='karambol' is a safety net if Alpine fails to hydrate. %>
-      <input name='free_game_form' :value="bk2_selected ? 'bk2_kombi' : 'karambol'" value='karambol' type='hidden'/>
-      <%# BK2-Kombi hidden fields — emit empty string when BK2 not selected;
-          controller's karambol/pool branch ignores them. %>
-      <input name='set_target_points' :value="bk2_selected ? bk2_target : ''" type='hidden'/>
-      <input name='discipline_a' :value="bk2_selected ? 'BK2-Kombi' : ''" type='hidden'/>
-      <input name='discipline_b' :value="bk2_selected ? 'BK2-Kombi' : ''" type='hidden'/>
-      <input name='sets_to_win' :value="bk2_selected ? '2' : ''" type='hidden'/>
-      <input name='sets_to_play' :value="bk2_selected ? '3' : ''" type='hidden'/>
-      <input name='allow_follow_up' value='<%= allow_follow_up ? '1' : '0' %>' type='hidden'/>
-      <div class="flex justify-center mt-4 text-center sticky top-0 bg-opacity-90 z-10" style="background-image: url('<%= @location.background_image.gsub(".", "-.") %>')">
-        <div id="submit" tabindex=1 class="focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 min-w-min focus:border-0 rounded-lg">
-          <%= submit_tag "Start Game", class: "h-full border-4 rounded-lg btn btn-primary text-center text-2vw p-2" %>
-        </div>
-      </div>
-      <div x-data="{
+    <%# Phase 38.2-02 / UAT-GAP-02 fix: the single Alpine x-data scope is
+        lifted onto an outer <div> that WRAPS the form_tag. Hidden inputs
+        (free_game_form, set_target_points, discipline_a/b, sets_to_*,
+        bk2_first_set_mode) now live INSIDE this scope so their :value
+        bindings actually hydrate — previously they were siblings of the
+        x-data container and silently lost Alpine reactivity. Also adds
+        bk2_first_set_mode: '' to the state object so the D-14 4-button
+        mode-selector can set it before native form submit. %>
+    <div x-data="{
       table_kind: '<%= table.andand.table_kind.andand.name || "Small Billard" %>',
       multiset: 0,
       last_direction: 'r',
@@ -222,9 +212,41 @@
       increment: 0,
       allow_follow_up: <%= options[:allow_follow_up] ? "true" : "false" %>,
       bk2_choice: null,
+      bk2_first_set_mode: '',
       get bk2_selected() { return this.bk2_choice !== null && this.bk2_choice !== '' && this.bk2_choice !== undefined; },
       get bk2_target() { return [50, 60, 70][this.bk2_choice] || 50; }
-      }" class="mt-8 text-2vw grid grid-cols-6 gap-3 items-center">
+      }">
+    <%= form_tag start_game_table_monitor_path(table_monitor), data: {turbo: false}, method: :post, class: "flex flex-col text-gray-300 max-h-screen overflow-y-auto" do %>
+      <%# 38.1-06: free_game_form flips to 'bk2_kombi' when user selects BK2
+          radio below (bk2_selected Alpine getter drives :value). Fallback
+          value='karambol' is a safety net if Alpine fails to hydrate. %>
+      <input name='free_game_form' :value="bk2_selected ? 'bk2_kombi' : 'karambol'" value='karambol' type='hidden'/>
+      <%# BK2-Kombi hidden fields — emit empty string when BK2 not selected;
+          controller's karambol/pool branch ignores them. %>
+      <input name='set_target_points' :value="bk2_selected ? bk2_target : ''" type='hidden'/>
+      <input name='discipline_a' :value="bk2_selected ? 'BK2-Kombi' : ''" type='hidden'/>
+      <input name='discipline_b' :value="bk2_selected ? 'BK2-Kombi' : ''" type='hidden'/>
+      <input name='sets_to_win' :value="bk2_selected ? '2' : ''" type='hidden'/>
+      <input name='sets_to_play' :value="bk2_selected ? '3' : ''" type='hidden'/>
+      <input name='allow_follow_up' value='<%= allow_follow_up ? '1' : '0' %>' type='hidden'/>
+      <%# Phase 38.2 D-14: bk2_first_set_mode bound to Alpine state; set by
+          each of the 4 mode-selector buttons' @click handler just before the
+          native form submit. Controller whitelists this FLAT top-level key
+          (see table_monitors_controller.rb L84) and re-packages the value
+          into bk2_options[first_set_mode] server-side — the conceptual
+          payload shape is bk2_options[first_set_mode]=direkter_zweikampf|
+          serienspiel (D-14 / D-20 per Plan 01). %>
+      <input name='bk2_first_set_mode' :value="bk2_first_set_mode" type='hidden'/>
+
+      <%# Karambol-mode Start Game button. Hidden when a BK2 target is
+          selected — the 4-button D-14 matrix below takes over the submit. %>
+      <div class="flex justify-center mt-4 text-center sticky top-0 bg-opacity-90 z-10" style="background-image: url('<%= @location.background_image.gsub(".", "-.") %>')">
+        <div id="submit" tabindex=1 class="focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 min-w-min focus:border-0 rounded-lg"
+             x-show="!bk2_selected">
+          <%= submit_tag "Start Game", class: "h-full border-4 rounded-lg btn btn-primary text-center text-2vw p-2" %>
+        </div>
+      </div>
+      <div class="mt-8 text-2vw grid grid-cols-6 gap-3 items-center">
         <div class="  flex flex-row">Spieler</div>
         <div class="col-span-4 flex flex-row">
           <div class="grid grid-cols-3 gap-4">
@@ -291,6 +313,43 @@
             increment: 1,
             no_counter: true }
           %>
+          <%# Phase 38.2 D-14: BK2-Kombi first_set_mode selector (4-button
+              matrix). Shown only once a BK2 target (50/60/70) is selected.
+              Each button sets bk2_first_set_mode (Alpine state) + submits
+              first_break_choice=1|2 (Heim/Gast convention; see
+              table_monitors_controller.rb L179). The hidden
+              bk2_first_set_mode input above reads the state via :value
+              binding (inside the lifted x-data scope — GAP-02 fix).
+              The controller rebuilds bk2_options[first_set_mode] from this
+              flat key (see L234). %>
+          <div class="col-span-6 mt-4"
+               x-show="table_kind == 'Small Billard' && parameters == 0 && bk2_selected">
+            <div class="text-2vw mb-2 text-white">
+              <%= t("table_monitor.bk2_kombi.first_set_mode.legend") %>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <button type="submit" name="first_break_choice" value="1"
+                      @click="bk2_first_set_mode = 'direkter_zweikampf'"
+                      class="border-4 rounded-lg btn btn-primary text-center text-2vw p-2 bg-amber-600 hover:bg-amber-700 text-white">
+                <%= t("table_monitor.bk2_kombi.first_set_mode.button_direkter_zweikampf_a") %>
+              </button>
+              <button type="submit" name="first_break_choice" value="1"
+                      @click="bk2_first_set_mode = 'serienspiel'"
+                      class="border-4 rounded-lg btn btn-primary text-center text-2vw p-2 bg-sky-600 hover:bg-sky-700 text-white">
+                <%= t("table_monitor.bk2_kombi.first_set_mode.button_serienspiel_a") %>
+              </button>
+              <button type="submit" name="first_break_choice" value="2"
+                      @click="bk2_first_set_mode = 'direkter_zweikampf'"
+                      class="border-4 rounded-lg btn btn-primary text-center text-2vw p-2 bg-amber-600 hover:bg-amber-700 text-white">
+                <%= t("table_monitor.bk2_kombi.first_set_mode.button_direkter_zweikampf_b") %>
+              </button>
+              <button type="submit" name="first_break_choice" value="2"
+                      @click="bk2_first_set_mode = 'serienspiel'"
+                      class="border-4 rounded-lg btn btn-primary text-center text-2vw p-2 bg-sky-600 hover:bg-sky-700 text-white">
+                <%= t("table_monitor.bk2_kombi.first_set_mode.button_serienspiel_b") %>
+              </button>
+            </div>
+          </div>
           <%= render partial: "radio_select", locals: {
             table: table,
             show: "table_kind == 'Match Billard' && parameters == 0",
@@ -494,5 +553,6 @@
         </form>
       </div>
     <%- end %>
+    </div><%# /x-data wrapper — Phase 38.2-02 / UAT-GAP-02 scope lift %>
   <%- end %>
 </div>
