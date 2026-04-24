@@ -117,6 +117,13 @@ class TableMonitorReflex < ApplicationReflex
     Rails.logger.info "+++++++++++++++++>>> key_a <<<++++++++++++++++++++++++++++++++++++++"
     morph :nothing
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
+
+    # Phase 38.3-04 D-14: BK2-Kombi commit on opponent-panel click (Spieler A panel).
+    if bk2_kombi_commit_if_active(gesture_id: "key_a", clicked_player: "playera")
+      @table_monitor.save!
+      return
+    end
+
     @table_monitor.suppress_broadcast = true
     return if @table_monitor.locked_scoreboard
 
@@ -175,6 +182,13 @@ class TableMonitorReflex < ApplicationReflex
     Rails.logger.info "+++++++++++++++++>>> key_b <<<++++++++++++++++++++++++++++++++++++++"
     morph :nothing
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
+
+    # Phase 38.3-04 D-14: BK2-Kombi commit on opponent-panel click (Spieler B panel).
+    if bk2_kombi_commit_if_active(gesture_id: "key_b", clicked_player: "playerb")
+      @table_monitor.save!
+      return
+    end
+
     @table_monitor.suppress_broadcast = true
     return if @table_monitor.locked_scoreboard
 
@@ -736,6 +750,13 @@ class TableMonitorReflex < ApplicationReflex
     morph :nothing
     Rails.logger.info "next_step from connection #{connection.connection_identifier}"
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
+
+    # Phase 38.3-04 D-14: BK2-Kombi commit on swap-icon click.
+    if bk2_kombi_commit_if_active(gesture_id: "next_step")
+      @table_monitor.save!
+      return
+    end
+
     @table_monitor.reset_timer!
     @table_monitor.terminate_current_inning
   end
@@ -897,6 +918,48 @@ class TableMonitorReflex < ApplicationReflex
     remote_ip = request.remote_ip
     # Consider localhost, 127.0.0.1, and ::1 as local
     !['127.0.0.1', '::1', 'localhost'].include?(remote_ip) && !remote_ip.start_with?('192.168.')
+  end
+
+  # Phase 38.3-04 D-11/D-12/D-14: commit accumulated inning to bk2_state when the
+  # live match is BK2-Kombi and the user triggered an Aufnahmewechsel gesture
+  # (swap-icon via next_step, OR opponent-panel via key_a/key_b). Returns true if
+  # commit happened (caller MUST return early); returns false for non-BK2.
+  #
+  # Security S1/S2: player + inning_total are read exclusively from server-side
+  # JSONB (@table_monitor.data), never from client-supplied DOM attributes.
+  def bk2_kombi_commit_if_active(gesture_id:, clicked_player: nil)
+    return false unless @table_monitor.data["free_game_form"] == "bk2_kombi"
+
+    bk2_state = @table_monitor.data["bk2_state"] || {}
+    player = bk2_state["player_at_table"].to_s
+    return false unless %w[playera playerb].include?(player)
+
+    # D-14: for opponent-panel clicks, commit only when the CLICKED player is the
+    # opponent (NOT the current player_at_table). Swap-icon click (clicked_player nil)
+    # always commits.
+    if clicked_player.present?
+      return false if clicked_player == player  # tapping own panel: no-op
+    end
+
+    inning_total = @table_monitor.data.dig(player, "innings_redo_list").andand[-1].to_i
+
+    Rails.logger.info "[bk2_commit_inning gesture=#{gesture_id}] player=#{player} n=#{inning_total}" if DEBUG
+
+    Bk2Kombi::CommitInning.call(
+      table_monitor: @table_monitor,
+      player: player,
+      inning_total: inning_total,
+      shot_sequence_number: SecureRandom.uuid
+    )
+
+    # Reset the transient Karambol running total so the next Aufnahme starts clean.
+    @table_monitor.data[player]["innings_redo_list"] ||= []
+    @table_monitor.data[player]["innings_redo_list"][-1] = 0
+    @table_monitor.data[player]["innings_redo_list"] << 0
+    true
+  rescue ArgumentError => e
+    Rails.logger.error("[bk2_commit_inning] invalid payload: #{e.message}")
+    false
   end
 
   def warmup_state_change(player)
