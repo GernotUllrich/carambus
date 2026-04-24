@@ -4,14 +4,14 @@ milestone: v7.1
 milestone_name: UX Polish & i18n Debt
 status: executing
 stopped_at: Phase 38.3 context gathered (DR-01..DR-06 + 10 decisions)
-last_updated: "2026-04-24T13:39:54.304Z"
-last_activity: 2026-04-24 -- Phase 38.2 execution started
+last_updated: "2026-04-24T21:21:44.236Z"
+last_activity: 2026-04-24
 progress:
   total_phases: 5
-  completed_phases: 2
-  total_plans: 13
-  completed_plans: 12
-  percent: 92
+  completed_phases: 3
+  total_plans: 21
+  completed_plans: 20
+  percent: 95
 ---
 
 # Project State
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-15)
 
 **Core value:** Code and docs stay in sync — every documented feature works, every working feature is documented, and a volunteer user should never need to read the architecture to run a tournament.
-**Current focus:** Phase 38.2 — BK2-Kombi scoreboard UX re-alignment
+**Current focus:** Phase 38.3 — bk2-kombi-dry-run-corrections
 
 ## Current Position
 
-Phase: 38.2 (BK2-Kombi scoreboard UX re-alignment) — EXECUTING
-Plan: 1 of 5
-Status: Executing Phase 38.2
-Last activity: 2026-04-24 -- Phase 38.2 execution started
+Phase: 39
+Plan: Not started
+Status: Executing Phase 38.3
+Last activity: 2026-04-24
 
 **Deferred to Wave 4 / later session:**
 
