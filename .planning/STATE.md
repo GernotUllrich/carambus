@@ -3,11 +3,11 @@ gsd_state_version: 1.0
 milestone: v7.1
 milestone_name: UX Polish & i18n Debt
 status: executing
-stopped_at: Phase 38.3 context gathered (DR-01..DR-06 + 10 decisions)
-last_updated: "2026-04-24T21:21:44.236Z"
+stopped_at: Phase 38.4 context gathered
+last_updated: "2026-04-24T22:12:37.358Z"
 last_activity: 2026-04-24
 progress:
-  total_phases: 5
+  total_phases: 6
   completed_phases: 3
   total_plans: 21
   completed_plans: 20
@@ -69,6 +69,7 @@ Decisions are logged in PROJECT.md Key Decisions table. Full v7.0 cross-phase de
 ### Roadmap Evolution
 
 - Phase 38.1 inserted after Phase 38: BK2-Kombi minimum viable support (URGENT — 2026-05-02 tournament deadline)
+- Phase 38.4 inserted after Phase 38: BK2-Kombi post-dry-run gaps (URGENT) — covers G1 delete, G2 Ballziel, I8, I9 deferred from Phase 38.3
 
 ### Pending Todos
 
@@ -96,6 +97,6 @@ None blocking Phase 38.1 execution. Reconciliation debt above is tracked but not
 
 ## Session Continuity
 
-Last session: 2026-04-24T13:39:54.302Z
-Stopped at: Phase 38.3 context gathered (DR-01..DR-06 + 10 decisions)
+Last session: 2026-04-24T22:12:37.354Z
+Stopped at: Phase 38.4 context gathered
 Resume: `/gsd-plan-phase 38` to break Phase 38 into 3 executable plans
