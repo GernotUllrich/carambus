@@ -322,4 +322,106 @@ class TableMonitorsControllerTest < ActionDispatch::IntegrationTest
       @table_monitor.data.dig("bk2_options", "first_set_mode"),
       "Quick-form must apply the same whitelist fallback as detail form"
   end
+
+  # Phase 38.3-06 D-17: tests for the two NEW BK2 config fields (free-game path).
+
+  # l. Free-game form persists direkter_zweikampf_max_shots_per_turn when a valid integer is submitted.
+  test "start_game BK2 free-game persists direkter_zweikampf_max_shots_per_turn when whitelisted integer submitted" do
+    post start_game_table_monitor_url(@table_monitor), params: {
+      free_game_form:    "bk2_kombi",
+      discipline_a:      "BK2-Kombi",
+      discipline_b:      "BK2-Kombi",
+      set_target_points: 50,
+      bk2_options:       { direkter_zweikampf_max_shots_per_turn: 3, serienspiel_max_innings_per_set: 5 },
+      sets_to_win:       2,
+      sets_to_play:      3,
+      balls_goal_a:      0,
+      balls_goal_b:      0,
+      innings_goal:      0,
+      player_a_id:       players(:jaspers).id,
+      player_b_id:       players(:cho).id,
+      allow_follow_up:   "0",
+      first_break_choice: 0
+    }
+    @table_monitor.reload
+    assert_equal 3,
+      @table_monitor.data.dig("bk2_options", "direkter_zweikampf_max_shots_per_turn"),
+      "direkter_zweikampf_max_shots_per_turn must be persisted when a valid value is submitted"
+  end
+
+  # m. Free-game form CLAMPs direkter_zweikampf_max_shots_per_turn to default=2 on out-of-range values.
+  test "start_game BK2 free-game CLAMPs direkter_zweikampf_max_shots_per_turn to default=2 when attacker submits 0 or 100" do
+    [ 0, 100 ].each do |bad_value|
+      post start_game_table_monitor_url(@table_monitor), params: {
+        free_game_form:    "bk2_kombi",
+        discipline_a:      "BK2-Kombi",
+        discipline_b:      "BK2-Kombi",
+        set_target_points: 50,
+        bk2_options:       { direkter_zweikampf_max_shots_per_turn: bad_value, serienspiel_max_innings_per_set: 5 },
+        sets_to_win:       2,
+        sets_to_play:      3,
+        balls_goal_a:      0,
+        balls_goal_b:      0,
+        innings_goal:      0,
+        player_a_id:       players(:jaspers).id,
+        player_b_id:       players(:cho).id,
+        allow_follow_up:   "0",
+        first_break_choice: 0
+      }
+      @table_monitor.reload
+      assert_equal 2,
+        @table_monitor.data.dig("bk2_options", "direkter_zweikampf_max_shots_per_turn"),
+        "direkter_zweikampf_max_shots_per_turn must CLAMP to default 2 when submitted value is #{bad_value}"
+    end
+  end
+
+  # n. Free-game form persists serienspiel_max_innings_per_set when a valid integer is submitted.
+  test "start_game BK2 free-game persists serienspiel_max_innings_per_set when whitelisted integer submitted" do
+    post start_game_table_monitor_url(@table_monitor), params: {
+      free_game_form:    "bk2_kombi",
+      discipline_a:      "BK2-Kombi",
+      discipline_b:      "BK2-Kombi",
+      set_target_points: 50,
+      bk2_options:       { direkter_zweikampf_max_shots_per_turn: 2, serienspiel_max_innings_per_set: 7 },
+      sets_to_win:       2,
+      sets_to_play:      3,
+      balls_goal_a:      0,
+      balls_goal_b:      0,
+      innings_goal:      0,
+      player_a_id:       players(:jaspers).id,
+      player_b_id:       players(:cho).id,
+      allow_follow_up:   "0",
+      first_break_choice: 0
+    }
+    @table_monitor.reload
+    assert_equal 7,
+      @table_monitor.data.dig("bk2_options", "serienspiel_max_innings_per_set"),
+      "serienspiel_max_innings_per_set must be persisted when a valid value is submitted"
+  end
+
+  # o. Free-game form CLAMPs serienspiel_max_innings_per_set to default=5 on tampered value.
+  test "start_game BK2 free-game CLAMPs serienspiel_max_innings_per_set to default=5 on tampered value" do
+    [ 0, 100 ].each do |bad_value|
+      post start_game_table_monitor_url(@table_monitor), params: {
+        free_game_form:    "bk2_kombi",
+        discipline_a:      "BK2-Kombi",
+        discipline_b:      "BK2-Kombi",
+        set_target_points: 50,
+        bk2_options:       { direkter_zweikampf_max_shots_per_turn: 2, serienspiel_max_innings_per_set: bad_value },
+        sets_to_win:       2,
+        sets_to_play:      3,
+        balls_goal_a:      0,
+        balls_goal_b:      0,
+        innings_goal:      0,
+        player_a_id:       players(:jaspers).id,
+        player_b_id:       players(:cho).id,
+        allow_follow_up:   "0",
+        first_break_choice: 0
+      }
+      @table_monitor.reload
+      assert_equal 5,
+        @table_monitor.data.dig("bk2_options", "serienspiel_max_innings_per_set"),
+        "serienspiel_max_innings_per_set must CLAMP to default 5 when submitted value is #{bad_value}"
+    end
+  end
 end

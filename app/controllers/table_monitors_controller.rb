@@ -128,9 +128,22 @@ class TableMonitorsController < ApplicationController
         # whitelist, fall back to "direkter_zweikampf" on absence or tampering.
         raw_mode = p.delete(:bk2_first_set_mode).to_s
         first_set_mode = %w[direkter_zweikampf serienspiel].include?(raw_mode) ? raw_mode : "direkter_zweikampf"
+        # Phase 38.3-06 D-17: permit + CLAMP the two NEW config fields.
+        # NOTE: set_target_points is already CLAMPed to [50, 60, 70] above —
+        #       this block MUST NOT re-implement that CLAMP. Only the two new
+        #       integer fields below. Read from params (not p — bk2_options
+        #       nested hash is not in the slice list; CLAMP provides security).
+        submitted_bk2_opts = params[:bk2_options]
+        dz_max = submitted_bk2_opts&.[](:direkter_zweikampf_max_shots_per_turn).to_i
+        sp_max = submitted_bk2_opts&.[](:serienspiel_max_innings_per_set).to_i
+        # CLAMP to sensible bounds (per security threat S1); silently fall back on bad input.
+        dz_max = 2 unless (1..99).cover?(dz_max)
+        sp_max = 5 unless (1..99).cover?(sp_max)
         p[:bk2_options] = {
           "set_target_points" => set_target,
-          "first_set_mode" => first_set_mode
+          "first_set_mode" => first_set_mode,
+          "direkter_zweikampf_max_shots_per_turn" => dz_max,
+          "serienspiel_max_innings_per_set" => sp_max
         }
       end
 
@@ -233,9 +246,22 @@ class TableMonitorsController < ApplicationController
         # tampering.
         raw_mode = p.delete(:bk2_first_set_mode).to_s
         first_set_mode = %w[direkter_zweikampf serienspiel].include?(raw_mode) ? raw_mode : "direkter_zweikampf"
+        # Phase 38.3-06 D-17: permit + CLAMP the two NEW config fields.
+        # NOTE: set_target_points is already CLAMPed to [50, 60, 70] above —
+        #       this block MUST NOT re-implement that CLAMP. Only the two new
+        #       integer fields below. Read from params (not p — bk2_options
+        #       nested hash is not in the slice list; CLAMP provides security).
+        submitted_bk2_opts = params[:bk2_options]
+        dz_max = submitted_bk2_opts&.[](:direkter_zweikampf_max_shots_per_turn).to_i
+        sp_max = submitted_bk2_opts&.[](:serienspiel_max_innings_per_set).to_i
+        # CLAMP to sensible bounds (per security threat S1); silently fall back on bad input.
+        dz_max = 2 unless (1..99).cover?(dz_max)
+        sp_max = 5 unless (1..99).cover?(sp_max)
         p[:bk2_options] = {
           "set_target_points" => set_target,
-          "first_set_mode" => first_set_mode
+          "first_set_mode" => first_set_mode,
+          "direkter_zweikampf_max_shots_per_turn" => dz_max,
+          "serienspiel_max_innings_per_set" => sp_max
         }
         # BK2-Kombi scoring is shot-by-shot against a set target, not balls_goal.
         p[:balls_goal_a] = 0
