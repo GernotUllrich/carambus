@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v7.1
 milestone_name: UX Polish & i18n Debt
-status: verifying
-stopped_at: Phase 38.2 context gathered (Karambol-layout BK2 redesign; UAT bugs bundled)
-last_updated: "2026-04-23T21:05:09.182Z"
-last_activity: 2026-04-23 -- Phase 38.1 Waves 1-3 dev complete; UAT deferred to separate session
+status: executing
+stopped_at: Phase 38.3 context gathered (DR-01..DR-06 + 10 decisions)
+last_updated: "2026-04-24T13:39:54.304Z"
+last_activity: 2026-04-24 -- Phase 38.2 execution started
 progress:
-  total_phases: 4
-  completed_phases: 1
-  total_plans: 8
-  completed_plans: 7
-  percent: 88
+  total_phases: 5
+  completed_phases: 2
+  total_plans: 13
+  completed_plans: 12
+  percent: 92
 ---
 
 # Project State
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-15)
 
 **Core value:** Code and docs stay in sync — every documented feature works, every working feature is documented, and a volunteer user should never need to read the architecture to run a tournament.
-**Current focus:** Phase 38.1 — bk2-kombi-minimum-viable-support
+**Current focus:** Phase 38.2 — BK2-Kombi scoreboard UX re-alignment
 
 ## Current Position
 
-Phase: 38.1 (bk2-kombi-minimum-viable-support) — DEV COMPLETE, UAT PENDING
-Plan: 4 of 5 complete (Plan 38.1-05 dry-run UAT + fallback drill deferred)
-Status: Waves 1-3 merged to master; user will verify dev before scheduling real-club UAT
-Last activity: 2026-04-23 -- Phase 38.1 Waves 1-3 dev complete; UAT deferred to separate session
+Phase: 38.2 (BK2-Kombi scoreboard UX re-alignment) — EXECUTING
+Plan: 1 of 5
+Status: Executing Phase 38.2
+Last activity: 2026-04-24 -- Phase 38.2 execution started
 
 **Deferred to Wave 4 / later session:**
 
@@ -96,6 +96,6 @@ None blocking Phase 38.1 execution. Reconciliation debt above is tracked but not
 
 ## Session Continuity
 
-Last session: 2026-04-23T21:05:09.178Z
-Stopped at: Phase 38.2 context gathered (Karambol-layout BK2 redesign; UAT bugs bundled)
+Last session: 2026-04-24T13:39:54.302Z
+Stopped at: Phase 38.3 context gathered (DR-01..DR-06 + 10 decisions)
 Resume: `/gsd-plan-phase 38` to break Phase 38 into 3 executable plans
