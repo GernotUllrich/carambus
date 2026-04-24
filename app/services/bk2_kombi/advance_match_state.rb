@@ -25,6 +25,21 @@ module Bk2Kombi
       new(table_monitor: table_monitor, shot_payload: shot_payload).call
     end
 
+    # Phase 38.3-08 I6: public init entry-point for the shootout → playing transition.
+    # Invokes the existing private `init_state_if_missing!` guard (idempotent — safe to
+    # call repeatedly; no-op when bk2_state already exists). Persists via tm.save!.
+    #
+    # Called from TableMonitorReflex#start_game, #switch_players_and_start_game, and
+    # #key_d after the Plan 38.3-05 `bk2_options[first_set_mode]` write (button paths)
+    # or directly (key_d — relies on DEFAULT_FIRST_SET_MODE fallback when no mode set).
+    #
+    #   Bk2Kombi::AdvanceMatchState.initialize_bk2_state!(table_monitor)
+    def self.initialize_bk2_state!(table_monitor)
+      new(table_monitor: table_monitor, shot_payload: {}).send(:init_state_if_missing!)
+      table_monitor.save!
+      table_monitor.data["bk2_state"]
+    end
+
     def initialize(table_monitor:, shot_payload:)
       @tm = table_monitor
       @shot_payload = shot_payload

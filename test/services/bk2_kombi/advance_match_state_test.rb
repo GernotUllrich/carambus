@@ -512,4 +512,107 @@ class Bk2Kombi::AdvanceMatchStateTest < ActiveSupport::TestCase
     assert_equal "direkter_zweikampf", state["first_set_mode"]
     assert_equal "direkter_zweikampf", state["current_phase"]
   end
+
+  # --- Phase 38.3-08 I6: initialize_bk2_state! public entry-point -------------
+
+  test "38.3-08 T1: initialize_bk2_state! populates bk2_state on a fresh TableMonitor" do
+    @tm.update!(data: {
+      "free_game_form" => "bk2_kombi",
+      "current_kickoff_player" => "playera",
+      "bk2_options" => {
+        "first_set_mode" => "direkter_zweikampf",
+        "set_target_points" => 50,
+        "direkter_zweikampf_max_shots_per_turn" => 2,
+        "serienspiel_max_innings_per_set" => 5
+      }
+    })
+
+    Bk2Kombi::AdvanceMatchState.initialize_bk2_state!(@tm)
+    @tm.reload
+    state = @tm.data["bk2_state"]
+
+    assert_equal "direkter_zweikampf", state["current_phase"]
+    assert_equal 1, state["current_set_number"]
+    assert_equal 2, state["shots_left_in_turn"]
+    assert_equal 0, state["innings_left_in_set"]
+    assert_equal 50, state["set_target_points"]
+    assert_equal({"playera" => 0, "playerb" => 0}, state["set_scores"]["1"])
+    assert_equal({"playera" => 0, "playerb" => 0}, state["set_scores"]["2"])
+    assert_equal({"playera" => 0, "playerb" => 0}, state["set_scores"]["3"])
+    assert_equal({"playera" => 0, "playerb" => 0}, state["sets_won"])
+    assert_equal "playera", state["player_at_table"]
+    refute @tm.bk2_state_uninitialized?, "predicate must return false after init"
+  end
+
+  test "38.3-08 T2: initialize_bk2_state! honors first_set_mode=serienspiel with SP counters" do
+    @tm.update!(data: {
+      "free_game_form" => "bk2_kombi",
+      "current_kickoff_player" => "playerb",
+      "bk2_options" => {
+        "first_set_mode" => "serienspiel",
+        "set_target_points" => 70,
+        "direkter_zweikampf_max_shots_per_turn" => 3,
+        "serienspiel_max_innings_per_set" => 7
+      }
+    })
+
+    Bk2Kombi::AdvanceMatchState.initialize_bk2_state!(@tm)
+    @tm.reload
+    state = @tm.data["bk2_state"]
+
+    assert_equal "serienspiel", state["current_phase"]
+    assert_equal 0, state["shots_left_in_turn"]
+    assert_equal 7, state["innings_left_in_set"]
+    assert_equal 70, state["set_target_points"]
+    assert_equal "playerb", state["player_at_table"]
+  end
+
+  test "38.3-08 T3: initialize_bk2_state! is idempotent when bk2_state already exists" do
+    @tm.update!(data: {
+      "free_game_form" => "bk2_kombi",
+      "bk2_options" => {"first_set_mode" => "direkter_zweikampf"},
+      "bk2_state" => {
+        "current_set_number" => 2,
+        "current_phase" => "serienspiel",
+        "first_set_mode" => "direkter_zweikampf",
+        "player_at_table" => "playerb",
+        "shots_left_in_turn" => 0,
+        "innings_left_in_set" => 3,
+        "set_scores" => {
+          "1" => {"playera" => 50, "playerb" => 42},
+          "2" => {"playera" => 17, "playerb" => 25},
+          "3" => {"playera" => 0, "playerb" => 0}
+        },
+        "sets_won" => {"playera" => 1, "playerb" => 0},
+        "set_target_points" => 50
+      }
+    })
+
+    Bk2Kombi::AdvanceMatchState.initialize_bk2_state!(@tm)
+    @tm.reload
+    state = @tm.data["bk2_state"]
+
+    # All mid-match values preserved — init was a no-op
+    assert_equal 2, state["current_set_number"]
+    assert_equal "serienspiel", state["current_phase"]
+    assert_equal 50, state["set_scores"]["1"]["playera"]
+    assert_equal 1, state["sets_won"]["playera"]
+  end
+
+  test "38.3-08 T4: initialize_bk2_state! falls back to DEFAULT_FIRST_SET_MODE when bk2_options.first_set_mode is missing (covers key_d path)" do
+    @tm.update!(data: {
+      "free_game_form" => "bk2_kombi",
+      "bk2_options" => {}  # no first_set_mode set — simulates the key_d keyboard path
+    })
+
+    Bk2Kombi::AdvanceMatchState.initialize_bk2_state!(@tm)
+    @tm.reload
+    state = @tm.data["bk2_state"]
+
+    # derive_first_set_mode returns DEFAULT_FIRST_SET_MODE ("direkter_zweikampf")
+    assert_equal "direkter_zweikampf", state["current_phase"]
+    assert_equal Bk2Kombi::AdvanceMatchState::DEFAULT_DZ_MAX_SHOTS_PER_TURN, state["shots_left_in_turn"]
+    assert_equal 0, state["innings_left_in_set"]
+    refute @tm.bk2_state_uninitialized?, "predicate must return false after init (default-mode path)"
+  end
 end
