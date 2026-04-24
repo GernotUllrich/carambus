@@ -1,255 +1,246 @@
-<%- bk2_state = table_monitor.data["bk2_state"] || {} %>
+<%#
+  Phase 38.2 BK2-Kombi scoreboard — Karambol-parallel layout (D-01).
+  Structurally mirrors app/views/table_monitors/_scoreboard.html.erb.
+  Deltas per CONTEXT.md:
+    D-03 re-purpose existing Karambol slots, no new real estate.
+    D-04 center-area: "Satz N / 3" + phase chip (replaces Karambol inning counter).
+    D-05 Ziel slot = current set target (50/60/70); GD + HS REMOVED.
+    D-06 match-score (sets_won) next to player name — reuses Karambol multi-set slot.
+    D-07 large-number = current-set score only; live during Aufnahme; may go negative transiently.
+    D-08 inning counter REMOVED.
+    D-09 discipline name, game name, table name in Karambol positions.
+    D-10 Home/Cancel/Continue modal lives in _show_bk2_kombi.html.erb (Plan 03 Task 1).
+    D-11 phase-sensitive "remaining" badge in center area.
+    D-12 rule limits read from bk2_options (not hard-coded).
+    D-13 set history (S1 S2 S3 per-player) REMOVED.
+  Plan 04 will insert the shot-entry bottom bar at the PLACEHOLDER comment near the end.
+%>
+<style>
+   .display-only .hide-on-display-only { display: none }
+   .hide-on-display-only { display: grid }
+   .display-only .show-on-display-only { display: grid }
+   .show-on-display-only { display: none }
+</style>
+<%-
+  unless local_assigns[:options].present?
+    table_monitor.get_options!(I18n.locale)
+    options = table_monitor.options
+  end
+%>
+<%- bk2_state    = table_monitor.data["bk2_state"] || {} %>
 <%- current_set  = bk2_state["current_set_number"].to_i %>
 <%- current_phase = bk2_state["current_phase"].to_s %>
+<%- first_set_mode = bk2_state["first_set_mode"].to_s %>
 <%- player_at_table = bk2_state["player_at_table"].to_s %>
 <%- shots_left = bk2_state["shots_left_in_turn"].to_i %>
+<%- innings_left = bk2_state["innings_left_in_set"].to_i %>
 <%- set_scores = bk2_state["set_scores"] || {} %>
 <%- sets_won = bk2_state["sets_won"] || {"playera" => 0, "playerb" => 0} %>
 <%- set_target = bk2_state["set_target_points"].to_i %>
 <%- match_finished = bk2_state["match_finished"] %>
 <%- match_winner = bk2_state["match_winner"].to_s %>
-<%- player_a_name = options.andand[:player_a].andand[:fullname] || "Player A" %>
-<%- player_b_name = options.andand[:player_b].andand[:fullname] || "Player B" %>
 
-<div class="bk2-kombi-scoreboard flex flex-col h-full w-full dark:bg-black dark:text-gray-200"
+<%- left_player    = options[:current_left_player] == "playera" ? options[:player_a] : options[:player_b] %>
+<%- right_player   = options[:current_left_player] == "playera" ? options[:player_b] : options[:player_a] %>
+<%- left_player_id = options[:current_left_player] == "playera" ? "playera" : "playerb" %>
+<%- right_player_id = options[:current_left_player] == "playera" ? "playerb" : "playera" %>
+<%- left_player_active = options[:current_left_player] == "playera" ? options[:player_a_active] : options[:player_b_active] %>
+<%- right_player_active = options[:current_left_player] == "playera" ? options[:player_b_active] : options[:player_a_active] %>
+
+<%- current_set_key = current_set.to_s %>
+<%- left_current_set_score  = (set_scores[current_set_key] || {})[left_player_id].to_i %>
+<%- right_current_set_score = (set_scores[current_set_key] || {})[right_player_id].to_i %>
+<%- left_sets_won  = sets_won[left_player_id].to_i %>
+<%- right_sets_won = sets_won[right_player_id].to_i %>
+
+<%- vw2 = fullscreen ? "2vw" : "1vw" %>
+<%- vw3 = fullscreen ? "3vw" : "1-5vw" %>
+<%- vw6 = fullscreen ? "6vw" : "3vw" %>
+<%- vw8 = fullscreen ? "8vw" : "4vw" %>
+
+<%# GAP-03 fix: current_phase may legitimately be blank just after init — guard all
+    dynamic-key lookups. When blank, show a neutral placeholder; never let Rails
+    render the parent hash as inline text. %>
+<%- phase_label = current_phase.present? ?
+                  t("table_monitor.bk2_kombi.phase_chip.#{current_phase}", default: current_phase.humanize) :
+                  "—" %>
+<%- phase_bg = case current_phase
+               when "direkter_zweikampf" then "bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-200"
+               when "serienspiel"        then "bg-sky-100 dark:bg-sky-900/30 text-sky-800 dark:text-sky-200"
+               else                           "bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400"
+               end %>
+
+<div class="fullscreen flex flex-col h-full rounded shadow bk2-kombi-scoreboard"
      data-table-monitor-root="scoreboard"
      data-table-monitor-id="<%= table_monitor.id %>"
      data-game-id="<%= table_monitor.game_id %>">
 
-  <%# ========== MATCH FINISHED BANNER ========== %>
+  <div id="connection-status-indicator"
+       class="connection-status connection-status-healthy"
+       title="Connection: healthy"></div>
+
+  <%# Match-finished banner — preserved from 38.1 Plan 04. %>
   <%- if match_finished %>
     <div class="flex items-center justify-center bg-green-500 text-white text-3vw font-bold py-4 px-6">
       <%= t("table_monitor.bk2_kombi.match_finished",
-            winner: match_winner == "playera" ? player_a_name : player_b_name) %>
+            winner: match_winner == "playera" ? (options[:player_a][:fullname] rescue "Player A") : (options[:player_b][:fullname] rescue "Player B")) %>
     </div>
   <%- end %>
 
-  <%# ========== HEADER: SET + PHASE + SHOTS LEFT ========== %>
-  <div class="flex flex-row items-center justify-between px-4 py-2 bg-gray-100 dark:bg-gray-900">
+  <%# ================ TOP 3-PANE ROW (Karambol parity) ================ %>
+  <div class="flex <%= fullscreen ? "h-5/6" : "h-full w-full" %> bg-gray">
 
-    <%# Current set + target %>
-    <div class="flex flex-col text-center">
-      <span class="text-2vw font-bold">
-        <%= t("table_monitor.bk2_kombi.set.current", n: current_set) %>
-      </span>
-      <span class="text-1vw text-gray-500 dark:text-gray-400">
-        <%= t("table_monitor.bk2_kombi.set.target", points: set_target) %>
-      </span>
-    </div>
-
-    <%# Phase indicator chip %>
-    <%- phase_bg = current_phase == "serienspiel" ? "bg-sky-100 dark:bg-sky-900/30 text-sky-800 dark:text-sky-200" : "bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-200" %>
-    <div class="px-4 py-1 rounded-full font-semibold text-1-5vw <%= phase_bg %>">
-      <%= t("table_monitor.bk2_kombi.phase.#{current_phase}", default: current_phase.humanize) %>
-    </div>
-
-    <%# Shots left badge (only in direkter_zweikampf phase) %>
-    <%- if current_phase == "direkter_zweikampf" %>
-      <div class="flex flex-col text-center">
-        <span class="text-1-5vw font-bold text-orange-600 dark:text-orange-400">
-          <%= t("table_monitor.bk2_kombi.shots_left", count: shots_left) %>
+    <%# ----- LEFT PLAYER CARD (w-2/5) ----- %>
+    <%# D-06: match-score slot next to player name shows sets_won.
+        D-05: Ziel slot shows current set target (50/60/70), GD+HS REMOVED.
+        D-07: large-number = current-set score only (may be transiently negative). %>
+    <div id="player_score_wrapper_<%= left_player_id %>_<%= table_monitor.id %>"
+         class="w-2/5 flex flex-col <%= left_player_active ? "border-green-400 border-8" : "border-gray-300 dark:border-gray-700 border-4" %> dark:bg-black text-gray-800 dark:text-gray-200">
+      <div class="flex items-center justify-between px-3 py-2 <%= left_player_active ? "bg-green-400 text-black" : "dark:bg-black" %>">
+        <span class="font-bold text-<%= vw3 %> truncate"><%= left_player.andand[:fullname] || "Player" %></span>
+        <%# D-06 match score (left sets_won : right sets_won) %>
+        <span class="text-<%= vw3 %> font-semibold">
+          <%= t("table_monitor.bk2_kombi.match_score", a: left_sets_won, b: right_sets_won) %>
         </span>
       </div>
-    <%- else %>
-      <div class="w-24"></div>
-    <%- end %>
-
-    <%# Match score %>
-    <div class="text-2vw font-bold">
-      <%= t("table_monitor.bk2_kombi.match_score",
-            a: sets_won["playera"].to_i,
-            b: sets_won["playerb"].to_i) %>
-    </div>
-  </div>
-
-  <%# ========== PLAYER CARDS (2-column) ========== %>
-  <div class="flex flex-row flex-1 min-h-0">
-
-    <%# Player A card %>
-    <div class="flex flex-col w-2/5 <%= player_at_table == "playera" ? "border-green-400 border-8" : "border-gray-300 dark:border-gray-700 border-4" %> dark:bg-black">
-      <div class="flex items-center justify-between px-3 py-2 <%= player_at_table == "playera" ? "bg-green-400 text-black" : "dark:bg-black" %>">
-        <span class="font-bold text-2vw truncate"><%= player_a_name %></span>
-        <span class="text-1-5vw font-semibold">
-          <%= t("table_monitor.bk2_kombi.match_score",
-                a: sets_won["playera"].to_i,
-                b: "").gsub(/:\s*$/, "") rescue sets_won["playera"].to_i %>
-        </span>
+      <div class="flex flex-col items-center justify-center flex-1">
+        <%# D-05 Ziel slot %>
+        <div class="text-<%= vw2 %> text-gray-500 dark:text-gray-400">
+          <%= t("table_monitor.bk2_kombi.set.target", points: set_target) %>
+        </div>
+        <%# D-07 large current-set-score %>
+        <div class="text-<%= vw8 %> font-bold mt-2 <%= left_current_set_score < 0 ? "text-red-500" : "" %>">
+          <%= left_current_set_score %>
+        </div>
       </div>
+    </div>
 
-      <%# 3-set score grid for Player A %>
-      <div class="flex flex-row justify-around px-3 py-2 text-1-5vw">
-        <%- (1..3).each do |n| %>
-          <%- s = (set_scores[n.to_s] || set_scores[n] || {}) %>
-          <%- closed = bk2_state["set_finished_#{n}"] %>
-          <div class="flex flex-col items-center <%= closed ? "opacity-50" : "" %>">
-            <span class="text-0-8vw text-gray-500 dark:text-gray-400">S<%= n %></span>
-            <span class="font-bold text-2vw <%= n == current_set && !closed ? "text-green-500" : "" %>">
-              <%= s["playera"].to_i %>
-            </span>
-          </div>
+    <%# ----- CENTER PANE (w-1/5) ----- %>
+    <%# D-04: "Satz N / 3" + phase chip (replaces Karambol inning-counter slot).
+        D-08: inning counter REMOVED.
+        D-09: discipline / game / table names stay in Karambol positions.
+        D-11: phase-sensitive "remaining" badge.
+        Timer controls preserved from Karambol _scoreboard.html.erb lines 113–131. %>
+    <div class="w-1/5 bg-grey">
+      <div class="flex flex-col h-1/6 dark:bg-black">
+        <%- if fullscreen %>
+          <%- unless table_monitor.warmup_modal_should_be_open? || table_monitor.shootout_modal_should_be_open? || table_monitor.numbers_modal_should_be_open? %>
+            <%= render partial: 'table_monitors/menu', locals: { table_monitor: table_monitor } %>
+          <%- end %>
+        <%- end %>
+        <%- if table_monitor.state_display(I18n.locale).present? %>
+          <%= content_tag "div", data: { controller: "table-monitor", action: "click->table-monitor#force_next_state", id: table_monitor.id }, id: "game_state", class: "flex flex-col h-1/6 items-center font-bold text-red-400 text-#{vw2} text-center dark:bg-black" do %>
+            <%= table_monitor.state_display(I18n.locale) %>
+          <%- end %>
+          <div id=clock class="hidden dark:bg-black text-gray-500 dark:text-gray-300 hover:text-black text-<%= vw2 %> text-center"></div>
+        <%- else %>
+          <%= content_tag "div", data: { controller: "table-monitor", action: "click->table-monitor#force_next_state", id: table_monitor.id }, id: "game_state", class: "flex flex-col h-1/6 items-center font-bold text-red-400 text-#{vw2} text-center dark:bg-black" do %>
+          <%- end %>
+          <div id=clock class="dark:bg-black text-gray-500 dark:text-gray-300 hover:text-black text-<%= vw2 %> text-center"></div>
         <%- end %>
       </div>
-    </div>
-
-    <%# ========== CENTER: Shot-input form ========== %>
-    <div class="flex flex-col w-1/5 items-center justify-start overflow-y-auto px-2 py-1 dark:bg-gray-900 bg-gray-50">
-
-      <%# Shot input form — BK2-Kombi scorer enters one shot at a time %>
-      <%- unless match_finished %>
-        <div data-controller="bk2-kombi-shot" class="flex flex-col w-full space-y-2 text-0-9vw">
-
-          <%# ---------- B2 FIX: full_pin_image checkbox (TOP of form) ---------- %>
-          <%# Represents pre-shot table state. Must be set BEFORE entering fallen_pins. %>
-          <%# Enables the D-15 2-point rule: middle-pin-only from full pin image = 2 pts. %>
-          <div class="flex flex-col bg-amber-50 dark:bg-amber-900/20 border border-amber-300 dark:border-amber-700 rounded p-2">
-            <label class="flex items-center gap-2 font-semibold text-amber-800 dark:text-amber-300 cursor-pointer">
-              <input type="checkbox"
-                     id="bk2_full_pin_image_<%= table_monitor.id %>"
-                     class="w-5 h-5 accent-amber-500"
-                     data-bk2-kombi-shot-target="fullPinImage">
-              <%= t("table_monitor.bk2_kombi.form.full_pin_image") %>
-            </label>
-            <p class="text-0-7vw text-amber-700 dark:text-amber-400 mt-1">
-              <%= t("table_monitor.bk2_kombi.form.full_pin_image_help") %>
-            </p>
+      <%= content_tag "div", id: "game_state", class: "flex flex-col h-5/6 dark:text-gray-200 bg-gray-100 dark:bg-black" do %>
+        <%# D-04 top slot: "Satz N / 3" (replaces Karambol inning counter block, originally lines 76–82). %>
+        <div class="flex flex-col h-2/6 items-center justify-center" id="bk2_set_header">
+          <div class="text-<%= vw8 %> font-bold text-center">
+            <%= t("table_monitor.bk2_kombi.set.current", n: current_set) %> / 3
           </div>
+          <%# D-04 phase chip. %>
+          <div class="mt-2 px-4 py-1 rounded-full font-semibold text-<%= vw2 %> <%= phase_bg %>">
+            <%= phase_label %>
+          </div>
+          <%# D-11 phase-sensitive remaining badge. %>
+          <div class="mt-2 text-<%= vw2 %> font-semibold text-orange-600 dark:text-orange-400" id="bk2_remaining_badge">
+            <%- if current_phase == "direkter_zweikampf" %>
+              <%= "#{shots_left} #{t('table_monitor.bk2_kombi.shots_left_label', count: shots_left)}" %>
+            <%- elsif current_phase == "serienspiel" %>
+              <%= "#{innings_left} #{t('table_monitor.bk2_kombi.innings_left_label', count: innings_left)}" %>
+            <%- else %>
+              &nbsp;
+            <%- end %>
+          </div>
+        </div>
 
-          <%# Fallen pins select %>
-          <div class="flex flex-col">
-            <label class="text-0-8vw text-gray-600 dark:text-gray-400 font-medium"
-                   for="bk2_fallen_pins_<%= table_monitor.id %>">
-              <%= t("table_monitor.bk2_kombi.form.fallen_pins") %>
-            </label>
-            <select id="bk2_fallen_pins_<%= table_monitor.id %>"
-                    class="border rounded px-2 py-1 dark:bg-gray-800 dark:border-gray-600 text-1vw"
-                    data-bk2-kombi-shot-target="fallenPins">
-              <%- (0..5).each do |n| %>
-                <option value="<%= n %>"><%= n %></option>
+        <%# D-09 discipline / game / tournament / table names — mirrors _scoreboard.html.erb lines 83–106. %>
+        <div class="flex flex-col h-3/6 dark:bg-black p-4 items-center">
+          <div class="flex flex-1 items-center font-bold text-center text-<%= vw2 %>"><%= options[:tournament_title] %></div>
+          <div class="flex flex-1 mt-2 mb-2 items-center text-center text-<%= vw2 %>"><%= options[:player_a].andand[:discipline] %></div>
+          <div class="flex flex-1 items-center text-center text-<%= vw2 %>"><%= options[:name] %></div>
+          <div class="flex flex-1 items-center text-center text-<%= vw2 %>"><%= options[:game_name] %></div>
+          <%- if options[:sets_to_win].to_i > 1 %>
+            <div class="flex flex-1 items-center text-center text-<%= vw2 %>"><%= "#{options[:sets_to_win].to_i} Gewinnsätze" %></div>
+          <%- end %>
+          <%- if options[:sets_to_play].to_i > 1 %>
+            <div class="flex flex-1 items-center text-center text-<%= vw2 %>"><%= "maximal #{options[:sets_to_play].to_i} Sätze" %></div>
+          <%- end %>
+        </div>
+
+        <%# "zurück" control + timer controls preserved from Karambol lines 107–131. %>
+        <%- if table_monitor.state_display(I18n.locale).present? && !table_monitor.final_match_score? %>
+          <%= content_tag "div", data: { controller: "table-monitor", action: "click->table-monitor#undo", id: table_monitor.id }, id: "game_state_undo", class: "flex flex-col h-1/6 items-center font-bold text-red-400 text-#{vw2} text-center dark:bg-black" do %>
+            <%= "zurück" %>
+          <%- end %>
+        <%- end %>
+        <div class="flex flex-col items-center h-1/6">
+          <div class="flex h-2/3 flex-row space-x-3 rounded-full">
+            <%- if table_monitor.playing? && options[:timeout].to_i > 0 %>
+              <%= content_tag "div", data: { controller: "table-monitor", action: "click->table-monitor#stop", id: table_monitor.id }, class: "mr-2 w-full flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none bg-gray-100 dark:bg-black hover:bg-gray-300 text-gray-400 #{"hidden" if table_monitor.timer_finish_at.blank?}", title: "Stop", style: "letter-spacing: -5px;", id: "stop", tabindex: 11 do %>
+                <%= render_svg "icons/287-stop2", styles: "svg-red fill-current icon-2xl text-red-400 inline-block" %>
               <%- end %>
-            </select>
+              <%= content_tag "div", data: { controller: "table-monitor", action: "click->table-monitor#timeout", id: table_monitor.id }, class: "mr-2 w-full flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none bg-gray-100 dark:bg-black hover:bg-gray-300 text-gray-400 #{"hidden" if (table_monitor.timer_finish_at.present? && table_monitor.timer_halt_at.present?) || table_monitor.timer_finish_at.blank?}", title: "TimeOut", style: "letter-spacing: -5px;", id: "timeout", tabindex: 11 do %>
+                <%= render_svg "icons/timer", styles: "svg-red fill-current icon-lg text-red-400 inline-block" %>
+              <%- end %>
+              <%= content_tag "div", data: { controller: "table-monitor", action: "click->table-monitor#pause", id: table_monitor.id }, class: "mr-2 w-full flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none  bg-gray-100 dark:bg-black hover:bg-gray-300 text-gray-400 #{"hidden" if (table_monitor.timer_finish_at.present? && table_monitor.timer_halt_at.present?) || table_monitor.timer_finish_at.blank?}", title: "Pause", style: "letter-spacing: -5px;", id: "pause", tabindex: 11 do %>
+                <%= render_svg "icons/286-pause2", styles: "svg-red fill-current icon-2xl text-red-400 inline-block" %>
+              <%- end %>
+              <%= content_tag "div", data: { controller: "table-monitor", action: "click->table-monitor#play", id: table_monitor.id }, class: "mr-2 w-full flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none bg-gray-100 dark:bg-black hover:bg-gray-300 text-gray-400 #{"hidden" if table_monitor.timer_finish_at.present? && table_monitor.timer_halt_at.blank?}", title: "Play", style: "letter-spacing: -5px;", id: "play", tabindex: 11 do %>
+                <%= render_svg "icons/285-play3", styles: "svg-red fill-current icon-2xl text-red-400 inline-block" %>
+              <%- end %>
+            <%- end %>
           </div>
-
-          <%# middle_pin_only checkbox %>
-          <label class="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox"
-                   id="bk2_middle_pin_only_<%= table_monitor.id %>"
-                   class="w-4 h-4"
-                   data-bk2-kombi-shot-target="middlePinOnly">
-            <span class="text-0-8vw"><%= t("table_monitor.bk2_kombi.form.middle_pin_only") %></span>
-          </label>
-
-          <%# true_carom checkbox %>
-          <label class="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox"
-                   id="bk2_true_carom_<%= table_monitor.id %>"
-                   class="w-4 h-4"
-                   data-bk2-kombi-shot-target="trueCarom">
-            <span class="text-0-8vw"><%= t("table_monitor.bk2_kombi.form.true_carom") %></span>
-          </label>
-
-          <%# false_carom checkbox %>
-          <label class="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox"
-                   id="bk2_false_carom_<%= table_monitor.id %>"
-                   class="w-4 h-4"
-                   data-bk2-kombi-shot-target="falseCarom">
-            <span class="text-0-8vw"><%= t("table_monitor.bk2_kombi.form.false_carom") %></span>
-          </label>
-
-          <%# Passages number input %>
-          <div class="flex flex-col">
-            <label class="text-0-8vw text-gray-600 dark:text-gray-400 font-medium"
-                   for="bk2_passages_<%= table_monitor.id %>">
-              <%= t("table_monitor.bk2_kombi.form.passages") %>
-            </label>
-            <input type="number"
-                   id="bk2_passages_<%= table_monitor.id %>"
-                   min="0" max="3" value="0"
-                   autocomplete="off"
-                   class="border rounded px-2 py-1 w-20 dark:bg-gray-800 dark:border-gray-600 text-1vw"
-                   data-bk2-kombi-shot-target="passages">
-          </div>
-
-          <%# Foul master checkbox %>
-          <label class="flex items-center gap-2 font-semibold text-red-600 dark:text-red-400 cursor-pointer">
-            <input type="checkbox"
-                   id="bk2_foul_<%= table_monitor.id %>"
-                   class="w-4 h-4 accent-red-500"
-                   data-bk2-kombi-shot-target="foul"
-                   data-action="change->bk2-kombi-shot#toggleFoulFields">
-            <span class="text-0-8vw"><%= t("table_monitor.bk2_kombi.form.foul") %></span>
-          </label>
-
-          <%# Foul sub-fields (hidden until foul is checked) %>
-          <div id="bk2_foul_fields_<%= table_monitor.id %>" class="hidden flex flex-col space-y-2 pl-4 border-l-2 border-red-300 dark:border-red-700">
-
-            <%# foul_code select %>
-            <div class="flex flex-col">
-              <label class="text-0-8vw text-gray-600 dark:text-gray-400 font-medium"
-                     for="bk2_foul_code_<%= table_monitor.id %>">
-                <%= t("table_monitor.bk2_kombi.form.foul") %>
-              </label>
-              <select id="bk2_foul_code_<%= table_monitor.id %>"
-                      class="border rounded px-2 py-1 dark:bg-gray-800 dark:border-gray-600 text-0-9vw"
-                      data-bk2-kombi-shot-target="foulCode"
-                      data-action="change->bk2-kombi-shot#toggleBandHit">
-                <option value="wrong_ball"><%= t("table_monitor.bk2_kombi.form.foul_codes.wrong_ball") %></option>
-                <option value="no_object_ball_hit"><%= t("table_monitor.bk2_kombi.form.foul_codes.no_object_ball_hit") %></option>
-                <option value="premature_shot"><%= t("table_monitor.bk2_kombi.form.foul_codes.premature_shot") %></option>
-                <option value="direct_play_on_pins"><%= t("table_monitor.bk2_kombi.form.foul_codes.direct_play_on_pins") %></option>
-                <option value="other"><%= t("table_monitor.bk2_kombi.form.foul_codes.other") %></option>
-              </select>
-            </div>
-
-            <%# band_hit checkbox (visible only when foul_code == no_object_ball_hit) %>
-            <div id="bk2_band_hit_row_<%= table_monitor.id %>" class="hidden">
-              <label class="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox"
-                       id="bk2_band_hit_<%= table_monitor.id %>"
-                       class="w-4 h-4"
-                       data-bk2-kombi-shot-target="bandHit">
-                <span class="text-0-8vw"><%= t("table_monitor.bk2_kombi.form.band_hit") %></span>
-              </label>
-            </div>
-          </div>
-
-          <%# Submit button %>
-          <button id="bk2_submit_<%= table_monitor.id %>"
-                  class="w-full mt-2 py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded text-1vw focus:outline-none focus:ring-4 focus:ring-blue-500"
-                  data-bk2-kombi-shot-target="submit"
-                  data-action="click->bk2-kombi-shot#submit"
-                  data-reflex="click->TableMonitor#bk2_kombi_submit_shot"
-                  data-id="<%= table_monitor.id %>">
-            <%= t("table_monitor.bk2_kombi.form.submit") %>
-          </button>
+          <div class="flex h-1/3 font-bold text-<%= vw2 %> text-red-500"><%= "Halted" if table_monitor.timer_halt_at.present? %></div>
         </div>
       <%- end %>
     </div>
 
-    <%# Player B card %>
-    <div class="flex flex-col w-2/5 <%= player_at_table == "playerb" ? "border-green-400 border-8" : "border-gray-300 dark:border-gray-700 border-4" %> dark:bg-black">
-      <div class="flex items-center justify-between px-3 py-2 <%= player_at_table == "playerb" ? "bg-green-400 text-black" : "dark:bg-black" %>">
-        <span class="text-1-5vw font-semibold">
-          <%= sets_won["playerb"].to_i %>
+    <%# ----- RIGHT PLAYER CARD (w-2/5) — mirror of left. ----- %>
+    <div id="player_score_wrapper_<%= right_player_id %>_<%= table_monitor.id %>"
+         class="w-2/5 flex flex-col <%= right_player_active ? "border-green-400 border-8" : "border-gray-300 dark:border-gray-700 border-4" %> dark:bg-black text-gray-800 dark:text-gray-200">
+      <div class="flex items-center justify-between px-3 py-2 <%= right_player_active ? "bg-green-400 text-black" : "dark:bg-black" %>">
+        <span class="text-<%= vw3 %> font-semibold">
+          <%= t("table_monitor.bk2_kombi.match_score", a: right_sets_won, b: left_sets_won) %>
         </span>
-        <span class="font-bold text-2vw truncate"><%= player_b_name %></span>
+        <span class="font-bold text-<%= vw3 %> truncate"><%= right_player.andand[:fullname] || "Player" %></span>
       </div>
-
-      <%# 3-set score grid for Player B %>
-      <div class="flex flex-row justify-around px-3 py-2 text-1-5vw">
-        <%- (1..3).each do |n| %>
-          <%- s = (set_scores[n.to_s] || set_scores[n] || {}) %>
-          <%- closed = bk2_state["set_finished_#{n}"] %>
-          <div class="flex flex-col items-center <%= closed ? "opacity-50" : "" %>">
-            <span class="text-0-8vw text-gray-500 dark:text-gray-400">S<%= n %></span>
-            <span class="font-bold text-2vw <%= n == current_set && !closed ? "text-green-500" : "" %>">
-              <%= s["playerb"].to_i %>
-            </span>
-          </div>
-        <%- end %>
+      <div class="flex flex-col items-center justify-center flex-1">
+        <div class="text-<%= vw2 %> text-gray-500 dark:text-gray-400">
+          <%= t("table_monitor.bk2_kombi.set.target", points: set_target) %>
+        </div>
+        <div class="text-<%= vw8 %> font-bold mt-2 <%= right_current_set_score < 0 ? "text-red-500" : "" %>">
+          <%= right_current_set_score %>
+        </div>
       </div>
     </div>
 
-  </div><%# end flex-row player cards %>
+  </div><%# end top 3-pane row %>
+
+  <%# ================ BOTTOM BAR — PLACEHOLDER FOR PLAN 04 ================ %>
+  <%#
+    Phase 38.2 Plan 04 appends the shot-entry bottom bar HERE.
+    Structure (per D-15 / D-16):
+      Row 1 (amber): [ ] Volles Kegelbild vor Stoss + hint.
+      Row 2: Gefallene Kegel select 0..5, Mittelpin, Echter Karambol., Unechter Karambol.
+      Row 3: Durchläufe number, [ ] Fehler → Fehlercode + Bande, STOSS ERFASSEN submit.
+    Must target data-controller="bk2-kombi-shot" from app/javascript/controllers/bk2_kombi_shot_controller.js
+    (also rewritten in Plan 04) and `data-reflex="click->TableMonitor#bk2_kombi_submit_shot"` on
+    the submit button.
+    DO NOT render any existing Karambol bottom bar here (-10/-5/-1/+1/+5/+10) — the whole
+    D-15 redesign replaces that row.
+  %>
+  <div id="bk2_bottom_bar_placeholder" class="w-full dark:bg-black p-4 text-center text-gray-400 text-<%= vw2 %>">
+    <%# Plan 04 will replace this placeholder. Visible string intentionally neutral so
+        Plan 05 system tests can distinguish "not yet wired" from "wired". %>
+    <em>Shot-entry bar — pending Plan 04</em>
+  </div>
 
 </div><%# end bk2-kombi-scoreboard %>
