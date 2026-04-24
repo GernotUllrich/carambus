@@ -16,6 +16,17 @@
 #  updated_at               :datetime         not null
 #
 
+free:
+  id: 50_000_003
+  state: "playing"
+  name: "Table Monitor Free"
+  data: '{}'
+  ip_address: "192.168.1.3"
+  panel_state: "pointer_mode"
+  current_element: "pointer_mode"
+  created_at: <%= 1.year.ago %>
+  updated_at: <%= 1.day.ago %>
+
 one:
   id: 50_000_001
   state: "new"
