@@ -1,8 +1,9 @@
 ---
-status: diagnosed
+status: resolved
 trigger: "in http://0.0.0.0:3007/locations/0819bf0d7893e629200c20497ef9cfff?data-turbo=false&sb_state=free_game_detail&table_id=4 muss es möglich sein, die BK2-Kombi Disziplin auszuwählen - und/oder auch per shortcut auf http://0.0.0.0:3007/locations/1?sb_state=free_game&table_id=4"
 created: 2026-04-23T14:00:00Z
-updated: 2026-04-23T14:20:00Z
+updated: 2026-04-24T00:00:00Z
+resolved_in: "Phase 38.1 Plan 06 (quick-button + BK2_DISCIPLINE_MAP); Phase 38.2 validates end-to-end"
 ---
 
 ## Current Focus
