@@ -211,4 +211,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-15 after starting milestone v7.1 UX Polish & i18n Debt — seed `v71-ux-polish-i18n-debt.md` promoted to active scope*
+*Last updated: 2026-04-24 after Phase 38.3 (BK2-Kombi dry-run corrections) — I6 shootout→playing init blocker resolved via Plan 38.3-08; follow-up items I8 (TableMonitor destroy), I9 (Ballziel not honored) deferred to Phase 38.4*
