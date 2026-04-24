@@ -48,6 +48,22 @@
   <%- gps = table_monitor.gps %>
   <%- left_color_class = options[:current_left_color] == "yellow" ? "player_b dark:bg-black text-gray-800 dark:text-yellow-400" : "player_a  text-gray-800 dark:text-gray-200" %>
   <%- right_color_class = options[:current_left_color] == "white" ? "player_b dark:bg-black  dark:text-yellow-400" : "player_a text-gray-200 bg-yellow-500" %>
+  <%# Phase 38.3-03 D-01/D-09/D-10: BK2-Kombi branch locals. %>
+  <%- is_bk2 = options[:free_game_form] == "bk2_kombi" %>
+  <%- if is_bk2 %>
+    <%- bk2_state = table_monitor.data["bk2_state"] || {} %>
+    <%- bk2_current_phase = bk2_state["current_phase"].to_s %>
+    <%- bk2_shots_left = bk2_state["shots_left_in_turn"].to_i %>
+    <%- bk2_innings_left = bk2_state["innings_left_in_set"].to_i %>
+    <%- bk2_phase_label = bk2_current_phase.present? ?
+        t("table_monitor.bk2_kombi.phase_chip.#{bk2_current_phase}", default: bk2_current_phase.humanize) :
+        "—" %>
+    <%- bk2_phase_bg = case bk2_current_phase
+                      when "direkter_zweikampf" then "bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-200"
+                      when "serienspiel"        then "bg-sky-100 dark:bg-sky-900/30 text-sky-800 dark:text-sky-200"
+                      else                           "bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400"
+                      end %>
+  <%- end %>
   <div class="flex <%= fullscreen ? "h-5/6" : "h-full w-full" %> bg-gray">
     <div id="player_score_wrapper_<%= left_player_id %>_<%= table_monitor.id %>" class="w-2/5 <%= left_color_class %> dark:bg-black">
       <%= render partial: 'table_monitors/player_score_panel', locals: { table_monitor: table_monitor, player_key: left_player_id, fullscreen: fullscreen, options: options } %>
@@ -73,11 +89,28 @@
         <%- end %>
       </div>
       <%= content_tag "div", id: "game_state", class: "flex flex-col h-5/6 dark:text-gray-200 bg-gray-100 dark:bg-black" do %>
-        <div class="flex flex-col h-2/6" tabindex="3" id="pointer_mode">
-          <% delta = table_monitor.state_display(I18n.locale).present? ? 0 : 1 %>
-          <div class="h-5/6 p-4 text-<%= vw8 %> font-bold text-center"><%= options[:current_kickoff_player] == 'playera' ? right_player[:innings].to_i + delta : left_player[:innings].to_i + delta %></div>
-          <%- unless (table_monitor.tournament_monitor.is_a?(TournamentMonitor) && table_monitor.tournament_monitor.andand.tournament.andand.handicap_tournier?) || options[:innings_goal].to_i == 0 %>
-            <div class="h-1/6 items-center text-<%= vw2 %> justify-center text-center"><%= t('of') %> <%= options[:innings_goal].to_i %></div>
+        <div class="flex flex-col h-2/6 <%= is_bk2 ? "bk2-kombi-scoreboard" : "" %>" tabindex="3" id="pointer_mode">
+          <%- if is_bk2 %>
+            <%# Phase 38.3-03 D-09: big Satz header removed (redundant with sets_won counter
+                next to player names). Phase chip + remaining badge take the slot instead.
+                Class `bk2-kombi-scoreboard` is the stable selector hook consumed by
+                Plan 38.3-07 system tests T4/T8/T10. %>
+            <div class="h-3/6 flex items-center justify-center text-<%= vw3 %> font-bold text-center rounded px-2 <%= bk2_phase_bg %>">
+              <%= bk2_phase_label %>
+            </div>
+            <div class="h-3/6 flex items-center justify-center text-<%= vw2 %> text-center">
+              <%- if bk2_current_phase == "direkter_zweikampf" %>
+                <%= t("table_monitor.bk2_kombi.shots_left_label", count: bk2_shots_left) %>: <%= bk2_shots_left %>
+              <%- elsif bk2_current_phase == "serienspiel" %>
+                <%= t("table_monitor.bk2_kombi.innings_left_label", count: bk2_innings_left) %>: <%= bk2_innings_left %>
+              <%- end %>
+            </div>
+          <%- else %>
+            <% delta = table_monitor.state_display(I18n.locale).present? ? 0 : 1 %>
+            <div class="h-5/6 p-4 text-<%= vw8 %> font-bold text-center"><%= options[:current_kickoff_player] == 'playera' ? right_player[:innings].to_i + delta : left_player[:innings].to_i + delta %></div>
+            <%- unless (table_monitor.tournament_monitor.is_a?(TournamentMonitor) && table_monitor.tournament_monitor.andand.tournament.andand.handicap_tournier?) || options[:innings_goal].to_i == 0 %>
+              <div class="h-1/6 items-center text-<%= vw2 %> justify-center text-center"><%= t('of') %> <%= options[:innings_goal].to_i %></div>
+            <%- end %>
           <%- end %>
         </div>
         <div class="flex flex-col h-3/6  dark:bg-black p-4 items-center ">
