@@ -95,6 +95,16 @@
 
 
 
+  <%# Phase 38.3-02 D-01 / UAT-GAP-05 (ported from deleted _show_bk2_kombi.html.erb):
+      BK2-Kombi fallback banner when bk2_state is missing/empty. For non-BK2 games
+      bk2_state_uninitialized? returns false, so this block is a no-op. %>
+  <%- if table_monitor.bk2_state_uninitialized? %>
+    <div class="flex flex-col items-center justify-center h-screen bg-yellow-50 dark:bg-yellow-900/30 text-gray-900 dark:text-gray-100 p-8">
+      <%= render_svg "warning-sign-svgrepo-com", styles: "fill-current text-yellow-600 dark:text-yellow-400 h-16 w-16" %>
+      <h1 class="text-4vw font-bold text-center mt-4"><%= t("table_monitor.bk2_kombi.fallback.uninitialized_banner_title") %></h1>
+      <p class="text-2vw text-center mt-4"><%= t("table_monitor.bk2_kombi.fallback.uninitialized_banner_body") %></p>
+    </div>
+  <%- else %>
   <%- if options.present? %>
     <%- args = {
       options: options,
@@ -107,5 +117,6 @@
       right_player_active: options[:current_left_player] == "playera" ? options[:player_b_active] : options[:player_a_active],
     } %>
     <%= render partial: 'table_monitors/scoreboard', locals: args.merge(fullscreen: full_screen) %>
+  <%- end %>
   <%- end %>
 <%- end %>
