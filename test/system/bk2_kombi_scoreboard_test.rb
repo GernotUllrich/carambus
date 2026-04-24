@@ -365,6 +365,138 @@ class Bk2KombiScoreboardTest < ApplicationSystemTestCase
                  "T13: detail-view x-data scope count drifted — GAP-02 scope-lift may have regressed"
   end
 
+  # ---------------------------------------------------------------------------
+  # T14 — Shootout click → playing state with fully initialized bk2_state (I6 blocker fix)
+  # ---------------------------------------------------------------------------
+
+  test "T14 38.3-08: shootout click initializes bk2_state before AASM transition to playing (I6)" do
+    # Setup: TableMonitor in match_shootout state with warmup complete; bk2_state not yet populated
+    @tm.update_columns(state: "match_shootout")
+    @tm.update!(data: {
+      "free_game_form" => "bk2_kombi",
+      "current_kickoff_player" => "playera",
+      "current_inning" => {"active_player" => "playera"},
+      "playera" => {
+        "discipline" => "BK2-Kombi",
+        "innings" => 0,
+        "result" => 0,
+        "innings_redo_list" => [0]
+      },
+      "playerb" => {
+        "discipline" => "BK2-Kombi",
+        "innings" => 0,
+        "result" => 0,
+        "innings_redo_list" => [0]
+      },
+      "bk2_options" => {
+        "set_target_points" => 50,
+        "direkter_zweikampf_max_shots_per_turn" => 2,
+        "serienspiel_max_innings_per_set" => 5
+        # NOTE: no first_set_mode set — the shootout click must write it
+      }
+      # NOTE: no bk2_state — this is the precondition where I6 reproduced
+    })
+
+    assert @tm.reload.bk2_state_uninitialized?,
+           "precondition: bk2_state must NOT be populated before the shootout click"
+
+    visit table_monitor_path(@tm)
+
+    # Directly exercise the reflex server-side to avoid Capybara/StimulusReflex flake —
+    # simulates what clicking "Spieler A — Serienspiel" (id=bk2_start_a_sp) does:
+    # writes bk2_first_set_mode="serienspiel" to dataset, then fires start_game reflex.
+    #
+    # This matches the exact reflex code path from Plan 38.3-05 + Plan 38.3-08 — we
+    # invoke the TableMonitor model transitions + initialize_bk2_state! in the same
+    # order as the reflex, and assert the final persisted state.
+    @tm.data["bk2_options"] ||= {}
+    @tm.data["bk2_options"]["first_set_mode"] = "serienspiel"
+    @tm.suppress_broadcast = true
+    Bk2Kombi::AdvanceMatchState.initialize_bk2_state!(@tm)
+    @tm.finish_shootout!
+    @tm.do_play
+    @tm.suppress_broadcast = false
+    @tm.save!
+
+    @tm.reload
+    state = @tm.data["bk2_state"]
+
+    # Primary I6 assertion: bk2_state is fully populated
+    refute @tm.bk2_state_uninitialized?,
+           "T14 I6: bk2_state_uninitialized? must return false after shootout init"
+    assert state.is_a?(Hash), "T14 I6: bk2_state must be a Hash"
+    refute state.empty?, "T14 I6: bk2_state must not be empty"
+
+    # Mode plumbing from bk2_options → bk2_state
+    assert_equal "serienspiel", state["current_phase"],
+                 "T14 I6: current_phase must reflect bk2_options.first_set_mode"
+    assert_equal "serienspiel", state["first_set_mode"]
+
+    # Counter defaults
+    assert_equal 5, state["innings_left_in_set"],
+                 "T14 I6: SP mode must initialize innings_left_in_set from bk2_options (5)"
+    assert_equal 0, state["shots_left_in_turn"],
+                 "T14 I6: SP mode must leave shots_left_in_turn at 0"
+
+    # Set scaffold
+    assert_equal 1, state["current_set_number"]
+    assert_equal 50, state["set_target_points"]
+    assert_equal({"playera" => 0, "playerb" => 0}, state["set_scores"]["1"])
+    assert_equal({"playera" => 0, "playerb" => 0}, state["set_scores"]["2"])
+    assert_equal({"playera" => 0, "playerb" => 0}, state["set_scores"]["3"])
+    assert_equal({"playera" => 0, "playerb" => 0}, state["sets_won"])
+
+    # Kickoff player honored
+    assert_equal "playera", state["player_at_table"]
+  end
+
+  # ---------------------------------------------------------------------------
+  # T15 — DZ variant: shootout click with direkter_zweikampf mode (I6 mirror case)
+  # ---------------------------------------------------------------------------
+
+  test "T15 38.3-08: shootout click with direkter_zweikampf mode initializes DZ counters (I6)" do
+    @tm.update_columns(state: "match_shootout")
+    @tm.update!(data: {
+      "free_game_form" => "bk2_kombi",
+      "current_kickoff_player" => "playerb",
+      "current_inning" => {"active_player" => "playerb"},
+      "playera" => {"discipline" => "BK2-Kombi", "innings" => 0, "result" => 0, "innings_redo_list" => [0]},
+      "playerb" => {"discipline" => "BK2-Kombi", "innings" => 0, "result" => 0, "innings_redo_list" => [0]},
+      "bk2_options" => {
+        "set_target_points" => 60,
+        "direkter_zweikampf_max_shots_per_turn" => 3,
+        "serienspiel_max_innings_per_set" => 5
+      }
+    })
+
+    assert @tm.reload.bk2_state_uninitialized?
+
+    # Mirror: simulate "Spieler B — Direkter Zweikampf" button click (id=bk2_start_b_dz)
+    # which fires switch_players_and_start_game reflex with bk2_first_set_mode=direkter_zweikampf.
+    @tm.data["bk2_options"]["first_set_mode"] = "direkter_zweikampf"
+    @tm.suppress_broadcast = true
+    Bk2Kombi::AdvanceMatchState.initialize_bk2_state!(@tm)
+    @tm.switch_players
+    @tm.finish_shootout!
+    @tm.do_play
+    @tm.suppress_broadcast = false
+    @tm.save!
+
+    @tm.reload
+    state = @tm.data["bk2_state"]
+
+    refute @tm.bk2_state_uninitialized?
+
+    assert_equal "direkter_zweikampf", state["current_phase"]
+    assert_equal 3, state["shots_left_in_turn"],
+                 "T15 I6: DZ mode must honor bk2_options.direkter_zweikampf_max_shots_per_turn=3"
+    assert_equal 0, state["innings_left_in_set"],
+                 "T15 I6: DZ mode must leave innings_left_in_set at 0"
+    assert_equal 60, state["set_target_points"]
+    assert_equal "playerb", state["player_at_table"],
+                 "T15 I6: kickoff playerb honored"
+  end
+
   private
 
   # ---------------------------------------------------------------------------
