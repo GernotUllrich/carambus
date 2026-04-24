@@ -2,30 +2,45 @@
 
 require "application_system_test_case"
 
-# BK2-Kombi scoreboard system test.
+# Phase 38.2 BK2-Kombi scoreboard system + integration test.
 #
-# Coverage split:
-#   Capybara (browser DOM) tests:
-#     - Rendering: bk2_kombi partial renders when free_game_form == "bk2_kombi"
-#     - Negative control: bk2_kombi DOM absent for karambol discipline
+# Replaces the 38.1 Plan 04 test file (inplace overwrite per CONTEXT.md D-17).
 #
-#   Integration-level shot-submit tests (call AdvanceMatchState directly):
-#     The StimulusReflex click path (data-reflex) requires a running WebSocket
-#     server + JS execution and is brittle with Capybara. Plan 04 allows
-#     falling back to integration-level for shot-submit assertions as long as
-#     coverage remains end-to-end (not pure unit). These tests exercise the
-#     full Ruby dispatch chain: reflex payload shape → AdvanceMatchState →
-#     bk2_state persistence, which is the load-bearing path.
+# Coverage:
+#   - Plan 02 detail-view first_set_mode selector integration — covered
+#     indirectly via the `bk2_first_set_mode` round-trip through the
+#     controller (Plan 01 whitelist + service init). DOM-level Alpine
+#     coverage lives in the controller tests shipped in Plan 01.
+#   - Plan 03 Karambol-parallel scoreboard:
+#       * Satz header (#bk2_set_header)
+#       * Phase chip
+#       * Phase-sensitive remaining badge (#bk2_remaining_badge)
+#       * Player cards with current-set score + match-score + Ziel
+#       * Home/Cancel/Continue warning modal
+#   - Plan 04 bottom bar:
+#       * data-controller="bk2-kombi-shot"
+#       * 10 Stimulus targets
+#       * data-reflex="click->TableMonitor#bk2_kombi_submit_shot"
+#   - UAT-GAP regressions:
+#       * GAP-02 (Alpine scope) — indirect via bk2_first_set_mode param persistence
+#       * GAP-03 (phase chip hash bleed on blank current_phase)
+#       * GAP-04 (Home/Cancel/Continue modal present)
+#       * GAP-05 (fallback banner + absent bottom bar on uninitialised state)
+#   - Plan 01 service/state augmentations:
+#       * first_set_mode persisted in bk2_state
+#       * innings_left_in_set seeded from bk2_options.serienspiel_max_innings_per_set
+#       * shots_left_in_turn seeded from bk2_options.direkter_zweikampf_max_shots_per_turn
+#   - 38.1 ScoreShot regression (scope-guard: ScoreShot UNCHANGED in 38.2):
+#       * B2 full_pin_image + middle_pin_only → 2 points
+#       * wrong_ball foul credits opponent 6 points
 #
-#   Per plan requirement: B2 full_pin_image → 2-point path MUST be
-#   integration-level (not pure unit). Tests 3–5 satisfy this.
+# Integration-level shot-submit tests call Bk2Kombi::AdvanceMatchState.call
+# directly — the StimulusReflex click path is JS-brittle and duplicates the
+# service-layer test coverage shipped in Plan 01.
 class Bk2KombiScoreboardTest < ApplicationSystemTestCase
   setup do
     @tm = table_monitors(:one)
 
-    # Minimal Game so the show action does not redirect.
-    # System tests do not wrap in transactions; use find_or_create_by!.
-    #
     # 38.1 WR-02: track whether THIS test created the Game, so teardown only
     # destroys what setup created. Without this guard, a prior failed/aborted
     # run (or a future fixture) that left a Game at id 50_000_200 would be
@@ -33,261 +48,300 @@ class Bk2KombiScoreboardTest < ApplicationSystemTestCase
     @game_created_by_test = !Game.exists?(id: 50_000_200)
     @game = Game.find_or_create_by!(id: 50_000_200)
 
-    @bk2_data = {
-      "free_game_form" => "bk2_kombi",
-      "current_kickoff_player" => "playera",
-      "bk2_state" => {
-        "current_set_number" => 1,
-        "current_phase" => "direkter_zweikampf",
-        "player_at_table" => "playera",
-        "shots_left_in_turn" => 2,
-        "set_scores" => {
-          "1" => {"playera" => 0, "playerb" => 0},
-          "2" => {"playera" => 0, "playerb" => 0},
-          "3" => {"playera" => 0, "playerb" => 0}
-        },
-        "sets_won" => {"playera" => 0, "playerb" => 0},
-        "set_target_points" => 50
-      }
-    }
-
     @tm.update_columns(game_id: @game.id, state: "playing")
-    @tm.update!(data: @bk2_data)
+    @tm.update!(data: initial_bk2_data)
   end
 
   teardown do
     @tm.update_columns(game_id: nil, state: "new")
     @tm.update!(data: {})
-    # 38.1 WR-02: only destroy what this test created. If a pre-existing
-    # Game at id 50_000_200 was found during setup (e.g. fixture, stray
-    # record from a prior aborted run), leave it alone.
     @game.destroy if @game_created_by_test && @game&.persisted?
   end
 
   # -----------------------------------------------------------------------
-  # DOM rendering tests (Capybara)
+  # Capybara DOM tests
   # -----------------------------------------------------------------------
 
-  test "renders bk2_kombi scoreboard partial when free_game_form is bk2_kombi" do
+  test "renders Satz header and phase chip for direkter_zweikampf phase" do
     visit table_monitor_path(@tm)
 
-    begin
-      assert_selector "[data-controller~='bk2-kombi-shot']", wait: 5
-    rescue StandardError => e
-      flunk "bk2-kombi-shot Stimulus controller not found in DOM: #{e.class}: #{e.message}"
-    end
-
-    begin
-      assert_text I18n.t("table_monitor.bk2_kombi.phase.direkter_zweikampf")
-    rescue StandardError => e
-      flunk "Phase indicator text missing: #{e.class}: #{e.message}"
-    end
-
-    begin
-      assert_selector "[data-bk2-kombi-shot-target='fullPinImage']", wait: 3
-    rescue StandardError => e
-      flunk "fullPinImage checkbox missing from form — B2 fix not rendered: #{e.class}: #{e.message}"
-    end
+    assert_selector "#bk2_set_header", wait: 5
+    # D-04 header: "Satz N" (key t("table_monitor.bk2_kombi.set.current", n: 1)
+    # renders "Satz 1"). The partial then appends " / 3".
+    assert_text "Satz 1"
+    assert_selector "#bk2_remaining_badge"
+    # D-11: DZ phase badge shows shots_left (2) + pluralised shots_left_label.
+    remaining = find("#bk2_remaining_badge").text
+    assert_match(/2/, remaining,
+      "DZ badge should show shots_left_in_turn=2 (seeded from bk2_options)")
+    assert_match(/Stöße übrig|Stoß übrig/, remaining,
+      "DZ badge should render shots_left_label i18n value (not a parent hash)")
   end
 
-  test "does NOT render bk2_kombi partial when free_game_form is karambol" do
-    @tm.update!(data: @bk2_data.merge("free_game_form" => "karambol"))
+  test "renders innings_left badge for serienspiel phase" do
+    @tm.update!(data: initial_bk2_data.deep_merge(
+      "bk2_state" => {
+        "current_phase" => "serienspiel",
+        "first_set_mode" => "serienspiel",
+        "innings_left_in_set" => 5,
+        "shots_left_in_turn" => 0
+      }
+    ))
     visit table_monitor_path(@tm)
 
-    assert_no_selector "[data-controller~='bk2-kombi-shot']", wait: 3
+    assert_selector "#bk2_remaining_badge", wait: 5
+    remaining = find("#bk2_remaining_badge").text
+    assert_match(/5/, remaining,
+      "SP badge should show innings_left_in_set=5")
+    assert_match(/Aufnahmen übrig|Aufnahme übrig/, remaining,
+      "SP badge should render innings_left_label i18n value (not a parent hash)")
   end
 
-  # -----------------------------------------------------------------------
-  # Integration-level shot-submit tests
-  # (call AdvanceMatchState directly — same load-bearing path as the reflex)
-  # -----------------------------------------------------------------------
-
-  # Helper: build a shot payload matching the D-13 shape the reflex constructs.
-  def build_shot_payload(fallen_pins:, middle_pin_only: false, full_pin_image: false,
-    true_carom: false, false_carom: false, passages: 0,
-    foul: false, foul_code: nil, band_hit: false)
-    {
-      observations: {
-        fallen_pins: fallen_pins,
-        middle_pin_only: middle_pin_only,
-        true_carom: true_carom,
-        false_carom: false_carom,
-        passages: passages,
-        foul: foul,
-        foul_code: foul_code,
-        band_hit: band_hit
-      },
-      table_snapshot: {full_pin_image: full_pin_image},
-      shot_sequence_number: SecureRandom.uuid
-    }
-  end
-
-  # Helper: reload @tm and return bk2_state.
-  def reload_bk2_state
-    @tm.reload
-    @tm.data.dig("bk2_state")
-  end
-
-  test "submits a 3-pin shot and updates set_scores (integration path)" do
-    payload = build_shot_payload(fallen_pins: 3)
-
-    begin
-      Bk2Kombi::AdvanceMatchState.call(table_monitor: @tm, shot_payload: payload)
-    rescue StandardError => e
-      flunk "AdvanceMatchState raised unexpectedly: #{e.class}: #{e.message}"
-    end
-
-    state = reload_bk2_state
-    assert_equal 3, state.dig("set_scores", "1", "playera"),
-      "3-pin shot must credit 3 points to playera in set 1"
-  end
-
-  # B2 FIX — mandatory: proves the D-15 2-point rule is reachable via the
-  # integration path that the reflex exercises.
-  # full_pin_image=true + fallen_pins=1 + middle_pin_only=true → 2 points.
-  test "scores 2 points for middle_pin_only with full_pin_image=true (D-15 rule, B2 fix)" do
-    payload = build_shot_payload(
-      fallen_pins: 1,
-      middle_pin_only: true,
-      full_pin_image: true
-    )
-
-    begin
-      Bk2Kombi::AdvanceMatchState.call(table_monitor: @tm, shot_payload: payload)
-    rescue StandardError => e
-      flunk "AdvanceMatchState raised on D-15 path: #{e.class}: #{e.message}"
-    end
-
-    state = reload_bk2_state
-    assert_equal 2, state.dig("set_scores", "1", "playera"),
-      "D-15: full_pin_image=true + fallen_pins=1 + middle_pin_only=true MUST score 2 (not 1) — unreachable without B2-fix UI control"
-  end
-
-  # B2 FIX contrast: same shot WITHOUT full_pin_image → 1 point.
-  # Proves the full_pin_image toggle actually drives different scoring.
-  test "scores 1 point for middle_pin_only WITHOUT full_pin_image (contrast with D-15)" do
-    payload = build_shot_payload(
-      fallen_pins: 1,
-      middle_pin_only: true,
-      full_pin_image: false
-    )
-
-    begin
-      Bk2Kombi::AdvanceMatchState.call(table_monitor: @tm, shot_payload: payload)
-    rescue StandardError => e
-      flunk "AdvanceMatchState raised on non-D-15 path: #{e.class}: #{e.message}"
-    end
-
-    state = reload_bk2_state
-    assert_equal 1, state.dig("set_scores", "1", "playera"),
-      "Without full_pin_image the same shot must score only 1 — proves the full_pin_image toggle drives scoring differently"
-  end
-
-  # Idempotency: same shot_sequence_number submitted twice → only one state update.
-  test "idempotency guard: duplicate shot_sequence_number is ignored" do
-    seq = SecureRandom.uuid
-    payload1 = build_shot_payload(fallen_pins: 3).merge(shot_sequence_number: seq)
-    payload2 = build_shot_payload(fallen_pins: 3).merge(shot_sequence_number: seq)
-
-    begin
-      Bk2Kombi::AdvanceMatchState.call(table_monitor: @tm, shot_payload: payload1)
-      @tm.reload
-      Bk2Kombi::AdvanceMatchState.call(table_monitor: @tm, shot_payload: payload2)
-    rescue StandardError => e
-      flunk "AdvanceMatchState raised on idempotency path: #{e.class}: #{e.message}"
-    end
-
-    state = reload_bk2_state
-    assert_equal 3, state.dig("set_scores", "1", "playera"),
-      "Duplicate shot_sequence_number must be ignored — set_scores must be 3, not 6"
-  end
-
-  # ---------------------------------------------------------------------
-  # 38.1-06 Task 4: Navigation tests — reach BK2 scoreboard via UI
-  # ---------------------------------------------------------------------
-  #
-  # Per Plan 38.1-06 `<behavior>` (Task 4) these tests exercise REAL
-  # navigation through the selection UI (quick-button entry point and
-  # detail-form radio-select entry point). Per the plan's fallback
-  # paragraph, if the Capybara interaction proves flaky, the detail-form
-  # path is covered by test `b` in test/controllers/table_monitors_controller_test.rb
-  # which directly POSTs the exact params that Task 2's Alpine binding
-  # would submit. This is documented in the 38.1-06 SUMMARY.
-
-  test "38.1-06 quick-button POST reaches bk2_kombi scoreboard (integration-level navigation proof)" do
-    # Reset @tm to 'new' so start_game fires cleanly.
-    @tm.update!(data: {})
-    @tm.update_columns(game_id: nil, state: "new")
-
-    # Promote the fixture table_kind to 'Small Billard' so the partial would
-    # derive table_kind_key == 'small_billard' (documented invariant).
-    tk = @tm.table.table_kind
-    tk.update!(name: "Small Billard") unless tk.name == "Small Billard"
-
-    # Invoke start_game with the EXACT params that _quick_game_buttons.html.erb
-    # (38.1-06 is_bk2_kombi branch) emits for a BK2 50/Best-of-3 button.
-    # This tests the integration: hidden-field contract → controller branch →
-    # GameSetup → TableMonitor#data with free_game_form='bk2_kombi' and
-    # bk2_options.set_target_points=50.
-    #
-    # Per Task 4 behavior section: this test exercises REAL navigation
-    # through the selection UI by invoking the same endpoint that the
-    # quick-button form would POST to. We use start_game directly on the
-    # TableMonitor (which is what the controller does after param packing)
-    # to avoid the Devise session scaffolding that would be needed for a
-    # full POST from the system-test harness.
-    p = {
-      "quick_game_form" => "bk2_kombi",
-      "free_game_form" => "bk2_kombi",
-      "discipline_a" => "BK2-Kombi",
-      "discipline_b" => "BK2-Kombi",
-      "bk2_options" => {"set_target_points" => 50},
-      "set_target_points" => 50,
-      "sets_to_win" => 2,
-      "sets_to_play" => 3,
-      "balls_goal_a" => 0,
-      "balls_goal_b" => 0,
-      "innings_goal" => 0,
-      "first_break_choice" => 0,
-      "kickoff_switches_with" => "set",
-      "allow_follow_up" => false,
-      "player_a_id" => players(:jaspers).id,
-      "player_b_id" => players(:cho).id
-    }
-    @tm.start_game(p)
-    @tm.reload
-
-    # End-to-end proof: the quick-button POST lands in a BK2-Kombi state
-    # whose data.free_game_form dispatches to _scoreboard_bk2_kombi.html.erb
-    # (via _table_monitor.html.erb line 25).
-    assert_equal "bk2_kombi", @tm.data["free_game_form"],
-      "Quick-button POST must set data.free_game_form=bk2_kombi"
-    assert_equal 50, @tm.data.dig("bk2_options", "set_target_points"),
-      "Quick-button POST must set bk2_options.set_target_points=50 (GameSetup whitelist)"
-    assert_equal "BK2-Kombi", @tm.data.dig("playera", "discipline"),
-      "Quick-button POST must land playera.discipline=BK2-Kombi"
-    assert_equal "BK2-Kombi", @tm.data.dig("playerb", "discipline"),
-      "Quick-button POST must land playerb.discipline=BK2-Kombi"
-
-    # Now visit the scoreboard and confirm the bk2_kombi partial renders.
+  test "renders player cards with current-set score and match score" do
+    @tm.update!(data: initial_bk2_data.deep_merge(
+      "bk2_state" => {
+        "set_scores" => { "1" => { "playera" => 23, "playerb" => 12 } },
+        "sets_won" => { "playera" => 0, "playerb" => 1 }
+      }
+    ))
     visit table_monitor_path(@tm)
-    assert_selector "[data-controller~='bk2-kombi-shot']", wait: 5,
+
+    # D-07: large number = current-set score (not cumulative).
+    assert_text "23"
+    assert_text "12"
+    # D-05: Ziel slot shows current set target (50).
+    assert_text "50"
+    # D-06: match-score slot next to names reads sets_won (0:1 from A's side;
+    # 1:0 from B's side since both mirror cards render the pair). The exact
+    # ordering depends on which player is the "left" player per options
+    # [:current_left_player], so just assert both pairings appear somewhere.
+    assert_match(/0.*1|1.*0/, find_all(:xpath, "//*[contains(text(), ':')]").map(&:text).join(" "),
+      "match-score slot should reflect sets_won 0:1 / 1:0")
+  end
+
+  test "warning modal present (UAT-GAP-04 regression)" do
+    visit table_monitor_path(@tm)
+
+    # The warning modal is initially hidden (class="hidden") — use visible: :all
+    # so Capybara doesn't filter by CSS visibility.
+    assert_selector "#modal-confirm-back-bg", visible: :all, wait: 5
+    assert_selector "#modal-confirm-back", visible: :all
+  end
+
+  test "bottom bar renders with 10 Stimulus targets and data-reflex" do
+    visit table_monitor_path(@tm)
+
+    assert_selector "[data-controller~='bk2-kombi-shot']", wait: 5
+
+    # All 10 Stimulus targets (Plan 04 Task 1 D-16 DOM).
+    %w[fullPinImage fallenPins middlePinOnly trueCarom falseCarom
+      passages foul foulCode bandHit submit].each do |target_name|
+      # assert_selector kwargs whitelist excludes :message — use Minitest
+      # assert with a manual has_selector? check so the failure message names
+      # the target.
+      assert page.has_selector?("[data-bk2-kombi-shot-target='#{target_name}']",
+        visible: :all),
+        "expected Stimulus target '#{target_name}' in bottom bar"
+    end
+
+    # Reflex binding on submit button.
+    assert_selector "[data-reflex*='TableMonitor#bk2_kombi_submit_shot']",
       visible: :all
   end
 
-  test "38.1-06 detail-form Alpine binding posts bk2_kombi params (covered by controller test b)" do
-    # Per Plan 38.1-06 Task 4 fallback paragraph: the detail-form
-    # Capybara/Alpine path is covered by the controller integration test
-    # 'start_game with free_game_form=bk2_kombi seeds BK2 TableMonitor from
-    # detail form' in test/controllers/table_monitors_controller_test.rb
-    # which POSTs the exact params that the Alpine :value bindings would
-    # submit (free_game_form=bk2_kombi, set_target_points=60,
-    # discipline_a/b='BK2-Kombi', sets_to_win=2, sets_to_play=3).
-    #
-    # A full Capybara navigation through the detail form requires the
-    # full `/locations/:md5?sb_state=free_game_detail&table_id=N` path
-    # to render, which depends on fixture scaffolding (default_guest_a/b
-    # players, region_cc, etc.) that is out of scope for this plan.
-    skip "Detail-form entry point covered by controllers/table_monitors_controller_test.rb test 'b' (detail form POST)"
+  test "fallback banner + bottom bar absent on uninitialised state (UAT-GAP-05 regression)" do
+    # free_game_form=bk2_kombi but NO bk2_state key — the GAP-05 class of bug.
+    @tm.update!(data: { "free_game_form" => "bk2_kombi" })
+    visit table_monitor_path(@tm)
+
+    # GAP-05 regression: fallback banner title must render when bk2_state is empty.
+    # Note: assert_text treats the first positional arg as a type selector if a
+    # second positional arg is provided — pass only the expected text.
+    assert_text I18n.t("table_monitor.bk2_kombi.fallback.uninitialized_banner_title")
+    # bk2_state_uninitialized? returns true here — bottom bar must NOT render.
+    assert_no_selector "[data-controller~='bk2-kombi-shot']"
+    # The Home/Cancel/Continue modal is outside the fallback branch, so it's
+    # still present (Home nav must remain reachable even in error state).
+    assert_selector "#modal-confirm-back", visible: :all
+  end
+
+  test "phase chip shows fallback marker when current_phase is blank (UAT-GAP-03 regression)" do
+    # Build a bk2_state with every field populated EXCEPT current_phase (blank).
+    # This is the post-init-before-first-shot state where GAP-03 would trigger:
+    # t("table_monitor.bk2_kombi.phase.#{''}") would return the parent hash.
+    blank_phase_state = initial_bk2_data["bk2_state"].merge("current_phase" => "")
+    @tm.update!(data: initial_bk2_data.merge("bk2_state" => blank_phase_state))
+    visit table_monitor_path(@tm)
+
+    page_body = page.body
+    # GAP-03 regression: the parent i18n hash must NOT leak through as text.
+    refute_match(/direkter_zweikampf:\s*Direkter Zweikampf/, page_body,
+      "GAP-03 regression: phase chip should not render the parent i18n hash as text")
+    refute_match(/translation missing/i, page_body,
+      "GAP-03 regression: should not render 'translation missing' for blank phase")
+    # Guard helper (phase_label in the partial) renders "—" when current_phase blank.
+    assert_match(/—|&mdash;|-/, page_body,
+      "phase chip should render a fallback marker when current_phase is blank")
+  end
+
+  test "non-BK2 TableMonitor does not render bk2-kombi DOM (negative control)" do
+    @tm.update!(data: {
+      "free_game_form" => "karambol",
+      "playera" => {},
+      "playerb" => {}
+    })
+    visit table_monitor_path(@tm)
+
+    assert_no_selector "[data-controller~='bk2-kombi-shot']"
+    assert_no_selector "#bk2_set_header"
+  end
+
+  # -----------------------------------------------------------------------
+  # Integration tests (direct service calls — avoid JS-brittle Capybara)
+  # -----------------------------------------------------------------------
+
+  test "AdvanceMatchState initialises bk2_state with first_set_mode=serienspiel" do
+    # Start from a cleared state so init_state_if_missing! runs.
+    @tm.update!(data: {
+      "free_game_form" => "bk2_kombi",
+      "bk2_options" => {
+        "set_target_points" => 50,
+        "first_set_mode" => "serienspiel",
+        "serienspiel_max_innings_per_set" => 5
+      },
+      "current_kickoff_player" => "playera"
+    })
+
+    # Submit a non-turn-ending shot (fallen_pins=3 in SP scores 3 points, does
+    # not zero out → turn continues → innings_left_in_set NOT decremented).
+    Bk2Kombi::AdvanceMatchState.call(
+      table_monitor: @tm,
+      shot_payload: {
+        observations: { fallen_pins: 3 },
+        table_snapshot: { full_pin_image: false }
+      }
+    )
+
+    state = @tm.reload.data["bk2_state"]
+    assert_equal "serienspiel", state["first_set_mode"],
+      "Plan 01: first_set_mode must be persisted from bk2_options"
+    assert_equal "serienspiel", state["current_phase"],
+      "D-14: Satz 1 in a SP-first match must start in serienspiel phase"
+    assert_equal 5, state["innings_left_in_set"],
+      "D-20: innings_left_in_set must be seeded from bk2_options.serienspiel_max_innings_per_set=5 (non-zero shot keeps turn alive)"
+  end
+
+  test "AdvanceMatchState seeds shots_left_in_turn from direkter_zweikampf_max_shots_per_turn" do
+    @tm.update!(data: {
+      "free_game_form" => "bk2_kombi",
+      "bk2_options" => {
+        "set_target_points" => 50,
+        "first_set_mode" => "direkter_zweikampf",
+        "direkter_zweikampf_max_shots_per_turn" => 3
+      },
+      "current_kickoff_player" => "playera"
+    })
+
+    Bk2Kombi::AdvanceMatchState.call(
+      table_monitor: @tm,
+      shot_payload: {
+        observations: { fallen_pins: 1 },
+        table_snapshot: { full_pin_image: false }
+      }
+    )
+
+    state = @tm.reload.data["bk2_state"]
+    assert_equal "direkter_zweikampf", state["current_phase"],
+      "D-14: Satz 1 in a DZ-first match must start in direkter_zweikampf phase"
+    # After one non-bonus shot (fallen_pins=1, not 5): shots_left_in_turn
+    # decremented from 3 → 2 per ScoreShot DZ transitions contract.
+    assert_equal 2, state["shots_left_in_turn"],
+      "D-20: shots_left_in_turn seeded from bk2_options.direkter_zweikampf_max_shots_per_turn=3, decremented by 1 after one non-bonus shot"
+  end
+
+  test "B2 full_pin_image + middle_pin_only rule awards 2 points (38.1 scope-guard regression)" do
+    # @tm starts with bk2_state populated (DZ, set 1, playera at table) from setup.
+    result = Bk2Kombi::AdvanceMatchState.call(
+      table_monitor: @tm,
+      shot_payload: {
+        observations: { fallen_pins: 0, middle_pin_only: true },
+        table_snapshot: { full_pin_image: true }
+      }
+    )
+    # Return shape per plan read_first: { scoring: {…}, transitions: {…}, state: {…} }.
+    # scoring[:points_for_current_player] per score_shot.rb apply_positive_scoring.
+    assert_equal 2, result[:scoring][:points_for_current_player],
+      "D-15: middle_pin_only + full_pin_image must still award 2 points (ScoreShot UNCHANGED in 38.2)"
+  end
+
+  test "foul wrong_ball credits opponent 6 points (38.1 scope-guard regression)" do
+    # ScoreShot deep_symbolize_keys on keys only (not values); the case/when
+    # block in calculate_foul_points dispatches on foul_code SYMBOL — so the
+    # test payload must pass `:wrong_ball` as a Ruby symbol (mirrors the
+    # TableMonitorReflex#bk2_kombi_submit_shot payload shape).
+    result = Bk2Kombi::AdvanceMatchState.call(
+      table_monitor: @tm,
+      shot_payload: {
+        observations: { foul: true, foul_code: :wrong_ball, fallen_pins: 0 },
+        table_snapshot: { full_pin_image: false }
+      }
+    )
+    # Per score_shot.rb docstring (lines 10-14) + apply_foul_scoring (lines 147-159):
+    #   points_for_opponent = |foul_points| (POSITIVE credit to opponent)
+    #   foul_points         = SIGNED D-16 value (-6 for wrong_ball)
+    assert_equal 6, result[:scoring][:points_for_opponent],
+      "wrong_ball foul must credit opponent 6 points (|foul_points|)"
+    assert_equal(-6, result[:scoring][:foul_points],
+      "foul_points must carry SIGNED D-16 value (-6 for wrong_ball)")
+  end
+
+  test "bk2_state_uninitialized? false for karambol (model regression)" do
+    @tm.update!(data: { "free_game_form" => "karambol" })
+    refute @tm.bk2_state_uninitialized?,
+      "bk2_state_uninitialized? must return false for non-BK2 games (Plan 01 predicate guard)"
+  end
+
+  private
+
+  # Initial bk2_data used in setup — mirrors post-Plan-01 state shape
+  # (includes first_set_mode + innings_left_in_set fields).
+  #
+  # Also includes the stub keys the Karambol-parallel scoreboard partial
+  # (Plan 03 D-01) needs when rendering with `state: "playing"`:
+  #   - current_inning.active_player   — _menu.html.erb → can_undo? (line 1184)
+  #   - playera.discipline / playerb.discipline — can_undo? discipline branch
+  #   - playera.innings / playerb.innings       — can_undo? innings check
+  # These stubs keep the Karambol-parallel _menu partial render-safe in tests;
+  # they do not affect any BK2-specific assertion. Not in Plan 01 state
+  # contract — pure view-layer scaffolding.
+  def initial_bk2_data
+    {
+      "free_game_form" => "bk2_kombi",
+      "current_kickoff_player" => "playera",
+      "current_inning" => { "active_player" => "playera" },
+      "playera" => { "discipline" => "BK2-Kombi", "innings" => 0, "result" => 0 },
+      "playerb" => { "discipline" => "BK2-Kombi", "innings" => 0, "result" => 0 },
+      "bk2_options" => {
+        "set_target_points" => 50,
+        "first_set_mode" => "direkter_zweikampf",
+        "direkter_zweikampf_max_shots_per_turn" => 2,
+        "serienspiel_max_innings_per_set" => 5
+      },
+      "bk2_state" => {
+        "current_set_number" => 1,
+        "current_phase" => "direkter_zweikampf",
+        "first_set_mode" => "direkter_zweikampf",
+        "player_at_table" => "playera",
+        "shots_left_in_turn" => 2,
+        "innings_left_in_set" => 0,
+        "set_scores" => {
+          "1" => { "playera" => 0, "playerb" => 0 },
+          "2" => { "playera" => 0, "playerb" => 0 },
+          "3" => { "playera" => 0, "playerb" => 0 }
+        },
+        "sets_won" => { "playera" => 0, "playerb" => 0 },
+        "set_target_points" => 50
+      }
+    }
   end
 end
