@@ -77,7 +77,11 @@ class TableMonitorsController < ApplicationController
                 # 38.1-06: BK2-Kombi params — set_target_points (50/60/70) is
                 # the raw user input; the BK2 branch below packs it into
                 # p[:bk2_options] which then flows to GameSetup whitelist.
-                :set_target_points)
+                :set_target_points,
+                # 38.2-01 D-14/D-20: first-set-mode selector. Flat top-level
+                # key (Alpine.js hidden input compatibility). Whitelisted to
+                # %w[direkter_zweikampf serienspiel] in the BK2 branches below.
+                :bk2_first_set_mode)
 
     # Process standard form parameters (unless quick_game_form)
     unless p[:quick_game_form].present?
@@ -120,7 +124,14 @@ class TableMonitorsController < ApplicationController
         p[:discipline_b] = "BK2-Kombi"
         set_target = p.delete(:set_target_points).to_i
         set_target = 50 unless [50, 60, 70].include?(set_target)
-        p[:bk2_options] = { "set_target_points" => set_target }
+        # 38.2-01 D-14: accept first_set_mode (flat top-level key). CLAMP to
+        # whitelist, fall back to "direkter_zweikampf" on absence or tampering.
+        raw_mode = p.delete(:bk2_first_set_mode).to_s
+        first_set_mode = %w[direkter_zweikampf serienspiel].include?(raw_mode) ? raw_mode : "direkter_zweikampf"
+        p[:bk2_options] = {
+          "set_target_points" => set_target,
+          "first_set_mode" => first_set_mode
+        }
       end
 
       # 38.1 IN-02: downgraded from .info to .debug (block form avoids string
@@ -216,7 +227,16 @@ class TableMonitorsController < ApplicationController
         p[:discipline_b] = "BK2-Kombi"
         set_target = p.delete(:set_target_points).to_i
         set_target = 50 unless [50, 60, 70].include?(set_target)
-        p[:bk2_options] = { "set_target_points" => set_target }
+        # 38.2-01 D-14: accept first_set_mode from the detail form's Alpine-
+        # driven hidden input. CLAMP to whitelist (same posture as T-38.1-06-01
+        # for discipline_a/b); fall back to "direkter_zweikampf" on absence or
+        # tampering.
+        raw_mode = p.delete(:bk2_first_set_mode).to_s
+        first_set_mode = %w[direkter_zweikampf serienspiel].include?(raw_mode) ? raw_mode : "direkter_zweikampf"
+        p[:bk2_options] = {
+          "set_target_points" => set_target,
+          "first_set_mode" => first_set_mode
+        }
         # BK2-Kombi scoring is shot-by-shot against a set target, not balls_goal.
         p[:balls_goal_a] = 0
         p[:balls_goal_b] = 0

@@ -866,6 +866,17 @@ class TableMonitor < ApplicationRecord
     data["free_game_form"] != "pool"
   end
 
+  # Phase 38.2 D-18 / UAT-GAP-05: signals that a BK2-Kombi TableMonitor is in
+  # an inconsistent state — data["free_game_form"] flagged BK2 but bk2_state
+  # is missing or empty (e.g. from pre-Plan-06 test state or manual data
+  # manipulation). Consumed by _show_bk2_kombi.html.erb (Plan 03) to render a
+  # fallback banner rather than a scoreboard with all-zero defaults.
+  def bk2_state_uninitialized?
+    return false unless data.is_a?(Hash) && data["free_game_form"] == "bk2_kombi"
+    state = data["bk2_state"]
+    !state.is_a?(Hash) || state.empty?
+  end
+
   def recompute_result(current_role) = score_engine.recompute_result(current_role)
 
   def init_lists(current_role) = score_engine.init_lists(current_role)
