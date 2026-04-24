@@ -212,4 +212,114 @@ class TableMonitorsControllerTest < ActionDispatch::IntegrationTest
     assert_equal "snooker", @table_monitor.data["free_game_form"]
     assert_equal 3,         @table_monitor.data["sets_to_win"].to_i
   end
+
+  # ---------------------------------------------------------------------
+  # 38.2-01: start_game BK2 — first_set_mode whitelist + persistence
+  # ---------------------------------------------------------------------
+
+  # g. Detail form passes first_set_mode through (whitelisted value "serienspiel").
+  test "start_game BK2 detail-form persists first_set_mode=serienspiel when whitelisted value is submitted" do
+    post start_game_table_monitor_url(@table_monitor), params: {
+      free_game_form:     "bk2_kombi",
+      discipline_a:       "BK2-Kombi",
+      discipline_b:       "BK2-Kombi",
+      set_target_points:  50,
+      bk2_first_set_mode: "serienspiel",
+      player_a_id:        players(:jaspers).id,
+      player_b_id:        players(:cho).id,
+      allow_follow_up:    "0",
+      first_break_choice: 0
+    }
+    @table_monitor.reload
+    assert_equal "serienspiel",
+      @table_monitor.data.dig("bk2_options", "first_set_mode"),
+      "first_set_mode must be persisted from the (whitelisted) POST value"
+    assert_equal 50, @table_monitor.data.dig("bk2_options", "set_target_points")
+  end
+
+  # h. Detail form falls back to direkter_zweikampf when submitted value is NOT whitelisted.
+  test "start_game BK2 detail-form CLAMPS first_set_mode to direkter_zweikampf when attacker submits unknown value" do
+    post start_game_table_monitor_url(@table_monitor), params: {
+      free_game_form:     "bk2_kombi",
+      discipline_a:       "BK2-Kombi",
+      discipline_b:       "BK2-Kombi",
+      set_target_points:  50,
+      bk2_first_set_mode: "attacker_injected_value",
+      player_a_id:        players(:jaspers).id,
+      player_b_id:        players(:cho).id,
+      allow_follow_up:    "0",
+      first_break_choice: 0
+    }
+    @table_monitor.reload
+    assert_equal "direkter_zweikampf",
+      @table_monitor.data.dig("bk2_options", "first_set_mode"),
+      "Non-whitelisted first_set_mode must be clamped to direkter_zweikampf"
+  end
+
+  # i. Detail form defaults first_set_mode to direkter_zweikampf when not submitted.
+  test "start_game BK2 detail-form defaults first_set_mode to direkter_zweikampf when absent from POST" do
+    post start_game_table_monitor_url(@table_monitor), params: {
+      free_game_form:     "bk2_kombi",
+      discipline_a:       "BK2-Kombi",
+      discipline_b:       "BK2-Kombi",
+      set_target_points:  50,
+      player_a_id:        players(:jaspers).id,
+      player_b_id:        players(:cho).id,
+      allow_follow_up:    "0",
+      first_break_choice: 0
+    }
+    @table_monitor.reload
+    assert_equal "direkter_zweikampf",
+      @table_monitor.data.dig("bk2_options", "first_set_mode"),
+      "Absent first_set_mode must default to direkter_zweikampf (not nil, not missing key)"
+  end
+
+  # j. Quick form (Pi 3) passes first_set_mode through (whitelisted value "serienspiel").
+  test "start_game BK2 quick-form persists first_set_mode=serienspiel when whitelisted value is submitted" do
+    post start_game_table_monitor_url(@table_monitor), params: {
+      quick_game_form:    "bk2_kombi",
+      free_game_form:     "bk2_kombi",
+      discipline_a:       "BK2-Kombi",
+      discipline_b:       "BK2-Kombi",
+      set_target_points:  50,
+      bk2_first_set_mode: "serienspiel",
+      sets_to_win:        2,
+      sets_to_play:       3,
+      balls_goal_a:       0,
+      balls_goal_b:       0,
+      innings_goal:       0,
+      player_a_id:        players(:jaspers).id,
+      player_b_id:        players(:cho).id,
+      allow_follow_up:    "0",
+      first_break_choice: 0
+    }
+    @table_monitor.reload
+    assert_equal "serienspiel",
+      @table_monitor.data.dig("bk2_options", "first_set_mode")
+  end
+
+  # k. Quick form clamps invalid first_set_mode.
+  test "start_game BK2 quick-form CLAMPS first_set_mode to direkter_zweikampf when attacker submits unknown value" do
+    post start_game_table_monitor_url(@table_monitor), params: {
+      quick_game_form:    "bk2_kombi",
+      free_game_form:     "bk2_kombi",
+      discipline_a:       "BK2-Kombi",
+      discipline_b:       "BK2-Kombi",
+      set_target_points:  50,
+      bk2_first_set_mode: "../../etc/passwd",
+      sets_to_win:        2,
+      sets_to_play:       3,
+      balls_goal_a:       0,
+      balls_goal_b:       0,
+      innings_goal:       0,
+      player_a_id:        players(:jaspers).id,
+      player_b_id:        players(:cho).id,
+      allow_follow_up:    "0",
+      first_break_choice: 0
+    }
+    @table_monitor.reload
+    assert_equal "direkter_zweikampf",
+      @table_monitor.data.dig("bk2_options", "first_set_mode"),
+      "Quick-form must apply the same whitelist fallback as detail form"
+  end
 end
