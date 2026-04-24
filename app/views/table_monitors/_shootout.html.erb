@@ -26,17 +26,55 @@
         </div>
       </div>
     </div>
-    <div class="flex h-1/2 flex-row w-full space-x-4">
-      <div class="flex-1 h-full text-center">
-        <%= content_tag "div", class: "text-2vw h-2/3 btn btn-primary", data: { turbo: false, reflex: "click->TableMonitorReflex#start_game", id: table_monitor.id }, id: "start_game", tabindex: 6 do %>
-          <%= "#{left_player[:fullname]} stößt an!" %>
-        <%- end %>
+    <%- is_bk2 = options[:free_game_form] == "bk2_kombi" %>
+    <%- if is_bk2 %>
+      <%# Phase 38.3-05 D-18: BK2-Kombi shootout — 4 buttons (Anstoß × first_set_mode).
+          Replaces the generic 2 Karambol "Spieler stößt an" buttons when the live match
+          is BK2-Kombi. Each click writes bk2_options[first_set_mode] via reflex-dataset
+          (see start_game / switch_players_and_start_game reflex augmentations), then
+          transitions via the Karambol start-game AASM path. %>
+      <div class="flex flex-col h-1/2 w-full px-4 space-y-3">
+        <div class="text-2vw text-center font-semibold"><%= t("table_monitor.bk2_kombi.first_set_mode.legend") %></div>
+        <div class="grid grid-cols-2 gap-3 h-full">
+          <%= content_tag "div",
+                class: "text-2vw flex items-center justify-center btn btn-primary bg-amber-600 hover:bg-amber-700 text-white rounded",
+                data: { turbo: false, reflex: "click->TableMonitorReflex#start_game", id: table_monitor.id, bk2_first_set_mode: "direkter_zweikampf" },
+                id: "bk2_start_a_dz", tabindex: 6 do %>
+            <%= t("table_monitor.bk2_kombi.first_set_mode.button_direkter_zweikampf_a") %>
+          <%- end %>
+          <%= content_tag "div",
+                class: "text-2vw flex items-center justify-center btn btn-primary bg-sky-600 hover:bg-sky-700 text-white rounded",
+                data: { turbo: false, reflex: "click->TableMonitorReflex#start_game", id: table_monitor.id, bk2_first_set_mode: "serienspiel" },
+                id: "bk2_start_a_sp", tabindex: 6 do %>
+            <%= t("table_monitor.bk2_kombi.first_set_mode.button_serienspiel_a") %>
+          <%- end %>
+          <%= content_tag "div",
+                class: "text-2vw flex items-center justify-center btn btn-primary bg-amber-600 hover:bg-amber-700 text-white rounded",
+                data: { turbo: false, reflex: "click->TableMonitorReflex#switch_players_and_start_game", id: table_monitor.id, bk2_first_set_mode: "direkter_zweikampf" },
+                id: "bk2_start_b_dz", tabindex: 6 do %>
+            <%= t("table_monitor.bk2_kombi.first_set_mode.button_direkter_zweikampf_b") %>
+          <%- end %>
+          <%= content_tag "div",
+                class: "text-2vw flex items-center justify-center btn btn-primary bg-sky-600 hover:bg-sky-700 text-white rounded",
+                data: { turbo: false, reflex: "click->TableMonitorReflex#switch_players_and_start_game", id: table_monitor.id, bk2_first_set_mode: "serienspiel" },
+                id: "bk2_start_b_sp", tabindex: 6 do %>
+            <%= t("table_monitor.bk2_kombi.first_set_mode.button_serienspiel_b") %>
+          <%- end %>
+        </div>
       </div>
-      <div class="flex-1 h-full text-center">
-        <%= content_tag "div", class: "text-2vw h-2/3 btn btn-primary", data: { turbo: false, reflex: "click->TableMonitorReflex#switch_players_and_start_game", id: table_monitor.id }, id: "switch_and_start", tabindex: 6 do %>
-          <%= "#{right_player[:fullname]} stößt an!" %>
-        <%- end %>
+    <%- else %>
+      <div class="flex h-1/2 flex-row w-full space-x-4">
+        <div class="flex-1 h-full text-center">
+          <%= content_tag "div", class: "text-2vw h-2/3 btn btn-primary", data: { turbo: false, reflex: "click->TableMonitorReflex#start_game", id: table_monitor.id }, id: "start_game", tabindex: 6 do %>
+            <%= "#{left_player[:fullname]} stößt an!" %>
+          <%- end %>
+        </div>
+        <div class="flex-1 h-full text-center">
+          <%= content_tag "div", class: "text-2vw h-2/3 btn btn-primary", data: { turbo: false, reflex: "click->TableMonitorReflex#switch_players_and_start_game", id: table_monitor.id }, id: "switch_and_start", tabindex: 6 do %>
+            <%= "#{right_player[:fullname]} stößt an!" %>
+          <%- end %>
+        </div>
       </div>
-    </div>
+    <%- end %>
   </div>
 </div>

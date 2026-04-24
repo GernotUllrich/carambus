@@ -350,6 +350,15 @@ class TableMonitorReflex < ApplicationReflex
     Rails.logger.info "+++++++++++++++++>>> switch_players <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     morph :nothing
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
+    # Phase 38.3-05 D-18: if this TableMonitor is BK2-Kombi and the shootout button
+    # carried a bk2_first_set_mode, persist it into bk2_options before transitioning.
+    if @table_monitor.data["free_game_form"] == "bk2_kombi"
+      bk2_mode = element.andand.dataset[:bk2_first_set_mode].to_s
+      if %w[direkter_zweikampf serienspiel].include?(bk2_mode)
+        @table_monitor.data["bk2_options"] ||= {}
+        @table_monitor.data["bk2_options"]["first_set_mode"] = bk2_mode
+      end
+    end
     @table_monitor.suppress_broadcast = true
     # @table_monitor.panel_state = 'input
     @table_monitor.switch_players
@@ -367,6 +376,15 @@ class TableMonitorReflex < ApplicationReflex
     Rails.logger.info "+++++++++++++++++>>> start_game <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     morph :nothing
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
+    # Phase 38.3-05 D-18: if this TableMonitor is BK2-Kombi and the shootout button
+    # carried a bk2_first_set_mode, persist it into bk2_options before transitioning.
+    if @table_monitor.data["free_game_form"] == "bk2_kombi"
+      bk2_mode = element.andand.dataset[:bk2_first_set_mode].to_s
+      if %w[direkter_zweikampf serienspiel].include?(bk2_mode)
+        @table_monitor.data["bk2_options"] ||= {}
+        @table_monitor.data["bk2_options"]["first_set_mode"] = bk2_mode
+      end
+    end
     @table_monitor.suppress_broadcast = true
     @table_monitor.reset_timer!
     # noinspection RubyResolve
