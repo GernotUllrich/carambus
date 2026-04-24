@@ -134,8 +134,17 @@ class Bk2Kombi::AdvanceMatchStateTest < ActiveSupport::TestCase
     assert_equal 1, state["sets_won"]["playera"], "playera wins set 1"
     assert_equal 0, state["sets_won"]["playerb"]
     assert_equal 2, state["current_set_number"], "Should advance to set 2"
-    assert_equal "direkter_zweikampf", state["current_phase"], "Phase resets to direkter_zweikampf"
-    assert_equal 2, state["shots_left_in_turn"], "shots_left_in_turn resets to 2"
+    # Phase 38.2 D-14: Satz 2 flips from first_set_mode. The setup fixture has no
+    # bk2_options, so derive_first_set_mode defaults to 'direkter_zweikampf',
+    # and Satz 2 must flip to 'serienspiel'. The pre-seeded bk2_state also has
+    # no first_set_mode key, but close_set_if_reached! falls back to derive_first_set_mode.
+    assert_equal "serienspiel", state["current_phase"],
+      "Phase 38.2 D-14: Satz 2 flips to serienspiel when first_set_mode defaults to direkter_zweikampf"
+    # SP set: shots_left_in_turn is reset to 0 (SP does not use per-shot counter).
+    assert_equal 0, state["shots_left_in_turn"], "SP phase has shots_left_in_turn = 0"
+    assert_equal Bk2Kombi::AdvanceMatchState::DEFAULT_SP_MAX_INNINGS_PER_SET,
+      state["innings_left_in_set"],
+      "New SP set seeds innings_left_in_set from default (5)"
   end
 
   # ---------------------------------------------------------------------------
@@ -402,16 +411,22 @@ class Bk2Kombi::AdvanceMatchStateTest < ActiveSupport::TestCase
       "serienspiel_max_innings_per_set" => 5,
       "first_set_mode" => "serienspiel"
     )
-    Bk2Kombi::AdvanceMatchState.call(table_monitor: tm, shot_payload: pin_shot(fallen_pins: 0))
+    # Initialise via a non-turn-ending SP shot (+2 for playera, turn stays).
+    Bk2Kombi::AdvanceMatchState.call(table_monitor: tm, shot_payload: pin_shot(fallen_pins: 2))
+    # Bring playera to the brink of the set target while still at table.
     tm.data["bk2_state"]["set_scores"]["1"]["playera"] = 47
     tm.save!
+    # A 5-pin SP shot by playera pushes to 52 → set 1 closes.
     Bk2Kombi::AdvanceMatchState.call(table_monitor: tm, shot_payload: pin_shot(fallen_pins: 5))
 
     state = tm.reload.data["bk2_state"]
-    assert_equal 2, state["current_set_number"]
-    assert_equal "direkter_zweikampf", state["current_phase"]
-    assert_equal 2, state["shots_left_in_turn"]
-    assert_equal 0, state["innings_left_in_set"]
+    assert_equal 2, state["current_set_number"], "set 1 must close, advance to set 2"
+    assert_equal "direkter_zweikampf", state["current_phase"],
+      "Set 2 phase flips from SP (set 1) to DZ"
+    assert_equal 2, state["shots_left_in_turn"],
+      "New DZ set resets shots_left_in_turn to dz_max (2)"
+    assert_equal 0, state["innings_left_in_set"],
+      "DZ set has innings_left_in_set = 0"
   end
 
   test "38.2-01 T5: apply_transitions decrements innings_left_in_set on turn_ends in Serienspiel" do

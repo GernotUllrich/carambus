@@ -14,6 +14,12 @@ module Bk2Kombi
   #   Bk2Kombi::AdvanceMatchState.call(table_monitor: tm, shot_payload: payload)
   class AdvanceMatchState
     DEFAULT_SET_TARGET = 50
+    # Phase 38.2 D-12 / D-20: rule limits driven by bk2_options; these are the
+    # fallback defaults when a TableMonitor was persisted before Phase 38.2
+    # (legacy bk2_options without the new keys) or when the keys are blank.
+    DEFAULT_DZ_MAX_SHOTS_PER_TURN = 2
+    DEFAULT_SP_MAX_INNINGS_PER_SET = 5
+    DEFAULT_FIRST_SET_MODE = "direkter_zweikampf"
 
     def self.call(table_monitor:, shot_payload:)
       new(table_monitor: table_monitor, shot_payload: shot_payload).call
@@ -50,14 +56,22 @@ module Bk2Kombi
     private
 
     # Initialisiere bk2_state falls noch nicht vorhanden (z.B. frischer TableMonitor).
+    # Phase 38.2 D-19/D-20: first_set_mode, shots/innings-Limits aus bk2_options lesen.
     def init_state_if_missing!
       return if @tm.data["bk2_state"].is_a?(Hash)
 
+      first_mode = derive_first_set_mode
+      initial_phase = phase_for_set(1, first_mode)
+      dz_max = derive_dz_max_shots
+      sp_max = derive_sp_max_innings
+
       @tm.data["bk2_state"] = {
         "current_set_number" => 1,
-        "current_phase" => "direkter_zweikampf",
+        "current_phase" => initial_phase,
+        "first_set_mode" => first_mode,
         "player_at_table" => @tm.data["current_kickoff_player"].presence || "playera",
-        "shots_left_in_turn" => 2,
+        "shots_left_in_turn" => (initial_phase == "direkter_zweikampf") ? dz_max : 0,
+        "innings_left_in_set" => (initial_phase == "serienspiel") ? sp_max : 0,
         "set_scores" => {
           "1" => {"playera" => 0, "playerb" => 0},
           "2" => {"playera" => 0, "playerb" => 0},
@@ -73,6 +87,29 @@ module Bk2Kombi
       (@tm.data.dig("bk2_options", "set_target_points") || DEFAULT_SET_TARGET).to_i
     end
 
+    # Phase 38.2 D-20: max Stösse pro Aufnahme im Direkten Zweikampf.
+    def derive_dz_max_shots
+      (@tm.data.dig("bk2_options", "direkter_zweikampf_max_shots_per_turn") || DEFAULT_DZ_MAX_SHOTS_PER_TURN).to_i
+    end
+
+    # Phase 38.2 D-20: max Aufnahmen pro Satz im Serienspiel.
+    def derive_sp_max_innings
+      (@tm.data.dig("bk2_options", "serienspiel_max_innings_per_set") || DEFAULT_SP_MAX_INNINGS_PER_SET).to_i
+    end
+
+    # Phase 38.2 D-14 / D-20: erster Satz-Modus, whitelisted.
+    def derive_first_set_mode
+      mode = @tm.data.dig("bk2_options", "first_set_mode").to_s
+      %w[direkter_zweikampf serienspiel].include?(mode) ? mode : DEFAULT_FIRST_SET_MODE
+    end
+
+    # Phase 38.2 D-14: Satz-Modus-Alternation.
+    # Satz 1 = first_set_mode; Satz 2 = flipped; Satz 3 = first_set_mode.
+    def phase_for_set(set_number, first_set_mode)
+      return first_set_mode if set_number.to_i == 1 || set_number.to_i == 3
+      (first_set_mode == "direkter_zweikampf") ? "serienspiel" : "direkter_zweikampf"
+    end
+
     # Trage Punkte in den aktuellen Satz ein.
     def apply_scoring!(state, scoring)
       set_no = state["current_set_number"].to_s
@@ -84,9 +121,19 @@ module Bk2Kombi
     end
 
     # Aktualisiere Spieler am Tisch und verbleibende Schüsse.
+    # Phase 38.2 D-11/D-19: shots_left_in_turn wird NUR im Direkten Zweikampf
+    # geschrieben (ScoreShot gibt dort nil in Serienspiel zurueck). In Serienspiel
+    # dekrementiert stattdessen innings_left_in_set bei Aufnahmewechsel (turn_ends).
     def apply_transitions!(state, transitions)
       state["player_at_table"] = transitions[:next_player_at_table].to_s
-      state["shots_left_in_turn"] = transitions[:next_shots_left_in_turn]
+      if state["current_phase"] == "direkter_zweikampf"
+        state["shots_left_in_turn"] = transitions[:next_shots_left_in_turn]
+      end
+
+      if state["current_phase"] == "serienspiel" && transitions[:turn_ends]
+        current = state["innings_left_in_set"].to_i
+        state["innings_left_in_set"] = [current - 1, 0].max
+      end
     end
 
     # Schließe den aktuellen Satz wenn ein Spieler set_target_points erreicht hat.
@@ -106,8 +153,19 @@ module Bk2Kombi
       return if state["current_set_number"] >= 3
 
       state["current_set_number"] += 1
-      state["current_phase"] = "direkter_zweikampf"
-      state["shots_left_in_turn"] = 2
+      # Phase 38.2 D-14: Phasenalternation Satz 1 → Satz 2 (flipped), Satz 2 → Satz 3 (back to first_set_mode).
+      first_mode = state["first_set_mode"].presence || derive_first_set_mode
+      new_phase = phase_for_set(state["current_set_number"], first_mode)
+      state["current_phase"] = new_phase
+
+      if new_phase == "direkter_zweikampf"
+        state["shots_left_in_turn"] = derive_dz_max_shots
+        state["innings_left_in_set"] = 0
+      else # serienspiel
+        state["shots_left_in_turn"] = 0
+        state["innings_left_in_set"] = derive_sp_max_innings
+      end
+
       # Anstoß-Alternation: neuer Satz beginnt mit dem anderen Spieler.
       state["player_at_table"] = (winner == "playera") ? "playerb" : "playera"
     end
