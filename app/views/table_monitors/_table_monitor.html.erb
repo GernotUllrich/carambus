@@ -22,9 +22,8 @@
         <%= render partial: "table_monitors/show_pool", locals: { table_monitor: table_monitor, full_screen: true } %>
       <%- elsif show_data["free_game_form"] == "snooker" %>
         <%= render partial: "table_monitors/show_snooker", locals: { table_monitor: table_monitor, full_screen: true } %>
-      <%- elsif show_data["free_game_form"] == "bk2_kombi" %>
-        <%= render partial: "table_monitors/show_bk2_kombi", locals: { table_monitor: table_monitor, full_screen: true } %>
       <%- else %>
+        <%# Karambol + Eurokegel + BK2-Kombi (branches inside via free_game_form) %>
         <%= render partial: "table_monitors/show", locals: { table_monitor: table_monitor, full_screen: true } %>
       <%- end %>
     <%- end %>
