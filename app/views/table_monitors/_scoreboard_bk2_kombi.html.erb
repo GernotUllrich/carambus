@@ -224,23 +224,123 @@
 
   </div><%# end top 3-pane row %>
 
-  <%# ================ BOTTOM BAR — PLACEHOLDER FOR PLAN 04 ================ %>
-  <%#
-    Phase 38.2 Plan 04 appends the shot-entry bottom bar HERE.
-    Structure (per D-15 / D-16):
-      Row 1 (amber): [ ] Volles Kegelbild vor Stoss + hint.
-      Row 2: Gefallene Kegel select 0..5, Mittelpin, Echter Karambol., Unechter Karambol.
-      Row 3: Durchläufe number, [ ] Fehler → Fehlercode + Bande, STOSS ERFASSEN submit.
-    Must target data-controller="bk2-kombi-shot" from app/javascript/controllers/bk2_kombi_shot_controller.js
-    (also rewritten in Plan 04) and `data-reflex="click->TableMonitor#bk2_kombi_submit_shot"` on
-    the submit button.
-    DO NOT render any existing Karambol bottom bar here (-10/-5/-1/+1/+5/+10) — the whole
-    D-15 redesign replaces that row.
-  %>
-  <div id="bk2_bottom_bar_placeholder" class="w-full dark:bg-black p-4 text-center text-gray-400 text-<%= vw2 %>">
-    <%# Plan 04 will replace this placeholder. Visible string intentionally neutral so
-        Plan 05 system tests can distinguish "not yet wired" from "wired". %>
-    <em>Shot-entry bar — pending Plan 04</em>
-  </div>
+  <%# ================ BOTTOM BAR — D-15 / D-16 (Plan 04) ================ %>
+  <%- show_bottom_bar = !match_finished && !table_monitor.bk2_state_uninitialized? && current_phase.present? %>
+  <%- if show_bottom_bar %>
+    <div id="bk2_bottom_bar_<%= table_monitor.id %>"
+         class="w-full dark:bg-black text-gray-800 dark:text-gray-200 p-3 border-t border-gray-300 dark:border-gray-700"
+         data-controller="bk2-kombi-shot"
+         data-table-monitor-id="<%= table_monitor.id %>">
+
+      <%# ---------- Row 1 (amber): full_pin_image + hint ---------- %>
+      <div class="flex items-center gap-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-300 dark:border-amber-700 rounded p-2 mb-2">
+        <label class="flex items-center gap-2 font-semibold text-amber-800 dark:text-amber-300 cursor-pointer whitespace-nowrap">
+          <input type="checkbox"
+                 id="bk2_full_pin_image_<%= table_monitor.id %>"
+                 class="w-5 h-5 accent-amber-500"
+                 data-bk2-kombi-shot-target="fullPinImage">
+          <span class="text-<%= vw2 %>"><%= t("table_monitor.bk2_kombi.form.full_pin_image") %></span>
+        </label>
+        <p class="text-<%= vw2 %> text-amber-700 dark:text-amber-400 flex-1">
+          <%= t("table_monitor.bk2_kombi.bottom_bar.row1_hint") %>
+        </p>
+      </div>
+
+      <%# ---------- Row 2: Gefallene Kegel + Mittelpin + Echter/Unechter Karambol ---------- %>
+      <div class="flex flex-wrap items-center gap-4 mb-2">
+        <div class="flex items-center gap-2">
+          <label class="text-<%= vw2 %> font-medium" for="bk2_fallen_pins_<%= table_monitor.id %>">
+            <%= t("table_monitor.bk2_kombi.form.fallen_pins") %>:
+          </label>
+          <select id="bk2_fallen_pins_<%= table_monitor.id %>"
+                  class="border rounded px-2 py-1 dark:bg-gray-800 dark:border-gray-600 text-<%= vw2 %>"
+                  data-bk2-kombi-shot-target="fallenPins">
+            <%- (0..5).each do |n| %>
+              <option value="<%= n %>"><%= n %></option>
+            <%- end %>
+          </select>
+        </div>
+        <label class="flex items-center gap-2 cursor-pointer">
+          <input type="checkbox"
+                 id="bk2_middle_pin_only_<%= table_monitor.id %>"
+                 class="w-4 h-4"
+                 data-bk2-kombi-shot-target="middlePinOnly">
+          <span class="text-<%= vw2 %>"><%= t("table_monitor.bk2_kombi.form.middle_pin_only") %></span>
+        </label>
+        <label class="flex items-center gap-2 cursor-pointer">
+          <input type="checkbox"
+                 id="bk2_true_carom_<%= table_monitor.id %>"
+                 class="w-4 h-4"
+                 data-bk2-kombi-shot-target="trueCarom">
+          <span class="text-<%= vw2 %>"><%= t("table_monitor.bk2_kombi.form.true_carom") %></span>
+        </label>
+        <label class="flex items-center gap-2 cursor-pointer">
+          <input type="checkbox"
+                 id="bk2_false_carom_<%= table_monitor.id %>"
+                 class="w-4 h-4"
+                 data-bk2-kombi-shot-target="falseCarom">
+          <span class="text-<%= vw2 %>"><%= t("table_monitor.bk2_kombi.form.false_carom") %></span>
+        </label>
+      </div>
+
+      <%# ---------- Row 3: Durchläufe + Fehler + Fehlercode + Bande + STOSS ERFASSEN ---------- %>
+      <div class="flex flex-wrap items-center gap-4">
+        <div class="flex items-center gap-2">
+          <label class="text-<%= vw2 %> font-medium" for="bk2_passages_<%= table_monitor.id %>">
+            <%= t("table_monitor.bk2_kombi.form.passages") %>:
+          </label>
+          <input type="number"
+                 id="bk2_passages_<%= table_monitor.id %>"
+                 min="0" max="3" value="0"
+                 autocomplete="off"
+                 class="border rounded px-2 py-1 w-20 dark:bg-gray-800 dark:border-gray-600 text-<%= vw2 %>"
+                 data-bk2-kombi-shot-target="passages">
+        </div>
+
+        <label class="flex items-center gap-2 font-semibold text-red-600 dark:text-red-400 cursor-pointer">
+          <input type="checkbox"
+                 id="bk2_foul_<%= table_monitor.id %>"
+                 class="w-4 h-4 accent-red-500"
+                 data-bk2-kombi-shot-target="foul"
+                 data-action="change->bk2-kombi-shot#toggleFoulFields">
+          <span class="text-<%= vw2 %>"><%= t("table_monitor.bk2_kombi.form.foul") %></span>
+        </label>
+
+        <%# Foul sub-fields — hidden by default; toggled by toggleFoulFields(). %>
+        <div id="bk2_foul_fields_<%= table_monitor.id %>"
+             class="hidden flex items-center gap-4 pl-4 border-l-2 border-red-300 dark:border-red-700">
+          <select id="bk2_foul_code_<%= table_monitor.id %>"
+                  class="border rounded px-2 py-1 dark:bg-gray-800 dark:border-gray-600 text-<%= vw2 %>"
+                  data-bk2-kombi-shot-target="foulCode"
+                  data-action="change->bk2-kombi-shot#toggleBandHit">
+            <option value="wrong_ball"><%= t("table_monitor.bk2_kombi.form.foul_codes.wrong_ball") %></option>
+            <option value="no_object_ball_hit"><%= t("table_monitor.bk2_kombi.form.foul_codes.no_object_ball_hit") %></option>
+            <option value="premature_shot"><%= t("table_monitor.bk2_kombi.form.foul_codes.premature_shot") %></option>
+            <option value="direct_play_on_pins"><%= t("table_monitor.bk2_kombi.form.foul_codes.direct_play_on_pins") %></option>
+            <option value="other"><%= t("table_monitor.bk2_kombi.form.foul_codes.other") %></option>
+          </select>
+          <label id="bk2_band_hit_row_<%= table_monitor.id %>"
+                 class="hidden flex items-center gap-2 cursor-pointer">
+            <input type="checkbox"
+                   id="bk2_band_hit_<%= table_monitor.id %>"
+                   class="w-4 h-4"
+                   data-bk2-kombi-shot-target="bandHit">
+            <span class="text-<%= vw2 %>"><%= t("table_monitor.bk2_kombi.form.band_hit") %></span>
+          </label>
+        </div>
+
+        <%# STOSS ERFASSEN submit button — right-aligned via flex-grow spacer. %>
+        <div class="flex-1"></div>
+        <button id="bk2_submit_<%= table_monitor.id %>"
+                class="py-2 px-6 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded text-<%= vw2 %> focus:outline-none focus:ring-4 focus:ring-blue-500"
+                data-bk2-kombi-shot-target="submit"
+                data-action="click->bk2-kombi-shot#submit"
+                data-reflex="click->TableMonitor#bk2_kombi_submit_shot"
+                data-id="<%= table_monitor.id %>">
+          <%= t("table_monitor.bk2_kombi.form.submit") %>
+        </button>
+      </div>
+    </div>
+  <%- end %>
 
 </div><%# end bk2-kombi-scoreboard %>
