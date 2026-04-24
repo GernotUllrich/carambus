@@ -301,4 +301,200 @@ class Bk2Kombi::AdvanceMatchStateTest < ActiveSupport::TestCase
       "Second call with same sequence number must be a no-op"
     assert result[:idempotent_noop], "Result must indicate idempotent no-op"
   end
+
+  # ===========================================================================
+  # Phase 38.2 Plan 01 — bk2_options-driven init + phase-flip across sets
+  # ===========================================================================
+
+  # Helper: create a fresh TableMonitor with bk2_options but no bk2_state yet,
+  # so init_state_if_missing! runs with the configured options.
+  def fresh_bk2_tm(bk2_options)
+    TableMonitor.create!(
+      state: "playing",
+      data: {
+        "free_game_form" => "bk2_kombi",
+        "current_kickoff_player" => "playera",
+        "bk2_options" => bk2_options
+      }
+    )
+  end
+
+  test "38.2-01 T1: init seeds shots_left_in_turn from bk2_options.direkter_zweikampf_max_shots_per_turn (DZ first)" do
+    tm = fresh_bk2_tm(
+      "set_target_points" => 50,
+      "direkter_zweikampf_max_shots_per_turn" => 3,
+      "first_set_mode" => "direkter_zweikampf"
+    )
+
+    Bk2Kombi::AdvanceMatchState.call(
+      table_monitor: tm,
+      shot_payload: pin_shot(fallen_pins: 0)
+    )
+
+    state = tm.reload.data["bk2_state"]
+    # 3 seeded - 1 (non-bonus shot consumes one) = 2
+    assert_equal 2, state["shots_left_in_turn"],
+      "shots_left_in_turn must be seeded from bk2_options (3) and decremented by 1 after the first shot"
+    assert_equal "direkter_zweikampf", state["current_phase"]
+    assert_equal "direkter_zweikampf", state["first_set_mode"]
+  end
+
+  test "38.2-01 T2: init seeds innings_left_in_set from bk2_options.serienspiel_max_innings_per_set (SP first)" do
+    tm = fresh_bk2_tm(
+      "set_target_points" => 50,
+      "serienspiel_max_innings_per_set" => 7,
+      "first_set_mode" => "serienspiel"
+    )
+
+    # Non-turn-ending shot (positive score) leaves innings_left_in_set at seeded value.
+    Bk2Kombi::AdvanceMatchState.call(
+      table_monitor: tm,
+      shot_payload: pin_shot(fallen_pins: 2)
+    )
+
+    state = tm.reload.data["bk2_state"]
+    assert_equal 7, state["innings_left_in_set"],
+      "innings_left_in_set must be seeded from bk2_options (7) and remain 7 on a non-turn-ending SP shot"
+    assert_equal "serienspiel", state["current_phase"]
+    assert_equal "serienspiel", state["first_set_mode"]
+  end
+
+  test "38.2-01 T3: phase_for_set — set 1/3 match first_set_mode, set 2 is flipped" do
+    tm = fresh_bk2_tm(
+      "set_target_points" => 50,
+      "first_set_mode" => "direkter_zweikampf"
+    )
+    svc = Bk2Kombi::AdvanceMatchState.new(table_monitor: tm, shot_payload: pin_shot(fallen_pins: 0))
+
+    assert_equal "direkter_zweikampf", svc.send(:phase_for_set, 1, "direkter_zweikampf")
+    assert_equal "serienspiel",         svc.send(:phase_for_set, 2, "direkter_zweikampf")
+    assert_equal "direkter_zweikampf", svc.send(:phase_for_set, 3, "direkter_zweikampf")
+
+    assert_equal "serienspiel",         svc.send(:phase_for_set, 1, "serienspiel")
+    assert_equal "direkter_zweikampf", svc.send(:phase_for_set, 2, "serienspiel")
+    assert_equal "serienspiel",         svc.send(:phase_for_set, 3, "serienspiel")
+  end
+
+  test "38.2-01 T4: close_set advances with phase flip and correct counter reset (DZ-first → SP set 2)" do
+    tm = fresh_bk2_tm(
+      "set_target_points" => 50,
+      "direkter_zweikampf_max_shots_per_turn" => 2,
+      "serienspiel_max_innings_per_set" => 5,
+      "first_set_mode" => "direkter_zweikampf"
+    )
+    # Initialise state, then bring player A to 47 and close the set with a 5-pin.
+    Bk2Kombi::AdvanceMatchState.call(table_monitor: tm, shot_payload: pin_shot(fallen_pins: 0))
+    tm.data["bk2_state"]["set_scores"]["1"]["playera"] = 47
+    tm.save!
+    Bk2Kombi::AdvanceMatchState.call(table_monitor: tm, shot_payload: pin_shot(fallen_pins: 5))
+
+    state = tm.reload.data["bk2_state"]
+    assert_equal 2, state["current_set_number"]
+    assert_equal "serienspiel", state["current_phase"], "Set 2 phase must flip to serienspiel"
+    assert_equal 5, state["innings_left_in_set"], "New SP set resets innings_left_in_set"
+    assert_equal 0, state["shots_left_in_turn"], "SP set leaves shots_left_in_turn at 0"
+  end
+
+  test "38.2-01 T4b: close_set with SP-first → DZ set 2 resets shots_left_in_turn, innings_left_in_set=0" do
+    tm = fresh_bk2_tm(
+      "set_target_points" => 50,
+      "direkter_zweikampf_max_shots_per_turn" => 2,
+      "serienspiel_max_innings_per_set" => 5,
+      "first_set_mode" => "serienspiel"
+    )
+    Bk2Kombi::AdvanceMatchState.call(table_monitor: tm, shot_payload: pin_shot(fallen_pins: 0))
+    tm.data["bk2_state"]["set_scores"]["1"]["playera"] = 47
+    tm.save!
+    Bk2Kombi::AdvanceMatchState.call(table_monitor: tm, shot_payload: pin_shot(fallen_pins: 5))
+
+    state = tm.reload.data["bk2_state"]
+    assert_equal 2, state["current_set_number"]
+    assert_equal "direkter_zweikampf", state["current_phase"]
+    assert_equal 2, state["shots_left_in_turn"]
+    assert_equal 0, state["innings_left_in_set"]
+  end
+
+  test "38.2-01 T5: apply_transitions decrements innings_left_in_set on turn_ends in Serienspiel" do
+    tm = fresh_bk2_tm(
+      "set_target_points" => 50,
+      "serienspiel_max_innings_per_set" => 5,
+      "first_set_mode" => "serienspiel"
+    )
+    # Initialise via a non-turn-ending shot.
+    Bk2Kombi::AdvanceMatchState.call(table_monitor: tm, shot_payload: pin_shot(fallen_pins: 2))
+    assert_equal 5, tm.reload.data["bk2_state"]["innings_left_in_set"]
+
+    # Turn-ending shot: foul in SP ends the Aufnahme → innings_left decrements.
+    Bk2Kombi::AdvanceMatchState.call(table_monitor: tm, shot_payload: foul_shot(foul_code: :wrong_ball))
+
+    state = tm.reload.data["bk2_state"]
+    assert_equal 4, state["innings_left_in_set"],
+      "innings_left_in_set must decrement from 5 → 4 on turn_ends in SP"
+  end
+
+  test "38.2-01 T5b: apply_transitions with zero-point non-foul in SP also ends turn → innings decrements" do
+    tm = fresh_bk2_tm(
+      "set_target_points" => 50,
+      "serienspiel_max_innings_per_set" => 5,
+      "first_set_mode" => "serienspiel"
+    )
+    Bk2Kombi::AdvanceMatchState.call(table_monitor: tm, shot_payload: pin_shot(fallen_pins: 2))
+    assert_equal 5, tm.reload.data["bk2_state"]["innings_left_in_set"]
+
+    # Zero-pin non-foul shot in SP ends the Aufnahme per ScoreShot.calculate_serienspiel_transitions.
+    Bk2Kombi::AdvanceMatchState.call(table_monitor: tm, shot_payload: pin_shot(fallen_pins: 0))
+
+    state = tm.reload.data["bk2_state"]
+    assert_equal 4, state["innings_left_in_set"]
+  end
+
+  test "38.2-01 T6: apply_transitions does not touch innings_left_in_set in direkter_zweikampf" do
+    tm = fresh_bk2_tm(
+      "set_target_points" => 50,
+      "direkter_zweikampf_max_shots_per_turn" => 2,
+      "first_set_mode" => "direkter_zweikampf"
+    )
+    Bk2Kombi::AdvanceMatchState.call(table_monitor: tm, shot_payload: pin_shot(fallen_pins: 0))
+    state = tm.reload.data["bk2_state"]
+    assert_equal 0, state["innings_left_in_set"]
+
+    Bk2Kombi::AdvanceMatchState.call(table_monitor: tm, shot_payload: foul_shot(foul_code: :wrong_ball))
+    state = tm.reload.data["bk2_state"]
+    assert_equal 0, state["innings_left_in_set"], "DZ phase must not touch innings_left_in_set"
+  end
+
+  test "38.2-01 T7: defaults apply when bk2_options is empty" do
+    tm = TableMonitor.create!(
+      state: "playing",
+      data: {
+        "free_game_form" => "bk2_kombi",
+        "current_kickoff_player" => "playera",
+        "bk2_options" => {}
+      }
+    )
+
+    Bk2Kombi::AdvanceMatchState.call(table_monitor: tm, shot_payload: pin_shot(fallen_pins: 0))
+
+    state = tm.reload.data["bk2_state"]
+    assert_equal "direkter_zweikampf", state["current_phase"],
+      "Default first_set_mode and set-1 phase is direkter_zweikampf"
+    assert_equal "direkter_zweikampf", state["first_set_mode"]
+    assert_equal 50, state["set_target_points"]
+    # Default DZ max shots = 2, one shot consumed → shots_left_in_turn = 1.
+    assert_equal 1, state["shots_left_in_turn"]
+    assert_equal 0, state["innings_left_in_set"], "innings_left_in_set is 0 while in DZ phase"
+  end
+
+  test "38.2-01 T8: invalid first_set_mode in bk2_options falls back to direkter_zweikampf" do
+    tm = fresh_bk2_tm(
+      "set_target_points" => 50,
+      "first_set_mode" => "attacker_injected_value"
+    )
+
+    Bk2Kombi::AdvanceMatchState.call(table_monitor: tm, shot_payload: pin_shot(fallen_pins: 0))
+
+    state = tm.reload.data["bk2_state"]
+    assert_equal "direkter_zweikampf", state["first_set_mode"]
+    assert_equal "direkter_zweikampf", state["current_phase"]
+  end
 end
