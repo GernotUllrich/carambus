@@ -280,6 +280,12 @@ class TableMonitorReflex < ApplicationReflex
       end
     elsif @table_monitor.shootout_modal_should_be_open?
       # start game
+      # Phase 38.3-08 I6: initialize bk2_state on the keyboard (d key) shootout-confirm path.
+      # No mode payload here — relies on previously-written bk2_options[first_set_mode]
+      # OR the DEFAULT_FIRST_SET_MODE fallback in derive_first_set_mode (see T4).
+      if @table_monitor.data["free_game_form"] == "bk2_kombi"
+        Bk2Kombi::AdvanceMatchState.initialize_bk2_state!(@table_monitor)
+      end
       @table_monitor.reset_timer!
       @table_monitor.finish_shootout!
       @table_monitor.evaluate_result
@@ -360,6 +366,13 @@ class TableMonitorReflex < ApplicationReflex
       end
     end
     @table_monitor.suppress_broadcast = true
+    # Phase 38.3-08 I6: initialize bk2_state from the just-written bk2_options BEFORE
+    # the AASM transition to playing. Without this, the playing-state scoreboard renders
+    # the GAP-05 "Spiel nicht initialisiert" fallback banner. Idempotent — safe no-op if
+    # bk2_state is already populated.
+    if @table_monitor.data["free_game_form"] == "bk2_kombi"
+      Bk2Kombi::AdvanceMatchState.initialize_bk2_state!(@table_monitor)
+    end
     # @table_monitor.panel_state = 'input
     @table_monitor.switch_players
     @table_monitor.reset_timer!
@@ -386,6 +399,13 @@ class TableMonitorReflex < ApplicationReflex
       end
     end
     @table_monitor.suppress_broadcast = true
+    # Phase 38.3-08 I6: initialize bk2_state from the just-written bk2_options BEFORE
+    # the AASM transition to playing. Without this, the playing-state scoreboard renders
+    # the GAP-05 "Spiel nicht initialisiert" fallback banner. Idempotent — safe no-op if
+    # bk2_state is already populated.
+    if @table_monitor.data["free_game_form"] == "bk2_kombi"
+      Bk2Kombi::AdvanceMatchState.initialize_bk2_state!(@table_monitor)
+    end
     @table_monitor.reset_timer!
     # noinspection RubyResolve
     @table_monitor.finish_shootout!
