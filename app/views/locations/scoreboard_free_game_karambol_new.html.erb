@@ -453,9 +453,15 @@
             increment: 1,
             no_counter: true }
           %>
+          <%# Phase 38.4-10 O3 / O1: pre-existing generic Punktziel row is HIDDEN when a
+              BK-* discipline is selected. Plan 38.4-09's BK-aware Punkt-Ziel row at
+              lines 348-366 is the only row contributing to balls_goal for BK-*.
+              Without this guard, both rows render simultaneously (UAT round 2 screenshot
+              2026-04-25 15.44.04) and the generic row's default value (50) overrides
+              the BK-aware selection. %>
           <%= render partial: "radio_select", locals: {
             table: table,
-            show: "parameters == 0",
+            show: "parameters == 0 && !is_bk_family",
             header: "Punktziel",
             varname: "balls_goal",
             values: ["0"] + Discipline::KARAMBOL_POINTS_MAP,
