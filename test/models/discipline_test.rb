@@ -98,15 +98,52 @@ class DisciplineTest < ActiveSupport::TestCase
     "Biathlon"
   ].freeze
 
-  test "BK2_DISCIPLINE_MAP contains 'BK2-Kombi' as the sole canonical entry" do
+  # Phase 38.4-04: BK2_DISCIPLINE_MAP extended from 1 to 5 entries (D-04).
+  test "BK2_DISCIPLINE_MAP contains all 5 BK-* names" do
     assert defined?(Discipline::BK2_DISCIPLINE_MAP),
-      "Discipline::BK2_DISCIPLINE_MAP must be defined (38.1-06 Task 1)"
+      "Discipline::BK2_DISCIPLINE_MAP must be defined"
     assert_instance_of Array, Discipline::BK2_DISCIPLINE_MAP
-    assert_equal ["BK2-Kombi"], Discipline::BK2_DISCIPLINE_MAP,
-      "BK2_DISCIPLINE_MAP must be exactly ['BK2-Kombi']"
+    assert_equal %w[BK2-Kombi BK50 BK100 BK-2 BK-2plus], Discipline::BK2_DISCIPLINE_MAP,
+      "BK2_DISCIPLINE_MAP must contain all 5 BK-* discipline names (Phase 38.4-04)"
     assert Discipline::BK2_DISCIPLINE_MAP.frozen?,
       "BK2_DISCIPLINE_MAP must be frozen"
     assert_includes Discipline::BK2_DISCIPLINE_MAP, "BK2-Kombi"
+  end
+
+  # ---------------------------------------------------------------------
+  # Phase 38.4-04: BK-family predicate + ballziel_choices (Task 1)
+  # ---------------------------------------------------------------------
+
+  test "bk_family? returns true for all 5 BK-* fixtures" do
+    %i[bk2_kombi bk50 bk100 bk_2 bk_2plus].each do |fixture_name|
+      d = disciplines(fixture_name)
+      assert d.bk_family?,
+        "Discipline '#{fixture_name}' should be BK-family (data.free_game_form=#{d.data_free_game_form.inspect})"
+    end
+  end
+
+  test "bk_family? returns false for non-BK disciplines" do
+    %i[carom_3band pool_8ball].each do |fixture_name|
+      d = disciplines(fixture_name)
+      assert_not d.bk_family?, "Discipline '#{fixture_name}' should NOT be BK-family"
+    end
+  end
+
+  test "ballziel_choices returns correct array from data" do
+    assert_equal [50, 60, 70],             disciplines(:bk2_kombi).ballziel_choices
+    assert_equal [50],                     disciplines(:bk50).ballziel_choices
+    assert_equal [100],                    disciplines(:bk100).ballziel_choices
+    assert_equal [50, 60, 70, 80, 90, 100], disciplines(:bk_2).ballziel_choices
+    assert_equal [50, 60, 70, 80, 90, 100], disciplines(:bk_2plus).ballziel_choices
+  end
+
+  test "ballziel_choices returns empty array for non-BK disciplines" do
+    assert_equal [], disciplines(:carom_3band).ballziel_choices
+  end
+
+  test "BK2_FREE_GAME_FORMS contains 5 free_game_form values" do
+    assert_equal %w[bk2_kombi bk50 bk100 bk_2 bk_2plus], Discipline::BK2_FREE_GAME_FORMS
+    assert Discipline::BK2_FREE_GAME_FORMS.frozen?
   end
 
   test "KARAMBOL_DISCIPLINE_MAP is UNCHANGED by 38.1-06 (regression snapshot)" do

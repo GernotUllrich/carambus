@@ -22,6 +22,7 @@
 #
 class Discipline < ApplicationRecord
   include LocalProtector
+
   has_many :discipline_tournament_plans
   belongs_to :table_kind, optional: true
   belongs_to :super_discipline, foreign_key: :super_discipline_id, class_name: "Discipline", optional: true
@@ -95,13 +96,13 @@ class Discipline < ApplicationRecord
 
   # Translation map for international frontend
   TRANSLATIONS = {
-    'Karambol' => { en: 'Carom', fr: 'Carambole', es: 'Carambola', nl: 'Carambole', de: 'Karambol' },
-    'Dreiband' => { en: '3-Cushion', fr: 'Trois bandes', es: 'Tres bandas', nl: 'Driebanden', de: 'Dreiband' },
-    'Dreiband klein' => { en: '3-Cushion (small table)', fr: 'Trois bandes (petit billard)', es: 'Tres bandas (mesa pequeña)', nl: 'Driebanden (klein)', de: 'Dreiband klein' },
-    'Dreiband groß' => { en: '3-Cushion (match table)', fr: 'Trois bandes (grand billard)', es: 'Tres bandas (mesa grande)', nl: 'Driebanden (groot)', de: 'Dreiband groß' },
-    'Freie Partie' => { en: 'Straight Rail', fr: 'Partie libre', es: 'Libre', nl: 'Vrije partij', de: 'Freie Partie' },
-    'Cadre' => { en: 'Balkline', fr: 'Cadre', es: 'Cadre', nl: 'Cadre', de: 'Cadre' },
-    'Einband' => { en: '1-Cushion', fr: 'Une bande', es: 'Una banda', nl: 'Eenbanden', de: 'Einband' }
+    "Karambol" => {en: "Carom", fr: "Carambole", es: "Carambola", nl: "Carambole", de: "Karambol"},
+    "Dreiband" => {en: "3-Cushion", fr: "Trois bandes", es: "Tres bandas", nl: "Driebanden", de: "Dreiband"},
+    "Dreiband klein" => {en: "3-Cushion (small table)", fr: "Trois bandes (petit billard)", es: "Tres bandas (mesa pequeña)", nl: "Driebanden (klein)", de: "Dreiband klein"},
+    "Dreiband groß" => {en: "3-Cushion (match table)", fr: "Trois bandes (grand billard)", es: "Tres bandas (mesa grande)", nl: "Driebanden (groot)", de: "Dreiband groß"},
+    "Freie Partie" => {en: "Straight Rail", fr: "Partie libre", es: "Libre", nl: "Vrije partij", de: "Freie Partie"},
+    "Cadre" => {en: "Balkline", fr: "Cadre", es: "Cadre", nl: "Cadre", de: "Cadre"},
+    "Einband" => {en: "1-Cushion", fr: "Une bande", es: "Una banda", nl: "Eenbanden", de: "Einband"}
   }.freeze
 
   def translated_name(locale = :en)
@@ -109,19 +110,19 @@ class Discipline < ApplicationRecord
   end
 
   DE_DISCIPLINE_NAMES = ["Pool", "Snooker", "Kegel", "5 Kegel", "Karambol großes Billard",
-                         "Karambol kleines Billard", "Biathlon"].freeze
+    "Karambol kleines Billard", "Biathlon"].freeze
   DISCIPLINE_NAMES = ["Pool", "Snooker", "Pin Billards", "5-Pin Billards",
-                      "Carambol Match Billard", "Carambol Small Billard", "Biathlon"].freeze
+    "Carambol Match Billard", "Carambol Small Billard", "Biathlon"].freeze
 
   MAJOR_DISCIPLINES = {
-    "Pool" => { "table_kind" => ["Pool"] },
-    "Snooker" => { "table_kind" => ["Snooker"] },
-    "Pin Billards" => { "table_kind" => ["Small Table", "Match Table", "Large Table"] },
-    "5-Pin Billards" => { "table_kind" => ["Small Table", "Match Table", "Large Table"] },
-    "Carambol Large Table" => { "table_kind" => ["Large Table"] },
-    "Carambol Small Table" => { "table_kind" => ["Small Table"] },
-    "Carambol Match Table" => { "table_kind" => ["Match Table"] },
-    "Biathlon" => { "table_kind" => ["Small Table"] }
+    "Pool" => {"table_kind" => ["Pool"]},
+    "Snooker" => {"table_kind" => ["Snooker"]},
+    "Pin Billards" => {"table_kind" => ["Small Table", "Match Table", "Large Table"]},
+    "5-Pin Billards" => {"table_kind" => ["Small Table", "Match Table", "Large Table"]},
+    "Carambol Large Table" => {"table_kind" => ["Large Table"]},
+    "Carambol Small Table" => {"table_kind" => ["Small Table"]},
+    "Carambol Match Table" => {"table_kind" => ["Match Table"]},
+    "Biathlon" => {"table_kind" => ["Small Table"]}
   }.freeze
 
   POOL_DISCIPLINE_MAP = ["8-Ball", "9-Ball", "10-Ball", "14.1 endlos"].freeze
@@ -144,14 +145,17 @@ class Discipline < ApplicationRecord
     "Biathlon"
   ].freeze
 
-  # BK2-Kombi is a distinct Kegel-family discipline served by a dedicated
-  # scoreboard partial (_scoreboard_bk2_kombi.html.erb). It is intentionally
+  # BK2-family disciplines served by the BK2 scoreboard path. Intentionally
   # kept OUT of KARAMBOL_DISCIPLINE_MAP — widening that constant would shift
   # the index basis consumed by scoreboard_free_game_karambol_new.html.erb
   # (indices 0..5 for the Small Billard karambol radio-select) and would be
   # a breaking change for existing karambol quick starts.
-  # See Plan 38.1-06 (D-08: Discipline id 107 is the canonical BK2-Kombi).
-  BK2_DISCIPLINE_MAP = ["BK2-Kombi"].freeze
+  # See Plan 38.1-06 (D-08) and Phase 38.4-04 (D-04: 5 BK-* disciplines).
+  BK2_DISCIPLINE_MAP = %w[BK2-Kombi BK50 BK100 BK-2 BK-2plus].freeze
+
+  # Maps Discipline.data["free_game_form"] string to display semantics.
+  # Phase 38.4 I1 — 5 BK-* disciplines share one scoring family via Bk2::CommitInning.
+  BK2_FREE_GAME_FORMS = %w[bk2_kombi bk50 bk100 bk_2 bk_2plus].freeze
 
   DISCIPLINE_CLASS_LIMITS =
     { # GD-Min oder [GD-Min, Bälle-Min]
@@ -311,7 +315,7 @@ class Discipline < ApplicationRecord
 
   def carambol_str(_player_ranking, opts = {})
     if opts[:v1].present? && opts[:v2].present? && opts[:v2].to_i.positive?
-      format("%.2f", (opts[:v1].to_f / opts[:v2]))
+      format("%.2f", opts[:v1].to_f / opts[:v2])
     else
       ""
     end
@@ -336,9 +340,9 @@ class Discipline < ApplicationRecord
   def merge_disciplines(with_discipline_ids = [], opts = {})
     Discipline.transaction do
       if opts[:force_merge] ||
-         (Discipline.where(id: with_discipline_ids).map(&:name)
-                    .sort + synonyms.split("\n"))
-         .uniq.compact.sort == synonyms.split("\n").uniq.compact.sort
+          (Discipline.where(id: with_discipline_ids).map(&:name)
+                     .sort + synonyms.split("\n"))
+              .uniq.compact.sort == synonyms.split("\n").uniq.compact.sort
         Rails.logger.info("REPORT merging disciplines (#{name}[#{id}] with #{
           Array(with_discipline_ids).map do |idx|
             "#{Discipline[idx].name} [#{idx}]"
@@ -374,6 +378,35 @@ class Discipline < ApplicationRecord
       end
     end
     reload
+  end
+
+  # Phase 38.4 I1 — True if this Discipline is any of the 5 BK-* disciplines
+  # (BK2-Kombi, BK50, BK100, BK-2, BK-2plus). Driven by data[:free_game_form]
+  # so it works even if the name string changes.
+  def bk_family?
+    BK2_FREE_GAME_FORMS.include?(data_free_game_form)
+  end
+
+  # Safely extract data["free_game_form"] from the JSON-text `data` column.
+  def data_free_game_form
+    return nil if data.blank?
+    parsed = begin
+      JSON.parse(data)
+    rescue JSON::ParserError
+      return nil
+    end
+    parsed["free_game_form"]
+  end
+
+  # Returns the ballziel_choices array for this discipline (empty if none).
+  def ballziel_choices
+    return [] if data.blank?
+    parsed = begin
+      JSON.parse(data)
+    rescue JSON::ParserError
+      return []
+    end
+    Array(parsed["ballziel_choices"])
   end
 
   def root
