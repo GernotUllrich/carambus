@@ -1,6 +1,20 @@
 # frozen_string_literal: true
 
 class TableMonitorsController < ApplicationController
+  # Phase 38.4-13 P1/P3: discipline-specific ballziel fallback used by clamp_bk_family_params!
+  # when the local Discipline record is missing OR has an empty ballziel_choices array.
+  # MIRRORS script/seed_bk2_disciplines.rb — keep these two in sync.
+  # Defense-in-depth against carambus_api → local-server Version sync gaps (see STATE.md
+  # "sync-version-yaml-load-json-collision" todo). The seed remains canonical; this
+  # constant ensures user-facing forms still work when the seed has not yet propagated.
+  BK_FAMILY_BALLZIEL_FALLBACK = {
+    "BK50" => [50],
+    "BK100" => [100],
+    "BK-2" => [50, 60, 70, 80, 90, 100],
+    "BK-2plus" => [50, 60, 70, 80, 90, 100],
+    "BK2-Kombi" => [50, 60, 70]
+  }.freeze
+
   before_action :set_table_monitor,
     only: %i[show start_game edit update destroy next_step evaluate_result set_balls toggle_dark_mode]
   before_action :block_tournament_manipulation,
@@ -412,12 +426,30 @@ class TableMonitorsController < ApplicationController
   # bk2_options with the clamped value + the two integer config fields.
   # Mutates p in place; always returns p.
   def clamp_bk_family_params!(p)
-    discipline = Discipline.find_by(name: p[:discipline_a].to_s)
-    allowed = discipline&.ballziel_choices.presence || [50]
+    discipline_name = p[:discipline_a].to_s
+    discipline = Discipline.find_by(name: discipline_name)
+
+    # Phase 38.4-13 P1/P3: defense-in-depth ballziel fallback when the local
+    # Discipline record is missing OR has empty ballziel_choices (carambus_api
+    # → local-server sync gap, see STATE.md
+    # "sync-version-yaml-load-json-collision" todo). The seed in
+    # script/seed_bk2_disciplines.rb is canonical; BK_FAMILY_BALLZIEL_FALLBACK
+    # is the safety net — keep them in sync.
+    allowed = discipline&.ballziel_choices.presence ||
+      BK_FAMILY_BALLZIEL_FALLBACK[discipline_name] ||
+      [50]
 
     # balls_goal CLAMP (T-38.4-04-02): intersect user input with allowed list.
-    # Read from the sliced params hash; default to first allowed value.
-    requested = p.delete(:balls_goal).to_i
+    # Phase 38.4-13 P1: read :balls_goal first; fall back to :balls_goal_a /
+    # :balls_goal_b when caller omitted the top-level field (some legacy paths
+    # emit only the per-player variants). The quick-start partial at
+    # _quick_game_buttons.html.erb:141-145 emits all three; tolerating any
+    # shape keeps clamp robust.
+    # Slice-list precondition (I-13-01): :balls_goal_a and :balls_goal_b are
+    # in the permit/slice list at line 74 — verified 2026-04-25.
+    requested = (p.delete(:balls_goal).presence ||
+                 p[:balls_goal_a].presence ||
+                 p[:balls_goal_b].presence).to_i
     clamped_goal = allowed.include?(requested) ? requested : allowed.first
 
     p[:balls_goal] = clamped_goal
