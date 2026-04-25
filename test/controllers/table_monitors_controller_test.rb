@@ -614,21 +614,21 @@ class TableMonitorsControllerTest < ActionDispatch::IntegrationTest
   # forget the top-level field.
   test "T-P1-balls-goal-a-fallback 38.4-13" do
     post start_game_table_monitor_url(@table_monitor), params: {
-      player_a_id:        players(:jaspers).id,
-      player_b_id:        players(:cho).id,
-      quick_game_form:    "bk_family",
-      free_game_form:     "bk_family",
-      discipline_a:       "BK100",
-      discipline_b:       "BK100",
+      player_a_id:           players(:jaspers).id,
+      player_b_id:           players(:cho).id,
+      quick_game_form:       "bk_family",
+      free_game_form:        "bk_family",
+      discipline_a:          "BK100",
+      discipline_b:          "BK100",
       # NOTE: :balls_goal intentionally OMITTED — caller forgot the top-level field.
-      balls_goal_a:       100,
-      balls_goal_b:       100,
-      sets_to_win:        1,
-      sets_to_play:       1,
-      innings_goal:       0,
-      first_break_choice: 0,
+      balls_goal_a:          100,
+      balls_goal_b:          100,
+      sets_to_win:           1,
+      sets_to_play:          1,
+      innings_goal:          0,
+      first_break_choice:    0,
       kickoff_switches_with: "set",
-      allow_follow_up:    "0"
+      allow_follow_up:       "0"
     }
     @table_monitor.reload
     bk2_options = @table_monitor.data["bk2_options"] || {}
