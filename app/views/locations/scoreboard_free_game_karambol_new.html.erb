@@ -353,6 +353,10 @@
               <% end %>
             </div>
           </div>
+          <%# Phase 38.4-P10: 6th-column spacer. Without it the row spans only 5 of 6 grid
+              cols and the next sibling (Punkt-Ziel header / generic Punktziel header) flows
+              into the empty col on the same visual row, drifting all subsequent labels right. %>
+          <div x-show="table_kind == 'Small Billard' && parameters == 0"></div>
 
           <%# --- ROW 2: Punkt-Ziel (Ballziel) — touch-buttons, dynamic per BK-variant ---
               This row was MISSING as a dedicated row for BK-2/BK-2plus/BK-2kombi
