@@ -4,14 +4,14 @@ milestone: v7.1
 milestone_name: UX Polish & i18n Debt
 status: executing
 stopped_at: Completed 38.4-12-PLAN.md
-last_updated: "2026-04-25T15:50:57.428Z"
-last_activity: 2026-04-25
+last_updated: "2026-04-25T18:57:32.948Z"
+last_activity: 2026-04-25 -- Phase 38.4 planning complete
 progress:
   total_phases: 6
-  completed_phases: 4
-  total_plans: 33
+  completed_phases: 3
+  total_plans: 38
   completed_plans: 32
-  percent: 97
+  percent: 84
 ---
 
 # Project State
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-04-15)
 Phase: 38.4 (bk2-kombi-post-dry-run-gaps) — EXECUTING
 Plan: 4 of 12
 Status: Ready to execute
-Last activity: 2026-04-25
+Last activity: 2026-04-25 -- Phase 38.4 planning complete
 
 **Deferred to Wave 4 / later session:**
 
