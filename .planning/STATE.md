@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v7.1
 milestone_name: UX Polish & i18n Debt
 status: executing
-stopped_at: Completed 38.4-03-PLAN.md
-last_updated: "2026-04-25T06:43:28.918Z"
+stopped_at: Completed 38.4-04-PLAN.md
+last_updated: "2026-04-25T07:01:46.844Z"
 last_activity: 2026-04-25
 progress:
   total_phases: 5
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-15)
 ## Current Position
 
 Phase: 38.4 (bk2-kombi-post-dry-run-gaps) — EXECUTING
-Plan: 2 of 7
+Plan: 3 of 7
 Status: Ready to execute
 Last activity: 2026-04-25
 
@@ -66,6 +66,9 @@ Decisions are logged in PROJECT.md Key Decisions table. Full v7.0 cross-phase de
 - **DATA-01 short-term widen only assumed** — the medium-term DB-backed `discipline_parameter_ranges` table is flagged as a discuss-phase open question, not in scope for the roadmap. If the discuss-phase decides medium-term is in scope, Plan 38-03 can split or a Phase 39 can be inserted.
 - **UX-POL-03 (Test 1 retest) bundled into Plan 38-01** with the G-01 fix. Dependency satisfied by ordering: G-01 ships first inside the same plan, retest immediately follows. No risk of retesting before the fix lands.
 - [Phase 38.4]: I2 closed via i18n-values-only rename: direkter_zweikampf→BK-2plus, serienspiel→BK-2. Internal keys and YAML paths unchanged per D-08/D-09.
+- [Phase 38.4]: D-06: balls_goal replaces set_target_points as per-set Ballziel target on tournament_monitor.balls_goal
+- [Phase 38.4]: D-07: ballziel_choices array in discipline.data drives server-side CLAMP; clamp_bk_family_params! helper DRYs both quick-game and detail-form paths
+- [Phase 38.4]: D-04: BK2_DISCIPLINE_MAP extended to 5 BK-* disciplines sharing one scoring family (Bk2::CommitInning)
 
 ### Roadmap Evolution
 
@@ -98,6 +101,6 @@ None blocking Phase 38.1 execution. Reconciliation debt above is tracked but not
 
 ## Session Continuity
 
-Last session: 2026-04-25T06:43:28.916Z
-Stopped at: Completed 38.4-03-PLAN.md
+Last session: 2026-04-25T07:01:46.842Z
+Stopped at: Completed 38.4-04-PLAN.md
 Resume: `/gsd-plan-phase 38` to break Phase 38 into 3 executable plans

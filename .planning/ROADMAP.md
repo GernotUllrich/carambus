@@ -70,7 +70,7 @@ Plans:
 **Goal**: Ship live-scoring scoreboard support for a BK2-Kombi tournament at the BCW club on Saturday 2026-05-02. Full shot-by-shot live scoring for the BK2-Kombi discipline: negative-score engine gate, discipline derivation, two playing phases (Direkter Zweikampf / Serienspiel), bonus-shot rule, foul handling with D-16 literal values, best-of-3 sets to configurable target (50/60/70), match winner = first to 2 sets. Karambol-with-negative-scores remains a rehearsed fallback.
 **Depends on:** Phase 38
 **Decisions addressed:** D-01..D-17 (see 38.1-CONTEXT.md)
-**Plans:** 5/6 plans executed
+**Plans:** 2/2 plans complete
 
 Plans:
 - [ ] `38.1-01-engine-negative-score-gate-PLAN.md` — Bypass the three `score_engine.rb` negative-score gates (:84 guard, :135 clamp, :690-692 protocol rejection) for `data["free_game_form"] == "bk2_kombi"` via a new `allow_negative_scores?` helper. Includes characterization tests that prove karambol still clamps/rejects. Wave 1.
@@ -138,7 +138,7 @@ Phases execute in numeric order: 33 → 34 → 35 → 36a → 36b → 36c → 37
 | 36b. UI Cleanup & Kleine Features | v7.0 | 6/6 | Complete | 2026-04-14 |
 | 36c. v7.1 Preparation / CC Groundwork | v7.0 | — (planning phase) | Complete | 2026-04-14 |
 | 37. In-App Doc Links | v7.0 | 5/5 | Complete | 2026-04-15 |
-| 38. UX Polish & i18n Debt | v7.1 | 2/2 | Complete    | 2026-04-16 |
+| 38. UX Polish & i18n Debt | v7.1 | 2/2 | Complete   | 2026-04-25 |
 | 38.1. BK2-Kombi minimum viable support | v7.1 | 5/6 | In Progress | - |
 | 38.2. BK2-Kombi scoreboard UX re-alignment | v7.1 | 0/5 | Not started | - |
 | 39. DTP-Backed Parameter Ranges | v7.1 | 0/TBD | Not started | - |
