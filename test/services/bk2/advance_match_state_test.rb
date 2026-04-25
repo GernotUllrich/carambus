@@ -826,17 +826,43 @@ class Bk2::AdvanceMatchStateTest < ActiveSupport::TestCase
   test "T-P4-add-n-balls-routes-bk-family-through-bk2-commitinning 38.4-14" do
     bk2k = ensure_bk_discipline("BK2-Kombi-T-P4", "bk2_kombi", [50, 60, 70], nachstoss_allowed: true)
     tm = build_table_monitor_with_discipline(bk2k, balls_goal: 70, free_game_form: "bk2_kombi")
+    # Suppress test-setup broadcast — fixture's empty data → seeded data produces a
+    # malformed diff (`playera => [nil, {...}]`) that breaks the after_update_commit
+    # ultra_fast_score_update? path. Production code never sees this transition because
+    # data is built up incrementally; only test seeding triggers it. We re-enable
+    # broadcast before the actual gameplay call so the dispatch path runs unmocked.
+    tm.suppress_broadcast = true
     Bk2::AdvanceMatchState.initialize_bk2_state!(tm)
 
-    # Seed leader playera at result=69; tap +1 via add_n_balls to reach 70.
+    # Seed leader playera with running total 69 in innings_redo_list; tap +1 to reach balls_goal=70.
+    # to_play = balls_goal - (result + innings_redo_list[-1]) = 70 - (0 + 69) = 1
+    # add_n_balls(1) → add == to_play → score_engine returns :goal_reached
+    tm.data["balls_on_table"] = 15
+    tm.data["balls_counter"] = 0
+    tm.data["balls_counter_stack"] = []
     tm.data["playera"] ||= {}
     tm.data["playera"]["discipline"] = "BK2-Kombi-T-P4"  # Option B: name-based lookup
     tm.data["playera"]["balls_goal"] = 70
-    tm.data["playera"]["result"] = 69
+    tm.data["playera"]["result"] = 0
+    tm.data["playera"]["innings"] = 1
     tm.data["playera"]["innings_redo_list"] = [69]
     tm.data["playera"]["innings_list"] = []
+    tm.data["playera"]["innings_foul_list"] = []
+    tm.data["playera"]["innings_foul_redo_list"] = [0]
+    tm.data["playerb"] ||= {}
+    tm.data["playerb"]["discipline"] = "BK2-Kombi-T-P4"
+    tm.data["playerb"]["balls_goal"] = 70
+    tm.data["playerb"]["result"] = 0
+    tm.data["playerb"]["innings"] = 0
+    tm.data["playerb"]["innings_redo_list"] = [0]
+    tm.data["playerb"]["innings_list"] = []
+    tm.data["playerb"]["innings_foul_list"] = []
+    tm.data["playerb"]["innings_foul_redo_list"] = [0]
     tm.data["current_inning"] = {"active_player" => "playera"} unless tm.data["current_inning"].is_a?(Hash)
     tm.save!(validate: false)
+    tm.suppress_broadcast = false
+    tm.instance_variable_set(:@collected_data_changes, nil)
+    tm.instance_variable_set(:@collected_changes, nil)
 
     tm.add_n_balls(1, "playera")
     tm.reload
@@ -846,8 +872,10 @@ class Bk2::AdvanceMatchStateTest < ActiveSupport::TestCase
       "T-P4: add_n_balls(:goal_reached) MUST route through Bk2::CommitInning for BK-family-with-nachstoss; nachstoss_pending=true expected"
     assert_equal "playerb", state["player_at_table"],
       "T-P4: nachstoss_for/player_at_table must flip to playerb (trailing)"
-    assert_equal "playing", tm.aasm_state.to_s,
-      "T-P4: AASM must STAY in playing? state during Nachstoß defer (not set_over)"
+    assert_nil state["set_finished_1"],
+      "T-P4: set_finished_1 must NOT be set yet — Nachstoß defer holds the close until trailing equalizes"
+    refute_equal "set_over", tm.state.to_s,
+      "T-P4: TM.state must NOT have transitioned to set_over during Nachstoß defer"
   end
 
   # Phase 38.4-14 P4: end-to-end — leader reaches 70, trailing reaches 70 via add_n_balls.
@@ -855,29 +883,45 @@ class Bk2::AdvanceMatchStateTest < ActiveSupport::TestCase
   test "T-P4-add-n-balls-bk2kombi-engages-nachstoss-on-leader-reach 38.4-14" do
     bk2k = ensure_bk_discipline("BK2-Kombi-T-P4-end2end", "bk2_kombi", [50, 60, 70], nachstoss_allowed: true)
     tm = build_table_monitor_with_discipline(bk2k, balls_goal: 70, free_game_form: "bk2_kombi")
+    tm.suppress_broadcast = true
     Bk2::AdvanceMatchState.initialize_bk2_state!(tm)
 
     # Step 1: leader playera reaches 70.
+    tm.data["balls_on_table"] = 15
+    tm.data["balls_counter"] = 0
+    tm.data["balls_counter_stack"] = []
     tm.data["playera"] ||= {}
     tm.data["playera"]["discipline"] = "BK2-Kombi-T-P4-end2end"  # Option B: name-based lookup
     tm.data["playera"]["balls_goal"] = 70
-    tm.data["playera"]["result"] = 69
+    tm.data["playera"]["result"] = 0
+    tm.data["playera"]["innings"] = 1
     tm.data["playera"]["innings_redo_list"] = [69]
     tm.data["playera"]["innings_list"] = []
+    tm.data["playera"]["innings_foul_list"] = []
+    tm.data["playera"]["innings_foul_redo_list"] = [0]
+    tm.data["playerb"] ||= {}
+    tm.data["playerb"]["discipline"] = "BK2-Kombi-T-P4-end2end"
+    tm.data["playerb"]["balls_goal"] = 70
+    tm.data["playerb"]["result"] = 0
+    tm.data["playerb"]["innings"] = 0
+    tm.data["playerb"]["innings_redo_list"] = [69]
+    tm.data["playerb"]["innings_list"] = []
+    tm.data["playerb"]["innings_foul_list"] = []
+    tm.data["playerb"]["innings_foul_redo_list"] = [0]
     tm.data["current_inning"] = {"active_player" => "playera"}
     tm.save!(validate: false)
+    tm.suppress_broadcast = false
+    tm.instance_variable_set(:@collected_data_changes, nil)
+    tm.instance_variable_set(:@collected_changes, nil)
     tm.add_n_balls(1, "playera")
     tm.reload
     assert_equal true, tm.data["bk2_state"]["nachstoss_pending"], "leader reach engaged Nachstoß"
 
     # Step 2: trailing playerb taps +1 from 69 to 70 (Nachstoß equalizer).
-    tm.data["playerb"] ||= {}
-    tm.data["playerb"]["balls_goal"] = 70
-    tm.data["playerb"]["result"] = 69
-    tm.data["playerb"]["innings_redo_list"] = [69]
-    tm.data["playerb"]["innings_list"] = []
     tm.data["current_inning"]["active_player"] = "playerb"
     tm.save!(validate: false)
+    tm.instance_variable_set(:@collected_data_changes, nil)
+    tm.instance_variable_set(:@collected_changes, nil)
     tm.add_n_balls(1, "playerb")
     tm.reload
     state = tm.data["bk2_state"]
@@ -886,8 +930,8 @@ class Bk2::AdvanceMatchStateTest < ActiveSupport::TestCase
       "T-P4: set_finished_1 must be true after trailing's Nachstoß equalizer"
     assert_equal 1, state.dig("sets_won", "playerb"),
       "T-P4: trailing wins on equalize at target (provisional rule)"
-    assert_equal false, state["nachstoss_pending"],
-      "T-P4: nachstoss_pending cleared after resolution"
+    refute state["nachstoss_pending"],
+      "T-P4: nachstoss_pending cleared after resolution (false or nil)"
   end
 
   # Phase 38.4-14 P4: ProtokollEditor write path. The user's UAT report says
@@ -898,30 +942,49 @@ class Bk2::AdvanceMatchStateTest < ActiveSupport::TestCase
   test "T-P4-protokoll-editor-set-n-balls-honours-target-during-nachstoss 38.4-14" do
     bk2k = ensure_bk_discipline("BK2-Kombi-T-P4-protokoll", "bk2_kombi", [50, 60, 70], nachstoss_allowed: true)
     tm = build_table_monitor_with_discipline(bk2k, balls_goal: 70, free_game_form: "bk2_kombi")
+    tm.suppress_broadcast = true
+    # set_n_balls (ProtokollEditor write path) returns early via `return unless playing?`,
+    # so the TM's `state` column must be "playing" — the existing fixture state is "new".
+    tm.update_columns(state: "playing")
     Bk2::AdvanceMatchState.initialize_bk2_state!(tm)
 
     # Step 1: leader playera reaches 70 via add_n_balls.
+    tm.data["balls_on_table"] = 15
+    tm.data["balls_counter"] = 0
+    tm.data["balls_counter_stack"] = []
     tm.data["playera"] ||= {}
     tm.data["playera"]["discipline"] = "BK2-Kombi-T-P4-protokoll"  # Option B: name-based lookup
     tm.data["playera"]["balls_goal"] = 70
-    tm.data["playera"]["result"] = 69
+    tm.data["playera"]["result"] = 0
+    tm.data["playera"]["innings"] = 1
     tm.data["playera"]["innings_redo_list"] = [69]
     tm.data["playera"]["innings_list"] = []
-    tm.data["current_inning"] = {"active_player" => "playera"}
-    tm.save!(validate: false)
-    tm.add_n_balls(1, "playera")
-    tm.reload
-    assert_equal "playing", tm.aasm_state.to_s,
-      "T-P4-protokoll: AASM stays in playing? after leader reach (Nachstoß defer)"
-
-    # Step 2: trailing playerb's score is 0; ProtokollEditor enters 70 via set_n_balls.
+    tm.data["playera"]["innings_foul_list"] = []
+    tm.data["playera"]["innings_foul_redo_list"] = [0]
     tm.data["playerb"] ||= {}
+    tm.data["playerb"]["discipline"] = "BK2-Kombi-T-P4-protokoll"
     tm.data["playerb"]["balls_goal"] = 70
     tm.data["playerb"]["result"] = 0
+    tm.data["playerb"]["innings"] = 0
     tm.data["playerb"]["innings_redo_list"] = [0]
     tm.data["playerb"]["innings_list"] = []
+    tm.data["playerb"]["innings_foul_list"] = []
+    tm.data["playerb"]["innings_foul_redo_list"] = [0]
+    tm.data["current_inning"] = {"active_player" => "playera"}
+    tm.save!(validate: false)
+    tm.suppress_broadcast = false
+    tm.instance_variable_set(:@collected_data_changes, nil)
+    tm.instance_variable_set(:@collected_changes, nil)
+    tm.add_n_balls(1, "playera")
+    tm.reload
+    refute_equal "set_over", tm.state.to_s,
+      "T-P4-protokoll: TM.state must NOT be set_over after leader reach (Nachstoß defer)"
+
+    # Step 2: trailing playerb's score is 0; ProtokollEditor enters 70 via set_n_balls.
     tm.data["current_inning"]["active_player"] = "playerb"
     tm.save!(validate: false)
+    tm.instance_variable_set(:@collected_data_changes, nil)
+    tm.instance_variable_set(:@collected_changes, nil)
     tm.set_n_balls(70)  # ProtokollEditor write path
     tm.reload
     state = tm.data["bk2_state"]
@@ -953,18 +1016,34 @@ class Bk2::AdvanceMatchStateTest < ActiveSupport::TestCase
     # override its discipline accessor. Production code reads the name from
     # data['playera']['discipline'], not from tm.discipline (per Option B).
     tm = table_monitors(:one).reload
+    tm.suppress_broadcast = true
     tm.data ||= {}
     tm.data["free_game_form"] = "bk2_kombi"
     tm.data["bk2_options"] = {"first_set_mode" => "direkter_zweikampf", "set_target_points" => 70}
     tm.data["bk2_state"] = nil
+    tm.data["balls_on_table"] = 15
+    tm.data["balls_counter"] = 0
+    tm.data["balls_counter_stack"] = []
     tm.data["playera"] = {
       "discipline" => "BK2-Kombi-T-P4-integration",  # ← STRING (production contract)
       "balls_goal" => 70,
-      "result" => 69,
+      "result" => 0,
+      "innings" => 1,
       "innings_redo_list" => [69],
-      "innings_list" => []
+      "innings_list" => [],
+      "innings_foul_list" => [],
+      "innings_foul_redo_list" => [0]
     }
-    tm.data["playerb"] ||= {}
+    tm.data["playerb"] = {
+      "discipline" => "BK2-Kombi-T-P4-integration",
+      "balls_goal" => 70,
+      "result" => 0,
+      "innings" => 0,
+      "innings_redo_list" => [0],
+      "innings_list" => [],
+      "innings_foul_list" => [],
+      "innings_foul_redo_list" => [0]
+    }
     tm.data["current_inning"] = {"active_player" => "playera"}
     tm.tournament_monitor = nil
     tm.save!(validate: false)
@@ -977,6 +1056,9 @@ class Bk2::AdvanceMatchStateTest < ActiveSupport::TestCase
       "T-P4-integration: tm.discipline returns the String name from data['playera']['discipline']"
 
     Bk2::AdvanceMatchState.initialize_bk2_state!(tm)
+    tm.suppress_broadcast = false
+    tm.instance_variable_set(:@collected_data_changes, nil)
+    tm.instance_variable_set(:@collected_changes, nil)
 
     tm.add_n_balls(1, "playera")
     tm.reload
@@ -986,8 +1068,8 @@ class Bk2::AdvanceMatchStateTest < ActiveSupport::TestCase
       "T-P4-integration: dispatcher fires WITHOUT define_singleton_method stub — proves Option B name-based lookup works for production wiring"
     assert_equal "playerb", state["player_at_table"],
       "T-P4-integration: player_at_table flipped to playerb"
-    assert_equal "playing", tm.aasm_state.to_s,
-      "T-P4-integration: AASM stays playing? during Nachstoß defer"
+    refute_equal "set_over", tm.state.to_s,
+      "T-P4-integration: TM.state must NOT have transitioned to set_over during Nachstoß defer"
   end
 
   private

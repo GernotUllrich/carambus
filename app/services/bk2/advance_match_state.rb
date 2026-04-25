@@ -260,8 +260,17 @@ module Bk2
     # Phase 38.4-11 O2: Lese discipline.nachstoss_allowed? mit Fallback auf false.
     # @tm.discipline kann nil sein in unit tests ohne Game/Discipline-Wiring; in dem Fall
     # gibt der Helper false zurück (legacy / kein Nachstoß).
+    #
+    # Phase 38.4-14 P4 (round-4 iteration-2 — Option B): TableMonitor#discipline can return
+    # either an AR Discipline record OR a String name (production contract — see
+    # TableMonitor#discipline:608). When it returns a String, look up the AR record by name.
+    # This keeps Plan 14's Option B dispatch path working in production wiring without
+    # changing TableMonitor#discipline's String contract for 15+ legacy callers.
     def discipline_nachstoss_allowed?
-      @tm.respond_to?(:discipline) && @tm.discipline.respond_to?(:nachstoss_allowed?) && @tm.discipline.nachstoss_allowed?
+      return false unless @tm.respond_to?(:discipline)
+      disc = @tm.discipline
+      disc = Discipline.find_by(name: disc) if disc.is_a?(String)
+      disc.respond_to?(:nachstoss_allowed?) && disc.nachstoss_allowed?
     end
 
     # Schließe das Match wenn ein Spieler 2 Sätze gewonnen hat.

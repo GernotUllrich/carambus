@@ -103,9 +103,18 @@ module Bk2
     end
 
     # Lese free_game_form aus discipline.data (bevorzugt) oder TableMonitor.data (Fallback).
+    #
+    # Phase 38.4-14 P4 (round-4 iteration-2 — Option B): TableMonitor#discipline can return
+    # either an AR Discipline record OR a String (the production contract — see
+    # TableMonitor#discipline:608, which returns data["playera"]["discipline"] String for
+    # 15+ legacy callers). When it returns a String, look up the AR record by name. When
+    # it returns nil or an unrecognized type, fall through to the @tm.data Hash fallback.
+    # This keeps Plan 14's Option B dispatch path working in production wiring (no
+    # define_singleton_method stub) while preserving the legacy String contract.
     def free_game_form
       discipline = @tm.discipline
-      if discipline&.data.present?
+      discipline = Discipline.find_by(name: discipline) if discipline.is_a?(String)
+      if discipline.respond_to?(:data) && discipline.data.present?
         parsed = begin
           JSON.parse(discipline.data)
         rescue JSON::ParserError

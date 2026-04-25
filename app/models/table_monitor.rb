@@ -894,7 +894,22 @@ class TableMonitor < ApplicationRecord
     end
     data_will_change!
     self.copy_from = nil
-    terminate_current_inning(player) if result == :goal_reached
+    if result == :goal_reached
+      # Phase 38.4-14 P4 (round-4 iteration-2 — Option B): BK-family with nachstoss_allowed
+      # (post-Plan-16: BK-2kombi) MUST route through Bk2::CommitInning to engage Plan 11's
+      # deferred-close. Bypassing this calls the legacy karambol terminate_current_inning →
+      # evaluate_result → AASM set_over, freezing ProtokollEditor (return unless
+      # playing? at #set_n_balls) and preventing the trailing player from completing
+      # their Nachstoß equalizer (P4 root cause documented in 38.4-HUMAN-UAT.md).
+      # Option B: bk_family_with_nachstoss? reads the discipline NAME from data and
+      # looks up the AR Discipline record — does NOT use TableMonitor#discipline (which
+      # returns a String for backward compat with 15+ legacy callers).
+      if bk_family_with_nachstoss?
+        route_goal_reached_through_bk2_commit_inning(player)
+      else
+        terminate_current_inning(player)
+      end
+    end
   rescue StandardError => e
     Rails.logger.error "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}"
     Tournament.logger.info "ERROR: #{e}, #{e.backtrace&.join("\n")}"
@@ -1063,7 +1078,16 @@ class TableMonitor < ApplicationRecord
     assign_attributes(nnn: nil, panel_state: change_to_pointer_mode ? "pointer_mode" : panel_state)
     if result == :goal_reached
       save
-      terminate_current_inning
+      # Phase 38.4-14 P4 (round-4 iteration-2 — Option B): ProtokollEditor write path —
+      # same dispatch as add_n_balls. Without this, set_n_balls(balls_goal) succeeds at
+      # the engine level (mutates innings_redo_list[-1]) but terminate_current_inning
+      # fires the legacy karambol set_over AASM transition, bypassing Plan 11's
+      # nachstoss_pending machinery.
+      if bk_family_with_nachstoss?
+        route_goal_reached_through_bk2_commit_inning(nil)
+      else
+        terminate_current_inning
+      end
     else
       save
     end
@@ -1622,6 +1646,61 @@ class TableMonitor < ApplicationRecord
   end
 
   private
+
+  # Phase 38.4-14 P4 (round-4 iteration-2 — Option B): helper. True when:
+  #   (a) data['free_game_form'] is in BK2_FREE_GAME_FORMS (BK-family), AND
+  #   (b) the AR Discipline looked up by NAME from data['playera']['discipline'] (the
+  #       existing String contract — see TableMonitor#discipline:608) has
+  #       nachstoss_allowed? == true.
+  #
+  # Why we look up by name instead of calling self.discipline.respond_to?(:nachstoss_allowed?):
+  #   TableMonitor#discipline returns a STRING, not an AR record (15+ legacy call sites
+  #   depend on the String contract — see Plan 14 truth #11). Calling
+  #   discipline.respond_to?(:nachstoss_allowed?) on the String always returns false →
+  #   the dispatch never fires in production. Option B reads the discipline name from
+  #   data and resolves the AR record explicitly. Future phase will migrate
+  #   TableMonitor#discipline to return an AR record (closes deferred T8-T11 too).
+  #
+  # Post-Plan-16, only BK-2kombi qualifies. BK50/BK100/BK-2/BK-2plus return false here
+  # and continue to use the legacy karambol terminate_current_inning path (their
+  # immediate-close semantics are the production-correct behaviour per Plan 16 P5
+  # narrowing).
+  def bk_family_with_nachstoss?
+    return false unless data.is_a?(Hash)
+    free_form = data["free_game_form"].to_s
+    return false unless Discipline::BK2_FREE_GAME_FORMS.include?(free_form)
+    name = data.dig("playera", "discipline").to_s
+    return false if name.empty?
+    Discipline.find_by(name: name)&.nachstoss_allowed? == true
+  end
+
+  # Phase 38.4-14 P4: route :goal_reached through Bk2::CommitInning to engage Plan 11
+  # deferred-close. The inning_total is read from data[player]['innings_redo_list'][-1]
+  # (mirrors the bk2_kombi_commit_if_active helper at table_monitor_reflex.rb:991).
+  # On payload errors, falls back to the legacy karambol path so we don't deadlock
+  # the game. SecureRandom.uuid for shot_sequence_number to leverage CommitInning's
+  # idempotency guard.
+  def route_goal_reached_through_bk2_commit_inning(player)
+    active_player = (player.presence || data.dig("current_inning", "active_player")).to_s
+    return terminate_current_inning(player) unless %w[playera playerb].include?(active_player)
+
+    inning_total = data.dig(active_player, "innings_redo_list").andand[-1].to_i
+    Bk2::CommitInning.call(
+      table_monitor: self,
+      player: active_player,
+      inning_total: inning_total,
+      shot_sequence_number: SecureRandom.uuid
+    )
+    # Reset the transient karambol running total so the next Aufnahme starts clean.
+    # Mirrors table_monitor_reflex.rb:1003-1005.
+    data[active_player]["innings_redo_list"] ||= []
+    data[active_player]["innings_redo_list"][-1] = 0
+    data[active_player]["innings_redo_list"] << 0
+    save!
+  rescue ArgumentError => e
+    Rails.logger.error("[add_n_balls/set_n_balls bk2-routing] invalid payload: #{e.message}")
+    terminate_current_inning(player) # fallback to legacy on payload errors (defense-in-depth)
+  end
 
   # Update innings data for a player from a complete innings array
   def update_player_innings_data(player, innings_array)
