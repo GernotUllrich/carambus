@@ -311,82 +311,87 @@
             increment: 1,
             no_counter: true }
           %>
-          <%# Phase 38.4-06 D-16/D-07: BK-family discipline selector + Ballziel + conditional DZ/SP inputs.
-              Replaces the old BK2-Kombi 50/60/70 radio_select + config block from 38.3-06.
-              MUST sit inside the singular x-data wrapper (GAP-02 constraint — no second x-data here). %>
-          <div x-show="table_kind == 'Small Billard' && parameters == 0" class="col-span-6 mt-4 space-y-3">
-            <%# 5-radio BK-family discipline selector — binds bk_selected_form %>
-            <div class="flex flex-col gap-2">
-              <label class="text-2vw font-bold text-white">BK — Variante wählen</label>
-              <div class="grid grid-cols-5 gap-2 text-gray-900">
-                <label class="cursor-pointer">
-                  <input type="radio" name="bk_form_choice" value="bk50"
-                         x-model="bk_selected_form"
-                         @change="bk_balls_goal = 50">
-                  <span class="inline-block px-3 py-2 rounded border text-1-5vw"
-                        :class="bk_selected_form === 'bk50' ? 'bg-blue-100 border-blue-500' : 'bg-white'">BK50</span>
-                </label>
-                <label class="cursor-pointer">
-                  <input type="radio" name="bk_form_choice" value="bk100"
-                         x-model="bk_selected_form"
-                         @change="bk_balls_goal = 100">
-                  <span class="inline-block px-3 py-2 rounded border text-1-5vw"
-                        :class="bk_selected_form === 'bk100' ? 'bg-blue-100 border-blue-500' : 'bg-white'">BK100</span>
-                </label>
-                <label class="cursor-pointer">
-                  <input type="radio" name="bk_form_choice" value="bk_2"
-                         x-model="bk_selected_form"
-                         @change="bk_balls_goal = bk_ballziel_choices[0]">
-                  <span class="inline-block px-3 py-2 rounded border text-1-5vw"
-                        :class="bk_selected_form === 'bk_2' ? 'bg-blue-100 border-blue-500' : 'bg-white'">BK-2</span>
-                </label>
-                <label class="cursor-pointer">
-                  <input type="radio" name="bk_form_choice" value="bk_2plus"
-                         x-model="bk_selected_form"
-                         @change="bk_balls_goal = bk_ballziel_choices[0]">
-                  <span class="inline-block px-3 py-2 rounded border text-1-5vw"
-                        :class="bk_selected_form === 'bk_2plus' ? 'bg-blue-100 border-blue-500' : 'bg-white'">BK-2plus</span>
-                </label>
-                <label class="cursor-pointer">
-                  <input type="radio" name="bk_form_choice" value="bk2_kombi"
-                         x-model="bk_selected_form"
-                         @change="bk_balls_goal = bk_ballziel_choices[0]">
-                  <span class="inline-block px-3 py-2 rounded border text-1-5vw"
-                        :class="bk_selected_form === 'bk2_kombi' ? 'bg-blue-100 border-blue-500' : 'bg-white'">BK-2kombi</span>
-                </label>
-              </div>
-            </div>
+          <%# Phase 38.4-09 (gap test 3): BK-* configuration as touch-button rows.
+              Replaces the 38.4-06 D-16/D-07 outer-wrapper + radio + select + number-input block.
+              All 4 rows live inside the singular x-data wrapper (GAP-02 invariant from Phase 38.2-02).
+              Each row pair consists of (label div, content div) — 8 sibling divs total,
+              plugging directly into the parent grid-cols-6 grid at line 264 (NO intermediate
+              col-span-6 wrapper — that was the GAP-02 anti-pattern the previous block used).
+              Pattern: large labelled buttons with hidden radios (sr-only), bg-blue-600 active state
+              (mirrors _radio_select partial). Hidden form inputs at lines 241-253 are unchanged
+              and continue to bind to the same Alpine state slots these touch-buttons write to. %>
 
-            <%# Ballziel — shown only when a BK-family form is selected (D-07) %>
-            <div x-show="is_bk_family" class="flex flex-col gap-2">
-              <label class="text-2vw font-bold text-white">Ballziel (Kegel pro Satz)</label>
-              <%# For BK50 / BK100: read-only display (single fixed choice) %>
-              <div x-show="is_bk_fixed_goal"
-                   class="px-3 py-2 rounded bg-gray-100 font-mono text-1-5vw text-gray-900">
-                <span x-text="bk_balls_goal"></span>
-              </div>
-              <%# For BK-2 / BK-2plus / BK-2kombi: selectable dropdown %>
-              <select x-show="!is_bk_fixed_goal" x-model.number="bk_balls_goal"
-                      class="px-3 py-2 border rounded text-1-5vw text-gray-900">
-                <template x-for="choice in bk_ballziel_choices" :key="choice">
-                  <option :value="choice" x-text="choice"></option>
-                </template>
-              </select>
+          <%# --- ROW 1: BK-Variante (5 touch-buttons) --- %>
+          <div x-show="table_kind == 'Small Billard' && parameters == 0">BK-Variante</div>
+          <div x-show="table_kind == 'Small Billard' && parameters == 0" class="col-span-5">
+            <div class="grid grid-cols-5 gap-4">
+              <% [
+                ["bk50",      "BK50"],
+                ["bk100",     "BK100"],
+                ["bk_2",      "BK-2"],
+                ["bk_2plus",  "BK-2plus"],
+                ["bk2_kombi", "BK-2kombi"]
+              ].each_with_index do |(val, label), ix| %>
+                <label class="group relative border rounded-md py-3 px-4 flex items-center justify-center text-2vw font-medium uppercase focus:outline-none sm:flex-1 shadow-sm cursor-pointer"
+                       :class="{ 'bg-blue-600 text-white': (bk_selected_form == '<%= val %>'),
+                                 ' text-gray-200': !(bk_selected_form == '<%= val %>') }">
+                  <input type="radio" name="bk_form_choice" value="<%= val %>"
+                         x-model="bk_selected_form" class="sr-only"
+                         aria-labelledby="bk-form-choice-<%= ix %>-label"
+                         @change="bk_balls_goal = bk_ballziel_choices[0]">
+                  <span id="bk-form-choice-<%= ix %>-label"><%= label %></span>
+                </label>
+              <% end %>
             </div>
+          </div>
 
-            <%# DZ-max input — only for BK-2plus + BK-2kombi (D-16) %>
-            <div x-show="is_bk_dz_configurable" class="flex flex-col gap-2">
-              <label class="text-2vw font-bold text-white">BK-2plus — max. Stöße pro Aufnahme</label>
-              <input type="number" min="1" max="99" autocomplete="off" x-model.number="bk2_dz_max_shots"
-                     class="px-3 py-2 border rounded text-1-5vw text-gray-900 w-24"/>
+          <%# --- ROW 2: Punkt-Ziel (Ballziel) — touch-buttons, dynamic per BK-variant ---
+              This row was MISSING as a dedicated row for BK-2/BK-2plus/BK-2kombi
+              before this plan (it was a <select> dropdown). Introduced here. %>
+          <div x-show="table_kind == 'Small Billard' && parameters == 0 && is_bk_family">Punkt-Ziel</div>
+          <div x-show="table_kind == 'Small Billard' && parameters == 0 && is_bk_family" class="col-span-5" data-test-id="bk-punktziel-row">
+            <div class="grid gap-4" :class="`grid-cols-${bk_ballziel_choices.length || 1}`">
+              <template x-for="(choice, ix) in bk_ballziel_choices" :key="choice">
+                <label class="group relative border rounded-md py-3 px-4 flex items-center justify-center text-2vw font-medium uppercase focus:outline-none sm:flex-1 shadow-sm cursor-pointer"
+                       :class="{ 'bg-blue-600 text-white': (bk_balls_goal == choice),
+                                 ' text-gray-200': !(bk_balls_goal == choice),
+                                 'opacity-75 cursor-default': is_bk_fixed_goal }">
+                  <input type="radio" name="bk_balls_goal_choice" :value="choice"
+                         x-model.number="bk_balls_goal" class="sr-only"
+                         :disabled="is_bk_fixed_goal">
+                  <span x-text="choice"></span>
+                </label>
+              </template>
             </div>
+          </div>
 
-            <%# SP-max input — only for BK-2 + BK-2kombi (D-16) %>
-            <div x-show="is_bk_sp_configurable" class="flex flex-col gap-2">
-              <label class="text-2vw font-bold text-white">BK-2 — max. Aufnahmen pro Satz</label>
-              <input type="number" min="1" max="99" autocomplete="off" x-model.number="bk2_sp_max_innings"
-                     class="px-3 py-2 border rounded text-1-5vw text-gray-900 w-24"/>
-            </div>
+          <%# --- ROW 3: BK-2plus — max. Stöße pro Aufnahme (DZ-max, ± row) ---
+              Mirrors Spielzeit/Warntime pattern at lines 540-555 of this file. %>
+          <div x-show="table_kind == 'Small Billard' && parameters == 0 && is_bk_dz_configurable">BK-2plus — max. Stöße / Aufnahme</div>
+          <div x-show="table_kind == 'Small Billard' && parameters == 0 && is_bk_dz_configurable" class="col-span-5 flex flex-row items-center justify-center gap-4">
+            <div class="flex pl-5 pr-5 text-4vw font-bold cursor-pointer select-none"
+                 @click="if (parseInt(bk2_dz_max_shots) > 1) { bk2_dz_max_shots = parseInt(bk2_dz_max_shots) - 1 }">-</div>
+            <label>
+              <input name="bk2_dz_max_shots_display" type="number" min="1" max="99"
+                     autocomplete="off" x-model.number="bk2_dz_max_shots"
+                     class="flex w-20 text-2vw font-medium shadow-sm text-gray-900 border rounded-md py-3 px-4 text-center">
+            </label>
+            <div class="flex pl-5 pr-5 text-4vw font-bold cursor-pointer select-none"
+                 @click="if (parseInt(bk2_dz_max_shots) < 99) { bk2_dz_max_shots = parseInt(bk2_dz_max_shots) + 1 }">+</div>
+          </div>
+
+          <%# --- ROW 4: BK-2 — max. Aufnahmen pro Satz (SP-max, ± row) --- %>
+          <div x-show="table_kind == 'Small Billard' && parameters == 0 && is_bk_sp_configurable">BK-2 — max. Aufnahmen / Satz</div>
+          <div x-show="table_kind == 'Small Billard' && parameters == 0 && is_bk_sp_configurable" class="col-span-5 flex flex-row items-center justify-center gap-4">
+            <div class="flex pl-5 pr-5 text-4vw font-bold cursor-pointer select-none"
+                 @click="if (parseInt(bk2_sp_max_innings) > 1) { bk2_sp_max_innings = parseInt(bk2_sp_max_innings) - 1 }">-</div>
+            <label>
+              <input name="bk2_sp_max_innings_display" type="number" min="1" max="99"
+                     autocomplete="off" x-model.number="bk2_sp_max_innings"
+                     class="flex w-20 text-2vw font-medium shadow-sm text-gray-900 border rounded-md py-3 px-4 text-center">
+            </label>
+            <div class="flex pl-5 pr-5 text-4vw font-bold cursor-pointer select-none"
+                 @click="if (parseInt(bk2_sp_max_innings) < 99) { bk2_sp_max_innings = parseInt(bk2_sp_max_innings) + 1 }">+</div>
           </div>
           <%= render partial: "radio_select", locals: {
             table: table,
