@@ -1253,6 +1253,67 @@ class Bk2ScoreboardTest < ApplicationSystemTestCase
       "T-P5: migration down MUST be a no-op with explanatory message")
   end
 
+  test "T-P4-add-n-balls-bk-family-routes-through-bk2-commitinning 38.4-14: TableMonitor#add_n_balls + #set_n_balls dispatch BK-family-with-nachstoss through Bk2::CommitInning" do
+    contents = File.read(Rails.root.join("app/models/table_monitor.rb"))
+    lines = contents.lines
+
+    # Phase 38.4-14 P4 (round-4 iteration-2): BK-family with nachstoss_allowed routes
+    # through Bk2::CommitInning. Plan 11's deferred-close machinery is engaged via
+    # this dispatch; without it, the legacy karambol terminate_current_inning fires
+    # evaluate_result → AASM set_over, freezing the trailing player's ProtokollEditor
+    # and +1 button paths.
+    #
+    # W-5 fix: line-range scan instead of regex with lazy `.*?^  end$` match (which
+    # could match the rescue-clause end instead of the method end).
+
+    # Helper predicate present
+    assert_match(/def bk_family_with_nachstoss\?/, contents,
+      "T-P4: TableMonitor#bk_family_with_nachstoss? helper must be defined")
+
+    # Dispatch helper present
+    assert_match(/def route_goal_reached_through_bk2_commit_inning/, contents,
+      "T-P4: TableMonitor#route_goal_reached_through_bk2_commit_inning helper must be defined")
+
+    # Helper uses Option B name-based lookup (not self.discipline)
+    assert_match(/Discipline\.find_by\(name:/, contents,
+      "T-P4 (Option B): bk_family_with_nachstoss? must look up Discipline by name (round-4 iteration-2 — preserves TableMonitor#discipline String contract for 15+ legacy callers)")
+    assert_match(/data\.dig\("playera",\s*"discipline"\)/, contents,
+      "T-P4 (Option B): bk_family_with_nachstoss? must read name from data['playera']['discipline'] (production String contract)")
+
+    # add_n_balls dispatches via the helper — line-range scan (W-5 fix)
+    add_idx = lines.index { |l| l =~ /^\s*def add_n_balls\b/ }
+    refute_nil add_idx, "T-P4: def add_n_balls line not found in app/models/table_monitor.rb"
+    add_window = lines[add_idx, 30].join
+    assert_match(/bk_family_with_nachstoss\?/, add_window,
+      "T-P4: add_n_balls (within 30 lines of def) must check bk_family_with_nachstoss?")
+    assert_match(/route_goal_reached_through_bk2_commit_inning/, add_window,
+      "T-P4: add_n_balls (within 30 lines of def) must dispatch to route_goal_reached_through_bk2_commit_inning")
+    assert_match(/terminate_current_inning\(player\)/, add_window,
+      "T-P4: add_n_balls (within 30 lines of def) must keep legacy terminate_current_inning(player) for non-BK-family fallback")
+
+    # set_n_balls (ProtokollEditor write path) dispatches via the helper — line-range scan
+    set_idx = lines.index { |l| l =~ /^\s*def set_n_balls\b/ }
+    refute_nil set_idx, "T-P4: def set_n_balls line not found in app/models/table_monitor.rb"
+    set_window = lines[set_idx, 30].join
+    assert_match(/bk_family_with_nachstoss\?/, set_window,
+      "T-P4-protokoll: set_n_balls (within 30 lines of def) must check bk_family_with_nachstoss?")
+    assert_match(/route_goal_reached_through_bk2_commit_inning/, set_window,
+      "T-P4-protokoll: set_n_balls (within 30 lines of def) must dispatch to route_goal_reached_through_bk2_commit_inning")
+
+    # Bk2::CommitInning is referenced in the new private helper
+    assert_match(/Bk2::CommitInning\.call/, contents,
+      "T-P4: TableMonitor must call Bk2::CommitInning.call from the dispatch helper")
+
+    # TableMonitor#discipline String contract preserved (Option B per round-4 iteration-2).
+    # If a future refactor changes this method's return type, this test surfaces it
+    # so the deferred T8-T11 caller-migration phase can be planned deliberately.
+    disc_idx = lines.index { |l| l =~ /^\s*def discipline\s*$/ }
+    refute_nil disc_idx, "T-P4: def discipline line not found"
+    disc_window = lines[disc_idx, 4].join
+    assert_match(/data\["playera"\]\.andand\["discipline"\]/, disc_window,
+      "T-P4 (Option B preservation): TableMonitor#discipline must still return data['playera']['discipline'] (String) — 15+ legacy callers depend on the String contract; round-4 iteration-2 explicitly defers the AR-record migration to a future phase")
+  end
+
   private
 
   # ---------------------------------------------------------------------------
