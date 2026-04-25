@@ -635,4 +635,43 @@ class TableMonitorsControllerTest < ActionDispatch::IntegrationTest
     assert_equal 100, bk2_options["balls_goal"].to_i,
       "T-P1-balls-goal-a-fallback: clamp must read :balls_goal_a when :balls_goal absent"
   end
+
+  # Phase 38.4-18 P6: BK-* DETAIL-form must honour the user-selected discipline.
+  # The real detail-view form (scoreboard_free_game_karambol_new.html.erb) renders
+  # the karambol Disziplin (A) / (B) _radio_select partials inside the form and
+  # only HIDES them via x-show — the radio inputs still submit `discipline_a_choice`
+  # / `discipline_b_choice` with whatever karambol index was last set. The current
+  # `else` branch of #start_game blindly does `p[:discipline_a] = p[:discipline_a_choice]`,
+  # overwriting the BK-* hidden-input value. The downstream BK-family CLAMP then
+  # falls back to BK2_DISCIPLINE_MAP.first ("BK2-Kombi"), and clamp_bk_family_params!
+  # uses the wrong ballziel_choices ([50,60,70]). Result: BK100/BK-2/BK-2plus all
+  # silently coerce balls_goal to 50 from the detail page.
+  test "T-P6-bk100-detail-form-honours-discipline-and-balls-goal" do
+    post start_game_table_monitor_url(@table_monitor), params: {
+      player_a_id:        players(:jaspers).id,
+      player_b_id:        players(:cho).id,
+      free_game_form:     "bk100",        # detail-form (no quick_game_form)
+      discipline_a:       "BK100",        # hidden input on line 247 of the view
+      discipline_b:       "BK100",
+      balls_goal:         100,
+      # The smoking-gun params: karambol partials are x-show=hidden but still
+      # submit. Without the fix, p[:discipline_a] gets overwritten to "1".
+      discipline_a_choice: "1",
+      discipline_b_choice: "1",
+      balls_goal_a_choice: "80",
+      balls_goal_b_choice: "80",
+      sets_to_win:        1,
+      sets_to_play:       1,
+      innings_goal:       0,
+      first_break_choice: 0,
+      kickoff_switches_with: "set",
+      allow_follow_up:    "0"
+    }
+    @table_monitor.reload
+    bk2_options = @table_monitor.data["bk2_options"] || {}
+    assert_equal "BK100", @table_monitor.data.dig("playera", "discipline"),
+      "T-P6: discipline_a must remain BK100, not be overwritten by karambol discipline_a_choice"
+    assert_equal 100, bk2_options["balls_goal"].to_i,
+      "T-P6: bk2_options.balls_goal must be 100 from BK100 detail-form (got #{bk2_options["balls_goal"]})"
+  end
 end
