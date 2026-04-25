@@ -1,7 +1,7 @@
 <%# Quick Game Buttons - TableKind specific %>
 <%# Parameters: table_kind_name, table_monitor, location %>
 
-<% 
+<%
   # Determine table_kind_key based on table_kind_name
   table_kind_key = case table_kind_name
                    when /Pool/i then 'pool'
@@ -10,19 +10,19 @@
                    when /groß|gross/i, /Match/i then 'match_billard'
                    else 'small_billard'
                    end
-  
+
   # Determine game type for form handling
   is_pool = table_kind_key == 'pool'
   is_snooker = table_kind_key == 'snooker'
   is_karambol = !is_pool && !is_snooker
-  
+
   # 38.1 IN-06: use Carambus.config (cached OpenStruct) instead of
   # YAML.load_file on every partial render. Carambus.config merges
   # `default` + Rails.env-specific settings (see config/application.rb:10),
   # so env-specific overrides of quick_game_presets are still honoured
   # without a per-render disk read.
   presets = Carambus.config.quick_game_presets&.dig(table_kind_key) || []
-  
+
   # DEBUG
   # 38.1 IN-02: downgraded from .info to .debug (block form avoids string
   # interpolation cost when debug level is off); the partial is rendered on
@@ -39,18 +39,18 @@
   <h2 class="text-4xl font-bold text-center mb-6 text-white" style="text-shadow: 2px 2px #000000">
     Schnellauswahl - <%= table_kind_name %>
   </h2>
-  
+
   <% presets.each do |category_group| %>
     <%# 38.1 IN-05: guard that category_group is a Hash with a 'category' key
         (proper structural check replaces the previous `category_group.present?`
         which was redundant given the `category_group['buttons'].each` below
         would crash on nil anyway). %>
     <% next unless category_group.is_a?(Hash) && category_group['category'] %>
-    <%# 38.1-06: is_bk2_kombi is PER-CATEGORY (BK2 lives inside small_billard
-        alongside karambol categories — branch only when rendering the BK2
-        category's buttons; leave the existing is_karambol fallback for
-        all other small_billard categories). %>
-    <% is_bk2_kombi = !is_pool && !is_snooker && category_group['category'] == 'BK2-Kombi' %>
+    <%# 38.4-04: is_bk_family covers all 5 BK-* disciplines; is_bk2_kombi is
+        a subset flag for BK2-Kombi-specific behaviour (best-of-3, mode selector). %>
+    <% bk_family_names = %w[BK2-Kombi BK50 BK100 BK-2 BK-2plus] %>
+    <% is_bk_family = !is_pool && !is_snooker && bk_family_names.include?(category_group['category']) %>
+    <% is_bk2_kombi = is_bk_family && category_group['category'] == 'BK2-Kombi' %>
     <div class="mb-8">
       <h3 class="text-3xl font-bold mb-4 text-white" style="text-shadow: 2px 2px #000000">
         <%= category_group['category'] %>
@@ -64,8 +64,8 @@
               button_id = "#{button['discipline']}_#{button['sets_to_win']}_#{button['kickoff_switches_with']}"
             elsif is_snooker && button['frames_to_win']
               button_id = "snooker_#{button['frames_to_win']}"
-            elsif is_bk2_kombi && button['set_target_points']
-              button_id = "bk2_kombi_#{button['set_target_points']}"
+            elsif is_bk_family && button['balls_goal']
+              button_id = "#{button['discipline'].gsub(/[^a-zA-Z0-9]/, '_').downcase}_#{button['balls_goal']}"
             else
               button_id = "#{button['balls']}_#{button['innings']}"
             end
@@ -79,21 +79,21 @@
               label = "#{button['sets_to_win']} (#{kickoff})"
             elsif is_snooker && button['frames_to_win']
               label = "Best of #{button['frames_to_win'] * 2 - 1}"
-            elsif is_bk2_kombi && button['set_target_points']
-              label = "BK2 #{button['set_target_points']}"
+            elsif is_bk_family && button['balls_goal']
+              label = "#{category_group['category']} #{button['balls_goal']}"
             else
               balls_str = button['balls'] == 0 ? '-' : button['balls'].to_s
               innings_str = button['innings'] == 0 ? '-' : button['innings'].to_s
               label = "#{balls_str}/#{innings_str}"
             end
           %>
-          <%= form_tag start_game_table_monitor_path(table_monitor), 
-                       method: :post, 
+          <%= form_tag start_game_table_monitor_path(table_monitor),
+                       method: :post,
                        data: { turbo: false },
                        class: "inline-block" do %>
             <%= hidden_field_tag :player_a_id, '', id: "quick_player_a_#{button_id}" %>
             <%= hidden_field_tag :player_b_id, '', id: "quick_player_b_#{button_id}" %>
-            
+
             <% if is_pool %>
               <%= hidden_field_tag :quick_game_form, 'pool' %>
               <%= hidden_field_tag :free_game_form, 'pool' %>
@@ -125,19 +125,19 @@
               <%= hidden_field_tag :sets_to_win, button['frames_to_win'] || 3 %>
               <%= hidden_field_tag :sets_to_play, (button['frames_to_win'] || 3) * 2 - 1 %>
               <%= hidden_field_tag :first_break_choice, 0 %>
-            <% elsif is_bk2_kombi %>
-              <%# 38.1-06: BK2-Kombi quick-start. Packs set_target_points (not
-                  balls_goal) and best-of-3 defaults. Controller#start_game
-                  CLAMPS discipline_a/b to "BK2-Kombi" (T-38.1-06-01). %>
-              <%= hidden_field_tag :quick_game_form, 'bk2_kombi' %>
-              <%= hidden_field_tag :free_game_form, 'bk2_kombi' %>
+            <% elsif is_bk_family %>
+              <%# 38.4-04: BK-family quick-start (BK2-Kombi + BK50, BK100, BK-2, BK-2plus).
+                  Sends balls_goal (not set_target_points). Controller#start_game
+                  CLAMPS discipline_a/b to BK2_DISCIPLINE_MAP (T-38.4-04-02/03). %>
+              <%= hidden_field_tag :quick_game_form, is_bk2_kombi ? 'bk2_kombi' : 'bk_family' %>
+              <%= hidden_field_tag :free_game_form, is_bk2_kombi ? 'bk2_kombi' : 'bk_family' %>
               <%= hidden_field_tag :discipline_a, button['discipline'] %>
               <%= hidden_field_tag :discipline_b, button['discipline'] %>
-              <%= hidden_field_tag :set_target_points, button['set_target_points'] || 50 %>
-              <%= hidden_field_tag :sets_to_win, button['sets_to_win'] || 2 %>
-              <%= hidden_field_tag :sets_to_play, button['sets_to_play'] || 3 %>
-              <%= hidden_field_tag :balls_goal_a, 0 %>
-              <%= hidden_field_tag :balls_goal_b, 0 %>
+              <%= hidden_field_tag :balls_goal, button['balls_goal'] || 50 %>
+              <%= hidden_field_tag :sets_to_win, button['sets_to_win'] || 1 %>
+              <%= hidden_field_tag :sets_to_play, button['sets_to_play'] || 1 %>
+              <%= hidden_field_tag :balls_goal_a, button['balls_goal'] || 50 %>
+              <%= hidden_field_tag :balls_goal_b, button['balls_goal'] || 50 %>
               <%= hidden_field_tag :innings_goal, 0 %>
               <%= hidden_field_tag :first_break_choice, 0 %>
               <%= hidden_field_tag :kickoff_switches_with, 'set' %>
@@ -154,11 +154,11 @@
               <%= hidden_field_tag :allow_follow_up, button['allow_follow_up'].nil? ? true : button['allow_follow_up'] %>
               <%= hidden_field_tag :first_break_choice, 0 %>
             <% end %>
-            
+
             <%= submit_tag label,
                 class: "px-8 py-6 text-4xl font-bold rounded-lg bg-blue-500 text-white hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed quick-start-btn",
                 disabled: true,
-                data: { 
+                data: {
                   form_id: "quick_player_a_#{button_id}",
                   enabled_class: "bg-blue-500 hover:bg-blue-600 cursor-pointer",
                   disabled_class: "bg-gray-400 cursor-not-allowed"
@@ -168,7 +168,7 @@
       </div>
     </div>
   <% end %>
-  
+
   <%# Link to detailed configuration %>
   <div class="text-center mt-8">
     <p class="text-white text-xl mb-2" style="text-shadow: 1px 1px #000000">
@@ -180,9 +180,9 @@
         Für andere Disziplinen (Cadre, 5-Kegel, Einband, etc.):
       <% end %>
     </p>
-    <%= link_to "⚙️ Detail-Konfiguration", 
-        location_path(location.md5, 
-          sb_state: "free_game_detail", 
+    <%= link_to "⚙️ Detail-Konfiguration",
+        location_path(location.md5,
+          sb_state: "free_game_detail",
           table_id: table_monitor.table.id,
           :"data-turbo" => false),
         class: "text-white text-2xl underline hover:text-blue-300",
@@ -197,12 +197,12 @@ document.addEventListener('DOMContentLoaded', function() {
     var playerAId = document.getElementById('player_a_id')?.value;
     var playerBId = document.getElementById('player_b_id')?.value;
     var allButtons = document.querySelectorAll('.quick-start-btn');
-    
+
     allButtons.forEach(function(btn) {
       var formId = btn.dataset.formId;
       var playerAField = document.getElementById(formId);
       var playerBField = document.getElementById(formId.replace('player_a', 'player_b'));
-      
+
       if (playerAId && playerBId && playerAId !== playerBId) {
         btn.disabled = false;
         btn.className = btn.className.replace(btn.dataset.disabledClass, btn.dataset.enabledClass);
@@ -214,15 +214,15 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
   }
-  
+
   // Listen to player selection changes
   document.addEventListener('change', function(e) {
-    if (e.target.id === 'player_a_id' || e.target.id === 'player_b_id' || 
+    if (e.target.id === 'player_a_id' || e.target.id === 'player_b_id' ||
         e.target.name && (e.target.name.includes('playera') || e.target.name.includes('playerb'))) {
       updateQuickButtons();
     }
   });
-  
+
   // Initial update
   setTimeout(updateQuickButtons, 100);
 });
