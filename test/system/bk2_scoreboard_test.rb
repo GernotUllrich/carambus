@@ -815,20 +815,111 @@ class Bk2ScoreboardTest < ApplicationSystemTestCase
       "T-O3: exactly one generic Punktziel row must exist (found #{header_count})"
   end
 
-  test "T-O6-bk-variante-row-alignment 38.4-10: BK-Variante row uses 8-col grid for right-flush layout" do
+  # Phase 38.4-15 P2 / I-15-02: SUPERSEDES Plan 10's T-O6 assertion. The grid-cols-8
+  # layout left visible empty cells (cols 6-8) which made the row narrower than
+  # surrounding _radio_select cols=5 rows. Plan 15 reverts to grid-cols-5 with 5
+  # buttons per row, mirroring the surrounding row layout. Test name carries "-v2"
+  # suffix to signal Plan 10 → Plan 15 supersession; original Plan 10 attribution
+  # preserved in the docstring.
+  test "T-O6-bk-variante-row-alignment-v2 38.4-15: BK-Variante row uses 5-col grid for surrounding-row alignment (Plan 15 supersedes Plan 10's grid-cols-8)" do
     contents = File.read(Rails.root.join(
       "app/views/locations/scoreboard_free_game_karambol_new.html.erb"
     ))
-    # Find the BK-Variante row block by matching the label text.
-    # Then assert the inner grid uses grid-cols-8 (matches Punktziel cols=8 surrounding
-    # rows, so the rightmost button is right-flush).
     bk_var_block = contents.match(/>BK-Variante<.{0,4000}name="bk_form_choice"/m)&.to_s || ""
-    refute_empty bk_var_block, "T-O6: BK-Variante row block not found"
-    assert_match(/grid-cols-8/, bk_var_block,
-      "T-O6: BK-Variante inner grid must use grid-cols-8 (was grid-cols-5)")
-    # name="bk_form_choice" appears once in source (inside a loop — generates 5 at render time)
+    refute_empty bk_var_block, "T-O6-v2: BK-Variante row block not found"
+    assert_match(/grid-cols-5/, bk_var_block,
+      "T-O6-v2: BK-Variante inner grid must use grid-cols-5 (Plan 10 used grid-cols-8 — superseded by Plan 15 P2)")
+    refute_match(/grid-cols-8/, bk_var_block,
+      "T-O6-v2: BK-Variante must NOT use grid-cols-8 (Plan 15 reverted to grid-cols-5)")
     assert_equal 1, contents.scan(/name="bk_form_choice"/).size,
-      "T-O6: bk_form_choice radio template must appear once in source (loop generates 5 at render)"
+      "T-O6-v2: 1 BK-variant radio template (loop renders 5 at runtime)"
+  end
+
+  # Phase 38.4-15 P2: BK-Variante uses grid-cols-5 (one button per column).
+  # Row width visually matches surrounding _radio_select cols=5 rows.
+  # Plan 10's grid-cols-8 left cols 6-8 empty → row appeared narrower than surroundings.
+  test "T-P2-bk-variante-fixed-width-buttons 38.4-15: BK-Variante row uses grid-cols-5 with 5 buttons per row" do
+    contents = File.read(Rails.root.join(
+      "app/views/locations/scoreboard_free_game_karambol_new.html.erb"
+    ))
+
+    bk_var_block = contents.match(/>BK-Variante<.{0,4000}name="bk_form_choice"/m)&.to_s || ""
+    refute_empty bk_var_block, "T-P2: BK-Variante row block not found"
+    assert_match(/grid grid-cols-5 gap-4/, bk_var_block,
+      "T-P2: BK-Variante inner grid must use grid-cols-5 with gap-4 (closes P2.1 layout regression)")
+  end
+
+  # Phase 38.4-15 P2: visible vertical spacer (col-span-6 h-4) inserted above MEHRSATZ
+  # partial call so MEHRSATZ doesn't crowd against the merged Aufnahmebegrenzung row.
+  # Also asserts BK-* Aufnahmebegrenzung uses cols=4 and non-BK keeps cols=5.
+  test "T-P2-mehrsatz-row-spacing 38.4-15: MEHRSATZ row has visible vertical spacer above" do
+    contents = File.read(Rails.root.join(
+      "app/views/locations/scoreboard_free_game_karambol_new.html.erb"
+    ))
+
+    mehrsatz_block = contents.match(/col-span-6 h-4.{0,500}header: "Mehrsatzspiel"/m)&.to_s || ""
+    refute_empty mehrsatz_block,
+      "T-P2: spacer (col-span-6 h-4) must precede MEHRSATZ partial call (closes P2.3)"
+
+    # Aufnahmebegrenzung BK-* partial uses cols=4 (3 buttons + 1 counter)
+    bk_aufnahme_block = contents.match(/show: "is_bk_family && !is_bk_fixed_goal".{0,500}cols: 4/m)&.to_s || ""
+    refute_empty bk_aufnahme_block,
+      "T-P2: BK-* Aufnahmebegrenzung partial must use cols=4 (closes P2.2)"
+
+    # Non-BK Aufnahmebegrenzung partial unchanged (cols=5)
+    non_bk_aufnahme_block = contents.match(/show: "!is_bk_family".{0,500}cols: 5/m)&.to_s || ""
+    refute_empty non_bk_aufnahme_block,
+      "T-P2: non-BK Aufnahmebegrenzung partial keeps cols=5 (no regression)"
+  end
+
+  # Phase 38.4-15 P2 / I-15-01: rendered-template verification of grid-cols-5 class.
+  # File-grep tests verify the .erb source contains the class; this test verifies
+  # the compiled ERB output (Ruby source produced by Rails' template compiler)
+  # contains it. Catches subtle ERB-compilation issues that source-level greps
+  # would miss (e.g., the class string sitting inside an ERB comment block <%# %>
+  # which Rails strips at compile time → present in source but absent in output).
+  #
+  # NOTE on methodology shift (per I-15-01 SUMMARY note): the original Plan 15
+  # draft used `visit table_monitor_path(@tm)` to assert via Capybara DOM. That
+  # path renders the table_monitor scoreboard, NOT the
+  # `scoreboard_free_game_karambol_new.html.erb` template under modification.
+  # The latter is reached via `LocationsController#show` with `sb_state=free_game_detail`
+  # and requires complex Location/Table/Club/Player fixture setup not present in
+  # this test class. Rather than introduce a fixture chain just for one assertion,
+  # this test compiles the ERB template via Rails' template handler and asserts
+  # against the resulting Ruby source. This catches the I-15-01 concern (class
+  # surviving compilation) without browser overhead. Documented in 38.4-15-SUMMARY.md.
+  test "T-P2-bk-variante-row-cols-5-rendered 38.4-15: BK-Variante row class survives ERB compilation (per I-15-01)" do
+    view_path = Rails.root.join(
+      "app/views/locations/scoreboard_free_game_karambol_new.html.erb"
+    )
+    raw_erb = File.read(view_path)
+
+    # Compile the ERB template to Ruby source. Rails' default ERB handler strips
+    # ERB comments (`<%# %>`) at compile time, so any class string inside a
+    # comment block disappears from the compiled output. Plain HTML class strings
+    # survive verbatim into the compiled source as string literals.
+    compiled = ActionView::Template::Handlers::ERB.new.call(
+      ActionView::Template.new(
+        raw_erb,
+        view_path.to_s,
+        ActionView::Template.handler_for_extension("erb"),
+        format: :html,
+        locals: []
+      ),
+      raw_erb
+    )
+
+    assert_match(/grid grid-cols-5 gap-4/, compiled,
+      "T-P2-rendered: compiled ERB output must contain 'grid grid-cols-5 gap-4' for BK-Variante row " \
+      "(class survived ERB compilation — not stripped as a comment)")
+
+    # Negative assertion: grid-cols-8 must NOT appear in any non-comment context
+    # in the compiled template. (The ERB <%# ... %> comment that mentions Plan 10's
+    # grid-cols-8 in its Plan 15 supersession docstring is stripped during
+    # compilation, so this assertion correctly rejects any LIVE grid-cols-8 class.)
+    refute_match(/grid-cols-8/, compiled,
+      "T-P2-rendered: compiled ERB output must NOT contain grid-cols-8 (Plan 15 superseded Plan 10)")
   end
 
   test "T-O7-merged-aufnahmebegrenzung-row 38.4-10: standalone SP-max row removed; Aufnahmebegrenzung swaps button set per discipline" do
