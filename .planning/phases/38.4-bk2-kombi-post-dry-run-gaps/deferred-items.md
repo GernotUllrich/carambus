@@ -39,3 +39,43 @@ These tests were written under the old D-06 contract and never updated.
 the D-06 contract. Could be bundled with Plan 38.4-09 follow-up or a quick task.
 
 **Status:** Deferred for follow-up.
+
+## From Plan 38.4-09
+
+### 4 pre-existing system test errors (commit_inning.rb:108 string-not-Discipline)
+
+**Discovered during:** Plan 38.4-09 Task 2 verification sweep (full
+`bin/rails test test/system/bk2_scoreboard_test.rb` after adding the 4 new
+T-Punktziel-/T-DZ-max-/T-SP-max-/T-hidden-inputs guards).
+
+**Verified pre-existing:** Stashed my Plan 38.4-09 changes and re-ran T8 against
+pre-fix code: same `NoMethodError: undefined method 'data' for "BK2-Kombi":String`
+at `app/services/bk2/commit_inning.rb:108`. NOT a Plan 09 regression — Plan 09
+only modified the view DOM and the test file.
+
+**Failing tests:**
+1. `test/system/bk2_scoreboard_test.rb:225` — T8 38.3-01+04: SP positive inning commits additively to self (D-12)
+2. `test/system/bk2_scoreboard_test.rb:260` — T9 38.3-01+04: player at table flips after CommitInning; phase chip unchanged within same set
+3. `test/system/bk2_scoreboard_test.rb` — T10 38.3-01+04: DZ negative inning credits opponent on commit (D-11)
+4. `test/system/bk2_scoreboard_test.rb` — T11 38.4-07 I9: set closes when player reaches balls_goal (D-06 migration)
+
+**Root cause:** All 4 errors trace to `commit_inning.rb:108` calling `.data` on
+the `discipline` argument expecting a `Discipline` ActiveRecord object, but the
+test fixtures (or test setup) are passing a String like `"BK2-Kombi"` instead.
+Likely root cause: the test setup synthesises a `tournament_monitor.data` hash
+with `playera.discipline = "BK2-Kombi"` (string) and `commit_inning` later
+treats this string value as if it were the ActiveRecord Discipline.
+
+**Why deferred:**
+- Out of scope for Plan 38.4-09 (which targets test 3 of UAT — detail-view UI
+  touch-button conversion, not BK2 service-layer test fixture wiring).
+- Pre-existing errors (verified via stash-and-rerun against HEAD~1).
+- Likely a Discipline lookup gap in either commit_inning.rb (should resolve the
+  string to a Discipline via `Discipline.find_by(name:)`) or test setup
+  (should populate Discipline references not raw name strings).
+
+**Recommended action:** Schedule a separate plan or quick task to triage:
+either harden `commit_inning.rb:108` to accept either a Discipline or a name
+string, OR update the 4 test setups to use proper Discipline fixtures.
+
+**Status:** Deferred for follow-up.

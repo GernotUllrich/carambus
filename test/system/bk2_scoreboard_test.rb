@@ -705,6 +705,73 @@ class Bk2ScoreboardTest < ApplicationSystemTestCase
       "T-Ballziel-fixed-bk50: is_bk_fixed_goal must reference bk50 and bk100")
   end
 
+  test "T-Punktziel-row-introduced 38.4-09: dedicated Punkt-Ziel row exists for all BK-* variants" do
+    contents = File.read(Rails.root.join(
+      "app/views/locations/scoreboard_free_game_karambol_new.html.erb"
+    ))
+    # Plan 38.4-09 introduced a dedicated touch-button row for Punkt-Ziel (the "missing
+    # row" the user explicitly mentioned). It is gated on is_bk_family (visible for all
+    # 5 BK-* variants) and uses bk_ballziel_choices to drive the button list.
+    assert_match(/data-test-id="bk-punktziel-row"/, contents,
+      "T-Punktziel-row-introduced: data-test-id='bk-punktziel-row' must mark the new row")
+    assert_match(/x-show="[^"]*is_bk_family/, contents,
+      "T-Punktziel-row-introduced: Punkt-Ziel row must be gated on is_bk_family for all 5 variants")
+    assert_match(/x-for=.\(?choice.*in bk_ballziel_choices/, contents,
+      "T-Punktziel-row-introduced: row must iterate bk_ballziel_choices reactively")
+    assert_match(/x-model\.number="bk_balls_goal"/, contents,
+      "T-Punktziel-row-introduced: row must bind selection to bk_balls_goal")
+    # Touch-button affordance — large labelled <label> with hidden radio (sr-only)
+    assert_match(/class="sr-only"[^>]*x-model\.number="bk_balls_goal"|x-model\.number="bk_balls_goal"[^>]*class="sr-only"/, contents,
+      "T-Punktziel-row-introduced: hidden radio (sr-only) inside labelled wrapper — touch-button pattern")
+  end
+
+  test "T-DZ-max-touchbutton 38.4-09: DZ-max row uses ± touch-button pattern (not bare <input>)" do
+    contents = File.read(Rails.root.join(
+      "app/views/locations/scoreboard_free_game_karambol_new.html.erb"
+    ))
+    # Plan 38.4-09 converted the bare <input type=number> for DZ-max to a ± button row.
+    # Guard against regression to the bare-input style.
+    # Anchor on the ROW's x-show= attribute (not the bare getter name) to skip past the
+    # getter definitions at lines 224-225 where is_bk_dz_configurable + is_bk_sp_configurable
+    # appear adjacently in the JavaScript.
+    dz_block = contents.match(/x-show="[^"]*is_bk_dz_configurable.*?x-show="[^"]*is_bk_sp_configurable/m)&.to_s || ""
+    assert_match(/@click=.*bk2_dz_max_shots = parseInt\(bk2_dz_max_shots\) - 1/, dz_block,
+      "T-DZ-max-touchbutton: DZ-max row must have a minus-button decrementing bk2_dz_max_shots")
+    assert_match(/@click=.*bk2_dz_max_shots = parseInt\(bk2_dz_max_shots\) \+ 1/, dz_block,
+      "T-DZ-max-touchbutton: DZ-max row must have a plus-button incrementing bk2_dz_max_shots")
+  end
+
+  test "T-SP-max-touchbutton 38.4-09: SP-max row uses ± touch-button pattern (not bare <input>)" do
+    contents = File.read(Rails.root.join(
+      "app/views/locations/scoreboard_free_game_karambol_new.html.erb"
+    ))
+    # Same anchoring fix: lock onto the row's x-show= attribute, not the bare getter name.
+    sp_block = contents.match(/x-show="[^"]*is_bk_sp_configurable.*/m)&.to_s || ""
+    assert_match(/@click=.*bk2_sp_max_innings = parseInt\(bk2_sp_max_innings\) - 1/, sp_block,
+      "T-SP-max-touchbutton: SP-max row must have a minus-button decrementing bk2_sp_max_innings")
+    assert_match(/@click=.*bk2_sp_max_innings = parseInt\(bk2_sp_max_innings\) \+ 1/, sp_block,
+      "T-SP-max-touchbutton: SP-max row must have a plus-button incrementing bk2_sp_max_innings")
+  end
+
+  test "T-hidden-inputs-not-duplicated 38.4-09: hidden form inputs appear exactly once" do
+    contents = File.read(Rails.root.join(
+      "app/views/locations/scoreboard_free_game_karambol_new.html.erb"
+    ))
+    # Plan 38.4-09 must NOT re-emit hidden inputs (they are at lines 241-253, outside
+    # the 317-390 replacement range). Guard against an executor accidentally
+    # duplicating them.
+    %w[free_game_form balls_goal discipline_a discipline_b sets_to_win sets_to_play].each do |name|
+      count = contents.scan(/name=['"]#{name}['"]/).size
+      assert_equal 1, count,
+        "T-hidden-inputs-not-duplicated: name='#{name}' must appear exactly once (found #{count})"
+    end
+    %w[direkter_zweikampf_max_shots_per_turn serienspiel_max_innings_per_set].each do |key|
+      count = contents.scan(/name=['"]bk2_options\[#{key}\]['"]/).size
+      assert_equal 1, count,
+        "T-hidden-inputs-not-duplicated: name='bk2_options[#{key}]' must appear exactly once (found #{count})"
+    end
+  end
+
   # ===========================================================================
   # Phase 38.4 D-17 — shootout 4-button BK-2kombi only (DOM assertions)
   # ===========================================================================
