@@ -107,12 +107,15 @@ class TableMonitorsControllerTest < ActionDispatch::IntegrationTest
   # b. BK2 detail-form path (detail-form submits free_game_form=bk2_kombi +
   # discipline_a/b="BK2-Kombi" via Alpine :value bindings; controller packs
   # bk2_options and Small Billard defaults).
+  # 38.4-04 D-06: contract rename `set_target_points` → `balls_goal`. The
+  # controller now packs `bk2_options["balls_goal"]` (clamped against
+  # `discipline.ballziel_choices`) and `set_target_points` is no longer written.
   test "start_game with free_game_form=bk2_kombi seeds BK2 TableMonitor from detail form" do
     post start_game_table_monitor_url(@table_monitor), params: {
       free_game_form:    "bk2_kombi",
       discipline_a:      "BK2-Kombi",
       discipline_b:      "BK2-Kombi",
-      set_target_points: 60,
+      balls_goal:        60,
       sets_to_win:       2,
       sets_to_play:      3,
       player_a_id:       players(:jaspers).id,
@@ -123,7 +126,7 @@ class TableMonitorsControllerTest < ActionDispatch::IntegrationTest
     assert_includes [200, 302], response.status
     @table_monitor.reload
     assert_equal "bk2_kombi",  @table_monitor.data["free_game_form"]
-    assert_equal 60,           @table_monitor.data.dig("bk2_options", "set_target_points")
+    assert_equal 60,           @table_monitor.data.dig("bk2_options", "balls_goal")
     assert_equal "BK2-Kombi",  @table_monitor.data.dig("playera", "discipline")
     assert_equal "BK2-Kombi",  @table_monitor.data.dig("playerb", "discipline")
   end
@@ -156,7 +159,7 @@ class TableMonitorsControllerTest < ActionDispatch::IntegrationTest
       free_game_form:    "bk2_kombi",
       discipline_a:      "BK2-Kombi",
       discipline_b:      "BK2-Kombi",
-      set_target_points: 50,
+      balls_goal:        50,
       sets_to_win:       2,
       sets_to_play:      3,
       balls_goal_a:      0,
@@ -169,7 +172,7 @@ class TableMonitorsControllerTest < ActionDispatch::IntegrationTest
     }
     @table_monitor.reload
     assert_equal "bk2_kombi",  @table_monitor.data["free_game_form"]
-    assert_equal 50,           @table_monitor.data.dig("bk2_options", "set_target_points")
+    assert_equal 50,           @table_monitor.data.dig("bk2_options", "balls_goal")
     assert_equal "BK2-Kombi",  @table_monitor.data.dig("playera", "discipline")
   end
 
@@ -223,7 +226,7 @@ class TableMonitorsControllerTest < ActionDispatch::IntegrationTest
       free_game_form:     "bk2_kombi",
       discipline_a:       "BK2-Kombi",
       discipline_b:       "BK2-Kombi",
-      set_target_points:  50,
+      balls_goal:         50,
       bk2_first_set_mode: "serienspiel",
       player_a_id:        players(:jaspers).id,
       player_b_id:        players(:cho).id,
@@ -234,7 +237,7 @@ class TableMonitorsControllerTest < ActionDispatch::IntegrationTest
     assert_equal "serienspiel",
       @table_monitor.data.dig("bk2_options", "first_set_mode"),
       "first_set_mode must be persisted from the (whitelisted) POST value"
-    assert_equal 50, @table_monitor.data.dig("bk2_options", "set_target_points")
+    assert_equal 50, @table_monitor.data.dig("bk2_options", "balls_goal")
   end
 
   # h. Detail form falls back to direkter_zweikampf when submitted value is NOT whitelisted.
@@ -325,13 +328,19 @@ class TableMonitorsControllerTest < ActionDispatch::IntegrationTest
 
   # Phase 38.3-06 D-17: tests for the two NEW BK2 config fields (free-game path).
 
-  # l. Free-game form persists direkter_zweikampf_max_shots_per_turn when a valid integer is submitted.
-  test "start_game BK2 free-game persists direkter_zweikampf_max_shots_per_turn when whitelisted integer submitted" do
+  # l. Free-game form CLAMPs direkter_zweikampf_max_shots_per_turn to 2 for BK2-Kombi (Plan 38.4-10 O8).
+  # Pre-Plan-10 contract was "any whitelisted 1..99 integer persists". Plan 10 O8 hardcodes
+  # dz_max=2 for BK-2plus + BK2-Kombi (single canonical DZ-max — no other valid variant exists),
+  # so a user-submitted 3 is overridden server-side. The hardcode lives in
+  # TableMonitorsController#clamp_bk_family_params! and is the authoritative server-side
+  # contract. Tests `m`/`n`/`o` below remain unchanged because they assert clamp/persist
+  # behavior that is unaffected by the dz_max hardcode.
+  test "start_game BK2 free-game CLAMPs direkter_zweikampf_max_shots_per_turn to 2 for BK2-Kombi (Plan 38.4-10 O8)" do
     post start_game_table_monitor_url(@table_monitor), params: {
       free_game_form:    "bk2_kombi",
       discipline_a:      "BK2-Kombi",
       discipline_b:      "BK2-Kombi",
-      set_target_points: 50,
+      balls_goal:        50,
       bk2_options:       { direkter_zweikampf_max_shots_per_turn: 3, serienspiel_max_innings_per_set: 5 },
       sets_to_win:       2,
       sets_to_play:      3,
@@ -344,9 +353,9 @@ class TableMonitorsControllerTest < ActionDispatch::IntegrationTest
       first_break_choice: 0
     }
     @table_monitor.reload
-    assert_equal 3,
+    assert_equal 2,
       @table_monitor.data.dig("bk2_options", "direkter_zweikampf_max_shots_per_turn"),
-      "direkter_zweikampf_max_shots_per_turn must be persisted when a valid value is submitted"
+      "BK2-Kombi forces dz_max to 2 (Plan 38.4-10 O8) — user-submitted 3 must be overridden"
   end
 
   # m. Free-game form CLAMPs direkter_zweikampf_max_shots_per_turn to default=2 on out-of-range values.
