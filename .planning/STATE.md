@@ -94,6 +94,19 @@ Decisions are logged in PROJECT.md Key Decisions table. Full v7.0 cross-phase de
 - **Sync bug — `sync-version-yaml-load-json-collision`** (2026-04-23). `Version#update_from_carambus_api` fallback (version.rb:330/338) calls `YAML.load` on JSON-encoded text columns and returns a Hash → `update_columns` fails for text columns. See `.planning/todos/pending/2026-04-23-sync-version-yaml-load-json-collision.md`. Until fixed, **every local server** (carambus_phat, carambus_master, additional BCW instances) needs a manual Path B `unprotected=true` write for `Discipline.find(107).data = { "free_game_form" => "bk2_kombi" }.to_json` before the 2026-05-02 tournament.
 - **Production API disk — `api-server-disk-cleanup`** (2026-04-23). PostgreSQL 14 cluster on the API server went down 2026-04-22 23:02 UTC due to disk-full. Freed 8 GB; now at 89% (8.1 GB free). Worth a deeper pass on old Capistrano releases and rotated Rails logs before the next crisis.
 
+### Deferred follow-ups
+
+- **T-38.4-16-07 — Residual sync-race for nachstoss_allowed cleanup (Phase 38.4-16):**
+  The migration `db/migrate/20260425090000_clear_nachstoss_allowed_for_non_bk2_kombi.rb`
+  removes the `nachstoss_allowed` key from BK50/BK100/BK-2/BK-2plus on each server.
+  If a stale Plan-11 payload arrives via Version sync AFTER the migration runs on a
+  given server (sync race), the flag reappears until the seed re-runs on master AND
+  the new flag-less payload propagates. Mitigation in production deployment sequence
+  (master seed re-run FIRST, then local-server migrations); residual risk documented
+  in migration's `up` method comments. If observed in the wild, re-run the migration
+  after the next sync — idempotent. Future hardening: a self-healing periodic check
+  that re-applies the cleanup if drift detected.
+
 ### Blockers/Concerns
 
 None blocking Phase 38.1 execution. Reconciliation debt above is tracked but not blocking — name-match fallback keeps the tournament working on any server that's missing the `discipline.data` write.
