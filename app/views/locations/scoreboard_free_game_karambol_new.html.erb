@@ -218,7 +218,7 @@
       get bk2_selected() { return this.bk2_choice !== null && this.bk2_choice !== '' && this.bk2_choice !== undefined; },
       get bk2_target() { return [50, 60, 70][this.bk2_choice] || 50; },
       bk_selected_form: null,
-      bk_balls_goal: null,
+      bk_balls_goal: 70,
       get is_bk_family() { return ['bk2_kombi','bk_2plus','bk_2','bk50','bk100'].includes(this.bk_selected_form); },
       get is_bk_fixed_goal() { return this.bk_selected_form === 'bk50' || this.bk_selected_form === 'bk100'; },
       get is_bk_dz_configurable() { return this.bk_selected_form === 'bk_2plus' || this.bk_selected_form === 'bk2_kombi'; },
@@ -347,7 +347,7 @@
                   <input type="radio" name="bk_form_choice" value="<%= val %>"
                          x-model="bk_selected_form" class="sr-only"
                          aria-labelledby="bk-form-choice-<%= ix %>-label"
-                         @change="bk_balls_goal = bk_ballziel_choices[0]">
+                         @change="bk_balls_goal = bk_ballziel_choices.includes(70) ? 70 : bk_ballziel_choices[0]">
                   <span id="bk-form-choice-<%= ix %>-label"><%= label %></span>
                 </label>
               <% end %>
@@ -361,8 +361,12 @@
           <%# --- ROW 2: Punkt-Ziel (Ballziel) — touch-buttons, dynamic per BK-variant ---
               This row was MISSING as a dedicated row for BK-2/BK-2plus/BK-2kombi
               before this plan (it was a <select> dropdown). Introduced here. %>
+          <%# Phase 38.4-P11: col-span-4 (was col-span-5) so right edge aligns with surrounding
+              _radio_select rows; the freed col 6 carries a − n + counter for arbitrary values.
+              For BK50/BK100 (is_bk_fixed_goal) the counter is hidden but the cell still spans
+              col 6 to keep the row 6-wide. %>
           <div x-show="table_kind == 'Small Billard' && parameters == 0 && is_bk_family">Punkt-Ziel</div>
-          <div x-show="table_kind == 'Small Billard' && parameters == 0 && is_bk_family" class="col-span-5" data-test-id="bk-punktziel-row">
+          <div x-show="table_kind == 'Small Billard' && parameters == 0 && is_bk_family" class="col-span-4" data-test-id="bk-punktziel-row">
             <div class="grid gap-4" :class="`grid-cols-${bk_ballziel_choices.length || 1}`">
               <template x-for="(choice, ix) in bk_ballziel_choices" :key="choice">
                 <label class="group relative border rounded-md py-3 px-4 flex items-center justify-center text-2vw font-medium uppercase focus:outline-none sm:flex-1 shadow-sm cursor-pointer"
@@ -375,6 +379,19 @@
                   <span x-text="choice"></span>
                 </label>
               </template>
+            </div>
+          </div>
+          <%# Phase 38.4-P11: − n + counter for arbitrary balls_goal values (clamped server-side
+              by clamp_bk_family_params! against discipline.ballziel_choices). Hidden for
+              BK50/BK100 where balls_goal is fixed. %>
+          <div x-show="table_kind == 'Small Billard' && parameters == 0 && is_bk_family" class="flex justify-center items-center">
+            <div class="flex gap-2 items-center justify-center w-full max-w-md" x-show="!is_bk_fixed_goal">
+              <div class="flex text-4vw justify-center items-center font-bold cursor-pointer w-12"
+                   @click="bk_balls_goal = Math.max(0, parseInt(bk_balls_goal || 0) - 5)">−</div>
+              <span class="flex items-center justify-center text-center text-2vw font-medium shadow-sm bg-blue-600 text-gray-200 border rounded-md py-3 px-4 min-w-24"
+                    x-text="bk_balls_goal || 0"></span>
+              <div class="flex text-4vw justify-center items-center font-bold cursor-pointer w-12"
+                   @click="bk_balls_goal = parseInt(bk_balls_goal || 0) + 5">+</div>
             </div>
           </div>
 
