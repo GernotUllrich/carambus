@@ -102,4 +102,39 @@ class VersionTest < ActiveSupport::TestCase
   ensure
     Discipline.where(id: 50_000_099).destroy_all
   end
+
+  # === T-CR-01 — Version.local_from_api NameError regression (Phase 38.4-17) ===
+
+  test "T-CR-01-local-from-api-no-raises 38.4-17: Version.local_from_api uses local_server? (predicate)" do
+    # Phase 38.4-CR-01: pre-fix, Version.local_from_api at version.rb:434 called
+    # `local_server` (no question mark) — a NameError. This test asserts the method
+    # invocation completes without raising NameError. Behaviour-wise, it's a no-op
+    # when local_server? returns false (typical test-DB state) and triggers
+    # sequence_reset when local_server? returns true.
+    assert_nothing_raised do
+      Version.local_from_api
+    end
+  end
+
+  test "T-CR-01-local-from-api-stub-true 38.4-17: when local_server? stubbed true, sequence_reset is called" do
+    called = false
+    Version.stub :local_server?, true do
+      Version.stub :sequence_reset, ->() { called = true } do
+        Version.local_from_api
+      end
+    end
+    assert_equal true, called,
+      "T-CR-01: Version.sequence_reset must be called when local_server? returns true"
+  end
+
+  test "T-CR-01-local-from-api-stub-false 38.4-17: when local_server? stubbed false, sequence_reset is NOT called" do
+    called = false
+    Version.stub :local_server?, false do
+      Version.stub :sequence_reset, ->() { called = true } do
+        Version.local_from_api
+      end
+    end
+    assert_equal false, called,
+      "T-CR-01: Version.sequence_reset must NOT be called when local_server? returns false"
+  end
 end
