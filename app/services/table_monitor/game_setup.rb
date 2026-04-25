@@ -16,7 +16,16 @@
 class TableMonitor::GameSetup < ApplicationService
   def initialize(kwargs = {})
     @tm = kwargs[:table_monitor]
-    @options = HashWithIndifferentAccess.new(kwargs[:options] || {})
+    # 38.4-08 belt-and-braces: tolerate ActionController::Parameters callers
+    # that forgot to .to_h. The controller is now responsible for the
+    # conversion (table_monitors_controller.rb line 67), but GameSetup is
+    # also reachable from console / scripts / future tests, so guard here too.
+    # This is the ACTUAL safety net for nested unpermitted Parameters values
+    # (e.g., bk2_options) — the controller's .to_h does not guarantee deep
+    # conversion of unpermitted nested keys in Rails 7. Closes I9b unit test.
+    raw = kwargs[:options] || {}
+    raw = raw.to_unsafe_h if raw.respond_to?(:to_unsafe_h)
+    @options = HashWithIndifferentAccess.new(raw)
   end
 
   # Setzt suppress_broadcast vor Batch-Saves und garantiert Reset im ensure-Block.
