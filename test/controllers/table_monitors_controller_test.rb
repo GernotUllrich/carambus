@@ -424,4 +424,72 @@ class TableMonitorsControllerTest < ActionDispatch::IntegrationTest
         "serienspiel_max_innings_per_set must CLAMP to default 5 when submitted value is #{bad_value}"
     end
   end
+
+  # ---------------------------------------------------------------------
+  # 38.4-08 I9 (test 2 in 38.4-HUMAN-UAT): start_game must not crash with
+  # ActionController::UnfilteredParameters when bk2_options is submitted
+  # as a nested hash from the BK-* detail view (Phase 38.4-06).
+  # Root cause: params.permit(params.keys) returns Parameters not Hash;
+  # HashWithIndifferentAccess.new(parameters) rejects unpermitted nested keys.
+  #
+  # TASK-0 PRE-CHECK FINDING (2026-04-25): CASE A — existing 38.3-06
+  # free-game persists/CLAMPs tests at lines 328-426 FAIL today (silent
+  # data drop: bk2_options ends up nil in @table_monitor.data because
+  # params.permit(params.keys) returns Parameters; @options["bk2_options"]
+  # in GameSetup#perform_start_game then resolves to nil). The IntegrationTest
+  # path reproduces the bug as a silent nil rather than an explicit
+  # UnfilteredParameters raise — but it's the same root cause and the same
+  # fix (.to_h in controller + defensive .to_unsafe_h in GameSetup) closes
+  # both manifestations. I9 below is the RED→GREEN regression gate.
+  # ---------------------------------------------------------------------
+
+  test "I9 38.4-08: start_game with nested bk2_options hash completes without UnfilteredParameters" do
+    post start_game_table_monitor_url(@table_monitor), params: {
+      free_game_form:        "bk2_kombi",
+      discipline_a:          "BK2-Kombi",
+      discipline_b:          "BK2-Kombi",
+      balls_goal:            "50",
+      bk2_options: {
+        direkter_zweikampf_max_shots_per_turn: "2",
+        serienspiel_max_innings_per_set:       "5"
+      },
+      sets_to_win:           2,
+      sets_to_play:          3,
+      bk2_first_set_mode:    "direkter_zweikampf",
+      player_a_id:           players(:jaspers).id,
+      player_b_id:           players(:cho).id,
+      allow_follow_up:       "0",
+      first_break_choice:    0
+    }
+    # Must complete — pre-fix this raised ActionController::UnfilteredParameters
+    # in production (or silently dropped bk2_options in IntegrationTest — same root cause).
+    assert_includes [200, 302], response.status,
+      "I9: start_game must not raise UnfilteredParameters when bk2_options is a nested hash"
+
+    @table_monitor.reload
+    assert_equal "bk2_kombi", @table_monitor.data["free_game_form"]
+    assert_equal 50, @table_monitor.data.dig("bk2_options", "balls_goal"),
+      "I9: balls_goal CLAMP must propagate from top-level param to bk2_options.balls_goal"
+    assert_equal 2, @table_monitor.data.dig("bk2_options", "direkter_zweikampf_max_shots_per_turn"),
+      "I9: nested bk2_options.dz_max must round-trip"
+    assert_equal 5, @table_monitor.data.dig("bk2_options", "serienspiel_max_innings_per_set"),
+      "I9: nested bk2_options.sp_max must round-trip"
+    assert_equal "playing", @table_monitor.state,
+      "I9: TableMonitor must reach 'playing' state after BK-* start_game"
+  end
+
+  test "I9b 38.4-08: GameSetup#initialize tolerates ActionController::Parameters with unpermitted nested keys" do
+    # Defensive guard test: constructs an actual ActionController::Parameters
+    # object — bypasses IntegrationTest's Hash-handling shortcut and reproduces
+    # the production crash path (UnfilteredParameters on .to_unsafe_h conversion
+    # of unpermitted nested keys when wrapped by HashWithIndifferentAccess.new).
+    raw = ActionController::Parameters.new(
+      free_game_form: "bk2_kombi",
+      balls_goal: 50,
+      bk2_options: { direkter_zweikampf_max_shots_per_turn: 2, serienspiel_max_innings_per_set: 5 }
+    )
+    assert_nothing_raised do
+      TableMonitor::GameSetup.new(table_monitor: @table_monitor, options: raw)
+    end
+  end
 end
