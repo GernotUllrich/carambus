@@ -1,17 +1,21 @@
 # frozen_string_literal: true
 
-module Bk2Kombi
+module Bk2
   # Wendet einen BK2-Kombi-Stoß auf TableMonitor.data['bk2_state'] an.
   #
-  # Delegiert die reine Auswertung an Bk2Kombi::ScoreShot und persistiert das Ergebnis.
-  # Schließt den Satz wenn ein Spieler set_target_points erreicht.
+  # Delegiert die reine Auswertung an Bk2::ScoreShot und persistiert das Ergebnis.
+  # Schließt den Satz wenn ein Spieler balls_goal erreicht.
   # Schließt das Match wenn ein Spieler 2 Sätze gewinnt (Best-of-3).
+  #
+  # Phase 38.4 D-06: balls_goal (aus tournament_monitor.balls_goal) ersetzt set_target_points.
+  # Transitional fallback: state['set_target_points'] wird als Fallback gelesen wenn
+  # state['balls_goal'] nicht gesetzt ist (In-Flight BK2-Kombi-Turniere bleiben spielbar).
   #
   # Idempotenz-Guard (T-38.1-13): Wenn shot_payload[:shot_sequence_number] gesetzt ist,
   # wird ein bereits verarbeiteter Stoß als No-Op zurückgegeben.
   #
   # Verwendung:
-  #   Bk2Kombi::AdvanceMatchState.call(table_monitor: tm, shot_payload: payload)
+  #   Bk2::AdvanceMatchState.call(table_monitor: tm, shot_payload: payload)
   class AdvanceMatchState
     DEFAULT_SET_TARGET = 50
     # Phase 38.2 D-12 / D-20: rule limits driven by bk2_options; these are the
@@ -33,7 +37,7 @@ module Bk2Kombi
     # #key_d after the Plan 38.3-05 `bk2_options[first_set_mode]` write (button paths)
     # or directly (key_d — relies on DEFAULT_FIRST_SET_MODE fallback when no mode set).
     #
-    #   Bk2Kombi::AdvanceMatchState.initialize_bk2_state!(table_monitor)
+    #   Bk2::AdvanceMatchState.initialize_bk2_state!(table_monitor)
     def self.initialize_bk2_state!(table_monitor)
       new(table_monitor: table_monitor, shot_payload: {}).send(:init_state_if_missing!)
       table_monitor.save!
@@ -51,7 +55,7 @@ module Bk2Kombi
 
       state = @tm.data["bk2_state"].deep_dup
 
-      result = Bk2Kombi::ScoreShot.call(
+      result = Bk2::ScoreShot.call(
         shot_payload: @shot_payload,
         state: state
       )
@@ -72,6 +76,7 @@ module Bk2Kombi
 
     # Initialisiere bk2_state falls noch nicht vorhanden (z.B. frischer TableMonitor).
     # Phase 38.2 D-19/D-20: first_set_mode, shots/innings-Limits aus bk2_options lesen.
+    # Phase 38.4 D-06: balls_goal aus tournament_monitor.balls_goal lesen (mit Fallback).
     def init_state_if_missing!
       return if @tm.data["bk2_state"].is_a?(Hash)
 
@@ -79,6 +84,7 @@ module Bk2Kombi
       initial_phase = phase_for_set(1, first_mode)
       dz_max = derive_dz_max_shots
       sp_max = derive_sp_max_innings
+      balls_goal_val = derive_balls_goal
 
       @tm.data["bk2_state"] = {
         "current_set_number" => 1,
@@ -93,13 +99,30 @@ module Bk2Kombi
           "3" => {"playera" => 0, "playerb" => 0}
         },
         "sets_won" => {"playera" => 0, "playerb" => 0},
-        "set_target_points" => derive_set_target
+        # Phase 38.4 D-06: balls_goal ist das neue per-Satz-Ziel.
+        "balls_goal" => balls_goal_val,
+        # Transitional: set_target_points auch schreiben für Backward-Compat-Leser
+        # (in-flight tournaments that still reference the old key). Remove in a later phase.
+        "set_target_points" => balls_goal_val
       }
     end
 
-    # Lese set_target_points aus bk2_options (Plan 04) oder verwende Default 50.
+    # Phase 38.4 D-06: Lese balls_goal von tournament_monitor (Priorität), dann
+    # aus bk2_options[:set_target_points] (Fallback für in-flight games), dann DEFAULT.
+    def derive_balls_goal
+      tm_balls_goal = @tm.tournament_monitor&.balls_goal.to_i
+      return tm_balls_goal if tm_balls_goal.positive?
+
+      legacy_stp = (@tm.data.dig("bk2_options", "set_target_points") || 0).to_i
+      return legacy_stp if legacy_stp.positive?
+
+      DEFAULT_SET_TARGET
+    end
+
+    # Transitional: Lese set_target_points für ältere Aufrufe (Backward-Compat).
+    # Bleibt für eine Übergangsphase; nach D-06-Vollmigration entfernen.
     def derive_set_target
-      (@tm.data.dig("bk2_options", "set_target_points") || DEFAULT_SET_TARGET).to_i
+      derive_balls_goal
     end
 
     # Phase 38.2 D-20: max Stösse pro Aufnahme im Direkten Zweikampf.
@@ -151,10 +174,13 @@ module Bk2Kombi
       end
     end
 
-    # Schließe den aktuellen Satz wenn ein Spieler set_target_points erreicht hat.
+    # Schließe den aktuellen Satz wenn ein Spieler balls_goal erreicht hat.
+    # Phase 38.4 D-06: liest state['balls_goal'], fällt zurück auf state['set_target_points']
+    # für In-Flight-Turniere (T-38.4-05-02 Transitional Fallback).
     def close_set_if_reached!(state)
       set_no = state["current_set_number"].to_s
-      target = state["set_target_points"].to_i
+      target = state["balls_goal"].to_i
+      target = state["set_target_points"].to_i if target.zero? # transitional fallback
       a = state["set_scores"][set_no]["playera"]
       b = state["set_scores"][set_no]["playerb"]
       return unless a >= target || b >= target

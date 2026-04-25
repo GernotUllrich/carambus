@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Bk2Kombi
+module Bk2
   # Pure shot evaluator for BK2-Kombi discipline.
   #
   # Takes a shot_payload hash (shape: see phase 38.1 CONTEXT.md D-13)
@@ -14,8 +14,8 @@ module Bk2Kombi
   # AdvanceMatchState uses points_for_opponent directly to increment opponent score.
   #
   # Usage:
-  #   Bk2Kombi::ScoreShot.call(shot_payload:, state:)
-  #   Bk2Kombi::ScoreShot.call(shot_payload:, state:, rules: custom_rules)
+  #   Bk2::ScoreShot.call(shot_payload:, state:)
+  #   Bk2::ScoreShot.call(shot_payload:, state:, rules: custom_rules)
   class ScoreShot
     DEFAULT_RULES = {
       scoring: {

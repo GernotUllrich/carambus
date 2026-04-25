@@ -2,14 +2,16 @@
 
 require "test_helper"
 
-# State-Mutations-Tests fuer Bk2Kombi::AdvanceMatchState.
+# State-Mutations-Tests fuer Bk2::AdvanceMatchState.
 #
 # Verifiziert: Grundlegende Zustandsaktualisierung, Satzende, Matchende,
 # Persistenz via tm.save!, Initialisierungspfad bei nil-State und
 # Idempotenz-Guard (shot_sequence_number).
 #
+# Phase 38.4 D-06: balls_goal-basierte Satz-Schlusskontrolle + init-Fallback-Tests.
+#
 # Alle Tests verwenden in der Datenbank gespeicherte TableMonitor-Datensaetze.
-class Bk2Kombi::AdvanceMatchStateTest < ActiveSupport::TestCase
+class Bk2::AdvanceMatchStateTest < ActiveSupport::TestCase
   # ---------------------------------------------------------------------------
   # Setup / Teardown
   # ---------------------------------------------------------------------------
@@ -38,7 +40,8 @@ class Bk2Kombi::AdvanceMatchStateTest < ActiveSupport::TestCase
             "3" => {"playera" => 0, "playerb" => 0}
           },
           "sets_won" => {"playera" => 0, "playerb" => 0},
-          "set_target_points" => 50
+          "set_target_points" => 50,
+          "balls_goal" => 50
         }
       }
     )
@@ -87,7 +90,7 @@ class Bk2Kombi::AdvanceMatchStateTest < ActiveSupport::TestCase
   # ---------------------------------------------------------------------------
 
   test "test 1: fresh bk2_state, shot scores 3 pins for playera → set_scores updated, shots_left decremented" do
-    Bk2Kombi::AdvanceMatchState.call(
+    Bk2::AdvanceMatchState.call(
       table_monitor: @tm,
       shot_payload: pin_shot(fallen_pins: 3)
     )
@@ -104,7 +107,7 @@ class Bk2Kombi::AdvanceMatchStateTest < ActiveSupport::TestCase
   # ---------------------------------------------------------------------------
 
   test "test 2: foul shot credits points to opponent, player swaps" do
-    Bk2Kombi::AdvanceMatchState.call(
+    Bk2::AdvanceMatchState.call(
       table_monitor: @tm,
       shot_payload: foul_shot(foul_code: :wrong_ball)
     )
@@ -124,7 +127,7 @@ class Bk2Kombi::AdvanceMatchStateTest < ActiveSupport::TestCase
     @tm.data["bk2_state"]["set_scores"]["1"]["playera"] = 47
     @tm.save!
 
-    Bk2Kombi::AdvanceMatchState.call(
+    Bk2::AdvanceMatchState.call(
       table_monitor: @tm,
       shot_payload: pin_shot(fallen_pins: 5)
     )
@@ -142,21 +145,22 @@ class Bk2Kombi::AdvanceMatchStateTest < ActiveSupport::TestCase
       "Phase 38.2 D-14: Satz 2 flips to serienspiel when first_set_mode defaults to direkter_zweikampf"
     # SP set: shots_left_in_turn is reset to 0 (SP does not use per-shot counter).
     assert_equal 0, state["shots_left_in_turn"], "SP phase has shots_left_in_turn = 0"
-    assert_equal Bk2Kombi::AdvanceMatchState::DEFAULT_SP_MAX_INNINGS_PER_SET,
+    assert_equal Bk2::AdvanceMatchState::DEFAULT_SP_MAX_INNINGS_PER_SET,
       state["innings_left_in_set"],
       "New SP set seeds innings_left_in_set from default (5)"
   end
 
   # ---------------------------------------------------------------------------
-  # Test 4: Set close with configurable target 60
+  # Test 4: Set close with configurable target 60 (via state['balls_goal'])
   # ---------------------------------------------------------------------------
 
-  test "test 4: set close with set_target_points=60 passes through correctly" do
+  test "test 4: set close with balls_goal=60 passes through correctly" do
+    @tm.data["bk2_state"]["balls_goal"] = 60
     @tm.data["bk2_state"]["set_target_points"] = 60
     @tm.data["bk2_state"]["set_scores"]["1"]["playera"] = 58
     @tm.save!
 
-    Bk2Kombi::AdvanceMatchState.call(
+    Bk2::AdvanceMatchState.call(
       table_monitor: @tm,
       shot_payload: pin_shot(fallen_pins: 3)
     )
@@ -171,12 +175,13 @@ class Bk2Kombi::AdvanceMatchStateTest < ActiveSupport::TestCase
   # Test 5: Set close with configurable target 70
   # ---------------------------------------------------------------------------
 
-  test "test 5: set close with set_target_points=70 passes through correctly" do
+  test "test 5: set close with balls_goal=70 passes through correctly" do
+    @tm.data["bk2_state"]["balls_goal"] = 70
     @tm.data["bk2_state"]["set_target_points"] = 70
     @tm.data["bk2_state"]["set_scores"]["1"]["playera"] = 68
     @tm.save!
 
-    Bk2Kombi::AdvanceMatchState.call(
+    Bk2::AdvanceMatchState.call(
       table_monitor: @tm,
       shot_payload: pin_shot(fallen_pins: 3)
     )
@@ -197,7 +202,7 @@ class Bk2Kombi::AdvanceMatchStateTest < ActiveSupport::TestCase
     @tm.data["bk2_state"]["set_scores"]["2"]["playera"] = 47
     @tm.save!
 
-    Bk2Kombi::AdvanceMatchState.call(
+    Bk2::AdvanceMatchState.call(
       table_monitor: @tm,
       shot_payload: pin_shot(fallen_pins: 5)
     )
@@ -219,7 +224,7 @@ class Bk2Kombi::AdvanceMatchStateTest < ActiveSupport::TestCase
     @tm.data["bk2_state"]["set_scores"]["3"]["playera"] = 47
     @tm.save!
 
-    Bk2Kombi::AdvanceMatchState.call(
+    Bk2::AdvanceMatchState.call(
       table_monitor: @tm,
       shot_payload: pin_shot(fallen_pins: 5)
     )
@@ -242,7 +247,7 @@ class Bk2Kombi::AdvanceMatchStateTest < ActiveSupport::TestCase
     @tm.data["bk2_state"]["set_scores"]["2"]["playerb"] = 47
     @tm.save!
 
-    Bk2Kombi::AdvanceMatchState.call(
+    Bk2::AdvanceMatchState.call(
       table_monitor: @tm,
       shot_payload: pin_shot(fallen_pins: 5)
     )
@@ -259,7 +264,7 @@ class Bk2Kombi::AdvanceMatchStateTest < ActiveSupport::TestCase
   # ---------------------------------------------------------------------------
 
   test "test 9: after AdvanceMatchState.call, tm.reload.data['bk2_state'] reflects the update" do
-    Bk2Kombi::AdvanceMatchState.call(
+    Bk2::AdvanceMatchState.call(
       table_monitor: @tm,
       shot_payload: pin_shot(fallen_pins: 4)
     )
@@ -280,7 +285,7 @@ class Bk2Kombi::AdvanceMatchStateTest < ActiveSupport::TestCase
     }
     @tm.save!
 
-    Bk2Kombi::AdvanceMatchState.call(
+    Bk2::AdvanceMatchState.call(
       table_monitor: @tm,
       shot_payload: pin_shot(fallen_pins: 3)
     )
@@ -290,7 +295,8 @@ class Bk2Kombi::AdvanceMatchStateTest < ActiveSupport::TestCase
     assert_equal 1, state["current_set_number"]
     assert_equal "direkter_zweikampf", state["current_phase"]
     assert_equal "playera", state["player_at_table"]
-    assert_equal 50, state["set_target_points"]
+    # Phase 38.4 D-06: new state uses balls_goal (set_target_points kept for compat)
+    assert_equal 50, state["balls_goal"]
     assert_equal 3, state["set_scores"]["1"]["playera"]
   end
 
@@ -301,10 +307,10 @@ class Bk2Kombi::AdvanceMatchStateTest < ActiveSupport::TestCase
   test "test 11: same shot_sequence_number submitted twice → second call is no-op" do
     shot = pin_shot(fallen_pins: 5).merge(shot_sequence_number: "abc-001")
 
-    Bk2Kombi::AdvanceMatchState.call(table_monitor: @tm, shot_payload: shot)
+    Bk2::AdvanceMatchState.call(table_monitor: @tm, shot_payload: shot)
     state_after_first = @tm.reload.data["bk2_state"]["set_scores"]["1"]["playera"]
 
-    result = Bk2Kombi::AdvanceMatchState.call(table_monitor: @tm, shot_payload: shot)
+    result = Bk2::AdvanceMatchState.call(table_monitor: @tm, shot_payload: shot)
 
     assert_equal state_after_first, @tm.reload.data["bk2_state"]["set_scores"]["1"]["playera"],
       "Second call with same sequence number must be a no-op"
@@ -335,7 +341,7 @@ class Bk2Kombi::AdvanceMatchStateTest < ActiveSupport::TestCase
       "first_set_mode" => "direkter_zweikampf"
     )
 
-    Bk2Kombi::AdvanceMatchState.call(
+    Bk2::AdvanceMatchState.call(
       table_monitor: tm,
       shot_payload: pin_shot(fallen_pins: 0)
     )
@@ -356,7 +362,7 @@ class Bk2Kombi::AdvanceMatchStateTest < ActiveSupport::TestCase
     )
 
     # Non-turn-ending shot (positive score) leaves innings_left_in_set at seeded value.
-    Bk2Kombi::AdvanceMatchState.call(
+    Bk2::AdvanceMatchState.call(
       table_monitor: tm,
       shot_payload: pin_shot(fallen_pins: 2)
     )
@@ -373,15 +379,15 @@ class Bk2Kombi::AdvanceMatchStateTest < ActiveSupport::TestCase
       "set_target_points" => 50,
       "first_set_mode" => "direkter_zweikampf"
     )
-    svc = Bk2Kombi::AdvanceMatchState.new(table_monitor: tm, shot_payload: pin_shot(fallen_pins: 0))
+    svc = Bk2::AdvanceMatchState.new(table_monitor: tm, shot_payload: pin_shot(fallen_pins: 0))
 
     assert_equal "direkter_zweikampf", svc.send(:phase_for_set, 1, "direkter_zweikampf")
-    assert_equal "serienspiel",         svc.send(:phase_for_set, 2, "direkter_zweikampf")
+    assert_equal "serienspiel", svc.send(:phase_for_set, 2, "direkter_zweikampf")
     assert_equal "direkter_zweikampf", svc.send(:phase_for_set, 3, "direkter_zweikampf")
 
-    assert_equal "serienspiel",         svc.send(:phase_for_set, 1, "serienspiel")
+    assert_equal "serienspiel", svc.send(:phase_for_set, 1, "serienspiel")
     assert_equal "direkter_zweikampf", svc.send(:phase_for_set, 2, "serienspiel")
-    assert_equal "serienspiel",         svc.send(:phase_for_set, 3, "serienspiel")
+    assert_equal "serienspiel", svc.send(:phase_for_set, 3, "serienspiel")
   end
 
   test "38.2-01 T4: close_set advances with phase flip and correct counter reset (DZ-first → SP set 2)" do
@@ -392,10 +398,10 @@ class Bk2Kombi::AdvanceMatchStateTest < ActiveSupport::TestCase
       "first_set_mode" => "direkter_zweikampf"
     )
     # Initialise state, then bring player A to 47 and close the set with a 5-pin.
-    Bk2Kombi::AdvanceMatchState.call(table_monitor: tm, shot_payload: pin_shot(fallen_pins: 0))
+    Bk2::AdvanceMatchState.call(table_monitor: tm, shot_payload: pin_shot(fallen_pins: 0))
     tm.data["bk2_state"]["set_scores"]["1"]["playera"] = 47
     tm.save!
-    Bk2Kombi::AdvanceMatchState.call(table_monitor: tm, shot_payload: pin_shot(fallen_pins: 5))
+    Bk2::AdvanceMatchState.call(table_monitor: tm, shot_payload: pin_shot(fallen_pins: 5))
 
     state = tm.reload.data["bk2_state"]
     assert_equal 2, state["current_set_number"]
@@ -412,12 +418,12 @@ class Bk2Kombi::AdvanceMatchStateTest < ActiveSupport::TestCase
       "first_set_mode" => "serienspiel"
     )
     # Initialise via a non-turn-ending SP shot (+2 for playera, turn stays).
-    Bk2Kombi::AdvanceMatchState.call(table_monitor: tm, shot_payload: pin_shot(fallen_pins: 2))
+    Bk2::AdvanceMatchState.call(table_monitor: tm, shot_payload: pin_shot(fallen_pins: 2))
     # Bring playera to the brink of the set target while still at table.
     tm.data["bk2_state"]["set_scores"]["1"]["playera"] = 47
     tm.save!
     # A 5-pin SP shot by playera pushes to 52 → set 1 closes.
-    Bk2Kombi::AdvanceMatchState.call(table_monitor: tm, shot_payload: pin_shot(fallen_pins: 5))
+    Bk2::AdvanceMatchState.call(table_monitor: tm, shot_payload: pin_shot(fallen_pins: 5))
 
     state = tm.reload.data["bk2_state"]
     assert_equal 2, state["current_set_number"], "set 1 must close, advance to set 2"
@@ -436,11 +442,11 @@ class Bk2Kombi::AdvanceMatchStateTest < ActiveSupport::TestCase
       "first_set_mode" => "serienspiel"
     )
     # Initialise via a non-turn-ending shot.
-    Bk2Kombi::AdvanceMatchState.call(table_monitor: tm, shot_payload: pin_shot(fallen_pins: 2))
+    Bk2::AdvanceMatchState.call(table_monitor: tm, shot_payload: pin_shot(fallen_pins: 2))
     assert_equal 5, tm.reload.data["bk2_state"]["innings_left_in_set"]
 
     # Turn-ending shot: foul in SP ends the Aufnahme → innings_left decrements.
-    Bk2Kombi::AdvanceMatchState.call(table_monitor: tm, shot_payload: foul_shot(foul_code: :wrong_ball))
+    Bk2::AdvanceMatchState.call(table_monitor: tm, shot_payload: foul_shot(foul_code: :wrong_ball))
 
     state = tm.reload.data["bk2_state"]
     assert_equal 4, state["innings_left_in_set"],
@@ -453,11 +459,11 @@ class Bk2Kombi::AdvanceMatchStateTest < ActiveSupport::TestCase
       "serienspiel_max_innings_per_set" => 5,
       "first_set_mode" => "serienspiel"
     )
-    Bk2Kombi::AdvanceMatchState.call(table_monitor: tm, shot_payload: pin_shot(fallen_pins: 2))
+    Bk2::AdvanceMatchState.call(table_monitor: tm, shot_payload: pin_shot(fallen_pins: 2))
     assert_equal 5, tm.reload.data["bk2_state"]["innings_left_in_set"]
 
     # Zero-pin non-foul shot in SP ends the Aufnahme per ScoreShot.calculate_serienspiel_transitions.
-    Bk2Kombi::AdvanceMatchState.call(table_monitor: tm, shot_payload: pin_shot(fallen_pins: 0))
+    Bk2::AdvanceMatchState.call(table_monitor: tm, shot_payload: pin_shot(fallen_pins: 0))
 
     state = tm.reload.data["bk2_state"]
     assert_equal 4, state["innings_left_in_set"]
@@ -469,11 +475,11 @@ class Bk2Kombi::AdvanceMatchStateTest < ActiveSupport::TestCase
       "direkter_zweikampf_max_shots_per_turn" => 2,
       "first_set_mode" => "direkter_zweikampf"
     )
-    Bk2Kombi::AdvanceMatchState.call(table_monitor: tm, shot_payload: pin_shot(fallen_pins: 0))
+    Bk2::AdvanceMatchState.call(table_monitor: tm, shot_payload: pin_shot(fallen_pins: 0))
     state = tm.reload.data["bk2_state"]
     assert_equal 0, state["innings_left_in_set"]
 
-    Bk2Kombi::AdvanceMatchState.call(table_monitor: tm, shot_payload: foul_shot(foul_code: :wrong_ball))
+    Bk2::AdvanceMatchState.call(table_monitor: tm, shot_payload: foul_shot(foul_code: :wrong_ball))
     state = tm.reload.data["bk2_state"]
     assert_equal 0, state["innings_left_in_set"], "DZ phase must not touch innings_left_in_set"
   end
@@ -488,13 +494,14 @@ class Bk2Kombi::AdvanceMatchStateTest < ActiveSupport::TestCase
       }
     )
 
-    Bk2Kombi::AdvanceMatchState.call(table_monitor: tm, shot_payload: pin_shot(fallen_pins: 0))
+    Bk2::AdvanceMatchState.call(table_monitor: tm, shot_payload: pin_shot(fallen_pins: 0))
 
     state = tm.reload.data["bk2_state"]
     assert_equal "direkter_zweikampf", state["current_phase"],
       "Default first_set_mode and set-1 phase is direkter_zweikampf"
     assert_equal "direkter_zweikampf", state["first_set_mode"]
-    assert_equal 50, state["set_target_points"]
+    # Phase 38.4 D-06: new state uses balls_goal
+    assert_equal 50, state["balls_goal"]
     # Default DZ max shots = 2, one shot consumed → shots_left_in_turn = 1.
     assert_equal 1, state["shots_left_in_turn"]
     assert_equal 0, state["innings_left_in_set"], "innings_left_in_set is 0 while in DZ phase"
@@ -506,7 +513,7 @@ class Bk2Kombi::AdvanceMatchStateTest < ActiveSupport::TestCase
       "first_set_mode" => "attacker_injected_value"
     )
 
-    Bk2Kombi::AdvanceMatchState.call(table_monitor: tm, shot_payload: pin_shot(fallen_pins: 0))
+    Bk2::AdvanceMatchState.call(table_monitor: tm, shot_payload: pin_shot(fallen_pins: 0))
 
     state = tm.reload.data["bk2_state"]
     assert_equal "direkter_zweikampf", state["first_set_mode"]
@@ -527,7 +534,7 @@ class Bk2Kombi::AdvanceMatchStateTest < ActiveSupport::TestCase
       }
     })
 
-    Bk2Kombi::AdvanceMatchState.initialize_bk2_state!(@tm)
+    Bk2::AdvanceMatchState.initialize_bk2_state!(@tm)
     @tm.reload
     state = @tm.data["bk2_state"]
 
@@ -535,7 +542,8 @@ class Bk2Kombi::AdvanceMatchStateTest < ActiveSupport::TestCase
     assert_equal 1, state["current_set_number"]
     assert_equal 2, state["shots_left_in_turn"]
     assert_equal 0, state["innings_left_in_set"]
-    assert_equal 50, state["set_target_points"]
+    # Phase 38.4 D-06: balls_goal is the new per-set target key
+    assert_equal 50, state["balls_goal"]
     assert_equal({"playera" => 0, "playerb" => 0}, state["set_scores"]["1"])
     assert_equal({"playera" => 0, "playerb" => 0}, state["set_scores"]["2"])
     assert_equal({"playera" => 0, "playerb" => 0}, state["set_scores"]["3"])
@@ -556,14 +564,14 @@ class Bk2Kombi::AdvanceMatchStateTest < ActiveSupport::TestCase
       }
     })
 
-    Bk2Kombi::AdvanceMatchState.initialize_bk2_state!(@tm)
+    Bk2::AdvanceMatchState.initialize_bk2_state!(@tm)
     @tm.reload
     state = @tm.data["bk2_state"]
 
     assert_equal "serienspiel", state["current_phase"]
     assert_equal 0, state["shots_left_in_turn"]
     assert_equal 7, state["innings_left_in_set"]
-    assert_equal 70, state["set_target_points"]
+    assert_equal 70, state["balls_goal"]
     assert_equal "playerb", state["player_at_table"]
   end
 
@@ -584,11 +592,12 @@ class Bk2Kombi::AdvanceMatchStateTest < ActiveSupport::TestCase
           "3" => {"playera" => 0, "playerb" => 0}
         },
         "sets_won" => {"playera" => 1, "playerb" => 0},
-        "set_target_points" => 50
+        "set_target_points" => 50,
+        "balls_goal" => 50
       }
     })
 
-    Bk2Kombi::AdvanceMatchState.initialize_bk2_state!(@tm)
+    Bk2::AdvanceMatchState.initialize_bk2_state!(@tm)
     @tm.reload
     state = @tm.data["bk2_state"]
 
@@ -605,14 +614,120 @@ class Bk2Kombi::AdvanceMatchStateTest < ActiveSupport::TestCase
       "bk2_options" => {}  # no first_set_mode set — simulates the key_d keyboard path
     })
 
-    Bk2Kombi::AdvanceMatchState.initialize_bk2_state!(@tm)
+    Bk2::AdvanceMatchState.initialize_bk2_state!(@tm)
     @tm.reload
     state = @tm.data["bk2_state"]
 
     # derive_first_set_mode returns DEFAULT_FIRST_SET_MODE ("direkter_zweikampf")
     assert_equal "direkter_zweikampf", state["current_phase"]
-    assert_equal Bk2Kombi::AdvanceMatchState::DEFAULT_DZ_MAX_SHOTS_PER_TURN, state["shots_left_in_turn"]
+    assert_equal Bk2::AdvanceMatchState::DEFAULT_DZ_MAX_SHOTS_PER_TURN, state["shots_left_in_turn"]
     assert_equal 0, state["innings_left_in_set"]
     refute @tm.bk2_state_uninitialized?, "predicate must return false after init (default-mode path)"
+  end
+
+  # ===========================================================================
+  # Phase 38.4 D-06: balls_goal-based state init and close_set fallback tests
+  # ===========================================================================
+
+  test "38.4-06 init_state_if_missing! reads balls_goal from tournament_monitor, writes state['balls_goal']" do
+    # Create a TournamentMonitor with balls_goal=60 and attach it to the TableMonitor.
+    tm_with_tournament = TableMonitor.create!(
+      state: "playing",
+      data: {
+        "free_game_form" => "bk2_kombi",
+        "current_kickoff_player" => "playera",
+        "bk2_options" => {}
+      }
+    )
+    # Stub tournament_monitor.balls_goal = 60.
+    # OpenStruct responds to arbitrary methods with nil, avoiding NoMethodError in OptionsPresenter.
+    tournament_monitor_double = OpenStruct.new(balls_goal: 60) # rubocop:disable Style/OpenStructUse
+    tm_with_tournament.define_singleton_method(:tournament_monitor) { tournament_monitor_double }
+
+    Bk2::AdvanceMatchState.initialize_bk2_state!(tm_with_tournament)
+    state = tm_with_tournament.reload.data["bk2_state"]
+
+    assert_equal 60, state["balls_goal"],
+      "init_state_if_missing! must write balls_goal from tournament_monitor.balls_goal"
+  end
+
+  test "38.4-06 init_state_if_missing! falls back to bk2_options[:set_target_points] if tournament_monitor.balls_goal is nil/zero" do
+    tm_no_tm = TableMonitor.create!(
+      state: "playing",
+      data: {
+        "free_game_form" => "bk2_kombi",
+        "current_kickoff_player" => "playera",
+        "bk2_options" => {"set_target_points" => 70}
+      }
+    )
+    # tournament_monitor.balls_goal = 0 → falls back to bk2_options.
+    tournament_monitor_zero = OpenStruct.new(balls_goal: 0) # rubocop:disable Style/OpenStructUse
+    tm_no_tm.define_singleton_method(:tournament_monitor) { tournament_monitor_zero }
+
+    Bk2::AdvanceMatchState.initialize_bk2_state!(tm_no_tm)
+    state = tm_no_tm.reload.data["bk2_state"]
+
+    assert_equal 70, state["balls_goal"],
+      "balls_goal must fall back to bk2_options[:set_target_points]=70 when tournament_monitor.balls_goal is 0"
+  end
+
+  test "38.4-06 close_set_if_reached! reads state['balls_goal'] to close the set" do
+    state_data = {
+      "current_set_number" => 1,
+      "current_phase" => "serienspiel",
+      "first_set_mode" => "direkter_zweikampf",
+      "player_at_table" => "playera",
+      "shots_left_in_turn" => 0,
+      "innings_left_in_set" => 5,
+      "set_scores" => {
+        "1" => {"playera" => 48, "playerb" => 0},
+        "2" => {"playera" => 0, "playerb" => 0},
+        "3" => {"playera" => 0, "playerb" => 0}
+      },
+      "sets_won" => {"playera" => 0, "playerb" => 0},
+      "balls_goal" => 50
+      # Note: no set_target_points key — balls_goal is the only target
+    }
+    @tm.update!(data: @tm.data.merge("bk2_state" => state_data))
+
+    Bk2::AdvanceMatchState.call(
+      table_monitor: @tm,
+      shot_payload: pin_shot(fallen_pins: 3)
+    )
+
+    s = @tm.reload.data["bk2_state"]
+    assert s["set_scores"]["1"]["playera"] >= 50, "playera must reach balls_goal"
+    assert_equal true, s["set_finished_1"], "set must close when balls_goal reached"
+  end
+
+  test "38.4-06 close_set_if_reached! falls back to state['set_target_points'] if balls_goal missing (legacy in-flight)" do
+    # Legacy in-flight state: has set_target_points but no balls_goal
+    state_data = {
+      "current_set_number" => 1,
+      "current_phase" => "direkter_zweikampf",
+      "first_set_mode" => "direkter_zweikampf",
+      "player_at_table" => "playera",
+      "shots_left_in_turn" => 2,
+      "innings_left_in_set" => 0,
+      "set_scores" => {
+        "1" => {"playera" => 47, "playerb" => 0},
+        "2" => {"playera" => 0, "playerb" => 0},
+        "3" => {"playera" => 0, "playerb" => 0}
+      },
+      "sets_won" => {"playera" => 0, "playerb" => 0},
+      "set_target_points" => 50
+      # balls_goal deliberately absent — simulates legacy in-flight game
+    }
+    @tm.update!(data: @tm.data.merge("bk2_state" => state_data))
+
+    Bk2::AdvanceMatchState.call(
+      table_monitor: @tm,
+      shot_payload: pin_shot(fallen_pins: 5)
+    )
+
+    s = @tm.reload.data["bk2_state"]
+    assert s["set_scores"]["1"]["playera"] >= 50, "playera must reach set_target_points (fallback)"
+    assert_equal true, s["set_finished_1"],
+      "set must still close via legacy set_target_points fallback (T-38.4-05-02)"
   end
 end

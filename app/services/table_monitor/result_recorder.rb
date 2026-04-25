@@ -57,12 +57,14 @@ class TableMonitor::ResultRecorder < ApplicationService
       ergebnis1 = @tm.data["playera"]["result"].to_i
       ergebnis2 = @tm.data["playerb"]["result"].to_i
 
-      if @tm.data["free_game_form"] == "bk2_kombi"
-        # BK2-Kombi Satz-Ergebnis: Plan 03 implementiert Bk2Kombi::AdvanceMatchState vollstaendig.
+      if Discipline::BK2_FREE_GAME_FORMS.include?(@tm.data["free_game_form"])
+        # BK-Familie Satz-Ergebnis (alle 5 BK-* Disziplinen): Phase 38.4 I7 Open-Q-2-Resolution.
         # Signatur: .call(table_monitor:, shot_payload:) → { scoring:, transitions:, state: }
         # Dispatch-Zweig sitzt neben dem Snooker-Zweig (Pattern: Phase 38.1 CONTEXT.md D-11).
-        # Bk2Kombi::AdvanceMatchState — Plan 03 ersetzt den Stub mit der Implementierung.
-        Bk2Kombi::AdvanceMatchState.call(
+        # HINWEIS: result_recorder.rb ist der Tournament-Game-Persistenz-Pfad (nach Match-Ende).
+        # Bk2::AdvanceMatchState (NICHT CommitInning) — AdvanceMatchState ist für Match-State-
+        # Transitionen zuständig; CommitInning ist der Live-Scoring-Pfad aus dem Reflex.
+        Bk2::AdvanceMatchState.call(
           table_monitor: @tm,
           shot_payload: @tm.data.fetch("current_bk2_shot_payload", {})
         )

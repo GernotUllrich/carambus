@@ -2,19 +2,22 @@
 
 require "test_helper"
 
-# End-to-End Integrations-Test: BK2-Kombi Dispatch-Kette
+# End-to-End Integrations-Test: BK2-Familie Dispatch-Kette
 #
-# Verifiziert, dass Plan 01 + Plan 02 + Plan 03 korrekt zusammenwirken:
+# Verifiziert, dass Plan 01 + Plan 02 + Plan 03 + Plan 05 korrekt zusammenwirken:
 #   - Plan 01: TableMonitor::ScoreEngine lässt negative Punktzahlen für bk2_kombi zu
 #              (und blockiert sie weiterhin für karambol — Regression-Control)
 #   - Plan 02: ResultRecorder leitet bk2_kombi-Aufrufe an AdvanceMatchState weiter
 #   - Plan 03: AdvanceMatchState verarbeitet Schüsse, schließt Sätze und Matches
+#   - Plan 05 (Open-Q-2-Resolution): ResultRecorder dispatcht alle 5 BK-* free_game_forms
+#              an Bk2::AdvanceMatchState (nicht CommitInning)
 #
 # Testszenario:
 #   - Gesamter Satz 1 wird simuliert bis 50 Punkte erreicht → set_scores + sets_won aktualisiert
 #   - Gesamtes Match (2 Sätze) simuliert → match_finished=true
 #   - Negative-Control: karambol ScoreEngine blockiert negative Aufnahmen weiterhin
-class Bk2KombiDispatchIntegrationTest < ActiveSupport::TestCase
+#   - Open-Q-2-Regression: alle 5 BK-* Formen dispatchen via result_recorder an AdvanceMatchState
+class Bk2DispatchIntegrationTest < ActiveSupport::TestCase
   setup do
     TableMonitor.options = nil
     TableMonitor.gps = nil
@@ -39,6 +42,7 @@ class Bk2KombiDispatchIntegrationTest < ActiveSupport::TestCase
             "3" => {"playera" => 0, "playerb" => 0}
           },
           "sets_won" => {"playera" => 0, "playerb" => 0},
+          "balls_goal" => 50,
           "set_target_points" => 50
         }
       }
@@ -69,7 +73,7 @@ class Bk2KombiDispatchIntegrationTest < ActiveSupport::TestCase
     @tm.save!
 
     # One more shot to cross 50
-    Bk2Kombi::AdvanceMatchState.call(
+    Bk2::AdvanceMatchState.call(
       table_monitor: @tm,
       shot_payload: pin_shot(fallen_pins: 5)
     )
@@ -84,7 +88,7 @@ class Bk2KombiDispatchIntegrationTest < ActiveSupport::TestCase
     # Apply 5 shots of 3 pins each — playera starts with 2 shots, then playerb 2, etc.
     # The test just verifies total points accumulate (player alternation happens after shots_left).
     [3, 4, 2, 5, 1].each do |pins|
-      Bk2Kombi::AdvanceMatchState.call(
+      Bk2::AdvanceMatchState.call(
         table_monitor: @tm,
         shot_payload: pin_shot(fallen_pins: pins)
       )
@@ -114,8 +118,8 @@ class Bk2KombiDispatchIntegrationTest < ActiveSupport::TestCase
     assert_equal 1, state["sets_won"]["playera"], "playera must have 1 set won"
     assert_equal 0, state["sets_won"]["playerb"]
     assert_equal 2, state["current_set_number"], "Must advance to set 2"
-    assert_equal "direkter_zweikampf", state["current_phase"]
-    assert_equal 2, state["shots_left_in_turn"]
+    # Set 2 phase alternates from set 1: first_set_mode=direkter_zweikampf → set 2 = serienspiel
+    assert_equal "serienspiel", state["current_phase"]
   end
 
   # ---------------------------------------------------------------------------
@@ -126,7 +130,7 @@ class Bk2KombiDispatchIntegrationTest < ActiveSupport::TestCase
     # Close set 1 for playera (preset to 47, one 5-pin shot crosses 50)
     @tm.data["bk2_state"]["set_scores"]["1"]["playera"] = 47
     @tm.save!
-    Bk2Kombi::AdvanceMatchState.call(
+    Bk2::AdvanceMatchState.call(
       table_monitor: @tm,
       shot_payload: pin_shot(fallen_pins: 5)
     )
@@ -145,7 +149,7 @@ class Bk2KombiDispatchIntegrationTest < ActiveSupport::TestCase
     @tm.data["bk2_state"]["shots_left_in_turn"] = 2
     @tm.save!
 
-    Bk2Kombi::AdvanceMatchState.call(
+    Bk2::AdvanceMatchState.call(
       table_monitor: @tm,
       shot_payload: pin_shot(fallen_pins: 5)
     )
@@ -163,7 +167,7 @@ class Bk2KombiDispatchIntegrationTest < ActiveSupport::TestCase
   # ---------------------------------------------------------------------------
 
   test "bk2_state persists to database — reload reflects shot results" do
-    Bk2Kombi::AdvanceMatchState.call(
+    Bk2::AdvanceMatchState.call(
       table_monitor: @tm,
       shot_payload: pin_shot(fallen_pins: 4)
     )
@@ -224,5 +228,70 @@ class Bk2KombiDispatchIntegrationTest < ActiveSupport::TestCase
 
     assert_equal true, result[:success],
       "bk2_kombi must accept negative innings"
+  end
+
+  # ---------------------------------------------------------------------------
+  # Test 7 (Phase 38.4 Open-Q-2 Resolution): ResultRecorder dispatches all 5 BK-* forms
+  # to Bk2::AdvanceMatchState (not CommitInning)
+  # ---------------------------------------------------------------------------
+
+  test "result_recorder dispatches all 5 BK-* free_game_forms to Bk2::AdvanceMatchState" do
+    # Verify that the dispatch condition uses Discipline::BK2_FREE_GAME_FORMS.include?
+    # so all 5 forms are handled — not just bk2_kombi.
+    # A real Game record is required to enter the if @tm.game.present? branch.
+    player_a = Player.create!(id: 50_200_001, firstname: "DispatchA", lastname: "Test",
+      dbu_nr: 30001, ba_id: 30001)
+    player_b = Player.create!(id: 50_200_002, firstname: "DispatchB", lastname: "Test",
+      dbu_nr: 30002, ba_id: 30002)
+    game = Game.create!(data: {}, group_no: 1, seqno: 1, table_no: 1)
+    GameParticipation.create!(game: game, player: player_a, role: "playera")
+    GameParticipation.create!(game: game, player: player_b, role: "playerb")
+
+    bk2_state_base = {
+      "current_set_number" => 1,
+      "current_phase" => "direkter_zweikampf",
+      "first_set_mode" => "direkter_zweikampf",
+      "player_at_table" => "playera",
+      "shots_left_in_turn" => 2,
+      "set_scores" => {
+        "1" => {"playera" => 0, "playerb" => 0},
+        "2" => {"playera" => 0, "playerb" => 0},
+        "3" => {"playera" => 0, "playerb" => 0}
+      },
+      "sets_won" => {"playera" => 0, "playerb" => 0},
+      "balls_goal" => 50,
+      "set_target_points" => 50
+    }
+
+    Discipline::BK2_FREE_GAME_FORMS.each do |form|
+      tm = TableMonitor.create!(
+        state: "playing",
+        game: game,
+        data: {
+          "free_game_form" => form,
+          "sets_to_win" => 2,
+          "sets_to_play" => 3,
+          "kickoff_switches_with" => "set",
+          "current_kickoff_player" => "playera",
+          "current_bk2_shot_payload" => pin_shot(fallen_pins: 3),
+          "playera" => {"result" => 0, "innings" => 0,
+                        "innings_list" => [], "innings_redo_list" => []},
+          "playerb" => {"result" => 0, "innings" => 0,
+                        "innings_list" => [], "innings_redo_list" => []},
+          "bk2_state" => bk2_state_base.deep_dup
+        }
+      )
+
+      advance_call_count = 0
+      fake_call = ->(**_kwargs) { advance_call_count += 1 }
+
+      Bk2::AdvanceMatchState.stub(:call, fake_call) do
+        recorder = TableMonitor::ResultRecorder.new(table_monitor: tm)
+        recorder.perform_save_result
+      end
+
+      assert advance_call_count > 0,
+        "Expected Bk2::AdvanceMatchState.call for free_game_form=#{form}, but was not called"
+    end
   end
 end

@@ -283,8 +283,9 @@ class TableMonitorReflex < ApplicationReflex
       # Phase 38.3-08 I6: initialize bk2_state on the keyboard (d key) shootout-confirm path.
       # No mode payload here — relies on previously-written bk2_options[first_set_mode]
       # OR the DEFAULT_FIRST_SET_MODE fallback in derive_first_set_mode (see T4).
-      if @table_monitor.data["free_game_form"] == "bk2_kombi"
-        Bk2Kombi::AdvanceMatchState.initialize_bk2_state!(@table_monitor)
+      # Phase 38.4 I7: extended from bk2_kombi-only to all 5 BK-* disciplines.
+      if bk_family?
+        Bk2::AdvanceMatchState.initialize_bk2_state!(@table_monitor)
       end
       @table_monitor.reset_timer!
       @table_monitor.finish_shootout!
@@ -358,6 +359,8 @@ class TableMonitorReflex < ApplicationReflex
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
     # Phase 38.3-05 D-18: if this TableMonitor is BK2-Kombi and the shootout button
     # carried a bk2_first_set_mode, persist it into bk2_options before transitioning.
+    # Phase 38.4 I7: bk2_first_set_mode payload is bk2_kombi-only; bk_family? guard
+    # ensures init runs for all 5 BK-* disciplines.
     if @table_monitor.data["free_game_form"] == "bk2_kombi"
       bk2_mode = element.andand.dataset[:bk2_first_set_mode].to_s
       if %w[direkter_zweikampf serienspiel].include?(bk2_mode)
@@ -370,8 +373,9 @@ class TableMonitorReflex < ApplicationReflex
     # the AASM transition to playing. Without this, the playing-state scoreboard renders
     # the GAP-05 "Spiel nicht initialisiert" fallback banner. Idempotent — safe no-op if
     # bk2_state is already populated.
-    if @table_monitor.data["free_game_form"] == "bk2_kombi"
-      Bk2Kombi::AdvanceMatchState.initialize_bk2_state!(@table_monitor)
+    # Phase 38.4 I7: extended from bk2_kombi-only to all 5 BK-* disciplines.
+    if bk_family?
+      Bk2::AdvanceMatchState.initialize_bk2_state!(@table_monitor)
     end
     # @table_monitor.panel_state = 'input
     @table_monitor.switch_players
@@ -391,6 +395,8 @@ class TableMonitorReflex < ApplicationReflex
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
     # Phase 38.3-05 D-18: if this TableMonitor is BK2-Kombi and the shootout button
     # carried a bk2_first_set_mode, persist it into bk2_options before transitioning.
+    # Phase 38.4 I7: bk2_first_set_mode payload is bk2_kombi-only; bk_family? guard
+    # ensures init runs for all 5 BK-* disciplines.
     if @table_monitor.data["free_game_form"] == "bk2_kombi"
       bk2_mode = element.andand.dataset[:bk2_first_set_mode].to_s
       if %w[direkter_zweikampf serienspiel].include?(bk2_mode)
@@ -403,8 +409,9 @@ class TableMonitorReflex < ApplicationReflex
     # the AASM transition to playing. Without this, the playing-state scoreboard renders
     # the GAP-05 "Spiel nicht initialisiert" fallback banner. Idempotent — safe no-op if
     # bk2_state is already populated.
-    if @table_monitor.data["free_game_form"] == "bk2_kombi"
-      Bk2Kombi::AdvanceMatchState.initialize_bk2_state!(@table_monitor)
+    # Phase 38.4 I7: extended from bk2_kombi-only to all 5 BK-* disciplines.
+    if bk_family?
+      Bk2::AdvanceMatchState.initialize_bk2_state!(@table_monitor)
     end
     @table_monitor.reset_timer!
     # noinspection RubyResolve
@@ -959,14 +966,16 @@ class TableMonitorReflex < ApplicationReflex
   end
 
   # Phase 38.3-04 D-11/D-12/D-14: commit accumulated inning to bk2_state when the
-  # live match is BK2-Kombi and the user triggered an Aufnahmewechsel gesture
+  # live match is a BK-* discipline and the user triggered an Aufnahmewechsel gesture
   # (swap-icon via next_step, OR opponent-panel via key_a/key_b). Returns true if
-  # commit happened (caller MUST return early); returns false for non-BK2.
+  # commit happened (caller MUST return early); returns false for non-BK-family.
+  #
+  # Phase 38.4 I7: extended from bk2_kombi-only to all 5 BK-* disciplines via bk_family?.
   #
   # Security S1/S2: player + inning_total are read exclusively from server-side
   # JSONB (@table_monitor.data), never from client-supplied DOM attributes.
   def bk2_kombi_commit_if_active(gesture_id:, clicked_player: nil)
-    return false unless @table_monitor.data["free_game_form"] == "bk2_kombi"
+    return false unless bk_family?
 
     bk2_state = @table_monitor.data["bk2_state"] || {}
     player = bk2_state["player_at_table"].to_s
@@ -983,7 +992,7 @@ class TableMonitorReflex < ApplicationReflex
 
     Rails.logger.info "[bk2_commit_inning gesture=#{gesture_id}] player=#{player} n=#{inning_total}" if DEBUG
 
-    Bk2Kombi::CommitInning.call(
+    Bk2::CommitInning.call(
       table_monitor: @table_monitor,
       player: player,
       inning_total: inning_total,
@@ -1080,6 +1089,14 @@ class TableMonitorReflex < ApplicationReflex
 
   def balls_goal_b
     Rails.logger.info "+++++++++++++++++>>> balls_goal_b <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
+  end
+
+  # Phase 38.4 I7 D-10/D-11: True wenn die aktuelle TableMonitor-Disziplin zur BK-Familie gehört.
+  # Deckt alle 5 BK-* free_game_form-Werte ab (bk2_kombi, bk50, bk100, bk_2, bk_2plus).
+  # Verwendet als Dispatcher-Guard in start_game, switch_players_and_start_game, key_d,
+  # und bk2_kombi_commit_if_active.
+  def bk_family?
+    Discipline::BK2_FREE_GAME_FORMS.include?(@table_monitor.data["free_game_form"])
   end
 
 end

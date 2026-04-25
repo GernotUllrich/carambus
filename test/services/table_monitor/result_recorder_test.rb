@@ -212,7 +212,10 @@ class TableMonitor::ResultRecorderTest < ActiveSupport::TestCase
     # Stub end_of_set? to return true, may_end_of_set? true
     @tm.stub(:end_of_set?, true) do
       @tm.stub(:may_end_of_set?, true) do
-        @tm.stub(:end_of_set!, -> { end_of_set_called = true; @tm.update_columns(state: "set_over") }) do
+        @tm.stub(:end_of_set!, -> {
+          end_of_set_called = true
+          @tm.update_columns(state: "set_over")
+        }) do
           @tm.stub(:save_current_set, -> {}) do
             @tm.stub(:get_max_number_of_wins, -> { 1 }) do
               TableMonitor::ResultRecorder.call(table_monitor: @tm)
@@ -274,7 +277,7 @@ class TableMonitor::ResultRecorderTest < ActiveSupport::TestCase
   # Zeitwerk den Konstanten-Lookup aufloesen kann. Die Tests ersetzen die Klasse
   # temporaer via Minitest-stub auf der Singleton-Methode.
 
-  test "ResultRecorder dispatches to Bk2Kombi::AdvanceMatchState when free_game_form=='bk2_kombi'" do
+  test "ResultRecorder dispatches to Bk2::AdvanceMatchState when free_game_form=='bk2_kombi'" do
     call_args = nil
     fake_call = ->(**kwargs) {
       call_args = kwargs
@@ -284,28 +287,28 @@ class TableMonitor::ResultRecorderTest < ActiveSupport::TestCase
     @tm.data["free_game_form"] = "bk2_kombi"
     @tm.save!
 
-    Bk2Kombi::AdvanceMatchState.stub(:call, fake_call) do
+    Bk2::AdvanceMatchState.stub(:call, fake_call) do
       TableMonitor::ResultRecorder.save_result(table_monitor: @tm)
     end
 
     assert_not_nil call_args,
-      "Bk2Kombi::AdvanceMatchState.call muss aufgerufen worden sein"
+      "Bk2::AdvanceMatchState.call muss aufgerufen worden sein"
     assert_equal @tm, call_args[:table_monitor],
       "table_monitor muss als Keyword-Argument uebergeben werden"
   end
 
-  test "ResultRecorder does NOT touch Bk2Kombi path for karambol/snooker" do
+  test "ResultRecorder does NOT touch Bk2 path for karambol/snooker" do
     call_count = 0
     counting_call = ->(**_kwargs) { call_count += 1 }
 
     @tm.data["free_game_form"] = "snooker"
     @tm.save!
 
-    Bk2Kombi::AdvanceMatchState.stub(:call, counting_call) do
+    Bk2::AdvanceMatchState.stub(:call, counting_call) do
       TableMonitor::ResultRecorder.save_result(table_monitor: @tm)
     end
 
     assert_equal 0, call_count,
-      "Bk2Kombi::AdvanceMatchState darf NICHT aufgerufen werden fuer free_game_form='snooker'"
+      "Bk2::AdvanceMatchState darf NICHT aufgerufen werden fuer free_game_form='snooker'"
   end
 end

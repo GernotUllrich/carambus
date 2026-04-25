@@ -2,7 +2,7 @@
 
 require "test_helper"
 
-class Bk2Kombi::CommitInningTest < ActiveSupport::TestCase
+class Bk2::CommitInningTest < ActiveSupport::TestCase
   setup do
     @tm = table_monitors(:free)
     # Base bk2_kombi state — each test overrides what it needs.
@@ -27,7 +27,7 @@ class Bk2Kombi::CommitInningTest < ActiveSupport::TestCase
     state["set_scores"]["1"]["playera"] = 10
     @tm.update!(data: @tm.data.merge("bk2_state" => state))
 
-    Bk2Kombi::CommitInning.call(
+    Bk2::CommitInning.call(
       table_monitor: @tm,
       player: "playera",
       inning_total: 7
@@ -50,7 +50,7 @@ class Bk2Kombi::CommitInningTest < ActiveSupport::TestCase
     state["set_scores"]["1"]["playerb"] = 5
     @tm.update!(data: @tm.data.merge("bk2_state" => state))
 
-    Bk2Kombi::CommitInning.call(
+    Bk2::CommitInning.call(
       table_monitor: @tm,
       player: "playera",
       inning_total: -3
@@ -70,7 +70,7 @@ class Bk2Kombi::CommitInningTest < ActiveSupport::TestCase
     state = fresh_bk2_state("direkter_zweikampf")
     @tm.update!(data: @tm.data.merge("bk2_state" => state))
 
-    Bk2Kombi::CommitInning.call(
+    Bk2::CommitInning.call(
       table_monitor: @tm,
       player: "playera",
       inning_total: 0
@@ -92,7 +92,7 @@ class Bk2Kombi::CommitInningTest < ActiveSupport::TestCase
     state["set_scores"]["1"]["playera"] = 10
     @tm.update!(data: @tm.data.merge("bk2_state" => state))
 
-    Bk2Kombi::CommitInning.call(
+    Bk2::CommitInning.call(
       table_monitor: @tm,
       player: "playera",
       inning_total: 12
@@ -113,7 +113,7 @@ class Bk2Kombi::CommitInningTest < ActiveSupport::TestCase
     state["set_scores"]["1"]["playera"] = 10
     @tm.update!(data: @tm.data.merge("bk2_state" => state))
 
-    Bk2Kombi::CommitInning.call(
+    Bk2::CommitInning.call(
       table_monitor: @tm,
       player: "playera",
       inning_total: -4
@@ -133,7 +133,7 @@ class Bk2Kombi::CommitInningTest < ActiveSupport::TestCase
     state["set_scores"]["1"]["playera"] = 3
     @tm.update!(data: @tm.data.merge("bk2_state" => state))
 
-    Bk2Kombi::CommitInning.call(
+    Bk2::CommitInning.call(
       table_monitor: @tm,
       player: "playera",
       inning_total: -8
@@ -152,7 +152,7 @@ class Bk2Kombi::CommitInningTest < ActiveSupport::TestCase
     state["set_scores"]["1"]["playera"] = 45
     @tm.update!(data: @tm.data.merge("bk2_state" => state))
 
-    Bk2Kombi::CommitInning.call(
+    Bk2::CommitInning.call(
       table_monitor: @tm,
       player: "playera",
       inning_total: 7
@@ -179,7 +179,7 @@ class Bk2Kombi::CommitInningTest < ActiveSupport::TestCase
     state["set_scores"]["1"]["playerb"] = 45
     @tm.update!(data: @tm.data.merge("bk2_state" => state))
 
-    Bk2Kombi::CommitInning.call(
+    Bk2::CommitInning.call(
       table_monitor: @tm,
       player: "playera",
       inning_total: -7
@@ -203,7 +203,7 @@ class Bk2Kombi::CommitInningTest < ActiveSupport::TestCase
     state["set_scores"]["2"]["playera"] = 45
     @tm.update!(data: @tm.data.merge("bk2_state" => state))
 
-    Bk2Kombi::CommitInning.call(
+    Bk2::CommitInning.call(
       table_monitor: @tm,
       player: "playera",
       inning_total: 10
@@ -223,7 +223,7 @@ class Bk2Kombi::CommitInningTest < ActiveSupport::TestCase
     state["set_scores"]["1"]["playera"] = 10
     @tm.update!(data: @tm.data.merge("bk2_state" => state))
 
-    Bk2Kombi::CommitInning.call(
+    Bk2::CommitInning.call(
       table_monitor: @tm,
       player: "playera",
       inning_total: 5,
@@ -231,7 +231,7 @@ class Bk2Kombi::CommitInningTest < ActiveSupport::TestCase
     )
     score_after_first = @tm.reload.data["bk2_state"]["set_scores"]["1"]["playera"]
 
-    result = Bk2Kombi::CommitInning.call(
+    result = Bk2::CommitInning.call(
       table_monitor: @tm,
       player: "playera",
       inning_total: 5,
@@ -249,7 +249,7 @@ class Bk2Kombi::CommitInningTest < ActiveSupport::TestCase
 
   test "38.3-01 T11: invalid player raises ArgumentError" do
     assert_raises(ArgumentError) do
-      Bk2Kombi::CommitInning.call(
+      Bk2::CommitInning.call(
         table_monitor: @tm,
         player: "playerX",
         inning_total: 5
@@ -263,7 +263,7 @@ class Bk2Kombi::CommitInningTest < ActiveSupport::TestCase
 
   test "38.3-01 T12: non-Integer inning_total raises ArgumentError" do
     assert_raises(ArgumentError) do
-      Bk2Kombi::CommitInning.call(
+      Bk2::CommitInning.call(
         table_monitor: @tm,
         player: "playera",
         inning_total: "5"
@@ -277,7 +277,7 @@ class Bk2Kombi::CommitInningTest < ActiveSupport::TestCase
 
   test "38.3-01 T13: out-of-range inning_total (>999) raises ArgumentError" do
     assert_raises(ArgumentError) do
-      Bk2Kombi::CommitInning.call(
+      Bk2::CommitInning.call(
         table_monitor: @tm,
         player: "playera",
         inning_total: 1_000_000
@@ -287,7 +287,7 @@ class Bk2Kombi::CommitInningTest < ActiveSupport::TestCase
 
   test "38.3-01 T13b: out-of-range inning_total (<-999) raises ArgumentError" do
     assert_raises(ArgumentError) do
-      Bk2Kombi::CommitInning.call(
+      Bk2::CommitInning.call(
         table_monitor: @tm,
         player: "playera",
         inning_total: -1_000_000
@@ -300,7 +300,7 @@ class Bk2Kombi::CommitInningTest < ActiveSupport::TestCase
   # ---------------------------------------------------------------------------
 
   test "38.3-01 T14: return value has :state and :transitions keys" do
-    result = Bk2Kombi::CommitInning.call(
+    result = Bk2::CommitInning.call(
       table_monitor: @tm,
       player: "playera",
       inning_total: 3
@@ -327,7 +327,7 @@ class Bk2Kombi::CommitInningTest < ActiveSupport::TestCase
       }
     })
 
-    Bk2Kombi::CommitInning.call(
+    Bk2::CommitInning.call(
       table_monitor: @tm,
       player: "playera",
       inning_total: 5
@@ -338,6 +338,268 @@ class Bk2Kombi::CommitInningTest < ActiveSupport::TestCase
     assert_equal 1, s["current_set_number"], "current_set_number must be 1"
     assert_equal "direkter_zweikampf", s["current_phase"], "current_phase must be direkter_zweikampf"
     assert_equal 5, s["set_scores"]["1"]["playera"], "playera score must be 5 after inning"
+  end
+
+  # ===========================================================================
+  # Phase 38.4: BK-Family dispatcher tests (T-N through T-N+10)
+  # ===========================================================================
+
+  # ---------------------------------------------------------------------------
+  # T-N: BK-2plus: negative inning total credits abs value to opponent, player unchanged
+  # ---------------------------------------------------------------------------
+
+  test "38.4-05 BK-2plus: negative inning total credits abs value to opponent, player unchanged" do
+    @tm.update!(data: {
+      "free_game_form" => "bk_2plus",
+      "bk2_options" => {
+        "direkter_zweikampf_max_shots_per_turn" => 2
+      },
+      "bk2_state" => fresh_bk2_state("direkter_zweikampf")
+    })
+
+    Bk2::CommitInning.call(
+      table_monitor: @tm,
+      player: "playera",
+      inning_total: -3
+    )
+
+    s = @tm.reload.data["bk2_state"]
+    assert_equal 0, s["set_scores"]["1"]["playera"], "playera score must be UNCHANGED (opponent-credit rule)"
+    assert_equal 3, s["set_scores"]["1"]["playerb"], "playerb score must be abs(-3) = 3"
+  end
+
+  # ---------------------------------------------------------------------------
+  # T-N+1: BK-2plus: positive inning total credits to current player
+  # ---------------------------------------------------------------------------
+
+  test "38.4-05 BK-2plus: positive inning total credits to current player" do
+    @tm.update!(data: {
+      "free_game_form" => "bk_2plus",
+      "bk2_options" => {
+        "direkter_zweikampf_max_shots_per_turn" => 2
+      },
+      "bk2_state" => fresh_bk2_state("direkter_zweikampf")
+    })
+
+    Bk2::CommitInning.call(
+      table_monitor: @tm,
+      player: "playera",
+      inning_total: 5
+    )
+
+    s = @tm.reload.data["bk2_state"]
+    assert_equal 5, s["set_scores"]["1"]["playera"], "playera score must be 5"
+    assert_equal 0, s["set_scores"]["1"]["playerb"], "playerb score must be unchanged"
+  end
+
+  # ---------------------------------------------------------------------------
+  # T-N+2: BK-2: negative inning total stays on player (sign-preserving)
+  # ---------------------------------------------------------------------------
+
+  test "38.4-05 BK-2: negative inning total stays on player (sign-preserving, no opponent credit)" do
+    @tm.update!(data: {
+      "free_game_form" => "bk_2",
+      "bk2_options" => {
+        "serienspiel_max_innings_per_set" => 5
+      },
+      "bk2_state" => fresh_bk2_state("serienspiel")
+    })
+
+    Bk2::CommitInning.call(
+      table_monitor: @tm,
+      player: "playera",
+      inning_total: -3
+    )
+
+    s = @tm.reload.data["bk2_state"]
+    assert_equal(-3, s["set_scores"]["1"]["playera"], "playera score must be -3 (additive, sign-preserved)")
+    assert_equal 0, s["set_scores"]["1"]["playerb"], "playerb score must be unchanged"
+  end
+
+  # ---------------------------------------------------------------------------
+  # T-N+3: BK-2: positive inning total added to player
+  # ---------------------------------------------------------------------------
+
+  test "38.4-05 BK-2: positive inning total added to player" do
+    @tm.update!(data: {
+      "free_game_form" => "bk_2",
+      "bk2_options" => {
+        "serienspiel_max_innings_per_set" => 5
+      },
+      "bk2_state" => fresh_bk2_state("serienspiel")
+    })
+
+    Bk2::CommitInning.call(
+      table_monitor: @tm,
+      player: "playera",
+      inning_total: 5
+    )
+
+    s = @tm.reload.data["bk2_state"]
+    assert_equal 5, s["set_scores"]["1"]["playera"], "playera score must be 5"
+    assert_equal 0, s["set_scores"]["1"]["playerb"], "playerb score must be unchanged"
+  end
+
+  # ---------------------------------------------------------------------------
+  # T-N+4: BK50: additive behavior, set closes when balls_goal (50) reached
+  # ---------------------------------------------------------------------------
+
+  test "38.4-05 BK50: additive behavior — set closes when balls_goal reached" do
+    state = fresh_bk2_state("serienspiel")
+    state["set_scores"]["1"]["playera"] = 44
+    state["balls_goal"] = 50
+    @tm.update!(data: {
+      "free_game_form" => "bk50",
+      "bk2_options" => {
+        "serienspiel_max_innings_per_set" => 5
+      },
+      "bk2_state" => state
+    })
+
+    Bk2::CommitInning.call(
+      table_monitor: @tm,
+      player: "playera",
+      inning_total: 7
+    )
+
+    s = @tm.reload.data["bk2_state"]
+    assert_equal 51, s["set_scores"]["1"]["playera"], "playera must reach 51 (44+7)"
+    assert_equal true, s["set_finished_1"], "set must be finished when balls_goal reached"
+    assert_equal "playera", s["set_winner_1"]
+  end
+
+  # ---------------------------------------------------------------------------
+  # T-N+5: BK100: additive behavior, target = 100
+  # ---------------------------------------------------------------------------
+
+  test "38.4-05 BK100: additive behavior — set closes at balls_goal 100" do
+    state = fresh_bk2_state("serienspiel")
+    state["set_scores"]["1"]["playera"] = 95
+    state["balls_goal"] = 100
+    @tm.update!(data: {
+      "free_game_form" => "bk100",
+      "bk2_options" => {
+        "serienspiel_max_innings_per_set" => 5
+      },
+      "bk2_state" => state
+    })
+
+    Bk2::CommitInning.call(
+      table_monitor: @tm,
+      player: "playera",
+      inning_total: 8
+    )
+
+    s = @tm.reload.data["bk2_state"]
+    assert_equal 103, s["set_scores"]["1"]["playera"], "playera must reach 103 (95+8)"
+    assert_equal true, s["set_finished_1"], "set must close at balls_goal 100"
+  end
+
+  # ---------------------------------------------------------------------------
+  # T-N+6: BK-2kombi DZ phase: opponent-credit (regression for 38.3 behavior)
+  # ---------------------------------------------------------------------------
+
+  test "38.4-05 BK-2kombi DZ phase: negative inning credits opponent (regression)" do
+    state = fresh_bk2_state("direkter_zweikampf")
+    state["set_scores"]["1"]["playera"] = 10
+    state["set_scores"]["1"]["playerb"] = 5
+    @tm.update!(data: @tm.data.merge("bk2_state" => state))
+
+    Bk2::CommitInning.call(
+      table_monitor: @tm,
+      player: "playera",
+      inning_total: -4
+    )
+
+    s = @tm.reload.data["bk2_state"]
+    assert_equal 10, s["set_scores"]["1"]["playera"], "playera must be UNCHANGED in DZ opponent-credit"
+    assert_equal 9, s["set_scores"]["1"]["playerb"], "playerb must receive abs(-4)=4 → 5+4=9"
+  end
+
+  # ---------------------------------------------------------------------------
+  # T-N+7: BK-2kombi SP phase: additive (regression for 38.3 behavior)
+  # ---------------------------------------------------------------------------
+
+  test "38.4-05 BK-2kombi SP phase: negative inning stays on player (regression)" do
+    state = fresh_bk2_state("serienspiel")
+    state["set_scores"]["1"]["playera"] = 10
+    @tm.update!(data: @tm.data.merge("bk2_state" => state))
+
+    Bk2::CommitInning.call(
+      table_monitor: @tm,
+      player: "playera",
+      inning_total: -4
+    )
+
+    s = @tm.reload.data["bk2_state"]
+    assert_equal 6, s["set_scores"]["1"]["playera"], "playera must be 10+(-4)=6 in SP additive"
+    assert_equal 0, s["set_scores"]["1"]["playerb"], "playerb must be unchanged in SP"
+  end
+
+  # ---------------------------------------------------------------------------
+  # T-N+8: raises ArgumentError for unknown free_game_form
+  # ---------------------------------------------------------------------------
+
+  test "38.4-05 raises ArgumentError for unknown free_game_form" do
+    @tm.update!(data: {
+      "free_game_form" => "martian_ball",
+      "bk2_state" => fresh_bk2_state("direkter_zweikampf")
+    })
+
+    assert_raises(ArgumentError) do
+      Bk2::CommitInning.call(
+        table_monitor: @tm,
+        player: "playera",
+        inning_total: 3
+      )
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+  # T-N+9: raises ArgumentError for unknown current_phase when bk2_kombi
+  # ---------------------------------------------------------------------------
+
+  test "38.4-05 raises ArgumentError for unknown current_phase when bk2_kombi" do
+    state = fresh_bk2_state("direkter_zweikampf")
+    state["current_phase"] = "invalid_phase"
+    @tm.update!(data: @tm.data.merge("bk2_state" => state))
+
+    assert_raises(ArgumentError) do
+      Bk2::CommitInning.call(
+        table_monitor: @tm,
+        player: "playera",
+        inning_total: 3
+      )
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+  # T-N+10: set closes when player reaches balls_goal (BK-2 discipline)
+  # ---------------------------------------------------------------------------
+
+  test "38.4-05 BK-2: set closes when player reaches balls_goal" do
+    state = fresh_bk2_state("serienspiel")
+    state["set_scores"]["1"]["playera"] = 45
+    state["balls_goal"] = 50
+    @tm.update!(data: {
+      "free_game_form" => "bk_2",
+      "bk2_options" => {
+        "serienspiel_max_innings_per_set" => 5
+      },
+      "bk2_state" => state
+    })
+
+    Bk2::CommitInning.call(
+      table_monitor: @tm,
+      player: "playera",
+      inning_total: 7
+    )
+
+    s = @tm.reload.data["bk2_state"]
+    assert_equal 52, s["set_scores"]["1"]["playera"], "playera must reach 52 (45+7)"
+    assert_equal true, s["set_finished_1"], "set must close when balls_goal reached"
+    assert_equal "playera", s["set_winner_1"]
+    assert_equal 1, s["sets_won"]["playera"]
   end
 
   private
@@ -356,7 +618,8 @@ class Bk2Kombi::CommitInningTest < ActiveSupport::TestCase
         "3" => {"playera" => 0, "playerb" => 0}
       },
       "sets_won" => {"playera" => 0, "playerb" => 0},
-      "set_target_points" => 50
+      "set_target_points" => 50,
+      "balls_goal" => 50
     }
   end
 end

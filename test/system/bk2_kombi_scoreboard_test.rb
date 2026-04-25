@@ -212,7 +212,7 @@ class Bk2KombiScoreboardTest < ApplicationSystemTestCase
     ))
 
     # SP additive: playera had 10, adds 6 → 16
-    Bk2Kombi::CommitInning.call(
+    Bk2::CommitInning.call(
       table_monitor: @tm,
       player: "playera",
       inning_total: 6,
@@ -246,7 +246,7 @@ class Bk2KombiScoreboardTest < ApplicationSystemTestCase
       }
     ))
 
-    Bk2Kombi::CommitInning.call(
+    Bk2::CommitInning.call(
       table_monitor: @tm,
       player: "playera",
       inning_total: 3,
@@ -284,7 +284,7 @@ class Bk2KombiScoreboardTest < ApplicationSystemTestCase
     # DZ opponent credit: negative inning → abs goes to opponent
     # playera had 5, playerb had 10. Commit -4 for playera →
     # D-11: playera stays at 5, playerb += 4 → 14
-    Bk2Kombi::CommitInning.call(
+    Bk2::CommitInning.call(
       table_monitor: @tm,
       player: "playera",
       inning_total: -4,
@@ -322,7 +322,7 @@ class Bk2KombiScoreboardTest < ApplicationSystemTestCase
     ))
 
     # playera has 45, commits 7 → 52 >= 50 → set closes
-    Bk2Kombi::CommitInning.call(
+    Bk2::CommitInning.call(
       table_monitor: @tm,
       player: "playera",
       inning_total: 7,
@@ -412,7 +412,7 @@ class Bk2KombiScoreboardTest < ApplicationSystemTestCase
     @tm.data["bk2_options"] ||= {}
     @tm.data["bk2_options"]["first_set_mode"] = "serienspiel"
     @tm.suppress_broadcast = true
-    Bk2Kombi::AdvanceMatchState.initialize_bk2_state!(@tm)
+    Bk2::AdvanceMatchState.initialize_bk2_state!(@tm)
     @tm.finish_shootout!
     @tm.do_play
     @tm.suppress_broadcast = false
@@ -475,7 +475,7 @@ class Bk2KombiScoreboardTest < ApplicationSystemTestCase
     # which fires switch_players_and_start_game reflex with bk2_first_set_mode=direkter_zweikampf.
     @tm.data["bk2_options"]["first_set_mode"] = "direkter_zweikampf"
     @tm.suppress_broadcast = true
-    Bk2Kombi::AdvanceMatchState.initialize_bk2_state!(@tm)
+    Bk2::AdvanceMatchState.initialize_bk2_state!(@tm)
     @tm.switch_players
     @tm.finish_shootout!
     @tm.do_play
