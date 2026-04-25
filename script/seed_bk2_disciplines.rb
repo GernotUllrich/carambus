@@ -17,11 +17,14 @@ type_value = source.type
 table_kind_id_value = source.table_kind_id
 puts "Source BK2-Kombi: type=#{type_value.inspect}, table_kind_id=#{table_kind_id_value.inspect}"
 
+# Phase 38.4-11 O2: explicit nachstoss_allowed flag for all 5 BK-* disciplines.
+# Read by Discipline#nachstoss_allowed? and Bk2::AdvanceMatchState#close_set_if_reached!
+# to defer set-close until the trailing player has had their equalizing inning.
 discs = [
-  { name: "BK50", data: { free_game_form: "bk50", ballziel_choices: [50] } },
-  { name: "BK100", data: { free_game_form: "bk100", ballziel_choices: [100] } },
-  { name: "BK-2", data: { free_game_form: "bk_2", ballziel_choices: [50, 60, 70, 80, 90, 100] } },
-  { name: "BK-2plus", data: { free_game_form: "bk_2plus", ballziel_choices: [50, 60, 70, 80, 90, 100] } }
+  { name: "BK50",    data: { free_game_form: "bk50",    ballziel_choices: [50],                      nachstoss_allowed: true } },
+  { name: "BK100",   data: { free_game_form: "bk100",   ballziel_choices: [100],                     nachstoss_allowed: true } },
+  { name: "BK-2",    data: { free_game_form: "bk_2",    ballziel_choices: [50, 60, 70, 80, 90, 100], nachstoss_allowed: true } },
+  { name: "BK-2plus", data: { free_game_form: "bk_2plus", ballziel_choices: [50, 60, 70, 80, 90, 100], nachstoss_allowed: true } }
 ]
 
 created = []
@@ -45,13 +48,16 @@ puts "Created: #{created.inspect}"
 puts "Updated: #{updated.inspect}"
 puts "All BK-* disciplines: #{Discipline.where(name: %w[BK2-Kombi BK50 BK100 BK-2 BK-2plus]).order(:id).pluck(:id, :name, :data)}"
 
-# Also ensure BK2-Kombi (id 107) has ballziel_choices populated
+# Phase 38.4-11 O2: ensure BK2-Kombi (id 107) carries nachstoss_allowed: true.
+# Idempotent: re-running the script after Plan 11 only writes if the flag is missing.
 bk2 = Discipline.find(107)
 current = bk2.data.present? ? JSON.parse(bk2.data) : {}
-unless current["ballziel_choices"] == [50, 60, 70]
+needs_update = current["ballziel_choices"] != [50, 60, 70] || current["nachstoss_allowed"] != true
+if needs_update
   current["free_game_form"] ||= "bk2_kombi"
   current["ballziel_choices"] = [50, 60, 70]
+  current["nachstoss_allowed"] = true
   bk2.data = current.to_json
   bk2.save!
-  puts "Updated Discipline.find(107) with ballziel_choices"
+  puts "Updated Discipline.find(107) with ballziel_choices + nachstoss_allowed"
 end
