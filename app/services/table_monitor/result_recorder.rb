@@ -57,18 +57,15 @@ class TableMonitor::ResultRecorder < ApplicationService
       ergebnis1 = @tm.data["playera"]["result"].to_i
       ergebnis2 = @tm.data["playerb"]["result"].to_i
 
-      if Discipline::BK2_FREE_GAME_FORMS.include?(@tm.data["free_game_form"])
-        # BK-Familie Satz-Ergebnis (alle 5 BK-* Disziplinen): Phase 38.4 I7 Open-Q-2-Resolution.
-        # Signatur: .call(table_monitor:, shot_payload:) → { scoring:, transitions:, state: }
-        # Dispatch-Zweig sitzt neben dem Snooker-Zweig (Pattern: Phase 38.1 CONTEXT.md D-11).
-        # HINWEIS: result_recorder.rb ist der Tournament-Game-Persistenz-Pfad (nach Match-Ende).
-        # Bk2::AdvanceMatchState (NICHT CommitInning) — AdvanceMatchState ist für Match-State-
-        # Transitionen zuständig; CommitInning ist der Live-Scoring-Pfad aus dem Reflex.
-        Bk2::AdvanceMatchState.call(
-          table_monitor: @tm,
-          shot_payload: @tm.data.fetch("current_bk2_shot_payload", {})
-        )
-      elsif @tm.data["free_game_form"] == "snooker"
+      # Phase 38.4-P9: removed BK-* dispatch to Bk2::AdvanceMatchState.
+      # The dispatch read shot_payload from data["current_bk2_shot_payload"] but
+      # NOTHING in the codebase ever wrote that key, so shot_payload was always {},
+      # crashing Bk2::ScoreShot#calculate_raw_points on nil obs at first set close.
+      # The post-set persistence path only needs ergebnis1/2 from data[playera/b].result —
+      # match-state was already advanced via the live-scoring CommitInning path
+      # (TableMonitor#add_n_balls → bk_family_with_nachstoss? → Bk2::CommitInning).
+
+      if @tm.data["free_game_form"] == "snooker"
         # Alle Break-Punkte summieren: innings_list (abgeschlossene Breaks) + innings_redo_list (aktueller Break)
         # Wenn ein Spieler wechselt, wandert sein Break von redo_list in list
         ergebnis1 = Array(@tm.data["playera"]["innings_list"]).sum(&:to_i) + Array(@tm.data["playera"]["innings_redo_list"]).sum(&:to_i)

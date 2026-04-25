@@ -270,31 +270,26 @@ class TableMonitor::ResultRecorderTest < ActiveSupport::TestCase
   end
 
   # ---------------------------------------------------------------------------
-  # BK2-Kombi dispatch branch tests (Phase 38.1 Plan 02)
+  # BK-* persistence path (Phase 38.4-P9)
   # ---------------------------------------------------------------------------
-  # Stub-Muster (B4-Fix, Zeitwerk-kompatibel):
-  # app/services/bk2_kombi/advance_match_state.rb stellt den Stub bereit, damit
-  # Zeitwerk den Konstanten-Lookup aufloesen kann. Die Tests ersetzen die Klasse
-  # temporaer via Minitest-stub auf der Singleton-Methode.
-
-  test "ResultRecorder dispatches to Bk2::AdvanceMatchState when free_game_form=='bk2_kombi'" do
-    call_args = nil
-    fake_call = ->(**kwargs) {
-      call_args = kwargs
-      {scoring: {points_for_current_player: 0}, transitions: {}, state: {}}
-    }
+  # The BK-* dispatch in result_recorder was removed in P9 — production never
+  # wrote `current_bk2_shot_payload`, so the dispatch always crashed in
+  # ScoreShot#calculate_raw_points. Match-state advancement happens on the
+  # live-scoring path (TableMonitor#add_n_balls → Bk2::CommitInning); the
+  # post-set persistence path uses data[playera/b].result directly.
+  test "ResultRecorder does NOT call Bk2::AdvanceMatchState for bk2_kombi (P9 — dispatch removed)" do
+    call_count = 0
+    counting_call = ->(**_kwargs) { call_count += 1 }
 
     @tm.data["free_game_form"] = "bk2_kombi"
     @tm.save!
 
-    Bk2::AdvanceMatchState.stub(:call, fake_call) do
+    Bk2::AdvanceMatchState.stub(:call, counting_call) do
       TableMonitor::ResultRecorder.save_result(table_monitor: @tm)
     end
 
-    assert_not_nil call_args,
-      "Bk2::AdvanceMatchState.call muss aufgerufen worden sein"
-    assert_equal @tm, call_args[:table_monitor],
-      "table_monitor muss als Keyword-Argument uebergeben werden"
+    assert_equal 0, call_count,
+      "Bk2::AdvanceMatchState must NOT be called from result_recorder — P9 removed the broken dispatch"
   end
 
   test "ResultRecorder does NOT touch Bk2 path for karambol/snooker" do

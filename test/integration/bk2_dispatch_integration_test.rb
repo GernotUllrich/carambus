@@ -231,14 +231,15 @@ class Bk2DispatchIntegrationTest < ActiveSupport::TestCase
   end
 
   # ---------------------------------------------------------------------------
-  # Test 7 (Phase 38.4 Open-Q-2 Resolution): ResultRecorder dispatches all 5 BK-* forms
-  # to Bk2::AdvanceMatchState (not CommitInning)
+  # Test 7 (Phase 38.4-P9): result_recorder must NOT dispatch to Bk2::AdvanceMatchState.
+  # The previous Plan 05 dispatch was dead code — `current_bk2_shot_payload` had no
+  # writer in production, so the dispatch always crashed in ScoreShot on nil obs.
+  # P9 removed it. Match-state advancement happens on the live-scoring path
+  # (TableMonitor#add_n_balls → bk_family_with_nachstoss? → Bk2::CommitInning),
+  # not in the post-set persistence path.
   # ---------------------------------------------------------------------------
 
-  test "result_recorder dispatches all 5 BK-* free_game_forms to Bk2::AdvanceMatchState" do
-    # Verify that the dispatch condition uses Discipline::BK2_FREE_GAME_FORMS.include?
-    # so all 5 forms are handled — not just bk2_kombi.
-    # A real Game record is required to enter the if @tm.game.present? branch.
+  test "result_recorder does NOT dispatch any of 5 BK-* free_game_forms to Bk2::AdvanceMatchState (P9)" do
     player_a = Player.create!(id: 50_200_001, firstname: "DispatchA", lastname: "Test",
       dbu_nr: 30001, ba_id: 30001)
     player_b = Player.create!(id: 50_200_002, firstname: "DispatchB", lastname: "Test",
@@ -259,8 +260,7 @@ class Bk2DispatchIntegrationTest < ActiveSupport::TestCase
         "3" => {"playera" => 0, "playerb" => 0}
       },
       "sets_won" => {"playera" => 0, "playerb" => 0},
-      "balls_goal" => 50,
-      "set_target_points" => 50
+      "balls_goal" => 50
     }
 
     Discipline::BK2_FREE_GAME_FORMS.each do |form|
@@ -273,7 +273,6 @@ class Bk2DispatchIntegrationTest < ActiveSupport::TestCase
           "sets_to_play" => 3,
           "kickoff_switches_with" => "set",
           "current_kickoff_player" => "playera",
-          "current_bk2_shot_payload" => pin_shot(fallen_pins: 3),
           "playera" => {"result" => 0, "innings" => 0,
                         "innings_list" => [], "innings_redo_list" => []},
           "playerb" => {"result" => 0, "innings" => 0,
@@ -290,8 +289,8 @@ class Bk2DispatchIntegrationTest < ActiveSupport::TestCase
         recorder.perform_save_result
       end
 
-      assert advance_call_count > 0,
-        "Expected Bk2::AdvanceMatchState.call for free_game_form=#{form}, but was not called"
+      assert_equal 0, advance_call_count,
+        "P9: Bk2::AdvanceMatchState must NOT be called for free_game_form=#{form} from result_recorder"
     end
   end
 end
