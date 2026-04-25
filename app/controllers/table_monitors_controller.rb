@@ -64,7 +64,12 @@ class TableMonitorsController < ApplicationController
   end
 
   def start_game
-    p = params.permit(params.keys)
+    # 38.4-08: .to_h forces a plain Hash so subsequent clamp_bk_family_params!
+    # writes (e.g. p[:bk2_options] = { ... }) target a Hash, and the value
+    # forwarded to GameSetup.call(options: p) is convertible without raising
+    # ActionController::UnfilteredParameters on unpermitted nested keys
+    # (see I9 / I9b regression tests in table_monitors_controller_test.rb).
+    p = params.permit(params.keys).to_h
     p = p.slice(:player_a_id, :player_b_id, :timeouts, :timeout,
       :sets_to_play, :sets_choice, :sets_2_choice, :sets_to_win, :balls_goal, :balls_goal_choice, :balls_goal_2_choice, :balls_goal_a, :balls_goal_a_choice, :balls_goal_a_2_choice,
       :balls_goal_b, :balls_goal_b_choice, :balls_goal_b_2_choice, :innings_goal, :discipline_a, :discipline_a_choice,
