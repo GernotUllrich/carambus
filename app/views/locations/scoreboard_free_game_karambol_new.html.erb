@@ -347,7 +347,8 @@
                   <input type="radio" name="bk_form_choice" value="<%= val %>"
                          x-model="bk_selected_form" class="sr-only"
                          aria-labelledby="bk-form-choice-<%= ix %>-label"
-                         @change="bk_balls_goal = bk_ballziel_choices.includes(70) ? 70 : bk_ballziel_choices[0]">
+                         @change="bk_balls_goal = bk_ballziel_choices.includes(70) ? 70 : bk_ballziel_choices[0];
+                                  if (['bk_2','bk_2plus','bk2_kombi'].includes(bk_selected_form)) { innings = 5; innings_2 = 5; }">
                   <span id="bk-form-choice-<%= ix %>-label"><%= label %></span>
                 </label>
               <% end %>
