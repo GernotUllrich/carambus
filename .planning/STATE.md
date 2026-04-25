@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v7.1
 milestone_name: UX Polish & i18n Debt
 status: executing
-stopped_at: Completed 38.4-16-PLAN.md
-last_updated: "2026-04-25T19:32:24.285Z"
+stopped_at: Completed 38.4-17-PLAN.md
+last_updated: "2026-04-25T19:38:37.050Z"
 last_activity: 2026-04-25
 progress:
   total_phases: 6
   completed_phases: 3
   total_plans: 38
-  completed_plans: 35
-  percent: 92
+  completed_plans: 36
+  percent: 95
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-15)
 ## Current Position
 
 Phase: 38.4 (bk2-kombi-post-dry-run-gaps) — EXECUTING
-Plan: 4 of 17
+Plan: 5 of 17
 Status: Ready to execute
 Last activity: 2026-04-25
 
@@ -86,6 +86,8 @@ Decisions are logged in PROJECT.md Key Decisions table. Full v7.0 cross-phase de
 - [Phase 38.4-bk2-kombi-post-dry-run-gaps]: Plan 16: P5 narrowed via interpretation (b) flag-only — nachstoss_allowed scoped to BK-2kombi (id 107) only; BK50/BK100/BK-2/BK-2plus retain Discipline records but lose flag.
 - [Phase 38.4-bk2-kombi-post-dry-run-gaps]: Plan 16 round-4 iteration-2 BLOCKER 2: explicit pre-check (Option (i)) replaces unreachable rescue ActiveRecord::RecordInvalid — LocalProtector raises Rollback (transaction control flow), silently swallowed by AR transactions; rescue NEVER fired on local servers.
 - [Phase 38.4-bk2-kombi-post-dry-run-gaps]: Plan 16 I-16-02: residual sync-race accepted (not blocked-on); production deployment sequence (master seed FIRST, then local-server migrations) makes window small + idempotent re-run recovers; tracked T-38.4-16-07 in STATE deferred follow-ups.
+- [Phase 38.4-bk2-kombi-post-dry-run-gaps]: Plan 17: CR-01 closed via 1-char fix at version.rb:434 (local_server → local_server?); 3 T-CR-01 tests lock the predicate-naming convention. INFO-01 closed via git mv todos/pending/sync-version-yaml-...md → todos/done/ + closure marker. INFO-02 closed via 3 ROADMAP checkbox flips on plans 38.4-10/11/12. WR-01..06 stay deferred.
+- [Phase 38.4-bk2-kombi-post-dry-run-gaps]: Plan 17 I-17-01 attestation: inline English comment above the local_server? fix is per CLAUDE.md line 23 technical-terms exception (NameError + predicate naming + line numbers are technical, not business). Documented in 38.4-17-SUMMARY.md for auditability.
 
 ### Roadmap Evolution
 
@@ -131,6 +133,6 @@ None blocking Phase 38.1 execution. Reconciliation debt above is tracked but not
 
 ## Session Continuity
 
-Last session: 2026-04-25T19:32:10.850Z
-Stopped at: Completed 38.4-16-PLAN.md
+Last session: 2026-04-25T19:38:37.047Z
+Stopped at: Completed 38.4-17-PLAN.md
 Resume: `/gsd-plan-phase 38` to break Phase 38 into 3 executable plans
