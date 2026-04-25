@@ -735,8 +735,10 @@ class Bk2::AdvanceMatchStateTest < ActiveSupport::TestCase
   # Phase 38.4-11 O2+O4: Nachstoß deferred-close logic
   # ===========================================================================
 
-  test "T-O2-bk50-nachstoss-defers-close 38.4-11: BK50 set does NOT close when leader reaches 50; nachstoss_pending=true" do
-    bk50 = ensure_bk_discipline("BK50", "bk50", [50], nachstoss_allowed: true)
+  # Phase 38.4-16 P5: BK50 narrowed to NO Nachstoß per user clarification.
+  # Reframes T-O2-bk50-nachstoss-defers-close (Plan 11) — assertions FLIPPED.
+  test "T-P5-bk50-no-nachstoss 38.4-16: BK50 set CLOSES immediately when leader reaches 50; no Nachstoß" do
+    bk50 = ensure_bk_discipline("BK50", "bk50", [50], nachstoss_allowed: false)
     tm = build_table_monitor_with_discipline(bk50, balls_goal: 50, free_game_form: "bk50")
     Bk2::AdvanceMatchState.initialize_bk2_state!(tm)
 
@@ -744,58 +746,41 @@ class Bk2::AdvanceMatchStateTest < ActiveSupport::TestCase
     tm.reload
     state = tm.data["bk2_state"]
 
-    assert_equal 0, state.dig("sets_won", "playera"),
-      "T-O2-bk50: leader's set-win must NOT increment when nachstoss_allowed and trailing has not equalized"
-    assert_equal true, state["nachstoss_pending"],
-      "T-O2-bk50: nachstoss_pending must be true after leader reaches balls_goal"
-    assert_equal "playerb", state["nachstoss_for"],
-      "T-O2-bk50: nachstoss_for must be the trailing player (playerb)"
-    assert_equal "playerb", state["player_at_table"],
-      "T-O2-bk50: player_at_table must flip to playerb for the equalizing inning"
-  end
-
-  test "T-O4-nachstoss-equal-resolves-set 38.4-11: trailing player equalizing at balls_goal closes the set (provisional: trailing wins)" do
-    bk50 = ensure_bk_discipline("BK50", "bk50", [50], nachstoss_allowed: true)
-    tm = build_table_monitor_with_discipline(bk50, balls_goal: 50, free_game_form: "bk50")
-    Bk2::AdvanceMatchState.initialize_bk2_state!(tm)
-
-    # Step 1: leader reaches 50 → nachstoss_pending
-    Bk2::CommitInning.call(table_monitor: tm, player: "playera", inning_total: 50)
-
-    # Step 2: trailing equalizes at 50 — must NOT be capped at 49 (this is the O4 case)
-    Bk2::CommitInning.call(table_monitor: tm, player: "playerb", inning_total: 50)
-    tm.reload
-    state = tm.data["bk2_state"]
-
-    assert_equal 50, state.dig("set_scores", "1", "playerb"),
-      "T-O4: trailing player's score must equal 50 (no off-by-one cap)"
-    assert(state["nachstoss_pending"] != true || state["set_finished_1"] == true,
-      "T-O4: nachstoss_pending must be cleared OR set_finished_1=true after equalizing inning")
-    # Provisional rule: trailing wins on equal (see Plan 11 Objective clarifying note)
-    assert_equal 1, state.dig("sets_won", "playerb"),
-      "T-O4: trailing player wins the set on equal balls_goal (provisional rule — verify with Landessportwart)"
-  end
-
-  test "T-O4-nachstoss-below-leader-wins 38.4-11: trailing player below balls_goal closes set with leader winning" do
-    bk50 = ensure_bk_discipline("BK50", "bk50", [50], nachstoss_allowed: true)
-    tm = build_table_monitor_with_discipline(bk50, balls_goal: 50, free_game_form: "bk50")
-    Bk2::AdvanceMatchState.initialize_bk2_state!(tm)
-
-    Bk2::CommitInning.call(table_monitor: tm, player: "playera", inning_total: 50)
-    Bk2::CommitInning.call(table_monitor: tm, player: "playerb", inning_total: 49)
-    tm.reload
-    state = tm.data["bk2_state"]
-
-    assert_equal 49, state.dig("set_scores", "1", "playerb"),
-      "T-O4: trailing player's score is 49 (their inning_total)"
-    assert_equal true, state["set_finished_1"],
-      "T-O4: set must be marked finished after equalizing inning that fell short"
     assert_equal 1, state.dig("sets_won", "playera"),
-      "T-O4: leader (playera) wins the set when trailing falls short of balls_goal"
+      "T-P5-bk50: leader's set-win MUST increment immediately when nachstoss_allowed=false (P5 narrowing)"
+    assert_equal true, state["set_finished_1"],
+      "T-P5-bk50: set_finished_1 must be true after immediate close"
+    assert_nil state["nachstoss_pending"],
+      "T-P5-bk50: nachstoss_pending MUST be nil/absent — BK50 no longer engages Nachstoß per P5"
   end
 
-  test "T-O2-bk100-nachstoss-defers-close 38.4-11: BK100 set does NOT close at 100; nachstoss_pending for trailing player" do
-    bk100 = ensure_bk_discipline("BK100", "bk100", [100], nachstoss_allowed: true)
+  # Phase 38.4-16 P5: BK50 narrowed to immediate-close per user clarification.
+  # Replaces T-O4-nachstoss-equal-resolves-set + T-O4-nachstoss-below-leader-wins
+  # (Plan 11) — there is no longer an equal-vs-below distinction for BK50 because
+  # there is no Nachstoß window.
+  test "T-P5-bk50-immediate-close-at-50 38.4-16: BK50 single-inning close at balls_goal — no equalizer" do
+    bk50 = ensure_bk_discipline("BK50", "bk50", [50], nachstoss_allowed: false)
+    tm = build_table_monitor_with_discipline(bk50, balls_goal: 50, free_game_form: "bk50")
+    Bk2::AdvanceMatchState.initialize_bk2_state!(tm)
+
+    Bk2::CommitInning.call(table_monitor: tm, player: "playera", inning_total: 50)
+    tm.reload
+    state = tm.data["bk2_state"]
+
+    assert_equal 50, state.dig("set_scores", "1", "playera"),
+      "T-P5-bk50-immediate: leader's score is exactly 50"
+    assert_equal true, state["set_finished_1"],
+      "T-P5-bk50-immediate: set must close on the leader's reach — no equalizer for BK50"
+    assert_equal 1, state.dig("sets_won", "playera"),
+      "T-P5-bk50-immediate: leader (playera) wins the set immediately"
+    assert_nil state["nachstoss_pending"],
+      "T-P5-bk50-immediate: nachstoss_pending MUST be nil — BK50 has no Nachstoß per P5"
+  end
+
+  # Phase 38.4-16 P5: BK100 narrowed to NO Nachstoß per user clarification.
+  # Reframes T-O2-bk100-nachstoss-defers-close (Plan 11) — assertions FLIPPED.
+  test "T-P5-bk100-no-nachstoss 38.4-16: BK100 set CLOSES immediately at 100; no Nachstoß" do
+    bk100 = ensure_bk_discipline("BK100", "bk100", [100], nachstoss_allowed: false)
     tm = build_table_monitor_with_discipline(bk100, balls_goal: 100, free_game_form: "bk100")
     Bk2::AdvanceMatchState.initialize_bk2_state!(tm)
 
@@ -803,12 +788,17 @@ class Bk2::AdvanceMatchStateTest < ActiveSupport::TestCase
     tm.reload
     state = tm.data["bk2_state"]
 
-    assert_equal 0, state.dig("sets_won", "playera"),
-      "T-O2-bk100: leader's set-win must NOT increment immediately"
-    assert_equal true, state["nachstoss_pending"],
-      "T-O2-bk100: nachstoss_pending must be true (BK100, balls_goal=100)"
+    assert_equal 1, state.dig("sets_won", "playera"),
+      "T-P5-bk100: leader's set-win MUST increment immediately at balls_goal=100 (P5 narrowing)"
+    assert_equal true, state["set_finished_1"],
+      "T-P5-bk100: set_finished_1 must be true after immediate close"
+    assert_nil state["nachstoss_pending"],
+      "T-P5-bk100: nachstoss_pending MUST be nil/absent — BK100 no longer engages Nachstoß per P5"
   end
 
+  # Phase 38.4-16 P5: this test was already correct under Plan 11 (no flag → immediate
+  # close). After Plan 16's narrowing it now matches BK50/BK100/BK-2/BK-2plus production
+  # semantics (these disciplines lose the flag, so they take this same code path).
   test "T-O2-no-nachstoss-flag-immediate-close 38.4-11: discipline without nachstoss_allowed closes set immediately (regression)" do
     legacy = ensure_bk_discipline("BK-Legacy-Test", "bk_legacy_test", [50], nachstoss_allowed: false)
     tm = build_table_monitor_with_discipline(legacy, balls_goal: 50, free_game_form: "bk_legacy_test")
