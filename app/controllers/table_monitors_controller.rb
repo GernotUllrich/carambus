@@ -155,10 +155,19 @@ class TableMonitorsController < ApplicationController
       p[:balls_goal_a_choice] = p[:balls_goal_a_2_choice].presence || p[:balls_goal_a_choice].presence
       p[:balls_goal_b_choice] = p[:balls_goal_b_2_choice].presence || p[:balls_goal_b_choice].presence
       p[:kickoff_switches_with] = (p[:kickoff_switches_with].presence || "set")
-      p[:discipline_a] = p[:discipline_a_choice]
-      p[:discipline_b] = p[:discipline_b_choice]
-      p[:balls_goal_a] = p[:balls_goal_a_choice]
-      p[:balls_goal_b] = p[:balls_goal_b_choice]
+      # 38.4-P6: skip karambol-shaped reassignments for BK-family detail forms.
+      # The BK-* detail view shares the karambol form skeleton — its hidden
+      # `_radio_select` partials still emit `discipline_{a,b}_choice` /
+      # `balls_goal_{a,b}_choice` when x-show'd false. Without this guard those
+      # values clobber the BK-* hidden inputs (`discipline_a="BK100"` etc.) and
+      # the downstream BK CLAMP at line 242 falls back to BK2-Kombi's
+      # ballziel_choices, silently coercing balls_goal=100 to 50.
+      unless Discipline::BK2_FREE_GAME_FORMS.include?(p[:free_game_form].to_s)
+        p[:discipline_a] = p[:discipline_a_choice]
+        p[:discipline_b] = p[:discipline_b_choice]
+        p[:balls_goal_a] = p[:balls_goal_a_choice]
+        p[:balls_goal_b] = p[:balls_goal_b_choice]
+      end
       p[:innings_goal] = p[:innings_choice]
       p[:sets_to_play] = p[:sets_2_choice].presence || p[:sets_choice]
       p[:sets_to_win] = p[:games_2_choice].presence || p[:games_choice]
