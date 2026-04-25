@@ -28,37 +28,41 @@
     </div>
     <%- is_bk2 = options[:free_game_form] == "bk2_kombi" %>
     <%- if is_bk2 %>
-      <%# Phase 38.3-05 D-18: BK2-Kombi shootout — 4 buttons (Anstoß × first_set_mode).
-          Replaces the generic 2 Karambol "Spieler stößt an" buttons when the live match
-          is BK2-Kombi. Each click writes bk2_options[first_set_mode] via reflex-dataset
-          (see start_game / switch_players_and_start_game reflex augmentations), then
-          transitions via the Karambol start-game AASM path. %>
+      <%# Phase 38.4-06 D-17/D-18/D-19: BK-2kombi shootout — 4 buttons.
+          Layout: cols=player (A left, B right), rows=mode (BK-2plus top, BK-2 bottom).
+          D-17: rendered ONLY for bk2_kombi (is_bk2 remains a single-value check).
+          D-18: player names from left_player[:fullname] / right_player[:fullname].
+          D-19: grid re-sorted from prior cols=mode/rows=player layout (38.3-05).
+          Reflex payloads unchanged from 38.3-05: bk2_first_set_mode dataset key. %>
       <div class="flex flex-col h-1/2 w-full px-4 space-y-3">
         <div class="text-2vw text-center font-semibold"><%= t("table_monitor.bk2_kombi.first_set_mode.legend") %></div>
+        <%# grid grid-cols-2: col 1 = player A (start_game), col 2 = player B (switch_players_and_start_game) %>
         <div class="grid grid-cols-2 gap-3 h-full">
+          <%# ROW 1: BK-2plus mode (direkter_zweikampf) — amber %>
           <%= content_tag "div",
                 class: "text-2vw flex items-center justify-center btn btn-primary bg-amber-600 hover:bg-amber-700 text-white rounded",
-                data: { turbo: false, reflex: "click->TableMonitorReflex#start_game", id: table_monitor.id, bk2_first_set_mode: "direkter_zweikampf" },
+                data: { turbo: false, reflex: "click->TableMonitorReflex#start_game", id: table_monitor.id, bk2_first_set_mode: "direkter_zweikampf", first_break_choice: "1" },
                 id: "bk2_start_a_dz", tabindex: 6 do %>
-            <%= t("table_monitor.bk2_kombi.first_set_mode.button_direkter_zweikampf_a") %>
-          <%- end %>
-          <%= content_tag "div",
-                class: "text-2vw flex items-center justify-center btn btn-primary bg-sky-600 hover:bg-sky-700 text-white rounded",
-                data: { turbo: false, reflex: "click->TableMonitorReflex#start_game", id: table_monitor.id, bk2_first_set_mode: "serienspiel" },
-                id: "bk2_start_a_sp", tabindex: 6 do %>
-            <%= t("table_monitor.bk2_kombi.first_set_mode.button_serienspiel_a") %>
+            <%= "#{left_player[:fullname]} stößt an — #{t("table_monitor.bk2_kombi.phase.direkter_zweikampf")}" %>
           <%- end %>
           <%= content_tag "div",
                 class: "text-2vw flex items-center justify-center btn btn-primary bg-amber-600 hover:bg-amber-700 text-white rounded",
-                data: { turbo: false, reflex: "click->TableMonitorReflex#switch_players_and_start_game", id: table_monitor.id, bk2_first_set_mode: "direkter_zweikampf" },
+                data: { turbo: false, reflex: "click->TableMonitorReflex#switch_players_and_start_game", id: table_monitor.id, bk2_first_set_mode: "direkter_zweikampf", first_break_choice: "2" },
                 id: "bk2_start_b_dz", tabindex: 6 do %>
-            <%= t("table_monitor.bk2_kombi.first_set_mode.button_direkter_zweikampf_b") %>
+            <%= "#{right_player[:fullname]} stößt an — #{t("table_monitor.bk2_kombi.phase.direkter_zweikampf")}" %>
+          <%- end %>
+          <%# ROW 2: BK-2 mode (serienspiel) — sky %>
+          <%= content_tag "div",
+                class: "text-2vw flex items-center justify-center btn btn-primary bg-sky-600 hover:bg-sky-700 text-white rounded",
+                data: { turbo: false, reflex: "click->TableMonitorReflex#start_game", id: table_monitor.id, bk2_first_set_mode: "serienspiel", first_break_choice: "1" },
+                id: "bk2_start_a_sp", tabindex: 6 do %>
+            <%= "#{left_player[:fullname]} stößt an — #{t("table_monitor.bk2_kombi.phase.serienspiel")}" %>
           <%- end %>
           <%= content_tag "div",
                 class: "text-2vw flex items-center justify-center btn btn-primary bg-sky-600 hover:bg-sky-700 text-white rounded",
-                data: { turbo: false, reflex: "click->TableMonitorReflex#switch_players_and_start_game", id: table_monitor.id, bk2_first_set_mode: "serienspiel" },
+                data: { turbo: false, reflex: "click->TableMonitorReflex#switch_players_and_start_game", id: table_monitor.id, bk2_first_set_mode: "serienspiel", first_break_choice: "2" },
                 id: "bk2_start_b_sp", tabindex: 6 do %>
-            <%= t("table_monitor.bk2_kombi.first_set_mode.button_serienspiel_b") %>
+            <%= "#{right_player[:fullname]} stößt an — #{t("table_monitor.bk2_kombi.phase.serienspiel")}" %>
           <%- end %>
         </div>
       </div>
