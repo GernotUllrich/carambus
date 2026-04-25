@@ -495,6 +495,10 @@
               truth; the form payload travels as `innings_choice` regardless of which row is
               active. The bk2_sp_max_innings hidden input on line 253 mirrors innings via the
               x-effect on the parent x-data wrapper (see below). %>
+          <%# Phase 38.4-15 P2: BK-* Aufnahmebegrenzung uses cols=4 (3 buttons + 1 counter
+              cell on right) for visual symmetry with the non-BK 4-button form. Plan 10
+              used cols=5 → 3 buttons spanned 3 of 5 cols, leaving 2 empty cells →
+              visual mis-alignment with surrounding rows (per UAT 18.53.14 screenshot). %>
           <%= render partial: "radio_select", locals: {
             table: table,
             show: "is_bk_family && !is_bk_fixed_goal",
@@ -503,7 +507,7 @@
             values: %w{0 5 7},
             maxval: 99,
             displays: %w{keine 5 7},
-            cols: 5,
+            cols: 4,
             increment: 1 }
           %>
           <%= render partial: "radio_select", locals: {
@@ -517,6 +521,12 @@
             cols: 5,
             increment: 5 }
           %>
+          <%# Phase 38.4-15 P2: visible vertical spacer above MEHRSATZ row. The parent grid's
+              `gap-3` is insufficient when the row above is the merged Aufnahmebegrenzung
+              (Plan 10 — variable height per BK-* state). Without this spacer, MEHRSATZ
+              crowds against the Aufnahmebegrenzung row (per UAT 18.53.14 screenshot).
+              col-span-6 fills one parent grid row; h-4 reserves 1rem of vertical space. %>
+          <div class="col-span-6 h-4"></div>
           <%= render partial: "radio_select", locals: {
             table: table,
             show: "multiset == 0",
