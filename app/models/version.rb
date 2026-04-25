@@ -431,6 +431,9 @@ class Version < PaperTrail::Version
   end
 
   def self.local_from_api
-    Version.sequence_reset if local_server
+    # Phase 38.4-17 CR-01: was `local_server` (no ?) — caused NameError on console
+    # invocation. The canonical predicate is `local_server?` per line 429-430.
+    # English per CLAUDE.md line 23 (technical terms convention).
+    Version.sequence_reset if local_server?
   end
 end
