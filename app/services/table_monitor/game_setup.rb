@@ -223,12 +223,23 @@ class TableMonitor::GameSetup < ApplicationService
     raise StandardError
   end
 
+  # Phase 38.4-04 I1: Name → free_game_form fallback map for all 5 BK-* disciplines.
+  # Used when discipline.data["free_game_form"] is not yet populated
+  # (e.g. fresh local server before Version sync catches up after Plan 38.4-01).
+  BK_NAME_TO_FORM = {
+    "BK2-Kombi" => "bk2_kombi",
+    "BK50" => "bk50",
+    "BK100" => "bk100",
+    "BK-2" => "bk_2",
+    "BK-2plus" => "bk_2plus"
+  }.freeze
+
   # Leitet free_game_form aus der Turnierdisziplin ab.
-  # Prioritaet (Phase 38.1 CONTEXT.md D-05):
+  # Prioritaet (Phase 38.1 CONTEXT.md D-05, extended in Phase 38.4-04 D-04):
   #   1. discipline.data["free_game_form"] — autoritativ wenn vorhanden
-  #   2. discipline.name == "BK2-Kombi" — Name-Fallback, loggt Reconciliation-Warnung
+  #   2. BK_NAME_TO_FORM[discipline.name] — Name-Fallback fuer alle 5 BK-* Disziplinen
   #   3. nil (bestehende pool/snooker/karambol-Logik bleibt unveraendert)
-  # Gibt "bk2_kombi" | bestehenden free_game_form-Wert | nil zurueck.
+  # Gibt "bk2_kombi" | "bk50" | "bk100" | "bk_2" | "bk_2plus" | nil zurueck.
   def self.derive_free_game_form(tournament)
     discipline = tournament&.discipline
     return nil if discipline.nil?
@@ -244,14 +255,14 @@ class TableMonitor::GameSetup < ApplicationService
       return parsed_data["free_game_form"]
     end
 
-    # Prioritaet 2: Name-Fallback fuer "BK2-Kombi" (strikte Gleichheit per D-05)
-    if discipline.name == "BK2-Kombi"
+    # Prioritaet 2: Name-Fallback fuer alle 5 BK-* Disziplinen (Phase 38.4-04 D-04)
+    if (form = BK_NAME_TO_FORM[discipline.name])
       Rails.logger.warn(
-        "[GameSetup] BK2-Kombi-Ableitung via Name-Match (discipline id=#{discipline.id}). " \
+        "[GameSetup] BK-Ableitung via Name-Match '#{discipline.name}' (id=#{discipline.id}). " \
         "discipline.data[\"free_game_form\"] ist nicht gesetzt — in carambus_api reconcilen. " \
-        "Siehe Phase 38.1 CONTEXT.md D-10."
+        "Siehe Phase 38.4 D-04."
       )
-      return "bk2_kombi"
+      return form
     end
 
     nil

@@ -2,9 +2,9 @@
 
 class TableMonitorsController < ApplicationController
   before_action :set_table_monitor,
-                only: %i[show start_game edit update destroy next_step evaluate_result set_balls toggle_dark_mode]
+    only: %i[show start_game edit update destroy next_step evaluate_result set_balls toggle_dark_mode]
   before_action :block_tournament_manipulation,
-                only: %i[start_game update destroy]
+    only: %i[start_game update destroy]
 
   def set_balls
     unless @table_monitor.set_n_balls(params[:add_balls].to_i)
@@ -32,7 +32,7 @@ class TableMonitorsController < ApplicationController
       return
     elsif @table_monitor.game_id.blank? && @table_monitor.prev_game_id.blank?
       redirect_to location_url(@table_monitor.table.location, sb_state: "tables",
-                                                               table_id: @table_monitor.andand.table.andand.id, host: request.server_name, port: request.server_port)
+        table_id: @table_monitor.andand.table.andand.id, host: request.server_name, port: request.server_port)
       return
     end
     @navbar = false
@@ -51,7 +51,7 @@ class TableMonitorsController < ApplicationController
     # session[:dark_scoreboard] =
     #   !(session[:dark_scoreboard].present? ? JSON.parse(session[:dark_scoreboard].to_s) : false)
     if current_user.present?
-      current_user.theme = current_user.theme == "dark" ? "light" : "dark"
+      current_user.theme = (current_user.theme == "dark") ? "light" : "dark"
       current_user.save
     end
     redirect_back fallback_location: @table_monitor
@@ -60,31 +60,75 @@ class TableMonitorsController < ApplicationController
   def demo_scoreboard
     @navbar = false
     @footer = false
-    render 'demo_scoreboard', layout: 'application'
+    render "demo_scoreboard", layout: "application"
   end
 
   def start_game
     p = params.permit(params.keys)
     p = p.slice(:player_a_id, :player_b_id, :timeouts, :timeout,
-                :sets_to_play, :sets_choice, :sets_2_choice, :sets_to_win, :balls_goal, :balls_goal_choice, :balls_goal_2_choice, :balls_goal_a, :balls_goal_a_choice, :balls_goal_a_2_choice,
-                :balls_goal_b, :balls_goal_b_choice, :balls_goal_b_2_choice, :innings_goal, :discipline_a, :discipline_a_choice,
-                :discipline_b, :discipline_b_choice, :kickoff_switches_with,
-                :fixed_display_left, :color_remains_with_set,
-                :allow_overflow, :allow_follow_up, :free_game_form, :quick_game_form, :preset,
-                :discipline_choice, :next_break_choice, :games_choice, :games_2_choice, :four_ball,
-                :points_choice, :points_2_choice, :innings_choice, :innings_2_choice, :warntime, :gametime, :commit,
-                :first_break_choice, :initial_red_balls, :frames_to_win, :frames_to_win_choice, :frames_to_win_2_choice,
-                # 38.1-06: BK2-Kombi params — set_target_points (50/60/70) is
-                # the raw user input; the BK2 branch below packs it into
-                # p[:bk2_options] which then flows to GameSetup whitelist.
-                :set_target_points,
-                # 38.2-01 D-14/D-20: first-set-mode selector. Flat top-level
-                # key (Alpine.js hidden input compatibility). Whitelisted to
-                # %w[direkter_zweikampf serienspiel] in the BK2 branches below.
-                :bk2_first_set_mode)
+      :sets_to_play, :sets_choice, :sets_2_choice, :sets_to_win, :balls_goal, :balls_goal_choice, :balls_goal_2_choice, :balls_goal_a, :balls_goal_a_choice, :balls_goal_a_2_choice,
+      :balls_goal_b, :balls_goal_b_choice, :balls_goal_b_2_choice, :innings_goal, :discipline_a, :discipline_a_choice,
+      :discipline_b, :discipline_b_choice, :kickoff_switches_with,
+      :fixed_display_left, :color_remains_with_set,
+      :allow_overflow, :allow_follow_up, :free_game_form, :quick_game_form, :preset,
+      :discipline_choice, :next_break_choice, :games_choice, :games_2_choice, :four_ball,
+      :points_choice, :points_2_choice, :innings_choice, :innings_2_choice, :warntime, :gametime, :commit,
+      :first_break_choice, :initial_red_balls, :frames_to_win, :frames_to_win_choice, :frames_to_win_2_choice,
+      # 38.4-04 D-06: top-level balls_goal param from BK-family quick-game buttons.
+      # Whitelisted here; clamped to discipline.ballziel_choices in clamp_bk_family_params!.
+      :balls_goal,
+      # 38.2-01 D-14/D-20: first-set-mode selector. Flat top-level
+      # key (Alpine.js hidden input compatibility). Whitelisted to
+      # %w[direkter_zweikampf serienspiel] in the BK2 branches below.
+      :bk2_first_set_mode)
 
     # Process standard form parameters (unless quick_game_form)
-    unless p[:quick_game_form].present?
+    if p[:quick_game_form].present?
+      # Handle Quick Game (for Pi 3 performance)
+      # Quick buttons send parameters directly via hidden fields - DON'T override them!
+      p[:balls_goal_a] = p[:balls_goal_a].to_i if p[:balls_goal_a].present?
+      p[:balls_goal_b] = p[:balls_goal_b].to_i if p[:balls_goal_b].present?
+      p[:innings_goal] = p[:innings_goal].to_i if p[:innings_goal].present?
+      p[:sets_to_win] = p[:sets_to_win].to_i if p[:sets_to_win].present?
+      p[:sets_to_play] = p[:sets_to_play].to_i if p[:sets_to_play].present?
+      # For Pool set games (8-Ball, 9-Ball, 10-Ball), sets_to_play should be calculated from sets_to_win
+      if p[:quick_game_form] == "pool" && p[:discipline_a] != "14.1 endlos" && p[:sets_to_win].to_i > 0
+        p[:sets_to_play] = p[:sets_to_win].to_i * 2 - 1 if p[:sets_to_play].to_i <= 1
+      elsif p[:sets_to_play].to_i <= 0
+        p[:sets_to_play] = 1
+      end
+      p[:allow_follow_up] = (p[:allow_follow_up] == "true" || p[:allow_follow_up] == true)
+      # 38.4-04 D-04/D-06: BK-family quick-start (all 5 BK-* disciplines).
+      # The _quick_game_buttons partial emits quick_game_form=bk2_kombi for
+      # BK2-Kombi and quick_game_form=bk_family for the 4 new disciplines.
+      # CLAMP (T-38.4-04-02/03): discipline_a/b must be in BK2_DISCIPLINE_MAP;
+      # balls_goal must intersect discipline.ballziel_choices.
+      if p[:quick_game_form] == "bk2_kombi" || p[:quick_game_form] == "bk_family"
+        # Discipline CLAMP — accept any of the 5 BK-* names, default to first.
+        unless Discipline::BK2_DISCIPLINE_MAP.include?(p[:discipline_a].to_s)
+          p[:discipline_a] = Discipline::BK2_DISCIPLINE_MAP.first
+        end
+        p[:discipline_b] = p[:discipline_a]
+        clamp_bk_family_params!(p)
+        # 38.2-01 D-14: accept first_set_mode (flat top-level key). CLAMP to
+        # whitelist, fall back to "direkter_zweikampf" on absence or tampering.
+        raw_mode = p.delete(:bk2_first_set_mode).to_s
+        first_set_mode = %w[direkter_zweikampf serienspiel].include?(raw_mode) ? raw_mode : "direkter_zweikampf"
+        p[:bk2_options]["first_set_mode"] = first_set_mode
+      end
+
+      # 38.1 IN-02: downgraded from .info to .debug (block form avoids string
+      # interpolation cost when debug level is off).
+      Rails.logger.debug { "=== QUICK GAME START ===" }
+      Rails.logger.debug { "quick_game_form: #{p[:quick_game_form]}" }
+      Rails.logger.debug { "discipline_a: #{p[:discipline_a]}" }
+      Rails.logger.debug { "balls_goal_a: #{p[:balls_goal_a]}" }
+      Rails.logger.debug { "innings_goal: #{p[:innings_goal]}" }
+      Rails.logger.debug { "sets_to_win: #{p[:sets_to_win]}" }
+      Rails.logger.debug { "sets_to_play: #{p[:sets_to_play]}" }
+      Rails.logger.debug { "kickoff_switches_with: #{p[:kickoff_switches_with]}" }
+      Rails.logger.debug { "=======================" }
+    else
       p[:innings_choice] = p[:innings_2_choice].presence || p[:innings_choice]
       p[:points_choice] = p[:points_2_choice].presence || p[:points_choice]
       p[:balls_goal_a] =
@@ -99,72 +143,14 @@ class TableMonitorsController < ApplicationController
       p[:innings_goal] = p[:innings_choice]
       p[:sets_to_play] = p[:sets_2_choice].presence || p[:sets_choice]
       p[:sets_to_win] = p[:games_2_choice].presence || p[:games_choice]
-    else
-      # Handle Quick Game (for Pi 3 performance)
-      # Quick buttons send parameters directly via hidden fields - DON'T override them!
-      p[:balls_goal_a] = p[:balls_goal_a].to_i if p[:balls_goal_a].present?
-      p[:balls_goal_b] = p[:balls_goal_b].to_i if p[:balls_goal_b].present?
-      p[:innings_goal] = p[:innings_goal].to_i if p[:innings_goal].present?
-      p[:sets_to_win] = p[:sets_to_win].to_i if p[:sets_to_win].present?
-      p[:sets_to_play] = p[:sets_to_play].to_i if p[:sets_to_play].present?
-      # For Pool set games (8-Ball, 9-Ball, 10-Ball), sets_to_play should be calculated from sets_to_win
-      if p[:quick_game_form] == 'pool' && p[:discipline_a] != '14.1 endlos' && p[:sets_to_win].to_i > 0
-        p[:sets_to_play] = p[:sets_to_win].to_i * 2 - 1 if p[:sets_to_play].to_i <= 1
-      else
-        p[:sets_to_play] = 1 if p[:sets_to_play].to_i <= 0
-      end
-      p[:allow_follow_up] = (p[:allow_follow_up] == "true" || p[:allow_follow_up] == true)
-      # 38.1-06: BK2-Kombi quick-start also packs bk2_options + CLAMPS discipline.
-      # The _quick_game_buttons partial emits quick_game_form=bk2_kombi +
-      # set_target_points; we mirror the detail-form branch's logic here.
-      # CLAMP (T-38.1-06-01) applies here too — discipline_a/b MUST be
-      # "BK2-Kombi" even if an attacker submits a different value.
-      if p[:quick_game_form] == "bk2_kombi"
-        p[:discipline_a] = "BK2-Kombi"
-        p[:discipline_b] = "BK2-Kombi"
-        set_target = p.delete(:set_target_points).to_i
-        set_target = 50 unless [50, 60, 70].include?(set_target)
-        # 38.2-01 D-14: accept first_set_mode (flat top-level key). CLAMP to
-        # whitelist, fall back to "direkter_zweikampf" on absence or tampering.
-        raw_mode = p.delete(:bk2_first_set_mode).to_s
-        first_set_mode = %w[direkter_zweikampf serienspiel].include?(raw_mode) ? raw_mode : "direkter_zweikampf"
-        # Phase 38.3-06 D-17: permit + CLAMP the two NEW config fields.
-        # NOTE: set_target_points is already CLAMPed to [50, 60, 70] above —
-        #       this block MUST NOT re-implement that CLAMP. Only the two new
-        #       integer fields below. Read from params (not p — bk2_options
-        #       nested hash is not in the slice list; CLAMP provides security).
-        submitted_bk2_opts = params[:bk2_options]
-        dz_max = submitted_bk2_opts&.[](:direkter_zweikampf_max_shots_per_turn).to_i
-        sp_max = submitted_bk2_opts&.[](:serienspiel_max_innings_per_set).to_i
-        # CLAMP to sensible bounds (per security threat S1); silently fall back on bad input.
-        dz_max = 2 unless (1..99).cover?(dz_max)
-        sp_max = 5 unless (1..99).cover?(sp_max)
-        p[:bk2_options] = {
-          "set_target_points" => set_target,
-          "first_set_mode" => first_set_mode,
-          "direkter_zweikampf_max_shots_per_turn" => dz_max,
-          "serienspiel_max_innings_per_set" => sp_max
-        }
-      end
-
-      # 38.1 IN-02: downgraded from .info to .debug (block form avoids string
-      # interpolation cost when debug level is off).
-      Rails.logger.debug { "=== QUICK GAME START ===" }
-      Rails.logger.debug { "quick_game_form: #{p[:quick_game_form]}" }
-      Rails.logger.debug { "discipline_a: #{p[:discipline_a]}" }
-      Rails.logger.debug { "balls_goal_a: #{p[:balls_goal_a]}" }
-      Rails.logger.debug { "innings_goal: #{p[:innings_goal]}" }
-      Rails.logger.debug { "sets_to_win: #{p[:sets_to_win]}" }
-      Rails.logger.debug { "sets_to_play: #{p[:sets_to_play]}" }
-      Rails.logger.debug { "kickoff_switches_with: #{p[:kickoff_switches_with]}" }
-      Rails.logger.debug { "=======================" }
     end
-    # 38.1 WR-01: guard the `four_ball` branch against silently bulldozing
-    # BK2-Kombi state. BK2 quick/detail forms never emit `four_ball`, but a
-    # tampered POST carrying both `quick_game_form=bk2_kombi` (or
-    # `free_game_form=bk2_kombi`) AND `four_ball=1` must NOT drop BK2
-    # settings. Consistent with the CLAMP posture (T-38.1-06-01).
-    if p[:four_ball].present? && p[:quick_game_form] != "bk2_kombi" && p[:free_game_form] != "bk2_kombi"
+    # 38.4-04: guard the `four_ball` branch against silently bulldozing
+    # any BK-family state. BK-* quick/detail forms never emit `four_ball`, but a
+    # tampered POST carrying both a BK-family form key AND `four_ball=1` must NOT
+    # drop BK-family settings. Consistent with the CLAMP posture (T-38.4-04-03).
+    bk_family_form = Discipline::BK2_FREE_GAME_FORMS.include?(p[:free_game_form].to_s) ||
+      %w[bk2_kombi bk_family].include?(p[:quick_game_form].to_s)
+    if p[:four_ball].present? && !bk_family_form
       p[:discipline_a] = p[:discipline_b] = "4 Ball"
       p[:balls_goal_a] = p[:balls_goal_b] = 120
       p[:innings_goal] = 0
@@ -178,7 +164,7 @@ class TableMonitorsController < ApplicationController
         p[:discipline_a] = p[:discipline_b] = Discipline::POOL_DISCIPLINE_MAP[p.delete(:discipline_choice).to_i]
         unless p[:discipline_a] == "14.1 endlos"
           p[:kickoff_switches_with] =
-            (p.delete(:next_break_choice) == "1" ? "winner" : "set")
+            ((p.delete(:next_break_choice) == "1") ? "winner" : "set")
         end
         p[:warntime] = p.delete(:warntime).to_i
         p[:gametime] = p.delete(:gametime).to_i
@@ -188,7 +174,7 @@ class TableMonitorsController < ApplicationController
           p[:balls_goal_a] = p[:balls_goal_b] = 1
           p[:sets_to_win] = p.delete(:games_choice).to_i
         end
-        p[:innings_goal] = p[:discipline_a] == "14.1 endlos" ? p.delete(:innings_choice).to_i : 1
+        p[:innings_goal] = (p[:discipline_a] == "14.1 endlos") ? p.delete(:innings_choice).to_i : 1
         p[:first_break_choice] = p[:first_break_choice].to_i # 0: AusStoßen, 1: Heim/Spieler A, 2: Gast/Spieler B
       elsif p[:free_game_form] == "karambol"
         p[:discipline_a] = p[:discipline_b] = Discipline::KARAMBOL_DISCIPLINE_MAP[p.delete(:discipline_choice).to_i]
@@ -211,10 +197,10 @@ class TableMonitorsController < ApplicationController
         # sets_to_win and sets_to_play: try from hidden fields first, fallback to _choice params
         # Use .presence to convert empty strings to nil
         frames_to_win = p.delete(:sets_to_win).presence ||
-                        p.delete(:frames_to_win_choice).presence ||
-                        p.delete(:frames_to_win_2_choice).presence ||
-                        p.delete(:frames_to_win).presence ||
-                        2
+          p.delete(:frames_to_win_choice).presence ||
+          p.delete(:frames_to_win_2_choice).presence ||
+          p.delete(:frames_to_win).presence ||
+          2
         p[:sets_to_win] = frames_to_win.to_i
         p[:sets_to_play] = (frames_to_win.to_i * 2 - 1)
 
@@ -224,50 +210,30 @@ class TableMonitorsController < ApplicationController
         Rails.logger.debug { "Final sets_to_win: #{p[:sets_to_win]}" }
         Rails.logger.debug { "Final sets_to_play: #{p[:sets_to_play]}" }
         Rails.logger.debug { "======================" }
-      elsif p[:free_game_form] == "bk2_kombi"
-        # 38.1-06: Submitted by scoreboard_free_game_karambol_new.html.erb
-        # (detail form, via Alpine computed getters) OR by
-        # _quick_game_buttons.html.erb (BK2 branch). The view packs
-        # discipline_a / discipline_b = "BK2-Kombi" as string literals (NOT
-        # as indices into KARAMBOL_DISCIPLINE_MAP — BK2-Kombi is not in that
+      elsif Discipline::BK2_FREE_GAME_FORMS.include?(p[:free_game_form].to_s)
+        # 38.4-04 D-04/D-06: Submitted by scoreboard_free_game_karambol_new.html.erb
+        # (detail form) for any of the 5 BK-* disciplines. The view packs
+        # discipline_a / discipline_b as the selected discipline name (NOT as an
+        # index into KARAMBOL_DISCIPLINE_MAP — BK-* disciplines are not in that
         # map; see Discipline::BK2_DISCIPLINE_MAP for the canonical list).
         #
-        # CLAMP (T-38.1-06-01): hard-assign BK2-Kombi rather than `||=` — an
-        # attacker POSTing free_game_form=bk2_kombi with a tampered
-        # discipline_a must have that overwritten. BK2-Kombi is the ONLY
-        # legitimate discipline for this form value per D-08.
-        p[:discipline_a] = "BK2-Kombi"
-        p[:discipline_b] = "BK2-Kombi"
-        set_target = p.delete(:set_target_points).to_i
-        set_target = 50 unless [50, 60, 70].include?(set_target)
+        # CLAMP (T-38.4-04-03): discipline_a/b must be in BK2_DISCIPLINE_MAP;
+        # default to BK2-Kombi for bk2_kombi free_game_form, or derive from
+        # free_game_form for the other 4 BK-* disciplines.
+        unless Discipline::BK2_DISCIPLINE_MAP.include?(p[:discipline_a].to_s)
+          p[:discipline_a] = Discipline::BK2_DISCIPLINE_MAP.first
+        end
+        p[:discipline_b] = p[:discipline_a]
+        clamp_bk_family_params!(p)
         # 38.2-01 D-14: accept first_set_mode from the detail form's Alpine-
         # driven hidden input. CLAMP to whitelist (same posture as T-38.1-06-01
         # for discipline_a/b); fall back to "direkter_zweikampf" on absence or
         # tampering.
         raw_mode = p.delete(:bk2_first_set_mode).to_s
         first_set_mode = %w[direkter_zweikampf serienspiel].include?(raw_mode) ? raw_mode : "direkter_zweikampf"
-        # Phase 38.3-06 D-17: permit + CLAMP the two NEW config fields.
-        # NOTE: set_target_points is already CLAMPed to [50, 60, 70] above —
-        #       this block MUST NOT re-implement that CLAMP. Only the two new
-        #       integer fields below. Read from params (not p — bk2_options
-        #       nested hash is not in the slice list; CLAMP provides security).
-        submitted_bk2_opts = params[:bk2_options]
-        dz_max = submitted_bk2_opts&.[](:direkter_zweikampf_max_shots_per_turn).to_i
-        sp_max = submitted_bk2_opts&.[](:serienspiel_max_innings_per_set).to_i
-        # CLAMP to sensible bounds (per security threat S1); silently fall back on bad input.
-        dz_max = 2 unless (1..99).cover?(dz_max)
-        sp_max = 5 unless (1..99).cover?(sp_max)
-        p[:bk2_options] = {
-          "set_target_points" => set_target,
-          "first_set_mode" => first_set_mode,
-          "direkter_zweikampf_max_shots_per_turn" => dz_max,
-          "serienspiel_max_innings_per_set" => sp_max
-        }
-        # BK2-Kombi scoring is shot-by-shot against a set target, not balls_goal.
-        p[:balls_goal_a] = 0
-        p[:balls_goal_b] = 0
+        p[:bk2_options]["first_set_mode"] = first_set_mode
         p[:innings_goal] = 0
-        p[:sets_to_win]  = (p[:sets_to_win].presence  || 2).to_i
+        p[:sets_to_win] = (p[:sets_to_win].presence || 2).to_i
         p[:sets_to_play] = (p[:sets_to_play].presence || 3).to_i
         p[:kickoff_switches_with] = (p[:kickoff_switches_with].presence || "set")
         p[:first_break_choice] = p[:first_break_choice].to_i
@@ -280,29 +246,17 @@ class TableMonitorsController < ApplicationController
     p[:allow_overflow] = (p[:allow_overflow] == "1")
     # Normalize allow_follow_up depending on form source
     p[:allow_follow_up] = if p[:quick_game_form].present?
-                            (p[:allow_follow_up].to_s == "true") && p[:discipline_a] != "14.1 endlos"
-                          else
-                            (p[:allow_follow_up] == "1") && p[:discipline_a] != "14.1 endlos"
-                          end
-    # 38.1 WR-03: `set_target_points` is whitelisted in the `.slice(...)` list
-    # at the top of this action as a raw BK2 input. The BK2 branches (quick
-    # and detail) both `p.delete(:set_target_points)` and pack it into
-    # `p[:bk2_options]`. For every other form path (pool/snooker/karambol/
-    # 4-Ball), if a client submits `set_target_points` (the shared detail
-    # form always emits it, usually as ""), it would leak into
-    # `GameSetup#build_result_hash` / `@options` and clutter logs. Drop it
-    # unconditionally unless this is a BK2 submission.
-    unless p[:free_game_form] == "bk2_kombi" || p[:quick_game_form] == "bk2_kombi"
-      p.delete(:set_target_points)
+      (p[:allow_follow_up].to_s == "true") && p[:discipline_a] != "14.1 endlos"
+    else
+      (p[:allow_follow_up] == "1") && p[:discipline_a] != "14.1 endlos"
     end
     if p[:commit] == "Start Shootout"
       p[:discipline_b] = p[:discipline_a] = p[:discipline] = "shootout"
       p[:timeouts] = 0
       p[:timeout] = p[:gametime]
     end
-    # 38.1 WR-01: same BK2 guard as the earlier `four_ball` branch. See
-    # comment above at the first occurrence.
-    if p[:four_ball].present? && p[:quick_game_form] != "bk2_kombi" && p[:free_game_form] != "bk2_kombi"
+    # 38.4-04: same BK-family guard as the earlier `four_ball` branch above.
+    if p[:four_ball].present? && !bk_family_form
       p[:discipline_a] = p[:discipline_b] = "4 Ball"
       p[:balls_goal_a] = p[:balls_goal_b] = 120
       p[:innings_goal] = 0
@@ -338,7 +292,8 @@ class TableMonitorsController < ApplicationController
   end
 
   # GET /@table_monitors/1/edit
-  def edit; end
+  def edit
+  end
 
   # POST /@table_monitors
   def create
@@ -379,9 +334,9 @@ class TableMonitorsController < ApplicationController
     pdf = ProtocolPdf.new(@table_monitor, @history, @location)
 
     send_data pdf.render,
-              filename: "spielprotokoll_#{@table_monitor.id}_#{Time.current.strftime('%Y%m%d_%H%M%S')}.pdf",
-              type: "application/pdf",
-              disposition: :inline
+      filename: "spielprotokoll_#{@table_monitor.id}_#{Time.current.strftime("%Y%m%d_%H%M%S")}.pdf",
+      type: "application/pdf",
+      disposition: :inline
   end
 
   private
@@ -394,9 +349,9 @@ class TableMonitorsController < ApplicationController
       fallback_location = Location.order(:id).first
       if fallback_location
         location_url(fallback_location,
-                     sb_state: 'welcome',
-                     host: request.server_name,
-                     port: request.server_port)
+          sb_state: "welcome",
+          host: request.server_name,
+          port: request.server_port)
       else
         locations_path
       end
@@ -405,45 +360,79 @@ class TableMonitorsController < ApplicationController
     unless @table_monitor
       Rails.logger.warn("TableMonitor #{params[:id]} not found; redirecting to welcome screen")
       redirect_to next_path.call,
-                  alert: I18n.t('table_monitors.not_found_reassign',
-                                default: 'Der ausgewählte TableMonitor ist nicht verfügbar. Bitte wählen Sie einen Tisch neu aus.') and return
+        alert: I18n.t("table_monitors.not_found_reassign",
+          default: "Der ausgewählte TableMonitor ist nicht verfügbar. Bitte wählen Sie einen Tisch neu aus.") and return
     end
 
     if @table_monitor.table.blank?
       Rails.logger.info("TableMonitor #{@table_monitor.id} is currently not assigned to a table; sending user to welcome screen")
       redirect_to next_path.call,
-                  alert: I18n.t('table_monitors.rebind_required',
-                                default: 'Dieser TableMonitor ist keinem Tisch zugeordnet. Bitte wählen Sie einen Tisch im Location-Menü aus.') and return
+        alert: I18n.t("table_monitors.rebind_required",
+          default: "Dieser TableMonitor ist keinem Tisch zugeordnet. Bitte wählen Sie einen Tisch im Location-Menü aus.") and return
     end
 
     @table_monitor.get_options!(I18n.locale)
 
     @display_only = if params[:display_only] == "false"
-                      false
-                    else
-                      session[:display_only].presence &&
-                        JSON.parse(session[:display_only].to_s) ||
-                        params[:display_only] == "true"
-                    end
+      false
+    else
+      session[:display_only].presence &&
+        JSON.parse(session[:display_only].to_s) ||
+        params[:display_only] == "true"
+    end
     session[:display_only] = JSON.parse(@display_only.to_s)
   end
 
   # Only allow a trusted parameter "white list" through.
   def table_monitor_params
     params.permit(:@tournament_monitor_id, :state, :name, :game_id, :next_game_id, :data,
-                  :ip_address, :player_a_id, :player_b_id, :balls_goal, :balls_goal_a,
-                  :balls_goal_b, :discipline, :discipline_a, :discipline_b, :innings_goal,
-                  :timeout, :timeouts, :kickoff_switches_with,
-                  :fixed_display_left, :color_remains_with_set, :balls_on_table,
-                  :allow_overflow, :allow_follow_up, :toggle_dark_mode, :initial_red_balls)
+      :ip_address, :player_a_id, :player_b_id, :balls_goal, :balls_goal_a,
+      :balls_goal_b, :discipline, :discipline_a, :discipline_b, :innings_goal,
+      :timeout, :timeouts, :kickoff_switches_with,
+      :fixed_display_left, :color_remains_with_set, :balls_on_table,
+      :allow_overflow, :allow_follow_up, :toggle_dark_mode, :initial_red_balls)
   end
 
   # Verhindert Manipulationen an TableMonitor während eines Turniers
   def block_tournament_manipulation
     if @table_monitor&.tournament_monitor_id.present?
-      flash[:error] = I18n.t('errors.tournament_game_manipulation_blocked',
-                            default: 'Spielmanipulationen sind während eines Turniers nicht erlaubt.')
+      flash[:error] = I18n.t("errors.tournament_game_manipulation_blocked",
+        default: "Spielmanipulationen sind während eines Turniers nicht erlaubt.")
       redirect_back(fallback_location: locations_path) and return
     end
+  end
+
+  # 38.4-04 D-06 / T-38.4-04-02: CLAMPs balls_goal to the allowed
+  # ballziel_choices for the selected BK-family discipline, and packs
+  # bk2_options with the clamped value + the two integer config fields.
+  # Mutates p in place; always returns p.
+  def clamp_bk_family_params!(p)
+    discipline = Discipline.find_by(name: p[:discipline_a].to_s)
+    allowed = discipline&.ballziel_choices.presence || [50]
+
+    # balls_goal CLAMP (T-38.4-04-02): intersect user input with allowed list.
+    # Read from the sliced params hash; default to first allowed value.
+    requested = p.delete(:balls_goal).to_i
+    clamped_goal = allowed.include?(requested) ? requested : allowed.first
+
+    p[:balls_goal] = clamped_goal
+    p[:balls_goal_a] = clamped_goal
+    p[:balls_goal_b] = clamped_goal
+
+    # bk2_options CLAMPs for dz_max / sp_max (1..99). Read from params[:bk2_options]
+    # (nested hash not in the slice list; CLAMP provides security).
+    submitted_bk2_opts = params[:bk2_options] || {}
+    dz_max = submitted_bk2_opts[:direkter_zweikampf_max_shots_per_turn].to_i
+    sp_max = submitted_bk2_opts[:serienspiel_max_innings_per_set].to_i
+    dz_max = 2 unless (1..99).cover?(dz_max)
+    sp_max = 5 unless (1..99).cover?(sp_max)
+
+    p[:bk2_options] = {
+      "balls_goal" => clamped_goal,
+      "direkter_zweikampf_max_shots_per_turn" => dz_max,
+      "serienspiel_max_innings_per_set" => sp_max
+    }
+
+    p
   end
 end
