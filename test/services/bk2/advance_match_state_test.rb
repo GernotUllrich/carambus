@@ -571,7 +571,7 @@ class Bk2::AdvanceMatchStateTest < ActiveSupport::TestCase
       "current_kickoff_player" => "playerb",
       "bk2_options" => {
         "first_set_mode" => "serienspiel",
-        "set_target_points" => 70,
+        "balls_goal" => 70,
         "direkter_zweikampf_max_shots_per_turn" => 3,
         "serienspiel_max_innings_per_set" => 7
       }
@@ -664,16 +664,17 @@ class Bk2::AdvanceMatchStateTest < ActiveSupport::TestCase
       "init_state_if_missing! must write balls_goal from tournament_monitor.balls_goal"
   end
 
-  test "38.4-06 init_state_if_missing! falls back to bk2_options[:set_target_points] if tournament_monitor.balls_goal is nil/zero" do
+  test "38.4-P7 init_state_if_missing! falls back to bk2_options[:balls_goal] if tournament_monitor.balls_goal is nil/zero" do
     tm_no_tm = TableMonitor.create!(
       state: "playing",
       data: {
         "free_game_form" => "bk2_kombi",
         "current_kickoff_player" => "playera",
-        "bk2_options" => {"set_target_points" => 70}
+        "bk2_options" => {"balls_goal" => 70}
       }
     )
-    # tournament_monitor.balls_goal = 0 → falls back to bk2_options.
+    # tournament_monitor.balls_goal = 0 → falls back to bk2_options[:balls_goal].
+    # No legacy :set_target_points fallback — there were never BK tournaments in carambus.
     tournament_monitor_zero = OpenStruct.new(balls_goal: 0) # rubocop:disable Style/OpenStructUse
     tm_no_tm.define_singleton_method(:tournament_monitor) { tournament_monitor_zero }
 
@@ -681,7 +682,7 @@ class Bk2::AdvanceMatchStateTest < ActiveSupport::TestCase
     state = tm_no_tm.reload.data["bk2_state"]
 
     assert_equal 70, state["balls_goal"],
-      "balls_goal must fall back to bk2_options[:set_target_points]=70 when tournament_monitor.balls_goal is 0"
+      "balls_goal must fall back to bk2_options[:balls_goal]=70 when tournament_monitor.balls_goal is 0"
   end
 
   test "38.4-06 close_set_if_reached! reads state['balls_goal'] to close the set" do

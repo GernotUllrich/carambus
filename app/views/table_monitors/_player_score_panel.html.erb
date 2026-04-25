@@ -64,7 +64,7 @@ if is_bk2
   bk2_state = table_monitor.data["bk2_state"] || {}
   bk2_current_set = bk2_state["current_set_number"].to_i
   bk2_set_scores = bk2_state["set_scores"] || {}
-  bk2_set_target = bk2_state["set_target_points"].to_i
+  bk2_set_target = bk2_state["balls_goal"].to_i
   bk2_set_score = (bk2_set_scores[bk2_current_set.to_s] || {})[player_id].to_i
   bk2_inning_running = player_active ? table_monitor.data[player_id].andand["innings_redo_list"].andand[-1].to_i : 0
   bk2_display_score = bk2_set_score + bk2_inning_running

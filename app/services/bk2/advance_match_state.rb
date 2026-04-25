@@ -108,13 +108,15 @@ module Bk2
     end
 
     # Phase 38.4 D-06: Lese balls_goal von tournament_monitor (Priorität), dann
-    # aus bk2_options[:set_target_points] (Fallback für in-flight games), dann DEFAULT.
+    # aus bk2_options[:balls_goal] (das vom Controller geschriebene Key seit Plan 04),
+    # dann DEFAULT. Kein Legacy-Fallback auf :set_target_points — es gab nie BK-Turniere
+    # in carambus, also keine in-flight Daten mit dem alten Key.
     def derive_balls_goal
       tm_balls_goal = @tm.tournament_monitor&.balls_goal.to_i
       return tm_balls_goal if tm_balls_goal.positive?
 
-      legacy_stp = (@tm.data.dig("bk2_options", "set_target_points") || 0).to_i
-      return legacy_stp if legacy_stp.positive?
+      opts_balls_goal = (@tm.data.dig("bk2_options", "balls_goal") || 0).to_i
+      return opts_balls_goal if opts_balls_goal.positive?
 
       DEFAULT_SET_TARGET
     end
