@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v7.1
 milestone_name: UX Polish & i18n Debt
 status: executing
-stopped_at: Completed 38.4-17-PLAN.md
-last_updated: "2026-04-25T19:38:37.050Z"
+stopped_at: Completed 38.4-14-PLAN.md
+last_updated: "2026-04-25T19:57:38.866Z"
 last_activity: 2026-04-25
 progress:
   total_phases: 6
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 38
-  completed_plans: 36
-  percent: 95
+  completed_plans: 37
+  percent: 97
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-15)
 ## Current Position
 
 Phase: 38.4 (bk2-kombi-post-dry-run-gaps) — EXECUTING
-Plan: 5 of 17
+Plan: 6 of 17
 Status: Ready to execute
 Last activity: 2026-04-25
 
@@ -88,6 +88,7 @@ Decisions are logged in PROJECT.md Key Decisions table. Full v7.0 cross-phase de
 - [Phase 38.4-bk2-kombi-post-dry-run-gaps]: Plan 16 I-16-02: residual sync-race accepted (not blocked-on); production deployment sequence (master seed FIRST, then local-server migrations) makes window small + idempotent re-run recovers; tracked T-38.4-16-07 in STATE deferred follow-ups.
 - [Phase 38.4-bk2-kombi-post-dry-run-gaps]: Plan 17: CR-01 closed via 1-char fix at version.rb:434 (local_server → local_server?); 3 T-CR-01 tests lock the predicate-naming convention. INFO-01 closed via git mv todos/pending/sync-version-yaml-...md → todos/done/ + closure marker. INFO-02 closed via 3 ROADMAP checkbox flips on plans 38.4-10/11/12. WR-01..06 stay deferred.
 - [Phase 38.4-bk2-kombi-post-dry-run-gaps]: Plan 17 I-17-01 attestation: inline English comment above the local_server? fix is per CLAUDE.md line 23 technical-terms exception (NameError + predicate naming + line numbers are technical, not business). Documented in 38.4-17-SUMMARY.md for auditability.
+- [Phase 38.4-bk2-kombi-post-dry-run-gaps]: Plan 14: Option B implemented — TableMonitor#discipline String contract preserved; bk_family_with_nachstoss? + route_goal_reached_through_bk2_commit_inning private helpers route :goal_reached through Bk2::CommitInning when name-looked-up Discipline has nachstoss_allowed? Bk2::CommitInning + Bk2::AdvanceMatchState hardened to handle String discipline (Rule 1 fix); incidentally clears 4 deferred T8-T11 errors. Closes round-4 P4 gap.
 
 ### Roadmap Evolution
 
@@ -133,6 +134,6 @@ None blocking Phase 38.1 execution. Reconciliation debt above is tracked but not
 
 ## Session Continuity
 
-Last session: 2026-04-25T19:38:37.047Z
-Stopped at: Completed 38.4-17-PLAN.md
+Last session: 2026-04-25T19:57:38.864Z
+Stopped at: Completed 38.4-14-PLAN.md
 Resume: `/gsd-plan-phase 38` to break Phase 38 into 3 executable plans
