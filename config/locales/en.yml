@@ -613,6 +613,7 @@ en:
       fallback:
         uninitialized_banner_title: "Match not initialised"
         uninitialized_banner_body: "Please restart the match from the start screen."
+        delete_button: "Delete match"
       # Phase 38.2 D-16
       bottom_bar:
         row1_hint: "Before the shot: did all 5 pins stand? Then tick the box."

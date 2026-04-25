@@ -649,6 +649,7 @@ de:
       fallback:
         uninitialized_banner_title: "Spiel nicht initialisiert"
         uninitialized_banner_body: "Bitte das Spiel über die Startansicht neu starten."
+        delete_button: "Spiel löschen"
       # Phase 38.2 D-16: bottom-bar row labels (consumed by Plan 04).
       bottom_bar:
         row1_hint: "Vor dem Stoß: standen alle 5 Kegel? Dann Haken setzen."
