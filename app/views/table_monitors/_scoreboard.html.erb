@@ -51,6 +51,8 @@
   <%# Phase 38.3-03 D-01/D-09/D-10: BK2-Kombi branch locals. %>
   <%# Phase 38.4 Plan 05 (sole owner): extended to all 5 BK-* free_game_form values. %>
   <%- is_bk2 = %w[bk2_kombi bk50 bk100 bk_2 bk_2plus].include?(options[:free_game_form]) %>
+  <%# Phase 38.4 Plan 06: narrower predicate for phase-chip + remaining-badge semantics (BK-2kombi-only). %>
+  <%- is_bk2_kombi = options[:free_game_form] == "bk2_kombi" %>
   <%- if is_bk2 %>
     <%- bk2_state = table_monitor.data["bk2_state"] || {} %>
     <%- bk2_current_phase = bk2_state["current_phase"].to_s %>
@@ -90,12 +92,14 @@
         <%- end %>
       </div>
       <%= content_tag "div", id: "game_state", class: "flex flex-col h-5/6 dark:text-gray-200 bg-gray-100 dark:bg-black" do %>
-        <div class="flex flex-col h-2/6 <%= is_bk2 ? "bk2-kombi-scoreboard" : "" %>" tabindex="3" id="pointer_mode">
-          <%- if is_bk2 %>
+        <div class="flex flex-col h-2/6 <%= is_bk2_kombi ? "bk2-kombi-scoreboard" : "" %>" tabindex="3" id="pointer_mode">
+          <%- if is_bk2_kombi %>
             <%# Phase 38.3-03 D-09: big Satz header removed (redundant with sets_won counter
                 next to player names). Phase chip + remaining badge take the slot instead.
                 Class `bk2-kombi-scoreboard` is the stable selector hook consumed by
-                Plan 38.3-07 system tests T4/T8/T10. %>
+                Plan 38.3-07 system tests T4/T8/T10.
+                Phase 38.4-06: guard narrowed from is_bk2 (5-family) to is_bk2_kombi
+                (single-value) — phase chip and remaining badge are BK-2kombi-only semantics. %>
             <div class="h-3/6 flex items-center justify-center text-<%= vw3 %> font-bold text-center rounded px-2 <%= bk2_phase_bg %>">
               <%= bk2_phase_label %>
             </div>
