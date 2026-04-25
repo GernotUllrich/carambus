@@ -183,22 +183,66 @@ class DisciplineTest < ActiveSupport::TestCase
     assert_equal false, d.nachstoss_allowed?
   end
 
-  test "T-O2-nachstoss-seed-applied 38.4-11: 5 BK-* disciplines have nachstoss_allowed: true after seed replay" do
-    # Programmatic replay of seed_bk2_disciplines.rb logic — verifies the data shape.
+  # Phase 38.4-16 P5: Plan 11's seed-applied test asserted ALL 5 disciplines carried
+  # nachstoss_allowed: true. Plan 16 narrows the flag to BK-2kombi only — only
+  # BK-2kombi expects true; BK50/BK100/BK-2/BK-2plus expect false (key absent → false
+  # per the existing helper contract verified by T-O2-nachstoss-allowed-default-false).
+  test "T-P5-seed-only-bk2kombi-has-flag 38.4-16: Only BK-2kombi has nachstoss_allowed: true after seed replay; the 4 others have it absent" do
+    # Programmatic replay of the POST-Plan-16 seed_bk2_disciplines.rb logic.
+    # The 4 non-BK-2kombi entries OMIT the nachstoss_allowed key (matches the new
+    # discs array literal in script/seed_bk2_disciplines.rb after Task 2).
+    # Only BK-2kombi keeps the flag (matches the find(107) backfill block).
     # Idempotent: safe to run repeatedly in test DB.
     seed_data = {
-      "BK50" => {"free_game_form" => "bk50", "ballziel_choices" => [50], "nachstoss_allowed" => true},
-      "BK100" => {"free_game_form" => "bk100", "ballziel_choices" => [100], "nachstoss_allowed" => true},
-      "BK-2" => {"free_game_form" => "bk_2", "ballziel_choices" => [50, 60, 70, 80, 90, 100], "nachstoss_allowed" => true},
-      "BK-2plus" => {"free_game_form" => "bk_2plus", "ballziel_choices" => [50, 60, 70, 80, 90, 100], "nachstoss_allowed" => true},
+      "BK50" => {"free_game_form" => "bk50", "ballziel_choices" => [50]},
+      "BK100" => {"free_game_form" => "bk100", "ballziel_choices" => [100]},
+      "BK-2" => {"free_game_form" => "bk_2", "ballziel_choices" => [50, 60, 70, 80, 90, 100]},
+      "BK-2plus" => {"free_game_form" => "bk_2plus", "ballziel_choices" => [50, 60, 70, 80, 90, 100]},
       "BK2-Kombi" => {"free_game_form" => "bk2_kombi", "ballziel_choices" => [50, 60, 70], "nachstoss_allowed" => true}
+    }
+    expected_flag = {
+      "BK50" => false,
+      "BK100" => false,
+      "BK-2" => false,
+      "BK-2plus" => false,
+      "BK2-Kombi" => true
     }
     seed_data.each do |name, expected_data|
       rec = Discipline.find_or_initialize_by(name: name)
       rec.data = expected_data.to_json
       rec.save!(validate: false)
       rec.reload
-      assert_equal true, rec.nachstoss_allowed?, "T-O2-seed: #{name} must have nachstoss_allowed=true"
+      assert_equal expected_flag[name], rec.nachstoss_allowed?,
+        "T-P5-seed: #{name} must have nachstoss_allowed=#{expected_flag[name]} after Plan 16 narrowing (BK-2kombi keeps flag; the other 4 lose it)"
     end
+  end
+
+  # Phase 38.4-16 P5: regression guard — explicit assertion that BK2-Kombi (the SOLE
+  # post-Plan-16 keeper of nachstoss_allowed) does NOT lose the flag in a future
+  # refactor. Exercises the seed's BK2-Kombi backfill logic (find_or_initialize_by
+  # name='BK2-Kombi' + write data including nachstoss_allowed: true).
+  # If a future refactor accidentally drops the flag from BK2-Kombi or removes the
+  # backfill block, this test surfaces the regression in CI.
+  test "T-P5-bk2kombi-keeps-nachstoss 38.4-16: BK-2kombi MUST keep nachstoss_allowed: true after seed replay (regression guard for D-01 / D-13 / D-14)" do
+    # Replay the seed's BK2-Kombi backfill block programmatically.
+    # Mirrors script/seed_bk2_disciplines.rb lines 51-63 (the find(107) block) but
+    # uses find_or_initialize_by(name:) so it works in test DB without depending
+    # on the production id 107.
+    bk2 = Discipline.find_or_initialize_by(name: "BK2-Kombi")
+    current = bk2.data.present? ? JSON.parse(bk2.data) : {}
+    current["free_game_form"] = "bk2_kombi"
+    current["ballziel_choices"] = [50, 60, 70]
+    current["nachstoss_allowed"] = true
+    bk2.data = current.to_json
+    bk2.save!(validate: false)
+    bk2.reload
+
+    assert_equal true, bk2.nachstoss_allowed?,
+      "T-P5-bk2kombi: BK-2kombi MUST keep nachstoss_allowed=true (regression guard — protects against accidental drop in future refactor)"
+    parsed = JSON.parse(bk2.data)
+    assert_equal "bk2_kombi", parsed["free_game_form"],
+      "T-P5-bk2kombi: free_game_form must remain bk2_kombi"
+    assert_equal [50, 60, 70], parsed["ballziel_choices"],
+      "T-P5-bk2kombi: ballziel_choices must remain [50, 60, 70] (D-13 contract)"
   end
 end
