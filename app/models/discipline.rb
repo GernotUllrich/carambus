@@ -409,6 +409,19 @@ class Discipline < ApplicationRecord
     Array(parsed["ballziel_choices"])
   end
 
+  # Phase 38.4-11 O2: Read nachstoss_allowed flag from data JSON.
+  # Returns false for absent / malformed / nil data — backward-compatible default.
+  # Used by Bk2::AdvanceMatchState to defer set-close in BK50/BK100 (O2 closure).
+  def nachstoss_allowed?
+    return false unless data.present?
+    parsed = begin
+      JSON.parse(data)
+    rescue JSON::ParserError
+      {}
+    end
+    parsed["nachstoss_allowed"] == true
+  end
+
   def root
     @root ||= super_discipline.blank? ? self : super_discipline.root
   end
