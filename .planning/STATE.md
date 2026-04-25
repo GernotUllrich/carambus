@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v7.1
 milestone_name: UX Polish & i18n Debt
 status: executing
-stopped_at: Completed 38.4-07-PLAN.md
-last_updated: "2026-04-25T09:38:22.363Z"
+stopped_at: Completed 38.4-08-PLAN.md
+last_updated: "2026-04-25T12:49:00.613Z"
 last_activity: 2026-04-25
 progress:
   total_phases: 6
-  completed_phases: 4
-  total_plans: 28
-  completed_plans: 27
-  percent: 96
+  completed_phases: 3
+  total_plans: 30
+  completed_plans: 28
+  percent: 93
 ---
 
 # Project State
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-04-15)
 
 ## Current Position
 
-Phase: 39
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-04-25
+Phase: 38.4 (bk2-kombi-post-dry-run-gaps) — EXECUTING
+Plan: 9 of 9
+Status: Ready to execute (Plan 09 — detail-view UI gaps)
+Last activity: 2026-04-25 -- Plan 38.4-08 completed (closes I9 + 4 bonus 38.3-06 regression tests)
 
 **Deferred to Wave 4 / later session:**
 
@@ -73,6 +73,7 @@ Decisions are logged in PROJECT.md Key Decisions table. Full v7.0 cross-phase de
 - [Phase 38.4]: D-16/D-07: Alpine-driven 5-radio BK-family selector + Ballziel dropdown + conditional DZ/SP inputs in detail view; bk_selected_form drives all hidden inputs for 5 BK-* forms
 - [Phase 38.4]: is_bk2_kombi semantic split: phase-chip + CSS hook narrowed to single-value BK-2kombi check; Plan 05 5-family is_bk2 predicate preserved for GD/HS hide and score display
 - [Phase 38.4]: D-03: Wave 5 closure — renamed bk2_kombi_scoreboard_test.rb to bk2_scoreboard_test.rb; all 8 deferred issues (I1-I9 except I6) covered by explicit regression tests in 35-method Bk2ScoreboardTest suite
+- [Phase 38.4]: Plan 08: Two-layer fix for start_game UnfilteredParameters — controller .to_h (load-bearing for production path + 4 existing tests) + GameSetup .to_unsafe_h defensive guard (closes I9b unit test)
 
 ### Roadmap Evolution
 
@@ -105,6 +106,6 @@ None blocking Phase 38.1 execution. Reconciliation debt above is tracked but not
 
 ## Session Continuity
 
-Last session: 2026-04-25T07:50:09.574Z
-Stopped at: Completed 38.4-07-PLAN.md
+Last session: 2026-04-25T12:49:00.610Z
+Stopped at: Completed 38.4-08-PLAN.md
 Resume: `/gsd-plan-phase 38` to break Phase 38 into 3 executable plans
