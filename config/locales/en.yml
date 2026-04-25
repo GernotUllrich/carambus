@@ -563,9 +563,11 @@ en:
       warmup_a: Warm-up Player A
       warmup_b: Warm-up Player B
     bk2_kombi:
+      # Display-label invariant (Phase 38.4 I2): see de.yml for explanation.
+      # Display values: direkter_zweikampf → "BK-2plus", serienspiel → "BK-2".
       phase:
-        direkter_zweikampf: "Direct duel"
-        serienspiel: "Series play"
+        direkter_zweikampf: "BK-2plus"
+        serienspiel: "BK-2"
       shots_left:
         one: "%{count} shot left"
         other: "%{count} shots left"
@@ -593,8 +595,8 @@ en:
       match_finished: "Match finished — winner: %{winner}"
       # Phase 38.2 D-04
       phase_chip:
-        direkter_zweikampf: "Direct duel"
-        serienspiel: "Series play"
+        direkter_zweikampf: "BK-2plus"
+        serienspiel: "BK-2"
       # Phase 38.2 D-11
       shots_left_label:
         one: "shot left"
@@ -604,10 +606,10 @@ en:
         other: "innings left"
       # Phase 38.2 D-14
       first_set_mode:
-        button_direkter_zweikampf_a: "Player A breaks — Direct duel"
-        button_serienspiel_a: "Player A breaks — Series play"
-        button_direkter_zweikampf_b: "Player B breaks — Direct duel"
-        button_serienspiel_b: "Player B breaks — Series play"
+        button_direkter_zweikampf_a: "Player A breaks — BK-2plus"
+        button_serienspiel_a: "Player A breaks — BK-2"
+        button_direkter_zweikampf_b: "Player B breaks — BK-2plus"
+        button_serienspiel_b: "Player B breaks — BK-2"
         legend: "First set — mode & break"
       # Phase 38.2 D-18 / UAT-GAP-05
       fallback:

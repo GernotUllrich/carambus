@@ -596,9 +596,15 @@ de:
       warmup_a: Einstoßen Spieler A
       warmup_b: Einstoßen Spieler B
     bk2_kombi:
+      # Display-label invariant (Phase 38.4 I2): the YAML keys below
+      # (direkter_zweikampf, serienspiel) are INTERNAL mode keys that are ALSO
+      # stored in bk2_state["current_phase"] and bk2_options["first_set_mode"].
+      # Do NOT rename the keys — only their display VALUES.
+      # Display values map: direkter_zweikampf → "BK-2plus", serienspiel → "BK-2"
+      # (BK-pro + Landessportwart sign-off, Phase 38.4 I2).
       phase:
-        direkter_zweikampf: "Direkter Zweikampf"
-        serienspiel: "Serienspiel"
+        direkter_zweikampf: "BK-2plus"
+        serienspiel: "BK-2"
       shots_left:
         one: "noch %{count} Stoß"
         other: "noch %{count} Stöße"
@@ -628,8 +634,8 @@ de:
       # Parallel copy of the existing `phase:` tree — used ONLY from the
       # scoreboard header slot so future wording changes don't risk aliasing.
       phase_chip:
-        direkter_zweikampf: "Direkter Zweikampf"
-        serienspiel: "Serienspiel"
+        direkter_zweikampf: "BK-2plus"
+        serienspiel: "BK-2"
       # Phase 38.2 D-11: phase-sensitive "remaining" badge.
       shots_left_label:
         one: "Stoß übrig"
@@ -640,10 +646,10 @@ de:
       # Phase 38.2 D-14: first_set_mode selector buttons in the start-game
       # detail view (replaces the single "Spieler A stösst an" button).
       first_set_mode:
-        button_direkter_zweikampf_a: "Spieler A stößt an — Direkter Zweikampf"
-        button_serienspiel_a: "Spieler A stößt an — Serienspiel"
-        button_direkter_zweikampf_b: "Spieler B stößt an — Direkter Zweikampf"
-        button_serienspiel_b: "Spieler B stößt an — Serienspiel"
+        button_direkter_zweikampf_a: "Spieler A stößt an — BK-2plus"
+        button_serienspiel_a: "Spieler A stößt an — BK-2"
+        button_direkter_zweikampf_b: "Spieler B stößt an — BK-2plus"
+        button_serienspiel_b: "Spieler B stößt an — BK-2"
         legend: "Erster Satz — Modus & Anstoß"
       # Phase 38.2 D-18 / UAT-GAP-05: fallback banner when bk2_state missing.
       fallback:
