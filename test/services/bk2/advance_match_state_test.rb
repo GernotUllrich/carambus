@@ -730,4 +730,125 @@ class Bk2::AdvanceMatchStateTest < ActiveSupport::TestCase
     assert_equal true, s["set_finished_1"],
       "set must still close via legacy set_target_points fallback (T-38.4-05-02)"
   end
+
+  # ===========================================================================
+  # Phase 38.4-11 O2+O4: Nachstoß deferred-close logic
+  # ===========================================================================
+
+  test "T-O2-bk50-nachstoss-defers-close 38.4-11: BK50 set does NOT close when leader reaches 50; nachstoss_pending=true" do
+    bk50 = ensure_bk_discipline("BK50", "bk50", [50], nachstoss_allowed: true)
+    tm = build_table_monitor_with_discipline(bk50, balls_goal: 50, free_game_form: "bk50")
+    Bk2::AdvanceMatchState.initialize_bk2_state!(tm)
+
+    Bk2::CommitInning.call(table_monitor: tm, player: "playera", inning_total: 50)
+    tm.reload
+    state = tm.data["bk2_state"]
+
+    assert_equal 0, state.dig("sets_won", "playera"),
+      "T-O2-bk50: leader's set-win must NOT increment when nachstoss_allowed and trailing has not equalized"
+    assert_equal true, state["nachstoss_pending"],
+      "T-O2-bk50: nachstoss_pending must be true after leader reaches balls_goal"
+    assert_equal "playerb", state["nachstoss_for"],
+      "T-O2-bk50: nachstoss_for must be the trailing player (playerb)"
+    assert_equal "playerb", state["player_at_table"],
+      "T-O2-bk50: player_at_table must flip to playerb for the equalizing inning"
+  end
+
+  test "T-O4-nachstoss-equal-resolves-set 38.4-11: trailing player equalizing at balls_goal closes the set (provisional: trailing wins)" do
+    bk50 = ensure_bk_discipline("BK50", "bk50", [50], nachstoss_allowed: true)
+    tm = build_table_monitor_with_discipline(bk50, balls_goal: 50, free_game_form: "bk50")
+    Bk2::AdvanceMatchState.initialize_bk2_state!(tm)
+
+    # Step 1: leader reaches 50 → nachstoss_pending
+    Bk2::CommitInning.call(table_monitor: tm, player: "playera", inning_total: 50)
+
+    # Step 2: trailing equalizes at 50 — must NOT be capped at 49 (this is the O4 case)
+    Bk2::CommitInning.call(table_monitor: tm, player: "playerb", inning_total: 50)
+    tm.reload
+    state = tm.data["bk2_state"]
+
+    assert_equal 50, state.dig("set_scores", "1", "playerb"),
+      "T-O4: trailing player's score must equal 50 (no off-by-one cap)"
+    assert(state["nachstoss_pending"] != true || state["set_finished_1"] == true,
+      "T-O4: nachstoss_pending must be cleared OR set_finished_1=true after equalizing inning")
+    # Provisional rule: trailing wins on equal (see Plan 11 Objective clarifying note)
+    assert_equal 1, state.dig("sets_won", "playerb"),
+      "T-O4: trailing player wins the set on equal balls_goal (provisional rule — verify with Landessportwart)"
+  end
+
+  test "T-O4-nachstoss-below-leader-wins 38.4-11: trailing player below balls_goal closes set with leader winning" do
+    bk50 = ensure_bk_discipline("BK50", "bk50", [50], nachstoss_allowed: true)
+    tm = build_table_monitor_with_discipline(bk50, balls_goal: 50, free_game_form: "bk50")
+    Bk2::AdvanceMatchState.initialize_bk2_state!(tm)
+
+    Bk2::CommitInning.call(table_monitor: tm, player: "playera", inning_total: 50)
+    Bk2::CommitInning.call(table_monitor: tm, player: "playerb", inning_total: 49)
+    tm.reload
+    state = tm.data["bk2_state"]
+
+    assert_equal 49, state.dig("set_scores", "1", "playerb"),
+      "T-O4: trailing player's score is 49 (their inning_total)"
+    assert_equal true, state["set_finished_1"],
+      "T-O4: set must be marked finished after equalizing inning that fell short"
+    assert_equal 1, state.dig("sets_won", "playera"),
+      "T-O4: leader (playera) wins the set when trailing falls short of balls_goal"
+  end
+
+  test "T-O2-bk100-nachstoss-defers-close 38.4-11: BK100 set does NOT close at 100; nachstoss_pending for trailing player" do
+    bk100 = ensure_bk_discipline("BK100", "bk100", [100], nachstoss_allowed: true)
+    tm = build_table_monitor_with_discipline(bk100, balls_goal: 100, free_game_form: "bk100")
+    Bk2::AdvanceMatchState.initialize_bk2_state!(tm)
+
+    Bk2::CommitInning.call(table_monitor: tm, player: "playera", inning_total: 100)
+    tm.reload
+    state = tm.data["bk2_state"]
+
+    assert_equal 0, state.dig("sets_won", "playera"),
+      "T-O2-bk100: leader's set-win must NOT increment immediately"
+    assert_equal true, state["nachstoss_pending"],
+      "T-O2-bk100: nachstoss_pending must be true (BK100, balls_goal=100)"
+  end
+
+  test "T-O2-no-nachstoss-flag-immediate-close 38.4-11: discipline without nachstoss_allowed closes set immediately (regression)" do
+    legacy = ensure_bk_discipline("BK-Legacy-Test", "bk_legacy_test", [50], nachstoss_allowed: false)
+    tm = build_table_monitor_with_discipline(legacy, balls_goal: 50, free_game_form: "bk_legacy_test")
+    Bk2::AdvanceMatchState.initialize_bk2_state!(tm)
+    tm.data["bk2_state"]["set_scores"]["1"]["playera"] = 50
+    tm.save!
+    advance = Bk2::AdvanceMatchState.new(table_monitor: tm, shot_payload: {})
+    state = tm.data["bk2_state"].deep_dup
+    advance.send(:close_set_if_reached!, state)
+
+    assert_equal 1, state.dig("sets_won", "playera"),
+      "T-O2-regression: discipline without nachstoss_allowed closes set immediately (legacy default)"
+    assert_nil state["nachstoss_pending"],
+      "T-O2-regression: nachstoss_pending must NOT be set when nachstoss_allowed=false"
+  end
+
+  private
+
+  def ensure_bk_discipline(name, free_game_form, choices, nachstoss_allowed: false)
+    data = {"free_game_form" => free_game_form, "ballziel_choices" => choices, "nachstoss_allowed" => nachstoss_allowed}.to_json
+    rec = Discipline.find_or_initialize_by(name: name)
+    rec.data = data
+    rec.type = nil
+    rec.table_kind_id = TableKind.find_by(name: "Small Billard")&.id || rec.table_kind_id
+    rec.save!(validate: false)
+    rec
+  end
+
+  def build_table_monitor_with_discipline(discipline, balls_goal:, free_game_form:)
+    tm = table_monitors(:one).reload
+    tm.data ||= {}
+    tm.data["free_game_form"] = free_game_form
+    tm.data["bk2_options"] = {"first_set_mode" => "direkter_zweikampf"}
+    tm.data["bk2_state"] = nil
+    # define_singleton_method used as explicit shortcut — TableMonitor#discipline
+    # lookup is multi-step via game.discipline; brittle for unit tests. See SUMMARY.
+    tm.define_singleton_method(:discipline) { discipline }
+    tm.tournament_monitor = nil
+    tm.data["bk2_options"]["set_target_points"] = balls_goal
+    tm.save!(validate: false)
+    tm
+  end
 end
