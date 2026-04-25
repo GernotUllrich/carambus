@@ -928,6 +928,21 @@ class Bk2ScoreboardTest < ApplicationSystemTestCase
       "T-deleted-reflex: bk2_kombi_submit_shot should have been deleted in Plan 38.3-04"
   end
 
+  # ===========================================================================
+  # Phase 38.4-11 O4 — Nachstoß source code guard (file-grep test)
+  # ===========================================================================
+
+  test "T-O4-protokoll-editor-accepts-equal 38.4-11: close_set_if_reached! has Nachstoß-aware branch" do
+    contents = File.read(Rails.root.join("app/services/bk2/advance_match_state.rb"))
+    assert_match(/nachstoss_pending/, contents,
+      "T-O4: close_set_if_reached! must reference nachstoss_pending state slot")
+    assert_match(/discipline_nachstoss_allowed\?/, contents,
+      "T-O4: close_set_if_reached! must call discipline_nachstoss_allowed? helper")
+    # Nachstoß resolution path must allow score >= original_target (no off-by-one cap)
+    assert_match(/nachstoss_score >= target/, contents,
+      "T-O4: Nachstoß resolution must accept score == balls_goal (no off-by-one)")
+  end
+
   private
 
   # ---------------------------------------------------------------------------
