@@ -507,4 +507,132 @@ class TableMonitorsControllerTest < ActionDispatch::IntegrationTest
       TableMonitor::GameSetup.new(table_monitor: @table_monitor, options: raw)
     end
   end
+
+  # ---------------------------------------------------------------------
+  # 38.4-13: BK-* quick-start regression — P1 (BK100) + P3 (BK-2kombi 70)
+  # Root cause: clamp_bk_family_params! falls back to [50] when local
+  # Discipline.find_by(name: …) returns nil OR when ballziel_choices is empty.
+  # Fix (Plan 38.4-13): BK_FAMILY_BALLZIEL_FALLBACK constant + balls_goal_a/b
+  # fallback chain in clamp_bk_family_params!.
+  # ---------------------------------------------------------------------
+
+  # Phase 38.4-13 P1: BK100 quick-start must launch with balls_goal=100 even when
+  # the local BK100 Discipline record is missing (carambus_api → carambus_bcw sync gap).
+  test "T-P1-bk100-quick-start-honours-balls-goal 38.4-13" do
+    post start_game_table_monitor_url(@table_monitor), params: {
+      player_a_id:        players(:jaspers).id,
+      player_b_id:        players(:cho).id,
+      quick_game_form:    "bk_family",
+      free_game_form:     "bk_family",
+      discipline_a:       "BK100",
+      discipline_b:       "BK100",
+      balls_goal:         100,
+      balls_goal_a:       100,
+      balls_goal_b:       100,
+      sets_to_win:        1,
+      sets_to_play:       1,
+      innings_goal:       0,
+      first_break_choice: 0,
+      kickoff_switches_with: "set",
+      allow_follow_up:    "0"
+    }
+    @table_monitor.reload
+    bk2_options = @table_monitor.data["bk2_options"] || {}
+    assert_equal 100, bk2_options["balls_goal"].to_i,
+      "T-P1: bk2_options.balls_goal must be 100 from BK100 quick-start (got #{bk2_options["balls_goal"]})"
+  end
+
+  # Phase 38.4-13 P3: BK-2kombi 2/5/70+NS quick-start must launch with balls_goal=70.
+  test "T-P3-bk2kombi-canonical-quick-start-honours-balls-goal 38.4-13" do
+    post start_game_table_monitor_url(@table_monitor), params: {
+      player_a_id:        players(:jaspers).id,
+      player_b_id:        players(:cho).id,
+      quick_game_form:    "bk2_kombi",
+      free_game_form:     "bk2_kombi",
+      discipline_a:       "BK2-Kombi",
+      discipline_b:       "BK2-Kombi",
+      balls_goal:         70,
+      balls_goal_a:       70,
+      balls_goal_b:       70,
+      sets_to_win:        2,
+      sets_to_play:       3,
+      innings_goal:       0,
+      first_break_choice: 0,
+      kickoff_switches_with: "set",
+      allow_follow_up:    "0"
+    }
+    @table_monitor.reload
+    bk2_options = @table_monitor.data["bk2_options"] || {}
+    assert_equal 70, bk2_options["balls_goal"].to_i,
+      "T-P3: bk2_options.balls_goal must be 70 from BK-2kombi 2/5/70+NS quick-start (got #{bk2_options["balls_goal"]})"
+  end
+
+  # Phase 38.4-13 P1: regression — when local Discipline record is missing OR
+  # carries empty ballziel_choices, the BK_FAMILY_BALLZIEL_FALLBACK constant
+  # provides the discipline-specific defaults.
+  test "T-P1-fallback-when-discipline-missing 38.4-13" do
+    # Force Discipline.find_by(name: "BK100") to return nil — simulates the
+    # carambus_api → local-server Version sync gap (see STATE.md
+    # "sync-version-yaml-load-json-collision" todo). Use a partial stub: only
+    # the BK100 lookup is forced to nil; other Discipline.find_by calls on the
+    # request path proceed normally via the real method.
+    real_find_by = Discipline.method(:find_by)
+    stub = ->(arg) {
+      if arg.is_a?(Hash) && arg[:name] == "BK100"
+        nil
+      else
+        real_find_by.call(arg)
+      end
+    }
+    Discipline.stub :find_by, stub do
+      post start_game_table_monitor_url(@table_monitor), params: {
+        player_a_id:        players(:jaspers).id,
+        player_b_id:        players(:cho).id,
+        quick_game_form:    "bk_family",
+        free_game_form:     "bk_family",
+        discipline_a:       "BK100",
+        discipline_b:       "BK100",
+        balls_goal:         100,
+        balls_goal_a:       100,
+        balls_goal_b:       100,
+        sets_to_win:        1,
+        sets_to_play:       1,
+        innings_goal:       0,
+        first_break_choice: 0,
+        kickoff_switches_with: "set",
+        allow_follow_up:    "0"
+      }
+    end
+    @table_monitor.reload
+    bk2_options = @table_monitor.data["bk2_options"] || {}
+    assert_equal 100, bk2_options["balls_goal"].to_i,
+      "T-P1-fallback: BK_FAMILY_BALLZIEL_FALLBACK['BK100']=[100] must be used when local Discipline.find_by returns nil"
+  end
+
+  # Phase 38.4-13 P1: when :balls_goal absent in payload, falls back to
+  # :balls_goal_a (and then :balls_goal_b). Robust to legacy callers that
+  # forget the top-level field.
+  test "T-P1-balls-goal-a-fallback 38.4-13" do
+    post start_game_table_monitor_url(@table_monitor), params: {
+      player_a_id:        players(:jaspers).id,
+      player_b_id:        players(:cho).id,
+      quick_game_form:    "bk_family",
+      free_game_form:     "bk_family",
+      discipline_a:       "BK100",
+      discipline_b:       "BK100",
+      # NOTE: :balls_goal intentionally OMITTED — caller forgot the top-level field.
+      balls_goal_a:       100,
+      balls_goal_b:       100,
+      sets_to_win:        1,
+      sets_to_play:       1,
+      innings_goal:       0,
+      first_break_choice: 0,
+      kickoff_switches_with: "set",
+      allow_follow_up:    "0"
+    }
+    @table_monitor.reload
+    bk2_options = @table_monitor.data["bk2_options"] || {}
+    assert_equal 100, bk2_options["balls_goal"].to_i,
+      "T-P1-balls-goal-a-fallback: clamp must read :balls_goal_a when :balls_goal absent"
+  end
 end
