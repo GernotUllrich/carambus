@@ -4,8 +4,8 @@ milestone: v7.1
 milestone_name: UX Polish & i18n Debt
 status: executing
 stopped_at: Phase 38.4 context gathered
-last_updated: "2026-04-24T23:02:57.480Z"
-last_activity: 2026-04-24 -- Phase 38.4 planning complete
+last_updated: "2026-04-25T06:21:16.339Z"
+last_activity: 2026-04-25 -- Phase 38.4 execution started
 progress:
   total_phases: 6
   completed_phases: 3
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-15)
 
 **Core value:** Code and docs stay in sync — every documented feature works, every working feature is documented, and a volunteer user should never need to read the architecture to run a tournament.
-**Current focus:** Phase 38.3 — bk2-kombi-dry-run-corrections
+**Current focus:** Phase 38.4 — bk2-kombi-post-dry-run-gaps
 
 ## Current Position
 
-Phase: 39
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-04-24 -- Phase 38.4 planning complete
+Phase: 38.4 (bk2-kombi-post-dry-run-gaps) — EXECUTING
+Plan: 1 of 7
+Status: Executing Phase 38.4
+Last activity: 2026-04-25 -- Phase 38.4 execution started
 
 **Deferred to Wave 4 / later session:**
 
