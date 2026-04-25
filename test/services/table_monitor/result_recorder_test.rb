@@ -311,4 +311,21 @@ class TableMonitor::ResultRecorderTest < ActiveSupport::TestCase
     assert_equal 0, call_count,
       "Bk2::AdvanceMatchState darf NICHT aufgerufen werden fuer free_game_form='snooker'"
   end
+
+  # Phase 38.4-P9: BK-* set close must complete without an in-flight shot_payload.
+  # Production has no writer for `current_bk2_shot_payload` — yet the BK-* dispatch
+  # in result_recorder reads it via fetch(..., {}) and forwards `{}` to
+  # Bk2::AdvanceMatchState → Bk2::ScoreShot, which crashes on nil obs in
+  # calculate_raw_points. Symptom: BK-2 game, Player A reaches balls_goal=80,
+  # +1 click on Player B fails because evaluate_result raises during the persistence
+  # path. The post-set persistence must rely on data["playera"]["result"] alone —
+  # match-state was already advanced via the live-scoring CommitInning path.
+  test "perform_save_result does not crash for BK-* free_game_form without shot_payload" do
+    @tm.data["free_game_form"] = "bk_2"
+    @tm.save!
+
+    assert_nothing_raised do
+      TableMonitor::ResultRecorder.new(table_monitor: @tm).perform_save_result
+    end
+  end
 end
