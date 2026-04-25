@@ -65,7 +65,12 @@
             elsif is_snooker && button['frames_to_win']
               button_id = "snooker_#{button['frames_to_win']}"
             elsif is_bk_family && button['balls_goal']
-              button_id = "#{button['discipline'].gsub(/[^a-zA-Z0-9]/, '_').downcase}_#{button['balls_goal']}"
+              # 38.4-12 O5: append label suffix to button_id when present, so two buttons
+              # with the same discipline + balls_goal (e.g., new "BK-2kombi 2/5/70+NS"
+              # shortcut and legacy "70/Best of 3") get unique IDs and don't collide
+              # on the player-form hidden-field IDs (line 94: id: "quick_player_a_#{button_id}").
+              label_suffix = button['label'] ? "_#{button['label'].gsub(/[^a-zA-Z0-9]/, '_').downcase}" : ""
+              button_id = "#{button['discipline'].gsub(/[^a-zA-Z0-9]/, '_').downcase}_#{button['balls_goal']}#{label_suffix}"
             else
               button_id = "#{button['balls']}_#{button['innings']}"
             end

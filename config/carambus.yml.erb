@@ -37,6 +37,11 @@ default:
           - { balls: 120, innings: 0, discipline: "Eurokegel", label: "120/-", allow_follow_up: false }
       - category: "BK2-Kombi"
         buttons:
+          # 38.4-12 O5: canonical BK-2kombi shortcut with the recommended defaults
+          # (BK-2plus max 2 Stöße / Aufnahme, BK-2 max 5 Aufnahmen / Satz, balls_goal 70,
+          # Nachstoß enabled via discipline.data — Plan 11). Sits at index 0 so BCW
+          # scorers see it first on tournament day.
+          - { discipline: "BK2-Kombi", balls_goal: 70, sets_to_win: 2, sets_to_play: 3, label: "BK-2kombi 2/5/70+NS" }
           - { discipline: "BK2-Kombi", balls_goal: 50, sets_to_win: 2, sets_to_play: 3, label: "50/Best of 3" }
           - { discipline: "BK2-Kombi", balls_goal: 60, sets_to_win: 2, sets_to_play: 3, label: "60/Best of 3" }
           - { discipline: "BK2-Kombi", balls_goal: 70, sets_to_win: 2, sets_to_play: 3, label: "70/Best of 3" }
