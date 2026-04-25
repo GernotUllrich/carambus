@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v7.1
 milestone_name: UX Polish & i18n Debt
 status: executing
-stopped_at: Completed 38.4-04-PLAN.md
-last_updated: "2026-04-25T07:01:46.844Z"
+stopped_at: Completed 38.4-05-PLAN.md
+last_updated: "2026-04-25T07:25:15.446Z"
 last_activity: 2026-04-25
 progress:
   total_phases: 5
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-15)
 ## Current Position
 
 Phase: 38.4 (bk2-kombi-post-dry-run-gaps) — EXECUTING
-Plan: 3 of 7
+Plan: 4 of 7
 Status: Ready to execute
 Last activity: 2026-04-25
 
@@ -69,6 +69,7 @@ Decisions are logged in PROJECT.md Key Decisions table. Full v7.0 cross-phase de
 - [Phase 38.4]: D-06: balls_goal replaces set_target_points as per-set Ballziel target on tournament_monitor.balls_goal
 - [Phase 38.4]: D-07: ballziel_choices array in discipline.data drives server-side CLAMP; clamp_bk_family_params! helper DRYs both quick-game and detail-form paths
 - [Phase 38.4]: D-04: BK2_DISCIPLINE_MAP extended to 5 BK-* disciplines sharing one scoring family (Bk2::CommitInning)
+- [Phase 38.4]: D-10/D-13: Hard rename Bk2Kombi→Bk2 with no runtime aliases; Open Q 2 resolved — result_recorder.rb keeps Bk2::AdvanceMatchState (not CommitInning)
 
 ### Roadmap Evolution
 
@@ -101,6 +102,6 @@ None blocking Phase 38.1 execution. Reconciliation debt above is tracked but not
 
 ## Session Continuity
 
-Last session: 2026-04-25T07:01:46.842Z
-Stopped at: Completed 38.4-04-PLAN.md
+Last session: 2026-04-25T07:25:15.443Z
+Stopped at: Completed 38.4-05-PLAN.md
 Resume: `/gsd-plan-phase 38` to break Phase 38 into 3 executable plans
