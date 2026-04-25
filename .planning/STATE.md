@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v7.1
 milestone_name: UX Polish & i18n Debt
 status: executing
-stopped_at: Phase 38.4 context gathered
-last_updated: "2026-04-25T06:21:16.339Z"
-last_activity: 2026-04-25 -- Phase 38.4 execution started
+stopped_at: Completed 38.4-03-PLAN.md
+last_updated: "2026-04-25T06:43:28.918Z"
+last_activity: 2026-04-25
 progress:
-  total_phases: 6
+  total_phases: 5
   completed_phases: 3
-  total_plans: 28
+  total_plans: 21
   completed_plans: 20
-  percent: 71
+  percent: 95
 ---
 
 # Project State
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-04-15)
 ## Current Position
 
 Phase: 38.4 (bk2-kombi-post-dry-run-gaps) — EXECUTING
-Plan: 1 of 7
-Status: Executing Phase 38.4
-Last activity: 2026-04-25 -- Phase 38.4 execution started
+Plan: 2 of 7
+Status: Ready to execute
+Last activity: 2026-04-25
 
 **Deferred to Wave 4 / later session:**
 
@@ -65,6 +65,7 @@ Decisions are logged in PROJECT.md Key Decisions table. Full v7.0 cross-phase de
 - **Single-phase shape (Phase 38, 3 plans)** chosen over 2-phase or 3-phase splits. Rationale: all 6 requirements are small polish/debt items sharing the same UX theme (volunteer-facing wizard + tournament_monitor), don't benefit from cross-phase sequencing, and shipping in one phase keeps the milestone focused with an atomic final commit. Granularity is `coarse` and the seed explicitly recommends 1-3 plans / single phase.
 - **DATA-01 short-term widen only assumed** — the medium-term DB-backed `discipline_parameter_ranges` table is flagged as a discuss-phase open question, not in scope for the roadmap. If the discuss-phase decides medium-term is in scope, Plan 38-03 can split or a Phase 39 can be inserted.
 - **UX-POL-03 (Test 1 retest) bundled into Plan 38-01** with the G-01 fix. Dependency satisfied by ordering: G-01 ships first inside the same plan, retest immediately follows. No risk of retesting before the fix lands.
+- [Phase 38.4]: I2 closed via i18n-values-only rename: direkter_zweikampf→BK-2plus, serienspiel→BK-2. Internal keys and YAML paths unchanged per D-08/D-09.
 
 ### Roadmap Evolution
 
@@ -97,6 +98,6 @@ None blocking Phase 38.1 execution. Reconciliation debt above is tracked but not
 
 ## Session Continuity
 
-Last session: 2026-04-24T22:12:37.354Z
-Stopped at: Phase 38.4 context gathered
+Last session: 2026-04-25T06:43:28.916Z
+Stopped at: Completed 38.4-03-PLAN.md
 Resume: `/gsd-plan-phase 38` to break Phase 38 into 3 executable plans
