@@ -322,9 +322,14 @@
               and continue to bind to the same Alpine state slots these touch-buttons write to. %>
 
           <%# --- ROW 1: BK-Variante (5 touch-buttons) --- %>
+          <%# Phase 38.4-10 O6: BK-Variante row uses 8-column grid (matches Punktziel cols=8
+              on lines 456-467) so the BK-2KOMBI button right edge aligns with the surrounding
+              rows' rightmost button. The 5 buttons occupy cols 1-5; cols 6-8 stay empty
+              (this leaves the visual real estate where +/- correction controls sit on
+              ± rows). Buttons remain finger-sized via py-3 px-4 padding. %>
           <div x-show="table_kind == 'Small Billard' && parameters == 0">BK-Variante</div>
-          <div x-show="table_kind == 'Small Billard' && parameters == 0" class="col-span-5">
-            <div class="grid grid-cols-5 gap-4">
+          <div x-show="table_kind == 'Small Billard' && parameters == 0" class="col-span-4">
+            <div class="grid grid-cols-8 gap-4">
               <% [
                 ["bk50",      "BK50"],
                 ["bk100",     "BK100"],
@@ -332,7 +337,7 @@
                 ["bk_2plus",  "BK-2plus"],
                 ["bk2_kombi", "BK-2kombi"]
               ].each_with_index do |(val, label), ix| %>
-                <label class="group relative border rounded-md py-3 px-4 flex items-center justify-center text-2vw font-medium uppercase focus:outline-none sm:flex-1 shadow-sm cursor-pointer"
+                <label class="group relative border rounded-md py-3 px-4 flex items-center justify-center text-2vw font-medium uppercase focus:outline-none shadow-sm cursor-pointer"
                        :class="{ 'bg-blue-600 text-white': (bk_selected_form == '<%= val %>'),
                                  ' text-gray-200': !(bk_selected_form == '<%= val %>') }">
                   <input type="radio" name="bk_form_choice" value="<%= val %>"
