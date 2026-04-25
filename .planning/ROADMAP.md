@@ -115,7 +115,7 @@ Plans:
 **Goal**: Close the 8 issues deferred from Phase 38.3 (I1-I5, I7, I8, I9 — I6 already closed in 38.3-08) plus the open `sync-version-yaml-load-json-collision` todo. Coherent BK-* family restructure: (1) two bugs — webapp Delete missing on BK2 fallback banner (I8), Ballziel silently ignored in Serienspiel (I9); (2) discipline data-model restructure (I1) — BK50, BK100, BK-2, BK-2plus as peer disciplines to BK-2kombi, central Discipline records carrying `data[:free_game_form]` + `data[:ballziel_choices]`; (3) UI label rename (I2) — "Direkter Zweikampf" → "BK-2plus" / "Serienspiel" → "BK-2", i18n VALUES only, internal mode keys unchanged to avoid bk2_state migration risk; (4) scoring generalization (I7) — `Bk2Kombi::*` → `Bk2::*` hard rename, branch by `discipline.data[:free_game_form]`, opponent-credit only for BK-2plus + BK-2plus-phase of BK-2kombi, sign-preserving additive scoring for BK-2/BK50/BK100; (5) UI tweaks (I3 detail-view conditional inputs per discipline; I4 shootout 4-btn BK-2kombi-only; I5 shootout button labels use real player names); (6) sync-bug unblock — `Version.safe_parse` / `safe_parse_for_text_column` replaces `YAML.load` JSON-text-column collision so the 4 new central Discipline records can propagate cleanly to all local servers.
 **Depends on:** Phase 38.3 (Bk2Kombi service namespace, balls_goal field, BK2-Kombi karambol-branch partials)
 **Decisions addressed:** D-01..D-19 (see 38.4-CONTEXT.md and 38.4-DISCUSSION-LOG.md)
-**Plans:** 12/12 plans complete
+**Plans:** 13/17 plans executed
 
 Plans:
 - [x] `38.4-01-PLAN.md` — `Version.safe_parse` + `safe_parse_for_text_column` helpers; replace 4 `YAML.load(args["data|remarks"])` callsites in `Version#update_from_carambus_api`; 9 regression tests. Wave 1.
@@ -164,7 +164,7 @@ Phases execute in numeric order: 33 → 34 → 35 → 36a → 36b → 36c → 37
 | 38.1. BK2-Kombi minimum viable support | v7.1 | 5/6 | In Progress | - |
 | 38.2. BK2-Kombi scoreboard UX re-alignment | v7.1 | 5/5 | Complete | 2026-04-19 |
 | 38.3. BK2-Kombi dry-run corrections | v7.1 | 8/8 | Complete | 2026-04-23 |
-| 38.4. BK2-Kombi post-dry-run gaps | v7.1 | 12/12 | Complete   | 2026-04-25 |
+| 38.4. BK2-Kombi post-dry-run gaps | v7.1 | 13/17 | In Progress|  |
 | 39. DTP-Backed Parameter Ranges | v7.1 | 0/TBD | Not started | - |
 
 **v7.0 total:** 7 phases, 31 plans, 37/37 requirements, ~2 weeks wall time.
