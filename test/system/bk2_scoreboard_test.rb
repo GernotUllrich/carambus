@@ -725,32 +725,36 @@ class Bk2ScoreboardTest < ApplicationSystemTestCase
       "T-Punktziel-row-introduced: hidden radio (sr-only) inside labelled wrapper — touch-button pattern")
   end
 
-  test "T-DZ-max-touchbutton 38.4-09: DZ-max row uses ± touch-button pattern (not bare <input>)" do
+  test "T-DZ-max-touchbutton 38.4-09→10: standalone DZ-max row removed by Plan 38.4-10 (dz_max=2 hardcoded server-side)" do
     contents = File.read(Rails.root.join(
       "app/views/locations/scoreboard_free_game_karambol_new.html.erb"
     ))
-    # Plan 38.4-09 converted the bare <input type=number> for DZ-max to a ± button row.
-    # Guard against regression to the bare-input style.
-    # Anchor on the ROW's x-show= attribute (not the bare getter name) to skip past the
-    # getter definitions at lines 224-225 where is_bk_dz_configurable + is_bk_sp_configurable
-    # appear adjacently in the JavaScript.
-    dz_block = contents.match(/x-show="[^"]*is_bk_dz_configurable.*?x-show="[^"]*is_bk_sp_configurable/m)&.to_s || ""
-    assert_match(/@click=.*bk2_dz_max_shots = parseInt\(bk2_dz_max_shots\) - 1/, dz_block,
-      "T-DZ-max-touchbutton: DZ-max row must have a minus-button decrementing bk2_dz_max_shots")
-    assert_match(/@click=.*bk2_dz_max_shots = parseInt\(bk2_dz_max_shots\) \+ 1/, dz_block,
-      "T-DZ-max-touchbutton: DZ-max row must have a plus-button incrementing bk2_dz_max_shots")
+    # Plan 38.4-10 O8 removed the standalone DZ-max ± row that Plan 38.4-09 introduced.
+    # dz_max=2 is now hardcoded server-side in clamp_bk_family_params! (authoritative).
+    # The visible ± row and its display <input> must be GONE from the view.
+    refute_match(/BK-2plus — max\. Stöße \/ Aufnahme/, contents,
+      "T-DZ-max-touchbutton: standalone DZ-max row label must be removed by Plan 38.4-10")
+    refute_match(/name="bk2_dz_max_shots_display"/, contents,
+      "T-DZ-max-touchbutton: bk2_dz_max_shots_display visible input must be removed by Plan 38.4-10")
+    # The hidden input bk2_options[direkter_zweikampf_max_shots_per_turn] must still be present (shape consistency)
+    assert_equal 1, contents.scan(/name='bk2_options\[direkter_zweikampf_max_shots_per_turn\]'/).size,
+      "T-DZ-max-touchbutton: hidden bk2_options[direkter_zweikampf_max_shots_per_turn] input must still emit exactly once"
   end
 
-  test "T-SP-max-touchbutton 38.4-09: SP-max row uses ± touch-button pattern (not bare <input>)" do
+  test "T-SP-max-touchbutton 38.4-09→10: standalone SP-max row removed by Plan 38.4-10 (merged into Aufnahmebegrenzung)" do
     contents = File.read(Rails.root.join(
       "app/views/locations/scoreboard_free_game_karambol_new.html.erb"
     ))
-    # Same anchoring fix: lock onto the row's x-show= attribute, not the bare getter name.
-    sp_block = contents.match(/x-show="[^"]*is_bk_sp_configurable.*/m)&.to_s || ""
-    assert_match(/@click=.*bk2_sp_max_innings = parseInt\(bk2_sp_max_innings\) - 1/, sp_block,
-      "T-SP-max-touchbutton: SP-max row must have a minus-button decrementing bk2_sp_max_innings")
-    assert_match(/@click=.*bk2_sp_max_innings = parseInt\(bk2_sp_max_innings\) \+ 1/, sp_block,
-      "T-SP-max-touchbutton: SP-max row must have a plus-button incrementing bk2_sp_max_innings")
+    # Plan 38.4-10 O7 removed the standalone SP-max ± row that Plan 38.4-09 introduced.
+    # SP innings are now controlled via the merged Aufnahmebegrenzung row (BK-* gets [5, 7] buttons).
+    # The visible ± row and its display <input> must be GONE from the view.
+    refute_match(/BK-2 — max\. Aufnahmen \/ Satz/, contents,
+      "T-SP-max-touchbutton: standalone SP-max row label must be removed by Plan 38.4-10")
+    refute_match(/name="bk2_sp_max_innings_display"/, contents,
+      "T-SP-max-touchbutton: bk2_sp_max_innings_display visible input must be removed by Plan 38.4-10")
+    # Merged Aufnahmebegrenzung BK-* partial must offer [5, 7] as replacement
+    assert_match(/show: "is_bk_family && !is_bk_fixed_goal"[^%]+values: %w\{0 5 7\}/m, contents,
+      "T-SP-max-touchbutton: merged BK-* Aufnahmebegrenzung partial with [5, 7] must exist")
   end
 
   test "T-hidden-inputs-not-duplicated 38.4-09: hidden form inputs appear exactly once" do
@@ -770,6 +774,97 @@ class Bk2ScoreboardTest < ApplicationSystemTestCase
       assert_equal 1, count,
         "T-hidden-inputs-not-duplicated: name='bk2_options[#{key}]' must appear exactly once (found #{count})"
     end
+  end
+
+  # ===========================================================================
+  # Phase 38.4-10 — layout/form integrity (O1, O3, O6, O7, O8)
+  # ===========================================================================
+
+  test "T-O1-balls-goal-honored 38.4-10: clamp_bk_family_params! reads :balls_goal from sliced params and intersects with discipline.ballziel_choices" do
+    contents = File.read(Rails.root.join(
+      "app/controllers/table_monitors_controller.rb"
+    ))
+    # Plan 38.4-10 must preserve clamp_bk_family_params!'s contract: read :balls_goal
+    # from p (sliced params), intersect with allowed list, default to first allowed.
+    # This is the controller-side guarantee that O1 doesn't regress (regardless of
+    # which form row drives the hidden input — the controller is final arbiter).
+    assert_match(/requested = p\.delete\(:balls_goal\)\.to_i/, contents,
+      "T-O1: clamp_bk_family_params! must read :balls_goal from p")
+    assert_match(/allowed\.include\?\(requested\) \? requested : allowed\.first/, contents,
+      "T-O1: clamped_goal must intersect requested with allowed list")
+    assert_match(/p\[:balls_goal\] = clamped_goal/, contents,
+      "T-O1: clamped balls_goal must be written back to p[:balls_goal]")
+  end
+
+  test "T-O3-no-double-punktziel-row 38.4-10: pre-existing generic Punktziel row hidden when BK-* selected" do
+    contents = File.read(Rails.root.join(
+      "app/views/locations/scoreboard_free_game_karambol_new.html.erb"
+    ))
+    # The generic Karambol Punktziel row (header: 'Punktziel', varname: 'balls_goal')
+    # must be gated on `parameters == 0 && !is_bk_family` so it disappears when a
+    # BK-* discipline is selected — closes O3 (two rows simultaneously) and the
+    # secondary leak path of O1 (default 50 from generic row overriding selection).
+    assert_match(/show: "parameters == 0 && !is_bk_family"/, contents,
+      "T-O3: generic Punktziel row must be gated on parameters == 0 && !is_bk_family")
+    # Sanity: only one render call uses header: 'Punktziel'
+    header_count = contents.scan(/header: "Punktziel"/).size
+    assert_equal 1, header_count,
+      "T-O3: exactly one generic Punktziel row must exist (found #{header_count})"
+  end
+
+  test "T-O6-bk-variante-row-alignment 38.4-10: BK-Variante row uses 8-col grid for right-flush layout" do
+    contents = File.read(Rails.root.join(
+      "app/views/locations/scoreboard_free_game_karambol_new.html.erb"
+    ))
+    # Find the BK-Variante row block by matching the label text.
+    # Then assert the inner grid uses grid-cols-8 (matches Punktziel cols=8 surrounding
+    # rows, so the rightmost button is right-flush).
+    bk_var_block = contents.match(/>BK-Variante<.{0,4000}name="bk_form_choice"/m)&.to_s || ""
+    refute_empty bk_var_block, "T-O6: BK-Variante row block not found"
+    assert_match(/grid-cols-8/, bk_var_block,
+      "T-O6: BK-Variante inner grid must use grid-cols-8 (was grid-cols-5)")
+    # name="bk_form_choice" appears once in source (inside a loop — generates 5 at render time)
+    assert_equal 1, contents.scan(/name="bk_form_choice"/).size,
+      "T-O6: bk_form_choice radio template must appear once in source (loop generates 5 at render)"
+  end
+
+  test "T-O7-merged-aufnahmebegrenzung-row 38.4-10: standalone SP-max row removed; Aufnahmebegrenzung swaps button set per discipline" do
+    contents = File.read(Rails.root.join(
+      "app/views/locations/scoreboard_free_game_karambol_new.html.erb"
+    ))
+    # Standalone SP-max row from Plan 09 must be GONE (no header text, no bk2_sp_max_innings ± row visible).
+    refute_match(/BK-2 — max\. Aufnahmen \/ Satz/, contents,
+      "T-O7: standalone SP-max row label must be removed")
+    # Merged Aufnahmebegrenzung row must have BK-* partial call with [5, 7] values
+    assert_match(/show: "is_bk_family && !is_bk_fixed_goal"[^%]+values: %w\{0 5 7\}/m, contents,
+      "T-O7: merged BK-* Aufnahmebegrenzung partial must offer [5, 7] buttons")
+    # Non-BK partial call preserved with classic [20, 25, 30] values
+    assert_match(/show: "!is_bk_family"[^%]+values: %w\{0 20 25 30\}/m, contents,
+      "T-O7: non-BK Aufnahmebegrenzung partial must preserve [20, 25, 30] buttons")
+    # x-effect mirroring innings → bk2_sp_max_innings present
+    assert_match(/x-effect=.*bk2_sp_max_innings.*=.*parseInt\(innings\)/, contents,
+      "T-O7: x-effect must mirror innings to bk2_sp_max_innings for BK-* configurable")
+  end
+
+  test "T-O8-no-dz-row 38.4-10: standalone DZ-max row removed; controller hardcodes dz_max=2 for BK-2plus and BK2-Kombi" do
+    view = File.read(Rails.root.join(
+      "app/views/locations/scoreboard_free_game_karambol_new.html.erb"
+    ))
+    controller = File.read(Rails.root.join(
+      "app/controllers/table_monitors_controller.rb"
+    ))
+    # View: standalone DZ-max ± row from Plan 09 must be GONE
+    refute_match(/BK-2plus — max\. Stöße \/ Aufnahme/, view,
+      "T-O8: standalone DZ-max row label must be removed")
+    # The bk2_dz_max_shots_display visible <input> from Plan 09 must be GONE
+    refute_match(/name="bk2_dz_max_shots_display"/, view,
+      "T-O8: bk2_dz_max_shots_display visible input must be removed")
+    # Hidden input bk2_options[direkter_zweikampf_max_shots_per_turn] still present (line 252)
+    assert_equal 1, view.scan(/name='bk2_options\[direkter_zweikampf_max_shots_per_turn\]'/).size,
+      "T-O8: hidden bk2_options[direkter_zweikampf_max_shots_per_turn] input still emits exactly once"
+    # Controller: dz_max hardcode for BK-2plus and BK2-Kombi
+    assert_match(/dz_max = 2 if %w\[BK-2plus BK2-Kombi\]\.include\?\(p\[:discipline_a\]\.to_s\)/, controller,
+      "T-O8: clamp_bk_family_params! must hardcode dz_max=2 for BK-2plus and BK2-Kombi")
   end
 
   # ===========================================================================
