@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v7.1
 milestone_name: UX Polish & i18n Debt
-status: verifying
-stopped_at: Completed 38.4-09-PLAN.md
-last_updated: "2026-04-25T13:00:38.285Z"
+status: executing
+stopped_at: Completed 38.4-10-PLAN.md
+last_updated: "2026-04-25T15:37:05.012Z"
 last_activity: 2026-04-25
 progress:
   total_phases: 6
-  completed_phases: 4
-  total_plans: 30
-  completed_plans: 29
-  percent: 97
+  completed_phases: 3
+  total_plans: 33
+  completed_plans: 30
+  percent: 91
 ---
 
 # Project State
@@ -26,8 +26,8 @@ See: .planning/PROJECT.md (updated 2026-04-15)
 ## Current Position
 
 Phase: 38.4 (bk2-kombi-post-dry-run-gaps) — EXECUTING
-Plan: 9 of 9
-Status: Phase complete — ready for verification
+Plan: 2 of 12
+Status: Ready to execute
 Last activity: 2026-04-25
 
 **Deferred to Wave 4 / later session:**
@@ -75,6 +75,8 @@ Decisions are logged in PROJECT.md Key Decisions table. Full v7.0 cross-phase de
 - [Phase 38.4]: D-03: Wave 5 closure — renamed bk2_kombi_scoreboard_test.rb to bk2_scoreboard_test.rb; all 8 deferred issues (I1-I9 except I6) covered by explicit regression tests in 35-method Bk2ScoreboardTest suite
 - [Phase 38.4]: Plan 08: Two-layer fix for start_game UnfilteredParameters — controller .to_h (load-bearing for production path + 4 existing tests) + GameSetup .to_unsafe_h defensive guard (closes I9b unit test)
 - [Phase 38.4]: Plan 09: BK-* detail view converted to 4 touch-button rows (BK-Variante / Punkt-Ziel / DZ-max / SP-max) — outer col-span-6/space-y-3 wrapper REMOVED, rows plug into parent grid-cols-6 as 8 sibling divs. Bespoke template-x-for chosen over reusing _radio_select partial for Alpine-reactive value lists.
+- [Phase 38.4]: Two _radio_select partial calls (not one with dynamic values) for O7 Aufnahmebegrenzung — partial has no Alpine-template x-for escape hatch
+- [Phase 38.4]: x-effect approach chosen for innings→bk2_sp_max_innings mirror; runs reactively on Alpine state change without @change wiring on partial calls
 
 ### Roadmap Evolution
 
@@ -107,6 +109,6 @@ None blocking Phase 38.1 execution. Reconciliation debt above is tracked but not
 
 ## Session Continuity
 
-Last session: 2026-04-25T13:00:38.283Z
-Stopped at: Completed 38.4-09-PLAN.md
+Last session: 2026-04-25T15:37:05.009Z
+Stopped at: Completed 38.4-10-PLAN.md
 Resume: `/gsd-plan-phase 38` to break Phase 38 into 3 executable plans
