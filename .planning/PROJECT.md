@@ -211,4 +211,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-24 after Phase 38.3 (BK2-Kombi dry-run corrections) — I6 shootout→playing init blocker resolved via Plan 38.3-08; follow-up items I8 (TableMonitor destroy), I9 (Ballziel not honored) deferred to Phase 38.4*
+*Last updated: 2026-04-25 after Phase 38.4 (BK2-Kombi post-dry-run gaps) — closed all 8 deferred issues (I1-I5, I7, I8, I9), hard-renamed `Bk2Kombi::*` → `Bk2::*`, generalized scoring across the 5 BK-* family disciplines (BK-2kombi, BK-2plus, BK-2, BK50, BK100), restructured Discipline data model with `data[:free_game_form]` + `data[:ballziel_choices]`, replaced legacy `set_target_points` with `balls_goal`, added `Version.safe_parse` to unblock central Discipline propagation. 4 browser-test items remain open in `38.4-HUMAN-UAT.md` (Delete escape-hatch, balls_goal end-to-end, Alpine conditional inputs, shootout 4-btn) — testable on 2026-05-02 BCW dry-run tournament. 7 advisory findings (1 Critical pre-existing typo, 6 Warnings) deferred to next phase via `38.4-VERIFICATION.md` `advisory_deferred:`.*
