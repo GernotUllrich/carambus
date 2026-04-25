@@ -1166,6 +1166,93 @@ class Bk2ScoreboardTest < ApplicationSystemTestCase
       "T-P1-mirror: seed_bk2_disciplines.rb BK2-Kombi backfill must set ballziel_choices to [50, 60, 70]")
   end
 
+  test "T-P5-seed-flag-narrowed 38.4-16: nachstoss_allowed: true scope narrowed to BK-2kombi only" do
+    seed = File.read(Rails.root.join("script/seed_bk2_disciplines.rb"))
+
+    # Phase 38.4-16 P5: the discs array (lines ~23-28) has FOUR entries for
+    # BK50/BK100/BK-2/BK-2plus, NONE of which carry nachstoss_allowed.
+    # Symbol-style flag literal must be ABSENT from the discs array.
+    assert_no_match(/nachstoss_allowed:\s*true/, seed,
+      "T-P5: symbol-style 'nachstoss_allowed: true' literal MUST be absent from seed (P5 narrowing)")
+
+    # The BK-2kombi backfill block uses string-bracket assignment style:
+    #   current["nachstoss_allowed"] = true
+    # This is the SOLE remaining write of the flag. Lock it in place.
+    assert_match(/current\["nachstoss_allowed"\]\s*=\s*true/, seed,
+      "T-P5: BK2-Kombi backfill MUST keep current[\"nachstoss_allowed\"] = true (sole keeper)")
+
+    # The needs_update guard at line ~55 still tests for stale flag absence —
+    # idempotent re-run friendly. Lock it in place.
+    assert_match(/current\["nachstoss_allowed"\]\s*!=\s*true/, seed,
+      "T-P5: BK2-Kombi backfill MUST keep idempotent guard current[\"nachstoss_allowed\"] != true")
+
+    # All 4 non-BK-2kombi disciplines still have entries — narrowing the flag
+    # does NOT mean removing the records. (Interpretation (b) — flag-only narrowing.)
+    %w[BK50 BK100 BK-2 BK-2plus].each do |name|
+      assert_match(/name:\s*"#{Regexp.escape(name)}"/, seed,
+        "T-P5: discipline #{name} entry MUST still exist in discs array (interpretation b — flag-only narrowing)")
+    end
+
+    # The BK2-Kombi find(107) backfill block still exists.
+    assert_match(/Discipline\.find\(107\)/, seed,
+      "T-P5: BK2-Kombi (id 107) backfill block MUST still exist")
+  end
+
+  test "T-P5-clear-nachstoss-migration-present 38.4-16: catch-up migration removes flag with EXPLICIT pre-check (per round-4 iteration-2 BLOCKER 2 fix) + documents sync-race (per I-16-02)" do
+    migration_path = Rails.root.join("db/migrate/20260425090000_clear_nachstoss_allowed_for_non_bk2_kombi.rb")
+    assert File.exist?(migration_path),
+      "T-P5: migration file MUST exist at db/migrate/20260425090000_clear_nachstoss_allowed_for_non_bk2_kombi.rb"
+
+    contents = File.read(migration_path)
+
+    assert_match(/class ClearNachstossAllowedForNonBk2Kombi < ActiveRecord::Migration/, contents,
+      "T-P5: migration class declared with correct name + ActiveRecord::Migration parent")
+
+    # Targets the 4 non-BK-2kombi disciplines explicitly.
+    assert_match(/TARGET_NAMES\s*=\s*%w\[BK50 BK100 BK-2 BK-2plus\]/, contents,
+      "T-P5: migration TARGET_NAMES MUST be exactly [BK50, BK100, BK-2, BK-2plus] (excludes BK2-Kombi)")
+
+    # Performs the key deletion.
+    assert_match(/parsed\.delete\("nachstoss_allowed"\)/, contents,
+      "T-P5: migration MUST delete the nachstoss_allowed key from parsed data hash")
+
+    # Idempotent guard — skip when key already absent.
+    assert_match(/parsed\.key\?\("nachstoss_allowed"\)/, contents,
+      "T-P5: migration MUST guard against re-running on already-cleared records (idempotency)")
+
+    # ROUND-4 ITERATION-2 BLOCKER 2 FIX:
+    # Migration MUST use the EXPLICIT pre-check pattern `if !ApplicationRecord.local_server?`
+    # then `rec.update!`. The previous `rescue ActiveRecord::RecordInvalid` pattern was
+    # unreachable because LocalProtector raises ActiveRecord::Rollback (silently swallowed
+    # by transactions), so update! returned true while data was rolled back. The pre-check
+    # eliminates the silent no-op.
+    assert_match(/if\s+!ApplicationRecord\.local_server\?/, contents,
+      "T-P5/round-4-iteration-2-BLOCKER-2: migration MUST use the explicit pre-check `if !ApplicationRecord.local_server?` (replaces the unreachable rescue ActiveRecord::RecordInvalid pattern)")
+    assert_match(/rec\.update!\(data:/, contents,
+      "T-P5/round-4-iteration-2-BLOCKER-2: migration MUST use rec.update!(data:) inside the pre-check guard (preserves PaperTrail versioning when permitted)")
+
+    # The unreachable rescue MUST be removed.
+    assert_no_match(/rescue\s+ActiveRecord::RecordInvalid/, contents,
+      "T-P5/round-4-iteration-2-BLOCKER-2: the unreachable `rescue ActiveRecord::RecordInvalid` block MUST be removed — LocalProtector raises Rollback (transaction control flow), not RecordInvalid; that rescue NEVER fired and silently masked failures")
+
+    # update_columns is also NOT used (would bypass PaperTrail entirely).
+    assert_no_match(/update_columns/, contents,
+      "T-P5: migration MUST NOT use update_columns (bypasses PaperTrail)")
+
+    # Skip-local counter present (proves the explicit-skip branch is implemented).
+    assert_match(/skipped_local/, contents,
+      "T-P5/round-4-iteration-2-BLOCKER-2: migration MUST track skipped_local counter for the explicit-skip branch (global record on local server)")
+
+    # I-16-02: residual sync-race risk documented in source comments.
+    assert_match(/sync-race/i, contents,
+      "T-P5/I-16-02: migration MUST document the residual sync-race risk in source comments")
+
+    # Down is a no-op (we don't want to re-introduce the flag on a rollback).
+    assert_match(/def down/, contents, "T-P5: migration MUST define down method")
+    assert_match(/No-op: ClearNachstossAllowedForNonBk2Kombi is not reversible/, contents,
+      "T-P5: migration down MUST be a no-op with explanatory message")
+  end
+
   private
 
   # ---------------------------------------------------------------------------
