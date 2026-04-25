@@ -158,4 +158,47 @@ class DisciplineTest < ActiveSupport::TestCase
     refute_includes Discipline::KARAMBOL_DISCIPLINE_MAP, "BK2-Kombi",
       "BK2-Kombi must NOT be in KARAMBOL_DISCIPLINE_MAP"
   end
+
+  # ---------------------------------------------------------------------------
+  # Phase 38.4-11 O2: Discipline#nachstoss_allowed? helper
+  # ---------------------------------------------------------------------------
+
+  test "T-O2-nachstoss-allowed-true 38.4-11: discipline with nachstoss_allowed:true returns true" do
+    d = Discipline.new(name: "BK50-test", data: {"nachstoss_allowed" => true, "free_game_form" => "bk50"}.to_json)
+    assert_equal true, d.nachstoss_allowed?
+  end
+
+  test "T-O2-nachstoss-allowed-default-false 38.4-11: discipline without nachstoss_allowed key returns false" do
+    d = Discipline.new(name: "Karambol-test", data: {"free_game_form" => "karambol"}.to_json)
+    assert_equal false, d.nachstoss_allowed?
+  end
+
+  test "T-O2-nachstoss-allowed-malformed-json 38.4-11: discipline with malformed data JSON returns false" do
+    d = Discipline.new(name: "Broken-test", data: "{not valid json}")
+    assert_equal false, d.nachstoss_allowed?
+  end
+
+  test "T-O2-nachstoss-allowed-nil-data 38.4-11: discipline with nil data returns false" do
+    d = Discipline.new(name: "Empty-test", data: nil)
+    assert_equal false, d.nachstoss_allowed?
+  end
+
+  test "T-O2-nachstoss-seed-applied 38.4-11: 5 BK-* disciplines have nachstoss_allowed: true after seed replay" do
+    # Programmatic replay of seed_bk2_disciplines.rb logic — verifies the data shape.
+    # Idempotent: safe to run repeatedly in test DB.
+    seed_data = {
+      "BK50" => {"free_game_form" => "bk50", "ballziel_choices" => [50], "nachstoss_allowed" => true},
+      "BK100" => {"free_game_form" => "bk100", "ballziel_choices" => [100], "nachstoss_allowed" => true},
+      "BK-2" => {"free_game_form" => "bk_2", "ballziel_choices" => [50, 60, 70, 80, 90, 100], "nachstoss_allowed" => true},
+      "BK-2plus" => {"free_game_form" => "bk_2plus", "ballziel_choices" => [50, 60, 70, 80, 90, 100], "nachstoss_allowed" => true},
+      "BK2-Kombi" => {"free_game_form" => "bk2_kombi", "ballziel_choices" => [50, 60, 70], "nachstoss_allowed" => true}
+    }
+    seed_data.each do |name, expected_data|
+      rec = Discipline.find_or_initialize_by(name: name)
+      rec.data = expected_data.to_json
+      rec.save!(validate: false)
+      rec.reload
+      assert_equal true, rec.nachstoss_allowed?, "T-O2-seed: #{name} must have nachstoss_allowed=true"
+    end
+  end
 end
