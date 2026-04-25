@@ -81,3 +81,13 @@ deserves a real discussion about whether the re-parse is needed at all.
 
 - Phase 38.1 Plan 02 runbook: `.planning/phases/38.1-bk2-kombi-minimum-viable-support/38.1-02-DISCIPLINE-DATA-WRITE.md` (Execution Log section)
 - Phase 38.1 Plan 02 SUMMARY.md (Path B workaround rationale)
+
+---
+
+## Closure (Phase 38.4-17, 2026-04-25)
+
+Closed by Phase 38.4 Plan 01 (commit references in 38.4-01-SUMMARY.md). The
+`Version.safe_parse` / `safe_parse_for_text_column` helpers replaced all 4
+`YAML.load(args["data/remarks"])` callsites. 9 regression tests in
+`test/models/version_test.rb` lock the fix in place. This file is moved to
+`done/` for bookkeeping — the underlying code fix landed in Plan 38.4-01.
