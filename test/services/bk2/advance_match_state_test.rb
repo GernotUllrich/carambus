@@ -484,6 +484,19 @@ class Bk2::AdvanceMatchStateTest < ActiveSupport::TestCase
     assert_equal 0, state["innings_left_in_set"], "DZ phase must not touch innings_left_in_set"
   end
 
+  # 38.4-P7 (no-legacy decision): controller writes bk2_options[:balls_goal] (since Plan 04
+  # D-06). derive_balls_goal must read that key, not the obsolete :set_target_points.
+  # Symptom of the bug: BK-* detail-form starts with balls_goal selected (e.g. 100), but
+  # bk2_state.balls_goal lands on DEFAULT_SET_TARGET=50 because derive_balls_goal looks
+  # for :set_target_points which the controller no longer writes.
+  test "T-P7: derive_balls_goal reads bk2_options[:balls_goal] (D-06 key)" do
+    tm = fresh_bk2_tm("balls_goal" => 100)
+    Bk2::AdvanceMatchState.call(table_monitor: tm, shot_payload: pin_shot(fallen_pins: 3))
+    state = tm.reload.data["bk2_state"]
+    assert_equal 100, state["balls_goal"],
+      "T-P7: bk2_state.balls_goal must reflect bk2_options[:balls_goal]=100, not DEFAULT_SET_TARGET=50"
+  end
+
   test "38.2-01 T7: defaults apply when bk2_options is empty" do
     tm = TableMonitor.create!(
       state: "playing",
