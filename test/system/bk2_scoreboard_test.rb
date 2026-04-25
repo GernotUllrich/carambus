@@ -788,8 +788,11 @@ class Bk2ScoreboardTest < ApplicationSystemTestCase
     # from p (sliced params), intersect with allowed list, default to first allowed.
     # This is the controller-side guarantee that O1 doesn't regress (regardless of
     # which form row drives the hidden input — the controller is final arbiter).
-    assert_match(/requested = p\.delete\(:balls_goal\)\.to_i/, contents,
-      "T-O1: clamp_bk_family_params! must read :balls_goal from p")
+    # Phase 38.4-13 P1 widened the read pattern to fall back to :balls_goal_a /
+    # :balls_goal_b — `p.delete(:balls_goal).presence` replaces the bare `.to_i`.
+    # Updated regex tolerates both single-line and multi-line forms.
+    assert_match(/requested = \(?p\.delete\(:balls_goal\)\.presence/, contents,
+      "T-O1: clamp_bk_family_params! must read :balls_goal from p (with .presence guard for 38.4-13 fallback chain)")
     assert_match(/allowed\.include\?\(requested\) \? requested : allowed\.first/, contents,
       "T-O1: clamped_goal must intersect requested with allowed list")
     assert_match(/p\[:balls_goal\] = clamped_goal/, contents,
@@ -987,6 +990,89 @@ class Bk2ScoreboardTest < ApplicationSystemTestCase
       "T-O5: _quick_game_buttons.html.erb must derive label_suffix for unique button_id")
     assert_match(/button_id = "#\{button\['discipline'\]\.gsub.+#\{button\['balls_goal'\]\}#\{label_suffix\}"/, contents,
       "T-O5: button_id must concatenate discipline + balls_goal + label_suffix")
+  end
+
+  test "T-P1-clamp-fallback-constant 38.4-13: BK_FAMILY_BALLZIEL_FALLBACK constant present and clamp reads balls_goal_a/b fallback" do
+    contents = File.read(Rails.root.join("app/controllers/table_monitors_controller.rb"))
+
+    # Phase 38.4-13 P1/P3: BK_FAMILY_BALLZIEL_FALLBACK is the discipline-specific
+    # safety net used when Discipline.find_by returns nil OR ballziel_choices is empty.
+    # Mirrors script/seed_bk2_disciplines.rb. This guard ensures the constant survives
+    # future refactors.
+    assert_match(/BK_FAMILY_BALLZIEL_FALLBACK\s*=\s*\{/, contents,
+      "T-P1: BK_FAMILY_BALLZIEL_FALLBACK constant must be defined")
+
+    # All 5 BK-* disciplines present in the constant
+    %w[BK50 BK100 BK-2 BK-2plus BK2-Kombi].each do |name|
+      assert_match(/"#{Regexp.escape(name)}"\s*=>\s*\[/, contents,
+        "T-P1: BK_FAMILY_BALLZIEL_FALLBACK must contain entry for #{name}")
+    end
+
+    # The fallback values match the seed script (the constants must stay in sync)
+    assert_match(/"BK50"\s*=>\s*\[50\]/, contents,
+      "T-P1: BK50 fallback must be [50]")
+    assert_match(/"BK100"\s*=>\s*\[100\]/, contents,
+      "T-P1: BK100 fallback must be [100]")
+    assert_match(/"BK-2"\s*=>\s*\[50, 60, 70, 80, 90, 100\]/, contents,
+      "T-P1: BK-2 fallback must be [50, 60, 70, 80, 90, 100]")
+    assert_match(/"BK-2plus"\s*=>\s*\[50, 60, 70, 80, 90, 100\]/, contents,
+      "T-P1: BK-2plus fallback must be [50, 60, 70, 80, 90, 100]")
+    assert_match(/"BK2-Kombi"\s*=>\s*\[50, 60, 70\]/, contents,
+      "T-P1: BK2-Kombi fallback must be [50, 60, 70]")
+
+    # clamp_bk_family_params! uses the fallback constant
+    assert_match(/BK_FAMILY_BALLZIEL_FALLBACK\[discipline_name\]/, contents,
+      "T-P1: clamp_bk_family_params! must read BK_FAMILY_BALLZIEL_FALLBACK[discipline_name]")
+
+    # clamp_bk_family_params! reads balls_goal with balls_goal_a/balls_goal_b fallback
+    assert_match(/p\[:balls_goal_a\]\.presence/, contents,
+      "T-P1: clamp_bk_family_params! must read :balls_goal_a as fallback for :balls_goal")
+    assert_match(/p\[:balls_goal_b\]\.presence/, contents,
+      "T-P1: clamp_bk_family_params! must read :balls_goal_b as fallback")
+
+    # Slice-list precondition (I-13-01): :balls_goal_a + :balls_goal_b in permit/slice list
+    assert_match(/:balls_goal_a/, contents,
+      "T-P1 slice-list precondition (I-13-01): :balls_goal_a must be in permit/slice list")
+    assert_match(/:balls_goal_b/, contents,
+      "T-P1 slice-list precondition (I-13-01): :balls_goal_b must be in permit/slice list")
+  end
+
+  test "T-P1-fallback-mirrors-seed 38.4-13: BK_FAMILY_BALLZIEL_FALLBACK values match script/seed_bk2_disciplines.rb (all 5 BK-* entries)" do
+    controller = File.read(Rails.root.join("app/controllers/table_monitors_controller.rb"))
+    seed       = File.read(Rails.root.join("script/seed_bk2_disciplines.rb"))
+
+    # Phase 38.4-13 P1/P3: cross-file invariant — the controller fallback values
+    # MUST mirror the seed script. If either file changes its values, this test
+    # surfaces the drift before production deploy. I-13-02: check ALL 5 BK-* entries
+    # (not just BK50/BK100) so a drift on BK-2 / BK-2plus / BK2-Kombi is also caught.
+
+    # Map of expected fallback values (must mirror BK_FAMILY_BALLZIEL_FALLBACK constant)
+    bk_family_expectations = {
+      "BK50" => "[50]",
+      "BK100" => "[100]",
+      "BK-2" => "[50, 60, 70, 80, 90, 100]",
+      "BK-2plus" => "[50, 60, 70, 80, 90, 100]",
+      "BK2-Kombi" => "[50, 60, 70]"
+    }
+
+    bk_family_expectations.each do |name, expected_values|
+      # Controller side: BK_FAMILY_BALLZIEL_FALLBACK entry
+      assert_match(/"#{Regexp.escape(name)}"\s*=>\s*#{Regexp.escape(expected_values)}/, controller,
+        "T-P1-mirror: controller BK_FAMILY_BALLZIEL_FALLBACK[#{name}] must equal #{expected_values}")
+    end
+
+    # Seed side: each non-BK-2kombi entry has matching ballziel_choices
+    # (BK-2kombi is in a separate backfill block — checked separately below)
+    %w[BK50 BK100 BK-2 BK-2plus].each do |name|
+      expected = bk_family_expectations[name]
+      # Seed file uses ballziel_choices: [...] (Ruby symbol-key hash literal)
+      assert_match(/"#{Regexp.escape(name)}"[^}]*ballziel_choices:\s*#{Regexp.escape(expected)}/m, seed,
+        "T-P1-mirror: seed_bk2_disciplines.rb #{name} ballziel_choices must equal #{expected}")
+    end
+
+    # BK-2kombi backfill: the seed sets current["ballziel_choices"] = [50, 60, 70]
+    assert_match(/current\["ballziel_choices"\]\s*=\s*\[50, 60, 70\]/, seed,
+      "T-P1-mirror: seed_bk2_disciplines.rb BK2-Kombi backfill must set ballziel_choices to [50, 60, 70]")
   end
 
   private
