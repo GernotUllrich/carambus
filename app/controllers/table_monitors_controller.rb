@@ -432,6 +432,13 @@ class TableMonitorsController < ApplicationController
     dz_max = 2 unless (1..99).cover?(dz_max)
     sp_max = 5 unless (1..99).cover?(sp_max)
 
+    # 38.4-10 O8: BK-2plus + BK-2kombi have no other valid DZ-max variant — hardcode 2
+    # regardless of submitted form value. The detail-view standalone DZ-max row was
+    # removed; the hidden input on line 252 of scoreboard_free_game_karambol_new.html.erb
+    # still emits bk2_dz_max_shots (initialized to 2 in the x-data wrapper) for shape
+    # consistency, but the server is authoritative.
+    dz_max = 2 if %w[BK-2plus BK2-Kombi].include?(p[:discipline_a].to_s)
+
     p[:bk2_options] = {
       "balls_goal" => clamped_goal,
       "direkter_zweikampf_max_shots_per_turn" => dz_max,

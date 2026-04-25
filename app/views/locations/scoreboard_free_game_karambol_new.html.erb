@@ -233,7 +233,8 @@
           default: return [];
         }
       }
-      }">
+      }"
+      x-effect="if (is_bk_family && !is_bk_fixed_goal) { bk2_sp_max_innings = parseInt(innings) || 5 }">
     <%= form_tag start_game_table_monitor_path(table_monitor), data: {turbo: false}, method: :post, class: "flex flex-col text-gray-300 max-h-screen overflow-y-auto" do %>
       <%# Phase 38.4-06 D-16/D-07: free_game_form driven by bk_selected_form (5 BK-* disciplines).
           Fallback value='karambol' is a safety net if Alpine fails to hydrate.
@@ -370,34 +371,18 @@
             </div>
           </div>
 
-          <%# --- ROW 3: BK-2plus — max. Stöße pro Aufnahme (DZ-max, ± row) ---
-              Mirrors Spielzeit/Warntime pattern at lines 540-555 of this file. %>
-          <div x-show="table_kind == 'Small Billard' && parameters == 0 && is_bk_dz_configurable">BK-2plus — max. Stöße / Aufnahme</div>
-          <div x-show="table_kind == 'Small Billard' && parameters == 0 && is_bk_dz_configurable" class="col-span-5 flex flex-row items-center justify-center gap-4">
-            <div class="flex pl-5 pr-5 text-4vw font-bold cursor-pointer select-none"
-                 @click="if (parseInt(bk2_dz_max_shots) > 1) { bk2_dz_max_shots = parseInt(bk2_dz_max_shots) - 1 }">-</div>
-            <label>
-              <input name="bk2_dz_max_shots_display" type="number" min="1" max="99"
-                     autocomplete="off" x-model.number="bk2_dz_max_shots"
-                     class="flex w-20 text-2vw font-medium shadow-sm text-gray-900 border rounded-md py-3 px-4 text-center">
-            </label>
-            <div class="flex pl-5 pr-5 text-4vw font-bold cursor-pointer select-none"
-                 @click="if (parseInt(bk2_dz_max_shots) < 99) { bk2_dz_max_shots = parseInt(bk2_dz_max_shots) + 1 }">+</div>
-          </div>
+          <%# Phase 38.4-10 O8: standalone DZ-max ± row removed. dz_max=2 is the only
+              valid variant per BK rules; hardcoded server-side in clamp_bk_family_params!.
+              The bk2_dz_max_shots Alpine state slot stays initialized at 2 in the x-data
+              wrapper; the hidden input on line 252 still emits bk2_dz_max_shots=2 for
+              shape consistency. %>
 
-          <%# --- ROW 4: BK-2 — max. Aufnahmen pro Satz (SP-max, ± row) --- %>
-          <div x-show="table_kind == 'Small Billard' && parameters == 0 && is_bk_sp_configurable">BK-2 — max. Aufnahmen / Satz</div>
-          <div x-show="table_kind == 'Small Billard' && parameters == 0 && is_bk_sp_configurable" class="col-span-5 flex flex-row items-center justify-center gap-4">
-            <div class="flex pl-5 pr-5 text-4vw font-bold cursor-pointer select-none"
-                 @click="if (parseInt(bk2_sp_max_innings) > 1) { bk2_sp_max_innings = parseInt(bk2_sp_max_innings) - 1 }">-</div>
-            <label>
-              <input name="bk2_sp_max_innings_display" type="number" min="1" max="99"
-                     autocomplete="off" x-model.number="bk2_sp_max_innings"
-                     class="flex w-20 text-2vw font-medium shadow-sm text-gray-900 border rounded-md py-3 px-4 text-center">
-            </label>
-            <div class="flex pl-5 pr-5 text-4vw font-bold cursor-pointer select-none"
-                 @click="if (parseInt(bk2_sp_max_innings) < 99) { bk2_sp_max_innings = parseInt(bk2_sp_max_innings) + 1 }">+</div>
-          </div>
+          <%# Phase 38.4-10 O7: standalone SP-max row removed. Merged into the
+              Aufnahmebegrenzung row below — Alpine x-bind swaps the button list per
+              is_bk_family. The bk2_sp_max_innings hidden input on line 253 still
+              emits per the existing Alpine state slot; its value is mirrored from
+              the merged Aufnahmebegrenzung row's `innings` slot via x-effect on the
+              parent x-data wrapper. %>
           <%= render partial: "radio_select", locals: {
             table: table,
             show: "table_kind == 'Match Billard' && parameters == 0",
@@ -498,9 +483,29 @@
             cols: 8,
             increment: 1 }
           %>
+          <%# Phase 38.4-10 O7 + O7a: discipline-aware Aufnahmebegrenzung row.
+              - BK-2 / BK-2plus / BK-2kombi (is_bk_family && !is_bk_fixed_goal):
+                  buttons [5, 7] + ± counter for arbitrary values.
+              - Non-BK-* (!is_bk_family): preserves classic karambol values [20, 25, 30].
+              - BK50 / BK100 (is_bk_fixed_goal): NEITHER row renders — fixed at 1 inning per O7a.
+              Both partials share varname='innings' so the Alpine state slot is one source of
+              truth; the form payload travels as `innings_choice` regardless of which row is
+              active. The bk2_sp_max_innings hidden input on line 253 mirrors innings via the
+              x-effect on the parent x-data wrapper (see below). %>
           <%= render partial: "radio_select", locals: {
             table: table,
-            show: "true",
+            show: "is_bk_family && !is_bk_fixed_goal",
+            header: "Aufnahme-begrenzung",
+            varname: "innings",
+            values: %w{0 5 7},
+            maxval: 99,
+            displays: %w{keine 5 7},
+            cols: 5,
+            increment: 1 }
+          %>
+          <%= render partial: "radio_select", locals: {
+            table: table,
+            show: "!is_bk_family",
             header: "Aufnahme-begrenzung",
             varname: "innings",
             values: %w{0 20 25 30},
