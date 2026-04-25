@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v7.1
 milestone_name: UX Polish & i18n Debt
 status: executing
-stopped_at: Completed 38.4-13-PLAN.md
-last_updated: "2026-04-25T19:11:40.940Z"
+stopped_at: Completed 38.4-15-PLAN.md
+last_updated: "2026-04-25T19:20:57.252Z"
 last_activity: 2026-04-25
 progress:
   total_phases: 6
   completed_phases: 3
   total_plans: 38
-  completed_plans: 33
-  percent: 87
+  completed_plans: 34
+  percent: 89
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-15)
 ## Current Position
 
 Phase: 38.4 (bk2-kombi-post-dry-run-gaps) — EXECUTING
-Plan: 2 of 17
+Plan: 3 of 17
 Status: Ready to execute
 Last activity: 2026-04-25
 
@@ -82,6 +82,7 @@ Decisions are logged in PROJECT.md Key Decisions table. Full v7.0 cross-phase de
 - [Phase 38.4]: carambus.yml (compiled/ignored) must be kept in sync with carambus.yml.erb manually — Carambus.config reads the local .yml, not the .erb template
 - [Phase 38.4]: button_id disambiguation via label_suffix in _quick_game_buttons partial is preventive — added proactively for same-discipline+balls_goal entries (BK2-Kombi 70)
 - [Phase 38.4-bk2-kombi-post-dry-run-gaps]: Plan 13: BK_FAMILY_BALLZIEL_FALLBACK constant + balls_goal_a/b fallback chain in clamp_bk_family_params! — defense-in-depth against carambus_api → local-server Discipline sync gap; closes P1 (BK100) and P3 (BK-2kombi 2/5/70+NS) round-4 UAT gaps
+- [Phase 38.4-bk2-kombi-post-dry-run-gaps]: Plan 15: BK-Variante grid-cols-5 (supersedes Plan 10's grid-cols-8) + Aufnahmebegrenzung BK-* cols=4 + MEHRSATZ col-span-6 h-4 spacer; T-O6 renamed to -v2 per I-15-02; T-P2 ERB-compilation render replaces Capybara DOM (visit table_monitor_path doesn't render BK-* detail view) per I-15-01 — closes round-4 UAT P2 layout regression
 
 ### Roadmap Evolution
 
@@ -114,6 +115,6 @@ None blocking Phase 38.1 execution. Reconciliation debt above is tracked but not
 
 ## Session Continuity
 
-Last session: 2026-04-25T19:11:40.937Z
-Stopped at: Completed 38.4-13-PLAN.md
+Last session: 2026-04-25T19:20:46.057Z
+Stopped at: Completed 38.4-15-PLAN.md
 Resume: `/gsd-plan-phase 38` to break Phase 38 into 3 executable plans
