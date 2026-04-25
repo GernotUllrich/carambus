@@ -177,6 +177,12 @@ module Bk2
     # Schließe den aktuellen Satz wenn ein Spieler balls_goal erreicht hat.
     # Phase 38.4 D-06: liest state['balls_goal'], fällt zurück auf state['set_target_points']
     # für In-Flight-Turniere (T-38.4-05-02 Transitional Fallback).
+    # Phase 38.4-11 O2/O4: Nachstoß-Regel — wenn discipline.nachstoss_allowed? und der
+    # nachfolgende Spieler noch keine Aufnahme hatte, wird der Satz NICHT sofort geschlossen.
+    # Stattdessen wird state['nachstoss_pending']=true gesetzt; player_at_table flipt.
+    # Beim nächsten close_set_if_reached!-Aufruf (nach der Nachstoß-Aufnahme) wird die
+    # Resolution angewendet: Nachstossende equal → Nachstossende gewinnt (provisorisch);
+    # Nachstossende unter balls_goal → Anführer gewinnt.
     def close_set_if_reached!(state)
       set_no = state["current_set_number"].to_s
       target = state["balls_goal"].to_i
@@ -185,12 +191,52 @@ module Bk2
       b = state["set_scores"][set_no]["playerb"]
       return unless a >= target || b >= target
 
-      winner = (a >= target) ? "playera" : "playerb"
-      state["sets_won"][winner] += 1
-      state["set_finished_#{set_no}"] = true
-      state["set_winner_#{set_no}"] = winner
+      leader = (a >= target) ? "playera" : "playerb"
+      trailing = (leader == "playera") ? "playerb" : "playera"
 
-      # Nicht über Satz 3 hinausgehen (Match endet dann in close_match_if_reached!).
+      # Phase 38.4-11 O2: Nachstoß-Resolution — Nachstossende hat ihre Aufnahme abgeschlossen.
+      if state["nachstoss_pending"]
+        nachstoss_for = state["nachstoss_for"].to_s
+        original_leader = (nachstoss_for == "playera") ? "playerb" : "playera"
+        nachstoss_score = state["set_scores"][set_no][nachstoss_for].to_i
+
+        # Provisional rule: equal or above → trailing wins; below → original leader wins.
+        # See Plan 38.4-11 Objective clarifying note. Landessportwart sign-off pending.
+        winner = if nachstoss_score >= target
+          nachstoss_for  # trailing reached or exceeded — trailing wins (provisional)
+        else
+          original_leader
+        end
+
+        state["nachstoss_pending"] = false
+        state["nachstoss_resolved"] = true
+        state["sets_won"][winner] += 1
+        state["set_finished_#{set_no}"] = true
+        state["set_winner_#{set_no}"] = winner
+        return advance_to_next_set!(state, winner)
+      end
+
+      # Phase 38.4-11 O2: defer set-close if discipline allows Nachstoß and trailing
+      # has not yet had their equalizing inning.
+      if discipline_nachstoss_allowed?
+        state["nachstoss_pending"] = true
+        state["nachstoss_for"] = trailing
+        state["player_at_table"] = trailing
+        # Reset shots counter for the Nachstoß turn in Direkter Zweikampf.
+        state["shots_left_in_turn"] = derive_dz_max_shots if state["current_phase"] == "direkter_zweikampf"
+        return # Do NOT close set; defer to next close_set_if_reached! after trailing's inning.
+      end
+
+      # Default (legacy / nachstoss_allowed=false): immediate close.
+      state["sets_won"][leader] += 1
+      state["set_finished_#{set_no}"] = true
+      state["set_winner_#{set_no}"] = leader
+      advance_to_next_set!(state, leader)
+    end
+
+    # Phase 38.4-11 O2: Advances to next set (or no-op if final set).
+    # Extracted from close_set_if_reached! — called from both legacy and Nachstoß-resolution paths.
+    def advance_to_next_set!(state, set_winner)
       return if state["current_set_number"] >= 3
 
       state["current_set_number"] += 1
@@ -208,7 +254,14 @@ module Bk2
       end
 
       # Anstoß-Alternation: neuer Satz beginnt mit dem anderen Spieler.
-      state["player_at_table"] = (winner == "playera") ? "playerb" : "playera"
+      state["player_at_table"] = (set_winner == "playera") ? "playerb" : "playera"
+    end
+
+    # Phase 38.4-11 O2: Lese discipline.nachstoss_allowed? mit Fallback auf false.
+    # @tm.discipline kann nil sein in unit tests ohne Game/Discipline-Wiring; in dem Fall
+    # gibt der Helper false zurück (legacy / kein Nachstoß).
+    def discipline_nachstoss_allowed?
+      @tm.respond_to?(:discipline) && @tm.discipline.respond_to?(:nachstoss_allowed?) && @tm.discipline.nachstoss_allowed?
     end
 
     # Schließe das Match wenn ein Spieler 2 Sätze gewonnen hat.
