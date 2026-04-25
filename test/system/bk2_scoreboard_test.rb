@@ -943,6 +943,52 @@ class Bk2ScoreboardTest < ApplicationSystemTestCase
       "T-O4: Nachstoß resolution must accept score == balls_goal (no off-by-one)")
   end
 
+  # ===========================================================================
+  # Phase 38.4-12 O5 — BK-2kombi quick-game canonical shortcut
+  # ===========================================================================
+
+  test "T-O5-quick-game-shortcut-renders 38.4-12: BK-2kombi canonical shortcut is at index 0 of BK2-Kombi quick-game buttons" do
+    # Plan 38.4-12 O5: user requested a labelled BK-2kombi default at the first position
+    # of the Schnellauswahl page. Test reads the YAML directly (config-driven path) and
+    # asserts:
+    #   1. The category "BK2-Kombi" exists with at least 4 buttons.
+    #   2. The first button has the canonical "BK-2kombi 2/5/70+NS" label.
+    #   3. The first button carries balls_goal=70, sets_to_win=2, sets_to_play=3.
+    yaml_text = File.read(Rails.root.join("config/carambus.yml.erb"))
+    assert_match(/label: "BK-2kombi 2\/5\/70\+NS"/, yaml_text,
+      "T-O5: canonical 'BK-2kombi 2/5/70+NS' label must appear in YAML")
+
+    # Programmatic config check — guards against typos that pass file grep but
+    # break Carambus.config parsing.
+    buttons = Carambus.config.quick_game_presets.dig("small_billard")
+      .find { |c| c["category"] == "BK2-Kombi" }["buttons"]
+    assert_operator buttons.length, :>=, 4,
+      "T-O5: BK2-Kombi category must have at least 4 buttons after Plan 12 insertion"
+
+    first = buttons.first
+    assert_equal "BK-2kombi 2/5/70+NS", first["label"],
+      "T-O5: first BK2-Kombi button must be the canonical 'BK-2kombi 2/5/70+NS'"
+    assert_equal 70, first["balls_goal"],
+      "T-O5: first button balls_goal must be 70"
+    assert_equal 2, first["sets_to_win"],
+      "T-O5: first button sets_to_win must be 2 (best-of-3)"
+    assert_equal 3, first["sets_to_play"],
+      "T-O5: first button sets_to_play must be 3 (best-of-3)"
+    assert_equal "BK2-Kombi", first["discipline"],
+      "T-O5: first button discipline must be 'BK2-Kombi'"
+  end
+
+  test "T-O5-button-id-uniqueness 38.4-12: button_id derivation disambiguates same-discipline-same-balls_goal entries via label suffix" do
+    contents = File.read(Rails.root.join("app/views/locations/_quick_game_buttons.html.erb"))
+    # Plan 38.4-12 added label_suffix to the BK-family button_id branch to prevent
+    # the new "BK-2kombi 2/5/70+NS" entry colliding with the existing "70/Best of 3"
+    # (both have discipline=BK2-Kombi + balls_goal=70).
+    assert_match(/label_suffix = button\['label'\] \? "_#\{button\['label'\]\.gsub/, contents,
+      "T-O5: _quick_game_buttons.html.erb must derive label_suffix for unique button_id")
+    assert_match(/button_id = "#\{button\['discipline'\]\.gsub.+#\{button\['balls_goal'\]\}#\{label_suffix\}"/, contents,
+      "T-O5: button_id must concatenate discipline + balls_goal + label_suffix")
+  end
+
   private
 
   # ---------------------------------------------------------------------------
