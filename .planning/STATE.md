@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v7.1
 milestone_name: UX Polish & i18n Debt
 status: executing
-stopped_at: Completed 38.4-11-PLAN.md
-last_updated: "2026-04-25T15:45:01.463Z"
+stopped_at: Completed 38.4-12-PLAN.md
+last_updated: "2026-04-25T15:50:57.428Z"
 last_activity: 2026-04-25
 progress:
   total_phases: 6
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 33
-  completed_plans: 31
-  percent: 94
+  completed_plans: 32
+  percent: 97
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-15)
 ## Current Position
 
 Phase: 38.4 (bk2-kombi-post-dry-run-gaps) — EXECUTING
-Plan: 3 of 12
+Plan: 4 of 12
 Status: Ready to execute
 Last activity: 2026-04-25
 
@@ -79,6 +79,8 @@ Decisions are logged in PROJECT.md Key Decisions table. Full v7.0 cross-phase de
 - [Phase 38.4]: x-effect approach chosen for innings→bk2_sp_max_innings mirror; runs reactively on Alpine state change without @change wiring on partial calls
 - [Phase 38.4]: Provisional Nachstoß equal rule: trailing player wins (not Verlängerungssatz). Landessportwart sign-off pending before 2026-05-02 tournament.
 - [Phase 38.4]: define_singleton_method used for discipline wiring in advance_match_state_test.rb unit tests — acceptable shortcut; fixture-based approach preferred for future system tests.
+- [Phase 38.4]: carambus.yml (compiled/ignored) must be kept in sync with carambus.yml.erb manually — Carambus.config reads the local .yml, not the .erb template
+- [Phase 38.4]: button_id disambiguation via label_suffix in _quick_game_buttons partial is preventive — added proactively for same-discipline+balls_goal entries (BK2-Kombi 70)
 
 ### Roadmap Evolution
 
@@ -111,6 +113,6 @@ None blocking Phase 38.1 execution. Reconciliation debt above is tracked but not
 
 ## Session Continuity
 
-Last session: 2026-04-25T15:45:01.460Z
-Stopped at: Completed 38.4-11-PLAN.md
+Last session: 2026-04-25T15:50:57.425Z
+Stopped at: Completed 38.4-12-PLAN.md
 Resume: `/gsd-plan-phase 38` to break Phase 38 into 3 executable plans
