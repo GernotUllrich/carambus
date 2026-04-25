@@ -323,14 +323,17 @@
               and continue to bind to the same Alpine state slots these touch-buttons write to. %>
 
           <%# --- ROW 1: BK-Variante (5 touch-buttons) --- %>
-          <%# Phase 38.4-10 O6: BK-Variante row uses 8-column grid (matches Punktziel cols=8
-              on lines 456-467) so the BK-2KOMBI button right edge aligns with the surrounding
-              rows' rightmost button. The 5 buttons occupy cols 1-5; cols 6-8 stay empty
-              (this leaves the visual real estate where +/- correction controls sit on
-              ± rows). Buttons remain finger-sized via py-3 px-4 padding. %>
+          <%# Phase 38.4-15 P2: BK-Variante row uses grid-cols-5 (one button per column).
+              With 5 buttons in 5 cols, the buttons fill the col-span-4 horizontal real
+              estate. Row width visually matches surrounding _radio_select cols=5 rows
+              (e.g., Aufnahmebegrenzung). Plan 10's grid-cols-8 left cols 6-8 empty as
+              gap → 5 buttons rendered 5/8 of the col-span-4 width, making the row
+              appear narrower than surrounding cols=8 rows. Plan 15 reverses to a
+              consistent 5-col layout. (Supersedes Plan 10's grid-cols-8 alignment
+              note above this comment block.) %>
           <div x-show="table_kind == 'Small Billard' && parameters == 0">BK-Variante</div>
           <div x-show="table_kind == 'Small Billard' && parameters == 0" class="col-span-4">
-            <div class="grid grid-cols-8 gap-4">
+            <div class="grid grid-cols-5 gap-4">
               <% [
                 ["bk50",      "BK50"],
                 ["bk100",     "BK100"],
