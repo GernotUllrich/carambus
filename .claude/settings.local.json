@@ -3,7 +3,14 @@
     "allow": [
       "Bash(bundle exec *)",
       "Bash(tee /tmp/bcw_test_run.log)",
-      "Bash(git *)"
+      "Bash(git *)",
+      "Read(//Volumes/EXT2TB/gullrich/DEV/carambus/carambus_master/config/**)",
+      "Read(//Volumes/EXT2TB/gullrich/DEV/carambus/carambus_data/scenarios/carambus/development/**)",
+      "Bash(cp /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_data/scenarios/carambus/development/cable.yml /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_master/config/cable.yml)",
+      "Bash(RAILS_ENV=test bundle exec rails runner 'puts \"carambus_api_url: #{Carambus.config.carambus_api_url.inspect}\"; puts \"present?: #{Carambus.config.carambus_api_url.present?}\"')",
+      "Read(//Volumes/EXT2TB/gullrich/DEV/carambus/carambus_data/scenarios/carambus_api/development/**)",
+      "Bash(cp /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_data/scenarios/carambus_api/development/cable.yml /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api/config/cable.yml)",
+      "Read(//Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api/config/**)"
     ]
   }
 }
