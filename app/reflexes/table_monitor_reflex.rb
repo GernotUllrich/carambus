@@ -999,10 +999,11 @@ class TableMonitorReflex < ApplicationReflex
       shot_sequence_number: SecureRandom.uuid
     )
 
-    # Reset the transient Karambol running total so the next Aufnahme starts clean.
-    @table_monitor.data[player]["innings_redo_list"] ||= []
-    @table_monitor.data[player]["innings_redo_list"][-1] = 0
-    @table_monitor.data[player]["innings_redo_list"] << 0
+    # Phase 38.4 R5-1: commit the inning karambolisch (push redo→innings_list,
+    # recompute_result, flip active_player). Replaces the [-1]=0; <<0 reset that
+    # left innings_redo_list=[0,0] and innings_list=[] (data.result stayed 0 while
+    # bk2_state.set_scores had the real value — score snapped back on switch).
+    @table_monitor.karambol_commit_inning!(player)
     true
   rescue ArgumentError => e
     Rails.logger.error("[bk2_commit_inning] invalid payload: #{e.message}")

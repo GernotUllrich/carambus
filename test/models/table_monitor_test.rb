@@ -96,4 +96,49 @@ class TableMonitorTest < ActiveSupport::TestCase
     refute @tm.bk2_state_uninitialized?,
       "Non-Hash data must not raise and must not flag"
   end
+
+  # Phase 38.4 R5-1: karambol_commit_inning! commits the running inning into the
+  # karambol data model (innings_list, result, active_player) so the view shows
+  # the right score after a BK-* player switch. Replaces the buggy redo_list[-1]=0;
+  # << 0 reset that left innings_redo_list = [0, 0] and innings_list = [].
+  test "karambol_commit_inning! commits running inning_redo_list[-1] into innings_list and recomputes result" do
+    @tm.update!(data: {
+      "free_game_form" => "bk2_kombi",
+      "current_inning" => {"active_player" => "playera"},
+      "playera" => {
+        "result" => 0, "innings" => 0,
+        "innings_list" => [], "innings_redo_list" => [15],
+        "innings_foul_list" => [], "innings_foul_redo_list" => [0]
+      },
+      "playerb" => {
+        "result" => 0, "innings" => 0,
+        "innings_list" => [], "innings_redo_list" => [],
+        "innings_foul_list" => [], "innings_foul_redo_list" => []
+      }
+    })
+
+    @tm.karambol_commit_inning!("playera")
+    @tm.save!
+    @tm.reload
+
+    a = @tm.data["playera"]
+    b = @tm.data["playerb"]
+    assert_equal [15], a["innings_list"], "playera.innings_list must capture the committed running total"
+    assert_equal [0], a["innings_redo_list"], "playera.innings_redo_list must reset to a fresh [0]"
+    assert_equal 1, a["innings"].to_i, "playera.innings must increment"
+    assert_equal 15, a["result"].to_i, "playera.result must equal sum(innings_list)"
+    assert_equal "playerb", @tm.data["current_inning"]["active_player"],
+      "active_player must flip to opponent"
+    assert_equal [0], b["innings_redo_list"],
+      "opponent must have a fresh [0] redo_list ready for their next inning"
+  end
+
+  test "karambol_commit_inning! is a no-op for unknown player" do
+    initial = {"playera" => {"innings_list" => [], "innings_redo_list" => [5]}}
+    @tm.update!(data: initial.merge("free_game_form" => "bk2_kombi"))
+    @tm.karambol_commit_inning!("unknown")
+    @tm.reload
+    assert_equal [5], @tm.data["playera"]["innings_redo_list"],
+      "Unknown player must not mutate any data"
+  end
 end

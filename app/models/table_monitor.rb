@@ -1645,6 +1645,41 @@ class TableMonitor < ApplicationRecord
     Rails.logger.error "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}"
   end
 
+  # Phase 38.4 R5-1: commit the current player's running inning into the karambol
+  # data model (innings_list / result / active_player flip) — mirroring what
+  # score_engine.terminate_inning_data does, but without firing evaluate_result.
+  # AASM transitions for BK-* are owned by Bk2::AdvanceMatchState's deferred-close /
+  # Nachstoß-pending machinery, not by karambol's end_of_set?.
+  #
+  # Replaces the buggy `redo_list[-1]=0; redo_list << 0` resets which left
+  # innings_redo_list = [0, 0] and innings_list = [], so data.result stayed at 0
+  # while bk2_state.set_scores held the real value (R5-1 symptom: counter
+  # snapped back to 0 on player switch).
+  #
+  # Public so the BK-* reflex (table_monitor_reflex#bk2_kombi_commit_if_active)
+  # can call it directly. Mutates `data` in place; caller is responsible for save!.
+  def karambol_commit_inning!(player)
+    return unless %w[playera playerb].include?(player.to_s)
+    data_will_change!
+    redo_list = (data[player]["innings_redo_list"] ||= [])
+    inning_value = redo_list.last.to_i
+    redo_list.pop
+    data[player]["innings_list"] ||= []
+    data[player]["innings_list"] << inning_value
+    data[player]["innings_foul_list"] ||= []
+    data[player]["innings_foul_list"] << (data[player]["innings_foul_redo_list"]&.last.to_i)
+    data[player]["innings_foul_redo_list"] = [0]
+    data[player]["innings"] = data[player]["innings"].to_i + 1
+    data[player]["result"] = data[player]["innings_list"].sum(&:to_i)
+    data[player]["innings_redo_list"] = [0]
+
+    opponent = (player == "playera") ? "playerb" : "playera"
+    data["current_inning"] ||= {}
+    data["current_inning"]["active_player"] = opponent
+    data[opponent]["innings_redo_list"] = [0] if data[opponent]["innings_redo_list"].blank?
+    data[opponent]["innings_foul_redo_list"] = [0] if data[opponent]["innings_foul_redo_list"].blank?
+  end
+
   private
 
   # Phase 38.4-14 P4 (round-4 iteration-2 — Option B): helper. True when:
@@ -1691,11 +1726,7 @@ class TableMonitor < ApplicationRecord
       inning_total: inning_total,
       shot_sequence_number: SecureRandom.uuid
     )
-    # Reset the transient karambol running total so the next Aufnahme starts clean.
-    # Mirrors table_monitor_reflex.rb:1003-1005.
-    data[active_player]["innings_redo_list"] ||= []
-    data[active_player]["innings_redo_list"][-1] = 0
-    data[active_player]["innings_redo_list"] << 0
+    karambol_commit_inning!(active_player)
     save!
   rescue ArgumentError => e
     Rails.logger.error("[add_n_balls/set_n_balls bk2-routing] invalid payload: #{e.message}")
