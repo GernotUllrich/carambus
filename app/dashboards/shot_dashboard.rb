@@ -4,7 +4,12 @@ class ShotDashboard < Administrate::BaseDashboard
   ATTRIBUTE_TYPES = {
     id: Field::Number,
     training_example: Field::BelongsTo,
-    shot_image: Field::ActiveStorage,
+    # Phase 38.4 deploy-fix 2026-04-26: Field::ActiveStorage requires the
+    # `administrate-field-active_storage` gem which is NOT in the Gemfile.
+    # Eager-load in production crashed all rails commands. Re-add as Field::String
+    # (filename only) so the dashboard boots; restore proper field type when the
+    # admin shot-image upload UI is needed (add gem, then revert this line).
+    shot_image: Field::String,
     shot_type: Field::Select.with_options(
       collection: ['ideal', 'alternative', 'error']
     ),
