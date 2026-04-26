@@ -55,7 +55,14 @@
   <%- is_bk2_kombi = options[:free_game_form] == "bk2_kombi" %>
   <%- if is_bk2 %>
     <%- bk2_state = table_monitor.data["bk2_state"] || {} %>
-    <%- bk2_current_phase = bk2_state["current_phase"].to_s %>
+    <%# Phase 38.4 R5-5: bk2_current_phase aus karambol data["sets"].length ableiten,
+        nicht aus bk2_state. Im legacy Karambol-Pfad (kein Nachstoß) wird
+        bk2_state.current_phase bei Satz-Wechsel nicht aktualisiert — daher zeigte
+        die Phase-Chip immer "BK-2plus". data["sets"].length ist der einzig
+        zuverlässige Satz-Indikator über alle Pfade hinweg. %>
+    <%- bk2_first_set_mode = bk2_state["first_set_mode"].presence || "direkter_zweikampf" %>
+    <%- bk2_set_number = Array(table_monitor.data["sets"]).length + 1 %>
+    <%- bk2_current_phase = (bk2_set_number.odd? ? bk2_first_set_mode : (bk2_first_set_mode == "direkter_zweikampf" ? "serienspiel" : "direkter_zweikampf")) %>
     <%- bk2_shots_left = bk2_state["shots_left_in_turn"].to_i %>
     <%- bk2_innings_left = bk2_state["innings_left_in_set"].to_i %>
     <%- bk2_phase_label = bk2_current_phase.present? ?
