@@ -260,7 +260,19 @@ class TableMonitorsController < ApplicationController
         raw_mode = p.delete(:bk2_first_set_mode).to_s
         first_set_mode = %w[direkter_zweikampf serienspiel].include?(raw_mode) ? raw_mode : "direkter_zweikampf"
         p[:bk2_options]["first_set_mode"] = first_set_mode
-        p[:innings_goal] = 0
+        # Phase 38.4 R5-7: Aufnahmen-Limit aus dem Formular durchreichen, statt
+        # blanket innings_goal=0. Ohne dies schließt karambol's end_of_set? nie
+        # über die Aufnahmen-Bedingung — Set lief ewig wenn weder Punkt-Ziel noch
+        # andere Abbruchbedingung griff (User-Report 2026-04-26: "Kein Abbruch,
+        # wenn beide 5 Aufnahmen erreicht haben").
+        # - BK50 / BK100: jeder Spieler genau 1 Aufnahme (Regelwerk).
+        # - BK-2 / BK-2plus / BK-2kombi: Form-Wert (Default 5 per Plan P12).
+        p[:innings_goal] = case p[:discipline_a]
+                           when "BK50", "BK100"
+                             1
+                           else
+                             (p[:innings_choice].presence || p[:innings_2_choice].presence || 5).to_i
+                           end
         p[:sets_to_win] = (p[:sets_to_win].presence || 2).to_i
         p[:sets_to_play] = (p[:sets_to_play].presence || 3).to_i
         p[:kickoff_switches_with] = (p[:kickoff_switches_with].presence || "set")
