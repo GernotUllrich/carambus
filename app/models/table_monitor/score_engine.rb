@@ -501,7 +501,9 @@ class TableMonitor::ScoreEngine
       prefix = ""
       if data["sets_to_play"].to_i > 1
         Array(data["sets"]).each_with_index do |set, ix|
-          prefix += "S#{ix + 1}: #{set["Ergebnis#{player_ix}"]}, "
+          # Phase 38.4 R5-4: Satzergebnis von der innings_list mit "; " trennen,
+          # innings_list-Einträge bleiben mit ", " — visuell klare Trennung.
+          prefix += "S#{ix + 1}: #{set["Ergebnis#{player_ix}"]}; "
         end
       end
       ret = []
