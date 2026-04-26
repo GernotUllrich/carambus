@@ -45,6 +45,12 @@ module Bk2
 
       transitions = apply_inning!(state)
 
+      # Phase 38.4 R5-1 step 1b-i: commit the inning karambolisch so data.result /
+      # innings_list reflect the score (single source of truth at the call boundary).
+      # Replaces the per-caller karambol_commit_inning! that lived in the reflex and
+      # TableMonitor#route_goal_reached_through_bk2_commit_inning.
+      @tm.karambol_commit_inning!(@player)
+
       # Phase 38.3 D-21: reuse AdvanceMatchState set-close / match-close paths
       # via Pattern A delegation (private method access via send).
       advance_helper = Bk2::AdvanceMatchState.new(

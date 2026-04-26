@@ -1661,6 +1661,7 @@ class TableMonitor < ApplicationRecord
   def karambol_commit_inning!(player)
     return unless %w[playera playerb].include?(player.to_s)
     data_will_change!
+    data[player] ||= {}
     redo_list = (data[player]["innings_redo_list"] ||= [])
     inning_value = redo_list.last.to_i
     redo_list.pop
@@ -1674,6 +1675,7 @@ class TableMonitor < ApplicationRecord
     data[player]["innings_redo_list"] = [0]
 
     opponent = (player == "playera") ? "playerb" : "playera"
+    data[opponent] ||= {}
     data["current_inning"] ||= {}
     data["current_inning"]["active_player"] = opponent
     data[opponent]["innings_redo_list"] = [0] if data[opponent]["innings_redo_list"].blank?
@@ -1720,14 +1722,14 @@ class TableMonitor < ApplicationRecord
     return terminate_current_inning(player) unless %w[playera playerb].include?(active_player)
 
     inning_total = data.dig(active_player, "innings_redo_list").andand[-1].to_i
+    # R5-1 step 1b-i: CommitInning performs the karambol commit internally — no
+    # need for the caller to also call karambol_commit_inning!.
     Bk2::CommitInning.call(
       table_monitor: self,
       player: active_player,
       inning_total: inning_total,
       shot_sequence_number: SecureRandom.uuid
     )
-    karambol_commit_inning!(active_player)
-    save!
   rescue ArgumentError => e
     Rails.logger.error("[add_n_balls/set_n_balls bk2-routing] invalid payload: #{e.message}")
     terminate_current_inning(player) # fallback to legacy on payload errors (defense-in-depth)

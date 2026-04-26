@@ -992,18 +992,14 @@ class TableMonitorReflex < ApplicationReflex
 
     Rails.logger.info "[bk2_commit_inning gesture=#{gesture_id}] player=#{player} n=#{inning_total}" if DEBUG
 
+    # R5-1 step 1b-i: CommitInning now performs the karambol commit internally
+    # (single source of truth at the call boundary).
     Bk2::CommitInning.call(
       table_monitor: @table_monitor,
       player: player,
       inning_total: inning_total,
       shot_sequence_number: SecureRandom.uuid
     )
-
-    # Phase 38.4 R5-1: commit the inning karambolisch (push redo→innings_list,
-    # recompute_result, flip active_player). Replaces the [-1]=0; <<0 reset that
-    # left innings_redo_list=[0,0] and innings_list=[] (data.result stayed 0 while
-    # bk2_state.set_scores had the real value — score snapped back on switch).
-    @table_monitor.karambol_commit_inning!(player)
     true
   rescue ArgumentError => e
     Rails.logger.error("[bk2_commit_inning] invalid payload: #{e.message}")
