@@ -976,6 +976,12 @@ class TableMonitorReflex < ApplicationReflex
   # JSONB (@table_monitor.data), never from client-supplied DOM attributes.
   def bk2_kombi_commit_if_active(gesture_id:, clicked_player: nil)
     return false unless bk_family?
+    # Phase 38.4 deploy-fix 2026-04-26: only commit innings when actually playing.
+    # Warmup / shootout / set_over panel taps must fall through to the standard
+    # warmup_state_change / shootout / acknowledge_result paths. Without this guard,
+    # the first warmup-panel tap fired Bk2::CommitInning, initialized bk2_state, and
+    # never reached warmup_state_change → user trapped in warmup with no error.
+    return false unless @table_monitor.playing?
 
     bk2_state = @table_monitor.data["bk2_state"] || {}
     player = bk2_state["player_at_table"].to_s
