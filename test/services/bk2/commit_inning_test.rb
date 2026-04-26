@@ -62,6 +62,37 @@ class Bk2::CommitInningTest < ActiveSupport::TestCase
     assert_equal "playerb", s["player_at_table"], "player_at_table must flip to playerb"
   end
 
+  # Phase 38.4 R5-3: opponent-credit must mirror to karambol-side data so the view
+  # (which reads data.result + redo_list[-1] since R5-1) shows the right scores.
+  # Player's own running zeroed → karambol_commit_inning! commits 0 to own innings_list,
+  # data.result unchanged. Opponent's redo_list[-1] += abs(value) → opponent's display
+  # shows the credit immediately, will be folded into their next committed inning.
+  test "T-R5-3: DZ negative inning mirrors opponent-credit to karambol-side data" do
+    state = fresh_bk2_state("direkter_zweikampf")
+    state["set_scores"]["1"]["playera"] = 10
+    state["set_scores"]["1"]["playerb"] = 5
+    @tm.update!(data: @tm.data.merge(
+      "bk2_state" => state,
+      "playera" => {"result" => 10, "innings" => 1, "innings_list" => [10], "innings_redo_list" => [-3]},
+      "playerb" => {"result" => 5, "innings" => 1, "innings_list" => [5], "innings_redo_list" => [0]}
+    ))
+
+    Bk2::CommitInning.call(
+      table_monitor: @tm,
+      player: "playera",
+      inning_total: -3
+    )
+
+    @tm.reload
+    a = @tm.data["playera"]
+    b = @tm.data["playerb"]
+    assert_equal 10, a["result"].to_i, "playera.result must be UNCHANGED (own running was zeroed → 0 committed)"
+    assert_equal [10, 0], a["innings_list"], "playera.innings_list must append 0 (faulted inning, no own points)"
+    assert_equal [0], a["innings_redo_list"], "playera.innings_redo_list reset to fresh [0]"
+    assert_equal 5, b["result"].to_i, "playerb.result still reflects committed innings only"
+    assert_equal [3], b["innings_redo_list"], "playerb.innings_redo_list must carry abs(-3)=3 as running credit"
+  end
+
   # ---------------------------------------------------------------------------
   # T3: DZ zero inning — no score change, player flips, shots reset
   # ---------------------------------------------------------------------------

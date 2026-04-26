@@ -144,6 +144,13 @@ module Bk2
       else
         # D-10: negatives inning_total → abs-Wert als Kredit an den Gegner.
         state["set_scores"][set_no][opponent] += @inning_total.abs
+        # Phase 38.4 R5-3: Karambol-Pfad für negativen Wert. Vor karambol_commit_inning!:
+        #   - eigene redo_list auf 0 setzen → karambol committet 0 in eigene innings_list
+        #     (statt den negativen Wert, der das eigene result negativ machen würde)
+        #   - abs(Wert) auf opponent.redo_list[-1] addieren → Kredit landet im laufenden
+        #     Score des Gegners und wird bei dessen nächster Aufnahme regulär committet
+        zero_own_running!
+        credit_opponent_running!(opponent, @inning_total.abs)
       end
 
       # Aufnahmewechsel: shots_left_in_turn aus bk2_options lesen (mit Default-Fallback).
@@ -201,6 +208,32 @@ module Bk2
 
     def idempotency_noop
       {state: @tm.data["bk2_state"], transitions: nil, idempotent_noop: true}
+    end
+
+    # R5-3 helper: setze eigene redo_list[-1] auf 0 (für opponent-credit-Pfad).
+    # Defensive Init falls @tm.data[@player] oder redo_list fehlt (Test-Setups die
+    # nur bk2_state seeden) — gleiche Patterns wie in karambol_commit_inning!.
+    def zero_own_running!
+      @tm.data[@player] ||= {}
+      list = (@tm.data[@player]["innings_redo_list"] ||= [])
+      if list.empty?
+        @tm.data[@player]["innings_redo_list"] = [0]
+      else
+        list[-1] = 0
+      end
+    end
+
+    # R5-3 helper: addiere abs(Kredit) auf opponent.redo_list[-1]. Wird beim
+    # nächsten Aufnahme-Commit des Gegners regulär in dessen innings_list
+    # committet — protokollierbar als Teil seiner ersten/laufenden Aufnahme.
+    def credit_opponent_running!(opponent, credit)
+      @tm.data[opponent] ||= {}
+      list = (@tm.data[opponent]["innings_redo_list"] ||= [])
+      if list.empty?
+        @tm.data[opponent]["innings_redo_list"] = [credit.to_i]
+      else
+        list[-1] = list[-1].to_i + credit.to_i
+      end
     end
   end
 end
