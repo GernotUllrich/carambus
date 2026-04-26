@@ -71,7 +71,12 @@ if is_bk2
   if bk2_set_target.zero?
     bk2_set_target = table_monitor.data.dig("bk2_options", "balls_goal").to_i
   end
-  bk2_set_score = (bk2_set_scores[bk2_current_set.to_s] || {})[player_id].to_i
+  # Phase 38.4 R5-1: legacy score_engine path (BK-2/BK-2plus/BK50/BK100 — no Discipline
+  # record, no Nachstoß, bk_family_with_nachstoss?=false) commits innings via
+  # terminate_inning_data → innings_list, recompute_result writes data[player_id].result.
+  # bk2_state.set_scores is only populated by Bk2::AdvanceMatchState (CommitInning path,
+  # BK-2kombi only). Mirror Freie Partie display: result (committed sum) + innings_redo_list[-1].
+  bk2_set_score = table_monitor.data[player_id].andand["result"].to_i
   bk2_inning_running = player_active ? table_monitor.data[player_id].andand["innings_redo_list"].andand[-1].to_i : 0
   bk2_display_score = bk2_set_score + bk2_inning_running
 end
