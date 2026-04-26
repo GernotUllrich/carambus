@@ -93,40 +93,53 @@ class TableMonitor::ResultRecorder < ApplicationService
         "Höchstserie2" => @tm.data["playerb"]["hs"].to_i,
         "Tischnummer" => @tm.game.table_no
       }
-      ba_results = @tm.data["ba_results"] ||
-        {
-          "Gruppe" => @tm.game.group_no,
-          "Partie" => @tm.game.seqno,
-
-          "Spieler1" => @tm.game.game_participations.where(role: "playera").first&.player&.ba_id,
-          "Spieler2" => @tm.game.game_participations.where(role: "playerb").first&.player&.ba_id,
-          "Sets1" => 0,
-          "Sets2" => 0,
-          "Ergebnis1" => 0,
-          "Ergebnis2" => 0,
-          "Aufnahmen1" => 0,
-          "Aufnahmen2" => 0,
-          "Höchstserie1" => 0,
-          "Höchstserie2" => 0,
-          "Tischnummer" => @tm.game.table_no
-        }
-      if game_set_result["Ergebnis1"].to_i > game_set_result["Ergebnis2"].to_i
-        ba_results["Sets1"] =
-          ba_results["Sets1"].to_i + 1
-      end
-      if game_set_result["Ergebnis1"].to_i < game_set_result["Ergebnis2"].to_i
-        ba_results["Sets2"] =
-          ba_results["Sets2"].to_i + 1
-      end
-      ba_results["Ergebnis1"] = ba_results["Ergebnis1"].to_i + game_set_result["Ergebnis1"]
-      ba_results["Ergebnis2"] = ba_results["Ergebnis2"].to_i + game_set_result["Ergebnis2"]
-      ba_results["Aufnahmen1"] = ba_results["Aufnahmen1"].to_i + game_set_result["Aufnahmen1"]
-      ba_results["Aufnahmen2"] = ba_results["Aufnahmen2"].to_i + game_set_result["Aufnahmen2"]
-      ba_results["Höchstserie1"] = [ba_results["Höchstserie1"].to_i, game_set_result["Höchstserie1"].to_i].max
-      ba_results["Höchstserie2"] = [ba_results["Höchstserie2"].to_i, game_set_result["Höchstserie2"].to_i].max
-      @tm.deep_merge_data!("ba_results" => ba_results)
+      # Phase 38.4 R5-2: ba_results-Update wurde aus dieser Methode herausgelöst
+      # und nach perform_save_current_set verschoben (atomisch mit data["sets"]
+      # push). perform_save_result wird in perform_evaluate_result an ZWEI Stellen
+      # aufgerufen (Übergang playing→set_over UND auf Bestätigung des Protokoll-
+      # Modals). Vorher: Sets1/2 +=1 jedes Mal → Doppelzählung → Match endet
+      # nach Satz 1 (Sets1=2 statt 1). Jetzt single source of truth in
+      # perform_save_current_set.
     end
     game_set_result
+  end
+
+  # Phase 38.4 R5-2: ba_results-Aktualisierung extrahiert. Aufrufer ist
+  # perform_save_current_set (genau einmal pro Satz, atomisch mit dem data["sets"]
+  # push). NICHT von perform_save_result aufrufen — das wird mehrfach pro Satz
+  # aufgerufen (siehe doc-comment in perform_save_result oben).
+  def update_ba_results_with_set_result!(game_set_result)
+    return unless @tm.game.present?
+
+    ba_results = @tm.data["ba_results"] ||
+      {
+        "Gruppe" => @tm.game.group_no,
+        "Partie" => @tm.game.seqno,
+        "Spieler1" => @tm.game.game_participations.where(role: "playera").first&.player&.ba_id,
+        "Spieler2" => @tm.game.game_participations.where(role: "playerb").first&.player&.ba_id,
+        "Sets1" => 0,
+        "Sets2" => 0,
+        "Ergebnis1" => 0,
+        "Ergebnis2" => 0,
+        "Aufnahmen1" => 0,
+        "Aufnahmen2" => 0,
+        "Höchstserie1" => 0,
+        "Höchstserie2" => 0,
+        "Tischnummer" => @tm.game.table_no
+      }
+    if game_set_result["Ergebnis1"].to_i > game_set_result["Ergebnis2"].to_i
+      ba_results["Sets1"] = ba_results["Sets1"].to_i + 1
+    end
+    if game_set_result["Ergebnis1"].to_i < game_set_result["Ergebnis2"].to_i
+      ba_results["Sets2"] = ba_results["Sets2"].to_i + 1
+    end
+    ba_results["Ergebnis1"] = ba_results["Ergebnis1"].to_i + game_set_result["Ergebnis1"].to_i
+    ba_results["Ergebnis2"] = ba_results["Ergebnis2"].to_i + game_set_result["Ergebnis2"].to_i
+    ba_results["Aufnahmen1"] = ba_results["Aufnahmen1"].to_i + game_set_result["Aufnahmen1"].to_i
+    ba_results["Aufnahmen2"] = ba_results["Aufnahmen2"].to_i + game_set_result["Aufnahmen2"].to_i
+    ba_results["Höchstserie1"] = [ba_results["Höchstserie1"].to_i, game_set_result["Höchstserie1"].to_i].max
+    ba_results["Höchstserie2"] = [ba_results["Höchstserie2"].to_i, game_set_result["Höchstserie2"].to_i].max
+    @tm.deep_merge_data!("ba_results" => ba_results)
   end
 
   def perform_save_current_set
@@ -164,6 +177,9 @@ class TableMonitor::ResultRecorder < ApplicationService
       game_set_result = perform_save_result
 
       sets = Array(@tm.data["sets"]).push(game_set_result)
+      # Phase 38.4 R5-2: update ba_results atomic mit dem data["sets"] push.
+      # Stellt sicher, dass Sets1/2 nur einmal pro Satz inkrementieren.
+      update_ba_results_with_set_result!(game_set_result)
       @tm.deep_merge_data!("redo_sets" => [])
       @tm.deep_merge_data!("sets" => sets)
       @tm.save!
