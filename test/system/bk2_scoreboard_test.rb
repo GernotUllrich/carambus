@@ -175,13 +175,16 @@ class Bk2ScoreboardTest < ApplicationSystemTestCase
   # T6 — Remaining-badge wording changes with phase (Plan 38.3-03)
   # ---------------------------------------------------------------------------
 
-  test "T6a 38.3-03: DZ phase shows shots_left remaining badge (Stöße übrig)" do
+  # Phase 38.4 R5-6: Stöße-übrig-Badge wurde entfernt. Es gibt keine UI um
+  # einen Stoß innerhalb der Aufnahme abzuschließen → Counter war ohne Funktion.
+  # Test invertiert: prüft jetzt Abwesenheit der Badge in DZ-Phase.
+  test "T6a R5-6: DZ phase does NOT show shots_left remaining badge (removed — no UI to advance shots)" do
     visit table_monitor_path(@tm)
 
     assert_selector ".bk2-kombi-scoreboard", wait: 5
     page_body = page.body
-    assert_match(/Stöße übrig|Stoß übrig/, page_body,
-      "T6a: DZ phase remaining badge must contain shots_left i18n label")
+    refute_match(/Stöße übrig|Stoß übrig/, page_body,
+      "T6a R5-6: shots_left badge must NOT render in DZ phase (removed in Phase 38.4 R5-6)")
   end
 
   test "T6b 38.3-03: SP phase shows innings_left remaining badge (Aufnahmen übrig)" do
