@@ -4,7 +4,12 @@ class StartPositionDashboard < Administrate::BaseDashboard
   ATTRIBUTE_TYPES = {
     id: Administrate::Field::Number,
     training_example: Administrate::Field::BelongsTo,
-    image: Field::ActiveStorage,
+    # Phase 38.4 deploy-fix 2026-04-26: Field::ActiveStorage requires
+    # `administrate-field-active_storage` gem (not in Gemfile) — production
+    # eager_load crashed every rails command. Filename-only fallback so the
+    # dashboard boots; restore proper field type when admin-UI image upload
+    # for training is needed (add gem, then revert).
+    image: Administrate::Field::String,
     description_text: Administrate::Field::Text,
     description_text_de: Administrate::Field::Text,
     description_text_en: Administrate::Field::Text,
