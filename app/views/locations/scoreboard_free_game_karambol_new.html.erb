@@ -232,9 +232,16 @@
           case 'bk2_kombi': return [50, 60, 70];
           default: return [];
         }
-      }
+      },
+      // 2026-04-27 Kegel-Toggle: Disziplin-Index 5 ('Kegel') öffnet die Kegel-
+      // Familien-Zeile mit [EUROK, BK50, BK100, BK-2, BK-2plus, BK-2kombi].
+      // EUROK = bk_selected_form null → Eurokegel-Karambol-Pfad.
+      // BK-* = bk_selected_form gesetzt → BK-Pfad (is_bk_family wird true).
+      get is_kegel() { return this.discipline == 5; },
+      get kegel_choice() { return this.bk_selected_form || (this.is_kegel ? 'eurok' : null); }
       }"
-      x-effect="if (is_bk_family && !is_bk_fixed_goal) { bk2_sp_max_innings = parseInt(innings) || 5 }">
+      x-effect="if (is_bk_family && !is_bk_fixed_goal) { bk2_sp_max_innings = parseInt(innings) || 5 };
+                if (discipline != 5 && bk_selected_form) { bk_selected_form = null }">
     <%= form_tag start_game_table_monitor_path(table_monitor), data: {turbo: false}, method: :post, class: "flex flex-col text-gray-300 max-h-screen overflow-y-auto" do %>
       <%# Phase 38.4-06 D-16/D-07: free_game_form driven by bk_selected_form (5 BK-* disciplines).
           Fallback value='karambol' is a safety net if Alpine fails to hydrate.
@@ -300,6 +307,10 @@
             increment: 1,
             no_counter: true }
           %>
+          <%# 2026-04-27 Kegel-Toggle: Index 5 zeigt "Kegel" als Toggle, der die
+              Kegel-Familien-Zeile darunter aufklappt. Karambol-Disziplin
+              dahinter bleibt semantisch "Eurokegel" (KARAMBOL_DISCIPLINE_MAP[5])
+              wenn der User EUROK in der Sub-Zeile wählt. %>
           <%= render partial: "radio_select", locals: {
             table: table,
             show: "table_kind == 'Small Billard' && parameters == 0",
@@ -307,7 +318,7 @@
             varname: "discipline",
             values: [0, 1, 2, 3, 4, 5],
             maxval: 5,
-            displays: ["3Band".html_safe, "Frei", "1Band".html_safe, "52/2", "35/2", "Eurok"],
+            displays: ["3Band".html_safe, "Frei", "1Band".html_safe, "52/2", "35/2", "Kegel"],
             cols: 6,
             increment: 1,
             no_counter: true }
@@ -322,19 +333,20 @@
               (mirrors _radio_select partial). Hidden form inputs at lines 241-253 are unchanged
               and continue to bind to the same Alpine state slots these touch-buttons write to. %>
 
-          <%# --- ROW 1: BK-Variante (5 touch-buttons) --- %>
-          <%# Phase 38.4-15 P2: BK-Variante row uses grid-cols-5 (one button per column).
-              With 5 buttons in 5 cols, the buttons fill the col-span-4 horizontal real
-              estate. Row width visually matches surrounding _radio_select cols=5 rows
-              (e.g., Aufnahmebegrenzung). Plan 10's grid-cols-8 left cols 6-8 empty as
-              gap → 5 buttons rendered 5/8 of the col-span-4 width, making the row
-              appear narrower than surrounding cols=8 rows. Plan 15 reverses to a
-              consistent 5-col layout. (Supersedes Plan 10's grid-cols-8 alignment
-              note above this comment block.) %>
-          <div x-show="table_kind == 'Small Billard' && parameters == 0">BK-Variante</div>
-          <div x-show="table_kind == 'Small Billard' && parameters == 0" class="col-span-4">
-            <div class="grid grid-cols-5 gap-4">
+          <%# --- ROW 1: Kegel-Familien-Zeile (6 touch-buttons) --- %>
+          <%# 2026-04-27: Ersetzt den vorherigen BK-Variante-Block (Plan 38.4-09 / 38.4-15 P2).
+              Nur sichtbar wenn Disziplin = "Kegel" (index 5) gewählt — vorher war der
+              BK-Variante-Block immer sichtbar bei Small Billard und überlud die Detail-Page.
+              6 Buttons: EUROK (= bk_selected_form null, normaler Karambol-Eurokegel-Pfad)
+              + 5 BK-Varianten (BK50..BK-2kombi → bk_selected_form gesetzt, BK-Pfad).
+              Default beim Wechsel auf "Kegel": bk_selected_form=null → EUROK aktiv.
+              Wechsel weg von "Kegel" wird im x-effect (line ~237) durch Reset von
+              bk_selected_form=null abgesichert. %>
+          <div x-show="parameters == 0 && is_kegel">Kegel-Variante</div>
+          <div x-show="parameters == 0 && is_kegel" class="col-span-4">
+            <div class="grid grid-cols-6 gap-4">
               <% [
+                ["eurok",     "EUROK"],
                 ["bk50",      "BK50"],
                 ["bk100",     "BK100"],
                 ["bk_2",      "BK-2"],
@@ -342,22 +354,21 @@
                 ["bk2_kombi", "BK-2kombi"]
               ].each_with_index do |(val, label), ix| %>
                 <label class="group relative border rounded-md py-3 px-4 flex items-center justify-center text-2vw font-medium uppercase focus:outline-none shadow-sm cursor-pointer"
-                       :class="{ 'bg-blue-600 text-white': (bk_selected_form == '<%= val %>'),
-                                 ' text-gray-200': !(bk_selected_form == '<%= val %>') }">
-                  <input type="radio" name="bk_form_choice" value="<%= val %>"
-                         x-model="bk_selected_form" class="sr-only"
-                         aria-labelledby="bk-form-choice-<%= ix %>-label"
-                         @change="bk_balls_goal = bk_ballziel_choices.includes(70) ? 70 : bk_ballziel_choices[0];
-                                  if (['bk_2','bk_2plus','bk2_kombi'].includes(bk_selected_form)) { innings = 5; innings_2 = 5; }">
-                  <span id="bk-form-choice-<%= ix %>-label"><%= label %></span>
+                       :class="{ 'bg-blue-600 text-white': (kegel_choice == '<%= val %>'),
+                                 ' text-gray-200': !(kegel_choice == '<%= val %>') }">
+                  <input type="radio" name="kegel_choice" value="<%= val %>" class="sr-only"
+                         aria-labelledby="kegel-choice-<%= ix %>-label"
+                         @click="if ('<%= val %>' == 'eurok') { bk_selected_form = null }
+                                 else { bk_selected_form = '<%= val %>';
+                                        bk_balls_goal = bk_ballziel_choices.includes(70) ? 70 : bk_ballziel_choices[0];
+                                        if (['bk_2','bk_2plus','bk2_kombi'].includes('<%= val %>')) { innings = 5; innings_2 = 5; } }">
+                  <span id="kegel-choice-<%= ix %>-label"><%= label %></span>
                 </label>
               <% end %>
             </div>
           </div>
-          <%# Phase 38.4-P10: 6th-column spacer. Without it the row spans only 5 of 6 grid
-              cols and the next sibling (Punkt-Ziel header / generic Punktziel header) flows
-              into the empty col on the same visual row, drifting all subsequent labels right. %>
-          <div x-show="table_kind == 'Small Billard' && parameters == 0"></div>
+          <%# 6th-col spacer to keep parent grid-cols-6 row width intact %>
+          <div x-show="parameters == 0 && is_kegel"></div>
 
           <%# --- ROW 2: Punkt-Ziel (Ballziel) — touch-buttons, dynamic per BK-variant ---
               This row was MISSING as a dedicated row for BK-2/BK-2plus/BK-2kombi

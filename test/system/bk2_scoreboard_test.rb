@@ -818,39 +818,16 @@ class Bk2ScoreboardTest < ApplicationSystemTestCase
       "T-O3: exactly one generic Punktziel row must exist (found #{header_count})"
   end
 
-  # Phase 38.4-15 P2 / I-15-02: SUPERSEDES Plan 10's T-O6 assertion. The grid-cols-8
-  # layout left visible empty cells (cols 6-8) which made the row narrower than
-  # surrounding _radio_select cols=5 rows. Plan 15 reverts to grid-cols-5 with 5
-  # buttons per row, mirroring the surrounding row layout. Test name carries "-v2"
-  # suffix to signal Plan 10 → Plan 15 supersession; original Plan 10 attribution
-  # preserved in the docstring.
-  test "T-O6-bk-variante-row-alignment-v2 38.4-15: BK-Variante row uses 5-col grid for surrounding-row alignment (Plan 15 supersedes Plan 10's grid-cols-8)" do
-    contents = File.read(Rails.root.join(
-      "app/views/locations/scoreboard_free_game_karambol_new.html.erb"
-    ))
-    bk_var_block = contents.match(/>BK-Variante<.{0,4000}name="bk_form_choice"/m)&.to_s || ""
-    refute_empty bk_var_block, "T-O6-v2: BK-Variante row block not found"
-    assert_match(/grid-cols-5/, bk_var_block,
-      "T-O6-v2: BK-Variante inner grid must use grid-cols-5 (Plan 10 used grid-cols-8 — superseded by Plan 15 P2)")
-    refute_match(/grid-cols-8/, bk_var_block,
-      "T-O6-v2: BK-Variante must NOT use grid-cols-8 (Plan 15 reverted to grid-cols-5)")
-    assert_equal 1, contents.scan(/name="bk_form_choice"/).size,
-      "T-O6-v2: 1 BK-variant radio template (loop renders 5 at runtime)"
-  end
-
-  # Phase 38.4-15 P2: BK-Variante uses grid-cols-5 (one button per column).
-  # Row width visually matches surrounding _radio_select cols=5 rows.
-  # Plan 10's grid-cols-8 left cols 6-8 empty → row appeared narrower than surroundings.
-  test "T-P2-bk-variante-fixed-width-buttons 38.4-15: BK-Variante row uses grid-cols-5 with 5 buttons per row" do
-    contents = File.read(Rails.root.join(
-      "app/views/locations/scoreboard_free_game_karambol_new.html.erb"
-    ))
-
-    bk_var_block = contents.match(/>BK-Variante<.{0,4000}name="bk_form_choice"/m)&.to_s || ""
-    refute_empty bk_var_block, "T-P2: BK-Variante row block not found"
-    assert_match(/grid grid-cols-5 gap-4/, bk_var_block,
-      "T-P2: BK-Variante inner grid must use grid-cols-5 with gap-4 (closes P2.1 layout regression)")
-  end
+  # 2026-04-27: Two tests removed here that asserted the standalone BK-Variante row
+  # markup (>BK-Variante<, name="bk_form_choice", grid-cols-5). The Kegel-Toggle
+  # restructure collapsed that row into the new 6-button Kegel-Familien-Zeile (uses
+  # name="kegel_choice", grid-cols-6, label "Kegel-Variante"). The replacement
+  # invariants are pinned by T-Kegel-* tests near the bottom of this file:
+  #   T-Kegel-discipline-row-uses-kegel-label    (parameters==0 displays array uses 'Kegel')
+  #   T-Kegel-row-eurok-button-present           (kegel_choice radio + EUROK + is_kegel getter + x-effect reset)
+  #   T-Kegel-old-bk-variante-block-removed      (negative guard: bk_form_choice / >BK-Variante< absent)
+  #   T-Kegel-erb-compiles                       (Alpine getters survive ERB compilation)
+  # Removed: T-O6-bk-variante-row-alignment-v2 (38.4-15) and T-P2-bk-variante-fixed-width-buttons (38.4-15).
 
   # Phase 38.4-15 P2: visible vertical spacer (col-span-6 h-4) inserted above MEHRSATZ
   # partial call so MEHRSATZ doesn't crowd against the merged Aufnahmebegrenzung row.
@@ -875,55 +852,10 @@ class Bk2ScoreboardTest < ApplicationSystemTestCase
       "T-P2: non-BK Aufnahmebegrenzung partial keeps cols=5 (no regression)"
   end
 
-  # Phase 38.4-15 P2 / I-15-01: rendered-template verification of grid-cols-5 class.
-  # File-grep tests verify the .erb source contains the class; this test verifies
-  # the compiled ERB output (Ruby source produced by Rails' template compiler)
-  # contains it. Catches subtle ERB-compilation issues that source-level greps
-  # would miss (e.g., the class string sitting inside an ERB comment block <%# %>
-  # which Rails strips at compile time → present in source but absent in output).
-  #
-  # NOTE on methodology shift (per I-15-01 SUMMARY note): the original Plan 15
-  # draft used `visit table_monitor_path(@tm)` to assert via Capybara DOM. That
-  # path renders the table_monitor scoreboard, NOT the
-  # `scoreboard_free_game_karambol_new.html.erb` template under modification.
-  # The latter is reached via `LocationsController#show` with `sb_state=free_game_detail`
-  # and requires complex Location/Table/Club/Player fixture setup not present in
-  # this test class. Rather than introduce a fixture chain just for one assertion,
-  # this test compiles the ERB template via Rails' template handler and asserts
-  # against the resulting Ruby source. This catches the I-15-01 concern (class
-  # surviving compilation) without browser overhead. Documented in 38.4-15-SUMMARY.md.
-  test "T-P2-bk-variante-row-cols-5-rendered 38.4-15: BK-Variante row class survives ERB compilation (per I-15-01)" do
-    view_path = Rails.root.join(
-      "app/views/locations/scoreboard_free_game_karambol_new.html.erb"
-    )
-    raw_erb = File.read(view_path)
-
-    # Compile the ERB template to Ruby source. Rails' default ERB handler strips
-    # ERB comments (`<%# %>`) at compile time, so any class string inside a
-    # comment block disappears from the compiled output. Plain HTML class strings
-    # survive verbatim into the compiled source as string literals.
-    compiled = ActionView::Template::Handlers::ERB.new.call(
-      ActionView::Template.new(
-        raw_erb,
-        view_path.to_s,
-        ActionView::Template.handler_for_extension("erb"),
-        format: :html,
-        locals: []
-      ),
-      raw_erb
-    )
-
-    assert_match(/grid grid-cols-5 gap-4/, compiled,
-      "T-P2-rendered: compiled ERB output must contain 'grid grid-cols-5 gap-4' for BK-Variante row " \
-      "(class survived ERB compilation — not stripped as a comment)")
-
-    # Negative assertion: grid-cols-8 must NOT appear in any non-comment context
-    # in the compiled template. (The ERB <%# ... %> comment that mentions Plan 10's
-    # grid-cols-8 in its Plan 15 supersession docstring is stripped during
-    # compilation, so this assertion correctly rejects any LIVE grid-cols-8 class.)
-    refute_match(/grid-cols-8/, compiled,
-      "T-P2-rendered: compiled ERB output must NOT contain grid-cols-8 (Plan 15 superseded Plan 10)")
-  end
+  # 2026-04-27: Removed T-P2-bk-variante-row-cols-5-rendered (38.4-15 / I-15-01) —
+  # asserted grid-cols-5 + absence of grid-cols-8 in the compiled ERB for the now-
+  # gone BK-Variante row. Replaced by T-Kegel-erb-compiles which compiles the
+  # template post-restructure and asserts the new Kegel-Variante markers survive.
 
   test "T-O7-merged-aufnahmebegrenzung-row 38.4-10: standalone SP-max row removed; Aufnahmebegrenzung swaps button set per discipline" do
     contents = File.read(Rails.root.join(
@@ -1315,6 +1247,88 @@ class Bk2ScoreboardTest < ApplicationSystemTestCase
     disc_window = lines[disc_idx, 4].join
     assert_match(/data\["playera"\]\.andand\["discipline"\]/, disc_window,
       "T-P4 (Option B preservation): TableMonitor#discipline must still return data['playera']['discipline'] (String) — 15+ legacy callers depend on the String contract; round-4 iteration-2 explicitly defers the AR-record migration to a future phase")
+  end
+
+  # ---------------------------------------------------------------------------
+  # 2026-04-27 Kegel-Toggle: discipline index 5 ("Kegel") opens a sub-row with
+  # [EUROK, BK50, BK100, BK-2, BK-2plus, BK-2kombi]. EUROK is default, BK-Variante
+  # row is collapsed into the new Kegel-Familien-Zeile. File-grep + ERB-compile
+  # tests guard the markup; Alpine reactivity itself is verified manually in the
+  # browser (per UAT pattern).
+  # ---------------------------------------------------------------------------
+
+  test "T-Kegel-discipline-row-uses-kegel-label 2026-04-27: discipline radio displays array contains 'Kegel' (not 'Eurok') for index 5" do
+    view_path = Rails.root.join("app/views/locations/scoreboard_free_game_karambol_new.html.erb")
+    contents = File.read(view_path)
+
+    # Locate the parameters==0 discipline radio block (Small Billard, both players)
+    # and assert its displays array uses "Kegel" at the last slot. Block is uniquely
+    # identified by the show: clause for parameters==0 + Small Billard.
+    assert_match(/show:\s*"table_kind == 'Small Billard' && parameters == 0",\s*\n\s*header:\s*"Disziplin",[\s\S]*?displays:\s*\[.*?"Kegel"\s*\]/,
+      contents,
+      "T-Kegel: parameters==0 Small Billard discipline row must end displays array with \"Kegel\" (renamed from \"Eurok\")")
+  end
+
+  test "T-Kegel-row-eurok-button-present 2026-04-27: Kegel-Familien-Zeile contains EUROK button as first option" do
+    view_path = Rails.root.join("app/views/locations/scoreboard_free_game_karambol_new.html.erb")
+    contents = File.read(view_path)
+
+    # The new Kegel-Familien-Zeile uses kegel_choice radio and EUROK as the first
+    # ([0]) entry; this enables it to be the default selection when discipline=5.
+    assert_match(/\["eurok",\s*"EUROK"\]/, contents,
+      "T-Kegel: Kegel-Familien-Zeile must contain ['eurok', 'EUROK'] as first option (default sub-discipline)")
+    assert_match(/name="kegel_choice"/, contents,
+      "T-Kegel: hidden radio input must use name='kegel_choice' for the new Kegel-Familien-Zeile")
+    # is_kegel getter ties row visibility to discipline == 5
+    assert_match(/get is_kegel\(\)\s*\{\s*return this\.discipline == 5/, contents,
+      "T-Kegel: Alpine getter is_kegel() must check discipline == 5")
+    # x-effect clears bk_selected_form when leaving discipline 5
+    assert_match(/if \(discipline != 5 && bk_selected_form\) \{ bk_selected_form = null \}/, contents,
+      "T-Kegel: x-effect must reset bk_selected_form when user navigates away from discipline 5")
+  end
+
+  test "T-Kegel-old-bk-variante-block-removed 2026-04-27: standalone BK-Variante row (5 buttons, always-visible) is removed" do
+    view_path = Rails.root.join("app/views/locations/scoreboard_free_game_karambol_new.html.erb")
+    contents = File.read(view_path)
+
+    # The pre-2026-04-27 BK-Variante row used name="bk_form_choice" for its 5-button
+    # radio set. After the Kegel-toggle restructure, that row is gone (collapsed
+    # into the kegel_choice row). The new row uses name="kegel_choice" — the
+    # bk_form_choice name must NOT appear anywhere in the template.
+    refute_match(/name="bk_form_choice"/, contents,
+      "T-Kegel: legacy BK-Variante row (name='bk_form_choice') must be removed — its 5 BK buttons now live in the Kegel-Familien-Zeile under name='kegel_choice'")
+    # Also: the standalone "BK-Variante" label is gone (replaced by "Kegel-Variante" in the new row)
+    refute_match(/>BK-Variante</, contents,
+      "T-Kegel: literal label 'BK-Variante' must be replaced by 'Kegel-Variante' in the new row")
+    assert_match(/>Kegel-Variante</, contents,
+      "T-Kegel: new row must use 'Kegel-Variante' as its label")
+  end
+
+  test "T-Kegel-erb-compiles 2026-04-27: template still compiles after Kegel-toggle restructure" do
+    view_path = Rails.root.join("app/views/locations/scoreboard_free_game_karambol_new.html.erb")
+    raw_erb = File.read(view_path)
+
+    # Asserting compilation catches syntax errors introduced by the new Alpine
+    # getters (is_kegel, kegel_choice) and the modified x-effect.
+    compiled = ActionView::Template::Handlers::ERB.new.call(
+      ActionView::Template.new(
+        raw_erb,
+        view_path.to_s,
+        ActionView::Template.handler_for_extension("erb"),
+        format: :html,
+        locals: []
+      ),
+      raw_erb
+    )
+
+    # Compiled output must contain literal markers from the new row (not stripped
+    # as ERB comments) and the new Alpine getter signatures.
+    assert_match(/Kegel-Variante/, compiled,
+      "T-Kegel-erb-compiles: 'Kegel-Variante' label must survive ERB compilation")
+    assert_match(/get is_kegel\(\)/, compiled,
+      "T-Kegel-erb-compiles: is_kegel() getter must survive compilation")
+    assert_match(/get kegel_choice\(\)/, compiled,
+      "T-Kegel-erb-compiles: kegel_choice() getter must survive compilation")
   end
 
   private
