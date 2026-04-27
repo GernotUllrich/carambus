@@ -386,6 +386,43 @@ namespace :scenario do
     puts "   Verify: curl -I -A 'AhrefsBot/7.0' #{test_url}   # erwartet: 403"
   end
 
+  # 2026-04-27: Generierte nginx.conf nach /etc/nginx/sites-available/<basename>
+  # auf dem Server pushen + Symlink + reload. Leichtgewichtige Alternative zu
+  # prepare_deploy, das den vollen Server-Setup-Pfad fährt. Nutzt die schon
+  # existierende create_nginx_configuration-Helper-Logik.
+  desc "Sync the generated nginx.conf for a scenario to its server's /etc/nginx/sites-available/<name>"
+  task :sync_nginx_conf, [:scenario_name, :environment] => :environment do |t, args|
+    scenario_name = args[:scenario_name]
+    environment = args[:environment] || 'production'
+
+    if scenario_name.nil? || scenario_name.empty?
+      puts "❌ Usage: rake scenario:sync_nginx_conf[scenario_name,environment]"
+      puts "   e.g.: rake scenario:sync_nginx_conf[carambus_bcw]"
+      exit 1
+    end
+
+    config_file = File.join(scenarios_path, scenario_name, 'config.yml')
+    unless File.exist?(config_file)
+      puts "❌ Scenario configuration not found: #{config_file}"
+      exit 1
+    end
+
+    scenario_config = YAML.load_file(config_file)
+    env_config = scenario_config['environments'][environment]
+    if env_config.nil?
+      puts "❌ Environment '#{environment}' not found in #{scenario_name}/config.yml"
+      exit 1
+    end
+
+    # Reuse existing helper that handles scp + sudo mv + symlink + nginx -t + reload
+    if create_nginx_configuration(scenario_name, env_config)
+      puts "✅ nginx.conf synced + reloaded on #{env_config['ssh_host']}"
+    else
+      puts "❌ Sync failed — see errors above"
+      exit 1
+    end
+  end
+
   # Rails Configuration Tasks
   desc "Configure Rails application for production deployment"
   task :configure_rails_app, [:scenario_name, :environment, :ssh_host, :ssh_port] => :environment do |t, args|
