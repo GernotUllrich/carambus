@@ -319,6 +319,48 @@ namespace :scenario do
     end
   end
 
+  # 2026-04-27: Bot-Block-Snippet einmalig pro Server in /etc/nginx/conf.d/ installieren.
+  # Definiert die globale `map $http_user_agent $carambus_block_bot { ... }`, die von
+  # allen Scenario-Server-Blöcken über `if ($carambus_block_bot)` referenziert wird.
+  # Quelle: carambus_master/templates/nginx/carambus_bot_block.conf
+  # Per-Scenario-Opt-Out: bot_block_enabled: false in config.yml setzen (z. B. carambus.de).
+  desc "Install /etc/nginx/conf.d/carambus_bot_block.conf snippet on a server (one-time per server)"
+  task :install_bot_block, [:ssh_host, :ssh_port] => :environment do |t, args|
+    ssh_host = args[:ssh_host]
+    ssh_port = args[:ssh_port] || 22
+
+    if ssh_host.nil? || ssh_host.empty?
+      puts "❌ Usage: rake scenarios:install_bot_block[ssh_host,ssh_port]"
+      puts "   e.g.: rake scenarios:install_bot_block[bc-wedel.duckdns.org,8910]"
+      exit 1
+    end
+
+    snippet = File.join(templates_path, 'nginx', 'carambus_bot_block.conf')
+    unless File.exist?(snippet)
+      puts "❌ Snippet not found: #{snippet}"
+      exit 1
+    end
+
+    remote_tmp = "/tmp/carambus_bot_block.conf"
+    target = "/etc/nginx/conf.d/carambus_bot_block.conf"
+
+    puts "📤 Uploading #{snippet} → #{ssh_host}:#{remote_tmp}"
+    unless system("scp -P #{ssh_port} #{snippet} www-data@#{ssh_host}:#{remote_tmp}")
+      puts "❌ scp failed"
+      exit 1
+    end
+
+    puts "🔧 Installing as #{target} and reloading nginx..."
+    install_cmd = "sudo mv #{remote_tmp} #{target} && sudo chown root:root #{target} && sudo chmod 644 #{target} && sudo nginx -t && sudo systemctl reload nginx"
+    unless system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{install_cmd}'")
+      puts "❌ Remote install/reload failed — check 'sudo nginx -t' output above. Snippet still at #{remote_tmp}, target unchanged."
+      exit 1
+    end
+
+    puts "✅ /etc/nginx/conf.d/carambus_bot_block.conf installed on #{ssh_host}; nginx reloaded."
+    puts "   Verify: curl -I -A 'AhrefsBot/7.0' http://#{ssh_host}/   # erwartet: 403"
+  end
+
   # Rails Configuration Tasks
   desc "Configure Rails application for production deployment"
   task :configure_rails_app, [:scenario_name, :environment, :ssh_host, :ssh_port] => :environment do |t, args|

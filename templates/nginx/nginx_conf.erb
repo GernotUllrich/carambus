@@ -28,6 +28,17 @@ server {
     error_log /var/log/<%= @scenario['basename'] %>/error.log debug;
     access_log /var/log/<%= @scenario['basename'] %>/access.log combined;
 
+<% if @config.fetch('bot_block_enabled', true) %>
+    # Bot-Abweisung — die map $http_user_agent $carambus_block_bot lebt EINMALIG pro
+    # Server in /etc/nginx/conf.d/carambus_bot_block.conf (siehe
+    # carambus_master/templates/nginx/carambus_bot_block.conf). Hier nur die
+    # Referenz; greift VOR jedem location-Match. Per-Scenario-Opt-Out via
+    # `bot_block_enabled: false` im config.yml.
+    if ($carambus_block_bot) {
+        return 403 "Forbidden\n";
+    }
+
+<% end %>
     location ~ /\. {
         deny all;
     }
@@ -105,6 +116,17 @@ server {
     error_log /var/log/<%= @scenario['basename'] %>/error.log debug;
     access_log /var/log/<%= @scenario['basename'] %>/access.log combined;
 
+<% if @config.fetch('bot_block_enabled', true) %>
+    # Bot-Abweisung — die map $http_user_agent $carambus_block_bot lebt EINMALIG pro
+    # Server in /etc/nginx/conf.d/carambus_bot_block.conf (siehe
+    # carambus_master/templates/nginx/carambus_bot_block.conf). Hier nur die
+    # Referenz; greift VOR jedem location-Match. Per-Scenario-Opt-Out via
+    # `bot_block_enabled: false` im config.yml.
+    if ($carambus_block_bot) {
+        return 403 "Forbidden\n";
+    }
+
+<% end %>
     location ~ /\. {
         deny all;
     }
