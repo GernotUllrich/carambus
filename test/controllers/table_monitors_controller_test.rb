@@ -277,6 +277,66 @@ class TableMonitorsControllerTest < ActionDispatch::IntegrationTest
       "Absent first_set_mode must default to direkter_zweikampf (not nil, not missing key)"
   end
 
+  # 2026-04-27 F1 regression: detail-form BK-2kombi must preserve sets_to_win=2,
+  # sets_to_play=3 even when the karambol-shape *_choice radio params are sent
+  # alongside (the BK-* detail view shares the karambol form skeleton; the
+  # x-show'd-false radio_select partials still emit games_choice="0" / sets_choice="0").
+  # Pre-fix, the controller's else-branch unconditionally overwrote sets_to_win/play
+  # with games_/sets_choice → "0" → BK-2kombi started as a single set instead of
+  # best-of-3 (live club test 2026-04-27).
+  test "T-F1-2026-04-27 start_game BK-2kombi detail-form preserves sets_to_win/play against karambol *_choice clobber" do
+    post start_game_table_monitor_url(@table_monitor), params: {
+      free_game_form:    "bk2_kombi",
+      discipline_a:      "BK2-Kombi",
+      discipline_b:      "BK2-Kombi",
+      balls_goal:        70,
+      sets_to_win:       2,
+      sets_to_play:      3,
+      # Karambol-shape *_choice params travel along (radio_select x-show'd false but
+      # still emits its hidden inputs at default "0").
+      games_choice:      "0",
+      sets_choice:       "0",
+      games_2_choice:    "",
+      sets_2_choice:     "",
+      player_a_id:       players(:jaspers).id,
+      player_b_id:       players(:cho).id,
+      allow_follow_up:   "0",
+      first_break_choice: 0
+    }
+    @table_monitor.reload
+    assert_equal 2, @table_monitor.data["sets_to_win"],
+      "T-F1: BK-2kombi detail-form sets_to_win must remain 2 (best-of-3) — pre-fix it was clobbered to 0 by games_choice"
+    assert_equal 3, @table_monitor.data["sets_to_play"],
+      "T-F1: BK-2kombi detail-form sets_to_play must remain 3 (best-of-3) — pre-fix it was clobbered to 0 by sets_choice"
+  end
+
+  # 2026-04-27 F1 regression (companion): BK-Einzelspiel (BK-2plus / BK-2 / BK50 /
+  # BK100) detail-form must preserve sets_to_win=1, sets_to_play=1 against the
+  # same *_choice clobber. Pre-fix: form sent 1/1, controller overwrote with
+  # games_choice="0" → start_game's BK branch defaulted to 2/3 (BK-2kombi defaults)
+  # → wrong shape for single-set BK games.
+  test "T-F1b-2026-04-27 start_game BK-2plus detail-form preserves sets_to_win=1/sets_to_play=1" do
+    post start_game_table_monitor_url(@table_monitor), params: {
+      free_game_form:    "bk_2plus",
+      discipline_a:      "BK-2plus",
+      discipline_b:      "BK-2plus",
+      balls_goal:        70,
+      sets_to_win:       1,
+      sets_to_play:      1,
+      games_choice:      "0",
+      sets_choice:       "0",
+      player_a_id:       players(:jaspers).id,
+      player_b_id:       players(:cho).id,
+      allow_follow_up:   "0",
+      first_break_choice: 0
+    }
+    @table_monitor.reload
+    assert_equal 1, @table_monitor.data["sets_to_win"],
+      "T-F1b: BK-2plus detail-form sets_to_win must remain 1 (single match)"
+    assert_equal 1, @table_monitor.data["sets_to_play"],
+      "T-F1b: BK-2plus detail-form sets_to_play must remain 1 (single match)"
+  end
+
   # j. Quick form (Pi 3) passes first_set_mode through (whitelisted value "serienspiel").
   test "start_game BK2 quick-form persists first_set_mode=serienspiel when whitelisted value is submitted" do
     post start_game_table_monitor_url(@table_monitor), params: {

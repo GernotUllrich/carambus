@@ -169,8 +169,17 @@ class TableMonitorsController < ApplicationController
         p[:balls_goal_b] = p[:balls_goal_b_choice]
       end
       p[:innings_goal] = p[:innings_choice]
-      p[:sets_to_play] = p[:sets_2_choice].presence || p[:sets_choice]
-      p[:sets_to_win] = p[:games_2_choice].presence || p[:games_choice]
+      # 2026-04-27 (F1 fix): for BK-family detail forms the view's hidden inputs
+      # already emit the correct sets_to_win / sets_to_play (e.g. 2/3 for BK-2kombi,
+      # 1/1 for BK-2/BK-2plus/BK50/BK100). The karambol-shaped *_choice radio-selects
+      # default to "0" when x-show'd false and would unconditionally clobber the
+      # BK-correct values. Skip the overwrite for BK-family — same posture as the
+      # discipline_*/balls_goal_* guard above. Without this, BK-2kombi from the
+      # Detail Page started as a single set (sets_to_win=0) instead of best-of-3.
+      unless Discipline::BK2_FREE_GAME_FORMS.include?(p[:free_game_form].to_s)
+        p[:sets_to_play] = p[:sets_2_choice].presence || p[:sets_choice]
+        p[:sets_to_win] = p[:games_2_choice].presence || p[:games_choice]
+      end
     end
     # 38.4-04: guard the `four_ball` branch against silently bulldozing
     # any BK-family state. BK-* quick/detail forms never emit `four_ball`, but a
