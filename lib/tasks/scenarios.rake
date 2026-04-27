@@ -324,33 +324,54 @@ namespace :scenario do
   # allen Scenario-Server-Blöcken über `if ($carambus_block_bot)` referenziert wird.
   # Quelle: carambus_master/templates/nginx/carambus_bot_block.conf
   # Per-Scenario-Opt-Out: bot_block_enabled: false in config.yml setzen (z. B. carambus.de).
-  desc "Install /etc/nginx/conf.d/carambus_bot_block.conf snippet on a server (one-time per server)"
-  task :install_bot_block, [:ssh_host, :ssh_port] => :environment do |t, args|
-    ssh_host = args[:ssh_host]
-    ssh_port = args[:ssh_port] || 22
+  desc "Install /etc/nginx/conf.d/carambus_bot_block.conf snippet on a scenario's production server"
+  task :install_bot_block, [:scenario_name, :environment] => :environment do |t, args|
+    scenario_name = args[:scenario_name]
+    environment = args[:environment] || 'production'
 
+    if scenario_name.nil? || scenario_name.empty?
+      puts "❌ Usage: rake scenario:install_bot_block[scenario_name,environment]"
+      puts "   e.g.: rake scenario:install_bot_block[carambus_bcw]"
+      puts "         rake scenario:install_bot_block[carambus_bcw,production]"
+      exit 1
+    end
+
+    config_file = File.join(scenarios_path, scenario_name, 'config.yml')
+    unless File.exist?(config_file)
+      puts "❌ Scenario configuration not found: #{config_file}"
+      exit 1
+    end
+
+    scenario_config = YAML.load_file(config_file)
+    env_config = scenario_config['environments'][environment]
+    if env_config.nil?
+      puts "❌ Environment '#{environment}' not found in #{scenario_name}/config.yml"
+      exit 1
+    end
+
+    ssh_host = env_config['ssh_host']
+    ssh_port = env_config['ssh_port'] || 22
     if ssh_host.nil? || ssh_host.empty?
-      puts "❌ Usage: rake scenarios:install_bot_block[ssh_host,ssh_port]"
-      puts "   e.g.: rake scenarios:install_bot_block[bc-wedel.duckdns.org,8910]"
+      puts "❌ ssh_host not set in #{scenario_name}/config.yml under environments.#{environment}"
       exit 1
     end
 
     snippet = File.join(templates_path, 'nginx', 'carambus_bot_block.conf')
     unless File.exist?(snippet)
-      puts "❌ Snippet not found: #{snippet}"
+      puts "❌ Snippet template not found: #{snippet}"
       exit 1
     end
 
     remote_tmp = "/tmp/carambus_bot_block.conf"
     target = "/etc/nginx/conf.d/carambus_bot_block.conf"
 
-    puts "📤 Uploading #{snippet} → #{ssh_host}:#{remote_tmp}"
+    puts "📤 Uploading snippet to #{scenario_name} (#{environment}) → #{ssh_host}:#{ssh_port}#{remote_tmp}"
     unless system("scp -P #{ssh_port} #{snippet} www-data@#{ssh_host}:#{remote_tmp}")
       puts "❌ scp failed"
       exit 1
     end
 
-    puts "🔧 Installing as #{target} and reloading nginx..."
+    puts "🔧 Installing as #{target} and reloading nginx on #{ssh_host}..."
     install_cmd = "sudo mv #{remote_tmp} #{target} && sudo chown root:root #{target} && sudo chmod 644 #{target} && sudo nginx -t && sudo systemctl reload nginx"
     unless system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{install_cmd}'")
       puts "❌ Remote install/reload failed — check 'sudo nginx -t' output above. Snippet still at #{remote_tmp}, target unchanged."
@@ -358,7 +379,11 @@ namespace :scenario do
     end
 
     puts "✅ /etc/nginx/conf.d/carambus_bot_block.conf installed on #{ssh_host}; nginx reloaded."
-    puts "   Verify: curl -I -A 'AhrefsBot/7.0' http://#{ssh_host}/   # erwartet: 403"
+    webserver_host = env_config['webserver_host'] || ssh_host
+    webserver_port = env_config['webserver_port']
+    scheme = env_config['ssl_enabled'] ? 'https' : 'http'
+    test_url = webserver_port && !%w[80 443].include?(webserver_port.to_s) ? "#{scheme}://#{webserver_host}:#{webserver_port}/" : "#{scheme}://#{webserver_host}/"
+    puts "   Verify: curl -I -A 'AhrefsBot/7.0' #{test_url}   # erwartet: 403"
   end
 
   # Rails Configuration Tasks
