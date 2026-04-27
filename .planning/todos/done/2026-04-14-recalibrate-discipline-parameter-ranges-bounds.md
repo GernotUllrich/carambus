@@ -38,3 +38,24 @@ its purpose.
 
 Out of scope for this todo: the broader question of whether a modal is
 even the right UX — a live "hint" on the form might be better.
+
+---
+
+## Closed 2026-04-27 (taktischer Quick-Fix vor Phase 39)
+
+Bounds aggressiv geweitet in `Discipline::UI_07_DISCIPLINE_SPECIFIC_RANGES`
+(`app/models/discipline.rb:67-87`):
+- Dreiband: bg 10..150, ig 10..150 (war 10..80 / 20..80)
+- Freie Partie: bg 50..1000, ig 5..200 (war 50..500 / 20..80)
+- Cadre: bg 30..400, ig 10..150 (war 50..300 / 15..60)
+- Einband: bg 30..400, ig 10..200 (war 30..200 / 15..60)
+- 5-Kegel-Billard: bg 30..500, ig 5..200 (war 60..300 / 10..60)
+
+2 Regression-Tests in `test/models/discipline_test.rb`:
+- Anker: Tournament 17411 (Dreiband klein, 100/20) passt
+- Tippfehler: 10000 wird weiter gefiltert
+
+**Phase 39 (DTP-Backed Parameter Ranges) ersetzt diese Konstante** durch
+context-aware Lookups aus `discipline_tournament_plans`. Der Quick-Fix
+hier ist explizit transitional — solange Phase 39 nicht läuft, darf
+das Modal nur echte Eingabefehler abfangen, nicht reale Wettkampfwerte.

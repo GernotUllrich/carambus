@@ -64,22 +64,28 @@ class Discipline < ApplicationRecord
     sets_to_win: 1..4
   }.freeze
 
+  # 2026-04-27: Bounds aggressiv geweitet (Tippfehler-Filter, kein Plausibilitätscheck).
+  # Zuvor zu eng — Tournament 17411 (Dreiband klein, balls_goal=100, innings_goal=20)
+  # löste das Modal trotz völlig normaler Werte aus. Phase 39 (DTP-Backed Parameter
+  # Ranges) ersetzt diese Konstante durch context-aware Lookups aus
+  # discipline_tournament_plans; bis dahin sollen die Bounds nur echte Eingabefehler
+  # (z. B. balls_goal=10000) abfangen, nicht reale Wettkampfwerte.
   UI_07_DISCIPLINE_SPECIFIC_RANGES = {
-    "Freie Partie" => {balls_goal: 50..500, innings_goal: 20..80, timeout: 30..90},
-    "Freie Partie klein" => {balls_goal: 50..500, innings_goal: 20..80, timeout: 30..90},
-    "Freie Partie groß" => {balls_goal: 50..500, innings_goal: 20..80, timeout: 30..90},
-    "Cadre 47/1" => {balls_goal: 50..300, innings_goal: 15..60, timeout: 30..90},
-    "Cadre 47/2" => {balls_goal: 50..300, innings_goal: 15..60, timeout: 30..90},
-    "Cadre 71/2" => {balls_goal: 50..300, innings_goal: 15..60, timeout: 30..90},
-    "Cadre 35/2" => {balls_goal: 50..300, innings_goal: 15..60, timeout: 30..90},
-    "Cadre 52/2" => {balls_goal: 50..300, innings_goal: 15..60, timeout: 30..90},
-    "Einband" => {balls_goal: 30..200, innings_goal: 15..60, timeout: 30..90},
-    "Einband klein" => {balls_goal: 30..200, innings_goal: 15..60, timeout: 30..90},
-    "Einband groß" => {balls_goal: 30..200, innings_goal: 15..60, timeout: 30..90},
-    "Dreiband" => {balls_goal: 10..80, innings_goal: 20..80, timeout: 30..90},
-    "Dreiband klein" => {balls_goal: 10..80, innings_goal: 20..80, timeout: 30..90},
-    "Dreiband groß" => {balls_goal: 10..80, innings_goal: 20..80, timeout: 30..90},
-    "5-Kegel-Billard" => {balls_goal: 60..300, innings_goal: 10..60, timeout: 30..120}
+    "Freie Partie" => {balls_goal: 50..1000, innings_goal: 5..200, timeout: 30..90},
+    "Freie Partie klein" => {balls_goal: 50..1000, innings_goal: 5..200, timeout: 30..90},
+    "Freie Partie groß" => {balls_goal: 50..1000, innings_goal: 5..200, timeout: 30..90},
+    "Cadre 47/1" => {balls_goal: 30..400, innings_goal: 10..150, timeout: 30..90},
+    "Cadre 47/2" => {balls_goal: 30..400, innings_goal: 10..150, timeout: 30..90},
+    "Cadre 71/2" => {balls_goal: 30..400, innings_goal: 10..150, timeout: 30..90},
+    "Cadre 35/2" => {balls_goal: 30..400, innings_goal: 10..150, timeout: 30..90},
+    "Cadre 52/2" => {balls_goal: 30..400, innings_goal: 10..150, timeout: 30..90},
+    "Einband" => {balls_goal: 30..400, innings_goal: 10..200, timeout: 30..90},
+    "Einband klein" => {balls_goal: 30..400, innings_goal: 10..200, timeout: 30..90},
+    "Einband groß" => {balls_goal: 30..400, innings_goal: 10..200, timeout: 30..90},
+    "Dreiband" => {balls_goal: 10..150, innings_goal: 10..150, timeout: 30..90},
+    "Dreiband klein" => {balls_goal: 10..150, innings_goal: 10..150, timeout: 30..90},
+    "Dreiband groß" => {balls_goal: 10..150, innings_goal: 10..150, timeout: 30..90},
+    "5-Kegel-Billard" => {balls_goal: 30..500, innings_goal: 5..200, timeout: 30..120}
   }.freeze
 
   DISCIPLINE_PARAMETER_RANGES =

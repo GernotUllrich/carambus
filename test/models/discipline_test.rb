@@ -245,4 +245,27 @@ class DisciplineTest < ActiveSupport::TestCase
     assert_equal [50, 60, 70], parsed["ballziel_choices"],
       "T-P5-bk2kombi: ballziel_choices must remain [50, 60, 70] (D-13 contract)"
   end
+
+  # ---------------------------------------------------------------------------
+  # 2026-04-27: Anchor regression — Tournament 17411 (Dreiband klein) values
+  # 100/20 are real-world normal and MUST NOT trigger the UI-07 modal.
+  # Source: .planning/todos/done/2026-04-14-recalibrate-discipline-parameter-ranges-bounds.md
+  # ---------------------------------------------------------------------------
+
+  test "parameter_ranges accepts Tournament 17411 anchor (Dreiband klein 100/20)" do
+    ranges = Discipline::DISCIPLINE_PARAMETER_RANGES["Dreiband klein"]
+    assert ranges, "Dreiband klein must have parameter_ranges entry"
+    assert ranges[:balls_goal].cover?(100),
+      "balls_goal=100 must be valid for Dreiband klein (Tournament 17411 anchor)"
+    assert ranges[:innings_goal].cover?(20),
+      "innings_goal=20 must be valid for Dreiband klein (Tournament 17411 anchor)"
+  end
+
+  test "parameter_ranges still flags clearly-typo values" do
+    ranges = Discipline::DISCIPLINE_PARAMETER_RANGES["Dreiband klein"]
+    refute ranges[:balls_goal].cover?(10_000),
+      "balls_goal=10000 must be flagged (typo filter still active)"
+    refute ranges[:innings_goal].cover?(10_000),
+      "innings_goal=10000 must be flagged (typo filter still active)"
+  end
 end
