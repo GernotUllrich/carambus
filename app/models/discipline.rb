@@ -415,9 +415,14 @@ class Discipline < ApplicationRecord
     Array(parsed["ballziel_choices"])
   end
 
-  # Phase 38.4-11 O2: Read nachstoss_allowed flag from data JSON.
+  # Phase 38.4-11 O2 / Round 5: Derivation-based Nachstoß gate.
+  # Only BK-2kombi has Nachstoß by design (P5 principle — architectural constant).
+  # Primary check: data["nachstoss_allowed"] == true (explicit flag, preserved for
+  # future BK-family extensions). Fallback: free_game_form == "bk2_kombi" covers the
+  # sync-race case where the flag is absent from data on a local server — eliminating
+  # the brittle Path-B unprotected-write dependency on every local clone.
   # Returns false for absent / malformed / nil data — backward-compatible default.
-  # Used by Bk2::AdvanceMatchState to defer set-close in BK50/BK100 (O2 closure).
+  # Used by Bk2::AdvanceMatchState to defer set-close in BK-2kombi SP phase.
   def nachstoss_allowed?
     return false unless data.present?
     parsed = begin
@@ -425,7 +430,8 @@ class Discipline < ApplicationRecord
     rescue JSON::ParserError
       {}
     end
-    parsed["nachstoss_allowed"] == true
+    return false unless parsed.is_a?(Hash)
+    parsed["nachstoss_allowed"] == true || parsed["free_game_form"] == "bk2_kombi"
   end
 
   def root

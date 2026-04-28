@@ -1,13 +1,12 @@
 ---
-status: resolved
+status: awaiting_human_verify
 trigger: "B2/B3a/B3b: BK-2kombi phase sticky, BK-2plus nachstoss must never fire, asymmetric nachstoss set-close — live BCW test 2026-04-27"
 created: 2026-04-27T00:00:00Z
-updated: 2026-04-28T20:30:00Z
-resolved: 2026-04-28T20:30:00Z
+updated: 2026-04-28T21:20:00Z
 symptoms_prefilled: true
 goal: find_and_fix
-rounds: 4
-human_verified: true
+rounds: 5
+human_verified: false
 ---
 
 ## Current Focus
@@ -407,6 +406,23 @@ fix: |
     BK-* family (bk_family_form=true): force false (legacy mechanism irrelevant for BK-*).
     Non-BK: unchanged (Quick Start / Detail-Form normalization preserved).
 
+  ROUND 5 (2026-04-28):
+  Root cause: `Discipline#nachstoss_allowed?` was pure flag-based: returned
+  `parsed["nachstoss_allowed"] == true`. Round 4 correctly suppressed the legacy
+  follow_up? path for BK-* — but this revealed that on the dev server,
+  Discipline.find(107).data = `{"free_game_form":"bk2_kombi"}` (NO flag). The flag
+  is absent because of a sync-race (sync-version-yaml-load-json-collision): the
+  central API replicates the record without the flag key. Every local server requires
+  a manual Path-B unprotected-write after sync to set `nachstoss_allowed: true` — a
+  fragile operational dependency. Without the flag, `discipline_nachstoss_allowed?`
+  returns false, `nachstoss_applicable?` gate fails, `bk2_state["nachstoss_pending"]`
+  is never set, `bk_nachstoss_active?` returns false, and the UI never shows "Nachstoß".
+  Fix: `Discipline#nachstoss_allowed?` now uses derivation-based fallback:
+    `parsed["nachstoss_allowed"] == true || parsed["free_game_form"] == "bk2_kombi"`
+  `free_game_form` is a stable, sync-replicated identifier (used for form rendering by
+  all servers — guaranteed to be present). This is defense-in-depth: explicit flag
+  preserved for future BK-family extensions; free_game_form covers the sync-race case.
+
 verification: |
   Round 1 self-verified 2026-04-27:
   - 7 new tests GREEN, 45/45 advance_match_state, 28/28 commit_inning, 56/56 scoreboard
@@ -430,12 +446,18 @@ verification: |
   - 9/9 critical concerns tests pass
   - 20/20 scraping tests pass
 
-  AWAITING: human verification on BCW dev/production that:
-  1. Detail-Form BK-2plus game: "Nachstoß" label does NOT appear when leader reaches balls_goal
-  2. Detail-Form BK-2kombi DZ-first, set 1 (DZ phase): "Nachstoß" label does NOT appear
-  3. Detail-Form BK-2kombi DZ-first, set 2 (SP phase): "Nachstoß" label DOES appear for
-     trailing player after leader reaches balls_goal in inning 1 of the set
-  4. Quick Start path: identical behavior to Detail-Form for all 3 cases above
+  Round 5 self-verified 2026-04-28:
+  - 8 new T-R5-* tests GREEN (27/27 discipline_test.rb, 81 assertions)
+  - 98/98 BK2 service tests pass (no regressions)
+  - 9/9 critical concerns tests pass
+  - 20/20 scraping tests pass
+  - Dev DB revert verified: disc 107 with {"free_game_form":"bk2_kombi"} (no flag)
+    → nachstoss_allowed?=true via free_game_form derivation (rails runner confirmed)
+
+  AWAITING: human verification on BCW dev that:
+  C1: BK-2kombi SP phase set 2 — "Nachstoß" appears when goal reached in inning 1
+  C2a: Quick Start path — same Nachstoß behavior as Detail-Form
+  B3b: After Nachstoß inning completes, set closes correctly for both player A and player B
 
 files_changed:
   - app/services/bk2/advance_match_state.rb
@@ -447,3 +469,5 @@ files_changed:
   - app/controllers/table_monitors_controller.rb
   - test/services/bk2/advance_match_state_test.rb
   - test/models/table_monitor_test.rb
+  - app/models/discipline.rb
+  - test/models/discipline_test.rb

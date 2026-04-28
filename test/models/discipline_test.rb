@@ -183,6 +183,61 @@ class DisciplineTest < ActiveSupport::TestCase
     assert_equal false, d.nachstoss_allowed?
   end
 
+  # ---------------------------------------------------------------------------
+  # Round 5 (2026-04-28): derivation-based gate — free_game_form == "bk2_kombi"
+  # covers the sync-race case where the flag is absent on a local server.
+  # Eliminates the brittle Path-B unprotected-write dependency.
+  # ---------------------------------------------------------------------------
+
+  test "T-R5-bk2kombi-no-flag-derivation: BK-2kombi WITHOUT nachstoss_allowed flag returns true via free_game_form derivation" do
+    # Simulates sync-race: data replicated from central API without the flag key.
+    d = Discipline.new(name: "BK2-Kombi-sync-race", data: {"free_game_form" => "bk2_kombi", "ballziel_choices" => [50, 60, 70]}.to_json)
+    assert_equal true, d.nachstoss_allowed?,
+      "T-R5: BK-2kombi must return true even when nachstoss_allowed flag is absent (derivation via free_game_form)"
+  end
+
+  test "T-R5-bk2kombi-with-flag: BK-2kombi WITH nachstoss_allowed flag still returns true (flag path preserved)" do
+    d = Discipline.new(name: "BK2-Kombi-with-flag", data: {"free_game_form" => "bk2_kombi", "ballziel_choices" => [50, 60, 70], "nachstoss_allowed" => true}.to_json)
+    assert_equal true, d.nachstoss_allowed?,
+      "T-R5: BK-2kombi with explicit flag must still return true"
+  end
+
+  test "T-R5-bk2plus-no-nachstoss: BK-2plus (free_game_form=bk_2plus) returns false (no flag, wrong form)" do
+    d = Discipline.new(name: "BK-2plus-test", data: {"free_game_form" => "bk_2plus", "ballziel_choices" => [50, 60, 70]}.to_json)
+    assert_equal false, d.nachstoss_allowed?,
+      "T-R5: BK-2plus must NOT have Nachstoß (wrong free_game_form, no flag)"
+  end
+
+  test "T-R5-bk2-no-nachstoss: BK-2 (free_game_form=bk_2) returns false" do
+    d = Discipline.new(name: "BK-2-test", data: {"free_game_form" => "bk_2", "ballziel_choices" => [50]}.to_json)
+    assert_equal false, d.nachstoss_allowed?,
+      "T-R5: BK-2 must NOT have Nachstoß"
+  end
+
+  test "T-R5-bk50-no-nachstoss: BK50 (free_game_form=bk50) without flag returns false" do
+    d = Discipline.new(name: "BK50-no-flag", data: {"free_game_form" => "bk50", "ballziel_choices" => [50]}.to_json)
+    assert_equal false, d.nachstoss_allowed?,
+      "T-R5: BK50 without flag must NOT have Nachstoß"
+  end
+
+  test "T-R5-bk100-no-nachstoss: BK100 (free_game_form=bk100) without flag returns false" do
+    d = Discipline.new(name: "BK100-no-flag", data: {"free_game_form" => "bk100", "ballziel_choices" => [100]}.to_json)
+    assert_equal false, d.nachstoss_allowed?,
+      "T-R5: BK100 without flag must NOT have Nachstoß"
+  end
+
+  test "T-R5-karambol-no-nachstoss: non-BK karambol discipline returns false" do
+    d = Discipline.new(name: "Dreiband", data: {"free_game_form" => "dreiband"}.to_json)
+    assert_equal false, d.nachstoss_allowed?,
+      "T-R5: Karambol/non-BK discipline must NOT have Nachstoß"
+  end
+
+  test "T-R5-empty-data-no-crash: discipline with empty-string data returns false without crash" do
+    d = Discipline.new(name: "Empty-str-test", data: "")
+    assert_equal false, d.nachstoss_allowed?,
+      "T-R5: empty data string must return false without raising"
+  end
+
   # Phase 38.4-16 P5: Plan 11's seed-applied test asserted ALL 5 disciplines carried
   # nachstoss_allowed: true. Plan 16 narrows the flag to BK-2kombi only — only
   # BK-2kombi expects true; BK50/BK100/BK-2/BK-2plus expect false (key absent → false
