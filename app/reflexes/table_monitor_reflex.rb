@@ -990,7 +990,15 @@ class TableMonitorReflex < ApplicationReflex
     # D-14: for opponent-panel clicks, commit only when the CLICKED player is the
     # opponent (NOT the current player_at_table). Swap-icon click (clicked_player nil)
     # always commits.
-    if clicked_player.present?
+    #
+    # 2026-04-28 Finding-2: During Nachstoß (nachstoss_pending=true), the current
+    # player_at_table IS the Nachstoß player. Tapping their own panel should also
+    # commit the inning (the player signals "I'm done with my Nachstoß"). Without
+    # this exception, own-panel tap returns false here and falls through to the legacy
+    # terminate_current_inning path, which doesn't perform Nachstoß resolution via
+    # close_set_if_reached! in CommitInning → set never closes after Nachstoß inning.
+    nachstoss_pending = bk2_state["nachstoss_pending"]
+    if clicked_player.present? && !nachstoss_pending
       return false if clicked_player == player  # tapping own panel: no-op
     end
 

@@ -226,7 +226,14 @@ class TableMonitor::GameSetup < ApplicationService
       })
     end
 
-    tm.data.except!("ba_results", "sets")
+    # 2026-04-28 Finding-1: bk2_state von einem vorherigen Spiel muss beim Spielstart
+    # gelöscht werden. Ohne dieses except! überlebt ein alter bk2_state (z.B. mit
+    # current_phase="serienspiel" von einem SP-first BK-2kombi-Spiel) den initialize_game-
+    # Aufruf. Wenn danach initialize_bk2_state! (Shootout-Reflex) prüft ob bk2_state
+    # bereits ein Hash ist, kehrt init_state_if_missing! früh zurück → der alte State
+    # wird verwendet statt ein frischer für den neu gewählten Modus. Symptom: DZ-Modus
+    # gewählt, aber SP-Regelwerk aktiv (Nachstoß feuert in DZ-Phase).
+    tm.data.except!("ba_results", "sets", "bk2_state")
   rescue => e
     Rails.logger.error "ERROR: m6[#{tm.id}]#{e}, #{e.backtrace&.join("\n")}"
     raise StandardError

@@ -1328,6 +1328,127 @@ class Bk2::AdvanceMatchStateTest < ActiveSupport::TestCase
       "T-B3b-eq: match closes after 2nd set win for playera"
   end
 
+  # ===========================================================================
+  # 2026-04-28 BCW Live-Test Round 2 Bugs: Finding-1, Finding-2
+  # Finding-1: Stale bk2_state from a previous game persists through initialize_game.
+  #   GameSetup.initialize_game must clear bk2_state so initialize_bk2_state!
+  #   can re-initialize for the newly selected first_set_mode.
+  # Finding-2: Own-panel tap during Nachstoß must commit the inning.
+  #   During nachstoss_pending, the current player_at_table IS the Nachstoß player.
+  #   The own-panel guard in bk2_kombi_commit_if_active must not block the commit.
+  #   CommitInning itself (called from bk2_kombi_commit_if_active regardless of panel)
+  #   resolves the Nachstoß correctly — this is the unit-level contract.
+  # ===========================================================================
+
+  # Finding-1: stale bk2_state from previous game is cleared by GameSetup.initialize_game,
+  # so initialize_bk2_state! can re-seed the correct phase for the new game.
+  #
+  # Scenario: TM previously had a SP-first BK-2kombi game (bk2_state.current_phase=serienspiel).
+  # New game starts with DZ-first. Without the fix, old bk2_state survives → init guard skips
+  # re-init → SP phase used instead of DZ → Nachstoß fires in DZ phase (wrong).
+  test "T-F1-stale-bk2-state-cleared-by-initialize-game 2026-04-28: stale bk2_state from previous game is cleared on new game start" do
+    bk2k = ensure_bk_discipline("BK2-Kombi-F1", "bk2_kombi", [50, 60, 70], nachstoss_allowed: true)
+    tm = build_table_monitor_with_discipline(bk2k, balls_goal: 70, free_game_form: "bk2_kombi")
+    # Plant a stale bk2_state that looks like a previous SP-first game
+    # (current_phase=serienspiel) — this is what survives from the old game
+    # before the Finding-1 fix was applied.
+    stale_state = {
+      "current_set_number" => 2,
+      "current_phase" => "serienspiel",
+      "first_set_mode" => "serienspiel",
+      "player_at_table" => "playerb",
+      "shots_left_in_turn" => 0,
+      "innings_left_in_set" => 3,
+      "set_inning_count" => 1,
+      "set_scores" => {
+        "1" => {"playera" => 50, "playerb" => 30},
+        "2" => {"playera" => 10, "playerb" => 0},
+        "3" => {"playera" => 0, "playerb" => 0}
+      },
+      "sets_won" => {"playera" => 1, "playerb" => 0},
+      "balls_goal" => 70
+    }
+    tm.data["bk2_state"] = stale_state
+    tm.save!(validate: false)
+
+    # Simulate what GameSetup.initialize_game does (the bit that clears bk2_state).
+    # We call initialize_game directly (static method) to test the clearing.
+    # initialize_game is the method that calls tm.data.except!("ba_results","sets","bk2_state").
+    # After clearing, initialize_bk2_state! is called by the reflex with DZ first_set_mode.
+    tm.data["bk2_options"] = {"first_set_mode" => "direkter_zweikampf", "balls_goal" => 70}
+    TableMonitor::GameSetup.initialize_game(table_monitor: tm)
+
+    # After initialize_game, bk2_state is cleared (the key is removed).
+    # Now simulate initialize_bk2_state! call with DZ first_set_mode.
+    Bk2::AdvanceMatchState.initialize_bk2_state!(tm)
+    tm.reload
+    state = tm.data["bk2_state"]
+
+    # The new bk2_state must reflect DZ phase (first_set_mode=direkter_zweikampf),
+    # NOT the stale serienspiel phase from the previous game.
+    assert_equal 1, state["current_set_number"],
+      "T-F1: current_set_number must reset to 1 after clearing stale bk2_state"
+    assert_equal "direkter_zweikampf", state["current_phase"],
+      "T-F1: current_phase must be direkter_zweikampf for DZ-first new game (not stale serienspiel)"
+    assert_equal "direkter_zweikampf", state["first_set_mode"],
+      "T-F1: first_set_mode must be direkter_zweikampf (new game config, not stale)"
+    assert_equal 0, state["set_inning_count"],
+      "T-F1: set_inning_count must reset to 0 for fresh game"
+  end
+
+  # Finding-2 (service-layer contract): CommitInning called for the Nachstoß player
+  # (player=nachstoss_for, state has nachstoss_pending=true) correctly resolves the
+  # Nachstoß and closes the set — regardless of which panel the operator tapped.
+  # The own-panel guard change in bk2_kombi_commit_if_active ensures CommitInning is
+  # called; this test verifies the CommitInning contract (resolution fires).
+  #
+  # Scenario: set 2 SP, playerB reached goal in inning 1, Nachstoß pending for playerA.
+  # playerA is at table. Operator taps player A's own panel → guard was blocking this.
+  # After the reflex fix, CommitInning.call(player: "playera") fires → set must close.
+  test "T-F2-nachstoss-player-own-panel-commit-closes-set 2026-04-28: CommitInning for Nachstoß player resolves set (own-panel scenario)" do
+    bk2k = ensure_bk_discipline("BK2-Kombi-F2", "bk2_kombi", [50, 60, 70], nachstoss_allowed: true)
+    tm = build_table_monitor_with_discipline(bk2k, balls_goal: 70, free_game_form: "bk2_kombi")
+    tm.data["bk2_options"]["first_set_mode"] = "direkter_zweikampf"
+    tm.data["bk2_options"]["serienspiel_max_innings_per_set"] = 5
+    tm.save!(validate: false)
+    Bk2::AdvanceMatchState.initialize_bk2_state!(tm)
+
+    # Set up: set 2, SP phase, playerB reached goal (70) in inning 1.
+    # Nachstoß is pending for playerA (the trailing player).
+    # player_at_table = "playera" (A is at table for their Nachstoß).
+    tm.reload
+    tm.data["bk2_state"]["current_set_number"] = 2
+    tm.data["bk2_state"]["current_phase"] = "serienspiel"
+    tm.data["bk2_state"]["first_set_mode"] = "direkter_zweikampf"
+    tm.data["bk2_state"]["sets_won"] = {"playera" => 1, "playerb" => 0}
+    tm.data["bk2_state"]["set_scores"]["2"] = {"playera" => 0, "playerb" => 70}
+    tm.data["bk2_state"]["set_inning_count"] = 1  # B's inning 1 completed
+    tm.data["bk2_state"]["innings_left_in_set"] = 5
+    tm.data["bk2_state"]["nachstoss_pending"] = true
+    tm.data["bk2_state"]["nachstoss_for"] = "playera"
+    tm.data["bk2_state"]["player_at_table"] = "playera"
+    tm.save!(validate: false)
+
+    # Operator taps playerA's own panel → bk2_kombi_commit_if_active (after fix) calls
+    # CommitInning.call(player: "playera", inning_total: X).
+    # PlayerA scored 30 during their Nachstoß (below goal 70).
+    Bk2::CommitInning.call(table_monitor: tm, player: "playera", inning_total: 30)
+    tm.reload
+    state = tm.data["bk2_state"]
+
+    # Nachstoß resolution: A scored 30 < 70 → B (original leader) wins set 2.
+    assert_equal true, state["set_finished_2"],
+      "T-F2: set MUST close after Nachstoß player's CommitInning (own-panel scenario)"
+    assert_equal 1, state.dig("sets_won", "playerb"),
+      "T-F2: original leader playerB wins set 2 when Nachstoß player (A) stays below goal"
+    refute state["nachstoss_pending"],
+      "T-F2: nachstoss_pending must be cleared after resolution"
+    assert_equal 3, state["current_set_number"],
+      "T-F2: must advance to set 3 after set 2 closes"
+    assert_equal "direkter_zweikampf", state["current_phase"],
+      "T-F2: set 3 must return to first_set_mode (direkter_zweikampf)"
+  end
+
   # B2: Phase alternates correctly after set closes via Nachstoß resolution (set 2 SP → set 3 DZ).
   test "T-B2-phase-alternates-after-nachstoss-resolution 2026-04-27: current_phase advances after Nachstoß-resolved set close" do
     bk2k = ensure_bk_discipline("BK2-Kombi-B2", "bk2_kombi", [50, 60, 70], nachstoss_allowed: true)
