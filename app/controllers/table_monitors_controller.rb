@@ -299,6 +299,14 @@ class TableMonitorsController < ApplicationController
     else
       (p[:allow_follow_up] == "1") && p[:discipline_a] != "14.1 endlos"
     end
+    # BK-Familie: Disziplin-Regeln überschreiben Form-Input. follow_up? ist die
+    # finale Schranke (gated by phase + first inning für BK-2/BK-2kombi SP).
+    case p[:free_game_form]
+    when "bk_2", "bk2_kombi"
+      p[:allow_follow_up] = true
+    when "bk_2plus", "bk50", "bk100"
+      p[:allow_follow_up] = false
+    end
     if p[:commit] == "Start Shootout"
       p[:discipline_b] = p[:discipline_a] = p[:discipline] = "shootout"
       p[:timeouts] = 0

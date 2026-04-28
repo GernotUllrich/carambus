@@ -125,16 +125,29 @@ class TableMonitor::ScoreEngine
             Rails.logger.debug do
               "add_n_balls: Processing input (n_balls=#{n_balls}, to_play=#{to_play}, allow_overflow=#{data["allow_overflow"].inspect})"
             end
-            add = if data["allow_overflow"].present?
-                    n_balls.positive? ? [n_balls, to_play].min : n_balls
-                  else
-                    n_balls
-                  end
-            data[current_role]["fouls_1"] = 0
-            new_value = data[current_role]["innings_redo_list"][-1].to_i + add.to_i
-            data[current_role]["innings_redo_list"][-1] =
-              allow_negative_scores? ? new_value : [new_value, 0].max
-            recompute_result(current_role)
+            # BK-2plus / BK-2kombi DZ-Phase: negative Werte gehen positiv zum Gegner
+            # (BK-2plus-Regel). Eigener Score bleibt unverändert.
+            if n_balls.negative? && bk_credit_negative_to_opponent?
+              other_role = current_role == "playera" ? "playerb" : "playera"
+              init_lists(other_role)
+              data[other_role]["innings_redo_list"][-1] =
+                data[other_role]["innings_redo_list"][-1].to_i + n_balls.abs
+              recompute_result(other_role)
+              data[current_role]["fouls_1"] = 0
+              # Eigene Aufnahme als 0 abschließen wäre Aufgabe von terminate_inning;
+              # hier wird nur der Score umgeleitet (analog zu Foul-Routing).
+            else
+              add = if data["allow_overflow"].present?
+                      n_balls.positive? ? [n_balls, to_play].min : n_balls
+                    else
+                      n_balls
+                    end
+              data[current_role]["fouls_1"] = 0
+              new_value = data[current_role]["innings_redo_list"][-1].to_i + add.to_i
+              data[current_role]["innings_redo_list"][-1] =
+                allow_negative_scores? ? new_value : [new_value, 0].max
+              recompute_result(current_role)
+            end
 
             if data["free_game_form"] == "snooker" && !skip_snooker_state_update
               update_snooker_state(n_balls)
@@ -1294,6 +1307,13 @@ class TableMonitor::ScoreEngine
     # See phase 38.1 CONTEXT.md D-06.
     def allow_negative_scores?
       data["free_game_form"] == "bk2_kombi"
+    end
+
+    # BK-2plus: negative Score-Eingaben werden POSITIV beim Gegner verbucht.
+    # BK-2kombi (egal welche Phase) und BK-2 verwenden signed-add (negativ am
+    # Spieler). Die BK-2plus-Regel überlagert NUR wenn Disziplin direkt BK-2plus.
+    def bk_credit_negative_to_opponent?
+      data["free_game_form"] == "bk_2plus"
     end
 
     private

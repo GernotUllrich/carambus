@@ -1122,7 +1122,37 @@ class TableMonitor < ApplicationRecord
     tournament_monitor.blank? || tournament_monitor.tournament.blank? || tournament_monitor.tournament.player_controlled?
   end
 
+  # BK-2kombi: derived current set's discipline (DZ ↔ SP alternating from set 1).
+  # Source of truth: legacy data["sets"] count + bk2_options.first_set_mode. Returns
+  # nil for non-BK-2kombi games.
+  def bk2_kombi_current_phase
+    return nil unless data.is_a?(Hash) && data["free_game_form"] == "bk2_kombi"
+    first_mode = data.dig("bk2_options", "first_set_mode").presence || "direkter_zweikampf"
+    set_number = Array(data["sets"]).length + 1
+    set_number.odd? ? first_mode : (first_mode == "direkter_zweikampf" ? "serienspiel" : "direkter_zweikampf")
+  end
+
+  # BK-Familie Nachstoß-Regeln (Overlay über legacy follow_up?):
+  #   BK-2plus / BK50 / BK100  → NIE Nachstoß
+  #   BK-2 / BK-2kombi SP-Phase + Ziel in 1. Aufnahme erreicht → legacy Nachstoß zulässig
+  #   BK-2kombi DZ-Phase → NIE Nachstoß (= BK-2plus-Semantik)
+  # Returns nil for non-BK disciplines (legacy logic decides).
+  def bk_follow_up_override
+    return nil unless data.is_a?(Hash)
+    case data["free_game_form"]
+    when "bk_2plus", "bk50", "bk100"
+      false
+    when "bk2_kombi"
+      bk2_kombi_current_phase == "direkter_zweikampf" ? false : nil
+    else
+      nil
+    end
+  end
+
   def follow_up?
+    override = bk_follow_up_override
+    return false if override == false
+
     left_player_id = data["fixed_display_left"].blank? ? data["current_kickoff_player"] : data["current_left_player"]
     right_player_id = left_player_id == "playera" ? "playerb" : "playera"
     active_player_is_follow_up_player = (data["current_inning"].andand["active_player"] == right_player_id)
@@ -1134,6 +1164,14 @@ class TableMonitor < ApplicationRecord
           active_player_is_follow_up_player &&
           ((kickoff_player_has_balls_goal && has_reached_balls_goal) ||
             (innings_goal_exists && kickoff_player_has_reached_innings_goal))
+
+    # Erste-Aufnahme-Gate für BK-2 und BK-2kombi/SP: Nachstoß nur wenn Anstoß-Spieler
+    # das Ziel in seiner 1. Aufnahme erreicht hat. Wer erst in 2.+ Aufnahme zum Ziel
+    # kommt, hat seine Tisch-Zeit gehabt und der Gegner bekommt keinen Ausgleich.
+    if ret && %w[bk_2 bk2_kombi].include?(data["free_game_form"])
+      ret = data[left_player_id].andand["innings"].to_i == 1
+    end
+
     Rails.logger.debug do
       "+++++ FOLLOW_UP? returns #{ret}: (active_player_is_follow_up_player:#{active_player_is_follow_up_player} && (kickoff_player_has_balls_goal:#{kickoff_player_has_balls_goal} && has_reached_balls_goal:#{has_reached_balls_goal} || (innings_goal_exists:#{innings_goal_exists} && kickoff_player_has_reached_innings_goal:#{kickoff_player_has_reached_innings_goal}))"
     end
