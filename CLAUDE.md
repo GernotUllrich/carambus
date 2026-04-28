@@ -433,6 +433,7 @@ A focused improvement effort on the Carambus API codebase to break down the two 
 | Skill | Description | Path |
 |-------|-------------|------|
 | scenario-management | Manages multi-tenant deployment workflow for Carambus project with multiple git checkouts. Use when working with carambus_master, carambus_bcw, carambus_phat, or carambus_api directories, when modifying code, committing changes, or when user mentions scenarios, deployments, or debugging mode. | `.agents/skills/scenario-management/SKILL.md` |
+| extend-before-build | When adding a feature/addon to an existing codebase, prefer extending existing structures (legacy paths, predicates, lifecycles) with small guards over building parallel state machines. Refactoring for quality can come later. Use whenever introducing discipline-specific behavior, scoring rules, multiset variants, or any feature that overlaps with the legacy karambol path. | `.agents/skills/extend-before-build/SKILL.md` |
 <!-- GSD:skills-end -->
 
 <!-- GSD:workflow-start source:GSD defaults -->
