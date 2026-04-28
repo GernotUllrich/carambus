@@ -1436,6 +1436,23 @@ class TableMonitor < ApplicationRecord
       return false
     end
 
+    # BK-Familie: Disziplin/Phase-spezifischer Override des innings-equal/allow_follow_up
+    # Gates. In Phasen ohne Nachstoß (BK-2plus, BK-2kombi DZ-Phase, BK50, BK100) muss
+    # bei Zielerreichung SOFORT geschlossen werden — kein Warten auf gleiche Aufnahmen.
+    # In Phasen MIT Nachstoß (BK-2, BK-2kombi SP) bleibt die legacy-Logik aktiv (wartet
+    # auf Anstoßspieler-Aufnahmen-Parität, was natürlich der ein-Aufnahme-Nachstoß ist).
+    no_followup_phase = case data["free_game_form"]
+                        when "bk_2plus", "bk50", "bk100" then true
+                        when "bk2_kombi" then bk2_kombi_current_phase == "direkter_zweikampf"
+                        else false
+                        end
+    if no_followup_phase && data["playera"]["balls_goal"].to_i.positive? &&
+        (data["playera"]["result"].to_i >= data["playera"]["balls_goal"].to_i ||
+         data["playerb"]["result"].to_i >= data["playerb"]["balls_goal"].to_i)
+      Rails.logger.info "[TableMonitor#end_of_set?] BK-immediate-close: #{data["free_game_form"]} #{bk2_kombi_current_phase} — A:#{data["playera"]["result"]}/#{data["playera"]["balls_goal"]} B:#{data["playerb"]["result"]}/#{data["playerb"]["balls_goal"]}"
+      return true
+    end
+
     if data["playera"]["balls_goal"].to_i.positive? && (data["playera"]["result"].to_i >= data["playera"]["balls_goal"].to_i ||
       data["playerb"]["result"].to_i >= data["playerb"]["balls_goal"].to_i) &&
        (data["playera"]["innings"] == data["playerb"]["innings"] || !data["allow_follow_up"])
