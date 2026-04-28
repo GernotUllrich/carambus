@@ -141,4 +141,62 @@ class TableMonitorTest < ActiveSupport::TestCase
     assert_equal [5], @tm.data["playera"]["innings_redo_list"],
       "Unknown player must not mutate any data"
   end
+
+  # ---------------------------------------------------------------------------
+  # Round 4: bk_nachstoss_active? — BK-aware Nachstoß UI predicate
+  # Regression lock: UI template _player_score_panel must use this predicate
+  # for BK-* games instead of the legacy follow_up? path.
+  # ---------------------------------------------------------------------------
+
+  test "bk_nachstoss_active? returns true when bk2_state has nachstoss_pending=true" do
+    @tm.update!(data: {
+      "free_game_form" => "bk2_kombi",
+      "bk2_state" => {"nachstoss_pending" => true, "current_set_number" => 1}
+    })
+    assert @tm.bk_nachstoss_active?,
+      "Must return true when bk2_state['nachstoss_pending'] is literally true"
+  end
+
+  test "bk_nachstoss_active? returns false when bk2_state has nachstoss_pending=false" do
+    @tm.update!(data: {
+      "free_game_form" => "bk2_kombi",
+      "bk2_state" => {"nachstoss_pending" => false, "current_set_number" => 1}
+    })
+    refute @tm.bk_nachstoss_active?,
+      "Must return false when nachstoss_pending is false"
+  end
+
+  test "bk_nachstoss_active? returns false when bk2_state has no nachstoss_pending key" do
+    @tm.update!(data: {
+      "free_game_form" => "bk2_kombi",
+      "bk2_state" => {"current_set_number" => 1, "current_phase" => "direkter_zweikampf"}
+    })
+    refute @tm.bk_nachstoss_active?,
+      "Missing nachstoss_pending key must not activate the label (DZ phase, BK-2plus, etc.)"
+  end
+
+  test "bk_nachstoss_active? returns false when bk2_state is absent" do
+    @tm.update!(data: {"free_game_form" => "bk2_kombi"})
+    refute @tm.bk_nachstoss_active?,
+      "Absent bk2_state must return false without raising"
+  end
+
+  test "bk_nachstoss_active? returns false for non-BK game with allow_follow_up set" do
+    # Legacy karambol games must use follow_up? — not bk_nachstoss_active?.
+    # This test locks the separation: allow_follow_up data does not influence bk_nachstoss_active?.
+    @tm.update!(data: {
+      "free_game_form" => "karambol",
+      "allow_follow_up" => true,
+      "bk2_state" => nil
+    })
+    refute @tm.bk_nachstoss_active?,
+      "Legacy karambol allow_follow_up must not influence bk_nachstoss_active?"
+  end
+
+  test "bk_nachstoss_active? returns false when data is not a Hash" do
+    @tm.instance_variable_set(:@attributes, @tm.instance_variable_get(:@attributes))
+    def @tm.data; nil; end
+    refute @tm.bk_nachstoss_active?,
+      "Non-Hash data must not raise and must return false"
+  end
 end

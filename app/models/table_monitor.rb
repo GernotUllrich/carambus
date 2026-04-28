@@ -1682,6 +1682,17 @@ class TableMonitor < ApplicationRecord
     data[opponent]["innings_foul_redo_list"] = [0] if data[opponent]["innings_foul_redo_list"].blank?
   end
 
+  # Round 4 UI fix: BK-aware Nachstoß label predicate for _player_score_panel.
+  # Returns true only when bk2_state["nachstoss_pending"] is literally true — i.e.
+  # the Bk2::AdvanceMatchState defer branch fired and is waiting for the trailing
+  # player's Nachstoß inning. All other BK-* states (DZ phase, BK-2plus, BK50,
+  # BK100, BK-2) return false because nachstoss_pending is absent or false.
+  # Non-BK games always return false; they use the legacy follow_up? path instead.
+  def bk_nachstoss_active?
+    return false unless data.is_a?(Hash)
+    data.dig("bk2_state", "nachstoss_pending") == true
+  end
+
   private
 
   # Phase 38.4-14 P4 (round-4 iteration-2 — Option B): helper. True when:

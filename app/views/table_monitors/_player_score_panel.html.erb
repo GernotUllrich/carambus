@@ -122,7 +122,8 @@ end
             </div>
             <div class="text-<%= vw2 %>">
               <%- to_play = player[:balls_goal].to_i - (player[:result].to_i + Array(table_monitor.data[player_id].andand["innings_redo_list"])[-1].to_i) %>
-              <%- if table_monitor.follow_up? && player_active && options[:allow_follow_up] %>
+              <%- nachstoss_show = is_bk2 ? (table_monitor.bk_nachstoss_active? && player_active) : (table_monitor.follow_up? && player_active && options[:allow_follow_up]) %>
+              <%- if nachstoss_show %>
                 <div>Nachstoß</div>
               <%- end %>
               <%- if player[:balls_goal].to_i > 0 && player_active && to_play <= 3 %>
@@ -182,7 +183,8 @@ end
             </div>
             <div class="text-<%= vw2 %>">
               <%- to_play = player[:balls_goal].to_i > 0 ? player[:balls_goal].to_i - (player[:result].to_i + Array(table_monitor.data[player_id].andand["innings_redo_list"])[-1].to_i) : 9999 %>
-              <%- if table_monitor.follow_up? && player_active && options[:allow_follow_up] %>
+              <%- nachstoss_show = is_bk2 ? (table_monitor.bk_nachstoss_active? && player_active) : (table_monitor.follow_up? && player_active && options[:allow_follow_up]) %>
+              <%- if nachstoss_show %>
                 <div>Nachstoß</div>
               <%- end %>
               <%- if player[:balls_goal].to_i > 0 && player_active && to_play <= 3 %>

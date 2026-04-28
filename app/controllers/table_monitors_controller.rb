@@ -293,8 +293,15 @@ class TableMonitorsController < ApplicationController
 
     p[:color_remains_with_set] = (p[:color_remains_with_set] == "1")
     p[:allow_overflow] = (p[:allow_overflow] == "1")
-    # Normalize allow_follow_up depending on form source
-    p[:allow_follow_up] = if p[:quick_game_form].present?
+    # Normalize allow_follow_up depending on form source.
+    # Round 4: BK-* family always forces false — Nachstoß for BK-* is governed
+    # entirely by bk2_state["nachstoss_pending"] (bk_nachstoss_active? predicate),
+    # not by the legacy allow_follow_up / follow_up? mechanism. Forcing false here
+    # eliminates the Quick-Start vs Detail-Form asymmetry (Quick emitted "false",
+    # Detail-Form emitted "1" due to default-checked checkbox) and keeps data clean.
+    p[:allow_follow_up] = if bk_family_form
+      false
+    elsif p[:quick_game_form].present?
       (p[:allow_follow_up].to_s == "true") && p[:discipline_a] != "14.1 endlos"
     else
       (p[:allow_follow_up] == "1") && p[:discipline_a] != "14.1 endlos"
