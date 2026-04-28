@@ -44,6 +44,29 @@ module Bk2
       table_monitor.data["bk2_state"]
     end
 
+    # Round 8: Called from TableMonitor AASM next_set before: callback.
+    # Advances bk2_state to the next set after the user confirmed the protocol modal.
+    # Returns true if the advance happened, false if state was not awaiting confirmation.
+    #
+    # Only fires when state["awaiting_next_set_confirm"] == true (set by
+    # close_set_if_reached! instead of calling advance_to_next_set! directly).
+    # Clears the flag after advancing so subsequent next_set! calls are no-ops.
+    def self.advance_to_next_set_after_confirm!(table_monitor)
+      state = table_monitor.data["bk2_state"]
+      return false unless state.is_a?(Hash) && state["awaiting_next_set_confirm"] == true
+
+      set_no = state["current_set_number"].to_s
+      winner = state["set_winner_#{set_no}"].to_s
+      return false unless %w[playera playerb].include?(winner)
+
+      helper = new(table_monitor: table_monitor, shot_payload: {})
+      helper.send(:advance_to_next_set!, state, winner)
+      state["awaiting_next_set_confirm"] = false
+      table_monitor.data["bk2_state"] = state
+      table_monitor.save!
+      true
+    end
+
     def initialize(table_monitor:, shot_payload:)
       @tm = table_monitor
       @shot_payload = shot_payload
@@ -193,6 +216,10 @@ module Bk2
     # Resolution angewendet: Nachstossende equal → Nachstossende gewinnt (provisorisch);
     # Nachstossende unter balls_goal → Anführer gewinnt.
     def close_set_if_reached!(state)
+      # Round 8: prevent re-entry after set is already closed and awaiting modal confirm.
+      # advance_to_next_set_after_confirm! clears this flag once AASM next_set! fires.
+      return if state["awaiting_next_set_confirm"] == true
+
       set_no = state["current_set_number"].to_s
       target = state["balls_goal"].to_i
       target = state["set_target_points"].to_i if target.zero? # transitional fallback
@@ -222,7 +249,10 @@ module Bk2
         state["sets_won"][winner] += 1
         state["set_finished_#{set_no}"] = true
         state["set_winner_#{set_no}"] = winner
-        return advance_to_next_set!(state, winner)
+        # Round 8: defer bk2_state advance to AASM modal-confirm flow.
+        # advance_to_next_set_after_confirm! fires from AASM next_set before: callback.
+        state["awaiting_next_set_confirm"] = true
+        return
       end
 
       # 2026-04-27 B3a: Nachstoß nur erlaubt wenn:
@@ -245,7 +275,9 @@ module Bk2
       state["sets_won"][leader] += 1
       state["set_finished_#{set_no}"] = true
       state["set_winner_#{set_no}"] = leader
-      advance_to_next_set!(state, leader)
+      # Round 8: defer bk2_state advance to AASM modal-confirm flow.
+      # advance_to_next_set_after_confirm! fires from AASM next_set before: callback.
+      state["awaiting_next_set_confirm"] = true
     end
 
     # Phase 38.4-11 O2: Advances to next set (or no-op if final set).

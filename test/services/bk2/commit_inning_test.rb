@@ -189,7 +189,14 @@ class Bk2::CommitInningTest < ActiveSupport::TestCase
       inning_total: 7
     )
 
-    s = @tm.reload.data["bk2_state"]
+    # Round 8: set close sets awaiting_next_set_confirm; advance via confirm-flow.
+    @tm.reload
+    assert_equal true, @tm.data["bk2_state"]["awaiting_next_set_confirm"],
+      "T7 Round 8: awaiting_next_set_confirm must be true after set close"
+    Bk2::AdvanceMatchState.advance_to_next_set_after_confirm!(@tm)
+    @tm.reload
+
+    s = @tm.data["bk2_state"]
     assert_equal 52, s["set_scores"]["1"]["playera"], "playera score must be 45+7"
     assert_equal true, s["set_finished_1"], "set_finished_1 must be true"
     assert_equal "playera", s["set_winner_1"], "set_winner_1 must be playera"
@@ -216,7 +223,14 @@ class Bk2::CommitInningTest < ActiveSupport::TestCase
       inning_total: -7
     )
 
-    s = @tm.reload.data["bk2_state"]
+    # Round 8: set close sets awaiting_next_set_confirm; advance via confirm-flow.
+    @tm.reload
+    assert_equal true, @tm.data["bk2_state"]["awaiting_next_set_confirm"],
+      "T8 Round 8: awaiting_next_set_confirm must be true after set close"
+    Bk2::AdvanceMatchState.advance_to_next_set_after_confirm!(@tm)
+    @tm.reload
+
+    s = @tm.data["bk2_state"]
     assert_equal 52, s["set_scores"]["1"]["playerb"], "playerb score must be 45 + abs(-7)"
     assert_equal "playerb", s["set_winner_1"], "set_winner_1 must be playerb"
     assert_equal 1, s["sets_won"]["playerb"], "sets_won.playerb must be 1"
@@ -632,6 +646,77 @@ class Bk2::CommitInningTest < ActiveSupport::TestCase
     assert_equal true, s["set_finished_1"], "set must close when balls_goal reached"
     assert_equal "playera", s["set_winner_1"]
     assert_equal 1, s["sets_won"]["playera"]
+  end
+
+  # ===========================================================================
+  # Round 8 (2026-04-28): AASM modal-integration tests for CommitInning
+  # T-R8-E: CommitInning triggers AASM end_of_set! after set close (TM state → set_over)
+  # T-R8-F: ba_results["Sets1/2"] mirrored from sets_won after set close
+  # T-R8-G: perform_save_current_set is a no-op for bk2_kombi (no data["sets"] write)
+  # ===========================================================================
+
+  # T-R8-E: CommitInning triggers AASM end_of_set! after set close when TM is playing.
+  # This proves the modal gate: state must be :set_over after CommitInning when a set closes.
+  test "T-R8-E: CommitInning triggers AASM end_of_set! after set close when TM.state=playing" do
+    state = fresh_bk2_state("serienspiel")
+    state["set_scores"]["1"]["playera"] = 45
+    state["set_inning_count"] = 1  # bypass first-inning Nachstoß gate (goal in inning 2)
+    @tm.update!(data: @tm.data.merge("bk2_state" => state))
+    # @tm fixture is :free with state="playing" — may_end_of_set? returns true.
+    assert_equal "playing", @tm.state, "T-R8-E: prerequisite: TM must be in playing state"
+
+    Bk2::CommitInning.call(
+      table_monitor: @tm,
+      player: "playera",
+      inning_total: 10
+    )
+
+    @tm.reload
+    assert_equal "set_over", @tm.state,
+      "T-R8-E: TM.state must be set_over after CommitInning closes a set (AASM end_of_set! fired)"
+    assert_equal "protocol_final", @tm.panel_state,
+      "T-R8-E: panel_state must be protocol_final (set_game_over callback fired modal)"
+    assert_equal true, @tm.data["bk2_state"]["awaiting_next_set_confirm"],
+      "T-R8-E: awaiting_next_set_confirm must still be true (cleared only on next_set! confirm)"
+  end
+
+  # T-R8-F: ba_results["Sets1"] and ["Sets2"] are mirrored from bk2_state.sets_won
+  # atomically with the set close, so OptionsPresenter can read the set-win counter.
+  test "T-R8-F: ba_results Sets1/Sets2 mirrored from sets_won after set close" do
+    state = fresh_bk2_state("serienspiel")
+    state["set_scores"]["1"]["playera"] = 45
+    state["set_inning_count"] = 1  # bypass first-inning Nachstoß gate
+    @tm.update!(data: @tm.data.merge("bk2_state" => state))
+
+    Bk2::CommitInning.call(
+      table_monitor: @tm,
+      player: "playera",
+      inning_total: 10
+    )
+
+    @tm.reload
+    ba = @tm.data["ba_results"]
+    assert_not_nil ba, "T-R8-F: ba_results must be present after set close"
+    assert_equal 1, ba["Sets1"],
+      "T-R8-F: ba_results[Sets1] must mirror sets_won.playera=1 after set close"
+    assert_equal 0, ba["Sets2"],
+      "T-R8-F: ba_results[Sets2] must mirror sets_won.playerb=0 after set close"
+  end
+
+  # T-R8-G: TableMonitor::ResultRecorder.save_current_set is a no-op for bk2_kombi —
+  # data["sets"] must NOT be populated (legacy structure, not used by BK-2kombi UI).
+  test "T-R8-G: perform_save_current_set is a no-op for bk2_kombi (no data[sets] write)" do
+    state = fresh_bk2_state("serienspiel")
+    state["set_scores"]["1"]["playera"] = 45
+    @tm.update!(data: @tm.data.merge("bk2_state" => state))
+
+    # Call save_current_set directly via class entry point.
+    TableMonitor::ResultRecorder.save_current_set(table_monitor: @tm)
+
+    @tm.reload
+    sets = @tm.data["sets"]
+    assert_nil sets.presence,
+      "T-R8-G: data[sets] must be nil/empty for bk2_kombi — save_current_set is a no-op"
   end
 
   private

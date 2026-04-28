@@ -2,10 +2,10 @@
 status: awaiting_human_verify
 trigger: "B2/B3a/B3b: BK-2kombi phase sticky, BK-2plus nachstoss must never fire, asymmetric nachstoss set-close — live BCW test 2026-04-27"
 created: 2026-04-27T00:00:00Z
-updated: 2026-04-28T21:20:00Z
+updated: 2026-04-28T23:30:00Z
 symptoms_prefilled: true
 goal: find_and_fix
-rounds: 5
+rounds: 8
 human_verified: false
 ---
 
@@ -454,10 +454,23 @@ verification: |
   - Dev DB revert verified: disc 107 with {"free_game_form":"bk2_kombi"} (no flag)
     → nachstoss_allowed?=true via free_game_form derivation (rails runner confirmed)
 
+  Round 8 self-verified 2026-04-28:
+  - 148/148 BK2 service + table_monitor + result_recorder tests: 0 failures, 0 errors
+    (bin/rails test test/services/bk2/ test/models/table_monitor_test.rb test/services/table_monitor/)
+  - 9/9 critical concerns tests pass
+  - 20/20 scraping tests pass
+  - New Round 8 tests: T-R8-A through T-R8-G (7 tests covering awaiting_next_set_confirm
+    deferred advance, AASM end_of_set! trigger, ba_results mirror, save_current_set no-op)
+  - Existing tests (8 in advance_match_state_test, T7/T8 in commit_inning_test) updated
+    to call advance_to_next_set_after_confirm! + reload after set close assertions
+
   AWAITING: human verification on BCW dev that:
-  C1: BK-2kombi SP phase set 2 — "Nachstoß" appears when goal reached in inning 1
-  C2a: Quick Start path — same Nachstoß behavior as Detail-Form
-  B3b: After Nachstoß inning completes, set closes correctly for both player A and player B
+  R8-1: BK-2kombi set 1 — A reaches 70 pts → protocol modal appears (panel_state=protocol_final)
+  R8-2: User confirms in modal → set 2 begins (AASM=playing, bk2_state.current_set_number=2)
+  R8-3: Set wins display correctly (1:0 / 0:1 shown in UI after set 1 closes)
+  R8-4: BK-2kombi SP phase, B reaches goal inning 1 → Nachstoß deferred → A completes Nachstoß
+        → protocol modal appears → confirm → set 3 begins
+  (Plus prior checks C1/C2a/B3b from Rounds 1-5 still valid)
 
 files_changed:
   - app/services/bk2/advance_match_state.rb
@@ -467,7 +480,88 @@ files_changed:
   - app/models/table_monitor.rb
   - app/views/table_monitors/_player_score_panel.html.erb
   - app/controllers/table_monitors_controller.rb
+  - app/services/table_monitor/result_recorder.rb
   - test/services/bk2/advance_match_state_test.rb
+  - test/services/bk2/commit_inning_test.rb
   - test/models/table_monitor_test.rb
   - app/models/discipline.rb
   - test/models/discipline_test.rb
+
+## Round 8 — AASM modal integration for BK-2kombi set close
+
+### Diagnosis (2026-04-28)
+
+**Gap A — protocol modal NOT opened after set close:**
+`Bk2::CommitInning#call` invokes `close_set_if_reached!` which, when a set closes,
+directly calls `advance_to_next_set!` inside the same call stack. AASM `end_of_set!`
+is never triggered, so `set_game_over` (which sets panel_state="protocol_final") never
+fires, and the protocol modal never opens.
+
+**Gap B — data["ba_results"]["Sets1/2"] not updated:**
+`update_ba_results_with_set_result!` in ResultRecorder is only reached via
+`perform_save_current_set`, which is only called from `evaluate_result` after AASM
+`set_over?` branch. Since AASM lifecycle was bypassed, ba_results["Sets1/2"] stays 0:0.
+The UI OptionsPresenter reads `data["ba_results"]["Sets1/2"]` for set-win display.
+
+**Key architectural finding:**
+`AdvanceMatchState.call` is NEVER called in production. All BK-2kombi scoring (both DZ
+and SP) flows through `bk2_kombi_commit_if_active` (reflex) → `Bk2::CommitInning`, or
+through `route_goal_reached_through_bk2_commit_inning` (add_n_balls :goal_reached path).
+The `AdvanceMatchState.call` unit tests test internal mechanics; they need updating after
+this round but do not affect production correctness.
+
+### Design rationale
+
+1. `close_set_if_reached!`: when a set winner is determined (both Nachstoß-resolution
+   and immediate-close paths), set `state["awaiting_next_set_confirm"] = true` instead
+   of calling `advance_to_next_set!`. Add early-return guard at top to prevent
+   double-processing. `sets_won`, `set_finished_N`, `set_winner_N` remain set immediately
+   (those assertions in existing tests still pass).
+
+2. `Bk2::AdvanceMatchState.advance_to_next_set_after_confirm!`: new public class method
+   that reads `awaiting_next_set_confirm`, calls the private `advance_to_next_set!`,
+   clears the flag, and saves. Called by AASM `next_set` before-callback.
+
+3. `Bk2::CommitInning#call`: after `close_set_if_reached!`, detect
+   `awaiting_next_set_confirm`. If set: mirror `sets_won` to `ba_results["Sets1/2"]`
+   (for display compat), then trigger AASM `end_of_set!` on @tm if `may_end_of_set?`.
+   The AASM `set_game_over` callback fires, setting panel_state="protocol_final" →
+   modal opens. Match-finished path: after AASM `end_of_set!` + modal confirm, the
+   legacy `evaluate_result` flow calls `finish_match!` via `report_result`.
+
+4. `TableMonitor#end_of_set?`: add BK-2kombi branch at top that returns
+   `data.dig("bk2_state", "awaiting_next_set_confirm") == true` when
+   `free_game_form == "bk2_kombi"`. This makes the existing `evaluate_result`
+   `set_over?` branch (triggered by `confirm_result` reflex → `evaluate_result`) work
+   correctly: `perform_save_current_set` is the gate for ba_results persistence.
+
+5. `perform_save_current_set` / `perform_switch_to_next_set`: add
+   `return if @tm.data["free_game_form"] == "bk2_kombi"` guards. BK-2kombi keeps
+   its set history in bk2_state.set_scores; data["sets"] is a legacy karambol
+   structure. `perform_switch_to_next_set` would reset data[player] structures
+   that bk2_state already manages; skipping avoids data corruption.
+
+6. AASM `event :next_set`: add `before: :advance_bk2_state_if_pending` callback.
+   `advance_bk2_state_if_pending` calls `Bk2::AdvanceMatchState.advance_to_next_set_after_confirm!`.
+   This guarantees bk2_state advances exactly once when AASM transitions set_over → playing.
+
+### Current Focus (Round 8)
+
+hypothesis: |
+  Gap A and B are both caused by Bk2::CommitInning bypassing the AASM lifecycle
+  entirely. Integrating AASM end_of_set!/next_set! into CommitInning (with
+  advance_to_next_set_after_confirm! as the bridge) will fix both gaps.
+
+test: Implement all 6 design changes, run BK2 + table_monitor + result_recorder tests.
+
+expecting: |
+  - After set close via CommitInning: awaiting_next_set_confirm=true, AASM=set_over,
+    panel_state=protocol_final (modal opens).
+  - After confirm_result reflex: evaluate_result set_over? branch fires,
+    perform_save_current_set is a no-op (BK-2kombi guard), AASM next_set! fires,
+    advance_to_next_set_after_confirm! advances bk2_state, AASM=playing, next set begins.
+  - ba_results["Sets1/2"] mirrors bk2_state.sets_won after each set close.
+
+next_action: Implement changes in order: advance_match_state.rb → commit_inning.rb →
+  table_monitor.rb (end_of_set? + next_set before: callback) → result_recorder.rb →
+  test updates. Then run full test suite.

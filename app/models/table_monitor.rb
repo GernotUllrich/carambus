@@ -380,7 +380,7 @@ class TableMonitor < ApplicationRecord
     event :finish_match, after: :set_end_time do
       transitions from: %i[final_set_score], to: :final_match_score
     end
-    event :next_set do
+    event :next_set, before: :advance_bk2_state_if_pending do
       transitions from: %i[set_over final_set_score], to: :playing
     end
     event :ready do
@@ -493,6 +493,19 @@ class TableMonitor < ApplicationRecord
     end
   rescue StandardError => e
     Rails.logger.error "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}"
+    raise StandardError
+  end
+
+  # Round 8: AASM next_set before: callback. Advances bk2_state to the next set when
+  # the user has confirmed the protocol modal (awaiting_next_set_confirm == true).
+  # For non-BK-2kombi games this is a no-op (advance_to_next_set_after_confirm! returns false).
+  # The method saves via advance_to_next_set_after_confirm! internally (returns true when
+  # it fires). We rely on the subsequent perform_switch_to_next_set (skipped for bk2_kombi)
+  # and AASM transition save to persist state.
+  def advance_bk2_state_if_pending
+    Bk2::AdvanceMatchState.advance_to_next_set_after_confirm!(self)
+  rescue StandardError => e
+    Rails.logger.error "ERROR: m6[#{id}] advance_bk2_state_if_pending: #{e}, #{e.backtrace&.join("\n")}"
     raise StandardError
   end
 
@@ -1370,6 +1383,17 @@ class TableMonitor < ApplicationRecord
   end
 
   def end_of_set?
+    # Round 8: BK-2kombi has its own set-close detection via bk2_state.
+    # awaiting_next_set_confirm is set by Bk2::CommitInning's close_set_if_reached! call
+    # and cleared by Bk2::AdvanceMatchState.advance_to_next_set_after_confirm! (which fires
+    # from the AASM next_set before: callback advance_bk2_state_if_pending).
+    # Returning true here causes evaluate_result's set_over? branch to fire perform_save_current_set
+    # (which is a no-op for bk2_kombi per its guard) and then call perform_switch_to_next_set
+    # (also a no-op for bk2_kombi). The actual set advance happens via advance_bk2_state_if_pending.
+    if data.is_a?(Hash) && data["free_game_form"] == "bk2_kombi"
+      return data.dig("bk2_state", "awaiting_next_set_confirm") == true
+    end
+
     # GUARD: Game must have actually been played before it can end
     # Prevent spurious finalization of games that haven't started
     total_innings = data["playera"]["innings"].to_i + data["playerb"]["innings"].to_i

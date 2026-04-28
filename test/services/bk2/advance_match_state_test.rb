@@ -132,6 +132,14 @@ class Bk2::AdvanceMatchStateTest < ActiveSupport::TestCase
       shot_payload: pin_shot(fallen_pins: 5)
     )
 
+    # Round 8: close_set_if_reached! sets awaiting_next_set_confirm instead of advancing
+    # immediately. Simulate the AASM next_set! confirm-flow that fires in production.
+    @tm.reload
+    assert_equal true, @tm.data["bk2_state"]["awaiting_next_set_confirm"],
+      "test 3: awaiting_next_set_confirm must be true after set close (Round 8)"
+    Bk2::AdvanceMatchState.advance_to_next_set_after_confirm!(@tm)
+    @tm.reload
+
     state = bk2_state
     assert state["set_scores"]["1"]["playera"] >= 50, "playera should have >= 50 points"
     assert_equal 1, state["sets_won"]["playera"], "playera wins set 1"
@@ -165,6 +173,11 @@ class Bk2::AdvanceMatchStateTest < ActiveSupport::TestCase
       shot_payload: pin_shot(fallen_pins: 3)
     )
 
+    # Round 8: simulate AASM next_set! confirm-flow.
+    @tm.reload
+    Bk2::AdvanceMatchState.advance_to_next_set_after_confirm!(@tm)
+    @tm.reload
+
     state = bk2_state
     assert state["set_scores"]["1"]["playera"] >= 60
     assert_equal 1, state["sets_won"]["playera"]
@@ -185,6 +198,11 @@ class Bk2::AdvanceMatchStateTest < ActiveSupport::TestCase
       table_monitor: @tm,
       shot_payload: pin_shot(fallen_pins: 3)
     )
+
+    # Round 8: simulate AASM next_set! confirm-flow.
+    @tm.reload
+    Bk2::AdvanceMatchState.advance_to_next_set_after_confirm!(@tm)
+    @tm.reload
 
     state = bk2_state
     assert state["set_scores"]["1"]["playera"] >= 70
@@ -251,6 +269,11 @@ class Bk2::AdvanceMatchStateTest < ActiveSupport::TestCase
       table_monitor: @tm,
       shot_payload: pin_shot(fallen_pins: 5)
     )
+
+    # Round 8: simulate AASM next_set! confirm-flow.
+    @tm.reload
+    Bk2::AdvanceMatchState.advance_to_next_set_after_confirm!(@tm)
+    @tm.reload
 
     state = bk2_state
     assert_equal 1, state["sets_won"]["playera"]
@@ -403,7 +426,12 @@ class Bk2::AdvanceMatchStateTest < ActiveSupport::TestCase
     tm.save!
     Bk2::AdvanceMatchState.call(table_monitor: tm, shot_payload: pin_shot(fallen_pins: 5))
 
-    state = tm.reload.data["bk2_state"]
+    # Round 8: simulate AASM next_set! confirm-flow.
+    tm.reload
+    Bk2::AdvanceMatchState.advance_to_next_set_after_confirm!(tm)
+    tm.reload
+
+    state = tm.data["bk2_state"]
     assert_equal 2, state["current_set_number"]
     assert_equal "serienspiel", state["current_phase"], "Set 2 phase must flip to serienspiel"
     assert_equal 5, state["innings_left_in_set"], "New SP set resets innings_left_in_set"
@@ -427,7 +455,12 @@ class Bk2::AdvanceMatchStateTest < ActiveSupport::TestCase
     # A 5-pin SP shot by playera pushes to 52 → set 1 closes.
     Bk2::AdvanceMatchState.call(table_monitor: tm, shot_payload: pin_shot(fallen_pins: 5))
 
-    state = tm.reload.data["bk2_state"]
+    # Round 8: simulate AASM next_set! confirm-flow.
+    tm.reload
+    Bk2::AdvanceMatchState.advance_to_next_set_after_confirm!(tm)
+    tm.reload
+
+    state = tm.data["bk2_state"]
     assert_equal 2, state["current_set_number"], "set 1 must close, advance to set 2"
     assert_equal "direkter_zweikampf", state["current_phase"],
       "Set 2 phase flips from SP (set 1) to DZ"
@@ -1447,6 +1480,12 @@ class Bk2::AdvanceMatchStateTest < ActiveSupport::TestCase
       "T-F2: original leader playerB wins set 2 when Nachstoß player (A) stays below goal"
     refute state["nachstoss_pending"],
       "T-F2: nachstoss_pending must be cleared after resolution"
+    # Round 8: awaiting_next_set_confirm is set — advance via confirm-flow.
+    assert_equal true, state["awaiting_next_set_confirm"],
+      "T-F2: awaiting_next_set_confirm must be true before AASM confirm (Round 8)"
+    Bk2::AdvanceMatchState.advance_to_next_set_after_confirm!(tm)
+    tm.reload
+    state = tm.data["bk2_state"]
     assert_equal 3, state["current_set_number"],
       "T-F2: must advance to set 3 after set 2 closes"
     assert_equal "direkter_zweikampf", state["current_phase"],
@@ -1478,8 +1517,15 @@ class Bk2::AdvanceMatchStateTest < ActiveSupport::TestCase
     tm.data["bk2_state"]["player_at_table"] = "playera"
     tm.save!(validate: false)
 
-    # PlayerA commits Nachstoß with score below goal → playerB wins set 2 → advance to set 3.
+    # PlayerA commits Nachstoß with score below goal → playerB wins set 2.
     Bk2::CommitInning.call(table_monitor: tm, player: "playera", inning_total: 30)
+    tm.reload
+    state = tm.data["bk2_state"]
+
+    # Round 8: set closes → awaiting_next_set_confirm=true. Simulate AASM next_set! confirm.
+    assert_equal true, state["awaiting_next_set_confirm"],
+      "T-B2: awaiting_next_set_confirm must be true after set 2 Nachstoß-resolve (Round 8)"
+    Bk2::AdvanceMatchState.advance_to_next_set_after_confirm!(tm)
     tm.reload
     state = tm.data["bk2_state"]
 
@@ -1489,6 +1535,111 @@ class Bk2::AdvanceMatchStateTest < ActiveSupport::TestCase
       "T-B2: current_phase must alternate to direkter_zweikampf for set 3 (back to first_set_mode)"
     assert_equal 0, state["set_inning_count"],
       "T-B2: set_inning_count must reset to 0 when advancing to set 3 (0 = no completed innings)"
+  end
+
+  # ===========================================================================
+  # Round 8 (2026-04-28): AASM modal-integration tests
+  # T-R8-A: after set close, awaiting_next_set_confirm=true, current_set_number unchanged
+  # T-R8-B: advance_to_next_set_after_confirm! advances state, clears flag, saves
+  # T-R8-C: advance_to_next_set_after_confirm! is a no-op when flag not set
+  # T-R8-D: advance_to_next_set_after_confirm! is a no-op when no valid winner
+  # ===========================================================================
+
+  test "T-R8-A: after set close via CommitInning, awaiting_next_set_confirm=true and current_set_number unchanged" do
+    bk2k = ensure_bk_discipline("BK2-Kombi-R8-A", "bk2_kombi", [50, 60, 70], nachstoss_allowed: true)
+    tm = build_table_monitor_with_discipline(bk2k, balls_goal: 70, free_game_form: "bk2_kombi")
+    tm.data["bk2_options"]["first_set_mode"] = "direkter_zweikampf"
+    tm.save!(validate: false)
+    Bk2::AdvanceMatchState.initialize_bk2_state!(tm)
+
+    Bk2::CommitInning.call(table_monitor: tm, player: "playera", inning_total: 70)
+    tm.reload
+    state = tm.data["bk2_state"]
+
+    assert_equal true, state["awaiting_next_set_confirm"],
+      "T-R8-A: awaiting_next_set_confirm must be true immediately after set close"
+    assert_equal 1, state["current_set_number"],
+      "T-R8-A: current_set_number must NOT advance yet (waiting for modal confirm)"
+    assert_equal true, state["set_finished_1"],
+      "T-R8-A: set_finished_1 must be true (winner already determined)"
+    assert_equal "playera", state["set_winner_1"],
+      "T-R8-A: set_winner_1 must be playera"
+    assert_equal 1, state.dig("sets_won", "playera"),
+      "T-R8-A: sets_won.playera must be 1 (already incremented before deferred advance)"
+  end
+
+  test "T-R8-B: advance_to_next_set_after_confirm! advances bk2_state, clears flag, persists" do
+    bk2k = ensure_bk_discipline("BK2-Kombi-R8-B", "bk2_kombi", [50, 60, 70], nachstoss_allowed: true)
+    tm = build_table_monitor_with_discipline(bk2k, balls_goal: 70, free_game_form: "bk2_kombi")
+    tm.data["bk2_options"]["first_set_mode"] = "direkter_zweikampf"
+    tm.data["bk2_options"]["serienspiel_max_innings_per_set"] = 5
+    tm.data["bk2_options"]["direkter_zweikampf_max_shots_per_turn"] = 2
+    tm.save!(validate: false)
+    Bk2::AdvanceMatchState.initialize_bk2_state!(tm)
+
+    # Close set 1 (DZ, immediate close — no Nachstoß in DZ).
+    Bk2::CommitInning.call(table_monitor: tm, player: "playera", inning_total: 70)
+    tm.reload
+    assert_equal true, tm.data["bk2_state"]["awaiting_next_set_confirm"],
+      "T-R8-B: prerequisite: awaiting_next_set_confirm must be true after set close"
+
+    # Simulate AASM next_set! confirm.
+    result = Bk2::AdvanceMatchState.advance_to_next_set_after_confirm!(tm)
+    assert result, "T-R8-B: advance_to_next_set_after_confirm! must return true when flag was set"
+
+    tm.reload
+    state = tm.data["bk2_state"]
+    assert_equal 2, state["current_set_number"],
+      "T-R8-B: current_set_number must advance to 2 after confirm"
+    assert_equal "serienspiel", state["current_phase"],
+      "T-R8-B: phase must flip to serienspiel (DZ-first set 2)"
+    assert_equal false, state["awaiting_next_set_confirm"],
+      "T-R8-B: awaiting_next_set_confirm must be cleared to false after advance"
+    assert_equal 0, state["set_inning_count"],
+      "T-R8-B: set_inning_count must reset to 0 for new set"
+    assert_equal "playerb", state["player_at_table"],
+      "T-R8-B: player_at_table must switch to loser (playerb) for set 2 kickoff"
+  end
+
+  test "T-R8-C: advance_to_next_set_after_confirm! is a no-op when awaiting_next_set_confirm is false" do
+    bk2k = ensure_bk_discipline("BK2-Kombi-R8-C", "bk2_kombi", [50, 60, 70], nachstoss_allowed: true)
+    tm = build_table_monitor_with_discipline(bk2k, balls_goal: 70, free_game_form: "bk2_kombi")
+    tm.data["bk2_options"]["first_set_mode"] = "direkter_zweikampf"
+    tm.save!(validate: false)
+    Bk2::AdvanceMatchState.initialize_bk2_state!(tm)
+
+    # No set close — awaiting_next_set_confirm not set.
+    Bk2::CommitInning.call(table_monitor: tm, player: "playera", inning_total: 10)
+    tm.reload
+    set_no_before = tm.data["bk2_state"]["current_set_number"]
+    refute tm.data["bk2_state"]["awaiting_next_set_confirm"],
+      "T-R8-C: prerequisite: awaiting_next_set_confirm must not be set after non-closing inning"
+
+    result = Bk2::AdvanceMatchState.advance_to_next_set_after_confirm!(tm)
+    assert_equal false, result, "T-R8-C: must return false when flag not set"
+    tm.reload
+    assert_equal set_no_before, tm.data["bk2_state"]["current_set_number"],
+      "T-R8-C: current_set_number must be unchanged when flag was not set"
+  end
+
+  test "T-R8-D: advance_to_next_set_after_confirm! is a no-op when set_winner is missing" do
+    bk2k = ensure_bk_discipline("BK2-Kombi-R8-D", "bk2_kombi", [50, 60, 70], nachstoss_allowed: true)
+    tm = build_table_monitor_with_discipline(bk2k, balls_goal: 70, free_game_form: "bk2_kombi")
+    tm.data["bk2_options"]["first_set_mode"] = "direkter_zweikampf"
+    tm.save!(validate: false)
+    Bk2::AdvanceMatchState.initialize_bk2_state!(tm)
+
+    # Manually set awaiting_next_set_confirm without a valid set_winner (corrupt state guard).
+    tm.reload
+    tm.data["bk2_state"]["awaiting_next_set_confirm"] = true
+    # deliberately omit set_winner_1
+    tm.save!(validate: false)
+
+    result = Bk2::AdvanceMatchState.advance_to_next_set_after_confirm!(tm)
+    assert_equal false, result, "T-R8-D: must return false when set_winner is absent"
+    tm.reload
+    assert_equal 1, tm.data["bk2_state"]["current_set_number"],
+      "T-R8-D: current_set_number must be unchanged when no valid winner"
   end
 
   private

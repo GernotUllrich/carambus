@@ -144,6 +144,16 @@ class TableMonitor::ResultRecorder < ApplicationService
 
   def perform_save_current_set
     Rails.logger.debug { "----------------m6[#{@tm.id}]----->>> save_current_set <<<------------------------------------------" }
+    # Round 8: BK-2kombi keeps its set history in bk2_state.set_scores (written by
+    # Bk2::CommitInning). data["sets"] is a legacy karambol structure that accumulates
+    # cumulative match scores — not per-set scores — and is not consumed by any BK-2kombi
+    # display path (UI reads bk2_state directly since Round 7). Skipping prevents
+    # corruption of data["sets"] with wrong cumulative values and double-counting of
+    # ba_results["Sets1/2"] (already mirrored by CommitInning#mirror_sets_won_to_ba_results!).
+    if @tm.data["free_game_form"] == "bk2_kombi"
+      Rails.logger.info "[save_current_set] m6[#{@tm.id}] BK-2kombi: skipping legacy data[sets] write (bk2_state is source of truth)"
+      return
+    end
     if @tm.game.present?
       # Fuer simple_set_game (Snooker, Pool): VOR save_result pruefen ob dieser Frame bereits gespeichert wurde
       # Dies verhindert doppeltes Speichern wenn Protocol-Modal bestaetigt wird
@@ -201,6 +211,14 @@ class TableMonitor::ResultRecorder < ApplicationService
 
   def perform_switch_to_next_set
     Rails.logger.debug { "---------------m6[#{@tm.id}]------>>> switch_to_next_set <<<------------------------------------------" }
+    # Round 8: BK-2kombi manages its own set-switching via bk2_state (advance_to_next_set!
+    # is called from advance_bk2_state_if_pending → AASM next_set before: callback).
+    # perform_switch_to_next_set would reset data[player] inning lists and kickoff that
+    # are already managed by bk2_state. Skipping prevents data corruption and double-reset.
+    if @tm.data["free_game_form"] == "bk2_kombi"
+      Rails.logger.info "[switch_to_next_set] m6[#{@tm.id}] BK-2kombi: skipping legacy reset (bk2_state manages set switching)"
+      return
+    end
     kickoff_switches_with = @tm.data["kickoff_switches_with"].presence || "set"
     current_kickoff_player = @tm.data["current_kickoff_player"]
     case kickoff_switches_with
@@ -327,10 +345,19 @@ class TableMonitor::ResultRecorder < ApplicationService
         Rails.logger.info "[evaluate_result] set_over? branch - sets_to_win=#{@tm.data["sets_to_win"]}, sets_to_play=#{@tm.data["sets_to_play"]}"
         if @tm.data["sets_to_win"].to_i > 1 # TODO: sets to play not implemented correctly
           Rails.logger.info "[evaluate_result] Branch A: sets_to_win > 1"
-          perform_save_current_set
+          perform_save_current_set   # no-op for bk2_kombi (guard inside)
           max_number_of_wins = perform_get_max_number_of_wins
           if @tm.automatic_next_set && @tm.data["sets_to_win"].to_i > 1 && max_number_of_wins < @tm.data["sets_to_win"].to_i
-            perform_switch_to_next_set
+            # Round 8: BK-2kombi uses AASM next_set! (with advance_bk2_state_if_pending
+            # before: callback) instead of the legacy perform_switch_to_next_set.
+            # advance_bk2_state_if_pending advances bk2_state to the next set and clears
+            # awaiting_next_set_confirm. perform_switch_to_next_set is a no-op for bk2_kombi.
+            if @tm.data["free_game_form"] == "bk2_kombi"
+              Rails.logger.info "[evaluate_result] BK-2kombi Branch A: calling next_set! (advance_bk2_state_if_pending fires)"
+              @tm.next_set! if @tm.may_next_set?
+            else
+              perform_switch_to_next_set
+            end
           else
             @tm.acknowledge_result!
           end

@@ -59,18 +59,39 @@ module Bk2
       )
       # 2026-04-27 B3a: close_set_if_reached! reads set_inning_count to gate Nachstoß.
       # Increment AFTER the close-check so the check sees the pre-increment value
-      # (0 = first inning, 1+ = subsequent innings). advance_to_next_set! (called inside
-      # close_set_if_reached! on set advance) resets set_inning_count to 0 — we must
-      # NOT increment again after a set advance, so we capture the set number first.
+      # (0 = first inning, 1+ = subsequent innings). Round 8: advance_to_next_set! is no
+      # longer called inside close_set_if_reached! — instead awaiting_next_set_confirm is
+      # set. We still skip the inning-count increment when a set just closed (the counter
+      # resets to 0 when advance_to_next_set_after_confirm! fires on AASM next_set!).
       set_no_before_close = state["current_set_number"]
       advance_helper.send(:close_set_if_reached!, state)
       advance_helper.send(:close_match_if_reached!, state)
-      # Increment only when the set was NOT advanced (advance_to_next_set! already reset to 0).
-      increment_set_inning_count!(state) if state["current_set_number"] == set_no_before_close
+
+      just_closed = state["awaiting_next_set_confirm"] == true
+      match_finished = state["match_finished"] == true
+
+      # Increment only when the set did NOT just close (counter resets to 0 on next-set advance).
+      increment_set_inning_count!(state) unless just_closed
       record_sequence!(state) if @shot_sequence_number
 
       @tm.data["bk2_state"] = state
-      @tm.save!
+
+      # Round 8: When a set closes, engage the AASM lifecycle so the protocol modal opens.
+      # This mirrors the legacy karambol flow: end_of_set! → set_over → set_game_over
+      # (panel_state="protocol_final") → modal → confirm_result → evaluate_result →
+      # next_set! (with advance_bk2_state_if_pending before: callback) → playing.
+      if just_closed
+        # Mirror sets_won to legacy ba_results for display compat (OptionsPresenter reads this).
+        mirror_sets_won_to_ba_results!(state)
+
+        @tm.save!
+
+        # Trigger AASM lifecycle: end_of_set! sets state to :set_over and fires
+        # set_game_over (panel_state="protocol_final") which opens the protocol modal.
+        @tm.end_of_set! if @tm.may_end_of_set?
+      else
+        @tm.save!
+      end
 
       {state: state, transitions: transitions}
     end
@@ -246,10 +267,21 @@ module Bk2
 
     # 2026-04-27 B3a: Inkrementiere den Aufnahme-Zähler im Satz.
     # Wird nach close_set_if_reached! aufgerufen, und NUR wenn kein Satzwechsel
-    # stattgefunden hat (advance_to_next_set! setzt den Zähler auf 0 zurück —
-    # dann darf hier nicht nochmals inkrementiert werden).
+    # stattgefunden hat (advance_to_next_set_after_confirm! setzt den Zähler auf 0
+    # zurück wenn AASM next_set! feuert — dann darf hier nicht nochmals inkrementiert werden).
     def increment_set_inning_count!(state)
       state["set_inning_count"] = state["set_inning_count"].to_i + 1
+    end
+
+    # Round 8: Mirror bk2_state.sets_won to legacy data["ba_results"]["Sets1/2"] for
+    # display compatibility. OptionsPresenter reads ba_results["Sets1/2"] for the set-win
+    # counter in the scoreboard header. bk2_state is the single source of truth; ba_results
+    # is kept in sync here (atomically with the set close) so the UI is never stale.
+    # Only called when awaiting_next_set_confirm == true (i.e. a set just closed).
+    def mirror_sets_won_to_ba_results!(state)
+      @tm.data["ba_results"] ||= {}
+      @tm.data["ba_results"]["Sets1"] = state.dig("sets_won", "playera").to_i
+      @tm.data["ba_results"]["Sets2"] = state.dig("sets_won", "playerb").to_i
     end
   end
 end
