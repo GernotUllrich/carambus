@@ -895,20 +895,9 @@ class TableMonitor < ApplicationRecord
     data_will_change!
     self.copy_from = nil
     if result == :goal_reached
-      # Phase 38.4-14 P4 (round-4 iteration-2 — Option B): BK-family with nachstoss_allowed
-      # (post-Plan-16: BK-2kombi) MUST route through Bk2::CommitInning to engage Plan 11's
-      # deferred-close. Bypassing this calls the legacy karambol terminate_current_inning →
-      # evaluate_result → AASM set_over, freezing ProtokollEditor (return unless
-      # playing? at #set_n_balls) and preventing the trailing player from completing
-      # their Nachstoß equalizer (P4 root cause documented in 38.4-HUMAN-UAT.md).
-      # Option B: bk_family_with_nachstoss? reads the discipline NAME from data and
-      # looks up the AR Discipline record — does NOT use TableMonitor#discipline (which
-      # returns a String for backward compat with 15+ legacy callers).
-      if bk_family_with_nachstoss?
-        route_goal_reached_through_bk2_commit_inning(player)
-      else
-        terminate_current_inning(player)
-      end
+      # BK-Familie folgt legacy karambol-Routing. BK-spezifische Logik liegt
+      # in den Guards (follow_up?, end_of_set?, score_engine).
+      terminate_current_inning(player)
     end
   rescue StandardError => e
     Rails.logger.error "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}"
@@ -1078,16 +1067,8 @@ class TableMonitor < ApplicationRecord
     assign_attributes(nnn: nil, panel_state: change_to_pointer_mode ? "pointer_mode" : panel_state)
     if result == :goal_reached
       save
-      # Phase 38.4-14 P4 (round-4 iteration-2 — Option B): ProtokollEditor write path —
-      # same dispatch as add_n_balls. Without this, set_n_balls(balls_goal) succeeds at
-      # the engine level (mutates innings_redo_list[-1]) but terminate_current_inning
-      # fires the legacy karambol set_over AASM transition, bypassing Plan 11's
-      # nachstoss_pending machinery.
-      if bk_family_with_nachstoss?
-        route_goal_reached_through_bk2_commit_inning(nil)
-      else
-        terminate_current_inning
-      end
+      # BK-Familie folgt legacy karambol-Routing.
+      terminate_current_inning
     else
       save
     end

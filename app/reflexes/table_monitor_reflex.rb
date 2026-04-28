@@ -118,11 +118,11 @@ class TableMonitorReflex < ApplicationReflex
     morph :nothing
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
 
-    # Phase 38.3-04 D-14: BK2-Kombi commit on opponent-panel click (Spieler A panel).
-    if bk2_kombi_commit_if_active(gesture_id: "key_a", clicked_player: "playera")
-      @table_monitor.save!
-      return
-    end
+    # Removed: bk2_kombi_commit_if_active intercept. BK-Familie folgt der legacy
+    # karambol-Routing-Pfad (terminate_current_inning → evaluate_result → AASM
+    # set_over → Protokoll-Modal). BK-spezifische Logik (Nachstoß-Gate,
+    # Phase-Switch, Negativ-Routing) ist als Guards in follow_up?, end_of_set?,
+    # bk2_kombi_current_phase und score_engine eingehängt.
 
     @table_monitor.suppress_broadcast = true
     return if @table_monitor.locked_scoreboard
@@ -183,11 +183,8 @@ class TableMonitorReflex < ApplicationReflex
     morph :nothing
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
 
-    # Phase 38.3-04 D-14: BK2-Kombi commit on opponent-panel click (Spieler B panel).
-    if bk2_kombi_commit_if_active(gesture_id: "key_b", clicked_player: "playerb")
-      @table_monitor.save!
-      return
-    end
+    # Removed: bk2_kombi_commit_if_active intercept (siehe Kommentar in key_a).
+    # BK-Familie folgt legacy karambol-Routing.
 
     @table_monitor.suppress_broadcast = true
     return if @table_monitor.locked_scoreboard
@@ -796,11 +793,8 @@ class TableMonitorReflex < ApplicationReflex
     Rails.logger.info "next_step from connection #{connection.connection_identifier}"
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
 
-    # Phase 38.3-04 D-14: BK2-Kombi commit on swap-icon click.
-    if bk2_kombi_commit_if_active(gesture_id: "next_step")
-      @table_monitor.save!
-      return
-    end
+    # Removed: bk2_kombi_commit_if_active intercept (siehe Kommentar in key_a).
+    # BK-Familie folgt legacy karambol-Routing.
 
     @table_monitor.reset_timer!
     @table_monitor.terminate_current_inning
