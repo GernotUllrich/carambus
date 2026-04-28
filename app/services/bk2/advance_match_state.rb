@@ -93,6 +93,13 @@ module Bk2
         "player_at_table" => @tm.data["current_kickoff_player"].presence || "playera",
         "shots_left_in_turn" => (initial_phase == "direkter_zweikampf") ? dz_max : 0,
         "innings_left_in_set" => (initial_phase == "serienspiel") ? sp_max : 0,
+        # 2026-04-27 B3a: Abgeschlossene Aufnahmen im Satz — Nachstoß nur wenn Ziel in der
+        # 1. Aufnahme erreicht wird (d.h. set_inning_count == 0 beim Commit, == 1 danach).
+        # Zählt abgeschlossene Aufnahmen: 0 = keine abgeschlossen, 1 = erste abgeschlossen, …
+        # Wird nach jedem CommitInning inkrementiert (NACH close_set_if_reached!-Prüfung via
+        # set_inning_count == 0 check in nachstoss_applicable?).
+        # Wird auf 0 zurückgesetzt wenn advance_to_next_set! in den nächsten Satz wechselt.
+        "set_inning_count" => 0,
         "set_scores" => {
           "1" => {"playera" => 0, "playerb" => 0},
           "2" => {"playera" => 0, "playerb" => 0},
@@ -218,9 +225,14 @@ module Bk2
         return advance_to_next_set!(state, winner)
       end
 
+      # 2026-04-27 B3a: Nachstoß nur erlaubt wenn:
+      #   1. discipline.nachstoss_allowed? (BK-2kombi)
+      #   2. Aktuelle Phase ist serienspiel (DZ = BK-2plus-Semantik → nie Nachstoß)
+      #   3. Das Ausspielziel wurde in der 1. Aufnahme des Satzes erreicht (set_inning_count == 1)
+      #
       # Phase 38.4-11 O2: defer set-close if discipline allows Nachstoß and trailing
       # has not yet had their equalizing inning.
-      if discipline_nachstoss_allowed?
+      if nachstoss_applicable?(state)
         state["nachstoss_pending"] = true
         state["nachstoss_for"] = trailing
         state["player_at_table"] = trailing
@@ -255,6 +267,9 @@ module Bk2
         state["innings_left_in_set"] = derive_sp_max_innings
       end
 
+      # 2026-04-27 B3a: Aufnahme-Zähler auf 0 zurücksetzen für den neuen Satz.
+      state["set_inning_count"] = 0
+
       # Anstoß-Alternation: neuer Satz beginnt mit dem anderen Spieler.
       state["player_at_table"] = (set_winner == "playera") ? "playerb" : "playera"
     end
@@ -273,6 +288,24 @@ module Bk2
       disc = @tm.discipline
       disc = Discipline.find_by(name: disc) if disc.is_a?(String)
       disc.respond_to?(:nachstoss_allowed?) && disc.nachstoss_allowed?
+    end
+
+    # 2026-04-27 B3a: Prüfe ob Nachstoß für den aktuellen Spielstand zulässig ist.
+    # Drei Bedingungen müssen ALLE erfüllt sein:
+    #   1. Disziplin erlaubt Nachstoß (discipline.nachstoss_allowed? — derzeit nur BK-2kombi)
+    #   2. Aktuelle Phase ist "serienspiel" — DZ-Phase entspricht BK-2plus-Semantik (kein Nachstoß)
+    #   3. Ausspielziel wurde in der 1. Aufnahme des Satzes erreicht (set_inning_count == 0)
+    #      set_inning_count zählt ABGESCHLOSSENE Aufnahmen, wird NACH close_set_if_reached!
+    #      inkrementiert. Beim ersten CommitInning ist count noch 0 → Nachstoß zulässig.
+    #
+    # Nachstoß NIEMALS in DZ-Phase (= BK-2plus-Regeln): Ein Spieler der in DZ das Ziel
+    # erreicht, gewinnt den Satz sofort — der Gegner bekommt keine Ausgleichs-Aufnahme.
+    # Nachstoß NUR wenn Ziel in der 1. Aufnahme erreicht wird: Wer erst in der 2.+ Aufnahme
+    # das Ziel schafft, hat bereits Zeit am Tisch gehabt; kein Ausgleich mehr.
+    def nachstoss_applicable?(state)
+      return false unless discipline_nachstoss_allowed?
+      return false unless state["current_phase"].to_s == "serienspiel"
+      state["set_inning_count"].to_i == 0
     end
 
     # Schließe das Match wenn ein Spieler 2 Sätze gewonnen hat.

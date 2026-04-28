@@ -57,8 +57,16 @@ module Bk2
         table_monitor: @tm,
         shot_payload: {}
       )
+      # 2026-04-27 B3a: close_set_if_reached! reads set_inning_count to gate Nachstoß.
+      # Increment AFTER the close-check so the check sees the pre-increment value
+      # (0 = first inning, 1+ = subsequent innings). advance_to_next_set! (called inside
+      # close_set_if_reached! on set advance) resets set_inning_count to 0 — we must
+      # NOT increment again after a set advance, so we capture the set number first.
+      set_no_before_close = state["current_set_number"]
       advance_helper.send(:close_set_if_reached!, state)
       advance_helper.send(:close_match_if_reached!, state)
+      # Increment only when the set was NOT advanced (advance_to_next_set! already reset to 0).
+      increment_set_inning_count!(state) if state["current_set_number"] == set_no_before_close
       record_sequence!(state) if @shot_sequence_number
 
       @tm.data["bk2_state"] = state
@@ -234,6 +242,14 @@ module Bk2
       else
         list[-1] = list[-1].to_i + credit.to_i
       end
+    end
+
+    # 2026-04-27 B3a: Inkrementiere den Aufnahme-Zähler im Satz.
+    # Wird nach close_set_if_reached! aufgerufen, und NUR wenn kein Satzwechsel
+    # stattgefunden hat (advance_to_next_set! setzt den Zähler auf 0 zurück —
+    # dann darf hier nicht nochmals inkrementiert werden).
+    def increment_set_inning_count!(state)
+      state["set_inning_count"] = state["set_inning_count"].to_i + 1
     end
   end
 end

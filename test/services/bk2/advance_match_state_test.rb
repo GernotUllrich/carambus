@@ -837,6 +837,10 @@ class Bk2::AdvanceMatchStateTest < ActiveSupport::TestCase
   # Option B (round-4 iteration-2): bk_family_with_nachstoss? reads the discipline NAME
   # from data['playera']['discipline'] (String) and looks up the AR record by name —
   # so we set the data['playera']['discipline'] String explicitly in test setup.
+  # 2026-04-27 B3a supersedes Plan 14 Nachstoß assertion for DZ phase:
+  # DZ phase = BK-2plus semantics → never Nachstoß → set closes immediately.
+  # The routing assertion (add_n_balls → Bk2::CommitInning) remains valid and is
+  # preserved here; only the set-close outcome changes (immediate, no Nachstoß defer).
   test "T-P4-add-n-balls-routes-bk-family-through-bk2-commitinning 38.4-14" do
     bk2k = ensure_bk_discipline("BK2-Kombi-T-P4", "bk2_kombi", [50, 60, 70], nachstoss_allowed: true)
     tm = build_table_monitor_with_discipline(bk2k, balls_goal: 70, free_game_form: "bk2_kombi")
@@ -882,25 +886,38 @@ class Bk2::AdvanceMatchStateTest < ActiveSupport::TestCase
     tm.reload
     state = tm.data["bk2_state"]
 
-    assert_equal true, state["nachstoss_pending"],
-      "T-P4: add_n_balls(:goal_reached) MUST route through Bk2::CommitInning for BK-family-with-nachstoss; nachstoss_pending=true expected"
-    assert_equal "playerb", state["player_at_table"],
-      "T-P4: nachstoss_for/player_at_table must flip to playerb (trailing)"
-    assert_nil state["set_finished_1"],
-      "T-P4: set_finished_1 must NOT be set yet — Nachstoß defer holds the close until trailing equalizes"
-    refute_equal "set_over", tm.state.to_s,
-      "T-P4: TM.state must NOT have transitioned to set_over during Nachstoß defer"
+    # 2026-04-27 B3a: DZ phase (first_set_mode=direkter_zweikampf, set 1) NEVER engages
+    # Nachstoß. Set closes immediately. Supersedes Plan 14 nachstoss_pending assertion.
+    assert_nil state["nachstoss_pending"],
+      "T-P4 (B3a update): DZ phase never engages Nachstoß — nachstoss_pending must be nil"
+    assert_equal true, state["set_finished_1"],
+      "T-P4 (B3a update): set closes immediately in DZ phase (no Nachstoß defer)"
+    assert_equal 1, state.dig("sets_won", "playera"),
+      "T-P4 (B3a update): playera wins set 1 immediately in DZ phase"
+    # Routing assertion still valid: add_n_balls went through CommitInning (bk2_state updated).
+    assert_not_nil state,
+      "T-P4: add_n_balls(:goal_reached) MUST route through Bk2::CommitInning — bk2_state updated"
   end
 
   # Phase 38.4-14 P4: end-to-end — leader reaches 70, trailing reaches 70 via add_n_balls.
   # Provisional rule per Plan 11 close_set_if_reached!:198-209: trailing >= target → trailing wins.
+  # 2026-04-27 B3a update: Nachstoß only fires in SP phase. This test now uses
+  # first_set_mode=serienspiel so set 1 IS SP phase where Nachstoß is permitted.
   test "T-P4-add-n-balls-bk2kombi-engages-nachstoss-on-leader-reach 38.4-14" do
     bk2k = ensure_bk_discipline("BK2-Kombi-T-P4-end2end", "bk2_kombi", [50, 60, 70], nachstoss_allowed: true)
     tm = build_table_monitor_with_discipline(bk2k, balls_goal: 70, free_game_form: "bk2_kombi")
+    # 2026-04-27 B3a: switch to SP first so set 1 is serienspiel (Nachstoß-eligible phase).
+    tm.data["bk2_options"]["first_set_mode"] = "serienspiel"
+    tm.data["bk2_options"]["serienspiel_max_innings_per_set"] = 5
+    tm.save!(validate: false)
     tm.suppress_broadcast = true
     Bk2::AdvanceMatchState.initialize_bk2_state!(tm)
 
-    # Step 1: leader playera reaches 70.
+    # Verify set 1 is SP phase.
+    assert_equal "serienspiel", tm.reload.data["bk2_state"]["current_phase"],
+      "T-P4-end2end (B3a): set 1 must be serienspiel for Nachstoß to be eligible"
+
+    # Step 1: leader playera reaches 70 in SP inning 1 (set_inning_count=0 → Nachstoß allowed).
     tm.data["balls_on_table"] = 15
     tm.data["balls_counter"] = 0
     tm.data["balls_counter_stack"] = []
@@ -929,7 +946,8 @@ class Bk2::AdvanceMatchStateTest < ActiveSupport::TestCase
     tm.instance_variable_set(:@collected_changes, nil)
     tm.add_n_balls(1, "playera")
     tm.reload
-    assert_equal true, tm.data["bk2_state"]["nachstoss_pending"], "leader reach engaged Nachstoß"
+    assert_equal true, tm.data["bk2_state"]["nachstoss_pending"],
+      "T-P4-end2end: leader reach in SP inning 1 must engage Nachstoß"
 
     # Step 2: trailing playerb taps +1 from 69 to 70 (Nachstoß equalizer).
     tm.data["current_inning"]["active_player"] = "playerb"
@@ -953,16 +971,21 @@ class Bk2::AdvanceMatchStateTest < ActiveSupport::TestCase
   # 50 via Protokoll-Editor, [it's rejected]"). Pre-fix: TM#set_n_balls returns early
   # via `return unless playing?` because evaluate_result transitioned to set_over.
   # Post-fix: nachstoss_pending defers the AASM transition, set_n_balls(70) succeeds.
+  # 2026-04-27 B3a update: uses SP phase (first_set_mode=serienspiel) so Nachstoß fires.
   test "T-P4-protokoll-editor-set-n-balls-honours-target-during-nachstoss 38.4-14" do
     bk2k = ensure_bk_discipline("BK2-Kombi-T-P4-protokoll", "bk2_kombi", [50, 60, 70], nachstoss_allowed: true)
     tm = build_table_monitor_with_discipline(bk2k, balls_goal: 70, free_game_form: "bk2_kombi")
+    # 2026-04-27 B3a: SP phase required for Nachstoß to be eligible.
+    tm.data["bk2_options"]["first_set_mode"] = "serienspiel"
+    tm.data["bk2_options"]["serienspiel_max_innings_per_set"] = 5
+    tm.save!(validate: false)
     tm.suppress_broadcast = true
     # set_n_balls (ProtokollEditor write path) returns early via `return unless playing?`,
     # so the TM's `state` column must be "playing" — the existing fixture state is "new".
     tm.update_columns(state: "playing")
     Bk2::AdvanceMatchState.initialize_bk2_state!(tm)
 
-    # Step 1: leader playera reaches 70 via add_n_balls.
+    # Step 1: leader playera reaches 70 via add_n_balls in SP inning 1.
     tm.data["balls_on_table"] = 15
     tm.data["balls_counter"] = 0
     tm.data["balls_counter_stack"] = []
@@ -993,6 +1016,8 @@ class Bk2::AdvanceMatchStateTest < ActiveSupport::TestCase
     tm.reload
     refute_equal "set_over", tm.state.to_s,
       "T-P4-protokoll: TM.state must NOT be set_over after leader reach (Nachstoß defer)"
+    assert_equal true, tm.data["bk2_state"]["nachstoss_pending"],
+      "T-P4-protokoll (B3a): SP inning 1 must engage Nachstoß"
 
     # Step 2: trailing playerb's score is 0; ProtokollEditor enters 70 via set_n_balls.
     tm.data["current_inning"]["active_player"] = "playerb"
@@ -1078,12 +1103,267 @@ class Bk2::AdvanceMatchStateTest < ActiveSupport::TestCase
     tm.reload
     state = tm.data["bk2_state"]
 
-    assert_equal true, state["nachstoss_pending"],
-      "T-P4-integration: dispatcher fires WITHOUT define_singleton_method stub — proves Option B name-based lookup works for production wiring"
-    assert_equal "playerb", state["player_at_table"],
-      "T-P4-integration: player_at_table flipped to playerb"
+    # 2026-04-27 B3a: DZ phase (first_set_mode=direkter_zweikampf, set 1) never engages
+    # Nachstoß — set closes immediately. Supersedes Plan 14 nachstoss_pending assertion.
+    # The routing assertion (dispatcher fires via Option B name-based lookup) is preserved:
+    # bk2_state is updated, proving CommitInning was called.
+    assert_nil state["nachstoss_pending"],
+      "T-P4-integration (B3a update): DZ phase never engages Nachstoß — nachstoss_pending must be nil"
+    assert_equal true, state["set_finished_1"],
+      "T-P4-integration (B3a update): set closes immediately in DZ phase"
+    assert_equal 1, state.dig("sets_won", "playera"),
+      "T-P4-integration (B3a update): playera wins set 1 immediately in DZ phase"
+    assert_not_nil state,
+      "T-P4-integration: dispatcher fires WITHOUT define_singleton_method stub — Option B name-based lookup works (bk2_state updated)"
+    # TM must NOT be set_over — BK-2kombi uses its own match-state machine, not AASM set_over.
     refute_equal "set_over", tm.state.to_s,
-      "T-P4-integration: TM.state must NOT have transitioned to set_over during Nachstoß defer"
+      "T-P4-integration: TM.state must NOT have transitioned to set_over"
+  end
+
+  # ===========================================================================
+  # 2026-04-27 BCW Live-Test Bugs: B3a, B3b, B2
+  # B3a: DZ phase must NEVER allow Nachstoß (BK-2plus semantics).
+  # B3a: Nachstoß only when goal reached in inning 1 of set.
+  # B3b: PlayerA Nachstoß closes set symmetrically to PlayerB Nachstoß.
+  # B2: Phase correctly alternates after set close with Nachstoß resolution.
+  # ===========================================================================
+
+  # B3a-1: BK-2kombi in DZ phase (set 1, first_set_mode=direkter_zweikampf) MUST NOT
+  # trigger Nachstoß when leader reaches balls_goal. Immediate close instead.
+  # Supersedes Plan 38.4-11 O2 for DZ phase: DZ = BK-2plus semantics = no Nachstoß.
+  test "T-B3a-dz-no-nachstoss 2026-04-27: BK-2kombi DZ phase closes set immediately (no Nachstoß)" do
+    bk2k = ensure_bk_discipline("BK2-Kombi-B3a-DZ", "bk2_kombi", [50, 60, 70], nachstoss_allowed: true)
+    tm = build_table_monitor_with_discipline(bk2k, balls_goal: 70, free_game_form: "bk2_kombi")
+    tm.data["bk2_options"]["first_set_mode"] = "direkter_zweikampf"
+    tm.save!(validate: false)
+    Bk2::AdvanceMatchState.initialize_bk2_state!(tm)
+
+    assert_equal "direkter_zweikampf", tm.reload.data["bk2_state"]["current_phase"],
+      "T-B3a-DZ: set 1 must be DZ phase when first_set_mode=direkter_zweikampf"
+
+    # PlayerA commits a full inning reaching balls_goal=70 in DZ phase.
+    Bk2::CommitInning.call(table_monitor: tm, player: "playera", inning_total: 70)
+    tm.reload
+    state = tm.data["bk2_state"]
+
+    assert_nil state["nachstoss_pending"],
+      "T-B3a-DZ: nachstoss_pending MUST be nil — DZ phase never engages Nachstoß (BK-2plus semantics)"
+    assert_equal true, state["set_finished_1"],
+      "T-B3a-DZ: set MUST close immediately in DZ phase (no defer)"
+    assert_equal 1, state.dig("sets_won", "playera"),
+      "T-B3a-DZ: playera wins set immediately in DZ phase"
+  end
+
+  # B3a-2: BK-2kombi in SP phase (set 2 when first_set_mode=DZ) CAN allow Nachstoß
+  # but ONLY when goal is reached in the FIRST inning of the set.
+  # Goal reached in inning 1 → Nachstoß deferred (trailing gets equalizer).
+  test "T-B3a-sp-inning1-allows-nachstoss 2026-04-27: BK-2kombi SP phase inning 1 allows Nachstoß" do
+    bk2k = ensure_bk_discipline("BK2-Kombi-B3a-SP-i1", "bk2_kombi", [50, 60, 70], nachstoss_allowed: true)
+    tm = build_table_monitor_with_discipline(bk2k, balls_goal: 70, free_game_form: "bk2_kombi")
+    tm.data["bk2_options"]["first_set_mode"] = "direkter_zweikampf"
+    tm.data["bk2_options"]["serienspiel_max_innings_per_set"] = 5
+    tm.save!(validate: false)
+    Bk2::AdvanceMatchState.initialize_bk2_state!(tm)
+
+    # Manually advance to set 2 (SP phase) — simulate set 1 already closed.
+    # set_inning_count=0 means "no completed innings yet" = currently in inning 1.
+    tm.reload
+    tm.data["bk2_state"]["current_set_number"] = 2
+    tm.data["bk2_state"]["current_phase"] = "serienspiel"
+    tm.data["bk2_state"]["first_set_mode"] = "direkter_zweikampf"
+    tm.data["bk2_state"]["sets_won"] = {"playera" => 1, "playerb" => 0}
+    tm.data["bk2_state"]["set_inning_count"] = 0  # 0 = no completed innings = inning 1 in progress
+    tm.data["bk2_state"]["innings_left_in_set"] = 5
+    tm.data["bk2_state"]["player_at_table"] = "playera"
+    tm.save!(validate: false)
+
+    # PlayerA commits inning 1 of set 2 SP, reaching balls_goal=70.
+    Bk2::CommitInning.call(table_monitor: tm, player: "playera", inning_total: 70)
+    tm.reload
+    state = tm.data["bk2_state"]
+
+    assert_equal true, state["nachstoss_pending"],
+      "T-B3a-SP-i1: nachstoss_pending MUST be true — SP phase inning 1 goal = Nachstoß allowed"
+    assert_equal "playerb", state["player_at_table"],
+      "T-B3a-SP-i1: player_at_table must flip to trailing (playerb) for Nachstoß"
+    assert_nil state["set_finished_2"],
+      "T-B3a-SP-i1: set must NOT close yet — Nachstoß deferred"
+  end
+
+  # B3a-3: BK-2kombi in SP phase, goal reached in inning 2+ → NO Nachstoß, immediate close.
+  test "T-B3a-sp-inning2-no-nachstoss 2026-04-27: BK-2kombi SP phase inning 2+ immediate close (no Nachstoß)" do
+    bk2k = ensure_bk_discipline("BK2-Kombi-B3a-SP-i2", "bk2_kombi", [50, 60, 70], nachstoss_allowed: true)
+    tm = build_table_monitor_with_discipline(bk2k, balls_goal: 70, free_game_form: "bk2_kombi")
+    tm.data["bk2_options"]["first_set_mode"] = "direkter_zweikampf"
+    tm.data["bk2_options"]["serienspiel_max_innings_per_set"] = 5
+    tm.save!(validate: false)
+    Bk2::AdvanceMatchState.initialize_bk2_state!(tm)
+
+    # Advance to set 2 SP with set_inning_count=1 (one inning already completed, now in inning 2).
+    tm.reload
+    tm.data["bk2_state"]["current_set_number"] = 2
+    tm.data["bk2_state"]["current_phase"] = "serienspiel"
+    tm.data["bk2_state"]["first_set_mode"] = "direkter_zweikampf"
+    tm.data["bk2_state"]["sets_won"] = {"playera" => 1, "playerb" => 0}
+    tm.data["bk2_state"]["set_inning_count"] = 1  # 1 = one completed inning = now in inning 2
+    tm.data["bk2_state"]["innings_left_in_set"] = 4
+    tm.data["bk2_state"]["player_at_table"] = "playera"
+    tm.save!(validate: false)
+
+    # PlayerA commits inning 2 of set 2 SP, reaching balls_goal=70.
+    Bk2::CommitInning.call(table_monitor: tm, player: "playera", inning_total: 70)
+    tm.reload
+    state = tm.data["bk2_state"]
+
+    assert_nil state["nachstoss_pending"],
+      "T-B3a-SP-i2: nachstoss_pending MUST be nil — inning 2+ goal reached → no Nachstoß"
+    assert_equal true, state["set_finished_2"],
+      "T-B3a-SP-i2: set MUST close immediately when goal reached in inning 2+"
+    assert_equal 2, state.dig("sets_won", "playera"),
+      "T-B3a-SP-i2: playera wins set 2 immediately"
+  end
+
+  # B3a-4: set_inning_count counts completed innings: 0 on init, +1 per CommitInning.
+  test "T-B3a-inning-count-tracked 2026-04-27: set_inning_count seeded to 0 on init, increments on CommitInning" do
+    bk2k = ensure_bk_discipline("BK2-Kombi-B3a-count", "bk2_kombi", [50, 60, 70], nachstoss_allowed: true)
+    tm = build_table_monitor_with_discipline(bk2k, balls_goal: 70, free_game_form: "bk2_kombi")
+    tm.data["bk2_options"]["first_set_mode"] = "serienspiel"
+    tm.data["bk2_options"]["serienspiel_max_innings_per_set"] = 5
+    tm.save!(validate: false)
+    Bk2::AdvanceMatchState.initialize_bk2_state!(tm)
+
+    state = tm.reload.data["bk2_state"]
+    assert_equal 0, state["set_inning_count"],
+      "T-B3a-count: set_inning_count must be seeded to 0 on initialization (0 completed innings)"
+
+    # Commit inning 1 (score 5, no goal).
+    Bk2::CommitInning.call(table_monitor: tm, player: "playera", inning_total: 5)
+    state = tm.reload.data["bk2_state"]
+    assert_equal 1, state["set_inning_count"],
+      "T-B3a-count: set_inning_count must increment to 1 after first CommitInning (1 completed)"
+
+    # Commit inning 2 (score 3, no goal).
+    Bk2::CommitInning.call(table_monitor: tm, player: "playerb", inning_total: 3)
+    state = tm.reload.data["bk2_state"]
+    assert_equal 2, state["set_inning_count"],
+      "T-B3a-count: set_inning_count must increment to 2 after second CommitInning (2 completed)"
+  end
+
+  # B3b: PlayerA Nachstoß closes set symmetrically.
+  # Setup: set 2 SP (first_set_mode=DZ), playerB has kickoff and reaches goal in inning 1.
+  # Nachstoß deferred for playerA. PlayerA completes Nachstoß (below goal). Set closes, playerB wins.
+  test "T-B3b-playera-nachstoss-closes-set 2026-04-27: PlayerA Nachstoß inning ends → set closes (symmetric)" do
+    bk2k = ensure_bk_discipline("BK2-Kombi-B3b", "bk2_kombi", [50, 60, 70], nachstoss_allowed: true)
+    tm = build_table_monitor_with_discipline(bk2k, balls_goal: 70, free_game_form: "bk2_kombi")
+    tm.data["bk2_options"]["first_set_mode"] = "direkter_zweikampf"
+    tm.data["bk2_options"]["serienspiel_max_innings_per_set"] = 5
+    tm.save!(validate: false)
+    Bk2::AdvanceMatchState.initialize_bk2_state!(tm)
+
+    # Advance to set 2 SP, playerB has kickoff, Nachstoß already pending for playerA.
+    # Simulate: playerB reached goal in inning 1 of set 2.
+    # set_inning_count=1: B's first inning (inning 1) has been completed and counted.
+    tm.reload
+    tm.data["bk2_state"]["current_set_number"] = 2
+    tm.data["bk2_state"]["current_phase"] = "serienspiel"
+    tm.data["bk2_state"]["first_set_mode"] = "direkter_zweikampf"
+    tm.data["bk2_state"]["sets_won"] = {"playera" => 1, "playerb" => 0}
+    tm.data["bk2_state"]["set_scores"]["2"] = {"playera" => 0, "playerb" => 70}
+    tm.data["bk2_state"]["set_inning_count"] = 1  # 1 = B's inning 1 completed
+    tm.data["bk2_state"]["innings_left_in_set"] = 5
+    tm.data["bk2_state"]["nachstoss_pending"] = true
+    tm.data["bk2_state"]["nachstoss_for"] = "playera"
+    tm.data["bk2_state"]["player_at_table"] = "playera"
+    tm.save!(validate: false)
+
+    # PlayerA commits their Nachstoß inning (scores 30, below goal=70).
+    Bk2::CommitInning.call(table_monitor: tm, player: "playera", inning_total: 30)
+    tm.reload
+    state = tm.data["bk2_state"]
+
+    assert_equal true, state["set_finished_2"],
+      "T-B3b: set MUST close after playerA's Nachstoß inning ends (set_finished_2 = true)"
+    assert_equal 1, state.dig("sets_won", "playerb"),
+      "T-B3b: playerB wins set 2 — original leader wins when trailing (A) stays below goal"
+    refute state["nachstoss_pending"],
+      "T-B3b: nachstoss_pending must be cleared after Nachstoß resolution"
+  end
+
+  # B3b-equalizer: PlayerA Nachstoß reaches goal → playerA wins (trailing wins on equalize).
+  test "T-B3b-playera-nachstoss-equalizer-wins-set 2026-04-27: PlayerA Nachstoß equalizer → playerA wins set" do
+    bk2k = ensure_bk_discipline("BK2-Kombi-B3b-eq", "bk2_kombi", [50, 60, 70], nachstoss_allowed: true)
+    tm = build_table_monitor_with_discipline(bk2k, balls_goal: 70, free_game_form: "bk2_kombi")
+    tm.data["bk2_options"]["first_set_mode"] = "direkter_zweikampf"
+    tm.data["bk2_options"]["serienspiel_max_innings_per_set"] = 5
+    tm.save!(validate: false)
+    Bk2::AdvanceMatchState.initialize_bk2_state!(tm)
+
+    # Same setup as B3b but playerA equalizes (scores 70).
+    # set_inning_count=1: B's first inning already completed.
+    tm.reload
+    tm.data["bk2_state"]["current_set_number"] = 2
+    tm.data["bk2_state"]["current_phase"] = "serienspiel"
+    tm.data["bk2_state"]["first_set_mode"] = "direkter_zweikampf"
+    tm.data["bk2_state"]["sets_won"] = {"playera" => 1, "playerb" => 0}
+    tm.data["bk2_state"]["set_scores"]["2"] = {"playera" => 0, "playerb" => 70}
+    tm.data["bk2_state"]["set_inning_count"] = 1  # 1 = B's inning 1 completed
+    tm.data["bk2_state"]["innings_left_in_set"] = 5
+    tm.data["bk2_state"]["nachstoss_pending"] = true
+    tm.data["bk2_state"]["nachstoss_for"] = "playera"
+    tm.data["bk2_state"]["player_at_table"] = "playera"
+    tm.save!(validate: false)
+
+    # PlayerA commits Nachstoß inning with 70 (equalizes).
+    Bk2::CommitInning.call(table_monitor: tm, player: "playera", inning_total: 70)
+    tm.reload
+    state = tm.data["bk2_state"]
+
+    assert_equal true, state["set_finished_2"],
+      "T-B3b-eq: set MUST close after playerA Nachstoß equalize"
+    # sets_won started at {playera: 1, playerb: 0}; resolution adds 1 → total 2 for playera.
+    assert_equal 2, state.dig("sets_won", "playera"),
+      "T-B3b-eq: trailing (playera) wins on equalize at target (provisional rule) — total 2 sets"
+    # Match closes: A had 1 set win before, now 2 total.
+    assert_equal true, state["match_finished"],
+      "T-B3b-eq: match closes after 2nd set win for playera"
+  end
+
+  # B2: Phase alternates correctly after set closes via Nachstoß resolution (set 2 SP → set 3 DZ).
+  test "T-B2-phase-alternates-after-nachstoss-resolution 2026-04-27: current_phase advances after Nachstoß-resolved set close" do
+    bk2k = ensure_bk_discipline("BK2-Kombi-B2", "bk2_kombi", [50, 60, 70], nachstoss_allowed: true)
+    tm = build_table_monitor_with_discipline(bk2k, balls_goal: 70, free_game_form: "bk2_kombi")
+    tm.data["bk2_options"]["first_set_mode"] = "direkter_zweikampf"
+    tm.data["bk2_options"]["serienspiel_max_innings_per_set"] = 5
+    tm.data["bk2_options"]["direkter_zweikampf_max_shots_per_turn"] = 2
+    tm.save!(validate: false)
+    Bk2::AdvanceMatchState.initialize_bk2_state!(tm)
+
+    # Advance to set 2 SP with Nachstoß pending for playerA (playerB reached goal in inning 1).
+    # set_inning_count=1: B's inning 1 completed, Nachstoß deferred for A.
+    tm.reload
+    tm.data["bk2_state"]["current_set_number"] = 2
+    tm.data["bk2_state"]["current_phase"] = "serienspiel"
+    tm.data["bk2_state"]["first_set_mode"] = "direkter_zweikampf"
+    tm.data["bk2_state"]["sets_won"] = {"playera" => 0, "playerb" => 1}
+    tm.data["bk2_state"]["set_scores"]["2"] = {"playera" => 0, "playerb" => 70}
+    tm.data["bk2_state"]["set_inning_count"] = 1  # 1 = B's inning 1 completed
+    tm.data["bk2_state"]["innings_left_in_set"] = 5
+    tm.data["bk2_state"]["nachstoss_pending"] = true
+    tm.data["bk2_state"]["nachstoss_for"] = "playera"
+    tm.data["bk2_state"]["player_at_table"] = "playera"
+    tm.save!(validate: false)
+
+    # PlayerA commits Nachstoß with score below goal → playerB wins set 2 → advance to set 3.
+    Bk2::CommitInning.call(table_monitor: tm, player: "playera", inning_total: 30)
+    tm.reload
+    state = tm.data["bk2_state"]
+
+    assert_equal 3, state["current_set_number"],
+      "T-B2: current_set_number must advance to 3 after Nachstoß-resolved set 2 close"
+    assert_equal "direkter_zweikampf", state["current_phase"],
+      "T-B2: current_phase must alternate to direkter_zweikampf for set 3 (back to first_set_mode)"
+    assert_equal 0, state["set_inning_count"],
+      "T-B2: set_inning_count must reset to 0 when advancing to set 3 (0 = no completed innings)"
   end
 
   private
