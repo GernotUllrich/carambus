@@ -1695,31 +1695,21 @@ class TableMonitor < ApplicationRecord
 
   private
 
-  # Phase 38.4-14 P4 (round-4 iteration-2 — Option B): helper. True when:
-  #   (a) data['free_game_form'] is in BK2_FREE_GAME_FORMS (BK-family), AND
-  #   (b) the AR Discipline looked up by NAME from data['playera']['discipline'] (the
-  #       existing String contract — see TableMonitor#discipline:608) has
-  #       nachstoss_allowed? == true.
-  #
-  # Why we look up by name instead of calling self.discipline.respond_to?(:nachstoss_allowed?):
-  #   TableMonitor#discipline returns a STRING, not an AR record (15+ legacy call sites
-  #   depend on the String contract — see Plan 14 truth #11). Calling
-  #   discipline.respond_to?(:nachstoss_allowed?) on the String always returns false →
-  #   the dispatch never fires in production. Option B reads the discipline name from
-  #   data and resolves the AR record explicitly. Future phase will migrate
-  #   TableMonitor#discipline to return an AR record (closes deferred T8-T11 too).
-  #
-  # Post-Plan-16, only BK-2kombi qualifies. BK50/BK100/BK-2/BK-2plus return false here
-  # and continue to use the legacy karambol terminate_current_inning path (their
-  # immediate-close semantics are the production-correct behaviour per Plan 16 P5
-  # narrowing).
+  # Round 6 (2026-04-28): Derive directly from data["free_game_form"]. Per Plan 16 P5
+  # narrowing, only BK-2kombi has Nachstoß by design. The previous Discipline.find_by(name:)
+  # lookup is brittle on local servers because:
+  #   (a) duplicate "BK2-Kombi" records exist (e.g. dev DB has id 59 with data=nil AND
+  #       id 107 with the correct payload) — find_by picks the lowest id (the stub) →
+  #       nachstoss_allowed? returns false → routing falls back to legacy karambol
+  #       terminate_current_inning → bk2_state never engages → Nachstoß never fires.
+  #   (b) global Discipline records are LocalProtector-protected, so the per-record flag
+  #       cannot be reliably mutated on local servers and depends on the unfixed sync race
+  #       (`sync-version-yaml-load-json-collision`).
+  # data["free_game_form"] is always set on game-start by GameSetup and is the stable,
+  # sync-replicated identifier (drives form rendering and bk2_state initialization).
   def bk_family_with_nachstoss?
     return false unless data.is_a?(Hash)
-    free_form = data["free_game_form"].to_s
-    return false unless Discipline::BK2_FREE_GAME_FORMS.include?(free_form)
-    name = data.dig("playera", "discipline").to_s
-    return false if name.empty?
-    Discipline.find_by(name: name)&.nachstoss_allowed? == true
+    data["free_game_form"].to_s == "bk2_kombi"
   end
 
   # Phase 38.4-14 P4: route :goal_reached through Bk2::CommitInning to engage Plan 11
