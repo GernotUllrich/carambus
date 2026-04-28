@@ -274,20 +274,20 @@ module Bk2
       state["player_at_table"] = (set_winner == "playera") ? "playerb" : "playera"
     end
 
-    # Phase 38.4-11 O2: Lese discipline.nachstoss_allowed? mit Fallback auf false.
-    # @tm.discipline kann nil sein in unit tests ohne Game/Discipline-Wiring; in dem Fall
-    # gibt der Helper false zurück (legacy / kein Nachstoß).
-    #
-    # Phase 38.4-14 P4 (round-4 iteration-2 — Option B): TableMonitor#discipline can return
-    # either an AR Discipline record OR a String name (production contract — see
-    # TableMonitor#discipline:608). When it returns a String, look up the AR record by name.
-    # This keeps Plan 14's Option B dispatch path working in production wiring without
-    # changing TableMonitor#discipline's String contract for 15+ legacy callers.
+    # Round 6 (2026-04-28): Derive nachstoss eligibility from @tm.data["free_game_form"]
+    # instead of looking up the AR Discipline by name. Two reasons:
+    #   (1) LocalProtector-protected global Discipline records cannot be reliably mutated
+    #       on local servers, and the dev DB has DUPLICATE records with the same name
+    #       (e.g. "BK2-Kombi" exists at id 59 with data=nil AND id 107 with the correct
+    #       free_game_form payload). find_by(name:) picks the lowest-id match, returning
+    #       the stub record whose nachstoss_allowed? is always false.
+    #   (2) free_game_form is already set on the TableMonitor at game-start (it drives
+    #       form rendering and bk2_state initialization). Reading it directly avoids the
+    #       DB lookup entirely and works for unit tests (no fixture wiring needed).
+    # Per architecture rule (P5 narrowing), only BK-2kombi has Nachstoß by design.
     def discipline_nachstoss_allowed?
-      return false unless @tm.respond_to?(:discipline)
-      disc = @tm.discipline
-      disc = Discipline.find_by(name: disc) if disc.is_a?(String)
-      disc.respond_to?(:nachstoss_allowed?) && disc.nachstoss_allowed?
+      return false unless @tm.respond_to?(:data) && @tm.data.is_a?(Hash)
+      @tm.data["free_game_form"].to_s == "bk2_kombi"
     end
 
     # 2026-04-27 B3a: Prüfe ob Nachstoß für den aktuellen Spielstand zulässig ist.

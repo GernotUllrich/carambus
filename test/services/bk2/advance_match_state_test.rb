@@ -421,6 +421,8 @@ class Bk2::AdvanceMatchStateTest < ActiveSupport::TestCase
     Bk2::AdvanceMatchState.call(table_monitor: tm, shot_payload: pin_shot(fallen_pins: 2))
     # Bring playera to the brink of the set target while still at table.
     tm.data["bk2_state"]["set_scores"]["1"]["playera"] = 47
+    # Round 6: bypass Nachstoß first-inning defer gate for this close-path test.
+    tm.data["bk2_state"]["set_inning_count"] = 1
     tm.save!
     # A 5-pin SP shot by playera pushes to 52 → set 1 closes.
     Bk2::AdvanceMatchState.call(table_monitor: tm, shot_payload: pin_shot(fallen_pins: 5))
@@ -699,7 +701,9 @@ class Bk2::AdvanceMatchStateTest < ActiveSupport::TestCase
         "3" => {"playera" => 0, "playerb" => 0}
       },
       "sets_won" => {"playera" => 0, "playerb" => 0},
-      "balls_goal" => 50
+      "balls_goal" => 50,
+      # Round 6: bypass Nachstoß first-inning defer gate for this balls_goal close-path test.
+      "set_inning_count" => 1
       # Note: no set_target_points key — balls_goal is the only target
     }
     @tm.update!(data: @tm.data.merge("bk2_state" => state_data))

@@ -232,6 +232,7 @@ class Bk2::CommitInningTest < ActiveSupport::TestCase
     state["current_set_number"] = 2
     state["sets_won"] = {"playera" => 1, "playerb" => 0}
     state["set_scores"]["2"]["playera"] = 45
+    state["set_inning_count"] = 1  # Round 6: bypass Nachstoß first-inning defer gate
     @tm.update!(data: @tm.data.merge("bk2_state" => state))
 
     Bk2::CommitInning.call(
