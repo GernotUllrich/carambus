@@ -959,53 +959,6 @@ class TableMonitorReflex < ApplicationReflex
     !['127.0.0.1', '::1', 'localhost'].include?(remote_ip) && !remote_ip.start_with?('192.168.')
   end
 
-  # Phase 38.3-04 D-11/D-12/D-14: commit accumulated inning to bk2_state when the
-  # live match is a BK-* discipline and the user triggered an Aufnahmewechsel gesture
-  # (swap-icon via next_step, OR opponent-panel via key_a/key_b). Returns true if
-  # commit happened (caller MUST return early); returns false for non-BK-family.
-  #
-  # Phase 38.4 I7: extended from bk2_kombi-only to all 5 BK-* disciplines via bk_family?.
-  #
-  # Security S1/S2: player + inning_total are read exclusively from server-side
-  # JSONB (@table_monitor.data), never from client-supplied DOM attributes.
-  def bk2_kombi_commit_if_active(gesture_id:, clicked_player: nil)
-    return false unless bk_family?
-    # Phase 38.4 deploy-fix 2026-04-26: only commit innings when actually playing.
-    # Warmup / shootout / set_over panel taps must fall through to the standard
-    # warmup_state_change / shootout / acknowledge_result paths. Without this guard,
-    # the first warmup-panel tap fired Bk2::CommitInning, initialized bk2_state, and
-    # never reached warmup_state_change → user trapped in warmup with no error.
-    return false unless @table_monitor.playing?
-
-    bk2_state = @table_monitor.data["bk2_state"] || {}
-    player = bk2_state["player_at_table"].to_s
-    return false unless %w[playera playerb].include?(player)
-
-    # D-14: for opponent-panel clicks, commit only when the CLICKED player is the
-    # opponent (NOT the current player_at_table). Swap-icon click (clicked_player nil)
-    # always commits.
-    if clicked_player.present?
-      return false if clicked_player == player  # tapping own panel: no-op
-    end
-
-    inning_total = @table_monitor.data.dig(player, "innings_redo_list").andand[-1].to_i
-
-    Rails.logger.info "[bk2_commit_inning gesture=#{gesture_id}] player=#{player} n=#{inning_total}" if DEBUG
-
-    # R5-1 step 1b-i: CommitInning now performs the karambol commit internally
-    # (single source of truth at the call boundary).
-    Bk2::CommitInning.call(
-      table_monitor: @table_monitor,
-      player: player,
-      inning_total: inning_total,
-      shot_sequence_number: SecureRandom.uuid
-    )
-    true
-  rescue ArgumentError => e
-    Rails.logger.error("[bk2_commit_inning] invalid payload: #{e.message}")
-    false
-  end
-
   def warmup_state_change(player)
     if DEBUG
       Rails.logger.info "+++++++++++++++++>>> #{"warmup_state_change(#{player})"} <<<++++++++++++++++++++++++++++++++++++++"

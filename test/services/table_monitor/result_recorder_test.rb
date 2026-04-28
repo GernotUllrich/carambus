@@ -272,40 +272,9 @@ class TableMonitor::ResultRecorderTest < ActiveSupport::TestCase
   # ---------------------------------------------------------------------------
   # BK-* persistence path (Phase 38.4-P9)
   # ---------------------------------------------------------------------------
-  # The BK-* dispatch in result_recorder was removed in P9 — production never
-  # wrote `current_bk2_shot_payload`, so the dispatch always crashed in
-  # ScoreShot#calculate_raw_points. Match-state advancement happens on the
-  # live-scoring path (TableMonitor#add_n_balls → Bk2::CommitInning); the
-  # post-set persistence path uses data[playera/b].result directly.
-  test "ResultRecorder does NOT call Bk2::AdvanceMatchState for bk2_kombi (P9 — dispatch removed)" do
-    call_count = 0
-    counting_call = ->(**_kwargs) { call_count += 1 }
-
-    @tm.data["free_game_form"] = "bk2_kombi"
-    @tm.save!
-
-    Bk2::AdvanceMatchState.stub(:call, counting_call) do
-      TableMonitor::ResultRecorder.save_result(table_monitor: @tm)
-    end
-
-    assert_equal 0, call_count,
-      "Bk2::AdvanceMatchState must NOT be called from result_recorder — P9 removed the broken dispatch"
-  end
-
-  test "ResultRecorder does NOT touch Bk2 path for karambol/snooker" do
-    call_count = 0
-    counting_call = ->(**_kwargs) { call_count += 1 }
-
-    @tm.data["free_game_form"] = "snooker"
-    @tm.save!
-
-    Bk2::AdvanceMatchState.stub(:call, counting_call) do
-      TableMonitor::ResultRecorder.save_result(table_monitor: @tm)
-    end
-
-    assert_equal 0, call_count,
-      "Bk2::AdvanceMatchState darf NICHT aufgerufen werden fuer free_game_form='snooker'"
-  end
+  # Tests removed: Bk2::AdvanceMatchState.call / Bk2::CommitInning gibt es nicht mehr.
+  # Multiset läuft komplett über legacy karambol-Pfad; BK-Regeln sind als Guards in
+  # TableMonitor#follow_up?, #end_of_set?, ScoreEngine#bk_credit_negative_to_opponent?.
 
   # Phase 38.4-P9: BK-* set close must complete without an in-flight shot_payload.
   # Production has no writer for `current_bk2_shot_payload` — yet the BK-* dispatch
