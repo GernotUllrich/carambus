@@ -174,7 +174,12 @@ Merge-Map (Winner → Loser):
 - D-10: PaperTrail `versions`-Rows der Loser bleiben unangetastet (Annahme: alle Local-Server sind sync-aktuell, Audit-History bleibt korrekt am ursprünglichen item_id)
 - D-11: Idempotenz: Re-Run = sicherer No-Op, wenn keine Loser-IDs mehr existieren
 
-**Plans**: TBD (to be created by `/gsd-plan-phase 38.6`)
+**Plans**: 3 plans
+
+Plans:
+- [ ] `38.6-01-merge-script-PLAN.md` — Build `script/merge_bk_disciplines.rb` per D-13's six phases (pre-flight + idempotency check, stats matrix per D-07, CC-conflict scan per D-08, per-loser merge in transactions per D-13/D-03/D-09, rename winner 107 to BK-2kombi per D-12, post-flight protocol with deltas + recompute todo per D-06). Uses ONLY PaperTrail-aware AR API (D-04). Wave 1, autonomous: true.
+- [ ] `38.6-02-fixtures-canonical-rename-PLAN.md` — Update `test/fixtures/disciplines.yml` to use canonical name "BK-2kombi" (was "BK2-Kombi") so post-rename production state is mirrored in tests. Verify fixture loser-free (no loser IDs/names). Wave 1, autonomous: true.
+- [ ] `38.6-03-dev-dry-run-PLAN.md` — Probe dev DB state, run the merge script in development, capture Markdown protocol, human-verify checkpoint for GO/NO-GO on production deployment. Production run is OUT of scope for /gsd-execute-phase (manual operator step). Wave 2, autonomous: false (human-verify gate).
 **UI hint**: no (data-only cleanup)
 
 ### Phase 39: DTP-Backed Parameter Ranges
@@ -211,7 +216,7 @@ Phases execute in numeric order: 33 → 34 → 35 → 36a → 36b → 36c → 37
 | 38.3. BK2-Kombi dry-run corrections | v7.1 | 8/8 | Complete | 2026-04-23 |
 | 38.4. BK2-Kombi post-dry-run gaps | v7.1 | 17/17 | Complete   | 2026-04-25 |
 | 38.5. BK-Param-Hierarchie + Multiset-Config | v7.1 | 6/6 | Complete    | 2026-04-29 |
-| 38.6. Discipline Master-Data Cleanup | v7.1 | 0/TBD | Not started | - |
+| 38.6. Discipline Master-Data Cleanup | v7.1 | 0/3 | Not started | - |
 | 39. DTP-Backed Parameter Ranges | v7.1 | 0/TBD | Not started | - |
 
 **v7.0 total:** 7 phases, 31 plans, 37/37 requirements, ~2 weeks wall time.
