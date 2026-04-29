@@ -27,6 +27,25 @@ module Bk2
       table_monitor.data["bk2_state"]
     end
 
+    # Phase 38.5 D-03 — bake-hook 2: set-boundary re-bake.
+    #
+    # Called from TableMonitor::ResultRecorder#perform_switch_to_next_set when
+    # a new set opens for a BK-2kombi match. Re-resolves effective_discipline
+    # (DZ <-> SP per multiset_components) and the two BK params
+    # (allow_negative_score_input, negative_credits_opponent) into
+    # table_monitor.data.
+    #
+    # Why this method lives in Bk2:: namespace (research finding 3): the actual
+    # set-open file path is ResultRecorder, but D-03's mental model places BK
+    # lifecycle under Bk2::. This thin orchestration delegate satisfies both:
+    # callers see the Bk2 namespace; ResultRecorder remains the actual hook site.
+    #
+    # Idempotent: re-running on the same TableMonitor produces the same data values.
+    # Does NOT save — caller (ResultRecorder) saves once after merging other state.
+    def self.rebake_at_set_open!(table_monitor)
+      BkParamResolver.bake!(table_monitor)
+    end
+
     def initialize(table_monitor:)
       @tm = table_monitor
     end
