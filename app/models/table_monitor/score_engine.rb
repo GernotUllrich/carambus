@@ -1302,18 +1302,31 @@ class TableMonitor::ScoreEngine
       :ok
     end
 
-    # Returns true iff this ScoreEngine was built for a BK2-Kombi match.
-    # Strict string equality — does NOT match via .present? or substring; karambol etc. stay unaffected.
-    # See phase 38.1 CONTEXT.md D-06.
+    # Phase 38.5 D-09: data-driven predicate. Reads the resolver-baked value from
+    # TableMonitor.data["allow_negative_score_input"] (written at start_game and
+    # at each set boundary by BkParamResolver.bake!). Fallback false (D-04) when
+    # key is missing — preserves Karambol/Snooker/Pool default behaviour exactly.
+    #
+    # Replaces the Phase 38.1 free_game_form-string-equality body — that body
+    # missed BK-2/BK50/BK100 (latent bug D-12, fixed by this rewrite + D-08 seed).
     def allow_negative_scores?
-      data["free_game_form"] == "bk2_kombi"
+      !!data["allow_negative_score_input"]
     end
 
-    # BK-2plus: negative Score-Eingaben werden POSITIV beim Gegner verbucht.
-    # BK-2kombi (egal welche Phase) und BK-2 verwenden signed-add (negativ am
-    # Spieler). Die BK-2plus-Regel überlagert NUR wenn Disziplin direkt BK-2plus.
+    # Phase 38.5 D-09: data-driven predicate. Reads the resolver-baked value from
+    # TableMonitor.data["negative_credits_opponent"] (written at start_game and
+    # at each set boundary by BkParamResolver.bake!). Fallback false (D-04).
+    #
+    # When TRUE: a negative input from a player is credited (positively) to the
+    # OPPONENT, with the shooter's score unchanged.
+    # When FALSE: signed-add to the shooter's own score (legacy karambol behaviour).
+    #
+    # Replaces the Phase 38.1 free_game_form-string-equality body — that body
+    # missed the BK-2kombi DZ-Phase (latent bug D-11, fixed by this rewrite +
+    # the resolver writing effective_discipline=bk_2plus → negative_credits_opponent=true
+    # for BK-2kombi DZ sets).
     def bk_credit_negative_to_opponent?
-      data["free_game_form"] == "bk_2plus"
+      !!data["negative_credits_opponent"]
     end
 
     private
