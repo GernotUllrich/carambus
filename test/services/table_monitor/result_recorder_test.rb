@@ -292,4 +292,45 @@ class TableMonitor::ResultRecorderTest < ActiveSupport::TestCase
       TableMonitor::ResultRecorder.new(table_monitor: @tm).perform_save_result
     end
   end
+
+  # ---------------------------------------------------------------------------
+  # Phase 38.5 D-03 — set-boundary re-bake guard
+  # ---------------------------------------------------------------------------
+  # perform_switch_to_next_set must call Bk2::AdvanceMatchState.rebake_at_set_open!
+  # ONLY for free_game_form == "bk2_kombi" (research finding 3 + Pitfall 4).
+
+  test "Phase 38.5 D-03: perform_switch_to_next_set calls rebake_at_set_open! for BK-2kombi" do
+    @tm.data["free_game_form"] = "bk2_kombi"
+    @tm.data["sets"] = [{"Innings1" => [10], "Innings2" => [5]}]
+    @tm.save!
+
+    original = Bk2::AdvanceMatchState.method(:rebake_at_set_open!)
+    recorded = []
+    Bk2::AdvanceMatchState.define_singleton_method(:rebake_at_set_open!) { |arg| recorded << arg }
+
+    TableMonitor::ResultRecorder.new(table_monitor: @tm).perform_switch_to_next_set
+
+    assert_equal 1, recorded.length, "rebake_at_set_open! must be called exactly once for bk2_kombi"
+    assert_same @tm, recorded.first, "must receive the TableMonitor argument"
+  ensure
+    Bk2::AdvanceMatchState.define_singleton_method(:rebake_at_set_open!, original) if original
+  end
+
+  test "Phase 38.5 D-03: perform_switch_to_next_set does NOT call rebake_at_set_open! for karambol" do
+    # @tm default free_game_form is "standard"; explicitly set to karambol
+    @tm.data["free_game_form"] = "karambol"
+    @tm.data["sets"] = [{"Innings1" => [10], "Innings2" => [5]}]
+    @tm.save!
+
+    original = Bk2::AdvanceMatchState.method(:rebake_at_set_open!)
+    recorded = []
+    Bk2::AdvanceMatchState.define_singleton_method(:rebake_at_set_open!) { |arg| recorded << arg }
+
+    TableMonitor::ResultRecorder.new(table_monitor: @tm).perform_switch_to_next_set
+
+    assert_equal 0, recorded.length,
+      "non-BK-2kombi must NOT trigger re-bake (D-03 guard regression)"
+  ensure
+    Bk2::AdvanceMatchState.define_singleton_method(:rebake_at_set_open!, original) if original
+  end
 end

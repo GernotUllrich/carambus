@@ -64,4 +64,54 @@ class Bk2::AdvanceMatchStateTest < ActiveSupport::TestCase
     assert_equal 50, state["balls_goal"]
     assert_equal 2, state["shots_left_in_turn"]
   end
+
+  # ---------------------------------------------------------------------------
+  # Phase 38.5 D-03 — rebake_at_set_open! orchestration delegate
+  # ---------------------------------------------------------------------------
+  # Tests for the new class method that delegates to BkParamResolver.bake!
+  # at set boundaries for BK-2kombi matches.
+
+  test "Phase 38.5 D-03: rebake_at_set_open! delegates to BkParamResolver.bake!" do
+    # Save original and re-alias to stub. We cannot remove_method the singleton
+    # method or we'd lose the real BkParamResolver.bake! for sibling tests.
+    original = BkParamResolver.method(:bake!)
+    recorded = []
+    BkParamResolver.define_singleton_method(:bake!) { |arg| recorded << arg }
+
+    Bk2::AdvanceMatchState.rebake_at_set_open!(@tm)
+
+    assert_equal 1, recorded.length, "bake! must be called exactly once"
+    assert_same @tm, recorded.first, "bake! must receive the TableMonitor argument"
+  ensure
+    # Restore the original module method by re-binding it.
+    BkParamResolver.define_singleton_method(:bake!, original) if original
+  end
+
+  test "Phase 38.5 D-03: rebake_at_set_open! is idempotent across DZ -> SP set flip" do
+    @tm.data["playera"] = {"discipline" => "BK2-Kombi"}
+    @tm.data["sets"] = []
+    @tm.save!
+
+    # Set 1 (no sets closed yet) — DZ phase, effective_discipline=bk_2plus
+    Bk2::AdvanceMatchState.rebake_at_set_open!(@tm)
+    first_eff = @tm.data["effective_discipline"]
+    first_allow = @tm.data["allow_negative_score_input"]
+    first_credit = @tm.data["negative_credits_opponent"]
+
+    # Re-run on same TM with same data — must produce identical values (idempotent)
+    Bk2::AdvanceMatchState.rebake_at_set_open!(@tm)
+    assert_equal first_eff, @tm.data["effective_discipline"], "second bake same set must be idempotent"
+    assert_equal first_allow, @tm.data["allow_negative_score_input"]
+    assert_equal first_credit, @tm.data["negative_credits_opponent"]
+
+    # Simulate set 1 close: push a closed set
+    @tm.data["sets"] = [{"Innings1" => [1], "Innings2" => [0]}]
+
+    Bk2::AdvanceMatchState.rebake_at_set_open!(@tm)
+    second_eff = @tm.data["effective_discipline"]
+
+    # Set 1 (DZ-first) -> bk_2plus; Set 2 -> bk_2 (SP phase)
+    assert_equal "bk_2plus", first_eff, "set 1 (DZ) must resolve to bk_2plus"
+    assert_equal "bk_2", second_eff, "set 2 (SP) must resolve to bk_2"
+  end
 end
