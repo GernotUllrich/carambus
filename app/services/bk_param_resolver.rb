@@ -107,20 +107,37 @@ module BkParamResolver
     return nil if free_game_form.blank?
 
     bk_name = TableMonitor::GameSetup::BK_NAME_TO_FORM.invert[free_game_form]
-    return Discipline.find_by(name: bk_name) if bk_name
-
-    # Phase 38.5: Warn when a BK-namespace token doesn't resolve. Non-BK families
-    # (karambol, snooker, pool) intentionally fall through silently — those don't
-    # have BkParam Discipline defaults seeded (D-04). Anything starting with "bk"
-    # that doesn't match BK_NAME_TO_FORM is almost certainly a UI category marker
-    # leaking through (e.g. "bk_family") and will produce a false/false bake.
-    if free_game_form.to_s.start_with?("bk")
-      Rails.logger.warn "[BkParamResolver] Unknown BK free_game_form #{free_game_form.inspect} — " \
-                        "no match in BK_NAME_TO_FORM. Resolver will return false (D-04). " \
-                        "Likely a UI category marker (e.g. \"bk_family\") that should have been " \
-                        "normalized to a specific form (bk50/bk100/bk_2/bk_2plus/bk2_kombi) before reaching here."
+    unless bk_name
+      # Phase 38.5: Warn when a BK-namespace token doesn't resolve. Non-BK families
+      # (karambol, snooker, pool) intentionally fall through silently — those don't
+      # have BkParam Discipline defaults seeded (D-04). Anything starting with "bk"
+      # that doesn't match BK_NAME_TO_FORM is almost certainly a UI category marker
+      # leaking through (e.g. "bk_family") and will produce a false/false bake.
+      if free_game_form.to_s.start_with?("bk")
+        Rails.logger.warn "[BkParamResolver] Unknown BK free_game_form #{free_game_form.inspect} — " \
+                          "no match in BK_NAME_TO_FORM. Resolver will return false (D-04). " \
+                          "Likely a UI category marker (e.g. \"bk_family\") that should have been " \
+                          "normalized to a specific form (bk50/bk100/bk_2/bk_2plus/bk2_kombi) before reaching here."
+      end
+      return nil
     end
-    nil
+
+    # Phase 38.5: name-collision-resilient lookup. Some servers carry duplicate
+    # Discipline rows for historical reasons (e.g. BCW dev DB has BK2-Kombi at
+    # both id=59 with nil data AND id=107 with the seeded multiset_components).
+    # `find_by(name:)` would return id=59 → resolver gets nil data → predicates
+    # default to false. Prefer the row whose data declares the matching
+    # free_game_form, then any row with non-blank data, then the first row.
+    candidates = Discipline.where(name: bk_name).order(:id).to_a
+    return nil if candidates.empty?
+
+    by_form = candidates.find do |d|
+      parsed = (JSON.parse(d.data || "{}") rescue {}) || {}
+      parsed["free_game_form"] == free_game_form
+    end
+    return by_form if by_form
+
+    candidates.find { |d| d.data.present? } || candidates.first
   end
 
   # Discipline.data is raw JSON text (no `serialize` declaration on Discipline).
