@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v7.1
 milestone_name: UX Polish & i18n Debt
-status: verifying
-stopped_at: Phase 38.6 context gathered
-last_updated: "2026-04-29T19:56:44.480Z"
+status: executing
+stopped_at: Completed 38.6-01-merge-script-PLAN.md
+last_updated: "2026-04-29T20:43:38.193Z"
 last_activity: 2026-04-29
 progress:
   total_phases: 8
   completed_phases: 5
-  total_plans: 44
-  completed_plans: 43
-  percent: 98
+  total_plans: 47
+  completed_plans: 44
+  percent: 94
 ---
 
 # Project State
@@ -21,13 +21,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-15)
 
 **Core value:** Code and docs stay in sync — every documented feature works, every working feature is documented, and a volunteer user should never need to read the architecture to run a tournament.
-**Current focus:** Phase 38.5 — bk-param-hierarchy-multiset-config
+**Current focus:** Phase 38.6 — discipline-master-data-cleanup
 
 ## Current Position
 
-Phase: 39
-Plan: Not started
-Status: Phase complete — ready for verification
+Phase: 38.6 (discipline-master-data-cleanup) — EXECUTING
+Plan: 2 of 3
+Status: Ready to execute
 Last activity: 2026-04-29
 
 **Deferred to Wave 4 / later session:**
@@ -104,6 +104,7 @@ Decisions are logged in PROJECT.md Key Decisions table. Full v7.0 cross-phase de
 - [Phase 38.5]: Plan 05: stub-and-restore test pattern — save original via .method(:name), restore via define_singleton_method(name, original) in ensure. Avoids remove_method clobbering real module methods between sibling tests; load-bearing for testing module-level delegate methods
 - [Phase 38.5]: Plan 06: 2 E2E system tests in bk2_scoreboard_test.rb prove BkParamResolver.bake! -> ScoreEngine integration end-to-end at the live data path; service-level dispatch (tm.score_engine.add_n_balls) over real DOM clicks matches existing 35-test convention
 - [Phase 38.5]: Plan 06: No-lazy-bake decision recorded in 38.5-DEPLOYMENT-RUNBOOK.md (closes Open Question 2 from RESEARCH.md). Rationale: D-15 forbids migration code; ScoreEngine refactor for lazy-bake is out of scope (only Hash + Discipline AR ref, no TM ref); in-flight pre-38.5 BK-* matches fall back to false/false per D-04 (identical to today's behaviour, no regression); next start_game bakes correctly
+- [Phase 38.6]: All 6 D-13 phases implemented in merge_bk_disciplines.rb — per-loser transaction isolation, PaperTrail-aware AR-API only, interactive CC-conflict halt
 
 ### Roadmap Evolution
 
@@ -149,6 +150,6 @@ None blocking Phase 38.1 execution. Reconciliation debt above is tracked but not
 
 ## Session Continuity
 
-Last session: 2026-04-29T19:56:44.477Z
-Stopped at: Phase 38.6 context gathered
+Last session: 2026-04-29T20:43:38.190Z
+Stopped at: Completed 38.6-01-merge-script-PLAN.md
 Resume: `/gsd-plan-phase 38` to break Phase 38 into 3 executable plans
