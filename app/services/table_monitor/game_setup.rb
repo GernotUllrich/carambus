@@ -353,6 +353,18 @@ class TableMonitor::GameSetup < ApplicationService
     # is populated; the resolver looks up the Discipline AR record by name.
     # MUST run BEFORE save! — bake! mutates @tm.data, save! persists it.
     BkParamResolver.bake!(@tm)
+
+    # Phase 38.5: für BK-2kombi muss bk2_state hier initialisiert werden, weil
+    # initialize_game data["bk2_state"] geleert hat (sonst überlebt stale state
+    # ein neues Spiel — siehe 98e1d156). Das galt bisher nur für Reflex-getriggerte
+    # start_games (TableMonitorReflex ruft initialize_bk2_state! danach selber).
+    # Server-seitige Aufrufe (revert_players für Trainings-Rückspiel) haben das
+    # nicht — Folge: Banner "Spiel nicht initialisiert" nach Match-Ende. Hier
+    # zentral, idempotent.
+    if @tm.data["free_game_form"] == "bk2_kombi"
+      Bk2::AdvanceMatchState.initialize_bk2_state!(@tm)
+    end
+
     @tm.save!
 
     # Callbacks wieder aktivieren und genau einen Job einreihen
