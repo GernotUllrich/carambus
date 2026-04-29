@@ -128,6 +128,14 @@ class TableMonitorsController < ApplicationController
           p[:discipline_a] = Discipline::BK2_DISCIPLINE_MAP.first
         end
         p[:discipline_b] = p[:discipline_a]
+        # Phase 38.5: Normalize free_game_form to the specific BK form so
+        # BkParamResolver can look up the Discipline. Defends against the view
+        # emitting "bk_family" (which is a quick_game_form-only marker) — see
+        # _quick_game_buttons.html.erb. Without this, the resolver gets a non-
+        # mappable token, falls through to false/false, and predicates report
+        # the wrong negative-input semantics for in-flight games.
+        normalized_form = TableMonitor::GameSetup::BK_NAME_TO_FORM[p[:discipline_a].to_s]
+        p[:free_game_form] = normalized_form if normalized_form
         clamp_bk_family_params!(p)
         # 38.2-01 D-14: accept first_set_mode (flat top-level key). CLAMP to
         # whitelist, fall back to "direkter_zweikampf" on absence or tampering.

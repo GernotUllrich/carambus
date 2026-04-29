@@ -402,7 +402,25 @@ class TableMonitor < ApplicationRecord
   # Lazy accessor for the pure-hash ScoreEngine collaborator.
   # Invalidated on reload so the engine always wraps the freshly-loaded data hash.
   def score_engine
-    @score_engine ||= TableMonitor::ScoreEngine.new(data, discipline: discipline)
+    return @score_engine if @score_engine
+    ensure_bk_params_baked!
+    @score_engine = TableMonitor::ScoreEngine.new(data, discipline: discipline)
+  end
+
+  # Phase 38.5 lifecycle invariant: guarantees BkParamResolver has populated
+  # effective_discipline + the two BK params into data before any predicate reads
+  # them. Idempotent — no-op on already-baked games. Required because predicate
+  # semantics (Phase 38.5 D-09) became strict on data keys, and not every code
+  # path that brings a TableMonitor into the scoring lifecycle goes through
+  # GameSetup#start_game (notably: in-flight games that pre-date the deploy,
+  # controller-driven score adjustments, validation jobs).
+  #
+  # Skips when free_game_form is blank (no game configured yet) so cold
+  # TableMonitors aren't bake-mutated on first read.
+  def ensure_bk_params_baked!
+    return if data.key?("allow_negative_score_input")
+    return if data["free_game_form"].blank?
+    BkParamResolver.bake!(self)
   end
 
   def reload(...)

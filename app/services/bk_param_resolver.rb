@@ -109,6 +109,17 @@ module BkParamResolver
     bk_name = TableMonitor::GameSetup::BK_NAME_TO_FORM.invert[free_game_form]
     return Discipline.find_by(name: bk_name) if bk_name
 
+    # Phase 38.5: Warn when a BK-namespace token doesn't resolve. Non-BK families
+    # (karambol, snooker, pool) intentionally fall through silently — those don't
+    # have BkParam Discipline defaults seeded (D-04). Anything starting with "bk"
+    # that doesn't match BK_NAME_TO_FORM is almost certainly a UI category marker
+    # leaking through (e.g. "bk_family") and will produce a false/false bake.
+    if free_game_form.to_s.start_with?("bk")
+      Rails.logger.warn "[BkParamResolver] Unknown BK free_game_form #{free_game_form.inspect} — " \
+                        "no match in BK_NAME_TO_FORM. Resolver will return false (D-04). " \
+                        "Likely a UI category marker (e.g. \"bk_family\") that should have been " \
+                        "normalized to a specific form (bk50/bk100/bk_2/bk_2plus/bk2_kombi) before reaching here."
+    end
     nil
   end
 

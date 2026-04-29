@@ -134,8 +134,11 @@
               <%# 38.4-04: BK-family quick-start (BK2-Kombi + BK50, BK100, BK-2, BK-2plus).
                   Sends balls_goal (not set_target_points). Controller#start_game
                   CLAMPS discipline_a/b to BK2_DISCIPLINE_MAP (T-38.4-04-02/03). %>
+              <%# Phase 38.5: free_game_form must be the specific BK form so BkParamResolver
+                  can look up the Discipline. quick_game_form keeps "bk_family" as the
+                  controller-level marker (table_monitors_controller.rb:125). %>
               <%= hidden_field_tag :quick_game_form, is_bk2_kombi ? 'bk2_kombi' : 'bk_family' %>
-              <%= hidden_field_tag :free_game_form, is_bk2_kombi ? 'bk2_kombi' : 'bk_family' %>
+              <%= hidden_field_tag :free_game_form, TableMonitor::GameSetup::BK_NAME_TO_FORM[button['discipline']] || (is_bk2_kombi ? 'bk2_kombi' : 'bk_family') %>
               <%= hidden_field_tag :discipline_a, button['discipline'] %>
               <%= hidden_field_tag :discipline_b, button['discipline'] %>
               <%= hidden_field_tag :balls_goal, button['balls_goal'] || 50 %>
