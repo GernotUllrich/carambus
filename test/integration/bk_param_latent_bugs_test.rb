@@ -83,10 +83,13 @@ class BkParamLatentBugsTest < ActiveSupport::TestCase
   end
 
   # ---------------------------------------------------------------------------
-  # D-11 BUG (RED→GREEN): BK-2kombi DZ-Phase, negative input must credit opponent
+  # D-11 BUG (RED→GREEN): BK-2kombi DZ-Phase, net-negative inning closes by
+  # transferring its absolute value to the opponent's current inning. During the
+  # inning the shooter sees their signed running total (corner display); the
+  # transfer fires only at terminate_inning (player switch).
   # ---------------------------------------------------------------------------
 
-  test "BK-2kombi DZ-Phase: -3 credits opponent (D-11 RED→GREEN)" do
+  test "BK-2kombi DZ-Phase: net-negative inning credits opponent at close (D-11)" do
     data = build_data_hash(
       free_game_form: "bk2_kombi",
       effective_discipline: "bk_2plus",
@@ -94,12 +97,20 @@ class BkParamLatentBugsTest < ActiveSupport::TestCase
       negative_credits_opponent: true
     )
     engine = TableMonitor::ScoreEngine.new(data, discipline: nil)
-    engine.add_n_balls(-3, "playera")
 
+    # Per-input: signed accumulation on shooter, opponent untouched.
+    engine.add_n_balls(-3, "playera")
+    assert_equal(-3, data["playera"]["innings_redo_list"][-1],
+                 "Per-input: -3 stays signed on A's running inning total (corner display)")
+    assert_equal 0, data["playerb"]["innings_redo_list"][-1],
+                 "Per-input: opponent untouched until inning close"
+
+    # Inning close: transfer fires.
+    engine.terminate_inning_data("playera", playing: true)
     assert_equal 3, data["playerb"]["innings_redo_list"][-1],
-                 "BK-2kombi DZ: -3 from A must credit B with +3 (D-11)"
-    assert_equal 0, data["playera"]["innings_redo_list"][-1],
-                 "BK-2kombi DZ: A's score must stay 0 when -3 routes to opponent (D-11)"
+                 "At close: |-3| transferred to opponent's current inning (D-11)"
+    assert_equal 0, data["playera"]["innings_list"].last,
+                 "At close: shooter's inning seals at 0, not -3"
   end
 
   # ---------------------------------------------------------------------------

@@ -884,22 +884,29 @@ class TableMonitor::ScoreEngineTest < ActiveSupport::TestCase
 
   # --- Opponent-credit consumer test (bk_credit_negative_to_opponent? path) ---
 
-  test "Phase 38.5 D-09: opponent-credit path activates when negative_credits_opponent is true" do
+  test "Phase 38.5 D-09: opponent-credit path activates at inning close when negative_credits_opponent is true" do
     # negative_credits_opponent=true + allow_negative_score_input=true:
-    # add_n_balls(-3, "playera") → playerb innings_redo_list[-1] = +3,
-    # playera unchanged. (BK-2plus / BK-2kombi DZ-Phase semantics.)
+    # Per-input: -3 stays signed on shooter (corner display).
+    # At inning close (terminate_inning_data): |-3| transferred to opponent's
+    # current inning, shooter's inning seals at 0. (BK-2plus / BK-2kombi DZ semantics.)
     data = bk2_kombi_data(current_inning_value: 0)
     data["allow_negative_score_input"] = true
     data["negative_credits_opponent"] = true
     e = engine(data, discipline: "BK2-Kombi")
     e.add_n_balls(-3, "playera")
+    assert_equal(-3, data.dig("playera", "innings_redo_list", -1),
+      "D-09 per-input: -3 stays signed on shooter's running inning total")
+    assert_equal 0, data.dig("playerb", "innings_redo_list", -1),
+      "D-09 per-input: opponent untouched until inning close"
+
+    e.terminate_inning_data("playera", playing: true)
     assert_equal 3, data.dig("playerb", "innings_redo_list", -1),
-      "D-09 opponent-credit: -3 from playera → playerb redo[-1] = +3"
-    assert_equal 0, data.dig("playera", "innings_redo_list", -1),
-      "D-09 opponent-credit: shooter playera score unchanged (still 0)"
+      "D-09 at-close: |-3| transferred to opponent's current inning"
+    assert_equal 0, data.dig("playera", "innings_list", -1),
+      "D-09 at-close: shooter's inning seals at 0, not -3"
 
     # negative_credits_opponent=false + allow_negative_score_input=true:
-    # signed-add path → playera redo[-1] = -3, playerb unchanged.
+    # signed-add per-input AND at close — playera redo[-1] = -3, playerb unchanged.
     data2 = bk2_kombi_data(current_inning_value: 0)
     data2["allow_negative_score_input"] = true
     data2["negative_credits_opponent"] = false
@@ -909,6 +916,12 @@ class TableMonitor::ScoreEngineTest < ActiveSupport::TestCase
       "D-09 signed-add: -3 stays at shooter playera (legacy karambol-style)")
     assert_equal 0, data2.dig("playerb", "innings_redo_list", -1),
       "D-09 signed-add: opponent playerb unchanged"
+
+    e2.terminate_inning_data("playera", playing: true)
+    assert_equal(-3, data2.dig("playera", "innings_list", -1),
+      "D-09 signed-add: shooter's inning seals at -3 (no transfer)")
+    assert_equal 0, data2.dig("playerb", "innings_redo_list", -1),
+      "D-09 signed-add: opponent unchanged at close"
   end
 
   # --- Karambol regression tests (must pass both before AND after Task 2) ---

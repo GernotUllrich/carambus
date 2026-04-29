@@ -125,29 +125,21 @@ class TableMonitor::ScoreEngine
             Rails.logger.debug do
               "add_n_balls: Processing input (n_balls=#{n_balls}, to_play=#{to_play}, allow_overflow=#{data["allow_overflow"].inspect})"
             end
-            # BK-2plus / BK-2kombi DZ-Phase: negative Werte gehen positiv zum Gegner
-            # (BK-2plus-Regel). Eigener Score bleibt unverändert.
-            if n_balls.negative? && bk_credit_negative_to_opponent?
-              other_role = current_role == "playera" ? "playerb" : "playera"
-              init_lists(other_role)
-              data[other_role]["innings_redo_list"][-1] =
-                data[other_role]["innings_redo_list"][-1].to_i + n_balls.abs
-              recompute_result(other_role)
-              data[current_role]["fouls_1"] = 0
-              # Eigene Aufnahme als 0 abschließen wäre Aufgabe von terminate_inning;
-              # hier wird nur der Score umgeleitet (analog zu Foul-Routing).
-            else
-              add = if data["allow_overflow"].present?
-                      n_balls.positive? ? [n_balls, to_play].min : n_balls
-                    else
-                      n_balls
-                    end
-              data[current_role]["fouls_1"] = 0
-              new_value = data[current_role]["innings_redo_list"][-1].to_i + add.to_i
-              data[current_role]["innings_redo_list"][-1] =
-                allow_negative_scores? ? new_value : [new_value, 0].max
-              recompute_result(current_role)
-            end
+            # Phase 38.5: signed-add per input. The BK-2plus / BK-2kombi DZ-Phase
+            # rule (net-negative inning transferred to opponent) is enforced at
+            # inning close in terminate_inning_data — NOT per input. Per-input
+            # the shooter sees their running inning total (incl. negatives) in
+            # the corner display.
+            add = if data["allow_overflow"].present?
+                    n_balls.positive? ? [n_balls, to_play].min : n_balls
+                  else
+                    n_balls
+                  end
+            data[current_role]["fouls_1"] = 0
+            new_value = data[current_role]["innings_redo_list"][-1].to_i + add.to_i
+            data[current_role]["innings_redo_list"][-1] =
+              allow_negative_scores? ? new_value : [new_value, 0].max
+            recompute_result(current_role)
 
             if data["free_game_form"] == "snooker" && !skip_snooker_state_update
               update_snooker_state(n_balls)
@@ -1229,6 +1221,21 @@ class TableMonitor::ScoreEngine
       end
       n_balls = Array(data[current_role]["innings_redo_list"]).pop.to_i
       n_fouls = Array(data[current_role]["innings_foul_redo_list"]).pop.to_i
+
+      # Phase 38.5: BK-2plus / BK-2kombi DZ-Phase rule. If the shooter's inning
+      # closes net-negative AND the discipline credits negatives to the opponent,
+      # transfer the absolute value to the opponent's current inning and seal the
+      # shooter's inning at 0. For BK-2 / BK-2kombi SP-Phase, signed-negative
+      # innings remain on the shooter (no transfer).
+      if n_balls.negative? && bk_credit_negative_to_opponent?
+        other_role = (current_role == "playera") ? "playerb" : "playera"
+        init_lists(other_role)
+        data[other_role]["innings_redo_list"][-1] =
+          data[other_role]["innings_redo_list"][-1].to_i + n_balls.abs
+        recompute_result(other_role)
+        n_balls = 0
+      end
+
       data["balls_counter_stack"] << data["balls_counter"].to_i if n_balls != 0
       data["balls_counter"] -= n_balls
       init_lists(current_role)
