@@ -322,6 +322,24 @@ def merge_loser_into_winner(loser, winner)
 
     # --- training_concepts: SKIP (through reflection; transferred via training_concept_disciplines) ---
 
+    # --- Preserve loser aliases in winner.synonyms ---
+    # Capture loser.name + loser.synonyms (newline-separated) so scrapers and
+    # legacy lookups still resolve via Discipline#synonyms after destroy.
+    # Uses winner.save! so the existing before_save :update_synonyms callback
+    # deduplicates entries and adds winner.name automatically (D-04 compliant).
+    loser_aliases = ([loser.name] + loser.synonyms.to_s.split("\n"))
+                      .map { |s| s.to_s.strip }
+                      .reject(&:empty?)
+    existing       = winner.synonyms.to_s.split("\n").map(&:strip).reject(&:empty?)
+    merged         = (existing + loser_aliases).uniq
+    if merged.sort != existing.sort
+      winner.synonyms = merged.join("\n")
+      winner.save!  # before_save :update_synonyms keeps dedup + ensures name present
+      protocol_append("- synonyms preserved on winner #{winner.id}: added #{(merged - existing).inspect}")
+    else
+      protocol_append("- synonyms unchanged on winner #{winner.id} (loser aliases already present)")
+    end
+
     # --- Finally: destroy the loser. PaperTrail emits destroy Version. ---
     # The 4 dependent: :destroy reflections (discipline_cc, competition_cc, branch_cc,
     # training_concept_disciplines) have already been reassigned above OR (CC-cases)
