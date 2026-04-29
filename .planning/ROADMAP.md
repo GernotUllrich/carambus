@@ -132,6 +132,14 @@ Plans:
 - [x] `38.4-11-PLAN.md` — UAT round 3 Nachstoß rule + off-by-one fix (closes O2, O4): `nachstoss_allowed: true` flag on all 5 BK-* Discipline records via seed; Discipline#nachstoss_allowed? helper; Bk2::AdvanceMatchState#close_set_if_reached! gains Nachstoß deferred-close branch (state["nachstoss_pending"]); Nachstossende can score up to and including balls_goal (off-by-one removed); 5 new RED→GREEN service tests + 1 system test. Wave 1.
 - [x] `38.4-12-PLAN.md` — UAT round 3 BK-2kombi quick-game shortcut (closes O5): canonical "BK-2kombi 2/5/70+NS" button at index 0 of BK2-Kombi quick-game category in config/carambus.yml.erb; `_quick_game_buttons.html.erb` button_id derivation amended with label_suffix to disambiguate same-balls_goal entries; 2 new T-O5 system tests. Wave 1.
 
+### Phase 38.5: BK-Param-Hierarchy + Multiset-Config (INSERTED)
+
+**Goal**: Two orthogonal BK scoring parameters (`allow_negative_score_input`, `negative_credits_opponent`) become first-class, resolvable via a hierarchy chain Discipline → Tournament → TournamentPlan → TournamentMonitor → Quickstart-Preset → Detail-Form → TableMonitor (lower levels override upper). Architectural correction: BK-2kombi stops being a peer Discipline and becomes a Multiset-Konfiguration that points to BK-2plus (DZ phase) and BK-2 (SP phase) per set — the resolver picks the per-set effective discipline as the top of the chain. Short-term scope: training path (Discipline → Quickstart → Detail-Form → TableMonitor); tournament path (Discipline → Tournament → TournamentPlan → TournamentMonitor → TableMonitor) is deferred to a follow-up half-phase. Defaults migrated from current `free_game_form` string-equality checks: BK-2plus (true/true), BK-2/BK50/BK100 (true/false), BK-2kombi DZ-set (true/true via BK-2plus), BK-2kombi SP-set (true/false via BK-2), all others unchanged.
+**Depends on**: Phase 38.4 (BK family Discipline records seeded; `Bk2::CommitInning` 5-way dispatcher in place)
+**Decisions addressed:** TBD (see 38.5-CONTEXT.md after discuss-phase)
+**Plans:** TBD (to be created by `/gsd-plan-phase 38.5`)
+**UI hint**: yes (detail-form + quickstart preset surfaces touched)
+
 ### Phase 39: DTP-Backed Parameter Ranges
 **Goal**: `Discipline#parameter_ranges` becomes context-aware — it queries the existing `discipline_tournament_plans` table for canonical points/innings values based on the tournament's plan, player count, and player_class, returns Ranges derived from the normal (exact) or reduced (80%) mode, and correctly handles `handicap_tournier=true` tournaments (skip innings check, widen balls_goal which is per-participant from the participant list). The parameter verification modal no longer false-fires on youth/handicap/pool/snooker/biathlon/kegel tournaments.
 **Depends on**: Phase 38 (v7.1 polish shipped first so the warm-up milestone lands incrementally)
@@ -149,7 +157,7 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 33 → 34 → 35 → 36a → 36b → 36c → 37 → 38 → 39
+Phases execute in numeric order: 33 → 34 → 35 → 36a → 36b → 36c → 37 → 38 → 38.5 → 39
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -165,6 +173,7 @@ Phases execute in numeric order: 33 → 34 → 35 → 36a → 36b → 36c → 37
 | 38.2. BK2-Kombi scoreboard UX re-alignment | v7.1 | 5/5 | Complete | 2026-04-19 |
 | 38.3. BK2-Kombi dry-run corrections | v7.1 | 8/8 | Complete | 2026-04-23 |
 | 38.4. BK2-Kombi post-dry-run gaps | v7.1 | 17/17 | Complete   | 2026-04-25 |
+| 38.5. BK-Param-Hierarchie + Multiset-Config | v7.1 | 0/TBD | Not started | - |
 | 39. DTP-Backed Parameter Ranges | v7.1 | 0/TBD | Not started | - |
 
 **v7.0 total:** 7 phases, 31 plans, 37/37 requirements, ~2 weeks wall time.
