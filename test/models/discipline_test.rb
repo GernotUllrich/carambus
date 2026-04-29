@@ -103,11 +103,11 @@ class DisciplineTest < ActiveSupport::TestCase
     assert defined?(Discipline::BK2_DISCIPLINE_MAP),
       "Discipline::BK2_DISCIPLINE_MAP must be defined"
     assert_instance_of Array, Discipline::BK2_DISCIPLINE_MAP
-    assert_equal %w[BK2-Kombi BK50 BK100 BK-2 BK-2plus], Discipline::BK2_DISCIPLINE_MAP,
+    assert_equal %w[BK-2kombi BK50 BK100 BK-2 BK-2plus], Discipline::BK2_DISCIPLINE_MAP,
       "BK2_DISCIPLINE_MAP must contain all 5 BK-* discipline names (Phase 38.4-04)"
     assert Discipline::BK2_DISCIPLINE_MAP.frozen?,
       "BK2_DISCIPLINE_MAP must be frozen"
-    assert_includes Discipline::BK2_DISCIPLINE_MAP, "BK2-Kombi"
+    assert_includes Discipline::BK2_DISCIPLINE_MAP, "BK-2kombi"
   end
 
   # ---------------------------------------------------------------------
@@ -155,8 +155,8 @@ class DisciplineTest < ActiveSupport::TestCase
       Discipline::KARAMBOL_DISCIPLINE_MAP,
       "KARAMBOL_DISCIPLINE_MAP must not be widened — BK2-Kombi goes in BK2_DISCIPLINE_MAP"
     assert_equal 14, Discipline::KARAMBOL_DISCIPLINE_MAP.size
-    refute_includes Discipline::KARAMBOL_DISCIPLINE_MAP, "BK2-Kombi",
-      "BK2-Kombi must NOT be in KARAMBOL_DISCIPLINE_MAP"
+    refute_includes Discipline::KARAMBOL_DISCIPLINE_MAP, "BK-2kombi",
+      "BK-2kombi must NOT be in KARAMBOL_DISCIPLINE_MAP"
   end
 
   # ---------------------------------------------------------------------------

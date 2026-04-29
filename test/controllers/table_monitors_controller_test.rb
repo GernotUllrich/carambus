@@ -105,16 +105,17 @@ class TableMonitorsControllerTest < ActionDispatch::IntegrationTest
   end
 
   # b. BK2 detail-form path (detail-form submits free_game_form=bk2_kombi +
-  # discipline_a/b="BK2-Kombi" via Alpine :value bindings; controller packs
+  # discipline_a/b="BK-2kombi" via Alpine :value bindings; controller packs
   # bk2_options and Small Billard defaults).
   # 38.4-04 D-06: contract rename `set_target_points` → `balls_goal`. The
   # controller now packs `bk2_options["balls_goal"]` (clamped against
   # `discipline.ballziel_choices`) and `set_target_points` is no longer written.
+  # 38.6-02 D-12: discipline name renamed from "BK2-Kombi" to "BK-2kombi" (canonical).
   test "start_game with free_game_form=bk2_kombi seeds BK2 TableMonitor from detail form" do
     post start_game_table_monitor_url(@table_monitor), params: {
       free_game_form:    "bk2_kombi",
-      discipline_a:      "BK2-Kombi",
-      discipline_b:      "BK2-Kombi",
+      discipline_a:      "BK-2kombi",
+      discipline_b:      "BK-2kombi",
       balls_goal:        60,
       sets_to_win:       2,
       sets_to_play:      3,
@@ -127,13 +128,14 @@ class TableMonitorsControllerTest < ActionDispatch::IntegrationTest
     @table_monitor.reload
     assert_equal "bk2_kombi",  @table_monitor.data["free_game_form"]
     assert_equal 60,           @table_monitor.data.dig("bk2_options", "balls_goal")
-    assert_equal "BK2-Kombi",  @table_monitor.data.dig("playera", "discipline")
-    assert_equal "BK2-Kombi",  @table_monitor.data.dig("playerb", "discipline")
+    assert_equal "BK-2kombi",  @table_monitor.data.dig("playera", "discipline")
+    assert_equal "BK-2kombi",  @table_monitor.data.dig("playerb", "discipline")
   end
 
   # c. T-38.1-06-01 CLAMP: attacker cannot inject non-BK2 discipline via
-  # hidden-field tampering. discipline_a/b MUST be overwritten to "BK2-Kombi".
-  test "start_game with free_game_form=bk2_kombi CLAMPS discipline_a/b to BK2-Kombi even if attacker sends arbitrary values" do
+  # hidden-field tampering. discipline_a/b MUST be overwritten to "BK-2kombi"
+  # (canonical post-rename name = BK2_DISCIPLINE_MAP.first after D-12 rename).
+  test "start_game with free_game_form=bk2_kombi CLAMPS discipline_a/b to BK-2kombi even if attacker sends arbitrary values" do
     post start_game_table_monitor_url(@table_monitor), params: {
       free_game_form:    "bk2_kombi",
       discipline_a:      "Freie Partie klein",  # attacker-supplied
@@ -145,20 +147,21 @@ class TableMonitorsControllerTest < ActionDispatch::IntegrationTest
       first_break_choice: 0
     }
     @table_monitor.reload
-    assert_equal "BK2-Kombi", @table_monitor.data.dig("playera", "discipline"),
-      "discipline_a must be CLAMPED to BK2-Kombi, not accepted from the attacker (T-38.1-06-01)"
-    assert_equal "BK2-Kombi", @table_monitor.data.dig("playerb", "discipline"),
-      "discipline_b must be CLAMPED to BK2-Kombi, not accepted from the attacker (T-38.1-06-01)"
+    assert_equal "BK-2kombi", @table_monitor.data.dig("playera", "discipline"),
+      "discipline_a must be CLAMPED to BK-2kombi (canonical), not accepted from the attacker (T-38.1-06-01)"
+    assert_equal "BK-2kombi", @table_monitor.data.dig("playerb", "discipline"),
+      "discipline_b must be CLAMPED to BK-2kombi (canonical), not accepted from the attacker (T-38.1-06-01)"
   end
 
   # d. BK2 quick-button path (quick_game_form.present? → unless-block skipped,
   # but hidden fields from _quick_game_buttons supply discipline_a/b directly).
+  # 38.6-02 D-12: discipline name renamed from "BK2-Kombi" to "BK-2kombi" (canonical).
   test "start_game with quick_game_form=bk2_kombi bypasses the unless-block but still seeds bk2_kombi form" do
     post start_game_table_monitor_url(@table_monitor), params: {
       quick_game_form:   "bk2_kombi",
       free_game_form:    "bk2_kombi",
-      discipline_a:      "BK2-Kombi",
-      discipline_b:      "BK2-Kombi",
+      discipline_a:      "BK-2kombi",
+      discipline_b:      "BK-2kombi",
       balls_goal:        50,
       sets_to_win:       2,
       sets_to_play:      3,
@@ -173,7 +176,7 @@ class TableMonitorsControllerTest < ActionDispatch::IntegrationTest
     @table_monitor.reload
     assert_equal "bk2_kombi",  @table_monitor.data["free_game_form"]
     assert_equal 50,           @table_monitor.data.dig("bk2_options", "balls_goal")
-    assert_equal "BK2-Kombi",  @table_monitor.data.dig("playera", "discipline")
+    assert_equal "BK-2kombi",  @table_monitor.data.dig("playera", "discipline")
   end
 
   # e. Pool regression — unchanged by 38.1-06 controller edit.
@@ -703,7 +706,7 @@ class TableMonitorsControllerTest < ActionDispatch::IntegrationTest
   # / `discipline_b_choice` with whatever karambol index was last set. The current
   # `else` branch of #start_game blindly does `p[:discipline_a] = p[:discipline_a_choice]`,
   # overwriting the BK-* hidden-input value. The downstream BK-family CLAMP then
-  # falls back to BK2_DISCIPLINE_MAP.first ("BK2-Kombi"), and clamp_bk_family_params!
+  # falls back to BK2_DISCIPLINE_MAP.first ("BK-2kombi"), and clamp_bk_family_params!
   # uses the wrong ballziel_choices ([50,60,70]). Result: BK100/BK-2/BK-2plus all
   # silently coerce balls_goal to 50 from the detail page.
   test "T-P6-bk100-detail-form-honours-discipline-and-balls-goal" do

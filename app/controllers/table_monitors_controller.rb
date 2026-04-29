@@ -12,7 +12,7 @@ class TableMonitorsController < ApplicationController
     "BK100" => [100],
     "BK-2" => [50, 60, 70, 80, 90, 100],
     "BK-2plus" => [50, 60, 70, 80, 90, 100],
-    "BK2-Kombi" => [50, 60, 70]
+    "BK-2kombi" => [50, 60, 70]
   }.freeze
 
   before_action :set_table_monitor,
@@ -119,7 +119,7 @@ class TableMonitorsController < ApplicationController
       p[:allow_follow_up] = (p[:allow_follow_up] == "true" || p[:allow_follow_up] == true)
       # 38.4-04 D-04/D-06: BK-family quick-start (all 5 BK-* disciplines).
       # The _quick_game_buttons partial emits quick_game_form=bk2_kombi for
-      # BK2-Kombi and quick_game_form=bk_family for the 4 new disciplines.
+      # BK-2kombi and quick_game_form=bk_family for the 4 new disciplines.
       # CLAMP (T-38.4-04-02/03): discipline_a/b must be in BK2_DISCIPLINE_MAP;
       # balls_goal must intersect discipline.ballziel_choices.
       if p[:quick_game_form] == "bk2_kombi" || p[:quick_game_form] == "bk_family"
@@ -168,7 +168,7 @@ class TableMonitorsController < ApplicationController
       # `_radio_select` partials still emit `discipline_{a,b}_choice` /
       # `balls_goal_{a,b}_choice` when x-show'd false. Without this guard those
       # values clobber the BK-* hidden inputs (`discipline_a="BK100"` etc.) and
-      # the downstream BK CLAMP at line 242 falls back to BK2-Kombi's
+      # the downstream BK CLAMP at line 242 falls back to BK-2kombi's
       # ballziel_choices, silently coercing balls_goal=100 to 50.
       unless Discipline::BK2_FREE_GAME_FORMS.include?(p[:free_game_form].to_s)
         p[:discipline_a] = p[:discipline_a_choice]
@@ -263,7 +263,7 @@ class TableMonitorsController < ApplicationController
         # map; see Discipline::BK2_DISCIPLINE_MAP for the canonical list).
         #
         # CLAMP (T-38.4-04-03): discipline_a/b must be in BK2_DISCIPLINE_MAP;
-        # default to BK2-Kombi for bk2_kombi free_game_form, or derive from
+        # default to BK-2kombi for bk2_kombi free_game_form, or derive from
         # free_game_form for the other 4 BK-* disciplines.
         unless Discipline::BK2_DISCIPLINE_MAP.include?(p[:discipline_a].to_s)
           p[:discipline_a] = Discipline::BK2_DISCIPLINE_MAP.first
@@ -515,7 +515,7 @@ class TableMonitorsController < ApplicationController
     # removed; the hidden input on line 252 of scoreboard_free_game_karambol_new.html.erb
     # still emits bk2_dz_max_shots (initialized to 2 in the x-data wrapper) for shape
     # consistency, but the server is authoritative.
-    dz_max = 2 if %w[BK-2plus BK2-Kombi].include?(p[:discipline_a].to_s)
+    dz_max = 2 if %w[BK-2plus BK-2kombi].include?(p[:discipline_a].to_s)
 
     p[:bk2_options] = {
       "balls_goal" => clamped_goal,

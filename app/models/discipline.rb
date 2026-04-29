@@ -157,7 +157,7 @@ class Discipline < ApplicationRecord
   # (indices 0..5 for the Small Billard karambol radio-select) and would be
   # a breaking change for existing karambol quick starts.
   # See Plan 38.1-06 (D-08) and Phase 38.4-04 (D-04: 5 BK-* disciplines).
-  BK2_DISCIPLINE_MAP = %w[BK2-Kombi BK50 BK100 BK-2 BK-2plus].freeze
+  BK2_DISCIPLINE_MAP = %w[BK-2kombi BK50 BK100 BK-2 BK-2plus].freeze
 
   # Maps Discipline.data["free_game_form"] string to display semantics.
   # Phase 38.4 I1 — 5 BK-* disciplines share one scoring family via Bk2::CommitInning.
@@ -387,7 +387,7 @@ class Discipline < ApplicationRecord
   end
 
   # Phase 38.4 I1 — True if this Discipline is any of the 5 BK-* disciplines
-  # (BK2-Kombi, BK50, BK100, BK-2, BK-2plus). Driven by data[:free_game_form]
+  # (BK-2kombi, BK50, BK100, BK-2, BK-2plus). Driven by data[:free_game_form]
   # so it works even if the name string changes.
   def bk_family?
     BK2_FREE_GAME_FORMS.include?(data_free_game_form)
