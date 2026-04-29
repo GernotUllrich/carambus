@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v7.1
 milestone_name: UX Polish & i18n Debt
 status: verifying
-stopped_at: "Checkpoint: Task 3 human-verify — awaiting user GO/NO-GO on production deployment of merge_bk_disciplines.rb"
-last_updated: "2026-04-29T21:03:25.524Z"
+stopped_at: Completed 38.6-04-preserve-loser-synonyms-PLAN.md
+last_updated: "2026-04-29T21:15:52.592Z"
 last_activity: 2026-04-29
 progress:
   total_phases: 8
   completed_phases: 6
-  total_plans: 47
-  completed_plans: 46
+  total_plans: 48
+  completed_plans: 47
   percent: 98
 ---
 
@@ -110,6 +110,7 @@ Decisions are logged in PROJECT.md Key Decisions table. Full v7.0 cross-phase de
 - [Phase 38.6]: Dry-run transaction wrapper added (Rule 3): merge_bk_disciplines_dry_run.rb wraps script in ActiveRecord::Rollback so dev DB stays untouched after path-B full-merge dry-run
 - [Phase 38.6]: No CC-Konflikt-Scan conflicts found in dry-run: D-08 interactive halt never triggered — production merge is safest possible path
 - [Phase 38.6]: PlayerRanking recompute list empty: all 24 loser-95 rankings FK-updated without unique-constraint conflict — no post-merge recompute job needed (D-03 scope cleared)
+- [Phase 38.6]: Synonyms block inserted inside existing Discipline.transaction so dry-run rollback also undoes synonym change; winner.save! (not update_columns) preserves PaperTrail compliance (D-04)
 
 ### Roadmap Evolution
 
@@ -155,6 +156,6 @@ None blocking Phase 38.1 execution. Reconciliation debt above is tracked but not
 
 ## Session Continuity
 
-Last session: 2026-04-29T21:03:25.521Z
-Stopped at: Checkpoint: Task 3 human-verify — awaiting user GO/NO-GO on production deployment of merge_bk_disciplines.rb
+Last session: 2026-04-29T21:15:52.589Z
+Stopped at: Completed 38.6-04-preserve-loser-synonyms-PLAN.md
 Resume: `/gsd-plan-phase 38` to break Phase 38 into 3 executable plans
