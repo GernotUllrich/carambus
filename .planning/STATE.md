@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v7.1
 milestone_name: UX Polish & i18n Debt
 status: executing
-stopped_at: Completed 38.5-04-PLAN.md (ScoreEngine predicate rewrite — D-09 + D-10 data-key-driven contract; Plan 01 RED tests all GREEN)
-last_updated: "2026-04-29T14:16:17.881Z"
+stopped_at: "Completed 38.5-05-PLAN.md (bake-hook integration — D-03 hook 1 at GameSetup#start_game line 351, D-03 hook 2 at ResultRecorder#perform_switch_to_next_set line 272 via Bk2::AdvanceMatchState.rebake_at_set_open!; all Plan 01 RED tests stay GREEN)"
+last_updated: "2026-04-29T14:25:26.966Z"
 last_activity: 2026-04-29
 progress:
   total_phases: 7
   completed_phases: 4
   total_plans: 44
-  completed_plans: 41
-  percent: 93
+  completed_plans: 42
+  percent: 95
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-15)
 ## Current Position
 
 Phase: 38.5 (bk-param-hierarchy-multiset-config) — EXECUTING
-Plan: 5 of 6
+Plan: 6 of 6
 Status: Ready to execute
 Last activity: 2026-04-29
 
@@ -100,6 +100,8 @@ Decisions are logged in PROJECT.md Key Decisions table. Full v7.0 cross-phase de
 - [Phase 38.5]: Plan 03: Test fixture mirrors seed output verbatim — decouples Plan 02/04 unit tests from Version-sync timing. test/fixtures/disciplines.yml carries the same data shape that local servers receive via Version#update_from_carambus_api after the seed runs on carambus_api.
 - [Phase 38.5]: Plan 04: Two-line predicate body swap in score_engine.rb (data["free_game_form"]=="..." → !!data["..."]) closes both latent BK-* bugs (D-11 BK-2kombi DZ, D-12 BK-2/BK50/BK100); three consumer call-sites (lines 84, 148, 706) UNCHANGED, automatically pick up new contract via D-10 (call-by-name).
 - [Phase 38.5]: Plan 04: All 4 of Plan 01's RED tests turn GREEN from Plan 04 alone (NOT only Tests 2/3/4 as plan author predicted). Plan 01 seeded post-bake state directly in test data per its D-13 decoupling, so Test 1 (BK-2kombi DZ) doesn't need Plan 05's set-boundary bake. Plan 05 still required for the live add_n_balls path (system tests verify that surface).
+- [Phase 38.5]: Plan 05: rebake_at_set_open! lives on Bk2::AdvanceMatchState (D-03 mental model) — thin one-line delegate to BkParamResolver.bake!; called from ResultRecorder#perform_switch_to_next_set (research finding 3 actual file path); BK-2kombi guard at consumer site (not inside delegate)
+- [Phase 38.5]: Plan 05: stub-and-restore test pattern — save original via .method(:name), restore via define_singleton_method(name, original) in ensure. Avoids remove_method clobbering real module methods between sibling tests; load-bearing for testing module-level delegate methods
 
 ### Roadmap Evolution
 
@@ -145,6 +147,6 @@ None blocking Phase 38.1 execution. Reconciliation debt above is tracked but not
 
 ## Session Continuity
 
-Last session: 2026-04-29T14:16:17.878Z
-Stopped at: Completed 38.5-04-PLAN.md (ScoreEngine predicate rewrite — D-09 + D-10 data-key-driven contract; Plan 01 RED tests all GREEN)
+Last session: 2026-04-29T14:25:16.600Z
+Stopped at: Completed 38.5-05-PLAN.md (bake-hook integration — D-03 hook 1 at GameSetup#start_game line 351, D-03 hook 2 at ResultRecorder#perform_switch_to_next_set line 272 via Bk2::AdvanceMatchState.rebake_at_set_open!; all Plan 01 RED tests stay GREEN)
 Resume: `/gsd-plan-phase 38` to break Phase 38 into 3 executable plans
