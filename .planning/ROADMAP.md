@@ -181,7 +181,7 @@ Phases execute in numeric order: 33 → 34 → 35 → 36a → 36b → 36c → 37
 | 38.2. BK2-Kombi scoreboard UX re-alignment | v7.1 | 5/5 | Complete | 2026-04-19 |
 | 38.3. BK2-Kombi dry-run corrections | v7.1 | 8/8 | Complete | 2026-04-23 |
 | 38.4. BK2-Kombi post-dry-run gaps | v7.1 | 17/17 | Complete   | 2026-04-25 |
-| 38.5. BK-Param-Hierarchie + Multiset-Config | v7.1 | 6/6 | Complete   | 2026-04-29 |
+| 38.5. BK-Param-Hierarchie + Multiset-Config | v7.1 | 6/6 | Complete    | 2026-04-29 |
 | 39. DTP-Backed Parameter Ranges | v7.1 | 0/TBD | Not started | - |
 
 **v7.0 total:** 7 phases, 31 plans, 37/37 requirements, ~2 weeks wall time.
