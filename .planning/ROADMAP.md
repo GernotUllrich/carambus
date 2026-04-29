@@ -148,6 +148,35 @@ Plans:
 - [ ] `38.5-06-PLAN.md` — End-to-end verification: 2 new system tests in `bk2_scoreboard_test.rb` close D-11 + D-12 through the full UI path; Plan 01 RED-tests verified GREEN; no-lazy-bake decision recorded against research Open Question 2 (D-15 forbids migration code); BCW deployment runbook with sync-path checklist. autonomous: true. Wave 3 (depends on 01+04+05).
 **UI hint**: no (resolver is data-only; per D-16 no UI toggles in this phase — derived-only)
 
+### Phase 38.6: Discipline Master-Data Cleanup — BK-* Duplikate auf carambus_api (INSERTED)
+
+**Goal**: Auf der carambus_api (Source of Truth für globale Records, id < 50_000_000) duplikate `Discipline`-Rows der BK-Familie via Merge-Skript zusammenführen, die 17 Reflections (`versions`, `discipline_tournament_plans`, `table_kind`, `super_discipline`, `sub_disciplines`, `tournaments`, `player_classes`, `player_rankings`, `discipline_cc`, `leagues`, `game_plan_ccs`, `game_plan_row_ccs`, `seeding_plays`, `competition_cc`, `branch_cc`, `training_concept_disciplines`, `training_concepts`) erhalten/transferieren, dann via Standard-AR-API (`update!`/`destroy`, KEINE `update_column`/`delete_all`/`update_all`) die Loser-Rows entfernen — damit PaperTrail Versions schreibt und `Version#update_from_carambus_api` die Bereinigung an alle Local-Server (carambus_bcw, carambus_phat, etc.) propagiert. Kanonische Namen: BK-2, BK-2plus, BK50, BK100, BK-2kombi.
+
+Merge-Map (Winner → Loser):
+- BK-2 → 110 (kein Loser)
+- BK-2plus → 111 (kein Loser)
+- BK50 → 108 (Loser: 61 "BK 50")
+- BK100 → 109 (Loser: 62 "BK 100", 60 "BK 2-100" — semantisch BK100)
+- BK-2kombi → 107 (Rename "BK2-Kombi" → "BK-2kombi"; Loser: 57 "BK 2kombi", 59 "BK2-Kombi", 95 "BK-2 Kombi")
+
+**Depends on**: Phase 38.5 (BK-Param-Hierarchy nutzt 107/108/109/110/111 als Anker — Winner-IDs absichtlich gewählt, damit 38.5-Seed nicht erneut ausgerollt werden muss)
+
+**Decisions addressed:**
+- D-01: Winner-IDs = 107/108/109/110/111 (matchen 38.5-Seed)
+- D-02: id 60 "BK 2-100" merged in BK100 (semantisch identisch)
+- D-03: PlayerRanking-Konflikt-Strategie: FK-Update versuchen; bei Unique-Constraint-Verletzung Loser-Ranking destroyen + (player_id, winner_discipline_id) für spätere Recompute markieren
+- D-04: Sync-Pfad ausschließlich PaperTrail-aware AR-Calls (KEINE `update_column`, `delete_all`, `update_all`, raw SQL)
+- D-05: Format = One-shot Skript (`script/merge_bk_disciplines.rb`), erst dev, dann prod
+- D-06: Verification = Before/After-Association-Counts-Protokoll (Markdown nach `tmp/`) im dev-Run
+- D-07: Stats-First-Design: Skript Step-0 emittiert Usage-Matrix (Loser × Reflection × Count) BEVOR irgendwas modifiziert wird; informiert (a) ob Konflikt-Handler nötig, (b) Before/After-Protokoll, (c) ob Q1-Konflikte überhaupt auftreten. Erwartung: die meisten Reflections haben 0 Refs auf Loser
+- D-08: `*_cc` Konflikte (`discipline_cc`/`competition_cc`/`branch_cc`) → Skript HÄLT AN, druckt Konflikt, manuelle Entscheidung pro Fall (kein Auto-Merge bei singulären CC-Rows)
+- D-09: `super_discipline` self-ref defensiv im Skript behandeln (kein Pre-Scan; Loser-zu-Loser-Refs via topologische Reihenfolge oder zwei-Pass-Strategie)
+- D-10: PaperTrail `versions`-Rows der Loser bleiben unangetastet (Annahme: alle Local-Server sind sync-aktuell, Audit-History bleibt korrekt am ursprünglichen item_id)
+- D-11: Idempotenz: Re-Run = sicherer No-Op, wenn keine Loser-IDs mehr existieren
+
+**Plans**: TBD (to be created by `/gsd-plan-phase 38.6`)
+**UI hint**: no (data-only cleanup)
+
 ### Phase 39: DTP-Backed Parameter Ranges
 **Goal**: `Discipline#parameter_ranges` becomes context-aware — it queries the existing `discipline_tournament_plans` table for canonical points/innings values based on the tournament's plan, player count, and player_class, returns Ranges derived from the normal (exact) or reduced (80%) mode, and correctly handles `handicap_tournier=true` tournaments (skip innings check, widen balls_goal which is per-participant from the participant list). The parameter verification modal no longer false-fires on youth/handicap/pool/snooker/biathlon/kegel tournaments.
 **Depends on**: Phase 38 (v7.1 polish shipped first so the warm-up milestone lands incrementally)
@@ -165,7 +194,7 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 33 → 34 → 35 → 36a → 36b → 36c → 37 → 38 → 38.5 → 39
+Phases execute in numeric order: 33 → 34 → 35 → 36a → 36b → 36c → 37 → 38 → 38.5 → 38.6 → 39
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -182,6 +211,7 @@ Phases execute in numeric order: 33 → 34 → 35 → 36a → 36b → 36c → 37
 | 38.3. BK2-Kombi dry-run corrections | v7.1 | 8/8 | Complete | 2026-04-23 |
 | 38.4. BK2-Kombi post-dry-run gaps | v7.1 | 17/17 | Complete   | 2026-04-25 |
 | 38.5. BK-Param-Hierarchie + Multiset-Config | v7.1 | 6/6 | Complete    | 2026-04-29 |
+| 38.6. Discipline Master-Data Cleanup | v7.1 | 0/TBD | Not started | - |
 | 39. DTP-Backed Parameter Ranges | v7.1 | 0/TBD | Not started | - |
 
 **v7.0 total:** 7 phases, 31 plans, 37/37 requirements, ~2 weeks wall time.
