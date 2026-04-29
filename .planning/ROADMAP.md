@@ -137,7 +137,7 @@ Plans:
 **Goal**: Two orthogonal BK scoring parameters (`allow_negative_score_input`, `negative_credits_opponent`) become first-class, resolvable via a hierarchy chain Discipline → Tournament → TournamentPlan → TournamentMonitor → Quickstart-Preset → Detail-Form → TableMonitor (lower levels override upper). Architectural correction: BK-2kombi stops being a peer Discipline and becomes a Multiset-Konfiguration that points to BK-2plus (DZ phase) and BK-2 (SP phase) per set — the resolver picks the per-set effective discipline as the top of the chain. Short-term scope: training path (Discipline → Quickstart → Detail-Form → TableMonitor); tournament path (Discipline → Tournament → TournamentPlan → TournamentMonitor → TableMonitor) is deferred to a follow-up half-phase. Defaults migrated from current `free_game_form` string-equality checks: BK-2plus (true/true), BK-2/BK50/BK100 (true/false), BK-2kombi DZ-set (true/true via BK-2plus), BK-2kombi SP-set (true/false via BK-2), all others unchanged.
 **Depends on**: Phase 38.4 (BK family Discipline records seeded; `Bk2::CommitInning` 5-way dispatcher in place)
 **Decisions addressed:** D-01..D-16 (see 38.5-CONTEXT.md)
-**Plans:** 3/6 plans executed
+**Plans:** 4/6 plans executed
 
 Plans:
 - [ ] `38.5-01-PLAN.md` — RED-tests in `test/integration/bk_param_latent_bugs_test.rb` documenting D-11 (BK-2kombi DZ credit-opponent) and D-12 (BK-2/BK50/BK100 negative-clamp) latent bugs. Tests fail today, turn GREEN automatically after Plans 04+05 land. autonomous: true. Wave 1.
@@ -181,7 +181,7 @@ Phases execute in numeric order: 33 → 34 → 35 → 36a → 36b → 36c → 37
 | 38.2. BK2-Kombi scoreboard UX re-alignment | v7.1 | 5/5 | Complete | 2026-04-19 |
 | 38.3. BK2-Kombi dry-run corrections | v7.1 | 8/8 | Complete | 2026-04-23 |
 | 38.4. BK2-Kombi post-dry-run gaps | v7.1 | 17/17 | Complete   | 2026-04-25 |
-| 38.5. BK-Param-Hierarchie + Multiset-Config | v7.1 | 3/6 | In Progress|  |
+| 38.5. BK-Param-Hierarchie + Multiset-Config | v7.1 | 4/6 | In Progress|  |
 | 39. DTP-Backed Parameter Ranges | v7.1 | 0/TBD | Not started | - |
 
 **v7.0 total:** 7 phases, 31 plans, 37/37 requirements, ~2 weeks wall time.
