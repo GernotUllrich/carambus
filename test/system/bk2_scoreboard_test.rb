@@ -1331,6 +1331,210 @@ class Bk2ScoreboardTest < ApplicationSystemTestCase
       "T-Kegel-erb-compiles: kegel_choice() getter must survive compilation")
   end
 
+  # ===========================================================================
+  # Phase 38.5 — End-to-end bake-hook + ScoreEngine integration (D-11 / D-12)
+  # ===========================================================================
+  #
+  # These two tests prove the full Phase 38.5 integration end-to-end:
+  #   BkParamResolver.bake! (Plan 02 + 05 hooks) -> tm.data writes ->
+  #   ScoreEngine predicates (Plan 04) read tm.data -> add_n_balls routes correctly.
+  #
+  # They differ from the unit tests in test/integration/bk_param_latent_bugs_test.rb
+  # (which seed post-bake state directly) and from test/services/* (which exercise
+  # individual services in isolation): here the resolver actually RUNS, populating
+  # tm.data, and ScoreEngine reads what was written. Closes Plan 06's verification
+  # contract for the live data path.
+  #
+  # Why no DOM clicks: the existing 35 tests in this file use `Bk2::CommitInning.call`
+  # / direct ScoreEngine calls for scoring (see T-BK2plus-neg, T-BK2-neg, T-BK2kombi-DZ
+  # at lines 612-664) and reserve `visit table_monitor_path` for ERB / DOM-shape
+  # validation. Phase 38.3's Karambol-parallel point-entry bottom bar uses the same
+  # add_n_balls dispatch, so exercising the predicate path through ScoreEngine#add_n_balls
+  # IS the end-to-end signal — the bottom bar is just a JS surface that calls the
+  # same backend method we're calling here. UI shape is validated in the existing 35
+  # tests; logic correctness is validated here.
+  # ---------------------------------------------------------------------------
+
+  # Phase 38.5 D-11 / D-13 — end-to-end DZ-credit-opponent regression.
+  # Verifies the Plan 02 resolver -> Plan 04 ScoreEngine integration: BK-2kombi
+  # DZ-Phase (set 1) negative input credits the OPPONENT, not the shooter.
+  # Pre-Phase-38.5 this was a latent bug — bk_credit_negative_to_opponent? matched
+  # only "bk_2plus" (free_game_form-string-equality), missing the DZ phase of
+  # "bk2_kombi". After Plans 02-05 land, the resolver bakes effective_discipline
+  # = "bk_2plus" + negative_credits_opponent = true into tm.data at start_game,
+  # and ScoreEngine reads the baked value via !!data["negative_credits_opponent"].
+  test "Phase 38.5 D-11: BK-2kombi DZ -3 credits Spieler B end-to-end (resolver-bake -> ScoreEngine)" do
+    # Build a TableMonitor that mirrors the post-start_game state (free_game_form
+    # set, bk2_options populated, set 1 active, no sets closed yet).
+    tm = TableMonitor.create!(
+      state: "playing",
+      data: {
+        "free_game_form" => "bk2_kombi",
+        "current_kickoff_player" => "playera",
+        "current_inning" => {"active_player" => "playera", "balls" => 0},
+        "balls_on_table" => 0,
+        "balls_counter" => 0,
+        "balls_counter_stack" => [],
+        "extra_balls" => 0,
+        "innings_goal" => "0",
+        "playera" => {
+          "discipline" => "BK2-Kombi",
+          "innings" => 0,
+          "result" => 0,
+          "innings_list" => [],
+          "innings_redo_list" => [0],
+          "innings_foul_list" => [],
+          "innings_foul_redo_list" => [0],
+          "balls_goal" => "70",
+          "fouls_1" => 0,
+          "hs" => 0,
+          "gd" => "0.00"
+        },
+        "playerb" => {
+          "discipline" => "BK2-Kombi",
+          "innings" => 0,
+          "result" => 0,
+          "innings_list" => [],
+          "innings_redo_list" => [0],
+          "innings_foul_list" => [],
+          "innings_foul_redo_list" => [0],
+          "balls_goal" => "70",
+          "fouls_1" => 0,
+          "hs" => 0,
+          "gd" => "0.00"
+        },
+        "bk2_options" => {
+          "first_set_mode" => "direkter_zweikampf",
+          "direkter_zweikampf_max_shots_per_turn" => 2,
+          "serienspiel_max_innings_per_set" => 5
+        },
+        "ba_results" => {"Sets1" => 0, "Sets2" => 0, "Innings1" => 0, "Innings2" => 0}
+      }
+    )
+
+    # Run the bake hook directly — this is the EXACT call GameSetup#perform_start_game
+    # makes at line 351 (Plan 05). The resolver walks the hierarchy: free_game_form is
+    # "bk2_kombi" -> compute_effective_discipline reads multiset_components from the
+    # BK2-Kombi fixture (set_index = 1, DZ first -> "bk_2plus") -> looks up the
+    # BK-2plus Discipline fixture -> reads its data["allow_negative_score_input"] = true
+    # AND data["negative_credits_opponent"] = true -> writes them into tm.data.
+    BkParamResolver.bake!(tm)
+    tm.save!
+    tm.reload
+
+    # Resolver-bake assertions (Hook 1 contract from Plan 02 + Plan 05):
+    assert_equal "bk_2plus", tm.data["effective_discipline"],
+      "Phase 38.5 D-11: Hook 1 must bake effective_discipline=bk_2plus for BK-2kombi DZ-Phase (set 1, multiset_components[0])"
+    assert_equal true, tm.data["allow_negative_score_input"],
+      "Phase 38.5 D-11: BK-2plus default allow_negative_score_input=true must be baked into tm.data (Plan 03 seed)"
+    assert_equal true, tm.data["negative_credits_opponent"],
+      "Phase 38.5 D-11: BK-2plus default negative_credits_opponent=true must be baked into tm.data (Plan 03 seed) — this is the D-11 fix"
+
+    # End-to-end ScoreEngine assertion (Plan 04 predicates read the baked keys):
+    # add_n_balls(-3, "playera") goes through the gate at score_engine.rb:84
+    # (allow_negative_scores? = !!true = true -> input accepted), the credit-opponent
+    # branch (bk_credit_negative_to_opponent? = !!true = true -> +3 to playerb,
+    # playera unchanged), and writes innings_redo_list entries.
+    tm.score_engine.add_n_balls(-3, "playera")
+
+    assert_equal 3, tm.data["playerb"]["innings_redo_list"][-1],
+      "Phase 38.5 D-11: -3 from Spieler A in BK-2kombi DZ must credit Spieler B with +3 (resolver -> ScoreEngine end-to-end)"
+    assert_equal 0, tm.data["playera"]["innings_redo_list"][-1],
+      "Phase 38.5 D-11: Spieler A's score must stay 0 when -3 routes to opponent (resolver -> ScoreEngine end-to-end)"
+  ensure
+    tm&.destroy if tm&.persisted?
+  end
+
+  # Phase 38.5 D-12 / D-13 — end-to-end BK-2 negative-stays-signed regression.
+  # Verifies the Plan 02 resolver -> Plan 04 ScoreEngine integration: BK-2 (and
+  # by extension BK50/BK100) accept negative input signed on the shooter's own
+  # score, NOT clamped to 0 and NOT credited to opponent. Pre-Phase-38.5 the
+  # ScoreEngine#allow_negative_scores? matched only "bk2_kombi"
+  # (free_game_form-string-equality), so BK-2/BK50/BK100 negative inputs were
+  # silently clamped to 0 at the line-148 clamp (latent bug D-12). After Plans
+  # 02-05 land, the resolver bakes allow_negative_score_input=true into tm.data
+  # at start_game, and ScoreEngine reads the baked value via
+  # !!data["allow_negative_score_input"].
+  test "Phase 38.5 D-12: BK-2 -2 stays signed on Spieler A end-to-end (resolver-bake -> ScoreEngine)" do
+    tm = TableMonitor.create!(
+      state: "playing",
+      data: {
+        "free_game_form" => "bk_2",
+        "current_kickoff_player" => "playera",
+        "current_inning" => {"active_player" => "playera", "balls" => 0},
+        "balls_on_table" => 0,
+        "balls_counter" => 0,
+        "balls_counter_stack" => [],
+        "extra_balls" => 0,
+        "innings_goal" => "0",
+        "playera" => {
+          "discipline" => "BK-2",
+          "innings" => 0,
+          "result" => 0,
+          "innings_list" => [],
+          "innings_redo_list" => [0],
+          "innings_foul_list" => [],
+          "innings_foul_redo_list" => [0],
+          "balls_goal" => "70",
+          "fouls_1" => 0,
+          "hs" => 0,
+          "gd" => "0.00"
+        },
+        "playerb" => {
+          "discipline" => "BK-2",
+          "innings" => 0,
+          "result" => 0,
+          "innings_list" => [],
+          "innings_redo_list" => [0],
+          "innings_foul_list" => [],
+          "innings_foul_redo_list" => [0],
+          "balls_goal" => "70",
+          "fouls_1" => 0,
+          "hs" => 0,
+          "gd" => "0.00"
+        },
+        "ba_results" => {"Sets1" => 0, "Sets2" => 0, "Innings1" => 0, "Innings2" => 0}
+      }
+    )
+
+    # Run the bake hook directly — same call path as GameSetup#perform_start_game line 351.
+    # For non-BK-2kombi free_game_form, compute_effective_discipline returns the identity
+    # (data["free_game_form"]) -> looks up the BK-2 Discipline fixture -> reads its
+    # data["allow_negative_score_input"] = true AND data["negative_credits_opponent"] = false.
+    BkParamResolver.bake!(tm)
+    tm.save!
+    tm.reload
+
+    # Resolver-bake assertions (Hook 1 contract):
+    assert_equal "bk_2", tm.data["effective_discipline"],
+      "Phase 38.5 D-12: Hook 1 must bake effective_discipline=bk_2 (identity for non-kombi BK)"
+    assert_equal true, tm.data["allow_negative_score_input"],
+      "Phase 38.5 D-12: BK-2 default allow_negative_score_input=true must be baked into tm.data — closes the D-12 clamp-to-0 bug"
+    assert_equal false, tm.data["negative_credits_opponent"],
+      "Phase 38.5 D-12: BK-2 default negative_credits_opponent=false (signed-add, not opponent-credit) must be baked"
+
+    # End-to-end ScoreEngine assertion: starting from 0, input -2 should leave
+    # A's running inning slot at -2, B unchanged at 0.
+    #
+    # Pre-fix (D-12 bug) trace: allow_negative_scores? was free_game_form-equality
+    # so for "bk_2" it returned FALSE -> the gate at score_engine.rb:84 evaluates
+    # `false || (0 + -2) >= 0` = false -> input REJECTED -> innings_redo_list[-1]
+    # stays at 0 (silent clamp).
+    #
+    # Post-fix trace: allow_negative_scores? reads the baked
+    # data["allow_negative_score_input"]=true -> gate evaluates `true || ...` = true
+    # -> input processed -> line-148 clamp `allow_negative_scores? ? new_value :
+    # [new_value, 0].max` -> writes -2 (signed) NOT 0 (clamped).
+    tm.score_engine.add_n_balls(-2, "playera")
+
+    assert_equal(-2, tm.data["playera"]["innings_redo_list"][-1],
+      "Phase 38.5 D-12: Spieler A innings_redo_list[-1] must be -2 signed (NOT 0 clamped) — closes D-12 latent bug")
+    assert_equal 0, tm.data["playerb"]["innings_redo_list"][-1],
+      "Phase 38.5 D-12: Spieler B's score must stay 0 (BK-2 signed-add to shooter, NOT opponent-credit)"
+  ensure
+    tm&.destroy if tm&.persisted?
+  end
+
   private
 
   # ---------------------------------------------------------------------------
