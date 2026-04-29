@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v7.1
 milestone_name: UX Polish & i18n Debt
 status: executing
-stopped_at: Completed 38.6-01-merge-script-PLAN.md
-last_updated: "2026-04-29T20:43:38.193Z"
+stopped_at: Completed 38.6-02-fixtures-canonical-rename-PLAN.md
+last_updated: "2026-04-29T20:55:47.641Z"
 last_activity: 2026-04-29
 progress:
   total_phases: 8
   completed_phases: 5
   total_plans: 47
-  completed_plans: 44
-  percent: 94
+  completed_plans: 45
+  percent: 96
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-15)
 ## Current Position
 
 Phase: 38.6 (discipline-master-data-cleanup) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 Status: Ready to execute
 Last activity: 2026-04-29
 
@@ -105,6 +105,8 @@ Decisions are logged in PROJECT.md Key Decisions table. Full v7.0 cross-phase de
 - [Phase 38.5]: Plan 06: 2 E2E system tests in bk2_scoreboard_test.rb prove BkParamResolver.bake! -> ScoreEngine integration end-to-end at the live data path; service-level dispatch (tm.score_engine.add_n_balls) over real DOM clicks matches existing 35-test convention
 - [Phase 38.5]: Plan 06: No-lazy-bake decision recorded in 38.5-DEPLOYMENT-RUNBOOK.md (closes Open Question 2 from RESEARCH.md). Rationale: D-15 forbids migration code; ScoreEngine refactor for lazy-bake is out of scope (only Hash + Discipline AR ref, no TM ref); in-flight pre-38.5 BK-* matches fall back to false/false per D-04 (identical to today's behaviour, no regression); next start_game bakes correctly
 - [Phase 38.6]: All 6 D-13 phases implemented in merge_bk_disciplines.rb — per-loser transaction isolation, PaperTrail-aware AR-API only, interactive CC-conflict halt
+- [Phase 38.6]: Seed-replay carve-out: discipline_test.rb lines 190-247 keep 'BK2-Kombi' strings synchronized with un-touched seed file; follow-up phase required to align seed + test data after production merge runs
+- [Phase 38.6]: Rule 1 auto-fix: table_monitors_controller_test.rb updated (not in plan's 4-file list) — 3 tests failed as direct cascade of BK2_DISCIPLINE_MAP rename; CLAMP target updated from BK2-Kombi to BK-2kombi
 
 ### Roadmap Evolution
 
@@ -150,6 +152,6 @@ None blocking Phase 38.1 execution. Reconciliation debt above is tracked but not
 
 ## Session Continuity
 
-Last session: 2026-04-29T20:43:38.190Z
-Stopped at: Completed 38.6-01-merge-script-PLAN.md
+Last session: 2026-04-29T20:55:47.638Z
+Stopped at: Completed 38.6-02-fixtures-canonical-rename-PLAN.md
 Resume: `/gsd-plan-phase 38` to break Phase 38 into 3 executable plans
