@@ -342,6 +342,13 @@ class TableMonitor::GameSetup < ApplicationService
     @tm.initialize_game
     @tm.deep_merge_data!(result)
     @tm.copy_from = nil
+    # Phase 38.5 D-03 hook 1: resolver bake before save.
+    # Writes effective_discipline + the two BK params into @tm.data based on
+    # the resolved hierarchy (Discipline -> Tournament -> ... -> TableMonitor).
+    # MUST run AFTER deep_merge_data!(result) — that's where free_game_form
+    # is populated; the resolver looks up the Discipline AR record by name.
+    # MUST run BEFORE save! — bake! mutates @tm.data, save! persists it.
+    BkParamResolver.bake!(@tm)
     @tm.save!
 
     # Callbacks wieder aktivieren und genau einen Job einreihen
