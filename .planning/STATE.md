@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v7.1
 milestone_name: UX Polish & i18n Debt
-status: executing
-stopped_at: Completed 38.6-02-fixtures-canonical-rename-PLAN.md
-last_updated: "2026-04-29T20:55:47.641Z"
+status: verifying
+stopped_at: "Checkpoint: Task 3 human-verify — awaiting user GO/NO-GO on production deployment of merge_bk_disciplines.rb"
+last_updated: "2026-04-29T21:03:25.524Z"
 last_activity: 2026-04-29
 progress:
   total_phases: 8
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 47
-  completed_plans: 45
-  percent: 96
+  completed_plans: 46
+  percent: 98
 ---
 
 # Project State
@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-04-15)
 
 Phase: 38.6 (discipline-master-data-cleanup) — EXECUTING
 Plan: 3 of 3
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-04-29
 
 **Deferred to Wave 4 / later session:**
@@ -107,6 +107,9 @@ Decisions are logged in PROJECT.md Key Decisions table. Full v7.0 cross-phase de
 - [Phase 38.6]: All 6 D-13 phases implemented in merge_bk_disciplines.rb — per-loser transaction isolation, PaperTrail-aware AR-API only, interactive CC-conflict halt
 - [Phase 38.6]: Seed-replay carve-out: discipline_test.rb lines 190-247 keep 'BK2-Kombi' strings synchronized with un-touched seed file; follow-up phase required to align seed + test data after production merge runs
 - [Phase 38.6]: Rule 1 auto-fix: table_monitors_controller_test.rb updated (not in plan's 4-file list) — 3 tests failed as direct cascade of BK2_DISCIPLINE_MAP rename; CLAMP target updated from BK2-Kombi to BK-2kombi
+- [Phase 38.6]: Dry-run transaction wrapper added (Rule 3): merge_bk_disciplines_dry_run.rb wraps script in ActiveRecord::Rollback so dev DB stays untouched after path-B full-merge dry-run
+- [Phase 38.6]: No CC-Konflikt-Scan conflicts found in dry-run: D-08 interactive halt never triggered — production merge is safest possible path
+- [Phase 38.6]: PlayerRanking recompute list empty: all 24 loser-95 rankings FK-updated without unique-constraint conflict — no post-merge recompute job needed (D-03 scope cleared)
 
 ### Roadmap Evolution
 
@@ -152,6 +155,6 @@ None blocking Phase 38.1 execution. Reconciliation debt above is tracked but not
 
 ## Session Continuity
 
-Last session: 2026-04-29T20:55:47.638Z
-Stopped at: Completed 38.6-02-fixtures-canonical-rename-PLAN.md
+Last session: 2026-04-29T21:03:25.521Z
+Stopped at: Checkpoint: Task 3 human-verify — awaiting user GO/NO-GO on production deployment of merge_bk_disciplines.rb
 Resume: `/gsd-plan-phase 38` to break Phase 38 into 3 executable plans
