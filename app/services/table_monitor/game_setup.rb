@@ -239,8 +239,17 @@ class TableMonitor::GameSetup < ApplicationService
   # Phase 38.4-04 I1: Name → free_game_form fallback map for all 5 BK-* disciplines.
   # Used when discipline.data["free_game_form"] is not yet populated
   # (e.g. fresh local server before Version sync catches up after Plan 38.4-01).
+  # Phase 38.6: canonical name renamed "BK2-Kombi" → "BK-2kombi". Legacy key kept
+  # as transitional alias so local servers that haven't yet replayed the rename
+  # Version still resolve correctly during the propagation window.
+  # Order matters: callers use BK_NAME_TO_FORM.invert (bk_param_resolver.rb:127)
+  # to map a free_game_form back to a Discipline name. Ruby's Hash#invert keeps
+  # the LAST entry when values collide, so the canonical name "BK-2kombi" must
+  # appear AFTER the legacy "BK2-Kombi" entry — that way invert["bk2_kombi"]
+  # returns "BK-2kombi" and `Discipline.find_by(name: ...)` resolves correctly.
   BK_NAME_TO_FORM = {
-    "BK2-Kombi" => "bk2_kombi",
+    "BK2-Kombi" => "bk2_kombi", # legacy alias — remove after all local servers have synced phase 38.6 Versions
+    "BK-2kombi" => "bk2_kombi", # canonical — must come last so .invert returns this name
     "BK50" => "bk50",
     "BK100" => "bk100",
     "BK-2" => "bk_2",
