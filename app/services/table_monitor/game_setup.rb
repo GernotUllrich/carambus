@@ -226,7 +226,11 @@ class TableMonitor::GameSetup < ApplicationService
       })
     end
 
-    tm.data.except!("ba_results", "sets")
+    # 2026-04-28: bk2_state must be cleared at game start. Without this, a stale bk2_state
+    # from a previous game survives initialize_game and init_state_if_missing! early-returns,
+    # so the new game runs with the previous game's phase config (e.g. SP rules in DZ-mode).
+    # Originally landed at carambus_bcw e4d85bb2; lost during 5735710's BK2 cleanup; restored here.
+    tm.data.except!("ba_results", "sets", "bk2_state")
   rescue => e
     Rails.logger.error "ERROR: m6[#{tm.id}]#{e}, #{e.backtrace&.join("\n")}"
     raise StandardError
