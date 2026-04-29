@@ -136,9 +136,17 @@ Plans:
 
 **Goal**: Two orthogonal BK scoring parameters (`allow_negative_score_input`, `negative_credits_opponent`) become first-class, resolvable via a hierarchy chain Discipline → Tournament → TournamentPlan → TournamentMonitor → Quickstart-Preset → Detail-Form → TableMonitor (lower levels override upper). Architectural correction: BK-2kombi stops being a peer Discipline and becomes a Multiset-Konfiguration that points to BK-2plus (DZ phase) and BK-2 (SP phase) per set — the resolver picks the per-set effective discipline as the top of the chain. Short-term scope: training path (Discipline → Quickstart → Detail-Form → TableMonitor); tournament path (Discipline → Tournament → TournamentPlan → TournamentMonitor → TableMonitor) is deferred to a follow-up half-phase. Defaults migrated from current `free_game_form` string-equality checks: BK-2plus (true/true), BK-2/BK50/BK100 (true/false), BK-2kombi DZ-set (true/true via BK-2plus), BK-2kombi SP-set (true/false via BK-2), all others unchanged.
 **Depends on**: Phase 38.4 (BK family Discipline records seeded; `Bk2::CommitInning` 5-way dispatcher in place)
-**Decisions addressed:** TBD (see 38.5-CONTEXT.md after discuss-phase)
-**Plans:** TBD (to be created by `/gsd-plan-phase 38.5`)
-**UI hint**: yes (detail-form + quickstart preset surfaces touched)
+**Decisions addressed:** D-01..D-16 (see 38.5-CONTEXT.md)
+**Plans:** 1/6 plans executed
+
+Plans:
+- [ ] `38.5-01-PLAN.md` — RED-tests in `test/integration/bk_param_latent_bugs_test.rb` documenting D-11 (BK-2kombi DZ credit-opponent) and D-12 (BK-2/BK50/BK100 negative-clamp) latent bugs. Tests fail today, turn GREEN automatically after Plans 04+05 land. autonomous: true. Wave 1.
+- [ ] `38.5-02-PLAN.md` — `BkParamResolver` service (`app/services/bk_param_resolver.rb`) walking the 7-level hierarchy (Discipline → Tournament → TournamentPlan(reserved, no data column) → TournamentMonitor → Quickstart-Preset → Detail-Form → TableMonitor). `bake!`/`resolve` API + multiset effective_discipline computation per set. ~14 unit tests covering walk-order, sparse override (D-06), training mode (D-14). autonomous: true. Wave 1.
+- [ ] `38.5-03-PLAN.md` — Extend `script/seed_bk2_disciplines.rb` with two new D-05 keys for BK-2plus/BK-2/BK50/BK100 + `multiset_components` default for BK-2kombi (id 107). Update `test/fixtures/disciplines.yml` to mirror. Karambol/Snooker/Pool/Biathlon untouched. Sync flows via `Version#update_from_carambus_api` (38.4-D-05 fix already shipped). autonomous: true. Wave 1.
+- [ ] `38.5-04-PLAN.md` — ScoreEngine predicate rewrite (D-09): `allow_negative_scores?` and `bk_credit_negative_to_opponent?` bodies become `!!data["..."]` reads. Three consumer call-sites (lines 84, 148, 706) automatically pick up new behaviour (D-10). 8 new tests cover 4-truth-table + 3 consumer paths + opponent-credit. autonomous: true. Wave 2 (depends on Plans 02+03).
+- [ ] `38.5-05-PLAN.md` — Bake-hook integration (D-03): Hook 1 in `GameSetup#perform_start_game` (after deep_merge_data!, before save!); Hook 2 via new `Bk2::AdvanceMatchState.rebake_at_set_open!` thin delegate, called from `ResultRecorder#perform_switch_to_next_set` guarded by `bk2_kombi` (research finding 3 — actual hook site is ResultRecorder, not AdvanceMatchState). 4 integration tests. autonomous: true. Wave 2 (depends on Plan 02).
+- [ ] `38.5-06-PLAN.md` — End-to-end verification: 2 new system tests in `bk2_scoreboard_test.rb` close D-11 + D-12 through the full UI path; Plan 01 RED-tests verified GREEN; no-lazy-bake decision recorded against research Open Question 2 (D-15 forbids migration code); BCW deployment runbook with sync-path checklist. autonomous: true. Wave 3 (depends on 01+04+05).
+**UI hint**: no (resolver is data-only; per D-16 no UI toggles in this phase — derived-only)
 
 ### Phase 39: DTP-Backed Parameter Ranges
 **Goal**: `Discipline#parameter_ranges` becomes context-aware — it queries the existing `discipline_tournament_plans` table for canonical points/innings values based on the tournament's plan, player count, and player_class, returns Ranges derived from the normal (exact) or reduced (80%) mode, and correctly handles `handicap_tournier=true` tournaments (skip innings check, widen balls_goal which is per-participant from the participant list). The parameter verification modal no longer false-fires on youth/handicap/pool/snooker/biathlon/kegel tournaments.
@@ -173,7 +181,7 @@ Phases execute in numeric order: 33 → 34 → 35 → 36a → 36b → 36c → 37
 | 38.2. BK2-Kombi scoreboard UX re-alignment | v7.1 | 5/5 | Complete | 2026-04-19 |
 | 38.3. BK2-Kombi dry-run corrections | v7.1 | 8/8 | Complete | 2026-04-23 |
 | 38.4. BK2-Kombi post-dry-run gaps | v7.1 | 17/17 | Complete   | 2026-04-25 |
-| 38.5. BK-Param-Hierarchie + Multiset-Config | v7.1 | 0/TBD | Not started | - |
+| 38.5. BK-Param-Hierarchie + Multiset-Config | v7.1 | 1/6 | In Progress|  |
 | 39. DTP-Backed Parameter Ranges | v7.1 | 0/TBD | Not started | - |
 
 **v7.0 total:** 7 phases, 31 plans, 37/37 requirements, ~2 weeks wall time.

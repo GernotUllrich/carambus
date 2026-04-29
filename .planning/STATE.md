@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v7.1
 milestone_name: UX Polish & i18n Debt
 status: executing
-stopped_at: Phase 38.5 context gathered
-last_updated: "2026-04-29T11:30:43.216Z"
-last_activity: 2026-04-25
+stopped_at: Completed 38.5-01-PLAN.md (RED-tests for D-11/D-12)
+last_updated: "2026-04-29T13:45:11.267Z"
+last_activity: 2026-04-29
 progress:
   total_phases: 7
   completed_phases: 4
-  total_plans: 38
-  completed_plans: 37
-  percent: 97
+  total_plans: 44
+  completed_plans: 38
+  percent: 86
 ---
 
 # Project State
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-15)
 
 **Core value:** Code and docs stay in sync — every documented feature works, every working feature is documented, and a volunteer user should never need to read the architecture to run a tournament.
-**Current focus:** Phase 38.4 — bk2-kombi-post-dry-run-gaps
+**Current focus:** Phase 38.5 — bk-param-hierarchy-multiset-config
 
 ## Current Position
 
-Phase: 38.4 (bk2-kombi-post-dry-run-gaps) — EXECUTING
-Plan: 6 of 17
+Phase: 38.5 (bk-param-hierarchy-multiset-config) — EXECUTING
+Plan: 2 of 6
 Status: Ready to execute
-Last activity: 2026-04-25
+Last activity: 2026-04-29
 
 **Deferred to Wave 4 / later session:**
 
@@ -89,6 +89,8 @@ Decisions are logged in PROJECT.md Key Decisions table. Full v7.0 cross-phase de
 - [Phase 38.4-bk2-kombi-post-dry-run-gaps]: Plan 17: CR-01 closed via 1-char fix at version.rb:434 (local_server → local_server?); 3 T-CR-01 tests lock the predicate-naming convention. INFO-01 closed via git mv todos/pending/sync-version-yaml-...md → todos/done/ + closure marker. INFO-02 closed via 3 ROADMAP checkbox flips on plans 38.4-10/11/12. WR-01..06 stay deferred.
 - [Phase 38.4-bk2-kombi-post-dry-run-gaps]: Plan 17 I-17-01 attestation: inline English comment above the local_server? fix is per CLAUDE.md line 23 technical-terms exception (NameError + predicate naming + line numbers are technical, not business). Documented in 38.4-17-SUMMARY.md for auditability.
 - [Phase 38.4-bk2-kombi-post-dry-run-gaps]: Plan 14: Option B implemented — TableMonitor#discipline String contract preserved; bk_family_with_nachstoss? + route_goal_reached_through_bk2_commit_inning private helpers route :goal_reached through Bk2::CommitInning when name-looked-up Discipline has nachstoss_allowed? Bk2::CommitInning + Bk2::AdvanceMatchState hardened to handle String discipline (Rule 1 fix); incidentally clears 4 deferred T8-T11 errors. Closes round-4 P4 gap.
+- [Phase 38.5]: Plan 01: RED-tests seed post-resolver state directly in data hash to decouple Plan 01 from Plan 02 — Plan 01 ships independently in Wave 1; tests turn GREEN automatically once Plan 04 rewrites predicates
+- [Phase 38.5]: Plan 01: GSD verification contract — test/integration/bk_param_latent_bugs_test.rb is locked against edits in Plan 06; turning all 4 tests GREEN without editing this file proves Plans 04+05 fix the latent bugs correctly
 
 ### Roadmap Evolution
 
@@ -134,6 +136,6 @@ None blocking Phase 38.1 execution. Reconciliation debt above is tracked but not
 
 ## Session Continuity
 
-Last session: 2026-04-29T11:30:43.213Z
-Stopped at: Phase 38.5 context gathered
+Last session: 2026-04-29T13:45:02.224Z
+Stopped at: Completed 38.5-01-PLAN.md (RED-tests for D-11/D-12)
 Resume: `/gsd-plan-phase 38` to break Phase 38 into 3 executable plans
