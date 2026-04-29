@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v7.1
 milestone_name: UX Polish & i18n Debt
 status: executing
-stopped_at: Completed 38.5-02-PLAN.md (BkParamResolver service + 19-test unit suite)
-last_updated: "2026-04-29T13:56:46.015Z"
+stopped_at: Completed 38.5-03-PLAN.md (Discipline seed + fixture mirror for D-08 BK-param defaults)
+last_updated: "2026-04-29T14:05:44.722Z"
 last_activity: 2026-04-29
 progress:
   total_phases: 7
   completed_phases: 4
   total_plans: 44
-  completed_plans: 39
-  percent: 89
+  completed_plans: 40
+  percent: 91
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-15)
 ## Current Position
 
 Phase: 38.5 (bk-param-hierarchy-multiset-config) — EXECUTING
-Plan: 3 of 6
+Plan: 4 of 6
 Status: Ready to execute
 Last activity: 2026-04-29
 
@@ -96,6 +96,8 @@ Decisions are logged in PROJECT.md Key Decisions table. Full v7.0 cross-phase de
 - [Phase 38.5]: Plan 02: Levels 5 (Quickstart-Preset) + 6 (Detail-Form) collapse into Level 7 (TableMonitor) — D-16 defers UI toggles, so preset/form values already land in tm.data via controller params.
 - [Phase 38.5]: Plan 02: bake! does NOT save (caller is responsible) and is idempotent — verified by F3 reloading from DB and asserting effective_discipline absent on persisted row. AASM initial-state callback persists TableMonitor.new implicitly, so tm.persisted? cannot be used for the contract test.
 - [Phase 38.5]: Plan 02: D-06 sparse-override regression guard — test C1 explicitly asserts data.key? gate (NOT data[].present?) so an explicit false at any level overrides true at lower levels. Failure message names the bug class for self-diagnostic regressions.
+- [Phase 38.5]: Plan 03: BK2-Kombi (Discipline 107) explicitly does NOT carry allow_negative_score_input or negative_credits_opponent — resolver looks up effective_discipline (bk_2plus or bk_2) per set and reads THAT Discipline's params (D-08). Seed script's idempotency guard deletes those keys if accidentally written by a prior run.
+- [Phase 38.5]: Plan 03: Test fixture mirrors seed output verbatim — decouples Plan 02/04 unit tests from Version-sync timing. test/fixtures/disciplines.yml carries the same data shape that local servers receive via Version#update_from_carambus_api after the seed runs on carambus_api.
 
 ### Roadmap Evolution
 
@@ -141,6 +143,6 @@ None blocking Phase 38.1 execution. Reconciliation debt above is tracked but not
 
 ## Session Continuity
 
-Last session: 2026-04-29T13:56:23.599Z
-Stopped at: Completed 38.5-02-PLAN.md (BkParamResolver service + 19-test unit suite)
+Last session: 2026-04-29T14:05:44.720Z
+Stopped at: Completed 38.5-03-PLAN.md (Discipline seed + fixture mirror for D-08 BK-param defaults)
 Resume: `/gsd-plan-phase 38` to break Phase 38 into 3 executable plans
