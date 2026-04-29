@@ -199,6 +199,31 @@ class BkParamResolverTest < ActiveSupport::TestCase
       "bake! must be idempotent — second call must produce identical data"
   end
 
+  test "F2b: bake! recomputes from Discipline at set transition (no Level-7 self-reference)" do
+    # Regression for the dev bug where bake! at set 2 read its own previous
+    # output at Level 7 (table_monitor.data) instead of falling through to
+    # Level 1 (Discipline.data). Set 1 wrote negative_credits_opponent=true
+    # (BK-2plus rule); set 2 must walk to BK-2 discipline and write false.
+    tm = build_tm(free_game_form: "bk2_kombi", first_set_mode: "direkter_zweikampf", sets: [])
+
+    # Set 1 (DZ phase): bake produces BK-2plus rule
+    BkParamResolver.bake!(tm)
+    assert_equal "bk_2plus", tm.data["effective_discipline"]
+    assert_equal true, tm.data["negative_credits_opponent"], "set 1 DZ must credit opponent"
+
+    # Simulate set close: push to data["sets"] so set_index becomes 2
+    tm.data["sets"] = [{}]
+
+    # Set 2 (SP phase): re-bake must walk to BK-2 discipline, NOT read its own
+    # set-1 output as a Level-7 override
+    BkParamResolver.bake!(tm)
+    assert_equal "bk_2", tm.data["effective_discipline"]
+    assert_equal false, tm.data["negative_credits_opponent"],
+      "set 2 SP must NOT credit opponent — bake must clear its own prior output before walking"
+    assert_equal true, tm.data["allow_negative_score_input"],
+      "set 2 SP still allows negative input (BK-2 rule)"
+  end
+
   test "F3: bake! does NOT save — caller is responsible" do
     # Note: TableMonitor.new persists itself implicitly (AASM initial-state
     # `:new` after_enter callback calls save!). To prove bake! does NOT save,

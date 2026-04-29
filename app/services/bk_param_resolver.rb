@@ -34,6 +34,15 @@ module BkParamResolver
   #
   # Idempotent: calling bake! twice in a row produces the same result.
   def self.bake!(table_monitor)
+    # Clear previous bake output BEFORE walking levels. Otherwise the walk reads
+    # its own prior output at Level 7 (table_monitor.data) and locks in stale
+    # values across set transitions and bk2_options changes — e.g. set 1
+    # writes negative_credits_opponent=true (BK-2plus), set 2 walk finds true
+    # at Level 7 again and re-writes it instead of falling through to Level 1
+    # (BK-2's discipline data → false). User overrides via TournamentMonitor.data
+    # / Tournament.data (Levels 4 / 2) are still honored.
+    REGISTERED_PARAMS.each { |p| table_monitor.data.delete(p.to_s) }
+
     eff_form = compute_effective_discipline(table_monitor)
     table_monitor.data["effective_discipline"] = eff_form
 
