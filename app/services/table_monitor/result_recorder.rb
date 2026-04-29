@@ -294,7 +294,13 @@ class TableMonitor::ResultRecorder < ApplicationService
       end
     end
 
-    if (@tm.playing? || @tm.set_over? || @tm.final_set_score? || @tm.final_match_score?) && @tm.end_of_set?
+    # Phase 38.5: end_of_set? muss nur bei playing/set_over geprüft werden — bei
+    # final_set_score/final_match_score IST der Satz definitiv vorbei (State sagt's),
+    # und end_of_set? kann false zurückgeben (z.B. bei BK-2kombi nach dem 3. Satz, weil
+    # bk2_kombi_current_phase für Set 4 fragt — den es nicht gibt). Dadurch hängt der
+    # Rematch-Branch im final_set_score-Zweig.
+    if (@tm.final_set_score? || @tm.final_match_score?) ||
+       ((@tm.playing? || @tm.set_over?) && @tm.end_of_set?)
       # Merken ob wir vorher gespielt haben vor einem Zustandsuebergang
       was_playing = @tm.playing?
       is_simple_set = @tm.simple_set_game?
