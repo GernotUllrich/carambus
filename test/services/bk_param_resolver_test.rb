@@ -60,14 +60,28 @@ class BkParamResolverTest < ActiveSupport::TestCase
     assert_equal "bk_2", BkParamResolver.send(:compute_effective_discipline, tm)
   end
 
-  test "A6: explicit multiset_components override computed default" do
+  test "A6: first_set_mode reorders multiset_components when they disagree" do
+    # Phase 38.5: first_set_mode is authoritative for alternation order.
+    # multiset_components only declares cycle membership; the order is reordered
+    # to match first_set_mode. DZ-first → bk_2plus first regardless of how
+    # multiset_components was originally written.
     tm = build_tm(
       free_game_form: "bk2_kombi",
       first_set_mode: "direkter_zweikampf",
       sets: [],
       multiset_components: ["bk_2", "bk_2plus"]
     )
-    assert_equal "bk_2", BkParamResolver.send(:compute_effective_discipline, tm)
+    assert_equal "bk_2plus", BkParamResolver.compute_effective_discipline(tm),
+                 "DZ-first must yield bk_2plus at set 1 even when multiset_components is written SP-first"
+
+    tm2 = build_tm(
+      free_game_form: "bk2_kombi",
+      first_set_mode: "serienspiel",
+      sets: [],
+      multiset_components: ["bk_2plus", "bk_2"]
+    )
+    assert_equal "bk_2", BkParamResolver.compute_effective_discipline(tm2),
+                 "SP-first must yield bk_2 at set 1 even when multiset_components is written DZ-first"
   end
 
   # ---------------------------------------------------------------------------

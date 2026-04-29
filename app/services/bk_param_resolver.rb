@@ -80,6 +80,12 @@ module BkParamResolver
 
   # For BK-2kombi: per-set alternation between bk_2plus and bk_2.
   # For all other free_game_forms: identity with data["free_game_form"].
+  #
+  # `first_set_mode` is authoritative for the alternation order — it's the user's
+  # selection at game start (or the detail-form override). `multiset_components`
+  # only declares cycle membership (which two disciplines alternate); the order
+  # is reordered to match `first_set_mode` so DZ-first → bk_2plus first, SP-first
+  # → bk_2 first.
   def self.compute_effective_discipline(table_monitor)
     form = table_monitor.data["free_game_form"]
     return form unless form == "bk2_kombi"
@@ -87,12 +93,15 @@ module BkParamResolver
     first_mode = table_monitor.data.dig("bk2_options", "first_set_mode").to_s
     first_mode = "direkter_zweikampf" unless %w[direkter_zweikampf serienspiel].include?(first_mode)
 
-    components = table_monitor.data["multiset_components"]
-    components = nil unless components.is_a?(Array) && components.length == 2
-    components ||= ((first_mode == "direkter_zweikampf") ? MULTISET_DEFAULT_DZ_FIRST : MULTISET_DEFAULT_SP_FIRST)
+    cycle = table_monitor.data["multiset_components"]
+    cycle = nil unless cycle.is_a?(Array) && cycle.length == 2
+    cycle ||= MULTISET_DEFAULT_DZ_FIRST
+
+    expected_first = (first_mode == "direkter_zweikampf") ? "bk_2plus" : "bk_2"
+    cycle = cycle.reverse unless cycle[0] == expected_first
 
     set_index = Array(table_monitor.data["sets"]).length + 1
-    components[(set_index - 1) % 2]
+    cycle[(set_index - 1) % 2]
   end
 
   # Looks up the Discipline AR record for a free_game_form string.
@@ -149,7 +158,8 @@ module BkParamResolver
     {}
   end
 
-  private_class_method :compute_effective_discipline,
-    :lookup_discipline,
+  # `compute_effective_discipline` stays public — TableMonitor#ensure_bk_params_baked!
+  # uses it to detect drift (cached effective_discipline vs current bk2_options/sets).
+  private_class_method :lookup_discipline,
     :parsed_discipline_data
 end

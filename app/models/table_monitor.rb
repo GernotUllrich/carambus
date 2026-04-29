@@ -409,17 +409,26 @@ class TableMonitor < ApplicationRecord
 
   # Phase 38.5 lifecycle invariant: guarantees BkParamResolver has populated
   # effective_discipline + the two BK params into data before any predicate reads
-  # them. Idempotent — no-op on already-baked games. Required because predicate
-  # semantics (Phase 38.5 D-09) became strict on data keys, and not every code
-  # path that brings a TableMonitor into the scoring lifecycle goes through
-  # GameSetup#start_game (notably: in-flight games that pre-date the deploy,
+  # them. Re-bakes on drift — the cached effective_discipline is stale if
+  # bk2_options.first_set_mode or sets.length has changed since the last bake.
+  #
+  # Required because predicate semantics (Phase 38.5 D-09) became strict on data
+  # keys, and not every code path that brings a TableMonitor into the scoring
+  # lifecycle goes through GameSetup#start_game (notably: in-flight games that
+  # pre-date the deploy, detail-form edits to first_set_mode after start_game,
   # controller-driven score adjustments, validation jobs).
   #
   # Skips when free_game_form is blank (no game configured yet) so cold
-  # TableMonitors aren't bake-mutated on first read.
+  # TableMonitors aren't bake-mutated on first read. compute_effective_discipline
+  # is cheap (pure hash reads, no DB) so the drift check is essentially free; the
+  # actual bake (Discipline lookup + 4-level walk) only fires when needed.
   def ensure_bk_params_baked!
-    return if data.key?("allow_negative_score_input")
     return if data["free_game_form"].blank?
+
+    expected_eff = BkParamResolver.compute_effective_discipline(self)
+    return if data.key?("allow_negative_score_input") &&
+              data["effective_discipline"] == expected_eff
+
     BkParamResolver.bake!(self)
   end
 
