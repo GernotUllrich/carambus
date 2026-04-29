@@ -262,6 +262,15 @@ class TableMonitor::ResultRecorder < ApplicationService
     end
 
     @tm.deep_merge_data!(options)
+    # Phase 38.5 D-03 hook 2: re-bake at set-boundary for BK-2kombi only.
+    # data["sets"] has the just-closed set pushed (perform_save_current_set, line 179),
+    # so Array(data["sets"]).length + 1 is the new set index — the resolver naturally
+    # picks the correct multiset_components entry (DZ <-> SP alternation).
+    # Non-BK-2kombi families have stable effective_discipline across sets, so the
+    # bake would be a no-op; the guard makes intent explicit.
+    if @tm.data["free_game_form"] == "bk2_kombi"
+      Bk2::AdvanceMatchState.rebake_at_set_open!(@tm)
+    end
     @tm.assign_attributes(state: "playing", panel_state: "pointer_mode", current_element: "pointer_mode")
     @tm.save!
   rescue => e
