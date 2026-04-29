@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v7.1
 milestone_name: UX Polish & i18n Debt
-status: executing
-stopped_at: "Completed 38.5-05-PLAN.md (bake-hook integration — D-03 hook 1 at GameSetup#start_game line 351, D-03 hook 2 at ResultRecorder#perform_switch_to_next_set line 272 via Bk2::AdvanceMatchState.rebake_at_set_open!; all Plan 01 RED tests stay GREEN)"
-last_updated: "2026-04-29T14:25:26.966Z"
+status: verifying
+stopped_at: Completed 38.5-06-PLAN.md (verification + deployment runbook — 2 E2E tests prove BkParamResolver.bake! -> ScoreEngine end-to-end; no-lazy-bake decision recorded; Plan 01 RED tests stay GREEN, file unmodified; Phase 38.5 ready for verify-phase)
+last_updated: "2026-04-29T14:39:57.692Z"
 last_activity: 2026-04-29
 progress:
   total_phases: 7
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 44
-  completed_plans: 42
-  percent: 95
+  completed_plans: 43
+  percent: 98
 ---
 
 # Project State
@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-04-15)
 
 Phase: 38.5 (bk-param-hierarchy-multiset-config) — EXECUTING
 Plan: 6 of 6
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-04-29
 
 **Deferred to Wave 4 / later session:**
@@ -102,6 +102,8 @@ Decisions are logged in PROJECT.md Key Decisions table. Full v7.0 cross-phase de
 - [Phase 38.5]: Plan 04: All 4 of Plan 01's RED tests turn GREEN from Plan 04 alone (NOT only Tests 2/3/4 as plan author predicted). Plan 01 seeded post-bake state directly in test data per its D-13 decoupling, so Test 1 (BK-2kombi DZ) doesn't need Plan 05's set-boundary bake. Plan 05 still required for the live add_n_balls path (system tests verify that surface).
 - [Phase 38.5]: Plan 05: rebake_at_set_open! lives on Bk2::AdvanceMatchState (D-03 mental model) — thin one-line delegate to BkParamResolver.bake!; called from ResultRecorder#perform_switch_to_next_set (research finding 3 actual file path); BK-2kombi guard at consumer site (not inside delegate)
 - [Phase 38.5]: Plan 05: stub-and-restore test pattern — save original via .method(:name), restore via define_singleton_method(name, original) in ensure. Avoids remove_method clobbering real module methods between sibling tests; load-bearing for testing module-level delegate methods
+- [Phase 38.5]: Plan 06: 2 E2E system tests in bk2_scoreboard_test.rb prove BkParamResolver.bake! -> ScoreEngine integration end-to-end at the live data path; service-level dispatch (tm.score_engine.add_n_balls) over real DOM clicks matches existing 35-test convention
+- [Phase 38.5]: Plan 06: No-lazy-bake decision recorded in 38.5-DEPLOYMENT-RUNBOOK.md (closes Open Question 2 from RESEARCH.md). Rationale: D-15 forbids migration code; ScoreEngine refactor for lazy-bake is out of scope (only Hash + Discipline AR ref, no TM ref); in-flight pre-38.5 BK-* matches fall back to false/false per D-04 (identical to today's behaviour, no regression); next start_game bakes correctly
 
 ### Roadmap Evolution
 
@@ -147,6 +149,6 @@ None blocking Phase 38.1 execution. Reconciliation debt above is tracked but not
 
 ## Session Continuity
 
-Last session: 2026-04-29T14:25:16.600Z
-Stopped at: Completed 38.5-05-PLAN.md (bake-hook integration — D-03 hook 1 at GameSetup#start_game line 351, D-03 hook 2 at ResultRecorder#perform_switch_to_next_set line 272 via Bk2::AdvanceMatchState.rebake_at_set_open!; all Plan 01 RED tests stay GREEN)
+Last session: 2026-04-29T14:39:57.689Z
+Stopped at: Completed 38.5-06-PLAN.md (verification + deployment runbook — 2 E2E tests prove BkParamResolver.bake! -> ScoreEngine end-to-end; no-lazy-bake decision recorded; Plan 01 RED tests stay GREEN, file unmodified; Phase 38.5 ready for verify-phase)
 Resume: `/gsd-plan-phase 38` to break Phase 38 into 3 executable plans
