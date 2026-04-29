@@ -439,6 +439,10 @@ def post_flight!
       protocol_append("| #{refl} | #{count} |")
     end
     protocol_append("")
+    syn_list = Discipline.find(winner_id).synonyms.to_s.split("\n").reject(&:empty?)
+    puts "  synonyms (#{syn_list.size}): #{syn_list.inspect}"
+    protocol_append("- synonyms (#{syn_list.size}): #{syn_list.inspect}")
+    protocol_append("")
   end
 
   # PlayerRanking recompute list (D-03)
