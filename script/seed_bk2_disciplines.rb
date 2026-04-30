@@ -34,12 +34,6 @@ puts "Source BK2-Kombi: type=#{type_value.inspect}, table_kind_id=#{table_kind_i
 # scoring player. BK-2kombi (id 107) does NOT carry these two keys — the
 # resolver looks up the per-set effective_discipline (bk_2plus or bk_2) and
 # reads THAT Discipline's params.
-#
-# Phase 38.7 D-06: tiebreak_on_draw default per discipline.
-#   BK-2 + BK-2kombi → true (SP-phase Nachstoss-Ballziel-Parität recurs)
-#   BK50, BK100, BK-2plus, Karambol, Snooker, Pool → key OMITTED (sparse default false)
-# Resolver in Plan 03 uses `data.key?("tiebreak_on_draw")` (NOT `.present?`)
-# so an explicit false at higher levels can still override.
 discs = [
   {
     name: "BK50",
@@ -65,8 +59,7 @@ discs = [
       free_game_form: "bk_2",
       ballziel_choices: [50, 60, 70, 80, 90, 100],
       allow_negative_score_input: true,        # Phase 38.5 D-08
-      negative_credits_opponent: false,        # Phase 38.5 D-08
-      tiebreak_on_draw: true                   # Phase 38.7 D-06 — BK-2 default
+      negative_credits_opponent: false         # Phase 38.5 D-08
     }
   },
   {
@@ -110,14 +103,12 @@ bk2 = Discipline.find(107)
 current = bk2.data.present? ? JSON.parse(bk2.data) : {}
 needs_update = current["ballziel_choices"] != [50, 60, 70] ||
   current["nachstoss_allowed"] != true ||
-  current["multiset_components"] != ["bk_2plus", "bk_2"] ||
-  current["tiebreak_on_draw"] != true
+  current["multiset_components"] != ["bk_2plus", "bk_2"]
 if needs_update
   current["free_game_form"] ||= "bk2_kombi"
   current["ballziel_choices"] = [50, 60, 70]
   current["nachstoss_allowed"] = true
   current["multiset_components"] = ["bk_2plus", "bk_2"]   # Phase 38.5 D-08
-  current["tiebreak_on_draw"] = true   # Phase 38.7 D-06 — BK-2kombi default
   # Idempotency guard: if a previous Phase 38.5 run accidentally wrote the
   # two BK-param keys onto BK-2kombi, remove them — D-08 says BK-2kombi must
   # NOT carry them (resolver uses effective_discipline lookup).
@@ -125,5 +116,5 @@ if needs_update
   current.delete("negative_credits_opponent")
   bk2.data = current.to_json
   bk2.save!
-  puts "Updated Discipline.find(107) with ballziel_choices + nachstoss_allowed + multiset_components + tiebreak_on_draw"
+  puts "Updated Discipline.find(107) with ballziel_choices + nachstoss_allowed + multiset_components"
 end
