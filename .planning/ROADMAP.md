@@ -187,7 +187,7 @@ Plans:
 **Goal**: A single game/set ending in a draw across the four trigger classes (TR-A Karambol innings parity, TR-B BK-2 / BK-2kombi-SP nachstoss-ballziel parity, TR-C generic ball parity, TR-D snooker/pool frame parity) opens an extension of the existing `protocol_final` modal with a Sieger-A/Sieger-B radio fieldset; operator pick persists to `game.data['tiebreak_winner']`, derives `ba_results['TiebreakWinner']` (1|2) for the Spielbericht-PDF, and feeds `PartyMonitor::ResultProcessor#update_game_participations` so league points reflect the pick instead of a draw. Per-game `tiebreak_required` flag baked at game start from a sparse hierarchy: Tournament.data → TournamentPlan.executor_params['gN'] → false. Training-mode sources (carambus.yml `quick_game_presets` per-button flag, free_game detail-form toggle, BK-2kombi BK-2-phase auto-detect) bake `Game.data['tiebreak_required']` directly — owned by gap-closure plans 38.7-09…12. Includes the BK-2 game-end-fix (D-02): when Nachstoss-Spieler reaches balls_goal in his Nachstoss-Aufnahme the set now closes (today: deadlock).
 **Depends on**: Phase 38.6
 **Decisions addressed:** D-01..D-16 + CD-01..CD-06 (see 38.7-CONTEXT.md)
-**Plans**: 6/8 plans complete + 1 reverted; gap-closure plans pending
+**Plans**: 6/8 plans complete + 1 reverted + 4 gap-closure plans planned
 
 Plans:
 - [~] `38.7-01-discipline-defaults-and-fixtures-PLAN.md` — **REVERTED 2026-04-30** (commits `9ffb8744`, `4eeb5550`). User feedback: tiebreak property is independent from Discipline; Discipline rows must not be patched on local servers. Training-mode tiebreak source moves to gap-closure plans (carambus.yml preset / detail-form toggle / BK-2kombi auto-detect). Plan 04 also surgically updated to drop Level-3 Discipline lookup (commit `42297932`).
@@ -199,11 +199,11 @@ Plans:
 - [x] `38.7-07-spielbericht-pdf-rendering-PLAN.md` — `parties_helper#tiebreak_indicator(game)` + `_spielbericht.html.erb` view edit (D-12). i18n key `parties.spielbericht.tiebreak_won_by`. 5 unit tests. Wave 5. (SUMMARY: `38.7-07-SUMMARY.md`)
 - [~] `38.7-08-system-tests-and-uat-PLAN.md` — `test/system/tiebreak_test.rb` with 4 E2E tests (TR-A Karambol + TR-B BK-2 + control + forged-submit security probe). Task 1 complete, 32 assertions GREEN. Task 2 (human UAT) **paused** at TR-B failure (training-mode source missing) → triggered the plan-01 revert + Level-3 surgery. Will resume after gap-closure plans land. (Partial SUMMARY: `38.7-08-SUMMARY.md`)
 
-**Gap closure pending** (training-mode tiebreak sources — owned by `/gsd-plan-phase 38.7 --gaps`):
-- carambus.yml `quick_game_presets` per-button `tiebreak_on_draw` reader
-- free_game detail-form per-match toggle
-- BK-2kombi BK-2-phase auto-detect rule (player hits balls_goal in inning 1 + opponent matches in his Nachstoss)
-- TournamentMonitor startup-form override for `Tournament.data['tiebreak_on_draw']`
+**Gap closure plans** (training-mode tiebreak sources — closes 4 gaps from 38.7-UAT.md, planned 2026-04-30):
+- [ ] `38.7-09-PLAN.md` — Gap-01: `config/carambus.yml` `quick_game_presets` per-button `tiebreak_on_draw: true` on BK-2 + BK-2kombi; threaded through form → controller → GameSetup preset-override block (deep_merge_data!). 3 RED→GREEN tests. Wave 1.
+- [ ] `38.7-10-PLAN.md` — Gap-02: free_game detail-form checkbox (`scoreboard_free_game_karambol_new.html.erb`) + i18n (DE/EN). Reuses Plan 09 controller wiring. 2 controller tests. Wave 2 (depends on 38.7-09).
+- [ ] `38.7-11-PLAN.md` — Gap-03: BK-2kombi BK-2-phase auto-detect (`bk2_kombi_tiebreak_auto_detect!` private helper inside `tiebreak_pick_pending?`) — fires when phase=serienspiel + 1+1 innings + tied at goal; overrides any pre-baked false. 3 RED→GREEN tests. Wave 1.
+- [ ] `38.7-12-PLAN.md` — Gap-04: TournamentMonitor startup-form checkbox + controller persist to Tournament.data['tiebreak_on_draw']. Default reads TournamentPlan.executor_params['g1'] Level 2. 3 RED→GREEN tests. Wave 3 (depends on 38.7-10, i18n file ownership).
 
 ### Phase 39: DTP-Backed Parameter Ranges
 **Goal**: `Discipline#parameter_ranges` becomes context-aware — it queries the existing `discipline_tournament_plans` table for canonical points/innings values based on the tournament's plan, player count, and player_class, returns Ranges derived from the normal (exact) or reduced (80%) mode, and correctly handles `handicap_tournier=true` tournaments (skip innings check, widen balls_goal which is per-participant from the participant list). The parameter verification modal no longer false-fires on youth/handicap/pool/snooker/biathlon/kegel tournaments.
