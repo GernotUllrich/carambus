@@ -1,8 +1,9 @@
 ---
-status: diagnosed
+status: resolved
 trigger: "Phase 38.7 Gap-05 — tiebreak modal re-opens after winner pick + 'Mit Sieger bestätigen' click"
 created: 2026-04-30T23:50:00Z
-updated: 2026-04-30T23:55:00Z
+updated: 2026-05-01T00:00:00Z
+resolved_by: 38.7-13 (commits 3e209190 / e6baa7d2 / c3cbf1ef)
 ---
 
 ## Current Focus
