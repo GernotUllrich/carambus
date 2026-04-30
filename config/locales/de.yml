@@ -754,6 +754,7 @@ de:
       show: Zeigen
     form:
       prohibited_this_tournament_monitor_from_being_saved: " prohibited this tournament_monitor from being saved:"
+      tiebreak_on_draw: "Stechen bei Unentschieden"
     game_results:
       game_results: Partieergebnisse
       balls: Bälle

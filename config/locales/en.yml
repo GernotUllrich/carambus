@@ -714,6 +714,7 @@ en:
       show: "'Show'"
     form:
       prohibited_this_tournament_monitor_from_being_saved: " prohibited this tournament_monitor from being saved:"
+      tiebreak_on_draw: "Tiebreak on draw"
     game_results:
       game_results: Game Results
       balls: Balls

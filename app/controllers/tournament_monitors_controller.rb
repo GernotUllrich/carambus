@@ -152,18 +152,30 @@ class TournamentMonitorsController < ApplicationController
   # GET /tournament_monitors/new
   def new
     @tournament_monitor = TournamentMonitor.new
+    @tiebreak_on_draw_default = derive_tiebreak_default(@tournament_monitor)
   end
 
   # GET /tournament_monitors/1/edit
-  def edit; end
+  def edit
+    @tiebreak_on_draw_default = derive_tiebreak_default(@tournament_monitor)
+  end
 
   # POST /tournament_monitors
   def create
     @tournament_monitor = TournamentMonitor.new(tournament_monitor_params)
 
     if @tournament_monitor.save
+      # Phase 38.7 Plan 12 (Gap-04): :create deliberately does NOT persist
+      # tournament_tiebreak_on_draw. The before_action stack
+      # (ensure_tournament_director, line 3) only protects
+      # %i[show edit update destroy ...] — :create is NOT in that list,
+      # so persisting Tournament.data here would let any signed-in user
+      # mutate director-controlled data. Operator workflow: create the
+      # monitor first, then edit it to set the tiebreak flag (which IS
+      # gated by ensure_tournament_director on :update).
       redirect_to @tournament_monitor, notice: "Tournament monitor was successfully created."
     else
+      @tiebreak_on_draw_default = derive_tiebreak_default(@tournament_monitor)
       render :new
     end
   end
@@ -171,8 +183,13 @@ class TournamentMonitorsController < ApplicationController
   # PATCH/PUT /tournament_monitors/1
   def update
     if @tournament_monitor.update(tournament_monitor_params)
+      # Phase 38.7 Plan 12 (Gap-04): persist Tournament.data['tiebreak_on_draw'].
+      # Gated by the existing before_action stack (ensure_tournament_director +
+      # ensure_local_server) which IS active on :update.
+      persist_tournament_tiebreak_override(@tournament_monitor)
       redirect_to @tournament_monitor, notice: "Tournament monitor was successfully updated."
     else
+      @tiebreak_on_draw_default = derive_tiebreak_default(@tournament_monitor)
       render :edit
     end
   end
@@ -194,6 +211,76 @@ class TournamentMonitorsController < ApplicationController
   def tournament_monitor_params
     params.require(:tournament_monitor).permit(:tournament_id, :date, :state, :innings_goal, :timeouts, :timeout,
                                                :balls_goal)
+  end
+
+  # Phase 38.7 Plan 12 (Gap-04): default value for the startup-form tiebreak
+  # checkbox. Reads Tournament.data first (Level 1 — already set), then falls
+  # back to the bound TournamentPlan's executor_params['g1']['tiebreak_on_draw']
+  # (Level 2 — plan default), else false. The form pre-checks the box
+  # accordingly.
+  def derive_tiebreak_default(tournament_monitor)
+    t = tournament_monitor&.tournament
+    return false if t.nil?
+
+    t_data = t.data.is_a?(Hash) ? t.data : (begin; JSON.parse(t.data.to_s); rescue; {}; end)
+    return !!t_data["tiebreak_on_draw"] if t_data.is_a?(Hash) && t_data.key?("tiebreak_on_draw")
+
+    plan = t.tournament_plan
+    if plan&.respond_to?(:executor_params)
+      plan_params = plan.executor_params.is_a?(Hash) ? plan.executor_params : (begin; JSON.parse(plan.executor_params.to_s); rescue; {}; end)
+      g1 = plan_params.is_a?(Hash) ? plan_params["g1"] : nil
+      return !!g1["tiebreak_on_draw"] if g1.is_a?(Hash) && g1.key?("tiebreak_on_draw")
+    end
+
+    false
+  end
+
+  # Phase 38.7 Plan 12 (Gap-04): persist the operator's pick onto
+  # Tournament.data['tiebreak_on_draw'] when the form param is present.
+  #
+  # AUTH GATE: This helper is called ONLY from `update` (NOT from `create`).
+  # The controller's existing before_action stack
+  # (ensure_tournament_director + ensure_local_server, registered with
+  # `only: %i[show edit update destroy ...]`) protects `:update` but NOT
+  # `:create`. Calling this from `:create` would let any signed-in user
+  # mutate Tournament.data. Workflow: operator creates the TournamentMonitor
+  # first (unauthenticated-friendly path stays unchanged), then edits it
+  # once to tick the box.
+  #
+  # Sparse semantics: missing param → no-op (leave Tournament.data
+  # untouched). Present param ('1' true, anything else false) →
+  # explicit write that overrides plan default.
+  def persist_tournament_tiebreak_override(tournament_monitor)
+    return unless params.key?(:tournament_tiebreak_on_draw)
+    t = tournament_monitor&.tournament
+    return if t.nil?
+
+    raw = params[:tournament_tiebreak_on_draw]
+    bool = raw == "1" || raw == "true" || raw == true
+
+    current = t.data.is_a?(Hash) ? t.data.dup : (begin; JSON.parse(t.data.to_s); rescue; {}; end)
+    current = {} unless current.is_a?(Hash)
+    current["tiebreak_on_draw"] = bool
+
+    # Tournament's data column is a JSON-encoded text column (serialize :data,
+    # coder: JSON, type: Hash). We write via update_columns to bypass:
+    #   1) Tournament's before_save which mutates organizer + extracts certain
+    #      keys out of data (lines 313-330) — irrelevant to tiebreak_on_draw and
+    #      would cause confusing diff noise.
+    #   2) Tournament's belongs_to :organizer presence validation, which
+    #      unrelated callbacks elsewhere (TournamentMonitor reset) can leave
+    #      transiently nil during the request lifecycle. We don't want a stale
+    #      organizer state to block this targeted single-key write.
+    # update_columns also skips PaperTrail; that's an acceptable tradeoff for
+    # this operator-set flag (audit trail comes from Rails.logger.info below
+    # and from the TournamentMonitor's own PaperTrail entry on the same request).
+    # We pass the Hash itself (NOT JSON-stringified): Tournament uses
+    # `serialize :data, coder: JSON, type: Hash` so AR will JSON-encode the
+    # Hash on write and reject a pre-stringified value with
+    # ActiveRecord::SerializationTypeMismatch.
+    t.update_columns(data: current, updated_at: Time.current)
+    Rails.logger.info "[TournamentMonitorsController] Plan 12 (Gap-04) " \
+      "Tournament.data['tiebreak_on_draw']=#{bool} tournament=#{t.id}"
   end
 
   # Sicherstellen dass nur Spielleiter (club_admin) Zugriff haben
