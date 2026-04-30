@@ -532,4 +532,80 @@ class TableMonitor::ResultRecorderTest < ActiveSupport::TestCase
     assert_nil @tm.data["ba_results"]["TiebreakWinner"],
       "TiebreakWinner key absent when no winner pick — Plan 07 PDF view will skip the indicator"
   end
+
+  # ----------------------------------------------------------------
+  # Phase 38.7 Plan 11 — Gap-03: BK-2kombi BK-2-phase auto-detect.
+  # When BK-2kombi is in BK-2 (serienspiel) phase AND the set ends with both
+  # players at balls_goal in 1+1 innings AND scores tied → tiebreak_required
+  # is auto-set to true on game.data at the moment of detection. This is a
+  # hard rule of the discipline, NOT operator-configurable. Overrides any
+  # pre-baked false.
+  # ----------------------------------------------------------------
+
+  test "G1 (Gap-03): BK-2kombi BK-2-phase tied at goal in 1+1 innings auto-sets tiebreak_required=true" do
+    # bk2_kombi_current_phase: data["sets"]=[done_set] → set_number=2;
+    # first_mode=direkter_zweikampf → serienspiel for set 2.
+    @tm.deep_merge_data!(
+      "free_game_form" => "bk2_kombi",
+      "bk2_options" => {"first_set_mode" => "direkter_zweikampf"},
+      "sets" => [{"Ergebnis1" => 70, "Ergebnis2" => 50}],
+      "playera" => {"innings" => 1, "result" => 70, "balls_goal" => 70},
+      "playerb" => {"innings" => 1, "result" => 70, "balls_goal" => 70}
+    )
+    @tm.save!
+    @game.update!(data: {"tiebreak_required" => false})
+
+    # Sanity: bk2_kombi_current_phase resolves to serienspiel for set 2
+    assert_equal "serienspiel", @tm.bk2_kombi_current_phase
+
+    recorder = TableMonitor::ResultRecorder.new(table_monitor: @tm)
+    result = recorder.send(:tiebreak_pick_pending?)
+
+    @game.reload
+    assert_equal true, @game.data["tiebreak_required"],
+      "Gap-03: BK-2kombi BK-2-phase + 1+1 innings + tied at goal must auto-set tiebreak_required=true"
+    assert_equal true, result,
+      "Gap-03: tiebreak_pick_pending? must return true after auto-detect fires"
+  end
+
+  test "G2 (Gap-03): BK-2kombi DZ-phase tied does NOT trigger auto-detect" do
+    # set_number=1 with first_mode=direkter_zweikampf → bk2_kombi_current_phase=direkter_zweikampf
+    @tm.deep_merge_data!(
+      "free_game_form" => "bk2_kombi",
+      "bk2_options" => {"first_set_mode" => "direkter_zweikampf"},
+      "sets" => [],
+      "playera" => {"innings" => 1, "result" => 70, "balls_goal" => 70},
+      "playerb" => {"innings" => 1, "result" => 70, "balls_goal" => 70}
+    )
+    @tm.save!
+    @game.update!(data: {"tiebreak_required" => false})
+
+    assert_equal "direkter_zweikampf", @tm.bk2_kombi_current_phase
+
+    recorder = TableMonitor::ResultRecorder.new(table_monitor: @tm)
+    result = recorder.send(:tiebreak_pick_pending?)
+
+    @game.reload
+    assert_equal false, @game.data["tiebreak_required"],
+      "Gap-03: BK-2kombi DZ-phase tied must NOT auto-set tiebreak_required (DZ exempt)"
+    assert_equal false, result, "tiebreak_pick_pending? returns false (legacy path)"
+  end
+
+  test "G3 (Gap-03): non-BK-2kombi tied does NOT trigger auto-detect (rule only applies to BK-2kombi)" do
+    @tm.deep_merge_data!(
+      "free_game_form" => "karambol",
+      "playera" => {"innings" => 30, "result" => 80, "balls_goal" => 80},
+      "playerb" => {"innings" => 30, "result" => 80, "balls_goal" => 80}
+    )
+    @tm.save!
+    @game.update!(data: {"tiebreak_required" => false})
+
+    recorder = TableMonitor::ResultRecorder.new(table_monitor: @tm)
+    result = recorder.send(:tiebreak_pick_pending?)
+
+    @game.reload
+    assert_equal false, @game.data["tiebreak_required"],
+      "Gap-03: non-BK-2kombi tied must NOT auto-set tiebreak_required (rule scoped to BK-2kombi)"
+    assert_equal false, result, "tiebreak_pick_pending? returns false (no Plan 04 bake, no Plan 11 auto-detect)"
+  end
 end
