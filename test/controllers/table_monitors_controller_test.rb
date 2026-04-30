@@ -737,4 +737,54 @@ class TableMonitorsControllerTest < ActionDispatch::IntegrationTest
     assert_equal 100, bk2_options["balls_goal"].to_i,
       "T-P6: bk2_options.balls_goal must be 100 from BK100 detail-form (got #{bk2_options["balls_goal"]})"
   end
+
+  # ----------------------------------------------------------------
+  # Phase 38.7 Plan 10 — Gap-02: free_game detail-form tiebreak_on_draw toggle.
+  # The detail-form view ships a checkbox; submission rides the same
+  # start_game path as Plan 09's quick-game preset. Bake happens in
+  # GameSetup#perform_start_game's preset-override block (Plan 09).
+  # These tests serve as detail-form regression coverage even though
+  # the wiring is shared with Plan 09 — they document the Gap-02 contract.
+  #
+  # Setup (provided by the existing test class): @table_monitor =
+  # table_monitors(:one); @user = users(:one); sign_in @user — do NOT
+  # re-sign-in. Player fixtures available: jaspers, cho, tasdemir.
+  # ----------------------------------------------------------------
+
+  test "G1 (Gap-02): POST start_game with tiebreak_on_draw=1 bakes tiebreak_required=true" do
+    post start_game_table_monitor_url(@table_monitor), params: {
+      player_a_id: players(:jaspers).id, player_b_id: players(:cho).id,
+      discipline_a: "Freie Partie klein", discipline_b: "Freie Partie klein",
+      free_game_form: "karambol",
+      balls_goal_a: 80, balls_goal_b: 80, innings_goal: 20,
+      sets_to_win: 0, sets_to_play: 1,
+      kickoff_switches_with: "set",
+      color_remains_with_set: "1", allow_follow_up: "true",
+      first_break_choice: 0,
+      tiebreak_on_draw: "1"
+    }
+
+    @table_monitor.reload
+    assert_not_nil @table_monitor.game, "start_game must create a game"
+    assert_equal true, @table_monitor.game.data["tiebreak_required"],
+      "Gap-02: detail-form tiebreak_on_draw=1 must bake tiebreak_required=true"
+  end
+
+  test "G2 (Gap-02): POST start_game with tiebreak_on_draw=0 bakes tiebreak_required=false" do
+    post start_game_table_monitor_url(@table_monitor), params: {
+      player_a_id: players(:jaspers).id, player_b_id: players(:cho).id,
+      discipline_a: "Freie Partie klein", discipline_b: "Freie Partie klein",
+      free_game_form: "karambol",
+      balls_goal_a: 80, balls_goal_b: 80, innings_goal: 20,
+      sets_to_win: 0, sets_to_play: 1,
+      kickoff_switches_with: "set",
+      color_remains_with_set: "1", allow_follow_up: "true",
+      first_break_choice: 0,
+      tiebreak_on_draw: "0"
+    }
+
+    @table_monitor.reload
+    assert_equal false, @table_monitor.game.data["tiebreak_required"],
+      "Gap-02: detail-form tiebreak_on_draw=0 must bake tiebreak_required=false"
+  end
 end
