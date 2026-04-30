@@ -292,10 +292,23 @@ class TableMonitor::ResultRecorder < ApplicationService
   # Phase 38.7 Plan 05 — D-03 trigger detection helper.
   # Returns true iff: game.data['tiebreak_required']==true AND
   # game.data['tiebreak_winner'] is missing AND scores are tied.
-  # When true, callers (perform_evaluate_result inning + simple-set branches,
-  # training-rematch branch) gate their behaviour on this condition.
-  # Pure read; no side effects. See result_recorder D-03 / D-13 / D-08 wiring.
+  #
+  # Phase 38.7 Plan 11 (Gap-03) — BK-2kombi BK-2-phase auto-detect.
+  # Hard rule of the BK-2kombi discipline: when the active multiset phase is
+  # BK-2 (serienspiel) AND the set ends with both players at balls_goal in
+  # 1+1 innings AND scores tied, tiebreak_required is forced true regardless
+  # of any pre-baked value (overrides Plan 09 preset, Plan 10 detail-form
+  # toggle, Plan 04 resolver — this is the rule, not configurable).
+  # The mutation runs in-method (not pure read) so the existing gate below
+  # sees the updated value. Idempotent: subsequent calls find the flag
+  # already true and skip the mutation.
+  #
+  # Pure read (after the auto-detect mutation, if any). No side effects beyond
+  # the deliberate auto-detect persistence. See result_recorder D-03 / D-13 /
+  # D-08 wiring + Gap-03 of phase 38.7 UAT.
   def tiebreak_pick_pending?
+    bk2_kombi_tiebreak_auto_detect!
+
     return false unless @tm.game&.data&.[]("tiebreak_required") == true
     return false if @tm.game.data["tiebreak_winner"].present?
 
@@ -310,6 +323,46 @@ class TableMonitor::ResultRecorder < ApplicationService
       b = last_set["Ergebnis2"].to_i
     end
     a == b
+  end
+
+  # Phase 38.7 Plan 11 (Gap-03) — BK-2kombi BK-2-phase auto-detect helper.
+  # Mutates @tm.game.data['tiebreak_required'] = true when ALL conditions hold:
+  #   1. @tm.data["free_game_form"] == "bk2_kombi"
+  #   2. @tm.bk2_kombi_current_phase == "serienspiel" (BK-2 component active)
+  #   3. playera.innings == 1 AND playerb.innings == 1 (single-Aufnahme each)
+  #   4. playera.result == playera.balls_goal AND playerb.result == playerb.balls_goal
+  #      (both reached goal)
+  #   5. playera.result == playerb.result (tied at goal)
+  #
+  # Uses Game#deep_merge_data! (canonical write path) so the value persists
+  # through Game's custom def data getter (per Plan 04 dirty-tracking footgun).
+  # Idempotent: returns early if conditions don't match OR flag already true.
+  def bk2_kombi_tiebreak_auto_detect!
+    return unless @tm&.data.is_a?(Hash)
+    return unless @tm.data["free_game_form"] == "bk2_kombi"
+    return unless @tm.bk2_kombi_current_phase == "serienspiel"
+    return if @tm.game&.data&.[]("tiebreak_required") == true # idempotent
+
+    pa = @tm.data["playera"] || {}
+    pb = @tm.data["playerb"] || {}
+    result_a = pa["result"].to_i
+    result_b = pb["result"].to_i
+    goal_a = pa["balls_goal"].to_i
+    goal_b = pb["balls_goal"].to_i
+    innings_a = pa["innings"].to_i
+    innings_b = pb["innings"].to_i
+
+    return unless innings_a == 1 && innings_b == 1
+    return unless goal_a.positive? && goal_b.positive?
+    return unless result_a == goal_a && result_b == goal_b
+    return unless result_a == result_b
+
+    return unless @tm.game.present?
+
+    Rails.logger.info "[ResultRecorder] Plan 11 (Gap-03) auto-detect: BK-2kombi BK-2-phase " \
+      "tied at goal in 1+1 innings → forcing tiebreak_required=true (game=#{@tm.game.id})"
+    @tm.game.deep_merge_data!("tiebreak_required" => true)
+    @tm.game.save!
   end
 
   # Haupt-Ablauf: entspricht dem extrahierten evaluate_result-Body.
