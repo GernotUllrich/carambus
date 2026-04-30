@@ -58,6 +58,58 @@ class Game < ApplicationRecord
     end
   end
 
+  # Phase 38.7 Plan 04 — D-04, D-05, CD-01.
+  # Resolves the per-game `tiebreak_required` flag from the 4-level hierarchy:
+  #   1. Tournament.data['tiebreak_on_draw']                    (highest)
+  #   2. TournamentPlan.executor_params['g{group_no}']['tiebreak_on_draw']
+  #   3. Discipline.data['tiebreak_on_draw']
+  #   4. false                                                   (default)
+  #
+  # Sparse-override semantics (D-05): each level's data is queried via `data.key?`,
+  # NOT `data[].present?`. An explicit `false` at any level overrides `true` at lower
+  # levels. A missing key falls through to the next level.
+  #
+  # Returns Bool. Pure function — no DB writes. Safe to call at start_game (D-05).
+  # Training-mode (D-13): tournament=nil, tournament_plan=nil → falls through to
+  # discipline default. Plan 01 ensures BK-2 + BK-2kombi disciplines have key=true,
+  # so training matches of those disciplines correctly get tiebreak_required=true.
+  def self.derive_tiebreak_required(tournament: nil, tournament_plan: nil, group_no: nil, discipline: nil)
+    # Level 1: Tournament.data
+    t_data = parse_data_hash(tournament&.data)
+    return !!t_data["tiebreak_on_draw"] if t_data.key?("tiebreak_on_draw")
+
+    # Level 2: TournamentPlan.executor_params['g{group_no}']
+    if tournament_plan && group_no.present?
+      plan_params = parse_data_hash(tournament_plan.executor_params)
+      group_key = "g#{group_no}"
+      if plan_params.is_a?(Hash) && plan_params[group_key].is_a?(Hash) &&
+          plan_params[group_key].key?("tiebreak_on_draw")
+        return !!plan_params[group_key]["tiebreak_on_draw"]
+      end
+    end
+
+    # Level 3: Discipline.data
+    d_data = parse_data_hash(discipline&.data)
+    return !!d_data["tiebreak_on_draw"] if d_data.key?("tiebreak_on_draw")
+
+    # Level 4: default
+    false
+  end
+
+  # Phase 38.7 Plan 04 helper: tolerant JSON-text-or-Hash parser.
+  # Discipline.data, Tournament.data, TournamentPlan.executor_params can be either
+  # a Ruby Hash (already-parsed via ActiveRecord serializer) or a JSON-encoded text
+  # column. Guards against both plus corruption (returns empty Hash on parse error —
+  # D-05 sparse semantics: corrupt level falls through to the next level).
+  def self.parse_data_hash(raw)
+    return {} if raw.blank?
+    return raw if raw.is_a?(Hash)
+    JSON.parse(raw.to_s)
+  rescue JSON::ParserError
+    Rails.logger.warn "[Game.parse_data_hash] JSON.parse failed for: #{raw.to_s.truncate(80)}"
+    {}
+  end
+
   # Override the data getter to handle both formats
   def data
     raw_data = read_attribute_before_type_cast(:data)
