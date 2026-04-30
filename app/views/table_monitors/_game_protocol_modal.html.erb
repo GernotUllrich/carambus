@@ -170,8 +170,20 @@
         <%- is_tiebreak_choice = table_monitor.current_element == "tiebreak_winner_choice" %>
         <!-- Phase 38.7 Plan 06 D-07: tiebreak winner radio fieldset (only when pending) -->
         <%- if is_tiebreak_choice %>
+          <%# Phase 38.7 Plan 13 (Gap-05): submit-event wiring lives on the FORM
+              element where browsers actually fire submit events — NOT on the
+              <button> below (where it shipped in Plan 06 — see git history of
+              this file). action="javascript:void(0)" is defense-in-depth: if
+              StimulusReflex misses the submit event for any reason (WebSocket
+              disconnect, browser quirk), the browser does NOT fall through to
+              a default GET-reload — the click becomes a retry-able no-op
+              instead of an infinite-loop modal re-open. data-reflex-permanent
+              is unrelated (CableReady morph hint) and stays. %>
           <form id="tiebreak-form-<%= table_monitor.id %>"
                 class="w-full px-4 pb-4"
+                action="javascript:void(0)"
+                data-reflex="submit->GameProtocolReflex#confirm_result"
+                data-id="<%= table_monitor.id %>"
                 data-reflex-permanent>
             <fieldset class="border-2 border-yellow-500 dark:border-yellow-400 rounded-lg p-4 bg-yellow-50 dark:bg-yellow-900/30">
               <legend class="px-2 text-base font-bold text-yellow-900 dark:text-yellow-100">
@@ -208,12 +220,15 @@
         </div>
         <div class="flex gap-3">
           <%- if is_tiebreak_choice %>
-            <!-- Phase 38.7 Plan 06: Submit button is type=submit and lives inside the form -->
+            <%# Phase 38.7 Plan 13 (Gap-05): plain type=submit button — no
+                data-reflex (it's on the form now, where submit events fire).
+                The form="..." association lets the button submit the form
+                even though it lives outside the form element in the DOM.
+                HTML5 'required' validation on the radio inputs runs on
+                submit, so an empty pick is blocked client-side. %>
             <button type="submit"
                     form="tiebreak-form-<%= table_monitor.id %>"
-                    class="btn btn-success px-8 py-3 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg font-bold text-lg transition shadow-lg"
-                    data-reflex="submit->GameProtocolReflex#confirm_result"
-                    data-id="<%= table_monitor.id %>">
+                    class="btn btn-success px-8 py-3 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg font-bold text-lg transition shadow-lg">
               ✓ <%= t("table_monitor.tiebreak.submit_label") %>
             </button>
           <%- else %>
