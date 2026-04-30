@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v7.1
 milestone_name: UX Polish & i18n Debt
 status: executing
-stopped_at: Completed 38.7-06-PLAN.md (Modal Radio Fieldset)
-last_updated: "2026-04-30T14:29:15.390Z"
+stopped_at: Completed 38.7-07-PLAN.md (Spielbericht-PDF tiebreak rendering)
+last_updated: "2026-04-30T14:39:32.209Z"
 last_activity: 2026-04-30
 progress:
   total_phases: 9
   completed_phases: 6
   total_plans: 56
-  completed_plans: 53
-  percent: 95
+  completed_plans: 54
+  percent: 96
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-15)
 ## Current Position
 
 Phase: 38.7 (tiebreak-bei-unentschieden-per-game-flag-mit-modal-eingabe) — EXECUTING
-Plan: 7 of 8
+Plan: 8 of 8
 Status: Ready to execute
 Last activity: 2026-04-30
 
@@ -120,6 +120,7 @@ Decisions are logged in PROJECT.md Key Decisions table. Full v7.0 cross-phase de
 - [Phase 38.7]: Plan 05: tiebreak_pick_pending? as private helper on ResultRecorder (mirrors TableMonitor#tiebreak_pending_block? but kept separate per public/private split). T7-T9 do NOT use @tm.reload — update_ba_results_with_set_result! does NOT save (caller owns persistence). Plan-prescribed reload removed during GREEN phase as Rule 1 plan-prescribed-test-bug fix.
 - [Phase 38.7]: Plan 05: AASM guard  on :acknowledge_result event provides D-08 defense-in-depth across ALL caller paths (admin_ack_result, ResultRecorder branches, console, forged direct invocations). Pairs with Plan 06's reflex-level form validation for layered defense.
 - [Phase 38.7]: Plan 06: Modal radio fieldset rendered only when current_element=='tiebreak_winner_choice' (D-07 extend-before-build); reflex confirm_result augmented with allowlist guard + deep_merge_data! persistence (Rule 1 same dirty-tracking fix as Plan 04). 5 functional tests cover allowlist + persistence + non-tiebreak regression.
+- [Phase 38.7]: Plan 07: PartiesHelper#tiebreak_indicator (D-12) renders localized 'Stechen <Player>' suffix in Spielbericht-PDF when ba_results['TiebreakWinner']∈{1,2}; integer-coerce defense via tw.to_i; auto-escaping preserved (no html_safe); 5 unit tests cover valid/invalid/nil/missing cross-product; Plan 06 table_monitor.tiebreak.* keys preserved.
 
 ### Roadmap Evolution
 
@@ -166,6 +167,6 @@ None blocking Phase 38.1 execution. Reconciliation debt above is tracked but not
 
 ## Session Continuity
 
-Last session: 2026-04-30T14:29:15.388Z
-Stopped at: Completed 38.7-06-PLAN.md (Modal Radio Fieldset)
+Last session: 2026-04-30T14:39:32.207Z
+Stopped at: Completed 38.7-07-PLAN.md (Spielbericht-PDF tiebreak rendering)
 Resume: `/gsd-plan-phase 38` to break Phase 38 into 3 executable plans
