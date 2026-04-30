@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v7.1
 milestone_name: UX Polish & i18n Debt
-status: verifying
-stopped_at: Phase 38.7 context gathered
-last_updated: "2026-04-30T11:55:54.975Z"
-last_activity: 2026-04-29
+status: executing
+stopped_at: Completed 38.7-01-PLAN.md (discipline defaults + fixtures)
+last_updated: "2026-04-30T13:37:29.434Z"
+last_activity: 2026-04-30
 progress:
   total_phases: 9
   completed_phases: 6
-  total_plans: 48
-  completed_plans: 47
-  percent: 98
+  total_plans: 56
+  completed_plans: 48
+  percent: 86
 ---
 
 # Project State
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-15)
 
 **Core value:** Code and docs stay in sync — every documented feature works, every working feature is documented, and a volunteer user should never need to read the architecture to run a tournament.
-**Current focus:** Phase 38.6 — discipline-master-data-cleanup
+**Current focus:** Phase 38.7 — tiebreak-bei-unentschieden-per-game-flag-mit-modal-eingabe
 
 ## Current Position
 
-Phase: 39
-Plan: Not started
-Status: Phase complete — ready for verification
-Last activity: 2026-04-29
+Phase: 38.7 (tiebreak-bei-unentschieden-per-game-flag-mit-modal-eingabe) — EXECUTING
+Plan: 2 of 8
+Status: Ready to execute
+Last activity: 2026-04-30
 
 **Deferred to Wave 4 / later session:**
 
@@ -111,6 +111,8 @@ Decisions are logged in PROJECT.md Key Decisions table. Full v7.0 cross-phase de
 - [Phase 38.6]: No CC-Konflikt-Scan conflicts found in dry-run: D-08 interactive halt never triggered — production merge is safest possible path
 - [Phase 38.6]: PlayerRanking recompute list empty: all 24 loser-95 rankings FK-updated without unique-constraint conflict — no post-merge recompute job needed (D-03 scope cleared)
 - [Phase 38.6]: Synonyms block inserted inside existing Discipline.transaction so dry-run rollback also undoes synonym change; winner.save! (not update_columns) preserves PaperTrail compliance (D-04)
+- [Phase 38.7]: Plan 01: Sparse-key default for tiebreak_on_draw — BK-2 + BK-2kombi affirmatively true; BK50/BK100/BK-2plus/Karambol/Snooker/Pool key-absent. Resolver in Plan 03 must use data.key? gate (NOT data[].present?) so explicit higher-level false still overrides discipline-level true.
+- [Phase 38.7]: Plan 01: Plan AC `grep -c "tiebreak_on_draw: true" seed_bk2_disciplines.rb == 2` is inconsistent with prescribed code (BK-2kombi block uses string-key syntax via current["tiebreak_on_draw"] = true, not symbol). Followed prescribed code; must_haves frontmatter (data carries true after seed) is satisfied. AC discrepancy documented for verifier.
 
 ### Roadmap Evolution
 
@@ -157,6 +159,6 @@ None blocking Phase 38.1 execution. Reconciliation debt above is tracked but not
 
 ## Session Continuity
 
-Last session: 2026-04-30T11:55:54.970Z
-Stopped at: Phase 38.7 context gathered
+Last session: 2026-04-30T13:37:29.431Z
+Stopped at: Completed 38.7-01-PLAN.md (discipline defaults + fixtures)
 Resume: `/gsd-plan-phase 38` to break Phase 38 into 3 executable plans
