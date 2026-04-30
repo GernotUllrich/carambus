@@ -1461,6 +1461,43 @@ class TableMonitor < ApplicationRecord
       return true
     end
 
+    # Phase 38.7 Plan 02 — D-02 BK-2 / BK-2kombi-SP Nachstoss-Aufnahme close.
+    # SKILL extend-before-build: small guard on legacy predicate, NO parallel state machine.
+    #
+    # When BK-2 (or BK-2kombi in SP-Phase) and Anstoss-Spieler reached balls_goal,
+    # the Nachstoss-Spieler gets ONE extra inning. After he completes that inning,
+    # the set MUST close — regardless of whether he reached balls_goal too. The
+    # legacy gate `playera.innings == playerb.innings` only fires for the case
+    # where Nachstoss did NOT reach the goal (he plays an inning that ends with
+    # `current_inning.active_player` switching back). When Nachstoss DOES reach
+    # the goal, his inning counter ticks +1, gate fails, deadlock.
+    #
+    # Resolution: detect "Anstoss-Spieler at goal AND Nachstoss-Spieler in his
+    # post-Anstoss-goal inning AND innings asymmetry of exactly 1". Fire close.
+    # If both at goal -> tiebreak (Plan 04 detects, modal opens). If only Anstoss
+    # at goal -> normal win (legacy path).
+    bk_with_nachstoss = data["free_game_form"] == "bk_2" ||
+                        (data["free_game_form"] == "bk2_kombi" && bk2_kombi_current_phase == "serienspiel")
+    if bk_with_nachstoss && data["playera"]["balls_goal"].to_i.positive?
+      a_result = data["playera"]["result"].to_i
+      b_result = data["playerb"]["result"].to_i
+      goal = data["playera"]["balls_goal"].to_i
+      # Identify which side is Anstoss-Spieler — the one with kickoff role.
+      # Use current_kickoff_player when present, else fall back to "playera".
+      anstoss_role = data["current_kickoff_player"].presence || "playera"
+      nachstoss_role = anstoss_role == "playera" ? "playerb" : "playera"
+      anstoss_innings = data[anstoss_role]["innings"].to_i
+      nachstoss_innings = data[nachstoss_role]["innings"].to_i
+      anstoss_at_goal = data[anstoss_role]["result"].to_i >= goal
+      nachstoss_finished_followup = nachstoss_innings == anstoss_innings + 1
+      if anstoss_at_goal && nachstoss_finished_followup
+        Rails.logger.info "[TableMonitor#end_of_set?] D-02 BK-2-Nachstoss-close: " \
+          "form=#{data["free_game_form"]} anstoss=#{anstoss_role}(#{a_result}/#{anstoss_innings}) " \
+          "nachstoss=#{nachstoss_role}(#{b_result}/#{nachstoss_innings}) goal=#{goal}"
+        return true
+      end
+    end
+
     if data["playera"]["balls_goal"].to_i.positive? && (data["playera"]["result"].to_i >= data["playera"]["balls_goal"].to_i ||
       data["playerb"]["result"].to_i >= data["playerb"]["balls_goal"].to_i) &&
        (data["playera"]["innings"] == data["playerb"]["innings"] || !data["allow_follow_up"])
