@@ -3,11 +3,11 @@ gsd_state_version: 1.0
 milestone: v7.1
 milestone_name: UX Polish & i18n Debt
 status: verifying
-stopped_at: Completed 38.6-04-preserve-loser-synonyms-PLAN.md
-last_updated: "2026-04-29T21:32:57.763Z"
+stopped_at: Phase 38.7 context gathered
+last_updated: "2026-04-30T11:55:54.975Z"
 last_activity: 2026-04-29
 progress:
-  total_phases: 8
+  total_phases: 9
   completed_phases: 6
   total_plans: 48
   completed_plans: 47
@@ -116,6 +116,7 @@ Decisions are logged in PROJECT.md Key Decisions table. Full v7.0 cross-phase de
 
 - Phase 38.1 inserted after Phase 38: BK2-Kombi minimum viable support (URGENT — 2026-05-02 tournament deadline)
 - Phase 38.4 inserted after Phase 38: BK2-Kombi post-dry-run gaps (URGENT) — covers G1 delete, G2 Ballziel, I8, I9 deferred from Phase 38.3
+- Phase 38.7 inserted after Phase 38.6: Tiebreak bei Unentschieden — Per-Game-Flag mit Modal-Eingabe (URGENT)
 
 ### Pending Todos
 
@@ -156,6 +157,6 @@ None blocking Phase 38.1 execution. Reconciliation debt above is tracked but not
 
 ## Session Continuity
 
-Last session: 2026-04-29T21:15:52.589Z
-Stopped at: Completed 38.6-04-preserve-loser-synonyms-PLAN.md
+Last session: 2026-04-30T11:55:54.970Z
+Stopped at: Phase 38.7 context gathered
 Resume: `/gsd-plan-phase 38` to break Phase 38 into 3 executable plans
