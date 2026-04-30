@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v7.1
 milestone_name: UX Polish & i18n Debt
 status: executing
-stopped_at: Phase 38.7 paused — plan 01 reverted + plan 04 Level-3 Discipline removed (UAT feedback 2026-04-30); training-mode tiebreak sources pending in gap-closure plans
-last_updated: "2026-04-30T15:42:00.000Z"
+stopped_at: Completed 38.7-09-PLAN.md (Gap-01 carambus.yml preset tiebreak source)
+last_updated: "2026-04-30T17:20:32.349Z"
 last_activity: 2026-04-30
 progress:
   total_phases: 9
-  completed_phases: 7
-  total_plans: 56
-  completed_plans: 54
-  percent: 96
+  completed_phases: 6
+  total_plans: 60
+  completed_plans: 56
+  percent: 93
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-15)
 ## Current Position
 
 Phase: 38.7 (tiebreak-bei-unentschieden-per-game-flag-mit-modal-eingabe) — EXECUTING
-Plan: 8 of 8
+Plan: 2 of 12
 Status: Ready to execute
 Last activity: 2026-04-30
 
@@ -122,6 +122,7 @@ Decisions are logged in PROJECT.md Key Decisions table. Full v7.0 cross-phase de
 - [Phase 38.7]: Plan 06: Modal radio fieldset rendered only when current_element=='tiebreak_winner_choice' (D-07 extend-before-build); reflex confirm_result augmented with allowlist guard + deep_merge_data! persistence (Rule 1 same dirty-tracking fix as Plan 04). 5 functional tests cover allowlist + persistence + non-tiebreak regression.
 - [Phase 38.7]: Plan 07: PartiesHelper#tiebreak_indicator (D-12) renders localized 'Stechen <Player>' suffix in Spielbericht-PDF when ba_results['TiebreakWinner']∈{1,2}; integer-coerce defense via tw.to_i; auto-escaping preserved (no html_safe); 5 unit tests cover valid/invalid/nil/missing cross-product; Plan 06 table_monitor.tiebreak.* keys preserved.
 - [Phase 38.7]: Plan 08: System tests use service-level dispatch + reflex via .allocate stubs, consistent with bk2_scoreboard_test.rb (38.4-07/38.5-06) and game_protocol_reflex_test.rb (Plan 06 Task 4). Avoids the Tournament+TournamentMonitor+TournamentPlan fixture chain while exercising the same evaluate_result→tiebreak_pick_pending?→marker-switch chain production runs. 4 tests, 32 assertions, 0 failures.
+- [Phase 38.7]: Plan 09 (Gap-01): preset tiebreak_on_draw threaded carambus.yml → form → controller → GameSetup with key? gate after Game.derive_tiebreak_required; sparse-override semantic preserved (Phase 38.5 D-06); 4 BK-2kombi + 3 BK-2 small_billard buttons carry tiebreak_on_draw: true; both .erb template and gitignored .yml kept in sync per project convention
 
 ### Roadmap Evolution
 
@@ -168,6 +169,6 @@ None blocking Phase 38.1 execution. Reconciliation debt above is tracked but not
 
 ## Session Continuity
 
-Last session: 2026-04-30T15:42:00.000Z
-Stopped at: Phase 38.7 paused — plan 01 reverted + plan 04 Level-3 Discipline removed; training-mode sources pending in gap-closure plans
+Last session: 2026-04-30T17:20:32.345Z
+Stopped at: Completed 38.7-09-PLAN.md (Gap-01 carambus.yml preset tiebreak source)
 Resume: `/gsd-plan-phase 38.7 --gaps` to plan training-mode tiebreak sources (carambus.yml preset, detail-form toggle, BK-2kombi auto-detect, TournamentMonitor override)
