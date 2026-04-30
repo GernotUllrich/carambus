@@ -182,6 +182,23 @@ Plans:
 - [ ] `38.6-03-dev-dry-run-PLAN.md` — Probe dev DB state, run the merge script in development, capture Markdown protocol, human-verify checkpoint for GO/NO-GO on production deployment. Production run is OUT of scope for /gsd-execute-phase (manual operator step). Wave 2, autonomous: false (human-verify gate).
 **UI hint**: no (data-only cleanup)
 
+### Phase 38.7: Tiebreak bei Unentschieden — Per-Game-Flag mit Modal-Eingabe (INSERTED)
+
+**Goal**: A single game/set ending in a draw across the four trigger classes (TR-A Karambol innings parity, TR-B BK-2 / BK-2kombi-SP nachstoss-ballziel parity, TR-C generic ball parity, TR-D snooker/pool frame parity) opens an extension of the existing `protocol_final` modal with a Sieger-A/Sieger-B radio fieldset; operator pick persists to `game.data['tiebreak_winner']`, derives `ba_results['TiebreakWinner']` (1|2) for the Spielbericht-PDF, and feeds `PartyMonitor::ResultProcessor#update_game_participations` so league points reflect the pick instead of a draw. Per-game `tiebreak_required` flag is baked at game start from a sparse 4-level hierarchy (Tournament.data → TournamentPlan.executor_params['gN'] → Discipline.data → false). Includes the BK-2 game-end-fix (D-02): when Nachstoss-Spieler reaches balls_goal in his Nachstoss-Aufnahme the set now closes (today: deadlock). Tiebreak works in training matches too (D-13) since BK-2kombi tournaments still start via the training path.
+**Depends on**: Phase 38.6
+**Decisions addressed:** D-01..D-16 + CD-01..CD-06 (see 38.7-CONTEXT.md)
+**Plans**: 8 plans
+
+Plans:
+- [ ] `38.7-01-discipline-defaults-and-fixtures-PLAN.md` — Seed `tiebreak_on_draw=true` on BK-2 + BK-2kombi central Discipline records (D-06); mirror into `test/fixtures/disciplines.yml`. Other BK-* and Karambol/Snooker/Pool stay sparse (default false). Wave 1.
+- [ ] `38.7-02-bk2-game-end-fix-PLAN.md` — D-02 BK-2 game-end-fix (RED-then-GREEN per D-16): extend `TableMonitor#end_of_set?` so that BK-2 / BK-2kombi-SP set closes when Nachstoss-Spieler completes his Nachstoss-Aufnahme (closes today's deadlock). 5 characterization tests; small guard (extend-before-build). Wave 1.
+- [ ] `38.7-03-result-processor-tiebreak-branch-PLAN.md` — D-10 tiebreak-priority branch in `PartyMonitor::ResultProcessor#update_game_participations`: when `game.data['tiebreak_winner']` set + rank tied, award win/lost instead of draw; defense-in-depth on invalid values. 5 unit tests. Wave 1.
+- [ ] `38.7-04-tiebreak-flag-bake-PLAN.md` — `Game.derive_tiebreak_required` class method (CD-01) + bake call in `GameSetup#perform_start_game` (D-04, D-05). Sparse-override semantics; training-mode contract (D-13). 11 unit tests + 4 integration tests. Wave 2.
+- [ ] `38.7-05-result-recorder-tiebreak-detection-PLAN.md` — Trigger detection (D-03) + training-rematch guard (D-13) + `ba_results['TiebreakWinner']` derivation (D-08) in `TableMonitor::ResultRecorder`. `current_element='tiebreak_winner_choice'` marker (CD-02). 8 unit tests. Wave 3.
+- [ ] `38.7-06-modal-radio-fieldset-PLAN.md` — Extend `_game_protocol_modal.html.erb` with radio fieldset (D-07); augment `GameProtocolReflex#confirm_result` with server-side validation + game.data persistence (D-08). i18n keys under `table_monitor.tiebreak.*` (CD-05). Wave 4.
+- [ ] `38.7-07-spielbericht-pdf-rendering-PLAN.md` — `parties_helper#tiebreak_indicator(game)` + `_spielbericht.html.erb` view edit (D-12). i18n key `parties.spielbericht.tiebreak_won_by`. 5 unit tests. Wave 4.
+- [ ] `38.7-08-system-tests-and-uat-PLAN.md` — `test/system/tiebreak_test.rb` with 4 E2E tests (TR-A Karambol + TR-B BK-2 + control + forged-submit security probe) + human-verify checkpoint (D-15). Wave 5, autonomous:false.
+
 ### Phase 39: DTP-Backed Parameter Ranges
 **Goal**: `Discipline#parameter_ranges` becomes context-aware — it queries the existing `discipline_tournament_plans` table for canonical points/innings values based on the tournament's plan, player count, and player_class, returns Ranges derived from the normal (exact) or reduced (80%) mode, and correctly handles `handicap_tournier=true` tournaments (skip innings check, widen balls_goal which is per-participant from the participant list). The parameter verification modal no longer false-fires on youth/handicap/pool/snooker/biathlon/kegel tournaments.
 **Depends on**: Phase 38 (v7.1 polish shipped first so the warm-up milestone lands incrementally)
