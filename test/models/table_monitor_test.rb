@@ -173,4 +173,77 @@ class TableMonitorTest < ActiveSupport::TestCase
       "Regression guard: no player at balls_goal must NOT end_of_set"
   end
 
+  # ---------------------------------------------------------------------------
+  # Phase 38.7 Plan 05 T9 — D-08 AASM acknowledge_result guard (defense-in-depth).
+  # See .planning/phases/38.7-…/38.7-CONTEXT.md D-08.
+  #
+  # Verifies that direct calls to acknowledge_result! and may_acknowledge_result?
+  # honour the tiebreak_pending_block? predicate, regardless of caller path.
+  # ---------------------------------------------------------------------------
+
+  test "acknowledge_result! AASM guard blocks transition when tiebreak pending (D-08 defense-in-depth)" do
+    game = Game.create!(data: {"tiebreak_required" => true}, group_no: 1, seqno: 1, table_no: 1)
+    @tm.update!(
+      data: {
+        "free_game_form" => "karambol",
+        "playera" => {"result" => 80, "innings" => 30, "balls_goal" => 80},
+        "playerb" => {"result" => 80, "innings" => 30, "balls_goal" => 80},
+        "innings_goal" => 30,
+        "allow_follow_up" => false
+      }
+    )
+    @tm.update_columns(game_id: game.id, state: "set_over")
+    @tm.reload
+
+    # PHASE 1 — guard blocks while pick is pending.
+    assert @tm.tiebreak_pending_block?,
+      "Sanity: pending-block predicate must report true (tiebreak_required + tied + no winner)"
+    refute @tm.may_acknowledge_result?,
+      "may_acknowledge_result? must return false while tiebreak winner is pending"
+    assert_raises(AASM::InvalidTransition,
+                  "acknowledge_result! must raise AASM::InvalidTransition while tiebreak pending") do
+      @tm.acknowledge_result!
+    end
+    @tm.reload
+    assert_equal "set_over", @tm.state,
+      "State must NOT have transitioned while the guard blocks the event"
+
+    # PHASE 2 — once the operator picks, the guard releases.
+    game.update!(data: {"tiebreak_required" => true, "tiebreak_winner" => "playera"})
+    @tm.reload
+    refute @tm.tiebreak_pending_block?,
+      "Sanity: pending-block predicate must report false after pick lands"
+    assert @tm.may_acknowledge_result?,
+      "may_acknowledge_result? must return true after pick lands"
+    assert_nothing_raised do
+      @tm.acknowledge_result!
+    end
+    @tm.reload
+    assert_equal "final_set_score", @tm.state,
+      "State must transition to final_set_score after the pick releases the guard"
+  end
+
+  # T9 supplemental: guard does NOT block when scores are NOT tied (regression).
+  test "acknowledge_result! AASM guard allows transition when scores NOT tied (regression)" do
+    game = Game.create!(data: {"tiebreak_required" => true}, group_no: 1, seqno: 1, table_no: 1)
+    @tm.update!(
+      data: {
+        "free_game_form" => "karambol",
+        "playera" => {"result" => 80, "innings" => 30, "balls_goal" => 80},
+        "playerb" => {"result" => 70, "innings" => 30, "balls_goal" => 80},
+        "innings_goal" => 30,
+        "allow_follow_up" => false
+      }
+    )
+    @tm.update_columns(game_id: game.id, state: "set_over")
+    @tm.reload
+
+    refute @tm.tiebreak_pending_block?,
+      "Untied scores: pending-block predicate must report false (no tiebreak required)"
+    assert @tm.may_acknowledge_result?
+    assert_nothing_raised { @tm.acknowledge_result! }
+    @tm.reload
+    assert_equal "final_set_score", @tm.state
+  end
+
 end

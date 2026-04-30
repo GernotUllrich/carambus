@@ -333,4 +333,203 @@ class TableMonitor::ResultRecorderTest < ActiveSupport::TestCase
   ensure
     Bk2::AdvanceMatchState.define_singleton_method(:rebake_at_set_open!, original) if original
   end
+
+  # ---------------------------------------------------------------------------
+  # Phase 38.7 Plan 05 — D-03 trigger detection + D-13 training-rematch guard
+  # + D-08 ba_results TiebreakWinner derivation.
+  # See .planning/phases/38.7-…/38.7-CONTEXT.md D-03, D-08, D-13.
+  # ---------------------------------------------------------------------------
+
+  # T1 — TR-A Karambol tied + tiebreak_required=true → tiebreak_winner_choice marker.
+  test "perform_evaluate_result sets current_element=tiebreak_winner_choice when Karambol tied AND tiebreak_required" do
+    # Use existing inning-based path (was_playing && !is_simple_set branch, line 332).
+    # Setup: scores tied at innings_goal; tiebreak_required=true on the game; no winner pick yet.
+    @game.update!(data: {"tiebreak_required" => true})
+    @tm.data["free_game_form"] = "karambol"
+    @tm.data["playera"]["result"] = 80
+    @tm.data["playera"]["innings"] = 30
+    @tm.data["playera"]["balls_goal"] = 80
+    @tm.data["playerb"]["result"] = 80
+    @tm.data["playerb"]["innings"] = 30
+    @tm.data["playerb"]["balls_goal"] = 80
+    @tm.data["innings_goal"] = 30
+    @tm.data["allow_follow_up"] = false
+    @tm.data["current_inning"] = {"active_player" => "playera", "balls" => 0}
+    @tm.save!
+
+    TableMonitor::ResultRecorder.call(table_monitor: @tm)
+    @tm.reload
+
+    assert_equal "protocol_final", @tm.panel_state,
+      "panel_state must flip to protocol_final after end_of_set fires"
+    assert_equal "tiebreak_winner_choice", @tm.current_element,
+      "D-03: tied score + tiebreak_required must use the tiebreak_winner_choice marker"
+  end
+
+  # T2 — TR-A Karambol UNtied + tiebreak_required=true → confirm_result marker.
+  test "perform_evaluate_result keeps current_element=confirm_result when Karambol untied (tiebreak_required=true)" do
+    @game.update!(data: {"tiebreak_required" => true})
+    @tm.data["free_game_form"] = "karambol"
+    @tm.data["playera"]["result"] = 80
+    @tm.data["playera"]["innings"] = 30
+    @tm.data["playera"]["balls_goal"] = 80
+    @tm.data["playerb"]["result"] = 70
+    @tm.data["playerb"]["innings"] = 30
+    @tm.data["playerb"]["balls_goal"] = 80
+    @tm.data["innings_goal"] = 30
+    @tm.data["allow_follow_up"] = false
+    @tm.data["current_inning"] = {"active_player" => "playera", "balls" => 0}
+    @tm.save!
+
+    TableMonitor::ResultRecorder.call(table_monitor: @tm)
+    @tm.reload
+
+    assert_equal "confirm_result", @tm.current_element,
+      "Untied result must use the legacy confirm_result marker even when tiebreak_required=true"
+  end
+
+  # T3 — Karambol tied + tiebreak_required=false → confirm_result marker (legacy regression).
+  test "perform_evaluate_result keeps current_element=confirm_result when tied but tiebreak_required=false (regression)" do
+    @game.update!(data: {"tiebreak_required" => false})
+    @tm.data["free_game_form"] = "karambol"
+    @tm.data["playera"]["result"] = 80
+    @tm.data["playera"]["innings"] = 30
+    @tm.data["playera"]["balls_goal"] = 80
+    @tm.data["playerb"]["result"] = 80
+    @tm.data["playerb"]["innings"] = 30
+    @tm.data["playerb"]["balls_goal"] = 80
+    @tm.data["innings_goal"] = 30
+    @tm.data["allow_follow_up"] = false
+    @tm.data["current_inning"] = {"active_player" => "playera", "balls" => 0}
+    @tm.save!
+
+    TableMonitor::ResultRecorder.call(table_monitor: @tm)
+    @tm.reload
+
+    assert_equal "confirm_result", @tm.current_element,
+      "Legacy regression: tiebreak_required=false must produce the legacy modal"
+  end
+
+  # T5 — Training-mode rematch blocked when tiebreak pending (D-13).
+  # Setup: tournament_monitor=nil, set_over state, single-set game (sets_to_win=1, sets_to_play=1),
+  # scores tied AND tiebreak_required=true → revert_players must NOT be called.
+  test "perform_evaluate_result blocks training rematch when tiebreak pending (D-13)" do
+    @tm.tournament_monitor = nil   # training mode
+    @game.update!(data: {"tiebreak_required" => true})  # no tiebreak_winner yet
+    @tm.data["free_game_form"] = "karambol"
+    @tm.data["sets_to_win"] = 1
+    @tm.data["sets_to_play"] = 1
+    @tm.data["playera"]["result"] = 80
+    @tm.data["playera"]["innings"] = 30
+    @tm.data["playera"]["balls_goal"] = 80
+    @tm.data["playerb"]["result"] = 80
+    @tm.data["playerb"]["innings"] = 30
+    @tm.data["playerb"]["balls_goal"] = 80
+    @tm.data["innings_goal"] = 30
+    @tm.data["allow_follow_up"] = false
+    @tm.data["current_inning"] = {"active_player" => "playera", "balls" => 0}
+    @tm.save!
+    # Move to set_over so we hit Branch C (single-set game training-rematch path).
+    @tm.update_columns(state: "set_over")
+    @tm.reload
+
+    called = []
+    @tm.stub(:revert_players, -> { called << :revert }) do
+      @tm.stub(:end_of_set?, true) do
+        @tm.stub(:acknowledge_result!, -> {}) do
+          # Force final_set_score? branch logic by simulating after-acknowledge state.
+          @tm.stub(:final_set_score?, true) do
+            TableMonitor::ResultRecorder.call(table_monitor: @tm)
+          end
+        end
+      end
+    end
+
+    assert_empty called, "D-13: revert_players must NOT be called while tiebreak pending"
+  end
+
+  # T6 — Training-mode rematch fires when tiebreak winner already set.
+  test "perform_evaluate_result allows training rematch when tiebreak winner already set" do
+    @tm.tournament_monitor = nil
+    @game.update!(data: {"tiebreak_required" => true, "tiebreak_winner" => "playera"})
+    @tm.data["free_game_form"] = "karambol"
+    @tm.data["sets_to_win"] = 1
+    @tm.data["sets_to_play"] = 1
+    @tm.data["playera"]["result"] = 80
+    @tm.data["playera"]["innings"] = 30
+    @tm.data["playera"]["balls_goal"] = 80
+    @tm.data["playerb"]["result"] = 80
+    @tm.data["playerb"]["innings"] = 30
+    @tm.data["playerb"]["balls_goal"] = 80
+    @tm.data["innings_goal"] = 30
+    @tm.data["allow_follow_up"] = false
+    @tm.data["current_inning"] = {"active_player" => "playera", "balls" => 0}
+    @tm.save!
+    @tm.update_columns(state: "set_over")
+    @tm.reload
+
+    called = []
+    @tm.stub(:revert_players, -> { called << :revert }) do
+      @tm.stub(:do_play, -> { called << :do_play }) do
+        @tm.stub(:end_of_set?, true) do
+          @tm.stub(:acknowledge_result!, -> {}) do
+            @tm.stub(:final_set_score?, true) do
+              TableMonitor::ResultRecorder.call(table_monitor: @tm)
+            end
+          end
+        end
+      end
+    end
+
+    assert_includes called, :revert,
+      "Tiebreak winner set — rematch must proceed (revert_players must be called)"
+  end
+
+  # T7 — D-08 TiebreakWinner=1 derivation when tiebreak_winner=playera.
+  test "update_ba_results_with_set_result! writes TiebreakWinner=1 when game.data tiebreak_winner=playera" do
+    @game.update!(data: {"tiebreak_winner" => "playera"})
+    recorder = TableMonitor::ResultRecorder.new(table_monitor: @tm)
+    game_set_result = {
+      "Ergebnis1" => 80, "Ergebnis2" => 80,
+      "Aufnahmen1" => 30, "Aufnahmen2" => 30,
+      "Höchstserie1" => 10, "Höchstserie2" => 10
+    }
+    recorder.send(:update_ba_results_with_set_result!, game_set_result)
+    @tm.reload
+
+    assert_equal 1, @tm.data["ba_results"]["TiebreakWinner"],
+      "D-08: tiebreak_winner=playera must derive TiebreakWinner=1 in ba_results"
+  end
+
+  # T8 — D-08 TiebreakWinner=2 derivation when tiebreak_winner=playerb.
+  test "update_ba_results_with_set_result! writes TiebreakWinner=2 when game.data tiebreak_winner=playerb" do
+    @game.update!(data: {"tiebreak_winner" => "playerb"})
+    recorder = TableMonitor::ResultRecorder.new(table_monitor: @tm)
+    game_set_result = {
+      "Ergebnis1" => 80, "Ergebnis2" => 80,
+      "Aufnahmen1" => 30, "Aufnahmen2" => 30,
+      "Höchstserie1" => 10, "Höchstserie2" => 10
+    }
+    recorder.send(:update_ba_results_with_set_result!, game_set_result)
+    @tm.reload
+
+    assert_equal 2, @tm.data["ba_results"]["TiebreakWinner"],
+      "D-08: tiebreak_winner=playerb must derive TiebreakWinner=2 in ba_results"
+  end
+
+  # T9 — D-08 TiebreakWinner key absent when no winner pick yet.
+  test "update_ba_results_with_set_result! does NOT write TiebreakWinner when game.data has no winner" do
+    @game.update!(data: {})
+    recorder = TableMonitor::ResultRecorder.new(table_monitor: @tm)
+    game_set_result = {
+      "Ergebnis1" => 80, "Ergebnis2" => 70,
+      "Aufnahmen1" => 30, "Aufnahmen2" => 30,
+      "Höchstserie1" => 10, "Höchstserie2" => 10
+    }
+    recorder.send(:update_ba_results_with_set_result!, game_set_result)
+    @tm.reload
+
+    assert_nil @tm.data["ba_results"]["TiebreakWinner"],
+      "TiebreakWinner key absent when no winner pick — Plan 07 PDF view will skip the indicator"
+  end
 end
