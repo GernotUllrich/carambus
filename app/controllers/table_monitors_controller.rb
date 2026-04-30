@@ -99,7 +99,12 @@ class TableMonitorsController < ApplicationController
       # 38.2-01 D-14/D-20: first-set-mode selector. Flat top-level
       # key (Alpine.js hidden input compatibility). Whitelisted to
       # %w[direkter_zweikampf serienspiel] in the BK2 branches below.
-      :bk2_first_set_mode)
+      :bk2_first_set_mode,
+      # Phase 38.7 Plan 09 (Gap-01): per-preset tiebreak source.
+      # Hidden field from _quick_game_buttons.html.erb BK-family branch
+      # (and from free_game_detail submit path in Plan 10). Threaded into
+      # GameSetup#perform_start_game where it overrides the resolver default.
+      :tiebreak_on_draw)
 
     # Process standard form parameters (unless quick_game_form)
     if p[:quick_game_form].present?
@@ -117,6 +122,15 @@ class TableMonitorsController < ApplicationController
         p[:sets_to_play] = 1
       end
       p[:allow_follow_up] = (p[:allow_follow_up] == "true" || p[:allow_follow_up] == true)
+      # Phase 38.7 Plan 09 (Gap-01): Bool coercion for the hidden :tiebreak_on_draw
+      # field emitted by the BK-family branch of _quick_game_buttons.html.erb.
+      # Hidden fields arrive as "1"/"0" strings (matching the codebase's existing
+      # convention — see allow_follow_up above). GameSetup#perform_start_game uses
+      # @options.key?("tiebreak_on_draw") to gate the override branch, so the key
+      # is preserved here (only the value is coerced); the gate is what locks the
+      # sparse-override semantic — explicit false in options must override
+      # resolver-true (consistent with Phase 38.5 D-06).
+      p[:tiebreak_on_draw] = (p[:tiebreak_on_draw] == "1" || p[:tiebreak_on_draw] == "true" || p[:tiebreak_on_draw] == true) if p.key?(:tiebreak_on_draw)
       # 38.4-04 D-04/D-06: BK-family quick-start (all 5 BK-* disciplines).
       # The _quick_game_buttons partial emits quick_game_form=bk2_kombi for
       # BK-2kombi and quick_game_form=bk_family for the 4 new disciplines.

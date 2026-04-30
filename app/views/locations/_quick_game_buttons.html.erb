@@ -149,6 +149,12 @@
               <%= hidden_field_tag :innings_goal, 0 %>
               <%= hidden_field_tag :first_break_choice, 0 %>
               <%= hidden_field_tag :kickoff_switches_with, 'set' %>
+              <%# Phase 38.7 Plan 09 (Gap-01): per-preset tiebreak_on_draw value.
+                  carambus.yml BK-2 + BK-2kombi presets carry tiebreak_on_draw: true.
+                  Whitelisted in TableMonitorsController#start_game, threaded into
+                  TableMonitor::GameSetup#perform_start_game where the preset value
+                  overrides the resolver's default-false via deep_merge_data!. %>
+              <%= hidden_field_tag :tiebreak_on_draw, button['tiebreak_on_draw'] ? '1' : '0' %>
             <% else %>
               <%# Karambol %>
               <%= hidden_field_tag :quick_game_form, 'karambol' %>

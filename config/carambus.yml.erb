@@ -41,10 +41,12 @@ default:
           # (BK-2plus max 2 Stöße / Aufnahme, BK-2 max 5 Aufnahmen / Satz, balls_goal 70,
           # Nachstoß enabled via discipline.data — Plan 11). Sits at index 0 so BCW
           # scorers see it first on tournament day.
-          - { discipline: "BK2-Kombi", balls_goal: 70, sets_to_win: 2, sets_to_play: 3, label: "BK-2kombi 2/5/70+NS" }
-          - { discipline: "BK2-Kombi", balls_goal: 50, sets_to_win: 2, sets_to_play: 3, label: "50/Best of 3" }
-          - { discipline: "BK2-Kombi", balls_goal: 60, sets_to_win: 2, sets_to_play: 3, label: "60/Best of 3" }
-          - { discipline: "BK2-Kombi", balls_goal: 70, sets_to_win: 2, sets_to_play: 3, label: "70/Best of 3" }
+          # 38.7-09 (Gap-01): tiebreak_on_draw: true bakes Game.data['tiebreak_required']
+          # via _quick_game_buttons → controller → GameSetup preset-override branch.
+          - { discipline: "BK2-Kombi", balls_goal: 70, sets_to_win: 2, sets_to_play: 3, label: "BK-2kombi 2/5/70+NS", tiebreak_on_draw: true }
+          - { discipline: "BK2-Kombi", balls_goal: 50, sets_to_win: 2, sets_to_play: 3, label: "50/Best of 3", tiebreak_on_draw: true }
+          - { discipline: "BK2-Kombi", balls_goal: 60, sets_to_win: 2, sets_to_play: 3, label: "60/Best of 3", tiebreak_on_draw: true }
+          - { discipline: "BK2-Kombi", balls_goal: 70, sets_to_win: 2, sets_to_play: 3, label: "70/Best of 3", tiebreak_on_draw: true }
       - category: "BK50"
         buttons:
           - { discipline: "BK50", balls_goal: 50, sets_to_win: 1, sets_to_play: 1, label: "BK50" }
@@ -53,9 +55,12 @@ default:
           - { discipline: "BK100", balls_goal: 100, sets_to_win: 1, sets_to_play: 1, label: "BK100" }
       - category: "BK-2"
         buttons:
-          - { discipline: "BK-2", balls_goal: 50, sets_to_win: 1, sets_to_play: 1, label: "BK-2 50" }
-          - { discipline: "BK-2", balls_goal: 70, sets_to_win: 1, sets_to_play: 1, label: "BK-2 70" }
-          - { discipline: "BK-2", balls_goal: 100, sets_to_win: 1, sets_to_play: 1, label: "BK-2 100" }
+          # 38.7-09 (Gap-01): tiebreak_on_draw: true on BK-2 preset buttons.
+          # In single-set mode (sets_to_win=1) a tied score at goal triggers the
+          # tiebreak modal (Plan 06) when Game.data['tiebreak_required']==true.
+          - { discipline: "BK-2", balls_goal: 50, sets_to_win: 1, sets_to_play: 1, label: "BK-2 50", tiebreak_on_draw: true }
+          - { discipline: "BK-2", balls_goal: 70, sets_to_win: 1, sets_to_play: 1, label: "BK-2 70", tiebreak_on_draw: true }
+          - { discipline: "BK-2", balls_goal: 100, sets_to_win: 1, sets_to_play: 1, label: "BK-2 100", tiebreak_on_draw: true }
       - category: "BK-2plus"
         buttons:
           - { discipline: "BK-2plus", balls_goal: 50, sets_to_win: 1, sets_to_play: 1, label: "BK-2plus 50" }
