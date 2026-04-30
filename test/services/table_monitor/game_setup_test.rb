@@ -451,6 +451,86 @@ class TableMonitor::GameSetupTest < ActiveSupport::TestCase
       "TournamentPlan group-level override must propagate via derive_tiebreak_required"
   end
 
+  # ----------------------------------------------------------------
+  # Phase 38.7 Plan 09 — Gap-01: carambus.yml quick_game_presets
+  # tiebreak_on_draw source.
+  # The resolver baked at start_game (Plan 04) returns false in training mode
+  # (no Tournament). The preset value, if truthy, MUST override the resolver's
+  # default-false via deep_merge_data! AFTER the resolver bake. Sparse-override
+  # consistent with Phase 38.5 D-06.
+  #
+  # G1 is the load-bearing RED test. G2 + G3 are regression characterization
+  # tests that should already pass against the current resolver-only path;
+  # they exist to lock the sparse-absence and explicit-false contracts.
+  # ----------------------------------------------------------------
+
+  test "G1 (Gap-01): preset tiebreak_on_draw=true bakes tiebreak_required=true on game.data" do
+    @tm.assign_attributes(tournament_monitor_id: nil)
+    @tm.save!(validate: false)
+
+    TableMonitor::GameSetup.call(
+      table_monitor: @tm,
+      options: {
+        "player_a_id" => @player_a.id, "player_b_id" => @player_b.id,
+        "discipline_a" => "BK-2", "discipline_b" => "BK-2",
+        "free_game_form" => "bk_2", "quick_game_form" => "bk_family",
+        "balls_goal" => 50, "balls_goal_a" => 50, "balls_goal_b" => 50,
+        "innings_goal" => 0, "sets_to_win" => 1, "sets_to_play" => 1,
+        "kickoff_switches_with" => "set", "first_break_choice" => 0,
+        "tiebreak_on_draw" => true
+      }
+    )
+
+    @tm.reload
+    assert_equal true, @tm.game.data["tiebreak_required"],
+      "Gap-01: BK-2 preset with tiebreak_on_draw=true must bake tiebreak_required=true"
+  end
+
+  test "G2 (Gap-01): preset without tiebreak_on_draw key bakes tiebreak_required=false (regression)" do
+    @tm.assign_attributes(tournament_monitor_id: nil)
+    @tm.save!(validate: false)
+
+    TableMonitor::GameSetup.call(
+      table_monitor: @tm,
+      options: {
+        "player_a_id" => @player_a.id, "player_b_id" => @player_b.id,
+        "discipline_a" => "Dreiband klein", "discipline_b" => "Dreiband klein",
+        "free_game_form" => "karambol", "quick_game_form" => "karambol",
+        "balls_goal_a" => 30, "balls_goal_b" => 30,
+        "innings_goal" => 25, "sets_to_win" => 0, "sets_to_play" => 1,
+        "kickoff_switches_with" => "set", "first_break_choice" => 0,
+        "allow_follow_up" => true
+        # NOTE: no "tiebreak_on_draw" key
+      }
+    )
+
+    @tm.reload
+    assert_equal false, @tm.game.data["tiebreak_required"],
+      "Gap-01: Karambol preset without tiebreak_on_draw must default to tiebreak_required=false"
+  end
+
+  test "G3 (Gap-01): explicit preset tiebreak_on_draw=false bakes tiebreak_required=false (sparse override)" do
+    @tm.assign_attributes(tournament_monitor_id: nil)
+    @tm.save!(validate: false)
+
+    TableMonitor::GameSetup.call(
+      table_monitor: @tm,
+      options: {
+        "player_a_id" => @player_a.id, "player_b_id" => @player_b.id,
+        "discipline_a" => "BK-2", "discipline_b" => "BK-2",
+        "free_game_form" => "bk_2", "quick_game_form" => "bk_family",
+        "balls_goal" => 50, "balls_goal_a" => 50, "balls_goal_b" => 50,
+        "innings_goal" => 0, "sets_to_win" => 1, "sets_to_play" => 1,
+        "kickoff_switches_with" => "set", "first_break_choice" => 0,
+        "tiebreak_on_draw" => false
+      }
+    )
+
+    @tm.reload
+    assert_equal false, @tm.game.data["tiebreak_required"],
+      "Gap-01: explicit preset tiebreak_on_draw=false must bake tiebreak_required=false (sparse override)"
+  end
+
   # ---------------------------------------------------------------------------
   # Test 10: assign-Zweig — weist game_id zu, ruft initialize_game und
   #           start_new_match! auf (ready-Zweig ohne tmp_results)
