@@ -97,4 +97,80 @@ class TableMonitorTest < ActiveSupport::TestCase
       "Non-Hash data must not raise and must not flag"
   end
 
+  # ---------------------------------------------------------------------------
+  # Phase 38.7 Plan 02 — D-02 BK-2 game-end-fix RED-then-GREEN.
+  # See .planning/phases/38.7-…/38.7-CONTEXT.md D-02 + D-16.
+  # ---------------------------------------------------------------------------
+
+  # Phase 38.7 Plan 02 helper: builds a minimal TableMonitor.data Hash that
+  # satisfies end_of_set?'s GUARD (innings + points must be > 0).
+  def build_bk_data(free_game_form:, balls_goal:, playera_result:, playera_innings:,
+                    playerb_result:, playerb_innings:, allow_follow_up: true,
+                    bk2_options: nil)
+    d = {
+      "free_game_form" => free_game_form,
+      "allow_follow_up" => allow_follow_up,
+      "playera" => {"result" => playera_result, "innings" => playera_innings, "balls_goal" => balls_goal},
+      "playerb" => {"result" => playerb_result, "innings" => playerb_innings, "balls_goal" => balls_goal},
+      "current_inning" => {"active_player" => "playerb", "balls" => 0}
+    }
+    d["bk2_options"] = bk2_options if bk2_options
+    d
+  end
+
+  test "end_of_set? closes BK-2 set when both reach balls_goal at equal innings (TR-B baseline)" do
+    @tm.data = build_bk_data(free_game_form: "bk_2", balls_goal: 50,
+                             playera_result: 50, playera_innings: 5,
+                             playerb_result: 50, playerb_innings: 5)
+    assert @tm.end_of_set?,
+      "BK-2 with both players at balls_goal=50 and equal innings=5 must end_of_set " \
+      "(regression guard for the bk_2 legacy karambol gate path)"
+  end
+
+  test "end_of_set? closes BK-2 set when nachstoss-spieler reaches balls_goal in his nachstoss-aufnahme (D-02 fix)" do
+    # Anstoss=playera reached 50 in inning 5; Nachstoss=playerb plays his inning 6 (Nachstoss-Aufnahme)
+    # and ALSO reaches 50. Today: end_of_set? returns false (deadlock). After fix: returns true.
+    @tm.data = build_bk_data(free_game_form: "bk_2", balls_goal: 50,
+                             playera_result: 50, playera_innings: 5,
+                             playerb_result: 50, playerb_innings: 6)
+    assert @tm.end_of_set?,
+      "D-02 BK-2 fix: Nachstoss-Aufnahme completed with both at balls_goal must end the set " \
+      "(today returns false — deadlock — TEST EXPECTED TO FAIL BEFORE TASK 2 LANDS)"
+  end
+
+  test "end_of_set? closes BK-2kombi SP-phase when nachstoss-spieler reaches balls_goal in his nachstoss-aufnahme (D-02 fix, multiset)" do
+    # BK-2kombi second set is the SP-Phase when first_set_mode=direkter_zweikampf.
+    # We simulate by giving data["sets"] one prior entry so set-counter shows set #2 (SP).
+    @tm.data = build_bk_data(free_game_form: "bk2_kombi", balls_goal: 70,
+                             playera_result: 70, playera_innings: 5,
+                             playerb_result: 70, playerb_innings: 6,
+                             bk2_options: {"first_set_mode" => "direkter_zweikampf"})
+    @tm.data["sets"] = [{"Ergebnis1" => 70, "Ergebnis2" => 50, "Aufnahmen1" => 4, "Aufnahmen2" => 4,
+                         "Höchstserie1" => 0, "Höchstserie2" => 0}]
+    assert_equal "serienspiel", @tm.bk2_kombi_current_phase,
+      "Sanity: this scenario must place us in SP-Phase (set 2 with first_set_mode=DZ)"
+    assert @tm.end_of_set?,
+      "D-02 BK-2kombi-SP fix: Nachstoss-Aufnahme completed with both at balls_goal must end the set"
+  end
+
+  test "end_of_set? does NOT fire when Nachstoss has not reached balls_goal (regression guard)" do
+    # Anstoss=playera reached 50; Nachstoss=playerb at result=49 in his 6th inning (Nachstoss-Aufnahme
+    # done, but goal NOT reached). Legacy: end_of_set? must fire because innings-equal-or-Anstoss-+1
+    # gate fires for the Anstoss reaching goal. We expect TRUE here per legacy semantics.
+    @tm.data = build_bk_data(free_game_form: "bk_2", balls_goal: 50,
+                             playera_result: 50, playera_innings: 5,
+                             playerb_result: 49, playerb_innings: 6)
+    assert @tm.end_of_set?,
+      "Regression guard: BK-2 with Anstoss at goal AND Nachstoss-Aufnahme done (no goal) must end_of_set " \
+      "via the existing legacy karambol path (this is the TR-B success path, NOT a tiebreak)"
+  end
+
+  test "end_of_set? does NOT fire when neither player reached balls_goal (regression guard)" do
+    @tm.data = build_bk_data(free_game_form: "bk_2", balls_goal: 50,
+                             playera_result: 49, playera_innings: 5,
+                             playerb_result: 49, playerb_innings: 5)
+    refute @tm.end_of_set?,
+      "Regression guard: no player at balls_goal must NOT end_of_set"
+  end
+
 end
