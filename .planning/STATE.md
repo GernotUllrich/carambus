@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v7.1
 milestone_name: UX Polish & i18n Debt
 status: executing
-stopped_at: Completed 38.7-02-PLAN.md (BK-2 game-end fix RED-then-GREEN)
-last_updated: "2026-04-30T13:45:29.337Z"
+stopped_at: Completed 38.7-03-PLAN.md (D-10 tiebreak-priority branch RED-then-GREEN)
+last_updated: "2026-04-30T13:58:46.289Z"
 last_activity: 2026-04-30
 progress:
   total_phases: 9
   completed_phases: 6
   total_plans: 56
-  completed_plans: 49
-  percent: 88
+  completed_plans: 50
+  percent: 89
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-15)
 ## Current Position
 
 Phase: 38.7 (tiebreak-bei-unentschieden-per-game-flag-mit-modal-eingabe) — EXECUTING
-Plan: 3 of 8
+Plan: 4 of 8
 Status: Ready to execute
 Last activity: 2026-04-30
 
@@ -115,6 +115,7 @@ Decisions are logged in PROJECT.md Key Decisions table. Full v7.0 cross-phase de
 - [Phase 38.7]: Plan 01: Plan AC `grep -c "tiebreak_on_draw: true" seed_bk2_disciplines.rb == 2` is inconsistent with prescribed code (BK-2kombi block uses string-key syntax via current["tiebreak_on_draw"] = true, not symbol). Followed prescribed code; must_haves frontmatter (data carries true after seed) is satisfied. AC discrepancy documented for verifier.
 - [Phase 38.7]: Plan 02: BK-2 / BK-2kombi-SP Nachstoss-Aufnahme close — extend-before-build SKILL applied (+37 LOC guard in end_of_set?, no parallel state machine). New branch fires when Anstoss at balls_goal AND nachstoss_innings == anstoss_innings + 1. Resolves D-02 deadlock without regressing the 41-test char suite.
 - [Phase 38.7]: Plan 02: RED phase had 3 failures (predicted 2). Test 4 (Nachstoss not at goal, innings 5 vs 6) was predicted to PASS via legacy karambol gate but actually FAILS today — gate requires innings parity OR !allow_follow_up, both halves false in fixture. Task 2's new branch covers Test 4 correctly. Documented as plan-internal RED-prediction error, not a code defect.
+- [Phase 38.7]: Plan 03: D-10 tiebreak override branch in update_game_participations — 3-clause defensive guard (is_a?(String) AND in whitelist AND rank tied) before applying operator pick. Legacy logic preserved verbatim in else-arm. Stub-based test pattern: prime_tiebreak_game creates real Game+GP+TM rows; run_update_game_participations stubs PartyMonitor#get_*_by_gname to decouple from league.game_plan fixture.
 
 ### Roadmap Evolution
 
@@ -161,6 +162,6 @@ None blocking Phase 38.1 execution. Reconciliation debt above is tracked but not
 
 ## Session Continuity
 
-Last session: 2026-04-30T13:45:18.557Z
-Stopped at: Completed 38.7-02-PLAN.md (BK-2 game-end fix RED-then-GREEN)
+Last session: 2026-04-30T13:58:46.286Z
+Stopped at: Completed 38.7-03-PLAN.md (D-10 tiebreak-priority branch RED-then-GREEN)
 Resume: `/gsd-plan-phase 38` to break Phase 38 into 3 executable plans
