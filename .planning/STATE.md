@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v7.1
 milestone_name: UX Polish & i18n Debt
 status: executing
-stopped_at: Completed 38.7-10-PLAN.md (Gap-02 free_game detail-form tiebreak toggle)
-last_updated: "2026-04-30T17:34:25.768Z"
+stopped_at: Completed 38.7-12-PLAN.md (Gap-04 TournamentMonitor startup-form tiebreak override) — phase 38.7 all 4 UAT gaps closed
+last_updated: "2026-04-30T17:46:15.655Z"
 last_activity: 2026-04-30
 progress:
   total_phases: 9
-  completed_phases: 6
+  completed_phases: 7
   total_plans: 60
-  completed_plans: 58
-  percent: 97
+  completed_plans: 59
+  percent: 98
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-15)
 ## Current Position
 
 Phase: 38.7 (tiebreak-bei-unentschieden-per-game-flag-mit-modal-eingabe) — EXECUTING
-Plan: 4 of 12
+Plan: 5 of 12
 Status: Ready to execute
 Last activity: 2026-04-30
 
@@ -125,6 +125,7 @@ Decisions are logged in PROJECT.md Key Decisions table. Full v7.0 cross-phase de
 - [Phase 38.7]: Plan 09 (Gap-01): preset tiebreak_on_draw threaded carambus.yml → form → controller → GameSetup with key? gate after Game.derive_tiebreak_required; sparse-override semantic preserved (Phase 38.5 D-06); 4 BK-2kombi + 3 BK-2 small_billard buttons carry tiebreak_on_draw: true; both .erb template and gitignored .yml kept in sync per project convention
 - [Phase 38.7]: Plan 11 (Gap-03): bk2_kombi_tiebreak_auto_detect! injected as first line of tiebreak_pick_pending? — extend-before-build SKILL applied (one guard, 4 call sites unchanged). 5-condition gate forces Game.data['tiebreak_required']=true on BK-2kombi BK-2-phase ties at goal in 1+1 innings via Game#deep_merge_data! (canonical write path), overriding any pre-baked false. Hard rule of the discipline, NOT operator-configurable.
 - [Phase 38.7]: Plan 10 (Gap-02): hidden_field_tag '0' + check_box_tag '1' pattern in detail-form set_params panel — explicit unchecked-submits-false sparse semantics; rides Plan 09's slice + GameSetup override branch (zero controller/service changes)
+- [Phase 38.7]: Plan 12 (Gap-04): TournamentMonitor startup-form tiebreak override — operator pick written to Tournament.data['tiebreak_on_draw'] via update_columns (bypasses unrelated organizer presence validation + before_save data-key extraction). Persist gated to :update only because :create is NOT director-gated; operator workflow is create-then-edit. i18n under tournament_monitors.form namespace, disjoint from Plan 10's locations.scoreboard_free_game namespace. Plan 04 resolver UNCHANGED — Plan 12 only writes Level 1.
 
 ### Roadmap Evolution
 
@@ -171,6 +172,6 @@ None blocking Phase 38.1 execution. Reconciliation debt above is tracked but not
 
 ## Session Continuity
 
-Last session: 2026-04-30T17:34:25.765Z
-Stopped at: Completed 38.7-10-PLAN.md (Gap-02 free_game detail-form tiebreak toggle)
+Last session: 2026-04-30T17:46:15.651Z
+Stopped at: Completed 38.7-12-PLAN.md (Gap-04 TournamentMonitor startup-form tiebreak override) — phase 38.7 all 4 UAT gaps closed
 Resume: `/gsd-plan-phase 38.7 --gaps` to plan training-mode tiebreak sources (carambus.yml preset, detail-form toggle, BK-2kombi auto-detect, TournamentMonitor override)
