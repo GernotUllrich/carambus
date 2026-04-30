@@ -367,21 +367,21 @@ class TableMonitor::GameSetupTest < ActiveSupport::TestCase
   # Phase 38.7 Plan 04 — start_game tiebreak_required bake integration tests.
   #
   # Verifiziert dass perform_start_game game.data['tiebreak_required'] aus dem
-  # Game.derive_tiebreak_required Resolver schreibt:
-  #   - Training BK-2 (no tournament): true (via Discipline.data tiebreak_on_draw=true)
-  #   - Training Karambol: false (no key on any level → default false)
+  # Game.derive_tiebreak_required Resolver schreibt (3 Levels — Discipline-Level
+  # entfernt 2026-04-30 per User-Feedback; Trainings-Sources kommen in einer
+  # Folge-Phase):
+  #   - Training (any discipline): false (no tournament/plan → default false)
   #   - Idempotent across re-runs
   #   - TournamentPlan group override path lands in game.data
   # ---------------------------------------------------------------------------
 
   # Builds an OpenStruct mock for tournament_monitor.tournament.tournament_plan
   # so we can exercise the Plan-level override path without DB fixture chains.
-  def build_mock_tm_with_plan(discipline:, tournament_data:, plan_executor_params:, group_no: nil)
+  def build_mock_tm_with_plan(tournament_data:, plan_executor_params:, group_no: nil)
     mock_plan = OpenStruct.new(executor_params: plan_executor_params)
     mock_tournament = OpenStruct.new(
       data: tournament_data,
-      tournament_plan: mock_plan,
-      discipline: discipline
+      tournament_plan: mock_plan
     )
     mock_tournament.define_singleton_method(:is_a?) { |klass| klass == Tournament }
     mock_tm_monitor = OpenStruct.new(
@@ -402,24 +402,24 @@ class TableMonitor::GameSetupTest < ActiveSupport::TestCase
     [mock_tm_monitor, group_no]
   end
 
-  test "start_game writes game.data['tiebreak_required']=true for training BK-2 match" do
-    # Training mode: no tournament_monitor → derive_tiebreak_required falls through
-    # to Discipline.data — Plan 01 fixture sets BK-2 tiebreak_on_draw=true.
+  test "start_game writes game.data['tiebreak_required']=false for training BK-2 match (no tournament)" do
+    # Training mode: no tournament_monitor → resolver returns false (no Level-3
+    # Discipline source any more). A follow-up gap-closure plan adds training
+    # sources (carambus.yml preset, detail-form toggle, BK-2kombi auto-detect).
     options = @options.merge("discipline_a" => "BK-2", "discipline_b" => "BK-2", "free_game_form" => "bk_2")
     call_setup(options: options)
     @tm.reload
-    assert_equal true, @tm.game.data["tiebreak_required"],
-      "BK-2 training match must inherit Discipline.data['tiebreak_on_draw']=true (Plan 01 contract)"
+    assert_equal false, @tm.game.data["tiebreak_required"],
+      "Training BK-2 must currently default to false — training sources land in a follow-up plan"
   end
 
   test "start_game writes game.data['tiebreak_required']=false for training Karambol match" do
-    # Training mode + Karambol discipline (e.g. Dreiband, Freie Partie) → no key at any
-    # level → resolver returns false (Level 4 default).
+    # Training mode + Karambol discipline → no tournament/plan source → default false.
     options = @options.merge("discipline_a" => "Dreiband", "discipline_b" => "Dreiband", "free_game_form" => nil)
     call_setup(options: options)
     @tm.reload
     assert_equal false, @tm.game.data["tiebreak_required"],
-      "Karambol training match must default to false (no Discipline key, default false)"
+      "Karambol training match must default to false"
   end
 
   test "start_game tiebreak_required bake is idempotent across re-runs" do
@@ -432,39 +432,20 @@ class TableMonitor::GameSetupTest < ActiveSupport::TestCase
     second_value = @tm.game.reload.data["tiebreak_required"]
 
     assert_equal first_value, second_value, "Bake must be deterministic"
-    assert_equal true, second_value
+    assert_equal false, second_value
   end
 
-  test "start_game writes tiebreak_required=true when only TournamentPlan group says so" do
-    # Karambol discipline + TournamentPlan g1 has tiebreak_on_draw=true.
+  test "derive_tiebreak_required returns true when only TournamentPlan group says so" do
     # Tournament.data has no key → resolver falls through to Plan level → true.
-    karambol_discipline = OpenStruct.new(id: 99, name: "Dreiband", data: nil)
     mock_tm_monitor, _ = build_mock_tm_with_plan(
-      discipline: karambol_discipline,
       tournament_data: {},  # no tiebreak_on_draw key
       plan_executor_params: {"g1" => {"tiebreak_on_draw" => true, "balls" => 100}}.to_json
     )
 
-    @tm.define_singleton_method(:tournament_monitor) { mock_tm_monitor }
-
-    # Game must have group_no=1 for the lookup to hit g1.
-    # Stub Game.create-related path: @tm.game.group_no must be 1.
-    options = @options.merge("discipline_a" => "Dreiband", "discipline_b" => "Dreiband", "free_game_form" => nil)
-
-    TableMonitorJob.stub(:perform_later, ->(*) {}) do
-      TableMonitor::GameSetup.call(table_monitor: @tm, options: options)
-    end
-
-    # After call, set group_no on the game and re-run the resolver branch directly
-    # to verify the Plan-level path. The bake itself runs during start_game; we
-    # verify the resolver contract end-to-end by calling derive_tiebreak_required
-    # with the same inputs the bake uses.
-    @tm.reload
     plan_value = Game.derive_tiebreak_required(
       tournament: mock_tm_monitor.tournament,
       tournament_plan: mock_tm_monitor.tournament.tournament_plan,
-      group_no: "1",
-      discipline: karambol_discipline
+      group_no: "1"
     )
     assert_equal true, plan_value,
       "TournamentPlan group-level override must propagate via derive_tiebreak_required"

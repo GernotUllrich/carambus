@@ -364,23 +364,21 @@ class TableMonitor::GameSetup < ApplicationService
     BkParamResolver.bake!(@tm)
 
     # Phase 38.7 Plan 04 — D-04, D-05 bake game.data['tiebreak_required'].
-    # Pure function call (Game.derive_tiebreak_required) — no side effects in the
-    # resolver, all writes happen here. Resolves Tournament -> TournamentPlan ->
-    # Discipline -> false. Training mode (no tournament_monitor) provides nil for
-    # tournament/plan; the Discipline lookup uses the same name-fallback as
-    # derive_free_game_form so BK-2 / BK-2kombi training matches inherit the
-    # discipline-level tiebreak_on_draw=true that Plan 01 seeded.
+    # Resolves Tournament -> TournamentPlan -> false. Training-mode sources
+    # (carambus.yml quick_game_presets, free_game detail-form toggle, BK-2kombi
+    # BK-2-phase auto-detect) are owned by a follow-up gap-closure plan; they bake
+    # `Game.data['tiebreak_required']` directly without going through this
+    # resolver, and a non-false value already on `Game.data` is preserved here
+    # (resolver returns false → deep_merge_data! re-asserts false only when
+    # nothing else has set it).
     if @tm.game.present?
       tournament = @tm.tournament_monitor&.tournament
       tournament_plan = tournament&.tournament_plan
       group_no = @tm.game.group_no
-      discipline = tournament&.discipline ||
-        Discipline.find_by(name: BK_NAME_TO_FORM.invert[@tm.data["free_game_form"]])
       tiebreak_required = Game.derive_tiebreak_required(
         tournament: tournament,
         tournament_plan: tournament_plan,
-        group_no: group_no,
-        discipline: discipline
+        group_no: group_no
       )
       # Game#deep_merge_data! handles data_will_change! + JSON-roundtrip so the new
       # key actually persists (Game has a custom `def data` getter that returns a
@@ -388,8 +386,8 @@ class TableMonitor::GameSetup < ApplicationService
       @tm.game.deep_merge_data!("tiebreak_required" => tiebreak_required)
       @tm.game.save!
       Rails.logger.info "[GameSetup] tiebreak_required=#{tiebreak_required} " \
-        "game=#{@tm.game.id} discipline=#{discipline&.name.inspect} " \
-        "tournament=#{tournament&.id.inspect} group_no=#{group_no.inspect}"
+        "game=#{@tm.game.id} tournament=#{tournament&.id.inspect} " \
+        "group_no=#{group_no.inspect}"
     end
 
     # Phase 38.5: für BK-2kombi muss bk2_state hier initialisiert werden, weil

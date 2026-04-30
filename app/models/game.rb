@@ -58,22 +58,27 @@ class Game < ApplicationRecord
     end
   end
 
-  # Phase 38.7 Plan 04 — D-04, D-05, CD-01.
-  # Resolves the per-game `tiebreak_required` flag from the 4-level hierarchy:
+  # Phase 38.7 Plan 04 — D-04, D-05, CD-01 (Level-3 Discipline source removed
+  # 2026-04-30 per user feedback: tiebreak property is independent from Discipline,
+  # and Discipline rows must not be patched on local servers — they're synced
+  # globals).
+  #
+  # Resolves the per-game `tiebreak_required` flag from a 3-level hierarchy:
   #   1. Tournament.data['tiebreak_on_draw']                    (highest)
   #   2. TournamentPlan.executor_params['g{group_no}']['tiebreak_on_draw']
-  #   3. Discipline.data['tiebreak_on_draw']
-  #   4. false                                                   (default)
+  #   3. false                                                   (default)
   #
   # Sparse-override semantics (D-05): each level's data is queried via `data.key?`,
-  # NOT `data[].present?`. An explicit `false` at any level overrides `true` at lower
-  # levels. A missing key falls through to the next level.
+  # NOT `data[].present?`. An explicit `false` at any level overrides `true` at
+  # lower levels. A missing key falls through to the next level.
   #
-  # Returns Bool. Pure function — no DB writes. Safe to call at start_game (D-05).
-  # Training-mode (D-13): tournament=nil, tournament_plan=nil → falls through to
-  # discipline default. Plan 01 ensures BK-2 + BK-2kombi disciplines have key=true,
-  # so training matches of those disciplines correctly get tiebreak_required=true.
-  def self.derive_tiebreak_required(tournament: nil, tournament_plan: nil, group_no: nil, discipline: nil)
+  # Training-mode tiebreak sources (carambus.yml quick_game_presets, free_game
+  # detail-form toggle, BK-2kombi BK-2-phase auto-detect) bake `tiebreak_required`
+  # onto `Game.data` directly without going through this resolver — a follow-up
+  # gap-closure plan owns those entry points.
+  #
+  # Returns Bool. Pure function — no DB writes.
+  def self.derive_tiebreak_required(tournament: nil, tournament_plan: nil, group_no: nil)
     # Level 1: Tournament.data
     t_data = parse_data_hash(tournament&.data)
     return !!t_data["tiebreak_on_draw"] if t_data.key?("tiebreak_on_draw")
@@ -88,11 +93,7 @@ class Game < ApplicationRecord
       end
     end
 
-    # Level 3: Discipline.data
-    d_data = parse_data_hash(discipline&.data)
-    return !!d_data["tiebreak_on_draw"] if d_data.key?("tiebreak_on_draw")
-
-    # Level 4: default
+    # Level 3: default
     false
   end
 
