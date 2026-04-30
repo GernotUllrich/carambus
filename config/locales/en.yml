@@ -372,6 +372,9 @@ en:
       listing_parties: Listing Matchdays
     parties: Matchdays
     party: Matchday
+    # Phase 38.7 Plan 07 D-12 — Spielbericht-PDF tiebreak suffix (EN parallel).
+    spielbericht:
+      tiebreak_won_by: "(Tiebreak %{role})"
   party_game:
     index:
       party_game: Party Game

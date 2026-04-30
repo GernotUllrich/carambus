@@ -83,4 +83,34 @@ module PartiesHelper
     end
     [heim, gast]
   end
+
+  # Phase 38.7 Plan 07 D-12 — Tiebreak indicator for Spielbericht-PDF.
+  # Returns a localized suffix " (Stechen <PlayerName>)" when the game has a
+  # tiebreak winner recorded; empty string otherwise. Defensive against nil
+  # game and invalid TiebreakWinner values.
+  #
+  # Reads game.data['ba_results']['TiebreakWinner']  (1 = playera, 2 = playerb).
+  # The integer is written by TableMonitor::ResultRecorder#update_ba_results_with_set_result!
+  # (Plan 05) when the operator picks a winner via the protocol_final modal (Plan 06).
+  #
+  # Threat-model notes:
+  #  - T-38.7-07-01: Player#shortname is rendered through Rails's `t` helper,
+  #    which auto-escapes HTML interpolations. Do NOT pass the result through
+  #    `html_safe` — Player names are user-editable from the admin surface.
+  #  - T-38.7-07-02: Only the integers 1 and 2 are honored; any other value
+  #    (including forged strings) returns empty string (defense-in-depth).
+  def tiebreak_indicator(game)
+    return "" if game.nil?
+    tw = game.data&.dig("ba_results", "TiebreakWinner")
+    # Per plan threat model T-38.7-07-02: only Integer 1 or 2 (or their
+    # numeric String equivalents) yield a role; everything else falls through
+    # to nil and the helper returns "". Strings like "X" coerce to 0 via to_i
+    # and miss the 1/2 case; forged 99 likewise misses.
+    role = case tw.to_i
+    when 1 then game.player_a&.shortname.presence || game.player_a&.fullname
+    when 2 then game.player_b&.shortname.presence || game.player_b&.fullname
+    end
+    return "" if role.blank?
+    " #{t("parties.spielbericht.tiebreak_won_by", role: role)}"
+  end
 end

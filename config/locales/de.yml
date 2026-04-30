@@ -400,6 +400,9 @@ de:
       listing_parties: Liste aktueller Ligabegegnungen
     parties: Spieltage
     party: Spieltag
+    # Phase 38.7 Plan 07 D-12 — Spielbericht-PDF tiebreak suffix (DE primary).
+    spielbericht:
+      tiebreak_won_by: "(Stechen %{role})"
   party_game:
     index:
       party_game: Spieltagpartie
