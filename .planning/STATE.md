@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v7.1
 milestone_name: UX Polish & i18n Debt
 status: executing
-stopped_at: Completed 38.7-05-PLAN.md (Result Recorder Tiebreak Detection RED-then-GREEN)
-last_updated: "2026-04-30T14:20:18.986Z"
+stopped_at: Completed 38.7-06-PLAN.md (Modal Radio Fieldset)
+last_updated: "2026-04-30T14:29:15.390Z"
 last_activity: 2026-04-30
 progress:
   total_phases: 9
   completed_phases: 6
   total_plans: 56
-  completed_plans: 52
-  percent: 93
+  completed_plans: 53
+  percent: 95
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-15)
 ## Current Position
 
 Phase: 38.7 (tiebreak-bei-unentschieden-per-game-flag-mit-modal-eingabe) — EXECUTING
-Plan: 6 of 8
+Plan: 7 of 8
 Status: Ready to execute
 Last activity: 2026-04-30
 
@@ -119,6 +119,7 @@ Decisions are logged in PROJECT.md Key Decisions table. Full v7.0 cross-phase de
 - [Phase 38.7]: Plan 04: Game.derive_tiebreak_required class method (CD-01, not extending BkParamResolver) walks 4-level hierarchy with sparse-override (data.key? gate). Plan-prescribed direct mutation @tm.game.data['key']=X failed to dirty-track because Game has a custom def data getter that returns freshly-decoded Hash; switched to @tm.game.deep_merge_data!('tiebreak_required' => …) which calls data_will_change! and reassigns self.data. RULE 1 deviation, documented inline.
 - [Phase 38.7]: Plan 05: tiebreak_pick_pending? as private helper on ResultRecorder (mirrors TableMonitor#tiebreak_pending_block? but kept separate per public/private split). T7-T9 do NOT use @tm.reload — update_ba_results_with_set_result! does NOT save (caller owns persistence). Plan-prescribed reload removed during GREEN phase as Rule 1 plan-prescribed-test-bug fix.
 - [Phase 38.7]: Plan 05: AASM guard  on :acknowledge_result event provides D-08 defense-in-depth across ALL caller paths (admin_ack_result, ResultRecorder branches, console, forged direct invocations). Pairs with Plan 06's reflex-level form validation for layered defense.
+- [Phase 38.7]: Plan 06: Modal radio fieldset rendered only when current_element=='tiebreak_winner_choice' (D-07 extend-before-build); reflex confirm_result augmented with allowlist guard + deep_merge_data! persistence (Rule 1 same dirty-tracking fix as Plan 04). 5 functional tests cover allowlist + persistence + non-tiebreak regression.
 
 ### Roadmap Evolution
 
@@ -165,6 +166,6 @@ None blocking Phase 38.1 execution. Reconciliation debt above is tracked but not
 
 ## Session Continuity
 
-Last session: 2026-04-30T14:20:18.983Z
-Stopped at: Completed 38.7-05-PLAN.md (Result Recorder Tiebreak Detection RED-then-GREEN)
+Last session: 2026-04-30T14:29:15.388Z
+Stopped at: Completed 38.7-06-PLAN.md (Modal Radio Fieldset)
 Resume: `/gsd-plan-phase 38` to break Phase 38 into 3 executable plans
