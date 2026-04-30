@@ -139,6 +139,15 @@ class TableMonitor::ResultRecorder < ApplicationService
     ba_results["Aufnahmen2"] = ba_results["Aufnahmen2"].to_i + game_set_result["Aufnahmen2"].to_i
     ba_results["Höchstserie1"] = [ba_results["Höchstserie1"].to_i, game_set_result["Höchstserie1"].to_i].max
     ba_results["Höchstserie2"] = [ba_results["Höchstserie2"].to_i, game_set_result["Höchstserie2"].to_i].max
+    # Phase 38.7 Plan 05 — D-08: derive TiebreakWinner from game.data['tiebreak_winner'].
+    # Mechanical mapping playera→1 / playerb→2; any other value (nil, blank, forged
+    # string, non-String) leaves the key absent — Plan 07's PDF view skips the
+    # indicator when the key is missing. Defense-in-depth against forged data:
+    # explicit String + whitelist check before assignment.
+    tw = @tm.game.data&.[]("tiebreak_winner")
+    if tw.is_a?(String) && %w[playera playerb].include?(tw)
+      ba_results["TiebreakWinner"] = {"playera" => 1, "playerb" => 2}[tw]
+    end
     @tm.deep_merge_data!("ba_results" => ba_results)
   end
 
@@ -280,6 +289,29 @@ class TableMonitor::ResultRecorder < ApplicationService
 
   private
 
+  # Phase 38.7 Plan 05 — D-03 trigger detection helper.
+  # Returns true iff: game.data['tiebreak_required']==true AND
+  # game.data['tiebreak_winner'] is missing AND scores are tied.
+  # When true, callers (perform_evaluate_result inning + simple-set branches,
+  # training-rematch branch) gate their behaviour on this condition.
+  # Pure read; no side effects. See result_recorder D-03 / D-13 / D-08 wiring.
+  def tiebreak_pick_pending?
+    return false unless @tm.game&.data&.[]("tiebreak_required") == true
+    return false if @tm.game.data["tiebreak_winner"].present?
+
+    # "Tied" definition aligns with TableMonitor#tiebreak_pending_block? (D-08
+    # AASM guard predicate). Inning-based: data['playera']['result'] ==
+    # data['playerb']['result']. Simple-set: most recent set's Ergebnis1==Ergebnis2.
+    a = @tm.data&.dig("playera", "result").to_i
+    b = @tm.data&.dig("playerb", "result").to_i
+    if @tm.simple_set_game? && @tm.data["sets"].present?
+      last_set = Array(@tm.data["sets"]).last
+      a = last_set["Ergebnis1"].to_i
+      b = last_set["Ergebnis2"].to_i
+    end
+    a == b
+  end
+
   # Haupt-Ablauf: entspricht dem extrahierten evaluate_result-Body.
   # Alle return-Anweisungen aus dem Original sind erhalten (Pitfall 2: verhindert Rekursion).
   def perform_evaluate_result
@@ -321,7 +353,10 @@ class TableMonitor::ResultRecorder < ApplicationService
           # Match ist vorbei - finales Ergebnis-Modal zeigen
           Rails.logger.info "[evaluate_result] Match WON - showing final modal"
           @tm.panel_state = "protocol_final"
-          @tm.current_element = "confirm_result"
+          # Phase 38.7 Plan 05 — D-03 trigger detection (simple-set branch).
+          # Same marker-switch as inning-based branch above; covers BK-2/BK-2kombi-SP
+          # and any future simple-set discipline that opts into tiebreak_on_draw.
+          @tm.current_element = tiebreak_pick_pending? ? "tiebreak_winner_choice" : "confirm_result"
           @tm.save!
         else
           # Weitere Saetze zu spielen - automatisch zum naechsten Satz wechseln (kein Modal)
@@ -334,7 +369,11 @@ class TableMonitor::ResultRecorder < ApplicationService
         # protocol_final-Modal fuer Ergebnispruefung bei JEDEM Satz-Ende zeigen
         # (fuer Inning-basierte Spiele wie Karambol, 14.1 endlos)
         @tm.panel_state = "protocol_final"
-        @tm.current_element = "confirm_result"
+        # Phase 38.7 Plan 05 — D-03 trigger detection: switch marker to
+        # tiebreak_winner_choice when a tiebreak winner pick is still pending
+        # (tiebreak_required + tied + winner not yet set). Plan 06 view branch
+        # renders the radio fieldset on this marker.
+        @tm.current_element = tiebreak_pick_pending? ? "tiebreak_winner_choice" : "confirm_result"
         perform_save_result
         @tm.save!
         return
@@ -369,6 +408,13 @@ class TableMonitor::ResultRecorder < ApplicationService
 
             # Trainingsspiel (kein tournament_monitor): Automatisch Rückspiel mit getauschten Spielern starten
             if @tm.tournament_monitor.blank? && @tm.game.present?
+              # Phase 38.7 Plan 05 — D-13: block training rematch when tiebreak pending.
+              # Otherwise revert_players + do_play would discard the tied result before
+              # the operator gets to pick the tiebreak winner via the modal.
+              if tiebreak_pick_pending?
+                Rails.logger.info "[evaluate_result] Training game tied — tiebreak winner pending, NOT auto-rematching"
+                return
+              end
               Rails.logger.info "[evaluate_result] Training game finished - creating rematch with swapped players"
               @tm.revert_players
               @tm.update(state: "playing")
@@ -385,6 +431,11 @@ class TableMonitor::ResultRecorder < ApplicationService
 
         # Trainingsspiel (kein tournament_monitor): Automatisch Rückspiel mit getauschten Spielern starten
         if @tm.tournament_monitor.blank? && @tm.game.present?
+          # Phase 38.7 Plan 05 — D-13: block training rematch when tiebreak pending.
+          if tiebreak_pick_pending?
+            Rails.logger.info "[evaluate_result] Training game tied — tiebreak winner pending, NOT auto-rematching"
+            return
+          end
           Rails.logger.info "[evaluate_result] Training game finished - creating rematch with swapped players"
           @tm.revert_players
           @tm.update(state: "playing")

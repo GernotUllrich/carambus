@@ -375,7 +375,16 @@ class TableMonitor < ApplicationRecord
       transitions from: %i[playing set_over], to: :playing
     end
     event :acknowledge_result do
-      transitions from: :set_over, to: :final_set_score
+      # Phase 38.7 Plan 05 — D-08 defense-in-depth guard. Blocks the transition
+      # when tiebreak is required, scores are tied, and no operator pick is
+      # recorded in game.data['tiebreak_winner']. Covers ALL acknowledge_result!
+      # call sites (admin_ack_result, ResultRecorder branches, console scripts,
+      # future controllers, forged direct AASM invocations). When the guard
+      # returns false, AASM raises AASM::InvalidTransition on
+      # `acknowledge_result!` and `may_acknowledge_result?` returns false.
+      # The Plan 06 reflex guard covers the form-validation UX surface; this
+      # guard covers everything else.
+      transitions from: :set_over, to: :final_set_score, guard: :tiebreak_not_pending?
     end
     event :finish_match, after: :set_end_time do
       transitions from: %i[final_set_score], to: :final_match_score
@@ -1587,6 +1596,45 @@ class TableMonitor < ApplicationRecord
   def simple_set_game?
     (data["free_game_form"] == "pool" && data["playera"]["discipline"] != "14.1 endlos") ||
       data["free_game_form"] == "snooker"
+  end
+
+  # Phase 38.7 Plan 05 — D-08 AASM guard predicate for :acknowledge_result event.
+  # Returns true (= ALLOW transition) UNLESS tiebreak is required, scores are tied,
+  # and the operator has not yet recorded a winner pick in game.data['tiebreak_winner'].
+  # The negation (`tiebreak_pending_block?`) is the semantic blocker; AASM guards
+  # are positive ("allow if true"), so we expose `tiebreak_not_pending?`.
+  #
+  # Defense-in-depth coverage (T-38.7-05-02): all callers of acknowledge_result!
+  # and may_acknowledge_result? run this guard transparently. Includes
+  # admin_ack_result (line 1601), ResultRecorder#perform_evaluate_result
+  # acknowledge_result! call sites, console invocations, forged StimulusReflex
+  # calls that bypass the form validator in GameProtocolReflex (Plan 06 Task 2),
+  # and any future direct caller.
+  def tiebreak_not_pending?
+    !tiebreak_pending_block?
+  end
+
+  # Phase 38.7 Plan 05 — D-08 helper. Returns true iff a tiebreak winner pick is
+  # still pending (= block the AASM :acknowledge_result transition).
+  # Conditions (all must hold):
+  #   - game is present
+  #   - game.data['tiebreak_required'] == true
+  #   - game.data['tiebreak_winner'] is blank (no pick yet)
+  #   - scores are tied (same definition as ResultRecorder#tiebreak_pick_pending?:
+  #     inning-based: data['playera']['result'] == data['playerb']['result'];
+  #     simple_set:   sets.last['Ergebnis1'] == sets.last['Ergebnis2'])
+  def tiebreak_pending_block?
+    return false unless game&.data&.[]("tiebreak_required") == true
+    return false if game.data["tiebreak_winner"].present?
+
+    a = data&.dig("playera", "result").to_i
+    b = data&.dig("playerb", "result").to_i
+    if simple_set_game? && data["sets"].present?
+      last_set = Array(data["sets"]).last
+      a = last_set["Ergebnis1"].to_i
+      b = last_set["Ergebnis2"].to_i
+    end
+    a == b
   end
 
   def admin_ack_result

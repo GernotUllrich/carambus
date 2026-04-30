@@ -486,6 +486,9 @@ class TableMonitor::ResultRecorderTest < ActiveSupport::TestCase
   end
 
   # T7 — D-08 TiebreakWinner=1 derivation when tiebreak_winner=playera.
+  # update_ba_results_with_set_result! does NOT call save! (caller is responsible —
+  # see perform_save_current_set which saves AFTER deep_merge_data!), so we assert
+  # against the in-memory @tm.data (no @tm.reload).
   test "update_ba_results_with_set_result! writes TiebreakWinner=1 when game.data tiebreak_winner=playera" do
     @game.update!(data: {"tiebreak_winner" => "playera"})
     recorder = TableMonitor::ResultRecorder.new(table_monitor: @tm)
@@ -495,7 +498,6 @@ class TableMonitor::ResultRecorderTest < ActiveSupport::TestCase
       "Höchstserie1" => 10, "Höchstserie2" => 10
     }
     recorder.send(:update_ba_results_with_set_result!, game_set_result)
-    @tm.reload
 
     assert_equal 1, @tm.data["ba_results"]["TiebreakWinner"],
       "D-08: tiebreak_winner=playera must derive TiebreakWinner=1 in ba_results"
@@ -511,7 +513,6 @@ class TableMonitor::ResultRecorderTest < ActiveSupport::TestCase
       "Höchstserie1" => 10, "Höchstserie2" => 10
     }
     recorder.send(:update_ba_results_with_set_result!, game_set_result)
-    @tm.reload
 
     assert_equal 2, @tm.data["ba_results"]["TiebreakWinner"],
       "D-08: tiebreak_winner=playerb must derive TiebreakWinner=2 in ba_results"
@@ -527,7 +528,6 @@ class TableMonitor::ResultRecorderTest < ActiveSupport::TestCase
       "Höchstserie1" => 10, "Höchstserie2" => 10
     }
     recorder.send(:update_ba_results_with_set_result!, game_set_result)
-    @tm.reload
 
     assert_nil @tm.data["ba_results"]["TiebreakWinner"],
       "TiebreakWinner key absent when no winner pick — Plan 07 PDF view will skip the indicator"
