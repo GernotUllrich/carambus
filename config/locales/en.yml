@@ -621,6 +621,12 @@ en:
         row1_hint: "Before the shot: did all 5 pins stand? Then tick the box."
         row2_heading: "Shot"
         row3_heading: "More details"
+    # Phase 38.7 Plan 06 CD-05: tiebreak modal section (EN parallel).
+    tiebreak:
+      prompt: "Tiebreak — pick the winner"
+      submit_blocked_hint: "Please select a winner before confirming the result."
+      winner_label: "Winner: %{role}"
+      submit_label: "Confirm with winner"
     table_id: table id
     timer_finish_at: timer finish at
     timer_halt_at: timer halt at

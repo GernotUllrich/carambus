@@ -661,6 +661,12 @@ de:
         row1_hint: "Vor dem Stoß: standen alle 5 Kegel? Dann Haken setzen."
         row2_heading: "Stoß"
         row3_heading: "Weitere Angaben"
+    # Phase 38.7 Plan 06 CD-05: tiebreak modal section (DE primary).
+    tiebreak:
+      prompt: "Stechen — Sieger festlegen"
+      submit_blocked_hint: "Bitte einen Sieger auswählen, bevor das Ergebnis bestätigt wird."
+      winner_label: "Sieger: %{role}"
+      submit_label: "Mit Sieger bestätigen"
     table_id: Tisch
     timer_finish_at: Timerende
     timer_halt_at: Timer angehalten
