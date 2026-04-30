@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v7.1
 milestone_name: UX Polish & i18n Debt
 status: executing
-stopped_at: Completed 38.7-09-PLAN.md (Gap-01 carambus.yml preset tiebreak source)
-last_updated: "2026-04-30T17:20:32.349Z"
+stopped_at: Completed 38.7-11-PLAN.md (Gap-03 BK-2kombi BK-2-phase auto-detect)
+last_updated: "2026-04-30T17:26:01.524Z"
 last_activity: 2026-04-30
 progress:
   total_phases: 9
   completed_phases: 6
   total_plans: 60
-  completed_plans: 56
-  percent: 93
+  completed_plans: 57
+  percent: 95
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-15)
 ## Current Position
 
 Phase: 38.7 (tiebreak-bei-unentschieden-per-game-flag-mit-modal-eingabe) — EXECUTING
-Plan: 2 of 12
+Plan: 3 of 12
 Status: Ready to execute
 Last activity: 2026-04-30
 
@@ -123,6 +123,7 @@ Decisions are logged in PROJECT.md Key Decisions table. Full v7.0 cross-phase de
 - [Phase 38.7]: Plan 07: PartiesHelper#tiebreak_indicator (D-12) renders localized 'Stechen <Player>' suffix in Spielbericht-PDF when ba_results['TiebreakWinner']∈{1,2}; integer-coerce defense via tw.to_i; auto-escaping preserved (no html_safe); 5 unit tests cover valid/invalid/nil/missing cross-product; Plan 06 table_monitor.tiebreak.* keys preserved.
 - [Phase 38.7]: Plan 08: System tests use service-level dispatch + reflex via .allocate stubs, consistent with bk2_scoreboard_test.rb (38.4-07/38.5-06) and game_protocol_reflex_test.rb (Plan 06 Task 4). Avoids the Tournament+TournamentMonitor+TournamentPlan fixture chain while exercising the same evaluate_result→tiebreak_pick_pending?→marker-switch chain production runs. 4 tests, 32 assertions, 0 failures.
 - [Phase 38.7]: Plan 09 (Gap-01): preset tiebreak_on_draw threaded carambus.yml → form → controller → GameSetup with key? gate after Game.derive_tiebreak_required; sparse-override semantic preserved (Phase 38.5 D-06); 4 BK-2kombi + 3 BK-2 small_billard buttons carry tiebreak_on_draw: true; both .erb template and gitignored .yml kept in sync per project convention
+- [Phase 38.7]: Plan 11 (Gap-03): bk2_kombi_tiebreak_auto_detect! injected as first line of tiebreak_pick_pending? — extend-before-build SKILL applied (one guard, 4 call sites unchanged). 5-condition gate forces Game.data['tiebreak_required']=true on BK-2kombi BK-2-phase ties at goal in 1+1 innings via Game#deep_merge_data! (canonical write path), overriding any pre-baked false. Hard rule of the discipline, NOT operator-configurable.
 
 ### Roadmap Evolution
 
@@ -169,6 +170,6 @@ None blocking Phase 38.1 execution. Reconciliation debt above is tracked but not
 
 ## Session Continuity
 
-Last session: 2026-04-30T17:20:32.345Z
-Stopped at: Completed 38.7-09-PLAN.md (Gap-01 carambus.yml preset tiebreak source)
+Last session: 2026-04-30T17:26:01.521Z
+Stopped at: Completed 38.7-11-PLAN.md (Gap-03 BK-2kombi BK-2-phase auto-detect)
 Resume: `/gsd-plan-phase 38.7 --gaps` to plan training-mode tiebreak sources (carambus.yml preset, detail-form toggle, BK-2kombi auto-detect, TournamentMonitor override)
