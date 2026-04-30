@@ -356,6 +356,9 @@ de:
     organizer_id: Organisierung
     organizer_type: Region/Club
     updated_at: updated at
+  locations:
+    scoreboard_free_game:
+      tiebreak_on_draw: "Stechen bei Unentschieden"
   may_loose_results: Spielergebnisse können dabei verloren gehen!
   must_be_an_admin: Adminrechte erforderlich.
   not_allowed_on_api_server: Diese Operation ist in API Server nicht möglich.

@@ -639,6 +639,18 @@
                 <%- end %>
                 <div class="mb-1"><%= t("activerecord.attributes.tournament.allow_overflow") %></div>
               </div>
+              <%# Phase 38.7 Plan 10 (Gap-02): per-match tiebreak toggle.
+                  Hidden '0' field ensures unchecked submits explicit false (sparse
+                  override beats Plan 04 resolver default-false in any future
+                  tournament-mode interaction). Checked submits '1'. Plan 09's
+                  controller normalizes both into Bool. %>
+              <div class="flex flex-row text-white">
+                <%= content_tag :div, id: "tiebreak_on_draw", tabindex: 1, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 rounded-lg p-1" do %>
+                  <%= hidden_field_tag :tiebreak_on_draw, "0" %>
+                  <%= check_box_tag :tiebreak_on_draw, "1", false, class: "p-1 text-2vw mr-4" %>
+                <%- end %>
+                <div class="mb-1"><%= t("locations.scoreboard_free_game.tiebreak_on_draw") %></div>
+              </div>
               <div class="flex flex-col text-white">
                 <div class="flex text-white">
                   <div class="mb-1"><%= t("activerecord.attributes.tournament.fixed_display_left") %></div>
