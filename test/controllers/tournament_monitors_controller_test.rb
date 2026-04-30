@@ -107,4 +107,91 @@ class TournamentMonitorsControllerTest < ActionDispatch::IntegrationTest
     post update_games_tournament_monitor_url(@tournament_monitor)
     assert_redirected_to tournament_monitor_path(@tournament_monitor)
   end
+
+  # ----------------------------------------------------------------
+  # Phase 38.7 Plan 12 — Gap-04: TournamentMonitor startup form tiebreak override.
+  # The form ships a checkbox; submission persists onto Tournament.data
+  # (resolver Level 1, NOT TournamentMonitor.data). Plan 04's resolver picks
+  # it up at every Game's start_game.
+  #
+  # AUTH NOTE: Persistence is gated to the :update action only. The :create
+  # action is NOT covered by ensure_tournament_director (verified at
+  # tournament_monitors_controller.rb lines 1-4). The checkbox renders in
+  # `new` for UX continuity but its value is intentionally ignored on create.
+  # G4 is the regression test that locks this contract.
+  # ----------------------------------------------------------------
+
+  test "G1 (Gap-04): PATCH update with tournament_tiebreak_on_draw=1 persists Tournament.data['tiebreak_on_draw']=true" do
+    # Ensure clean baseline (setup uses tournaments(:local) which has no data["tiebreak_on_draw"])
+    @tournament.update!(data: (@tournament.data.is_a?(Hash) ? @tournament.data : {}).reject { |k, _| k == "tiebreak_on_draw" })
+
+    patch tournament_monitor_url(@tournament_monitor), params: {
+      tournament_monitor: { balls_goal: @tournament_monitor.balls_goal },
+      tournament_tiebreak_on_draw: "1"
+    }
+
+    @tournament.reload
+    data = @tournament.data.is_a?(Hash) ? @tournament.data : JSON.parse(@tournament.data.to_s)
+    assert_equal true, data["tiebreak_on_draw"],
+      "Gap-04: form tournament_tiebreak_on_draw=1 must persist Tournament.data['tiebreak_on_draw']=true"
+
+    # Resolver wires it to Level 1
+    assert_equal true,
+      Game.derive_tiebreak_required(tournament: @tournament, tournament_plan: nil, group_no: nil),
+      "Gap-04: resolver Level 1 must read Tournament.data['tiebreak_on_draw']=true"
+  end
+
+  test "G2 (Gap-04): PATCH update with tournament_tiebreak_on_draw=0 overrides plan default true" do
+    @tournament.update!(data: {})
+
+    patch tournament_monitor_url(@tournament_monitor), params: {
+      tournament_monitor: { balls_goal: @tournament_monitor.balls_goal },
+      tournament_tiebreak_on_draw: "0"
+    }
+
+    @tournament.reload
+    data = @tournament.data.is_a?(Hash) ? @tournament.data : JSON.parse(@tournament.data.to_s)
+    assert_equal false, data["tiebreak_on_draw"],
+      "Gap-04: form tournament_tiebreak_on_draw=0 must persist Tournament.data['tiebreak_on_draw']=false (explicit override)"
+
+    assert_equal false,
+      Game.derive_tiebreak_required(tournament: @tournament, tournament_plan: nil, group_no: nil),
+      "Gap-04: resolver Level 1 must read explicit false"
+  end
+
+  test "G3 (Gap-04): PATCH update without tournament_tiebreak_on_draw param leaves Tournament.data['tiebreak_on_draw'] untouched" do
+    # Pre-existing value: true
+    existing_data = (@tournament.data.is_a?(Hash) ? @tournament.data : {}).merge("tiebreak_on_draw" => true)
+    @tournament.update!(data: existing_data)
+
+    patch tournament_monitor_url(@tournament_monitor), params: {
+      tournament_monitor: { balls_goal: @tournament_monitor.balls_goal }
+      # no tournament_tiebreak_on_draw key
+    }
+
+    @tournament.reload
+    data = @tournament.data.is_a?(Hash) ? @tournament.data : JSON.parse(@tournament.data.to_s)
+    assert_equal true, data["tiebreak_on_draw"],
+      "Gap-04: missing form param must NOT overwrite existing Tournament.data['tiebreak_on_draw']"
+  end
+
+  test "G4 (Gap-04): POST create with tournament_tiebreak_on_draw=1 does NOT touch Tournament.data (auth gate — :create is not director-gated)" do
+    # Clean baseline — Tournament.data has no key.
+    @tournament.update!(data: (@tournament.data.is_a?(Hash) ? @tournament.data : {}).reject { |k, _| k == "tiebreak_on_draw" })
+
+    # Create path: param value is intentionally ignored server-side because
+    # :create is not protected by ensure_tournament_director (see controller
+    # lines 1-4). Operator must edit the monitor afterward to persist the value.
+    assert_difference("TournamentMonitor.count", 1) do
+      post tournament_monitors_url, params: {
+        tournament_monitor: { tournament_id: @tournament.id, balls_goal: 30, innings_goal: 25, timeout: 0, timeouts: 2 },
+        tournament_tiebreak_on_draw: "1"
+      }
+    end
+
+    @tournament.reload
+    data = @tournament.data.is_a?(Hash) ? @tournament.data : JSON.parse(@tournament.data.to_s)
+    assert_nil data["tiebreak_on_draw"],
+      "Gap-04: :create must NOT persist Tournament.data['tiebreak_on_draw'] (auth surface unchanged — only :update is director-gated)"
+  end
 end
