@@ -126,8 +126,11 @@ class GameProtocolReflex < ApplicationReflex
         return
       end
       if @table_monitor.game.present?
-        @table_monitor.game.data ||= {}
-        @table_monitor.game.data["tiebreak_winner"] = tw
+        # Phase 38.7 Plan 06 D-08 (Rule 1 deviation, same root cause as Plan 04):
+        # Game#data returns a freshly-decoded Hash on every call, so direct mutation
+        # does NOT dirty-track. Use deep_merge_data! which calls data_will_change!
+        # and reassigns self.data so save! persists correctly.
+        @table_monitor.game.deep_merge_data!("tiebreak_winner" => tw)
         @table_monitor.game.save!
         Rails.logger.info "[GameProtocolReflex#confirm_result] tiebreak_winner=#{tw} persisted to Game[#{@table_monitor.game.id}].data"
       end
