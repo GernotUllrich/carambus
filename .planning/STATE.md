@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v7.1
 milestone_name: UX Polish & i18n Debt
 status: executing
-stopped_at: Completed 38.7-04-PLAN.md (Tiebreak flag bake at game-start RED-then-GREEN x2)
-last_updated: "2026-04-30T14:09:01.570Z"
+stopped_at: Completed 38.7-05-PLAN.md (Result Recorder Tiebreak Detection RED-then-GREEN)
+last_updated: "2026-04-30T14:20:18.986Z"
 last_activity: 2026-04-30
 progress:
   total_phases: 9
   completed_phases: 6
   total_plans: 56
-  completed_plans: 51
-  percent: 91
+  completed_plans: 52
+  percent: 93
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-15)
 ## Current Position
 
 Phase: 38.7 (tiebreak-bei-unentschieden-per-game-flag-mit-modal-eingabe) — EXECUTING
-Plan: 5 of 8
+Plan: 6 of 8
 Status: Ready to execute
 Last activity: 2026-04-30
 
@@ -117,6 +117,8 @@ Decisions are logged in PROJECT.md Key Decisions table. Full v7.0 cross-phase de
 - [Phase 38.7]: Plan 02: RED phase had 3 failures (predicted 2). Test 4 (Nachstoss not at goal, innings 5 vs 6) was predicted to PASS via legacy karambol gate but actually FAILS today — gate requires innings parity OR !allow_follow_up, both halves false in fixture. Task 2's new branch covers Test 4 correctly. Documented as plan-internal RED-prediction error, not a code defect.
 - [Phase 38.7]: Plan 03: D-10 tiebreak override branch in update_game_participations — 3-clause defensive guard (is_a?(String) AND in whitelist AND rank tied) before applying operator pick. Legacy logic preserved verbatim in else-arm. Stub-based test pattern: prime_tiebreak_game creates real Game+GP+TM rows; run_update_game_participations stubs PartyMonitor#get_*_by_gname to decouple from league.game_plan fixture.
 - [Phase 38.7]: Plan 04: Game.derive_tiebreak_required class method (CD-01, not extending BkParamResolver) walks 4-level hierarchy with sparse-override (data.key? gate). Plan-prescribed direct mutation @tm.game.data['key']=X failed to dirty-track because Game has a custom def data getter that returns freshly-decoded Hash; switched to @tm.game.deep_merge_data!('tiebreak_required' => …) which calls data_will_change! and reassigns self.data. RULE 1 deviation, documented inline.
+- [Phase 38.7]: Plan 05: tiebreak_pick_pending? as private helper on ResultRecorder (mirrors TableMonitor#tiebreak_pending_block? but kept separate per public/private split). T7-T9 do NOT use @tm.reload — update_ba_results_with_set_result! does NOT save (caller owns persistence). Plan-prescribed reload removed during GREEN phase as Rule 1 plan-prescribed-test-bug fix.
+- [Phase 38.7]: Plan 05: AASM guard  on :acknowledge_result event provides D-08 defense-in-depth across ALL caller paths (admin_ack_result, ResultRecorder branches, console, forged direct invocations). Pairs with Plan 06's reflex-level form validation for layered defense.
 
 ### Roadmap Evolution
 
@@ -163,6 +165,6 @@ None blocking Phase 38.1 execution. Reconciliation debt above is tracked but not
 
 ## Session Continuity
 
-Last session: 2026-04-30T14:09:01.567Z
-Stopped at: Completed 38.7-04-PLAN.md (Tiebreak flag bake at game-start RED-then-GREEN x2)
+Last session: 2026-04-30T14:20:18.983Z
+Stopped at: Completed 38.7-05-PLAN.md (Result Recorder Tiebreak Detection RED-then-GREEN)
 Resume: `/gsd-plan-phase 38` to break Phase 38 into 3 executable plans
