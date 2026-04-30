@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v7.1
 milestone_name: UX Polish & i18n Debt
 status: executing
-stopped_at: Completed 38.7-12-PLAN.md (Gap-04 TournamentMonitor startup-form tiebreak override) — phase 38.7 all 4 UAT gaps closed
-last_updated: "2026-04-30T17:46:15.655Z"
+stopped_at: Completed 38.7-13-PLAN.md (Gap-05 view-wiring fix) — Phase 38.7 all 5 UAT gaps closed; ready for retest
+last_updated: "2026-04-30T21:55:04.516Z"
 last_activity: 2026-04-30
 progress:
   total_phases: 9
   completed_phases: 7
-  total_plans: 60
-  completed_plans: 59
+  total_plans: 61
+  completed_plans: 60
   percent: 98
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-15)
 ## Current Position
 
 Phase: 38.7 (tiebreak-bei-unentschieden-per-game-flag-mit-modal-eingabe) — EXECUTING
-Plan: 5 of 12
+Plan: 2 of 13
 Status: Ready to execute
 Last activity: 2026-04-30
 
@@ -126,6 +126,7 @@ Decisions are logged in PROJECT.md Key Decisions table. Full v7.0 cross-phase de
 - [Phase 38.7]: Plan 11 (Gap-03): bk2_kombi_tiebreak_auto_detect! injected as first line of tiebreak_pick_pending? — extend-before-build SKILL applied (one guard, 4 call sites unchanged). 5-condition gate forces Game.data['tiebreak_required']=true on BK-2kombi BK-2-phase ties at goal in 1+1 innings via Game#deep_merge_data! (canonical write path), overriding any pre-baked false. Hard rule of the discipline, NOT operator-configurable.
 - [Phase 38.7]: Plan 10 (Gap-02): hidden_field_tag '0' + check_box_tag '1' pattern in detail-form set_params panel — explicit unchecked-submits-false sparse semantics; rides Plan 09's slice + GameSetup override branch (zero controller/service changes)
 - [Phase 38.7]: Plan 12 (Gap-04): TournamentMonitor startup-form tiebreak override — operator pick written to Tournament.data['tiebreak_on_draw'] via update_columns (bypasses unrelated organizer presence validation + before_save data-key extraction). Persist gated to :update only because :create is NOT director-gated; operator workflow is create-then-edit. i18n under tournament_monitors.form namespace, disjoint from Plan 10's locations.scoreboard_free_game namespace. Plan 04 resolver UNCHANGED — Plan 12 only writes Level 1.
+- [Phase 38.7]: Plan 13 (Gap-05): data-reflex='submit->GameProtocolReflex#confirm_result' relocated from <button> onto <form> in _game_protocol_modal.html.erb + action='javascript:void(0)' defense-in-depth; submit-event observability fixed (browsers fire submit on forms, not buttons). RED→GREEN integration suite (test/integration/tiebreak_modal_form_wiring_test.rb, 4 tests / 20 assertions) locks the contract via Nokogiri parse of ApplicationController.render output. Zero Ruby-layer changes — Plans 09-12 deliverables UNCHANGED. Closes the test gap that allowed the original bug to ship despite GREEN reflex unit + system tests.
 
 ### Roadmap Evolution
 
@@ -172,6 +173,6 @@ None blocking Phase 38.1 execution. Reconciliation debt above is tracked but not
 
 ## Session Continuity
 
-Last session: 2026-04-30T17:46:15.651Z
-Stopped at: Completed 38.7-12-PLAN.md (Gap-04 TournamentMonitor startup-form tiebreak override) — phase 38.7 all 4 UAT gaps closed
+Last session: 2026-04-30T21:55:04.513Z
+Stopped at: Completed 38.7-13-PLAN.md (Gap-05 view-wiring fix) — Phase 38.7 all 5 UAT gaps closed; ready for retest
 Resume: `/gsd-plan-phase 38.7 --gaps` to plan training-mode tiebreak sources (carambus.yml preset, detail-form toggle, BK-2kombi auto-detect, TournamentMonitor override)
