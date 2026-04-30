@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v7.1
 milestone_name: UX Polish & i18n Debt
 status: executing
-stopped_at: Awaiting human-verify checkpoint on Plan 38.7-08 Task 2
-last_updated: "2026-04-30T14:49:24.724Z"
+stopped_at: Phase 38.7 paused — plan 01 reverted + plan 04 Level-3 Discipline removed (UAT feedback 2026-04-30); training-mode tiebreak sources pending in gap-closure plans
+last_updated: "2026-04-30T15:42:00.000Z"
 last_activity: 2026-04-30
 progress:
   total_phases: 9
   completed_phases: 7
   total_plans: 56
-  completed_plans: 55
-  percent: 98
+  completed_plans: 54
+  percent: 96
 ---
 
 # Project State
@@ -168,6 +168,6 @@ None blocking Phase 38.1 execution. Reconciliation debt above is tracked but not
 
 ## Session Continuity
 
-Last session: 2026-04-30T14:49:20.307Z
-Stopped at: Awaiting human-verify checkpoint on Plan 38.7-08 Task 2
-Resume: `/gsd-plan-phase 38` to break Phase 38 into 3 executable plans
+Last session: 2026-04-30T15:42:00.000Z
+Stopped at: Phase 38.7 paused — plan 01 reverted + plan 04 Level-3 Discipline removed; training-mode sources pending in gap-closure plans
+Resume: `/gsd-plan-phase 38.7 --gaps` to plan training-mode tiebreak sources (carambus.yml preset, detail-form toggle, BK-2kombi auto-detect, TournamentMonitor override)
