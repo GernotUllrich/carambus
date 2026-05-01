@@ -73,6 +73,19 @@
                       else                           "bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400"
                       end %>
   <%- end %>
+  <%# Quick-260501-vly Plan 01 — Bug 3: unified inning display.
+      Quickstart hardcodes innings_goal=0 for BK-family (preset _quick_game_buttons.html.erb);
+      Detail Page sets it via karambol-style innings_choice radio (typically 5).
+      Display divergence: Detail-Page games show "3 of 5", Quickstart games show bare "3"
+      for IDENTICAL engine semantics. Fall back to bk2_options.serienspiel_max_innings_per_set
+      when innings_goal is 0 in BK-2 / BK-2kombi-SP context (set by Quick-260501-uxo via
+      clamp_bk_family_params! and round-tripped through tm.data as STRING-keyed Hash).
+      Pure view-layer change — engine semantics UNAFFECTED. %>
+  <%- bk_sp_inning_phase = options[:free_game_form] == "bk_2" ||
+      (options[:free_game_form] == "bk2_kombi" && (defined?(bk2_current_phase) && bk2_current_phase == "serienspiel")) %>
+  <%- display_innings_goal = options[:innings_goal].to_i.positive? ?
+      options[:innings_goal].to_i :
+      (bk_sp_inning_phase ? options.dig(:bk2_options, "serienspiel_max_innings_per_set").to_i : 0) %>
   <div class="flex <%= fullscreen ? "h-5/6" : "h-full w-full" %> bg-gray">
     <div id="player_score_wrapper_<%= left_player_id %>_<%= table_monitor.id %>" class="w-2/5 <%= left_color_class %> dark:bg-black">
       <%= render partial: 'table_monitors/player_score_panel', locals: { table_monitor: table_monitor, player_key: left_player_id, fullscreen: fullscreen, options: options } %>
@@ -117,14 +130,14 @@
               <%- if bk2_current_phase == "serienspiel" %>
                 <%- delta = table_monitor.state_display(I18n.locale).present? ? 0 : 1 %>
                 <%- bk2_current_inning = (options[:current_kickoff_player] == "playera" ? right_player[:innings].to_i : left_player[:innings].to_i) + delta %>
-                <%= bk2_current_inning %><%- if options[:innings_goal].to_i > 0 %> <%= t("of") %> <%= options[:innings_goal].to_i %><%- end %>
+                <%= bk2_current_inning %><%- if display_innings_goal > 0 %> <%= t("of") %> <%= display_innings_goal %><%- end %>
               <%- end %>
             </div>
           <%- else %>
             <% delta = table_monitor.state_display(I18n.locale).present? ? 0 : 1 %>
             <div class="h-5/6 p-4 text-<%= vw8 %> font-bold text-center"><%= options[:current_kickoff_player] == 'playera' ? right_player[:innings].to_i + delta : left_player[:innings].to_i + delta %></div>
-            <%- unless (table_monitor.tournament_monitor.is_a?(TournamentMonitor) && table_monitor.tournament_monitor.andand.tournament.andand.handicap_tournier?) || options[:innings_goal].to_i == 0 %>
-              <div class="h-1/6 items-center text-<%= vw2 %> justify-center text-center"><%= t('of') %> <%= options[:innings_goal].to_i %></div>
+            <%- unless (table_monitor.tournament_monitor.is_a?(TournamentMonitor) && table_monitor.tournament_monitor.andand.tournament.andand.handicap_tournier?) || display_innings_goal == 0 %>
+              <div class="h-1/6 items-center text-<%= vw2 %> justify-center text-center"><%= t('of') %> <%= display_innings_goal %></div>
             <%- end %>
           <%- end %>
         </div>
