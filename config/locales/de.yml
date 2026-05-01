@@ -579,6 +579,7 @@ de:
       table_monitors: Tischmonitore
     ip_address: IP-Adresse
     name: Name
+    next_game: Nächstes Spiel
     next_game_id: Nächste Partie
     nnn: nnn
     set_finished: Satz beendet

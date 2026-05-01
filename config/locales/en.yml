@@ -546,6 +546,7 @@ en:
       table_monitors: Table monitors
     ip_address: ip address
     name: name
+    next_game: Next Game
     next_game_id: next game id
     nnn: nnn
     set_finished: Set finished
