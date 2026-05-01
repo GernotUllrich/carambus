@@ -64,7 +64,6 @@
     <%- bk2_set_number = Array(table_monitor.data["sets"]).length + 1 %>
     <%- bk2_current_phase = (bk2_set_number.odd? ? bk2_first_set_mode : (bk2_first_set_mode == "direkter_zweikampf" ? "serienspiel" : "direkter_zweikampf")) %>
     <%- bk2_shots_left = bk2_state["shots_left_in_turn"].to_i %>
-    <%- bk2_innings_left = bk2_state["innings_left_in_set"].to_i %>
     <%- bk2_phase_label = bk2_current_phase.present? ?
         t("table_monitor.bk2_kombi.phase_chip.#{bk2_current_phase}", default: bk2_current_phase.humanize) :
         "—" %>
@@ -111,12 +110,14 @@
               <%= bk2_phase_label %>
             </div>
             <div class="h-3/6 flex items-center justify-center text-<%= vw2 %> text-center">
-              <%# Phase 38.4 R5-6: Stöße-übrig-Badge entfernt — es gibt keine UI um
-                  einen Stoß innerhalb der Aufnahme abzuschließen, also war der
-                  Counter ohne Funktion. Aufnahmen-übrig (SP-Phase) bleibt: dort
-                  zählt jeder Aufnahme-Wechsel runter. %>
-              <%- if bk2_current_phase == "serienspiel" && bk2_innings_left.to_i != 0 %>
-                <%= t("table_monitor.bk2_kombi.innings_left_label", count: bk2_innings_left) %>: <%= bk2_innings_left %>
+              <%# Quick 260501-sbz: aktuelle Aufnahmenzahl in SP-Phase (analog karambol-Pfad).
+                  Spieler sind den Counter aus dem BK-2-Standalone-Pfad gewohnt;
+                  Aufnahmen-übrig wird nicht mehr angezeigt (User-Wunsch BCW 2026-05-01).
+                  Logik kopiert aus dem karambol-else-Branch unten (Zeile 122-128). %>
+              <%- if bk2_current_phase == "serienspiel" %>
+                <%- delta = table_monitor.state_display(I18n.locale).present? ? 0 : 1 %>
+                <%- bk2_current_inning = (options[:current_kickoff_player] == "playera" ? right_player[:innings].to_i : left_player[:innings].to_i) + delta %>
+                <%= bk2_current_inning %><%- if options[:innings_goal].to_i > 0 %> <%= t("of") %> <%= options[:innings_goal].to_i %><%- end %>
               <%- end %>
             </div>
           <%- else %>
