@@ -141,16 +141,12 @@ class FinalMatchScoreOperatorGateTest < ActiveSupport::TestCase
     reflex.instance_variable_set(:@table_monitor, tm)
 
     # Override TableMonitor.find inside the reflex to return our spied tm.
-    TableMonitor.define_singleton_method(:find) { |_id| tm }
-    begin
+    # Phase 38.8 REVIEW WR-02: use Minitest's class-level `stub` (auto-restores
+    # via ensure block exit) instead of a manual define_singleton_method +
+    # remove_method dance. The manual override leaked under parallel execution
+    # and fell through silently when remove_method raised TypeError.
+    TableMonitor.stub(:find, ->(_id) { tm }) do
       reflex.start_rematch
-    ensure
-      # Restore canonical .find via reload of class (singleton_method removal is brittle).
-      begin
-        TableMonitor.singleton_class.send(:remove_method, :find)
-      rescue
-        nil
-      end
     end
 
     tm.reload
