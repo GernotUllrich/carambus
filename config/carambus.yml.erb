@@ -17,6 +17,12 @@ default:
   force_update: 'true'
   no_local_protection: 'false'
   club_id: nil
+  # Wenn true, zeigt der Scoreboard im Training-Mode (kein tournament_monitor)
+  # für registrierte Nicht-Team-Nicht-Gast-Spieler den vollständigen Namen
+  # statt der disambiguierten Kurzform. Default false → unverändertes Verhalten.
+  # Aktivieren z. B. bei BCW-Grand-Prix mit gemischtem Gast/Mitglieder-Feld
+  # via per-scenario carambus.yml(.erb) override.
+  training_mode_show_fullname: false
   # Quick Game Presets - TableKind specific (90% use cases)
   quick_game_presets:
     small_billard:
