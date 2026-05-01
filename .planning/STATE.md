@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-04-15)
 Phase: 999.1
 Plan: Not started
 Status: Phase complete — ready for verification
-Last activity: 2026-05-01
+Last activity: 2026-05-01 - Completed quick task 260501-sbz: Fix BK-2kombi SP-phase inning counter display
 
 **Deferred to Wave 4 / later session:**
 
@@ -179,6 +179,7 @@ None blocking Phase 38.1 execution. Reconciliation debt above is tracked but not
 | 260414-qb8 | Fix PG::UndefinedColumn result_a crash in tournaments show/finalize_modus views | 2026-04-14 | b787da5e | [260414-qb8-fix-pg-undefinedcolumn-result-a-crash-in](./quick/260414-qb8-fix-pg-undefinedcolumn-result-a-crash-in/) |
 | 260415-26d | public/docs/ build hardening via overcommit pre-commit hook — **ROLLED BACK** (hook approach failed, see POSTMORTEM) | 2026-04-15 | 912bf72a → rollback | [260415-26d-public-docs-build-hardening-via-overcomm](./quick/260415-26d-public-docs-build-hardening-via-overcomm/) |
 | 260501-pud | Add `Carambus.config.training_mode_show_fullname` flag (default false) — when true, training mode shows full player names in scoreboard/warmup/shootout for non-guest registered players | 2026-05-01 | a5c90fa7 | [260501-pud-add-training-mode-show-fullname-config-f](./quick/260501-pud-add-training-mode-show-fullname-config-f/) |
+| 260501-sbz | Fix BK-2kombi SP-phase inning counter display (replaces Aufnahmen-übrig with karambol-style "N of M") | 2026-05-01 | _pending_ | [260501-sbz-fix-bk-2kombi-sp-phase-inning-counter-di](./quick/260501-sbz-fix-bk-2kombi-sp-phase-inning-counter-di/) |
 
 ## Session Continuity
 
