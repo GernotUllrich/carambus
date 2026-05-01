@@ -154,12 +154,30 @@ class FinalMatchScoreOperatorGateTest < ActiveSupport::TestCase
       "SC-1: after operator clicks Nächstes Spiel, TM must transition to :playing"
   end
 
-  # SC-2: TOURNAMENT-mode round-progression deferred until close_match!.
-  test "tournament match completion lands in final_match_score and DEFERS round-progression cascade" do
+  # SC-2: AASM close_match transition from :final_match_score to :ready_for_new_match.
+  #
+  # Phase 38.8 REVIEW WR-04: this test originally claimed to validate the
+  # "TOURNAMENT-mode deferred round-progression cascade" but used
+  # build_training_tm (tournament_monitor: nil), so it never actually exercised
+  # the cascade — it only asserted the AASM transition itself. The
+  # advance_tournament_round_if_present after-callback early-returns on
+  # tournament_monitor.blank?, so the cascade never fired.
+  #
+  # The actual deferred-cascade behavioral contract is now covered by:
+  #   - test/services/tournament_monitor/result_processor_test.rb
+  #     ("advance_round_after_match_close method body contains all 6 cascade calls")
+  #     — static-source proof of cascade extraction
+  #   - test/services/tournament_monitor/result_processor_test.rb
+  #     CR-02 sentinel + ensure-clear regression tests
+  #   - test/services/party_monitor/result_processor_test.rb
+  #     CR-01 polymorphic-guard regression tests (real PartyMonitor cascade)
+  #
+  # SC-2 here narrows scope to the AASM transition only — that the close_match
+  # event wires correctly from :final_match_score to :ready_for_new_match
+  # without raising in the no-op (training) path.
+  test "close_match AASM event transitions final_match_score -> ready_for_new_match (training-mode no-op cascade)" do
     tm = build_training_tm
-    # Stub a tournament_monitor presence — we do NOT instantiate a full TournamentMonitor
-    # fixture (avoids the Tournament+TournamentPlan chain). We assert the deferred-cascade
-    # contract via the static-source check from Plan 04 + the AASM after-callback wiring check.
+    assert_nil tm.tournament_monitor, "Precondition: training-mode TM has no tournament_monitor"
     assert TableMonitor.instance_methods(false).include?(:advance_tournament_round_if_present),
       "SC-2: TableMonitor#advance_tournament_round_if_present must exist (Plan 38.8-04 Task 2)"
 
