@@ -156,6 +156,33 @@
           text-center dark:bg-black" do %>
             <%= "zurück" %>
           <%- end %>
+        <%- elsif table_monitor.final_match_score? %>
+          <%# Phase 38.8 — operator-gate button. The TM has entered
+              :final_match_score ("Endergebnis erfasst" — de.yml:589) and stays
+              there until the operator clicks this button. Two reflex paths:
+              TRAINING mode (no tournament_monitor) -> fires :start_rematch
+              (Plan 38.8-02 AASM event) -> revert_players + do_play -> :playing.
+              TOURNAMENT mode -> fires :close_match (existing AASM event, now
+              wired in Plan 38.8-04 with after-callback advance_tournament_round_if_present)
+              -> :ready_for_new_match + deferred round-progression cascade.
+              Same German label "Nächstes Spiel" both modes (Plan 38.8-02 i18n key). %>
+          <%- if table_monitor.tournament_monitor.blank? %>
+            <%= content_tag "div",
+                  data: { reflex: "click->TableMonitorReflex#start_rematch touchstart->TableMonitorReflex#start_rematch", id: table_monitor.id },
+                  id: "next_game_button",
+                  class: "flex flex-col h-1/6 items-center justify-center font-bold text-green-500 text-#{vw2} text-center cursor-pointer dark:bg-black hover:bg-gray-200 dark:hover:bg-gray-800 rounded",
+                  tabindex: 1 do %>
+              <%= t("table_monitor.next_game") %>
+            <%- end %>
+          <%- else %>
+            <%= content_tag "div",
+                  data: { reflex: "click->TableMonitorReflex#close_match touchstart->TableMonitorReflex#close_match", id: table_monitor.id },
+                  id: "next_game_button",
+                  class: "flex flex-col h-1/6 items-center justify-center font-bold text-green-500 text-#{vw2} text-center cursor-pointer dark:bg-black hover:bg-gray-200 dark:hover:bg-gray-800 rounded",
+                  tabindex: 1 do %>
+              <%= t("table_monitor.next_game") %>
+            <%- end %>
+          <%- end %>
         <%- end %>
         <div class="flex flex-col items-center h-1/6">
           <div class="flex h-2/3 flex-row space-x-3 rounded-full">
