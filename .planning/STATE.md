@@ -4,8 +4,8 @@ milestone: v7.1
 milestone_name: UX Polish & i18n Debt
 status: executing
 stopped_at: Completed 38.7-13-PLAN.md (Gap-05 view-wiring fix) — Phase 38.7 all 5 UAT gaps closed; ready for retest
-last_updated: "2026-04-30T21:55:04.516Z"
-last_activity: 2026-04-30
+last_updated: "2026-05-01T06:44:49.666Z"
+last_activity: 2026-05-01
 progress:
   total_phases: 9
   completed_phases: 7
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-04-15)
 
 ## Current Position
 
-Phase: 38.7 (tiebreak-bei-unentschieden-per-game-flag-mit-modal-eingabe) — EXECUTING
-Plan: 2 of 13
+Phase: 39
+Plan: Not started
 Status: Ready to execute
-Last activity: 2026-04-30
+Last activity: 2026-05-01
 
 **Deferred to Wave 4 / later session:**
 
