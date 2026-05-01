@@ -107,9 +107,16 @@ class TournamentMonitor::ResultProcessor
   # close_match!. Wired from TableMonitor AASM close_match event via
   # `advance_tournament_round_if_present` after-callback.
   #
-  # Idempotent: each branch is gated by AASM may_? predicates and
-  # all_table_monitors_finished? — re-running on an already-progressed round
-  # is a no-op.
+  # NOT idempotent — intended to be called exactly once per operator click.
+  # Re-invocation will increment current_round again, re-populate tables
+  # (potentially clobbering operator-set assignments), and re-enqueue both
+  # TournamentMonitorUpdateResultsJob and TournamentStatusUpdateJob.
+  # Re-entry is prevented by the thread-local sentinel
+  # `Thread.current[:_advancing_round_for_tm]` set in
+  # TableMonitor#advance_tournament_round_if_present (CR-02 guard);
+  # finalize_round's internal `tabmon.close_match!` loop relies on that
+  # sentinel to short-circuit nested re-entry. See Phase 38.8 REVIEW WR-01
+  # and CR-02.
   #
   # PUBLIC — invoked from app/models/table_monitor.rb#advance_tournament_round_if_present.
   def advance_round_after_match_close(table_monitor)
