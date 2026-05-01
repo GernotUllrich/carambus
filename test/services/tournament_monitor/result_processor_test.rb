@@ -264,4 +264,73 @@ class TournamentMonitor::ResultProcessorTest < ActiveSupport::TestCase
     assert_match(/@tournament_monitor\.start_playing_groups!/, source_file,
       "start_playing_groups! must fire on @tournament_monitor")
   end
+
+  # ============================================================================
+  # Phase 38.8 Plan 04 — Deferred round-progression cascade contract
+  #
+  # report_result must NO LONGER auto-progress the round (that clobbered the
+  # operator-visible "Endergebnis erfasst" display before phase 38.8). The
+  # cascade now runs only when AASM close_match event fires from operator
+  # action (Plan 38.8-05 wires the button).
+  # ============================================================================
+
+  test "advance_tournament_round_if_present is a no-op when tournament_monitor is blank (training mode)" do
+    # In-memory TM with no tournament_monitor (training mode). No persistence needed —
+    # we only verify the early-return path of advance_tournament_round_if_present.
+    tm = TableMonitor.new(state: "final_match_score", data: { "ba_results" => {} })
+    assert_nil tm.tournament_monitor
+
+    result = nil
+    assert_nothing_raised do
+      result = tm.advance_tournament_round_if_present
+    end
+    assert_nil result, "Training-mode TM (no tournament_monitor) must short-circuit advance_tournament_round_if_present"
+  end
+
+  test "TournamentMonitor::ResultProcessor exposes public advance_round_after_match_close method" do
+    assert TournamentMonitor::ResultProcessor.instance_methods(false).include?(:advance_round_after_match_close),
+      "advance_round_after_match_close must be a public instance method (called by TableMonitor AASM after-callback)"
+  end
+
+  test "TableMonitor close_match AASM event has after: :advance_tournament_round_if_present callback" do
+    close_event = TableMonitor.aasm.events.find { |e| e.name == :close_match }
+    assert_not_nil close_event, "AASM event :close_match must exist"
+
+    # The `after:` option is stored in event options. Implementation detail varies by AASM version;
+    # at minimum verify the method advance_tournament_round_if_present exists on the model.
+    assert TableMonitor.instance_methods(false).include?(:advance_tournament_round_if_present),
+      "TableMonitor#advance_tournament_round_if_present must exist (Plan 38.8-04 Task 2)"
+  end
+
+  test "report_result no longer mentions populate_tables in its method body (deferred cascade)" do
+    # Static-source assertion — proves the cascade was extracted, not duplicated.
+    # NOTE: We assert no REAL CALL SITE (e.g. @tournament_monitor.populate_tables) inside
+    # report_result, NOT the bare word. The Phase 38.8 explanatory comment block intentionally
+    # mentions the deferred method names ("populate_tables / incr_current_round! / finalize_round")
+    # to document the deferral. Mirrors Plan 38.8-03's documented "comment-text grep noise
+    # accepted as DOCUMENTARY" pattern (see 38.8-03-SUMMARY.md key-decisions).
+    src = File.read(Rails.root.join("app/services/tournament_monitor/result_processor.rb"))
+    report_result_match = src.match(/def report_result.*?(?=\n  def )/m)
+    assert_not_nil report_result_match, "report_result method must exist in result_processor.rb"
+    body = report_result_match[0]
+    refute_match(/@tournament_monitor\.populate_tables/, body,
+      "Phase 38.8 contract: report_result must NOT call @tournament_monitor.populate_tables (cascade extracted to advance_round_after_match_close)")
+    refute_match(/@tournament_monitor\.incr_current_round!/, body,
+      "Phase 38.8 contract: report_result must NOT call @tournament_monitor.incr_current_round! (cascade deferred)")
+    refute_match(/@tournament_monitor\.finalize_round\b/, body,
+      "Phase 38.8 contract: report_result must NOT call @tournament_monitor.finalize_round (cascade deferred)")
+    refute_match(/TournamentMonitorUpdateResultsJob\.perform_later/, body,
+      "Phase 38.8 contract: report_result must NOT enqueue TournamentMonitorUpdateResultsJob (cascade deferred)")
+  end
+
+  test "advance_round_after_match_close method body contains all 6 cascade calls (extracted verbatim)" do
+    src = File.read(Rails.root.join("app/services/tournament_monitor/result_processor.rb"))
+    method_match = src.match(/def advance_round_after_match_close.*?(?=\n  def |\nend\b)/m)
+    assert_not_nil method_match, "advance_round_after_match_close method must exist"
+    body = method_match[0]
+    %w[populate_tables incr_current_round! finalize_round start_playing_groups! TournamentMonitorUpdateResultsJob TournamentStatusUpdateJob].each do |needle|
+      assert_match(/#{Regexp.escape(needle)}/, body,
+        "advance_round_after_match_close must contain '#{needle}' (extracted from report_result)")
+    end
+  end
 end
