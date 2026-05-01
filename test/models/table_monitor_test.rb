@@ -174,6 +174,46 @@ class TableMonitorTest < ActiveSupport::TestCase
   end
 
   # ---------------------------------------------------------------------------
+  # Phase 38.9 Plan 01 — BK-2 / BK-2kombi-SP end-of-set Anstoss-at-goal-in-inning-2 fix.
+  # See .planning/phases/38.9-…/38.9-CONTEXT.md and
+  # .planning/debug/bk2-nachstoss-banner-missing.md.
+  #
+  # Symmetric to the follow_up? Erste-Aufnahme-Gate (table_monitor.rb:1205-1210):
+  # when Anstoss-Spieler reaches balls_goal in inning >= 2, Nachstoss-Aufnahme is
+  # rule-disallowed (he had his table time), so the set MUST close immediately.
+  # Today: end_of_set? returns false (latent defect). Player B silently plays an
+  # unauthorized inning before the legacy parity gate closes the set without ever
+  # showing the red "Nachstoß" banner.
+  # ---------------------------------------------------------------------------
+
+  test "end_of_set? closes BK-2 set immediately when Anstoss reaches balls_goal in inning 2 (Erste-Aufnahme-Gate fails — SC-1)" do
+    # Anstoss=playera reaches balls_goal=50 in his 2nd inning. Nachstoss=playerb
+    # has NOT played yet (innings=0). Per the BK-2 rule, Nachstoss-Aufnahme is
+    # only granted if Anstoss reached the goal in his 1st inning (Erste-Aufnahme-
+    # Gate). Reaching it in inning 2+ means Anstoss already had table time;
+    # opponent gets NO equalizer chance. Therefore: end_of_set? must return true.
+    #
+    # Today: returns false. Branch 1 (no_followup_phase) excludes bk_2; Branch 2
+    # (Plan 38.7-02 D-02) requires nachstoss_innings == anstoss_innings+1 (0 != 3);
+    # Branch 3 (legacy karambol) requires innings parity OR !allow_follow_up
+    # (2 != 0 and allow_follow_up=true). Set stays open silently → terminate_inning_data
+    # swaps active_player → Player B plays unauthorized inning → no red "Nachstoß"
+    # banner (correctly suppressed by follow_up? Erste-Aufnahme-Gate).
+    #
+    # After Task 3 fix lands: new 4th branch fires (bk_with_nachstoss && anstoss_at_goal
+    # && anstoss_innings >= 2) and returns true.
+    @tm.data = build_bk_data(free_game_form: "bk_2", balls_goal: 50,
+                             playera_result: 50, playera_innings: 2,
+                             playerb_result: 0, playerb_innings: 0)
+    assert @tm.end_of_set?,
+      "SC-1: BK-2 with Anstoss=playera reaching balls_goal=50 in inning 2 must close " \
+      "the set IMMEDIATELY (Erste-Aufnahme-Gate fails on the close-side, mirroring " \
+      "follow_up? at table_monitor.rb:1205-1210). " \
+      "TODAY THIS FAILS — proves the latent defect (commit 79328663). " \
+      "TEST EXPECTED TO FAIL BEFORE TASK 3 LANDS."
+  end
+
+  # ---------------------------------------------------------------------------
   # Phase 38.7 Plan 05 T9 — D-08 AASM acknowledge_result guard (defense-in-depth).
   # See .planning/phases/38.7-…/38.7-CONTEXT.md D-08.
   #
