@@ -271,3 +271,15 @@ Phases execute in numeric order: 33 → 34 → 35 → 36a → 36b → 36c → 37
 
 **v7.0 total:** 7 phases, 31 plans, 37/37 requirements, ~2 weeks wall time.
 **v7.1 total (planned):** 4 phases, 12+TBD plans, 6+ requirements (5 in Phase 38, 1 in Phase 39, gap closure in 38.1/38.2).
+
+## Backlog
+
+### Phase 999.1: Endergebnis-erfasst Winner label + per-set result on score panel (BACKLOG)
+
+**Goal:** When a match has reached the final state (`Endergebnis erfasst`), surface a "Winner" label in the score panel and, for multi-set games, the per-set result. Captured during Phase 38.9 UAT (Test 3, BK-2 tiebreak path) — non-blocking UI polish; main BK-game paths run correctly without it.
+**Requirements:** TBD
+**Plans:** 0 plans
+**Source:** `.planning/phases/38.9-bk-2-end-of-set-anstoss-at-goal-fix-close-set-immediately-wh/38.9-HUMAN-UAT.md` Test 3 observation
+
+Plans:
+- [ ] TBD (promote with /gsd-review-backlog when ready)
