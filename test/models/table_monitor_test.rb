@@ -235,6 +235,89 @@ class TableMonitorTest < ActiveSupport::TestCase
   end
 
   # ---------------------------------------------------------------------------
+  # Quick-260501-uxo Plan 01 — BK-2 / BK-2kombi-SP per-set inning limit
+  # (Aufnahmegrenze) enforcement.
+  #
+  # Reads `data["bk2_options"]["serienspiel_max_innings_per_set"]` (default 5,
+  # set by TableMonitorsController#clamp_bk_family_params! line 525). When both
+  # players have completed sp_max innings, the set MUST close even if neither
+  # reached balls_goal. Tied scores flow through the Plan 04 tiebreak gate at
+  # the level above; non-tied → higher score wins via standard set-close flow.
+  #
+  # SKILL extend-before-build: additive branch in the existing bk_with_nachstoss
+  # block of end_of_set?. DZ-Phase is exempt by construction (bk_with_nachstoss
+  # is false there).
+  # ---------------------------------------------------------------------------
+
+  test "end_of_set? closes BK-2kombi SP-Phase when both players reach sp_max innings (260501-uxo)" do
+    # SP-Phase: data["sets"] has 1 entry (set #2 with first_set_mode=DZ → SP).
+    @tm.data = build_bk_data(free_game_form: "bk2_kombi", balls_goal: 70,
+                             playera_result: 50, playera_innings: 5,
+                             playerb_result: 60, playerb_innings: 5,
+                             bk2_options: {"first_set_mode" => "direkter_zweikampf",
+                                           "serienspiel_max_innings_per_set" => 5})
+    @tm.data["sets"] = [{"Ergebnis1" => 70, "Ergebnis2" => 50, "Aufnahmen1" => 4, "Aufnahmen2" => 4,
+                         "Höchstserie1" => 0, "Höchstserie2" => 0}]
+    assert_equal "serienspiel", @tm.bk2_kombi_current_phase,
+      "Sanity: SP-Phase fixture must place us in serienspiel"
+    assert @tm.end_of_set?,
+      "260501-uxo: BK-2kombi SP-Phase with both at inning 5 and sp_max=5 must end_of_set " \
+      "(neither at balls_goal — pure inning-limit close, tiebreak modal handles the tied score above)"
+  end
+
+  test "end_of_set? does NOT close BK-2kombi SP-Phase when only one player reached sp_max innings (parity guard, 260501-uxo)" do
+    @tm.data = build_bk_data(free_game_form: "bk2_kombi", balls_goal: 70,
+                             playera_result: 60, playera_innings: 5,
+                             playerb_result: 50, playerb_innings: 4,
+                             bk2_options: {"first_set_mode" => "direkter_zweikampf",
+                                           "serienspiel_max_innings_per_set" => 5})
+    @tm.data["sets"] = [{"Ergebnis1" => 70, "Ergebnis2" => 50, "Aufnahmen1" => 4, "Aufnahmen2" => 4,
+                         "Höchstserie1" => 0, "Höchstserie2" => 0}]
+    refute @tm.end_of_set?,
+      "260501-uxo: SP-Phase parity guard — playerb has not yet completed his 5th inning, set stays open"
+  end
+
+  test "end_of_set? does NOT close BK-2kombi DZ-Phase on inning limit (DZ-Phase exempt, 260501-uxo)" do
+    # DZ-Phase: data["sets"] empty → set_number=1 → first_set_mode=DZ.
+    # bk_with_nachstoss is false here, so the new branch never enters. Branches 1
+    # and 3 also do not fire (no goal reached). Result: false.
+    @tm.data = build_bk_data(free_game_form: "bk2_kombi", balls_goal: 70,
+                             playera_result: 50, playera_innings: 5,
+                             playerb_result: 60, playerb_innings: 5,
+                             bk2_options: {"first_set_mode" => "direkter_zweikampf",
+                                           "serienspiel_max_innings_per_set" => 5})
+    assert_equal "direkter_zweikampf", @tm.bk2_kombi_current_phase,
+      "Sanity: DZ-Phase fixture must place us in direkter_zweikampf"
+    refute @tm.end_of_set?,
+      "260501-uxo: DZ-Phase has shot-limit per turn (not inning-limit per set) — " \
+      "the new SP-Phase guard MUST NOT fire here"
+  end
+
+  test "end_of_set? closes pure BK-2 set when both players reach sp_max innings (260501-uxo)" do
+    @tm.data = build_bk_data(free_game_form: "bk_2", balls_goal: 50,
+                             playera_result: 40, playera_innings: 5,
+                             playerb_result: 35, playerb_innings: 5,
+                             bk2_options: {"serienspiel_max_innings_per_set" => 5})
+    assert @tm.end_of_set?,
+      "260501-uxo: pure BK-2 (same engine code as BK-2kombi SP) with both at inning 5 " \
+      "and sp_max=5 must end_of_set"
+  end
+
+  test "end_of_set? new branch is a no-op when sp_max is missing (regression guard, 260501-uxo)" do
+    # No bk2_options at all. Both at inning 5, neither at balls_goal. The new branch
+    # gate is `sp_max.positive?` → 0 → branch skipped. Branch 3 (legacy karambol)
+    # also fails (no goal). Branch 4 (innings_goal) fails (innings_goal=0). Result: false.
+    # This proves the new branch is purely additive — pre-existing in-flight games
+    # without bk2_options are unaffected.
+    @tm.data = build_bk_data(free_game_form: "bk_2", balls_goal: 50,
+                             playera_result: 40, playera_innings: 5,
+                             playerb_result: 35, playerb_innings: 5)
+    refute @tm.end_of_set?,
+      "260501-uxo: missing bk2_options.serienspiel_max_innings_per_set must NOT trigger " \
+      "the new branch (regression guard for in-flight pre-fix games)"
+  end
+
+  # ---------------------------------------------------------------------------
   # Phase 38.7 Plan 05 T9 — D-08 AASM acknowledge_result guard (defense-in-depth).
   # See .planning/phases/38.7-…/38.7-CONTEXT.md D-08.
   #
