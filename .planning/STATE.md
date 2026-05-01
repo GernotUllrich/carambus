@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v7.1
 milestone_name: UX Polish & i18n Debt
 status: executing
-stopped_at: Completed 38.8-02-aasm-start-rematch-event-PLAN.md (start_rematch AASM event + DE/EN i18n keys; 16/16 baseline tests GREEN; Plan 01 RED test still RED as designed)
-last_updated: "2026-05-01T08:31:43.887Z"
+stopped_at: Completed 38.8-03-delete-training-rematch-block-PLAN.md (auto-rematch deleted, AASM bypass eliminated, Plan 01 RED test now GREEN, T6 contract realigned, Phase 38.7 tiebreak suite still GREEN)
+last_updated: "2026-05-01T08:38:36.102Z"
 last_activity: 2026-05-01
 progress:
   total_phases: 11
   completed_phases: 7
   total_plans: 67
-  completed_plans: 62
-  percent: 93
+  completed_plans: 63
+  percent: 94
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-15)
 ## Current Position
 
 Phase: 38.8 (endergebnis-erfasst-state-restore-operator-gate-the-post-mat) — EXECUTING
-Plan: 3 of 6
+Plan: 4 of 6
 Status: Ready to execute
 Last activity: 2026-05-01
 
@@ -129,6 +129,7 @@ Decisions are logged in PROJECT.md Key Decisions table. Full v7.0 cross-phase de
 - [Phase 38.7]: Plan 13 (Gap-05): data-reflex='submit->GameProtocolReflex#confirm_result' relocated from <button> onto <form> in _game_protocol_modal.html.erb + action='javascript:void(0)' defense-in-depth; submit-event observability fixed (browsers fire submit on forms, not buttons). RED→GREEN integration suite (test/integration/tiebreak_modal_form_wiring_test.rb, 4 tests / 20 assertions) locks the contract via Nokogiri parse of ApplicationController.render output. Zero Ruby-layer changes — Plans 09-12 deliverables UNCHANGED. Closes the test gap that allowed the original bug to ship despite GREEN reflex unit + system tests.
 - [Phase 38.8]: Plan 01: RED characterization test added — test_evaluate_result_for_training_single-set_no-tiebreak_game_lands_in_final_match_score asserts tm.state == 'final_match_score' for training single-set games. Mirrors phase 38.7 update_columns(state: 'set_over') pattern to reach Branch C directly. Fails RED today (Expected 'final_match_score', Actual 'playing') — pins regression introduced by commit c3dedb69.
 - [Phase 38.8]: Plan 02: AASM :start_rematch event added (15 LOC, transition final_match_score → playing, after-callbacks [revert_players, do_play]). Extend-before-build SKILL applied — single new event block, no parallel state machine. Phase 38.7 tiebreak guard preserved verbatim. Plan 01 RED test deliberately remains RED until Plan 03 deletes auto-rematch block. DE+EN i18n keys table_monitor.next_game shipped together to unblock Plan 05 wiring.
+- [Phase 38.8]: Plan 03: Both training auto-rematch blocks DELETED from result_recorder.rb (Branch C + final_set_score branch); replaced with @tm.finish_match! if @tm.may_finish_match? mirroring tournament admin_ack_result path. AASM bypass update(state: 'playing') eliminated (0 real call sites). Plan 01 RED test flipped to GREEN. T6 Phase 38.7 test re-anchored under Rule 1 (assertions inverted from assert_includes :revert to assert_empty + assert_equal final_match_score). Phase 38.7 tiebreak guard preserved verbatim (tiebreak_not_pending? grep count UNCHANGED at 3). 24/24 result_recorder tests + 16/16 model tests + 4/4 tiebreak system tests all GREEN.
 
 ### Roadmap Evolution
 
@@ -175,6 +176,6 @@ None blocking Phase 38.1 execution. Reconciliation debt above is tracked but not
 
 ## Session Continuity
 
-Last session: 2026-05-01T08:31:43.884Z
-Stopped at: Completed 38.8-02-aasm-start-rematch-event-PLAN.md (start_rematch AASM event + DE/EN i18n keys; 16/16 baseline tests GREEN; Plan 01 RED test still RED as designed)
+Last session: 2026-05-01T08:38:36.099Z
+Stopped at: Completed 38.8-03-delete-training-rematch-block-PLAN.md (auto-rematch deleted, AASM bypass eliminated, Plan 01 RED test now GREEN, T6 contract realigned, Phase 38.7 tiebreak suite still GREEN)
 Resume: `/gsd-plan-phase 38.7 --gaps` to plan training-mode tiebreak sources (carambus.yml preset, detail-form toggle, BK-2kombi auto-detect, TournamentMonitor override)
