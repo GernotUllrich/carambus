@@ -77,13 +77,18 @@ Plans:
 
 ### Phase 38.8: Endergebnis-erfasst state restore — operator-gate the post-match flow across all disciplines (INSERTED)
 
-**Goal:** [Urgent work - to be planned]
-**Requirements**: TBD
-**Depends on:** Phase 38
-**Plans:** 0 plans
+**Goal**: Restore the AASM `final_match_score` state ("Endergebnis erfasst") as the operator-gated end-state across ALL disciplines and BOTH modes. Today the state is silently skipped: training mode auto-starts the next game (regression introduced in commit c3dedb69 2026-03-24 — `ResultRecorder#evaluate_result` writes `update(state: "playing")` directly, bypassing AASM); tournament mode reaches the state but the round-progression cascade (`populate_tables`/`incr_current_round!`/etc.) clobbers the display before the operator sees it. After 38.8: training mode lands in `:final_match_score` and waits for "Nächstes Spiel"; tournament mode lands in `:final_match_score`, defers round-progression until operator triggers `close_match!`. Cross-discipline regression test locks the contract. Phase 38.7 tiebreak modal flow remains green.
+**Depends on:** Phase 38.7
+**Requirements**: SC-1 (training operator-gate), SC-2 (tournament operator-gate), SC-3 (final_match_score view + button), SC-4 (cross-discipline regression test), SC-5 (Phase 38.7 tiebreak preserved)
+**Plans:** 6 plans
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 38.8 to break down)
+- [ ] `38.8-01-red-characterization-test-PLAN.md` — RED characterization test in `test/services/table_monitor/result_recorder_test.rb`: training single-set no-tiebreak game lands in `:final_match_score` (NOT `:playing`). Locks the contract that would have failed since c3dedb69. Wave 1.
+- [ ] `38.8-02-aasm-start-rematch-event-PLAN.md` — Add AASM event `:start_rematch` to `TableMonitor` (`:final_match_score → :playing`, `after: [:revert_players, :do_play]`); add DE + EN i18n keys `table_monitor.next_game` ("Nächstes Spiel" / "Next Game"). Wave 2.
+- [ ] `38.8-03-delete-training-rematch-block-PLAN.md` — Delete the auto-rematch blocks at `app/services/table_monitor/result_recorder.rb` lines 462-476 (Branch C) and 485-497 (final_set_score branch). Replace with `@tm.finish_match! if @tm.may_finish_match?` mirroring `admin_ack_result` (table_monitor.rb:1649). Plan 01 RED test turns GREEN. Wave 2.
+- [ ] `38.8-04-defer-tournament-round-progression-PLAN.md` — Extract round-progression cascade (`accumulate_results`/`populate_tables`/`incr_current_round!`/`finalize_round`/`start_playing_groups!`/etc.) from `TournamentMonitor::ResultProcessor#report_result` into new public method `advance_round_after_match_close`; wire AASM `:close_match` event with `after: :advance_tournament_round_if_present` so the cascade fires only on operator-confirmed match close. Wave 2.
+- [ ] `38.8-05-view-and-reflex-wiring-PLAN.md` — Add `start_rematch` + `close_match` reflex methods to `TableMonitorReflex` (mirroring `admin_ack_result`/`force_next_state` locked_scoreboard pattern). Add `<%- elsif table_monitor.final_match_score? %>` branch to `_scoreboard.html.erb` rendering the "Nächstes Spiel" operator-gate button (training arm fires `start_rematch`, tournament arm fires `close_match`). Wave 3.
+- [ ] `38.8-06-integration-system-test-PLAN.md` — End-to-end coverage in new `test/system/final_match_score_operator_gate_test.rb`: training match completion → `:final_match_score` → "Endergebnis erfasst" rendered → button click fires `start_rematch` → `:playing`. Tournament-mode round-progression deferred contract. Cross-discipline guard (karambol + BK-2). Phase 38.7 tiebreak file integrity check. + 3 AASM unit tests for `:start_rematch` in `test/models/table_monitor_test.rb`. Wave 4.
 
 ### Phase 38.1: BK2-Kombi minimum viable support (INSERTED)
 
@@ -261,6 +266,7 @@ Phases execute in numeric order: 33 → 34 → 35 → 36a → 36b → 36c → 37
 | 38.4. BK2-Kombi post-dry-run gaps | v7.1 | 17/17 | Complete   | 2026-04-25 |
 | 38.5. BK-Param-Hierarchie + Multiset-Config | v7.1 | 6/6 | Complete    | 2026-04-29 |
 | 38.6. Discipline Master-Data Cleanup | v7.1 | 4/4 | Complete    | 2026-04-29 |
+| 38.8. Endergebnis-erfasst state restore | v7.1 | 0/6 | Planned | - |
 | 39. DTP-Backed Parameter Ranges | v7.1 | 0/TBD | Not started | - |
 
 **v7.0 total:** 7 phases, 31 plans, 37/37 requirements, ~2 weeks wall time.
