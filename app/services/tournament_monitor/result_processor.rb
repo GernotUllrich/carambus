@@ -81,44 +81,75 @@ class TournamentMonitor::ResultProcessor
         Rails.logger.info "[report_result] Calling finalize_game_result for TM #{table_monitor.id}"
         finalize_game_result(table_monitor)
 
-        accumulate_results
-        @tournament_monitor.reload
-        if @tournament_monitor.all_table_monitors_finished? || @tournament_monitor.tournament.manual_assignment || @tournament_monitor.tournament.continuous_placements
-          @tournament_monitor.finalize_round # unless tournament.manual_assignment
-          @tournament_monitor.incr_current_round! unless @tournament_monitor.tournament.manual_assignment || @tournament_monitor.tournament.continuous_placements
-          @tournament_monitor.populate_tables unless @tournament_monitor.tournament.manual_assignment
-          if @tournament_monitor.group_phase_finished?
-            if @tournament_monitor.finals_finished?
-              @tournament_monitor.decr_current_round!
-              update_ranking
-              write_finale_csv_for_upload
-              # noinspection RubyResolve
-              @tournament_monitor.end_of_tournament!
-              # noinspection RubyResolve
-              @tournament_monitor.tournament.finish_tournament!
-              # noinspection RubyResolve
-              @tournament_monitor.tournament.have_results_published!
-              # tournament.tournament_monitor.andand.table_monitors.andand.destroy_all
-            else
-              # noinspection RubyResolve
-              @tournament_monitor.start_playing_finals!
-            end
-          else
-            # noinspection RubyResolve
-            @tournament_monitor.start_playing_groups!
-          end
-          TournamentMonitorUpdateResultsJob.perform_later(@tournament_monitor)
-          # Broadcast Status-Update für Tournament View
-          TournamentStatusUpdateJob.perform_later(@tournament_monitor.tournament)
-        elsif @tournament_monitor.tournament.tournament_started
-          # Auch bei einzelnen Spiel-Updates broadcasten (wenn Spiel läuft)
-          TournamentStatusUpdateJob.perform_later(@tournament_monitor.tournament)
-        end
+        # Phase 38.8 — round-progression cascade DEFERRED. Previously this
+        # block ran (accumulate_results -> all_table_monitors_finished? gate ->
+        # populate_tables / incr_current_round! / finalize_round / etc.)
+        # immediately after finish_match!, clobbering the "Endergebnis erfasst"
+        # display before the operator could see it.
+        #
+        # New flow: TM stays in :final_match_score after this method returns.
+        # Operator clicks "Weiter"/"Continue" -> reflex fires close_match! ->
+        # AASM after-callback `advance_tournament_round_if_present` (defined
+        # in table_monitor.rb) calls advance_round_after_match_close below.
+        #
+        # Cascade extracted verbatim into advance_round_after_match_close —
+        # no behavior changes, only deferred timing.
       rescue StandardError => e
         Rails.logger.info "StandardError #{e}, #{e.backtrace&.join("\n")}"
         raise ActiveRecord::Rollback
       end
     end
+  end
+
+  # Phase 38.8 — Deferred round-progression cascade. Extracted verbatim from
+  # report_result so the cascade fires AFTER the operator has seen
+  # :final_match_score ("Endergebnis erfasst") and explicitly triggered
+  # close_match!. Wired from TableMonitor AASM close_match event via
+  # `advance_tournament_round_if_present` after-callback.
+  #
+  # Idempotent: each branch is gated by AASM may_? predicates and
+  # all_table_monitors_finished? — re-running on an already-progressed round
+  # is a no-op.
+  #
+  # PUBLIC — invoked from app/models/table_monitor.rb#advance_tournament_round_if_present.
+  def advance_round_after_match_close(table_monitor)
+    Rails.logger.info "[advance_round_after_match_close] START for TM #{table_monitor.id}"
+    accumulate_results
+    @tournament_monitor.reload
+    if @tournament_monitor.all_table_monitors_finished? || @tournament_monitor.tournament.manual_assignment || @tournament_monitor.tournament.continuous_placements
+      @tournament_monitor.finalize_round # unless tournament.manual_assignment
+      @tournament_monitor.incr_current_round! unless @tournament_monitor.tournament.manual_assignment || @tournament_monitor.tournament.continuous_placements
+      @tournament_monitor.populate_tables unless @tournament_monitor.tournament.manual_assignment
+      if @tournament_monitor.group_phase_finished?
+        if @tournament_monitor.finals_finished?
+          @tournament_monitor.decr_current_round!
+          update_ranking
+          write_finale_csv_for_upload
+          # noinspection RubyResolve
+          @tournament_monitor.end_of_tournament!
+          # noinspection RubyResolve
+          @tournament_monitor.tournament.finish_tournament!
+          # noinspection RubyResolve
+          @tournament_monitor.tournament.have_results_published!
+          # tournament.tournament_monitor.andand.table_monitors.andand.destroy_all
+        else
+          # noinspection RubyResolve
+          @tournament_monitor.start_playing_finals!
+        end
+      else
+        # noinspection RubyResolve
+        @tournament_monitor.start_playing_groups!
+      end
+      TournamentMonitorUpdateResultsJob.perform_later(@tournament_monitor)
+      # Broadcast Status-Update für Tournament View
+      TournamentStatusUpdateJob.perform_later(@tournament_monitor.tournament)
+    elsif @tournament_monitor.tournament.tournament_started
+      # Auch bei einzelnen Spiel-Updates broadcasten (wenn Spiel läuft)
+      TournamentStatusUpdateJob.perform_later(@tournament_monitor.tournament)
+    end
+  rescue StandardError => e
+    Rails.logger.info "[advance_round_after_match_close] StandardError #{e}, #{e.backtrace&.join("\n")}"
+    raise
   end
 
   # Aggregiert alle GameParticipation-Ergebnisse in @tournament_monitor.data["rankings"].
