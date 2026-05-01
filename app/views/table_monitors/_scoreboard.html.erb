@@ -15,7 +15,7 @@
        display: none
    }
 </style>
-<%- 
+<%-
   # Use passed-in options if available (from job with snapshot), otherwise get fresh
   # This prevents race conditions when multiple jobs render simultaneously
   unless local_assigns[:options].present?
@@ -115,7 +115,7 @@
                   einen Stoß innerhalb der Aufnahme abzuschließen, also war der
                   Counter ohne Funktion. Aufnahmen-übrig (SP-Phase) bleibt: dort
                   zählt jeder Aufnahme-Wechsel runter. %>
-              <%- if bk2_current_phase == "serienspiel" %>
+              <%- if bk2_current_phase == "serienspiel" && bk2_innings_left.to_i != 0 %>
                 <%= t("table_monitor.bk2_kombi.innings_left_label", count: bk2_innings_left) %>: <%= bk2_innings_left %>
               <%- end %>
             </div>
