@@ -647,7 +647,14 @@
               <div class="flex flex-row text-white">
                 <%= content_tag :div, id: "tiebreak_on_draw", tabindex: 1, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 rounded-lg p-1" do %>
                   <%= hidden_field_tag :tiebreak_on_draw, "0" %>
-                  <%= check_box_tag :tiebreak_on_draw, "1", false, class: "p-1 text-2vw mr-4" %>
+                  <%# Quick-260501-vly Plan 01 — Bug 2: default-checked for BK-2 / BK-2plus / BK-2kombi
+                      to align with Quickstart preset (tiebreak_on_draw: true). Inline 3-element whitelist
+                      explicitly EXCLUDES BK50/BK100 (single-set games, no classical tiebreak shootout)
+                      per user-confirmed Q2 2026-05-01 "ja bitte". Operator can still uncheck manually;
+                      hidden '0' field above preserves sparse-override semantics. %>
+                  <%= check_box_tag :tiebreak_on_draw, "1", false,
+                        class: "p-1 text-2vw mr-4",
+                        "x-bind:checked": "['bk_2', 'bk_2plus', 'bk2_kombi'].includes(bk_selected_form)" %>
                 <%- end %>
                 <div class="mb-1"><%= t("locations.scoreboard_free_game.tiebreak_on_draw") %></div>
               </div>
