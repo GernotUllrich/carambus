@@ -368,11 +368,7 @@ class TournamentMonitor::ResultProcessorTest < ActiveSupport::TestCase
     begin
       # Spy: if the guard fails, ResultProcessor.new would be called.
       called = false
-      stub_proc = ->(_) {
-        called = true
-        raise "should not reach here"
-      }
-      TournamentMonitor::ResultProcessor.stub(:new, stub_proc) do
+      TournamentMonitor::ResultProcessor.stub(:new, ->(_) { called = true; raise "should not reach here" }) do
         result = tm.advance_tournament_round_if_present
         assert_nil result, "advance_tournament_round_if_present must early-return when sentinel is set"
       end
