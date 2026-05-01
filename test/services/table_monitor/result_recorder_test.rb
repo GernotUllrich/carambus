@@ -448,8 +448,15 @@ class TableMonitor::ResultRecorderTest < ActiveSupport::TestCase
     assert_empty called, "D-13: revert_players must NOT be called while tiebreak pending"
   end
 
-  # T6 — Training-mode rematch fires when tiebreak winner already set.
-  test "perform_evaluate_result allows training rematch when tiebreak winner already set" do
+  # T6 — Phase 38.8 contract: training rematch is OPERATOR-GATED, not automatic.
+  # Pre-Phase-38.8 (the deleted regression from c3dedb69): when tiebreak_winner was
+  # set, evaluate_result auto-fired revert_players + update(state:"playing") + do_play
+  # inline, bypassing the AASM :final_match_score gate. Phase 38.8 deletes that
+  # auto-rematch and replaces it with operator-gated :start_rematch event (added in
+  # Plan 38.8-02). After evaluate_result, tm must land in :final_match_score; the
+  # operator advances via the "Nächstes Spiel" button (Plan 38.8-05) which fires
+  # :start_rematch and runs revert_players + do_play as AASM after-callbacks.
+  test "perform_evaluate_result lands in final_match_score when tiebreak winner set (operator-gated rematch, not automatic)" do
     @tm.tournament_monitor = nil
     @game.update!(data: {"tiebreak_required" => true, "tiebreak_winner" => "playera"})
     @tm.data["free_game_form"] = "karambol"
@@ -471,18 +478,19 @@ class TableMonitor::ResultRecorderTest < ActiveSupport::TestCase
     called = []
     @tm.stub(:revert_players, -> { called << :revert }) do
       @tm.stub(:do_play, -> { called << :do_play }) do
-        @tm.stub(:end_of_set?, true) do
-          @tm.stub(:acknowledge_result!, -> {}) do
-            @tm.stub(:final_set_score?, true) do
-              TableMonitor::ResultRecorder.call(table_monitor: @tm)
-            end
-          end
-        end
+        TableMonitor::ResultRecorder.call(table_monitor: @tm)
       end
     end
 
-    assert_includes called, :revert,
-      "Tiebreak winner set — rematch must proceed (revert_players must be called)"
+    @tm.reload
+    assert_empty called,
+      "Phase 38.8 contract: revert_players + do_play must NOT be called inline. " \
+      "They are now AASM after-callbacks of :start_rematch event, fired only when " \
+      "operator clicks 'Nächstes Spiel' (Plan 38.8-05)."
+    assert_equal "final_match_score", @tm.state,
+      "Phase 38.8 contract: after evaluate_result on a finished single-set training " \
+      "game with tiebreak winner set, TM must land in :final_match_score via AASM " \
+      "finish_match! (mirroring tournament admin_ack_result path). State=#{@tm.state}."
   end
 
   # T7 — D-08 TiebreakWinner=1 derivation when tiebreak_winner=playera.

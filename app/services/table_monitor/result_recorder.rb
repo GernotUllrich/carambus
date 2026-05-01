@@ -479,19 +479,12 @@ class TableMonitor::ResultRecorder < ApplicationService
         # FIX: Nur report_result aufrufen (finish_match! passiert darin)
         @tm.tournament_monitor&.report_result(@tm)
 
-        # Trainingsspiel (kein tournament_monitor): Automatisch Rückspiel mit getauschten Spielern starten
-        if @tm.tournament_monitor.blank? && @tm.game.present?
-          # Phase 38.7 Plan 05 — D-13: block training rematch when tiebreak pending.
-          if tiebreak_pick_pending?
-            Rails.logger.info "[evaluate_result] Training game tied — tiebreak winner pending, NOT auto-rematching"
-            return
-          end
-          Rails.logger.info "[evaluate_result] Training game finished - creating rematch with swapped players"
-          @tm.revert_players
-          @tm.update(state: "playing")
-          @tm.do_play
-          return
-        end
+        # Phase 38.8 — operator-gate restored. Auto-rematch DELETED (same as
+        # Branch C above). Training mode lands in :final_match_score after
+        # report_result; operator advances via :start_rematch event ("Nächstes
+        # Spiel" button — Plan 38.8-05). Phase 38.7 tiebreak guard preserved
+        # via AASM guard on acknowledge_result (table_monitor.rb:387).
+        @tm.finish_match! if @tm.may_finish_match?
       end
       @tm.save! if @tm.changes.present?
       @tm.reload
