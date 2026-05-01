@@ -177,9 +177,10 @@ None blocking Phase 38.1 execution. Reconciliation debt above is tracked but not
 |---|-------------|------|--------|-----------|
 | 260414-qb8 | Fix PG::UndefinedColumn result_a crash in tournaments show/finalize_modus views | 2026-04-14 | b787da5e | [260414-qb8-fix-pg-undefinedcolumn-result-a-crash-in](./quick/260414-qb8-fix-pg-undefinedcolumn-result-a-crash-in/) |
 | 260415-26d | public/docs/ build hardening via overcommit pre-commit hook — **ROLLED BACK** (hook approach failed, see POSTMORTEM) | 2026-04-15 | 912bf72a → rollback | [260415-26d-public-docs-build-hardening-via-overcomm](./quick/260415-26d-public-docs-build-hardening-via-overcomm/) |
+| 260501-pud | Add `Carambus.config.training_mode_show_fullname` flag (default false) — when true, training mode shows full player names in scoreboard/warmup/shootout for non-guest registered players | 2026-05-01 | a5c90fa7 | [260501-pud-add-training-mode-show-fullname-config-f](./quick/260501-pud-add-training-mode-show-fullname-config-f/) |
 
 ## Session Continuity
 
 Last session: 2026-05-01T14:55:18.562Z
-Stopped at: Completed 38.9-01-end-of-set-fourth-branch-PLAN.md (4th BK-2 sub-branch in end_of_set?, 2 RED-then-GREEN tests; latent defect 79328663 closed; phase 38.9 ready for /gsd-verify-work)
+Stopped at: 2026-05-01 - Completed quick task 260501-pud: Add Carambus.config.training_mode_show_fullname flag for tomorrow's BCW Grand Prix (default false; BCW operator flips to true in production block of carambus.yml.erb + carambus.yml before deploy)
 Resume: `/gsd-plan-phase 38.7 --gaps` to plan training-mode tiebreak sources (carambus.yml preset, detail-form toggle, BK-2kombi auto-detect, TournamentMonitor override)
