@@ -65,6 +65,26 @@ Plans:
 - [ ] `38-01-quick-wins-bundle-PLAN.md` — G-01 dark-mode Tailwind class replacement on `_wizard_steps_v2.html.erb` (lines 167, 215, 268) + `tournament_wizard.css:287-295` specificity audit, G-03 single CSS attribute-selector rule for `[data-controller~="tooltip"]`, G-05 3-line `en.yml:844-846` warmup translation, plus the UX-POL-03 Phase 36B Test 1 retest (manual UAT) executed once G-01 ships. Closes UX-POL-01, UX-POL-02, UX-POL-03, I18N-01.
 - [ ] `38-02-tournament-views-i18n-audit-PLAN.md` — grep-based sweep of `app/views/tournaments/` for hardcoded German strings (22 ERB files, excluding `_wizard_steps_v2.html.erb`), new keys under `tournaments.monitor.*` / `tournaments.show.*` / `tournaments.<action>.*`, DE + EN added in parallel per CONTEXT.md D-14. Closes I18N-02.
 
+### Phase 38.9: BK-2 end-of-set Anstoss-at-goal fix — close set immediately when Erste-Aufnahme-Gate fails (INSERTED)
+
+**Goal:** [Urgent work - to be planned]
+**Requirements**: TBD
+**Depends on:** Phase 38
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 38.9 to break down)
+
+### Phase 38.8: Endergebnis-erfasst state restore — operator-gate the post-match flow across all disciplines (INSERTED)
+
+**Goal:** [Urgent work - to be planned]
+**Requirements**: TBD
+**Depends on:** Phase 38
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 38.8 to break down)
+
 ### Phase 38.1: BK2-Kombi minimum viable support (INSERTED)
 
 **Goal**: Ship live-scoring scoreboard support for a BK2-Kombi tournament at the BCW club on Saturday 2026-05-02. Full shot-by-shot live scoring for the BK2-Kombi discipline: negative-score engine gate, discipline derivation, two playing phases (Direkter Zweikampf / Serienspiel), bonus-shot rule, foul handling with D-16 literal values, best-of-3 sets to configurable target (50/60/70), match winner = first to 2 sets. Karambol-with-negative-scores remains a rehearsed fallback.
