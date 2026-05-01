@@ -1525,6 +1525,31 @@ class TableMonitor < ApplicationRecord
           "nachstoss=#{nachstoss_role}(#{b_result}/#{nachstoss_innings}) goal=#{goal}"
         return true
       end
+
+      # Phase 38.9 Plan 01 — BK-2 / BK-2kombi-SP Erste-Aufnahme-Gate close-side mirror.
+      # Symmetric to follow_up? at table_monitor.rb:1205-1210: when Anstoss-Spieler
+      # reached balls_goal in inning >= 2 (and Nachstoss has not yet played), the
+      # Erste-Aufnahme-Gate FAILS — Nachstoss-Aufnahme is rule-disallowed because
+      # Anstoss already had table time. The set MUST close IMMEDIATELY here, otherwise
+      # ScoreEngine#terminate_inning_data (score_engine.rb:1306) silently swaps
+      # active_player and Player B plays an unauthorized inning before the legacy
+      # parity gate finally closes the set — without ever showing the red "Nachstoß"
+      # banner (which follow_up? correctly suppresses via the same Erste-Aufnahme-Gate).
+      #
+      # SKILL extend-before-build: additive branch on existing predicate, NO parallel
+      # state machine (validated 2026-04-29: -1463 LOC after rolling back a parallel
+      # state machine on this exact surface).
+      #
+      # Pre-existing latent defect introduced together with the Erste-Aufnahme-Gate in
+      # commit 79328663 (2026-04-28). NOT a regression from phase 38.7/38.8.
+      # See .planning/debug/bk2-nachstoss-banner-missing.md for the full diagnosis.
+      if anstoss_at_goal && anstoss_innings >= 2
+        Rails.logger.info "[TableMonitor#end_of_set?] Phase 38.9 BK-2-immediate-close: " \
+          "form=#{data["free_game_form"]} anstoss=#{anstoss_role}(#{a_result}/#{anstoss_innings}) " \
+          "nachstoss=#{nachstoss_role}(#{b_result}/#{nachstoss_innings}) goal=#{goal} — " \
+          "Erste-Aufnahme-Gate fails (anstoss past inning 1, no Nachstoss-Aufnahme permitted)"
+        return true
+      end
     end
 
     if data["playera"]["balls_goal"].to_i.positive? && (data["playera"]["result"].to_i >= data["playera"]["balls_goal"].to_i ||
