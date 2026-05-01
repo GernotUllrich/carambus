@@ -246,4 +246,59 @@ class TableMonitorTest < ActiveSupport::TestCase
     assert_equal "final_set_score", @tm.state
   end
 
+  # ---------------------------------------------------------------------------
+  # Phase 38.8 Plan 06 — AASM :start_rematch event tests (added by Plan 38.8-02).
+  # Locks: from-state guard (only :final_match_score), positive transition to
+  # :playing, after-callbacks revert_players + do_play execute in order.
+  # ---------------------------------------------------------------------------
+
+  test "may_start_rematch? returns true only when state is final_match_score" do
+    @tm.update!(state: "final_match_score", data: {"playera" => {"result" => 100, "innings" => 5, "balls_goal" => 100}, "playerb" => {"result" => 60, "innings" => 5, "balls_goal" => 100}})
+    assert @tm.may_start_rematch?, "from final_match_score may_start_rematch? must be true"
+
+    %w[new ready warmup playing set_over final_set_score ready_for_new_match].each do |bad_state|
+      tm2 = TableMonitor.create!(state: bad_state, data: {})
+      refute tm2.may_start_rematch?, "from #{bad_state} may_start_rematch? must be false"
+    end
+  end
+
+  test "start_rematch! from final_match_score transitions to playing" do
+    # Setup minimal data hash so revert_players + do_play do not crash on missing keys.
+    # revert_players (table_monitor.rb:1389) reads playera/playerb hashes; do_play reads timer fields.
+    @tm.update!(
+      state: "final_match_score",
+      data: {
+        "fixed_display_left" => "playera",
+        "playera" => {"balls_goal" => 100, "discipline" => "Freie Partie klein"},
+        "playerb" => {"balls_goal" => 100, "discipline" => "Freie Partie klein"},
+        "timeouts" => 0,
+        "timeout" => 0,
+        "innings_goal" => 0,
+        "sets_to_play" => 1,
+        "sets_to_win" => 1,
+        "kickoff_switches_with" => "set",
+        "free_game_form" => "standard",
+        "current_kickoff_player" => "playera"
+      }
+    )
+
+    # Stub revert_players + do_play to avoid touching game/GameParticipation chain
+    # (those associations are not set on this minimal fixture).
+    @tm.define_singleton_method(:revert_players) { @revert_called = true }
+    @tm.define_singleton_method(:do_play) { @do_play_called = true }
+
+    assert_nothing_raised { @tm.start_rematch! }
+    assert_equal "playing", @tm.state, "AASM transition :final_match_score -> :playing must succeed"
+    assert @tm.instance_variable_get(:@revert_called), "after-callback :revert_players must fire"
+    assert @tm.instance_variable_get(:@do_play_called), "after-callback :do_play must fire"
+  end
+
+  test "start_rematch! from non-final_match_score state raises AASM::InvalidTransition" do
+    @tm.update!(state: "playing", data: {})
+    assert_raises(AASM::InvalidTransition, "start_rematch! from :playing must be rejected by AASM from-state guard") do
+      @tm.start_rematch!
+    end
+    assert_equal "playing", @tm.reload.state, "state must remain :playing after rejected transition"
+  end
+
 end
