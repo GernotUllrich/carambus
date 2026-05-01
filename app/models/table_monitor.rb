@@ -350,7 +350,12 @@ class TableMonitor < ApplicationRecord
       transitions from: :ready,
                   to: :warmup
     end
-    event :close_match do
+    # Phase 38.8 — close_match now drives the deferred tournament round-progression
+    # cascade (extracted from TournamentMonitor::ResultProcessor#report_result in
+    # Plan 38.8-04). The TM enters :ready_for_new_match; the after-callback
+    # advance_tournament_round_if_present delegates to the ResultProcessor
+    # (no-op in training mode where tournament_monitor is blank).
+    event :close_match, after: :advance_tournament_round_if_present do
       transitions from: %i[playing set_over final_match_score ready_for_new_match], to: :ready_for_new_match
     end
     event :warmup_a do
@@ -1664,6 +1669,25 @@ class TableMonitor < ApplicationRecord
       finish_match! if may_finish_match?
     end
     save
+  end
+
+  # Phase 38.8 — Bridge from TableMonitor AASM close_match event to
+  # TournamentMonitor::ResultProcessor#advance_round_after_match_close.
+  #
+  # No-op in training mode (tournament_monitor blank). In tournament mode,
+  # delegates to the deferred cascade (populate_tables / incr_current_round! /
+  # finalize_round / etc.) extracted from report_result in Plan 38.8-04.
+  #
+  # Called as an AASM `after:` callback on event `:close_match` (table_monitor.rb
+  # AASM block). Idempotent — the cascade is internally gated by
+  # all_table_monitors_finished? + AASM may_? predicates.
+  def advance_tournament_round_if_present
+    return if tournament_monitor.blank?
+    Rails.logger.info "[advance_tournament_round_if_present] m6[#{id}] delegating to ResultProcessor#advance_round_after_match_close"
+    TournamentMonitor::ResultProcessor.new(tournament_monitor).advance_round_after_match_close(self)
+  rescue StandardError => e
+    Rails.logger.error "[advance_tournament_round_if_present] m6[#{id}] ERROR: #{e}, #{e.backtrace&.first(3)&.join(" <- ")}"
+    raise
   end
 
   def force_next_state
