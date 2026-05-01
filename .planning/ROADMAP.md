@@ -283,3 +283,13 @@ Phases execute in numeric order: 33 → 34 → 35 → 36a → 36b → 36c → 37
 
 Plans:
 - [ ] TBD (promote with /gsd-review-backlog when ready)
+
+### Phase 999.2: Panel Summary vs Panel Editor intermittent display (BACKLOG)
+
+**Goal:** Investigate why the scoreboard occasionally renders the old Panel Summary instead of the Panel Editor (the editor is the expected current-state panel). Observed during Phase 38.9 BCW production verification — both panels finish correctly on game completion, so this is a purely visual/UX issue, not a behavioral defect.
+**Requirements:** TBD
+**Plans:** 0 plans
+**Source:** Phase 38.9 production verification (2026-05-01) — user-reported intermittent panel-type swap; not reproducible-on-demand at the time of report.
+
+Plans:
+- [ ] TBD (promote with /gsd-review-backlog when ready)
