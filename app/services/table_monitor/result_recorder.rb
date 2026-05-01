@@ -459,21 +459,18 @@ class TableMonitor::ResultRecorder < ApplicationService
             # Dies verhindert Race Condition und stellt sicher dass Daten VOR dem Zustandswechsel geschrieben werden
             @tm.tournament_monitor&.report_result(@tm)
 
-            # Trainingsspiel (kein tournament_monitor): Automatisch Rückspiel mit getauschten Spielern starten
-            if @tm.tournament_monitor.blank? && @tm.game.present?
-              # Phase 38.7 Plan 05 — D-13: block training rematch when tiebreak pending.
-              # Otherwise revert_players + do_play would discard the tied result before
-              # the operator gets to pick the tiebreak winner via the modal.
-              if tiebreak_pick_pending?
-                Rails.logger.info "[evaluate_result] Training game tied — tiebreak winner pending, NOT auto-rematching"
-                return
-              end
-              Rails.logger.info "[evaluate_result] Training game finished - creating rematch with swapped players"
-              @tm.revert_players
-              @tm.update(state: "playing")
-              @tm.do_play
-              return
-            end
+            # Phase 38.8 — operator-gate restored. Auto-rematch DELETED (was the
+            # AASM-bypass `update(state: "playing")` regression from c3dedb69
+            # 2026-03-24). Training mode now mirrors the tournament admin_ack_result
+            # path (table_monitor.rb:1649): after report_result is a no-op for
+            # training (no tournament_monitor), explicitly fire finish_match! so
+            # AASM lands the TM in :final_match_score ("Endergebnis erfasst",
+            # de.yml:589). Operator advances via :start_rematch event (added in
+            # Plan 38.8-02) wired to the "Nächstes Spiel" button (Plan 38.8-05).
+            # Phase 38.7 tiebreak guard preserved — `acknowledge_result!` above
+            # already short-circuited if tiebreak was pending (AASM guard
+            # `tiebreak_not_pending?` in table_monitor.rb:387).
+            @tm.finish_match! if @tm.may_finish_match?
           else
             Rails.logger.warn "[evaluate_result] NOT calling report_result - state is #{@tm.state}, not final_set_score!"
           end
