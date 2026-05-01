@@ -147,6 +147,11 @@
               <%= hidden_field_tag :balls_goal_a, button['balls_goal'] || 50 %>
               <%= hidden_field_tag :balls_goal_b, button['balls_goal'] || 50 %>
               <%= hidden_field_tag :innings_goal, 0 %>
+              <% if button['bk2_sp_max_innings'].present? %>
+                <%# Quick-260501-uxo: per-preset SP-Phase Aufnahmegrenze. When absent,
+                    controller#clamp_bk_family_params! applies its default 5 (line 525). %>
+                <%= hidden_field_tag 'bk2_options[serienspiel_max_innings_per_set]', button['bk2_sp_max_innings'] %>
+              <% end %>
               <%= hidden_field_tag :first_break_choice, 0 %>
               <%= hidden_field_tag :kickoff_switches_with, 'set' %>
               <%# Phase 38.7 Plan 09 (Gap-01): per-preset tiebreak_on_draw value.
