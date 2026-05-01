@@ -301,9 +301,16 @@ class TableMonitor::ResultRecorder < ApplicationService
     # tiebreak_winner inside perform_save_current_set (line 203) BEFORE this method
     # runs, so the credit path has already fired for the just-closed set.
     # tiebreak_required stays sticky (per-match preset, not cleared here).
-    if @tm.game&.data&.[]("tiebreak_winner").present?
-      @tm.game.data.delete("tiebreak_winner")
-      @tm.game.save!
+    # NB: Game#data is a custom getter (app/models/game.rb#114) that returns a
+    # FRESH decoded hash on every call. We must read once, mutate the local,
+    # and assign back via `data=` for the change to persist.
+    if @tm.game.present?
+      g_data = @tm.game.data
+      if g_data["tiebreak_winner"].present?
+        g_data.delete("tiebreak_winner")
+        @tm.game.data = g_data
+        @tm.game.save!
+      end
     end
     @tm.assign_attributes(state: "playing", panel_state: "pointer_mode", current_element: "pointer_mode")
     @tm.save!
