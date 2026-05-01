@@ -165,23 +165,16 @@
               TOURNAMENT mode -> fires :close_match (existing AASM event, now
               wired in Plan 38.8-04 with after-callback advance_tournament_round_if_present)
               -> :ready_for_new_match + deferred round-progression cascade.
-              Same German label "Nächstes Spiel" both modes (Plan 38.8-02 i18n key). %>
-          <%- if table_monitor.tournament_monitor.blank? %>
-            <%= content_tag "div",
-                  data: { reflex: "click->TableMonitorReflex#start_rematch touchstart->TableMonitorReflex#start_rematch", id: table_monitor.id },
-                  id: "next_game_button",
-                  class: "flex flex-col h-1/6 items-center justify-center font-bold text-green-500 text-#{vw2} text-center cursor-pointer dark:bg-black hover:bg-gray-200 dark:hover:bg-gray-800 rounded",
-                  tabindex: 1 do %>
-              <%= t("table_monitor.next_game") %>
-            <%- end %>
-          <%- else %>
-            <%= content_tag "div",
-                  data: { reflex: "click->TableMonitorReflex#close_match touchstart->TableMonitorReflex#close_match", id: table_monitor.id },
-                  id: "next_game_button",
-                  class: "flex flex-col h-1/6 items-center justify-center font-bold text-green-500 text-#{vw2} text-center cursor-pointer dark:bg-black hover:bg-gray-200 dark:hover:bg-gray-800 rounded",
-                  tabindex: 1 do %>
-              <%= t("table_monitor.next_game") %>
-            <%- end %>
+              Same German label "Nächstes Spiel" both modes (Plan 38.8-02 i18n key).
+              Phase 38.8 REVIEW WR-03: pick the reflex action once, render the
+              button once — branches differed only in the reflex name. %>
+          <%- reflex_action = table_monitor.tournament_monitor.blank? ? "start_rematch" : "close_match" %>
+          <%= content_tag "div",
+                data: { reflex: "click->TableMonitorReflex##{reflex_action} touchstart->TableMonitorReflex##{reflex_action}", id: table_monitor.id },
+                id: "next_game_button",
+                class: "flex flex-col h-1/6 items-center justify-center font-bold text-green-500 text-#{vw2} text-center cursor-pointer dark:bg-black hover:bg-gray-200 dark:hover:bg-gray-800 rounded",
+                tabindex: 1 do %>
+            <%= t("table_monitor.next_game") %>
           <%- end %>
         <%- end %>
         <div class="flex flex-col items-center h-1/6">
