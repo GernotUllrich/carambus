@@ -70,7 +70,7 @@ Plans:
 **Goal**: Close the latent BK-2 / BK-2kombi-SP defect (introduced together with the Erste-Aufnahme-Gate in commit 79328663, 2026-04-28) in which a BK-2 set with Anstoss-Spieler reaching balls_goal in inning >= 2 stays open silently. `TableMonitor#end_of_set?` is missing a 4th branch that mirrors the Erste-Aufnahme-Gate already enforced in `follow_up?` (lines 1205-1210): when Anstoss reaches goal AFTER his 1st inning, Nachstoss-Aufnahme is rule-disallowed, so the set MUST close immediately. Additive small-guard branch per `.agents/skills/extend-before-build/SKILL.md` (validated 2026-04-29: -1463 LOC after rolling back a parallel state machine). RED→GREEN test pair pins both SC-1 (immediate close at inning >= 2) and SC-2 (Erste-Aufnahme-Gate happy path at inning 1 preserved). Phase 38.7 tiebreak suite + Phase 38.8 operator-gate suite remain regression-clean.
 **Requirements**: PHASE-38.9-SC-1, PHASE-38.9-SC-2, PHASE-38.9-SC-3, PHASE-38.9-SC-4
 **Depends on:** Phase 38.8
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 
 Plans:
 - [ ] `38.9-01-end-of-set-fourth-branch-PLAN.md` — RED→GREEN: Task 1 RED characterization test for BK-2 inning-2 anstoss-at-goal latent defect; Task 2 regression test for inning-1 Erste-Aufnahme-Gate happy path; Task 3 add 4th branch to `end_of_set?` (`return true if anstoss_at_goal && anstoss_innings >= 2` reusing Plan 38.7-02 D-02 locals — extend-before-build SKILL); Task 4 combined regression sweep across table_monitor_test.rb + bk2_scoreboard_test.rb + tiebreak_test.rb + final_match_score_operator_gate_test.rb. Wave 1.
