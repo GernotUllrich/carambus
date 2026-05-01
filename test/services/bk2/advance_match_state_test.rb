@@ -55,6 +55,42 @@ class Bk2::AdvanceMatchStateTest < ActiveSupport::TestCase
     assert_equal 5, state["innings_left_in_set"]
   end
 
+  test "initialize_bk2_state! re-seeds with new first_set_mode after caller deletes stale bk2_state" do
+    # Quick 260501-wfv regression: shootout reflex flips bk2_options.first_set_mode
+    # from DZ to SP and must wipe the stale bk2_state (seeded earlier in GameSetup)
+    # so the re-call actually re-seeds. Without the delete, init_state_if_missing!
+    # early-returns and bk2_state.first_set_mode stays "direkter_zweikampf" — the
+    # exact bug this test pins.
+
+    # Step 1: initial DZ-seed (mirrors GameSetup#perform_start_game).
+    Bk2::AdvanceMatchState.initialize_bk2_state!(@tm)
+    initial = @tm.reload.data["bk2_state"]
+    assert_equal "direkter_zweikampf", initial["first_set_mode"]
+    assert_equal "direkter_zweikampf", initial["current_phase"]
+    assert_equal 2, initial["shots_left_in_turn"]
+    assert_equal 0, initial["innings_left_in_set"]
+
+    # Step 2: operator picks SP at the shootout — reflex updates bk2_options
+    # AND clears stale bk2_state (the fix this test pins).
+    @tm.data["bk2_options"]["first_set_mode"] = "serienspiel"
+    @tm.data.delete("bk2_state")
+    @tm.save!
+
+    # Step 3: subsequent initialize_bk2_state! call (still in the reflex) must re-seed.
+    Bk2::AdvanceMatchState.initialize_bk2_state!(@tm)
+    state = @tm.reload.data["bk2_state"]
+
+    # Step 4: bk2_state reflects the operator's SP pick, not the stale DZ seed.
+    assert_equal "serienspiel", state["first_set_mode"],
+      "bk2_state.first_set_mode must follow the just-picked mode"
+    assert_equal "serienspiel", state["current_phase"],
+      "current_phase for set 1 must equal the just-picked first_set_mode"
+    assert_equal 5, state["innings_left_in_set"],
+      "SP-mode set 1 must seed innings_left_in_set from sp_max"
+    assert_equal 0, state["shots_left_in_turn"],
+      "SP-mode set 1 must zero shots_left_in_turn"
+  end
+
   test "initialize_bk2_state! falls back to defaults when bk2_options missing" do
     @tm.update!(data: {"free_game_form" => "bk2_kombi"})
     Bk2::AdvanceMatchState.initialize_bk2_state!(@tm)
