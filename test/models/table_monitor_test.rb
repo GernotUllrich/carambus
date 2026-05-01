@@ -213,6 +213,27 @@ class TableMonitorTest < ActiveSupport::TestCase
       "TEST EXPECTED TO FAIL BEFORE TASK 3 LANDS."
   end
 
+  test "end_of_set? does NOT close BK-2 set when Anstoss reaches balls_goal in inning 1 (Erste-Aufnahme-Gate happy path — SC-2)" do
+    # Anstoss=playera reaches balls_goal=50 in his 1ST inning (Erste-Aufnahme satisfied).
+    # Nachstoss=playerb has NOT played yet (innings=0). Per BK-2 rule, Nachstoss-Aufnahme
+    # IS granted in this case — red "Nachstoß" banner must appear, set stays open until
+    # Nachstoss completes his single follow-up inning (whereupon Plan 38.7-02 D-02
+    # branch closes it).
+    #
+    # Therefore: end_of_set? must return FALSE here — both today AND after the Task 3
+    # fix lands. This pins the boundary condition: the new 4th branch's
+    # `anstoss_innings >= 2` predicate must NOT over-fire when anstoss_innings == 1.
+    @tm.data = build_bk_data(free_game_form: "bk_2", balls_goal: 50,
+                             playera_result: 50, playera_innings: 1,
+                             playerb_result: 0, playerb_innings: 0)
+    refute @tm.end_of_set?,
+      "SC-2: BK-2 with Anstoss=playera reaching balls_goal=50 in inning 1 must KEEP " \
+      "the set open (Erste-Aufnahme-Gate happy path — Nachstoss-Aufnahme still permitted, " \
+      "red banner still renders via follow_up?). Set closes only after Nachstoss-Aufnahme " \
+      "completes (Plan 38.7-02 D-02 branch). " \
+      "REGRESSION GUARD — passes today AND must continue passing after Task 3."
+  end
+
   # ---------------------------------------------------------------------------
   # Phase 38.7 Plan 05 T9 — D-08 AASM acknowledge_result guard (defense-in-depth).
   # See .planning/phases/38.7-…/38.7-CONTEXT.md D-08.
