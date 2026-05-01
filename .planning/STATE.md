@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v7.1
 milestone_name: UX Polish & i18n Debt
 status: executing
-stopped_at: Completed 38.8-01-red-characterization-test-PLAN.md (RED test added, 23 baseline tests still GREEN, 24 runs / 1 failure as designed)
-last_updated: "2026-05-01T08:26:10.692Z"
+stopped_at: Completed 38.8-02-aasm-start-rematch-event-PLAN.md (start_rematch AASM event + DE/EN i18n keys; 16/16 baseline tests GREEN; Plan 01 RED test still RED as designed)
+last_updated: "2026-05-01T08:31:43.887Z"
 last_activity: 2026-05-01
 progress:
   total_phases: 11
   completed_phases: 7
   total_plans: 67
-  completed_plans: 61
-  percent: 91
+  completed_plans: 62
+  percent: 93
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-15)
 ## Current Position
 
 Phase: 38.8 (endergebnis-erfasst-state-restore-operator-gate-the-post-mat) — EXECUTING
-Plan: 2 of 6
+Plan: 3 of 6
 Status: Ready to execute
 Last activity: 2026-05-01
 
@@ -128,6 +128,7 @@ Decisions are logged in PROJECT.md Key Decisions table. Full v7.0 cross-phase de
 - [Phase 38.7]: Plan 12 (Gap-04): TournamentMonitor startup-form tiebreak override — operator pick written to Tournament.data['tiebreak_on_draw'] via update_columns (bypasses unrelated organizer presence validation + before_save data-key extraction). Persist gated to :update only because :create is NOT director-gated; operator workflow is create-then-edit. i18n under tournament_monitors.form namespace, disjoint from Plan 10's locations.scoreboard_free_game namespace. Plan 04 resolver UNCHANGED — Plan 12 only writes Level 1.
 - [Phase 38.7]: Plan 13 (Gap-05): data-reflex='submit->GameProtocolReflex#confirm_result' relocated from <button> onto <form> in _game_protocol_modal.html.erb + action='javascript:void(0)' defense-in-depth; submit-event observability fixed (browsers fire submit on forms, not buttons). RED→GREEN integration suite (test/integration/tiebreak_modal_form_wiring_test.rb, 4 tests / 20 assertions) locks the contract via Nokogiri parse of ApplicationController.render output. Zero Ruby-layer changes — Plans 09-12 deliverables UNCHANGED. Closes the test gap that allowed the original bug to ship despite GREEN reflex unit + system tests.
 - [Phase 38.8]: Plan 01: RED characterization test added — test_evaluate_result_for_training_single-set_no-tiebreak_game_lands_in_final_match_score asserts tm.state == 'final_match_score' for training single-set games. Mirrors phase 38.7 update_columns(state: 'set_over') pattern to reach Branch C directly. Fails RED today (Expected 'final_match_score', Actual 'playing') — pins regression introduced by commit c3dedb69.
+- [Phase 38.8]: Plan 02: AASM :start_rematch event added (15 LOC, transition final_match_score → playing, after-callbacks [revert_players, do_play]). Extend-before-build SKILL applied — single new event block, no parallel state machine. Phase 38.7 tiebreak guard preserved verbatim. Plan 01 RED test deliberately remains RED until Plan 03 deletes auto-rematch block. DE+EN i18n keys table_monitor.next_game shipped together to unblock Plan 05 wiring.
 
 ### Roadmap Evolution
 
@@ -174,6 +175,6 @@ None blocking Phase 38.1 execution. Reconciliation debt above is tracked but not
 
 ## Session Continuity
 
-Last session: 2026-05-01T08:26:10.689Z
-Stopped at: Completed 38.8-01-red-characterization-test-PLAN.md (RED test added, 23 baseline tests still GREEN, 24 runs / 1 failure as designed)
+Last session: 2026-05-01T08:31:43.884Z
+Stopped at: Completed 38.8-02-aasm-start-rematch-event-PLAN.md (start_rematch AASM event + DE/EN i18n keys; 16/16 baseline tests GREEN; Plan 01 RED test still RED as designed)
 Resume: `/gsd-plan-phase 38.7 --gaps` to plan training-mode tiebreak sources (carambus.yml preset, detail-form toggle, BK-2kombi auto-detect, TournamentMonitor override)
