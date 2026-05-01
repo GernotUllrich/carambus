@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-04-15)
 Phase: 999.1
 Plan: Not started
 Status: Phase complete — ready for verification
-Last activity: 2026-05-01 - Completed quick task 260501-wfv: BK-2kombi shootout first_set_mode pick re-seeds bk2_state (was ignored due to stale state)
+Last activity: 2026-05-01 - Completed quick task 260501-x07: BK-2kombi clear stale tiebreak_winner at set boundary (set 3 tiebreak modal now fires independently of set 1)
 
 **Deferred to Wave 4 / later session:**
 
@@ -183,6 +183,7 @@ None blocking Phase 38.1 execution. Reconciliation debt above is tracked but not
 | 260501-uxo | BK-2kombi: enforce SP-phase inning limit (default 5) and make it configurable from carambus.yml | 2026-05-01 | b3fcfeca | [260501-uxo-bk-2kombi-enforce-sp-phase-inning-limit-](./quick/260501-uxo-bk-2kombi-enforce-sp-phase-inning-limit-/) |
 | 260501-vly | BK-2kombi tiebreak fixes: credit set point on tiebreak win + Detail Page tiebreak default + unified inning display | 2026-05-01 | 7cf939a9 | [260501-vly-bk-2kombi-tiebreak-fixes-credit-set-poin](./quick/260501-vly-bk-2kombi-tiebreak-fixes-credit-set-poin/) |
 | 260501-wfv | BK-2kombi shootout first_set_mode pick is ignored: stale bk2_state survives the second initialize_bk2_state! call | 2026-05-01 | 5b5dc22d | [260501-wfv-bk-2kombi-shootout-first-set-mode-pick-i](./quick/260501-wfv-bk-2kombi-shootout-first-set-mode-pick-i/) |
+| 260501-x07 | BK-2kombi: clear stale tiebreak_winner at set boundary so set 3 re-evaluates tiebreak independently of set 1 | 2026-05-01 | 41081785 | [260501-x07-bk-2kombi-clear-stale-tiebreak-winner-at](./quick/260501-x07-bk-2kombi-clear-stale-tiebreak-winner-at/) |
 
 ## Session Continuity
 
