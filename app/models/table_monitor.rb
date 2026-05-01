@@ -389,6 +389,21 @@ class TableMonitor < ApplicationRecord
     event :finish_match, after: :set_end_time do
       transitions from: %i[final_set_score], to: :final_match_score
     end
+    # Phase 38.8 — operator-gated rematch event. Replaces the auto-rematch
+    # bypass that ResultRecorder#perform_evaluate_result used to perform via
+    # `update(state: "playing")` (regression introduced in c3dedb69 2026-03-24,
+    # deleted in Plan 38.8-03). The operator now sees the `final_match_score`
+    # state ("Endergebnis erfasst" — de.yml:589) until they explicitly trigger
+    # `start_rematch!` via the "Nächstes Spiel" button (Plan 38.8-05).
+    #
+    # Callback chain mirrors the deleted inline sequence:
+    #   revert_players (swaps player A ↔ B)
+    #   do_play         (re-arms the play timer / panel state)
+    # Both methods are defined further down in this file (lines 1389 and 574).
+    event :start_rematch do
+      transitions from: :final_match_score, to: :playing,
+                  after: [:revert_players, :do_play]
+    end
     event :next_set do
       transitions from: %i[set_over final_set_score], to: :playing
     end
