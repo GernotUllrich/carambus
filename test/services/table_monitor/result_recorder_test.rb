@@ -608,4 +608,67 @@ class TableMonitor::ResultRecorderTest < ActiveSupport::TestCase
       "Gap-03: non-BK-2kombi tied must NOT auto-set tiebreak_required (rule scoped to BK-2kombi)"
     assert_equal false, result, "tiebreak_pick_pending? returns false (no Plan 04 bake, no Plan 11 auto-detect)"
   end
+
+  # ---------------------------------------------------------------------------
+  # Phase 38.8 RED characterization test — locks the final_match_score
+  # operator-gate contract. Today this test FAILS because evaluate_result
+  # auto-starts the training rematch via update(state: "playing") + do_play
+  # (smoking gun: result_recorder.rb:462-476 Branch C and 485-497 final_set_score
+  # branch — bypasses AASM, skips final_match_score / "Endergebnis erfasst").
+  # After Plan 38.8-03 deletes the auto-rematch block this test turns GREEN
+  # (regression test: would have failed since commit c3dedb69 2026-03-24).
+  #
+  # IMPORTANT — Starting state must be :set_over to reach Branch C. From :playing
+  # ResultRecorder lands in :set_over and returns before reaching Branch C
+  # (the buggy block). Mirror the pattern from existing tiebreak tests at
+  # result_recorder_test.rb:416 and :452 — `update_columns(state: "set_over")`
+  # bypasses AASM so we can directly probe the buggy single-set Branch C.
+  # ---------------------------------------------------------------------------
+
+  test "evaluate_result for training single-set no-tiebreak game lands in final_match_score (NOT playing)" do
+    # Reconfigure @tm to a SINGLE-SET training game at set-end conditions.
+    # Scores untied (100 vs 60) so tiebreak_pick_pending? returns false and the
+    # auto-rematch block fires today (RED). After Plan 03 deletes that block,
+    # finish_match! runs and TM lands in :final_match_score (GREEN).
+    @tm.update!(
+      data: @tm.data.merge(
+        "sets_to_win" => 1,
+        "sets_to_play" => 1,
+        "kickoff_switches_with" => "set",
+        "current_kickoff_player" => "playera",
+        "free_game_form" => "standard",
+        "playera" => @tm.data["playera"].merge("result" => 100, "innings" => 5, "balls_goal" => 100),
+        "playerb" => @tm.data["playerb"].merge("result" => 60, "innings" => 5, "balls_goal" => 100)
+      )
+    )
+    # Move to :set_over so we hit Branch C (single-set game training-rematch path).
+    # Mirrors result_recorder_test.rb:433 and :468 (phase 38.7 tiebreak tests).
+    @tm.update_columns(state: "set_over")
+    @tm.reload
+
+    # Sanity check: training mode (no tournament_monitor) and game present.
+    assert_nil @tm.tournament_monitor, "Training-mode precondition: tournament_monitor must be nil"
+    assert_not_nil @tm.game, "Training-mode precondition: game must be present"
+    assert_equal "set_over", @tm.state, "Starting-state precondition: must be :set_over to reach Branch C"
+
+    # Drive evaluate_result through the public service entry point.
+    TableMonitor::ResultRecorder.call(table_monitor: @tm)
+    @tm.reload
+
+    # CONTRACT under lock: after final result is acknowledged, TM must end in
+    # final_match_score ("Endergebnis erfasst"). NOT in :playing (which would
+    # mean the auto-rematch silently restarted the next game, skipping the
+    # operator-gate display).
+    assert_equal "final_match_score", @tm.state,
+      "Phase 38.8 contract: training single-set match must land in :final_match_score " \
+      "after evaluate_result, NOT :playing. Current state=#{@tm.state.inspect} " \
+      "indicates the auto-rematch block in ResultRecorder#perform_evaluate_result " \
+      "(result_recorder.rb:462-476 / 485-497) is still bypassing AASM via update(state: 'playing'). " \
+      "This test would have failed since commit c3dedb69 (2026-03-24)."
+
+    # Game must still be intact (auto-rematch would have called revert_players + do_play
+    # which sets up the rematch; we want the original game preserved at final_match_score).
+    assert_not_nil @tm.game, "Game must remain present at final_match_score (no auto-rematch)"
+    assert_nil @tm.tournament_monitor, "Training mode preserved (no tournament_monitor side-effect)"
+  end
 end
