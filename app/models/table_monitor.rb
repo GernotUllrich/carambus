@@ -1686,31 +1686,16 @@ class TableMonitor < ApplicationRecord
   # delegates to the deferred cascade extracted from report_result in
   # Plan 38.8-04.
   #
-  # Re-entry guard (Phase 38.8 REVIEW CR-02): the cascade calls
-  # @tournament_monitor.finalize_round, which is TournamentMonitorState
-  # #finalize_round (lib/tournament_monitor_state.rb:54). That method
-  # iterates over its TableMonitors and itself calls `tabmon.close_match!`
-  # on each one — re-firing this after-callback. Without the thread-local
-  # sentinel, the cascade would loop infinitely (or, best case, fire twice
-  # per operator click and double-advance current_round / re-enqueue jobs).
-  # The sentinel short-circuits any nested invocation while the outer
-  # cascade is still in flight.
-  #
   # Called as an AASM `after:` callback on event `:close_match` (table_monitor.rb
   # AASM block).
   def advance_tournament_round_if_present
     return if tournament_monitor.blank?
     return unless tournament_monitor.is_a?(TournamentMonitor)
-    return if Thread.current[:_advancing_round_for_tm]
-
-    Thread.current[:_advancing_round_for_tm] = true
     Rails.logger.info "[advance_tournament_round_if_present] m6[#{id}] delegating to ResultProcessor#advance_round_after_match_close"
     TournamentMonitor::ResultProcessor.new(tournament_monitor).advance_round_after_match_close(self)
   rescue StandardError => e
     Rails.logger.error "[advance_tournament_round_if_present] m6[#{id}] ERROR: #{e}, #{e.backtrace&.first(3)&.join(" <- ")}"
     raise
-  ensure
-    Thread.current[:_advancing_round_for_tm] = nil
   end
 
   def force_next_state
