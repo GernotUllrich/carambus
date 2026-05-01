@@ -292,6 +292,19 @@ class TableMonitor::ResultRecorder < ApplicationService
     if @tm.data["free_game_form"] == "bk2_kombi"
       Bk2::AdvanceMatchState.rebake_at_set_open!(@tm)
     end
+    # Quick-260501-x07: tiebreak_winner is a PER-SET pick, not a per-match flag.
+    # Without this reset, set N+1 of a multi-set BK-2kombi sees a stale tiebreak_winner
+    # from a previous set and skips the modal in tiebreak_pick_pending? (false-positive
+    # winner.present? check at line ~325) — then update_ba_results_with_set_result!
+    # reads the same stale value and credits the new set to the stale winner.
+    # Lifecycle safety: update_ba_results_with_set_result! (line 130) consumes
+    # tiebreak_winner inside perform_save_current_set (line 203) BEFORE this method
+    # runs, so the credit path has already fired for the just-closed set.
+    # tiebreak_required stays sticky (per-match preset, not cleared here).
+    if @tm.game&.data&.[]("tiebreak_winner").present?
+      @tm.game.data.delete("tiebreak_winner")
+      @tm.game.save!
+    end
     @tm.assign_attributes(state: "playing", panel_state: "pointer_mode", current_element: "pointer_mode")
     @tm.save!
   rescue => e
