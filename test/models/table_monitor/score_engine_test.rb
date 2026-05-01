@@ -946,4 +946,78 @@ class TableMonitor::ScoreEngineTest < ActiveSupport::TestCase
     assert_equal({success: false, error: "Negative Punktzahlen sind nicht erlaubt"}, result,
       "Karambol: update_innings_history must still reject negative entries")
   end
+
+  # ---------------------------------------------------------------------------
+  # render_last_innings — set-winner asterisk (Quick-260502-0ok)
+  # ---------------------------------------------------------------------------
+
+  def sets_data(sets)
+    playing_data(
+      "sets_to_play" => 3,
+      "sets" => sets,
+      "playera" => {"innings_list" => [], "innings_redo_list" => [], "innings_foul_list" => []},
+      "playerb" => {"innings_list" => [], "innings_redo_list" => [], "innings_foul_list" => []}
+    )
+  end
+
+  test "render_last_innings marks playera set-winner with asterisk on clear win" do
+    data = sets_data([{"Ergebnis1" => 70, "Ergebnis2" => 50, "TiebreakWinner" => nil}])
+    out_a = engine(data).render_last_innings(0, "playera")
+    out_b = engine(data).render_last_innings(0, "playerb")
+    assert_includes out_a, "S1: 70*"
+    assert_includes out_b, "S1: 50"
+    refute_includes out_b, "S1: 50*"
+  end
+
+  test "render_last_innings marks playerb set-winner with asterisk on clear win" do
+    data = sets_data([{"Ergebnis1" => 40, "Ergebnis2" => 70, "TiebreakWinner" => nil}])
+    out_a = engine(data).render_last_innings(0, "playera")
+    out_b = engine(data).render_last_innings(0, "playerb")
+    assert_includes out_b, "S1: 70*"
+    assert_includes out_a, "S1: 40"
+    refute_includes out_a, "S1: 40*"
+  end
+
+  test "render_last_innings marks tiebreak winner with asterisk on tied set" do
+    data = sets_data([
+      {"Ergebnis1" => 70, "Ergebnis2" => 50, "TiebreakWinner" => nil},
+      {"Ergebnis1" => 40, "Ergebnis2" => 70, "TiebreakWinner" => nil},
+      {"Ergebnis1" => 1, "Ergebnis2" => 1, "TiebreakWinner" => 1}
+    ])
+    out_a = engine(data).render_last_innings(0, "playera")
+    out_b = engine(data).render_last_innings(0, "playerb")
+    assert_includes out_a, "S3: 1*"
+    assert_includes out_b, "S3: 1"
+    refute_includes out_b, "S3: 1*"
+  end
+
+  test "render_last_innings tied set with nil TiebreakWinner has no asterisk and no crash" do
+    data = sets_data([{"Ergebnis1" => 1, "Ergebnis2" => 1, "TiebreakWinner" => nil}])
+    assert_nothing_raised do
+      out_a = engine(data).render_last_innings(0, "playera")
+      out_b = engine(data).render_last_innings(0, "playerb")
+      refute_includes out_a, "S1: 1*"
+      refute_includes out_b, "S1: 1*"
+    end
+  end
+
+  test "render_last_innings multi-set prefix preserves order and per-player markers" do
+    data = sets_data([
+      {"Ergebnis1" => 70, "Ergebnis2" => 50, "TiebreakWinner" => nil},
+      {"Ergebnis1" => 40, "Ergebnis2" => 70, "TiebreakWinner" => nil},
+      {"Ergebnis1" => 1, "Ergebnis2" => 1, "TiebreakWinner" => 1}
+    ])
+    out_a = engine(data).render_last_innings(0, "playera")
+    # Order assertion: S1:70* → S2:40 → S3:1* in sequence.
+    ix1 = out_a.index("S1: 70*")
+    ix2 = out_a.index("S2: 40")
+    ix3 = out_a.index("S3: 1*")
+    refute_nil ix1
+    refute_nil ix2
+    refute_nil ix3
+    assert ix1 < ix2, "S1 must precede S2"
+    assert ix2 < ix3, "S2 must precede S3"
+    refute_includes out_a, "S2: 40*"
+    assert_includes out_a, "; " # Phase 38.4 R5-4 separator preserved
+  end
 end

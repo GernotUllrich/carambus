@@ -91,7 +91,14 @@ class TableMonitor::ResultRecorder < ApplicationService
         "3BAufnahmen2" => @tm.data["playerb"]["innings_3b"].to_i,
         "Höchstserie1" => @tm.data["playera"]["hs"].to_i,
         "Höchstserie2" => @tm.data["playerb"]["hs"].to_i,
-        "Tischnummer" => @tm.game.table_no
+        "Tischnummer" => @tm.game.table_no,
+        # Quick-260502-0ok: per-set snapshot of tiebreak_winner. Mirrors the
+        # ba_results mapping in update_ba_results_with_set_result! (260501-vly,
+        # lines 142–149) but lives on data["sets"][n] so render_last_innings can
+        # mark the set-winner with "*" in the per-player score line.
+        # Must run BEFORE perform_switch_to_next_set clears Game.data["tiebreak_winner"]
+        # (260501-x07). nil when no tiebreak resolved this set.
+        "TiebreakWinner" => ({"playera" => 1, "playerb" => 2}[@tm.game&.data&.[]("tiebreak_winner")])
       }
       # Phase 38.4 R5-2: ba_results-Update wurde aus dieser Methode herausgelöst
       # und nach perform_save_current_set verschoben (atomisch mit data["sets"]

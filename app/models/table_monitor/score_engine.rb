@@ -508,7 +508,19 @@ class TableMonitor::ScoreEngine
         Array(data["sets"]).each_with_index do |set, ix|
           # Phase 38.4 R5-4: Satzergebnis von der innings_list mit "; " trennen,
           # innings_list-Einträge bleiben mit ", " — visuell klare Trennung.
-          prefix += "S#{ix + 1}: #{set["Ergebnis#{player_ix}"]}; "
+          # Quick-260502-0ok: "*" markiert Satz-Gewinner aus Sicht dieses Spielers.
+          # Bei Ergebnis-Gleichstand entscheidet TiebreakWinner (nil → kein Stern).
+          e1 = set["Ergebnis1"].to_i
+          e2 = set["Ergebnis2"].to_i
+          tw = set["TiebreakWinner"].to_i # nil.to_i == 0 → no marker either side
+          won_this_player =
+            if e1 == e2
+              tw == player_ix
+            else
+              (player_ix == 1 ? e1 > e2 : e2 > e1)
+            end
+          star = won_this_player ? "*" : ""
+          prefix += "S#{ix + 1}: #{set["Ergebnis#{player_ix}"]}#{star}; "
         end
       end
       ret = []
