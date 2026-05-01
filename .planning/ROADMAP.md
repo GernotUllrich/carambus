@@ -80,7 +80,7 @@ Plans:
 **Goal**: Restore the AASM `final_match_score` state ("Endergebnis erfasst") as the operator-gated end-state across ALL disciplines and BOTH modes. Today the state is silently skipped: training mode auto-starts the next game (regression introduced in commit c3dedb69 2026-03-24 — `ResultRecorder#evaluate_result` writes `update(state: "playing")` directly, bypassing AASM); tournament mode reaches the state but the round-progression cascade (`populate_tables`/`incr_current_round!`/etc.) clobbers the display before the operator sees it. After 38.8: training mode lands in `:final_match_score` and waits for "Nächstes Spiel"; tournament mode lands in `:final_match_score`, defers round-progression until operator triggers `close_match!`. Cross-discipline regression test locks the contract. Phase 38.7 tiebreak modal flow remains green.
 **Depends on:** Phase 38.7
 **Requirements**: SC-1 (training operator-gate), SC-2 (tournament operator-gate), SC-3 (final_match_score view + button), SC-4 (cross-discipline regression test), SC-5 (Phase 38.7 tiebreak preserved)
-**Plans:** 5/6 plans executed
+**Plans:** 6/6 plans complete
 
 Plans:
 - [ ] `38.8-01-red-characterization-test-PLAN.md` — RED characterization test in `test/services/table_monitor/result_recorder_test.rb`: training single-set no-tiebreak game lands in `:final_match_score` (NOT `:playing`). Locks the contract that would have failed since c3dedb69. Wave 1.
@@ -266,7 +266,7 @@ Phases execute in numeric order: 33 → 34 → 35 → 36a → 36b → 36c → 37
 | 38.4. BK2-Kombi post-dry-run gaps | v7.1 | 17/17 | Complete   | 2026-04-25 |
 | 38.5. BK-Param-Hierarchie + Multiset-Config | v7.1 | 6/6 | Complete    | 2026-04-29 |
 | 38.6. Discipline Master-Data Cleanup | v7.1 | 4/4 | Complete    | 2026-04-29 |
-| 38.8. Endergebnis-erfasst state restore | v7.1 | 5/6 | In Progress|  |
+| 38.8. Endergebnis-erfasst state restore | v7.1 | 6/6 | Complete   | 2026-05-01 |
 | 39. DTP-Backed Parameter Ranges | v7.1 | 0/TBD | Not started | - |
 
 **v7.0 total:** 7 phases, 31 plans, 37/37 requirements, ~2 weeks wall time.
