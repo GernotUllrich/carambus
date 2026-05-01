@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v7.1
 milestone_name: UX Polish & i18n Debt
 status: executing
-stopped_at: Completed 38.8-03-delete-training-rematch-block-PLAN.md (auto-rematch deleted, AASM bypass eliminated, Plan 01 RED test now GREEN, T6 contract realigned, Phase 38.7 tiebreak suite still GREEN)
-last_updated: "2026-05-01T08:38:36.102Z"
+stopped_at: Completed 38.8-04-defer-tournament-round-progression-PLAN.md (tournament round-progression cascade extracted to advance_round_after_match_close, AASM close_match wired to advance_tournament_round_if_present, training mode unaffected, Phase 38.7 tiebreak suite still GREEN)
+last_updated: "2026-05-01T08:48:10.470Z"
 last_activity: 2026-05-01
 progress:
   total_phases: 11
   completed_phases: 7
   total_plans: 67
-  completed_plans: 63
-  percent: 94
+  completed_plans: 64
+  percent: 96
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-15)
 ## Current Position
 
 Phase: 38.8 (endergebnis-erfasst-state-restore-operator-gate-the-post-mat) — EXECUTING
-Plan: 4 of 6
+Plan: 5 of 6
 Status: Ready to execute
 Last activity: 2026-05-01
 
@@ -130,6 +130,7 @@ Decisions are logged in PROJECT.md Key Decisions table. Full v7.0 cross-phase de
 - [Phase 38.8]: Plan 01: RED characterization test added — test_evaluate_result_for_training_single-set_no-tiebreak_game_lands_in_final_match_score asserts tm.state == 'final_match_score' for training single-set games. Mirrors phase 38.7 update_columns(state: 'set_over') pattern to reach Branch C directly. Fails RED today (Expected 'final_match_score', Actual 'playing') — pins regression introduced by commit c3dedb69.
 - [Phase 38.8]: Plan 02: AASM :start_rematch event added (15 LOC, transition final_match_score → playing, after-callbacks [revert_players, do_play]). Extend-before-build SKILL applied — single new event block, no parallel state machine. Phase 38.7 tiebreak guard preserved verbatim. Plan 01 RED test deliberately remains RED until Plan 03 deletes auto-rematch block. DE+EN i18n keys table_monitor.next_game shipped together to unblock Plan 05 wiring.
 - [Phase 38.8]: Plan 03: Both training auto-rematch blocks DELETED from result_recorder.rb (Branch C + final_set_score branch); replaced with @tm.finish_match! if @tm.may_finish_match? mirroring tournament admin_ack_result path. AASM bypass update(state: 'playing') eliminated (0 real call sites). Plan 01 RED test flipped to GREEN. T6 Phase 38.7 test re-anchored under Rule 1 (assertions inverted from assert_includes :revert to assert_empty + assert_equal final_match_score). Phase 38.7 tiebreak guard preserved verbatim (tiebreak_not_pending? grep count UNCHANGED at 3). 24/24 result_recorder tests + 16/16 model tests + 4/4 tiebreak system tests all GREEN.
+- [Phase 38.8]: Plan 04: Tournament round-progression cascade extracted from TournamentMonitor::ResultProcessor#report_result into new public method advance_round_after_match_close(table_monitor); wired to TableMonitor AASM :close_match event via after-callback advance_tournament_round_if_present (no-op in training mode). report_result now writes data + finish_match!s but DEFERS the cascade until operator-triggered close_match!. Symmetric to training-mode operator-gate landed by Plans 02/03. Phase 38.7 tiebreak guard preserved verbatim (grep count UNCHANGED at 3); Plan 02 :start_rematch event preserved (count UNCHANGED at 1). 24/24 result_processor_test.rb (was 19, +5 new lock-in tests) + 24/24 result_recorder_test.rb + 16/16 table_monitor_test.rb + 4/4 tiebreak_test.rb (system) all GREEN. Test 4 regex tightened to call-site-aware (Rule 1 plan-prescribed test bug fix — same DOCUMENTARY-comment-noise pattern as Plan 03). Extend-before-build SKILL upheld.
 
 ### Roadmap Evolution
 
@@ -176,6 +177,6 @@ None blocking Phase 38.1 execution. Reconciliation debt above is tracked but not
 
 ## Session Continuity
 
-Last session: 2026-05-01T08:38:36.099Z
-Stopped at: Completed 38.8-03-delete-training-rematch-block-PLAN.md (auto-rematch deleted, AASM bypass eliminated, Plan 01 RED test now GREEN, T6 contract realigned, Phase 38.7 tiebreak suite still GREEN)
+Last session: 2026-05-01T08:48:10.467Z
+Stopped at: Completed 38.8-04-defer-tournament-round-progression-PLAN.md (tournament round-progression cascade extracted to advance_round_after_match_close, AASM close_match wired to advance_tournament_round_if_present, training mode unaffected, Phase 38.7 tiebreak suite still GREEN)
 Resume: `/gsd-plan-phase 38.7 --gaps` to plan training-mode tiebreak sources (carambus.yml preset, detail-form toggle, BK-2kombi auto-detect, TournamentMonitor override)
