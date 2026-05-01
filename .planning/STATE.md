@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-04-15)
 Phase: 999.1
 Plan: Not started
 Status: Phase complete — ready for verification
-Last activity: 2026-05-01 - Completed quick task 260501-vly: BK-2kombi tiebreak fixes — credit set point on tiebreak win + Detail Page tiebreak default + unified inning display
+Last activity: 2026-05-01 - Completed quick task 260501-wfv: BK-2kombi shootout first_set_mode pick re-seeds bk2_state (was ignored due to stale state)
 
 **Deferred to Wave 4 / later session:**
 
@@ -182,6 +182,7 @@ None blocking Phase 38.1 execution. Reconciliation debt above is tracked but not
 | 260501-sbz | Fix BK-2kombi SP-phase inning counter display (replaces Aufnahmen-übrig with karambol-style "N of M") | 2026-05-01 | _pending_ | [260501-sbz-fix-bk-2kombi-sp-phase-inning-counter-di](./quick/260501-sbz-fix-bk-2kombi-sp-phase-inning-counter-di/) |
 | 260501-uxo | BK-2kombi: enforce SP-phase inning limit (default 5) and make it configurable from carambus.yml | 2026-05-01 | b3fcfeca | [260501-uxo-bk-2kombi-enforce-sp-phase-inning-limit-](./quick/260501-uxo-bk-2kombi-enforce-sp-phase-inning-limit-/) |
 | 260501-vly | BK-2kombi tiebreak fixes: credit set point on tiebreak win + Detail Page tiebreak default + unified inning display | 2026-05-01 | 7cf939a9 | [260501-vly-bk-2kombi-tiebreak-fixes-credit-set-poin](./quick/260501-vly-bk-2kombi-tiebreak-fixes-credit-set-poin/) |
+| 260501-wfv | BK-2kombi shootout first_set_mode pick is ignored: stale bk2_state survives the second initialize_bk2_state! call | 2026-05-01 | 5b5dc22d | [260501-wfv-bk-2kombi-shootout-first-set-mode-pick-i](./quick/260501-wfv-bk-2kombi-shootout-first-set-mode-pick-i/) |
 
 ## Session Continuity
 
