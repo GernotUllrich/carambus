@@ -783,4 +783,65 @@ class TableMonitor::ResultRecorderTest < ActiveSupport::TestCase
     assert_equal 1, @tm.data["ba_results"]["TiebreakWinner"],
       "Plan 38.7-05 contract preserved: TiebreakWinner=1 indicator unchanged on non-tied path"
   end
+
+  # ---------------------------------------------------------------------------
+  # Quick-260501-x07 — clear stale tiebreak_winner at set boundary
+  # ---------------------------------------------------------------------------
+  # perform_switch_to_next_set MUST remove Game.data["tiebreak_winner"] when
+  # present so set N+1 re-evaluates the tiebreak modal independently of set N.
+  # Bug surface: BK-2kombi best-of-3 set 3 silently skipped the modal because
+  # tiebreak_pick_pending? saw a stale winner from set 1 and returned false.
+  # tiebreak_required stays sticky (per-match preset, not cleared here).
+  # No spurious Game.save! when winner is already absent (audit-log clean).
+
+  test "Quick-260501-x07: perform_switch_to_next_set clears stale tiebreak_winner from Game.data" do
+    # Setup: BK-2kombi context with one closed set (matches Phase 38.5 D-03 setup),
+    # game has both tiebreak_required AND a stale tiebreak_winner from set 1.
+    @tm.data["free_game_form"] = "bk2_kombi"
+    @tm.data["sets"] = [{"Innings1" => [10], "Innings2" => [5]}]
+    @tm.save!
+    @game.update!(data: {"tiebreak_required" => true, "tiebreak_winner" => "playera"})
+    @tm.reload  # re-fetch the cached :game association so service sees updated data
+
+    TableMonitor::ResultRecorder.new(table_monitor: @tm).perform_switch_to_next_set
+
+    assert_nil @game.reload.data["tiebreak_winner"],
+      "Quick-260501-x07: stale tiebreak_winner must be removed at set boundary so next set re-evaluates"
+  end
+
+  test "Quick-260501-x07: perform_switch_to_next_set preserves tiebreak_required (sticky per-match flag)" do
+    # Setup: same BK-2kombi context; tiebreak_required is the per-match preset
+    # (Quickstart / Detail Page checkbox) and MUST persist across sets.
+    @tm.data["free_game_form"] = "bk2_kombi"
+    @tm.data["sets"] = [{"Innings1" => [10], "Innings2" => [5]}]
+    @tm.save!
+    @game.update!(data: {"tiebreak_required" => true, "tiebreak_winner" => "playerb"})
+    @tm.reload
+
+    TableMonitor::ResultRecorder.new(table_monitor: @tm).perform_switch_to_next_set
+
+    assert_equal true, @game.reload.data["tiebreak_required"],
+      "Quick-260501-x07: tiebreak_required is sticky per-match — must NOT be cleared at set boundary"
+  end
+
+  test "Quick-260501-x07: perform_switch_to_next_set is no-op on Game when tiebreak_winner is absent (idempotent)" do
+    # Setup: BK-2kombi context with tiebreak_required=true but NO tiebreak_winner key.
+    # The .present? gate must skip Game.save! entirely to avoid audit-log noise
+    # (~90 spurious paper_trail versions per tournament otherwise).
+    @tm.data["free_game_form"] = "bk2_kombi"
+    @tm.data["sets"] = [{"Innings1" => [10], "Innings2" => [5]}]
+    @tm.save!
+    @game.update!(data: {"tiebreak_required" => true})
+    @tm.reload
+    original_updated_at = @game.reload.updated_at
+
+    travel 1.second do
+      assert_nothing_raised do
+        TableMonitor::ResultRecorder.new(table_monitor: @tm).perform_switch_to_next_set
+      end
+    end
+
+    assert_equal original_updated_at.to_i, @game.reload.updated_at.to_i,
+      "Quick-260501-x07: when tiebreak_winner absent, no spurious Game.save! must occur (updated_at unchanged)"
+  end
 end
