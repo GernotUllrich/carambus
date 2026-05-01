@@ -155,4 +155,61 @@ class PartyMonitor::ResultProcessorTest < ActiveSupport::TestCase
     assert_equal 1, gp_a.points, "Invalid tiebreak_winner='playerc' must fall through to legacy draw"
     assert_equal 1, gp_b.points
   end
+
+  # ============================================================================
+  # Phase 38.8 REVIEW CR-01 — polymorphic guard regression.
+  #
+  # `tournament_monitor` on TableMonitor is a polymorphic belongs_to that may
+  # resolve to either a TournamentMonitor (tournament flow) or a PartyMonitor
+  # (league-match flow). The Phase 38.8 close_match after-callback
+  # `advance_tournament_round_if_present` must NOT instantiate a
+  # TournamentMonitor::ResultProcessor over a PartyMonitor — that triggers
+  # NoMethodError on populate_tables / incr_current_round! /
+  # group_phase_finished? / start_playing_finals! / start_playing_groups! /
+  # end_of_tournament! mid-cascade.
+  #
+  # Regression: before the CR-01 fix, every league-match close_match!
+  # (PartyMonitor::ResultProcessor#finalize_round and
+  # PartyMonitor::ResultProcessor#finalize_game_result for manual_assignment)
+  # would crash. The guard `return unless tournament_monitor.is_a?(TournamentMonitor)`
+  # prevents that.
+  # ============================================================================
+
+  test "TableMonitor#advance_tournament_round_if_present is a no-op when polymorphic tournament_monitor is a PartyMonitor (CR-01)" do
+    base_id = @pm.id + 800
+    tm = TableMonitor.create!(
+      id: base_id,
+      state: "ready_for_new_match",
+      data: {},
+      tournament_monitor: @pm
+    )
+
+    # Bridge MUST short-circuit before reaching TournamentMonitor::ResultProcessor —
+    # otherwise PartyMonitor (which lacks populate_tables / start_playing_finals! /
+    # start_playing_groups! / group_phase_finished? / end_of_tournament!) would
+    # NoMethodError mid-cascade. The guard returns nil for PartyMonitor.
+    assert_nothing_raised do
+      tm.advance_tournament_round_if_present
+    end
+  end
+
+  test "PartyMonitor close_match! cascade does not crash via Phase 38.8 after-callback (CR-01)" do
+    # Drive a real PartyMonitor TableMonitor through close_match! to confirm
+    # the after-callback `advance_tournament_round_if_present` does NOT raise
+    # NoMethodError when the polymorphic association resolves to a PartyMonitor.
+    base_id = @pm.id + 900
+    tm = TableMonitor.create!(
+      id: base_id,
+      state: "playing",
+      data: {},
+      tournament_monitor: @pm
+    )
+
+    assert tm.may_close_match?, "TableMonitor must be in a state that allows close_match! transition"
+    assert_nothing_raised do
+      tm.close_match!
+    end
+    tm.reload
+    assert_equal "ready_for_new_match", tm.state, "close_match! must transition to :ready_for_new_match"
+  end
 end

@@ -1674,15 +1674,23 @@ class TableMonitor < ApplicationRecord
   # Phase 38.8 — Bridge from TableMonitor AASM close_match event to
   # TournamentMonitor::ResultProcessor#advance_round_after_match_close.
   #
-  # No-op in training mode (tournament_monitor blank). In tournament mode,
-  # delegates to the deferred cascade (populate_tables / incr_current_round! /
-  # finalize_round / etc.) extracted from report_result in Plan 38.8-04.
+  # No-op in training mode (tournament_monitor blank). Also a no-op when the
+  # polymorphic association resolves to a PartyMonitor (league-match flow):
+  # PartyMonitor::ResultProcessor handles its own cascade via finalize_round
+  # and does NOT implement the TournamentMonitor cascade methods
+  # (populate_tables, incr_current_round!, group_phase_finished?, ...).
+  # Without this guard, a league-match close_match! would NoMethodError
+  # mid-cascade. See Phase 38.8 REVIEW CR-01.
+  #
+  # In tournament mode (tournament_monitor.is_a?(TournamentMonitor)),
+  # delegates to the deferred cascade extracted from report_result in
+  # Plan 38.8-04.
   #
   # Called as an AASM `after:` callback on event `:close_match` (table_monitor.rb
-  # AASM block). Idempotent — the cascade is internally gated by
-  # all_table_monitors_finished? + AASM may_? predicates.
+  # AASM block).
   def advance_tournament_round_if_present
     return if tournament_monitor.blank?
+    return unless tournament_monitor.is_a?(TournamentMonitor)
     Rails.logger.info "[advance_tournament_round_if_present] m6[#{id}] delegating to ResultProcessor#advance_round_after_match_close"
     TournamentMonitor::ResultProcessor.new(tournament_monitor).advance_round_after_match_close(self)
   rescue StandardError => e
