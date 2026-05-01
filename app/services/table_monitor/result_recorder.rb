@@ -147,6 +147,18 @@ class TableMonitor::ResultRecorder < ApplicationService
     tw = @tm.game.data&.[]("tiebreak_winner")
     if tw.is_a?(String) && %w[playera playerb].include?(tw)
       ba_results["TiebreakWinner"] = {"playera" => 1, "playerb" => 2}[tw]
+      # Quick-260501-vly Plan 01 — Bug 1: credit Sets1/Sets2 when picked tiebreak
+      # decides a tied set. Conservative gate: tiebreak_required==true only,
+      # leaves legacy/edge data unchanged (user-confirmed Q1 2026-05-01 "ja bitte").
+      # Existing TiebreakWinner indicator above is preserved for Plan 38.7-07 PDF.
+      if game_set_result["Ergebnis1"].to_i == game_set_result["Ergebnis2"].to_i &&
+          @tm.game.data&.[]("tiebreak_required") == true
+        if tw == "playera"
+          ba_results["Sets1"] = ba_results["Sets1"].to_i + 1
+        else # tw == "playerb" — whitelist already enforced by outer if-condition
+          ba_results["Sets2"] = ba_results["Sets2"].to_i + 1
+        end
+      end
     end
     @tm.deep_merge_data!("ba_results" => ba_results)
   end

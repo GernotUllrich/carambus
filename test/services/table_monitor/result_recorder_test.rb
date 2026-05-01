@@ -679,4 +679,108 @@ class TableMonitor::ResultRecorderTest < ActiveSupport::TestCase
     assert_not_nil @tm.game, "Game must remain present at final_match_score (no auto-rematch)"
     assert_nil @tm.tournament_monitor, "Training mode preserved (no tournament_monitor side-effect)"
   end
+
+  # ---------------------------------------------------------------------------
+  # Quick-260501-vly Plan 01 — Bug 1: Tiebreak winner pick credits Sets1/Sets2.
+  # Pre-existing latent defect: Phase 38.7 Plan 05 wrote the TiebreakWinner
+  # indicator (1/2) for the PDF, but did NOT increment Sets1/Sets2 — so a tied
+  # set decided by an operator tiebreak pick never advanced the match-score,
+  # leaving BK-2kombi matches unable to close on tiebreak.
+  #
+  # Conservative gate (user-confirmed Q1 2026-05-01 "ja bitte"):
+  # set-credit fires only when scores are tied AND game.data['tiebreak_required']
+  # == true (strict Boolean). Legacy/edge data (TiebreakWinner set without
+  # tiebreak_required) is left untouched — TiebreakWinner indicator still set
+  # for the PDF, no double-count on the non-tied score-comparison path.
+  # ---------------------------------------------------------------------------
+
+  test "Quick-260501-vly Bug 1 close branch playera: tied + tiebreak_required + winner=playera credits Sets1=1" do
+    @game.update!(data: {"tiebreak_required" => true, "tiebreak_winner" => "playera"})
+    recorder = TableMonitor::ResultRecorder.new(table_monitor: @tm)
+    game_set_result = {
+      "Ergebnis1" => 50, "Ergebnis2" => 50,
+      "Aufnahmen1" => 5, "Aufnahmen2" => 5,
+      "Höchstserie1" => 10, "Höchstserie2" => 10
+    }
+    recorder.send(:update_ba_results_with_set_result!, game_set_result)
+
+    assert_equal 1, @tm.data["ba_results"]["Sets1"],
+      "Bug 1: tied + tiebreak_required + winner=playera must credit Sets1=1"
+    assert_equal 0, @tm.data["ba_results"]["Sets2"],
+      "Bug 1: playera tiebreak pick must NOT credit Sets2"
+    assert_equal 1, @tm.data["ba_results"]["TiebreakWinner"],
+      "Plan 38.7-05 contract preserved: TiebreakWinner=1 indicator still set for PDF"
+  end
+
+  test "Quick-260501-vly Bug 1 close branch playerb: tied + tiebreak_required + winner=playerb credits Sets2=1" do
+    @game.update!(data: {"tiebreak_required" => true, "tiebreak_winner" => "playerb"})
+    recorder = TableMonitor::ResultRecorder.new(table_monitor: @tm)
+    game_set_result = {
+      "Ergebnis1" => 50, "Ergebnis2" => 50,
+      "Aufnahmen1" => 5, "Aufnahmen2" => 5,
+      "Höchstserie1" => 10, "Höchstserie2" => 10
+    }
+    recorder.send(:update_ba_results_with_set_result!, game_set_result)
+
+    assert_equal 1, @tm.data["ba_results"]["Sets2"],
+      "Bug 1: tied + tiebreak_required + winner=playerb must credit Sets2=1"
+    assert_equal 0, @tm.data["ba_results"]["Sets1"],
+      "Bug 1: playerb tiebreak pick must NOT credit Sets1"
+    assert_equal 2, @tm.data["ba_results"]["TiebreakWinner"],
+      "Plan 38.7-05 contract preserved: TiebreakWinner=2 indicator still set for PDF"
+  end
+
+  test "Quick-260501-vly Bug 1 regression: tied + tiebreak_required but no tiebreak_winner — no credit, no indicator" do
+    @game.update!(data: {"tiebreak_required" => true})
+    recorder = TableMonitor::ResultRecorder.new(table_monitor: @tm)
+    game_set_result = {
+      "Ergebnis1" => 50, "Ergebnis2" => 50,
+      "Aufnahmen1" => 5, "Aufnahmen2" => 5,
+      "Höchstserie1" => 10, "Höchstserie2" => 10
+    }
+    recorder.send(:update_ba_results_with_set_result!, game_set_result)
+
+    assert_equal 0, @tm.data["ba_results"]["Sets1"],
+      "Plan 38.7-05 contract preserved: missing tiebreak_winner must not credit Sets1"
+    assert_equal 0, @tm.data["ba_results"]["Sets2"],
+      "Plan 38.7-05 contract preserved: missing tiebreak_winner must not credit Sets2"
+    assert_nil @tm.data["ba_results"]["TiebreakWinner"],
+      "Plan 38.7-05 contract preserved: TiebreakWinner key absent without winner pick"
+  end
+
+  test "Quick-260501-vly Bug 1 conservative gate: tiebreak_required=false + winner=playera — indicator only, no credit" do
+    @game.update!(data: {"tiebreak_required" => false, "tiebreak_winner" => "playera"})
+    recorder = TableMonitor::ResultRecorder.new(table_monitor: @tm)
+    game_set_result = {
+      "Ergebnis1" => 50, "Ergebnis2" => 50,
+      "Aufnahmen1" => 5, "Aufnahmen2" => 5,
+      "Höchstserie1" => 10, "Höchstserie2" => 10
+    }
+    recorder.send(:update_ba_results_with_set_result!, game_set_result)
+
+    assert_equal 0, @tm.data["ba_results"]["Sets1"],
+      "Conservative gate (Q1 ja bitte): tiebreak_required=false leaves legacy/edge data unchanged — no Sets1 credit"
+    assert_equal 0, @tm.data["ba_results"]["Sets2"],
+      "Conservative gate (Q1 ja bitte): tiebreak_required=false leaves legacy/edge data unchanged — no Sets2 credit"
+    assert_equal 1, @tm.data["ba_results"]["TiebreakWinner"],
+      "Plan 38.7-05 contract preserved: TiebreakWinner indicator still set independently of tiebreak_required gate"
+  end
+
+  test "Quick-260501-vly Bug 1 no double-count: non-tied + tiebreak_required + winner=playera credits Sets1=1 (from score), not 2" do
+    @game.update!(data: {"tiebreak_required" => true, "tiebreak_winner" => "playera"})
+    recorder = TableMonitor::ResultRecorder.new(table_monitor: @tm)
+    game_set_result = {
+      "Ergebnis1" => 70, "Ergebnis2" => 45,
+      "Aufnahmen1" => 5, "Aufnahmen2" => 5,
+      "Höchstserie1" => 15, "Höchstserie2" => 8
+    }
+    recorder.send(:update_ba_results_with_set_result!, game_set_result)
+
+    assert_equal 1, @tm.data["ba_results"]["Sets1"],
+      "No double-count: non-tied path credits Sets1=1 from score comparison ONLY (not 2 with tiebreak credit)"
+    assert_equal 0, @tm.data["ba_results"]["Sets2"],
+      "No double-count: playerb did not score higher and did not win tiebreak — Sets2=0"
+    assert_equal 1, @tm.data["ba_results"]["TiebreakWinner"],
+      "Plan 38.7-05 contract preserved: TiebreakWinner=1 indicator unchanged on non-tied path"
+  end
 end
