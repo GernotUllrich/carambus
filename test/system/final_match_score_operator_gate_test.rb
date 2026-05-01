@@ -167,10 +167,10 @@ class FinalMatchScoreOperatorGateTest < ActiveSupport::TestCase
   #   - test/services/tournament_monitor/result_processor_test.rb
   #     ("advance_round_after_match_close method body contains all 6 cascade calls")
   #     — static-source proof of cascade extraction
-  #   - test/services/tournament_monitor/result_processor_test.rb
-  #     CR-02 sentinel + ensure-clear regression tests
   #   - test/services/party_monitor/result_processor_test.rb
   #     CR-01 polymorphic-guard regression tests (real PartyMonitor cascade)
+  #   - Manual UAT (BK-2 round_play 2026-05-01): operator-confirmed
+  #     exactly-once cascade per click. CR-02 recursion never observed.
   #
   # SC-2 here narrows scope to the AASM transition only — that the close_match
   # event wires correctly from :final_match_score to :ready_for_new_match
