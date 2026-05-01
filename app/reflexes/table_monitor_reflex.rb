@@ -822,6 +822,48 @@ class TableMonitorReflex < ApplicationReflex
     @table_monitor.save!
   end
 
+  # Phase 38.8 — Operator-gate button reflex for TRAINING mode. Fires AASM
+  # event :start_rematch (added in Plan 38.8-02) which transitions
+  # :final_match_score -> :playing and runs revert_players + do_play as
+  # after-callbacks (replacing the deleted auto-rematch block from
+  # ResultRecorder, Plan 38.8-03).
+  #
+  # Bound from _scoreboard.html.erb final_match_score branch (training arm).
+  # AASM `from: :final_match_score` guard rejects any out-of-state invocation.
+  def start_rematch
+    Rails.logger.info "+++++++++++++++++>>> start_rematch <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
+    morph :nothing
+    @table_monitor = TableMonitor.find(element.andand.dataset[:id])
+    from_admin = element.andand.dataset[:from_admin]
+    return if @table_monitor.locked_scoreboard && !from_admin
+
+    @table_monitor.suppress_broadcast = true
+    @table_monitor.start_rematch! if @table_monitor.may_start_rematch?
+    @table_monitor.suppress_broadcast = false
+    @table_monitor.save!
+  end
+
+  # Phase 38.8 — Operator-gate button reflex for TOURNAMENT mode. Fires AASM
+  # event :close_match which transitions :final_match_score -> :ready_for_new_match
+  # AND runs the deferred round-progression cascade via the after-callback
+  # advance_tournament_round_if_present (added in Plan 38.8-04).
+  #
+  # Bound from _scoreboard.html.erb final_match_score branch (tournament arm).
+  # In training mode (tournament_monitor blank) advance_tournament_round_if_present
+  # is a no-op; the TM still cleanly transitions to :ready_for_new_match.
+  def close_match
+    Rails.logger.info "+++++++++++++++++>>> close_match <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
+    morph :nothing
+    @table_monitor = TableMonitor.find(element.andand.dataset[:id])
+    from_admin = element.andand.dataset[:from_admin]
+    return if @table_monitor.locked_scoreboard && !from_admin
+
+    @table_monitor.suppress_broadcast = true
+    @table_monitor.close_match! if @table_monitor.may_close_match?
+    @table_monitor.suppress_broadcast = false
+    @table_monitor.save!
+  end
+
   def stop
     Rails.logger.info "+++++++++++++++++>>> stop <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     morph :nothing
