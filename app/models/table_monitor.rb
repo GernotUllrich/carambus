@@ -1550,6 +1550,29 @@ class TableMonitor < ApplicationRecord
           "Erste-Aufnahme-Gate fails (anstoss past inning 1, no Nachstoss-Aufnahme permitted)"
         return true
       end
+
+      # Quick-260501-uxo: BK-2 / BK-2kombi-SP Aufnahmegrenze (per-set inning limit) close.
+      # When `bk2_options.serienspiel_max_innings_per_set` is positive AND both players
+      # have completed that many innings, the SP-Phase set MUST close — even if neither
+      # reached balls_goal. Tied scores at the limit flow through the existing per-game
+      # tiebreak gate (Game.data['tiebreak_required'] set by Plan 04, modal opens at the
+      # level above when scores are equal). Non-tied → set closes, higher score wins.
+      #
+      # Scope: gated by the outer `bk_with_nachstoss` predicate, so this only fires for
+      # BK-2 and BK-2kombi SP-Phase. DZ-Phase of BK-2kombi is excluded by construction
+      # (bk_with_nachstoss is false there). DZ uses shot-limit per turn, not inning-limit.
+      #
+      # SKILL extend-before-build: additive branch on existing predicate, NO parallel state
+      # machine (validated 2026-04-29: -1463 LOC after rolling back a parallel state machine
+      # on this exact surface).
+      sp_max = data.dig("bk2_options", "serienspiel_max_innings_per_set").to_i
+      if sp_max.positive? && anstoss_innings >= sp_max && nachstoss_innings >= sp_max
+        Rails.logger.info "[TableMonitor#end_of_set?] Quick-260501-uxo BK-SP-inning-limit-close: " \
+          "form=#{data["free_game_form"]} anstoss=#{anstoss_role}(#{a_result}/#{anstoss_innings}) " \
+          "nachstoss=#{nachstoss_role}(#{b_result}/#{nachstoss_innings}) goal=#{goal} " \
+          "sp_max=#{sp_max} — both players completed #{sp_max} innings"
+        return true
+      end
     end
 
     if data["playera"]["balls_goal"].to_i.positive? && (data["playera"]["result"].to_i >= data["playera"]["balls_goal"].to_i ||
