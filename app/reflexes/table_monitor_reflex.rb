@@ -363,6 +363,11 @@ class TableMonitorReflex < ApplicationReflex
       if %w[direkter_zweikampf serienspiel].include?(bk2_mode)
         @table_monitor.data["bk2_options"] ||= {}
         @table_monitor.data["bk2_options"]["first_set_mode"] = bk2_mode
+        # Quick 260501-wfv: clear stale bk2_state seeded earlier in GameSetup so the
+        # subsequent initialize_bk2_state! call (line 375) actually re-seeds with the
+        # operator-picked first_set_mode. Safe at shootout transition — no play yet,
+        # only initial values (sets_won 0:0, all set_scores zero) would be lost.
+        @table_monitor.data.delete("bk2_state")
       end
     end
     @table_monitor.suppress_broadcast = true
@@ -399,6 +404,11 @@ class TableMonitorReflex < ApplicationReflex
       if %w[direkter_zweikampf serienspiel].include?(bk2_mode)
         @table_monitor.data["bk2_options"] ||= {}
         @table_monitor.data["bk2_options"]["first_set_mode"] = bk2_mode
+        # Quick 260501-wfv: clear stale bk2_state seeded earlier in GameSetup so the
+        # subsequent initialize_bk2_state! call (line 411) actually re-seeds with the
+        # operator-picked first_set_mode. Safe at shootout transition — no play yet,
+        # only initial values (sets_won 0:0, all set_scores zero) would be lost.
+        @table_monitor.data.delete("bk2_state")
       end
     end
     @table_monitor.suppress_broadcast = true
