@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v7.1
 milestone_name: UX Polish & i18n Debt
 status: executing
-stopped_at: Completed 38.7-13-PLAN.md (Gap-05 view-wiring fix) — Phase 38.7 all 5 UAT gaps closed; ready for retest
-last_updated: "2026-05-01T07:35:40.876Z"
-last_activity: 2026-05-01 -- Phase 38.8 planning complete
+stopped_at: Completed 38.8-01-red-characterization-test-PLAN.md (RED test added, 23 baseline tests still GREEN, 24 runs / 1 failure as designed)
+last_updated: "2026-05-01T08:26:10.692Z"
+last_activity: 2026-05-01
 progress:
   total_phases: 11
   completed_phases: 7
   total_plans: 67
-  completed_plans: 60
-  percent: 90
+  completed_plans: 61
+  percent: 91
 ---
 
 # Project State
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-15)
 
 **Core value:** Code and docs stay in sync — every documented feature works, every working feature is documented, and a volunteer user should never need to read the architecture to run a tournament.
-**Current focus:** Phase 38.7 — tiebreak-bei-unentschieden-per-game-flag-mit-modal-eingabe
+**Current focus:** Phase 38.8 — endergebnis-erfasst-state-restore-operator-gate-the-post-mat
 
 ## Current Position
 
-Phase: 39
-Plan: Not started
+Phase: 38.8 (endergebnis-erfasst-state-restore-operator-gate-the-post-mat) — EXECUTING
+Plan: 2 of 6
 Status: Ready to execute
-Last activity: 2026-05-01 -- Phase 38.8 planning complete
+Last activity: 2026-05-01
 
 **Deferred to Wave 4 / later session:**
 
@@ -127,6 +127,7 @@ Decisions are logged in PROJECT.md Key Decisions table. Full v7.0 cross-phase de
 - [Phase 38.7]: Plan 10 (Gap-02): hidden_field_tag '0' + check_box_tag '1' pattern in detail-form set_params panel — explicit unchecked-submits-false sparse semantics; rides Plan 09's slice + GameSetup override branch (zero controller/service changes)
 - [Phase 38.7]: Plan 12 (Gap-04): TournamentMonitor startup-form tiebreak override — operator pick written to Tournament.data['tiebreak_on_draw'] via update_columns (bypasses unrelated organizer presence validation + before_save data-key extraction). Persist gated to :update only because :create is NOT director-gated; operator workflow is create-then-edit. i18n under tournament_monitors.form namespace, disjoint from Plan 10's locations.scoreboard_free_game namespace. Plan 04 resolver UNCHANGED — Plan 12 only writes Level 1.
 - [Phase 38.7]: Plan 13 (Gap-05): data-reflex='submit->GameProtocolReflex#confirm_result' relocated from <button> onto <form> in _game_protocol_modal.html.erb + action='javascript:void(0)' defense-in-depth; submit-event observability fixed (browsers fire submit on forms, not buttons). RED→GREEN integration suite (test/integration/tiebreak_modal_form_wiring_test.rb, 4 tests / 20 assertions) locks the contract via Nokogiri parse of ApplicationController.render output. Zero Ruby-layer changes — Plans 09-12 deliverables UNCHANGED. Closes the test gap that allowed the original bug to ship despite GREEN reflex unit + system tests.
+- [Phase 38.8]: Plan 01: RED characterization test added — test_evaluate_result_for_training_single-set_no-tiebreak_game_lands_in_final_match_score asserts tm.state == 'final_match_score' for training single-set games. Mirrors phase 38.7 update_columns(state: 'set_over') pattern to reach Branch C directly. Fails RED today (Expected 'final_match_score', Actual 'playing') — pins regression introduced by commit c3dedb69.
 
 ### Roadmap Evolution
 
@@ -173,6 +174,6 @@ None blocking Phase 38.1 execution. Reconciliation debt above is tracked but not
 
 ## Session Continuity
 
-Last session: 2026-04-30T21:55:04.513Z
-Stopped at: Completed 38.7-13-PLAN.md (Gap-05 view-wiring fix) — Phase 38.7 all 5 UAT gaps closed; ready for retest
+Last session: 2026-05-01T08:26:10.689Z
+Stopped at: Completed 38.8-01-red-characterization-test-PLAN.md (RED test added, 23 baseline tests still GREEN, 24 runs / 1 failure as designed)
 Resume: `/gsd-plan-phase 38.7 --gaps` to plan training-mode tiebreak sources (carambus.yml preset, detail-form toggle, BK-2kombi auto-detect, TournamentMonitor override)
