@@ -1430,6 +1430,12 @@ class TableMonitor < ApplicationRecord
       "fixed_display_left" => data["fixed_display_left"],
       "current_kickoff_player" => "playera",
       "free_game_form" => data["free_game_form"],
+      # quick-260503-x3k: pass-through bk2_options so BK-2 / BK-2plus rematches
+      # keep their Ballziel (the BK-family score panel reads
+      # data.dig("bk2_options","balls_goal") as fallback when bk2_state is empty,
+      # which is the case for all BK-* except BK-2kombi). Nil round-trips
+      # harmlessly for non-BK games (karambol/snooker/pool).
+      "bk2_options" => data["bk2_options"],
       "first_break_choice" => data["first_break_choice"],
       "warntime" => data["warntime"].to_i,
       "gametime" => data["gametime"].to_i,
