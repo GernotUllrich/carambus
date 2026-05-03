@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-04-15)
 Phase: 999.1
 Plan: Not started
 Status: Phase complete — ready for verification
-Last activity: 2026-05-03 - Completed quick task 260503-mor: GameProtocolReflex panel_state race guard — open_protocol/switch_to_edit_mode/switch_to_view_mode no longer downgrade panel_state from "protocol_final"; explains long-standing intermittent "tiebreak modal lacks input" symptom (stale-DOM Spielprotokoll click after AASM advanced to set_over)
+Last activity: 2026-05-03 - Completed quick task 260503-x3k: BK rematch preserves bk2_options.balls_goal — added bk2_options pass-through to revert_players options hash so BK-2/BK-2plus standalone rematch shows correct Ballziel (was "?" / 50 because score panel reads bk2_options.balls_goal for BK-family)
 
 **Deferred to Wave 4 / later session:**
 
@@ -187,6 +187,7 @@ None blocking Phase 38.1 execution. Reconciliation debt above is tracked but not
 | 260502-0ok | Score-line: mark set winner with asterisk in per-player innings list (S1: 70* vs S1: 50) | 2026-05-02 | d978e302 | [260502-0ok-score-line-mark-set-winner-with-asterisk](./quick/260502-0ok-score-line-mark-set-winner-with-asterisk/) |
 | 260503-hay | BK-2plus phase / BK-2kombi DZ-Phase 5-Aufnahmen Abbruch — exclude DZ-phase from legacy innings_goal close branch | 2026-05-03 | 12276841 | [260503-hay-bk-2plus-phase-bk-2kombi-dz-phase-5-aufn](./quick/260503-hay-bk-2plus-phase-bk-2kombi-dz-phase-5-aufn/) |
 | 260503-mor | GameProtocolReflex panel_state race — guard open_protocol / switch_to_edit_mode / switch_to_view_mode against downgrading "protocol_final" on stale-DOM clicks | 2026-05-03 | 734a2b95 | [260503-mor-gameprotocolreflex-panel-state-race-guar](./quick/260503-mor-gameprotocolreflex-panel-state-race-guar/) |
+| 260503-x3k | BK rematch preserves bk2_options.balls_goal — pass-through in revert_players options hash so BK-2/BK-2plus standalone show correct Ballziel after auto-rematch | 2026-05-03 | 45f9174c | [260503-x3k-bk-rematch-loses-bk2-options-balls-goal-](./quick/260503-x3k-bk-rematch-loses-bk2-options-balls-goal-/) |
 
 ## Session Continuity
 
