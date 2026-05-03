@@ -119,4 +119,62 @@ class GameProtocolReflexTest < ActiveSupport::TestCase
     assert_nil @game.data["tiebreak_winner"],
       "Non-tiebreak path must not touch game.data['tiebreak_winner'], even with forged param"
   end
+
+  # Phase quick-260503-mor — panel_state race guard regression suite.
+  #
+  # Race observed at the BCW Grand Prix on 2026-05-02: when a set ends in a draw,
+  # TableMonitor#set_game_over (AASM after-callback) sets panel_state='protocol_final'
+  # and current_element='confirm_result' / 'tiebreak_winner_choice'. The CableReady
+  # push to the scoreboard can arrive late; the operator clicks the still-visible
+  # Spielprotokoll-Button on the stale DOM and GameProtocolReflex#open_protocol (or
+  # #switch_to_edit_mode / #switch_to_view_mode) unconditionally overwrites
+  # panel_state, downgrading 'protocol_final' → 'protocol' / 'protocol_edit' and
+  # losing the tiebreak fieldset wiring.
+  #
+  # SKILL extend-before-build: protect the existing reflex methods with a small
+  # early-return guard rather than building a new state machine. R1/R2/R3 lock the
+  # no-downgrade contract for each of the three vulnerable reflex entry points.
+  test "R1: open_protocol on protocol_final must NOT downgrade panel_state (race guard)" do
+    # Setup already seeds panel_state='protocol_final', current_element='tiebreak_winner_choice'.
+    modal_update_calls = 0
+    @reflex.define_singleton_method(:send_modal_update) { |_html| modal_update_calls += 1 }
+    assert_nothing_raised { @reflex.open_protocol }
+    @tm.reload
+    assert_equal "protocol_final", @tm.panel_state,
+      "open_protocol on a protocol_final TM must NOT downgrade to 'protocol' (BCW Grand Prix race)"
+    assert_equal "tiebreak_winner_choice", @tm.current_element,
+      "current_element marker must be preserved on stale-DOM open_protocol click"
+    assert_equal 1, modal_update_calls,
+      "open_protocol on protocol_final must re-render the modal so the operator's click is not silently discarded"
+  end
+
+  test "R2: switch_to_edit_mode on protocol_final must NOT downgrade panel_state (race guard)" do
+    modal_update_calls = 0
+    @reflex.define_singleton_method(:send_modal_update) { |_html| modal_update_calls += 1 }
+    assert_nothing_raised { @reflex.switch_to_edit_mode }
+    @tm.reload
+    assert_equal "protocol_final", @tm.panel_state,
+      "switch_to_edit_mode on a protocol_final TM must NOT downgrade to 'protocol_edit'"
+    assert_equal "tiebreak_winner_choice", @tm.current_element,
+      "current_element marker must be preserved on stale-DOM switch_to_edit_mode click"
+    assert_equal 1, modal_update_calls,
+      "switch_to_edit_mode on protocol_final must re-render the modal"
+  end
+
+  test "R3: switch_to_view_mode on protocol_final must NOT downgrade panel_state (race guard)" do
+    # Cover the second valid protocol_final marker — 'confirm_result' (set by set_game_over
+    # before ResultRecorder detects a pending tiebreak).
+    @tm.update_columns(current_element: "confirm_result")
+    @tm.reload
+    modal_update_calls = 0
+    @reflex.define_singleton_method(:send_modal_update) { |_html| modal_update_calls += 1 }
+    assert_nothing_raised { @reflex.switch_to_view_mode }
+    @tm.reload
+    assert_equal "protocol_final", @tm.panel_state,
+      "switch_to_view_mode on a protocol_final TM must NOT downgrade to 'protocol'"
+    assert_equal "confirm_result", @tm.current_element,
+      "current_element='confirm_result' marker must be preserved on stale-DOM switch_to_view_mode click"
+    assert_equal 1, modal_update_calls,
+      "switch_to_view_mode on protocol_final must re-render the modal"
+  end
 end
