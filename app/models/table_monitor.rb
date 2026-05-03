@@ -1575,12 +1575,28 @@ class TableMonitor < ApplicationRecord
       end
     end
 
+    # Quick-260503-hay: BK-2plus standalone and BK-2kombi DZ-Phase have NO
+    # Aufnahmenbegrenzung (inning limit per set). BK-2plus uses balls_goal
+    # only; BK-2kombi DZ uses shot-limit per turn (not per set). The legacy
+    # karambol innings_goal-close branch below is phase-blind — exclude
+    # those two cases. BK-2 / BK-2kombi-SP are governed by the bk_with_nachstoss
+    # block above (which fires first when triggered) and SHOULD also skip
+    # this legacy branch as a defense-in-depth measure (the SP-inning-limit
+    # branch at lines 1568-1575 already returns true before reaching here).
+    #
+    # SKILL extend-before-build: one-line guard on existing predicate, NO
+    # parallel state machine.
+    no_innings_limit_phase = case data["free_game_form"]
+                             when "bk_2plus" then true
+                             when "bk2_kombi" then bk2_kombi_current_phase == "direkter_zweikampf"
+                             else false
+                             end
     if data["playera"]["balls_goal"].to_i.positive? && (data["playera"]["result"].to_i >= data["playera"]["balls_goal"].to_i ||
       data["playerb"]["result"].to_i >= data["playerb"]["balls_goal"].to_i) &&
        (data["playera"]["innings"] == data["playerb"]["innings"] || !data["allow_follow_up"])
       Rails.logger.info "[TableMonitor#end_of_set?] Game[#{game_id}] on TM[#{id}] ended: balls_goal reached (A:#{data["playera"]["result"]}/#{data["playera"]["balls_goal"]}, B:#{data["playerb"]["result"]}/#{data["playerb"]["balls_goal"]})"
       return true
-    elsif data["innings_goal"].to_i.positive? && data["playera"]["innings"].to_i >= data["innings_goal"].to_i &&
+    elsif !no_innings_limit_phase && data["innings_goal"].to_i.positive? && data["playera"]["innings"].to_i >= data["innings_goal"].to_i &&
           (data["playera"]["innings"] == data["playerb"]["innings"] || !data["allow_follow_up"])
       Rails.logger.info "[TableMonitor#end_of_set?] Game[#{game_id}] on TM[#{id}] ended: innings_goal reached (A:#{data["playera"]["innings"]}, B:#{data["playerb"]["innings"]}, goal:#{data["innings_goal"]})"
       return true
