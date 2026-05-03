@@ -318,6 +318,101 @@ class TableMonitorTest < ActiveSupport::TestCase
   end
 
   # ---------------------------------------------------------------------------
+  # Quick-260503-hay — BK-2plus / BK-2kombi DZ-Phase MUST NOT close on
+  # innings_goal=5 (legacy karambol close branch is phase-blind).
+  #
+  # Background: commit 1491385f (2026-04-26) set innings_goal=5 for the
+  # entire BK-* family as an SP-phase safety net. The legacy karambol close
+  # branch at table_monitor.rb:1583-1587 has no phase awareness — it fires
+  # whenever both players reach innings_goal (allow_follow_up=true) or any
+  # one player does (allow_follow_up=false). For BK-2plus (no Nachstoss, no
+  # inning limit) and BK-2kombi DZ-Phase (shot-limit per turn, not inning
+  # limit per set) this is wrong — those phases must keep playing until
+  # balls_goal is reached.
+  #
+  # SKILL extend-before-build: regression tests for a one-line guard added
+  # to the existing legacy branch. NO new predicate, NO refactor.
+  # ---------------------------------------------------------------------------
+
+  test "end_of_set? does NOT close BK-2plus standalone when both reach 5 innings without balls_goal (260503-hay)" do
+    # BK-2plus: allow_follow_up=false (controller line 329). innings_goal=5
+    # (controller fallback line 305 / 100). Today the legacy branch at
+    # table_monitor.rb:1583-1587 fires because !allow_follow_up AND
+    # playera.innings(5) >= innings_goal(5) — closes the set prematurely.
+    # After Task 2 fix lands: branch is skipped because free_game_form=="bk_2plus".
+    @tm.data = build_bk_data(free_game_form: "bk_2plus", balls_goal: 50,
+                             playera_result: 30, playera_innings: 5,
+                             playerb_result: 30, playerb_innings: 5,
+                             allow_follow_up: false)
+    @tm.data["innings_goal"] = 5
+    refute @tm.end_of_set?,
+      "BK-2plus has NO Aufnahmenbegrenzung — set must stay open until balls_goal reached " \
+      "(TODAY THIS FAILS — legacy karambol branch is phase-blind, fires on " \
+      "!allow_follow_up && playera.innings >= innings_goal). " \
+      "TEST EXPECTED TO FAIL BEFORE TASK 2 LANDS."
+  end
+
+  test "end_of_set? does NOT close BK-2kombi DZ-Phase when both reach 5 innings without balls_goal (260503-hay)" do
+    # BK-2kombi DZ-Phase: allow_follow_up=true (controller line 327). innings_goal=5
+    # (controller fallback). Today the legacy branch fires because
+    # playera.innings(5) == playerb.innings(5) AND playera.innings(5) >= innings_goal(5)
+    # — closes DZ-Phase set prematurely even though DZ uses shot-limit per turn.
+    # After Task 2 fix lands: branch is skipped because bk2_kombi_current_phase=="direkter_zweikampf".
+    @tm.data = build_bk_data(free_game_form: "bk2_kombi", balls_goal: 70,
+                             playera_result: 40, playera_innings: 5,
+                             playerb_result: 40, playerb_innings: 5,
+                             allow_follow_up: true,
+                             bk2_options: {"first_set_mode" => "direkter_zweikampf",
+                                           "serienspiel_max_innings_per_set" => 5})
+    @tm.data["innings_goal"] = 5
+    # data["sets"] left empty → set #1 → DZ-Phase
+    assert_equal "direkter_zweikampf", @tm.bk2_kombi_current_phase,
+      "Sanity: empty data['sets'] with first_set_mode=DZ must place us in direkter_zweikampf"
+    refute @tm.end_of_set?,
+      "DZ-Phase has shot-limit per turn, NOT inning-limit per set — set must stay open " \
+      "(TODAY THIS FAILS — legacy karambol branch fires on innings parity + innings_goal). " \
+      "TEST EXPECTED TO FAIL BEFORE TASK 2 LANDS."
+  end
+
+  test "end_of_set? STILL closes karambol when innings_goal reached at equal innings (legacy branch regression guard, 260503-hay)" do
+    # Pure karambol: balls_goal=250, both at result=200/innings=30, innings_goal=30.
+    # Result < balls_goal so the balls_goal branch never fires. Legacy karambol
+    # branch must continue to close the set. This guards against over-broad
+    # exclusion in Task 2 — the guard must scope to BK-* phases only.
+    @tm.data = build_bk_data(free_game_form: "karambol", balls_goal: 250,
+                             playera_result: 200, playera_innings: 30,
+                             playerb_result: 200, playerb_innings: 30,
+                             allow_follow_up: true)
+    @tm.data["innings_goal"] = 30
+    assert @tm.end_of_set?,
+      "karambol legacy branch must keep firing — Task 2 guard must scope to BK-* only " \
+      "(regression guard against over-broad exclusion)"
+  end
+
+  test "end_of_set? STILL closes BK-2kombi SP-Phase via the existing 260501-uxo SP-inning-limit branch (260503-hay sanity)" do
+    # BK-2kombi SP-Phase fixture mirrors test on lines 252-266: data["sets"] has
+    # one prior entry → set #2 → SP-Phase. Both players at result=50 / innings=5,
+    # sp_max=5. The 260501-uxo SP-inning-limit branch (lines 1568-1575) fires
+    # BEFORE reaching the legacy karambol branch — so even after Task 2's guard
+    # lands, this test still passes (close fires earlier, the guard never matters
+    # for this fixture).
+    @tm.data = build_bk_data(free_game_form: "bk2_kombi", balls_goal: 70,
+                             playera_result: 50, playera_innings: 5,
+                             playerb_result: 50, playerb_innings: 5,
+                             allow_follow_up: true,
+                             bk2_options: {"first_set_mode" => "direkter_zweikampf",
+                                           "serienspiel_max_innings_per_set" => 5})
+    @tm.data["sets"] = [{"Ergebnis1" => 70, "Ergebnis2" => 50, "Aufnahmen1" => 4, "Aufnahmen2" => 4,
+                         "Höchstserie1" => 0, "Höchstserie2" => 0}]
+    @tm.data["innings_goal"] = 5
+    assert_equal "serienspiel", @tm.bk2_kombi_current_phase,
+      "Sanity: SP-Phase fixture must place us in serienspiel"
+    assert @tm.end_of_set?,
+      "260501-uxo SP-Phase inning-limit branch fires before legacy branch — " \
+      "this test stays GREEN before AND after Task 2 (BK-2kombi SP path unchanged)"
+  end
+
+  # ---------------------------------------------------------------------------
   # Phase 38.7 Plan 05 T9 — D-08 AASM acknowledge_result guard (defense-in-depth).
   # See .planning/phases/38.7-…/38.7-CONTEXT.md D-08.
   #
