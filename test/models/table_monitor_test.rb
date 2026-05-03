@@ -540,4 +540,87 @@ class TableMonitorTest < ActiveSupport::TestCase
     assert_equal "playing", @tm.reload.state, "state must remain :playing after rejected transition"
   end
 
+  # ---------------------------------------------------------------------------
+  # Quick 260503-x3k — revert_players preserves bk2_options for BK-rematch.
+  # Bug: BK-2 / BK-2plus rematch ("Nächstes Spiel" after final_match_score)
+  # rendered "?" or 50 as Ballziel because revert_players built an options
+  # hash WITHOUT "bk2_options". GameSetup#build_result_hash then wrote
+  # data["bk2_options"] = nil into the new game, and the BK-family score
+  # panel's fallback (data.dig("bk2_options","balls_goal")) returned nil →
+  # bk2_set_target == 0 → renders "?". Fix: pass-through the existing
+  # bk2_options hash (extend-before-build SKILL — single key, no refactor).
+  # ---------------------------------------------------------------------------
+
+  # Stubs start_game to capture its options arg without invoking GameSetup,
+  # and update to no-op so a real game/GameParticipation chain is not required.
+  def stub_revert_players_dependencies!(tm)
+    captured = {captured_options: nil}
+    tm.define_singleton_method(:start_game) do |opts = {}|
+      captured[:captured_options] = opts
+      nil
+    end
+    tm.define_singleton_method(:update) { |*_args| true }
+    # game.game_participations.where(role: "...").first&.player&.id is called twice;
+    # stub `game` to a tiny object whose chain returns nil (player_a_id / player_b_id
+    # are not the focus of this test).
+    stub_game = Object.new
+    stub_gps = Object.new
+    stub_gps.define_singleton_method(:where) { |*_args| stub_gps }
+    stub_gps.define_singleton_method(:first) { nil }
+    stub_game.define_singleton_method(:game_participations) { stub_gps }
+    tm.define_singleton_method(:game) { stub_game }
+    captured
+  end
+
+  def seed_revert_players_data!(tm, free_game_form:, bk2_options: nil)
+    data = {
+      "fixed_display_left" => "playera",
+      "playera" => {"balls_goal" => 70, "discipline" => "BK-2plus"},
+      "playerb" => {"balls_goal" => 70, "discipline" => "BK-2plus"},
+      "timeouts" => 0, "timeout" => 0, "innings_goal" => 0,
+      "sets_to_play" => 1, "sets_to_win" => 1,
+      "kickoff_switches_with" => "set",
+      "allow_follow_up" => true,
+      "color_remains_with_set" => false,
+      "allow_overflow" => false,
+      "free_game_form" => free_game_form,
+      "first_break_choice" => "playera",
+      "warntime" => 0, "gametime" => 0
+    }
+    data["bk2_options"] = bk2_options if bk2_options
+    tm.update_columns(data: data)
+  end
+
+  test "revert_players preserves bk2_options.balls_goal for BK-2plus rematch (quick-260503-x3k)" do
+    seed_revert_players_data!(@tm,
+      free_game_form: "bk_2plus",
+      bk2_options: {"balls_goal" => 70,
+                    "direkter_zweikampf_max_shots_per_turn" => 2,
+                    "serienspiel_max_innings_per_set" => 5})
+    captured = stub_revert_players_dependencies!(@tm)
+
+    @tm.revert_players
+
+    opts = captured[:captured_options]
+    assert_kind_of Hash, opts, "revert_players must invoke start_game with an options Hash"
+    assert_kind_of Hash, opts["bk2_options"],
+      "revert_players MUST forward bk2_options to start_game (today omits the key — TEST EXPECTED TO FAIL BEFORE TASK 2)"
+    assert_equal 70, opts["bk2_options"]["balls_goal"],
+      "balls_goal=70 must round-trip through revert_players so BK-2plus rematch shows 70 (not '?' or 50)"
+    assert_equal 2, opts["bk2_options"]["direkter_zweikampf_max_shots_per_turn"]
+    assert_equal 5, opts["bk2_options"]["serienspiel_max_innings_per_set"]
+  end
+
+  test "revert_players forwards nil bk2_options for non-BK games (karambol regression guard, quick-260503-x3k)" do
+    seed_revert_players_data!(@tm, free_game_form: "standard", bk2_options: nil)
+    captured = stub_revert_players_dependencies!(@tm)
+
+    @tm.revert_players
+
+    opts = captured[:captured_options]
+    assert_kind_of Hash, opts
+    assert_nil opts["bk2_options"],
+      "non-BK rematch (karambol/snooker/pool) must not invent a bk2_options hash; nil round-trips cleanly"
+  end
+
 end
