@@ -11,6 +11,11 @@ class GameProtocolReflex < ApplicationReflex
   def open_protocol
     morph :nothing
     Rails.logger.debug { "🎯 GameProtocolReflex#open_protocol" }
+    # Race-guard: stale-DOM click after set_game_over set protocol_final — re-render, do not downgrade
+    if @table_monitor.panel_state == "protocol_final"
+      send_modal_update(render_protocol_modal)
+      return
+    end
     @table_monitor.suppress_broadcast = true
     @table_monitor.panel_state = "protocol"
     @table_monitor.save!
@@ -34,6 +39,11 @@ class GameProtocolReflex < ApplicationReflex
   def switch_to_edit_mode
     morph :nothing
     Rails.logger.debug { "🎯 GameProtocolReflex#switch_to_edit_mode" }
+    # Race-guard: stale-DOM click after set_game_over set protocol_final — re-render, do not downgrade
+    if @table_monitor.panel_state == "protocol_final"
+      send_modal_update(render_protocol_modal)
+      return
+    end
     @table_monitor.suppress_broadcast = true
     @table_monitor.panel_state = "protocol_edit"
     @table_monitor.save!
@@ -45,6 +55,11 @@ class GameProtocolReflex < ApplicationReflex
   def switch_to_view_mode
     morph :nothing
     Rails.logger.debug { "🎯 GameProtocolReflex#switch_to_view_mode" }
+    # Race-guard: stale-DOM click after set_game_over set protocol_final — re-render, do not downgrade
+    if @table_monitor.panel_state == "protocol_final"
+      send_modal_update(render_protocol_modal)
+      return
+    end
     @table_monitor.suppress_broadcast = true
     @table_monitor.panel_state = "protocol"
     @table_monitor.save!
