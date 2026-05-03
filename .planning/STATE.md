@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-04-15)
 Phase: 999.1
 Plan: Not started
 Status: Phase complete — ready for verification
-Last activity: 2026-05-02 - Completed quick task 260502-0ok: Score-line marks set winner with asterisk (S1: 70* vs S1: 50) — visual indicator across all sets including tiebreak-resolved ties
+Last activity: 2026-05-03 - Completed quick task 260503-hay: BK-2plus phase / BK-2kombi DZ-Phase 5-Aufnahmen Abbruch — excluded DZ-phase from phase-blind legacy innings_goal close branch (root cause of BCW Grand Prix premature DZ-set closes; bug introduced 2026-04-26 by commit 1491385f)
 
 **Deferred to Wave 4 / later session:**
 
@@ -185,6 +185,7 @@ None blocking Phase 38.1 execution. Reconciliation debt above is tracked but not
 | 260501-wfv | BK-2kombi shootout first_set_mode pick is ignored: stale bk2_state survives the second initialize_bk2_state! call | 2026-05-01 | 5b5dc22d | [260501-wfv-bk-2kombi-shootout-first-set-mode-pick-i](./quick/260501-wfv-bk-2kombi-shootout-first-set-mode-pick-i/) |
 | 260501-x07 | BK-2kombi: clear stale tiebreak_winner at set boundary so set 3 re-evaluates tiebreak independently of set 1 | 2026-05-01 | 41081785 | [260501-x07-bk-2kombi-clear-stale-tiebreak-winner-at](./quick/260501-x07-bk-2kombi-clear-stale-tiebreak-winner-at/) |
 | 260502-0ok | Score-line: mark set winner with asterisk in per-player innings list (S1: 70* vs S1: 50) | 2026-05-02 | d978e302 | [260502-0ok-score-line-mark-set-winner-with-asterisk](./quick/260502-0ok-score-line-mark-set-winner-with-asterisk/) |
+| 260503-hay | BK-2plus phase / BK-2kombi DZ-Phase 5-Aufnahmen Abbruch — exclude DZ-phase from legacy innings_goal close branch | 2026-05-03 | 12276841 | [260503-hay-bk-2plus-phase-bk-2kombi-dz-phase-5-aufn](./quick/260503-hay-bk-2plus-phase-bk-2kombi-dz-phase-5-aufn/) |
 
 ## Session Continuity
 
