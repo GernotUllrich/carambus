@@ -1800,14 +1800,34 @@ class TableMonitor < ApplicationRecord
   #
   # Called as an AASM `after:` callback on event `:close_match` (table_monitor.rb
   # AASM block).
+  #
+  # Phase quick-260505-0b5 (CR-02 sentinel restore — narrow-scoped per-TM):
+  # Restores the re-entry sentinel originally introduced in commit 37796f7d and
+  # reverted by 0dbe45c4 (2026-05-01) on insufficient single-set training-mode
+  # validation. Live incident 2026-05-05T00:01:45Z (Tournament[17416] /
+  # TournamentMonitor[50000028]) proved the recursion is real for tournament-
+  # finals after group play. Recursion path:
+  #   close_match! → advance_tournament_round_if_present → ResultProcessor#advance_round_after_match_close
+  #     → @tournament_monitor.finalize_round → tabmon.close_match! → ⤺
+  # The sentinel is scoped per-TM (`self.id`, NOT a boolean) so legitimate
+  # cross-TM cascades during finalize_round still run for OTHER TMs while
+  # short-circuiting only re-entry for the SAME TM. This honors SKILL
+  # extend-before-build: one small additive guard, no parallel state machine.
   def advance_tournament_round_if_present
     return if tournament_monitor.blank?
     return unless tournament_monitor.is_a?(TournamentMonitor)
+    if Thread.current[:_advancing_round_for_tm] == self.id
+      Rails.logger.info "[advance_tournament_round_if_present] m6[#{id}] sentinel SHORT-CIRCUIT (CR-02 per-TM re-entry guard)"
+      return
+    end
+    Thread.current[:_advancing_round_for_tm] = self.id
     Rails.logger.info "[advance_tournament_round_if_present] m6[#{id}] delegating to ResultProcessor#advance_round_after_match_close"
     TournamentMonitor::ResultProcessor.new(tournament_monitor).advance_round_after_match_close(self)
   rescue StandardError => e
     Rails.logger.error "[advance_tournament_round_if_present] m6[#{id}] ERROR: #{e}, #{e.backtrace&.first(3)&.join(" <- ")}"
     raise
+  ensure
+    Thread.current[:_advancing_round_for_tm] = nil if Thread.current[:_advancing_round_for_tm] == self.id
   end
 
   def force_next_state
