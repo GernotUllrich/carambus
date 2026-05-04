@@ -4,8 +4,8 @@ milestone: v7.1
 milestone_name: UX Polish & i18n Debt
 status: verifying
 stopped_at: Completed 38.9-01-end-of-set-fourth-branch-PLAN.md (4th BK-2 sub-branch in end_of_set?, 2 RED-then-GREEN tests; latent defect 79328663 closed; phase 38.9 ready for /gsd-verify-work)
-last_updated: "2026-05-01T15:32:54.494Z"
-last_activity: 2026-05-01
+last_updated: "2026-05-04T22:26:00.000Z"
+last_activity: 2026-05-04
 progress:
   total_phases: 12
   completed_phases: 9
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-04-15)
 Phase: 999.1
 Plan: Not started
 Status: Phase complete — ready for verification
-Last activity: 2026-05-05 - Completed quick task 260505-fbb: removed dead tiebreak_on_draw config plumbing (Game.derive_tiebreak_required resolver + GameSetup bake block + TournamentMonitorsController helpers + form checkbox + scoreboard toggle + i18n keys + dead-code tests) — −638 LOC across 15 files; playing_finals? override (Quick-260505-auq) is now the canonical path
+Last activity: 2026-05-05 - Completed quick task 260505-fbb: removed dead tiebreak_on_draw config plumbing (Game.derive_tiebreak_required resolver + GameSetup bake block + TournamentMonitorsController helpers + form checkbox + scoreboard toggle + i18n keys + dead-code tests) — −638 LOC across 15 files; playing_finals? override (Quick-260505-auq) is now the canonical path. Cherry-picked 260505-0b5 (CR-02 recursion-guard sentinel restore in advance_tournament_round_if_present) onto branch in preparation for go_back_to_stable → master promotion.
 
 **Deferred to Wave 4 / later session:**
 
@@ -188,11 +188,12 @@ None blocking Phase 38.1 execution. Reconciliation debt above is tracked but not
 | 260503-hay | BK-2plus phase / BK-2kombi DZ-Phase 5-Aufnahmen Abbruch — exclude DZ-phase from legacy innings_goal close branch | 2026-05-03 | 12276841 | [260503-hay-bk-2plus-phase-bk-2kombi-dz-phase-5-aufn](./quick/260503-hay-bk-2plus-phase-bk-2kombi-dz-phase-5-aufn/) |
 | 260503-mor | GameProtocolReflex panel_state race — guard open_protocol / switch_to_edit_mode / switch_to_view_mode against downgrading "protocol_final" on stale-DOM clicks | 2026-05-03 | 734a2b95 | [260503-mor-gameprotocolreflex-panel-state-race-guar](./quick/260503-mor-gameprotocolreflex-panel-state-race-guar/) |
 | 260503-x3k | BK rematch preserves bk2_options.balls_goal — pass-through in revert_players options hash so BK-2/BK-2plus standalone show correct Ballziel after auto-rematch | 2026-05-03 | 45f9174c | [260503-x3k-bk-rematch-loses-bk2-options-balls-goal-](./quick/260503-x3k-bk-rematch-loses-bk2-options-balls-goal-/) |
+| 260505-0b5 | CR-02 sentinel restore — narrow-scoped per-TM (`Thread.current[:_advancing_round_for_tm] == self.id`) re-entry guard in `advance_tournament_round_if_present`. Closes tournament-finals SystemStackError on tied 10:10 finals "Nächstes Spiel" (Tournament[17416] live incident 2026-05-05T00:01:45Z). MEMORY `feedback_cr02_false_positive.md` deleted (was scope-incomplete). Unblocks Phase 38.7 UAT Test 5. | 2026-05-04 | 1709938e | [260505-0b5-cr-02-sentinel-restore-narrow-scoped-to-](./quick/260505-0b5-cr-02-sentinel-restore-narrow-scoped-to-/) |
 | 260505-auq | TournamentMonitor#playing_finals? forces tiebreak_required=true at decision time — single private helper on TableMonitor + 2 call sites replaces Phase 38.7-09..13 executor_params plumbing strategy with a state-driven invariant | 2026-05-05 | 94c488df | [260505-auq-tiebreak-tournamentmonitor-state-playing](./quick/260505-auq-tiebreak-tournamentmonitor-state-playing/) |
 | 260505-fbb | Remove dead tiebreak_on_draw config plumbing (resolver + GameSetup bake block + controller helpers + form checkbox + scoreboard toggle + i18n + dead tests) — −638 LOC across 15 files; playing_finals? override is canonical path | 2026-05-05 | de0e7340 | [260505-fbb-remove-dead-tiebreak-on-draw-config-plum](./quick/260505-fbb-remove-dead-tiebreak-on-draw-config-plum/) |
 
 ## Session Continuity
 
-Last session: 2026-05-01T14:55:18.562Z
-Stopped at: 2026-05-01 - Completed quick task 260501-pud: Add Carambus.config.training_mode_show_fullname flag for tomorrow's BCW Grand Prix (default false; BCW operator flips to true in production block of carambus.yml.erb + carambus.yml before deploy)
-Resume: `/gsd-plan-phase 38.7 --gaps` to plan training-mode tiebreak sources (carambus.yml preset, detail-form toggle, BK-2kombi auto-detect, TournamentMonitor override)
+Last session: 2026-05-04T22:26:00.000Z
+Stopped at: 2026-05-04 - Completed quick task 260505-0b5: CR-02 sentinel restored narrow-scoped per-TM. Phase 38.7 UAT Test 5 now unblocked — operator can retry tied finals "Nächstes Spiel" without recursion crash.
+Resume: Sanity-check Tournament[17416] / TournamentMonitor[50000028] state (savepoints all rolled back; verify current_round + rankings consistency in console), then retry Phase 38.7 UAT Test 5 (TR-A Karambol-Liga tied tiebreak). After Tests 5–10 pass: `/gsd-verify-phase 38.7`, then `/gsd-verify-phase 38.8` and `/gsd-verify-phase 38.9`.
