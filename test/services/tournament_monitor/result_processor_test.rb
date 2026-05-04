@@ -333,4 +333,165 @@ class TournamentMonitor::ResultProcessorTest < ActiveSupport::TestCase
         "advance_round_after_match_close must contain '#{needle}' (extracted from report_result)")
     end
   end
+
+  # ============================================================================
+  # Phase quick-260505-0b5 (CR-02 sentinel restore — narrow-scoped per-TM)
+  #
+  # Live incident 2026-05-05T00:01:45Z, Tournament[17416] / TournamentMonitor[50000028]:
+  # Operator clicked "Nächstes Spiel" on a tied 10:10 Einband finals game →
+  # SystemStackError after ~323 nested savepoints. Recursion path:
+  #   TableMonitor#close_match! (AASM)
+  #     → after-callback advance_tournament_round_if_present
+  #     → ResultProcessor#advance_round_after_match_close
+  #     → @tournament_monitor.finalize_round
+  #     → loops table_monitors, calls tabmon.close_match! per TM
+  #     → re-enters advance_tournament_round_if_present for SAME outer TM → recurse → SystemStackError.
+  #
+  # Original sentinel (commit 37796f7d) was reverted by 0dbe45c4 (2026-05-01)
+  # on insufficient BK-2 single-set training-mode evidence; tournament-finals
+  # exercise of finalize_round was never validated. Restored here with
+  # narrow per-TM scoping (sentinel == self.id, NOT == true) so legitimate
+  # cross-TM cascades during finalize_round still run for OTHER TMs while
+  # short-circuiting only re-entry for the SAME TM.
+  # ============================================================================
+
+  test "CR-02 tournament-finals close_match cascade does NOT recurse infinitely (regression)" do
+    # Service-level dispatch — drive close_match! through the AASM after-callback chain,
+    # confirm the TournamentMonitorState#finalize_round loop does NOT re-enter the SAME TM
+    # via advance_tournament_round_if_present. Without the sentinel guard, this raises
+    # SystemStackError after ~323 nested savepoints (live incident reproduction).
+    games = @tournament.games.where("games.id >= #{Game::MIN_ID}").limit(2).to_a
+    skip "Need at least 1 local game with id >= MIN_ID for cascade test" if games.empty?
+
+    # Stub TournamentMonitor cascade methods so finalize_round is reachable but does NOT
+    # enqueue real jobs / advance the round. Per Phase 38.8 Plan 06 D-decision, instance
+    # singleton stubs (define_singleton_method) decouple the cascade from real DB advance.
+    @tm.define_singleton_method(:populate_tables) { nil }
+    @tm.define_singleton_method(:incr_current_round!) { nil }
+    @tm.define_singleton_method(:start_playing_groups!) { nil }
+    @tm.define_singleton_method(:group_phase_finished?) { false }
+    @tm.define_singleton_method(:all_table_monitors_finished?) { true }
+
+    tabmons = games.map do |game|
+      tm = TableMonitor.create!(
+        tournament_monitor: @tm,
+        game: game,
+        state: "final_match_score",
+        data: {
+          "playera" => { "result" => 10, "innings" => [10], "hs" => 10, "balls_goal" => 10 },
+          "playerb" => { "result" => 10, "innings" => [10], "hs" => 10, "balls_goal" => 10 },
+          "ba_results" => {},
+          "sets_to_win" => 1,
+          "sets" => [],
+          "current_inning" => { "active_player" => "playera", "balls" => 0 }
+        }
+      )
+      # Set game.data non-blank so finalize_round loop does NOT next-skip
+      # game.data is JSON-serialized (serialize :data, coder: JSON, type: Hash) — pass a Hash, not a String.
+      if game.data.blank?
+        game.update_columns(data: { "playera" => { "result" => 10 }, "playerb" => { "result" => 10 } })
+      end
+      tm
+    end
+
+    outer_tm = tabmons.first
+
+    begin
+      # Stub job enqueues to no-op — we only care about recursion safety, not async ranking work.
+      TournamentMonitorUpdateResultsJob.stub :perform_later, ->(_) { nil } do
+        TournamentStatusUpdateJob.stub :perform_later, ->(_) { nil } do
+          # Wrap in Timeout to bound RED-phase recursion (SystemStackError fires fast in
+          # MRI but the savepoint allocation can hang under test transactions). 10s is
+          # ample for a single legitimate close_match!.
+          result = nil
+          assert_nothing_raised do
+            Timeout.timeout(10) do
+              result = outer_tm.close_match!
+            end
+          end
+          outer_tm.reload
+          assert_equal "ready_for_new_match", outer_tm.state,
+            "After close_match!, outer TM must be in :ready_for_new_match (AASM transition)"
+          assert result, "close_match! must return truthy on success"
+        end
+      end
+    ensure
+      tabmons.each { |tm| tm.destroy if TableMonitor.exists?(tm.id) }
+    end
+  end
+
+  test "CR-02 advance_tournament_round_if_present short-circuits when sentinel matches self.id (per-TM scope)" do
+    # Pure unit test, no DB cascade. Builds an in-memory TM with id=99, primes the
+    # thread-local sentinel to 99, and verifies the delegate to ResultProcessor.new
+    # is NOT invoked (sentinel matches self.id → early-return).
+    tm = TableMonitor.new(state: "ready_for_new_match")
+    tm.define_singleton_method(:id) { 99 }
+    fake_tm = TournamentMonitor.new
+    tm.define_singleton_method(:tournament_monitor) { fake_tm }
+
+    Thread.current[:_advancing_round_for_tm] = 99
+    begin
+      result = nil
+      TournamentMonitor::ResultProcessor.stub :new, ->(_) { raise "ResultProcessor.new must NOT be invoked when sentinel matches self.id" } do
+        assert_nothing_raised do
+          result = tm.advance_tournament_round_if_present
+        end
+      end
+      assert_nil result, "advance_tournament_round_if_present must return nil when sentinel matches self.id"
+    ensure
+      Thread.current[:_advancing_round_for_tm] = nil
+    end
+  end
+
+  test "CR-02 advance_tournament_round_if_present DOES run when sentinel is set for a DIFFERENT TM (cross-TM cascade preserved)" do
+    # Pure unit test. TM has id=99; sentinel is primed to 42 (different id);
+    # delegate MUST be invoked because the per-TM scoping permits cross-TM cascades.
+    tm = TableMonitor.new(state: "ready_for_new_match")
+    tm.define_singleton_method(:id) { 99 }
+    fake_tm = TournamentMonitor.new
+    tm.define_singleton_method(:tournament_monitor) { fake_tm }
+
+    spy_invoked = false
+    fake_processor = Object.new
+    fake_processor.define_singleton_method(:advance_round_after_match_close) do |_tabmon|
+      spy_invoked = true
+      nil
+    end
+
+    Thread.current[:_advancing_round_for_tm] = 42
+    begin
+      TournamentMonitor::ResultProcessor.stub :new, ->(_) { fake_processor } do
+        assert_nothing_raised do
+          tm.advance_tournament_round_if_present
+        end
+      end
+      assert spy_invoked,
+        "advance_tournament_round_if_present MUST invoke ResultProcessor#advance_round_after_match_close when sentinel is set for a DIFFERENT TM (cross-TM cascade preserved)"
+    ensure
+      Thread.current[:_advancing_round_for_tm] = nil
+    end
+  end
+
+  test "CR-02 advance_tournament_round_if_present clears sentinel via ensure even on exception" do
+    # Mirror of the original 37796f7d test — sentinel must be cleared in `ensure`
+    # even when the delegate raises. Otherwise a single failed cascade would leave
+    # the thread permanently unable to advance the same TM ever again.
+    tm = TableMonitor.new(state: "ready_for_new_match")
+    tm.define_singleton_method(:id) { 99 }
+    fake_tm = TournamentMonitor.new
+    tm.define_singleton_method(:tournament_monitor) { fake_tm }
+
+    assert_nil Thread.current[:_advancing_round_for_tm], "Pre-condition: sentinel must be nil"
+    begin
+      TournamentMonitor::ResultProcessor.stub :new, ->(_) { raise StandardError, "simulated cascade failure" } do
+        assert_raises(StandardError) do
+          tm.advance_tournament_round_if_present
+        end
+      end
+      assert_nil Thread.current[:_advancing_round_for_tm],
+        "Post-condition: sentinel MUST be cleared via ensure even when delegate raises"
+    ensure
+      Thread.current[:_advancing_round_for_tm] = nil
+    end
+  end
 end
