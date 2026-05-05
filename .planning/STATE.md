@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-04-15)
 Phase: 999.1
 Plan: Not started
 Status: Phase complete — ready for verification
-Last activity: 2026-05-03 - Completed quick task 260503-x3k: BK rematch preserves bk2_options.balls_goal — added bk2_options pass-through to revert_players options hash so BK-2/BK-2plus standalone rematch shows correct Ballziel (was "?" / 50 because score panel reads bk2_options.balls_goal for BK-family)
+Last activity: 2026-05-05 - Completed quick task 260505-auq: TournamentMonitor#playing_finals? forces tiebreak_required=true at decision time — single private helper on TableMonitor + 2 call sites replaces Phase 38.7-09..13 executor_params plumbing strategy with a state-driven invariant (5 RED→GREEN tests, 0 regressions across tiebreak/protector suites)
 
 **Deferred to Wave 4 / later session:**
 
@@ -188,6 +188,7 @@ None blocking Phase 38.1 execution. Reconciliation debt above is tracked but not
 | 260503-hay | BK-2plus phase / BK-2kombi DZ-Phase 5-Aufnahmen Abbruch — exclude DZ-phase from legacy innings_goal close branch | 2026-05-03 | 12276841 | [260503-hay-bk-2plus-phase-bk-2kombi-dz-phase-5-aufn](./quick/260503-hay-bk-2plus-phase-bk-2kombi-dz-phase-5-aufn/) |
 | 260503-mor | GameProtocolReflex panel_state race — guard open_protocol / switch_to_edit_mode / switch_to_view_mode against downgrading "protocol_final" on stale-DOM clicks | 2026-05-03 | 734a2b95 | [260503-mor-gameprotocolreflex-panel-state-race-guar](./quick/260503-mor-gameprotocolreflex-panel-state-race-guar/) |
 | 260503-x3k | BK rematch preserves bk2_options.balls_goal — pass-through in revert_players options hash so BK-2/BK-2plus standalone show correct Ballziel after auto-rematch | 2026-05-03 | 45f9174c | [260503-x3k-bk-rematch-loses-bk2-options-balls-goal-](./quick/260503-x3k-bk-rematch-loses-bk2-options-balls-goal-/) |
+| 260505-auq | TournamentMonitor#playing_finals? forces tiebreak_required=true at decision time — single private helper on TableMonitor + 2 call sites replaces Phase 38.7-09..13 executor_params plumbing strategy with a state-driven invariant | 2026-05-05 | 94c488df | [260505-auq-tiebreak-tournamentmonitor-state-playing](./quick/260505-auq-tiebreak-tournamentmonitor-state-playing/) |
 
 ## Session Continuity
 
