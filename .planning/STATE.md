@@ -7,7 +7,7 @@ stopped_at: Completed 38.9-01-end-of-set-fourth-branch-PLAN.md (4th BK-2 sub-bra
 last_updated: "2026-05-05T14:00:00.000Z"
 last_activity: 2026-05-05
 progress:
-  total_phases: 12
+  total_phases: 11
   completed_phases: 11
   total_plans: 68
   completed_plans: 67
@@ -25,7 +25,7 @@ See: .planning/PROJECT.md (updated 2026-04-15)
 
 ## Current Position
 
-Phase: alle Hauptphasen 38..38.9 complete; backlog 999.1 / 999.2 not yet planned
+Phase: alle Hauptphasen 38..38.9 complete; backlog 999.1 not yet planned
 Plan: —
 Status: v7.1 inhaltlich fertig — verbleibende Items sind operativ (Server-Hygiene, Sync-Bug-Workaround, Ballziel-Edge-Case) oder backlog-parking (999.x). BK-Family-Carry-Forwards (TODOs A/B/C) postponed bis ~2026-07-05.
 Last activity: 2026-05-05 - Phase 38.9 retroactively closed via bookkeeping (VERIFICATION.md 6/6 must-haves verified 2026-05-01 + HUMAN-UAT.md 3/3 tests pass 2026-05-01; Test-3 observation captured as Backlog 999.1). Earlier today: Phase 38.1 retroactively closed; BK50/BK100 quick-game presets removed; quick 260501-sbz commit hash backfilled.

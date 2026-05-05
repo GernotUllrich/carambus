@@ -48,7 +48,10 @@ For active focus and pending decisions, see `STATE.md`. For the milestone-level 
 | Phase | Name |
 |---|---|
 | 999.1 | "Endergebnis erfasst" winner label per set / result on score panel |
-| 999.2 | Panel summary vs. panel editor — intermittent display |
+
+**Retired backlog items:**
+
+- **999.2 — Panel summary vs panel editor intermittent display** — retired 2026-05-05. Presumed resolved by Quick `260503-mor` (commit `734a2b95`) `GameProtocolReflex panel_state race — guard open_protocol / switch_to_edit_mode / switch_to_view_mode against downgrading "protocol_final" on stale-DOM clicks`. The reported symptom (old Panel Summary instead of Panel Editor) matches the race-fix surface exactly; not observed in the ~2 days of operation since the fix landed. Reopen as a new backlog item if it ever resurfaces.
 
 ---
 
