@@ -126,8 +126,12 @@ Decisions are logged in PROJECT.md Key Decisions table. Full v7.0 cross-phase de
 
 ### Pending Todos
 
-- ~~**Production API disk — `api-server-disk-cleanup`** (2026-04-23). PostgreSQL 14 cluster on the API server went down 2026-04-22 23:02 UTC due to disk-full.~~ **Resolved 2026-05-05.** Root cause was missing logrotate for the scenario-specific nginx log dirs `/var/log/carambus*/` (the standard `/etc/logrotate.d/nginx` only covers `/var/log/nginx/`). Active scenarios `carambus_api` + `carambus` plus 5 stale `carambus2_*` legacy dirs accumulated ~5 GB of unrotated `error.log` / `access.log` files. Deployed `/etc/logrotate.d/carambus` with glob `/var/log/carambus*/*.log` (daily / rotate 14 / compress / delaycompress / `invoke-rc.d nginx rotate` postrotate) + forced first rotation + gzipped `.1` files. Disk 82% → 76% (13 GB → 18 GB free, +5 GB). Capistrano releases were already lean (5 / 1.1 GB) — original "deeper pass on old releases" recommendation obsolete.
-- **Rematch loses Ballziel — `fix-ballziel-loss-on-swapped-anstoss-rematch`** (2026-05-01). Training-mode "Nächstes Spiel" after final_match_score starts the new game with swapped Anstoßer roles but Ballziel shows "?" or default 50 instead of the previous 70. Suspect: `revert_players` at `table_monitor.rb:1420-1421` reads `data["playerN"]["balls_goal"].to_i` which falls back to 0 when the post-match data mutation has cleared the top-level `balls_goal`. NOT blocking for 2026-05-02 BCW Grand Prix (each match has different players). See `.planning/todos/pending/2026-05-01-fix-ballziel-loss-on-swapped-anstoss-rematch.md`.
+_(none — all prior Pending Todos resolved or moved to `.planning/todos/done/`)_
+
+**Recently closed:**
+
+- **Production API disk — `api-server-disk-cleanup`** (created 2026-04-23, resolved 2026-05-05 commit `c007dd20`). Root cause: missing logrotate for `/var/log/carambus*/` scenario-specific nginx log dirs (standard `/etc/logrotate.d/nginx` only covers `/var/log/nginx/`). Deployed `/etc/logrotate.d/carambus` + forced first rotation; reclaimed ~5 GB (disk 82% → 76%).
+- **Rematch loses Ballziel — `fix-ballziel-loss-on-swapped-anstoss-rematch`** (created 2026-05-01, resolved 2026-05-05 commit `0b67be03`). Fixed by quick-260503-x3k commit `45f9174c` (`revert_players` now passes `bk2_options` through to `start_game`). Todo file moved to `.planning/todos/done/`.
 
 #### Phase 38.1 carry-forward (post-tournament 2026-05-05)
 
