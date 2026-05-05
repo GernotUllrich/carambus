@@ -36,22 +36,6 @@
     <%= form.number_field :balls_goal, class: "form-control" %>
   </div>
 
-  <%# Phase 38.7 Plan 12 (Gap-04): TournamentMonitor startup-form tiebreak override.
-      Persists onto Tournament.data['tiebreak_on_draw'] (resolver Level 1) when the
-      form submits via UPDATE — NOT onto TournamentMonitor.data (different model).
-      On CREATE the param is intentionally ignored (auth surface — :create is not
-      director-gated; see TournamentMonitorsController#create comment). The
-      checkbox still renders in `new` for UX continuity. Default value comes from
-      @tiebreak_on_draw_default (set in controller new/edit actions: reads
-      Tournament.data first, then TournamentPlan.executor_params['g1'] Level 2,
-      then false). Operator's pick wins over plan default once they edit the
-      monitor. %>
-  <div class="form-group">
-    <%= label_tag :tournament_tiebreak_on_draw, t("tournament_monitors.form.tiebreak_on_draw") %>
-    <%= hidden_field_tag :tournament_tiebreak_on_draw, "0" %>
-    <%= check_box_tag :tournament_tiebreak_on_draw, "1", @tiebreak_on_draw_default, class: "form-control" %>
-  </div>
-
   <div class="form-group flex justify-between">
     <%= form.button class: "btn btn-primary" %>
 

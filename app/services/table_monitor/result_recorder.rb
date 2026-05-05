@@ -450,7 +450,9 @@ class TableMonitor::ResultRecorder < ApplicationService
           @tm.panel_state = "protocol_final"
           # Phase 38.7 Plan 05 — D-03 trigger detection (simple-set branch).
           # Same marker-switch as inning-based branch above; covers BK-2/BK-2kombi-SP
-          # and any future simple-set discipline that opts into tiebreak_on_draw.
+          # tiebreak — triggered by bk2_kombi_tiebreak_auto_detect! (BK-2kombi runtime
+          # auto-detect) or playing_finals_force_tiebreak_required! (Quick-260505-auq
+          # tournament-finals override) inside tiebreak_pick_pending?.
           @tm.current_element = tiebreak_pick_pending? ? "tiebreak_winner_choice" : "confirm_result"
           @tm.save!
         else

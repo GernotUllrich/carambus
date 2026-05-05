@@ -339,9 +339,6 @@ en:
     organizer_id: organizer id
     organizer_type: organizer type
     updated_at: updated at
-  locations:
-    scoreboard_free_game:
-      tiebreak_on_draw: "Tiebreak on draw"
   may_loose_results: You may loose game results!
   must_be_an_admin: You must be an admin to do that.
   not_allowed_on_api_server: Operation not allowed on API Server.
@@ -715,7 +712,6 @@ en:
       show: "'Show'"
     form:
       prohibited_this_tournament_monitor_from_being_saved: " prohibited this tournament_monitor from being saved:"
-      tiebreak_on_draw: "Tiebreak on draw"
     game_results:
       game_results: Game Results
       balls: Balls

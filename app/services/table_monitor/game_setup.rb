@@ -363,47 +363,6 @@ class TableMonitor::GameSetup < ApplicationService
     # MUST run BEFORE save! — bake! mutates @tm.data, save! persists it.
     BkParamResolver.bake!(@tm)
 
-    # Phase 38.7 Plan 04 — D-04, D-05 bake game.data['tiebreak_required'].
-    # Resolves Tournament -> TournamentPlan -> false. Plan 09 (Gap-01) extends
-    # this with a preset-level override: when @options['tiebreak_on_draw'] is
-    # truthy (carambus.yml quick_game_presets per-button flag, or free_game
-    # detail-form toggle from Plan 10), the preset value overrides a
-    # resolver-default false. The resolver still wins for tournament mode
-    # (Tournament.data → TournamentPlan.executor_params); the preset only
-    # supplies a value when the resolver would otherwise return false in
-    # training mode.
-    if @tm.game.present?
-      tournament = @tm.tournament_monitor&.tournament
-      tournament_plan = tournament&.tournament_plan
-      group_no = @tm.game.group_no
-      tiebreak_required = Game.derive_tiebreak_required(
-        tournament: tournament,
-        tournament_plan: tournament_plan,
-        group_no: group_no
-      )
-
-      # Phase 38.7 Plan 09 (Gap-01): preset-level override.
-      # @options is HashWithIndifferentAccess; key may arrive as String or Bool.
-      # The controller has already normalized to true/false for quick_game_form
-      # submissions (table_monitors_controller.rb, Phase 38.7 Plan 09 normalization).
-      # Sparse semantics: explicit false in options overrides resolver-true (consistent
-      # with Phase 38.5 D-06 sparse-override). Missing key → resolver value wins.
-      if @options.key?("tiebreak_on_draw")
-        preset_value = @options["tiebreak_on_draw"]
-        preset_bool = preset_value == true || preset_value == "1" || preset_value == "true"
-        tiebreak_required = preset_bool
-      end
-
-      # Game#deep_merge_data! handles data_will_change! + JSON-roundtrip so the new
-      # key actually persists (Game has a custom `def data` getter that returns a
-      # freshly-decoded Hash; mutating that Hash directly would NOT dirty-track).
-      @tm.game.deep_merge_data!("tiebreak_required" => tiebreak_required)
-      @tm.game.save!
-      Rails.logger.info "[GameSetup] tiebreak_required=#{tiebreak_required} " \
-        "game=#{@tm.game.id} tournament=#{tournament&.id.inspect} " \
-        "group_no=#{group_no.inspect} preset_override=#{@options.key?("tiebreak_on_draw")}"
-    end
-
     # Phase 38.5: für BK-2kombi muss bk2_state hier initialisiert werden, weil
     # initialize_game data["bk2_state"] geleert hat (sonst überlebt stale state
     # ein neues Spiel — siehe 98e1d156). Das galt bisher nur für Reflex-getriggerte
