@@ -132,6 +132,8 @@ Decisions are logged in PROJECT.md Key Decisions table. Full v7.0 cross-phase de
 
 #### Phase 38.1 carry-forward (post-tournament 2026-05-05)
 
+**Postponed — Review-by 2026-07-05** (deferred at user request 2026-05-05; revisit zusammen wenn die Saison-Pause beginnt oder vor dem nächsten BK-Turnier).
+
 - **TODO A — Foulzähler-Buttons (−1, −2, −6).** Buttons im Scoreboard für Foul-Erfassung (3 Werte: −1, −2, −6). Negative Werte zählen unabhängig vom positiven Score in der Aufnahme. Falls negative zum Gegner übertragen werden: positiver Aufnahme-Score bleibt beim Spieler; Foul-Betrag wird beim Gegner positiv in dessen Aufnahme-Score übernommen. **Offene Fragen beim Aufgreifen** (interaktiv klären): Discipline-Scope (BK-* Family only, oder alle Karambol-Disziplinen mit `allow_negative_scores?`)? Button-Layout (neben Aufnahme-Eingabe oder separates Foul-Panel)? Übertrags-Zeitpunkt (sofort beim Tap oder erst bei Aufnahme-Schluss)? i18n-Labels (kurz "F-1 / F-2 / F-6" oder lang)?
 
 - **TODO B — BK50 / BK100 Neuauflage als Stoß-basiertes Spielmodell.** "BK50" und "BK100" beziehen sich auf **Stöße innerhalb einer Aufnahme** (NICHT balls_goal). Neuer Stoßzähler-UI nötig; Score-Inputs **pro Stoß** aus dem Bereich −7, −6, …, +6, +7. Aktuell aus Quick-Game-Presets in `carambus.yml(.erb)` entfernt (commit 33d3b799). Reaktivierung erfordert eigene Phase (UI + Scoring-Service + ggf. eigene `Bk50::*` / `Bk100::*` Service-Klassen) und ist mit TODO C verschränkt — die `BK2_DISCIPLINE_MAP` muss gleichzeitig umgeordnet werden.
