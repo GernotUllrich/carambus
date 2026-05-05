@@ -132,7 +132,7 @@ end
 
 ```bash
 # Test Scraper
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api
+cd /Users/gullrich/DEV/carambus/carambus_api
 bundle exec rake "umb:test_scrape[317,true]"
 
 # View Frontend

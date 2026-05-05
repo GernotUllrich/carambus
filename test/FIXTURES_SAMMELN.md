@@ -303,7 +303,7 @@ test/fixtures/html/
 ### Schritt 1: Fixture-Verzeichnis erstellen
 
 ```bash
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_master
+cd /Users/gullrich/DEV/carambus/carambus_master
 mkdir -p test/fixtures/html
 cd test/fixtures/html
 ```

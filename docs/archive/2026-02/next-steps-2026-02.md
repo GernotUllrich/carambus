@@ -26,7 +26,7 @@ Um Videos scrapen zu können, benötigen Sie einen YouTube Data API v3 Key:
 #### B. Key in Production Credentials speichern (empfohlen):
 
 ```bash
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_master
+cd /Users/gullrich/DEV/carambus/carambus_master
 
 # Production credentials bearbeiten
 EDITOR=nano rails credentials:edit --environment production
@@ -58,7 +58,7 @@ EDITOR=nano rails credentials:edit --environment development
 Nachdem der API Key gesetzt ist:
 
 ```bash
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_master
+cd /Users/gullrich/DEV/carambus/carambus_master
 
 # Test ob API Key gesetzt ist
 rails runner "puts ENV['YOUTUBE_API_KEY'].present? ? '✅ API Key gefunden' : '❌ API Key fehlt'"

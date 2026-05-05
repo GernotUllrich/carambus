@@ -55,7 +55,7 @@ After SSH is enabled and packages are installed, run the automated setup:
 
 ```bash
 # From your development machine:
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_master
+cd /Users/gullrich/DEV/carambus/carambus_master
 
 # Setup Raspberry Pi client
 rake scenario:setup_raspberry_pi_client[carambus_location_5101]

@@ -10,10 +10,10 @@ Scan `~/gsd-workspaces/` for workspace directories containing `WORKSPACE.md` man
 </objective>
 
 <execution_context>
-@/Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api/.claude/get-shit-done/workflows/list-workspaces.md
-@/Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api/.claude/get-shit-done/references/ui-brand.md
+@/Users/gullrich/DEV/carambus/carambus_api/.claude/get-shit-done/workflows/list-workspaces.md
+@/Users/gullrich/DEV/carambus/carambus_api/.claude/get-shit-done/references/ui-brand.md
 </execution_context>
 
 <process>
-Execute the list-workspaces workflow from @/Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api/.claude/get-shit-done/workflows/list-workspaces.md end-to-end.
+Execute the list-workspaces workflow from @/Users/gullrich/DEV/carambus/carambus_api/.claude/get-shit-done/workflows/list-workspaces.md end-to-end.
 </process>

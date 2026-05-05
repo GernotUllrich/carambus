@@ -5,7 +5,7 @@
 ### 1. Production Credentials bearbeiten
 
 ```bash
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_master
+cd /Users/gullrich/DEV/carambus/carambus_master
 
 # Production credentials öffnen
 EDITOR=nano rails credentials:edit --environment production
@@ -43,7 +43,7 @@ end
 **Wichtig**: Nur die `.yml.enc` Datei wird committet, NICHT der `.key` File!
 
 ```bash
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_master
+cd /Users/gullrich/DEV/carambus/carambus_master
 
 # Prüfen welche Dateien geändert wurden
 git status
@@ -60,7 +60,7 @@ git push
 
 ```bash
 # Im carambus_api Verzeichnis
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api
+cd /Users/gullrich/DEV/carambus/carambus_api
 
 # Pull der Änderungen
 git pull
@@ -95,14 +95,14 @@ youtube_api_key: AIzaSy...
 
 ### Lokal (Development):
 ```bash
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_master
+cd /Users/gullrich/DEV/carambus/carambus_master
 
 rails runner "puts Rails.application.credentials.youtube_api_key.present? ? '✅ Key gefunden' : '❌ Key fehlt'"
 ```
 
 ### Auf carambus_api (Production):
 ```bash
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api
+cd /Users/gullrich/DEV/carambus/carambus_api
 
 RAILS_ENV=production rails runner "puts Rails.application.credentials.youtube_api_key.present? ? '✅ Key gefunden' : '❌ Key fehlt'"
 ```
@@ -115,7 +115,7 @@ RAILS_ENV=production rails runner "puts Rails.application.credentials.youtube_ap
 Der `config/credentials/production.key` File enthält den Master Key zum Entschlüsseln.
 - **NIEMALS** in Git committen (ist in `.gitignore`)
 - Muss auf dem Production Server vorhanden sein
-- Prüfen: `ls -la /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api/config/credentials/production.key`
+- Prüfen: `ls -la /Users/gullrich/DEV/carambus/carambus_api/config/credentials/production.key`
 
 ### 🔒 Sicherheit
 - Der API Key ist verschlüsselt in `production.yml.enc`

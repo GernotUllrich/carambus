@@ -10,7 +10,7 @@ namespace :test do
     puts "=" * 80 + "\n"
     
     scenarios.each do |scenario|
-      scenario_path = "/Volumes/EXT2TB/gullrich/DEV/carambus/carambus_#{scenario}"
+      scenario_path = "/Users/gullrich/DEV/carambus/carambus_#{scenario}"
       
       if Dir.exist?(scenario_path)
         puts "\n▶ Setting up carambus_#{scenario}_test..."

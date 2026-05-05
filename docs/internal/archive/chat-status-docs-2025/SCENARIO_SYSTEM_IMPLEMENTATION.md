@@ -9,7 +9,7 @@ Das Scenario-System wurde entwickelt, um die komplexe Test- und Deployment-Archi
 ### 1. Repository-Struktur
 
 ```
-/Volumes/EXT2TB/gullrich/DEV/carambus/
+/Users/gullrich/DEV/carambus/
 ├── carambus_master/                 # Haupt-Repository (Code + Templates)
 │   ├── lib/tasks/scenarios.rake    # Scenario-Management Tasks
 │   ├── templates/                   # ERB-Templates (verschoben von carambus_data)
@@ -311,7 +311,7 @@ port ENV.fetch("PORT") { 3000 }
 ### 1. Neues Scenario erstellen
 ```bash
 # Scenario-Konfiguration erstellen
-mkdir -p /Volumes/EXT2TB/gullrich/DEV/projects/carambus_data/scenarios/new_scenario
+mkdir -p /Users/gullrich/DEV/projects/carambus_data/scenarios/new_scenario
 # config.yml manuell erstellen
 
 # Rails-Root-Folder und Setup

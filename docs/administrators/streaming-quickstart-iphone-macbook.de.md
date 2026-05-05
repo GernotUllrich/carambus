@@ -321,7 +321,7 @@ CPU-Voreinstellung: veryfast
 **Fix:**
 ```bash
 # 1. Rails-Server läuft?
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_master
+cd /Users/gullrich/DEV/carambus/carambus_master
 rails s -p 3000
 
 # 2. URL im Browser testen

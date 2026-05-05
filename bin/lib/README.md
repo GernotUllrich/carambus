@@ -27,7 +27,7 @@ echo "Master: $CARAMBUS_MASTER"
 
 | Variable | Beschreibung | Beispiel |
 |----------|-------------|----------|
-| `CARAMBUS_BASE` | Hauptverzeichnis | `/Volumes/EXT2TB/gullrich/DEV/carambus` |
+| `CARAMBUS_BASE` | Hauptverzeichnis | `/Users/gullrich/DEV/carambus` |
 | `CARAMBUS_DATA` | Datenverzeichnis | `$CARAMBUS_BASE/carambus_data` |
 | `SCENARIOS_PATH` | Scenario-Verzeichnis | `$CARAMBUS_DATA/scenarios` |
 | `CARAMBUS_MASTER` | Master-Branch | `$CARAMBUS_BASE/carambus_master` |
@@ -89,7 +89,7 @@ CARAMBUS_BASE=/tmp/test ./bin/some-script.sh
 # 1. Auf MacBook Pro: rsync
 cd ~/Development
 rsync -av --exclude='node_modules' --exclude='tmp' --exclude='log' \
-  macmini:/Volumes/EXT2TB/gullrich/DEV/carambus/ ./carambus/
+  macmini:/Users/gullrich/DEV/carambus/ ./carambus/
 
 # 2. Config erstellen
 echo "CARAMBUS_BASE=$HOME/Development/carambus" > ~/.carambus_config
@@ -104,7 +104,7 @@ cd ~/Development/carambus/carambus_master/bin
 
 - `../../lib/carambus_env.rb` - Ruby-Äquivalent für Rails/Rake
 - `../../.carambus_config.example` - Beispiel-Konfiguration
-- `/Volumes/EXT2TB/gullrich/DEV/carambus/carambus_data/CARAMBUS_BASE_IMPLEMENTATION.md` - Vollständige Dokumentation
+- `/Users/gullrich/DEV/carambus/carambus_data/CARAMBUS_BASE_IMPLEMENTATION.md` - Vollständige Dokumentation
 
 
 

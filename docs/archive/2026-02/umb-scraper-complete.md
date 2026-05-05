@@ -88,7 +88,7 @@ Dec, December → 12 ✅
 ### Option 1: Rake Task (Empfohlen)
 
 ```bash
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_master
+cd /Users/gullrich/DEV/carambus/carambus_master
 bin/rails international:scrape_umb
 ```
 
@@ -317,7 +317,7 @@ scraper.parse_date_range("Dec 28 - Jan 3, 2025")
 ### Auf carambus_master (Current)
 
 ```bash
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_master
+cd /Users/gullrich/DEV/carambus/carambus_master
 
 # Status checken
 git status
@@ -337,7 +337,7 @@ git commit -m "feat: Add UMB tournament scraper with full date parsing
 ### Auf carambus_api deployen
 
 ```bash
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api
+cd /Users/gullrich/DEV/carambus/carambus_api
 
 # Pull from master
 git pull origin master

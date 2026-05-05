@@ -64,7 +64,7 @@ This will deploy code changes without regenerating scenario configurations.
    SSH: 192.168.178.107:8910
    Basename: carambus_location_5101
 
-✅ Rails root found: /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_location_5101
+✅ Rails root found: /Users/gullrich/DEV/carambus/carambus_location_5101
 
 📋 Step 1: Checking git status...
    ✅ Working directory is clean

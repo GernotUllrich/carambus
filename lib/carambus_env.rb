@@ -128,7 +128,7 @@ module CarambusEnv
     # 5. Fallback
     def fallback_path
       log_debug "Using fallback path"
-      '/Volumes/EXT2TB/gullrich/DEV/carambus'
+      '/Users/gullrich/DEV/carambus'
     end
 
     def log_debug(message)

@@ -550,7 +550,7 @@ If tests fail catastrophically:
 
 ```bash
 # Revert migrations
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_master
+cd /Users/gullrich/DEV/carambus/carambus_master
 rails db:rollback
 
 # Revert to previous git commit

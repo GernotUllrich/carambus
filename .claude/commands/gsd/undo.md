@@ -20,9 +20,9 @@ Three modes:
 </objective>
 
 <execution_context>
-@/Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api/.claude/get-shit-done/workflows/undo.md
-@/Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api/.claude/get-shit-done/references/ui-brand.md
-@/Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api/.claude/get-shit-done/references/gate-prompts.md
+@/Users/gullrich/DEV/carambus/carambus_api/.claude/get-shit-done/workflows/undo.md
+@/Users/gullrich/DEV/carambus/carambus_api/.claude/get-shit-done/references/ui-brand.md
+@/Users/gullrich/DEV/carambus/carambus_api/.claude/get-shit-done/references/gate-prompts.md
 </execution_context>
 
 <context>
@@ -30,5 +30,5 @@ $ARGUMENTS
 </context>
 
 <process>
-Execute the undo workflow from @/Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api/.claude/get-shit-done/workflows/undo.md end-to-end.
+Execute the undo workflow from @/Users/gullrich/DEV/carambus/carambus_api/.claude/get-shit-done/workflows/undo.md end-to-end.
 </process>

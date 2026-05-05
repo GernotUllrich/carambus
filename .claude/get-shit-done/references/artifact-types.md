@@ -63,7 +63,7 @@ reads is inert — the consumption mechanism is what gives an artifact meaning.
 ### USER-PROFILE.md
 - **Shape**: Calibration tier and preferences profile
 - **Lifecycle**: Created by `profile-user` → Updated as preferences are observed
-- **Location**: `/Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api/.claude/get-shit-done/USER-PROFILE.md`
+- **Location**: `/Users/gullrich/DEV/carambus/carambus_api/.claude/get-shit-done/USER-PROFILE.md`
 - **Consumed by**: `discuss-phase-assumptions` (calibration tier), `plan-phase`
 
 ### SPIKE.md / DESIGN.md (per-spike)

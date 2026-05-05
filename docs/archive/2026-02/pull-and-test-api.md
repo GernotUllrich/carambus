@@ -11,7 +11,7 @@ Commit: `7d2c5add` - feat(international): Add international carom billiards exte
 ### 1. Pull auf carambus_api
 
 ```bash
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api
+cd /Users/gullrich/DEV/carambus/carambus_api
 git pull
 ```
 
@@ -105,7 +105,7 @@ Sources:
 ### Option 1: Via Rails Credentials (empfohlen)
 
 ```bash
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api
+cd /Users/gullrich/DEV/carambus/carambus_api
 
 # Prüfe ob production.key existiert
 ls -la config/credentials/production.key
@@ -152,7 +152,7 @@ end
 ### Kleiner Test (3 Tage)
 
 ```bash
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api
+cd /Users/gullrich/DEV/carambus/carambus_api
 
 RAILS_ENV=production rails runner "
 puts 'Starting YouTube scraping (3 days back)...'
@@ -193,7 +193,7 @@ end
 ### Server starten/neu starten
 
 ```bash
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api
+cd /Users/gullrich/DEV/carambus/carambus_api
 
 # Via Capistrano
 rake scenario:restart[carambus_api]
@@ -222,7 +222,7 @@ http://carambus-api-server.de/international
 ### Production Log überwachen
 
 ```bash
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api
+cd /Users/gullrich/DEV/carambus/carambus_api
 
 # Live tail
 tail -f log/production.log

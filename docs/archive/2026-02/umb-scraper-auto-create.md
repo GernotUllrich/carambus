@@ -218,7 +218,7 @@ Der Country-Code-Mapper unterstützt:
 ### Test 1: Location-Erstellung
 
 ```bash
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api
+cd /Users/gullrich/DEV/carambus/carambus_api
 
 rails runner "
 scraper = UmbScraper.new

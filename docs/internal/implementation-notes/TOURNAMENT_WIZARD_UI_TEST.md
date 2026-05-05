@@ -19,7 +19,7 @@ Eine neue visuelle Wizard-Oberfläche für das Tournament Setup mit besserer UX 
 
 ```bash
 # 1. Branch ist bereits ausgecheckt
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_bcw
+cd /Users/gullrich/DEV/carambus/carambus_bcw
 
 # 2. Assets wurden bereits kompiliert
 # (yarn build:css wurde bereits ausgeführt)
@@ -116,7 +116,7 @@ Nur UI-Layer wurde verbessert:
 
 ```bash
 # Assets neu kompilieren
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_bcw
+cd /Users/gullrich/DEV/carambus/carambus_bcw
 yarn build:css
 ```
 
@@ -130,7 +130,7 @@ tail -f log/development.log
 ### Zurück zur alten UI?
 
 ```bash
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_bcw
+cd /Users/gullrich/DEV/carambus/carambus_bcw
 git checkout master
 ```
 

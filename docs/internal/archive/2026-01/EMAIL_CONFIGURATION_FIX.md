@@ -24,8 +24,8 @@ Switched from `sendmail` to **SMTP (Gmail)** for more reliable email delivery.
 ### 1. Updated Production Environment Configs
 
 **Files Modified:**
-- `/Volumes/EXT2TB/gullrich/DEV/carambus/carambus_master/config/environments/production-bc-wedel.rb`
-- `/Volumes/EXT2TB/gullrich/DEV/carambus/carambus_master/config/environments/production-carambus-de.rb`
+- `/Users/gullrich/DEV/carambus/carambus_master/config/environments/production-bc-wedel.rb`
+- `/Users/gullrich/DEV/carambus/carambus_master/config/environments/production-carambus-de.rb`
 
 **Changed from:**
 ```ruby
@@ -65,7 +65,7 @@ Both documents include:
 ### 1. Commit and Push Changes
 
 ```bash
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_master
+cd /Users/gullrich/DEV/carambus/carambus_master
 
 git add config/environments/production-bc-wedel.rb
 git add config/environments/production-carambus-de.rb

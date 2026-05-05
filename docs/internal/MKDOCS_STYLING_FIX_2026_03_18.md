@@ -221,7 +221,7 @@ curl -s http://localhost:3333/docs_page/en/decision-makers/executive-summary | g
 
 ### Build-Schritte
 ```bash
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api
+cd /Users/gullrich/DEV/carambus/carambus_api
 
 # MkDocs neu bauen (kopiert neue CSS/JS nach public/docs)
 bundle exec rake mkdocs:build

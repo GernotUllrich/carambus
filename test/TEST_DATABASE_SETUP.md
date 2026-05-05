@@ -28,7 +28,7 @@ Each scenario has its own test database:
 
 ```bash
 # From any scenario directory
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_master
+cd /Users/gullrich/DEV/carambus/carambus_master
 bin/rails test:setup_all
 ```
 
@@ -41,7 +41,7 @@ This will:
 
 ```bash
 # For a specific scenario
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_bcw
+cd /Users/gullrich/DEV/carambus/carambus_bcw
 RAILS_ENV=test bin/rails db:create db:schema:load
 ```
 
@@ -50,7 +50,7 @@ RAILS_ENV=test bin/rails db:create db:schema:load
 ### Run All KO Tests
 
 ```bash
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_bcw
+cd /Users/gullrich/DEV/carambus/carambus_bcw
 bin/rails test:ko_tournaments
 ```
 
@@ -261,7 +261,7 @@ Dir[Rails.root.join('test', 'support', '**', '*.rb')].each { |f| require f }
 
 ```bash
 # 1. Setup (once)
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_bcw
+cd /Users/gullrich/DEV/carambus/carambus_bcw
 RAILS_ENV=test bin/rails db:create db:schema:load
 
 # 2. Run tests (repeatable)

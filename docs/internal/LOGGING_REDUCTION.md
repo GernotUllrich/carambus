@@ -76,11 +76,11 @@ After deployment:
 
 ```bash
 # 1. Pull changes in BCW scenario
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_bcw
+cd /Users/gullrich/DEV/carambus/carambus_bcw
 git pull
 
 # 2. Deploy via Capistrano
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_master
+cd /Users/gullrich/DEV/carambus/carambus_master
 rake "scenario:deploy[carambus_bcw]"
 
 # 3. Restart server (if needed)

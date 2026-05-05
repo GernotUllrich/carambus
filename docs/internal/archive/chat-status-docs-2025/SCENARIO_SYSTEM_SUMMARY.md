@@ -10,7 +10,7 @@
    - Datenbank-Management (create_database_dump, restore_database_dump)
    - Deployment mit Konflikt-Analyse (deploy)
 
-2. **Template-System** (in `/Volumes/EXT2TB/gullrich/DEV/projects/carambus_data/`)
+2. **Template-System** (in `/Users/gullrich/DEV/projects/carambus_data/`)
    - ERB-Templates für database.yml, carambus.yml, deploy.rb
    - Scenario-Konfigurationen (config.yml) für carambus_api, carambus_location_2459, carambus_location_2460
 
@@ -43,8 +43,8 @@
 - `/templates/` - ERB-Templates für Konfigurations-Generierung
 
 ### Generierte Rails-Root-Folders:
-- `/Volumes/EXT2TB/gullrich/DEV/projects/carambus_location_2459/`
-- `/Volumes/EXT2TB/gullrich/DEV/projects/carambus_location_2460/`
+- `/Users/gullrich/DEV/projects/carambus_location_2459/`
+- `/Users/gullrich/DEV/projects/carambus_location_2460/`
 
 ## Verfügbare Commands
 

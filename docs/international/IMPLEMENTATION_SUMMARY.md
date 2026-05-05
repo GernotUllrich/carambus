@@ -100,7 +100,7 @@
 ### Sofort ausführbar:
 ```bash
 # 1. Migration
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_master
+cd /Users/gullrich/DEV/carambus/carambus_master
 rails db:migrate
 
 # 2. Seeds
@@ -256,10 +256,10 @@ end
 ### Scenario-Management beachten!
 ```bash
 # IMMER in carambus_master entwickeln
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_master
+cd /Users/gullrich/DEV/carambus/carambus_master
 
 # Nach Commit:
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api
+cd /Users/gullrich/DEV/carambus/carambus_api
 git pull
 rake db:migrate
 # Server restart (Capistrano)

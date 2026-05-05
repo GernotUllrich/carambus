@@ -312,7 +312,7 @@ Wenn MacBook nicht verfügbar → iPhone kann direkt zu YouTube streamen:
 
 ```bash
 # 1. Rails-Server starten (falls noch nicht läuft)
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_master
+cd /Users/gullrich/DEV/carambus/carambus_master
 rails s -p 3000
 
 # 2. Overlay-URLs testen
@@ -466,7 +466,7 @@ Transparenter Hintergrund: ✅
 # bin/obs-auto-start.sh
 
 # Rails-Server starten
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_master
+cd /Users/gullrich/DEV/carambus/carambus_master
 rails s -p 3000 -d
 
 # Warten bis Server ready

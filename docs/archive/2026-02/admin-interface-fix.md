@@ -199,7 +199,7 @@ Link zu "Incomplete Records" wurde hinzugefügt:
 
 ```bash
 # Server stoppen (Ctrl+C)
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api
+cd /Users/gullrich/DEV/carambus/carambus_api
 rm -f tmp/pids/server.pid
 bin/rails server -p 3000 -b 0.0.0.0
 ```

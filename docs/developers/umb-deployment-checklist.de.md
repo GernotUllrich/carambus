@@ -49,7 +49,7 @@
 ### 1️⃣ Commit auf carambus_master
 
 ```bash
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_master
+cd /Users/gullrich/DEV/carambus/carambus_master
 
 # Status checken
 git status
@@ -90,7 +90,7 @@ Ready for production deployment."
 ### 2️⃣ Deploy auf carambus_bcw
 
 ```bash
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_bcw
+cd /Users/gullrich/DEV/carambus/carambus_bcw
 
 # Pull changes
 git pull origin master
@@ -108,7 +108,7 @@ tail -f log/production.log | grep UmbScraper
 ### 3️⃣ Deploy auf carambus_api
 
 ```bash
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api
+cd /Users/gullrich/DEV/carambus/carambus_api
 
 # Pull changes
 git pull origin master
@@ -252,7 +252,7 @@ UmbScraperHealthCheck.check
 ### Option 1: Code zurückrollen
 
 ```bash
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api
+cd /Users/gullrich/DEV/carambus/carambus_api
 git revert HEAD
 RAILS_ENV=production bin/rails restart
 ```

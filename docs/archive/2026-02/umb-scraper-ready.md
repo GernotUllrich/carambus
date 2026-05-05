@@ -22,7 +22,7 @@ Ein **vollständiger Tournament-Scraper** für die **Union Mondiale de Billard (
 ### 1. Manuell ausführen
 
 ```bash
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_master
+cd /Users/gullrich/DEV/carambus/carambus_master
 bin/rails international:scrape_umb
 ```
 
@@ -204,7 +204,7 @@ end
 ### Auf carambus_master (CURRENT)
 
 ```bash
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_master
+cd /Users/gullrich/DEV/carambus/carambus_master
 git add .
 git commit -m "feat: Add UMB tournament scraper with date parsing"
 ```
@@ -212,7 +212,7 @@ git commit -m "feat: Add UMB tournament scraper with date parsing"
 ### Auf carambus_api deployen
 
 ```bash
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api
+cd /Users/gullrich/DEV/carambus/carambus_api
 git pull origin master
 bin/rails international:scrape_umb RAILS_ENV=production
 ```

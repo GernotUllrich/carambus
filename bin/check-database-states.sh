@@ -128,7 +128,7 @@ SCENARIO_CONFIG_FILE="${CARAMBUS_BASE}/../carambus_data/scenarios/${SCENARIO_NAM
 
 if [ ! -f "$SCENARIO_CONFIG_FILE" ]; then
     # Try alternative path (if running from different location)
-    SCENARIO_CONFIG_FILE="/Volumes/EXT2TB/gullrich/DEV/carambus/carambus_data/scenarios/${SCENARIO_NAME}/config.yml"
+    SCENARIO_CONFIG_FILE="/Users/gullrich/DEV/carambus/carambus_data/scenarios/${SCENARIO_NAME}/config.yml"
 fi
 
 if [ -f "$SCENARIO_CONFIG_FILE" ]; then

@@ -63,7 +63,7 @@ LAN-Scenarios stehen explizit auf `false`, damit beim Re-Generate kein `if`-Bloc
 ### Neuer Server (einmalige Erst-Einrichtung)
 
 ```bash
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_master
+cd /Users/gullrich/DEV/carambus/carambus_master
 git pull   # falls nicht aktuell
 
 bundle exec rake "scenario:install_bot_block[<scenario_name>]"
@@ -77,17 +77,17 @@ Nur nötig für Scenarios mit `bot_block_enabled: true`. Snippet bleibt persiste
 ### Nach Änderung am ERB-Template oder am bot_block_enabled-Flag
 
 ```bash
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_master
+cd /Users/gullrich/DEV/carambus/carambus_master
 bundle exec rake "scenario:generate_configs[<scenario_name>,production]"
 
 # Geänderte carambus_data-Files committen + pushen
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_data
+cd /Users/gullrich/DEV/carambus/carambus_data
 git add scenarios/<scenario_name>/config.yml scenarios/<scenario_name>/production/nginx.conf
 git commit -m "..."
 git push
 
 # Nginx auf dem Server aktualisieren
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_master
+cd /Users/gullrich/DEV/carambus/carambus_master
 bundle exec rake "scenario:sync_nginx_conf[<scenario_name>]"
 # scp + sudo mv → /etc/nginx/sites-available/ + nginx -t + reload
 ```

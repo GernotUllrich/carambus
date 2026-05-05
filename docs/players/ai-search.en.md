@@ -24,7 +24,7 @@ The AI-powered search enables the use of natural English or German language to f
 2. **Add Key to Rails Credentials**
 
    ```bash
-   cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_master
+   cd /Users/gullrich/DEV/carambus/carambus_master
    EDITOR="code --wait" rails credentials:edit --environment development
    ```
 

@@ -44,7 +44,7 @@ Tests TournamentMonitor-specific KO functionality:
 
 ```bash
 # Using rake task
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_bcw
+cd /Users/gullrich/DEV/carambus/carambus_bcw
 bin/rails test:ko_tournaments
 
 # Or directly
