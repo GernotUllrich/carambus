@@ -52,3 +52,16 @@ TBD — needs systematic investigation. Recommended path: `/gsd-debug` session o
 - Phase 38.9 close-side mirror (just landed — likely not the cause; bug pre-dates 38.9)
 
 **Severity:** Cosmetic + behavioral. Workaround for any operator who hits it: re-enter Ballziel via the detail form before continuing the new game.
+
+---
+
+## Closure (2026-05-05)
+
+Closed: both observed symptoms fixed by `45f9174c` (quick-260503-x3k) — `revert_players` now passes `data["bk2_options"]` through to `start_game`, restoring the BK-family score panel's `bk2_set_target` fallback (`data.dig("bk2_options", "balls_goal")`). Affected variants confirmed by user: BK-2 (single set), BK-2plus (multiset), BK-2kombi-SP / DZ.
+
+- `?` rendering: gone (fallback now resolves to the configured Ballziel)
+- `70 → 50` regression: gone (default 50 was the symptom of `bk2_options` being nil-forwarded; key is now preserved)
+
+The wider speculative concern about `data["playerN"]["balls_goal"]` clearing for legacy karambol-side per-player goals (suspect site `revert_players:1409-1441` `data["playerb"]["balls_goal"].to_i`) never manifested in production. If it surfaces later, open a fresh todo / debug session — this one is closed.
+
+See: `.planning/quick/260503-x3k-bk-rematch-loses-bk2-options-balls-goal-/260503-x3k-SUMMARY.md`.

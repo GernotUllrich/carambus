@@ -21,13 +21,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-15)
 
 **Core value:** Code and docs stay in sync — every documented feature works, every working feature is documented, and a volunteer user should never need to read the architecture to run a tournament.
-**Current focus:** v7.1 Hauptphasen alle abgeschlossen (38, 38.1–38.9); offen sind nur Backlog 999.1 / 999.2 + carry-forward TODOs (Postpone Review-by 2026-07-05) + ältere Pending-Todos (sync-version, api-server-disk, ballziel-loss).
+**Current focus:** v7.1 Hauptphasen alle abgeschlossen (38, 38.1–38.9); offen sind nur Backlog 999.1 / 999.2 + carry-forward TODOs (Postpone Review-by 2026-07-05) + ältere Pending-Todos (api-server-disk).
 
 ## Current Position
 
 Phase: alle Hauptphasen 38..38.9 complete; backlog 999.1 not yet planned
 Plan: —
-Status: v7.1 inhaltlich fertig — verbleibende Items sind operativ (Server-Hygiene, Sync-Bug-Workaround, Ballziel-Edge-Case) oder backlog-parking (999.x). BK-Family-Carry-Forwards (TODOs A/B/C) postponed bis ~2026-07-05.
+Status: v7.1 inhaltlich fertig — verbleibende Items sind operativ (Server-Hygiene) oder backlog-parking (999.x). Ballziel-loss pending todo am 2026-05-05 nach `done/` verschoben (gefixed durch quick-260503-x3k commit `45f9174c`). BK-Family-Carry-Forwards (TODOs A/B/C) postponed bis ~2026-07-05.
 Last activity: 2026-05-05 - Phase 38.9 retroactively closed via bookkeeping (VERIFICATION.md 6/6 must-haves verified 2026-05-01 + HUMAN-UAT.md 3/3 tests pass 2026-05-01; Test-3 observation captured as Backlog 999.1). Earlier today: Phase 38.1 retroactively closed; BK50/BK100 quick-game presets removed; quick 260501-sbz commit hash backfilled.
 
 Previous milestone archived at:
