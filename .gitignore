@@ -63,6 +63,21 @@ Thumbs.db
 .env.local
 .env.*.local
 
+# .planning/ workflow byproducts (regenerable; kept locally for GSD tooling).
+# Tracked: STATE.md, ROADMAP.md, PROJECT.md, REQUIREMENTS.md, MILESTONES.md,
+# RETROSPECTIVE.md, HISTORY.md, BROADCAST-GAP-REPORT.md, v7.0-scope-evolution.md,
+# clubcloud-admin-appendix-DRAFT.md, config.json, seeds/, todos/.
+# Untracked (local-only audit trail): per-quick / per-phase / per-research /
+# per-codebase / per-debug detail + reek baselines + archived milestones.
+/.planning/quick/
+/.planning/phases/
+/.planning/research/
+/.planning/codebase/
+/.planning/intel/
+/.planning/debug/
+/.planning/milestones/
+/.planning/reek_*.txt
+
 # Ignore database files
 /*.sqlite3
 /*.sqlite3-*
