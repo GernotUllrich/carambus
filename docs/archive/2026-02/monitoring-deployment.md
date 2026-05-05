@@ -144,7 +144,7 @@ CREATE INDEX index_scraping_logs_on_model_stats
 ### Im carambus_api Verzeichnis:
 
 ```bash
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api
+cd /Users/gullrich/DEV/carambus/carambus_api
 git pull
 rake "scenario:deploy[carambus_api]"
 ```

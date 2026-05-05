@@ -48,7 +48,7 @@ detect_carambus_base() {
     done
     
     # 4. Fallback default
-    echo "/Volumes/EXT2TB/gullrich/DEV/carambus"
+    echo "/Users/gullrich/DEV/carambus"
 }
 
 # Detect and export CARAMBUS_BASE

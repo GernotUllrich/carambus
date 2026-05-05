@@ -15,7 +15,7 @@ Since you mentioned testing in development mode with RubyMine anyway, here's the
 ### Option 1: Test in Development Console (RECOMMENDED FOR NOW)
 
 ```bash
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_bcw
+cd /Users/gullrich/DEV/carambus/carambus_bcw
 
 # Inspect your tournament
 bin/rails ko:inspect[17405]
@@ -62,7 +62,7 @@ end
 The test database exists and has all tables, but Rails needs the schema_migrations table populated. Here's how to fix it:
 
 ```bash
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_bcw
+cd /Users/gullrich/DEV/carambus/carambus_bcw
 
 # Copy schema_migrations from development
 psql -d carambus_bcw_development -c "COPY (SELECT * FROM schema_migrations) TO STDOUT" | \
@@ -130,7 +130,7 @@ test/
 
 1. **Try the inspection tool now:**
    ```bash
-   cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_bcw
+   cd /Users/gullrich/DEV/carambus/carambus_bcw
    bin/rails ko:inspect[17405]
    ```
 

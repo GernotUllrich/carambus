@@ -145,7 +145,7 @@ def pdf_links        # → data['pdf_links']
 ### Manuelle Tests durchführen:
 
 ```bash
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api
+cd /Users/gullrich/DEV/carambus/carambus_api
 rails server
 ```
 
@@ -370,7 +370,7 @@ app/services/
 **Manuelle Tests durchführen** um sicherzustellen, dass alles wie erwartet funktioniert.
 
 ```bash
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api
+cd /Users/gullrich/DEV/carambus/carambus_api
 rails server
 # Dann im Browser: http://localhost:3000/international
 ```

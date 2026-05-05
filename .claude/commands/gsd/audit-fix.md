@@ -25,9 +25,9 @@ Flags:
 </objective>
 
 <execution_context>
-@/Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api/.claude/get-shit-done/workflows/audit-fix.md
+@/Users/gullrich/DEV/carambus/carambus_api/.claude/get-shit-done/workflows/audit-fix.md
 </execution_context>
 
 <process>
-Execute the audit-fix workflow from @/Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api/.claude/get-shit-done/workflows/audit-fix.md end-to-end.
+Execute the audit-fix workflow from @/Users/gullrich/DEV/carambus/carambus_api/.claude/get-shit-done/workflows/audit-fix.md end-to-end.
 </process>

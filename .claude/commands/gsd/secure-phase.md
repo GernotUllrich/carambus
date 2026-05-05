@@ -22,7 +22,7 @@ Output: updated SECURITY.md.
 </objective>
 
 <execution_context>
-@/Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api/.claude/get-shit-done/workflows/secure-phase.md
+@/Users/gullrich/DEV/carambus/carambus_api/.claude/get-shit-done/workflows/secure-phase.md
 </execution_context>
 
 <context>
@@ -30,6 +30,6 @@ Phase: $ARGUMENTS — optional, defaults to last completed phase.
 </context>
 
 <process>
-Execute @/Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api/.claude/get-shit-done/workflows/secure-phase.md.
+Execute @/Users/gullrich/DEV/carambus/carambus_api/.claude/get-shit-done/workflows/secure-phase.md.
 Preserve all workflow gates.
 </process>

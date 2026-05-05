@@ -17,7 +17,7 @@
 **Für Development (lokale Entwicklung):**
 
 ```bash
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_master
+cd /Users/gullrich/DEV/carambus/carambus_master
 EDITOR="code --wait" rails credentials:edit --environment development
 ```
 

@@ -73,7 +73,7 @@ rake "scenario:prepare_development[carambus_location_5101,development]"
 
 #### 2.1 Rails Root Setup
 ```
-/Volumes/EXT2TB/gullrich/DEV/carambus/carambus_location_5101/
+/Users/gullrich/DEV/carambus/carambus_location_5101/
 ├── .git/                    # Git Repository (Clone von carambus_master)
 ├── .idea/                   # RubyMine-Konfiguration
 ├── app/                     # Rails Application
@@ -241,7 +241,7 @@ activate_control_app
 **Migration and Dump Creation:**
 ```bash
 # 1. Ensure development database has all migrations applied
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_location_5101
+cd /Users/gullrich/DEV/carambus/carambus_location_5101
 RAILS_ENV=development bundle exec rails db:migrate
 
 # 2. Create production dump from current development database
@@ -324,7 +324,7 @@ rake "scenario:deploy[carambus_location_5101]"
 
 **Deploy Process:**
 ```bash
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_location_5101
+cd /Users/gullrich/DEV/carambus/carambus_location_5101
 cap production deploy
 ```
 

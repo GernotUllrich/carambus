@@ -18,9 +18,9 @@ Lightweight alternative to `/gsd-map-codebase` — spawns one mapper agent inste
 </objective>
 
 <execution_context>
-@/Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api/.claude/get-shit-done/workflows/scan.md
+@/Users/gullrich/DEV/carambus/carambus_api/.claude/get-shit-done/workflows/scan.md
 </execution_context>
 
 <process>
-Execute the scan workflow from @/Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api/.claude/get-shit-done/workflows/scan.md end-to-end.
+Execute the scan workflow from @/Users/gullrich/DEV/carambus/carambus_api/.claude/get-shit-done/workflows/scan.md end-to-end.
 </process>

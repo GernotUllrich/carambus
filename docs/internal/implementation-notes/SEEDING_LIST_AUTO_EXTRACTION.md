@@ -88,7 +88,7 @@ sudo apt-get install tesseract-ocr-deu
 
 ```bash
 # 1. Gems installieren
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_bcw
+cd /Users/gullrich/DEV/carambus/carambus_bcw
 bundle install
 
 # 2. Tesseract installieren (für Screenshot-OCR)

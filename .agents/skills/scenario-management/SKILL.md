@@ -10,7 +10,7 @@ description: Manages multi-tenant deployment workflow for Carambus project with 
 ## Repository Structure
 
 ```
-/Volumes/EXT2TB/gullrich/DEV/carambus/
+/Users/gullrich/DEV/carambus/
 ├── carambus_master/   # DEVELOPMENT (modify here)
 ├── carambus_bcw/      # BCW deployment (git pull only)
 ├── carambus_phat/     # PHAT deployment (git pull only)
@@ -31,7 +31,7 @@ description: Manages multi-tenant deployment workflow for Carambus project with 
 
 ```bash
 for d in carambus_master carambus_bcw carambus_phat carambus_api; do
-  cd /Volumes/EXT2TB/gullrich/DEV/carambus/$d
+  cd /Users/gullrich/DEV/carambus/$d
   echo "═══ $d ═══"
   git fetch -q origin master 2>/dev/null
   branch=$(git rev-parse --abbrev-ref HEAD)
@@ -80,10 +80,10 @@ If reconciliation isn't possible (e.g., the divergent work represents a differen
 
 ```bash
 # Edit in master
-vim /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_master/app/models/tournament_cc.rb
+vim /Users/gullrich/DEV/carambus/carambus_master/app/models/tournament_cc.rb
 
 # Commit from master
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_master
+cd /Users/gullrich/DEV/carambus/carambus_master
 git add .
 git commit -m "Fix: Description"
 git push
@@ -115,16 +115,16 @@ User must explicitly request: **"Enter scenario debugging mode for [scenario_nam
 # User: "Enter scenario debugging mode for carambus_bcw"
 
 # AI can now edit scenario checkout
-vim /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_bcw/app/models/tournament_cc.rb
+vim /Users/gullrich/DEV/carambus/carambus_bcw/app/models/tournament_cc.rb
 
 # User: "Commit these changes"
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_bcw
+cd /Users/gullrich/DEV/carambus/carambus_bcw
 git add .
 git commit -m "Debug: Fix tournament issue"
 git push
 
 # IMMEDIATELY sync back to master
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_master
+cd /Users/gullrich/DEV/carambus/carambus_master
 git pull
 
 # Continue in debugging mode until user exits
@@ -173,7 +173,7 @@ environments:
 
 ## Additional Resources
 
-For detailed deployment documentation: `/Volumes/EXT2TB/gullrich/DEV/carambus/carambus_master/docs/developers/scenario-management.de.md`
+For detailed deployment documentation: `/Users/gullrich/DEV/carambus/carambus_master/docs/developers/scenario-management.de.md`
 
 ## Deployment Workflow
 

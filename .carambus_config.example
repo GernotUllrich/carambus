@@ -3,7 +3,7 @@
 
 # Set your local Carambus base directory
 # Mac Mini (default)
-CARAMBUS_BASE=/Volumes/EXT2TB/gullrich/DEV/carambus
+CARAMBUS_BASE=/Users/gullrich/DEV/carambus
 
 # MacBook Pro (uncomment when on MacBook)
 # CARAMBUS_BASE=/Users/gullrich/Development/carambus

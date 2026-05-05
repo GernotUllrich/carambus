@@ -20,7 +20,7 @@ Die internationale Erweiterung läuft auf dem **carambus_api** Server in der Pro
 ### 1. Code auf carambus_api aktualisieren
 
 ```bash
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api
+cd /Users/gullrich/DEV/carambus/carambus_api
 
 # Neueste Änderungen holen
 git pull
@@ -35,7 +35,7 @@ git pull
 ### 2. Dependencies installieren
 
 ```bash
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api
+cd /Users/gullrich/DEV/carambus/carambus_api
 
 # Bundle install für neue gems (falls welche hinzugefügt wurden)
 bundle install
@@ -67,7 +67,7 @@ RAILS_ENV=production rails runner db/seeds/international_sources.rb
 **Wichtig**: Der `production.key` muss auf carambus_api existieren:
 
 ```bash
-ls -la /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api/config/credentials/production.key
+ls -la /Users/gullrich/DEV/carambus/carambus_api/config/credentials/production.key
 
 # Sollte existieren (32 Bytes)
 # Falls nicht, von carambus_master kopieren:
@@ -77,7 +77,7 @@ ls -la /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api/config/credentials/pro
 ### 7. API Key testen
 
 ```bash
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api
+cd /Users/gullrich/DEV/carambus/carambus_api
 
 RAILS_ENV=production rails runner "
 key = Rails.application.credentials.youtube_api_key
@@ -109,7 +109,7 @@ end
 
 #### A. Via Capistrano (empfohlen):
 ```bash
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_master
+cd /Users/gullrich/DEV/carambus/carambus_master
 rake "scenario:deploy[carambus_api]"
 ```
 
@@ -128,7 +128,7 @@ touch tmp/restart.txt
 ### 1. Datenbank prüfen
 
 ```bash
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api
+cd /Users/gullrich/DEV/carambus/carambus_api
 
 RAILS_ENV=production rails runner "
 puts '=== Production Database Check ==='
@@ -152,7 +152,7 @@ InternationalSource.all.each { |s| puts \"  - #{s.display_name}\" }
 ### 3. Logs prüfen
 
 ```bash
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api
+cd /Users/gullrich/DEV/carambus/carambus_api
 
 # Production log
 tail -f log/production.log
@@ -201,7 +201,7 @@ end
 Dann deployen:
 
 ```bash
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api
+cd /Users/gullrich/DEV/carambus/carambus_api
 RAILS_ENV=production whenever --update-crontab
 ```
 

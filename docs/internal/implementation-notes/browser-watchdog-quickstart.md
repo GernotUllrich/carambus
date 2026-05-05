@@ -11,14 +11,14 @@ Automatischer Browser-Neustart via systemd Timer (OS-Level, funktioniert auch we
 ### 1. Git Pull in carambus_bcw
 
 ```bash
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_bcw/
+cd /Users/gullrich/DEV/carambus/carambus_bcw/
 git pull
 ```
 
 ### 2. Installation auf Raspberry Pi (bc-wedel)
 
 ```bash
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_master/
+cd /Users/gullrich/DEV/carambus/carambus_master/
 
 # IP des Raspberry Pi anpassen!
 ./bin/install-browser-watchdog.sh 192.168.178.81 daily
@@ -111,7 +111,7 @@ sudo systemctl restart scoreboard-browser-restart.timer
 
 ```bash
 # Auf Development Machine
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_master/
+cd /Users/gullrich/DEV/carambus/carambus_master/
 
 # Health-Check Variante installieren
 ./bin/install-browser-watchdog.sh 192.168.178.81 healthcheck

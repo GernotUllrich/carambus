@@ -51,7 +51,7 @@ Die internationale Erweiterung ist nun korrekt für Production mit Rails Credent
 ### Schritt 2: Key in Production Credentials speichern
 
 ```bash
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_master
+cd /Users/gullrich/DEV/carambus/carambus_master
 
 # Credentials bearbeiten
 EDITOR=nano rails credentials:edit --environment production
@@ -85,7 +85,7 @@ git push
 ### Schritt 4: Auf carambus_api deployen
 
 ```bash
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api
+cd /Users/gullrich/DEV/carambus/carambus_api
 
 # Neueste Änderungen holen
 git pull
@@ -106,7 +106,7 @@ puts key.present? ? '✅ Key gefunden' : '❌ Key fehlt'
 ### Schritt 5: Test-Scraping
 
 ```bash
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api
+cd /Users/gullrich/DEV/carambus/carambus_api
 
 RAILS_ENV=production rails runner "
 begin
@@ -141,7 +141,7 @@ database: ...
 # 32 Byte hex string zum Entschlüsseln
 
 # Muss auf carambus_api vorhanden sein:
-/Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api/config/credentials/production.key
+/Users/gullrich/DEV/carambus/carambus_api/config/credentials/production.key
 ```
 
 ---
@@ -216,7 +216,7 @@ Rails.application.credentials.youtube_api_key || ENV['YOUTUBE_API_KEY']
 crontab -e
 
 # Täglich um 3:00 Uhr
-0 3 * * * cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api && RAILS_ENV=production bundle exec rails runner "ScrapeYoutubeJob.perform_now" >> log/youtube_scraper.log 2>&1
+0 3 * * * cd /Users/gullrich/DEV/carambus/carambus_api && RAILS_ENV=production bundle exec rails runner "ScrapeYoutubeJob.perform_now" >> log/youtube_scraper.log 2>&1
 ```
 
 Oder via `whenever` gem (siehe `DEPLOYMENT_API_SERVER.md`)
@@ -228,7 +228,7 @@ Oder via `whenever` gem (siehe `DEPLOYMENT_API_SERVER.md`)
 ### Logs prüfen
 
 ```bash
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api
+cd /Users/gullrich/DEV/carambus/carambus_api
 
 # Production log
 tail -f log/production.log | grep -i youtube

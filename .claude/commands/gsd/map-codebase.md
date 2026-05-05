@@ -20,7 +20,7 @@ Output: .planning/codebase/ folder with 7 structured documents about the codebas
 </objective>
 
 <execution_context>
-@/Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api/.claude/get-shit-done/workflows/map-codebase.md
+@/Users/gullrich/DEV/carambus/carambus_api/.claude/get-shit-done/workflows/map-codebase.md
 </execution_context>
 
 <context>

@@ -373,11 +373,11 @@ LOCAL DEVELOPMENT:
 
 SCENARIO DEPLOYMENT (per carambus_bcw etc):
 ───────────────────────────────────────────
-1. cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_master
+1. cd /Users/gullrich/DEV/carambus/carambus_master
 2. [Make changes & commit]
 3. git push
 
-4. cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_bcw
+4. cd /Users/gullrich/DEV/carambus/carambus_bcw
 5. git pull
 6. rake "scenario:deploy[carambus_bcw]"
    └─▶ Runs migrations automatically

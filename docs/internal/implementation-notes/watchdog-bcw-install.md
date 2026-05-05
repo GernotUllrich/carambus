@@ -29,14 +29,14 @@ cat /var/www/carambus_bcw/shared/config/scoreboard_url
 ### 1. Git Pull
 
 ```bash
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_bcw/
+cd /Users/gullrich/DEV/carambus/carambus_bcw/
 git pull
 ```
 
 ### 2. Installation auf bc-wedel
 
 ```bash
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_master/
+cd /Users/gullrich/DEV/carambus/carambus_master/
 
 # WICHTIG: SSH-User für bc-wedel ist "www-data", nicht "pj"!
 # Daher manuell installieren:

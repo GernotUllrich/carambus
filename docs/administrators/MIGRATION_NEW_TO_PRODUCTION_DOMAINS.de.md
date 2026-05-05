@@ -17,7 +17,7 @@ Dieses Dokument beschreibt die Schritte zur Migration von den temporären "new"-
 ### Schritt 1.1: Code-Änderungen committen (auf lokalem Mac)
 
 ```bash
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_master
+cd /Users/gullrich/DEV/carambus/carambus_master
 
 # Alle Änderungen hinzufügen
 git add .
@@ -78,7 +78,7 @@ privkey.pem -> ../../archive/api.carambus.de/privkey1.pem
 
 ```bash
 # Auf lokalem Mac: Code pushen (falls noch nicht geschehen)
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_master
+cd /Users/gullrich/DEV/carambus/carambus_master
 git push carambus master
 
 # Auf dem Server: In das Basis-Verzeichnis wechseln
@@ -274,7 +274,7 @@ Alle lokalen Scenario-Deployments (carambus_location_*, carambus_bcw, etc.) müs
 
 ```bash
 # Im jeweiligen Scenario-Verzeichnis
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_location_XXXX
+cd /Users/gullrich/DEV/carambus/carambus_location_XXXX
 
 # prepare_development ausführen (aktualisiert automatisch vom Master)
 bundle exec rails prepare_development
@@ -284,7 +284,7 @@ bundle exec rails prepare_development
 
 ```bash
 # Im jeweiligen Scenario-Verzeichnis
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_location_XXXX
+cd /Users/gullrich/DEV/carambus/carambus_location_XXXX
 
 # Code vom Master holen
 git pull origin master

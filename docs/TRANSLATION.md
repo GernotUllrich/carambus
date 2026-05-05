@@ -136,7 +136,7 @@ Nach Änderungen in `deepl_glossary_service.rb`:
 #### Methode 1: Rake Task (empfohlen)
 
 ```bash
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api
+cd /Users/gullrich/DEV/carambus/carambus_api
 bin/rails glossary:update
 ```
 

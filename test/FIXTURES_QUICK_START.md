@@ -18,7 +18,7 @@
 ## Schritt 1: Verzeichnis erstellen
 
 ```bash
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_master
+cd /Users/gullrich/DEV/carambus/carambus_master
 mkdir -p test/fixtures/html
 ```
 

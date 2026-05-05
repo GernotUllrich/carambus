@@ -41,7 +41,7 @@ The other scenarios (`carambus_bcw`, `carambus_api`, `carambus_phat`, `carambus_
 
 ```bash
 # 1. Work in carambus_master
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_master
+cd /Users/gullrich/DEV/carambus/carambus_master
 
 # 2. Change code
 vim app/controllers/tournaments_controller.rb
@@ -79,7 +79,7 @@ cap pbv deploy
 If a scenario repo has local changes and `git pull` fails:
 
 ```bash
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_bcw
+cd /Users/gullrich/DEV/carambus/carambus_bcw
 
 # 1. Check what was changed
 git status

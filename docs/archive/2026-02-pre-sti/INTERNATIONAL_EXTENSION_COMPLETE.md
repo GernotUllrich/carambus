@@ -52,7 +52,7 @@ Die internationale Erweiterung für Carambus wurde erfolgreich implementiert und
 
 ### Schritt 1: Migration ausführen
 ```bash
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_master
+cd /Users/gullrich/DEV/carambus/carambus_master
 rails db:migrate
 ```
 

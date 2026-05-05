@@ -203,7 +203,7 @@ Scan the output for suspicious patterns:
 
 ## Output: UI-SPEC.md
 
-Use template from `/Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api/.claude/get-shit-done/templates/UI-SPEC.md`.
+Use template from `/Users/gullrich/DEV/carambus/carambus_api/.claude/get-shit-done/templates/UI-SPEC.md`.
 
 Write to: `$PHASE_DIR/$PADDED_PHASE-UI-SPEC.md`
 
@@ -262,14 +262,14 @@ Batch questions into a single interaction where possible.
 
 ## Step 5: Compile UI-SPEC.md
 
-Read template: `/Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api/.claude/get-shit-done/templates/UI-SPEC.md`
+Read template: `/Users/gullrich/DEV/carambus/carambus_api/.claude/get-shit-done/templates/UI-SPEC.md`
 
 Fill all sections. Write to `$PHASE_DIR/$PADDED_PHASE-UI-SPEC.md`.
 
 ## Step 6: Commit (optional)
 
 ```bash
-node "/Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api/.claude/get-shit-done/bin/gsd-tools.cjs" commit "docs($PHASE): UI design contract" --files "$PHASE_DIR/$PADDED_PHASE-UI-SPEC.md"
+node "/Users/gullrich/DEV/carambus/carambus_api/.claude/get-shit-done/bin/gsd-tools.cjs" commit "docs($PHASE): UI design contract" --files "$PHASE_DIR/$PADDED_PHASE-UI-SPEC.md"
 ```
 
 ## Step 7: Return Structured Result

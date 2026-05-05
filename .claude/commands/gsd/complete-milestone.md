@@ -19,8 +19,8 @@ Output: Milestone archived (roadmap + requirements), PROJECT.md evolved, git tag
 <execution_context>
 **Load these files NOW (before proceeding):**
 
-- @/Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api/.claude/get-shit-done/workflows/complete-milestone.md (main workflow)
-- @/Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api/.claude/get-shit-done/templates/milestone-archive.md (archive template)
+- @/Users/gullrich/DEV/carambus/carambus_api/.claude/get-shit-done/workflows/complete-milestone.md (main workflow)
+- @/Users/gullrich/DEV/carambus/carambus_api/.claude/get-shit-done/templates/milestone-archive.md (archive template)
   </execution_context>
 
 <context>
