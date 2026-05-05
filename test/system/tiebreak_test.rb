@@ -5,8 +5,11 @@ require "application_system_test_case"
 # Phase 38.7 Plan 08 — End-to-end tiebreak flow tests (D-15.3).
 #
 # Verifies the full tiebreak chain end-to-end:
-#   Discipline.data['tiebreak_on_draw']  (Plan 01 seed/fixture)
-#   → Game.derive_tiebreak_required + bake at start_game (Plan 04)
+#   game.data['tiebreak_required']  (seeded directly in test setup, or via
+#                                    bk2_kombi_tiebreak_auto_detect! at
+#                                    runtime, or via the playing_finals?
+#                                    override — Quick-260505-auq + Quick-260505-fbb
+#                                    cleanup of dead config plumbing)
 #   → ResultRecorder.tiebreak_pick_pending? + marker switch (Plan 05)
 #   → AASM :acknowledge_result guard (Plan 05 D-08, defense-in-depth)
 #   → modal radio fieldset render (Plan 06 D-07)
