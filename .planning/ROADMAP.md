@@ -73,7 +73,7 @@ Plans:
 **Plans:** 1/1 plans complete
 
 Plans:
-- [ ] `38.9-01-end-of-set-fourth-branch-PLAN.md` — RED→GREEN: Task 1 RED characterization test for BK-2 inning-2 anstoss-at-goal latent defect; Task 2 regression test for inning-1 Erste-Aufnahme-Gate happy path; Task 3 add 4th branch to `end_of_set?` (`return true if anstoss_at_goal && anstoss_innings >= 2` reusing Plan 38.7-02 D-02 locals — extend-before-build SKILL); Task 4 combined regression sweep across table_monitor_test.rb + bk2_scoreboard_test.rb + tiebreak_test.rb + final_match_score_operator_gate_test.rb. Wave 1.
+- [x] `38.9-01-end-of-set-fourth-branch-PLAN.md` — RED→GREEN: Task 1 RED characterization test for BK-2 inning-2 anstoss-at-goal latent defect; Task 2 regression test for inning-1 Erste-Aufnahme-Gate happy path; Task 3 add 4th branch to `end_of_set?` (`return true if anstoss_at_goal && anstoss_innings >= 2` reusing Plan 38.7-02 D-02 locals — extend-before-build SKILL); Task 4 combined regression sweep across table_monitor_test.rb + bk2_scoreboard_test.rb + tiebreak_test.rb + final_match_score_operator_gate_test.rb. Wave 1. **Completed 2026-05-01** — VERIFICATION 6/6 must-haves; HUMAN-UAT 3/3 pass (one observation captured as Backlog 999.1).
 
 ### Phase 38.8: Endergebnis-erfasst state restore — operator-gate the post-match flow across all disciplines (INSERTED)
 

@@ -41,7 +41,7 @@ For active focus and pending decisions, see `STATE.md`. For the milestone-level 
 | 38.6 | Discipline Master-Data Cleanup | complete |
 | 38.7 | Tiebreak bei Unentschieden — per-game flag + modal | complete |
 | 38.8 | "Endergebnis erfasst" state restore + operator gate | complete |
-| 38.9 | BK-2 end-of-set Anstoß-at-goal — close set immediately | ready for verify |
+| 38.9 | BK-2 end-of-set Anstoß-at-goal — close set immediately | complete (verified 2026-05-01: 6/6 must-haves + 3/3 human UAT pass; Test-3 observation captured as Backlog 999.1) |
 
 **Backlog (not yet planned):**
 

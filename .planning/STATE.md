@@ -4,11 +4,11 @@ milestone: v7.1
 milestone_name: UX Polish & i18n Debt
 status: verifying
 stopped_at: Completed 38.9-01-end-of-set-fourth-branch-PLAN.md (4th BK-2 sub-branch in end_of_set?, 2 RED-then-GREEN tests; latent defect 79328663 closed; phase 38.9 ready for /gsd-verify-work)
-last_updated: "2026-05-05T13:00:00.000Z"
+last_updated: "2026-05-05T14:00:00.000Z"
 last_activity: 2026-05-05
 progress:
   total_phases: 12
-  completed_phases: 10
+  completed_phases: 11
   total_plans: 68
   completed_plans: 67
   percent: 99
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-15)
 
 **Core value:** Code and docs stay in sync — every documented feature works, every working feature is documented, and a volunteer user should never need to read the architecture to run a tournament.
-**Current focus:** Post-tournament cleanup; Phase 38.9 verification + carry-forward TODOs A/B/C (see Pending Todos).
+**Current focus:** v7.1 Hauptphasen alle abgeschlossen (38, 38.1–38.9); offen sind nur Backlog 999.1 / 999.2 + carry-forward TODOs (Postpone Review-by 2026-07-05) + ältere Pending-Todos (sync-version, api-server-disk, ballziel-loss).
 
 ## Current Position
 
-Phase: 38.9 (verifying) — backlog 999.1 / 999.2 not yet planned
+Phase: alle Hauptphasen 38..38.9 complete; backlog 999.1 / 999.2 not yet planned
 Plan: —
-Status: Tiebreak-Aufräumarbeiten abgeschlossen (Quick-260505-auq override + 260505-fbb dead-code removal + carambus_api data scrub + YAML preset cleanup); Phase 38.1 retroactively closed.
-Last activity: 2026-05-05 - Phase 38.1 retroactively closed: Tasks 1-3 covered by real-world Grand Prix usage (2026-05-02) + Club-day test (post-tournament); Task 4 closure done today. BK50/BK100 quick-game presets removed from carambus.yml(.erb); deeper code-side cleanup deferred as TODO C until the stroke-counter redesign.
+Status: v7.1 inhaltlich fertig — verbleibende Items sind operativ (Server-Hygiene, Sync-Bug-Workaround, Ballziel-Edge-Case) oder backlog-parking (999.x). BK-Family-Carry-Forwards (TODOs A/B/C) postponed bis ~2026-07-05.
+Last activity: 2026-05-05 - Phase 38.9 retroactively closed via bookkeeping (VERIFICATION.md 6/6 must-haves verified 2026-05-01 + HUMAN-UAT.md 3/3 tests pass 2026-05-01; Test-3 observation captured as Backlog 999.1). Earlier today: Phase 38.1 retroactively closed; BK50/BK100 quick-game presets removed; quick 260501-sbz commit hash backfilled.
 
 Previous milestone archived at:
 
