@@ -347,6 +347,9 @@ class TableMonitor::ResultRecorder < ApplicationService
   # D-08 wiring + Gap-03 of phase 38.7 UAT.
   def tiebreak_pick_pending?
     bk2_kombi_tiebreak_auto_detect!
+    # Quick-260505-auq: parallel pre-mutation — TournamentMonitor#playing_finals?
+    # forces tiebreak_required=true regardless of any executor_params plumbing.
+    @tm.send(:playing_finals_force_tiebreak_required!)
 
     return false unless @tm.game&.data&.[]("tiebreak_required") == true
     return false if @tm.game.data["tiebreak_winner"].present?

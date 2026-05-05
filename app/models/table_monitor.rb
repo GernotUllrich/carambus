@@ -1714,6 +1714,8 @@ class TableMonitor < ApplicationRecord
   #     inning-based: data['playera']['result'] == data['playerb']['result'];
   #     simple_set:   sets.last['Ergebnis1'] == sets.last['Ergebnis2'])
   def tiebreak_pending_block?
+    playing_finals_force_tiebreak_required!
+
     return false unless game&.data&.[]("tiebreak_required") == true
     return false if game.data["tiebreak_winner"].present?
 
@@ -1726,6 +1728,46 @@ class TableMonitor < ApplicationRecord
     end
     a == b
   end
+
+  # Quick-260505-auq — TournamentMonitor#playing_finals? tiebreak override.
+  #
+  # Per user directive (2026-05-05): "playing_finals? => immer tiebreak_on_draw".
+  # When the active TournamentMonitor is in AASM state :playing_finals, force
+  # game.data['tiebreak_required'] = true regardless of executor_params /
+  # Tournament.data / TournamentPlan / Discipline / GameSetup baking. This is
+  # a hard rule of the tournament lifecycle, NOT a configurable knob.
+  #
+  # Skips when:
+  #   - tournament_monitor is blank (training mode)
+  #   - tournament_monitor.is_a?(PartyMonitor) (league flow — its own
+  #     semantics; type-guard mirrors existing pattern at
+  #     advance_tournament_round_if_present, table_monitor.rb:1763)
+  #   - tournament_monitor.state != "playing_finals"
+  #
+  # Idempotent: returns early if game.data['tiebreak_required'] already true.
+  # Pattern mirrors ResultRecorder#bk2_kombi_tiebreak_auto_detect!
+  # (app/services/table_monitor/result_recorder.rb:379) — pre-mutation helper
+  # called as first line of the gate predicate, so the gate observes true on
+  # the same call.
+  #
+  # Persistence: Game#deep_merge_data! does NOT save (per its contract); we
+  # call save! explicitly. LocalProtector compatible — tournament games on
+  # local servers have id >= MIN_ID (50_000_000), and the existing
+  # bk2_kombi_tiebreak_auto_detect! follows the same write pattern in
+  # production today.
+  def playing_finals_force_tiebreak_required!
+    return unless game.present?
+    return if game.data&.[]("tiebreak_required") == true # idempotent
+    return unless tournament_monitor.present?
+    return unless tournament_monitor.is_a?(TournamentMonitor)
+    return unless tournament_monitor.playing_finals?
+
+    Rails.logger.info "[TableMonitor##{id}] playing_finals? override: forcing " \
+      "tiebreak_required=true on game=#{game.id} (TournamentMonitor=#{tournament_monitor.id})"
+    game.deep_merge_data!("tiebreak_required" => true)
+    game.save!
+  end
+  private :playing_finals_force_tiebreak_required!
 
   def admin_ack_result
     return unless may_acknowledge_result?
