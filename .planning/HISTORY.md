@@ -13,7 +13,7 @@ For active focus and pending decisions, see `STATE.md`. For the milestone-level 
 | 260414-qb8 | 2026-04-14 | Fix `PG::UndefinedColumn result_a` crash in tournaments show / finalize_modus views | `b787da5e` |
 | 260415-26d | 2026-04-15 | `public/docs/` build hardening via overcommit pre-commit hook — **ROLLED BACK** (hook approach failed, see prior POSTMORTEM at 912bf72a → rollback) | `912bf72a` → rollback |
 | 260501-pud | 2026-05-01 | Add `Carambus.config.training_mode_show_fullname` flag (default false) — when true, training mode shows full player names in scoreboard / warmup / shootout for non-guest registered players | `a5c90fa7` |
-| 260501-sbz | 2026-05-01 | Fix BK-2kombi SP-phase inning counter display (replaces "Aufnahmen-übrig" with karambol-style "N of M") | _pending_ |
+| 260501-sbz | 2026-05-01 | Fix BK-2kombi SP-phase inning counter display (replaces "Aufnahmen-übrig" with karambol-style "N of M") | `de1f0c0a` |
 | 260501-uxo | 2026-05-01 | BK-2kombi: enforce SP-phase inning limit (default 5) and make it configurable from `carambus.yml` | `b3fcfeca` |
 | 260501-vly | 2026-05-01 | BK-2kombi tiebreak fixes: credit set point on tiebreak win + Detail Page tiebreak default + unified inning display | `7cf939a9` |
 | 260501-wfv | 2026-05-01 | BK-2kombi shootout `first_set_mode` pick was ignored: stale `bk2_state` survived the second `initialize_bk2_state!` call | `5b5dc22d` |
