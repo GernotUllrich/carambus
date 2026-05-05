@@ -844,4 +844,48 @@ class TableMonitor::ResultRecorderTest < ActiveSupport::TestCase
     assert_equal original_updated_at.to_i, @game.reload.updated_at.to_i,
       "Quick-260501-x07: when tiebreak_winner absent, no spurious Game.save! must occur (updated_at unchanged)"
   end
+
+  # ---------------------------------------------------------------------------
+  # Quick-260505-auq — TournamentMonitor#playing_finals? tiebreak override.
+  # R1: playing_finals? override propagates through tiebreak_pick_pending? —
+  # Finale 10:10 forces modal to tiebreak_winner_choice.
+  # Bug: 5. Grand Prix Einband Finale 10:10 showed "Endergebnis erfasst" /
+  # "Nächstes Spiel" instead of tiebreak modal because tiebreak_required was
+  # never baked and tiebreak_pick_pending? returned false.
+  # ---------------------------------------------------------------------------
+
+  test "playing_finals? override propagates through tiebreak_pick_pending? — Finale 10:10 forces modal to tiebreak_winner_choice" do
+    # Reconfigure @tm to a karambol Finale 10:10 — NO tiebreak_required key baked.
+    @tm.deep_merge_data!(
+      "free_game_form" => "karambol",
+      "playera" => {"result" => 10, "innings" => 30, "balls_goal" => 40},
+      "playerb" => {"result" => 10, "innings" => 30, "balls_goal" => 40},
+      "innings_goal" => 30,
+      "allow_follow_up" => false
+    )
+    @tm.save!
+    # game.data has NO tiebreak_required key — mirrors the bug.
+    @game.update!(data: {})
+
+    # Associate a TournamentMonitor in playing_finals state (AASM bypass).
+    tour_monitor = TournamentMonitor.create!(
+      tournament: tournaments(:local),
+      state: "new_tournament_monitor",
+      balls_goal: 40,
+      innings_goal: 30,
+      timeout: 0,
+      timeouts: 2
+    )
+    tour_monitor.update_columns(state: "playing_finals")
+    @tm.update!(tournament_monitor: tour_monitor)
+    @tm.reload
+
+    recorder = TableMonitor::ResultRecorder.new(table_monitor: @tm)
+    result = recorder.send(:tiebreak_pick_pending?)
+
+    assert_equal true, result,
+      "R1: playing_finals? override must cause tiebreak_pick_pending? to return true on 10:10"
+    assert_equal true, @game.reload.data["tiebreak_required"],
+      "R1: helper must persist game.data['tiebreak_required']=true so both read sites observe the override"
+  end
 end

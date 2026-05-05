@@ -623,4 +623,103 @@ class TableMonitorTest < ActiveSupport::TestCase
       "non-BK rematch (karambol/snooker/pool) must not invent a bk2_options hash; nil round-trips cleanly"
   end
 
+  # ---------------------------------------------------------------------------
+  # Quick-260505-auq — TournamentMonitor#playing_finals? tiebreak override.
+  # Regression suite for playing_finals_force_tiebreak_required! helper:
+  # when TournamentMonitor is in AASM state :playing_finals, tiebreak_pending_block?
+  # forces game.data['tiebreak_required']=true on tied scores regardless of any
+  # executor_params / Tournament.data / TournamentPlan / Discipline baking.
+  # Per user directive 2026-05-05: "playing_finals? => immer tiebreak_on_draw".
+  # ---------------------------------------------------------------------------
+
+  # Shared data helper: karambol Finale fixture — tied 10:10 with no tiebreak_required
+  # key baked, mirroring the 5. Grand Prix Einband bug screenshot.
+  def finale_data_10_10
+    {
+      "free_game_form" => "karambol",
+      "playera" => {"result" => 10, "innings" => 30, "balls_goal" => 40},
+      "playerb" => {"result" => 10, "innings" => 30, "balls_goal" => 40},
+      "innings_goal" => 30,
+      "allow_follow_up" => false
+    }
+  end
+
+  # M1: positive — playing_finals state triggers the override, persists, and blocks AASM.
+  test "playing_finals? override forces tiebreak_pending_block? true on tied scores even when tiebreak_required key is absent" do
+    game = Game.create!(data: {}, group_no: 1, seqno: 2, table_no: 1)
+    @tm.update!(data: finale_data_10_10)
+    tour_monitor = TournamentMonitor.create!(
+      tournament: tournaments(:local),
+      state: "new_tournament_monitor",
+      balls_goal: 40,
+      innings_goal: 30,
+      timeout: 0,
+      timeouts: 2
+    )
+    tour_monitor.update_columns(state: "playing_finals")
+    @tm.update!(tournament_monitor: tour_monitor)
+    @tm.update_columns(game_id: game.id, state: "set_over")
+    @tm.reload
+
+    assert @tm.tiebreak_pending_block?,
+      "M1: playing_finals? override must force tiebreak_pending_block? true on 10:10 even with no tiebreak_required key"
+    assert_equal true, game.reload.data["tiebreak_required"],
+      "M1: helper must persist game.data['tiebreak_required']=true via deep_merge_data! + save!"
+    refute @tm.may_acknowledge_result?,
+      "M1: AASM guard must block acknowledge_result? while tiebreak is pending"
+  end
+
+  # M2: negative — no tournament_monitor (training mode) => no override.
+  test "playing_finals? override is a NO-OP when tournament_monitor is blank (training mode)" do
+    game = Game.create!(data: {}, group_no: 1, seqno: 3, table_no: 1)
+    @tm.update!(data: finale_data_10_10)
+    @tm.update_columns(tournament_monitor_type: nil, tournament_monitor_id: nil,
+                       game_id: game.id, state: "set_over")
+    @tm.reload
+
+    refute @tm.tiebreak_pending_block?,
+      "M2: training mode (no tournament_monitor) must not trigger override; " \
+      "tied scores alone do NOT force tiebreak without tiebreak_required key"
+    refute_equal true, game.reload.data["tiebreak_required"],
+      "M2: helper must NOT write tiebreak_required when tournament_monitor is blank"
+  end
+
+  # M3: negative — tournament_monitor in playing_groups => no override.
+  test "playing_finals? override is a NO-OP when tournament_monitor is in playing_groups state (group phase)" do
+    game = Game.create!(data: {}, group_no: 1, seqno: 4, table_no: 1)
+    @tm.update!(data: finale_data_10_10)
+    tour_monitor = TournamentMonitor.create!(
+      tournament: tournaments(:local),
+      state: "new_tournament_monitor",
+      balls_goal: 40,
+      innings_goal: 30,
+      timeout: 0,
+      timeouts: 2
+    )
+    tour_monitor.update_columns(state: "playing_groups")
+    @tm.update!(tournament_monitor: tour_monitor)
+    @tm.update_columns(game_id: game.id, state: "set_over")
+    @tm.reload
+
+    refute @tm.tiebreak_pending_block?,
+      "M3: playing_groups state must not trigger override"
+    refute_equal true, game.reload.data["tiebreak_required"],
+      "M3: helper must NOT write tiebreak_required when state is playing_groups"
+  end
+
+  # M4: negative — PartyMonitor as tournament_monitor => type-guard prevents override.
+  test "playing_finals? override is a NO-OP when tournament_monitor.is_a?(PartyMonitor) (league flow)" do
+    game = Game.create!(data: {}, group_no: 1, seqno: 5, table_no: 1)
+    @tm.update!(data: finale_data_10_10)
+    party_monitor = PartyMonitor.create!(state: "seeding_mode", data: {})
+    @tm.update!(tournament_monitor: party_monitor)
+    @tm.update_columns(game_id: game.id, state: "set_over")
+    @tm.reload
+
+    refute @tm.tiebreak_pending_block?,
+      "M4: PartyMonitor (league flow) must not trigger override; type-guard keeps league flow untouched"
+    refute_equal true, game.reload.data["tiebreak_required"],
+      "M4: helper must NOT write tiebreak_required when tournament_monitor is a PartyMonitor"
+  end
+
 end
