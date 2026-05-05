@@ -21,7 +21,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-15)
 
 **Core value:** Code and docs stay in sync — every documented feature works, every working feature is documented, and a volunteer user should never need to read the architecture to run a tournament.
-**Current focus:** v7.1 Hauptphasen alle abgeschlossen (38, 38.1–38.9); offen sind nur Backlog 999.1 / 999.2 + carry-forward TODOs (Postpone Review-by 2026-07-05) + ältere Pending-Todos (api-server-disk).
+**Current focus:** v7.1 Hauptphasen alle abgeschlossen (38, 38.1–38.9); offen sind nur Backlog 999.1 / 999.2 + carry-forward TODOs (Postpone Review-by 2026-07-05).
 
 ## Current Position
 
@@ -126,7 +126,7 @@ Decisions are logged in PROJECT.md Key Decisions table. Full v7.0 cross-phase de
 
 ### Pending Todos
 
-- **Production API disk — `api-server-disk-cleanup`** (2026-04-23). PostgreSQL 14 cluster on the API server went down 2026-04-22 23:02 UTC due to disk-full. Freed 8 GB; now at 89% (8.1 GB free). Worth a deeper pass on old Capistrano releases and rotated Rails logs before the next crisis.
+- ~~**Production API disk — `api-server-disk-cleanup`** (2026-04-23). PostgreSQL 14 cluster on the API server went down 2026-04-22 23:02 UTC due to disk-full.~~ **Resolved 2026-05-05.** Root cause was missing logrotate for the scenario-specific nginx log dirs `/var/log/carambus*/` (the standard `/etc/logrotate.d/nginx` only covers `/var/log/nginx/`). Active scenarios `carambus_api` + `carambus` plus 5 stale `carambus2_*` legacy dirs accumulated ~5 GB of unrotated `error.log` / `access.log` files. Deployed `/etc/logrotate.d/carambus` with glob `/var/log/carambus*/*.log` (daily / rotate 14 / compress / delaycompress / `invoke-rc.d nginx rotate` postrotate) + forced first rotation + gzipped `.1` files. Disk 82% → 76% (13 GB → 18 GB free, +5 GB). Capistrano releases were already lean (5 / 1.1 GB) — original "deeper pass on old releases" recommendation obsolete.
 - **Rematch loses Ballziel — `fix-ballziel-loss-on-swapped-anstoss-rematch`** (2026-05-01). Training-mode "Nächstes Spiel" after final_match_score starts the new game with swapped Anstoßer roles but Ballziel shows "?" or default 50 instead of the previous 70. Suspect: `revert_players` at `table_monitor.rb:1420-1421` reads `data["playerN"]["balls_goal"].to_i` which falls back to 0 when the post-match data mutation has cleared the top-level `balls_goal`. NOT blocking for 2026-05-02 BCW Grand Prix (each match has different players). See `.planning/todos/pending/2026-05-01-fix-ballziel-loss-on-swapped-anstoss-rematch.md`.
 
 #### Phase 38.1 carry-forward (post-tournament 2026-05-05)
