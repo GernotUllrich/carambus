@@ -4,11 +4,11 @@ milestone: v7.1
 milestone_name: UX Polish & i18n Debt
 status: verifying
 stopped_at: Completed 38.9-01-end-of-set-fourth-branch-PLAN.md (4th BK-2 sub-branch in end_of_set?, 2 RED-then-GREEN tests; latent defect 79328663 closed; phase 38.9 ready for /gsd-verify-work)
-last_updated: "2026-05-04T22:26:00.000Z"
-last_activity: 2026-05-04
+last_updated: "2026-05-05T13:00:00.000Z"
+last_activity: 2026-05-05
 progress:
   total_phases: 12
-  completed_phases: 9
+  completed_phases: 10
   total_plans: 68
   completed_plans: 67
   percent: 99
@@ -21,31 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-15)
 
 **Core value:** Code and docs stay in sync — every documented feature works, every working feature is documented, and a volunteer user should never need to read the architecture to run a tournament.
-**Current focus:** Phase 38.9 — bk-2-end-of-set-anstoss-at-goal-fix-close-set-immediately-wh
+**Current focus:** Post-tournament cleanup; Phase 38.9 verification + carry-forward TODOs A/B/C (see Pending Todos).
 
 ## Current Position
 
-Phase: 999.1
-Plan: Not started
-Status: Phase complete — ready for verification
-Last activity: 2026-05-05 - Completed quick task 260505-fbb: removed dead tiebreak_on_draw config plumbing (Game.derive_tiebreak_required resolver + GameSetup bake block + TournamentMonitorsController helpers + form checkbox + scoreboard toggle + i18n keys + dead-code tests) — −638 LOC across 15 files; playing_finals? override (Quick-260505-auq) is now the canonical path. Cherry-picked 260505-0b5 (CR-02 recursion-guard sentinel restore in advance_tournament_round_if_present) onto branch in preparation for go_back_to_stable → master promotion.
-
-**Deferred to Wave 4 / later session:**
-
-- Plan 38.1-05 Task 1 (scaffold UAT + fallback-drill templates) — agent-runnable, not yet executed
-- Plan 38.1-05 Task 2 (dry-run BK2-Kombi match at real BCW club table with volunteer scorer) — **human-only, tournament-gating**
-- Plan 38.1-05 Task 3 (karambol fallback drill rehearsal) — human-only
-- Plan 38.1-05 Task 4 (final artifact commit) — agent-runnable after Tasks 2+3
-- Phase goal verification (`/gsd-verify-phase 38.1` or via `execute-phase` resume) — waits until all plans are complete
-- Code review gate (`/gsd-code-review 38.1`) — not yet run
-
-**To resume Phase 38.1:**
-
-```
-/gsd-verify-work 38.1            # manual UI testing on BCW dev
-/gsd-code-review 38.1            # optional advisory review of scoring code
-/gsd-execute-phase 38.1          # resumes at Wave 4 (skips completed waves)
-```
+Phase: 38.9 (verifying) — backlog 999.1 / 999.2 not yet planned
+Plan: —
+Status: Tiebreak-Aufräumarbeiten abgeschlossen (Quick-260505-auq override + 260505-fbb dead-code removal + carambus_api data scrub + YAML preset cleanup); Phase 38.1 retroactively closed.
+Last activity: 2026-05-05 - Phase 38.1 retroactively closed: Tasks 1-3 covered by real-world Grand Prix usage (2026-05-02) + Club-day test (post-tournament); Task 4 closure done today. BK50/BK100 quick-game presets removed from carambus.yml(.erb); deeper code-side cleanup deferred as TODO C until the stroke-counter redesign.
 
 Previous milestone archived at:
 
@@ -146,6 +129,14 @@ Decisions are logged in PROJECT.md Key Decisions table. Full v7.0 cross-phase de
 - **Sync bug — `sync-version-yaml-load-json-collision`** (2026-04-23). `Version#update_from_carambus_api` fallback (version.rb:330/338) calls `YAML.load` on JSON-encoded text columns and returns a Hash → `update_columns` fails for text columns. See `.planning/todos/pending/2026-04-23-sync-version-yaml-load-json-collision.md`. Until fixed, **every local server** (carambus_phat, carambus_master, additional BCW instances) needs a manual Path B `unprotected=true` write for `Discipline.find(107).data = { "free_game_form" => "bk2_kombi" }.to_json` before the 2026-05-02 tournament.
 - **Production API disk — `api-server-disk-cleanup`** (2026-04-23). PostgreSQL 14 cluster on the API server went down 2026-04-22 23:02 UTC due to disk-full. Freed 8 GB; now at 89% (8.1 GB free). Worth a deeper pass on old Capistrano releases and rotated Rails logs before the next crisis.
 - **Rematch loses Ballziel — `fix-ballziel-loss-on-swapped-anstoss-rematch`** (2026-05-01). Training-mode "Nächstes Spiel" after final_match_score starts the new game with swapped Anstoßer roles but Ballziel shows "?" or default 50 instead of the previous 70. Suspect: `revert_players` at `table_monitor.rb:1420-1421` reads `data["playerN"]["balls_goal"].to_i` which falls back to 0 when the post-match data mutation has cleared the top-level `balls_goal`. NOT blocking for 2026-05-02 BCW Grand Prix (each match has different players). See `.planning/todos/pending/2026-05-01-fix-ballziel-loss-on-swapped-anstoss-rematch.md`.
+
+#### Phase 38.1 carry-forward (post-tournament 2026-05-05)
+
+- **TODO A — Foulzähler-Buttons (−1, −2, −6).** Buttons im Scoreboard für Foul-Erfassung (3 Werte: −1, −2, −6). Negative Werte zählen unabhängig vom positiven Score in der Aufnahme. Falls negative zum Gegner übertragen werden: positiver Aufnahme-Score bleibt beim Spieler; Foul-Betrag wird beim Gegner positiv in dessen Aufnahme-Score übernommen. **Offene Fragen beim Aufgreifen** (interaktiv klären): Discipline-Scope (BK-* Family only, oder alle Karambol-Disziplinen mit `allow_negative_scores?`)? Button-Layout (neben Aufnahme-Eingabe oder separates Foul-Panel)? Übertrags-Zeitpunkt (sofort beim Tap oder erst bei Aufnahme-Schluss)? i18n-Labels (kurz "F-1 / F-2 / F-6" oder lang)?
+
+- **TODO B — BK50 / BK100 Neuauflage als Stoß-basiertes Spielmodell.** "BK50" und "BK100" beziehen sich auf **Stöße innerhalb einer Aufnahme** (NICHT balls_goal). Neuer Stoßzähler-UI nötig; Score-Inputs **pro Stoß** aus dem Bereich −7, −6, …, +6, +7. Aktuell aus Quick-Game-Presets in `carambus.yml(.erb)` entfernt (commit 33d3b799). Reaktivierung erfordert eigene Phase (UI + Scoring-Service + ggf. eigene `Bk50::*` / `Bk100::*` Service-Klassen) und ist mit TODO C verschränkt — die `BK2_DISCIPLINE_MAP` muss gleichzeitig umgeordnet werden.
+
+- **TODO C — BK50 / BK100 Code-Cleanup (verzahnt mit TODO B).** Nach dem Quick-Game-Preset-Strip stehen BK50/BK100 noch in: `app/models/discipline.rb:160` (`BK2_DISCIPLINE_MAP`), `app/controllers/table_monitors_controller.rb:11-12, 285-288` (balls_goal-Whitelist + 1-Aufnahme-Regel), `app/views/locations/_quick_game_buttons.html.erb:51` (`bk_family_names`), `app/views/locations/scoreboard_free_game_karambol_new.html.erb` (7 Stellen — bk50/bk100 Family-Choice + `is_bk_fixed_goal`-Branch), `app/views/table_monitors/_player_score_panel.html.erb:74` (Kommentar), `app/models/table_monitor.rb:1173, 1483` (Kommentare), `app/models/table_monitor/score_engine.rb:1330` (Kommentar), `test/integration/bk_param_latent_bugs_test.rb:135-149` (2 D-12-Tests "BK50 single-set" + "BK100 single-set"). Cleanup erst zusammen mit TODO B angehen, weil dann eh die ganze BK-Family-Definition neu gedacht wird (3 statt 5 Disziplinen, evtl. `BK2_DISCIPLINE_MAP` → `BK_FAMILY_MAP`, Stoßzähler-Disziplinen separat).
 
 ### Deferred follow-ups
 

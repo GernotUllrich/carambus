@@ -33,7 +33,7 @@ For active focus and pending decisions, see `STATE.md`. For the milestone-level 
 | Phase | Name | Status |
 |---|---|---|
 | 38 | UX Polish & i18n Debt | complete |
-| 38.1 | BK2-Kombi Minimum Viable Support | complete (Wave 4 deferred — manual UAT) |
+| 38.1 | BK2-Kombi Minimum Viable Support | complete (closed retroactively 2026-05-05; UAT covered by real Grand Prix 2026-05-02 + club-day test) |
 | 38.2 | BK2-Kombi Scoreboard UX Realignment | complete |
 | 38.3 | BK2-Kombi Dry-Run Corrections | complete |
 | 38.4 | BK2-Kombi Post-Dry-Run Gaps | complete |
