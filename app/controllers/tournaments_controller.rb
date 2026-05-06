@@ -278,6 +278,10 @@ class TournamentsController < ApplicationController
   end
 
   def tournament_monitor
+    # PRG-Empfänger: TournamentsController#start (Verifikations-Branch)
+    # legt flash[:verification_failure] an und redirected hierher. Die
+    # View prüft @verification_failure und rendert Banner + Modal.
+    @verification_failure = flash[:verification_failure]
     return unless @tournament.tournament_monitor.present?
 
     redirect_to tournament_monitor_path(@tournament.tournament_monitor)
@@ -311,8 +315,17 @@ class TournamentsController < ApplicationController
     unless params[:parameter_verification_confirmed].to_s == "1"
       failures = verify_tournament_start_parameters(@tournament, params)
       if failures.any?
-        @verification_failure = build_verification_failure_payload(failures)
-        render :tournament_monitor and return
+        # PRG (Post/Redirect/Get): Verifikations-Payload in den Flash legen
+        # und auf die GET-Route weiterleiten. Form-Werte müssen NICHT
+        # erneut durchgereicht werden — jedes Input-Feld in
+        # tournament_monitor.html.erb liest seinen Default aus
+        # @tournament.<attr>; StimulusReflex change-Handler haben jede
+        # Nutzer-Bearbeitung bereits in die DB persistiert. Der Flash ist
+        # in diesem Projekt Redis-backed (CLAUDE.md → redis-session-store),
+        # daher gilt das 4KB-Cookie-Limit nicht und der Payload räumt sich
+        # nach genau einem Request automatisch auf.
+        flash[:verification_failure] = build_verification_failure_payload(failures)
+        redirect_to tournament_monitor_tournament_path(@tournament) and return
       end
     end
 
