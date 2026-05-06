@@ -97,3 +97,136 @@ scraped:
   sync_date: <%= 1.day.ago %>
   created_at: <%= 1.month.ago %>
   updated_at: <%= 1.day.ago %>
+
+# ---------------------------------------------------------------------------
+# Phase 39 D-16: parameter_ranges(tournament:) test fixtures.
+# ---------------------------------------------------------------------------
+
+# D-16(a): exact DTP hit — Freie Partie klein, plan t04_5, 5 players (via seedings), class "1"
+local_fpk_class1:
+  id: 50_000_200
+  title: "Phase 39 D-16(a) FPK class 1"
+  season_id: 50_000_001
+  organizer_id: 50_000_001
+  organizer_type: "Region"
+  discipline_id: 50_000_004
+  tournament_plan_id: 50_000_100
+  player_class: "1"
+  state: "tournament_mode_defined"
+  date: <%= 2.weeks.from_now %>
+  handicap_tournier: false
+  created_at: <%= 1.month.ago %>
+  updated_at: <%= 1.day.ago %>
+
+# D-16(b): class "5" — no exact match in DTP for class 5 -> walks "5"->"4"->"3" -> hits class "3" row
+local_fpk_class5_walks_to_3:
+  id: 50_000_201
+  title: "Phase 39 D-16(b) FPK class 5 walks to 3"
+  season_id: 50_000_001
+  organizer_id: 50_000_001
+  organizer_type: "Region"
+  discipline_id: 50_000_004
+  tournament_plan_id: 50_000_100
+  player_class: "5"
+  state: "tournament_mode_defined"
+  date: <%= 2.weeks.from_now %>
+  handicap_tournier: false
+  created_at: <%= 1.month.ago %>
+  updated_at: <%= 1.day.ago %>
+
+# D-16(c): no DTP match anywhere -> walks PLAYER_CLASS_ORDER to end, returns {}
+# Achieved by using carom_3band (which only has class "1" DTP) with class "III" -> walk goes off end
+local_carom_classIII_walk_miss:
+  id: 50_000_202
+  title: "Phase 39 D-16(c) Walk miss"
+  season_id: 50_000_001
+  organizer_id: 50_000_001
+  organizer_type: "Region"
+  discipline_id: 50_000_001    # carom_3band
+  tournament_plan_id: 50_000_100
+  player_class: "III"
+  state: "tournament_mode_defined"
+  date: <%= 2.weeks.from_now %>
+  handicap_tournier: false
+  created_at: <%= 1.month.ago %>
+  updated_at: <%= 1.day.ago %>
+
+# D-16(e): handicap_tournier=true -> returns {} regardless of discipline/plan
+local_handicap:
+  id: 50_000_203
+  title: "Phase 39 D-16(e) Handicap"
+  season_id: 50_000_001
+  organizer_id: 50_000_001
+  organizer_type: "Region"
+  discipline_id: 50_000_004
+  tournament_plan_id: 50_000_100
+  player_class: "1"
+  state: "tournament_mode_defined"
+  date: <%= 2.weeks.from_now %>
+  handicap_tournier: true
+  created_at: <%= 1.month.ago %>
+  updated_at: <%= 1.day.ago %>
+
+# D-16(f): tournament_plan=nil -> returns {} (defensive)
+local_no_plan:
+  id: 50_000_204
+  title: "Phase 39 D-16(f) No plan"
+  season_id: 50_000_001
+  organizer_id: 50_000_001
+  organizer_type: "Region"
+  discipline_id: 50_000_004
+  tournament_plan_id:           # explicit nil
+  player_class: "1"
+  state: "tournament_mode_defined"
+  date: <%= 2.weeks.from_now %>
+  handicap_tournier: false
+  created_at: <%= 1.month.ago %>
+  updated_at: <%= 1.day.ago %>
+
+# Zero-canonical (RQ-01): Cup-series style — points=0/innings=0 in DTP -> {}
+local_fpk_zero_canonical:
+  id: 50_000_205
+  title: "Phase 39 RQ-01 Zero-canonical (Cup-series)"
+  season_id: 50_000_001
+  organizer_id: 50_000_001
+  organizer_type: "Region"
+  discipline_id: 50_000_004
+  tournament_plan_id: 50_000_101  # t06_6 (6 players)
+  player_class: "1"
+  state: "tournament_mode_defined"
+  date: <%= 2.weeks.from_now %>
+  handicap_tournier: false
+  created_at: <%= 1.month.ago %>
+  updated_at: <%= 1.day.ago %>
+
+# RQ-03: empty/nil player_class -> returns {} immediately (no walk)
+local_fpk_blank_class:
+  id: 50_000_206
+  title: "Phase 39 RQ-03 Blank class"
+  season_id: 50_000_001
+  organizer_id: 50_000_001
+  organizer_type: "Region"
+  discipline_id: 50_000_004
+  tournament_plan_id: 50_000_100
+  player_class: ""
+  state: "tournament_mode_defined"
+  date: <%= 2.weeks.from_now %>
+  handicap_tournier: false
+  created_at: <%= 1.month.ago %>
+  updated_at: <%= 1.day.ago %>
+
+# D-16(d): Non-DTP discipline — bk2_kombi has no DTP rows at all -> returns {}
+local_bk2kombi_non_dtp:
+  id: 50_000_207
+  title: "Phase 39 D-16(d) Non-DTP discipline (BK-2kombi)"
+  season_id: 50_000_001
+  organizer_id: 50_000_001
+  organizer_type: "Region"
+  discipline_id: 50_000_010     # disciplines(:bk2_kombi)
+  tournament_plan_id: 50_000_100
+  player_class: "1"
+  state: "tournament_mode_defined"
+  date: <%= 2.weeks.from_now %>
+  handicap_tournier: false
+  created_at: <%= 1.month.ago %>
+  updated_at: <%= 1.day.ago %>

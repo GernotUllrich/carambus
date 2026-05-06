@@ -43,3 +43,45 @@ wc_no_end_date_jaspers:
   state: "seeded"
   created_at: <%= 2.years.ago %>
   updated_at: <%= 1.day.ago %>
+
+# ---------------------------------------------------------------------------
+# Phase 39 D-16 seedings: 5-seeding tournaments (D-16(a),(b),(c),(e),(f),RQ-03,D-16(d))
+# 6-seeding tournament (RQ-01 zero-canonical, t06_6 plan)
+# Use position to ensure uniqueness; reuse jaspers/cho player_ids since seedings have no
+# unique (tournament_id, player_id) constraint in this fixture set.
+# ---------------------------------------------------------------------------
+
+<% [
+  [50_000_200, "fpk_class1"],
+  [50_000_201, "fpk_class5"],
+  [50_000_202, "carom_classIII"],
+  [50_000_203, "handicap"],
+  [50_000_204, "no_plan"],
+  [50_000_206, "blank_class"],
+  [50_000_207, "bk2kombi"]
+].each_with_index do |(tid, label), tidx| %>
+<% 5.times do |i| %>
+phase39_seed_<%= label %>_<%= i + 1 %>:
+  id: <%= 50_000_300 + tidx * 10 + i %>
+  player_id: <%= [50_001_001, 50_001_002].sample %>
+  tournament_id: <%= tid %>
+  tournament_type: "Tournament"
+  state: "seeded"
+  position: <%= i + 1 %>
+  created_at: <%= 1.month.ago %>
+  updated_at: <%= 1.day.ago %>
+<% end %>
+<% end %>
+
+# Zero-canonical needs 6 seedings (matches t06_6 plan players=6)
+<% 6.times do |i| %>
+phase39_seed_zero_canonical_<%= i + 1 %>:
+  id: <%= 50_000_400 + i %>
+  player_id: <%= [50_001_001, 50_001_002].sample %>
+  tournament_id: 50_000_205
+  tournament_type: "Tournament"
+  state: "seeded"
+  position: <%= i + 1 %>
+  created_at: <%= 1.month.ago %>
+  updated_at: <%= 1.day.ago %>
+<% end %>
