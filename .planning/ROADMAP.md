@@ -242,7 +242,11 @@ Plans:
   4. Disciplines without a DTP entry (Pool, Snooker, Kegel, Biathlon, 5-Kegel) use a hardcoded fallback hash OR return an empty hash (= "no check"); behavior is explicit and tested.
   5. `DISCIPLINE_PARAMETER_RANGES` / `UI_07_SHARED_RANGES` / `UI_07_DISCIPLINE_SPECIFIC_RANGES` constants in `app/models/discipline.rb:59-87` are removed; the `tournaments_controller.rb` parameter verification callsite passes the tournament into the new signature.
   6. `test/models/discipline_test.rb` is updated to cover the new API surface (normal mode, reduced mode, handicap_tournier branch, DTP-backed disciplines, fallback disciplines); `test/system/tournament_parameter_verification_test.rb` still passes with the new behavior.
-**Plans**: TBD (to be created by `/gsd-plan-phase 39`)
+**Plans**: 2 plans
+
+Plans:
+- [ ] `39-01-PLAN.md` — Refactor `Discipline#parameter_ranges` to DTP-backed keyword-arg method (`parameter_ranges(tournament:)`); delete `UI_07_SHARED_RANGES` / `UI_07_DISCIPLINE_SPECIFIC_RANGES` / `DISCIPLINE_PARAMETER_RANGES` constants (D-14); add `PLAYER_CLASS_ORDER` + `REDUCED_FACTOR` constants and 2 private helpers (`lookup_dtp_with_class_walk`, `range_from_canonical`); create `test/fixtures/discipline_tournament_plans.yml` + 8 new tournament fixtures + 41 seedings (D-16 a–f, RQ-01 zero-canonical, RQ-03 blank class, D-16d non-DTP); rewrite `test/models/discipline_test.rb` parameter_ranges block (8 new tests covering D-16 + RQ-01 + RQ-03; 8 obsolete tests deleted). Wave 1.
+- [ ] `39-02-PLAN.md` — Migrate `tournaments_controller.rb#verify_tournament_start_parameters` to keyword-arg call (D-01); reduce `UI_07_FIELDS` to `[:balls_goal, :innings_goal]` (D-12); delete `UI_07_SENTINEL_VALUES` constant + sentinel-exemption guard (D-13/D-15); delete `test/integration/tournament_verification_sentinels_test.rb` (RQ-04 — 7 tests of dead code); update `test/system/tournament_parameter_verification_test.rb` with deterministic Phase-39 fixture for setup + 3 new no-fire tests (BK-2kombi, handicap, no-plan). Wave 2 (depends on 39-01).
 **UI hint**: no
 
 ## Progress
@@ -267,7 +271,7 @@ Phases execute in numeric order: 33 → 34 → 35 → 36a → 36b → 36c → 37
 | 38.5. BK-Param-Hierarchie + Multiset-Config | v7.1 | 6/6 | Complete    | 2026-04-29 |
 | 38.6. Discipline Master-Data Cleanup | v7.1 | 4/4 | Complete    | 2026-04-29 |
 | 38.8. Endergebnis-erfasst state restore | v7.1 | 6/6 | Complete    | 2026-05-01 |
-| 39. DTP-Backed Parameter Ranges | v7.1 | 0/TBD | Not started | - |
+| 39. DTP-Backed Parameter Ranges | v7.1 | 0/2 | Not started | - |
 
 **v7.0 total:** 7 phases, 31 plans, 37/37 requirements, ~2 weeks wall time.
 **v7.1 total (planned):** 4 phases, 12+TBD plans, 6+ requirements (5 in Phase 38, 1 in Phase 39, gap closure in 38.1/38.2).

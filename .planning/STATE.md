@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v7.1
 milestone_name: UX Polish & i18n Debt
-status: completed
+status: executing
 stopped_at: Phase 39 context gathered
-last_updated: "2026-05-06T19:53:16.148Z"
-last_activity: "2026-05-06 - **Quick task 260506-pha closes Layer 3 — Region picker submenu** (commit `4568b2a0`). User interrupted plan iter 1 (presence-guard approach was wrong — Migration link must let admin PICK a Region). Iter 2 revised to nested-submenu picker matching existing Sidebar pattern; iterates `Region.order(:shortname, :name)`, each Region gets its own migration link. New integration test `test/integration/left_nav_system_admin_test.rb` (3/3 green, 15 assertions). 36B-06 still 4/4; integration suite 21/21. **Today's full chain (7 quick tasks, 11 production fixes):** 260506-hka (PRG) → i6h (fixture FK + 36B-05) → k3t (DEFERRED-BLOCKERs + AASM persistence) → lii (halted, 3-layer diagnosis) → me5 (3/4 with local/global-aware fix) → o93 (4/4 victory) → pha (Layer 3 picker). bcw now at HEAD `4568b2a0`; 2 unpushed commits in bcw (`4568b2a0` + the docs commit being made). Other checkouts 17 commits behind from this morning's earlier push."
+last_updated: "2026-05-06T20:42:47.070Z"
+last_activity: 2026-05-06 -- Phase 39 planning complete
 progress:
   total_phases: 12
   completed_phases: 9
-  total_plans: 68
+  total_plans: 70
   completed_plans: 67
-  percent: 99
+  percent: 96
 ---
 
 # Project State
@@ -27,8 +27,8 @@ See: .planning/PROJECT.md (updated 2026-04-15)
 
 Phase: alle Hauptphasen 38..38.9 complete; backlog 999.1 not yet planned
 Plan: —
-Status: v7.1 inhaltlich fertig — verbleibende Items sind operativ (Server-Hygiene) oder backlog-parking (999.x). Ballziel-loss pending todo am 2026-05-05 nach `done/` verschoben (gefixed durch quick-260503-x3k commit `45f9174c`). BK-Family-Carry-Forwards (TODOs A/B/C) postponed bis ~2026-07-05.
-Last activity: 2026-05-06 - **Quick task 260506-pha closes Layer 3 — Region picker submenu** (commit `4568b2a0`). User interrupted plan iter 1 (presence-guard approach was wrong — Migration link must let admin PICK a Region). Iter 2 revised to nested-submenu picker matching existing Sidebar pattern; iterates `Region.order(:shortname, :name)`, each Region gets its own migration link. New integration test `test/integration/left_nav_system_admin_test.rb` (3/3 green, 15 assertions). 36B-06 still 4/4; integration suite 21/21. **Today's full chain (7 quick tasks, 11 production fixes):** 260506-hka (PRG) → i6h (fixture FK + 36B-05) → k3t (DEFERRED-BLOCKERs + AASM persistence) → lii (halted, 3-layer diagnosis) → me5 (3/4 with local/global-aware fix) → o93 (4/4 victory) → pha (Layer 3 picker). bcw now at HEAD `4568b2a0`; 2 unpushed commits in bcw (`4568b2a0` + the docs commit being made). Other checkouts 17 commits behind from this morning's earlier push.
+Status: Ready to execute
+Last activity: 2026-05-06 -- Phase 39 planning complete
 
 Previous milestone archived at:
 
