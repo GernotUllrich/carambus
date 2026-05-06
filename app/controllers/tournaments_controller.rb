@@ -389,7 +389,17 @@ class TournamentsController < ApplicationController
         @tournament.initialize_tournament_monitor
         @tournament.reload
         @tournament.unprotected = true  # Still needed for state transition
-        @tournament.start_tournament!   # AASM auto-saves with the state change
+        # AASM event name literally contains "!" (event :start_tournament! at
+        # app/models/tournament.rb:290). Because the bang is part of the event
+        # NAME (not the AASM `name!` save-variant convention), the auto-generated
+        # method does an in-memory transition only and does NOT persist. We have
+        # to call save explicitly so the state column reaches the DB.
+        # Discovered in quick-260506-k3t when un-skipping 36B-06 tests 3+4
+        # surfaced this latent bug (Tournament.changes showed the new state in
+        # memory but the DB row stayed at tournament_mode_defined).
+        @tournament.start_tournament!
+        @tournament.unprotected = true
+        @tournament.save
         @tournament.reload
         innings_goal_value = (params[:innings_goal].presence || @tournament.innings_goal).to_i
         balls_goal_value = (params[:balls_goal].presence || @tournament.balls_goal).to_i
