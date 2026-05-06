@@ -1033,9 +1033,14 @@ class TournamentsController < ApplicationController
       "tournaments.monitor_form.verification.body_intro",
       default: "Die folgenden Werte liegen außerhalb des üblichen Bereichs für diese Disziplin. Bitte prüfen und bestätigen, wenn sie wirklich gewollt sind:"
     )
+    # JSON cookie-session contract: string keys are the wire format. Symbol keys
+    # would survive Marshal (development.rb redis_session_store) but become strings
+    # under Rails 7.2's default :json serializer (test.rb / staging.rb / production-*.rb).
+    # Writing strings here makes the round-trip a no-op and prevents nil reads in the view.
+    # See quick-260506-k3t for the bug history.
     {
-      failures: failures,
-      body_text: body_intro + "\n\n" + body_lines.join("\n")
+      "failures" => failures,
+      "body_text" => body_intro + "\n\n" + body_lines.join("\n")
     }
   end
 

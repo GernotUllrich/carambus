@@ -63,7 +63,7 @@
           <%= render "shared/confirmation_modal",
                      auto_open: true,
                      auto_open_title: I18n.t("tournaments.monitor_form.verification.title", default: "Ungewöhnliche Turnierparameter"),
-                     auto_open_body: @verification_failure[:body_text],
+                     auto_open_body: @verification_failure["body_text"],
                      auto_open_confirm_label: I18n.t("tournaments.monitor_form.verification.confirm", default: "Ja, Werte übernehmen und Turnier starten"),
                      auto_open_form_id: "start_tournament",
                      hidden_override_name: "parameter_verification_confirmed",
