@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-04-15)
 Phase: alle Hauptphasen 38..38.9 complete; backlog 999.1 not yet planned
 Plan: —
 Status: v7.1 inhaltlich fertig — verbleibende Items sind operativ (Server-Hygiene) oder backlog-parking (999.x). Ballziel-loss pending todo am 2026-05-05 nach `done/` verschoben (gefixed durch quick-260503-x3k commit `45f9174c`). BK-Family-Carry-Forwards (TODOs A/B/C) postponed bis ~2026-07-05.
-Last activity: 2026-05-06 - Quick task 260506-me5 partial success: 36B-06 went 4 runs / 2 fails → 4 runs / 1 fail. Tests 1, 2, 3 GREEN. Local/global-aware fix per user's architectural framing: `role: club_admin` on `:admin` fixture (commit `8f0b02a0`) + URL/DOM assertion rewrite (`d55120c2`). 36B-05 stays 3/3 green; uploads_controller 6/6; integration suite 12/12; no other regressions. **Layer 4 surfaced** (NEW production-edge bug): Test 4 ("in-range") only sets `balls_goal` safely but form also submits `sets_to_play=0` / `sets_to_win=0` — both out of `UI_07_SHARED_RANGES` (1..7, 1..4) — so verifier still triggers modal even when balls_goal is in range. Pre-existing latent bug for single-set tournaments. Today's earlier work (already pushed): 260506-hka (PRG) + 260506-i6h (fixture FK + 36B-05) + 260506-k3t (closed DEFERRED-BLOCKERs + AASM persistence) + 260506-lii (halted, three-layer diagnosis). bcw now at HEAD `d55120c2`; 4 unpushed commits in bcw (`f6ff2918` lii-docs + `8f0b02a0` + `d55120c2` + this docs commit). Other checkouts still 10 commits behind from before.
+Last activity: 2026-05-06 - **Quick task 260506-o93 closes the 36B-06 saga at 4/4 GREEN.** Added `UI_07_SENTINEL_VALUES` constant + verifier guard exempting form sentinels (`["-", 0]` / `["no limit", 999]`) from range checks (commits `0f852f34` + `ab513106`). 36B-06 = 4 runs / 0 failures / 0 skips. New integration regression test at `test/integration/tournament_verification_sentinels_test.rb` (6/6 green, 0.27s). 36B-05 still 3/3; integration suite 18/18; no regressions. Real production-edge bug fixed: single-set tournaments no longer trip the verification modal when balls_goal is in range. **Today's full chain:** 260506-hka (PRG) → 260506-i6h (fixture FK + 36B-05 tightening) → 260506-k3t (closed 2 DEFERRED-BLOCKERs + AASM persistence) → 260506-lii (halted, three-layer diagnosis) → 260506-me5 (3/4 with local/global-aware fix) → 260506-o93 (4/4 victory). Each task discovered the next bug by un-skipping or tightening a test. **bcw now at HEAD `ab513106`; 6 unpushed commits in bcw (the 4 from earlier today + 0f852f34 + ab513106 + the docs commit being made now). Other checkouts 10 commits behind from this morning's push.
 
 Previous milestone archived at:
 
@@ -126,23 +126,21 @@ Decisions are logged in PROJECT.md Key Decisions table. Full v7.0 cross-phase de
 
 ### Pending Todos
 
-**Two follow-ups discovered during today's 36B-06 work:**
+**One follow-up still open from today's 36B-06 work:**
 
-- **Layer 4 (production-edge bug, user-visible):** `tournaments_controller#verify_tournament_start_parameters` checks `sets_to_play` and `sets_to_win` against `UI_07_SHARED_RANGES` (1..7 and 1..4 respectively), but the form submits `0` for both as a "no limit / not yet set" sentinel value. So a single-set tournament (or any tournament not yet picking a sets-config) trips the verification modal even when `balls_goal` is in range. **Repro:** the in-range test (`tournament_parameter_verification_test.rb` Test 4) currently fails because `safe_value` only adjusts `balls_goal`. **Recommended fix:** exempt `0` for `sets_to_play` / `sets_to_win` in `verify_tournament_start_parameters` (treat as "not constrained"). 1-line guard in the verifier method.
-
-- **Layer 3 (production-edge bug, system_admin only):** `app/views/application/_left_nav.html.erb:156` calls `migration_cc_region_path(Region[1])`. Crashes with `UrlGenerationError` when `Region[1]` is nil — happens in test fixtures (`:nbv` at id 50_000_001) and possibly on fresh dev DBs / mid-migration states. Only system_admin users see this nav block. **Fix options:** (a) harden the view (`Region[1] || Region.first`); (b) add a Region fixture at id 1; (c) gate on `Region[1].present?`. Recommend (a) — minimal-blast hardening.
+- **Layer 3 (production-edge bug, system_admin only):** `app/views/application/_left_nav.html.erb:156` calls `migration_cc_region_path(Region[1])`. Crashes with `UrlGenerationError` when `Region[1]` is nil — happens in test fixtures (`:nbv` at id 50_000_001) and possibly on fresh dev DBs / mid-migration states. Only system_admin users see this nav block; bcw operators (club_admin) never trigger it, which is why we could route around it for 36B-06. **Fix options:** (a) harden the view (`Region[1] || Region.first` fallback, or wrap in `if Region[1].present?`); (b) add a Region fixture at id 1; (c) gate on `Region[1].present?`. Recommend (a) — minimal-blast hardening of a real production-edge bug.
 
 Project hard constraints (preserved): no global `use_transactional_tests = false`, no `database_cleaner`, no changes to `test_helper.rb` / `application_system_test_case.rb` / `Gemfile`, no new test base class or mixin.
 
 **Recently closed (today, 2026-05-06):**
 
-- **36B-06 Test 1 + Test 2** (verification modal opens; Cancel keeps unstarted) — were already passing.
-- **36B-06 Test 3** (Confirm starts the tournament) — fixed by quick-260506-me5 (commits `8f0b02a0` + `d55120c2`): Layer 1 (`role: club_admin` on `:admin` fixture) + Layer 2 (URL assertion rewrite).
+- **36B-06 Test 4 (in-range skip-modal) — Layer 4** — fixed by quick-260506-o93 (commits `0f852f34` + `ab513106`). Added `UI_07_SENTINEL_VALUES` constant + verifier guard exempting form sentinels (0/"-" and 999/"no limit"). 36B-06 now 4/4 green. Production-edge fix: single-set tournaments work without spurious verification modal.
+- **36B-06 Test 3 (Confirm starts tournament)** — quick-260506-me5 (`8f0b02a0` + `d55120c2`): Layer 1 (`role: club_admin` on `:admin` fixture, the realistic bcw operator role) + Layer 2 (URL assertion rewrite, routing around test-thread/Puma connection isolation).
 - **DEFERRED-BLOCKER-1 (PRG flash JSON serializer)** — quick-260506-k3t commit `2fcce9d1`. Payload string keys + view string-key access. Regression guard at `test/integration/tournament_verification_payload_serialization_test.rb` (commit `d6335bff`).
 - **DEFERRED-BLOCKER-2 (fixture AASM state)** — quick-260506-k3t commit `6f8a6f52`. `:local` fixture state → `tournament_mode_defined`.
 - **AASM `:start_tournament!` persistence latent bug** — quick-260506-k3t commit `e362f8a9`. Bang-in-event-name breaks AASM's save-variant convention. Fix: explicit `@tournament.save`.
 - **Refactor 36B-06 verification gate to PRG redirect** (created 2026-04-14) — resolved by quick-260506-hka commit `0ac7305a` + downstream bug-fixes.
-- **Tighten 36B-05 reset confirmation system test skip paths** (created 2026-04-14) — resolved by quick-260506-i6h commits `1c291731` + `12652ae2`. 36B-05 still 3/3 green after today's fixture role addition.
+- **Tighten 36B-05 reset confirmation system test skip paths** (created 2026-04-14) — resolved by quick-260506-i6h commits `1c291731` + `12652ae2`. 36B-05 still 3/3 green throughout subsequent work.
 
 **Recently closed (today, 2026-05-06):**
 
