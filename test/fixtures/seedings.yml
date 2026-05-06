@@ -85,3 +85,49 @@ phase39_seed_zero_canonical_<%= i + 1 %>:
   created_at: <%= 1.month.ago %>
   updated_at: <%= 1.day.ago %>
 <% end %>
+
+# ---------------------------------------------------------------------------
+# Quick 260507-24p Gap-01 regression: 3 globally-id'd seedings attached to
+# local_fpk_class1 (tournament_id 50_000_200) to exercise the local/global
+# split filter in Discipline#lookup_dtp_with_class_walk.
+#
+# Without the smart-fallback fix, tournament.seedings.count returns 8 (5 local
+# + 3 global), no DTP row matches players=8, parameter_ranges returns {} —
+# locks Phase-39 Gap-01.
+#
+# These IDs are < Seeding::MIN_ID (50_000_000) so they represent the
+# central-API-synced "global" seedings that arrive on local servers via the
+# Version sync mechanism alongside the operator-created local seedings.
+# IDs 9_000_010..9_000_012 chosen to avoid collision with the existing
+# discipline_tournament_plans fixtures (9_000_001..9_000_005).
+# ---------------------------------------------------------------------------
+
+phase39_seed_global_alias_1:
+  id: 9_000_010
+  player_id: 50_001_001
+  tournament_id: 50_000_200    # local_fpk_class1 — already has 5 local seedings
+  tournament_type: "Tournament"
+  state: "seeded"
+  position: 6
+  created_at: <%= 1.month.ago %>
+  updated_at: <%= 1.day.ago %>
+
+phase39_seed_global_alias_2:
+  id: 9_000_011
+  player_id: 50_001_002
+  tournament_id: 50_000_200
+  tournament_type: "Tournament"
+  state: "seeded"
+  position: 7
+  created_at: <%= 1.month.ago %>
+  updated_at: <%= 1.day.ago %>
+
+phase39_seed_global_alias_3:
+  id: 9_000_012
+  player_id: 50_001_001
+  tournament_id: 50_000_200
+  tournament_type: "Tournament"
+  state: "seeded"
+  position: 8
+  created_at: <%= 1.month.ago %>
+  updated_at: <%= 1.day.ago %>

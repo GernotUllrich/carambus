@@ -20,6 +20,29 @@ class DisciplineTest < ActiveSupport::TestCase
       "D-16(a): innings_goal Range must be (15*0.75).floor..15 = 11..15")
   end
 
+  # Gap-01 regression (quick 260507-24p): parameter_ranges must filter seedings
+  # by Seeding::MIN_ID before counting, otherwise local tournaments with synced
+  # global seedings (id < MIN_ID) report an inflated count that misses every
+  # DTP row. Without the smart-fallback in lookup_dtp_with_class_walk, this
+  # test is RED — base_scope.where(players: 8) yields no DTP row.
+  test "parameter_ranges still resolves correct DTP row when local + global seedings are mixed (Gap-01)" do
+    tournament = tournaments(:local_fpk_class1)
+    # Lock fixture shape — 5 local + 3 global = 8 total.
+    assert_equal 8, tournament.seedings.count,
+      "Fixture precondition: local_fpk_class1 must have 5 local + 3 global seedings"
+    assert_equal 5, tournament.seedings.where("seedings.id >= ?", Seeding::MIN_ID).count,
+      "Fixture precondition: 5 local seedings (id >= MIN_ID) expected"
+    assert_equal 3, tournament.seedings.where("seedings.id < ?", Seeding::MIN_ID).count,
+      "Fixture precondition: 3 global seedings (id < MIN_ID) expected"
+
+    discipline = disciplines(:discipline_freie_partie_klein)
+    ranges = discipline.parameter_ranges(tournament: tournament)
+    assert_equal(187..250, ranges[:balls_goal],
+      "Gap-01: balls_goal Range must match DTP players=5 (local count), not players=8 (raw count)")
+    assert_equal(11..15, ranges[:innings_goal],
+      "Gap-01: innings_goal Range must match DTP players=5 (local count), not players=8 (raw count)")
+  end
+
   # D-16(b): class-walk fallback. tournament.player_class="5" → no exact match,
   # walks "5"→"4"→"3" → hits class "3" row (points=200, innings=12).
   test "parameter_ranges walks PLAYER_CLASS_ORDER on class miss (D-16b)" do
