@@ -33,6 +33,20 @@ class TournamentsController < ApplicationController
     sets_to_win
   ].freeze
 
+  # UI-07 Layer-4 fix (quick-260506-o93): sentinel values that the
+  # tournament_monitor form intentionally offers but that fall OUTSIDE
+  # Discipline#parameter_ranges. These must be exempt from the range
+  # check in verify_tournament_start_parameters. Cross-reference:
+  #   app/views/tournaments/tournament_monitor.html.erb:139, 142
+  #   - sets_to_play select: ["-", 0], [2..7], ["no limit", 999]
+  #   - sets_to_win  select: ["-", 0], [2..4]
+  # `0` = "not set / single-set mode", `999` = "no limit" — both
+  # legitimate operator choices, NOT data-entry typos.
+  UI_07_SENTINEL_VALUES = {
+    sets_to_play: [0, 999].freeze,
+    sets_to_win: [0].freeze
+  }.freeze
+
   # GET /tournaments
   def index
     # Default sort by date descending if no sort specified
@@ -1020,6 +1034,9 @@ class TournamentsController < ApplicationController
       next if raw.nil? || raw.to_s.strip.empty?
 
       value = raw.to_i
+      # UI-07 Layer-4 (quick-260506-o93): exempt form sentinel values
+      # ("-"=0 not set / "no limit"=999) — see UI_07_SENTINEL_VALUES.
+      next if (UI_07_SENTINEL_VALUES[field] || []).include?(value)
       next if range.cover?(value)
 
       failures << {
