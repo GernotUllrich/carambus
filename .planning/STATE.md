@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-04-15)
 Phase: alle Hauptphasen 38..38.9 complete; backlog 999.1 not yet planned
 Plan: —
 Status: v7.1 inhaltlich fertig — verbleibende Items sind operativ (Server-Hygiene) oder backlog-parking (999.x). Ballziel-loss pending todo am 2026-05-05 nach `done/` verschoben (gefixed durch quick-260503-x3k commit `45f9174c`). BK-Family-Carry-Forwards (TODOs A/B/C) postponed bis ~2026-07-05.
-Last activity: 2026-05-06 - Completed quick task 260506-hka (commit `0ac7305a`): refactor `TournamentsController#start` verification gate from in-place render to PRG redirect via `flash[:verification_failure]`; reverted `data: { turbo: false }` workaround on start_tournament form. Closes 2026-04-14 todo. Verifier: Needs Review (7/7 code-level must-haves verified; 36B-06 system tests skip on fixture-data limits, E2E PRG browser handshake needs manual run on dev stack).
+Last activity: 2026-05-06 - Completed quick task 260506-i6h (commits `1c291731` + `12652ae2`): fixed `tournaments(:local)` fixture FK rot + tightened 36B-05 reset confirmation system test (3/3 green, 0 skips). Closes second 2026-04-14 todo. **Verifier: human_needed** — un-skipping 36B-06 surfaced 2 real bugs blocking push of the PRG refactor (commit `0ac7305a`): (1) PRG flash payload uses symbol keys but cookie-session JSON serializer stringifies — production-affecting; (2) fixture `state: "registration"` not in Tournament AASM state list — test-only. Earlier today: 260506-hka (PRG refactor commit `0ac7305a` + docs `1de19400`). Pre-push: 4 commits ahead of origin/master in carambus_bcw, other checkouts clean.
 
 Previous milestone archived at:
 
@@ -126,11 +126,17 @@ Decisions are logged in PROJECT.md Key Decisions table. Full v7.0 cross-phase de
 
 ### Pending Todos
 
-- **Tighten 36B-05 reset confirmation system test skip paths** — `2026-04-14-tighten-36b-05-reset-confirmation-system-test-skip-paths.md` (created 2026-04-14, area: testing).
+_(none — both 2026-04-14 todos resolved by today's quick tasks 260506-hka + 260506-i6h)_
+
+**Two DEFERRED-BLOCKERs from 260506-i6h need a follow-up quick task before 260506-hka can be pushed:**
+
+- **DEFERRED-BLOCKER-1 (production-affecting):** PRG flash payload uses symbol keys but cookie-session JSON serializer stringifies → modal renders empty body in production. Recommended fix: switch `build_verification_failure_payload` (`app/controllers/tournaments_controller.rb:1028-1040`) to use string keys, AND change view access (`app/views/tournaments/tournament_monitor.html.erb:66`) to `@verification_failure["body_text"]`. Add a regression-guard test for the JSON round-trip. Smallest possible scope.
+- **DEFERRED-BLOCKER-2 (test-only):** Fixture `tournaments(:local)` has `state: "registration"` which is not in `Tournament` AASM state list (`app/models/tournament.rb:271-281`). Tests 3+4 of 36B-06 (`Confirm` and `in-range` paths) need `start_tournament!` to fire. Fix options: change fixture state to `"new_tournament"` (initial AASM state), OR add `update_columns(state: "new_tournament")` in 36B-06 test setup.
 
 **Recently closed:**
 
 - **Refactor 36B-06 verification gate to PRG redirect** (created 2026-04-14, resolved 2026-05-06 quick-260506-hka commit `0ac7305a`). PRG via `flash[:verification_failure]` + revert of `data: { turbo: false }` workaround. Verifier 7/7 must-haves at code level; 36B-06 system tests skip on fixture-data limits, so E2E browser handshake needs manual run. Todo file moved to `.planning/todos/done/`.
+- **Tighten 36B-05 reset confirmation system test skip paths** (created 2026-04-14, resolved 2026-05-06 quick-260506-i6h commits `1c291731` + `12652ae2`). Fixture FK rot fixed at `tournaments(:local)` + selector `.hidden` corrected to root target across all 3 tests + has_css? skip removed + 500-skip→flunk + Stimulus scope assertion. 3/3 green / 0 skips. Todo file moved to `.planning/todos/done/`.
 - **Production API disk — `api-server-disk-cleanup`** (created 2026-04-23, resolved 2026-05-05 commit `c007dd20`). Root cause: missing logrotate for `/var/log/carambus*/` scenario-specific nginx log dirs (standard `/etc/logrotate.d/nginx` only covers `/var/log/nginx/`). Deployed `/etc/logrotate.d/carambus` + forced first rotation; reclaimed ~5 GB (disk 82% → 76%).
 - **Rematch loses Ballziel — `fix-ballziel-loss-on-swapped-anstoss-rematch`** (created 2026-05-01, resolved 2026-05-05 commit `0b67be03`). Fixed by quick-260503-x3k commit `45f9174c` (`revert_players` now passes `bk2_options` through to `start_game`). Todo file moved to `.planning/todos/done/`.
 
