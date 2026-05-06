@@ -153,7 +153,19 @@
           </button>
           <ul class="pl-4 hidden list-none" data-sidebar-target="submenu">
             <li><%= link_to "Meta Maps", meta_maps_path, class: 'block p-2 text-gray-700 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white rounded' %></li>
-            <li><%= link_to "Migration", migration_cc_region_path(Region[1]), class: 'block p-2 text-gray-700 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white rounded' %></li>
+            <li>
+              <button data-action="sidebar#toggle" class="w-full flex items-center justify-between p-2 text-gray-700 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white rounded">
+                <span>Migration</span>
+                <svg class="w-4 h-4 transform transition-transform text-gray-800 dark:text-gray-300" data-sidebar-target="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                </svg>
+              </button>
+              <ul class="pl-4 hidden list-none" data-sidebar-target="submenu">
+                <% Region.order(:shortname, :name).each do |region| %>
+                  <li><%= link_to (region.shortname.presence || region.name), migration_cc_region_path(region), class: 'block p-2 text-gray-700 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white rounded' %></li>
+                <% end %>
+              </ul>
+            </li>
             <li><%= link_to "Region Ccs", region_ccs_path, class: 'block p-2 text-gray-700 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white rounded' %></li>
             <li><%= link_to "Branch Ccs", branch_ccs_path, class: 'block p-2 text-gray-700 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white rounded' %></li>
             <li><%= link_to "Competition Ccs", competition_ccs_path, class: 'block p-2 text-gray-700 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white rounded' %></li>
