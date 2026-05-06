@@ -105,8 +105,24 @@ class TournamentParameterVerificationTest < ApplicationSystemTestCase
     assert_text verification_title
     find("button[data-action='click->confirmation-modal#confirm']", match: :first).click
 
-    # AASM transitions: tournament_started or a waiting-for-monitors variant.
-    assert_includes STARTED_STATES, @tournament.reload.state
+    # The controller's start action runs start_tournament! + explicit save (commit
+    # e362f8a9) and redirects to tournament_monitor_path(@tournament.tournament_monitor).
+    # We assert the post-redirect URL pattern instead of @tournament.reload.state because
+    # Capybara's Puma server runs on a separate Postgres connection from the test thread;
+    # with use_transactional_tests = true (project convention; test/TEST_DATABASE_SETUP.md
+    # line 94), the test thread cannot see the server thread's committed state UPDATE via
+    # AR reload. The URL is observable cross-thread via the browser session.
+    #
+    # Layer 1 prerequisite: test/fixtures/users.yml :admin block carries `role: club_admin`
+    # (added by quick-260506-me5 Task 1) so this redirect is NOT bounced to / by
+    # TournamentMonitorsController#ensure_tournament_director (controllers/
+    # tournament_monitors_controller.rb:201-206).
+    #
+    # See quick-260506-me5 diagnosis Layers 1 + 2 for the full reasoning. Layer 3
+    # (Region[1] nil-crash in _left_nav.html.erb:156 under system_admin) stays dormant
+    # because :admin uses club_admin, not system_admin.
+    assert_current_path %r{\A/tournament_monitors/\d+\z}, wait: 10
+    assert_no_text verification_title
   end
 
   test "in-range values skip the modal and start the tournament directly" do
@@ -119,6 +135,13 @@ class TournamentParameterVerificationTest < ApplicationSystemTestCase
     click_start_button
 
     assert_no_text verification_title
-    assert_includes STARTED_STATES, @tournament.reload.state
+    # Same controller path + cross-thread-visibility rationale as the Confirm-click test
+    # above (Test 3): in-range values skip the verification modal, the start action runs
+    # start_tournament! + save, and redirects to tournament_monitor_path. The URL is
+    # cross-thread-visible via the browser session; @tournament.reload.state is not
+    # (test thread / Puma thread connection isolation under use_transactional_tests).
+    # Task 1's `role: club_admin` on the :admin fixture ensures ensure_tournament_director
+    # does not bounce.
+    assert_current_path %r{\A/tournament_monitors/\d+\z}, wait: 10
   end
 end
