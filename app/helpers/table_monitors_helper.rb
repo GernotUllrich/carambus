@@ -1,4 +1,14 @@
 module TableMonitorsHelper
+  # Phase 38.4 I1 — view-layer predicate for 5 BK-* disciplines.
+  # Accepts either a free_game_form string or a Discipline instance.
+  def bk2_family?(arg)
+    form = case arg
+    when String then arg
+    when Discipline then arg.data_free_game_form
+    end
+    Discipline::BK2_FREE_GAME_FORMS.include?(form)
+  end
+
   def ranking_table(tournament_monitor, hash, opts = {})
     rankings = TournamentMonitor.ranking(hash, opts)
     var = opts[:reverse]
@@ -18,11 +28,11 @@ module TableMonitorsHelper
       <div class=\"p-8 #{bg}\">#{if opts[:group].present?
                                    "#{opts[:group]}<br/>"
                                  end}<table class='w-full'><thead><tr>" + (if opts[:order].include?(:rank)
-                                                              "<th>Rank</th>"
-                                                            end).to_s + "<th>Name</th><th>Pkt</th><th>Res</th>#{if opts[:points_only].blank?
-                                                                                                                  "<th>Aufn.</th><th>HS</th><th>GD</th><th>BED</th>#{if tournament_monitor.tournament.handicap_tournier?
-                                                                                                                                                                       "<th>BG</th><th>GD_PCT</th>"
-                                                                                                                                                                     end}"
-                                                                                                                end}</tr></thead><tbody></tbody>#{lines.html_safe}</table></div>").html_safe
+                                                                             "<th>Rank</th>"
+                                                                           end).to_s + "<th>Name</th><th>Pkt</th><th>Res</th>#{if opts[:points_only].blank?
+                                                                                                                                 "<th>Aufn.</th><th>HS</th><th>GD</th><th>BED</th>#{if tournament_monitor.tournament.handicap_tournier?
+                                                                                                                                                                                      "<th>BG</th><th>GD_PCT</th>"
+                                                                                                                                                                                    end}"
+                                                                                                                               end}</tr></thead><tbody></tbody>#{lines.html_safe}</table></div>").html_safe
   end
 end

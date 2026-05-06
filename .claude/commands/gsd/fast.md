@@ -22,9 +22,9 @@ you could describe in one sentence and execute in under 2 minutes.
 </objective>
 
 <execution_context>
-@/Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api/.claude/get-shit-done/workflows/fast.md
+@/Users/gullrich/DEV/carambus/carambus_api/.claude/get-shit-done/workflows/fast.md
 </execution_context>
 
 <process>
-Execute the fast workflow from @/Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api/.claude/get-shit-done/workflows/fast.md end-to-end.
+Execute the fast workflow from @/Users/gullrich/DEV/carambus/carambus_api/.claude/get-shit-done/workflows/fast.md end-to-end.
 </process>

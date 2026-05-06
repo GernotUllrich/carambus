@@ -153,10 +153,10 @@ reconnectDelay: 2000          // 2s - sofortiger Reload
 
 ### 1. Deployment
 ```bash
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_bcw
+cd /Users/gullrich/DEV/carambus/carambus_bcw
 git pull
 
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_master
+cd /Users/gullrich/DEV/carambus/carambus_master
 rake "scenario:deploy[carambus_bcw]"
 ```
 
@@ -213,7 +213,7 @@ config.action_cable.log_level = :error  # statt :info
 Falls die Änderungen Probleme verursachen:
 
 ```bash
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_master
+cd /Users/gullrich/DEV/carambus/carambus_master
 git checkout HEAD~1 app/javascript/channels/location_channel.js
 git checkout HEAD~1 app/javascript/channels/table_monitor_channel.js
 

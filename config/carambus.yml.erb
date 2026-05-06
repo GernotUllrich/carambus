@@ -17,6 +17,12 @@ default:
   force_update: 'true'
   no_local_protection: 'false'
   club_id: nil
+  # Wenn true, zeigt der Scoreboard im Training-Mode (kein tournament_monitor)
+  # für registrierte Nicht-Team-Nicht-Gast-Spieler den vollständigen Namen
+  # statt der disambiguierten Kurzform. Default false → unverändertes Verhalten.
+  # Aktivieren z. B. bei BCW-Grand-Prix mit gemischtem Gast/Mitglieder-Feld
+  # via per-scenario carambus.yml(.erb) override.
+  training_mode_show_fullname: false
   # Quick Game Presets - TableKind specific (90% use cases)
   quick_game_presets:
     small_billard:
@@ -35,6 +41,26 @@ default:
           - { balls: 80, innings: 0, discipline: "Eurokegel", label: "80/-", allow_follow_up: false }
           - { balls: 100, innings: 0, discipline: "Eurokegel", label: "100/-", allow_follow_up: false }
           - { balls: 120, innings: 0, discipline: "Eurokegel", label: "120/-", allow_follow_up: false }
+      - category: "BK2-Kombi"
+        buttons:
+          # 38.4-12 O5: canonical BK-2kombi shortcut with the recommended defaults
+          # (BK-2plus max 2 Stöße / Aufnahme, BK-2 max 5 Aufnahmen / Satz, balls_goal 70,
+          # Nachstoß enabled via discipline.data — Plan 11). Sits at index 0 so BCW
+          # scorers see it first on tournament day.
+          - { discipline: "BK2-Kombi", balls_goal: 70, sets_to_win: 2, sets_to_play: 3, label: "BK-2kombi 2/5/70+NS", bk2_sp_max_innings: 5 }
+          - { discipline: "BK2-Kombi", balls_goal: 50, sets_to_win: 2, sets_to_play: 3, label: "50/Best of 3" }
+          - { discipline: "BK2-Kombi", balls_goal: 60, sets_to_win: 2, sets_to_play: 3, label: "60/Best of 3" }
+          - { discipline: "BK2-Kombi", balls_goal: 70, sets_to_win: 2, sets_to_play: 3, label: "70/Best of 3" }
+      - category: "BK-2"
+        buttons:
+          - { discipline: "BK-2", balls_goal: 50, sets_to_win: 1, sets_to_play: 1, label: "BK-2 50" }
+          - { discipline: "BK-2", balls_goal: 70, sets_to_win: 1, sets_to_play: 1, label: "BK-2 70" }
+          - { discipline: "BK-2", balls_goal: 100, sets_to_win: 1, sets_to_play: 1, label: "BK-2 100" }
+      - category: "BK-2plus"
+        buttons:
+          - { discipline: "BK-2plus", balls_goal: 50, sets_to_win: 1, sets_to_play: 1, label: "BK-2plus 50" }
+          - { discipline: "BK-2plus", balls_goal: 70, sets_to_win: 1, sets_to_play: 1, label: "BK-2plus 70" }
+          - { discipline: "BK-2plus", balls_goal: 100, sets_to_win: 1, sets_to_play: 1, label: "BK-2plus 100" }
     match_billard:
       - category: "Dreiband"
         buttons:

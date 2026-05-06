@@ -10,9 +10,9 @@ Display comprehensive project statistics including phase progress, plan executio
 </objective>
 
 <execution_context>
-@/Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api/.claude/get-shit-done/workflows/stats.md
+@/Users/gullrich/DEV/carambus/carambus_api/.claude/get-shit-done/workflows/stats.md
 </execution_context>
 
 <process>
-Execute the stats workflow from @/Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api/.claude/get-shit-done/workflows/stats.md end-to-end.
+Execute the stats workflow from @/Users/gullrich/DEV/carambus/carambus_api/.claude/get-shit-done/workflows/stats.md end-to-end.
 </process>

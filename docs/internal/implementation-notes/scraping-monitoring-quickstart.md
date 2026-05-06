@@ -8,7 +8,7 @@
 
 ```bash
 # 1. Migrations ausführen
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_master
+cd /Users/gullrich/DEV/carambus/carambus_master
 bin/rails db:migrate
 
 # 2. Test-Scraping mit Monitoring

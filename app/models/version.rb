@@ -99,7 +99,7 @@ class Version < PaperTrail::Version
       class_name = line.camelcase.singularize
       begin
         max_id = class_name.constantize.order(:id).last.id
-      rescue StandardError
+      rescue
         max_id = nil
       end
       localized_tables.push(class_name) if max_id.to_i > Setting::MIN_ID
@@ -142,14 +142,14 @@ class Version < PaperTrail::Version
       ActiveRecord::Base.connection.tables.each do |table_str|
         begin
           count = table_str.singularize.camelize.constantize.where("id > 50000000").count
-        rescue StandardError
+        rescue
           count = 0
         end
         table_str.singularize.camelize.constantize.where("id > 50000000").to_a.map(&:destroy) if count.positive?
 
         begin
           result = ActiveRecord::Base.connection.exec_query("SELECT MAX(id) FROM #{table_str}")
-        rescue StandardError
+        rescue
           result = nil
         end
         max_id = result.rows.first.first if result.present?
@@ -157,7 +157,7 @@ class Version < PaperTrail::Version
 
         begin
           ActiveRecord::Base.connection.exec_query("SELECT setval('#{table_str}_id_seq', #{max_id + 1})")
-        rescue StandardError
+        rescue
           # Ignored
         end
       end
@@ -174,6 +174,58 @@ class Version < PaperTrail::Version
   rescue OpenURI::HTTPError => e
     Rails.logger.info "===== #{e} cannot read from #{url}"
     e.to_s
+  end
+
+  # Parse a text-column serialized payload. If it looks like JSON (starts with `{` or `[`)
+  # use JSON.parse to return the string back as a Ruby object WITHOUT corrupting
+  # plain-text columns (fixes sync-version-yaml-load-json-collision, 2026-04-23).
+  # Falls back to YAML.load for legacy Rails-serialized payloads.
+  # Returns raw input unchanged on parse failure so the outer rescue in
+  # update_from_carambus_api can log+skip idempotently.
+  def self.safe_parse(raw)
+    return raw if raw.blank?
+    stripped = raw.to_s.lstrip
+    if stripped.start_with?("{", "[")
+      begin
+        JSON.parse(raw)
+      rescue JSON::ParserError
+        raw
+      end
+    else
+      begin
+        YAML.load(raw)
+      rescue Psych::Exception, ArgumentError
+        raw
+      end
+    end
+  end
+
+  # For text columns that may be round-tripped through YAML.dump in PaperTrail's
+  # versions.object payload. If the inner value is a JSON string, return it as-is
+  # (text-column write expects a string). If it's a YAML-serialized Hash, parse it
+  # and re-encode as JSON string so the text column receives a string (not a Hash).
+  # Both cases: the DB column is text, so a String is always safe.
+  def self.safe_parse_for_text_column(raw)
+    return raw if raw.blank?
+    stripped = raw.to_s.lstrip
+    # JSON-looking: return raw string unchanged (caller writes text → text)
+    if stripped.start_with?("{", "[")
+      begin
+        JSON.parse(raw)
+        return raw
+      rescue JSON::ParserError
+        return raw
+      end
+    end
+    # Otherwise try YAML; if YAML returns a Hash/Array, dump it back to JSON string
+    # so the text column receives a string (not a Hash → can't cast).
+    parsed = begin
+      YAML.load(raw)
+    rescue Psych::Exception, ArgumentError
+      return raw
+    end
+    return raw if parsed.is_a?(String)
+    (parsed.is_a?(Hash) || parsed.is_a?(Array)) ? parsed.to_json : raw
   end
 
   def self.update_from_carambus_api(opts = {})
@@ -238,9 +290,9 @@ class Version < PaperTrail::Version
             if h["item_type"] == "PartyCc" # TODO: what's going on here?
               args["data"] = eval(args["data"]) if args["data"].present? && args["data"].is_a?(String)
             elsif args["data"].present?
-              args["data"] = YAML.load(args["data"])
+              args["data"] = Version.safe_parse_for_text_column(args["data"])
             end
-            args["remarks"] = YAML.load(args["remarks"]) if args["remarks"].present?
+            args["remarks"] = Version.safe_parse_for_text_column(args["remarks"]) if args["remarks"].present?
             Rails.logger.info "#{h["item_type"]}[#{h["item_id"]}]#{JSON.pretty_generate(args)}"
             begin
               classz = h["item_type"].constantize
@@ -254,7 +306,7 @@ class Version < PaperTrail::Version
                 (obj ||= classz.where(type: nil).where(ba_id: args["ba_id"]).first) if args["ba_id"].present?
               when "SeasonParticipation"
                 obj = classz.where(player_id: args["player_id"], club_id: args["club_id"],
-                                   season_id: args["season_id"]).first
+                  season_id: args["season_id"]).first
                 if obj.present?
                   obj.update_columns(id: h["item_id"])
                   next
@@ -276,7 +328,7 @@ class Version < PaperTrail::Version
               if obj.present?
                 if h["item_type"] == "SeasonParticipation"
                   oo = classz.where(player_id: args["player_id"], club_id: args["club_id"],
-                                    season_id: args["season_id"]).first
+                    season_id: args["season_id"]).first
                   if oo.present?
                     oo.update_columns(id: h["item_id"])
                     next
@@ -292,22 +344,22 @@ class Version < PaperTrail::Version
                 h["item_type"].constantize.create(args.merge(unprotected: true))
                 Rails.logger.info "Created #{h["item_type"]} with #{args.inspect}"
               end
-            rescue StandardError => e
+            rescue => e
               Rails.logger.info "#{e} #{e.backtrace.inspect}"
             end
           when "update"
             args = if h["object_changes"].present?
-                     YAML.load(h["object_changes"])
-                         .to_a.map { |v| [v[0], v[1][1]] }.to_h
-                   else
-                     YAML.load(h["object"])
-                   end
+              YAML.load(h["object_changes"])
+                .to_a.map { |v| [v[0], v[1][1]] }.to_h
+            else
+              YAML.load(h["object"])
+            end
             if h["item_type"] == "PartyCc" # TODO: what's going on here?
               args["data"] = eval(args["data"]) if args["data"].present? && args["data"].is_a?(String)
             elsif args["data"].present?
-              args["data"] = YAML.load(args["data"])
+              args["data"] = Version.safe_parse_for_text_column(args["data"])
             end
-            args["remarks"] = YAML.load(args["remarks"]) if args["remarks"].present?
+            args["remarks"] = Version.safe_parse_for_text_column(args["remarks"]) if args["remarks"].present?
             args["t_ids"] = YAML.load(args["t_ids"]) if args["t_ids"].present?
             begin
               classz = h["item_type"].constantize
@@ -319,7 +371,7 @@ class Version < PaperTrail::Version
                 if obj.valid?
                   if h["item_type"] == "SeasonParticipation"
                     oo = classz.where(player_id: args["player_id"], club_id: args["club_id"],
-                                      season_id: args["season_id"]).first
+                      season_id: args["season_id"]).first
                     if oo.present? && oo.id != obj.id
                       oo.update_columns(id: h["item_id"])
                       next
@@ -327,16 +379,16 @@ class Version < PaperTrail::Version
                   end
                 else
                   args = YAML.load(h["object"])
-                  args["data"] = YAML.load(args["data"]) if args["data"].present?
-                  args["remarks"] = YAML.load(args["remarks"]) if args["remarks"].present?
+                  args["data"] = Version.safe_parse_for_text_column(args["data"]) if args["data"].present?
+                  args["remarks"] = Version.safe_parse_for_text_column(args["remarks"]) if args["remarks"].present?
                 end
                 obj.update_columns(args)
               else
                 obj = h["item_type"].constantize.new
                 obj.id = h["item_id"]
                 args = YAML.load(h["object"])
-                args["data"] = YAML.load(args["data"]) if args["data"].present?
-                args["remarks"] = YAML.load(args["remarks"]) if args["remarks"].present?
+                args["data"] = Version.safe_parse_for_text_column(args["data"]) if args["data"].present?
+                args["remarks"] = Version.safe_parse_for_text_column(args["remarks"]) if args["remarks"].present?
 
                 args.each do |k, v|
                   obj.write_attribute(k, v)
@@ -345,7 +397,7 @@ class Version < PaperTrail::Version
                 obj.save!
                 obj.unprotected = false
               end
-            rescue StandardError => e
+            rescue => e
               Rails.logger.info "#{obj.andand.attributes} #{e} #{e.backtrace.inspect}"
             end
           when "destroy"
@@ -355,7 +407,7 @@ class Version < PaperTrail::Version
                 obj.unprotected = true
                 obj.delete
               end
-            rescue StandardError => e
+            rescue => e
               Rails.logger.info "#{obj.andand.attributes} #{e} #{e.backtrace.inspect}"
             end
           else
@@ -365,7 +417,7 @@ class Version < PaperTrail::Version
           end
           Setting.key_set_value("last_version_id", last_version_id)
         end
-      rescue StandardError => e
+      rescue => e
         Rails.logger.info "===== FATAL #{e} #{e.backtrace} cannot continue"
       end
     end
@@ -379,6 +431,9 @@ class Version < PaperTrail::Version
   end
 
   def self.local_from_api
-    Version.sequence_reset if local_server
+    # Phase 38.4-17 CR-01: was `local_server` (no ?) — caused NameError on console
+    # invocation. The canonical predicate is `local_server?` per line 429-430.
+    # English per CLAUDE.md line 23 (technical terms convention).
+    Version.sequence_reset if local_server?
   end
 end

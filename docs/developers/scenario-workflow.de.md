@@ -41,7 +41,7 @@ Die anderen Scenarios (`carambus_bcw`, `carambus_api`, `carambus_phat`, `carambu
 
 ```bash
 # 1. In carambus_master arbeiten
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_master
+cd /Users/gullrich/DEV/carambus/carambus_master
 
 # 2. Code ändern
 vim app/controllers/tournaments_controller.rb
@@ -79,7 +79,7 @@ cap pbv deploy
 Wenn ein Scenario-Repo lokale Änderungen hat und `git pull` abbricht:
 
 ```bash
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_bcw
+cd /Users/gullrich/DEV/carambus/carambus_bcw
 
 # 1. Prüfen, was geändert wurde
 git status

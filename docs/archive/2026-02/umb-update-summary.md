@@ -123,7 +123,7 @@ Das `data` Feld in `tournaments` ist vom Typ TEXT (nicht JSONB), daher:
 
 ## Dokumentation aktualisiert
 
-- `/Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api/UMB_SCRAPING_METHODS.md`
+- `/Users/gullrich/DEV/carambus/carambus_api/UMB_SCRAPING_METHODS.md`
   - Neue Tasks hinzugefügt
   - Workflow für laufende Systeme dokumentiert
   - Troubleshooting-Section erweitert

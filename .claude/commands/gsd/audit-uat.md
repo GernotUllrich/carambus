@@ -12,7 +12,7 @@ Scan all phases for pending, skipped, blocked, and human_needed UAT items. Cross
 </objective>
 
 <execution_context>
-@/Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api/.claude/get-shit-done/workflows/audit-uat.md
+@/Users/gullrich/DEV/carambus/carambus_api/.claude/get-shit-done/workflows/audit-uat.md
 </execution_context>
 
 <context>

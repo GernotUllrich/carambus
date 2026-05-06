@@ -15,7 +15,7 @@ Diese Erweiterung ermöglicht es Carambus, internationale Karambol-Turniere, Vid
 ### 1. Migration ausführen
 
 ```bash
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_master
+cd /Users/gullrich/DEV/carambus/carambus_master
 rails db:migrate
 ```
 

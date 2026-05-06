@@ -117,6 +117,13 @@ class TableMonitorReflex < ApplicationReflex
     Rails.logger.info "+++++++++++++++++>>> key_a <<<++++++++++++++++++++++++++++++++++++++"
     morph :nothing
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
+
+    # Removed: bk2_kombi_commit_if_active intercept. BK-Familie folgt der legacy
+    # karambol-Routing-Pfad (terminate_current_inning → evaluate_result → AASM
+    # set_over → Protokoll-Modal). BK-spezifische Logik (Nachstoß-Gate,
+    # Phase-Switch, Negativ-Routing) ist als Guards in follow_up?, end_of_set?,
+    # bk2_kombi_current_phase und score_engine eingehängt.
+
     @table_monitor.suppress_broadcast = true
     return if @table_monitor.locked_scoreboard
 
@@ -175,6 +182,10 @@ class TableMonitorReflex < ApplicationReflex
     Rails.logger.info "+++++++++++++++++>>> key_b <<<++++++++++++++++++++++++++++++++++++++"
     morph :nothing
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
+
+    # Removed: bk2_kombi_commit_if_active intercept (siehe Kommentar in key_a).
+    # BK-Familie folgt legacy karambol-Routing.
+
     @table_monitor.suppress_broadcast = true
     return if @table_monitor.locked_scoreboard
 
@@ -266,6 +277,13 @@ class TableMonitorReflex < ApplicationReflex
       end
     elsif @table_monitor.shootout_modal_should_be_open?
       # start game
+      # Phase 38.3-08 I6: initialize bk2_state on the keyboard (d key) shootout-confirm path.
+      # No mode payload here — relies on previously-written bk2_options[first_set_mode]
+      # OR the DEFAULT_FIRST_SET_MODE fallback in derive_first_set_mode (see T4).
+      # Phase 38.4 I7: extended from bk2_kombi-only to all 5 BK-* disciplines.
+      if bk_family?
+        Bk2::AdvanceMatchState.initialize_bk2_state!(@table_monitor)
+      end
       @table_monitor.reset_timer!
       @table_monitor.finish_shootout!
       @table_monitor.evaluate_result
@@ -336,7 +354,31 @@ class TableMonitorReflex < ApplicationReflex
     Rails.logger.info "+++++++++++++++++>>> switch_players <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     morph :nothing
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
+    # Phase 38.3-05 D-18: if this TableMonitor is BK2-Kombi and the shootout button
+    # carried a bk2_first_set_mode, persist it into bk2_options before transitioning.
+    # Phase 38.4 I7: bk2_first_set_mode payload is bk2_kombi-only; bk_family? guard
+    # ensures init runs for all 5 BK-* disciplines.
+    if @table_monitor.data["free_game_form"] == "bk2_kombi"
+      bk2_mode = element.andand.dataset[:bk2_first_set_mode].to_s
+      if %w[direkter_zweikampf serienspiel].include?(bk2_mode)
+        @table_monitor.data["bk2_options"] ||= {}
+        @table_monitor.data["bk2_options"]["first_set_mode"] = bk2_mode
+        # Quick 260501-wfv: clear stale bk2_state seeded earlier in GameSetup so the
+        # subsequent initialize_bk2_state! call (line 375) actually re-seeds with the
+        # operator-picked first_set_mode. Safe at shootout transition — no play yet,
+        # only initial values (sets_won 0:0, all set_scores zero) would be lost.
+        @table_monitor.data.delete("bk2_state")
+      end
+    end
     @table_monitor.suppress_broadcast = true
+    # Phase 38.3-08 I6: initialize bk2_state from the just-written bk2_options BEFORE
+    # the AASM transition to playing. Without this, the playing-state scoreboard renders
+    # the GAP-05 "Spiel nicht initialisiert" fallback banner. Idempotent — safe no-op if
+    # bk2_state is already populated.
+    # Phase 38.4 I7: extended from bk2_kombi-only to all 5 BK-* disciplines.
+    if bk_family?
+      Bk2::AdvanceMatchState.initialize_bk2_state!(@table_monitor)
+    end
     # @table_monitor.panel_state = 'input
     @table_monitor.switch_players
     @table_monitor.reset_timer!
@@ -353,7 +395,31 @@ class TableMonitorReflex < ApplicationReflex
     Rails.logger.info "+++++++++++++++++>>> start_game <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     morph :nothing
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
+    # Phase 38.3-05 D-18: if this TableMonitor is BK2-Kombi and the shootout button
+    # carried a bk2_first_set_mode, persist it into bk2_options before transitioning.
+    # Phase 38.4 I7: bk2_first_set_mode payload is bk2_kombi-only; bk_family? guard
+    # ensures init runs for all 5 BK-* disciplines.
+    if @table_monitor.data["free_game_form"] == "bk2_kombi"
+      bk2_mode = element.andand.dataset[:bk2_first_set_mode].to_s
+      if %w[direkter_zweikampf serienspiel].include?(bk2_mode)
+        @table_monitor.data["bk2_options"] ||= {}
+        @table_monitor.data["bk2_options"]["first_set_mode"] = bk2_mode
+        # Quick 260501-wfv: clear stale bk2_state seeded earlier in GameSetup so the
+        # subsequent initialize_bk2_state! call (line 411) actually re-seeds with the
+        # operator-picked first_set_mode. Safe at shootout transition — no play yet,
+        # only initial values (sets_won 0:0, all set_scores zero) would be lost.
+        @table_monitor.data.delete("bk2_state")
+      end
+    end
     @table_monitor.suppress_broadcast = true
+    # Phase 38.3-08 I6: initialize bk2_state from the just-written bk2_options BEFORE
+    # the AASM transition to playing. Without this, the playing-state scoreboard renders
+    # the GAP-05 "Spiel nicht initialisiert" fallback banner. Idempotent — safe no-op if
+    # bk2_state is already populated.
+    # Phase 38.4 I7: extended from bk2_kombi-only to all 5 BK-* disciplines.
+    if bk_family?
+      Bk2::AdvanceMatchState.initialize_bk2_state!(@table_monitor)
+    end
     @table_monitor.reset_timer!
     # noinspection RubyResolve
     @table_monitor.finish_shootout!
@@ -736,6 +802,10 @@ class TableMonitorReflex < ApplicationReflex
     morph :nothing
     Rails.logger.info "next_step from connection #{connection.connection_identifier}"
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
+
+    # Removed: bk2_kombi_commit_if_active intercept (siehe Kommentar in key_a).
+    # BK-Familie folgt legacy karambol-Routing.
+
     @table_monitor.reset_timer!
     @table_monitor.terminate_current_inning
   end
@@ -758,6 +828,48 @@ class TableMonitorReflex < ApplicationReflex
     return if @table_monitor.locked_scoreboard && !from_admin
     @table_monitor.suppress_broadcast = true
     @table_monitor.force_next_state
+    @table_monitor.suppress_broadcast = false
+    @table_monitor.save!
+  end
+
+  # Phase 38.8 — Operator-gate button reflex for TRAINING mode. Fires AASM
+  # event :start_rematch (added in Plan 38.8-02) which transitions
+  # :final_match_score -> :playing and runs revert_players + do_play as
+  # after-callbacks (replacing the deleted auto-rematch block from
+  # ResultRecorder, Plan 38.8-03).
+  #
+  # Bound from _scoreboard.html.erb final_match_score branch (training arm).
+  # AASM `from: :final_match_score` guard rejects any out-of-state invocation.
+  def start_rematch
+    Rails.logger.info "+++++++++++++++++>>> start_rematch <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
+    morph :nothing
+    @table_monitor = TableMonitor.find(element.andand.dataset[:id])
+    from_admin = element.andand.dataset[:from_admin]
+    return if @table_monitor.locked_scoreboard && !from_admin
+
+    @table_monitor.suppress_broadcast = true
+    @table_monitor.start_rematch! if @table_monitor.may_start_rematch?
+    @table_monitor.suppress_broadcast = false
+    @table_monitor.save!
+  end
+
+  # Phase 38.8 — Operator-gate button reflex for TOURNAMENT mode. Fires AASM
+  # event :close_match which transitions :final_match_score -> :ready_for_new_match
+  # AND runs the deferred round-progression cascade via the after-callback
+  # advance_tournament_round_if_present (added in Plan 38.8-04).
+  #
+  # Bound from _scoreboard.html.erb final_match_score branch (tournament arm).
+  # In training mode (tournament_monitor blank) advance_tournament_round_if_present
+  # is a no-op; the TM still cleanly transitions to :ready_for_new_match.
+  def close_match
+    Rails.logger.info "+++++++++++++++++>>> close_match <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
+    morph :nothing
+    @table_monitor = TableMonitor.find(element.andand.dataset[:id])
+    from_admin = element.andand.dataset[:from_admin]
+    return if @table_monitor.locked_scoreboard && !from_admin
+
+    @table_monitor.suppress_broadcast = true
+    @table_monitor.close_match! if @table_monitor.may_close_match?
     @table_monitor.suppress_broadcast = false
     @table_monitor.save!
   end
@@ -980,4 +1092,13 @@ class TableMonitorReflex < ApplicationReflex
   def balls_goal_b
     Rails.logger.info "+++++++++++++++++>>> balls_goal_b <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
   end
+
+  # Phase 38.4 I7 D-10/D-11: True wenn die aktuelle TableMonitor-Disziplin zur BK-Familie gehört.
+  # Deckt alle 5 BK-* free_game_form-Werte ab (bk2_kombi, bk50, bk100, bk_2, bk_2plus).
+  # Verwendet als Dispatcher-Guard in start_game, switch_players_and_start_game, key_d,
+  # und bk2_kombi_commit_if_active.
+  def bk_family?
+    Discipline::BK2_FREE_GAME_FORMS.include?(@table_monitor.data["free_game_form"])
+  end
+
 end

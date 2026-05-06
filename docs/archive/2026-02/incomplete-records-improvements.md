@@ -110,7 +110,7 @@ end
 Bestehende Turniere mit `nil` Location sollten jetzt automatisch erkannt werden:
 
 ```bash
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api
+cd /Users/gullrich/DEV/carambus/carambus_api
 rails runner "puts InternationalTournament.with_placeholders.count"
 ```
 

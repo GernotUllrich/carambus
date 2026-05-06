@@ -57,6 +57,14 @@ class TableMonitor::ResultRecorder < ApplicationService
       ergebnis1 = @tm.data["playera"]["result"].to_i
       ergebnis2 = @tm.data["playerb"]["result"].to_i
 
+      # Phase 38.4-P9: removed BK-* dispatch to Bk2::AdvanceMatchState.
+      # The dispatch read shot_payload from data["current_bk2_shot_payload"] but
+      # NOTHING in the codebase ever wrote that key, so shot_payload was always {},
+      # crashing Bk2::ScoreShot#calculate_raw_points on nil obs at first set close.
+      # The post-set persistence path only needs ergebnis1/2 from data[playera/b].result —
+      # match-state was already advanced via the live-scoring CommitInning path
+      # (TableMonitor#add_n_balls → bk_family_with_nachstoss? → Bk2::CommitInning).
+
       if @tm.data["free_game_form"] == "snooker"
         # Alle Break-Punkte summieren: innings_list (abgeschlossene Breaks) + innings_redo_list (aktueller Break)
         # Wenn ein Spieler wechselt, wandert sein Break von redo_list in list
@@ -83,42 +91,83 @@ class TableMonitor::ResultRecorder < ApplicationService
         "3BAufnahmen2" => @tm.data["playerb"]["innings_3b"].to_i,
         "Höchstserie1" => @tm.data["playera"]["hs"].to_i,
         "Höchstserie2" => @tm.data["playerb"]["hs"].to_i,
-        "Tischnummer" => @tm.game.table_no
+        "Tischnummer" => @tm.game.table_no,
+        # Quick-260502-0ok: per-set snapshot of tiebreak_winner. Mirrors the
+        # ba_results mapping in update_ba_results_with_set_result! (260501-vly,
+        # lines 142–149) but lives on data["sets"][n] so render_last_innings can
+        # mark the set-winner with "*" in the per-player score line.
+        # Must run BEFORE perform_switch_to_next_set clears Game.data["tiebreak_winner"]
+        # (260501-x07). nil when no tiebreak resolved this set.
+        "TiebreakWinner" => ({"playera" => 1, "playerb" => 2}[@tm.game&.data&.[]("tiebreak_winner")])
       }
-      ba_results = @tm.data["ba_results"] ||
-        {
-          "Gruppe" => @tm.game.group_no,
-          "Partie" => @tm.game.seqno,
-
-          "Spieler1" => @tm.game.game_participations.where(role: "playera").first&.player&.ba_id,
-          "Spieler2" => @tm.game.game_participations.where(role: "playerb").first&.player&.ba_id,
-          "Sets1" => 0,
-          "Sets2" => 0,
-          "Ergebnis1" => 0,
-          "Ergebnis2" => 0,
-          "Aufnahmen1" => 0,
-          "Aufnahmen2" => 0,
-          "Höchstserie1" => 0,
-          "Höchstserie2" => 0,
-          "Tischnummer" => @tm.game.table_no
-        }
-      if game_set_result["Ergebnis1"].to_i > game_set_result["Ergebnis2"].to_i
-        ba_results["Sets1"] =
-          ba_results["Sets1"].to_i + 1
-      end
-      if game_set_result["Ergebnis1"].to_i < game_set_result["Ergebnis2"].to_i
-        ba_results["Sets2"] =
-          ba_results["Sets2"].to_i + 1
-      end
-      ba_results["Ergebnis1"] = ba_results["Ergebnis1"].to_i + game_set_result["Ergebnis1"]
-      ba_results["Ergebnis2"] = ba_results["Ergebnis2"].to_i + game_set_result["Ergebnis2"]
-      ba_results["Aufnahmen1"] = ba_results["Aufnahmen1"].to_i + game_set_result["Aufnahmen1"]
-      ba_results["Aufnahmen2"] = ba_results["Aufnahmen2"].to_i + game_set_result["Aufnahmen2"]
-      ba_results["Höchstserie1"] = [ba_results["Höchstserie1"].to_i, game_set_result["Höchstserie1"].to_i].max
-      ba_results["Höchstserie2"] = [ba_results["Höchstserie2"].to_i, game_set_result["Höchstserie2"].to_i].max
-      @tm.deep_merge_data!("ba_results" => ba_results)
+      # Phase 38.4 R5-2: ba_results-Update wurde aus dieser Methode herausgelöst
+      # und nach perform_save_current_set verschoben (atomisch mit data["sets"]
+      # push). perform_save_result wird in perform_evaluate_result an ZWEI Stellen
+      # aufgerufen (Übergang playing→set_over UND auf Bestätigung des Protokoll-
+      # Modals). Vorher: Sets1/2 +=1 jedes Mal → Doppelzählung → Match endet
+      # nach Satz 1 (Sets1=2 statt 1). Jetzt single source of truth in
+      # perform_save_current_set.
     end
     game_set_result
+  end
+
+  # Phase 38.4 R5-2: ba_results-Aktualisierung extrahiert. Aufrufer ist
+  # perform_save_current_set (genau einmal pro Satz, atomisch mit dem data["sets"]
+  # push). NICHT von perform_save_result aufrufen — das wird mehrfach pro Satz
+  # aufgerufen (siehe doc-comment in perform_save_result oben).
+  def update_ba_results_with_set_result!(game_set_result)
+    return unless @tm.game.present?
+
+    ba_results = @tm.data["ba_results"] ||
+      {
+        "Gruppe" => @tm.game.group_no,
+        "Partie" => @tm.game.seqno,
+        "Spieler1" => @tm.game.game_participations.where(role: "playera").first&.player&.ba_id,
+        "Spieler2" => @tm.game.game_participations.where(role: "playerb").first&.player&.ba_id,
+        "Sets1" => 0,
+        "Sets2" => 0,
+        "Ergebnis1" => 0,
+        "Ergebnis2" => 0,
+        "Aufnahmen1" => 0,
+        "Aufnahmen2" => 0,
+        "Höchstserie1" => 0,
+        "Höchstserie2" => 0,
+        "Tischnummer" => @tm.game.table_no
+      }
+    if game_set_result["Ergebnis1"].to_i > game_set_result["Ergebnis2"].to_i
+      ba_results["Sets1"] = ba_results["Sets1"].to_i + 1
+    end
+    if game_set_result["Ergebnis1"].to_i < game_set_result["Ergebnis2"].to_i
+      ba_results["Sets2"] = ba_results["Sets2"].to_i + 1
+    end
+    ba_results["Ergebnis1"] = ba_results["Ergebnis1"].to_i + game_set_result["Ergebnis1"].to_i
+    ba_results["Ergebnis2"] = ba_results["Ergebnis2"].to_i + game_set_result["Ergebnis2"].to_i
+    ba_results["Aufnahmen1"] = ba_results["Aufnahmen1"].to_i + game_set_result["Aufnahmen1"].to_i
+    ba_results["Aufnahmen2"] = ba_results["Aufnahmen2"].to_i + game_set_result["Aufnahmen2"].to_i
+    ba_results["Höchstserie1"] = [ba_results["Höchstserie1"].to_i, game_set_result["Höchstserie1"].to_i].max
+    ba_results["Höchstserie2"] = [ba_results["Höchstserie2"].to_i, game_set_result["Höchstserie2"].to_i].max
+    # Phase 38.7 Plan 05 — D-08: derive TiebreakWinner from game.data['tiebreak_winner'].
+    # Mechanical mapping playera→1 / playerb→2; any other value (nil, blank, forged
+    # string, non-String) leaves the key absent — Plan 07's PDF view skips the
+    # indicator when the key is missing. Defense-in-depth against forged data:
+    # explicit String + whitelist check before assignment.
+    tw = @tm.game.data&.[]("tiebreak_winner")
+    if tw.is_a?(String) && %w[playera playerb].include?(tw)
+      ba_results["TiebreakWinner"] = {"playera" => 1, "playerb" => 2}[tw]
+      # Quick-260501-vly Plan 01 — Bug 1: credit Sets1/Sets2 when picked tiebreak
+      # decides a tied set. Conservative gate: tiebreak_required==true only,
+      # leaves legacy/edge data unchanged (user-confirmed Q1 2026-05-01 "ja bitte").
+      # Existing TiebreakWinner indicator above is preserved for Plan 38.7-07 PDF.
+      if game_set_result["Ergebnis1"].to_i == game_set_result["Ergebnis2"].to_i &&
+          @tm.game.data&.[]("tiebreak_required") == true
+        if tw == "playera"
+          ba_results["Sets1"] = ba_results["Sets1"].to_i + 1
+        else # tw == "playerb" — whitelist already enforced by outer if-condition
+          ba_results["Sets2"] = ba_results["Sets2"].to_i + 1
+        end
+      end
+    end
+    @tm.deep_merge_data!("ba_results" => ba_results)
   end
 
   def perform_save_current_set
@@ -144,10 +193,10 @@ class TableMonitor::ResultRecorder < ApplicationService
         # Pruefen ob der zuletzt gespeicherte Frame dasselbe Ergebnis hat
         last_saved_set = Array(@tm.data["sets"]).last
         if last_saved_set &&
-           last_saved_set["Ergebnis1"] == ergebnis1 &&
-           last_saved_set["Ergebnis2"] == ergebnis2 &&
-           last_saved_set["Aufnahmen1"] == aufnahmen1 &&
-           last_saved_set["Aufnahmen2"] == aufnahmen2
+            last_saved_set["Ergebnis1"] == ergebnis1 &&
+            last_saved_set["Ergebnis2"] == ergebnis2 &&
+            last_saved_set["Aufnahmen1"] == aufnahmen1 &&
+            last_saved_set["Aufnahmen2"] == aufnahmen2
           Rails.logger.info "[save_current_set] m6[#{@tm.id}] Frame already saved (duplicate result: #{ergebnis1}:#{ergebnis2}, #{aufnahmen1}:#{aufnahmen2} innings) - skipping"
           return
         end
@@ -156,13 +205,16 @@ class TableMonitor::ResultRecorder < ApplicationService
       game_set_result = perform_save_result
 
       sets = Array(@tm.data["sets"]).push(game_set_result)
+      # Phase 38.4 R5-2: update ba_results atomic mit dem data["sets"] push.
+      # Stellt sicher, dass Sets1/2 nur einmal pro Satz inkrementieren.
+      update_ba_results_with_set_result!(game_set_result)
       @tm.deep_merge_data!("redo_sets" => [])
       @tm.deep_merge_data!("sets" => sets)
       @tm.save!
     else
       Rails.logger.info "[prepare_final_game_result] m6[#{@tm.id}]ignored - no game"
     end
-  rescue StandardError => e
+  rescue => e
     Rails.logger.error "ERROR: m6[#{@tm.id}]#{e}, #{e.backtrace&.join("\n")}"
     raise StandardError
   end
@@ -170,7 +222,7 @@ class TableMonitor::ResultRecorder < ApplicationService
   def perform_get_max_number_of_wins
     Rails.logger.debug { "---------------m6[#{@tm.id}]------>>> get_max_number_of_wins <<<------------------------------------------" }
     [@tm.data["ba_results"].andand["Sets1"].to_i, @tm.data["ba_results"].andand["Sets2"].to_i].max
-  rescue StandardError => e
+  rescue => e
     Rails.logger.error "ERROR:m6[#{@tm.id}] #{e}, #{e.backtrace&.join("\n")}"
     raise StandardError unless Rails.env == "production"
   end
@@ -181,9 +233,9 @@ class TableMonitor::ResultRecorder < ApplicationService
     current_kickoff_player = @tm.data["current_kickoff_player"]
     case kickoff_switches_with
     when "set"
-      current_kickoff_player = current_kickoff_player == "playera" ? "playerb" : "playera"
+      current_kickoff_player = (current_kickoff_player == "playera") ? "playerb" : "playera"
     when "winner"
-      current_kickoff_player = @tm.data["sets"][-1]["Innings1"][-1].to_i > @tm.data["sets"][-1]["Innings2"][-1].to_i ? "playera" : "playerb"
+      current_kickoff_player = (@tm.data["sets"][-1]["Innings1"][-1].to_i > @tm.data["sets"][-1]["Innings2"][-1].to_i) ? "playera" : "playerb"
     end
     options = {
       "Gruppe" => @tm.game.group_no,
@@ -200,19 +252,19 @@ class TableMonitor::ResultRecorder < ApplicationService
       "Tischnummer" => @tm.game.table_no,
       "current_kickoff_player" => current_kickoff_player,
       "playera" =>
-        { "result" => 0,
-          "innings" => 0,
-          "innings_list" => [],
-          "innings_redo_list" => [],
-          "hs" => 0,
-          "gd" => "0.00" },
+        {"result" => 0,
+         "innings" => 0,
+         "innings_list" => [],
+         "innings_redo_list" => [],
+         "hs" => 0,
+         "gd" => "0.00"},
       "playerb" =>
-        { "result" => 0,
-          "innings" => 0,
-          "innings_list" => [],
-          "innings_redo_list" => [],
-          "hs" => 0,
-          "gd" => "0.00" },
+        {"result" => 0,
+         "innings" => 0,
+         "innings_list" => [],
+         "innings_redo_list" => [],
+         "hs" => 0,
+         "gd" => "0.00"},
       "current_inning" => {
         "active_player" => current_kickoff_player,
         "balls" => 0
@@ -238,14 +290,122 @@ class TableMonitor::ResultRecorder < ApplicationService
     end
 
     @tm.deep_merge_data!(options)
+    # Phase 38.5 D-03 hook 2: re-bake at set-boundary for BK-2kombi only.
+    # data["sets"] has the just-closed set pushed (perform_save_current_set, line 179),
+    # so Array(data["sets"]).length + 1 is the new set index — the resolver naturally
+    # picks the correct multiset_components entry (DZ <-> SP alternation).
+    # Non-BK-2kombi families have stable effective_discipline across sets, so the
+    # bake would be a no-op; the guard makes intent explicit.
+    if @tm.data["free_game_form"] == "bk2_kombi"
+      Bk2::AdvanceMatchState.rebake_at_set_open!(@tm)
+    end
+    # Quick-260501-x07: tiebreak_winner is a PER-SET pick, not a per-match flag.
+    # Without this reset, set N+1 of a multi-set BK-2kombi sees a stale tiebreak_winner
+    # from a previous set and skips the modal in tiebreak_pick_pending? (false-positive
+    # winner.present? check at line ~325) — then update_ba_results_with_set_result!
+    # reads the same stale value and credits the new set to the stale winner.
+    # Lifecycle safety: update_ba_results_with_set_result! (line 130) consumes
+    # tiebreak_winner inside perform_save_current_set (line 203) BEFORE this method
+    # runs, so the credit path has already fired for the just-closed set.
+    # tiebreak_required stays sticky (per-match preset, not cleared here).
+    # NB: Game#data is a custom getter (app/models/game.rb#114) that returns a
+    # FRESH decoded hash on every call. We must read once, mutate the local,
+    # and assign back via `data=` for the change to persist.
+    if @tm.game.present?
+      g_data = @tm.game.data
+      if g_data["tiebreak_winner"].present?
+        g_data.delete("tiebreak_winner")
+        @tm.game.data = g_data
+        @tm.game.save!
+      end
+    end
     @tm.assign_attributes(state: "playing", panel_state: "pointer_mode", current_element: "pointer_mode")
     @tm.save!
-  rescue StandardError => e
+  rescue => e
     Rails.logger.error "ERROR: m6[#{@tm.id}]#{e}, #{e.backtrace&.join("\n")}"
     raise StandardError
   end
 
   private
+
+  # Phase 38.7 Plan 05 — D-03 trigger detection helper.
+  # Returns true iff: game.data['tiebreak_required']==true AND
+  # game.data['tiebreak_winner'] is missing AND scores are tied.
+  #
+  # Phase 38.7 Plan 11 (Gap-03) — BK-2kombi BK-2-phase auto-detect.
+  # Hard rule of the BK-2kombi discipline: when the active multiset phase is
+  # BK-2 (serienspiel) AND the set ends with both players at balls_goal in
+  # 1+1 innings AND scores tied, tiebreak_required is forced true regardless
+  # of any pre-baked value (overrides Plan 09 preset, Plan 10 detail-form
+  # toggle, Plan 04 resolver — this is the rule, not configurable).
+  # The mutation runs in-method (not pure read) so the existing gate below
+  # sees the updated value. Idempotent: subsequent calls find the flag
+  # already true and skip the mutation.
+  #
+  # Pure read (after the auto-detect mutation, if any). No side effects beyond
+  # the deliberate auto-detect persistence. See result_recorder D-03 / D-13 /
+  # D-08 wiring + Gap-03 of phase 38.7 UAT.
+  def tiebreak_pick_pending?
+    bk2_kombi_tiebreak_auto_detect!
+    # Quick-260505-auq: parallel pre-mutation — TournamentMonitor#playing_finals?
+    # forces tiebreak_required=true regardless of any executor_params plumbing.
+    @tm.send(:playing_finals_force_tiebreak_required!)
+
+    return false unless @tm.game&.data&.[]("tiebreak_required") == true
+    return false if @tm.game.data["tiebreak_winner"].present?
+
+    # "Tied" definition aligns with TableMonitor#tiebreak_pending_block? (D-08
+    # AASM guard predicate). Inning-based: data['playera']['result'] ==
+    # data['playerb']['result']. Simple-set: most recent set's Ergebnis1==Ergebnis2.
+    a = @tm.data&.dig("playera", "result").to_i
+    b = @tm.data&.dig("playerb", "result").to_i
+    if @tm.simple_set_game? && @tm.data["sets"].present?
+      last_set = Array(@tm.data["sets"]).last
+      a = last_set["Ergebnis1"].to_i
+      b = last_set["Ergebnis2"].to_i
+    end
+    a == b
+  end
+
+  # Phase 38.7 Plan 11 (Gap-03) — BK-2kombi BK-2-phase auto-detect helper.
+  # Mutates @tm.game.data['tiebreak_required'] = true when ALL conditions hold:
+  #   1. @tm.data["free_game_form"] == "bk2_kombi"
+  #   2. @tm.bk2_kombi_current_phase == "serienspiel" (BK-2 component active)
+  #   3. playera.innings == 1 AND playerb.innings == 1 (single-Aufnahme each)
+  #   4. playera.result == playera.balls_goal AND playerb.result == playerb.balls_goal
+  #      (both reached goal)
+  #   5. playera.result == playerb.result (tied at goal)
+  #
+  # Uses Game#deep_merge_data! (canonical write path) so the value persists
+  # through Game's custom def data getter (per Plan 04 dirty-tracking footgun).
+  # Idempotent: returns early if conditions don't match OR flag already true.
+  def bk2_kombi_tiebreak_auto_detect!
+    return unless @tm&.data.is_a?(Hash)
+    return unless @tm.data["free_game_form"] == "bk2_kombi"
+    return unless @tm.bk2_kombi_current_phase == "serienspiel"
+    return if @tm.game&.data&.[]("tiebreak_required") == true # idempotent
+
+    pa = @tm.data["playera"] || {}
+    pb = @tm.data["playerb"] || {}
+    result_a = pa["result"].to_i
+    result_b = pb["result"].to_i
+    goal_a = pa["balls_goal"].to_i
+    goal_b = pb["balls_goal"].to_i
+    innings_a = pa["innings"].to_i
+    innings_b = pb["innings"].to_i
+
+    return unless innings_a == 1 && innings_b == 1
+    return unless goal_a.positive? && goal_b.positive?
+    return unless result_a == goal_a && result_b == goal_b
+    return unless result_a == result_b
+
+    return unless @tm.game.present?
+
+    Rails.logger.info "[ResultRecorder] Plan 11 (Gap-03) auto-detect: BK-2kombi BK-2-phase " \
+      "tied at goal in 1+1 innings → forcing tiebreak_required=true (game=#{@tm.game.id})"
+    @tm.game.deep_merge_data!("tiebreak_required" => true)
+    @tm.game.save!
+  end
 
   # Haupt-Ablauf: entspricht dem extrahierten evaluate_result-Body.
   # Alle return-Anweisungen aus dem Original sind erhalten (Pitfall 2: verhindert Rekursion).
@@ -261,7 +421,13 @@ class TableMonitor::ResultRecorder < ApplicationService
       end
     end
 
-    if (@tm.playing? || @tm.set_over? || @tm.final_set_score? || @tm.final_match_score?) && @tm.end_of_set?
+    # Phase 38.5: end_of_set? muss nur bei playing/set_over geprüft werden — bei
+    # final_set_score/final_match_score IST der Satz definitiv vorbei (State sagt's),
+    # und end_of_set? kann false zurückgeben (z.B. bei BK-2kombi nach dem 3. Satz, weil
+    # bk2_kombi_current_phase für Set 4 fragt — den es nicht gibt). Dadurch hängt der
+    # Rematch-Branch im final_set_score-Zweig.
+    if (@tm.final_set_score? || @tm.final_match_score?) ||
+       ((@tm.playing? || @tm.set_over?) && @tm.end_of_set?)
       # Merken ob wir vorher gespielt haben vor einem Zustandsuebergang
       was_playing = @tm.playing?
       is_simple_set = @tm.simple_set_game?
@@ -282,21 +448,29 @@ class TableMonitor::ResultRecorder < ApplicationService
           # Match ist vorbei - finales Ergebnis-Modal zeigen
           Rails.logger.info "[evaluate_result] Match WON - showing final modal"
           @tm.panel_state = "protocol_final"
-          @tm.current_element = "confirm_result"
+          # Phase 38.7 Plan 05 — D-03 trigger detection (simple-set branch).
+          # Same marker-switch as inning-based branch above; covers BK-2/BK-2kombi-SP
+          # tiebreak — triggered by bk2_kombi_tiebreak_auto_detect! (BK-2kombi runtime
+          # auto-detect) or playing_finals_force_tiebreak_required! (Quick-260505-auq
+          # tournament-finals override) inside tiebreak_pick_pending?.
+          @tm.current_element = tiebreak_pick_pending? ? "tiebreak_winner_choice" : "confirm_result"
           @tm.save!
-          return
         else
           # Weitere Saetze zu spielen - automatisch zum naechsten Satz wechseln (kein Modal)
           Rails.logger.info "[evaluate_result] Match NOT won - switching to next frame"
           perform_switch_to_next_set
-          return
         end
+        return
       elsif was_playing && !is_simple_set
         @tm.end_of_set! if @tm.playing? && @tm.may_end_of_set?
         # protocol_final-Modal fuer Ergebnispruefung bei JEDEM Satz-Ende zeigen
         # (fuer Inning-basierte Spiele wie Karambol, 14.1 endlos)
         @tm.panel_state = "protocol_final"
-        @tm.current_element = "confirm_result"
+        # Phase 38.7 Plan 05 — D-03 trigger detection: switch marker to
+        # tiebreak_winner_choice when a tiebreak winner pick is still pending
+        # (tiebreak_required + tied + winner not yet set). Plan 06 view branch
+        # renders the radio fieldset on this marker.
+        @tm.current_element = tiebreak_pick_pending? ? "tiebreak_winner_choice" : "confirm_result"
         perform_save_result
         @tm.save!
         return
@@ -329,14 +503,18 @@ class TableMonitor::ResultRecorder < ApplicationService
             # Dies verhindert Race Condition und stellt sicher dass Daten VOR dem Zustandswechsel geschrieben werden
             @tm.tournament_monitor&.report_result(@tm)
 
-            # Trainingsspiel (kein tournament_monitor): Automatisch Rückspiel mit getauschten Spielern starten
-            if @tm.tournament_monitor.blank? && @tm.game.present?
-              Rails.logger.info "[evaluate_result] Training game finished - creating rematch with swapped players"
-              @tm.revert_players
-              @tm.update(state: "playing")
-              @tm.do_play
-              return
-            end
+            # Phase 38.8 — operator-gate restored. Auto-rematch DELETED (was the
+            # AASM-bypass `update(state: "playing")` regression from c3dedb69
+            # 2026-03-24). Training mode now mirrors the tournament admin_ack_result
+            # path (table_monitor.rb:1649): after report_result is a no-op for
+            # training (no tournament_monitor), explicitly fire finish_match! so
+            # AASM lands the TM in :final_match_score ("Endergebnis erfasst",
+            # de.yml:589). Operator advances via :start_rematch event (added in
+            # Plan 38.8-02) wired to the "Nächstes Spiel" button (Plan 38.8-05).
+            # Phase 38.7 tiebreak guard preserved — `acknowledge_result!` above
+            # already short-circuited if tiebreak was pending (AASM guard
+            # `tiebreak_not_pending?` in table_monitor.rb:387).
+            @tm.finish_match! if @tm.may_finish_match?
           else
             Rails.logger.warn "[evaluate_result] NOT calling report_result - state is #{@tm.state}, not final_set_score!"
           end
@@ -345,14 +523,12 @@ class TableMonitor::ResultRecorder < ApplicationService
         # FIX: Nur report_result aufrufen (finish_match! passiert darin)
         @tm.tournament_monitor&.report_result(@tm)
 
-        # Trainingsspiel (kein tournament_monitor): Automatisch Rückspiel mit getauschten Spielern starten
-        if @tm.tournament_monitor.blank? && @tm.game.present?
-          Rails.logger.info "[evaluate_result] Training game finished - creating rematch with swapped players"
-          @tm.revert_players
-          @tm.update(state: "playing")
-          @tm.do_play
-          return
-        end
+        # Phase 38.8 — operator-gate restored. Auto-rematch DELETED (same as
+        # Branch C above). Training mode lands in :final_match_score after
+        # report_result; operator advances via :start_rematch event ("Nächstes
+        # Spiel" button — Plan 38.8-05). Phase 38.7 tiebreak guard preserved
+        # via AASM guard on acknowledge_result (table_monitor.rb:387).
+        @tm.finish_match! if @tm.may_finish_match?
       end
       @tm.save! if @tm.changes.present?
       @tm.reload
@@ -365,7 +541,7 @@ class TableMonitor::ResultRecorder < ApplicationService
     else
       Rails.logger.debug { "eval ***** K:  ! (playing? || set_over? || final_set_score? || final_match_score?) && end_of_set?" }
     end
-  rescue StandardError => e
+  rescue => e
     Rails.logger.error "ERROR: #{e}, #{e.backtrace&.join("\n")}"
     raise StandardError unless Rails.env == "production"
   end

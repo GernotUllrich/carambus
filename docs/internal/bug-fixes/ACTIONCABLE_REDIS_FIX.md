@@ -275,7 +275,7 @@ If you see the health monitor triggering frequently (more than once per hour) af
 This fix should be committed to `carambus_master` and deployed to all scenarios:
 
 ```bash
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_master
+cd /Users/gullrich/DEV/carambus/carambus_master
 git add config/cable.yml
 git commit -m "Fix: Use Redis adapter for ActionCable to enable multi-client broadcasts
 

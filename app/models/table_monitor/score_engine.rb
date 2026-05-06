@@ -81,7 +81,7 @@ class TableMonitor::ScoreEngine
                                elsif n_balls.positive?
                                  n_balls <= to_play && to_play.positive?
                                elsif n_balls.negative?
-                                 (current_inning_value + n_balls) >= 0
+                                 allow_negative_scores? || (current_inning_value + n_balls) >= 0
                                else
                                  false
                                end
@@ -125,14 +125,20 @@ class TableMonitor::ScoreEngine
             Rails.logger.debug do
               "add_n_balls: Processing input (n_balls=#{n_balls}, to_play=#{to_play}, allow_overflow=#{data["allow_overflow"].inspect})"
             end
+            # Phase 38.5: signed-add per input. The BK-2plus / BK-2kombi DZ-Phase
+            # rule (net-negative inning transferred to opponent) is enforced at
+            # inning close in terminate_inning_data — NOT per input. Per-input
+            # the shooter sees their running inning total (incl. negatives) in
+            # the corner display.
             add = if data["allow_overflow"].present?
                     n_balls.positive? ? [n_balls, to_play].min : n_balls
                   else
                     n_balls
                   end
             data[current_role]["fouls_1"] = 0
+            new_value = data[current_role]["innings_redo_list"][-1].to_i + add.to_i
             data[current_role]["innings_redo_list"][-1] =
-              [(data[current_role]["innings_redo_list"][-1].to_i + add.to_i), 0].max
+              allow_negative_scores? ? new_value : [new_value, 0].max
             recompute_result(current_role)
 
             if data["free_game_form"] == "snooker" && !skip_snooker_state_update
@@ -500,7 +506,21 @@ class TableMonitor::ScoreEngine
       prefix = ""
       if data["sets_to_play"].to_i > 1
         Array(data["sets"]).each_with_index do |set, ix|
-          prefix += "S#{ix + 1}: #{set["Ergebnis#{player_ix}"]}, "
+          # Phase 38.4 R5-4: Satzergebnis von der innings_list mit "; " trennen,
+          # innings_list-Einträge bleiben mit ", " — visuell klare Trennung.
+          # Quick-260502-0ok: "*" markiert Satz-Gewinner aus Sicht dieses Spielers.
+          # Bei Ergebnis-Gleichstand entscheidet TiebreakWinner (nil → kein Stern).
+          e1 = set["Ergebnis1"].to_i
+          e2 = set["Ergebnis2"].to_i
+          tw = set["TiebreakWinner"].to_i # nil.to_i == 0 → no marker either side
+          won_this_player =
+            if e1 == e2
+              tw == player_ix
+            else
+              (player_ix == 1 ? e1 > e2 : e2 > e1)
+            end
+          star = won_this_player ? "*" : ""
+          prefix += "S#{ix + 1}: #{set["Ergebnis#{player_ix}"]}#{star}; "
         end
       end
       ret = []
@@ -687,8 +707,10 @@ class TableMonitor::ScoreEngine
       new_playera_innings = innings_params["playera"] || []
       new_playerb_innings = innings_params["playerb"] || []
 
-      if new_playera_innings.any? { |v| v.to_i.negative? } || new_playerb_innings.any? { |v| v.to_i.negative? }
-        return { success: false, error: "Negative Punktzahlen sind nicht erlaubt" }
+      unless allow_negative_scores?
+        if new_playera_innings.any? { |v| v.to_i.negative? } || new_playerb_innings.any? { |v| v.to_i.negative? }
+          return { success: false, error: "Negative Punktzahlen sind nicht erlaubt" }
+        end
       end
 
       innings_a = new_playera_innings.map(&:to_i)
@@ -1211,6 +1233,21 @@ class TableMonitor::ScoreEngine
       end
       n_balls = Array(data[current_role]["innings_redo_list"]).pop.to_i
       n_fouls = Array(data[current_role]["innings_foul_redo_list"]).pop.to_i
+
+      # Phase 38.5: BK-2plus / BK-2kombi DZ-Phase rule. If the shooter's inning
+      # closes net-negative AND the discipline credits negatives to the opponent,
+      # transfer the absolute value to the opponent's current inning and seal the
+      # shooter's inning at 0. For BK-2 / BK-2kombi SP-Phase, signed-negative
+      # innings remain on the shooter (no transfer).
+      if n_balls.negative? && bk_credit_negative_to_opponent?
+        other_role = (current_role == "playera") ? "playerb" : "playera"
+        init_lists(other_role)
+        data[other_role]["innings_redo_list"][-1] =
+          data[other_role]["innings_redo_list"][-1].to_i + n_balls.abs
+        recompute_result(other_role)
+        n_balls = 0
+      end
+
       data["balls_counter_stack"] << data["balls_counter"].to_i if n_balls != 0
       data["balls_counter"] -= n_balls
       init_lists(current_role)
@@ -1282,6 +1319,33 @@ class TableMonitor::ScoreEngine
       data[other_player]["innings_redo_list"] = [0] if data[current_role]["innings_redo_list"]&.blank?
 
       :ok
+    end
+
+    # Phase 38.5 D-09: data-driven predicate. Reads the resolver-baked value from
+    # TableMonitor.data["allow_negative_score_input"] (written at start_game and
+    # at each set boundary by BkParamResolver.bake!). Fallback false (D-04) when
+    # key is missing — preserves Karambol/Snooker/Pool default behaviour exactly.
+    #
+    # Replaces the Phase 38.1 free_game_form-string-equality body — that body
+    # missed BK-2/BK50/BK100 (latent bug D-12, fixed by this rewrite + D-08 seed).
+    def allow_negative_scores?
+      !!data["allow_negative_score_input"]
+    end
+
+    # Phase 38.5 D-09: data-driven predicate. Reads the resolver-baked value from
+    # TableMonitor.data["negative_credits_opponent"] (written at start_game and
+    # at each set boundary by BkParamResolver.bake!). Fallback false (D-04).
+    #
+    # When TRUE: a negative input from a player is credited (positively) to the
+    # OPPONENT, with the shooter's score unchanged.
+    # When FALSE: signed-add to the shooter's own score (legacy karambol behaviour).
+    #
+    # Replaces the Phase 38.1 free_game_form-string-equality body — that body
+    # missed the BK-2kombi DZ-Phase (latent bug D-11, fixed by this rewrite +
+    # the resolver writing effective_discipline=bk_2plus → negative_credits_opponent=true
+    # for BK-2kombi DZ sets).
+    def bk_credit_negative_to_opponent?
+      !!data["negative_credits_opponent"]
     end
 
     private

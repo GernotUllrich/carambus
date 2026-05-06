@@ -23,6 +23,7 @@
       <%- elsif show_data["free_game_form"] == "snooker" %>
         <%= render partial: "table_monitors/show_snooker", locals: { table_monitor: table_monitor, full_screen: true } %>
       <%- else %>
+        <%# Karambol + Eurokegel + BK2-Kombi (branches inside via free_game_form) %>
         <%= render partial: "table_monitors/show", locals: { table_monitor: table_monitor, full_screen: true } %>
       <%- end %>
     <%- end %>

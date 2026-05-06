@@ -211,7 +211,7 @@ rake umb:test_improvements
 
 ### Schritt 1: Code aktualisieren
 ```bash
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api
+cd /Users/gullrich/DEV/carambus/carambus_api
 # Code ist bereits aktualisiert
 ```
 

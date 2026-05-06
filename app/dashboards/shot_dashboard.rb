@@ -4,12 +4,17 @@ class ShotDashboard < Administrate::BaseDashboard
   ATTRIBUTE_TYPES = {
     id: Field::Number,
     training_example: Field::BelongsTo,
+    # Phase 38.4 deploy-fix 2026-04-26: Field::ActiveStorage requires the
+    # `administrate-field-active_storage` gem which is NOT in the Gemfile.
+    # Eager-load in production crashed all rails commands. Re-add as Field::String
+    # (filename only) so the dashboard boots; restore proper field type when the
+    # admin shot-image upload UI is needed (add gem, then revert this line).
+    shot_image: Field::String,
     shot_type: Field::Select.with_options(
       collection: ['ideal', 'alternative', 'error']
     ),
     sequence_number: Field::Number,
-    end_ball_configuration: Field::BelongsTo.with_options(class_name: "BallConfiguration"),
-
+    
     # Translatable fields
     title_de: Field::Text,
     title_en: Field::Text,
@@ -32,6 +37,8 @@ class ShotDashboard < Administrate::BaseDashboard
     shot_description_nl: Field::Text,
     
     # Structured data
+    end_position_type: Field::String,
+    end_position_data: Field::Text.with_options(searchable: false),
     shot_parameters: Field::Text.with_options(searchable: false),
     
     translations_synced_at: Field::DateTime,
@@ -53,6 +60,7 @@ class ShotDashboard < Administrate::BaseDashboard
     training_example
     shot_type
     sequence_number
+    shot_image
     title_de
     title_en
     notes_de
@@ -61,7 +69,8 @@ class ShotDashboard < Administrate::BaseDashboard
     end_position_description_en
     shot_description_de
     shot_description_en
-    end_ball_configuration
+    end_position_type
+    end_position_data
     shot_parameters
     translations_synced_at
     created_at
@@ -72,7 +81,7 @@ class ShotDashboard < Administrate::BaseDashboard
     training_example
     shot_type
     sequence_number
-    end_ball_configuration
+    shot_image
   ].freeze
 
   COLLECTION_FILTERS = {

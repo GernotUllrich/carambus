@@ -30,7 +30,7 @@ Example: `abcd efgh ijkl mnop` → Use as: `abcdefghijklmnop`
 
 ```bash
 # On your Mac - Commit changes
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_master
+cd /Users/gullrich/DEV/carambus/carambus_master
 git add config/environments/production-*.rb docs/email_configuration.*.md *.md
 git commit -m "Fix: Switch to SMTP for email delivery"
 git push

@@ -137,7 +137,7 @@ rake umb:fix_disciplines
 
 ```bash
 # Zeige aktuelle Verteilung
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api
+cd /Users/gullrich/DEV/carambus/carambus_api
 rake umb:discipline_stats
 
 # Prüfe und korrigiere Disziplinen
@@ -148,7 +148,7 @@ rake umb:fix_disciplines
 
 ### Test-Script
 ```bash
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api
+cd /Users/gullrich/DEV/carambus/carambus_api
 ruby test_umb_improvements.rb
 ```
 

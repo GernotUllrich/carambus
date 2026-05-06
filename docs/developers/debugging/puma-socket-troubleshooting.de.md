@@ -73,7 +73,7 @@ Since the template is now fixed in `carambus_master`, you can redeploy:
 
 ```bash
 # From the local DEV directory
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_master
+cd /Users/gullrich/DEV/carambus/carambus_master
 bin/deploy-scenario.sh carambus_bcw
 ```
 

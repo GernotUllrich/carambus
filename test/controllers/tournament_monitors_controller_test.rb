@@ -107,4 +107,5 @@ class TournamentMonitorsControllerTest < ActionDispatch::IntegrationTest
     post update_games_tournament_monitor_url(@tournament_monitor)
     assert_redirected_to tournament_monitor_path(@tournament_monitor)
   end
+
 end

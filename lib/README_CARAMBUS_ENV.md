@@ -73,10 +73,10 @@ end
 load File.expand_path('lib/carambus_env.rb', Rails.root)
 
 CarambusEnv.base_path
-# => "/Volumes/EXT2TB/gullrich/DEV/carambus"
+# => "/Users/gullrich/DEV/carambus"
 
 CarambusEnv.scenarios_path
-# => "/Volumes/EXT2TB/gullrich/DEV/carambus/carambus_data/scenarios"
+# => "/Users/gullrich/DEV/carambus/carambus_data/scenarios"
 
 Dir.glob(File.join(CarambusEnv.scenarios_path, '*')).count
 # => 8
@@ -88,7 +88,7 @@ Dir.glob(File.join(CarambusEnv.scenarios_path, '*')).count
 CarambusEnv.debug = true
 CarambusEnv.base_path
 # STDERR: [CARAMBUS_ENV] Found via Rails.root: /Volumes/.../carambus
-# => "/Volumes/EXT2TB/gullrich/DEV/carambus"
+# => "/Users/gullrich/DEV/carambus"
 ```
 
 ## Konfiguration
@@ -129,7 +129,7 @@ end
 
 - `../bin/lib/carambus_env.sh` - Bash-Äquivalent
 - `../.carambus_config.example` - Beispiel-Konfiguration
-- `/Volumes/EXT2TB/gullrich/DEV/carambus/carambus_data/CARAMBUS_BASE_IMPLEMENTATION.md` - Vollständige Dokumentation
+- `/Users/gullrich/DEV/carambus/carambus_data/CARAMBUS_BASE_IMPLEMENTATION.md` - Vollständige Dokumentation
 
 
 

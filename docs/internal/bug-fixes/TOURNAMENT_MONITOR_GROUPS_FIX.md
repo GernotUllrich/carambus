@@ -73,7 +73,7 @@ player_id  # überall
 ### 1. Backup der aktuellen Datenbank
 
 ```bash
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_bcw
+cd /Users/gullrich/DEV/carambus/carambus_bcw
 RAILS_ENV=development rails db:dump  # oder entsprechendes Backup
 ```
 

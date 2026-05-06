@@ -372,6 +372,9 @@ en:
       listing_parties: Listing Matchdays
     parties: Matchdays
     party: Matchday
+    # Phase 38.7 Plan 07 D-12 — Spielbericht-PDF tiebreak suffix (EN parallel).
+    spielbericht:
+      tiebreak_won_by: "(Tiebreak %{role})"
   party_game:
     index:
       party_game: Party Game
@@ -540,6 +543,7 @@ en:
       table_monitors: Table monitors
     ip_address: ip address
     name: name
+    next_game: Next Game
     next_game_id: next game id
     nnn: nnn
     set_finished: Set finished
@@ -562,6 +566,71 @@ en:
       warmup: Warm-up
       warmup_a: Warm-up Player A
       warmup_b: Warm-up Player B
+    bk2_kombi:
+      # Display-label invariant (Phase 38.4 I2): see de.yml for explanation.
+      # Display values: direkter_zweikampf → "BK-2plus", serienspiel → "BK-2".
+      phase:
+        direkter_zweikampf: "BK-2plus"
+        serienspiel: "BK-2"
+      shots_left:
+        one: "%{count} shot left"
+        other: "%{count} shots left"
+      form:
+        fallen_pins: "Fallen pins"
+        middle_pin_only: "Middle pin only"
+        full_pin_image: "Full pin image before shot"
+        full_pin_image_help: "All 5 pins were standing before the shot — enables the 2-point rule for middle-pin-only"
+        true_carom: "True carom"
+        false_carom: "False carom"
+        passages: "Passages"
+        foul: "Foul"
+        foul_codes:
+          wrong_ball: "Wrong ball"
+          no_object_ball_hit: "Object ball missed"
+          premature_shot: "Premature shot"
+          direct_play_on_pins: "Direct play on pins"
+          other: "Other"
+        band_hit: "Band hit"
+        submit: "Record shot"
+      set:
+        current: "Set %{n}"
+        target: "Target: %{points}"
+      match_score: "Sets: %{a}:%{b}"
+      match_finished: "Match finished — winner: %{winner}"
+      # Phase 38.2 D-04
+      phase_chip:
+        direkter_zweikampf: "BK-2plus"
+        serienspiel: "BK-2"
+      # Phase 38.2 D-11
+      shots_left_label:
+        one: "shot left"
+        other: "shots left"
+      innings_left_label:
+        one: "inning left"
+        other: "innings left"
+      # Phase 38.2 D-14
+      first_set_mode:
+        button_direkter_zweikampf_a: "Player A breaks — BK-2plus"
+        button_serienspiel_a: "Player A breaks — BK-2"
+        button_direkter_zweikampf_b: "Player B breaks — BK-2plus"
+        button_serienspiel_b: "Player B breaks — BK-2"
+        legend: "First set — mode & break"
+      # Phase 38.2 D-18 / UAT-GAP-05
+      fallback:
+        uninitialized_banner_title: "Match not initialised"
+        uninitialized_banner_body: "Please restart the match from the start screen."
+        delete_button: "Delete match"
+      # Phase 38.2 D-16
+      bottom_bar:
+        row1_hint: "Before the shot: did all 5 pins stand? Then tick the box."
+        row2_heading: "Shot"
+        row3_heading: "More details"
+    # Phase 38.7 Plan 06 CD-05: tiebreak modal section (EN parallel).
+    tiebreak:
+      prompt: "Tiebreak — pick the winner"
+      submit_blocked_hint: "Please select a winner before confirming the result."
+      winner_label: "Winner: %{role}"
+      submit_label: "Confirm with winner"
     table_id: table id
     timer_finish_at: timer finish at
     timer_halt_at: timer halt at

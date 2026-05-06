@@ -103,7 +103,7 @@ export PROD_DB_PASSWORD="<password_from_database.yml>"
 ### 2. Dry Run (Preview)
 
 ```bash
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api
+cd /Users/gullrich/DEV/carambus/carambus_api
 bin/rails videos:dry_run
 ```
 

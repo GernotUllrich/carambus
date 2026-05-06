@@ -350,7 +350,12 @@ class TableMonitor < ApplicationRecord
       transitions from: :ready,
                   to: :warmup
     end
-    event :close_match do
+    # Phase 38.8 — close_match now drives the deferred tournament round-progression
+    # cascade (extracted from TournamentMonitor::ResultProcessor#report_result in
+    # Plan 38.8-04). The TM enters :ready_for_new_match; the after-callback
+    # advance_tournament_round_if_present delegates to the ResultProcessor
+    # (no-op in training mode where tournament_monitor is blank).
+    event :close_match, after: :advance_tournament_round_if_present do
       transitions from: %i[playing set_over final_match_score ready_for_new_match], to: :ready_for_new_match
     end
     event :warmup_a do
@@ -375,10 +380,34 @@ class TableMonitor < ApplicationRecord
       transitions from: %i[playing set_over], to: :playing
     end
     event :acknowledge_result do
-      transitions from: :set_over, to: :final_set_score
+      # Phase 38.7 Plan 05 — D-08 defense-in-depth guard. Blocks the transition
+      # when tiebreak is required, scores are tied, and no operator pick is
+      # recorded in game.data['tiebreak_winner']. Covers ALL acknowledge_result!
+      # call sites (admin_ack_result, ResultRecorder branches, console scripts,
+      # future controllers, forged direct AASM invocations). When the guard
+      # returns false, AASM raises AASM::InvalidTransition on
+      # `acknowledge_result!` and `may_acknowledge_result?` returns false.
+      # The Plan 06 reflex guard covers the form-validation UX surface; this
+      # guard covers everything else.
+      transitions from: :set_over, to: :final_set_score, guard: :tiebreak_not_pending?
     end
     event :finish_match, after: :set_end_time do
       transitions from: %i[final_set_score], to: :final_match_score
+    end
+    # Phase 38.8 — operator-gated rematch event. Replaces the auto-rematch
+    # bypass that ResultRecorder#perform_evaluate_result used to perform via
+    # `update(state: "playing")` (regression introduced in c3dedb69 2026-03-24,
+    # deleted in Plan 38.8-03). The operator now sees the `final_match_score`
+    # state ("Endergebnis erfasst" — de.yml:589) until they explicitly trigger
+    # `start_rematch!` via the "Nächstes Spiel" button (Plan 38.8-05).
+    #
+    # Callback chain mirrors the deleted inline sequence:
+    #   revert_players (swaps player A ↔ B)
+    #   do_play         (re-arms the play timer / panel state)
+    # Both methods are defined further down in this file (lines 1389 and 574).
+    event :start_rematch do
+      transitions from: :final_match_score, to: :playing,
+                  after: [:revert_players, :do_play]
     end
     event :next_set do
       transitions from: %i[set_over final_set_score], to: :playing
@@ -402,7 +431,34 @@ class TableMonitor < ApplicationRecord
   # Lazy accessor for the pure-hash ScoreEngine collaborator.
   # Invalidated on reload so the engine always wraps the freshly-loaded data hash.
   def score_engine
-    @score_engine ||= TableMonitor::ScoreEngine.new(data, discipline: discipline)
+    return @score_engine if @score_engine
+    ensure_bk_params_baked!
+    @score_engine = TableMonitor::ScoreEngine.new(data, discipline: discipline)
+  end
+
+  # Phase 38.5 lifecycle invariant: guarantees BkParamResolver has populated
+  # effective_discipline + the two BK params into data before any predicate reads
+  # them. Re-bakes on drift — the cached effective_discipline is stale if
+  # bk2_options.first_set_mode or sets.length has changed since the last bake.
+  #
+  # Required because predicate semantics (Phase 38.5 D-09) became strict on data
+  # keys, and not every code path that brings a TableMonitor into the scoring
+  # lifecycle goes through GameSetup#start_game (notably: in-flight games that
+  # pre-date the deploy, detail-form edits to first_set_mode after start_game,
+  # controller-driven score adjustments, validation jobs).
+  #
+  # Skips when free_game_form is blank (no game configured yet) so cold
+  # TableMonitors aren't bake-mutated on first read. compute_effective_discipline
+  # is cheap (pure hash reads, no DB) so the drift check is essentially free; the
+  # actual bake (Discipline lookup + 4-level walk) only fires when needed.
+  def ensure_bk_params_baked!
+    return if data["free_game_form"].blank?
+
+    expected_eff = BkParamResolver.compute_effective_discipline(self)
+    return if data.key?("allow_negative_score_input") &&
+              data["effective_discipline"] == expected_eff
+
+    BkParamResolver.bake!(self)
   end
 
   def reload(...)
@@ -866,6 +922,17 @@ class TableMonitor < ApplicationRecord
     data["free_game_form"] != "pool"
   end
 
+  # Phase 38.2 D-18 / UAT-GAP-05: signals that a BK2-Kombi TableMonitor is in
+  # an inconsistent state — data["free_game_form"] flagged BK2 but bk2_state
+  # is missing or empty (e.g. from pre-Plan-06 test state or manual data
+  # manipulation). Consumed by _show_bk2_kombi.html.erb (Plan 03) to render a
+  # fallback banner rather than a scoreboard with all-zero defaults.
+  def bk2_state_uninitialized?
+    return false unless data.is_a?(Hash) && data["free_game_form"] == "bk2_kombi"
+    state = data["bk2_state"]
+    !state.is_a?(Hash) || state.empty?
+  end
+
   def recompute_result(current_role) = score_engine.recompute_result(current_role)
 
   def init_lists(current_role) = score_engine.init_lists(current_role)
@@ -883,7 +950,11 @@ class TableMonitor < ApplicationRecord
     end
     data_will_change!
     self.copy_from = nil
-    terminate_current_inning(player) if result == :goal_reached
+    if result == :goal_reached
+      # BK-Familie folgt legacy karambol-Routing. BK-spezifische Logik liegt
+      # in den Guards (follow_up?, end_of_set?, score_engine).
+      terminate_current_inning(player)
+    end
   rescue StandardError => e
     Rails.logger.error "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}"
     Tournament.logger.info "ERROR: #{e}, #{e.backtrace&.join("\n")}"
@@ -1052,6 +1123,7 @@ class TableMonitor < ApplicationRecord
     assign_attributes(nnn: nil, panel_state: change_to_pointer_mode ? "pointer_mode" : panel_state)
     if result == :goal_reached
       save
+      # BK-Familie folgt legacy karambol-Routing.
       terminate_current_inning
     else
       save
@@ -1087,7 +1159,37 @@ class TableMonitor < ApplicationRecord
     tournament_monitor.blank? || tournament_monitor.tournament.blank? || tournament_monitor.tournament.player_controlled?
   end
 
+  # BK-2kombi: derived current set's discipline (DZ ↔ SP alternating from set 1).
+  # Source of truth: legacy data["sets"] count + bk2_options.first_set_mode. Returns
+  # nil for non-BK-2kombi games.
+  def bk2_kombi_current_phase
+    return nil unless data.is_a?(Hash) && data["free_game_form"] == "bk2_kombi"
+    first_mode = data.dig("bk2_options", "first_set_mode").presence || "direkter_zweikampf"
+    set_number = Array(data["sets"]).length + 1
+    set_number.odd? ? first_mode : (first_mode == "direkter_zweikampf" ? "serienspiel" : "direkter_zweikampf")
+  end
+
+  # BK-Familie Nachstoß-Regeln (Overlay über legacy follow_up?):
+  #   BK-2plus / BK50 / BK100  → NIE Nachstoß
+  #   BK-2 / BK-2kombi SP-Phase + Ziel in 1. Aufnahme erreicht → legacy Nachstoß zulässig
+  #   BK-2kombi DZ-Phase → NIE Nachstoß (= BK-2plus-Semantik)
+  # Returns nil for non-BK disciplines (legacy logic decides).
+  def bk_follow_up_override
+    return nil unless data.is_a?(Hash)
+    case data["free_game_form"]
+    when "bk_2plus", "bk50", "bk100"
+      false
+    when "bk2_kombi"
+      bk2_kombi_current_phase == "direkter_zweikampf" ? false : nil
+    else
+      nil
+    end
+  end
+
   def follow_up?
+    override = bk_follow_up_override
+    return false if override == false
+
     left_player_id = data["fixed_display_left"].blank? ? data["current_kickoff_player"] : data["current_left_player"]
     right_player_id = left_player_id == "playera" ? "playerb" : "playera"
     active_player_is_follow_up_player = (data["current_inning"].andand["active_player"] == right_player_id)
@@ -1099,6 +1201,14 @@ class TableMonitor < ApplicationRecord
           active_player_is_follow_up_player &&
           ((kickoff_player_has_balls_goal && has_reached_balls_goal) ||
             (innings_goal_exists && kickoff_player_has_reached_innings_goal))
+
+    # Erste-Aufnahme-Gate für BK-2 und BK-2kombi/SP: Nachstoß nur wenn Anstoß-Spieler
+    # das Ziel in seiner 1. Aufnahme erreicht hat. Wer erst in 2.+ Aufnahme zum Ziel
+    # kommt, hat seine Tisch-Zeit gehabt und der Gegner bekommt keinen Ausgleich.
+    if ret && %w[bk_2 bk2_kombi].include?(data["free_game_form"])
+      ret = data[left_player_id].andand["innings"].to_i == 1
+    end
+
     Rails.logger.debug do
       "+++++ FOLLOW_UP? returns #{ret}: (active_player_is_follow_up_player:#{active_player_is_follow_up_player} && (kickoff_player_has_balls_goal:#{kickoff_player_has_balls_goal} && has_reached_balls_goal:#{has_reached_balls_goal} || (innings_goal_exists:#{innings_goal_exists} && kickoff_player_has_reached_innings_goal:#{kickoff_player_has_reached_innings_goal}))"
     end
@@ -1320,6 +1430,12 @@ class TableMonitor < ApplicationRecord
       "fixed_display_left" => data["fixed_display_left"],
       "current_kickoff_player" => "playera",
       "free_game_form" => data["free_game_form"],
+      # quick-260503-x3k: pass-through bk2_options so BK-2 / BK-2plus rematches
+      # keep their Ballziel (the BK-family score panel reads
+      # data.dig("bk2_options","balls_goal") as fallback when bk2_state is empty,
+      # which is the case for all BK-* except BK-2kombi). Nil round-trips
+      # harmlessly for non-BK games (karambol/snooker/pool).
+      "bk2_options" => data["bk2_options"],
       "first_break_choice" => data["first_break_choice"],
       "warntime" => data["warntime"].to_i,
       "gametime" => data["gametime"].to_i,
@@ -1363,12 +1479,130 @@ class TableMonitor < ApplicationRecord
       return false
     end
 
+    # BK-Familie: Disziplin/Phase-spezifischer Override des innings-equal/allow_follow_up
+    # Gates. In Phasen ohne Nachstoß (BK-2plus, BK-2kombi DZ-Phase, BK50, BK100) muss
+    # bei Zielerreichung SOFORT geschlossen werden — kein Warten auf gleiche Aufnahmen.
+    # In Phasen MIT Nachstoß (BK-2, BK-2kombi SP) bleibt die legacy-Logik aktiv (wartet
+    # auf Anstoßspieler-Aufnahmen-Parität, was natürlich der ein-Aufnahme-Nachstoß ist).
+    no_followup_phase = case data["free_game_form"]
+                        when "bk_2plus", "bk50", "bk100" then true
+                        when "bk2_kombi" then bk2_kombi_current_phase == "direkter_zweikampf"
+                        else false
+                        end
+    if no_followup_phase && data["playera"]["balls_goal"].to_i.positive? &&
+        (data["playera"]["result"].to_i >= data["playera"]["balls_goal"].to_i ||
+         data["playerb"]["result"].to_i >= data["playerb"]["balls_goal"].to_i)
+      Rails.logger.info "[TableMonitor#end_of_set?] BK-immediate-close: #{data["free_game_form"]} #{bk2_kombi_current_phase} — A:#{data["playera"]["result"]}/#{data["playera"]["balls_goal"]} B:#{data["playerb"]["result"]}/#{data["playerb"]["balls_goal"]}"
+      return true
+    end
+
+    # Phase 38.7 Plan 02 — D-02 BK-2 / BK-2kombi-SP Nachstoss-Aufnahme close.
+    # SKILL extend-before-build: small guard on legacy predicate, NO parallel state machine.
+    #
+    # When BK-2 (or BK-2kombi in SP-Phase) and Anstoss-Spieler reached balls_goal,
+    # the Nachstoss-Spieler gets ONE extra inning. After he completes that inning,
+    # the set MUST close — regardless of whether he reached balls_goal too. The
+    # legacy gate `playera.innings == playerb.innings` only fires for the case
+    # where Nachstoss did NOT reach the goal (he plays an inning that ends with
+    # `current_inning.active_player` switching back). When Nachstoss DOES reach
+    # the goal, his inning counter ticks +1, gate fails, deadlock.
+    #
+    # Resolution: detect "Anstoss-Spieler at goal AND Nachstoss-Spieler in his
+    # post-Anstoss-goal inning AND innings asymmetry of exactly 1". Fire close.
+    # If both at goal -> tiebreak (Plan 04 detects, modal opens). If only Anstoss
+    # at goal -> normal win (legacy path).
+    bk_with_nachstoss = data["free_game_form"] == "bk_2" ||
+                        (data["free_game_form"] == "bk2_kombi" && bk2_kombi_current_phase == "serienspiel")
+    if bk_with_nachstoss && data["playera"]["balls_goal"].to_i.positive?
+      a_result = data["playera"]["result"].to_i
+      b_result = data["playerb"]["result"].to_i
+      goal = data["playera"]["balls_goal"].to_i
+      # Identify which side is Anstoss-Spieler — the one with kickoff role.
+      # Use current_kickoff_player when present, else fall back to "playera".
+      anstoss_role = data["current_kickoff_player"].presence || "playera"
+      nachstoss_role = anstoss_role == "playera" ? "playerb" : "playera"
+      anstoss_innings = data[anstoss_role]["innings"].to_i
+      nachstoss_innings = data[nachstoss_role]["innings"].to_i
+      anstoss_at_goal = data[anstoss_role]["result"].to_i >= goal
+      nachstoss_finished_followup = nachstoss_innings == anstoss_innings + 1
+      if anstoss_at_goal && nachstoss_finished_followup
+        Rails.logger.info "[TableMonitor#end_of_set?] D-02 BK-2-Nachstoss-close: " \
+          "form=#{data["free_game_form"]} anstoss=#{anstoss_role}(#{a_result}/#{anstoss_innings}) " \
+          "nachstoss=#{nachstoss_role}(#{b_result}/#{nachstoss_innings}) goal=#{goal}"
+        return true
+      end
+
+      # Phase 38.9 Plan 01 — BK-2 / BK-2kombi-SP Erste-Aufnahme-Gate close-side mirror.
+      # Symmetric to follow_up? at table_monitor.rb:1205-1210: when Anstoss-Spieler
+      # reached balls_goal in inning >= 2 (and Nachstoss has not yet played), the
+      # Erste-Aufnahme-Gate FAILS — Nachstoss-Aufnahme is rule-disallowed because
+      # Anstoss already had table time. The set MUST close IMMEDIATELY here, otherwise
+      # ScoreEngine#terminate_inning_data (score_engine.rb:1306) silently swaps
+      # active_player and Player B plays an unauthorized inning before the legacy
+      # parity gate finally closes the set — without ever showing the red "Nachstoß"
+      # banner (which follow_up? correctly suppresses via the same Erste-Aufnahme-Gate).
+      #
+      # SKILL extend-before-build: additive branch on existing predicate, NO parallel
+      # state machine (validated 2026-04-29: -1463 LOC after rolling back a parallel
+      # state machine on this exact surface).
+      #
+      # Pre-existing latent defect introduced together with the Erste-Aufnahme-Gate in
+      # commit 79328663 (2026-04-28). NOT a regression from phase 38.7/38.8.
+      # See .planning/debug/bk2-nachstoss-banner-missing.md for the full diagnosis.
+      if anstoss_at_goal && anstoss_innings >= 2
+        Rails.logger.info "[TableMonitor#end_of_set?] Phase 38.9 BK-2-immediate-close: " \
+          "form=#{data["free_game_form"]} anstoss=#{anstoss_role}(#{a_result}/#{anstoss_innings}) " \
+          "nachstoss=#{nachstoss_role}(#{b_result}/#{nachstoss_innings}) goal=#{goal} — " \
+          "Erste-Aufnahme-Gate fails (anstoss past inning 1, no Nachstoss-Aufnahme permitted)"
+        return true
+      end
+
+      # Quick-260501-uxo: BK-2 / BK-2kombi-SP Aufnahmegrenze (per-set inning limit) close.
+      # When `bk2_options.serienspiel_max_innings_per_set` is positive AND both players
+      # have completed that many innings, the SP-Phase set MUST close — even if neither
+      # reached balls_goal. Tied scores at the limit flow through the existing per-game
+      # tiebreak gate (Game.data['tiebreak_required'] set by Plan 04, modal opens at the
+      # level above when scores are equal). Non-tied → set closes, higher score wins.
+      #
+      # Scope: gated by the outer `bk_with_nachstoss` predicate, so this only fires for
+      # BK-2 and BK-2kombi SP-Phase. DZ-Phase of BK-2kombi is excluded by construction
+      # (bk_with_nachstoss is false there). DZ uses shot-limit per turn, not inning-limit.
+      #
+      # SKILL extend-before-build: additive branch on existing predicate, NO parallel state
+      # machine (validated 2026-04-29: -1463 LOC after rolling back a parallel state machine
+      # on this exact surface).
+      sp_max = data.dig("bk2_options", "serienspiel_max_innings_per_set").to_i
+      if sp_max.positive? && anstoss_innings >= sp_max && nachstoss_innings >= sp_max
+        Rails.logger.info "[TableMonitor#end_of_set?] Quick-260501-uxo BK-SP-inning-limit-close: " \
+          "form=#{data["free_game_form"]} anstoss=#{anstoss_role}(#{a_result}/#{anstoss_innings}) " \
+          "nachstoss=#{nachstoss_role}(#{b_result}/#{nachstoss_innings}) goal=#{goal} " \
+          "sp_max=#{sp_max} — both players completed #{sp_max} innings"
+        return true
+      end
+    end
+
+    # Quick-260503-hay: BK-2plus standalone and BK-2kombi DZ-Phase have NO
+    # Aufnahmenbegrenzung (inning limit per set). BK-2plus uses balls_goal
+    # only; BK-2kombi DZ uses shot-limit per turn (not per set). The legacy
+    # karambol innings_goal-close branch below is phase-blind — exclude
+    # those two cases. BK-2 / BK-2kombi-SP are governed by the bk_with_nachstoss
+    # block above (which fires first when triggered) and SHOULD also skip
+    # this legacy branch as a defense-in-depth measure (the SP-inning-limit
+    # branch at lines 1568-1575 already returns true before reaching here).
+    #
+    # SKILL extend-before-build: one-line guard on existing predicate, NO
+    # parallel state machine.
+    no_innings_limit_phase = case data["free_game_form"]
+                             when "bk_2plus" then true
+                             when "bk2_kombi" then bk2_kombi_current_phase == "direkter_zweikampf"
+                             else false
+                             end
     if data["playera"]["balls_goal"].to_i.positive? && (data["playera"]["result"].to_i >= data["playera"]["balls_goal"].to_i ||
       data["playerb"]["result"].to_i >= data["playerb"]["balls_goal"].to_i) &&
        (data["playera"]["innings"] == data["playerb"]["innings"] || !data["allow_follow_up"])
       Rails.logger.info "[TableMonitor#end_of_set?] Game[#{game_id}] on TM[#{id}] ended: balls_goal reached (A:#{data["playera"]["result"]}/#{data["playera"]["balls_goal"]}, B:#{data["playerb"]["result"]}/#{data["playerb"]["balls_goal"]})"
       return true
-    elsif data["innings_goal"].to_i.positive? && data["playera"]["innings"].to_i >= data["innings_goal"].to_i &&
+    elsif !no_innings_limit_phase && data["innings_goal"].to_i.positive? && data["playera"]["innings"].to_i >= data["innings_goal"].to_i &&
           (data["playera"]["innings"] == data["playerb"]["innings"] || !data["allow_follow_up"])
       Rails.logger.info "[TableMonitor#end_of_set?] Game[#{game_id}] on TM[#{id}] ended: innings_goal reached (A:#{data["playera"]["innings"]}, B:#{data["playerb"]["innings"]}, goal:#{data["innings_goal"]})"
       return true
@@ -1454,6 +1688,87 @@ class TableMonitor < ApplicationRecord
       data["free_game_form"] == "snooker"
   end
 
+  # Phase 38.7 Plan 05 — D-08 AASM guard predicate for :acknowledge_result event.
+  # Returns true (= ALLOW transition) UNLESS tiebreak is required, scores are tied,
+  # and the operator has not yet recorded a winner pick in game.data['tiebreak_winner'].
+  # The negation (`tiebreak_pending_block?`) is the semantic blocker; AASM guards
+  # are positive ("allow if true"), so we expose `tiebreak_not_pending?`.
+  #
+  # Defense-in-depth coverage (T-38.7-05-02): all callers of acknowledge_result!
+  # and may_acknowledge_result? run this guard transparently. Includes
+  # admin_ack_result (line 1601), ResultRecorder#perform_evaluate_result
+  # acknowledge_result! call sites, console invocations, forged StimulusReflex
+  # calls that bypass the form validator in GameProtocolReflex (Plan 06 Task 2),
+  # and any future direct caller.
+  def tiebreak_not_pending?
+    !tiebreak_pending_block?
+  end
+
+  # Phase 38.7 Plan 05 — D-08 helper. Returns true iff a tiebreak winner pick is
+  # still pending (= block the AASM :acknowledge_result transition).
+  # Conditions (all must hold):
+  #   - game is present
+  #   - game.data['tiebreak_required'] == true
+  #   - game.data['tiebreak_winner'] is blank (no pick yet)
+  #   - scores are tied (same definition as ResultRecorder#tiebreak_pick_pending?:
+  #     inning-based: data['playera']['result'] == data['playerb']['result'];
+  #     simple_set:   sets.last['Ergebnis1'] == sets.last['Ergebnis2'])
+  def tiebreak_pending_block?
+    playing_finals_force_tiebreak_required!
+
+    return false unless game&.data&.[]("tiebreak_required") == true
+    return false if game.data["tiebreak_winner"].present?
+
+    a = data&.dig("playera", "result").to_i
+    b = data&.dig("playerb", "result").to_i
+    if simple_set_game? && data["sets"].present?
+      last_set = Array(data["sets"]).last
+      a = last_set["Ergebnis1"].to_i
+      b = last_set["Ergebnis2"].to_i
+    end
+    a == b
+  end
+
+  # Quick-260505-auq — TournamentMonitor#playing_finals? tiebreak override.
+  #
+  # Per user directive (2026-05-05): "playing_finals? => immer tiebreak_on_draw".
+  # When the active TournamentMonitor is in AASM state :playing_finals, force
+  # game.data['tiebreak_required'] = true regardless of executor_params /
+  # Tournament.data / TournamentPlan / Discipline / GameSetup baking. This is
+  # a hard rule of the tournament lifecycle, NOT a configurable knob.
+  #
+  # Skips when:
+  #   - tournament_monitor is blank (training mode)
+  #   - tournament_monitor.is_a?(PartyMonitor) (league flow — its own
+  #     semantics; type-guard mirrors existing pattern at
+  #     advance_tournament_round_if_present, table_monitor.rb:1763)
+  #   - tournament_monitor.state != "playing_finals"
+  #
+  # Idempotent: returns early if game.data['tiebreak_required'] already true.
+  # Pattern mirrors ResultRecorder#bk2_kombi_tiebreak_auto_detect!
+  # (app/services/table_monitor/result_recorder.rb:379) — pre-mutation helper
+  # called as first line of the gate predicate, so the gate observes true on
+  # the same call.
+  #
+  # Persistence: Game#deep_merge_data! does NOT save (per its contract); we
+  # call save! explicitly. LocalProtector compatible — tournament games on
+  # local servers have id >= MIN_ID (50_000_000), and the existing
+  # bk2_kombi_tiebreak_auto_detect! follows the same write pattern in
+  # production today.
+  def playing_finals_force_tiebreak_required!
+    return unless game.present?
+    return if game.data&.[]("tiebreak_required") == true # idempotent
+    return unless tournament_monitor.present?
+    return unless tournament_monitor.is_a?(TournamentMonitor)
+    return unless tournament_monitor.playing_finals?
+
+    Rails.logger.info "[TableMonitor##{id}] playing_finals? override: forcing " \
+      "tiebreak_required=true on game=#{game.id} (TournamentMonitor=#{tournament_monitor.id})"
+    game.deep_merge_data!("tiebreak_required" => true)
+    game.save!
+  end
+  private :playing_finals_force_tiebreak_required!
+
   def admin_ack_result
     return unless may_acknowledge_result?
 
@@ -1466,6 +1781,53 @@ class TableMonitor < ApplicationRecord
       finish_match! if may_finish_match?
     end
     save
+  end
+
+  # Phase 38.8 — Bridge from TableMonitor AASM close_match event to
+  # TournamentMonitor::ResultProcessor#advance_round_after_match_close.
+  #
+  # No-op in training mode (tournament_monitor blank). Also a no-op when the
+  # polymorphic association resolves to a PartyMonitor (league-match flow):
+  # PartyMonitor::ResultProcessor handles its own cascade via finalize_round
+  # and does NOT implement the TournamentMonitor cascade methods
+  # (populate_tables, incr_current_round!, group_phase_finished?, ...).
+  # Without this guard, a league-match close_match! would NoMethodError
+  # mid-cascade. See Phase 38.8 REVIEW CR-01.
+  #
+  # In tournament mode (tournament_monitor.is_a?(TournamentMonitor)),
+  # delegates to the deferred cascade extracted from report_result in
+  # Plan 38.8-04.
+  #
+  # Called as an AASM `after:` callback on event `:close_match` (table_monitor.rb
+  # AASM block).
+  #
+  # Phase quick-260505-0b5 (CR-02 sentinel restore — narrow-scoped per-TM):
+  # Restores the re-entry sentinel originally introduced in commit 37796f7d and
+  # reverted by 0dbe45c4 (2026-05-01) on insufficient single-set training-mode
+  # validation. Live incident 2026-05-05T00:01:45Z (Tournament[17416] /
+  # TournamentMonitor[50000028]) proved the recursion is real for tournament-
+  # finals after group play. Recursion path:
+  #   close_match! → advance_tournament_round_if_present → ResultProcessor#advance_round_after_match_close
+  #     → @tournament_monitor.finalize_round → tabmon.close_match! → ⤺
+  # The sentinel is scoped per-TM (`self.id`, NOT a boolean) so legitimate
+  # cross-TM cascades during finalize_round still run for OTHER TMs while
+  # short-circuiting only re-entry for the SAME TM. This honors SKILL
+  # extend-before-build: one small additive guard, no parallel state machine.
+  def advance_tournament_round_if_present
+    return if tournament_monitor.blank?
+    return unless tournament_monitor.is_a?(TournamentMonitor)
+    if Thread.current[:_advancing_round_for_tm] == self.id
+      Rails.logger.info "[advance_tournament_round_if_present] m6[#{id}] sentinel SHORT-CIRCUIT (CR-02 per-TM re-entry guard)"
+      return
+    end
+    Thread.current[:_advancing_round_for_tm] = self.id
+    Rails.logger.info "[advance_tournament_round_if_present] m6[#{id}] delegating to ResultProcessor#advance_round_after_match_close"
+    TournamentMonitor::ResultProcessor.new(tournament_monitor).advance_round_after_match_close(self)
+  rescue StandardError => e
+    Rails.logger.error "[advance_tournament_round_if_present] m6[#{id}] ERROR: #{e}, #{e.backtrace&.first(3)&.join(" <- ")}"
+    raise
+  ensure
+    Thread.current[:_advancing_round_for_tm] = nil if Thread.current[:_advancing_round_for_tm] == self.id
   end
 
   def force_next_state

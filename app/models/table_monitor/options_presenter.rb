@@ -107,6 +107,11 @@ class TableMonitor::OptionsPresenter
                       @gps[0]&.player&.fullname
                     elsif @gps[0]&.player&.guest?
                       @gps[0]&.player&.fullname
+                    elsif Carambus.config.training_mode_show_fullname
+                      # Optionaler Training-Mode-Override für vollständige Spielernamen
+                      # (z. B. BCW Grand Prix 2026-05-02). Default false → unverändertes
+                      # Verhalten für alle anderen Szenarien.
+                      @gps[0]&.player&.fullname
                     else
                       @gps[0]&.player&.simple_firstname.presence || @gps[0]&.player&.lastname
                     end,
@@ -137,6 +142,9 @@ class TableMonitor::OptionsPresenter
             @gps[1]&.player.is_a?(Team)
                       @gps[1]&.player&.fullname
                     elsif @gps[1]&.player&.guest?
+                      @gps[1]&.player&.fullname
+                    elsif Carambus.config.training_mode_show_fullname
+                      # Optionaler Training-Mode-Override (siehe player_a oben).
                       @gps[1]&.player&.fullname
                     else
                       @gps[1]&.player&.simple_firstname.presence || @gps[1]&.player&.lastname

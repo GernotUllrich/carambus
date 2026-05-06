@@ -105,7 +105,7 @@ Always include current year. Use multiple query variations. Mark WebSearch-only 
 Check `brave_search` from orchestrator context. If `true`, use Brave Search for higher quality results:
 
 ```bash
-node "/Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api/.claude/get-shit-done/bin/gsd-tools.cjs" websearch "your query" --limit 10
+node "/Users/gullrich/DEV/carambus/carambus_api/.claude/get-shit-done/bin/gsd-tools.cjs" websearch "your query" --limit 10
 ```
 
 **Options:**

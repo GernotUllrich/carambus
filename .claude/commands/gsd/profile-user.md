@@ -19,8 +19,8 @@ Routes to the profile-user workflow which orchestrates the full flow: consent ga
 </objective>
 
 <execution_context>
-@/Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api/.claude/get-shit-done/workflows/profile-user.md
-@/Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api/.claude/get-shit-done/references/ui-brand.md
+@/Users/gullrich/DEV/carambus/carambus_api/.claude/get-shit-done/workflows/profile-user.md
+@/Users/gullrich/DEV/carambus/carambus_api/.claude/get-shit-done/references/ui-brand.md
 </execution_context>
 
 <context>

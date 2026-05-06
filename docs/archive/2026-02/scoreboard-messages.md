@@ -55,7 +55,7 @@ Die Message erscheint sofort auf allen aktiven Scoreboards!
 Füge folgende Zeile zu deinem Crontab hinzu:
 
 ```bash
-*/10 * * * * cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_master && bundle exec rake scoreboard_messages:cleanup RAILS_ENV=production >> log/scoreboard_messages.log 2>&1
+*/10 * * * * cd /Users/gullrich/DEV/carambus/carambus_master && bundle exec rake scoreboard_messages:cleanup RAILS_ENV=production >> log/scoreboard_messages.log 2>&1
 ```
 
 ## ✨ Features
@@ -77,7 +77,7 @@ Füge folgende Zeile zu deinem Crontab hinzu:
 
 2. **Commit & Push** (gemäß Scenario Management Rules)
    ```bash
-   cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_master
+   cd /Users/gullrich/DEV/carambus/carambus_master
    git add .
    git commit -m "Feature: Admin messages to scoreboards with popup acknowledgement"
    git push

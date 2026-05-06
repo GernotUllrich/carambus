@@ -17,7 +17,7 @@ Closes the plan → execute → verify → ship loop.
 </objective>
 
 <execution_context>
-@/Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api/.claude/get-shit-done/workflows/ship.md
+@/Users/gullrich/DEV/carambus/carambus_api/.claude/get-shit-done/workflows/ship.md
 </execution_context>
 
-Execute the ship workflow from @/Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api/.claude/get-shit-done/workflows/ship.md end-to-end.
+Execute the ship workflow from @/Users/gullrich/DEV/carambus/carambus_api/.claude/get-shit-done/workflows/ship.md end-to-end.

@@ -131,7 +131,7 @@ rake placeholders:fix_interactive
 ### 1. Seeds ausführen
 
 ```bash
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api
+cd /Users/gullrich/DEV/carambus/carambus_api
 rails db:seed:placeholder_records
 ```
 

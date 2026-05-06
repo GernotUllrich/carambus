@@ -10,7 +10,7 @@ description: Manages multi-tenant deployment workflow for Carambus project with 
 ## Repository Structure
 
 ```
-/Volumes/EXT2TB/gullrich/DEV/carambus/
+/Users/gullrich/DEV/carambus/
 ├── carambus_master/   # DEVELOPMENT (modify here)
 ├── carambus_bcw/      # BCW deployment (git pull only)
 ├── carambus_phat/     # PHAT deployment (git pull only)
@@ -18,14 +18,57 @@ description: Manages multi-tenant deployment workflow for Carambus project with 
 └── carambus_data/     # Scenario configs
 ```
 
+## Pre-Edit Precondition (CRITICAL)
+
+⚠️ **Before editing in ANY scenario checkout, every other checkout must be either:**
+
+1. **Clean with respect to `master`** — at the same commit as `origin/master`, no uncommitted changes, no extra commits ahead, OR
+2. **On its own dedicated feature branch** (decoupled from `master`)
+
+**Why this matters:** This project has 4 independent working trees of the same repo. Two checkouts both sitting on `master` and each making independent commits cannot be linearly merged — one side's work must be reworked or discarded. A 1-minute precondition check prevents hours (or weeks) of conflict resolution. This applies in BOTH Normal Mode and Debugging Mode.
+
+### Verification check (run BEFORE any edit)
+
+```bash
+for d in carambus_master carambus_bcw carambus_phat carambus_api; do
+  cd /Users/gullrich/DEV/carambus/$d
+  echo "═══ $d ═══"
+  git fetch -q origin master 2>/dev/null
+  branch=$(git rev-parse --abbrev-ref HEAD)
+  echo "Branch:  $branch"
+  if [ "$branch" = "master" ]; then
+    counts=$(git rev-list --left-right --count origin/master...HEAD 2>/dev/null)
+    behind=$(echo "$counts" | awk '{print $1}')
+    ahead=$(echo "$counts" | awk '{print $2}')
+    echo "vs origin/master: behind=$behind ahead=$ahead"
+    if [ "$ahead" -gt 0 ]; then echo "  ⚠ has unpushed commits — reconcile before editing elsewhere"; fi
+  else
+    echo "(feature branch — independent of master, OK)"
+  fi
+  if [ -z "$(git status --short)" ]; then echo "Working tree: clean"; else echo "Working tree:"; git status --short | sed 's/^/  /'; fi
+  echo
+done
+```
+
+### What "not safe" looks like
+
+- Another checkout is on `master` with `ahead > 0` (unpushed commits) → **STOP**: push them first, then pull in your target checkout
+- Another checkout has uncommitted changes to files you're about to touch → **STOP**: commit/stash/discard there first
+- Another checkout's `master` is behind `origin/master` AND has divergent unpushed commits → **STOP**: reconcile manually before any new work
+
+If reconciliation isn't possible (e.g., the divergent work represents a different architectural decision), **move one side to a feature branch** before resuming.
+
+---
+
 ## Default Workflow (Normal Mode)
 
 **Always follow this unless in Debugging Mode:**
 
-1. ✅ **Modify code ONLY in `carambus_master/`**
-2. ✅ **Commit and push from `carambus_master/`** (AI does this)
-3. ⏸️ **User runs `git pull` in scenario checkout** (e.g., `carambus_bcw/`)
-4. ⏸️ **User deploys via Capistrano**
+1. ✅ **Run the pre-edit precondition check** (above)
+2. ✅ **Modify code ONLY in `carambus_master/`**
+3. ✅ **Commit and push from `carambus_master/`** (AI does this)
+4. ⏸️ **User runs `git pull` in scenario checkout** (e.g., `carambus_bcw/`)
+5. ⏸️ **User deploys via Capistrano**
 
 ### Never Do (Normal Mode)
 
@@ -37,10 +80,10 @@ description: Manages multi-tenant deployment workflow for Carambus project with 
 
 ```bash
 # Edit in master
-vim /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_master/app/models/tournament_cc.rb
+vim /Users/gullrich/DEV/carambus/carambus_master/app/models/tournament_cc.rb
 
 # Commit from master
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_master
+cd /Users/gullrich/DEV/carambus/carambus_master
 git add .
 git commit -m "Fix: Description"
 git push
@@ -60,9 +103,10 @@ User must explicitly request: **"Enter scenario debugging mode for [scenario_nam
 ### Restrictions in Debugging Mode
 
 - ❌ **NO commits unless user explicitly requests**
+- ✅ **Run the pre-edit precondition check before starting** — debugging mode does NOT exempt you from cross-checkout cleanliness
 - ✅ **If user requests commit:**
   1. Commit and push from scenario checkout
-  2. **IMMEDIATELY** run `git pull` in `carambus_master/` to sync
+  2. **IMMEDIATELY** run `git pull` in `carambus_master/` AND in every other deployment checkout that tracks `master` to sync
   3. Continue in debugging mode
 
 ### Example: Debugging Mode Workflow
@@ -71,16 +115,16 @@ User must explicitly request: **"Enter scenario debugging mode for [scenario_nam
 # User: "Enter scenario debugging mode for carambus_bcw"
 
 # AI can now edit scenario checkout
-vim /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_bcw/app/models/tournament_cc.rb
+vim /Users/gullrich/DEV/carambus/carambus_bcw/app/models/tournament_cc.rb
 
 # User: "Commit these changes"
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_bcw
+cd /Users/gullrich/DEV/carambus/carambus_bcw
 git add .
 git commit -m "Debug: Fix tournament issue"
 git push
 
 # IMMEDIATELY sync back to master
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_master
+cd /Users/gullrich/DEV/carambus/carambus_master
 git pull
 
 # Continue in debugging mode until user exits
@@ -125,10 +169,11 @@ environments:
 2. ❌ Committing from scenario checkout without syncing to master
 3. ❌ Staying in Debugging Mode when not explicitly entered
 4. ❌ Manual production server interventions
+5. ❌ Starting work in any checkout without running the pre-edit precondition check — risks parallel work on `master` across checkouts and unmergeable divergence
 
 ## Additional Resources
 
-For detailed deployment documentation: `/Volumes/EXT2TB/gullrich/DEV/carambus/carambus_master/docs/developers/scenario-management.de.md`
+For detailed deployment documentation: `/Users/gullrich/DEV/carambus/carambus_master/docs/developers/scenario-management.de.md`
 
 ## Deployment Workflow
 

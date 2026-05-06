@@ -76,7 +76,7 @@ rake placeholders:migrate_to_placeholders
 ### Schritt 1: Prüfen
 
 ```bash
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api
+cd /Users/gullrich/DEV/carambus/carambus_api
 rake placeholders:check_suspicious
 ```
 
@@ -139,7 +139,7 @@ rake placeholders:check_suspicious
 
 ```bash
 # Im carambus_api Verzeichnis
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api
+cd /Users/gullrich/DEV/carambus/carambus_api
 
 # Suche nach problematischen Patterns
 grep -r "Discipline\.first" app/services/

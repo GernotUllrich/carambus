@@ -39,11 +39,11 @@ config.logger.formatter = ::Logger::Formatter.new
 
 ```bash
 # carambus_bcw
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_bcw
+cd /Users/gullrich/DEV/carambus/carambus_bcw
 # Editiere config/environments/development.rb (Zeile 13-16)
 
 # carambus_master  
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_master
+cd /Users/gullrich/DEV/carambus/carambus_master
 # Editiere config/environments/development.rb (Zeile 13-16)
 ```
 
@@ -71,7 +71,7 @@ wurden bereits mit dem BroadcastLogger updated. Das bedeutet:
 # Dann: Start Server
 
 # ODER via Terminal:
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_bcw
+cd /Users/gullrich/DEV/carambus/carambus_bcw
 bin/rails restart
 ```
 
@@ -82,7 +82,7 @@ bin/rails restart
 ### In separatem Terminal:
 
 ```bash
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_bcw
+cd /Users/gullrich/DEV/carambus/carambus_bcw
 
 # Alle Logs mit Emojis
 tail -f log/development.log | grep -E "(🔔|📡|📥|🔌)"
@@ -169,7 +169,7 @@ file_logger.instance_variable_get(:@logdev).dev.sync = true  # Auto-flush
 # Terminal 1: Rails Server (läuft in RubyMine)
 
 # Terminal 2: Log monitoring
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_bcw
+cd /Users/gullrich/DEV/carambus/carambus_bcw
 tail -f log/development.log | grep -E "(🔔|📡|📥|🔌)"
 ```
 

@@ -99,7 +99,7 @@ get 'scraping_monitor/:id', to: 'scraping_monitor#operation'
 ### 1. Migrations ausführen
 
 ```bash
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_master
+cd /Users/gullrich/DEV/carambus/carambus_master
 bin/rails db:migrate
 ```
 

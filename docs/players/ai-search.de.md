@@ -24,7 +24,7 @@ Die KI-gestützte Suche ermöglicht die Verwendung natürlicher deutscher Sprach
 2. **Key in Rails Credentials einfügen**
 
    ```bash
-   cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_master
+   cd /Users/gullrich/DEV/carambus/carambus_master
    EDITOR="code --wait" rails credentials:edit --environment development
    ```
 

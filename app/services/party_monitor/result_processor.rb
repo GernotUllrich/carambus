@@ -273,15 +273,33 @@ class PartyMonitor::ResultProcessor
           tabmon.data["player#{c}"]["result"].to_f / tabmon.data["player#{c}"]["balls_goal"].to_f * 100.0
       end
     end
-    points["playera"] = if rank["playera"] > rank["playerb"]
-      game_points["win"]
+    # Phase 38.7 Plan 03 — D-10 Tiebreak-Vorrang-Branch.
+    # When the operator picked a winner via the protocol_final modal (Plan 06),
+    # game.data['tiebreak_winner'] holds 'playera' or 'playerb'. If the rank-
+    # comparison below would have produced a draw (rank tied), use the operator
+    # pick to assign win/lost instead of draw.
+    # SKILL extend-before-build: small guard, no new state machine.
+    # See .planning/phases/38.7-…/38.7-CONTEXT.md D-10.
+    tiebreak_winner = game.data&.dig("tiebreak_winner")
+    valid_tiebreak = tiebreak_winner.is_a?(String) &&
+      %w[playera playerb].include?(tiebreak_winner) &&
+      rank["playera"] == rank["playerb"]
+    if valid_tiebreak
+      Rails.logger.info "[ResultProcessor#update_game_participations] tiebreak-override " \
+        "Game[#{game.id}] tiebreak_winner=#{tiebreak_winner} (rank both sides=#{rank["playera"]})"
+      points["playera"] = (tiebreak_winner == "playera") ? game_points["win"] : game_points["lost"]
+      points["playerb"] = (tiebreak_winner == "playerb") ? game_points["win"] : game_points["lost"]
     else
-      ((rank["playera"] < rank["playerb"]) ? game_points["lost"] : game_points["draw"])
-    end
-    points["playerb"] = if rank["playerb"] > rank["playera"]
-      game_points["win"]
-    else
-      ((rank["playerb"] < rank["playera"]) ? game_points["lost"] : game_points["draw"])
+      points["playera"] = if rank["playera"] > rank["playerb"]
+        game_points["win"]
+      else
+        ((rank["playera"] < rank["playerb"]) ? game_points["lost"] : game_points["draw"])
+      end
+      points["playerb"] = if rank["playerb"] > rank["playera"]
+        game_points["win"]
+      else
+        ((rank["playerb"] < rank["playera"]) ? game_points["lost"] : game_points["draw"])
+      end
     end
     ("a".."b").each do |c|
       gp = game.game_participations.where(role: "player#{c}").first

@@ -172,15 +172,16 @@
     <%- table_monitor.get_options!(I18n.locale) %>
     <%- options = table_monitor.options %>
     <!--    <h1 style="text-shadow: 2px 2px #000000" class="text-2vw flex text-gray-300"><%#= @location.name %></h1>-->
-    <%= form_tag start_game_table_monitor_path(table_monitor), data: {turbo: false}, method: :post, class: "flex flex-col text-gray-300 max-h-screen overflow-y-auto" do %>
-      <input name='free_game_form' value='karambol' type='hidden'/>
-      <input name='allow_follow_up' value='<%= allow_follow_up ? '1' : '0' %>' type='hidden'/>
-      <div class="flex justify-center mt-4 text-center sticky top-0 bg-opacity-90 z-10" style="background-image: url('<%= @location.background_image.gsub(".", "-.") %>')">
-        <div id="submit" tabindex=1 class="focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 min-w-min focus:border-0 rounded-lg">
-          <%= submit_tag "Start Game", class: "h-full border-4 rounded-lg btn btn-primary text-center text-2vw p-2" %>
-        </div>
-      </div>
-      <div x-data="{
+    <%# Phase 38.2-02 / UAT-GAP-02 fix: the single Alpine x-data scope is
+        lifted onto an outer <div> that WRAPS the form_tag. Hidden inputs
+        (free_game_form, set_target_points, discipline_a/b, sets_to_*,
+        bk2_dz_max_shots, bk2_sp_max_innings) now live INSIDE this scope so
+        their :value bindings actually hydrate — previously they were siblings
+        of the x-data container and silently lost Alpine reactivity.
+        Phase 38.3-06: first_set_mode state slot removed (moved to shootout
+        screen per Plan 38.3-05); replaced by bk2_dz_max_shots +
+        bk2_sp_max_innings game-config state slots (D-17 / DR-06). %>
+    <div x-data="{
       table_kind: '<%= table.andand.table_kind.andand.name || "Small Billard" %>',
       multiset: 0,
       last_direction: 'r',
@@ -210,8 +211,65 @@
       discipline_a: <%= Discipline::KARAMBOL_DISCIPLINE_MAP.index(options[:player_a][:discipline].presence || "Freie Partie klein").to_i %>,
       discipline_b: <%= Discipline::KARAMBOL_DISCIPLINE_MAP.index(options[:player_b][:discipline].presence || "Freie Partie klein").to_i %>,
       increment: 0,
-      allow_follow_up: <%= options[:allow_follow_up] ? "true" : "false" %>
-      }" class="mt-8 text-2vw grid grid-cols-6 gap-3 items-center">
+      allow_follow_up: <%= options[:allow_follow_up] ? "true" : "false" %>,
+      bk2_choice: null,
+      bk2_dz_max_shots: 2,
+      bk2_sp_max_innings: 5,
+      get bk2_selected() { return this.bk2_choice !== null && this.bk2_choice !== '' && this.bk2_choice !== undefined; },
+      get bk2_target() { return [50, 60, 70][this.bk2_choice] || 50; },
+      bk_selected_form: null,
+      bk_balls_goal: 70,
+      get is_bk_family() { return ['bk2_kombi','bk_2plus','bk_2','bk50','bk100'].includes(this.bk_selected_form); },
+      get is_bk_fixed_goal() { return this.bk_selected_form === 'bk50' || this.bk_selected_form === 'bk100'; },
+      get is_bk_dz_configurable() { return this.bk_selected_form === 'bk_2plus' || this.bk_selected_form === 'bk2_kombi'; },
+      get is_bk_sp_configurable() { return this.bk_selected_form === 'bk_2' || this.bk_selected_form === 'bk2_kombi'; },
+      get bk_ballziel_choices() {
+        switch(this.bk_selected_form) {
+          case 'bk50':     return [50];
+          case 'bk100':    return [100];
+          case 'bk_2':     return [50, 60, 70, 80, 90, 100];
+          case 'bk_2plus': return [50, 60, 70, 80, 90, 100];
+          case 'bk2_kombi': return [50, 60, 70];
+          default: return [];
+        }
+      },
+      // 2026-04-27 Kegel-Toggle: Disziplin-Index 5 ('Kegel') öffnet die Kegel-
+      // Familien-Zeile mit [EUROK, BK50, BK100, BK-2, BK-2plus, BK-2kombi].
+      // EUROK = bk_selected_form null → Eurokegel-Karambol-Pfad.
+      // BK-* = bk_selected_form gesetzt → BK-Pfad (is_bk_family wird true).
+      get is_kegel() { return this.discipline == 5; },
+      get kegel_choice() { return this.bk_selected_form || (this.is_kegel ? 'eurok' : null); }
+      }"
+      x-effect="if (is_bk_family && !is_bk_fixed_goal) { bk2_sp_max_innings = parseInt(innings) || 5 };
+                if (discipline != 5 && bk_selected_form) { bk_selected_form = null }">
+    <%= form_tag start_game_table_monitor_path(table_monitor), data: {turbo: false}, method: :post, class: "flex flex-col text-gray-300 max-h-screen overflow-y-auto" do %>
+      <%# Phase 38.4-06 D-16/D-07: free_game_form driven by bk_selected_form (5 BK-* disciplines).
+          Fallback value='karambol' is a safety net if Alpine fails to hydrate.
+          Legacy bk2_selected path retained for bk2_choice radio (unused when bk_selected_form is set). %>
+      <input name='free_game_form' :value="is_bk_family ? bk_selected_form : (bk2_selected ? 'bk2_kombi' : 'karambol')" value='karambol' type='hidden'/>
+      <%# BK-family hidden fields — driven by bk_selected_form; emit empty when not BK-family.
+          controller's karambol/pool branch ignores them.
+          NOTE: set_target_points removed per D-06 (Plan 04); balls_goal is the canonical field. %>
+      <input name='balls_goal' :value="is_bk_family ? (bk_balls_goal || 50) : ''" type='hidden'/>
+      <input name='discipline_a' :value="is_bk_family ? ({'bk50':'BK50','bk100':'BK100','bk_2':'BK-2','bk_2plus':'BK-2plus','bk2_kombi':'BK2-Kombi'}[bk_selected_form] || '') : (bk2_selected ? 'BK2-Kombi' : '')" type='hidden'/>
+      <input name='discipline_b' :value="is_bk_family ? ({'bk50':'BK50','bk100':'BK100','bk_2':'BK-2','bk_2plus':'BK-2plus','bk2_kombi':'BK2-Kombi'}[bk_selected_form] || '') : (bk2_selected ? 'BK2-Kombi' : '')" type='hidden'/>
+      <input name='sets_to_win' :value="is_bk_family ? (bk_selected_form === 'bk2_kombi' ? '2' : '1') : (bk2_selected ? '2' : '')" type='hidden'/>
+      <input name='sets_to_play' :value="is_bk_family ? (bk_selected_form === 'bk2_kombi' ? '3' : '1') : (bk2_selected ? '3' : '')" type='hidden'/>
+      <%# Phase 38.4-06 D-16: BK-family game-config payload fields. Submitted on form-start.
+          Empty string when not BK-family — karambol branch ignores them. %>
+      <input name='bk2_options[direkter_zweikampf_max_shots_per_turn]' :value="is_bk_family ? bk2_dz_max_shots : (bk2_selected ? bk2_dz_max_shots : '')" type='hidden'/>
+      <input name='bk2_options[serienspiel_max_innings_per_set]' :value="is_bk_family ? bk2_sp_max_innings : (bk2_selected ? bk2_sp_max_innings : '')" type='hidden'/>
+      <input name='allow_follow_up' value='<%= allow_follow_up ? '1' : '0' %>' type='hidden'/>
+
+      <%# Phase 38.3-06: Start Game button visible for all selections (BK2 and
+          Karambol). BK2 config inputs below replaced the 4-button D-14 matrix
+          (Plan 38.3-05 moved first_set_mode to the shootout screen). %>
+      <div class="flex justify-center mt-4 text-center sticky top-0 bg-opacity-90 z-10" style="background-image: url('<%= @location.background_image.gsub(".", "-.") %>')">
+        <div id="submit" tabindex=1 class="focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 min-w-min focus:border-0 rounded-lg">
+          <%= submit_tag "Start Game", class: "h-full border-4 rounded-lg btn btn-primary text-center text-2vw p-2" %>
+        </div>
+      </div>
+      <div class="mt-8 text-2vw grid grid-cols-6 gap-3 items-center">
         <div class="  flex flex-row">Spieler</div>
         <div class="col-span-4 flex flex-row">
           <div class="grid grid-cols-3 gap-4">
@@ -249,6 +307,10 @@
             increment: 1,
             no_counter: true }
           %>
+          <%# 2026-04-27 Kegel-Toggle: Index 5 zeigt "Kegel" als Toggle, der die
+              Kegel-Familien-Zeile darunter aufklappt. Karambol-Disziplin
+              dahinter bleibt semantisch "Eurokegel" (KARAMBOL_DISCIPLINE_MAP[5])
+              wenn der User EUROK in der Sub-Zeile wählt. %>
           <%= render partial: "radio_select", locals: {
             table: table,
             show: "table_kind == 'Small Billard' && parameters == 0",
@@ -256,11 +318,107 @@
             varname: "discipline",
             values: [0, 1, 2, 3, 4, 5],
             maxval: 5,
-            displays: ["3Band".html_safe, "Frei", "1Band".html_safe, "52/2", "35/2", "Eurok"],
+            displays: ["3Band".html_safe, "Frei", "1Band".html_safe, "52/2", "35/2", "Kegel"],
             cols: 6,
             increment: 1,
             no_counter: true }
           %>
+          <%# Phase 38.4-09 (gap test 3): BK-* configuration as touch-button rows.
+              Replaces the 38.4-06 D-16/D-07 outer-wrapper + radio + select + number-input block.
+              All 4 rows live inside the singular x-data wrapper (GAP-02 invariant from Phase 38.2-02).
+              Each row pair consists of (label div, content div) — 8 sibling divs total,
+              plugging directly into the parent grid-cols-6 grid at line 264 (NO intermediate
+              col-span-6 wrapper — that was the GAP-02 anti-pattern the previous block used).
+              Pattern: large labelled buttons with hidden radios (sr-only), bg-blue-600 active state
+              (mirrors _radio_select partial). Hidden form inputs at lines 241-253 are unchanged
+              and continue to bind to the same Alpine state slots these touch-buttons write to. %>
+
+          <%# --- ROW 1: Kegel-Familien-Zeile (6 touch-buttons) --- %>
+          <%# 2026-04-27: Ersetzt den vorherigen BK-Variante-Block (Plan 38.4-09 / 38.4-15 P2).
+              Nur sichtbar wenn Disziplin = "Kegel" (index 5) gewählt — vorher war der
+              BK-Variante-Block immer sichtbar bei Small Billard und überlud die Detail-Page.
+              6 Buttons: EUROK (= bk_selected_form null, normaler Karambol-Eurokegel-Pfad)
+              + 5 BK-Varianten (BK50..BK-2kombi → bk_selected_form gesetzt, BK-Pfad).
+              Default beim Wechsel auf "Kegel": bk_selected_form=null → EUROK aktiv.
+              Wechsel weg von "Kegel" wird im x-effect (line ~237) durch Reset von
+              bk_selected_form=null abgesichert. %>
+          <div x-show="parameters == 0 && is_kegel">Kegel-Variante</div>
+          <div x-show="parameters == 0 && is_kegel" class="col-span-4">
+            <div class="grid grid-cols-6 gap-4">
+              <% [
+                ["eurok",     "EUROK"],
+                ["bk50",      "BK50"],
+                ["bk100",     "BK100"],
+                ["bk_2",      "BK-2"],
+                ["bk_2plus",  "BK-2plus"],
+                ["bk2_kombi", "BK-2kombi"]
+              ].each_with_index do |(val, label), ix| %>
+                <label class="group relative border rounded-md py-3 px-4 flex items-center justify-center text-2vw font-medium uppercase focus:outline-none shadow-sm cursor-pointer"
+                       :class="{ 'bg-blue-600 text-white': (kegel_choice == '<%= val %>'),
+                                 ' text-gray-200': !(kegel_choice == '<%= val %>') }">
+                  <input type="radio" name="kegel_choice" value="<%= val %>" class="sr-only"
+                         aria-labelledby="kegel-choice-<%= ix %>-label"
+                         @click="if ('<%= val %>' == 'eurok') { bk_selected_form = null }
+                                 else { bk_selected_form = '<%= val %>';
+                                        bk_balls_goal = bk_ballziel_choices.includes(70) ? 70 : bk_ballziel_choices[0];
+                                        if (['bk_2','bk_2plus','bk2_kombi'].includes('<%= val %>')) { innings = 5; innings_2 = 5; } }">
+                  <span id="kegel-choice-<%= ix %>-label"><%= label %></span>
+                </label>
+              <% end %>
+            </div>
+          </div>
+          <%# 6th-col spacer to keep parent grid-cols-6 row width intact %>
+          <div x-show="parameters == 0 && is_kegel"></div>
+
+          <%# --- ROW 2: Punkt-Ziel (Ballziel) — touch-buttons, dynamic per BK-variant ---
+              This row was MISSING as a dedicated row for BK-2/BK-2plus/BK-2kombi
+              before this plan (it was a <select> dropdown). Introduced here. %>
+          <%# Phase 38.4-P11: col-span-4 (was col-span-5) so right edge aligns with surrounding
+              _radio_select rows; the freed col 6 carries a − n + counter for arbitrary values.
+              For BK50/BK100 (is_bk_fixed_goal) the counter is hidden but the cell still spans
+              col 6 to keep the row 6-wide. %>
+          <div x-show="table_kind == 'Small Billard' && parameters == 0 && is_bk_family">Punkt-Ziel</div>
+          <div x-show="table_kind == 'Small Billard' && parameters == 0 && is_bk_family" class="col-span-4" data-test-id="bk-punktziel-row">
+            <div class="grid gap-4" :class="`grid-cols-${bk_ballziel_choices.length || 1}`">
+              <template x-for="(choice, ix) in bk_ballziel_choices" :key="choice">
+                <label class="group relative border rounded-md py-3 px-4 flex items-center justify-center text-2vw font-medium uppercase focus:outline-none sm:flex-1 shadow-sm cursor-pointer"
+                       :class="{ 'bg-blue-600 text-white': (bk_balls_goal == choice),
+                                 ' text-gray-200': !(bk_balls_goal == choice),
+                                 'opacity-75 cursor-default': is_bk_fixed_goal }">
+                  <input type="radio" name="bk_balls_goal_choice" :value="choice"
+                         x-model.number="bk_balls_goal" class="sr-only"
+                         :disabled="is_bk_fixed_goal">
+                  <span x-text="choice"></span>
+                </label>
+              </template>
+            </div>
+          </div>
+          <%# Phase 38.4-P11: − n + counter for arbitrary balls_goal values (clamped server-side
+              by clamp_bk_family_params! against discipline.ballziel_choices). Hidden for
+              BK50/BK100 where balls_goal is fixed. %>
+          <div x-show="table_kind == 'Small Billard' && parameters == 0 && is_bk_family" class="flex justify-center items-center">
+            <div class="flex gap-2 items-center justify-center w-full max-w-md" x-show="!is_bk_fixed_goal">
+              <div class="flex text-4vw justify-center items-center font-bold cursor-pointer w-12"
+                   @click="bk_balls_goal = Math.max(0, parseInt(bk_balls_goal || 0) - 5)">−</div>
+              <span class="flex items-center justify-center text-center text-2vw font-medium shadow-sm bg-blue-600 text-gray-200 border rounded-md py-3 px-4 min-w-24"
+                    x-text="bk_balls_goal || 0"></span>
+              <div class="flex text-4vw justify-center items-center font-bold cursor-pointer w-12"
+                   @click="bk_balls_goal = parseInt(bk_balls_goal || 0) + 5">+</div>
+            </div>
+          </div>
+
+          <%# Phase 38.4-10 O8: standalone DZ-max ± row removed. dz_max=2 is the only
+              valid variant per BK rules; hardcoded server-side in clamp_bk_family_params!.
+              The bk2_dz_max_shots Alpine state slot stays initialized at 2 in the x-data
+              wrapper; the hidden input on line 252 still emits bk2_dz_max_shots=2 for
+              shape consistency. %>
+
+          <%# Phase 38.4-10 O7: standalone SP-max row removed. Merged into the
+              Aufnahmebegrenzung row below — Alpine x-bind swaps the button list per
+              is_bk_family. The bk2_sp_max_innings hidden input on line 253 still
+              emits per the existing Alpine state slot; its value is mirrored from
+              the merged Aufnahmebegrenzung row's `innings` slot via x-effect on the
+              parent x-data wrapper. %>
           <%= render partial: "radio_select", locals: {
             table: table,
             show: "table_kind == 'Match Billard' && parameters == 0",
@@ -321,9 +479,15 @@
             increment: 1,
             no_counter: true }
           %>
+          <%# Phase 38.4-10 O3 / O1: pre-existing generic Punktziel row is HIDDEN when a
+              BK-* discipline is selected. Plan 38.4-09's BK-aware Punkt-Ziel row at
+              lines 348-366 is the only row contributing to balls_goal for BK-*.
+              Without this guard, both rows render simultaneously (UAT round 2 screenshot
+              2026-04-25 15.44.04) and the generic row's default value (50) overrides
+              the BK-aware selection. %>
           <%= render partial: "radio_select", locals: {
             table: table,
-            show: "parameters == 0",
+            show: "parameters == 0 && !is_bk_family",
             header: "Punktziel",
             varname: "balls_goal",
             values: ["0"] + Discipline::KARAMBOL_POINTS_MAP,
@@ -355,9 +519,33 @@
             cols: 8,
             increment: 1 }
           %>
+          <%# Phase 38.4-10 O7 + O7a: discipline-aware Aufnahmebegrenzung row.
+              - BK-2 / BK-2plus / BK-2kombi (is_bk_family && !is_bk_fixed_goal):
+                  buttons [5, 7] + ± counter for arbitrary values.
+              - Non-BK-* (!is_bk_family): preserves classic karambol values [20, 25, 30].
+              - BK50 / BK100 (is_bk_fixed_goal): NEITHER row renders — fixed at 1 inning per O7a.
+              Both partials share varname='innings' so the Alpine state slot is one source of
+              truth; the form payload travels as `innings_choice` regardless of which row is
+              active. The bk2_sp_max_innings hidden input on line 253 mirrors innings via the
+              x-effect on the parent x-data wrapper (see below). %>
+          <%# Phase 38.4-15 P2: BK-* Aufnahmebegrenzung uses cols=4 (3 buttons + 1 counter
+              cell on right) for visual symmetry with the non-BK 4-button form. Plan 10
+              used cols=5 → 3 buttons spanned 3 of 5 cols, leaving 2 empty cells →
+              visual mis-alignment with surrounding rows (per UAT 18.53.14 screenshot). %>
           <%= render partial: "radio_select", locals: {
             table: table,
-            show: "true",
+            show: "is_bk_family && !is_bk_fixed_goal",
+            header: "Aufnahme-begrenzung",
+            varname: "innings",
+            values: %w{0 5 7},
+            maxval: 99,
+            displays: %w{keine 5 7},
+            cols: 4,
+            increment: 1 }
+          %>
+          <%= render partial: "radio_select", locals: {
+            table: table,
+            show: "!is_bk_family",
             header: "Aufnahme-begrenzung",
             varname: "innings",
             values: %w{0 20 25 30},
@@ -366,6 +554,12 @@
             cols: 5,
             increment: 5 }
           %>
+          <%# Phase 38.4-15 P2: visible vertical spacer above MEHRSATZ row. The parent grid's
+              `gap-3` is insufficient when the row above is the merged Aufnahmebegrenzung
+              (Plan 10 — variable height per BK-* state). Without this spacer, MEHRSATZ
+              crowds against the Aufnahmebegrenzung row (per UAT 18.53.14 screenshot).
+              col-span-6 fills one parent grid row; h-4 reserves 1rem of vertical space. %>
+          <div class="col-span-6 h-4"></div>
           <%= render partial: "radio_select", locals: {
             table: table,
             show: "multiset == 0",
@@ -464,5 +658,6 @@
         </form>
       </div>
     <%- end %>
+    </div><%# /x-data wrapper — Phase 38.2-02 / UAT-GAP-02 scope lift %>
   <%- end %>
 </div>

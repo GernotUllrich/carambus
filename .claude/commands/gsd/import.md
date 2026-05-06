@@ -22,9 +22,9 @@ Future: `--prd` mode for PRD extraction is planned for a follow-up PR.
 </objective>
 
 <execution_context>
-@/Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api/.claude/get-shit-done/workflows/import.md
-@/Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api/.claude/get-shit-done/references/ui-brand.md
-@/Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api/.claude/get-shit-done/references/gate-prompts.md
+@/Users/gullrich/DEV/carambus/carambus_api/.claude/get-shit-done/workflows/import.md
+@/Users/gullrich/DEV/carambus/carambus_api/.claude/get-shit-done/references/ui-brand.md
+@/Users/gullrich/DEV/carambus/carambus_api/.claude/get-shit-done/references/gate-prompts.md
 </execution_context>
 
 <context>

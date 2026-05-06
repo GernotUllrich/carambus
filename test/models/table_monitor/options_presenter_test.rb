@@ -105,6 +105,17 @@ class TableMonitor::OptionsPresenterTest < ActiveSupport::TestCase
     [tm, player_a, player_b, game]
   end
 
+  # Konfigurations-Override-Helper für Tests, die `Carambus.config` manipulieren.
+  # Sichert den ursprünglichen OpenStruct, mergt Overrides, restauriert im
+  # ensure-Block, damit kein Test-State zwischen Tests leakt (T-260501-02).
+  def with_config(**overrides)
+    original = Carambus.config
+    Carambus.config = OpenStruct.new(original.to_h.merge(overrides))
+    yield
+  ensure
+    Carambus.config = original
+  end
+
   # ---------------------------------------------------------------------------
   # Test 1: call returns a Hash
   # ---------------------------------------------------------------------------
@@ -265,6 +276,19 @@ class TableMonitor::OptionsPresenterTest < ActiveSupport::TestCase
   end
 
   # ---------------------------------------------------------------------------
+  # BK2-Kombi passthrough test (Phase 38.1 Plan 02)
+  # ---------------------------------------------------------------------------
+
+  test "OptionsPresenter exposes free_game_form='bk2_kombi' when TableMonitor.data is set" do
+    tm, _, _, _ = build_tm_with_game(data_overrides: {"free_game_form" => "bk2_kombi"})
+    presenter = TableMonitor::OptionsPresenter.new(tm, locale: :de)
+    result = presenter.call
+
+    assert_equal "bk2_kombi", result["free_game_form"],
+      "OptionsPresenter muss free_game_form='bk2_kombi' aus tm.data durchreichen"
+  end
+
+  # ---------------------------------------------------------------------------
   # Test: No disambiguation when tournament_monitor present
   # ---------------------------------------------------------------------------
 
@@ -291,5 +315,119 @@ class TableMonitor::OptionsPresenterTest < ActiveSupport::TestCase
     # Should NOT be the shortened form (ends with ".")
     refute_match(/Mei\.\z/, fn_a, "Expected no disambiguation when tournament_monitor is set, got: #{fn_a}")
     refute_match(/Mer\.\z/, fn_b, "Expected no disambiguation when tournament_monitor is set, got: #{fn_b}")
+  end
+
+  # ---------------------------------------------------------------------------
+  # training_mode_show_fullname (Quick task 260501-pud)
+  # ---------------------------------------------------------------------------
+  # Test A — Flag false (default), Training-Mode, non-team non-guest:
+  #   else-Zweig liefert simple_firstname.presence || lastname (= "Max"/"Erika"
+  #   bei den Default-Spielern Max Muster / Erika Beispiel).
+  # ---------------------------------------------------------------------------
+
+  test "training_mode_show_fullname=false (default) liefert weiterhin Kurzform für non-team non-guest Spieler im Training-Mode" do
+    tm, player_a, player_b, _ = build_tm_with_game
+
+    with_config(training_mode_show_fullname: false) do
+      presenter = TableMonitor::OptionsPresenter.new(tm, locale: :de)
+      result = presenter.call
+
+      # simple_firstname.presence || lastname — Max/Erika sind beide present
+      expected_a = player_a.simple_firstname.presence || player_a.lastname
+      expected_b = player_b.simple_firstname.presence || player_b.lastname
+
+      assert_equal expected_a, result["player_a"]["fullname"],
+        "Erwartet Kurzform '#{expected_a}' bei flag=false, erhalten: #{result["player_a"]["fullname"].inspect}"
+      assert_equal expected_b, result["player_b"]["fullname"],
+        "Erwartet Kurzform '#{expected_b}' bei flag=false, erhalten: #{result["player_b"]["fullname"].inspect}"
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+  # Test B — Flag true, Training-Mode, non-team non-guest: neuer elsif-Zweig
+  #   liefert player.fullname. RED bis Task 2 das Guard einfügt.
+  # ---------------------------------------------------------------------------
+
+  test "training_mode_show_fullname=true zeigt fullname im Training-Mode für non-team non-guest Spieler" do
+    tm, player_a, player_b, _ = build_tm_with_game
+
+    with_config(training_mode_show_fullname: true) do
+      presenter = TableMonitor::OptionsPresenter.new(tm, locale: :de)
+      result = presenter.call
+
+      assert_equal player_a.fullname, result["player_a"]["fullname"],
+        "Erwartet player.fullname '#{player_a.fullname}' bei flag=true, erhalten: #{result["player_a"]["fullname"].inspect}"
+      assert_equal player_b.fullname, result["player_b"]["fullname"],
+        "Erwartet player.fullname '#{player_b.fullname}' bei flag=true, erhalten: #{result["player_b"]["fullname"].inspect}"
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+  # Test C — Flag true, Gast-Spieler durchläuft den Gast-Zweig (UNVERÄNDERT
+  #   durch das Flag) und produziert ohnehin player.fullname; registrierter
+  #   Spieler durchläuft den neuen elsif-Zweig (auch fullname).
+  # ---------------------------------------------------------------------------
+
+  test "training_mode_show_fullname=true: Gast-Pfad bleibt unverändert (fullname via guest? Zweig)" do
+    tm, player_a, player_b, _ = build_tm_with_game(
+      player_a_attrs: { guest: true },
+      player_b_attrs: { guest: false }
+    )
+
+    with_config(training_mode_show_fullname: true) do
+      presenter = TableMonitor::OptionsPresenter.new(tm, locale: :de)
+      result = presenter.call
+
+      assert_equal player_a.fullname, result["player_a"]["fullname"],
+        "Gast-Spieler muss player.fullname unabhängig vom Flag zurückliefern"
+      assert_equal player_b.fullname, result["player_b"]["fullname"],
+        "Registrierter Spieler bei flag=true muss player.fullname zurückliefern"
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+  # Test D — Flag true, tournament_monitor präsent: Tournament-Zweig (vor
+  #   dem neuen elsif) feuert und liefert player.fullname. UNVERÄNDERT durch
+  #   das Flag.
+  # ---------------------------------------------------------------------------
+
+  test "training_mode_show_fullname=true: Tournament-Zweig bleibt unverändert wenn tournament_monitor präsent" do
+    tm, player_a, _, _ = build_tm_with_game
+
+    # Stub tournament_monitor so the first if-arm fires (id.present? is true).
+    mock_party_monitor = OpenStruct.new(id: 99_999_999, blank?: false, present?: true, party: nil, tournament: nil, current_round: nil)
+    mock_party_monitor.define_singleton_method(:is_a?) { |klass| klass == PartyMonitor }
+    mock_party_monitor.define_singleton_method(:blank?) { false }
+    tm.define_singleton_method(:tournament_monitor) { mock_party_monitor }
+
+    with_config(training_mode_show_fullname: true) do
+      presenter = TableMonitor::OptionsPresenter.new(tm, locale: :de)
+      result = presenter.call
+
+      assert_equal player_a.fullname, result["player_a"]["fullname"],
+        "Tournament-Zweig muss player.fullname liefern unabhängig vom Flag"
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+  # Test E — Flag false, tournament_monitor präsent: Tournament-Zweig liefert
+  #   weiterhin player.fullname (Regression-Guard für Test D).
+  # ---------------------------------------------------------------------------
+
+  test "training_mode_show_fullname=false: Tournament-Zweig liefert weiterhin player.fullname" do
+    tm, player_a, _, _ = build_tm_with_game
+
+    mock_party_monitor = OpenStruct.new(id: 99_999_999, blank?: false, present?: true, party: nil, tournament: nil, current_round: nil)
+    mock_party_monitor.define_singleton_method(:is_a?) { |klass| klass == PartyMonitor }
+    mock_party_monitor.define_singleton_method(:blank?) { false }
+    tm.define_singleton_method(:tournament_monitor) { mock_party_monitor }
+
+    with_config(training_mode_show_fullname: false) do
+      presenter = TableMonitor::OptionsPresenter.new(tm, locale: :de)
+      result = presenter.call
+
+      assert_equal player_a.fullname, result["player_a"]["fullname"],
+        "Tournament-Zweig muss player.fullname liefern auch bei flag=false"
+    end
   end
 end

@@ -10,7 +10,7 @@ pg_dump carambus_api_production > backup_before_deployment_$(date +%Y%m%d_%H%M%S
 
 ### 2. Code deployen (von Development)
 ```bash
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api
+cd /Users/gullrich/DEV/carambus/carambus_api
 git push  # bereits erledigt
 ```
 

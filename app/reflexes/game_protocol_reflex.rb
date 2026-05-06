@@ -11,6 +11,11 @@ class GameProtocolReflex < ApplicationReflex
   def open_protocol
     morph :nothing
     Rails.logger.debug { "🎯 GameProtocolReflex#open_protocol" }
+    # Race-guard: stale-DOM click after set_game_over set protocol_final — re-render, do not downgrade
+    if @table_monitor.panel_state == "protocol_final"
+      send_modal_update(render_protocol_modal)
+      return
+    end
     @table_monitor.suppress_broadcast = true
     @table_monitor.panel_state = "protocol"
     @table_monitor.save!
@@ -34,6 +39,11 @@ class GameProtocolReflex < ApplicationReflex
   def switch_to_edit_mode
     morph :nothing
     Rails.logger.debug { "🎯 GameProtocolReflex#switch_to_edit_mode" }
+    # Race-guard: stale-DOM click after set_game_over set protocol_final — re-render, do not downgrade
+    if @table_monitor.panel_state == "protocol_final"
+      send_modal_update(render_protocol_modal)
+      return
+    end
     @table_monitor.suppress_broadcast = true
     @table_monitor.panel_state = "protocol_edit"
     @table_monitor.save!
@@ -45,6 +55,11 @@ class GameProtocolReflex < ApplicationReflex
   def switch_to_view_mode
     morph :nothing
     Rails.logger.debug { "🎯 GameProtocolReflex#switch_to_view_mode" }
+    # Race-guard: stale-DOM click after set_game_over set protocol_final — re-render, do not downgrade
+    if @table_monitor.panel_state == "protocol_final"
+      send_modal_update(render_protocol_modal)
+      return
+    end
     @table_monitor.suppress_broadcast = true
     @table_monitor.panel_state = "protocol"
     @table_monitor.save!
@@ -108,9 +123,33 @@ class GameProtocolReflex < ApplicationReflex
 
   # Confirm the final result and close the protocol modal
   # This transitions the game to the final acknowledged state
+  #
+  # Phase 38.7 Plan 06 D-08: when current_element=='tiebreak_winner_choice', the
+  # form serializes a `tiebreak_winner` param (value 'playera' or 'playerb'). We
+  # validate server-side and persist to game.data['tiebreak_winner'] BEFORE calling
+  # evaluate_result so update_ba_results_with_set_result! (Plan 05) can read it.
   def confirm_result
     morph :nothing
-    Rails.logger.debug { "🎯 GameProtocolReflex#confirm_result" }
+    Rails.logger.debug { "🎯 GameProtocolReflex#confirm_result params=#{params.to_unsafe_h.except("authenticity_token").inspect}" }
+
+    # Phase 38.7 Plan 06 D-08: tiebreak winner persistence + server-side guard.
+    if @table_monitor.current_element == "tiebreak_winner_choice"
+      tw = params[:tiebreak_winner].to_s
+      unless %w[playera playerb].include?(tw)
+        Rails.logger.warn "[GameProtocolReflex#confirm_result] Tiebreak required but invalid/missing tiebreak_winner=#{tw.inspect}; refusing to advance state"
+        send_modal_update(render_protocol_modal)
+        return
+      end
+      if @table_monitor.game.present?
+        # Phase 38.7 Plan 06 D-08 (Rule 1 deviation, same root cause as Plan 04):
+        # Game#data returns a freshly-decoded Hash on every call, so direct mutation
+        # does NOT dirty-track. Use deep_merge_data! which calls data_will_change!
+        # and reassigns self.data so save! persists correctly.
+        @table_monitor.game.deep_merge_data!("tiebreak_winner" => tw)
+        @table_monitor.game.save!
+        Rails.logger.info "[GameProtocolReflex#confirm_result] tiebreak_winner=#{tw} persisted to Game[#{@table_monitor.game.id}].data"
+      end
+    end
 
     # Close the modal first
     send_modal_update("")

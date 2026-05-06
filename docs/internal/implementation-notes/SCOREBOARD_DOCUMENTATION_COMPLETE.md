@@ -155,7 +155,7 @@ INFO - Documentation built successfully
 
 #### Using MkDocs Server
 ```bash
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_master
+cd /Users/gullrich/DEV/carambus/carambus_master
 mkdocs serve
 ```
 Then open: http://localhost:8000/scoreboard_benutzerhandbuch/
@@ -172,7 +172,7 @@ code docs/scoreboard_benutzerhandbuch.de.md
 ### 2. Deploy to GitHub Pages
 
 ```bash
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_master
+cd /Users/gullrich/DEV/carambus/carambus_master
 mkdocs gh-deploy
 ```
 

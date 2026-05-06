@@ -140,7 +140,7 @@ Da JavaScript nicht funktioniert, brauchen wir eine **OS-Level L√∂sung** die au√
 
 ```bash
 # Auf Development Machine (carambus_master/)
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_master
+cd /Users/gullrich/DEV/carambus/carambus_master
 
 # Installation auf Raspberry Pi (bc-wedel, IP: 192.168.178.81)
 ./bin/install-browser-watchdog.sh 192.168.178.81 daily
@@ -468,7 +468,7 @@ done
 ### Commit und Push
 
 ```bash
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_master
+cd /Users/gullrich/DEV/carambus/carambus_master
 
 git add bin/scoreboard-browser-*.sh \
         bin/install-browser-watchdog.sh \

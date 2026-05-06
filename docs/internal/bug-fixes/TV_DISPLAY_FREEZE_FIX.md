@@ -282,7 +282,7 @@ git commit -m "Fix: TV display freeze on table_scores after standby"
 git push
 
 # User führt aus (scenario checkout):
-cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_bcw/
+cd /Users/gullrich/DEV/carambus/carambus_bcw/
 git pull
 rake "scenario:deploy[carambus_bcw]"
 ```

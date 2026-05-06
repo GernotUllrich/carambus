@@ -155,7 +155,8 @@ class TournamentMonitorsController < ApplicationController
   end
 
   # GET /tournament_monitors/1/edit
-  def edit; end
+  def edit
+  end
 
   # POST /tournament_monitors
   def create

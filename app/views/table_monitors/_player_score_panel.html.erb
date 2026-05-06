@@ -56,6 +56,30 @@ gp_index = player_key == "playera" ? 0 : 1
 
 # Sets display
 current_sets = player_key == "playera" ? options[:current_sets_a] : options[:current_sets_b]
+
+# Phase 38.3-03 D-01/D-06/D-07/D-08: BK2-Kombi branch locals.
+# Phase 38.4 Plan 05 (sole owner): extended to all 5 BK-* free_game_form values.
+is_bk2 = %w[bk2_kombi bk50 bk100 bk_2 bk_2plus].include?(options[:free_game_form])
+if is_bk2
+  bk2_state = table_monitor.data["bk2_state"] || {}
+  bk2_current_set = bk2_state["current_set_number"].to_i
+  bk2_set_scores = bk2_state["set_scores"] || {}
+  # Phase 38.4 P8: während AusStoßen / Warmup ist bk2_state noch nicht initialisiert
+  # (Bk2::AdvanceMatchState#init_state_if_missing! läuft erst beim ersten Stoß).
+  # Fallback auf bk2_options[:balls_goal] zeigt das konfigurierte Ziel sofort an.
+  bk2_set_target = bk2_state["balls_goal"].to_i
+  if bk2_set_target.zero?
+    bk2_set_target = table_monitor.data.dig("bk2_options", "balls_goal").to_i
+  end
+  # Phase 38.4 R5-1: legacy score_engine path (BK-2/BK-2plus/BK50/BK100 — no Discipline
+  # record, no Nachstoß, bk_family_with_nachstoss?=false) commits innings via
+  # terminate_inning_data → innings_list, recompute_result writes data[player_id].result.
+  # bk2_state.set_scores is only populated by Bk2::AdvanceMatchState (CommitInning path,
+  # BK-2kombi only). Mirror Freie Partie display: result (committed sum) + innings_redo_list[-1].
+  bk2_set_score = table_monitor.data[player_id].andand["result"].to_i
+  bk2_inning_running = player_active ? table_monitor.data[player_id].andand["innings_redo_list"].andand[-1].to_i : 0
+  bk2_display_score = bk2_set_score + bk2_inning_running
+end
 %>
 <div class="h-full">
   <div class="flex h-1/6  dark:bg-black items-center">
@@ -88,7 +112,13 @@ current_sets = player_key == "playera" ? options[:current_sets_a] : options[:cur
         <%- if is_left %>
           <div class="flex-1 text-left font-bold text-red-400">
             <div class="text-<%= vw8 %> p-4">
-              <span class="inning-score" data-player="<%= player_id %>"><%= player_active ? table_monitor.data[player_id].andand["innings_redo_list"].andand[-1] : "" %></span>
+              <span class="inning-score" data-player="<%= player_id %>">
+                <%- if is_bk2 %>
+                  <%= player_active ? bk2_inning_running : "" %>
+                <%- else %>
+                  <%= player_active ? table_monitor.data[player_id].andand["innings_redo_list"].andand[-1] : "" %>
+                <%- end %>
+              </span>
             </div>
             <div class="text-<%= vw2 %>">
               <%- to_play = player[:balls_goal].to_i - (player[:result].to_i + Array(table_monitor.data[player_id].andand["innings_redo_list"])[-1].to_i) %>
@@ -105,9 +135,13 @@ current_sets = player_key == "playera" ? options[:current_sets_a] : options[:cur
           </div>
           <div class="flex flex-col flex-1 text-right text-gray-500 text-<%= vw3 %> tracking-wide">
             <div class="flex-1 mb-1 goal" data-player="<%= player_id %>">
-              <%= t('goal') %>: <%= s = player[:balls_goal].to_i; s > 0 ? s : "no limit" %>
+              <%- if is_bk2 %>
+                <%= t('goal') %>: <%= bk2_set_target > 0 ? bk2_set_target : "?" %>
+              <%- else %>
+                <%= t('goal') %>: <%= s = player[:balls_goal].to_i; s > 0 ? s : "no limit" %>
+              <%- end %>
             </div>
-            <% unless table_monitor.discipline == "Biathlon" %>
+            <% unless table_monitor.discipline == "Biathlon" || is_bk2 %>
               <div class="flex-1 mb-1"><%= t('gd') %>: <%= player[:gd] %></div>
               <div class="flex-1">HS: <%= player[:hs] %></div>
             <%- end %>
@@ -120,9 +154,13 @@ current_sets = player_key == "playera" ? options[:current_sets_a] : options[:cur
         <%- else %>
           <div class="flex flex-col flex-1 text-left text-gray-500 text-<%= vw3 %> tracking-wide">
             <div class="flex-1 mb-1 goal" data-player="<%= player_id %>">
-              <%= t('goal') %>: <%= s = player[:balls_goal].to_i; s > 0 ? s : "no limit" %>
+              <%- if is_bk2 %>
+                <%= t('goal') %>: <%= bk2_set_target > 0 ? bk2_set_target : "?" %>
+              <%- else %>
+                <%= t('goal') %>: <%= s = player[:balls_goal].to_i; s > 0 ? s : "no limit" %>
+              <%- end %>
             </div>
-            <% unless table_monitor.discipline == "Biathlon" %>
+            <% unless table_monitor.discipline == "Biathlon" || is_bk2 %>
               <div class="flex-1 mb-1"><%= t('gd') %>: <%= player[:gd] %></div>
               <div class="flex-1"> HS: <%= player[:hs] %></div>
             <%- end %>
@@ -134,7 +172,13 @@ current_sets = player_key == "playera" ? options[:current_sets_a] : options[:cur
           </div>
           <div class="flex-1 text-right font-bold text-red-400">
             <div class="text-<%= vw8 %> p-4">
-              <span class="inning-score" data-player="<%= player_id %>"><%= player_active ? table_monitor.data[player_id].andand["innings_redo_list"].andand[-1] : "" %></span>
+              <span class="inning-score" data-player="<%= player_id %>">
+                <%- if is_bk2 %>
+                  <%= player_active ? bk2_inning_running : "" %>
+                <%- else %>
+                  <%= player_active ? table_monitor.data[player_id].andand["innings_redo_list"].andand[-1] : "" %>
+                <%- end %>
+              </span>
             </div>
             <div class="text-<%= vw2 %>">
               <%- to_play = player[:balls_goal].to_i > 0 ? player[:balls_goal].to_i - (player[:result].to_i + Array(table_monitor.data[player_id].andand["innings_redo_list"])[-1].to_i) : 9999 %>
@@ -148,8 +192,11 @@ current_sets = player_key == "playera" ? options[:current_sets_a] : options[:cur
           </div>
         <%- end %>
       </div>
-      <%= content_tag "div", class: "flex h-4/6 text-center text-#{vw24} justify-center items-center font-bold score-display", title: player_key, style: "letter-spacing: -5px;", tabindex: 1, data: { player: player_id, score: player[:result].to_i + table_monitor.data[player_id].andand["innings_redo_list"].andand[-1].to_i } do %>
-        <%- if options['free_game_form'] == 'pool' && player["discipline"] != "14.1 endlos" %>
+      <%- score_data_value = is_bk2 ? bk2_display_score : (player[:result].to_i + table_monitor.data[player_id].andand["innings_redo_list"].andand[-1].to_i) %>
+      <%= content_tag "div", class: "flex h-4/6 text-center text-#{vw24} justify-center items-center font-bold score-display", title: player_key, style: "letter-spacing: -5px;", tabindex: 1, data: { player: player_id, score: score_data_value } do %>
+        <%- if is_bk2 %>
+          <span class="main-score" data-player="<%= player_id %>"><%= bk2_display_score %></span>
+        <%- elsif options['free_game_form'] == 'pool' && player["discipline"] != "14.1 endlos" %>
           <%= current_sets %>
         <%- else %>
           <span class="main-score" data-player="<%= player_id %>"><%= player[:result].to_i + table_monitor.data[player_id].andand["innings_redo_list"].andand[-1].to_i %></span>

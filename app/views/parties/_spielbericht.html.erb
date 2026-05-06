@@ -46,7 +46,7 @@
               <td><%= row[:game]&.player_a&.fullname %></td>
               <td>
                 <% if row[:game]&.data && row[:game].data["result"] %>
-                  <%= row[:game].data["result"]["Ergebnis:"] || row[:game].data["result"].values.join(" / ") %>
+                  <%= row[:game].data["result"]["Ergebnis:"] || row[:game].data["result"].values.join(" / ") %><%= tiebreak_indicator(row[:game]) %>
                 <% else %>
                   -
                 <% end %>
@@ -70,7 +70,7 @@
             <td><%= row[:game]&.player_a&.fullname %></td>
             <td>
               <% if row[:game]&.data && row[:game].data["result"] %>
-                <%= row[:game].data["result"]["Ergebnis:"] || row[:game].data["result"].values.join(" / ") %>
+                <%= row[:game].data["result"]["Ergebnis:"] || row[:game].data["result"].values.join(" / ") %><%= tiebreak_indicator(row[:game]) %>
               <% else %>
                 -
               <% end %>
