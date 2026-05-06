@@ -44,7 +44,7 @@ Phases 1-32 completed across six milestones. See `.planning/MILESTONES.md` for s
 **Milestone Goal:** Close the 5 Phase 36B UAT follow-up gaps (G-01, G-03, G-04, G-05, G-06) plus a Test 1 retest before they rot into larger debt. Two-phase warm-up milestone: Phase 38 handles the UX/i18n polish surface, Phase 39 reworks `Discipline#parameter_ranges` on top of the existing `discipline_tournament_plans` table (scope expanded out of Phase 38 during its discuss-phase).
 
 - [x] **Phase 38: UX Polish & i18n Debt** — Close 5 v7.1 requirements (dark-mode contrast, tooltip affordance, EN warmup translation, DE-only string audit on tournament views, Phase 36B Test 1 retest) in 2 plans (completed 2026-04-15)
-- [ ] **Phase 39: DTP-Backed Parameter Ranges** — Close DATA-01 by replacing the hardcoded `DISCIPLINE_PARAMETER_RANGES` constant with a `Discipline#parameter_ranges(tournament:)` method that queries the existing `discipline_tournament_plans` table; handles normal/reduced modes and `handicap_tournier=true` special case
+- [x] **Phase 39: DTP-Backed Parameter Ranges** — Close DATA-01 by replacing the hardcoded `DISCIPLINE_PARAMETER_RANGES` constant with a `Discipline#parameter_ranges(tournament:)` method that queries the existing `discipline_tournament_plans` table; handles normal/reduced modes and `handicap_tournier=true` special case (completed 2026-05-06)
 
 ## Phase Details
 
@@ -271,7 +271,7 @@ Phases execute in numeric order: 33 → 34 → 35 → 36a → 36b → 36c → 37
 | 38.5. BK-Param-Hierarchie + Multiset-Config | v7.1 | 6/6 | Complete    | 2026-04-29 |
 | 38.6. Discipline Master-Data Cleanup | v7.1 | 4/4 | Complete    | 2026-04-29 |
 | 38.8. Endergebnis-erfasst state restore | v7.1 | 6/6 | Complete    | 2026-05-01 |
-| 39. DTP-Backed Parameter Ranges | v7.1 | 1/2 | In Progress|  |
+| 39. DTP-Backed Parameter Ranges | v7.1 | 2/2 | Complete   | 2026-05-06 |
 
 **v7.0 total:** 7 phases, 31 plans, 37/37 requirements, ~2 weeks wall time.
 **v7.1 total (planned):** 4 phases, 12+TBD plans, 6+ requirements (5 in Phase 38, 1 in Phase 39, gap closure in 38.1/38.2).
@@ -282,7 +282,7 @@ Phases execute in numeric order: 33 → 34 → 35 → 36a → 36b → 36c → 37
 
 **Goal:** When a match has reached the final state (`Endergebnis erfasst`), surface a "Winner" label in the score panel and, for multi-set games, the per-set result. Captured during Phase 38.9 UAT (Test 3, BK-2 tiebreak path) — non-blocking UI polish; main BK-game paths run correctly without it.
 **Requirements:** TBD
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 **Source:** `.planning/phases/38.9-bk-2-end-of-set-anstoss-at-goal-fix-close-set-immediately-wh/38.9-HUMAN-UAT.md` Test 3 observation
 
 Plans:

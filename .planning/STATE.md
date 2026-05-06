@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v7.1
 milestone_name: UX Polish & i18n Debt
-status: executing
-stopped_at: Completed 39-01-PLAN.md
-last_updated: "2026-05-06T20:56:49.972Z"
+status: verifying
+stopped_at: "Completed 39-02-PLAN.md (Phase 39 closed: 2/2 plans, DATA-01 done)"
+last_updated: "2026-05-06T21:04:58.161Z"
 last_activity: 2026-05-06
 progress:
   total_phases: 12
-  completed_phases: 9
+  completed_phases: 10
   total_plans: 70
-  completed_plans: 68
-  percent: 97
+  completed_plans: 69
+  percent: 99
 ---
 
 # Project State
@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-04-15)
 
 Phase: 39 (dtp-backed-parameter-ranges) — EXECUTING
 Plan: 2 of 2
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-05-06
 
 Previous milestone archived at:
@@ -119,6 +119,7 @@ Decisions are logged in PROJECT.md Key Decisions table. Full v7.0 cross-phase de
 - [Phase 38.9]: Plan 01: 4th sub-branch added to TableMonitor#end_of_set? inside the existing Plan 38.7-02 D-02 bk_with_nachstoss block — closes BK-2 / BK-2kombi-SP set IMMEDIATELY when Anstoss reached balls_goal in inning >= 2 (Erste-Aufnahme-Gate close-side mirror of follow_up?:1205-1210). Reuses anstoss_role/anstoss_innings/anstoss_at_goal locals — zero recomputation. SKILL extend-before-build honored. Latent defect introduced commit 79328663 closed; no regressions in 21/21 table_monitor_test + 4/4 tiebreak_test + 4/4 final_match_score_operator_gate_test. 19 pre-existing bk2_scoreboard_test failures verified pre-existing at parent commit cfee5962 (stale Bk2::CommitInning + stale BK2-Kombi regexes from Phase 38.5/38.6); deferred to deferred-items.md per scope-boundary rule.
 - [Phase 39]: Plan 01: PLAYER_CLASS_ORDER constant on Discipline (D-04); REDUCED_FACTOR=0.75 (D-07 corrects Phase 38 D-20 stale 0.80); 9 tests landed (8 typed D-16/RQ + 1 defensive regression vs. AC text 'exactly 8' which undercounted by 1)
 - [Phase 39]: Plan 01: Caller break is intentional Wave-1/Wave-2 hand-off — tournaments_controller.rb:1026 still calls parameter_ranges (no-arg) and will RAISE on tournament-start until Plan 39-02 lands. Plan 39-02 is the unblock-production-deploy gate.
+- [Phase 39]: Plan 02: parameter_ranges keyword-arg migration unblocks production tournament-start (Plan 01's Wave-1/Wave-2 hand-off closed); UI_07_FIELDS narrowed 7→2; UI_07_SENTINEL_VALUES + sentinel guard + 7-test integration regression file all deleted as dead code per D-12+D-13+RQ-04; system test rewired to deterministic Phase 39 fixture lookup + 3 new no-fire tests for non-DTP/handicap/no-plan.
 
 ### Roadmap Evolution
 
@@ -196,6 +197,6 @@ See `HISTORY.md` for the chronological ledger of completed quick tasks (with com
 
 ## Session Continuity
 
-Last session: 2026-05-06T20:56:39.859Z
-Stopped at: Completed 39-01-PLAN.md
+Last session: 2026-05-06T21:04:58.155Z
+Stopped at: Completed 39-02-PLAN.md (Phase 39 closed: 2/2 plans, DATA-01 done)
 Resume: `/gsd-discuss-phase` für die Spec-Implementation starten — Spec-Doc lesen, Phase scopen (v7.2 oder v7.1-closure 38.10), 9 Plan-Sketches in Spec Section 9 als Ausgangspunkt nutzen. Parallel: bei nächstem Tournament die 4 deferred Phase-38.7-Items abhaken. Bug-A separat triagieren (Quick-Task oder `/gsd-debug`).
