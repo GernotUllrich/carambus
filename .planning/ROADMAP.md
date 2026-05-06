@@ -271,7 +271,7 @@ Phases execute in numeric order: 33 → 34 → 35 → 36a → 36b → 36c → 37
 | 38.5. BK-Param-Hierarchie + Multiset-Config | v7.1 | 6/6 | Complete    | 2026-04-29 |
 | 38.6. Discipline Master-Data Cleanup | v7.1 | 4/4 | Complete    | 2026-04-29 |
 | 38.8. Endergebnis-erfasst state restore | v7.1 | 6/6 | Complete    | 2026-05-01 |
-| 39. DTP-Backed Parameter Ranges | v7.1 | 2/2 | Complete   | 2026-05-06 |
+| 39. DTP-Backed Parameter Ranges | v7.1 | 2/2 | Complete    | 2026-05-06 |
 
 **v7.0 total:** 7 phases, 31 plans, 37/37 requirements, ~2 weeks wall time.
 **v7.1 total (planned):** 4 phases, 12+TBD plans, 6+ requirements (5 in Phase 38, 1 in Phase 39, gap closure in 38.1/38.2).
