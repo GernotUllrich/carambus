@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v7.1
 milestone_name: UX Polish & i18n Debt
-status: verified
-stopped_at: Human-UAT für Phase 38.7 / 38.8 / 38.9 abgeschlossen (11/11 UAT-Tasks PASS auf BCW dev server). VERIFICATION.md-Frontmatter aller 3 Phasen auf status=verified geflippt; 4 Phase-38.7 Items deferred. Neuer Backlog-Todo Bug-A (Detail-Form Mehrsatzspiel persistiert sets_to_win/sets_to_play nicht). Canonical Spec für BK-Family Tiebreak + Nachstoß authored (.planning/specs/2026-05-06-bk-tiebreak-nachstoss.md) — supersedes mehrere Phase-38.4-Decisions; Implementation als neue Phase pending. Bug-B durch die Spec resolved (Tiebreak ist strukturell — must_be_decided? = playing_finals? OR multi_set? — diziplin-agnostisch; Plain BK-2 Multi-Set Training tied → Tiebreak; Single-Set Training tied → Remis; BK-2kombi hat KEINEN Nachstoß).
-last_updated: "2026-05-06T20:00:00.000Z"
-last_activity: 2026-05-06
+status: completed
+stopped_at: Phase 39 context gathered
+last_updated: "2026-05-06T19:53:16.148Z"
+last_activity: "2026-05-06 - **Quick task 260506-pha closes Layer 3 — Region picker submenu** (commit `4568b2a0`). User interrupted plan iter 1 (presence-guard approach was wrong — Migration link must let admin PICK a Region). Iter 2 revised to nested-submenu picker matching existing Sidebar pattern; iterates `Region.order(:shortname, :name)`, each Region gets its own migration link. New integration test `test/integration/left_nav_system_admin_test.rb` (3/3 green, 15 assertions). 36B-06 still 4/4; integration suite 21/21. **Today's full chain (7 quick tasks, 11 production fixes):** 260506-hka (PRG) → i6h (fixture FK + 36B-05) → k3t (DEFERRED-BLOCKERs + AASM persistence) → lii (halted, 3-layer diagnosis) → me5 (3/4 with local/global-aware fix) → o93 (4/4 victory) → pha (Layer 3 picker). bcw now at HEAD `4568b2a0`; 2 unpushed commits in bcw (`4568b2a0` + the docs commit being made). Other checkouts 17 commits behind from this morning's earlier push."
 progress:
-  total_phases: 11
-  completed_phases: 10
+  total_phases: 12
+  completed_phases: 9
   total_plans: 68
   completed_plans: 67
-  percent: 91
+  percent: 99
 ---
 
 # Project State
@@ -194,6 +194,6 @@ See `HISTORY.md` for the chronological ledger of completed quick tasks (with com
 
 ## Session Continuity
 
-Last session: 2026-05-06T20:00:00.000Z
-Stopped at: 2026-05-06 — Human-UAT-Session abgeschlossen (11/11 UAT-Tasks PASS auf BCW dev server port 3007). VERIFICATION.md-Frontmatter aller 3 Phasen 38.7/38.8/38.9 auf `status: verified` geflippt. 4 Phase-38.7-Items deferred (TR-A / TR-Mob / TR-Loc / Plan 12 persist). Bug-A im Backlog (Detail-Form Mehrsatzspiel-Toggle persistiert sets_to_win/sets_to_play nicht). Bug-B durch user-gestated Canonical Spec resolved und im Repo abgelegt (`.planning/specs/2026-05-06-bk-tiebreak-nachstoss.md`); Implementation-Backlog-Todo verlinkt. Spec supersedes Phase 38.4 D-13 + Plans 11/12/13 + Phase 38.7-02 D-02 + Phase 38.7 Plan 11 (Gap-03 wird generalisiert).
+Last session: 2026-05-06T19:53:16.144Z
+Stopped at: Phase 39 context gathered
 Resume: `/gsd-discuss-phase` für die Spec-Implementation starten — Spec-Doc lesen, Phase scopen (v7.2 oder v7.1-closure 38.10), 9 Plan-Sketches in Spec Section 9 als Ausgangspunkt nutzen. Parallel: bei nächstem Tournament die 4 deferred Phase-38.7-Items abhaken. Bug-A separat triagieren (Quick-Task oder `/gsd-debug`).
