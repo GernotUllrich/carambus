@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v7.1
 milestone_name: UX Polish & i18n Debt
 status: verified
-stopped_at: Human-UAT für Phase 38.7 / 38.8 / 38.9 abgeschlossen (11/11 UAT-Tasks PASS auf BCW dev server). VERIFICATION.md-Frontmatter aller 3 Phasen auf status=verified geflippt; 4 Phase-38.7 Items deferred (TR-A / TR-Mob / TR-Loc / Plan 12 persist — alle warten auf Tournament-Setup oder Production-Deploy). Neuer Backlog-Todo Bug-A (Detail-Form Mehrsatzspiel persistiert sets_to_win/sets_to_play nicht).
-last_updated: "2026-05-06T19:35:00.000Z"
+stopped_at: Human-UAT für Phase 38.7 / 38.8 / 38.9 abgeschlossen (11/11 UAT-Tasks PASS auf BCW dev server). VERIFICATION.md-Frontmatter aller 3 Phasen auf status=verified geflippt; 4 Phase-38.7 Items deferred. Neuer Backlog-Todo Bug-A (Detail-Form Mehrsatzspiel persistiert sets_to_win/sets_to_play nicht). Canonical Spec für BK-Family Tiebreak + Nachstoß authored (.planning/specs/2026-05-06-bk-tiebreak-nachstoss.md) — supersedes mehrere Phase-38.4-Decisions; Implementation als neue Phase pending. Bug-B durch die Spec resolved (Tiebreak ist strukturell — must_be_decided? = playing_finals? OR multi_set? — diziplin-agnostisch; Plain BK-2 Multi-Set Training tied → Tiebreak; Single-Set Training tied → Remis; BK-2kombi hat KEINEN Nachstoß).
+last_updated: "2026-05-06T20:00:00.000Z"
 last_activity: 2026-05-06
 progress:
   total_phases: 11
@@ -194,6 +194,6 @@ See `HISTORY.md` for the chronological ledger of completed quick tasks (with com
 
 ## Session Continuity
 
-Last session: 2026-05-06T19:35:00.000Z
-Stopped at: 2026-05-06 — Human-UAT-Session abgeschlossen (11/11 UAT-Tasks PASS auf BCW dev server port 3007 mit fresh production snapshot). VERIFICATION.md-Frontmatter aller 3 Phasen 38.7/38.8/38.9 auf `status: verified` geflippt; `human_verification_resolved` blocks dokumentieren jeden Test mit Resolution-Notiz. 4 Phase-38.7-Items deferred: TR-A (Karambol-Liga tournament-driven), TR-Mob (Production-Deploy + reales Phone), TR-Loc (Quick-Start-Page erzwingt DE-Locale), Plan 12 Tournament.data persist on real local server. Bug-A im Backlog: Detail-Form "Mehrsatzspiel"-Toggle persistiert `sets_to_win`/`sets_to_play` nicht (entdeckt während TR-B Erstversuch). Bug-B (plain BK-2 Training-Tiebreak dismantled per 2026-05-05 Quick-260505-fbb/auq) als offene Spec-Frage später zu klären.
-Resume: Bei nächstem Tournament-Setup die 4 deferred Phase-38.7-Items abhaken. Bug-A triagieren (`/gsd-debug` oder Quick-Task) — Detail-Form Multi-Set-Toggle reparieren. Bug-B Spec-Entscheidung treffen (strict / per-discipline / operator-wahl) und entweder schließen oder Phase einsetzen. Backlog 999.1 / 999.2 sind weiterhin leer — wenn relevant, `/gsd-discuss-phase 999.1` oder `/gsd-discuss-phase 999.2`.
+Last session: 2026-05-06T20:00:00.000Z
+Stopped at: 2026-05-06 — Human-UAT-Session abgeschlossen (11/11 UAT-Tasks PASS auf BCW dev server port 3007). VERIFICATION.md-Frontmatter aller 3 Phasen 38.7/38.8/38.9 auf `status: verified` geflippt. 4 Phase-38.7-Items deferred (TR-A / TR-Mob / TR-Loc / Plan 12 persist). Bug-A im Backlog (Detail-Form Mehrsatzspiel-Toggle persistiert sets_to_win/sets_to_play nicht). Bug-B durch user-gestated Canonical Spec resolved und im Repo abgelegt (`.planning/specs/2026-05-06-bk-tiebreak-nachstoss.md`); Implementation-Backlog-Todo verlinkt. Spec supersedes Phase 38.4 D-13 + Plans 11/12/13 + Phase 38.7-02 D-02 + Phase 38.7 Plan 11 (Gap-03 wird generalisiert).
+Resume: `/gsd-discuss-phase` für die Spec-Implementation starten — Spec-Doc lesen, Phase scopen (v7.2 oder v7.1-closure 38.10), 9 Plan-Sketches in Spec Section 9 als Ausgangspunkt nutzen. Parallel: bei nächstem Tournament die 4 deferred Phase-38.7-Items abhaken. Bug-A separat triagieren (Quick-Task oder `/gsd-debug`).
