@@ -60,7 +60,13 @@ local:
   # raises NoMethodError on @tournament.tournament_plan.rulesystem. t04_5 is an
   # existing fixture (id 50_000_100, "T04", rulesystem + more_description present).
   tournament_plan_id: 50_000_100
-  state: "registration"
+  # AASM correctness (quick-260506-k3t): start_tournament! transitions from
+  # %i[tournament_started tournament_mode_defined tournament_started_waiting_for_monitors]
+  # per app/models/tournament.rb:290-292. Test setup gate at
+  # tournament_parameter_verification_test.rb:29 excludes tournament_started, so
+  # tournament_mode_defined is the only viable pre-start state for tests 3+4.
+  # ("registration" was a stray label not in the AASM state list.)
+  state: "tournament_mode_defined"
   date: <%= 2.weeks.from_now %>
   created_at: <%= 1.month.ago %>
   updated_at: <%= 1.day.ago %>
