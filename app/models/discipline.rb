@@ -48,57 +48,75 @@ class Discipline < ApplicationRecord
     self.synonyms = (synonyms.to_s.split("\n") + [name]).uniq.join("\n")
   end
 
-  # UI-07 D-17: Parameter-Bereiche pro Disziplin für die Verifikations-
-  # Abfrage vor dem Turnierstart. Key = Attributname (Symbol), Value = Range.
-  # Erste Implementierung mit fest kodierten Werten — später auslagerbar
-  # (z. B. in eine Tabelle discipline_parameter_ranges).
-  #
-  # Shared default keys (timeouts, warmup, set counts) are identical across
-  # disciplines for the first pass; only balls_goal / innings_goal / timeout
-  # differ. We factor the shared part out to keep the constant readable and
-  # standardrb-clean.
-  UI_07_SHARED_RANGES = {
-    time_out_warm_up_first_min: 1..10,
-    time_out_warm_up_follow_up_min: 0..5,
-    sets_to_play: 1..7,
-    sets_to_win: 1..4
-  }.freeze
+  # Phase 39 D-04: Player-Klassen-Ordnung (worst → best). Walk-Richtung im
+  # Class-Fallback (D-05) ist aufsteigend = strenger (bessere Klasse).
+  # Zahlen (Karambol klein: 7..1) und römische Zahlen (Karambol groß: I..III)
+  # koexistieren; in der Live-DB mischt keine Disziplin beide Sätze.
+  PLAYER_CLASS_ORDER = %w[7 6 5 4 3 2 1 I II III].freeze
 
-  # 2026-04-27: Bounds aggressiv geweitet (Tippfehler-Filter, kein Plausibilitätscheck).
-  # Zuvor zu eng — Tournament 17411 (Dreiband klein, balls_goal=100, innings_goal=20)
-  # löste das Modal trotz völlig normaler Werte aus. Phase 39 (DTP-Backed Parameter
-  # Ranges) ersetzt diese Konstante durch context-aware Lookups aus
-  # discipline_tournament_plans; bis dahin sollen die Bounds nur echte Eingabefehler
-  # (z. B. balls_goal=10000) abfangen, nicht reale Wettkampfwerte.
-  UI_07_DISCIPLINE_SPECIFIC_RANGES = {
-    "Freie Partie" => {balls_goal: 50..1000, innings_goal: 5..200, timeout: 30..90},
-    "Freie Partie klein" => {balls_goal: 50..1000, innings_goal: 5..200, timeout: 30..90},
-    "Freie Partie groß" => {balls_goal: 50..1000, innings_goal: 5..200, timeout: 30..90},
-    "Cadre 47/1" => {balls_goal: 30..400, innings_goal: 10..150, timeout: 30..90},
-    "Cadre 47/2" => {balls_goal: 30..400, innings_goal: 10..150, timeout: 30..90},
-    "Cadre 71/2" => {balls_goal: 30..400, innings_goal: 10..150, timeout: 30..90},
-    "Cadre 35/2" => {balls_goal: 30..400, innings_goal: 10..150, timeout: 30..90},
-    "Cadre 52/2" => {balls_goal: 30..400, innings_goal: 10..150, timeout: 30..90},
-    "Einband" => {balls_goal: 30..400, innings_goal: 10..200, timeout: 30..90},
-    "Einband klein" => {balls_goal: 30..400, innings_goal: 10..200, timeout: 30..90},
-    "Einband groß" => {balls_goal: 30..400, innings_goal: 10..200, timeout: 30..90},
-    "Dreiband" => {balls_goal: 10..150, innings_goal: 10..150, timeout: 30..90},
-    "Dreiband klein" => {balls_goal: 10..150, innings_goal: 10..150, timeout: 30..90},
-    "Dreiband groß" => {balls_goal: 10..150, innings_goal: 10..150, timeout: 30..90},
-    "5-Kegel-Billard" => {balls_goal: 30..500, innings_goal: 5..200, timeout: 30..120}
-  }.freeze
+  # Phase 39 D-07: Operator-getroffene Reduktion (Standard-Praxis: 80/20 → 60/15).
+  REDUCED_FACTOR = 0.75
 
-  DISCIPLINE_PARAMETER_RANGES =
-    UI_07_DISCIPLINE_SPECIFIC_RANGES
-      .transform_values { |specific| UI_07_SHARED_RANGES.merge(specific) }
-      .freeze
+  # Phase 39: Liefert Hash{ balls_goal: Range, innings_goal: Range } basierend auf
+  # DTP-Daten (Disziplin + tournament_plan + players + player_class).
+  # Liefert {} bei:
+  #   - tournament.handicap_tournier == true            (D-11)
+  #   - tournament.tournament_plan == nil               (D-16f, defensiv)
+  #   - tournament.player_class blank/nil               (RQ-03, defensiv)
+  #   - Disziplin ohne DTP-Eintrag                      (D-10)
+  #   - Class-Walk endet ohne Treffer                   (D-05 Endpunkt)
+  #   - Matched DTP-Row hat points=0 AND innings=0      (RQ-01, Cup-series)
+  def parameter_ranges(tournament:)
+    return {} if tournament.handicap_tournier
+    return {} if tournament.tournament_plan_id.nil?
+    return {} if tournament.player_class.blank?
 
-  # UI-07 D-17: Liefert ein Hash mit Field -> Range für die UI-07 Pre-Start-
-  # Verifikation. Unbekannte Disziplinen bekommen ein leeres Hash — der
-  # Controller interpretiert das als "keine Prüfung" (keine Exception).
-  def parameter_ranges
-    DISCIPLINE_PARAMETER_RANGES[name.to_s] || {}
+    dtp = lookup_dtp_with_class_walk(tournament)
+    return {} if dtp.nil?
+
+    balls_range = range_from_canonical(dtp.points)
+    innings_range = range_from_canonical(dtp.innings)
+    return {} if balls_range.nil? && innings_range.nil?
+
+    ranges = {}
+    ranges[:balls_goal] = balls_range if balls_range
+    ranges[:innings_goal] = innings_range if innings_range
+    ranges
   end
+
+  private
+
+  # D-05: Exakter Class-Match zuerst, dann Walk in Richtung "höher" (besser).
+  def lookup_dtp_with_class_walk(tournament)
+    base_scope = discipline_tournament_plans
+      .where(tournament_plan_id: tournament.tournament_plan_id)
+      .where(players: tournament.seedings.count)
+
+    # D-05 Schritt 1: exakter Class-Match.
+    exact = base_scope.find_by(player_class: tournament.player_class)
+    return exact if exact
+
+    # D-05 Schritt 2: Walk in Richtung besser durch PLAYER_CLASS_ORDER.
+    starting_index = PLAYER_CLASS_ORDER.index(tournament.player_class.to_s)
+    return nil unless starting_index
+
+    PLAYER_CLASS_ORDER[(starting_index + 1)..].each do |candidate|
+      hit = base_scope.find_by(player_class: candidate)
+      return hit if hit
+    end
+    nil
+  end
+
+  # D-08 Lenient-OR-Modus: Range = (canonical * 0.75).floor .. canonical.
+  # RQ-01: canonical == 0 → nil (Cup-series Petit/Grand Prix + Nordcup; bedeutet
+  # "kein Score-Target auf TournamentPlan-Ebene — wird pro Discipline-Tournament
+  # in der Cup-Serie definiert").
+  def range_from_canonical(canonical)
+    return nil if canonical.to_i.zero?
+    ((canonical * REDUCED_FACTOR).floor..canonical)
+  end
+
+  public
 
   # Translation map for international frontend
   TRANSLATIONS = {
