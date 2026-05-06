@@ -18,34 +18,16 @@ class TournamentsController < ApplicationController
                                                add_player_by_dbu use_clubcloud_as_participants update_seeding_position
                                                recalculate_groups]
 
-  # UI-07 D-18: Felder, die vor dem Turnierstart gegen
+  # UI-07 D-18 / Phase 39 D-12: Felder, die vor dem Turnierstart gegen
   # Discipline#parameter_ranges geprüft werden. Reihenfolge matcht die
-  # Anzeige im Start-Formular, damit der Nutzer Ausreißer in derselben
-  # Reihenfolge sieht. CLASS-LEVEL Konstante (Ruby verbietet dynamische
-  # Konstanten-Zuweisung in Methoden-Bodies).
+  # Anzeige im Start-Formular. Phase 39 hat 5 operator-eingegebene Felder
+  # (timeout, sets_to_*, time_out_warm_up_*) entfernt — diese kommen aus
+  # der Turnier-Einladung, nicht aus Master-Daten, und werden nicht mehr
+  # System-verifiziert.
   UI_07_FIELDS = %i[
     balls_goal
     innings_goal
-    timeout
-    time_out_warm_up_first_min
-    time_out_warm_up_follow_up_min
-    sets_to_play
-    sets_to_win
   ].freeze
-
-  # UI-07 Layer-4 fix (quick-260506-o93): sentinel values that the
-  # tournament_monitor form intentionally offers but that fall OUTSIDE
-  # Discipline#parameter_ranges. These must be exempt from the range
-  # check in verify_tournament_start_parameters. Cross-reference:
-  #   app/views/tournaments/tournament_monitor.html.erb:139, 142
-  #   - sets_to_play select: ["-", 0], [2..7], ["no limit", 999]
-  #   - sets_to_win  select: ["-", 0], [2..4]
-  # `0` = "not set / single-set mode", `999` = "no limit" — both
-  # legitimate operator choices, NOT data-entry typos.
-  UI_07_SENTINEL_VALUES = {
-    sets_to_play: [0, 999].freeze,
-    sets_to_win: [0].freeze
-  }.freeze
 
   # GET /tournaments
   def index
@@ -1023,7 +1005,7 @@ class TournamentsController < ApplicationController
   #   [{ field: :balls_goal, value: 9999, range: (50..500),
   #      label: "Bälle-Ziel" }, ...]
   def verify_tournament_start_parameters(tournament, raw_params)
-    ranges = tournament.discipline&.parameter_ranges || {}
+    ranges = tournament.discipline&.parameter_ranges(tournament: tournament) || {}
     return [] if ranges.empty?
 
     UI_07_FIELDS.each_with_object([]) do |field, failures|
@@ -1034,9 +1016,6 @@ class TournamentsController < ApplicationController
       next if raw.nil? || raw.to_s.strip.empty?
 
       value = raw.to_i
-      # UI-07 Layer-4 (quick-260506-o93): exempt form sentinel values
-      # ("-"=0 not set / "no limit"=999) — see UI_07_SENTINEL_VALUES.
-      next if (UI_07_SENTINEL_VALUES[field] || []).include?(value)
       next if range.cover?(value)
 
       failures << {
