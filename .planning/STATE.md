@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v7.1
 milestone_name: UX Polish & i18n Debt
-status: verifying
-stopped_at: Completed 38.9-01-end-of-set-fourth-branch-PLAN.md (4th BK-2 sub-branch in end_of_set?, 2 RED-then-GREEN tests; latent defect 79328663 closed; phase 38.9 ready for /gsd-verify-work)
-last_updated: "2026-05-05T14:00:00.000Z"
-last_activity: 2026-05-05
+status: verified
+stopped_at: Human-UAT für Phase 38.7 / 38.8 / 38.9 abgeschlossen (11/11 UAT-Tasks PASS auf BCW dev server). VERIFICATION.md-Frontmatter aller 3 Phasen auf status=verified geflippt; 4 Phase-38.7 Items deferred (TR-A / TR-Mob / TR-Loc / Plan 12 persist — alle warten auf Tournament-Setup oder Production-Deploy). Neuer Backlog-Todo Bug-A (Detail-Form Mehrsatzspiel persistiert sets_to_win/sets_to_play nicht).
+last_updated: "2026-05-06T19:35:00.000Z"
+last_activity: 2026-05-06
 progress:
   total_phases: 11
   completed_phases: 10
@@ -194,6 +194,6 @@ See `HISTORY.md` for the chronological ledger of completed quick tasks (with com
 
 ## Session Continuity
 
-Last session: 2026-05-04T22:26:00.000Z
-Stopped at: 2026-05-04 - Completed quick task 260505-0b5: CR-02 sentinel restored narrow-scoped per-TM. Phase 38.7 UAT Test 5 now unblocked — operator can retry tied finals "Nächstes Spiel" without recursion crash.
-Resume: Sanity-check Tournament[17416] / TournamentMonitor[50000028] state (savepoints all rolled back; verify current_round + rankings consistency in console), then retry Phase 38.7 UAT Test 5 (TR-A Karambol-Liga tied tiebreak). After Tests 5–10 pass: `/gsd-verify-phase 38.7`, then `/gsd-verify-phase 38.8` and `/gsd-verify-phase 38.9`.
+Last session: 2026-05-06T19:35:00.000Z
+Stopped at: 2026-05-06 — Human-UAT-Session abgeschlossen (11/11 UAT-Tasks PASS auf BCW dev server port 3007 mit fresh production snapshot). VERIFICATION.md-Frontmatter aller 3 Phasen 38.7/38.8/38.9 auf `status: verified` geflippt; `human_verification_resolved` blocks dokumentieren jeden Test mit Resolution-Notiz. 4 Phase-38.7-Items deferred: TR-A (Karambol-Liga tournament-driven), TR-Mob (Production-Deploy + reales Phone), TR-Loc (Quick-Start-Page erzwingt DE-Locale), Plan 12 Tournament.data persist on real local server. Bug-A im Backlog: Detail-Form "Mehrsatzspiel"-Toggle persistiert `sets_to_win`/`sets_to_play` nicht (entdeckt während TR-B Erstversuch). Bug-B (plain BK-2 Training-Tiebreak dismantled per 2026-05-05 Quick-260505-fbb/auq) als offene Spec-Frage später zu klären.
+Resume: Bei nächstem Tournament-Setup die 4 deferred Phase-38.7-Items abhaken. Bug-A triagieren (`/gsd-debug` oder Quick-Task) — Detail-Form Multi-Set-Toggle reparieren. Bug-B Spec-Entscheidung treffen (strict / per-discipline / operator-wahl) und entweder schließen oder Phase einsetzen. Backlog 999.1 / 999.2 sind weiterhin leer — wenn relevant, `/gsd-discuss-phase 999.1` oder `/gsd-discuss-phase 999.2`.
