@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-04-15)
 Phase: 999.1
 Plan: Not started
 Status: Phase complete — ready for verification
-Last activity: 2026-05-06
+Last activity: 2026-05-07 — Completed quick task 260507-24p: Phase-39 Gap-01 fix (Discipline#lookup_dtp_with_class_walk now filters seedings by Seeding::MIN_ID via smart-fallback pattern; UAT Tests 2-7 unblocked)
 
 Previous milestone archived at:
 
