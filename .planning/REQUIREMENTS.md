@@ -41,7 +41,7 @@ All 6 requirements are small, independently shippable. Phase 38 covers 5 of them
 
 ### Data Model Tuning
 
-- [ ] **DATA-01** *(moved to Phase 39 — see §"Phase 39: DTP-Backed Parameter Ranges" in ROADMAP.md)*: `Discipline#parameter_ranges` is wide enough for real-world usage without false-positive warnings from the Phase 36B parameter verification modal. Youth, handicap, pool, snooker, biathlon, and kegel disciplines either have explicit range entries or are covered by the DTP-backed lookup. Verification modal no longer fires on legitimate tournament configurations.
+- [x] **DATA-01** *(moved to Phase 39 — see §"Phase 39: DTP-Backed Parameter Ranges" in ROADMAP.md)*: `Discipline#parameter_ranges` is wide enough for real-world usage without false-positive warnings from the Phase 36B parameter verification modal. Youth, handicap, pool, snooker, biathlon, and kegel disciplines either have explicit range entries or are covered by the DTP-backed lookup. Verification modal no longer fires on legitimate tournament configurations.
   - **Phase 38 discuss-phase finding:** the existing `discipline_tournament_plans` table already holds canonical `points`/`innings`/`players`/`player_class` per discipline+tournament_plan combination (12 disciplines populated: Karambol variants + Petit/Grand Prix + Nordcup). A widen of the hardcoded `DISCIPLINE_PARAMETER_RANGES` constant is therefore the wrong fix — the right fix queries DTPs. This is significantly larger than "widen hardcoded constants" and has been promoted to **Phase 39**.
   - Fix direction (from Phase 38 CONTEXT.md D-19..D-21): `Discipline#parameter_ranges(tournament:)` queries `DisciplineTournamentPlan` by discipline + tournament_plan + players + player_class. Normal mode = exact-match Range; reduced mode = `(points*0.8).floor..points`. `handicap_tournier=true` skips innings check and widens/skips balls_goal (per-participant from participant list). Hardcoded fallback for Pool/Snooker/Kegel/Biathlon/5-Kegel disciplines with no DTP entry. Long-term nightly rake from historical data remains out of scope.
   - Source gap: G-06 (medium severity) — Phase 36B CONTEXT D-17 explicitly authorized the first-pass hardcoded approach as "first-pass; future refinement may move to a database column or config".
@@ -68,7 +68,7 @@ Which phases cover which requirements. Filled in by the roadmapper during `/gsd-
 | UX-POL-03 | Phase 38 | Complete |
 | I18N-01 | Phase 38 | Complete |
 | I18N-02 | Phase 38 | Complete |
-| DATA-01 | Phase 39 | Pending |
+| DATA-01 | Phase 39 | Complete |
 
 **Coverage:**
 - v7.1 requirements: 6 total
