@@ -61,3 +61,11 @@ This is a "why didn't the test catch it" postmortem item, not a
 feature change. The tightened test should be written to REPRODUCE the
 Stimulus scope bug first, then validated against the 5ef81ab0 fix to
 confirm it goes green.
+
+## Closure
+
+Resolved 2026-05-06 by quick task 260506-i6h. Fix: see
+`.planning/quick/260506-i6h-fix-tournament-discipline-test-fixtures-/260506-i6h-SUMMARY.md`
+and the corresponding commit. Key changes:
+  - test/fixtures/tournaments.yml :: local — explicit organizer_id/season_id columns + tournament_plan: t04_5
+  - test/system/tournament_reset_confirmation_test.rb — visit_tournament_or_skip: flunk-not-skip + has_css? skip removed; .hidden selector corrected to target root div; Stimulus scope guard added to test 1

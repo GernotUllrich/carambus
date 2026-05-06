@@ -43,10 +43,23 @@ wc_no_end_date:
 local:
   id: 50_000_001
   title: "Local Test Tournament"
-  season: current
-  organizer: nbv (Region)
+  # FK rot repair (260506-i6h): the fixture-relation syntax `season: current` /
+  # `organizer: nbv (Region)` does NOT resolve to seasons(:current).id (50_000_001) /
+  # regions(:nbv).id (50_000_001) — Rails hashes the labels to wrong IDs. Use
+  # explicit columns so tournament.organizer.shortname / .season.name resolve in
+  # views (see tournaments_controller_test.rb:69-79 for the historical workaround).
+  # Same hashing affects `discipline: carom_3band` and `tournament_plan: t04_5`
+  # (Rule 3 deviation discovered during 260506-i6h Task 2: id_hash 329867132 vs.
+  # actual disciplines(:carom_3band).id 50_000_001; id_hash 849969480 vs. actual
+  # tournament_plans(:t04_5).id 50_000_100). Use explicit IDs for these too.
+  season_id: 50_000_001
+  organizer_id: 50_000_001
   organizer_type: "Region"
-  discipline: carom_3band
+  discipline_id: 50_000_001
+  # Prong A (260506-i6h): without tournament_plan, tournament_monitor.html.erb:40
+  # raises NoMethodError on @tournament.tournament_plan.rulesystem. t04_5 is an
+  # existing fixture (id 50_000_100, "T04", rulesystem + more_description present).
+  tournament_plan_id: 50_000_100
   state: "registration"
   date: <%= 2.weeks.from_now %>
   created_at: <%= 1.month.ago %>
