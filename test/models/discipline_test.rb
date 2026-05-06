@@ -3,69 +3,101 @@
 require "test_helper"
 
 class DisciplineTest < ActiveSupport::TestCase
-  # UI-07 D-19: parameter_ranges must return a hash of field -> Range
-  # and must not raise on unknown disciplines.
+  # ---------------------------------------------------------------------
+  # Phase 39 D-16: parameter_ranges(tournament:) DTP-backed lookup
+  # ---------------------------------------------------------------------
 
-  UI_07_EXPECTED_KEYS = %i[
-    balls_goal
-    innings_goal
-    timeout
-    time_out_warm_up_first_min
-    time_out_warm_up_follow_up_min
-    sets_to_play
-    sets_to_win
-  ].freeze
-
-  def freie_partie_fixture
-    Discipline.find_by(name: "Freie Partie klein") ||
-      Discipline.find_by(name: "Freie Partie") ||
-      begin
-        disciplines(:discipline_freie_partie_klein)
-      rescue
-        nil
-      end
+  # D-16(a): exact DTP hit normal case.
+  # Fixture fpk_t04_5_class1: discipline=Freie Partie klein, plan=t04_5, players=5, class=1, points=250, innings=15.
+  # Range = ((250*0.75).floor..250) = (187..250); ((15*0.75).floor..15) = (11..15).
+  test "parameter_ranges returns reduced..canonical Range on exact DTP hit (D-16a)" do
+    tournament = tournaments(:local_fpk_class1)
+    discipline = disciplines(:discipline_freie_partie_klein)
+    ranges = discipline.parameter_ranges(tournament: tournament)
+    assert_equal(187..250, ranges[:balls_goal],
+      "D-16(a): balls_goal Range must be (250*0.75).floor..250 = 187..250")
+    assert_equal(11..15, ranges[:innings_goal],
+      "D-16(a): innings_goal Range must be (15*0.75).floor..15 = 11..15")
   end
 
-  test "parameter_ranges returns hash with expected keys for Freie Partie klein" do
-    d = freie_partie_fixture
-    skip "no Freie Partie discipline in fixtures" unless d
-
-    ranges = d.parameter_ranges
-    assert_instance_of Hash, ranges
-    UI_07_EXPECTED_KEYS.each do |k|
-      assert ranges.key?(k), "expected key #{k} in parameter_ranges"
-      assert_instance_of Range, ranges[k], "expected Range for #{k}, got #{ranges[k].class}"
-    end
+  # D-16(b): class-walk fallback. tournament.player_class="5" → no exact match,
+  # walks "5"→"4"→"3" → hits class "3" row (points=200, innings=12).
+  test "parameter_ranges walks PLAYER_CLASS_ORDER on class miss (D-16b)" do
+    tournament = tournaments(:local_fpk_class5_walks_to_3)
+    discipline = disciplines(:discipline_freie_partie_klein)
+    ranges = discipline.parameter_ranges(tournament: tournament)
+    assert_equal(150..200, ranges[:balls_goal],
+      "D-16(b): walk to class 3 must yield (200*0.75).floor..200 = 150..200")
+    assert_equal(9..12, ranges[:innings_goal],
+      "D-16(b): walk to class 3 must yield (12*0.75).floor..12 = 9..12")
   end
 
-  test "parameter_ranges includes sensible balls_goal for Freie Partie" do
-    d = freie_partie_fixture
-    skip "no Freie Partie discipline in fixtures" unless d
-
-    ranges = d.parameter_ranges
-    assert ranges[:balls_goal].cover?(100), "100 should be a valid balls_goal"
-    assert_not ranges[:balls_goal].cover?(10_000), "10_000 should be out of range"
+  # D-16(c): walk-miss. carom_3band has only class "1" DTP for plan t04_5.
+  # tournament.player_class="III" → walk goes off end of PLAYER_CLASS_ORDER → {}.
+  test "parameter_ranges returns empty hash when walk exhausts PLAYER_CLASS_ORDER (D-16c)" do
+    tournament = tournaments(:local_carom_classIII_walk_miss)
+    discipline = disciplines(:carom_3band)
+    assert_equal({}, discipline.parameter_ranges(tournament: tournament),
+      "D-16(c): walk past end of PLAYER_CLASS_ORDER must yield {}")
   end
 
-  test "parameter_ranges returns empty hash for unknown discipline name" do
-    d = Discipline.new(name: "TotallyFakeDisciplineName-#{SecureRandom.hex(4)}")
-    assert_nothing_raised do
-      result = d.parameter_ranges
-      assert_instance_of Hash, result
-      assert_empty result, "unknown discipline should yield an empty Hash"
-    end
+  # D-16(d): Non-DTP discipline. BK-2kombi has no DTP rows → {}.
+  test "parameter_ranges returns empty hash for non-DTP discipline (D-16d)" do
+    tournament = tournaments(:local_bk2kombi_non_dtp)
+    discipline = disciplines(:bk2_kombi)
+    assert_equal({}, discipline.parameter_ranges(tournament: tournament),
+      "D-16(d): discipline without any DTP rows must yield {}")
   end
 
-  test "parameter_ranges does not raise for any fixture discipline" do
-    Discipline.find_each do |d|
-      result =
-        begin
-          d.parameter_ranges
-        rescue => e
-          flunk "parameter_ranges raised for discipline id=#{d.id} name=#{d.name}: #{e.class}: #{e.message}"
+  # D-16(e): handicap_tournier=true short-circuits regardless of discipline/plan/class.
+  test "parameter_ranges returns empty hash for handicap_tournier=true (D-16e)" do
+    tournament = tournaments(:local_handicap)
+    discipline = disciplines(:discipline_freie_partie_klein)
+    assert_equal({}, discipline.parameter_ranges(tournament: tournament),
+      "D-16(e): handicap_tournier=true must yield {} (per-Seeding balls_goal, no innings limit)")
+  end
+
+  # D-16(f): tournament_plan_id=nil → defensive {}.
+  test "parameter_ranges returns empty hash when tournament has no plan (D-16f)" do
+    tournament = tournaments(:local_no_plan)
+    discipline = disciplines(:discipline_freie_partie_klein)
+    assert_equal({}, discipline.parameter_ranges(tournament: tournament),
+      "D-16(f): tournament_plan_id=nil must yield {} (defensive)")
+  end
+
+  # RQ-01: zero-canonical DTP row (points=0 AND innings=0) → {}.
+  # Cup-series semantics — Score-Target lives per-Discipline in individual Cup tournaments.
+  test "parameter_ranges returns empty hash on zero-canonical DTP row (RQ-01)" do
+    tournament = tournaments(:local_fpk_zero_canonical)
+    discipline = disciplines(:discipline_freie_partie_klein)
+    assert_equal({}, discipline.parameter_ranges(tournament: tournament),
+      "RQ-01: DTP points=0 AND innings=0 (Cup-series) must yield {}")
+  end
+
+  # RQ-03: blank player_class → {} immediately, no walk attempt.
+  test "parameter_ranges returns empty hash for blank player_class (RQ-03)" do
+    tournament = tournaments(:local_fpk_blank_class)
+    discipline = disciplines(:discipline_freie_partie_klein)
+    assert_equal({}, discipline.parameter_ranges(tournament: tournament),
+      "RQ-03: blank/empty player_class must yield {} (defensive symmetry with D-10/D-11)")
+  end
+
+  # Defensive regression: parameter_ranges must always return a Hash, never raise.
+  test "parameter_ranges returns Hash for every discipline + every relevant tournament fixture" do
+    tournament_fixture_keys = %i[
+      local_fpk_class1 local_fpk_class5_walks_to_3 local_carom_classIII_walk_miss
+      local_handicap local_no_plan local_fpk_zero_canonical local_fpk_blank_class
+      local_bk2kombi_non_dtp
+    ]
+    tournament_fixture_keys.each do |t_key|
+      Discipline.find_each do |d|
+        result = nil
+        assert_nothing_raised do
+          result = d.parameter_ranges(tournament: tournaments(t_key))
         end
-      assert result.is_a?(Hash),
-        "parameter_ranges must always return a Hash (got #{result.class} for id=#{d.id} name=#{d.name})"
+        assert_kind_of Hash, result,
+          "discipline=#{d.name} tournament=#{t_key} must return Hash (got #{result.class})"
+      end
     end
   end
 
@@ -130,9 +162,9 @@ class DisciplineTest < ActiveSupport::TestCase
   end
 
   test "ballziel_choices returns correct array from data" do
-    assert_equal [50, 60, 70],             disciplines(:bk2_kombi).ballziel_choices
-    assert_equal [50],                     disciplines(:bk50).ballziel_choices
-    assert_equal [100],                    disciplines(:bk100).ballziel_choices
+    assert_equal [50, 60, 70], disciplines(:bk2_kombi).ballziel_choices
+    assert_equal [50], disciplines(:bk50).ballziel_choices
+    assert_equal [100], disciplines(:bk100).ballziel_choices
     assert_equal [50, 60, 70, 80, 90, 100], disciplines(:bk_2).ballziel_choices
     assert_equal [50, 60, 70, 80, 90, 100], disciplines(:bk_2plus).ballziel_choices
   end
@@ -244,28 +276,5 @@ class DisciplineTest < ActiveSupport::TestCase
       "T-P5-bk2kombi: free_game_form must remain bk2_kombi"
     assert_equal [50, 60, 70], parsed["ballziel_choices"],
       "T-P5-bk2kombi: ballziel_choices must remain [50, 60, 70] (D-13 contract)"
-  end
-
-  # ---------------------------------------------------------------------------
-  # 2026-04-27: Anchor regression — Tournament 17411 (Dreiband klein) values
-  # 100/20 are real-world normal and MUST NOT trigger the UI-07 modal.
-  # Source: .planning/todos/done/2026-04-14-recalibrate-discipline-parameter-ranges-bounds.md
-  # ---------------------------------------------------------------------------
-
-  test "parameter_ranges accepts Tournament 17411 anchor (Dreiband klein 100/20)" do
-    ranges = Discipline::DISCIPLINE_PARAMETER_RANGES["Dreiband klein"]
-    assert ranges, "Dreiband klein must have parameter_ranges entry"
-    assert ranges[:balls_goal].cover?(100),
-      "balls_goal=100 must be valid for Dreiband klein (Tournament 17411 anchor)"
-    assert ranges[:innings_goal].cover?(20),
-      "innings_goal=20 must be valid for Dreiband klein (Tournament 17411 anchor)"
-  end
-
-  test "parameter_ranges still flags clearly-typo values" do
-    ranges = Discipline::DISCIPLINE_PARAMETER_RANGES["Dreiband klein"]
-    refute ranges[:balls_goal].cover?(10_000),
-      "balls_goal=10000 must be flagged (typo filter still active)"
-    refute ranges[:innings_goal].cover?(10_000),
-      "innings_goal=10000 must be flagged (typo filter still active)"
   end
 end
