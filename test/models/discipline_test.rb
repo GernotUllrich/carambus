@@ -43,6 +43,55 @@ class DisciplineTest < ActiveSupport::TestCase
       "Gap-01: innings_goal Range must match DTP players=5 (local count), not players=8 (raw count)")
   end
 
+  # Gap-01 defense-in-depth (quick 260507-24p): symmetric test — when a
+  # tournament has ONLY global seedings (id < MIN_ID, the central-API-server
+  # case), the smart fallback in effective_player_count must fall back to
+  # counting the global seedings. Without the else-branch, this test is RED.
+  #
+  # Mirrors the canonical fallback pattern from tournament_cc.rb:286.
+  test "parameter_ranges falls back to global seedings when no local seedings present (central API server case)" do
+    # Build a transient tournament + 5 global seedings entirely in test scope.
+    # LocalProtector is disabled in tests (LocalProtectorTestOverride in test_helper.rb).
+    central_api_tournament = Tournament.create!(
+      id: 9_500_001,                            # explicitly < Seeding::MIN_ID
+      title: "Central API FPK class 1 (Gap-01 fallback test)",
+      season_id: 50_000_001,
+      organizer_id: 50_000_001,
+      organizer_type: "Region",
+      discipline_id: 50_000_004,                # Freie Partie klein
+      tournament_plan_id: 50_000_100,           # t04_5 (5 players)
+      player_class: "1",
+      state: "tournament_mode_defined",
+      date: 2.weeks.from_now,
+      handicap_tournier: false
+    )
+
+    5.times do |i|
+      Seeding.create!(
+        id: 9_500_100 + i,                      # all < Seeding::MIN_ID
+        player_id: [50_001_001, 50_001_002].sample,
+        tournament_id: central_api_tournament.id,
+        tournament_type: "Tournament",
+        state: "seeded",
+        position: i + 1
+      )
+    end
+
+    # Fixture-shape lock: 0 local + 5 global = 5 total.
+    assert_equal 5, central_api_tournament.seedings.count
+    assert_equal 0, central_api_tournament.seedings.where("seedings.id >= ?", Seeding::MIN_ID).count,
+      "Central API fixture: NO local seedings expected"
+    assert_equal 5, central_api_tournament.seedings.where("seedings.id < ?", Seeding::MIN_ID).count,
+      "Central API fixture: 5 global seedings expected"
+
+    discipline = disciplines(:discipline_freie_partie_klein)
+    ranges = discipline.parameter_ranges(tournament: central_api_tournament)
+    assert_equal(187..250, ranges[:balls_goal],
+      "Gap-01 fallback: balls_goal Range must match DTP players=5 via global-count fallback")
+    assert_equal(11..15, ranges[:innings_goal],
+      "Gap-01 fallback: innings_goal Range must match DTP players=5 via global-count fallback")
+  end
+
   # D-16(b): class-walk fallback. tournament.player_class="5" → no exact match,
   # walks "5"→"4"→"3" → hits class "3" row (points=200, innings=12).
   test "parameter_ranges walks PLAYER_CLASS_ORDER on class miss (D-16b)" do
