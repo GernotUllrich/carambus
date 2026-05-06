@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-04-15)
 Phase: alle Hauptphasen 38..38.9 complete; backlog 999.1 not yet planned
 Plan: —
 Status: v7.1 inhaltlich fertig — verbleibende Items sind operativ (Server-Hygiene) oder backlog-parking (999.x). Ballziel-loss pending todo am 2026-05-05 nach `done/` verschoben (gefixed durch quick-260503-x3k commit `45f9174c`). BK-Family-Carry-Forwards (TODOs A/B/C) postponed bis ~2026-07-05.
-Last activity: 2026-05-05 - Phase 38.9 retroactively closed via bookkeeping (VERIFICATION.md 6/6 must-haves verified 2026-05-01 + HUMAN-UAT.md 3/3 tests pass 2026-05-01; Test-3 observation captured as Backlog 999.1). Earlier today: Phase 38.1 retroactively closed; BK50/BK100 quick-game presets removed; quick 260501-sbz commit hash backfilled.
+Last activity: 2026-05-06 - Completed quick task 260506-hka (commit `0ac7305a`): refactor `TournamentsController#start` verification gate from in-place render to PRG redirect via `flash[:verification_failure]`; reverted `data: { turbo: false }` workaround on start_tournament form. Closes 2026-04-14 todo. Verifier: Needs Review (7/7 code-level must-haves verified; 36B-06 system tests skip on fixture-data limits, E2E PRG browser handshake needs manual run on dev stack).
 
 Previous milestone archived at:
 
@@ -126,10 +126,11 @@ Decisions are logged in PROJECT.md Key Decisions table. Full v7.0 cross-phase de
 
 ### Pending Todos
 
-_(none — all prior Pending Todos resolved or moved to `.planning/todos/done/`)_
+- **Tighten 36B-05 reset confirmation system test skip paths** — `2026-04-14-tighten-36b-05-reset-confirmation-system-test-skip-paths.md` (created 2026-04-14, area: testing).
 
 **Recently closed:**
 
+- **Refactor 36B-06 verification gate to PRG redirect** (created 2026-04-14, resolved 2026-05-06 quick-260506-hka commit `0ac7305a`). PRG via `flash[:verification_failure]` + revert of `data: { turbo: false }` workaround. Verifier 7/7 must-haves at code level; 36B-06 system tests skip on fixture-data limits, so E2E browser handshake needs manual run. Todo file moved to `.planning/todos/done/`.
 - **Production API disk — `api-server-disk-cleanup`** (created 2026-04-23, resolved 2026-05-05 commit `c007dd20`). Root cause: missing logrotate for `/var/log/carambus*/` scenario-specific nginx log dirs (standard `/etc/logrotate.d/nginx` only covers `/var/log/nginx/`). Deployed `/etc/logrotate.d/carambus` + forced first rotation; reclaimed ~5 GB (disk 82% → 76%).
 - **Rematch loses Ballziel — `fix-ballziel-loss-on-swapped-anstoss-rematch`** (created 2026-05-01, resolved 2026-05-05 commit `0b67be03`). Fixed by quick-260503-x3k commit `45f9174c` (`revert_players` now passes `bk2_options` through to `start_game`). Todo file moved to `.planning/todos/done/`.
 
