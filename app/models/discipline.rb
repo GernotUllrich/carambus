@@ -90,7 +90,7 @@ class Discipline < ApplicationRecord
   def lookup_dtp_with_class_walk(tournament)
     base_scope = discipline_tournament_plans
       .where(tournament_plan_id: tournament.tournament_plan_id)
-      .where(players: tournament.seedings.count)
+      .where(players: effective_player_count(tournament))
 
     # D-05 Schritt 1: exakter Class-Match.
     exact = base_scope.find_by(player_class: tournament.player_class)
@@ -105,6 +105,27 @@ class Discipline < ApplicationRecord
       return hit if hit
     end
     nil
+  end
+
+  # Quick 260507-24p Gap-01: smart-fallback for the seedings-count filter.
+  # Mirrors the canonical pattern at app/models/tournament_cc.rb:286 and the
+  # local-id filter at app/models/tournament.rb:424 + table_monitor.rb:879.
+  #
+  # On a LOCAL server (operator-created tournament), real participants live in
+  # local seedings (id >= Seeding::MIN_ID); any global seedings present are
+  # synced central-API aliases that must NOT be counted toward the player count.
+  # On the CENTRAL API server, the API IS the source — all seedings are
+  # "global" (id < MIN_ID by construction), and we fall back to counting them.
+  #
+  # Without this filter, tournament.seedings.count returns the inflated total
+  # and the (discipline, plan, players) lookup against discipline_tournament_plans
+  # never matches a row → parameter_ranges returns {} → verification modal
+  # never fires (Phase 39 UAT Gap-01).
+  def effective_player_count(tournament)
+    local_count = tournament.seedings.where("seedings.id >= ?", Seeding::MIN_ID).count
+    return local_count if local_count > 0
+
+    tournament.seedings.where("seedings.id < ?", Seeding::MIN_ID).count
   end
 
   # D-08 Lenient-OR-Modus: Range = (canonical * 0.75).floor .. canonical.
