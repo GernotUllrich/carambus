@@ -386,7 +386,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../../reference/api.md" class="md-tabs__link">
+        <a href="../../reference/api/" class="md-tabs__link">
           
   
   
@@ -1401,6 +1401,8 @@
       
         
       
+        
+      
     
     
     
@@ -1832,6 +1834,29 @@
   
   
   
+    <li class="md-nav__item">
+      <a href="../clubcloud-mcp-server/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    ClubCloud MCP Server
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
     
     
       
@@ -1869,10 +1894,10 @@
         
           
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6_11" >
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6_12" >
         
           
-          <label class="md-nav__link" for="__nav_6_11" id="__nav_6_11_label" tabindex="">
+          <label class="md-nav__link" for="__nav_6_12" id="__nav_6_12_label" tabindex="">
             
   
   
@@ -1885,8 +1910,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_11_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_6_11">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_12_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6_12">
             <span class="md-nav__icon md-icon"></span>
             Services
           </label>
@@ -2928,7 +2953,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../reference/api.md" class="md-nav__link">
+      <a href="../../reference/api/" class="md-nav__link">
         
   
   
@@ -3680,7 +3705,7 @@
 </code></pre></div>
 <h3 id="step-by-step">Step by Step<a class="headerlink" href="#step-by-step" title="Permanent link">&para;</a></h3>
 <h4 id="21-rails-root-setup">2.1 Rails Root Setup<a class="headerlink" href="#21-rails-root-setup" title="Permanent link">&para;</a></h4>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>/Volumes/EXT2TB/gullrich/DEV/carambus/carambus_location_5101/
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>/Users/gullrich/DEV/carambus/carambus_location_5101/
 <a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>├── .git/                    # Git Repository (Clone from carambus_master)
 <a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>├── .idea/                   # RubyMine Configuration
 <a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>├── app/                     # Rails Application
@@ -3815,7 +3840,7 @@
 <h4 id="32-development-database-preparation">3.2 Development Database Preparation<a class="headerlink" href="#32-development-database-preparation" title="Permanent link">&para;</a></h4>
 <p><strong>Migration and Dump Creation:</strong>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="c1"># 1. Ensure development database has all migrations applied</span>
-<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="nb">cd</span><span class="w"> </span>/Volumes/EXT2TB/gullrich/DEV/carambus/carambus_location_5101
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="nb">cd</span><span class="w"> </span>/Users/gullrich/DEV/carambus/carambus_location_5101
 <a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="nv">RAILS_ENV</span><span class="o">=</span>development<span class="w"> </span>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>rails<span class="w"> </span>db:migrate
 <a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a>
 <a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a><span class="c1"># 2. Create production dump from current development database</span>
@@ -3882,7 +3907,7 @@
 <h3 id="step-by-step_2">Step by Step<a class="headerlink" href="#step-by-step_2" title="Permanent link">&para;</a></h3>
 <h4 id="41-capistrano-deployment">4.1 Capistrano Deployment<a class="headerlink" href="#41-capistrano-deployment" title="Permanent link">&para;</a></h4>
 <p><strong>Deploy Process:</strong>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="nb">cd</span><span class="w"> </span>/Volumes/EXT2TB/gullrich/DEV/carambus/carambus_location_5101
+<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="nb">cd</span><span class="w"> </span>/Users/gullrich/DEV/carambus/carambus_location_5101
 <a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a>cap<span class="w"> </span>production<span class="w"> </span>deploy
 </code></pre></div></p>
 <p><strong>What Capistrano Does:</strong>
@@ -4495,6 +4520,10 @@
         <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
       
         <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+        <script src="https://unpkg.com/mermaid@10/dist/mermaid.min.js"></script>
+      
+        <script src="../../../javascripts/mermaid-init.js"></script>
       
     
   </body>

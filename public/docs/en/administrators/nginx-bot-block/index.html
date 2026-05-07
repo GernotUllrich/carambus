@@ -380,7 +380,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../../reference/api.md" class="md-tabs__link">
+        <a href="../../reference/api/" class="md-tabs__link">
           
   
   
@@ -1393,6 +1393,8 @@
       
         
       
+        
+      
     
     
     
@@ -1817,6 +1819,29 @@
   
   
   
+    <li class="md-nav__item">
+      <a href="../../developers/clubcloud-mcp-server/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    ClubCloud MCP Server
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
     
     
       
@@ -1851,10 +1876,10 @@
         
           
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6_11" >
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6_12" >
         
           
-          <label class="md-nav__link" for="__nav_6_11" id="__nav_6_11_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_6_12" id="__nav_6_12_label" tabindex="0">
             
   
   
@@ -1867,8 +1892,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_11_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_6_11">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_12_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6_12">
             <span class="md-nav__icon md-icon"></span>
             Services
           </label>
@@ -2463,7 +2488,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../reference/api.md" class="md-nav__link">
+      <a href="../../reference/api/" class="md-nav__link">
         
   
   
@@ -2971,7 +2996,7 @@
 <p>LAN-Scenarios stehen explizit auf <code>false</code>, damit beim Re-Generate kein <code>if</code>-Block gerendert wird, der ohne installierten conf.d-Snippet den <code>nginx -t</code> failen lassen würde.</p>
 <h2 id="workflows">Workflows<a class="headerlink" href="#workflows" title="Permanent link">&para;</a></h2>
 <h3 id="neuer-server-einmalige-erst-einrichtung">Neuer Server (einmalige Erst-Einrichtung)<a class="headerlink" href="#neuer-server-einmalige-erst-einrichtung" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nb">cd</span><span class="w"> </span>/Volumes/EXT2TB/gullrich/DEV/carambus/carambus_master
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nb">cd</span><span class="w"> </span>/Users/gullrich/DEV/carambus/carambus_master
 <a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>git<span class="w"> </span>pull<span class="w">   </span><span class="c1"># falls nicht aktuell</span>
 <a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
 <a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>rake<span class="w"> </span><span class="s2">&quot;scenario:install_bot_block[&lt;scenario_name&gt;]&quot;</span>
@@ -2981,17 +3006,17 @@
 </code></pre></div>
 <p>Nur nötig für Scenarios mit <code>bot_block_enabled: true</code>. Snippet bleibt persistent in <code>/etc/nginx/conf.d/</code> über Deploys hinweg.</p>
 <h3 id="nach-anderung-am-erb-template-oder-am-bot_block_enabled-flag">Nach Änderung am ERB-Template oder am bot_block_enabled-Flag<a class="headerlink" href="#nach-anderung-am-erb-template-oder-am-bot_block_enabled-flag" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nb">cd</span><span class="w"> </span>/Volumes/EXT2TB/gullrich/DEV/carambus/carambus_master
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nb">cd</span><span class="w"> </span>/Users/gullrich/DEV/carambus/carambus_master
 <a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>rake<span class="w"> </span><span class="s2">&quot;scenario:generate_configs[&lt;scenario_name&gt;,production]&quot;</span>
 <a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>
 <a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="c1"># Geänderte carambus_data-Files committen + pushen</span>
-<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="nb">cd</span><span class="w"> </span>/Volumes/EXT2TB/gullrich/DEV/carambus/carambus_data
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="nb">cd</span><span class="w"> </span>/Users/gullrich/DEV/carambus/carambus_data
 <a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>git<span class="w"> </span>add<span class="w"> </span>scenarios/&lt;scenario_name&gt;/config.yml<span class="w"> </span>scenarios/&lt;scenario_name&gt;/production/nginx.conf
 <a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;...&quot;</span>
 <a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>git<span class="w"> </span>push
 <a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>
 <a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="c1"># Nginx auf dem Server aktualisieren</span>
-<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="nb">cd</span><span class="w"> </span>/Volumes/EXT2TB/gullrich/DEV/carambus/carambus_master
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="nb">cd</span><span class="w"> </span>/Users/gullrich/DEV/carambus/carambus_master
 <a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>rake<span class="w"> </span><span class="s2">&quot;scenario:sync_nginx_conf[&lt;scenario_name&gt;]&quot;</span>
 <a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="c1"># scp + sudo mv → /etc/nginx/sites-available/ + nginx -t + reload</span>
 </code></pre></div>
@@ -3137,6 +3162,10 @@
         <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
       
         <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+        <script src="https://unpkg.com/mermaid@10/dist/mermaid.min.js"></script>
+      
+        <script src="../../../javascripts/mermaid-init.js"></script>
       
     
   </body>

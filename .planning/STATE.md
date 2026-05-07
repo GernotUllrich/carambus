@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v7.1
 milestone_name: UX Polish & i18n Debt
 status: verifying
-stopped_at: "Completed 39-02-PLAN.md (Phase 39 closed: 2/2 plans, DATA-01 done)"
-last_updated: "2026-05-06T21:15:15.419Z"
-last_activity: 2026-05-06
+stopped_at: Completed quick-260507-c4o (SIGINT/SIGTERM trap-context fix)
+last_updated: "2026-05-07T06:47:22.923Z"
+last_activity: 2026-05-07
 progress:
-  total_phases: 12
-  completed_phases: 10
-  total_plans: 70
-  completed_plans: 69
+  total_phases: 13
+  completed_phases: 11
+  total_plans: 76
+  completed_plans: 75
   percent: 99
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-15)
 
 **Core value:** Code and docs stay in sync — every documented feature works, every working feature is documented, and a volunteer user should never need to read the architecture to run a tournament.
-**Current focus:** Phase 39 — dtp-backed-parameter-ranges
+**Current focus:** Phase 40 — mcp-server-clubcloud
 
 ## Current Position
 
 Phase: 999.1
 Plan: Not started
 Status: Phase complete — ready for verification
-Last activity: 2026-05-06
+Last activity: 2026-05-07
 
 Previous milestone archived at:
 
@@ -120,12 +120,26 @@ Decisions are logged in PROJECT.md Key Decisions table. Full v7.0 cross-phase de
 - [Phase 39]: Plan 01: PLAYER_CLASS_ORDER constant on Discipline (D-04); REDUCED_FACTOR=0.75 (D-07 corrects Phase 38 D-20 stale 0.80); 9 tests landed (8 typed D-16/RQ + 1 defensive regression vs. AC text 'exactly 8' which undercounted by 1)
 - [Phase 39]: Plan 01: Caller break is intentional Wave-1/Wave-2 hand-off — tournaments_controller.rb:1026 still calls parameter_ranges (no-arg) and will RAISE on tournament-start until Plan 39-02 lands. Plan 39-02 is the unblock-production-deploy gate.
 - [Phase 39]: Plan 02: parameter_ranges keyword-arg migration unblocks production tournament-start (Plan 01's Wave-1/Wave-2 hand-off closed); UI_07_FIELDS narrowed 7→2; UI_07_SENTINEL_VALUES + sentinel guard + 7-test integration regression file all deleted as dead code per D-12+D-13+RQ-04; system test rewired to deterministic Phase 39 fixture lookup + 3 new no-fire tests for non-DTP/handicap/no-plan.
+- [Phase 40-mcp-server-clubcloud]: SDK-API DEVIATION: MCP::Tool::Response hat #error? (Predicate), NICHT #error — Plans 04+05 müssen response.error? verwenden
+- [Phase 40-mcp-server-clubcloud]: Setting.login_to_cc ist kanonischer CC-Login (kein Hand-rolled Net::HTTP in cc_session.rb)
+- [Phase 40-mcp-server-clubcloud]: Einzelner zentraler resources_read_handler in server.rb — Plans 02+03 registrieren keinen eigenen Handler (Wave-2-Konfliktfreiheit)
+- [Phase 40-mcp-server-clubcloud]: Plan 02 registriert keinen eigenen resources_read_handler — Plan 01's zentraler Dispatcher übernimmt Routing (Wave-2-Konfliktfreiheit gesichert)
+- [Phase 40-mcp-server-clubcloud]: [SME-CONFIRM]-Marker aus DRAFT bleiben verbatim in 5/5 DE-Markdown-Dateien (5 Dateien, Info 12 erlaubt 4 oder 5)
+- [Phase 40]: Plan 03 registriert KEINEN eigenen resources_read_handler — Wave-2-Konfliktfreiheit gesichert (server.rb 0 Änderungen)
+- [Phase 40]: ApiSurface ALLOWLIST gesperrt auf exakt 15 Entries (Warning-5-Fix: frühere Plan-Entwürfe waren inkonsistent 13 vs 15)
+- [Phase 40-mcp-server-clubcloud]: 4 DB-first Tools (region, league, tournament, teilnehmerliste) + 6 live-only Tools (team, club, spielbericht, category, serie, search_player) — Warning-6-Fix abgeschlossen
+- [Phase 40-mcp-server-clubcloud]: Plan 04: cc_lookup_teilnehmerliste ist D-18 Acceptance-Story-Tool; TournamentCc-Mirror + RegistrationListCc-Guard + 'no_cc_mirror'-Fallback
+- [Phase 40-mcp-server-clubcloud]: Plan 05: Login + Reauth liegt vollständig in Plan 01 — cc_session.rb unberührt (Warning 7); cc_finalize_teilnehmerliste ist einziges Write-Tool in Phase 40 (D-19)
+- [Phase 40]: server.tools liefert Arrays [name, klass] statt Objekte — Test-Map-Block mit is_a?(Array)-Guard angepasst
+- [Phase 40]: RESEARCH Open Questions §1+§5 auf Code-Ebene gesperrt: -32700 Parse error via E2E-Test + Capistrano chmod 0755 Hook
+- [Quick 260507-c4o]: SIGINT/SIGTERM trap-context bug fix — Rails.logger.info im Trap-Block ersetzt durch direktes $stderr.write (Logger akquiriert Mutex, ThreadError im Trap)
 
 ### Roadmap Evolution
 
 - Phase 38.1 inserted after Phase 38: BK2-Kombi minimum viable support (URGENT — 2026-05-02 tournament deadline)
 - Phase 38.4 inserted after Phase 38: BK2-Kombi post-dry-run gaps (URGENT) — covers G1 delete, G2 Ballziel, I8, I9 deferred from Phase 38.3
 - Phase 38.7 inserted after Phase 38.6: Tiebreak bei Unentschieden — Per-Game-Flag mit Modal-Eingabe (URGENT)
+- Phase 40 added after Phase 39 (2026-05-07): MCP Server für ClubCloud-Schnittstelle — exponiert ClubCloud-Workflow-Wissen + technische Integration als MCP-Tools/Resources. Konkreter Scope wird in `/gsd-discuss-phase 40` geklärt.
 
 ### Pending Todos
 
@@ -197,6 +211,6 @@ See `HISTORY.md` for the chronological ledger of completed quick tasks (with com
 
 ## Session Continuity
 
-Last session: 2026-05-06T21:04:58.155Z
-Stopped at: Completed 39-02-PLAN.md (Phase 39 closed: 2/2 plans, DATA-01 done)
+Last session: 2026-05-07T06:47:22.919Z
+Stopped at: Completed quick-260507-c4o (SIGINT/SIGTERM trap-context fix)
 Resume: `/gsd-discuss-phase` für die Spec-Implementation starten — Spec-Doc lesen, Phase scopen (v7.2 oder v7.1-closure 38.10), 9 Plan-Sketches in Spec Section 9 als Ausgangspunkt nutzen. Parallel: bei nächstem Tournament die 4 deferred Phase-38.7-Items abhaken. Bug-A separat triagieren (Quick-Task oder `/gsd-debug`).
