@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require "test_helper"
 
 class McpServer::Tools::ListPlayersByClubAndDisciplineTest < ActiveSupport::TestCase
@@ -21,10 +22,10 @@ class McpServer::Tools::ListPlayersByClubAndDisciplineTest < ActiveSupport::Test
     skip "Fixtures missing" unless nbv && discipline
 
     sample_club = Club.joins(players: :player_rankings)
-                      .where(region_id: nbv.id)
-                      .where(player_rankings: { discipline_id: discipline.id, region_id: nbv.id })
-                      .distinct
-                      .first
+      .where(region_id: nbv.id)
+      .where(player_rankings: {discipline_id: discipline.id, region_id: nbv.id})
+      .distinct
+      .first
     skip "No NBV club has rankings in 'Freie Partie klein'" unless sample_club
 
     response = McpServer::Tools::ListPlayersByClubAndDiscipline.call(

@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require "test_helper"
 
 class McpServer::Tools::ListOpenTournamentsTest < ActiveSupport::TestCase
@@ -40,8 +41,8 @@ class McpServer::Tools::ListOpenTournamentsTest < ActiveSupport::TestCase
 
     today = Date.today
     expected_count = Tournament.where(region_id: nbv.id)
-                               .where("accredation_end >= ? AND date >= ?", today, today)
-                               .count
+      .where("accredation_end >= ? AND date >= ?", today, today)
+      .count
     skip "No open tournaments in NBV" if expected_count.zero?
 
     response = McpServer::Tools::ListOpenTournaments.call(
@@ -52,8 +53,8 @@ class McpServer::Tools::ListOpenTournamentsTest < ActiveSupport::TestCase
     body = JSON.parse(response.content.first[:text])
 
     assert_equal expected_count, body["data"].length,
-                 "Expected #{expected_count} tournaments matching pure temporal filter; " \
-                 "got #{body['data'].length}. State-Filter would be wrong (User-Korrektur 2026-05-08)."
+      "Expected #{expected_count} tournaments matching pure temporal filter; " \
+      "got #{body["data"].length}. State-Filter would be wrong (User-Korrektur 2026-05-08)."
   end
 
   test "discipline filter narrows results" do
@@ -91,7 +92,7 @@ class McpServer::Tools::ListOpenTournamentsTest < ActiveSupport::TestCase
     body2 = JSON.parse(r2.content.first[:text])
     assert_operator body2["data"].length, :>=, body1["data"].length
     assert_equal false, body1["meta"]["include_no_date"]
-    assert_equal true,  body2["meta"]["include_no_date"]
+    assert_equal true, body2["meta"]["include_no_date"]
   end
 
   test "missing region returns error when no default available" do

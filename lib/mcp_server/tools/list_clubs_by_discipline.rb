@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 # cc_list_clubs_by_discipline — DB-first Liste der Vereine einer Region, deren Spieler
 # in einer bestimmten Disziplin gerankt sind (= eine PlayerRanking-Zeile haben).
 # Pattern: extends BaseTool, mirrors cc_lookup_region (DB-first + force_refresh).
@@ -13,10 +14,10 @@ module McpServer
                   "PlayerClass-Lizenzklasse aktuell nicht berücksichtigt."
       input_schema(
         properties: {
-          shortname:     { type: "string",  description: "Region shortname (z.B. 'NBV'). Optional — Default via CC_REGION/Setting 'context'." },
-          fed_id:        { type: "integer", description: "ClubCloud federation ID. Alternative zu shortname." },
-          discipline:    { type: "string",  description: "Disziplin-Name (z.B. 'Freie Partie klein') oder numerische ID (REQUIRED)." },
-          force_refresh: { type: "boolean", default: false, description: "Bypass DB cache, zieht zuerst region_cc.sync_clubs, dann DB-Lookup." }
+          shortname: {type: "string", description: "Region shortname (z.B. 'NBV'). Optional — Default via CC_REGION/Setting 'context'."},
+          fed_id: {type: "integer", description: "ClubCloud federation ID. Alternative zu shortname."},
+          discipline: {type: "string", description: "Disziplin-Name (z.B. 'Freie Partie klein') oder numerische ID (REQUIRED)."},
+          force_refresh: {type: "boolean", default: false, description: "Bypass DB cache, zieht zuerst region_cc.sync_clubs, dann DB-Lookup."}
         }
       )
       annotations(read_only_hint: true, destructive_hint: false)
@@ -33,22 +34,22 @@ module McpServer
         if force_refresh
           begin
             region.region_cc&.sync_clubs({})
-          rescue StandardError => e
+          rescue => e
             Rails.logger.warn "[cc_list_clubs_by_discipline] sync_clubs failed: #{e.class}: #{e.message}"
           end
         end
 
         clubs = Club.joins(players: :player_rankings)
-                    .where(region_id: region.id)
-                    .where(player_rankings: { discipline_id: discipline_obj.id, region_id: region.id })
-                    .distinct
-                    .order(:shortname)
+          .where(region_id: region.id)
+          .where(player_rankings: {discipline_id: discipline_obj.id, region_id: region.id})
+          .distinct
+          .order(:shortname)
 
         text(JSON.generate(
           region: region.shortname,
           discipline: discipline_obj.name,
           count: clubs.count,
-          clubs: clubs.map { |c| { id: c.id, shortname: c.shortname, name: c.name, cc_id: c.cc_id } }
+          clubs: clubs.map { |c| {id: c.id, shortname: c.shortname, name: c.name, cc_id: c.cc_id} }
         ))
       end
 

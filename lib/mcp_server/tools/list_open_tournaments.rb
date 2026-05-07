@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 # cc_list_open_tournaments — DB-first Liste der aktuell ausgeschriebenen Turniere
 # einer Region. „Ausgeschrieben" ist reine Zeitlogik:
 #   accredation_end >= today AND date >= today
@@ -22,12 +23,12 @@ module McpServer
                   "— sonst kann die DB bis zu 2h zurückliegen."
       input_schema(
         properties: {
-          shortname:       { type: "string",  description: "Region-shortname (z.B. 'NBV'). Optional — Default via CC_REGION/Setting 'context'." },
-          fed_id:          { type: "integer", description: "ClubCloud federation ID. Alternative zu shortname." },
-          discipline:      { type: "string",  description: "Optionaler Disziplin-Filter (Name oder numerische ID); weglassen = alle Disziplinen." },
-          open_after:      { type: "string",  description: "ISO-Datum; default = today. Filtert sowohl accredation_end als auch date." },
-          include_no_date: { type: "boolean", default: false, description: "Turniere ohne accredation_end mitnehmen." },
-          force_refresh:   { type: "boolean", default: false, description: "Bypass DB cache, triggert region_cc.sync_tournaments und re-runt den DB-Pfad." }
+          shortname: {type: "string", description: "Region-shortname (z.B. 'NBV'). Optional — Default via CC_REGION/Setting 'context'."},
+          fed_id: {type: "integer", description: "ClubCloud federation ID. Alternative zu shortname."},
+          discipline: {type: "string", description: "Optionaler Disziplin-Filter (Name oder numerische ID); weglassen = alle Disziplinen."},
+          open_after: {type: "string", description: "ISO-Datum; default = today. Filtert sowohl accredation_end als auch date."},
+          include_no_date: {type: "boolean", default: false, description: "Turniere ohne accredation_end mitnehmen."},
+          force_refresh: {type: "boolean", default: false, description: "Bypass DB cache, triggert region_cc.sync_tournaments und re-runt den DB-Pfad."}
         }
       )
       annotations(read_only_hint: true, destructive_hint: false)
@@ -48,14 +49,14 @@ module McpServer
         if force_refresh
           begin
             region.region_cc&.sync_tournaments({})
-          rescue StandardError => e
+          rescue => e
             Rails.logger.warn "[cc_list_open_tournaments] sync_tournaments failed: #{e.class}: #{e.message}"
           end
         end
 
         rel = Tournament.where(region_id: region.id)
-                        .where("date >= ?", cutoff)
-                        .order(:accredation_end)
+          .where("date >= ?", cutoff)
+          .order(:accredation_end)
 
         rel = if include_no_date
           rel.where("accredation_end >= ? OR accredation_end IS NULL", cutoff)

@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 # cc_list_players_by_club_and_discipline — DB-first Liste der Spieler eines Vereins,
 # die in der angegebenen Disziplin (für die aktuelle bzw. übergebene Saison) gerankt
 # = spielberechtigt sind. Pattern: extends BaseTool, mirrors cc_lookup_region.
@@ -13,11 +14,11 @@ module McpServer
                   "force_refresh:true triggert region_cc.sync_competitions und re-runt den DB-Pfad."
       input_schema(
         properties: {
-          club:          { type: "string",  description: "Club-Shortname oder cc_id (numerisch). REQUIRED." },
-          discipline:    { type: "string",  description: "Disziplin-Name oder numerische ID. REQUIRED." },
-          season:        { type: "string",  description: "Saisonname (z.B. '2025/2026'). Default = Season.current_season." },
-          shortname:     { type: "string",  description: "Region-shortname zur Validierung (Club gehört zur Region). Optional." },
-          force_refresh: { type: "boolean", default: false, description: "Bypass DB cache, triggert region_cc.sync_competitions." }
+          club: {type: "string", description: "Club-Shortname oder cc_id (numerisch). REQUIRED."},
+          discipline: {type: "string", description: "Disziplin-Name oder numerische ID. REQUIRED."},
+          season: {type: "string", description: "Saisonname (z.B. '2025/2026'). Default = Season.current_season."},
+          shortname: {type: "string", description: "Region-shortname zur Validierung (Club gehört zur Region). Optional."},
+          force_refresh: {type: "boolean", default: false, description: "Bypass DB cache, triggert region_cc.sync_competitions."}
         }
       )
       annotations(read_only_hint: true, destructive_hint: false)
@@ -46,20 +47,20 @@ module McpServer
         if force_refresh
           begin
             club_obj.region&.region_cc&.sync_competitions({})
-          rescue StandardError => e
+          rescue => e
             Rails.logger.warn "[cc_list_players_by_club_and_discipline] sync_competitions failed: #{e.class}: #{e.message}"
           end
         end
 
         players = Player.joins(:season_participations, :player_rankings)
-                        .where(season_participations: { club_id: club_obj.id })
-                        .where(player_rankings: {
-                          discipline_id: discipline_obj.id,
-                          region_id: club_obj.region_id,
-                          season_id: season_obj.id
-                        })
-                        .distinct
-                        .order(:lastname, :firstname)
+          .where(season_participations: {club_id: club_obj.id})
+          .where(player_rankings: {
+            discipline_id: discipline_obj.id,
+            region_id: club_obj.region_id,
+            season_id: season_obj.id
+          })
+          .distinct
+          .order(:lastname, :firstname)
 
         text(JSON.generate(
           club: club_obj.shortname,

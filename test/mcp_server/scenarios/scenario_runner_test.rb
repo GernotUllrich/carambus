@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require "test_helper"
 require "yaml"
 
@@ -29,7 +30,7 @@ class McpServer::Scenarios::ScenarioRunnerTest < ActiveSupport::TestCase
 
   setup do
     @prior_mock = ENV["CARAMBUS_MCP_MOCK"]
-    @prior_fed  = ENV["CC_FED_ID"]
+    @prior_fed = ENV["CC_FED_ID"]
     ENV["CARAMBUS_MCP_MOCK"] = "1"
     ENV["CC_FED_ID"] = nil
     McpServer::CcSession.reset!
@@ -48,7 +49,7 @@ class McpServer::Scenarios::ScenarioRunnerTest < ActiveSupport::TestCase
     test_label = scenario["name"] || File.basename(yaml_path, ".yml")
     define_method("test_scenario: #{test_label}") do
       assert scenario["mock"] == true,
-             "Szenario #{yaml_path} muss mock: true setzen (Production-Sicherheit)"
+        "Szenario #{yaml_path} muss mock: true setzen (Production-Sicherheit)"
       run_scenario(scenario, yaml_path)
     end
   end
@@ -72,14 +73,14 @@ class McpServer::Scenarios::ScenarioRunnerTest < ActiveSupport::TestCase
       "steps" => [
         {
           "tool" => "cc_lookup_region",
-          "args" => { "shortname" => "NBV" },
-          "expect" => { "error" => false },
-          "bind_result" => { "region_short" => "$.shortname" }
+          "args" => {"shortname" => "NBV"},
+          "expect" => {"error" => false},
+          "bind_result" => {"region_short" => "$.shortname"}
         },
         {
           "tool" => "cc_list_clubs_by_discipline",
-          "args" => { "shortname" => "{{region_short}}", "discipline" => "Freie Partie klein" },
-          "expect" => { "error" => false }
+          "args" => {"shortname" => "{{region_short}}", "discipline" => "Freie Partie klein"},
+          "expect" => {"error" => false}
         }
       ]
     }
@@ -92,8 +93,8 @@ class McpServer::Scenarios::ScenarioRunnerTest < ActiveSupport::TestCase
       "steps" => [
         {
           "tool" => "cc_lookup_region",
-          "args" => { "shortname" => "{{never_bound}}" },
-          "expect" => { "error" => false }
+          "args" => {"shortname" => "{{never_bound}}"},
+          "expect" => {"error" => false}
         }
       ]
     }
@@ -109,8 +110,8 @@ class McpServer::Scenarios::ScenarioRunnerTest < ActiveSupport::TestCase
       "steps" => [
         {
           "tool" => "cc_lookup_region",
-          "args" => { "shortname" => "NBV" },
-          "expect" => { "error" => false }
+          "args" => {"shortname" => "NBV"},
+          "expect" => {"error" => false}
         }
       ]
     }
@@ -118,14 +119,14 @@ class McpServer::Scenarios::ScenarioRunnerTest < ActiveSupport::TestCase
   end
 
   test "Multi-Step: dig_jsonpath subset works for simple paths" do
-    payload = { "data" => [{ "id" => 42, "name" => "first" }, { "id" => 43 }], "meta" => { "count" => 2 } }
+    payload = {"data" => [{"id" => 42, "name" => "first"}, {"id" => 43}], "meta" => {"count" => 2}}
     assert_equal 42, dig_jsonpath(payload, "$.data[0].id", 0, "test", "v")
     assert_equal "first", dig_jsonpath(payload, "$.data[0].name", 0, "test", "v")
     assert_equal 2, dig_jsonpath(payload, "$.meta.count", 0, "test", "v")
   end
 
   test "Multi-Step: dig_jsonpath raises on nil intermediate" do
-    payload = { "data" => nil }
+    payload = {"data" => nil}
     err = assert_raises(RuntimeError) { dig_jsonpath(payload, "$.data.x", 0, "src", "v") }
     assert_match(/resolves to nil/, err.message)
   end
@@ -155,13 +156,13 @@ class McpServer::Scenarios::ScenarioRunnerTest < ActiveSupport::TestCase
       if expect.key?("error")
         actual_error = response.error?
         assert_equal expect["error"], actual_error,
-                     "[#{source} step #{idx}] expected error=#{expect['error']} got #{actual_error}; content=#{content_text(response)}"
+          "[#{source} step #{idx}] expected error=#{expect["error"]} got #{actual_error}; content=#{content_text(response)}"
       end
 
       Array(expect["content_includes"]).each do |needle|
         text = content_text(response)
         assert text.include?(needle.to_s),
-               "[#{source} step #{idx}] erwarteter Text '#{needle}' nicht in Tool-Antwort gefunden: #{text.inspect}"
+          "[#{source} step #{idx}] erwarteter Text '#{needle}' nicht in Tool-Antwort gefunden: #{text.inspect}"
       end
 
       bindings = step["bind_result"] || {}
@@ -213,8 +214,6 @@ class McpServer::Scenarios::ScenarioRunnerTest < ActiveSupport::TestCase
         cur.is_a?(Array) ? cur[::Regexp.last_match(1).to_i] : nil
       elsif cur.is_a?(Hash)
         cur[seg] || cur[seg.to_sym]
-      else
-        nil
       end
       if cur.nil?
         raise "[#{source} step #{idx}] bind_result for #{var_name}: path '#{path}' resolves to nil at segment '#{seg}'"
