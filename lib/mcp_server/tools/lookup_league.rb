@@ -9,7 +9,7 @@ module McpServer
                   "Queries the local Carambus DB by default (LeagueCc mirror); pass force_refresh=true for live CC."
       input_schema(
         properties: {
-          fed_id:        { type: "integer", description: "ClubCloud federation ID" },
+          fed_id:        { type: "integer", description: "ClubCloud federation ID. Defaults to ENV['CC_FED_ID'] if not provided." },
           branch_id:     { type: "integer", description: "CC branch ID (e.g. 10 for Karambol)" },
           season:        { type: "string",  description: "Season name like '2025/2026'" },
           league_id:     { type: "integer", description: "CC league ID (leagueId / cc_id on LeagueCc)" },
@@ -19,6 +19,7 @@ module McpServer
       annotations(read_only_hint: true, destructive_hint: false)
 
       def self.call(fed_id: nil, branch_id: nil, season: nil, league_id: nil, force_refresh: false, server_context: nil)
+        fed_id ||= default_fed_id
         # Require at least league_id or (fed_id + branch_id + season)
         unless league_id.present? || (fed_id.present? && branch_id.present? && season.present?)
           return error("Missing required parameter: provide `league_id` or the combination of `fed_id`, `branch_id`, and `season`")

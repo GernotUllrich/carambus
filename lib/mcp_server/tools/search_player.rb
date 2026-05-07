@@ -11,12 +11,13 @@ module McpServer
       input_schema(
         properties: {
           query:  { type: "string",  description: "Player name search query (minimum 2 characters)" },
-          fed_id: { type: "integer", description: "ClubCloud federation ID to scope the search (optional)" }
+          fed_id: { type: "integer", description: "ClubCloud federation ID to scope the search (optional). Defaults to ENV['CC_FED_ID'] if not provided." }
         }
       )
       annotations(read_only_hint: true, destructive_hint: false)
 
       def self.call(query: nil, fed_id: nil, server_context: nil)
+        fed_id ||= default_fed_id
         return error("Missing required parameter: `query`") if query.blank?
         return error("Query too short: must be at least 2 characters") if query.to_s.length < 2
 

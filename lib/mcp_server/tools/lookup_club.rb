@@ -9,13 +9,14 @@ module McpServer
                   "No Carambus-side mirror with full CC club list — always queries CC directly via showClubList."
       input_schema(
         properties: {
-          fed_id:    { type: "integer", description: "ClubCloud federation ID" },
+          fed_id:    { type: "integer", description: "ClubCloud federation ID. Defaults to ENV['CC_FED_ID'] if not provided." },
           branch_id: { type: "integer", description: "CC branch ID to filter clubs (optional)" }
         }
       )
       annotations(read_only_hint: true, destructive_hint: false)
 
       def self.call(fed_id: nil, branch_id: nil, server_context: nil)
+        fed_id ||= default_fed_id
         return error("Missing required parameter: `fed_id`") if fed_id.blank?
 
         client = cc_session.client_for

@@ -15,13 +15,14 @@ module McpServer
         properties: {
           tournament_id:  { type: "integer", description: "Carambus-internal Tournament ID" },
           meldeliste_id:  { type: "integer", description: "CC meldelisteId (RegistrationListCc.cc_id)" },
-          fed_id:         { type: "integer", description: "ClubCloud federation ID (required for live lookup)" },
+          fed_id:         { type: "integer", description: "ClubCloud federation ID (required for live lookup). Defaults to ENV['CC_FED_ID'] if not provided." },
           force_refresh:  { type: "boolean", default: false, description: "Bypass DB cache, query CC live" }
         }
       )
       annotations(read_only_hint: true, destructive_hint: false)
 
       def self.call(tournament_id: nil, meldeliste_id: nil, fed_id: nil, force_refresh: false, server_context: nil)
+        fed_id ||= default_fed_id
         unless tournament_id.present? || meldeliste_id.present?
           return error("Missing required parameter: provide `tournament_id` or `meldeliste_id`")
         end

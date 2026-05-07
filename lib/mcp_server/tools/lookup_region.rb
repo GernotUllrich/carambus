@@ -12,13 +12,14 @@ module McpServer
       input_schema(
         properties: {
           shortname:     { type: "string",  description: "Region shortname like 'BCW'" },
-          fed_id:        { type: "integer", description: "ClubCloud federation ID" },
+          fed_id:        { type: "integer", description: "ClubCloud federation ID. Defaults to ENV['CC_FED_ID'] if not provided." },
           force_refresh: { type: "boolean", default: false, description: "Bypass DB cache, query CC live" }
         }
       )
       annotations(read_only_hint: true, destructive_hint: false)
 
       def self.call(shortname: nil, fed_id: nil, force_refresh: false, server_context: nil)
+        fed_id ||= default_fed_id
         err = validate_required_anyof!(shortname: shortname, fed_id: fed_id)
         return err if err
 

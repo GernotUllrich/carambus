@@ -11,7 +11,7 @@ module McpServer
         properties: {
           meisterschaft_id: { type: "integer", description: "CC meisterschaft ID (cc_id on TournamentCc)" },
           tournament_id:    { type: "integer", description: "Carambus-internal Tournament ID" },
-          fed_id:           { type: "integer", description: "ClubCloud federation ID (required for live lookup)" },
+          fed_id:           { type: "integer", description: "ClubCloud federation ID (required for live lookup). Defaults to ENV['CC_FED_ID'] if not provided." },
           season:           { type: "string",  description: "Season name like '2025/2026'" },
           force_refresh:    { type: "boolean", default: false, description: "Bypass DB cache, query CC live" }
         }
@@ -19,6 +19,7 @@ module McpServer
       annotations(read_only_hint: true, destructive_hint: false)
 
       def self.call(meisterschaft_id: nil, tournament_id: nil, fed_id: nil, season: nil, force_refresh: false, server_context: nil)
+        fed_id ||= default_fed_id
         unless meisterschaft_id.present? || tournament_id.present?
           return error("Missing required parameter: provide `meisterschaft_id` or `tournament_id`")
         end

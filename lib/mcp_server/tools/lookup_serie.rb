@@ -10,13 +10,14 @@ module McpServer
       input_schema(
         properties: {
           serie_id: { type: "integer", description: "CC serie ID (omit to list all for fed_id + season)" },
-          fed_id:   { type: "integer", description: "ClubCloud federation ID" },
+          fed_id:   { type: "integer", description: "ClubCloud federation ID. Defaults to ENV['CC_FED_ID'] if not provided." },
           season:   { type: "string",  description: "Season name like '2025/2026'" }
         }
       )
       annotations(read_only_hint: true, destructive_hint: false)
 
       def self.call(serie_id: nil, fed_id: nil, season: nil, server_context: nil)
+        fed_id ||= default_fed_id
         return error("Missing required parameter: `fed_id`") if fed_id.blank?
 
         client = cc_session.client_for

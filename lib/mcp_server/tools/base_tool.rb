@@ -38,6 +38,15 @@ module McpServer
       def self.cc_session
         McpServer::CcSession
       end
+
+      # Liest ENV["CC_FED_ID"] als Default-Fallback für Tools, die fed_id nicht vom Aufrufer bekommen.
+      # Eine ENV-Lookup-Stelle (DRY); kein per-Tool-Override-Pattern. Tools nutzen:
+      #   fed_id ||= default_fed_id
+      # vor der Validierung. Falls auch ENV nicht gesetzt ist (nil), bleibt der bestehende
+      # "Missing required parameter: fed_id"-Fehler erhalten — keine Verhaltensänderung in dieser Bahn.
+      def self.default_fed_id
+        ENV["CC_FED_ID"]&.to_i
+      end
     end
   end
 end

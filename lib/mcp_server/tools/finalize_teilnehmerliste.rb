@@ -16,7 +16,7 @@ module McpServer
       DESC
       input_schema(
         properties: {
-          fed_id:        { type: "integer", description: "ClubCloud federation ID (e.g. 20 for BCW)" },
+          fed_id:        { type: "integer", description: "ClubCloud federation ID (e.g. 20 for BCW). Defaults to ENV['CC_FED_ID'] if not provided." },
           branch_id:     { type: "integer", description: "CC branch (e.g. 10 for Karambol)" },
           season:        { type: "string",  description: "Season name like '2025/2026'" },
           meldeliste_id: { type: "integer", description: "CC meldelisteId of the participant list" },
@@ -27,6 +27,7 @@ module McpServer
       annotations(read_only_hint: false, destructive_hint: true)
 
       def self.call(fed_id: nil, branch_id: nil, season: nil, meldeliste_id: nil, armed: false, server_context: nil)
+        fed_id ||= default_fed_id
         err = validate_required!(
           { fed_id: fed_id, branch_id: branch_id, season: season, meldeliste_id: meldeliste_id },
           [:fed_id, :branch_id, :season, :meldeliste_id]
