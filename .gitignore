@@ -104,3 +104,7 @@ import_all.log
 config/cable.yml
 .paul/
 db/schema_baseline_*.backup
+
+# MCP-Client-Konfiguration (enthält CC-Zugangsdaten — NICHT einchecken).
+# Vorlage: .mcp.json.example (tracked).
+/.mcp.json
