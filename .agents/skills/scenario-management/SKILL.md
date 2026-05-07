@@ -15,6 +15,7 @@ description: Manages multi-tenant deployment workflow for Carambus project with 
 ├── carambus_bcw/      # BCW scenario (master pull OR scenario/bcw/<topic> feature branch)
 ├── carambus_phat/     # PHAT scenario (master pull OR scenario/phat/<topic> feature branch)
 ├── carambus_api/      # API scenario (master pull OR scenario/api/<topic> feature branch)
+├── carambus_gu/       # GU scenario (master pull OR scenario/gu/<topic> feature branch)
 └── carambus_data/     # Scenario configs (no code edits expected)
 ```
 
