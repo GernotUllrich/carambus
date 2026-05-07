@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v7.1
 milestone_name: UX Polish & i18n Debt
 status: verifying
-stopped_at: Completed quick-260507-c4o (SIGINT/SIGTERM trap-context fix)
-last_updated: "2026-05-07T06:47:22.923Z"
+stopped_at: Completed quick-260507-m2z (CC_FED_ID ENV-default in 11 MCP tools)
+last_updated: "2026-05-07T13:55:00.000Z"
 last_activity: 2026-05-07
 progress:
   total_phases: 13
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-04-15)
 Phase: 999.1
 Plan: Not started
 Status: Phase complete — ready for verification
-Last activity: 2026-05-07 — Completed quick task 260507-jfe: scrape player_class from tournament title (Tournament.parse_player_class_from_title + 2 Region scrape-site wirings; closes 260507-24p deferred data-migration concern at scrape boundary; 16 new tests GREEN)
+Last activity: 2026-05-07 — Completed quick task 260507-m2z: CC_FED_ID ENV-default in all 11 MCP tools (BaseTool.default_fed_id helper + fed_id ||= default_fed_id in tool bodies + 6 regression tests + Section 6/11 doc updates)
 
 Previous milestone archived at:
 
