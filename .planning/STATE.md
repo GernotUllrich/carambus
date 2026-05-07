@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v7.1
 milestone_name: UX Polish & i18n Debt
 status: verifying
-stopped_at: Completed quick-260507-njl (MCP-Credentials-Cleanup — Rails Credentials + Region-Lookup statt ENV)
-last_updated: "2026-05-07T13:55:00.000Z"
+stopped_at: Completed quick-260507-4cb (MCP-Tool-Schema-Description-Drift nach 260507-njl Region-Lookup-Refactor geschlossen — 11 fed_id descriptions auf Region-Lookup-Default umgestellt)
+last_updated: "2026-05-07T18:30:00.000Z"
 last_activity: 2026-05-07
 progress:
   total_phases: 13
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-04-15)
 Phase: 999.1
 Plan: Not started
 Status: Phase complete — ready for verification
-Last activity: 2026-05-07 — Completed quick task 260507-njl: MCP-Credentials-Cleanup — require_env! entfernt, default_fed_id auf Region-Lookup umgestellt, .mcp.json.example + Doku auf 3-ENV-Schema, mkdocs rebuild (74 tests / 245 assertions / 0 failures)
+Last activity: 2026-05-07 — Completed quick task 260507-4cb: MCP-Tool-Schema-Description-Drift geschlossen — fed_id descriptions in 11 MCP-Tools (lookup_club/region/category/league/serie/team/spielbericht/tournament/teilnehmerliste + search_player + finalize_teilnehmerliste) auf das aktuelle 3-stufige Region-Lookup-Verhalten umgestellt. Reine Schema-Metadata-Änderung; im Claude `/mcp`-Dialog stand vorher die veraltete "Defaults to ENV['CC_FED_ID']"-Beschreibung. 36/36 MCP-Tool-Tests GREEN. Vorgängertask 260507-njl: MCP-Credentials-Cleanup — require_env! entfernt, default_fed_id auf Region-Lookup umgestellt, .mcp.json.example + Doku auf 3-ENV-Schema, mkdocs rebuild (74 tests / 245 assertions / 0 failures).
 
 Previous milestone archived at:
 
@@ -134,6 +134,7 @@ Decisions are logged in PROJECT.md Key Decisions table. Full v7.0 cross-phase de
 - [Phase 40]: RESEARCH Open Questions §1+§5 auf Code-Ebene gesperrt: -32700 Parse error via E2E-Test + Capistrano chmod 0755 Hook
 - [Quick 260507-c4o]: SIGINT/SIGTERM trap-context bug fix — Rails.logger.info im Trap-Block ersetzt durch direktes $stderr.write (Logger akquiriert Mutex, ThreadError im Trap)
 - [Quick 260507-njl]: require_env! in cc_session.rb#client_for entfernt — Login läuft über Setting.login_to_cc (Rails Credentials), ENV CC_USERNAME/CC_PASSWORD waren tote Parameter; default_fed_id auf Region-Lookup umgestellt (CC_REGION → Region.region_cc.cc_id); .mcp.json.example + Doku auf 3-ENV-Schema (kein Klartext mehr)
+- [Quick 260507-4cb]: MCP-Tool-Schema-Description-Drift Followup zu 260507-njl — fed_id `description:`-Strings in 11 Tools (lookup_club/region/category/league/serie/team/spielbericht/tournament/teilnehmerliste + search_player + finalize_teilnehmerliste) auf "Optional — resolved via region lookup (CC_REGION/Setting 'context', default 'NBV'); ENV CC_FED_ID overrides." umgestellt. Reine Schema-Metadata, kein default:-Feld (würde MCP-SDK-Validation triggern); 36/36 MCP-Tool-Tests GREEN; Doku in clubcloud-mcp-server.de.md / clubcloud-mcp-setup.de.md war beim njl-Task bereits aktuell
 
 ### Roadmap Evolution
 
@@ -212,6 +213,6 @@ See `HISTORY.md` for the chronological ledger of completed quick tasks (with com
 
 ## Session Continuity
 
-Last session: 2026-05-07T17:11:00.000Z
-Stopped at: Completed quick-260507-njl (MCP-Credentials-Cleanup — Rails Credentials + Region-Lookup statt ENV)
-Resume: `/gsd-discuss-phase` für die Spec-Implementation starten — Spec-Doc lesen, Phase scopen (v7.2 oder v7.1-closure 38.10), 9 Plan-Sketches in Spec Section 9 als Ausgangspunkt nutzen. Parallel: bei nächstem Tournament die 4 deferred Phase-38.7-Items abhaken. Bug-A separat triagieren (Quick-Task oder `/gsd-debug`).
+Last session: 2026-05-07T18:30:00.000Z
+Stopped at: Completed quick-260507-4cb (MCP-Tool-Schema-Description-Drift nach 260507-njl Region-Lookup-Refactor geschlossen — 11 fed_id descriptions auf Region-Lookup-Default umgestellt; 2 Commits 4cb195bb + 5f6ffd68 lokal, ahead of origin/master, Push noch ausstehend)
+Resume: `git push` der 2 lokalen Commits, dann `/gsd-discuss-phase` für die Spec-Implementation starten — Spec-Doc lesen, Phase scopen (v7.2 oder v7.1-closure 38.10), 9 Plan-Sketches in Spec Section 9 als Ausgangspunkt nutzen. Parallel: bei nächstem Tournament die 4 deferred Phase-38.7-Items abhaken. Bug-A separat triagieren (Quick-Task oder `/gsd-debug`).
