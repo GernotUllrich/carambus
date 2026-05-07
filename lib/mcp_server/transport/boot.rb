@@ -19,7 +19,10 @@ module McpServer
 
         %w[INT TERM].each do |sig|
           Signal.trap(sig) do
-            Rails.logger.info "[mcp-server] caught SIG#{sig}, exiting"
+            # Direkter $stderr-Write — Logger akquiriert einen Mutex und ist im Trap-Kontext
+            # nicht erlaubt (Ruby ThreadError: can't be called from trap context).
+            # Pitfall 8 (40-RESEARCH.md §4): Signal-Handler im SDK undokumentiert; trap-safe IO Pflicht.
+            $stderr.write("[mcp-server] caught SIG#{sig}, exiting\n")
             exit 0
           end
         end
