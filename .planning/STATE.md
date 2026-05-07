@@ -3,14 +3,15 @@ gsd_state_version: 1.0
 milestone: v7.1
 milestone_name: UX Polish & i18n Debt
 status: executing
-stopped_at: Phase 40 context gathered
-last_updated: "2026-05-07T00:40:51.921Z"
-last_activity: 2026-05-06 -- Phase 39 planning complete
+stopped_at: Completed 40-mcp-server-clubcloud-01-foundation-PLAN.md
+last_updated: "2026-05-07T04:25:38.756Z"
+last_activity: 2026-05-07
 progress:
   total_phases: 13
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_plans: 6
+  completed_plans: 1
+  percent: 17
 ---
 
 # Project State
@@ -20,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-15)
 
 **Core value:** Code and docs stay in sync — every documented feature works, every working feature is documented, and a volunteer user should never need to read the architecture to run a tournament.
-**Current focus:** v7.1 Hauptphasen alle abgeschlossen (38, 38.1–38.9); offen sind nur Backlog 999.1 / 999.2 + carry-forward TODOs (Postpone Review-by 2026-07-05).
+**Current focus:** Phase 40 — mcp-server-clubcloud
 
 ## Current Position
 
-Phase: alle Hauptphasen 38..38.9 complete; backlog 999.1 not yet planned
-Plan: —
+Phase: 40 (mcp-server-clubcloud) — EXECUTING
+Plan: 2 of 6
 Status: Ready to execute
-Last activity: 2026-05-06 -- Phase 39 planning complete
+Last activity: 2026-05-07
 
 Previous milestone archived at:
 
@@ -116,6 +117,9 @@ Decisions are logged in PROJECT.md Key Decisions table. Full v7.0 cross-phase de
 - [Phase 38.8]: Plan 05: TableMonitorReflex#start_rematch + #close_match added (mirroring admin_ack_result/force_next_state pattern verbatim — morph :nothing, find TM, locked_scoreboard guard, suppress_broadcast wrap, save!); _scoreboard.html.erb gains elsif final_match_score? branch with two-arm reflex routing on tournament_monitor.blank? (training -> #start_rematch, tournament -> #close_match), both arms render t('table_monitor.next_game'). Phase 38.7 tiebreak_not_pending? guard preserved verbatim (count UNCHANGED at 3); Plan 02 :start_rematch event + Plan 04 :close_match after-callback preserved (each count UNCHANGED at 1). 48/48 unit tests + 4/4 tiebreak system tests GREEN.
 - [Phase 38.8]: Plan 06: 3 AASM unit tests (test/models/table_monitor_test.rb +55 LOC) + 4 system-level operator-gate tests (test/system/final_match_score_operator_gate_test.rb NEW +214 LOC). Service-level dispatch pattern, ActiveSupport::TestCase parent for speed. build_training_tm helper coerces TM to :set_over via update_columns + reload (mirrors result_recorder_test.rb:433/:468) so ResultRecorder.call reaches Branch C. Per-instance @seqno_counter handles Game uniqueness in cross-discipline loop (Rule 3 auto-fix). TableMonitor.find singleton override + ensure-block restore for reflex .allocate dispatch. SC-5 seal asserts test/system/tiebreak_test.rb stays present + ≥4 tests. Phase 38.7 tiebreak guard preserved verbatim (count UNCHANGED at 3); all 6 plans of phase 38.8 now landed; 71 runs / 193 assertions / 0 failures / 0 errors / 2 baseline skips across the combined regression sweep, plus 4/4 tiebreak system tests GREEN.
 - [Phase 38.9]: Plan 01: 4th sub-branch added to TableMonitor#end_of_set? inside the existing Plan 38.7-02 D-02 bk_with_nachstoss block — closes BK-2 / BK-2kombi-SP set IMMEDIATELY when Anstoss reached balls_goal in inning >= 2 (Erste-Aufnahme-Gate close-side mirror of follow_up?:1205-1210). Reuses anstoss_role/anstoss_innings/anstoss_at_goal locals — zero recomputation. SKILL extend-before-build honored. Latent defect introduced commit 79328663 closed; no regressions in 21/21 table_monitor_test + 4/4 tiebreak_test + 4/4 final_match_score_operator_gate_test. 19 pre-existing bk2_scoreboard_test failures verified pre-existing at parent commit cfee5962 (stale Bk2::CommitInning + stale BK2-Kombi regexes from Phase 38.5/38.6); deferred to deferred-items.md per scope-boundary rule.
+- [Phase 40-mcp-server-clubcloud]: SDK-API DEVIATION: MCP::Tool::Response hat #error? (Predicate), NICHT #error — Plans 04+05 müssen response.error? verwenden
+- [Phase 40-mcp-server-clubcloud]: Setting.login_to_cc ist kanonischer CC-Login (kein Hand-rolled Net::HTTP in cc_session.rb)
+- [Phase 40-mcp-server-clubcloud]: Einzelner zentraler resources_read_handler in server.rb — Plans 02+03 registrieren keinen eigenen Handler (Wave-2-Konfliktfreiheit)
 
 ### Roadmap Evolution
 
@@ -194,6 +198,6 @@ See `HISTORY.md` for the chronological ledger of completed quick tasks (with com
 
 ## Session Continuity
 
-Last session: 2026-05-07T00:40:51.915Z
-Stopped at: Phase 40 context gathered
+Last session: 2026-05-07T04:25:38.753Z
+Stopped at: Completed 40-mcp-server-clubcloud-01-foundation-PLAN.md
 Resume: `/gsd-discuss-phase` für die Spec-Implementation starten — Spec-Doc lesen, Phase scopen (v7.2 oder v7.1-closure 38.10), 9 Plan-Sketches in Spec Section 9 als Ausgangspunkt nutzen. Parallel: bei nächstem Tournament die 4 deferred Phase-38.7-Items abhaken. Bug-A separat triagieren (Quick-Task oder `/gsd-debug`).
