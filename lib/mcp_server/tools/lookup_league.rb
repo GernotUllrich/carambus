@@ -9,7 +9,7 @@ module McpServer
                   "Queries the local Carambus DB by default (LeagueCc mirror); pass force_refresh=true for live CC."
       input_schema(
         properties: {
-          fed_id:        { type: "integer", description: "ClubCloud federation ID. Defaults to ENV['CC_FED_ID'] if not provided." },
+          fed_id:        { type: "integer", description: "ClubCloud federation ID. Optional — resolved via region lookup (CC_REGION/Setting 'context', default 'NBV'); ENV CC_FED_ID overrides." },
           branch_id:     { type: "integer", description: "CC branch ID (e.g. 10 for Karambol)" },
           season:        { type: "string",  description: "Season name like '2025/2026'" },
           league_id:     { type: "integer", description: "CC league ID (leagueId / cc_id on LeagueCc)" },

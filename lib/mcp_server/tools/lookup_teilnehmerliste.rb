@@ -15,7 +15,7 @@ module McpServer
         properties: {
           tournament_id:  { type: "integer", description: "Carambus-internal Tournament ID" },
           meldeliste_id:  { type: "integer", description: "CC meldelisteId (RegistrationListCc.cc_id)" },
-          fed_id:         { type: "integer", description: "ClubCloud federation ID (required for live lookup). Defaults to ENV['CC_FED_ID'] if not provided." },
+          fed_id:         { type: "integer", description: "ClubCloud federation ID (required for live lookup). Optional — resolved via region lookup (CC_REGION/Setting 'context', default 'NBV'); ENV CC_FED_ID overrides." },
           force_refresh:  { type: "boolean", default: false, description: "Bypass DB cache, query CC live" }
         }
       )

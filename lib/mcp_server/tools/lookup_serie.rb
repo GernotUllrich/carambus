@@ -10,7 +10,7 @@ module McpServer
       input_schema(
         properties: {
           serie_id: { type: "integer", description: "CC serie ID (omit to list all for fed_id + season)" },
-          fed_id:   { type: "integer", description: "ClubCloud federation ID. Defaults to ENV['CC_FED_ID'] if not provided." },
+          fed_id:   { type: "integer", description: "ClubCloud federation ID. Optional — resolved via region lookup (CC_REGION/Setting 'context', default 'NBV'); ENV CC_FED_ID overrides." },
           season:   { type: "string",  description: "Season name like '2025/2026'" }
         }
       )

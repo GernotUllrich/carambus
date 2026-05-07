@@ -10,7 +10,7 @@ module McpServer
       input_schema(
         properties: {
           spielbericht_id: { type: "integer", description: "CC spielbericht ID" },
-          fed_id:          { type: "integer", description: "ClubCloud federation ID. Defaults to ENV['CC_FED_ID'] if not provided." }
+          fed_id:          { type: "integer", description: "ClubCloud federation ID. Optional — resolved via region lookup (CC_REGION/Setting 'context', default 'NBV'); ENV CC_FED_ID overrides." }
         }
       )
       annotations(read_only_hint: true, destructive_hint: false)

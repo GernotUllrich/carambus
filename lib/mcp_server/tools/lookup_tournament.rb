@@ -11,7 +11,7 @@ module McpServer
         properties: {
           meisterschaft_id: { type: "integer", description: "CC meisterschaft ID (cc_id on TournamentCc)" },
           tournament_id:    { type: "integer", description: "Carambus-internal Tournament ID" },
-          fed_id:           { type: "integer", description: "ClubCloud federation ID (required for live lookup). Defaults to ENV['CC_FED_ID'] if not provided." },
+          fed_id:           { type: "integer", description: "ClubCloud federation ID (required for live lookup). Optional — resolved via region lookup (CC_REGION/Setting 'context', default 'NBV'); ENV CC_FED_ID overrides." },
           season:           { type: "string",  description: "Season name like '2025/2026'" },
           force_refresh:    { type: "boolean", default: false, description: "Bypass DB cache, query CC live" }
         }

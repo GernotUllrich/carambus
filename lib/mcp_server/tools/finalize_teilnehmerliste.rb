@@ -16,7 +16,7 @@ module McpServer
       DESC
       input_schema(
         properties: {
-          fed_id:        { type: "integer", description: "ClubCloud federation ID (e.g. 20 for BCW). Defaults to ENV['CC_FED_ID'] if not provided." },
+          fed_id:        { type: "integer", description: "ClubCloud federation ID (e.g. 20 for BCW). Optional — resolved via region lookup (CC_REGION/Setting 'context', default 'NBV'); ENV CC_FED_ID overrides." },
           branch_id:     { type: "integer", description: "CC branch (e.g. 10 for Karambol)" },
           season:        { type: "string",  description: "Season name like '2025/2026'" },
           meldeliste_id: { type: "integer", description: "CC meldelisteId of the participant list" },
