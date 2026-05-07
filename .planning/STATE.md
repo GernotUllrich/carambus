@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-04-15)
 Phase: 999.1
 Plan: Not started
 Status: Phase complete — ready for verification
-Last activity: 2026-05-07 — Completed quick task 260507-24p: Phase-39 Gap-01 fix (Discipline#lookup_dtp_with_class_walk now filters seedings by Seeding::MIN_ID via smart-fallback pattern; UAT Tests 2-7 unblocked) + Phase-40 (mcp-server-clubcloud) merged from origin/master
+Last activity: 2026-05-07 — Completed quick task 260507-jfe: scrape player_class from tournament title (Tournament.parse_player_class_from_title + 2 Region scrape-site wirings; closes 260507-24p deferred data-migration concern at scrape boundary; 16 new tests GREEN)
 
 Previous milestone archived at:
 
