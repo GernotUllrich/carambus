@@ -1,0 +1,10 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+# Carambus MCP-Server entrypoint — gespawnt von MCP-Clients (Claude Desktop / Code) als Subprocess.
+# JSON-RPC läuft über STDIN/STDOUT — daher MUSS STDOUT sauber bleiben (Pitfall 1).
+
+ENV["RAILS_ENV"] ||= "production"
+require_relative "../config/environment"
+
+require "mcp_server/transport/boot"
+McpServer::Transport::Boot.run

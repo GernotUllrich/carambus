@@ -117,6 +117,7 @@ plugins:
             UMB Scraping: UMB Scraping
             UMB Scraping Implementation: UMB Scraping Implementierung
             UMB Scraping Methods: UMB Scraping Methoden
+            ClubCloud MCP Server: ClubCloud MCP-Server
             Services: Services
             Table Monitor: Table Monitor
             Region CC: Region CC
@@ -188,6 +189,7 @@ nav:
       - UMB Scraping:
           - UMB Scraping Implementation: developers/umb-scraping-implementation.md
           - UMB Scraping Methods: developers/umb-scraping-methods.md
+      - ClubCloud MCP Server: developers/clubcloud-mcp-server.md
       - Services:
           - Table Monitor: developers/services/table-monitor.md
           - Region CC: developers/services/region-cc.md
@@ -226,7 +228,11 @@ nav:
 markdown_extensions:
   - pymdownx.highlight:
       anchor_linenums: true
-  - pymdownx.superfences
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
   - pymdownx.arithmatex:
       generic: true
   - pymdownx.details
@@ -260,6 +266,8 @@ extra_javascript:
   - javascripts/mathjax.js
   - https://polyfill.io/v3/polyfill.min.js?features=es6
   - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
+  - https://unpkg.com/mermaid@10/dist/mermaid.min.js
+  - javascripts/mermaid-init.js
 
 # Extra
 extra:
