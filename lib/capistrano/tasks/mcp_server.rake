@@ -7,7 +7,7 @@
 # Ohne diesen Hook schlägt ein MCP-Client, der bin/mcp-server auf einem frisch deployte
 # Server spawnt, mit EACCES (Permission denied) fehl.
 #
-# Hook-Zeitpunkt: after :bundle:install — release-Dir ist vorhanden, vor Restart-Hooks.
+# Hook-Zeitpunkt: after :bundler:install — release-Dir ist vorhanden, vor Restart-Hooks.
 # Lokale Entwicklung: nicht betroffen — git trackt den File-Mode, Devs setzen `chmod +x` einmalig.
 # E2E-Test (test/mcp_server/integration/stdio_e2e_test.rb): prüft File.executable? lokal.
 
@@ -25,5 +25,5 @@ namespace :deploy do
   end
 end
 
-# Nach bundle:install ausführen — release-Dir ist vorhanden, vor allen Restart-Hooks.
-after "bundle:install", "deploy:mcp_server:set_executable"
+# Nach bundler:install ausführen — release-Dir ist vorhanden, vor allen Restart-Hooks.
+after "bundler:install", "deploy:mcp_server:set_executable"
