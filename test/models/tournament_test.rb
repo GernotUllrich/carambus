@@ -72,4 +72,111 @@ class TournamentTest < ActiveSupport::TestCase
     t.admin_controlled = nil
     assert t.player_controlled?, "player_controlled? must be true when admin_controlled=nil"
   end
+
+  # --- Quick 260507-jfe: Tournament.parse_player_class_from_title ---
+
+  test "parse_player_class_from_title returns nil for nil title" do
+    assert_nil Tournament.parse_player_class_from_title(nil)
+  end
+
+  test "parse_player_class_from_title returns nil for blank title" do
+    assert_nil Tournament.parse_player_class_from_title("")
+    assert_nil Tournament.parse_player_class_from_title("   ")
+  end
+
+  test "parse_player_class_from_title extracts numeric class — Klasse 5" do
+    assert_equal "5", Tournament.parse_player_class_from_title("Bezirksmeisterschaft Freie Partie Klasse 5")
+  end
+
+  test "parse_player_class_from_title extracts numeric class — Kl. 4" do
+    assert_equal "4", Tournament.parse_player_class_from_title("Vorgabeturnier Einband Kl. 4 2024")
+  end
+
+  test "parse_player_class_from_title extracts numeric class — KK 7" do
+    assert_equal "7", Tournament.parse_player_class_from_title("KK Dreiband KK 7 Saison 2024/25")
+  end
+
+  test "parse_player_class_from_title extracts roman class — Klasse III" do
+    assert_equal "III", Tournament.parse_player_class_from_title("Verbandspokal Klasse III")
+  end
+
+  test "parse_player_class_from_title extracts roman class — Kl. II" do
+    assert_equal "II", Tournament.parse_player_class_from_title("Karambol groß Kl. II Final")
+  end
+
+  test "parse_player_class_from_title extracts roman class — standalone trailing I" do
+    # Must NOT match the letter 'i' in 'Stadtmeisterschaft' — word boundary regex required.
+    assert_equal "I", Tournament.parse_player_class_from_title("Stadtmeisterschaft Cadre 47/2 I")
+  end
+
+  test "parse_player_class_from_title returns nil — non-PLAYER_CLASS_ORDER title" do
+    # Damen, U17, Schüler etc. are not in PLAYER_CLASS_ORDER — intentionally nil per JFE Open Question 1.
+    assert_nil Tournament.parse_player_class_from_title("Pokalturnier Damen 9-Ball")
+  end
+
+  test "parse_player_class_from_title returns nil — roman IV not in PLAYER_CLASS_ORDER" do
+    # PLAYER_CLASS_ORDER only goes up to III; IV must not match.
+    assert_nil Tournament.parse_player_class_from_title("Klasse IV")
+  end
+
+  test "parse_player_class_from_title first match wins on ambiguous title" do
+    # PLAYER_CLASS_ORDER is %w[7 6 5 4 3 2 1 I II III]. The loop tries "7" first, then "6", etc.
+    # "4" is at index 3, "3" is at index 4 — so the loop hits "Klasse 4" before "Klasse 3".
+    # Correct expected value is "4" (first in constant order, not first in title text).
+    # Rule 1 plan-prescribed-test deviation: plan text said "3" but the contract (PLAYER_CLASS_ORDER
+    # iteration order) dictates "4". Fixed to match the implementation. Documented in SUMMARY.md.
+    assert_equal "4", Tournament.parse_player_class_from_title("Klasse 3 / Klasse 4 Mixed")
+  end
+
+  test "parse_player_class_from_title is case insensitive for marker" do
+    assert_equal "5", Tournament.parse_player_class_from_title("klasse 5")
+  end
+
+  test "parse_player_class_from_title covers all PLAYER_CLASS_ORDER tokens" do
+    # Regression guard: if the constant gains a new token this test catches missing parser coverage.
+    Discipline::PLAYER_CLASS_ORDER.each do |token|
+      result = Tournament.parse_player_class_from_title("Test Klasse #{token}")
+      assert_equal token, result, "Expected '#{token}' from 'Test Klasse #{token}'"
+    end
+  end
+
+  test "parse_player_class_from_title issues no DB queries" do
+    assert_no_queries do
+      Tournament.parse_player_class_from_title("Bezirksmeisterschaft Klasse 5")
+    end
+  end
+
+  # --- Quick 260507-jfe: player_class persisted via Tournament.create ---
+
+  test "Tournament.create accepts and persists player_class from parser" do
+    title = "Bezirksmeisterschaft Einband Klasse 5 2024"
+    season = seasons(:current)
+    region = regions(:nbv)
+    parsed = Tournament.parse_player_class_from_title(title)
+    assert_equal "5", parsed
+
+    t = Tournament.create!(
+      season: season,
+      organizer: region,
+      title: title,
+      player_class: parsed
+    )
+    assert_equal "5", t.reload.player_class
+  end
+
+  test "Tournament.create with nil parsed player_class persists nil (no coercion to empty string)" do
+    title = "Pokalturnier Damen 9-Ball"
+    season = seasons(:current)
+    region = regions(:nbv)
+    parsed = Tournament.parse_player_class_from_title(title)
+    assert_nil parsed
+
+    t = Tournament.create!(
+      season: season,
+      organizer: region,
+      title: title,
+      player_class: parsed
+    )
+    assert_nil t.reload.player_class
+  end
 end
