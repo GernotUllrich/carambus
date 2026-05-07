@@ -380,7 +380,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../reference/api.md" class="md-tabs__link">
+        <a href="../../reference/api/" class="md-tabs__link">
           
   
   
@@ -1393,6 +1393,8 @@
       
         
       
+        
+      
     
     
     
@@ -1817,6 +1819,29 @@
   
   
   
+    <li class="md-nav__item">
+      <a href="../../developers/clubcloud-mcp-server/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    ClubCloud MCP-Server
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
     
     
       
@@ -1851,10 +1876,10 @@
         
           
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6_11" >
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6_12" >
         
           
-          <label class="md-nav__link" for="__nav_6_11" id="__nav_6_11_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_6_12" id="__nav_6_12_label" tabindex="0">
             
   
   
@@ -1867,8 +1892,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_11_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_6_11">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_12_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6_12">
             <span class="md-nav__icon md-icon"></span>
             Services
           </label>
@@ -2463,7 +2488,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/api.md" class="md-nav__link">
+      <a href="../../reference/api/" class="md-nav__link">
         
   
   
@@ -2937,7 +2962,7 @@
 <h1 id="youtube-api-key-in-rails-credentials-speichern">YouTube API Key in Rails Credentials speichern<a class="headerlink" href="#youtube-api-key-in-rails-credentials-speichern" title="Permanent link">&para;</a></h1>
 <h2 id="fur-production-carambus_api-server">Für Production (carambus_api Server)<a class="headerlink" href="#fur-production-carambus_api-server" title="Permanent link">&para;</a></h2>
 <h3 id="1-production-credentials-bearbeiten">1. Production Credentials bearbeiten<a class="headerlink" href="#1-production-credentials-bearbeiten" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nb">cd</span><span class="w"> </span>/Volumes/EXT2TB/gullrich/DEV/carambus/carambus_master
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nb">cd</span><span class="w"> </span>/Users/gullrich/DEV/carambus/carambus_master
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="c1"># Production credentials öffnen</span>
 <a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="nv">EDITOR</span><span class="o">=</span>nano<span class="w"> </span>rails<span class="w"> </span>credentials:edit<span class="w"> </span>--environment<span class="w"> </span>production
@@ -2962,7 +2987,7 @@
 </code></pre></div>
 <h3 id="4-credentials-anderung-commiten">4. Credentials-Änderung commiten<a class="headerlink" href="#4-credentials-anderung-commiten" title="Permanent link">&para;</a></h3>
 <p><strong>Wichtig</strong>: Nur die <code>.yml.enc</code> Datei wird committet, NICHT der <code>.key</code> File!</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nb">cd</span><span class="w"> </span>/Volumes/EXT2TB/gullrich/DEV/carambus/carambus_master
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nb">cd</span><span class="w"> </span>/Users/gullrich/DEV/carambus/carambus_master
 <a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
 <a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="c1"># Prüfen welche Dateien geändert wurden</span>
 <a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>git<span class="w"> </span>status
@@ -2976,7 +3001,7 @@
 </code></pre></div>
 <h3 id="5-auf-carambus_api-server-deployen">5. Auf carambus_api Server deployen<a class="headerlink" href="#5-auf-carambus_api-server-deployen" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># Im carambus_api Verzeichnis</span>
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="nb">cd</span><span class="w"> </span>/Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="nb">cd</span><span class="w"> </span>/Users/gullrich/DEV/carambus/carambus_api
 <a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
 <a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="c1"># Pull der Änderungen</span>
 <a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>git<span class="w"> </span>pull
@@ -3002,12 +3027,12 @@
 <hr />
 <h2 id="testen">Testen<a class="headerlink" href="#testen" title="Permanent link">&para;</a></h2>
 <h3 id="lokal-development">Lokal (Development):<a class="headerlink" href="#lokal-development" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="nb">cd</span><span class="w"> </span>/Volumes/EXT2TB/gullrich/DEV/carambus/carambus_master
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="nb">cd</span><span class="w"> </span>/Users/gullrich/DEV/carambus/carambus_master
 <a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
 <a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>rails<span class="w"> </span>runner<span class="w"> </span><span class="s2">&quot;puts Rails.application.credentials.youtube_api_key.present? ? &#39;✅ Key gefunden&#39; : &#39;❌ Key fehlt&#39;&quot;</span>
 </code></pre></div>
 <h3 id="auf-carambus_api-production">Auf carambus_api (Production):<a class="headerlink" href="#auf-carambus_api-production" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="nb">cd</span><span class="w"> </span>/Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="nb">cd</span><span class="w"> </span>/Users/gullrich/DEV/carambus/carambus_api
 <a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>
 <a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="nv">RAILS_ENV</span><span class="o">=</span>production<span class="w"> </span>rails<span class="w"> </span>runner<span class="w"> </span><span class="s2">&quot;puts Rails.application.credentials.youtube_api_key.present? ? &#39;✅ Key gefunden&#39; : &#39;❌ Key fehlt&#39;&quot;</span>
 </code></pre></div>
@@ -3017,7 +3042,7 @@
 <p>Der <code>config/credentials/production.key</code> File enthält den Master Key zum Entschlüsseln.
 - <strong>NIEMALS</strong> in Git committen (ist in <code>.gitignore</code>)
 - Muss auf dem Production Server vorhanden sein
-- Prüfen: <code>ls -la /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api/config/credentials/production.key</code></p>
+- Prüfen: <code>ls -la /Users/gullrich/DEV/carambus/carambus_api/config/credentials/production.key</code></p>
 <h3 id="sicherheit">🔒 Sicherheit<a class="headerlink" href="#sicherheit" title="Permanent link">&para;</a></h3>
 <ul>
 <li>Der API Key ist verschlüsselt in <code>production.yml.enc</code></li>
@@ -3138,6 +3163,10 @@
         <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
       
         <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+        <script src="https://unpkg.com/mermaid@10/dist/mermaid.min.js"></script>
+      
+        <script src="../../javascripts/mermaid-init.js"></script>
       
     
   </body>
