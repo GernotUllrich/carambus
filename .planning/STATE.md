@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v7.1
 milestone_name: UX Polish & i18n Debt
 status: executing
-stopped_at: Completed 40-mcp-server-clubcloud-01-foundation-PLAN.md
-last_updated: "2026-05-07T04:25:38.756Z"
+stopped_at: Completed 40-mcp-server-cloudcloud-02-workflow-resources-PLAN.md
+last_updated: "2026-05-07T04:34:05.135Z"
 last_activity: 2026-05-07
 progress:
   total_phases: 13
   completed_phases: 0
   total_plans: 6
-  completed_plans: 1
-  percent: 17
+  completed_plans: 2
+  percent: 33
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-15)
 ## Current Position
 
 Phase: 40 (mcp-server-clubcloud) — EXECUTING
-Plan: 2 of 6
+Plan: 3 of 6
 Status: Ready to execute
 Last activity: 2026-05-07
 
@@ -120,6 +120,8 @@ Decisions are logged in PROJECT.md Key Decisions table. Full v7.0 cross-phase de
 - [Phase 40-mcp-server-clubcloud]: SDK-API DEVIATION: MCP::Tool::Response hat #error? (Predicate), NICHT #error — Plans 04+05 müssen response.error? verwenden
 - [Phase 40-mcp-server-clubcloud]: Setting.login_to_cc ist kanonischer CC-Login (kein Hand-rolled Net::HTTP in cc_session.rb)
 - [Phase 40-mcp-server-clubcloud]: Einzelner zentraler resources_read_handler in server.rb — Plans 02+03 registrieren keinen eigenen Handler (Wave-2-Konfliktfreiheit)
+- [Phase 40-mcp-server-clubcloud]: Plan 02 registriert keinen eigenen resources_read_handler — Plan 01's zentraler Dispatcher übernimmt Routing (Wave-2-Konfliktfreiheit gesichert)
+- [Phase 40-mcp-server-clubcloud]: [SME-CONFIRM]-Marker aus DRAFT bleiben verbatim in 5/5 DE-Markdown-Dateien (5 Dateien, Info 12 erlaubt 4 oder 5)
 
 ### Roadmap Evolution
 
@@ -198,6 +200,6 @@ See `HISTORY.md` for the chronological ledger of completed quick tasks (with com
 
 ## Session Continuity
 
-Last session: 2026-05-07T04:25:38.753Z
-Stopped at: Completed 40-mcp-server-clubcloud-01-foundation-PLAN.md
+Last session: 2026-05-07T04:34:05.131Z
+Stopped at: Completed 40-mcp-server-cloudcloud-02-workflow-resources-PLAN.md
 Resume: `/gsd-discuss-phase` für die Spec-Implementation starten — Spec-Doc lesen, Phase scopen (v7.2 oder v7.1-closure 38.10), 9 Plan-Sketches in Spec Section 9 als Ausgangspunkt nutzen. Parallel: bei nächstem Tournament die 4 deferred Phase-38.7-Items abhaken. Bug-A separat triagieren (Quick-Task oder `/gsd-debug`).
