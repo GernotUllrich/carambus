@@ -5,7 +5,8 @@
 #
 # SDK-API findings (verified by Task 3 SDK-API smoke probe — see Plan 01 SUMMARY):
 # - `tool_name`, `description`, `input_schema`, `annotations` are class-level DSL macros
-# - `MCP::Tool::Response.new(content, error: bool)` exposes `#error` and `#content`
+# - `MCP::Tool::Response.new(content, error: bool)` exposes `#error?` (predicate!) and `#content`
+#   ACHTUNG: SDK 0.15 hat `error?` NICHT `error` — Plans 04+05 müssen `response.error?` nutzen
 
 module McpServer
   module Tools
