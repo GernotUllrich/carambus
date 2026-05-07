@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v7.1
 milestone_name: UX Polish & i18n Debt
 status: verifying
-stopped_at: Completed 40-06-tests-and-setup-PLAN.md
-last_updated: "2026-05-07T05:15:47.280Z"
+stopped_at: Completed quick-260507-c4o (SIGINT/SIGTERM trap-context fix)
+last_updated: "2026-05-07T06:47:22.923Z"
 last_activity: 2026-05-07
 progress:
   total_phases: 13
@@ -207,6 +207,6 @@ See `HISTORY.md` for the chronological ledger of completed quick tasks (with com
 
 ## Session Continuity
 
-Last session: 2026-05-07T05:00:46.729Z
-Stopped at: Completed 40-06-tests-and-setup-PLAN.md
+Last session: 2026-05-07T06:47:22.919Z
+Stopped at: Completed quick-260507-c4o (SIGINT/SIGTERM trap-context fix)
 Resume: `/gsd-discuss-phase` für die Spec-Implementation starten — Spec-Doc lesen, Phase scopen (v7.2 oder v7.1-closure 38.10), 9 Plan-Sketches in Spec Section 9 als Ausgangspunkt nutzen. Parallel: bei nächstem Tournament die 4 deferred Phase-38.7-Items abhaken. Bug-A separat triagieren (Quick-Task oder `/gsd-debug`).
