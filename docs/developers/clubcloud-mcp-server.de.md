@@ -415,6 +415,7 @@ Subklasse von `MCP::Tool`. Alle eigenen Tool-Klassen erben von `BaseTool`.
 | `.validate_required!` | `(args, required_keys)` → `nil` oder `Response` | Manuelle Required-Validation. Gibt `nil` zurück wenn alle Keys gesetzt, sonst Error-Response. |
 | `.mock_mode?` | → `Boolean` | True wenn `CARAMBUS_MCP_MOCK=1`. |
 | `.cc_session` | → `Class` | Convenience: gibt `McpServer::CcSession` zurück. |
+| `.default_fed_id` | → `Integer` oder `nil` | Liest `ENV["CC_FED_ID"]&.to_i`. Tools nutzen `fed_id \|\|= default_fed_id` vor der Validierung — falls der Aufrufer keine `fed_id` übergibt, wird der ENV-Default verwendet. Eine zentrale Lookup-Stelle (DRY); kein per-Tool-Override. |
 
 **Wichtig:** `MCP::Tool#input_schema` ist deskriptiv (für Claudes Toolauswahl), **nicht** Runtime-Validation. Manuelle Validierung im Tool-Body ist Pflicht.
 
@@ -857,6 +858,10 @@ Phase-40-Code-Review (advisory, nicht-blockierend) hat 5 Warnings + 7 Infos iden
 | IN-07 | `bin/mcp-server` | `RAILS_ENV` defaultet auf `production` — Footgun für lokales Manual-Invoke ohne explizites `RAILS_ENV=development`. |
 
 Phase 40.1 sollte WR-01..WR-05 + IN-02 + IN-04 vor weiteren Write-Tools beheben.
+
+**Geschlossen (Quick-Fix `260507-m2z`, 2026-05-07):**
+
+- **CC_FED_ID-ENV-Default-Lücke** — `.mcp.json` und `claude mcp add --env CC_FED_ID=20` reichten die ENV-Variable an den Subprocess durch, aber kein Tool las sie. Claude musste `fed_id` in jedem Tool-Call manuell mitgeben. Geschlossen via `BaseTool.default_fed_id` (`ENV["CC_FED_ID"]&.to_i`) + `fed_id ||= default_fed_id` in 11 Tools (alle mit `fed_id`-Argument). Schema-Descriptions weisen Claude in der Tool-Liste auf den Default hin. Bei nicht gesetztem ENV bleibt der bestehende `Missing fed_id`-Fehler erhalten — keine Verhaltensänderung an dieser Bahn. Regression-Tests in `test/mcp_server/tools/cc_fed_id_env_default_test.rb` (3 Tools × 2 Pfade = 6 Tests).
 
 ---
 

@@ -4505,6 +4505,11 @@
 <td>→ <code>Class</code></td>
 <td>Convenience: gibt <code>McpServer::CcSession</code> zurück.</td>
 </tr>
+<tr>
+<td><code>.default_fed_id</code></td>
+<td>→ <code>Integer</code> oder <code>nil</code></td>
+<td>Liest <code>ENV["CC_FED_ID"]&amp;.to_i</code>. Tools nutzen <code>fed_id \|\|= default_fed_id</code> vor der Validierung — falls der Aufrufer keine <code>fed_id</code> übergibt, wird der ENV-Default verwendet. Eine zentrale Lookup-Stelle (DRY); kein per-Tool-Override.</td>
+</tr>
 </tbody>
 </table>
 <p><strong>Wichtig:</strong> <code>MCP::Tool#input_schema</code> ist deskriptiv (für Claudes Toolauswahl), <strong>nicht</strong> Runtime-Validation. Manuelle Validierung im Tool-Body ist Pflicht.</p>
@@ -4974,6 +4979,10 @@
 </tbody>
 </table>
 <p>Phase 40.1 sollte WR-01..WR-05 + IN-02 + IN-04 vor weiteren Write-Tools beheben.</p>
+<p><strong>Geschlossen (Quick-Fix <code>260507-m2z</code>, 2026-05-07):</strong></p>
+<ul>
+<li><strong>CC_FED_ID-ENV-Default-Lücke</strong> — <code>.mcp.json</code> und <code>claude mcp add --env CC_FED_ID=20</code> reichten die ENV-Variable an den Subprocess durch, aber kein Tool las sie. Claude musste <code>fed_id</code> in jedem Tool-Call manuell mitgeben. Geschlossen via <code>BaseTool.default_fed_id</code> (<code>ENV["CC_FED_ID"]&amp;.to_i</code>) + <code>fed_id ||= default_fed_id</code> in 11 Tools (alle mit <code>fed_id</code>-Argument). Schema-Descriptions weisen Claude in der Tool-Liste auf den Default hin. Bei nicht gesetztem ENV bleibt der bestehende <code>Missing fed_id</code>-Fehler erhalten — keine Verhaltensänderung an dieser Bahn. Regression-Tests in <code>test/mcp_server/tools/cc_fed_id_env_default_test.rb</code> (3 Tools × 2 Pfade = 6 Tests).</li>
+</ul>
 <hr />
 <h2 id="12-phase-401-roadmap">12. Phase 40.1 Roadmap<a class="headerlink" href="#12-phase-401-roadmap" title="Permanent link">&para;</a></h2>
 <p>Phase 40 lieferte die <strong>Architektur</strong> + <strong>eine</strong> Write-Tool-Proof-Implementierung. Phase 40.1 wird:</p>
