@@ -1,13 +1,12 @@
 {
-  "_comment": "Phase 40 MCP-Server Konfigurationsvorlage. Kopiere diese Datei nach .mcp.json (Claude Code Konvention) und trage deine CC-Zugangsdaten ein. Die Variable-Expansion ${VAR} und ${VAR:-default} wird von Claude Code unterstuetzt.",
+  "_comment": "Phase 40 MCP-Server Konfigurationsvorlage. Kopiere diese Datei nach .mcp.json (Claude Code Konvention). CC-Credentials liegen in Rails Credentials (config/credentials/<env>.yml.enc), NICHT in dieser Datei. Die Variable-Expansion ${VAR} und ${VAR:-default} wird von Claude Code unterstuetzt.",
   "mcpServers": {
     "carambus_clubcloud": {
       "command": "${PWD}/bin/mcp-server",
       "args": [],
       "env": {
-        "CC_USERNAME": "${CC_USERNAME}",
-        "CC_PASSWORD": "${CC_PASSWORD}",
-        "CC_FED_ID": "${CC_FED_ID:-20}",
+        "RAILS_ENV": "${RAILS_ENV:-production}",
+        "CC_REGION": "${CC_REGION:-NBV}",
         "CARAMBUS_MCP_MOCK": "${CARAMBUS_MCP_MOCK:-0}"
       }
     }

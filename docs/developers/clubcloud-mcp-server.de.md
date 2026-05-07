@@ -303,17 +303,47 @@ DOCS_AUTO_REBUILD=0 CARAMBUS_MCP_MOCK=1 RAILS_ENV=development bin/mcp-server
 
 ### Live-Mode
 
-Setze CC-Credentials per ENV (oder per Rails Credentials für persistente Konfiguration):
-
 ```bash
-CC_USERNAME="dein@email.de" \
-CC_PASSWORD="dein-passwort" \
-CC_FED_ID="20" \
-RAILS_ENV=development \
-bin/mcp-server
+CC_REGION=NBV RAILS_ENV=development bin/mcp-server
 ```
 
-`CcSession` delegiert den Login an `Setting.login_to_cc` — der kanonische CC-Login-Flow inklusive `call_police`-Hidden-Field, MD5-Passwort und PHPSESSID-Extraction. Phase 40 rollt **kein** eigenes `Net::HTTP::Post` (extend-before-build).
+`CcSession` delegiert den Login an `Setting.login_to_cc` — der kanonische CC-Login-Flow inklusive
+`call_police`-Hidden-Field, MD5-Passwort und PHPSESSID-Extraction. Phase 40 rollt **kein** eigenes
+`Net::HTTP::Post` (extend-before-build).
+
+Credentials werden ausschließlich aus **Rails Credentials** geladen (siehe Sub-Sektion unten).
+ENV-Vars `CC_USERNAME`/`CC_PASSWORD`/`CC_FED_ID` werden seit Quick-Task `260507-njl` nicht mehr gelesen —
+`CC_REGION` (Shortname, z.B. `NBV`) reicht aus, um Region + `fed_id` (= `region_cc.cc_id`) automatisch zu ermitteln.
+`CC_FED_ID` bleibt als optionaler Override für Edge-Cases (z.B. Test-Fixtures ohne Region-Eintrag).
+
+### Rails Credentials Setup (für lokales Live-Debug)
+
+Auf Production-Servern (z.B. `carambus_bcw`) sind CC-Credentials bereits in
+`config/credentials/production.yml.enc` konfiguriert. Für lokales Live-Debug auf dem Dev-Mac:
+
+```bash
+EDITOR=vi bundle exec rails credentials:edit --environment development
+```
+
+YAML-Struktur (per-Region-Kontext):
+
+```yaml
+clubcloud:
+  nbv:
+    username: dein@email.de
+    password: dein-cc-passwort
+  bcw:
+    username: anderer@email.de
+    password: anderes-passwort
+```
+
+`Setting.get_cc_credentials(context)` liest den Block für den passenden Region-Shortname.
+`CC_REGION` (oder `Setting.key_get_value("context")`) entscheidet, welcher Block geladen wird.
+
+**Wichtig:** Die per-environment-Trennung bedeutet — Credentials müssen sowohl in `development.yml.enc`
+(für lokales `bin/mcp-server`) als auch in `production.yml.enc` (für Production-Deployments) hinterlegt sein.
+Ohne passenden Block: `RuntimeError "ClubCloud username not configured for region: <SHORTNAME>"` aus
+`Setting.login_to_cc`.
 
 ### Claude Code (Project-Scope) einbinden
 
@@ -321,7 +351,7 @@ Empfohlen für Carambus-Dev-Workflow:
 
 ```bash
 cp .mcp.json.example .mcp.json
-$EDITOR .mcp.json   # Credentials eintragen
+$EDITOR .mcp.json   # CC_REGION ggf. anpassen
 ```
 
 `.mcp.json` ist gitignored. Claude Code löst `${VAR}`-Expansion beim Server-Start auf:
@@ -333,11 +363,9 @@ $EDITOR .mcp.json   # Credentials eintragen
       "command": "/abs/path/to/carambus_api/bin/mcp-server",
       "args": [],
       "env": {
-        "CC_USERNAME": "${CC_USERNAME}",
-        "CC_PASSWORD": "${CC_PASSWORD}",
-        "CC_FED_ID": "${CC_FED_ID:-20}",
-        "CARAMBUS_MCP_MOCK": "${CARAMBUS_MCP_MOCK:-0}",
-        "RAILS_ENV": "development"
+        "RAILS_ENV": "development",
+        "CC_REGION": "${CC_REGION:-NBV}",
+        "CARAMBUS_MCP_MOCK": "${CARAMBUS_MCP_MOCK:-0}"
       }
     }
   }
@@ -352,13 +380,11 @@ Einmalige Konfiguration für alle Projekte:
 claude mcp add carambus_clubcloud \
   --scope user \
   --command /abs/path/to/carambus_api/bin/mcp-server \
-  --env CC_USERNAME=dein@email.de \
-  --env CC_PASSWORD=dein-passwort \
-  --env CC_FED_ID=20 \
+  --env CC_REGION=NBV \
   --env RAILS_ENV=development
 ```
 
-Schreibt nach `~/.claude.json`. Vorteil: überall verfügbar. Nachteil: Klartext-Passwort im Home-Dir.
+Schreibt nach `~/.claude.json`. Vorteil: überall verfügbar. Credentials liegen separat in Rails Credentials — kein Klartext im Home-Dir.
 
 ### Manueller JSON-RPC-Test
 
@@ -415,7 +441,7 @@ Subklasse von `MCP::Tool`. Alle eigenen Tool-Klassen erben von `BaseTool`.
 | `.validate_required!` | `(args, required_keys)` → `nil` oder `Response` | Manuelle Required-Validation. Gibt `nil` zurück wenn alle Keys gesetzt, sonst Error-Response. |
 | `.mock_mode?` | → `Boolean` | True wenn `CARAMBUS_MCP_MOCK=1`. |
 | `.cc_session` | → `Class` | Convenience: gibt `McpServer::CcSession` zurück. |
-| `.default_fed_id` | → `Integer` oder `nil` | Liest `ENV["CC_FED_ID"]&.to_i`. Tools nutzen `fed_id \|\|= default_fed_id` vor der Validierung — falls der Aufrufer keine `fed_id` übergibt, wird der ENV-Default verwendet. Eine zentrale Lookup-Stelle (DRY); kein per-Tool-Override. |
+| `.default_fed_id` | → `Integer` oder `nil` | Liefert die ClubCloud `fed_id` mit Priorität: (1) ENV `CC_FED_ID` (Override), (2) Region-Lookup via `Region.find_by(shortname: CC_REGION).region_cc.cc_id` (kanonisch — ENV `CC_REGION` oder `Setting.key_get_value("context")`, Default `NBV`), (3) `nil`. Defensives `rescue StandardError` schützt Mock-Smoke-Tests ohne DB. Tools nutzen `fed_id \|\|= default_fed_id` vor der Validierung. Geändert in Quick-Task `260507-njl` — vorher reiner ENV-Lookup. |
 
 **Wichtig:** `MCP::Tool#input_schema` ist deskriptiv (für Claudes Toolauswahl), **nicht** Runtime-Validation. Manuelle Validierung im Tool-Body ist Pflicht.
 
@@ -762,7 +788,7 @@ echo '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"cc_lookup_
 **Häufigste Ursachen:**
 
 - **DB-Miss bei DB-first:** `Region.find_by(shortname: "BCW")` → nil. Fix: prüfen ob Fixture/Seed-Daten geladen.
-- **Live-Mode ohne Credentials:** `RuntimeError "CC_USERNAME env var not set"`. Fix: Mock-Mode oder ENVs setzen.
+- **Live-Mode ohne Rails Credentials:** `RuntimeError "ClubCloud username not configured for region: ..."`. Fix: Mock-Mode aktivieren oder Rails Credentials einrichten (siehe Section 5 "Rails Credentials Setup").
 - **CC-Login-Fehler:** STDERR-Log enthält Detail. Fix: Credentials/FedId prüfen.
 
 ### "Live-Mode hängt 10+ Sekunden"
@@ -858,6 +884,14 @@ Phase-40-Code-Review (advisory, nicht-blockierend) hat 5 Warnings + 7 Infos iden
 | IN-07 | `bin/mcp-server` | `RAILS_ENV` defaultet auf `production` — Footgun für lokales Manual-Invoke ohne explizites `RAILS_ENV=development`. |
 
 Phase 40.1 sollte WR-01..WR-05 + IN-02 + IN-04 vor weiteren Write-Tools beheben.
+
+**Geschlossen (Quick-Fix `260507-njl`, 2026-05-07):**
+
+- **MCP-Credentials-Cleanup — Rails Credentials + Region-Lookup statt ENV.** Drei zusammengehörige Aufräumarbeiten:
+  - **Tote `require_env!`-Wächter in `cc_session.rb#client_for` entfernt:** `CC_USERNAME`/`CC_PASSWORD`-ENV-Reads waren nutzlos — der echte Login läuft seit Phase 40 über `Setting.login_to_cc` (Rails Credentials). Konstruktor akzeptiert `nil`-Credentials; ENV-frei bootbar.
+  - **`BaseTool.default_fed_id` von ENV-Lookup auf Region-Lookup umgestellt:** `Region.find_by(shortname: CC_REGION).region_cc.cc_id` ist die kanonische Quelle (BVBW=999, NBV=20, DBU=10). `CC_FED_ID` bleibt als ENV-Override höchste Priorität. Defensives `rescue StandardError` für Mock-Smoke-Tests ohne DB.
+  - **`.mcp.json.example` und Manager-/Developer-Doku auf 3-ENV-Schema reduziert** (`RAILS_ENV`, `CC_REGION`, `CARAMBUS_MCP_MOCK`). Klartext-Credentials raus aus Setup-JSON. Auf `carambus_bcw` Production-Server sind Rails Credentials bereits konfiguriert — kein User-Setup nötig.
+  - 3 neue Tests in `cc_fed_id_env_default_test.rb` (Region-Pfad, Override-Pfad, rescue-Pfad). Bestehender `cc_session_test.rb`-Test "missing CC_USERNAME raises" durch "ENV-frei bootbar"-Test ersetzt.
 
 **Geschlossen (Quick-Fix `260507-m2z`, 2026-05-07):**
 

@@ -2810,6 +2810,15 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#schritt-33a-nur-lokales-debug-rails-credentials-fur-cc-einrichten" class="md-nav__link">
+    <span class="md-ellipsis">
+      Schritt 3.3a — (nur lokales Debug) Rails Credentials für CC einrichten
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#schritt-34-claude-desktop-neu-starten" class="md-nav__link">
     <span class="md-ellipsis">
       Schritt 3.4 — Claude Desktop neu starten
@@ -2870,9 +2879,9 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#cc-login-failed-cc_username-env-var-not-set" class="md-nav__link">
+  <a href="#cc-login-failed-clubcloud-username-not-configured" class="md-nav__link">
     <span class="md-ellipsis">
-      "CC login failed" / "CC_USERNAME env var not set"
+      "CC login failed" / "ClubCloud username not configured"
     </span>
   </a>
   
@@ -2942,8 +2951,8 @@ bleiben auf deinem Rechner und werden niemals an Anthropic übertragen.</p>
 <li><strong>Claude Desktop</strong> installiert (macOS: <a href="https://claude.ai/download">claude.ai/download</a>)</li>
 <li><strong>Carambus-Repo</strong> lokal ausgecheckt (z.B. unter <code>~/DEV/carambus/carambus_api</code>)</li>
 <li><strong>Ruby</strong> und <code>bundler</code> verfügbar (<code>ruby --version</code> zeigt 3.2.x)</li>
-<li><strong>Eigene CC-Zugangsdaten</strong> (deine ClubCloud-E-Mail-Adresse + Passwort)</li>
-<li><strong>Verbandsnummer</strong> (<code>CC_FED_ID</code>, z.B. <code>20</code> für BCW)</li>
+<li><strong>CC-Zugangsdaten</strong> sind auf Production-Servern (z.B. carambus_bcw) bereits in Rails Credentials konfiguriert.
+  Für lokale Entwicklung siehe Abschnitt "Lokales Debug" unten.</li>
 </ul>
 <h2 id="schritt-fur-schritt-installation">Schritt-für-Schritt-Installation<a class="headerlink" href="#schritt-fur-schritt-installation" title="Permanent link">&para;</a></h2>
 <h3 id="schritt-31-bundle-install">Schritt 3.1 — Bundle-Install<a class="headerlink" href="#schritt-31-bundle-install" title="Permanent link">&para;</a></h3>
@@ -2972,21 +2981,38 @@ bleiben auf deinem Rechner und werden niemals an Anthropic übertragen.</p>
 <a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">      </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;/Users/&lt;DEIN-USER&gt;/DEV/carambus/carambus_api/bin/mcp-server&quot;</span><span class="p">,</span>
 <a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="w">      </span><span class="nt">&quot;args&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span>
 <a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="w">      </span><span class="nt">&quot;env&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="w">        </span><span class="nt">&quot;CC_USERNAME&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;deine-cc-email@example.com&quot;</span><span class="p">,</span>
-<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="w">        </span><span class="nt">&quot;CC_PASSWORD&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;dein-cc-passwort&quot;</span><span class="p">,</span>
-<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="w">        </span><span class="nt">&quot;CC_FED_ID&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;20&quot;</span><span class="p">,</span>
-<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="w">        </span><span class="nt">&quot;CARAMBUS_MCP_MOCK&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;0&quot;</span><span class="p">,</span>
-<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="w">        </span><span class="nt">&quot;RAILS_ENV&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;production&quot;</span>
-<a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a><span class="w">      </span><span class="p">}</span>
-<a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a><span class="w">    </span><span class="p">}</span>
-<a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a><span class="w">  </span><span class="p">}</span>
-<a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a><span class="p">}</span>
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="w">        </span><span class="nt">&quot;RAILS_ENV&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;production&quot;</span><span class="p">,</span>
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="w">        </span><span class="nt">&quot;CC_REGION&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;NBV&quot;</span><span class="p">,</span>
+<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="w">        </span><span class="nt">&quot;CARAMBUS_MCP_MOCK&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;0&quot;</span>
+<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="w">      </span><span class="p">}</span>
+<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a><span class="p">}</span>
 </code></pre></div>
-<p><strong>Wichtig:</strong> Ersetze <code>/Users/&lt;DEIN-USER&gt;/</code> durch deinen tatsächlichen Benutzernamen
-und trage deine echten CC-Zugangsdaten ein.</p>
+<p><strong>Wichtig:</strong> Ersetze <code>/Users/&lt;DEIN-USER&gt;/</code> durch deinen tatsächlichen Benutzernamen.
+Die CC-Zugangsdaten liegen in Rails Credentials (auf Production-Servern bereits konfiguriert) —
+es müssen keine Credentials in <code>claude_desktop_config.json</code> eingetragen werden.</p>
+<p>Setze <code>CC_REGION</code> auf den Verbands-Shortname deiner Region (z.B. <code>NBV</code>, <code>BCW</code>, <code>DBU</code>).
+Die ClubCloud-Verbandsnummer (<code>fed_id</code>) wird automatisch aus <code>Region.find_by(shortname: CC_REGION).region_cc.cc_id</code> ermittelt.</p>
 <p>Schütze die Datei vor fremdem Zugriff:
 <div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>chmod<span class="w"> </span><span class="m">600</span><span class="w"> </span>~/Library/Application<span class="se">\ </span>Support/Claude/claude_desktop_config.json
 </code></pre></div></p>
+<h3 id="schritt-33a-nur-lokales-debug-rails-credentials-fur-cc-einrichten">Schritt 3.3a — (nur lokales Debug) Rails Credentials für CC einrichten<a class="headerlink" href="#schritt-33a-nur-lokales-debug-rails-credentials-fur-cc-einrichten" title="Permanent link">&para;</a></h3>
+<p>Auf Production-Servern (z.B. carambus_bcw) sind die CC-Credentials in
+<code>config/credentials/production.yml.enc</code> bereits hinterlegt — du musst nichts tun.</p>
+<p>Nur falls du lokal auf deinem Mac den MCP-Server <strong>gegen ein echtes ClubCloud</strong> laufen lassen willst:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="nv">EDITOR</span><span class="o">=</span>vi<span class="w"> </span>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>rails<span class="w"> </span>credentials:edit<span class="w"> </span>--environment<span class="w"> </span>development
+</code></pre></div>
+<p>Trage folgende YAML-Struktur ein (Beispiel für NBV-Kontext):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="nt">clubcloud</span><span class="p">:</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">  </span><span class="nt">nbv</span><span class="p">:</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">    </span><span class="nt">username</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">deine-cc-email@example.com</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">    </span><span class="nt">password</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">dein-cc-passwort</span>
+</code></pre></div>
+<p>Speichern und schließen — der MCP-Server liest beim nächsten Start automatisch
+über <code>Setting.login_to_cc</code> aus den Credentials.</p>
+<p><strong>Empfehlung für lokales Debug ohne CC-Account:</strong> Setze stattdessen <code>CARAMBUS_MCP_MOCK=1</code> —
+dann werden keine Credentials benötigt.</p>
 <h3 id="schritt-34-claude-desktop-neu-starten">Schritt 3.4 — Claude Desktop neu starten<a class="headerlink" href="#schritt-34-claude-desktop-neu-starten" title="Permanent link">&para;</a></h3>
 <p>Beende Claude Desktop vollständig (Dock-Icon → Beenden) und starte es neu.
 Der MCP-Server startet beim ersten Bedarf automatisch.</p>
@@ -3021,24 +3047,25 @@ Rails-Boot-Banner) schreibt auf STDOUT. Der JSON-RPC-Stream wird dadurch korrump
 <h3 id="server-failed-to-start-timeout">"Server failed to start" / Timeout<a class="headerlink" href="#server-failed-to-start-timeout" title="Permanent link">&para;</a></h3>
 <p><strong>Ursache:</strong> Rails-Boot-Latenz ist zu hoch (kalter Start ~1-5s).</p>
 <p><strong>Lösung:</strong> In der <code>claude_desktop_config.json</code> ein Timeout erhöhen:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="nt">&quot;env&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">  </span><span class="nt">&quot;MCP_TIMEOUT&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;15000&quot;</span><span class="p">,</span>
-<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">  </span><span class="err">...</span>
-<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="p">}</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="nt">&quot;env&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">  </span><span class="nt">&quot;MCP_TIMEOUT&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;15000&quot;</span><span class="p">,</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="w">  </span><span class="err">...</span>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="p">}</span>
 </code></pre></div></p>
-<h3 id="cc-login-failed-cc_username-env-var-not-set">"CC login failed" / "CC_USERNAME env var not set"<a class="headerlink" href="#cc-login-failed-cc_username-env-var-not-set" title="Permanent link">&para;</a></h3>
-<p><strong>Ursache:</strong> Zugangsdaten fehlen oder sind falsch eingetragen.</p>
+<h3 id="cc-login-failed-clubcloud-username-not-configured">"CC login failed" / "ClubCloud username not configured"<a class="headerlink" href="#cc-login-failed-clubcloud-username-not-configured" title="Permanent link">&para;</a></h3>
+<p><strong>Ursache:</strong> Rails Credentials für die Region nicht eingerichtet (oder falsche Region in <code>CC_REGION</code>).</p>
 <p><strong>Sofortlösung:</strong> Mock-Mode aktivieren, um die MCP-Verbindung zu testen:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="nt">&quot;CARAMBUS_MCP_MOCK&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;1&quot;</span>
-</code></pre></div>
-Im Mock-Mode sind keine CC-Zugangsdaten nötig — alle Lookups geben Testdaten zurück.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="nt">&quot;CARAMBUS_MCP_MOCK&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;1&quot;</span>
+</code></pre></div></p>
+<p><strong>Permanente Lösung:</strong> Auf Production-Servern sind Credentials bereits konfiguriert — prüfe <code>RAILS_ENV=production</code>.
+Für lokales Debug siehe "Schritt 3.3a — Rails Credentials einrichten" oben.</p>
 <h3 id="server-startet-aber-liefert-keine-daten">Server startet, aber liefert keine Daten<a class="headerlink" href="#server-startet-aber-liefert-keine-daten" title="Permanent link">&para;</a></h3>
 <p><strong>Ursache:</strong> <code>RAILS_ENV</code> fehlt oder zeigt auf eine nicht vorhandene Datenbank.</p>
 <p><strong>Lösung:</strong> <code>RAILS_ENV=production</code> setzen und sicherstellen, dass die Produktionsdatenbank
 erreichbar ist (oder <code>RAILS_ENV=development</code> für lokale Entwicklungsinstanz).</p>
 <h2 id="mock-mode-fur-sicheres-ausprobieren">Mock-Mode für sicheres Ausprobieren<a class="headerlink" href="#mock-mode-fur-sicheres-ausprobieren" title="Permanent link">&para;</a></h2>
 <p>Wenn du den MCP-Server testen möchtest, ohne echte CC-Anfragen zu senden:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="nt">&quot;CARAMBUS_MCP_MOCK&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;1&quot;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="nt">&quot;CARAMBUS_MCP_MOCK&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;1&quot;</span>
 </code></pre></div>
 <p>Im Mock-Mode gilt:
 - Alle <code>cc_lookup_*</code>-Tools geben gefälschte Testdaten zurück

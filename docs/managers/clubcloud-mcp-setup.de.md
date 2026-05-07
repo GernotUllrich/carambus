@@ -25,8 +25,8 @@ Bevor du anfängst, stelle sicher, dass folgendes vorhanden ist:
 - **Claude Desktop** installiert (macOS: [claude.ai/download](https://claude.ai/download))
 - **Carambus-Repo** lokal ausgecheckt (z.B. unter `~/DEV/carambus/carambus_api`)
 - **Ruby** und `bundler` verfügbar (`ruby --version` zeigt 3.2.x)
-- **Eigene CC-Zugangsdaten** (deine ClubCloud-E-Mail-Adresse + Passwort)
-- **Verbandsnummer** (`CC_FED_ID`, z.B. `20` für BCW)
+- **CC-Zugangsdaten** sind auf Production-Servern (z.B. carambus_bcw) bereits in Rails Credentials konfiguriert.
+  Für lokale Entwicklung siehe Abschnitt "Lokales Debug" unten.
 
 ## Schritt-für-Schritt-Installation
 
@@ -75,24 +75,52 @@ Füge den `mcpServers`-Block ein (oder ergänze ihn, wenn bereits andere Server 
       "command": "/Users/<DEIN-USER>/DEV/carambus/carambus_api/bin/mcp-server",
       "args": [],
       "env": {
-        "CC_USERNAME": "deine-cc-email@example.com",
-        "CC_PASSWORD": "dein-cc-passwort",
-        "CC_FED_ID": "20",
-        "CARAMBUS_MCP_MOCK": "0",
-        "RAILS_ENV": "production"
+        "RAILS_ENV": "production",
+        "CC_REGION": "NBV",
+        "CARAMBUS_MCP_MOCK": "0"
       }
     }
   }
 }
 ```
 
-**Wichtig:** Ersetze `/Users/<DEIN-USER>/` durch deinen tatsächlichen Benutzernamen
-und trage deine echten CC-Zugangsdaten ein.
+**Wichtig:** Ersetze `/Users/<DEIN-USER>/` durch deinen tatsächlichen Benutzernamen.
+Die CC-Zugangsdaten liegen in Rails Credentials (auf Production-Servern bereits konfiguriert) —
+es müssen keine Credentials in `claude_desktop_config.json` eingetragen werden.
+
+Setze `CC_REGION` auf den Verbands-Shortname deiner Region (z.B. `NBV`, `BCW`, `DBU`).
+Die ClubCloud-Verbandsnummer (`fed_id`) wird automatisch aus `Region.find_by(shortname: CC_REGION).region_cc.cc_id` ermittelt.
 
 Schütze die Datei vor fremdem Zugriff:
 ```bash
 chmod 600 ~/Library/Application\ Support/Claude/claude_desktop_config.json
 ```
+
+### Schritt 3.3a — (nur lokales Debug) Rails Credentials für CC einrichten
+
+Auf Production-Servern (z.B. carambus_bcw) sind die CC-Credentials in
+`config/credentials/production.yml.enc` bereits hinterlegt — du musst nichts tun.
+
+Nur falls du lokal auf deinem Mac den MCP-Server **gegen ein echtes ClubCloud** laufen lassen willst:
+
+```bash
+EDITOR=vi bundle exec rails credentials:edit --environment development
+```
+
+Trage folgende YAML-Struktur ein (Beispiel für NBV-Kontext):
+
+```yaml
+clubcloud:
+  nbv:
+    username: deine-cc-email@example.com
+    password: dein-cc-passwort
+```
+
+Speichern und schließen — der MCP-Server liest beim nächsten Start automatisch
+über `Setting.login_to_cc` aus den Credentials.
+
+**Empfehlung für lokales Debug ohne CC-Account:** Setze stattdessen `CARAMBUS_MCP_MOCK=1` —
+dann werden keine Credentials benötigt.
 
 ### Schritt 3.4 — Claude Desktop neu starten
 
@@ -144,15 +172,17 @@ Rails-Boot-Banner) schreibt auf STDOUT. Der JSON-RPC-Stream wird dadurch korrump
 }
 ```
 
-### "CC login failed" / "CC_USERNAME env var not set"
+### "CC login failed" / "ClubCloud username not configured"
 
-**Ursache:** Zugangsdaten fehlen oder sind falsch eingetragen.
+**Ursache:** Rails Credentials für die Region nicht eingerichtet (oder falsche Region in `CC_REGION`).
 
 **Sofortlösung:** Mock-Mode aktivieren, um die MCP-Verbindung zu testen:
 ```json
 "CARAMBUS_MCP_MOCK": "1"
 ```
-Im Mock-Mode sind keine CC-Zugangsdaten nötig — alle Lookups geben Testdaten zurück.
+
+**Permanente Lösung:** Auf Production-Servern sind Credentials bereits konfiguriert — prüfe `RAILS_ENV=production`.
+Für lokales Debug siehe "Schritt 3.3a — Rails Credentials einrichten" oben.
 
 ### Server startet, aber liefert keine Daten
 
