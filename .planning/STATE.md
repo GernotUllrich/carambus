@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v7.1
 milestone_name: UX Polish & i18n Debt
-status: executing
-stopped_at: Completed 40-05-write-tool-PLAN.md
-last_updated: "2026-05-07T04:51:16.908Z"
+status: verifying
+stopped_at: Completed 40-06-tests-and-setup-PLAN.md
+last_updated: "2026-05-07T05:00:46.732Z"
 last_activity: 2026-05-07
 progress:
   total_phases: 13
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 6
-  completed_plans: 5
-  percent: 83
+  completed_plans: 6
+  percent: 100
 ---
 
 # Project State
@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-04-15)
 
 Phase: 40 (mcp-server-clubcloud) — EXECUTING
 Plan: 6 of 6
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-05-07
 
 Previous milestone archived at:
@@ -127,6 +127,8 @@ Decisions are logged in PROJECT.md Key Decisions table. Full v7.0 cross-phase de
 - [Phase 40-mcp-server-clubcloud]: 4 DB-first Tools (region, league, tournament, teilnehmerliste) + 6 live-only Tools (team, club, spielbericht, category, serie, search_player) — Warning-6-Fix abgeschlossen
 - [Phase 40-mcp-server-clubcloud]: Plan 04: cc_lookup_teilnehmerliste ist D-18 Acceptance-Story-Tool; TournamentCc-Mirror + RegistrationListCc-Guard + 'no_cc_mirror'-Fallback
 - [Phase 40-mcp-server-clubcloud]: Plan 05: Login + Reauth liegt vollständig in Plan 01 — cc_session.rb unberührt (Warning 7); cc_finalize_teilnehmerliste ist einziges Write-Tool in Phase 40 (D-19)
+- [Phase 40]: server.tools liefert Arrays [name, klass] statt Objekte — Test-Map-Block mit is_a?(Array)-Guard angepasst
+- [Phase 40]: RESEARCH Open Questions §1+§5 auf Code-Ebene gesperrt: -32700 Parse error via E2E-Test + Capistrano chmod 0755 Hook
 
 ### Roadmap Evolution
 
@@ -205,6 +207,6 @@ See `HISTORY.md` for the chronological ledger of completed quick tasks (with com
 
 ## Session Continuity
 
-Last session: 2026-05-07T04:51:16.904Z
-Stopped at: Completed 40-05-write-tool-PLAN.md
+Last session: 2026-05-07T05:00:46.729Z
+Stopped at: Completed 40-06-tests-and-setup-PLAN.md
 Resume: `/gsd-discuss-phase` für die Spec-Implementation starten — Spec-Doc lesen, Phase scopen (v7.2 oder v7.1-closure 38.10), 9 Plan-Sketches in Spec Section 9 als Ausgangspunkt nutzen. Parallel: bei nächstem Tournament die 4 deferred Phase-38.7-Items abhaken. Bug-A separat triagieren (Quick-Task oder `/gsd-debug`).
