@@ -32,12 +32,17 @@ class McpServer::CcSessionTest < ActiveSupport::TestCase
     assert_instance_of McpServer::Tools::MockClient, client
   end
 
-  test "missing CC_USERNAME raises clear error" do
+  test "missing CC_USERNAME and CC_PASSWORD: client_for darf ENV-frei booten (Login läuft über Setting.login_to_cc)" do
     ENV["CARAMBUS_MCP_MOCK"] = nil
     ENV["CC_USERNAME"] = nil
-    assert_raises(RuntimeError, /CC_USERNAME env var not set/) do
-      McpServer::CcSession.client_for
+    ENV["CC_PASSWORD"] = nil
+    client = nil
+    assert_nothing_raised do
+      client = McpServer::CcSession.client_for
     end
+    assert_instance_of RegionCc::ClubCloudClient, client
+    assert_nil client.username, "username should be nil — Setting.login_to_cc holt Credentials aus Rails Credentials"
+    assert_nil client.userpw, "userpw should be nil — siehe oben"
   end
 
   test "TTL: cookie_expired? nach 35 Minuten" do

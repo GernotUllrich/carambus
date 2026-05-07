@@ -70,4 +70,44 @@ class McpServer::Tools::CcFedIdEnvDefaultTest < ActiveSupport::TestCase
     assert response.error?
     assert_match(/Missing required parameter.*fed_id/i, response.content.first[:text])
   end
+
+  # ===== Region-Lookup-Pfad (CC_FED_ID unset → Region.find_by(shortname:CC_REGION).region_cc.cc_id) =====
+  test "default_fed_id: ENV CC_FED_ID unset + CC_REGION=NBV → Region-Lookup liefert cc_id" do
+    ENV["CC_FED_ID"] = nil
+    ENV["CC_REGION"] = "NBV"
+
+    fake_cc   = Struct.new(:cc_id).new(20)
+    fake_reg  = Struct.new(:region_cc).new(fake_cc)
+    Region.stub(:find_by, ->(args) { args == { shortname: "NBV" } ? fake_reg : nil }) do
+      assert_equal 20, McpServer::Tools::BaseTool.default_fed_id
+    end
+  ensure
+    ENV["CC_REGION"] = nil
+  end
+
+  test "default_fed_id: CC_FED_ID-Override beats CC_REGION-Lookup" do
+    ENV["CC_FED_ID"] = "999"
+    ENV["CC_REGION"] = "NBV"
+
+    # Region.find_by darf NICHT aufgerufen werden — Override-Pfad
+    Region.stub(:find_by, ->(_args) { raise "Region.find_by should not be called when CC_FED_ID is set" }) do
+      assert_equal 999, McpServer::Tools::BaseTool.default_fed_id
+    end
+  ensure
+    ENV["CC_FED_ID"] = nil
+    ENV["CC_REGION"] = nil
+  end
+
+  test "default_fed_id: defensives rescue — DB-Fehler liefert nil ohne Exception" do
+    ENV["CC_FED_ID"] = nil
+    ENV["CC_REGION"] = "NBV"
+
+    Region.stub(:find_by, ->(_args) { raise ActiveRecord::ConnectionNotEstablished, "no DB in mock-smoke" }) do
+      result = nil
+      assert_nothing_raised { result = McpServer::Tools::BaseTool.default_fed_id }
+      assert_nil result
+    end
+  ensure
+    ENV["CC_REGION"] = nil
+  end
 end

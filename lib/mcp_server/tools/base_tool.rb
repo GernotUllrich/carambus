@@ -39,13 +39,24 @@ module McpServer
         McpServer::CcSession
       end
 
-      # Liest ENV["CC_FED_ID"] als Default-Fallback für Tools, die fed_id nicht vom Aufrufer bekommen.
-      # Eine ENV-Lookup-Stelle (DRY); kein per-Tool-Override-Pattern. Tools nutzen:
-      #   fed_id ||= default_fed_id
-      # vor der Validierung. Falls auch ENV nicht gesetzt ist (nil), bleibt der bestehende
-      # "Missing required parameter: fed_id"-Fehler erhalten — keine Verhaltensänderung in dieser Bahn.
+      # Liefert die ClubCloud federation_id als Default-Fallback für Tools.
+      # Priorität:
+      #   1. ENV["CC_FED_ID"] (expliziter Override — höchste Prio)
+      #   2. Region-Lookup via CC_REGION-ENV oder Setting context (kanonisch)
+      #   3. nil — bestehender "Missing required parameter: fed_id"-Fehler bleibt erhalten
+      #
+      # Defensiv: rescued StandardError, damit Mock-Smoke-Tests ohne DB nicht crashen.
       def self.default_fed_id
-        ENV["CC_FED_ID"]&.to_i
+        return ENV["CC_FED_ID"].to_i if ENV["CC_FED_ID"].present?
+
+        context = ENV["CC_REGION"].presence ||
+                  (defined?(Setting) ? Setting.key_get_value("context").presence : nil) ||
+                  "NBV"
+        region = Region.find_by(shortname: context.upcase)
+        region&.region_cc&.cc_id
+      rescue StandardError => e
+        Rails.logger.warn "[BaseTool.default_fed_id] Region lookup failed: #{e.class}"
+        nil
       end
     end
   end

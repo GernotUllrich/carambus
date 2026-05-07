@@ -28,8 +28,11 @@ module McpServer
         return _client_override if _client_override
 
         base_url = Carambus.config.cc_base_url || "https://www.club-cloud.de"
-        username = require_env!("CC_USERNAME")
-        password = require_env!("CC_PASSWORD")
+        # ENV-Vars sind optional — der echte Login läuft über Setting.login_to_cc
+        # (Rails Credentials), das ENV CC_USERNAME/CC_PASSWORD ohnehin ignoriert.
+        # Konstruktor akzeptiert nil; Live-Login wird in #login! über Setting.login_to_cc geholt.
+        username = ENV["CC_USERNAME"].presence
+        password = ENV["CC_PASSWORD"].presence
         RegionCc::ClubCloudClient.new(base_url: base_url, username: username, userpw: password)
       end
 
@@ -98,9 +101,6 @@ module McpServer
         doc.css("form[action*='login']").any?
       end
 
-      def require_env!(key)
-        ENV[key].presence || raise(RuntimeError, "#{key} env var not set")
-      end
     end
   end
 end
