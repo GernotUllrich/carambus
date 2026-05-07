@@ -180,17 +180,19 @@ class Tournament < ApplicationRecord
   #
   # Design: PLAYER_CLASS_ORDER in deklarierter Reihenfolge durchlaufen (7 6 5 4 3 2 1 I II III).
   # Zwei Erkennungsformen je Token:
-  #   1. Marker-Form: "Klasse 5", "Kl. III", "KK 7" — Groß-/Kleinschreibung ignoriert.
+  #   1. Marker-Form: "Klasse 5", "Kl. III", "KK 7", "Kl.1" — Groß-/Kleinschreibung ignoriert.
+  #      "Kl." darf direkt am Token kleben (kein Whitespace nötig); andere Marker brauchen \s+.
   #   2. Standalone-trailing-Form: Titel endet auf "... 5" oder "... III" mit Wortgrenze,
   #      z.B. "Cadre 47/2 I". Verhindert Matches in Jahreszahlen ("2024") oder Brüchen ("47/2").
   def self.parse_player_class_from_title(title)
     return nil if title.blank?
 
     Discipline::PLAYER_CLASS_ORDER.each do |token|
-      # Marker-Form: "Klasse 5", "Kl. III", "KK 7" — Groß-/Kleinschreibung ignoriert
-      return token if title =~ /\b(?:Klasse|Kl\.?|KK)\s+#{Regexp.escape(token)}\b/i
+      escaped = Regexp.escape(token)
+      # Marker-Form: "Klasse 5", "Kl. III", "KK 7", "Kl.1" (Punkt trennt — Whitespace optional)
+      return token if title =~ /(?:\bKl\.\s*|\b(?:Klasse|Kl|KK)\s+)#{escaped}\b/i
       # Standalone-trailing-Form: Titel endet auf Token mit führendem Whitespace
-      return token if title =~ /(?:\s)#{Regexp.escape(token)}\s*\z/
+      return token if title =~ /(?:\s)#{escaped}\s*\z/
     end
     nil
   end

@@ -132,6 +132,21 @@ class TournamentTest < ActiveSupport::TestCase
     assert_equal "5", Tournament.parse_player_class_from_title("klasse 5")
   end
 
+  test "parse_player_class_from_title accepts Kl. without whitespace before token (real-data form)" do
+    # Real data: "NDM Cadre 35/2 Kl.1", "NDM Cadre 47/2 Kl.I", "NDM Dreiband Kl.2"
+    assert_equal "1", Tournament.parse_player_class_from_title("NDM Cadre 35/2 Kl.1")
+    assert_equal "I", Tournament.parse_player_class_from_title("NDM Cadre 47/2 Kl.I")
+    assert_equal "2", Tournament.parse_player_class_from_title("NDM Dreiband Kl.2")
+  end
+
+  test "parse_player_class_from_title — Kl. fix does not match digits inside fractions or years" do
+    # Guard: the dot-tightening must not introduce false matches
+    assert_nil Tournament.parse_player_class_from_title("Cadre 47/2 2024")
+    assert_nil Tournament.parse_player_class_from_title("Saison 2024/25")
+    # 'Kl.13' must not match '1' (no word boundary after 1)
+    assert_nil Tournament.parse_player_class_from_title("Test Kl.13")
+  end
+
   test "parse_player_class_from_title covers all PLAYER_CLASS_ORDER tokens" do
     # Regression guard: if the constant gains a new token this test catches missing parser coverage.
     Discipline::PLAYER_CLASS_ORDER.each do |token|
