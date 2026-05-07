@@ -249,10 +249,26 @@ Plans:
 - [ ] `39-02-PLAN.md` — Migrate `tournaments_controller.rb#verify_tournament_start_parameters` to keyword-arg call (D-01); reduce `UI_07_FIELDS` to `[:balls_goal, :innings_goal]` (D-12); delete `UI_07_SENTINEL_VALUES` constant + sentinel-exemption guard (D-13/D-15); delete `test/integration/tournament_verification_sentinels_test.rb` (RQ-04 — 7 tests of dead code); update `test/system/tournament_parameter_verification_test.rb` with deterministic Phase-39 fixture for setup + 3 new no-fire tests (BK-2kombi, handicap, no-plan). Wave 2 (depends on 39-01).
 **UI hint**: no
 
+### Phase 40: MCP Server für ClubCloud-Schnittstelle
+**Goal**: Stelle eine MCP-Server-Schnittstelle bereit, die ClubCloud-relevantes Wissen aus Carambus (organisatorische Workflow-Doku in `clubcloud-admin-appendix-DRAFT.md` plus technische Integrationspunkte aus Scrapern/Models) als strukturierte MCP-Tools/Resources für AI-Agents verfügbar macht. Konkreter Scope (welche Aspekte, welche Tools, Authentifizierung, Standalone vs. eingebettet, Zielgruppe) wird in der nachgelagerten Discuss-Phase geklärt.
+**Depends on**: Phase 39 (parameter-range refactor abgeschlossen, bevor neue API-Oberfläche gebaut wird — vorläufig, Discuss-Phase kann revidieren)
+**Requirements**: TBD (Discuss-Phase produziert konkrete Decisions, die dann in REQUIREMENTS.md aufgenommen werden)
+**Success Criteria** (vorläufig — Discuss-Phase verfeinert):
+  1. Ein lauffähiger MCP-Server (Node oder Ruby — Discuss-Phase entscheidet) der mindestens eine ClubCloud-bezogene Tool-Familie und eine Resource-Familie exponiert.
+  2. Tools sind dokumentiert und mit JSON-Schema validiert; Resources sind über stabile URIs adressierbar.
+  3. AI-Agent kann via MCP-Client (z.B. Claude Desktop / Claude Code) ClubCloud-Workflow-Fragen beantworten oder ClubCloud-Aktionen vorbereiten/auslösen — der genaue Aktionsumfang wird in Discuss-Phase festgelegt (read-only vs. write-fähig).
+  4. Authentifizierung gegen ClubCloud (oder Mock-Backend) ist sauber getrennt; Secrets nicht im Quellcode.
+  5. Tests: mindestens Smoke-Tests für jeden Tool/Resource-Endpunkt + Integrationstest gegen einen MCP-Client.
+**Plans**: TBD (run `/gsd-discuss-phase 40` first, then `/gsd-plan-phase 40`)
+
+Plans:
+- [ ] TBD (run `/gsd-discuss-phase 40` to clarify scope, then `/gsd-plan-phase 40`)
+**UI hint**: no
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 33 → 34 → 35 → 36a → 36b → 36c → 37 → 38 → 38.5 → 38.6 → 39
+Phases execute in numeric order: 33 → 34 → 35 → 36a → 36b → 36c → 37 → 38 → 38.5 → 38.6 → 39 → 40
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -272,9 +288,10 @@ Phases execute in numeric order: 33 → 34 → 35 → 36a → 36b → 36c → 37
 | 38.6. Discipline Master-Data Cleanup | v7.1 | 4/4 | Complete    | 2026-04-29 |
 | 38.8. Endergebnis-erfasst state restore | v7.1 | 6/6 | Complete    | 2026-05-01 |
 | 39. DTP-Backed Parameter Ranges | v7.1 | 0/2 | Not started | - |
+| 40. MCP Server für ClubCloud-Schnittstelle | v7.1 | 0/TBD | Not planned | - |
 
 **v7.0 total:** 7 phases, 31 plans, 37/37 requirements, ~2 weeks wall time.
-**v7.1 total (planned):** 4 phases, 12+TBD plans, 6+ requirements (5 in Phase 38, 1 in Phase 39, gap closure in 38.1/38.2).
+**v7.1 total (planned):** 5 phases, 12+TBD plans, 6+ requirements (5 in Phase 38, 1 in Phase 39, scope for Phase 40 TBD via discuss-phase, gap closure in 38.1/38.2).
 
 ## Backlog
 
@@ -287,4 +304,3 @@ Phases execute in numeric order: 33 → 34 → 35 → 36a → 36b → 36c → 37
 
 Plans:
 - [ ] TBD (promote with /gsd-review-backlog when ready)
-

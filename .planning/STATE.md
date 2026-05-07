@@ -123,6 +123,7 @@ Decisions are logged in PROJECT.md Key Decisions table. Full v7.0 cross-phase de
 - Phase 38.1 inserted after Phase 38: BK2-Kombi minimum viable support (URGENT — 2026-05-02 tournament deadline)
 - Phase 38.4 inserted after Phase 38: BK2-Kombi post-dry-run gaps (URGENT) — covers G1 delete, G2 Ballziel, I8, I9 deferred from Phase 38.3
 - Phase 38.7 inserted after Phase 38.6: Tiebreak bei Unentschieden — Per-Game-Flag mit Modal-Eingabe (URGENT)
+- Phase 40 added after Phase 39 (2026-05-07): MCP Server für ClubCloud-Schnittstelle — exponiert ClubCloud-Workflow-Wissen + technische Integration als MCP-Tools/Resources. Konkreter Scope wird in `/gsd-discuss-phase 40` geklärt.
 
 ### Pending Todos
 
