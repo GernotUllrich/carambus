@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v7.1
 milestone_name: UX Polish & i18n Debt
 status: verifying
-stopped_at: Completed quick-260507-m2z (CC_FED_ID ENV-default in 11 MCP tools)
+stopped_at: Completed quick-260507-njl (MCP-Credentials-Cleanup — Rails Credentials + Region-Lookup statt ENV)
 last_updated: "2026-05-07T13:55:00.000Z"
 last_activity: 2026-05-07
 progress:
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-04-15)
 Phase: 999.1
 Plan: Not started
 Status: Phase complete — ready for verification
-Last activity: 2026-05-07 — Completed quick task 260507-m2z: CC_FED_ID ENV-default in all 11 MCP tools (BaseTool.default_fed_id helper + fed_id ||= default_fed_id in tool bodies + 6 regression tests + Section 6/11 doc updates)
+Last activity: 2026-05-07 — Completed quick task 260507-njl: MCP-Credentials-Cleanup — require_env! entfernt, default_fed_id auf Region-Lookup umgestellt, .mcp.json.example + Doku auf 3-ENV-Schema, mkdocs rebuild (74 tests / 245 assertions / 0 failures)
 
 Previous milestone archived at:
 
@@ -133,6 +133,7 @@ Decisions are logged in PROJECT.md Key Decisions table. Full v7.0 cross-phase de
 - [Phase 40]: server.tools liefert Arrays [name, klass] statt Objekte — Test-Map-Block mit is_a?(Array)-Guard angepasst
 - [Phase 40]: RESEARCH Open Questions §1+§5 auf Code-Ebene gesperrt: -32700 Parse error via E2E-Test + Capistrano chmod 0755 Hook
 - [Quick 260507-c4o]: SIGINT/SIGTERM trap-context bug fix — Rails.logger.info im Trap-Block ersetzt durch direktes $stderr.write (Logger akquiriert Mutex, ThreadError im Trap)
+- [Quick 260507-njl]: require_env! in cc_session.rb#client_for entfernt — Login läuft über Setting.login_to_cc (Rails Credentials), ENV CC_USERNAME/CC_PASSWORD waren tote Parameter; default_fed_id auf Region-Lookup umgestellt (CC_REGION → Region.region_cc.cc_id); .mcp.json.example + Doku auf 3-ENV-Schema (kein Klartext mehr)
 
 ### Roadmap Evolution
 
@@ -211,6 +212,6 @@ See `HISTORY.md` for the chronological ledger of completed quick tasks (with com
 
 ## Session Continuity
 
-Last session: 2026-05-07T06:47:22.919Z
-Stopped at: Completed quick-260507-c4o (SIGINT/SIGTERM trap-context fix)
+Last session: 2026-05-07T17:11:00.000Z
+Stopped at: Completed quick-260507-njl (MCP-Credentials-Cleanup — Rails Credentials + Region-Lookup statt ENV)
 Resume: `/gsd-discuss-phase` für die Spec-Implementation starten — Spec-Doc lesen, Phase scopen (v7.2 oder v7.1-closure 38.10), 9 Plan-Sketches in Spec Section 9 als Ausgangspunkt nutzen. Parallel: bei nächstem Tournament die 4 deferred Phase-38.7-Items abhaken. Bug-A separat triagieren (Quick-Task oder `/gsd-debug`).
