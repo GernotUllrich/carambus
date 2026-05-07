@@ -298,7 +298,7 @@ Phases execute in numeric order: 33 → 34 → 35 → 36a → 36b → 36c → 37
 | 38.6. Discipline Master-Data Cleanup | v7.1 | 4/4 | Complete    | 2026-04-29 |
 | 38.8. Endergebnis-erfasst state restore | v7.1 | 6/6 | Complete    | 2026-05-01 |
 | 39. DTP-Backed Parameter Ranges | v7.1 | 0/2 | Not started | - |
-| 40. MCP Server für ClubCloud-Schnittstelle | v7.1 | 4/6 | In Progress|  |
+| 40. MCP Server für ClubCloud-Schnittstelle | v7.1 | 5/6 | In Progress|  |
 
 **v7.0 total:** 7 phases, 31 plans, 37/37 requirements, ~2 weeks wall time.
 **v7.1 total (planned):** 5 phases, 12+TBD plans, 6+ requirements (5 in Phase 38, 1 in Phase 39, scope for Phase 40 TBD via discuss-phase, gap closure in 38.1/38.2).
@@ -309,7 +309,7 @@ Phases execute in numeric order: 33 → 34 → 35 → 36a → 36b → 36c → 37
 
 **Goal:** When a match has reached the final state (`Endergebnis erfasst`), surface a "Winner" label in the score panel and, for multi-set games, the per-set result. Captured during Phase 38.9 UAT (Test 3, BK-2 tiebreak path) — non-blocking UI polish; main BK-game paths run correctly without it.
 **Requirements:** TBD
-**Plans:** 4/6 plans executed
+**Plans:** 5/6 plans executed
 **Source:** `.planning/phases/38.9-bk-2-end-of-set-anstoss-at-goal-fix-close-set-immediately-wh/38.9-HUMAN-UAT.md` Test 3 observation
 
 Plans:
