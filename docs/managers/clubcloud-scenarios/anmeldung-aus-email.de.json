@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "id": "anmeldung-aus-email",
+  "version": "0.1.0",
+  "title": "Anmeldung aus E-Mail",
+  "description": "Walking-Skeleton-Workflow für die häufigste Turniermanager-Aufgabe: ein TM bekommt eine Anmelde-E-Mail mit ≥1 Spieler und meldet diese Spieler in ClubCloud für ein offenes Turnier an. Claude führt den TM durch Region/Turnier/Spieler-Bestätigung und ruft am Ende das register-Tool sequenziell pro Spieler auf.",
+  "prerequisites": [
+    "TM hat Club-Sportwart- oder höhere CC-Rolle für die Region des Turniers (sonst lehnt CC am Ende ab).",
+    "Die anzumeldenden Spieler haben PlayerRanking-Einträge für die Disziplin (Phase-2-Decision: Spielberechtigung wird via PlayerRanking geprüft, nicht via PlayerClass).",
+    "Das Turnier ist in CC angelegt und hat accredation_end >= today AND date >= today (Phase-2-Decision: rein zeitliche Filter ohne AASM-State)."
+  ],
+  "user_confirm_strategy": "per_step",
+  "notes_for_claude": "Bei mehrdeutigen Spieler-Namen (mehrere Treffer) gezielt nachfragen: Vorname + Geburtsjahr + Verein. Niemals raten. Bei stale CC-Daten (meta.last_sync_age_hours > 2 Stunden): force_refresh:true empfehlen, aber den User entscheiden lassen — vor allem wichtig im Nachmelde-Edge-Case (Verbandsadmin könnte den Anmeldeschluss in CC verschoben haben).",
+  "steps": [
+    {
+      "step_id": "lookup_region",
+      "tool": "cc_lookup_region",
+      "params": {
+        "shortname": "{{region_shortname}}"
+      },
+      "bind_result": {
+        "region_id": "$.region.id",
+        "region_cc_id": "$.region.cc_id"
+      },
+      "description_for_user": "Ich klär zuerst die Region. {{region_shortname}} = ?",
+      "user_confirm": false,
+      "expected_outcome": "1 Region-Datensatz",
+      "fail_action": "ask_user"
+    },
+    {
+      "step_id": "list_open_tournaments",
+      "tool": "cc_list_open_tournaments",
+      "params": {
+        "shortname": "{{region_shortname}}",
+        "discipline": "{{discipline_name}}"
+      },
+      "bind_result": {
+        "tournaments": "$.data"
+      },
+      "description_for_user": "Ich liste die aktuell offenen Turniere in {{region_shortname}} für Disziplin {{discipline_name}}. Welches ist gemeint?",
+      "user_confirm": true,
+      "expected_outcome": "≥1 Turnier; Stale-Warning prüfen via meta.last_sync_age_hours — falls >2h, force_refresh:true empfehlen",
+      "fail_action": "ask_user"
+    },
+    {
+      "step_id": "list_players_for_club",
+      "tool": "cc_list_players_by_club_and_discipline",
+      "params": {
+        "club": "{{club_shortname}}",
+        "discipline": "{{discipline_name}}",
+        "shortname": "{{region_shortname}}"
+      },
+      "bind_result": {
+        "candidates": "$.players"
+      },
+      "description_for_user": "Welche Spieler aus {{club_shortname}} sollen angemeldet werden? (Aus der E-Mail abgleichen — bei Mehrdeutigkeiten nachfragen.)",
+      "user_confirm": true,
+      "expected_outcome": "Liste der spielberechtigten Spieler — TM wählt aus",
+      "fail_action": "ask_user"
+    },
+    {
+      "step_id": "register_player",
+      "tool": "cc_register_for_tournament",
+      "_phase4_stub": true,
+      "_stub_note": "Tool kommt in Phase 4. Bis dahin: Mock-Stub im Spickzettel — Claude sagt dem User 'Anmeldung wäre jetzt durchgeführt — Tool ist noch nicht implementiert (Phase 4)'. In Phase 4: 1 register-Call pro Spieler, sequentiell (Phase-2-Decision). armed:false Default für Dry-Run, armed:true vom TM zu bestätigen.",
+      "params": {
+        "tournament_id": "{{selected_tournament_id}}",
+        "player_id": "{{selected_player_id}}"
+      },
+      "description_for_user": "Ich melde {{selected_player_name}} für {{selected_tournament_title}} an. (Phase 4: echtes Tool; bis dahin Dry-Run.)",
+      "user_confirm": true,
+      "fail_action": "ask_user"
+    }
+  ]
+}
