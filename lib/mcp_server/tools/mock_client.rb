@@ -5,6 +5,12 @@
 module McpServer
   module Tools
     class MockClient
+      # Action-Namen, die in PATH_MAP NOCH NICHT registriert sind, aber als
+      # destruktive Writes behandelt werden sollen (für dry-run-Spiegelung).
+      # Plan 04-02: "registerForTournament" — finalisiert in Plan 04-03 nach DevTools-Sniff;
+      # nach PATH_MAP-Eintrag in 04-03 kann der Eintrag hier entfernt werden.
+      WRITABLE_ACTIONS_NOT_IN_PATH_MAP = %w[registerForTournament].freeze
+
       attr_reader :calls
 
       def initialize
@@ -30,6 +36,7 @@ module McpServer
       private
 
       def writable?(action)
+        return true if WRITABLE_ACTIONS_NOT_IN_PATH_MAP.include?(action)
         entry = RegionCc::ClubCloudClient::PATH_MAP[action]
         entry && entry[1] == false
       end

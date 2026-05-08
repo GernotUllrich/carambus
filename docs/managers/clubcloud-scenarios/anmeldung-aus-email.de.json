@@ -61,14 +61,17 @@
     {
       "step_id": "register_player",
       "tool": "cc_register_for_tournament",
-      "_phase4_stub": true,
-      "_stub_note": "Tool kommt in Phase 4. Bis dahin: Mock-Stub im Spickzettel — Claude sagt dem User 'Anmeldung wäre jetzt durchgeführt — Tool ist noch nicht implementiert (Phase 4)'. In Phase 4: 1 register-Call pro Spieler, sequentiell (Phase-2-Decision). armed:false Default für Dry-Run, armed:true vom TM zu bestätigen.",
       "params": {
-        "tournament_id": "{{selected_tournament_id}}",
-        "player_id": "{{selected_player_id}}"
+        "fed_id": "{{region_cc_id}}",
+        "branch_id": "{{branch_id}}",
+        "season": "{{season_name}}",
+        "tournament_cc_id": "{{selected_tournament_cc_id}}",
+        "player_cc_id": "{{selected_player_cc_id}}",
+        "armed": false
       },
-      "description_for_user": "Ich melde {{selected_player_name}} für {{selected_tournament_title}} an. (Phase 4: echtes Tool; bis dahin Dry-Run.)",
+      "description_for_user": "Ich melde {{selected_player_name}} für {{selected_tournament_title}} im Dry-Run an (armed:false). Wenn alles korrekt aussieht und der Konsistenz-Check OK meldet, bestätige bitte mit 'armed' für die echte Anmeldung.",
       "user_confirm": true,
+      "expected_outcome": "Dry-Run-Output mit allen ID-Werten (player_cc_id, tournament_cc_id, fed_id, branch_id, season) + Konsistenz-Check-Status. Bei TM-OK: erneut mit armed:true aufrufen für echte Registrierung.",
       "fail_action": "ask_user"
     }
   ]
