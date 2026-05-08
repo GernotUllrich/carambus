@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require "test_helper"
 
 class McpServer::Resources::WorkflowScenariosTest < ActiveSupport::TestCase

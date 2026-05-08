@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require "test_helper"
 
 # Schmoke-Test für JSON-Schema-Spickzettel (Plan 03-02 Task 5).

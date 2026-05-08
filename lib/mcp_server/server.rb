@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 # Server-Wiring: instanziiert MCP::Server, registriert alle McpServer::Tools::* Subclasses
 # automatisch via Zeitwerk-vorgeladene Konstanten + alle McpServer::Resources::* via Registry-Module.
 #
@@ -65,19 +66,19 @@ module McpServer
           if defined?(McpServer::Resources::WorkflowScenarios)
             result = McpServer::Resources::WorkflowScenarios.read(slug: $~[:slug])
             content, mime_type = normalize_resource_result(result, default_mime: "text/markdown")
-            [{ uri: uri, mimeType: mime_type, text: content }]
+            [{uri: uri, mimeType: mime_type, text: content}]
           end
         when %r{\Acc://workflow/(?<key>roles|glossary)\z}
           if defined?(McpServer::Resources::WorkflowMeta)
             result = McpServer::Resources::WorkflowMeta.read(key: $~[:key])
             content, mime_type = normalize_resource_result(result, default_mime: "text/markdown")
-            [{ uri: uri, mimeType: mime_type, text: content }]
+            [{uri: uri, mimeType: mime_type, text: content}]
           end
         when %r{\Acc://api/(?<action>[\w-]+)\z}
           if defined?(McpServer::Resources::ApiSurface)
             result = McpServer::Resources::ApiSurface.read(action: $~[:action])
             content, mime_type = normalize_resource_result(result, default_mime: "text/markdown")
-            [{ uri: uri, mimeType: mime_type, text: content }]
+            [{uri: uri, mimeType: mime_type, text: content}]
           end
         else
           # Per MCP spec: returning nil/empty causes the SDK to surface a ResourceNotFound error frame.

@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 # WorkflowScenarios — Exponiert ClubCloud-Workflow-Szenarien als MCP-Resources unter
 # cc://workflow/scenarios/{slug} (D-06, D-07). Content ist DE (D-05).
 #
@@ -22,12 +23,12 @@ module McpServer
       # Existierende 3 Markdown-Slugs bleiben unverändert (Naming-Koexistenz-Decision).
       SCENARIOS = {
         "teilnehmerliste-finalisieren" => "Teilnehmerliste in ClubCloud finalisieren",
-        "player-anlegen"               => "Spieler in ClubCloud anlegen",
-        "endrangliste-eintragen"       => "Endrangliste in ClubCloud eintragen",
-        "anmeldung-aus-email"          => {
-          title:     "Anmeldung aus E-Mail",
+        "player-anlegen" => "Spieler in ClubCloud anlegen",
+        "endrangliste-eintragen" => "Endrangliste in ClubCloud eintragen",
+        "anmeldung-aus-email" => {
+          title: "Anmeldung aus E-Mail",
           mime_type: "application/json",
-          file_ext:  "de.json"
+          file_ext: "de.json"
         }
       }.freeze
 
@@ -39,12 +40,12 @@ module McpServer
         raw = SCENARIOS[slug]
         case raw
         when String
-          { title: raw, mime_type: "text/markdown", file_ext: "de.md" }
+          {title: raw, mime_type: "text/markdown", file_ext: "de.md"}
         when Hash
           {
-            title:     raw[:title],
+            title: raw[:title],
             mime_type: raw.fetch(:mime_type, "text/markdown"),
-            file_ext:  raw.fetch(:file_ext, "de.md")
+            file_ext: raw.fetch(:file_ext, "de.md")
           }
         end
       end
@@ -69,16 +70,16 @@ module McpServer
       # Wirft keine Exception — MCP-Client bekommt immer einen lesbaren String zurück.
       def self.read(slug:)
         unless SCENARIOS.key?(slug)
-          return { content: "# Scenario nicht gefunden\n\nUnbekannter Slug: #{slug}", mime_type: "text/markdown" }
+          return {content: "# Scenario nicht gefunden\n\nUnbekannter Slug: #{slug}", mime_type: "text/markdown"}
         end
 
         meta = scenario_meta(slug)
         path = Rails.root.join(DOCS_BASE, "#{slug}.#{meta[:file_ext]}")
         unless path.exist?
-          return { content: "# Datei fehlt\n\nErwartet unter: #{path}", mime_type: "text/markdown" }
+          return {content: "# Datei fehlt\n\nErwartet unter: #{path}", mime_type: "text/markdown"}
         end
 
-        { content: path.read, mime_type: meta[:mime_type] }
+        {content: path.read, mime_type: meta[:mime_type]}
       end
     end
   end
