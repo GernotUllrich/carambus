@@ -4,8 +4,9 @@ require "test_helper"
 
 class McpServer::Resources::WorkflowScenariosTest < ActiveSupport::TestCase
   # Plan 03-02 Drift-Guard-Update: 3 → 4 Scenarios (neuer JSON-Spickzettel anmeldung-aus-email).
+  # Plan 03-03 Drift-Guard-Update: 4 → 5 Scenarios (neuer JSON-Spickzettel meldeliste-finalisieren).
   # mime_type ist jetzt variabel pro Slug; .read gibt Hash {content:, mime_type:} zurück.
-  EXPECTED_SCENARIO_COUNT = 4
+  EXPECTED_SCENARIO_COUNT = 5
 
   test "all gibt 4 MCP::Resource-Instanzen zurück" do
     resources = McpServer::Resources::WorkflowScenarios.all
@@ -64,5 +65,14 @@ class McpServer::Resources::WorkflowScenariosTest < ActiveSupport::TestCase
     assert_equal EXPECTED_SCENARIO_COUNT, scenario_uris.size
     assert_includes scenario_uris, "cc://workflow/scenarios/teilnehmerliste-finalisieren"
     assert_includes scenario_uris, "cc://workflow/scenarios/anmeldung-aus-email"
+    assert_includes scenario_uris, "cc://workflow/scenarios/meldeliste-finalisieren"
+  end
+
+  # Plan 03-03 Bonus-Test: bestätigt, dass beide JSON-Spickzettel korrekt registriert sind.
+  test "beide JSON-Spickzettel haben mime_type application/json" do
+    json_resources = McpServer::Resources::WorkflowScenarios.all.select { |r| r.mime_type == "application/json" }
+    assert_equal 2, json_resources.size
+    assert_includes json_resources.map(&:uri), "cc://workflow/scenarios/anmeldung-aus-email"
+    assert_includes json_resources.map(&:uri), "cc://workflow/scenarios/meldeliste-finalisieren"
   end
 end
