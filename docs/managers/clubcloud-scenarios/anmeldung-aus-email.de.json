@@ -63,15 +63,16 @@
       "tool": "cc_register_for_tournament",
       "params": {
         "fed_id": "{{region_cc_id}}",
-        "branch_id": "{{branch_id}}",
+        "branch_cc_id": "{{branch_cc_id}}",
         "season": "{{season_name}}",
-        "tournament_cc_id": "{{selected_tournament_cc_id}}",
+        "meldeliste_cc_id": "{{selected_meldeliste_cc_id}}",
         "player_cc_id": "{{selected_player_cc_id}}",
+        "club_cc_id": "{{selected_club_cc_id}}",
         "armed": false
       },
-      "description_for_user": "Ich melde {{selected_player_name}} für {{selected_tournament_title}} im Dry-Run an (armed:false). Wenn alles korrekt aussieht und der Konsistenz-Check OK meldet, bestätige bitte mit 'armed' für die echte Anmeldung.",
+      "description_for_user": "Ich melde {{selected_player_name}} in Meldeliste {{selected_meldeliste_name}} im Dry-Run an (armed:false). Tool ruft 2-Step-Workflow gegen CC: addPlayerToMeldeliste → saveMeldeliste, plus optional Verifikations-Call (showCommittedMeldeliste). Wenn alles korrekt aussieht und der Konsistenz-Check OK meldet, bestätige bitte mit 'armed' für die echte Anmeldung.",
       "user_confirm": true,
-      "expected_outcome": "Dry-Run-Output mit allen ID-Werten (player_cc_id, tournament_cc_id, fed_id, branch_id, season) + Konsistenz-Check-Status. Bei TM-OK: erneut mit armed:true aufrufen für echte Registrierung.",
+      "expected_outcome": "Dry-Run-Output mit allen ID-Werten (player_cc_id, meldeliste_cc_id, club_cc_id, fed_id, branch_cc_id, season) + Konsistenz-Check-Status + Workflow-Beschreibung. Bei TM-OK: erneut mit armed:true aufrufen — success_output enthält 'verified_in_committed_list:true' als robusten Erfolgs-Indikator (Player-cc_id-Match im commited Meldeliste-HTML). NB: meldeliste_cc_id kommt aus CC-Navigation (Meldelisten-Übersicht); Auto-Lookup von tournament_cc_id ist v0.2.",
       "fail_action": "ask_user"
     }
   ]

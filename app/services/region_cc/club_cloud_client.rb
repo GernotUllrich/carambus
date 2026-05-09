@@ -282,6 +282,25 @@ class RegionCc::ClubCloudClient
     # catId: *
     # season: 2010/2011
     # meldelisteId: 66
+    #
+    # --- Vereins-Sicht (myclub/meldewesen/single) — Plan 04-04 register-Tool ---
+    # Diese 3 Endpoints liegen im VEREINS-Bereich (admin/myclub/meldewesen/single),
+    # NICHT im Verbands-Bereich (admin/einzel/meldelisten) — gleiche Funktion,
+    # anderer Pfad, anderer Action-Name. Ergebnis aus SNIFF v2 (View-Source-Methode).
+    # PATH_MAP-Format hier: [path, read_only_bool]; Plan-04-04-Spec-Detail
+    # `{method: :post, path: ...}` war schematisch — code-konform mit existing format.
+    "addPlayerToMeldeliste" => ["/admin/myclub/meldewesen/single/cc_add.php", false],
+    # POST application/x-www-form-urlencoded — fügt Player in Edit-Buffer
+    # clubId, fedId, branchId, disciplinId=*, catId=*, season, meldelisteId,
+    # firstEntry, rang, gd, selectedClubId, a=<player_cc_id>, d=
+    "saveMeldeliste" => ["/admin/myclub/meldewesen/single/editMeldelisteSave.php", false],
+    # POST application/x-www-form-urlencoded — committet Edit-Buffer in DB
+    # Alle Felder wie addPlayerToMeldeliste + save= als Commit-Marker
+    # Server ignoriert a= beim Commit; Player-cc_id IST der Liste-Identifier
+    "showCommittedMeldeliste" => ["/admin/myclub/meldewesen/single/showMeldeliste.php", true],
+    # POST (read-only) — zeigt committed Meldeliste; für Erfolgs-Verifikation nach Save
+    # Body enthält <td align="center">{player_cc_id}</td> falls erfolgreich
+    # NICHT zu verwechseln mit "showMeldeliste" (Verbands-Pfad oben)
     "showMeisterschaftenList" => ["/admin/einzel/meisterschaft/showMeisterschaftenList.php", true],
     # fedId: 20
     # branchId: 10

@@ -27,13 +27,27 @@ module McpServer
 
         return _client_override if _client_override
 
-        base_url = Carambus.config.cc_base_url || "https://www.club-cloud.de"
+        # Prio: region_cc.base_url (admin-Subdomain pro Region) > Carambus.config.cc_base_url > Fallback.
+        # Plan-04-04 Live-Bugfix: ohne region_cc.base_url wurden Tool-POSTs gegen
+        # www.club-cloud.de geroutet → 404, obwohl Login gegen die richtige Admin-Subdomain
+        # ging (Setting.login_to_cc nutzt region_cc.base_url + "/index.php").
+        base_url = region_cc_base_url || Carambus.config.cc_base_url || "https://www.club-cloud.de"
         # ENV-Vars sind optional — der echte Login läuft über Setting.login_to_cc
         # (Rails Credentials), das ENV CC_USERNAME/CC_PASSWORD ohnehin ignoriert.
         # Konstruktor akzeptiert nil; Live-Login wird in #login! über Setting.login_to_cc geholt.
         username = ENV["CC_USERNAME"].presence
         password = ENV["CC_PASSWORD"].presence
         RegionCc::ClubCloudClient.new(base_url: base_url, username: username, userpw: password)
+      end
+
+      # Liest die admin-Subdomain für die aktuelle Region (analog Setting.login_to_cc).
+      # Liefert nil bei jedem Lookup-Fehler — Caller fällt dann auf Carambus.config zurück.
+      def region_cc_base_url
+        opts = RegionCcAction.get_base_opts_from_environment
+        region = Region.find_by(shortname: opts[:context].to_s.upcase)
+        region&.region_cc&.base_url.presence
+      rescue StandardError
+        nil
       end
 
       # Lazy-Login: gibt eine aktive PHPSESSID zurück, loggt ein wenn Cache leer/abgelaufen.

@@ -2,9 +2,9 @@
 require "test_helper"
 
 class McpServer::Resources::ApiSurfaceTest < ActiveSupport::TestCase
-  test "all gibt 15 kuratierte MCP::Resource-Instanzen zurück (D-04 Allowlist gesperrt, Warning 5 Fix)" do
+  test "all gibt 18 kuratierte MCP::Resource-Instanzen zurück (D-04 Allowlist gesperrt, +3 in Plan 04-04)" do
     resources = McpServer::Resources::ApiSurface.all
-    assert_equal 15, resources.size, "ALLOWLIST-Größe drifted — Test aktualisieren oder Allowlist überprüfen"
+    assert_equal 18, resources.size, "ALLOWLIST-Größe drifted — Test aktualisieren oder Allowlist überprüfen"
     assert resources.all? { |r| r.is_a?(MCP::Resource) }
   end
 
@@ -35,9 +35,9 @@ class McpServer::Resources::ApiSurfaceTest < ActiveSupport::TestCase
     assert_match(/nicht in Allowlist/, md)
   end
 
-  test "server.build enthält 15 cc://api/* Resources" do
+  test "server.build enthält 18 cc://api/* Resources (15 + 3 in Plan 04-04)" do
     server = McpServer::Server.build
     api_uris = server.resources.map(&:uri).select { |u| u.start_with?("cc://api/") }
-    assert_equal 15, api_uris.size
+    assert_equal 18, api_uris.size
   end
 end
