@@ -133,9 +133,13 @@ module McpServer
 
         # Step 3 (Verifikation): showCommittedMeldeliste — Player-Marker im HTML-Body suchen
         # Marker aus SNIFF v2 A2: <td align="center">{player_cc_id}</td> in der commited Liste.
+        # Phase-5-D3-Bugfix: show-Form erwartet 8 Hidden-Inputs (clubId, fedId, branchId,
+        # disciplinId, catId, season, meldelisteId, sortOrder); firstEntry/rang/selectedClubId
+        # sind add/save-spezifisch und im show-Pfad überzählig (verified_in_committed_list:false-Bug).
+        verify_payload = base_payload.except(:firstEntry, :rang, :selectedClubId).merge(sortOrder: "player")
         verify_res, _verify_doc = client.post(
           "showCommittedMeldeliste",
-          base_payload.merge(sortOrder: "player"),
+          verify_payload,
           { armed: armed, session_id: cc_session.cookie }
         )
         verified = verify_res&.body.to_s.include?(%(<td align="center">#{player_cc_id}</td>))

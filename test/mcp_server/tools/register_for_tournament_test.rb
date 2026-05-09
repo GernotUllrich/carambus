@@ -70,6 +70,24 @@ class McpServer::Tools::RegisterForTournamentTest < ActiveSupport::TestCase
     assert_match(/verified_in_committed_list: false/, text)
   end
 
+  test "Phase-5-D3-Bugfix: showCommittedMeldeliste-Payload hat 8 Felder ohne firstEntry/rang/selectedClubId" do
+    response = McpServer::Tools::RegisterForTournament.call(
+      fed_id: 20, branch_cc_id: 8, season: "2025/2026",
+      meldeliste_cc_id: 1310, player_cc_id: 99999, club_cc_id: 1010,
+      armed: true, server_context: nil
+    )
+    refute response.error?
+    verify_call = @mock.calls.find { |verb, action, _, _| verb == :post && action == "showCommittedMeldeliste" }
+    assert verify_call, "showCommittedMeldeliste muss aufgerufen worden sein"
+    _, _, params, _ = verify_call
+    expected_keys = %i[clubId fedId branchId disciplinId catId season meldelisteId sortOrder].sort
+    assert_equal expected_keys, params.keys.sort,
+      "Verify-Payload muss genau 8 Felder haben (D3-Bugfix); got #{params.keys.sort.inspect}"
+    refute params.key?(:firstEntry), "firstEntry darf NICHT im show-Payload sein (add/save-spezifisch)"
+    refute params.key?(:rang), "rang darf NICHT im show-Payload sein (add/save-spezifisch)"
+    refute params.key?(:selectedClubId), "selectedClubId darf NICHT im show-Payload sein (add/save-spezifisch)"
+  end
+
   test "armed:true mit Player-Marker im verify-Response-Body → verified_in_committed_list:true" do
     # Override post() um showCommittedMeldeliste-Response mit Player-cc_id-Markup zu liefern.
     @mock.define_singleton_method(:post) do |action, params, opts|
