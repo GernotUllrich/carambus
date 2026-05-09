@@ -18,6 +18,8 @@ module McpServer
       description "Liste der aktuell ausgeschriebenen Turniere einer Region " \
                   "(accredation_end >= today AND date >= today). DB-first; Tool liefert " \
                   "meta.last_sync_age_hours als Datenfrische-Confirmer (Production: max ~2h alt). " \
+                  "Optionaler `name`-Filter macht eine case-insensitive Substring-Suche auf Tournament-Title — " \
+                  "passt zum Walking-Skeleton-Use-Case („gib mir den Status zu <Turnier-Name>\"). " \
                   "WICHTIG: Falls der Verbandsadmin gerade in CC den Meldeschluss " \
                   "verschoben hat (z.B. für Nachmeldungen), `force_refresh: true` setzen " \
                   "— sonst kann die DB bis zu 2h zurückliegen."
@@ -26,6 +28,7 @@ module McpServer
           shortname: {type: "string", description: "Region-shortname (z.B. 'NBV'). Optional — Default via CC_REGION/Setting 'context'."},
           fed_id: {type: "integer", description: "ClubCloud federation ID. Alternative zu shortname."},
           discipline: {type: "string", description: "Optionaler Disziplin-Filter (Name oder numerische ID); weglassen = alle Disziplinen."},
+          name: {type: "string", description: "Optionaler Substring-Filter auf Tournament-Title (case-insensitive ILIKE). Weglassen = alle Region/Disziplin/Zeit-Filter-Treffer."},
           open_after: {type: "string", description: "ISO-Datum; default = today. Filtert sowohl accredation_end als auch date."},
           include_no_date: {type: "boolean", default: false, description: "Turniere ohne accredation_end mitnehmen."},
           force_refresh: {type: "boolean", default: false, description: "Bypass DB cache, triggert region_cc.sync_tournaments und re-runt den DB-Pfad."}
@@ -33,7 +36,7 @@ module McpServer
       )
       annotations(read_only_hint: true, destructive_hint: false)
 
-      def self.call(shortname: nil, fed_id: nil, discipline: nil, open_after: nil, include_no_date: false, force_refresh: false, server_context: nil)
+      def self.call(shortname: nil, fed_id: nil, discipline: nil, name: nil, open_after: nil, include_no_date: false, force_refresh: false, server_context: nil)
         region = resolve_region(shortname: shortname, fed_id: fed_id)
         return error("Region not found. Provide shortname or fed_id, or set CC_REGION/Setting 'context'.") if region.nil?
 
@@ -66,6 +69,11 @@ module McpServer
 
         rel = rel.where(discipline_id: discipline_obj.id) if discipline_obj
 
+        if name.present?
+          escaped = ActiveRecord::Base.sanitize_sql_like(name.to_s)
+          rel = rel.where("title ILIKE ?", "%#{escaped}%")
+        end
+
         last_sync = Tournament.where(region_id: region.id).maximum(:sync_date)
         last_sync_age_hours = last_sync ? ((Time.current - last_sync) / 3600.0).round(1) : nil
 
@@ -80,15 +88,19 @@ module McpServer
           }
         }
 
+        filter_basis_parts = ["accredation_end >= #{cutoff} AND date >= #{cutoff}"]
+        filter_basis_parts << "title ILIKE '%#{name}%'" if name.present?
+
         text(JSON.generate(
           data: data,
           meta: {
             region: region.shortname,
             count: data.length,
             last_sync_age_hours: last_sync_age_hours,
-            filter_basis: "accredation_end >= #{cutoff} AND date >= #{cutoff}",
+            filter_basis: filter_basis_parts.join(" AND "),
             include_no_date: include_no_date,
-            discipline: discipline_obj&.name
+            discipline: discipline_obj&.name,
+            name: name
           }
         ))
       end

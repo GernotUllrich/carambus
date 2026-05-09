@@ -127,6 +127,90 @@ class McpServer::Tools::ListOpenTournamentsTest < ActiveSupport::TestCase
     assert_match(/Invalid open_after/i, response.content.first[:text])
   end
 
+  test "name filter: case-insensitive ILIKE narrows by Tournament.title substring" do
+    nbv = Region.find_by(shortname: "NBV")
+    skip "NBV fixtures missing" unless nbv
+
+    # Pick any NBV-Tournament with non-empty title; use far-past open_after so the
+    # temporal filter matches as many as possible. Bypasses the today-state of
+    # accredation_end (dev DB may not have open tournaments „today").
+    far_past = "2000-01-01"
+    sample = Tournament.where(region_id: nbv.id)
+      .where("date >= ?", far_past)
+      .where.not(title: [nil, ""])
+      .first
+    skip "No NBV tournaments with non-empty title" unless sample
+    skip "Sample title too short" if sample.title.to_s.length < 4
+
+    needle = sample.title[1, 3].downcase
+
+    response = McpServer::Tools::ListOpenTournaments.call(
+      shortname: "NBV",
+      name: needle,
+      open_after: far_past,
+      include_no_date: true,
+      server_context: nil
+    )
+    refute response.error?
+    body = JSON.parse(response.content.first[:text])
+
+    assert_operator body["data"].length, :>=, 1, "Expected at least one match for needle #{needle.inspect}"
+    body["data"].each do |t|
+      assert_match(/#{Regexp.escape(needle)}/i, t["title"], "Each result must contain needle (case-insensitive)")
+    end
+    assert_match(/title ILIKE '%#{Regexp.escape(needle)}%'/, body["meta"]["filter_basis"])
+    assert_equal needle, body["meta"]["name"]
+  end
+
+  test "no name filter: backwards-compatible (kein Regression)" do
+    nbv = Region.find_by(shortname: "NBV")
+    skip "NBV fixtures missing" unless nbv
+
+    response = McpServer::Tools::ListOpenTournaments.call(shortname: "NBV", server_context: nil)
+    refute response.error?
+    body = JSON.parse(response.content.first[:text])
+
+    refute_match(/title ILIKE/, body["meta"]["filter_basis"])
+    assert_nil body["meta"]["name"]
+  end
+
+  test "name filter: non-matching substring returns empty data" do
+    nbv = Region.find_by(shortname: "NBV")
+    skip "NBV fixtures missing" unless nbv
+
+    needle = "ZzzNonexistent#{SecureRandom.hex(4)}"
+    response = McpServer::Tools::ListOpenTournaments.call(
+      shortname: "NBV",
+      name: needle,
+      server_context: nil
+    )
+    refute response.error?
+    body = JSON.parse(response.content.first[:text])
+
+    assert_equal [], body["data"]
+    assert_equal 0, body["meta"]["count"]
+    assert_equal needle, body["meta"]["name"]
+  end
+
+  test "name filter: SQL-LIKE special characters are escaped" do
+    nbv = Region.find_by(shortname: "NBV")
+    skip "NBV fixtures missing" unless nbv
+
+    # `%` und `_` in der Eingabe dürfen NICHT als Wildcards interpretiert werden,
+    # sondern müssen literal matchen — `100%` liefert nur Titles mit "100%" drin.
+    response = McpServer::Tools::ListOpenTournaments.call(
+      shortname: "NBV",
+      name: "100%",
+      server_context: nil
+    )
+    refute response.error?
+    body = JSON.parse(response.content.first[:text])
+
+    body["data"].each do |t|
+      assert_match(/100%/, t["title"], "Each result must contain literal '100%' substring")
+    end
+  end
+
   test "force_refresh: true with sync raising stays defensive (no crash)" do
     nbv = Region.find_by(shortname: "NBV")
     skip "NBV fixtures missing" unless nbv
