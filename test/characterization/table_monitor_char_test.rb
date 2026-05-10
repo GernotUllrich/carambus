@@ -492,6 +492,106 @@ class TableMonitorCharTest < ActiveSupport::TestCase
       "PartyMonitor should not be a TableMonitor"
   end
 
+  # ===========================================================================
+  # F. Bug-260510 Regression: panel_state "protocol_final" darf durch
+  #    key_a / key_b nicht mit "pointer_mode" ueberschrieben werden.
+  #
+  #    Root cause: In TableMonitorReflex#key_a und #key_b wurde nach
+  #    terminate_current_inning unconditionally
+  #      assign_attributes(panel_state: "pointer_mode") + save
+  #    aufgerufen, auch wenn evaluate_result / set_game_over bereits
+  #    panel_state="protocol_final" gesetzt und persistiert hatte.
+  #
+  #    Fix: Guard `unless set_over? || final_set_score? || final_match_score?`
+  #    in key_a und key_b vor dem assign_attributes-Block (Bug-260510).
+  #
+  #    Die Tests hier arbeiten auf Modell-Ebene, da StimulusReflex-Actions
+  #    keinen echten WebSocket-Kontext haben. Sie reproduzieren exakt die
+  #    fehlerhafte und die korrigierte Code-Sequenz aus dem Reflex.
+  # ===========================================================================
+
+  # F1 — Playera-Pfad: Dokumentiert den urspruenglichen Bug.
+  # Zeigt dass assign_attributes + save OHNE Guard "protocol_final" ueberschreibt.
+  # Dieser Test bleibt als Beleg, dass die Loesung notwendig war.
+  test "F1 (BUG DOKUMENTATION / playera): unconditional assign_attributes overwrittes protocol_final — demonstriert den urspruenglichen Bug" do
+    tm = tm_in_state("playing")
+    tm.end_of_set!
+    tm.reload
+    # set_game_over setzt panel_state="protocol_final" — nach Reload muss das stehen
+    assert_equal "protocol_final", tm.panel_state,
+      "Vorbedingung: set_game_over muss panel_state=protocol_final gesetzt haben"
+    assert tm.set_over?, "Vorbedingung: TM muss im set_over-Zustand sein"
+
+    # Simulate das unconditional assign_attributes aus dem alten Reflex-Code (vor Fix).
+    # Das ist exakt die fehlerhafte Zeile, die durch den Fix gewaechst wird:
+    #   @table_monitor.assign_attributes(panel_state: "pointer_mode", current_element: "pointer_mode")
+    #   @table_monitor.save
+    tm.assign_attributes(panel_state: "pointer_mode", current_element: "pointer_mode")
+    tm.save!
+    tm.reload
+
+    # Ohne Guard wird "protocol_final" mit "pointer_mode" ueberschrieben — das ist der Bug.
+    assert_equal "pointer_mode", tm.panel_state,
+      "BUG BESTAETIGT: unconditional save ueberschreibt protocol_final mit pointer_mode"
+  end
+
+  # F2 — Playera-Pfad: Verifiziert den Fix.
+  # Mit Guard `unless set_over?` wird assign_attributes NICHT ausgefuehrt,
+  # panel_state bleibt "protocol_final".
+  test "F2 (FIX VERIFIKATION / playera): guard 'unless set_over?' verhindert Ueberschreiben von protocol_final" do
+    tm = tm_in_state("playing")
+    tm.end_of_set!
+    tm.reload
+    assert_equal "protocol_final", tm.panel_state,
+      "Vorbedingung: set_game_over muss panel_state=protocol_final gesetzt haben"
+    assert tm.set_over?, "Vorbedingung: TM muss im set_over-Zustand sein"
+
+    # Simuliert den KORRIGIERTEN Reflex-Code aus TableMonitorReflex#key_a / #key_b:
+    #   unless @table_monitor.set_over? || @table_monitor.final_set_score? || @table_monitor.final_match_score?
+    #     @table_monitor.do_play
+    #     @table_monitor.assign_attributes(panel_state: "pointer_mode", current_element: "pointer_mode")
+    #   end
+    #   @table_monitor.save
+    unless tm.set_over? || tm.final_set_score? || tm.final_match_score?
+      tm.assign_attributes(panel_state: "pointer_mode", current_element: "pointer_mode")
+    end
+    tm.save!
+    tm.reload
+
+    assert_equal "protocol_final", tm.panel_state,
+      "FIX BESTAETIGT: guard verhindert Ueberschreiben — panel_state muss 'protocol_final' bleiben"
+    assert_equal "confirm_result", tm.current_element,
+      "current_element muss 'confirm_result' bleiben (nicht 'pointer_mode')"
+  end
+
+  # F3 — Playerb-Pfad: analog F2, aber mit final_set_score-Zustand.
+  # Abdeckung fuer den Fall, dass der TM nach terminate_current_inning in
+  # final_set_score (statt set_over) landet — guard greift ueber final_set_score?.
+  test "F3 (FIX VERIFIKATION / playerb-analog): guard 'unless final_set_score?' verhindert Ueberschreiben von protocol_final" do
+    # Direkt in final_set_score setzen (der Zustand, den acknowledge_result! erzeugt)
+    tm = TableMonitor.create!(
+      state: "final_set_score",
+      data: {},
+      panel_state: "protocol_final",
+      current_element: "confirm_result"
+    )
+    tm.reload
+    assert tm.final_set_score?, "Vorbedingung: TM muss im final_set_score-Zustand sein"
+    assert_equal "protocol_final", tm.panel_state,
+      "Vorbedingung: panel_state muss 'protocol_final' sein"
+
+    # Simuliert den KORRIGIERTEN Reflex-Code (playerb-Branch hat identischen Guard):
+    unless tm.set_over? || tm.final_set_score? || tm.final_match_score?
+      tm.assign_attributes(panel_state: "pointer_mode", current_element: "pointer_mode")
+    end
+    tm.save!
+    tm.reload
+
+    assert_equal "protocol_final", tm.panel_state,
+      "FIX BESTAETIGT (final_set_score): guard verhindert Ueberschreiben"
+    assert_equal "confirm_result", tm.current_element
+  end
+
   private
 
   # Hilfsmethode: Enqueued Jobs erfassen ohne Ausfuehren

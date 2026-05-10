@@ -149,8 +149,15 @@ class TableMonitorReflex < ApplicationReflex
             #+++++++
             @table_monitor.add_n_balls((@table_monitor.discipline == "Eurokegel" ? 2 : 1))
           end
-          @table_monitor.do_play
-          @table_monitor.assign_attributes(panel_state: "pointer_mode", current_element: "pointer_mode")
+          # Bug 260510: terminate_current_inning / add_n_balls may have transitioned the
+          # TM to set_over/final_set_score/final_match_score via evaluate_result, which
+          # sets panel_state="protocol_final" and saves it. Do NOT overwrite that state
+          # here — the protocol_final modal must remain visible so the operator can
+          # confirm the result, triggering finish_match! and the CC-upload chain.
+          unless @table_monitor.set_over? || @table_monitor.final_set_score? || @table_monitor.final_match_score?
+            @table_monitor.do_play
+            @table_monitor.assign_attributes(panel_state: "pointer_mode", current_element: "pointer_mode")
+          end
         when "playerb"
           @table_monitor.reset_timer!
           if @table_monitor.data["current_left_player"] == "playerb"
@@ -160,8 +167,11 @@ class TableMonitorReflex < ApplicationReflex
             @table_monitor.data[current_role]["fouls_1"] = 0
             @table_monitor.terminate_current_inning
           end
-          @table_monitor.do_play
-          @table_monitor.assign_attributes(panel_state: "pointer_mode", current_element: "pointer_mode")
+          # Bug 260510: same guard as playera branch above.
+          unless @table_monitor.set_over? || @table_monitor.final_set_score? || @table_monitor.final_match_score?
+            @table_monitor.do_play
+            @table_monitor.assign_attributes(panel_state: "pointer_mode", current_element: "pointer_mode")
+          end
         else
           # type code here
         end
@@ -211,8 +221,15 @@ class TableMonitorReflex < ApplicationReflex
             @table_monitor.data[current_role]["fouls_1"] = 0
             @table_monitor.terminate_current_inning
           end
-          @table_monitor.do_play
-          @table_monitor.assign_attributes(panel_state: "pointer_mode", current_element: "pointer_mode")
+          # Bug 260510: terminate_current_inning / add_n_balls may have transitioned the
+          # TM to set_over/final_set_score/final_match_score via evaluate_result, which
+          # sets panel_state="protocol_final" and saves it. Do NOT overwrite that state
+          # here — the protocol_final modal must remain visible so the operator can
+          # confirm the result, triggering finish_match! and the CC-upload chain.
+          unless @table_monitor.set_over? || @table_monitor.final_set_score? || @table_monitor.final_match_score?
+            @table_monitor.do_play
+            @table_monitor.assign_attributes(panel_state: "pointer_mode", current_element: "pointer_mode")
+          end
         when "playera"
           @table_monitor.reset_timer!
           if @table_monitor.data["current_left_player"] == "playerb"
@@ -222,8 +239,11 @@ class TableMonitorReflex < ApplicationReflex
             @table_monitor.data[current_role]["fouls_1"] = 0
             @table_monitor.terminate_current_inning
           end
-          @table_monitor.do_play
-          @table_monitor.assign_attributes(panel_state: "pointer_mode", current_element: "pointer_mode")
+          # Bug 260510: same guard as playerb branch above.
+          unless @table_monitor.set_over? || @table_monitor.final_set_score? || @table_monitor.final_match_score?
+            @table_monitor.do_play
+            @table_monitor.assign_attributes(panel_state: "pointer_mode", current_element: "pointer_mode")
+          end
         else
           # type code here
         end
