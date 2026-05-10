@@ -103,4 +103,5 @@ import_all.log
 /app/assets/builds/**/*
 config/cable.yml
 .paul/
+/paul/
 db/schema_baseline_*.backup
