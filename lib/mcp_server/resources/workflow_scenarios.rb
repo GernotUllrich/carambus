@@ -30,6 +30,11 @@ module McpServer
           mime_type: "application/json",
           file_ext: "de.json"
         },
+        "turnier-status-und-anmelden" => {
+          title: "Turnier-Status prüfen und Spieler anmelden",
+          mime_type: "application/json",
+          file_ext: "de.json"
+        },
         "meldeliste-finalisieren" => {
           title: "Meldeliste in ClubCloud finalisieren",
           mime_type: "application/json",
