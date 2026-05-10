@@ -20,6 +20,11 @@ module McpServer
                   "meta.last_sync_age_hours als Datenfrische-Confirmer (Production: max ~2h alt). " \
                   "Optionaler `name`-Filter macht eine case-insensitive Substring-Suche auf Tournament-Title — " \
                   "passt zum Walking-Skeleton-Use-Case („gib mir den Status zu <Turnier-Name>\"). " \
+                  "Konversations-UX: Bei mehreren Treffern NICHT raten — Disambiguierung über Datum + Ort " \
+                  "(ggf. Verein) an den User stellen. Bei null Treffern dem User anbieten, mit weniger " \
+                  "spezifischem Name-Fragment oder ohne `discipline`-Filter erneut zu suchen — und falls " \
+                  "der TM ein Turnier ohne accredation_end im Sinn hat, `include_no_date:true` oder einen " \
+                  "frühreren `open_after`-Override anbieten. " \
                   "WICHTIG: Falls der Verbandsadmin gerade in CC den Meldeschluss " \
                   "verschoben hat (z.B. für Nachmeldungen), `force_refresh: true` setzen " \
                   "— sonst kann die DB bis zu 2h zurückliegen."

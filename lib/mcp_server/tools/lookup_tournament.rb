@@ -10,7 +10,12 @@ module McpServer
                   "Queries the local Carambus DB (TournamentCc mirror) by default; pass force_refresh=true for live CC. " \
                   "Output enthält Detail-Felder (location_text, tournament_start, tournament_end, accredation_end). " \
                   "Mit `with_committed_list:true` wird zusätzlich showCommittedMeldeliste live abgefragt und " \
-                  "die bereits angemeldeten Player-cc_ids aus dem HTML extrahiert (read-only)."
+                  "die bereits angemeldeten Player-cc_ids aus dem HTML extrahiert (read-only). " \
+                  "Konversations-UX: Vor JEDER Neuanmeldung die Liste der bereits angemeldeten Spieler kurz " \
+                  "aufzählen — der TM erkennt so Doppelanmeldungen vor dem register-Tool. Tool ist DB-first; " \
+                  "bei Detail-Lücken (fehlende location_text, fehlender tournament_start) `force_refresh:true` " \
+                  "empfehlen — der CC-Sync ist max ~2h alt, aber Detail-Felder sind nicht immer komplett " \
+                  "in den TournamentCc-Mirror gespiegelt."
       input_schema(
         properties: {
           meisterschaft_id: {type: "integer", description: "CC meisterschaft ID (cc_id on TournamentCc)"},
