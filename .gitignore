@@ -103,6 +103,9 @@ import_all.log
 /app/assets/builds/**/*
 config/cable.yml
 .paul/
+.claude/paul-framework/
+.claude/commands/paul/
+.mcp.json
 db/schema_baseline_*.backup
 
 # MCP-Client-Konfiguration (enthält CC-Zugangsdaten — NICHT einchecken).
