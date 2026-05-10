@@ -47,6 +47,12 @@ class McpServer::Resources::WorkflowScenariosSpickzettelTest < ActiveSupport::Te
     assert_nothing_raised { JSON.parse(result[:content]) }
   end
 
+  test "Check 1b: turnier-status-und-anmelden returns valid JSON" do
+    result = McpServer::Resources::WorkflowScenarios.read(slug: "turnier-status-und-anmelden")
+    assert_kind_of Hash, result
+    assert_nothing_raised { JSON.parse(result[:content]) }
+  end
+
   test "Check 2: spickzettel has all required top-level fields" do
     json_spickzettel_slugs.each do |slug|
       result = McpServer::Resources::WorkflowScenarios.read(slug: slug)
@@ -101,6 +107,14 @@ class McpServer::Resources::WorkflowScenariosSpickzettelTest < ActiveSupport::Te
       r.uri == "cc://workflow/scenarios/anmeldung-aus-email"
     end
     refute_nil resource, "anmeldung-aus-email Resource sollte in WorkflowScenarios.all gelistet sein"
+    assert_equal "application/json", resource.mime_type
+  end
+
+  test "Check 6b: WorkflowScenarios.all sets application/json mime_type for turnier-status-und-anmelden" do
+    resource = McpServer::Resources::WorkflowScenarios.all.find do |r|
+      r.uri == "cc://workflow/scenarios/turnier-status-und-anmelden"
+    end
+    refute_nil resource, "turnier-status-und-anmelden Resource sollte in WorkflowScenarios.all gelistet sein"
     assert_equal "application/json", resource.mime_type
   end
 
