@@ -91,7 +91,7 @@ module McpServer
         "editMeldelisteCheck" => "(none — Plan 06-03 Write-Tool Step 1)",
         "editMeldelisteSave" => "(none — Plan 06-03 Write-Tool Step 2)",
         "assignPlayer" => "(none — Plan 07-03 Write-Tool Multi-Add)",
-        "removePlayer" => "(none — Plan 07-04 Inline-Patch / Phase 8)",
+        "removePlayer" => "(none — Plan 07-04 Inline-Patch erfüllt D-7-8)",
         "editTeilnehmerlisteCheck" => "(none — Plan 07-03 Pre-Read + Read-Back)",
         "editTeilnehmerlisteSave" => "(none — Plan 07-03 Commit)",
         "showTeilnehmerliste" => "(none — Plan 07-03 Read-only View)"
@@ -119,8 +119,7 @@ module McpServer
         "editMeldelisteCheck" => "cc_update_tournament_deadline",
         "editMeldelisteSave" => "cc_update_tournament_deadline",
         "assignPlayer" => "cc_assign_player_to_teilnehmerliste",
-        # "removePlayer" intentionally unmapped (siehe D-7-8 in Plan 07-02 SNIFF-OUTPUT.md):
-        # wird in Plan 07-04 Inline-Patch ODER Phase 8 als cc_remove_from_teilnehmerliste gewrappt.
+        "removePlayer" => "cc_remove_from_teilnehmerliste",  # Plan 07-04 Inline-Patch erfüllt D-7-8
         "editTeilnehmerlisteCheck" => "cc_assign_player_to_teilnehmerliste",
         "editTeilnehmerlisteSave" => "cc_assign_player_to_teilnehmerliste",
         "showTeilnehmerliste" => "cc_assign_player_to_teilnehmerliste"
