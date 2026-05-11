@@ -50,6 +50,11 @@ module McpServer
           tournament_cc_id: { type: "integer", description: "Optional: Carambus tournament_cc.cc_id; resolves meldeliste_cc_id via tournament_cc.registration_list_cc.cc_id (Phase 5 pattern). Either this or meldeliste_cc_id required." },
           meldeliste_cc_id: { type: "integer", description: "Optional: CC meldelisteId direct (override or CC-only mode). Either this or tournament_cc_id required." },
           new_deadline:     { type: "string",  description: "New Meldeschluss in ISO YYYY-MM-DD format (e.g. 2026-06-09). No backwards-date restriction." },
+          fed_cc_id:        { type: "integer", description: "Optional: CC federation ID (z.B. 20 für NBV). Hilft Pre-Read wenn DB-Linkage fehlt — Real CC braucht vollständige 6-Felder-Scope für showMeldeliste-Response. Default: ENV CC_FED_ID oder Region-Lookup." },
+          branch_cc_id:     { type: "integer", description: "Optional: CC admin branch ID (z.B. 8 für Kegel admin-cc-id). NOTE: admin-cc-id aus Sniff, NICHT public-Scraping. Hilft Pre-Read; bei DB-Linkage-Fehlen erforderlich." },
+          season:           { type: "string",  description: "Optional: Season-Name wie '2025/2026' (CC-Format mit Slash). Hilft Pre-Read; bei DB-Linkage-Fehlen erforderlich." },
+          disciplin_id:     { type: "string",  description: "Optional: CC disciplinId (Default '*' Wildcard — alle Disziplinen)." },
+          cat_id:           { type: "string",  description: "Optional: CC catId (Default '*' Wildcard — alle Kategorien)." },
           armed:            { type: "boolean", default: false, description: "If false (default), dry-run only — no CC mutation. If true, performs destructive POSTs to CC." },
           read_back:        { type: "boolean", default: true,  description: "If true (default) and armed:true, verify new deadline via post-save read; raises error on mismatch." }
         },
@@ -58,6 +63,8 @@ module McpServer
       annotations(read_only_hint: false, destructive_hint: true)
 
       def self.call(tournament_cc_id: nil, meldeliste_cc_id: nil, new_deadline: nil,
+                    fed_cc_id: nil, branch_cc_id: nil, season: nil,
+                    disciplin_id: nil, cat_id: nil,
                     armed: false, read_back: true, server_context: nil)
         # L0a: new_deadline required
         err = validate_required!({ new_deadline: new_deadline }, [:new_deadline])
@@ -88,8 +95,18 @@ module McpServer
         end
 
         # Pre-Read: showMeldeliste → parse all 9 fields. Funktioniert ohne DB (CC-only-fähig).
+        # Plan 06-04 inline-Patch (Phase-4-Pattern): Real-CC erwartet vollständige 6-Felder-Scope-Payload
+        # für showMeldeliste, sonst antwortet es mit Edit-Form-style Page ohne hidden-Inputs.
+        # User-provided scope_filters (über Tool-Schema-Params) werden in den Pre-Read-Payload gemergt.
+        scope_filters = {
+          fedId: fed_cc_id || default_fed_id,
+          branchId: branch_cc_id,
+          disciplinId: disciplin_id || "*",
+          catId: cat_id || "*",
+          season: season
+        }.compact
         client = cc_session.client_for
-        pre_read = pre_read_meldeliste(client, meldeliste_cc_id)
+        pre_read = pre_read_meldeliste(client, meldeliste_cc_id, scope_filters)
         return pre_read if pre_read.is_a?(MCP::Tool::Response)  # error envelope
 
         # Schicht 4 (Network-Level): Detail-Dry-Run-Echo — alle 8 Detail-Felder + mschluss_old/new.
@@ -136,9 +153,10 @@ module McpServer
         return error("CC rejected at editMeldelisteSave: #{save_parsed}") if save_parsed && save_parsed != "(no error)"
 
         # Optional Read-Back (Schicht 4 Verify): re-read meldeliste, parse new mschluss, compare.
+        # Plan 06-04 inline-Patch: Read-Back nutzt dieselben scope_filters wie Pre-Read.
         read_back_match = :skipped
         if read_back
-          rb = pre_read_meldeliste(client, meldeliste_cc_id)
+          rb = pre_read_meldeliste(client, meldeliste_cc_id, scope_filters)
           if rb.is_a?(Hash)
             actual = rb[:mschluss_old]  # "current" deadline after save
             read_back_match = (actual == new_deadline)
@@ -177,17 +195,32 @@ module McpServer
       # Returns Hash with keys [:fedId, :branchId, :disciplinId, :catId, :season, :meldelisteId,
       # :meldelistenName, :mschluss_old, :stag] — or error response on HTTP/parse failure.
       # NBV-only-Boundary: parses directly from HTML, no DB-Beziehung used.
-      def self.pre_read_meldeliste(client, meldeliste_cc_id)
-        # Real CC accepts URL-path-param form (`p=fed|branch|...`), but we use POST body for
-        # MockClient compatibility. MockClient ignores payload structure anyway.
-        payload = { meldelisteId: meldeliste_cc_id }
+      #
+      # scope_filters (Plan 06-04 inline-Patch): optional Hash mit Scope-Keys
+      # ({fedId:, branchId:, disciplinId:, catId:, season:}); wenn gegeben, in den Pre-Read-Payload
+      # gemergt. Real CC braucht das — antwortet sonst mit Edit-Form-Page ohne hidden-Inputs.
+      # Bei MockClient ist scope_filters NoOp (Mock-Response immer rich, unabhängig von Payload).
+      def self.pre_read_meldeliste(client, meldeliste_cc_id, scope_filters = {})
+        # Plan 06-04 inline-Patch: scope_filters in payload mergen (Real-CC-Anforderung).
+        # MockClient ignoriert die Extra-Keys (legacy Mock-Tests bleiben grün).
+        payload = { meldelisteId: meldeliste_cc_id }.merge(scope_filters)
         res, doc = client.post("showMeldeliste", payload, { armed: true, session_id: cc_session.cookie })
         if cc_session.reauth_if_needed!(doc)
           res, doc = client.post("showMeldeliste", payload, { armed: true, session_id: cc_session.cookie })
         end
         return error("Pre-Read failed: showMeldeliste returned HTTP #{res&.code}") if res.nil? || res&.code != "200"
 
-        parse_meldeliste_state(doc)
+        parsed = parse_meldeliste_state(doc)
+        return parsed unless parsed.is_a?(Hash)
+
+        # Plan 06-04 inline-Patch (Fallback-Layer): leere Hash-Werte mit User-provided scope_filters auffüllen,
+        # falls Real-CC trotz vollständiger Pre-Read-Payload manche hidden-Inputs auslässt.
+        scope_filters.each do |key, value|
+          if parsed[key].nil? || parsed[key].to_s.empty?
+            parsed[key] = value.to_s
+          end
+        end
+        parsed
       rescue StandardError => e
         error("Pre-Read parse failed: #{e.class.name} (#{e.message})")
       end
@@ -242,9 +275,12 @@ module McpServer
 
       # Extract `<b>DD.MM.YYYY</b>` after a labeled `<td>` cell. Converts to ISO YYYY-MM-DD.
       # Returns nil if pattern not found.
+      # Plan 06-04 inline-Patch: starts-with → exakter Label-Match mit ":" Suffix.
+      # Grund: starts-with matchte versehentlich die äußere Container-<td>, deren text() den gesamten
+      # Tabellen-Inhalt enthält ("Meldeliste:NDM Endrunde...Meldeschluss:26.05.2026...").
+      # Mit exakter Gleichheit auf "Meldeschluss:" trifft XPath nur die Leaf-Label-Cell.
       def self.extract_german_date_after_label(doc, label)
-        # Find <td> whose text starts with the label (e.g. "Meldeschluss:"), then look in sibling <td> for <b>
-        label_td = doc.xpath("//td[starts-with(normalize-space(.), '#{label}')]").first
+        label_td = doc.xpath("//td[normalize-space(.) = '#{label}:']").first
         return nil unless label_td
         sibling = label_td.xpath("following-sibling::td//b").first
         return nil unless sibling
@@ -258,8 +294,9 @@ module McpServer
       end
 
       # Extract `<b>TEXT</b>` after a labeled `<td>` cell.
+      # Plan 06-04 inline-Patch: starts-with → exakter Label-Match (analog extract_german_date_after_label).
       def self.extract_text_after_label(doc, label)
-        label_td = doc.xpath("//td[starts-with(normalize-space(.), '#{label}')]").first
+        label_td = doc.xpath("//td[normalize-space(.) = '#{label}:']").first
         return nil unless label_td
         sibling = label_td.xpath("following-sibling::td//b").first
         sibling&.text&.strip
