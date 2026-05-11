@@ -41,11 +41,13 @@ class McpServer::Tools::LookupSmokeTest < ActiveSupport::TestCase
     cc_list_open_tournaments
     cc_list_players_by_name
     cc_check_player_discipline_experience
+    cc_update_tournament_deadline
   ].freeze
 
   WRITE_TOOL_NAMES = %w[
     cc_finalize_teilnehmerliste
     cc_register_for_tournament
+    cc_update_tournament_deadline
   ].freeze
 
   test "dynamic tool registry matches frozen reference (drift detection both ways)" do
@@ -66,7 +68,7 @@ class McpServer::Tools::LookupSmokeTest < ActiveSupport::TestCase
       "(ein Tool fehlt oder hat den falschen Namen)."
   end
 
-  test "all 17 expected tools (15 read + 2 write) are registered on McpServer::Server.build" do
+  test "all 18 expected tools (15 read + 3 write) are registered on McpServer::Server.build" do
     # server.tools liefert Arrays [name, klass] — erstes Element ist der tool_name-String.
     registered = McpServer::Server.build.tools.map { |t|
       if t.is_a?(Array)
