@@ -292,6 +292,22 @@ class RegionCc::ClubCloudClient
     "editMeldelisteCheck" => ["/admin/einzel/meldelisten/editMeldelisteCheck.php", false],
     "editMeldelisteSave" => ["/admin/einzel/meldelisten/editMeldelisteSave.php", false],
     #
+    # --- Verbands-Sicht (admin/einzel/meisterschaft) Teilnehmerliste-Pflege — Plan 07-03 cc_assign_player_to_teilnehmerliste ---
+    # Multi-Step-Chain für Akkreditierungs-Workflow (Spieler von Meldeliste → Teilnehmerliste übernehmen):
+    #   1. editTeilnehmerlisteCheck (Pre-Read mit <select name="teilnehmerId"> + <select name="meldungId[]">)
+    #   2. assignPlayer            (Multi-Add via meldungId[] Array — mehrere Spieler in EINEM Call)
+    #   3. editTeilnehmerlisteSave (Commit mit save="1" Sentinel)
+    #   4. removePlayer            (Single-Remove via teilnehmerId — Plan 07-04 Inline-Patch ODER Phase 8)
+    #   5. showTeilnehmerliste     (Read-only View)
+    # Alle Endpoints unter `/admin/einzel/meisterschaft/` (NICHT `meldelisten/` wie Phase 6 — andere Entity!).
+    # Identifier ist `meisterschaftsId` (= tournament_cc_id), NICHT meldelisteId.
+    # KEIN finalize-State (Kapitalbefund Plan 07-02 D-7-5): Add/Remove werden via Save direkt persistiert.
+    "assignPlayer" => ["/admin/einzel/meisterschaft/assignPlayer.php", false],
+    "removePlayer" => ["/admin/einzel/meisterschaft/removePlayer.php", false],
+    "editTeilnehmerlisteCheck" => ["/admin/einzel/meisterschaft/editTeilnehmerlisteCheck.php", false],
+    "editTeilnehmerlisteSave" => ["/admin/einzel/meisterschaft/editTeilnehmerlisteSave.php", false],
+    "showTeilnehmerliste" => ["/admin/einzel/meisterschaft/showTeilnehmerliste.php", true],
+    #
     # --- Vereins-Sicht (myclub/meldewesen/single) — Plan 04-04 register-Tool ---
     # Diese 3 Endpoints liegen im VEREINS-Bereich (admin/myclub/meldewesen/single),
     # NICHT im Verbands-Bereich (admin/einzel/meldelisten) — gleiche Funktion,
