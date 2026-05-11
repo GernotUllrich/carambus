@@ -135,4 +135,100 @@ class McpServer::Tools::LookupMeldelisteForTournamentTest < ActiveSupport::TestC
     actions = posts.map { |_, action, _, _| action }
     assert_includes actions, "showMeldelistenList"
   end
+
+  # ─── Plan 09-02: Scope-Filter-Hybrid-POST-Logik (v0.2.1-Konsolidierung) ──────────
+
+  test "Plan 09-02 T-Scope-Full: alle 5 Scope-Filter → POST mit Scope-Filter-Payload (KEIN meisterschaftsId)" do
+    @mock.define_singleton_method(:post) do |action, post_options = {}, opts = {}|
+      @calls << [:post, action, post_options, opts]
+      body = '<html><body><tr data-meldeliste-cc-id="1310"><td>Quali NBV</td></tr></body></html>'
+      [Struct.new(:code, :message, :body).new("200", "OK", body), Nokogiri::HTML(body)]
+    end
+    response = McpServer::Tools::LookupMeldelisteForTournament.call(
+      tournament_cc_id: 890,
+      fed_cc_id: 20, branch_cc_id: 8, season: "2025/2026",
+      disciplin_id: "*", cat_id: "100",
+      force_refresh: true, server_context: nil
+    )
+    refute response.error?
+    posts = @mock.calls.select { |verb, action, _, _| verb == :post && action == "showMeldelistenList" }
+    assert_equal 1, posts.size
+    payload = posts.first[2]
+    assert_equal 20, payload[:fedId]
+    assert_equal 8, payload[:branchId]
+    assert_equal "2025/2026", payload[:season]
+    assert_equal "*", payload[:disciplinId]
+    assert_equal "100", payload[:catId]
+    refute payload.key?(:meisterschaftsId), "Scope-Filter-Pfad darf KEIN meisterschaftsId-Key haben"
+  end
+
+  test "Plan 09-02 T-Scope-Partial: nur fed_cc_id + branch_cc_id → partial Scope-Filter-Payload" do
+    @mock.define_singleton_method(:post) do |action, post_options = {}, opts = {}|
+      @calls << [:post, action, post_options, opts]
+      body = '<html><body><tr data-meldeliste-cc-id="1310"><td>Result</td></tr></body></html>'
+      [Struct.new(:code, :message, :body).new("200", "OK", body), Nokogiri::HTML(body)]
+    end
+    McpServer::Tools::LookupMeldelisteForTournament.call(
+      tournament_cc_id: 890, fed_cc_id: 20, branch_cc_id: 8,
+      force_refresh: true, server_context: nil
+    )
+    payload = @mock.calls.first[2]
+    assert_equal 20, payload[:fedId]
+    assert_equal 8, payload[:branchId]
+    refute payload.key?(:season), "Partial: season nicht gesetzt → kein Key"
+    refute payload.key?(:catId), "Partial: cat_id nicht gesetzt → kein Key"
+    refute payload.key?(:meisterschaftsId), "Partial Scope-Filter darf KEIN meisterschaftsId-Key haben"
+  end
+
+  test "Plan 09-02 T-Scope-Default-Disciplin: disciplin_id omitted → Wildcard '*' im Payload" do
+    @mock.define_singleton_method(:post) do |action, post_options = {}, opts = {}|
+      @calls << [:post, action, post_options, opts]
+      body = '<html><body><tr data-meldeliste-cc-id="1310"><td>Result</td></tr></body></html>'
+      [Struct.new(:code, :message, :body).new("200", "OK", body), Nokogiri::HTML(body)]
+    end
+    McpServer::Tools::LookupMeldelisteForTournament.call(
+      tournament_cc_id: 890, fed_cc_id: 20, branch_cc_id: 8, season: "2025/2026",
+      # disciplin_id + cat_id NICHT gesetzt
+      force_refresh: true, server_context: nil
+    )
+    payload = @mock.calls.first[2]
+    assert_equal "*", payload[:disciplinId], "disciplin_id-Default ist Wildcard '*'"
+  end
+
+  test "Plan 09-02 T-Backwards-Compat: ohne Scope-Filter → meisterschaftsId-Pfad (Plan 08-02 default)" do
+    @mock.define_singleton_method(:post) do |action, post_options = {}, opts = {}|
+      @calls << [:post, action, post_options, opts]
+      body = '<html><body><tr data-meldeliste-cc-id="1310"><td>Result</td></tr></body></html>'
+      [Struct.new(:code, :message, :body).new("200", "OK", body), Nokogiri::HTML(body)]
+    end
+    McpServer::Tools::LookupMeldelisteForTournament.call(
+      tournament_cc_id: 890, force_refresh: true, server_context: nil
+    )
+    payload = @mock.calls.first[2]
+    assert_equal 890, payload[:meisterschaftsId], "Backwards-Compat: meisterschaftsId muss gesendet werden"
+    refute payload.key?(:fedId), "Backwards-Compat darf KEIN Scope-Filter-Key haben"
+    refute payload.key?(:branchId)
+    refute payload.key?(:season)
+  end
+
+  test "Plan 09-02 T-Scope-Mixed-mit-Force-Refresh: Scope-Filter + force_refresh:true → Live-CC mit Scope-Payload, source=cc-live" do
+    @mock.define_singleton_method(:post) do |action, post_options = {}, opts = {}|
+      @calls << [:post, action, post_options, opts]
+      body = '<html><body><tr data-meldeliste-cc-id="1310"><td>Live-Source-Result</td></tr></body></html>'
+      [Struct.new(:code, :message, :body).new("200", "OK", body), Nokogiri::HTML(body)]
+    end
+    response = McpServer::Tools::LookupMeldelisteForTournament.call(
+      tournament_cc_id: 890,
+      fed_cc_id: 20, branch_cc_id: 8, season: "2025/2026",
+      disciplin_id: "30", cat_id: "100",
+      force_refresh: true, server_context: nil
+    )
+    refute response.error?
+    text = response.content.first[:text]
+    assert_match(/meldeliste_cc_id: 1310/, text)
+    assert_match(/cc-live/, text, "source:cc-live muss in candidates-Output stehen")
+    payload = @mock.calls.first[2]
+    assert_equal 20, payload[:fedId]
+    assert_equal "30", payload[:disciplinId]
+  end
 end

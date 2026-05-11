@@ -1,5 +1,5 @@
 # frozen_string_literal: true
-# cc_lookup_meldeliste_for_tournament — Phase 8 Plan 08-02.
+# cc_lookup_meldeliste_for_tournament — Phase 8 Plan 08-02 + Phase 9 Plan 09-02 (Scope-Filter-Konsolidierung).
 # Resolve tournament_cc_id → meldeliste_cc_id(s) for a ClubCloud Einzelturnier.
 #
 # Background (SUBSTRATE-08.md Sektion 3): One Tournament may have N Meldelisten
@@ -10,6 +10,11 @@
 # DB-first via TournamentCc → registration_list_cc → cc_id (1:1-Beziehung in Carambus-DB,
 # kann N:1 sein wenn mehrere RegistrationListCc auf dasselbe Tournament verweisen).
 # Falls DB-Lookup leer ODER force_refresh:true → Live-CC via showMeldelistenList Action.
+#
+# Plan 09-02 (v0.2.1-Spec-Issue konsolidiert): Tool akzeptiert jetzt 5 optionale Scope-Filter-Params
+# (fed_cc_id/branch_cc_id/season/disciplin_id/cat_id) analog Phase 6 cc_update_tournament_deadline.
+# Hybrid-POST: mit Scope-Filter → fedId/branchId/season/disciplinId/catId-Payload (Real-CC erwartet das);
+# ohne Scope-Filter → meisterschaftsId-Payload (Backwards-Compat mit Plan 08-02 Mock-Tests).
 #
 # Output-Schema (D-08-E):
 #   - 0 Treffer: error
@@ -35,13 +40,20 @@ module McpServer
       input_schema(
         properties: {
           tournament_cc_id: { type: "integer", description: "CC TournamentCc.cc_id (= meisterschaftsId)." },
-          force_refresh:    { type: "boolean", default: false, description: "If true, skips DB cache and queries CC live via showMeldelistenList." }
+          force_refresh:    { type: "boolean", default: false, description: "If true, skips DB cache and queries CC live via showMeldelistenList." },
+          fed_cc_id:        { type: "integer", description: "Optional: CC federation ID (z.B. 20 für NBV). Plan 09-02 v0.2.1-Konsolidierung — wenn gesetzt, sendet showMeldelistenList Scope-Filter-Payload statt meisterschaftsId." },
+          branch_cc_id:     { type: "integer", description: "Optional: CC admin branch ID (z.B. 8 für Kegel admin-cc-id). Plan 09-02 — siehe fed_cc_id." },
+          season:           { type: "string",  description: "Optional: Season-Name wie '2025/2026' (CC-Format mit Slash). Plan 09-02 Scope-Filter." },
+          disciplin_id:     { type: "string",  description: "Optional: CC disciplinId (Default '*' Wildcard — alle Disziplinen). Plan 09-02 Scope-Filter." },
+          cat_id:           { type: "string",  description: "Optional: CC catId. Plan 09-02 Scope-Filter." }
         },
         required: ["tournament_cc_id"]
       )
       annotations(read_only_hint: true, destructive_hint: false)
 
-      def self.call(tournament_cc_id: nil, force_refresh: false, server_context: nil)
+      def self.call(tournament_cc_id: nil, force_refresh: false,
+                    fed_cc_id: nil, branch_cc_id: nil, season: nil,
+                    disciplin_id: nil, cat_id: nil, server_context: nil)
         err = validate_required!({ tournament_cc_id: tournament_cc_id }, [:tournament_cc_id])
         return err if err
 
@@ -54,7 +66,11 @@ module McpServer
 
         # Live-CC-Fallback (force_refresh oder DB empty)
         if candidates.empty? || force_refresh
-          live_candidates = fetch_from_cc(tournament_cc_id)
+          live_candidates = fetch_from_cc(
+            tournament_cc_id,
+            fed_cc_id: fed_cc_id, branch_cc_id: branch_cc_id,
+            season: season, disciplin_id: disciplin_id, cat_id: cat_id
+          )
           # Live-Candidates haben Vorrang nur bei force_refresh oder DB-empty
           candidates = live_candidates if !live_candidates.empty?
         end
@@ -106,13 +122,30 @@ module McpServer
 
       # Live-CC-Lookup via showMeldelistenList Action.
       # Parst Response-HTML via Nokogiri; extrahiert meldeliste_cc_id + name pro Row.
-      # Real-CC-HTML-Schema noch nicht final spezifiziert (Plan 08-03 Live-Test) —
-      # defensiver Mock-HTML5-Parser mit Fallback auf einfache Anchor-Match-Heuristik.
-      def self.fetch_from_cc(tournament_cc_id)
+      # Plan 09-02 (v0.2.1-Konsolidierung): Hybrid-POST-Logik — wenn mind. ein Scope-Filter
+      # angegeben (fed_cc_id/branch_cc_id/season/disciplin_id/cat_id), sendet showMeldelistenList
+      # Scope-Filter-Payload (fedId/branchId/season/disciplinId/catId) wie Real-CC erwartet
+      # (Plan 08-03 Live-Test AC-1 Limited PASS — Spec-Issue konsolidiert).
+      # Backwards-Compat: ohne Scope-Filter wird der bisherige meisterschaftsId-Pfad genutzt
+      # (Plan 08-02 Mock-Tests bleiben grün).
+      def self.fetch_from_cc(tournament_cc_id, fed_cc_id: nil, branch_cc_id: nil,
+                             season: nil, disciplin_id: nil, cat_id: nil)
         client = cc_session.client_for
+        payload = if scope_filter_given?(fed_cc_id, branch_cc_id, season, disciplin_id, cat_id)
+          {
+            fedId: fed_cc_id,
+            branchId: branch_cc_id,
+            season: season,
+            disciplinId: disciplin_id || "*",
+            catId: cat_id
+          }.reject { |_, v| v.nil? }
+        else
+          { meisterschaftsId: tournament_cc_id }
+        end
+
         res, doc = client.post(
           "showMeldelistenList",
-          { meisterschaftsId: tournament_cc_id },
+          payload,
           { armed: true, session_id: cc_session.cookie }
         )
         return [] if res.nil? || res.code != "200" || doc.nil?
@@ -144,6 +177,12 @@ module McpServer
       rescue StandardError => e
         Rails.logger.warn "[LookupMeldelisteForTournament.fetch_from_cc] #{e.class}: #{e.message}"
         []
+      end
+
+      # Plan 09-02: true wenn mind. einer der 5 Scope-Filter-Params nicht-nil ist.
+      def self.scope_filter_given?(fed_cc_id, branch_cc_id, season, disciplin_id, cat_id)
+        !fed_cc_id.nil? || !branch_cc_id.nil? || !season.nil? ||
+          !disciplin_id.nil? || !cat_id.nil?
       end
     end
   end
