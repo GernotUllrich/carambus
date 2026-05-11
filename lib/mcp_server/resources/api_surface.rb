@@ -2,8 +2,9 @@
 # ApiSurface — Exponiert den kuratierten PATH_MAP-Subset (D-04 Allowlist) als MCP-Resources
 # unter cc://api/{action}. NICHT alle ~100 PATH_MAP-Entries (D-04 verbietet Auto-Mapping).
 #
-# Locked count: genau 25 Entries (12 Read-Lookups + 12 Write/Admin-Actions + 1 Dashboard-Root `home`).
-# 25 curated entries — D-04-Boundary von Plan 07-01 explizit auf 25 angehoben (war 20 in Plan 06-03).
+# Locked count: genau 26 Entries (13 Read-Lookups + 12 Write/Admin-Actions + 1 Dashboard-Root `home`).
+# 26 curated entries — D-04-Boundary erreichte 26 in Plan 08-01 (D-08-01); Soft-Cap-Pfad
+# in Plan 09-01 (D-09-01) zementiert.
 # Aufstockung 15→18 in Plan 04-04 (cc_register_for_tournament 2-Step-Workflow):
 # +addPlayerToMeldeliste (write), +saveMeldeliste (write), +showCommittedMeldeliste (read).
 # Aufstockung 18→20 in Plan 06-03 (cc_update_tournament_deadline 2-Step-Workflow):
@@ -12,7 +13,13 @@
 # Aufstockung 20→25 in Plan 07-03 (cc_assign_player_to_teilnehmerliste Multi-Step-Workflow):
 # +assignPlayer (write), +removePlayer (write, für Plan 07-04 Inline-Patch / Phase 8),
 # +editTeilnehmerlisteCheck (write), +editTeilnehmerlisteSave (write), +showTeilnehmerliste (read).
-# D-04-BOUNDARY 25 ERREICHT — weitere Erweiterungen brauchen Re-Discuss (Phase 9 Cleanup vorgemerkt).
+# Aufstockung 25→26 in Plan 08-02 (cc_unregister_for_tournament):
+# +removePlayerFromMeldeliste (write). showMeldelistenList war bereits ALLOWLISTed seit
+# Phase 2/3 → KOEXISTENZ-Pattern via 2. WRAPPED_BY-Eintrag (Tool-Description-driven, da
+# WRAPPED_BY_TOOL-Hash heute nur 1 Wert pro Key hält — v0.3-Refactor-Backlog).
+# D-04-BOUNDARY 26 — Soft-Cap-Pfad (Plan 09-01 D-09-01): 0 Konsolidierungs-Kandidaten,
+# weitere Erweiterungen brauchen Plan-Type `decisions` + Decision-Eintrag ODER
+# v0.3-CC-only-Mode-Refactor.
 #
 # WICHTIG (Revision 2026-05-07, Blockers 2+3): Plan 01's `Server.install_central_read_handler`
 # besitzt den zentralen Dispatcher. Diese Klasse exponiert nur `.all` (Resource-Liste) +
@@ -21,8 +28,9 @@
 #
 # Sicherheit (T-40-03-02): ALLOWLIST-Whitelist verhindert, dass beliebige PATH_MAP-Keys
 # exponiert werden. Plan 01's Dispatcher-Regex [\w-]+ blockt '/' und '..' auf Dispatch-Ebene.
-# T-40-03-03: Manuelle ALLOWLIST mit exakt 25 Entries verhindert D-04-Verletzung (Auto-Mapping).
-# D-04-Boundary auf 25 angehoben in Plan 07-01 (Decisions); Konsolidierung deferred Phase 9.
+# T-40-03-03: Manuelle ALLOWLIST mit exakt 26 Entries verhindert D-04-Verletzung (Auto-Mapping).
+# D-04-Boundary auf 26 angehoben in Plan 08-01 (D-08-01); Soft-Cap-Pfad in Plan 09-01
+# (D-09-01) — siehe D-04-AUDIT.md.
 
 module McpServer
   module Resources
@@ -131,7 +139,7 @@ module McpServer
         "removePlayerFromMeldeliste" => "cc_unregister_for_tournament"  # Plan 08-02 (D-08-F)
       }.freeze
 
-      # Gibt Array<MCP::Resource> mit genau 20 Entries zurück (D-04 Allowlist, gesperrt).
+      # Gibt Array<MCP::Resource> mit genau 26 Entries zurück (D-04 Allowlist, gesperrt).
       # Defensiv: nil-Entries werden via .compact entfernt (sollte nie auftreten, da ALLOWLIST
       # gegen PATH_MAP verifiziert wird — aber verhindert Laufzeitfehler bei Sync-Gap).
       def self.all
@@ -174,7 +182,7 @@ module McpServer
 
           ## Verwendung im MCP-Server
 
-          Diese CC-Action gehört zur **D-04 kuratierten Allowlist** (Phase 40, 15 Entries gesamt).
+          Diese CC-Action gehört zur **D-04 kuratierten Allowlist** (Phase 40 + Aufstockungen, 26 Entries gesamt).
           Sie wird vom MCP-Server entweder als Read-Lookup-Tool (Plan 04) oder als Write-Tool
           (Plan 05, nur `releaseMeldeliste` als Proof shipped) exponiert — oder ist eine reine
           Resource ohne Tool-Wrapper.
@@ -190,7 +198,7 @@ module McpServer
       # Privates Hilfsmethode: Action nicht in Allowlist (T-40-03-02 Mitigierung).
       def self.not_in_allowlist(action)
         "# CC-Action `#{action}` nicht in Allowlist\n\n" \
-          "Per D-04 sind nur 15 kuratierte Actions als MCP-Resources exponiert. " \
+          "Per D-04 sind nur 26 kuratierte Actions als MCP-Resources exponiert (D-09-01 Soft-Cap; weitere brauchen Decision-Plan). " \
           "Andere PATH_MAP-Einträge sind absichtlich nicht erreichbar."
       end
 
