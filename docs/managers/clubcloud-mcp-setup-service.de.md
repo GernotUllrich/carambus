@@ -1,0 +1,307 @@
+# ClubCloud-MCP-Server beim Sportwart vor Ort einrichten (Setup-Service)
+
+## Adressat & Abgrenzung
+
+Diese Doku richtet sich an den **Carambus-Admin** (oder Landessportwart mit Dev-Setup),
+der den MCP-Server **vor Ort auf dem Rechner eines Club-Sportwarts** installiert.
+
+**Warum vor Ort?** Der Club-Sportwart hat typischerweise nur Browser-Erfahrung — kein
+Terminal, kein Code-Editor, keine Dev-Tools. Eine Remote-Installation per
+Bildschirm-Sharing ist möglich (siehe Sektion 6), aber vor Ort ist deutlich
+verlässlicher: der Admin sieht das Hardware-Setup direkt, kann Pfad-Probleme schnell
+beheben und liefert die Credentials persönlich ab.
+
+**Abgrenzung zu anderen Setup-Dokus:**
+
+| Doku | Adressat | Zweck |
+|------|----------|-------|
+| [`clubcloud-mcp-quickstart.de.md`](clubcloud-mcp-quickstart.de.md) | Technische Stellvertretung (Landessportwart, Carambus-Admin) | 5-Min-Quickstart, erster Tool-Call |
+| [`clubcloud-mcp-setup.de.md`](clubcloud-mcp-setup.de.md) | Technische Stellvertretung | Tiefes Setup-Troubleshooting, Entwickler-Setup |
+| **diese Doku** (`clubcloud-mcp-setup-service.de.md`) | **Carambus-Admin beim Sportwart** | **Vor-Ort-Setup-Service für einen Sportwart, der nicht selbst installieren kann** |
+
+Nach erfolgreichem Setup-Service kann der Sportwart in Phase 10 (v0.2-Walkthrough)
+eigenständig Anmeldungen über Claude Desktop abwickeln.
+
+---
+
+## Sektion 1 — Pre-Visit-Checkliste
+
+Vor dem Termin beim Sportwart prüfen und mitbringen:
+
+### Hardware & OS
+
+| Item | Pflicht | Notiz |
+|------|---------|-------|
+| Rechner-Owner geklärt? | ✅ | Sportwart-eigener Rechner ODER Admin-Leihrechner? |
+| macOS 12+ ODER Windows 10/11 mit WSL2 | ✅ | Linux möglich, aber Quickstart-Doku ist macOS-fokussiert |
+| 8 GB RAM, 5 GB freier Festplattenspeicher | ✅ | Ruby + Bundler + Carambus-Repo |
+| Stabile Internet-Verbindung | ✅ | 4G-Hotspot als Backup mitbringen |
+| Admin-Rechte auf dem Rechner | ✅ | Für Ruby-Installation und Pfad-Setup |
+
+### Software-Vorbereitung
+
+- [ ] **Claude Desktop** auf dem Sportwart-Rechner installieren (oder schon installiert?)
+  → [claude.ai/download](https://claude.ai/download)
+- [ ] **Git** vorhanden (`git --version`)?
+- [ ] **rbenv** oder vergleichbare Ruby-Versionsverwaltung installiert?
+- [ ] **Editor** (VS Code oder TextEdit) für claude_desktop_config.json-Editierung?
+
+### CC-Credentials
+
+- [ ] **Sportwart-CC-Login** (Username + Password) bei Sportwart geklärt — wird beim Termin verwendet (NICHT vorher übertragen!)
+- [ ] **region_cc_id** des Vereins bekannt (z.B. NBV = 20)
+- [ ] **base_url** der CC-Region (z.B. `https://nbv.club-cloud.de`)
+- [ ] Sportwart-Rechte in CC verifiziert (Anmelden + Meldeschluss verschieben + Teilnehmerliste pflegen)
+
+### Backup-Plan
+
+- [ ] **Remote-Bildschirm-Sharing** (Zoom/TeamViewer) als Fallback installiert, falls vor-Ort-Setup scheitert
+- [ ] **Mein eigener Admin-Rechner** mitbringen, um Test-Calls parallel zu fahren
+- [ ] **USB-Stick** mit lokalem Carambus-Repo-Clone (falls Internet beim Sportwart schwach)
+
+---
+
+## Sektion 2 — Installation macOS
+
+### 2.1 Ruby 3.2.1 via rbenv
+
+```bash
+# rbenv installieren (falls nicht vorhanden)
+brew install rbenv ruby-build
+
+# In ~/.zshrc oder ~/.bashrc einfügen:
+echo 'eval "$(rbenv init -)"' >> ~/.zshrc
+source ~/.zshrc
+
+# Ruby 3.2.1 installieren
+rbenv install 3.2.1
+rbenv global 3.2.1
+ruby --version  # → ruby 3.2.1
+```
+
+### 2.2 Bundler
+
+```bash
+gem install bundler
+bundler --version  # → Bundler 2.7+
+```
+
+### 2.3 Carambus-Repo
+
+```bash
+mkdir -p ~/DEV/carambus
+cd ~/DEV/carambus
+git clone <repo-url> carambus_local  # ODER USB-Stick-Kopie
+cd carambus_local
+bundle install
+```
+
+### 2.4 Datenbank-Verbindung verifizieren
+
+```bash
+bin/rails db:version
+# Erwartung: Migration-Version-Nummer (KEIN Connection-Error)
+```
+
+Wenn DB-Connection-Error: PostgreSQL-Setup mit dem Sportwart-Rechner abklären
+(lokale Carambus-DB ODER Remote-Connection zu Carambus-Produktion).
+
+### 2.5 claude_desktop_config.json
+
+Pfad: `~/Library/Application Support/Claude/claude_desktop_config.json`
+
+```json
+{
+  "mcpServers": {
+    "carambus-cc": {
+      "command": "/Users/<USERNAME>/.rbenv/shims/bundle",
+      "args": ["exec", "/Users/<USERNAME>/DEV/carambus/carambus_local/bin/mcp-server"],
+      "env": {
+        "RAILS_ENV": "development",
+        "CC_REGION": "nbv",
+        "CARAMBUS_MCP_MOCK": "0"
+      }
+    }
+  }
+}
+```
+
+`<USERNAME>` ersetzen mit dem macOS-Username des Sportwarts. `CC_REGION` an die Region anpassen.
+
+### 2.6 Berechtigungen
+
+```bash
+chmod 600 ~/Library/Application\ Support/Claude/claude_desktop_config.json
+```
+
+Verhindert, dass Credentials in Backups/iCloud-Sync versehentlich landen.
+
+---
+
+## Sektion 3 — Installation Windows (WSL2)
+
+### 3.1 WSL2 Ubuntu installieren
+
+PowerShell (als Admin):
+
+```powershell
+wsl --install -d Ubuntu-22.04
+# Nach Reboot: Ubuntu-User + Password anlegen
+```
+
+### 3.2 Innerhalb WSL: gleiche Schritte wie macOS Sektion 2
+
+Ruby + Bundler + Repo via `apt install build-essential libssl-dev libreadline-dev zlib1g-dev` plus rbenv.
+Carambus-Repo unter `~/DEV/carambus/carambus_local` (WSL-Pfad).
+
+### 3.3 claude_desktop_config.json (Windows-Native)
+
+Pfad: `%APPDATA%\Claude\claude_desktop_config.json` (Windows-Pfad, NICHT WSL-Pfad)
+
+```json
+{
+  "mcpServers": {
+    "carambus-cc": {
+      "command": "wsl",
+      "args": [
+        "-d", "Ubuntu-22.04",
+        "bash", "-c",
+        "cd /home/<USERNAME>/DEV/carambus/carambus_local && bundle exec bin/mcp-server"
+      ],
+      "env": {
+        "RAILS_ENV": "development",
+        "CC_REGION": "nbv",
+        "CARAMBUS_MCP_MOCK": "0"
+      }
+    }
+  }
+}
+```
+
+`<USERNAME>` ist der WSL-Linux-Username (NICHT der Windows-Username).
+
+### 3.4 Berechtigungen
+
+PowerShell:
+
+```powershell
+icacls "$env:APPDATA\Claude\claude_desktop_config.json" /inheritance:r /grant:r "$env:USERNAME:F"
+```
+
+Falls Windows-Pfad-Übersetzung Probleme macht: **direkt auf Sektion 6 (Remote-Bildschirm-Sharing-Fallback)** ausweichen.
+
+---
+
+## Sektion 4 — Credentials-Übertragung
+
+### Erlaubte Übertragungswege
+
+| Methode | Sicherheit | Empfehlung |
+|---------|------------|------------|
+| 1Password Shared Item (kurz, mit Auto-Expire) | Hoch | ✅ Bevorzugt |
+| Verschlüsselte E-Mail (ProtonMail, Tutanota) | Hoch | ✅ |
+| USB-Stick beim Termin abgeben + sofort vernichten | Mittel-Hoch | ✅ Falls digitaler Weg unmöglich |
+| **Beim Termin direkt vom Sportwart einsehen + eintippen** | Hoch (kein Transit) | ✅ Bevorzugt |
+
+### Verbotene Übertragungswege
+
+| Methode | Risiko |
+|---------|--------|
+| Slack/Discord/Telegram/SMS im Klartext | ❌ Logs/Backups bei den Anbietern |
+| E-Mail im Klartext | ❌ Mail-Server-Logs |
+| Dropbox/iCloud/Google Drive | ❌ Cloud-Sync, Backup-Historie |
+| Browser-Notiz / Sticky Note | ❌ Sync-Risiko |
+
+### Schritt-für-Schritt vor Ort
+
+1. Sportwart-CC-Login direkt in CC-Browser einloggen → Username/Password aus Browser-Password-Manager ablesen
+2. claude_desktop_config.json **vor Ort** mit den Credentials befüllen (NICHT vorbereitet)
+3. `chmod 600` (macOS) / `icacls` (Windows) ausführen
+4. Sportwart-Rechner-Cloud-Sync prüfen — falls aktiv, Hinweis: claude_desktop_config.json **nicht** in iCloud Drive / OneDrive / Dropbox legen
+5. CC-Credentials beim Sportwart verbleiben (Browser-Password-Manager); Carambus-Admin notiert sie sich NICHT für späteren Zugriff
+
+---
+
+## Sektion 5 — Smoke-Test-Drehbuch (Akzeptanz-Step)
+
+Nach Setup ist Akzeptanz erreicht, wenn der Sportwart **ohne Admin-Hilfe** folgenden Dialog in Claude Desktop führen kann:
+
+### Test-Dialog
+
+> **Sportwart tippt:**
+> „Hallo Claude — zeig mir den Status zu meinem Verein in ClubCloud."
+
+> **Erwartung Claude-Antwort:**
+> Claude ruft `cc_lookup_region` + `cc_lookup_club` auf und zeigt:
+> - Region-Name (z.B. „NBV")
+> - Sportwart-eigener Verein mit cc_id, Spielerliste, Trainer-Info, etc.
+
+### Erweiterter Test (Walkthrough-Vorbereitung)
+
+> **Sportwart tippt:**
+> „Welche offenen Turniere stehen aktuell in Kegel an?"
+
+> **Erwartung:**
+> Claude ruft `cc_list_open_tournaments` mit branch_cc_id=8 auf und zeigt Liste mit Deadline-Daten.
+
+### Wenn der Smoke-Test gelingt
+
+✅ Sportwart ist Phase-10-walkthrough-fähig
+✅ Carambus-Admin kann den Sportwart-Termin schließen
+✅ Sportwart bekommt:
+- Eine 1-Seiten-PDF mit häufigen NL-Befehlen (Quickstart-Excerpt)
+- Telefonnummer/E-Mail des Carambus-Admins für Notfälle
+- Hinweis: bei Claude-Desktop-Update / OS-Update muss ggf. neu installiert werden
+
+### Wenn der Smoke-Test scheitert
+
+**Häufige Fehler:**
+
+| Fehler | Diagnose | Fix |
+|--------|----------|-----|
+| Claude antwortet „MCP-Server nicht erreichbar" | claude_desktop_config.json Pfad falsch | Pfad-Trace via Claude Desktop Devtools |
+| Claude antwortet „CC-Auth-Failure" | Credentials in Rails Credentials nicht gesetzt | Rails-Credentials in carambus-Repo prüfen, ggf. neu eintragen |
+| Claude antwortet „DB-Connection-Error" | PostgreSQL nicht erreichbar | `bin/rails db:version` testen; ggf. SSH-Tunnel zur Carambus-Produktion |
+| Tool-Call funktioniert, aber Rückgabe leer | DB-Sync veraltet | Tool mit `force_refresh: true` erneut aufrufen |
+
+Bei wiederholtem Scheitern: Remote-Bildschirm-Sharing vereinbaren und Logs analysieren (siehe `clubcloud-mcp-setup.de.md` Sektion „Lokales Debug").
+
+---
+
+## Sektion 6 — Remote-Bildschirm-Sharing-Fallback
+
+Wenn vor-Ort-Besuch nicht möglich ist (Distanz, Termin-Konflikte, COVID-Risiko, etc.):
+
+### Setup-Voraussetzungen
+
+- Zoom oder TeamViewer auf beiden Rechnern installiert
+- Sportwart-Rechner kann Bildschirm freigeben (NICHT nur Maus-/Tastatur-Steuerung)
+- Verschlüsselte Channel für Credentials (1Password Shared Item ODER Signal-Nachricht mit Selbstzerstörung)
+
+### Ablauf
+
+1. Video-Call starten, Sportwart teilt Bildschirm
+2. Carambus-Admin **diktiert** Befehle (Sportwart tippt selbst — wichtig für späteres Re-Install)
+3. Credentials: Sportwart liest aus Browser-Password-Manager vor; ODER Admin schickt 1Password-Shared-Item mit 5-Min-Expire
+4. claude_desktop_config.json: Sportwart erstellt die Datei mit Editor; Admin diktiert Inhalt
+5. Smoke-Test: gleicher Dialog wie Sektion 5
+
+### Nachteile gegen vor Ort
+
+- Admin sieht keine Hardware-Pfade direkt
+- Pfad-Probleme schwerer zu debuggen
+- Sportwart sieht alle Schritte mit (Wissenstransfer-Vorteil, aber auch Confidentiality-Risk für Admin-Workflows)
+- Sportwart kann später NICHT eigenständig re-installieren (Admin muss erneut ran)
+
+---
+
+## Quellen & Weiterführendes
+
+- [`clubcloud-mcp-setup.de.md`](clubcloud-mcp-setup.de.md) — Setup-Troubleshooting für technische Stellvertretung
+- [`clubcloud-mcp-quickstart.de.md`](clubcloud-mcp-quickstart.de.md) — 5-Min-Quickstart-NL-Dialoge
+- `docs/developers/clubcloud-mcp-server.de.md` — Entwickler-Handbuch für tieferes Tool-Debugging
+
+---
+
+*Plan 09-03 (Phase 9 Live-Härten + Setup-Service) — adressiert Q-v02-2 (Setup vor Ort) + Q-09-A (Phase 9). Phase-10-Voraussetzung.*
+*Updated: 2026-05-12*

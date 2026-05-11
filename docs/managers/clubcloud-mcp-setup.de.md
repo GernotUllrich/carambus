@@ -22,6 +22,12 @@ Derzeit verfügbare Funktionen:
 > — der erklärt in 5 Minuten, wie Du als technische Stellvertretung des Club-Sportwarts
 > den ersten Tool-Call absetzt. Diese Setup-Doku ist für tieferes Troubleshooting +
 > Entwickler-Setup gedacht.
+>
+> **Setup für Club-Sportwart vor Ort:** Wenn ein Carambus-Admin den MCP-Server für einen
+> Club-Sportwart **vor Ort** installiert (Sportwart ohne Dev-Setup, nur Browser/Claude
+> Desktop), siehe die separate Doku [`clubcloud-mcp-setup-service.de.md`](clubcloud-mcp-setup-service.de.md)
+> — Pre-Visit-Checkliste, macOS-/Windows-Installation, sichere Credentials-Übertragung,
+> Smoke-Test-Drehbuch.
 
 ## Voraussetzungen
 
