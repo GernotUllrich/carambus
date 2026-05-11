@@ -283,6 +283,15 @@ class RegionCc::ClubCloudClient
     # season: 2010/2011
     # meldelisteId: 66
     #
+    # --- Verbands-Sicht (admin/einzel/meldelisten) Edit-Workflow — Plan 06-03 cc_update_tournament_deadline ---
+    # 2-Step-POST-Chain für Meldeschluss-Verschiebung (View-Source-Sniff 2026-05-11):
+    #   1. editMeldelisteCheck (Server-Side-Prep, Edit-Form-Render mit prefilled HTML5-date inputs)
+    #   2. editMeldelisteSave  (actual write — schreibt meldelistenName + mschluss + stag in CC-DB)
+    # Beide Endpoints unter `/admin/einzel/meldelisten/`; nbut="1"/save="1" als PHP-Button-Sentinels.
+    # NICHT zu verwechseln mit Phase-4 saveMeldeliste (`/admin/myclub/...` register-flow) — anderer Pfad, anderer Use-Case.
+    "editMeldelisteCheck" => ["/admin/einzel/meldelisten/editMeldelisteCheck.php", false],
+    "editMeldelisteSave" => ["/admin/einzel/meldelisten/editMeldelisteSave.php", false],
+    #
     # --- Vereins-Sicht (myclub/meldewesen/single) — Plan 04-04 register-Tool ---
     # Diese 3 Endpoints liegen im VEREINS-Bereich (admin/myclub/meldewesen/single),
     # NICHT im Verbands-Bereich (admin/einzel/meldelisten) — gleiche Funktion,

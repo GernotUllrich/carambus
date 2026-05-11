@@ -3,13 +3,13 @@
 # Verschiebt den Meldeschluss einer CC-Meldeliste (registration deadline).
 #
 # Architektur (aus 06-02-SNIFF-OUTPUT.md): 2-Step CC-Workflow + optional Read-Back:
-#   1. showMeldelisteEinzel (showMeldeliste.php)      — Pre-Read, liefert aktuelle Werte aller 9 Felder
+#   1. showMeldeliste (showMeldeliste.php)      — Pre-Read, liefert aktuelle Werte aller 9 Felder
 #   2. editMeldelisteCheck   (editMeldelisteCheck.php) — Edit-Form-Render, Server-Side-Prep für Save
 #   3. editMeldelisteSave    (editMeldelisteSave.php)  — actual Save mit 9-Felder-Payload
-#   4. showMeldelisteEinzel  (optional, armed:true)    — Read-Back zur Verifikation des neuen Datums
+#   4. showMeldeliste  (optional, armed:true)    — Read-Back zur Verifikation des neuen Datums
 #
 # NBV-only-Constraint (User-Direktive 2026-05-11): Carambus existiert heute nur in NBV-Region.
-# Pre-Read parst ALLE 9 Felder direkt aus showMeldelisteEinzel-HTML (NICHT aus DB-Beziehung).
+# Pre-Read parst ALLE 9 Felder direkt aus showMeldeliste-HTML (NICHT aus DB-Beziehung).
 # DB-first-Resolver für tournament_cc_id → meldeliste_cc_id ist Best-Effort-Optimierung,
 # keine Pflicht-Quelle. v0.3 CC-only-Mode kann den Resolver vollständig weglassen.
 #
@@ -33,7 +33,7 @@ module McpServer
       tool_name "cc_update_tournament_deadline"
       description <<~DESC
         Update the Meldeschluss (registration deadline) of a ClubCloud Meldeliste.
-        Workflow: Pre-Read (showMeldelisteEinzel) → 2-Step CC POST (editMeldelisteCheck → editMeldelisteSave) → optional Read-Back.
+        Workflow: Pre-Read (showMeldeliste) → 2-Step CC POST (editMeldelisteCheck → editMeldelisteSave) → optional Read-Back.
         Pass `armed: false` (default) for a dry-run that prints exact request details
         (meldeliste ID, name, old/new deadline, federation, branch, season) without modifying CC.
         Pass `armed: true` to actually update — this is a destructive write to ClubCloud.
@@ -87,7 +87,7 @@ module McpServer
           )
         end
 
-        # Pre-Read: showMeldelisteEinzel → parse all 9 fields. Funktioniert ohne DB (CC-only-fähig).
+        # Pre-Read: showMeldeliste → parse all 9 fields. Funktioniert ohne DB (CC-only-fähig).
         client = cc_session.client_for
         pre_read = pre_read_meldeliste(client, meldeliste_cc_id)
         return pre_read if pre_read.is_a?(MCP::Tool::Response)  # error envelope
@@ -99,7 +99,7 @@ module McpServer
             mschluss_old: #{pre_read[:mschluss_old]}
             mschluss_new: #{new_deadline}
             Scope: fed_id=#{pre_read[:fedId]}, branch_cc_id=#{pre_read[:branchId]}, season=#{pre_read[:season]}, disciplin_id=#{pre_read[:disciplinId]}, cat_id=#{pre_read[:catId]}, stag=#{pre_read[:stag]} (stag unchanged).
-            Workflow: 2-Step POST (editMeldelisteCheck → editMeldelisteSave) + optional Read-Back via showMeldelisteEinzel.
+            Workflow: 2-Step POST (editMeldelisteCheck → editMeldelisteSave) + optional Read-Back via showMeldeliste.
             Pass armed:true to actually perform this update.
           DRY_RUN
         end
@@ -155,7 +155,7 @@ module McpServer
 
         text(<<~OUT.strip)
           Updated Meldeschluss for meldeliste_cc_id=#{meldeliste_cc_id} (#{pre_read[:meldelistenName]}): #{pre_read[:mschluss_old]} → #{new_deadline}.
-          Steps completed: editMeldelisteCheck → editMeldelisteSave#{read_back ? " → showMeldelisteEinzel (read-back)" : ""}.
+          Steps completed: editMeldelisteCheck → editMeldelisteSave#{read_back ? " → showMeldeliste (read-back)" : ""}.
           read_back_match: #{read_back_match}
         OUT
       rescue StandardError => e
@@ -173,7 +173,7 @@ module McpServer
         nil
       end
 
-      # Pre-Read: fetch showMeldelisteEinzel, parse all 9 fields from response HTML.
+      # Pre-Read: fetch showMeldeliste, parse all 9 fields from response HTML.
       # Returns Hash with keys [:fedId, :branchId, :disciplinId, :catId, :season, :meldelisteId,
       # :meldelistenName, :mschluss_old, :stag] — or error response on HTTP/parse failure.
       # NBV-only-Boundary: parses directly from HTML, no DB-Beziehung used.
@@ -181,18 +181,18 @@ module McpServer
         # Real CC accepts URL-path-param form (`p=fed|branch|...`), but we use POST body for
         # MockClient compatibility. MockClient ignores payload structure anyway.
         payload = { meldelisteId: meldeliste_cc_id }
-        res, doc = client.post("showMeldelisteEinzel", payload, { armed: true, session_id: cc_session.cookie })
+        res, doc = client.post("showMeldeliste", payload, { armed: true, session_id: cc_session.cookie })
         if cc_session.reauth_if_needed!(doc)
-          res, doc = client.post("showMeldelisteEinzel", payload, { armed: true, session_id: cc_session.cookie })
+          res, doc = client.post("showMeldeliste", payload, { armed: true, session_id: cc_session.cookie })
         end
-        return error("Pre-Read failed: showMeldelisteEinzel returned HTTP #{res&.code}") if res.nil? || res&.code != "200"
+        return error("Pre-Read failed: showMeldeliste returned HTTP #{res&.code}") if res.nil? || res&.code != "200"
 
         parse_meldeliste_state(doc)
       rescue StandardError => e
         error("Pre-Read parse failed: #{e.class.name} (#{e.message})")
       end
 
-      # Parse 9 fields from showMeldelisteEinzel response HTML.
+      # Parse 9 fields from showMeldeliste response HTML.
       # Handles BOTH formats:
       #   - Mock convention: HTML5 inputs (`<input type="date" name="mschluss" value="2026-05-26">`)
       #   - Real CC display: German format in `<b>` after label cell (`<td>Meldeschluss:</td><td><b>26.05.2026</b></td>`)
