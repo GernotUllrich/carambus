@@ -82,17 +82,18 @@ module McpServer
           selectedClubId: club_cc_id
         }
 
-        # Step 1: editMeldelisteCheck (dla=1 Pre-Read) — Listen-Eintrags-ID auflösen
+        # Step 1: editMeldelisteCheck (dla=1 Pre-Read) — Listen-Eintrags-ID auflösen.
+        # Pre-Read ist read-only — IMMER armed:true (Phase-7-Pattern; sonst MockClient liefert nil-Response).
         pre_payload = base_payload.merge(dla: 1, foundpid: "", etlbu: "", akkpid: "")
         pre_res, pre_doc = client.post(
           "editMeldelisteCheck",
           pre_payload,
-          { armed: armed, session_id: cc_session.cookie }
+          { armed: true, session_id: cc_session.cookie }
         )
         if cc_session.reauth_if_needed!(pre_doc)
           pre_res, pre_doc = client.post(
             "editMeldelisteCheck", pre_payload,
-            { armed: armed, session_id: cc_session.cookie }
+            { armed: true, session_id: cc_session.cookie }
           )
         end
         return error("Unexpected nil response from CC (Pre-Read editMeldelisteCheck).") if pre_res.nil?
@@ -135,12 +136,13 @@ module McpServer
         rm_parsed = parse_cc_error(rm_doc)
         return error("CC rejected at cc_remove: #{rm_parsed}") if rm_parsed && rm_parsed != "(no error)"
 
-        # Step 3: editMeldelisteCheck (firstEntry=1 Re-Render) — Phase-7-Lesson Inline-Patch v1
+        # Step 3: editMeldelisteCheck (firstEntry=1 Re-Render) — Phase-7-Lesson Inline-Patch v1.
+        # Re-Render ist read-only (kein State-Mutation) — armed:true erzwingt sinnvolle Mock-Response.
         rerender_payload = base_payload.merge(firstEntry: 1)
         rr_res, _rr_doc = client.post(
           "editMeldelisteCheck",
           rerender_payload,
-          { armed: armed, session_id: cc_session.cookie }
+          { armed: true, session_id: cc_session.cookie }
         )
         return error("Unexpected nil response from CC (Re-Render editMeldelisteCheck).") if rr_res.nil?
         return error("CC rejected at Re-Render: HTTP #{rr_res&.code}") if rr_res&.code != "200"
@@ -157,14 +159,14 @@ module McpServer
         sv_parsed = parse_cc_error(sv_doc)
         return error("CC rejected at editMeldelisteSave: #{sv_parsed}") if sv_parsed && sv_parsed != "(no error)"
 
-        # Step 5 (optional): Read-Back-Verify
+        # Step 5 (optional): Read-Back-Verify — read-only, armed:true erzwungen.
         read_back_match = :skipped
         if read_back
           rb_payload = base_payload.merge(dla: 1, foundpid: "", etlbu: "", akkpid: "")
           rb_res, rb_doc = client.post(
             "editMeldelisteCheck",
             rb_payload,
-            { armed: armed, session_id: cc_session.cookie }
+            { armed: true, session_id: cc_session.cookie }
           )
           if rb_res&.code == "200"
             still_present = player_in_meldeliste?(rb_doc, player_cc_id)
