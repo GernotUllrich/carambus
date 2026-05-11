@@ -44,6 +44,8 @@ class McpServer::Tools::LookupSmokeTest < ActiveSupport::TestCase
     cc_update_tournament_deadline
     cc_assign_player_to_teilnehmerliste
     cc_remove_from_teilnehmerliste
+    cc_unregister_for_tournament
+    cc_lookup_meldeliste_for_tournament
   ].freeze
 
   WRITE_TOOL_NAMES = %w[
@@ -52,6 +54,7 @@ class McpServer::Tools::LookupSmokeTest < ActiveSupport::TestCase
     cc_update_tournament_deadline
     cc_assign_player_to_teilnehmerliste
     cc_remove_from_teilnehmerliste
+    cc_unregister_for_tournament
   ].freeze
 
   test "dynamic tool registry matches frozen reference (drift detection both ways)" do
@@ -72,7 +75,7 @@ class McpServer::Tools::LookupSmokeTest < ActiveSupport::TestCase
       "(ein Tool fehlt oder hat den falschen Namen)."
   end
 
-  test "all 20 expected tools (15 read + 5 write) are registered on McpServer::Server.build" do
+  test "all 22 expected tools (16 read + 6 write) are registered on McpServer::Server.build" do
     # server.tools liefert Arrays [name, klass] — erstes Element ist der tool_name-String.
     registered = McpServer::Server.build.tools.map { |t|
       if t.is_a?(Array)
@@ -124,7 +127,7 @@ class McpServer::Tools::LookupSmokeTest < ActiveSupport::TestCase
   # Annotation-Disziplin — Read-Tools sind read_only_hint:true, Finalize ist destructive_hint:true.
   # Dateiname-Mapping: cc_lookup_X → lookup_X.rb; cc_search_player → search_player.rb;
   # cc_finalize_teilnehmerliste → finalize_teilnehmerliste.rb.
-  test "all 15 read tools have read_only_hint: true annotation" do
+  test "all 16 read tools have read_only_hint: true annotation" do
     read_tool_names = EXPECTED_TOOL_NAMES - WRITE_TOOL_NAMES
     read_tool_names.each do |tname|
       fname = case tname
