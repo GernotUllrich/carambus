@@ -82,21 +82,25 @@ module McpServer
           selectedClubId: club_cc_id
         }
 
-        # Step 1: editMeldelisteCheck (dla=1 Pre-Read) — Listen-Eintrags-ID auflösen.
-        # Pre-Read ist read-only — IMMER armed:true (Phase-7-Pattern; sonst MockClient liefert nil-Response).
-        pre_payload = base_payload.merge(dla: 1, foundpid: "", etlbu: "", akkpid: "")
+        # Step 1: showCommittedMeldeliste (Pre-Read) — Player-Liste mit Listen-Eintrags-ID parsen.
+        # KAPITALBEFUND Plan 08-03 Inline-Patch v1: editMeldelisteCheck zeigt nur Meldeliste-Metadaten
+        # (mschluss, stag, meldelistenName) auf /admin/einzel/meldelisten/ — KEINE Player-Liste.
+        # Korrekte Quelle für Player-Liste: showCommittedMeldeliste auf /admin/myclub/meldewesen/single/showMeldeliste.php
+        # (gleicher Pfad wie cc_remove + editMeldelisteSave). Phase-4-Verifikations-Endpoint reused.
+        # Pre-Read ist read-only — IMMER armed:true (sonst MockClient liefert nil bei writable_action; hier read_only:true OK).
+        pre_payload = base_payload.except(:firstEntry, :rang, :selectedClubId).merge(sortOrder: "player")
         pre_res, pre_doc = client.post(
-          "editMeldelisteCheck",
+          "showCommittedMeldeliste",
           pre_payload,
           { armed: true, session_id: cc_session.cookie }
         )
         if cc_session.reauth_if_needed!(pre_doc)
           pre_res, pre_doc = client.post(
-            "editMeldelisteCheck", pre_payload,
+            "showCommittedMeldeliste", pre_payload,
             { armed: true, session_id: cc_session.cookie }
           )
         end
-        return error("Unexpected nil response from CC (Pre-Read editMeldelisteCheck).") if pre_res.nil?
+        return error("Unexpected nil response from CC (Pre-Read showCommittedMeldeliste).") if pre_res.nil?
         return error("CC rejected at Pre-Read: HTTP #{pre_res&.code}") if pre_res&.code != "200"
 
         # Resolve Listen-Eintrags-ID; Fallback: player_cc_id (Phase-4 SUMMARY 04-04 Konvention)
@@ -119,7 +123,7 @@ module McpServer
             (club_cc_id=#{club_cc_id}, fed_id=#{fed_id}, branch_cc_id=#{branch_cc_id}, season=#{season}).
             Resolved Listen-Eintrags-ID: #{listen_eintrags_id.inspect} (fallback player_cc_id if nil)
             Effective `a=` value: #{effective_id}
-            Workflow: 5-Step (editMeldelisteCheck dla=1 → cc_remove → editMeldelisteCheck firstEntry=1 → editMeldelisteSave → Read-Back).
+            Workflow: 3-Step (showCommittedMeldeliste Pre-Read → cc_remove → editMeldelisteSave → optional showCommittedMeldeliste Read-Back).
             Pass armed:true to actually perform this unregister.
           DRY_RUN
         end
@@ -136,16 +140,10 @@ module McpServer
         rm_parsed = parse_cc_error(rm_doc)
         return error("CC rejected at cc_remove: #{rm_parsed}") if rm_parsed && rm_parsed != "(no error)"
 
-        # Step 3: editMeldelisteCheck (firstEntry=1 Re-Render) — Phase-7-Lesson Inline-Patch v1.
-        # Re-Render ist read-only (kein State-Mutation) — armed:true erzwingt sinnvolle Mock-Response.
-        rerender_payload = base_payload.merge(firstEntry: 1)
-        rr_res, _rr_doc = client.post(
-          "editMeldelisteCheck",
-          rerender_payload,
-          { armed: true, session_id: cc_session.cookie }
-        )
-        return error("Unexpected nil response from CC (Re-Render editMeldelisteCheck).") if rr_res.nil?
-        return error("CC rejected at Re-Render: HTTP #{rr_res&.code}") if rr_res&.code != "200"
+        # Step 3 (entfallen): Re-Render-Step war Phase-7-Pattern für /admin/einzel/meisterschaft/-Pfad.
+        # Meldeliste-Pfad (/admin/myclub/meldewesen/single/) folgt Phase-4-Pattern (cc_add → save direkt;
+        # KEIN Re-Render). Inline-Patch v1 Plan 08-03: Re-Render-Step entfernt, da Endpoint-Familie
+        # unterschiedlich (myclub-Pfad braucht keinen Re-Render zwischen Mutation und Save).
 
         # Step 4: editMeldelisteSave — Commit
         save_payload = base_payload.merge(a: effective_id, save: "1")
@@ -159,12 +157,12 @@ module McpServer
         sv_parsed = parse_cc_error(sv_doc)
         return error("CC rejected at editMeldelisteSave: #{sv_parsed}") if sv_parsed && sv_parsed != "(no error)"
 
-        # Step 5 (optional): Read-Back-Verify — read-only, armed:true erzwungen.
+        # Step 5 (optional): Read-Back-Verify via showCommittedMeldeliste (Inline-Patch v1, gleicher Endpoint wie Pre-Read).
         read_back_match = :skipped
         if read_back
-          rb_payload = base_payload.merge(dla: 1, foundpid: "", etlbu: "", akkpid: "")
+          rb_payload = base_payload.except(:firstEntry, :rang, :selectedClubId).merge(sortOrder: "player")
           rb_res, rb_doc = client.post(
-            "editMeldelisteCheck",
+            "showCommittedMeldeliste",
             rb_payload,
             { armed: true, session_id: cc_session.cookie }
           )
@@ -184,7 +182,7 @@ module McpServer
 
         text(<<~OUT.strip)
           Unregistered player_cc_id=#{player_cc_id} (effective `a=`=#{effective_id}) from meldeliste_cc_id=#{meldeliste_cc_id}.
-          Steps completed: editMeldelisteCheck (dla=1) → cc_remove → editMeldelisteCheck (firstEntry=1) → editMeldelisteSave#{read_back ? " → editMeldelisteCheck (read-back)" : ""}.
+          Steps completed: showCommittedMeldeliste (Pre-Read) → cc_remove → editMeldelisteSave#{read_back ? " → showCommittedMeldeliste (Read-Back)" : ""}.
           read_back_match: #{read_back_match}
         OUT
       rescue StandardError => e

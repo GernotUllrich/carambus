@@ -38,7 +38,7 @@ class McpServer::Tools::UnregisterForTournamentTest < ActiveSupport::TestCase
     @mock.define_singleton_method(:post) do |action, post_options = {}, opts = {}|
       @calls << [:post, action, post_options, opts]
       body = case action
-             when "editMeldelisteCheck"
+             when "showCommittedMeldeliste"
                # dla=1 Mode vs firstEntry=1 Mode distinction
                if !post_save_phase
                  "<html><body><tr data-player-cc-id='#{player_cc_id}' data-eintrags-id='#{listen_eintrags_id}'><td>#{player_cc_id}</td></tr></body></html>"
@@ -74,17 +74,17 @@ class McpServer::Tools::UnregisterForTournamentTest < ActiveSupport::TestCase
     assert_match(/season=2025\/2026/, text)
     assert_match(/Resolved Listen-Eintrags-ID: 10413/, text)
     assert_match(/Effective `a=` value: 10413/, text)
-    assert_match(/Workflow: 5-Step/, text)
+    assert_match(/Workflow: 3-Step/, text)
     assert_match(/Pass armed:true/, text)
     # Pre-Read ist gelaufen (1 Call) — Resolver/Pre-Validation; aber nicht remove/save
     posts = @mock.calls.select { |verb, _, _, _| verb == :post }
     actions = posts.map { |_, action, _, _| action }
-    assert_includes actions, "editMeldelisteCheck"
+    assert_includes actions, "showCommittedMeldeliste"
     refute_includes actions, "removePlayerFromMeldeliste"
     refute_includes actions, "saveMeldeliste"
   end
 
-  test "armed:true Mock-Success ruft 5 sequentielle POSTs (Pre-Read → remove → Re-Render → Save → Read-Back)" do
+  test "armed:true Mock-Success ruft 3-Step-Chain (Pre-Read → remove → Save → Read-Back)" do
     with_stateful_mock
     response = McpServer::Tools::UnregisterForTournament.call(
       fed_id: 20, branch_cc_id: 8, season: "2025/2026",
@@ -98,8 +98,8 @@ class McpServer::Tools::UnregisterForTournamentTest < ActiveSupport::TestCase
     # 5-Step-Chain in genau dieser Reihenfolge
     posts = @mock.calls.select { |verb, _, _, _| verb == :post }
     actions = posts.map { |_, action, _, _| action }
-    expected = %w[editMeldelisteCheck removePlayerFromMeldeliste editMeldelisteCheck saveMeldeliste editMeldelisteCheck]
-    assert_equal expected, actions, "Erwarte 5-Step-Chain — got #{actions.inspect}"
+    expected = %w[showCommittedMeldeliste removePlayerFromMeldeliste saveMeldeliste showCommittedMeldeliste]
+    assert_equal expected, actions, "Erwarte 4-Step-Chain (Pre-Read → remove → Save → Read-Back) — got #{actions.inspect}"
     # read_back_match: true (Stateful-Mock zeigt player NICHT mehr nach save)
     assert_match(/read_back_match: true/, text)
   end
@@ -118,7 +118,7 @@ class McpServer::Tools::UnregisterForTournamentTest < ActiveSupport::TestCase
     # Pre-Read ist gelaufen, aber kein cc_remove
     posts = @mock.calls.select { |verb, _, _, _| verb == :post }
     actions = posts.map { |_, action, _, _| action }
-    assert_equal ["editMeldelisteCheck"], actions
+    assert_equal ["showCommittedMeldeliste"], actions
   end
 
   test "armed:false (default) erreicht client.post nur für Pre-Read (kein cc_remove/save)" do
@@ -131,7 +131,7 @@ class McpServer::Tools::UnregisterForTournamentTest < ActiveSupport::TestCase
     # Schicht 1: armed=false MUSS keine destruktiven Posts erzeugen
     posts = @mock.calls.select { |verb, _, _, _| verb == :post }
     actions = posts.map { |_, action, _, _| action }
-    assert_equal ["editMeldelisteCheck"], actions,
+    assert_equal ["showCommittedMeldeliste"], actions,
       "Dry-Run darf nur Pre-Read aufrufen, NICHT removePlayerFromMeldeliste/saveMeldeliste"
   end
 
@@ -196,8 +196,8 @@ class McpServer::Tools::UnregisterForTournamentTest < ActiveSupport::TestCase
     refute response.error?
     text = response.content.first[:text]
     assert_match(/read_back_match: skipped/, text)
-    # 4 Steps statt 5 (Pre-Read + Remove + Re-Render + Save)
+    # 3 Steps statt 4 (Pre-Read + Remove + Save; KEIN Read-Back)
     posts = @mock.calls.select { |verb, _, _, _| verb == :post }
-    assert_equal 4, posts.size, "Mit read_back:false erwartet 4 Posts, got #{posts.size}"
+    assert_equal 3, posts.size, "Mit read_back:false erwartet 3 Posts, got #{posts.size}"
   end
 end
