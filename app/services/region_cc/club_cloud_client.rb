@@ -323,6 +323,10 @@ class RegionCc::ClubCloudClient
     # Alle Felder wie addPlayerToMeldeliste + save= als Commit-Marker
     # Server ignoriert a= beim Commit; Player-cc_id IST der Liste-Identifier
     "showCommittedMeldeliste" => ["/admin/myclub/meldewesen/single/showMeldeliste.php", true],
+    # Phase 8 Plan 08-02 — cc_unregister_for_tournament (Meldeliste-Pfad).
+    # WICHTIG: `a=<Listen-Eintrags-ID || player_cc_id>` (SUBSTRATE-08.md Sektion 2).
+    # Symmetrisch zu addPlayerToMeldeliste (Phase 4); 5-Step-Chain analog Phase-7-Lesson.
+    "removePlayerFromMeldeliste" => ["/admin/myclub/meldewesen/single/cc_remove.php", false],
     # POST (read-only) — zeigt committed Meldeliste; für Erfolgs-Verifikation nach Save
     # Body enthält <td align="center">{player_cc_id}</td> falls erfolgreich
     # NICHT zu verwechseln mit "showMeldeliste" (Verbands-Pfad oben)

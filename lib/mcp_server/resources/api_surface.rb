@@ -27,20 +27,23 @@
 module McpServer
   module Resources
     class ApiSurface
-      # 25 kuratierte Entries — gesperrt per RESEARCH §"Curated PATH_MAP Allowlist (D-04 Empfehlung)"
-      # plus Aufstockung in Plan 04-04 + Plan 06-03 + Plan 07-03.
+      # 26 kuratierte Entries — gesperrt per RESEARCH §"Curated PATH_MAP Allowlist (D-04 Empfehlung)"
+      # plus Aufstockung in Plan 04-04 + Plan 06-03 + Plan 07-03 + Plan 08-02 (D-08-01).
       # Aufschlüsselung:
       #   12 Read-Lookups: showLeagueList, showLeague, showMeisterschaftenList, showMeisterschaft,
       #     showMeldelistenList, showMeldeliste, showTeam, showClubList, spielbericht, suche,
       #     showCommittedMeldeliste (Plan 04-04 — Verifikations-Call nach Save),
       #     showTeilnehmerliste (Plan 07-03 — Read-only View Teilnehmerliste)
-      #   12 Write/Admin: showAnnounceList, showCategory, showSerie, releaseMeldeliste,
+      #   13 Write/Admin: showAnnounceList, showCategory, showSerie, releaseMeldeliste,
       #     addPlayerToMeldeliste (Plan 04-04), saveMeldeliste (Plan 04-04),
       #     editMeldelisteCheck (Plan 06-03), editMeldelisteSave (Plan 06-03),
       #     assignPlayer (Plan 07-03), removePlayer (Plan 07-03 — for Plan 07-04 / Phase 8),
-      #     editTeilnehmerlisteCheck (Plan 07-03), editTeilnehmerlisteSave (Plan 07-03)
+      #     editTeilnehmerlisteCheck (Plan 07-03), editTeilnehmerlisteSave (Plan 07-03),
+      #     removePlayerFromMeldeliste (Plan 08-02 — cc_unregister_for_tournament)
       #   1 Dashboard-Root: home
-      # Gesamt: 25 (D-04-Boundary aus Plan 07-01 ERREICHT — weitere Erweiterungen brauchen Re-Discuss).
+      # Gesamt: 26 (D-08-01 ALLOWLIST 25→26; +1 nur für removePlayerFromMeldeliste,
+      # showMeldelistenList war bereits enthalten — KOEXISTENZ-Pattern via WRAPPED_BY_TOOL).
+      # D-04-Boundary neue Obergrenze 26 — weitere Erweiterungen brauchen Re-Discuss (Phase 9 Cleanup vorgemerkt).
       ALLOWLIST = %w[
         home
         showLeagueList
@@ -67,6 +70,7 @@ module McpServer
         editTeilnehmerlisteCheck
         editTeilnehmerlisteSave
         showTeilnehmerliste
+        removePlayerFromMeldeliste
       ].freeze
 
       # Mapping Action → Syncer-Referenz (aus RESEARCH §"Curated PATH_MAP Allowlist" extrahiert).
@@ -94,7 +98,8 @@ module McpServer
         "removePlayer" => "(none — Plan 07-04 Inline-Patch erfüllt D-7-8)",
         "editTeilnehmerlisteCheck" => "(none — Plan 07-03 Pre-Read + Read-Back)",
         "editTeilnehmerlisteSave" => "(none — Plan 07-03 Commit)",
-        "showTeilnehmerliste" => "(none — Plan 07-03 Read-only View)"
+        "showTeilnehmerliste" => "(none — Plan 07-03 Read-only View)",
+        "removePlayerFromMeldeliste" => "(none — Plan 08-02 Write-Tool cc_unregister_for_tournament)"
       }.freeze
 
       # Mapping Action → MCP-Tool-Name (Plans 04/05, EN-benannt per D-20).
@@ -122,7 +127,8 @@ module McpServer
         "removePlayer" => "cc_remove_from_teilnehmerliste",  # Plan 07-04 Inline-Patch erfüllt D-7-8
         "editTeilnehmerlisteCheck" => "cc_assign_player_to_teilnehmerliste",
         "editTeilnehmerlisteSave" => "cc_assign_player_to_teilnehmerliste",
-        "showTeilnehmerliste" => "cc_assign_player_to_teilnehmerliste"
+        "showTeilnehmerliste" => "cc_assign_player_to_teilnehmerliste",
+        "removePlayerFromMeldeliste" => "cc_unregister_for_tournament"  # Plan 08-02 (D-08-F)
       }.freeze
 
       # Gibt Array<MCP::Resource> mit genau 20 Entries zurück (D-04 Allowlist, gesperrt).
