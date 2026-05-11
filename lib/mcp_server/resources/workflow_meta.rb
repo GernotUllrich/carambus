@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 # WorkflowMeta — Meta-Resources cc://workflow/roles + cc://workflow/glossary (D-07).
 # Plan 01's zentraler Dispatcher besitzt den read_handler —
 # diese Klasse stellt nur .all + .read(key:) bereit.
@@ -10,8 +11,8 @@ module McpServer
   module Resources
     class WorkflowMeta
       META = {
-        "roles"    => { title: "ClubCloud-Rollenmodell", file: "cc-roles.de.md" },
-        "glossary" => { title: "ClubCloud-Glossar",      file: "cc-glossary.de.md" }
+        "roles" => {title: "ClubCloud-Rollenmodell", file: "cc-roles.de.md"},
+        "glossary" => {title: "ClubCloud-Glossar", file: "cc-glossary.de.md"}
       }.freeze
 
       DOCS_BASE = "docs/managers/clubcloud-scenarios"

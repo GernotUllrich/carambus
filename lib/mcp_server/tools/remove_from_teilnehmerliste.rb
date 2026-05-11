@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 # cc_remove_from_teilnehmerliste — Phase 7 Plan 07-04 Inline-Patch (D-7-8).
 # Entfernt Spieler aus der Teilnehmerliste eines Turniers (symmetrische Cleanup-Closure
 # zu cc_assign_player_to_teilnehmerliste).
@@ -33,27 +34,27 @@ module McpServer
       DESC
       input_schema(
         properties: {
-          tournament_cc_id: { type: "integer", description: "Tournament-cc_id (= CC meisterschaftsId). REQUIRED." },
-          player_cc_id:     { type: "integer", description: "Player-cc_id zum Entfernen. REQUIRED. Single (KEIN Array — removePlayer.php ist Single-Remove)." },
-          armed:            { type: "boolean", default: false, description: "If false (default), dry-run only — no CC mutation. If true, performs destructive POSTs to CC." },
-          read_back:        { type: "boolean", default: true,  description: "If true (default) and armed:true, verify player_cc_id NOT in post-save Teilnehmerliste; raises error on mismatch." },
-          fed_cc_id:        { type: "integer" },
-          branch_cc_id:     { type: "integer" },
-          season:           { type: "string"  },
-          disciplin_id:     { type: "string"  },
-          cat_id:           { type: "string"  }
+          tournament_cc_id: {type: "integer", description: "Tournament-cc_id (= CC meisterschaftsId). REQUIRED."},
+          player_cc_id: {type: "integer", description: "Player-cc_id zum Entfernen. REQUIRED. Single (KEIN Array — removePlayer.php ist Single-Remove)."},
+          armed: {type: "boolean", default: false, description: "If false (default), dry-run only — no CC mutation. If true, performs destructive POSTs to CC."},
+          read_back: {type: "boolean", default: true, description: "If true (default) and armed:true, verify player_cc_id NOT in post-save Teilnehmerliste; raises error on mismatch."},
+          fed_cc_id: {type: "integer"},
+          branch_cc_id: {type: "integer"},
+          season: {type: "string"},
+          disciplin_id: {type: "string"},
+          cat_id: {type: "string"}
         },
         required: ["tournament_cc_id", "player_cc_id"]
       )
       annotations(read_only_hint: false, destructive_hint: true)
 
       def self.call(tournament_cc_id: nil, player_cc_id: nil,
-                    fed_cc_id: nil, branch_cc_id: nil, season: nil,
-                    disciplin_id: nil, cat_id: nil,
-                    armed: false, read_back: true, server_context: nil)
+        fed_cc_id: nil, branch_cc_id: nil, season: nil,
+        disciplin_id: nil, cat_id: nil,
+        armed: false, read_back: true, server_context: nil)
         # L0a: Required-Validation
-        err = validate_required!({ tournament_cc_id: tournament_cc_id, player_cc_id: player_cc_id },
-                                 %i[tournament_cc_id player_cc_id])
+        err = validate_required!({tournament_cc_id: tournament_cc_id, player_cc_id: player_cc_id},
+          %i[tournament_cc_id player_cc_id])
         return err if err
 
         # Schicht 3 (Server-Level): Rails-env-Check — armed:true in production blockiert.
@@ -96,9 +97,9 @@ module McpServer
         # Step 1: removePlayer (Single-Remove via teilnehmerId=).
         # Referer: kommt vom editTeilnehmerlisteCheck (Pre-Read).
         remove_payload = AssignPlayerToTeilnehmerliste.base_payload(tournament_cc_id, scope).merge(teilnehmerId: player_cc_id, referer: "/admin/einzel/meisterschaft/editTeilnehmerlisteCheck.php?")
-        rm_res, rm_doc = client.post("removePlayer", remove_payload, { armed: armed, session_id: cc_session.cookie })
+        rm_res, rm_doc = client.post("removePlayer", remove_payload, {armed: armed, session_id: cc_session.cookie})
         if cc_session.reauth_if_needed!(rm_doc)
-          rm_res, rm_doc = client.post("removePlayer", remove_payload, { armed: armed, session_id: cc_session.cookie })
+          rm_res, rm_doc = client.post("removePlayer", remove_payload, {armed: armed, session_id: cc_session.cookie})
         end
         return error("Unexpected nil response from CC (removePlayer, armed mode). MockClient may have rejected.") if rm_res.nil?
         return error("CC rejected at removePlayer: #{AssignPlayerToTeilnehmerliste.parse_cc_error(rm_doc)} (HTTP #{rm_res&.code})") if rm_res&.code != "200"
@@ -108,14 +109,14 @@ module McpServer
         # Step 2 (Plan 07-04 Inline-Patch v2 — Risk A): Re-Render-Form-State.
         # Referer kommt vom removePlayer-Submit.
         recheck_payload = AssignPlayerToTeilnehmerliste.base_payload(tournament_cc_id, scope).merge(referer: "/admin/einzel/meisterschaft/removePlayer.php?")
-        rc_res, _rc_doc = client.post("editTeilnehmerlisteCheck", recheck_payload, { armed: armed, session_id: cc_session.cookie })
+        rc_res, _rc_doc = client.post("editTeilnehmerlisteCheck", recheck_payload, {armed: armed, session_id: cc_session.cookie})
         return error("Unexpected nil response from CC (editTeilnehmerlisteCheck re-render, armed mode).") if rc_res.nil?
         return error("CC rejected at editTeilnehmerlisteCheck re-render: HTTP #{rc_res&.code}") if rc_res&.code != "200"
 
         # Step 3: editTeilnehmerlisteSave — Commit.
         # Referer kommt vom editTeilnehmerlisteCheck (re-render).
         save_payload = AssignPlayerToTeilnehmerliste.base_payload(tournament_cc_id, scope).merge(save: "1", referer: "/admin/einzel/meisterschaft/editTeilnehmerlisteCheck.php?")
-        sv_res, sv_doc = client.post("editTeilnehmerlisteSave", save_payload, { armed: armed, session_id: cc_session.cookie })
+        sv_res, sv_doc = client.post("editTeilnehmerlisteSave", save_payload, {armed: armed, session_id: cc_session.cookie})
         return error("Unexpected nil response from CC (editTeilnehmerlisteSave, armed mode).") if sv_res.nil?
         return error("CC rejected at editTeilnehmerlisteSave: #{AssignPlayerToTeilnehmerliste.parse_cc_error(sv_doc)} (HTTP #{sv_res&.code})") if sv_res&.code != "200"
         sv_parsed = AssignPlayerToTeilnehmerliste.parse_cc_error(sv_doc)
@@ -144,10 +145,10 @@ module McpServer
           Removed player_cc_id=#{player_cc_id} from Teilnehmerliste of tournament_cc_id=#{tournament_cc_id} (#{pre_read[:tournament_name]}).
           teilnehmerliste_count_before: #{pre_read[:current_teilnehmer].size}
           teilnehmerliste_count_after:  #{pre_read[:current_teilnehmer].size - 1}
-          Steps completed: removePlayer → editTeilnehmerlisteCheck (re-render) → editTeilnehmerlisteSave#{read_back ? " → editTeilnehmerlisteCheck (read-back)" : ""}.
+          Steps completed: removePlayer → editTeilnehmerlisteCheck (re-render) → editTeilnehmerlisteSave#{" → editTeilnehmerlisteCheck (read-back)" if read_back}.
           read_back_match: #{read_back_match}
         OUT
-      rescue StandardError => e
+      rescue => e
         error("Tool exception: #{e.class.name} (details suppressed; check Rails.logger on stderr).")
       end
     end

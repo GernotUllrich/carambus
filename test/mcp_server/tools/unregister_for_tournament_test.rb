@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require "test_helper"
 
 # Tests für cc_unregister_for_tournament (Plan 08-02 Mock-Implementation).
@@ -38,20 +39,20 @@ class McpServer::Tools::UnregisterForTournamentTest < ActiveSupport::TestCase
     @mock.define_singleton_method(:post) do |action, post_options = {}, opts = {}|
       @calls << [:post, action, post_options, opts]
       body = case action
-             when "showCommittedMeldeliste"
-               # dla=1 Mode vs firstEntry=1 Mode distinction
-               if !post_save_phase
-                 "<html><body><tr data-player-cc-id='#{player_cc_id}' data-eintrags-id='#{listen_eintrags_id}'><td>#{player_cc_id}</td></tr></body></html>"
-               else
-                 # Read-Back nach Save: player NICHT mehr im HTML
-                 "<html><body><table>(empty Meldeliste)</table></body></html>"
-               end
-             when "saveMeldeliste"
-               post_save_phase = true
-               "<html><body>SAVE OK</body></html>"
-             else
-               "<html><body>MOCK #{action} OK</body></html>"
-             end
+      when "showCommittedMeldeliste"
+        # dla=1 Mode vs firstEntry=1 Mode distinction
+        if !post_save_phase
+          "<html><body><tr data-player-cc-id='#{player_cc_id}' data-eintrags-id='#{listen_eintrags_id}'><td>#{player_cc_id}</td></tr></body></html>"
+        else
+          # Read-Back nach Save: player NICHT mehr im HTML
+          "<html><body><table>(empty Meldeliste)</table></body></html>"
+        end
+      when "saveMeldeliste"
+        post_save_phase = true
+        "<html><body>SAVE OK</body></html>"
+      else
+        "<html><body>MOCK #{action} OK</body></html>"
+      end
       [Struct.new(:code, :message, :body).new("200", "OK", body), Nokogiri::HTML(body)]
     end
   end

@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require "test_helper"
 require "json"
 require "open3"
@@ -28,18 +29,24 @@ class McpServer::Integration::StdioE2ETest < ActiveSupport::TestCase
 
   def with_server
     Open3.popen2e(@env, @mcp_server_path) do |stdin, stdout_err, wait_thr|
+      yield(stdin, stdout_err)
+    ensure
       begin
-        yield(stdin, stdout_err)
-      ensure
-        stdin.close rescue nil
-        Process.kill("TERM", wait_thr.pid) rescue nil
-        wait_thr.join(5)
+        stdin.close
+      rescue
+        nil
       end
+      begin
+        Process.kill("TERM", wait_thr.pid)
+      rescue
+        nil
+      end
+      wait_thr.join(5)
     end
   end
 
   def send_jsonrpc(stdin, id:, method:, params: {})
-    stdin.puts({ jsonrpc: "2.0", id: id, method: method, params: params }.to_json)
+    stdin.puts({jsonrpc: "2.0", id: id, method: method, params: params}.to_json)
     stdin.flush
   end
 
@@ -71,11 +78,11 @@ class McpServer::Integration::StdioE2ETest < ActiveSupport::TestCase
       send_jsonrpc(stdin, id: 1, method: "initialize", params: {
         protocolVersion: "2024-11-05",
         capabilities: {},
-        clientInfo: { name: "test-client", version: "1.0" }
+        clientInfo: {name: "test-client", version: "1.0"}
       })
       response = read_jsonrpc(stdout)
       assert_equal "carambus_clubcloud", response.dig("result", "serverInfo", "name"),
-                   "Server-Name stimmt nicht: #{response.inspect}"
+        "Server-Name stimmt nicht: #{response.inspect}"
     end
   end
 
@@ -83,7 +90,7 @@ class McpServer::Integration::StdioE2ETest < ActiveSupport::TestCase
     skip "E2E-Test benötigt Rails-Boot; auf CI wegen Performance übersprungen" if ENV["CI"]
     with_server do |stdin, stdout|
       send_jsonrpc(stdin, id: 1, method: "initialize", params: {
-        protocolVersion: "2024-11-05", capabilities: {}, clientInfo: { name: "test", version: "1.0" }
+        protocolVersion: "2024-11-05", capabilities: {}, clientInfo: {name: "test", version: "1.0"}
       })
       read_jsonrpc(stdout)  # init-Response konsumieren
 
@@ -101,7 +108,7 @@ class McpServer::Integration::StdioE2ETest < ActiveSupport::TestCase
     skip "E2E-Test benötigt Rails-Boot; auf CI wegen Performance übersprungen" if ENV["CI"]
     with_server do |stdin, stdout|
       send_jsonrpc(stdin, id: 1, method: "initialize", params: {
-        protocolVersion: "2024-11-05", capabilities: {}, clientInfo: { name: "test", version: "1.0" }
+        protocolVersion: "2024-11-05", capabilities: {}, clientInfo: {name: "test", version: "1.0"}
       })
       read_jsonrpc(stdout)
 
@@ -119,13 +126,13 @@ class McpServer::Integration::StdioE2ETest < ActiveSupport::TestCase
     skip "E2E-Test benötigt Rails-Boot; auf CI wegen Performance übersprungen" if ENV["CI"]
     with_server do |stdin, stdout|
       send_jsonrpc(stdin, id: 1, method: "initialize", params: {
-        protocolVersion: "2024-11-05", capabilities: {}, clientInfo: { name: "test", version: "1.0" }
+        protocolVersion: "2024-11-05", capabilities: {}, clientInfo: {name: "test", version: "1.0"}
       })
       read_jsonrpc(stdout)
 
       send_jsonrpc(stdin, id: 2, method: "tools/call", params: {
         name: "cc_finalize_teilnehmerliste",
-        arguments: { fed_id: 20, branch_id: 10, season: "2025/2026", meldeliste_id: 42 }
+        arguments: {fed_id: 20, branch_id: 10, season: "2025/2026", meldeliste_id: 42}
       })
       response = read_jsonrpc(stdout)
       # Dry-run: kein Fehler, Content enthält "Would finalize"
@@ -146,7 +153,7 @@ class McpServer::Integration::StdioE2ETest < ActiveSupport::TestCase
       # Per JSON-RPC 2.0 Spec § Error Codes:
       # -32700 Parse error  | Ungültiges JSON vom Client empfangen
       assert_equal(-32700, response.dig("error", "code"),
-                   "SDK muss -32700 Parse error Envelope für ungültiges JSON zurückgeben; erhalten: #{response.inspect}")
+        "SDK muss -32700 Parse error Envelope für ungültiges JSON zurückgeben; erhalten: #{response.inspect}")
     end
   end
 end

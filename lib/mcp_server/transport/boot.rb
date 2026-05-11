@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 # Boot-Helper: leitet Rails.logger auf STDERR um (sonst korrumpiert Logger-Output JSON-RPC),
 # registriert Signal-Handler (SDK undokumentiert — Pitfall 8), öffnet StdioTransport.
 #

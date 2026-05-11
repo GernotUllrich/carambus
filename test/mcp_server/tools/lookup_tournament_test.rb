@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require "test_helper"
 
 # Tests for cc_lookup_tournament — DB-first lookup + Phase-5 Detail-Output
@@ -134,7 +135,7 @@ class McpServer::Tools::LookupTournamentTest < ActiveSupport::TestCase
     body = JSON.parse(response.content.first[:text])
 
     # Geparste Player-cc_ids:
-    assert_equal [{ "cc_id" => 10031 }, { "cc_id" => 10413 }], body["committed_players"]
+    assert_equal [{"cc_id" => 10031}, {"cc_id" => 10413}], body["committed_players"]
 
     # CC-Call wurde gemacht mit 8-Felder-Payload:
     call = @mock.calls.find { |verb, action, _, _| verb == :post && action == "showCommittedMeldeliste" }
@@ -176,7 +177,7 @@ class McpServer::Tools::LookupTournamentTest < ActiveSupport::TestCase
     skip "No TournamentCc fixtures available" unless sample
 
     @mock.define_singleton_method(:post) do |*_|
-      raise RuntimeError, "simulated network failure"
+      raise "simulated network failure"
     end
 
     response = McpServer::Tools::LookupTournament.call(

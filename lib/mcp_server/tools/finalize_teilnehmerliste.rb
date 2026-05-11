@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 # cc_finalize_teilnehmerliste — D-19 proof write tool (einziges Write-Tool in Phase 40).
 # Wraps PATH_MAP['releaseMeldeliste']. Honoriert armed-flag dry-run-Konvention (D-03).
 # Trust-CC-and-parse-error (D-11) für Permission-Fehler.
@@ -16,11 +17,11 @@ module McpServer
       DESC
       input_schema(
         properties: {
-          fed_id:        { type: "integer", description: "ClubCloud federation ID (e.g. 20 for BCW). Optional — resolved via region lookup (CC_REGION/Setting 'context', default 'NBV'); ENV CC_FED_ID overrides." },
-          branch_id:     { type: "integer", description: "CC branch (e.g. 10 for Karambol)" },
-          season:        { type: "string",  description: "Season name like '2025/2026'" },
-          meldeliste_id: { type: "integer", description: "CC meldelisteId of the participant list" },
-          armed:         { type: "boolean", default: false, description: "If false (default), dry-run only — no CC mutation" }
+          fed_id: {type: "integer", description: "ClubCloud federation ID (e.g. 20 for BCW). Optional — resolved via region lookup (CC_REGION/Setting 'context', default 'NBV'); ENV CC_FED_ID overrides."},
+          branch_id: {type: "integer", description: "CC branch (e.g. 10 for Karambol)"},
+          season: {type: "string", description: "Season name like '2025/2026'"},
+          meldeliste_id: {type: "integer", description: "CC meldelisteId of the participant list"},
+          armed: {type: "boolean", default: false, description: "If false (default), dry-run only — no CC mutation"}
         },
         required: ["fed_id", "branch_id", "season", "meldeliste_id"]
       )
@@ -29,7 +30,7 @@ module McpServer
       def self.call(fed_id: nil, branch_id: nil, season: nil, meldeliste_id: nil, armed: false, server_context: nil)
         fed_id ||= default_fed_id
         err = validate_required!(
-          { fed_id: fed_id, branch_id: branch_id, season: season, meldeliste_id: meldeliste_id },
+          {fed_id: fed_id, branch_id: branch_id, season: season, meldeliste_id: meldeliste_id},
           [:fed_id, :branch_id, :season, :meldeliste_id]
         )
         return err if err
@@ -37,8 +38,8 @@ module McpServer
         client = cc_session.client_for
         res, doc = client.post(
           "releaseMeldeliste",
-          { branchId: branch_id, fedId: fed_id, season: season, meldelisteId: meldeliste_id, release: "" },
-          { armed: armed, session_id: cc_session.cookie }
+          {branchId: branch_id, fedId: fed_id, season: season, meldelisteId: meldeliste_id, release: ""},
+          {armed: armed, session_id: cc_session.cookie}
         )
 
         # Dry-run-Pfad: armed: false → RegionCc::ClubCloudClient#post gibt [nil, nil] zurück für Write-Actions
@@ -54,8 +55,8 @@ module McpServer
           # Einmaliger Retry nach Reauth
           res, doc = client.post(
             "releaseMeldeliste",
-            { branchId: branch_id, fedId: fed_id, season: season, meldelisteId: meldeliste_id, release: "" },
-            { armed: armed, session_id: cc_session.cookie }
+            {branchId: branch_id, fedId: fed_id, season: season, meldelisteId: meldeliste_id, release: ""},
+            {armed: armed, session_id: cc_session.cookie}
           )
         end
 
@@ -68,7 +69,7 @@ module McpServer
         return error("CC rejected: #{parsed}") if parsed && parsed != "(no error)"
 
         text("Finalized Meldeliste #{meldeliste_id} for branch #{branch_id}, season #{season}.")
-      rescue StandardError => e
+      rescue => e
         # Defensiv — stacktrace niemals leaken (Pitfall 6 + Threat T-40-05-04)
         error("Tool exception: #{e.class.name} (details suppressed; check Rails.logger on stderr).")
       end

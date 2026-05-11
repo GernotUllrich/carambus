@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require "test_helper"
 
 # Tests für cc_register_for_tournament (Plan 04-04 Live-Implementation).
@@ -138,7 +139,7 @@ class McpServer::Tools::RegisterForTournamentTest < ActiveSupport::TestCase
 
   test "Defensive: Exception in client.post gibt error envelope ohne stacktrace zurück" do
     @mock.define_singleton_method(:post) do |*_|
-      raise RuntimeError, "simulated network failure"
+      raise "simulated network failure"
     end
 
     response = McpServer::Tools::RegisterForTournament.call(

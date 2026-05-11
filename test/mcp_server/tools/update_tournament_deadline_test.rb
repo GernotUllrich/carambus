@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require "test_helper"
 
 # Tests für cc_update_tournament_deadline (Plan 06-03 Mock-Implementation).
@@ -21,9 +22,9 @@ class McpServer::Tools::UpdateTournamentDeadlineTest < ActiveSupport::TestCase
   # Mock-Format (Plan 06-03): HTML5 date inputs + text input — parser-friendly.
   # Real-CC-Format (Plan 06-04 Live-Test): german DD.MM.YYYY in <b> tags after labels — also supported by parser.
   def self.build_show_meldeliste_html(mschluss: "2026-05-26", name: "MOCK Meldeliste NDM",
-                                       stag: "2026-01-01", fed_id: 20, branch_id: 8,
-                                       season: "2025/2026", disciplin_id: "*", cat_id: "*",
-                                       meldeliste_id: 1310)
+    stag: "2026-01-01", fed_id: 20, branch_id: 8,
+    season: "2025/2026", disciplin_id: "*", cat_id: "*",
+    meldeliste_id: 1310)
     <<~HTML
       <html><body>
       <form name="billard" method="post">
@@ -57,8 +58,8 @@ class McpServer::Tools::UpdateTournamentDeadlineTest < ActiveSupport::TestCase
   # Builds a stateful MockClient that simulates Save-persistence: after editMeldelisteSave,
   # subsequent showMeldeliste calls return the new mschluss. Enables Read-Back match testing.
   def build_stateful_mock(initial_mschluss: "2026-05-26", initial_name: "MOCK Meldeliste NDM",
-                           initial_stag: "2026-01-01", fed_id: 20, branch_id: 8,
-                           season: "2025/2026", meldeliste_id: 1310)
+    initial_stag: "2026-01-01", fed_id: 20, branch_id: 8,
+    season: "2025/2026", meldeliste_id: 1310)
     current_mschluss = initial_mschluss
     current_name = initial_name
     current_stag = initial_stag
@@ -78,11 +79,11 @@ class McpServer::Tools::UpdateTournamentDeadlineTest < ActiveSupport::TestCase
         current_name = params[:meldelistenName] if params[:meldelistenName]
         current_stag = params[:stag] if params[:stag]
         [Struct.new(:code, :message, :body).new("200", "OK", ""),
-         Nokogiri::HTML("<html><body>MOCK POST editMeldelisteSave Saved</body></html>")]
+          Nokogiri::HTML("<html><body>MOCK POST editMeldelisteSave Saved</body></html>")]
       else
         # editMeldelisteCheck + any other action: bare OK response
         [Struct.new(:code, :message, :body).new("200", "OK", ""),
-         Nokogiri::HTML("<html><body>MOCK POST #{action} OK</body></html>")]
+          Nokogiri::HTML("<html><body>MOCK POST #{action} OK</body></html>")]
       end
     end
     mock

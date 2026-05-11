@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 # cc_lookup_meldeliste_for_tournament — Phase 8 Plan 08-02 + Phase 9 Plan 09-02 (Scope-Filter-Konsolidierung).
 # Resolve tournament_cc_id → meldeliste_cc_id(s) for a ClubCloud Einzelturnier.
 #
@@ -39,22 +40,22 @@ module McpServer
       DESC
       input_schema(
         properties: {
-          tournament_cc_id: { type: "integer", description: "CC TournamentCc.cc_id (= meisterschaftsId)." },
-          force_refresh:    { type: "boolean", default: false, description: "If true, skips DB cache and queries CC live via showMeldelistenList." },
-          fed_cc_id:        { type: "integer", description: "Optional: CC federation ID (z.B. 20 für NBV). Plan 09-02 v0.2.1-Konsolidierung — wenn gesetzt, sendet showMeldelistenList Scope-Filter-Payload statt meisterschaftsId." },
-          branch_cc_id:     { type: "integer", description: "Optional: CC admin branch ID (z.B. 8 für Kegel admin-cc-id). Plan 09-02 — siehe fed_cc_id." },
-          season:           { type: "string",  description: "Optional: Season-Name wie '2025/2026' (CC-Format mit Slash). Plan 09-02 Scope-Filter." },
-          disciplin_id:     { type: "string",  description: "Optional: CC disciplinId (Default '*' Wildcard — alle Disziplinen). Plan 09-02 Scope-Filter." },
-          cat_id:           { type: "string",  description: "Optional: CC catId. Plan 09-02 Scope-Filter." }
+          tournament_cc_id: {type: "integer", description: "CC TournamentCc.cc_id (= meisterschaftsId)."},
+          force_refresh: {type: "boolean", default: false, description: "If true, skips DB cache and queries CC live via showMeldelistenList."},
+          fed_cc_id: {type: "integer", description: "Optional: CC federation ID (z.B. 20 für NBV). Plan 09-02 v0.2.1-Konsolidierung — wenn gesetzt, sendet showMeldelistenList Scope-Filter-Payload statt meisterschaftsId."},
+          branch_cc_id: {type: "integer", description: "Optional: CC admin branch ID (z.B. 8 für Kegel admin-cc-id). Plan 09-02 — siehe fed_cc_id."},
+          season: {type: "string", description: "Optional: Season-Name wie '2025/2026' (CC-Format mit Slash). Plan 09-02 Scope-Filter."},
+          disciplin_id: {type: "string", description: "Optional: CC disciplinId (Default '*' Wildcard — alle Disziplinen). Plan 09-02 Scope-Filter."},
+          cat_id: {type: "string", description: "Optional: CC catId. Plan 09-02 Scope-Filter."}
         },
         required: ["tournament_cc_id"]
       )
       annotations(read_only_hint: true, destructive_hint: false)
 
       def self.call(tournament_cc_id: nil, force_refresh: false,
-                    fed_cc_id: nil, branch_cc_id: nil, season: nil,
-                    disciplin_id: nil, cat_id: nil, server_context: nil)
-        err = validate_required!({ tournament_cc_id: tournament_cc_id }, [:tournament_cc_id])
+        fed_cc_id: nil, branch_cc_id: nil, season: nil,
+        disciplin_id: nil, cat_id: nil, server_context: nil)
+        err = validate_required!({tournament_cc_id: tournament_cc_id}, [:tournament_cc_id])
         return err if err
 
         candidates = []
@@ -96,7 +97,7 @@ module McpServer
             Pick one meldeliste_cc_id from the candidates list and use it explicitly in subsequent tool calls.
           OUT
         end
-      rescue StandardError => e
+      rescue => e
         error("Tool exception: #{e.class.name} (details suppressed; check Rails.logger on stderr).")
       end
 
@@ -115,7 +116,7 @@ module McpServer
           name: (rl.respond_to?(:name) ? rl.name : nil) || "Meldeliste #{rl.cc_id}",
           source: "db"
         }]
-      rescue StandardError => e
+      rescue => e
         Rails.logger.warn "[LookupMeldelisteForTournament.fetch_from_db] #{e.class}: #{e.message}"
         []
       end
@@ -129,7 +130,7 @@ module McpServer
       # Backwards-Compat: ohne Scope-Filter wird der bisherige meisterschaftsId-Pfad genutzt
       # (Plan 08-02 Mock-Tests bleiben grün).
       def self.fetch_from_cc(tournament_cc_id, fed_cc_id: nil, branch_cc_id: nil,
-                             season: nil, disciplin_id: nil, cat_id: nil)
+        season: nil, disciplin_id: nil, cat_id: nil)
         client = cc_session.client_for
         payload = if scope_filter_given?(fed_cc_id, branch_cc_id, season, disciplin_id, cat_id)
           {
@@ -140,13 +141,13 @@ module McpServer
             catId: cat_id
           }.reject { |_, v| v.nil? }
         else
-          { meisterschaftsId: tournament_cc_id }
+          {meisterschaftsId: tournament_cc_id}
         end
 
         res, doc = client.post(
           "showMeldelistenList",
           payload,
-          { armed: true, session_id: cc_session.cookie }
+          {armed: true, session_id: cc_session.cookie}
         )
         return [] if res.nil? || res.code != "200" || doc.nil?
 
@@ -174,7 +175,7 @@ module McpServer
             source: "cc-live"
           }
         end.compact
-      rescue StandardError => e
+      rescue => e
         Rails.logger.warn "[LookupMeldelisteForTournament.fetch_from_cc] #{e.class}: #{e.message}"
         []
       end

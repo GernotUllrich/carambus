@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require "test_helper"
 
 # Tests für cc_lookup_meldeliste_for_tournament (Plan 08-02 Mock-Implementation).

@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require "test_helper"
 
 # Tests für cc_remove_from_teilnehmerliste (Plan 07-04 Inline-Patch — D-7-8).
@@ -29,7 +30,7 @@ class McpServer::Tools::RemoveFromTeilnehmerlisteTest < ActiveSupport::TestCase
 
   # Stateful MockClient für Remove: simuliert State-Transition (Spieler verschwindet aus Teilnehmerliste).
   def build_stateful_mock(initial_teilnehmer: [[11683, "Nachtmann, Georg (11683)"], [10024, "Schröder, Hans-Jörg (10024)"]],
-                           initial_meldung: [], tournament_name: "MOCK NDM Endrunde Eurokegel")
+    initial_meldung: [], tournament_name: "MOCK NDM Endrunde Eurokegel")
     current_teilnehmer = initial_teilnehmer.dup
     current_meldung = initial_meldung.dup
     helper = self.class
@@ -50,13 +51,13 @@ class McpServer::Tools::RemoveFromTeilnehmerlisteTest < ActiveSupport::TestCase
         removed = current_teilnehmer.find { |id, _| id == removed_id }
         current_teilnehmer.delete(removed) if removed
         [Struct.new(:code, :message, :body).new("200", "OK", ""),
-         Nokogiri::HTML("<html><body>MOCK POST removePlayer OK</body></html>")]
+          Nokogiri::HTML("<html><body>MOCK POST removePlayer OK</body></html>")]
       when "editTeilnehmerlisteSave"
         [Struct.new(:code, :message, :body).new("200", "OK", ""),
-         Nokogiri::HTML("<html><body>MOCK POST editTeilnehmerlisteSave Saved</body></html>")]
+          Nokogiri::HTML("<html><body>MOCK POST editTeilnehmerlisteSave Saved</body></html>")]
       else
         [Struct.new(:code, :message, :body).new("200", "OK", ""),
-         Nokogiri::HTML("<html><body>MOCK POST #{action} OK</body></html>")]
+          Nokogiri::HTML("<html><body>MOCK POST #{action} OK</body></html>")]
       end
     end
     mock

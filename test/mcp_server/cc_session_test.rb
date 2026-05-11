@@ -1,11 +1,12 @@
 # frozen_string_literal: true
+
 require "test_helper"
 
 class McpServer::CcSessionTest < ActiveSupport::TestCase
   setup do
     @prev_mock = ENV["CARAMBUS_MCP_MOCK"]
     @prev_user = ENV["CC_USERNAME"]
-    @prev_pw   = ENV["CC_PASSWORD"]
+    @prev_pw = ENV["CC_PASSWORD"]
     McpServer::CcSession.reset!
     McpServer::CcSession._client_override = nil
   end
@@ -65,7 +66,7 @@ class McpServer::CcSessionTest < ActiveSupport::TestCase
   end
 
   test "reauth_if_needed! gibt false zurück bei normaler Response" do
-    doc = Nokogiri::HTML('<html><body><table>data</table></body></html>')
+    doc = Nokogiri::HTML("<html><body><table>data</table></body></html>")
     ENV["CARAMBUS_MCP_MOCK"] = "1"
     refute McpServer::CcSession.reauth_if_needed!(doc)
   end

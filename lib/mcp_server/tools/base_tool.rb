@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 # BaseTool — Common Helpers für alle MCP-Tool-Subklassen.
 # MCP::Tool#input_schema ist deskriptiv, NICHT runtime-validation (Pitfall 6) —
 # daher manuell validieren und strukturierten Error zurückgeben.
@@ -13,12 +14,12 @@ module McpServer
     class BaseTool < MCP::Tool
       # Construct an error response in the SDK-canonical shape.
       def self.error(message)
-        MCP::Tool::Response.new([{ type: "text", text: message }], error: true)
+        MCP::Tool::Response.new([{type: "text", text: message}], error: true)
       end
 
       # Construct a text response.
       def self.text(message)
-        MCP::Tool::Response.new([{ type: "text", text: message }])
+        MCP::Tool::Response.new([{type: "text", text: message}])
       end
 
       # Manually validate that all required keys in the schema are present.
@@ -26,7 +27,7 @@ module McpServer
       def self.validate_required!(args, required_keys)
         missing = required_keys.reject { |k| args[k.to_sym] || args[k.to_s] }
         return nil if missing.empty?
-        error("Missing required parameter(s): #{missing.join(', ')}")
+        error("Missing required parameter(s): #{missing.join(", ")}")
       end
 
       # Returns true if CARAMBUS_MCP_MOCK is set; tools should branch their CC-call paths.
@@ -50,11 +51,11 @@ module McpServer
         return ENV["CC_FED_ID"].to_i if ENV["CC_FED_ID"].present?
 
         context = ENV["CC_REGION"].presence ||
-                  (defined?(Setting) ? Setting.key_get_value("context").presence : nil) ||
-                  "NBV"
+          (defined?(Setting) ? Setting.key_get_value("context").presence : nil) ||
+          "NBV"
         region = Region.find_by(shortname: context.upcase)
         region&.region_cc&.cc_id
-      rescue StandardError => e
+      rescue => e
         Rails.logger.warn "[BaseTool.default_fed_id] Region lookup failed: #{e.class}"
         nil
       end

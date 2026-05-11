@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 # cc_unregister_for_tournament — Phase 8 Plan 08-02 (Mock-Implementation).
 # Entfernt Spieler aus CC-Einzelturnier-Meldeliste (symmetrische Cleanup-Closure
 # zu Phase-4 cc_register_for_tournament).
@@ -44,26 +45,26 @@ module McpServer
       DESC
       input_schema(
         properties: {
-          fed_id:            { type: "integer", description: "ClubCloud federation ID (e.g. 20 for NBV). Optional — resolved via region lookup; ENV CC_FED_ID overrides." },
-          branch_cc_id:      { type: "integer", description: "CC admin branch ID (e.g. 8 for Kegel). NOTE: admin-cc-id from HAR/Sniff." },
-          season:            { type: "string",  description: "Season name like '2025/2026'." },
-          meldeliste_cc_id:  { type: "integer", description: "CC meldelisteId of the Meldeliste to remove from. REQUIRED (use cc_lookup_meldeliste_for_tournament if unknown)." },
-          player_cc_id:      { type: "integer", description: "CC player ID of the player to remove (Player.cc_id). Listen-Eintrags-ID is resolved internally." },
-          club_cc_id:        { type: "integer", description: "CC club ID (Club.cc_id) — required for the form payload (clubId + selectedClubId)." },
-          armed:             { type: "boolean", default: false, description: "If false (default), dry-run only — no CC mutation. If true, performs destructive POSTs to CC." },
-          read_back:         { type: "boolean", default: true,  description: "If true (default) and armed:true, verify player_cc_id removed via post-save Pre-Read." }
+          fed_id: {type: "integer", description: "ClubCloud federation ID (e.g. 20 for NBV). Optional — resolved via region lookup; ENV CC_FED_ID overrides."},
+          branch_cc_id: {type: "integer", description: "CC admin branch ID (e.g. 8 for Kegel). NOTE: admin-cc-id from HAR/Sniff."},
+          season: {type: "string", description: "Season name like '2025/2026'."},
+          meldeliste_cc_id: {type: "integer", description: "CC meldelisteId of the Meldeliste to remove from. REQUIRED (use cc_lookup_meldeliste_for_tournament if unknown)."},
+          player_cc_id: {type: "integer", description: "CC player ID of the player to remove (Player.cc_id). Listen-Eintrags-ID is resolved internally."},
+          club_cc_id: {type: "integer", description: "CC club ID (Club.cc_id) — required for the form payload (clubId + selectedClubId)."},
+          armed: {type: "boolean", default: false, description: "If false (default), dry-run only — no CC mutation. If true, performs destructive POSTs to CC."},
+          read_back: {type: "boolean", default: true, description: "If true (default) and armed:true, verify player_cc_id removed via post-save Pre-Read."}
         },
         required: ["branch_cc_id", "season", "meldeliste_cc_id", "player_cc_id", "club_cc_id"]
       )
       annotations(read_only_hint: false, destructive_hint: true)
 
       def self.call(fed_id: nil, branch_cc_id: nil, season: nil, meldeliste_cc_id: nil, player_cc_id: nil,
-                    club_cc_id: nil, armed: false, read_back: true, server_context: nil)
+        club_cc_id: nil, armed: false, read_back: true, server_context: nil)
         fed_id ||= default_fed_id
 
         err = validate_required!(
-          { branch_cc_id: branch_cc_id, season: season, meldeliste_cc_id: meldeliste_cc_id,
-            player_cc_id: player_cc_id, club_cc_id: club_cc_id },
+          {branch_cc_id: branch_cc_id, season: season, meldeliste_cc_id: meldeliste_cc_id,
+           player_cc_id: player_cc_id, club_cc_id: club_cc_id},
           [:branch_cc_id, :season, :meldeliste_cc_id, :player_cc_id, :club_cc_id]
         )
         return err if err
@@ -92,12 +93,12 @@ module McpServer
         pre_res, pre_doc = client.post(
           "showCommittedMeldeliste",
           pre_payload,
-          { armed: true, session_id: cc_session.cookie }
+          {armed: true, session_id: cc_session.cookie}
         )
         if cc_session.reauth_if_needed!(pre_doc)
           pre_res, pre_doc = client.post(
             "showCommittedMeldeliste", pre_payload,
-            { armed: true, session_id: cc_session.cookie }
+            {armed: true, session_id: cc_session.cookie}
           )
         end
         return error("Unexpected nil response from CC (Pre-Read showCommittedMeldeliste).") if pre_res.nil?
@@ -133,7 +134,7 @@ module McpServer
         rm_res, rm_doc = client.post(
           "removePlayerFromMeldeliste",
           remove_payload,
-          { armed: armed, session_id: cc_session.cookie }
+          {armed: armed, session_id: cc_session.cookie}
         )
         return error("Unexpected nil response from CC (cc_remove, armed mode).") if rm_res.nil?
         return error("CC rejected at cc_remove: #{parse_cc_error(rm_doc)} (HTTP #{rm_res&.code})") if rm_res&.code != "200"
@@ -150,7 +151,7 @@ module McpServer
         sv_res, sv_doc = client.post(
           "saveMeldeliste",
           save_payload,
-          { armed: armed, session_id: cc_session.cookie }
+          {armed: armed, session_id: cc_session.cookie}
         )
         return error("Unexpected nil response from CC (editMeldelisteSave, armed mode).") if sv_res.nil?
         return error("CC rejected at editMeldelisteSave: #{parse_cc_error(sv_doc)} (HTTP #{sv_res&.code})") if sv_res&.code != "200"
@@ -164,7 +165,7 @@ module McpServer
           rb_res, rb_doc = client.post(
             "showCommittedMeldeliste",
             rb_payload,
-            { armed: true, session_id: cc_session.cookie }
+            {armed: true, session_id: cc_session.cookie}
           )
           if rb_res&.code == "200"
             still_present = player_in_meldeliste?(rb_doc, player_cc_id)
@@ -182,10 +183,10 @@ module McpServer
 
         text(<<~OUT.strip)
           Unregistered player_cc_id=#{player_cc_id} (effective `a=`=#{effective_id}) from meldeliste_cc_id=#{meldeliste_cc_id}.
-          Steps completed: showCommittedMeldeliste (Pre-Read) → cc_remove → editMeldelisteSave#{read_back ? " → showCommittedMeldeliste (Read-Back)" : ""}.
+          Steps completed: showCommittedMeldeliste (Pre-Read) → cc_remove → editMeldelisteSave#{" → showCommittedMeldeliste (Read-Back)" if read_back}.
           read_back_match: #{read_back_match}
         OUT
-      rescue StandardError => e
+      rescue => e
         error("Tool exception: #{e.class.name} (details suppressed; check Rails.logger on stderr).")
       end
 
@@ -215,7 +216,7 @@ module McpServer
         # Variante B: einfacher Substring-Match auf Player-ID-Pattern (Real-CC HTML enthält die Zahl)
         # Defensiv: nur sehr spezifischer Pattern (vermeidet False-Positives)
         doc.css("td, span").any? { |el| el.text.strip == player_cc_id.to_s }
-      rescue StandardError
+      rescue
         false
       end
 

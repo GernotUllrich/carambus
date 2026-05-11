@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require "test_helper"
 
 # Regression-Tests für CC_FED_ID-ENV-Default in allen MCP-Tools mit fed_id-Argument.
@@ -76,9 +77,9 @@ class McpServer::Tools::CcFedIdEnvDefaultTest < ActiveSupport::TestCase
     ENV["CC_FED_ID"] = nil
     ENV["CC_REGION"] = "NBV"
 
-    fake_cc   = Struct.new(:cc_id).new(20)
-    fake_reg  = Struct.new(:region_cc).new(fake_cc)
-    Region.stub(:find_by, ->(args) { args == { shortname: "NBV" } ? fake_reg : nil }) do
+    fake_cc = Struct.new(:cc_id).new(20)
+    fake_reg = Struct.new(:region_cc).new(fake_cc)
+    Region.stub(:find_by, ->(args) { (args == {shortname: "NBV"}) ? fake_reg : nil }) do
       assert_equal 20, McpServer::Tools::BaseTool.default_fed_id
     end
   ensure

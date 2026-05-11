@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require "test_helper"
 
 # Tests für cc_assign_player_to_teilnehmerliste (Plan 07-03 Mock-Implementation).
@@ -69,7 +70,7 @@ class McpServer::Tools::AssignPlayerToTeilnehmerlisteTest < ActiveSupport::TestC
   # Initial: Meldeliste hat 11683 + 10024; Teilnehmerliste leer.
   # Nach assignPlayer: Spieler wechseln von Meldeliste → Teilnehmerliste.
   def build_stateful_mock(initial_meldung: [[11683, "Nachtmann, Georg (11683)"], [10024, "Schröder, Hans-Jörg (10024)"]],
-                           initial_teilnehmer: [], tournament_name: "MOCK NDM Endrunde Eurokegel")
+    initial_teilnehmer: [], tournament_name: "MOCK NDM Endrunde Eurokegel")
     current_teilnehmer = initial_teilnehmer.dup
     current_meldung = initial_meldung.dup
     helper = self.class
@@ -95,13 +96,13 @@ class McpServer::Tools::AssignPlayerToTeilnehmerlisteTest < ActiveSupport::TestC
           end
         end
         [Struct.new(:code, :message, :body).new("200", "OK", ""),
-         Nokogiri::HTML("<html><body>MOCK POST assignPlayer OK</body></html>")]
+          Nokogiri::HTML("<html><body>MOCK POST assignPlayer OK</body></html>")]
       when "editTeilnehmerlisteSave"
         [Struct.new(:code, :message, :body).new("200", "OK", ""),
-         Nokogiri::HTML("<html><body>MOCK POST editTeilnehmerlisteSave Saved</body></html>")]
+          Nokogiri::HTML("<html><body>MOCK POST editTeilnehmerlisteSave Saved</body></html>")]
       else
         [Struct.new(:code, :message, :body).new("200", "OK", ""),
-         Nokogiri::HTML("<html><body>MOCK POST #{action} OK</body></html>")]
+          Nokogiri::HTML("<html><body>MOCK POST #{action} OK</body></html>")]
       end
     end
     mock
@@ -165,7 +166,7 @@ class McpServer::Tools::AssignPlayerToTeilnehmerlisteTest < ActiveSupport::TestC
     assert_equal 1, assign_calls.size, "Multi-Add muss in EINEM Call passieren — got #{assign_calls.size}"
     _, _, payload, _ = assign_calls.first
     assert_equal [11683, 10024], Array(payload["meldungId[]"]),
-      "meldungId[] muss Array mit beiden cc_ids sein — got #{payload['meldungId[]'].inspect}"
+      "meldungId[] muss Array mit beiden cc_ids sein — got #{payload["meldungId[]"].inspect}"
     # Verify count_after im Final-Text
     assert_match(/teilnehmerliste_count_after:  2/, response.content.first[:text])
   end

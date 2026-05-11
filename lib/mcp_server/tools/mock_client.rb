@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 # MockClient — Drop-in-Ersatz für RegionCc::ClubCloudClient wenn CARAMBUS_MCP_MOCK=1.
 # Hardcoded Fixture-Responses; reine PATH_MAP-Prüfung für writable?-Check.
 # Plan 04-04 (cc_register_for_tournament): WRITABLE_ACTIONS_NOT_IN_PATH_MAP-Brücke entfernt,

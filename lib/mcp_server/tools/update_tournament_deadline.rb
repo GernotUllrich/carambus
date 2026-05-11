@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 # cc_update_tournament_deadline — Phase 6 Plan 06-03 Mock-Implementation.
 # Verschiebt den Meldeschluss einer CC-Meldeliste (registration deadline).
 #
@@ -47,27 +48,27 @@ module McpServer
       DESC
       input_schema(
         properties: {
-          tournament_cc_id: { type: "integer", description: "Optional: Carambus tournament_cc.cc_id; resolves meldeliste_cc_id via tournament_cc.registration_list_cc.cc_id (Phase 5 pattern). Either this or meldeliste_cc_id required." },
-          meldeliste_cc_id: { type: "integer", description: "Optional: CC meldelisteId direct (override or CC-only mode). Either this or tournament_cc_id required." },
-          new_deadline:     { type: "string",  description: "New Meldeschluss in ISO YYYY-MM-DD format (e.g. 2026-06-09). No backwards-date restriction." },
-          fed_cc_id:        { type: "integer", description: "Optional: CC federation ID (z.B. 20 für NBV). Hilft Pre-Read wenn DB-Linkage fehlt — Real CC braucht vollständige 6-Felder-Scope für showMeldeliste-Response. Default: ENV CC_FED_ID oder Region-Lookup." },
-          branch_cc_id:     { type: "integer", description: "Optional: CC admin branch ID (z.B. 8 für Kegel admin-cc-id). NOTE: admin-cc-id aus Sniff, NICHT public-Scraping. Hilft Pre-Read; bei DB-Linkage-Fehlen erforderlich." },
-          season:           { type: "string",  description: "Optional: Season-Name wie '2025/2026' (CC-Format mit Slash). Hilft Pre-Read; bei DB-Linkage-Fehlen erforderlich." },
-          disciplin_id:     { type: "string",  description: "Optional: CC disciplinId (Default '*' Wildcard — alle Disziplinen)." },
-          cat_id:           { type: "string",  description: "Optional: CC catId (Default '*' Wildcard — alle Kategorien)." },
-          armed:            { type: "boolean", default: false, description: "If false (default), dry-run only — no CC mutation. If true, performs destructive POSTs to CC." },
-          read_back:        { type: "boolean", default: true,  description: "If true (default) and armed:true, verify new deadline via post-save read; raises error on mismatch." }
+          tournament_cc_id: {type: "integer", description: "Optional: Carambus tournament_cc.cc_id; resolves meldeliste_cc_id via tournament_cc.registration_list_cc.cc_id (Phase 5 pattern). Either this or meldeliste_cc_id required."},
+          meldeliste_cc_id: {type: "integer", description: "Optional: CC meldelisteId direct (override or CC-only mode). Either this or tournament_cc_id required."},
+          new_deadline: {type: "string", description: "New Meldeschluss in ISO YYYY-MM-DD format (e.g. 2026-06-09). No backwards-date restriction."},
+          fed_cc_id: {type: "integer", description: "Optional: CC federation ID (z.B. 20 für NBV). Hilft Pre-Read wenn DB-Linkage fehlt — Real CC braucht vollständige 6-Felder-Scope für showMeldeliste-Response. Default: ENV CC_FED_ID oder Region-Lookup."},
+          branch_cc_id: {type: "integer", description: "Optional: CC admin branch ID (z.B. 8 für Kegel admin-cc-id). NOTE: admin-cc-id aus Sniff, NICHT public-Scraping. Hilft Pre-Read; bei DB-Linkage-Fehlen erforderlich."},
+          season: {type: "string", description: "Optional: Season-Name wie '2025/2026' (CC-Format mit Slash). Hilft Pre-Read; bei DB-Linkage-Fehlen erforderlich."},
+          disciplin_id: {type: "string", description: "Optional: CC disciplinId (Default '*' Wildcard — alle Disziplinen)."},
+          cat_id: {type: "string", description: "Optional: CC catId (Default '*' Wildcard — alle Kategorien)."},
+          armed: {type: "boolean", default: false, description: "If false (default), dry-run only — no CC mutation. If true, performs destructive POSTs to CC."},
+          read_back: {type: "boolean", default: true, description: "If true (default) and armed:true, verify new deadline via post-save read; raises error on mismatch."}
         },
         required: ["new_deadline"]
       )
       annotations(read_only_hint: false, destructive_hint: true)
 
       def self.call(tournament_cc_id: nil, meldeliste_cc_id: nil, new_deadline: nil,
-                    fed_cc_id: nil, branch_cc_id: nil, season: nil,
-                    disciplin_id: nil, cat_id: nil,
-                    armed: false, read_back: true, server_context: nil)
+        fed_cc_id: nil, branch_cc_id: nil, season: nil,
+        disciplin_id: nil, cat_id: nil,
+        armed: false, read_back: true, server_context: nil)
         # L0a: new_deadline required
-        err = validate_required!({ new_deadline: new_deadline }, [:new_deadline])
+        err = validate_required!({new_deadline: new_deadline}, [:new_deadline])
         return err if err
 
         # L0b: OneOf check — at least one identifier must be present
@@ -76,7 +77,11 @@ module McpServer
         end
 
         # L0c: Date-Format check (ISO YYYY-MM-DD)
-        unless new_deadline.is_a?(String) && new_deadline.match?(/\A\d{4}-\d{2}-\d{2}\z/) && (Date.iso8601(new_deadline) rescue false)
+        unless new_deadline.is_a?(String) && new_deadline.match?(/\A\d{4}-\d{2}-\d{2}\z/) && begin
+          Date.iso8601(new_deadline)
+        rescue
+          false
+        end
           return error("Invalid date format: new_deadline must be ISO YYYY-MM-DD (got: #{new_deadline.inspect}).")
         end
 
@@ -129,9 +134,9 @@ module McpServer
           season: pre_read[:season], meldelisteId: meldeliste_cc_id,
           nbut: "1"
         }
-        check_res, check_doc = client.post("editMeldelisteCheck", check_payload, { armed: armed, session_id: cc_session.cookie })
+        check_res, check_doc = client.post("editMeldelisteCheck", check_payload, {armed: armed, session_id: cc_session.cookie})
         if cc_session.reauth_if_needed!(check_doc)
-          check_res, check_doc = client.post("editMeldelisteCheck", check_payload, { armed: armed, session_id: cc_session.cookie })
+          check_res, check_doc = client.post("editMeldelisteCheck", check_payload, {armed: armed, session_id: cc_session.cookie})
         end
         return error("Unexpected nil response from CC (editMeldelisteCheck, armed mode). MockClient may have rejected.") if check_res.nil?
         return error("CC rejected at editMeldelisteCheck: #{parse_cc_error(check_doc)} (HTTP #{check_res&.code})") if check_res&.code != "200"
@@ -146,7 +151,7 @@ module McpServer
           stag: pre_read[:stag],
           save: "1"
         )
-        save_res, save_doc = client.post("editMeldelisteSave", save_payload, { armed: armed, session_id: cc_session.cookie })
+        save_res, save_doc = client.post("editMeldelisteSave", save_payload, {armed: armed, session_id: cc_session.cookie})
         return error("Unexpected nil response from CC (editMeldelisteSave, armed mode).") if save_res.nil?
         return error("CC rejected at editMeldelisteSave: #{parse_cc_error(save_doc)} (HTTP #{save_res&.code})") if save_res&.code != "200"
         save_parsed = parse_cc_error(save_doc)
@@ -173,10 +178,10 @@ module McpServer
 
         text(<<~OUT.strip)
           Updated Meldeschluss for meldeliste_cc_id=#{meldeliste_cc_id} (#{pre_read[:meldelistenName]}): #{pre_read[:mschluss_old]} → #{new_deadline}.
-          Steps completed: editMeldelisteCheck → editMeldelisteSave#{read_back ? " → showMeldeliste (read-back)" : ""}.
+          Steps completed: editMeldelisteCheck → editMeldelisteSave#{" → showMeldeliste (read-back)" if read_back}.
           read_back_match: #{read_back_match}
         OUT
-      rescue StandardError => e
+      rescue => e
         error("Tool exception: #{e.class.name} (details suppressed; check Rails.logger on stderr).")
       end
 
@@ -186,7 +191,7 @@ module McpServer
         return nil unless tournament_cc_id
         tournament_cc = TournamentCc.find_by(cc_id: tournament_cc_id)
         tournament_cc&.registration_list_cc&.cc_id
-      rescue StandardError => e
+      rescue => e
         Rails.logger.warn "[UpdateTournamentDeadline.resolve_meldeliste_cc_id] DB-resolver failed: #{e.class}"
         nil
       end
@@ -203,10 +208,10 @@ module McpServer
       def self.pre_read_meldeliste(client, meldeliste_cc_id, scope_filters = {})
         # Plan 06-04 inline-Patch: scope_filters in payload mergen (Real-CC-Anforderung).
         # MockClient ignoriert die Extra-Keys (legacy Mock-Tests bleiben grün).
-        payload = { meldelisteId: meldeliste_cc_id }.merge(scope_filters)
-        res, doc = client.post("showMeldeliste", payload, { armed: true, session_id: cc_session.cookie })
+        payload = {meldelisteId: meldeliste_cc_id}.merge(scope_filters)
+        res, doc = client.post("showMeldeliste", payload, {armed: true, session_id: cc_session.cookie})
         if cc_session.reauth_if_needed!(doc)
-          res, doc = client.post("showMeldeliste", payload, { armed: true, session_id: cc_session.cookie })
+          res, doc = client.post("showMeldeliste", payload, {armed: true, session_id: cc_session.cookie})
         end
         return error("Pre-Read failed: showMeldeliste returned HTTP #{res&.code}") if res.nil? || res&.code != "200"
 
@@ -221,7 +226,7 @@ module McpServer
           end
         end
         parsed
-      rescue StandardError => e
+      rescue => e
         error("Pre-Read parse failed: #{e.class.name} (#{e.message})")
       end
 
@@ -239,26 +244,26 @@ module McpServer
         # mschluss: HTML5 date input (Mock) → fallback to <b>DD.MM.YYYY</b> after "Meldeschluss" (real CC)
         mschluss_input = doc.css('input[type="date"][name="mschluss"]').first
         mschluss_old = if mschluss_input
-                         mschluss_input["value"]
-                       else
-                         extract_german_date_after_label(doc, "Meldeschluss")
-                       end
+          mschluss_input["value"]
+        else
+          extract_german_date_after_label(doc, "Meldeschluss")
+        end
 
         # stag: same dual-format pattern
         stag_input = doc.css('input[type="date"][name="stag"]').first
         stag = if stag_input
-                 stag_input["value"]
-               else
-                 extract_german_date_after_label(doc, "Stichtag")
-               end
+          stag_input["value"]
+        else
+          extract_german_date_after_label(doc, "Stichtag")
+        end
 
         # meldelistenName: text input (Mock) → fallback to <b>NAME</b> after "Meldeliste" (real CC)
         name_input = doc.css('input[name="meldelistenName"]').first
         meldelisten_name = if name_input
-                             name_input["value"]
-                           else
-                             extract_text_after_label(doc, "Meldeliste")
-                           end
+          name_input["value"]
+        else
+          extract_text_after_label(doc, "Meldeliste")
+        end
 
         {
           fedId: hidden["fedId"],

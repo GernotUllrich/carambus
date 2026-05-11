@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 # cc_assign_player_to_teilnehmerliste — Phase 7 Plan 07-03 Mock-Implementation.
 # Übernimmt Spieler aus Meldeliste in Teilnehmerliste (Akkreditierung am Turniertag /
 # Vorbereitung der Teilnehmerliste vor Turnier-Start).
@@ -42,27 +43,27 @@ module McpServer
       DESC
       input_schema(
         properties: {
-          tournament_cc_id: { type: "integer", description: "Tournament-cc_id (= CC meisterschaftsId). REQUIRED." },
-          player_cc_ids:    { type: "array", items: { type: "integer" }, minItems: 1, description: "Array von Player-cc_ids zum Hinzufügen. REQUIRED, min 1. Mehrere in einem Call möglich (Multi-Add)." },
-          armed:            { type: "boolean", default: false, description: "If false (default), dry-run only — no CC mutation. If true, performs destructive POSTs to CC." },
-          read_back:        { type: "boolean", default: true,  description: "If true (default) and armed:true, verify all player_cc_ids appear in post-save Teilnehmerliste; raises error on mismatch." },
-          fed_cc_id:        { type: "integer", description: "Optional: CC federation ID (z.B. 20 für NBV). Hilft Pre-Read wenn DB-Linkage fehlt. Default: ENV CC_FED_ID oder Region-Lookup." },
-          branch_cc_id:     { type: "integer", description: "Optional: CC admin branch ID (z.B. 8 für Kegel). Hilft Pre-Read; bei DB-Linkage-Fehlen erforderlich." },
-          season:           { type: "string",  description: "Optional: Season-Name wie '2025/2026'. Hilft Pre-Read; bei DB-Linkage-Fehlen erforderlich." },
-          disciplin_id:     { type: "string",  description: "Optional: CC disciplinId (Default '*' Wildcard)." },
-          cat_id:           { type: "string",  description: "Optional: CC catId (Default '*' Wildcard)." }
+          tournament_cc_id: {type: "integer", description: "Tournament-cc_id (= CC meisterschaftsId). REQUIRED."},
+          player_cc_ids: {type: "array", items: {type: "integer"}, minItems: 1, description: "Array von Player-cc_ids zum Hinzufügen. REQUIRED, min 1. Mehrere in einem Call möglich (Multi-Add)."},
+          armed: {type: "boolean", default: false, description: "If false (default), dry-run only — no CC mutation. If true, performs destructive POSTs to CC."},
+          read_back: {type: "boolean", default: true, description: "If true (default) and armed:true, verify all player_cc_ids appear in post-save Teilnehmerliste; raises error on mismatch."},
+          fed_cc_id: {type: "integer", description: "Optional: CC federation ID (z.B. 20 für NBV). Hilft Pre-Read wenn DB-Linkage fehlt. Default: ENV CC_FED_ID oder Region-Lookup."},
+          branch_cc_id: {type: "integer", description: "Optional: CC admin branch ID (z.B. 8 für Kegel). Hilft Pre-Read; bei DB-Linkage-Fehlen erforderlich."},
+          season: {type: "string", description: "Optional: Season-Name wie '2025/2026'. Hilft Pre-Read; bei DB-Linkage-Fehlen erforderlich."},
+          disciplin_id: {type: "string", description: "Optional: CC disciplinId (Default '*' Wildcard)."},
+          cat_id: {type: "string", description: "Optional: CC catId (Default '*' Wildcard)."}
         },
         required: ["tournament_cc_id", "player_cc_ids"]
       )
       annotations(read_only_hint: false, destructive_hint: true)
 
       def self.call(tournament_cc_id: nil, player_cc_ids: nil,
-                    fed_cc_id: nil, branch_cc_id: nil, season: nil,
-                    disciplin_id: nil, cat_id: nil,
-                    armed: false, read_back: true, server_context: nil)
+        fed_cc_id: nil, branch_cc_id: nil, season: nil,
+        disciplin_id: nil, cat_id: nil,
+        armed: false, read_back: true, server_context: nil)
         # L0a: Required-Validation
-        err = validate_required!({ tournament_cc_id: tournament_cc_id, player_cc_ids: player_cc_ids },
-                                 %i[tournament_cc_id player_cc_ids])
+        err = validate_required!({tournament_cc_id: tournament_cc_id, player_cc_ids: player_cc_ids},
+          %i[tournament_cc_id player_cc_ids])
         return err if err
 
         # L0b: player_cc_ids must be Array with ≥1 integer
@@ -110,9 +111,9 @@ module McpServer
         # Schicht 4 (Network-Level): Detail-Dry-Run-Echo
         unless armed
           player_details = pre_read[:available_in_meldeliste]
-                             .select { |opt| player_cc_ids.include?(opt[:cc_id]) }
-                             .map { |opt| "#{opt[:cc_id]} (#{opt[:label]})" }
-                             .join(", ")
+            .select { |opt| player_cc_ids.include?(opt[:cc_id]) }
+            .map { |opt| "#{opt[:cc_id]} (#{opt[:label]})" }
+            .join(", ")
           return text(<<~DRY_RUN.strip)
             [DRY-RUN] Would assign #{player_cc_ids.size} player(s) to Teilnehmerliste for tournament_cc_id=#{tournament_cc_id} (#{pre_read[:tournament_name]}).
             Players: #{player_details}
@@ -134,9 +135,9 @@ module McpServer
         # `meldungId%5B%5D=<id1>&meldungId%5B%5D=<id2>` encoded (matches Real-CC-HAR-Format).
         assign_payload = base_payload(tournament_cc_id, scope).merge(referer: "/admin/einzel/meisterschaft/editTeilnehmerlisteCheck.php?")
         assign_payload["meldungId[]"] = player_cc_ids
-        assign_res, assign_doc = client.post("assignPlayer", assign_payload, { armed: armed, session_id: cc_session.cookie })
+        assign_res, assign_doc = client.post("assignPlayer", assign_payload, {armed: armed, session_id: cc_session.cookie})
         if cc_session.reauth_if_needed!(assign_doc)
-          assign_res, assign_doc = client.post("assignPlayer", assign_payload, { armed: armed, session_id: cc_session.cookie })
+          assign_res, assign_doc = client.post("assignPlayer", assign_payload, {armed: armed, session_id: cc_session.cookie})
         end
         return error("Unexpected nil response from CC (assignPlayer, armed mode). MockClient may have rejected.") if assign_res.nil?
         return error("CC rejected at assignPlayer: #{parse_cc_error(assign_doc)} (HTTP #{assign_res&.code})") if assign_res&.code != "200"
@@ -146,7 +147,7 @@ module McpServer
         # Step 2 (Plan 07-04 Inline-Patch v2 — Risk A): Re-Render-Form-State via editTeilnehmerlisteCheck.
         # Referer-Chaining: dieser Step kommt vom assignPlayer-Submit.
         recheck_payload = base_payload(tournament_cc_id, scope).merge(referer: "/admin/einzel/meisterschaft/assignPlayer.php?")
-        rc_res, _rc_doc = client.post("editTeilnehmerlisteCheck", recheck_payload, { armed: armed, session_id: cc_session.cookie })
+        rc_res, _rc_doc = client.post("editTeilnehmerlisteCheck", recheck_payload, {armed: armed, session_id: cc_session.cookie})
         return error("Unexpected nil response from CC (editTeilnehmerlisteCheck re-render, armed mode).") if rc_res.nil?
         return error("CC rejected at editTeilnehmerlisteCheck re-render: HTTP #{rc_res&.code}") if rc_res&.code != "200"
 
@@ -154,7 +155,7 @@ module McpServer
         # Referer: kommt vom editTeilnehmerlisteCheck (re-render).
         # save: "1" als non-blank Sentinel (CC PHP prüft isset, nicht Wert; client.post .reject(&:blank?) entfernt sonst).
         save_payload = base_payload(tournament_cc_id, scope).merge(save: "1", referer: "/admin/einzel/meisterschaft/editTeilnehmerlisteCheck.php?")
-        save_res, save_doc = client.post("editTeilnehmerlisteSave", save_payload, { armed: armed, session_id: cc_session.cookie })
+        save_res, save_doc = client.post("editTeilnehmerlisteSave", save_payload, {armed: armed, session_id: cc_session.cookie})
         return error("Unexpected nil response from CC (editTeilnehmerlisteSave, armed mode).") if save_res.nil?
         return error("CC rejected at editTeilnehmerlisteSave: #{parse_cc_error(save_doc)} (HTTP #{save_res&.code})") if save_res&.code != "200"
         save_parsed = parse_cc_error(save_doc)
@@ -185,17 +186,21 @@ module McpServer
           added: #{player_cc_ids.inspect}
           teilnehmerliste_count_before: #{pre_read[:current_teilnehmer].size}
           teilnehmerliste_count_after:  #{pre_read[:current_teilnehmer].size + player_cc_ids.size}
-          Steps completed: assignPlayer → editTeilnehmerlisteCheck (re-render) → editTeilnehmerlisteSave#{read_back ? " → editTeilnehmerlisteCheck (read-back)" : ""}.
+          Steps completed: assignPlayer → editTeilnehmerlisteCheck (re-render) → editTeilnehmerlisteSave#{" → editTeilnehmerlisteCheck (read-back)" if read_back}.
           read_back_match: #{read_back_match}
         OUT
-      rescue StandardError => e
+      rescue => e
         error("Tool exception: #{e.class.name} (details suppressed; check Rails.logger on stderr).")
       end
 
       # Resolve scope filters from DB (TournamentCc) + Override-Params (Best-Effort, NBV-only-Constraint).
       def self.resolve_scope_filters(tournament_cc_id, fed_cc_id, branch_cc_id, season, disciplin_id, cat_id)
         # Try DB-first lookup (best-effort, may fail for NBV-only tournaments without linkage)
-        tournament_cc = (TournamentCc.find_by(cc_id: tournament_cc_id) rescue nil)
+        tournament_cc = begin
+          TournamentCc.find_by(cc_id: tournament_cc_id)
+        rescue
+          nil
+        end
         {
           fedId: fed_cc_id || tournament_cc&.region_cc&.cc_id || default_fed_id,
           branchId: branch_cc_id || tournament_cc&.branch_cc_id,
@@ -235,17 +240,17 @@ module McpServer
       def self.pre_read_teilnehmerliste(client, tournament_cc_id, scope)
         # firstEntry: 1 raus, dla/foundpid/etlbu/akkpid rein (HAR-Initial-Pattern)
         payload = base_payload(tournament_cc_id, scope).reject { |k, _| k == :firstEntry }
-                    .merge(dla: 1, foundpid: "", etlbu: "", akkpid: "")
-        res, doc = client.post("editTeilnehmerlisteCheck", payload, { armed: true, session_id: cc_session.cookie })
+          .merge(dla: 1, foundpid: "", etlbu: "", akkpid: "")
+        res, doc = client.post("editTeilnehmerlisteCheck", payload, {armed: true, session_id: cc_session.cookie})
         if cc_session.reauth_if_needed!(doc)
-          res, doc = client.post("editTeilnehmerlisteCheck", payload, { armed: true, session_id: cc_session.cookie })
+          res, doc = client.post("editTeilnehmerlisteCheck", payload, {armed: true, session_id: cc_session.cookie})
         end
         return error("Pre-Read failed: editTeilnehmerlisteCheck returned HTTP #{res&.code}") if res.nil? || res&.code != "200"
 
         parsed = parse_teilnehmerliste_state(doc)
         return parsed unless parsed.is_a?(Hash)
         parsed
-      rescue StandardError => e
+      rescue => e
         error("Pre-Read parse failed: #{e.class.name} (#{e.message})")
       end
 
@@ -281,7 +286,7 @@ module McpServer
         select_el.css("option").map do |opt|
           value = opt["value"].to_s.strip
           next nil if value.empty?
-          { cc_id: value.to_i, label: opt.text.strip }
+          {cc_id: value.to_i, label: opt.text.strip}
         end.compact
       end
 
@@ -291,7 +296,7 @@ module McpServer
       def self.extract_text_after_label(doc, label)
         # Versuche zuerst mit Doppelpunkt (Phase-6-Pattern), dann ohne (Phase-7-Capture-Format).
         label_td = doc.xpath("//td[normalize-space(.) = '#{label}:']").first ||
-                   doc.xpath("//td[normalize-space(.) = '#{label}']").first
+          doc.xpath("//td[normalize-space(.) = '#{label}']").first
         return nil unless label_td
         sibling = label_td.xpath("following-sibling::td//b").first
         sibling&.text&.strip

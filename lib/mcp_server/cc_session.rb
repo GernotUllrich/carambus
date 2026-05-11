@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 # CcSession — Wraps RegionCc::ClubCloudClient mit in-memory PHPSESSID-Cache (D-10) +
 # Lazy-Login + 30-min TTL + Mock-Mode-Failsafe (D-08) + transparentem Reauth bei Session-Ablauf.
 #
@@ -21,7 +22,7 @@ module McpServer
       # Failsafe: gibt niemals Mock in Production zurück (D-08).
       def client_for(_server_context = nil)
         if mock_mode?
-          raise RuntimeError, "Mock mode not allowed in production" if Rails.env.production?
+          raise "Mock mode not allowed in production" if Rails.env.production?
           return McpServer::Tools::MockClient.new
         end
 
@@ -46,7 +47,7 @@ module McpServer
         opts = RegionCcAction.get_base_opts_from_environment
         region = Region.find_by(shortname: opts[:context].to_s.upcase)
         region&.region_cc&.base_url.presence
-      rescue StandardError
+      rescue
         nil
       end
 
@@ -114,7 +115,6 @@ module McpServer
         return false unless doc.respond_to?(:css)
         doc.css("form[action*='login']").any?
       end
-
     end
   end
 end

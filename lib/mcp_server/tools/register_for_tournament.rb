@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 # cc_register_for_tournament — Phase 4 Write-Tool: Spieler in CC-Einzelturnier-Meldeliste registrieren.
 # Mock-Implementation in Plan 04-02; Live-Implementation in Plan 04-04 nach View-Source-Sniff (SNIFF v2).
 #
@@ -39,26 +40,26 @@ module McpServer
       DESC
       input_schema(
         properties: {
-          fed_id:            { type: "integer", description: "ClubCloud federation ID (e.g. 20 for NBV). Optional — resolved via region lookup; ENV CC_FED_ID overrides." },
-          branch_cc_id:      { type: "integer", description: "CC admin branch ID (e.g. 8 for Kegel, 10 for Karambol). NOTE: admin-cc-id from HAR/Sniff, NOT public scraping branch_id." },
-          season:            { type: "string",  description: "Season name like '2025/2026' (CC sends this string format, not season_id)" },
-          meldeliste_cc_id:  { type: "integer", description: "CC meldelisteId of the target Meldeliste — get from CC Meldelisten-Übersicht (admin/myclub/meldewesen/single)" },
-          player_cc_id:      { type: "integer", description: "CC player ID of the player to register (Player.cc_id)" },
-          club_cc_id:        { type: "integer", description: "CC club ID (Club.cc_id) — required for the form payload (clubId + selectedClubId)" },
-          discipline_id:     { type: "integer", description: "Optional Carambus Discipline.id for consistency-check scoping (defaults to all disciplines)" },
-          armed:             { type: "boolean", default: false, description: "If false (default), dry-run only — no CC mutation. If true, performs destructive POSTs to CC." }
+          fed_id: {type: "integer", description: "ClubCloud federation ID (e.g. 20 for NBV). Optional — resolved via region lookup; ENV CC_FED_ID overrides."},
+          branch_cc_id: {type: "integer", description: "CC admin branch ID (e.g. 8 for Kegel, 10 for Karambol). NOTE: admin-cc-id from HAR/Sniff, NOT public scraping branch_id."},
+          season: {type: "string", description: "Season name like '2025/2026' (CC sends this string format, not season_id)"},
+          meldeliste_cc_id: {type: "integer", description: "CC meldelisteId of the target Meldeliste — get from CC Meldelisten-Übersicht (admin/myclub/meldewesen/single)"},
+          player_cc_id: {type: "integer", description: "CC player ID of the player to register (Player.cc_id)"},
+          club_cc_id: {type: "integer", description: "CC club ID (Club.cc_id) — required for the form payload (clubId + selectedClubId)"},
+          discipline_id: {type: "integer", description: "Optional Carambus Discipline.id for consistency-check scoping (defaults to all disciplines)"},
+          armed: {type: "boolean", default: false, description: "If false (default), dry-run only — no CC mutation. If true, performs destructive POSTs to CC."}
         },
         required: ["branch_cc_id", "season", "meldeliste_cc_id", "player_cc_id", "club_cc_id"]
       )
       annotations(read_only_hint: false, destructive_hint: true)
 
       def self.call(fed_id: nil, branch_cc_id: nil, season: nil, meldeliste_cc_id: nil, player_cc_id: nil,
-                    club_cc_id: nil, discipline_id: nil, armed: false, server_context: nil)
+        club_cc_id: nil, discipline_id: nil, armed: false, server_context: nil)
         fed_id ||= default_fed_id
 
         err = validate_required!(
-          { branch_cc_id: branch_cc_id, season: season, meldeliste_cc_id: meldeliste_cc_id,
-            player_cc_id: player_cc_id, club_cc_id: club_cc_id },
+          {branch_cc_id: branch_cc_id, season: season, meldeliste_cc_id: meldeliste_cc_id,
+           player_cc_id: player_cc_id, club_cc_id: club_cc_id},
           [:branch_cc_id, :season, :meldeliste_cc_id, :player_cc_id, :club_cc_id]
         )
         return err if err
@@ -81,7 +82,7 @@ module McpServer
           extras = "discipline_id=#{discipline_id}" if discipline_id
           return text(<<~DRY_RUN.strip)
             [DRY-RUN] Would register player_cc_id=#{player_cc_id} into meldeliste_cc_id=#{meldeliste_cc_id} \
-            (club_cc_id=#{club_cc_id}, fed_id=#{fed_id}, branch_cc_id=#{branch_cc_id}, season=#{season}#{extras ? ", #{extras}" : ""}).
+            (club_cc_id=#{club_cc_id}, fed_id=#{fed_id}, branch_cc_id=#{branch_cc_id}, season=#{season}#{", #{extras}" if extras}).
             Workflow: 2-Step (addPlayerToMeldeliste → saveMeldeliste) + optional verification via showCommittedMeldeliste.
             #{consistency_msg}
             Pass armed:true to actually perform this registration.
@@ -104,13 +105,13 @@ module McpServer
         add_res, add_doc = client.post(
           "addPlayerToMeldeliste",
           base_payload.merge(a: player_cc_id),
-          { armed: armed, session_id: cc_session.cookie }
+          {armed: armed, session_id: cc_session.cookie}
         )
         if cc_session.reauth_if_needed!(add_doc)
           add_res, add_doc = client.post(
             "addPlayerToMeldeliste",
             base_payload.merge(a: player_cc_id),
-            { armed: armed, session_id: cc_session.cookie }
+            {armed: armed, session_id: cc_session.cookie}
           )
         end
         return error("Unexpected nil response from CC (cc_add, armed mode). MockClient may have rejected.") if add_res.nil?
@@ -124,7 +125,7 @@ module McpServer
         save_res, save_doc = client.post(
           "saveMeldeliste",
           base_payload.merge(a: player_cc_id, save: "1"),
-          { armed: armed, session_id: cc_session.cookie }
+          {armed: armed, session_id: cc_session.cookie}
         )
         return error("Unexpected nil response from CC (editMeldelisteSave, armed mode).") if save_res.nil?
         return error("CC rejected at editMeldelisteSave: #{parse_cc_error(save_doc)} (HTTP #{save_res&.code})") if save_res&.code != "200"
@@ -140,7 +141,7 @@ module McpServer
         verify_res, _verify_doc = client.post(
           "showCommittedMeldeliste",
           verify_payload,
-          { armed: armed, session_id: cc_session.cookie }
+          {armed: armed, session_id: cc_session.cookie}
         )
         verified = verify_res&.body.to_s.include?(%(<td align="center">#{player_cc_id}</td>))
 
@@ -149,7 +150,7 @@ module McpServer
           verified_in_committed_list: #{verified}
           #{consistency_msg}
         OUT
-      rescue StandardError => e
+      rescue => e
         error("Tool exception: #{e.class.name} (details suppressed; check Rails.logger on stderr).")
       end
 
@@ -160,13 +161,13 @@ module McpServer
         return "[Konsistenz-Check übersprungen: Player mit cc_id=#{player_cc_id} nicht in Carambus-DB]" unless player
 
         season_record = Season.find_by(name: season)
-        region = Region.joins(:region_cc).find_by(region_ccs: { cc_id: fed_id })
+        region = Region.joins(:region_cc).find_by(region_ccs: {cc_id: fed_id})
 
         unless season_record && region
           missing = []
           missing << "Saison '#{season}'" unless season_record
           missing << "Region für fed_id=#{fed_id}" unless region
-          return "[Konsistenz-Check übersprungen: #{missing.join(', ')} nicht in Carambus-DB]"
+          return "[Konsistenz-Check übersprungen: #{missing.join(", ")} nicht in Carambus-DB]"
         end
 
         scope = PlayerRanking.where(player_id: player.id, season_id: season_record.id, region_id: region.id)
@@ -178,7 +179,7 @@ module McpServer
         else
           "[KONSISTENZ-WARNUNG] Player #{player.fl_name} ist in Saison #{season} (Region #{region.shortname}) nicht gerankt — TM-Confirm empfohlen vor armed:true"
         end
-      rescue StandardError => e
+      rescue => e
         "[Konsistenz-Check fehlgeschlagen: #{e.class.name}] — Tool fährt fort"
       end
 
