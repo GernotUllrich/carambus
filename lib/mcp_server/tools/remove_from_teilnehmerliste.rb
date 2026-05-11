@@ -92,9 +92,10 @@ module McpServer
           DRY_RUN
         end
 
-        # Armed=true: Multi-Step Save-Chain.
+        # Armed=true: Multi-Step Save-Chain. Plan 07-04 Inline-Patch v2: Referer-Chaining.
         # Step 1: removePlayer (Single-Remove via teilnehmerId=).
-        remove_payload = AssignPlayerToTeilnehmerliste.base_payload(tournament_cc_id, scope).merge(teilnehmerId: player_cc_id)
+        # Referer: kommt vom editTeilnehmerlisteCheck (Pre-Read).
+        remove_payload = AssignPlayerToTeilnehmerliste.base_payload(tournament_cc_id, scope).merge(teilnehmerId: player_cc_id, referer: "/admin/einzel/meisterschaft/editTeilnehmerlisteCheck.php?")
         rm_res, rm_doc = client.post("removePlayer", remove_payload, { armed: armed, session_id: cc_session.cookie })
         if cc_session.reauth_if_needed!(rm_doc)
           rm_res, rm_doc = client.post("removePlayer", remove_payload, { armed: armed, session_id: cc_session.cookie })
@@ -104,8 +105,16 @@ module McpServer
         rm_parsed = AssignPlayerToTeilnehmerliste.parse_cc_error(rm_doc)
         return error("CC rejected at removePlayer: #{rm_parsed}") if rm_parsed && rm_parsed != "(no error)"
 
-        # Step 2: editTeilnehmerlisteSave — Commit.
-        save_payload = AssignPlayerToTeilnehmerliste.base_payload(tournament_cc_id, scope).merge(save: "1")
+        # Step 2 (Plan 07-04 Inline-Patch v2 — Risk A): Re-Render-Form-State.
+        # Referer kommt vom removePlayer-Submit.
+        recheck_payload = AssignPlayerToTeilnehmerliste.base_payload(tournament_cc_id, scope).merge(referer: "/admin/einzel/meisterschaft/removePlayer.php?")
+        rc_res, _rc_doc = client.post("editTeilnehmerlisteCheck", recheck_payload, { armed: armed, session_id: cc_session.cookie })
+        return error("Unexpected nil response from CC (editTeilnehmerlisteCheck re-render, armed mode).") if rc_res.nil?
+        return error("CC rejected at editTeilnehmerlisteCheck re-render: HTTP #{rc_res&.code}") if rc_res&.code != "200"
+
+        # Step 3: editTeilnehmerlisteSave — Commit.
+        # Referer kommt vom editTeilnehmerlisteCheck (re-render).
+        save_payload = AssignPlayerToTeilnehmerliste.base_payload(tournament_cc_id, scope).merge(save: "1", referer: "/admin/einzel/meisterschaft/editTeilnehmerlisteCheck.php?")
         sv_res, sv_doc = client.post("editTeilnehmerlisteSave", save_payload, { armed: armed, session_id: cc_session.cookie })
         return error("Unexpected nil response from CC (editTeilnehmerlisteSave, armed mode).") if sv_res.nil?
         return error("CC rejected at editTeilnehmerlisteSave: #{AssignPlayerToTeilnehmerliste.parse_cc_error(sv_doc)} (HTTP #{sv_res&.code})") if sv_res&.code != "200"
@@ -135,7 +144,7 @@ module McpServer
           Removed player_cc_id=#{player_cc_id} from Teilnehmerliste of tournament_cc_id=#{tournament_cc_id} (#{pre_read[:tournament_name]}).
           teilnehmerliste_count_before: #{pre_read[:current_teilnehmer].size}
           teilnehmerliste_count_after:  #{pre_read[:current_teilnehmer].size - 1}
-          Steps completed: removePlayer → editTeilnehmerlisteSave#{read_back ? " → editTeilnehmerlisteCheck (read-back)" : ""}.
+          Steps completed: removePlayer → editTeilnehmerlisteCheck (re-render) → editTeilnehmerlisteSave#{read_back ? " → editTeilnehmerlisteCheck (read-back)" : ""}.
           read_back_match: #{read_back_match}
         OUT
       rescue StandardError => e

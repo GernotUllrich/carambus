@@ -91,8 +91,8 @@ class McpServer::Tools::RemoveFromTeilnehmerlisteTest < ActiveSupport::TestCase
     assert_match(/teilnehmerliste_count_after:  1/, text)
     assert_match(/read_back_match: true/, text)
     actions = @mock.calls.select { |verb, _, _, _| verb == :post }.map { |_, a, _, _| a }
-    assert_equal ["editTeilnehmerlisteCheck", "removePlayer", "editTeilnehmerlisteSave", "editTeilnehmerlisteCheck"], actions,
-      "Erwarte Pre-Read → removePlayer → Save → Read-Back — got #{actions.inspect}"
+    assert_equal ["editTeilnehmerlisteCheck", "removePlayer", "editTeilnehmerlisteCheck", "editTeilnehmerlisteSave", "editTeilnehmerlisteCheck"], actions,
+      "Erwarte Pre-Read → removePlayer → Re-Render → Save → Read-Back (Plan 07-04 Risk A) — got #{actions.inspect}"
   end
 
   test "removePlayer-Payload enthält teilnehmerId Single (KEIN Array) + 9-Felder-Base" do
@@ -104,9 +104,10 @@ class McpServer::Tools::RemoveFromTeilnehmerlisteTest < ActiveSupport::TestCase
     rm_call = @mock.calls.find { |verb, action, _, _| verb == :post && action == "removePlayer" }
     refute_nil rm_call, "removePlayer muss aufgerufen worden sein"
     _, _, params, _ = rm_call
-    expected_keys = %i[fedId branchId disciplinId catId season meisterTypeId meisterschaftsId sortedBy firstEntry teilnehmerId].sort
-    assert_equal expected_keys, params.keys.sort,
-      "Remove-Payload muss 9-Felder-Base + teilnehmerId haben — got #{params.keys.sort.inspect}"
+    # Plan 07-04 Inline-Patch v2: zusätzlich :referer (Real-Client setzt als HTTP-Header, nicht im Body)
+    required_keys = %i[fedId branchId disciplinId catId season meisterTypeId meisterschaftsId sortedBy firstEntry teilnehmerId]
+    missing_keys = required_keys - params.keys
+    assert_empty missing_keys, "Remove-Payload fehlen Felder: #{missing_keys.inspect}; got #{params.keys.sort.inspect}"
     assert_equal 11683, params[:teilnehmerId], "teilnehmerId muss Single Integer sein (NICHT Array)"
   end
 

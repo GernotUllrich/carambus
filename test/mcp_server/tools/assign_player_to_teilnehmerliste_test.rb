@@ -144,10 +144,10 @@ class McpServer::Tools::AssignPlayerToTeilnehmerlisteTest < ActiveSupport::TestC
     assert_match(/Assigned 1 player.*tournament_cc_id=890.*MOCK NDM Endrunde/, text)
     assert_match(/added: \[11683\]/, text)
     assert_match(/read_back_match: true/, text)
-    # Reihenfolge: Pre-Read → assignPlayer → Save → Read-Back
+    # Reihenfolge: Pre-Read → assignPlayer → Re-Render → Save → Read-Back (Plan 07-04 Inline-Patch — Risk A)
     actions = @mock.calls.select { |verb, _, _, _| verb == :post }.map { |_, a, _, _| a }
-    assert_equal ["editTeilnehmerlisteCheck", "assignPlayer", "editTeilnehmerlisteSave", "editTeilnehmerlisteCheck"], actions,
-      "Erwarte Pre-Read → assignPlayer → Save → Read-Back — got #{actions.inspect}"
+    assert_equal ["editTeilnehmerlisteCheck", "assignPlayer", "editTeilnehmerlisteCheck", "editTeilnehmerlisteSave", "editTeilnehmerlisteCheck"], actions,
+      "Erwarte Pre-Read → assignPlayer → Re-Render → Save → Read-Back — got #{actions.inspect}"
   end
 
   # --- AC-2 Multi-Add (Phase-7-Spezifikum) ---
@@ -180,9 +180,10 @@ class McpServer::Tools::AssignPlayerToTeilnehmerlisteTest < ActiveSupport::TestC
     refute_nil save_call, "editTeilnehmerlisteSave muss aufgerufen worden sein"
     _, _, params, _ = save_call
     # 9-Felder-Base-Payload aus 07-02 SNIFF-OUTPUT.md §3 + save-Sentinel
-    expected_keys = %i[fedId branchId disciplinId catId season meisterTypeId meisterschaftsId sortedBy firstEntry save].sort
-    assert_equal expected_keys, params.keys.sort,
-      "Save-Payload muss 9-Felder-Base + save haben — got #{params.keys.sort.inspect}"
+    # Plan 07-04 Inline-Patch v2: zusätzlich :referer (wird vom Real-Client als HTTP-Header gesetzt, nicht im Body)
+    required_keys = %i[fedId branchId disciplinId catId season meisterTypeId meisterschaftsId sortedBy firstEntry save]
+    missing_keys = required_keys - params.keys
+    assert_empty missing_keys, "Save-Payload fehlen Felder: #{missing_keys.inspect}; got #{params.keys.sort.inspect}"
     assert_equal "1", params[:save], "save-Sentinel muss '1' sein (D-7-6, non-blank fallthrough für client.post)"
     assert_equal 890, params[:meisterschaftsId], "meisterschaftsId = tournament_cc_id (Phase-7-Identifier)"
   end
@@ -267,9 +268,9 @@ class McpServer::Tools::AssignPlayerToTeilnehmerlisteTest < ActiveSupport::TestC
     )
     refute response.error?, "Expected success, got: #{response.content.first[:text]}"
     assert_match(/read_back_match: skipped/, response.content.first[:text])
-    # Nur 3 Calls: Pre-Read + assignPlayer + Save (kein 2. editTeilnehmerlisteCheck)
+    # 4 Calls (mit Inline-Patch Risk A): Pre-Read + assignPlayer + Re-Render + Save (kein Read-Back)
     check_calls = @mock.calls.select { |verb, action, _, _| verb == :post && action == "editTeilnehmerlisteCheck" }
-    assert_equal 1, check_calls.size, "read_back:false → nur 1 editTeilnehmerlisteCheck (Pre-Read) — got #{check_calls.size}"
+    assert_equal 2, check_calls.size, "read_back:false → 2 editTeilnehmerlisteCheck (Pre-Read + Re-Render) — got #{check_calls.size}"
   end
 
   # --- Real-CC-Format-Parsing (NBV-only-Constraint-Vorbereitung) ---

@@ -126,10 +126,13 @@ module McpServer
         end
 
         # Armed=true: Multi-Step Save-Chain.
+        # Plan 07-04 Inline-Patch v2 (Risk A.2): Referer-Chaining — jeder Call referenziert den vorherigen.
+        # HAR-Analyse 2026-05-11 zeigte: Real-CC braucht Referer-Header für Phase-7-Workflow-State-Machine.
+        # Phase 6 funktionierte ohne — Phase 7 ist strenger (PHP-MVC State-Validation pro Step).
         # Step 1: assignPlayer (Multi-Add).
         # `meldungId[]` ist als String-Key mit Array-Value notwendig, damit set_form_data
         # `meldungId%5B%5D=<id1>&meldungId%5B%5D=<id2>` encoded (matches Real-CC-HAR-Format).
-        assign_payload = base_payload(tournament_cc_id, scope)
+        assign_payload = base_payload(tournament_cc_id, scope).merge(referer: "/admin/einzel/meisterschaft/editTeilnehmerlisteCheck.php?")
         assign_payload["meldungId[]"] = player_cc_ids
         assign_res, assign_doc = client.post("assignPlayer", assign_payload, { armed: armed, session_id: cc_session.cookie })
         if cc_session.reauth_if_needed!(assign_doc)
@@ -140,9 +143,17 @@ module McpServer
         assign_parsed = parse_cc_error(assign_doc)
         return error("CC rejected at assignPlayer: #{assign_parsed}") if assign_parsed && assign_parsed != "(no error)"
 
-        # Step 2: editTeilnehmerlisteSave — Commit mit save="1" Sentinel.
+        # Step 2 (Plan 07-04 Inline-Patch v2 — Risk A): Re-Render-Form-State via editTeilnehmerlisteCheck.
+        # Referer-Chaining: dieser Step kommt vom assignPlayer-Submit.
+        recheck_payload = base_payload(tournament_cc_id, scope).merge(referer: "/admin/einzel/meisterschaft/assignPlayer.php?")
+        rc_res, _rc_doc = client.post("editTeilnehmerlisteCheck", recheck_payload, { armed: armed, session_id: cc_session.cookie })
+        return error("Unexpected nil response from CC (editTeilnehmerlisteCheck re-render, armed mode).") if rc_res.nil?
+        return error("CC rejected at editTeilnehmerlisteCheck re-render: HTTP #{rc_res&.code}") if rc_res&.code != "200"
+
+        # Step 3: editTeilnehmerlisteSave — Commit mit save="1" Sentinel.
+        # Referer: kommt vom editTeilnehmerlisteCheck (re-render).
         # save: "1" als non-blank Sentinel (CC PHP prüft isset, nicht Wert; client.post .reject(&:blank?) entfernt sonst).
-        save_payload = base_payload(tournament_cc_id, scope).merge(save: "1")
+        save_payload = base_payload(tournament_cc_id, scope).merge(save: "1", referer: "/admin/einzel/meisterschaft/editTeilnehmerlisteCheck.php?")
         save_res, save_doc = client.post("editTeilnehmerlisteSave", save_payload, { armed: armed, session_id: cc_session.cookie })
         return error("Unexpected nil response from CC (editTeilnehmerlisteSave, armed mode).") if save_res.nil?
         return error("CC rejected at editTeilnehmerlisteSave: #{parse_cc_error(save_doc)} (HTTP #{save_res&.code})") if save_res&.code != "200"
@@ -174,7 +185,7 @@ module McpServer
           added: #{player_cc_ids.inspect}
           teilnehmerliste_count_before: #{pre_read[:current_teilnehmer].size}
           teilnehmerliste_count_after:  #{pre_read[:current_teilnehmer].size + player_cc_ids.size}
-          Steps completed: assignPlayer → editTeilnehmerlisteSave#{read_back ? " → editTeilnehmerlisteCheck (read-back)" : ""}.
+          Steps completed: assignPlayer → editTeilnehmerlisteCheck (re-render) → editTeilnehmerlisteSave#{read_back ? " → editTeilnehmerlisteCheck (read-back)" : ""}.
           read_back_match: #{read_back_match}
         OUT
       rescue StandardError => e
@@ -214,8 +225,17 @@ module McpServer
       # Returns Hash with keys [:tournament_name, :current_teilnehmer, :available_in_meldeliste]
       # — or error response on HTTP/parse failure.
       # Hybrid-Parser: funktioniert für Mock-HTML (analog 07-02 Captures) UND Real-CC-HTML.
+      #
+      # Plan 07-04 Inline-Patch v3 (Risk A.3): Pre-Read benutzt `dla=1`-Modus (Initial-Landing-Payload
+      # nach Navigation von showTeilnehmerliste) statt `firstEntry=1`. CC unterscheidet:
+      # - dla=1, foundpid=, etlbu=, akkpid= → Initial-Landing, DB-State in Session-Buffer laden
+      # - firstEntry=1 → Working-Session, existierenden Buffer benutzen
+      # Ohne dla=1 liefert CC einen leeren Buffer in fresh Sessions (zeigt KEINEN DB-State).
+      # Fresh-Session-Pre-Read MUSS dla=1 nutzen, sonst sieht es den persistierten DB-State nicht.
       def self.pre_read_teilnehmerliste(client, tournament_cc_id, scope)
-        payload = base_payload(tournament_cc_id, scope)
+        # firstEntry: 1 raus, dla/foundpid/etlbu/akkpid rein (HAR-Initial-Pattern)
+        payload = base_payload(tournament_cc_id, scope).reject { |k, _| k == :firstEntry }
+                    .merge(dla: 1, foundpid: "", etlbu: "", akkpid: "")
         res, doc = client.post("editTeilnehmerlisteCheck", payload, { armed: true, session_id: cc_session.cookie })
         if cc_session.reauth_if_needed!(doc)
           res, doc = client.post("editTeilnehmerlisteCheck", payload, { armed: true, session_id: cc_session.cookie })
