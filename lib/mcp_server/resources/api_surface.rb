@@ -2,13 +2,17 @@
 # ApiSurface — Exponiert den kuratierten PATH_MAP-Subset (D-04 Allowlist) als MCP-Resources
 # unter cc://api/{action}. NICHT alle ~100 PATH_MAP-Entries (D-04 verbietet Auto-Mapping).
 #
-# Locked count: genau 20 Entries (11 Read-Lookups + 8 Write/Admin-Actions + 1 Dashboard-Root `home`).
-# 20 curated entries innerhalb der D-04-Erlaubnis von 10-20 Actions.
+# Locked count: genau 25 Entries (12 Read-Lookups + 12 Write/Admin-Actions + 1 Dashboard-Root `home`).
+# 25 curated entries — D-04-Boundary von Plan 07-01 explizit auf 25 angehoben (war 20 in Plan 06-03).
 # Aufstockung 15→18 in Plan 04-04 (cc_register_for_tournament 2-Step-Workflow):
 # +addPlayerToMeldeliste (write), +saveMeldeliste (write), +showCommittedMeldeliste (read).
 # Aufstockung 18→20 in Plan 06-03 (cc_update_tournament_deadline 2-Step-Workflow):
 # +editMeldelisteCheck (write), +editMeldelisteSave (write). showMeldeliste-Pre-Read
 # nutzt existierenden read-only-Key (kein 3. Eintrag — siehe PATH_MAP-Reuse-Decision).
+# Aufstockung 20→25 in Plan 07-03 (cc_assign_player_to_teilnehmerliste Multi-Step-Workflow):
+# +assignPlayer (write), +removePlayer (write, für Plan 07-04 Inline-Patch / Phase 8),
+# +editTeilnehmerlisteCheck (write), +editTeilnehmerlisteSave (write), +showTeilnehmerliste (read).
+# D-04-BOUNDARY 25 ERREICHT — weitere Erweiterungen brauchen Re-Discuss (Phase 9 Cleanup vorgemerkt).
 #
 # WICHTIG (Revision 2026-05-07, Blockers 2+3): Plan 01's `Server.install_central_read_handler`
 # besitzt den zentralen Dispatcher. Diese Klasse exponiert nur `.all` (Resource-Liste) +
@@ -17,22 +21,26 @@
 #
 # Sicherheit (T-40-03-02): ALLOWLIST-Whitelist verhindert, dass beliebige PATH_MAP-Keys
 # exponiert werden. Plan 01's Dispatcher-Regex [\w-]+ blockt '/' und '..' auf Dispatch-Ebene.
-# T-40-03-03: Manuelle ALLOWLIST mit exakt 20 Entries verhindert D-04-Verletzung (Auto-Mapping).
+# T-40-03-03: Manuelle ALLOWLIST mit exakt 25 Entries verhindert D-04-Verletzung (Auto-Mapping).
+# D-04-Boundary auf 25 angehoben in Plan 07-01 (Decisions); Konsolidierung deferred Phase 9.
 
 module McpServer
   module Resources
     class ApiSurface
-      # 20 kuratierte Entries — gesperrt per RESEARCH §"Curated PATH_MAP Allowlist (D-04 Empfehlung)"
-      # plus Aufstockung in Plan 04-04 + Plan 06-03.
+      # 25 kuratierte Entries — gesperrt per RESEARCH §"Curated PATH_MAP Allowlist (D-04 Empfehlung)"
+      # plus Aufstockung in Plan 04-04 + Plan 06-03 + Plan 07-03.
       # Aufschlüsselung:
-      #   11 Read-Lookups: showLeagueList, showLeague, showMeisterschaftenList, showMeisterschaft,
+      #   12 Read-Lookups: showLeagueList, showLeague, showMeisterschaftenList, showMeisterschaft,
       #     showMeldelistenList, showMeldeliste, showTeam, showClubList, spielbericht, suche,
-      #     showCommittedMeldeliste (Plan 04-04 — Verifikations-Call nach Save)
-      #   8 Write/Admin: showAnnounceList, showCategory, showSerie, releaseMeldeliste,
+      #     showCommittedMeldeliste (Plan 04-04 — Verifikations-Call nach Save),
+      #     showTeilnehmerliste (Plan 07-03 — Read-only View Teilnehmerliste)
+      #   12 Write/Admin: showAnnounceList, showCategory, showSerie, releaseMeldeliste,
       #     addPlayerToMeldeliste (Plan 04-04), saveMeldeliste (Plan 04-04),
-      #     editMeldelisteCheck (Plan 06-03), editMeldelisteSave (Plan 06-03)
+      #     editMeldelisteCheck (Plan 06-03), editMeldelisteSave (Plan 06-03),
+      #     assignPlayer (Plan 07-03), removePlayer (Plan 07-03 — for Plan 07-04 / Phase 8),
+      #     editTeilnehmerlisteCheck (Plan 07-03), editTeilnehmerlisteSave (Plan 07-03)
       #   1 Dashboard-Root: home
-      # Gesamt: 20 (oberes Ende D-04 Bereich 10-20).
+      # Gesamt: 25 (D-04-Boundary aus Plan 07-01 ERREICHT — weitere Erweiterungen brauchen Re-Discuss).
       ALLOWLIST = %w[
         home
         showLeagueList
@@ -54,6 +62,11 @@ module McpServer
         showCommittedMeldeliste
         editMeldelisteCheck
         editMeldelisteSave
+        assignPlayer
+        removePlayer
+        editTeilnehmerlisteCheck
+        editTeilnehmerlisteSave
+        showTeilnehmerliste
       ].freeze
 
       # Mapping Action → Syncer-Referenz (aus RESEARCH §"Curated PATH_MAP Allowlist" extrahiert).
@@ -76,7 +89,12 @@ module McpServer
         "saveMeldeliste" => "(none — Plan 04-04 Write-Tool)",
         "showCommittedMeldeliste" => "(none — Plan 04-04 Verifikations-Call)",
         "editMeldelisteCheck" => "(none — Plan 06-03 Write-Tool Step 1)",
-        "editMeldelisteSave" => "(none — Plan 06-03 Write-Tool Step 2)"
+        "editMeldelisteSave" => "(none — Plan 06-03 Write-Tool Step 2)",
+        "assignPlayer" => "(none — Plan 07-03 Write-Tool Multi-Add)",
+        "removePlayer" => "(none — Plan 07-04 Inline-Patch / Phase 8)",
+        "editTeilnehmerlisteCheck" => "(none — Plan 07-03 Pre-Read + Read-Back)",
+        "editTeilnehmerlisteSave" => "(none — Plan 07-03 Commit)",
+        "showTeilnehmerliste" => "(none — Plan 07-03 Read-only View)"
       }.freeze
 
       # Mapping Action → MCP-Tool-Name (Plans 04/05, EN-benannt per D-20).
@@ -99,7 +117,13 @@ module McpServer
         "saveMeldeliste" => "cc_register_for_tournament",
         "showCommittedMeldeliste" => "cc_register_for_tournament",
         "editMeldelisteCheck" => "cc_update_tournament_deadline",
-        "editMeldelisteSave" => "cc_update_tournament_deadline"
+        "editMeldelisteSave" => "cc_update_tournament_deadline",
+        "assignPlayer" => "cc_assign_player_to_teilnehmerliste",
+        # "removePlayer" intentionally unmapped (siehe D-7-8 in Plan 07-02 SNIFF-OUTPUT.md):
+        # wird in Plan 07-04 Inline-Patch ODER Phase 8 als cc_remove_from_teilnehmerliste gewrappt.
+        "editTeilnehmerlisteCheck" => "cc_assign_player_to_teilnehmerliste",
+        "editTeilnehmerlisteSave" => "cc_assign_player_to_teilnehmerliste",
+        "showTeilnehmerliste" => "cc_assign_player_to_teilnehmerliste"
       }.freeze
 
       # Gibt Array<MCP::Resource> mit genau 20 Entries zurück (D-04 Allowlist, gesperrt).
