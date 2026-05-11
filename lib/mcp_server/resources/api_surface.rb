@@ -2,10 +2,13 @@
 # ApiSurface — Exponiert den kuratierten PATH_MAP-Subset (D-04 Allowlist) als MCP-Resources
 # unter cc://api/{action}. NICHT alle ~100 PATH_MAP-Entries (D-04 verbietet Auto-Mapping).
 #
-# Locked count: genau 18 Entries (11 Read-Lookups + 6 Write/Admin-Actions + 1 Dashboard-Root `home`).
-# 18 curated entries innerhalb der D-04-Erlaubnis von 10-20 Actions.
+# Locked count: genau 20 Entries (11 Read-Lookups + 8 Write/Admin-Actions + 1 Dashboard-Root `home`).
+# 20 curated entries innerhalb der D-04-Erlaubnis von 10-20 Actions.
 # Aufstockung 15→18 in Plan 04-04 (cc_register_for_tournament 2-Step-Workflow):
 # +addPlayerToMeldeliste (write), +saveMeldeliste (write), +showCommittedMeldeliste (read).
+# Aufstockung 18→20 in Plan 06-03 (cc_update_tournament_deadline 2-Step-Workflow):
+# +editMeldelisteCheck (write), +editMeldelisteSave (write). showMeldeliste-Pre-Read
+# nutzt existierenden read-only-Key (kein 3. Eintrag — siehe PATH_MAP-Reuse-Decision).
 #
 # WICHTIG (Revision 2026-05-07, Blockers 2+3): Plan 01's `Server.install_central_read_handler`
 # besitzt den zentralen Dispatcher. Diese Klasse exponiert nur `.all` (Resource-Liste) +
@@ -14,21 +17,22 @@
 #
 # Sicherheit (T-40-03-02): ALLOWLIST-Whitelist verhindert, dass beliebige PATH_MAP-Keys
 # exponiert werden. Plan 01's Dispatcher-Regex [\w-]+ blockt '/' und '..' auf Dispatch-Ebene.
-# T-40-03-03: Manuelle ALLOWLIST mit exakt 18 Entries verhindert D-04-Verletzung (Auto-Mapping).
+# T-40-03-03: Manuelle ALLOWLIST mit exakt 20 Entries verhindert D-04-Verletzung (Auto-Mapping).
 
 module McpServer
   module Resources
     class ApiSurface
-      # 18 kuratierte Entries — gesperrt per RESEARCH §"Curated PATH_MAP Allowlist (D-04 Empfehlung)"
-      # plus Aufstockung in Plan 04-04 (cc_register_for_tournament 2-Step-Workflow).
+      # 20 kuratierte Entries — gesperrt per RESEARCH §"Curated PATH_MAP Allowlist (D-04 Empfehlung)"
+      # plus Aufstockung in Plan 04-04 + Plan 06-03.
       # Aufschlüsselung:
       #   11 Read-Lookups: showLeagueList, showLeague, showMeisterschaftenList, showMeisterschaft,
       #     showMeldelistenList, showMeldeliste, showTeam, showClubList, spielbericht, suche,
       #     showCommittedMeldeliste (Plan 04-04 — Verifikations-Call nach Save)
-      #   6 Write/Admin: showAnnounceList, showCategory, showSerie, releaseMeldeliste,
-      #     addPlayerToMeldeliste (Plan 04-04), saveMeldeliste (Plan 04-04)
+      #   8 Write/Admin: showAnnounceList, showCategory, showSerie, releaseMeldeliste,
+      #     addPlayerToMeldeliste (Plan 04-04), saveMeldeliste (Plan 04-04),
+      #     editMeldelisteCheck (Plan 06-03), editMeldelisteSave (Plan 06-03)
       #   1 Dashboard-Root: home
-      # Gesamt: 18 (innerhalb D-04 Bereich 10-20).
+      # Gesamt: 20 (oberes Ende D-04 Bereich 10-20).
       ALLOWLIST = %w[
         home
         showLeagueList
@@ -48,6 +52,8 @@ module McpServer
         addPlayerToMeldeliste
         saveMeldeliste
         showCommittedMeldeliste
+        editMeldelisteCheck
+        editMeldelisteSave
       ].freeze
 
       # Mapping Action → Syncer-Referenz (aus RESEARCH §"Curated PATH_MAP Allowlist" extrahiert).
@@ -68,7 +74,9 @@ module McpServer
         "releaseMeldeliste" => "(none — Plan 05 Write-Tool)",
         "addPlayerToMeldeliste" => "(none — Plan 04-04 Write-Tool)",
         "saveMeldeliste" => "(none — Plan 04-04 Write-Tool)",
-        "showCommittedMeldeliste" => "(none — Plan 04-04 Verifikations-Call)"
+        "showCommittedMeldeliste" => "(none — Plan 04-04 Verifikations-Call)",
+        "editMeldelisteCheck" => "(none — Plan 06-03 Write-Tool Step 1)",
+        "editMeldelisteSave" => "(none — Plan 06-03 Write-Tool Step 2)"
       }.freeze
 
       # Mapping Action → MCP-Tool-Name (Plans 04/05, EN-benannt per D-20).
@@ -89,10 +97,12 @@ module McpServer
         "releaseMeldeliste" => "cc_finalize_teilnehmerliste",
         "addPlayerToMeldeliste" => "cc_register_for_tournament",
         "saveMeldeliste" => "cc_register_for_tournament",
-        "showCommittedMeldeliste" => "cc_register_for_tournament"
+        "showCommittedMeldeliste" => "cc_register_for_tournament",
+        "editMeldelisteCheck" => "cc_update_tournament_deadline",
+        "editMeldelisteSave" => "cc_update_tournament_deadline"
       }.freeze
 
-      # Gibt Array<MCP::Resource> mit genau 18 Entries zurück (D-04 Allowlist, gesperrt).
+      # Gibt Array<MCP::Resource> mit genau 20 Entries zurück (D-04 Allowlist, gesperrt).
       # Defensiv: nil-Entries werden via .compact entfernt (sollte nie auftreten, da ALLOWLIST
       # gegen PATH_MAP verifiziert wird — aber verhindert Laufzeitfehler bei Sync-Gap).
       def self.all
