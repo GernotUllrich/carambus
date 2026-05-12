@@ -1,5 +1,22 @@
 # ClubCloud-MCP-Server: Quickstart für die technische Stellvertretung
 
+> 🛑 **STOP — bist Du selbst der Club-Sportwart?**
+>
+> Diese Doku ist NICHT für Dich. Sie richtet sich an Deine technische Stellvertretung
+> (Landessportwart, Carambus-Admin oder Carambus-Entwickler). Du brauchst keinen
+> Code-Editor und kein Terminal.
+>
+> **Deine 2 Optionen:**
+>
+> 1. **Setup-Service vor Ort:** Frag Deinen Carambus-Admin nach einem Setup-Termin — er
+>    installiert den MCP-Server direkt auf Deinem Rechner (siehe
+>    [Setup-Service-Doku](clubcloud-mcp-setup-service.de.md)). Danach bedienst Du den MCP-Server
+>    über Claude Desktop ohne weitere Technik.
+> 2. **Aufgaben weiterleiten:** Schick Deine Anmelde-/Cleanup-/Akkreditierungs-Aufgaben
+>    per E-Mail/Telefon an Deine technische Stellvertretung — sie nutzt den MCP-Server für
+>    Dich (siehe [Sportwart-FAQ](#sportwart-faq--wenn-du-als-sportwart-hier-landest) weiter
+>    unten in dieser Doku).
+
 > **Wer Du sein solltest, um diese Doku produktiv zu nutzen:**
 > Du bist die technische Stellvertretung des Club-Sportwarts (Landessportwart, Carambus-Admin
 > oder Carambus-Entwickler). Du hast einen Mac/Windows/Linux mit Terminal und kannst eine

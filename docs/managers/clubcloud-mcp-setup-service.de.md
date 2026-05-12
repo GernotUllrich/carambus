@@ -268,6 +268,57 @@ Bei wiederholtem Scheitern: Remote-Bildschirm-Sharing vereinbaren und Logs analy
 
 ---
 
+## Sektion 5.5 — Permission-Setup in Claude Desktop („Always allow")
+
+**Warum diese Sektion?** (Adressiert Befund #6 aus dem Plan-10-03-Sportwart-Walkthrough; siehe `.paul/phases/10-walkthrough-sportwart/10-03-WALKTHROUGH-LOG.md`.)
+
+Claude Desktop fragt **per Default** bei jedem MCP-Tool-Call nach Erlaubnis. Für die typischen
+Carambus-Workflows (Anmeldung, Akkreditierung, Liste finalisieren) bedeutet das pro Spickzettel
+**4–8 Permission-Prompts**, weil jeder Spickzettel mehrere Tools nacheinander aufruft und destruktive
+Tools im Dry-Run-First-Modus zweimal laufen (`armed:false` → `armed:true`).
+
+**Auswirkung beim Sportwart:**
+- Jeder Workflow wird durch 4–8 Klicks unterbrochen.
+- Sportwart denkt „Passt das? Muss ich das wirklich erlauben?" → Vertrauens-Lücke.
+- Abbruch-Risiko: bei zu vielen Prompts klickt der Sportwart auf „Verweigern" oder schließt Claude.
+
+**Lösung:** Permission-Modus für den `carambus-clubcloud` MCP-Server auf **„Always allow for this
+server"** stellen. Die Permission-Prompts entfallen dann komplett für die laufende Session und
+(je nach Claude-Desktop-Version) auch persistent für künftige Sessions.
+
+**Schritt-für-Schritt (Stand 2026-05; Claude-Desktop-UI kann sich ändern):**
+
+1. Claude Desktop öffnen → **Einstellungen** (Cmd+, auf macOS / Ctrl+, auf Windows).
+2. Tab „Erweitert" / „Developer" / „Tools & Extensions" suchen — der exakte Pfad variiert je nach
+   Claude-Desktop-Version.
+3. **MCP-Servers**-Liste suchen, den Eintrag `carambus-clubcloud` finden.
+4. Permission-Modus auf **„Always allow for this server"** stellen (Dropdown oder Toggle).
+5. **Alternative**, falls Du den Einstellungs-Pfad nicht findest: warte auf den ersten Tool-Call
+   im Dialog (z.B. via Spickzettel „Status Eurokegel?") und klicke beim Permission-Prompt auf
+   **„Don't ask again for this server"** (oder „Immer erlauben — dieser Server").
+
+**Verifikation:** Nach dem Setting einen Spickzettel-Workflow durchspielen (z.B.
+`cc://workflow/scenarios/sportwart-tagesablauf-vor-turnier`). Es sollten **0 Permission-Prompts**
+mehr erscheinen.
+
+**Sicherheits-Hinweis:** Permission-Bypass nur für **vertrauenswürdige** MCP-Server aktivieren.
+Beim Carambus-Setup-Service ist Vertrauen begründet:
+
+- Du (der Carambus-Admin) hast den MCP-Server selbst installiert (Sektionen 2 + 3).
+- `claude_desktop_config.json` ist per `chmod 600` geschützt (Sektion 4).
+- Der MCP-Server hat 4-Schichten-Sicherheitsnetz + Pre-Validation-First-Pattern (Plan 10-05.1) +
+  Audit-Trail (JSON-Lines `log/mcp-audit-trail.log`). Auch ohne Permission-Prompt kann der Sportwart
+  destruktive Operationen nur via expliziten `armed:true`-Step ausführen, und alle armed-Calls werden
+  vollständig auditiert.
+
+**Sportwart-Briefing (kurz):** Erkläre dem Sportwart vor dem ersten Workflow:
+„Claude führt jetzt jeden Spickzettel ohne Rückfragen aus, weil ich (Dein Admin) Claude den Server
+einmalig erlaubt habe. Bei destruktiven Aktionen (Anmelden, Liste schließen, Spieler entfernen)
+zeigt der MCP-Server vorher trotzdem den Trockenlauf — Du musst noch immer aktiv mit „Anmelden" /
+„Schließen" / „Entfernen" bestätigen, BEVOR es scharf wird."
+
+---
+
 ## Sektion 6 — Remote-Bildschirm-Sharing-Fallback
 
 Wenn vor-Ort-Besuch nicht möglich ist (Distanz, Termin-Konflikte, COVID-Risiko, etc.):
