@@ -6,7 +6,9 @@ module McpServer
   module Tools
     class LookupTournament < BaseTool
       tool_name "cc_lookup_tournament"
-      description "Look up a ClubCloud tournament by CC meisterschaft ID or Carambus tournament ID. " \
+      description "Wann nutzen? Sportwart/Turnierleiter fragt nach Details zu einem Turnier — Status, Meldeschluss, bereits angemeldete Spieler — ODER ein anderes Tool braucht eine meldeliste_cc_id, die nur über den Turniernamen bekannt ist. " \
+                  "Was tippt der User typisch? 'Status Eurokegel?', 'Wann ist Meldeschluss NDM Endrunde?', 'Wie viele Spieler sind angemeldet?', 'Details zur DM Cadre'. " \
+                  "Look up a ClubCloud tournament by CC meisterschaft ID or Carambus tournament ID. " \
                   "Queries the local Carambus DB (TournamentCc mirror) by default; pass force_refresh=true for live CC. " \
                   "Output enthält Detail-Felder (location_text, tournament_start, tournament_end, accredation_end). " \
                   "Mit `with_committed_list:true` wird zusätzlich showCommittedMeldeliste live abgefragt und " \

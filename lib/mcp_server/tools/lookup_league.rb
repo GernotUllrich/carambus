@@ -6,7 +6,9 @@ module McpServer
   module Tools
     class LookupLeague < BaseTool
       tool_name "cc_lookup_league"
-      description "Look up a ClubCloud league by CC IDs (fed_id, branch_id, season) or internal league_id. " \
+      description "Wann nutzen? Wenn der User Details zu einer Liga (Saison + Disziplin) braucht — Tabellenstand, Spielpaarungen, teilnehmende Mannschaften. Typisch für Liga-Auswertungen außerhalb des Turnier-Workflows. " \
+                  "Was tippt der User typisch? 'Details Bezirksliga Kegel?', 'Saison 2025/2026 Liga 1234', 'lookup league'. " \
+                  "Look up a ClubCloud league by CC IDs (fed_id, branch_id, season) or internal league_id. " \
                   "Queries the local Carambus DB by default (LeagueCc mirror); pass force_refresh=true for live CC."
       input_schema(
         properties: {

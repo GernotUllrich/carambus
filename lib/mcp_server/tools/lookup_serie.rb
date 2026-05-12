@@ -6,7 +6,9 @@ module McpServer
   module Tools
     class LookupSerie < BaseTool
       tool_name "cc_lookup_serie"
-      description "Live lookup of a CC tournament serie by serie_id, or list all series for a federation and season. " \
+      description "Wann nutzen? Wenn der User Details zu einer Turnierserie (z.B. Eurokegel-Serie, DM-Cadre-Serie) oder die Saison-Übersicht aller Serien einer Region braucht. Meist von technischer Stellvertretung. " \
+                  "Was tippt der User typisch? 'Welche Serien gibt es?', 'Details Serie 1234', 'Eurokegel-Serie diese Saison'. " \
+                  "Live lookup of a CC tournament serie by serie_id, or list all series for a federation and season. " \
                   "No Carambus-side mirror for CC series — always queries CC directly."
       input_schema(
         properties: {

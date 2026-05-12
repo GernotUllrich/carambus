@@ -10,6 +10,8 @@ module McpServer
     class FinalizeTeilnehmerliste < BaseTool
       tool_name "cc_finalize_teilnehmerliste"
       description <<~DESC
+        Wann nutzen? Vor Turnierstart, wenn der Sportwart/Turnierleiter die Liste schließt — keine Änderungen mehr möglich, CC akzeptiert Ergebnis-Uploads. Schreibendes destruktives Tool mit Pre-Validation-First (3 Constraints) + Audit-Trail.
+        Was tippt der User typisch? 'Liste schließen', 'Finalize Eurokegel', 'Meldeliste Bezirksmeisterschaft sperren', 'Teilnehmerliste fertig — schließen'.
         Finalize (release) a Meldeliste in ClubCloud, locking the participant list.
         After finalization, CC accepts result uploads for this tournament.
         Requires Club-Sportwart or higher CC role; CC will reject with a permission error otherwise.

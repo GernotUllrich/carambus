@@ -27,6 +27,8 @@ module McpServer
     class RegisterForTournament < BaseTool
       tool_name "cc_register_for_tournament"
       description <<~DESC
+        Wann nutzen? Wenn der Sportwart einen oder mehrere Spieler in ein Turnier eintragen will — typisch aus einer Anmelde-E-Mail des Vereins. Schreibendes Tool mit Pre-Validation-First-Pattern (7 Constraints) + Audit-Trail (Plan 10-05.1).
+        Was tippt der User typisch? 'Meld Hans Müller für die Eurokegel an', 'Folgende drei Spieler für DM Cadre …', 'Anmeldung Spieler X Turnier Y'.
         Register a player for a ClubCloud Einzelturnier (single-tournament) Meldeliste.
         Workflow: 2-Step CC POST (cc_add → editMeldelisteSave) + optional read-only verification.
         Pass `armed: false` (default) for a dry-run that prints exact request details

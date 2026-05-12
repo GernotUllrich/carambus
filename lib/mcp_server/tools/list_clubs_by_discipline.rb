@@ -8,7 +8,9 @@ module McpServer
   module Tools
     class ListClubsByDiscipline < BaseTool
       tool_name "cc_list_clubs_by_discipline"
-      description "Liste der Vereine in einer Region, deren Spieler in der angegebenen Disziplin " \
+      description "Wann nutzen? Wenn der User wissen will, welche Vereine in einer Disziplin spielberechtigt sind ('welche Vereine spielen Kegel?'). Anfang der Filter-Chain Region+Disziplin → Vereine → Spieler. " \
+                  "Was tippt der User typisch? 'Welche Vereine spielen Eurokegel?', 'Kegel-Vereine NBV', 'list clubs Cadre'. " \
+                  "Liste der Vereine in einer Region, deren Spieler in der angegebenen Disziplin " \
                   "gerankt sind (= spielberechtigt). DB-first; force_refresh:true triggert region_cc.sync_clubs " \
                   "und re-runt den DB-Pfad. Spielberechtigung wird via PlayerRanking-Join ermittelt; " \
                   "PlayerClass-Lizenzklasse aktuell nicht berücksichtigt."

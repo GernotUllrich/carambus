@@ -21,7 +21,9 @@ module McpServer
       MAX_RESULTS = 50
 
       tool_name "cc_list_players_by_name"
-      description "DB-first Spieler-Suche per Namens-Fragment in der Default-Region (CC_REGION). " \
+      description "Wann nutzen? Wenn der User einen Spielernamen aus einer E-Mail sucht und den Verein nicht weiß. DB-first, regions-eindeutig. " \
+                  "Was tippt der User typisch? 'Wer ist Hans Müller?', 'Schröder Spieler', 'finde Spieler mit Namen Schmidt'. " \
+                  "DB-first Spieler-Suche per Namens-Fragment in der Default-Region (CC_REGION). " \
                   "Liefert auch ohne Vereinsangabe Treffer; optional verengt club_cc_id auf einen Verein. " \
                   "Region-Filter via PlayerRanking-Existenz (Spieler ohne Ranking in der Region tauchen nicht auf). " \
                   "Max #{MAX_RESULTS} Treffer — bei mehr Treffern club_cc_id setzen. " \

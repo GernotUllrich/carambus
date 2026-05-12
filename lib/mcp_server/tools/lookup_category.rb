@@ -6,7 +6,9 @@ module McpServer
   module Tools
     class LookupCategory < BaseTool
       tool_name "cc_lookup_category"
-      description "Live lookup of a CC category by category_id or list all categories for a federation. " \
+      description "Wann nutzen? Wenn der User die Disziplin-/Kategorie-Übersicht einer Region braucht (z.B. 'welche Kategorien gibt es bei NBV?') — meist intern für andere Tools. " \
+                  "Was tippt der User typisch? 'Welche Kategorien?', 'Details Kategorie 42'. " \
+                  "Live lookup of a CC category by category_id or list all categories for a federation. " \
                   "No Carambus-side mirror for CC category detail — always queries CC directly."
       input_schema(
         properties: {

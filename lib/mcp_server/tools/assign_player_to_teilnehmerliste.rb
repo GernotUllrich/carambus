@@ -30,6 +30,8 @@ module McpServer
     class AssignPlayerToTeilnehmerliste < BaseTool
       tool_name "cc_assign_player_to_teilnehmerliste"
       description <<~DESC
+        Wann nutzen? Am Turniertag, wenn der Turnierleiter Spieler aus der Meldeliste auf die Teilnehmerliste übernimmt (Akkreditierung). Multi-Player nativ via meldungId[]. Schreibendes Tool mit Pre-Validation-First (4 Constraints) + Audit-Trail.
+        Was tippt der User typisch? 'Akk Hans Müller', 'Akk drei Spieler', 'Akkreditierung Müller Schmidt Schröder', 'akkreditiere Spieler X'.
         Übernimmt Spieler aus der Meldeliste in die Teilnehmerliste eines Turniers (Akkreditierungs-Workflow).
         Workflow: Pre-Read (editTeilnehmerlisteCheck) → Multi-Add (assignPlayer mit meldungId[]) → Commit (editTeilnehmerlisteSave) → optional Read-Back.
         Pass `armed: false` (default) for a dry-run that prints exact request details

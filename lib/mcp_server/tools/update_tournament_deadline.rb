@@ -33,6 +33,8 @@ module McpServer
     class UpdateTournamentDeadline < BaseTool
       tool_name "cc_update_tournament_deadline"
       description <<~DESC
+        Wann nutzen? Wenn der Sportwart den Meldeschluss eines Turniers verschieben will — typisch zur Vermeidung einer Turnier-Absage bei zu wenig Anmeldungen oder als Last-Minute-Verlängerung. Schreibendes Tool mit Pre-Validation-First (3 Constraints) + Audit-Trail.
+        Was tippt der User typisch? 'Verschieb Meldeschluss Eurokegel auf 02.06.', 'DM Cadre eine Woche nach hinten', 'Anmeldefrist BezMeisterschaft bis Freitag verlängern'.
         Update the Meldeschluss (registration deadline) of a ClubCloud Meldeliste.
         Workflow: Pre-Read (showMeldeliste) → 2-Step CC POST (editMeldelisteCheck → editMeldelisteSave) → optional Read-Back.
         Pass `armed: false` (default) for a dry-run that prints exact request details

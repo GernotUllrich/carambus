@@ -22,6 +22,8 @@ module McpServer
     class RemoveFromTeilnehmerliste < BaseTool
       tool_name "cc_remove_from_teilnehmerliste"
       description <<~DESC
+        Wann nutzen? Am Turniertag, wenn der Turnierleiter einen Spieler von der Teilnehmerliste entfernt (Rückzug, versehentliche Akkreditierung korrigieren). Schreibendes Tool mit Pre-Validation-First (3 Constraints) + Audit-Trail.
+        Was tippt der User typisch? 'Raus Hans Müller', 'Raus Spieler X', 'Müller zurückziehen', 'entferne Schmidt'.
         Entfernt einen Spieler aus der Teilnehmerliste eines Turniers (Rückzug nach Akkreditierung, Korrektur einer versehentlichen Übernahme).
         Workflow: Pre-Read (editTeilnehmerlisteCheck) → removePlayer (Single-Remove via teilnehmerId=) → editTeilnehmerlisteSave → optional Read-Back.
         Pass `armed: false` (default) for a dry-run that prints request details without modifying CC.

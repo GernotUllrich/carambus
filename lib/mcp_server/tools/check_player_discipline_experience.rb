@@ -24,7 +24,9 @@ module McpServer
   module Tools
     class CheckPlayerDisciplineExperience < BaseTool
       tool_name "cc_check_player_discipline_experience"
-      description "Heuristik: Hat der Spieler in dieser Disziplin schon einmal gespielt? " \
+      description "Wann nutzen? Plausibilitäts-Check VOR der Anmeldung — hat der Spieler in dieser Disziplin schon einmal gespielt? Bei 'nein' Rückfrage an den Sportwart ('Erstantritt — wirklich anmelden?'). " \
+                  "Was tippt der User typisch? Selten direkt — meist transparent als Pre-Check vor cc_register_for_tournament. " \
+                  "Heuristik: Hat der Spieler in dieser Disziplin schon einmal gespielt? " \
                   "Prüft (a) PlayerRanking-Existenz und (b) GameParticipation in Games dieser " \
                   "Disziplin via Tournament/League. experienced:false bedeutet 'wahrscheinlich " \
                   "Erstantritt' — ideal als Plausibilitäts-Check vor der Anmeldung. " \

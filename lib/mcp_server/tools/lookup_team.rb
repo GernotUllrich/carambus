@@ -6,7 +6,9 @@ module McpServer
   module Tools
     class LookupTeam < BaseTool
       tool_name "cc_lookup_team"
-      description "Live lookup of a ClubCloud team by team_id. " \
+      description "Wann nutzen? Wenn der User Mannschafts-Details aus einer Liga-Saison sucht — Mannschaftsname, Spieler, Verein-Zuordnung. Selten von Sportwart/Turnierleiter, meist von technischer Stellvertretung für Liga-Auswertungen. " \
+                  "Was tippt der User typisch? 'Wer spielt in Team X?', 'Details zu Mannschaft 1234', 'lookup team'. " \
+                  "Live lookup of a ClubCloud team by team_id. " \
                   "No Carambus-side mirror exists for CC teams — always queries CC directly."
       input_schema(
         properties: {

@@ -6,7 +6,9 @@ module McpServer
   module Tools
     class LookupSpielbericht < BaseTool
       tool_name "cc_lookup_spielbericht"
-      description "Live lookup of a CC Spielbericht (match report) by spielbericht_id. " \
+      description "Wann nutzen? Wenn der User den ausgefüllten Spielbericht eines Mannschaftsspiels einsehen will — Aufstellung, Punktestand, Ergebnis. Meist von technischer Stellvertretung für Liga-Auswertungen. " \
+                  "Was tippt der User typisch? 'Spielbericht 1234 zeigen', 'Wer hat gespielt im Spielbericht X?'. " \
+                  "Live lookup of a CC Spielbericht (match report) by spielbericht_id. " \
                   "No Carambus-side mirror for CC Spielberichte — always queries CC directly."
       input_schema(
         properties: {

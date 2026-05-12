@@ -31,6 +31,8 @@ module McpServer
     class LookupMeldelisteForTournament < BaseTool
       tool_name "cc_lookup_meldeliste_for_tournament"
       description <<~DESC
+        Wann nutzen? Wenn ein Write-Tool (register/unregister/update_deadline) eine meldeliste_cc_id braucht, der User aber nur die tournament_cc_id (oder den Turniernamen via cc_lookup_tournament) kennt. Auto-Lookup-Bridge.
+        Was tippt der User typisch? Selten direkt — meist transparent vor Write-Tools.
         Resolve tournament_cc_id → meldeliste_cc_id(s) for a ClubCloud Einzelturnier.
         Use BEFORE cc_register_for_tournament / cc_unregister_for_tournament / cc_update_tournament_deadline if meldeliste_cc_id unknown.
         One Tournament may have N Meldelisten (Quali-Listen pro Region etc.).

@@ -8,7 +8,9 @@ module McpServer
   module Tools
     class ListPlayersByClubAndDiscipline < BaseTool
       tool_name "cc_list_players_by_club_and_discipline"
-      description "Liste der spielberechtigten Spieler eines Vereins für eine Disziplin in einer Saison. " \
+      description "Wann nutzen? Wenn der Sportwart wissen will, welche Spieler eines Vereins für eine Disziplin spielberechtigt sind — z.B. vor der Anmeldung mehrerer Spieler aus dem eigenen Verein. " \
+                  "Was tippt der User typisch? 'Welche BC-Wedel-Spieler dürfen Eurokegel spielen?', 'Spieler BVBW Cadre', 'list players BC Wedel Karambol'. " \
+                  "Liste der spielberechtigten Spieler eines Vereins für eine Disziplin in einer Saison. " \
                   "Spielberechtigung wird via PlayerRanking-Join (player_id, discipline_id, region_id, season_id) " \
                   "ermittelt; PlayerClass-Lizenzklasse aktuell nicht berücksichtigt. DB-first; " \
                   "force_refresh:true triggert region_cc.sync_competitions und re-runt den DB-Pfad."

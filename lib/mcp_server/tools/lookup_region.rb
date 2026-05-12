@@ -8,7 +8,9 @@ module McpServer
   module Tools
     class LookupRegion < BaseTool
       tool_name "cc_lookup_region"
-      description "Look up a Carambus region by shortname (e.g. 'BCW') or ClubCloud federation ID. " \
+      description "Wann nutzen? Selten direkt — meist intern als ID-Auflöser für andere Lookup-/Write-Tools, wenn ein Region-Kontext (z.B. 'NBV', 'BVBW') in einen fed_id übersetzt werden muss. " \
+                  "Was tippt der User typisch? 'Welche Region ist BVBW?', 'gib mir die NBV-Daten' — meist aber transparent im Hintergrund. " \
+                  "Look up a Carambus region by shortname (e.g. 'BCW') or ClubCloud federation ID. " \
                   "Returns region metadata from the local Carambus DB by default; pass force_refresh=true to query CC live."
       input_schema(
         properties: {

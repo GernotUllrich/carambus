@@ -32,6 +32,8 @@ module McpServer
     class UnregisterForTournament < BaseTool
       tool_name "cc_unregister_for_tournament"
       description <<~DESC
+        Wann nutzen? Wenn der Sportwart einen Spieler vor dem Turnier aus der Meldeliste entfernen muss (Abmeldung). Symmetrische Cleanup-Closure zu cc_register_for_tournament. Schreibendes Tool mit Pre-Validation-First (3 Constraints) + Audit-Trail.
+        Was tippt der User typisch? 'Spieler X abmelden', 'Müller aus Eurokegel-Liste raus', 'Storniere Anmeldung Schmidt'.
         Remove a player from a ClubCloud Einzelturnier (single-tournament) Meldeliste.
         Symmetric closure to cc_register_for_tournament (Phase 4).
         Workflow: 5-Step CC POST chain (editMeldelisteCheck dla=1 → cc_remove → editMeldelisteCheck firstEntry=1 → editMeldelisteSave → optional Read-Back).

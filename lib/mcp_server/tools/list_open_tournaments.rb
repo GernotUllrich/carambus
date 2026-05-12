@@ -15,7 +15,9 @@ module McpServer
   module Tools
     class ListOpenTournaments < BaseTool
       tool_name "cc_list_open_tournaments"
-      description "Liste der aktuell ausgeschriebenen Turniere einer Region " \
+      description "Wann nutzen? Wenn der Sportwart die aktuell offenen Turniere einer Region durchgehen will — z.B. zum Überblick was als nächstes ansteht oder zur Auswahl eines bestimmten Turniers nach Namen. " \
+                  "Was tippt der User typisch? 'Welche Turniere sind offen?', 'Liste offene Turniere NBV', 'Eurokegel-Turniere zeigen'. " \
+                  "Liste der aktuell ausgeschriebenen Turniere einer Region " \
                   "(accredation_end >= today AND date >= today). DB-first; Tool liefert " \
                   "meta.last_sync_age_hours als Datenfrische-Confirmer (Production: max ~2h alt). " \
                   "Optionaler `name`-Filter macht eine case-insensitive Substring-Suche auf Tournament-Title — " \

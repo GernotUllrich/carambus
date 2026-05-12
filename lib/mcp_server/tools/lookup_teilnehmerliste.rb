@@ -8,7 +8,9 @@ module McpServer
   module Tools
     class LookupTeilnehmerliste < BaseTool
       tool_name "cc_lookup_teilnehmerliste"
-      description "Look up the Teilnehmerliste (participant list / Meldeliste) for a tournament in ClubCloud. " \
+      description "Wann nutzen? Vor Akkreditierung/Finalisierung — Turnierleiter will den aktuellen Stand der Teilnehmerliste sehen ('wer ist schon akkreditiert?'). Auch um den finalisiert-Status zu prüfen. " \
+                  "Was tippt der User typisch? 'Liste zeigen', 'Wer ist akkreditiert für die Eurokegel?', 'Status Teilnehmerliste'. " \
+                  "Look up the Teilnehmerliste (participant list / Meldeliste) for a tournament in ClubCloud. " \
                   "D-18 acceptance-story read pathway: given a Carambus tournament_id (or CC meldeliste_id + fed_id), " \
                   "returns whether the Meldeliste exists in CC and its finalization status. " \
                   "Queries the Carambus DB first (TournamentCc.registration_list_cc_id mirror); pass force_refresh=true for live CC."
