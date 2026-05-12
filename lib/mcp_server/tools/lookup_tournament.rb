@@ -24,6 +24,7 @@ module McpServer
         properties: {
           meisterschaft_id: {type: "integer", description: "CC meisterschaft ID (cc_id on TournamentCc) — nur regions-eindeutig"},
           tournament_id: {type: "integer", description: "Carambus-internal Tournament ID (region-eindeutig)"},
+          name: {type: "string", description: "Optionaler Name-Search-Filter (Substring auf TournamentCc.name via ILIKE; Plan 10-06 D-10-04-J Vokabular-Schicht). Liefert Disambiguation-Output (0/1/≥2-Treffer) analog cc_lookup_club."},
           fed_id: {type: "integer", description: "ClubCloud federation ID (required for live lookup). Optional — resolved via region lookup (CC_REGION/Setting 'context', default 'NBV'); ENV CC_FED_ID overrides."},
           shortname: {type: "string", description: "Optionaler Region-Filter-Override (z.B. 'BVBW' für Cross-Region-Lookup). Default: CC_REGION/Setting 'context'/'NBV'. Wird auf TournamentCc.context gematched (case-insensitive)."},
           season: {type: "string", description: "Season name like '2025/2026'"},
@@ -34,13 +35,19 @@ module McpServer
       )
       annotations(read_only_hint: true, destructive_hint: false)
 
-      def self.call(meisterschaft_id: nil, tournament_id: nil, fed_id: nil, shortname: nil, season: nil, force_refresh: false, with_committed_list: false, meldeliste_cc_id: nil, server_context: nil)
+      def self.call(meisterschaft_id: nil, tournament_id: nil, name: nil, fed_id: nil, shortname: nil, season: nil, force_refresh: false, with_committed_list: false, meldeliste_cc_id: nil, server_context: nil)
         fed_id ||= default_fed_id
-        unless meisterschaft_id.present? || tournament_id.present?
-          return error("Missing required parameter: provide `meisterschaft_id` or `tournament_id`")
+        unless meisterschaft_id.present? || tournament_id.present? || name.present?
+          return error("Missing required parameter: provide `meisterschaft_id`, `tournament_id`, or `name`")
         end
 
         return live_lookup(meisterschaft_id: meisterschaft_id, fed_id: fed_id, season: season) if force_refresh
+
+        # Plan 10-06 Task 1 (D-10-04-J Vokabular-Schicht): Name-Search via TournamentCc.name ILIKE
+        # mit Phase-8-Disambiguation-Pattern (5. Anwendung). Vorbild: cc_lookup_club aus Plan 10-05.
+        if name.present? && meisterschaft_id.blank? && tournament_id.blank?
+          return name_search(name: name, shortname: shortname)
+        end
 
         # Plan 10-05 Task 2 (Befund #3 D-09-03-2): meisterschaft_id ist nur regions-eindeutig.
         # Region-Filter via TournamentCc.context (lowercase shortname). tournament_id ist
@@ -65,6 +72,48 @@ module McpServer
         return error("Tournament not found in Carambus DB. Try force_refresh: true to query CC.") if tournament_cc.nil?
 
         text(format_tournament_cc(tournament_cc, with_committed_list: with_committed_list, meldeliste_cc_id_override: meldeliste_cc_id, fed_id: fed_id))
+      end
+
+      # Plan 10-06 Task 1 (D-10-04-J Vokabular-Schicht): Name-Search auf TournamentCc.name
+      # mit Phase-8-Disambiguation-Pattern (analog cc_lookup_club aus Plan 10-05).
+      def self.name_search(name:, shortname:)
+        region_shortname = resolve_region_shortname(shortname)
+        escaped = ActiveRecord::Base.sanitize_sql_like(name.to_s)
+        scope = TournamentCc.where("name ILIKE ?", "%#{escaped}%")
+        scope = scope.where(context: region_shortname.to_s.downcase) if region_shortname.present?
+        matches = scope.order(:name).limit(20)
+
+        candidates = matches.map { |tc|
+          {
+            cc_id: tc.cc_id,
+            tournament_id: tc.tournament_id,
+            name: tc.name,
+            context: tc.context,
+            season: tc.season
+          }
+        }
+
+        if candidates.empty?
+          return error(
+            "Kein Turnier in Region '#{region_shortname}' passt zu '#{name}'. " \
+            "Versuche: (a) kürzeren Suchbegriff (z.B. 'Eurokegel' statt 'NDM Endrunde Eurokegel'), " \
+            "(b) shortname-Override für Cross-Region (z.B. shortname:'BVBW'), " \
+            "(c) meisterschaft_id ODER tournament_id falls bekannt."
+          )
+        end
+
+        body = {
+          cc_id: (candidates.length == 1) ? candidates.first[:cc_id] : nil,
+          tournament_id: (candidates.length == 1) ? candidates.first[:tournament_id] : nil,
+          candidates: candidates,
+          meta: {
+            count: candidates.length,
+            region: region_shortname,
+            search: {name: name}
+          }
+        }
+        body[:warning] = "#{candidates.length} Treffer gefunden — bitte Sportwart-Rückfrage: welches Turnier?" if candidates.length > 1
+        text(JSON.generate(body))
       end
 
       # Resolve effective region shortname (uppercase) — explicit param > ENV > Setting > default.

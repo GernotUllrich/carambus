@@ -258,4 +258,39 @@ class McpServer::Tools::LookupTournamentTest < ActiveSupport::TestCase
     body = JSON.parse(response.content.first[:text])
     assert_equal sample.tournament_id, body["tournament_id"]
   end
+
+  # Plan 10-06 Task 1 (D-10-04-J Vokabular-Schicht): Name-Search mit Disambiguation
+  test "Name-Search: 0 Treffer → Tool-Error mit Workaround-Hinweisen" do
+    needle = "ZzzNonexistent#{SecureRandom.hex(8)}"
+    response = McpServer::Tools::LookupTournament.call(name: needle, server_context: nil)
+    assert response.error?
+    msg = response.content.first[:text]
+    assert_match(/Kein Turnier/i, msg)
+    assert_match(/Versuche|kürzeren Suchbegriff|shortname/i, msg)
+  end
+
+  test "Name-Search: erfolgreich liefert candidates-Array" do
+    sample = TournamentCc.where.not(name: [nil, ""]).where.not(context: nil).first
+    skip "No TournamentCc fixtures with name+context available" unless sample
+
+    ENV["CC_REGION"] = sample.context.to_s.upcase
+    # Suche mit Teilstring des echten Namens
+    needle = sample.name.to_s[0, [sample.name.length, 5].min]
+    skip "Sample name too short" if needle.length < 3
+
+    response = McpServer::Tools::LookupTournament.call(name: needle, server_context: nil)
+    refute response.error?, "Expected non-error; got: #{response.content.first[:text]}"
+    body = JSON.parse(response.content.first[:text])
+    assert_operator body["candidates"].length, :>=, 1
+    body["candidates"].each do |c|
+      assert_match(/#{Regexp.escape(needle)}/i, c["name"].to_s)
+    end
+  end
+
+  test "Validation: kein meisterschaft_id/tournament_id/name → error" do
+    response = McpServer::Tools::LookupTournament.call(server_context: nil)
+    assert response.error?
+    assert_match(/Missing required parameter/i, response.content.first[:text])
+    assert_match(/name/i, response.content.first[:text])
+  end
 end
