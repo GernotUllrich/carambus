@@ -226,4 +226,44 @@ class McpServer::Tools::ListOpenTournamentsTest < ActiveSupport::TestCase
       refute response.error?, "Tool should be defensive against sync failure"
     end
   end
+
+  # Plan 10-05 Task 2 (Befund #4 D-10-01-3): nach erfolgreichem force_refresh
+  # muss last_sync_age_hours ~0 sein (Resync-Marker, nicht stale Tournament.sync_date).
+  test "force_refresh: erfolgreicher sync ergibt frisches last_sync_age_hours (~0.0h)" do
+    nbv = Region.find_by(shortname: "NBV")
+    skip "NBV fixtures missing" unless nbv
+    region_cc = nbv.region_cc
+    skip "RegionCc missing for NBV" unless region_cc
+
+    # Stub: sync_tournaments läuft erfolgreich durch (kein Raise)
+    region_cc.stub(:sync_tournaments, ->(_) { [[], nil] }) do
+      response = McpServer::Tools::ListOpenTournaments.call(
+        shortname: "NBV",
+        force_refresh: true,
+        server_context: nil
+      )
+      refute response.error?
+      body = JSON.parse(response.content.first[:text])
+      # last_sync_age_hours muss ~0 sein (Tool-eigener Resync-Marker, nicht Tournament.sync_date)
+      assert_kind_of Numeric, body["meta"]["last_sync_age_hours"]
+      assert_in_delta 0.0, body["meta"]["last_sync_age_hours"], 0.1,
+        "force_refresh:true mit erfolgreichem Sync muss last_sync_age_hours auf ~0.0 setzen, NICHT stale Tournament.sync_date verwenden (Plan 10-05 Befund #4)"
+    end
+  end
+
+  test "force_refresh: false — last_sync_age_hours fällt auf Tournament.sync_date zurück (backwards-compat)" do
+    nbv = Region.find_by(shortname: "NBV")
+    skip "NBV fixtures missing" unless nbv
+
+    response = McpServer::Tools::ListOpenTournaments.call(
+      shortname: "NBV",
+      force_refresh: false,
+      server_context: nil
+    )
+    refute response.error?
+    body = JSON.parse(response.content.first[:text])
+    # Ohne force_refresh kommt last_sync_age_hours aus Tournament.maximum(:sync_date)
+    # Wert kann nil sein wenn alle Tournament.sync_date NULL sind — beide Cases OK
+    assert body["meta"].key?("last_sync_age_hours"), "last_sync_age_hours muss präsent sein"
+  end
 end

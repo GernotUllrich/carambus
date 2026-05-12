@@ -15,12 +15,17 @@ module McpServer
                   "aufzählen — der TM erkennt so Doppelanmeldungen vor dem register-Tool. Tool ist DB-first; " \
                   "bei Detail-Lücken (fehlende location_text, fehlender tournament_start) `force_refresh:true` " \
                   "empfehlen — der CC-Sync ist max ~2h alt, aber Detail-Felder sind nicht immer komplett " \
-                  "in den TournamentCc-Mirror gespiegelt."
+                  "in den TournamentCc-Mirror gespiegelt. " \
+                  "Region-Filter (Plan 10-05 Befund #3): meisterschaft_id (cc_id) ist nur regions-eindeutig; " \
+                  "Tool filtert per default nach Region (CC_REGION/Setting 'context'). Optional `shortname` " \
+                  "überschreibt die Default-Region (z.B. 'BVBW' für Multi-Region-Lookups). Bei 0 Treffern " \
+                  "in der Region wird ein Fallback-Output mit Cross-Region-Kandidaten geliefert."
       input_schema(
         properties: {
-          meisterschaft_id: {type: "integer", description: "CC meisterschaft ID (cc_id on TournamentCc)"},
-          tournament_id: {type: "integer", description: "Carambus-internal Tournament ID"},
+          meisterschaft_id: {type: "integer", description: "CC meisterschaft ID (cc_id on TournamentCc) — nur regions-eindeutig"},
+          tournament_id: {type: "integer", description: "Carambus-internal Tournament ID (region-eindeutig)"},
           fed_id: {type: "integer", description: "ClubCloud federation ID (required for live lookup). Optional — resolved via region lookup (CC_REGION/Setting 'context', default 'NBV'); ENV CC_FED_ID overrides."},
+          shortname: {type: "string", description: "Optionaler Region-Filter-Override (z.B. 'BVBW' für Cross-Region-Lookup). Default: CC_REGION/Setting 'context'/'NBV'. Wird auf TournamentCc.context gematched (case-insensitive)."},
           season: {type: "string", description: "Season name like '2025/2026'"},
           force_refresh: {type: "boolean", default: false, description: "Bypass DB cache, query CC live"},
           with_committed_list: {type: "boolean", default: false, description: "Wenn true, ruft showCommittedMeldeliste auf und liefert die bereits angemeldeten Player-cc_ids als 'committed_players' (read-only). meldeliste_cc_id wird aus TournamentCc.registration_list_cc abgeleitet — falls nicht in DB verknüpft, kann optional `meldeliste_cc_id` als Override gesetzt werden."},
@@ -29,7 +34,7 @@ module McpServer
       )
       annotations(read_only_hint: true, destructive_hint: false)
 
-      def self.call(meisterschaft_id: nil, tournament_id: nil, fed_id: nil, season: nil, force_refresh: false, with_committed_list: false, meldeliste_cc_id: nil, server_context: nil)
+      def self.call(meisterschaft_id: nil, tournament_id: nil, fed_id: nil, shortname: nil, season: nil, force_refresh: false, with_committed_list: false, meldeliste_cc_id: nil, server_context: nil)
         fed_id ||= default_fed_id
         unless meisterschaft_id.present? || tournament_id.present?
           return error("Missing required parameter: provide `meisterschaft_id` or `tournament_id`")
@@ -37,15 +42,52 @@ module McpServer
 
         return live_lookup(meisterschaft_id: meisterschaft_id, fed_id: fed_id, season: season) if force_refresh
 
-        tournament_cc = if meisterschaft_id.present?
-          TournamentCc.find_by(cc_id: meisterschaft_id)
+        # Plan 10-05 Task 2 (Befund #3 D-09-03-2): meisterschaft_id ist nur regions-eindeutig.
+        # Region-Filter via TournamentCc.context (lowercase shortname). tournament_id ist
+        # Carambus-intern und region-eindeutig — kein Region-Filter nötig.
+        if meisterschaft_id.present?
+          region_shortname = resolve_region_shortname(shortname)
+          scope = TournamentCc.where(cc_id: meisterschaft_id)
+          tournament_cc = scope.find_by(context: region_shortname.to_s.downcase)
+
+          if tournament_cc.nil?
+            # Cross-Region-Fallback mit Warning: Sportwart-Diagnose statt False-Claim
+            # (Pattern aus D-10-02-B Diagnostic-Error-Message-Pattern).
+            cross_region_candidates = scope.limit(10).map { |tc|
+              {cc_id: tc.cc_id, name: tc.name, context: tc.context, season: tc.season}
+            }
+            return error(format_cross_region_fallback(meisterschaft_id, region_shortname, cross_region_candidates))
+          end
         else
-          TournamentCc.find_by(tournament_id: tournament_id)
+          tournament_cc = TournamentCc.find_by(tournament_id: tournament_id)
         end
 
         return error("Tournament not found in Carambus DB. Try force_refresh: true to query CC.") if tournament_cc.nil?
 
         text(format_tournament_cc(tournament_cc, with_committed_list: with_committed_list, meldeliste_cc_id_override: meldeliste_cc_id, fed_id: fed_id))
+      end
+
+      # Resolve effective region shortname (uppercase) — explicit param > ENV > Setting > default.
+      def self.resolve_region_shortname(override = nil)
+        return override.to_s.upcase if override.present?
+        return ENV["CC_REGION"].upcase if ENV["CC_REGION"].present?
+        context = (defined?(Setting) ? Setting.key_get_value("context") : nil).presence
+        (context || "NBV").upcase
+      rescue => e
+        Rails.logger.warn "[cc_lookup_tournament.resolve_region_shortname] #{e.class}: #{e.message}"
+        "NBV"
+      end
+
+      # Formatiert eine diagnostische Fehlermeldung wenn der Lookup in der Default-Region
+      # 0 Treffer findet, aber Cross-Region-Kandidaten existieren — Sportwart kann selbst
+      # entscheiden ob er den shortname-Param explizit setzt oder ob die cc_id falsch ist.
+      def self.format_cross_region_fallback(meisterschaft_id, region_shortname, candidates)
+        if candidates.empty?
+          "Tournament not found: meisterschaft_id=#{meisterschaft_id} in region=#{region_shortname} (also no cross-region matches in Carambus DB). Try force_refresh: true to query CC live, or verify the cc_id."
+        else
+          cand_list = candidates.map { |c| "  - context=#{c[:context]}: #{c[:name]} (season=#{c[:season]})" }.join("\n")
+          "Tournament not found in region=#{region_shortname} for meisterschaft_id=#{meisterschaft_id}, but #{candidates.length} cross-region candidate(s) exist:\n#{cand_list}\nIf one of these is correct, retry with shortname: '<context>' (case-insensitive)."
+        end
       end
 
       def self.live_lookup(meisterschaft_id:, fed_id:, season:)

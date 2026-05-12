@@ -193,4 +193,69 @@ class McpServer::Tools::LookupTournamentTest < ActiveSupport::TestCase
     assert_nil body["committed_players"]
     assert_match(/RuntimeError|Exception/i, body["meta"]["committed_list_warning"])
   end
+
+  # Plan 10-05 Task 2 (Befund #3 D-09-03-2): Region-Filter im cc_id-Lookup-Pfad
+  test "Region-Filter: cc_id-Lookup respektiert TournamentCc.context (default region)" do
+    sample = TournamentCc.where.not(cc_id: nil).where.not(context: nil).first
+    skip "No TournamentCc fixtures with context available" unless sample
+
+    ENV["CC_REGION"] = sample.context.to_s.upcase
+    response = McpServer::Tools::LookupTournament.call(
+      meisterschaft_id: sample.cc_id,
+      server_context: nil
+    )
+    refute response.error?, "Expected non-error in matching region; got: #{response.content.first[:text]}"
+    body = JSON.parse(response.content.first[:text])
+    assert_equal sample.cc_id, body["cc_id"]
+    assert_equal sample.context, body["context"]
+  end
+
+  test "Region-Filter: cc_id-Lookup mit nicht-passender Region liefert Cross-Region-Fallback-Diagnose" do
+    sample = TournamentCc.where.not(cc_id: nil).where.not(context: nil).first
+    skip "No TournamentCc fixtures with context available" unless sample
+    # Eine Region die NICHT die context-Region ist
+    other_region = (%w[NBV BVBW BBV LSBVH NSBV BSV] - [sample.context.to_s.upcase]).first
+
+    ENV["CC_REGION"] = other_region
+    response = McpServer::Tools::LookupTournament.call(
+      meisterschaft_id: sample.cc_id,
+      server_context: nil
+    )
+    assert response.error?, "Expected error/diagnostic message when cc_id not in default region"
+    msg = response.content.first[:text]
+    assert_match(/not found/i, msg)
+    # Diagnose erwähnt Cross-Region-Kandidaten ODER zumindest die Region die geprüft wurde
+    assert_match(/region=#{other_region}|shortname/i, msg)
+  end
+
+  test "Region-Filter: explizit shortname-Param überschreibt Default-Region" do
+    sample = TournamentCc.where.not(cc_id: nil).where.not(context: nil).first
+    skip "No TournamentCc fixtures with context available" unless sample
+
+    # Default-Region anders setzen — shortname-Param überschreibt
+    ENV["CC_REGION"] = "ZZZ-WRONG"
+    response = McpServer::Tools::LookupTournament.call(
+      meisterschaft_id: sample.cc_id,
+      shortname: sample.context.to_s.upcase,
+      server_context: nil
+    )
+    refute response.error?, "shortname-Override muss greifen; got: #{response.content.first[:text]}"
+    body = JSON.parse(response.content.first[:text])
+    assert_equal sample.cc_id, body["cc_id"]
+  end
+
+  test "tournament_id-Lookup: KEIN Region-Filter (Carambus-intern ist region-eindeutig)" do
+    sample = TournamentCc.where.not(tournament_id: nil).where.not(context: nil).first
+    skip "No TournamentCc fixtures with tournament_id available" unless sample
+
+    # Auch bei „falscher" CC_REGION funktioniert tournament_id-Lookup (kein Region-Filter)
+    ENV["CC_REGION"] = "ZZZ-WRONG"
+    response = McpServer::Tools::LookupTournament.call(
+      tournament_id: sample.tournament_id,
+      server_context: nil
+    )
+    refute response.error?, "tournament_id-Lookup ist region-blind; got: #{response.content.first[:text]}"
+    body = JSON.parse(response.content.first[:text])
+    assert_equal sample.tournament_id, body["tournament_id"]
+  end
 end

@@ -54,9 +54,11 @@ module McpServer
           return error("Discipline not found: #{discipline.inspect}") if discipline_obj.nil?
         end
 
+        sync_completed_at = nil
         if force_refresh
           begin
             region.region_cc&.sync_tournaments({})
+            sync_completed_at = Time.current
           rescue => e
             Rails.logger.warn "[cc_list_open_tournaments] sync_tournaments failed: #{e.class}: #{e.message}"
           end
@@ -79,7 +81,12 @@ module McpServer
           rel = rel.where("title ILIKE ?", "%#{escaped}%")
         end
 
-        last_sync = Tournament.where(region_id: region.id).maximum(:sync_date)
+        # Plan 10-05 Task 2 (Befund #4 D-10-01-3): nach erfolgreichem force_refresh
+        # ist sync_completed_at die kanonische Datenfrische-Quelle.
+        # TournamentSyncer aktualisiert Tournament.sync_date NICHT (Match-on-existing-pattern);
+        # Tool-eigener Resync-Marker spiegelt deshalb realistisch wider, wann die Daten frisch sind.
+        # Fallback bei sync-Fehler/ohne force_refresh: Tournament.maximum(:sync_date) wie vorher.
+        last_sync = sync_completed_at || Tournament.where(region_id: region.id).maximum(:sync_date)
         last_sync_age_hours = last_sync ? ((Time.current - last_sync) / 3600.0).round(1) : nil
 
         data = rel.map { |t|
