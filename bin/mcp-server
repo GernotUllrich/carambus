@@ -9,14 +9,18 @@
 # Root cause: Rails-Boot-Initializer (z.B. config/initializers/docs_auto_rebuild.rb
 # in development mode) schreibt Rails.logger.info-Output auf STDOUT BEVOR
 # transport/boot.rb den Logger auf STDERR umleitet.
-# Fix: setze ENVs VOR `require_relative "../config/environment"`:
-#   - DOCS_AUTO_REBUILD=0 → killt den development-only docs-rebuild-Listener im MCP-Kontext
-#   - RAILS_LOG_TO_STDOUT=false → Rails-Default-Logger schreibt in log/<env>.log statt STDOUT
-# Belt-and-suspenders mit transport/boot.rb (das Rails.logger nochmal auf $stderr setzt).
-
+#
+# Plan 10-05 Task 1 (Befund #2b D-10-03-1 Root-Cause-Fix):
+# Plan 10-02 setzte ENV["RAILS_LOG_TO_STDOUT"] = "false" als String — Ruby-Bool-Bug:
+# Rails-Initializer prüft `ENV["RAILS_LOG_TO_STDOUT"].present?` (String "false" ist truthy
+# in Ruby!), schaltet damit STDOUT-Logger AN statt AUS. ActiveRecord SQL DEBUG-Lines
+# pollutten weiterhin STDOUT (Sub-Befund #2b im Plan 10-03 Re-Walkthrough).
+# Fix: ENV.delete("RAILS_LOG_TO_STDOUT") entfernt den Key komplett, Rails fällt auf
+# Default-File-Logger (log/<env>.log) zurück. Belt-and-Suspenders mit transport/boot.rb
+# (AR-Logger explizit auf Rails.logger setzen).
 ENV["RAILS_ENV"] ||= "production"
 ENV["DOCS_AUTO_REBUILD"] = "0"
-ENV["RAILS_LOG_TO_STDOUT"] = "false"
+ENV.delete("RAILS_LOG_TO_STDOUT")
 require_relative "../config/environment"
 
 require "mcp_server/transport/boot"

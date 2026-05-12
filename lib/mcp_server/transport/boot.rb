@@ -14,6 +14,12 @@ module McpServer
       def self.run
         Rails.logger = Logger.new($stderr)
         Rails.logger.level = Logger::INFO
+        # Plan 10-05 Task 1 (Befund #2b D-10-03-1 Belt-and-Suspenders):
+        # AR-Logger explizit auf Rails.logger setzen — verhindert dass ActiveRecord
+        # einen eigenen STDOUT-Logger initialisiert (z.B. wenn Rails-Default in
+        # development.rb oder durch Initializer-Reset überschrieben wird).
+        # MCP-Server nutzt JSON-RPC über STDIO — STDOUT muss pollution-frei sein.
+        ActiveRecord::Base.logger = Rails.logger if defined?(ActiveRecord)
         $stdout.sync = true
 
         server = McpServer::Server.build
