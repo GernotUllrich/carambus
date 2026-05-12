@@ -175,7 +175,13 @@ module McpServer
         # Phase-5-D3-Bugfix: show-Form erwartet 8 Hidden-Inputs (clubId, fedId, branchId,
         # disciplinId, catId, season, meldelisteId, sortOrder); firstEntry/rang/selectedClubId
         # sind add/save-spezifisch und im show-Pfad überzählig (verified_in_committed_list:false-Bug).
-        verify_payload = base_payload.except(:firstEntry, :rang, :selectedClubId).merge(sortOrder: "player")
+        # Plan 11-04 (T1-Fix): clubId="*" statt club_cc_id (specific), analog cc_lookup_tournament's
+        # read_committed_players (Multi-Club-Meldeliste-Compat). CC PHP-Code interpretiert clubId als
+        # Server-side-Filter — Player aus anderem Club würde sonst nicht in der Show-Response erscheinen,
+        # obwohl Save-Step erfolgreich war (Plan 09-03 Befund #1, Plan 11-03 RESEARCH.md H1 HIGH).
+        verify_payload = base_payload
+          .except(:firstEntry, :rang, :selectedClubId)
+          .merge(clubId: "*", sortOrder: "player")
         verify_res, _verify_doc = client.post(
           "showCommittedMeldeliste",
           verify_payload,

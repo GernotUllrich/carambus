@@ -89,6 +89,24 @@ class McpServer::Tools::RegisterForTournamentTest < ActiveSupport::TestCase
     refute params.key?(:selectedClubId), "selectedClubId darf NICHT im show-Payload sein (add/save-spezifisch)"
   end
 
+  test "Plan 11-04 T1-Fix: showCommittedMeldeliste-Payload nutzt clubId='*' (Multi-Club-Meldeliste-Compat)" do
+    # Plan 11-03 RESEARCH.md H1 HIGH-Likelihood: clubId=club_cc_id im Verify-Payload würde
+    # CC PHP-Code als Server-side-Filter interpretieren → Player aus anderem Club erscheint
+    # NICHT in der gefilterten Show-Response trotz erfolgreichem Save. Fix: clubId="*"
+    # (Wildcard) analog cc_lookup_tournament's read_committed_players-Helper (Zeile 203).
+    response = McpServer::Tools::RegisterForTournament.call(
+      fed_id: 20, branch_cc_id: 8, season: "2025/2026",
+      meldeliste_cc_id: 1310, player_cc_id: 99999, club_cc_id: 1010,
+      armed: true, server_context: nil
+    )
+    refute response.error?
+    verify_call = @mock.calls.find { |verb, action, _, _| verb == :post && action == "showCommittedMeldeliste" }
+    assert verify_call, "showCommittedMeldeliste muss aufgerufen worden sein"
+    _, _, params, _ = verify_call
+    assert_equal "*", params[:clubId],
+      "Verify-Payload clubId muss '*' (Wildcard) sein, NICHT club_cc_id=1010 (Plan 11-04 T1-Fix); got: #{params[:clubId].inspect}"
+  end
+
   test "armed:true mit Player-Marker im verify-Response-Body → verified_in_committed_list:true" do
     # Override post() um showCommittedMeldeliste-Response mit Player-cc_id-Markup zu liefern.
     @mock.define_singleton_method(:post) do |action, params, opts|
