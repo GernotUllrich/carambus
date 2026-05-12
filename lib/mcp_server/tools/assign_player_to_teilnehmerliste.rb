@@ -44,7 +44,8 @@ module McpServer
       input_schema(
         properties: {
           tournament_cc_id: {type: "integer", description: "Tournament-cc_id (= CC meisterschaftsId). REQUIRED."},
-          player_cc_ids: {type: "array", items: {type: "integer"}, minItems: 1, description: "Array von Player-cc_ids zum Hinzufügen. REQUIRED, min 1. Mehrere in einem Call möglich (Multi-Add)."},
+          player_cc_ids: {type: "array", items: {type: "integer"}, minItems: 1, description: "Array von Player-cc_ids zum Hinzufügen (mind. 1). Alternative: player_names."},
+          player_names: {type: "array", items: {type: "string"}, description: "Alternative zu player_cc_ids (Plan 10-06 Convenience-Wrapper): Array von Spielernamen-Suchen via cc_search_player; bei ≥2 Treffern pro Name blockiert mit Disambiguation-Diagnose."},
           armed: {type: "boolean", default: false, description: "If false (default), dry-run only — no CC mutation. If true, performs destructive POSTs to CC."},
           read_back: {type: "boolean", default: true, description: "If true (default) and armed:true, verify all player_cc_ids appear in post-save Teilnehmerliste; raises error on mismatch."},
           fed_cc_id: {type: "integer", description: "Optional: CC federation ID (z.B. 20 für NBV). Hilft Pre-Read wenn DB-Linkage fehlt. Default: ENV CC_FED_ID oder Region-Lookup."},
@@ -53,14 +54,33 @@ module McpServer
           disciplin_id: {type: "string", description: "Optional: CC disciplinId (Default '*' Wildcard)."},
           cat_id: {type: "string", description: "Optional: CC catId (Default '*' Wildcard)."}
         },
-        required: ["tournament_cc_id", "player_cc_ids"]
+        required: ["tournament_cc_id"]
       )
       annotations(read_only_hint: false, destructive_hint: true)
 
-      def self.call(tournament_cc_id: nil, player_cc_ids: nil,
+      def self.call(tournament_cc_id: nil, player_cc_ids: nil, player_names: nil,
         fed_cc_id: nil, branch_cc_id: nil, season: nil,
         disciplin_id: nil, cat_id: nil,
         armed: false, read_back: true, server_context: nil)
+
+        # Plan 10-06 Task 3 (D-10-04-J Convenience-Wrapper): Auto-Resolve player_names → player_cc_ids.
+        if player_cc_ids.blank? && player_names.is_a?(Array) && player_names.any?
+          resolved_ids = []
+          errs = []
+          player_names.each do |name|
+            id, err = resolve_player_cc_id_from_name(player_cc_id: nil, player_name: name, server_context: server_context)
+            if err
+              errs << "  - '#{name}': #{err}"
+            elsif id
+              resolved_ids << id
+            end
+          end
+          if errs.any?
+            return error("Player-Name-Auto-Resolve fehlgeschlagen:\n#{errs.join("\n")}")
+          end
+          player_cc_ids = resolved_ids
+        end
+
         # L0a: Required-Validation
         err = validate_required!({tournament_cc_id: tournament_cc_id, player_cc_ids: player_cc_ids},
           %i[tournament_cc_id player_cc_ids])

@@ -44,18 +44,33 @@ module McpServer
           branch_cc_id: {type: "integer", description: "CC admin branch ID (e.g. 8 for Kegel, 10 for Karambol). NOTE: admin-cc-id from HAR/Sniff, NOT public scraping branch_id."},
           season: {type: "string", description: "Season name like '2025/2026' (CC sends this string format, not season_id)"},
           meldeliste_cc_id: {type: "integer", description: "CC meldelisteId of the target Meldeliste — get from CC Meldelisten-Übersicht (admin/myclub/meldewesen/single)"},
-          player_cc_id: {type: "integer", description: "CC player ID of the player to register (Player.cc_id)"},
-          club_cc_id: {type: "integer", description: "CC club ID (Club.cc_id) — required for the form payload (clubId + selectedClubId)"},
+          player_cc_id: {type: "integer", description: "CC player ID of the player to register (Player.cc_id). Alternative: player_name (Plan 10-06 Vokabular-Schicht)."},
+          player_name: {type: "string", description: "Alternative zu player_cc_id (Plan 10-06 Convenience-Wrapper): Spielername-Suche via cc_search_player; bei ≥2 Treffern blockiert mit Disambiguation-Diagnose."},
+          club_cc_id: {type: "integer", description: "CC club ID (Club.cc_id) — required for the form payload (clubId + selectedClubId). Alternative: club_name."},
+          club_name: {type: "string", description: "Alternative zu club_cc_id (Plan 10-06 Convenience-Wrapper): Vereinsname-Suche via cc_lookup_club; bei ≥2 Treffern blockiert mit Disambiguation-Diagnose."},
           discipline_id: {type: "integer", description: "Optional Carambus Discipline.id for consistency-check scoping (defaults to all disciplines)"},
           armed: {type: "boolean", default: false, description: "If false (default), dry-run only — no CC mutation. If true, performs destructive POSTs to CC."}
         },
-        required: ["branch_cc_id", "season", "meldeliste_cc_id", "player_cc_id", "club_cc_id"]
+        required: ["branch_cc_id", "season", "meldeliste_cc_id"]
       )
       annotations(read_only_hint: false, destructive_hint: true)
 
       def self.call(fed_id: nil, branch_cc_id: nil, season: nil, meldeliste_cc_id: nil, player_cc_id: nil,
-        club_cc_id: nil, discipline_id: nil, armed: false, server_context: nil)
+        player_name: nil, club_cc_id: nil, club_name: nil, discipline_id: nil, armed: false, server_context: nil)
         fed_id ||= default_fed_id
+
+        # Plan 10-06 Task 3 (D-10-04-J Convenience-Wrapper): Auto-Resolve VOR Pre-Validation.
+        resolved_club_cc_id, club_err = resolve_club_cc_id_from_name(
+          club_cc_id: club_cc_id, club_name: club_name, server_context: server_context
+        )
+        return error(club_err) if club_err
+        club_cc_id = resolved_club_cc_id
+
+        resolved_player_cc_id, player_err = resolve_player_cc_id_from_name(
+          player_cc_id: player_cc_id, player_name: player_name, server_context: server_context
+        )
+        return error(player_err) if player_err
+        player_cc_id = resolved_player_cc_id
 
         err = validate_required!(
           {branch_cc_id: branch_cc_id, season: season, meldeliste_cc_id: meldeliste_cc_id,

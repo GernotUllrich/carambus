@@ -81,6 +81,51 @@ module McpServer
         }
       end
 
+      # Plan 10-06 Task 3 (D-10-04-J Convenience-Wrapper):
+      # Auto-Resolve club_cc_id aus club_name via cc_lookup_club (DRY für 3 Write-Tools).
+      # Returns [resolved_cc_id, error_message] tuple — bei error: cc_id=nil + Diagnose-String.
+      def self.resolve_club_cc_id_from_name(club_cc_id:, club_name:, server_context: nil)
+        return [club_cc_id, nil] if club_cc_id.present?
+        return [nil, nil] if club_name.blank?  # Both nil → caller-Validation handelt das
+
+        result = McpServer::Tools::LookupClub.call(name: club_name, server_context: server_context)
+        if result.error?
+          return [nil, "Club-Lookup für '#{club_name}' fehlgeschlagen: #{result.content.first[:text]}"]
+        end
+
+        body = JSON.parse(result.content.first[:text])
+        if body["cc_id"].nil?
+          candidates_str = body["candidates"].map { |c| "#{c["name"]} (cc_id=#{c["cc_id"]})" }.join(", ")
+          return [nil, "Mehrere Vereine passen zu '#{club_name}': #{candidates_str}. Bitte präziser angeben oder club_cc_id direkt."]
+        end
+        [body["cc_id"], nil]
+      rescue => e
+        Rails.logger.warn "[BaseTool.resolve_club_cc_id_from_name] #{e.class}: #{e.message}"
+        [nil, "Club-Auto-Resolve-Exception: #{e.class.name}"]
+      end
+
+      # Plan 10-06 Task 3 (D-10-04-J Convenience-Wrapper):
+      # Auto-Resolve player_cc_id aus player_name via cc_search_player (DRY für 3 Write-Tools).
+      def self.resolve_player_cc_id_from_name(player_cc_id:, player_name:, server_context: nil)
+        return [player_cc_id, nil] if player_cc_id.present?
+        return [nil, nil] if player_name.blank?
+
+        result = McpServer::Tools::SearchPlayer.call(query: player_name, server_context: server_context)
+        if result.error?
+          return [nil, "Player-Lookup für '#{player_name}' fehlgeschlagen: #{result.content.first[:text]}"]
+        end
+
+        body = JSON.parse(result.content.first[:text])
+        if body["cc_id"].nil?
+          candidates_str = body["candidates"].map { |c| "#{c["name"]} (cc_id=#{c["cc_id"]})" }.join(", ")
+          return [nil, "Mehrere Spieler passen zu '#{player_name}': #{candidates_str}. Bitte präziser angeben oder player_cc_id direkt."]
+        end
+        [body["cc_id"], nil]
+      rescue => e
+        Rails.logger.warn "[BaseTool.resolve_player_cc_id_from_name] #{e.class}: #{e.message}"
+        [nil, "Player-Auto-Resolve-Exception: #{e.class.name}"]
+      end
+
       # Liefert die ClubCloud federation_id als Default-Fallback für Tools.
       # Priorität:
       #   1. ENV["CC_FED_ID"] (expliziter Override — höchste Prio)
