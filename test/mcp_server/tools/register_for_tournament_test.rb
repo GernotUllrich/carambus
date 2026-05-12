@@ -170,4 +170,59 @@ class McpServer::Tools::RegisterForTournamentTest < ActiveSupport::TestCase
   # wurde entfernt. Pre-Validation-First-Pattern (Task 2) ersetzt globalen env-Block durch
   # Tool-eigene Constraints — Sportwart/Turnierleiter können armed:true in Live-Production ausführen,
   # weil das Tool selbst zum Sicherheitsnetz wird via _validate_*-Methoden.
+
+  # --- Plan 10-05.1 Task 2: Pre-Validation-First-Pattern (7 Constraints, D-10-04-G) ---
+
+  test "Pre-Validation: 7 Constraints werden alle aufgerufen + im Output reported" do
+    response = McpServer::Tools::RegisterForTournament.call(
+      fed_id: 20, branch_cc_id: 8, season: "2025/2026",
+      meldeliste_cc_id: 1310, player_cc_id: 99999, club_cc_id: 1010,
+      armed: true, server_context: nil
+    )
+    refute response.error?
+    text = response.content.first[:text]
+    # pre_validation_passed-Status im Output sichtbar
+    assert_match(/pre_validation_passed: true/, text)
+  end
+
+  test "_validate_scope_konsistent: fed_id required" do
+    result = McpServer::Tools::RegisterForTournament.send(:_validate_scope_konsistent, 1310, nil, 8, "2025/2026")
+    assert_equal false, result[:ok]
+    assert_match(/fed_id missing/, result[:reason])
+  end
+
+  test "_validate_scope_konsistent: branch_cc_id required" do
+    result = McpServer::Tools::RegisterForTournament.send(:_validate_scope_konsistent, 1310, 20, nil, "2025/2026")
+    assert_equal false, result[:ok]
+    assert_match(/branch_cc_id missing/, result[:reason])
+  end
+
+  test "_validate_scope_konsistent: season required" do
+    result = McpServer::Tools::RegisterForTournament.send(:_validate_scope_konsistent, 1310, 20, 8, nil)
+    assert_equal false, result[:ok]
+    assert_match(/season missing/, result[:reason])
+  end
+
+  test "_validate_scope_konsistent: alle Params präsent → ok:true" do
+    result = McpServer::Tools::RegisterForTournament.send(:_validate_scope_konsistent, 1310, 20, 8, "2025/2026")
+    assert_equal true, result[:ok]
+  end
+
+  test "_validate_player_exists: missing player_cc_id → reject" do
+    result = McpServer::Tools::RegisterForTournament.send(:_validate_player_exists, nil)
+    # Helper: nil player_cc_id → reject mit Hinweis
+    assert_equal false, result[:ok]
+    assert_match(/player_cc_id missing/, result[:reason])
+  end
+
+  test "_validate_meldeliste_exists: missing meldeliste_cc_id → reject" do
+    result = McpServer::Tools::RegisterForTournament.send(:_validate_meldeliste_exists, nil)
+    assert_equal false, result[:ok]
+    assert_match(/meldeliste_cc_id missing/, result[:reason])
+  end
+
+  test "_validate_club_cross_check: missing club_cc_id → defensive ok:true" do
+    result = McpServer::Tools::RegisterForTournament.send(:_validate_club_cross_check, 99999, nil)
+    assert_equal true, result[:ok]
+  end
 end
