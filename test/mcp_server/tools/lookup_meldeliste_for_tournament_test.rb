@@ -28,7 +28,7 @@ class McpServer::Tools::LookupMeldelisteForTournamentTest < ActiveSupport::TestC
     McpServer::CcSession.reset!
   end
 
-  test "0 Treffer: Mock liefert leeren HTML → error" do
+  test "0 Treffer: Mock liefert leeren HTML → diagnostic error mit Workaround-Hinweis (Plan 10-02 Task 1)" do
     # Default-MockClient body=""; aber post liefert generic "MOCK POST ..." → keine Anchors → 0 candidates
     @mock.define_singleton_method(:post) do |action, post_options = {}, opts = {}|
       @calls << [:post, action, post_options, opts]
@@ -40,7 +40,64 @@ class McpServer::Tools::LookupMeldelisteForTournamentTest < ActiveSupport::TestC
     )
     assert response.error?
     text = response.content.first[:text]
-    assert_match(/Tournament 99999 has no Meldelisten/, text)
+    # Plan 10-02 Task 1 (Befund #5 Fix): Diagnostic Error-Message statt False-Claim
+    assert_match(/Could not auto-resolve meldeliste_cc_id for tournament_cc_id=99999/, text)
+    assert_match(/attempted: meisterschaftsId=99999/, text)
+    assert_match(/does NOT necessarily mean no meldeliste exists/, text)
+    assert_match(/Workaround: pass meldeliste_cc_id directly/, text)
+    # Anti-Regression: alte False-Claim darf NICHT mehr im Output sein
+    refute_match(/has no Meldelisten/, text)
+  end
+
+  test "Plan 10-02 Retry-Fallback: scope-filter 0 Treffer → retry mit meisterschaftsId-Pfad (Befund #5)" do
+    call_count = 0
+    @mock.define_singleton_method(:post) do |action, post_options = {}, opts = {}|
+      @calls << [:post, action, post_options, opts]
+      call_count += 1
+      # 1. Call (scope-filter-Pfad): 0 Treffer
+      # 2. Call (retry mit meisterschaftsId): 1 Treffer 1310
+      body = if call_count == 1
+        "<html><body><p>Keine Meldelisten gefunden</p></body></html>"
+      else
+        '<html><body><tr data-meldeliste-cc-id="1310"><td>NDM Endrunde Eurokegel</td></tr></body></html>'
+      end
+      [Struct.new(:code, :message, :body).new("200", "OK", body), Nokogiri::HTML(body)]
+    end
+    response = McpServer::Tools::LookupMeldelisteForTournament.call(
+      tournament_cc_id: 890,
+      fed_cc_id: 20, branch_cc_id: 8, season: "2025/2026",
+      force_refresh: true, server_context: nil
+    )
+    refute response.error?
+    text = response.content.first[:text]
+    assert_match(/meldeliste_cc_id: 1310/, text)
+    # 2 Calls erwartet (initial scope-filter + retry meisterschaftsId)
+    assert_equal 2, @mock.calls.size, "Retry-Fallback muss 2. Live-CC-Call ausgelöst haben"
+    # 1. Call: scope-filter payload
+    payload_1 = @mock.calls[0][2]
+    assert_equal 20, payload_1[:fedId]
+    refute payload_1.key?(:meisterschaftsId)
+    # 2. Call: meisterschaftsId fallback payload
+    payload_2 = @mock.calls[1][2]
+    assert_equal 890, payload_2[:meisterschaftsId]
+    refute payload_2.key?(:fedId)
+  end
+
+  test "Plan 10-02 Retry-Fallback: beide Pfade 0 Treffer → diagnostic error nennt beide attempted modes" do
+    @mock.define_singleton_method(:post) do |action, post_options = {}, opts = {}|
+      @calls << [:post, action, post_options, opts]
+      body = "<html><body><p>Nothing</p></body></html>"
+      [Struct.new(:code, :message, :body).new("200", "OK", body), Nokogiri::HTML(body)]
+    end
+    response = McpServer::Tools::LookupMeldelisteForTournament.call(
+      tournament_cc_id: 890,
+      fed_cc_id: 20, branch_cc_id: 8,
+      force_refresh: true, server_context: nil
+    )
+    assert response.error?
+    text = response.content.first[:text]
+    assert_match(/attempted: scope-filter/, text)
+    assert_match(/retry-meisterschaftsId-fallback/, text)
   end
 
   test "1 Treffer (Mock-HTML5 data-Attribut): top-level meldeliste_cc_id + candidates" do

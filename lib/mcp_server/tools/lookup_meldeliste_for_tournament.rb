@@ -82,27 +82,25 @@ module McpServer
         # wenn erster Live-CC-Versuch 0 Treffer hatte, probiere den ANDEREN Payload-Pfad.
         # Hintergrund: Phase-9-Plan-09-03 Live-Cycle Step A zeigte „0 Treffer" trotz existierender
         # Meldeliste — Ursache vermutlich Scope-Filter-Pfad-Wahl. Retry erhöht Trefferquote materiell.
+        # retry_path_used wird gesetzt sobald retry ATTEMPTED ist (auch wenn 0 Treffer) —
+        # transparent in Error-Message, damit Sportwart sieht was alles versucht wurde.
         if candidates.empty?
           if scope_given
             # Erster Versuch: Scope-Filter-Pfad. Retry: meisterschaftsId-Pfad ohne Scope.
+            retry_path_used = "meisterschaftsId-fallback"
             live_retry = fetch_from_cc(tournament_cc_id)
-            if !live_retry.empty?
-              candidates = live_retry
-              retry_path_used = "meisterschaftsId-fallback"
-            end
+            candidates = live_retry if !live_retry.empty?
           else
             # Erster Versuch: meisterschaftsId-Pfad. Retry: Scope-Filter mit Default-Region (CC_REGION-ENV).
             default_fed = default_fed_id
             if default_fed
+              retry_path_used = "scope-filter-fallback (fed_cc_id=#{default_fed})"
               live_retry = fetch_from_cc(
                 tournament_cc_id,
                 fed_cc_id: default_fed,
                 disciplin_id: "*", cat_id: "*"
               )
-              if !live_retry.empty?
-                candidates = live_retry
-                retry_path_used = "scope-filter-fallback (fed_cc_id=#{default_fed})"
-              end
+              candidates = live_retry if !live_retry.empty?
             end
           end
         end
