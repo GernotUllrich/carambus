@@ -346,6 +346,66 @@ Wenn vor-Ort-Besuch nicht möglich ist (Distanz, Termin-Konflikte, COVID-Risiko,
 
 ---
 
+## Sektion 7 — MCP-Server-Subprocess neu starten (nach Code-Changes)
+
+Claude Desktop und Claude Code fahren den MCP-Server als langlebigen Subprocess. Code-Changes in `lib/mcp_server/**` oder `bin/mcp-server` greifen NICHT automatisch — Tool-Schemas und Tool-Logik bleiben im Stale-Zustand bis zum Restart. Diese Sektion erklärt **wann** Du den Subprocess neu starten musst und **wie** das pro Client geht.
+
+### 7.1 Wann neu starten?
+
+Restart ist nötig nach jeder der folgenden Aktionen:
+
+- **`git pull`** mit Änderungen in `lib/mcp_server/**` oder `bin/mcp-server` (Tool-Code, Schemas, PATH_MAP, ApiSurface-ALLOWLIST)
+- **Lokaler Code-Edit** an Tool-Schema, Pre-Validation-Constraints, AuditTrail-Logik oder BaseTool-Helpers
+- **`bundle install`** mit MCP-relevanten Gem-Updates (z.B. `mcp`-Gem-Bump auf neue Version)
+- **Änderung von Rails Credentials** (`config/credentials/{env}.yml.enc`) oder `.env`-Variablen wie `CC_REGION`, `CARAMBUS_MCP_MOCK` — der Subprocess liest ENV nur beim Start
+
+### 7.2 Stale-Subprocess-Symptome
+
+Diese Beobachtungen sind verlässliche Hinweise, dass der Subprocess auf altem Code-Stand läuft:
+
+- **Tool-Schemas zeigen alten Parameter-Stand** (z.B. fehlende `name`/`shortname`-Params in `cc_lookup_tournament`, fehlende Convenience-Wrapper `club_name`/`player_name` in Write-Tools)
+- **Tool-Calls liefern Pre-Edit-Verhalten** (Region-Filter wird ignoriert, alte Disambiguation-Output-Form, fehlendes `pre_read_*`-Output in Write-Tools)
+- **Neu hinzugefügte Tools tauchen nicht in der Tool-Liste auf** (z.B. nach `git pull` mit Plan-XX-Tool-Erweiterung)
+- **Tool-Descriptions ohne Use-Case-Präfix** (kein „Wann nutzen?" + „Was tippt der User typisch?" sichtbar — sollte seit Plan 10-07 in allen 22 öffentlichen Tools zu sehen sein)
+
+Wenn eines dieser Symptome auftritt: Vor jeglicher Diagnose erst Restart durchführen, dann Re-Verify.
+
+### 7.3 Restart in Claude Desktop (macOS + Windows)
+
+**Primär-Pfad:**
+
+1. **Settings öffnen** (macOS: Claude → Settings; Windows: Datei → Settings)
+2. **„Developer"-Tab auswählen** (oder „Extensions" je nach Claude-Desktop-Version)
+3. **MCP-Server-Liste suchen** — Eintrag `carambus-clubcloud` (oder gewählter Server-Name) erscheint mit Status-Indikator
+4. **Restart-Icon klicken** (typisch: Refresh-Symbol neben dem Server-Namen). Falls Icon in Deiner Claude-Desktop-Version nicht verfügbar ist → Fallback.
+
+**Fallback (jede Claude-Desktop-Version):**
+
+1. **Claude Desktop komplett beenden**: macOS `Cmd+Q` (NICHT nur Fenster schließen — Hintergrund-Process muss enden); Windows `Alt+F4` + ggf. via Task-Manager prüfen dass `Claude.exe` nicht mehr läuft
+2. **Claude Desktop neu öffnen** — Subprocess wird beim ersten Chat-Öffnen automatisch neu hochgezogen
+
+**Verifikations-Step:**
+
+Nach Restart einmal `cc_lookup_region` aufrufen (oder ein beliebiges Tool, das im jüngsten Code-Edit betroffen war). Wenn der neue Tool-State sichtbar ist (z.B. neue Parameter im Schema, neuer Description-Präfix, neues Output-Format), ist der Subprocess fresh.
+
+### 7.4 Restart in Claude Code (Carambus-Admin / technische Stellvertretung)
+
+Claude Code als MCP-Client wird typisch nur in Dev/Test-Szenarien verwendet (siehe Plan 09-03 D-09-03-A-Pragmatik). Restart-Pfade:
+
+- **`/mcp` Subcommand** listet alle MCP-Server-Subprocesses inkl. Status (connected / disconnected / restarting)
+- **`/mcp` ermöglicht** (je nach Claude-Code-Version) Reconnect oder Reload pro Server-Eintrag direkt aus der Subcommand-UI
+- **Fallback:** Claude-Code-Session beenden (`/exit` oder Ctrl+D), neue Session starten — Subprocess wird beim Session-Start neu hochgezogen
+
+### 7.5 Audit-Trail (Plan 10-08 Befund #1)
+
+Diese Sektion existiert wegen CRITICAL-Befund #1 aus Plan 10-08 Externer Walkthrough (2026-05-12). Der MCP-Subprocess startete vor Plan-10-05/06/07-Commits; ToolSearch-Schemas zeigten Pre-Plan-10-06-Stand (kein `name`/`shortname`-Param, kein Use-Case-Präfix); die Plan-Boundary „0 versehentliche Live-Datenänderungen" griff defensiv → Walkthrough wurde im Limited-Mode geschlossen.
+
+Lesson: Bevor jegliche Live-Validation gegen Prod-CC gestartet wird (insbesondere durch externen Sportwart oder Turnierleiter), MUSS der Subprocess nach allen jüngsten Code-Changes neu gestartet sein. Diese Doku-Sektion ist die Operator-Defense; eine strukturelle Lösung (Dev-Mode-Reload-Watcher analog Rails-autoload) ist als v0.2.1-Backlog-Item A1 vorgesehen.
+
+Vollständiges Audit-Trail: `.paul/phases/10-walkthrough-sportwart/10-08-WALKTHROUGH-LOG.md` (Sektion 1 + Sektion 8 mit konsolidiertem v0.2.1-Backlog).
+
+---
+
 ## Quellen & Weiterführendes
 
 - [`clubcloud-mcp-setup.de.md`](clubcloud-mcp-setup.de.md) — Setup-Troubleshooting für technische Stellvertretung
