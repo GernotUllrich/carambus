@@ -74,10 +74,8 @@ module McpServer
         # Normalize to integer array (defensive — Schema declares integer but JSON may pass strings)
         player_cc_ids = player_cc_ids.map(&:to_i)
 
-        # Schicht 3 (Server-Level): Rails-env-Check — armed:true in production blockiert.
-        if armed && Rails.env.production?
-          return error("Live-CC writes are blocked in Rails production env via MCP. Run from development env.")
-        end
+        # Plan 10-05.1 Task 1 (D-10-04-B Pivot): Phase-4-Schicht-3 (Production-Block für armed:true)
+        # DEPRECATED. Pre-Validation-First-Pattern ersetzt globalen env-Block durch Tool-eigene Constraints.
 
         # DB-first-Resolver (Best-Effort, NBV-only-Optimization)
         scope = resolve_scope_filters(tournament_cc_id, fed_cc_id, branch_cc_id, season, disciplin_id, cat_id)

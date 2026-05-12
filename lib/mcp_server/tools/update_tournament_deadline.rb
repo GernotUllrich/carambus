@@ -85,10 +85,8 @@ module McpServer
           return error("Invalid date format: new_deadline must be ISO YYYY-MM-DD (got: #{new_deadline.inspect}).")
         end
 
-        # Schicht 3 (Server-Level): Rails-env-Check — armed:true in production blockiert.
-        if armed && Rails.env.production?
-          return error("Live-CC writes are blocked in Rails production env via MCP. Run from development env.")
-        end
+        # Plan 10-05.1 Task 1 (D-10-04-B Pivot): Phase-4-Schicht-3 (Production-Block für armed:true)
+        # DEPRECATED. Pre-Validation-First-Pattern ersetzt globalen env-Block durch Tool-eigene Constraints.
 
         # DB-first-Resolver (Best-Effort, NBV-only-Optimization; CC-only-Mode überspringt das).
         # Plan 10-05 Task 4 (Befund #8): Tracking welcher Pfad meldeliste_cc_id resolved hat.

@@ -63,6 +63,24 @@ module McpServer
         status
       end
 
+      # Plan 10-05.1 Task 1 (D-10-04-B/G Pre-Validation-First-Pattern):
+      # Konvention: Tools definieren private `_validate_*`-Methoden, jede returnt:
+      #   {name: "constraint_name", ok: true/false, reason: "specific msg if !ok"}
+      # `run_validations` sammelt alle Results und liefert:
+      #   {all_passed: bool, results: [...], failed_constraints: ["name1", ...]}
+      #
+      # Validations können entweder Hashes (sofort evaluiert) ODER Lambdas
+      # (lazy-evaluated für conditional Pre-Read-Calls) sein.
+      def self.run_validations(validations)
+        results = validations.map { |v| v.respond_to?(:call) ? v.call : v }
+        failed = results.reject { |r| r[:ok] }
+        {
+          all_passed: failed.empty?,
+          results: results,
+          failed_constraints: failed.map { |r| r[:name] }
+        }
+      end
+
       # Liefert die ClubCloud federation_id als Default-Fallback für Tools.
       # Priorität:
       #   1. ENV["CC_FED_ID"] (expliziter Override — höchste Prio)

@@ -29,4 +29,46 @@ class McpServer::Tools::BaseToolTest < ActiveSupport::TestCase
       assert_equal src, status[:pre_read_source]
     end
   end
+
+  # Plan 10-05.1 Task 1 (D-10-04-G Pre-Validation-Framework):
+  test "run_validations: all-passed Case (alle Constraints ok)" do
+    validations = [
+      {name: "constraint_a", ok: true},
+      {name: "constraint_b", ok: true}
+    ]
+    result = McpServer::Tools::BaseTool.run_validations(validations)
+    assert_equal true, result[:all_passed]
+    assert_equal 2, result[:results].length
+    assert_empty result[:failed_constraints]
+  end
+
+  test "run_validations: mixed Case mit 1 failed Constraint" do
+    validations = [
+      {name: "constraint_a", ok: true},
+      {name: "constraint_b", ok: false, reason: "test failure reason"}
+    ]
+    result = McpServer::Tools::BaseTool.run_validations(validations)
+    assert_equal false, result[:all_passed]
+    assert_equal ["constraint_b"], result[:failed_constraints]
+    failed = result[:results].find { |r| !r[:ok] }
+    assert_equal "test failure reason", failed[:reason]
+  end
+
+  test "run_validations: lambda-Validations werden lazy evaluated" do
+    eager_calls = 0
+    lazy_called = false
+
+    validations = [
+      {name: "eager", ok: true}.tap { eager_calls += 1 },
+      -> {
+        lazy_called = true
+        {name: "lazy", ok: true}
+      }
+    ]
+    result = McpServer::Tools::BaseTool.run_validations(validations)
+
+    assert_equal true, result[:all_passed]
+    assert_equal 2, result[:results].length
+    assert lazy_called, "Lambda-Validation muss aufgerufen worden sein"
+  end
 end

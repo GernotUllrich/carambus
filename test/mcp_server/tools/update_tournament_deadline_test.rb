@@ -136,18 +136,8 @@ class McpServer::Tools::UpdateTournamentDeadlineTest < ActiveSupport::TestCase
       "Erwarte Pre-Read → Check → Save → Read-Back — got #{actions.inspect}"
   end
 
-  test "Schicht 3: armed:true in Rails production env wird mit error blockiert (kein CC-Call)" do
-    Rails.env.stub(:production?, true) do
-      response = McpServer::Tools::UpdateTournamentDeadline.call(
-        meldeliste_cc_id: 1310, new_deadline: "2026-06-09",
-        armed: true, server_context: nil
-      )
-      assert response.error?
-      assert_match(/blocked in Rails production/, response.content.first[:text])
-    end
-    # Schicht 3 fail-fast: kein CC-Call darf passieren (auch kein Pre-Read)
-    assert @mock.calls.empty?, "Production-blocked Tool darf MockClient NICHT aufrufen — got #{@mock.calls.inspect}"
-  end
+  # Plan 10-05.1 Task 1 (D-10-04-B Pivot): Phase-4-Schicht-3 (Production-Block) DEPRECATED.
+  # Vorheriger Test entfernt. Pre-Validation-First-Pattern (Task 3) macht Tool zum Sicherheitsnetz.
 
   # --- AC-2 (Save-Payload-Korrektheit) ---
 

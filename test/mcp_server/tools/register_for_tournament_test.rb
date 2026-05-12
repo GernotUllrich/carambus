@@ -165,17 +165,9 @@ class McpServer::Tools::RegisterForTournamentTest < ActiveSupport::TestCase
     assert_match(/Konsistenz-Check übersprungen.*nicht in Carambus-DB/, text)
   end
 
-  test "Schicht 3: armed:true in Rails production env wird mit error blockiert" do
-    Rails.env.stub(:production?, true) do
-      response = McpServer::Tools::RegisterForTournament.call(
-        fed_id: 20, branch_cc_id: 8, season: "2025/2026",
-        meldeliste_cc_id: 1310, player_cc_id: 99999, club_cc_id: 1010,
-        armed: true, server_context: nil
-      )
-      assert response.error?
-      assert_match(/blocked in Rails production/, response.content.first[:text])
-    end
-    # MockClient wurde NICHT aufgerufen — Schicht 3 fail-fast
-    assert @mock.calls.empty?, "Production-blocked Tool darf MockClient nicht aufrufen, aber #{@mock.calls.inspect}"
-  end
+  # Plan 10-05.1 Task 1 (D-10-04-B Pivot): Phase-4-Schicht-3 (Production-Block) DEPRECATED.
+  # Der vorherige Test "Schicht 3: armed:true in Rails production env wird mit error blockiert"
+  # wurde entfernt. Pre-Validation-First-Pattern (Task 2) ersetzt globalen env-Block durch
+  # Tool-eigene Constraints — Sportwart/Turnierleiter können armed:true in Live-Production ausführen,
+  # weil das Tool selbst zum Sicherheitsnetz wird via _validate_*-Methoden.
 end

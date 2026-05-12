@@ -127,18 +127,8 @@ class McpServer::Tools::RemoveFromTeilnehmerlisteTest < ActiveSupport::TestCase
     assert rm_calls.empty?, "Validation-Fail darf removePlayer NICHT auslösen"
   end
 
-  test "Schicht 3: armed:true in Rails production env wird blockiert" do
-    Rails.env.stub(:production?, true) do
-      response = McpServer::Tools::RemoveFromTeilnehmerliste.call(
-        tournament_cc_id: 890, player_cc_id: 11683,
-        fed_cc_id: 20, branch_cc_id: 8, season: "2025/2026",
-        armed: true, server_context: nil
-      )
-      assert response.error?
-      assert_match(/blocked in Rails production/, response.content.first[:text])
-    end
-    assert @mock.calls.empty?, "Production-blocked Tool darf MockClient NICHT aufrufen"
-  end
+  # Plan 10-05.1 Task 1 (D-10-04-B Pivot): Phase-4-Schicht-3 (Production-Block) DEPRECATED.
+  # Vorheriger Test entfernt. Pre-Validation-First-Pattern (Task 4) macht Tool zum Sicherheitsnetz.
 
   test "Validation: fehlendes player_cc_id → Missing-required-error" do
     response = McpServer::Tools::RemoveFromTeilnehmerliste.call(

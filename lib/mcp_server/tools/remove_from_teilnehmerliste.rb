@@ -57,10 +57,8 @@ module McpServer
           %i[tournament_cc_id player_cc_id])
         return err if err
 
-        # Schicht 3 (Server-Level): Rails-env-Check — armed:true in production blockiert.
-        if armed && Rails.env.production?
-          return error("Live-CC writes are blocked in Rails production env via MCP. Run from development env.")
-        end
+        # Plan 10-05.1 Task 1 (D-10-04-B Pivot): Phase-4-Schicht-3 (Production-Block für armed:true)
+        # DEPRECATED. Pre-Validation-First-Pattern ersetzt globalen env-Block durch Tool-eigene Constraints.
 
         # Reuse Phase-7 helpers from AssignPlayerToTeilnehmerliste (DRY — both tools share Teilnehmerliste logic)
         scope = AssignPlayerToTeilnehmerliste.resolve_scope_filters(tournament_cc_id, fed_cc_id, branch_cc_id, season, disciplin_id, cat_id)

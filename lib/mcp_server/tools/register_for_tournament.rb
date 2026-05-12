@@ -64,11 +64,9 @@ module McpServer
         )
         return err if err
 
-        # Schicht 3 (Server-Level): Rails-env-Check — armed:true in production blockiert.
-        if armed && Rails.env.production?
-          return error("Live-CC writes are blocked in Rails production env via MCP. Run from development env.")
-        end
-
+        # Plan 10-05.1 Task 1 (D-10-04-B Pivot): Phase-4-Schicht-3 (Production-Block für armed:true)
+        # DEPRECATED. Ersetzt durch Pre-Validation-First-Pattern (Plan 10-05.1 Task 2 implementiert die Constraints):
+        # Tool wird selbst zum Sicherheitsnetz via Exhaustive Pre-Validation VOR armed:true.
         # Konsistenz-Check (read-only) läuft in beiden armed-Pfaden.
         consistency_msg = consistency_check(
           player_cc_id: player_cc_id,

@@ -160,20 +160,9 @@ class McpServer::Tools::UnregisterForTournamentTest < ActiveSupport::TestCase
     refute McpServer::Tools::UnregisterForTournament.player_in_meldeliste?(doc, 99999)
   end
 
-  test "armed:true rejects in Rails.env.production?" do
-    Rails.env.stub :production?, true do
-      response = McpServer::Tools::UnregisterForTournament.call(
-        fed_id: 20, branch_cc_id: 8, season: "2025/2026",
-        meldeliste_cc_id: 1310, player_cc_id: 10031, club_cc_id: 1010,
-        armed: true, server_context: nil
-      )
-      assert response.error?
-      text = response.content.first[:text]
-      assert_match(/Live-CC writes are blocked in Rails production env/, text)
-    end
-    # MockClient wurde NICHT aufgerufen — Schicht 3 fail-fast
-    assert @mock.calls.empty?, "Production-blocked Tool darf MockClient nicht aufrufen, aber #{@mock.calls.inspect}"
-  end
+  # Plan 10-05.1 Task 1 (D-10-04-B Pivot): Phase-4-Schicht-3 (Production-Block) DEPRECATED.
+  # Vorheriger Test "armed:true rejects in Rails.env.production?" entfernt.
+  # Pre-Validation-First-Pattern (Task 4) macht Tool zum Sicherheitsnetz via _validate_*-Methoden.
 
   test "Required-Parameter-Validation: alle 5 Pflicht-Felder müssen vorhanden sein" do
     response = McpServer::Tools::UnregisterForTournament.call(
