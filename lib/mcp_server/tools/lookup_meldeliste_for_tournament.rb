@@ -59,6 +59,8 @@ module McpServer
         return err if err
 
         candidates = []
+        scope_given = scope_filter_given?(fed_cc_id, branch_cc_id, season, disciplin_id, cat_id)
+        retry_path_used = nil # Plan 10-02 Task 1: tracking für Error-Message
 
         # DB-first
         unless force_refresh
@@ -76,11 +78,55 @@ module McpServer
           candidates = live_candidates if !live_candidates.empty?
         end
 
+        # Plan 10-02 Task 1 (Befund #5 Fix): Retry-Other-Mode-Fallback —
+        # wenn erster Live-CC-Versuch 0 Treffer hatte, probiere den ANDEREN Payload-Pfad.
+        # Hintergrund: Phase-9-Plan-09-03 Live-Cycle Step A zeigte „0 Treffer" trotz existierender
+        # Meldeliste — Ursache vermutlich Scope-Filter-Pfad-Wahl. Retry erhöht Trefferquote materiell.
+        if candidates.empty?
+          if scope_given
+            # Erster Versuch: Scope-Filter-Pfad. Retry: meisterschaftsId-Pfad ohne Scope.
+            live_retry = fetch_from_cc(tournament_cc_id)
+            if !live_retry.empty?
+              candidates = live_retry
+              retry_path_used = "meisterschaftsId-fallback"
+            end
+          else
+            # Erster Versuch: meisterschaftsId-Pfad. Retry: Scope-Filter mit Default-Region (CC_REGION-ENV).
+            default_fed = default_fed_id
+            if default_fed
+              live_retry = fetch_from_cc(
+                tournament_cc_id,
+                fed_cc_id: default_fed,
+                disciplin_id: "*", cat_id: "*"
+              )
+              if !live_retry.empty?
+                candidates = live_retry
+                retry_path_used = "scope-filter-fallback (fed_cc_id=#{default_fed})"
+              end
+            end
+          end
+        end
+
         case candidates.size
         when 0
+          # Plan 10-02 Task 1 (Befund #5 Fix): Diagnostic Error-Message statt False-Claim.
+          # Vorher: „has no Meldelisten" → Sportwart bekam falsche Info → kontaktierte Verbandsadmin unnötig.
+          # Neu: Tool sagt ehrlich was es probiert hat + bietet Workarounds an.
+          attempted = if scope_given
+            "scope-filter (fed=#{fed_cc_id || "-"}, branch=#{branch_cc_id || "-"}, season=#{season || "-"}, discipline=#{disciplin_id || "-"}, cat=#{cat_id || "-"})"
+          else
+            "meisterschaftsId=#{tournament_cc_id}"
+          end
+          attempted += " + retry-#{retry_path_used}" if retry_path_used
           error(
-            "Tournament #{tournament_cc_id} has no Meldelisten. " \
-            "Either create one in CC-Admin first, or check tournament_cc_id."
+            "Could not auto-resolve meldeliste_cc_id for tournament_cc_id=#{tournament_cc_id} " \
+            "(attempted: #{attempted}). " \
+            "This does NOT necessarily mean no meldeliste exists. Common causes: " \
+            "(1) TournamentCc has no registration_list_cc_id linkage in DB, " \
+            "(2) scope filter combination too narrow for CC, " \
+            "(3) CC response HTML format does not match parser variants. " \
+            "Workaround: pass meldeliste_cc_id directly to subsequent tool calls " \
+            "(find it in CC-Admin URL of the Meldeliste-Edit-View)."
           )
         when 1
           c = candidates.first
