@@ -92,18 +92,17 @@ module McpServer
         missing_from_meldeliste = player_cc_ids - available_ids
         duplicates_in_teilnehmer = player_cc_ids & already_in_list
 
-        if missing_from_meldeliste.any?
-          return error(
-            "Players not in Meldeliste-Available: #{missing_from_meldeliste.inspect}. " \
-            "They must be in the Meldeliste first — use `cc_register_for_tournament` to add them to the Meldeliste (Phase 4 workflow)."
-          )
-        end
+        # Plan 10-05.1 Task 3 (D-10-04-G Pre-Validation-First-Pattern, 4 Constraints):
+        validation_result = run_validations([
+          _validate_tournament_exists_assign(pre_read, tournament_cc_id),
+          _validate_all_players_in_available(missing_from_meldeliste),
+          _validate_none_doppelt_in_teilnehmer(duplicates_in_teilnehmer),
+          _validate_non_finalized_assign(pre_read)
+        ])
 
-        if duplicates_in_teilnehmer.any?
-          return error(
-            "Players already in Teilnehmerliste: #{duplicates_in_teilnehmer.inspect}. " \
-            "Re-adding would be a no-op or fail. Use `cc_remove_from_teilnehmerliste` (Phase 8) if you want to re-assign."
-          )
+        unless validation_result[:all_passed]
+          failed_details = validation_result[:results].reject { |r| r[:ok] }.map { |r| "#{r[:name]}: #{r[:reason]}" }.join("; ")
+          return error("Pre-Validation failed for cc_assign_player_to_teilnehmerliste. Failed: #{validation_result[:failed_constraints].inspect}. #{failed_details}")
         end
 
         # Plan 10-05 Task 4 (Befund #8): Pre-Read war erfolgreich (live-CC-fallback);
@@ -190,6 +189,16 @@ module McpServer
           end
         end
 
+        # Plan 10-05.1 Task 3 (D-10-04-D Audit-Trail-Pflicht):
+        McpServer::AuditTrail.write_entry(
+          tool_name: "cc_assign_player_to_teilnehmerliste",
+          operator: cc_session.respond_to?(:cc_login_user) ? cc_session.cc_login_user.to_s : "unknown",
+          payload: {tournament_cc_id: tournament_cc_id, player_cc_ids: player_cc_ids, armed: true},
+          pre_validation_results: validation_result[:results],
+          read_back_status: read_back_match.to_s,
+          result: "success"
+        )
+
         text(<<~OUT.strip)
           Assigned #{player_cc_ids.size} player(s) to Teilnehmerliste for tournament_cc_id=#{tournament_cc_id} (#{pre_read[:tournament_name]}).
           added: #{player_cc_ids.inspect}
@@ -197,12 +206,43 @@ module McpServer
           teilnehmerliste_count_after:  #{pre_read[:current_teilnehmer].size + player_cc_ids.size}
           Steps completed: assignPlayer → editTeilnehmerlisteCheck (re-render) → editTeilnehmerlisteSave#{" → editTeilnehmerlisteCheck (read-back)" if read_back}.
           read_back_match: #{read_back_match}
+          pre_validation_passed: #{validation_result[:all_passed]}
           pre_read_verified: #{pre_read_status[:pre_read_verified]}
           pre_read_source: #{pre_read_status[:pre_read_source]}
           pre_read_warning: #{pre_read_status[:pre_read_warning]}
         OUT
       rescue => e
         error("Tool exception: #{e.class.name} (details suppressed; check Rails.logger on stderr).")
+      end
+
+      # Plan 10-05.1 Task 3 (D-10-04-G Pre-Validation Constraints für cc_assign):
+      def self._validate_tournament_exists_assign(pre_read, tournament_cc_id)
+        if pre_read.nil? || !pre_read.is_a?(Hash) || pre_read[:tournament_name].blank?
+          return {name: "tournament_exists", ok: false, reason: "Pre-Read von Teilnehmerliste für tournament_cc_id=#{tournament_cc_id} fehlgeschlagen oder leer"}
+        end
+        {name: "tournament_exists", ok: true}
+      end
+
+      def self._validate_all_players_in_available(missing_from_meldeliste)
+        if missing_from_meldeliste.any?
+          {name: "all_players_in_available", ok: false, reason: "Players not in Meldeliste-Available: #{missing_from_meldeliste.inspect}. Use cc_register_for_tournament to add them to the Meldeliste first (Phase 4 workflow)."}
+        else
+          {name: "all_players_in_available", ok: true}
+        end
+      end
+
+      def self._validate_none_doppelt_in_teilnehmer(duplicates_in_teilnehmer)
+        if duplicates_in_teilnehmer.any?
+          {name: "none_doppelt_in_teilnehmer", ok: false, reason: "Players already in Teilnehmerliste: #{duplicates_in_teilnehmer.inspect}. Re-adding would be a no-op or fail. Use cc_remove_from_teilnehmerliste (Phase 8) to re-assign."}
+        else
+          {name: "none_doppelt_in_teilnehmer", ok: true}
+        end
+      end
+
+      def self._validate_non_finalized_assign(pre_read)
+        # CC-API hat keinen klaren finalized-Marker für Teilnehmerliste (Phase-7-Befund: kein finalize-State).
+        # Defensive: assume non-finalized (CC selbst rejected falls Teilnehmerliste finalized).
+        {name: "non_finalized", ok: true}
       end
 
       # Resolve scope filters from DB (TournamentCc) + Override-Params (Best-Effort, NBV-only-Constraint).

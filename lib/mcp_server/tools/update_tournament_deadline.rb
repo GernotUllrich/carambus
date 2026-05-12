@@ -88,6 +88,18 @@ module McpServer
         # Plan 10-05.1 Task 1 (D-10-04-B Pivot): Phase-4-Schicht-3 (Production-Block für armed:true)
         # DEPRECATED. Pre-Validation-First-Pattern ersetzt globalen env-Block durch Tool-eigene Constraints.
 
+        # Plan 10-05.1 Task 3 (D-10-04-G Pre-Validation-First-Pattern, 3 Constraints):
+        validation_result = run_validations([
+          _validate_meldeliste_exists_deadline(meldeliste_cc_id, tournament_cc_id),
+          _validate_new_deadline_iso(new_deadline)
+          # _validate_pre_read_parst_9_felder läuft nach Pre-Read (siehe unten)
+        ])
+
+        unless validation_result[:all_passed]
+          failed_details = validation_result[:results].reject { |r| r[:ok] }.map { |r| "#{r[:name]}: #{r[:reason]}" }.join("; ")
+          return error("Pre-Validation failed for cc_update_tournament_deadline. Failed: #{validation_result[:failed_constraints].inspect}. #{failed_details}")
+        end
+
         # DB-first-Resolver (Best-Effort, NBV-only-Optimization; CC-only-Mode überspringt das).
         # Plan 10-05 Task 4 (Befund #8): Tracking welcher Pfad meldeliste_cc_id resolved hat.
         pre_read_source = if meldeliste_cc_id.present?
@@ -117,6 +129,15 @@ module McpServer
         client = cc_session.client_for
         pre_read = pre_read_meldeliste(client, meldeliste_cc_id, scope_filters)
         return pre_read if pre_read.is_a?(MCP::Tool::Response)  # error envelope
+
+        # Plan 10-05.1 Task 3 (D-10-04-G Constraint 3/3): Pre-Read parst alle 9 Felder erfolgreich.
+        post_pre_read_validation = run_validations([_validate_pre_read_parst_9_felder(pre_read)])
+        unless post_pre_read_validation[:all_passed]
+          failed_details = post_pre_read_validation[:results].reject { |r| r[:ok] }.map { |r| "#{r[:name]}: #{r[:reason]}" }.join("; ")
+          return error("Pre-Validation failed (post-Pre-Read) for cc_update_tournament_deadline. #{failed_details}")
+        end
+        # Merge Pre-Read-Validation results into existing result-set
+        validation_result[:results].concat(post_pre_read_validation[:results])
 
         # Plan 10-05 Task 4 (Befund #8): Pre-Read-Status-Helper. Pre-Read war erfolgreich
         # (sonst Early-Return oben), source je nach DB-Resolver vs Override.
@@ -191,16 +212,62 @@ module McpServer
           end
         end
 
+        # Plan 10-05.1 Task 3 (D-10-04-D Audit-Trail-Pflicht):
+        McpServer::AuditTrail.write_entry(
+          tool_name: "cc_update_tournament_deadline",
+          operator: cc_session.respond_to?(:cc_login_user) ? cc_session.cc_login_user.to_s : "unknown",
+          payload: {meldeliste_cc_id: meldeliste_cc_id, new_deadline: new_deadline, armed: true},
+          pre_validation_results: validation_result[:results],
+          read_back_status: read_back_match.to_s,
+          result: "success"
+        )
+
         text(<<~OUT.strip)
           Updated Meldeschluss for meldeliste_cc_id=#{meldeliste_cc_id} (#{pre_read[:meldelistenName]}): #{pre_read[:mschluss_old]} → #{new_deadline}.
           Steps completed: editMeldelisteCheck → editMeldelisteSave#{" → showMeldeliste (read-back)" if read_back}.
           read_back_match: #{read_back_match}
+          pre_validation_passed: #{validation_result[:all_passed]}
           pre_read_verified: #{pre_read_status[:pre_read_verified]}
           pre_read_source: #{pre_read_status[:pre_read_source]}
           pre_read_warning: #{pre_read_status[:pre_read_warning]}
         OUT
       rescue => e
         error("Tool exception: #{e.class.name} (details suppressed; check Rails.logger on stderr).")
+      end
+
+      # Plan 10-05.1 Task 3 (D-10-04-G Constraint 1/3): Meldeliste-Existenz (defensive).
+      def self._validate_meldeliste_exists_deadline(meldeliste_cc_id, tournament_cc_id)
+        if meldeliste_cc_id.blank? && tournament_cc_id.blank?
+          return {name: "meldeliste_exists", ok: false, reason: "weder meldeliste_cc_id noch tournament_cc_id angegeben"}
+        end
+        # Defensive: existing OneOf-Check + DB-Resolver in call() handelt das ausreichend
+        {name: "meldeliste_exists", ok: true}
+      end
+
+      # Plan 10-05.1 Task 3 (D-10-04-G Constraint 2/3): new_deadline ISO YYYY-MM-DD.
+      def self._validate_new_deadline_iso(new_deadline)
+        return {name: "new_deadline_iso", ok: false, reason: "new_deadline missing"} if new_deadline.blank?
+        unless new_deadline.is_a?(String) && new_deadline.match?(/\A\d{4}-\d{2}-\d{2}\z/)
+          return {name: "new_deadline_iso", ok: false, reason: "new_deadline=#{new_deadline.inspect} ist kein valides ISO YYYY-MM-DD"}
+        end
+        begin
+          Date.iso8601(new_deadline)
+          {name: "new_deadline_iso", ok: true}
+        rescue ArgumentError
+          {name: "new_deadline_iso", ok: false, reason: "new_deadline=#{new_deadline} kann nicht als ISO geparst werden"}
+        end
+      end
+
+      # Plan 10-05.1 Task 3 (D-10-04-G Constraint 3/3): Pre-Read parst alle 9 Felder.
+      def self._validate_pre_read_parst_9_felder(pre_read)
+        return {name: "pre_read_parst_9_felder", ok: false, reason: "pre_read is not a Hash"} unless pre_read.is_a?(Hash)
+        required_keys = %i[fedId branchId disciplinId catId season meldelisteId meldelistenName mschluss_old stag]
+        missing = required_keys.select { |k| pre_read[k].nil? || pre_read[k].to_s.empty? }
+        if missing.any?
+          {name: "pre_read_parst_9_felder", ok: false, reason: "Pre-Read fehlt #{missing.length} von 9 Feldern: #{missing.inspect}"}
+        else
+          {name: "pre_read_parst_9_felder", ok: true}
+        end
       end
 
       # DB-first-Resolver: tournament_cc.registration_list_cc.cc_id (Phase 5 Plan 05-01 pattern).
