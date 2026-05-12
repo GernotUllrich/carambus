@@ -90,7 +90,13 @@ module McpServer
           return error("Live-CC writes are blocked in Rails production env via MCP. Run from development env.")
         end
 
-        # DB-first-Resolver (Best-Effort, NBV-only-Optimization; CC-only-Mode überspringt das)
+        # DB-first-Resolver (Best-Effort, NBV-only-Optimization; CC-only-Mode überspringt das).
+        # Plan 10-05 Task 4 (Befund #8): Tracking welcher Pfad meldeliste_cc_id resolved hat.
+        pre_read_source = if meldeliste_cc_id.present?
+          "override-param"
+        else
+          "DB-resolver"
+        end
         meldeliste_cc_id ||= resolve_meldeliste_cc_id(tournament_cc_id)
         if meldeliste_cc_id.nil?
           return error(
@@ -114,6 +120,14 @@ module McpServer
         pre_read = pre_read_meldeliste(client, meldeliste_cc_id, scope_filters)
         return pre_read if pre_read.is_a?(MCP::Tool::Response)  # error envelope
 
+        # Plan 10-05 Task 4 (Befund #8): Pre-Read-Status-Helper. Pre-Read war erfolgreich
+        # (sonst Early-Return oben), source je nach DB-Resolver vs Override.
+        pre_read_status = format_pre_read_status(
+          verified: true,
+          source: pre_read_source,
+          warning: (pre_read_source == "override-param") ? "meldeliste_cc_id=#{meldeliste_cc_id} als User-Override genutzt; Pre-Read-Call hat die Existenz live verifiziert." : nil
+        )
+
         # Schicht 4 (Network-Level): Detail-Dry-Run-Echo — alle 8 Detail-Felder + mschluss_old/new.
         unless armed
           return text(<<~DRY_RUN.strip)
@@ -122,6 +136,9 @@ module McpServer
             mschluss_new: #{new_deadline}
             Scope: fed_id=#{pre_read[:fedId]}, branch_cc_id=#{pre_read[:branchId]}, season=#{pre_read[:season]}, disciplin_id=#{pre_read[:disciplinId]}, cat_id=#{pre_read[:catId]}, stag=#{pre_read[:stag]} (stag unchanged).
             Workflow: 2-Step POST (editMeldelisteCheck → editMeldelisteSave) + optional Read-Back via showMeldeliste.
+            pre_read_verified: #{pre_read_status[:pre_read_verified]}
+            pre_read_source: #{pre_read_status[:pre_read_source]}
+            pre_read_warning: #{pre_read_status[:pre_read_warning]}
             Pass armed:true to actually perform this update.
           DRY_RUN
         end
@@ -180,6 +197,9 @@ module McpServer
           Updated Meldeschluss for meldeliste_cc_id=#{meldeliste_cc_id} (#{pre_read[:meldelistenName]}): #{pre_read[:mschluss_old]} → #{new_deadline}.
           Steps completed: editMeldelisteCheck → editMeldelisteSave#{" → showMeldeliste (read-back)" if read_back}.
           read_back_match: #{read_back_match}
+          pre_read_verified: #{pre_read_status[:pre_read_verified]}
+          pre_read_source: #{pre_read_status[:pre_read_source]}
+          pre_read_warning: #{pre_read_status[:pre_read_warning]}
         OUT
       rescue => e
         error("Tool exception: #{e.class.name} (details suppressed; check Rails.logger on stderr).")

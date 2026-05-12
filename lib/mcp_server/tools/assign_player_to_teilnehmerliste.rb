@@ -108,6 +108,14 @@ module McpServer
           )
         end
 
+        # Plan 10-05 Task 4 (Befund #8): Pre-Read war erfolgreich (live-CC-fallback);
+        # tournament_cc_id stammt aus User-Input → source: "override-param".
+        pre_read_status = format_pre_read_status(
+          verified: true,
+          source: "override-param",
+          warning: "tournament_cc_id=#{tournament_cc_id} als User-Override; Pre-Read-Call hat die Teilnehmerliste live verifiziert (#{pre_read[:current_teilnehmer].size} bestehende Teilnehmer)."
+        )
+
         # Schicht 4 (Network-Level): Detail-Dry-Run-Echo
         unless armed
           player_details = pre_read[:available_in_meldeliste]
@@ -122,6 +130,9 @@ module McpServer
             available_in_meldeliste:      #{pre_read[:available_in_meldeliste].size} player(s)
             Scope: fed_id=#{scope[:fedId]}, branch_cc_id=#{scope[:branchId]}, season=#{scope[:season]}, disciplin_id=#{scope[:disciplinId]}, cat_id=#{scope[:catId]}
             Workflow: assignPlayer (Multi-Add via meldungId[]) → editTeilnehmerlisteSave → optional Read-Back.
+            pre_read_verified: #{pre_read_status[:pre_read_verified]}
+            pre_read_source: #{pre_read_status[:pre_read_source]}
+            pre_read_warning: #{pre_read_status[:pre_read_warning]}
             Pass armed:true to actually perform this assignment.
           DRY_RUN
         end
@@ -188,6 +199,9 @@ module McpServer
           teilnehmerliste_count_after:  #{pre_read[:current_teilnehmer].size + player_cc_ids.size}
           Steps completed: assignPlayer → editTeilnehmerlisteCheck (re-render) → editTeilnehmerlisteSave#{" → editTeilnehmerlisteCheck (read-back)" if read_back}.
           read_back_match: #{read_back_match}
+          pre_read_verified: #{pre_read_status[:pre_read_verified]}
+          pre_read_source: #{pre_read_status[:pre_read_source]}
+          pre_read_warning: #{pre_read_status[:pre_read_warning]}
         OUT
       rescue => e
         error("Tool exception: #{e.class.name} (details suppressed; check Rails.logger on stderr).")

@@ -117,6 +117,14 @@ module McpServer
 
         effective_id = listen_eintrags_id || player_cc_id
 
+        # Plan 10-05 Task 4 (Befund #8): Pre-Read war erfolgreich (Player ist in Meldeliste verifiziert);
+        # meldeliste_cc_id + player_cc_id sind User-Inputs → source: "override-param".
+        pre_read_status = format_pre_read_status(
+          verified: true,
+          source: "override-param",
+          warning: "meldeliste_cc_id=#{meldeliste_cc_id} + player_cc_id=#{player_cc_id} via User-Input; Pre-Read-Call (showCommittedMeldeliste) hat die Existenz in Meldeliste live verifiziert."
+        )
+
         # Schicht 4 (Network-Level): Detail-Dry-Run-Echo
         unless armed
           return text(<<~DRY_RUN.strip)
@@ -125,6 +133,9 @@ module McpServer
             Resolved Listen-Eintrags-ID: #{listen_eintrags_id.inspect} (fallback player_cc_id if nil)
             Effective `a=` value: #{effective_id}
             Workflow: 3-Step (showCommittedMeldeliste Pre-Read → cc_remove → editMeldelisteSave → optional showCommittedMeldeliste Read-Back).
+            pre_read_verified: #{pre_read_status[:pre_read_verified]}
+            pre_read_source: #{pre_read_status[:pre_read_source]}
+            pre_read_warning: #{pre_read_status[:pre_read_warning]}
             Pass armed:true to actually perform this unregister.
           DRY_RUN
         end
@@ -185,6 +196,9 @@ module McpServer
           Unregistered player_cc_id=#{player_cc_id} (effective `a=`=#{effective_id}) from meldeliste_cc_id=#{meldeliste_cc_id}.
           Steps completed: showCommittedMeldeliste (Pre-Read) → cc_remove → editMeldelisteSave#{" → showCommittedMeldeliste (Read-Back)" if read_back}.
           read_back_match: #{read_back_match}
+          pre_read_verified: #{pre_read_status[:pre_read_verified]}
+          pre_read_source: #{pre_read_status[:pre_read_source]}
+          pre_read_warning: #{pre_read_status[:pre_read_warning]}
         OUT
       rescue => e
         error("Tool exception: #{e.class.name} (details suppressed; check Rails.logger on stderr).")

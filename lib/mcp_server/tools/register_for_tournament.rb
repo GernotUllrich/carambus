@@ -145,9 +145,23 @@ module McpServer
         )
         verified = verify_res&.body.to_s.include?(%(<td align="center">#{player_cc_id}</td>))
 
+        # Plan 10-05 Task 4 (Befund #8 D-10-03-5): Pre-Read-Verify-Status explicit.
+        # cc_register nutzt meldeliste_cc_id direkt vom User-Input (kein DB-Resolver,
+        # kein Pre-Read-Call vor Write) → source: "override-param", verified: false.
+        # Sportwart sieht: pre-Schreib war ungeprüft; Read-Back-Status (verified_in_committed_list)
+        # ist der einzige post-Schreib-Match. Pattern: Vertrauens-Transparenz statt Schweigen.
+        pre_read = format_pre_read_status(
+          verified: false,
+          source: "override-param",
+          warning: "meldeliste_cc_id=#{meldeliste_cc_id} als User-Override angenommen, NICHT via DB-/CC-Pre-Read verifiziert. Read-Back (verified_in_committed_list) ist der einzige Post-Schreib-Match."
+        )
+
         text(<<~OUT.strip)
           Registered player_cc_id=#{player_cc_id} into meldeliste_cc_id=#{meldeliste_cc_id} (2-Step CC workflow OK).
           verified_in_committed_list: #{verified}
+          pre_read_verified: #{pre_read[:pre_read_verified]}
+          pre_read_source: #{pre_read[:pre_read_source]}
+          pre_read_warning: #{pre_read[:pre_read_warning]}
           #{consistency_msg}
         OUT
       rescue => e

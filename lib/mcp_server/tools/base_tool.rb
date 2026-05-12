@@ -40,6 +40,29 @@ module McpServer
         McpServer::CcSession
       end
 
+      # Plan 10-05 Task 4 (Befund #8 D-10-03-5): Pre-Read-Verify-Status-Helper für Write-Tools.
+      # Sportwart kann manuell eingegebene cc_id (meldeliste_cc_id, player_cc_id) nicht
+      # selbständig verifizieren. Vorhandenes Pattern `read_back_match` zeigt nach-Schreib-Status,
+      # NICHT vor-Schreib-Resolution. Helper gibt strukturierten Status zurück (verified/source/warning).
+      #
+      # source-Werte:
+      #   "DB-resolver"      — cc_id aus DB-Beziehung resolved (z.B. TournamentCc.registration_list_cc)
+      #   "live-CC-fallback" — cc_id via Pre-Read-CC-Call verifiziert (read-only, vor Mutation)
+      #   "override-param"   — User-Override; KEINE Pre-Read-Verifikation (Vertrauens-Lücke)
+      #
+      # Verwendung in Write-Tools:
+      #   result.merge(format_pre_read_status(verified: true, source: "DB-resolver"))
+      #   result.merge(format_pre_read_status(verified: false, source: "override-param",
+      #                                       warning: "meldeliste_cc_id=#{x} als Override ohne Pre-Read-Verify"))
+      def self.format_pre_read_status(verified:, source:, warning: nil)
+        status = {
+          pre_read_verified: verified,
+          pre_read_source: source
+        }
+        status[:pre_read_warning] = warning if warning
+        status
+      end
+
       # Liefert die ClubCloud federation_id als Default-Fallback für Tools.
       # Priorität:
       #   1. ENV["CC_FED_ID"] (expliziter Override — höchste Prio)

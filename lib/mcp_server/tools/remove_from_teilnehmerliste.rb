@@ -80,6 +80,14 @@ module McpServer
           )
         end
 
+        # Plan 10-05 Task 4 (Befund #8): Pre-Read war erfolgreich (Player ist in Teilnehmerliste verifiziert);
+        # tournament_cc_id + player_cc_id sind User-Inputs → source: "override-param".
+        pre_read_status = format_pre_read_status(
+          verified: true,
+          source: "override-param",
+          warning: "tournament_cc_id=#{tournament_cc_id} + player_cc_id=#{player_cc_id} via User-Input; Pre-Read-Call hat die Existenz in Teilnehmerliste live verifiziert."
+        )
+
         # Schicht 4 (Network-Level): Detail-Dry-Run-Echo
         unless armed
           player_label = pre_read[:current_teilnehmer].find { |opt| opt[:cc_id] == player_cc_id }&.[](:label) || "?"
@@ -89,6 +97,9 @@ module McpServer
             teilnehmerliste_count_after:  #{pre_read[:current_teilnehmer].size - 1}
             Scope: fed_id=#{scope[:fedId]}, branch_cc_id=#{scope[:branchId]}, season=#{scope[:season]}, disciplin_id=#{scope[:disciplinId]}, cat_id=#{scope[:catId]}
             Workflow: removePlayer (Single-Remove via teilnehmerId=) → editTeilnehmerlisteSave → optional Read-Back.
+            pre_read_verified: #{pre_read_status[:pre_read_verified]}
+            pre_read_source: #{pre_read_status[:pre_read_source]}
+            pre_read_warning: #{pre_read_status[:pre_read_warning]}
             Pass armed:true to actually perform this removal.
           DRY_RUN
         end
@@ -147,6 +158,9 @@ module McpServer
           teilnehmerliste_count_after:  #{pre_read[:current_teilnehmer].size - 1}
           Steps completed: removePlayer → editTeilnehmerlisteCheck (re-render) → editTeilnehmerlisteSave#{" → editTeilnehmerlisteCheck (read-back)" if read_back}.
           read_back_match: #{read_back_match}
+          pre_read_verified: #{pre_read_status[:pre_read_verified]}
+          pre_read_source: #{pre_read_status[:pre_read_source]}
+          pre_read_warning: #{pre_read_status[:pre_read_warning]}
         OUT
       rescue => e
         error("Tool exception: #{e.class.name} (details suppressed; check Rails.logger on stderr).")
