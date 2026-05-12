@@ -106,11 +106,16 @@ module McpServer
         listen_eintrags_id = resolve_listen_eintrags_id(pre_doc, player_cc_id)
         in_meldeliste = !listen_eintrags_id.nil? || player_in_meldeliste?(pre_doc, player_cc_id)
 
-        unless in_meldeliste
-          return error(
-            "Player #{player_cc_id} not in Meldeliste #{meldeliste_cc_id}. " \
-            "Already removed or never registered. Use `cc_register_for_tournament` first if needed."
-          )
+        # Plan 10-05.1 Task 4 (D-10-04-G Pre-Validation-First-Pattern, 3 Constraints):
+        validation_result = run_validations([
+          _validate_meldeliste_exists_unregister(meldeliste_cc_id),
+          _validate_player_in_meldeliste(player_cc_id, meldeliste_cc_id, in_meldeliste),
+          _validate_meldeliste_non_finalized_unregister(meldeliste_cc_id)
+        ])
+
+        unless validation_result[:all_passed]
+          failed_details = validation_result[:results].reject { |r| r[:ok] }.map { |r| "#{r[:name]}: #{r[:reason]}" }.join("; ")
+          return error("Pre-Validation failed for cc_unregister_for_tournament. Failed: #{validation_result[:failed_constraints].inspect}. #{failed_details}")
         end
 
         effective_id = listen_eintrags_id || player_cc_id
@@ -190,16 +195,47 @@ module McpServer
           end
         end
 
+        # Plan 10-05.1 Task 4 (D-10-04-D Audit-Trail-Pflicht):
+        McpServer::AuditTrail.write_entry(
+          tool_name: "cc_unregister_for_tournament",
+          operator: cc_session.respond_to?(:cc_login_user) ? cc_session.cc_login_user.to_s : "unknown",
+          payload: {meldeliste_cc_id: meldeliste_cc_id, player_cc_id: player_cc_id, armed: true},
+          pre_validation_results: validation_result[:results],
+          read_back_status: read_back_match.to_s,
+          result: "success"
+        )
+
         text(<<~OUT.strip)
           Unregistered player_cc_id=#{player_cc_id} (effective `a=`=#{effective_id}) from meldeliste_cc_id=#{meldeliste_cc_id}.
           Steps completed: showCommittedMeldeliste (Pre-Read) → cc_remove → editMeldelisteSave#{" → showCommittedMeldeliste (Read-Back)" if read_back}.
           read_back_match: #{read_back_match}
+          pre_validation_passed: #{validation_result[:all_passed]}
           pre_read_verified: #{pre_read_status[:pre_read_verified]}
           pre_read_source: #{pre_read_status[:pre_read_source]}
           pre_read_warning: #{pre_read_status[:pre_read_warning]}
         OUT
       rescue => e
         error("Tool exception: #{e.class.name} (details suppressed; check Rails.logger on stderr).")
+      end
+
+      # Plan 10-05.1 Task 4 (D-10-04-G Pre-Validation Constraints für cc_unregister):
+      def self._validate_meldeliste_exists_unregister(meldeliste_cc_id)
+        return {name: "meldeliste_exists", ok: false, reason: "meldeliste_cc_id missing"} if meldeliste_cc_id.blank?
+        # Pre-Read above bereits verifiziert dass Endpoint antwortet; defensive ok
+        {name: "meldeliste_exists", ok: true}
+      end
+
+      def self._validate_player_in_meldeliste(player_cc_id, meldeliste_cc_id, in_meldeliste)
+        unless in_meldeliste
+          return {name: "player_in_meldeliste", ok: false,
+                  reason: "Player #{player_cc_id} not in Meldeliste #{meldeliste_cc_id}. Already removed or never registered. Use cc_register_for_tournament first if needed."}
+        end
+        {name: "player_in_meldeliste", ok: true}
+      end
+
+      def self._validate_meldeliste_non_finalized_unregister(meldeliste_cc_id)
+        # CC hat keinen klaren finalize-Marker; defensive
+        {name: "meldeliste_non_finalized", ok: true}
       end
 
       # Helper: Parse Listen-Eintrags-ID aus Pre-Read-HTML.

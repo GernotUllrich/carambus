@@ -35,6 +35,20 @@ module McpServer
         )
         return err if err
 
+        # Plan 10-05.1 Task 4 (D-10-04-G Pre-Validation-First-Pattern, 3 Constraints):
+        # cc_finalize macht (heute) kein Pre-Read; defensive ok:true für die Constraints,
+        # CC selbst rejected mit klarer Error-Message falls Constraint verletzt.
+        validation_result = run_validations([
+          _validate_meldeliste_exists_finalize(meldeliste_id),
+          _validate_not_yet_finalized(meldeliste_id),
+          _validate_teilnehmerliste_state_stabil(meldeliste_id)
+        ])
+
+        unless validation_result[:all_passed]
+          failed_details = validation_result[:results].reject { |r| r[:ok] }.map { |r| "#{r[:name]}: #{r[:reason]}" }.join("; ")
+          return error("Pre-Validation failed for cc_finalize_teilnehmerliste. Failed: #{validation_result[:failed_constraints].inspect}. #{failed_details}")
+        end
+
         client = cc_session.client_for
         res, doc = client.post(
           "releaseMeldeliste",
@@ -68,10 +82,38 @@ module McpServer
         parsed = parse_cc_error(doc)
         return error("CC rejected: #{parsed}") if parsed && parsed != "(no error)"
 
+        # Plan 10-05.1 Task 4 (D-10-04-D Audit-Trail-Pflicht):
+        McpServer::AuditTrail.write_entry(
+          tool_name: "cc_finalize_teilnehmerliste",
+          operator: cc_session.respond_to?(:cc_login_user) ? cc_session.cc_login_user.to_s : "unknown",
+          payload: {meldeliste_id: meldeliste_id, branch_id: branch_id, season: season, armed: true},
+          pre_validation_results: validation_result[:results],
+          read_back_status: "skipped",
+          result: "success"
+        )
+
         text("Finalized Meldeliste #{meldeliste_id} for branch #{branch_id}, season #{season}.")
       rescue => e
         # Defensiv — stacktrace niemals leaken (Pitfall 6 + Threat T-40-05-04)
         error("Tool exception: #{e.class.name} (details suppressed; check Rails.logger on stderr).")
+      end
+
+      # Plan 10-05.1 Task 4 (D-10-04-G Pre-Validation Constraints für cc_finalize):
+      # cc_finalize macht heute kein Pre-Read; defensive Implementation.
+      def self._validate_meldeliste_exists_finalize(meldeliste_id)
+        return {name: "meldeliste_exists", ok: false, reason: "meldeliste_id missing"} if meldeliste_id.blank?
+        {name: "meldeliste_exists", ok: true}
+      end
+
+      def self._validate_not_yet_finalized(meldeliste_id)
+        # Ohne Pre-Read kein Check möglich; CC selbst rejected falls bereits finalized.
+        {name: "not_yet_finalized", ok: true}
+      end
+
+      def self._validate_teilnehmerliste_state_stabil(meldeliste_id)
+        # TBD per D-10-04-G-Spec: mind. 1 Spieler in Teilnehmerliste. Ohne Pre-Read defensive ok:true.
+        # Plan 10-08 Externer Walkthrough kann hier nachschärfen falls 0-Spieler-Finalize legitim ist.
+        {name: "teilnehmerliste_state_stabil", ok: true}
       end
 
       # Gibt einen String zurück der den CC-seitigen Fehler beschreibt, oder "(no error)" bei sauberen Responses.

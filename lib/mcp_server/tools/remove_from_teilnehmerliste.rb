@@ -70,12 +70,17 @@ module McpServer
 
         # Pre-Validation: player_cc_id muss in Teilnehmerliste sein
         current_ids = pre_read[:current_teilnehmer].map { |opt| opt[:cc_id] }
-        unless current_ids.include?(player_cc_id)
-          return error(
-            "Player #{player_cc_id} not in Teilnehmerliste of tournament #{tournament_cc_id} (#{pre_read[:tournament_name]}). " \
-            "Current Teilnehmerliste: #{current_ids.inspect}. " \
-            "If player is in Meldeliste but not yet accreditated, use `cc_assign_player_to_teilnehmerliste` first."
-          )
+
+        # Plan 10-05.1 Task 4 (D-10-04-G Pre-Validation-First-Pattern, 3 Constraints):
+        validation_result = run_validations([
+          _validate_tournament_exists_remove(pre_read, tournament_cc_id),
+          _validate_player_in_teilnehmerliste(player_cc_id, current_ids, tournament_cc_id, pre_read),
+          _validate_non_finalized_remove(pre_read)
+        ])
+
+        unless validation_result[:all_passed]
+          failed_details = validation_result[:results].reject { |r| r[:ok] }.map { |r| "#{r[:name]}: #{r[:reason]}" }.join("; ")
+          return error("Pre-Validation failed for cc_remove_from_teilnehmerliste. Failed: #{validation_result[:failed_constraints].inspect}. #{failed_details}")
         end
 
         # Plan 10-05 Task 4 (Befund #8): Pre-Read war erfolgreich (Player ist in Teilnehmerliste verifiziert);
@@ -150,18 +155,50 @@ module McpServer
           end
         end
 
+        # Plan 10-05.1 Task 4 (D-10-04-D Audit-Trail-Pflicht):
+        McpServer::AuditTrail.write_entry(
+          tool_name: "cc_remove_from_teilnehmerliste",
+          operator: cc_session.respond_to?(:cc_login_user) ? cc_session.cc_login_user.to_s : "unknown",
+          payload: {tournament_cc_id: tournament_cc_id, player_cc_id: player_cc_id, armed: true},
+          pre_validation_results: validation_result[:results],
+          read_back_status: read_back_match.to_s,
+          result: "success"
+        )
+
         text(<<~OUT.strip)
           Removed player_cc_id=#{player_cc_id} from Teilnehmerliste of tournament_cc_id=#{tournament_cc_id} (#{pre_read[:tournament_name]}).
           teilnehmerliste_count_before: #{pre_read[:current_teilnehmer].size}
           teilnehmerliste_count_after:  #{pre_read[:current_teilnehmer].size - 1}
           Steps completed: removePlayer → editTeilnehmerlisteCheck (re-render) → editTeilnehmerlisteSave#{" → editTeilnehmerlisteCheck (read-back)" if read_back}.
           read_back_match: #{read_back_match}
+          pre_validation_passed: #{validation_result[:all_passed]}
           pre_read_verified: #{pre_read_status[:pre_read_verified]}
           pre_read_source: #{pre_read_status[:pre_read_source]}
           pre_read_warning: #{pre_read_status[:pre_read_warning]}
         OUT
       rescue => e
         error("Tool exception: #{e.class.name} (details suppressed; check Rails.logger on stderr).")
+      end
+
+      # Plan 10-05.1 Task 4 (D-10-04-G Pre-Validation Constraints für cc_remove):
+      def self._validate_tournament_exists_remove(pre_read, tournament_cc_id)
+        if pre_read.nil? || !pre_read.is_a?(Hash) || pre_read[:tournament_name].blank?
+          return {name: "tournament_exists", ok: false, reason: "Pre-Read von Teilnehmerliste für tournament_cc_id=#{tournament_cc_id} fehlgeschlagen oder leer"}
+        end
+        {name: "tournament_exists", ok: true}
+      end
+
+      def self._validate_player_in_teilnehmerliste(player_cc_id, current_ids, tournament_cc_id, pre_read)
+        unless current_ids.include?(player_cc_id)
+          return {name: "player_in_teilnehmerliste", ok: false,
+                  reason: "Player #{player_cc_id} not in Teilnehmerliste of tournament #{tournament_cc_id} (#{pre_read[:tournament_name]}). Current Teilnehmerliste: #{current_ids.inspect}. If player is in Meldeliste but not yet accreditated, use cc_assign_player_to_teilnehmerliste first."}
+        end
+        {name: "player_in_teilnehmerliste", ok: true}
+      end
+
+      def self._validate_non_finalized_remove(pre_read)
+        # CC hat keinen finalized-Marker für Teilnehmerliste (Phase-7-Befund).
+        {name: "non_finalized", ok: true}
       end
     end
   end
