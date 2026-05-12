@@ -2,8 +2,21 @@
 # frozen_string_literal: true
 # Carambus MCP-Server entrypoint — gespawnt von MCP-Clients (Claude Desktop / Code) als Subprocess.
 # JSON-RPC läuft über STDIN/STDOUT — daher MUSS STDOUT sauber bleiben (Pitfall 1).
+#
+# Plan 10-02 Task 2 (Befund #2 v0.2.0-Vertrauens-Blocker Fix):
+# Phase 10 Plan 10-01 Walkthrough zeigte in Claude Desktop regelmäßig
+# `MCP carambus: Unexpected token 'I', "I, [2026-0"... is not valid JSON`.
+# Root cause: Rails-Boot-Initializer (z.B. config/initializers/docs_auto_rebuild.rb
+# in development mode) schreibt Rails.logger.info-Output auf STDOUT BEVOR
+# transport/boot.rb den Logger auf STDERR umleitet.
+# Fix: setze ENVs VOR `require_relative "../config/environment"`:
+#   - DOCS_AUTO_REBUILD=0 → killt den development-only docs-rebuild-Listener im MCP-Kontext
+#   - RAILS_LOG_TO_STDOUT=false → Rails-Default-Logger schreibt in log/<env>.log statt STDOUT
+# Belt-and-suspenders mit transport/boot.rb (das Rails.logger nochmal auf $stderr setzt).
 
 ENV["RAILS_ENV"] ||= "production"
+ENV["DOCS_AUTO_REBUILD"] = "0"
+ENV["RAILS_LOG_TO_STDOUT"] = "false"
 require_relative "../config/environment"
 
 require "mcp_server/transport/boot"
