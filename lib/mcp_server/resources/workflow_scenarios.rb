@@ -39,6 +39,16 @@ module McpServer
           title: "Meldeliste in ClubCloud finalisieren",
           mime_type: "application/json",
           file_ext: "de.json"
+        },
+        "sportwart-tagesablauf-vor-turnier" => {
+          title: "Sportwart-Tagesablauf vor dem Turnier",
+          mime_type: "application/json",
+          file_ext: "de.json"
+        },
+        "akkreditierung-am-turniertag" => {
+          title: "Akkreditierung am Turniertag",
+          mime_type: "application/json",
+          file_ext: "de.json"
         }
       }.freeze
 

@@ -1,0 +1,96 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "id": "sportwart-tagesablauf-vor-turnier",
+  "version": "0.1.0",
+  "title": "Sportwart-Tagesablauf vor dem Turnier",
+  "description": "Sportwart-DSL-Einstiegs-Spickzettel für den Vor-Turnier-Workflow. Der Sportwart spricht in Turnier-, Vereins- und Spielernamen (NICHT in cc_ids); Claude resolved via Vokabular-Schicht (Plan 10-06) zu cc_ids und führt den 4-Aktionen-Tagesablauf: Status prüfen / Anmeldung aus E-Mail / Meldeschluss verschieben / Liste finalisieren. Komplementär zu `anmeldung-aus-email` (E-Mail-getriggert mit gegebenen Spielerlisten) und `meldeliste-finalisieren` (Detail-Workflow Finalisierung); dieser Spickzettel ist der Sportwart-Einstieg mit name-basierten Inputs.",
+  "prerequisites": [
+    "Sportwart hat Club-Sportwart- oder höhere CC-Rolle für die Region des Turniers (sonst lehnt CC am Ende ab).",
+    "MCP-Server wurde vom Carambus-Admin vor Ort eingerichtet (Setup-Service-Doku `clubcloud-mcp-setup-service.de.md`).",
+    "Claude Desktop läuft mit `carambus-clubcloud` MCP-Server (Permission-Modus 'Always allow for this server' empfohlen — siehe Setup-Service-Doku, Sektion Permission-Setup).",
+    "Die anzumeldenden Spieler haben PlayerRanking-Einträge für die Disziplin (Spielberechtigung)."
+  ],
+  "user_confirm_strategy": "per_step",
+  "notes_for_claude": "Der Sportwart denkt in NAMEN, nicht in cc_ids. Nutze IMMER name-basierte Inputs wo verfügbar (Vokabular-Schicht aus Plan 10-06): `name` in cc_lookup_tournament/cc_lookup_club/cc_search_player; `club_name`/`player_name` in cc_register/cc_update_tournament_deadline/cc_assign/cc_unregister. Frag NIEMALS den Sportwart nach einer cc_id — falls Auto-Resolve mehrdeutig ist, präsentiere die Treffer-Kandidaten zur Auswahl (Disambiguation-Pattern aus Plan 10-06). Bei stale Daten (meta.last_sync_age_hours > 2h) vor armed:true: force_refresh:true im jeweiligen Read-Tool — den Sportwart aber nicht mit force_refresh konfrontieren, einfach machen und kurz erwähnen ('Ich aktualisier kurz die Daten…'). Persona: CC-Wissen niedrig, Domain-Wissen hoch. **Vor JEDEM armed:true: Dry-Run-First (armed:false) -> Pre-Validation-Output prüfen -> Sportwart-OK abholen -> erneut mit armed:true.** Pre-Validation-First-Pattern (Plan 10-05.1) macht das robust: 23 Constraints werden VOR dem Write geprüft, du bekommst `{ok: true/false, reason: ...}` zurück. **4-Aktionen-Routing** in Step 2: Sportwart wählt aus 4 Aktionen; bei 'nur Status' nach Step 2 stoppen; bei 'Anmeldung' weiter zu Step 3; bei 'Meldeschluss verschieben' Step 4; bei 'Liste finalisieren' Step 5. Steps 3-5 sind optional und nicht alle in einem Durchlauf nötig.",
+  "steps": [
+    {
+      "step_id": "lookup_tournament_by_name",
+      "tool": "cc_lookup_tournament",
+      "params": {
+        "name": "{{tournament_name_input}}",
+        "with_committed_list": true
+      },
+      "bind_result": {
+        "tournament": "$.tournament",
+        "selected_meldeliste_cc_id": "$.tournament.registration_list_cc_id",
+        "selected_branch_cc_id": "$.tournament.branch_cc_id",
+        "selected_season_name": "$.tournament.season_name",
+        "selected_discipline_name": "$.tournament.discipline_name",
+        "current_deadline": "$.tournament.accredation_end",
+        "committed": "$.committed_meldeliste",
+        "candidates": "$.candidates"
+      },
+      "description_for_user": "Ich such das Turnier '{{tournament_name_input}}'. Bei mehreren Treffern (Disambiguation) frag ich zurück: Verein + Datum unterscheiden in der Regel.",
+      "user_confirm": false,
+      "expected_outcome": "1 Turnier-Match mit Detail (Meldeschluss, Status, committed_list-Snapshot) ODER candidates-Array bei >=2 Treffern -> Sportwart wählt aus. Vokabular-Schicht (Plan 10-06): name-Input wird via Phase-8-Disambiguation-Pattern aufgelöst.",
+      "fail_action": "ask_user"
+    },
+    {
+      "step_id": "report_status_and_choose_action",
+      "tool": "cc_lookup_tournament",
+      "params": {
+        "tournament_cc_id": "{{tournament.cc_id}}",
+        "with_committed_list": true
+      },
+      "bind_result": {
+        "tournament_detail": "$.tournament",
+        "committed_count": "$.committed_meldeliste_count"
+      },
+      "description_for_user": "Status {{tournament.name}}: Meldeschluss {{current_deadline}}, {{committed_count}} Spieler angemeldet. Was möchtest Du tun? (1) Nur Status anschauen — fertig. (2) Spieler anmelden. (3) Meldeschluss verschieben. (4) Teilnehmerliste finalisieren.",
+      "user_confirm": true,
+      "expected_outcome": "Sportwart wählt eine der 4 Aktionen. Bei (1): Workflow beendet. Bei (2): Sportwart liefert Vereins-+ Spielernamen aus der E-Mail; weiter zu Step 3. Bei (3): Sportwart liefert neues Datum (DD.MM.YYYY); weiter zu Step 4. Bei (4): Bestätigung der Vollständigkeit der Liste; weiter zu Step 5.",
+      "fail_action": "ask_user"
+    },
+    {
+      "step_id": "register_player_by_name_dry_run",
+      "tool": "cc_register_for_tournament",
+      "params": {
+        "meldeliste_cc_id": "{{selected_meldeliste_cc_id}}",
+        "branch_cc_id": "{{selected_branch_cc_id}}",
+        "season": "{{selected_season_name}}",
+        "club_name": "{{club_name_input}}",
+        "player_name": "{{player_name_input}}",
+        "armed": false
+      },
+      "description_for_user": "Aktion (2) Anmeldung: Ich mach erst einen Trockenlauf (armed:false) für {{player_name_input}} ({{club_name_input}}) in {{tournament.name}}. Auto-Resolve via Vokabular-Schicht: club_name -> cc_lookup_club + player_name -> cc_search_player. Pre-Validation prüft 7 Constraints. Wenn alles grün: bestätige mit 'Anmelden' für die scharfe Anmeldung (armed:true). Bei Multi-Player-Anmeldung Step 3 pro weiterem Spieler wiederholen. Für E-Mail-Detail-Workflow siehe Spickzettel `anmeldung-aus-email`.",
+      "user_confirm": true,
+      "expected_outcome": "Dry-Run-Output mit Pre-Validation-Status (7 Constraints alle OK erwartet) + aufgelösten cc_ids + Workflow-Vorschau. Bei Sportwart-OK: Step 3 erneut mit armed:true. Success-Output: verified_in_committed_list:true.",
+      "fail_action": "ask_user"
+    },
+    {
+      "step_id": "update_deadline_dry_run",
+      "tool": "cc_update_tournament_deadline",
+      "params": {
+        "meldeliste_cc_id": "{{selected_meldeliste_cc_id}}",
+        "new_deadline": "{{new_deadline_input}}",
+        "armed": false
+      },
+      "description_for_user": "Aktion (3) Meldeschluss verschieben: Dry-Run (armed:false) — von {{current_deadline}} auf {{new_deadline_input}}. Pre-Validation prüft 3 Constraints (Meldeliste existiert / non-finalized / neues Datum > heute). Bei Sportwart-OK: 'Schieben' -> Step 4 erneut mit armed:true.",
+      "user_confirm": true,
+      "expected_outcome": "Pre-Validation-Output + Workflow-Vorschau (editMeldelisteCheck -> editMeldelisteSave). Bei Sportwart-OK: armed:true mit Read-Back-Verify.",
+      "fail_action": "ask_user"
+    },
+    {
+      "step_id": "finalize_meldeliste_dry_run",
+      "tool": "cc_finalize_teilnehmerliste",
+      "params": {
+        "meldeliste_cc_id": "{{selected_meldeliste_cc_id}}",
+        "armed": false
+      },
+      "description_for_user": "Aktion (4) Liste finalisieren: Dry-Run (armed:false). ACHTUNG: Finalize ist destruktiv (keine neuen Anmeldungen mehr möglich). Pre-Validation prüft 3 Constraints. Bei Sportwart-OK: 'Schließen' -> Step 5 erneut mit armed:true. Für Detail-Workflow siehe Spickzettel `meldeliste-finalisieren`.",
+      "user_confirm": true,
+      "expected_outcome": "Pre-Validation-Output + destruktive Aktion sichtbar markiert. Sportwart muss explizit bestätigen.",
+      "fail_action": "ask_user"
+    }
+  ]
+}
