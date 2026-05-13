@@ -63,7 +63,7 @@ module McpServer
 
       def self.live_lookup(fed_id:, meldeliste_id:)
         return error("Missing fed_id for live Teilnehmerliste lookup") if fed_id.blank?
-        client = cc_session.client_for
+        client = cc_session.client_for(server_context)
         res, _doc = client.get("showMeldelistenList", {fedId: fed_id}, {session_id: cc_session.cookie})
         return error("CC live-lookup failed: HTTP #{res&.code}") if res&.code != "200"
         found = meldeliste_id.present? ? " (looking for meldeliste_id=#{meldeliste_id})" : ""

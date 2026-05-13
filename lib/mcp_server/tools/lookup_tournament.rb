@@ -43,7 +43,7 @@ module McpServer
           return error("Missing required parameter: provide `meisterschaft_id`, `tournament_id`, or `name`")
         end
 
-        return live_lookup(meisterschaft_id: meisterschaft_id, fed_id: fed_id, season: season) if force_refresh
+        return live_lookup(meisterschaft_id: meisterschaft_id, fed_id: fed_id, season: season, server_context: server_context) if force_refresh
 
         # Plan 10-06 Task 1 (D-10-04-J Vokabular-Schicht): Name-Search via TournamentCc.name ILIKE
         # mit Phase-8-Disambiguation-Pattern (5. Anwendung). Vorbild: cc_lookup_club aus Plan 10-05.
@@ -140,10 +140,10 @@ module McpServer
         end
       end
 
-      def self.live_lookup(meisterschaft_id:, fed_id:, season:)
+      def self.live_lookup(meisterschaft_id:, fed_id:, season:, server_context: nil)
         return error("Missing meisterschaft_id for live lookup") if meisterschaft_id.blank?
         return error("Missing fed_id for live lookup") if fed_id.blank?
-        client = cc_session.client_for
+        client = cc_session.client_for(server_context)
         params = {fedId: fed_id, meisterschaftId: meisterschaft_id}
         params[:season] = season if season.present?
         res, _doc = client.get("showMeisterschaft", params, {session_id: cc_session.cookie})
@@ -209,7 +209,7 @@ module McpServer
           sortOrder: "player"
         }
 
-        client = cc_session.client_for
+        client = cc_session.client_for(server_context)
         res, _doc = client.post("showCommittedMeldeliste", payload, {session_id: cc_session.cookie})
 
         if res.nil? || res.code != "200"

@@ -26,7 +26,7 @@ module McpServer
         err = validate_required_anyof!(shortname: shortname, fed_id: fed_id)
         return err if err
 
-        return live_lookup(fed_id: fed_id) if force_refresh
+        return live_lookup(fed_id: fed_id, server_context: server_context) if force_refresh
 
         region = if shortname.present?
           Region.find_by(shortname: shortname)
@@ -47,9 +47,9 @@ module McpServer
         error("Missing required parameter: provide at least one of `shortname` or `fed_id`")
       end
 
-      def self.live_lookup(fed_id:)
+      def self.live_lookup(fed_id:, server_context: nil)
         return error("Missing required parameter for live lookup: fed_id") if fed_id.blank?
-        client = cc_session.client_for
+        client = cc_session.client_for(server_context)
         res, _doc = client.get("home", {fedId: fed_id}, {session_id: cc_session.cookie})
         return error("CC live-lookup failed: HTTP #{res&.code}") if res&.code != "200"
         text("CC live response for fed_id=#{fed_id} (status #{res.code})")

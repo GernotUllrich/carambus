@@ -128,7 +128,7 @@ module McpServer
           catId: cat_id || "*",
           season: season
         }.compact
-        client = cc_session.client_for
+        client = cc_session.client_for(server_context)
         pre_read = pre_read_meldeliste(client, meldeliste_cc_id, scope_filters)
         return pre_read if pre_read.is_a?(MCP::Tool::Response)  # error envelope
 

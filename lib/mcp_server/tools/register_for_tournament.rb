@@ -129,7 +129,7 @@ module McpServer
 
         # Armed=true: 2-Step-Workflow + Verifikation. Field-Mapping aus SNIFF v2 §"Common Hidden-Inputs".
         # Disziplin/Kategorie als Wildcard — CC inferiert intern aus meldelisteId.
-        client = cc_session.client_for
+        client = cc_session.client_for(server_context)
         base_payload = {
           clubId: club_cc_id, fedId: fed_id, branchId: branch_cc_id,
           disciplinId: "*", catId: "*", season: season,

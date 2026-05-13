@@ -67,7 +67,7 @@ module McpServer
         # Live-CC-Fallback bei force_refresh:true UND 0 DB-Treffern
         if candidates.empty? && force_refresh
           fed_id ||= default_fed_id
-          client = cc_session.client_for
+          client = cc_session.client_for(server_context)
           params = {suche: query}
           params[:fedId] = fed_id if fed_id.present?
           live_res, _live_doc = client.get("suche", params, {session_id: cc_session.cookie})

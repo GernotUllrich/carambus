@@ -45,7 +45,7 @@ module McpServer
 
       def self.live_lookup(fed_id:, branch_id:, season:, league_id:)
         return error("Missing fed_id for live lookup") if fed_id.blank?
-        client = cc_session.client_for
+        client = cc_session.client_for(server_context)
         params = {fedId: fed_id}
         params[:branchId] = branch_id if branch_id.present?
         params[:season] = season if season.present?

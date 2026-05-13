@@ -51,7 +51,7 @@ module McpServer
           return error("Pre-Validation failed for cc_finalize_teilnehmerliste. Failed: #{validation_result[:failed_constraints].inspect}. #{failed_details}")
         end
 
-        client = cc_session.client_for
+        client = cc_session.client_for(server_context)
         res, doc = client.post(
           "releaseMeldeliste",
           {branchId: branch_id, fedId: fed_id, season: season, meldelisteId: meldeliste_id, release: ""},

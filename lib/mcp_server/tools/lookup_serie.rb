@@ -23,7 +23,7 @@ module McpServer
         fed_id ||= default_fed_id
         return error("Missing required parameter: `fed_id`") if fed_id.blank?
 
-        client = cc_session.client_for
+        client = cc_session.client_for(server_context)
         if serie_id.present?
           res, _doc = client.get("showSerie", {serieId: serie_id, fedId: fed_id}, {session_id: cc_session.cookie})
           action = "showSerie (serie_id=#{serie_id})"

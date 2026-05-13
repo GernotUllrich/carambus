@@ -103,7 +103,7 @@ module McpServer
         scope = resolve_scope_filters(tournament_cc_id, fed_cc_id, branch_cc_id, season, disciplin_id, cat_id)
 
         # Pre-Read via editTeilnehmerlisteCheck → parse state
-        client = cc_session.client_for
+        client = cc_session.client_for(server_context)
         pre_read = pre_read_teilnehmerliste(client, tournament_cc_id, scope)
         return pre_read if pre_read.is_a?(MCP::Tool::Response)  # error envelope
 

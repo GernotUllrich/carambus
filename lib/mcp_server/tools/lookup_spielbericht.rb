@@ -23,7 +23,7 @@ module McpServer
         return error("Missing required parameter: `spielbericht_id`") if spielbericht_id.blank?
         return error("Missing required parameter: `fed_id`") if fed_id.blank?
 
-        client = cc_session.client_for
+        client = cc_session.client_for(server_context)
         res, _doc = client.get("spielbericht", {spielberichtId: spielbericht_id, fedId: fed_id}, {session_id: cc_session.cookie})
         return error("CC live-lookup failed: HTTP #{res&.code}") if res&.code != "200"
         text("CC live response for spielbericht (spielbericht_id=#{spielbericht_id}, status #{res.code})")

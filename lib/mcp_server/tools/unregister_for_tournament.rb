@@ -89,7 +89,7 @@ module McpServer
         # Plan 10-05.1 Task 1 (D-10-04-B Pivot): Phase-4-Schicht-3 (Production-Block für armed:true)
         # DEPRECATED. Pre-Validation-First-Pattern ersetzt globalen env-Block durch Tool-eigene Constraints.
 
-        client = cc_session.client_for
+        client = cc_session.client_for(server_context)
 
         base_payload = {
           clubId: club_cc_id, fedId: fed_id, branchId: branch_cc_id,

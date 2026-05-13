@@ -74,7 +74,8 @@ module McpServer
           live_candidates = fetch_from_cc(
             tournament_cc_id,
             fed_cc_id: fed_cc_id, branch_cc_id: branch_cc_id,
-            season: season, disciplin_id: disciplin_id, cat_id: cat_id
+            season: season, disciplin_id: disciplin_id, cat_id: cat_id,
+            server_context: server_context
           )
           # Live-Candidates haben Vorrang nur bei force_refresh oder DB-empty
           candidates = live_candidates if !live_candidates.empty?
@@ -90,7 +91,7 @@ module McpServer
           if scope_given
             # Erster Versuch: Scope-Filter-Pfad. Retry: meisterschaftsId-Pfad ohne Scope.
             retry_path_used = "meisterschaftsId-fallback"
-            live_retry = fetch_from_cc(tournament_cc_id)
+            live_retry = fetch_from_cc(tournament_cc_id, server_context: server_context)
             candidates = live_retry if !live_retry.empty?
           else
             # Erster Versuch: meisterschaftsId-Pfad. Retry: Scope-Filter mit Default-Region (CC_REGION-ENV).
@@ -100,7 +101,8 @@ module McpServer
               live_retry = fetch_from_cc(
                 tournament_cc_id,
                 fed_cc_id: default_fed,
-                disciplin_id: "*", cat_id: "*"
+                disciplin_id: "*", cat_id: "*",
+                server_context: server_context
               )
               candidates = live_retry if !live_retry.empty?
             end
@@ -176,8 +178,8 @@ module McpServer
       # Backwards-Compat: ohne Scope-Filter wird der bisherige meisterschaftsId-Pfad genutzt
       # (Plan 08-02 Mock-Tests bleiben grün).
       def self.fetch_from_cc(tournament_cc_id, fed_cc_id: nil, branch_cc_id: nil,
-        season: nil, disciplin_id: nil, cat_id: nil)
-        client = cc_session.client_for
+        season: nil, disciplin_id: nil, cat_id: nil, server_context: nil)
+        client = cc_session.client_for(server_context)
         payload = if scope_filter_given?(fed_cc_id, branch_cc_id, season, disciplin_id, cat_id)
           {
             fedId: fed_cc_id,
