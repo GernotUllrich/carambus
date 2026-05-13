@@ -119,4 +119,40 @@ class UserTest < ActiveSupport::TestCase
     assert_equal 'de', user.preferences['locale']
     assert_equal 'Berlin', user.preferences['timezone']
   end
+
+  # MCP Multi-User-Hosting (v0.3, Plan 13-02, D-13-01-D Option-B-Override)
+  # ---------------------------------------------------------------------
+  test 'mcp_role defaults to mcp_public_read for new User' do
+    u = User.new(email: 'mcp1@example.com', password: 'password123')
+    assert_equal 'mcp_public_read', u.mcp_role
+    assert u.mcp_role_mcp_public_read?
+  end
+
+  test 'mcp_enabled? returns false when no cc_credentials present' do
+    u = User.new(email: 'mcp2@example.com', password: 'password123', mcp_role: :mcp_sportwart)
+    assert_not u.mcp_enabled?
+  end
+
+  test 'mcp_enabled? returns true when role > public_read AND cc_credentials present' do
+    u = User.new(email: 'mcp3@example.com', password: 'password123',
+                 mcp_role: :mcp_sportwart, cc_credentials: '{"username":"x"}')
+    assert u.mcp_enabled?
+  end
+
+  test 'mcp_cc_region falls back to ENV CC_REGION when User.cc_region nil' do
+    u = User.new(email: 'mcp4@example.com', password: 'password123')
+    ENV['CC_REGION'] = 'test_env_region'
+    assert_equal 'test_env_region', u.mcp_cc_region
+  ensure
+    ENV.delete('CC_REGION')
+  end
+
+  test 'existing Carambus role enum unangetastet (admin? Methoden funktional)' do
+    u = User.new(email: 'mcp5@example.com', password: 'password123', role: :system_admin)
+    assert u.admin?
+    assert u.super_admin?
+    # Sanity: Carambus-role und mcp_role sind unabhängig
+    assert_equal 'system_admin', u.role
+    assert_equal 'mcp_public_read', u.mcp_role
+  end
 end

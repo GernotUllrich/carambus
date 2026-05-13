@@ -10,7 +10,21 @@ class User < ApplicationRecord
     system_admin: 2
   }, default: :player
 
-  
+  # MCP Multi-User-Hosting (v0.3, Plan 13-02, D-13-01-D Option-B-Override).
+  # Separates Feld neben existierendem Carambus-`role`-Enum — keine Vermischung der Auth-Layer.
+  # Siehe lib/mcp_server/role_tool_map.rb für Tool-Subset pro Rolle.
+  enum :mcp_role, {
+    mcp_public_read: 0,
+    mcp_sportwart: 1,
+    mcp_turnierleiter: 2,
+    mcp_landessportwart: 3,
+    mcp_admin: 4
+  }, default: :mcp_public_read, prefix: true
+
+  # CC-Credentials verschlüsselt at rest (D-13-01-E DSGVO minimal-pragmatic Pflicht).
+  # Erwartetes Format: JSON-String mit { username:, password: } o.ä.; nil = MCP nicht eingerichtet.
+  encrypts :cc_credentials
+
   PRIVILEGED = %w[gernot.ullrich@gmx.de nla@ph.at wcauel@gmail.com joerg.unger@hamburg.de].freeze
 
   attr_accessor :player_ba_id, :terms_of_service
@@ -73,6 +87,18 @@ class User < ApplicationRecord
   def toggle_dark_mode!
     new_mode = !prefers_dark_mode?
     update(preferences: preferences.merge(dark: new_mode))
+  end
+
+  # MCP Multi-User-Hosting (v0.3, Plan 13-02).
+  # True wenn User MCP nutzen kann (Rolle > public_read UND CC-Credentials vorhanden).
+  def mcp_enabled?
+    !mcp_role_mcp_public_read? && cc_credentials.present?
+  end
+
+  # MCP Region-Fallback-Chain (Per-User → ENV → nil).
+  # D-13-01-F Backwards-Compat-Pattern: server_context[:cc_region] > ENV["CC_REGION"].
+  def mcp_cc_region
+    cc_region.presence || ENV["CC_REGION"]
   end
 
   private
