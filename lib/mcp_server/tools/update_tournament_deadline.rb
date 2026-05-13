@@ -221,7 +221,8 @@ module McpServer
           payload: {meldeliste_cc_id: meldeliste_cc_id, new_deadline: new_deadline, armed: true},
           pre_validation_results: validation_result[:results],
           read_back_status: read_back_match.to_s,
-          result: "success"
+          result: "success",
+          user_id: server_context&.dig(:user_id)
         )
 
         text(<<~OUT.strip)

@@ -91,7 +91,8 @@ module McpServer
           payload: {meldeliste_id: meldeliste_id, branch_id: branch_id, season: season, armed: true},
           pre_validation_results: validation_result[:results],
           read_back_status: "skipped",
-          result: "success"
+          result: "success",
+          user_id: server_context&.dig(:user_id)
         )
 
         text("Finalized Meldeliste #{meldeliste_id} for branch #{branch_id}, season #{season}.")

@@ -100,4 +100,110 @@ class McpServer::AuditTrailTest < ActiveSupport::TestCase
     refute_nil entry
     assert_equal "unknown", entry[:operator]
   end
+
+  # v0.3 Plan 13-05 (D-13-01-D Multi-User-Filtering): DB-Insert + user_id-Tests.
+  # Defense-in-Depth: DB-Tabelle parallel zu JSON-Lines (file bleibt SOURCE-OF-TRUTH-Fallback).
+
+  test "write_entry: persistiert in DB UND JSON-Lines (Defense-in-Depth)" do
+    before_count = McpAuditTrail.count
+    entry = McpServer::AuditTrail.write_entry(
+      tool_name: "cc_register_for_tournament",
+      operator: "unknown",
+      payload: {meldeliste_cc_id: 1310, armed: true},
+      pre_validation_results: [],
+      read_back_status: nil,
+      result: "success"
+    )
+    refute_nil entry
+    assert_equal before_count + 1, McpAuditTrail.count
+    last_db = McpAuditTrail.order(:created_at).last
+    assert_equal "cc_register_for_tournament", last_db.tool_name
+    assert_equal "success", last_db.result
+    assert_equal "unknown", last_db.operator
+    # JSON-Lines parallel geschrieben
+    content = File.read(@tmp_log_path)
+    parsed = JSON.parse(content.strip)
+    assert_equal "cc_register_for_tournament", parsed["tool"]
+  end
+
+  test "write_entry: user_id wird in DB + JSON-Lines geschrieben (HTTP-Pfad)" do
+    user = User.create!(email: "at-http@test.de", password: "password123", mcp_role: :mcp_sportwart)
+    entry = McpServer::AuditTrail.write_entry(
+      tool_name: "cc_register_for_tournament",
+      operator: "carambus_admin",
+      payload: {armed: true},
+      pre_validation_results: [],
+      read_back_status: nil,
+      result: "success",
+      user_id: user.id
+    )
+    assert_equal user.id, entry[:user_id]
+    last_db = McpAuditTrail.order(:created_at).last
+    assert_equal user.id, last_db.user_id
+  end
+
+  test "write_entry: ohne user_id (Stdio-Pfad) → user_id=nil in DB" do
+    before_count = McpAuditTrail.count
+    McpServer::AuditTrail.write_entry(
+      tool_name: "cc_test_stdio",
+      operator: "stdio_user",
+      payload: {armed: true},
+      pre_validation_results: [],
+      read_back_status: nil,
+      result: "success"
+    )
+    last_db = McpAuditTrail.order(:created_at).last
+    assert_equal before_count + 1, McpAuditTrail.count
+    assert_nil last_db.user_id
+  end
+
+  test "write_entry: DB-Failure crasht nicht — JSON-Lines bleibt (Defense-in-Depth)" do
+    # Simuliere DB-Failure via Stub von McpAuditTrail.create!
+    McpAuditTrail.stub(:create!, ->(**_kwargs) { raise ActiveRecord::ConnectionNotEstablished, "stubbed for test" }) do
+      entry = nil
+      assert_nothing_raised do
+        entry = McpServer::AuditTrail.write_entry(
+          tool_name: "cc_test_db_fail",
+          operator: "x",
+          payload: {},
+          pre_validation_results: [],
+          read_back_status: nil,
+          result: "success"
+        )
+      end
+      refute_nil entry, "JSON-Lines-Entry sollte trotz DB-Failure zurückgegeben werden"
+      assert_equal "cc_test_db_fail", entry[:tool]
+    end
+  end
+
+  test "write_entry: für_user-Scope filtert pro mcp-User-Login" do
+    user_a = User.create!(email: "at-a@test.de", password: "password123", mcp_role: :mcp_sportwart)
+    user_b = User.create!(email: "at-b@test.de", password: "password123", mcp_role: :mcp_turnierleiter)
+
+    3.times do
+      McpServer::AuditTrail.write_entry(
+        tool_name: "cc_test_filter",
+        operator: "x",
+        payload: {},
+        pre_validation_results: [],
+        read_back_status: nil,
+        result: "success",
+        user_id: user_a.id
+      )
+    end
+    McpServer::AuditTrail.write_entry(
+      tool_name: "cc_test_filter",
+      operator: "x",
+      payload: {},
+      pre_validation_results: [],
+      read_back_status: nil,
+      result: "success",
+      user_id: user_b.id
+    )
+
+    a_entries = McpAuditTrail.for_user(user_a).for_tool("cc_test_filter")
+    b_entries = McpAuditTrail.for_user(user_b).for_tool("cc_test_filter")
+    assert_equal 3, a_entries.count
+    assert_equal 1, b_entries.count
+  end
 end

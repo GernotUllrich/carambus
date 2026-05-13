@@ -164,7 +164,8 @@ module McpServer
           payload: {tournament_cc_id: tournament_cc_id, player_cc_id: player_cc_id, armed: true},
           pre_validation_results: validation_result[:results],
           read_back_status: read_back_match.to_s,
-          result: "success"
+          result: "success",
+          user_id: server_context&.dig(:user_id)
         )
 
         text(<<~OUT.strip)

@@ -211,7 +211,8 @@ module McpServer
           },
           pre_validation_results: validation_result[:results],
           read_back_status: verified ? "match" : "mismatch",
-          result: "success"
+          result: "success",
+          user_id: server_context&.dig(:user_id)
         )
 
         text(<<~OUT.strip)

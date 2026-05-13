@@ -29,22 +29,45 @@ module McpServer
       Rails.root.join("log", "mcp-audit-trail.log").to_s
     end
 
-    # Writes a single JSON-Lines entry to the audit trail log file.
+    # Writes a single audit-trail entry: persistiert parallel zu JSON-Lines-File UND DB-Tabelle.
+    # v0.3 Plan 13-05 (D-13-01-D): user_id-Param + McpAuditTrail-DB-Insert (Defense-in-Depth).
+    # JSON-Lines-File bleibt SOURCE-OF-TRUTH-Fallback falls DB nicht erreichbar.
     # Returns the entry hash on success, nil on defensive failure.
-    def self.write_entry(tool_name:, operator:, payload:, pre_validation_results:, read_back_status:, result:)
+    def self.write_entry(tool_name:, operator:, payload:, pre_validation_results:, read_back_status:, result:, user_id: nil)
+      normalized_operator = operator.to_s.empty? ? "unknown" : operator.to_s
+
       entry = {
         zeitpunkt: Time.current.utc.iso8601,
-        operator: operator.to_s.empty? ? "unknown" : operator.to_s,
+        operator: normalized_operator,
         tool: tool_name.to_s,
         payload: payload,
         pre_validation_results: pre_validation_results,
         read_back_status: read_back_status,
-        result: result
+        result: result,
+        user_id: user_id
       }
 
+      # 1. JSON-Lines-File-Write (Backwards-Compat aus Plan 10-05.1 — bleibt unverändert)
       FileUtils.mkdir_p(File.dirname(log_path))
       File.open(log_path, "a") do |f|
         f.write(JSON.generate(entry) + "\n")
+      end
+
+      # 2. DB-Insert (NEU für v0.3 Plan 13-05 / D-13-01-D Multi-User-Filtering).
+      # Defensive separates rescue damit DB-Failure JSON-Lines-Erfolg nicht invalidiert.
+      begin
+        McpAuditTrail.create!(
+          user_id: user_id,
+          operator: normalized_operator,
+          tool_name: tool_name.to_s,
+          payload: payload,
+          pre_validation_results: pre_validation_results,
+          read_back_status: read_back_status,
+          result: result
+        )
+      rescue => e
+        # Defense-in-Depth: DB-Failure ≠ Tool-Crash; JSON-Lines bleibt einziger Eintrag.
+        Rails.logger.warn "[McpServer::AuditTrail] DB-Insert failed (defensive — JSON-Lines bleibt): #{e.class}: #{e.message}"
       end
 
       entry
