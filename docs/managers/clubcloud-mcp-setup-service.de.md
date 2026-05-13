@@ -471,6 +471,78 @@ Vollständiges Audit-Trail: `.paul/phases/10-walkthrough-sportwart/10-08-WALKTHR
 
 ---
 
+## 9. Cloud-Setup-Pfad (HTTP-Transport ab v0.3)
+
+Ab v0.3 unterstützt der ClubCloud-MCP-Server zusätzlich zum Stdio-Pfad (Sektionen 1-7) einen **Remote-HTTP-Transport** auf einem Carambus-Hetzner-Server. Damit braucht der Sportwart/Turnierleiter **kein lokales MCP-Setup mehr** — Claude Desktop verbindet sich direkt mit dem Server.
+
+> **Backwards-Compat:** Der Stdio-Pfad (Sektionen 2-7) bleibt parallel gültig für die technische Stellvertretung des Sportwarts und für Dev/Test. Beide Pfade führen zu identischer Tool-Funktionalität.
+
+### 9.1 Voraussetzungen
+
+- **Claude Desktop** ≥ `<min-version, D-13-01-B>` (wird nach Plan-13-06.1-Empirical-Verify nachgepflegt — minimal die Version, die Streamable-HTTP-Transport in der `mcpServers`-Konfig unterstützt)
+- **Devise-User auf dem Carambus-MCP-Server** existiert + Sportwart-/Turnierleiter-/Landessportwart-Rolle gesetzt (siehe Plan 13-02 Rollen-Modell — `landessportwart` sieht alle 22 Tools, `sportwart` sieht 16, `turnierleiter` sieht 19)
+- **DSGVO-Einwilligung erteilt** (`mcp_consent_at` gesetzt — siehe Sektion 8.4 + 8.5)
+- **`cc_region` + `cc_credentials`** am User gesetzt (Multi-Region-Routing — Plan 13-04.1)
+- **Browser** für Erst-Login (Devise-Session-Cookie wird im OS-Cookie-Store hinterlegt)
+
+### 9.2 Claude-Desktop-Konfig-Schnipsel
+
+`claude_desktop_config.json`-Eintrag für den Remote-MCP-Server (v0.3-Pilot-Hosting auf carambus.de — Plan 13-06.1 Task 2 Decision):
+
+```json
+{
+  "mcpServers": {
+    "carambus-clubcloud-remote": {
+      "url": "https://carambus.de/mcp",
+      "transport": "http",
+      "headers": {
+        "Accept": "application/json, text/event-stream"
+      }
+    }
+  }
+}
+```
+
+**Wichtig (D-13-06-A):** Der `Accept`-Header muss **beide** Mime-Types nennen (`application/json, text/event-stream`). Claude Desktop sendet das in aktuellen Versionen nativ; bei `406 Not Acceptable` ist der Header explizit in die Konfig zu setzen (siehe Sektion 9.5).
+
+### 9.3 Devise-Login-Erst-Setup (Browser → Cookie → Claude Desktop)
+
+1. **Browser öffnen** und Carambus-MCP-Server-URL aufrufen (z.B. `https://carambus.de/users/sign_in`)
+2. **Devise-Login** mit den eigenen Carambus-Credentials durchführen — Sportwart/Turnierleiter/Landessportwart-Rolle ist am User-Account hinterlegt
+3. **Session-Cookie wird gespeichert** (Standard-Devise-Cookie `_carambus_session`)
+4. **Claude Desktop neu starten** — Claude Desktop nutzt denselben Cookie-Store wie der Browser (sofern sie auf demselben Profil/User-Account laufen)
+5. **Erst-Test** in Claude Desktop: „Welche MCP-Tools hast du verfügbar?" → erwartete Antwort enthält die Per-Rolle gefilterte Tool-Liste
+
+> **Falls Cookie-Sharing zwischen Browser und Claude Desktop nicht funktioniert** (z.B. unterschiedliche Profile): Plan 13-06.1 Empirical-Verify wird zeigen, ob ein separater Auth-Flow nötig ist (z.B. Token-basiert). Befund wird in Sektion 9.5 nachgepflegt.
+
+### 9.4 Verifikations-Schritte
+
+Nach Setup folgenden Dialog mit Claude führen (Read-only — KEIN `armed:true`, kein Live-CC-Write):
+
+1. **„Welche MCP-Tools hast du?"** → erwartet Per-User-Rollen-Tool-Subset:
+   - **landessportwart** → 22 Tools (volle Suite)
+   - **sportwart** → 16 Tools (kein cc_assign/cc_remove/cc_finalize/cc_unregister — Akkreditierung am Turniertag fehlt)
+   - **turnierleiter** → 19 Tools (kein cc_register/cc_update_deadline/cc_unregister — Pre-Tournament-Setup fehlt)
+2. **„Welche Region bin ich?"** oder konkreter: **„Liste die Vereine in meiner Region für Disziplin Dreiband"** → erwartet Vereinsliste aus der eigenen `cc_region` (Multi-Region-Routing funktioniert)
+3. **„Welche offenen Turniere gibt es in NBV?"** (oder eigene Region) → erwartet Read-only Turnier-Liste
+
+> **Wichtig — Plan-Boundary v0.3:** Im Erst-Verify-Cycle KEIN `armed:true`-Call ausführen. Sicherheits-Pflicht „0 versehentliche Live-Datenänderungen" bleibt kumulativ gewahrt.
+
+### 9.5 Troubleshooting
+
+| Symptom | Ursache | Lösung |
+|---|---|---|
+| **406 Not Acceptable** bei `tools/list` oder `initialize` | `Accept`-Header fehlt oder nur `application/json` (D-13-06-A) | In `claude_desktop_config.json` `"Accept": "application/json, text/event-stream"` explizit setzen (siehe Sektion 9.2) |
+| **401 Unauthorized** | Devise-Session abgelaufen oder Cookie-Sharing-Problem | Browser-Re-Login (Sektion 9.3); Claude Desktop neu starten |
+| **Falsche Region in Tool-Output** | `User.mcp_cc_region` falsch gesetzt | Admin-Korrektur am User-Account (Rails-Console oder Admin-UI); danach Browser-Re-Login |
+| **„DSGVO-Einwilligung erforderlich"** | `mcp_consent_at` nicht gesetzt | Sektion 8.5 Einwilligungs-Operational-Flow durchlaufen (Browser-Banner oder Admin-Setting) |
+| **Tool-Liste leer / kürzer als erwartet** | `User.mcp_role` falsch oder nicht gesetzt | Admin-Korrektur am User-Account (Rolle z.B. auf `landessportwart` setzen für volle 22-Tool-Suite) |
+| **Tool-Calls dauern lang / Timeout** | Multi-Region-Routing geht zur falschen `region_cc.base_url` (D-13-04-A) | Befund-Capture in `.paul/phases/13-multi-client-hosting/13-06.1-DEPLOY-LOG.md`; ggf. Plan 13-06.2 Nachbesserung |
+
+> **Live-Befunde aus Plan 13-06.1 Empirical-Verify** werden hier nach dem Hetzner-Staging-Deploy nachgepflegt — diese Tabelle ist v0.3-Pilot-Stand und wird mit Phase-14-Walkthrough-Erfahrungen erweitert.
+
+---
+
 ## Quellen & Weiterführendes
 
 - [`clubcloud-mcp-setup.de.md`](clubcloud-mcp-setup.de.md) — Setup-Troubleshooting für technische Stellvertretung

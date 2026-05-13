@@ -135,6 +135,7 @@ Pro Slug existiert ein Vorher/Nachher-Vergleich CC-UI vs. Claude:
 
 - **Setup-Doku** [clubcloud-mcp-setup.de.md](clubcloud-mcp-setup.de.md) — für Erstinstallation, Troubleshooting, Mock-Mode-Tests
 - **MCP-Server liefert seltsame Ergebnisse nach Update?** Tool-Schemas zeigen alten Stand, neue Tools fehlen, Region-Filter wird ignoriert? → MCP-Server-Subprocess neu starten. Procedure in [Setup-Service-Doku Sektion 7](clubcloud-mcp-setup-service.de.md#sektion-7--mcp-server-subprocess-neu-starten-nach-code-changes) (gilt nach jedem `git pull` / Code-Edit / `bundle install` mit MCP-relevanten Änderungen).
+- **Cloud-Setup statt lokaler Installation? (v0.3+)** Sportwart/Turnierleiter brauchen kein lokales MCP-Setup mehr — Claude Desktop verbindet sich direkt mit dem Carambus-Hetzner-MCP-Server via HTTP-Transport. Voraussetzungen, Konfig-Schnipsel + Verifikations-Schritte in [Setup-Service-Doku Sektion 9 — Cloud-Setup-Pfad](clubcloud-mcp-setup-service.de.md#9-cloud-setup-pfad-http-transport-ab-v03).
 - **Entwickler-Handbuch** [`docs/developers/clubcloud-mcp-server.de.md`](../developers/clubcloud-mcp-server.de.md) — nur falls Du den Server erweitern willst
 - **4-Schichten-Sicherheitsnetz** für destruktive Tools (`armed:true` Pflicht, Mock-Mode-Default in Tests, Production-Block, Detail-Dry-Run-Echo) — gilt für alle Schreibaktionen wie Meldeliste-Finalisieren
 - **Bug? Fehlermeldung?** Carambus-Issue-Tracker oder direkter Kontakt zum Carambus-Admin
