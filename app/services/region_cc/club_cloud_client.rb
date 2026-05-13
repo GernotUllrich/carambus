@@ -282,6 +282,54 @@ class RegionCc::ClubCloudClient
     # catId: *
     # season: 2010/2011
     # meldelisteId: 66
+    #
+    # --- Verbands-Sicht (admin/einzel/meldelisten) Edit-Workflow — Plan 06-03 cc_update_tournament_deadline ---
+    # 2-Step-POST-Chain für Meldeschluss-Verschiebung (View-Source-Sniff 2026-05-11):
+    #   1. editMeldelisteCheck (Server-Side-Prep, Edit-Form-Render mit prefilled HTML5-date inputs)
+    #   2. editMeldelisteSave  (actual write — schreibt meldelistenName + mschluss + stag in CC-DB)
+    # Beide Endpoints unter `/admin/einzel/meldelisten/`; nbut="1"/save="1" als PHP-Button-Sentinels.
+    # NICHT zu verwechseln mit Phase-4 saveMeldeliste (`/admin/myclub/...` register-flow) — anderer Pfad, anderer Use-Case.
+    "editMeldelisteCheck" => ["/admin/einzel/meldelisten/editMeldelisteCheck.php", false],
+    "editMeldelisteSave" => ["/admin/einzel/meldelisten/editMeldelisteSave.php", false],
+    #
+    # --- Verbands-Sicht (admin/einzel/meisterschaft) Teilnehmerliste-Pflege — Plan 07-03 cc_assign_player_to_teilnehmerliste ---
+    # Multi-Step-Chain für Akkreditierungs-Workflow (Spieler von Meldeliste → Teilnehmerliste übernehmen):
+    #   1. editTeilnehmerlisteCheck (Pre-Read mit <select name="teilnehmerId"> + <select name="meldungId[]">)
+    #   2. assignPlayer            (Multi-Add via meldungId[] Array — mehrere Spieler in EINEM Call)
+    #   3. editTeilnehmerlisteSave (Commit mit save="1" Sentinel)
+    #   4. removePlayer            (Single-Remove via teilnehmerId — Plan 07-04 Inline-Patch ODER Phase 8)
+    #   5. showTeilnehmerliste     (Read-only View)
+    # Alle Endpoints unter `/admin/einzel/meisterschaft/` (NICHT `meldelisten/` wie Phase 6 — andere Entity!).
+    # Identifier ist `meisterschaftsId` (= tournament_cc_id), NICHT meldelisteId.
+    # KEIN finalize-State (Kapitalbefund Plan 07-02 D-7-5): Add/Remove werden via Save direkt persistiert.
+    "assignPlayer" => ["/admin/einzel/meisterschaft/assignPlayer.php", false],
+    "removePlayer" => ["/admin/einzel/meisterschaft/removePlayer.php", false],
+    "editTeilnehmerlisteCheck" => ["/admin/einzel/meisterschaft/editTeilnehmerlisteCheck.php", false],
+    "editTeilnehmerlisteSave" => ["/admin/einzel/meisterschaft/editTeilnehmerlisteSave.php", false],
+    "showTeilnehmerliste" => ["/admin/einzel/meisterschaft/showTeilnehmerliste.php", true],
+    #
+    # --- Vereins-Sicht (myclub/meldewesen/single) — Plan 04-04 register-Tool ---
+    # Diese 3 Endpoints liegen im VEREINS-Bereich (admin/myclub/meldewesen/single),
+    # NICHT im Verbands-Bereich (admin/einzel/meldelisten) — gleiche Funktion,
+    # anderer Pfad, anderer Action-Name. Ergebnis aus SNIFF v2 (View-Source-Methode).
+    # PATH_MAP-Format hier: [path, read_only_bool]; Plan-04-04-Spec-Detail
+    # `{method: :post, path: ...}` war schematisch — code-konform mit existing format.
+    "addPlayerToMeldeliste" => ["/admin/myclub/meldewesen/single/cc_add.php", false],
+    # POST application/x-www-form-urlencoded — fügt Player in Edit-Buffer
+    # clubId, fedId, branchId, disciplinId=*, catId=*, season, meldelisteId,
+    # firstEntry, rang, gd, selectedClubId, a=<player_cc_id>, d=
+    "saveMeldeliste" => ["/admin/myclub/meldewesen/single/editMeldelisteSave.php", false],
+    # POST application/x-www-form-urlencoded — committet Edit-Buffer in DB
+    # Alle Felder wie addPlayerToMeldeliste + save= als Commit-Marker
+    # Server ignoriert a= beim Commit; Player-cc_id IST der Liste-Identifier
+    "showCommittedMeldeliste" => ["/admin/myclub/meldewesen/single/showMeldeliste.php", true],
+    # Phase 8 Plan 08-02 — cc_unregister_for_tournament (Meldeliste-Pfad).
+    # WICHTIG: `a=<Listen-Eintrags-ID || player_cc_id>` (SUBSTRATE-08.md Sektion 2).
+    # Symmetrisch zu addPlayerToMeldeliste (Phase 4); 5-Step-Chain analog Phase-7-Lesson.
+    "removePlayerFromMeldeliste" => ["/admin/myclub/meldewesen/single/cc_remove.php", false],
+    # POST (read-only) — zeigt committed Meldeliste; für Erfolgs-Verifikation nach Save
+    # Body enthält <td align="center">{player_cc_id}</td> falls erfolgreich
+    # NICHT zu verwechseln mit "showMeldeliste" (Verbands-Pfad oben)
     "showMeisterschaftenList" => ["/admin/einzel/meisterschaft/showMeisterschaftenList.php", true],
     # fedId: 20
     # branchId: 10

@@ -66,7 +66,6 @@
 require "test_helper"
 
 class UserTest < ActiveSupport::TestCase
-
   test "default role is player" do
     user = User.new(email: "test_drip@example.com", password: "password", first_name: "default", last_name: "user")
     user.save!
@@ -75,48 +74,143 @@ class UserTest < ActiveSupport::TestCase
 
   setup do
     @user = users(:regular)
-    @user.preferences = { 'theme' => 'system', 'locale' => 'de', 'timezone' => 'Berlin' }
+    @user.preferences = {"theme" => "system", "locale" => "de", "timezone" => "Berlin"}
   end
 
-  test 'valid preferences' do
+  test "valid preferences" do
     assert @user.valid?
   end
 
-  test 'invalid theme' do
-    @user.preferences['theme'] = 'invalid'
+  test "invalid theme" do
+    @user.preferences["theme"] = "invalid"
     assert_not @user.valid?
-    assert_includes @user.errors[:preferences], I18n.t('errors.messages.invalid_theme')
+    assert_includes @user.errors[:preferences], I18n.t("errors.messages.invalid_theme")
   end
 
-  test 'invalid locale' do
-    @user.preferences['locale'] = 'xx'
+  test "invalid locale" do
+    @user.preferences["locale"] = "xx"
     assert_not @user.valid?
-    assert_includes @user.errors[:preferences], I18n.t('errors.messages.invalid_locale')
+    assert_includes @user.errors[:preferences], I18n.t("errors.messages.invalid_locale")
   end
 
-  test 'invalid timezone' do
-    @user.preferences['timezone'] = 'Invalid/Timezone'
+  test "invalid timezone" do
+    @user.preferences["timezone"] = "Invalid/Timezone"
     assert_not @user.valid?
-    assert_includes @user.errors[:preferences], I18n.t('errors.messages.invalid_timezone')
+    assert_includes @user.errors[:preferences], I18n.t("errors.messages.invalid_timezone")
   end
 
-  test 'should accept valid themes' do
+  test "should accept valid themes" do
     %w[system dark light].each do |theme|
-      @user.preferences['theme'] = theme
+      @user.preferences["theme"] = theme
       assert @user.valid?, "#{theme} should be valid"
     end
   end
 
-  test 'should set default preferences on initialization' do
+  test "should set default preferences on initialization" do
     user = User.new(
-      email: 'new@example.com',
-      password: 'password',
-      first_name: 'New',
-      last_name: 'User'
+      email: "new@example.com",
+      password: "password",
+      first_name: "New",
+      last_name: "User"
     )
 
-    assert_equal 'system', user.preferences['theme']
-    assert_equal 'de', user.preferences['locale']
-    assert_equal 'Berlin', user.preferences['timezone']
+    assert_equal "system", user.preferences["theme"]
+    assert_equal "de", user.preferences["locale"]
+    assert_equal "Berlin", user.preferences["timezone"]
+  end
+
+  # MCP Multi-User-Hosting (v0.3, Plan 13-02, D-13-01-D Option-B-Override)
+  # ---------------------------------------------------------------------
+  test "mcp_role defaults to mcp_public_read for new User" do
+    u = User.new(email: "mcp1@example.com", password: "password123")
+    assert_equal "mcp_public_read", u.mcp_role
+    assert u.mcp_role_mcp_public_read?
+  end
+
+  test "mcp_enabled? returns false when no cc_credentials present" do
+    u = User.new(email: "mcp2@example.com", password: "password123", mcp_role: :mcp_sportwart)
+    assert_not u.mcp_enabled?
+  end
+
+  test "mcp_enabled? returns true when role > public_read AND cc_credentials present" do
+    u = User.new(email: "mcp3@example.com", password: "password123",
+      mcp_role: :mcp_sportwart, cc_credentials: '{"username":"x"}')
+    assert u.mcp_enabled?
+  end
+
+  test "mcp_cc_region falls back to ENV CC_REGION when User.cc_region nil" do
+    u = User.new(email: "mcp4@example.com", password: "password123")
+    ENV["CC_REGION"] = "test_env_region"
+    assert_equal "test_env_region", u.mcp_cc_region
+  ensure
+    ENV.delete("CC_REGION")
+  end
+
+  test "existing Carambus role enum unangetastet (admin? Methoden funktional)" do
+    u = User.new(email: "mcp5@example.com", password: "password123", role: :system_admin)
+    assert u.admin?
+    assert u.super_admin?
+    # Sanity: Carambus-role und mcp_role sind unabhängig
+    assert_equal "system_admin", u.role
+    assert_equal "mcp_public_read", u.mcp_role
+  end
+
+  # v0.3 Plan 13-07 (D-13-01-E DSGVO minimal-pragmatic): Consent + AuditTrail-Export
+  # ----------------------------------------------------------------------------------
+  test "mcp_consent_given? false bei neuem User" do
+    u = User.new(email: "consent1@test.de", password: "password123")
+    assert_not u.mcp_consent_given?
+  end
+
+  test "mcp_consent_required? true bei mcp_role > public_read OHNE mcp_consent_at" do
+    u = User.create!(email: "consent2@test.de", password: "password123",
+      mcp_role: :mcp_sportwart)
+    assert u.mcp_consent_required?, "Sportwart ohne consent_at muss required? true sein"
+  end
+
+  test "mcp_consent_required? false bei mcp_public_read (kein MCP-Zugriff = keine Einwilligung n\u00F6tig)" do
+    u = User.create!(email: "consent3@test.de", password: "password123",
+      mcp_role: :mcp_public_read)
+    assert_not u.mcp_consent_required?
+  end
+
+  test "grant_mcp_consent! setzt mcp_consent_at + persistiert" do
+    u = User.create!(email: "consent4@test.de", password: "password123",
+      mcp_role: :mcp_sportwart)
+    assert_nil u.mcp_consent_at
+    u.grant_mcp_consent!
+    u.reload
+    refute_nil u.mcp_consent_at
+    assert u.mcp_consent_given?
+    assert_not u.mcp_consent_required?
+  end
+
+  test "mcp_audit_trail_export: 0 Entries \u2192 empty Array" do
+    u = User.create!(email: "export1@test.de", password: "password123",
+      mcp_role: :mcp_sportwart)
+    assert_equal [], u.mcp_audit_trail_export
+  end
+
+  test "mcp_audit_trail_export: liefert DSGVO-relevante Felder pro Entry" do
+    u = User.create!(email: "export2@test.de", password: "password123",
+      mcp_role: :mcp_sportwart)
+    McpAuditTrail.create!(
+      user: u,
+      tool_name: "cc_register_for_tournament",
+      operator: "carambus_admin",
+      payload: {meldeliste_cc_id: 1310, armed: true},
+      pre_validation_results: [{name: "check1", ok: true}],
+      read_back_status: "match",
+      result: "success"
+    )
+    export = u.mcp_audit_trail_export
+    assert_equal 1, export.length
+    entry = export.first
+    assert_kind_of String, entry[:zeitpunkt]
+    assert_equal "cc_register_for_tournament", entry[:tool_name]
+    assert_equal "carambus_admin", entry[:operator]
+    assert_equal({"meldeliste_cc_id" => 1310, "armed" => true}, entry[:payload])
+    assert_equal "success", entry[:result]
+    assert_nothing_raised { export.to_json }
   end
 end

@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require "test_helper"
 
 # Smoke-Tests für die 7 Lookup-Tools, die in Plan 04 NICHT erschöpfend unit-getestet wurden.
@@ -34,6 +35,26 @@ class McpServer::Tools::LookupSmokeTest < ActiveSupport::TestCase
     cc_lookup_serie
     cc_search_player
     cc_finalize_teilnehmerliste
+    cc_register_for_tournament
+    cc_list_clubs_by_discipline
+    cc_list_players_by_club_and_discipline
+    cc_list_open_tournaments
+    cc_list_players_by_name
+    cc_check_player_discipline_experience
+    cc_update_tournament_deadline
+    cc_assign_player_to_teilnehmerliste
+    cc_remove_from_teilnehmerliste
+    cc_unregister_for_tournament
+    cc_lookup_meldeliste_for_tournament
+  ].freeze
+
+  WRITE_TOOL_NAMES = %w[
+    cc_finalize_teilnehmerliste
+    cc_register_for_tournament
+    cc_update_tournament_deadline
+    cc_assign_player_to_teilnehmerliste
+    cc_remove_from_teilnehmerliste
+    cc_unregister_for_tournament
   ].freeze
 
   test "dynamic tool registry matches frozen reference (drift detection both ways)" do
@@ -49,15 +70,19 @@ class McpServer::Tools::LookupSmokeTest < ActiveSupport::TestCase
     expected_sorted = EXPECTED_TOOL_NAMES.sort
 
     assert_equal expected_sorted, dynamic,
-                 "Tool-Registry-Drift erkannt. Entweder EXPECTED_TOOL_NAMES aktualisieren " \
-                 "(ein Tool wurde hinzugefügt/umbenannt) oder Implementierung prüfen " \
-                 "(ein Tool fehlt oder hat den falschen Namen)."
+      "Tool-Registry-Drift erkannt. Entweder EXPECTED_TOOL_NAMES aktualisieren " \
+      "(ein Tool wurde hinzugefügt/umbenannt) oder Implementierung prüfen " \
+      "(ein Tool fehlt oder hat den falschen Namen)."
   end
 
-  test "all 11 expected tools (10 read + 1 write) are registered on McpServer::Server.build" do
+  test "all 22 expected tools (16 read + 6 write) are registered on McpServer::Server.build" do
     # server.tools liefert Arrays [name, klass] — erstes Element ist der tool_name-String.
     registered = McpServer::Server.build.tools.map { |t|
-      t.is_a?(Array) ? t.first.to_s : (t.respond_to?(:tool_name) ? t.tool_name.to_s : t.to_s)
+      if t.is_a?(Array)
+        t.first.to_s
+      else
+        (t.respond_to?(:tool_name) ? t.tool_name.to_s : t.to_s)
+      end
     }
     EXPECTED_TOOL_NAMES.each do |expected|
       assert_includes registered, expected, "Tool #{expected} nicht registriert"
@@ -102,22 +127,25 @@ class McpServer::Tools::LookupSmokeTest < ActiveSupport::TestCase
   # Annotation-Disziplin — Read-Tools sind read_only_hint:true, Finalize ist destructive_hint:true.
   # Dateiname-Mapping: cc_lookup_X → lookup_X.rb; cc_search_player → search_player.rb;
   # cc_finalize_teilnehmerliste → finalize_teilnehmerliste.rb.
-  test "all 10 read tools have read_only_hint: true annotation" do
-    read_tool_names = EXPECTED_TOOL_NAMES - ["cc_finalize_teilnehmerliste"]
+  test "all 16 read tools have read_only_hint: true annotation" do
+    read_tool_names = EXPECTED_TOOL_NAMES - WRITE_TOOL_NAMES
     read_tool_names.each do |tname|
       fname = case tname
-              when "cc_search_player" then "search_player.rb"
-              else "#{tname.delete_prefix('cc_')}.rb"
-              end
+      when "cc_search_player" then "search_player.rb"
+      else "#{tname.delete_prefix("cc_")}.rb"
+      end
       file = Rails.root.join("lib/mcp_server/tools/#{fname}")
       content = file.read
       assert_match(/read_only_hint:\s*true/, content, "#{tname} (#{fname}) fehlt read_only_hint:true Annotation")
     end
   end
 
-  test "finalize tool has destructive_hint: true (not read_only)" do
-    content = Rails.root.join("lib/mcp_server/tools/finalize_teilnehmerliste.rb").read
-    assert_match(/destructive_hint:\s*true/, content)
-    assert_match(/read_only_hint:\s*false/, content)
+  test "all write tools have destructive_hint: true + read_only_hint: false" do
+    WRITE_TOOL_NAMES.each do |tname|
+      fname = "#{tname.delete_prefix("cc_")}.rb"
+      content = Rails.root.join("lib/mcp_server/tools/#{fname}").read
+      assert_match(/destructive_hint:\s*true/, content, "#{tname} fehlt destructive_hint:true")
+      assert_match(/read_only_hint:\s*false/, content, "#{tname} fehlt read_only_hint:false")
+    end
   end
 end

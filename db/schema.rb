@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_04_25_090000) do
+ActiveRecord::Schema[7.2].define(version: 2026_05_13_190832) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -508,6 +508,21 @@ ActiveRecord::Schema[7.2].define(version: 2026_04_25_090000) do
     t.index ["global_context"], name: "index_locations_on_global_context"
     t.index ["md5"], name: "index_locations_on_md5", unique: true
     t.index ["region_id"], name: "index_locations_on_region_id"
+  end
+
+  create_table "mcp_audit_trails", force: :cascade do |t|
+    t.bigint "user_id"
+    t.string "operator", default: "unknown", null: false
+    t.string "tool_name", null: false
+    t.jsonb "payload", default: {}, null: false
+    t.jsonb "pre_validation_results", default: []
+    t.string "read_back_status"
+    t.string "result", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["created_at"], name: "index_mcp_audit_trails_on_created_at"
+    t.index ["tool_name"], name: "index_mcp_audit_trails_on_tool_name"
+    t.index ["user_id"], name: "index_mcp_audit_trails_on_user_id"
   end
 
   create_table "meta_maps", force: :cascade do |t|
@@ -1478,6 +1493,10 @@ ActiveRecord::Schema[7.2].define(version: 2026_04_25_090000) do
     t.jsonb "preferences"
     t.virtual "name", type: :string, as: "(((first_name)::text || ' '::text) || (COALESCE(last_name, ''::character varying))::text)", stored: true
     t.integer "role", default: 0
+    t.integer "mcp_role", default: 0, null: false
+    t.string "cc_region"
+    t.text "cc_credentials"
+    t.datetime "mcp_consent_at"
     t.index ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["invitation_token"], name: "index_users_on_invitation_token", unique: true
@@ -1543,6 +1562,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_04_25_090000) do
   add_foreign_key "league_teams", "regions", validate: false
   add_foreign_key "leagues", "regions", validate: false
   add_foreign_key "locations", "regions", validate: false
+  add_foreign_key "mcp_audit_trails", "users", on_delete: :nullify
   add_foreign_key "parties", "regions", validate: false
   add_foreign_key "party_games", "regions", validate: false
   add_foreign_key "player_rankings", "regions", validate: false

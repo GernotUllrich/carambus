@@ -18,6 +18,17 @@ Derzeit verfügbare Funktionen:
 - **Write-Aktion**: Meldeliste in CC finalisieren (`cc_finalize_teilnehmerliste`)
 - **Workflow-Dokumentation**: Schritt-für-Schritt-Anleitungen als MCP-Resources abrufbar
 
+> **Erstmal nur loslegen?** Springe direkt zum [Quickstart](clubcloud-mcp-quickstart.de.md)
+> — der erklärt in 5 Minuten, wie Du als technische Stellvertretung des Club-Sportwarts
+> den ersten Tool-Call absetzt. Diese Setup-Doku ist für tieferes Troubleshooting +
+> Entwickler-Setup gedacht.
+>
+> **Setup für Club-Sportwart vor Ort:** Wenn ein Carambus-Admin den MCP-Server für einen
+> Club-Sportwart **vor Ort** installiert (Sportwart ohne Dev-Setup, nur Browser/Claude
+> Desktop), siehe die separate Doku [`clubcloud-mcp-setup-service.de.md`](clubcloud-mcp-setup-service.de.md)
+> — Pre-Visit-Checkliste, macOS-/Windows-Installation, sichere Credentials-Übertragung,
+> Smoke-Test-Drehbuch.
+
 ## Voraussetzungen
 
 Bevor du anfängst, stelle sicher, dass folgendes vorhanden ist:
@@ -207,3 +218,27 @@ Im Mock-Mode gilt:
 
 **Wichtig:** Mock-Mode ist in Production (`RAILS_ENV=production`) deaktiviert —
 Carambus erkennt automatisch, wenn jemand vergessen hat, es zu deaktivieren.
+
+## Verfügbare Spickzettel (Workflow-Resources)
+
+Spickzettel sind strukturierte Schritt-für-Schritt-Anleitungen, die Claude Desktop als
+MCP-Resources unter `cc://workflow/scenarios/{slug}` abrufen kann. Jeder Spickzettel
+deckt einen typischen Anmelde- bzw. Meldelisten-Workflow:
+
+| Slug | Wann nutzen? | Trigger |
+|---|---|---|
+| `anmeldung-aus-email` | E-Mail mit Spielerliste eingegangen | E-Mail-getriggert |
+| `turnier-status-und-anmelden` | Sportwart fragt nach Status eines Turniers | Status-getriggert |
+| `meldeliste-finalisieren` | Anmeldelist sperren (destruktiv, `armed:true` Pflicht) | Destruktiv |
+
+Klick-Reduktions-Vergleiche (Vorher CC-UI ↔ Nachher Claude):
+- [`clubcloud-mcp-klickreduktion-anmeldung-aus-email.de.md`](clubcloud-mcp-klickreduktion-anmeldung-aus-email.de.md)
+- [`clubcloud-mcp-klickreduktion-turnier-status-und-anmelden.de.md`](clubcloud-mcp-klickreduktion-turnier-status-und-anmelden.de.md)
+- [`clubcloud-mcp-klickreduktion-meldeliste-finalisieren.de.md`](clubcloud-mcp-klickreduktion-meldeliste-finalisieren.de.md)
+
+**Was diese Spickzettel NICHT abdecken (v0.1):**
+Meldeschluss-Verschiebung, Akkreditierungs-Workflow und Teilnehmerliste-Pflege während
+des Turniertags fehlen heute — der Sportwart bzw. seine technische Stellvertretung
+fallen an diesen Punkten in die CC-UI zurück. **v0.2** (geplant 2026-08-15) bringt
+`cc_update_tournament_deadline` und `cc_add_participant_to_finalized_list` ins MCP.
+Siehe [`clubcloud-mcp-quickstart.de.md`](clubcloud-mcp-quickstart.de.md) §„Was v0.1 NICHT abdeckt".

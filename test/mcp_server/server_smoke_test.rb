@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require "test_helper"
 
 class McpServer::ServerSmokeTest < ActiveSupport::TestCase
@@ -29,8 +30,8 @@ class McpServer::ServerSmokeTest < ActiveSupport::TestCase
     klass = Class.new(MCP::Tool)
     %i[tool_name description input_schema annotations].each do |dsl_method|
       assert klass.respond_to?(dsl_method),
-             "MCP::Tool-Subklassen müssen auf ##{dsl_method} antworten (DSL-Makro). " \
-             "Bei Fehlschlag hat SDK 0.15 eine andere API und Plans 04+05 müssen sich anpassen."
+        "MCP::Tool-Subklassen müssen auf ##{dsl_method} antworten (DSL-Makro). " \
+        "Bei Fehlschlag hat SDK 0.15 eine andere API und Plans 04+05 müssen sich anpassen."
     end
   end
 
@@ -38,7 +39,7 @@ class McpServer::ServerSmokeTest < ActiveSupport::TestCase
     # ACHTUNG: SDK 0.15 exponiert `error?` (Predicate), NICHT `error`.
     # Plans 04+05 müssen `response.error?` verwenden, nicht `response.error`.
     # BaseTool#error und BaseTool#text helper erzeugen korrekte Response-Objekte.
-    response = MCP::Tool::Response.new([{ type: "text", text: "hello" }], error: false)
+    response = MCP::Tool::Response.new([{type: "text", text: "hello"}], error: false)
     assert_respond_to response, :error?
     assert_respond_to response, :content
     refute response.error?

@@ -1,0 +1,17 @@
+# Sample scenario — verifies the harness wiring with the canonical NBV region fixture.
+# In Phase 2 this format is extended (multi-step, follow-up questions, expected disambiguation).
+---
+name: "Lookup Region: NBV"
+description: |
+  Der Turniermanager fragt: „Welcher Verband ist NBV?".
+  Erstes Smoke-Szenario, das den NL-Szenario-Harness gegen einen DB-first-Lookup verifiziert.
+mock: true
+steps:
+  - tool: cc_lookup_region
+    args:
+      shortname: "NBV"
+    expect:
+      error: false
+      content_includes:
+        - "NBV"
+        - "Niedersächsischer Billard-Verband"

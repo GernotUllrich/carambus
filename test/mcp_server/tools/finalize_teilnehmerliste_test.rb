@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require "test_helper"
 
 # Tests für cc_finalize_teilnehmerliste (D-19 proof write tool).
@@ -64,7 +65,7 @@ class McpServer::Tools::FinalizeTeilnehmerlisteTest < ActiveSupport::TestCase
   end
 
   test "D-11 Login-Redirect löst Reauth + Retry aus" do
-    login_doc   = Nokogiri::HTML('<html><body><form action="/login.php"><input/></form></body></html>')
+    login_doc = Nokogiri::HTML('<html><body><form action="/login.php"><input/></form></body></html>')
     success_doc = Nokogiri::HTML("<html><body><table>OK</table></body></html>")
     ok_response = Struct.new(:code, :message, :body).new("200", "OK", "")
     call_count = 0
@@ -105,7 +106,7 @@ class McpServer::Tools::FinalizeTeilnehmerlisteTest < ActiveSupport::TestCase
 
   test "Defensiv: StandardError in client.post gibt error envelope ohne stacktrace zurück" do
     @mock.define_singleton_method(:post) do |*_|
-      raise RuntimeError, "simulated network failure"
+      raise "simulated network failure"
     end
 
     response = McpServer::Tools::FinalizeTeilnehmerliste.call(

@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 # cc_lookup_region — DB-first Region lookup by shortname or fed_id (D-02).
 # CANONICAL TEMPLATE — Task 1b mirrors this shape for 9 other read tools.
 # D-18 acceptance-story foundation.
@@ -7,13 +8,15 @@ module McpServer
   module Tools
     class LookupRegion < BaseTool
       tool_name "cc_lookup_region"
-      description "Look up a Carambus region by shortname (e.g. 'BCW') or ClubCloud federation ID. " \
+      description "Wann nutzen? Selten direkt — meist intern als ID-Auflöser für andere Lookup-/Write-Tools, wenn ein Region-Kontext (z.B. 'NBV', 'BVBW') in einen fed_id übersetzt werden muss. " \
+                  "Was tippt der User typisch? 'Welche Region ist BVBW?', 'gib mir die NBV-Daten' — meist aber transparent im Hintergrund. " \
+                  "Look up a Carambus region by shortname (e.g. 'BCW') or ClubCloud federation ID. " \
                   "Returns region metadata from the local Carambus DB by default; pass force_refresh=true to query CC live."
       input_schema(
         properties: {
-          shortname:     { type: "string",  description: "Region shortname like 'BCW'" },
-          fed_id:        { type: "integer", description: "ClubCloud federation ID. Optional — resolved via region lookup (CC_REGION/Setting 'context', default 'NBV'); ENV CC_FED_ID overrides." },
-          force_refresh: { type: "boolean", default: false, description: "Bypass DB cache, query CC live" }
+          shortname: {type: "string", description: "Region shortname like 'BCW'"},
+          fed_id: {type: "integer", description: "ClubCloud federation ID. Optional — resolved via region lookup (CC_REGION/Setting 'context', default 'NBV'); ENV CC_FED_ID overrides."},
+          force_refresh: {type: "boolean", default: false, description: "Bypass DB cache, query CC live"}
         }
       )
       annotations(read_only_hint: true, destructive_hint: false)
@@ -23,7 +26,7 @@ module McpServer
         err = validate_required_anyof!(shortname: shortname, fed_id: fed_id)
         return err if err
 
-        return live_lookup(fed_id: fed_id) if force_refresh
+        return live_lookup(fed_id: fed_id, server_context: server_context) if force_refresh
 
         region = if shortname.present?
           Region.find_by(shortname: shortname)
@@ -44,10 +47,10 @@ module McpServer
         error("Missing required parameter: provide at least one of `shortname` or `fed_id`")
       end
 
-      def self.live_lookup(fed_id:)
+      def self.live_lookup(fed_id:, server_context: nil)
         return error("Missing required parameter for live lookup: fed_id") if fed_id.blank?
-        client = cc_session.client_for
-        res, _doc = client.get("home", { fedId: fed_id }, { session_id: cc_session.cookie })
+        client = cc_session.client_for(server_context)
+        res, _doc = client.get("home", {fedId: fed_id}, {session_id: cc_session.cookie})
         return error("CC live-lookup failed: HTTP #{res&.code}") if res&.code != "200"
         text("CC live response for fed_id=#{fed_id} (status #{res.code})")
       end

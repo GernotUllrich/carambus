@@ -1,6 +1,12 @@
 # frozen_string_literal: true
+
 # MockClient — Drop-in-Ersatz für RegionCc::ClubCloudClient wenn CARAMBUS_MCP_MOCK=1.
-# Hardcoded Fixture-Responses; Plan 05 erweitert dies mit releaseMeldeliste-Fixture.
+# Hardcoded Fixture-Responses; reine PATH_MAP-Prüfung für writable?-Check.
+# Plan 04-04 (cc_register_for_tournament): WRITABLE_ACTIONS_NOT_IN_PATH_MAP-Brücke entfernt,
+# da addPlayerToMeldeliste/saveMeldeliste/showCommittedMeldeliste jetzt in PATH_MAP sind.
+# Plan 06-03 (cc_update_tournament_deadline): editMeldelisteCheck/editMeldelisteSave
+# jetzt in PATH_MAP. showMeldeliste-Pre-Read nutzt existierenden read-only-Key (kein neuer Eintrag).
+# Per-Action rich Mock-Responses werden in Tests via `@mock.define_singleton_method(:post)` injiziert.
 
 module McpServer
   module Tools
