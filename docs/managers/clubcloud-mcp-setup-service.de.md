@@ -479,41 +479,66 @@ Ab v0.3 unterstützt der ClubCloud-MCP-Server zusätzlich zum Stdio-Pfad (Sektio
 
 ### 9.1 Voraussetzungen
 
-- **Claude Desktop** ≥ `<min-version, D-13-01-B>` (wird nach Plan-13-06.1-Empirical-Verify nachgepflegt — minimal die Version, die Streamable-HTTP-Transport in der `mcpServers`-Konfig unterstützt)
+- **Claude Desktop** (Unified-App mit integriertem Claude-Code-Daemon, Plan 13-06.1 getestet mit `claude-code/2.1.138`) ODER **Claude Code CLI** (`claude` Command verfügbar)
 - **Devise-User auf dem Carambus-MCP-Server** existiert + Sportwart-/Turnierleiter-/Landessportwart-Rolle gesetzt (siehe Plan 13-02 Rollen-Modell — `landessportwart` sieht alle 22 Tools, `sportwart` sieht 16, `turnierleiter` sieht 19)
 - **DSGVO-Einwilligung erteilt** (`mcp_consent_at` gesetzt — siehe Sektion 8.4 + 8.5)
 - **`cc_region` + `cc_credentials`** am User gesetzt (Multi-Region-Routing — Plan 13-04.1)
-- **Browser** für Erst-Login (Devise-Session-Cookie wird im OS-Cookie-Store hinterlegt)
+- **Browser** für Erst-Login + Cookie-Extract (Devise-Session-Cookie wird im Browser-Cookie-Store hinterlegt — Claude.app teilt diese Cookies **nicht** automatisch)
 
-### 9.2 Claude-Desktop-Konfig-Schnipsel
+> **Plan 13-06.1 Empirical-Verify-Befund (D-13-06.1-A, 2026-05-13):** Die neue Unified Claude.app liest `claude_desktop_config.json` **nicht** mehr — MCP-Server-Setup erfolgt via `claude mcp add` CLI (schreibt in `~/.claude.json`).
 
-`claude_desktop_config.json`-Eintrag für den Remote-MCP-Server (v0.3-Pilot-Hosting auf carambus.de — Plan 13-06.1 Task 2 Decision):
+> **Plan 13-06.2 (D-13-06.1-C, 2026-05-14):** **JWT-Token-Auth ist Primary-Pfad** ab v0.3.0. Cookie-Inject (Plan 13-06.1) bleibt als Legacy-Option in Sektion 9.7. JWT-Token hat 24h-Lifetime (statt 120min Cookie) und ist Industry-Standard für MCP-Clients.
 
-```json
-{
-  "mcpServers": {
-    "carambus-clubcloud-remote": {
-      "url": "https://carambus.de/mcp",
-      "transport": "http",
-      "headers": {
-        "Accept": "application/json, text/event-stream"
-      }
-    }
-  }
-}
+### 9.2 MCP-Server-Setup via Claude Code CLI (JWT-Token-Auth) ⭐ EMPFOHLEN
+
+**Vorbereitung — JWT-Token via Login-Call holen:**
+
+```bash
+# 1. Login + Token extrahieren (Token kommt im `Authorization`-Response-Header):
+TOKEN=$(curl -sS -X POST https://carambus.de/users/sign_in \
+  -H "Accept: application/json" \
+  -H "Content-Type: application/json" \
+  -d '{"user":{"email":"DEIN_USER@example.com","password":"DEIN_PW"}}' \
+  -D - | grep -i '^authorization:' | awk '{print $2}' | tr -d '\r\n')
+
+# Sanity-Check (Token muss mit "eyJ..." beginnen — Base64-encoded JWT-Header):
+echo "Token: $TOKEN"
 ```
 
-**Wichtig (D-13-06-A):** Der `Accept`-Header muss **beide** Mime-Types nennen (`application/json, text/event-stream`). Claude Desktop sendet das in aktuellen Versionen nativ; bei `406 Not Acceptable` ist der Header explizit in die Konfig zu setzen (siehe Sektion 9.5).
+**MCP-Server registrieren via CLI:**
 
-### 9.3 Devise-Login-Erst-Setup (Browser → Cookie → Claude Desktop)
+```bash
+claude mcp add-json --scope user carambus-remote "{
+  \"type\": \"http\",
+  \"url\": \"https://carambus.de/mcp?stateless=1\",
+  \"headers\": {
+    \"Authorization\": \"$TOKEN\",
+    \"Accept\": \"application/json, text/event-stream\"
+  }
+}"
+```
 
-1. **Browser öffnen** und Carambus-MCP-Server-URL aufrufen (z.B. `https://carambus.de/users/sign_in`)
-2. **Devise-Login** mit den eigenen Carambus-Credentials durchführen — Sportwart/Turnierleiter/Landessportwart-Rolle ist am User-Account hinterlegt
-3. **Session-Cookie wird gespeichert** (Standard-Devise-Cookie `_carambus_session`)
-4. **Claude Desktop neu starten** — Claude Desktop nutzt denselben Cookie-Store wie der Browser (sofern sie auf demselben Profil/User-Account laufen)
-5. **Erst-Test** in Claude Desktop: „Welche MCP-Tools hast du verfügbar?" → erwartete Antwort enthält die Per-Rolle gefilterte Tool-Liste
+> Falls Shell-Quoting Probleme macht: Token-Wert kopieren und `add-json` mit Single-Quotes + manuell ersetztem Token aufrufen (kein Variable-Substitution).
 
-> **Falls Cookie-Sharing zwischen Browser und Claude Desktop nicht funktioniert** (z.B. unterschiedliche Profile): Plan 13-06.1 Empirical-Verify wird zeigen, ob ein separater Auth-Flow nötig ist (z.B. Token-basiert). Befund wird in Sektion 9.5 nachgepflegt.
+**Verify:**
+
+```bash
+claude mcp get carambus-remote   # Status sollte "connected" zeigen
+claude mcp list                  # Übersicht aller MCP-Server
+```
+
+**Wichtige Detail-Hinweise:**
+
+- **`?stateless=1` query-param** umgeht den `Mcp-Session-Id`-Header-Stateful-Flow (D-13-06.1-E). Für Claude Code MCP-Client der einfachste robuste Weg.
+- **`Accept`-Header dual** (`application/json, text/event-stream`): Streamable-HTTP-Transport-Pflicht (D-13-06-A). Ohne → 406 Not Acceptable.
+- **`Authorization: Bearer <jwt>`**: Industry-Standard-Bearer-Token. Token-Lifetime **24 Stunden** ab Login. Bei Ablauf → erneuter Login-Call (Schritt 1 wiederholen) + `claude mcp remove ... && claude mcp add-json ...` neu.
+- **Force-Logout**: `curl -X DELETE https://carambus.de/users/sign_out -H "Authorization: $TOKEN"` invalidiert den Token über JTIMatcher-Revocation. Alle weiteren Calls mit diesem Token → 401.
+
+### 9.3 Aktivierung in Claude.app
+
+Nach `claude mcp add-json` wird der Eintrag in `~/.claude.json` (user-scope) persistiert. **Claude.app Restart** (Cmd+Q + Re-Open) lädt die neue Konfig.
+
+In neuer Chat-Session: „Welche carambus-remote Tools hast du?" → erwartete Antwort enthält die Per-Rolle gefilterte Tool-Liste (22 Tools für `mcp_landessportwart`, 16 für `mcp_sportwart`, 19 für `mcp_turnierleiter`).
 
 ### 9.4 Verifikations-Schritte
 
@@ -532,14 +557,59 @@ Nach Setup folgenden Dialog mit Claude führen (Read-only — KEIN `armed:true`,
 
 | Symptom | Ursache | Lösung |
 |---|---|---|
-| **406 Not Acceptable** bei `tools/list` oder `initialize` | `Accept`-Header fehlt oder nur `application/json` (D-13-06-A) | In `claude_desktop_config.json` `"Accept": "application/json, text/event-stream"` explizit setzen (siehe Sektion 9.2) |
-| **401 Unauthorized** | Devise-Session abgelaufen oder Cookie-Sharing-Problem | Browser-Re-Login (Sektion 9.3); Claude Desktop neu starten |
-| **Falsche Region in Tool-Output** | `User.mcp_cc_region` falsch gesetzt | Admin-Korrektur am User-Account (Rails-Console oder Admin-UI); danach Browser-Re-Login |
+| **`Failed to connect` bei `claude mcp get`** | Cookie fehlt / expired / falscher Name (Plan 13-06.1 D-13-06.1-A häufigstes Pilot-Symptom) | DevTools-Cookie-Extract erneut (`_session_id`-Wert frisch nach Browser-Login); `claude mcp remove` + neu via `add-json` |
+| **400 „Missing session ID"** | `?stateless=1`-Query-Param fehlt in URL (D-13-06.1-E) | URL in `claude mcp add-json` muss `https://carambus.de/mcp?stateless=1` enthalten (mit Query-Param) |
+| **401 Unauthorized** mit JSON `{"error":"Sie müssen sich anmelden..."}` | Cookie-Wert ungültig/expired oder falsches Cookie-Name (z.B. `_carambus_session` statt `_session_id`) | Browser-Re-Login → DevTools → `_session_id`-Wert kopieren; `claude mcp` Konfig erneuern |
+| **406 Not Acceptable** bei tools/list oder initialize | `Accept`-Header fehlt oder nur `application/json` (D-13-06-A) | In `add-json` Header-Block beide Mime-Types: `"Accept": "application/json, text/event-stream"` |
 | **„DSGVO-Einwilligung erforderlich"** | `mcp_consent_at` nicht gesetzt | Sektion 8.5 Einwilligungs-Operational-Flow durchlaufen (Browser-Banner oder Admin-Setting) |
-| **Tool-Liste leer / kürzer als erwartet** | `User.mcp_role` falsch oder nicht gesetzt | Admin-Korrektur am User-Account (Rolle z.B. auf `landessportwart` setzen für volle 22-Tool-Suite) |
-| **Tool-Calls dauern lang / Timeout** | Multi-Region-Routing geht zur falschen `region_cc.base_url` (D-13-04-A) | Befund-Capture in `.paul/phases/13-multi-client-hosting/13-06.1-DEPLOY-LOG.md`; ggf. Plan 13-06.2 Nachbesserung |
+| **Tool-Liste leer / kürzer als erwartet** | `User.mcp_role` falsch oder nicht gesetzt | Admin-Korrektur am User-Account (Rolle z.B. auf `mcp_landessportwart` setzen für volle 22-Tool-Suite) |
+| **Falsche Region in Tool-Output** | `User.cc_region` falsch gesetzt | Admin-Korrektur am User-Account (Rails-Console oder Admin-UI); danach Browser-Re-Login |
+| **Tool-Calls dauern lang / Timeout** | Multi-Region-Routing geht zur falschen `region_cc.base_url` (D-13-04-A) | Befund-Capture; ggf. Plan 13-06.2 Nachbesserung |
+| **Claude.app ignoriert `~/.claude.json`-Eintrag** | Claude.app nicht restarted nach `claude mcp add-json` | Cmd+Q + Re-Open (kein Hot-Reload) |
+| **Login-Call liefert leeren Authorization-Header** | devise-jwt-Config falsch (z.B. `dispatch_requests`-Regex matched Login-Route nicht) ODER `Accept: application/json`-Header fehlte beim Login | Server-Log `tail -f /var/www/carambus/current/log/production.log` während Login-Call; `Accept: application/json` Header zwingend setzen |
+| **401 mit Bearer-Token (`{"error":"Sie müssen sich anmelden..."}`)** | Token expired (>24h alt) ODER Token revoked via `DELETE /users/sign_out` ODER JWT-Secret-Inkonsistenz Server/Lokal | Neuen Token holen via Login-Call; auf Server `RAILS_MASTER_KEY` / `devise_jwt_secret_key` in production-Credentials verifizieren |
+| **Token-Wert beginnt nicht mit `eyJ`** | devise-jwt-Gem nicht geladen ODER Login-Endpoint liefert keinen Bearer-Header | `gem list devise-jwt` auf Server prüfen; `bundle exec rails routes \| grep sign_in` → POST-Route muss existieren |
 
-> **Live-Befunde aus Plan 13-06.1 Empirical-Verify** werden hier nach dem Hetzner-Staging-Deploy nachgepflegt — diese Tabelle ist v0.3-Pilot-Stand und wird mit Phase-14-Walkthrough-Erfahrungen erweitert.
+> **Plan 13-06.1 + 13-06.2 Live-Validation-Befunde (2026-05-13/14):** 22 Tools via `claude mcp add-json ... carambus-remote` mit `?stateless=1` erfolgreich gelistet auf carambus.de. JWT-Token-Auth (Plan 13-06.2) ist Production-Primary; Cookie-Inject (Plan 13-06.1) bleibt als Legacy-Option in Sektion 9.7 erhalten. McpController-Fix `skip_forgery_protection` (Commit `66cd3b33`) Plan-13-03-Update: Rails 7.2 nullt Session-State trotz `skip_before_action :verify_authenticity_token`. Diese Tabelle wird mit Phase-14-Walkthrough-Erfahrungen erweitert.
+
+### 9.6 (reserviert)
+
+### 9.7 Legacy Cookie-Auth (v0.3-Pilot Plan 13-06.1) — DEPRECATED
+
+> **Status:** Plan 13-06.1 hat Cookie-Inject als initialen Pilot-Workaround eingeführt; Plan 13-06.2 hat JWT-Token-Auth als Phase-14-Primary etabliert. Cookie-Inject bleibt für Backwards-Compat erhalten, aber **NICHT empfohlen** für neue Setups — JWT-Token (Sektion 9.2) hat längere Lifetime und ist robuster.
+
+**Wann diese Sektion verwenden:**
+- Plan-13-06.1-Pilot-Setup bleibt funktional (keine Migration erzwungen)
+- Bei spezifischen MCP-Client-Limitationen wo Bearer-Header nicht unterstützt wird (selten)
+- Als Fallback falls JWT-Token-Login (Sektion 9.2) scheitert
+
+**Cookie-Extract-Workflow:**
+
+1. Browser-Login auf https://carambus.de/users/sign_in mit Carambus-Credentials
+2. Browser-DevTools öffnen (F12, oder ⌥+⌘+I in Safari)
+3. Tab `Application` (Chrome/Edge) bzw. `Storage` (Firefox) → `Cookies` → `https://carambus.de`
+4. Wert von Cookie **`_session_id`** kopieren (32-stelliger Hex-String, Rails-Default-Cookie-Name)
+
+**MCP-Server registrieren mit Cookie-Header:**
+
+```bash
+claude mcp add-json --scope user carambus-remote '{
+  "type": "http",
+  "url": "https://carambus.de/mcp?stateless=1",
+  "headers": {
+    "Cookie": "_session_id=DEIN_COOKIE_HIER",
+    "Accept": "application/json, text/event-stream"
+  }
+}'
+```
+
+**Limitierungen:**
+
+- **Cookie-Expire 120 Minuten** (vs 24h JWT) — Re-Login alle 2h notwendig
+- **Cookie-Sharing** zwischen Browser und Claude.app erfolgt NICHT automatisch (manueller DevTools-Extract)
+- Bei Carambus-Scenarios mit anderem `session_store key:`-Parameter kann Cookie-Name abweichen (im DevTools sichtbar)
+
+**Migration auf JWT:** `claude mcp remove carambus-remote -s user` + Sektion 9.2 Schritt 1+2 ausführen.
 
 ---
 

@@ -213,4 +213,27 @@ class UserTest < ActiveSupport::TestCase
     assert_equal "success", entry[:result]
     assert_nothing_raised { export.to_json }
   end
+
+  # v0.3 Plan 13-06.2 (D-13-06.1-C): Devise-JWT-Auth + JTIMatcher-Revocation
+  test "User#jti column existiert + ist string-typed" do
+    assert_equal :string, User.columns_hash["jti"].type
+    u = User.new(email: "test-jwt-column@example.com", password: "password123")
+    assert u.respond_to?(:jti), "User muss jti-Accessor haben"
+  end
+
+  test "Devise.jwt_revocation_strategy ist auf User-Model gesetzt (JTIMatcher)" do
+    # JTIMatcher fügt Klassen-Methoden für JWT-Revocation hinzu
+    assert User.respond_to?(:jwt_revoked?), "JTIMatcher muss jwt_revoked? auf User definieren"
+    assert User.respond_to?(:revoke_jwt), "JTIMatcher muss revoke_jwt auf User definieren"
+  end
+
+  test "User generates jwt token via Warden::JWTAuth::UserEncoder" do
+    u = User.first
+    skip "no users in fixtures" unless u
+    token, payload = Warden::JWTAuth::UserEncoder.new.call(u, :user, nil)
+    assert_kind_of String, token, "token must be JWT string"
+    assert payload["jti"].present?, "JWT muss jti-Claim enthalten"
+    assert_equal u.id, payload["sub"].to_i, "JWT sub-Claim muss user_id sein"
+    assert payload["exp"] > Time.current.to_i, "exp muss zukünftig sein (24h Default)"
+  end
 end

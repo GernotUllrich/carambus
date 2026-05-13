@@ -32,8 +32,15 @@ class User < ApplicationRecord
   before_save :set_paper_trail_whodunnit
   before_validation :set_default_role, on: :create
 
+  # Plan 13-06.2 / D-13-06.1-C: JWT-Token-Auth via devise-jwt + JTIMatcher-Revocation.
+  # Backwards-Compat: Cookie-Auth (database_authenticatable + Session) bleibt parallel aktiv.
+  # MCP-Clients können entweder Cookie-Session ODER `Authorization: Bearer <jwt>` senden;
+  # Devise's `authenticate_user!` checkt beide Strategien transparent.
   devise :database_authenticatable, :registerable,
-    :recoverable, :rememberable, :validatable, :confirmable
+    :recoverable, :rememberable, :validatable, :confirmable,
+    :jwt_authenticatable, jwt_revocation_strategy: self
+
+  include Devise::JWT::RevocationStrategies::JTIMatcher
 
   validates :terms_of_service, acceptance: true, on: :create
 

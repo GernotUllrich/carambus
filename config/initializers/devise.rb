@@ -32,17 +32,17 @@ Devise.setup do |config|
   # confirmation, reset password and unlock tokens in the database.
   # Devise will use the `secret_key_base` as its `secret_key`
   # by default. You can change it below and use your own secret key.
-  config.secret_key = '144cc4dd84d9f2172c8cd821cd592115e38e07a61026dacc5aeb1320c3e0d748bdf81e280c49f914af00deb605f1c171be02182622d2ef0beec69ad68dc267b9'
+  config.secret_key = "144cc4dd84d9f2172c8cd821cd592115e38e07a61026dacc5aeb1320c3e0d748bdf81e280c49f914af00deb605f1c171be02182622d2ef0beec69ad68dc267b9"
 
   # ==> Controller configuration
   # Configure the parent class to the devise controllers.
-  config.parent_controller = 'ApplicationController'
+  config.parent_controller = "ApplicationController"
 
   # ==> Mailer Configuration
   # Configure the e-mail address which will be shown in Devise::Mailer,
   # note that it will be overwritten if you use your own mailer class
   # with default "from" parameter.
-  config.mailer_sender = ENV['SMTP_USERNAME'] || "no-reply@carambus.de"
+  config.mailer_sender = ENV["SMTP_USERNAME"] || "no-reply@carambus.de"
 
   # Configure the class responsible to send e-mails.
   # config.mailer = 'Devise::Mailer'
@@ -329,4 +329,18 @@ Devise.setup do |config|
   # When set to false, does not sign a user in automatically after their password is
   # changed. Defaults to true, so a user is signed in automatically after changing a password.
   # config.sign_in_after_change_password = true
+
+  # ==> Configuration for :jwt_authenticatable (Plan 13-06.2 / D-13-06.1-C)
+  # MCP-Clients senden `Authorization: Bearer <jwt>` für stateless API-Auth.
+  # Backwards-Compat: Cookie-Session (Plan 13-06.1) bleibt parallel über Standard-Devise.
+  # Token-Lifetime 24h (vs 120min Cookie-Session) für Phase-14-Walkthrough-Komfort.
+  # Revocation via JTIMatcher (User#jti); kein separater Token-Blacklist nötig.
+  config.jwt do |jwt|
+    jwt.secret = Rails.application.credentials.devise_jwt_secret_key.presence ||
+      ENV["DEVISE_JWT_SECRET_KEY"].presence ||
+      Rails.application.secret_key_base
+    jwt.dispatch_requests = [["POST", %r{^/users/sign_in$}]]
+    jwt.revocation_requests = [["DELETE", %r{^/users/sign_out$}]]
+    jwt.expiration_time = 24.hours.to_i
+  end
 end
