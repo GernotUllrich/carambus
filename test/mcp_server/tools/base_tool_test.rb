@@ -71,4 +71,52 @@ class McpServer::Tools::BaseToolTest < ActiveSupport::TestCase
     assert_equal 2, result[:results].length
     assert lazy_called, "Lambda-Validation muss aufgerufen worden sein"
   end
+
+  # v0.3 Plan 13-04 (D-13-01-F Backwards-Compat): effective_cc_region Helper mit Fallback-Chain
+  # server_context → ENV → Setting → "NBV". UPPERCASE-Convention.
+  class EffectiveCcRegionTest < ActiveSupport::TestCase
+    setup do
+      @original_env = ENV["CC_REGION"]
+    end
+
+    teardown do
+      ENV["CC_REGION"] = @original_env
+    end
+
+    test "effective_cc_region: server_context cc_region wird UPPERCASE zurückgegeben" do
+      result = McpServer::Tools::BaseTool.effective_cc_region({cc_region: "bvbw"})
+      assert_equal "BVBW", result
+    end
+
+    test "effective_cc_region: server_context bekommt Vorrang vor ENV (HTTP > Stdio)" do
+      ENV["CC_REGION"] = "nbv"
+      result = McpServer::Tools::BaseTool.effective_cc_region({cc_region: "bvbw"})
+      assert_equal "BVBW", result, "server_context muss ENV überstimmen"
+    end
+
+    test "effective_cc_region: server_context nil → ENV-Fallback (UPPERCASE)" do
+      ENV["CC_REGION"] = "nbv"
+      result = McpServer::Tools::BaseTool.effective_cc_region(nil)
+      assert_equal "NBV", result
+    end
+
+    test "effective_cc_region: server_context cc_region nil → ENV-Fallback" do
+      ENV["CC_REGION"] = "nbv"
+      result = McpServer::Tools::BaseTool.effective_cc_region({cc_region: nil})
+      assert_equal "NBV", result
+    end
+
+    test "effective_cc_region: server_context cc_region leerer String → ENV-Fallback" do
+      ENV["CC_REGION"] = "nbv"
+      result = McpServer::Tools::BaseTool.effective_cc_region({cc_region: ""})
+      assert_equal "NBV", result
+    end
+
+    test "effective_cc_region: kein server_context + kein ENV + kein Setting → Default 'NBV'" do
+      ENV.delete("CC_REGION")
+      # Setting.key_get_value("context") liefert in dieser Test-DB nil (Fixture-Default)
+      result = McpServer::Tools::BaseTool.effective_cc_region(nil)
+      assert_equal "NBV", result
+    end
+  end
 end

@@ -48,14 +48,14 @@ module McpServer
         # Plan 10-06 Task 1 (D-10-04-J Vokabular-Schicht): Name-Search via TournamentCc.name ILIKE
         # mit Phase-8-Disambiguation-Pattern (5. Anwendung). Vorbild: cc_lookup_club aus Plan 10-05.
         if name.present? && meisterschaft_id.blank? && tournament_id.blank?
-          return name_search(name: name, shortname: shortname)
+          return name_search(name: name, shortname: shortname, server_context: server_context)
         end
 
         # Plan 10-05 Task 2 (Befund #3 D-09-03-2): meisterschaft_id ist nur regions-eindeutig.
         # Region-Filter via TournamentCc.context (lowercase shortname). tournament_id ist
         # Carambus-intern und region-eindeutig — kein Region-Filter nötig.
         if meisterschaft_id.present?
-          region_shortname = resolve_region_shortname(shortname)
+          region_shortname = resolve_region_shortname(shortname, server_context: server_context)
           scope = TournamentCc.where(cc_id: meisterschaft_id)
           tournament_cc = scope.find_by(context: region_shortname.to_s.downcase)
 
@@ -78,8 +78,8 @@ module McpServer
 
       # Plan 10-06 Task 1 (D-10-04-J Vokabular-Schicht): Name-Search auf TournamentCc.name
       # mit Phase-8-Disambiguation-Pattern (analog cc_lookup_club aus Plan 10-05).
-      def self.name_search(name:, shortname:)
-        region_shortname = resolve_region_shortname(shortname)
+      def self.name_search(name:, shortname:, server_context: nil)
+        region_shortname = resolve_region_shortname(shortname, server_context: server_context)
         escaped = ActiveRecord::Base.sanitize_sql_like(name.to_s)
         scope = TournamentCc.where("name ILIKE ?", "%#{escaped}%")
         scope = scope.where(context: region_shortname.to_s.downcase) if region_shortname.present?
@@ -118,12 +118,11 @@ module McpServer
         text(JSON.generate(body))
       end
 
-      # Resolve effective region shortname (uppercase) — explicit param > ENV > Setting > default.
-      def self.resolve_region_shortname(override = nil)
+      # Resolve effective region shortname (uppercase) — explicit param > server_context > ENV > Setting > default.
+      # v0.3 Plan 13-04: nutzt BaseTool.effective_cc_region für server_context-Propagation.
+      def self.resolve_region_shortname(override = nil, server_context: nil)
         return override.to_s.upcase if override.present?
-        return ENV["CC_REGION"].upcase if ENV["CC_REGION"].present?
-        context = (defined?(Setting) ? Setting.key_get_value("context") : nil).presence
-        (context || "NBV").upcase
+        effective_cc_region(server_context)
       rescue => e
         Rails.logger.warn "[cc_lookup_tournament.resolve_region_shortname] #{e.class}: #{e.message}"
         "NBV"

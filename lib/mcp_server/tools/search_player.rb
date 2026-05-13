@@ -35,7 +35,7 @@ module McpServer
         return error("Missing required parameter: `query`") if query.blank?
         return error("Query too short: must be at least 2 characters") if query.to_s.strip.length < 2
 
-        region = resolve_region(region_shortname)
+        region = resolve_region(region_shortname, server_context: server_context)
         escaped = ActiveRecord::Base.sanitize_sql_like(query.to_s.strip)
 
         scope = Player.all
@@ -106,14 +106,13 @@ module McpServer
       end
 
       # Region-Resolver (analog cc_lookup_club).
-      def self.resolve_region(override = nil)
+      # v0.3 Plan 13-04: nutzt BaseTool.effective_cc_region für server_context-Propagation
+      # (HTTP-Pfad → per-User-Region; Stdio-Pfad → ENV/Setting/NBV-Fallback unverändert).
+      def self.resolve_region(override = nil, server_context: nil)
         shortname = if override.present?
           override.to_s.upcase
-        elsif ENV["CC_REGION"].present?
-          ENV["CC_REGION"].upcase
         else
-          context = (defined?(Setting) ? Setting.key_get_value("context") : nil).presence
-          (context || "NBV").upcase
+          effective_cc_region(server_context)
         end
         Region.find_by(shortname: shortname)
       rescue => e
