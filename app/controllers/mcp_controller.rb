@@ -7,8 +7,14 @@
 # Auth: Devise-Cookie-Session (Redis-Session-Store per D-13-01-C-Override).
 # Stateless-Optional-Flag via query-param `?stateless=1` für Cookie-freie Clients (Telegram v0.3+/v0.4 per D-13-01-F).
 class McpController < ApplicationController
-  # MCP-Protocol nutzt eigene Mcp-Session-Id-Header statt Rails-CSRF
-  skip_before_action :verify_authenticity_token, raise: false
+  # MCP-Protocol nutzt eigene Mcp-Session-Id-Header statt Rails-CSRF.
+  # Plan 13-06.1 Empirical-Verify-Befund (2026-05-13): ApplicationController hat
+  # `protect_from_forgery with: :exception` — `skip_before_action :verify_authenticity_token`
+  # reicht NICHT, weil Rails 7+ die CSRF-Validation in einem zusätzlichen Pfad nullt die
+  # Session für unverified POST-Requests → Devise sieht no current_user → 401 trotz valid Cookie.
+  # `skip_forgery_protection` (Rails 5.2+ idiom) deaktiviert den kompletten CSRF-Layer für
+  # diesen Controller — saubere API-Endpoint-Konvention.
+  skip_forgery_protection
   before_action :authenticate_user!
 
   def dispatch_request
