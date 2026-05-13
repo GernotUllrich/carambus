@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_05_13_182311) do
+ActiveRecord::Schema[7.2].define(version: 2026_05_13_190832) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -1496,6 +1496,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_05_13_182311) do
     t.integer "mcp_role", default: 0, null: false
     t.string "cc_region"
     t.text "cc_credentials"
+    t.datetime "mcp_consent_at"
     t.index ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["invitation_token"], name: "index_users_on_invitation_token", unique: true

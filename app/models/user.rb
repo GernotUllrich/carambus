@@ -33,7 +33,7 @@ class User < ApplicationRecord
   before_validation :set_default_role, on: :create
 
   devise :database_authenticatable, :registerable,
-         :recoverable, :rememberable, :validatable, :confirmable
+    :recoverable, :rememberable, :validatable, :confirmable
 
   validates :terms_of_service, acceptance: true, on: :create
 
@@ -53,7 +53,8 @@ class User < ApplicationRecord
     end
   end
 
-  def skip_confirmation!; end
+  def skip_confirmation!
+  end
 
   def admin?
     club_admin? || system_admin?
@@ -101,6 +102,47 @@ class User < ApplicationRecord
     cc_region.presence || ENV["CC_REGION"]
   end
 
+  # v0.3 Plan 13-07 (D-13-01-E DSGVO minimal-pragmatic):
+  # mcp_consent_at trackt Einwilligung zur MCP-Datenverarbeitung.
+  # v0.3-Pilot-Boundary: Carambus-Admin attestiert während Setup-Service-Besuch
+  # (kein Self-Service-Banner; deferred zu Plan 13-07.1 oder v0.4).
+
+  # True wenn User-Einwilligung gespeichert ist
+  def mcp_consent_given?
+    mcp_consent_at.present?
+  end
+
+  # True wenn User mcp-aktive Rolle hat (> public_read) ABER noch keine Einwilligung
+  # → Caller-Side-Check vor mcp_enabled?-Aktivierung
+  def mcp_consent_required?
+    !mcp_role_mcp_public_read? && mcp_consent_at.nil?
+  end
+
+  # Setzt mcp_consent_at = Time.current und persistiert
+  # (Carambus-Admin attestiert in Setup-Service-Besuch oder via Console)
+  def grant_mcp_consent!
+    update!(mcp_consent_at: Time.current)
+  end
+
+  # v0.3 Plan 13-07 (D-13-01-E DSGVO Auskunfts-Recht Art. 15):
+  # Liefert User's McpAuditTrail-Entries als Array von DSGVO-relevanten Hashes.
+  # Use-Case: Carambus-Admin gibt User-Auskunft auf Anfrage
+  # (`User.find(id).mcp_audit_trail_export.to_json` → an User-Email senden).
+  # cc_credentials sind NICHT enthalten (encrypted at rest; Sicherheitsbalance).
+  def mcp_audit_trail_export(limit: 1000)
+    McpAuditTrail.for_user(self).recent(limit).map do |entry|
+      {
+        zeitpunkt: entry.created_at.utc.iso8601,
+        tool_name: entry.tool_name,
+        operator: entry.operator,
+        payload: entry.payload,
+        result: entry.result,
+        pre_validation_results: entry.pre_validation_results,
+        read_back_status: entry.read_back_status
+      }
+    end
+  end
+
   private
 
   def set_default_role
@@ -109,10 +151,10 @@ class User < ApplicationRecord
 
   def set_paper_trail_whodunnit
     PaperTrail.request.whodunnit = if persisted? && User.current.present?
-                                     "#{User.current.id}@#{ENV["DEFAULT_CLUB_ID"]}"
-                                   else
-                                     "system@#{ENV["DEFAULT_CLUB_ID"]}"
-                                   end
+      "#{User.current.id}@#{ENV["DEFAULT_CLUB_ID"]}"
+    else
+      "system@#{ENV["DEFAULT_CLUB_ID"]}"
+    end
   end
 
   def valid_preferences
@@ -131,7 +173,7 @@ class User < ApplicationRecord
 
   def set_default_preferences
     self.preferences ||= {
-      "theme" => email == "scoreboard@carambus.de" ? "dark" : "system",
+      "theme" => (email == "scoreboard@carambus.de") ? "dark" : "system",
       "locale" => I18n.default_locale.to_s,
       "timezone" => "Berlin"
     }

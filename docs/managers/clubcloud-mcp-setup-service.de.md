@@ -406,6 +406,71 @@ Vollständiges Audit-Trail: `.paul/phases/10-walkthrough-sportwart/10-08-WALKTHR
 
 ---
 
+## 8. DSGVO-Compliance / Datenschutz
+
+> **v0.3-Pilot-Boundary (D-13-01-E minimal-pragmatic):** Diese Sektion dokumentiert die DSGVO-Erfüllung für den Carambus ClubCloud MCP-Server in der Pilot-Phase. Vollständige Self-Service-Banner-Implementierung ist deferred zu v0.4.
+
+### 8.1 Datenkategorien (was wird gespeichert?)
+
+| Daten | Format | Sensitivität | Persistenz |
+|-------|--------|--------------|------------|
+| `users.cc_credentials` | encrypted JSON | HOCH (Passwort-Material) | Rails-`encrypts`-Strategie; bis User-Löschung oder Widerruf |
+| `users.mcp_role` | enum | NIEDRIG (Rolle) | bis User-Löschung |
+| `users.cc_region` | String | NIEDRIG (öffentlich) | bis User-Löschung |
+| `users.mcp_consent_at` | datetime | NIEDRIG (Metadatum) | bis User-Löschung |
+| `mcp_audit_trails.*` | DB-Zeile | MITTEL (Tool-Calls + payload) | 1 Jahr (Retention); `user_id` wird bei User-Löschung NULL (FK `ON DELETE NULLIFY`) |
+| `log/mcp-audit-trail.log` | JSON-Lines-File | MITTEL (analog DB) | bis Datei-Rotation (logrotate-Config) |
+
+### 8.2 Verarbeitungszwecke
+
+- **`cc_credentials`**: Authentifizierung gegen ClubCloud-API für Tool-Calls; nur Tool-internal lesbar (`Setting.login_to_cc`-Override im v0.3-Pilot single-global).
+- **`mcp_role` + `cc_region`**: Per-User-Tool-Subset + Region-Routing (Plan 13-02 + Plan 13-04 + Plan 13-04.1).
+- **`mcp_audit_trails`**: Forensik bei Live-CC-Fehlern + Multi-User-Filterung für Sicherheit; `payload[armed]=true` ist Trigger für Daten-Mutations-Audit.
+- **`mcp_consent_at`**: Einwilligungs-Nachweis nach Art. 7 DSGVO.
+
+### 8.3 Retention (Aufbewahrung)
+
+- `cc_credentials`: bis User explizit widerruft (`user.mcp_role := :mcp_public_read`) oder Carambus-Admin User löscht.
+- `mcp_audit_trails`: **1 Jahr** (Forensik-Pflicht); manuelle Cleanup-Routine via
+  ```ruby
+  McpAuditTrail.where('created_at < ?', 1.year.ago).delete_all
+  ```
+  durch Carambus-Admin (v0.4 plant Auto-Cleanup via Cron).
+- JSON-Lines-File: bis Datei-Rotation (siehe `logrotate`-Konfig in Plan 13-06.1 Hetzner-Deploy-Setup).
+
+### 8.4 User-Rechte (Art. 15-21 DSGVO)
+
+| Recht | Wie erfüllt? |
+|-------|--------------|
+| **Auskunft (Art. 15)** | Carambus-Admin: `User.find(id).mcp_audit_trail_export.to_json` → an User-Email senden. `cc_credentials` sind encrypted; werden NICHT exportiert (Sicherheitsbalance) |
+| **Berichtigung (Art. 16)** | Carambus-Admin updated `cc_region`, `cc_credentials`, `mcp_role` über Console oder Admin-Dashboard |
+| **Löschung / „Recht auf Vergessenwerden" (Art. 17)** | `User.find(id).destroy` — `mcp_audit_trails.user_id` wird NULL (FK `ON DELETE NULLIFY` aus Plan 13-05); Audit-Trail bleibt anonymisiert für Forensik-Pflicht (gerechtfertigt Art. 17 Abs. 3) |
+| **Widerruf der Einwilligung (Art. 7 Abs. 3)** | Carambus-Admin: `User.find(id).update!(mcp_role: :mcp_public_read, cc_credentials: nil, mcp_consent_at: nil)` — User behält Carambus-Account, MCP-Zugriff ist deaktiviert |
+| **Datenübertragbarkeit (Art. 20)** | `mcp_audit_trail_export.to_json` ist maschinenlesbares Format (analog Auskunft) |
+
+### 8.5 Einwilligungs-Operational-Flow (v0.3-Pilot)
+
+1. Carambus-Admin trifft User für Setup-Service-Besuch (Sektion 5 dieser Doku).
+2. Admin erklärt mündlich die Datenverarbeitung (Datenkategorien aus 8.1) und User-Rechte (8.4).
+3. User stimmt mündlich zu.
+4. Admin attestiert via Console:
+   ```ruby
+   user = User.find_by(email: 'sportwart@verein.de')
+   user.grant_mcp_consent!  # setzt mcp_consent_at = Time.current
+   ```
+5. Admin notiert Einwilligungs-Zeitpunkt im Setup-Service-Visit-Log.
+
+**v0.4-Plan**: Self-Service-Banner im User-Profile-Settings ersetzt den Admin-attestierten Flow.
+
+### 8.6 Verantwortlicher (Art. 4 Nr. 7 DSGVO)
+
+- **Verantwortlicher** für die Datenverarbeitung des MCP-Servers: **Carambus-Betreiber** (siehe `config/carambus.yml` für Kontaktdaten).
+- **Auftragsverarbeiter**: Hetzner Online GmbH (DE) für Hosting (v0.3-Pilot-Hosting auf carambus.de; siehe Plan 13-06.1 Deploy-Doku).
+- **Datenverarbeitung erfolgt in**: Deutschland / EU (Hetzner-Server in Falkenstein/Nürnberg).
+- **AVV (Auftragsverarbeitungsvertrag)**: zwischen Carambus-Betreiber und Hetzner besteht Standard-DSGVO-konformer AVV.
+
+---
+
 ## Quellen & Weiterführendes
 
 - [`clubcloud-mcp-setup.de.md`](clubcloud-mcp-setup.de.md) — Setup-Troubleshooting für technische Stellvertretung
