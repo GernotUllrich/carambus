@@ -83,4 +83,85 @@ class McpEndToEndTest < ActionDispatch::IntegrationTest
     assert_equal "cc_register_for_tournament", last.tool_name
     assert_equal true, last.payload["armed"]
   end
+
+  # v0.3 Plan 13-06.2 (D-13-06.1-C): JWT-Token-Auth-Pfad als zweite Auth-Strategie.
+  # Cookie-Auth (sign_in) bleibt Backwards-Compat; Bearer-JWT ist Phase-14-Primary.
+  test "POST /mcp mit Authorization Bearer-JWT liefert per-User-Tool-Subset (ohne Cookie)" do
+    token, _payload = Warden::JWTAuth::UserEncoder.new.call(@sportwart, :user, nil)
+
+    post "/mcp?stateless=1",
+      params: {jsonrpc: "2.0", id: 1, method: "tools/list", params: {}}.to_json,
+      headers: {
+        "Content-Type" => "application/json",
+        "Accept" => "application/json, text/event-stream",
+        "Authorization" => "Bearer #{token}"
+      }
+
+    assert_response :success
+    body = JSON.parse(response.body)
+    tools = body.dig("result", "tools")
+    assert tools.is_a?(Array), "tools array erwartet"
+    assert tools.size >= 10, "mcp_sportwart sieht mindestens 10 Tools (Plan 13-02 RoleToolMap)"
+    # Sportwart darf KEIN cc_assign_player_to_teilnehmerliste sehen (Akkreditierungs-Tool)
+    refute tools.any? { |t| t["name"] == "cc_assign_player_to_teilnehmerliste" },
+      "Sportwart darf NICHT cc_assign_player_to_teilnehmerliste sehen"
+  end
+
+  test "POST /mcp ohne Auth (kein Cookie, kein Bearer) liefert 401" do
+    post "/mcp?stateless=1",
+      params: {jsonrpc: "2.0", id: 1, method: "tools/list", params: {}}.to_json,
+      headers: {
+        "Content-Type" => "application/json",
+        "Accept" => "application/json, text/event-stream"
+      }
+
+    assert_response :unauthorized
+  end
+
+  test "POST /mcp mit invalidem Bearer-JWT liefert 401" do
+    post "/mcp?stateless=1",
+      params: {jsonrpc: "2.0", id: 1, method: "tools/list", params: {}}.to_json,
+      headers: {
+        "Content-Type" => "application/json",
+        "Accept" => "application/json, text/event-stream",
+        "Authorization" => "Bearer invalid.token.string"
+      }
+
+    assert_response :unauthorized
+  end
+
+  test "Bearer-JWT-Auth funktioniert auch nach sign_out via JTI-Revocation" do
+    token, _payload = Warden::JWTAuth::UserEncoder.new.call(@sportwart, :user, nil)
+
+    # Erst-Call: Token valid → 200
+    post "/mcp?stateless=1",
+      params: {jsonrpc: "2.0", id: 1, method: "tools/list", params: {}}.to_json,
+      headers: {
+        "Content-Type" => "application/json",
+        "Accept" => "application/json, text/event-stream",
+        "Authorization" => "Bearer #{token}"
+      }
+    assert_response :success
+
+    # Force-Revoke via JTIMatcher (analog DELETE /users/sign_out)
+    User.revoke_jwt({"jti" => extract_jti(token), "sub" => @sportwart.id.to_s}, @sportwart)
+    @sportwart.reload
+
+    # Re-Call mit revoked Token → 401
+    post "/mcp?stateless=1",
+      params: {jsonrpc: "2.0", id: 1, method: "tools/list", params: {}}.to_json,
+      headers: {
+        "Content-Type" => "application/json",
+        "Accept" => "application/json, text/event-stream",
+        "Authorization" => "Bearer #{token}"
+      }
+    assert_response :unauthorized
+  end
+
+  private
+
+  def extract_jti(token)
+    payload = JWT.decode(token, nil, false).first
+    payload["jti"]
+  end
 end

@@ -101,6 +101,7 @@ gem "paper_trail", "~> 15.2"
 gem "rails-i18n"
 gem "devise"
 gem "devise-i18n", "~> 1.10"
+gem "devise-jwt", "~> 0.12"  # Plan 13-06.2 / D-13-06.1-C: JWT-Token-Auth für MCP Multi-User-Skalierung
 gem "pagy", "~> 9.3"
 gem "pundit", "~> 2.1"
 gem "inline_svg", "~> 1.6"
