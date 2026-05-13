@@ -1,5 +1,9 @@
 # For details on the DSL available within this file, see http://guides.rubyonrails.org/routing.html
 Rails.application.routes.draw do
+  # MCP HTTP-Mount (v0.3 Plan 13-03, D-13-01-A Pattern B + D-13-01-F Backwards-Compat).
+  # Stdio-Pfad bleibt parallel via bin/mcp-server für technische-Stellvertretung-Persona.
+  match "/mcp", to: "mcp#dispatch_request", via: [:get, :post, :delete], as: :mcp
+
   # International section
   namespace :international do
     resources :tournaments, only: %i[index show]
