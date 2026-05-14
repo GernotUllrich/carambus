@@ -193,4 +193,59 @@ class McpServer::Tools::BaseToolTest < ActiveSupport::TestCase
       assert_nil result, "Cross-Region-Mismatch muss nil liefern, nicht das falsche Tournament"
     end
   end
+
+  # Plan 14-02.2 / Befund E-1: Token-Search-Helper für Title-Präfix-tolerante Name-Suche.
+  class TokenizeSearchQueryTest < ActiveSupport::TestCase
+    test "tokenize_search_query: empty → []" do
+      assert_equal [], McpServer::Tools::BaseTool.tokenize_search_query("")
+      assert_equal [], McpServer::Tools::BaseTool.tokenize_search_query(nil)
+    end
+
+    test "tokenize_search_query: 'Gernot Ullrich' → ['Gernot', 'Ullrich']" do
+      assert_equal ["Gernot", "Ullrich"], McpServer::Tools::BaseTool.tokenize_search_query("Gernot Ullrich")
+    end
+
+    test "tokenize_search_query: 'Dr. Gernot Ullrich' → ['Dr.', 'Gernot', 'Ullrich']" do
+      assert_equal ["Dr.", "Gernot", "Ullrich"], McpServer::Tools::BaseTool.tokenize_search_query("Dr. Gernot Ullrich")
+    end
+
+    test "tokenize_search_query: tokens < 2 chars werden gefiltert" do
+      # "G Ullrich" → "G" raus, "Ullrich" bleibt
+      assert_equal ["Ullrich"], McpServer::Tools::BaseTool.tokenize_search_query("G Ullrich")
+    end
+
+    test "tokenize_search_query: extra Whitespace wird normalisiert" do
+      assert_equal ["van", "der", "Bergh"], McpServer::Tools::BaseTool.tokenize_search_query("  van   der  Bergh  ")
+    end
+
+    test "detect_title_prefix: 'Dr. Gernot Ullrich' → 'Dr.'" do
+      assert_equal "Dr.", McpServer::Tools::BaseTool.detect_title_prefix("Dr. Gernot Ullrich")
+    end
+
+    test "detect_title_prefix: 'Prof. Hans' → 'Prof.'" do
+      assert_equal "Prof.", McpServer::Tools::BaseTool.detect_title_prefix("Prof. Hans")
+    end
+
+    test "detect_title_prefix: kein Title → nil" do
+      assert_nil McpServer::Tools::BaseTool.detect_title_prefix("Gernot Ullrich")
+    end
+
+    test "apply_token_search_filter: leere tokens → scope unverändert" do
+      # Mock-Scope (testet nur, dass keine WHERE-Clause angewandt wird)
+      scope = Player.all
+      result = McpServer::Tools::BaseTool.apply_token_search_filter(scope, [], %w[firstname])
+      assert_equal scope.to_sql, result.to_sql
+    end
+
+    test "apply_token_search_filter: 2 tokens → 2 WHERE-Clauses AND-verknüpft" do
+      scope = Player.all
+      result = McpServer::Tools::BaseTool.apply_token_search_filter(scope, %w[Gernot Ullrich], %w[firstname lastname])
+      sql = result.to_sql
+      # Beide Tokens müssen als ILIKE-Clauses im SQL erscheinen
+      assert_match(/firstname ILIKE.*Gernot/i, sql)
+      assert_match(/lastname ILIKE.*Gernot/i, sql)
+      assert_match(/firstname ILIKE.*Ullrich/i, sql)
+      assert_match(/lastname ILIKE.*Ullrich/i, sql)
+    end
+  end
 end

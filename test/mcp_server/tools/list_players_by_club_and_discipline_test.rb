@@ -31,7 +31,7 @@ class McpServer::Tools::ListPlayersByClubAndDisciplineTest < ActiveSupport::Test
     response = McpServer::Tools::ListPlayersByClubAndDiscipline.call(
       club: sample_club.shortname,
       discipline: "Freie Partie klein",
-      server_context: nil
+      server_context: {cc_region: "NBV"}
     )
     refute response.error?, "Expected non-error; got: #{response.content.first[:text]}"
 
@@ -49,7 +49,7 @@ class McpServer::Tools::ListPlayersByClubAndDisciplineTest < ActiveSupport::Test
   test "missing club returns error" do
     response = McpServer::Tools::ListPlayersByClubAndDiscipline.call(
       discipline: "Freie Partie klein",
-      server_context: nil
+      server_context: {cc_region: "NBV"}
     )
     assert response.error?
     assert_match(/club/i, response.content.first[:text])
@@ -58,7 +58,7 @@ class McpServer::Tools::ListPlayersByClubAndDisciplineTest < ActiveSupport::Test
   test "missing discipline returns error" do
     response = McpServer::Tools::ListPlayersByClubAndDiscipline.call(
       club: "1. BC Schwerin",
-      server_context: nil
+      server_context: {cc_region: "NBV"}
     )
     assert response.error?
     assert_match(/discipline/i, response.content.first[:text])
@@ -68,7 +68,7 @@ class McpServer::Tools::ListPlayersByClubAndDisciplineTest < ActiveSupport::Test
     response = McpServer::Tools::ListPlayersByClubAndDiscipline.call(
       club: "ZZZ-#{SecureRandom.hex(4)}",
       discipline: "Freie Partie klein",
-      server_context: nil
+      server_context: {cc_region: "NBV"}
     )
     assert response.error?
     assert_match(/Club not found/i, response.content.first[:text])
@@ -81,7 +81,7 @@ class McpServer::Tools::ListPlayersByClubAndDisciplineTest < ActiveSupport::Test
     response = McpServer::Tools::ListPlayersByClubAndDiscipline.call(
       club: sample_club.shortname,
       discipline: "Nonexistent-#{SecureRandom.hex(4)}",
-      server_context: nil
+      server_context: {cc_region: "NBV"}
     )
     assert response.error?
     assert_match(/Discipline not found/i, response.content.first[:text])
@@ -99,25 +99,37 @@ class McpServer::Tools::ListPlayersByClubAndDisciplineTest < ActiveSupport::Test
       club: sample_club.shortname,
       discipline: discipline.name,
       season: season.name,
-      server_context: nil
+      server_context: {cc_region: "NBV"}
     )
     refute response.error?, "Expected non-error; got: #{response.content.first[:text]}"
     body = JSON.parse(response.content.first[:text])
     assert_equal season.name, body["season"]
   end
 
-  test "shortname mismatch with club's region returns error" do
-    nbv_club = Club.where.not(region_id: nil).first
-    other_region_shortname = Region.where.not(id: nbv_club&.region_id).first&.shortname
-    skip "Need a club with region + a different region" unless nbv_club && other_region_shortname
+  # Plan 14-02.2 / B-3: shortname-Override-Logik entfernt; stattdessen Cross-Region-Validation
+  # gegen User-Region (server_context[:cc_region]). Wenn Club nicht in User-Region ist → Error.
+  test "Cross-Region-Validation: Club aus anderer Region als User-Region → Error" do
+    nbv = Region.find_by(shortname: "NBV")
+    skip "NBV region fixture missing" unless nbv
+    other_club = Club.where.not(region_id: nil).where.not(region_id: nbv.id).first
+    skip "Need a club from a non-NBV region" unless other_club
 
     response = McpServer::Tools::ListPlayersByClubAndDiscipline.call(
-      club: nbv_club.shortname,
+      club: other_club.shortname,
       discipline: "Freie Partie klein",
-      shortname: other_region_shortname,
-      server_context: nil
+      server_context: {cc_region: "NBV"}
     )
     assert response.error?
-    assert_match(/belongs to region_id/i, response.content.first[:text])
+    assert_match(/gehört nicht zu deiner Region/i, response.content.first[:text])
+  end
+
+  test "D-14-02-G: server_context ohne cc_region → Profile-Edit-Diagnostic-Error" do
+    response = McpServer::Tools::ListPlayersByClubAndDiscipline.call(
+      club: "any_club",
+      discipline: "Freie Partie klein",
+      server_context: {}
+    )
+    assert response.error?
+    assert_match(/Profil.*Region|users\/edit/i, response.content.first[:text])
   end
 end

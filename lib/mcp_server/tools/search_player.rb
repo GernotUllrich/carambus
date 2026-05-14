@@ -35,23 +35,34 @@ module McpServer
         return error("Missing required parameter: `query`") if query.blank?
         return error("Query too short: must be at least 2 characters") if query.to_s.strip.length < 2
 
-        region = resolve_region(region_shortname, server_context: server_context)
-        escaped = ActiveRecord::Base.sanitize_sql_like(query.to_s.strip)
-
-        scope = Player.all
-        if region
-          scope = scope.joins(:player_rankings).where(player_rankings: {region_id: region.id}).distinct
+        # Plan 14-02.2 / B-3 + D-14-02-G: region_shortname-Override-Logik entfernt; strict
+        # via effective_cc_region(server_context). Parameter im Schema bleibt (Removal in 14-02.4).
+        if region_shortname.present? && region_shortname.to_s.upcase != effective_cc_region(server_context).to_s
+          Rails.logger.warn "[cc_search_player] region_shortname-Override '#{region_shortname}' ignoriert; nutze User#cc_region='#{effective_cc_region(server_context)}'"
         end
+        region_name = effective_cc_region(server_context)
+        if region_name.blank?
+          return error(
+            "Dein Profil hat keine Region gesetzt. Bitte unter https://carambus.de/users/edit eine Region wählen."
+          )
+        end
+        region = Region.find_by(shortname: region_name)
+        return error("Region '#{region_name}' nicht in DB gefunden. Profile-Region prüfen.") if region.nil?
+
+        # Plan 14-02.2 / Befund E-1: Token-Search statt naive Substring-ILIKE.
+        # "Gernot Ullrich" → AND-Match auf jeden Token gegen firstname/lastname/fl_name —
+        # findet damit auch "Dr. Gernot Ullrich" (Title-Präfix-tolerant).
+        tokens = tokenize_search_query(query)
+        title_prefix = detect_title_prefix(query)
+
+        scope = Player.joins(:player_rankings).where(player_rankings: {region_id: region.id}).distinct
         if club_cc_id.present?
           club = Club.find_by(cc_id: club_cc_id)
           scope = scope.where(club_id: club.id) if club
         end
 
-        # Search auf firstname OR lastname OR "lastname, firstname" (composite display-name)
-        matches = scope.where(
-          "firstname ILIKE ? OR lastname ILIKE ? OR (lastname || ', ' || firstname) ILIKE ?",
-          "%#{escaped}%", "%#{escaped}%", "%#{escaped}%"
-        ).order(:lastname, :firstname).limit(50)
+        scope = apply_token_search_filter(scope, tokens, %w[players.firstname players.lastname players.fl_name])
+        matches = scope.order(:lastname, :firstname).limit(50)
 
         candidates = matches.map { |p|
           {
@@ -59,14 +70,16 @@ module McpServer
             name: "#{p.lastname}, #{p.firstname}".strip.sub(/\A, /, ""),
             firstname: p.firstname,
             lastname: p.lastname,
+            dbu_nr: p.dbu_nr, # Plan 14-02.2 / E-2: informativ, nicht Primary
             club_cc_id: p.club&.cc_id,
-            club_name: p.club&.name
+            club_name: p.club&.name,
+            region: region.shortname
           }
         }
 
         # Live-CC-Fallback bei force_refresh:true UND 0 DB-Treffern
         if candidates.empty? && force_refresh
-          fed_id ||= default_fed_id
+          fed_id ||= default_fed_id(server_context)
           client = cc_session.client_for(server_context)
           params = {suche: query}
           params[:fedId] = fed_id if fed_id.present?
@@ -75,7 +88,7 @@ module McpServer
             return text(JSON.generate(
               cc_id: nil,
               candidates: [],
-              meta: {count: 0, region: region&.shortname, query: query, fallback: "live-CC", live_response: "HTTP #{live_res.code}"},
+              meta: {count: 0, region: region.shortname, query: query, fallback: "live-CC", live_response: "HTTP #{live_res.code}"},
               warning: "DB-Search lieferte 0 Treffer; Live-CC-Fallback (suche-Action) wurde aufgerufen aber kein Parsing implementiert — Sportwart manuell in CC-UI nachschauen."
             ))
           end
@@ -83,9 +96,9 @@ module McpServer
 
         if candidates.empty?
           return error(
-            "Keine Spieler in Region '#{region&.shortname || "default"}' passen zu '#{query}'. " \
+            "Keine Spieler in Region '#{region.shortname}' passen zu '#{query}'. " \
             "Versuche: (a) kürzeren Suchbegriff oder Vor-/Nachname-Variante, " \
-            "(b) region_shortname-Override für Cross-Region, " \
+            "(b) Tokens umstellen (z.B. 'Ullrich Gernot' statt 'Gernot Ullrich'), " \
             "(c) force_refresh:true für Live-CC-Lookup, " \
             "(d) club_cc_id-Filter entfernen falls gesetzt."
           )
@@ -96,28 +109,15 @@ module McpServer
           candidates: candidates,
           meta: {
             count: candidates.length,
-            region: region&.shortname,
+            region: region.shortname,
             query: query,
+            tokens: tokens,
+            title_prefix_detected: title_prefix,
             club_cc_id: club_cc_id
-          }
+          }.compact
         }
         body[:warning] = "#{candidates.length} Treffer gefunden — bitte Sportwart-Rückfrage: welcher Spieler?" if candidates.length > 1
         text(JSON.generate(body))
-      end
-
-      # Region-Resolver (analog cc_lookup_club).
-      # v0.3 Plan 13-04: nutzt BaseTool.effective_cc_region für server_context-Propagation
-      # (HTTP-Pfad → per-User-Region; Stdio-Pfad → ENV/Setting/NBV-Fallback unverändert).
-      def self.resolve_region(override = nil, server_context: nil)
-        shortname = if override.present?
-          override.to_s.upcase
-        else
-          effective_cc_region(server_context)
-        end
-        Region.find_by(shortname: shortname)
-      rescue => e
-        Rails.logger.warn "[cc_search_player.resolve_region] #{e.class}: #{e.message}"
-        nil
       end
     end
   end

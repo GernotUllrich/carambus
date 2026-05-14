@@ -155,6 +155,58 @@ module McpServer
         nil
       end
 
+      # Plan 14-02.2 / Befund E-1 (Title-Präfix-Bug): Token-Search-Helper für tolerante
+      # Name-Suche. "Dr. Gernot Ullrich" → ["Dr.", "Gernot", "Ullrich"]; jeder Token
+      # AND-verknüpft als ILIKE-Pattern. Behebt das Problem, dass naive ILIKE-Substring
+      # "Gernot Ullrich" (User-Vokabular) nicht gegen DB-Wert "Dr. Gernot Ullrich" matched.
+      # Min-Token-Länge 2 Zeichen (kürzere Tokens raus — verhindert Wildcard-Explosion).
+      def self.tokenize_search_query(query)
+        return [] if query.blank?
+        query.to_s.strip.split(/\s+/).map(&:strip).reject { |t| t.size < 2 }
+      end
+
+      # Plan 14-02.2 / Befund E-1: DRY-Filter-Helper für Token-Search.
+      # `columns` z.B. ["firstname", "lastname", "fl_name"]; jeder Token muss in
+      # mindestens einer column als Substring matchen (AND zwischen Tokens, OR
+      # zwischen Columns innerhalb eines Tokens).
+      # ActiveRecord::Base.sanitize_sql_like wird intern angewendet.
+      def self.apply_token_search_filter(scope, tokens, columns)
+        return scope if tokens.empty?
+        tokens.reduce(scope) do |current_scope, token|
+          escaped = ActiveRecord::Base.sanitize_sql_like(token)
+          like_pattern = "%#{escaped}%"
+          token_clause = columns.map { |col| "#{col} ILIKE ?" }.join(" OR ")
+          current_scope.where(token_clause, *Array.new(columns.size, like_pattern))
+        end
+      end
+
+      # Plan 14-02.2: Detect Title-Präfixe im Query (Dr./Prof./Dr.-Ing./Dipl.-Ing./Mag./
+      # Mag.iur./M.Sc./B.Sc./Med./vet./jur./phil./MA/MBA usw.) — gibt das erste matchende
+      # Präfix als informativen Hinweis zurück (nicht-filternd). Nutzbar für Output-
+      # Annotation: "title_prefix_detected: 'Dr.'" damit Sportwart weiß, dass die Suche
+      # Title-tolerant gelaufen ist.
+      # NOTE: Title-Patterns mit Punkt nutzen Look-Ahead statt \b weil \b mit "." nicht endet.
+      TITLE_PREFIX_PATTERNS = [
+        /(?:\A|\s)(Dr\.-Ing\.?)(?=\s|\z)/i,
+        /(?:\A|\s)(Dipl\.-Ing\.?)(?=\s|\z)/i,
+        /(?:\A|\s)(Prof\.)(?=\s|\z)/i,
+        /(?:\A|\s)(Dr\.)(?=\s|\z)/i,
+        /(?:\A|\s)(Mag\.)(?=\s|\z)/i,
+        /(?:\A|\s)(M\.Sc\.?)(?=\s|\z)/i,
+        /(?:\A|\s)(B\.Sc\.?)(?=\s|\z)/i,
+        /(?:\A|\s)(Prof)(?=\s|\z)/i,
+        /(?:\A|\s)(Dr)(?=\s|\z)/i
+      ].freeze
+
+      def self.detect_title_prefix(query)
+        return nil if query.blank?
+        TITLE_PREFIX_PATTERNS.each do |pattern|
+          m = query.to_s.match(pattern)
+          return m[1] if m
+        end
+        nil
+      end
+
       # Plan 14-02.1 / D-14-02-D: TournamentCc#cc_id ist nur intra-region-eindeutig
       # (User-Klarstellung 2026-05-14). Auf carambus.de sind alle Regionen gemirrort,
       # d.h. dieselbe cc_id kann mehreren TournamentCcs entsprechen (z.B. 890 = NBV-NDM-

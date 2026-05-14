@@ -17,13 +17,13 @@ class McpServer::Tools::CheckPlayerDisciplineExperienceTest < ActiveSupport::Tes
   end
 
   test "validation: missing player_id returns error" do
-    response = McpServer::Tools::CheckPlayerDisciplineExperience.call(discipline_id: 1, server_context: nil)
+    response = McpServer::Tools::CheckPlayerDisciplineExperience.call(discipline_id: 1, server_context: {cc_region: "NBV"})
     assert response.error?
     assert_match(/player_id/i, response.content.first[:text])
   end
 
   test "validation: missing discipline_id returns error" do
-    response = McpServer::Tools::CheckPlayerDisciplineExperience.call(player_id: 1, server_context: nil)
+    response = McpServer::Tools::CheckPlayerDisciplineExperience.call(player_id: 1, server_context: {cc_region: "NBV"})
     assert response.error?
     assert_match(/discipline_id/i, response.content.first[:text])
   end
@@ -32,7 +32,7 @@ class McpServer::Tools::CheckPlayerDisciplineExperienceTest < ActiveSupport::Tes
     response = McpServer::Tools::CheckPlayerDisciplineExperience.call(
       player_id: 999_999_999,
       discipline_id: 1,
-      server_context: nil
+      server_context: {cc_region: "NBV"}
     )
     assert response.error?
     assert_match(/Player not found/i, response.content.first[:text])
@@ -45,13 +45,14 @@ class McpServer::Tools::CheckPlayerDisciplineExperienceTest < ActiveSupport::Tes
     response = McpServer::Tools::CheckPlayerDisciplineExperience.call(
       player_id: sample.id,
       discipline_id: 999_999_999,
-      server_context: nil
+      server_context: {cc_region: "NBV"}
     )
     assert response.error?
     assert_match(/Discipline not found/i, response.content.first[:text])
   end
 
-  test "validation: unknown region shortname returns error" do
+  # Plan 14-02.2 / B-3: shortname-Override-Logik entfernt. Test reframed.
+  test "B-3: shortname-Override wird ignoriert, User-Region greift strict" do
     sample = Player.first
     discipline = Discipline.first
     skip "No fixtures" unless sample && discipline
@@ -60,10 +61,24 @@ class McpServer::Tools::CheckPlayerDisciplineExperienceTest < ActiveSupport::Tes
       player_id: sample.id,
       discipline_id: discipline.id,
       shortname: "ZZZ-XYZ",
-      server_context: nil
+      server_context: {cc_region: "NBV"}
+    )
+    # shortname-Override wird ignoriert; ggf. experienced:false oder true je nach Daten — kein Error
+    refute response.error?, "shortname-Override darf nicht zu Region-not-found-Error führen — strict server_context greift"
+  end
+
+  test "D-14-02-G: server_context ohne cc_region → Profile-Edit-Diagnostic-Error" do
+    sample = Player.first
+    discipline = Discipline.first
+    skip "No fixtures" unless sample && discipline
+
+    response = McpServer::Tools::CheckPlayerDisciplineExperience.call(
+      player_id: sample.id,
+      discipline_id: discipline.id,
+      server_context: {}
     )
     assert response.error?
-    assert_match(/Region not found/i, response.content.first[:text])
+    assert_match(/Profil.*Region|users\/edit/i, response.content.first[:text])
   end
 
   test "experienced:true via PlayerRanking existence" do
@@ -77,7 +92,7 @@ class McpServer::Tools::CheckPlayerDisciplineExperienceTest < ActiveSupport::Tes
       player_id: ranking.player_id,
       discipline_id: ranking.discipline_id,
       shortname: "NBV",
-      server_context: nil
+      server_context: {cc_region: "NBV"}
     )
     refute response.error?, "Expected non-error; got: #{response.content.first[:text]}"
 
@@ -107,7 +122,7 @@ class McpServer::Tools::CheckPlayerDisciplineExperienceTest < ActiveSupport::Tes
       player_id: candidate.player_id,
       discipline_id: tournament.discipline_id,
       shortname: "NBV",
-      server_context: nil
+      server_context: {cc_region: "NBV"}
     )
     refute response.error?
     body = JSON.parse(response.content.first[:text])
@@ -135,7 +150,7 @@ class McpServer::Tools::CheckPlayerDisciplineExperienceTest < ActiveSupport::Tes
       player_id: sample_player.id,
       discipline_id: sample_discipline.id,
       shortname: "NBV",
-      server_context: nil
+      server_context: {cc_region: "NBV"}
     )
     refute response.error?
     body = JSON.parse(response.content.first[:text])
@@ -156,7 +171,7 @@ class McpServer::Tools::CheckPlayerDisciplineExperienceTest < ActiveSupport::Tes
       player_id: sample_player.id,
       discipline_id: sample_discipline.id,
       shortname: "NBV",
-      server_context: nil
+      server_context: {cc_region: "NBV"}
     )
     refute response.error?
     body = JSON.parse(response.content.first[:text])
@@ -177,7 +192,7 @@ class McpServer::Tools::CheckPlayerDisciplineExperienceTest < ActiveSupport::Tes
       player_id: sample_player.id,
       discipline_id: sample_discipline.id,
       shortname: "NBV",
-      server_context: nil
+      server_context: {cc_region: "NBV"}
     )
     refute response.error?
     body = JSON.parse(response.content.first[:text])

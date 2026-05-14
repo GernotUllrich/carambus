@@ -51,8 +51,19 @@ module McpServer
         discipline = Discipline.find_by(id: discipline_id)
         return error("Discipline not found: id=#{discipline_id}") if discipline.nil?
 
-        region = resolve_region(shortname: shortname)
-        return error("Region not found. Provide shortname, or set CC_REGION/Setting 'context'.") if region.nil?
+        # Plan 14-02.2 / B-3 + D-14-02-G: shortname-Override-Logik entfernt; strict
+        # via effective_cc_region(server_context). Parameter im Schema bleibt (Removal in 14-02.4).
+        if shortname.present? && shortname.to_s.upcase != effective_cc_region(server_context).to_s
+          Rails.logger.warn "[cc_check_player_discipline_experience] shortname-Override '#{shortname}' ignoriert; nutze User#cc_region='#{effective_cc_region(server_context)}'"
+        end
+        region_name = effective_cc_region(server_context)
+        if region_name.blank?
+          return error(
+            "Dein Profil hat keine Region gesetzt. Bitte unter https://carambus.de/users/edit eine Region wählen."
+          )
+        end
+        region = Region.find_by(shortname: region_name)
+        return error("Region '#{region_name}' nicht in DB gefunden. Profile-Region prüfen.") if region.nil?
 
         has_ranking = PlayerRanking.where(
           player_id: player.id,
@@ -91,6 +102,8 @@ module McpServer
           meta: {
             region: region.shortname,
             player_id: player.id,
+            player_cc_id: player.cc_id,       # Plan 14-02.2 / E-2: cc_id im Output (D-14-02-B revised)
+            player_dbu_nr: player.dbu_nr,     # informativ-optional
             player_fl_name: player.fl_name,
             discipline_id: discipline.id,
             discipline_name: discipline.name
@@ -109,15 +122,6 @@ module McpServer
           end
         else
           "Spieler hat in '#{discipline_name}' weder Ranking noch Spielhistorie — wahrscheinlich Erstantritt. Plausibilitäts-Rückfrage empfohlen."
-        end
-      end
-
-      def self.resolve_region(shortname:)
-        if shortname.present?
-          Region.find_by(shortname: shortname.to_s.upcase)
-        else
-          fallback_id = default_fed_id
-          fallback_id ? RegionCc.find_by(cc_id: fallback_id)&.region : nil
         end
       end
     end

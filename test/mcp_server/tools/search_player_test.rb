@@ -19,20 +19,20 @@ class McpServer::Tools::SearchPlayerTest < ActiveSupport::TestCase
   end
 
   test "validation: query too short (<2 chars) returns error" do
-    response = McpServer::Tools::SearchPlayer.call(query: "M", server_context: nil)
+    response = McpServer::Tools::SearchPlayer.call(query: "M", server_context: {cc_region: "NBV"})
     assert response.error?
     assert_match(/at least 2|too short|min/i, response.content.first[:text])
   end
 
   test "validation: missing query returns error" do
-    response = McpServer::Tools::SearchPlayer.call(server_context: nil)
+    response = McpServer::Tools::SearchPlayer.call(server_context: {cc_region: "NBV"})
     assert response.error?
     assert_match(/Missing required parameter/i, response.content.first[:text])
   end
 
   test "DB-First: nicht-existierende Suche liefert Error mit Workaround-Hinweisen" do
     needle = "ZzzNonexistent#{SecureRandom.hex(8)}"
-    response = McpServer::Tools::SearchPlayer.call(query: needle, server_context: nil)
+    response = McpServer::Tools::SearchPlayer.call(query: needle, server_context: {cc_region: "NBV"})
     assert response.error?
     msg = response.content.first[:text]
     assert_match(/Keine Spieler/i, msg)
@@ -48,7 +48,7 @@ class McpServer::Tools::SearchPlayerTest < ActiveSupport::TestCase
     needle = sample.lastname.to_s[0, [sample.lastname.length, 5].min]
     skip "Sample lastname too short" if needle.length < 3
 
-    response = McpServer::Tools::SearchPlayer.call(query: needle, server_context: nil)
+    response = McpServer::Tools::SearchPlayer.call(query: needle, server_context: {cc_region: "NBV"})
     refute response.error?, "Expected non-error; got: #{response.content.first[:text]}"
     body = JSON.parse(response.content.first[:text])
 
@@ -57,7 +57,7 @@ class McpServer::Tools::SearchPlayerTest < ActiveSupport::TestCase
       assert(c["lastname"].to_s.downcase.include?(needle.downcase) ||
              c["firstname"].to_s.downcase.include?(needle.downcase) ||
              c["name"].to_s.downcase.include?(needle.downcase),
-             "Treffer muss firstname/lastname/name matchen: #{c.inspect}")
+        "Treffer muss firstname/lastname/name matchen: #{c.inspect}")
     end
   end
 
@@ -69,7 +69,7 @@ class McpServer::Tools::SearchPlayerTest < ActiveSupport::TestCase
     ENV["CC_REGION"] = region.shortname.to_s.upcase
 
     # Wähle kurz/häufig wie "a" oder "e" als needle
-    response = McpServer::Tools::SearchPlayer.call(query: "an", server_context: nil)
+    response = McpServer::Tools::SearchPlayer.call(query: "an", server_context: {cc_region: "NBV"})
 
     if response.error? || JSON.parse(response.content.first[:text])["candidates"].length < 2
       skip "Region #{region.shortname} hat keine ≥2 Players mit 'an' im Namen"
