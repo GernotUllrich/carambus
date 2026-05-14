@@ -64,10 +64,12 @@ class McpMultiRegionRoutingTest < ActionDispatch::IntegrationTest
     ENV.delete("CC_REGION")
   end
 
-  test "Plan-13-04.1 + Plan-13-04 Integration: effective_cc_region honoriert server_context Vorrang vor ENV" do
+  # Plan 14-02.1-fix / D-14-02-G: effective_cc_region ist strict — kein ENV-Fallback mehr.
+  # Vorrang-Logik ist trivial geworden (nur 1 Pfad: server_context).
+  test "Plan-14-02.1-fix: effective_cc_region strict — nur server_context, kein ENV-Fallback" do
     ENV["CC_REGION"] = "nbv"
     assert_equal "BVBW", McpServer::Tools::BaseTool.effective_cc_region({cc_region: "BVBW"})
-    assert_equal "NBV", McpServer::Tools::BaseTool.effective_cc_region(nil)
+    assert_nil McpServer::Tools::BaseTool.effective_cc_region(nil), "Strict: kein ENV-Fallback"
   ensure
     ENV.delete("CC_REGION")
   end

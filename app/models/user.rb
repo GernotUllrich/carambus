@@ -47,6 +47,14 @@ class User < ApplicationRecord
   # Add validation for preferences
   validate :valid_preferences
 
+  # Plan 14-02.1-fix / D-14-02-G: cc_region ist Pflicht-Feld für MCP-Tool-Zugriff.
+  # Validation gilt nur on: :update (User-Profile-Edit), nicht on: :create (Sign-Up bleibt friction-frei).
+  # mcp_public_read-User brauchen keine Region (Lese-Tools ohne CC-Region-Filter).
+  validates :cc_region,
+    presence: {message: "muss gesetzt sein für MCP-Zugriff (außer mcp_public_read)"},
+    on: :update,
+    if: -> { mcp_role.present? && !mcp_role_mcp_public_read? }
+
   THEMES = %w[system dark light].freeze
   LOCALES = I18n.available_locales.map(&:to_s).freeze
 
@@ -103,10 +111,10 @@ class User < ApplicationRecord
     !mcp_role_mcp_public_read? && cc_credentials.present?
   end
 
-  # MCP Region-Fallback-Chain (Per-User → ENV → nil).
-  # D-13-01-F Backwards-Compat-Pattern: server_context[:cc_region] > ENV["CC_REGION"].
+  # Plan 14-02.1-fix / D-14-02-G: strict — User#cc_region ist Source of truth für MCP-Region.
+  # KEIN ENV-Fallback; Multi-User-Production-Pflicht. Bei nil → Tools werfen Profile-Edit-Hinweis-Error.
   def mcp_cc_region
-    cc_region.presence || ENV["CC_REGION"]
+    cc_region.presence
   end
 
   # v0.3 Plan 13-07 (D-13-01-E DSGVO minimal-pragmatic):

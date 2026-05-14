@@ -83,40 +83,114 @@ class McpServer::Tools::BaseToolTest < ActiveSupport::TestCase
       ENV["CC_REGION"] = @original_env
     end
 
+    # Plan 14-02.1-fix / D-14-02-G: strict — kein ENV/Setting/NBV-Default-Fallback mehr.
     test "effective_cc_region: server_context cc_region wird UPPERCASE zurückgegeben" do
       result = McpServer::Tools::BaseTool.effective_cc_region({cc_region: "bvbw"})
       assert_equal "BVBW", result
     end
 
-    test "effective_cc_region: server_context bekommt Vorrang vor ENV (HTTP > Stdio)" do
-      ENV["CC_REGION"] = "nbv"
-      result = McpServer::Tools::BaseTool.effective_cc_region({cc_region: "bvbw"})
-      assert_equal "BVBW", result, "server_context muss ENV überstimmen"
-    end
-
-    test "effective_cc_region: server_context nil → ENV-Fallback (UPPERCASE)" do
+    test "effective_cc_region: server_context nil → nil (strict, kein Fallback)" do
       ENV["CC_REGION"] = "nbv"
       result = McpServer::Tools::BaseTool.effective_cc_region(nil)
-      assert_equal "NBV", result
+      assert_nil result, "Strict-Mode: kein ENV-Fallback erlaubt"
     end
 
-    test "effective_cc_region: server_context cc_region nil → ENV-Fallback" do
+    test "effective_cc_region: server_context cc_region nil → nil (strict)" do
       ENV["CC_REGION"] = "nbv"
       result = McpServer::Tools::BaseTool.effective_cc_region({cc_region: nil})
-      assert_equal "NBV", result
+      assert_nil result, "Strict-Mode: kein ENV-Fallback bei nil cc_region"
     end
 
-    test "effective_cc_region: server_context cc_region leerer String → ENV-Fallback" do
+    test "effective_cc_region: server_context cc_region leerer String → nil (strict)" do
       ENV["CC_REGION"] = "nbv"
       result = McpServer::Tools::BaseTool.effective_cc_region({cc_region: ""})
-      assert_equal "NBV", result
+      assert_nil result, "Strict-Mode: kein ENV-Fallback bei leerem cc_region"
     end
 
-    test "effective_cc_region: kein server_context + kein ENV + kein Setting → Default 'NBV'" do
+    test "effective_cc_region: server_context cc_region non-String → nil (strict, defensive)" do
+      result = McpServer::Tools::BaseTool.effective_cc_region({cc_region: 123})
+      assert_nil result, "Strict-Mode: non-String wird abgelehnt"
+    end
+  end
+
+  # Plan 14-02.1-fix / D-14-02-G: default_fed_id strict — kein ENV["CC_FED_ID"]-Shortcut;
+  # Ableitung via effective_cc_region (jetzt strict) → Region → RegionCc.cc_id.
+  class DefaultFedIdTest < ActiveSupport::TestCase
+    setup do
+      @original_env_region = ENV["CC_REGION"]
+      @original_env_fed = ENV["CC_FED_ID"]
       ENV.delete("CC_REGION")
-      # Setting.key_get_value("context") liefert in dieser Test-DB nil (Fixture-Default)
-      result = McpServer::Tools::BaseTool.effective_cc_region(nil)
-      assert_equal "NBV", result
+      ENV.delete("CC_FED_ID")
+    end
+
+    teardown do
+      ENV["CC_REGION"] = @original_env_region
+      ENV["CC_FED_ID"] = @original_env_fed
+    end
+
+    test "default_fed_id: nil server_context → nil (strict, kein ENV-Shortcut)" do
+      ENV["CC_FED_ID"] = "99"
+      result = McpServer::Tools::BaseTool.default_fed_id(nil)
+      assert_nil result, "Strict-Mode: ENV[CC_FED_ID]-Shortcut entfernt"
+    end
+
+    test "default_fed_id: server_context ohne cc_region → nil" do
+      result = McpServer::Tools::BaseTool.default_fed_id({cc_region: nil})
+      assert_nil result
+    end
+
+    test "default_fed_id: server_context mit cc_region → korrekte fed_id via Region-Lookup" do
+      region = Region.find_by(shortname: "NBV")
+      skip "Region NBV nicht in Test-DB" unless region&.region_cc&.cc_id
+      result = McpServer::Tools::BaseTool.default_fed_id({cc_region: "NBV"})
+      assert_equal region.region_cc.cc_id, result
+    end
+  end
+
+  # Plan 14-02.1 / D-14-02-D: resolve_tournament_cc-Helper für (cc_id, context)-Tuple-Lookup.
+  # TournamentCc#cc_id ist nur intra-region-eindeutig (User-Klarstellung 2026-05-14).
+  class ResolveTournamentCcTest < ActiveSupport::TestCase
+    setup do
+      ENV.delete("CC_REGION")
+      # 2 TournamentCc-Records mit gleicher cc_id, unterschiedlichem context →
+      # reproduziert Multi-Region-Production-Szenario (carambus.de hat alle Regionen).
+      @nbv_t = TournamentCc.create!(cc_id: 999_001, context: "nbv", name: "Test NBV Tournament")
+      @blmr_t = TournamentCc.create!(cc_id: 999_001, context: "blmr", name: "Test BLMR Tournament")
+    end
+
+    teardown do
+      @nbv_t&.destroy
+      @blmr_t&.destroy
+    end
+
+    test "resolve_tournament_cc: liefert TournamentCc mit matchendem (cc_id, context)" do
+      result = McpServer::Tools::BaseTool.resolve_tournament_cc(
+        cc_id: 999_001, server_context: {cc_region: "NBV"}
+      )
+      assert_equal @nbv_t.id, result&.id
+      assert_equal "Test NBV Tournament", result&.name
+    end
+
+    test "resolve_tournament_cc: cross-region context → liefert KEIN Match aus anderer Region (Disambiguation)" do
+      result = McpServer::Tools::BaseTool.resolve_tournament_cc(
+        cc_id: 999_001, server_context: {cc_region: "BLMR"}
+      )
+      assert_equal @blmr_t.id, result&.id
+      refute_equal @nbv_t.id, result&.id, "BLMR-Context darf NICHT NBV-Tournament liefern"
+    end
+
+    test "resolve_tournament_cc: cc_id nil → nil (defensive)" do
+      result = McpServer::Tools::BaseTool.resolve_tournament_cc(
+        cc_id: nil, server_context: {cc_region: "NBV"}
+      )
+      assert_nil result
+    end
+
+    test "resolve_tournament_cc: cc_id ohne Match in Region → nil (cross-region-Mismatch wird NICHT silent fallback)" do
+      result = McpServer::Tools::BaseTool.resolve_tournament_cc(
+        cc_id: 999_001, server_context: {cc_region: "BVS"}  # Region ohne Match
+      )
+      assert_nil result, "Cross-Region-Mismatch muss nil liefern, nicht das falsche Tournament"
     end
   end
 end

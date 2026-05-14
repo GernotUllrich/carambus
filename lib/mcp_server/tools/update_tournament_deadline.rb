@@ -109,7 +109,7 @@ module McpServer
         else
           "DB-resolver"
         end
-        meldeliste_cc_id ||= resolve_meldeliste_cc_id(tournament_cc_id)
+        meldeliste_cc_id ||= resolve_meldeliste_cc_id(tournament_cc_id, server_context: server_context)
         if meldeliste_cc_id.nil?
           return error(
             "Cannot resolve meldeliste_cc_id from tournament_cc_id=#{tournament_cc_id} via Carambus DB. " \
@@ -275,9 +275,12 @@ module McpServer
 
       # DB-first-Resolver: tournament_cc.registration_list_cc.cc_id (Phase 5 Plan 05-01 pattern).
       # Best-Effort — kein Block bei DB-Lücke (NBV-only-Boundary; CC-only-Mode überspringt das).
-      def self.resolve_meldeliste_cc_id(tournament_cc_id)
+      # Plan 14-02.1 / D-14-02-D: TournamentCc-Lookup via BaseTool-Helper mit (cc_id, context)-Tuple.
+      # Note: RegistrationListCc-Chain ist stale (D-14-02-A); wird in Plan 14-02.4 durch
+      # Live-CC-API-Fetch (CcSession#fetch_meldeliste_overview) ersetzt.
+      def self.resolve_meldeliste_cc_id(tournament_cc_id, server_context: nil)
         return nil unless tournament_cc_id
-        tournament_cc = TournamentCc.find_by(cc_id: tournament_cc_id)
+        tournament_cc = resolve_tournament_cc(cc_id: tournament_cc_id, server_context: server_context)
         tournament_cc&.registration_list_cc&.cc_id
       rescue => e
         Rails.logger.warn "[UpdateTournamentDeadline.resolve_meldeliste_cc_id] DB-resolver failed: #{e.class}"
