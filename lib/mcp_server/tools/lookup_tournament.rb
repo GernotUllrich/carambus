@@ -51,18 +51,20 @@ module McpServer
           return name_search(name: name, shortname: shortname, server_context: server_context)
         end
 
-        # Plan 10-05 Task 2 (Befund #3 D-09-03-2): meisterschaft_id ist nur regions-eindeutig.
-        # Region-Filter via TournamentCc.context (lowercase shortname). tournament_id ist
-        # Carambus-intern und region-eindeutig — kein Region-Filter nötig.
+        # Plan 14-02.1 / D-14-02-D: TournamentCc#cc_id ist nur intra-region-eindeutig.
+        # Lookup via BaseTool.resolve_tournament_cc — (cc_id, context)-Tuple-Pattern.
+        # Cross-Region-Fallback (Diagnostic-Error) bleibt erhalten (D-10-02-B-Pattern).
         if meisterschaft_id.present?
           region_shortname = resolve_region_shortname(shortname, server_context: server_context)
-          scope = TournamentCc.where(cc_id: meisterschaft_id)
-          tournament_cc = scope.find_by(context: region_shortname.to_s.downcase)
+          tournament_cc = resolve_tournament_cc(
+            cc_id: meisterschaft_id,
+            server_context: {cc_region: region_shortname}
+          )
 
           if tournament_cc.nil?
             # Cross-Region-Fallback mit Warning: Sportwart-Diagnose statt False-Claim
             # (Pattern aus D-10-02-B Diagnostic-Error-Message-Pattern).
-            cross_region_candidates = scope.limit(10).map { |tc|
+            cross_region_candidates = TournamentCc.where(cc_id: meisterschaft_id).limit(10).map { |tc|
               {cc_id: tc.cc_id, name: tc.name, context: tc.context, season: tc.season}
             }
             return error(format_cross_region_fallback(meisterschaft_id, region_shortname, cross_region_candidates))

@@ -166,6 +166,24 @@ module McpServer
 
         "NBV"
       end
+
+      # Plan 14-02.1 / D-14-02-D: TournamentCc#cc_id ist nur intra-region-eindeutig
+      # (User-Klarstellung 2026-05-14). Auf carambus.de sind alle Regionen gemirrort,
+      # d.h. dieselbe cc_id kann mehreren TournamentCcs entsprechen (z.B. 890 = NBV-NDM-
+      # Endrunde Eurokegel UND BLMR-NRW-Meisterschaft mU15 10-Ball). Lookup-Pfad daher
+      # immer (cc_id, context)-Tuple, wobei context = region.shortname.downcase (z.B. "nbv").
+      #
+      # Returnt nil bei:
+      #   - fehlendem cc_id
+      #   - fehlendem server_context (defensive; ohne Context-Region keine Disambiguation)
+      #   - kein Match in der Server-Context-Region (cross-region-Mismatch ist NICHT silent
+      #     fallback — Tool muss explizit Diagnostic-Error werfen)
+      def self.resolve_tournament_cc(cc_id:, server_context: nil)
+        return nil if cc_id.blank?
+        context = effective_cc_region(server_context).to_s.downcase
+        return nil if context.blank?
+        TournamentCc.find_by(cc_id: cc_id.to_i, context: context)
+      end
     end
   end
 end

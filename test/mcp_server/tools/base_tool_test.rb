@@ -119,4 +119,51 @@ class McpServer::Tools::BaseToolTest < ActiveSupport::TestCase
       assert_equal "NBV", result
     end
   end
+
+  # Plan 14-02.1 / D-14-02-D: resolve_tournament_cc-Helper für (cc_id, context)-Tuple-Lookup.
+  # TournamentCc#cc_id ist nur intra-region-eindeutig (User-Klarstellung 2026-05-14).
+  class ResolveTournamentCcTest < ActiveSupport::TestCase
+    setup do
+      ENV.delete("CC_REGION")
+      # 2 TournamentCc-Records mit gleicher cc_id, unterschiedlichem context →
+      # reproduziert Multi-Region-Production-Szenario (carambus.de hat alle Regionen).
+      @nbv_t = TournamentCc.create!(cc_id: 999_001, context: "nbv", name: "Test NBV Tournament")
+      @blmr_t = TournamentCc.create!(cc_id: 999_001, context: "blmr", name: "Test BLMR Tournament")
+    end
+
+    teardown do
+      @nbv_t&.destroy
+      @blmr_t&.destroy
+    end
+
+    test "resolve_tournament_cc: liefert TournamentCc mit matchendem (cc_id, context)" do
+      result = McpServer::Tools::BaseTool.resolve_tournament_cc(
+        cc_id: 999_001, server_context: {cc_region: "NBV"}
+      )
+      assert_equal @nbv_t.id, result&.id
+      assert_equal "Test NBV Tournament", result&.name
+    end
+
+    test "resolve_tournament_cc: cross-region context → liefert KEIN Match aus anderer Region (Disambiguation)" do
+      result = McpServer::Tools::BaseTool.resolve_tournament_cc(
+        cc_id: 999_001, server_context: {cc_region: "BLMR"}
+      )
+      assert_equal @blmr_t.id, result&.id
+      refute_equal @nbv_t.id, result&.id, "BLMR-Context darf NICHT NBV-Tournament liefern"
+    end
+
+    test "resolve_tournament_cc: cc_id nil → nil (defensive)" do
+      result = McpServer::Tools::BaseTool.resolve_tournament_cc(
+        cc_id: nil, server_context: {cc_region: "NBV"}
+      )
+      assert_nil result
+    end
+
+    test "resolve_tournament_cc: cc_id ohne Match in Region → nil (cross-region-Mismatch wird NICHT silent fallback)" do
+      result = McpServer::Tools::BaseTool.resolve_tournament_cc(
+        cc_id: 999_001, server_context: {cc_region: "BVS"}  # Region ohne Match
+      )
+      assert_nil result, "Cross-Region-Mismatch muss nil liefern, nicht das falsche Tournament"
+    end
+  end
 end
