@@ -24,8 +24,21 @@ Beispiele (was du tippst → was passiert):
 - **Mac (macOS 12+), Windows (10/11) oder Linux**
 - **Claude Code** — gratis von Anthropic: <https://claude.ai/code>
 - **Carambus-Account** auf carambus.de (Email + Passwort; bei Bedarf vorab `Passwort vergessen`-Flow)
-- **Terminal-App** (Mac: Terminal.app; Windows: PowerShell; Linux: dein Standard-Terminal)
+- **Terminal-App** (siehe Plattform-Hinweis unten)
 - Internetverbindung
+
+---
+
+## Plattform-Hinweis (lesen vor Schritt 3!)
+
+Die Setup-Kommandos unten sind in **Bash-Syntax** (Mac/Linux-Standard).
+
+- **macOS:** Terminal.app öffnen → alle Kommandos funktionieren direkt.
+- **Linux:** Dein Standard-Terminal → alle Kommandos funktionieren direkt.
+- **Windows:** Drei Wege, **wir empfehlen Git Bash**:
+   1. **Git Bash (empfohlen)** — Git für Windows installieren (gratis: <https://git-scm.com/download/win>); danach „Git Bash" als Terminal-App. Alle Kommandos funktionieren **identisch zu Mac/Linux**. Einfachster Pfad für Nicht-Entwickler.
+   2. **PowerShell** — native Windows-Shell. Eigene Syntax (siehe Anhang „PowerShell-Variante" am Ende dieser Seite).
+   3. **WSL2** — Linux-Subsystem unter Windows (für Power-User). Identisch zu Mac/Linux.
 
 ---
 
@@ -179,4 +192,67 @@ Beide werden im Walkthrough-Termin gezeigt + sind direkt in Claude Code abrufbar
 
 ---
 
-*Cloud-Quickstart v0.3+ (Plan 14-01, 2026-05-14). Dieser 1-Seiter ersetzt für Sportwarte/Turnierleiter/LSW die ausführliche Setup-Service-Doku Sektionen 1-8 (STDIO-Pfad).*
+## Anhang — PowerShell-Variante (Windows ohne Git Bash)
+
+Falls du auf Windows weder Git Bash noch WSL2 hast, hier die gleichen Schritte in PowerShell-Syntax. Funktionell identisch zum bash-Pfad oben.
+
+### Schritt 3 (PowerShell) — Token holen
+
+```powershell
+$response = Invoke-WebRequest -Uri "https://carambus.de/login" `
+  -Method POST `
+  -ContentType "application/json" `
+  -Headers @{ "Accept" = "application/json" } `
+  -Body '{"user":{"email":"DEINE_EMAIL","password":"DEIN_PW"}}'
+
+$TOKEN = $response.Headers["Authorization"]
+Write-Host "Token: $TOKEN"
+```
+
+**Sanity-Check:** Output muss mit `Token: Bearer eyJ...` beginnen.
+
+### Schritt 4 (PowerShell) — MCP-Server registrieren
+
+```powershell
+$config = @{
+  type    = "http"
+  url     = "https://carambus.de/mcp?stateless=1"
+  headers = @{
+    Authorization = "$TOKEN"
+    Accept        = "application/json, text/event-stream"
+  }
+} | ConvertTo-Json -Depth 3 -Compress
+
+claude mcp add-json --scope user carambus-remote $config
+```
+
+### Schritt 5 + 6 (PowerShell)
+
+Identisch zur bash-Variante:
+
+```powershell
+claude mcp get carambus-remote
+```
+
+(Die `claude`-CLI selbst ist plattform-unabhängig; nur die Shell-Syntax drumherum unterscheidet sich.)
+
+### Token-Refresh (PowerShell)
+
+Bei 401-Fehler:
+
+```powershell
+claude mcp remove carambus-remote -s user
+# dann Schritt 3 + 4 wiederholen
+```
+
+### PowerShell-spezifische Stolperer
+
+| Symptom | Ursache | Lösung |
+|---------|---------|--------|
+| `Invoke-WebRequest : Cannot find ...` | Alte PowerShell-Version (<5.1) | Aktuelles PowerShell 7+ via `winget install Microsoft.PowerShell` |
+| `$TOKEN` ist leer obwohl Login OK | Authorization-Header-Casing | In Schritt 3 statt `["Authorization"]` ggf. `["authorization"]` (lowercase) versuchen |
+| `claude mcp add-json` Syntax-Fehler | JSON-Escaping kaputt | Statt inline `$config` → JSON in temp-Datei schreiben und via `--from-file` (falls Claude Code es unterstützt) ODER zurück zu Git Bash wechseln |
+
+---
+
+*Cloud-Quickstart v0.3+ (Plan 14-01, 2026-05-14). Dieser 1-Seiter ersetzt für Sportwarte/Turnierleiter/LSW die ausführliche Setup-Service-Doku Sektionen 1-8 (STDIO-Pfad). Plattform-Hinweis + PowerShell-Anhang ergänzt für Windows-Kompatibilität.*
