@@ -339,8 +339,12 @@ Devise.setup do |config|
     jwt.secret = Rails.application.credentials.devise_jwt_secret_key.presence ||
       ENV["DEVISE_JWT_SECRET_KEY"].presence ||
       Rails.application.secret_key_base
-    jwt.dispatch_requests = [["POST", %r{^/users/sign_in$}]]
-    jwt.revocation_requests = [["DELETE", %r{^/users/sign_out$}]]
+    # Plan 13-06.3 / D-13-06.3-A: Devise-Routes sind via routes.rb umkonfiguriert
+    # (`devise_for :users, path: "", path_names: { sign_in: "login", sign_out: "logout" }`).
+    # Die echten Login-/Logout-URLs sind daher /login und /logout, NICHT /users/sign_in.
+    # Plan 13-06.2 hatte das übersehen → kein JWT-Issue trotz erfolgreichem Login.
+    jwt.dispatch_requests = [["POST", %r{^/login$}]]
+    jwt.revocation_requests = [["DELETE", %r{^/logout$}]]
     jwt.expiration_time = 24.hours.to_i
   end
 end
