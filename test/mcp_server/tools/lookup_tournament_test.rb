@@ -36,10 +36,19 @@ class McpServer::Tools::LookupTournamentTest < ActiveSupport::TestCase
   test "DB-first miss: TournamentCc nicht gefunden liefert error" do
     response = McpServer::Tools::LookupTournament.call(
       meisterschaft_id: 99_999_999,
+      server_context: {cc_region: "NBV"}
+    )
+    assert response.error?
+    assert_match(/nicht in deiner Region/i, response.content.first[:text])
+  end
+
+  test "Plan 14-02.1-fix: ohne server_context cc_region → Profile-Edit-Hinweis-Error" do
+    response = McpServer::Tools::LookupTournament.call(
+      meisterschaft_id: 890,
       server_context: nil
     )
     assert response.error?
-    assert_match(/not found/i, response.content.first[:text])
+    assert_match(/Carambus-Profil hat keine Region/i, response.content.first[:text])
   end
 
   test "Phase-5 Detail-Output: liefert location_text/tournament_start/end zusätzlich zu Core-Feldern" do
@@ -259,14 +268,15 @@ class McpServer::Tools::LookupTournamentTest < ActiveSupport::TestCase
     assert_equal sample.tournament_id, body["tournament_id"]
   end
 
-  # Plan 10-06 Task 1 (D-10-04-J Vokabular-Schicht): Name-Search mit Disambiguation
+  # Plan 10-06 Task 1 (D-10-04-J Vokabular-Schicht): Name-Search mit Disambiguation.
+  # Plan 14-02.1-fix: server_context mit cc_region erforderlich (strict).
   test "Name-Search: 0 Treffer → Tool-Error mit Workaround-Hinweisen" do
     needle = "ZzzNonexistent#{SecureRandom.hex(8)}"
-    response = McpServer::Tools::LookupTournament.call(name: needle, server_context: nil)
+    response = McpServer::Tools::LookupTournament.call(name: needle, server_context: {cc_region: "NBV"})
     assert response.error?
     msg = response.content.first[:text]
     assert_match(/Kein Turnier/i, msg)
-    assert_match(/Versuche|kürzeren Suchbegriff|shortname/i, msg)
+    assert_match(/Versuche|kürzeren Suchbegriff|tournament_id/i, msg)
   end
 
   test "Name-Search: erfolgreich liefert candidates-Array" do

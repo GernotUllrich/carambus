@@ -133,38 +133,26 @@ module McpServer
       #   3. nil — bestehender "Missing required parameter: fed_id"-Fehler bleibt erhalten
       #
       # Defensiv: rescued StandardError, damit Mock-Smoke-Tests ohne DB nicht crashen.
+      # Plan 14-02.1-fix / D-14-02-G: Multi-User-Production-Pflicht — kein ENV["CC_FED_ID"]-
+      # Shortcut. Ableitung strict via effective_cc_region (jetzt strict) → Region → RegionCc.cc_id.
       def self.default_fed_id(server_context = nil)
-        return ENV["CC_FED_ID"].to_i if ENV["CC_FED_ID"].present?
-
-        region = Region.find_by(shortname: effective_cc_region(server_context))
+        cc_region = effective_cc_region(server_context)
+        return nil if cc_region.blank?
+        region = Region.find_by(shortname: cc_region)
         region&.region_cc&.cc_id
       rescue => e
         Rails.logger.warn "[BaseTool.default_fed_id] Region lookup failed: #{e.class}"
         nil
       end
 
-      # MCP Multi-User-Hosting (v0.3 Plan 13-04 / D-13-01-F Backwards-Compat).
-      # Resolves cc_region pro Tool-Call mit Fallback-Chain:
-      #   1. server_context[:cc_region] (HTTP-Pfad mit per-User-Region aus user.mcp_cc_region)
-      #   2. ENV["CC_REGION"] (Stdio-Pfad — bin/mcp-server + Carambus-Default)
-      #   3. Setting.key_get_value("context") (Stdio-Pfad ohne ENV — Carambus-Production-Convention)
-      #   4. "NBV" als hartcodierter Default (analog bestehende Convention in base_tool.rb)
-      # UPPERCASE-Convention (cc_region in Carambus-Models ist UPPERCASE).
-      #
-      # Plan-Deviation: Plan-Spec-Example listete nur 3 Stufen (server_context → ENV → "NBV"),
-      # aber Setting-Fallback ist zwingend für Stdio-Backwards-Compat (Production-Carambus
-      # ohne CC_REGION-ENV nutzt Setting.context — siehe region_cc_action.rb).
+      # Plan 14-02.1-fix / D-14-02-G: Multi-User-Production-Pflicht — Source of truth ist
+      # User#cc_region (via server_context). KEIN Fallback auf ENV/Setting/NBV-Default.
+      # Tools, die nil zurückbekommen, müssen klaren Profile-Edit-Hinweis-Error werfen.
+      # UPPERCASE-Convention (Region#shortname in Carambus ist UPPERCASE).
       def self.effective_cc_region(server_context = nil)
-        from_context = server_context&.dig(:cc_region)
-        return from_context.to_s.upcase if from_context.is_a?(String) && from_context.present?
-
-        env_region = ENV["CC_REGION"].presence
-        return env_region.upcase if env_region
-
-        setting_region = (defined?(Setting) ? Setting.key_get_value("context") : nil).presence
-        return setting_region.upcase if setting_region
-
-        "NBV"
+        cc_region = server_context&.dig(:cc_region)
+        return cc_region.to_s.upcase if cc_region.is_a?(String) && cc_region.present?
+        nil
       end
 
       # Plan 14-02.1 / D-14-02-D: TournamentCc#cc_id ist nur intra-region-eindeutig

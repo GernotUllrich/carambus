@@ -51,23 +51,25 @@ module McpServer
           return name_search(name: name, shortname: shortname, server_context: server_context)
         end
 
-        # Plan 14-02.1 / D-14-02-D: TournamentCc#cc_id ist nur intra-region-eindeutig.
-        # Lookup via BaseTool.resolve_tournament_cc — (cc_id, context)-Tuple-Pattern.
-        # Cross-Region-Fallback (Diagnostic-Error) bleibt erhalten (D-10-02-B-Pattern).
+        # Plan 14-02.1-fix / D-14-02-G: strict User-Context. shortname-Override-Logik entfernt
+        # (Removal aus Schema folgt in 14-02.4). Direkter effective_cc_region(server_context)-
+        # Zugriff; nil → klarer Profile-Edit-Hinweis-Error statt silent-Fallback.
         if meisterschaft_id.present?
-          region_shortname = resolve_region_shortname(shortname, server_context: server_context)
+          region_shortname = effective_cc_region(server_context)
+          if region_shortname.blank?
+            return error("Dein Carambus-Profil hat keine Region gesetzt. Bitte unter /users/edit eine Region wählen.")
+          end
           tournament_cc = resolve_tournament_cc(
             cc_id: meisterschaft_id,
-            server_context: {cc_region: region_shortname}
+            server_context: server_context
           )
 
           if tournament_cc.nil?
-            # Cross-Region-Fallback mit Warning: Sportwart-Diagnose statt False-Claim
-            # (Pattern aus D-10-02-B Diagnostic-Error-Message-Pattern).
-            cross_region_candidates = TournamentCc.where(cc_id: meisterschaft_id).limit(10).map { |tc|
-              {cc_id: tc.cc_id, name: tc.name, context: tc.context, season: tc.season}
-            }
-            return error(format_cross_region_fallback(meisterschaft_id, region_shortname, cross_region_candidates))
+            return error(
+              "Turnier-cc_id=#{meisterschaft_id} nicht in deiner Region '#{region_shortname}' gefunden. " \
+              "Prüfe: (a) ist die meisterschaft_id korrekt? (b) liegt es in einer anderen Region — Cross-Region-Lookup " \
+              "wird in v0.3.1+ nicht unterstützt (Single-Region-User-Profile)."
+            )
           end
         else
           tournament_cc = TournamentCc.find_by(tournament_id: tournament_id)
@@ -78,13 +80,17 @@ module McpServer
         text(format_tournament_cc(tournament_cc, with_committed_list: with_committed_list, meldeliste_cc_id_override: meldeliste_cc_id, fed_id: fed_id))
       end
 
-      # Plan 10-06 Task 1 (D-10-04-J Vokabular-Schicht): Name-Search auf TournamentCc.name
-      # mit Phase-8-Disambiguation-Pattern (analog cc_lookup_club aus Plan 10-05).
+      # Plan 14-02.1-fix / D-14-02-G: Name-Search strict auf User-Region; shortname-Override-
+      # Logik entfernt (Removal aus Schema folgt in 14-02.4). Pattern aus Plan 10-06 erhalten
+      # (Phase-8-Disambiguation, 5. Anwendung).
       def self.name_search(name:, shortname:, server_context: nil)
-        region_shortname = resolve_region_shortname(shortname, server_context: server_context)
+        region_shortname = effective_cc_region(server_context)
+        if region_shortname.blank?
+          return error("Dein Carambus-Profil hat keine Region gesetzt. Bitte unter /users/edit eine Region wählen.")
+        end
         escaped = ActiveRecord::Base.sanitize_sql_like(name.to_s)
         scope = TournamentCc.where("name ILIKE ?", "%#{escaped}%")
-        scope = scope.where(context: region_shortname.to_s.downcase) if region_shortname.present?
+          .where(context: region_shortname.to_s.downcase)
         matches = scope.order(:name).limit(20)
 
         candidates = matches.map { |tc|
@@ -101,8 +107,7 @@ module McpServer
           return error(
             "Kein Turnier in Region '#{region_shortname}' passt zu '#{name}'. " \
             "Versuche: (a) kürzeren Suchbegriff (z.B. 'Eurokegel' statt 'NDM Endrunde Eurokegel'), " \
-            "(b) shortname-Override für Cross-Region (z.B. shortname:'BVBW'), " \
-            "(c) meisterschaft_id ODER tournament_id falls bekannt."
+            "(b) tournament_id falls bekannt (Carambus-Rails-id)."
           )
         end
 
@@ -118,28 +123,6 @@ module McpServer
         }
         body[:warning] = "#{candidates.length} Treffer gefunden — bitte Sportwart-Rückfrage: welches Turnier?" if candidates.length > 1
         text(JSON.generate(body))
-      end
-
-      # Resolve effective region shortname (uppercase) — explicit param > server_context > ENV > Setting > default.
-      # v0.3 Plan 13-04: nutzt BaseTool.effective_cc_region für server_context-Propagation.
-      def self.resolve_region_shortname(override = nil, server_context: nil)
-        return override.to_s.upcase if override.present?
-        effective_cc_region(server_context)
-      rescue => e
-        Rails.logger.warn "[cc_lookup_tournament.resolve_region_shortname] #{e.class}: #{e.message}"
-        "NBV"
-      end
-
-      # Formatiert eine diagnostische Fehlermeldung wenn der Lookup in der Default-Region
-      # 0 Treffer findet, aber Cross-Region-Kandidaten existieren — Sportwart kann selbst
-      # entscheiden ob er den shortname-Param explizit setzt oder ob die cc_id falsch ist.
-      def self.format_cross_region_fallback(meisterschaft_id, region_shortname, candidates)
-        if candidates.empty?
-          "Tournament not found: meisterschaft_id=#{meisterschaft_id} in region=#{region_shortname} (also no cross-region matches in Carambus DB). Try force_refresh: true to query CC live, or verify the cc_id."
-        else
-          cand_list = candidates.map { |c| "  - context=#{c[:context]}: #{c[:name]} (season=#{c[:season]})" }.join("\n")
-          "Tournament not found in region=#{region_shortname} for meisterschaft_id=#{meisterschaft_id}, but #{candidates.length} cross-region candidate(s) exist:\n#{cand_list}\nIf one of these is correct, retry with shortname: '<context>' (case-insensitive)."
-        end
       end
 
       def self.live_lookup(meisterschaft_id:, fed_id:, season:, server_context: nil)

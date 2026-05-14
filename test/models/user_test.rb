@@ -138,12 +138,18 @@ class UserTest < ActiveSupport::TestCase
     assert u.mcp_enabled?
   end
 
-  test "mcp_cc_region falls back to ENV CC_REGION when User.cc_region nil" do
+  # Plan 14-02.1-fix / D-14-02-G: mcp_cc_region ist strict — KEIN ENV-Fallback mehr.
+  test "mcp_cc_region: User.cc_region nil → nil (strict, kein ENV-Fallback)" do
     u = User.new(email: "mcp4@example.com", password: "password123")
     ENV["CC_REGION"] = "test_env_region"
-    assert_equal "test_env_region", u.mcp_cc_region
+    assert_nil u.mcp_cc_region, "Strict-Mode: kein ENV-Fallback erlaubt"
   ensure
     ENV.delete("CC_REGION")
+  end
+
+  test "mcp_cc_region: User.cc_region present → presence-Wert (strict)" do
+    u = User.new(email: "mcp4b@example.com", password: "password123", cc_region: "NBV")
+    assert_equal "NBV", u.mcp_cc_region
   end
 
   test "existing Carambus role enum unangetastet (admin? Methoden funktional)" do
@@ -175,14 +181,37 @@ class UserTest < ActiveSupport::TestCase
   end
 
   test "grant_mcp_consent! setzt mcp_consent_at + persistiert" do
+    # Plan 14-02.1-fix / D-14-02-G: cc_region ist Pflicht für mcp_role > public_read on: :update
     u = User.create!(email: "consent4@test.de", password: "password123",
-      mcp_role: :mcp_sportwart)
+      mcp_role: :mcp_sportwart, cc_region: "NBV")
     assert_nil u.mcp_consent_at
     u.grant_mcp_consent!
     u.reload
     refute_nil u.mcp_consent_at
     assert u.mcp_consent_given?
     assert_not u.mcp_consent_required?
+  end
+
+  # Plan 14-02.1-fix / D-14-02-G: cc_region-Validation Tests.
+  test "cc_region: required on update wenn mcp_role > public_read" do
+    u = User.create!(email: "validation1@test.de", password: "password123",
+      mcp_role: :mcp_sportwart, cc_region: "NBV")
+    u.cc_region = nil
+    assert_not u.valid?, "User mit mcp_role=mcp_sportwart und cc_region=nil darf NICHT valid sein (on: :update)"
+    assert_includes u.errors[:cc_region], "muss gesetzt sein für MCP-Zugriff (außer mcp_public_read)"
+  end
+
+  test "cc_region: NICHT required wenn mcp_role = public_read" do
+    u = User.create!(email: "validation2@test.de", password: "password123",
+      mcp_role: :mcp_public_read)
+    u.theme = "dark"
+    assert u.valid?, "mcp_public_read-User braucht keine cc_region"
+  end
+
+  test "cc_region: NICHT required on: :create (Sign-Up bleibt friction-frei)" do
+    u = User.new(email: "validation3@test.de", password: "password123",
+      mcp_role: :mcp_sportwart)
+    assert u.valid?, "Sign-Up ohne cc_region muss gehen; Validation ist nur on: :update"
   end
 
   test "mcp_audit_trail_export: 0 Entries \u2192 empty Array" do

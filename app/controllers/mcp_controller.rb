@@ -16,6 +16,7 @@ class McpController < ApplicationController
   # diesen Controller — saubere API-Endpoint-Konvention.
   skip_forgery_protection
   before_action :authenticate_user!
+  before_action :require_user_cc_region
 
   def dispatch_request
     require "mcp"
@@ -47,5 +48,23 @@ class McpController < ApplicationController
       cc_region: current_user.mcp_cc_region,
       cc_credentials_present: current_user.cc_credentials.present?
     }
+  end
+
+  # Plan 14-02.1-fix / D-14-02-G: fail-fast wenn User-Profile keine cc_region hat.
+  # mcp_public_read-User brauchen keine Region (Lese-Tools ohne CC-Region-Filter).
+  # Andere mcp_roles: klarer Profile-Edit-Hinweis statt Tool-Level-Profile-Edit-Errors verteilt.
+  def require_user_cc_region
+    return if current_user.cc_region.present?
+    return if current_user.mcp_role.to_s == "mcp_public_read"
+
+    error_payload = {
+      jsonrpc: "2.0",
+      error: {
+        code: -32602,
+        message: "Dein Carambus-Profil hat keine Region (Verband) gesetzt. Bitte unter /users/edit eine Region wählen, dann erneut versuchen."
+      },
+      id: nil
+    }
+    render json: error_payload, status: :unprocessable_entity
   end
 end

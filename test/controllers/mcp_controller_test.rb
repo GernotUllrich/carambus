@@ -12,13 +12,14 @@ class McpControllerTest < ActionDispatch::IntegrationTest
       email: "mcp_public@example.com", password: "password123",
       mcp_role: :mcp_public_read
     )
+    # Plan 14-02.1-fix / D-14-02-G: cc_region ist Pflicht für mcp_role > public_read
     @sportwart_user = User.create!(
       email: "mcp_sport@example.com", password: "password123",
-      mcp_role: :mcp_sportwart, cc_credentials: '{"username":"x","password":"y"}'
+      mcp_role: :mcp_sportwart, cc_credentials: '{"username":"x","password":"y"}', cc_region: "NBV"
     )
     @admin_user = User.create!(
       email: "mcp_admin@example.com", password: "password123",
-      mcp_role: :mcp_admin, cc_credentials: '{"username":"x","password":"y"}'
+      mcp_role: :mcp_admin, cc_credentials: '{"username":"x","password":"y"}', cc_region: "NBV"
     )
   end
 
@@ -93,10 +94,25 @@ class McpControllerTest < ActionDispatch::IntegrationTest
   test "POST /mcp ohne cc_credentials + mcp_role != public_read: Init funktioniert (Tool-Calls failen erst später)" do
     no_creds_user = User.create!(
       email: "mcp_nocreds@example.com", password: "password123",
-      mcp_role: :mcp_sportwart # KEIN cc_credentials
+      mcp_role: :mcp_sportwart, cc_region: "NBV" # KEIN cc_credentials
     )
     sign_in no_creds_user
     post "/mcp", params: init_payload.to_json, headers: {"Content-Type" => "application/json"}
     assert_response :success
+  end
+
+  # Plan 14-02.1-fix / D-14-02-G: McpController#require_user_cc_region-Guard
+  test "POST /mcp mit User ohne cc_region (mcp_role > public_read) → 422 + Profile-Edit-Hinweis" do
+    no_region_user = User.create!(
+      email: "mcp_no_region@example.com", password: "password123",
+      mcp_role: :mcp_sportwart
+      # cc_region absichtlich nicht gesetzt (Profile-Edit-Hinweis-Test)
+    )
+    sign_in no_region_user
+    post "/mcp", params: init_payload.to_json, headers: {"Content-Type" => "application/json"}
+    assert_response :unprocessable_entity
+    body = JSON.parse(response.body)
+    assert_equal(-32602, body.dig("error", "code"))
+    assert_match(/Profil hat keine Region/i, body.dig("error", "message"))
   end
 end
