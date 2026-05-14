@@ -495,7 +495,7 @@ Ab v0.3 unterstützt der ClubCloud-MCP-Server zusätzlich zum Stdio-Pfad (Sektio
 
 ```bash
 # 1. Login + Token extrahieren (Token kommt im `Authorization`-Response-Header):
-TOKEN=$(curl -sS -X POST https://carambus.de/users/sign_in \
+TOKEN=$(curl -sS -X POST https://carambus.de/login \
   -H "Accept: application/json" \
   -H "Content-Type: application/json" \
   -d '{"user":{"email":"DEIN_USER@example.com","password":"DEIN_PW"}}' \
@@ -532,7 +532,7 @@ claude mcp list                  # Übersicht aller MCP-Server
 - **`?stateless=1` query-param** umgeht den `Mcp-Session-Id`-Header-Stateful-Flow (D-13-06.1-E). Für Claude Code MCP-Client der einfachste robuste Weg.
 - **`Accept`-Header dual** (`application/json, text/event-stream`): Streamable-HTTP-Transport-Pflicht (D-13-06-A). Ohne → 406 Not Acceptable.
 - **`Authorization: Bearer <jwt>`**: Industry-Standard-Bearer-Token. Token-Lifetime **24 Stunden** ab Login. Bei Ablauf → erneuter Login-Call (Schritt 1 wiederholen) + `claude mcp remove ... && claude mcp add-json ...` neu.
-- **Force-Logout**: `curl -X DELETE https://carambus.de/users/sign_out -H "Authorization: $TOKEN"` invalidiert den Token über JTIMatcher-Revocation. Alle weiteren Calls mit diesem Token → 401.
+- **Force-Logout**: `curl -X DELETE https://carambus.de/logout -H "Authorization: $TOKEN"` invalidiert den Token über JTIMatcher-Revocation. Alle weiteren Calls mit diesem Token → 401.
 
 ### 9.3 Aktivierung in Claude.app
 
@@ -567,8 +567,8 @@ Nach Setup folgenden Dialog mit Claude führen (Read-only — KEIN `armed:true`,
 | **Tool-Calls dauern lang / Timeout** | Multi-Region-Routing geht zur falschen `region_cc.base_url` (D-13-04-A) | Befund-Capture; ggf. Plan 13-06.2 Nachbesserung |
 | **Claude.app ignoriert `~/.claude.json`-Eintrag** | Claude.app nicht restarted nach `claude mcp add-json` | Cmd+Q + Re-Open (kein Hot-Reload) |
 | **Login-Call liefert leeren Authorization-Header** | devise-jwt-Config falsch (z.B. `dispatch_requests`-Regex matched Login-Route nicht) ODER `Accept: application/json`-Header fehlte beim Login | Server-Log `tail -f /var/www/carambus/current/log/production.log` während Login-Call; `Accept: application/json` Header zwingend setzen |
-| **401 mit Bearer-Token (`{"error":"Sie müssen sich anmelden..."}`)** | Token expired (>24h alt) ODER Token revoked via `DELETE /users/sign_out` ODER JWT-Secret-Inkonsistenz Server/Lokal | Neuen Token holen via Login-Call; auf Server `RAILS_MASTER_KEY` / `devise_jwt_secret_key` in production-Credentials verifizieren |
-| **Token-Wert beginnt nicht mit `eyJ`** | devise-jwt-Gem nicht geladen ODER Login-Endpoint liefert keinen Bearer-Header | `gem list devise-jwt` auf Server prüfen; `bundle exec rails routes \| grep sign_in` → POST-Route muss existieren |
+| **401 mit Bearer-Token (`{"error":"Sie müssen sich anmelden..."}`)** | Token expired (>24h alt) ODER Token revoked via `DELETE /logout` ODER JWT-Secret-Inkonsistenz Server/Lokal | Neuen Token holen via Login-Call; auf Server `RAILS_MASTER_KEY` / `devise_jwt_secret_key` in production-Credentials verifizieren |
+| **Token-Wert beginnt nicht mit `eyJ`** | devise-jwt-Gem nicht geladen ODER Login-Endpoint liefert keinen Bearer-Header | `gem list devise-jwt` auf Server prüfen; `bundle exec rails routes \| grep -E 'login\|logout'` → POST `/login`-Route muss existieren; `dispatch_requests`-Regex in `config/initializers/devise.rb` muss `^/login$` matchen (Plan 13-06.3 D-13-06.3-A) |
 
 > **Plan 13-06.1 + 13-06.2 Live-Validation-Befunde (2026-05-13/14):** 22 Tools via `claude mcp add-json ... carambus-remote` mit `?stateless=1` erfolgreich gelistet auf carambus.de. JWT-Token-Auth (Plan 13-06.2) ist Production-Primary; Cookie-Inject (Plan 13-06.1) bleibt als Legacy-Option in Sektion 9.7 erhalten. McpController-Fix `skip_forgery_protection` (Commit `66cd3b33`) Plan-13-03-Update: Rails 7.2 nullt Session-State trotz `skip_before_action :verify_authenticity_token`. Diese Tabelle wird mit Phase-14-Walkthrough-Erfahrungen erweitert.
 
@@ -585,7 +585,7 @@ Nach Setup folgenden Dialog mit Claude führen (Read-only — KEIN `armed:true`,
 
 **Cookie-Extract-Workflow:**
 
-1. Browser-Login auf https://carambus.de/users/sign_in mit Carambus-Credentials
+1. Browser-Login auf https://carambus.de/login mit Carambus-Credentials
 2. Browser-DevTools öffnen (F12, oder ⌥+⌘+I in Safari)
 3. Tab `Application` (Chrome/Edge) bzw. `Storage` (Firefox) → `Cookies` → `https://carambus.de`
 4. Wert von Cookie **`_session_id`** kopieren (32-stelliger Hex-String, Rails-Default-Cookie-Name)
