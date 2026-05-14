@@ -236,4 +236,22 @@ class UserTest < ActiveSupport::TestCase
     assert_equal u.id, payload["sub"].to_i, "JWT sub-Claim muss user_id sein"
     assert payload["exp"] > Time.current.to_i, "exp muss zukünftig sein (24h Default)"
   end
+
+  test "BackfillJtiForExistingUsers ist idempotent + alle User haben jti danach" do
+    User.unscoped.update_all(jti: nil)
+    assert User.unscoped.where(jti: nil).any?, "Setup: fixture-User sollten jti=NULL haben"
+
+    User.unscoped.where(jti: nil).find_each(batch_size: 1000) do |user|
+      user.update_columns(jti: SecureRandom.uuid)
+    end
+
+    assert_equal 0, User.unscoped.where(jti: nil).count, "alle User müssen jti gesetzt haben"
+
+    pre = User.unscoped.pluck(:id, :jti).to_h
+    User.unscoped.where(jti: nil).find_each(batch_size: 1000) do |user|
+      user.update_columns(jti: SecureRandom.uuid)
+    end
+    post = User.unscoped.pluck(:id, :jti).to_h
+    assert_equal pre, post, "Re-Run der Backfill darf bestehende jti nicht überschreiben (Idempotenz)"
+  end
 end
