@@ -499,11 +499,13 @@ TOKEN=$(curl -sS -X POST https://carambus.de/login \
   -H "Accept: application/json" \
   -H "Content-Type: application/json" \
   -d '{"user":{"email":"DEIN_USER@example.com","password":"DEIN_PW"}}' \
-  -D - | grep -i '^authorization:' | awk '{print $2}' | tr -d '\r\n')
+  -D - | grep -i '^authorization:' | sed -E 's/^[Aa]uthorization:[[:space:]]*//' | tr -d '\r\n')
 
-# Sanity-Check (Token muss mit "eyJ..." beginnen — Base64-encoded JWT-Header):
+# Sanity-Check (Token muss mit "Bearer eyJ..." beginnen — Bearer-Prefix + Base64-encoded JWT):
 echo "Token: $TOKEN"
 ```
+
+> **Plan 13-06.4 / Fix:** `sed -E 's/^[Aa]uthorization:[[:space:]]*//'` extrahiert alles **nach** dem `authorization:`-Prefix und erhält den gesamten Token-Wert inkl. `Bearer`-Prefix. Der frühere `awk '{print $2}'`-Pipe schnitt die Zeile `authorization: Bearer eyJ...` und lieferte nur das zweite Feld (`Bearer`) ohne den Token-Wert — der `add-json`-Header war dann nutzlos.
 
 **MCP-Server registrieren via CLI:**
 
@@ -569,6 +571,7 @@ Nach Setup folgenden Dialog mit Claude führen (Read-only — KEIN `armed:true`,
 | **Login-Call liefert leeren Authorization-Header** | devise-jwt-Config falsch (z.B. `dispatch_requests`-Regex matched Login-Route nicht) ODER `Accept: application/json`-Header fehlte beim Login | Server-Log `tail -f /var/www/carambus/current/log/production.log` während Login-Call; `Accept: application/json` Header zwingend setzen |
 | **401 mit Bearer-Token (`{"error":"Sie müssen sich anmelden..."}`)** | Token expired (>24h alt) ODER Token revoked via `DELETE /logout` ODER JWT-Secret-Inkonsistenz Server/Lokal | Neuen Token holen via Login-Call; auf Server `RAILS_MASTER_KEY` / `devise_jwt_secret_key` in production-Credentials verifizieren |
 | **Token-Wert beginnt nicht mit `eyJ`** | devise-jwt-Gem nicht geladen ODER Login-Endpoint liefert keinen Bearer-Header | `gem list devise-jwt` auf Server prüfen; `bundle exec rails routes \| grep -E 'login\|logout'` → POST `/login`-Route muss existieren; `dispatch_requests`-Regex in `config/initializers/devise.rb` muss `^/login$` matchen (Plan 13-06.3 D-13-06.3-A) |
+| **`$TOKEN` enthält nur `Bearer` (ohne `eyJ...`)** | Setup-Doku-Pre-13-06.4-Versionen nutzten `awk '{print $2}'`-Pipe; dieser schnitt die Zeile `authorization: Bearer eyJ...` und lieferte nur das zweite Feld (`Bearer`) | Heutige Sektion 9.2 nutzt `sed -E 's/^[Aa]uthorization:[[:space:]]*//'`-Extraktion; bei kopierten Snippets aus älteren Doku-Versionen den Token-Extract-Block durch die aktuelle Sektion-9.2-Variante ersetzen (Plan 13-06.4-Fix) |
 
 > **Plan 13-06.1 + 13-06.2 Live-Validation-Befunde (2026-05-13/14):** 22 Tools via `claude mcp add-json ... carambus-remote` mit `?stateless=1` erfolgreich gelistet auf carambus.de. JWT-Token-Auth (Plan 13-06.2) ist Production-Primary; Cookie-Inject (Plan 13-06.1) bleibt als Legacy-Option in Sektion 9.7 erhalten. McpController-Fix `skip_forgery_protection` (Commit `66cd3b33`) Plan-13-03-Update: Rails 7.2 nullt Session-State trotz `skip_before_action :verify_authenticity_token`. Diese Tabelle wird mit Phase-14-Walkthrough-Erfahrungen erweitert.
 
