@@ -19,78 +19,43 @@ Beispiele (was du tippst → was passiert):
 
 ---
 
-## Was du brauchst (~5 Minuten Vorbereitung)
+## Was du brauchst (~3 Minuten Vorbereitung)
 
 - **Mac (macOS 12+), Windows (10/11) oder Linux**
 - **Claude Code** — gratis von Anthropic: <https://claude.ai/code>
 - **Carambus-Account** auf carambus.de (Email + Passwort; bei Bedarf vorab `Passwort vergessen`-Flow)
-- **Terminal-App** (siehe Plattform-Hinweis unten)
+- **Browser** (Chrome/Firefox/Safari/Edge — egal welcher)
+- **Terminal-App** (Mac: Terminal.app / Windows: Git Bash, PowerShell oder cmd / Linux: Standard-Terminal — für eine einzige Copy-Paste-Zeile)
 - Internetverbindung
 
 ---
 
-## Plattform-Hinweis (lesen vor Schritt 3!)
-
-Die Setup-Kommandos unten sind in **Bash-Syntax** (Mac/Linux-Standard).
-
-- **macOS:** Terminal.app öffnen → alle Kommandos funktionieren direkt.
-- **Linux:** Dein Standard-Terminal → alle Kommandos funktionieren direkt.
-- **Windows:** Drei Wege, **wir empfehlen Git Bash**:
-   1. **Git Bash (empfohlen)** — Git für Windows installieren (gratis: <https://git-scm.com/download/win>); danach „Git Bash" als Terminal-App. Alle Kommandos funktionieren **identisch zu Mac/Linux**. Einfachster Pfad für Nicht-Entwickler.
-   2. **PowerShell** — native Windows-Shell. Eigene Syntax (siehe Anhang „PowerShell-Variante" am Ende dieser Seite).
-   3. **WSL2** — Linux-Subsystem unter Windows (für Power-User). Identisch zu Mac/Linux.
-
----
-
-## Setup in 6 Schritten (~15 Minuten)
+## Setup in 3 Schritten (~5 Minuten)
 
 ### Schritt 1 — Claude Code installieren
 
-- macOS / Windows: Download über <https://claude.ai/code>
-- Linux: via curl-Installer (siehe Anthropic-Doku auf derselben Seite)
+- Download über <https://claude.ai/code>
 - Verify im Terminal:
-  ```bash
+  ```
   claude --version
   ```
 
-### Schritt 2 — Carambus-Login testen
+### Schritt 2 — Setup-Befehl auf carambus.de holen
 
-- Öffne <https://carambus.de/login> im Browser
-- Logge dich mit deinem Account ein → Dashboard sollte erreichbar sein
-- Falls 401/422 → Passwort-Reset-Flow nutzen
+- Browser öffnen: <https://carambus.de/login> → mit deinem Account einloggen
+- Browser-Tab wechseln zu: <https://carambus.de/mcp/setup>
+- Du siehst eine Seite mit deinem fertigen Setup-Befehl
+- Klick auf **„📋 In Zwischenablage kopieren"**
 
-### Schritt 3 — Login-Token holen
+### Schritt 3 — Setup-Befehl in Terminal pasten
 
-Im Terminal ausführen (Email + Passwort durch deine ersetzen):
+- Terminal öffnen
+- Befehl pasten (Mac: ⌘+V / Windows/Linux: rechte Maustaste oder Ctrl+Shift+V)
+- Enter drücken
 
-```bash
-TOKEN=$(curl -sS -X POST https://carambus.de/login \
-  -H "Accept: application/json" \
-  -H "Content-Type: application/json" \
-  -d '{"user":{"email":"DEINE_EMAIL","password":"DEIN_PW"}}' \
-  -D - | grep -i '^authorization:' | sed -E 's/^[Aa]uthorization:[[:space:]]*//' | tr -d '\r\n')
+**Verify:**
 
-echo "Token: $TOKEN"
 ```
-
-**Sanity-Check:** Output muss mit `Token: Bearer eyJ...` beginnen (~224 Zeichen). Wenn nicht → siehe Troubleshooting unten.
-
-### Schritt 4 — MCP-Server registrieren
-
-```bash
-claude mcp add-json --scope user carambus-remote "{
-  \"type\": \"http\",
-  \"url\": \"https://carambus.de/mcp?stateless=1\",
-  \"headers\": {
-    \"Authorization\": \"$TOKEN\",
-    \"Accept\": \"application/json, text/event-stream\"
-  }
-}"
-```
-
-### Schritt 5 — Verify
-
-```bash
 claude mcp get carambus-remote
 ```
 
@@ -98,18 +63,12 @@ Erwartete Ausgabe:
 
 ```
 carambus-remote:
-  Scope: User config (available in all your projects)
   Status: ✓ Connected
-  Type: http
-  URL: https://carambus.de/mcp?stateless=1
-  Headers:
-    Authorization: Bearer eyJ...
-    Accept: application/json, text/event-stream
 ```
 
-### Schritt 6 — Smoke-Test in Claude Code
+**Smoke-Test in Claude Code:**
 
-- Starte eine **neue Claude-Code-Session** (`claude` im Terminal oder Claude.app neu öffnen)
+- Starte eine **neue Claude-Code-Session**
 - Frage: **„Welche carambus-remote Tools hast du?"**
 
 Erwartete Tool-Anzahl je nach deiner Rolle:
@@ -141,11 +100,12 @@ Bei produktiven Aufgaben (Anmeldung, Akkreditierung, Meldeschluss) bekommst du i
 
 | Symptom | Ursache | Lösung |
 |---------|---------|--------|
-| `claude mcp get` → `Failed to connect` | Token expired (>24h) | Schritt 3 wiederholen + `claude mcp remove carambus-remote -s user` + Schritt 4 neu |
-| Token-Wert in Schritt 3 ist leer | Login-Daten falsch ODER curl-Pipe-Problem | Email/Passwort prüfen; Browser-Login-Test (Schritt 2) wiederholen |
-| `$TOKEN` enthält nur "Bearer" (ohne `eyJ...`) | Setup-Doku-Pre-13-06.4-Versionen nutzten `awk '{print $2}'` | Schritt 3 mit der oben gezeigten `sed`-Variante (nicht `awk`) ausführen |
+| /mcp/setup → Weiterleitung auf /login | Nicht eingeloggt | Erst über <https://carambus.de/login> einloggen, dann zurück zu /mcp/setup |
+| Copy-Button kopiert nichts | Browser blockt Clipboard-API (selten) | Code-Block manuell markieren + Cmd/Ctrl+C |
+| `claude mcp get` → `Failed to connect` | Token expired (>24h) | <https://carambus.de/mcp/setup> neu laden + neuen Befehl pasten (vorher `claude mcp remove carambus-remote -s user`) |
+| 401 nach erfolgreichem Setup | Token expired | Token erneuern (Setup-Seite neu laden) |
 | Tool-Liste leer / 0 Tools | `User.mcp_role` nicht gesetzt | Carambus-Admin kontaktieren |
-| 401 nach erfolgreichem Setup | Token expired | Token erneuern (Schritt 3 wiederholen) |
+| Setup-Befehl wirft Quoting-Fehler in PowerShell/cmd | Single-Quotes werden anders behandelt | Git Bash nutzen ODER CLI-Anhang am Ende dieser Seite |
 
 Bei weiteren Problemen: dein Carambus-Admin / die technische Stellvertretung ist erreichbar.
 
@@ -155,7 +115,7 @@ Bei weiteren Problemen: dein Carambus-Admin / die technische Stellvertretung ist
 
 - **Bearer-Token ist 24h gültig.**
 - Bei Ablauf siehst du in Claude Code einen **401-Fehler**.
-- **Refresh:** Schritt 3 (Token holen) + Schritt 4 (MCP neu registrieren — nach `claude mcp remove carambus-remote -s user`) wiederholen.
+- **Refresh:** <https://carambus.de/mcp/setup> neu laden → neuen Befehl kopieren → in Terminal pasten (vorher `claude mcp remove carambus-remote -s user`).
 
 ---
 
@@ -192,28 +152,48 @@ Beide werden im Walkthrough-Termin gezeigt + sind direkt in Claude Code abrufbar
 
 ---
 
-## Anhang — PowerShell-Variante (Windows ohne Git Bash)
+## Anhang — CLI-Setup für Power-User
 
-Falls du auf Windows weder Git Bash noch WSL2 hast, hier die gleichen Schritte in PowerShell-Syntax. Funktionell identisch zum bash-Pfad oben.
+Falls du keinen Browser nutzen willst oder Setup automatisieren möchtest (z.B. CI/CD-Pipeline, mehrere Maschinen): hier der direkte CLI-Pfad.
 
-### Schritt 3 (PowerShell) — Token holen
+### Bash-Variante (Mac / Linux / Windows mit Git Bash oder WSL2)
+
+```bash
+# 1. Token holen
+TOKEN=$(curl -sS -X POST https://carambus.de/login \
+  -H "Accept: application/json" \
+  -H "Content-Type: application/json" \
+  -d '{"user":{"email":"DEINE_EMAIL","password":"DEIN_PW"}}' \
+  -D - | grep -i '^authorization:' | sed -E 's/^[Aa]uthorization:[[:space:]]*//' | tr -d '\r\n')
+echo "Token: $TOKEN"   # erwartet: Bearer eyJ...
+
+# 2. MCP-Server registrieren
+claude mcp add-json --scope user carambus-remote "{
+  \"type\": \"http\",
+  \"url\": \"https://carambus.de/mcp?stateless=1\",
+  \"headers\": {
+    \"Authorization\": \"$TOKEN\",
+    \"Accept\": \"application/json, text/event-stream\"
+  }
+}"
+
+# 3. Verify
+claude mcp get carambus-remote
+```
+
+### PowerShell-Variante (Windows nativ)
 
 ```powershell
+# 1. Token holen
 $response = Invoke-WebRequest -Uri "https://carambus.de/login" `
   -Method POST `
   -ContentType "application/json" `
   -Headers @{ "Accept" = "application/json" } `
   -Body '{"user":{"email":"DEINE_EMAIL","password":"DEIN_PW"}}'
-
 $TOKEN = $response.Headers["Authorization"]
-Write-Host "Token: $TOKEN"
-```
+Write-Host "Token: $TOKEN"   # erwartet: Bearer eyJ...
 
-**Sanity-Check:** Output muss mit `Token: Bearer eyJ...` beginnen.
-
-### Schritt 4 (PowerShell) — MCP-Server registrieren
-
-```powershell
+# 2. MCP-Server registrieren
 $config = @{
   type    = "http"
   url     = "https://carambus.de/mcp?stateless=1"
@@ -224,35 +204,22 @@ $config = @{
 } | ConvertTo-Json -Depth 3 -Compress
 
 claude mcp add-json --scope user carambus-remote $config
-```
 
-### Schritt 5 + 6 (PowerShell)
-
-Identisch zur bash-Variante:
-
-```powershell
+# 3. Verify
 claude mcp get carambus-remote
 ```
 
-(Die `claude`-CLI selbst ist plattform-unabhängig; nur die Shell-Syntax drumherum unterscheidet sich.)
-
-### Token-Refresh (PowerShell)
-
-Bei 401-Fehler:
-
-```powershell
-claude mcp remove carambus-remote -s user
-# dann Schritt 3 + 4 wiederholen
-```
-
-### PowerShell-spezifische Stolperer
+### CLI-spezifische Stolperer
 
 | Symptom | Ursache | Lösung |
 |---------|---------|--------|
-| `Invoke-WebRequest : Cannot find ...` | Alte PowerShell-Version (<5.1) | Aktuelles PowerShell 7+ via `winget install Microsoft.PowerShell` |
-| `$TOKEN` ist leer obwohl Login OK | Authorization-Header-Casing | In Schritt 3 statt `["Authorization"]` ggf. `["authorization"]` (lowercase) versuchen |
-| `claude mcp add-json` Syntax-Fehler | JSON-Escaping kaputt | Statt inline `$config` → JSON in temp-Datei schreiben und via `--from-file` (falls Claude Code es unterstützt) ODER zurück zu Git Bash wechseln |
+| Token-Wert beginnt nicht mit `Bearer eyJ...` (Bash) | Login-Daten falsch ODER curl-Pipe-Problem | Email/Passwort prüfen; Browser-Login-Test (https://carambus.de/login) wiederholen |
+| `$TOKEN` enthält nur "Bearer" (ohne `eyJ...`) | Pre-Plan-13-06.4-Snippet nutzte `awk '{print $2}'` | Die oben gezeigte `sed`-Variante nutzen (nicht `awk`) |
+| `Invoke-WebRequest : Cannot find ...` (PowerShell) | Alte PowerShell-Version (<5.1) | Aktuelles PowerShell 7+ via `winget install Microsoft.PowerShell` |
+| `claude mcp add-json` Quoting-Fehler (PowerShell) | JSON-Escaping divergent | Browser-Pfad nutzen ODER Git Bash installieren |
+
+**Token-Refresh** (CLI): identisch zum Browser-Pfad — vor neuem Setup ein `claude mcp remove carambus-remote -s user` ausführen, dann obigen Block neu laufen lassen.
 
 ---
 
-*Cloud-Quickstart v0.3+ (Plan 14-01, 2026-05-14). Dieser 1-Seiter ersetzt für Sportwarte/Turnierleiter/LSW die ausführliche Setup-Service-Doku Sektionen 1-8 (STDIO-Pfad). Plattform-Hinweis + PowerShell-Anhang ergänzt für Windows-Kompatibilität.*
+*Cloud-Quickstart v0.3+ (Plan 14-01.5, 2026-05-14). Browser-Setup-Pfad ist Default; CLI-Anhang für Power-User erhalten. Ersetzt für Sportwarte/Turnierleiter/LSW die ausführliche Setup-Service-Doku Sektionen 1-8 (STDIO-Pfad).*

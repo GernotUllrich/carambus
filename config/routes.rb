@@ -43,6 +43,9 @@ Rails.application.routes.draw do
                edit: "edit"
              }
 
+  # Plan 14-01.5: MCP-Setup-Helper-UI (Devise-protected via authenticate_user! im Controller)
+  get "/mcp/setup", to: "mcp_setup#show", as: :mcp_setup
+
   # API routes
   namespace :api do
     # AI-powered search
