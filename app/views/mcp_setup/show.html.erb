@@ -1,0 +1,75 @@
+<% content_for(:page_title, "MCP-Setup") %>
+
+<div class="container mx-auto px-4 py-8 max-w-3xl">
+  <h1 class="text-2xl font-bold mb-4">MCP-Setup für <%= current_user.email %></h1>
+
+  <p class="mb-6 text-gray-700 dark:text-gray-300">
+    Mit diesem Setup verbindest du <strong>Claude Code</strong> mit deinem Carambus-Account,
+    damit du ClubCloud-Aufgaben (Anmeldungen, Akkreditierungen, Meldelisten) per natürlicher
+    Sprache erledigen kannst — statt klick-intensive Form-Submits in der CC-UI.
+  </p>
+
+  <ol class="list-decimal list-inside space-y-2 mb-6">
+    <li>Stelle sicher, dass <strong>Claude Code</strong> auf deinem Rechner installiert ist (gratis: <a href="https://claude.ai/code" class="underline text-blue-600 dark:text-blue-400" target="_blank" rel="noopener">claude.ai/code</a>)</li>
+    <li>Klicke unten auf „📋 In Zwischenablage kopieren"</li>
+    <li>Öffne dein Terminal (Mac: Terminal.app / Windows: Git Bash oder PowerShell / Linux: Standard-Terminal)</li>
+    <li>Paste den Befehl ins Terminal und drücke <kbd>Enter</kbd></li>
+    <li>Verify mit: <code class="bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded">claude mcp get carambus-remote</code> — sollte <strong>Connected</strong> zeigen</li>
+  </ol>
+
+  <div class="bg-gray-100 dark:bg-gray-800 rounded-lg p-4 mb-4 relative">
+    <pre id="mcp-setup-command" class="text-sm overflow-x-auto whitespace-pre-wrap break-all font-mono"><%= @setup_command %></pre>
+  </div>
+
+  <button id="copy-setup-command"
+          type="button"
+          class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded mb-6"
+          data-clipboard-target="#mcp-setup-command">
+    📋 In Zwischenablage kopieren
+  </button>
+  <span id="copy-feedback" class="ml-3 text-green-600 dark:text-green-400 hidden">✓ Kopiert!</span>
+
+  <div class="border-l-4 border-yellow-400 bg-yellow-50 dark:bg-yellow-900/30 p-4 mb-6">
+    <p class="text-sm">
+      <strong>Token-Lifetime:</strong> Der eingebettete Bearer-Token ist <strong>24 Stunden</strong> gültig.
+      Wenn dein Setup nach 24h einen 401-Fehler liefert: einfach diese Seite neu laden und den neuen
+      Befehl in dein Terminal pasten (vorher <code class="bg-gray-100 dark:bg-gray-800 px-1 rounded">claude mcp remove carambus-remote -s user</code> ausführen).
+    </p>
+  </div>
+
+  <h2 class="text-xl font-semibold mt-8 mb-2">Erste Schritte nach dem Setup</h2>
+  <p class="mb-4">
+    Öffne eine neue Claude-Code-Session und probiere:
+  </p>
+  <ul class="list-disc list-inside space-y-1 mb-6">
+    <li>„Welche carambus-remote Tools hast du?"</li>
+    <li>„Liste die offenen Turniere in meiner Region"</li>
+    <li>„Status NDM Endrunde Eurokegel?" (oder ein Turnier deiner Wahl)</li>
+  </ul>
+
+  <h2 class="text-xl font-semibold mt-8 mb-2">Weiterführend</h2>
+  <ul class="list-disc list-inside space-y-1">
+    <li><a href="https://gernotullrich.github.io/carambus/managers/clubcloud-mcp-cloud-quickstart/" class="underline text-blue-600 dark:text-blue-400" target="_blank" rel="noopener">Cloud-Quickstart (1-Seiten-Anleitung mit Troubleshooting)</a></li>
+    <li><a href="https://gernotullrich.github.io/carambus/managers/clubcloud-mcp-setup-service/" class="underline text-blue-600 dark:text-blue-400" target="_blank" rel="noopener">Vollständige Setup-Service-Doku (inkl. DSGVO + Audit-Trail)</a></li>
+  </ul>
+</div>
+
+<script nonce="<%= content_security_policy_nonce %>">
+  document.addEventListener("DOMContentLoaded", function () {
+    const button = document.getElementById("copy-setup-command");
+    const target = document.getElementById("mcp-setup-command");
+    const feedback = document.getElementById("copy-feedback");
+
+    if (button && target && navigator.clipboard) {
+      button.addEventListener("click", async function () {
+        try {
+          await navigator.clipboard.writeText(target.innerText);
+          feedback.classList.remove("hidden");
+          setTimeout(function () { feedback.classList.add("hidden"); }, 3000);
+        } catch (err) {
+          alert("Konnte nicht in Zwischenablage kopieren. Bitte manuell markieren + Cmd/Ctrl+C.");
+        }
+      });
+    }
+  });
+</script>
