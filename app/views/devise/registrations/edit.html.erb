@@ -108,8 +108,7 @@
               <%= form.select :cc_region,
                               options_for_select(
                                 Region.where.not(shortname: 'DBU')
-                                      .where.not(region_cc_id: nil)
-                                      .distinct
+                                      .joins(:region_cc)
                                       .order(:shortname)
                                       .pluck(:shortname, :name)
                                       .map { |sn, nm| ["#{sn} — #{nm}", sn] },
