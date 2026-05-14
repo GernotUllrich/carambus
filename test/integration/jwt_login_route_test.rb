@@ -42,6 +42,29 @@ class JwtLoginRouteTest < ActionDispatch::IntegrationTest
     assert payload["jti"].present?, "JWT-jti muss gesetzt sein (Plan 13-06.2 JTIMatcher-Revocation)"
   end
 
+  # Plan 13-06.3 D-13-06.3-C: reproduziert Production-CSRF-Block.
+  # Test-Env hat allow_forgery_protection=false per Default — daher hat der
+  # vorherige Test den Bug nicht gesehen. Hier explizit re-enablen, sicherstellen
+  # dass skip_forgery_protection (if json) den Block fuer JSON-Requests umgeht.
+  test "POST /login mit JSON ueberlebt aktivierte CSRF-Protection (skip_forgery_protection if json)" do
+    prev = ActionController::Base.allow_forgery_protection
+    ActionController::Base.allow_forgery_protection = true
+    begin
+      post "/login",
+        params: {user: {email: @user.email, password: "password123"}}.to_json,
+        headers: {
+          "Content-Type" => "application/json",
+          "Accept" => "application/json"
+        }
+      assert_response :success,
+        "Mit aktivierter CSRF-Protection muss SessionsController via skip_forgery_protection (if json) trotzdem 200 liefern. Status: #{response.code}"
+      assert response.headers["Authorization"].to_s.start_with?("Bearer "),
+        "Authorization-Bearer-Header muss auch unter aktivierter CSRF-Protection gesetzt sein"
+    ensure
+      ActionController::Base.allow_forgery_protection = prev
+    end
+  end
+
   test "POST /users/sign_in (Devise-Default-Pfad) ist 404 — beweist dass routes.rb path-Override aktiv ist" do
     post "/users/sign_in",
       params: {user: {email: @user.email, password: "password123"}}.to_json,

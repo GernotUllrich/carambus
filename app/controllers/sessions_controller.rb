@@ -13,6 +13,14 @@
 class SessionsController < Devise::SessionsController
   respond_to :html, :json
 
+  # Plan 13-06.3 / D-13-06.3-C: skip_forgery_protection nur fuer JSON-Requests.
+  # Browser-Login (HTML) behaelt CSRF-Schutz; API-Login (JSON) braucht ihn nicht
+  # weil JWT als Anti-CSRF-Mechanismus dient (Token = Authentication-Beweis).
+  # Analog Plan 13-06.1 D-13-06.1-B (McpController-Pattern; ohne diesen Skip
+  # liefert ein POST /login mit Content-Type: application/json einen 422 ohne
+  # Body, weil ApplicationController#protect_from_forgery with: :exception greift).
+  skip_forgery_protection if: -> { request.format.json? }
+
   private
 
   # JSON-Body-Layout fuer Login-Response (devise-jwt setzt Authorization-Header
