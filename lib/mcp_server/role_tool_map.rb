@@ -1,14 +1,18 @@
 # frozen_string_literal: true
 
 module McpServer
-  # Statisches Mapping MCP-Rolle → Tool-Subset (D-13-01-D Option-B-Override 5-Rollen-Modell).
-  # Jede Rolle bekommt ein Array von Tool-Klassen-Symbolen (entsprechen Klassennamen unter McpServer::Tools).
-  # NICHT direkt aus Klassen-Constants ableiten — Mapping ist die Single-Source-of-Truth für Permissions.
+  # TEMPORARY STUB (Plan 14-G.1 / D-14-G6):
+  # User#mcp_role-Enum wurde entfernt; Authority-Layer-Refactor (Sportwart-Wirkbereich + TL-FK +
+  # Carambus.config.region_id) folgt in Plan 14-G.2.
   #
-  # Pattern: Read-Tools in BASE_READ_TOOLS; Write-Tools per Rolle hinzugefügt.
-  # Frozen-Hash + frozen-Arrays gegen versehentliche Mutation zur Laufzeit.
+  # Aktuelles Verhalten: jeder authentifizierte User bekommt das volle Tool-Subset
+  # ("all-authenticated-tools"). Der eigentliche Authority-Check wandert in 14-G.2
+  # in den McpController bzw. in BaseTool#authorize!.
+  #
+  # Frozen-Array-Pattern aus Phase-13 bleibt erhalten — nur das Mapping ist degeneriert
+  # auf eine einzige „all"-Liste.
   module RoleToolMap
-    # Read-only Tools (alle Rollen haben mindestens diese)
+    # Read-only Tools
     BASE_READ_TOOLS = %i[
       LookupRegion
       LookupClub
@@ -28,35 +32,17 @@ module McpServer
       CheckPlayerDisciplineExperience
     ].freeze
 
-    # Sportwart-Write-Subset (Vor-Turnier-Persona)
-    SPORTWART_WRITE_TOOLS = %i[
+    # Write-Tools (Sportwart + Turnierleiter zusammen — 14-G.2 trennt das wieder authority-basiert)
+    WRITE_TOOLS = %i[
       RegisterForTournament
       UpdateTournamentDeadline
       UnregisterForTournament
-    ].freeze
-
-    # Turnierleiter-Write-Subset (Am-Turniertag-Persona)
-    TURNIERLEITER_WRITE_TOOLS = %i[
       AssignPlayerToTeilnehmerliste
       RemoveFromTeilnehmerliste
       FinalizeTeilnehmerliste
-      RegisterForTournament
-      UnregisterForTournament
     ].freeze
 
-    # Admin/LSW-Write-Subset (alle Write-Tools)
-    ADMIN_WRITE_TOOLS = (SPORTWART_WRITE_TOOLS + TURNIERLEITER_WRITE_TOOLS).uniq.freeze
-
-    # Vollständiges Mapping pro mcp_role-Enum-Wert (User#mcp_role-String → Tool-Subset-Array)
-    MAPPING = {
-      mcp_public_read: BASE_READ_TOOLS,
-      mcp_sportwart: (BASE_READ_TOOLS + SPORTWART_WRITE_TOOLS).uniq.freeze,
-      mcp_turnierleiter: (BASE_READ_TOOLS + TURNIERLEITER_WRITE_TOOLS).uniq.freeze,
-      mcp_landessportwart: (BASE_READ_TOOLS + ADMIN_WRITE_TOOLS).uniq.freeze,
-      mcp_admin: (BASE_READ_TOOLS + ADMIN_WRITE_TOOLS).uniq.freeze
-    }.freeze
-
-    # Anzahl der erwarteten Tools pro Rolle (für Test-Drift-Guard)
-    EXPECTED_COUNTS = MAPPING.transform_values(&:size).freeze
+    # All-Tools (Stub-Inhalt für jeden authentifizierten User)
+    ALL_TOOLS = (BASE_READ_TOOLS + WRITE_TOOLS).uniq.freeze
   end
 end

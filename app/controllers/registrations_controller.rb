@@ -37,7 +37,6 @@ class RegistrationsController < Devise::RegistrationsController
         timezone
         theme
         locale
-        cc_region
       ])
   end
 

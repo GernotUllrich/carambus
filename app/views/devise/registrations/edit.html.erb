@@ -100,26 +100,6 @@
                                      { default: current_user.preferences['timezone'] || 'Berlin' },
                                      class: 'w-full px-4 py-3 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-black dark:text-white' %>
             </div>
-
-            <%# Plan 14-02.1-fix / D-14-02-G: User#cc_region als Pflicht-Profil-Feld für MCP-Zugriff. %>
-            <%# Source of truth für server_context[:cc_region]; kein ENV/Setting/Default-Fallback mehr. %>
-            <div class="form-group mt-8">
-              <%= form.label :cc_region, "Verband/Region (für MCP-Zugriff)", class: "text-lg font-medium mb-2 block" %>
-              <%= form.select :cc_region,
-                              options_for_select(
-                                Region.where.not(shortname: 'DBU')
-                                      .joins(:region_cc)
-                                      .order(:shortname)
-                                      .pluck(:shortname, :name)
-                                      .map { |sn, nm| ["#{sn} — #{nm}", sn] },
-                                current_user.cc_region
-                              ),
-                              { include_blank: '(bitte wählen)' },
-                              class: 'w-full px-4 py-3 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-black dark:text-white' %>
-              <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                Pflicht für MCP-Tools (Sportwart, Turnierleiter, Landessportwart). Wird beim Tool-Aufruf als Region-Filter genutzt.
-              </p>
-            </div>
           </div>
         </div>
 

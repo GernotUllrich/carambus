@@ -3,30 +3,25 @@
 require_relative "role_tool_map"
 
 module McpServer
-  # Public API für Tool-Subset-Auflösung pro User.
-  # Plan 13-03 (McpController) wird `ToolRegistry.tools_for(current_user)` als Server-Tools-Liste verwenden.
-  # Plan 13-04 (server_context-Propagation) braucht ToolRegistry NICHT direkt — Tools sind dann schon gefiltert.
+  # TEMPORARY STUB (Plan 14-G.1 / D-14-G6):
+  # User#mcp_role-Enum wurde entfernt; jeder authentifizierte User bekommt das
+  # volle Tool-Subset. Authority-Layer-Refactor (Sportwart-Wirkbereich + TL-FK +
+  # Carambus.config.region_id) folgt in Plan 14-G.2.
   module ToolRegistry
     # Liefert Array von Tool-Klassen-Symbolen für den User.
-    # Defensive: nil-User oder unbekannte Rolle → leeres Array (keine Tools verfügbar).
+    # Stub-Verhalten: jeder nicht-nil User bekommt ALL_TOOLS.
     def self.tools_for(user)
       return [] if user.nil?
-
-      role_key = user.mcp_role&.to_sym
-      return [] unless role_key
-
-      RoleToolMap::MAPPING[role_key] || []
+      RoleToolMap::ALL_TOOLS
     end
 
-    # Anzahl Tools für eine Rolle. Für Test-Assertions + Audit-Logging.
-    def self.tool_count_for(role_key)
-      return 0 if role_key.nil?
-
-      RoleToolMap::EXPECTED_COUNTS[role_key.to_sym] || 0
+    # Anzahl Tools für eine "Rolle" — Stub gibt für jeden Key die ALL_TOOLS-Größe zurück.
+    # Wird in 14-G.2 wieder authority-basiert (Sportwart vs TL vs LSW Tool-Subsets).
+    def self.tool_count_for(_role_key)
+      RoleToolMap::ALL_TOOLS.size
     end
 
-    # Resolved Tool-Klassen (statt nur Symbole) — für Plan 13-03 McpController-Mount.
-    # Lookup via "McpServer::Tools::#{name}".constantize.
+    # Resolved Tool-Klassen (statt nur Symbole) — für McpController-Mount.
     def self.tool_classes_for(user)
       tools_for(user).map do |sym|
         "McpServer::Tools::#{sym}".constantize

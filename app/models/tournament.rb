@@ -63,6 +63,7 @@ class Tournament < ApplicationRecord
   include SourceHandler
   include RegionTaggable
   include Searchable
+  include TournamentLeiter
   DEBUG_LOGGER = Logger.new("#{Rails.root}/log/debug.log")
 
   include AASM
@@ -89,6 +90,9 @@ class Tournament < ApplicationRecord
   
   # International associations
   belongs_to :international_tournament, optional: true
+
+  # D-14-G4: Single-TL-pro-Turnier Sub-Authorization.
+  belongs_to :turnier_leiter, class_name: "User", foreign_key: :turnier_leiter_user_id, optional: true
   
   # Polymorphe Video Association
   has_many :videos, as: :videoable, dependent: :nullify
