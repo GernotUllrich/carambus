@@ -2,6 +2,12 @@
 
 class RegistrationsController < Devise::RegistrationsController
   before_action :configure_permitted_parameters
+
+  # D-41-D Plan 41-02 Task 1: server-seitiger Honeypot-Guard. View rendert das verborgene
+  # Feld via <%= invisible_captcha %> (registrations/new.html.erb). Bots, die das Feld
+  # fuellen, werden hier auf #new redirected + flash[:error] (Mitigation T-41-02-01).
+  invisible_captcha only: [:create], honeypot: :subtitle
+
   # PUT /resource
   # We need to use a copy of the resource because we don't want to change
   # the current user in place.
@@ -37,6 +43,17 @@ class RegistrationsController < Devise::RegistrationsController
         timezone
         theme
         locale
+      ])
+    # Plan 41-02 Task 1 (Rule 2 auto-fix): :sign_up permittiert terms_of_service +
+    # first_name/last_name, damit die User-Modell-Validation `validates :terms_of_service,
+    # acceptance: true, on: :create` greift. Ohne :sign_up-Permit war terms_of_service
+    # immer nil (durch Strong-Parameters gefiltert), wodurch die acceptance-Validation
+    # passierbar wurde — d.h. Bots/Scripts konnten ohne AGB-Akzept registrieren.
+    devise_parameter_sanitizer.permit(:sign_up,
+      keys: %i[
+        first_name
+        last_name
+        terms_of_service
       ])
   end
 
