@@ -1024,6 +1024,15 @@ ENV
     webserver_port = env_config['webserver_port'] || 3000
     webserver_host = env_config['webserver_host'] || 'localhost'
 
+    # Plan 14-G.7.1 / D-14-G.7.1-A: HTTPS-conditional Port-Klausel für default_url_options.
+    # Pre-Fix Bug: `port: #{webserver_port}` unkonditional setzte port:80 für HTTPS-Scenarios
+    # (z.B. carambus_nbv mit ssl_enabled:true + webserver_port:80 hinter HTTPS-Front-Proxy)
+    # → broken Redirects `https://host:80/...` mit SSL-Connection-Errors.
+    # Fix: bei HTTPS-Mode (ssl_enabled true ODER webserver_port = 443) → port weglassen
+    # (HTTPS-Default ist 443; Rails wählt korrekt). LAN-Scenarios (port 3000/8080) → port behalten.
+    https_mode = env_config['ssl_enabled'] || webserver_port.to_s == '443'
+    port_clause = https_mode ? '' : ", port: #{webserver_port}"
+
     # Prepare raspberry_pi_client hosts
     raspberry_pi_client = env_config['raspberry_pi_client']
     raspberry_pi_hosts = ""
@@ -1100,8 +1109,8 @@ Rails.application.configure do
   config.force_ssl = ENV["USE_HTTPS"] == "true"
 
   # Set default URL options for redirects and link generation
-  config.action_controller.default_url_options = { host: "#{webserver_host}", port: #{webserver_port} }
-  config.action_mailer.default_url_options = { host: "#{webserver_host}", port: #{webserver_port} }
+  config.action_controller.default_url_options = { host: "#{webserver_host}"#{port_clause} }
+  config.action_mailer.default_url_options = { host: "#{webserver_host}"#{port_clause} }
 
   # Include generic and useful information about system operation, but avoid logging too much
   # information to avoid inadvertent exposure of personally identifiable information (PII).
@@ -1180,6 +1189,7 @@ RUBY
                     .gsub('#{webserver_host}', webserver_host)
                     .gsub('#{raspberry_pi_hosts}', raspberry_pi_hosts)
                     .gsub('#{duckdns_hosts}', duckdns_hosts)
+                    .gsub('#{port_clause}', port_clause)
 
     File.write(File.join(env_dir, 'production.rb'), content)
     puts "   Generated: #{File.join(env_dir, 'production.rb')}"
