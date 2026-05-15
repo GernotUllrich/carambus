@@ -330,11 +330,14 @@ Devise.setup do |config|
   # changed. Defaults to true, so a user is signed in automatically after changing a password.
   # config.sign_in_after_change_password = true
 
-  # ==> Configuration for :jwt_authenticatable (Plan 13-06.2 / D-13-06.1-C)
+  # ==> Configuration for :jwt_authenticatable (Plan 13-06.2 / D-13-06.1-C; Plan 14-G.5 / D-14-G7)
   # MCP-Clients senden `Authorization: Bearer <jwt>` für stateless API-Auth.
   # Backwards-Compat: Cookie-Session (Plan 13-06.1) bleibt parallel über Standard-Devise.
-  # Token-Lifetime 24h (vs 120min Cookie-Session) für Phase-14-Walkthrough-Komfort.
-  # Revocation via JTIMatcher (User#jti); kein separater Token-Blacklist nötig.
+  # Plan 14-G.5 / D-14-G7: Long-Lived-JWT — 90-Tage-Default für Token-Expiry-UX-Invisible
+  # (statt 24h-Walkthrough-Pragma aus Plan 13-06.2). Konfigurierbar via
+  # Carambus.config.jwt_expiration_days (carambus.yml-Key; per-Region-Scenario-Override).
+  # JTIMatcher-Revocation (User#jti, D-13-06.2-C) bleibt aktiv als Force-Logout-Defense
+  # bei sicherheitskritischen Events.
   config.jwt do |jwt|
     jwt.secret = Rails.application.credentials.devise_jwt_secret_key.presence ||
       ENV["DEVISE_JWT_SECRET_KEY"].presence ||
@@ -342,9 +345,12 @@ Devise.setup do |config|
     # Plan 13-06.3 / D-13-06.3-A: Devise-Routes sind via routes.rb umkonfiguriert
     # (`devise_for :users, path: "", path_names: { sign_in: "login", sign_out: "logout" }`).
     # Die echten Login-/Logout-URLs sind daher /login und /logout, NICHT /users/sign_in.
-    # Plan 13-06.2 hatte das übersehen → kein JWT-Issue trotz erfolgreichem Login.
     jwt.dispatch_requests = [["POST", %r{^/login$}]]
     jwt.revocation_requests = [["DELETE", %r{^/logout$}]]
-    jwt.expiration_time = 24.hours.to_i
+    # Plan 14-G.5 / D-14-G7: expiration_time aus Carambus.config.jwt_expiration_days
+    # (Default 90 Tage falls Config blank/0/missing).
+    jwt_days = Carambus.config.respond_to?(:jwt_expiration_days) ? Carambus.config.jwt_expiration_days.to_i : 0
+    jwt_days = 90 if jwt_days <= 0
+    jwt.expiration_time = jwt_days * 86_400 # Tage → Sekunden
   end
 end
