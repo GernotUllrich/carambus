@@ -48,21 +48,21 @@ class McpMultiRegionRoutingTest < ActionDispatch::IntegrationTest
     end
   end
 
-  # Plan 14-G.2 / D-14-G3: RESTORE — Carambus.config.region_id ist neue Source-of-Truth.
-  test "Carambus.config.region_id setzt effective_cc_region (server_context-fallback ignoriert wenn Config gesetzt)" do
-    original = Carambus.config.region_id
-    Carambus.config.region_id = "NBV"
+  # Plan 14-G.2 / D-14-G3: RESTORE — Carambus.config.context ist neue Source-of-Truth.
+  test "Carambus.config.context setzt effective_cc_region (server_context-fallback ignoriert wenn Config gesetzt)" do
+    original = Carambus.config.context
+    Carambus.config.context = "NBV"
     assert_equal "NBV", McpServer::Tools::BaseTool.effective_cc_region({cc_region: "BWB"})
   ensure
-    Carambus.config.region_id = original
+    Carambus.config.context = original
   end
 
-  test "effective_cc_region: Carambus.config.region_id blank + server_context blank → nil" do
-    original = Carambus.config.region_id
-    Carambus.config.region_id = ""
+  test "effective_cc_region: Carambus.config.context blank + server_context blank → nil" do
+    original = Carambus.config.context
+    Carambus.config.context = ""
     assert_nil McpServer::Tools::BaseTool.effective_cc_region(nil)
     assert_nil McpServer::Tools::BaseTool.effective_cc_region({})
   ensure
-    Carambus.config.region_id = original
+    Carambus.config.context = original
   end
 end

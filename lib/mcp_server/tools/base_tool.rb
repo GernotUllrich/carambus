@@ -145,14 +145,17 @@ module McpServer
         nil
       end
 
-      # Plan 14-G.2 / D-14-G3 + D-13-04-B PARTIAL:
+      # Plan 14-G.2 / D-14-G3 + D-13-04-B PARTIAL (Hot-Fix 14-G.6.1):
       # Source-of-Truth wechselt von User#cc_region (gedroppt per D-14-G6) zu
-      # Carambus.config.region_id (Scenario-Config). server_context[:cc_region]
-      # bleibt als Backwards-Compat-Fallback erhalten (Test-Setups, die explizit
-      # Context setzen, ohne carambus.yml zu mutieren).
+      # Carambus.config.context (Scenario-Config — kanonischer Region-Shortname-Key
+      # seit Jahren etabliert; z.B. scenario_generator.rb, cleanup.rake, carambus.rake).
+      # 14-G.2-Pre-Decision-Error: hatte fälschlich einen NEUEN Key `region_id` eingeführt;
+      # Hot-Fix in 14-G.6.1 reverted auf bestehenden `context`-Key.
+      # server_context[:cc_region] bleibt als Backwards-Compat-Fallback erhalten
+      # (Test-Setups, die explizit Context setzen ohne carambus.yml zu mutieren).
       # UPPERCASE-Convention (Region#shortname in Carambus ist UPPERCASE).
       def self.effective_cc_region(server_context = nil)
-        config_region = Carambus.config.region_id.to_s if Carambus.config.respond_to?(:region_id)
+        config_region = Carambus.config.context.to_s if Carambus.config.respond_to?(:context)
         return config_region.upcase if config_region.present?
         ctx_region = server_context&.dig(:cc_region)
         return ctx_region.to_s.upcase if ctx_region.is_a?(String) && ctx_region.present?
