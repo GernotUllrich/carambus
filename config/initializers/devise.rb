@@ -326,9 +326,12 @@ Devise.setup do |config|
 
   # ==> Configuration for :registerable
 
-  # When set to false, does not sign a user in automatically after their password is
-  # changed. Defaults to true, so a user is signed in automatically after changing a password.
-  # config.sign_in_after_change_password = true
+  # Plan 41-04 Task 1 (D-41-C): Hard-Revoke bei PW-Change semantisch durchsetzen.
+  # User muss nach Passwort-Aenderung neu einloggen — JTI-Rotation per Callback
+  # (siehe app/models/user.rb, Plan 41-03) invalidiert alle JWTs;
+  # sign_in_after_change_password=false invalidiert auch die aktuelle Browser-Session
+  # (bypass_sign_in wird nicht aktiviert in RegistrationsController#update).
+  config.sign_in_after_change_password = false
 
   # ==> Configuration for :jwt_authenticatable (Plan 13-06.2 / D-13-06.1-C; Plan 14-G.5 / D-14-G7)
   # MCP-Clients senden `Authorization: Bearer <jwt>` für stateless API-Auth.
