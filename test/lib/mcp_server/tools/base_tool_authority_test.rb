@@ -168,4 +168,48 @@ class BaseToolAuthorityTest < ActiveSupport::TestCase
     assert_match(/TL-Status=nein/, result.content.first[:text])
     assert_match(/Sportwart-Wirkbereich=nein/, result.content.first[:text])
   end
+
+  # --- Plan 14-G.4 / F5-A: Tournament-Resolver-Specs ---
+
+  test "resolve_tournament: beide cc_ids nil → nil" do
+    result = McpServer::Tools::BaseTool.resolve_tournament(
+      meldeliste_cc_id: nil, tournament_cc_id: nil, server_context: {cc_region: "NBV"}
+    )
+    assert_nil result
+  end
+
+  test "resolve_tournament: blanker server_context → nil (kein Region-Lookup möglich)" do
+    result = McpServer::Tools::BaseTool.resolve_tournament(
+      meldeliste_cc_id: 12_345, tournament_cc_id: nil, server_context: {}
+    )
+    assert_nil result
+  end
+
+  test "resolve_tournament: unknown meldeliste_cc_id → nil (defensiv, kein Crash)" do
+    result = McpServer::Tools::BaseTool.resolve_tournament(
+      meldeliste_cc_id: 99_999_999, tournament_cc_id: nil, server_context: {cc_region: "NBV"}
+    )
+    assert_nil result
+  end
+
+  test "resolve_tournament: meldeliste_cc_id mit gültiger RegistrationListCc→TournamentCc→Tournament-Kette → Tournament" do
+    # save(validate: false) — Test-Setup umgeht RegistrationListCc-belongs_to-Validations
+    # (branch_cc/season/discipline/category_cc); für Authority-Resolver ist nur die
+    # cc_id+context-Such-Kette relevant.
+    rlc = RegistrationListCc.new(cc_id: 90_001, context: "nbv")
+    rlc.save(validate: false)
+    TournamentCc.create!(cc_id: 80_001, context: "nbv", tournament: @tournament, registration_list_cc: rlc)
+    result = McpServer::Tools::BaseTool.resolve_tournament(
+      meldeliste_cc_id: 90_001, tournament_cc_id: nil, server_context: {cc_region: "NBV"}
+    )
+    assert_equal @tournament.id, result&.id
+  end
+
+  test "resolve_tournament: tournament_cc_id mit gültiger TournamentCc→Tournament-Kette → Tournament" do
+    TournamentCc.create!(cc_id: 80_002, context: "nbv", tournament: @tournament)
+    result = McpServer::Tools::BaseTool.resolve_tournament(
+      meldeliste_cc_id: nil, tournament_cc_id: 80_002, server_context: {cc_region: "NBV"}
+    )
+    assert_equal @tournament.id, result&.id
+  end
 end

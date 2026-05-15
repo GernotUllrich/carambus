@@ -341,6 +341,34 @@ module McpServer
         Rails.logger.warn "[BaseTool.authorize!] #{e.class}: #{e.message}"
         error("Authority-Check fehlgeschlagen (defensive): #{e.class.name}")
       end
+
+      # Plan 14-G.4 / F5-A: Tournament-Resolver für Authority-Integration in Write-Tools.
+      # Sucht Tournament-Record via RegistrationListCc-Chain (wenn meldeliste_cc_id gegeben;
+      # die "Meldeliste" in CC entspricht RegistrationListCc in Carambus-DB)
+      # ODER TournamentCc-Chain (wenn tournament_cc_id gegeben).
+      # Defensiv: returnt nil bei unauflöslichen Inputs (kein Crash).
+      def self.resolve_tournament(meldeliste_cc_id: nil, tournament_cc_id: nil, server_context: nil)
+        context = effective_cc_region(server_context).to_s.downcase
+        return nil if context.blank?
+
+        if meldeliste_cc_id.present?
+          rlc = RegistrationListCc.find_by(cc_id: meldeliste_cc_id.to_i, context: context)
+          if rlc
+            tcc = TournamentCc.find_by(registration_list_cc_id: rlc.id, context: context)
+            return tcc.tournament if tcc&.tournament
+          end
+        end
+
+        if tournament_cc_id.present?
+          tcc = TournamentCc.find_by(cc_id: tournament_cc_id.to_i, context: context)
+          return tcc.tournament if tcc&.tournament
+        end
+
+        nil
+      rescue => e
+        Rails.logger.warn "[BaseTool.resolve_tournament] #{e.class}: #{e.message}"
+        nil
+      end
     end
   end
 end
