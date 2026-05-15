@@ -224,6 +224,80 @@ module McpServer
         return nil if context.blank?
         TournamentCc.find_by(cc_id: cc_id.to_i, context: context)
       end
+
+      # Plan 14-02.3 / F-7: Season-Default-Helper. Tournament-Lookup/List-Tools filtern
+      # by-default auf die aktuelle Saison; optional via override-Parameter umschaltbar.
+      # Saison-Modell: Season.current_season existiert bereits in app/models/season.rb
+      # (delegiert auf "year/year+1"-Naming-Convention mit 6-Monats-Cutoff).
+      #
+      # override → exakter Season-Name (z.B. "2025/2026"); nicht gefunden → current_season.
+      # Defensive: rescued StandardError damit Mock-/Test-Pfade ohne Season-Fixtures nicht crashen.
+      def self.effective_season(server_context = nil, override: nil)
+        if override.present?
+          found = Season.find_by(name: override.to_s)
+          return found if found
+          Rails.logger.warn "[BaseTool.effective_season] Season-Override '#{override}' nicht gefunden; nutze current_season"
+        end
+        Season.current_season
+      rescue => e
+        Rails.logger.warn "[BaseTool.effective_season] #{e.class}: #{e.message}"
+        nil
+      end
+
+      # Plan 14-02.3 / F-7: Season-Derivation aus Datum. Notwendig weil TournamentCc.season
+      # im DB-Mirror häufig null ist (Sync-Bug, v0.4-Backlog-Item).
+      # Carambus-Saison-Convention: 1. Juli = Cutoff. Date in "2025/2026" wenn
+      # 2025-07-01 <= date <= 2026-06-30 (siehe Season#season_from_date für Vergleich;
+      # identisches Verhalten via Juli-Cutoff statt 6-Monats-Subtraktion).
+      def self.derive_season_from_date(date)
+        return nil if date.nil?
+        d = date.respond_to?(:to_date) ? date.to_date : Date.parse(date.to_s)
+        year = (d.month >= 7) ? d.year : d.year - 1
+        Season.find_by(name: "#{year}/#{year + 1}")
+      rescue => e
+        Rails.logger.warn "[BaseTool.derive_season_from_date] #{e.class}: #{e.message}"
+        nil
+      end
+
+      # Plan 14-02.3 / F-2: Branch-Resolver für Discipline-Filter in Tournament-Read-Tools.
+      # Carambus-Datenmodell: `Branch` ist STI-Subklasse von `Discipline` (type='Branch';
+      # 4 Branches: Pool=23, Snooker=24, Karambol=50, Kegel=55). Reguläre Disciplines
+      # zeigen via super_discipline_id auf ihre Branch.
+      #
+      # Resolver-Reihenfolge:
+      #   1. Branch-Match (case-insensitive ILIKE) → alle Sub-Disciplines liefern
+      #   2. Discipline-Match (case-insensitive ILIKE) → einzelne Discipline
+      #   3. Numerische Discipline-ID-Fallback
+      #
+      # Returns [discipline_ids, branch_name] tuple:
+      #   - [nil, nil] bei blank/nicht gefunden
+      #   - [[id1, id2, ...], "Pool"] bei Branch-Match
+      #   - [[id], nil] bei Discipline-Match
+      def self.resolve_discipline_or_branch(filter_string)
+        return [nil, nil] if filter_string.blank?
+        f = filter_string.to_s.strip
+
+        # Pfad 1: Branch-Match (STI: Discipline.where(type: 'Branch'))
+        branch = Branch.find_by("name ILIKE ?", f)
+        if branch
+          discipline_ids = Discipline.where(super_discipline_id: branch.id).pluck(:id)
+          return [discipline_ids, branch.name] if discipline_ids.any?
+        end
+
+        # Pfad 2: Discipline-Match
+        discipline = Discipline.find_by("name ILIKE ?", f)
+        return [[discipline.id], nil] if discipline
+
+        # Pfad 3: numerische Discipline-ID
+        if f.match?(/\A\d+\z/) && Discipline.exists?(f.to_i)
+          return [[f.to_i], nil]
+        end
+
+        [nil, nil]
+      rescue => e
+        Rails.logger.warn "[BaseTool.resolve_discipline_or_branch] #{e.class}: #{e.message}"
+        [nil, nil]
+      end
     end
   end
 end
