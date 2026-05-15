@@ -167,9 +167,9 @@ nav:
           - MCP Quickstart: managers/clubcloud-mcp-quickstart.md
           - Setup: managers/clubcloud-mcp-setup.md
           - Setup Service: managers/clubcloud-mcp-setup-service.md
-          - Klickreduktion - Anmeldung aus E-Mail: managers/clubcloud-mcp-klickreduktion-anmeldung-aus-email.md
-          - Klickreduktion - Meldeliste finalisieren: managers/clubcloud-mcp-klickreduktion-meldeliste-finalisieren.md
-          - Klickreduktion - Turnier-Status & Anmelden: managers/clubcloud-mcp-klickreduktion-turnier-status-und-anmelden.md
+          # Klickreduktion-Docs (klickreduktion-*) deferred zu v0.5 — fehlen ~48 Screenshot-Files
+          # in managers/images/ (TODO-Marker im Source seit Plan 14-01); Nav-Aktivierung würde
+          # broken-image-Placeholders rendern. Reaktivieren nach Screenshot-Capture-Session.
       - ClubCloud Scenarios:
           - CC Glossary: managers/clubcloud-scenarios/cc-glossary.md
           - CC Roles: managers/clubcloud-scenarios/cc-roles.md
