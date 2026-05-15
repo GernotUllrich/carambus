@@ -43,12 +43,13 @@ class McpController < ApplicationController
   private
 
   def build_server_context
-    # Plan 14-G.2 / D-14-G3: Per-Region-Scenario-Region wird in server_context propagiert.
+    # Plan 14-G.2 / D-14-G3 (Hot-Fix 14-G.6.1): Per-Region-Scenario-Region wird in server_context propagiert.
     # Tools (28 Call-Sites) lesen weiterhin server_context[:cc_region]; Source ist jetzt
-    # Carambus.config.region_id statt user.cc_region (gedroppt in 14-G.1 / D-14-G6).
+    # Carambus.config.context (kanonischer Key seit Jahren) statt user.cc_region (gedroppt in 14-G.1 / D-14-G6).
+    # 14-G.2-Pre-Decision-Error revertiert: nutzt bestehenden context-Key statt neuem region_id-Key.
     {
       user_id: current_user.id,
-      cc_region: Carambus.config.region_id.to_s.presence&.upcase
+      cc_region: Carambus.config.context.to_s.presence&.upcase
     }
   end
 end

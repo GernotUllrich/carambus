@@ -64,26 +64,26 @@ class McpControllerTest < ActionDispatch::IntegrationTest
   end
 
   # Plan 14-G.2 / D-14-G6: Per-Role-User-Setup-Tests (cc_credentials/mcp_role/cc_region) gelöscht.
-  # NEUE RESTORE-Tests: Carambus.config.region_id-Sourcing in server_context.
+  # NEUE RESTORE-Tests: Carambus.config.context-Sourcing in server_context.
 
-  test "POST /mcp injiziert Carambus.config.region_id in server_context als cc_region" do
-    original = Carambus.config.region_id
-    Carambus.config.region_id = "NBV"
+  test "POST /mcp injiziert Carambus.config.context in server_context als cc_region" do
+    original = Carambus.config.context
+    Carambus.config.context = "NBV"
     sign_in @admin_user
     post "/mcp?stateless=1", params: init_payload.to_json, headers: {"Content-Type" => "application/json"}
     # Init muss grün durchgehen — Tool-Calls würden später cc_region aus server_context lesen.
     assert_response :success
   ensure
-    Carambus.config.region_id = original
+    Carambus.config.context = original
   end
 
-  test "POST /mcp mit Carambus.config.region_id blank initialisiert dennoch (Tool-Calls würden später failen)" do
-    original = Carambus.config.region_id
-    Carambus.config.region_id = ""
+  test "POST /mcp mit Carambus.config.context blank initialisiert dennoch (Tool-Calls würden später failen)" do
+    original = Carambus.config.context
+    Carambus.config.context = ""
     sign_in @admin_user
     post "/mcp?stateless=1", params: init_payload.to_json, headers: {"Content-Type" => "application/json"}
     assert_response :success, "Init muss grün auch ohne region_id (Tool-Calls failen erst später)"
   ensure
-    Carambus.config.region_id = original
+    Carambus.config.context = original
   end
 end
