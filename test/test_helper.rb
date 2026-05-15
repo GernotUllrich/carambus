@@ -128,6 +128,19 @@ module ActionDispatch
     include Devise::Test::IntegrationHelpers
     # D-41-A BLOCKER-3 Fix: MailHelpers in IntegrationTest fuer Controller-/Request-Tests
     include MailHelpers
+
+    # Plan 41-04 Task 2: User#send_devise_notification queued jetzt via DeviseMailJob
+    # (deliver_later). Integration-Tests sollen ihre Charakterisierung beibehalten
+    # (ActionMailer::Base.deliveries direkt inspizieren), daher inline-Adapter pro
+    # Test umgeschaltet. DeviseMailJobTest selbst nutzt ActiveJob::TestCase und
+    # bekommt :test-Adapter automatisch zurueck.
+    setup do
+      @_orig_queue_adapter = ActiveJob::Base.queue_adapter
+      ActiveJob::Base.queue_adapter = :inline
+    end
+    teardown do
+      ActiveJob::Base.queue_adapter = @_orig_queue_adapter if @_orig_queue_adapter
+    end
   end
 end
 
@@ -135,6 +148,17 @@ end
 require "rails/test_help"
 class ActionMailer::TestCase
   include MailHelpers
+
+  # Plan 41-04 Task 2: gleicher Rationale wie IntegrationTest — Mailer-Tests bleiben
+  # synchron (mail-Objekte direkt inspizieren). DeviseMailJobTest ueberschreibt
+  # zurueck auf :test fuer assert_enqueued_with.
+  setup do
+    @_orig_queue_adapter = ActiveJob::Base.queue_adapter
+    ActiveJob::Base.queue_adapter = :inline
+  end
+  teardown do
+    ActiveJob::Base.queue_adapter = @_orig_queue_adapter if @_orig_queue_adapter
+  end
 end
 
 # D-41-A BLOCKER-3 Fix: ApplicationSystemTestCase erbt nicht von IntegrationTest

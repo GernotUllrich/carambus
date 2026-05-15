@@ -130,6 +130,19 @@ class User < ApplicationRecord
     end
   end
 
+  # Plan 41-04 Task 2 (D-41-B): Devise-Mails laufen async ueber DeviseMailJob (Retry+
+  # Bounce-Handling). Ueberschreibt Devise's Default-`send_devise_notification`
+  # (deliver_now synchron). Mailer-Klasse + Notification-Method + Record-Identitaet
+  # werden an Job uebergeben; Job-perform laedt Record per ID neu und liefert
+  # deliver_now (in der Job-Worker-Sandbox, mit retry_on/discard_on um SMTP-Errors).
+  #
+  # Sichtbarkeit: public (Devise's send_devise_notification ist im Default public,
+  # wird aus authenticatable.rb#send_devise_notification per .send aufgerufen).
+  def send_devise_notification(notification, *args)
+    devise_mailer_class = devise_mailer.name
+    DeviseMailJob.perform_later(devise_mailer_class, notification.to_s, self.class.name, id, *args)
+  end
+
   private
 
   # D-41-C (Plan 41-03): JWT-Hard-Revoke bei Passwort-Aenderung.
