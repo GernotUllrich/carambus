@@ -87,6 +87,15 @@ module McpServer
           return error("Invalid date format: new_deadline must be ISO YYYY-MM-DD (got: #{new_deadline.inspect}).")
         end
 
+        # Plan 14-G.4 / F5-B: Authority-Integration (:update_deadline?). Defensiv-Skip bei unauflösbar.
+        resolved_tournament = resolve_tournament(
+          meldeliste_cc_id: meldeliste_cc_id, tournament_cc_id: tournament_cc_id, server_context: server_context
+        )
+        if resolved_tournament
+          auth_err = authorize!(action: :update_deadline, tournament: resolved_tournament, server_context: server_context)
+          return auth_err if auth_err
+        end
+
         # Plan 10-05.1 Task 1 (D-10-04-B Pivot): Phase-4-Schicht-3 (Production-Block für armed:true)
         # DEPRECATED. Pre-Validation-First-Pattern ersetzt globalen env-Block durch Tool-eigene Constraints.
 
