@@ -145,13 +145,17 @@ module McpServer
         nil
       end
 
-      # Plan 14-02.1-fix / D-14-02-G: Multi-User-Production-Pflicht — Source of truth ist
-      # User#cc_region (via server_context). KEIN Fallback auf ENV/Setting/NBV-Default.
-      # Tools, die nil zurückbekommen, müssen klaren Profile-Edit-Hinweis-Error werfen.
+      # Plan 14-G.2 / D-14-G3 + D-13-04-B PARTIAL:
+      # Source-of-Truth wechselt von User#cc_region (gedroppt per D-14-G6) zu
+      # Carambus.config.region_id (Scenario-Config). server_context[:cc_region]
+      # bleibt als Backwards-Compat-Fallback erhalten (Test-Setups, die explizit
+      # Context setzen, ohne carambus.yml zu mutieren).
       # UPPERCASE-Convention (Region#shortname in Carambus ist UPPERCASE).
       def self.effective_cc_region(server_context = nil)
-        cc_region = server_context&.dig(:cc_region)
-        return cc_region.to_s.upcase if cc_region.is_a?(String) && cc_region.present?
+        config_region = Carambus.config.region_id.to_s if Carambus.config.respond_to?(:region_id)
+        return config_region.upcase if config_region.present?
+        ctx_region = server_context&.dig(:cc_region)
+        return ctx_region.to_s.upcase if ctx_region.is_a?(String) && ctx_region.present?
         nil
       end
 
@@ -297,6 +301,45 @@ module McpServer
       rescue => e
         Rails.logger.warn "[BaseTool.resolve_discipline_or_branch] #{e.class}: #{e.message}"
         [nil, nil]
+      end
+
+      # Plan 14-G.2 / D-14-G4 + D-14-G5: Authority-Helper für Write-Tools.
+      # Konsumiert Pundit-TournamentPolicy (4 Methoden aus 14-G.1).
+      # Returnt nil bei Allow, error(...)-Response bei Denial.
+      #
+      # Usage in 14-G.4-Write-Tools (1-Zeilen-Pattern):
+      #   return err if (err = authorize!(action: :update_deadline, tournament: ml.tournament, server_context: server_context))
+      #
+      # Boundary: KEINE Tool-Code-Edits in 14-G.2 (14-G.4-Scope) — Helper steht bereit.
+      ALLOWED_AUTHORITY_ACTIONS = %i[assign_leiter update_deadline manage_teilnehmerliste enter_results].freeze
+
+      def self.authorize!(action:, tournament:, server_context:)
+        unless ALLOWED_AUTHORITY_ACTIONS.include?(action.to_sym)
+          return error("Authority-Check: Action '#{action}' unbekannt; erlaubt: #{ALLOWED_AUTHORITY_ACTIONS.join(", ")}")
+        end
+        return error("Authority-Check: tournament-Argument fehlt") if tournament.nil?
+
+        user_id = server_context&.dig(:user_id)
+        return error("Authority-Check: nicht authentifiziert (kein server_context[:user_id])") if user_id.blank?
+
+        user = User.find_by(id: user_id)
+        return error("Authority-Check: User mit id=#{user_id} nicht gefunden (Token-Stale?)") if user.nil?
+
+        policy = TournamentPolicy.new(user, tournament)
+        if policy.public_send("#{action}?")
+          nil # Allow
+        else
+          reasons = []
+          reasons << "TL-Status=#{tournament.leiter?(user) ? "ja" : "nein"}"
+          reasons << "Sportwart-Wirkbereich=#{user.in_sportwart_scope?(tournament) ? "ja" : "nein"}"
+          error(
+            "Authority-Denied: User-Id=#{user.id} hat KEIN '#{action}'-Recht " \
+            "für Tournament-Id=#{tournament.id} (#{reasons.join("; ")})"
+          )
+        end
+      rescue => e
+        Rails.logger.warn "[BaseTool.authorize!] #{e.class}: #{e.message}"
+        error("Authority-Check fehlgeschlagen (defensive): #{e.class.name}")
       end
     end
   end

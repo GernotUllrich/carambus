@@ -43,10 +43,12 @@ class McpController < ApplicationController
   private
 
   def build_server_context
-    # 14-G.1-Stub: server_context enthält nur user_id. 14-G.2 etabliert Authority-Layer
-    # (Sportwart-Wirkbereich + TL-FK + Carambus.config.region_id).
+    # Plan 14-G.2 / D-14-G3: Per-Region-Scenario-Region wird in server_context propagiert.
+    # Tools (28 Call-Sites) lesen weiterhin server_context[:cc_region]; Source ist jetzt
+    # Carambus.config.region_id statt user.cc_region (gedroppt in 14-G.1 / D-14-G6).
     {
-      user_id: current_user.id
+      user_id: current_user.id,
+      cc_region: Carambus.config.region_id.to_s.presence&.upcase
     }
   end
 end
