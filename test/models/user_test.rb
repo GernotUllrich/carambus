@@ -216,4 +216,81 @@ class UserTest < ActiveSupport::TestCase
     post = User.unscoped.pluck(:id, :jti).to_h
     assert_equal pre, post, "Re-Run der Backfill darf bestehende jti nicht überschreiben (Idempotenz)"
   end
+
+  # === D-41-C: JTI-Rotation bei Passwort-Aenderung (Plan 41-03 Task 1) ===
+  # Hard-Revoke aller JWT bei encrypted_password-Change. Cross-Repo-sicher:
+  # Routine-Updates (Email, Preferences, First-Name) rotieren jti NICHT.
+
+  test "jti rotates after encrypted_password update via direct save" do
+    user = users(:valid)
+    # Fixture hat kein jti gesetzt — sicherstellen, dass jti existiert (Backfill-Pfad)
+    user.update_column(:jti, SecureRandom.uuid) if user.jti.blank?
+    user.reload
+    old_jti = user.jti
+    refute_nil old_jti, "User muss jti gesetzt haben (Backfill bei nil-Fixture)"
+
+    user.update!(password: "NeuesPasswort123!", password_confirmation: "NeuesPasswort123!")
+    user.reload
+
+    assert_not_equal old_jti, user.jti,
+      "JTI muss nach Passwort-Aenderung rotieren (D-41-C Hard-Revoke)"
+    refute_nil user.jti, "Neuer jti darf nicht nil sein"
+  end
+
+  test "jti bleibt stabil bei first_name-Update (kein Passwort-Change)" do
+    user = users(:valid)
+    user.update_column(:jti, SecureRandom.uuid) if user.jti.blank?
+    user.reload
+    old_jti = user.jti
+
+    user.update!(first_name: "Geaendert-#{SecureRandom.hex(2)}")
+    user.reload
+
+    assert_equal old_jti, user.jti,
+      "JTI darf bei Nicht-Passwort-Updates NICHT rotieren (sonst brechen MCP-JWTs)"
+  end
+
+  test "jti bleibt stabil bei email-Update (Reconfirmable: nur unconfirmed_email aendert sich)" do
+    user = users(:valid)
+    user.update_column(:jti, SecureRandom.uuid) if user.jti.blank?
+    user.reload
+    old_jti = user.jti
+
+    user.update!(email: "neue-email-#{SecureRandom.hex(2)}@example.test")
+    user.reload
+
+    assert_equal old_jti, user.jti,
+      "Email-Aenderung darf JTI nicht rotieren — encrypted_password unveraendert"
+  end
+
+  test "jti rotates via reset_password (Devise-Reset-API)" do
+    user = users(:valid)
+    user.update_column(:jti, SecureRandom.uuid) if user.jti.blank?
+    user.reload
+    old_jti = user.jti
+
+    # Devise-API: reset_password (kein "!") aendert + persistiert encrypted_password
+    user.reset_password("Reset123Passwort!", "Reset123Passwort!")
+    user.reload
+
+    assert_not_equal old_jti, user.jti,
+      "JTI muss bei Devise-reset_password rotieren (Forgot-Password-Flow)"
+  end
+
+  test "jwt_revoked? klassifiziert alten Token als revoked nach Rotation" do
+    user = users(:valid)
+    user.update_column(:jti, SecureRandom.uuid) if user.jti.blank?
+    user.reload
+    old_payload = {"jti" => user.jti}
+
+    user.update!(password: "NeuesPasswort123!", password_confirmation: "NeuesPasswort123!")
+    user.reload
+
+    assert User.jwt_revoked?(old_payload, user),
+      "Alter Payload mit altem jti muss nach Rotation als revoked klassifiziert sein"
+
+    new_payload = {"jti" => user.jti}
+    refute User.jwt_revoked?(new_payload, user),
+      "Neuer Payload mit aktuellem jti darf NICHT als revoked klassifiziert sein"
+  end
 end

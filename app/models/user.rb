@@ -39,6 +39,15 @@ class User < ApplicationRecord
   # Add validation for preferences
   validate :valid_preferences
 
+  # D-41-C (Plan 41-03): Hard-Revoke aller JWT bei Passwort-Aenderung (Forgot-Reset
+  # + Change-Password + Admin-Update + Console-Update — alle Pfade gehen durch
+  # encrypted_password-Save). Routine-Updates (Email, Preferences, Confirmation)
+  # triggern den Callback NICHT, daher bleibt der JTI fuer normale Sessions stabil.
+  # carambus_bcw-MCP-JWTs sind nur betroffen, wenn der User sein Passwort tatsaechlich
+  # aendert — gewolltes Security-Verhalten (kompromittierter Account: bewusster
+  # PW-Reset revoked alles).
+  after_update :rotate_jti_on_password_change!, if: :saved_change_to_encrypted_password?
+
   THEMES = %w[system dark light].freeze
   LOCALES = I18n.available_locales.map(&:to_s).freeze
 
@@ -122,6 +131,14 @@ class User < ApplicationRecord
   end
 
   private
+
+  # D-41-C (Plan 41-03): JWT-Hard-Revoke bei Passwort-Aenderung.
+  # JTIMatcher.revoke_jwt rotiert die jti-Spalte (update_column → bypassed
+  # Callbacks/Validations). Damit werden alle vorher ausgestellten JWTs
+  # ungueltig (jwt_revoked? prueft payload['jti'] != user.jti).
+  def rotate_jti_on_password_change!
+    self.class.revoke_jwt(nil, self)
+  end
 
   def set_default_role
     self.role ||= :player
