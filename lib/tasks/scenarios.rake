@@ -1023,7 +1023,7 @@ ENV
     redis_db = env_config['redis_database'] || 0
     webserver_port = env_config['webserver_port'] || 3000
     webserver_host = env_config['webserver_host'] || 'localhost'
-    
+
     # Prepare raspberry_pi_client hosts
     raspberry_pi_client = env_config['raspberry_pi_client']
     raspberry_pi_hosts = ""
@@ -1032,7 +1032,7 @@ ENV
       pi_port = raspberry_pi_client['local_server_enabled'] ? raspberry_pi_client['local_server_port'] : webserver_port
       raspberry_pi_hosts = "  # Allow requests from Raspberry Pi client\n  config.hosts << \"#{pi_ip}\"\n  config.hosts << \"#{pi_ip}:#{pi_port}\""
     end
-    
+
     # Prepare DuckDNS hosts
     duckdns_domain = env_config['duckdns_domain']
     duckdns_hosts = ""
@@ -1391,8 +1391,8 @@ ENV
       puts "Restoring from #{latest_dump}..."
       if system("gunzip -c #{latest_dump} | psql #{database_name}")
         puts "✅ Database restored successfully"
-        
-        # NOTE: Version.sequence_reset is NOT called here because local data 
+
+        # NOTE: Version.sequence_reset is NOT called here because local data
         # will be loaded later in Step 8. Sequences must be reset AFTER local data is loaded.
 
         true
@@ -1562,7 +1562,7 @@ ENV
     dev_db_name = dev_config['database_name']
 
     puts "\n🔄 Step 3: Preparing local development database (#{dev_db_name})..."
-    
+
     # Drop and recreate database natively via postgres tools to avoid active connections block
     puts "Dropping local database #{dev_db_name}..."
     system("dropdb #{dev_db_name}") if system("psql -lqt | cut -d \\| -f 1 | grep -qw #{dev_db_name}")
@@ -1613,7 +1613,7 @@ ENV
     puts "\n📦 Step 0: Ensuring carambus_master dependencies are installed..."
     master_root = Rails.root.to_s
     puts "   Running bundle install in #{master_root}..."
-    
+
     # Detect required Bundler version from Gemfile.lock
     bundler_version = nil
     gemfile_lock = File.join(master_root, "Gemfile.lock")
@@ -1624,13 +1624,13 @@ ENV
         puts "   📌 Detected Bundler version: #{bundler_version}"
       end
     end
-    
+
     # Use Bundler.with_unbundled_env to ensure a clean environment
     bundle_cmd = bundler_version ? "bundle _#{bundler_version}_" : "bundle"
     success = Bundler.with_unbundled_env do
       system("cd #{master_root} && #{bundle_cmd} install")
     end
-    
+
     if success
       puts "   ✅ carambus_master gems installed"
     else
@@ -1675,7 +1675,7 @@ ENV
       # Copy carambus.yml (check for lock file first)
       carambus_target = File.join(rails_root, 'config', 'carambus.yml')
       carambus_lock = File.join(rails_root, 'config', 'carambus.yml.lock')
-      
+
       if File.exist?(carambus_lock)
         puts "   ⚠️  SKIPPED: carambus.yml (lock file exists - manually edited)"
         puts "   Remove #{carambus_lock} to allow regeneration"
@@ -1779,7 +1779,7 @@ ENV
       unless File.directory?(scenario_dir)
         scenario_dir = File.expand_path("scenarios/#{scenario_name}", carambus_data_path)
       end
-      
+
       if File.directory?(scenario_dir)
         if system("cd #{scenario_dir} && bundle exec rails runner 'Version.sequence_reset'")
           puts "   ✅ Sequences reset successfully"
@@ -1835,13 +1835,13 @@ ENV
 
     # Install Ruby dependencies
     puts "   📦 Installing Ruby dependencies (bundle install)..."
-    
+
     # Use Bundler.with_unbundled_env to ensure a clean environment
     bundle_cmd = bundler_version ? "bundle _#{bundler_version}_" : "bundle"
     Bundler.with_unbundled_env do
       system("cd #{rails_root} && #{bundle_cmd} install")
     end
-    
+
     # Check if gems are actually installed (more reliable than exit code)
     unless File.exist?(File.join(rails_root, "Gemfile.lock"))
       puts "   ❌ Failed to install Ruby dependencies (Gemfile.lock missing)"
@@ -1965,7 +1965,7 @@ ENV
 
     # Check if carambus_api_development exists locally
     local_db_exists = system("psql -lqt | cut -d \\| -f 1 | grep -qw carambus_api_development")
-    
+
     unless local_db_exists
       # BOOTSTRAP: carambus_api_development doesn't exist locally - need to create it
       puts "   ⚠️  carambus_api_development not found locally - BOOTSTRAP required!"
@@ -1973,7 +1973,7 @@ ENV
       puts "   🔄 Bootstrap: Creating carambus_api_development from API server..."
       puts "   This is required because scenario databases are created from carambus_api_development."
       puts ""
-      
+
       return bootstrap_api_development_database(api_ssh_host, api_ssh_port)
     end
 
@@ -2056,11 +2056,11 @@ ENV
   # and uses whichever has the higher Version.last.id (more recent data)
   def bootstrap_api_development_database(api_ssh_host, api_ssh_port)
     puts "   🔍 Determining best source database on API server..."
-    
+
     # Check which databases exist on remote server
     remote_dev_exists = system("ssh -p #{api_ssh_port} www-data@#{api_ssh_host} 'sudo -u postgres psql -lqt | cut -d \\| -f 1 | grep -qw carambus_api_development'")
     remote_prod_exists = system("ssh -p #{api_ssh_port} www-data@#{api_ssh_host} 'sudo -u postgres psql -lqt | cut -d \\| -f 1 | grep -qw carambus_api_production'")
-    
+
     unless remote_dev_exists || remote_prod_exists
       puts "   ❌ Neither carambus_api_development nor carambus_api_production found on API server!"
       puts "   ❌ Cannot bootstrap - no source database available."
@@ -2072,11 +2072,11 @@ ENV
       puts "      gunzip -c /path/to/dump.sql.gz | psql carambus_api_development"
       return false
     end
-    
+
     # Get Version.last.id from each available remote database
     remote_dev_version = 0
     remote_prod_version = 0
-    
+
     if remote_dev_exists
       dev_version_cmd = "ssh -p #{api_ssh_port} www-data@#{api_ssh_host} 'sudo -u postgres psql -d carambus_api_development -t -c \"SELECT COALESCE(MAX(id), 0) FROM versions;\"'"
       remote_dev_version = `#{dev_version_cmd}`.strip.to_i
@@ -2084,7 +2084,7 @@ ENV
     else
       puts "   ℹ️  Remote carambus_api_development does not exist"
     end
-    
+
     if remote_prod_exists
       prod_version_cmd = "ssh -p #{api_ssh_port} www-data@#{api_ssh_host} 'sudo -u postgres psql -d carambus_api_production -t -c \"SELECT COALESCE(MAX(id), 0) FROM versions;\"'"
       remote_prod_version = `#{prod_version_cmd}`.strip.to_i
@@ -2092,11 +2092,11 @@ ENV
     else
       puts "   ℹ️  Remote carambus_api_production does not exist"
     end
-    
+
     # Determine which database to use (higher Version.last.id = more recent)
     source_db = nil
     source_version = 0
-    
+
     if remote_prod_version > remote_dev_version
       source_db = 'carambus_api_production'
       source_version = remote_prod_version
@@ -2114,17 +2114,17 @@ ENV
       source_version = remote_prod_version
       puts "   🎯 Using carambus_api_production (only available source)"
     end
-    
+
     puts ""
     puts "   📥 Creating local carambus_api_development from remote #{source_db}..."
     puts "   ⏳ This may take several minutes depending on database size and network speed..."
-    
+
     # Create local database
     unless system("createdb carambus_api_development")
       puts "   ❌ Failed to create local carambus_api_development database"
       return false
     end
-    
+
     # Copy data from remote source to local development
     dump_cmd = "ssh -p #{api_ssh_port} www-data@#{api_ssh_host} 'sudo -u postgres pg_dump #{source_db}' | psql carambus_api_development"
     unless system(dump_cmd)
@@ -2132,13 +2132,13 @@ ENV
       system("dropdb carambus_api_development")
       return false
     end
-    
+
     puts "   ✅ Successfully created local carambus_api_development from #{source_db}"
     puts "   📊 Version.last.id: #{source_version}"
     puts ""
     puts "   ℹ️  Note: This is a one-time bootstrap operation."
     puts "   ℹ️  Future runs will sync carambus_api_development with carambus_api_production if newer."
-    
+
     true
   end
 
@@ -2437,7 +2437,7 @@ ENV
         # Copy carambus.yml (check for lock file first)
         carambus_target = File.join(rails_root, 'config', 'carambus.yml')
         carambus_lock = File.join(rails_root, 'config', 'carambus.yml.lock')
-        
+
         if File.exist?(carambus_lock)
           puts "   ⚠️  SKIPPED: carambus.yml (lock file exists - manually edited)"
         elsif File.exist?(File.join(env_dir, 'carambus.yml'))
@@ -3065,9 +3065,9 @@ ENV
             verify_cmd = "sudo -u postgres psql #{production_database} -c \"SELECT COUNT(*) FROM regions;\" 2>&1"
             verify_output = `ssh -p #{ssh_port} www-data@#{ssh_host} '#{verify_cmd}'`
 
-            # Check for 19 regions (locale-independent - works with both "1 row" and "1 Zeile")
+            # Check for 21 regions (locale-independent - works with both "1 row" and "1 Zeile")
             if verify_output.include?("19") && (verify_output.include?("(1 row)") || verify_output.include?("(1 Zeile)"))
-              puts "   ✅ Database verification successful - 19 regions found"
+              puts "   ✅ Database verification successful - 21 regions found"
 
               # Note: Sequence reset not needed - production DB is a copy of development DB with correct sequences
               # Note: Local data already included in development database - no separate restore needed
@@ -3111,12 +3111,12 @@ ENV
   # Upload a config file to server, respecting lock files
   def upload_config_file(local_path, remote_dir, filename, ssh_host, ssh_port, required: true)
     remote_path = "#{remote_dir}/#{filename}"
-    
+
     if config_file_locked?(ssh_host, ssh_port, remote_path)
       puts "   🔒 Skipped #{filename} (locked on server)"
       return true  # Not an error - file is intentionally locked
     end
-    
+
     if File.exist?(local_path)
       scp_cmd = "scp -P #{ssh_port} #{local_path} www-data@#{ssh_host}:#{remote_path}"
       result = `#{scp_cmd} 2>&1`
@@ -3953,7 +3953,7 @@ ENV
     # Upload autostart script
     puts "\n📤 Uploading autostart script..."
     autostart_script = generate_autostart_script(scenario_name, pi_config)
-    
+
     # Verify script was generated
     if autostart_script.nil? || autostart_script.empty?
       puts "   ❌ Failed to generate autostart script (empty or nil)"
@@ -3964,7 +3964,7 @@ ENV
     # Write script to temporary file locally first
     temp_script_path = "/tmp/autostart-scoreboard-#{scenario_name}.sh"
     File.write(temp_script_path, autostart_script)
-    
+
     # Verify the file was written correctly
     if File.exist?(temp_script_path) && File.size(temp_script_path) > 0
       puts "   ✅ Script file created (#{File.size(temp_script_path)} bytes)"
@@ -4918,10 +4918,10 @@ EOF
                       else
                         system("psql #{database_name} < '#{backup_file}'")
                       end
-    
+
     if restore_success
       puts "   ✅ Local data restored to development database successfully"
-      
+
       # Reset sequences AFTER local data is loaded (prevents ID conflicts with API)
       puts "   🔄 Resetting sequences for local server..."
       # The scenario directory is a sibling of carambus_master (or carambus_data/scenarios for archived scenarios)
@@ -4930,7 +4930,7 @@ EOF
       unless File.directory?(scenario_dir)
         scenario_dir = File.expand_path("scenarios/#{scenario_name}", carambus_data_path)
       end
-      
+
       if File.directory?(scenario_dir)
         if system("cd #{scenario_dir} && bundle exec rails runner 'Version.sequence_reset'")
           puts "   ✅ Sequences reset successfully"
@@ -4941,7 +4941,7 @@ EOF
         puts "   ⚠️  Warning: Scenario directory not found: #{scenario_dir}"
         puts "      Skipping sequence reset"
       end
-      
+
       return true
     else
       puts "   ❌ Failed to restore local data"
@@ -4976,12 +4976,12 @@ EOF
     end
 
     local_server_enabled = pi_config['local_server_enabled'] || false
-    
+
     # Use localhost if local server is enabled, otherwise use webserver_host
     # Both go through Nginx on the standard port
     url_host = local_server_enabled ? 'localhost' : webserver_host
     url_port = webserver_port
-    
+
     fallback_url = "http://#{url_host}:#{url_port}/locations/#{md5_hash}/scoreboard?sb_state=welcome&locale=de"
 
     # Generate the script using Ruby string manipulation
