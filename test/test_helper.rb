@@ -126,6 +126,25 @@ end
 module ActionDispatch
   class IntegrationTest
     include Devise::Test::IntegrationHelpers
+    # D-41-A BLOCKER-3 Fix: MailHelpers in IntegrationTest fuer Controller-/Request-Tests
+    include MailHelpers
+  end
+end
+
+# D-41-A BLOCKER-3 Fix: MailHelpers in ActionMailer::TestCase fuer Mailer-Tests in test/mailers/
+require "rails/test_help"
+class ActionMailer::TestCase
+  include MailHelpers
+end
+
+# D-41-A BLOCKER-3 Fix: ApplicationSystemTestCase erbt nicht von IntegrationTest
+# (sondern von ActionDispatch::SystemTestCase) — daher hier explizit included.
+# Plan-05 setup kann ohne extend-Workaround arbeiten. Guarded via defined?, falls
+# test_helper.rb geladen wird bevor application_system_test_case.rb da ist.
+require_relative "application_system_test_case" if File.exist?(File.expand_path("application_system_test_case.rb", __dir__))
+if defined?(ApplicationSystemTestCase)
+  class ApplicationSystemTestCase
+    include MailHelpers
   end
 end
 
