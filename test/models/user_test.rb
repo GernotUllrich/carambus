@@ -121,25 +121,8 @@ class UserTest < ActiveSupport::TestCase
 
   # MCP Multi-User-Hosting (v0.3, Plan 13-02, D-13-01-D Option-B-Override)
   # ---------------------------------------------------------------------
-  test "mcp_role defaults to mcp_public_read for new User" do
-    skip "Pending 14-G.2 (D-14-G6: users.mcp_role gedroppt)"
-  end
-
-  test "mcp_enabled? returns false when no cc_credentials present" do
-    skip "Pending 14-G.2 (D-14-G6: users.cc_credentials gedroppt)"
-  end
-
-  test "mcp_enabled? returns true when role > public_read AND cc_credentials present" do
-    skip "Pending 14-G.2 (D-14-G6: users.mcp_role + cc_credentials gedroppt)"
-  end
-
-  test "mcp_cc_region: User.cc_region nil → nil (strict, kein ENV-Fallback)" do
-    skip "Pending 14-G.2: D-14-02-G PARTIAL → Region-Source wechselt von User#cc_region zu Carambus.config.region_id"
-  end
-
-  test "mcp_cc_region: User.cc_region present → presence-Wert (strict)" do
-    skip "Pending 14-G.2: D-14-02-G PARTIAL → Region-Source wechselt zu Carambus.config.region_id"
-  end
+  # Plan 14-G.2 / D-14-G6: 5 Tests (mcp_role / mcp_enabled? / mcp_cc_region) ersatzlos gelöscht
+  # (Spalten + Helper durch DROP in 14-G.1 obsolet).
 
   test "existing Carambus role enum unangetastet (admin? Methoden funktional)" do
     u = User.new(email: "mcp5@example.com", password: "password123", role: :system_admin)
@@ -155,14 +138,6 @@ class UserTest < ActiveSupport::TestCase
     assert_not u.mcp_consent_given?
   end
 
-  test "mcp_consent_required? true bei mcp_role > public_read OHNE mcp_consent_at" do
-    skip "Pending 14-G.2: mcp_consent_required? entfernt — Authority via Sportwart-Wirkbereich"
-  end
-
-  test "mcp_consent_required? false bei mcp_public_read (kein MCP-Zugriff = keine Einwilligung n\u00F6tig)" do
-    skip "Pending 14-G.2: mcp_consent_required? entfernt \u2014 Authority via Sportwart-Wirkbereich"
-  end
-
   test "grant_mcp_consent! setzt mcp_consent_at + persistiert" do
     # mcp_consent_at-Spalte + Helper-Methode bleiben (D-14-G6 droppt nur mcp_role + cc_credentials + cc_region).
     u = User.create!(email: "consent4@test.de", password: "password123")
@@ -171,18 +146,6 @@ class UserTest < ActiveSupport::TestCase
     u.reload
     refute_nil u.mcp_consent_at
     assert u.mcp_consent_given?
-  end
-
-  test "cc_region: required on update wenn mcp_role > public_read" do
-    skip "Pending 14-G.2 (D-14-G6: users.cc_region gedroppt)"
-  end
-
-  test "cc_region: NICHT required wenn mcp_role = public_read" do
-    skip "Pending 14-G.2 (D-14-G6: users.cc_region gedroppt)"
-  end
-
-  test "cc_region: NICHT required on: :create (Sign-Up bleibt friction-frei)" do
-    skip "Pending 14-G.2 (D-14-G6: users.cc_region gedroppt)"
   end
 
   test "mcp_audit_trail_export: 0 Entries leeres Array" do

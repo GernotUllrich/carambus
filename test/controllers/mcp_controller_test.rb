@@ -46,20 +46,15 @@ class McpControllerTest < ActionDispatch::IntegrationTest
     assert_response :unauthorized
   end
 
-  test "POST /mcp with authenticated mcp_public_read user returns Read-Tools-only subset (16)" do
-    skip "Pending 14-G.2 (D-14-G6: mcp_role-basierte Tool-Subsets entfernt; Stub gibt ALL_TOOLS)"
-  end
+  # Plan 14-G.2 / D-14-G6: Per-Role-Tool-Subset-Tests (mcp_public_read/sportwart) gelöscht
+  # (Stub gibt ALL_TOOLS; Per-Record-Authority via BaseTool.authorize! in 14-G.4).
 
-  test "POST /mcp with mcp_admin user returns all 22 Tools" do
+  test "POST /mcp with any authenticated user returns all 22 Tools (Stub: ALL_TOOLS for everyone)" do
     sign_in @admin_user
     post "/mcp?stateless=1", params: tools_list_payload.to_json, headers: {"Content-Type" => "application/json"}
     assert_response :success
     body = JSON.parse(response.body)
-    assert_equal 22, body.dig("result", "tools").size, "mcp_admin sollte 22 Tools haben"
-  end
-
-  test "POST /mcp with mcp_sportwart user returns 19 Tools (no cc_finalize/cc_assign/cc_remove)" do
-    skip "Pending 14-G.2 (D-14-G6: Per-Role-Tool-Subset entfernt; Authority-Check wandert in BaseTool)"
+    assert_equal 22, body.dig("result", "tools").size, "Stub: alle authentifizierten User bekommen 22 Tools"
   end
 
   test "POST /mcp?stateless=1 initialisiert StreamableHTTPTransport ohne Crash" do
@@ -68,15 +63,27 @@ class McpControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
-  test "POST /mcp mit Per-User-cc_region wird in server_context propagiert (Init OK)" do
-    skip "Pending 14-G.2 (D-14-G6: users.cc_region gedroppt; Region via Carambus.config.region_id)"
+  # Plan 14-G.2 / D-14-G6: Per-Role-User-Setup-Tests (cc_credentials/mcp_role/cc_region) gelöscht.
+  # NEUE RESTORE-Tests: Carambus.config.region_id-Sourcing in server_context.
+
+  test "POST /mcp injiziert Carambus.config.region_id in server_context als cc_region" do
+    original = Carambus.config.region_id
+    Carambus.config.region_id = "NBV"
+    sign_in @admin_user
+    post "/mcp?stateless=1", params: init_payload.to_json, headers: {"Content-Type" => "application/json"}
+    # Init muss grün durchgehen — Tool-Calls würden später cc_region aus server_context lesen.
+    assert_response :success
+  ensure
+    Carambus.config.region_id = original
   end
 
-  test "POST /mcp ohne cc_credentials + mcp_role != public_read: Init funktioniert (Tool-Calls failen erst später)" do
-    skip "Pending 14-G.2 (D-14-G6: users.cc_credentials + mcp_role gedroppt)"
-  end
-
-  test "POST /mcp mit User ohne cc_region (mcp_role > public_read) → 422 + Profile-Edit-Hinweis" do
-    skip "Pending 14-G.2 (D-14-G6: require_user_cc_region-Guard entfernt; Authority-Check via Sportwart-Wirkbereich)"
+  test "POST /mcp mit Carambus.config.region_id blank initialisiert dennoch (Tool-Calls würden später failen)" do
+    original = Carambus.config.region_id
+    Carambus.config.region_id = ""
+    sign_in @admin_user
+    post "/mcp?stateless=1", params: init_payload.to_json, headers: {"Content-Type" => "application/json"}
+    assert_response :success, "Init muss grün auch ohne region_id (Tool-Calls failen erst später)"
+  ensure
+    Carambus.config.region_id = original
   end
 end

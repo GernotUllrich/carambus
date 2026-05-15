@@ -3,10 +3,10 @@
 require_relative "role_tool_map"
 
 module McpServer
-  # TEMPORARY STUB (Plan 14-G.1 / D-14-G6):
-  # User#mcp_role-Enum wurde entfernt; jeder authentifizierte User bekommt das
-  # volle Tool-Subset. Authority-Layer-Refactor (Sportwart-Wirkbereich + TL-FK +
-  # Carambus.config.region_id) folgt in Plan 14-G.2.
+  # Final Stub (Plan 14-G.2 / D-14-G6):
+  # Jeder authentifizierte User bekommt das volle Tool-Subset (ALL_TOOLS).
+  # Per-Record-Authority-Check ist in BaseTool.authorize! (TournamentPolicy)
+  # statt in ToolRegistry. Per-Tool-Authority erfolgt in 14-G.4 Write-Tools-Refactor.
   module ToolRegistry
     # Liefert Array von Tool-Klassen-Symbolen für den User.
     # Stub-Verhalten: jeder nicht-nil User bekommt ALL_TOOLS.
@@ -16,7 +16,7 @@ module McpServer
     end
 
     # Anzahl Tools für eine "Rolle" — Stub gibt für jeden Key die ALL_TOOLS-Größe zurück.
-    # Wird in 14-G.2 wieder authority-basiert (Sportwart vs TL vs LSW Tool-Subsets).
+    # Per-Record-Authority-Check ist in BaseTool.authorize! (14-G.4-Scope für Tool-Refactor).
     def self.tool_count_for(_role_key)
       RoleToolMap::ALL_TOOLS.size
     end

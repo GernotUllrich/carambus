@@ -48,11 +48,21 @@ class McpMultiRegionRoutingTest < ActionDispatch::IntegrationTest
     end
   end
 
-  test "User.mcp_cc_region: User.cc_region overrides ENV (Plan-13-02-Helper-Verify)" do
-    skip "Pending 14-G.2 (D-14-G6: users.cc_region + mcp_cc_region entfernt; Region via Carambus.config.region_id)"
+  # Plan 14-G.2 / D-14-G3: RESTORE — Carambus.config.region_id ist neue Source-of-Truth.
+  test "Carambus.config.region_id setzt effective_cc_region (server_context-fallback ignoriert wenn Config gesetzt)" do
+    original = Carambus.config.region_id
+    Carambus.config.region_id = "NBV"
+    assert_equal "NBV", McpServer::Tools::BaseTool.effective_cc_region({cc_region: "BWB"})
+  ensure
+    Carambus.config.region_id = original
   end
 
-  test "Plan-14-02.1-fix: effective_cc_region strict — nur server_context, kein ENV-Fallback" do
-    skip "Pending 14-G.2 (D-14-G3: effective_cc_region-Chain ändert sich; Quelle = Carambus.config.region_id)"
+  test "effective_cc_region: Carambus.config.region_id blank + server_context blank → nil" do
+    original = Carambus.config.region_id
+    Carambus.config.region_id = ""
+    assert_nil McpServer::Tools::BaseTool.effective_cc_region(nil)
+    assert_nil McpServer::Tools::BaseTool.effective_cc_region({})
+  ensure
+    Carambus.config.region_id = original
   end
 end

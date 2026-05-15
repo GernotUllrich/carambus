@@ -84,11 +84,8 @@ class McpEndToEndTest < ActionDispatch::IntegrationTest
     assert_equal true, last.payload["armed"]
   end
 
-  # v0.3 Plan 13-06.2 (D-13-06.1-C): JWT-Token-Auth-Pfad als zweite Auth-Strategie.
-  # Cookie-Auth (sign_in) bleibt Backwards-Compat; Bearer-JWT ist Phase-14-Primary.
-  test "POST /mcp mit Authorization Bearer-JWT liefert per-User-Tool-Subset (ohne Cookie)" do
-    skip "Pending 14-G.2 (D-14-G6: Per-Role-Tool-Subset entfernt; Stub gibt ALL_TOOLS — Sportwart-Subset wandert in BaseTool-Authority-Check)"
-  end
+  # Plan 14-G.2 / D-14-G6: Per-User-Tool-Subset-Test gelöscht (ALL_TOOLS für alle authenticated User;
+  # Per-Record-Authority via BaseTool.authorize! in 14-G.4 Tool-Refactor).
 
   test "POST /mcp ohne Auth (kein Cookie, kein Bearer) liefert 401" do
     post "/mcp?stateless=1",

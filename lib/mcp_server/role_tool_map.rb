@@ -1,16 +1,13 @@
 # frozen_string_literal: true
 
 module McpServer
-  # TEMPORARY STUB (Plan 14-G.1 / D-14-G6):
-  # User#mcp_role-Enum wurde entfernt; Authority-Layer-Refactor (Sportwart-Wirkbereich + TL-FK +
-  # Carambus.config.region_id) folgt in Plan 14-G.2.
+  # Final Stub (Plan 14-G.2 / D-14-G6):
+  # Per-Record-Authority-Check ist in BaseTool.authorize! (TournamentPolicy-Konsumption)
+  # statt in ToolRegistry. ToolRegistry liefert für alle authentifizierten User ALL_TOOLS.
+  # Per-Tool-Authority erfolgt in 14-G.4-Refactor der Write-Tools via authorize!-Helper.
   #
-  # Aktuelles Verhalten: jeder authentifizierte User bekommt das volle Tool-Subset
-  # ("all-authenticated-tools"). Der eigentliche Authority-Check wandert in 14-G.2
-  # in den McpController bzw. in BaseTool#authorize!.
-  #
-  # Frozen-Array-Pattern aus Phase-13 bleibt erhalten — nur das Mapping ist degeneriert
-  # auf eine einzige „all"-Liste.
+  # Frozen-Array-Pattern aus Phase-13 bleibt erhalten — das Mapping ist auf eine
+  # einzige „all"-Liste reduziert (keine mcp_role-Differenzierung mehr).
   module RoleToolMap
     # Read-only Tools
     BASE_READ_TOOLS = %i[
