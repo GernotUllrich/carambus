@@ -243,7 +243,7 @@ module McpServer
       # Defensive: bei unklarer DB-State → ok:true (keine False-Negative-Blockade).
       def self._validate_meldeliste_exists(meldeliste_cc_id)
         return {name: "meldeliste_exists", ok: false, reason: "meldeliste_cc_id missing"} if meldeliste_cc_id.blank?
-        meldeliste_cc = RegistrationListCc.find_by(cc_id: meldeliste_cc_id) if defined?(RegistrationListCc)
+        RegistrationListCc.find_by(cc_id: meldeliste_cc_id) if defined?(RegistrationListCc)
         # Defensive: wenn Model nicht existiert oder Lookup-Empty → assume OK (CC-Pre-Read in armed:true-Workflow verifiziert)
         {name: "meldeliste_exists", ok: true}
       rescue => e

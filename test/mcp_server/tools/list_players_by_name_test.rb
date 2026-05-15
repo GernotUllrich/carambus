@@ -46,10 +46,10 @@ class McpServer::Tools::ListPlayersByNameTest < ActiveSupport::TestCase
     assert_equal "NBV", body.dig("meta", "region")
   end
 
-  test "D-14-02-G: server_context ohne cc_region → Profile-Edit-Diagnostic-Error" do
+  test "D-14-G.7 / AC-1: Scenario-Config ohne Carambus.config.context → Scenario-Config-Diagnostic-Error" do
     response = McpServer::Tools::ListPlayersByName.call(name: "ullrich", server_context: {})
     assert response.error?
-    assert_match(/Profil.*Region|users\/edit/i, response.content.first[:text])
+    assert_match(/Scenario-Config-Fehler.*Carambus\.config\.context/i, response.content.first[:text])
   end
 
   test "validation: unknown club_cc_id returns error when region resolvable" do

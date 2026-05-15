@@ -54,9 +54,27 @@ Aktueller Stand:
 | carambus (carambus.de) | `false` | Soll für Suchmaschinen indexierbar bleiben |
 | carambus_api (newapi.carambus.de) | `true` | API-Server, keine Suchmaschinen-Relevanz |
 | carambus_bcw (bc-wedel.duckdns.org) | `true` | Vereins-Scoreboards, kein öffentlicher Content |
+| carambus_nbv (nbv.carambus.de) | `false` während Walkthrough-Phase, `true` nach Pilot | Per-Region-Production für v0.4-Walkthrough; Sportwart-Friction durch UA-Override vermeiden (Plan 14-G.7 / Sub-Task 6.4) |
 | carambus_gu / phat / pbv / location_5101 | `false` | LAN-only (192.168.x.x), keine Bot-Exposition |
 
 LAN-Scenarios stehen explizit auf `false`, damit beim Re-Generate kein `if`-Block gerendert wird, der ohne installierten conf.d-Snippet den `nginx -t` failen lassen würde.
+
+### Walkthrough-Phasen-Hinweis (Plan 14-G.7 / AC-6.4)
+
+Für **Per-Region-Production-Scenarios während aktiver Walkthrough-Pilotphasen** (z.B. carambus_nbv bei Sportwart-Onboarding):
+
+```yaml
+environments:
+  production:
+    bot_block_enabled: false   # während Walkthrough-Phase explizit AUSSCHALTEN
+```
+
+**Begründung:** Während externe Sportwarte das System initial testen, würde der Bot-Block `curl`-basierte Setup-Scripts (z.B. Auth-Token-Snippets aus der Setup-Doku Sektion 9.2) mit `403 Forbidden` blocken — auch wenn der User explizit `-A "Mozilla/5.0"`-Override nutzt. Das ist Onboarding-Friction. Nach Abschluss der Walkthrough-Phase wird der Bot-Block wieder aktiviert.
+
+**Re-Aktivierungs-Checkliste nach Pilot:**
+1. `bot_block_enabled: true` in carambus_data/scenarios/carambus_nbv/config.yml
+2. `rake scenario:generate_configs[carambus_nbv,production]`
+3. `cap production deploy` ODER `rake scenario:sync_nginx_conf[carambus_nbv,production]`
 
 ## Workflows
 

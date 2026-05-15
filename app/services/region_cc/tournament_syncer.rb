@@ -180,7 +180,15 @@ class RegionCc::TournamentSyncer < ApplicationService
             end
           end
           if args[:name].present?
-            tournament_cc.update(args.merge(cc_id: cc_id, season: season.name, branch_cc_id: branch_cc.id))
+            # Plan 14-G.7 / Task 3 / F11: season.name kann nil sein wenn `season` AR-Objekt
+            # ohne persistierten name geliefert wird. Fallback aus tournament_start ableiten,
+            # um null-Records im Mirror zu vermeiden (Read-Side-Default-Season-Filter blind).
+            season_name = season&.name
+            if season_name.blank? && args[:tournament_start].present?
+              derived = Season.season_from_date(args[:tournament_start].to_date)
+              season_name = derived&.name
+            end
+            tournament_cc.update(args.merge(cc_id: cc_id, season: season_name, branch_cc_id: branch_cc.id))
             tournament_cc.attributes
           end
         end

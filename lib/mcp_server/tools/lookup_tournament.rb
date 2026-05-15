@@ -62,7 +62,7 @@ module McpServer
         if meisterschaft_id.present?
           region_shortname = effective_cc_region(server_context)
           if region_shortname.blank?
-            return error("Dein Carambus-Profil hat keine Region gesetzt. Bitte unter /users/edit eine Region wählen.")
+            return scenario_config_missing_error
           end
           tournament_cc = resolve_tournament_cc(
             cc_id: meisterschaft_id,
@@ -94,7 +94,7 @@ module McpServer
       def self.name_search(name:, shortname:, season: nil, server_context: nil)
         region_shortname = effective_cc_region(server_context)
         if region_shortname.blank?
-          return error("Dein Carambus-Profil hat keine Region gesetzt. Bitte unter https://carambus.de/users/edit eine Region wählen.")
+          return scenario_config_missing_error
         end
         if shortname.present? && shortname.to_s.upcase != region_shortname
           Rails.logger.warn "[cc_lookup_tournament] shortname-Override '#{shortname}' ignoriert; nutze User#cc_region='#{region_shortname}'"

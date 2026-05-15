@@ -70,7 +70,7 @@ module McpServer
         end
 
         if user_region_name.blank?
-          return error("Dein Carambus-Profil hat keine Region gesetzt. Bitte unter https://carambus.de/users/edit eine Region wählen.")
+          return scenario_config_missing_error
         end
 
         region = Region.find_by(shortname: user_region_name)

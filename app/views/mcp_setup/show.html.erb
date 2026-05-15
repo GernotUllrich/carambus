@@ -4,10 +4,32 @@
   <h1 class="text-2xl font-bold mb-4">MCP-Setup für <%= current_user.email %></h1>
 
   <p class="mb-6 text-gray-700 dark:text-gray-300">
-    Mit diesem Setup verbindest du <strong>Claude Code</strong> mit deinem Carambus-Account,
-    damit du ClubCloud-Aufgaben (Anmeldungen, Akkreditierungen, Meldelisten) per natürlicher
-    Sprache erledigen kannst — statt klick-intensive Form-Submits in der CC-UI.
+    Hallo <strong><%= current_user.email %></strong> — dieser Befehl verbindet
+    <strong>Claude Code</strong> mit deinem Carambus-Konto für die Sportwart-Workflows
+    (Anmeldungen, Akkreditierungen, Meldelisten per natürlicher Sprache statt klick-intensiver
+    Form-Submits in der CC-UI).
   </p>
+
+  <%# Plan 14-G.8 / AC-2: Token-Restlaufzeit-Banner. Bei >= 14 Tage neutral; bei < 14 Tage Renew-Hinweis (sanft, kein Hard-Stop). %>
+  <% if @days_remaining.is_a?(Integer) %>
+    <% if @renew_recommended %>
+      <div class="border-l-4 border-orange-400 bg-orange-50 dark:bg-orange-900/30 p-4 mb-6">
+        <p class="text-sm">
+          <strong>Token-Restlaufzeit: <%= @days_remaining %> Tage</strong> — Token läuft bald ab.
+          Einfach diese Seite neu laden für frischen Token (gültig wieder <%= @total_lifetime_days %> Tage).
+          Anschließend <code class="bg-gray-100 dark:bg-gray-800 px-1 rounded">claude mcp remove carambus-remote -s user</code>
+          ausführen und den neuen Befehl pasten.
+        </p>
+      </div>
+    <% else %>
+      <div class="border-l-4 border-blue-400 bg-blue-50 dark:bg-blue-900/30 p-4 mb-6">
+        <p class="text-sm">
+          <strong>Token-Restlaufzeit: <%= @days_remaining %> Tage</strong>
+          (Lifetime: <%= @total_lifetime_days %> Tage). Bei Bedarf einfach Seite neu laden für frischen Token.
+        </p>
+      </div>
+    <% end %>
+  <% end %>
 
   <ol class="list-decimal list-inside space-y-2 mb-6">
     <li>Stelle sicher, dass <strong>Claude Code</strong> auf deinem Rechner installiert ist (gratis: <a href="https://claude.ai/code" class="underline text-blue-600 dark:text-blue-400" target="_blank" rel="noopener">claude.ai/code</a>)</li>
@@ -28,14 +50,6 @@
     📋 In Zwischenablage kopieren
   </button>
   <span id="copy-feedback" class="ml-3 text-green-600 dark:text-green-400 hidden">✓ Kopiert!</span>
-
-  <div class="border-l-4 border-yellow-400 bg-yellow-50 dark:bg-yellow-900/30 p-4 mb-6">
-    <p class="text-sm">
-      <strong>Token-Lifetime:</strong> Der eingebettete Bearer-Token ist <strong>24 Stunden</strong> gültig.
-      Wenn dein Setup nach 24h einen 401-Fehler liefert: einfach diese Seite neu laden und den neuen
-      Befehl in dein Terminal pasten (vorher <code class="bg-gray-100 dark:bg-gray-800 px-1 rounded">claude mcp remove carambus-remote -s user</code> ausführen).
-    </p>
-  </div>
 
   <h2 class="text-xl font-semibold mt-8 mb-2">Erste Schritte nach dem Setup</h2>
   <p class="mb-4">

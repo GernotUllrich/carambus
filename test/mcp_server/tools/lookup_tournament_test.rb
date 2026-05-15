@@ -52,7 +52,7 @@ class McpServer::Tools::LookupTournamentTest < ActiveSupport::TestCase
       server_context: nil
     )
     assert response.error?
-    assert_match(/Carambus-Profil hat keine Region/i, response.content.first[:text])
+    assert_match(/Scenario-Config-Fehler.*Carambus\.config\.context/i, response.content.first[:text])
   end
 
   # Plan 14-02.3 / F-4: cc_id ist Alias für meisterschaft_id.

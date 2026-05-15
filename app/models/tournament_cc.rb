@@ -57,6 +57,15 @@ class TournamentCc < ApplicationRecord
   belongs_to :tournament_series_cc, optional: true
   belongs_to :tournament, optional: true
 
+  # Plan 14-G.7 / Task 3 / F11: Season-Resolution mit Fallback aus tournament_start.
+  # DB-Mirror kann season=null haben (pre-Backfill-Records oder fehlgeschlagene Syncs).
+  # Read-Side-Tools nutzen `effective_season` statt `season` für robuste Default-Filter.
+  def effective_season
+    return season if season.present?
+    return nil if tournament_start.blank?
+    Season.season_from_date(tournament_start.to_date)&.name
+  end
+
   COLUMN_NAMES = { # TODO: FILTERS
     "CC_ID" => "tournament_ccs.cc_id",
     "Name" => "tournament_ccs.name",

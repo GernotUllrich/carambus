@@ -36,9 +36,7 @@ module McpServer
         end
         region_name = effective_cc_region(server_context)
         if region_name.blank?
-          return error(
-            "Dein Profil hat keine Region gesetzt. Bitte unter https://carambus.de/users/edit eine Region wählen."
-          )
+          return scenario_config_missing_error
         end
         user_region = Region.find_by(shortname: region_name)
         return error("Region '#{region_name}' nicht in DB gefunden. Profile-Region prüfen.") if user_region.nil?

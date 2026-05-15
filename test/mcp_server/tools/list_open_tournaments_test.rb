@@ -180,11 +180,11 @@ class McpServer::Tools::ListOpenTournamentsTest < ActiveSupport::TestCase
     end
   end
 
-  # Plan 14-02.1-fix / D-14-02-G: strict User-Context — ohne cc_region im server_context → Error.
-  test "missing User-Context: returns error with Profile-Edit-Hinweis" do
+  # Plan 14-G.7 / AC-1: Scenario-Config-strict — ohne Carambus.config.context → Diagnostic-Error.
+  test "missing Scenario-Config: returns error with Scenario-Config-Fehler-Hinweis" do
     response = McpServer::Tools::ListOpenTournaments.call(server_context: nil)
     assert response.error?
-    assert_match(/Profil.*Region|users\/edit/i, response.content.first[:text])
+    assert_match(/Scenario-Config-Fehler.*Carambus\.config\.context/i, response.content.first[:text])
   end
 
   # Plan 14-02.2 / B-3 + D-14-02-G: shortname-Override ungleich User-Region wird ignoriert + warning.
