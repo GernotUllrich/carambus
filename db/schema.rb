@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_05_14_072841) do
+ActiveRecord::Schema[7.2].define(version: 2026_05_15_080203) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -992,6 +992,26 @@ ActiveRecord::Schema[7.2].define(version: 2026_05_14_072841) do
     t.index ["training_source_id"], name: "index_source_attributions_on_training_source_id"
   end
 
+  create_table "sportwart_disciplines", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.bigint "discipline_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["discipline_id"], name: "index_sportwart_disciplines_on_discipline_id"
+    t.index ["user_id", "discipline_id"], name: "idx_sportwart_disciplines_unique", unique: true
+    t.index ["user_id"], name: "index_sportwart_disciplines_on_user_id"
+  end
+
+  create_table "sportwart_locations", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.bigint "location_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["location_id"], name: "index_sportwart_locations_on_location_id"
+    t.index ["user_id", "location_id"], name: "idx_sportwart_locations_unique", unique: true
+    t.index ["user_id"], name: "index_sportwart_locations_on_user_id"
+  end
+
   create_table "starting_positions", force: :cascade do |t|
     t.bigint "training_example_id", null: false
     t.text "description_text"
@@ -1366,11 +1386,13 @@ ActiveRecord::Schema[7.2].define(version: 2026_05_14_072841) do
     t.string "type"
     t.string "external_id"
     t.bigint "international_source_id"
+    t.bigint "turnier_leiter_user_id"
     t.index ["ba_id"], name: "index_tournaments_on_ba_id", unique: true
     t.index ["external_id", "international_source_id"], name: "idx_tournaments_external_id_source", unique: true, where: "((external_id IS NOT NULL) AND (international_source_id IS NOT NULL))"
     t.index ["global_context"], name: "index_tournaments_on_global_context"
     t.index ["international_source_id"], name: "index_tournaments_on_international_source_id"
     t.index ["international_tournament_id"], name: "index_tournaments_on_international_tournament_id"
+    t.index ["turnier_leiter_user_id"], name: "index_tournaments_on_turnier_leiter_user_id"
     t.index ["type"], name: "index_tournaments_on_type"
   end
 
@@ -1493,9 +1515,6 @@ ActiveRecord::Schema[7.2].define(version: 2026_05_14_072841) do
     t.jsonb "preferences"
     t.virtual "name", type: :string, as: "(((first_name)::text || ' '::text) || (COALESCE(last_name, ''::character varying))::text)", stored: true
     t.integer "role", default: 0
-    t.integer "mcp_role", default: 0, null: false
-    t.string "cc_region"
-    t.text "cc_credentials"
     t.datetime "mcp_consent_at"
     t.string "jti"
     t.index ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true
@@ -1556,43 +1575,48 @@ ActiveRecord::Schema[7.2].define(version: 2026_05_14_072841) do
   end
 
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
-  add_foreign_key "club_locations", "regions"
-  add_foreign_key "clubs", "regions"
-  add_foreign_key "game_participations", "regions"
-  add_foreign_key "game_plans", "regions"
-  add_foreign_key "games", "regions"
-  add_foreign_key "league_teams", "regions"
-  add_foreign_key "leagues", "regions"
-  add_foreign_key "locations", "regions"
+  add_foreign_key "club_locations", "regions", validate: false
+  add_foreign_key "clubs", "regions", validate: false
+  add_foreign_key "game_participations", "regions", validate: false
+  add_foreign_key "game_plans", "regions", validate: false
+  add_foreign_key "games", "regions", validate: false
+  add_foreign_key "league_teams", "regions", validate: false
+  add_foreign_key "leagues", "regions", validate: false
+  add_foreign_key "locations", "regions", validate: false
   add_foreign_key "mcp_audit_trails", "users", on_delete: :nullify
-  add_foreign_key "parties", "regions"
-  add_foreign_key "party_games", "regions"
-  add_foreign_key "player_rankings", "regions"
-  add_foreign_key "players", "regions"
-  add_foreign_key "regions", "regions"
-  add_foreign_key "season_participations", "regions"
-  add_foreign_key "seedings", "regions"
+  add_foreign_key "parties", "regions", validate: false
+  add_foreign_key "party_games", "regions", validate: false
+  add_foreign_key "player_rankings", "regions", validate: false
+  add_foreign_key "players", "regions", validate: false
+  add_foreign_key "regions", "regions", validate: false
+  add_foreign_key "season_participations", "regions", validate: false
+  add_foreign_key "seedings", "regions", validate: false
   add_foreign_key "settings", "clubs"
   add_foreign_key "settings", "regions"
   add_foreign_key "settings", "tournaments"
   add_foreign_key "shots", "training_examples"
   add_foreign_key "source_attributions", "training_sources"
+  add_foreign_key "sportwart_disciplines", "disciplines", on_delete: :cascade
+  add_foreign_key "sportwart_disciplines", "users", on_delete: :cascade
+  add_foreign_key "sportwart_locations", "locations", on_delete: :cascade
+  add_foreign_key "sportwart_locations", "users", on_delete: :cascade
   add_foreign_key "starting_positions", "training_examples"
   add_foreign_key "stream_configurations", "tables"
   add_foreign_key "tables", "locations"
-  add_foreign_key "tables", "regions"
+  add_foreign_key "tables", "regions", validate: false
   add_foreign_key "tables", "table_kinds"
   add_foreign_key "taggings", "tags"
   add_foreign_key "tournament_monitors", "tournaments"
   add_foreign_key "tournament_plan_games", "tournament_plans"
-  add_foreign_key "tournaments", "international_sources"
-  add_foreign_key "tournaments", "regions"
+  add_foreign_key "tournaments", "international_sources", validate: false
+  add_foreign_key "tournaments", "regions", validate: false
+  add_foreign_key "tournaments", "users", column: "turnier_leiter_user_id", on_delete: :nullify
   add_foreign_key "training_concept_disciplines", "disciplines"
   add_foreign_key "training_concept_disciplines", "training_concepts"
   add_foreign_key "training_examples", "training_concepts"
   add_foreign_key "training_examples", "training_examples", column: "parent_id"
   add_foreign_key "users", "players"
-  add_foreign_key "versions", "regions"
+  add_foreign_key "versions", "regions", validate: false
   add_foreign_key "videos", "disciplines"
   add_foreign_key "videos", "international_sources"
 end
