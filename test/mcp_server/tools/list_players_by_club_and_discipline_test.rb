@@ -130,6 +130,6 @@ class McpServer::Tools::ListPlayersByClubAndDisciplineTest < ActiveSupport::Test
       server_context: {}
     )
     assert response.error?
-    assert_match(/Profil.*Region|users\/edit/i, response.content.first[:text])
+    assert_match(/Scenario-Config-Fehler.*Carambus\.config\.context/i, response.content.first[:text])
   end
 end

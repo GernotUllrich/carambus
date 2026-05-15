@@ -60,11 +60,18 @@ module McpServer
         err = validate_required!({tournament_cc_id: tournament_cc_id}, [:tournament_cc_id])
         return err if err
 
+        # Plan 14-G.7 / AC-2 + Diagnostic-Logging: per-Path-Telemetrie für Production-Debug.
+        # Bei tournament_cc_id=890 schlugen auf carambus_nbv-Production alle 4 Pfade fehl
+        # ohne sichtbaren Grund. Diese Logs machen den nächsten Production-Test ein-Schritt-debugbar.
+        # Fix selbst (Auth-/HTML-Format-Issue auf Production) → v0.5-Backlog (lokale Repro fehlt).
+        Rails.logger.info "[LookupMeldelistе] start tournament_cc_id=#{tournament_cc_id} force_refresh=#{force_refresh}"
+
         # Plan 14-02.3 / F-5 (NEU primary): Live-CC-Overview via editMeldelisteCheck.php.
         # D-14-02-A Helper A — der CC selbst ist source-of-truth für meldeliste_cc_id.
         # DB-Mirror war oft veraltet (z.B. NDM 14/1 Herren cc_id 912, 30 angemeldete Spieler,
         # TournamentCc.registration_list_cc nicht verlinkt). Defensive: nil bei Network/Parse-Fail.
         overview = cc_session.fetch_meldeliste_overview(tournament_cc_id, server_context: server_context)
+        Rails.logger.info "[LookupMeldelistе] path-1 live-cc-overview: #{overview ? "hit (meldeliste_cc_id=#{overview[:meldeliste_cc_id]})" : "miss (nil)"}"
         if overview && overview[:meldeliste_cc_id]
           return text(<<~OUT.strip)
             meldeliste_cc_id: #{overview[:meldeliste_cc_id]}
@@ -81,6 +88,7 @@ module McpServer
         # Plan 14-02.3 / F-5: Pfad 2 fallback — DB-Bridge via TournamentCc.registration_list_cc.
         unless force_refresh
           candidates = fetch_from_db(tournament_cc_id)
+          Rails.logger.info "[LookupMeldelistе] path-2 db-bridge: #{candidates.size} candidate(s)"
         end
 
         # Plan 14-02.3 / F-5: Pfad 3 legacy-fallback — showMeldelistenList-Parser.
@@ -91,6 +99,7 @@ module McpServer
             season: season, disciplin_id: disciplin_id, cat_id: cat_id,
             server_context: server_context
           )
+          Rails.logger.info "[LookupMeldelistе] path-3 cc-live (scope_given=#{scope_filter_given?(fed_cc_id, branch_cc_id, season, disciplin_id, cat_id)}): #{live_candidates.size} candidate(s)"
           # Live-Candidates haben Vorrang nur bei force_refresh oder DB-empty
           candidates = live_candidates if !live_candidates.empty?
         end
@@ -109,7 +118,7 @@ module McpServer
             candidates = live_retry if !live_retry.empty?
           else
             # Erster Versuch: meisterschaftsId-Pfad. Retry: Scope-Filter mit Default-Region (CC_REGION-ENV).
-            default_fed = default_fed_id
+            default_fed = default_fed_id(server_context)
             if default_fed
               retry_path_used = "scope-filter-fallback (fed_cc_id=#{default_fed})"
               live_retry = fetch_from_cc(
@@ -121,6 +130,7 @@ module McpServer
               candidates = live_retry if !live_retry.empty?
             end
           end
+          Rails.logger.info "[LookupMeldelistе] path-4 retry (#{retry_path_used || "skipped"}): #{candidates.size} candidate(s)"
         end
 
         case candidates.size

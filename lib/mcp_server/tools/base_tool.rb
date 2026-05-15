@@ -22,6 +22,20 @@ module McpServer
         MCP::Tool::Response.new([{type: "text", text: message}])
       end
 
+      # Plan 14-G.7 / AC-1: Scenario-Config-Fehler-Helper.
+      # Nach D-14-G3 + D-14-G6 + D-14-G.6.1 ist Region keine User-Eigenschaft mehr,
+      # sondern eine Scenario-Config (`Carambus.config.context`). Wenn dieser Key
+      # fehlt, ist das ein SysAdmin-Problem (Per-Region-Scenario falsch konfiguriert),
+      # NICHT ein User-Profile-Edit. Tools nutzen diesen Helper statt hardcoded
+      # Profile-Edit-Hinweise (Pre-Pivot-Annahme aus 14-02.1-fix obsolet).
+      def self.scenario_config_missing_error(key = "context")
+        error(
+          "Scenario-Config-Fehler: `Carambus.config.#{key}` ist nicht gesetzt. " \
+          "Dieses Carambus-Scenario ist nicht für eine Region konfiguriert — " \
+          "bitte SysAdmin kontaktieren (out-of-band: gernot.ullrich@gmail.com)."
+        )
+      end
+
       # Manually validate that all required keys in the schema are present.
       # Returns nil on success, error response on failure.
       def self.validate_required!(args, required_keys)

@@ -64,7 +64,6 @@ module McpServer
         fed_cc_id: nil, branch_cc_id: nil, season: nil,
         disciplin_id: nil, cat_id: nil,
         armed: false, read_back: true, server_context: nil)
-
         # Plan 10-06 Task 3 (D-10-04-J Convenience-Wrapper): Auto-Resolve player_names → player_cc_ids.
         if player_cc_ids.blank? && player_names.is_a?(Array) && player_names.any?
           resolved_ids = []
@@ -323,7 +322,7 @@ module McpServer
       # Fresh-Session-Pre-Read MUSS dla=1 nutzen, sonst sieht es den persistierten DB-State nicht.
       def self.pre_read_teilnehmerliste(client, tournament_cc_id, scope)
         # firstEntry: 1 raus, dla/foundpid/etlbu/akkpid rein (HAR-Initial-Pattern)
-        payload = base_payload(tournament_cc_id, scope).reject { |k, _| k == :firstEntry }
+        payload = base_payload(tournament_cc_id, scope).except(:firstEntry)
           .merge(dla: 1, foundpid: "", etlbu: "", akkpid: "")
         res, doc = client.post("editTeilnehmerlisteCheck", payload, {armed: true, session_id: cc_session.cookie})
         if cc_session.reauth_if_needed!(doc)
