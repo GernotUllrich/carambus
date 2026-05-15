@@ -1,6 +1,6 @@
 # Klick-Reduktion: Meldeliste / Teilnehmerliste finalisieren
 
-> **Status:** Doku-Skeleton aus Plan 03-03. Screenshots werden vom User nachgeliefert (Test-CC oder Prod-CC mit redacted PII; siehe `docs/developers/clubcloud-mcp-workflow-scenarios.de.md` §"Hinweise zur Klick-Reduktions-Doku-Quelle"). Hintergrund-Wissen aus `docs/managers/clubcloud-scenarios/teilnehmerliste-finalisieren.de.md` extrahiert.
+> **Status:** Inhalt-Refresh post-Phase-14-G.10 Authority-Modell (Plan 14-G.11, 2026-05-16). Screenshots werden vom User nachgeliefert (Test-CC oder Prod-CC mit redacted PII; siehe `docs/developers/clubcloud-mcp-workflow-scenarios.de.md` §"Hinweise zur Klick-Reduktions-Doku-Quelle"). Hintergrund-Wissen aus `docs/managers/clubcloud-scenarios/teilnehmerliste-finalisieren.de.md` extrahiert.
 
 ## Worum geht's?
 
@@ -67,17 +67,18 @@ Pattern: `cc_lookup_region` → `cc_lookup_tournament` → `cc_lookup_teilnehmer
 
 ## Voraussetzungen
 
-- Du hast eine **Club-Sportwart-Rolle oder höher** in CC für die Region des Turniers — Pflicht. Ohne diese Rolle gibt CC einen 403-Fehler zurück, und Claude eskaliert mit einer konkreten Telefon-Übergabe-Anweisung an den Vereins-Sportwart.
+- Dein **Sportwart-Wirkbereich** umfasst gastgebenden Verein + Disziplin des Turniers (`sportwart_location_ids` + `sportwart_discipline_ids`; siehe [`cc-roles`](clubcloud-scenarios/cc-roles.de.md) für die Authority-Brücke). Sonst lehnt der MCP-Server ab — Claude eskaliert mit konkreter Telefon-Übergabe-Anweisung an einen Sportwart mit passendem Wirkbereich oder den Landessportwart.
+- Du bist auf der Carambus-Seite Deiner Region (z.B. `https://nbv.carambus.de`) eingeloggt + hast den MCP-Setup-Befehl gepastet (siehe [Cloud-Quickstart](clubcloud-mcp-cloud-quickstart.de.md)).
 - Die Teilnehmerliste ist **vollständig** — keine Last-Minute-Anmeldungen mehr erwartet (Finalisierung ist Einweg-Aktion und nicht rückgängig).
 - Das Turnier ist in CC angelegt mit allen geplanten Spielern auf der Meldeliste.
 
 ## Edge-Cases
 
-- **Fehlende CC-Rolle:** CC gibt 403 zurück. Claude eskaliert mit konkretem Wortlaut: „Du hast keine Club-Sportwart-Rolle für {Verein}. Bitte den Sportwart anrufen, dass er die Liste für dich finalisiert. Sobald das gemacht ist, sag Bescheid." (Pattern aus `teilnehmerliste-finalisieren.de.md` §"Übergabe wenn der Turnierleiter nicht die nötige Berechtigung hat".)
+- **Fehlender Wirkbereich:** Der MCP-Server lehnt mit Authority-Meldung ab. Claude eskaliert mit konkretem Wortlaut: „Dein Sportwart-Wirkbereich deckt {Verein} / {Disziplin} nicht ab. Bitte den zuständigen Sportwart oder Landessportwart anrufen, dass er die Liste für Dich finalisiert. Sobald das gemacht ist, sag Bescheid." (Pattern aus `teilnehmerliste-finalisieren.de.md` §"Übergabe wenn der Turnierleiter nicht die nötige Berechtigung hat".)
 - **Falsches Turnier:** TM bestätigt im Dry-Run-Schritt — Claude zeigt explizit Turnier-Title und Teilnehmer-Anzahl, sodass falsches Turnier erkennbar ist, bevor armed:true ausgeführt wird.
 - **Unvollständige Liste:** Schritt 3 (`cc_lookup_teilnehmerliste`) zeigt die Liste explizit + fragt nach Vollständigkeit. Bei „nein" empfiehlt Claude, zuerst die fehlenden Spieler über `cc://workflow/scenarios/anmeldung-aus-email` anzumelden.
 - **Doppelte Finalisierung:** CC weist die zweite Finalisierung mit einem Fehler zurück. Claude erkennt den Status und erklärt: „Liste ist bereits finalisiert. Wenn du das vorher gemacht hast (oder ein Kollege), ist das OK — der Upload sollte jetzt funktionieren."
 
 ---
-*Klick-Reduktion-Doku — Phase 3 Plan 03-03, 2026-05-08*
+*Klick-Reduktion-Doku — Plan 03-03 + Plan 14-G.11 Authority-Refresh (2026-05-16)*
 *Spickzettel-Datei: `docs/managers/clubcloud-scenarios/meldeliste-finalisieren.de.json` · Format-Spec: `docs/developers/clubcloud-mcp-workflow-scenarios.de.md` · Hintergrund: `docs/managers/clubcloud-scenarios/teilnehmerliste-finalisieren.de.md`*

@@ -13,7 +13,7 @@
         <link rel="canonical" href="https://GernotUllrich.github.io/carambus/managers/clubcloud-mcp-setup-service/">
       
       
-        <link rel="prev" href="../clubcloud-mcp-setup/">
+        <link rel="prev" href="../clubcloud-mcp-cloud-quickstart/">
       
       
         <link rel="next" href="../clubcloud-scenarios/cc-glossary/">
@@ -80,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#clubcloud-mcp-server-beim-sportwart-vor-ort-einrichten-setup-service" class="md-skip">
+        <a href="#clubcloud-mcp-setup-service-per-region-admin-doku" class="md-skip">
           Zum Inhalt
         </a>
       
@@ -1038,10 +1038,6 @@
       
         
       
-        
-      
-        
-      
     
     
     
@@ -1094,52 +1090,6 @@
   
   <span class="md-ellipsis">
     Cloud Quickstart
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../clubcloud-mcp-quickstart/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    MCP Quickstart
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../clubcloud-mcp-setup/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Setup
     
   </span>
   
@@ -1216,46 +1166,64 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#sektion-1-pre-visit-checkliste" class="md-nav__link">
+  <a href="#1-architektur-uberblick" class="md-nav__link">
     <span class="md-ellipsis">
-      Sektion 1 — Pre-Visit-Checkliste
+      1. Architektur-Überblick
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Sektion 1 — Pre-Visit-Checkliste">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-per-region-scenario-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Per-Region-Scenario-Setup
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-setup-helper-ui-mcpsetup" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Setup-Helper-UI (/mcp/setup)
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-auth-layer-devise-jwt-jtimatcher-long-lived-tokens" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Auth-Layer: devise-jwt + JTIMatcher + Long-Lived-Tokens
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Auth-Layer: devise-jwt + JTIMatcher + Long-Lived-Tokens">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#hardware-os" class="md-nav__link">
+  <a href="#41-konfiguration" class="md-nav__link">
     <span class="md-ellipsis">
-      Hardware &amp; OS
+      4.1 Konfiguration
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#software-vorbereitung" class="md-nav__link">
+  <a href="#42-token-lifetime-carambusconfigjwt_expiration_days" class="md-nav__link">
     <span class="md-ellipsis">
-      Software-Vorbereitung
+      4.2 Token-Lifetime — Carambus.config.jwt_expiration_days
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#cc-credentials" class="md-nav__link">
+  <a href="#43-console-befehle-token-operationen" class="md-nav__link">
     <span class="md-ellipsis">
-      CC-Credentials
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#backup-plan" class="md-nav__link">
-    <span class="md-ellipsis">
-      Backup-Plan
+      4.3 Console-Befehle (Token-Operationen)
     </span>
   </a>
   
@@ -1267,64 +1235,37 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#sektion-2-installation-macos" class="md-nav__link">
+  <a href="#5-authority-layer-sportwart-wirkbereich-tl-fk" class="md-nav__link">
     <span class="md-ellipsis">
-      Sektion 2 — Installation macOS
+      5. Authority-Layer (Sportwart-Wirkbereich + TL-FK)
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Sektion 2 — Installation macOS">
+    <nav class="md-nav" aria-label="5. Authority-Layer (Sportwart-Wirkbereich + TL-FK)">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#21-ruby-321-via-rbenv" class="md-nav__link">
+  <a href="#51-authority-hook" class="md-nav__link">
     <span class="md-ellipsis">
-      2.1 Ruby 3.2.1 via rbenv
+      5.1 Authority-Hook
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#22-bundler" class="md-nav__link">
+  <a href="#52-console-befehle-authority-setup" class="md-nav__link">
     <span class="md-ellipsis">
-      2.2 Bundler
+      5.2 Console-Befehle (Authority-Setup)
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#23-carambus-repo" class="md-nav__link">
+  <a href="#53-verifikation-aus-user-sicht" class="md-nav__link">
     <span class="md-ellipsis">
-      2.3 Carambus-Repo
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#24-datenbank-verbindung-verifizieren" class="md-nav__link">
-    <span class="md-ellipsis">
-      2.4 Datenbank-Verbindung verifizieren
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#25-claude_desktop_configjson" class="md-nav__link">
-    <span class="md-ellipsis">
-      2.5 claude_desktop_config.json
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#26-berechtigungen" class="md-nav__link">
-    <span class="md-ellipsis">
-      2.6 Berechtigungen
+      5.3 Verifikation aus User-Sicht
     </span>
   </a>
   
@@ -1336,257 +1277,20 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#sektion-3-installation-windows-wsl2" class="md-nav__link">
+  <a href="#6-user-account-lifecycle" class="md-nav__link">
     <span class="md-ellipsis">
-      Sektion 3 — Installation Windows (WSL2)
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Sektion 3 — Installation Windows (WSL2)">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#31-wsl2-ubuntu-installieren" class="md-nav__link">
-    <span class="md-ellipsis">
-      3.1 WSL2 Ubuntu installieren
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#32-innerhalb-wsl-gleiche-schritte-wie-macos-sektion-2" class="md-nav__link">
-    <span class="md-ellipsis">
-      3.2 Innerhalb WSL: gleiche Schritte wie macOS Sektion 2
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#33-claude_desktop_configjson-windows-native" class="md-nav__link">
-    <span class="md-ellipsis">
-      3.3 claude_desktop_config.json (Windows-Native)
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#34-berechtigungen" class="md-nav__link">
-    <span class="md-ellipsis">
-      3.4 Berechtigungen
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#sektion-4-credentials-ubertragung" class="md-nav__link">
-    <span class="md-ellipsis">
-      Sektion 4 — Credentials-Übertragung
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Sektion 4 — Credentials-Übertragung">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#erlaubte-ubertragungswege" class="md-nav__link">
-    <span class="md-ellipsis">
-      Erlaubte Übertragungswege
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#verbotene-ubertragungswege" class="md-nav__link">
-    <span class="md-ellipsis">
-      Verbotene Übertragungswege
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#schritt-fur-schritt-vor-ort" class="md-nav__link">
-    <span class="md-ellipsis">
-      Schritt-für-Schritt vor Ort
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#sektion-5-smoke-test-drehbuch-akzeptanz-step" class="md-nav__link">
-    <span class="md-ellipsis">
-      Sektion 5 — Smoke-Test-Drehbuch (Akzeptanz-Step)
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Sektion 5 — Smoke-Test-Drehbuch (Akzeptanz-Step)">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#test-dialog" class="md-nav__link">
-    <span class="md-ellipsis">
-      Test-Dialog
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#erweiterter-test-walkthrough-vorbereitung" class="md-nav__link">
-    <span class="md-ellipsis">
-      Erweiterter Test (Walkthrough-Vorbereitung)
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#wenn-der-smoke-test-gelingt" class="md-nav__link">
-    <span class="md-ellipsis">
-      Wenn der Smoke-Test gelingt
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#wenn-der-smoke-test-scheitert" class="md-nav__link">
-    <span class="md-ellipsis">
-      Wenn der Smoke-Test scheitert
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#sektion-55-permission-setup-in-claude-desktop-always-allow" class="md-nav__link">
-    <span class="md-ellipsis">
-      Sektion 5.5 — Permission-Setup in Claude Desktop („Always allow")
+      6. User-Account-Lifecycle
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#sektion-6-remote-bildschirm-sharing-fallback" class="md-nav__link">
+  <a href="#7-cap-deploy-workflow-per-region-deploys" class="md-nav__link">
     <span class="md-ellipsis">
-      Sektion 6 — Remote-Bildschirm-Sharing-Fallback
+      7. Cap-Deploy-Workflow (Per-Region-Deploys)
     </span>
   </a>
-  
-    <nav class="md-nav" aria-label="Sektion 6 — Remote-Bildschirm-Sharing-Fallback">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#setup-voraussetzungen" class="md-nav__link">
-    <span class="md-ellipsis">
-      Setup-Voraussetzungen
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#ablauf" class="md-nav__link">
-    <span class="md-ellipsis">
-      Ablauf
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#nachteile-gegen-vor-ort" class="md-nav__link">
-    <span class="md-ellipsis">
-      Nachteile gegen vor Ort
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#sektion-7-mcp-server-subprocess-neu-starten-nach-code-changes" class="md-nav__link">
-    <span class="md-ellipsis">
-      Sektion 7 — MCP-Server-Subprocess neu starten (nach Code-Changes)
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Sektion 7 — MCP-Server-Subprocess neu starten (nach Code-Changes)">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#71-wann-neu-starten" class="md-nav__link">
-    <span class="md-ellipsis">
-      7.1 Wann neu starten?
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#72-stale-subprocess-symptome" class="md-nav__link">
-    <span class="md-ellipsis">
-      7.2 Stale-Subprocess-Symptome
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#73-restart-in-claude-desktop-macos-windows" class="md-nav__link">
-    <span class="md-ellipsis">
-      7.3 Restart in Claude Desktop (macOS + Windows)
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#74-restart-in-claude-code-carambus-admin-technische-stellvertretung" class="md-nav__link">
-    <span class="md-ellipsis">
-      7.4 Restart in Claude Code (Carambus-Admin / technische Stellvertretung)
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#75-audit-trail-plan-10-08-befund-1" class="md-nav__link">
-    <span class="md-ellipsis">
-      7.5 Audit-Trail (Plan 10-08 Befund #1)
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -1601,9 +1305,9 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#81-datenkategorien-was-wird-gespeichert" class="md-nav__link">
+  <a href="#81-datenkategorien" class="md-nav__link">
     <span class="md-ellipsis">
-      8.1 Datenkategorien (was wird gespeichert?)
+      8.1 Datenkategorien
     </span>
   </a>
   
@@ -1619,9 +1323,9 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#83-retention-aufbewahrung" class="md-nav__link">
+  <a href="#83-retention" class="md-nav__link">
     <span class="md-ellipsis">
-      8.3 Retention (Aufbewahrung)
+      8.3 Retention
     </span>
   </a>
   
@@ -1637,9 +1341,9 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#85-einwilligungs-operational-flow-v03-pilot" class="md-nav__link">
+  <a href="#85-einwilligungs-operational-flow" class="md-nav__link">
     <span class="md-ellipsis">
-      8.5 Einwilligungs-Operational-Flow (v0.3-Pilot)
+      8.5 Einwilligungs-Operational-Flow
     </span>
   </a>
   
@@ -1660,73 +1364,37 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#9-cloud-setup-pfad-http-transport-ab-v03" class="md-nav__link">
+  <a href="#9-troubleshooting" class="md-nav__link">
     <span class="md-ellipsis">
-      9. Cloud-Setup-Pfad (HTTP-Transport ab v0.3)
+      9. Troubleshooting
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="9. Cloud-Setup-Pfad (HTTP-Transport ab v0.3)">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-power-user-cli-anhang-fur-ci-auto-provisioning" class="md-nav__link">
+    <span class="md-ellipsis">
+      10. Power-User-CLI-Anhang (für CI / Auto-Provisioning)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10. Power-User-CLI-Anhang (für CI / Auto-Provisioning)">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#91-voraussetzungen" class="md-nav__link">
+  <a href="#bash-mac-linux-git-bash-wsl2" class="md-nav__link">
     <span class="md-ellipsis">
-      9.1 Voraussetzungen
+      Bash (Mac / Linux / Git Bash / WSL2)
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#92-mcp-server-setup-via-claude-code-cli-jwt-token-auth-empfohlen" class="md-nav__link">
+  <a href="#powershell-windows-nativ" class="md-nav__link">
     <span class="md-ellipsis">
-      9.2 MCP-Server-Setup via Claude Code CLI (JWT-Token-Auth) ⭐ EMPFOHLEN
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#93-aktivierung-in-claudeapp" class="md-nav__link">
-    <span class="md-ellipsis">
-      9.3 Aktivierung in Claude.app
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#94-verifikations-schritte" class="md-nav__link">
-    <span class="md-ellipsis">
-      9.4 Verifikations-Schritte
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#95-troubleshooting" class="md-nav__link">
-    <span class="md-ellipsis">
-      9.5 Troubleshooting
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#96-reserviert" class="md-nav__link">
-    <span class="md-ellipsis">
-      9.6 (reserviert)
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#97-legacy-cookie-auth-v03-pilot-plan-13-061-deprecated" class="md-nav__link">
-    <span class="md-ellipsis">
-      9.7 Legacy Cookie-Auth (v0.3-Pilot Plan 13-06.1) — DEPRECATED
+      PowerShell (Windows nativ)
     </span>
   </a>
   
@@ -1734,15 +1402,6 @@
         
       </ul>
     </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#quellen-weiterfuhrendes" class="md-nav__link">
-    <span class="md-ellipsis">
-      Quellen &amp; Weiterführendes
-    </span>
-  </a>
   
 </li>
       
@@ -3700,46 +3359,64 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#sektion-1-pre-visit-checkliste" class="md-nav__link">
+  <a href="#1-architektur-uberblick" class="md-nav__link">
     <span class="md-ellipsis">
-      Sektion 1 — Pre-Visit-Checkliste
+      1. Architektur-Überblick
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Sektion 1 — Pre-Visit-Checkliste">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-per-region-scenario-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Per-Region-Scenario-Setup
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-setup-helper-ui-mcpsetup" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Setup-Helper-UI (/mcp/setup)
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-auth-layer-devise-jwt-jtimatcher-long-lived-tokens" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Auth-Layer: devise-jwt + JTIMatcher + Long-Lived-Tokens
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Auth-Layer: devise-jwt + JTIMatcher + Long-Lived-Tokens">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#hardware-os" class="md-nav__link">
+  <a href="#41-konfiguration" class="md-nav__link">
     <span class="md-ellipsis">
-      Hardware &amp; OS
+      4.1 Konfiguration
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#software-vorbereitung" class="md-nav__link">
+  <a href="#42-token-lifetime-carambusconfigjwt_expiration_days" class="md-nav__link">
     <span class="md-ellipsis">
-      Software-Vorbereitung
+      4.2 Token-Lifetime — Carambus.config.jwt_expiration_days
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#cc-credentials" class="md-nav__link">
+  <a href="#43-console-befehle-token-operationen" class="md-nav__link">
     <span class="md-ellipsis">
-      CC-Credentials
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#backup-plan" class="md-nav__link">
-    <span class="md-ellipsis">
-      Backup-Plan
+      4.3 Console-Befehle (Token-Operationen)
     </span>
   </a>
   
@@ -3751,64 +3428,37 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#sektion-2-installation-macos" class="md-nav__link">
+  <a href="#5-authority-layer-sportwart-wirkbereich-tl-fk" class="md-nav__link">
     <span class="md-ellipsis">
-      Sektion 2 — Installation macOS
+      5. Authority-Layer (Sportwart-Wirkbereich + TL-FK)
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Sektion 2 — Installation macOS">
+    <nav class="md-nav" aria-label="5. Authority-Layer (Sportwart-Wirkbereich + TL-FK)">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#21-ruby-321-via-rbenv" class="md-nav__link">
+  <a href="#51-authority-hook" class="md-nav__link">
     <span class="md-ellipsis">
-      2.1 Ruby 3.2.1 via rbenv
+      5.1 Authority-Hook
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#22-bundler" class="md-nav__link">
+  <a href="#52-console-befehle-authority-setup" class="md-nav__link">
     <span class="md-ellipsis">
-      2.2 Bundler
+      5.2 Console-Befehle (Authority-Setup)
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#23-carambus-repo" class="md-nav__link">
+  <a href="#53-verifikation-aus-user-sicht" class="md-nav__link">
     <span class="md-ellipsis">
-      2.3 Carambus-Repo
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#24-datenbank-verbindung-verifizieren" class="md-nav__link">
-    <span class="md-ellipsis">
-      2.4 Datenbank-Verbindung verifizieren
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#25-claude_desktop_configjson" class="md-nav__link">
-    <span class="md-ellipsis">
-      2.5 claude_desktop_config.json
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#26-berechtigungen" class="md-nav__link">
-    <span class="md-ellipsis">
-      2.6 Berechtigungen
+      5.3 Verifikation aus User-Sicht
     </span>
   </a>
   
@@ -3820,257 +3470,20 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#sektion-3-installation-windows-wsl2" class="md-nav__link">
+  <a href="#6-user-account-lifecycle" class="md-nav__link">
     <span class="md-ellipsis">
-      Sektion 3 — Installation Windows (WSL2)
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Sektion 3 — Installation Windows (WSL2)">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#31-wsl2-ubuntu-installieren" class="md-nav__link">
-    <span class="md-ellipsis">
-      3.1 WSL2 Ubuntu installieren
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#32-innerhalb-wsl-gleiche-schritte-wie-macos-sektion-2" class="md-nav__link">
-    <span class="md-ellipsis">
-      3.2 Innerhalb WSL: gleiche Schritte wie macOS Sektion 2
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#33-claude_desktop_configjson-windows-native" class="md-nav__link">
-    <span class="md-ellipsis">
-      3.3 claude_desktop_config.json (Windows-Native)
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#34-berechtigungen" class="md-nav__link">
-    <span class="md-ellipsis">
-      3.4 Berechtigungen
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#sektion-4-credentials-ubertragung" class="md-nav__link">
-    <span class="md-ellipsis">
-      Sektion 4 — Credentials-Übertragung
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Sektion 4 — Credentials-Übertragung">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#erlaubte-ubertragungswege" class="md-nav__link">
-    <span class="md-ellipsis">
-      Erlaubte Übertragungswege
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#verbotene-ubertragungswege" class="md-nav__link">
-    <span class="md-ellipsis">
-      Verbotene Übertragungswege
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#schritt-fur-schritt-vor-ort" class="md-nav__link">
-    <span class="md-ellipsis">
-      Schritt-für-Schritt vor Ort
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#sektion-5-smoke-test-drehbuch-akzeptanz-step" class="md-nav__link">
-    <span class="md-ellipsis">
-      Sektion 5 — Smoke-Test-Drehbuch (Akzeptanz-Step)
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Sektion 5 — Smoke-Test-Drehbuch (Akzeptanz-Step)">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#test-dialog" class="md-nav__link">
-    <span class="md-ellipsis">
-      Test-Dialog
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#erweiterter-test-walkthrough-vorbereitung" class="md-nav__link">
-    <span class="md-ellipsis">
-      Erweiterter Test (Walkthrough-Vorbereitung)
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#wenn-der-smoke-test-gelingt" class="md-nav__link">
-    <span class="md-ellipsis">
-      Wenn der Smoke-Test gelingt
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#wenn-der-smoke-test-scheitert" class="md-nav__link">
-    <span class="md-ellipsis">
-      Wenn der Smoke-Test scheitert
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#sektion-55-permission-setup-in-claude-desktop-always-allow" class="md-nav__link">
-    <span class="md-ellipsis">
-      Sektion 5.5 — Permission-Setup in Claude Desktop („Always allow")
+      6. User-Account-Lifecycle
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#sektion-6-remote-bildschirm-sharing-fallback" class="md-nav__link">
+  <a href="#7-cap-deploy-workflow-per-region-deploys" class="md-nav__link">
     <span class="md-ellipsis">
-      Sektion 6 — Remote-Bildschirm-Sharing-Fallback
+      7. Cap-Deploy-Workflow (Per-Region-Deploys)
     </span>
   </a>
-  
-    <nav class="md-nav" aria-label="Sektion 6 — Remote-Bildschirm-Sharing-Fallback">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#setup-voraussetzungen" class="md-nav__link">
-    <span class="md-ellipsis">
-      Setup-Voraussetzungen
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#ablauf" class="md-nav__link">
-    <span class="md-ellipsis">
-      Ablauf
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#nachteile-gegen-vor-ort" class="md-nav__link">
-    <span class="md-ellipsis">
-      Nachteile gegen vor Ort
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#sektion-7-mcp-server-subprocess-neu-starten-nach-code-changes" class="md-nav__link">
-    <span class="md-ellipsis">
-      Sektion 7 — MCP-Server-Subprocess neu starten (nach Code-Changes)
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Sektion 7 — MCP-Server-Subprocess neu starten (nach Code-Changes)">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#71-wann-neu-starten" class="md-nav__link">
-    <span class="md-ellipsis">
-      7.1 Wann neu starten?
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#72-stale-subprocess-symptome" class="md-nav__link">
-    <span class="md-ellipsis">
-      7.2 Stale-Subprocess-Symptome
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#73-restart-in-claude-desktop-macos-windows" class="md-nav__link">
-    <span class="md-ellipsis">
-      7.3 Restart in Claude Desktop (macOS + Windows)
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#74-restart-in-claude-code-carambus-admin-technische-stellvertretung" class="md-nav__link">
-    <span class="md-ellipsis">
-      7.4 Restart in Claude Code (Carambus-Admin / technische Stellvertretung)
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#75-audit-trail-plan-10-08-befund-1" class="md-nav__link">
-    <span class="md-ellipsis">
-      7.5 Audit-Trail (Plan 10-08 Befund #1)
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -4085,9 +3498,9 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#81-datenkategorien-was-wird-gespeichert" class="md-nav__link">
+  <a href="#81-datenkategorien" class="md-nav__link">
     <span class="md-ellipsis">
-      8.1 Datenkategorien (was wird gespeichert?)
+      8.1 Datenkategorien
     </span>
   </a>
   
@@ -4103,9 +3516,9 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#83-retention-aufbewahrung" class="md-nav__link">
+  <a href="#83-retention" class="md-nav__link">
     <span class="md-ellipsis">
-      8.3 Retention (Aufbewahrung)
+      8.3 Retention
     </span>
   </a>
   
@@ -4121,9 +3534,9 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#85-einwilligungs-operational-flow-v03-pilot" class="md-nav__link">
+  <a href="#85-einwilligungs-operational-flow" class="md-nav__link">
     <span class="md-ellipsis">
-      8.5 Einwilligungs-Operational-Flow (v0.3-Pilot)
+      8.5 Einwilligungs-Operational-Flow
     </span>
   </a>
   
@@ -4144,73 +3557,37 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#9-cloud-setup-pfad-http-transport-ab-v03" class="md-nav__link">
+  <a href="#9-troubleshooting" class="md-nav__link">
     <span class="md-ellipsis">
-      9. Cloud-Setup-Pfad (HTTP-Transport ab v0.3)
+      9. Troubleshooting
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="9. Cloud-Setup-Pfad (HTTP-Transport ab v0.3)">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-power-user-cli-anhang-fur-ci-auto-provisioning" class="md-nav__link">
+    <span class="md-ellipsis">
+      10. Power-User-CLI-Anhang (für CI / Auto-Provisioning)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10. Power-User-CLI-Anhang (für CI / Auto-Provisioning)">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#91-voraussetzungen" class="md-nav__link">
+  <a href="#bash-mac-linux-git-bash-wsl2" class="md-nav__link">
     <span class="md-ellipsis">
-      9.1 Voraussetzungen
+      Bash (Mac / Linux / Git Bash / WSL2)
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#92-mcp-server-setup-via-claude-code-cli-jwt-token-auth-empfohlen" class="md-nav__link">
+  <a href="#powershell-windows-nativ" class="md-nav__link">
     <span class="md-ellipsis">
-      9.2 MCP-Server-Setup via Claude Code CLI (JWT-Token-Auth) ⭐ EMPFOHLEN
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#93-aktivierung-in-claudeapp" class="md-nav__link">
-    <span class="md-ellipsis">
-      9.3 Aktivierung in Claude.app
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#94-verifikations-schritte" class="md-nav__link">
-    <span class="md-ellipsis">
-      9.4 Verifikations-Schritte
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#95-troubleshooting" class="md-nav__link">
-    <span class="md-ellipsis">
-      9.5 Troubleshooting
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#96-reserviert" class="md-nav__link">
-    <span class="md-ellipsis">
-      9.6 (reserviert)
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#97-legacy-cookie-auth-v03-pilot-plan-13-061-deprecated" class="md-nav__link">
-    <span class="md-ellipsis">
-      9.7 Legacy Cookie-Auth (v0.3-Pilot Plan 13-06.1) — DEPRECATED
+      PowerShell (Windows nativ)
     </span>
   </a>
   
@@ -4218,15 +3595,6 @@
         
       </ul>
     </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#quellen-weiterfuhrendes" class="md-nav__link">
-    <span class="md-ellipsis">
-      Quellen &amp; Weiterführendes
-    </span>
-  </a>
   
 </li>
       
@@ -4249,16 +3617,11 @@
   
 
 
-<h1 id="clubcloud-mcp-server-beim-sportwart-vor-ort-einrichten-setup-service">ClubCloud-MCP-Server beim Sportwart vor Ort einrichten (Setup-Service)<a class="headerlink" href="#clubcloud-mcp-server-beim-sportwart-vor-ort-einrichten-setup-service" title="Permanent link">&para;</a></h1>
+<h1 id="clubcloud-mcp-setup-service-per-region-admin-doku">ClubCloud-MCP Setup-Service (Per-Region-Admin-Doku)<a class="headerlink" href="#clubcloud-mcp-setup-service-per-region-admin-doku" title="Permanent link">&para;</a></h1>
 <h2 id="adressat-abgrenzung">Adressat &amp; Abgrenzung<a class="headerlink" href="#adressat-abgrenzung" title="Permanent link">&para;</a></h2>
-<p>Diese Doku richtet sich an den <strong>Carambus-Admin</strong> (oder Landessportwart mit Dev-Setup),
-der den MCP-Server <strong>vor Ort auf dem Rechner eines Club-Sportwarts</strong> installiert.</p>
-<p><strong>Warum vor Ort?</strong> Der Club-Sportwart hat typischerweise nur Browser-Erfahrung — kein
-Terminal, kein Code-Editor, keine Dev-Tools. Eine Remote-Installation per
-Bildschirm-Sharing ist möglich (siehe Sektion 6), aber vor Ort ist deutlich
-verlässlicher: der Admin sieht das Hardware-Setup direkt, kann Pfad-Probleme schnell
-beheben und liefert die Credentials persönlich ab.</p>
-<p><strong>Abgrenzung zu anderen Setup-Dokus:</strong></p>
+<p>Diese Doku richtet sich an den <strong>Carambus-Admin</strong>, der einen Per-Region-MCP-Server (z.B.
+<code>nbv.carambus.de</code>, <code>bcw.carambus.de</code>) einrichtet, betreibt und User-Authority
+konfiguriert.</p>
 <table>
 <thead>
 <tr>
@@ -4269,422 +3632,281 @@ beheben und liefert die Credentials persönlich ab.</p>
 </thead>
 <tbody>
 <tr>
-<td><a href="../clubcloud-mcp-quickstart/"><code>clubcloud-mcp-quickstart.de.md</code></a></td>
-<td>Technische Stellvertretung (Landessportwart, Carambus-Admin)</td>
-<td>5-Min-Quickstart, erster Tool-Call</td>
+<td><a href="../clubcloud-mcp-cloud-quickstart/">Cloud-Quickstart</a></td>
+<td>Sportwart / Turnierleiter / LSW</td>
+<td>User-facing Setup in 3 Schritten</td>
 </tr>
 <tr>
-<td><a href="../clubcloud-mcp-setup/"><code>clubcloud-mcp-setup.de.md</code></a></td>
-<td>Technische Stellvertretung</td>
-<td>Tiefes Setup-Troubleshooting, Entwickler-Setup</td>
+<td><strong>Diese Doku</strong></td>
+<td><strong>Carambus-Admin</strong></td>
+<td>Per-Region-Scenario-Setup, Authority-Console, DSGVO-Operations, Deploy-Workflow</td>
 </tr>
 <tr>
-<td><strong>diese Doku</strong> (<code>clubcloud-mcp-setup-service.de.md</code>)</td>
-<td><strong>Carambus-Admin beim Sportwart</strong></td>
-<td><strong>Vor-Ort-Setup-Service für einen Sportwart, der nicht selbst installieren kann</strong></td>
+<td><a href="../clubcloud-scenarios/cc-roles/"><code>cc-roles</code></a></td>
+<td>Cross-Ref-Substrate</td>
+<td>CC-Rollen + Carambus-Authority-Brücke</td>
+</tr>
+<tr>
+<td><a href="../clubcloud-scenarios/cc-glossary/"><code>cc-glossary</code></a></td>
+<td>Cross-Ref-Substrate</td>
+<td>ClubCloud-Begriffe</td>
 </tr>
 </tbody>
 </table>
-<p>Nach erfolgreichem Setup-Service kann der Sportwart in Phase 10 (v0.2-Walkthrough)
-eigenständig Anmeldungen über Claude Desktop abwickeln.</p>
-<hr />
-<h2 id="sektion-1-pre-visit-checkliste">Sektion 1 — Pre-Visit-Checkliste<a class="headerlink" href="#sektion-1-pre-visit-checkliste" title="Permanent link">&para;</a></h2>
-<p>Vor dem Termin beim Sportwart prüfen und mitbringen:</p>
-<h3 id="hardware-os">Hardware &amp; OS<a class="headerlink" href="#hardware-os" title="Permanent link">&para;</a></h3>
-<table>
-<thead>
-<tr>
-<th>Item</th>
-<th>Pflicht</th>
-<th>Notiz</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Rechner-Owner geklärt?</td>
-<td>✅</td>
-<td>Sportwart-eigener Rechner ODER Admin-Leihrechner?</td>
-</tr>
-<tr>
-<td>macOS 12+ ODER Windows 10/11 mit WSL2</td>
-<td>✅</td>
-<td>Linux möglich, aber Quickstart-Doku ist macOS-fokussiert</td>
-</tr>
-<tr>
-<td>8 GB RAM, 5 GB freier Festplattenspeicher</td>
-<td>✅</td>
-<td>Ruby + Bundler + Carambus-Repo</td>
-</tr>
-<tr>
-<td>Stabile Internet-Verbindung</td>
-<td>✅</td>
-<td>4G-Hotspot als Backup mitbringen</td>
-</tr>
-<tr>
-<td>Admin-Rechte auf dem Rechner</td>
-<td>✅</td>
-<td>Für Ruby-Installation und Pfad-Setup</td>
-</tr>
-</tbody>
-</table>
-<h3 id="software-vorbereitung">Software-Vorbereitung<a class="headerlink" href="#software-vorbereitung" title="Permanent link">&para;</a></h3>
-<ul class="task-list">
-<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>Claude Desktop</strong> auf dem Sportwart-Rechner installieren (oder schon installiert?)
-  → <a href="https://claude.ai/download">claude.ai/download</a></li>
-<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>Git</strong> vorhanden (<code>git --version</code>)?</li>
-<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>rbenv</strong> oder vergleichbare Ruby-Versionsverwaltung installiert?</li>
-<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>Editor</strong> (VS Code oder TextEdit) für claude_desktop_config.json-Editierung?</li>
-</ul>
-<h3 id="cc-credentials">CC-Credentials<a class="headerlink" href="#cc-credentials" title="Permanent link">&para;</a></h3>
-<ul class="task-list">
-<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>Sportwart-CC-Login</strong> (Username + Password) bei Sportwart geklärt — wird beim Termin verwendet (NICHT vorher übertragen!)</li>
-<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>region_cc_id</strong> des Vereins bekannt (z.B. NBV = 20)</li>
-<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>base_url</strong> der CC-Region (z.B. <code>https://nbv.club-cloud.de</code>)</li>
-<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Sportwart-Rechte in CC verifiziert (Anmelden + Meldeschluss verschieben + Teilnehmerliste pflegen)</li>
-</ul>
-<h3 id="backup-plan">Backup-Plan<a class="headerlink" href="#backup-plan" title="Permanent link">&para;</a></h3>
-<ul class="task-list">
-<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>Remote-Bildschirm-Sharing</strong> (Zoom/TeamViewer) als Fallback installiert, falls vor-Ort-Setup scheitert</li>
-<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>Mein eigener Admin-Rechner</strong> mitbringen, um Test-Calls parallel zu fahren</li>
-<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>USB-Stick</strong> mit lokalem Carambus-Repo-Clone (falls Internet beim Sportwart schwach)</li>
-</ul>
-<hr />
-<h2 id="sektion-2-installation-macos">Sektion 2 — Installation macOS<a class="headerlink" href="#sektion-2-installation-macos" title="Permanent link">&para;</a></h2>
-<h3 id="21-ruby-321-via-rbenv">2.1 Ruby 3.2.1 via rbenv<a class="headerlink" href="#21-ruby-321-via-rbenv" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># rbenv installieren (falls nicht vorhanden)</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>brew<span class="w"> </span>install<span class="w"> </span>rbenv<span class="w"> </span>ruby-build
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c1"># In ~/.zshrc oder ~/.bashrc einfügen:</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="nb">echo</span><span class="w"> </span><span class="s1">&#39;eval &quot;$(rbenv init -)&quot;&#39;</span><span class="w"> </span>&gt;&gt;<span class="w"> </span>~/.zshrc
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="nb">source</span><span class="w"> </span>~/.zshrc
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="c1"># Ruby 3.2.1 installieren</span>
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>rbenv<span class="w"> </span>install<span class="w"> </span><span class="m">3</span>.2.1
-<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>rbenv<span class="w"> </span>global<span class="w"> </span><span class="m">3</span>.2.1
-<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>ruby<span class="w"> </span>--version<span class="w">  </span><span class="c1"># → ruby 3.2.1</span>
-</code></pre></div>
-<h3 id="22-bundler">2.2 Bundler<a class="headerlink" href="#22-bundler" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>gem<span class="w"> </span>install<span class="w"> </span>bundler
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>bundler<span class="w"> </span>--version<span class="w">  </span><span class="c1"># → Bundler 2.7+</span>
-</code></pre></div>
-<h3 id="23-carambus-repo">2.3 Carambus-Repo<a class="headerlink" href="#23-carambus-repo" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>mkdir<span class="w"> </span>-p<span class="w"> </span>~/DEV/carambus
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="nb">cd</span><span class="w"> </span>~/DEV/carambus
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>git<span class="w"> </span>clone<span class="w"> </span>&lt;repo-url&gt;<span class="w"> </span>carambus_local<span class="w">  </span><span class="c1"># ODER USB-Stick-Kopie</span>
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="nb">cd</span><span class="w"> </span>carambus_local
-<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>bundle<span class="w"> </span>install
-</code></pre></div>
-<h3 id="24-datenbank-verbindung-verifizieren">2.4 Datenbank-Verbindung verifizieren<a class="headerlink" href="#24-datenbank-verbindung-verifizieren" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>bin/rails<span class="w"> </span>db:version
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="c1"># Erwartung: Migration-Version-Nummer (KEIN Connection-Error)</span>
-</code></pre></div>
-<p>Wenn DB-Connection-Error: PostgreSQL-Setup mit dem Sportwart-Rechner abklären
-(lokale Carambus-DB ODER Remote-Connection zu Carambus-Produktion).</p>
-<h3 id="25-claude_desktop_configjson">2.5 claude_desktop_config.json<a class="headerlink" href="#25-claude_desktop_configjson" title="Permanent link">&para;</a></h3>
-<p>Pfad: <code>~/Library/Application Support/Claude/claude_desktop_config.json</code></p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="p">{</span>
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="nt">&quot;mcpServers&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">    </span><span class="nt">&quot;carambus-cc&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">      </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;/Users/&lt;USERNAME&gt;/.rbenv/shims/bundle&quot;</span><span class="p">,</span>
-<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">      </span><span class="nt">&quot;args&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;exec&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;/Users/&lt;USERNAME&gt;/DEV/carambus/carambus_local/bin/mcp-server&quot;</span><span class="p">],</span>
-<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">      </span><span class="nt">&quot;env&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="w">        </span><span class="nt">&quot;RAILS_ENV&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;development&quot;</span><span class="p">,</span>
-<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="w">        </span><span class="nt">&quot;CC_REGION&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;nbv&quot;</span><span class="p">,</span>
-<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="w">        </span><span class="nt">&quot;CARAMBUS_MCP_MOCK&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;0&quot;</span>
-<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="w">      </span><span class="p">}</span>
-<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="w">    </span><span class="p">}</span>
-<a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a><span class="w">  </span><span class="p">}</span>
-<a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a><span class="p">}</span>
-</code></pre></div>
-<p><code>&lt;USERNAME&gt;</code> ersetzen mit dem macOS-Username des Sportwarts. <code>CC_REGION</code> an die Region anpassen.</p>
-<h3 id="26-berechtigungen">2.6 Berechtigungen<a class="headerlink" href="#26-berechtigungen" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>chmod<span class="w"> </span><span class="m">600</span><span class="w"> </span>~/Library/Application<span class="se">\ </span>Support/Claude/claude_desktop_config.json
-</code></pre></div>
-<p>Verhindert, dass Credentials in Backups/iCloud-Sync versehentlich landen.</p>
-<hr />
-<h2 id="sektion-3-installation-windows-wsl2">Sektion 3 — Installation Windows (WSL2)<a class="headerlink" href="#sektion-3-installation-windows-wsl2" title="Permanent link">&para;</a></h2>
-<h3 id="31-wsl2-ubuntu-installieren">3.1 WSL2 Ubuntu installieren<a class="headerlink" href="#31-wsl2-ubuntu-installieren" title="Permanent link">&para;</a></h3>
-<p>PowerShell (als Admin):</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="n">wsl</span> <span class="p">-</span><span class="n">-install</span> <span class="n">-d</span> <span class="n">Ubuntu</span><span class="p">-</span><span class="n">22</span><span class="p">.</span><span class="n">04</span>
-<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="c"># Nach Reboot: Ubuntu-User + Password anlegen</span>
-</code></pre></div>
-<h3 id="32-innerhalb-wsl-gleiche-schritte-wie-macos-sektion-2">3.2 Innerhalb WSL: gleiche Schritte wie macOS Sektion 2<a class="headerlink" href="#32-innerhalb-wsl-gleiche-schritte-wie-macos-sektion-2" title="Permanent link">&para;</a></h3>
-<p>Ruby + Bundler + Repo via <code>apt install build-essential libssl-dev libreadline-dev zlib1g-dev</code> plus rbenv.
-Carambus-Repo unter <code>~/DEV/carambus/carambus_local</code> (WSL-Pfad).</p>
-<h3 id="33-claude_desktop_configjson-windows-native">3.3 claude_desktop_config.json (Windows-Native)<a class="headerlink" href="#33-claude_desktop_configjson-windows-native" title="Permanent link">&para;</a></h3>
-<p>Pfad: <code>%APPDATA%\Claude\claude_desktop_config.json</code> (Windows-Pfad, NICHT WSL-Pfad)</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="p">{</span>
-<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">  </span><span class="nt">&quot;mcpServers&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">    </span><span class="nt">&quot;carambus-cc&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">      </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;wsl&quot;</span><span class="p">,</span>
-<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">      </span><span class="nt">&quot;args&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">        </span><span class="s2">&quot;-d&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Ubuntu-22.04&quot;</span><span class="p">,</span>
-<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="w">        </span><span class="s2">&quot;bash&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;-c&quot;</span><span class="p">,</span>
-<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="w">        </span><span class="s2">&quot;cd /home/&lt;USERNAME&gt;/DEV/carambus/carambus_local &amp;&amp; bundle exec bin/mcp-server&quot;</span>
-<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="w">      </span><span class="p">],</span>
-<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="w">      </span><span class="nt">&quot;env&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="w">        </span><span class="nt">&quot;RAILS_ENV&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;development&quot;</span><span class="p">,</span>
-<a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="w">        </span><span class="nt">&quot;CC_REGION&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;nbv&quot;</span><span class="p">,</span>
-<a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a><span class="w">        </span><span class="nt">&quot;CARAMBUS_MCP_MOCK&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;0&quot;</span>
-<a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a><span class="w">      </span><span class="p">}</span>
-<a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a><span class="w">    </span><span class="p">}</span>
-<a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a><span class="w">  </span><span class="p">}</span>
-<a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a><span class="p">}</span>
-</code></pre></div>
-<p><code>&lt;USERNAME&gt;</code> ist der WSL-Linux-Username (NICHT der Windows-Username).</p>
-<h3 id="34-berechtigungen">3.4 Berechtigungen<a class="headerlink" href="#34-berechtigungen" title="Permanent link">&para;</a></h3>
-<p>PowerShell:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="n">icacls</span> <span class="s2">&quot;$env:APPDATA\Claude\claude_desktop_config.json&quot;</span> <span class="p">/</span><span class="n">inheritance</span><span class="p">:</span><span class="nb">r </span><span class="p">/</span><span class="n">grant</span><span class="p">:</span><span class="nb">r </span><span class="s2">&quot;$env:USERNAME:F&quot;</span>
-</code></pre></div>
-<p>Falls Windows-Pfad-Übersetzung Probleme macht: <strong>direkt auf Sektion 6 (Remote-Bildschirm-Sharing-Fallback)</strong> ausweichen.</p>
-<hr />
-<h2 id="sektion-4-credentials-ubertragung">Sektion 4 — Credentials-Übertragung<a class="headerlink" href="#sektion-4-credentials-ubertragung" title="Permanent link">&para;</a></h2>
-<h3 id="erlaubte-ubertragungswege">Erlaubte Übertragungswege<a class="headerlink" href="#erlaubte-ubertragungswege" title="Permanent link">&para;</a></h3>
-<table>
-<thead>
-<tr>
-<th>Methode</th>
-<th>Sicherheit</th>
-<th>Empfehlung</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>1Password Shared Item (kurz, mit Auto-Expire)</td>
-<td>Hoch</td>
-<td>✅ Bevorzugt</td>
-</tr>
-<tr>
-<td>Verschlüsselte E-Mail (ProtonMail, Tutanota)</td>
-<td>Hoch</td>
-<td>✅</td>
-</tr>
-<tr>
-<td>USB-Stick beim Termin abgeben + sofort vernichten</td>
-<td>Mittel-Hoch</td>
-<td>✅ Falls digitaler Weg unmöglich</td>
-</tr>
-<tr>
-<td><strong>Beim Termin direkt vom Sportwart einsehen + eintippen</strong></td>
-<td>Hoch (kein Transit)</td>
-<td>✅ Bevorzugt</td>
-</tr>
-</tbody>
-</table>
-<h3 id="verbotene-ubertragungswege">Verbotene Übertragungswege<a class="headerlink" href="#verbotene-ubertragungswege" title="Permanent link">&para;</a></h3>
-<table>
-<thead>
-<tr>
-<th>Methode</th>
-<th>Risiko</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Slack/Discord/Telegram/SMS im Klartext</td>
-<td>❌ Logs/Backups bei den Anbietern</td>
-</tr>
-<tr>
-<td>E-Mail im Klartext</td>
-<td>❌ Mail-Server-Logs</td>
-</tr>
-<tr>
-<td>Dropbox/iCloud/Google Drive</td>
-<td>❌ Cloud-Sync, Backup-Historie</td>
-</tr>
-<tr>
-<td>Browser-Notiz / Sticky Note</td>
-<td>❌ Sync-Risiko</td>
-</tr>
-</tbody>
-</table>
-<h3 id="schritt-fur-schritt-vor-ort">Schritt-für-Schritt vor Ort<a class="headerlink" href="#schritt-fur-schritt-vor-ort" title="Permanent link">&para;</a></h3>
-<ol>
-<li>Sportwart-CC-Login direkt in CC-Browser einloggen → Username/Password aus Browser-Password-Manager ablesen</li>
-<li>claude_desktop_config.json <strong>vor Ort</strong> mit den Credentials befüllen (NICHT vorbereitet)</li>
-<li><code>chmod 600</code> (macOS) / <code>icacls</code> (Windows) ausführen</li>
-<li>Sportwart-Rechner-Cloud-Sync prüfen — falls aktiv, Hinweis: claude_desktop_config.json <strong>nicht</strong> in iCloud Drive / OneDrive / Dropbox legen</li>
-<li>CC-Credentials beim Sportwart verbleiben (Browser-Password-Manager); Carambus-Admin notiert sie sich NICHT für späteren Zugriff</li>
-</ol>
-<hr />
-<h2 id="sektion-5-smoke-test-drehbuch-akzeptanz-step">Sektion 5 — Smoke-Test-Drehbuch (Akzeptanz-Step)<a class="headerlink" href="#sektion-5-smoke-test-drehbuch-akzeptanz-step" title="Permanent link">&para;</a></h2>
-<p>Nach Setup ist Akzeptanz erreicht, wenn der Sportwart <strong>ohne Admin-Hilfe</strong> folgenden Dialog in Claude Desktop führen kann:</p>
-<h3 id="test-dialog">Test-Dialog<a class="headerlink" href="#test-dialog" title="Permanent link">&para;</a></h3>
 <blockquote>
-<p><strong>Sportwart tippt:</strong>
-„Hallo Claude — zeig mir den Status zu meinem Verein in ClubCloud."</p>
-<p><strong>Erwartung Claude-Antwort:</strong>
-Claude ruft <code>cc_lookup_region</code> + <code>cc_lookup_club</code> auf und zeigt:
-- Region-Name (z.B. „NBV")
-- Sportwart-eigener Verein mit cc_id, Spielerliste, Trainer-Info, etc.</p>
+<p><strong>Architektur-Pivot (v0.4):</strong> STDIO-Subprocess-Setup (rbenv / Claude Desktop config) ist
+obsolet. Der MCP-Server läuft heute als <strong>Remote-HTTP-Endpoint</strong> pro Region; Sportwarte
+verbinden sich via Bearer-JWT-Auth, einmalig per Setup-Helper-UI eingerichtet.</p>
 </blockquote>
-<h3 id="erweiterter-test-walkthrough-vorbereitung">Erweiterter Test (Walkthrough-Vorbereitung)<a class="headerlink" href="#erweiterter-test-walkthrough-vorbereitung" title="Permanent link">&para;</a></h3>
-<blockquote>
-<p><strong>Sportwart tippt:</strong>
-„Welche offenen Turniere stehen aktuell in Kegel an?"</p>
-<p><strong>Erwartung:</strong>
-Claude ruft <code>cc_list_open_tournaments</code> mit branch_cc_id=8 auf und zeigt Liste mit Deadline-Daten.</p>
-</blockquote>
-<h3 id="wenn-der-smoke-test-gelingt">Wenn der Smoke-Test gelingt<a class="headerlink" href="#wenn-der-smoke-test-gelingt" title="Permanent link">&para;</a></h3>
-<p>✅ Sportwart ist Phase-10-walkthrough-fähig
-✅ Carambus-Admin kann den Sportwart-Termin schließen
-✅ Sportwart bekommt:
-- Eine 1-Seiten-PDF mit häufigen NL-Befehlen (Quickstart-Excerpt)
-- Telefonnummer/E-Mail des Carambus-Admins für Notfälle
-- Hinweis: bei Claude-Desktop-Update / OS-Update muss ggf. neu installiert werden</p>
-<h3 id="wenn-der-smoke-test-scheitert">Wenn der Smoke-Test scheitert<a class="headerlink" href="#wenn-der-smoke-test-scheitert" title="Permanent link">&para;</a></h3>
-<p><strong>Häufige Fehler:</strong></p>
+<hr />
+<h2 id="1-architektur-uberblick">1. Architektur-Überblick<a class="headerlink" href="#1-architektur-uberblick" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>                      [Sportwart-Browser]
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>                              │
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>                              │ (1) POST /login (Email + Passwort)
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>                              ▼
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>                   ┌──────────────────────────┐
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>                   │  nbv.carambus.de         │
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>                   │  (Per-Region-Scenario)   │
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>                   │                          │
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>                   │  - devise-jwt liefert    │
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>                   │    Bearer-Token (90d)    │
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>                   │  - /mcp/setup-Helper-UI  │
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>                   │    rendert Setup-Befehl  │
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>                   │  - /mcp Streamable-HTTP  │
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>                   │    (Authority-Filter)    │
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>                   └──────────────────────────┘
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>                              ▲
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>                              │ (2) Setup-Befehl-Copy
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>                              │ (3) Bearer-Token in `claude mcp add-json`
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>                              │
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>                      [Sportwart-Terminal]
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>                              │
+<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>                              │ (4) MCP-Calls mit Bearer-Header
+<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>                              ▼
+<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>                  [Claude Code mit carambus-remote]
+</code></pre></div>
+<p><strong>Per Region eine Carambus-Instanz</strong> (Per-Region-Scenario): jede Region hat ihre
+eigene Domain, eigene PostgreSQL-DB, eigene devise-jwt-Secret-Konfig. Der
+<code>Carambus.config.context</code>-Key (in <code>config/carambus.yml</code>) bestimmt, in welcher
+Region die Instanz läuft.</p>
+<hr />
+<h2 id="2-per-region-scenario-setup">2. Per-Region-Scenario-Setup<a class="headerlink" href="#2-per-region-scenario-setup" title="Permanent link">&para;</a></h2>
+<p>Eine neue Region (z.B. <code>bvbw.carambus.de</code>) wird als Capistrano-Scenario
+aufgesetzt:</p>
+<ol>
+<li>
+<p><strong>Scenario-Verzeichnis</strong> clonen (z.B. <code>carambus_bvbw</code> parallel zu <code>carambus_nbv</code>):
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nb">cd</span><span class="w"> </span>~/DEV/carambus
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>git<span class="w"> </span>clone<span class="w"> </span>&lt;upstream-repo&gt;<span class="w"> </span>carambus_bvbw
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="nb">cd</span><span class="w"> </span>carambus_bvbw
+</code></pre></div></p>
+</li>
+<li>
+<p><strong><code>config/carambus.yml</code></strong> erweitern:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nt">bvbw</span><span class="p">:</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="nt">context</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">bvbw</span><span class="w">          </span><span class="c1"># Pflicht — Per-Region-Identifier</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span><span class="nt">application_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">bvbw</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span><span class="nt">api_url</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://bvbw.carambus.de</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">  </span><span class="c1"># … weitere Per-Scenario-Werte</span>
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>DNS</strong> auf den Hetzner-Server pointen (<code>bvbw.carambus.de</code> → A-Record).</p>
+</li>
+<li>
+<p><strong>NGINX-vhost</strong> ergänzen (<code>/etc/nginx/sites-enabled/carambus_bvbw.conf</code>) mit SSL via
+   Let's Encrypt.</p>
+</li>
+<li>
+<p><strong>PostgreSQL-DB</strong> anlegen (<code>carambus_bvbw_production</code>).</p>
+</li>
+<li>
+<p><strong>Capistrano-Stage</strong> <code>config/deploy/bvbw.rb</code> als Kopie eines vorhandenen Stages
+   konfigurieren.</p>
+</li>
+<li>
+<p><strong>Initial-Deploy:</strong>
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>cap<span class="w"> </span>bvbw<span class="w"> </span>deploy:setup_secrets<span class="w">   </span><span class="c1"># einmalig</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>cap<span class="w"> </span>bvbw<span class="w"> </span>deploy
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>JWT-Secret-Konsistenz prüfen:</strong> <code>config/credentials/production.yml.enc</code> muss
+   <code>devise_jwt_secret_key</code> enthalten (siehe Sektion 4) — pro Region eigene Secrets,
+   damit Tokens nicht über Regionen hinweg gelten.</p>
+</li>
+<li>
+<p><strong>Smoke-Test:</strong> Browser-Login auf <code>https://bvbw.carambus.de/login</code> → <code>/mcp/setup</code>
+   öffnen → Setup-Befehl kopieren → in Terminal pasten → <code>claude mcp get
+   carambus-remote</code> zeigt <code>connected</code>.</p>
+</li>
+</ol>
+<hr />
+<h2 id="3-setup-helper-ui-mcpsetup">3. Setup-Helper-UI (<code>/mcp/setup</code>)<a class="headerlink" href="#3-setup-helper-ui-mcpsetup" title="Permanent link">&para;</a></h2>
+<p>Die Setup-Helper-UI (Plan 14-G.8) rendert pro User einen vollständigen,
+copy-paste-fertigen <code>claude mcp add-json</code>-Befehl mit eingebettetem Bearer-Token.</p>
+<p><strong>Architektur-Schlüssel:</strong></p>
+<ul>
+<li><strong>Per-Region-URL via <code>request.base_url</code>-Pattern</strong> — der Setup-Befehl enthält die
+  Domain der aufgerufenen Instanz (<code>https://nbv.carambus.de/mcp?stateless=1</code>),
+  nicht eine hardgecodete URL. Das macht die Helper-UI über alle Regionen ohne
+  Code-Branch wiederverwendbar.</li>
+<li><strong>Sportwart-only-Voice</strong> — der UI-Text spricht den Sportwart in Du-Form an, ohne
+  Tech-Jargon (Bearer/JWT als „Login-Token" geframet).</li>
+<li><strong>Restlaufzeit-Banner</strong> — zeigt verbleibende Token-Lifetime in Tagen prominent an;
+  ab &lt;14 Tagen sanfter Renew-Hint.</li>
+<li><strong>Controller:</strong> <code>app/controllers/mcp_setup_controller.rb</code></li>
+<li><strong>View:</strong> <code>app/views/mcp_setup/show.html.erb</code></li>
+</ul>
+<hr />
+<h2 id="4-auth-layer-devise-jwt-jtimatcher-long-lived-tokens">4. Auth-Layer: devise-jwt + JTIMatcher + Long-Lived-Tokens<a class="headerlink" href="#4-auth-layer-devise-jwt-jtimatcher-long-lived-tokens" title="Permanent link">&para;</a></h2>
+<h3 id="41-konfiguration">4.1 Konfiguration<a class="headerlink" href="#41-konfiguration" title="Permanent link">&para;</a></h3>
+<p><code>config/initializers/devise.rb</code> (Auszug):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">config</span><span class="o">.</span><span class="n">jwt</span><span class="w"> </span><span class="k">do</span><span class="w"> </span><span class="o">|</span><span class="n">jwt</span><span class="o">|</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="n">jwt</span><span class="o">.</span><span class="n">secret</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">Rails</span><span class="o">.</span><span class="n">application</span><span class="o">.</span><span class="n">credentials</span><span class="o">.</span><span class="n">devise_jwt_secret_key</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">  </span><span class="n">jwt</span><span class="o">.</span><span class="n">dispatch_requests</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">[</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">    </span><span class="o">[</span><span class="s1">&#39;POST&#39;</span><span class="p">,</span><span class="w"> </span><span class="sr">%r{^/login$}</span><span class="o">]</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">  </span><span class="o">]</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">  </span><span class="n">jwt</span><span class="o">.</span><span class="n">revocation_requests</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">[</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="w">    </span><span class="o">[</span><span class="s1">&#39;DELETE&#39;</span><span class="p">,</span><span class="w"> </span><span class="sr">%r{^/logout$}</span><span class="o">]</span>
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="w">  </span><span class="o">]</span>
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="w">  </span><span class="n">jwt</span><span class="o">.</span><span class="n">expiration_time</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="no">Carambus</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">jwt_expiration_days</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="mi">90</span><span class="p">)</span><span class="o">.</span><span class="n">days</span><span class="o">.</span><span class="n">to_i</span>
+<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="k">end</span>
+</code></pre></div>
+<p><code>app/models/user.rb</code> (Auszug):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="kp">include</span><span class="w"> </span><span class="no">Devise</span><span class="o">::</span><span class="no">JWT</span><span class="o">::</span><span class="no">RevocationStrategies</span><span class="o">::</span><span class="no">JTIMatcher</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="n">devise</span><span class="w"> </span><span class="ss">:database_authenticatable</span><span class="p">,</span><span class="w"> </span><span class="o">...</span><span class="p">,</span><span class="w"> </span><span class="ss">:jwt_authenticatable</span><span class="p">,</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">       </span><span class="ss">jwt_revocation_strategy</span><span class="p">:</span><span class="w"> </span><span class="nb">self</span>
+</code></pre></div>
+<h3 id="42-token-lifetime-carambusconfigjwt_expiration_days">4.2 Token-Lifetime — <code>Carambus.config.jwt_expiration_days</code><a class="headerlink" href="#42-token-lifetime-carambusconfigjwt_expiration_days" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Default 90 Tage</strong> (Plan 14-G.5 / D-14-G7) — Per-Scenario in <code>config/carambus.yml</code>
+  überschreibbar.</li>
+<li><strong>JTIMatcher-Revoke</strong> über <code>DELETE /logout</code> mit Bearer-Header invalidiert den Token
+  serverseitig (kein Client-only-Logout).</li>
+</ul>
+<h3 id="43-console-befehle-token-operationen">4.3 Console-Befehle (Token-Operationen)<a class="headerlink" href="#43-console-befehle-token-operationen" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># Token-JTI eines Users anzeigen (Forensik):</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="no">User</span><span class="o">.</span><span class="n">find_by</span><span class="p">(</span><span class="ss">email</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;sportwart@verein.de&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">jti</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="c1"># Token revoken (Force-Logout aller aktiven Sessions des Users):</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="no">User</span><span class="o">.</span><span class="n">find_by</span><span class="p">(</span><span class="ss">email</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;sportwart@verein.de&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">update!</span><span class="p">(</span><span class="ss">jti</span><span class="p">:</span><span class="w"> </span><span class="no">SecureRandom</span><span class="o">.</span><span class="n">uuid</span><span class="p">)</span>
+</code></pre></div>
+<hr />
+<h2 id="5-authority-layer-sportwart-wirkbereich-tl-fk">5. Authority-Layer (Sportwart-Wirkbereich + TL-FK)<a class="headerlink" href="#5-authority-layer-sportwart-wirkbereich-tl-fk" title="Permanent link">&para;</a></h2>
+<p>Authority entscheidet pro User, welche der 22 MCP-Tools sichtbar + ausführbar sind.
+Statt eines globalen Rollen-Enums hängt Authority an konkreten <strong>Wirkbereichen</strong>:</p>
 <table>
 <thead>
 <tr>
-<th>Fehler</th>
-<th>Diagnose</th>
-<th>Fix</th>
+<th>Persona</th>
+<th>Authority-Felder</th>
+<th>Tool-Subset</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>Claude antwortet „MCP-Server nicht erreichbar"</td>
-<td>claude_desktop_config.json Pfad falsch</td>
-<td>Pfad-Trace via Claude Desktop Devtools</td>
+<td><strong>Sportwart</strong></td>
+<td><code>user.sportwart_location_ids = [...]</code><br><code>user.sportwart_discipline_ids = [...]</code></td>
+<td><strong>16 Tools</strong> (Anmeldungs-Lebenszyklus vor Turnier; ohne Akkreditierung am Turniertag)</td>
 </tr>
 <tr>
-<td>Claude antwortet „CC-Auth-Failure"</td>
-<td>Credentials in Rails Credentials nicht gesetzt</td>
-<td>Rails-Credentials in carambus-Repo prüfen, ggf. neu eintragen</td>
+<td><strong>Turnierleiter</strong></td>
+<td><code>tournament.turnier_leiter_user_id = user.id</code> (pro Turnier; Single-FK)</td>
+<td><strong>19 Tools</strong> (Akkreditierung am Turniertag; ohne Pre-Tournament-Setup)</td>
 </tr>
 <tr>
-<td>Claude antwortet „DB-Connection-Error"</td>
-<td>PostgreSQL nicht erreichbar</td>
-<td><code>bin/rails db:version</code> testen; ggf. SSH-Tunnel zur Carambus-Produktion</td>
+<td><strong>Landessportwart (LSW)</strong></td>
+<td><code>user.admin?</code> (Bypass aller Wirkbereich-Checks)</td>
+<td><strong>22 Tools</strong> (volle Suite)</td>
 </tr>
 <tr>
-<td>Tool-Call funktioniert, aber Rückgabe leer</td>
-<td>DB-Sync veraltet</td>
-<td>Tool mit <code>force_refresh: true</code> erneut aufrufen</td>
+<td><strong>SysAdmin</strong></td>
+<td><code>user.super_user?</code></td>
+<td>volle Suite + Override</td>
 </tr>
 </tbody>
 </table>
-<p>Bei wiederholtem Scheitern: Remote-Bildschirm-Sharing vereinbaren und Logs analysieren (siehe <code>clubcloud-mcp-setup.de.md</code> Sektion „Lokales Debug").</p>
+<h3 id="51-authority-hook">5.1 Authority-Hook<a class="headerlink" href="#51-authority-hook" title="Permanent link">&para;</a></h3>
+<p><code>lib/mcp_server/tools/base_tool.rb</code> enthält <code>authorize!</code>, das pro Tool prüft,
+ob der User Authority für die konkrete Operation hat (z.B. ist die betroffene
+Location im <code>sportwart_location_ids</code>-Array? Ist der User für das Ziel-Turnier als
+TL eingetragen?). Single Source of Truth: <code>lib/mcp_server/tool_registry.rb</code>
+listet pro Tool das benötigte Authority-Level.</p>
+<h3 id="52-console-befehle-authority-setup">5.2 Console-Befehle (Authority-Setup)<a class="headerlink" href="#52-console-befehle-authority-setup" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="n">user</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">User</span><span class="o">.</span><span class="n">find_by</span><span class="p">(</span><span class="ss">email</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;sportwart@verein.de&quot;</span><span class="p">)</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="c1"># Sportwart-Wirkbereich setzen:</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="n">user</span><span class="o">.</span><span class="n">update!</span><span class="p">(</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">  </span><span class="ss">sportwart_location_ids</span><span class="p">:</span><span class="w"> </span><span class="o">[</span><span class="no">Location</span><span class="o">.</span><span class="n">find_by!</span><span class="p">(</span><span class="ss">shortname</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;BCW&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">id</span><span class="o">]</span><span class="p">,</span>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">  </span><span class="ss">sportwart_discipline_ids</span><span class="p">:</span><span class="w"> </span><span class="no">Discipline</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="ss">shortname</span><span class="p">:</span><span class="w"> </span><span class="sx">%w[FREI EUR DREIBAND]</span><span class="p">)</span><span class="o">.</span><span class="n">pluck</span><span class="p">(</span><span class="ss">:id</span><span class="p">)</span>
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="p">)</span>
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>
+<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="c1"># Turnierleiter pro Turnier zuweisen:</span>
+<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="no">Tournament</span><span class="o">.</span><span class="n">find_by!</span><span class="p">(</span><span class="ss">title</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;NDM Endrunde Eurokegel&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">update!</span><span class="p">(</span>
+<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="w">  </span><span class="ss">turnier_leiter_user_id</span><span class="p">:</span><span class="w"> </span><span class="n">user</span><span class="o">.</span><span class="n">id</span>
+<a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="p">)</span>
+<a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a>
+<a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a><span class="c1"># LSW-Bypass:</span>
+<a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a><span class="n">user</span><span class="o">.</span><span class="n">update!</span><span class="p">(</span><span class="ss">admin</span><span class="p">:</span><span class="w"> </span><span class="kp">true</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="53-verifikation-aus-user-sicht">5.3 Verifikation aus User-Sicht<a class="headerlink" href="#53-verifikation-aus-user-sicht" title="Permanent link">&para;</a></h3>
+<p>Der User fragt in Claude: „Welche carambus-remote Tools hast Du?" — die Tool-Anzahl
+muss dem erwarteten Subset entsprechen (16 / 19 / 22). Falls nicht: Wirkbereich
+stimmt nicht. Details für den User selbst in
+<a href="../clubcloud-mcp-cloud-quickstart/#smoke-test-in-claude-code">Cloud-Quickstart §Tool-Anzahl</a>.</p>
 <hr />
-<h2 id="sektion-55-permission-setup-in-claude-desktop-always-allow">Sektion 5.5 — Permission-Setup in Claude Desktop („Always allow")<a class="headerlink" href="#sektion-55-permission-setup-in-claude-desktop-always-allow" title="Permanent link">&para;</a></h2>
-<p><strong>Warum diese Sektion?</strong> (Adressiert Befund #6 aus dem Plan-10-03-Sportwart-Walkthrough; siehe <code>.paul/phases/10-walkthrough-sportwart/10-03-WALKTHROUGH-LOG.md</code>.)</p>
-<p>Claude Desktop fragt <strong>per Default</strong> bei jedem MCP-Tool-Call nach Erlaubnis. Für die typischen
-Carambus-Workflows (Anmeldung, Akkreditierung, Liste finalisieren) bedeutet das pro Spickzettel
-<strong>4–8 Permission-Prompts</strong>, weil jeder Spickzettel mehrere Tools nacheinander aufruft und destruktive
-Tools im Dry-Run-First-Modus zweimal laufen (<code>armed:false</code> → <code>armed:true</code>).</p>
-<p><strong>Auswirkung beim Sportwart:</strong>
-- Jeder Workflow wird durch 4–8 Klicks unterbrochen.
-- Sportwart denkt „Passt das? Muss ich das wirklich erlauben?" → Vertrauens-Lücke.
-- Abbruch-Risiko: bei zu vielen Prompts klickt der Sportwart auf „Verweigern" oder schließt Claude.</p>
-<p><strong>Lösung:</strong> Permission-Modus für den <code>carambus-clubcloud</code> MCP-Server auf <strong>„Always allow for this
-server"</strong> stellen. Die Permission-Prompts entfallen dann komplett für die laufende Session und
-(je nach Claude-Desktop-Version) auch persistent für künftige Sessions.</p>
-<p><strong>Schritt-für-Schritt (Stand 2026-05; Claude-Desktop-UI kann sich ändern):</strong></p>
+<h2 id="6-user-account-lifecycle">6. User-Account-Lifecycle<a class="headerlink" href="#6-user-account-lifecycle" title="Permanent link">&para;</a></h2>
 <ol>
-<li>Claude Desktop öffnen → <strong>Einstellungen</strong> (Cmd+, auf macOS / Ctrl+, auf Windows).</li>
-<li>Tab „Erweitert" / „Developer" / „Tools &amp; Extensions" suchen — der exakte Pfad variiert je nach
-   Claude-Desktop-Version.</li>
-<li><strong>MCP-Servers</strong>-Liste suchen, den Eintrag <code>carambus-clubcloud</code> finden.</li>
-<li>Permission-Modus auf <strong>„Always allow for this server"</strong> stellen (Dropdown oder Toggle).</li>
-<li><strong>Alternative</strong>, falls Du den Einstellungs-Pfad nicht findest: warte auf den ersten Tool-Call
-   im Dialog (z.B. via Spickzettel „Status Eurokegel?") und klicke beim Permission-Prompt auf
-   <strong>„Don't ask again for this server"</strong> (oder „Immer erlauben — dieser Server").</li>
+<li><strong>Account anlegen</strong> (Console oder Admin-UI):
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="no">User</span><span class="o">.</span><span class="n">create!</span><span class="p">(</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">  </span><span class="ss">email</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;sportwart@verein.de&quot;</span><span class="p">,</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">  </span><span class="ss">password</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;...&quot;</span><span class="p">,</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">  </span><span class="c1"># admin: false   (default)</span>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="p">)</span>
+</code></pre></div></li>
+<li><strong>DSGVO-Einwilligung dokumentieren</strong> (siehe Sektion 8 — <code>mcp_consent_at</code>).</li>
+<li><strong>Wirkbereich setzen</strong> (Sektion 5.2).</li>
+<li><strong>User auf <a href="../clubcloud-mcp-cloud-quickstart/">Cloud-Quickstart</a> verweisen</strong> —
+   Setup-Helper-UI führt durch den Rest.</li>
+<li><strong>Verifikation</strong> durch erstes Tool-Listing in Claude Code (16 / 19 / 22).</li>
 </ol>
-<p><strong>Verifikation:</strong> Nach dem Setting einen Spickzettel-Workflow durchspielen (z.B.
-<code>cc://workflow/scenarios/sportwart-tagesablauf-vor-turnier</code>). Es sollten <strong>0 Permission-Prompts</strong>
-mehr erscheinen.</p>
-<p><strong>Sicherheits-Hinweis:</strong> Permission-Bypass nur für <strong>vertrauenswürdige</strong> MCP-Server aktivieren.
-Beim Carambus-Setup-Service ist Vertrauen begründet:</p>
+<p><strong>Account-Off-Boarding:</strong></p>
 <ul>
-<li>Du (der Carambus-Admin) hast den MCP-Server selbst installiert (Sektionen 2 + 3).</li>
-<li><code>claude_desktop_config.json</code> ist per <code>chmod 600</code> geschützt (Sektion 4).</li>
-<li>Der MCP-Server hat 4-Schichten-Sicherheitsnetz + Pre-Validation-First-Pattern (Plan 10-05.1) +
-  Audit-Trail (JSON-Lines <code>log/mcp-audit-trail.log</code>). Auch ohne Permission-Prompt kann der Sportwart
-  destruktive Operationen nur via expliziten <code>armed:true</code>-Step ausführen, und alle armed-Calls werden
-  vollständig auditiert.</li>
-</ul>
-<p><strong>Sportwart-Briefing (kurz):</strong> Erkläre dem Sportwart vor dem ersten Workflow:
-„Claude führt jetzt jeden Spickzettel ohne Rückfragen aus, weil ich (Dein Admin) Claude den Server
-einmalig erlaubt habe. Bei destruktiven Aktionen (Anmelden, Liste schließen, Spieler entfernen)
-zeigt der MCP-Server vorher trotzdem den Trockenlauf — Du musst noch immer aktiv mit „Anmelden" /
-„Schließen" / „Entfernen" bestätigen, BEVOR es scharf wird."</p>
-<hr />
-<h2 id="sektion-6-remote-bildschirm-sharing-fallback">Sektion 6 — Remote-Bildschirm-Sharing-Fallback<a class="headerlink" href="#sektion-6-remote-bildschirm-sharing-fallback" title="Permanent link">&para;</a></h2>
-<p>Wenn vor-Ort-Besuch nicht möglich ist (Distanz, Termin-Konflikte, COVID-Risiko, etc.):</p>
-<h3 id="setup-voraussetzungen">Setup-Voraussetzungen<a class="headerlink" href="#setup-voraussetzungen" title="Permanent link">&para;</a></h3>
-<ul>
-<li>Zoom oder TeamViewer auf beiden Rechnern installiert</li>
-<li>Sportwart-Rechner kann Bildschirm freigeben (NICHT nur Maus-/Tastatur-Steuerung)</li>
-<li>Verschlüsselte Channel für Credentials (1Password Shared Item ODER Signal-Nachricht mit Selbstzerstörung)</li>
-</ul>
-<h3 id="ablauf">Ablauf<a class="headerlink" href="#ablauf" title="Permanent link">&para;</a></h3>
-<ol>
-<li>Video-Call starten, Sportwart teilt Bildschirm</li>
-<li>Carambus-Admin <strong>diktiert</strong> Befehle (Sportwart tippt selbst — wichtig für späteres Re-Install)</li>
-<li>Credentials: Sportwart liest aus Browser-Password-Manager vor; ODER Admin schickt 1Password-Shared-Item mit 5-Min-Expire</li>
-<li>claude_desktop_config.json: Sportwart erstellt die Datei mit Editor; Admin diktiert Inhalt</li>
-<li>Smoke-Test: gleicher Dialog wie Sektion 5</li>
-</ol>
-<h3 id="nachteile-gegen-vor-ort">Nachteile gegen vor Ort<a class="headerlink" href="#nachteile-gegen-vor-ort" title="Permanent link">&para;</a></h3>
-<ul>
-<li>Admin sieht keine Hardware-Pfade direkt</li>
-<li>Pfad-Probleme schwerer zu debuggen</li>
-<li>Sportwart sieht alle Schritte mit (Wissenstransfer-Vorteil, aber auch Confidentiality-Risk für Admin-Workflows)</li>
-<li>Sportwart kann später NICHT eigenständig re-installieren (Admin muss erneut ran)</li>
+<li><strong>Token-Force-Logout:</strong> <code>user.update!(jti: SecureRandom.uuid)</code> (alle aktiven
+  Tokens werden ungültig).</li>
+<li><strong>Account-Löschung:</strong> <code>user.destroy</code> — <code>mcp_audit_trails.user_id</code> wird NULL
+  (<code>ON DELETE NULLIFY</code>); Audit-Trail bleibt anonymisiert für Forensik-Pflicht.</li>
 </ul>
 <hr />
-<h2 id="sektion-7-mcp-server-subprocess-neu-starten-nach-code-changes">Sektion 7 — MCP-Server-Subprocess neu starten (nach Code-Changes)<a class="headerlink" href="#sektion-7-mcp-server-subprocess-neu-starten-nach-code-changes" title="Permanent link">&para;</a></h2>
-<p>Claude Desktop und Claude Code fahren den MCP-Server als langlebigen Subprocess. Code-Changes in <code>lib/mcp_server/**</code> oder <code>bin/mcp-server</code> greifen NICHT automatisch — Tool-Schemas und Tool-Logik bleiben im Stale-Zustand bis zum Restart. Diese Sektion erklärt <strong>wann</strong> Du den Subprocess neu starten musst und <strong>wie</strong> das pro Client geht.</p>
-<h3 id="71-wann-neu-starten">7.1 Wann neu starten?<a class="headerlink" href="#71-wann-neu-starten" title="Permanent link">&para;</a></h3>
-<p>Restart ist nötig nach jeder der folgenden Aktionen:</p>
-<ul>
-<li><strong><code>git pull</code></strong> mit Änderungen in <code>lib/mcp_server/**</code> oder <code>bin/mcp-server</code> (Tool-Code, Schemas, PATH_MAP, ApiSurface-ALLOWLIST)</li>
-<li><strong>Lokaler Code-Edit</strong> an Tool-Schema, Pre-Validation-Constraints, AuditTrail-Logik oder BaseTool-Helpers</li>
-<li><strong><code>bundle install</code></strong> mit MCP-relevanten Gem-Updates (z.B. <code>mcp</code>-Gem-Bump auf neue Version)</li>
-<li><strong>Änderung von Rails Credentials</strong> (<code>config/credentials/{env}.yml.enc</code>) oder <code>.env</code>-Variablen wie <code>CC_REGION</code>, <code>CARAMBUS_MCP_MOCK</code> — der Subprocess liest ENV nur beim Start</li>
-</ul>
-<h3 id="72-stale-subprocess-symptome">7.2 Stale-Subprocess-Symptome<a class="headerlink" href="#72-stale-subprocess-symptome" title="Permanent link">&para;</a></h3>
-<p>Diese Beobachtungen sind verlässliche Hinweise, dass der Subprocess auf altem Code-Stand läuft:</p>
-<ul>
-<li><strong>Tool-Schemas zeigen alten Parameter-Stand</strong> (z.B. fehlende <code>name</code>/<code>shortname</code>-Params in <code>cc_lookup_tournament</code>, fehlende Convenience-Wrapper <code>club_name</code>/<code>player_name</code> in Write-Tools)</li>
-<li><strong>Tool-Calls liefern Pre-Edit-Verhalten</strong> (Region-Filter wird ignoriert, alte Disambiguation-Output-Form, fehlendes <code>pre_read_*</code>-Output in Write-Tools)</li>
-<li><strong>Neu hinzugefügte Tools tauchen nicht in der Tool-Liste auf</strong> (z.B. nach <code>git pull</code> mit Plan-XX-Tool-Erweiterung)</li>
-<li><strong>Tool-Descriptions ohne Use-Case-Präfix</strong> (kein „Wann nutzen?" + „Was tippt der User typisch?" sichtbar — sollte seit Plan 10-07 in allen 22 öffentlichen Tools zu sehen sein)</li>
-</ul>
-<p>Wenn eines dieser Symptome auftritt: Vor jeglicher Diagnose erst Restart durchführen, dann Re-Verify.</p>
-<h3 id="73-restart-in-claude-desktop-macos-windows">7.3 Restart in Claude Desktop (macOS + Windows)<a class="headerlink" href="#73-restart-in-claude-desktop-macos-windows" title="Permanent link">&para;</a></h3>
-<p><strong>Primär-Pfad:</strong></p>
+<h2 id="7-cap-deploy-workflow-per-region-deploys">7. Cap-Deploy-Workflow (Per-Region-Deploys)<a class="headerlink" href="#7-cap-deploy-workflow-per-region-deploys" title="Permanent link">&para;</a></h2>
+<p>Jede Region hat einen eigenen Capistrano-Stage:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1"># Aus carambus_master (oder dem region-spezifischen Workspace):</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>cap<span class="w"> </span>nbv<span class="w"> </span>deploy<span class="w">           </span><span class="c1"># NBV-Region</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>cap<span class="w"> </span>bvbw<span class="w"> </span>deploy<span class="w">          </span><span class="c1"># BVBW-Region</span>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>cap<span class="w"> </span>production<span class="w"> </span>deploy<span class="w">    </span><span class="c1"># carambus.de (zentrale Master-API)</span>
+</code></pre></div>
+<p><strong>Cross-Repo-Deploy-Pattern</strong> (für Doku-Updates):</p>
 <ol>
-<li><strong>Settings öffnen</strong> (macOS: Claude → Settings; Windows: Datei → Settings)</li>
-<li><strong>„Developer"-Tab auswählen</strong> (oder „Extensions" je nach Claude-Desktop-Version)</li>
-<li><strong>MCP-Server-Liste suchen</strong> — Eintrag <code>carambus-clubcloud</code> (oder gewählter Server-Name) erscheint mit Status-Indikator</li>
-<li><strong>Restart-Icon klicken</strong> (typisch: Refresh-Symbol neben dem Server-Namen). Falls Icon in Deiner Claude-Desktop-Version nicht verfügbar ist → Fallback.</li>
+<li>Doku in <code>carambus_bcw</code> editieren + committen.</li>
+<li>Push origin/master.</li>
+<li><code>carambus_master</code>: <code>git pull</code> (fast-forward).</li>
+<li><code>carambus_nbv</code> (oder Ziel-Region): lokale Drift verwerfen, pull, deploy:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="nb">cd</span><span class="w"> </span>~/DEV/carambus/carambus_nbv
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>git<span class="w"> </span>checkout<span class="w"> </span>--<span class="w"> </span>public/docs/managers/<span class="w">    </span><span class="c1"># falls lokal abgewichen</span>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>git<span class="w"> </span>clean<span class="w"> </span>-fd<span class="w"> </span>public/docs/managers/
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>git<span class="w"> </span>pull
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>cap<span class="w"> </span>production<span class="w"> </span>deploy
+</code></pre></div></li>
 </ol>
-<p><strong>Fallback (jede Claude-Desktop-Version):</strong></p>
-<ol>
-<li><strong>Claude Desktop komplett beenden</strong>: macOS <code>Cmd+Q</code> (NICHT nur Fenster schließen — Hintergrund-Process muss enden); Windows <code>Alt+F4</code> + ggf. via Task-Manager prüfen dass <code>Claude.exe</code> nicht mehr läuft</li>
-<li><strong>Claude Desktop neu öffnen</strong> — Subprocess wird beim ersten Chat-Öffnen automatisch neu hochgezogen</li>
-</ol>
-<p><strong>Verifikations-Step:</strong></p>
-<p>Nach Restart einmal <code>cc_lookup_region</code> aufrufen (oder ein beliebiges Tool, das im jüngsten Code-Edit betroffen war). Wenn der neue Tool-State sichtbar ist (z.B. neue Parameter im Schema, neuer Description-Präfix, neues Output-Format), ist der Subprocess fresh.</p>
-<h3 id="74-restart-in-claude-code-carambus-admin-technische-stellvertretung">7.4 Restart in Claude Code (Carambus-Admin / technische Stellvertretung)<a class="headerlink" href="#74-restart-in-claude-code-carambus-admin-technische-stellvertretung" title="Permanent link">&para;</a></h3>
-<p>Claude Code als MCP-Client wird typisch nur in Dev/Test-Szenarien verwendet (siehe Plan 09-03 D-09-03-A-Pragmatik). Restart-Pfade:</p>
-<ul>
-<li><strong><code>/mcp</code> Subcommand</strong> listet alle MCP-Server-Subprocesses inkl. Status (connected / disconnected / restarting)</li>
-<li><strong><code>/mcp</code> ermöglicht</strong> (je nach Claude-Code-Version) Reconnect oder Reload pro Server-Eintrag direkt aus der Subcommand-UI</li>
-<li><strong>Fallback:</strong> Claude-Code-Session beenden (<code>/exit</code> oder Ctrl+D), neue Session starten — Subprocess wird beim Session-Start neu hochgezogen</li>
-</ul>
-<h3 id="75-audit-trail-plan-10-08-befund-1">7.5 Audit-Trail (Plan 10-08 Befund #1)<a class="headerlink" href="#75-audit-trail-plan-10-08-befund-1" title="Permanent link">&para;</a></h3>
-<p>Diese Sektion existiert wegen CRITICAL-Befund #1 aus Plan 10-08 Externer Walkthrough (2026-05-12). Der MCP-Subprocess startete vor Plan-10-05/06/07-Commits; ToolSearch-Schemas zeigten Pre-Plan-10-06-Stand (kein <code>name</code>/<code>shortname</code>-Param, kein Use-Case-Präfix); die Plan-Boundary „0 versehentliche Live-Datenänderungen" griff defensiv → Walkthrough wurde im Limited-Mode geschlossen.</p>
-<p>Lesson: Bevor jegliche Live-Validation gegen Prod-CC gestartet wird (insbesondere durch externen Sportwart oder Turnierleiter), MUSS der Subprocess nach allen jüngsten Code-Changes neu gestartet sein. Diese Doku-Sektion ist die Operator-Defense; eine strukturelle Lösung (Dev-Mode-Reload-Watcher analog Rails-autoload) ist als v0.2.1-Backlog-Item A1 vorgesehen.</p>
-<p>Vollständiges Audit-Trail: <code>.paul/phases/10-walkthrough-sportwart/10-08-WALKTHROUGH-LOG.md</code> (Sektion 1 + Sektion 8 mit konsolidiertem v0.2.1-Backlog).</p>
 <hr />
-<h2 id="8-dsgvo-compliance-datenschutz">8. DSGVO-Compliance / Datenschutz<a class="headerlink" href="#8-dsgvo-compliance-datenschutz" title="Permanent link">&para;</a></h2>
+<h2 id="8-dsgvo-compliance-datenschutz"><a id="8-dsgvo-compliance--datenschutz"></a>8. DSGVO-Compliance / Datenschutz<a class="headerlink" href="#8-dsgvo-compliance-datenschutz" title="Permanent link">&para;</a></h2>
 <blockquote>
-<p><strong>v0.3-Pilot-Boundary (D-13-01-E minimal-pragmatic):</strong> Diese Sektion dokumentiert die DSGVO-Erfüllung für den Carambus ClubCloud MCP-Server in der Pilot-Phase. Vollständige Self-Service-Banner-Implementierung ist deferred zu v0.4.</p>
+<p><strong>Pilot-Boundary (D-13-01-E):</strong> Diese Sektion dokumentiert die DSGVO-Erfüllung für
+den ClubCloud-MCP-Server. Vollständige Self-Service-Banner-Implementierung ist
+deferred zu v0.5.</p>
 </blockquote>
-<h3 id="81-datenkategorien-was-wird-gespeichert">8.1 Datenkategorien (was wird gespeichert?)<a class="headerlink" href="#81-datenkategorien-was-wird-gespeichert" title="Permanent link">&para;</a></h3>
+<h3 id="81-datenkategorien">8.1 Datenkategorien<a class="headerlink" href="#81-datenkategorien" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
 <tr>
@@ -4696,22 +3918,40 @@ zeigt der MCP-Server vorher trotzdem den Trockenlauf — Du musst noch immer akt
 </thead>
 <tbody>
 <tr>
-<td><code>users.cc_credentials</code></td>
-<td>encrypted JSON</td>
+<td><code>users.encrypted_password</code></td>
+<td>bcrypt</td>
 <td>HOCH (Passwort-Material)</td>
-<td>Rails-<code>encrypts</code>-Strategie; bis User-Löschung oder Widerruf</td>
-</tr>
-<tr>
-<td><code>users.mcp_role</code></td>
-<td>enum</td>
-<td>NIEDRIG (Rolle)</td>
 <td>bis User-Löschung</td>
 </tr>
 <tr>
-<td><code>users.cc_region</code></td>
+<td><code>users.jti</code></td>
 <td>String</td>
-<td>NIEDRIG (öffentlich)</td>
+<td>NIEDRIG (Token-Revocation-ID)</td>
 <td>bis User-Löschung</td>
+</tr>
+<tr>
+<td><code>users.sportwart_location_ids</code></td>
+<td>Array</td>
+<td>NIEDRIG (Authority-Wirkbereich)</td>
+<td>bis User-Löschung</td>
+</tr>
+<tr>
+<td><code>users.sportwart_discipline_ids</code></td>
+<td>Array</td>
+<td>NIEDRIG (Authority-Wirkbereich)</td>
+<td>bis User-Löschung</td>
+</tr>
+<tr>
+<td><code>users.admin</code></td>
+<td>Boolean</td>
+<td>NIEDRIG (LSW-Bypass)</td>
+<td>bis User-Löschung</td>
+</tr>
+<tr>
+<td><code>tournaments.turnier_leiter_user_id</code></td>
+<td>FK</td>
+<td>NIEDRIG (Per-Turnier-Authority)</td>
+<td>bis Turnier-Löschung</td>
 </tr>
 <tr>
 <td><code>users.mcp_consent_at</code></td>
@@ -4722,32 +3962,34 @@ zeigt der MCP-Server vorher trotzdem den Trockenlauf — Du musst noch immer akt
 <tr>
 <td><code>mcp_audit_trails.*</code></td>
 <td>DB-Zeile</td>
-<td>MITTEL (Tool-Calls + payload)</td>
-<td>1 Jahr (Retention); <code>user_id</code> wird bei User-Löschung NULL (FK <code>ON DELETE NULLIFY</code>)</td>
+<td>MITTEL (Tool-Calls + Payload)</td>
+<td>1 Jahr (Retention); <code>user_id</code> wird bei User-Löschung NULL (<code>ON DELETE NULLIFY</code>)</td>
 </tr>
 <tr>
 <td><code>log/mcp-audit-trail.log</code></td>
 <td>JSON-Lines-File</td>
 <td>MITTEL (analog DB)</td>
-<td>bis Datei-Rotation (logrotate-Config)</td>
+<td>bis Datei-Rotation (logrotate)</td>
 </tr>
 </tbody>
 </table>
 <h3 id="82-verarbeitungszwecke">8.2 Verarbeitungszwecke<a class="headerlink" href="#82-verarbeitungszwecke" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong><code>cc_credentials</code></strong>: Authentifizierung gegen ClubCloud-API für Tool-Calls; nur Tool-internal lesbar (<code>Setting.login_to_cc</code>-Override im v0.3-Pilot single-global).</li>
-<li><strong><code>mcp_role</code> + <code>cc_region</code></strong>: Per-User-Tool-Subset + Region-Routing (Plan 13-02 + Plan 13-04 + Plan 13-04.1).</li>
-<li><strong><code>mcp_audit_trails</code></strong>: Forensik bei Live-CC-Fehlern + Multi-User-Filterung für Sicherheit; <code>payload[armed]=true</code> ist Trigger für Daten-Mutations-Audit.</li>
-<li><strong><code>mcp_consent_at</code></strong>: Einwilligungs-Nachweis nach Art. 7 DSGVO.</li>
+<li><strong><code>encrypted_password</code> + <code>jti</code>:</strong> Authentifizierung via devise-jwt; <code>jti</code>
+  ermöglicht serverseitige Token-Revocation (JTIMatcher).</li>
+<li><strong><code>sportwart_*</code> + <code>admin</code> + <code>tournaments.turnier_leiter_user_id</code>:</strong> Authority-Filterung
+  pro Tool-Call (Wirkbereich-Modell, Plan 14-G3+G4).</li>
+<li><strong><code>mcp_audit_trails</code>:</strong> Forensik bei Live-CC-Fehlern + Multi-User-Filterung;
+  <code>payload[armed]=true</code> ist Trigger für Daten-Mutations-Audit.</li>
+<li><strong><code>mcp_consent_at</code>:</strong> Einwilligungs-Nachweis nach Art. 7 DSGVO.</li>
 </ul>
-<h3 id="83-retention-aufbewahrung">8.3 Retention (Aufbewahrung)<a class="headerlink" href="#83-retention-aufbewahrung" title="Permanent link">&para;</a></h3>
+<h3 id="83-retention">8.3 Retention<a class="headerlink" href="#83-retention" title="Permanent link">&para;</a></h3>
 <ul>
-<li><code>cc_credentials</code>: bis User explizit widerruft (<code>user.mcp_role := :mcp_public_read</code>) oder Carambus-Admin User löscht.</li>
-<li><code>mcp_audit_trails</code>: <strong>1 Jahr</strong> (Forensik-Pflicht); manuelle Cleanup-Routine via
-  <div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="no">McpAuditTrail</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="s1">&#39;created_at &lt; ?&#39;</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="o">.</span><span class="n">year</span><span class="o">.</span><span class="n">ago</span><span class="p">)</span><span class="o">.</span><span class="n">delete_all</span>
+<li><code>mcp_audit_trails</code>: <strong>1 Jahr</strong> (Forensik-Pflicht); manuelle Cleanup-Routine:
+  <div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="no">McpAuditTrail</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="s2">&quot;created_at &lt; ?&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="o">.</span><span class="n">year</span><span class="o">.</span><span class="n">ago</span><span class="p">)</span><span class="o">.</span><span class="n">delete_all</span>
 </code></pre></div>
-  durch Carambus-Admin (v0.4 plant Auto-Cleanup via Cron).</li>
-<li>JSON-Lines-File: bis Datei-Rotation (siehe <code>logrotate</code>-Konfig in Plan 13-06.1 Hetzner-Deploy-Setup).</li>
+  (v0.5 plant Auto-Cleanup via Cron.)</li>
+<li>JSON-Lines-File: bis Datei-Rotation (logrotate).</li>
 </ul>
 <h3 id="84-user-rechte-art-15-21-dsgvo">8.4 User-Rechte (Art. 15-21 DSGVO)<a class="headerlink" href="#84-user-rechte-art-15-21-dsgvo" title="Permanent link">&para;</a></h3>
 <table>
@@ -4760,119 +4002,47 @@ zeigt der MCP-Server vorher trotzdem den Trockenlauf — Du musst noch immer akt
 <tbody>
 <tr>
 <td><strong>Auskunft (Art. 15)</strong></td>
-<td>Carambus-Admin: <code>User.find(id).mcp_audit_trail_export.to_json</code> → an User-Email senden. <code>cc_credentials</code> sind encrypted; werden NICHT exportiert (Sicherheitsbalance)</td>
+<td><code>User.find(id).mcp_audit_trail_export.to_json</code> → an User-Email senden. <code>encrypted_password</code> wird NICHT exportiert.</td>
 </tr>
 <tr>
 <td><strong>Berichtigung (Art. 16)</strong></td>
-<td>Carambus-Admin updated <code>cc_region</code>, <code>cc_credentials</code>, <code>mcp_role</code> über Console oder Admin-Dashboard</td>
+<td>Carambus-Admin updated <code>sportwart_*</code>-Felder oder <code>tournaments.turnier_leiter_user_id</code> über Console.</td>
 </tr>
 <tr>
 <td><strong>Löschung / „Recht auf Vergessenwerden" (Art. 17)</strong></td>
-<td><code>User.find(id).destroy</code> — <code>mcp_audit_trails.user_id</code> wird NULL (FK <code>ON DELETE NULLIFY</code> aus Plan 13-05); Audit-Trail bleibt anonymisiert für Forensik-Pflicht (gerechtfertigt Art. 17 Abs. 3)</td>
+<td><code>User.find(id).destroy</code> — <code>mcp_audit_trails.user_id</code> wird NULL; Audit-Trail bleibt anonymisiert für Forensik (Art. 17 Abs. 3).</td>
 </tr>
 <tr>
 <td><strong>Widerruf der Einwilligung (Art. 7 Abs. 3)</strong></td>
-<td>Carambus-Admin: <code>User.find(id).update!(mcp_role: :mcp_public_read, cc_credentials: nil, mcp_consent_at: nil)</code> — User behält Carambus-Account, MCP-Zugriff ist deaktiviert</td>
+<td><code>user.update!(sportwart_location_ids: [], sportwart_discipline_ids: [], mcp_consent_at: nil, jti: SecureRandom.uuid)</code> — User behält Carambus-Account, MCP-Zugriff ist deaktiviert + alle aktiven Tokens revoked.</td>
 </tr>
 <tr>
 <td><strong>Datenübertragbarkeit (Art. 20)</strong></td>
-<td><code>mcp_audit_trail_export.to_json</code> ist maschinenlesbares Format (analog Auskunft)</td>
+<td><code>mcp_audit_trail_export.to_json</code> ist maschinenlesbar.</td>
 </tr>
 </tbody>
 </table>
-<h3 id="85-einwilligungs-operational-flow-v03-pilot">8.5 Einwilligungs-Operational-Flow (v0.3-Pilot)<a class="headerlink" href="#85-einwilligungs-operational-flow-v03-pilot" title="Permanent link">&para;</a></h3>
+<h3 id="85-einwilligungs-operational-flow">8.5 Einwilligungs-Operational-Flow<a class="headerlink" href="#85-einwilligungs-operational-flow" title="Permanent link">&para;</a></h3>
 <ol>
-<li>Carambus-Admin trifft User für Setup-Service-Besuch (Sektion 5 dieser Doku).</li>
-<li>Admin erklärt mündlich die Datenverarbeitung (Datenkategorien aus 8.1) und User-Rechte (8.4).</li>
-<li>User stimmt mündlich zu.</li>
+<li>Carambus-Admin erklärt User mündlich oder schriftlich die Datenverarbeitung
+   (8.1) und User-Rechte (8.4).</li>
+<li>User stimmt zu.</li>
 <li>Admin attestiert via Console:
-   <div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="n">user</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">User</span><span class="o">.</span><span class="n">find_by</span><span class="p">(</span><span class="ss">email</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;sportwart@verein.de&#39;</span><span class="p">)</span>
-<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="n">user</span><span class="o">.</span><span class="n">grant_mcp_consent!</span><span class="w">  </span><span class="c1"># setzt mcp_consent_at = Time.current</span>
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="n">user</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">User</span><span class="o">.</span><span class="n">find_by</span><span class="p">(</span><span class="ss">email</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;sportwart@verein.de&quot;</span><span class="p">)</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="n">user</span><span class="o">.</span><span class="n">update!</span><span class="p">(</span><span class="ss">mcp_consent_at</span><span class="p">:</span><span class="w"> </span><span class="no">Time</span><span class="o">.</span><span class="n">current</span><span class="p">)</span>
 </code></pre></div></li>
-<li>Admin notiert Einwilligungs-Zeitpunkt im Setup-Service-Visit-Log.</li>
 </ol>
-<p><strong>v0.4-Plan</strong>: Self-Service-Banner im User-Profile-Settings ersetzt den Admin-attestierten Flow.</p>
 <h3 id="86-verantwortlicher-art-4-nr-7-dsgvo">8.6 Verantwortlicher (Art. 4 Nr. 7 DSGVO)<a class="headerlink" href="#86-verantwortlicher-art-4-nr-7-dsgvo" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong>Verantwortlicher</strong> für die Datenverarbeitung des MCP-Servers: <strong>Carambus-Betreiber</strong> (siehe <code>config/carambus.yml</code> für Kontaktdaten).</li>
-<li><strong>Auftragsverarbeiter</strong>: Hetzner Online GmbH (DE) für Hosting (v0.3-Pilot-Hosting auf carambus.de; siehe Plan 13-06.1 Deploy-Doku).</li>
-<li><strong>Datenverarbeitung erfolgt in</strong>: Deutschland / EU (Hetzner-Server in Falkenstein/Nürnberg).</li>
-<li><strong>AVV (Auftragsverarbeitungsvertrag)</strong>: zwischen Carambus-Betreiber und Hetzner besteht Standard-DSGVO-konformer AVV.</li>
+<li><strong>Verantwortlicher</strong> für die Datenverarbeitung: <strong>Carambus-Betreiber</strong> (siehe
+  <code>config/carambus.yml</code> für Kontaktdaten).</li>
+<li><strong>Auftragsverarbeiter:</strong> Hetzner Online GmbH (DE) für Hosting.</li>
+<li><strong>Datenverarbeitung erfolgt in:</strong> Deutschland / EU (Hetzner-Server).</li>
+<li><strong>AVV:</strong> zwischen Carambus-Betreiber und Hetzner besteht Standard-DSGVO-konformer
+  AVV.</li>
 </ul>
 <hr />
-<h2 id="9-cloud-setup-pfad-http-transport-ab-v03">9. Cloud-Setup-Pfad (HTTP-Transport ab v0.3)<a class="headerlink" href="#9-cloud-setup-pfad-http-transport-ab-v03" title="Permanent link">&para;</a></h2>
-<p>Ab v0.3 unterstützt der ClubCloud-MCP-Server zusätzlich zum Stdio-Pfad (Sektionen 1-7) einen <strong>Remote-HTTP-Transport</strong> auf einem Carambus-Hetzner-Server. Damit braucht der Sportwart/Turnierleiter <strong>kein lokales MCP-Setup mehr</strong> — Claude Desktop verbindet sich direkt mit dem Server.</p>
-<blockquote>
-<p><strong>Backwards-Compat:</strong> Der Stdio-Pfad (Sektionen 2-7) bleibt parallel gültig für die technische Stellvertretung des Sportwarts und für Dev/Test. Beide Pfade führen zu identischer Tool-Funktionalität.</p>
-</blockquote>
-<h3 id="91-voraussetzungen">9.1 Voraussetzungen<a class="headerlink" href="#91-voraussetzungen" title="Permanent link">&para;</a></h3>
-<ul>
-<li><strong>Claude Desktop</strong> (Unified-App mit integriertem Claude-Code-Daemon, Plan 13-06.1 getestet mit <code>claude-code/2.1.138</code>) ODER <strong>Claude Code CLI</strong> (<code>claude</code> Command verfügbar)</li>
-<li><strong>Devise-User auf dem Carambus-MCP-Server</strong> existiert + Sportwart-/Turnierleiter-/Landessportwart-Rolle gesetzt (siehe Plan 13-02 Rollen-Modell — <code>landessportwart</code> sieht alle 22 Tools, <code>sportwart</code> sieht 16, <code>turnierleiter</code> sieht 19)</li>
-<li><strong>DSGVO-Einwilligung erteilt</strong> (<code>mcp_consent_at</code> gesetzt — siehe Sektion 8.4 + 8.5)</li>
-<li><strong><code>cc_region</code> + <code>cc_credentials</code></strong> am User gesetzt (Multi-Region-Routing — Plan 13-04.1)</li>
-<li><strong>Browser</strong> für Erst-Login + Cookie-Extract (Devise-Session-Cookie wird im Browser-Cookie-Store hinterlegt — Claude.app teilt diese Cookies <strong>nicht</strong> automatisch)</li>
-</ul>
-<blockquote>
-<p><strong>Plan 13-06.1 Empirical-Verify-Befund (D-13-06.1-A, 2026-05-13):</strong> Die neue Unified Claude.app liest <code>claude_desktop_config.json</code> <strong>nicht</strong> mehr — MCP-Server-Setup erfolgt via <code>claude mcp add</code> CLI (schreibt in <code>~/.claude.json</code>).</p>
-<p><strong>Plan 13-06.2 (D-13-06.1-C, 2026-05-14):</strong> <strong>JWT-Token-Auth ist Primary-Pfad</strong> ab v0.3.0. Cookie-Inject (Plan 13-06.1) bleibt als Legacy-Option in Sektion 9.7. JWT-Token hat 24h-Lifetime (statt 120min Cookie) und ist Industry-Standard für MCP-Clients.</p>
-</blockquote>
-<h3 id="92-mcp-server-setup-via-claude-code-cli-jwt-token-auth-empfohlen">9.2 MCP-Server-Setup via Claude Code CLI (JWT-Token-Auth) ⭐ EMPFOHLEN<a class="headerlink" href="#92-mcp-server-setup-via-claude-code-cli-jwt-token-auth-empfohlen" title="Permanent link">&para;</a></h3>
-<p><strong>Vorbereitung — JWT-Token via Login-Call holen:</strong></p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="c1"># 1. Login + Token extrahieren (Token kommt im `Authorization`-Response-Header):</span>
-<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="nv">TOKEN</span><span class="o">=</span><span class="k">$(</span>curl<span class="w"> </span>-sS<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>https://carambus.de/login<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Accept: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{&quot;user&quot;:{&quot;email&quot;:&quot;DEIN_USER@example.com&quot;,&quot;password&quot;:&quot;DEIN_PW&quot;}}&#39;</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="w">  </span>-D<span class="w"> </span>-<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-i<span class="w"> </span><span class="s1">&#39;^authorization:&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>sed<span class="w"> </span>-E<span class="w"> </span><span class="s1">&#39;s/^[Aa]uthorization:[[:space:]]*//&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>tr<span class="w"> </span>-d<span class="w"> </span><span class="s1">&#39;\r\n&#39;</span><span class="k">)</span>
-<a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a>
-<a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a><span class="c1"># Sanity-Check (Token muss mit &quot;Bearer eyJ...&quot; beginnen — Bearer-Prefix + Base64-encoded JWT):</span>
-<a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Token: </span><span class="nv">$TOKEN</span><span class="s2">&quot;</span>
-</code></pre></div>
-<blockquote>
-<p><strong>Plan 13-06.4 / Fix:</strong> <code>sed -E 's/^[Aa]uthorization:[[:space:]]*//'</code> extrahiert alles <strong>nach</strong> dem <code>authorization:</code>-Prefix und erhält den gesamten Token-Wert inkl. <code>Bearer</code>-Prefix. Der frühere <code>awk '{print $2}'</code>-Pipe schnitt die Zeile <code>authorization: Bearer eyJ...</code> und lieferte nur das zweite Feld (<code>Bearer</code>) ohne den Token-Wert — der <code>add-json</code>-Header war dann nutzlos.</p>
-</blockquote>
-<p><strong>MCP-Server registrieren via CLI:</strong></p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>claude<span class="w"> </span>mcp<span class="w"> </span>add-json<span class="w"> </span>--scope<span class="w"> </span>user<span class="w"> </span>carambus-remote<span class="w"> </span><span class="s2">&quot;{</span>
-<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="s2">  \&quot;type\&quot;: \&quot;http\&quot;,</span>
-<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="s2">  \&quot;url\&quot;: \&quot;https://carambus.de/mcp?stateless=1\&quot;,</span>
-<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="s2">  \&quot;headers\&quot;: {</span>
-<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="s2">    \&quot;Authorization\&quot;: \&quot;</span><span class="nv">$TOKEN</span><span class="s2">\&quot;,</span>
-<a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="s2">    \&quot;Accept\&quot;: \&quot;application/json, text/event-stream\&quot;</span>
-<a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a><span class="s2">  }</span>
-<a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a><span class="s2">}&quot;</span>
-</code></pre></div>
-<blockquote>
-<p>Falls Shell-Quoting Probleme macht: Token-Wert kopieren und <code>add-json</code> mit Single-Quotes + manuell ersetztem Token aufrufen (kein Variable-Substitution).</p>
-</blockquote>
-<p><strong>Verify:</strong></p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>claude<span class="w"> </span>mcp<span class="w"> </span>get<span class="w"> </span>carambus-remote<span class="w">   </span><span class="c1"># Status sollte &quot;connected&quot; zeigen</span>
-<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>claude<span class="w"> </span>mcp<span class="w"> </span>list<span class="w">                  </span><span class="c1"># Übersicht aller MCP-Server</span>
-</code></pre></div>
-<p><strong>Wichtige Detail-Hinweise:</strong></p>
-<ul>
-<li><strong><code>?stateless=1</code> query-param</strong> umgeht den <code>Mcp-Session-Id</code>-Header-Stateful-Flow (D-13-06.1-E). Für Claude Code MCP-Client der einfachste robuste Weg.</li>
-<li><strong><code>Accept</code>-Header dual</strong> (<code>application/json, text/event-stream</code>): Streamable-HTTP-Transport-Pflicht (D-13-06-A). Ohne → 406 Not Acceptable.</li>
-<li><strong><code>Authorization: Bearer &lt;jwt&gt;</code></strong>: Industry-Standard-Bearer-Token. Token-Lifetime <strong>24 Stunden</strong> ab Login. Bei Ablauf → erneuter Login-Call (Schritt 1 wiederholen) + <code>claude mcp remove ... &amp;&amp; claude mcp add-json ...</code> neu.</li>
-<li><strong>Force-Logout</strong>: <code>curl -X DELETE https://carambus.de/logout -H "Authorization: $TOKEN"</code> invalidiert den Token über JTIMatcher-Revocation. Alle weiteren Calls mit diesem Token → 401.</li>
-</ul>
-<h3 id="93-aktivierung-in-claudeapp">9.3 Aktivierung in Claude.app<a class="headerlink" href="#93-aktivierung-in-claudeapp" title="Permanent link">&para;</a></h3>
-<p>Nach <code>claude mcp add-json</code> wird der Eintrag in <code>~/.claude.json</code> (user-scope) persistiert. <strong>Claude.app Restart</strong> (Cmd+Q + Re-Open) lädt die neue Konfig.</p>
-<p>In neuer Chat-Session: „Welche carambus-remote Tools hast du?" → erwartete Antwort enthält die Per-Rolle gefilterte Tool-Liste (22 Tools für <code>mcp_landessportwart</code>, 16 für <code>mcp_sportwart</code>, 19 für <code>mcp_turnierleiter</code>).</p>
-<h3 id="94-verifikations-schritte">9.4 Verifikations-Schritte<a class="headerlink" href="#94-verifikations-schritte" title="Permanent link">&para;</a></h3>
-<p>Nach Setup folgenden Dialog mit Claude führen (Read-only — KEIN <code>armed:true</code>, kein Live-CC-Write):</p>
-<ol>
-<li><strong>„Welche MCP-Tools hast du?"</strong> → erwartet Per-User-Rollen-Tool-Subset:</li>
-<li><strong>landessportwart</strong> → 22 Tools (volle Suite)</li>
-<li><strong>sportwart</strong> → 16 Tools (kein cc_assign/cc_remove/cc_finalize/cc_unregister — Akkreditierung am Turniertag fehlt)</li>
-<li><strong>turnierleiter</strong> → 19 Tools (kein cc_register/cc_update_deadline/cc_unregister — Pre-Tournament-Setup fehlt)</li>
-<li><strong>„Welche Region bin ich?"</strong> oder konkreter: <strong>„Liste die Vereine in meiner Region für Disziplin Dreiband"</strong> → erwartet Vereinsliste aus der eigenen <code>cc_region</code> (Multi-Region-Routing funktioniert)</li>
-<li><strong>„Welche offenen Turniere gibt es in NBV?"</strong> (oder eigene Region) → erwartet Read-only Turnier-Liste</li>
-</ol>
-<blockquote>
-<p><strong>Wichtig — Plan-Boundary v0.3:</strong> Im Erst-Verify-Cycle KEIN <code>armed:true</code>-Call ausführen. Sicherheits-Pflicht „0 versehentliche Live-Datenänderungen" bleibt kumulativ gewahrt.</p>
-</blockquote>
-<h3 id="95-troubleshooting">9.5 Troubleshooting<a class="headerlink" href="#95-troubleshooting" title="Permanent link">&para;</a></h3>
+<h2 id="9-troubleshooting">9. Troubleshooting<a class="headerlink" href="#9-troubleshooting" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
 <tr>
@@ -4883,118 +4053,98 @@ zeigt der MCP-Server vorher trotzdem den Trockenlauf — Du musst noch immer akt
 </thead>
 <tbody>
 <tr>
-<td><strong><code>Failed to connect</code> bei <code>claude mcp get</code></strong></td>
-<td>Cookie fehlt / expired / falscher Name (Plan 13-06.1 D-13-06.1-A häufigstes Pilot-Symptom)</td>
-<td>DevTools-Cookie-Extract erneut (<code>_session_id</code>-Wert frisch nach Browser-Login); <code>claude mcp remove</code> + neu via <code>add-json</code></td>
+<td>Sportwart sieht im Login-Token-Banner Restlaufzeit „expired"</td>
+<td>Token &gt;90 Tage alt</td>
+<td>Sportwart re-loginnen + neuen Setup-Befehl pasten</td>
 </tr>
 <tr>
-<td><strong>400 „Missing session ID"</strong></td>
-<td><code>?stateless=1</code>-Query-Param fehlt in URL (D-13-06.1-E)</td>
-<td>URL in <code>claude mcp add-json</code> muss <code>https://carambus.de/mcp?stateless=1</code> enthalten (mit Query-Param)</td>
+<td><code>claude mcp get carambus-remote</code> → 401 trotz frischem Token</td>
+<td>JWT-Secret-Inkonsistenz Server / Lokal</td>
+<td><code>RAILS_MASTER_KEY</code> + <code>devise_jwt_secret_key</code> in production-Credentials prüfen; Per-Region eigene Secrets verwenden</td>
 </tr>
 <tr>
-<td><strong>401 Unauthorized</strong> mit JSON <code>{"error":"Sie müssen sich anmelden..."}</code></td>
-<td>Cookie-Wert ungültig/expired oder falsches Cookie-Name (z.B. <code>_carambus_session</code> statt <code>_session_id</code>)</td>
-<td>Browser-Re-Login → DevTools → <code>_session_id</code>-Wert kopieren; <code>claude mcp</code> Konfig erneuern</td>
+<td>Tool-Liste leer (0 Tools) trotz erfolgreichem Connect</td>
+<td>Wirkbereich nicht konfiguriert</td>
+<td>Sektion 5.2 — <code>sportwart_location_ids</code> / <code>sportwart_discipline_ids</code> setzen oder TL-FK zuweisen</td>
 </tr>
 <tr>
-<td><strong>406 Not Acceptable</strong> bei tools/list oder initialize</td>
-<td><code>Accept</code>-Header fehlt oder nur <code>application/json</code> (D-13-06-A)</td>
-<td>In <code>add-json</code> Header-Block beide Mime-Types: <code>"Accept": "application/json, text/event-stream"</code></td>
+<td>Tool-Anzahl falsch (z.B. 16 statt 22 für LSW)</td>
+<td><code>user.admin = false</code></td>
+<td><code>user.update!(admin: true)</code> für LSW</td>
 </tr>
 <tr>
-<td><strong>„DSGVO-Einwilligung erforderlich"</strong></td>
-<td><code>mcp_consent_at</code> nicht gesetzt</td>
-<td>Sektion 8.5 Einwilligungs-Operational-Flow durchlaufen (Browser-Banner oder Admin-Setting)</td>
+<td><code>tools/list</code> 406 Not Acceptable</td>
+<td><code>Accept</code>-Header fehlt</td>
+<td>Setup-Helper-UI generiert <code>Accept: application/json, text/event-stream</code> automatisch — alte manuell gebaute Configs prüfen</td>
 </tr>
 <tr>
-<td><strong>Tool-Liste leer / kürzer als erwartet</strong></td>
-<td><code>User.mcp_role</code> falsch oder nicht gesetzt</td>
-<td>Admin-Korrektur am User-Account (Rolle z.B. auf <code>mcp_landessportwart</code> setzen für volle 22-Tool-Suite)</td>
+<td><code>Authorization</code>-Header leer im Login-Response</td>
+<td>devise-jwt-Dispatch-Regex matched Login-Route nicht</td>
+<td><code>dispatch_requests</code> in <code>config/initializers/devise.rb</code> prüfen — muss <code>^/login$</code> matchen</td>
 </tr>
 <tr>
-<td><strong>Falsche Region in Tool-Output</strong></td>
-<td><code>User.cc_region</code> falsch gesetzt</td>
-<td>Admin-Korrektur am User-Account (Rails-Console oder Admin-UI); danach Browser-Re-Login</td>
-</tr>
-<tr>
-<td><strong>Tool-Calls dauern lang / Timeout</strong></td>
-<td>Multi-Region-Routing geht zur falschen <code>region_cc.base_url</code> (D-13-04-A)</td>
-<td>Befund-Capture; ggf. Plan 13-06.2 Nachbesserung</td>
-</tr>
-<tr>
-<td><strong>Claude.app ignoriert <code>~/.claude.json</code>-Eintrag</strong></td>
-<td>Claude.app nicht restarted nach <code>claude mcp add-json</code></td>
-<td>Cmd+Q + Re-Open (kein Hot-Reload)</td>
-</tr>
-<tr>
-<td><strong>Login-Call liefert leeren Authorization-Header</strong></td>
-<td>devise-jwt-Config falsch (z.B. <code>dispatch_requests</code>-Regex matched Login-Route nicht) ODER <code>Accept: application/json</code>-Header fehlte beim Login</td>
-<td>Server-Log <code>tail -f /var/www/carambus/current/log/production.log</code> während Login-Call; <code>Accept: application/json</code> Header zwingend setzen</td>
-</tr>
-<tr>
-<td><strong>401 mit Bearer-Token (<code>{"error":"Sie müssen sich anmelden..."}</code>)</strong></td>
-<td>Token expired (&gt;24h alt) ODER Token revoked via <code>DELETE /logout</code> ODER JWT-Secret-Inkonsistenz Server/Lokal</td>
-<td>Neuen Token holen via Login-Call; auf Server <code>RAILS_MASTER_KEY</code> / <code>devise_jwt_secret_key</code> in production-Credentials verifizieren</td>
-</tr>
-<tr>
-<td><strong>Token-Wert beginnt nicht mit <code>eyJ</code></strong></td>
-<td>devise-jwt-Gem nicht geladen ODER Login-Endpoint liefert keinen Bearer-Header</td>
-<td><code>gem list devise-jwt</code> auf Server prüfen; <code>bundle exec rails routes \| grep -E 'login\|logout'</code> → POST <code>/login</code>-Route muss existieren; <code>dispatch_requests</code>-Regex in <code>config/initializers/devise.rb</code> muss <code>^/login$</code> matchen (Plan 13-06.3 D-13-06.3-A)</td>
-</tr>
-<tr>
-<td><strong><code>$TOKEN</code> enthält nur <code>Bearer</code> (ohne <code>eyJ...</code>)</strong></td>
-<td>Setup-Doku-Pre-13-06.4-Versionen nutzten <code>awk '{print $2}'</code>-Pipe; dieser schnitt die Zeile <code>authorization: Bearer eyJ...</code> und lieferte nur das zweite Feld (<code>Bearer</code>)</td>
-<td>Heutige Sektion 9.2 nutzt <code>sed -E 's/^[Aa]uthorization:[[:space:]]*//'</code>-Extraktion; bei kopierten Snippets aus älteren Doku-Versionen den Token-Extract-Block durch die aktuelle Sektion-9.2-Variante ersetzen (Plan 13-06.4-Fix)</td>
+<td>Sportwart sieht falsche Region im Tool-Output</td>
+<td>Falsches Per-Region-Scenario / falsche Domain</td>
+<td>User auf richtige Region-Domain (z.B. <code>nbv.carambus.de</code>) verweisen — jede Region ist eigene Carambus-Instanz</td>
 </tr>
 </tbody>
 </table>
-<blockquote>
-<p><strong>Plan 13-06.1 + 13-06.2 Live-Validation-Befunde (2026-05-13/14):</strong> 22 Tools via <code>claude mcp add-json ... carambus-remote</code> mit <code>?stateless=1</code> erfolgreich gelistet auf carambus.de. JWT-Token-Auth (Plan 13-06.2) ist Production-Primary; Cookie-Inject (Plan 13-06.1) bleibt als Legacy-Option in Sektion 9.7 erhalten. McpController-Fix <code>skip_forgery_protection</code> (Commit <code>66cd3b33</code>) Plan-13-03-Update: Rails 7.2 nullt Session-State trotz <code>skip_before_action :verify_authenticity_token</code>. Diese Tabelle wird mit Phase-14-Walkthrough-Erfahrungen erweitert.</p>
-</blockquote>
-<h3 id="96-reserviert">9.6 (reserviert)<a class="headerlink" href="#96-reserviert" title="Permanent link">&para;</a></h3>
-<h3 id="97-legacy-cookie-auth-v03-pilot-plan-13-061-deprecated">9.7 Legacy Cookie-Auth (v0.3-Pilot Plan 13-06.1) — DEPRECATED<a class="headerlink" href="#97-legacy-cookie-auth-v03-pilot-plan-13-061-deprecated" title="Permanent link">&para;</a></h3>
-<blockquote>
-<p><strong>Status:</strong> Plan 13-06.1 hat Cookie-Inject als initialen Pilot-Workaround eingeführt; Plan 13-06.2 hat JWT-Token-Auth als Phase-14-Primary etabliert. Cookie-Inject bleibt für Backwards-Compat erhalten, aber <strong>NICHT empfohlen</strong> für neue Setups — JWT-Token (Sektion 9.2) hat längere Lifetime und ist robuster.</p>
-</blockquote>
-<p><strong>Wann diese Sektion verwenden:</strong>
-- Plan-13-06.1-Pilot-Setup bleibt funktional (keine Migration erzwungen)
-- Bei spezifischen MCP-Client-Limitationen wo Bearer-Header nicht unterstützt wird (selten)
-- Als Fallback falls JWT-Token-Login (Sektion 9.2) scheitert</p>
-<p><strong>Cookie-Extract-Workflow:</strong></p>
-<ol>
-<li>Browser-Login auf https://carambus.de/login mit Carambus-Credentials</li>
-<li>Browser-DevTools öffnen (F12, oder ⌥+⌘+I in Safari)</li>
-<li>Tab <code>Application</code> (Chrome/Edge) bzw. <code>Storage</code> (Firefox) → <code>Cookies</code> → <code>https://carambus.de</code></li>
-<li>Wert von Cookie <strong><code>_session_id</code></strong> kopieren (32-stelliger Hex-String, Rails-Default-Cookie-Name)</li>
-</ol>
-<p><strong>MCP-Server registrieren mit Cookie-Header:</strong></p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>claude<span class="w"> </span>mcp<span class="w"> </span>add-json<span class="w"> </span>--scope<span class="w"> </span>user<span class="w"> </span>carambus-remote<span class="w"> </span><span class="s1">&#39;{</span>
-<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="s1">  &quot;type&quot;: &quot;http&quot;,</span>
-<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="s1">  &quot;url&quot;: &quot;https://carambus.de/mcp?stateless=1&quot;,</span>
-<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="s1">  &quot;headers&quot;: {</span>
-<a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a><span class="s1">    &quot;Cookie&quot;: &quot;_session_id=DEIN_COOKIE_HIER&quot;,</span>
-<a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a><span class="s1">    &quot;Accept&quot;: &quot;application/json, text/event-stream&quot;</span>
-<a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a><span class="s1">  }</span>
-<a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a><span class="s1">}&#39;</span>
+<p>Server-Log für Forensik:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>tail<span class="w"> </span>-f<span class="w"> </span>/var/www/carambus/current/log/production.log
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>tail<span class="w"> </span>-f<span class="w"> </span>/var/www/carambus/current/log/mcp-audit-trail.log
 </code></pre></div>
-<p><strong>Limitierungen:</strong></p>
-<ul>
-<li><strong>Cookie-Expire 120 Minuten</strong> (vs 24h JWT) — Re-Login alle 2h notwendig</li>
-<li><strong>Cookie-Sharing</strong> zwischen Browser und Claude.app erfolgt NICHT automatisch (manueller DevTools-Extract)</li>
-<li>Bei Carambus-Scenarios mit anderem <code>session_store key:</code>-Parameter kann Cookie-Name abweichen (im DevTools sichtbar)</li>
-</ul>
-<p><strong>Migration auf JWT:</strong> <code>claude mcp remove carambus-remote -s user</code> + Sektion 9.2 Schritt 1+2 ausführen.</p>
 <hr />
-<h2 id="quellen-weiterfuhrendes">Quellen &amp; Weiterführendes<a class="headerlink" href="#quellen-weiterfuhrendes" title="Permanent link">&para;</a></h2>
-<ul>
-<li><a href="../clubcloud-mcp-setup/"><code>clubcloud-mcp-setup.de.md</code></a> — Setup-Troubleshooting für technische Stellvertretung</li>
-<li><a href="../clubcloud-mcp-quickstart/"><code>clubcloud-mcp-quickstart.de.md</code></a> — 5-Min-Quickstart-NL-Dialoge</li>
-<li><code>docs/developers/clubcloud-mcp-server.de.md</code> — Entwickler-Handbuch für tieferes Tool-Debugging</li>
-</ul>
+<h2 id="10-power-user-cli-anhang-fur-ci-auto-provisioning"><a id="power-user-cli-anhang"></a>10. Power-User-CLI-Anhang (für CI / Auto-Provisioning)<a class="headerlink" href="#10-power-user-cli-anhang-fur-ci-auto-provisioning" title="Permanent link">&para;</a></h2>
+<p>Für Automation (Test-Pipeline, Mehrfach-Maschinen-Setup) der direkte CLI-Pfad
+ohne Setup-Helper-UI.</p>
+<h3 id="bash-mac-linux-git-bash-wsl2">Bash (Mac / Linux / Git Bash / WSL2)<a class="headerlink" href="#bash-mac-linux-git-bash-wsl2" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="c1"># 1. Token holen (Bearer kommt im Authorization-Response-Header):</span>
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="nv">TOKEN</span><span class="o">=</span><span class="k">$(</span>curl<span class="w"> </span>-sS<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>https://nbv.carambus.de/login<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Accept: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a><span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{&quot;user&quot;:{&quot;email&quot;:&quot;DEINE_EMAIL&quot;,&quot;password&quot;:&quot;DEIN_PW&quot;}}&#39;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a><span class="w">  </span>-D<span class="w"> </span>-<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-i<span class="w"> </span><span class="s1">&#39;^authorization:&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>sed<span class="w"> </span>-E<span class="w"> </span><span class="s1">&#39;s/^[Aa]uthorization:[[:space:]]*//&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>tr<span class="w"> </span>-d<span class="w"> </span><span class="s1">&#39;\r\n&#39;</span><span class="k">)</span>
+<a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$TOKEN</span><span class="s2">&quot;</span><span class="w">   </span><span class="c1"># erwartet: Bearer eyJ...</span>
+<a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a>
+<a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a><span class="c1"># 2. MCP-Server registrieren:</span>
+<a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a>claude<span class="w"> </span>mcp<span class="w"> </span>add-json<span class="w"> </span>--scope<span class="w"> </span>user<span class="w"> </span>carambus-remote<span class="w"> </span><span class="s2">&quot;{</span>
+<a id="__codelineno-14-11" name="__codelineno-14-11" href="#__codelineno-14-11"></a><span class="s2">  \&quot;type\&quot;: \&quot;http\&quot;,</span>
+<a id="__codelineno-14-12" name="__codelineno-14-12" href="#__codelineno-14-12"></a><span class="s2">  \&quot;url\&quot;: \&quot;https://nbv.carambus.de/mcp?stateless=1\&quot;,</span>
+<a id="__codelineno-14-13" name="__codelineno-14-13" href="#__codelineno-14-13"></a><span class="s2">  \&quot;headers\&quot;: {</span>
+<a id="__codelineno-14-14" name="__codelineno-14-14" href="#__codelineno-14-14"></a><span class="s2">    \&quot;Authorization\&quot;: \&quot;</span><span class="nv">$TOKEN</span><span class="s2">\&quot;,</span>
+<a id="__codelineno-14-15" name="__codelineno-14-15" href="#__codelineno-14-15"></a><span class="s2">    \&quot;Accept\&quot;: \&quot;application/json, text/event-stream\&quot;</span>
+<a id="__codelineno-14-16" name="__codelineno-14-16" href="#__codelineno-14-16"></a><span class="s2">  }</span>
+<a id="__codelineno-14-17" name="__codelineno-14-17" href="#__codelineno-14-17"></a><span class="s2">}&quot;</span>
+<a id="__codelineno-14-18" name="__codelineno-14-18" href="#__codelineno-14-18"></a>
+<a id="__codelineno-14-19" name="__codelineno-14-19" href="#__codelineno-14-19"></a><span class="c1"># 3. Verify:</span>
+<a id="__codelineno-14-20" name="__codelineno-14-20" href="#__codelineno-14-20"></a>claude<span class="w"> </span>mcp<span class="w"> </span>get<span class="w"> </span>carambus-remote
+</code></pre></div>
+<h3 id="powershell-windows-nativ">PowerShell (Windows nativ)<a class="headerlink" href="#powershell-windows-nativ" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="nv">$response</span> <span class="p">=</span> <span class="nb">Invoke-WebRequest</span> <span class="n">-Uri</span> <span class="s2">&quot;https://nbv.carambus.de/login&quot;</span> <span class="p">`</span>
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>  <span class="n">-Method</span> <span class="n">POST</span> <span class="p">`</span>
+<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a>  <span class="n">-ContentType</span> <span class="s2">&quot;application/json&quot;</span> <span class="p">`</span>
+<a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a>  <span class="n">-Headers</span> <span class="p">@{</span> <span class="s2">&quot;Accept&quot;</span> <span class="p">=</span> <span class="s2">&quot;application/json&quot;</span> <span class="p">}</span> <span class="p">`</span>
+<a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a>  <span class="n">-Body</span> <span class="s1">&#39;{&quot;user&quot;:{&quot;email&quot;:&quot;DEINE_EMAIL&quot;,&quot;password&quot;:&quot;DEIN_PW&quot;}}&#39;</span>
+<a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a><span class="nv">$TOKEN</span> <span class="p">=</span> <span class="nv">$response</span><span class="p">.</span><span class="n">Headers</span><span class="p">[</span><span class="s2">&quot;Authorization&quot;</span><span class="p">]</span>
+<a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a>
+<a id="__codelineno-15-8" name="__codelineno-15-8" href="#__codelineno-15-8"></a><span class="nv">$config</span> <span class="p">=</span> <span class="p">@{</span>
+<a id="__codelineno-15-9" name="__codelineno-15-9" href="#__codelineno-15-9"></a>  <span class="nb">type </span>   <span class="p">=</span> <span class="s2">&quot;http&quot;</span>
+<a id="__codelineno-15-10" name="__codelineno-15-10" href="#__codelineno-15-10"></a>  <span class="n">url</span>     <span class="p">=</span> <span class="s2">&quot;https://nbv.carambus.de/mcp?stateless=1&quot;</span>
+<a id="__codelineno-15-11" name="__codelineno-15-11" href="#__codelineno-15-11"></a>  <span class="n">headers</span> <span class="p">=</span> <span class="p">@{</span>
+<a id="__codelineno-15-12" name="__codelineno-15-12" href="#__codelineno-15-12"></a>    <span class="n">Authorization</span> <span class="p">=</span> <span class="s2">&quot;$TOKEN&quot;</span>
+<a id="__codelineno-15-13" name="__codelineno-15-13" href="#__codelineno-15-13"></a>    <span class="n">Accept</span>        <span class="p">=</span> <span class="s2">&quot;application/json, text/event-stream&quot;</span>
+<a id="__codelineno-15-14" name="__codelineno-15-14" href="#__codelineno-15-14"></a>  <span class="p">}</span>
+<a id="__codelineno-15-15" name="__codelineno-15-15" href="#__codelineno-15-15"></a><span class="p">}</span> <span class="p">|</span> <span class="nb">ConvertTo-Json</span> <span class="n">-Depth</span> <span class="n">3</span> <span class="n">-Compress</span>
+<a id="__codelineno-15-16" name="__codelineno-15-16" href="#__codelineno-15-16"></a>
+<a id="__codelineno-15-17" name="__codelineno-15-17" href="#__codelineno-15-17"></a><span class="n">claude</span> <span class="n">mcp</span> <span class="nb">add-json</span> <span class="p">-</span><span class="n">-scope</span> <span class="n">user</span> <span class="n">carambus-remote</span> <span class="nv">$config</span>
+<a id="__codelineno-15-18" name="__codelineno-15-18" href="#__codelineno-15-18"></a><span class="n">claude</span> <span class="n">mcp</span> <span class="n">get</span> <span class="n">carambus-remote</span>
+</code></pre></div>
+<p><strong>Token-Refresh:</strong> identisch zum Setup-Helper-UI-Pfad — <code>claude mcp remove
+carambus-remote -s user</code> + Block neu laufen lassen.</p>
 <hr />
-<p><em>Plan 09-03 (Phase 9 Live-Härten + Setup-Service) — adressiert Q-v02-2 (Setup vor Ort) + Q-09-A (Phase 9). Phase-10-Voraussetzung.</em>
-<em>Updated: 2026-05-12</em></p>
+<p><em>Setup-Service-Doku (Plan 14-G.11, 2026-05-16). Per-Region-Architektur (Plan 14-G3),
+Setup-Helper-UI (Plan 14-G.8), Long-Lived-JWT (Plan 14-G.5), Authority-Modell
+(Plan 14-G3+G4).</em></p>
 
 
 

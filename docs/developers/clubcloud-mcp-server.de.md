@@ -1,7 +1,8 @@
 # ClubCloud MCP-Server — Entwickler-Handbuch
 
 > **Zielgruppe:** Carambus-Entwickler. Deckt Onboarding, Erweiterung (Phase 40.1+), Operations/Debugging und API-Referenz ab.
-> **Setup-Quickstart für Sportwarte/Endanwender:** [`docs/managers/clubcloud-mcp-setup.de.md`](../managers/clubcloud-mcp-setup.de.md)
+> **Setup-Quickstart für Sportwarte/Endanwender:** [`docs/managers/clubcloud-mcp-cloud-quickstart.de.md`](../managers/clubcloud-mcp-cloud-quickstart.de.md) (User-facing)
+> **Per-Region-Admin-Setup:** [`docs/managers/clubcloud-mcp-setup-service.de.md`](../managers/clubcloud-mcp-setup-service.de.md) (Carambus-Tech-Admin)
 > **Stand:** Phase 40 abgeschlossen 2026-05-07. Phase 40.1 in Vorbereitung.
 
 ---

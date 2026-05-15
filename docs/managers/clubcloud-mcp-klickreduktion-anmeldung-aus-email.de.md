@@ -1,6 +1,6 @@
 # Klick-Reduktion: Anmeldung aus E-Mail
 
-> **Status:** Doku-Skeleton aus Plan 03-02. Screenshots werden vom User nachgeliefert (Test-CC oder Prod-CC mit redacted PII; siehe `docs/developers/clubcloud-mcp-workflow-scenarios.de.md` §"Hinweise zur Klick-Reduktions-Doku-Quelle").
+> **Status:** Inhalt-Refresh post-Phase-14-G.10 Authority-Modell (Plan 14-G.11, 2026-05-16). Screenshots werden vom User nachgeliefert (Test-CC oder Prod-CC mit redacted PII; siehe `docs/developers/clubcloud-mcp-workflow-scenarios.de.md` §"Hinweise zur Klick-Reduktions-Doku-Quelle").
 
 ## Worum geht's?
 
@@ -72,7 +72,8 @@ Kein separater Aufwand für dich — Claude liest den Spickzettel automatisch, s
 
 ## Voraussetzungen
 
-- Du hast eine **Club-Sportwart-Rolle oder höher** in CC für die Region des Turniers (sonst lehnt CC am Ende ab — Claude erklärt dann, wen du anrufen musst).
+- Dein **Sportwart-Wirkbereich** umfasst gastgebenden Verein + Disziplin des Turniers (`sportwart_location_ids` + `sportwart_discipline_ids`; siehe [`cc-roles`](clubcloud-scenarios/cc-roles.de.md) für die Authority-Brücke). Sonst lehnt der MCP-Server ab — Claude erklärt dann, wen Du anrufen musst.
+- Du bist auf der Carambus-Seite Deiner Region (z.B. `https://nbv.carambus.de`) eingeloggt + hast den MCP-Setup-Befehl gepastet (siehe [Cloud-Quickstart](clubcloud-mcp-cloud-quickstart.de.md)).
 - Die anzumeldenden Spieler haben einen **PlayerRanking-Eintrag** in der Disziplin (Spielberechtigung — wird von Claude automatisch geprüft).
 - Das Turnier ist in CC angelegt und der Anmeldeschluss ist noch nicht erreicht.
 
@@ -81,8 +82,8 @@ Kein separater Aufwand für dich — Claude liest den Spickzettel automatisch, s
 - **Spieler-Name in der E-Mail mehrdeutig:** Claude fragt gezielt nach Vorname + Geburtsjahr + Verein. Niemals raten.
 - **Turnier nicht in der Liste:** Claude empfiehlt `force_refresh: true` (Verbandsadmin könnte den Anmeldeschluss in CC verschoben haben — DB ist max. ~2h alt durch carambus:retrieve_updates-Cron).
 - **Spieler hat keinen PlayerRanking-Eintrag:** Claude erklärt: „Spieler X ist nicht in PlayerRanking für Disziplin Y gerankt — entweder nicht spielberechtigt oder PlayerRanking-Sync fehlt. Bitte mit Verbandsadmin klären."
-- **Du hast keine ausreichende CC-Rolle:** Phase 4 wird das beim Anmelde-Versuch erkennen (CC gibt 403). Claude eskaliert mit konkreter Anleitung, wen du anrufen musst.
+- **Dein Wirkbereich deckt diesen Verein/Disziplin nicht ab:** Der MCP-Server lehnt mit klarer Authority-Meldung ab. Claude eskaliert mit konkreter Anleitung, wen Du anrufen musst (typisch: anderer Sportwart mit passendem Wirkbereich oder Landessportwart).
 
 ---
-*Klick-Reduktion-Doku — Phase 3 Plan 03-02, 2026-05-08*
+*Klick-Reduktion-Doku — Plan 03-02 + Plan 14-G.11 Authority-Refresh (2026-05-16)*
 *Spickzettel-Datei: `docs/managers/clubcloud-scenarios/anmeldung-aus-email.de.json` · Format-Spec: `docs/developers/clubcloud-mcp-workflow-scenarios.de.md`*

@@ -164,12 +164,16 @@ nav:
       - ClubCloud Integration: managers/clubcloud-integration.md
       - ClubCloud MCP:
           - Cloud Quickstart: managers/clubcloud-mcp-cloud-quickstart.md
-          - MCP Quickstart: managers/clubcloud-mcp-quickstart.md
-          - Setup: managers/clubcloud-mcp-setup.md
           - Setup Service: managers/clubcloud-mcp-setup-service.md
+          # Plan 14-G.11 Konsolidierung (D-14-G.11-A): clubcloud-mcp-quickstart.de.md +
+          # clubcloud-mcp-setup.de.md gelöscht — Pre-Pivot-STDIO-Doppelgänger zu Cloud-Quickstart
+          # und Setup-Service. User-Direktive „einfach + ohne Redundanz".
           # Klickreduktion-Docs (klickreduktion-*) deferred zu v0.5 — fehlen ~48 Screenshot-Files
           # in managers/images/ (TODO-Marker im Source seit Plan 14-01); Nav-Aktivierung würde
           # broken-image-Placeholders rendern. Reaktivieren nach Screenshot-Capture-Session.
+          # EN-Pendants (.en.md) zu allen Manager-Docs deferred zu v0.5-EN-Refresh-Cycle —
+          # spiegeln auch Pre-Pivot-Stand wider; mkdocs i18n-Plugin hängt automatisch .de/.en
+          # je nach Locale; nur DE-Slot ist nach Plan 14-G.11 refreshed (D-14-G.11-B).
       - ClubCloud Scenarios:
           - CC Glossary: managers/clubcloud-scenarios/cc-glossary.md
           - CC Roles: managers/clubcloud-scenarios/cc-roles.md

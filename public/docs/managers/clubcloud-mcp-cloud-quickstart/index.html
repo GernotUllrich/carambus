@@ -16,7 +16,7 @@
         <link rel="prev" href="../clubcloud-integration/">
       
       
-        <link rel="next" href="../clubcloud-mcp-quickstart/">
+        <link rel="next" href="../clubcloud-mcp-setup-service/">
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
@@ -80,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#clubcloud-mcp-cloud-quickstart-v03" class="md-skip">
+        <a href="#clubcloud-mcp-cloud-quickstart" class="md-skip">
           Zum Inhalt
         </a>
       
@@ -1038,10 +1038,6 @@
       
         
       
-        
-      
-        
-      
     
     
     
@@ -1149,7 +1145,7 @@
         <li class="md-nav__item">
   <a href="#was-du-brauchst-3-minuten-vorbereitung" class="md-nav__link">
     <span class="md-ellipsis">
-      Was du brauchst (~3 Minuten Vorbereitung)
+      Was Du brauchst (~3 Minuten Vorbereitung)
     </span>
   </a>
   
@@ -1175,9 +1171,9 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#schritt-2-setup-befehl-auf-carambusde-holen" class="md-nav__link">
+  <a href="#schritt-2-setup-befehl-auf-deiner-region-seite-holen" class="md-nav__link">
     <span class="md-ellipsis">
-      Schritt 2 — Setup-Befehl auf carambus.de holen
+      Schritt 2 — Setup-Befehl auf Deiner Region-Seite holen
     </span>
   </a>
   
@@ -1207,6 +1203,15 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#login-token-lifetime-renew" class="md-nav__link">
+    <span class="md-ellipsis">
+      Login-Token: Lifetime + Renew
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#troubleshooting-kurz-cheatsheet" class="md-nav__link">
     <span class="md-ellipsis">
       Troubleshooting (Kurz-Cheatsheet)
@@ -1216,9 +1221,18 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#token-lifetime-refresh" class="md-nav__link">
+  <a href="#drehbuch-vs-real-task-hin-ruck-symmetrie-schutz" class="md-nav__link">
     <span class="md-ellipsis">
-      Token-Lifetime + Refresh
+      Drehbuch vs. Real-Task — Hin-Rück-Symmetrie-Schutz
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#was-kann-ich-tun-tagesablauf-spickzettel" class="md-nav__link">
+    <span class="md-ellipsis">
+      Was kann ich tun? — Tagesablauf-Spickzettel
     </span>
   </a>
   
@@ -1234,62 +1248,11 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#was-kommt-als-nachstes" class="md-nav__link">
+  <a href="#weiterfuhrend" class="md-nav__link">
     <span class="md-ellipsis">
-      Was kommt als nächstes?
+      Weiterführend
     </span>
   </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#weiterfuhrend-fur-technisch-interessierte" class="md-nav__link">
-    <span class="md-ellipsis">
-      Weiterführend (für technisch Interessierte)
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#anhang-cli-setup-fur-power-user" class="md-nav__link">
-    <span class="md-ellipsis">
-      Anhang — CLI-Setup für Power-User
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Anhang — CLI-Setup für Power-User">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#bash-variante-mac-linux-windows-mit-git-bash-oder-wsl2" class="md-nav__link">
-    <span class="md-ellipsis">
-      Bash-Variante (Mac / Linux / Windows mit Git Bash oder WSL2)
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#powershell-variante-windows-nativ" class="md-nav__link">
-    <span class="md-ellipsis">
-      PowerShell-Variante (Windows nativ)
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#cli-spezifische-stolperer" class="md-nav__link">
-    <span class="md-ellipsis">
-      CLI-spezifische Stolperer
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -1297,52 +1260,6 @@
   
 </nav>
       
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../clubcloud-mcp-quickstart/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    MCP Quickstart
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../clubcloud-mcp-setup/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Setup
-    
-  </span>
-  
-
-      </a>
     </li>
   
 
@@ -3318,7 +3235,7 @@
         <li class="md-nav__item">
   <a href="#was-du-brauchst-3-minuten-vorbereitung" class="md-nav__link">
     <span class="md-ellipsis">
-      Was du brauchst (~3 Minuten Vorbereitung)
+      Was Du brauchst (~3 Minuten Vorbereitung)
     </span>
   </a>
   
@@ -3344,9 +3261,9 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#schritt-2-setup-befehl-auf-carambusde-holen" class="md-nav__link">
+  <a href="#schritt-2-setup-befehl-auf-deiner-region-seite-holen" class="md-nav__link">
     <span class="md-ellipsis">
-      Schritt 2 — Setup-Befehl auf carambus.de holen
+      Schritt 2 — Setup-Befehl auf Deiner Region-Seite holen
     </span>
   </a>
   
@@ -3376,6 +3293,15 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#login-token-lifetime-renew" class="md-nav__link">
+    <span class="md-ellipsis">
+      Login-Token: Lifetime + Renew
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#troubleshooting-kurz-cheatsheet" class="md-nav__link">
     <span class="md-ellipsis">
       Troubleshooting (Kurz-Cheatsheet)
@@ -3385,9 +3311,18 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#token-lifetime-refresh" class="md-nav__link">
+  <a href="#drehbuch-vs-real-task-hin-ruck-symmetrie-schutz" class="md-nav__link">
     <span class="md-ellipsis">
-      Token-Lifetime + Refresh
+      Drehbuch vs. Real-Task — Hin-Rück-Symmetrie-Schutz
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#was-kann-ich-tun-tagesablauf-spickzettel" class="md-nav__link">
+    <span class="md-ellipsis">
+      Was kann ich tun? — Tagesablauf-Spickzettel
     </span>
   </a>
   
@@ -3403,62 +3338,11 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#was-kommt-als-nachstes" class="md-nav__link">
+  <a href="#weiterfuhrend" class="md-nav__link">
     <span class="md-ellipsis">
-      Was kommt als nächstes?
+      Weiterführend
     </span>
   </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#weiterfuhrend-fur-technisch-interessierte" class="md-nav__link">
-    <span class="md-ellipsis">
-      Weiterführend (für technisch Interessierte)
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#anhang-cli-setup-fur-power-user" class="md-nav__link">
-    <span class="md-ellipsis">
-      Anhang — CLI-Setup für Power-User
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Anhang — CLI-Setup für Power-User">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#bash-variante-mac-linux-windows-mit-git-bash-oder-wsl2" class="md-nav__link">
-    <span class="md-ellipsis">
-      Bash-Variante (Mac / Linux / Windows mit Git Bash oder WSL2)
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#powershell-variante-windows-nativ" class="md-nav__link">
-    <span class="md-ellipsis">
-      PowerShell-Variante (Windows nativ)
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#cli-spezifische-stolperer" class="md-nav__link">
-    <span class="md-ellipsis">
-      CLI-spezifische Stolperer
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -3481,14 +3365,14 @@
   
 
 
-<h1 id="clubcloud-mcp-cloud-quickstart-v03">ClubCloud-MCP Cloud-Quickstart (v0.3+)<a class="headerlink" href="#clubcloud-mcp-cloud-quickstart-v03" title="Permanent link">&para;</a></h1>
+<h1 id="clubcloud-mcp-cloud-quickstart">ClubCloud-MCP Cloud-Quickstart<a class="headerlink" href="#clubcloud-mcp-cloud-quickstart" title="Permanent link">&para;</a></h1>
 <blockquote>
-<p><strong>Für Sportwarte, Turnierleiter, LSW.</strong> 1 Seite. Du musst nur Claude Code installieren und 2 Terminal-Zeilen tippen — Rest läuft auf carambus.de.</p>
+<p><strong>Für Sportwarte, Turnierleiter, Landessportwarte.</strong> 1 Seite. Du loggst Dich auf der Carambus-Seite Deiner Region ein, kopierst einen Setup-Befehl in Dein Terminal — fertig.</p>
 </blockquote>
 <hr />
 <h2 id="was-ist-das">Was ist das?<a class="headerlink" href="#was-ist-das" title="Permanent link">&para;</a></h2>
-<p>Ein Hilfsmittel, mit dem du typische ClubCloud-Admin-Aufgaben <strong>per natürlicher Sprache in Claude Code</strong> erledigst — statt klick-intensive Form-Submits in der CC-UI.</p>
-<p>Beispiele (was du tippst → was passiert):</p>
+<p>Ein Hilfsmittel, mit dem Du typische ClubCloud-Sportwart-Aufgaben <strong>per natürlicher Sprache in Claude Code</strong> erledigst — statt klick-intensive Form-Submits in der ClubCloud-UI.</p>
+<p>Beispiele (was Du tippst → was passiert):</p>
 <table>
 <thead>
 <tr>
@@ -3502,11 +3386,11 @@
 <td>Turnier-Detail + Meldeliste + Termine</td>
 </tr>
 <tr>
-<td>„Anmelde Müller in Eurokegel"</td>
+<td>„Anmeldung Müller in Eurokegel"</td>
 <td>Dry-Run + Bestätigungs-Frage → Anmeldung</td>
 </tr>
 <tr>
-<td>„Akk Müller, Schmidt, Weber in Eurokegel"</td>
+<td>„Akkreditierung Müller, Schmidt, Weber in Eurokegel"</td>
 <td>3 Akkreditierungen in einem Step</td>
 </tr>
 <tr>
@@ -3515,16 +3399,20 @@
 </tr>
 </tbody>
 </table>
+<p>Begriffe wie Meldeliste, Endrangliste, Spielbericht, Teilnehmerliste sind im <a href="../clubcloud-scenarios/cc-glossary/">ClubCloud-Glossar</a> erklärt.</p>
 <hr />
-<h2 id="was-du-brauchst-3-minuten-vorbereitung">Was du brauchst (~3 Minuten Vorbereitung)<a class="headerlink" href="#was-du-brauchst-3-minuten-vorbereitung" title="Permanent link">&para;</a></h2>
+<h2 id="was-du-brauchst-3-minuten-vorbereitung">Was Du brauchst (~3 Minuten Vorbereitung)<a class="headerlink" href="#was-du-brauchst-3-minuten-vorbereitung" title="Permanent link">&para;</a></h2>
 <ul>
 <li><strong>Mac (macOS 12+), Windows (10/11) oder Linux</strong></li>
 <li><strong>Claude Code</strong> — gratis von Anthropic: <a href="https://claude.ai/code">https://claude.ai/code</a></li>
-<li><strong>Carambus-Account</strong> auf carambus.de (Email + Passwort; bei Bedarf vorab <code>Passwort vergessen</code>-Flow)</li>
-<li><strong>Browser</strong> (Chrome/Firefox/Safari/Edge — egal welcher)</li>
-<li><strong>Terminal-App</strong> (Mac: Terminal.app / Windows: Git Bash, PowerShell oder cmd / Linux: Standard-Terminal — für eine einzige Copy-Paste-Zeile)</li>
+<li><strong>Carambus-Account</strong> auf der Seite Deiner Region (z.B. <code>https://nbv.carambus.de</code> für NBV-Sportwarte) — Email + Passwort; Dein Carambus-Admin nennt Dir Deine richtige Region-Domain</li>
+<li><strong>Browser</strong> (Chrome / Firefox / Safari / Edge — egal welcher)</li>
+<li><strong>Terminal-App</strong> (Mac: Terminal.app · Windows: Git Bash, PowerShell oder cmd · Linux: Standard-Terminal — nur für eine einzige Copy-Paste-Zeile)</li>
 <li>Internetverbindung</li>
 </ul>
+<blockquote>
+<p><strong>Per-Region-Hinweis:</strong> Jede Region hat ihre eigene Carambus-Domain (z.B. <code>nbv.carambus.de</code>, <code>bcw.carambus.de</code>). Dein Carambus-Admin sagt Dir vorab, welche URL für Dich gilt. Alle weiteren URLs in dieser Anleitung leiten sich davon ab.</p>
+</blockquote>
 <hr />
 <h2 id="setup-in-3-schritten-5-minuten">Setup in 3 Schritten (~5 Minuten)<a class="headerlink" href="#setup-in-3-schritten-5-minuten" title="Permanent link">&para;</a></h2>
 <h3 id="schritt-1-claude-code-installieren">Schritt 1 — Claude Code installieren<a class="headerlink" href="#schritt-1-claude-code-installieren" title="Permanent link">&para;</a></h3>
@@ -3534,17 +3422,17 @@
   <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>claude --version
 </code></pre></div></li>
 </ul>
-<h3 id="schritt-2-setup-befehl-auf-carambusde-holen">Schritt 2 — Setup-Befehl auf carambus.de holen<a class="headerlink" href="#schritt-2-setup-befehl-auf-carambusde-holen" title="Permanent link">&para;</a></h3>
+<h3 id="schritt-2-setup-befehl-auf-deiner-region-seite-holen">Schritt 2 — Setup-Befehl auf Deiner Region-Seite holen<a class="headerlink" href="#schritt-2-setup-befehl-auf-deiner-region-seite-holen" title="Permanent link">&para;</a></h3>
 <ul>
-<li>Browser öffnen: <a href="https://carambus.de/login">https://carambus.de/login</a> → mit deinem Account einloggen</li>
-<li>Browser-Tab wechseln zu: <a href="https://carambus.de/mcp/setup">https://carambus.de/mcp/setup</a></li>
-<li>Du siehst eine Seite mit deinem fertigen Setup-Befehl</li>
+<li>Browser öffnen: <code>https://nbv.carambus.de/login</code> (oder Deine Region-Domain) → mit Deinem Account einloggen</li>
+<li>Browser-Tab wechseln zu: <code>https://nbv.carambus.de/mcp/setup</code></li>
+<li>Du siehst eine Seite mit Deinem fertigen Setup-Befehl + Restlaufzeit-Banner Deines Login-Tokens</li>
 <li>Klick auf <strong>„📋 In Zwischenablage kopieren"</strong></li>
 </ul>
 <h3 id="schritt-3-setup-befehl-in-terminal-pasten">Schritt 3 — Setup-Befehl in Terminal pasten<a class="headerlink" href="#schritt-3-setup-befehl-in-terminal-pasten" title="Permanent link">&para;</a></h3>
 <ul>
 <li>Terminal öffnen</li>
-<li>Befehl pasten (Mac: ⌘+V / Windows/Linux: rechte Maustaste oder Ctrl+Shift+V)</li>
+<li>Befehl pasten (Mac: ⌘+V · Windows/Linux: rechte Maustaste oder Ctrl+Shift+V)</li>
 <li>Enter drücken</li>
 </ul>
 <p><strong>Verify:</strong></p>
@@ -3557,9 +3445,9 @@
 <p><strong>Smoke-Test in Claude Code:</strong></p>
 <ul>
 <li>Starte eine <strong>neue Claude-Code-Session</strong></li>
-<li>Frage: <strong>„Welche carambus-remote Tools hast du?"</strong></li>
+<li>Frage: <strong>„Welche carambus-remote Tools hast Du?"</strong></li>
 </ul>
-<p>Erwartete Tool-Anzahl je nach deiner Rolle:</p>
+<p>Erwartete Tool-Anzahl je nach Deiner Rolle:</p>
 <table>
 <thead>
 <tr>
@@ -3582,7 +3470,7 @@
 </tr>
 </tbody>
 </table>
-<p>Wenn falsche Anzahl → Carambus-Admin Bescheid sagen; deine <code>mcp_role</code> muss in der Datenbank angepasst werden.</p>
+<p>Wenn falsche Anzahl → Carambus-Admin Bescheid sagen; Dein Wirkbereich (Sportwart-Locations + -Disziplinen bzw. Turnierleiter-Zuweisung) muss noch konfiguriert werden. Details in <a href="../clubcloud-scenarios/cc-roles/"><code>cc-roles</code></a>.</p>
 <hr />
 <h2 id="erste-beispiel-dialoge">Erste Beispiel-Dialoge<a class="headerlink" href="#erste-beispiel-dialoge" title="Permanent link">&para;</a></h2>
 <p>Nach erfolgreichem Setup gleich ausprobieren — alles <strong>read-only</strong>, keine Datenänderungen:</p>
@@ -3592,7 +3480,14 @@
 <li>„Status NDM Endrunde Eurokegel?"</li>
 <li>„Suche Spieler Meissner in NBV"</li>
 </ul>
-<p>Bei produktiven Aufgaben (Anmeldung, Akkreditierung, Meldeschluss) bekommst du immer erst einen <strong>Dry-Run mit Bestätigungs-Frage</strong> — keine versehentlichen Datenänderungen möglich.</p>
+<p>Bei produktiven Aufgaben (Anmeldung, Akkreditierung, Meldeschluss) bekommst Du immer erst einen <strong>Dry-Run mit Bestätigungs-Frage</strong> — keine versehentlichen Datenänderungen möglich.</p>
+<hr />
+<h2 id="login-token-lifetime-renew">Login-Token: Lifetime + Renew<a class="headerlink" href="#login-token-lifetime-renew" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Dein Login-Token ist 90 Tage gültig</strong> (Default-Konfiguration; Dein Carambus-Admin kann das per Region anders einstellen).</li>
+<li>Auf der Setup-Seite siehst Du immer die <strong>Restlaufzeit</strong> Deines Tokens als Banner — wenn weniger als ~14 Tage übrig sind, sanft renewen.</li>
+<li><strong>Renew:</strong> <code>https://nbv.carambus.de/mcp/setup</code> neu laden → neuen Befehl kopieren → in Terminal pasten (vorher <code>claude mcp remove carambus-remote -s user</code>).</li>
+</ul>
 <hr />
 <h2 id="troubleshooting-kurz-cheatsheet">Troubleshooting (Kurz-Cheatsheet)<a class="headerlink" href="#troubleshooting-kurz-cheatsheet" title="Permanent link">&para;</a></h2>
 <table>
@@ -3607,7 +3502,7 @@
 <tr>
 <td>/mcp/setup → Weiterleitung auf /login</td>
 <td>Nicht eingeloggt</td>
-<td>Erst über <a href="https://carambus.de/login">https://carambus.de/login</a> einloggen, dann zurück zu /mcp/setup</td>
+<td>Erst über <code>https://nbv.carambus.de/login</code> einloggen, dann zurück zu /mcp/setup</td>
 </tr>
 <tr>
 <td>Copy-Button kopiert nichts</td>
@@ -3616,147 +3511,62 @@
 </tr>
 <tr>
 <td><code>claude mcp get</code> → <code>Failed to connect</code></td>
-<td>Token expired (&gt;24h)</td>
-<td><a href="https://carambus.de/mcp/setup">https://carambus.de/mcp/setup</a> neu laden + neuen Befehl pasten (vorher <code>claude mcp remove carambus-remote -s user</code>)</td>
+<td>Token expired (selten — typisch alle ~3 Monate)</td>
+<td>Setup-Seite neu laden + neuen Befehl pasten (vorher <code>claude mcp remove carambus-remote -s user</code>)</td>
 </tr>
 <tr>
 <td>401 nach erfolgreichem Setup</td>
-<td>Token expired</td>
+<td>Token expired oder revoked</td>
 <td>Token erneuern (Setup-Seite neu laden)</td>
 </tr>
 <tr>
 <td>Tool-Liste leer / 0 Tools</td>
-<td><code>User.mcp_role</code> nicht gesetzt</td>
-<td>Carambus-Admin kontaktieren</td>
+<td>Wirkbereich nicht konfiguriert</td>
+<td>Carambus-Admin kontaktieren — er setzt Sportwart-Locations + -Disziplinen bzw. Turnierleiter-Zuweisung; Details in <a href="../clubcloud-scenarios/cc-roles/"><code>cc-roles</code></a></td>
 </tr>
 <tr>
 <td>Setup-Befehl wirft Quoting-Fehler in PowerShell/cmd</td>
 <td>Single-Quotes werden anders behandelt</td>
-<td>Git Bash nutzen ODER CLI-Anhang am Ende dieser Seite</td>
+<td>Git Bash nutzen ODER PowerShell-Variante über Carambus-Admin holen</td>
 </tr>
 </tbody>
 </table>
-<p>Bei weiteren Problemen: dein Carambus-Admin / die technische Stellvertretung ist erreichbar.</p>
+<p>Bei weiteren Problemen: Dein Carambus-Admin ist erreichbar.</p>
 <hr />
-<h2 id="token-lifetime-refresh">Token-Lifetime + Refresh<a class="headerlink" href="#token-lifetime-refresh" title="Permanent link">&para;</a></h2>
+<h2 id="drehbuch-vs-real-task-hin-ruck-symmetrie-schutz">Drehbuch vs. Real-Task — Hin-Rück-Symmetrie-Schutz<a class="headerlink" href="#drehbuch-vs-real-task-hin-ruck-symmetrie-schutz" title="Permanent link">&para;</a></h2>
+<p>Claude führt Workflows <strong>deterministisch nach Spickzettel</strong> ab (siehe nächste Sektion). Wenn Claude bei einer Real-Task von Dir anders fragt als beim Drehbuch — z.B. ein zusätzlicher Disambiguation-Schritt bei mehrdeutigem Spieler-Namen — ist das <strong>Schutz, kein Bug</strong>: Tool prüft auf jeden mehrdeutigen Match und fragt explizit nach (Vorname + Geburtsjahr + Verein), statt zu raten.</p>
+<p><strong>Hin-Rück-Symmetrie:</strong> Bei destruktiven Aktionen (Anmeldung, Akkreditierung, Meldeschluss-Verschiebung, Liste-Finalisierung) zeigt Claude immer erst einen <strong>Dry-Run</strong> mit allen Effekten. Erst Dein explizites „OK" / „armed" / „Bestätige" löst die echte Aktion aus.</p>
+<hr />
+<h2 id="was-kann-ich-tun-tagesablauf-spickzettel">Was kann ich tun? — Tagesablauf-Spickzettel<a class="headerlink" href="#was-kann-ich-tun-tagesablauf-spickzettel" title="Permanent link">&para;</a></h2>
+<p>Persona-spezifische Spickzettel sind in Claude Code direkt abrufbar:</p>
 <ul>
-<li><strong>Bearer-Token ist 24h gültig.</strong></li>
-<li>Bei Ablauf siehst du in Claude Code einen <strong>401-Fehler</strong>.</li>
-<li><strong>Refresh:</strong> <a href="https://carambus.de/mcp/setup">https://carambus.de/mcp/setup</a> neu laden → neuen Befehl kopieren → in Terminal pasten (vorher <code>claude mcp remove carambus-remote -s user</code>).</li>
+<li><strong>Sportwart-Tagesablauf vor Turnier:</strong> Anmelde-Lebenszyklus</li>
+<li><strong>Akkreditierung am Turniertag:</strong> für Turnierleiter</li>
+<li><strong>Meldeliste finalisieren:</strong> sperrt Liste vor Spielbericht-Upload</li>
+</ul>
+<p>Frage Claude: „Zeige Spickzettel sportwart-tagesablauf-vor-turnier" oder „Zeige Spickzettel akkreditierung-am-turniertag".</p>
+<p>UX-Vergleich CC-Klicks vs MCP-Workflow (für Walkthrough-Vorbereitung):</p>
+<ul>
+<li><a href="../clubcloud-mcp-klickreduktion-anmeldung-aus-email/">Anmeldung aus E-Mail</a></li>
+<li><a href="../clubcloud-mcp-klickreduktion-meldeliste-finalisieren/">Meldeliste finalisieren</a></li>
+<li><a href="../clubcloud-mcp-klickreduktion-turnier-status-und-anmelden/">Turnier-Status prüfen + anmelden</a></li>
 </ul>
 <hr />
 <h2 id="dsgvo-audit-trail">DSGVO + Audit-Trail<a class="headerlink" href="#dsgvo-audit-trail" title="Permanent link">&para;</a></h2>
 <ul>
-<li>Login + Tool-Aufrufe sind pro User in der Datenbank protokolliert (<code>mcp_audit_trails</code>)</li>
-<li>Du kannst jederzeit <strong>DSGVO-Auskunfts-Recht</strong> anfordern (Export deines Audit-Trails)</li>
-<li>Keine ClubCloud-Credentials werden via Claude-Cloud übertragen — alles läuft über deinen Bearer-Token an carambus.de</li>
+<li>Login + Tool-Aufrufe sind pro User in der Datenbank protokolliert (<code>mcp_audit_trails</code>).</li>
+<li>Du kannst jederzeit <strong>DSGVO-Auskunfts-Recht</strong> anfordern (Export Deines Audit-Trails) — Anfrage über Deinen Carambus-Admin; Details in <a href="../clubcloud-mcp-setup-service/#8-dsgvo-compliance--datenschutz">Setup-Service §DSGVO</a>.</li>
+<li>Keine ClubCloud-Credentials werden via Claude-Cloud übertragen — alles läuft über Deinen Login-Token an Deine Region-Seite.</li>
 </ul>
 <hr />
-<h2 id="was-kommt-als-nachstes">Was kommt als nächstes?<a class="headerlink" href="#was-kommt-als-nachstes" title="Permanent link">&para;</a></h2>
-<p>Nach erfolgreichem Setup:</p>
-<ol>
-<li><strong>Probe-Lauf mit Test-Turnier</strong> (im Walkthrough-Termin mit deinem Carambus-Admin)</li>
-<li><strong>Eigene Aufgaben</strong> im echten Sportwart-/Turnierleiter-Alltag</li>
-</ol>
-<p>Persona-spezifische Spickzettel (was tippt man typischerweise):</p>
+<h2 id="weiterfuhrend">Weiterführend<a class="headerlink" href="#weiterfuhrend" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>Sportwart-Tagesablauf vor Turnier:</strong> Spickzettel-Anker für Anmelde-Lebenszyklus</li>
-<li><strong>Akkreditierung am Turniertag:</strong> Spickzettel-Anker für Akkreditierungs-Lebenszyklus</li>
-</ul>
-<p>Beide werden im Walkthrough-Termin gezeigt + sind direkt in Claude Code abrufbar:
-- „Zeige Spickzettel sportwart-tagesablauf-vor-turnier"
-- „Zeige Spickzettel akkreditierung-am-turniertag"</p>
-<hr />
-<h2 id="weiterfuhrend-fur-technisch-interessierte">Weiterführend (für technisch Interessierte)<a class="headerlink" href="#weiterfuhrend-fur-technisch-interessierte" title="Permanent link">&para;</a></h2>
-<ul>
-<li><strong>Vollständige Setup-Service-Doku</strong> (inkl. STDIO-Setup-Pfad, DSGVO-Details, Troubleshooting-Vollversion): <a href="https://gernotullrich.github.io/carambus/managers/clubcloud-mcp-setup-service/">https://gernotullrich.github.io/carambus/managers/clubcloud-mcp-setup-service/</a></li>
-<li><strong>Entwickler-Handbuch</strong> (MCP-Server-Architektur, Tool-Code): <a href="https://gernotullrich.github.io/carambus/developers/clubcloud-mcp-server/">https://gernotullrich.github.io/carambus/developers/clubcloud-mcp-server/</a></li>
+<li><a href="../clubcloud-scenarios/cc-glossary/"><code>cc-glossary</code></a> — ClubCloud-Begriffe (Meldeliste, Endrangliste, Spielbericht, …)</li>
+<li><a href="../clubcloud-scenarios/cc-roles/"><code>cc-roles</code></a> — CC-Rollen + Brücke zu Carambus-MCP-Authority (Wirkbereich-Modell)</li>
+<li><a href="../clubcloud-mcp-setup-service/">Setup-Service-Doku</a> — Per-Region-Server-Setup, Authority-Console, DSGVO-Vollversion (für Carambus-Admins)</li>
 </ul>
 <hr />
-<h2 id="anhang-cli-setup-fur-power-user">Anhang — CLI-Setup für Power-User<a class="headerlink" href="#anhang-cli-setup-fur-power-user" title="Permanent link">&para;</a></h2>
-<p>Falls du keinen Browser nutzen willst oder Setup automatisieren möchtest (z.B. CI/CD-Pipeline, mehrere Maschinen): hier der direkte CLI-Pfad.</p>
-<h3 id="bash-variante-mac-linux-windows-mit-git-bash-oder-wsl2">Bash-Variante (Mac / Linux / Windows mit Git Bash oder WSL2)<a class="headerlink" href="#bash-variante-mac-linux-windows-mit-git-bash-oder-wsl2" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># 1. Token holen</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="nv">TOKEN</span><span class="o">=</span><span class="k">$(</span>curl<span class="w"> </span>-sS<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>https://carambus.de/login<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Accept: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{&quot;user&quot;:{&quot;email&quot;:&quot;DEINE_EMAIL&quot;,&quot;password&quot;:&quot;DEIN_PW&quot;}}&#39;</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">  </span>-D<span class="w"> </span>-<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-i<span class="w"> </span><span class="s1">&#39;^authorization:&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>sed<span class="w"> </span>-E<span class="w"> </span><span class="s1">&#39;s/^[Aa]uthorization:[[:space:]]*//&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>tr<span class="w"> </span>-d<span class="w"> </span><span class="s1">&#39;\r\n&#39;</span><span class="k">)</span>
-<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Token: </span><span class="nv">$TOKEN</span><span class="s2">&quot;</span><span class="w">   </span><span class="c1"># erwartet: Bearer eyJ...</span>
-<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>
-<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="c1"># 2. MCP-Server registrieren</span>
-<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>claude<span class="w"> </span>mcp<span class="w"> </span>add-json<span class="w"> </span>--scope<span class="w"> </span>user<span class="w"> </span>carambus-remote<span class="w"> </span><span class="s2">&quot;{</span>
-<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="s2">  \&quot;type\&quot;: \&quot;http\&quot;,</span>
-<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="s2">  \&quot;url\&quot;: \&quot;https://carambus.de/mcp?stateless=1\&quot;,</span>
-<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="s2">  \&quot;headers\&quot;: {</span>
-<a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a><span class="s2">    \&quot;Authorization\&quot;: \&quot;</span><span class="nv">$TOKEN</span><span class="s2">\&quot;,</span>
-<a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a><span class="s2">    \&quot;Accept\&quot;: \&quot;application/json, text/event-stream\&quot;</span>
-<a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a><span class="s2">  }</span>
-<a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a><span class="s2">}&quot;</span>
-<a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a>
-<a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a><span class="c1"># 3. Verify</span>
-<a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a>claude<span class="w"> </span>mcp<span class="w"> </span>get<span class="w"> </span>carambus-remote
-</code></pre></div>
-<h3 id="powershell-variante-windows-nativ">PowerShell-Variante (Windows nativ)<a class="headerlink" href="#powershell-variante-windows-nativ" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c"># 1. Token holen</span>
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="nv">$response</span> <span class="p">=</span> <span class="nb">Invoke-WebRequest</span> <span class="n">-Uri</span> <span class="s2">&quot;https://carambus.de/login&quot;</span> <span class="p">`</span>
-<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>  <span class="n">-Method</span> <span class="n">POST</span> <span class="p">`</span>
-<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>  <span class="n">-ContentType</span> <span class="s2">&quot;application/json&quot;</span> <span class="p">`</span>
-<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>  <span class="n">-Headers</span> <span class="p">@{</span> <span class="s2">&quot;Accept&quot;</span> <span class="p">=</span> <span class="s2">&quot;application/json&quot;</span> <span class="p">}</span> <span class="p">`</span>
-<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>  <span class="n">-Body</span> <span class="s1">&#39;{&quot;user&quot;:{&quot;email&quot;:&quot;DEINE_EMAIL&quot;,&quot;password&quot;:&quot;DEIN_PW&quot;}}&#39;</span>
-<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="nv">$TOKEN</span> <span class="p">=</span> <span class="nv">$response</span><span class="p">.</span><span class="n">Headers</span><span class="p">[</span><span class="s2">&quot;Authorization&quot;</span><span class="p">]</span>
-<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="nb">Write-Host</span> <span class="s2">&quot;Token: $TOKEN&quot;</span>   <span class="c"># erwartet: Bearer eyJ...</span>
-<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>
-<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="c"># 2. MCP-Server registrieren</span>
-<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="nv">$config</span> <span class="p">=</span> <span class="p">@{</span>
-<a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a>  <span class="nb">type </span>   <span class="p">=</span> <span class="s2">&quot;http&quot;</span>
-<a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a>  <span class="n">url</span>     <span class="p">=</span> <span class="s2">&quot;https://carambus.de/mcp?stateless=1&quot;</span>
-<a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a>  <span class="n">headers</span> <span class="p">=</span> <span class="p">@{</span>
-<a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a>    <span class="n">Authorization</span> <span class="p">=</span> <span class="s2">&quot;$TOKEN&quot;</span>
-<a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a>    <span class="n">Accept</span>        <span class="p">=</span> <span class="s2">&quot;application/json, text/event-stream&quot;</span>
-<a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a>  <span class="p">}</span>
-<a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a><span class="p">}</span> <span class="p">|</span> <span class="nb">ConvertTo-Json</span> <span class="n">-Depth</span> <span class="n">3</span> <span class="n">-Compress</span>
-<a id="__codelineno-4-19" name="__codelineno-4-19" href="#__codelineno-4-19"></a>
-<a id="__codelineno-4-20" name="__codelineno-4-20" href="#__codelineno-4-20"></a><span class="n">claude</span> <span class="n">mcp</span> <span class="nb">add-json</span> <span class="p">-</span><span class="n">-scope</span> <span class="n">user</span> <span class="n">carambus-remote</span> <span class="nv">$config</span>
-<a id="__codelineno-4-21" name="__codelineno-4-21" href="#__codelineno-4-21"></a>
-<a id="__codelineno-4-22" name="__codelineno-4-22" href="#__codelineno-4-22"></a><span class="c"># 3. Verify</span>
-<a id="__codelineno-4-23" name="__codelineno-4-23" href="#__codelineno-4-23"></a><span class="n">claude</span> <span class="n">mcp</span> <span class="n">get</span> <span class="n">carambus-remote</span>
-</code></pre></div>
-<h3 id="cli-spezifische-stolperer">CLI-spezifische Stolperer<a class="headerlink" href="#cli-spezifische-stolperer" title="Permanent link">&para;</a></h3>
-<table>
-<thead>
-<tr>
-<th>Symptom</th>
-<th>Ursache</th>
-<th>Lösung</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Token-Wert beginnt nicht mit <code>Bearer eyJ...</code> (Bash)</td>
-<td>Login-Daten falsch ODER curl-Pipe-Problem</td>
-<td>Email/Passwort prüfen; Browser-Login-Test (https://carambus.de/login) wiederholen</td>
-</tr>
-<tr>
-<td><code>$TOKEN</code> enthält nur "Bearer" (ohne <code>eyJ...</code>)</td>
-<td>Pre-Plan-13-06.4-Snippet nutzte <code>awk '{print $2}'</code></td>
-<td>Die oben gezeigte <code>sed</code>-Variante nutzen (nicht <code>awk</code>)</td>
-</tr>
-<tr>
-<td><code>Invoke-WebRequest : Cannot find ...</code> (PowerShell)</td>
-<td>Alte PowerShell-Version (&lt;5.1)</td>
-<td>Aktuelles PowerShell 7+ via <code>winget install Microsoft.PowerShell</code></td>
-</tr>
-<tr>
-<td><code>claude mcp add-json</code> Quoting-Fehler (PowerShell)</td>
-<td>JSON-Escaping divergent</td>
-<td>Browser-Pfad nutzen ODER Git Bash installieren</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Token-Refresh</strong> (CLI): identisch zum Browser-Pfad — vor neuem Setup ein <code>claude mcp remove carambus-remote -s user</code> ausführen, dann obigen Block neu laufen lassen.</p>
-<hr />
-<p><em>Cloud-Quickstart v0.3+ (Plan 14-01.5, 2026-05-14). Browser-Setup-Pfad ist Default; CLI-Anhang für Power-User erhalten. Ersetzt für Sportwarte/Turnierleiter/LSW die ausführliche Setup-Service-Doku Sektionen 1-8 (STDIO-Pfad).</em></p>
+<p><em>Cloud-Quickstart (Plan 14-G.11, 2026-05-16). Browser-Setup-Pfad ist Default. CLI-Power-User-Variante in <a href="../clubcloud-mcp-setup-service/#power-user-cli-anhang">Setup-Service §Power-User-CLI-Anhang</a>.</em></p>
 
 
 

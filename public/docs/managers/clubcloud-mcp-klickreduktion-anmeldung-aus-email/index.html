@@ -1027,10 +1027,6 @@
       
         
       
-        
-      
-        
-      
     
     
     
@@ -1082,52 +1078,6 @@
   
   <span class="md-ellipsis">
     Cloud Quickstart
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../clubcloud-mcp-quickstart/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    MCP Quickstart
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../clubcloud-mcp-setup/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Setup
     
   </span>
   
@@ -3177,7 +3127,7 @@
 
 <h1 id="klick-reduktion-anmeldung-aus-e-mail">Klick-Reduktion: Anmeldung aus E-Mail<a class="headerlink" href="#klick-reduktion-anmeldung-aus-e-mail" title="Permanent link">&para;</a></h1>
 <blockquote>
-<p><strong>Status:</strong> Doku-Skeleton aus Plan 03-02. Screenshots werden vom User nachgeliefert (Test-CC oder Prod-CC mit redacted PII; siehe <code>docs/developers/clubcloud-mcp-workflow-scenarios.de.md</code> §"Hinweise zur Klick-Reduktions-Doku-Quelle").</p>
+<p><strong>Status:</strong> Inhalt-Refresh post-Phase-14-G.10 Authority-Modell (Plan 14-G.11, 2026-05-16). Screenshots werden vom User nachgeliefert (Test-CC oder Prod-CC mit redacted PII; siehe <code>docs/developers/clubcloud-mcp-workflow-scenarios.de.md</code> §"Hinweise zur Klick-Reduktions-Doku-Quelle").</p>
 </blockquote>
 <h2 id="worum-gehts">Worum geht's?<a class="headerlink" href="#worum-gehts" title="Permanent link">&para;</a></h2>
 <p>Du bekommst als Turniermanager eine E-Mail mit Spielern, die für ein Turnier angemeldet werden sollen. Statt jetzt 12-15 Mausklicks in der ClubCloud-UI zu tätigen — und dabei E-Mail-Tab, Browser, Notizzettel parallel zu jonglieren — schickst du den E-Mail-Inhalt an Claude Desktop, bestätigst 3 Rückfragen und bist fertig. Das hier ist ein konkretes Vorher/Nachher-Beispiel.</p>
@@ -3263,7 +3213,8 @@
 <p>Kein separater Aufwand für dich — Claude liest den Spickzettel automatisch, sobald du nach „Anmeldung aus E-Mail" fragst.</p>
 <h2 id="voraussetzungen">Voraussetzungen<a class="headerlink" href="#voraussetzungen" title="Permanent link">&para;</a></h2>
 <ul>
-<li>Du hast eine <strong>Club-Sportwart-Rolle oder höher</strong> in CC für die Region des Turniers (sonst lehnt CC am Ende ab — Claude erklärt dann, wen du anrufen musst).</li>
+<li>Dein <strong>Sportwart-Wirkbereich</strong> umfasst gastgebenden Verein + Disziplin des Turniers (<code>sportwart_location_ids</code> + <code>sportwart_discipline_ids</code>; siehe <a href="../clubcloud-scenarios/cc-roles/"><code>cc-roles</code></a> für die Authority-Brücke). Sonst lehnt der MCP-Server ab — Claude erklärt dann, wen Du anrufen musst.</li>
+<li>Du bist auf der Carambus-Seite Deiner Region (z.B. <code>https://nbv.carambus.de</code>) eingeloggt + hast den MCP-Setup-Befehl gepastet (siehe <a href="../clubcloud-mcp-cloud-quickstart/">Cloud-Quickstart</a>).</li>
 <li>Die anzumeldenden Spieler haben einen <strong>PlayerRanking-Eintrag</strong> in der Disziplin (Spielberechtigung — wird von Claude automatisch geprüft).</li>
 <li>Das Turnier ist in CC angelegt und der Anmeldeschluss ist noch nicht erreicht.</li>
 </ul>
@@ -3272,10 +3223,10 @@
 <li><strong>Spieler-Name in der E-Mail mehrdeutig:</strong> Claude fragt gezielt nach Vorname + Geburtsjahr + Verein. Niemals raten.</li>
 <li><strong>Turnier nicht in der Liste:</strong> Claude empfiehlt <code>force_refresh: true</code> (Verbandsadmin könnte den Anmeldeschluss in CC verschoben haben — DB ist max. ~2h alt durch carambus:retrieve_updates-Cron).</li>
 <li><strong>Spieler hat keinen PlayerRanking-Eintrag:</strong> Claude erklärt: „Spieler X ist nicht in PlayerRanking für Disziplin Y gerankt — entweder nicht spielberechtigt oder PlayerRanking-Sync fehlt. Bitte mit Verbandsadmin klären."</li>
-<li><strong>Du hast keine ausreichende CC-Rolle:</strong> Phase 4 wird das beim Anmelde-Versuch erkennen (CC gibt 403). Claude eskaliert mit konkreter Anleitung, wen du anrufen musst.</li>
+<li><strong>Dein Wirkbereich deckt diesen Verein/Disziplin nicht ab:</strong> Der MCP-Server lehnt mit klarer Authority-Meldung ab. Claude eskaliert mit konkreter Anleitung, wen Du anrufen musst (typisch: anderer Sportwart mit passendem Wirkbereich oder Landessportwart).</li>
 </ul>
 <hr />
-<p><em>Klick-Reduktion-Doku — Phase 3 Plan 03-02, 2026-05-08</em>
+<p><em>Klick-Reduktion-Doku — Plan 03-02 + Plan 14-G.11 Authority-Refresh (2026-05-16)</em>
 <em>Spickzettel-Datei: <code>docs/managers/clubcloud-scenarios/anmeldung-aus-email.de.json</code> · Format-Spec: <code>docs/developers/clubcloud-mcp-workflow-scenarios.de.md</code></em></p>
 
 

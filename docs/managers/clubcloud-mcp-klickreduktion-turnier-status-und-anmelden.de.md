@@ -1,7 +1,8 @@
 # Klick-Reduktion: Turnier-Status prüfen und Spieler anmelden
 
-> **Status:** Doku-Skeleton aus Plan 05-04 (v0.1). Screenshots werden in v0.2 (Termin 2026-08-15)
-> mit echtem Sportwart-Walkthrough nachgeliefert. TODO-Image-Markers sind konkret formuliert.
+> **Status:** Inhalt-Refresh post-Phase-14-G.10 Authority-Modell (Plan 14-G.11, 2026-05-16). Screenshots werden in einem späteren Capture-Cycle (v0.5) nachgeliefert. TODO-Image-Markers sind konkret formuliert.
+
+> **Voraussetzung:** Dein Sportwart-Wirkbereich (siehe [`cc-roles`](clubcloud-scenarios/cc-roles.de.md)) umfasst gastgebenden Verein + Disziplin des Turniers; Du bist auf Deiner Region-Seite (z.B. `https://nbv.carambus.de`) eingeloggt + hast den MCP-Setup-Befehl gepastet (siehe [Cloud-Quickstart](clubcloud-mcp-cloud-quickstart.de.md)).
 
 ## Worum geht's?
 

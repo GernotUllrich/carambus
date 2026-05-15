@@ -1036,10 +1036,6 @@
       
         
       
-        
-      
-        
-      
     
     
     
@@ -1094,52 +1090,6 @@
   
   <span class="md-ellipsis">
     Cloud Quickstart
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../clubcloud-mcp-quickstart/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    MCP Quickstart
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../clubcloud-mcp-setup/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Setup
     
   </span>
   
@@ -1298,9 +1248,18 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#begriffe" class="md-nav__link">
+  <a href="#clubcloud-begriffe" class="md-nav__link">
     <span class="md-ellipsis">
-      Begriffe
+      ClubCloud-Begriffe
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#carambus-per-region-begriffe" class="md-nav__link">
+    <span class="md-ellipsis">
+      Carambus-Per-Region-Begriffe
     </span>
   </a>
   
@@ -3160,9 +3119,18 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#begriffe" class="md-nav__link">
+  <a href="#clubcloud-begriffe" class="md-nav__link">
     <span class="md-ellipsis">
-      Begriffe
+      ClubCloud-Begriffe
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#carambus-per-region-begriffe" class="md-nav__link">
+    <span class="md-ellipsis">
+      Carambus-Per-Region-Begriffe
     </span>
   </a>
   
@@ -3189,9 +3157,9 @@
 
 <h1 id="clubcloud-glossar">ClubCloud-Glossar<a class="headerlink" href="#clubcloud-glossar" title="Permanent link">&para;</a></h1>
 <blockquote>
-<p><strong>Status:</strong> Aus <code>.planning/clubcloud-admin-appendix-DRAFT.md</code> (Phase 36c) extrahiert. <code>[SME-CONFIRM]</code>-Marker bleiben verbatim — Auflösung in einem zukünftigen Doc-Promotion-Workflow.</p>
+<p><strong>Status:</strong> Aus <code>.planning/clubcloud-admin-appendix-DRAFT.md</code> (Phase 36c) extrahiert + Per-Region-Begriffe ergänzt (Plan 14-G.11, 2026-05-16). <code>[SME-CONFIRM]</code>-Marker bleiben verbatim — Auflösung in einem zukünftigen Doc-Promotion-Workflow.</p>
 </blockquote>
-<h2 id="begriffe">Begriffe<a class="headerlink" href="#begriffe" title="Permanent link">&para;</a></h2>
+<h2 id="clubcloud-begriffe">ClubCloud-Begriffe<a class="headerlink" href="#clubcloud-begriffe" title="Permanent link">&para;</a></h2>
 <p><strong>Branch</strong>
 Im ClubCloud-Kontext bezeichnet "Branch" eine organisatorische Einheit (z.B. Verband oder Region), die Turniere und Ligen unter sich verwaltet. [SME-CONFIRM] — der Begriff erscheint im CC-API-PATH_MAP-Kontext; genaue semantische Abgrenzung zu "Region" und "Liga" muss durch SME bestätigt werden.</p>
 <p><strong>Endrangliste</strong>
@@ -3206,7 +3174,20 @@ Die zentrale Datenbank in ClubCloud, die alle registrierten Spieler enthält. Je
 Die hierarchischen Ebenen der Sportwart-Rolle in ClubCloud: Club-Sportwart (Vereinsebene) → Region-Sportwart (Regionsebene) → Verbands-Sportwart (Verbandsebene). Jede höhere Ebene schließt die Rechte der unteren ein. [SME-CONFIRM] — die genaue Hierarchie und ob es weitere Zwischenebenen gibt, muss durch SME bestätigt werden.</p>
 <p><strong>Teilnehmerliste</strong>
 Die Liste aller Teilnehmer eines Turniers in ClubCloud. Sie muss vor dem ersten Spielbericht-Upload finalisiert ("gesperrt") werden, damit CC die Identität jedes Ergebnisses vertrauen kann. Die Finalisierung ist eine Einweg-Aktion. Synonym zur Meldeliste in der CC-API.</p>
-<p><em>Quelle: .planning/clubcloud-admin-appendix-DRAFT.md (Phase 36c, 2026-04-14). [SME-CONFIRM]-Marker bleiben unaufgelöst — Resolution in einem zukünftigen Doc-Promotion-Workflow.</em></p>
+<h2 id="carambus-per-region-begriffe">Carambus-Per-Region-Begriffe<a class="headerlink" href="#carambus-per-region-begriffe" title="Permanent link">&para;</a></h2>
+<p><strong>Per-Region-Scenario</strong>
+Eine Carambus-Instanz, die exklusiv für eine Region läuft (z.B. <code>carambus_nbv</code> für NBV, <code>carambus_bcw</code> für BCW). Jede Region hat eigene Domain, eigene PostgreSQL-DB und eigene devise-jwt-Secrets. Capistrano-Stages (<code>cap nbv deploy</code>) deployen pro Region.</p>
+<p><strong><code>Carambus.config.context</code></strong>
+Pflicht-Key in <code>config/carambus.yml</code>, der die Region-Identität der laufenden Instanz festlegt (z.B. <code>context: nbv</code>). Wird vom MCP-Server für Region-Filterung in Tool-Calls genutzt; ersetzt das frühere <code>User.cc_region</code>-Feld als Source-of-Truth.</p>
+<p><strong><code>request.base_url</code>-Pattern</strong>
+Architektur-Konvention im Setup-Helper-UI (<code>/mcp/setup</code>), die den Setup-Befehl mit der Domain der aufgerufenen Instanz ableitet (z.B. <code>https://nbv.carambus.de/mcp?stateless=1</code>). Macht die Helper-UI über alle Per-Region-Scenarios hinweg ohne Code-Branch wiederverwendbar.</p>
+<p><strong>Region.shortname Convention</strong>
+Region-Identifier sind in der DB lowercase persistiert (<code>nbv</code>, <code>bcw</code>, <code>bvbw</code>), werden für Display in der UI typisch UPPERCASE gerendert (<code>NBV</code>, <code>BCW</code>, <code>BVBW</code>). Match-Lookups (<code>Region.find_by(shortname: "nbv")</code>) sind case-sensitive — lowercase verwenden.</p>
+<p><strong>Sportwart-Wirkbereich (Authority-Layer)</strong>
+Tupel <code>(sportwart_location_ids, sportwart_discipline_ids)</code> am User, das pro Tool-Call entscheidet, ob der User Authority für eine Operation hat. Ersetzt das frühere globale <code>User.cc_role</code>-Enum. Details + Mapping zur CC-Rolle siehe <a href="../cc-roles/"><code>cc-roles</code></a>.</p>
+<p><strong>Tool-Authorization-Layer</strong>
+Der MCP-Server prüft pro Tool-Call via <code>BaseTool.authorize!</code> (in <code>lib/mcp_server/tools/base_tool.rb</code>), ob der User Authority für die konkrete Operation hat (Wirkbereich-Match oder TL-FK-Match oder LSW-Bypass). Filterung erfolgt <strong>vor</strong> Ausführung — kein 403 vom CC nötig.</p>
+<p><em>Quelle: .planning/clubcloud-admin-appendix-DRAFT.md (Phase 36c, 2026-04-14) + Plan 14-G.11 Per-Region-Substrate (2026-05-16). [SME-CONFIRM]-Marker bleiben unaufgelöst — Resolution in einem zukünftigen Doc-Promotion-Workflow.</em></p>
 
 
 

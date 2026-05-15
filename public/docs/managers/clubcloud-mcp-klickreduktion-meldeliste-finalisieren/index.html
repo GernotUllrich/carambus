@@ -1027,10 +1027,6 @@
       
         
       
-        
-      
-        
-      
     
     
     
@@ -1082,52 +1078,6 @@
   
   <span class="md-ellipsis">
     Cloud Quickstart
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../clubcloud-mcp-quickstart/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    MCP Quickstart
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../clubcloud-mcp-setup/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Setup
     
   </span>
   
@@ -3177,7 +3127,7 @@
 
 <h1 id="klick-reduktion-meldeliste-teilnehmerliste-finalisieren">Klick-Reduktion: Meldeliste / Teilnehmerliste finalisieren<a class="headerlink" href="#klick-reduktion-meldeliste-teilnehmerliste-finalisieren" title="Permanent link">&para;</a></h1>
 <blockquote>
-<p><strong>Status:</strong> Doku-Skeleton aus Plan 03-03. Screenshots werden vom User nachgeliefert (Test-CC oder Prod-CC mit redacted PII; siehe <code>docs/developers/clubcloud-mcp-workflow-scenarios.de.md</code> §"Hinweise zur Klick-Reduktions-Doku-Quelle"). Hintergrund-Wissen aus <code>docs/managers/clubcloud-scenarios/teilnehmerliste-finalisieren.de.md</code> extrahiert.</p>
+<p><strong>Status:</strong> Inhalt-Refresh post-Phase-14-G.10 Authority-Modell (Plan 14-G.11, 2026-05-16). Screenshots werden vom User nachgeliefert (Test-CC oder Prod-CC mit redacted PII; siehe <code>docs/developers/clubcloud-mcp-workflow-scenarios.de.md</code> §"Hinweise zur Klick-Reduktions-Doku-Quelle"). Hintergrund-Wissen aus <code>docs/managers/clubcloud-scenarios/teilnehmerliste-finalisieren.de.md</code> extrahiert.</p>
 </blockquote>
 <h2 id="worum-gehts">Worum geht's?<a class="headerlink" href="#worum-gehts" title="Permanent link">&para;</a></h2>
 <p>Diese Aktion <strong>sperrt</strong> die Teilnehmerliste eines Turniers in ClubCloud — danach sind keine Anmelde-Änderungen mehr möglich. Ohne Finalisierung kann ClubCloud keine Ergebnis-Uploads aus Carambus akzeptieren (du bekommst dann eine Fehlermeldung beim Upload-Versuch). Mit Claude Desktop wird die Aktion durch ein <strong>Dry-Run-First-Pattern</strong> geschützt: du siehst zuerst, was passieren würde, dann erst nach explizitem OK wird wirklich finalisiert.</p>
@@ -3258,19 +3208,20 @@
 <p>Pattern: <code>cc_lookup_region</code> → <code>cc_lookup_tournament</code> → <code>cc_lookup_teilnehmerliste</code> → <code>cc_finalize_teilnehmerliste(armed:false)</code> → User-OK → <code>cc_finalize_teilnehmerliste(armed:true)</code>.</p>
 <h2 id="voraussetzungen">Voraussetzungen<a class="headerlink" href="#voraussetzungen" title="Permanent link">&para;</a></h2>
 <ul>
-<li>Du hast eine <strong>Club-Sportwart-Rolle oder höher</strong> in CC für die Region des Turniers — Pflicht. Ohne diese Rolle gibt CC einen 403-Fehler zurück, und Claude eskaliert mit einer konkreten Telefon-Übergabe-Anweisung an den Vereins-Sportwart.</li>
+<li>Dein <strong>Sportwart-Wirkbereich</strong> umfasst gastgebenden Verein + Disziplin des Turniers (<code>sportwart_location_ids</code> + <code>sportwart_discipline_ids</code>; siehe <a href="../clubcloud-scenarios/cc-roles/"><code>cc-roles</code></a> für die Authority-Brücke). Sonst lehnt der MCP-Server ab — Claude eskaliert mit konkreter Telefon-Übergabe-Anweisung an einen Sportwart mit passendem Wirkbereich oder den Landessportwart.</li>
+<li>Du bist auf der Carambus-Seite Deiner Region (z.B. <code>https://nbv.carambus.de</code>) eingeloggt + hast den MCP-Setup-Befehl gepastet (siehe <a href="../clubcloud-mcp-cloud-quickstart/">Cloud-Quickstart</a>).</li>
 <li>Die Teilnehmerliste ist <strong>vollständig</strong> — keine Last-Minute-Anmeldungen mehr erwartet (Finalisierung ist Einweg-Aktion und nicht rückgängig).</li>
 <li>Das Turnier ist in CC angelegt mit allen geplanten Spielern auf der Meldeliste.</li>
 </ul>
 <h2 id="edge-cases">Edge-Cases<a class="headerlink" href="#edge-cases" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>Fehlende CC-Rolle:</strong> CC gibt 403 zurück. Claude eskaliert mit konkretem Wortlaut: „Du hast keine Club-Sportwart-Rolle für {Verein}. Bitte den Sportwart anrufen, dass er die Liste für dich finalisiert. Sobald das gemacht ist, sag Bescheid." (Pattern aus <code>teilnehmerliste-finalisieren.de.md</code> §"Übergabe wenn der Turnierleiter nicht die nötige Berechtigung hat".)</li>
+<li><strong>Fehlender Wirkbereich:</strong> Der MCP-Server lehnt mit Authority-Meldung ab. Claude eskaliert mit konkretem Wortlaut: „Dein Sportwart-Wirkbereich deckt {Verein} / {Disziplin} nicht ab. Bitte den zuständigen Sportwart oder Landessportwart anrufen, dass er die Liste für Dich finalisiert. Sobald das gemacht ist, sag Bescheid." (Pattern aus <code>teilnehmerliste-finalisieren.de.md</code> §"Übergabe wenn der Turnierleiter nicht die nötige Berechtigung hat".)</li>
 <li><strong>Falsches Turnier:</strong> TM bestätigt im Dry-Run-Schritt — Claude zeigt explizit Turnier-Title und Teilnehmer-Anzahl, sodass falsches Turnier erkennbar ist, bevor armed:true ausgeführt wird.</li>
 <li><strong>Unvollständige Liste:</strong> Schritt 3 (<code>cc_lookup_teilnehmerliste</code>) zeigt die Liste explizit + fragt nach Vollständigkeit. Bei „nein" empfiehlt Claude, zuerst die fehlenden Spieler über <code>cc://workflow/scenarios/anmeldung-aus-email</code> anzumelden.</li>
 <li><strong>Doppelte Finalisierung:</strong> CC weist die zweite Finalisierung mit einem Fehler zurück. Claude erkennt den Status und erklärt: „Liste ist bereits finalisiert. Wenn du das vorher gemacht hast (oder ein Kollege), ist das OK — der Upload sollte jetzt funktionieren."</li>
 </ul>
 <hr />
-<p><em>Klick-Reduktion-Doku — Phase 3 Plan 03-03, 2026-05-08</em>
+<p><em>Klick-Reduktion-Doku — Plan 03-03 + Plan 14-G.11 Authority-Refresh (2026-05-16)</em>
 <em>Spickzettel-Datei: <code>docs/managers/clubcloud-scenarios/meldeliste-finalisieren.de.json</code> · Format-Spec: <code>docs/developers/clubcloud-mcp-workflow-scenarios.de.md</code> · Hintergrund: <code>docs/managers/clubcloud-scenarios/teilnehmerliste-finalisieren.de.md</code></em></p>
 
 
