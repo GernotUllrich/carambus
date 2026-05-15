@@ -13,7 +13,7 @@ class ConfirmationsControllerTest < ActionDispatch::IntegrationTest
 
   test "POST /users/confirmation versendet erneut Confirmation-Mail" do
     assert_difference -> { ActionMailer::Base.deliveries.size }, 1 do
-      post user_confirmation_path, params: { user: { email: @user.email } }
+      post user_confirmation_path, params: {user: {email: @user.email}}
     end
     assert_redirected_to new_user_session_path
   end

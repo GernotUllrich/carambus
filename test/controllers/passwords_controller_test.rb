@@ -13,7 +13,7 @@ class PasswordsControllerTest < ActionDispatch::IntegrationTest
 
   test "POST /users/password mit gueltiger email versendet Reset-Mail" do
     assert_difference -> { ActionMailer::Base.deliveries.size }, 1 do
-      post user_password_path, params: { user: { email: @user.email } }
+      post user_password_path, params: {user: {email: @user.email}}
     end
     assert_redirected_to new_user_session_path
   end
