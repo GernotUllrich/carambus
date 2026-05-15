@@ -69,4 +69,35 @@ class TournamentPolicyTest < ActiveSupport::TestCase
     assert_not p.manage_teilnehmerliste?
     assert_not p.enter_results?
   end
+
+  # Plan 14-G.3 / F3-C: admin?-Bypass-Tests
+  test "system_admin ohne Sportwart-Wirkbereich → assign_leiter? + update_deadline? + manage_teilnehmerliste? true (admin-Bypass)" do
+    sysadmin = User.create!(email: "policy_sysadmin@test.de", password: "password123", role: :system_admin)
+    other_tournament = Tournament.new(location_id: 99_999_999, discipline_id: 99_999_999)
+    p = TournamentPolicy.new(sysadmin, other_tournament)
+    assert p.assign_leiter?
+    assert p.update_deadline?
+    assert p.manage_teilnehmerliste?
+  end
+
+  test "system_admin ohne TL → enter_results? false (kein admin-Bypass für enter_results)" do
+    sysadmin = User.create!(email: "policy_sysadmin_er@test.de", password: "password123", role: :system_admin)
+    p = TournamentPolicy.new(sysadmin, @tournament)
+    assert_not p.enter_results?, "Sysadmin darf KEINE Ergebnisse via MCP eintragen (Boundary)"
+  end
+
+  test "club_admin ohne Sportwart-Wirkbereich → assign_leiter? true (admin-Bypass via admin?)" do
+    club_admin = User.create!(email: "policy_clubadmin@test.de", password: "password123", role: :club_admin)
+    p = TournamentPolicy.new(club_admin, @tournament)
+    assert p.assign_leiter?
+    assert p.update_deadline?
+    assert p.manage_teilnehmerliste?
+  end
+
+  test "system_admin ist TL → enter_results? true (TL-Pfad greift unabhängig vom admin?-Status)" do
+    sysadmin = User.create!(email: "policy_sysadmin_tl@test.de", password: "password123", role: :system_admin)
+    @tournament.turnier_leiter_user_id = sysadmin.id
+    p = TournamentPolicy.new(sysadmin, @tournament)
+    assert p.enter_results?, "Wenn sysadmin als TL eingetragen ist, darf er Ergebnisse eintragen (kein admin-Bypass — TL-Pfad)"
+  end
 end

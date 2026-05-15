@@ -10,17 +10,20 @@
 #
 # 14-G.2 nutzt diese Policy in BaseTool-Authorization-Layer.
 class TournamentPolicy < ApplicationPolicy
+  # Plan 14-G.3 / F3-C: admin?-Bypass für assign_leiter? + update_deadline? +
+  # manage_teilnehmerliste?. enter_results? bleibt strict (sysadmin schreibt
+  # keine Ergebnisse via MCP — konzeptuell falsch).
   def assign_leiter?
     return false if user.nil?
-    user.in_sportwart_scope?(record)
+    user.admin? || user.in_sportwart_scope?(record)
   end
 
   def update_deadline?
-    tl_or_sportwart?
+    tl_or_sportwart_or_admin?
   end
 
   def manage_teilnehmerliste?
-    tl_or_sportwart?
+    tl_or_sportwart_or_admin?
   end
 
   def enter_results?
@@ -30,8 +33,8 @@ class TournamentPolicy < ApplicationPolicy
 
   private
 
-  def tl_or_sportwart?
+  def tl_or_sportwart_or_admin?
     return false if user.nil?
-    record.leiter?(user) || user.in_sportwart_scope?(record)
+    user.admin? || record.leiter?(user) || user.in_sportwart_scope?(record)
   end
 end
