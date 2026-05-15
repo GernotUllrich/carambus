@@ -1,0 +1,5164 @@
+
+<!doctype html>
+<html lang="de" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Comprehensive documentation for Carambus - Professional billiards tournament management system">
+      
+      
+      
+        <link rel="canonical" href="https://GernotUllrich.github.io/carambus/managers/clubcloud-mcp-setup-service/">
+      
+      
+        <link rel="prev" href="../clubcloud-mcp-setup/">
+      
+      
+        <link rel="next" href="../clubcloud-mcp-klickreduktion-anmeldung-aus-email/">
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.15">
+    
+    
+      
+        <title>Setup Service - Carambus Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.342714a4.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
+      <link rel="stylesheet" href="../../stylesheets/print.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#clubcloud-mcp-server-beim-sportwart-vor-ort-einrichten-setup-service" class="md-skip">
+          Zum Inhalt
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Kopfzeile">
+    <a href="../.." title="Carambus Documentation" class="md-header__button md-logo" aria-label="Carambus Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Carambus Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Setup Service
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+      <div class="md-header__option">
+  <div class="md-select">
+    
+    <button class="md-header__button md-icon" aria-label="Sprache wechseln">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
+    </button>
+    <div class="md-select__inner">
+      <ul class="md-select__list">
+        
+          <li class="md-select__item">
+            <a href="./" hreflang="de" class="md-select__link">
+              Deutsch
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="../../en/managers/clubcloud-mcp-setup-service/" hreflang="en" class="md-select__link">
+              English
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</div>
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Suche" placeholder="Suche" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Suche">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Zurücksetzen" aria-label="Zurücksetzen" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Suche wird initialisiert
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/GernotUllrich/carambus" title="Zum Repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GernotUllrich/carambus
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Hauptnavigation" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Startseite
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../decision-makers/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Für Entscheider
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../players/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Für Spieler
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Für Turniermanager
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../administrators/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Für Systemadministratoren
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../developers/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Für Entwickler
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../reference/api.md" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Referenz
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../about/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Über
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Carambus Documentation" class="md-nav__button md-logo" aria-label="Carambus Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Carambus Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/GernotUllrich/carambus" title="Zum Repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GernotUllrich/carambus
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Startseite
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../decision-makers/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Für Entscheider
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2" id="__nav_2_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Für Entscheider
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../decision-makers/executive-summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Executive Summary
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../decision-makers/features-overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Feature-Übersicht
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../decision-makers/deployment-options/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Deployment-Optionen
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../players/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Für Spieler
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Für Spieler
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../players/scoreboard-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scoreboard-Anleitung
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../players/tournament-participation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Turnierteilnahme
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../players/ai-search/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    KI-gestützte Suche
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Für Turniermanager
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Für Turniermanager
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tournament-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Turnierverwaltung
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tournament-quick-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Turnier-Schnellreferenz
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../league-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Liga-Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../single-tournament/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Einzelturnier
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../table-reservation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tischreservierung
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../admin-roles/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Admin-Rollen
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../clubcloud-integration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    ClubCloud-Integration
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_9" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4_9" id="__nav_4_9_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    ClubCloud MCP
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_9_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4_9">
+            <span class="md-nav__icon md-icon"></span>
+            ClubCloud MCP
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../clubcloud-mcp-cloud-quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Cloud Quickstart
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../clubcloud-mcp-quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    MCP Quickstart
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../clubcloud-mcp-setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Setup
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Setup Service
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    Setup Service
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Inhaltsverzeichnis">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Inhaltsverzeichnis
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#adressat-abgrenzung" class="md-nav__link">
+    <span class="md-ellipsis">
+      Adressat &amp; Abgrenzung
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sektion-1-pre-visit-checkliste" class="md-nav__link">
+    <span class="md-ellipsis">
+      Sektion 1 — Pre-Visit-Checkliste
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Sektion 1 — Pre-Visit-Checkliste">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hardware-os" class="md-nav__link">
+    <span class="md-ellipsis">
+      Hardware &amp; OS
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#software-vorbereitung" class="md-nav__link">
+    <span class="md-ellipsis">
+      Software-Vorbereitung
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cc-credentials" class="md-nav__link">
+    <span class="md-ellipsis">
+      CC-Credentials
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#backup-plan" class="md-nav__link">
+    <span class="md-ellipsis">
+      Backup-Plan
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sektion-2-installation-macos" class="md-nav__link">
+    <span class="md-ellipsis">
+      Sektion 2 — Installation macOS
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Sektion 2 — Installation macOS">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21-ruby-321-via-rbenv" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.1 Ruby 3.2.1 via rbenv
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22-bundler" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.2 Bundler
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#23-carambus-repo" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.3 Carambus-Repo
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#24-datenbank-verbindung-verifizieren" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.4 Datenbank-Verbindung verifizieren
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#25-claude_desktop_configjson" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.5 claude_desktop_config.json
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#26-berechtigungen" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.6 Berechtigungen
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sektion-3-installation-windows-wsl2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Sektion 3 — Installation Windows (WSL2)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Sektion 3 — Installation Windows (WSL2)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31-wsl2-ubuntu-installieren" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.1 WSL2 Ubuntu installieren
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32-innerhalb-wsl-gleiche-schritte-wie-macos-sektion-2" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.2 Innerhalb WSL: gleiche Schritte wie macOS Sektion 2
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#33-claude_desktop_configjson-windows-native" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.3 claude_desktop_config.json (Windows-Native)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#34-berechtigungen" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.4 Berechtigungen
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sektion-4-credentials-ubertragung" class="md-nav__link">
+    <span class="md-ellipsis">
+      Sektion 4 — Credentials-Übertragung
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Sektion 4 — Credentials-Übertragung">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#erlaubte-ubertragungswege" class="md-nav__link">
+    <span class="md-ellipsis">
+      Erlaubte Übertragungswege
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#verbotene-ubertragungswege" class="md-nav__link">
+    <span class="md-ellipsis">
+      Verbotene Übertragungswege
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#schritt-fur-schritt-vor-ort" class="md-nav__link">
+    <span class="md-ellipsis">
+      Schritt-für-Schritt vor Ort
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sektion-5-smoke-test-drehbuch-akzeptanz-step" class="md-nav__link">
+    <span class="md-ellipsis">
+      Sektion 5 — Smoke-Test-Drehbuch (Akzeptanz-Step)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Sektion 5 — Smoke-Test-Drehbuch (Akzeptanz-Step)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#test-dialog" class="md-nav__link">
+    <span class="md-ellipsis">
+      Test-Dialog
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#erweiterter-test-walkthrough-vorbereitung" class="md-nav__link">
+    <span class="md-ellipsis">
+      Erweiterter Test (Walkthrough-Vorbereitung)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#wenn-der-smoke-test-gelingt" class="md-nav__link">
+    <span class="md-ellipsis">
+      Wenn der Smoke-Test gelingt
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#wenn-der-smoke-test-scheitert" class="md-nav__link">
+    <span class="md-ellipsis">
+      Wenn der Smoke-Test scheitert
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sektion-55-permission-setup-in-claude-desktop-always-allow" class="md-nav__link">
+    <span class="md-ellipsis">
+      Sektion 5.5 — Permission-Setup in Claude Desktop („Always allow")
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sektion-6-remote-bildschirm-sharing-fallback" class="md-nav__link">
+    <span class="md-ellipsis">
+      Sektion 6 — Remote-Bildschirm-Sharing-Fallback
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Sektion 6 — Remote-Bildschirm-Sharing-Fallback">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#setup-voraussetzungen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Setup-Voraussetzungen
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ablauf" class="md-nav__link">
+    <span class="md-ellipsis">
+      Ablauf
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#nachteile-gegen-vor-ort" class="md-nav__link">
+    <span class="md-ellipsis">
+      Nachteile gegen vor Ort
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sektion-7-mcp-server-subprocess-neu-starten-nach-code-changes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Sektion 7 — MCP-Server-Subprocess neu starten (nach Code-Changes)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Sektion 7 — MCP-Server-Subprocess neu starten (nach Code-Changes)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#71-wann-neu-starten" class="md-nav__link">
+    <span class="md-ellipsis">
+      7.1 Wann neu starten?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#72-stale-subprocess-symptome" class="md-nav__link">
+    <span class="md-ellipsis">
+      7.2 Stale-Subprocess-Symptome
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#73-restart-in-claude-desktop-macos-windows" class="md-nav__link">
+    <span class="md-ellipsis">
+      7.3 Restart in Claude Desktop (macOS + Windows)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#74-restart-in-claude-code-carambus-admin-technische-stellvertretung" class="md-nav__link">
+    <span class="md-ellipsis">
+      7.4 Restart in Claude Code (Carambus-Admin / technische Stellvertretung)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#75-audit-trail-plan-10-08-befund-1" class="md-nav__link">
+    <span class="md-ellipsis">
+      7.5 Audit-Trail (Plan 10-08 Befund #1)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-dsgvo-compliance-datenschutz" class="md-nav__link">
+    <span class="md-ellipsis">
+      8. DSGVO-Compliance / Datenschutz
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8. DSGVO-Compliance / Datenschutz">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#81-datenkategorien-was-wird-gespeichert" class="md-nav__link">
+    <span class="md-ellipsis">
+      8.1 Datenkategorien (was wird gespeichert?)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#82-verarbeitungszwecke" class="md-nav__link">
+    <span class="md-ellipsis">
+      8.2 Verarbeitungszwecke
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#83-retention-aufbewahrung" class="md-nav__link">
+    <span class="md-ellipsis">
+      8.3 Retention (Aufbewahrung)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#84-user-rechte-art-15-21-dsgvo" class="md-nav__link">
+    <span class="md-ellipsis">
+      8.4 User-Rechte (Art. 15-21 DSGVO)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#85-einwilligungs-operational-flow-v03-pilot" class="md-nav__link">
+    <span class="md-ellipsis">
+      8.5 Einwilligungs-Operational-Flow (v0.3-Pilot)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#86-verantwortlicher-art-4-nr-7-dsgvo" class="md-nav__link">
+    <span class="md-ellipsis">
+      8.6 Verantwortlicher (Art. 4 Nr. 7 DSGVO)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-cloud-setup-pfad-http-transport-ab-v03" class="md-nav__link">
+    <span class="md-ellipsis">
+      9. Cloud-Setup-Pfad (HTTP-Transport ab v0.3)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="9. Cloud-Setup-Pfad (HTTP-Transport ab v0.3)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#91-voraussetzungen" class="md-nav__link">
+    <span class="md-ellipsis">
+      9.1 Voraussetzungen
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#92-mcp-server-setup-via-claude-code-cli-jwt-token-auth-empfohlen" class="md-nav__link">
+    <span class="md-ellipsis">
+      9.2 MCP-Server-Setup via Claude Code CLI (JWT-Token-Auth) ⭐ EMPFOHLEN
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#93-aktivierung-in-claudeapp" class="md-nav__link">
+    <span class="md-ellipsis">
+      9.3 Aktivierung in Claude.app
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#94-verifikations-schritte" class="md-nav__link">
+    <span class="md-ellipsis">
+      9.4 Verifikations-Schritte
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#95-troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      9.5 Troubleshooting
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#96-reserviert" class="md-nav__link">
+    <span class="md-ellipsis">
+      9.6 (reserviert)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#97-legacy-cookie-auth-v03-pilot-plan-13-061-deprecated" class="md-nav__link">
+    <span class="md-ellipsis">
+      9.7 Legacy Cookie-Auth (v0.3-Pilot Plan 13-06.1) — DEPRECATED
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quellen-weiterfuhrendes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Quellen &amp; Weiterführendes
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../clubcloud-mcp-klickreduktion-anmeldung-aus-email/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Klickreduktion - Anmeldung aus E-Mail
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../clubcloud-mcp-klickreduktion-meldeliste-finalisieren/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Klickreduktion - Meldeliste finalisieren
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../clubcloud-mcp-klickreduktion-turnier-status-und-anmelden/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Klickreduktion - Turnier-Status & Anmelden
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_10" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_10" id="__nav_4_10_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    ClubCloud Scenarios
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_10">
+            <span class="md-nav__icon md-icon"></span>
+            ClubCloud Scenarios
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../clubcloud-scenarios/cc-glossary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    CC Glossary
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../clubcloud-scenarios/cc-roles/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    CC Roles
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../clubcloud-scenarios/endrangliste-eintragen/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Endrangliste eintragen
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../clubcloud-scenarios/player-anlegen/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Player anlegen
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../clubcloud-scenarios/teilnehmerliste-finalisieren/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Teilnehmerliste finalisieren
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../search-filters/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Suche & Filter
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../administrators/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Für Systemadministratoren
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5" id="__nav_5_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Für Systemadministratoren
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administrators/installation-overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Installations-Übersicht
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administrators/raspberry-pi-quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Raspberry Pi Quickstart
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administrators/raspberry-pi-client/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Raspberry Pi Client
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administrators/scoreboard-autostart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scoreboard Autostart
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administrators/server-architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Server-Architektur
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administrators/email-configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Email-Konfiguration
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administrators/database-setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Datenbank-Setup
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administrators/streaming-quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    YouTube Streaming Quickstart
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administrators/streaming-setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    YouTube Streaming Setup
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../developers/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Für Entwickler
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_6" id="__nav_6_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            Für Entwickler
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Getting Started
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/developer-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Entwickler-Leitfaden
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/database-design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Datenbank-Design
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/er-diagram/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    ER-Diagramm
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/scenario-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scenario-Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/scenario-workflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scenario-Workflow
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/rubymine-setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    RubyMine Setup
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_6_9" id="__nav_6_9_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Testing
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6_9">
+            <span class="md-nav__icon md-icon"></span>
+            Testing
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/testing/testing-quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Testing Quickstart
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/testing/fixture-collection-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Fixture Sammlung Anleitung
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6_10" >
+        
+          
+          <label class="md-nav__link" for="__nav_6_10" id="__nav_6_10_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    UMB Scraping
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6_10">
+            <span class="md-nav__icon md-icon"></span>
+            UMB Scraping
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/umb-scraping-implementation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    UMB Scraping Implementierung
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/umb-scraping-methods/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    UMB Scraping Methoden
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/clubcloud-mcp-server/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    ClubCloud MCP-Server
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6_12" >
+        
+          
+          <label class="md-nav__link" for="__nav_6_12" id="__nav_6_12_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Services
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_12_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6_12">
+            <span class="md-nav__icon md-icon"></span>
+            Services
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/services/table-monitor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Table Monitor
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/services/region-cc/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Region CC
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/services/tournament/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Turnier
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/services/tournament-monitor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Turnier-Monitor
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/services/league/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Liga
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/services/party-monitor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Party-Monitor
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/services/umb/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    UMB-Services
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/services/video-crossref/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Video-Querverweise
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/frontend-sti-migration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Frontend STI Migration
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/rake-tasks-debugging/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Testing & Debugging
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/deployment-workflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Deployment-Workflow
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/overcommit-hooks.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overcommit-Hooks (MkDocsBuild)
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/data-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Datenverwaltung
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/database-partitioning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Datenbank-Partitionierung
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/paper-trail-optimization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    PaperTrail-Optimierung
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/game-plan-reconstruction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Spielplan-Rekonstruktion
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/tournament-duplicate-handling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Turnier-Duplikate
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/region-tagging-cleanup-summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Regions-Tagging
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/streaming-architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    YouTube Streaming Architektur
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/pool-scoreboard-changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Pool Scoreboard Changelog
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/deployment-checklist/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Deployment-Checkliste (Prod)
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/umb-deployment-checklist/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    UMB Deployment-Checkliste
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Referenz
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            Referenz
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/api.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    API
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/glossary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Glossar
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/terms/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    AGB
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/privacy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Datenschutz
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/config-lock-files/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Config Lock Files
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/search/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Search
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/mkdocs_documentation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    MkDocs
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Über
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            Über
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../about/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Über
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Inhaltsverzeichnis">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Inhaltsverzeichnis
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#adressat-abgrenzung" class="md-nav__link">
+    <span class="md-ellipsis">
+      Adressat &amp; Abgrenzung
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sektion-1-pre-visit-checkliste" class="md-nav__link">
+    <span class="md-ellipsis">
+      Sektion 1 — Pre-Visit-Checkliste
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Sektion 1 — Pre-Visit-Checkliste">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hardware-os" class="md-nav__link">
+    <span class="md-ellipsis">
+      Hardware &amp; OS
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#software-vorbereitung" class="md-nav__link">
+    <span class="md-ellipsis">
+      Software-Vorbereitung
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cc-credentials" class="md-nav__link">
+    <span class="md-ellipsis">
+      CC-Credentials
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#backup-plan" class="md-nav__link">
+    <span class="md-ellipsis">
+      Backup-Plan
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sektion-2-installation-macos" class="md-nav__link">
+    <span class="md-ellipsis">
+      Sektion 2 — Installation macOS
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Sektion 2 — Installation macOS">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21-ruby-321-via-rbenv" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.1 Ruby 3.2.1 via rbenv
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22-bundler" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.2 Bundler
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#23-carambus-repo" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.3 Carambus-Repo
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#24-datenbank-verbindung-verifizieren" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.4 Datenbank-Verbindung verifizieren
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#25-claude_desktop_configjson" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.5 claude_desktop_config.json
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#26-berechtigungen" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.6 Berechtigungen
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sektion-3-installation-windows-wsl2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Sektion 3 — Installation Windows (WSL2)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Sektion 3 — Installation Windows (WSL2)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31-wsl2-ubuntu-installieren" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.1 WSL2 Ubuntu installieren
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32-innerhalb-wsl-gleiche-schritte-wie-macos-sektion-2" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.2 Innerhalb WSL: gleiche Schritte wie macOS Sektion 2
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#33-claude_desktop_configjson-windows-native" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.3 claude_desktop_config.json (Windows-Native)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#34-berechtigungen" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.4 Berechtigungen
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sektion-4-credentials-ubertragung" class="md-nav__link">
+    <span class="md-ellipsis">
+      Sektion 4 — Credentials-Übertragung
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Sektion 4 — Credentials-Übertragung">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#erlaubte-ubertragungswege" class="md-nav__link">
+    <span class="md-ellipsis">
+      Erlaubte Übertragungswege
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#verbotene-ubertragungswege" class="md-nav__link">
+    <span class="md-ellipsis">
+      Verbotene Übertragungswege
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#schritt-fur-schritt-vor-ort" class="md-nav__link">
+    <span class="md-ellipsis">
+      Schritt-für-Schritt vor Ort
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sektion-5-smoke-test-drehbuch-akzeptanz-step" class="md-nav__link">
+    <span class="md-ellipsis">
+      Sektion 5 — Smoke-Test-Drehbuch (Akzeptanz-Step)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Sektion 5 — Smoke-Test-Drehbuch (Akzeptanz-Step)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#test-dialog" class="md-nav__link">
+    <span class="md-ellipsis">
+      Test-Dialog
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#erweiterter-test-walkthrough-vorbereitung" class="md-nav__link">
+    <span class="md-ellipsis">
+      Erweiterter Test (Walkthrough-Vorbereitung)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#wenn-der-smoke-test-gelingt" class="md-nav__link">
+    <span class="md-ellipsis">
+      Wenn der Smoke-Test gelingt
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#wenn-der-smoke-test-scheitert" class="md-nav__link">
+    <span class="md-ellipsis">
+      Wenn der Smoke-Test scheitert
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sektion-55-permission-setup-in-claude-desktop-always-allow" class="md-nav__link">
+    <span class="md-ellipsis">
+      Sektion 5.5 — Permission-Setup in Claude Desktop („Always allow")
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sektion-6-remote-bildschirm-sharing-fallback" class="md-nav__link">
+    <span class="md-ellipsis">
+      Sektion 6 — Remote-Bildschirm-Sharing-Fallback
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Sektion 6 — Remote-Bildschirm-Sharing-Fallback">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#setup-voraussetzungen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Setup-Voraussetzungen
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ablauf" class="md-nav__link">
+    <span class="md-ellipsis">
+      Ablauf
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#nachteile-gegen-vor-ort" class="md-nav__link">
+    <span class="md-ellipsis">
+      Nachteile gegen vor Ort
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sektion-7-mcp-server-subprocess-neu-starten-nach-code-changes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Sektion 7 — MCP-Server-Subprocess neu starten (nach Code-Changes)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Sektion 7 — MCP-Server-Subprocess neu starten (nach Code-Changes)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#71-wann-neu-starten" class="md-nav__link">
+    <span class="md-ellipsis">
+      7.1 Wann neu starten?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#72-stale-subprocess-symptome" class="md-nav__link">
+    <span class="md-ellipsis">
+      7.2 Stale-Subprocess-Symptome
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#73-restart-in-claude-desktop-macos-windows" class="md-nav__link">
+    <span class="md-ellipsis">
+      7.3 Restart in Claude Desktop (macOS + Windows)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#74-restart-in-claude-code-carambus-admin-technische-stellvertretung" class="md-nav__link">
+    <span class="md-ellipsis">
+      7.4 Restart in Claude Code (Carambus-Admin / technische Stellvertretung)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#75-audit-trail-plan-10-08-befund-1" class="md-nav__link">
+    <span class="md-ellipsis">
+      7.5 Audit-Trail (Plan 10-08 Befund #1)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-dsgvo-compliance-datenschutz" class="md-nav__link">
+    <span class="md-ellipsis">
+      8. DSGVO-Compliance / Datenschutz
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8. DSGVO-Compliance / Datenschutz">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#81-datenkategorien-was-wird-gespeichert" class="md-nav__link">
+    <span class="md-ellipsis">
+      8.1 Datenkategorien (was wird gespeichert?)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#82-verarbeitungszwecke" class="md-nav__link">
+    <span class="md-ellipsis">
+      8.2 Verarbeitungszwecke
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#83-retention-aufbewahrung" class="md-nav__link">
+    <span class="md-ellipsis">
+      8.3 Retention (Aufbewahrung)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#84-user-rechte-art-15-21-dsgvo" class="md-nav__link">
+    <span class="md-ellipsis">
+      8.4 User-Rechte (Art. 15-21 DSGVO)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#85-einwilligungs-operational-flow-v03-pilot" class="md-nav__link">
+    <span class="md-ellipsis">
+      8.5 Einwilligungs-Operational-Flow (v0.3-Pilot)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#86-verantwortlicher-art-4-nr-7-dsgvo" class="md-nav__link">
+    <span class="md-ellipsis">
+      8.6 Verantwortlicher (Art. 4 Nr. 7 DSGVO)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-cloud-setup-pfad-http-transport-ab-v03" class="md-nav__link">
+    <span class="md-ellipsis">
+      9. Cloud-Setup-Pfad (HTTP-Transport ab v0.3)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="9. Cloud-Setup-Pfad (HTTP-Transport ab v0.3)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#91-voraussetzungen" class="md-nav__link">
+    <span class="md-ellipsis">
+      9.1 Voraussetzungen
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#92-mcp-server-setup-via-claude-code-cli-jwt-token-auth-empfohlen" class="md-nav__link">
+    <span class="md-ellipsis">
+      9.2 MCP-Server-Setup via Claude Code CLI (JWT-Token-Auth) ⭐ EMPFOHLEN
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#93-aktivierung-in-claudeapp" class="md-nav__link">
+    <span class="md-ellipsis">
+      9.3 Aktivierung in Claude.app
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#94-verifikations-schritte" class="md-nav__link">
+    <span class="md-ellipsis">
+      9.4 Verifikations-Schritte
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#95-troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      9.5 Troubleshooting
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#96-reserviert" class="md-nav__link">
+    <span class="md-ellipsis">
+      9.6 (reserviert)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#97-legacy-cookie-auth-v03-pilot-plan-13-061-deprecated" class="md-nav__link">
+    <span class="md-ellipsis">
+      9.7 Legacy Cookie-Auth (v0.3-Pilot Plan 13-06.1) — DEPRECATED
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quellen-weiterfuhrendes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Quellen &amp; Weiterführendes
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="clubcloud-mcp-server-beim-sportwart-vor-ort-einrichten-setup-service">ClubCloud-MCP-Server beim Sportwart vor Ort einrichten (Setup-Service)<a class="headerlink" href="#clubcloud-mcp-server-beim-sportwart-vor-ort-einrichten-setup-service" title="Permanent link">&para;</a></h1>
+<h2 id="adressat-abgrenzung">Adressat &amp; Abgrenzung<a class="headerlink" href="#adressat-abgrenzung" title="Permanent link">&para;</a></h2>
+<p>Diese Doku richtet sich an den <strong>Carambus-Admin</strong> (oder Landessportwart mit Dev-Setup),
+der den MCP-Server <strong>vor Ort auf dem Rechner eines Club-Sportwarts</strong> installiert.</p>
+<p><strong>Warum vor Ort?</strong> Der Club-Sportwart hat typischerweise nur Browser-Erfahrung — kein
+Terminal, kein Code-Editor, keine Dev-Tools. Eine Remote-Installation per
+Bildschirm-Sharing ist möglich (siehe Sektion 6), aber vor Ort ist deutlich
+verlässlicher: der Admin sieht das Hardware-Setup direkt, kann Pfad-Probleme schnell
+beheben und liefert die Credentials persönlich ab.</p>
+<p><strong>Abgrenzung zu anderen Setup-Dokus:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Doku</th>
+<th>Adressat</th>
+<th>Zweck</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="../clubcloud-mcp-quickstart/"><code>clubcloud-mcp-quickstart.de.md</code></a></td>
+<td>Technische Stellvertretung (Landessportwart, Carambus-Admin)</td>
+<td>5-Min-Quickstart, erster Tool-Call</td>
+</tr>
+<tr>
+<td><a href="../clubcloud-mcp-setup/"><code>clubcloud-mcp-setup.de.md</code></a></td>
+<td>Technische Stellvertretung</td>
+<td>Tiefes Setup-Troubleshooting, Entwickler-Setup</td>
+</tr>
+<tr>
+<td><strong>diese Doku</strong> (<code>clubcloud-mcp-setup-service.de.md</code>)</td>
+<td><strong>Carambus-Admin beim Sportwart</strong></td>
+<td><strong>Vor-Ort-Setup-Service für einen Sportwart, der nicht selbst installieren kann</strong></td>
+</tr>
+</tbody>
+</table>
+<p>Nach erfolgreichem Setup-Service kann der Sportwart in Phase 10 (v0.2-Walkthrough)
+eigenständig Anmeldungen über Claude Desktop abwickeln.</p>
+<hr />
+<h2 id="sektion-1-pre-visit-checkliste">Sektion 1 — Pre-Visit-Checkliste<a class="headerlink" href="#sektion-1-pre-visit-checkliste" title="Permanent link">&para;</a></h2>
+<p>Vor dem Termin beim Sportwart prüfen und mitbringen:</p>
+<h3 id="hardware-os">Hardware &amp; OS<a class="headerlink" href="#hardware-os" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Pflicht</th>
+<th>Notiz</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Rechner-Owner geklärt?</td>
+<td>✅</td>
+<td>Sportwart-eigener Rechner ODER Admin-Leihrechner?</td>
+</tr>
+<tr>
+<td>macOS 12+ ODER Windows 10/11 mit WSL2</td>
+<td>✅</td>
+<td>Linux möglich, aber Quickstart-Doku ist macOS-fokussiert</td>
+</tr>
+<tr>
+<td>8 GB RAM, 5 GB freier Festplattenspeicher</td>
+<td>✅</td>
+<td>Ruby + Bundler + Carambus-Repo</td>
+</tr>
+<tr>
+<td>Stabile Internet-Verbindung</td>
+<td>✅</td>
+<td>4G-Hotspot als Backup mitbringen</td>
+</tr>
+<tr>
+<td>Admin-Rechte auf dem Rechner</td>
+<td>✅</td>
+<td>Für Ruby-Installation und Pfad-Setup</td>
+</tr>
+</tbody>
+</table>
+<h3 id="software-vorbereitung">Software-Vorbereitung<a class="headerlink" href="#software-vorbereitung" title="Permanent link">&para;</a></h3>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>Claude Desktop</strong> auf dem Sportwart-Rechner installieren (oder schon installiert?)
+  → <a href="https://claude.ai/download">claude.ai/download</a></li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>Git</strong> vorhanden (<code>git --version</code>)?</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>rbenv</strong> oder vergleichbare Ruby-Versionsverwaltung installiert?</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>Editor</strong> (VS Code oder TextEdit) für claude_desktop_config.json-Editierung?</li>
+</ul>
+<h3 id="cc-credentials">CC-Credentials<a class="headerlink" href="#cc-credentials" title="Permanent link">&para;</a></h3>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>Sportwart-CC-Login</strong> (Username + Password) bei Sportwart geklärt — wird beim Termin verwendet (NICHT vorher übertragen!)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>region_cc_id</strong> des Vereins bekannt (z.B. NBV = 20)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>base_url</strong> der CC-Region (z.B. <code>https://nbv.club-cloud.de</code>)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Sportwart-Rechte in CC verifiziert (Anmelden + Meldeschluss verschieben + Teilnehmerliste pflegen)</li>
+</ul>
+<h3 id="backup-plan">Backup-Plan<a class="headerlink" href="#backup-plan" title="Permanent link">&para;</a></h3>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>Remote-Bildschirm-Sharing</strong> (Zoom/TeamViewer) als Fallback installiert, falls vor-Ort-Setup scheitert</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>Mein eigener Admin-Rechner</strong> mitbringen, um Test-Calls parallel zu fahren</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>USB-Stick</strong> mit lokalem Carambus-Repo-Clone (falls Internet beim Sportwart schwach)</li>
+</ul>
+<hr />
+<h2 id="sektion-2-installation-macos">Sektion 2 — Installation macOS<a class="headerlink" href="#sektion-2-installation-macos" title="Permanent link">&para;</a></h2>
+<h3 id="21-ruby-321-via-rbenv">2.1 Ruby 3.2.1 via rbenv<a class="headerlink" href="#21-ruby-321-via-rbenv" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># rbenv installieren (falls nicht vorhanden)</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>brew<span class="w"> </span>install<span class="w"> </span>rbenv<span class="w"> </span>ruby-build
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c1"># In ~/.zshrc oder ~/.bashrc einfügen:</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="nb">echo</span><span class="w"> </span><span class="s1">&#39;eval &quot;$(rbenv init -)&quot;&#39;</span><span class="w"> </span>&gt;&gt;<span class="w"> </span>~/.zshrc
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="nb">source</span><span class="w"> </span>~/.zshrc
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="c1"># Ruby 3.2.1 installieren</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>rbenv<span class="w"> </span>install<span class="w"> </span><span class="m">3</span>.2.1
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>rbenv<span class="w"> </span>global<span class="w"> </span><span class="m">3</span>.2.1
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>ruby<span class="w"> </span>--version<span class="w">  </span><span class="c1"># → ruby 3.2.1</span>
+</code></pre></div>
+<h3 id="22-bundler">2.2 Bundler<a class="headerlink" href="#22-bundler" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>gem<span class="w"> </span>install<span class="w"> </span>bundler
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>bundler<span class="w"> </span>--version<span class="w">  </span><span class="c1"># → Bundler 2.7+</span>
+</code></pre></div>
+<h3 id="23-carambus-repo">2.3 Carambus-Repo<a class="headerlink" href="#23-carambus-repo" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>mkdir<span class="w"> </span>-p<span class="w"> </span>~/DEV/carambus
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="nb">cd</span><span class="w"> </span>~/DEV/carambus
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>git<span class="w"> </span>clone<span class="w"> </span>&lt;repo-url&gt;<span class="w"> </span>carambus_local<span class="w">  </span><span class="c1"># ODER USB-Stick-Kopie</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="nb">cd</span><span class="w"> </span>carambus_local
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>bundle<span class="w"> </span>install
+</code></pre></div>
+<h3 id="24-datenbank-verbindung-verifizieren">2.4 Datenbank-Verbindung verifizieren<a class="headerlink" href="#24-datenbank-verbindung-verifizieren" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>bin/rails<span class="w"> </span>db:version
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="c1"># Erwartung: Migration-Version-Nummer (KEIN Connection-Error)</span>
+</code></pre></div>
+<p>Wenn DB-Connection-Error: PostgreSQL-Setup mit dem Sportwart-Rechner abklären
+(lokale Carambus-DB ODER Remote-Connection zu Carambus-Produktion).</p>
+<h3 id="25-claude_desktop_configjson">2.5 claude_desktop_config.json<a class="headerlink" href="#25-claude_desktop_configjson" title="Permanent link">&para;</a></h3>
+<p>Pfad: <code>~/Library/Application Support/Claude/claude_desktop_config.json</code></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="p">{</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="nt">&quot;mcpServers&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">    </span><span class="nt">&quot;carambus-cc&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">      </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;/Users/&lt;USERNAME&gt;/.rbenv/shims/bundle&quot;</span><span class="p">,</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">      </span><span class="nt">&quot;args&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;exec&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;/Users/&lt;USERNAME&gt;/DEV/carambus/carambus_local/bin/mcp-server&quot;</span><span class="p">],</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">      </span><span class="nt">&quot;env&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="w">        </span><span class="nt">&quot;RAILS_ENV&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;development&quot;</span><span class="p">,</span>
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="w">        </span><span class="nt">&quot;CC_REGION&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;nbv&quot;</span><span class="p">,</span>
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="w">        </span><span class="nt">&quot;CARAMBUS_MCP_MOCK&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;0&quot;</span>
+<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="w">      </span><span class="p">}</span>
+<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a><span class="p">}</span>
+</code></pre></div>
+<p><code>&lt;USERNAME&gt;</code> ersetzen mit dem macOS-Username des Sportwarts. <code>CC_REGION</code> an die Region anpassen.</p>
+<h3 id="26-berechtigungen">2.6 Berechtigungen<a class="headerlink" href="#26-berechtigungen" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>chmod<span class="w"> </span><span class="m">600</span><span class="w"> </span>~/Library/Application<span class="se">\ </span>Support/Claude/claude_desktop_config.json
+</code></pre></div>
+<p>Verhindert, dass Credentials in Backups/iCloud-Sync versehentlich landen.</p>
+<hr />
+<h2 id="sektion-3-installation-windows-wsl2">Sektion 3 — Installation Windows (WSL2)<a class="headerlink" href="#sektion-3-installation-windows-wsl2" title="Permanent link">&para;</a></h2>
+<h3 id="31-wsl2-ubuntu-installieren">3.1 WSL2 Ubuntu installieren<a class="headerlink" href="#31-wsl2-ubuntu-installieren" title="Permanent link">&para;</a></h3>
+<p>PowerShell (als Admin):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="n">wsl</span> <span class="p">-</span><span class="n">-install</span> <span class="n">-d</span> <span class="n">Ubuntu</span><span class="p">-</span><span class="n">22</span><span class="p">.</span><span class="n">04</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="c"># Nach Reboot: Ubuntu-User + Password anlegen</span>
+</code></pre></div>
+<h3 id="32-innerhalb-wsl-gleiche-schritte-wie-macos-sektion-2">3.2 Innerhalb WSL: gleiche Schritte wie macOS Sektion 2<a class="headerlink" href="#32-innerhalb-wsl-gleiche-schritte-wie-macos-sektion-2" title="Permanent link">&para;</a></h3>
+<p>Ruby + Bundler + Repo via <code>apt install build-essential libssl-dev libreadline-dev zlib1g-dev</code> plus rbenv.
+Carambus-Repo unter <code>~/DEV/carambus/carambus_local</code> (WSL-Pfad).</p>
+<h3 id="33-claude_desktop_configjson-windows-native">3.3 claude_desktop_config.json (Windows-Native)<a class="headerlink" href="#33-claude_desktop_configjson-windows-native" title="Permanent link">&para;</a></h3>
+<p>Pfad: <code>%APPDATA%\Claude\claude_desktop_config.json</code> (Windows-Pfad, NICHT WSL-Pfad)</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="p">{</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">  </span><span class="nt">&quot;mcpServers&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">    </span><span class="nt">&quot;carambus-cc&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">      </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;wsl&quot;</span><span class="p">,</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">      </span><span class="nt">&quot;args&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">        </span><span class="s2">&quot;-d&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Ubuntu-22.04&quot;</span><span class="p">,</span>
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="w">        </span><span class="s2">&quot;bash&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;-c&quot;</span><span class="p">,</span>
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="w">        </span><span class="s2">&quot;cd /home/&lt;USERNAME&gt;/DEV/carambus/carambus_local &amp;&amp; bundle exec bin/mcp-server&quot;</span>
+<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="w">      </span><span class="p">],</span>
+<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="w">      </span><span class="nt">&quot;env&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="w">        </span><span class="nt">&quot;RAILS_ENV&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;development&quot;</span><span class="p">,</span>
+<a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="w">        </span><span class="nt">&quot;CC_REGION&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;nbv&quot;</span><span class="p">,</span>
+<a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a><span class="w">        </span><span class="nt">&quot;CARAMBUS_MCP_MOCK&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;0&quot;</span>
+<a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a><span class="w">      </span><span class="p">}</span>
+<a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a><span class="p">}</span>
+</code></pre></div>
+<p><code>&lt;USERNAME&gt;</code> ist der WSL-Linux-Username (NICHT der Windows-Username).</p>
+<h3 id="34-berechtigungen">3.4 Berechtigungen<a class="headerlink" href="#34-berechtigungen" title="Permanent link">&para;</a></h3>
+<p>PowerShell:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="n">icacls</span> <span class="s2">&quot;$env:APPDATA\Claude\claude_desktop_config.json&quot;</span> <span class="p">/</span><span class="n">inheritance</span><span class="p">:</span><span class="nb">r </span><span class="p">/</span><span class="n">grant</span><span class="p">:</span><span class="nb">r </span><span class="s2">&quot;$env:USERNAME:F&quot;</span>
+</code></pre></div>
+<p>Falls Windows-Pfad-Übersetzung Probleme macht: <strong>direkt auf Sektion 6 (Remote-Bildschirm-Sharing-Fallback)</strong> ausweichen.</p>
+<hr />
+<h2 id="sektion-4-credentials-ubertragung">Sektion 4 — Credentials-Übertragung<a class="headerlink" href="#sektion-4-credentials-ubertragung" title="Permanent link">&para;</a></h2>
+<h3 id="erlaubte-ubertragungswege">Erlaubte Übertragungswege<a class="headerlink" href="#erlaubte-ubertragungswege" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Methode</th>
+<th>Sicherheit</th>
+<th>Empfehlung</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1Password Shared Item (kurz, mit Auto-Expire)</td>
+<td>Hoch</td>
+<td>✅ Bevorzugt</td>
+</tr>
+<tr>
+<td>Verschlüsselte E-Mail (ProtonMail, Tutanota)</td>
+<td>Hoch</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>USB-Stick beim Termin abgeben + sofort vernichten</td>
+<td>Mittel-Hoch</td>
+<td>✅ Falls digitaler Weg unmöglich</td>
+</tr>
+<tr>
+<td><strong>Beim Termin direkt vom Sportwart einsehen + eintippen</strong></td>
+<td>Hoch (kein Transit)</td>
+<td>✅ Bevorzugt</td>
+</tr>
+</tbody>
+</table>
+<h3 id="verbotene-ubertragungswege">Verbotene Übertragungswege<a class="headerlink" href="#verbotene-ubertragungswege" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Methode</th>
+<th>Risiko</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Slack/Discord/Telegram/SMS im Klartext</td>
+<td>❌ Logs/Backups bei den Anbietern</td>
+</tr>
+<tr>
+<td>E-Mail im Klartext</td>
+<td>❌ Mail-Server-Logs</td>
+</tr>
+<tr>
+<td>Dropbox/iCloud/Google Drive</td>
+<td>❌ Cloud-Sync, Backup-Historie</td>
+</tr>
+<tr>
+<td>Browser-Notiz / Sticky Note</td>
+<td>❌ Sync-Risiko</td>
+</tr>
+</tbody>
+</table>
+<h3 id="schritt-fur-schritt-vor-ort">Schritt-für-Schritt vor Ort<a class="headerlink" href="#schritt-fur-schritt-vor-ort" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Sportwart-CC-Login direkt in CC-Browser einloggen → Username/Password aus Browser-Password-Manager ablesen</li>
+<li>claude_desktop_config.json <strong>vor Ort</strong> mit den Credentials befüllen (NICHT vorbereitet)</li>
+<li><code>chmod 600</code> (macOS) / <code>icacls</code> (Windows) ausführen</li>
+<li>Sportwart-Rechner-Cloud-Sync prüfen — falls aktiv, Hinweis: claude_desktop_config.json <strong>nicht</strong> in iCloud Drive / OneDrive / Dropbox legen</li>
+<li>CC-Credentials beim Sportwart verbleiben (Browser-Password-Manager); Carambus-Admin notiert sie sich NICHT für späteren Zugriff</li>
+</ol>
+<hr />
+<h2 id="sektion-5-smoke-test-drehbuch-akzeptanz-step">Sektion 5 — Smoke-Test-Drehbuch (Akzeptanz-Step)<a class="headerlink" href="#sektion-5-smoke-test-drehbuch-akzeptanz-step" title="Permanent link">&para;</a></h2>
+<p>Nach Setup ist Akzeptanz erreicht, wenn der Sportwart <strong>ohne Admin-Hilfe</strong> folgenden Dialog in Claude Desktop führen kann:</p>
+<h3 id="test-dialog">Test-Dialog<a class="headerlink" href="#test-dialog" title="Permanent link">&para;</a></h3>
+<blockquote>
+<p><strong>Sportwart tippt:</strong>
+„Hallo Claude — zeig mir den Status zu meinem Verein in ClubCloud."</p>
+<p><strong>Erwartung Claude-Antwort:</strong>
+Claude ruft <code>cc_lookup_region</code> + <code>cc_lookup_club</code> auf und zeigt:
+- Region-Name (z.B. „NBV")
+- Sportwart-eigener Verein mit cc_id, Spielerliste, Trainer-Info, etc.</p>
+</blockquote>
+<h3 id="erweiterter-test-walkthrough-vorbereitung">Erweiterter Test (Walkthrough-Vorbereitung)<a class="headerlink" href="#erweiterter-test-walkthrough-vorbereitung" title="Permanent link">&para;</a></h3>
+<blockquote>
+<p><strong>Sportwart tippt:</strong>
+„Welche offenen Turniere stehen aktuell in Kegel an?"</p>
+<p><strong>Erwartung:</strong>
+Claude ruft <code>cc_list_open_tournaments</code> mit branch_cc_id=8 auf und zeigt Liste mit Deadline-Daten.</p>
+</blockquote>
+<h3 id="wenn-der-smoke-test-gelingt">Wenn der Smoke-Test gelingt<a class="headerlink" href="#wenn-der-smoke-test-gelingt" title="Permanent link">&para;</a></h3>
+<p>✅ Sportwart ist Phase-10-walkthrough-fähig
+✅ Carambus-Admin kann den Sportwart-Termin schließen
+✅ Sportwart bekommt:
+- Eine 1-Seiten-PDF mit häufigen NL-Befehlen (Quickstart-Excerpt)
+- Telefonnummer/E-Mail des Carambus-Admins für Notfälle
+- Hinweis: bei Claude-Desktop-Update / OS-Update muss ggf. neu installiert werden</p>
+<h3 id="wenn-der-smoke-test-scheitert">Wenn der Smoke-Test scheitert<a class="headerlink" href="#wenn-der-smoke-test-scheitert" title="Permanent link">&para;</a></h3>
+<p><strong>Häufige Fehler:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Fehler</th>
+<th>Diagnose</th>
+<th>Fix</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Claude antwortet „MCP-Server nicht erreichbar"</td>
+<td>claude_desktop_config.json Pfad falsch</td>
+<td>Pfad-Trace via Claude Desktop Devtools</td>
+</tr>
+<tr>
+<td>Claude antwortet „CC-Auth-Failure"</td>
+<td>Credentials in Rails Credentials nicht gesetzt</td>
+<td>Rails-Credentials in carambus-Repo prüfen, ggf. neu eintragen</td>
+</tr>
+<tr>
+<td>Claude antwortet „DB-Connection-Error"</td>
+<td>PostgreSQL nicht erreichbar</td>
+<td><code>bin/rails db:version</code> testen; ggf. SSH-Tunnel zur Carambus-Produktion</td>
+</tr>
+<tr>
+<td>Tool-Call funktioniert, aber Rückgabe leer</td>
+<td>DB-Sync veraltet</td>
+<td>Tool mit <code>force_refresh: true</code> erneut aufrufen</td>
+</tr>
+</tbody>
+</table>
+<p>Bei wiederholtem Scheitern: Remote-Bildschirm-Sharing vereinbaren und Logs analysieren (siehe <code>clubcloud-mcp-setup.de.md</code> Sektion „Lokales Debug").</p>
+<hr />
+<h2 id="sektion-55-permission-setup-in-claude-desktop-always-allow">Sektion 5.5 — Permission-Setup in Claude Desktop („Always allow")<a class="headerlink" href="#sektion-55-permission-setup-in-claude-desktop-always-allow" title="Permanent link">&para;</a></h2>
+<p><strong>Warum diese Sektion?</strong> (Adressiert Befund #6 aus dem Plan-10-03-Sportwart-Walkthrough; siehe <code>.paul/phases/10-walkthrough-sportwart/10-03-WALKTHROUGH-LOG.md</code>.)</p>
+<p>Claude Desktop fragt <strong>per Default</strong> bei jedem MCP-Tool-Call nach Erlaubnis. Für die typischen
+Carambus-Workflows (Anmeldung, Akkreditierung, Liste finalisieren) bedeutet das pro Spickzettel
+<strong>4–8 Permission-Prompts</strong>, weil jeder Spickzettel mehrere Tools nacheinander aufruft und destruktive
+Tools im Dry-Run-First-Modus zweimal laufen (<code>armed:false</code> → <code>armed:true</code>).</p>
+<p><strong>Auswirkung beim Sportwart:</strong>
+- Jeder Workflow wird durch 4–8 Klicks unterbrochen.
+- Sportwart denkt „Passt das? Muss ich das wirklich erlauben?" → Vertrauens-Lücke.
+- Abbruch-Risiko: bei zu vielen Prompts klickt der Sportwart auf „Verweigern" oder schließt Claude.</p>
+<p><strong>Lösung:</strong> Permission-Modus für den <code>carambus-clubcloud</code> MCP-Server auf <strong>„Always allow for this
+server"</strong> stellen. Die Permission-Prompts entfallen dann komplett für die laufende Session und
+(je nach Claude-Desktop-Version) auch persistent für künftige Sessions.</p>
+<p><strong>Schritt-für-Schritt (Stand 2026-05; Claude-Desktop-UI kann sich ändern):</strong></p>
+<ol>
+<li>Claude Desktop öffnen → <strong>Einstellungen</strong> (Cmd+, auf macOS / Ctrl+, auf Windows).</li>
+<li>Tab „Erweitert" / „Developer" / „Tools &amp; Extensions" suchen — der exakte Pfad variiert je nach
+   Claude-Desktop-Version.</li>
+<li><strong>MCP-Servers</strong>-Liste suchen, den Eintrag <code>carambus-clubcloud</code> finden.</li>
+<li>Permission-Modus auf <strong>„Always allow for this server"</strong> stellen (Dropdown oder Toggle).</li>
+<li><strong>Alternative</strong>, falls Du den Einstellungs-Pfad nicht findest: warte auf den ersten Tool-Call
+   im Dialog (z.B. via Spickzettel „Status Eurokegel?") und klicke beim Permission-Prompt auf
+   <strong>„Don't ask again for this server"</strong> (oder „Immer erlauben — dieser Server").</li>
+</ol>
+<p><strong>Verifikation:</strong> Nach dem Setting einen Spickzettel-Workflow durchspielen (z.B.
+<code>cc://workflow/scenarios/sportwart-tagesablauf-vor-turnier</code>). Es sollten <strong>0 Permission-Prompts</strong>
+mehr erscheinen.</p>
+<p><strong>Sicherheits-Hinweis:</strong> Permission-Bypass nur für <strong>vertrauenswürdige</strong> MCP-Server aktivieren.
+Beim Carambus-Setup-Service ist Vertrauen begründet:</p>
+<ul>
+<li>Du (der Carambus-Admin) hast den MCP-Server selbst installiert (Sektionen 2 + 3).</li>
+<li><code>claude_desktop_config.json</code> ist per <code>chmod 600</code> geschützt (Sektion 4).</li>
+<li>Der MCP-Server hat 4-Schichten-Sicherheitsnetz + Pre-Validation-First-Pattern (Plan 10-05.1) +
+  Audit-Trail (JSON-Lines <code>log/mcp-audit-trail.log</code>). Auch ohne Permission-Prompt kann der Sportwart
+  destruktive Operationen nur via expliziten <code>armed:true</code>-Step ausführen, und alle armed-Calls werden
+  vollständig auditiert.</li>
+</ul>
+<p><strong>Sportwart-Briefing (kurz):</strong> Erkläre dem Sportwart vor dem ersten Workflow:
+„Claude führt jetzt jeden Spickzettel ohne Rückfragen aus, weil ich (Dein Admin) Claude den Server
+einmalig erlaubt habe. Bei destruktiven Aktionen (Anmelden, Liste schließen, Spieler entfernen)
+zeigt der MCP-Server vorher trotzdem den Trockenlauf — Du musst noch immer aktiv mit „Anmelden" /
+„Schließen" / „Entfernen" bestätigen, BEVOR es scharf wird."</p>
+<hr />
+<h2 id="sektion-6-remote-bildschirm-sharing-fallback">Sektion 6 — Remote-Bildschirm-Sharing-Fallback<a class="headerlink" href="#sektion-6-remote-bildschirm-sharing-fallback" title="Permanent link">&para;</a></h2>
+<p>Wenn vor-Ort-Besuch nicht möglich ist (Distanz, Termin-Konflikte, COVID-Risiko, etc.):</p>
+<h3 id="setup-voraussetzungen">Setup-Voraussetzungen<a class="headerlink" href="#setup-voraussetzungen" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Zoom oder TeamViewer auf beiden Rechnern installiert</li>
+<li>Sportwart-Rechner kann Bildschirm freigeben (NICHT nur Maus-/Tastatur-Steuerung)</li>
+<li>Verschlüsselte Channel für Credentials (1Password Shared Item ODER Signal-Nachricht mit Selbstzerstörung)</li>
+</ul>
+<h3 id="ablauf">Ablauf<a class="headerlink" href="#ablauf" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Video-Call starten, Sportwart teilt Bildschirm</li>
+<li>Carambus-Admin <strong>diktiert</strong> Befehle (Sportwart tippt selbst — wichtig für späteres Re-Install)</li>
+<li>Credentials: Sportwart liest aus Browser-Password-Manager vor; ODER Admin schickt 1Password-Shared-Item mit 5-Min-Expire</li>
+<li>claude_desktop_config.json: Sportwart erstellt die Datei mit Editor; Admin diktiert Inhalt</li>
+<li>Smoke-Test: gleicher Dialog wie Sektion 5</li>
+</ol>
+<h3 id="nachteile-gegen-vor-ort">Nachteile gegen vor Ort<a class="headerlink" href="#nachteile-gegen-vor-ort" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Admin sieht keine Hardware-Pfade direkt</li>
+<li>Pfad-Probleme schwerer zu debuggen</li>
+<li>Sportwart sieht alle Schritte mit (Wissenstransfer-Vorteil, aber auch Confidentiality-Risk für Admin-Workflows)</li>
+<li>Sportwart kann später NICHT eigenständig re-installieren (Admin muss erneut ran)</li>
+</ul>
+<hr />
+<h2 id="sektion-7-mcp-server-subprocess-neu-starten-nach-code-changes">Sektion 7 — MCP-Server-Subprocess neu starten (nach Code-Changes)<a class="headerlink" href="#sektion-7-mcp-server-subprocess-neu-starten-nach-code-changes" title="Permanent link">&para;</a></h2>
+<p>Claude Desktop und Claude Code fahren den MCP-Server als langlebigen Subprocess. Code-Changes in <code>lib/mcp_server/**</code> oder <code>bin/mcp-server</code> greifen NICHT automatisch — Tool-Schemas und Tool-Logik bleiben im Stale-Zustand bis zum Restart. Diese Sektion erklärt <strong>wann</strong> Du den Subprocess neu starten musst und <strong>wie</strong> das pro Client geht.</p>
+<h3 id="71-wann-neu-starten">7.1 Wann neu starten?<a class="headerlink" href="#71-wann-neu-starten" title="Permanent link">&para;</a></h3>
+<p>Restart ist nötig nach jeder der folgenden Aktionen:</p>
+<ul>
+<li><strong><code>git pull</code></strong> mit Änderungen in <code>lib/mcp_server/**</code> oder <code>bin/mcp-server</code> (Tool-Code, Schemas, PATH_MAP, ApiSurface-ALLOWLIST)</li>
+<li><strong>Lokaler Code-Edit</strong> an Tool-Schema, Pre-Validation-Constraints, AuditTrail-Logik oder BaseTool-Helpers</li>
+<li><strong><code>bundle install</code></strong> mit MCP-relevanten Gem-Updates (z.B. <code>mcp</code>-Gem-Bump auf neue Version)</li>
+<li><strong>Änderung von Rails Credentials</strong> (<code>config/credentials/{env}.yml.enc</code>) oder <code>.env</code>-Variablen wie <code>CC_REGION</code>, <code>CARAMBUS_MCP_MOCK</code> — der Subprocess liest ENV nur beim Start</li>
+</ul>
+<h3 id="72-stale-subprocess-symptome">7.2 Stale-Subprocess-Symptome<a class="headerlink" href="#72-stale-subprocess-symptome" title="Permanent link">&para;</a></h3>
+<p>Diese Beobachtungen sind verlässliche Hinweise, dass der Subprocess auf altem Code-Stand läuft:</p>
+<ul>
+<li><strong>Tool-Schemas zeigen alten Parameter-Stand</strong> (z.B. fehlende <code>name</code>/<code>shortname</code>-Params in <code>cc_lookup_tournament</code>, fehlende Convenience-Wrapper <code>club_name</code>/<code>player_name</code> in Write-Tools)</li>
+<li><strong>Tool-Calls liefern Pre-Edit-Verhalten</strong> (Region-Filter wird ignoriert, alte Disambiguation-Output-Form, fehlendes <code>pre_read_*</code>-Output in Write-Tools)</li>
+<li><strong>Neu hinzugefügte Tools tauchen nicht in der Tool-Liste auf</strong> (z.B. nach <code>git pull</code> mit Plan-XX-Tool-Erweiterung)</li>
+<li><strong>Tool-Descriptions ohne Use-Case-Präfix</strong> (kein „Wann nutzen?" + „Was tippt der User typisch?" sichtbar — sollte seit Plan 10-07 in allen 22 öffentlichen Tools zu sehen sein)</li>
+</ul>
+<p>Wenn eines dieser Symptome auftritt: Vor jeglicher Diagnose erst Restart durchführen, dann Re-Verify.</p>
+<h3 id="73-restart-in-claude-desktop-macos-windows">7.3 Restart in Claude Desktop (macOS + Windows)<a class="headerlink" href="#73-restart-in-claude-desktop-macos-windows" title="Permanent link">&para;</a></h3>
+<p><strong>Primär-Pfad:</strong></p>
+<ol>
+<li><strong>Settings öffnen</strong> (macOS: Claude → Settings; Windows: Datei → Settings)</li>
+<li><strong>„Developer"-Tab auswählen</strong> (oder „Extensions" je nach Claude-Desktop-Version)</li>
+<li><strong>MCP-Server-Liste suchen</strong> — Eintrag <code>carambus-clubcloud</code> (oder gewählter Server-Name) erscheint mit Status-Indikator</li>
+<li><strong>Restart-Icon klicken</strong> (typisch: Refresh-Symbol neben dem Server-Namen). Falls Icon in Deiner Claude-Desktop-Version nicht verfügbar ist → Fallback.</li>
+</ol>
+<p><strong>Fallback (jede Claude-Desktop-Version):</strong></p>
+<ol>
+<li><strong>Claude Desktop komplett beenden</strong>: macOS <code>Cmd+Q</code> (NICHT nur Fenster schließen — Hintergrund-Process muss enden); Windows <code>Alt+F4</code> + ggf. via Task-Manager prüfen dass <code>Claude.exe</code> nicht mehr läuft</li>
+<li><strong>Claude Desktop neu öffnen</strong> — Subprocess wird beim ersten Chat-Öffnen automatisch neu hochgezogen</li>
+</ol>
+<p><strong>Verifikations-Step:</strong></p>
+<p>Nach Restart einmal <code>cc_lookup_region</code> aufrufen (oder ein beliebiges Tool, das im jüngsten Code-Edit betroffen war). Wenn der neue Tool-State sichtbar ist (z.B. neue Parameter im Schema, neuer Description-Präfix, neues Output-Format), ist der Subprocess fresh.</p>
+<h3 id="74-restart-in-claude-code-carambus-admin-technische-stellvertretung">7.4 Restart in Claude Code (Carambus-Admin / technische Stellvertretung)<a class="headerlink" href="#74-restart-in-claude-code-carambus-admin-technische-stellvertretung" title="Permanent link">&para;</a></h3>
+<p>Claude Code als MCP-Client wird typisch nur in Dev/Test-Szenarien verwendet (siehe Plan 09-03 D-09-03-A-Pragmatik). Restart-Pfade:</p>
+<ul>
+<li><strong><code>/mcp</code> Subcommand</strong> listet alle MCP-Server-Subprocesses inkl. Status (connected / disconnected / restarting)</li>
+<li><strong><code>/mcp</code> ermöglicht</strong> (je nach Claude-Code-Version) Reconnect oder Reload pro Server-Eintrag direkt aus der Subcommand-UI</li>
+<li><strong>Fallback:</strong> Claude-Code-Session beenden (<code>/exit</code> oder Ctrl+D), neue Session starten — Subprocess wird beim Session-Start neu hochgezogen</li>
+</ul>
+<h3 id="75-audit-trail-plan-10-08-befund-1">7.5 Audit-Trail (Plan 10-08 Befund #1)<a class="headerlink" href="#75-audit-trail-plan-10-08-befund-1" title="Permanent link">&para;</a></h3>
+<p>Diese Sektion existiert wegen CRITICAL-Befund #1 aus Plan 10-08 Externer Walkthrough (2026-05-12). Der MCP-Subprocess startete vor Plan-10-05/06/07-Commits; ToolSearch-Schemas zeigten Pre-Plan-10-06-Stand (kein <code>name</code>/<code>shortname</code>-Param, kein Use-Case-Präfix); die Plan-Boundary „0 versehentliche Live-Datenänderungen" griff defensiv → Walkthrough wurde im Limited-Mode geschlossen.</p>
+<p>Lesson: Bevor jegliche Live-Validation gegen Prod-CC gestartet wird (insbesondere durch externen Sportwart oder Turnierleiter), MUSS der Subprocess nach allen jüngsten Code-Changes neu gestartet sein. Diese Doku-Sektion ist die Operator-Defense; eine strukturelle Lösung (Dev-Mode-Reload-Watcher analog Rails-autoload) ist als v0.2.1-Backlog-Item A1 vorgesehen.</p>
+<p>Vollständiges Audit-Trail: <code>.paul/phases/10-walkthrough-sportwart/10-08-WALKTHROUGH-LOG.md</code> (Sektion 1 + Sektion 8 mit konsolidiertem v0.2.1-Backlog).</p>
+<hr />
+<h2 id="8-dsgvo-compliance-datenschutz">8. DSGVO-Compliance / Datenschutz<a class="headerlink" href="#8-dsgvo-compliance-datenschutz" title="Permanent link">&para;</a></h2>
+<blockquote>
+<p><strong>v0.3-Pilot-Boundary (D-13-01-E minimal-pragmatic):</strong> Diese Sektion dokumentiert die DSGVO-Erfüllung für den Carambus ClubCloud MCP-Server in der Pilot-Phase. Vollständige Self-Service-Banner-Implementierung ist deferred zu v0.4.</p>
+</blockquote>
+<h3 id="81-datenkategorien-was-wird-gespeichert">8.1 Datenkategorien (was wird gespeichert?)<a class="headerlink" href="#81-datenkategorien-was-wird-gespeichert" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Daten</th>
+<th>Format</th>
+<th>Sensitivität</th>
+<th>Persistenz</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>users.cc_credentials</code></td>
+<td>encrypted JSON</td>
+<td>HOCH (Passwort-Material)</td>
+<td>Rails-<code>encrypts</code>-Strategie; bis User-Löschung oder Widerruf</td>
+</tr>
+<tr>
+<td><code>users.mcp_role</code></td>
+<td>enum</td>
+<td>NIEDRIG (Rolle)</td>
+<td>bis User-Löschung</td>
+</tr>
+<tr>
+<td><code>users.cc_region</code></td>
+<td>String</td>
+<td>NIEDRIG (öffentlich)</td>
+<td>bis User-Löschung</td>
+</tr>
+<tr>
+<td><code>users.mcp_consent_at</code></td>
+<td>datetime</td>
+<td>NIEDRIG (Metadatum)</td>
+<td>bis User-Löschung</td>
+</tr>
+<tr>
+<td><code>mcp_audit_trails.*</code></td>
+<td>DB-Zeile</td>
+<td>MITTEL (Tool-Calls + payload)</td>
+<td>1 Jahr (Retention); <code>user_id</code> wird bei User-Löschung NULL (FK <code>ON DELETE NULLIFY</code>)</td>
+</tr>
+<tr>
+<td><code>log/mcp-audit-trail.log</code></td>
+<td>JSON-Lines-File</td>
+<td>MITTEL (analog DB)</td>
+<td>bis Datei-Rotation (logrotate-Config)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="82-verarbeitungszwecke">8.2 Verarbeitungszwecke<a class="headerlink" href="#82-verarbeitungszwecke" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong><code>cc_credentials</code></strong>: Authentifizierung gegen ClubCloud-API für Tool-Calls; nur Tool-internal lesbar (<code>Setting.login_to_cc</code>-Override im v0.3-Pilot single-global).</li>
+<li><strong><code>mcp_role</code> + <code>cc_region</code></strong>: Per-User-Tool-Subset + Region-Routing (Plan 13-02 + Plan 13-04 + Plan 13-04.1).</li>
+<li><strong><code>mcp_audit_trails</code></strong>: Forensik bei Live-CC-Fehlern + Multi-User-Filterung für Sicherheit; <code>payload[armed]=true</code> ist Trigger für Daten-Mutations-Audit.</li>
+<li><strong><code>mcp_consent_at</code></strong>: Einwilligungs-Nachweis nach Art. 7 DSGVO.</li>
+</ul>
+<h3 id="83-retention-aufbewahrung">8.3 Retention (Aufbewahrung)<a class="headerlink" href="#83-retention-aufbewahrung" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>cc_credentials</code>: bis User explizit widerruft (<code>user.mcp_role := :mcp_public_read</code>) oder Carambus-Admin User löscht.</li>
+<li><code>mcp_audit_trails</code>: <strong>1 Jahr</strong> (Forensik-Pflicht); manuelle Cleanup-Routine via
+  <div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="no">McpAuditTrail</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="s1">&#39;created_at &lt; ?&#39;</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="o">.</span><span class="n">year</span><span class="o">.</span><span class="n">ago</span><span class="p">)</span><span class="o">.</span><span class="n">delete_all</span>
+</code></pre></div>
+  durch Carambus-Admin (v0.4 plant Auto-Cleanup via Cron).</li>
+<li>JSON-Lines-File: bis Datei-Rotation (siehe <code>logrotate</code>-Konfig in Plan 13-06.1 Hetzner-Deploy-Setup).</li>
+</ul>
+<h3 id="84-user-rechte-art-15-21-dsgvo">8.4 User-Rechte (Art. 15-21 DSGVO)<a class="headerlink" href="#84-user-rechte-art-15-21-dsgvo" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Recht</th>
+<th>Wie erfüllt?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Auskunft (Art. 15)</strong></td>
+<td>Carambus-Admin: <code>User.find(id).mcp_audit_trail_export.to_json</code> → an User-Email senden. <code>cc_credentials</code> sind encrypted; werden NICHT exportiert (Sicherheitsbalance)</td>
+</tr>
+<tr>
+<td><strong>Berichtigung (Art. 16)</strong></td>
+<td>Carambus-Admin updated <code>cc_region</code>, <code>cc_credentials</code>, <code>mcp_role</code> über Console oder Admin-Dashboard</td>
+</tr>
+<tr>
+<td><strong>Löschung / „Recht auf Vergessenwerden" (Art. 17)</strong></td>
+<td><code>User.find(id).destroy</code> — <code>mcp_audit_trails.user_id</code> wird NULL (FK <code>ON DELETE NULLIFY</code> aus Plan 13-05); Audit-Trail bleibt anonymisiert für Forensik-Pflicht (gerechtfertigt Art. 17 Abs. 3)</td>
+</tr>
+<tr>
+<td><strong>Widerruf der Einwilligung (Art. 7 Abs. 3)</strong></td>
+<td>Carambus-Admin: <code>User.find(id).update!(mcp_role: :mcp_public_read, cc_credentials: nil, mcp_consent_at: nil)</code> — User behält Carambus-Account, MCP-Zugriff ist deaktiviert</td>
+</tr>
+<tr>
+<td><strong>Datenübertragbarkeit (Art. 20)</strong></td>
+<td><code>mcp_audit_trail_export.to_json</code> ist maschinenlesbares Format (analog Auskunft)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="85-einwilligungs-operational-flow-v03-pilot">8.5 Einwilligungs-Operational-Flow (v0.3-Pilot)<a class="headerlink" href="#85-einwilligungs-operational-flow-v03-pilot" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Carambus-Admin trifft User für Setup-Service-Besuch (Sektion 5 dieser Doku).</li>
+<li>Admin erklärt mündlich die Datenverarbeitung (Datenkategorien aus 8.1) und User-Rechte (8.4).</li>
+<li>User stimmt mündlich zu.</li>
+<li>Admin attestiert via Console:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="n">user</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">User</span><span class="o">.</span><span class="n">find_by</span><span class="p">(</span><span class="ss">email</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;sportwart@verein.de&#39;</span><span class="p">)</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="n">user</span><span class="o">.</span><span class="n">grant_mcp_consent!</span><span class="w">  </span><span class="c1"># setzt mcp_consent_at = Time.current</span>
+</code></pre></div></li>
+<li>Admin notiert Einwilligungs-Zeitpunkt im Setup-Service-Visit-Log.</li>
+</ol>
+<p><strong>v0.4-Plan</strong>: Self-Service-Banner im User-Profile-Settings ersetzt den Admin-attestierten Flow.</p>
+<h3 id="86-verantwortlicher-art-4-nr-7-dsgvo">8.6 Verantwortlicher (Art. 4 Nr. 7 DSGVO)<a class="headerlink" href="#86-verantwortlicher-art-4-nr-7-dsgvo" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Verantwortlicher</strong> für die Datenverarbeitung des MCP-Servers: <strong>Carambus-Betreiber</strong> (siehe <code>config/carambus.yml</code> für Kontaktdaten).</li>
+<li><strong>Auftragsverarbeiter</strong>: Hetzner Online GmbH (DE) für Hosting (v0.3-Pilot-Hosting auf carambus.de; siehe Plan 13-06.1 Deploy-Doku).</li>
+<li><strong>Datenverarbeitung erfolgt in</strong>: Deutschland / EU (Hetzner-Server in Falkenstein/Nürnberg).</li>
+<li><strong>AVV (Auftragsverarbeitungsvertrag)</strong>: zwischen Carambus-Betreiber und Hetzner besteht Standard-DSGVO-konformer AVV.</li>
+</ul>
+<hr />
+<h2 id="9-cloud-setup-pfad-http-transport-ab-v03">9. Cloud-Setup-Pfad (HTTP-Transport ab v0.3)<a class="headerlink" href="#9-cloud-setup-pfad-http-transport-ab-v03" title="Permanent link">&para;</a></h2>
+<p>Ab v0.3 unterstützt der ClubCloud-MCP-Server zusätzlich zum Stdio-Pfad (Sektionen 1-7) einen <strong>Remote-HTTP-Transport</strong> auf einem Carambus-Hetzner-Server. Damit braucht der Sportwart/Turnierleiter <strong>kein lokales MCP-Setup mehr</strong> — Claude Desktop verbindet sich direkt mit dem Server.</p>
+<blockquote>
+<p><strong>Backwards-Compat:</strong> Der Stdio-Pfad (Sektionen 2-7) bleibt parallel gültig für die technische Stellvertretung des Sportwarts und für Dev/Test. Beide Pfade führen zu identischer Tool-Funktionalität.</p>
+</blockquote>
+<h3 id="91-voraussetzungen">9.1 Voraussetzungen<a class="headerlink" href="#91-voraussetzungen" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Claude Desktop</strong> (Unified-App mit integriertem Claude-Code-Daemon, Plan 13-06.1 getestet mit <code>claude-code/2.1.138</code>) ODER <strong>Claude Code CLI</strong> (<code>claude</code> Command verfügbar)</li>
+<li><strong>Devise-User auf dem Carambus-MCP-Server</strong> existiert + Sportwart-/Turnierleiter-/Landessportwart-Rolle gesetzt (siehe Plan 13-02 Rollen-Modell — <code>landessportwart</code> sieht alle 22 Tools, <code>sportwart</code> sieht 16, <code>turnierleiter</code> sieht 19)</li>
+<li><strong>DSGVO-Einwilligung erteilt</strong> (<code>mcp_consent_at</code> gesetzt — siehe Sektion 8.4 + 8.5)</li>
+<li><strong><code>cc_region</code> + <code>cc_credentials</code></strong> am User gesetzt (Multi-Region-Routing — Plan 13-04.1)</li>
+<li><strong>Browser</strong> für Erst-Login + Cookie-Extract (Devise-Session-Cookie wird im Browser-Cookie-Store hinterlegt — Claude.app teilt diese Cookies <strong>nicht</strong> automatisch)</li>
+</ul>
+<blockquote>
+<p><strong>Plan 13-06.1 Empirical-Verify-Befund (D-13-06.1-A, 2026-05-13):</strong> Die neue Unified Claude.app liest <code>claude_desktop_config.json</code> <strong>nicht</strong> mehr — MCP-Server-Setup erfolgt via <code>claude mcp add</code> CLI (schreibt in <code>~/.claude.json</code>).</p>
+<p><strong>Plan 13-06.2 (D-13-06.1-C, 2026-05-14):</strong> <strong>JWT-Token-Auth ist Primary-Pfad</strong> ab v0.3.0. Cookie-Inject (Plan 13-06.1) bleibt als Legacy-Option in Sektion 9.7. JWT-Token hat 24h-Lifetime (statt 120min Cookie) und ist Industry-Standard für MCP-Clients.</p>
+</blockquote>
+<h3 id="92-mcp-server-setup-via-claude-code-cli-jwt-token-auth-empfohlen">9.2 MCP-Server-Setup via Claude Code CLI (JWT-Token-Auth) ⭐ EMPFOHLEN<a class="headerlink" href="#92-mcp-server-setup-via-claude-code-cli-jwt-token-auth-empfohlen" title="Permanent link">&para;</a></h3>
+<p><strong>Vorbereitung — JWT-Token via Login-Call holen:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="c1"># 1. Login + Token extrahieren (Token kommt im `Authorization`-Response-Header):</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="nv">TOKEN</span><span class="o">=</span><span class="k">$(</span>curl<span class="w"> </span>-sS<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>https://carambus.de/login<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Accept: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{&quot;user&quot;:{&quot;email&quot;:&quot;DEIN_USER@example.com&quot;,&quot;password&quot;:&quot;DEIN_PW&quot;}}&#39;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="w">  </span>-D<span class="w"> </span>-<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-i<span class="w"> </span><span class="s1">&#39;^authorization:&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>sed<span class="w"> </span>-E<span class="w"> </span><span class="s1">&#39;s/^[Aa]uthorization:[[:space:]]*//&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>tr<span class="w"> </span>-d<span class="w"> </span><span class="s1">&#39;\r\n&#39;</span><span class="k">)</span>
+<a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a>
+<a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a><span class="c1"># Sanity-Check (Token muss mit &quot;Bearer eyJ...&quot; beginnen — Bearer-Prefix + Base64-encoded JWT):</span>
+<a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Token: </span><span class="nv">$TOKEN</span><span class="s2">&quot;</span>
+</code></pre></div>
+<blockquote>
+<p><strong>Plan 13-06.4 / Fix:</strong> <code>sed -E 's/^[Aa]uthorization:[[:space:]]*//'</code> extrahiert alles <strong>nach</strong> dem <code>authorization:</code>-Prefix und erhält den gesamten Token-Wert inkl. <code>Bearer</code>-Prefix. Der frühere <code>awk '{print $2}'</code>-Pipe schnitt die Zeile <code>authorization: Bearer eyJ...</code> und lieferte nur das zweite Feld (<code>Bearer</code>) ohne den Token-Wert — der <code>add-json</code>-Header war dann nutzlos.</p>
+</blockquote>
+<p><strong>MCP-Server registrieren via CLI:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>claude<span class="w"> </span>mcp<span class="w"> </span>add-json<span class="w"> </span>--scope<span class="w"> </span>user<span class="w"> </span>carambus-remote<span class="w"> </span><span class="s2">&quot;{</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="s2">  \&quot;type\&quot;: \&quot;http\&quot;,</span>
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="s2">  \&quot;url\&quot;: \&quot;https://carambus.de/mcp?stateless=1\&quot;,</span>
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="s2">  \&quot;headers\&quot;: {</span>
+<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="s2">    \&quot;Authorization\&quot;: \&quot;</span><span class="nv">$TOKEN</span><span class="s2">\&quot;,</span>
+<a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="s2">    \&quot;Accept\&quot;: \&quot;application/json, text/event-stream\&quot;</span>
+<a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a><span class="s2">  }</span>
+<a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a><span class="s2">}&quot;</span>
+</code></pre></div>
+<blockquote>
+<p>Falls Shell-Quoting Probleme macht: Token-Wert kopieren und <code>add-json</code> mit Single-Quotes + manuell ersetztem Token aufrufen (kein Variable-Substitution).</p>
+</blockquote>
+<p><strong>Verify:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>claude<span class="w"> </span>mcp<span class="w"> </span>get<span class="w"> </span>carambus-remote<span class="w">   </span><span class="c1"># Status sollte &quot;connected&quot; zeigen</span>
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>claude<span class="w"> </span>mcp<span class="w"> </span>list<span class="w">                  </span><span class="c1"># Übersicht aller MCP-Server</span>
+</code></pre></div>
+<p><strong>Wichtige Detail-Hinweise:</strong></p>
+<ul>
+<li><strong><code>?stateless=1</code> query-param</strong> umgeht den <code>Mcp-Session-Id</code>-Header-Stateful-Flow (D-13-06.1-E). Für Claude Code MCP-Client der einfachste robuste Weg.</li>
+<li><strong><code>Accept</code>-Header dual</strong> (<code>application/json, text/event-stream</code>): Streamable-HTTP-Transport-Pflicht (D-13-06-A). Ohne → 406 Not Acceptable.</li>
+<li><strong><code>Authorization: Bearer &lt;jwt&gt;</code></strong>: Industry-Standard-Bearer-Token. Token-Lifetime <strong>24 Stunden</strong> ab Login. Bei Ablauf → erneuter Login-Call (Schritt 1 wiederholen) + <code>claude mcp remove ... &amp;&amp; claude mcp add-json ...</code> neu.</li>
+<li><strong>Force-Logout</strong>: <code>curl -X DELETE https://carambus.de/logout -H "Authorization: $TOKEN"</code> invalidiert den Token über JTIMatcher-Revocation. Alle weiteren Calls mit diesem Token → 401.</li>
+</ul>
+<h3 id="93-aktivierung-in-claudeapp">9.3 Aktivierung in Claude.app<a class="headerlink" href="#93-aktivierung-in-claudeapp" title="Permanent link">&para;</a></h3>
+<p>Nach <code>claude mcp add-json</code> wird der Eintrag in <code>~/.claude.json</code> (user-scope) persistiert. <strong>Claude.app Restart</strong> (Cmd+Q + Re-Open) lädt die neue Konfig.</p>
+<p>In neuer Chat-Session: „Welche carambus-remote Tools hast du?" → erwartete Antwort enthält die Per-Rolle gefilterte Tool-Liste (22 Tools für <code>mcp_landessportwart</code>, 16 für <code>mcp_sportwart</code>, 19 für <code>mcp_turnierleiter</code>).</p>
+<h3 id="94-verifikations-schritte">9.4 Verifikations-Schritte<a class="headerlink" href="#94-verifikations-schritte" title="Permanent link">&para;</a></h3>
+<p>Nach Setup folgenden Dialog mit Claude führen (Read-only — KEIN <code>armed:true</code>, kein Live-CC-Write):</p>
+<ol>
+<li><strong>„Welche MCP-Tools hast du?"</strong> → erwartet Per-User-Rollen-Tool-Subset:</li>
+<li><strong>landessportwart</strong> → 22 Tools (volle Suite)</li>
+<li><strong>sportwart</strong> → 16 Tools (kein cc_assign/cc_remove/cc_finalize/cc_unregister — Akkreditierung am Turniertag fehlt)</li>
+<li><strong>turnierleiter</strong> → 19 Tools (kein cc_register/cc_update_deadline/cc_unregister — Pre-Tournament-Setup fehlt)</li>
+<li><strong>„Welche Region bin ich?"</strong> oder konkreter: <strong>„Liste die Vereine in meiner Region für Disziplin Dreiband"</strong> → erwartet Vereinsliste aus der eigenen <code>cc_region</code> (Multi-Region-Routing funktioniert)</li>
+<li><strong>„Welche offenen Turniere gibt es in NBV?"</strong> (oder eigene Region) → erwartet Read-only Turnier-Liste</li>
+</ol>
+<blockquote>
+<p><strong>Wichtig — Plan-Boundary v0.3:</strong> Im Erst-Verify-Cycle KEIN <code>armed:true</code>-Call ausführen. Sicherheits-Pflicht „0 versehentliche Live-Datenänderungen" bleibt kumulativ gewahrt.</p>
+</blockquote>
+<h3 id="95-troubleshooting">9.5 Troubleshooting<a class="headerlink" href="#95-troubleshooting" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Ursache</th>
+<th>Lösung</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong><code>Failed to connect</code> bei <code>claude mcp get</code></strong></td>
+<td>Cookie fehlt / expired / falscher Name (Plan 13-06.1 D-13-06.1-A häufigstes Pilot-Symptom)</td>
+<td>DevTools-Cookie-Extract erneut (<code>_session_id</code>-Wert frisch nach Browser-Login); <code>claude mcp remove</code> + neu via <code>add-json</code></td>
+</tr>
+<tr>
+<td><strong>400 „Missing session ID"</strong></td>
+<td><code>?stateless=1</code>-Query-Param fehlt in URL (D-13-06.1-E)</td>
+<td>URL in <code>claude mcp add-json</code> muss <code>https://carambus.de/mcp?stateless=1</code> enthalten (mit Query-Param)</td>
+</tr>
+<tr>
+<td><strong>401 Unauthorized</strong> mit JSON <code>{"error":"Sie müssen sich anmelden..."}</code></td>
+<td>Cookie-Wert ungültig/expired oder falsches Cookie-Name (z.B. <code>_carambus_session</code> statt <code>_session_id</code>)</td>
+<td>Browser-Re-Login → DevTools → <code>_session_id</code>-Wert kopieren; <code>claude mcp</code> Konfig erneuern</td>
+</tr>
+<tr>
+<td><strong>406 Not Acceptable</strong> bei tools/list oder initialize</td>
+<td><code>Accept</code>-Header fehlt oder nur <code>application/json</code> (D-13-06-A)</td>
+<td>In <code>add-json</code> Header-Block beide Mime-Types: <code>"Accept": "application/json, text/event-stream"</code></td>
+</tr>
+<tr>
+<td><strong>„DSGVO-Einwilligung erforderlich"</strong></td>
+<td><code>mcp_consent_at</code> nicht gesetzt</td>
+<td>Sektion 8.5 Einwilligungs-Operational-Flow durchlaufen (Browser-Banner oder Admin-Setting)</td>
+</tr>
+<tr>
+<td><strong>Tool-Liste leer / kürzer als erwartet</strong></td>
+<td><code>User.mcp_role</code> falsch oder nicht gesetzt</td>
+<td>Admin-Korrektur am User-Account (Rolle z.B. auf <code>mcp_landessportwart</code> setzen für volle 22-Tool-Suite)</td>
+</tr>
+<tr>
+<td><strong>Falsche Region in Tool-Output</strong></td>
+<td><code>User.cc_region</code> falsch gesetzt</td>
+<td>Admin-Korrektur am User-Account (Rails-Console oder Admin-UI); danach Browser-Re-Login</td>
+</tr>
+<tr>
+<td><strong>Tool-Calls dauern lang / Timeout</strong></td>
+<td>Multi-Region-Routing geht zur falschen <code>region_cc.base_url</code> (D-13-04-A)</td>
+<td>Befund-Capture; ggf. Plan 13-06.2 Nachbesserung</td>
+</tr>
+<tr>
+<td><strong>Claude.app ignoriert <code>~/.claude.json</code>-Eintrag</strong></td>
+<td>Claude.app nicht restarted nach <code>claude mcp add-json</code></td>
+<td>Cmd+Q + Re-Open (kein Hot-Reload)</td>
+</tr>
+<tr>
+<td><strong>Login-Call liefert leeren Authorization-Header</strong></td>
+<td>devise-jwt-Config falsch (z.B. <code>dispatch_requests</code>-Regex matched Login-Route nicht) ODER <code>Accept: application/json</code>-Header fehlte beim Login</td>
+<td>Server-Log <code>tail -f /var/www/carambus/current/log/production.log</code> während Login-Call; <code>Accept: application/json</code> Header zwingend setzen</td>
+</tr>
+<tr>
+<td><strong>401 mit Bearer-Token (<code>{"error":"Sie müssen sich anmelden..."}</code>)</strong></td>
+<td>Token expired (&gt;24h alt) ODER Token revoked via <code>DELETE /logout</code> ODER JWT-Secret-Inkonsistenz Server/Lokal</td>
+<td>Neuen Token holen via Login-Call; auf Server <code>RAILS_MASTER_KEY</code> / <code>devise_jwt_secret_key</code> in production-Credentials verifizieren</td>
+</tr>
+<tr>
+<td><strong>Token-Wert beginnt nicht mit <code>eyJ</code></strong></td>
+<td>devise-jwt-Gem nicht geladen ODER Login-Endpoint liefert keinen Bearer-Header</td>
+<td><code>gem list devise-jwt</code> auf Server prüfen; <code>bundle exec rails routes \| grep -E 'login\|logout'</code> → POST <code>/login</code>-Route muss existieren; <code>dispatch_requests</code>-Regex in <code>config/initializers/devise.rb</code> muss <code>^/login$</code> matchen (Plan 13-06.3 D-13-06.3-A)</td>
+</tr>
+<tr>
+<td><strong><code>$TOKEN</code> enthält nur <code>Bearer</code> (ohne <code>eyJ...</code>)</strong></td>
+<td>Setup-Doku-Pre-13-06.4-Versionen nutzten <code>awk '{print $2}'</code>-Pipe; dieser schnitt die Zeile <code>authorization: Bearer eyJ...</code> und lieferte nur das zweite Feld (<code>Bearer</code>)</td>
+<td>Heutige Sektion 9.2 nutzt <code>sed -E 's/^[Aa]uthorization:[[:space:]]*//'</code>-Extraktion; bei kopierten Snippets aus älteren Doku-Versionen den Token-Extract-Block durch die aktuelle Sektion-9.2-Variante ersetzen (Plan 13-06.4-Fix)</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>Plan 13-06.1 + 13-06.2 Live-Validation-Befunde (2026-05-13/14):</strong> 22 Tools via <code>claude mcp add-json ... carambus-remote</code> mit <code>?stateless=1</code> erfolgreich gelistet auf carambus.de. JWT-Token-Auth (Plan 13-06.2) ist Production-Primary; Cookie-Inject (Plan 13-06.1) bleibt als Legacy-Option in Sektion 9.7 erhalten. McpController-Fix <code>skip_forgery_protection</code> (Commit <code>66cd3b33</code>) Plan-13-03-Update: Rails 7.2 nullt Session-State trotz <code>skip_before_action :verify_authenticity_token</code>. Diese Tabelle wird mit Phase-14-Walkthrough-Erfahrungen erweitert.</p>
+</blockquote>
+<h3 id="96-reserviert">9.6 (reserviert)<a class="headerlink" href="#96-reserviert" title="Permanent link">&para;</a></h3>
+<h3 id="97-legacy-cookie-auth-v03-pilot-plan-13-061-deprecated">9.7 Legacy Cookie-Auth (v0.3-Pilot Plan 13-06.1) — DEPRECATED<a class="headerlink" href="#97-legacy-cookie-auth-v03-pilot-plan-13-061-deprecated" title="Permanent link">&para;</a></h3>
+<blockquote>
+<p><strong>Status:</strong> Plan 13-06.1 hat Cookie-Inject als initialen Pilot-Workaround eingeführt; Plan 13-06.2 hat JWT-Token-Auth als Phase-14-Primary etabliert. Cookie-Inject bleibt für Backwards-Compat erhalten, aber <strong>NICHT empfohlen</strong> für neue Setups — JWT-Token (Sektion 9.2) hat längere Lifetime und ist robuster.</p>
+</blockquote>
+<p><strong>Wann diese Sektion verwenden:</strong>
+- Plan-13-06.1-Pilot-Setup bleibt funktional (keine Migration erzwungen)
+- Bei spezifischen MCP-Client-Limitationen wo Bearer-Header nicht unterstützt wird (selten)
+- Als Fallback falls JWT-Token-Login (Sektion 9.2) scheitert</p>
+<p><strong>Cookie-Extract-Workflow:</strong></p>
+<ol>
+<li>Browser-Login auf https://carambus.de/login mit Carambus-Credentials</li>
+<li>Browser-DevTools öffnen (F12, oder ⌥+⌘+I in Safari)</li>
+<li>Tab <code>Application</code> (Chrome/Edge) bzw. <code>Storage</code> (Firefox) → <code>Cookies</code> → <code>https://carambus.de</code></li>
+<li>Wert von Cookie <strong><code>_session_id</code></strong> kopieren (32-stelliger Hex-String, Rails-Default-Cookie-Name)</li>
+</ol>
+<p><strong>MCP-Server registrieren mit Cookie-Header:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>claude<span class="w"> </span>mcp<span class="w"> </span>add-json<span class="w"> </span>--scope<span class="w"> </span>user<span class="w"> </span>carambus-remote<span class="w"> </span><span class="s1">&#39;{</span>
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="s1">  &quot;type&quot;: &quot;http&quot;,</span>
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="s1">  &quot;url&quot;: &quot;https://carambus.de/mcp?stateless=1&quot;,</span>
+<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="s1">  &quot;headers&quot;: {</span>
+<a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a><span class="s1">    &quot;Cookie&quot;: &quot;_session_id=DEIN_COOKIE_HIER&quot;,</span>
+<a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a><span class="s1">    &quot;Accept&quot;: &quot;application/json, text/event-stream&quot;</span>
+<a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a><span class="s1">  }</span>
+<a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a><span class="s1">}&#39;</span>
+</code></pre></div>
+<p><strong>Limitierungen:</strong></p>
+<ul>
+<li><strong>Cookie-Expire 120 Minuten</strong> (vs 24h JWT) — Re-Login alle 2h notwendig</li>
+<li><strong>Cookie-Sharing</strong> zwischen Browser und Claude.app erfolgt NICHT automatisch (manueller DevTools-Extract)</li>
+<li>Bei Carambus-Scenarios mit anderem <code>session_store key:</code>-Parameter kann Cookie-Name abweichen (im DevTools sichtbar)</li>
+</ul>
+<p><strong>Migration auf JWT:</strong> <code>claude mcp remove carambus-remote -s user</code> + Sektion 9.2 Schritt 1+2 ausführen.</p>
+<hr />
+<h2 id="quellen-weiterfuhrendes">Quellen &amp; Weiterführendes<a class="headerlink" href="#quellen-weiterfuhrendes" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="../clubcloud-mcp-setup/"><code>clubcloud-mcp-setup.de.md</code></a> — Setup-Troubleshooting für technische Stellvertretung</li>
+<li><a href="../clubcloud-mcp-quickstart/"><code>clubcloud-mcp-quickstart.de.md</code></a> — 5-Min-Quickstart-NL-Dialoge</li>
+<li><code>docs/developers/clubcloud-mcp-server.de.md</code> — Entwickler-Handbuch für tieferes Tool-Debugging</li>
+</ul>
+<hr />
+<p><em>Plan 09-03 (Phase 9 Live-Härten + Setup-Service) — adressiert Q-v02-2 (Setup vor Ort) + Q-09-A (Phase 9). Phase-10-Voraussetzung.</em>
+<em>Updated: 2026-05-12</em></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        <div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/GernotUllrich/carambus" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="http://www.billardclub-wedel.de/" target="_blank" rel="noopener" title="www.billardclub-wedel.de" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M352 256c0 22.2-1.2 43.6-3.3 64H163.4c-2.2-20.4-3.3-41.8-3.3-64s1.2-43.6 3.3-64h185.3c2.2 20.4 3.3 41.8 3.3 64m28.8-64h123.1c5.3 20.5 8.1 41.9 8.1 64s-2.8 43.5-8.1 64H380.8c2.1-20.6 3.2-42 3.2-64s-1.1-43.4-3.2-64m112.6-32H376.7c-10-63.9-29.8-117.4-55.3-151.6 78.3 20.7 142 77.5 171.9 151.6zm-149.1 0H167.7c6.1-36.4 15.5-68.6 27-94.7 10.5-23.6 22.2-40.7 33.5-51.5C239.4 3.2 248.7 0 256 0s16.6 3.2 27.8 13.8c11.3 10.8 23 27.9 33.5 51.5 11.6 26 20.9 58.2 27 94.7m-209 0H18.6c30-74.1 93.6-130.9 172-151.6-25.5 34.2-45.3 87.7-55.3 151.6M8.1 192h123.1c-2.1 20.6-3.2 42-3.2 64s1.1 43.4 3.2 64H8.1C2.8 299.5 0 278.1 0 256s2.8-43.5 8.1-64m186.6 254.6c-11.6-26-20.9-58.2-27-94.6h176.6c-6.1 36.4-15.5 68.6-27 94.6-10.5 23.6-22.2 40.7-33.5 51.5-11.2 10.7-20.5 13.9-27.8 13.9s-16.6-3.2-27.8-13.8c-11.3-10.8-23-27.9-33.5-51.5zM135.3 352c10 63.9 29.8 117.4 55.3 151.6-78.4-20.7-142-77.5-172-151.6zm358.1 0c-30 74.1-93.6 130.9-171.9 151.6 25.5-34.2 45.2-87.7 55.3-151.6h116.7z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.indexes", "search.suggest", "search.highlight", "header.autohide", "toc.follow"], "search": "../../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "In Zwischenablage kopiert", "clipboard.copy": "In Zwischenablage kopieren", "search.result.more.one": "1 weiteres Suchergebnis auf dieser Seite", "search.result.more.other": "# weitere Suchergebnisse auf dieser Seite", "search.result.none": "Keine Suchergebnisse", "search.result.one": "1 Suchergebnis", "search.result.other": "# Suchergebnisse", "search.result.placeholder": "Suchbegriff eingeben", "search.result.term.missing": "Es fehlt", "select.version": "Version ausw\u00e4hlen"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.56ea9cef.min.js"></script>
+      
+        <script src="../../javascripts/mathjax.js"></script>
+      
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+        <script src="https://unpkg.com/mermaid@10/dist/mermaid.min.js"></script>
+      
+        <script src="../../javascripts/mermaid-init.js"></script>
+      
+    
+  </body>
+</html>

@@ -162,6 +162,20 @@ nav:
       - Table Reservation: managers/table-reservation.md
       - Admin Roles: managers/admin-roles.md
       - ClubCloud Integration: managers/clubcloud-integration.md
+      - ClubCloud MCP:
+          - Cloud Quickstart: managers/clubcloud-mcp-cloud-quickstart.md
+          - MCP Quickstart: managers/clubcloud-mcp-quickstart.md
+          - Setup: managers/clubcloud-mcp-setup.md
+          - Setup Service: managers/clubcloud-mcp-setup-service.md
+          - Klickreduktion - Anmeldung aus E-Mail: managers/clubcloud-mcp-klickreduktion-anmeldung-aus-email.md
+          - Klickreduktion - Meldeliste finalisieren: managers/clubcloud-mcp-klickreduktion-meldeliste-finalisieren.md
+          - Klickreduktion - Turnier-Status & Anmelden: managers/clubcloud-mcp-klickreduktion-turnier-status-und-anmelden.md
+      - ClubCloud Scenarios:
+          - CC Glossary: managers/clubcloud-scenarios/cc-glossary.md
+          - CC Roles: managers/clubcloud-scenarios/cc-roles.md
+          - Endrangliste eintragen: managers/clubcloud-scenarios/endrangliste-eintragen.md
+          - Player anlegen: managers/clubcloud-scenarios/player-anlegen.md
+          - Teilnehmerliste finalisieren: managers/clubcloud-scenarios/teilnehmerliste-finalisieren.md
       - Search & Filters: managers/search-filters.md
   - Administrators:
       - administrators/index.md

@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "id": "akkreditierung-am-turniertag",
+  "version": "0.1.0",
+  "title": "Akkreditierung am Turniertag",
+  "description": "Turnierleiter-DSL-Spickzettel für den Live-Turniertag-Workflow. Der Turnierleiter ist KEIN CC-Admin (CC-Wissen=Null), aber Domain-Experte (Spielregeln, Akkreditierungs-Konvention). Er spricht in Sprech-Kürzeln: 'Liste zeigen', 'Akk X Y Z', 'Raus X', 'Finalize'. Claude resolved Spielernamen via Vokabular-Schicht (Plan 10-06) zu cc_ids und führt den Live-Turnier-Lebenszyklus: Pre-Read Teilnehmerliste -> Akkreditierung -> Cleanup (optional) -> Finalize. Pre-Validation-First-Pattern (Plan 10-05.1) macht armed:true Live-Production-tauglich.",
+  "prerequisites": [
+    "Turnierleiter hat Club-Sportwart- oder höhere CC-Rolle für die Region des Turniers.",
+    "MCP-Server wurde vom Carambus-Admin vor Ort eingerichtet (Setup-Service-Doku `clubcloud-mcp-setup-service.de.md`).",
+    "Claude Desktop läuft mit Permission-Modus 'Always allow for this server' (vermeidet Friktion am Turniertag — siehe Setup-Service-Doku, Sektion Permission-Setup).",
+    "Meldeliste existiert in CC; einzelne Spieler haben PlayerRanking-Einträge für die Disziplin (Spielberechtigung).",
+    "Vorhandene Pre-Validation-First-Architektur (Plan 10-05.1) — Tool entscheidet selbst nach Pre-Validation, kein Operator-Pre-Confirm-Friction am Turniertag."
+  ],
+  "user_confirm_strategy": "per_step",
+  "notes_for_claude": "Der Turnierleiter denkt in NAMEN und SPRECH-KÜRZELN ('Akk Müller'), nicht in cc_ids oder Tool-Namen. Nutze IMMER name-basierte Inputs (Vokabular-Schicht Plan 10-06): player_name in cc_assign/cc_remove. Frag NIEMALS den Turnierleiter nach einer cc_id — bei mehrdeutigem Namen präsentiere Treffer-Kandidaten (Disambiguation-Pattern). Persona: CC-Wissen NULL, Domain-Wissen HOCH (Spielregeln, Akkreditierungs-Konvention). **Pre-Validation-First (Plan 10-05.1):** alle 4 Write-Tools haben jetzt _validate_*-Helper VOR armed:true — Tool entscheidet selbst, kein Operator-Pre-Confirm-Block. Du kannst armed:true direkt setzen wenn Pre-Validation grün ist (Live-Turnier-Use-Case kritisch — Operator hat keine Zeit für mehrfache Bestätigungen). Trotzdem: bei destruktiven Aktionen (remove, finalize) kurz das Ergebnis nochmal verbal bestätigen, BEVOR du ausführst. Multi-Player-Akkreditierung: cc_assign_player_to_teilnehmerliste unterstützt Multi-Add via player_cc_ids:[Array] oder player_names:[Array] (Vokabular-Schicht); in einem Call statt N Calls. Bei stale CC-Daten (meta.last_sync_age_hours > 2h) am Turniertag IMMER force_refresh:true (Live-Daten kritisch).",
+  "steps": [
+    {
+      "step_id": "lookup_meldeliste_for_tournament",
+      "tool": "cc_lookup_meldeliste_for_tournament",
+      "params": {
+        "tournament_cc_id": "{{tournament_cc_id_input}}",
+        "force_refresh": true
+      },
+      "bind_result": {
+        "meldeliste_cc_id": "$.meldeliste_cc_id",
+        "meldeliste_candidates": "$.candidates",
+        "available_players": "$.players_available"
+      },
+      "description_for_user": "Aktion 'Liste zeigen': Ich hol die Meldeliste live aus CC (force_refresh:true — Turniertag-Daten müssen aktuell sein). Bei mehreren Meldelisten zum Tournament: candidates-Array; bitte auswählen.",
+      "user_confirm": false,
+      "expected_outcome": "1 Meldeliste-Match (oder Disambiguation-Kandidaten) + Liste der noch nicht akkreditierten Spieler. Vokabular-Schicht/Disambiguation-Pattern (Plan 10-06) für Mehrfachtreffer.",
+      "fail_action": "ask_user"
+    },
+    {
+      "step_id": "lookup_teilnehmerliste_current_state",
+      "tool": "cc_lookup_teilnehmerliste",
+      "params": {
+        "meldeliste_cc_id": "{{meldeliste_cc_id}}",
+        "force_refresh": true
+      },
+      "bind_result": {
+        "accredited": "$.teilnehmerliste",
+        "accredited_count": "$.teilnehmerliste_count"
+      },
+      "description_for_user": "Ich zeig den aktuellen Akkreditierungs-Stand: {{accredited_count}} Spieler bereits auf der Teilnehmerliste. Welche Aktion? (1) Spieler akkreditieren ('Akk X Y Z'). (2) Spieler raus ('Raus X'). (3) Liste finalisieren ('Finalize').",
+      "user_confirm": true,
+      "expected_outcome": "Teilnehmerliste-Snapshot + Aktionswahl durch Turnierleiter. Bei (1): Step 3. Bei (2): Step 4. Bei (3): Step 5.",
+      "fail_action": "ask_user"
+    },
+    {
+      "step_id": "assign_players_by_name_dry_run",
+      "tool": "cc_assign_player_to_teilnehmerliste",
+      "params": {
+        "meldeliste_cc_id": "{{meldeliste_cc_id}}",
+        "player_names": "{{player_names_input}}",
+        "armed": false
+      },
+      "description_for_user": "Aktion (1) 'Akk {{player_names_input}}': Pre-Validation-Check (armed:false). Auto-Resolve via Vokabular-Schicht: player_names -> cc_search_player. Pre-Validation prüft 4 Constraints (Meldeliste existiert / Spieler existiert / Spieler in Meldeliste / nicht-doppelt-akkreditiert). Bei allen grün: 'OK' -> erneut mit armed:true. Multi-Player-Akkreditierung läuft nativ über player_names:Array (1 Call statt N).",
+      "user_confirm": true,
+      "expected_outcome": "Pre-Validation-Output + aufgelöste player_cc_ids + Workflow-Vorschau (Multi-Step via meldungId[]). Bei Turnierleiter-OK: armed:true. Read-Back-Verify via showTeilnehmerliste.",
+      "fail_action": "ask_user"
+    },
+    {
+      "step_id": "remove_player_by_name_dry_run",
+      "tool": "cc_remove_from_teilnehmerliste",
+      "params": {
+        "meldeliste_cc_id": "{{meldeliste_cc_id}}",
+        "player_name": "{{player_name_remove_input}}",
+        "armed": false
+      },
+      "description_for_user": "Aktion (2) 'Raus {{player_name_remove_input}}': Dry-Run (armed:false). Auto-Resolve via Vokabular-Schicht: player_name -> cc_search_player. Pre-Validation prüft 3 Constraints (Meldeliste existiert / Spieler auf Teilnehmerliste / nicht-letzter-Spieler). ACHTUNG: destruktiv. Bei Turnierleiter-OK: armed:true.",
+      "user_confirm": true,
+      "expected_outcome": "Pre-Validation-Output + aufgelöste player_cc_id + Workflow-Vorschau. Symmetrische Cleanup-Closure zu Step 3 (assign).",
+      "fail_action": "ask_user"
+    },
+    {
+      "step_id": "finalize_teilnehmerliste_dry_run",
+      "tool": "cc_finalize_teilnehmerliste",
+      "params": {
+        "meldeliste_cc_id": "{{meldeliste_cc_id}}",
+        "armed": false
+      },
+      "description_for_user": "Aktion (3) 'Finalize': Dry-Run (armed:false). ACHTUNG: Finalize ist destruktiv (keine Änderungen mehr möglich — Turnier kann jetzt starten). Pre-Validation prüft 3 Constraints. Bei Turnierleiter-OK: armed:true. Für Detail-Workflow siehe Spickzettel `meldeliste-finalisieren`.",
+      "user_confirm": true,
+      "expected_outcome": "Pre-Validation + destruktive Aktion sichtbar markiert. Turnierleiter muss explizit bestätigen. Letzte Aktion vor Turnierstart.",
+      "fail_action": "ask_user"
+    }
+  ]
+}
