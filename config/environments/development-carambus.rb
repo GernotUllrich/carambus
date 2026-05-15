@@ -26,8 +26,13 @@ Rails.application.configure do
   # Store uploaded files on the local file system (see config/storage.yml for options).
   config.active_storage.service = :local
 
-  # Don't care if the mailer can't send.
-  config.action_mailer.raise_delivery_errors = false
+  # D-41-B: letter_opener_web aktiviert für Dev-Mailbox unter /letter_opener.
+  # raise_delivery_errors auf true gestellt, damit Mailer-Probleme früh sichtbar
+  # sind (vorher: stille Drops in Dev). Production-SMTP-Config bleibt unberührt.
+  config.action_mailer.delivery_method = :letter_opener_web
+  config.action_mailer.perform_deliveries = true
+  config.action_mailer.raise_delivery_errors = true
+  config.action_mailer.default_url_options = { host: "localhost", port: 3000 }
   config.action_mailer.perform_caching = false
 
   # Print deprecation notices to the Rails logger.
