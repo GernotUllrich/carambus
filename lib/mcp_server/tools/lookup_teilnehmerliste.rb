@@ -25,12 +25,12 @@ module McpServer
       annotations(read_only_hint: true, destructive_hint: false)
 
       def self.call(tournament_id: nil, meldeliste_id: nil, fed_id: nil, force_refresh: false, server_context: nil)
-        fed_id ||= default_fed_id
+        fed_id ||= default_fed_id(server_context)
         unless tournament_id.present? || meldeliste_id.present?
-          return error("Missing required parameter: provide `tournament_id` or `meldeliste_id`")
+          return error("Bitte gib `tournament_id` (Carambus-id) oder `meldeliste_id` (CC-RegistrationListCc.cc_id) an.")
         end
 
-        return live_lookup(fed_id: fed_id, meldeliste_id: meldeliste_id) if force_refresh
+        return live_lookup(fed_id: fed_id, meldeliste_id: meldeliste_id, server_context: server_context) if force_refresh
 
         # DB-first: look up Tournament → TournamentCc → RegistrationListCc mirror
         tournament_cc = if tournament_id.present?
@@ -42,30 +42,30 @@ module McpServer
         end
 
         if tournament_id.present? && tournament_cc.nil?
-          # Check if the Tournament itself exists before returning "not found in CC"
+          # Plan 14-02.3 / F-6: Sportwart-Vokabular für no_cc_mirror-Fall.
           tournament = Tournament.find_by(id: tournament_id)
-          return error("Tournament #{tournament_id} not found in Carambus DB") unless tournament
+          return error("Turnier #{tournament_id} ist in Carambus nicht bekannt — bitte prüfe die tournament_id (Carambus-Rails-id).") unless tournament
           return text(JSON.generate(
             tournament_id: tournament_id,
             tournament_title: tournament.title,
             cc_tournament_id: nil,
             meldeliste_cc_id: nil,
             status: "no_cc_mirror",
-            message: "Tournament exists in Carambus but has no TournamentCc mirror. " \
-                     "Use force_refresh: true with fed_id to check CC directly."
+            message: "Turnier ist in Carambus angelegt, aber noch nicht mit CC verknüpft (kein TournamentCc-Mirror). " \
+                     "Setze `force_refresh: true`, um direkt in CC zu prüfen."
           ))
         end
 
-        return error("Teilnehmerliste not found in Carambus DB. Try force_refresh: true to query CC.") if tournament_cc.nil?
+        return error("Teilnehmerliste für dieses Turnier in Carambus nicht gefunden. Versuche `force_refresh: true` für Live-CC-Abfrage.") if tournament_cc.nil?
 
         text(format_teilnehmerliste(tournament_cc))
       end
 
-      def self.live_lookup(fed_id:, meldeliste_id:)
-        return error("Missing fed_id for live Teilnehmerliste lookup") if fed_id.blank?
+      def self.live_lookup(fed_id:, meldeliste_id:, server_context: nil)
+        return error("fed_id fehlt für Live-CC-Abfrage — wird aus User#cc_region abgeleitet; bitte Profil prüfen.") if fed_id.blank?
         client = cc_session.client_for(server_context)
         res, _doc = client.get("showMeldelistenList", {fedId: fed_id}, {session_id: cc_session.cookie})
-        return error("CC live-lookup failed: HTTP #{res&.code}") if res&.code != "200"
+        return error("Live-CC-Abfrage fehlgeschlagen: HTTP #{res&.code}") if res&.code != "200"
         found = meldeliste_id.present? ? " (looking for meldeliste_id=#{meldeliste_id})" : ""
         text("CC live response for showMeldelistenList#{found} (fed_id=#{fed_id}, status #{res.code})")
       end

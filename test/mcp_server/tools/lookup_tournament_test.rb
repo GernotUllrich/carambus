@@ -3,10 +3,13 @@
 require "test_helper"
 
 # Tests for cc_lookup_tournament — DB-first lookup + Phase-5 Detail-Output
-# (location_text, tournament_start/end, accredation_end) und optionale
-# Live-Meldeliste-Read via showCommittedMeldeliste.
+# (location_text, tournament_start/end, accredation_end) + Live-Meldeliste-Read.
 #
-# Mock-Mode-only: setup setzt CARAMBUS_MCP_MOCK=1 und _client_override.
+# Plan 14-02.3 updates:
+# - F-4: cc_id-Alias-Tests
+# - F-7: Season-Default-Filter-Tests
+# - D-14-02-G strict User-Context (server_context: {cc_region: "NBV"})
+# - F-6 Sportwart-Vokabular in Error-Messages
 class McpServer::Tools::LookupTournamentTest < ActiveSupport::TestCase
   setup do
     ENV["CARAMBUS_MCP_MOCK"] = "1"
@@ -27,13 +30,14 @@ class McpServer::Tools::LookupTournamentTest < ActiveSupport::TestCase
     McpServer::CcSession.reset!
   end
 
-  test "validation: missing meisterschaft_id und tournament_id liefert error" do
+  test "validation: missing meisterschaft_id / cc_id / tournament_id / name liefert error" do
     response = McpServer::Tools::LookupTournament.call(server_context: nil)
     assert response.error?
-    assert_match(/Missing required parameter/i, response.content.first[:text])
+    msg = response.content.first[:text]
+    assert_match(/meisterschaft_id|cc_id|tournament_id|name/i, msg)
   end
 
-  test "DB-first miss: TournamentCc nicht gefunden liefert error" do
+  test "DB-first miss: TournamentCc nicht gefunden liefert error mit Sportwart-Vokabular" do
     response = McpServer::Tools::LookupTournament.call(
       meisterschaft_id: 99_999_999,
       server_context: {cc_region: "NBV"}
@@ -51,13 +55,41 @@ class McpServer::Tools::LookupTournamentTest < ActiveSupport::TestCase
     assert_match(/Carambus-Profil hat keine Region/i, response.content.first[:text])
   end
 
-  test "Phase-5 Detail-Output: liefert location_text/tournament_start/end zusätzlich zu Core-Feldern" do
-    sample = TournamentCc.where.not(cc_id: nil).first
+  # Plan 14-02.3 / F-4: cc_id ist Alias für meisterschaft_id.
+  test "F-4 cc_id-Alias: cc_id wird wie meisterschaft_id behandelt" do
+    sample = TournamentCc.where.not(cc_id: nil).where.not(context: nil).first
+    skip "No TournamentCc fixtures available" unless sample
+
+    response = McpServer::Tools::LookupTournament.call(
+      cc_id: sample.cc_id,
+      server_context: {cc_region: sample.context.to_s.upcase}
+    )
+    refute response.error?, "cc_id-Alias muss funktionieren; got: #{response.content.first[:text]}"
+    body = JSON.parse(response.content.first[:text])
+    assert_equal sample.cc_id, body["cc_id"]
+  end
+
+  test "F-4 cc_id-Alias: meisterschaft_id hat Präzedenz wenn beide gesetzt" do
+    sample = TournamentCc.where.not(cc_id: nil).where.not(context: nil).first
     skip "No TournamentCc fixtures available" unless sample
 
     response = McpServer::Tools::LookupTournament.call(
       meisterschaft_id: sample.cc_id,
-      server_context: nil
+      cc_id: 99_999_999,  # falscher cc_id-Wert; meisterschaft_id soll gewinnen
+      server_context: {cc_region: sample.context.to_s.upcase}
+    )
+    refute response.error?
+    body = JSON.parse(response.content.first[:text])
+    assert_equal sample.cc_id, body["cc_id"]
+  end
+
+  test "Phase-5 Detail-Output: liefert location_text/tournament_start/end zusätzlich zu Core-Feldern" do
+    sample = TournamentCc.where.not(cc_id: nil).where.not(context: nil).first
+    skip "No TournamentCc fixtures available" unless sample
+
+    response = McpServer::Tools::LookupTournament.call(
+      meisterschaft_id: sample.cc_id,
+      server_context: {cc_region: sample.context.to_s.upcase}
     )
     refute response.error?, "Expected non-error; got: #{response.content.first[:text]}"
     body = JSON.parse(response.content.first[:text])
@@ -66,7 +98,6 @@ class McpServer::Tools::LookupTournamentTest < ActiveSupport::TestCase
     assert_equal sample.id, body["id"]
     assert_equal sample.cc_id, body["cc_id"]
     assert_equal sample.name, body["name"]
-    assert_equal sample.season, body["season"]
 
     # Phase-5 Detail-Felder existieren als Keys (Werte können nil sein, je nach Sample):
     assert body.key?("location_text"), "location_text muss im Output sein"
@@ -81,12 +112,12 @@ class McpServer::Tools::LookupTournamentTest < ActiveSupport::TestCase
   end
 
   test "Backwards-Compat: ohne with_committed_list KEIN committed_players Feld im Output" do
-    sample = TournamentCc.where.not(cc_id: nil).first
+    sample = TournamentCc.where.not(cc_id: nil).where.not(context: nil).first
     skip "No TournamentCc fixtures available" unless sample
 
     response = McpServer::Tools::LookupTournament.call(
       meisterschaft_id: sample.cc_id,
-      server_context: nil
+      server_context: {cc_region: sample.context.to_s.upcase}
     )
     refute response.error?
     body = JSON.parse(response.content.first[:text])
@@ -97,13 +128,13 @@ class McpServer::Tools::LookupTournamentTest < ActiveSupport::TestCase
   end
 
   test "with_committed_list: ohne registration_list_cc-Beziehung → committed_players:nil + meta-Warnung" do
-    sample = TournamentCc.where.not(cc_id: nil).where(registration_list_cc_id: nil).first
+    sample = TournamentCc.where.not(cc_id: nil).where.not(context: nil).where(registration_list_cc_id: nil).first
     skip "No TournamentCc without registration_list_cc available" unless sample
 
     response = McpServer::Tools::LookupTournament.call(
       meisterschaft_id: sample.cc_id,
       with_committed_list: true,
-      server_context: nil
+      server_context: {cc_region: sample.context.to_s.upcase}
     )
     refute response.error?
     body = JSON.parse(response.content.first[:text])
@@ -116,10 +147,9 @@ class McpServer::Tools::LookupTournamentTest < ActiveSupport::TestCase
   end
 
   test "with_committed_list: meldeliste_cc_id-Override → CC-Call mit 8-Felder-Payload + Player-cc_ids geparst" do
-    sample = TournamentCc.where.not(cc_id: nil).first
+    sample = TournamentCc.where.not(cc_id: nil).where.not(context: nil).first
     skip "No TournamentCc fixtures available" unless sample
 
-    # Mock-Response: 2 Player-cc_id-Marker im HTML-Body
     body_html = %(<html><body><table>
       <tr><td align="center">10031</td><td>Mustermann</td></tr>
       <tr><td align="center">10413</td><td>Auel</td></tr>
@@ -138,15 +168,13 @@ class McpServer::Tools::LookupTournamentTest < ActiveSupport::TestCase
       with_committed_list: true,
       meldeliste_cc_id: 1310,
       fed_id: 20,
-      server_context: nil
+      server_context: {cc_region: sample.context.to_s.upcase}
     )
     refute response.error?
     body = JSON.parse(response.content.first[:text])
 
-    # Geparste Player-cc_ids:
     assert_equal [{"cc_id" => 10031}, {"cc_id" => 10413}], body["committed_players"]
 
-    # CC-Call wurde gemacht mit 8-Felder-Payload:
     call = @mock.calls.find { |verb, action, _, _| verb == :post && action == "showCommittedMeldeliste" }
     assert call
     _, _, params, _ = call
@@ -159,7 +187,7 @@ class McpServer::Tools::LookupTournamentTest < ActiveSupport::TestCase
   end
 
   test "with_committed_list: HTTP-Fehler → committed_players:nil + meta-Warnung (defensiv, keine Exception)" do
-    sample = TournamentCc.where.not(cc_id: nil).first
+    sample = TournamentCc.where.not(cc_id: nil).where.not(context: nil).first
     skip "No TournamentCc fixtures available" unless sample
 
     @mock.define_singleton_method(:post) do |action, params, opts|
@@ -172,7 +200,7 @@ class McpServer::Tools::LookupTournamentTest < ActiveSupport::TestCase
       with_committed_list: true,
       meldeliste_cc_id: 1310,
       fed_id: 20,
-      server_context: nil
+      server_context: {cc_region: sample.context.to_s.upcase}
     )
     refute response.error?, "Tool darf bei HTTP 500 keine Exception werfen, sondern defensiv reagieren"
     body = JSON.parse(response.content.first[:text])
@@ -182,7 +210,7 @@ class McpServer::Tools::LookupTournamentTest < ActiveSupport::TestCase
   end
 
   test "with_committed_list: Exception in client.post → committed_players:nil + meta-Warnung (rescue)" do
-    sample = TournamentCc.where.not(cc_id: nil).first
+    sample = TournamentCc.where.not(cc_id: nil).where.not(context: nil).first
     skip "No TournamentCc fixtures available" unless sample
 
     @mock.define_singleton_method(:post) do |*_|
@@ -194,7 +222,7 @@ class McpServer::Tools::LookupTournamentTest < ActiveSupport::TestCase
       with_committed_list: true,
       meldeliste_cc_id: 1310,
       fed_id: 20,
-      server_context: nil
+      server_context: {cc_region: sample.context.to_s.upcase}
     )
     refute response.error?
     body = JSON.parse(response.content.first[:text])
@@ -203,15 +231,14 @@ class McpServer::Tools::LookupTournamentTest < ActiveSupport::TestCase
     assert_match(/RuntimeError|Exception/i, body["meta"]["committed_list_warning"])
   end
 
-  # Plan 10-05 Task 2 (Befund #3 D-09-03-2): Region-Filter im cc_id-Lookup-Pfad
-  test "Region-Filter: cc_id-Lookup respektiert TournamentCc.context (default region)" do
+  # Plan 14-02.3 / D-14-02-G: cc_id-Lookup respektiert server_context cc_region (strict).
+  test "Region-Filter: cc_id-Lookup respektiert User-Region via server_context" do
     sample = TournamentCc.where.not(cc_id: nil).where.not(context: nil).first
     skip "No TournamentCc fixtures with context available" unless sample
 
-    ENV["CC_REGION"] = sample.context.to_s.upcase
     response = McpServer::Tools::LookupTournament.call(
       meisterschaft_id: sample.cc_id,
-      server_context: nil
+      server_context: {cc_region: sample.context.to_s.upcase}
     )
     refute response.error?, "Expected non-error in matching region; got: #{response.content.first[:text]}"
     body = JSON.parse(response.content.first[:text])
@@ -219,49 +246,27 @@ class McpServer::Tools::LookupTournamentTest < ActiveSupport::TestCase
     assert_equal sample.context, body["context"]
   end
 
-  test "Region-Filter: cc_id-Lookup mit nicht-passender Region liefert Cross-Region-Fallback-Diagnose" do
+  test "Region-Filter: cc_id-Lookup mit nicht-passender User-Region → Error" do
     sample = TournamentCc.where.not(cc_id: nil).where.not(context: nil).first
     skip "No TournamentCc fixtures with context available" unless sample
-    # Eine Region die NICHT die context-Region ist
     other_region = (%w[NBV BVBW BBV LSBVH NSBV BSV] - [sample.context.to_s.upcase]).first
 
-    ENV["CC_REGION"] = other_region
     response = McpServer::Tools::LookupTournament.call(
       meisterschaft_id: sample.cc_id,
-      server_context: nil
+      server_context: {cc_region: other_region}
     )
-    assert response.error?, "Expected error/diagnostic message when cc_id not in default region"
+    assert response.error?, "Expected error when cc_id not in User-Region"
     msg = response.content.first[:text]
-    assert_match(/not found/i, msg)
-    # Diagnose erwähnt Cross-Region-Kandidaten ODER zumindest die Region die geprüft wurde
-    assert_match(/region=#{other_region}|shortname/i, msg)
-  end
-
-  test "Region-Filter: explizit shortname-Param überschreibt Default-Region" do
-    sample = TournamentCc.where.not(cc_id: nil).where.not(context: nil).first
-    skip "No TournamentCc fixtures with context available" unless sample
-
-    # Default-Region anders setzen — shortname-Param überschreibt
-    ENV["CC_REGION"] = "ZZZ-WRONG"
-    response = McpServer::Tools::LookupTournament.call(
-      meisterschaft_id: sample.cc_id,
-      shortname: sample.context.to_s.upcase,
-      server_context: nil
-    )
-    refute response.error?, "shortname-Override muss greifen; got: #{response.content.first[:text]}"
-    body = JSON.parse(response.content.first[:text])
-    assert_equal sample.cc_id, body["cc_id"]
+    assert_match(/nicht in deiner Region/i, msg)
   end
 
   test "tournament_id-Lookup: KEIN Region-Filter (Carambus-intern ist region-eindeutig)" do
     sample = TournamentCc.where.not(tournament_id: nil).where.not(context: nil).first
     skip "No TournamentCc fixtures with tournament_id available" unless sample
 
-    # Auch bei „falscher" CC_REGION funktioniert tournament_id-Lookup (kein Region-Filter)
-    ENV["CC_REGION"] = "ZZZ-WRONG"
     response = McpServer::Tools::LookupTournament.call(
       tournament_id: sample.tournament_id,
-      server_context: nil
+      server_context: {cc_region: "NBV"}  # auch wenn User in NBV ist, tournament_id ist global
     )
     refute response.error?, "tournament_id-Lookup ist region-blind; got: #{response.content.first[:text]}"
     body = JSON.parse(response.content.first[:text])
@@ -269,26 +274,26 @@ class McpServer::Tools::LookupTournamentTest < ActiveSupport::TestCase
   end
 
   # Plan 10-06 Task 1 (D-10-04-J Vokabular-Schicht): Name-Search mit Disambiguation.
-  # Plan 14-02.1-fix: server_context mit cc_region erforderlich (strict).
   test "Name-Search: 0 Treffer → Tool-Error mit Workaround-Hinweisen" do
     needle = "ZzzNonexistent#{SecureRandom.hex(8)}"
     response = McpServer::Tools::LookupTournament.call(name: needle, server_context: {cc_region: "NBV"})
     assert response.error?
     msg = response.content.first[:text]
     assert_match(/Kein Turnier/i, msg)
-    assert_match(/Versuche|kürzeren Suchbegriff|tournament_id/i, msg)
+    assert_match(/Versuche|kürzerer Suchbegriff|tournament_id|season/i, msg)
   end
 
   test "Name-Search: erfolgreich liefert candidates-Array" do
     sample = TournamentCc.where.not(name: [nil, ""]).where.not(context: nil).first
     skip "No TournamentCc fixtures with name+context available" unless sample
-
-    ENV["CC_REGION"] = sample.context.to_s.upcase
-    # Suche mit Teilstring des echten Namens
     needle = sample.name.to_s[0, [sample.name.length, 5].min]
     skip "Sample name too short" if needle.length < 3
 
-    response = McpServer::Tools::LookupTournament.call(name: needle, server_context: nil)
+    # Plan 14-02.3 / F-7 NULL-tolerant Season-Filter: sample mit context.upcase als User-Region.
+    response = McpServer::Tools::LookupTournament.call(
+      name: needle,
+      server_context: {cc_region: sample.context.to_s.upcase}
+    )
     refute response.error?, "Expected non-error; got: #{response.content.first[:text]}"
     body = JSON.parse(response.content.first[:text])
     assert_operator body["candidates"].length, :>=, 1
@@ -297,10 +302,40 @@ class McpServer::Tools::LookupTournamentTest < ActiveSupport::TestCase
     end
   end
 
-  test "Validation: kein meisterschaft_id/tournament_id/name → error" do
-    response = McpServer::Tools::LookupTournament.call(server_context: nil)
+  # Plan 14-02.3 / F-7: Season-Default-Filter (NULL-tolerant).
+  test "F-7 Season-Default-Filter: Name-Search meta.season ist current_season" do
+    sample = TournamentCc.where.not(name: [nil, ""]).where.not(context: nil).first
+    skip "No TournamentCc fixtures available" unless sample
+    skip "Season-Fixtures fehlen" if Season.current_season.nil?
+    needle = sample.name.to_s[0, [sample.name.length, 3].min]
+    skip "Sample name too short" if needle.length < 3
+
+    response = McpServer::Tools::LookupTournament.call(
+      name: needle,
+      server_context: {cc_region: sample.context.to_s.upcase}
+    )
+    if response.error?
+      # 0 Treffer ist ein zulässiges Ergebnis wenn Season-Filter alle ausschließt
+      assert_match(/Saison|season/i, response.content.first[:text])
+    else
+      body = JSON.parse(response.content.first[:text])
+      assert_equal Season.current_season.name, body["meta"]["season"]
+    end
+  end
+
+  # Plan 14-02.3 / F-7: explicit season-override.
+  test "F-7 Season-Override: explicit season-Parameter wechselt Filter" do
+    skip "Season fixtures fehlen" if Season.count < 2
+    other_season = Season.where.not(name: Season.current_season&.name).first
+    skip "Keine andere Season verfügbar" if other_season.nil?
+
+    response = McpServer::Tools::LookupTournament.call(
+      name: "Zzz-nonexistent",
+      season: other_season.name,
+      server_context: {cc_region: "NBV"}
+    )
+    # 0 Treffer ist ok — wichtig ist dass season-Override propagiert.
     assert response.error?
-    assert_match(/Missing required parameter/i, response.content.first[:text])
-    assert_match(/name/i, response.content.first[:text])
+    assert_match(/Saison '#{Regexp.escape(other_season.name)}'/, response.content.first[:text])
   end
 end

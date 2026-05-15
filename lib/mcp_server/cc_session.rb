@@ -92,6 +92,84 @@ module McpServer
         true
       end
 
+      # Plan 14-02.3 / F-5 + D-14-02-A Helper A: Live-CC-Meldeliste-Overview via
+      # editMeldelisteCheck.php. Liefert die meldeliste_cc_id + Clubs-Liste aus
+      # der CC-Übersicht. Source-of-truth-Pfad (DB-Mirror veraltet/inkomplett).
+      #
+      # Returnt Hash {meldeliste_cc_id: Integer, clubs: Hash[club_cc_id => name], source: "live-cc-overview"}
+      # oder nil bei:
+      #   - Network-Error
+      #   - HTTP-Status != 200
+      #   - Parse-Failure (kein meldeliste_cc_id extrahierbar)
+      # Defensive: alle Fehler → nil + Rails.logger.warn (KEIN Exception-Raise).
+      def fetch_meldeliste_overview(tournament_cc_id, server_context: nil)
+        return nil if tournament_cc_id.blank?
+        client = client_for(server_context)
+        res, doc = client.get(
+          "editMeldelisteCheck",
+          {meisterschaftsId: tournament_cc_id},
+          {session_id: cookie}
+        )
+        return nil if res.nil? || res.code != "200" || doc.nil?
+
+        meldeliste_cc_id = parse_meldeliste_cc_id(doc)
+        return nil if meldeliste_cc_id.nil?
+
+        {
+          meldeliste_cc_id: meldeliste_cc_id,
+          clubs: parse_clubs_overview(doc),
+          source: "live-cc-overview"
+        }
+      rescue => e
+        Rails.logger.warn "[CcSession.fetch_meldeliste_overview] #{e.class}: #{e.message}"
+        nil
+      end
+
+      # Extrahiert meldelisteId aus editMeldelisteCheck.php Response.
+      # Robuste Multi-Pattern-Heuristik (CC liefert HTML-Form mit hidden input
+      # ODER value-Attribut auf einem Select-Element ODER Link-Param).
+      def parse_meldeliste_cc_id(doc)
+        # Pattern A: <input name="meldelisteId" value="X">
+        input = doc.css('input[name="meldelisteId"], input[name="meldelisteCcId"]').first
+        if input && input["value"].to_s.match?(/\A\d+\z/)
+          return input["value"].to_i
+        end
+        # Pattern B: <select name="meldelisteId"><option value="X" selected>
+        sel = doc.css('select[name="meldelisteId"] option[selected]').first
+        if sel && sel["value"].to_s.match?(/\A\d+\z/)
+          return sel["value"].to_i
+        end
+        # Pattern C: meldelisteId=X im Query-Param eines Anchors
+        anchor = doc.css("a[href*='meldelisteId=']").first
+        if anchor && (m = anchor["href"].to_s.match(/meldelisteId=(\d+)/))
+          return m[1].to_i
+        end
+        # Pattern D: data-meldeliste-cc-id="X"
+        node = doc.css("[data-meldeliste-cc-id]").first
+        if node
+          return node["data-meldeliste-cc-id"].to_i
+        end
+        nil
+      end
+
+      # Extrahiert Clubs-Liste aus der editMeldelisteCheck.php Übersicht.
+      # Returnt Hash[club_cc_id => club_name]. Robust gegen verschiedene
+      # CC-HTML-Varianten; leer wenn nichts gefunden (Plan 14-02.4 nutzt das
+      # für per-Club-Detail-Calls; in 14-02.3 nur Strukturierungs-Substrate).
+      def parse_clubs_overview(doc)
+        result = {}
+        # Pattern: <option value="club_cc_id">Club Name</option> in einem clubId-Select
+        doc.css('select[name="clubId"] option, select[name="clubCcId"] option').each do |opt|
+          next if opt["value"].to_s == "*" || opt["value"].to_s.empty?
+          next unless opt["value"].to_s.match?(/\A\d+\z/)
+          result[opt["value"].to_i] = opt.text.strip
+        end
+        result
+      rescue => e
+        Rails.logger.warn "[CcSession.parse_clubs_overview] #{e.class}: #{e.message}"
+        {}
+      end
+
       private
 
       # Real CC-Login: delegiert an existierenden kanonischen Setting.login_to_cc Flow (Blocker 4 Fix).

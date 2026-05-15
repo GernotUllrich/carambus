@@ -861,6 +861,10 @@ de:
       player_class: Spielerklasse
       prohibited_this_tournament_from_being_saved: " hat die Änderung dieses Turnieres unmöglich gemacht:"
       save_tournament: Turnier speichern
+      turnier_leiter: "Turnierleiter (TL)"
+      turnier_leiter_blank_option: "— kein TL —"
+    errors:
+      assign_leiter_denied: "Authority-Denied: kein Recht TL zu benennen für dieses Turnier."
     groups:
       groups: Gruppen
     index:

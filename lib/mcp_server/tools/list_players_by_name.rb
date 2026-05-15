@@ -42,8 +42,19 @@ module McpServer
         return error("Missing required parameter: `name`") if name.blank?
         return error("Query too short: `name` must be at least 2 characters") if name.to_s.length < 2
 
-        region = resolve_region(shortname: shortname)
-        return error("Region not found. Provide shortname, or set CC_REGION/Setting 'context'.") if region.nil?
+        # Plan 14-02.2 / B-3 + D-14-02-G: shortname-Override-Logik entfernt; strict
+        # via effective_cc_region(server_context). Parameter im Schema bleibt (Removal in 14-02.4).
+        if shortname.present? && shortname.to_s.upcase != effective_cc_region(server_context).to_s
+          Rails.logger.warn "[cc_list_players_by_name] shortname-Override '#{shortname}' ignoriert; nutze User#cc_region='#{effective_cc_region(server_context)}'"
+        end
+        region_name = effective_cc_region(server_context)
+        if region_name.blank?
+          return error(
+            "Dein Profil hat keine Region gesetzt. Bitte unter https://carambus.de/users/edit eine Region wählen."
+          )
+        end
+        region = Region.find_by(shortname: region_name)
+        return error("Region '#{region_name}' nicht in DB gefunden. Profile-Region prüfen.") if region.nil?
 
         club_obj = nil
         if club_cc_id.present?
@@ -51,17 +62,16 @@ module McpServer
           return error("Club not found for cc_id=#{club_cc_id}") if club_obj.nil?
         end
 
-        escaped = ActiveRecord::Base.sanitize_sql_like(name.to_s)
-        like = "%#{escaped}%"
+        # Plan 14-02.2 / Befund E-1: Token-Search statt naive Substring-ILIKE.
+        tokens = tokenize_search_query(name)
+        title_prefix = detect_title_prefix(name)
 
         rel = Player
           .joins(:player_rankings)
           .where(player_rankings: {region_id: region.id})
-          .where(
-            "players.fl_name ILIKE :q OR players.firstname ILIKE :q OR players.lastname ILIKE :q",
-            q: like
-          )
           .distinct
+
+        rel = apply_token_search_filter(rel, tokens, %w[players.fl_name players.firstname players.lastname])
 
         if club_obj
           rel = rel.joins(:season_participations).where(season_participations: {club_id: club_obj.id}).distinct
@@ -70,14 +80,16 @@ module McpServer
         ordered = rel.order(:lastname, :firstname).limit(MAX_RESULTS)
         match_count = rel.count
 
+        # Plan 14-02.2 / E-2: cc_id als Primary; dbu_nr informativ-optional.
         players = ordered.map { |p|
           {
-            id: p.id,
+            cc_id: p.cc_id,
             fl_name: p.fl_name,
             firstname: p.firstname,
             lastname: p.lastname,
-            cc_id: p.cc_id,
-            ba_id: p.ba_id
+            dbu_nr: p.dbu_nr,
+            ba_id: p.ba_id,
+            id: p.id # Carambus Rails-id (für Power-User-Shortcuts wie check_player_discipline_experience)
           }
         }
 
@@ -90,18 +102,11 @@ module McpServer
             region: region.shortname,
             filter_basis: club_obj ? "name+club_cc_id" : "name",
             name: name,
+            tokens: tokens,
+            title_prefix_detected: title_prefix,
             club_cc_id: club_cc_id
-          }
+          }.compact
         ))
-      end
-
-      def self.resolve_region(shortname:)
-        if shortname.present?
-          Region.find_by(shortname: shortname.to_s.upcase)
-        else
-          fallback_id = default_fed_id
-          fallback_id ? RegionCc.find_by(cc_id: fallback_id)&.region : nil
-        end
       end
     end
   end

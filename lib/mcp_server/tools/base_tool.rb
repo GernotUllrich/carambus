@@ -145,13 +145,69 @@ module McpServer
         nil
       end
 
-      # Plan 14-02.1-fix / D-14-02-G: Multi-User-Production-Pflicht — Source of truth ist
-      # User#cc_region (via server_context). KEIN Fallback auf ENV/Setting/NBV-Default.
-      # Tools, die nil zurückbekommen, müssen klaren Profile-Edit-Hinweis-Error werfen.
+      # Plan 14-G.2 / D-14-G3 + D-13-04-B PARTIAL:
+      # Source-of-Truth wechselt von User#cc_region (gedroppt per D-14-G6) zu
+      # Carambus.config.region_id (Scenario-Config). server_context[:cc_region]
+      # bleibt als Backwards-Compat-Fallback erhalten (Test-Setups, die explizit
+      # Context setzen, ohne carambus.yml zu mutieren).
       # UPPERCASE-Convention (Region#shortname in Carambus ist UPPERCASE).
       def self.effective_cc_region(server_context = nil)
-        cc_region = server_context&.dig(:cc_region)
-        return cc_region.to_s.upcase if cc_region.is_a?(String) && cc_region.present?
+        config_region = Carambus.config.region_id.to_s if Carambus.config.respond_to?(:region_id)
+        return config_region.upcase if config_region.present?
+        ctx_region = server_context&.dig(:cc_region)
+        return ctx_region.to_s.upcase if ctx_region.is_a?(String) && ctx_region.present?
+        nil
+      end
+
+      # Plan 14-02.2 / Befund E-1 (Title-Präfix-Bug): Token-Search-Helper für tolerante
+      # Name-Suche. "Dr. Gernot Ullrich" → ["Dr.", "Gernot", "Ullrich"]; jeder Token
+      # AND-verknüpft als ILIKE-Pattern. Behebt das Problem, dass naive ILIKE-Substring
+      # "Gernot Ullrich" (User-Vokabular) nicht gegen DB-Wert "Dr. Gernot Ullrich" matched.
+      # Min-Token-Länge 2 Zeichen (kürzere Tokens raus — verhindert Wildcard-Explosion).
+      def self.tokenize_search_query(query)
+        return [] if query.blank?
+        query.to_s.strip.split(/\s+/).map(&:strip).reject { |t| t.size < 2 }
+      end
+
+      # Plan 14-02.2 / Befund E-1: DRY-Filter-Helper für Token-Search.
+      # `columns` z.B. ["firstname", "lastname", "fl_name"]; jeder Token muss in
+      # mindestens einer column als Substring matchen (AND zwischen Tokens, OR
+      # zwischen Columns innerhalb eines Tokens).
+      # ActiveRecord::Base.sanitize_sql_like wird intern angewendet.
+      def self.apply_token_search_filter(scope, tokens, columns)
+        return scope if tokens.empty?
+        tokens.reduce(scope) do |current_scope, token|
+          escaped = ActiveRecord::Base.sanitize_sql_like(token)
+          like_pattern = "%#{escaped}%"
+          token_clause = columns.map { |col| "#{col} ILIKE ?" }.join(" OR ")
+          current_scope.where(token_clause, *Array.new(columns.size, like_pattern))
+        end
+      end
+
+      # Plan 14-02.2: Detect Title-Präfixe im Query (Dr./Prof./Dr.-Ing./Dipl.-Ing./Mag./
+      # Mag.iur./M.Sc./B.Sc./Med./vet./jur./phil./MA/MBA usw.) — gibt das erste matchende
+      # Präfix als informativen Hinweis zurück (nicht-filternd). Nutzbar für Output-
+      # Annotation: "title_prefix_detected: 'Dr.'" damit Sportwart weiß, dass die Suche
+      # Title-tolerant gelaufen ist.
+      # NOTE: Title-Patterns mit Punkt nutzen Look-Ahead statt \b weil \b mit "." nicht endet.
+      TITLE_PREFIX_PATTERNS = [
+        /(?:\A|\s)(Dr\.-Ing\.?)(?=\s|\z)/i,
+        /(?:\A|\s)(Dipl\.-Ing\.?)(?=\s|\z)/i,
+        /(?:\A|\s)(Prof\.)(?=\s|\z)/i,
+        /(?:\A|\s)(Dr\.)(?=\s|\z)/i,
+        /(?:\A|\s)(Mag\.)(?=\s|\z)/i,
+        /(?:\A|\s)(M\.Sc\.?)(?=\s|\z)/i,
+        /(?:\A|\s)(B\.Sc\.?)(?=\s|\z)/i,
+        /(?:\A|\s)(Prof)(?=\s|\z)/i,
+        /(?:\A|\s)(Dr)(?=\s|\z)/i
+      ].freeze
+
+      def self.detect_title_prefix(query)
+        return nil if query.blank?
+        TITLE_PREFIX_PATTERNS.each do |pattern|
+          m = query.to_s.match(pattern)
+          return m[1] if m
+        end
         nil
       end
 
@@ -171,6 +227,147 @@ module McpServer
         context = effective_cc_region(server_context).to_s.downcase
         return nil if context.blank?
         TournamentCc.find_by(cc_id: cc_id.to_i, context: context)
+      end
+
+      # Plan 14-02.3 / F-7: Season-Default-Helper. Tournament-Lookup/List-Tools filtern
+      # by-default auf die aktuelle Saison; optional via override-Parameter umschaltbar.
+      # Saison-Modell: Season.current_season existiert bereits in app/models/season.rb
+      # (delegiert auf "year/year+1"-Naming-Convention mit 6-Monats-Cutoff).
+      #
+      # override → exakter Season-Name (z.B. "2025/2026"); nicht gefunden → current_season.
+      # Defensive: rescued StandardError damit Mock-/Test-Pfade ohne Season-Fixtures nicht crashen.
+      def self.effective_season(server_context = nil, override: nil)
+        if override.present?
+          found = Season.find_by(name: override.to_s)
+          return found if found
+          Rails.logger.warn "[BaseTool.effective_season] Season-Override '#{override}' nicht gefunden; nutze current_season"
+        end
+        Season.current_season
+      rescue => e
+        Rails.logger.warn "[BaseTool.effective_season] #{e.class}: #{e.message}"
+        nil
+      end
+
+      # Plan 14-02.3 / F-7: Season-Derivation aus Datum. Notwendig weil TournamentCc.season
+      # im DB-Mirror häufig null ist (Sync-Bug, v0.4-Backlog-Item).
+      # Carambus-Saison-Convention: 1. Juli = Cutoff. Date in "2025/2026" wenn
+      # 2025-07-01 <= date <= 2026-06-30 (siehe Season#season_from_date für Vergleich;
+      # identisches Verhalten via Juli-Cutoff statt 6-Monats-Subtraktion).
+      def self.derive_season_from_date(date)
+        return nil if date.nil?
+        d = date.respond_to?(:to_date) ? date.to_date : Date.parse(date.to_s)
+        year = (d.month >= 7) ? d.year : d.year - 1
+        Season.find_by(name: "#{year}/#{year + 1}")
+      rescue => e
+        Rails.logger.warn "[BaseTool.derive_season_from_date] #{e.class}: #{e.message}"
+        nil
+      end
+
+      # Plan 14-02.3 / F-2: Branch-Resolver für Discipline-Filter in Tournament-Read-Tools.
+      # Carambus-Datenmodell: `Branch` ist STI-Subklasse von `Discipline` (type='Branch';
+      # 4 Branches: Pool=23, Snooker=24, Karambol=50, Kegel=55). Reguläre Disciplines
+      # zeigen via super_discipline_id auf ihre Branch.
+      #
+      # Resolver-Reihenfolge:
+      #   1. Branch-Match (case-insensitive ILIKE) → alle Sub-Disciplines liefern
+      #   2. Discipline-Match (case-insensitive ILIKE) → einzelne Discipline
+      #   3. Numerische Discipline-ID-Fallback
+      #
+      # Returns [discipline_ids, branch_name] tuple:
+      #   - [nil, nil] bei blank/nicht gefunden
+      #   - [[id1, id2, ...], "Pool"] bei Branch-Match
+      #   - [[id], nil] bei Discipline-Match
+      def self.resolve_discipline_or_branch(filter_string)
+        return [nil, nil] if filter_string.blank?
+        f = filter_string.to_s.strip
+
+        # Pfad 1: Branch-Match (STI: Discipline.where(type: 'Branch'))
+        branch = Branch.find_by("name ILIKE ?", f)
+        if branch
+          discipline_ids = Discipline.where(super_discipline_id: branch.id).pluck(:id)
+          return [discipline_ids, branch.name] if discipline_ids.any?
+        end
+
+        # Pfad 2: Discipline-Match
+        discipline = Discipline.find_by("name ILIKE ?", f)
+        return [[discipline.id], nil] if discipline
+
+        # Pfad 3: numerische Discipline-ID
+        if f.match?(/\A\d+\z/) && Discipline.exists?(f.to_i)
+          return [[f.to_i], nil]
+        end
+
+        [nil, nil]
+      rescue => e
+        Rails.logger.warn "[BaseTool.resolve_discipline_or_branch] #{e.class}: #{e.message}"
+        [nil, nil]
+      end
+
+      # Plan 14-G.2 / D-14-G4 + D-14-G5: Authority-Helper für Write-Tools.
+      # Konsumiert Pundit-TournamentPolicy (4 Methoden aus 14-G.1).
+      # Returnt nil bei Allow, error(...)-Response bei Denial.
+      #
+      # Usage in 14-G.4-Write-Tools (1-Zeilen-Pattern):
+      #   return err if (err = authorize!(action: :update_deadline, tournament: ml.tournament, server_context: server_context))
+      #
+      # Boundary: KEINE Tool-Code-Edits in 14-G.2 (14-G.4-Scope) — Helper steht bereit.
+      ALLOWED_AUTHORITY_ACTIONS = %i[assign_leiter update_deadline manage_teilnehmerliste enter_results].freeze
+
+      def self.authorize!(action:, tournament:, server_context:)
+        unless ALLOWED_AUTHORITY_ACTIONS.include?(action.to_sym)
+          return error("Authority-Check: Action '#{action}' unbekannt; erlaubt: #{ALLOWED_AUTHORITY_ACTIONS.join(", ")}")
+        end
+        return error("Authority-Check: tournament-Argument fehlt") if tournament.nil?
+
+        user_id = server_context&.dig(:user_id)
+        return error("Authority-Check: nicht authentifiziert (kein server_context[:user_id])") if user_id.blank?
+
+        user = User.find_by(id: user_id)
+        return error("Authority-Check: User mit id=#{user_id} nicht gefunden (Token-Stale?)") if user.nil?
+
+        policy = TournamentPolicy.new(user, tournament)
+        if policy.public_send("#{action}?")
+          nil # Allow
+        else
+          reasons = []
+          reasons << "TL-Status=#{tournament.leiter?(user) ? "ja" : "nein"}"
+          reasons << "Sportwart-Wirkbereich=#{user.in_sportwart_scope?(tournament) ? "ja" : "nein"}"
+          error(
+            "Authority-Denied: User-Id=#{user.id} hat KEIN '#{action}'-Recht " \
+            "für Tournament-Id=#{tournament.id} (#{reasons.join("; ")})"
+          )
+        end
+      rescue => e
+        Rails.logger.warn "[BaseTool.authorize!] #{e.class}: #{e.message}"
+        error("Authority-Check fehlgeschlagen (defensive): #{e.class.name}")
+      end
+
+      # Plan 14-G.4 / F5-A: Tournament-Resolver für Authority-Integration in Write-Tools.
+      # Sucht Tournament-Record via RegistrationListCc-Chain (wenn meldeliste_cc_id gegeben;
+      # die "Meldeliste" in CC entspricht RegistrationListCc in Carambus-DB)
+      # ODER TournamentCc-Chain (wenn tournament_cc_id gegeben).
+      # Defensiv: returnt nil bei unauflöslichen Inputs (kein Crash).
+      def self.resolve_tournament(meldeliste_cc_id: nil, tournament_cc_id: nil, server_context: nil)
+        context = effective_cc_region(server_context).to_s.downcase
+        return nil if context.blank?
+
+        if meldeliste_cc_id.present?
+          rlc = RegistrationListCc.find_by(cc_id: meldeliste_cc_id.to_i, context: context)
+          if rlc
+            tcc = TournamentCc.find_by(registration_list_cc_id: rlc.id, context: context)
+            return tcc.tournament if tcc&.tournament
+          end
+        end
+
+        if tournament_cc_id.present?
+          tcc = TournamentCc.find_by(cc_id: tournament_cc_id.to_i, context: context)
+          return tcc.tournament if tcc&.tournament
+        end
+
+        nil
+      rescue => e
+        Rails.logger.warn "[BaseTool.resolve_tournament] #{e.class}: #{e.message}"
+        nil
       end
     end
   end

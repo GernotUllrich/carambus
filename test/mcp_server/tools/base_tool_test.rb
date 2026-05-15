@@ -193,4 +193,149 @@ class McpServer::Tools::BaseToolTest < ActiveSupport::TestCase
       assert_nil result, "Cross-Region-Mismatch muss nil liefern, nicht das falsche Tournament"
     end
   end
+
+  # Plan 14-02.2 / Befund E-1: Token-Search-Helper für Title-Präfix-tolerante Name-Suche.
+  class TokenizeSearchQueryTest < ActiveSupport::TestCase
+    test "tokenize_search_query: empty → []" do
+      assert_equal [], McpServer::Tools::BaseTool.tokenize_search_query("")
+      assert_equal [], McpServer::Tools::BaseTool.tokenize_search_query(nil)
+    end
+
+    test "tokenize_search_query: 'Gernot Ullrich' → ['Gernot', 'Ullrich']" do
+      assert_equal ["Gernot", "Ullrich"], McpServer::Tools::BaseTool.tokenize_search_query("Gernot Ullrich")
+    end
+
+    test "tokenize_search_query: 'Dr. Gernot Ullrich' → ['Dr.', 'Gernot', 'Ullrich']" do
+      assert_equal ["Dr.", "Gernot", "Ullrich"], McpServer::Tools::BaseTool.tokenize_search_query("Dr. Gernot Ullrich")
+    end
+
+    test "tokenize_search_query: tokens < 2 chars werden gefiltert" do
+      # "G Ullrich" → "G" raus, "Ullrich" bleibt
+      assert_equal ["Ullrich"], McpServer::Tools::BaseTool.tokenize_search_query("G Ullrich")
+    end
+
+    test "tokenize_search_query: extra Whitespace wird normalisiert" do
+      assert_equal ["van", "der", "Bergh"], McpServer::Tools::BaseTool.tokenize_search_query("  van   der  Bergh  ")
+    end
+
+    test "detect_title_prefix: 'Dr. Gernot Ullrich' → 'Dr.'" do
+      assert_equal "Dr.", McpServer::Tools::BaseTool.detect_title_prefix("Dr. Gernot Ullrich")
+    end
+
+    test "detect_title_prefix: 'Prof. Hans' → 'Prof.'" do
+      assert_equal "Prof.", McpServer::Tools::BaseTool.detect_title_prefix("Prof. Hans")
+    end
+
+    test "detect_title_prefix: kein Title → nil" do
+      assert_nil McpServer::Tools::BaseTool.detect_title_prefix("Gernot Ullrich")
+    end
+
+    test "apply_token_search_filter: leere tokens → scope unverändert" do
+      # Mock-Scope (testet nur, dass keine WHERE-Clause angewandt wird)
+      scope = Player.all
+      result = McpServer::Tools::BaseTool.apply_token_search_filter(scope, [], %w[firstname])
+      assert_equal scope.to_sql, result.to_sql
+    end
+
+    test "apply_token_search_filter: 2 tokens → 2 WHERE-Clauses AND-verknüpft" do
+      scope = Player.all
+      result = McpServer::Tools::BaseTool.apply_token_search_filter(scope, %w[Gernot Ullrich], %w[firstname lastname])
+      sql = result.to_sql
+      # Beide Tokens müssen als ILIKE-Clauses im SQL erscheinen
+      assert_match(/firstname ILIKE.*Gernot/i, sql)
+      assert_match(/lastname ILIKE.*Gernot/i, sql)
+      assert_match(/firstname ILIKE.*Ullrich/i, sql)
+      assert_match(/lastname ILIKE.*Ullrich/i, sql)
+    end
+  end
+
+  # Plan 14-02.3 / F-7 Season-Default-Helper + F-2 Branch-Resolver-Helper.
+  class SeasonAndBranchHelperTest < ActiveSupport::TestCase
+    test "effective_season: nil override → current_season" do
+      result = McpServer::Tools::BaseTool.effective_season(nil, override: nil)
+      assert_equal Season.current_season, result
+    end
+
+    test "effective_season: matched override-Name → spezifische Season" do
+      season_name = Season.last&.name
+      skip "Keine Season-Fixtures vorhanden" if season_name.blank?
+      result = McpServer::Tools::BaseTool.effective_season(nil, override: season_name)
+      assert_equal season_name, result.name
+    end
+
+    test "effective_season: unmatched override → current_season (Fallback)" do
+      result = McpServer::Tools::BaseTool.effective_season(nil, override: "9999/0000-nonexistent")
+      assert_equal Season.current_season, result
+    end
+
+    test "derive_season_from_date: Juli-Datum (2025-08-15) → '2025/2026'" do
+      result = McpServer::Tools::BaseTool.derive_season_from_date(Date.new(2025, 8, 15))
+      skip "Season '2025/2026' nicht in Test-DB" if result.nil?
+      assert_equal "2025/2026", result.name
+    end
+
+    test "derive_season_from_date: Juni-Datum (2026-05-15) → '2025/2026'" do
+      result = McpServer::Tools::BaseTool.derive_season_from_date(Date.new(2026, 5, 15))
+      skip "Season '2025/2026' nicht in Test-DB" if result.nil?
+      assert_equal "2025/2026", result.name
+    end
+
+    test "derive_season_from_date: Juli-1-Cutoff-Edge — 2025-07-01 → '2025/2026'" do
+      result = McpServer::Tools::BaseTool.derive_season_from_date(Date.new(2025, 7, 1))
+      skip "Season '2025/2026' nicht in Test-DB" if result.nil?
+      assert_equal "2025/2026", result.name
+    end
+
+    test "derive_season_from_date: nil → nil (defensive)" do
+      assert_nil McpServer::Tools::BaseTool.derive_season_from_date(nil)
+    end
+
+    test "derive_season_from_date: Date-String wird akzeptiert (to_date-Polymorphismus)" do
+      result = McpServer::Tools::BaseTool.derive_season_from_date("2025-08-15")
+      skip "Season '2025/2026' nicht in Test-DB" if result.nil?
+      assert_equal "2025/2026", result.name
+    end
+
+    # Plan 14-02.3 / F-2 Branch-Resolver: STI-Discipline mit type='Branch'.
+    test "resolve_discipline_or_branch: blank → [nil, nil]" do
+      ids, branch_name = McpServer::Tools::BaseTool.resolve_discipline_or_branch(nil)
+      assert_nil ids
+      assert_nil branch_name
+      ids2, branch_name2 = McpServer::Tools::BaseTool.resolve_discipline_or_branch("")
+      assert_nil ids2
+      assert_nil branch_name2
+    end
+
+    test "resolve_discipline_or_branch: 'Pool' matched Branch → alle Pool-Sub-Disciplines" do
+      ids, branch_name = McpServer::Tools::BaseTool.resolve_discipline_or_branch("Pool")
+      pool_branch = Branch.find_by("name ILIKE ?", "Pool")
+      skip "Branch 'Pool' nicht in Test-DB" if pool_branch.nil?
+      expected_ids = Discipline.where(super_discipline_id: pool_branch.id).pluck(:id)
+      skip "Keine Pool-Sub-Disciplines in Test-DB" if expected_ids.empty?
+      assert_equal expected_ids.sort, ids.sort
+      assert_equal pool_branch.name, branch_name
+    end
+
+    test "resolve_discipline_or_branch: '8-Ball' matched Discipline → [[id], nil]" do
+      ids, branch_name = McpServer::Tools::BaseTool.resolve_discipline_or_branch("8-Ball")
+      eight_ball = Discipline.find_by("name ILIKE ?", "8-Ball")
+      skip "Discipline '8-Ball' nicht in Test-DB" if eight_ball.nil?
+      assert_equal [eight_ball.id], ids
+      assert_nil branch_name
+    end
+
+    test "resolve_discipline_or_branch: numerische ID-Fallback" do
+      d = Discipline.first
+      skip "Keine Discipline in Test-DB" if d.nil?
+      ids, branch_name = McpServer::Tools::BaseTool.resolve_discipline_or_branch(d.id.to_s)
+      assert_equal [d.id], ids
+      assert_nil branch_name
+    end
+
+    test "resolve_discipline_or_branch: unbekanntes Token → [nil, nil]" do
+      ids, branch_name = McpServer::Tools::BaseTool.resolve_discipline_or_branch("FrobnicateX9999")
+      assert_nil ids
+      assert_nil branch_name
+    end
+  end
 end

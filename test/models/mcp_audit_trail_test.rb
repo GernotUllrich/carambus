@@ -18,7 +18,7 @@ class McpAuditTrailTest < ActiveSupport::TestCase
   end
 
   test "create: mit user_id (HTTP-Pfad)" do
-    user = User.create!(email: "audit-http@test.de", password: "password123", mcp_role: :mcp_sportwart)
+    user = User.create!(email: "audit-http@test.de", password: "password123",)
     entry = McpAuditTrail.create!(
       user: user,
       tool_name: "cc_register_for_tournament",
@@ -31,8 +31,8 @@ class McpAuditTrailTest < ActiveSupport::TestCase
   end
 
   test "for_user-Scope: filtert pro User" do
-    u1 = User.create!(email: "audit-u1@test.de", password: "password123", mcp_role: :mcp_sportwart)
-    u2 = User.create!(email: "audit-u2@test.de", password: "password123", mcp_role: :mcp_turnierleiter)
+    u1 = User.create!(email: "audit-u1@test.de", password: "password123",)
+    u2 = User.create!(email: "audit-u2@test.de", password: "password123",)
     McpAuditTrail.create!(user: u1, tool_name: "t1", payload: {}, result: "success", operator: "x")
     McpAuditTrail.create!(user: u2, tool_name: "t1", payload: {}, result: "success", operator: "x")
     McpAuditTrail.create!(user: u1, tool_name: "t1", payload: {}, result: "success", operator: "x")

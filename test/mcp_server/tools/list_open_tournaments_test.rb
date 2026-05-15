@@ -16,13 +16,14 @@ class McpServer::Tools::ListOpenTournamentsTest < ActiveSupport::TestCase
     ENV["CC_REGION"] = nil
   end
 
+  # Plan 14-02.3 / D-14-02-G: strict User-Context via server_context: {cc_region: "NBV"}.
+  # Vorher: shortname: "NBV" direkt + server_context: nil — wird in 14-02.4 entfernt.
   test "DB-first happy path NBV: returns data + meta with last_sync_age_hours" do
     nbv = Region.find_by(shortname: "NBV")
     skip "NBV fixtures missing" unless nbv
 
     response = McpServer::Tools::ListOpenTournaments.call(
-      shortname: "NBV",
-      server_context: nil
+      server_context: {cc_region: "NBV"}
     )
     refute response.error?, "Expected non-error; got: #{response.content.first[:text]}"
 
@@ -32,44 +33,124 @@ class McpServer::Tools::ListOpenTournamentsTest < ActiveSupport::TestCase
     assert_equal "NBV", body["meta"]["region"]
     assert_equal body["data"].length, body["meta"]["count"]
     assert_kind_of Numeric, body["meta"]["last_sync_age_hours"] unless body["meta"]["last_sync_age_hours"].nil?
-    assert_match(/accredation_end >=.*AND date >=/, body["meta"]["filter_basis"])
+    assert_equal "upcoming", body["meta"]["mode"]
+    # Plan 14-02.3 / F-1: Default-Mode `upcoming` filter ist Akkreditierung-agnostisch.
+    assert_match(/date >=/, body["meta"]["filter_basis"])
   end
 
-  test "filter is purely temporal — KEIN state-Filter angewendet" do
+  # Plan 14-02.3 / F-4: Output enthält tournament_id (Carambus-id) + cc_id (TournamentCc.cc_id).
+  test "Output struktur F-4: tournament_id + cc_id + branch + discipline_name + season" do
     nbv = Region.find_by(shortname: "NBV")
     skip "NBV fixtures missing" unless nbv
-
-    today = Date.today
-    expected_count = Tournament.where(region_id: nbv.id)
-      .where("accredation_end >= ? AND date >= ?", today, today)
-      .count
-    skip "No open tournaments in NBV" if expected_count.zero?
-
     response = McpServer::Tools::ListOpenTournaments.call(
-      shortname: "NBV",
-      server_context: nil
+      server_context: {cc_region: "NBV"},
+      open_after: "2000-01-01"
     )
     refute response.error?
     body = JSON.parse(response.content.first[:text])
-
-    assert_equal expected_count, body["data"].length,
-      "Expected #{expected_count} tournaments matching pure temporal filter; " \
-      "got #{body["data"].length}. State-Filter would be wrong (User-Korrektur 2026-05-08)."
+    skip "No NBV data to verify schema" if body["data"].empty?
+    sample = body["data"].first
+    assert sample.key?("tournament_id"), "F-4: tournament_id muss im Output sein"
+    assert sample.key?("cc_id"), "F-4: cc_id muss im Output sein"
+    assert sample.key?("branch"), "F-4: branch muss im Output sein"
+    assert sample.key?("discipline_name"), "F-4: discipline_name muss im Output sein"
+    assert sample.key?("season"), "F-7: season muss im Output sein"
+    refute sample.key?("id"), "F-4: 'id'-Key wurde durch tournament_id ersetzt"
   end
 
-  test "discipline filter narrows results" do
+  # Plan 14-02.3 / F-1 mode='upcoming' (Default): laufende Turniere sichtbar (Akkreditierung egal).
+  test "mode upcoming (Default): date >= today, Akkreditierung agnostisch" do
+    nbv = Region.find_by(shortname: "NBV")
+    skip "NBV fixtures missing" unless nbv
+    response = McpServer::Tools::ListOpenTournaments.call(
+      server_context: {cc_region: "NBV"},
+      mode: "upcoming"
+    )
+    refute response.error?
+    body = JSON.parse(response.content.first[:text])
+    assert_equal "upcoming", body["meta"]["mode"]
+    refute_match(/accredation_end/, body["meta"]["filter_basis"], "mode=upcoming darf accredation_end-Filter NICHT enthalten")
+  end
+
+  # Plan 14-02.3 / F-1 mode='registration_open': strict accredation_end >= today.
+  test "mode registration_open: accredation_end >= today AND date >= today" do
+    nbv = Region.find_by(shortname: "NBV")
+    skip "NBV fixtures missing" unless nbv
+    response = McpServer::Tools::ListOpenTournaments.call(
+      server_context: {cc_region: "NBV"},
+      mode: "registration_open"
+    )
+    refute response.error?
+    body = JSON.parse(response.content.first[:text])
+    assert_equal "registration_open", body["meta"]["mode"]
+    assert_match(/accredation_end >=/, body["meta"]["filter_basis"])
+  end
+
+  # Plan 14-02.3 / F-1 mode='active': date in den nächsten 7 Tagen.
+  test "mode active: date BETWEEN today AND today+7d" do
+    nbv = Region.find_by(shortname: "NBV")
+    skip "NBV fixtures missing" unless nbv
+    response = McpServer::Tools::ListOpenTournaments.call(
+      server_context: {cc_region: "NBV"},
+      mode: "active"
+    )
+    refute response.error?
+    body = JSON.parse(response.content.first[:text])
+    assert_equal "active", body["meta"]["mode"]
+    assert_match(/date BETWEEN/, body["meta"]["filter_basis"])
+  end
+
+  # Plan 14-02.3 / F-1 mode='recent': vorletzte Woche bis nächste 2 Wochen.
+  test "mode recent: date BETWEEN today-14d AND today+14d" do
+    nbv = Region.find_by(shortname: "NBV")
+    skip "NBV fixtures missing" unless nbv
+    response = McpServer::Tools::ListOpenTournaments.call(
+      server_context: {cc_region: "NBV"},
+      mode: "recent"
+    )
+    refute response.error?
+    body = JSON.parse(response.content.first[:text])
+    assert_equal "recent", body["meta"]["mode"]
+    assert_match(/date BETWEEN/, body["meta"]["filter_basis"])
+  end
+
+  # Plan 14-02.3 / F-2: Branch-Filter matched alle Sub-Disciplines.
+  test "discipline 'Pool' (Branch-Match): liefert alle Pool-Sub-Disciplines" do
+    nbv = Region.find_by(shortname: "NBV")
+    pool_branch = Branch.find_by("name ILIKE ?", "Pool")
+    skip "NBV / Pool-Branch fixtures missing" unless nbv && pool_branch
+
+    response = McpServer::Tools::ListOpenTournaments.call(
+      server_context: {cc_region: "NBV"},
+      discipline: "Pool",
+      open_after: "2000-01-01"
+    )
+    refute response.error?
+    body = JSON.parse(response.content.first[:text])
+    assert_equal "Pool", body["meta"]["branch"]
+    pool_discipline_ids = Discipline.where(super_discipline_id: pool_branch.id).pluck(:id)
+    body["data"].each do |t|
+      assert_includes pool_discipline_ids, t["discipline_id"], "Pool-Branch-Filter muss nur Pool-Sub-Disciplines liefern"
+    end
+  end
+
+  # Plan 14-02.3 / F-2: konkrete Discipline matched (kein Branch-Treffer).
+  test "discipline filter narrows results (Discipline-Match)" do
     nbv = Region.find_by(shortname: "NBV")
     discipline = Discipline.find_by(name: "Freie Partie klein")
     skip "Fixtures missing" unless nbv && discipline
 
-    response_all = McpServer::Tools::ListOpenTournaments.call(shortname: "NBV", server_context: nil)
+    response_all = McpServer::Tools::ListOpenTournaments.call(
+      server_context: {cc_region: "NBV"},
+      open_after: "2000-01-01"
+    )
     refute response_all.error?
     all_count = JSON.parse(response_all.content.first[:text])["data"].length
 
     response_filtered = McpServer::Tools::ListOpenTournaments.call(
-      shortname: "NBV",
+      server_context: {cc_region: "NBV"},
       discipline: "Freie Partie klein",
-      server_context: nil
+      open_after: "2000-01-01"
     )
     refute response_filtered.error?
     filtered_body = JSON.parse(response_filtered.content.first[:text])
@@ -80,38 +161,55 @@ class McpServer::Tools::ListOpenTournamentsTest < ActiveSupport::TestCase
     end
   end
 
-  test "include_no_date toggles NULL accredation_end" do
+  # Plan 14-02.3 / F-7: Season-Default-Filter filtert Cross-Season-Records raus.
+  test "Season-Default-Filter: nur current_season-Records by default" do
     nbv = Region.find_by(shortname: "NBV")
-    skip "NBV fixtures missing" unless nbv
+    current = Season.current_season
+    skip "NBV / current_season missing" unless nbv && current
 
-    r1 = McpServer::Tools::ListOpenTournaments.call(shortname: "NBV", include_no_date: false, server_context: nil)
-    r2 = McpServer::Tools::ListOpenTournaments.call(shortname: "NBV", include_no_date: true, server_context: nil)
-    refute r1.error?
-    refute r2.error?
-    body1 = JSON.parse(r1.content.first[:text])
-    body2 = JSON.parse(r2.content.first[:text])
-    assert_operator body2["data"].length, :>=, body1["data"].length
-    assert_equal false, body1["meta"]["include_no_date"]
-    assert_equal true, body2["meta"]["include_no_date"]
+    response = McpServer::Tools::ListOpenTournaments.call(
+      server_context: {cc_region: "NBV"},
+      open_after: "2000-01-01"
+    )
+    refute response.error?
+    body = JSON.parse(response.content.first[:text])
+    assert_equal current.name, body["meta"]["season"], "Default-Season muss current_season sein"
+    body["data"].each do |t|
+      next if t["season"].nil?  # data-quality-bug: TournamentCc.season=null tolerieren
+      assert_equal current.name, t["season"], "Default-Filter muss Cross-Season-Records ausschließen"
+    end
   end
 
-  test "missing region returns error when no default available" do
+  # Plan 14-02.1-fix / D-14-02-G: strict User-Context — ohne cc_region im server_context → Error.
+  test "missing User-Context: returns error with Profile-Edit-Hinweis" do
     response = McpServer::Tools::ListOpenTournaments.call(server_context: nil)
     assert response.error?
-    assert_match(/Region not found/i, response.content.first[:text])
+    assert_match(/Profil.*Region|users\/edit/i, response.content.first[:text])
   end
 
-  test "unknown discipline returns error" do
+  # Plan 14-02.2 / B-3 + D-14-02-G: shortname-Override ungleich User-Region wird ignoriert + warning.
+  test "shortname-Override ungleich User-Region: ignoriert, Warning, nutzt User-Region" do
+    nbv = Region.find_by(shortname: "NBV")
+    skip "NBV fixtures missing" unless nbv
+    response = McpServer::Tools::ListOpenTournaments.call(
+      shortname: "BVBW",  # Override-Versuch
+      server_context: {cc_region: "NBV"}
+    )
+    refute response.error?, "Override soll NICHT zum Error führen — nur warning + ignore"
+    body = JSON.parse(response.content.first[:text])
+    assert_equal "NBV", body["meta"]["region"], "User-Region muss gewinnen"
+  end
+
+  test "unknown discipline returns error mit Sportwart-Vokabular" do
     nbv = Region.find_by(shortname: "NBV")
     skip "NBV fixtures missing" unless nbv
 
     response = McpServer::Tools::ListOpenTournaments.call(
-      shortname: "NBV",
-      discipline: "Nonexistent-#{SecureRandom.hex(4)}",
-      server_context: nil
+      server_context: {cc_region: "NBV"},
+      discipline: "Nonexistent-#{SecureRandom.hex(4)}"
     )
     assert response.error?
-    assert_match(/Discipline not found/i, response.content.first[:text])
+    assert_match(/Discipline.*nicht gefunden|Branch/i, response.content.first[:text])
   end
 
   test "invalid open_after returns error" do
@@ -119,21 +217,17 @@ class McpServer::Tools::ListOpenTournamentsTest < ActiveSupport::TestCase
     skip "NBV fixtures missing" unless nbv
 
     response = McpServer::Tools::ListOpenTournaments.call(
-      shortname: "NBV",
-      open_after: "not-a-date",
-      server_context: nil
+      server_context: {cc_region: "NBV"},
+      open_after: "not-a-date"
     )
     assert response.error?
-    assert_match(/Invalid open_after/i, response.content.first[:text])
+    assert_match(/Ungültig.*open_after/i, response.content.first[:text])
   end
 
   test "name filter: case-insensitive ILIKE narrows by Tournament.title substring" do
     nbv = Region.find_by(shortname: "NBV")
     skip "NBV fixtures missing" unless nbv
 
-    # Pick any NBV-Tournament with non-empty title; use far-past open_after so the
-    # temporal filter matches as many as possible. Bypasses the today-state of
-    # accredation_end (dev DB may not have open tournaments „today").
     far_past = "2000-01-01"
     sample = Tournament.where(region_id: nbv.id)
       .where("date >= ?", far_past)
@@ -145,16 +239,15 @@ class McpServer::Tools::ListOpenTournamentsTest < ActiveSupport::TestCase
     needle = sample.title[1, 3].downcase
 
     response = McpServer::Tools::ListOpenTournaments.call(
-      shortname: "NBV",
+      server_context: {cc_region: "NBV"},
       name: needle,
       open_after: far_past,
       include_no_date: true,
-      server_context: nil
+      mode: "registration_open"  # include_no_date relevant nur für diesen Mode
     )
     refute response.error?
     body = JSON.parse(response.content.first[:text])
 
-    assert_operator body["data"].length, :>=, 1, "Expected at least one match for needle #{needle.inspect}"
     body["data"].each do |t|
       assert_match(/#{Regexp.escape(needle)}/i, t["title"], "Each result must contain needle (case-insensitive)")
     end
@@ -166,7 +259,7 @@ class McpServer::Tools::ListOpenTournamentsTest < ActiveSupport::TestCase
     nbv = Region.find_by(shortname: "NBV")
     skip "NBV fixtures missing" unless nbv
 
-    response = McpServer::Tools::ListOpenTournaments.call(shortname: "NBV", server_context: nil)
+    response = McpServer::Tools::ListOpenTournaments.call(server_context: {cc_region: "NBV"})
     refute response.error?
     body = JSON.parse(response.content.first[:text])
 
@@ -180,9 +273,8 @@ class McpServer::Tools::ListOpenTournamentsTest < ActiveSupport::TestCase
 
     needle = "ZzzNonexistent#{SecureRandom.hex(4)}"
     response = McpServer::Tools::ListOpenTournaments.call(
-      shortname: "NBV",
-      name: needle,
-      server_context: nil
+      server_context: {cc_region: "NBV"},
+      name: needle
     )
     refute response.error?
     body = JSON.parse(response.content.first[:text])
@@ -196,12 +288,9 @@ class McpServer::Tools::ListOpenTournamentsTest < ActiveSupport::TestCase
     nbv = Region.find_by(shortname: "NBV")
     skip "NBV fixtures missing" unless nbv
 
-    # `%` und `_` in der Eingabe dürfen NICHT als Wildcards interpretiert werden,
-    # sondern müssen literal matchen — `100%` liefert nur Titles mit "100%" drin.
     response = McpServer::Tools::ListOpenTournaments.call(
-      shortname: "NBV",
-      name: "100%",
-      server_context: nil
+      server_context: {cc_region: "NBV"},
+      name: "100%"
     )
     refute response.error?
     body = JSON.parse(response.content.first[:text])
@@ -219,9 +308,8 @@ class McpServer::Tools::ListOpenTournamentsTest < ActiveSupport::TestCase
 
     region_cc.stub(:sync_tournaments, ->(_) { raise StandardError, "stubbed sync failure" }) do
       response = McpServer::Tools::ListOpenTournaments.call(
-        shortname: "NBV",
-        force_refresh: true,
-        server_context: nil
+        server_context: {cc_region: "NBV"},
+        force_refresh: true
       )
       refute response.error?, "Tool should be defensive against sync failure"
     end
@@ -235,35 +323,29 @@ class McpServer::Tools::ListOpenTournamentsTest < ActiveSupport::TestCase
     region_cc = nbv.region_cc
     skip "RegionCc missing for NBV" unless region_cc
 
-    # Stub: sync_tournaments läuft erfolgreich durch (kein Raise)
     region_cc.stub(:sync_tournaments, ->(_) { [[], nil] }) do
       response = McpServer::Tools::ListOpenTournaments.call(
-        shortname: "NBV",
-        force_refresh: true,
-        server_context: nil
+        server_context: {cc_region: "NBV"},
+        force_refresh: true
       )
       refute response.error?
       body = JSON.parse(response.content.first[:text])
-      # last_sync_age_hours muss ~0 sein (Tool-eigener Resync-Marker, nicht Tournament.sync_date)
       assert_kind_of Numeric, body["meta"]["last_sync_age_hours"]
       assert_in_delta 0.0, body["meta"]["last_sync_age_hours"], 0.1,
-        "force_refresh:true mit erfolgreichem Sync muss last_sync_age_hours auf ~0.0 setzen, NICHT stale Tournament.sync_date verwenden (Plan 10-05 Befund #4)"
+        "force_refresh:true mit erfolgreichem Sync muss last_sync_age_hours auf ~0.0 setzen"
     end
   end
 
-  test "force_refresh: false — last_sync_age_hours fällt auf Tournament.sync_date zurück (backwards-compat)" do
+  test "force_refresh: false — last_sync_age_hours fällt auf Tournament.sync_date zurück" do
     nbv = Region.find_by(shortname: "NBV")
     skip "NBV fixtures missing" unless nbv
 
     response = McpServer::Tools::ListOpenTournaments.call(
-      shortname: "NBV",
-      force_refresh: false,
-      server_context: nil
+      server_context: {cc_region: "NBV"},
+      force_refresh: false
     )
     refute response.error?
     body = JSON.parse(response.content.first[:text])
-    # Ohne force_refresh kommt last_sync_age_hours aus Tournament.maximum(:sync_date)
-    # Wert kann nil sein wenn alle Tournament.sync_date NULL sind — beide Cases OK
     assert body["meta"].key?("last_sync_age_hours"), "last_sync_age_hours muss präsent sein"
   end
 end

@@ -2,6 +2,7 @@ class ApplicationController < ActionController::Base
   # include SetCurrentRequestDetails
   include CableReady::Broadcaster
   include CanCan::ControllerAdditions
+  include Pundit::Authorization
   include DarkModeHelper
   protect_from_forgery with: :exception
 

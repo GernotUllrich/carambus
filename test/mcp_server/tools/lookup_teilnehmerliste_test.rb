@@ -28,6 +28,8 @@ class McpServer::Tools::LookupTeilnehmerlisteTest < ActiveSupport::TestCase
   test "missing required params returns validation error" do
     response = McpServer::Tools::LookupTeilnehmerliste.call(server_context: nil)
     assert response.error?
-    assert_match(/Missing required parameter/i, response.content.first[:text])
+    # Plan 14-02.3 / F-6: Sportwart-Vokabular im Error-Message.
+    assert_match(/tournament_id|meldeliste_id/i, response.content.first[:text])
+    assert_match(/Bitte gib|gib `/i, response.content.first[:text])
   end
 end

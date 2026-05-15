@@ -29,19 +29,31 @@ module McpServer
         return error("Missing required parameter: `club`") if club.blank?
         return error("Missing required parameter: `discipline`") if discipline.blank?
 
+        # Plan 14-02.2 / B-3 + D-14-02-G: shortname-Override-Logik entfernt. Region kommt
+        # strict aus server_context. Club muss in User-Region sein — Cross-Region-Validation.
+        if shortname.present? && shortname.to_s.upcase != effective_cc_region(server_context).to_s
+          Rails.logger.warn "[cc_list_players_by_club_and_discipline] shortname-Override '#{shortname}' ignoriert; nutze User#cc_region='#{effective_cc_region(server_context)}'"
+        end
+        region_name = effective_cc_region(server_context)
+        if region_name.blank?
+          return error(
+            "Dein Profil hat keine Region gesetzt. Bitte unter https://carambus.de/users/edit eine Region wählen."
+          )
+        end
+        user_region = Region.find_by(shortname: region_name)
+        return error("Region '#{region_name}' nicht in DB gefunden. Profile-Region prüfen.") if user_region.nil?
+
         club_obj = resolve_club(club)
         return error("Club not found: #{club.inspect}") if club_obj.nil?
 
+        # Cross-Region-Validation: Club muss in User-Region sein (sofern Club einer Region zugeordnet ist).
+        # Defensive: Clubs ohne region_id (Legacy/Stammdaten-Lücke) übergeben wir ohne Validation.
+        if club_obj.region_id.present? && club_obj.region_id != user_region.id
+          return error("Club '#{club_obj.shortname}' gehört nicht zu deiner Region '#{region_name}' (sondern region_id=#{club_obj.region_id}).")
+        end
+
         discipline_obj = resolve_discipline(discipline)
         return error("Discipline not found: #{discipline.inspect}") if discipline_obj.nil?
-
-        if shortname.present?
-          region = Region.find_by(shortname: shortname.to_s.upcase)
-          return error("Region not found: #{shortname.inspect}") if region.nil?
-          if club_obj.region_id != region.id
-            return error("Club '#{club_obj.shortname}' belongs to region_id=#{club_obj.region_id}, not '#{shortname}'.")
-          end
-        end
 
         season_obj = resolve_season(season)
         return error("Cannot determine season — pass `season:` param (Season.current_season returned nil).") if season_obj.nil?
@@ -64,19 +76,22 @@ module McpServer
           .distinct
           .order(:lastname, :firstname)
 
+        # Plan 14-02.2 / E-2: cc_id als Primary; dbu_nr informativ-optional.
         text(JSON.generate(
           club: club_obj.shortname,
           discipline: discipline_obj.name,
           season: season_obj.name,
+          region: user_region.shortname,
           count: players.count,
           players: players.map { |p|
             {
-              id: p.id,
+              cc_id: p.cc_id,
               fl_name: p.fl_name,
               lastname: p.lastname,
               firstname: p.firstname,
-              cc_id: p.cc_id,
-              ba_id: p.ba_id
+              dbu_nr: p.dbu_nr,
+              ba_id: p.ba_id,
+              id: p.id
             }
           }
         ))

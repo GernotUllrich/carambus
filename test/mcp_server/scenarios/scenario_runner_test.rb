@@ -149,7 +149,8 @@ class McpServer::Scenarios::ScenarioRunnerTest < ActiveSupport::TestCase
 
       raw_args = step["args"] || {}
       substituted = substitute_vars(raw_args, bound_vars, idx, source)
-      args = symbolize_keys(substituted).merge(server_context: nil)
+      # Plan 14-02.2 / D-14-02-G: strict User-Context — Scenarios sind region-scoped (NBV als Default-Test-Region).
+      args = symbolize_keys(substituted).merge(server_context: {cc_region: "NBV"})
       response = tool_class.call(**args)
 
       expect = step["expect"] || {}

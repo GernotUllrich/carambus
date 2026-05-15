@@ -10,16 +10,16 @@ class McpControllerTest < ActionDispatch::IntegrationTest
   setup do
     @public_read_user = User.create!(
       email: "mcp_public@example.com", password: "password123",
-      mcp_role: :mcp_public_read
+
     )
     # Plan 14-02.1-fix / D-14-02-G: cc_region ist Pflicht für mcp_role > public_read
     @sportwart_user = User.create!(
       email: "mcp_sport@example.com", password: "password123",
-      mcp_role: :mcp_sportwart, cc_credentials: '{"username":"x","password":"y"}', cc_region: "NBV"
+
     )
     @admin_user = User.create!(
       email: "mcp_admin@example.com", password: "password123",
-      mcp_role: :mcp_admin, cc_credentials: '{"username":"x","password":"y"}', cc_region: "NBV"
+
     )
   end
 
@@ -46,36 +46,15 @@ class McpControllerTest < ActionDispatch::IntegrationTest
     assert_response :unauthorized
   end
 
-  test "POST /mcp with authenticated mcp_public_read user returns Read-Tools-only subset (16)" do
-    sign_in @public_read_user
-    post "/mcp?stateless=1", params: tools_list_payload.to_json, headers: {"Content-Type" => "application/json"}
-    assert_response :success
-    body = JSON.parse(response.body)
-    assert body.dig("result", "tools").is_a?(Array),
-      "Response erwartet result.tools-Array, got: #{body.inspect[0..300]}"
-    tool_names = body.dig("result", "tools").map { |t| t["name"] }
-    assert_equal 16, tool_names.size, "mcp_public_read sollte 16 Tools haben, hat: #{tool_names.size}"
-    refute tool_names.any? { |n| n.include?("register") || n.include?("assign") || n.include?("finalize") },
-      "mcp_public_read sollte keine Write-Tools haben, hat aber: #{tool_names.inspect}"
-  end
+  # Plan 14-G.2 / D-14-G6: Per-Role-Tool-Subset-Tests (mcp_public_read/sportwart) gelöscht
+  # (Stub gibt ALL_TOOLS; Per-Record-Authority via BaseTool.authorize! in 14-G.4).
 
-  test "POST /mcp with mcp_admin user returns all 22 Tools" do
+  test "POST /mcp with any authenticated user returns all 22 Tools (Stub: ALL_TOOLS for everyone)" do
     sign_in @admin_user
     post "/mcp?stateless=1", params: tools_list_payload.to_json, headers: {"Content-Type" => "application/json"}
     assert_response :success
     body = JSON.parse(response.body)
-    assert_equal 22, body.dig("result", "tools").size, "mcp_admin sollte 22 Tools haben"
-  end
-
-  test "POST /mcp with mcp_sportwart user returns 19 Tools (no cc_finalize/cc_assign/cc_remove)" do
-    sign_in @sportwart_user
-    post "/mcp?stateless=1", params: tools_list_payload.to_json, headers: {"Content-Type" => "application/json"}
-    assert_response :success
-    body = JSON.parse(response.body)
-    tool_names = body.dig("result", "tools").map { |t| t["name"] }
-    assert_equal 19, tool_names.size, "mcp_sportwart sollte 19 Tools haben, hat: #{tool_names.size}"
-    refute tool_names.any? { |n| n.include?("finalize") || n.include?("assign") || n.include?("remove_from_teilnehmer") },
-      "mcp_sportwart sollte kein cc_finalize/cc_assign/cc_remove haben, hat aber: #{tool_names.inspect}"
+    assert_equal 22, body.dig("result", "tools").size, "Stub: alle authentifizierten User bekommen 22 Tools"
   end
 
   test "POST /mcp?stateless=1 initialisiert StreamableHTTPTransport ohne Crash" do
@@ -84,35 +63,27 @@ class McpControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
-  test "POST /mcp mit Per-User-cc_region wird in server_context propagiert (Init OK)" do
-    @sportwart_user.update!(cc_region: "nbv")
-    sign_in @sportwart_user
-    post "/mcp", params: init_payload.to_json, headers: {"Content-Type" => "application/json"}
+  # Plan 14-G.2 / D-14-G6: Per-Role-User-Setup-Tests (cc_credentials/mcp_role/cc_region) gelöscht.
+  # NEUE RESTORE-Tests: Carambus.config.region_id-Sourcing in server_context.
+
+  test "POST /mcp injiziert Carambus.config.region_id in server_context als cc_region" do
+    original = Carambus.config.region_id
+    Carambus.config.region_id = "NBV"
+    sign_in @admin_user
+    post "/mcp?stateless=1", params: init_payload.to_json, headers: {"Content-Type" => "application/json"}
+    # Init muss grün durchgehen — Tool-Calls würden später cc_region aus server_context lesen.
     assert_response :success
+  ensure
+    Carambus.config.region_id = original
   end
 
-  test "POST /mcp ohne cc_credentials + mcp_role != public_read: Init funktioniert (Tool-Calls failen erst später)" do
-    no_creds_user = User.create!(
-      email: "mcp_nocreds@example.com", password: "password123",
-      mcp_role: :mcp_sportwart, cc_region: "NBV" # KEIN cc_credentials
-    )
-    sign_in no_creds_user
-    post "/mcp", params: init_payload.to_json, headers: {"Content-Type" => "application/json"}
-    assert_response :success
-  end
-
-  # Plan 14-02.1-fix / D-14-02-G: McpController#require_user_cc_region-Guard
-  test "POST /mcp mit User ohne cc_region (mcp_role > public_read) → 422 + Profile-Edit-Hinweis" do
-    no_region_user = User.create!(
-      email: "mcp_no_region@example.com", password: "password123",
-      mcp_role: :mcp_sportwart
-      # cc_region absichtlich nicht gesetzt (Profile-Edit-Hinweis-Test)
-    )
-    sign_in no_region_user
-    post "/mcp", params: init_payload.to_json, headers: {"Content-Type" => "application/json"}
-    assert_response :unprocessable_entity
-    body = JSON.parse(response.body)
-    assert_equal(-32602, body.dig("error", "code"))
-    assert_match(/Profil hat keine Region/i, body.dig("error", "message"))
+  test "POST /mcp mit Carambus.config.region_id blank initialisiert dennoch (Tool-Calls würden später failen)" do
+    original = Carambus.config.region_id
+    Carambus.config.region_id = ""
+    sign_in @admin_user
+    post "/mcp?stateless=1", params: init_payload.to_json, headers: {"Content-Type" => "application/json"}
+    assert_response :success, "Init muss grün auch ohne region_id (Tool-Calls failen erst später)"
+  ensure
+    Carambus.config.region_id = original
   end
 end

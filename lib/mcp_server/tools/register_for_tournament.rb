@@ -81,6 +81,17 @@ module McpServer
         )
         return err if err
 
+        # Plan 14-G.4 / F5-B: Authority-Integration. Defensive: bei nicht-auflösbarem Tournament
+        # wird authorize!-Check übersprungen — Tool-spezifische Validations werfen den
+        # eigentlichen "meldeliste not found"-Fehler später.
+        resolved_tournament = resolve_tournament(
+          meldeliste_cc_id: meldeliste_cc_id, server_context: server_context
+        )
+        if resolved_tournament
+          auth_err = authorize!(action: :manage_teilnehmerliste, tournament: resolved_tournament, server_context: server_context)
+          return auth_err if auth_err
+        end
+
         # Plan 10-05.1 Task 2 (D-10-04-G Pre-Validation-First-Pattern, 7 Constraints):
         # 7 _validate_*-Methoden via run_validations-Aggregator (BaseTool-Helper).
         # Defensive Logic: bei unklarer DB-/CC-Data → ok:true (keine False-Negative-Blockade);

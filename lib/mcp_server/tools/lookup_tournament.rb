@@ -25,11 +25,12 @@ module McpServer
       input_schema(
         properties: {
           meisterschaft_id: {type: "integer", description: "CC meisterschaft ID (cc_id on TournamentCc) — nur regions-eindeutig"},
+          cc_id: {type: "integer", description: "Plan 14-02.3 / F-4: Alias für meisterschaft_id (User-Vokabular). Wenn beide gesetzt, gewinnt meisterschaft_id."},
           tournament_id: {type: "integer", description: "Carambus-internal Tournament ID (region-eindeutig)"},
           name: {type: "string", description: "Optionaler Name-Search-Filter (Substring auf TournamentCc.name via ILIKE; Plan 10-06 D-10-04-J Vokabular-Schicht). Liefert Disambiguation-Output (0/1/≥2-Treffer) analog cc_lookup_club."},
-          fed_id: {type: "integer", description: "ClubCloud federation ID (required for live lookup). Optional — resolved via region lookup (CC_REGION/Setting 'context', default 'NBV'); ENV CC_FED_ID overrides."},
-          shortname: {type: "string", description: "Optionaler Region-Filter-Override (z.B. 'BVBW' für Cross-Region-Lookup). Default: CC_REGION/Setting 'context'/'NBV'. Wird auf TournamentCc.context gematched (case-insensitive)."},
-          season: {type: "string", description: "Season name like '2025/2026'"},
+          fed_id: {type: "integer", description: "Deprecated — Backwards-Compat; wird aus User#cc_region abgeleitet."},
+          shortname: {type: "string", description: "Optionaler Region-Filter-Override. Strict-Mode aus 14-02.1-fix: Override ungleich User#cc_region wird mit Warning ignoriert. Removal in 14-02.4."},
+          season: {type: "string", description: "Season-Name (z.B. '2025/2026'). Plan 14-02.3 / F-7: Default = aktuelle Saison."},
           force_refresh: {type: "boolean", default: false, description: "Bypass DB cache, query CC live"},
           with_committed_list: {type: "boolean", default: false, description: "Wenn true, ruft showCommittedMeldeliste auf und liefert die bereits angemeldeten Player-cc_ids als 'committed_players' (read-only). meldeliste_cc_id wird aus TournamentCc.registration_list_cc abgeleitet — falls nicht in DB verknüpft, kann optional `meldeliste_cc_id` als Override gesetzt werden."},
           meldeliste_cc_id: {type: "integer", description: "Override für with_committed_list — nur nötig wenn TournamentCc keine registration_list_cc-Beziehung hat. Sonst wird der Wert aus der DB-Beziehung gelesen."}
@@ -37,18 +38,22 @@ module McpServer
       )
       annotations(read_only_hint: true, destructive_hint: false)
 
-      def self.call(meisterschaft_id: nil, tournament_id: nil, name: nil, fed_id: nil, shortname: nil, season: nil, force_refresh: false, with_committed_list: false, meldeliste_cc_id: nil, server_context: nil)
-        fed_id ||= default_fed_id
+      def self.call(meisterschaft_id: nil, cc_id: nil, tournament_id: nil, name: nil, fed_id: nil, shortname: nil, season: nil, force_refresh: false, with_committed_list: false, meldeliste_cc_id: nil, server_context: nil)
+        # Plan 14-02.3 / F-4: cc_id-Alias-Aufnahme. meisterschaft_id hat Präzedenz wenn beide gesetzt.
+        meisterschaft_id ||= cc_id
+        fed_id ||= default_fed_id(server_context)
         unless meisterschaft_id.present? || tournament_id.present? || name.present?
-          return error("Missing required parameter: provide `meisterschaft_id`, `tournament_id`, or `name`")
+          return error("Bitte gib `meisterschaft_id` (oder Alias `cc_id`), `tournament_id` oder `name` an.")
         end
 
         return live_lookup(meisterschaft_id: meisterschaft_id, fed_id: fed_id, season: season, server_context: server_context) if force_refresh
 
         # Plan 10-06 Task 1 (D-10-04-J Vokabular-Schicht): Name-Search via TournamentCc.name ILIKE
         # mit Phase-8-Disambiguation-Pattern (5. Anwendung). Vorbild: cc_lookup_club aus Plan 10-05.
+        # Plan 14-02.3 / F-7: Season-Filter via effective_season; bei TournamentCc.season=null
+        # NULL-tolerant (data-quality-bug — siehe v0.4-Backlog).
         if name.present? && meisterschaft_id.blank? && tournament_id.blank?
-          return name_search(name: name, shortname: shortname, server_context: server_context)
+          return name_search(name: name, shortname: shortname, season: season, server_context: server_context)
         end
 
         # Plan 14-02.1-fix / D-14-02-G: strict User-Context. shortname-Override-Logik entfernt
@@ -83,14 +88,26 @@ module McpServer
       # Plan 14-02.1-fix / D-14-02-G: Name-Search strict auf User-Region; shortname-Override-
       # Logik entfernt (Removal aus Schema folgt in 14-02.4). Pattern aus Plan 10-06 erhalten
       # (Phase-8-Disambiguation, 5. Anwendung).
-      def self.name_search(name:, shortname:, server_context: nil)
+      # Plan 14-02.3 / F-7: Season-Default-Filter (current_season; NULL-tolerant für
+      # TournamentCc.season=null data-quality-bug).
+      # Plan 14-02.3 / B-3: shortname-Override-Warning analog 14-02.2 Pattern.
+      def self.name_search(name:, shortname:, season: nil, server_context: nil)
         region_shortname = effective_cc_region(server_context)
         if region_shortname.blank?
-          return error("Dein Carambus-Profil hat keine Region gesetzt. Bitte unter /users/edit eine Region wählen.")
+          return error("Dein Carambus-Profil hat keine Region gesetzt. Bitte unter https://carambus.de/users/edit eine Region wählen.")
         end
+        if shortname.present? && shortname.to_s.upcase != region_shortname
+          Rails.logger.warn "[cc_lookup_tournament] shortname-Override '#{shortname}' ignoriert; nutze User#cc_region='#{region_shortname}'"
+        end
+
+        season_obj = effective_season(server_context, override: season)
+
         escaped = ActiveRecord::Base.sanitize_sql_like(name.to_s)
         scope = TournamentCc.where("name ILIKE ?", "%#{escaped}%")
           .where(context: region_shortname.to_s.downcase)
+        # Plan 14-02.3 / F-7: NULL-tolerant Season-Filter. TournamentCc.season ist String;
+        # NULL-Records passieren tolerant durch (data-quality-bug — v0.4-Backlog).
+        scope = scope.where("season = ? OR season IS NULL", season_obj.name) if season_obj
         matches = scope.order(:name).limit(20)
 
         candidates = matches.map { |tc|
@@ -105,9 +122,10 @@ module McpServer
 
         if candidates.empty?
           return error(
-            "Kein Turnier in Region '#{region_shortname}' passt zu '#{name}'. " \
-            "Versuche: (a) kürzeren Suchbegriff (z.B. 'Eurokegel' statt 'NDM Endrunde Eurokegel'), " \
-            "(b) tournament_id falls bekannt (Carambus-Rails-id)."
+            "Kein Turnier in Region '#{region_shortname}' (Saison '#{season_obj&.name || "—"}') passt zu '#{name}'. " \
+            "Versuche: (a) kürzerer Suchbegriff (z.B. 'Eurokegel' statt 'NDM Endrunde Eurokegel'), " \
+            "(b) andere Saison via season-Parameter, " \
+            "(c) tournament_id falls bekannt (Carambus-Rails-id)."
           )
         end
 
@@ -118,6 +136,7 @@ module McpServer
           meta: {
             count: candidates.length,
             region: region_shortname,
+            season: season_obj&.name,
             search: {name: name}
           }
         }
@@ -175,7 +194,8 @@ module McpServer
       def self.read_committed_players(tournament_cc:, meldeliste_cc_id_override:, fed_id:, meta:)
         meldeliste_cc_id = meldeliste_cc_id_override.presence || tournament_cc.registration_list_cc&.cc_id
         if meldeliste_cc_id.blank?
-          meta[:committed_list_warning] = "No registration_list_cc linked in TournamentCc — pass meldeliste_cc_id explicitly to read committed list."
+          # Plan 14-02.3 / F-6: Sportwart-Vokabular.
+          meta[:committed_list_warning] = "Daten-Lücke: Das Turnier ist in Carambus, aber die Meldeliste-Verknüpfung fehlt. Bitte LSW informieren — oder meldeliste_cc_id direkt setzen (Override-Parameter)."
           return nil
         end
 

@@ -127,7 +127,7 @@ class McpServer::AuditTrailTest < ActiveSupport::TestCase
   end
 
   test "write_entry: user_id wird in DB + JSON-Lines geschrieben (HTTP-Pfad)" do
-    user = User.create!(email: "at-http@test.de", password: "password123", mcp_role: :mcp_sportwart)
+    user = User.create!(email: "at-http@test.de", password: "password123",)
     entry = McpServer::AuditTrail.write_entry(
       tool_name: "cc_register_for_tournament",
       operator: "carambus_admin",
@@ -177,8 +177,8 @@ class McpServer::AuditTrailTest < ActiveSupport::TestCase
   end
 
   test "write_entry: für_user-Scope filtert pro mcp-User-Login" do
-    user_a = User.create!(email: "at-a@test.de", password: "password123", mcp_role: :mcp_sportwart)
-    user_b = User.create!(email: "at-b@test.de", password: "password123", mcp_role: :mcp_turnierleiter)
+    user_a = User.create!(email: "at-a@test.de", password: "password123",)
+    user_b = User.create!(email: "at-b@test.de", password: "password123",)
 
     3.times do
       McpServer::AuditTrail.write_entry(

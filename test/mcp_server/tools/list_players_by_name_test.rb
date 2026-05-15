@@ -17,27 +17,39 @@ class McpServer::Tools::ListPlayersByNameTest < ActiveSupport::TestCase
   end
 
   test "validation: missing name returns error" do
-    response = McpServer::Tools::ListPlayersByName.call(server_context: nil)
+    response = McpServer::Tools::ListPlayersByName.call(server_context: {cc_region: "NBV"})
     assert response.error?
     assert_match(/name/i, response.content.first[:text])
   end
 
   test "validation: name too short returns error" do
-    response = McpServer::Tools::ListPlayersByName.call(name: "u", server_context: nil)
+    response = McpServer::Tools::ListPlayersByName.call(name: "u", server_context: {cc_region: "NBV"})
     assert response.error?
     assert_match(/at least 2/i, response.content.first[:text])
   end
 
   test "validation: empty name returns error (blank treated as missing)" do
-    response = McpServer::Tools::ListPlayersByName.call(name: "", server_context: nil)
+    response = McpServer::Tools::ListPlayersByName.call(name: "", server_context: {cc_region: "NBV"})
     assert response.error?
     assert_match(/name/i, response.content.first[:text])
   end
 
-  test "validation: unknown region shortname returns error" do
-    response = McpServer::Tools::ListPlayersByName.call(name: "ullrich", shortname: "ZZZ-XYZ", server_context: nil)
+  # Plan 14-02.2 / B-3: shortname-Override-Logik entfernt. Tool ignoriert den Parameter
+  # und nutzt strict server_context[:cc_region]. Statt "Region not found" für unknown
+  # shortname läuft die Suche jetzt gegen die User-Region (NBV) — kein Error mehr.
+  test "B-3: shortname-Override wird ignoriert, User-Region greift strict" do
+    nbv = Region.find_by(shortname: "NBV")
+    skip "NBV region fixture missing" unless nbv
+    response = McpServer::Tools::ListPlayersByName.call(name: "ullrich", shortname: "ZZZ-XYZ", server_context: {cc_region: "NBV"})
+    refute response.error?, "shortname-Override darf nicht zu Error führen — strict server_context greift"
+    body = JSON.parse(response.content.first[:text])
+    assert_equal "NBV", body.dig("meta", "region")
+  end
+
+  test "D-14-02-G: server_context ohne cc_region → Profile-Edit-Diagnostic-Error" do
+    response = McpServer::Tools::ListPlayersByName.call(name: "ullrich", server_context: {})
     assert response.error?
-    assert_match(/Region not found/i, response.content.first[:text])
+    assert_match(/Profil.*Region|users\/edit/i, response.content.first[:text])
   end
 
   test "validation: unknown club_cc_id returns error when region resolvable" do
@@ -48,7 +60,7 @@ class McpServer::Tools::ListPlayersByNameTest < ActiveSupport::TestCase
       name: "ullrich",
       club_cc_id: 99_999_999,
       shortname: "NBV",
-      server_context: nil
+      server_context: {cc_region: "NBV"}
     )
     assert response.error?
     assert_match(/Club not found/i, response.content.first[:text])
@@ -67,7 +79,7 @@ class McpServer::Tools::ListPlayersByNameTest < ActiveSupport::TestCase
     fragment = sample.lastname.to_s[0, 4]
     skip "Sample lastname too short for substring search" if fragment.length < 2
 
-    response = McpServer::Tools::ListPlayersByName.call(name: fragment, shortname: "NBV", server_context: nil)
+    response = McpServer::Tools::ListPlayersByName.call(name: fragment, shortname: "NBV", server_context: {cc_region: "NBV"})
     refute response.error?, "Expected non-error; got: #{response.content.first[:text]}"
 
     body = JSON.parse(response.content.first[:text])
@@ -97,7 +109,7 @@ class McpServer::Tools::ListPlayersByNameTest < ActiveSupport::TestCase
     fragment = sample.firstname.to_s[0, 3]
     skip "Sample firstname too short" if fragment.length < 2
 
-    response = McpServer::Tools::ListPlayersByName.call(name: fragment, shortname: "NBV", server_context: nil)
+    response = McpServer::Tools::ListPlayersByName.call(name: fragment, shortname: "NBV", server_context: {cc_region: "NBV"})
     refute response.error?
     body = JSON.parse(response.content.first[:text])
     assert body["players"].length >= 1
@@ -124,7 +136,7 @@ class McpServer::Tools::ListPlayersByNameTest < ActiveSupport::TestCase
       name: fragment,
       club_cc_id: club.cc_id,
       shortname: "NBV",
-      server_context: nil
+      server_context: {cc_region: "NBV"}
     )
     refute response.error?
     body = JSON.parse(response.content.first[:text])
@@ -139,7 +151,7 @@ class McpServer::Tools::ListPlayersByNameTest < ActiveSupport::TestCase
     response = McpServer::Tools::ListPlayersByName.call(
       name: "ZZZ_NEVER_EXISTS_#{SecureRandom.hex(4)}",
       shortname: "NBV",
-      server_context: nil
+      server_context: {cc_region: "NBV"}
     )
     refute response.error?
     body = JSON.parse(response.content.first[:text])
@@ -156,11 +168,81 @@ class McpServer::Tools::ListPlayersByNameTest < ActiveSupport::TestCase
     response = McpServer::Tools::ListPlayersByName.call(
       name: "100%test",
       shortname: "NBV",
-      server_context: nil
+      server_context: {cc_region: "NBV"}
     )
     refute response.error?
     body = JSON.parse(response.content.first[:text])
     assert_kind_of Integer, body.dig("meta", "match_count")
+  end
+
+  # Plan 14-02.2 / Befund E-1: Token-Search behebt Title-Präfix-Bug.
+  test "E-1: Token-Search findet 'Dr. Gernot Ullrich' via Query 'Gernot Ullrich'" do
+    nbv = Region.find_by(shortname: "NBV")
+    skip "NBV region fixture missing" unless nbv
+    # Player „Dr. Gernot" wenn in fixtures vorhanden — sonst syntheticen via Player.where
+    sample = Player.joins(:player_rankings)
+      .where(player_rankings: {region_id: nbv.id})
+      .where("firstname ILIKE ?", "Dr.%")
+      .first
+    skip "Kein 'Dr.'-prefixed Player in NBV-Fixtures" unless sample
+    # Suche mit Plain-Name (ohne Dr.) — sollte trotzdem matchen
+    fragment = "#{sample.firstname.to_s.sub(/^Dr\.\s*/i, "")} #{sample.lastname}"
+    skip "Sample player name too short for token search" if fragment.length < 5
+
+    response = McpServer::Tools::ListPlayersByName.call(name: fragment, server_context: {cc_region: "NBV"})
+    refute response.error?, "Token-Search muss Title-Präfix-tolerant matchen — got: #{response.content.first[:text]}"
+    body = JSON.parse(response.content.first[:text])
+    cc_ids = body["players"].map { |p| p["cc_id"] }
+    assert_includes cc_ids, sample.cc_id, "Token-Search muss '#{fragment}' gegen '#{sample.firstname} #{sample.lastname}' matchen"
+  end
+
+  test "E-1: Token-Search ist Order-independent ('Ullrich Gernot' = 'Gernot Ullrich')" do
+    nbv = Region.find_by(shortname: "NBV")
+    skip "NBV region fixture missing" unless nbv
+    sample = Player.joins(:player_rankings)
+      .where(player_rankings: {region_id: nbv.id})
+      .where.not(firstname: [nil, ""])
+      .where.not(lastname: [nil, ""])
+      .first
+    skip "No usable NBV-ranked player" unless sample
+
+    # Forward order
+    forward = "#{sample.firstname.to_s.split.last} #{sample.lastname}"
+    # Reverse order
+    reverse = "#{sample.lastname} #{sample.firstname.to_s.split.last}"
+
+    forward_resp = McpServer::Tools::ListPlayersByName.call(name: forward, server_context: {cc_region: "NBV"})
+    reverse_resp = McpServer::Tools::ListPlayersByName.call(name: reverse, server_context: {cc_region: "NBV"})
+
+    refute forward_resp.error?
+    refute reverse_resp.error?
+    forward_body = JSON.parse(forward_resp.content.first[:text])
+    reverse_body = JSON.parse(reverse_resp.content.first[:text])
+    forward_ids = forward_body["players"].map { |p| p["cc_id"] }
+    reverse_ids = reverse_body["players"].map { |p| p["cc_id"] }
+    assert_includes forward_ids, sample.cc_id, "Forward order must match"
+    assert_includes reverse_ids, sample.cc_id, "Reverse order must match (Order-independent)"
+  end
+
+  test "E-2: Output-Struktur hat cc_id als Primary + dbu_nr als informativ" do
+    nbv = Region.find_by(shortname: "NBV")
+    skip "NBV region fixture missing" unless nbv
+    sample = Player.joins(:player_rankings)
+      .where(player_rankings: {region_id: nbv.id})
+      .where.not(lastname: [nil, ""])
+      .first
+    skip "No NBV-ranked player" unless sample
+    fragment = sample.lastname.to_s[0, 4]
+    skip "Sample too short" if fragment.length < 2
+
+    response = McpServer::Tools::ListPlayersByName.call(name: fragment, server_context: {cc_region: "NBV"})
+    refute response.error?
+    body = JSON.parse(response.content.first[:text])
+    assert body["players"].length >= 1
+    first = body["players"].first
+    # cc_id muss vorhanden sein, dbu_nr-Key muss existieren (auch wenn Wert nil ist)
+    assert first.key?("cc_id"), "cc_id muss in Output-Struktur sein"
+    assert first.key?("dbu_nr"), "dbu_nr-Key (informativ) muss in Output sein"
   end
 
   test "result respects MAX_RESULTS limit" do
@@ -168,7 +250,7 @@ class McpServer::Tools::ListPlayersByNameTest < ActiveSupport::TestCase
     skip "NBV region fixture missing" unless nbv
 
     # Sehr breites Match-Fragment ('e' findet sehr viele Spieler)
-    response = McpServer::Tools::ListPlayersByName.call(name: "er", shortname: "NBV", server_context: nil)
+    response = McpServer::Tools::ListPlayersByName.call(name: "er", shortname: "NBV", server_context: {cc_region: "NBV"})
     refute response.error?
     body = JSON.parse(response.content.first[:text])
     assert body.dig("meta", "returned").to_i <= McpServer::Tools::ListPlayersByName::MAX_RESULTS

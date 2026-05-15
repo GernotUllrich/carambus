@@ -60,16 +60,30 @@ module McpServer
         err = validate_required!({tournament_cc_id: tournament_cc_id}, [:tournament_cc_id])
         return err if err
 
+        # Plan 14-02.3 / F-5 (NEU primary): Live-CC-Overview via editMeldelisteCheck.php.
+        # D-14-02-A Helper A — der CC selbst ist source-of-truth für meldeliste_cc_id.
+        # DB-Mirror war oft veraltet (z.B. NDM 14/1 Herren cc_id 912, 30 angemeldete Spieler,
+        # TournamentCc.registration_list_cc nicht verlinkt). Defensive: nil bei Network/Parse-Fail.
+        overview = cc_session.fetch_meldeliste_overview(tournament_cc_id, server_context: server_context)
+        if overview && overview[:meldeliste_cc_id]
+          return text(<<~OUT.strip)
+            meldeliste_cc_id: #{overview[:meldeliste_cc_id]}
+            (source: live-cc-overview)
+            clubs_count: #{overview[:clubs]&.length || 0}
+            candidates: [{meldeliste_cc_id: #{overview[:meldeliste_cc_id]}, source: "live-cc-overview"}]
+          OUT
+        end
+
         candidates = []
         scope_given = scope_filter_given?(fed_cc_id, branch_cc_id, season, disciplin_id, cat_id)
         retry_path_used = nil # Plan 10-02 Task 1: tracking für Error-Message
 
-        # DB-first
+        # Plan 14-02.3 / F-5: Pfad 2 fallback — DB-Bridge via TournamentCc.registration_list_cc.
         unless force_refresh
           candidates = fetch_from_db(tournament_cc_id)
         end
 
-        # Live-CC-Fallback (force_refresh oder DB empty)
+        # Plan 14-02.3 / F-5: Pfad 3 legacy-fallback — showMeldelistenList-Parser.
         if candidates.empty? || force_refresh
           live_candidates = fetch_from_cc(
             tournament_cc_id,
@@ -111,9 +125,9 @@ module McpServer
 
         case candidates.size
         when 0
-          # Plan 10-02 Task 1 (Befund #5 Fix): Diagnostic Error-Message statt False-Claim.
-          # Vorher: „has no Meldelisten" → Sportwart bekam falsche Info → kontaktierte Verbandsadmin unnötig.
-          # Neu: Tool sagt ehrlich was es probiert hat + bietet Workarounds an.
+          # Plan 14-02.3 / F-6: Sportwart-Vokabular statt Entwickler-Diagnose. Behält
+          # interne attempted-Pfade als Diagnose-Tail (für Audit-Trail), aber führender
+          # User-facing Text ist klar und lösungsorientiert.
           attempted = if scope_given
             "scope-filter (fed=#{fed_cc_id || "-"}, branch=#{branch_cc_id || "-"}, season=#{season || "-"}, discipline=#{disciplin_id || "-"}, cat=#{cat_id || "-"})"
           else
@@ -121,14 +135,9 @@ module McpServer
           end
           attempted += " + retry-#{retry_path_used}" if retry_path_used
           error(
-            "Could not auto-resolve meldeliste_cc_id for tournament_cc_id=#{tournament_cc_id} " \
-            "(attempted: #{attempted}). " \
-            "This does NOT necessarily mean no meldeliste exists. Common causes: " \
-            "(1) TournamentCc has no registration_list_cc_id linkage in DB, " \
-            "(2) scope filter combination too narrow for CC, " \
-            "(3) CC response HTML format does not match parser variants. " \
-            "Workaround: pass meldeliste_cc_id directly to subsequent tool calls " \
-            "(find it in CC-Admin URL of the Meldeliste-Edit-View)."
+            "Dieses Turnier hat in CC noch keine Meldeliste — bitte LSW kontaktieren, " \
+            "damit die Meldeliste angelegt wird. (tournament_cc_id=#{tournament_cc_id}; " \
+            "geprüfte Pfade: live-cc-overview, db-bridge, #{attempted})"
           )
         when 1
           c = candidates.first

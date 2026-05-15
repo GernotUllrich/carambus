@@ -23,8 +23,8 @@ class McpMultiRegionRoutingTest < ActionDispatch::IntegrationTest
   end
 
   test "region_cc_base_url: BVBW vs NBV server_context liefert verschiedene base_urls (oder nil falls Region nicht in test-DB)" do
-    bvbw_url = McpServer::CcSession.region_cc_base_url({cc_region: "BVBW"})
-    nbv_url = McpServer::CcSession.region_cc_base_url({cc_region: "NBV"})
+    bvbw_url = McpServer::CcSession.region_cc_base_url({})
+    nbv_url = McpServer::CcSession.region_cc_base_url({})
     assert(bvbw_url.is_a?(String) || bvbw_url.nil?)
     assert(nbv_url.is_a?(String) || nbv_url.nil?)
     if bvbw_url && nbv_url
@@ -40,37 +40,29 @@ class McpMultiRegionRoutingTest < ActionDispatch::IntegrationTest
         captured_context = ctx
         "https://test-stub.example.org"
       end
-      McpServer::CcSession.client_for({cc_region: "BVBW", user_id: 42, mcp_role: "mcp_sportwart"})
-      assert_equal({cc_region: "BVBW", user_id: 42, mcp_role: "mcp_sportwart"}, captured_context)
+      McpServer::CcSession.client_for({ user_id: 42,})
+      assert_equal({ user_id: 42,}, captured_context)
     ensure
       McpServer::CcSession.singleton_class.send(:alias_method, :region_cc_base_url, :_orig_base_url_p13_06)
       McpServer::CcSession.singleton_class.send(:remove_method, :_orig_base_url_p13_06)
     end
   end
 
-  test "User.mcp_cc_region: User.cc_region overrides ENV (Plan-13-02-Helper-Verify)" do
-    ENV["CC_REGION"] = "EnvFallback"
-    user_bvbw = User.create!(
-      email: "mr-bvbw@test.de", password: "password123",
-      mcp_role: :mcp_sportwart, cc_region: "BVBW"
-    )
-    user_nbv = User.create!(
-      email: "mr-nbv@test.de", password: "password123",
-      mcp_role: :mcp_turnierleiter, cc_region: "NBV"
-    )
-    assert_equal "BVBW", user_bvbw.mcp_cc_region
-    assert_equal "NBV", user_nbv.mcp_cc_region
+  # Plan 14-G.2 / D-14-G3: RESTORE — Carambus.config.region_id ist neue Source-of-Truth.
+  test "Carambus.config.region_id setzt effective_cc_region (server_context-fallback ignoriert wenn Config gesetzt)" do
+    original = Carambus.config.region_id
+    Carambus.config.region_id = "NBV"
+    assert_equal "NBV", McpServer::Tools::BaseTool.effective_cc_region({cc_region: "BWB"})
   ensure
-    ENV.delete("CC_REGION")
+    Carambus.config.region_id = original
   end
 
-  # Plan 14-02.1-fix / D-14-02-G: effective_cc_region ist strict — kein ENV-Fallback mehr.
-  # Vorrang-Logik ist trivial geworden (nur 1 Pfad: server_context).
-  test "Plan-14-02.1-fix: effective_cc_region strict — nur server_context, kein ENV-Fallback" do
-    ENV["CC_REGION"] = "nbv"
-    assert_equal "BVBW", McpServer::Tools::BaseTool.effective_cc_region({cc_region: "BVBW"})
-    assert_nil McpServer::Tools::BaseTool.effective_cc_region(nil), "Strict: kein ENV-Fallback"
+  test "effective_cc_region: Carambus.config.region_id blank + server_context blank → nil" do
+    original = Carambus.config.region_id
+    Carambus.config.region_id = ""
+    assert_nil McpServer::Tools::BaseTool.effective_cc_region(nil)
+    assert_nil McpServer::Tools::BaseTool.effective_cc_region({})
   ensure
-    ENV.delete("CC_REGION")
+    Carambus.config.region_id = original
   end
 end

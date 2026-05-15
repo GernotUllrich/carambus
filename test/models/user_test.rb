@@ -121,44 +121,14 @@ class UserTest < ActiveSupport::TestCase
 
   # MCP Multi-User-Hosting (v0.3, Plan 13-02, D-13-01-D Option-B-Override)
   # ---------------------------------------------------------------------
-  test "mcp_role defaults to mcp_public_read for new User" do
-    u = User.new(email: "mcp1@example.com", password: "password123")
-    assert_equal "mcp_public_read", u.mcp_role
-    assert u.mcp_role_mcp_public_read?
-  end
-
-  test "mcp_enabled? returns false when no cc_credentials present" do
-    u = User.new(email: "mcp2@example.com", password: "password123", mcp_role: :mcp_sportwart)
-    assert_not u.mcp_enabled?
-  end
-
-  test "mcp_enabled? returns true when role > public_read AND cc_credentials present" do
-    u = User.new(email: "mcp3@example.com", password: "password123",
-      mcp_role: :mcp_sportwart, cc_credentials: '{"username":"x"}')
-    assert u.mcp_enabled?
-  end
-
-  # Plan 14-02.1-fix / D-14-02-G: mcp_cc_region ist strict — KEIN ENV-Fallback mehr.
-  test "mcp_cc_region: User.cc_region nil → nil (strict, kein ENV-Fallback)" do
-    u = User.new(email: "mcp4@example.com", password: "password123")
-    ENV["CC_REGION"] = "test_env_region"
-    assert_nil u.mcp_cc_region, "Strict-Mode: kein ENV-Fallback erlaubt"
-  ensure
-    ENV.delete("CC_REGION")
-  end
-
-  test "mcp_cc_region: User.cc_region present → presence-Wert (strict)" do
-    u = User.new(email: "mcp4b@example.com", password: "password123", cc_region: "NBV")
-    assert_equal "NBV", u.mcp_cc_region
-  end
+  # Plan 14-G.2 / D-14-G6: 5 Tests (mcp_role / mcp_enabled? / mcp_cc_region) ersatzlos gelöscht
+  # (Spalten + Helper durch DROP in 14-G.1 obsolet).
 
   test "existing Carambus role enum unangetastet (admin? Methoden funktional)" do
     u = User.new(email: "mcp5@example.com", password: "password123", role: :system_admin)
     assert u.admin?
     assert u.super_admin?
-    # Sanity: Carambus-role und mcp_role sind unabhängig
     assert_equal "system_admin", u.role
-    assert_equal "mcp_public_read", u.mcp_role
   end
 
   # v0.3 Plan 13-07 (D-13-01-E DSGVO minimal-pragmatic): Consent + AuditTrail-Export
@@ -168,61 +138,24 @@ class UserTest < ActiveSupport::TestCase
     assert_not u.mcp_consent_given?
   end
 
-  test "mcp_consent_required? true bei mcp_role > public_read OHNE mcp_consent_at" do
-    u = User.create!(email: "consent2@test.de", password: "password123",
-      mcp_role: :mcp_sportwart)
-    assert u.mcp_consent_required?, "Sportwart ohne consent_at muss required? true sein"
-  end
-
-  test "mcp_consent_required? false bei mcp_public_read (kein MCP-Zugriff = keine Einwilligung n\u00F6tig)" do
-    u = User.create!(email: "consent3@test.de", password: "password123",
-      mcp_role: :mcp_public_read)
-    assert_not u.mcp_consent_required?
-  end
-
   test "grant_mcp_consent! setzt mcp_consent_at + persistiert" do
-    # Plan 14-02.1-fix / D-14-02-G: cc_region ist Pflicht für mcp_role > public_read on: :update
-    u = User.create!(email: "consent4@test.de", password: "password123",
-      mcp_role: :mcp_sportwart, cc_region: "NBV")
+    # mcp_consent_at-Spalte + Helper-Methode bleiben (D-14-G6 droppt nur mcp_role + cc_credentials + cc_region).
+    u = User.create!(email: "consent4@test.de", password: "password123")
     assert_nil u.mcp_consent_at
     u.grant_mcp_consent!
     u.reload
     refute_nil u.mcp_consent_at
     assert u.mcp_consent_given?
-    assert_not u.mcp_consent_required?
   end
 
-  # Plan 14-02.1-fix / D-14-02-G: cc_region-Validation Tests.
-  test "cc_region: required on update wenn mcp_role > public_read" do
-    u = User.create!(email: "validation1@test.de", password: "password123",
-      mcp_role: :mcp_sportwart, cc_region: "NBV")
-    u.cc_region = nil
-    assert_not u.valid?, "User mit mcp_role=mcp_sportwart und cc_region=nil darf NICHT valid sein (on: :update)"
-    assert_includes u.errors[:cc_region], "muss gesetzt sein für MCP-Zugriff (außer mcp_public_read)"
-  end
-
-  test "cc_region: NICHT required wenn mcp_role = public_read" do
-    u = User.create!(email: "validation2@test.de", password: "password123",
-      mcp_role: :mcp_public_read)
-    u.theme = "dark"
-    assert u.valid?, "mcp_public_read-User braucht keine cc_region"
-  end
-
-  test "cc_region: NICHT required on: :create (Sign-Up bleibt friction-frei)" do
-    u = User.new(email: "validation3@test.de", password: "password123",
-      mcp_role: :mcp_sportwart)
-    assert u.valid?, "Sign-Up ohne cc_region muss gehen; Validation ist nur on: :update"
-  end
-
-  test "mcp_audit_trail_export: 0 Entries \u2192 empty Array" do
-    u = User.create!(email: "export1@test.de", password: "password123",
-      mcp_role: :mcp_sportwart)
+  test "mcp_audit_trail_export: 0 Entries leeres Array" do
+    # mcp_audit_trail_export ist mcp_role-unabh\u00e4ngig (nutzt nur user_id).
+    u = User.create!(email: "export1@test.de", password: "password123")
     assert_equal [], u.mcp_audit_trail_export
   end
 
   test "mcp_audit_trail_export: liefert DSGVO-relevante Felder pro Entry" do
-    u = User.create!(email: "export2@test.de", password: "password123",
-      mcp_role: :mcp_sportwart)
+    u = User.create!(email: "export2@test.de", password: "password123")
     McpAuditTrail.create!(
       user: u,
       tool_name: "cc_register_for_tournament",

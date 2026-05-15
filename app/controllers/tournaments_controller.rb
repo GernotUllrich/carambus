@@ -503,6 +503,20 @@ class TournamentsController < ApplicationController
   # PATCH/PUT /tournaments/1
   def update
     @tournament.unprotected = true
+
+    # Plan 14-G.3 / F3-B: Pundit-authorize bei TL-Change.
+    # Nur prüfen wenn turnier_leiter_user_id im Payload abweicht vom Bestand.
+    new_tl = tournament_params[:turnier_leiter_user_id]
+    if new_tl.present? && new_tl.to_s != @tournament.turnier_leiter_user_id.to_s
+      begin
+        authorize @tournament, :assign_leiter?
+      rescue Pundit::NotAuthorizedError
+        flash[:alert] = I18n.t("tournaments.errors.assign_leiter_denied",
+          default: "Authority-Denied: kein Recht TL zu benennen für dieses Turnier.")
+        redirect_to(@tournament) and return
+      end
+    end
+
     if @tournament.update(tournament_params)
       redirect_to @tournament, notice: "Tournament was successfully updated."
     else
@@ -1120,7 +1134,8 @@ class TournamentsController < ApplicationController
                                        :player_class, :tournament_plan_id, :innings_goal, :timeouts, :timeout, :balls_goal,
                                        :handicap_tournier, :league_id, :organizer_id, :organizer_type, :manual_assignment, :continuous_placements,
                                        :sets_to_win, :sets_to_play, :team_size, :kickoff_switches_with, :fixed_display_left,
-                                       :color_remains_with_set, :allow_overflow, :allow_follow_up)
+                                       :color_remains_with_set, :allow_overflow, :allow_follow_up,
+                                       :turnier_leiter_user_id)
   end
 
   # Stellt sicher, dass Turniermanagement nur auf lokalen Servern möglich ist

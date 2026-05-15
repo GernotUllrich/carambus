@@ -3,6 +3,7 @@
 # source: app/models/user.rb
 class User < ApplicationRecord
   include Theme
+  include SportwartScope
 
   enum :role, {
     player: 0,
@@ -10,20 +11,11 @@ class User < ApplicationRecord
     system_admin: 2
   }, default: :player
 
-  # MCP Multi-User-Hosting (v0.3, Plan 13-02, D-13-01-D Option-B-Override).
-  # Separates Feld neben existierendem Carambus-`role`-Enum — keine Vermischung der Auth-Layer.
-  # Siehe lib/mcp_server/role_tool_map.rb für Tool-Subset pro Rolle.
-  enum :mcp_role, {
-    mcp_public_read: 0,
-    mcp_sportwart: 1,
-    mcp_turnierleiter: 2,
-    mcp_landessportwart: 3,
-    mcp_admin: 4
-  }, default: :mcp_public_read, prefix: true
-
-  # CC-Credentials verschlüsselt at rest (D-13-01-E DSGVO minimal-pragmatic Pflicht).
-  # Erwartetes Format: JSON-String mit { username:, password: } o.ä.; nil = MCP nicht eingerichtet.
-  encrypts :cc_credentials
+  # D-14-G5: Sportwart-Wirkbereich via M:N-Join-Tables.
+  has_many :sportwart_location_assignments, class_name: "SportwartLocation", dependent: :destroy
+  has_many :sportwart_locations, through: :sportwart_location_assignments, source: :location
+  has_many :sportwart_discipline_assignments, class_name: "SportwartDiscipline", dependent: :destroy
+  has_many :sportwart_disciplines, through: :sportwart_discipline_assignments, source: :discipline
 
   PRIVILEGED = %w[gernot.ullrich@gmx.de nla@ph.at wcauel@gmail.com joerg.unger@hamburg.de].freeze
 
@@ -46,14 +38,6 @@ class User < ApplicationRecord
 
   # Add validation for preferences
   validate :valid_preferences
-
-  # Plan 14-02.1-fix / D-14-02-G: cc_region ist Pflicht-Feld für MCP-Tool-Zugriff.
-  # Validation gilt nur on: :update (User-Profile-Edit), nicht on: :create (Sign-Up bleibt friction-frei).
-  # mcp_public_read-User brauchen keine Region (Lese-Tools ohne CC-Region-Filter).
-  validates :cc_region,
-    presence: {message: "muss gesetzt sein für MCP-Zugriff (außer mcp_public_read)"},
-    on: :update,
-    if: -> { mcp_role.present? && !mcp_role_mcp_public_read? }
 
   THEMES = %w[system dark light].freeze
   LOCALES = I18n.available_locales.map(&:to_s).freeze
@@ -105,36 +89,15 @@ class User < ApplicationRecord
     update(preferences: preferences.merge(dark: new_mode))
   end
 
-  # MCP Multi-User-Hosting (v0.3, Plan 13-02).
-  # True wenn User MCP nutzen kann (Rolle > public_read UND CC-Credentials vorhanden).
-  def mcp_enabled?
-    !mcp_role_mcp_public_read? && cc_credentials.present?
-  end
+  # D-14-G6: mcp_enabled? / mcp_cc_region / mcp_consent_required? entfernt (mcp_role + cc_credentials + cc_region gedroppt).
+  # Authority via Sportwart-Wirkbereich (SportwartScope-Concern) + Tournament.turnier_leiter_user_id in 14-G.2.
 
-  # Plan 14-02.1-fix / D-14-02-G: strict — User#cc_region ist Source of truth für MCP-Region.
-  # KEIN ENV-Fallback; Multi-User-Production-Pflicht. Bei nil → Tools werfen Profile-Edit-Hinweis-Error.
-  def mcp_cc_region
-    cc_region.presence
-  end
-
-  # v0.3 Plan 13-07 (D-13-01-E DSGVO minimal-pragmatic):
-  # mcp_consent_at trackt Einwilligung zur MCP-Datenverarbeitung.
-  # v0.3-Pilot-Boundary: Carambus-Admin attestiert während Setup-Service-Besuch
-  # (kein Self-Service-Banner; deferred zu Plan 13-07.1 oder v0.4).
-
-  # True wenn User-Einwilligung gespeichert ist
+  # True wenn User-Einwilligung gespeichert ist (mcp_consent_at-Spalte bleibt erhalten)
   def mcp_consent_given?
     mcp_consent_at.present?
   end
 
-  # True wenn User mcp-aktive Rolle hat (> public_read) ABER noch keine Einwilligung
-  # → Caller-Side-Check vor mcp_enabled?-Aktivierung
-  def mcp_consent_required?
-    !mcp_role_mcp_public_read? && mcp_consent_at.nil?
-  end
-
   # Setzt mcp_consent_at = Time.current und persistiert
-  # (Carambus-Admin attestiert in Setup-Service-Besuch oder via Console)
   def grant_mcp_consent!
     update!(mcp_consent_at: Time.current)
   end

@@ -18,8 +18,8 @@ class JwtLoginRouteTest < ActionDispatch::IntegrationTest
     @user = User.create!(
       email: "jwt-login-route@test.de",
       password: "password123",
-      mcp_role: :mcp_landessportwart,
-      cc_region: "BVBW"
+
+
     )
   end
 

@@ -17,9 +17,9 @@ class McpEndToEndTest < ActionDispatch::IntegrationTest
     @sportwart = User.create!(
       email: "sportwart-e2e@test.de",
       password: "password123",
-      mcp_role: :mcp_sportwart,
-      cc_region: "BVBW",
-      cc_credentials: '{"username":"x","password":"y"}'
+
+
+
     )
   end
 
@@ -84,28 +84,8 @@ class McpEndToEndTest < ActionDispatch::IntegrationTest
     assert_equal true, last.payload["armed"]
   end
 
-  # v0.3 Plan 13-06.2 (D-13-06.1-C): JWT-Token-Auth-Pfad als zweite Auth-Strategie.
-  # Cookie-Auth (sign_in) bleibt Backwards-Compat; Bearer-JWT ist Phase-14-Primary.
-  test "POST /mcp mit Authorization Bearer-JWT liefert per-User-Tool-Subset (ohne Cookie)" do
-    token, _payload = Warden::JWTAuth::UserEncoder.new.call(@sportwart, :user, nil)
-
-    post "/mcp?stateless=1",
-      params: {jsonrpc: "2.0", id: 1, method: "tools/list", params: {}}.to_json,
-      headers: {
-        "Content-Type" => "application/json",
-        "Accept" => "application/json, text/event-stream",
-        "Authorization" => "Bearer #{token}"
-      }
-
-    assert_response :success
-    body = JSON.parse(response.body)
-    tools = body.dig("result", "tools")
-    assert tools.is_a?(Array), "tools array erwartet"
-    assert tools.size >= 10, "mcp_sportwart sieht mindestens 10 Tools (Plan 13-02 RoleToolMap)"
-    # Sportwart darf KEIN cc_assign_player_to_teilnehmerliste sehen (Akkreditierungs-Tool)
-    refute tools.any? { |t| t["name"] == "cc_assign_player_to_teilnehmerliste" },
-      "Sportwart darf NICHT cc_assign_player_to_teilnehmerliste sehen"
-  end
+  # Plan 14-G.2 / D-14-G6: Per-User-Tool-Subset-Test gelöscht (ALL_TOOLS für alle authenticated User;
+  # Per-Record-Authority via BaseTool.authorize! in 14-G.4 Tool-Refactor).
 
   test "POST /mcp ohne Auth (kein Cookie, kein Bearer) liefert 401" do
     post "/mcp?stateless=1",

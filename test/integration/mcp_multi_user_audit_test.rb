@@ -16,16 +16,16 @@ class McpMultiUserAuditTest < ActionDispatch::IntegrationTest
     @sportwart = User.create!(
       email: "mu-sportwart@test.de",
       password: "password123",
-      mcp_role: :mcp_sportwart,
-      cc_region: "BVBW",
-      cc_credentials: '{"username":"sw","password":"y"}'
+
+
+
     )
     @turnierleiter = User.create!(
       email: "mu-tl@test.de",
       password: "password123",
-      mcp_role: :mcp_turnierleiter,
-      cc_region: "NBV",
-      cc_credentials: '{"username":"tl","password":"y"}'
+
+
+
     )
   end
 
