@@ -11,7 +11,7 @@ class McpSetupControllerTest < ActionDispatch::IntegrationTest
     @user = User.create!(
       email: "mcp_setup_test@example.com",
       password: "password123",
-      mcp_role: :mcp_landessportwart
+
     )
   end
 
