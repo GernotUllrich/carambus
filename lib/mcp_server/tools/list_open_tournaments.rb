@@ -131,8 +131,14 @@ module McpServer
         last_sync_age_hours = last_sync ? ((Time.current - last_sync) / 3600.0).round(1) : nil
 
         # Plan 14-02.3 / F-4: tournament_id + cc_id + branch + discipline_name + season im Output.
-        data = rel.includes(:discipline, :season, tournament_ccs: []).map { |t|
-          tc = t.tournament_ccs.find { |x| x.context.to_s.downcase == user_region_name.to_s.downcase }
+        # Plan 14-G.10 / Hot-Fix: tournament_cc (Singular has_one) statt tournament_ccs (Plural)
+        # — DB-Constraint `index_tournament_ccs_on_tournament_id UNIQUE` macht 1:1 erzwungen.
+        # Pre-14-G.10-Code rief `t.tournament_ccs` auf eine nicht-existente Plural-Association
+        # → ActiveRecord::AssociationNotFoundError beim includes() bzw. NoMethodError im Map-Block
+        # → MCP SDK fängt + returned -32603 Internal Error im Body (HTTP 200 in Rails-Log).
+        data = rel.includes(:discipline, :season, :tournament_cc).map { |t|
+          tc = t.tournament_cc
+          tc = nil unless tc&.context.to_s.downcase == user_region_name.to_s.downcase
           {
             tournament_id: t.id,
             cc_id: tc&.cc_id,

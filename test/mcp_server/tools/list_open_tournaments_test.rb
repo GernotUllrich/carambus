@@ -348,4 +348,70 @@ class McpServer::Tools::ListOpenTournamentsTest < ActiveSupport::TestCase
     body = JSON.parse(response.content.first[:text])
     assert body["meta"].key?("last_sync_age_hours"), "last_sync_age_hours muss präsent sein"
   end
+
+  # Plan 14-G.10 / Hot-Fix-Regression: Map-Block muss mit echter Tournament+TournamentCc
+  # durchlaufen. Pre-14-G.10-Code rief `t.tournament_ccs` (Plural) auf eine
+  # has_one :tournament_cc Association — wirft NoMethodError im Map-Block, MCP SDK
+  # returned -32603 Internal Error im Body (HTTP 200 in Rails-Log; deshalb
+  # production.log clean). Existing Tests skipped bei body["data"].empty? — Bug schlüpft
+  # durch. NEUER Test FORCE-IT: inline-build Tournament + TournamentCc → Map-Block läuft
+  # → Bug reproduziert ohne Fix, PASS mit Fix.
+  #
+  # Inline-build statt Fixtures damit andere Tests (lookup_tournament_test.rb, die
+  # `TournamentCc.first` für Sample wählen) nicht auf diesen test-spezifischen Datensatz
+  # treffen — fixture-shared-state hatte 4 unbeabsichtigte Failures verursacht weil die
+  # anderen Tests andere TournamentCc-Eigenschaften (registration_list_cc_id present,
+  # Wording-Patterns) erwarten als unser Test-Sample bietet.
+  test "F-4 regression (14-G.10): map block executes with real Tournament+TournamentCc inline-build" do
+    nbv = regions(:nbv)
+
+    # Inline-build: Tournament im NBV-Region-Scope + TournamentCc(context: "nbv") 1:1.
+    # Cleanup nach Test via ensure-block (kein DatabaseCleaner-Konflikt).
+    tournament = Tournament.create!(
+      id: 50_000_310,
+      title: "Plan 14-G.10 Regression Test Tournament",
+      season_id: 50_000_001,        # seasons(:current)
+      organizer_id: nbv.id,
+      organizer_type: "Region",
+      region_id: nbv.id,             # REQUIRED for cc_list_open_tournaments scope
+      discipline_id: 50_000_001,     # disciplines(:carom_3band)
+      tournament_plan_id: 50_000_100,
+      state: "tournament_mode_defined",
+      date: 2.weeks.from_now,
+      accredation_end: 1.week.from_now
+    )
+
+    tournament_cc = TournamentCc.create!(
+      cc_id: 99_999,
+      context: "nbv",                # DB-Convention: lowercase
+      tournament_id: tournament.id,
+      name: "Plan 14-G.10 Regression Test Tournament",
+      status: "registration_open",
+      season: "2025/2026"
+    )
+
+    begin
+      response = McpServer::Tools::ListOpenTournaments.call(
+        server_context: {cc_region: "NBV"},
+        open_after: (Date.today - 1.day).iso8601
+      )
+      refute response.error?, "Expected non-error; got: #{response.content.first[:text]}"
+
+      body = JSON.parse(response.content.first[:text])
+      assert body["data"].is_a?(Array) && body["data"].length >= 1,
+        "Map-Block muss mind. 1 Eintrag liefern (Bug-Repro: leer war Plural-Fail)"
+
+      sample = body["data"].find { |t| t["tournament_id"] == tournament.id }
+      assert sample, "Inline-Tournament (id=#{tournament.id}) muss im Output gefunden werden"
+      assert_equal tournament_cc.cc_id, sample["cc_id"],
+        "F-4: cc_id aus TournamentCc (context-match) muss korrekt zurückgegeben werden"
+      assert_equal tournament.title, sample["title"]
+      assert sample.key?("branch")
+      assert sample.key?("discipline_name")
+      assert sample.key?("season")
+    ensure
+      tournament_cc&.destroy
+      tournament&.destroy
+    end
+  end
 end
