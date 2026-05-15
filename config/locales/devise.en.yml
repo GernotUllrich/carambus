@@ -79,6 +79,7 @@ en:
         login_html: Or %{link}
         sign_up: Sign up
         submitting: Submitting...
+        terms_acceptance: I accept the Terms of Service
         terms_html: I accept the %{terms} &amp; %{privacy}
       signed_up: Welcome! You have signed up successfully.
       signed_up_but_inactive: You have signed up successfully. However, we could not sign you in because your account is not yet activated.
