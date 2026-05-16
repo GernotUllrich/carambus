@@ -236,7 +236,10 @@ module McpServer
           #{consistency_msg}
         OUT
       rescue => e
-        error("Tool exception: #{e.class.name} (details suppressed; check Rails.logger on stderr).")
+        # Plan 14-G.12: Outer-Rescue MUSS den Stack-Trace loggen, damit "details suppressed"
+        # eingelöst werden kann. Vorher war es ein silent rescue mit Pseudo-Verweis auf Logger.
+        Rails.logger.error "[cc_register_for_tournament] #{e.class}: #{e.message}\n  #{e.backtrace.first(10).join("\n  ")}"
+        error("Tool exception: #{e.class.name}: #{e.message} (Details siehe Rails.logger auf Server).")
       end
 
       # Plan 10-05.1 Task 2 (D-10-04-G Constraint 1/7): Meldeliste-Existenz via DB-Lookup.
