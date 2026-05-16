@@ -520,7 +520,10 @@ class RegionCc::ClubCloudClient
     req = Net::HTTP::Get.new(uri.path + ("?" unless /\?$/.match?(uri.path)).to_s + req.body)
     req["cookie"] = "PHPSESSID=#{opts[:session_id]}" if opts[:session_id].present?
     req["referer"] = referer if referer.present?
+    t0 = Process.clock_gettime(Process::CLOCK_MONOTONIC)
     res = http.request(req)
+    elapsed_ms = ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - t0) * 1000).round(1)
+    Rails.logger.info "[CC-LATENCY] verb=GET action=#{action} host=#{uri.host} path=#{uri.path} elapsed_ms=#{elapsed_ms} status=#{res&.code} body_bytes=#{res&.body&.bytesize}"
     doc = if res.message == "OK"
       Nokogiri::HTML(res.body)
     else
@@ -560,7 +563,10 @@ class RegionCc::ClubCloudClient
         req["accept"] =
           "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
         req.set_form_data(post_options.reject { |_k, v| v.blank? })
+        t0 = Process.clock_gettime(Process::CLOCK_MONOTONIC)
         res = http.request(req)
+        elapsed_ms = ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - t0) * 1000).round(1)
+        Rails.logger.info "[CC-LATENCY] verb=POST action=#{action} host=#{uri.host} path=#{uri.path} elapsed_ms=#{elapsed_ms} status=#{res&.code} body_bytes=#{res&.body&.bytesize} read_only=#{read_only_action ? 1 : 0}"
         doc = if res.message == "OK"
           Nokogiri::HTML(res.body)
         else
@@ -600,7 +606,10 @@ class RegionCc::ClubCloudClient
         req["accept-language"] = "de-DE,de;q=0.9,en-US;q=0.8,en;q=0.7,fr;q=0.6"
         req["accept"] =
           "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
+        t0 = Process.clock_gettime(Process::CLOCK_MONOTONIC)
         res = http.request(req)
+        elapsed_ms = ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - t0) * 1000).round(1)
+        Rails.logger.info "[CC-LATENCY] verb=POST-MULTIPART action=#{action} host=#{uri.host} path=#{uri.path} elapsed_ms=#{elapsed_ms} status=#{res&.code} body_bytes=#{res&.body&.bytesize} read_only=#{read_only_action ? 1 : 0}"
         doc = if res.message == "OK"
           Nokogiri::HTML(res.body)
         else
