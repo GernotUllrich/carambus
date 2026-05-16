@@ -30,7 +30,10 @@ module McpServer
         Wann nutzen? Wenn der Sportwart einen oder mehrere Spieler in ein Turnier eintragen will — typisch aus einer Anmelde-E-Mail des Vereins. Schreibendes Tool mit Pre-Validation-First-Pattern (7 Constraints) + Audit-Trail (Plan 10-05.1).
         Was tippt der User typisch? 'Meld Hans Müller für die Eurokegel an', 'Folgende drei Spieler für DM Cadre …', 'Anmeldung Spieler X Turnier Y'.
         Register a player for a ClubCloud Einzelturnier (single-tournament) Meldeliste.
-        Workflow: 2-Step CC POST (cc_add → editMeldelisteSave) + optional read-only verification.
+        Workflow: Multi-Add-Loop (N × addPlayerToMeldeliste) + 1× saveMeldeliste am Ende + optional read-only verification.
+        Multi-Player: pass `player_cc_ids: [12345, 67890]` (Array) statt `player_cc_id`.
+        Alle Spieler werden in einem add-loop hinzugefügt und mit EINEM finalen
+        saveMeldeliste committet — vermeidet Buffer-Flush-Bug (Plan 14-G.13 Quick 260516-x7g).
         Pass `armed: false` (default) for a dry-run that prints exact request details
         (player ID, meldeliste ID, federation, branch, season) without modifying CC.
         Pass `armed: true` to actually register — this is a destructive write to ClubCloud.
@@ -48,6 +51,10 @@ module McpServer
           meldeliste_cc_id: {type: "integer", description: "CC meldelisteId of the target Meldeliste — get from CC Meldelisten-Übersicht (admin/myclub/meldewesen/single)"},
           player_cc_id: {type: "integer", description: "CC player ID of the player to register (Player.cc_id). Alternative: player_name (Plan 10-06 Vokabular-Schicht)."},
           player_name: {type: "string", description: "Alternative zu player_cc_id (Plan 10-06 Convenience-Wrapper): Spielername-Suche via cc_search_player; bei ≥2 Treffern blockiert mit Disambiguation-Diagnose."},
+          player_cc_ids: {type: "array", items: {type: "integer"}, minItems: 1,
+                          description: "Plan 14-G.13 Multi-Player: Array von Player-cc_ids (mind. 1). Mutually exclusive mit player_cc_id/player_name/player_names. Atomare Semantik: bei Pre-Validation-Fail eines Players werden ALLE abgelehnt. Empfohlen für mehrere Anmeldungen — vermeidet Buffer-Flush-Bug."},
+          player_names: {type: "array", items: {type: "string"}, minItems: 1,
+                         description: "Alternative zu player_cc_ids: Array von Spielernamen-Suchen via cc_search_player; bei ≥2 Treffern pro Name blockiert mit Disambiguation-Diagnose."},
           club_cc_id: {type: "integer", description: "CC club ID (Club.cc_id) — required for the form payload (clubId + selectedClubId). Alternative: club_name."},
           club_name: {type: "string", description: "Alternative zu club_cc_id (Plan 10-06 Convenience-Wrapper): Vereinsname-Suche via cc_lookup_club; bei ≥2 Treffern blockiert mit Disambiguation-Diagnose."},
           discipline_id: {type: "integer", description: "Optional Carambus Discipline.id for consistency-check scoping (defaults to all disciplines)"},
@@ -58,8 +65,25 @@ module McpServer
       annotations(read_only_hint: false, destructive_hint: true)
 
       def self.call(fed_id: nil, branch_cc_id: nil, season: nil, meldeliste_cc_id: nil, player_cc_id: nil,
-        player_name: nil, club_cc_id: nil, club_name: nil, discipline_id: nil, armed: false, server_context: nil)
+        player_name: nil, player_cc_ids: nil, player_names: nil,
+        club_cc_id: nil, club_name: nil, discipline_id: nil, armed: false, server_context: nil)
         fed_id ||= default_fed_id
+
+        # Plan 14-G.13 (Quick 260516-x7g) Multi-Player-Save-Fix:
+        # Normalisiere die 4 Player-Input-Varianten auf ein Array `player_cc_ids`.
+        # Exactly-one-rule: nur EINE der vier Varianten darf gesetzt sein.
+        provided = {
+          player_cc_id: player_cc_id,
+          player_name: player_name,
+          player_cc_ids: player_cc_ids,
+          player_names: player_names
+        }.compact.reject { |_, v| v.is_a?(Array) && v.empty? }
+        if provided.size > 1
+          return error("exactly one of player_cc_id, player_name, player_cc_ids, player_names allowed (got: #{provided.keys.inspect})")
+        end
+        if provided.empty?
+          return error("missing player input: provide one of player_cc_id, player_name, player_cc_ids, player_names")
+        end
 
         # Plan 10-06 Task 3 (D-10-04-J Convenience-Wrapper): Auto-Resolve VOR Pre-Validation.
         resolved_club_cc_id, club_err = resolve_club_cc_id_from_name(
@@ -68,18 +92,40 @@ module McpServer
         return error(club_err) if club_err
         club_cc_id = resolved_club_cc_id
 
+        # Single-Player-Name-Resolve (Backwards-Compat) — single → player_cc_id Pfad.
         resolved_player_cc_id, player_err = resolve_player_cc_id_from_name(
           player_cc_id: player_cc_id, player_name: player_name, server_context: server_context
         )
         return error(player_err) if player_err
         player_cc_id = resolved_player_cc_id
 
+        # Plan 14-G.13 Multi-Resolve: player_names → player_cc_ids (analog assign_player_to_teilnehmerliste).
+        if player_cc_ids.blank? && player_names.is_a?(Array) && player_names.any?
+          resolved_ids = []
+          errs = []
+          player_names.each do |name|
+            id, err = resolve_player_cc_id_from_name(player_cc_id: nil, player_name: name, server_context: server_context)
+            if err
+              errs << "  - '#{name}': #{err}"
+            elsif id
+              resolved_ids << id
+            end
+          end
+          return error("Player-Name-Auto-Resolve fehlgeschlagen:\n#{errs.join("\n")}") if errs.any?
+          player_cc_ids = resolved_ids
+        end
+
+        # Plan 14-G.13: Normalize single → array (Backwards-Compat-Brücke).
+        player_cc_ids ||= player_cc_id.present? ? [player_cc_id] : nil
+        player_cc_ids = Array(player_cc_ids).map(&:to_i).reject(&:zero?) if player_cc_ids
+
         err = validate_required!(
           {branch_cc_id: branch_cc_id, season: season, meldeliste_cc_id: meldeliste_cc_id,
-           player_cc_id: player_cc_id, club_cc_id: club_cc_id},
-          [:branch_cc_id, :season, :meldeliste_cc_id, :player_cc_id, :club_cc_id]
+           player_cc_ids: player_cc_ids, club_cc_id: club_cc_id},
+          [:branch_cc_id, :season, :meldeliste_cc_id, :player_cc_ids, :club_cc_id]
         )
         return err if err
+        return error("player_cc_ids must contain at least 1 valid integer") if player_cc_ids.empty?
 
         # Plan 14-G.4 / F5-B: Authority-Integration. Defensive: bei nicht-auflösbarem Tournament
         # wird authorize!-Check übersprungen — Tool-spezifische Validations werfen den
@@ -96,13 +142,21 @@ module McpServer
         # 7 _validate_*-Methoden via run_validations-Aggregator (BaseTool-Helper).
         # Defensive Logic: bei unklarer DB-/CC-Data → ok:true (keine False-Negative-Blockade);
         # nur bei eindeutigen Failures (z.B. Player NICHT in DB gefunden) → ok:false.
+        # Plan 14-G.13: Player-spezifische Constraints (4/7, 5/7, 6/7) per-player in einer Loop.
+        per_player_results = player_cc_ids.flat_map do |pid|
+          [
+            _validate_player_exists(pid),
+            _validate_player_not_doppelt(pid, meldeliste_cc_id, fed_id, branch_cc_id, season),
+            _validate_club_cross_check(pid, club_cc_id, server_context: server_context).then { |r|
+              r[:ok] ? r : r.merge(reason: "[player_cc_id=#{pid}] #{r[:reason]}")
+            }
+          ]
+        end
         validation_result = run_validations([
           _validate_meldeliste_exists(meldeliste_cc_id),
           _validate_meldeliste_non_finalized(meldeliste_cc_id),
           _validate_deadline_offen(meldeliste_cc_id),
-          _validate_player_exists(player_cc_id),
-          _validate_player_not_doppelt(player_cc_id, meldeliste_cc_id, fed_id, branch_cc_id, season),
-          _validate_club_cross_check(player_cc_id, club_cc_id, server_context: server_context),
+          *per_player_results,
           _validate_scope_konsistent(meldeliste_cc_id, fed_id, branch_cc_id, season)
         ])
 
@@ -119,28 +173,38 @@ module McpServer
         end
 
         # Konsistenz-Check (read-only) läuft in beiden armed-Pfaden.
-        consistency_msg = consistency_check(
-          player_cc_id: player_cc_id,
-          season: season,
-          fed_id: fed_id,
-          discipline_id: discipline_id,
-          server_context: server_context
-        )
+        # Plan 14-G.13: per-player in Loop ausführen + Strings mit Newline joinen.
+        consistency_msg = player_cc_ids.map { |pid|
+          consistency_check(
+            player_cc_id: pid,
+            season: season,
+            fed_id: fed_id,
+            discipline_id: discipline_id,
+            server_context: server_context
+          )
+        }.join("\n")
 
         # Schicht 4 (Network-Level): Detail-Dry-Run-Echo — alle IDs explizit.
         unless armed
           extras = "discipline_id=#{discipline_id}" if discipline_id
+          id_list = player_cc_ids.join(", ")
           return text(<<~DRY_RUN.strip)
-            [DRY-RUN] Would register player_cc_id=#{player_cc_id} into meldeliste_cc_id=#{meldeliste_cc_id} \
+            [DRY-RUN] Would register #{player_cc_ids.size} player(s) [#{id_list}] into meldeliste_cc_id=#{meldeliste_cc_id} \
             (club_cc_id=#{club_cc_id}, fed_id=#{fed_id}, branch_cc_id=#{branch_cc_id}, season=#{season}#{", #{extras}" if extras}).
-            Workflow: 2-Step (addPlayerToMeldeliste → saveMeldeliste) + optional verification via showCommittedMeldeliste.
+            Workflow: Multi-Add-Loop (#{player_cc_ids.size} × addPlayerToMeldeliste) → 1× saveMeldeliste → 1× showCommittedMeldeliste verify.
             #{consistency_msg}
             Pass armed:true to actually perform this registration.
           DRY_RUN
         end
 
-        # Armed=true: 2-Step-Workflow + Verifikation. Field-Mapping aus SNIFF v2 §"Common Hidden-Inputs".
+        # Armed=true: Multi-Add-Loop + 1×Save + 1×Verify. Field-Mapping aus SNIFF v2 §"Common Hidden-Inputs".
         # Disziplin/Kategorie als Wildcard — CC inferiert intern aus meldelisteId.
+        # Plan 14-G.13 (Quick 260516-x7g) Multi-Player-Save-Fix:
+        # Vorher: N × (add + save) → jeder save flusht den CC-Edit-Buffer; vorherige
+        # Adds gehen verloren. HAR-Empirie 2026-05-16 (cc_add-cc_remove-roundtrip-meissner)
+        # zeigt cc_add roundtrip OHNE editMeldelisteSave → Buffer-Flush-These bestätigt.
+        # Jetzt: N × add (alle in Edit-Buffer) → 1 × save am Ende (committet alle) → 1 × verify.
+        # Pattern aus cc_assign_player_to_teilnehmerliste (Phase-7-Workflow stabil seit Plan 07-04).
         client = cc_session.client_for(server_context)
         base_payload = {
           clubId: club_cc_id, fedId: fed_id, branchId: branch_cc_id,
@@ -151,30 +215,36 @@ module McpServer
           # filtert sie weg. CC akzeptiert das (PHP-typisch optional fields).
         }
 
-        # Step 1: cc_add.php — Player in Edit-Buffer
-        add_res, add_doc = client.post(
-          "addPlayerToMeldeliste",
-          base_payload.merge(a: player_cc_id),
-          {armed: armed, session_id: cc_session.cookie}
-        )
-        if cc_session.reauth_if_needed!(add_doc)
+        # Step 1: N × addPlayerToMeldeliste — alle Player in Edit-Buffer (KEIN save dazwischen).
+        # Multi-Add-in-One-Call via a[]=-Array NICHT empirisch belegt (HAR zeigt singular a=)
+        # → wir loopen sequenziell, mit reauth_if_needed-Schutz pro Add.
+        player_cc_ids.each do |pid|
           add_res, add_doc = client.post(
             "addPlayerToMeldeliste",
-            base_payload.merge(a: player_cc_id),
+            base_payload.merge(a: pid),
             {armed: armed, session_id: cc_session.cookie}
           )
+          if cc_session.reauth_if_needed!(add_doc)
+            add_res, add_doc = client.post(
+              "addPlayerToMeldeliste",
+              base_payload.merge(a: pid),
+              {armed: armed, session_id: cc_session.cookie}
+            )
+          end
+          return error("Unexpected nil response from CC (cc_add for player_cc_id=#{pid}, armed mode). MockClient may have rejected.") if add_res.nil?
+          return error("CC rejected at cc_add for player_cc_id=#{pid}: #{parse_cc_error(add_doc)} (HTTP #{add_res&.code})") if add_res&.code != "200"
+          add_parsed = parse_cc_error(add_doc)
+          return error("CC rejected at cc_add for player_cc_id=#{pid}: #{add_parsed}") if add_parsed && add_parsed != "(no error)"
         end
-        return error("Unexpected nil response from CC (cc_add, armed mode). MockClient may have rejected.") if add_res.nil?
-        return error("CC rejected at cc_add: #{parse_cc_error(add_doc)} (HTTP #{add_res&.code})") if add_res&.code != "200"
-        add_parsed = parse_cc_error(add_doc)
-        return error("CC rejected at cc_add: #{add_parsed}") if add_parsed && add_parsed != "(no error)"
 
-        # Step 2: editMeldelisteSave.php — Commit Buffer in DB
+        # Step 2: EIN editMeldelisteSave — committet alle Buffer-Adds in CC-DB.
         # `save: "1"` als non-blank Sentinel (CC PHP-Code prüft typisch isset($_POST['save']),
         # nicht den Wert). client.post() würde leere Strings via .reject(&:blank?) wegwerfen.
+        # `a:` ist im save-Step für CC irrelevant (Plan-04-03-Befund: Save ignoriert
+        # `a=`-Param), aber wir senden den letzten player_cc_id für HAR-Symmetrie.
         save_res, save_doc = client.post(
           "saveMeldeliste",
-          base_payload.merge(a: player_cc_id, save: "1"),
+          base_payload.merge(a: player_cc_ids.last, save: "1"),
           {armed: armed, session_id: cc_session.cookie}
         )
         return error("Unexpected nil response from CC (editMeldelisteSave, armed mode).") if save_res.nil?
@@ -182,7 +252,7 @@ module McpServer
         save_parsed = parse_cc_error(save_doc)
         return error("CC rejected at editMeldelisteSave: #{save_parsed}") if save_parsed && save_parsed != "(no error)"
 
-        # Step 3 (Verifikation): showCommittedMeldeliste — Player-Marker im HTML-Body suchen
+        # Step 3 (Verifikation): showCommittedMeldeliste — alle player_cc_ids im HTML matchen.
         # Marker aus SNIFF v2 A2: <td align="center">{player_cc_id}</td> in der commited Liste.
         # Phase-5-D3-Bugfix: show-Form erwartet 8 Hidden-Inputs (clubId, fedId, branchId,
         # disciplinId, catId, season, meldelisteId, sortOrder); firstEntry/rang/selectedClubId
@@ -199,7 +269,12 @@ module McpServer
           verify_payload,
           {armed: armed, session_id: cc_session.cookie}
         )
-        verified = verify_res&.body.to_s.include?(%(<td align="center">#{player_cc_id}</td>))
+        verify_body = verify_res&.body.to_s
+        verified_player_cc_ids = player_cc_ids.select { |pid|
+          verify_body.include?(%(<td align="center">#{pid}</td>))
+        }
+        missing_player_cc_ids = player_cc_ids - verified_player_cc_ids
+        all_verified = missing_player_cc_ids.empty?
 
         # Plan 10-05 Task 4 (Befund #8 D-10-03-5): Pre-Read-Verify-Status explicit.
         # cc_register nutzt meldeliste_cc_id direkt vom User-Input (kein DB-Resolver,
@@ -213,23 +288,35 @@ module McpServer
         )
 
         # Plan 10-05.1 Task 2 (D-10-04-D Audit-Trail-Pflicht): JSON-Lines-Audit-Entry pro armed:true.
+        # Plan 14-G.13: payload.player_cc_ids (Array) + ternärer read_back_status:
+        #   alle ok → "match"; keiner ok → "mismatch"; sonst → "partial".
+        read_back_status = if all_verified
+          "match"
+        elsif verified_player_cc_ids.empty?
+          "mismatch"
+        else
+          "partial"
+        end
         McpServer::AuditTrail.write_entry(
           tool_name: "cc_register_for_tournament",
           operator: cc_session.respond_to?(:cc_login_user) ? cc_session.cc_login_user.to_s : "unknown",
           payload: {
-            meldeliste_cc_id: meldeliste_cc_id, player_cc_id: player_cc_id,
+            meldeliste_cc_id: meldeliste_cc_id, player_cc_ids: player_cc_ids,
             club_cc_id: club_cc_id, fed_id: fed_id, branch_cc_id: branch_cc_id,
             season: season, discipline_id: discipline_id, armed: true
           },
           pre_validation_results: validation_result[:results],
-          read_back_status: verified ? "match" : "mismatch",
+          read_back_status: read_back_status,
           result: "success",
           user_id: server_context&.dig(:user_id)
         )
 
         text(<<~OUT.strip)
-          Registered player_cc_id=#{player_cc_id} into meldeliste_cc_id=#{meldeliste_cc_id} (2-Step CC workflow OK).
-          verified_in_committed_list: #{verified}
+          Registered #{verified_player_cc_ids.size}/#{player_cc_ids.size} player(s) into meldeliste_cc_id=#{meldeliste_cc_id} (Multi-Add CC workflow OK).
+          player_cc_ids: #{player_cc_ids.inspect}
+          verified_player_cc_ids: #{verified_player_cc_ids.inspect}
+          missing_player_cc_ids:  #{missing_player_cc_ids.inspect}
+          verified_in_committed_list: #{all_verified}
           pre_read_verified: #{pre_read[:pre_read_verified]}
           pre_read_source: #{pre_read[:pre_read_source]}
           pre_read_warning: #{pre_read[:pre_read_warning]}

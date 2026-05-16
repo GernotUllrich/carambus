@@ -40,14 +40,14 @@ class McpServer::Tools::RegisterForTournamentTest < ActiveSupport::TestCase
     )
     refute response.error?
     text = response.content.first[:text]
-    # Schicht 4: alle ID-Werte explizit im Dry-Run-Output
-    assert_match(/\[DRY-RUN\] Would register player_cc_id=99999/, text)
+    # Schicht 4: alle ID-Werte explizit im Dry-Run-Output (Plan 14-G.13 Multi-Player-Format)
+    assert_match(/\[DRY-RUN\] Would register 1 player\(s\) \[99999\]/, text)
     assert_match(/meldeliste_cc_id=1310/, text)
     assert_match(/fed_id=20/, text)
     assert_match(/branch_cc_id=8/, text)
     assert_match(/club_cc_id=1010/, text)
     assert_match(/season=2025\/2026/, text)
-    assert_match(/Workflow: 2-Step/, text)
+    assert_match(/Workflow: Multi-Add-Loop/, text)
     assert_match(/Pass armed:true to actually perform/, text)
     # Schicht 1: armed=false erreicht client.post NIE
     assert @mock.calls.empty?, "Dry-run darf MockClient nicht aufrufen, aber #{@mock.calls.inspect}"
@@ -61,8 +61,10 @@ class McpServer::Tools::RegisterForTournamentTest < ActiveSupport::TestCase
     )
     refute response.error?
     text = response.content.first[:text]
-    assert_match(/Registered player_cc_id=99999 into meldeliste_cc_id=1310/, text)
-    # 2-Step-Workflow + Verifikation: exakt 3 POSTs in dieser Reihenfolge
+    # Plan 14-G.13: Multi-Player-Output-Format auch für single-Player-Input.
+    assert_match(/Registered 0\/1 player\(s\) into meldeliste_cc_id=1310/, text)
+    assert_match(/player_cc_ids: \[99999\]/, text)
+    # 2-Step-Workflow + Verifikation: exakt 3 POSTs in dieser Reihenfolge (single-player Backwards-Compat)
     posts = @mock.calls.select { |verb, _, _, opts| verb == :post && opts[:armed] }
     actions = posts.map { |_, action, _, _| action }
     assert_equal %w[addPlayerToMeldeliste saveMeldeliste showCommittedMeldeliste], actions,
@@ -135,7 +137,8 @@ class McpServer::Tools::RegisterForTournamentTest < ActiveSupport::TestCase
       server_context: nil
     )
     assert response.error?
-    assert_match(/Missing required parameter/i, response.content.first[:text])
+    # Plan 14-G.13: exactly-one-rule kommt jetzt vor validate_required! → spezifischere Diagnose.
+    assert_match(/missing player input/i, response.content.first[:text])
     assert_match(/player_cc_id/, response.content.first[:text])
   end
 
@@ -242,5 +245,157 @@ class McpServer::Tools::RegisterForTournamentTest < ActiveSupport::TestCase
   test "_validate_club_cross_check: missing club_cc_id → defensive ok:true" do
     result = McpServer::Tools::RegisterForTournament.send(:_validate_club_cross_check, 99999, nil)
     assert_equal true, result[:ok]
+  end
+
+  # --- Plan 14-G.13 (Quick 260516-x7g) Multi-Player-Save-Fix: Tests M1-M8 ---
+  #
+  # Bug: sequenzielle N×(add+save) verlieren Buffer-Adds — jeder save flusht den Edit-Buffer
+  # und überschreibt die vorherigen Adds. Fix: N×addPlayerToMeldeliste + 1×saveMeldeliste
+  # am Ende + 1×showCommittedMeldeliste verify. Pattern aus cc_assign_player_to_teilnehmerliste.
+
+  test "M1: armed:false mit player_cc_ids:[10024, 11683] zeigt DRY-RUN für BEIDE Player" do
+    response = McpServer::Tools::RegisterForTournament.call(
+      fed_id: 20, branch_cc_id: 8, season: "2025/2026",
+      meldeliste_cc_id: 1310, player_cc_ids: [10024, 11683], club_cc_id: 1010,
+      server_context: nil
+    )
+    refute response.error?
+    text = response.content.first[:text]
+    assert_match(/\[DRY-RUN\] Would register 2 player\(s\)/, text)
+    assert_match(/10024/, text)
+    assert_match(/11683/, text)
+    assert_match(/Multi-Add-Loop/, text)
+    assert @mock.calls.empty?, "Dry-run darf MockClient nicht aufrufen, aber #{@mock.calls.inspect}"
+  end
+
+  test "M2: armed:true mit player_cc_ids:[10024, 11683] ruft N×add + 1×save + 1×verify" do
+    response = McpServer::Tools::RegisterForTournament.call(
+      fed_id: 20, branch_cc_id: 8, season: "2025/2026",
+      meldeliste_cc_id: 1310, player_cc_ids: [10024, 11683], club_cc_id: 1010,
+      armed: true, server_context: nil
+    )
+    refute response.error?
+    posts = @mock.calls.select { |verb, _, _, opts| verb == :post && opts[:armed] }
+    actions = posts.map { |_, action, _, _| action }
+    # Erwartete Sequenz: 2× addPlayerToMeldeliste + 1× saveMeldeliste + 1× showCommittedMeldeliste
+    expected_actions = %w[addPlayerToMeldeliste addPlayerToMeldeliste saveMeldeliste showCommittedMeldeliste]
+    assert_equal expected_actions, actions,
+      "Erwarte 2-Player-Add-Loop + 1×save + 1×verify — got #{actions.inspect}"
+    # Verify die zwei adds mit den richtigen player_cc_ids
+    add_calls = posts.select { |_, action, _, _| action == "addPlayerToMeldeliste" }
+    add_player_ids = add_calls.map { |_, _, params, _| params[:a] }
+    assert_equal [10024, 11683], add_player_ids,
+      "Add-Loop muss player_cc_ids in der gegebenen Reihenfolge senden"
+  end
+
+  test "M3: armed:true verify-Response enthält BEIDE Marker → verified_in_committed_list:true" do
+    @mock.define_singleton_method(:post) do |action, params, opts|
+      @calls << [:post, action, params, opts]
+      if action == "showCommittedMeldeliste"
+        body = %(<html><body><table><tr><td align="center">10024</td></tr><tr><td align="center">11683</td></tr></table></body></html>)
+        [Struct.new(:code, :message, :body).new("200", "OK", body), Nokogiri::HTML(body)]
+      else
+        [Struct.new(:code, :message, :body).new("200", "OK", ""), Nokogiri::HTML("<html></html>")]
+      end
+    end
+
+    response = McpServer::Tools::RegisterForTournament.call(
+      fed_id: 20, branch_cc_id: 8, season: "2025/2026",
+      meldeliste_cc_id: 1310, player_cc_ids: [10024, 11683], club_cc_id: 1010,
+      armed: true, server_context: nil
+    )
+    refute response.error?
+    text = response.content.first[:text]
+    assert_match(/verified_in_committed_list: true/, text)
+    assert_match(/verified_player_cc_ids: \[10024, 11683\]/, text)
+    assert_match(/missing_player_cc_ids:  \[\]/, text)
+  end
+
+  test "M4: armed:true partial-verify (nur 10024, nicht 11683) → verified=false + missing=[11683]" do
+    @mock.define_singleton_method(:post) do |action, params, opts|
+      @calls << [:post, action, params, opts]
+      if action == "showCommittedMeldeliste"
+        body = %(<html><body><table><tr><td align="center">10024</td></tr></table></body></html>)
+        [Struct.new(:code, :message, :body).new("200", "OK", body), Nokogiri::HTML(body)]
+      else
+        [Struct.new(:code, :message, :body).new("200", "OK", ""), Nokogiri::HTML("<html></html>")]
+      end
+    end
+
+    response = McpServer::Tools::RegisterForTournament.call(
+      fed_id: 20, branch_cc_id: 8, season: "2025/2026",
+      meldeliste_cc_id: 1310, player_cc_ids: [10024, 11683], club_cc_id: 1010,
+      armed: true, server_context: nil
+    )
+    refute response.error?
+    text = response.content.first[:text]
+    assert_match(/verified_in_committed_list: false/, text)
+    assert_match(/verified_player_cc_ids: \[10024\]/, text)
+    assert_match(/missing_player_cc_ids:  \[11683\]/, text)
+  end
+
+  test "M5 Backwards-Compat: player_cc_id:10024 (singular) ruft genau 3 POSTs (1×add+1×save+1×verify)" do
+    response = McpServer::Tools::RegisterForTournament.call(
+      fed_id: 20, branch_cc_id: 8, season: "2025/2026",
+      meldeliste_cc_id: 1310, player_cc_id: 10024, club_cc_id: 1010,
+      armed: true, server_context: nil
+    )
+    refute response.error?
+    posts = @mock.calls.select { |verb, _, _, opts| verb == :post && opts[:armed] }
+    actions = posts.map { |_, action, _, _| action }
+    # Single-Player muss identisch zu vorher 3 POSTs ergeben (Backwards-Compat-HARD-Constraint)
+    assert_equal %w[addPlayerToMeldeliste saveMeldeliste showCommittedMeldeliste], actions,
+      "Single-Player-Pfad muss byte-identisch zur Pre-Bug-Variante bleiben — got #{actions.inspect}"
+  end
+
+  test "M6: weder player_cc_id noch player_cc_ids gesetzt → klare Diagnose-Message" do
+    response = McpServer::Tools::RegisterForTournament.call(
+      fed_id: 20, branch_cc_id: 8, season: "2025/2026",
+      meldeliste_cc_id: 1310, club_cc_id: 1010,
+      server_context: nil
+    )
+    assert response.error?
+    assert_match(/missing player input/i, response.content.first[:text])
+  end
+
+  test "M7: BEIDE player_cc_id UND player_cc_ids gesetzt → exactly-one-rule error" do
+    response = McpServer::Tools::RegisterForTournament.call(
+      fed_id: 20, branch_cc_id: 8, season: "2025/2026",
+      meldeliste_cc_id: 1310, player_cc_id: 10024, player_cc_ids: [11683, 10031], club_cc_id: 1010,
+      server_context: nil
+    )
+    assert response.error?
+    assert_match(/exactly one of player_cc_id/, response.content.first[:text])
+  end
+
+  test "M8: Pre-Validation-Fail eines Players blockiert ALLE (atomare Semantik)" do
+    # Stubbe _validate_player_not_doppelt um pid=11683 zu rejecten, andere zu akzeptieren.
+    McpServer::Tools::RegisterForTournament.singleton_class.send(:alias_method, :_orig_validate_player_not_doppelt_m8, :_validate_player_not_doppelt)
+    McpServer::Tools::RegisterForTournament.define_singleton_method(:_validate_player_not_doppelt) do |pid, *args|
+      if pid == 11683
+        {name: "player_not_doppelt", ok: false, reason: "[player_cc_id=#{pid}] Player bereits in Meldeliste"}
+      else
+        {name: "player_not_doppelt", ok: true}
+      end
+    end
+
+    begin
+      response = McpServer::Tools::RegisterForTournament.call(
+        fed_id: 20, branch_cc_id: 8, season: "2025/2026",
+        meldeliste_cc_id: 1310, player_cc_ids: [10024, 11683, 10031], club_cc_id: 1010,
+        armed: true, server_context: nil
+      )
+      assert response.error?
+      text = response.content.first[:text]
+      assert_match(/Pre-Validation failed/, text)
+      # Diagnose muss zeigen, welcher Player den Fail verursachte (11683)
+      assert_match(/11683/, text)
+      # KEIN Mock-Call darf abgesetzt worden sein (atomare Semantik — alle abgelehnt)
+      posts = @mock.calls.select { |verb, _, _, opts| verb == :post && opts[:armed] }
+      assert posts.empty?, "Bei Pre-Validation-Fail darf KEIN armed-POST abgesetzt werden — got #{posts.inspect}"
+    ensure
+      McpServer::Tools::RegisterForTournament.singleton_class.send(:alias_method, :_validate_player_not_doppelt, :_orig_validate_player_not_doppelt_m8)
+      McpServer::Tools::RegisterForTournament.singleton_class.send(:remove_method, :_orig_validate_player_not_doppelt_m8)
+    end
   end
 end
