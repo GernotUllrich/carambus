@@ -352,8 +352,19 @@ module McpServer
         # Tournament-Name-Match: TournamentCc.name kann von Meldeliste-Title abweichen.
         # Strategie: Exact-Match auf normalized name → Substring-Match → keine Heuristik
         # (lieber 0 Treffer zurückgeben als falsche positive Matches).
+        #
+        # Plan 14-G.12-Hotfix (D-14-02-D): TournamentCc.cc_id ist nur regions-eindeutig
+        # (gleiche cc_id kann in mehreren Regionen vorkommen, z.B. blmr + nbv).
+        # Daher Context-Filter Pflicht — Default aus server_context (oder Scenario-Config).
+        # Ohne Context-Filter würde find_by den ersten Treffer zurückgeben (oft falsche Region)
+        # → 0 Match-Treffer → User-facing-Bug „keine Meldeliste" trotz existierender Liste.
+        context = effective_cc_region(server_context).to_s.downcase
         tcc = begin
-          TournamentCc.find_by(cc_id: tournament_cc_id)
+          if context.present?
+            TournamentCc.find_by(cc_id: tournament_cc_id, context: context)
+          else
+            TournamentCc.find_by(cc_id: tournament_cc_id) # Defensive Fallback ohne Context
+          end
         rescue StandardError
           nil
         end
