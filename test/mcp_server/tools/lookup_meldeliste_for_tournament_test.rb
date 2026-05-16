@@ -40,8 +40,9 @@ class McpServer::Tools::LookupMeldelisteForTournamentTest < ActiveSupport::TestC
     )
     assert response.error?
     text = response.content.first[:text]
-    # Plan 14-02.3 / F-6: Sportwart-Vokabular im Error-Message.
-    assert_match(/keine Meldeliste.*LSW kontaktieren/i, text)
+    # Plan 14-G.12-Hotfix #2: Diagnose-Message statt „LSW kontaktieren"-Pseudo-Diagnose.
+    # Bei fehlenden Scope-Params → FEHLENDE PARAMS-Hint; CC-API-Hierarchie-Pattern erklärt.
+    assert_match(/Resolver konnte Meldeliste nicht finden/i, text)
     assert_match(/tournament_cc_id=99999/, text)
     assert_match(/meisterschaftsId=99999/, text)
     # Anti-Regression: alte False-Claim darf NICHT mehr im Output sein
@@ -99,9 +100,10 @@ class McpServer::Tools::LookupMeldelisteForTournamentTest < ActiveSupport::TestC
     )
     assert response.error?
     text = response.content.first[:text]
-    # Plan 14-02.3 / F-6: Sportwart-Vokabular leadingl; geprüfte Pfade als technische
-    # Diagnose-Sektion erhalten bleibt (für Audit-Trail / Bug-Reports).
-    assert_match(/keine Meldeliste.*LSW kontaktieren/i, text)
+    # Plan 14-G.12-Hotfix #2: Diagnose-Message — entweder „FEHLENDE PARAMS" (wenn Scope-Lücke)
+    # oder „nicht ableiten" (wenn alle Scope-Params gesetzt aber 0 Treffer).
+    # Hier: fed/branch gesetzt, season fehlt → FEHLENDE PARAMS branch passt schon, season-Hint.
+    assert_match(/Resolver konnte Meldeliste nicht (finden|ableiten)/i, text)
     assert_match(/scope-filter/, text)
     assert_match(/retry-meisterschaftsId-fallback/, text)
   end

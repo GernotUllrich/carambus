@@ -76,7 +76,15 @@ module McpServer
           auto_resolved # nil bei N=0/N>1/kein User; Integer bei N=1
         end
 
-        Rails.logger.info "[LookupMeldelistе] start tournament_cc_id=#{tournament_cc_id} club_cc_id=#{effective_club_cc_id || "-"} (explicit=#{!club_cc_id.nil?}) force_refresh=#{force_refresh}"
+        # Plan 14-G.12-Hotfix #2: Auto-Default Scope-Params aus existierenden Helpers.
+        # `fed_cc_id` und `season` haben robust ableitbare Defaults aus Carambus.config /
+        # current_season — ohne sie liefert die CC-API leere Responses (CC-Hierarchie-Pattern:
+        # alle Eltern-Params müssen mit durchgeschleift werden). `branch_cc_id` bleibt
+        # erstmal manuell (kein admin-cc-id-Mapping im Code; Hint in Error-Message).
+        effective_fed = fed_cc_id || default_fed_id(server_context)
+        effective_season_name = season.presence || (effective_season(server_context)&.name rescue nil)
+
+        Rails.logger.info "[LookupMeldelistе] start tournament_cc_id=#{tournament_cc_id} club_cc_id=#{effective_club_cc_id || "-"} (explicit=#{!club_cc_id.nil?}) fed=#{effective_fed || "-"} branch=#{branch_cc_id || "-"} season=#{effective_season_name || "-"} force_refresh=#{force_refresh}"
 
         # Plan 14-G.12 / NEU primary path-0: Sportwart-Discovery via club-scoped showMeldelistenList.
         # Wenn effective_club_cc_id resolved → /admin/myclub/meldewesen/single/showMeldelistenList.php mit
@@ -87,8 +95,8 @@ module McpServer
           sportwart_candidates = fetch_from_sportwart_list(
             tournament_cc_id,
             club_cc_id: effective_club_cc_id,
-            fed_cc_id: fed_cc_id, branch_cc_id: branch_cc_id,
-            season: season, disciplin_id: disciplin_id, cat_id: cat_id,
+            fed_cc_id: effective_fed, branch_cc_id: branch_cc_id,
+            season: effective_season_name, disciplin_id: disciplin_id, cat_id: cat_id,
             server_context: server_context
           )
           Rails.logger.info "[LookupMeldelistе] path-0 sportwart-list (clubId=#{effective_club_cc_id}): #{sportwart_candidates.size} candidate(s)"
@@ -192,11 +200,35 @@ module McpServer
             "meisterschaftsId=#{tournament_cc_id}"
           end
           attempted += " + retry-#{retry_path_used}" if retry_path_used
-          error(
-            "Dieses Turnier hat in CC noch keine Meldeliste — bitte LSW kontaktieren, " \
-            "damit die Meldeliste angelegt wird. (tournament_cc_id=#{tournament_cc_id}; " \
-            "geprüfte Pfade: live-cc-overview, db-bridge, #{attempted})"
-          )
+
+          # Plan 14-G.12-Hotfix #2: Diagnose-Message konditional. Wenn relevante
+          # Scope-Params fehlen → Hint statt „LSW kontaktieren". Vorherige Annahme
+          # „keine Meldeliste in CC" ist oft falsch (Plan 14-G.12 hat empirisch
+          # bewiesen: Resolver findet Meldeliste nicht, obwohl sie existiert).
+          missing_scope_hints = []
+          missing_scope_hints << "branch_cc_id (z.B. 8=Kegel, 6=Pool, 7=Snooker, 10=Karambol — admin-cc-ids)" if branch_cc_id.blank?
+          missing_scope_hints << "fed_cc_id (z.B. 20=NBV)" if effective_fed.blank?
+          missing_scope_hints << "season (z.B. '2025/2026')" if effective_season_name.blank?
+          missing_scope_hints << "Sportwart-Wirkbereich (user.sportwart_locations) — oder club_cc_id explicit mitgeben" if effective_club_cc_id.blank?
+
+          if missing_scope_hints.any?
+            error(
+              "Resolver konnte Meldeliste nicht finden (tournament_cc_id=#{tournament_cc_id}). " \
+              "FEHLENDE PARAMS für Sportwart-Pfad: #{missing_scope_hints.join("; ")}. " \
+              "Bitte Tool erneut aufrufen mit den fehlenden Params; CC-API verlangt vollständigen " \
+              "Scope-Tupel (Hierarchie-Pattern). Geprüfte Pfade: live-cc-overview, db-bridge, #{attempted}."
+            )
+          else
+            error(
+              "Resolver konnte meldeliste_cc_id nicht ableiten (tournament_cc_id=#{tournament_cc_id}). " \
+              "Alle Scope-Params waren gesetzt aber CC lieferte 0 Treffer. Mögliche Ursachen: " \
+              "(1) Meldeliste existiert in CC unter anderem Club/Branch als angegeben — " \
+              "anderen club_cc_id oder branch_cc_id probieren; " \
+              "(2) Tournament-Name in Carambus-DB-Mirror weicht von CC-Meldeliste-Title ab — LSW informieren; " \
+              "(3) Permission-Issue auf MCP-Server-CC-Credentials. " \
+              "Geprüfte Pfade: live-cc-overview, db-bridge, #{attempted}."
+            )
+          end
         when 1
           c = candidates.first
           text(<<~OUT.strip)
