@@ -325,11 +325,11 @@ de:
   last_inning: Letzte<br />Aufnahme
   layouts:
     mailer:
-      copyright_html: Copyright &copy; %{year}, All rights reserved.
-      mailing_address: 'Our mailing address is:'
-      preferences: Update subscription preferences
-      unsubscribe: Unsubscribe from this list
-      view_in_browser: View this in your browser
+      copyright_html: Copyright &copy; %{year}, Alle Rechte vorbehalten.
+      mailing_address: 'Unsere Postanschrift:'
+      preferences: Abo-Einstellungen aktualisieren
+      unsubscribe: Vom Verteiler abmelden
+      view_in_browser: Im Browser ansehen
   league:
     index:
       league: Liga
