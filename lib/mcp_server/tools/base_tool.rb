@@ -120,6 +120,26 @@ module McpServer
 
       # Plan 10-06 Task 3 (D-10-04-J Convenience-Wrapper):
       # Auto-Resolve player_cc_id aus player_name via cc_search_player (DRY für 3 Write-Tools).
+      # Plan 14-G.12-Hotfix #4 (D-14-02-D analog für Player):
+      # Player.cc_id ist NICHT eindeutig (intra-region eindeutig + cross-region collisions).
+      # Production-Befund: Player.where(cc_id: 10024).count = 4 (verschiedene Regionen +
+      # nil-Region-Duplikate). Direkte Player.find_by(cc_id: X) liefert den ersten Treffer
+      # — oft die falsche Region → false-positive in club_cross_check + consistency_check.
+      #
+      # Strict region-Filter via effective_cc_region(server_context).
+      # Returns nil bei kein Match (defensive — Validation skipped).
+      def self.find_player_in_region(cc_id, server_context: nil)
+        return nil if cc_id.blank?
+        region_shortname = effective_cc_region(server_context).to_s.upcase
+        return nil if region_shortname.blank?
+        region_id = Region.find_by(shortname: region_shortname)&.id
+        return nil if region_id.nil?
+        Player.find_by(cc_id: cc_id, region_id: region_id)
+      rescue StandardError => e
+        Rails.logger.warn "[BaseTool.find_player_in_region] #{e.class}: #{e.message}"
+        nil
+      end
+
       def self.resolve_player_cc_id_from_name(player_cc_id:, player_name:, server_context: nil)
         return [player_cc_id, nil] if player_cc_id.present?
         return [nil, nil] if player_name.blank?

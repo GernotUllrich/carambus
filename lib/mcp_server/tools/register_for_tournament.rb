@@ -102,7 +102,7 @@ module McpServer
           _validate_deadline_offen(meldeliste_cc_id),
           _validate_player_exists(player_cc_id),
           _validate_player_not_doppelt(player_cc_id, meldeliste_cc_id, fed_id, branch_cc_id, season),
-          _validate_club_cross_check(player_cc_id, club_cc_id),
+          _validate_club_cross_check(player_cc_id, club_cc_id, server_context: server_context),
           _validate_scope_konsistent(meldeliste_cc_id, fed_id, branch_cc_id, season)
         ])
 
@@ -123,7 +123,8 @@ module McpServer
           player_cc_id: player_cc_id,
           season: season,
           fed_id: fed_id,
-          discipline_id: discipline_id
+          discipline_id: discipline_id,
+          server_context: server_context
         )
 
         # Schicht 4 (Network-Level): Detail-Dry-Run-Echo — alle IDs explizit.
@@ -297,10 +298,13 @@ module McpServer
       end
 
       # Constraint 6/7: club_cc_id passt zu player (DB-Cross-Check).
-      def self._validate_club_cross_check(player_cc_id, club_cc_id)
+      # Plan 14-G.12-Hotfix #4: server_context-Param ergänzt; find_player_in_region
+      # statt Player.find_by(cc_id) — letzteres lieferte cross-region-Treffer (D-14-02-D
+      # analog für Player; cc_id ist nur intra-region eindeutig).
+      def self._validate_club_cross_check(player_cc_id, club_cc_id, server_context: nil)
         return {name: "club_cross_check", ok: true} if player_cc_id.blank? || club_cc_id.blank?
-        player = Player.find_by(cc_id: player_cc_id)
-        return {name: "club_cross_check", ok: true} if player.nil?  # Defensive: kein Player in DB → skip
+        player = find_player_in_region(player_cc_id, server_context: server_context)
+        return {name: "club_cross_check", ok: true} if player.nil?  # Defensive: kein Player in DB-Region → skip
         # Player.club_id ist Carambus-internal — vergleiche über Club.cc_id wenn möglich
         player_club_cc_id = player.club&.cc_id
         if player_club_cc_id.present? && player_club_cc_id.to_i != club_cc_id.to_i
@@ -325,12 +329,18 @@ module McpServer
 
       # Existenz-Check auf PlayerRanking (RESEARCH §4 Option A).
       # Liefert menschenlesbare Status-String — KEIN Block (Discussion-Decision: Warnung + TM-Override).
-      def self.consistency_check(player_cc_id:, season:, fed_id:, discipline_id: nil)
-        player = Player.find_by(cc_id: player_cc_id)
-        return "[Konsistenz-Check übersprungen: Player mit cc_id=#{player_cc_id} nicht in Carambus-DB]" unless player
-
+      def self.consistency_check(player_cc_id:, season:, fed_id:, discipline_id: nil, server_context: nil)
         season_record = Season.find_by(name: season)
         region = Region.joins(:region_cc).find_by(region_ccs: {cc_id: fed_id})
+
+        # Plan 14-G.12-Hotfix #4: region-scoped Player-Lookup; vorher direkter Player.find_by
+        # lieferte cross-region-Treffer (D-14-02-D analog für Player).
+        player = if region
+          Player.find_by(cc_id: player_cc_id, region_id: region.id)
+        else
+          find_player_in_region(player_cc_id, server_context: server_context)
+        end
+        return "[Konsistenz-Check übersprungen: Player mit cc_id=#{player_cc_id} nicht in Carambus-DB (Region-scoped)]" unless player
 
         unless season_record && region
           missing = []
