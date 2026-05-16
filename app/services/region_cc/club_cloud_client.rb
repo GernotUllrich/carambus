@@ -330,6 +330,24 @@ class RegionCc::ClubCloudClient
     # POST (read-only) — zeigt committed Meldeliste; für Erfolgs-Verifikation nach Save
     # Body enthält <td align="center">{player_cc_id}</td> falls erfolgreich
     # NICHT zu verwechseln mit "showMeldeliste" (Verbands-Pfad oben)
+    #
+    # --- Plan 14-G.12 — Sportwart-Sicht: Meldelisten-Discovery + Edit-Form ---
+    # Komplettiert den myclub-Cluster (addPlayerToMeldeliste + saveMeldeliste +
+    # showCommittedMeldeliste + removePlayerFromMeldeliste existierten bereits).
+    # NICHT zu verwechseln mit der Verbands-Sicht (LSW)
+    # /admin/einzel/meldelisten/showMeldelistenList.php (= Key "showMeldelistenList"
+    # ohne Präfix, oben) — die ist für LSW-Verband-Übersicht; Sportwart-Pfad ist
+    # club-scoped (clubId-Pflicht-Param).
+    "sportwart-showMeldelistenList" => ["/admin/myclub/meldewesen/single/showMeldelistenList.php", true],
+    # POST clubId+fedId+branchId+season+disciplinId=*+catId=*
+    # Response: <select name="meldelisteId" size="15"> mit
+    #   <option value="MID">Title [N Meldungen]</option>
+    # Parser-Pattern: doc.css('select[name="meldelisteId"] option')
+    "sportwart-editMeldelisteCheck" => ["/admin/myclub/meldewesen/single/editMeldelisteCheck.php", true],
+    # POST clubId+fedId+branchId+...+meldelisteId+edit="" (Render der Anmelde-Maske)
+    # Verwendung primär als Discovery-HEAD (Form-Render mit allen Hidden-Inputs);
+    # für Submit nutzen Tools direkt addPlayerToMeldeliste (cc_add.php) und
+    # removePlayerFromMeldeliste (cc_remove.php) — Plan 14-G.12 Substrate.
     "showMeisterschaftenList" => ["/admin/einzel/meisterschaft/showMeisterschaftenList.php", true],
     # fedId: 20
     # branchId: 10
