@@ -3,15 +3,14 @@ gsd_state_version: 1.0
 milestone: v7.1
 milestone_name: UX Polish & i18n Debt
 status: verifying
-stopped_at: Completed quick-260507-4cb (MCP-Tool-Schema-Description-Drift nach 260507-njl Region-Lookup-Refactor geschlossen — 11 fed_id descriptions auf Region-Lookup-Default umgestellt)
-last_updated: "2026-05-07T18:30:00.000Z"
-last_activity: 2026-05-07
+stopped_at: Completed quick-260507-4cb (MCP-Tool-Schema-Description-Drift nach 260507-njl Region-Lookup-Refactor geschlossen — 11 fed_id descriptions auf Region-Lookup-Default umgestellt; 2 Commits 4cb195bb + 5f6ffd68 lokal, ahead of origin/master, Push noch ausstehend)
+last_updated: "2026-05-16T09:45:41.046Z"
+last_activity: 2026-05-16
 progress:
   total_phases: 13
-  completed_phases: 11
-  total_plans: 76
-  completed_plans: 75
-  percent: 99
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 2
 ---
 
 # Project State
@@ -28,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-04-15)
 Phase: 999.1
 Plan: Not started
 Status: Phase complete — ready for verification
-Last activity: 2026-05-07 — Completed quick task 260507-4cb: MCP-Tool-Schema-Description-Drift geschlossen — fed_id descriptions in 11 MCP-Tools (lookup_club/region/category/league/serie/team/spielbericht/tournament/teilnehmerliste + search_player + finalize_teilnehmerliste) auf das aktuelle 3-stufige Region-Lookup-Verhalten umgestellt. Reine Schema-Metadata-Änderung; im Claude `/mcp`-Dialog stand vorher die veraltete "Defaults to ENV['CC_FED_ID']"-Beschreibung. 36/36 MCP-Tool-Tests GREEN. Vorgängertask 260507-njl: MCP-Credentials-Cleanup — require_env! entfernt, default_fed_id auf Region-Lookup umgestellt, .mcp.json.example + Doku auf 3-ENV-Schema, mkdocs rebuild (74 tests / 245 assertions / 0 failures).
+Last activity: 2026-05-16
 
 Previous milestone archived at:
 
