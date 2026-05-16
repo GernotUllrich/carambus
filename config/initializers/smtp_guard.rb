@@ -12,11 +12,27 @@
 # Tasks senden keine Mails und sollen ohne SMTP-Creds laufbar bleiben (Hot-Fix
 # nach Phase 41 Production-Deploy-Bruch von carambus_nbv 2026-05-16).
 if Rails.env.production?
+  # Detection ueber empirisch bewaehrte Signale (verifiziert mit File-Trace,
+  # carambus_nbv-Tree, 2026-05-16):
+  #
+  #   ✓ `defined?(Rails::Server)`  ist gesetzt beim `bin/rails server` (Rails-Command-Wrapper
+  #     setzt es vor Initializer-Load). NICHT gesetzt bei rake/console/runner.
+  #   ✓ `File.basename($PROGRAM_NAME) == "puma"` greift bei direktem `bundle exec puma`
+  #     (Capistrano startet Puma so via systemd/initd ohne `bin/rails`).
+  #   ✓ `File.basename($PROGRAM_NAME) == "sidekiq"` greift bei `bundle exec sidekiq`.
+  #
+  # NICHT verlassbar:
+  #   ✗ `defined?(::Puma::*)` — Bundler eager-loaded ALLE Gemfile-Gems, also auch bei
+  #      `rake db:migrate` ist `Puma::Server` als "constant" definiert (false positive).
+  #   ✗ `ARGV.first == "server"` — Rails-Command-Dispatcher hat das Subkommando "server"
+  #      bereits aus ARGV entfernt, bevor Initializer-Load passiert.
+  #
+  # Greift bei:    bin/rails server, bundle exec puma, bundle exec sidekiq
+  # Skipped bei:   rake db:migrate, rails console, rails runner, rails generators
+  basename = File.basename($PROGRAM_NAME)
   server_boot = defined?(Rails::Server) ||
-                defined?(::Puma::CLI) ||
-                defined?(::Puma::Server) ||
-                defined?(::Sidekiq::CLI) ||
-                $PROGRAM_NAME =~ /\b(?:puma|sidekiq)\b/
+                basename == "puma" ||
+                basename == "sidekiq"
 
   if server_boot
     missing = []
