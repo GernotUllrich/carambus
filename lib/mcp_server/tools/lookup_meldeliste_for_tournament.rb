@@ -65,29 +65,40 @@ module McpServer
         # Bei tournament_cc_id=890 schlugen auf carambus_nbv-Production alle 4 Pfade fehl
         # ohne sichtbaren Grund. Diese Logs machen den nächsten Production-Test ein-Schritt-debugbar.
         # Fix selbst (Auth-/HTML-Format-Issue auf Production) → v0.5-Backlog (lokale Repro fehlt).
-        Rails.logger.info "[LookupMeldelistе] start tournament_cc_id=#{tournament_cc_id} club_cc_id=#{club_cc_id || "-"} force_refresh=#{force_refresh}"
+        # Plan 14-G.12 Task 4: Auto-Resolve club_cc_id aus Sportwart-Wirkbereich,
+        # falls nicht explizit gesetzt. Defensive: bei Auth-Error (kein Wirkbereich
+        # / N>1) NICHT crashen — Lookup ist read-only und LSW darf ohne Sportwart-
+        # Wirkbereich querien (Fall-through zu legacy-Pfaden).
+        effective_club_cc_id = if club_cc_id.present?
+          club_cc_id
+        else
+          auto_resolved, _auth_err = resolve_club_cc_id(server_context: server_context)
+          auto_resolved # nil bei N=0/N>1/kein User; Integer bei N=1
+        end
+
+        Rails.logger.info "[LookupMeldelistе] start tournament_cc_id=#{tournament_cc_id} club_cc_id=#{effective_club_cc_id || "-"} (explicit=#{!club_cc_id.nil?}) force_refresh=#{force_refresh}"
 
         # Plan 14-G.12 / NEU primary path-0: Sportwart-Discovery via club-scoped showMeldelistenList.
-        # Wenn club_cc_id gegeben → /admin/myclub/meldewesen/single/showMeldelistenList.php mit
+        # Wenn effective_club_cc_id resolved → /admin/myclub/meldewesen/single/showMeldelistenList.php mit
         # clubId-Scope abfragen. Response enthält <select name="meldelisteId"> mit allen Meldelisten
         # für den Club + Branch + Saison; Tournament-Name-Match liefert meldeliste_cc_id.
-        # Ohne club_cc_id → Fall-through zu legacy LSW-Pfaden (Backwards-Compat).
-        if club_cc_id.present?
+        # Ohne effective_club_cc_id → Fall-through zu legacy LSW-Pfaden (Backwards-Compat).
+        if effective_club_cc_id.present?
           sportwart_candidates = fetch_from_sportwart_list(
             tournament_cc_id,
-            club_cc_id: club_cc_id,
+            club_cc_id: effective_club_cc_id,
             fed_cc_id: fed_cc_id, branch_cc_id: branch_cc_id,
             season: season, disciplin_id: disciplin_id, cat_id: cat_id,
             server_context: server_context
           )
-          Rails.logger.info "[LookupMeldelistе] path-0 sportwart-list (clubId=#{club_cc_id}): #{sportwart_candidates.size} candidate(s)"
+          Rails.logger.info "[LookupMeldelistе] path-0 sportwart-list (clubId=#{effective_club_cc_id}): #{sportwart_candidates.size} candidate(s)"
           if sportwart_candidates.any?
             case sportwart_candidates.size
             when 1
               c = sportwart_candidates.first
               return text(<<~OUT.strip)
                 meldeliste_cc_id: #{c[:meldeliste_cc_id]}
-                (source: sportwart-showMeldelistenList; club_cc_id=#{club_cc_id})
+                (source: sportwart-showMeldelistenList; club_cc_id=#{effective_club_cc_id})
                 candidates: #{sportwart_candidates.inspect}
               OUT
             else

@@ -386,6 +386,74 @@ module McpServer
         Rails.logger.warn "[BaseTool.resolve_tournament] #{e.class}: #{e.message}"
         nil
       end
+
+      # Plan 14-G.12 Task 4 / D-14-G.12-B:
+      # Authority-Helper für Sportwart-Scope-Tools (cc_register / cc_unregister /
+      # cc_lookup_meldeliste_for_tournament). Resolved club_cc_id aus User-Sportwart-
+      # Wirkbereich (sportwart_locations → clubs.cc_id) mit Override-Validierung.
+      #
+      # Convention:
+      #   club_cc_id, error_response = resolve_club_cc_id(server_context: ..., override: ...)
+      #   return error_response if error_response
+      #
+      # Return-Tuple:
+      #   [Integer, nil]  → club_cc_id resolved, kein Error
+      #   [nil, Response] → Error (entweder Authority-Denied oder Disambig-needed)
+      #
+      # Logic:
+      # - Wenn override gegeben → prüfe ob in sportwart-allowed Set; wenn ja OK, sonst Authority-Error
+      # - Wenn override nicht gegeben + N=1 in allowed Set → auto-resolve
+      # - Wenn override nicht gegeben + N>1 → Disambig-Error mit Liste
+      # - Wenn override nicht gegeben + N=0 → "kein Sportwart-Wirkbereich"-Error
+      # - Wenn kein server_context[:user_id] → [nil, nil] (Caller entscheidet — manche
+      #   read-only-Tools dürfen ohne Authority laufen)
+      def self.resolve_club_cc_id(server_context:, override: nil)
+        user_id = server_context&.dig(:user_id)
+        return [nil, nil] if user_id.blank? # Caller-Decision für non-authority-Pfade
+
+        user = User.find_by(id: user_id)
+        return [nil, error("Authority-Check: User mit id=#{user_id} nicht gefunden (Token-Stale?)")] if user.nil?
+
+        # Erlaubte club_cc_ids aus Sportwart-Wirkbereich.
+        # User.sportwart_locations → has_many :clubs (über club_locations); Location#club liefert
+        # den primären Club. Wir nehmen alle cc_ids aus dem Wirkbereich (Sportwart kann mehrere
+        # Locations haben; jede Location kann theoretisch mehrere Clubs haben).
+        allowed_cc_ids = user.sportwart_locations.flat_map { |loc|
+          loc.clubs.map(&:cc_id).compact
+        }.uniq.sort
+
+        if override.present?
+          override_i = override.to_i
+          if allowed_cc_ids.include?(override_i)
+            return [override_i, nil]
+          else
+            return [nil, error(
+              "Authority-Denied: club_cc_id=#{override_i} ist nicht im Sportwart-Wirkbereich " \
+              "von User-Id=#{user.id} (erlaubt: #{allowed_cc_ids.inspect}). " \
+              "Bitte Profil prüfen oder nur club_cc_id aus eigener Liste verwenden."
+            )]
+          end
+        end
+
+        # Kein Override → Auto-Resolve
+        case allowed_cc_ids.size
+        when 0
+          [nil, error(
+            "Kein Sportwart-Wirkbereich konfiguriert für User-Id=#{user.id}. " \
+            "Bitte LSW oder SysAdmin kontaktieren, damit sportwart_locations zugewiesen werden."
+          )]
+        when 1
+          [allowed_cc_ids.first, nil]
+        else
+          [nil, error(
+            "Mehrere Clubs im Sportwart-Wirkbereich (#{allowed_cc_ids.inspect}). " \
+            "Bitte den gewünschten club_cc_id explizit übergeben (Multi-Club-Sportwart)."
+          )]
+        end
+      rescue => e
+        Rails.logger.warn "[BaseTool.resolve_club_cc_id] #{e.class}: #{e.message}"
+        [nil, error("Authority-Check (club_cc_id) fehlgeschlagen (defensive): #{e.class.name}")]
+      end
     end
   end
 end

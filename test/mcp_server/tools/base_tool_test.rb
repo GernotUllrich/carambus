@@ -338,4 +338,127 @@ class McpServer::Tools::BaseToolTest < ActiveSupport::TestCase
       assert_nil branch_name
     end
   end
+
+  # ---------------------------------------------------------------------------
+  # Plan 14-G.12 Task 4 — resolve_club_cc_id Authority-Helper
+  # ---------------------------------------------------------------------------
+  # Sportwart-Wirkbereich-Resolver: aus user.sportwart_locations → clubs.cc_id;
+  # mit Override-Validierung. Convention: [club_cc_id, error_response]-Tuple.
+  class ResolveClubCcIdTest < ActiveSupport::TestCase
+    setup do
+      # Test-User mit Sportwart-Wirkbereich aus User.sportwart_locations
+      @user = User.create!(
+        email: "sportwart-test-#{SecureRandom.hex(4)}@example.com",
+        password: "TestPassword1!",
+        username: "sportwart_test_#{SecureRandom.hex(4)}",
+        role: "club_admin"
+      )
+
+      # Region + Club + Location für Wirkbereich
+      @region = Region.find_or_create_by!(shortname: "TEST") { |r| r.name = "Test Region" }
+      @club = Club.create!(name: "BC Resolver-Test", shortname: "BCRT", cc_id: 999_001, region: @region)
+      @location = Location.create!(name: "Test-Spielhalle")
+      ClubLocation.create!(club: @club, location: @location)
+
+      @user.sportwart_locations << @location
+
+      @ctx = {user_id: @user.id, cc_region: "TEST"}
+    end
+
+    teardown do
+      ClubLocation.where(location: @location).destroy_all
+      @user.sportwart_location_assignments.destroy_all
+      @location.destroy
+      @club.destroy
+      @user.destroy
+    end
+
+    test "resolve_club_cc_id: kein server_context → [nil, nil] (Caller-Decision)" do
+      result, err = McpServer::Tools::BaseTool.resolve_club_cc_id(server_context: nil)
+      assert_nil result
+      assert_nil err
+    end
+
+    test "resolve_club_cc_id: server_context ohne user_id → [nil, nil]" do
+      result, err = McpServer::Tools::BaseTool.resolve_club_cc_id(server_context: {cc_region: "TEST"})
+      assert_nil result
+      assert_nil err
+    end
+
+    test "resolve_club_cc_id: user_id stale (User nicht gefunden) → Error" do
+      result, err = McpServer::Tools::BaseTool.resolve_club_cc_id(
+        server_context: {user_id: 9_999_999}
+      )
+      assert_nil result
+      assert err
+      assert err.error?
+      assert_match(/Token-Stale|nicht gefunden/, err.content.first[:text])
+    end
+
+    test "resolve_club_cc_id: N=1 Sportwart-Location → Auto-Resolve cc_id" do
+      result, err = McpServer::Tools::BaseTool.resolve_club_cc_id(server_context: @ctx)
+      assert_nil err
+      assert_equal 999_001, result
+    end
+
+    test "resolve_club_cc_id: Override matching scope → OK" do
+      result, err = McpServer::Tools::BaseTool.resolve_club_cc_id(
+        server_context: @ctx, override: 999_001
+      )
+      assert_nil err
+      assert_equal 999_001, result
+    end
+
+    test "resolve_club_cc_id: Override NICHT im scope → Authority-Denied" do
+      result, err = McpServer::Tools::BaseTool.resolve_club_cc_id(
+        server_context: @ctx, override: 888_888
+      )
+      assert_nil result
+      assert err
+      assert err.error?
+      text = err.content.first[:text]
+      assert_match(/Authority-Denied/, text)
+      assert_match(/999001/, text)
+      assert_match(/888888/, text)
+    end
+
+    test "resolve_club_cc_id: User ohne Sportwart-Wirkbereich → Error" do
+      empty_user = User.create!(
+        email: "empty-#{SecureRandom.hex(4)}@example.com",
+        password: "TestPassword1!",
+        username: "empty_#{SecureRandom.hex(4)}",
+        role: "club_admin"
+      )
+      result, err = McpServer::Tools::BaseTool.resolve_club_cc_id(
+        server_context: {user_id: empty_user.id}
+      )
+      assert_nil result
+      assert err
+      assert err.error?
+      assert_match(/Kein Sportwart-Wirkbereich/, err.content.first[:text])
+    ensure
+      empty_user&.destroy
+    end
+
+    test "resolve_club_cc_id: N>1 Clubs → Disambig-Error" do
+      # Zweiter Club + Location für Multi-Club-Sportwart
+      club2 = Club.create!(name: "BC Resolver-Test-2", shortname: "BCRT2", cc_id: 999_002, region: @region)
+      loc2 = Location.create!(name: "Test-Spielhalle-2")
+      ClubLocation.create!(club: club2, location: loc2)
+      @user.sportwart_locations << loc2
+
+      result, err = McpServer::Tools::BaseTool.resolve_club_cc_id(server_context: @ctx)
+      assert_nil result
+      assert err
+      assert err.error?
+      text = err.content.first[:text]
+      assert_match(/Mehrere Clubs/, text)
+      assert_match(/999001/, text)
+      assert_match(/999002/, text)
+    ensure
+      ClubLocation.where(location: loc2).destroy_all
+      loc2&.destroy
+      club2&.destroy
+    end
+  end
 end
