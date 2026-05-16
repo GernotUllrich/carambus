@@ -415,4 +415,127 @@ class McpServer::Tools::LookupMeldelisteForTournamentTest < ActiveSupport::TestC
     result = McpServer::CcSession.parse_clubs_overview(doc)
     assert_equal({100 => "BC Werl", 200 => "SV München"}, result)
   end
+
+  # ---------------------------------------------------------------------------
+  # Plan 14-G.12 Task 2 — Sportwart-Discovery-Pfad (club-scoped showMeldelistenList)
+  # ---------------------------------------------------------------------------
+  # Substrate: HTML-Save aus 2026-05-16-Walkthrough mit BC Wedel (clubId=1010),
+  # Branch Kegel (branchId=8), Saison 2025/2026: 8 Meldelisten in der Liste,
+  # davon „NDM Endrunde Eurokegel [1 Meldungen]" = meldelisteId 1310.
+
+  SPORTWART_LIST_HTML = <<~HTML.freeze
+    <html><body>
+    <select name="meldelisteId" size="15">
+      <option value="1264">1. Quali NDM Eurokegel [7 Meldungen]</option>
+      <option value="1288">2. Quali NDM Eurokegel [8 Meldungen]</option>
+      <option value="1310">NDM Endrunde Eurokegel [1 Meldungen]</option>
+      <option value="1291">NDM Jugend Eurokegel </option>
+    </select>
+    </body></html>
+  HTML
+
+  test "Plan 14-G.12: Sportwart-Pfad mit club_cc_id liefert meldeliste_cc_id via TournamentCc.name-Match" do
+    # TournamentCc-Fixture für Tournament-Name-Match
+    tcc = TournamentCc.create!(cc_id: 890, context: "nbv", name: "NDM Endrunde Eurokegel")
+
+    @mock.define_singleton_method(:post) do |action, post_options = {}, opts = {}|
+      @calls << [:post, action, post_options, opts]
+      body = SPORTWART_LIST_HTML
+      [Struct.new(:code, :message, :body).new("200", "OK", body), Nokogiri::HTML(body)]
+    end
+
+    response = McpServer::Tools::LookupMeldelisteForTournament.call(
+      tournament_cc_id: 890,
+      club_cc_id: 1010,
+      fed_cc_id: 20, branch_cc_id: 8, season: "2025/2026",
+      server_context: nil
+    )
+    refute response.error?, "Sportwart-Pfad sollte 1 Treffer liefern"
+    text = response.content.first[:text]
+    assert_match(/meldeliste_cc_id: 1310/, text)
+    assert_match(/sportwart-showMeldelistenList/, text)
+    assert_match(/club_cc_id=1010/, text)
+
+    # Erster POST muss sportwart-showMeldelistenList sein mit clubId-Payload
+    posts = @mock.calls.select { |verb, _, _, _| verb == :post }
+    assert posts.any?, "Mindestens 1 POST-Call erwartet"
+    first_post = posts.first
+    assert_equal "sportwart-showMeldelistenList", first_post[1]
+    assert_equal 1010, first_post[2][:clubId]
+    assert_equal 20, first_post[2][:fedId]
+    assert_equal 8, first_post[2][:branchId]
+  ensure
+    tcc&.destroy
+  end
+
+  test "Plan 14-G.12: Sportwart-Pfad ohne club_cc_id → Fall-through zu legacy-Pfaden (Backwards-Compat)" do
+    # Mock liefert show-Meldelistenliste-HTML mit anchor-Tag für legacy fetch_from_cc
+    @mock.define_singleton_method(:post) do |action, post_options = {}, opts = {}|
+      @calls << [:post, action, post_options, opts]
+      body = '<html><body><a href="/show.php?meldelisteId=1310">NDM Endrunde Eurokegel</a></body></html>'
+      [Struct.new(:code, :message, :body).new("200", "OK", body), Nokogiri::HTML(body)]
+    end
+
+    response = McpServer::Tools::LookupMeldelisteForTournament.call(
+      tournament_cc_id: 890,
+      # KEIN club_cc_id → Fall-through erwartet
+      force_refresh: true,
+      server_context: nil
+    )
+    refute response.error?
+
+    # Keine sportwart-Calls erwartet (club_cc_id nil)
+    posts = @mock.calls.select { |verb, _, _, _| verb == :post }
+    sportwart_calls = posts.select { |_, action, _, _| action == "sportwart-showMeldelistenList" }
+    assert_equal 0, sportwart_calls.size, "Ohne club_cc_id darf kein sportwart-Call erfolgen"
+  end
+
+  test "Plan 14-G.12: Sportwart-Pfad mit unbekanntem Tournament → 0 Treffer → Fall-through zu legacy" do
+    # KEINE TournamentCc-Fixture → fetch_from_sportwart_list liefert alle candidates;
+    # aber Mock liefert für legacy Pfade auch 0 Treffer → diagnostic error.
+    @mock.define_singleton_method(:post) do |action, post_options = {}, opts = {}|
+      @calls << [:post, action, post_options, opts]
+      body = if action == "sportwart-showMeldelistenList"
+        SPORTWART_LIST_HTML
+      else
+        "<html><body><p>nichts</p></body></html>"
+      end
+      [Struct.new(:code, :message, :body).new("200", "OK", body), Nokogiri::HTML(body)]
+    end
+
+    response = McpServer::Tools::LookupMeldelisteForTournament.call(
+      tournament_cc_id: 99999, # Nicht-existentes Tournament
+      club_cc_id: 1010,
+      fed_cc_id: 20, branch_cc_id: 8, season: "2025/2026",
+      force_refresh: true,
+      server_context: nil
+    )
+    # Ohne TournamentCc-Fixture liefert fetch_from_sportwart_list ALLE 4 candidates
+    # (Disambiguation-Mode, weil kein Tournament-Name zum Matchen).
+    refute response.error?, "Sportwart-Pfad mit 4 candidates sollte Disambiguation liefern"
+    text = response.content.first[:text]
+    assert_match(/multiple candidates/, text)
+  end
+
+  test "Plan 14-G.12: fetch_from_sportwart_list parser extrahiert meldelisteId + name + count" do
+    doc = Nokogiri::HTML(SPORTWART_LIST_HTML)
+    options = doc.css('select[name="meldelisteId"] option')
+    assert_equal 4, options.size
+
+    # Verifiziert dass das Parser-Regex aus dem Refactor das Format korrekt liest
+    parsed = options.map do |opt|
+      title_with_count = opt.text.to_s.strip
+      if (m = title_with_count.match(/\A(.+?)\s+\[(\d+)\s+Meldungen\]\s*\z/))
+        {meldeliste_cc_id: opt["value"].to_i, name: m[1].strip, count: m[2].to_i}
+      else
+        {meldeliste_cc_id: opt["value"].to_i, name: title_with_count, count: 0}
+      end
+    end
+
+    assert_equal({meldeliste_cc_id: 1310, name: "NDM Endrunde Eurokegel", count: 1},
+                 parsed.find { |c| c[:meldeliste_cc_id] == 1310 })
+    assert_equal({meldeliste_cc_id: 1291, name: "NDM Jugend Eurokegel", count: 0},
+                 parsed.find { |c| c[:meldeliste_cc_id] == 1291 },
+                 "Edge-Case: kein '[N Meldungen]'-Suffix → count: 0")
+  end
 end

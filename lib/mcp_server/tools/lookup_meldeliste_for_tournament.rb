@@ -43,6 +43,7 @@ module McpServer
       input_schema(
         properties: {
           tournament_cc_id: {type: "integer", description: "CC TournamentCc.cc_id (= meisterschaftsId)."},
+          club_cc_id: {type: "integer", description: "Optional: CC Club.cc_id (z.B. 1010 für BC Wedel). Plan 14-G.12: Sportwart-Scope-Anker — wenn gesetzt, primärer Discovery-Pfad via /admin/myclub/meldewesen/single/showMeldelistenList.php (club-scoped). Ohne club_cc_id → legacy LSW-Pfade als Fallback."},
           force_refresh: {type: "boolean", default: false, description: "If true, skips DB cache and queries CC live via showMeldelistenList."},
           fed_cc_id: {type: "integer", description: "Optional: CC federation ID (z.B. 20 für NBV). Plan 09-02 v0.2.1-Konsolidierung — wenn gesetzt, sendet showMeldelistenList Scope-Filter-Payload statt meisterschaftsId."},
           branch_cc_id: {type: "integer", description: "Optional: CC admin branch ID (z.B. 8 für Kegel admin-cc-id). Plan 09-02 — siehe fed_cc_id."},
@@ -54,7 +55,7 @@ module McpServer
       )
       annotations(read_only_hint: true, destructive_hint: false)
 
-      def self.call(tournament_cc_id: nil, force_refresh: false,
+      def self.call(tournament_cc_id: nil, club_cc_id: nil, force_refresh: false,
         fed_cc_id: nil, branch_cc_id: nil, season: nil,
         disciplin_id: nil, cat_id: nil, server_context: nil)
         err = validate_required!({tournament_cc_id: tournament_cc_id}, [:tournament_cc_id])
@@ -64,9 +65,45 @@ module McpServer
         # Bei tournament_cc_id=890 schlugen auf carambus_nbv-Production alle 4 Pfade fehl
         # ohne sichtbaren Grund. Diese Logs machen den nächsten Production-Test ein-Schritt-debugbar.
         # Fix selbst (Auth-/HTML-Format-Issue auf Production) → v0.5-Backlog (lokale Repro fehlt).
-        Rails.logger.info "[LookupMeldelistе] start tournament_cc_id=#{tournament_cc_id} force_refresh=#{force_refresh}"
+        Rails.logger.info "[LookupMeldelistе] start tournament_cc_id=#{tournament_cc_id} club_cc_id=#{club_cc_id || "-"} force_refresh=#{force_refresh}"
 
-        # Plan 14-02.3 / F-5 (NEU primary): Live-CC-Overview via editMeldelisteCheck.php.
+        # Plan 14-G.12 / NEU primary path-0: Sportwart-Discovery via club-scoped showMeldelistenList.
+        # Wenn club_cc_id gegeben → /admin/myclub/meldewesen/single/showMeldelistenList.php mit
+        # clubId-Scope abfragen. Response enthält <select name="meldelisteId"> mit allen Meldelisten
+        # für den Club + Branch + Saison; Tournament-Name-Match liefert meldeliste_cc_id.
+        # Ohne club_cc_id → Fall-through zu legacy LSW-Pfaden (Backwards-Compat).
+        if club_cc_id.present?
+          sportwart_candidates = fetch_from_sportwart_list(
+            tournament_cc_id,
+            club_cc_id: club_cc_id,
+            fed_cc_id: fed_cc_id, branch_cc_id: branch_cc_id,
+            season: season, disciplin_id: disciplin_id, cat_id: cat_id,
+            server_context: server_context
+          )
+          Rails.logger.info "[LookupMeldelistе] path-0 sportwart-list (clubId=#{club_cc_id}): #{sportwart_candidates.size} candidate(s)"
+          if sportwart_candidates.any?
+            case sportwart_candidates.size
+            when 1
+              c = sportwart_candidates.first
+              return text(<<~OUT.strip)
+                meldeliste_cc_id: #{c[:meldeliste_cc_id]}
+                (source: sportwart-showMeldelistenList; club_cc_id=#{club_cc_id})
+                candidates: #{sportwart_candidates.inspect}
+              OUT
+            else
+              return text(<<~OUT.strip)
+                meldeliste_cc_id: (unresolved — multiple candidates)
+                warning: Multiple Meldelisten matched (#{sportwart_candidates.size}) — User-Disambiguation needed.
+                candidates: #{sportwart_candidates.inspect}
+                Pick one meldeliste_cc_id from the candidates list and use it explicitly.
+              OUT
+            end
+          end
+          # Fall-through nur wenn 0 Treffer — vielleicht ist der Tournament für einen
+          # anderen Club registriert oder TournamentCc.name driftet von Meldeliste-Title.
+        end
+
+        # Plan 14-02.3 / F-5 (legacy primary): Live-CC-Overview via editMeldelisteCheck.php.
         # D-14-02-A Helper A — der CC selbst ist source-of-truth für meldeliste_cc_id.
         # DB-Mirror war oft veraltet (z.B. NDM 14/1 Herren cc_id 912, 30 angemeldete Spieler,
         # TournamentCc.registration_list_cc nicht verlinkt). Defensive: nil bei Network/Parse-Fail.
@@ -251,6 +288,83 @@ module McpServer
       def self.scope_filter_given?(fed_cc_id, branch_cc_id, season, disciplin_id, cat_id)
         !fed_cc_id.nil? || !branch_cc_id.nil? || !season.nil? ||
           !disciplin_id.nil? || !cat_id.nil?
+      end
+
+      # Plan 14-G.12 / NEU primary path-0:
+      # Sportwart-Discovery via /admin/myclub/meldewesen/single/showMeldelistenList.php (club-scoped).
+      # Response enthält ein <select name="meldelisteId"> mit allen Meldelisten für den
+      # angegebenen Club + Branch + Saison. Match auf TournamentCc.name liefert die
+      # meldeliste_cc_id für unsere tournament_cc_id.
+      #
+      # Returns Array[Hash{meldeliste_cc_id:, name:, count:, source:}] (kann leer sein).
+      # Defensive: rescue StandardError → [] (analog fetch_from_cc).
+      def self.fetch_from_sportwart_list(tournament_cc_id, club_cc_id:, fed_cc_id: nil,
+        branch_cc_id: nil, season: nil, disciplin_id: nil, cat_id: nil, server_context: nil)
+        client = cc_session.client_for(server_context)
+        payload = {
+          clubId: club_cc_id,
+          fedId: fed_cc_id,
+          branchId: branch_cc_id,
+          season: season,
+          disciplinId: disciplin_id || "*",
+          catId: cat_id || "*"
+        }.reject { |_, v| v.nil? }
+
+        res, doc = client.post(
+          "sportwart-showMeldelistenList",
+          payload,
+          {armed: true, session_id: cc_session.cookie}
+        )
+        return [] if res.nil? || res.code != "200" || doc.nil?
+
+        # Parser für Sportwart-Response (HTML-Save-Substrate
+        # `sniffs/showMeldelistenList-bcw-kegel-2026-05-16.html`):
+        # <select name="meldelisteId" size="15">
+        #   <option value="1310">NDM Endrunde Eurokegel [1 Meldungen]</option>
+        #   <option value="1264">1. Quali NDM Eurokegel [7 Meldungen]</option>
+        #   ...
+        # </select>
+        options = doc.css('select[name="meldelisteId"] option')
+        all_candidates = options.map do |opt|
+          value = opt["value"].to_s
+          next nil if value.blank?
+          title_with_count = opt.text.to_s.strip
+          # Regex: "Title [N Meldungen]" mit optionalem Count-Suffix
+          if (m = title_with_count.match(/\A(.+?)\s+\[(\d+)\s+Meldungen\]\s*\z/))
+            {meldeliste_cc_id: value.to_i, name: m[1].strip, count: m[2].to_i, source: "sportwart-list"}
+          else
+            # Edge-Case: kein Count-Suffix (z.B. leere Liste ohne "[N Meldungen]")
+            {meldeliste_cc_id: value.to_i, name: title_with_count, count: 0, source: "sportwart-list"}
+          end
+        end.compact
+
+        # Tournament-Name-Match: TournamentCc.name kann von Meldeliste-Title abweichen.
+        # Strategie: Exact-Match auf normalized name → Substring-Match → keine Heuristik
+        # (lieber 0 Treffer zurückgeben als falsche positive Matches).
+        tcc = begin
+          TournamentCc.find_by(cc_id: tournament_cc_id)
+        rescue StandardError
+          nil
+        end
+        return all_candidates unless tcc # Keine Tournament-Info → alle Candidates zurück (Disambiguation)
+
+        tournament_name = tcc.name.to_s.strip
+        return all_candidates if tournament_name.blank?
+
+        # Exact-Match (case-insensitive)
+        exact_matches = all_candidates.select { |c| c[:name].casecmp?(tournament_name) }
+        return exact_matches if exact_matches.any?
+
+        # Substring-Match (case-insensitive; beidseitig — Meldeliste-Title enthält Tournament-Name oder umgekehrt)
+        substring_matches = all_candidates.select do |c|
+          name = c[:name].to_s.downcase
+          tn = tournament_name.downcase
+          name.include?(tn) || tn.include?(name)
+        end
+        substring_matches
+      rescue => e
+        Rails.logger.warn "[LookupMeldelisteForTournament.fetch_from_sportwart_list] #{e.class}: #{e.message}"
+        []
       end
     end
   end
