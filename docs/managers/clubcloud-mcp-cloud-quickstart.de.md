@@ -30,7 +30,7 @@ Begriffe wie Meldeliste, Endrangliste, Spielbericht, Teilnehmerliste sind im [Cl
 - **Terminal-App** (Mac: Terminal.app · Windows: Git Bash, PowerShell oder cmd · Linux: Standard-Terminal — nur für eine einzige Copy-Paste-Zeile)
 - Internetverbindung
 
-> **Per-Region-Hinweis:** Jede Region hat ihre eigene Carambus-Domain (z.B. `nbv.carambus.de`, `bcw.carambus.de`). Dein Carambus-Admin sagt Dir vorab, welche URL für Dich gilt. Alle weiteren URLs in dieser Anleitung leiten sich davon ab.
+> **Per-Region-Hinweis:** Jede Region hat ihre eigene Carambus-Domain (z.B. `nbv.carambus.de`, `bvbw.carambus.de`). Dein Carambus-Admin sagt Dir vorab, welche URL für Dich gilt. Alle weiteren URLs in dieser Anleitung leiten sich davon ab.
 
 ---
 
