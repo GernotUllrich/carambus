@@ -545,7 +545,7 @@ class RegionCc::ClubCloudClient
       if read_only_action
         Rails.logger.debug "[#{action}] POST #{PATH_MAP[action][0]} with payload #{post_options}"
       else
-        Rails.logger.debug "[#{action}] #{dry_run ? "WILL" : nil} POST #{action} #{PATH_MAP[action][0]} with payload #{post_options}"
+        Rails.logger.debug "[#{action}] #{"WILL " if dry_run}POST #{action} #{PATH_MAP[action][0]} with payload #{post_options}"
       end
       doc = nil
       res = nil
@@ -596,7 +596,7 @@ class RegionCc::ClubCloudClient
       if read_only_action
         Rails.logger.debug "[#{action}] POST #{PATH_MAP[action][0]} with payload #{post_options}"
       else
-        Rails.logger.debug "[#{action}] #{dry_run ? "WILL" : nil} POST #{action} #{PATH_MAP[action][0]} with payload #{post_options}"
+        Rails.logger.debug "[#{action}] #{"WILL " if dry_run}POST #{action} #{PATH_MAP[action][0]} with payload #{post_options}"
       end
       doc = nil
       res = nil

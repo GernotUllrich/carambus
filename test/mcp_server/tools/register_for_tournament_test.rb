@@ -65,10 +65,11 @@ class McpServer::Tools::RegisterForTournamentTest < ActiveSupport::TestCase
     assert_match(/Registered 0\/1 player\(s\) into meldeliste_cc_id=1310/, text)
     assert_match(/player_cc_ids: \[99999\]/, text)
     # Plan 14-G.13 Task 0: Workflow ist N×(add+check) + save + verify.
-    # Single-Player: 1×add + 1×check + 1×save + 1×verify = 4 POSTs.
+    # Single-Player nach Fix-3: 1×init-check (edit=LEER, lädt DB-State in Scratch)
+    # + 1×add + 1×save + 1×verify = 4 POSTs.
     posts = @mock.calls.select { |verb, _, _, opts| verb == :post && opts[:armed] }
     actions = posts.map { |_, action, _, _| action }
-    assert_equal %w[addPlayerToMeldeliste sportwart-editMeldelisteCheck saveMeldeliste showCommittedMeldeliste], actions,
+    assert_equal %w[sportwart-editMeldelisteCheck addPlayerToMeldeliste saveMeldeliste showCommittedMeldeliste], actions,
       "Erwarte 4 POSTs in genau dieser Reihenfolge — got #{actions.inspect}"
     # Default-MockClient liefert body="" → verified=false (kein Marker im Mock-HTML)
     assert_match(/verified_in_committed_list: false/, text)
@@ -278,15 +279,17 @@ class McpServer::Tools::RegisterForTournamentTest < ActiveSupport::TestCase
     refute response.error?
     posts = @mock.calls.select { |verb, _, _, opts| verb == :post && opts[:armed] }
     actions = posts.map { |_, action, _, _| action }
-    # Plan 14-G.13 Task 0: Erwartete Sequenz: 2× (add + check) + 1× save + 1× verify = 6 POSTs.
-    # editMeldelisteCheck nach JEDEM cc_add ist HAR-empirisch Pflicht (state-refresh).
+    # Plan 14-G.13 Task 0 Fix-3 (HAR-empirisch via scripts/cc_probe_edit_empty.rb 2026-05-18):
+    # Erwartete Sequenz: 1× init-editMeldelisteCheck (edit=LEER lädt DB-Scratch) + N× add
+    # + 1× save + 1× verify = 5 POSTs für N=2. Der per-Player-Check wurde durch
+    # init-only ersetzt: cc_add appendet in einen bereits vorbereiteten Scratch.
     expected_actions = %w[
-      addPlayerToMeldeliste sportwart-editMeldelisteCheck
-      addPlayerToMeldeliste sportwart-editMeldelisteCheck
+      sportwart-editMeldelisteCheck
+      addPlayerToMeldeliste addPlayerToMeldeliste
       saveMeldeliste showCommittedMeldeliste
     ]
     assert_equal expected_actions, actions,
-      "Erwarte 2× (add + check) + 1×save + 1×verify — got #{actions.inspect}"
+      "Erwarte 1×init-check + 2×add + 1×save + 1×verify — got #{actions.inspect}"
     # Verify die zwei adds mit den richtigen player_cc_ids
     add_calls = posts.select { |_, action, _, _| action == "addPlayerToMeldeliste" }
     add_player_ids = add_calls.map { |_, _, params, _| params[:a] }
@@ -349,10 +352,11 @@ class McpServer::Tools::RegisterForTournamentTest < ActiveSupport::TestCase
     refute response.error?
     posts = @mock.calls.select { |verb, _, _, opts| verb == :post && opts[:armed] }
     actions = posts.map { |_, action, _, _| action }
-    # Plan 14-G.13 Task 0: Single-Player-Pfad nutzt selbe Mechanik wie Multi-Player (1×Loop-Iteration).
-    # Backwards-Compat-Constraint: player_cc_id (singular) → intern player_cc_ids:[singular], identische Sequenz.
-    assert_equal %w[addPlayerToMeldeliste sportwart-editMeldelisteCheck saveMeldeliste showCommittedMeldeliste], actions,
-      "Single-Player-Pfad muss N×(add+check)+save+verify durchlaufen — got #{actions.inspect}"
+    # Plan 14-G.13 Task 0 Fix-3: Single-Player-Pfad nutzt selbe Mechanik wie Multi-Player.
+    # Sequenz: 1×init-check (edit=LEER) + 1×add + 1×save + 1×verify = 4 POSTs.
+    # Backwards-Compat-Constraint: player_cc_id (singular) → intern player_cc_ids:[singular].
+    assert_equal %w[sportwart-editMeldelisteCheck addPlayerToMeldeliste saveMeldeliste showCommittedMeldeliste], actions,
+      "Single-Player-Pfad muss 1×init-check + 1×add + 1×save + 1×verify durchlaufen — got #{actions.inspect}"
   end
 
   test "M6: weder player_cc_id noch player_cc_ids gesetzt → klare Diagnose-Message" do
@@ -406,15 +410,18 @@ class McpServer::Tools::RegisterForTournamentTest < ActiveSupport::TestCase
     end
   end
 
-  # --- Plan 14-G.13 Task 0: HAR-empirische Korrektur des Multi-Add-Patterns ---
+  # --- Plan 14-G.13 Task 0 Fix-3: HAR-empirische Korrektur des Multi-Add-Patterns ---
   #
-  # Smoketest 2026-05-18 (gegen Live-CC) bewies: Quick-260516-x7g's N×add+1×save-Mechanik
-  # landed nur ERSTER Player. Korrekte Sequenz per User-Klarstellung + Form-Daten-Screenshots:
-  # Pro Player: cc_add + sportwart-editMeldelisteCheck (state-refresh PFLICHT).
-  # Am Ende: 1× saveMeldeliste + 1× showCommittedMeldeliste verify.
-  # Plus Payload-Cleanup: clubId und rang aus base_payload entfernt (im CC-UI-Form nicht vorhanden).
+  # Iteration 1 (Plan-Spec): N×add+1×save (Quick-260516-x7g) → nur erster Player landete.
+  # Iteration 2 (Hotfix-1):  N×(add+check) (Alternation)     → CC akzeptierte nur Player 1.
+  # Iteration 3 (Fix-3 final, scripts/cc_probe_edit_empty.rb 2026-05-18):
+  #   1×init-editMeldelisteCheck mit edit=LEER (lädt DB-Scratch via PHP isset+empty)
+  #   + N×add (Scratch-Append) + 1×save + 1×verify.
+  # Init-Check mit edit=LEER repliziert das Browser-Verhalten beim Öffnen der Edit-Seite —
+  # ohne diesen Step ist der Server-Scratch leer und save = OVERWRITE statt APPEND.
+  # Payload-Cleanup: clubId/rang bleiben im add (HAR-belegt FULL form), aus verify entfernt.
 
-  test "M9: 3-Player-Multi-Add ruft Alternation add+check+add+check+add+check + save + verify" do
+  test "M9: 3-Player-Multi-Add ruft 1×init-check + 3×add + save + verify (Fix-3 Pattern)" do
     response = McpServer::Tools::RegisterForTournament.call(
       fed_id: 20, branch_cc_id: 8, season: "2025/2026",
       meldeliste_cc_id: 1310, player_cc_ids: [10024, 11683, 10031], club_cc_id: 1010,
@@ -423,32 +430,31 @@ class McpServer::Tools::RegisterForTournamentTest < ActiveSupport::TestCase
     refute response.error?
     posts = @mock.calls.select { |verb, _, _, opts| verb == :post && opts[:armed] }
     actions = posts.map { |_, action, _, _| action }
-    # Erwartet: 3 × (add + check) + save + verify = 8 POSTs
+    # Fix-3: 1×init-check (edit=LEER) + 3×add + 1×save + 1×verify = 6 POSTs
     expected_actions = %w[
-      addPlayerToMeldeliste sportwart-editMeldelisteCheck
-      addPlayerToMeldeliste sportwart-editMeldelisteCheck
-      addPlayerToMeldeliste sportwart-editMeldelisteCheck
+      sportwart-editMeldelisteCheck
+      addPlayerToMeldeliste addPlayerToMeldeliste addPlayerToMeldeliste
       saveMeldeliste showCommittedMeldeliste
     ]
     assert_equal expected_actions, actions,
-      "3-Player-Multi-Add muss alternierend add+check 3× durchlaufen, dann save+verify — got #{actions.inspect}"
+      "3-Player-Multi-Add muss 1×init-check + 3×add + save + verify durchlaufen — got #{actions.inspect}"
 
-    # Plus: jeder check muss UNMITTELBAR nach dem entsprechenden add kommen.
+    # Plus: alle add-Calls kommen NACH dem init-check, VOR dem save.
+    init_check_idx = actions.index("sportwart-editMeldelisteCheck")
     add_indices = actions.each_index.select { |i| actions[i] == "addPlayerToMeldeliste" }
-    check_indices = actions.each_index.select { |i| actions[i] == "sportwart-editMeldelisteCheck" }
-    add_indices.zip(check_indices).each do |add_idx, check_idx|
-      assert_equal add_idx + 1, check_idx,
-        "Jeder sportwart-editMeldelisteCheck muss UNMITTELBAR nach dem zugehörigen cc_add kommen — got add@#{add_idx}, check@#{check_idx}"
-    end
+    save_idx = actions.index("saveMeldeliste")
+    assert_equal 0, init_check_idx, "init-check muss erster Call sein"
+    assert add_indices.all? { |i| i > init_check_idx && i < save_idx },
+      "Alle add-Calls müssen zwischen init-check und save liegen — got #{actions.inspect}"
   end
 
-  test "M10: cc_add-Payload (FULL form) vs editMeldelisteCheck-Payload (MINIMAL post-add form)" do
-    # HAR-empirisch (multi-add-2player-2026-05-18.har) belegt asymmetrische Forms:
-    #   cc_add (Entries 9, 21): FULL form mit clubId, rang, gd, d
-    #   post-add editMeldelisteCheck (Entries 12, 24): MINIMAL form ohne clubId/rang/gd/d, mit a
-    # Test sichert die Asymmetrie ab (Bug-Class: wenn Mock-Tests die unterschiedlichen
-    # Forms nicht prüfen, kann Code irrtümlich Felder löschen/hinzufügen und die
-    # echte CC-Empfangslogik silent brechen — Plan 14-G.13 Task 0 Smoketest-Lehre).
+  test "M10: cc_add-Payload (FULL form) vs init-editMeldelisteCheck-Payload (edit=LEER Scratch-Load)" do
+    # Plan 14-G.13 Fix-3 (scripts/cc_probe_edit_empty.rb 2026-05-18): asymmetrische Forms
+    # zwischen init-Check und cc_add:
+    #   init-editMeldelisteCheck: lädt DB-Scratch via edit="" (PHP isset+empty), ohne `a`
+    #   cc_add (FULL form): clubId, rang, firstEntry, selectedClubId, gd, d, a=<pid>
+    # Test sichert die Asymmetrie ab (Bug-Class: wenn der init-Check fehlt oder
+    # `edit` als non-blank-Sentinel landet, ist der Scratch leer und save = OVERWRITE).
     response = McpServer::Tools::RegisterForTournament.call(
       fed_id: 20, branch_cc_id: 8, season: "2025/2026",
       meldeliste_cc_id: 1310, player_cc_ids: [10024], club_cc_id: 1010,
@@ -464,14 +470,17 @@ class McpServer::Tools::RegisterForTournamentTest < ActiveSupport::TestCase
       assert add_params.key?(key), "#{key} muss im cc_add-Payload sein (FULL form) — got #{add_params.keys.sort.inspect}"
     end
 
-    # editMeldelisteCheck (post-add): MINIMAL form — clubId und rang fehlen, dafür a=<last added>
+    # init-editMeldelisteCheck: lädt DB-Scratch, kein `a`, KEY edit muss LEER sein (Browser-Pattern)
     check_call = @mock.calls.find { |verb, action, _, _| verb == :post && action == "sportwart-editMeldelisteCheck" }
-    assert check_call, "sportwart-editMeldelisteCheck muss aufgerufen worden sein"
-    _, _, check_params, _ = check_call
-    refute check_params.key?(:clubId), "clubId darf NICHT im post-add-Check-Payload sein — got #{check_params.keys.sort.inspect}"
-    refute check_params.key?(:rang), "rang darf NICHT im post-add-Check-Payload sein — got #{check_params.keys.sort.inspect}"
-    assert check_params.key?(:a), "a=<last added player> muss im post-add-Check-Payload sein — got #{check_params.keys.sort.inspect}"
-    assert_equal 10024, check_params[:a], "Check-Payload muss a=<zuletzt added pid> haben"
+    assert check_call, "sportwart-editMeldelisteCheck (init) muss aufgerufen worden sein"
+    _, _, check_params, check_opts = check_call
+    refute check_params.key?(:a), "a darf NICHT im init-Check-Payload sein — got #{check_params.keys.sort.inspect}"
+    refute check_params.key?(:rang), "rang darf NICHT im init-Check-Payload sein — got #{check_params.keys.sort.inspect}"
+    assert check_params.key?(:clubId), "clubId MUSS im init-Check-Payload sein (specific, lädt Club-Scope) — got #{check_params.keys.sort.inspect}"
+    # edit="" muss als blank-Key durchkommen (keep_blanks: [:edit] im opts)
+    assert_includes Array(check_opts[:keep_blanks]), :edit,
+      "keep_blanks: [:edit] muss in opts sein, damit edit=LEER nicht gefiltert wird"
+    assert_equal "", check_params[:edit], "edit muss LEER sein (PHP isset+empty triggert DB-Scratch-Load)"
 
     # saveMeldeliste: FULL form + save + a
     save_call = @mock.calls.find { |verb, action, _, _| verb == :post && action == "saveMeldeliste" }

@@ -231,15 +231,6 @@ module McpServer
           # NB: gd, d aus SNIFF v2 sind im Original leer; client.post().reject(&:blank?)
           # filtert sie weg. CC akzeptiert das (PHP-typisch optional fields).
         }
-        # MINIMAL form für post-add editMeldelisteCheck (HAR Entry 12, 24):
-        # kein clubId, kein rang, kein gd/d — dafür setzNummer + a=<last added>
-        check_payload_base = {
-          fedId: fed_id, branchId: branch_cc_id,
-          disciplinId: "*", catId: "*", season: season,
-          meldelisteId: meldeliste_cc_id, firstEntry: 1,
-          selectedClubId: club_cc_id
-        }
-
         # H2 2026-05-18 (HAR-Empirie multi-add-2player-2026-05-18.har): exakte Browser-Sequenz:
         #   1× initial check (edit-Modus aktivieren, sortOrder=player, kein :a)
         #   N × [cc_add(a=pid) → check(a=pid, Echo des GERADE-ADDED)]
