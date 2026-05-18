@@ -3,13 +3,21 @@
 # cc_register_for_tournament — Phase 4 Write-Tool: Spieler in CC-Einzelturnier-Meldeliste registrieren.
 # Mock-Implementation in Plan 04-02; Live-Implementation in Plan 04-04 nach View-Source-Sniff (SNIFF v2).
 #
-# Architektur (aus SNIFF v2 entschlüsselt): CC ist PHP-MVC mit 2-Step-Workflow:
-#   1. addPlayerToMeldeliste (cc_add.php)        — fügt Player in temporären Edit-Buffer
-#   2. saveMeldeliste (editMeldelisteSave.php)   — committet Buffer in persistente DB
-# Optional 3. showCommittedMeldeliste — read-only Verifikation via Player-cc_id-Match im HTML.
+# Architektur (HAR-empirisch + User-Klarstellung 2026-05-18, Plan 14-G.13 Task 0):
+#   Pro Player:
+#     1. addPlayerToMeldeliste (cc_add.php)            — fügt Player hinzu
+#     2. sportwart-editMeldelisteCheck (Sportwart-Pfad) — state-refresh (PFLICHT zwischen den Adds)
+#   Am Ende:
+#     3. saveMeldeliste (editMeldelisteSave.php)        — committet alle Adds in CC-DB
+#     4. showCommittedMeldeliste — read-only Verifikation via Player-cc_id-Match im HTML.
 #
 # WICHTIG (Korrektur 04-03 durch SNIFF v2): es gibt KEINE separate list_entry_id.
 # CC trackt Meldeliste-Einträge direkt über Player-cc_id; Save ignoriert den `a=`-Param.
+#
+# HISTORIE (Plan 14-G.13 Task 0): Quick-260516-x7g hatte ein Buffer-Pattern angenommen
+# (N×add + 1×save am Ende, KEIN editMeldelisteCheck dazwischen). Smoketest 2026-05-18
+# bewies: ohne editMeldelisteCheck zwischen den Adds lehnt CC alle Adds nach dem ersten
+# silent ab — nur der erste Player im Array landed in der Meldeliste.
 #
 # Sicherheitsnetz (Defense-in-Depth, Phase-4-Definition-of-Done):
 #   1. armed-Flag-Default false (Tool-Level)
@@ -30,10 +38,9 @@ module McpServer
         Wann nutzen? Wenn der Sportwart einen oder mehrere Spieler in ein Turnier eintragen will — typisch aus einer Anmelde-E-Mail des Vereins. Schreibendes Tool mit Pre-Validation-First-Pattern (7 Constraints) + Audit-Trail (Plan 10-05.1).
         Was tippt der User typisch? 'Meld Hans Müller für die Eurokegel an', 'Folgende drei Spieler für DM Cadre …', 'Anmeldung Spieler X Turnier Y'.
         Register a player for a ClubCloud Einzelturnier (single-tournament) Meldeliste.
-        Workflow: Multi-Add-Loop (N × addPlayerToMeldeliste) + 1× saveMeldeliste am Ende + optional read-only verification.
+        Workflow: Pro Player `addPlayerToMeldeliste + editMeldelisteCheck` (state-refresh), am Ende 1× `saveMeldeliste` (commit) + 1× `showCommittedMeldeliste` verify.
         Multi-Player: pass `player_cc_ids: [12345, 67890]` (Array) statt `player_cc_id`.
-        Alle Spieler werden in einem add-loop hinzugefügt und mit EINEM finalen
-        saveMeldeliste committet — vermeidet Buffer-Flush-Bug (Plan 14-G.13 Quick 260516-x7g).
+        Plan 14-G.13 Task 0 (HAR-Korrektur des Quick-260516-x7g): editMeldelisteCheck zwischen den Adds ist PFLICHT, sonst lehnt CC alle Adds nach dem ersten silent ab.
         Pass `armed: false` (default) for a dry-run that prints exact request details
         (player ID, meldeliste ID, federation, branch, season) without modifying CC.
         Pass `armed: true` to actually register — this is a destructive write to ClubCloud.
@@ -197,28 +204,40 @@ module McpServer
           DRY_RUN
         end
 
-        # Armed=true: Multi-Add-Loop + 1×Save + 1×Verify. Field-Mapping aus SNIFF v2 §"Common Hidden-Inputs".
+        # Armed=true: Multi-Add-Loop mit Per-Player-Check + Final-Save + Verify.
         # Disziplin/Kategorie als Wildcard — CC inferiert intern aus meldelisteId.
-        # Plan 14-G.13 (Quick 260516-x7g) Multi-Player-Save-Fix:
-        # Vorher: N × (add + save) → jeder save flusht den CC-Edit-Buffer; vorherige
-        # Adds gehen verloren. HAR-Empirie 2026-05-16 (cc_add-cc_remove-roundtrip-meissner)
-        # zeigt cc_add roundtrip OHNE editMeldelisteSave → Buffer-Flush-These bestätigt.
-        # Jetzt: N × add (alle in Edit-Buffer) → 1 × save am Ende (committet alle) → 1 × verify.
-        # Pattern aus cc_assign_player_to_teilnehmerliste (Phase-7-Workflow stabil seit Plan 07-04).
+        #
+        # Plan 14-G.13 Task 0 (HAR-empirische Korrektur des Quick-260516-x7g):
+        # Smoketest 2026-05-18 (gegen Live-CC) bewies: Quick-260516-x7g's
+        # N×add+1×save-Mechanik landed nur den ERSTEN Player im Array — alle
+        # weiteren werden silent verworfen (form-state-token-mismatch wegen
+        # fehlender editMeldelisteCheck zwischen den Adds).
+        #
+        # Korrekte CC-UI-Sequence (User-Klarstellung 2026-05-18 + Form-Daten-Screenshots):
+        # Pro Player:  cc_add  → editMeldelisteCheck  (state-refresh)
+        # Am Ende:    editMeldelisteSave (commit) + showCommittedMeldeliste (verify)
+        #
+        # Payload-Cleanup nach Screenshot-Vergleich: clubId und rang sind im
+        # echten CC-UI-Form NICHT vorhanden — entfernt aus base_payload damit
+        # CC nicht durch überflüssige Felder verwirrt wird. firstEntry=1 ist
+        # immer konstant (User-bestätigt).
         client = cc_session.client_for(server_context)
         base_payload = {
-          clubId: club_cc_id, fedId: fed_id, branchId: branch_cc_id,
+          fedId: fed_id, branchId: branch_cc_id,
           disciplinId: "*", catId: "*", season: season,
-          meldelisteId: meldeliste_cc_id, firstEntry: 1, rang: 1,
+          meldelisteId: meldeliste_cc_id, firstEntry: 1,
           selectedClubId: club_cc_id
           # NB: gd, d aus SNIFF v2 sind im Original leer; client.post().reject(&:blank?)
           # filtert sie weg. CC akzeptiert das (PHP-typisch optional fields).
+          # clubId und rang aus altem base_payload entfernt — Plan 14-G.13 Task 0.
         }
 
-        # Step 1: N × addPlayerToMeldeliste — alle Player in Edit-Buffer (KEIN save dazwischen).
-        # Multi-Add-in-One-Call via a[]=-Array NICHT empirisch belegt (HAR zeigt singular a=)
-        # → wir loopen sequenziell, mit reauth_if_needed-Schutz pro Add.
+        # Step 1: Pro Player → cc_add + editMeldelisteCheck (state-refresh).
+        # Multi-Add-in-One-Call via a[]=-Array NICHT empirisch belegt (HAR zeigt singular a=).
+        # Plan 14-G.13 Task 0: editMeldelisteCheck nach JEDEM cc_add ist Pflicht — sonst
+        # lehnt CC den nächsten cc_add silent ab (form-state-token).
         player_cc_ids.each do |pid|
+          # 1a) cc_add
           add_res, add_doc = client.post(
             "addPlayerToMeldeliste",
             base_payload.merge(a: pid),
@@ -235,16 +254,27 @@ module McpServer
           return error("CC rejected at cc_add for player_cc_id=#{pid}: #{parse_cc_error(add_doc)} (HTTP #{add_res&.code})") if add_res&.code != "200"
           add_parsed = parse_cc_error(add_doc)
           return error("CC rejected at cc_add for player_cc_id=#{pid}: #{add_parsed}") if add_parsed && add_parsed != "(no error)"
+
+          # 1b) editMeldelisteCheck (Sportwart-Pfad) — state-refresh nach jedem Add.
+          # OHNE diesen Step lehnt CC den nächsten cc_add silent ab — empirisch belegt
+          # durch Smoketest 2026-05-18: nur erster Player landed, weitere verworfen.
+          check_res, _check_doc = client.post(
+            "sportwart-editMeldelisteCheck",
+            base_payload,
+            {armed: armed, session_id: cc_session.cookie}
+          )
+          return error("Unexpected nil response from CC (editMeldelisteCheck after cc_add for player_cc_id=#{pid}).") if check_res.nil?
+          return error("CC rejected at editMeldelisteCheck after cc_add for player_cc_id=#{pid}: HTTP #{check_res&.code}") if check_res&.code != "200"
         end
 
-        # Step 2: EIN editMeldelisteSave — committet alle Buffer-Adds in CC-DB.
+        # Step 2: EIN editMeldelisteSave — committet alle vorherigen Adds.
         # `save: "1"` als non-blank Sentinel (CC PHP-Code prüft typisch isset($_POST['save']),
         # nicht den Wert). client.post() würde leere Strings via .reject(&:blank?) wegwerfen.
-        # `a:` ist im save-Step für CC irrelevant (Plan-04-03-Befund: Save ignoriert
-        # `a=`-Param), aber wir senden den letzten player_cc_id für HAR-Symmetrie.
+        # Plan 14-G.13 Task 0: `a:` aus dem Save-Payload droppen — Save-Step braucht
+        # keinen Player-Parameter (Plan-04-03-Befund: Save ignoriert `a=`-Param).
         save_res, save_doc = client.post(
           "saveMeldeliste",
-          base_payload.merge(a: player_cc_ids.last, save: "1"),
+          base_payload.merge(save: "1"),
           {armed: armed, session_id: cc_session.cookie}
         )
         return error("Unexpected nil response from CC (editMeldelisteSave, armed mode).") if save_res.nil?

@@ -64,11 +64,12 @@ class McpServer::Tools::RegisterForTournamentTest < ActiveSupport::TestCase
     # Plan 14-G.13: Multi-Player-Output-Format auch für single-Player-Input.
     assert_match(/Registered 0\/1 player\(s\) into meldeliste_cc_id=1310/, text)
     assert_match(/player_cc_ids: \[99999\]/, text)
-    # 2-Step-Workflow + Verifikation: exakt 3 POSTs in dieser Reihenfolge (single-player Backwards-Compat)
+    # Plan 14-G.13 Task 0: Workflow ist N×(add+check) + save + verify.
+    # Single-Player: 1×add + 1×check + 1×save + 1×verify = 4 POSTs.
     posts = @mock.calls.select { |verb, _, _, opts| verb == :post && opts[:armed] }
     actions = posts.map { |_, action, _, _| action }
-    assert_equal %w[addPlayerToMeldeliste saveMeldeliste showCommittedMeldeliste], actions,
-      "Erwarte 3 POSTs in genau dieser Reihenfolge — got #{actions.inspect}"
+    assert_equal %w[addPlayerToMeldeliste sportwart-editMeldelisteCheck saveMeldeliste showCommittedMeldeliste], actions,
+      "Erwarte 4 POSTs in genau dieser Reihenfolge — got #{actions.inspect}"
     # Default-MockClient liefert body="" → verified=false (kein Marker im Mock-HTML)
     assert_match(/verified_in_committed_list: false/, text)
   end
@@ -277,10 +278,15 @@ class McpServer::Tools::RegisterForTournamentTest < ActiveSupport::TestCase
     refute response.error?
     posts = @mock.calls.select { |verb, _, _, opts| verb == :post && opts[:armed] }
     actions = posts.map { |_, action, _, _| action }
-    # Erwartete Sequenz: 2× addPlayerToMeldeliste + 1× saveMeldeliste + 1× showCommittedMeldeliste
-    expected_actions = %w[addPlayerToMeldeliste addPlayerToMeldeliste saveMeldeliste showCommittedMeldeliste]
+    # Plan 14-G.13 Task 0: Erwartete Sequenz: 2× (add + check) + 1× save + 1× verify = 6 POSTs.
+    # editMeldelisteCheck nach JEDEM cc_add ist HAR-empirisch Pflicht (state-refresh).
+    expected_actions = %w[
+      addPlayerToMeldeliste sportwart-editMeldelisteCheck
+      addPlayerToMeldeliste sportwart-editMeldelisteCheck
+      saveMeldeliste showCommittedMeldeliste
+    ]
     assert_equal expected_actions, actions,
-      "Erwarte 2-Player-Add-Loop + 1×save + 1×verify — got #{actions.inspect}"
+      "Erwarte 2× (add + check) + 1×save + 1×verify — got #{actions.inspect}"
     # Verify die zwei adds mit den richtigen player_cc_ids
     add_calls = posts.select { |_, action, _, _| action == "addPlayerToMeldeliste" }
     add_player_ids = add_calls.map { |_, _, params, _| params[:a] }
@@ -334,7 +340,7 @@ class McpServer::Tools::RegisterForTournamentTest < ActiveSupport::TestCase
     assert_match(/missing_player_cc_ids:  \[11683\]/, text)
   end
 
-  test "M5 Backwards-Compat: player_cc_id:10024 (singular) ruft genau 3 POSTs (1×add+1×save+1×verify)" do
+  test "M5 Backwards-Compat: player_cc_id:10024 (singular) ruft 4 POSTs (1×add+1×check+1×save+1×verify)" do
     response = McpServer::Tools::RegisterForTournament.call(
       fed_id: 20, branch_cc_id: 8, season: "2025/2026",
       meldeliste_cc_id: 1310, player_cc_id: 10024, club_cc_id: 1010,
@@ -343,9 +349,10 @@ class McpServer::Tools::RegisterForTournamentTest < ActiveSupport::TestCase
     refute response.error?
     posts = @mock.calls.select { |verb, _, _, opts| verb == :post && opts[:armed] }
     actions = posts.map { |_, action, _, _| action }
-    # Single-Player muss identisch zu vorher 3 POSTs ergeben (Backwards-Compat-HARD-Constraint)
-    assert_equal %w[addPlayerToMeldeliste saveMeldeliste showCommittedMeldeliste], actions,
-      "Single-Player-Pfad muss byte-identisch zur Pre-Bug-Variante bleiben — got #{actions.inspect}"
+    # Plan 14-G.13 Task 0: Single-Player-Pfad nutzt selbe Mechanik wie Multi-Player (1×Loop-Iteration).
+    # Backwards-Compat-Constraint: player_cc_id (singular) → intern player_cc_ids:[singular], identische Sequenz.
+    assert_equal %w[addPlayerToMeldeliste sportwart-editMeldelisteCheck saveMeldeliste showCommittedMeldeliste], actions,
+      "Single-Player-Pfad muss N×(add+check)+save+verify durchlaufen — got #{actions.inspect}"
   end
 
   test "M6: weder player_cc_id noch player_cc_ids gesetzt → klare Diagnose-Message" do
@@ -396,6 +403,61 @@ class McpServer::Tools::RegisterForTournamentTest < ActiveSupport::TestCase
     ensure
       McpServer::Tools::RegisterForTournament.singleton_class.send(:alias_method, :_validate_player_not_doppelt, :_orig_validate_player_not_doppelt_m8)
       McpServer::Tools::RegisterForTournament.singleton_class.send(:remove_method, :_orig_validate_player_not_doppelt_m8)
+    end
+  end
+
+  # --- Plan 14-G.13 Task 0: HAR-empirische Korrektur des Multi-Add-Patterns ---
+  #
+  # Smoketest 2026-05-18 (gegen Live-CC) bewies: Quick-260516-x7g's N×add+1×save-Mechanik
+  # landed nur ERSTER Player. Korrekte Sequenz per User-Klarstellung + Form-Daten-Screenshots:
+  # Pro Player: cc_add + sportwart-editMeldelisteCheck (state-refresh PFLICHT).
+  # Am Ende: 1× saveMeldeliste + 1× showCommittedMeldeliste verify.
+  # Plus Payload-Cleanup: clubId und rang aus base_payload entfernt (im CC-UI-Form nicht vorhanden).
+
+  test "M9: 3-Player-Multi-Add ruft Alternation add+check+add+check+add+check + save + verify" do
+    response = McpServer::Tools::RegisterForTournament.call(
+      fed_id: 20, branch_cc_id: 8, season: "2025/2026",
+      meldeliste_cc_id: 1310, player_cc_ids: [10024, 11683, 10031], club_cc_id: 1010,
+      armed: true, server_context: nil
+    )
+    refute response.error?
+    posts = @mock.calls.select { |verb, _, _, opts| verb == :post && opts[:armed] }
+    actions = posts.map { |_, action, _, _| action }
+    # Erwartet: 3 × (add + check) + save + verify = 8 POSTs
+    expected_actions = %w[
+      addPlayerToMeldeliste sportwart-editMeldelisteCheck
+      addPlayerToMeldeliste sportwart-editMeldelisteCheck
+      addPlayerToMeldeliste sportwart-editMeldelisteCheck
+      saveMeldeliste showCommittedMeldeliste
+    ]
+    assert_equal expected_actions, actions,
+      "3-Player-Multi-Add muss alternierend add+check 3× durchlaufen, dann save+verify — got #{actions.inspect}"
+
+    # Plus: jeder check muss UNMITTELBAR nach dem entsprechenden add kommen.
+    add_indices = actions.each_index.select { |i| actions[i] == "addPlayerToMeldeliste" }
+    check_indices = actions.each_index.select { |i| actions[i] == "sportwart-editMeldelisteCheck" }
+    add_indices.zip(check_indices).each do |add_idx, check_idx|
+      assert_equal add_idx + 1, check_idx,
+        "Jeder sportwart-editMeldelisteCheck muss UNMITTELBAR nach dem zugehörigen cc_add kommen — got add@#{add_idx}, check@#{check_idx}"
+    end
+  end
+
+  test "M10: Add-Payload enthält weder clubId noch rang (Payload-Cleanup nach CC-UI-Form-Daten)" do
+    response = McpServer::Tools::RegisterForTournament.call(
+      fed_id: 20, branch_cc_id: 8, season: "2025/2026",
+      meldeliste_cc_id: 1310, player_cc_ids: [10024], club_cc_id: 1010,
+      armed: true, server_context: nil
+    )
+    refute response.error?
+    add_call = @mock.calls.find { |verb, action, _, _| verb == :post && action == "addPlayerToMeldeliste" }
+    assert add_call, "addPlayerToMeldeliste muss aufgerufen worden sein"
+    _, _, params, _ = add_call
+    # CC-UI-Form-Daten (Screenshots 2026-05-18) zeigen: clubId und rang sind NICHT im echten Form.
+    refute params.key?(:clubId), "clubId darf NICHT im add-Payload sein (Plan 14-G.13 Task 0 cleanup) — got params=#{params.inspect}"
+    refute params.key?(:rang), "rang darf NICHT im add-Payload sein (Plan 14-G.13 Task 0 cleanup) — got params=#{params.inspect}"
+    # Die übrigen Felder müssen weiterhin da sein
+    %i[fedId branchId disciplinId catId season meldelisteId firstEntry selectedClubId a].each do |key|
+      assert params.key?(key), "#{key} muss im add-Payload sein — got params=#{params.inspect}"
     end
   end
 end
