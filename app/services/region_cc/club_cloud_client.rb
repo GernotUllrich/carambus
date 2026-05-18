@@ -562,7 +562,13 @@ class RegionCc::ClubCloudClient
         req["accept-language"] = "de-DE,de;q=0.9,en-US;q=0.8,en;q=0.7,fr;q=0.6"
         req["accept"] =
           "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
-        req.set_form_data(post_options.reject { |_k, v| v.blank? })
+        # Plan 14-G.13 (2026-05-18): `opts[:keep_blanks]` (Array von Keys) erlaubt es,
+        # leere Werte gezielt durchzulassen. Brower-Init-Calls senden `edit=` (key
+        # vorhanden, value leer); semantisch unterscheidet PHP zwischen "isset+empty"
+        # und "nicht-isset". Default-Filter wirft beides als blank raus.
+        keep_blanks = Array(opts[:keep_blanks]).map(&:to_sym)
+        filtered = post_options.reject { |k, v| v.blank? && !keep_blanks.include?(k.to_sym) }
+        req.set_form_data(filtered)
         t0 = Process.clock_gettime(Process::CLOCK_MONOTONIC)
         res = http.request(req)
         elapsed_ms = ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - t0) * 1000).round(1)

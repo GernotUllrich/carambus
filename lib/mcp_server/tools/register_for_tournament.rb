@@ -240,16 +240,44 @@ module McpServer
           selectedClubId: club_cc_id
         }
 
-        # Step 1: Pro Player → cc_add (FULL) + editMeldelisteCheck (MINIMAL state-refresh).
-        # Multi-Add-in-One-Call via a[]=-Array NICHT empirisch belegt (HAR zeigt singular a=).
-        # Plan 14-G.13 Task 0 Hotfix 2: editMeldelisteCheck setzt den SELECTOR auf den
-        # NÄCHSTEN Player im Loop (User-Klarstellung 2026-05-18): nach cc_add ist der gerade
-        # geaddete Player aus dem Dropdown verschwunden — der Selector muss explizit auf den
-        # nächsten verfügbaren Spieler geschaltet werden, damit der nächste cc_add eine
-        # gültige Selection-Basis hat. Beim letzten add-Iteration gibt's keinen "nächsten" —
-        # dann nutzen wir den gerade-added als Echo (CC tut nichts Schädliches damit).
-        player_cc_ids.each_with_index do |pid, idx|
-          # 1a) cc_add (FULL form) — fügt den aktuell-selected Player hinzu
+        # H2 2026-05-18 (HAR-Empirie multi-add-2player-2026-05-18.har): exakte Browser-Sequenz:
+        #   1× initial check (edit-Modus aktivieren, sortOrder=player, kein :a)
+        #   N × [cc_add(a=pid) → check(a=pid, Echo des GERADE-ADDED)]
+        #   1× save(a=<last>, save="1")
+        # H1-Test (N×add ohne intermediate Check) bewies: ohne Check zwischen den Adds überschreibt
+        # CC den Add-Slot mit jedem neuen cc_add → nur der erste landet committed.
+        # Hotfix-2 (Check mit a=<next>) hatte off-by-one: CC interpretierte den Echo als neuen
+        # Add-Intent → ebenfalls nur erster überlebte.
+        # Korrektes Pattern: Check ist VALIDATION/PERSIST des add-Slots IN den Add-Buffer, mit
+        # a=<just-added> als Bestätigung.
+
+        # Step 0: Initial Check — Edit-Modus auf dem CC-Server aktivieren.
+        # Plan 14-G.13 (2026-05-18 Discovery via tmp/add.har): Browser-Init enthält
+        # EXAKT diese 9 Felder (NICHT firstEntry, NICHT selectedClubId — beide kippten
+        # bei meinem 1. Fix-Versuch den DB-Scratch-Load).
+        # - `edit=` LEER triggert PHP-isset+empty → lädt DB-State in Server-Scratch.
+        #   Mit edit="1" bleibt Scratch leer → Save = OVERWRITE der DB.
+        # - `keep_blanks: [:edit]` umgeht den Standard-blank-Filter im ClubCloudClient.
+        initial_check_payload = {
+          fedId: fed_id, disciplinId: "*", season: season, catId: "*",
+          meldelisteId: meldeliste_cc_id, sortOrder: "player",
+          clubId: club_cc_id, branchId: branch_cc_id,
+          edit: ""  # LEER — lädt DB-State in Scratch!
+        }
+        init_res, _init_doc = client.post(
+          "sportwart-editMeldelisteCheck",
+          initial_check_payload,
+          {armed: armed, session_id: cc_session.cookie, keep_blanks: [:edit]}
+        )
+        return error("Unexpected nil response from CC (initial editMeldelisteCheck).") if init_res.nil?
+        return error("CC rejected at initial editMeldelisteCheck: HTTP #{init_res&.code}") if init_res&.code != "200"
+
+        # Plan 14-G.13 (2026-05-18 empirisch in scripts/cc_probe_edit_empty.rb):
+        # Mit korrektem Init (edit=LEER) ist der Server-Scratch bereits mit DB-State
+        # gefüllt. Der per-Player editMeldelisteCheck zwischen den Adds ist NICHT mehr
+        # nötig — cc_add(a=pid) appendet einfach in den Scratch. Vorher angenommene
+        # h3-Pattern (check+add pro Player) war Notlösung gegen den falschen Init.
+        player_cc_ids.each do |pid|
           add_res, add_doc = client.post(
             "addPlayerToMeldeliste",
             base_payload.merge(a: pid),
@@ -266,19 +294,6 @@ module McpServer
           return error("CC rejected at cc_add for player_cc_id=#{pid}: #{parse_cc_error(add_doc)} (HTTP #{add_res&.code})") if add_res&.code != "200"
           add_parsed = parse_cc_error(add_doc)
           return error("CC rejected at cc_add for player_cc_id=#{pid}: #{add_parsed}") if add_parsed && add_parsed != "(no error)"
-
-          # 1b) editMeldelisteCheck — Selector auf NÄCHSTEN Player setzen (User-Modell).
-          # MINIMAL form (kein clubId/rang/gd/d) + a=<nächster im Loop> oder echo bei last-iter.
-          # Smoketest 2026-05-18 02:43 zeigte: a=<gerade-added> führte dazu, dass nur erster
-          # Player committet wurde — der Selector "klebte" am ersten Add, weitere wurden ignored.
-          next_pid_for_selector = player_cc_ids[idx + 1] || pid
-          check_res, _check_doc = client.post(
-            "sportwart-editMeldelisteCheck",
-            check_payload_base.merge(a: next_pid_for_selector),
-            {armed: armed, session_id: cc_session.cookie}
-          )
-          return error("Unexpected nil response from CC (editMeldelisteCheck after cc_add for player_cc_id=#{pid}).") if check_res.nil?
-          return error("CC rejected at editMeldelisteCheck after cc_add for player_cc_id=#{pid}: HTTP #{check_res&.code}") if check_res&.code != "200"
         end
 
         # Step 2: EIN editMeldelisteSave — committet alle vorherigen Adds.
@@ -314,8 +329,11 @@ module McpServer
           {armed: armed, session_id: cc_session.cookie}
         )
         verify_body = verify_res&.body.to_s
+        # Plan 14-G.13 (2026-05-18): CC sendet `<td align='center'>` mit SINGLE
+        # quotes (HAR-belegt in tmp/add.har). Vorheriger `.include?(...)` mit
+        # double-quote-Literal hat NIE gematched → "0/N verified"-False-Negativ.
         verified_player_cc_ids = player_cc_ids.select { |pid|
-          verify_body.include?(%(<td align="center">#{pid}</td>))
+          verify_body.match?(/<td align=['"]center['"]>#{pid}<\/td>/)
         }
         missing_player_cc_ids = player_cc_ids - verified_player_cc_ids
         all_verified = missing_player_cc_ids.empty?
