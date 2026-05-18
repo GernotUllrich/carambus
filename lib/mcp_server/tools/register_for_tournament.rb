@@ -242,10 +242,14 @@ module McpServer
 
         # Step 1: Pro Player → cc_add (FULL) + editMeldelisteCheck (MINIMAL state-refresh).
         # Multi-Add-in-One-Call via a[]=-Array NICHT empirisch belegt (HAR zeigt singular a=).
-        # Plan 14-G.13 Task 0: editMeldelisteCheck nach JEDEM cc_add ist Pflicht — sonst
-        # lehnt CC den nächsten cc_add silent ab (form-state-token).
-        player_cc_ids.each do |pid|
-          # 1a) cc_add (FULL form)
+        # Plan 14-G.13 Task 0 Hotfix 2: editMeldelisteCheck setzt den SELECTOR auf den
+        # NÄCHSTEN Player im Loop (User-Klarstellung 2026-05-18): nach cc_add ist der gerade
+        # geaddete Player aus dem Dropdown verschwunden — der Selector muss explizit auf den
+        # nächsten verfügbaren Spieler geschaltet werden, damit der nächste cc_add eine
+        # gültige Selection-Basis hat. Beim letzten add-Iteration gibt's keinen "nächsten" —
+        # dann nutzen wir den gerade-added als Echo (CC tut nichts Schädliches damit).
+        player_cc_ids.each_with_index do |pid, idx|
+          # 1a) cc_add (FULL form) — fügt den aktuell-selected Player hinzu
           add_res, add_doc = client.post(
             "addPlayerToMeldeliste",
             base_payload.merge(a: pid),
@@ -263,12 +267,14 @@ module McpServer
           add_parsed = parse_cc_error(add_doc)
           return error("CC rejected at cc_add for player_cc_id=#{pid}: #{add_parsed}") if add_parsed && add_parsed != "(no error)"
 
-          # 1b) editMeldelisteCheck (Sportwart-Pfad) — state-refresh nach jedem Add.
-          # HAR-empirisch (Entries 12, 24): MINIMAL form (ohne clubId/rang/gd/d) + a=<last added>.
-          # OHNE diesen Step lehnt CC den nächsten cc_add silent ab — Smoketest 2026-05-18 bewiesen.
+          # 1b) editMeldelisteCheck — Selector auf NÄCHSTEN Player setzen (User-Modell).
+          # MINIMAL form (kein clubId/rang/gd/d) + a=<nächster im Loop> oder echo bei last-iter.
+          # Smoketest 2026-05-18 02:43 zeigte: a=<gerade-added> führte dazu, dass nur erster
+          # Player committet wurde — der Selector "klebte" am ersten Add, weitere wurden ignored.
+          next_pid_for_selector = player_cc_ids[idx + 1] || pid
           check_res, _check_doc = client.post(
             "sportwart-editMeldelisteCheck",
-            check_payload_base.merge(a: pid),
+            check_payload_base.merge(a: next_pid_for_selector),
             {armed: armed, session_id: cc_session.cookie}
           )
           return error("Unexpected nil response from CC (editMeldelisteCheck after cc_add for player_cc_id=#{pid}).") if check_res.nil?
