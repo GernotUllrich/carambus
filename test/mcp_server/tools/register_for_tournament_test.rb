@@ -442,22 +442,42 @@ class McpServer::Tools::RegisterForTournamentTest < ActiveSupport::TestCase
     end
   end
 
-  test "M10: Add-Payload enthält weder clubId noch rang (Payload-Cleanup nach CC-UI-Form-Daten)" do
+  test "M10: cc_add-Payload (FULL form) vs editMeldelisteCheck-Payload (MINIMAL post-add form)" do
+    # HAR-empirisch (multi-add-2player-2026-05-18.har) belegt asymmetrische Forms:
+    #   cc_add (Entries 9, 21): FULL form mit clubId, rang, gd, d
+    #   post-add editMeldelisteCheck (Entries 12, 24): MINIMAL form ohne clubId/rang/gd/d, mit a
+    # Test sichert die Asymmetrie ab (Bug-Class: wenn Mock-Tests die unterschiedlichen
+    # Forms nicht prüfen, kann Code irrtümlich Felder löschen/hinzufügen und die
+    # echte CC-Empfangslogik silent brechen — Plan 14-G.13 Task 0 Smoketest-Lehre).
     response = McpServer::Tools::RegisterForTournament.call(
       fed_id: 20, branch_cc_id: 8, season: "2025/2026",
       meldeliste_cc_id: 1310, player_cc_ids: [10024], club_cc_id: 1010,
       armed: true, server_context: nil
     )
     refute response.error?
+
+    # cc_add: FULL form — clubId UND rang SIND drin
     add_call = @mock.calls.find { |verb, action, _, _| verb == :post && action == "addPlayerToMeldeliste" }
     assert add_call, "addPlayerToMeldeliste muss aufgerufen worden sein"
-    _, _, params, _ = add_call
-    # CC-UI-Form-Daten (Screenshots 2026-05-18) zeigen: clubId und rang sind NICHT im echten Form.
-    refute params.key?(:clubId), "clubId darf NICHT im add-Payload sein (Plan 14-G.13 Task 0 cleanup) — got params=#{params.inspect}"
-    refute params.key?(:rang), "rang darf NICHT im add-Payload sein (Plan 14-G.13 Task 0 cleanup) — got params=#{params.inspect}"
-    # Die übrigen Felder müssen weiterhin da sein
-    %i[fedId branchId disciplinId catId season meldelisteId firstEntry selectedClubId a].each do |key|
-      assert params.key?(key), "#{key} muss im add-Payload sein — got params=#{params.inspect}"
+    _, _, add_params, _ = add_call
+    %i[clubId fedId branchId disciplinId catId season meldelisteId firstEntry rang selectedClubId a].each do |key|
+      assert add_params.key?(key), "#{key} muss im cc_add-Payload sein (FULL form) — got #{add_params.keys.sort.inspect}"
     end
+
+    # editMeldelisteCheck (post-add): MINIMAL form — clubId und rang fehlen, dafür a=<last added>
+    check_call = @mock.calls.find { |verb, action, _, _| verb == :post && action == "sportwart-editMeldelisteCheck" }
+    assert check_call, "sportwart-editMeldelisteCheck muss aufgerufen worden sein"
+    _, _, check_params, _ = check_call
+    refute check_params.key?(:clubId), "clubId darf NICHT im post-add-Check-Payload sein — got #{check_params.keys.sort.inspect}"
+    refute check_params.key?(:rang), "rang darf NICHT im post-add-Check-Payload sein — got #{check_params.keys.sort.inspect}"
+    assert check_params.key?(:a), "a=<last added player> muss im post-add-Check-Payload sein — got #{check_params.keys.sort.inspect}"
+    assert_equal 10024, check_params[:a], "Check-Payload muss a=<zuletzt added pid> haben"
+
+    # saveMeldeliste: FULL form + save + a
+    save_call = @mock.calls.find { |verb, action, _, _| verb == :post && action == "saveMeldeliste" }
+    assert save_call, "saveMeldeliste muss aufgerufen worden sein"
+    _, _, save_params, _ = save_call
+    assert save_params.key?(:save), "save-Sentinel muss im save-Payload sein"
+    assert save_params.key?(:a), "a=<some player> muss im save-Payload sein (HAR-belegt)"
   end
 end

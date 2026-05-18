@@ -213,31 +213,39 @@ module McpServer
         # weiteren werden silent verworfen (form-state-token-mismatch wegen
         # fehlender editMeldelisteCheck zwischen den Adds).
         #
-        # Korrekte CC-UI-Sequence (User-Klarstellung 2026-05-18 + Form-Daten-Screenshots):
-        # Pro Player:  cc_add  → editMeldelisteCheck  (state-refresh)
-        # Am Ende:    editMeldelisteSave (commit) + showCommittedMeldeliste (verify)
+        # Korrekte CC-UI-Sequence (HAR-belegt via multi-add-2player-2026-05-18.har):
+        # Pro Player:  cc_add (FULL form mit clubId+rang)  → editMeldelisteCheck (MINIMAL post-add form)
+        # Am Ende:    editMeldelisteSave (FULL form mit save+a) + showCommittedMeldeliste (verify)
         #
-        # Payload-Cleanup nach Screenshot-Vergleich: clubId und rang sind im
-        # echten CC-UI-Form NICHT vorhanden — entfernt aus base_payload damit
-        # CC nicht durch überflüssige Felder verwirrt wird. firstEntry=1 ist
-        # immer konstant (User-bestätigt).
+        # Plan 14-G.13 Task 0 Hotfix nach HAR-Analyse: clubId und rang sind in cc_add UND
+        # in saveMeldeliste DRIN — frühere User-Screenshots zeigten nur editMeldelisteCheck-Form
+        # (ohne clubId/rang), das war misleading. cc_add hat die FULL form, post-add-check
+        # eine reduzierte form. Diese Asymmetrie ist HAR-empirisch belegt.
         client = cc_session.client_for(server_context)
+        # FULL form: für cc_add und saveMeldeliste (mit clubId, rang, gd, d)
         base_payload = {
+          clubId: club_cc_id, fedId: fed_id, branchId: branch_cc_id,
+          disciplinId: "*", catId: "*", season: season,
+          meldelisteId: meldeliste_cc_id, firstEntry: 1, rang: 1,
+          selectedClubId: club_cc_id
+          # NB: gd, d aus SNIFF v2 sind im Original leer; client.post().reject(&:blank?)
+          # filtert sie weg. CC akzeptiert das (PHP-typisch optional fields).
+        }
+        # MINIMAL form für post-add editMeldelisteCheck (HAR Entry 12, 24):
+        # kein clubId, kein rang, kein gd/d — dafür setzNummer + a=<last added>
+        check_payload_base = {
           fedId: fed_id, branchId: branch_cc_id,
           disciplinId: "*", catId: "*", season: season,
           meldelisteId: meldeliste_cc_id, firstEntry: 1,
           selectedClubId: club_cc_id
-          # NB: gd, d aus SNIFF v2 sind im Original leer; client.post().reject(&:blank?)
-          # filtert sie weg. CC akzeptiert das (PHP-typisch optional fields).
-          # clubId und rang aus altem base_payload entfernt — Plan 14-G.13 Task 0.
         }
 
-        # Step 1: Pro Player → cc_add + editMeldelisteCheck (state-refresh).
+        # Step 1: Pro Player → cc_add (FULL) + editMeldelisteCheck (MINIMAL state-refresh).
         # Multi-Add-in-One-Call via a[]=-Array NICHT empirisch belegt (HAR zeigt singular a=).
         # Plan 14-G.13 Task 0: editMeldelisteCheck nach JEDEM cc_add ist Pflicht — sonst
         # lehnt CC den nächsten cc_add silent ab (form-state-token).
         player_cc_ids.each do |pid|
-          # 1a) cc_add
+          # 1a) cc_add (FULL form)
           add_res, add_doc = client.post(
             "addPlayerToMeldeliste",
             base_payload.merge(a: pid),
@@ -256,11 +264,11 @@ module McpServer
           return error("CC rejected at cc_add for player_cc_id=#{pid}: #{add_parsed}") if add_parsed && add_parsed != "(no error)"
 
           # 1b) editMeldelisteCheck (Sportwart-Pfad) — state-refresh nach jedem Add.
-          # OHNE diesen Step lehnt CC den nächsten cc_add silent ab — empirisch belegt
-          # durch Smoketest 2026-05-18: nur erster Player landed, weitere verworfen.
+          # HAR-empirisch (Entries 12, 24): MINIMAL form (ohne clubId/rang/gd/d) + a=<last added>.
+          # OHNE diesen Step lehnt CC den nächsten cc_add silent ab — Smoketest 2026-05-18 bewiesen.
           check_res, _check_doc = client.post(
             "sportwart-editMeldelisteCheck",
-            base_payload,
+            check_payload_base.merge(a: pid),
             {armed: armed, session_id: cc_session.cookie}
           )
           return error("Unexpected nil response from CC (editMeldelisteCheck after cc_add for player_cc_id=#{pid}).") if check_res.nil?
@@ -268,13 +276,13 @@ module McpServer
         end
 
         # Step 2: EIN editMeldelisteSave — committet alle vorherigen Adds.
-        # `save: "1"` als non-blank Sentinel (CC PHP-Code prüft typisch isset($_POST['save']),
-        # nicht den Wert). client.post() würde leere Strings via .reject(&:blank?) wegwerfen.
-        # Plan 14-G.13 Task 0: `a:` aus dem Save-Payload droppen — Save-Step braucht
-        # keinen Player-Parameter (Plan-04-03-Befund: Save ignoriert `a=`-Param).
+        # HAR-Entry 33: FULL form + a=<some-player> + save= (LEER). `save: "1"` (non-blank-Sentinel)
+        # passiert client.post().reject(&:blank?)-Filter und ist PHP-isset-äquivalent zu save=.
+        # `a:` muss vorhanden sein (HAR-belegt); pragmatisch player_cc_ids.last (UI sendet den
+        # default-selected, nicht einen angemeldeten — egal welcher, Hauptsache präsent).
         save_res, save_doc = client.post(
           "saveMeldeliste",
-          base_payload.merge(save: "1"),
+          base_payload.merge(a: player_cc_ids.last, save: "1"),
           {armed: armed, session_id: cc_session.cookie}
         )
         return error("Unexpected nil response from CC (editMeldelisteSave, armed mode).") if save_res.nil?
