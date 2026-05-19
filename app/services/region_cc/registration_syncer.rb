@@ -105,10 +105,29 @@ class RegionCc::RegistrationSyncer < ApplicationService
         end
         registration_list_cc.update(season_id: season.id, discipline_id: discipline_id, category_cc_id: category_cc_id,
           context: context, branch_cc_id: branch_cc.id, name: name, status: "Freigegeben", deadline: deadline, qualifying_date: qualifying_date)
+
+        # Plan 14-G.14 Task 4b: Auto-Wire — finde matching TournamentCc by name+context und triggere API-Push.
+        # Idempotent: nur push wenn registration_list_cc_id geändert wurde (Avoidet Push-Storm bei Re-Scraping).
+        link_and_push_if_match(registration_list_cc, context)
       rescue => e
         Rails.logger.error "Error: #{e.message}"
       end
     end
+  end
+
+  def link_and_push_if_match(registration_list_cc, context)
+    return unless registration_list_cc.persisted? && registration_list_cc.name.present?
+
+    candidates = TournamentCc.where(context: context, name: registration_list_cc.name)
+    candidates.each do |tc|
+      next if tc.registration_list_cc_id == registration_list_cc.id  # already linked, skip
+      next unless tc.tournament&.region  # need region for push payload
+
+      tc.update_columns(registration_list_cc_id: registration_list_cc.id)
+      self.class.push_link_to_api(tc, registration_list_cc)
+    end
+  rescue => e
+    Rails.logger.warn "[Syncer] link_and_push_if_match failed: #{e.class}: #{e.message}"
   end
 
   class << self
