@@ -978,8 +978,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_04_25_090000) do
     t.datetime "updated_at", null: false
     t.index ["shot_id", "sequence_number"], name: "idx_shot_events_on_shot_and_sequence", unique: true
     t.index ["shot_id"], name: "index_shot_events_on_shot_id"
-    t.check_constraint "ball_involved IS NULL OR ball_involved::text = ANY (ARRAY['b1'::character varying, 'b2'::character varying, 'b3'::character varying]::text[])", name: "shot_events_ball_involved_check"
-    t.check_constraint "cushion_involved IS NULL OR cushion_involved::text = ANY (ARRAY['short_left'::character varying, 'short_right'::character varying, 'long_near'::character varying, 'long_far'::character varying]::text[])", name: "shot_events_cushion_involved_check"
+    t.check_constraint "ball_involved IS NULL OR (ball_involved::text = ANY (ARRAY['b1'::character varying, 'b2'::character varying, 'b3'::character varying]::text[]))", name: "shot_events_ball_involved_check"
+    t.check_constraint "cushion_involved IS NULL OR (cushion_involved::text = ANY (ARRAY['short_left'::character varying, 'short_right'::character varying, 'long_near'::character varying, 'long_far'::character varying]::text[]))", name: "shot_events_cushion_involved_check"
     t.check_constraint "event_type::text = ANY (ARRAY['initial_contact'::character varying, 'cushion_contact'::character varying, 'sperre'::character varying, 'austausch'::character varying, 'final_carambolage'::character varying, 'near_miss'::character varying]::text[])", name: "shot_events_event_type_check"
   end
 
