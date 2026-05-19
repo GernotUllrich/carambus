@@ -71,6 +71,11 @@ Rails.application.routes.draw do
         get :autocomplete
       end
     end
+
+    # Plan 14-G.14: Regional→API meldeliste_cc_id-Link-Push (devise-jwt-authentifiziert)
+    patch "tournament_ccs/:id/registration_list_link",
+          to: "tournament_ccs#link_registration_list",
+          as: :tournament_cc_registration_list_link
   end
 
   # Debug routes (development only)
