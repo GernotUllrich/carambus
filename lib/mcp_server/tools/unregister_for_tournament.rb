@@ -64,6 +64,8 @@ module McpServer
 
       def self.call(fed_id: nil, branch_cc_id: nil, season: nil, meldeliste_cc_id: nil, player_cc_id: nil,
         player_name: nil, club_cc_id: nil, club_name: nil, armed: false, read_back: true, server_context: nil)
+        # Plan 14-G.13.1 Task 1: Per-Tool-Call-Cache-Scope eröffnen.
+        cc_cache_reset!
         fed_id ||= default_fed_id
 
         # Plan 10-06 Task 3 (D-10-04-J Convenience-Wrapper): Auto-Resolve VOR Required-Validation.
@@ -114,16 +116,24 @@ module McpServer
         # (gleicher Pfad wie cc_remove + editMeldelisteSave). Phase-4-Verifikations-Endpoint reused.
         # Pre-Read ist read-only — IMMER armed:true (sonst MockClient liefert nil bei writable_action; hier read_only:true OK).
         pre_payload = base_payload.except(:firstEntry, :rang, :selectedClubId).merge(sortOrder: "player")
-        pre_res, pre_doc = client.post(
-          "showCommittedMeldeliste",
-          pre_payload,
-          {armed: true, session_id: cc_session.cookie}
-        )
-        if cc_session.reauth_if_needed!(pre_doc)
-          pre_res, pre_doc = client.post(
-            "showCommittedMeldeliste", pre_payload,
+        # Plan 14-G.13.1 Task 1: Pre-Read via Cache (idempotent vor Write).
+        pre_cache_key = "showCommittedMeldeliste:#{meldeliste_cc_id}:#{Digest::MD5.hexdigest(pre_payload.to_s)}"
+        pre_res, pre_doc = cc_cache_get_or_set(pre_cache_key) do
+          client.post(
+            "showCommittedMeldeliste",
+            pre_payload,
             {armed: true, session_id: cc_session.cookie}
           )
+        end
+        if cc_session.reauth_if_needed!(pre_doc)
+          # Auth-Refresh: Cache verwerfen + frisch lesen.
+          cc_cache_invalidate!(prefix: "showCommittedMeldeliste:")
+          pre_res, pre_doc = cc_cache_get_or_set(pre_cache_key) do
+            client.post(
+              "showCommittedMeldeliste", pre_payload,
+              {armed: true, session_id: cc_session.cookie}
+            )
+          end
         end
         return error("Unexpected nil response from CC (Pre-Read showCommittedMeldeliste).") if pre_res.nil?
         return error("CC rejected at Pre-Read: HTTP #{pre_res&.code}") if pre_res&.code != "200"
@@ -205,6 +215,9 @@ module McpServer
         rm_parsed = parse_cc_error(rm_doc)
         return error("CC rejected at cc_remove: #{rm_parsed}") if rm_parsed && rm_parsed != "(no error)"
 
+        # Plan 14-G.13.1 Task 1: Cache nach Write invalidieren.
+        cc_cache_invalidate!(prefix: "showCommittedMeldeliste:")
+
         # Step 3 (NEU): Re-Render editMeldelisteCheck mit 8-Felder-MINIMAL — Scratch-State persist.
         # Plan 14-G.13 Bug #2 (HAR Entry 12): Browser macht zwischen cc_remove und saveMeldeliste
         # einen Re-Render-Call. Felder: fedId, branchId, disciplinId, season, catId, meldelisteId,
@@ -235,15 +248,22 @@ module McpServer
         sv_parsed = parse_cc_error(sv_doc)
         return error("CC rejected at editMeldelisteSave: #{sv_parsed}") if sv_parsed && sv_parsed != "(no error)"
 
+        # Plan 14-G.13.1 Task 1: Cache nach Write invalidieren — Read-Back holt frische Daten.
+        cc_cache_invalidate!(prefix: "showCommittedMeldeliste:")
+
         # Step 5 (optional): Read-Back-Verify via showCommittedMeldeliste (Inline-Patch v1, gleicher Endpoint wie Pre-Read).
         read_back_match = :skipped
         if read_back
           rb_payload = base_payload.except(:firstEntry, :rang, :selectedClubId).merge(sortOrder: "player")
-          rb_res, rb_doc = client.post(
-            "showCommittedMeldeliste",
-            rb_payload,
-            {armed: true, session_id: cc_session.cookie}
-          )
+          # Plan 14-G.13.1 Task 1: Read-Back via Cache (frisch nach Save-Invalidate).
+          rb_cache_key = "showCommittedMeldeliste:#{meldeliste_cc_id}:#{Digest::MD5.hexdigest(rb_payload.to_s)}"
+          rb_res, rb_doc = cc_cache_get_or_set(rb_cache_key) do
+            client.post(
+              "showCommittedMeldeliste",
+              rb_payload,
+              {armed: true, session_id: cc_session.cookie}
+            )
+          end
           if rb_res&.code == "200"
             still_present = player_in_meldeliste?(rb_doc, player_cc_id)
             read_back_match = !still_present

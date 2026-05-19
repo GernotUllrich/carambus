@@ -74,6 +74,8 @@ module McpServer
       def self.call(fed_id: nil, branch_cc_id: nil, season: nil, meldeliste_cc_id: nil, player_cc_id: nil,
         player_name: nil, player_cc_ids: nil, player_names: nil,
         club_cc_id: nil, club_name: nil, discipline_id: nil, armed: false, server_context: nil)
+        # Plan 14-G.13.1 Task 1: Per-Tool-Call-Cache-Scope eröffnen.
+        cc_cache_reset!
         fed_id ||= default_fed_id
 
         # Plan 14-G.13 (Quick 260516-x7g) Multi-Player-Save-Fix:
@@ -302,6 +304,9 @@ module McpServer
         save_parsed = parse_cc_error(save_doc)
         return error("CC rejected at editMeldelisteSave: #{save_parsed}") if save_parsed && save_parsed != "(no error)"
 
+        # Plan 14-G.13.1 Task 1: Cache nach Write invalidieren — Verify-Read holt frische Daten.
+        cc_cache_invalidate!(prefix: "showCommittedMeldeliste:")
+
         # Step 3 (Verifikation): showCommittedMeldeliste — alle player_cc_ids im HTML matchen.
         # Marker aus SNIFF v2 A2: <td align="center">{player_cc_id}</td> in der commited Liste.
         # Phase-5-D3-Bugfix: show-Form erwartet 8 Hidden-Inputs (clubId, fedId, branchId,
@@ -314,11 +319,17 @@ module McpServer
         verify_payload = base_payload
           .except(:firstEntry, :rang, :selectedClubId)
           .merge(clubId: "*", sortOrder: "player")
-        verify_res, _verify_doc = client.post(
-          "showCommittedMeldeliste",
-          verify_payload,
-          {armed: armed, session_id: cc_session.cookie}
-        )
+        # Plan 14-G.13.1 Task 1: showCommittedMeldeliste-Read via cc_cache_get_or_set wrappen.
+        # Im REGISTER-Pfad ist das nur 1 Call → kein direkter Cache-Hit innerhalb des Tools,
+        # aber Pattern ist konsistent + saveMeldeliste oben hat den Cache schon invalidiert.
+        verify_cache_key = "showCommittedMeldeliste:#{meldeliste_cc_id}:#{Digest::MD5.hexdigest(verify_payload.to_s)}"
+        verify_res, _verify_doc = cc_cache_get_or_set(verify_cache_key) do
+          client.post(
+            "showCommittedMeldeliste",
+            verify_payload,
+            {armed: armed, session_id: cc_session.cookie}
+          )
+        end
         verify_body = verify_res&.body.to_s
         # Plan 14-G.13 (2026-05-18): CC sendet `<td align='center'>` mit SINGLE
         # quotes (HAR-belegt in tmp/add.har). Vorheriger `.include?(...)` mit

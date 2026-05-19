@@ -474,6 +474,35 @@ module McpServer
         Rails.logger.warn "[BaseTool.resolve_club_cc_id] #{e.class}: #{e.message}"
         [nil, error("Authority-Check (club_cc_id) fehlgeschlagen (defensive): #{e.class.name}")]
       end
+
+      # Plan 14-G.13.1 Task 1: Per-Tool-Call-Cache für idempotente Read-Endpoints
+      # (showCommittedMeldeliste). Cache lebt für die Dauer EINES Tool-Calls via
+      # Thread.current; Tools, die den Cache nutzen, müssen `cc_cache_reset!` am
+      # Anfang ihres call-Bodys + im ensure-Block aufrufen — keine cross-tool-call
+      # Stale-Risiken. `cc_cache_invalidate!(prefix: ...)` muss nach jedem Write
+      # (cc_add/cc_remove/saveMeldeliste) gerufen werden, damit der nächste Read
+      # frische Daten holt.
+      def self.cc_cache_get_or_set(cache_key)
+        Thread.current[:cc_cache] ||= {}
+        if Thread.current[:cc_cache].key?(cache_key)
+          Thread.current[:cc_cache][cache_key]
+        else
+          Thread.current[:cc_cache][cache_key] = yield
+        end
+      end
+
+      def self.cc_cache_invalidate!(prefix: nil)
+        return if Thread.current[:cc_cache].nil?
+        if prefix
+          Thread.current[:cc_cache].delete_if { |k, _| k.to_s.start_with?(prefix) }
+        else
+          Thread.current[:cc_cache].clear
+        end
+      end
+
+      def self.cc_cache_reset!
+        Thread.current[:cc_cache] = nil
+      end
     end
   end
 end

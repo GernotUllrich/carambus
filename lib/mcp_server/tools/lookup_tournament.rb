@@ -39,6 +39,8 @@ module McpServer
       annotations(read_only_hint: true, destructive_hint: false)
 
       def self.call(meisterschaft_id: nil, cc_id: nil, tournament_id: nil, name: nil, fed_id: nil, shortname: nil, season: nil, force_refresh: false, with_committed_list: false, meldeliste_cc_id: nil, server_context: nil)
+        # Plan 14-G.13.1 Task 1: Per-Tool-Call-Cache-Scope eröffnen.
+        cc_cache_reset!
         # Plan 14-02.3 / F-4: cc_id-Alias-Aufnahme. meisterschaft_id hat Präzedenz wenn beide gesetzt.
         meisterschaft_id ||= cc_id
         fed_id ||= default_fed_id(server_context)
@@ -216,7 +218,11 @@ module McpServer
         }
 
         client = cc_session.client_for(server_context)
-        res, _doc = client.post("showCommittedMeldeliste", payload, {session_id: cc_session.cookie})
+        # Plan 14-G.13.1 Task 1: showCommittedMeldeliste via Cache (read-only, idempotent).
+        committed_cache_key = "showCommittedMeldeliste:#{meldeliste_cc_id}:#{Digest::MD5.hexdigest(payload.to_s)}"
+        res, _doc = cc_cache_get_or_set(committed_cache_key) do
+          client.post("showCommittedMeldeliste", payload, {session_id: cc_session.cookie})
+        end
 
         if res.nil? || res.code != "200"
           meta[:committed_list_warning] = "showCommittedMeldeliste returned HTTP #{res&.code || "nil"} — committed_players unavailable."

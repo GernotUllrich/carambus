@@ -461,4 +461,60 @@ class McpServer::Tools::BaseToolTest < ActiveSupport::TestCase
       club2&.destroy
     end
   end
+
+  # Plan 14-G.13.1 Task 1: Cache-Helper Tests.
+  describe "cc_cache_get_or_set / cc_cache_invalidate! / cc_cache_reset!" do
+    teardown do
+      McpServer::Tools::BaseTool.cc_cache_reset!
+    end
+
+    test "cc_cache_get_or_set returns cached value on second call with same key" do
+      call_count = 0
+      first = McpServer::Tools::BaseTool.cc_cache_get_or_set("k1") do
+        call_count += 1
+        "computed-value"
+      end
+      second = McpServer::Tools::BaseTool.cc_cache_get_or_set("k1") do
+        call_count += 1
+        "computed-value"
+      end
+      assert_equal "computed-value", first
+      assert_equal "computed-value", second
+      assert_equal 1, call_count, "Block should be yielded only once for same cache_key"
+    end
+
+    test "cc_cache_invalidate! clears entries by prefix" do
+      McpServer::Tools::BaseTool.cc_cache_get_or_set("showCommittedMeldeliste:1310:abc") { "a" }
+      McpServer::Tools::BaseTool.cc_cache_get_or_set("other:xyz") { "b" }
+      McpServer::Tools::BaseTool.cc_cache_invalidate!(prefix: "showCommittedMeldeliste:")
+      # showCommittedMeldeliste-Key wieder yielden → block läuft erneut.
+      reset_called = false
+      McpServer::Tools::BaseTool.cc_cache_get_or_set("showCommittedMeldeliste:1310:abc") do
+        reset_called = true
+        "fresh-a"
+      end
+      assert reset_called, "showCommittedMeldeliste-Key sollte nach Invalidate neu evaluiert werden"
+      # other-Key bleibt cached → block läuft NICHT erneut.
+      other_called = false
+      McpServer::Tools::BaseTool.cc_cache_get_or_set("other:xyz") do
+        other_called = true
+        "fresh-b"
+      end
+      refute other_called, "other-Prefix-Key sollte erhalten bleiben"
+    end
+
+    test "cc_cache_reset! clears all entries" do
+      McpServer::Tools::BaseTool.cc_cache_get_or_set("k1") { "v1" }
+      McpServer::Tools::BaseTool.cc_cache_get_or_set("k2") { "v2" }
+      McpServer::Tools::BaseTool.cc_cache_reset!
+      assert_nil Thread.current[:cc_cache]
+    end
+
+    test "cc_cache_get_or_set transparent passthrough without prior reset" do
+      McpServer::Tools::BaseTool.cc_cache_reset!
+      val = McpServer::Tools::BaseTool.cc_cache_get_or_set("k1") { "v1" }
+      assert_equal "v1", val
+      assert_equal({"k1" => "v1"}, Thread.current[:cc_cache])
+    end
+  end
 end
