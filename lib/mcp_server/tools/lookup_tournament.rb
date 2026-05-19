@@ -224,7 +224,9 @@ module McpServer
         end
 
         # Player-cc_id-Marker analog SNIFF v2 A2: <td align="center">{cc_id}</td>
-        cc_ids = res.body.to_s.scan(%r{<td align="center">(\d+)</td>}).flatten.map(&:to_i).uniq
+        # Plan 14-G.13 Bug #3 (2026-05-19): CC sendet single quotes, Pattern muss beide
+        # akzeptieren — sonst 0/N False-Negativ-Verifikation (Memory project_cc_meldeliste_workflow).
+        cc_ids = res.body.to_s.scan(%r{<td align=['"]center['"]>(\d+)</td>}).flatten.map(&:to_i).uniq
         cc_ids.map { |cc_id| {cc_id: cc_id} }
       rescue => e
         Rails.logger.warn "[cc_lookup_tournament] read_committed_players failed: #{e.class}: #{e.message}"
