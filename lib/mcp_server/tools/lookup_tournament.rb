@@ -82,7 +82,7 @@ module McpServer
 
         return error("Tournament not found in Carambus DB. Try force_refresh: true to query CC.") if tournament_cc.nil?
 
-        text(format_tournament_cc(tournament_cc, with_committed_list: with_committed_list, meldeliste_cc_id_override: meldeliste_cc_id, fed_id: fed_id))
+        text(format_tournament_cc(tournament_cc, with_committed_list: with_committed_list, meldeliste_cc_id_override: meldeliste_cc_id, fed_id: fed_id, server_context: server_context))
       end
 
       # Plan 14-02.1-fix / D-14-02-G: Name-Search strict auf User-Region; shortname-Override-
@@ -155,7 +155,7 @@ module McpServer
         text("CC live response for showMeisterschaft (meisterschaft_id=#{meisterschaft_id}, status #{res.code})")
       end
 
-      def self.format_tournament_cc(tournament_cc, with_committed_list: false, meldeliste_cc_id_override: nil, fed_id: nil)
+      def self.format_tournament_cc(tournament_cc, with_committed_list: false, meldeliste_cc_id_override: nil, fed_id: nil, server_context: nil)
         tournament = tournament_cc.tournament
         meta = {}
 
@@ -178,7 +178,8 @@ module McpServer
             tournament_cc: tournament_cc,
             meldeliste_cc_id_override: meldeliste_cc_id_override,
             fed_id: fed_id,
-            meta: meta
+            meta: meta,
+            server_context: server_context
           )
           payload[:committed_players] = committed
         end
@@ -191,7 +192,7 @@ module McpServer
       # Defensives Pattern (analog Phase-2 force_refresh): Sync-/Parse-Fehler erzeugen
       # nil + meta-Warnung statt Exception. meldeliste_cc_id-Auflösung primär aus
       # tournament_cc.registration_list_cc; Override-Param erlaubt Fallback.
-      def self.read_committed_players(tournament_cc:, meldeliste_cc_id_override:, fed_id:, meta:)
+      def self.read_committed_players(tournament_cc:, meldeliste_cc_id_override:, fed_id:, meta:, server_context: nil)
         meldeliste_cc_id = meldeliste_cc_id_override.presence || tournament_cc.registration_list_cc&.cc_id
         if meldeliste_cc_id.blank?
           # Plan 14-02.3 / F-6: Sportwart-Vokabular.
