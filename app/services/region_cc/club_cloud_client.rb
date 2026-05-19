@@ -489,10 +489,39 @@ class RegionCc::ClubCloudClient
 
   attr_reader :base_url, :username, :userpw
 
+  # Plan 14-G.13.1 Task 2: Net::HTTP Keep-Alive — TLS-Handshake nur beim ersten Call
+  # pro (host, port)-Combo, danach Connection-Reuse innerhalb dieses Client-Lifecycles.
+  HTTP_KEEPALIVE_TIMEOUT = 30 # Sekunden
+
   def initialize(base_url:, username:, userpw:)
     @base_url = base_url
     @username = username
     @userpw = userpw
+    @http_pool = {}
+  end
+
+  # Plan 14-G.13.1 Task 2: Reusable Net::HTTP-Instance pro (host, port).
+  # use_ssl wird einmalig gesetzt; keep_alive_timeout ermöglicht Connection-Reuse.
+  def http_for(uri)
+    key = [uri.host, uri.port]
+    @http_pool[key] ||= begin
+      http = Net::HTTP.new(uri.host, uri.port)
+      http.use_ssl = (uri.scheme == "https")
+      http.keep_alive_timeout = HTTP_KEEPALIVE_TIMEOUT
+      http
+    end
+  end
+
+  # Plan 14-G.13.1 Task 2: Defensive Retry bei Stale-Connection
+  # (Server hat keep-alive Connection im Pool gedroppt). Pool-Entry verwerfen + 1× retry.
+  def request_with_keepalive_retry(uri)
+    http = http_for(uri)
+    yield http
+  rescue Errno::EPIPE, IOError => e
+    Rails.logger.warn "[ClubCloudClient] Stale connection (#{e.class}) for #{uri.host}:#{uri.port}, retrying with fresh instance"
+    @http_pool.delete([uri.host, uri.port])
+    http = http_for(uri)
+    yield http
   end
 
   # Fuehrt einen GET-Request durch, ermittelt URL aus PATH_MAP[action][0].
@@ -512,8 +541,6 @@ class RegionCc::ClubCloudClient
     referer = base_url + get_options.delete(:referer).to_s
     Rails.logger.debug "[get_cc] GET #{action} with payload #{get_options}"
     uri = URI(url)
-    http = Net::HTTP.new(uri.host, uri.port)
-    http.use_ssl = true
     req = Net::HTTP::Get.new(uri.path)
     req.set_form_data(get_options)
     # Einen neuen Request mit Query-String bauen (set_form_data setzt body, nicht URI)
@@ -521,7 +548,8 @@ class RegionCc::ClubCloudClient
     req["cookie"] = "PHPSESSID=#{opts[:session_id]}" if opts[:session_id].present?
     req["referer"] = referer if referer.present?
     t0 = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-    res = http.request(req)
+    # Plan 14-G.13.1 Task 2: Net::HTTP Keep-Alive via http_for-Pool + EPIPE-Retry.
+    res = request_with_keepalive_retry(uri) { |http| http.request(req) }
     elapsed_ms = ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - t0) * 1000).round(1)
     Rails.logger.info "[CC-LATENCY] verb=GET action=#{action} host=#{uri.host} path=#{uri.path} elapsed_ms=#{elapsed_ms} status=#{res&.code} body_bytes=#{res&.body&.bytesize}"
     doc = if res.message == "OK"
@@ -551,8 +579,6 @@ class RegionCc::ClubCloudClient
       res = nil
       if !dry_run || read_only_action
         uri = URI(url)
-        http = Net::HTTP.new(uri.host, uri.port)
-        http.use_ssl = true
         req = Net::HTTP::Post.new(uri.request_uri)
         req["cookie"] = "PHPSESSID=#{opts[:session_id]}"
         req["Content-Type"] = "application/x-www-form-urlencoded"
@@ -570,7 +596,8 @@ class RegionCc::ClubCloudClient
         filtered = post_options.reject { |k, v| v.blank? && !keep_blanks.include?(k.to_sym) }
         req.set_form_data(filtered)
         t0 = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-        res = http.request(req)
+        # Plan 14-G.13.1 Task 2: Net::HTTP Keep-Alive via http_for-Pool + EPIPE-Retry.
+        res = request_with_keepalive_retry(uri) { |http| http.request(req) }
         elapsed_ms = ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - t0) * 1000).round(1)
         Rails.logger.info "[CC-LATENCY] verb=POST action=#{action} host=#{uri.host} path=#{uri.path} elapsed_ms=#{elapsed_ms} status=#{res&.code} body_bytes=#{res&.body&.bytesize} read_only=#{read_only_action ? 1 : 0}"
         doc = if res.message == "OK"
@@ -602,8 +629,6 @@ class RegionCc::ClubCloudClient
       res = nil
       if !dry_run || read_only_action
         uri = URI(url)
-        http = Net::HTTP.new(uri.host, uri.port)
-        http.use_ssl = true
         req = Net::HTTP::Post::Multipart.new(uri.request_uri, post_options)
         req["cookie"] = "PHPSESSID=#{opts[:session_id]}"
         req["referer"] = referer if referer.present?
@@ -613,7 +638,8 @@ class RegionCc::ClubCloudClient
         req["accept"] =
           "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
         t0 = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-        res = http.request(req)
+        # Plan 14-G.13.1 Task 2: Net::HTTP Keep-Alive via http_for-Pool + EPIPE-Retry.
+        res = request_with_keepalive_retry(uri) { |http| http.request(req) }
         elapsed_ms = ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - t0) * 1000).round(1)
         Rails.logger.info "[CC-LATENCY] verb=POST-MULTIPART action=#{action} host=#{uri.host} path=#{uri.path} elapsed_ms=#{elapsed_ms} status=#{res&.code} body_bytes=#{res&.body&.bytesize} read_only=#{read_only_action ? 1 : 0}"
         doc = if res.message == "OK"
