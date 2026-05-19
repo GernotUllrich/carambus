@@ -76,6 +76,18 @@ Rails.application.routes.draw do
     patch "tournament_ccs/:id/registration_list_link",
           to: "tournament_ccs#link_registration_list",
           as: :tournament_cc_registration_list_link
+
+    # Plan 15-02: External-Tournament-Bridge Seeding-Endpoint (devise-jwt-authentifiziert)
+    # D-15-01-A: Service-Account-Pattern analog G.14 (2band-{region}-bridge@carambus.de).
+    get "external_tournament/seeding",
+        to: "external_tournaments#seeding",
+        as: :external_tournament_seeding
+
+    # Plan 15-03: External-Tournament-Bridge Round-Start-Endpoint (devise-jwt-authentifiziert)
+    # D-15-03-A: TableMonitor-Lookup via Table.name == table_no.to_s.
+    post "external_tournament/round_start",
+         to: "external_tournaments#round_start",
+         as: :external_tournament_round_start
   end
 
   # Debug routes (development only)
