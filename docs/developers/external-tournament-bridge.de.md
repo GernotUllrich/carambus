@@ -13,7 +13,7 @@ tauscht mit Carambus über REST folgende Daten aus:
 |----------|----------|-------|--------|
 | Carambus → App | `GET /api/external_tournament/seeding` | Setzliste mit Players/Teams | ✅ v0.5 (Plan 15-02) |
 | App → Carambus | `POST /api/external_tournament/round_start` | Tisch-Paarungen → Game-Creation + Scoreboard-Aktivierung | ✅ v0.5 (Plan 15-03) |
-| Carambus → App | `GET /api/external_tournament/round_result` | Game-Ergebnisse zur Übernahme | 🚧 v0.5 (Plan 15-04, geplant) |
+| Carambus → App | `GET /api/external_tournament/round_result` | Game-Ergebnisse zur Übernahme | ✅ v0.5 (Plan 15-04) |
 
 **Eliminiert die Doppel-Erfassung** zwischen externer App und Carambus-Scoreboards.
 
@@ -191,14 +191,80 @@ Garantiert durch:
 - Unique-Index `[game_id, player_id, role]` auf `game_participations`
 - TableMonitor-Reassignment nur wenn `game_id` noch nicht passt
 
-## Endpoint 3: Round-Result (Plan 15-04, geplant)
+## Endpoint 3: Round-Result (Plan 15-04)
 
 ```
-GET /api/external_tournament/round_result?tournament_cc_id=X&round_no=N&region=NBV
+GET /api/external_tournament/round_result?tournament_cc_id=12345&round_no=1&region=NBV
+Authorization: Bearer …
 ```
 
-Spec folgt in Plan 15-04. Aggregiert `GameParticipation` einer Runde zu
-App-konformem Result-Doc (`carambus.round_result/v1`).
+Response (`200 OK`): `carambus.round_result/v1`-konformes JSON-Dokument.
+
+```json
+{
+  "schema": "carambus.round_result/v1",
+  "region": { "shortname": "NBV" },
+  "tournament": { "cc_id": 12345 },
+  "round_no": 1,
+  "results": [
+    {
+      "external_id": "ms3b-2026-r1-tisch5-pos1",
+      "table_no": 5,
+      "started_at": "2026-05-17T11:05:00+02:00",
+      "ended_at":   "2026-05-17T11:42:00+02:00",
+      "innings_played": 22,
+      "participants": [
+        { "role": "playera", "player": {"cc_id": 9001, "firstname": "Hans", "lastname": "Müller"},
+          "points": 30, "innings": 22, "high_series": 5, "gd": 1.364 },
+        { "role": "playerb", "player": {"cc_id": 9031, "firstname": "Peter", "lastname": "Schmidt"},
+          "points": 24, "innings": 22, "high_series": 4, "gd": 1.091 }
+      ]
+    }
+  ]
+}
+```
+
+### Mapping (Carambus → Spec)
+
+| Spec-Feld | Carambus-Quelle | Notiz |
+|-----------|-----------------|-------|
+| `external_id` | `Game.data["external_id"]` | Aus Round-Start-Push (Plan 15-03) |
+| `table_no` | `Game.table_no` | — |
+| `started_at` / `ended_at` | `Game.started_at` / `Game.ended_at` | ISO-8601; `null` falls nicht gesetzt |
+| `innings_played` | `max(GameParticipation.innings)` | Nachstoß-tolerant (3-Band) |
+| `participants[].role` | `GameParticipation.role` | `playera` / `playerb` / `playerN` |
+| `participants[].player.cc_id` | `Player.cc_id` | Optional |
+| `participants[].player.firstname` / `.lastname` | `Player.firstname` / `.lastname` | Display-Name |
+| `participants[].points` | `GameParticipation.points` | Bälle |
+| `participants[].innings` | `GameParticipation.innings` | Aufnahmen |
+| `participants[].high_series` | `GameParticipation.hs` | Höchstserie |
+| `participants[].gd` | `GameParticipation.gd` ODER berechnet | DB-Wert bevorzugt; sonst `points/innings`, 3 Nachkommastellen |
+| `participants[].sets` | `GameParticipation.sets` | Optional, nur wenn vorhanden |
+
+### Verhalten (Decisions D-15-04-A..F)
+
+- **D-15-04-A**: Filter via `Tournament.games.where(round_no: N)`. Leere Runde → `200 OK`
+  mit `results: []` (nicht 404 — App soll robust mit Empty-Round umgehen).
+- **D-15-04-B**: **Alle** Games der Runde werden inkludiert — auch ohne `ended_at`
+  (laufende Spiele). App entscheidet selbst, was sie damit macht.
+- **D-15-04-C**: `innings_played` = `max(GameParticipation.innings)` (Nachstoß-tolerant
+  für 3-Band: playerA kann 22 Aufnahmen haben, playerB 21).
+- **D-15-04-D**: `gd` aus DB übernommen falls vorhanden, sonst aus `points/innings`
+  berechnet (gerundet auf 3 Nachkommastellen).
+- **D-15-04-E**: Player-Serialization analog 15-02 Seeding (cc_id/firstname/lastname);
+  `dbu_nr` weggelassen (App matched primär über `external_id` + `role`).
+- **D-15-04-F**: `round_no` Query-Param ist **required**. Fehlt oder nicht-numerisch →
+  `422` mit klarer Fehlermeldung.
+- **Sortierung**: nach `Game.seqno`, dann `Game.id` als Tiebreaker.
+
+### Fehler-Codes
+
+| Status | Bedeutung |
+|--------|-----------|
+| 401 | Fehlende/ungültige JWT |
+| 404 | TournamentCc / Region nicht gefunden |
+| 422 | Region-Mismatch / `round_no` fehlt oder nicht numerisch |
+| 200 | Round-Result-Doc (auch bei leeren Runden mit `results: []`) |
 
 ## Service-Layer
 
@@ -223,6 +289,14 @@ unbekannte Player manuell in der CC-UI an.
 - TableMonitor-Assignment nur wenn nötig (skip wenn `game_id` bereits
   korrekt)
 
+### `ExternalTournament::RoundResultAggregator` (Plan 15-04)
+
+- **Read-only** Aggregator (keine DB-Writes, keine Transaction nötig)
+- Filter: `tournament.games.where(round_no: N)` mit `seqno`-Order
+- `innings_played` = `max(participants.innings)` — Nachstoß-tolerant
+- `gd`-Fallback: DB-Wert oder berechnet aus `points/innings` (3 Nachkommastellen)
+- Inkludiert auch laufende Games (ohne `ended_at`)
+
 ## Verwandte Decisions
 
 | Decision | Wirkbereich |
@@ -231,6 +305,12 @@ unbekannte Player manuell in der CC-UI an.
 | D-15-02-A | Mapping-Decisions (synonyms-newline-split + balls_goal→target_points etc.) |
 | D-15-02-B | Service-Account-Email = `2band-{region}-bridge@carambus.de` |
 | D-15-03-A | Tisch-Identifikation via `Table.name == table_no.to_s` |
+| D-15-04-A | Round-Result: leere Runde → `200 OK` mit `results: []` |
+| D-15-04-B | Laufende Games (`ended_at: nil`) sind im Round-Result enthalten |
+| D-15-04-C | `innings_played` = max(participant.innings) (Nachstoß-tolerant) |
+| D-15-04-D | `gd` aus DB übernehmen falls vorhanden, sonst aus `points/innings` berechnen |
+| D-15-04-E | Player-Serialization: cc_id/firstname/lastname (dbu_nr weggelassen) |
+| D-15-04-F | `round_no` Query-Param ist required (422 wenn fehlt/non-numeric) |
 
 Siehe `.paul/STATE.md` für vollständige Decision-Records.
 

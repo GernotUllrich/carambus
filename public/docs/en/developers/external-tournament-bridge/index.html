@@ -2295,11 +2295,44 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#endpoint-3-round-result-plan-15-04-planned" class="md-nav__link">
+  <a href="#endpoint-3-round-result-plan-15-04" class="md-nav__link">
     <span class="md-ellipsis">
-      Endpoint 3: Round Result (Plan 15-04, planned)
+      Endpoint 3: Round Result (Plan 15-04)
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Endpoint 3: Round Result (Plan 15-04)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#mapping-carambus-spec" class="md-nav__link">
+    <span class="md-ellipsis">
+      Mapping (Carambus → spec)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#behavior-decisions-d-15-04-af" class="md-nav__link">
+    <span class="md-ellipsis">
+      Behavior (decisions D-15-04-A..F)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#error-codes_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Error codes
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -2326,6 +2359,15 @@
   <a href="#externaltournamentroundstartprocessor-plan-15-03" class="md-nav__link">
     <span class="md-ellipsis">
       ExternalTournament::RoundStartProcessor (Plan 15-03)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#externaltournamentroundresultaggregator-plan-15-04" class="md-nav__link">
+    <span class="md-ellipsis">
+      ExternalTournament::RoundResultAggregator (Plan 15-04)
     </span>
   </a>
   
@@ -3399,11 +3441,44 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#endpoint-3-round-result-plan-15-04-planned" class="md-nav__link">
+  <a href="#endpoint-3-round-result-plan-15-04" class="md-nav__link">
     <span class="md-ellipsis">
-      Endpoint 3: Round Result (Plan 15-04, planned)
+      Endpoint 3: Round Result (Plan 15-04)
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Endpoint 3: Round Result (Plan 15-04)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#mapping-carambus-spec" class="md-nav__link">
+    <span class="md-ellipsis">
+      Mapping (Carambus → spec)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#behavior-decisions-d-15-04-af" class="md-nav__link">
+    <span class="md-ellipsis">
+      Behavior (decisions D-15-04-A..F)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#error-codes_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Error codes
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -3430,6 +3505,15 @@
   <a href="#externaltournamentroundstartprocessor-plan-15-03" class="md-nav__link">
     <span class="md-ellipsis">
       ExternalTournament::RoundStartProcessor (Plan 15-03)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#externaltournamentroundresultaggregator-plan-15-04" class="md-nav__link">
+    <span class="md-ellipsis">
+      ExternalTournament::RoundResultAggregator (Plan 15-04)
     </span>
   </a>
   
@@ -3530,7 +3614,7 @@ exchanges the following data with Carambus over REST:</p>
 <td>Carambus → App</td>
 <td><code>GET /api/external_tournament/round_result</code></td>
 <td>Game results to import into the app</td>
-<td>🚧 v0.5 (Plan 15-04, planned)</td>
+<td>✅ v0.5 (Plan 15-04)</td>
 </tr>
 </tbody>
 </table>
@@ -3718,11 +3802,148 @@ duplicates. Guaranteed by:</p>
 <li>Unique index <code>[game_id, player_id, role]</code> on <code>game_participations</code></li>
 <li>TableMonitor reassignment only when <code>game_id</code> does not already match</li>
 </ul>
-<h2 id="endpoint-3-round-result-plan-15-04-planned">Endpoint 3: Round Result (Plan 15-04, planned)<a class="headerlink" href="#endpoint-3-round-result-plan-15-04-planned" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>GET /api/external_tournament/round_result?tournament_cc_id=X&amp;round_no=N&amp;region=NBV
+<h2 id="endpoint-3-round-result-plan-15-04">Endpoint 3: Round Result (Plan 15-04)<a class="headerlink" href="#endpoint-3-round-result-plan-15-04" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>GET /api/external_tournament/round_result?tournament_cc_id=12345&amp;round_no=1&amp;region=NBV
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>Authorization: Bearer …
 </code></pre></div>
-<p>Spec follows in Plan 15-04. Aggregates <code>GameParticipation</code> records of one
-round into an app-compatible result document (<code>carambus.round_result/v1</code>).</p>
+<p>Response (<code>200 OK</code>): <code>carambus.round_result/v1</code>-compliant JSON document.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="p">{</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">  </span><span class="nt">&quot;schema&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;carambus.round_result/v1&quot;</span><span class="p">,</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="w">  </span><span class="nt">&quot;region&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;shortname&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;NBV&quot;</span><span class="w"> </span><span class="p">},</span>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="w">  </span><span class="nt">&quot;tournament&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;cc_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">12345</span><span class="w"> </span><span class="p">},</span>
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="w">  </span><span class="nt">&quot;round_no&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="w">  </span><span class="nt">&quot;results&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="w">    </span><span class="p">{</span>
+<a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="w">      </span><span class="nt">&quot;external_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ms3b-2026-r1-tisch5-pos1&quot;</span><span class="p">,</span>
+<a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a><span class="w">      </span><span class="nt">&quot;table_no&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">5</span><span class="p">,</span>
+<a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a><span class="w">      </span><span class="nt">&quot;started_at&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2026-05-17T11:05:00+02:00&quot;</span><span class="p">,</span>
+<a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a><span class="w">      </span><span class="nt">&quot;ended_at&quot;</span><span class="p">:</span><span class="w">   </span><span class="s2">&quot;2026-05-17T11:42:00+02:00&quot;</span><span class="p">,</span>
+<a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a><span class="w">      </span><span class="nt">&quot;innings_played&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">22</span><span class="p">,</span>
+<a id="__codelineno-9-13" name="__codelineno-9-13" href="#__codelineno-9-13"></a><span class="w">      </span><span class="nt">&quot;participants&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<a id="__codelineno-9-14" name="__codelineno-9-14" href="#__codelineno-9-14"></a><span class="w">        </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;role&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;playera&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;player&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;cc_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">9001</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;firstname&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Hans&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;lastname&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Müller&quot;</span><span class="p">},</span>
+<a id="__codelineno-9-15" name="__codelineno-9-15" href="#__codelineno-9-15"></a><span class="w">          </span><span class="nt">&quot;points&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">30</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;innings&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">22</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;high_series&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">5</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;gd&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">1.364</span><span class="w"> </span><span class="p">},</span>
+<a id="__codelineno-9-16" name="__codelineno-9-16" href="#__codelineno-9-16"></a><span class="w">        </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;role&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;playerb&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;player&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;cc_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">9031</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;firstname&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Peter&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;lastname&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Schmidt&quot;</span><span class="p">},</span>
+<a id="__codelineno-9-17" name="__codelineno-9-17" href="#__codelineno-9-17"></a><span class="w">          </span><span class="nt">&quot;points&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">24</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;innings&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">22</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;high_series&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">4</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;gd&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">1.091</span><span class="w"> </span><span class="p">}</span>
+<a id="__codelineno-9-18" name="__codelineno-9-18" href="#__codelineno-9-18"></a><span class="w">      </span><span class="p">]</span>
+<a id="__codelineno-9-19" name="__codelineno-9-19" href="#__codelineno-9-19"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-9-20" name="__codelineno-9-20" href="#__codelineno-9-20"></a><span class="w">  </span><span class="p">]</span>
+<a id="__codelineno-9-21" name="__codelineno-9-21" href="#__codelineno-9-21"></a><span class="p">}</span>
+</code></pre></div>
+<h3 id="mapping-carambus-spec">Mapping (Carambus → spec)<a class="headerlink" href="#mapping-carambus-spec" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Spec field</th>
+<th>Carambus source</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>external_id</code></td>
+<td><code>Game.data["external_id"]</code></td>
+<td>From round-start push (Plan 15-03)</td>
+</tr>
+<tr>
+<td><code>table_no</code></td>
+<td><code>Game.table_no</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>started_at</code> / <code>ended_at</code></td>
+<td><code>Game.started_at</code> / <code>Game.ended_at</code></td>
+<td>ISO-8601; <code>null</code> if not set</td>
+</tr>
+<tr>
+<td><code>innings_played</code></td>
+<td><code>max(GameParticipation.innings)</code></td>
+<td>Carom-style "nachstoß" tolerant</td>
+</tr>
+<tr>
+<td><code>participants[].role</code></td>
+<td><code>GameParticipation.role</code></td>
+<td><code>playera</code> / <code>playerb</code> / <code>playerN</code></td>
+</tr>
+<tr>
+<td><code>participants[].player.cc_id</code></td>
+<td><code>Player.cc_id</code></td>
+<td>Optional</td>
+</tr>
+<tr>
+<td><code>participants[].player.firstname</code> / <code>.lastname</code></td>
+<td><code>Player.firstname</code> / <code>.lastname</code></td>
+<td>Display name</td>
+</tr>
+<tr>
+<td><code>participants[].points</code></td>
+<td><code>GameParticipation.points</code></td>
+<td>Balls</td>
+</tr>
+<tr>
+<td><code>participants[].innings</code></td>
+<td><code>GameParticipation.innings</code></td>
+<td>Innings played</td>
+</tr>
+<tr>
+<td><code>participants[].high_series</code></td>
+<td><code>GameParticipation.hs</code></td>
+<td>Highest series</td>
+</tr>
+<tr>
+<td><code>participants[].gd</code></td>
+<td><code>GameParticipation.gd</code> OR computed</td>
+<td>DB value preferred; else <code>points/innings</code>, 3 decimals</td>
+</tr>
+<tr>
+<td><code>participants[].sets</code></td>
+<td><code>GameParticipation.sets</code></td>
+<td>Optional, only when present</td>
+</tr>
+</tbody>
+</table>
+<h3 id="behavior-decisions-d-15-04-af">Behavior (decisions D-15-04-A..F)<a class="headerlink" href="#behavior-decisions-d-15-04-af" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>D-15-04-A</strong>: Filter via <code>Tournament.games.where(round_no: N)</code>. Empty round →
+  <code>200 OK</code> with <code>results: []</code> (not 404 — app should handle empty rounds robustly).</li>
+<li><strong>D-15-04-B</strong>: <strong>All</strong> games of the round are included — even without <code>ended_at</code>
+  (ongoing games). App decides what to do with them.</li>
+<li><strong>D-15-04-C</strong>: <code>innings_played</code> = <code>max(GameParticipation.innings)</code> (3-cushion
+  "nachstoß" tolerant: playerA may have 22 innings, playerB 21).</li>
+<li><strong>D-15-04-D</strong>: <code>gd</code> taken from DB if present, else computed from <code>points/innings</code>
+  (rounded to 3 decimals).</li>
+<li><strong>D-15-04-E</strong>: Player serialization like Plan 15-02 seeding (cc_id/firstname/lastname);
+  <code>dbu_nr</code> omitted (app matches primarily via <code>external_id</code> + <code>role</code>).</li>
+<li><strong>D-15-04-F</strong>: <code>round_no</code> query parameter is <strong>required</strong>. Missing or non-numeric →
+  <code>422</code> with a clear error message.</li>
+<li><strong>Ordering</strong>: by <code>Game.seqno</code>, then <code>Game.id</code> as tiebreaker.</li>
+</ul>
+<h3 id="error-codes_1">Error codes<a class="headerlink" href="#error-codes_1" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Status</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>401</td>
+<td>Missing/invalid JWT</td>
+</tr>
+<tr>
+<td>404</td>
+<td>TournamentCc / region not found</td>
+</tr>
+<tr>
+<td>422</td>
+<td>Region mismatch / <code>round_no</code> missing or non-numeric</td>
+</tr>
+<tr>
+<td>200</td>
+<td>Round-result document (also for empty rounds with <code>results: []</code>)</td>
+</tr>
+</tbody>
+</table>
 <h2 id="service-layer">Service layer<a class="headerlink" href="#service-layer" title="Permanent link">&para;</a></h2>
 <h3 id="externaltournamentplayermatcher-plan-15-02"><code>ExternalTournament::PlayerMatcher</code> (Plan 15-02)<a class="headerlink" href="#externaltournamentplayermatcher-plan-15-02" title="Permanent link">&para;</a></h3>
 <p>Three-path fallback lookup:</p>
@@ -3742,6 +3963,14 @@ unknown players manually in the CC UI.</p>
 <li>Idempotency via <code>Game.data["external_id"]</code> lookup</li>
 <li>TableMonitor assignment only when needed (skip if <code>game_id</code> already
   correct)</li>
+</ul>
+<h3 id="externaltournamentroundresultaggregator-plan-15-04"><code>ExternalTournament::RoundResultAggregator</code> (Plan 15-04)<a class="headerlink" href="#externaltournamentroundresultaggregator-plan-15-04" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Read-only</strong> aggregator (no DB writes, no transaction needed)</li>
+<li>Filter: <code>tournament.games.where(round_no: N)</code> ordered by <code>seqno</code></li>
+<li><code>innings_played</code> = <code>max(participants.innings)</code> — nachstoß-tolerant</li>
+<li><code>gd</code> fallback: DB value or computed from <code>points/innings</code> (3 decimals)</li>
+<li>Also includes ongoing games (without <code>ended_at</code>)</li>
 </ul>
 <h2 id="related-decisions">Related decisions<a class="headerlink" href="#related-decisions" title="Permanent link">&para;</a></h2>
 <table>
@@ -3768,14 +3997,38 @@ unknown players manually in the CC UI.</p>
 <td>D-15-03-A</td>
 <td>Table identification via <code>Table.name == table_no.to_s</code></td>
 </tr>
+<tr>
+<td>D-15-04-A</td>
+<td>Round result: empty round → <code>200 OK</code> with <code>results: []</code></td>
+</tr>
+<tr>
+<td>D-15-04-B</td>
+<td>Ongoing games (<code>ended_at: nil</code>) are included in round result</td>
+</tr>
+<tr>
+<td>D-15-04-C</td>
+<td><code>innings_played</code> = max(participant.innings) (nachstoß-tolerant)</td>
+</tr>
+<tr>
+<td>D-15-04-D</td>
+<td><code>gd</code> taken from DB if present, else computed from <code>points/innings</code></td>
+</tr>
+<tr>
+<td>D-15-04-E</td>
+<td>Player serialization: cc_id/firstname/lastname (dbu_nr omitted)</td>
+</tr>
+<tr>
+<td>D-15-04-F</td>
+<td><code>round_no</code> query param is required (422 if missing/non-numeric)</td>
+</tr>
 </tbody>
 </table>
 <p>See <code>.paul/STATE.md</code> for full decision records.</p>
 <h2 id="tests">Tests<a class="headerlink" href="#tests" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="nb">cd</span><span class="w"> </span>carambus_master
-<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>bin/rails<span class="w"> </span><span class="nb">test</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="w">  </span>test/controllers/api/external_tournaments_controller_test.rb<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="w">  </span>test/services/external_tournament/
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="nb">cd</span><span class="w"> </span>carambus_master
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>bin/rails<span class="w"> </span><span class="nb">test</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="w">  </span>test/controllers/api/external_tournaments_controller_test.rb<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="w">  </span>test/services/external_tournament/
 </code></pre></div>
 <h2 id="spec-source-external">Spec source (external)<a class="headerlink" href="#spec-source-external" title="Permanent link">&para;</a></h2>
 <p>JSON schema documentation:
