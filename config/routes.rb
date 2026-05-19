@@ -88,6 +88,12 @@ Rails.application.routes.draw do
     post "external_tournament/round_start",
          to: "external_tournaments#round_start",
          as: :external_tournament_round_start
+
+    # Plan 15-04: External-Tournament-Bridge Round-Result-Endpoint (devise-jwt, read-only)
+    # D-15-04-A..F: Aggregator-Pattern; round_no required; empty round → 200/[].
+    get "external_tournament/round_result",
+        to: "external_tournaments#round_result",
+        as: :external_tournament_round_result
   end
 
   # Debug routes (development only)

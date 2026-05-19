@@ -239,6 +239,85 @@ module Api
       assert_equal games_before, Game.count
     end
 
+    # === Plan 15-04: Round-Result-Endpoint Tests ===
+
+    # AC-1: ohne JWT → 401
+    test "round_result without Authorization returns 401" do
+      get_round_result(tournament_cc_id: 999_201, round_no: 1, region: "NBV", jwt: nil)
+      assert_response :unauthorized
+    end
+
+    # AC-2: mismatched region → 404
+    test "round_result with mismatched region returns 404" do
+      get_round_result(tournament_cc_id: 999_201, round_no: 1, region: "BVBW", jwt: login_jwt)
+      assert_response :not_found
+    end
+
+    # AC-3: round_no missing → 422
+    test "round_result without round_no returns 422" do
+      get_round_result(tournament_cc_id: 999_201, round_no: nil, region: "NBV", jwt: login_jwt)
+      assert_response :unprocessable_entity
+      body = JSON.parse(response.body)
+      assert_match(/round_no/i, body["error"].to_s)
+    end
+
+    # AC-3: round_no non-numeric → 422
+    test "round_result with non-numeric round_no returns 422" do
+      get_round_result(tournament_cc_id: 999_201, round_no: "abc", region: "NBV", jwt: login_jwt)
+      assert_response :unprocessable_entity
+    end
+
+    # AC-4: Happy-Path — vollständiges round_result/v1
+    test "round_result happy path returns carambus.round_result/v1 doc" do
+      setup_round_result_fixtures!
+
+      get_round_result(tournament_cc_id: 999_201, round_no: 1, region: "NBV", jwt: login_jwt)
+      assert_response :ok
+      body = JSON.parse(response.body)
+      assert_equal "carambus.round_result/v1", body["schema"]
+      assert_equal "NBV", body["region"]["shortname"]
+      assert_equal 999_201, body["tournament"]["cc_id"]
+      assert_equal 1, body["round_no"]
+      assert_equal 2, body["results"].size
+
+      first = body["results"].first
+      assert_equal "rr-test-ext-1", first["external_id"]
+      assert_equal 5, first["table_no"]
+      assert_equal 22, first["innings_played"]
+      assert_equal 2, first["participants"].size
+
+      pa = first["participants"].find { |p| p["role"] == "playera" }
+      assert_equal 30, pa["points"]
+      assert_equal 22, pa["innings"]
+      assert_equal 5, pa["high_series"]
+    end
+
+    # AC-5: leere Runde → 200 mit empty results[]
+    test "round_result with empty round returns 200 with empty results" do
+      setup_round_result_fixtures!
+
+      get_round_result(tournament_cc_id: 999_201, round_no: 99, region: "NBV", jwt: login_jwt)
+      assert_response :ok
+      body = JSON.parse(response.body)
+      assert_equal "carambus.round_result/v1", body["schema"]
+      assert_equal 99, body["round_no"]
+      assert_equal [], body["results"]
+    end
+
+    # AC-6: laufende Games (ended_at nil) sind included
+    test "round_result includes ongoing games (ended_at nil)" do
+      setup_round_result_fixtures!
+      # Game 2 hat keinen ended_at gesetzt (siehe Fixture-Setup)
+
+      get_round_result(tournament_cc_id: 999_201, round_no: 1, region: "NBV", jwt: login_jwt)
+      assert_response :ok
+      body = JSON.parse(response.body)
+      ongoing = body["results"].find { |r| r["external_id"] == "rr-test-ext-2" }
+      assert_not_nil ongoing
+      assert_nil ongoing["ended_at"]
+      assert_not_nil ongoing["started_at"]
+    end
+
     private
 
     # === Round-Start-Test-Fixtures ===
@@ -262,6 +341,51 @@ module Api
       @table_b&.destroy
       @tm_a&.destroy
       @tm_b&.destroy
+    end
+
+    # === Round-Result-Test-Fixtures ===
+
+    def setup_round_result_fixtures!
+      @player_a = players(:jaspers)
+      @player_b = players(:cho)
+
+      # Tournament hat has_many :games, as: :tournament (polymorphic-from-Tournament);
+      # daher via @tournament.games.create! erstellen damit tournament_type gesetzt wird.
+      @rr_game_1 = @tournament.games.create!(
+        round_no: 1,
+        gname: "RR-G1",
+        seqno: 1,
+        table_no: 5,
+        started_at: Time.zone.parse("2026-05-17 11:05:00 +0200"),
+        ended_at: Time.zone.parse("2026-05-17 11:42:00 +0200"),
+        data: {external_id: "rr-test-ext-1"}
+      )
+      GameParticipation.create!(game: @rr_game_1, player: @player_a, role: "playera",
+                                points: 30, innings: 22, hs: 5, gd: 1.364)
+      GameParticipation.create!(game: @rr_game_1, player: @player_b, role: "playerb",
+                                points: 24, innings: 22, hs: 4)
+
+      # Game 2: laufend (kein ended_at gesetzt)
+      @rr_game_2 = @tournament.games.create!(
+        round_no: 1,
+        gname: "RR-G2",
+        seqno: 2,
+        table_no: 6,
+        started_at: Time.zone.parse("2026-05-17 11:05:00 +0200"),
+        data: {external_id: "rr-test-ext-2"}
+      )
+      GameParticipation.create!(game: @rr_game_2, player: @player_a, role: "playera",
+                                points: 12, innings: 10, hs: 3)
+      GameParticipation.create!(game: @rr_game_2, player: @player_b, role: "playerb",
+                                points: 9, innings: 10, hs: 2)
+    end
+
+    def get_round_result(tournament_cc_id:, round_no:, region:, jwt:)
+      headers = {"Content-Type" => "application/json", "Accept" => "application/json"}
+      headers["Authorization"] = "Bearer #{jwt}" if jwt
+      params = {tournament_cc_id: tournament_cc_id, region: region}
+      params[:round_no] = round_no unless round_no.nil?
+      get "/api/external_tournament/round_result", params: params, headers: headers
     end
 
     def minimal_round_start_payload

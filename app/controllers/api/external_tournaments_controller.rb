@@ -98,7 +98,58 @@ module Api
       render json: {error: e.message}, status: :unprocessable_entity
     end
 
+    # GET /api/external_tournament/round_result?tournament_cc_id=X&round_no=N&region=NBV
+    #
+    # Aggregiert alle Games der angegebenen Runde zu einem carambus.round_result/v1-Doc.
+    # Read-only Endpoint (keine DB-Writes).
+    #
+    # Response (200): carambus.round_result/v1-JSON mit results[]-Array (kann leer sein).
+    #
+    # Errors:
+    #   - 401 — fehlende/ungültige JWT
+    #   - 404 — TournamentCc / Region nicht gefunden
+    #   - 422 — Region-Mismatch / round_no fehlt oder nicht numerisch
+    def round_result
+      region = Region.find_by!(shortname: params[:region].to_s.upcase)
+      tournament_cc = TournamentCc.find_by!(
+        cc_id: params[:tournament_cc_id],
+        context: region.shortname.downcase
+      )
+
+      tournament = tournament_cc.tournament
+      if tournament.nil?
+        return render json: {error: "Tournament not yet linked"}, status: :unprocessable_entity
+      end
+      if tournament.region_id != region.id
+        return render json: {error: "Region mismatch"}, status: :unprocessable_entity
+      end
+
+      round_no = parse_round_no(params[:round_no])
+      if round_no.nil?
+        return render json: {error: "round_no is required and must be numeric"}, status: :unprocessable_entity
+      end
+
+      payload = ExternalTournament::RoundResultAggregator.new(
+        tournament: tournament,
+        tournament_cc: tournament_cc,
+        region: region,
+        round_no: round_no
+      ).call
+
+      render json: payload
+    rescue ActiveRecord::RecordNotFound => e
+      render json: {error: e.message}, status: :not_found
+    end
+
     private
+
+    # D-15-04-F: round_no Query-Param ist required; nicht-numerisch → nil → 422.
+    def parse_round_no(raw)
+      return nil if raw.blank?
+      raw_str = raw.to_s.strip
+      return nil unless raw_str.match?(/\A\d+\z/)
+      raw_str.to_i
+    end
 
     # Strong-Parameters für POST round_start.
     def round_start_params
