@@ -169,29 +169,66 @@ module McpServer
           DRY_RUN
         end
 
+        # Step 0 (NEU): Init editMeldelisteCheck mit editUp=LEER — lädt DB→Server-Scratch.
+        # Plan 14-G.13 Bug #2 (2026-05-19, HAR tmp/add-2.har Entry 0): Browser sendet
+        # `editUp=` LEER (NICHT `edit=` wie bei REGISTER — PHP unterscheidet die beiden!).
+        # Ohne diesen Init bleibt Server-Scratch leer → saveMeldeliste = OVERWRITE der DB
+        # mit leerem Scratch → alle Player verloren. showCommittedMeldeliste (Pre-Read oben)
+        # füllt den Scratch NICHT (CC-UI-WORKFLOW.md 2026-05-18).
+        # 9-Felder-MINIMAL-Payload: KEIN firstEntry, KEIN selectedClubId (würden Scratch-Load kippen).
+        init_payload = {
+          fedId: fed_id, disciplinId: "*", season: season, catId: "*",
+          meldelisteId: meldeliste_cc_id, sortOrder: "player",
+          clubId: club_cc_id, branchId: branch_cc_id,
+          editUp: ""
+        }
+        init_res, _init_doc = client.post(
+          "sportwart-editMeldelisteCheck",
+          init_payload,
+          {armed: armed, session_id: cc_session.cookie, keep_blanks: [:editUp]}
+        )
+        return error("Unexpected nil response from CC (initial editMeldelisteCheck before remove).") if init_res.nil?
+        return error("CC rejected at initial editMeldelisteCheck before remove: HTTP #{init_res&.code}") if init_res&.code != "200"
+
         # Step 2: cc_remove.php (removePlayerFromMeldeliste action)
-        remove_payload = base_payload.merge(a: effective_id, d: "")
+        # Plan 14-G.13 Bug #2 (HAR Entry 9): Browser sendet `d=<player_cc_id>` (NICHT LEER!)
+        # — das ist der explizite Remove-Marker. `gd=""` wird leer mit-gesendet.
+        # `a=` ist Listen-Eintrags-ID (Browser=10142) ODER player_cc_id-Fallback (effective_id).
+        remove_payload = base_payload.merge(a: effective_id, d: player_cc_id, gd: "")
         rm_res, rm_doc = client.post(
           "removePlayerFromMeldeliste",
           remove_payload,
-          {armed: armed, session_id: cc_session.cookie}
+          {armed: armed, session_id: cc_session.cookie, keep_blanks: [:gd]}
         )
         return error("Unexpected nil response from CC (cc_remove, armed mode).") if rm_res.nil?
         return error("CC rejected at cc_remove: #{parse_cc_error(rm_doc)} (HTTP #{rm_res&.code})") if rm_res&.code != "200"
         rm_parsed = parse_cc_error(rm_doc)
         return error("CC rejected at cc_remove: #{rm_parsed}") if rm_parsed && rm_parsed != "(no error)"
 
-        # Step 3 (entfallen): Re-Render-Step war Phase-7-Pattern für /admin/einzel/meisterschaft/-Pfad.
-        # Meldeliste-Pfad (/admin/myclub/meldewesen/single/) folgt Phase-4-Pattern (cc_add → save direkt;
-        # KEIN Re-Render). Inline-Patch v1 Plan 08-03: Re-Render-Step entfernt, da Endpoint-Familie
-        # unterschiedlich (myclub-Pfad braucht keinen Re-Render zwischen Mutation und Save).
+        # Step 3 (NEU): Re-Render editMeldelisteCheck mit 8-Felder-MINIMAL — Scratch-State persist.
+        # Plan 14-G.13 Bug #2 (HAR Entry 12): Browser macht zwischen cc_remove und saveMeldeliste
+        # einen Re-Render-Call. Felder: fedId, branchId, disciplinId, season, catId, meldelisteId,
+        # selectedClubId, firstEntry (KEIN clubId, KEIN rang, KEIN editUp).
+        # Vorheriger Code-Comment "Step 3 (entfallen)" war faktisch falsch — der Browser macht
+        # diesen Step und CC braucht ihn (vermutlich für Scratch-State-Bestätigung vor Save).
+        rerender_payload = base_payload.except(:clubId, :rang)
+        rr_res, _rr_doc = client.post(
+          "sportwart-editMeldelisteCheck",
+          rerender_payload,
+          {armed: armed, session_id: cc_session.cookie}
+        )
+        return error("Unexpected nil response from CC (Re-Render editMeldelisteCheck).") if rr_res.nil?
+        return error("CC rejected at Re-Render editMeldelisteCheck: HTTP #{rr_res&.code}") if rr_res&.code != "200"
 
         # Step 4: editMeldelisteSave — Commit
-        save_payload = base_payload.merge(a: effective_id, save: "1")
+        # Plan 14-G.13 Bug #2 (HAR Entry 21): Browser sendet `save=` LEER (NICHT "1" wie REGISTER!),
+        # plus `d=""` und `gd=""` als Leer-Marker. Mit `keep_blanks` werden alle drei durchgereicht
+        # statt vom blank-Filter im ClubCloudClient verworfen.
+        save_payload = base_payload.merge(a: effective_id, save: "", d: "", gd: "")
         sv_res, sv_doc = client.post(
           "saveMeldeliste",
           save_payload,
-          {armed: armed, session_id: cc_session.cookie}
+          {armed: armed, session_id: cc_session.cookie, keep_blanks: [:save, :d, :gd]}
         )
         return error("Unexpected nil response from CC (editMeldelisteSave, armed mode).") if sv_res.nil?
         return error("CC rejected at editMeldelisteSave: #{parse_cc_error(sv_doc)} (HTTP #{sv_res&.code})") if sv_res&.code != "200"
