@@ -118,6 +118,7 @@ plugins:
             UMB Scraping Implementation: UMB Scraping Implementierung
             UMB Scraping Methods: UMB Scraping Methoden
             ClubCloud MCP Server: ClubCloud MCP-Server
+            External Tournament Bridge: External-Tournament-Bridge
             Services: Services
             Table Monitor: Table Monitor
             Region CC: Region CC
@@ -208,6 +209,7 @@ nav:
           - UMB Scraping Implementation: developers/umb-scraping-implementation.md
           - UMB Scraping Methods: developers/umb-scraping-methods.md
       - ClubCloud MCP Server: developers/clubcloud-mcp-server.md
+      - External Tournament Bridge: developers/external-tournament-bridge.md
       - Services:
           - Table Monitor: developers/services/table-monitor.md
           - Region CC: developers/services/region-cc.md
