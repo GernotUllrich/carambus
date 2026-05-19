@@ -13,6 +13,10 @@
         <link rel="canonical" href="https://GernotUllrich.github.io/carambus/developers/external-tournament-bridge/">
       
       
+        <link rel="prev" href="../clubcloud-mcp-server/">
+      
+      
+        <link rel="next" href="../services/table-monitor/">
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
@@ -354,10 +358,12 @@
   
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
+      <li class="md-tabs__item md-tabs__item--active">
         <a href="../" class="md-tabs__link">
           
   
@@ -1625,6 +1631,8 @@
       
   
   
+    
+  
   
   
     
@@ -1684,22 +1692,25 @@
       
         
       
+        
+      
     
     
     
+      
+        
+        
       
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
-          
-        
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
         
           
           <div class="md-nav__link md-nav__container">
@@ -1716,13 +1727,13 @@
             </a>
             
               
-              <label class="md-nav__link " for="__nav_6" id="__nav_6_label" tabindex="0">
+              <label class="md-nav__link " for="__nav_6" id="__nav_6_label" tabindex="">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
           </div>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_6">
             <span class="md-nav__icon md-icon"></span>
             Für Entwickler
@@ -1911,10 +1922,13 @@
       
       
         
+          
+          
+        
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
       
         
         
@@ -1923,7 +1937,7 @@
         <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6_9" >
         
           
-          <label class="md-nav__link" for="__nav_6_9" id="__nav_6_9_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_6_9" id="__nav_6_9_label" tabindex="">
             
   
   
@@ -2016,10 +2030,13 @@
       
       
         
+          
+          
+        
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
       
         
         
@@ -2028,7 +2045,7 @@
         <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6_10" >
         
           
-          <label class="md-nav__link" for="__nav_6_10" id="__nav_6_10_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_6_10" id="__nav_6_10_label" tabindex="">
             
   
   
@@ -2129,6 +2146,245 @@
                 
   
   
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    External-Tournament-Bridge
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    External-Tournament-Bridge
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Inhaltsverzeichnis">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Inhaltsverzeichnis
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#was-ist-die-bridge" class="md-nav__link">
+    <span class="md-ellipsis">
+      Was ist die Bridge?
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#deployment-topologie" class="md-nav__link">
+    <span class="md-ellipsis">
+      Deployment-Topologie
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#architektur" class="md-nav__link">
+    <span class="md-ellipsis">
+      Architektur
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#authentifizierung" class="md-nav__link">
+    <span class="md-ellipsis">
+      Authentifizierung
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#endpoint-1-seeding-plan-15-02" class="md-nav__link">
+    <span class="md-ellipsis">
+      Endpoint 1: Seeding (Plan 15-02)
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#endpoint-2-round-start-plan-15-03" class="md-nav__link">
+    <span class="md-ellipsis">
+      Endpoint 2: Round-Start (Plan 15-03)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Endpoint 2: Round-Start (Plan 15-03)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#convention-d-15-03-a-tisch-identifikation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Convention D-15-03-A: Tisch-Identifikation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#voraussetzung" class="md-nav__link">
+    <span class="md-ellipsis">
+      Voraussetzung
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fehler-codes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Fehler-Codes
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#idempotenz" class="md-nav__link">
+    <span class="md-ellipsis">
+      Idempotenz
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#endpoint-3-round-result-plan-15-04-geplant" class="md-nav__link">
+    <span class="md-ellipsis">
+      Endpoint 3: Round-Result (Plan 15-04, geplant)
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#service-layer" class="md-nav__link">
+    <span class="md-ellipsis">
+      Service-Layer
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Service-Layer">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#externaltournamentplayermatcher-plan-15-02" class="md-nav__link">
+    <span class="md-ellipsis">
+      ExternalTournament::PlayerMatcher (Plan 15-02)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#externaltournamentroundstartprocessor-plan-15-03" class="md-nav__link">
+    <span class="md-ellipsis">
+      ExternalTournament::RoundStartProcessor (Plan 15-03)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#verwandte-decisions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Verwandte Decisions
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      Tests
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#spec-quelle-extern" class="md-nav__link">
+    <span class="md-ellipsis">
+      Spec-Quelle (extern)
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#manageruser-doku" class="md-nav__link">
+    <span class="md-ellipsis">
+      Manager/User-Doku
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
   
   
     
@@ -2156,19 +2412,22 @@
       
       
         
+          
+          
+        
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
       
         
         
           
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6_12" >
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6_13" >
         
           
-          <label class="md-nav__link" for="__nav_6_12" id="__nav_6_12_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_6_13" id="__nav_6_13_label" tabindex="">
             
   
   
@@ -2181,8 +2440,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_12_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_6_12">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_13_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6_13">
             <span class="md-nav__icon md-icon"></span>
             Services
           </label>
@@ -3053,6 +3312,15 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#deployment-topologie" class="md-nav__link">
+    <span class="md-ellipsis">
+      Deployment-Topologie
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#architektur" class="md-nav__link">
     <span class="md-ellipsis">
       Architektur
@@ -3229,12 +3497,12 @@
 
 <h1 id="external-tournament-bridge">External-Tournament-Bridge<a class="headerlink" href="#external-tournament-bridge" title="Permanent link">&para;</a></h1>
 <blockquote>
-<p><strong>Status:</strong> v0.5 (In Progress) — Pilot: 2BandTurnier-App für BC Wedel
+<p><strong>Status:</strong> v0.5 (In Progress) — Pilot: 3BandMannschaftsTurnier-App für BC Wedel
 3-Band-Mannschaftsmeisterschaft</p>
 </blockquote>
 <h2 id="was-ist-die-bridge">Was ist die Bridge?<a class="headerlink" href="#was-ist-die-bridge" title="Permanent link">&para;</a></h2>
 <p>Carambus öffnet sich für externe Turnier-Apps. Eine externe App (z.B. die
-2BandTurnier-App für 3-Band-Mannschaftsturniere) führt das Turnier durch und
+3BandMannschaftsTurnier-App für 3-Band-Mannschaftsturniere) führt das Turnier durch und
 tauscht mit Carambus über REST folgende Daten aus:</p>
 <table>
 <thead>
@@ -3267,38 +3535,102 @@ tauscht mit Carambus über REST folgende Daten aus:</p>
 </tbody>
 </table>
 <p><strong>Eliminiert die Doppel-Erfassung</strong> zwischen externer App und Carambus-Scoreboards.</p>
+<h2 id="deployment-topologie">Deployment-Topologie<a class="headerlink" href="#deployment-topologie" title="Permanent link">&para;</a></h2>
+<p>Die Spec ist <strong>endpoint-agnostisch</strong> — die App spricht REST gegen einen
+Carambus-Server, unabhängig davon wo der läuft. Realer Default ist
+<strong>lokal am Spielort</strong> (kein Internet erforderlich):</p>
+<table>
+<thead>
+<tr>
+<th>Topologie</th>
+<th>Beispiel</th>
+<th>App-Reachable Base-URL</th>
+<th>Empfohlen wenn...</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Local Scenario (Default)</strong></td>
+<td><code>carambus_bcw</code> im Clubheim BC Wedel, App auf iPad im selben WLAN</td>
+<td><code>http://carambus.local:3000</code> oder <code>http://192.168.X.X:3000</code></td>
+<td>Single-Location-Turnier (häufigster Fall)</td>
+</tr>
+<tr>
+<td><strong>Per-Region Cloud</strong></td>
+<td><code>nbv.carambus.de</code></td>
+<td><code>https://nbv.carambus.de</code></td>
+<td>Multi-Location-Turnier in einer Region</td>
+</tr>
+<tr>
+<td><strong>Globale Cloud</strong></td>
+<td><code>carambus.de</code></td>
+<td><code>https://carambus.de</code></td>
+<td>Cross-Region-Turnier (selten für externe Apps)</td>
+</tr>
+</tbody>
+</table>
+<p>Service-Account-Anlage + Bearer-Token funktionieren in allen drei Topologien
+identisch — nur die Base-URL und der Service-Account-Email-Suffix unterscheiden
+sich (<code>@carambus.local</code>, <code>@carambus.de</code>).</p>
 <h2 id="architektur">Architektur<a class="headerlink" href="#architektur" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>┌─────────────────┐                              ┌──────────────────────┐
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>│  External App   │   POST /round_start   ───▶ │  Api::ExternalTour-  │
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>│  (2BandTurnier) │ ◀── GET  /seeding           │  namentsController   │
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>│                 │ ◀── GET  /round_result      │                      │
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>└─────────────────┘                              └────────┬─────────────┘
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>                                                          │
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>                              ┌──────────────────────────┴─────────────┐
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>                              │  ExternalTournament-Service-Layer       │
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>                              │  ├─ PlayerMatcher (Plan 15-02)          │
-<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>                              │  └─ RoundStartProcessor (Plan 15-03)    │
-<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>                              └─────────────────────────────────────────┘
-<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>                                            │
-<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>                                            ▼
-<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>                              Game · GameParticipation · TableMonitor
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>                Location (z.B. Clubheim BC Wedel, WLAN)
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>   ┌─────────────────────────────────────────────────────────────────┐
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>   │                                                                 │
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>   │  ┌─────────────────┐                  ┌──────────────────────┐  │
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>   │  │  External App   │   POST /round_start ─▶ │ Api::External-  │  │
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>   │  │  (3BandMann-    │ ◀─ GET  /seeding        │ TournamentsCtrl │  │
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>   │  │   schaftsTurn.) │ ◀─ GET  /round_result   │                 │  │
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>   │  └─────────────────┘                  └────────┬─────────────┘  │
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>   │       iPad/Laptop                              │ carambus_bcw   │
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>   │                                ┌──────────────┴────────────────┐│
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>   │                                │ ExternalTournament Services    ││
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>   │                                │ ├─ PlayerMatcher (15-02)       ││
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>   │                                │ └─ RoundStartProcessor (15-03) ││
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>   │                                └───────────────┬────────────────┘│
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>   │                                                ▼                 │
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>   │                              Game · GameParticipation · TableMonitor │
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>   │                                                                 │
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>   └─────────────────────────────────────────────────────────────────┘
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>                                  ▲
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>                                  │ (optional) Sync-up zu Per-Region
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>                                  ▼  bzw. Global-Carambus über bestehenden
+<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>                              Per-Region oder Global  Sync-Layer (carambus_syncer)
+<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>                              Carambus-Instanz
 </code></pre></div>
+<p>Im typischen Setup ist <strong>carambus_bcw die Single-Source-of-Truth während des
+Turniers</strong>. Sync zu der übergeordneten Per-Region- oder Global-Instanz
+(<code>nbv.carambus.de</code> / <code>carambus.de</code>) läuft entkoppelt über den bestehenden
+Sync-Layer — die App ist davon unabhängig.</p>
 <h2 id="authentifizierung">Authentifizierung<a class="headerlink" href="#authentifizierung" title="Permanent link">&para;</a></h2>
-<p>devise-JWT-Bearer-Tokens (analog Plan 14-G.14). Pro Region wird ein
-Service-Account angelegt:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nb">cd</span><span class="w"> </span>carambus_master
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>rake<span class="w"> </span>service_accounts:create_2band<span class="o">[</span>NBV<span class="o">]</span>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="c1"># → legt 2band-nbv-bridge@carambus.de an, gibt Password einmalig aus</span>
+<p>devise-JWT-Bearer-Tokens (analog Plan 14-G.14). <strong>Pro Scenario</strong> ein
+Service-Account — egal ob lokal, per-Region oder global:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># Lokales Scenario am Spielort (Default)</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="nb">cd</span><span class="w"> </span>/path/to/carambus_bcw<span class="w">      </span><span class="c1"># z.B. carambus_bcw im Clubheim</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>rake<span class="w"> </span>service_accounts:create_2band<span class="o">[</span>BCW<span class="o">]</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="c1"># → legt 2band-bcw-bridge@carambus.local an, gibt Password einmalig aus</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="c1"># Alternative: Per-Region Cloud (Multi-Location-Turnier)</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="nb">cd</span><span class="w"> </span>/path/to/carambus_master<span class="w">   </span><span class="c1"># global oder per-region wie nbv</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>rake<span class="w"> </span>service_accounts:create_2band<span class="o">[</span>NBV<span class="o">]</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="c1"># → legt 2band-nbv-bridge@carambus.de an</span>
 </code></pre></div>
-<p>Bearer-Token holen:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>https://nbv.carambus.de/login<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{&quot;user&quot;:{&quot;email&quot;:&quot;2band-nbv-bridge@carambus.de&quot;,&quot;password&quot;:&quot;…&quot;}}&#39;</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span>-i<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-i<span class="w"> </span>Authorization
-<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="c1"># Authorization: Bearer eyJhbGciOiJIUzI1NiJ9…</span>
+<p>Bearer-Token holen — Base-URL je nach Topologie:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># Local Scenario via WLAN</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://carambus.local:3000/login<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{&quot;user&quot;:{&quot;email&quot;:&quot;2band-bcw-bridge@carambus.local&quot;,&quot;password&quot;:&quot;…&quot;}}&#39;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">  </span>-i<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-i<span class="w"> </span>Authorization
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="c1"># Authorization: Bearer eyJhbGciOiJIUzI1NiJ9…</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="c1"># Per-Region Cloud (Beispiel NBV)</span>
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>https://nbv.carambus.de/login<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{&quot;user&quot;:{&quot;email&quot;:&quot;2band-nbv-bridge@carambus.de&quot;,&quot;password&quot;:&quot;…&quot;}}&#39;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="w">  </span>-i<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-i<span class="w"> </span>Authorization
 </code></pre></div>
 <p>JWT-Lifetime: <strong>90 Tage</strong> (Long-Lived; via D-14-G7 +
-<code>Carambus.config.jwt_expiration_days</code>) — App-seitig kein Renew-Friction.</p>
+<code>Carambus.config.jwt_expiration_days</code>) — App-seitig kein Renew-Friction
+über die Turniersaison hinweg.</p>
 <h2 id="endpoint-1-seeding-plan-15-02">Endpoint 1: Seeding (Plan 15-02)<a class="headerlink" href="#endpoint-1-seeding-plan-15-02" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>GET /api/external_tournament/seeding?tournament_cc_id=12345&amp;region=NBV
 <a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>Authorization: Bearer …
@@ -3330,7 +3662,7 @@ Eintrag:</p>
 <a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="p">}</span>
 </code></pre></div>
 <h3 id="convention-d-15-03-a-tisch-identifikation">Convention D-15-03-A: Tisch-Identifikation<a class="headerlink" href="#convention-d-15-03-a-tisch-identifikation" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>2BandTurnier table_no=5   ⟶   Carambus Table.name == &quot;5&quot;
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>3BandMannschaftsTurnier table_no=5   ⟶   Carambus Table.name == &quot;5&quot;
 </code></pre></div>
 <p>Lookup-Pfad (Service <code>RoundStartProcessor</code>):</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="no">Table</span>

@@ -18,48 +18,92 @@ exchanges the following data with Carambus over REST:
 **Eliminates duplicate data entry** between the external app and Carambus
 scoreboards.
 
+## Deployment topology
+
+The spec is **endpoint-agnostic** — the app talks REST to a Carambus server
+regardless of where that server runs. The real-world default is **local
+at the venue** (no internet required):
+
+| Topology | Example | App-reachable base URL | Use when... |
+|----------|---------|------------------------|-------------|
+| **Local scenario (default)** | `carambus_bcw` at BC Wedel clubhouse, app on iPad in the same Wi-Fi | `http://carambus.local:3000` or `http://192.168.X.X:3000` | Single-location tournament (most common) |
+| **Per-region cloud** | `nbv.carambus.de` | `https://nbv.carambus.de` | Multi-location tournament within a region |
+| **Global cloud** | `carambus.de` | `https://carambus.de` | Cross-region tournament (rare for external apps) |
+
+Service-account creation and bearer-token retrieval work identically in all
+three topologies — only the base URL and the service-account email suffix
+differ (`@carambus.local`, `@carambus.de`).
+
 ## Architecture
 
 ```text
-┌─────────────────┐                              ┌──────────────────────┐
-│  External App   │   POST /round_start   ───▶ │  Api::ExternalTour-  │
-│  (3BandMannschaftsTurnier) │ ◀── GET  /seeding           │  namentsController   │
-│                 │ ◀── GET  /round_result      │                      │
-└─────────────────┘                              └────────┬─────────────┘
-                                                          │
-                              ┌──────────────────────────┴─────────────┐
-                              │  ExternalTournament service layer       │
-                              │  ├─ PlayerMatcher (Plan 15-02)          │
-                              │  └─ RoundStartProcessor (Plan 15-03)    │
-                              └─────────────────────────────────────────┘
-                                            │
-                                            ▼
-                              Game · GameParticipation · TableMonitor
+                Venue (e.g., BC Wedel clubhouse, Wi-Fi)
+   ┌─────────────────────────────────────────────────────────────────┐
+   │                                                                 │
+   │  ┌─────────────────┐                  ┌──────────────────────┐  │
+   │  │  External app   │   POST /round_start ─▶ │ Api::External-  │  │
+   │  │  (3BandMann-    │ ◀─ GET  /seeding        │ TournamentsCtrl │  │
+   │  │   schaftsTurn.) │ ◀─ GET  /round_result   │                 │  │
+   │  └─────────────────┘                  └────────┬─────────────┘  │
+   │       iPad/laptop                              │ carambus_bcw   │
+   │                                ┌──────────────┴────────────────┐│
+   │                                │ ExternalTournament services    ││
+   │                                │ ├─ PlayerMatcher (15-02)       ││
+   │                                │ └─ RoundStartProcessor (15-03) ││
+   │                                └───────────────┬────────────────┘│
+   │                                                ▼                 │
+   │                              Game · GameParticipation · TableMonitor │
+   │                                                                 │
+   └─────────────────────────────────────────────────────────────────┘
+                                  ▲
+                                  │ (optional) sync up to per-region
+                                  ▼  or global Carambus via the existing
+                              Per-region or global  sync layer (carambus_syncer)
+                              Carambus instance
 ```
+
+In the typical setup `carambus_bcw` is the **single source of truth during
+the tournament**. Sync to the upstream per-region or global instance
+(`nbv.carambus.de` / `carambus.de`) runs decoupled through the existing
+sync layer — the app stays independent of that.
 
 ## Authentication
 
-devise-JWT bearer tokens (same pattern as Plan 14-G.14). One service account
-per region:
+devise-JWT bearer tokens (same pattern as Plan 14-G.14). **One service account
+per scenario** — local, per-region, or global:
 
 ```bash
-cd carambus_master
+# Local scenario at the venue (default)
+cd /path/to/carambus_bcw      # e.g., carambus_bcw at the clubhouse
+rake service_accounts:create_2band[BCW]
+# → creates 2band-bcw-bridge@carambus.local, prints password once
+
+# Alternative: per-region cloud (multi-location tournament)
+cd /path/to/carambus_master   # global or per-region such as nbv
 rake service_accounts:create_2band[NBV]
-# → creates 2band-nbv-bridge@carambus.de, prints password once
+# → creates 2band-nbv-bridge@carambus.de
 ```
 
-Obtain a bearer token:
+Obtain a bearer token — base URL depends on topology:
 
 ```bash
+# Local scenario via Wi-Fi
+curl -X POST http://carambus.local:3000/login \
+  -H "Content-Type: application/json" \
+  -d '{"user":{"email":"2band-bcw-bridge@carambus.local","password":"…"}}' \
+  -i | grep -i Authorization
+# Authorization: Bearer eyJhbGciOiJIUzI1NiJ9…
+
+# Per-region cloud (NBV example)
 curl -X POST https://nbv.carambus.de/login \
   -H "Content-Type: application/json" \
   -d '{"user":{"email":"2band-nbv-bridge@carambus.de","password":"…"}}' \
   -i | grep -i Authorization
-# Authorization: Bearer eyJhbGciOiJIUzI1NiJ9…
 ```
 
 JWT lifetime: **90 days** (long-lived; via D-14-G7 +
-`Carambus.config.jwt_expiration_days`) — no renew friction for the app side.
+`Carambus.config.jwt_expiration_days`) — no renew friction for the app
+side across the tournament season.
 
 ## Endpoint 1: Seeding (Plan 15-02)
 
