@@ -27,7 +27,8 @@
         <td class="p-3"><%= tournament.date.andand.to_date %></td>
         <td class="p-3"><%= tournament.accredation_end.andand.to_date %></td>
         <td class="p-3"><%= tournament.location_text %></td>
-        <td class="p-3"><%= custom_link_to tournament.location.display_address_short&.html_safe, location_path(tournament.location) if tournament.location.present? %></td>
+        <%# InternationalTournament (STI) ueberschreibt #location -> String (location_text); nur fuer echte Location-Objekte verlinken. %>
+        <td class="p-3"><%= custom_link_to tournament.location.display_address_short&.html_safe, location_path(tournament.location) if tournament.location.is_a?(Location) %></td>
         <td class="p-3"><%= custom_link_to(tournament.tournament_cc.cc_id, tournament_cc_path(tournament.tournament_cc)) if tournament.tournament_cc.present? %></td>
         <td class="p-3"><%= custom_link_to(tournament.season.name, season_path(tournament.season)) %></td>
         <td class="p-3"><%= custom_link_to(tournament.organizer.shortname, region_path(tournament.organizer)) %></td>

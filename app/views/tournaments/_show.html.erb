@@ -25,7 +25,8 @@
         <div class="w-3/12 mb-4 m-w-full pr-8">
           <h5><%= t('activerecord.attributes.tournament.accredation_end') %></h5><%= tournament.accredation_end %></div>
         <div class="w-3/12 mb-4 m-w-full pr-8">
-          <h5><%= t('activerecord.attributes.tournament.location') %></h5><%= custom_link_to tournament.location.display_address, location_path(tournament.location) if tournament.location.present? %>
+          <%# InternationalTournament (STI) #location ist ein String (location_text) -> nur fuer echte Location verlinken. %>
+          <h5><%= t('activerecord.attributes.tournament.location') %></h5><%= custom_link_to tournament.location.display_address, location_path(tournament.location) if tournament.location.is_a?(Location) %>
         </div>
         <div class="w-3/12 mb-4 m-w-full pr-8">
           <h5><%= t('activerecord.attributes.tournament.season') %></h5><%= custom_link_to(tournament.season.name, season_path(tournament.season)) %>

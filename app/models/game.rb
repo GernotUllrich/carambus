@@ -9,6 +9,7 @@
 #  ended_at        :datetime
 #  gname           :string
 #  group_no        :integer
+#  result_acknowledged_at :datetime
 #  roles           :text
 #  round_no        :integer
 #  seqno           :integer

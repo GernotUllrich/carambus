@@ -101,6 +101,37 @@ Rails.application.routes.draw do
     get "external_tournament/tables",
         to: "external_tournaments#tables",
         as: :external_tournament_tables
+
+    # Plan 17-02: App-driven Local Tournament Lifecycle — lokale Turnier-Anlage (no plan)
+    # + App-getriebener Tisch-Lock via TournamentMonitor-Bindung (table_monitor.tournament_monitor_id).
+    post "external_tournament/tournament",
+         to: "external_tournaments#tournament",
+         as: :external_tournament_tournament
+    post "external_tournament/lock_table",
+         to: "external_tournaments#lock_table",
+         as: :external_tournament_lock_table
+
+    # Plan 17-03 (B1): App-getriebener Spielstart mit per-Spiel/Spieler-Disziplinen
+    # (ersetzt round_start im App-Lifecycle). Erzeugt Game + Warmup.
+    post "external_tournament/start_game",
+         to: "external_tournaments#start_game",
+         as: :external_tournament_start_game
+    # Plan 17-04 (Vision J): App ruft erfasstes Ergebnis ab + gibt Tisch frei (Result-Hold + Pull).
+    post "external_tournament/acknowledge_result",
+         to: "external_tournaments#acknowledge_result",
+         as: :external_tournament_acknowledge_result
+    # Plan 17-05 (Vision L): App meldet Turnierende → alle Tische frei + TournamentMonitor closed.
+    post "external_tournament/end_tournament",
+         to: "external_tournaments#end_tournament",
+         as: :external_tournament_end_tournament
+    # Plan 17-06 (Vision C/D): App-Teilnehmerliste gegen Carambus-lokal reconcilen (dbu_nr-Rueckgabe).
+    post "external_tournament/player_reconcile",
+         to: "external_tournaments#player_reconcile",
+         as: :external_tournament_player_reconcile
+    # Plan 17-06 (Vision 6): Ergebnis-CSV (text/csv) zur Uebergabe an den Ergebnis-Einpfleger.
+    get "external_tournament/csv_export",
+        to: "external_tournaments#csv_export",
+        as: :external_tournament_csv_export
   end
 
   # Debug routes (development only)

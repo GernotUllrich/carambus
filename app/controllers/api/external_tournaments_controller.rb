@@ -166,11 +166,14 @@ module Api
         schema: "carambus.tables/v1",
         region: {shortname: region.shortname},
         location: {id: location.id, cc_id: location.cc_id, name: location.name},
-        tables: location.tables.includes(:table_kind).sort_by { |t| t.name.to_s }.map do |t|
+        tables: location.tables.includes(:table_kind, :table_monitor).sort_by { |t| t.name.to_s }.map do |t|
           {
             name: t.name,
             table_kind: t.table_kind&.name,
-            has_monitor: t.read_attribute(:table_monitor_id).present?
+            has_monitor: t.read_attribute(:table_monitor_id).present?,
+            # Plan 17-02: Verfuegbarkeit — Tisch ist fuer den Turnierbetrieb belegt, wenn sein
+            # TableMonitor an einen TournamentMonitor gebunden ist (bestehender Carambus-Mechanismus).
+            in_tournament: t.table_monitor&.tournament_monitor_id.present? || false
           }
         end
       }
@@ -178,7 +181,271 @@ module Api
       render json: {error: e.message}, status: :not_found
     end
 
+    # POST /api/external_tournament/tournament
+    #
+    # Plan 17-02: Legt ein lokales App-Turnier OHNE TournamentPlan/Executor an (D-17-vision-1).
+    # Idempotent via external_id (region-scoped). Erzeugt einen schlanken TournamentMonitor.
+    #
+    # Body: { region:{shortname}, location:{id|cc_id}(optional), title, discipline:{name}(optional),
+    #         external_id }
+    # Response (201 / 200 idempotent): carambus.tournament/v1
+    #   { schema, region:{shortname}, tournament:{ id, external_id, tournament_monitor_id, title, location_id } }
+    #
+    # Errors: 401 (Auth) / 404 (Region) / 422 (external_id fehlt, RecordInvalid)
+    def tournament
+      payload = tournament_params.to_h.deep_symbolize_keys
+      region = Region.find_by!(shortname: payload.dig(:region, :shortname).to_s.upcase)
+
+      result = ExternalTournament::LocalTournamentCreator.new(region: region, payload: payload).call
+      t = result.tournament
+
+      render json: {
+        schema: "carambus.tournament/v1",
+        region: {shortname: region.shortname},
+        tournament: {
+          id: t.id,
+          external_id: t.external_id,
+          tournament_monitor_id: t.tournament_monitor&.id,
+          title: t.title,
+          location_id: t.location_id
+        }
+      }, status: result.created? ? :created : :ok
+    rescue ActiveRecord::RecordNotFound => e
+      render json: {error: e.message}, status: :not_found
+    rescue ArgumentError => e
+      render json: {error: e.message}, status: :unprocessable_entity
+    rescue ActiveRecord::RecordInvalid => e
+      render json: {error: e.message}, status: :unprocessable_entity
+    end
+
+    # POST /api/external_tournament/lock_table
+    #
+    # Plan 17-02: Die App sperrt selbst einen Tisch fuer ihr lokales Turnier (locked_for_tournament)
+    # + bindet den TableMonitor an den TournamentMonitor + nimmt den Tisch in data["table_ids"] auf.
+    # lock=false kehrt das um (einfache Teil-Freigabe).
+    #
+    # Body: { region:{shortname}, tournament_id | tournament:{external_id}, table:{id|name}, lock(default true) }
+    # Response (200): { table_id, locked_for_tournament, table_monitor_id }
+    #
+    # Errors: 401 (Auth) / 404 (Region) / 422 (Tournament/Table not found, Konflikt, kein Monitor)
+    def lock_table
+      payload = lock_table_params.to_h.deep_symbolize_keys
+      region = Region.find_by!(shortname: payload.dig(:region, :shortname).to_s.upcase)
+
+      result = ExternalTournament::TableLocker.new(region: region, payload: payload).call
+
+      render json: {
+        table_id: result.table.id,
+        # Lock = TournamentMonitor-Bindung (kein eigenes Flag mehr, siehe Refactor 3e7c4739).
+        in_tournament: result.table_monitor.tournament_monitor_id.present?,
+        table_monitor_id: result.table_monitor.id
+      }
+    rescue ActiveRecord::RecordNotFound => e
+      render json: {error: e.message}, status: :not_found
+    rescue ExternalTournament::TableLocker::TournamentNotFoundError
+      render json: {error: "Tournament not found"}, status: :unprocessable_entity
+    rescue ExternalTournament::TableLocker::TableNotFoundError => e
+      render json: {error: "Table not found: #{e.identifier}"}, status: :unprocessable_entity
+    rescue ExternalTournament::TableLocker::TableConflictError => e
+      render json: {error: "Table already in use: #{e.identifier}"}, status: :unprocessable_entity
+    rescue ExternalTournament::TableLocker::TableMonitorNotFoundError => e
+      render json: {error: "TableMonitor not found for #{e.identifier}"}, status: :unprocessable_entity
+    rescue ActiveRecord::RecordInvalid => e
+      render json: {error: e.message}, status: :unprocessable_entity
+    end
+
+    # POST /api/external_tournament/start_game
+    #
+    # Plan 17-03 (B1): App startet ein Spiel auf einem turnier-gebundenen Tisch mit
+    # PER-SPIELER-Disziplinen + Format. Erzeugt Game + GameParticipations + bringt den Tisch
+    # in Warmup (loest 15-06). Ersetzt round_start im App-Lifecycle.
+    #
+    # Body: { region:{shortname}, tournament:{external_id}|tournament_id, table:{id|name},
+    #         external_id, free_game_form, innings_goal, sets_to_play, sets_to_win,
+    #         participants:[{role:"playera|playerb", player:{...}, discipline, balls_goal}] }
+    # Response (201 / 200 idempotent): { external_id, game_id, table_monitor_id, state }
+    #
+    # Errors: 401 / 404 (Region) / 422 (Tournament/Table not found, nicht gebunden, Player, Invalid)
+    def start_game
+      payload = start_game_params.to_h.deep_symbolize_keys
+      region = Region.find_by!(shortname: payload.dig(:region, :shortname).to_s.upcase)
+
+      result = ExternalTournament::StartGameProcessor.new(region: region, payload: payload).call
+
+      render json: {
+        external_id: payload[:external_id],
+        game_id: result.game&.id,
+        table_monitor_id: result.table_monitor.id,
+        state: result.state
+      }, status: result.created? ? :created : :ok
+    rescue ActiveRecord::RecordNotFound => e
+      render json: {error: e.message}, status: :not_found
+    rescue ExternalTournament::StartGameProcessor::TournamentNotFoundError
+      render json: {error: "Tournament not found"}, status: :unprocessable_entity
+    rescue ExternalTournament::StartGameProcessor::TableNotFoundError => e
+      render json: {error: "Table not found: #{e.identifier}"}, status: :unprocessable_entity
+    rescue ExternalTournament::StartGameProcessor::TableNotBoundError => e
+      render json: {error: "Table not bound to this tournament: #{e.identifier}"}, status: :unprocessable_entity
+    rescue ExternalTournament::StartGameProcessor::TableMonitorNotFoundError => e
+      render json: {error: "TableMonitor not found for #{e.identifier}"}, status: :unprocessable_entity
+    rescue ExternalTournament::StartGameProcessor::PlayerResolutionError => e
+      render json: {error: "Player not resolved", participant: e.participant}, status: :unprocessable_entity
+    rescue ActiveRecord::RecordInvalid => e
+      render json: {error: e.message}, status: :unprocessable_entity
+    end
+
+    # POST /api/external_tournament/acknowledge_result
+    #
+    # Plan 17-04 (Vision J): App ruft das am Hold (:final_match_score) erfasste Ergebnis
+    # ab + gibt den Tisch frei. Bis zu diesem Aufruf ist der Operator-Release am
+    # Scoreboard gesperrt (TableMonitor#external_result_pending?-Guard). Idempotent:
+    # ein 2. Aufruf liefert dasselbe Ergebnis ohne erneuten Release.
+    #
+    # Body: { region:{shortname}, tournament:{external_id}|tournament_id, game:{external_id} }
+    # Response (200): carambus.ack/v1
+    #   { schema, region:{shortname}, tournament:{id,external_id}, game:{id,external_id,gname},
+    #     table:{id,name}|null, state, already_acknowledged, acknowledged_at,
+    #     result:{ ...ba_results..., "sets":[...] } }
+    #
+    # Errors: 401 (Auth) / 404 (Region) / 409 (NotReady — Ergebnis noch nicht erfasst)
+    #         / 422 (Tournament/Game/TableMonitor not found)
+    def acknowledge_result
+      payload = acknowledge_result_params.to_h.deep_symbolize_keys
+      region = Region.find_by!(shortname: payload.dig(:region, :shortname).to_s.upcase)
+
+      result = ExternalTournament::AcknowledgeResultProcessor.new(region: region, payload: payload).call
+      t = result.tournament
+      g = result.game
+      tbl = g&.table_monitor&.table
+
+      render json: {
+        schema: "carambus.ack/v1",
+        region: {shortname: region.shortname},
+        tournament: {id: t.id, external_id: t.external_id},
+        game: {id: g.id, external_id: (g.data.is_a?(Hash) ? g.data["external_id"] : nil), gname: g.gname},
+        table: tbl ? {id: tbl.id, name: tbl.name} : nil,
+        state: result.state,
+        already_acknowledged: result.already_acknowledged,
+        acknowledged_at: result.acknowledged_at&.iso8601,
+        result: result.result
+      }, status: :ok
+    rescue ActiveRecord::RecordNotFound => e
+      render json: {error: e.message}, status: :not_found
+    rescue ExternalTournament::AcknowledgeResultProcessor::TournamentNotFoundError
+      render json: {error: "Tournament not found"}, status: :unprocessable_entity
+    rescue ExternalTournament::AcknowledgeResultProcessor::GameNotFoundError => e
+      render json: {error: "Game not found: #{e.identifier}"}, status: :unprocessable_entity
+    rescue ExternalTournament::AcknowledgeResultProcessor::TableMonitorNotFoundError => e
+      render json: {error: "TableMonitor not found for #{e.identifier}"}, status: :unprocessable_entity
+    rescue ExternalTournament::AcknowledgeResultProcessor::NotReadyError => e
+      render json: {error: e.message, state: e.state}, status: :conflict
+    end
+
+    # POST /api/external_tournament/end_tournament
+    #
+    # Plan 17-05 (Vision L): App meldet Turnierende → alle an das Turnier gebundenen
+    # Tische werden freigegeben (force, auch unbestaetigte Hold-Ergebnisse — D-17-vision-5)
+    # und der TournamentMonitor geschlossen. Idempotent (2. Aufruf: released_tables=0).
+    #
+    # Body: { region:{shortname}, tournament:{external_id} | tournament_id }
+    # Response (200): carambus.tournament_end/v1
+    #   { schema, region:{shortname}, tournament:{id,external_id}, released_tables,
+    #     unacknowledged, tournament_monitor_state }
+    #
+    # Errors: 401 (Auth) / 404 (Region) / 422 (Tournament not found)
+    def end_tournament
+      payload = end_tournament_params.to_h.deep_symbolize_keys
+      region = Region.find_by!(shortname: payload.dig(:region, :shortname).to_s.upcase)
+      tournament = resolve_external_tournament(payload, region)
+      return render json: {error: "Tournament not found"}, status: :unprocessable_entity if tournament.blank?
+
+      r = ExternalTournament::TableReleaser.release_tournament(tournament)
+      render json: {
+        schema: "carambus.tournament_end/v1",
+        region: {shortname: region.shortname},
+        tournament: {id: tournament.id, external_id: tournament.external_id},
+        released_tables: r.released,
+        unacknowledged: r.unacknowledged,
+        tournament_monitor_state: r.tournament_monitor_state
+      }, status: :ok
+    rescue ActiveRecord::RecordNotFound => e
+      render json: {error: e.message}, status: :not_found
+    end
+
+    # POST /api/external_tournament/player_reconcile
+    #
+    # Plan 17-06 (Vision C/D): App-Teilnehmerliste gegen Carambus-lokal reconcilen.
+    # Liefert pro Eintrag die dbu_nr + den kanonischen Player (region-scoped, KEIN Create —
+    # D-17-vision-2). Wiederverwendung von ExternalTournament::PlayerMatcher.
+    #
+    # Body: { region:{shortname}, participants:[{ ref?, cc_id?, dbu_nr?, firstname?, lastname?, club_cc_id? }] }
+    # Response (200): carambus.player_reconcile/v1
+    #   { schema, region:{shortname},
+    #     results:[{ ref, matched, player:{id,cc_id,dbu_nr,firstname,lastname,club:{cc_id,shortname}}|null }] }
+    #
+    # Errors: 401 (Auth) / 404 (Region) / 422 (participants fehlt oder kein Array)
+    def player_reconcile
+      payload = player_reconcile_params.to_h.deep_symbolize_keys
+      region = Region.find_by!(shortname: payload.dig(:region, :shortname).to_s.upcase)
+
+      participants = payload[:participants]
+      unless participants.is_a?(Array) && participants.any?
+        return render json: {error: "participants required (non-empty array)"}, status: :unprocessable_entity
+      end
+
+      results = ExternalTournament::PlayerReconciler.new(region: region).call(participants: participants)
+      render json: {
+        schema: "carambus.player_reconcile/v1",
+        region: {shortname: region.shortname},
+        results: results
+      }, status: :ok
+    rescue ActiveRecord::RecordNotFound => e
+      render json: {error: e.message}, status: :not_found
+    end
+
+    # GET /api/external_tournament/csv_export?region=NBV&tournament_id=X
+    #   alternativ: ?tournament_external_id=...&region=NBV (region-scoped)
+    #
+    # Plan 17-06 (Vision 6): Ergebnis-CSV (text/csv) eines lokalen App-Turniers zur Uebergabe an
+    # den Ergebnis-Einpfleger. Spalten analog Carambus-Export + dbu_nr-Crosscheck je Spieler.
+    # Quelle: game.data["ba_results"]; Enumerierung durabel via tournament_external_id-Marker
+    # (auch NACH end_tournament abrufbar). Read-only, idempotent/wiederholbar.
+    #
+    # Response (200): text/csv (Header-Zeile + 1 Zeile je abgeschlossenem Spiel; leer => nur Header).
+    # Errors: 401 (Auth) / 404 (Region/Tournament)
+    def csv_export
+      region = Region.find_by!(shortname: params[:region].to_s.upcase)
+      tournament = resolve_csv_tournament(params, region)
+      return render json: {error: "Tournament not found"}, status: :not_found if tournament.blank?
+
+      csv = ExternalTournament::ResultCsvBuilder.new(tournament: tournament).call
+      send_data csv,
+        type: "text/csv; charset=utf-8",
+        disposition: "attachment",
+        filename: "result-#{tournament.external_id.presence || tournament.id}.csv"
+    rescue ActiveRecord::RecordNotFound => e
+      render json: {error: e.message}, status: :not_found
+    end
+
     private
+
+    # Plan 17-05: region-scoped Tournament-Resolve (tournament_id ODER tournament.external_id).
+    def resolve_external_tournament(payload, region)
+      if payload[:tournament_id].present?
+        Tournament.find_by(id: payload[:tournament_id], region_id: region.id)
+      elsif payload.dig(:tournament, :external_id).present?
+        Tournament.where(region_id: region.id, external_id: payload.dig(:tournament, :external_id)).first
+      end
+    end
+
+    # Plan 17-06: region-scoped Tournament-Resolve fuer GET csv_export (flache Query-Params).
+    def resolve_csv_tournament(p, region)
+      if p[:tournament_id].present?
+        Tournament.find_by(id: p[:tournament_id], region_id: region.id)
+      elsif p[:tournament_external_id].present?
+        Tournament.where(region_id: region.id, external_id: p[:tournament_external_id]).first
+      end
+    end
 
     # Plan 15-06 (R1/R2): Location-Auflösung aus Params bzw. Payload.
     # location_id (Carambus-PK, global eindeutig) hat Vorrang vor location_cc_id.
@@ -217,6 +484,66 @@ module Api
              {player: [:cc_id, :firstname, :lastname, :dbu_nr]}
            ]}
         ]
+      )
+    end
+
+    # Plan 17-02: Strong-Parameters fuer POST tournament (Lokal-Turnier-Anlage).
+    def tournament_params
+      params.permit(
+        :schema, :title, :external_id,
+        region: [:shortname],
+        location: [:id, :cc_id],
+        discipline: [:name]
+      )
+    end
+
+    # Plan 17-02: Strong-Parameters fuer POST lock_table.
+    def lock_table_params
+      params.permit(
+        :schema, :tournament_id, :lock,
+        region: [:shortname],
+        tournament: [:external_id],
+        table: [:id, :name]
+      )
+    end
+
+    # Plan 17-03: Strong-Parameters fuer POST start_game (per-Spiel/Spieler-Disziplinen).
+    def start_game_params
+      params.permit(
+        :schema, :tournament_id, :external_id, :free_game_form,
+        :innings_goal, :sets_to_play, :sets_to_win, :timeouts, :timeout,
+        :kickoff_switches_with, :allow_follow_up, :allow_overflow, :initial_red_balls,
+        region: [:shortname],
+        tournament: [:external_id],
+        table: [:id, :name],
+        participants: [
+          :role, :discipline, :balls_goal,
+          {player: [:cc_id, :firstname, :lastname, :dbu_nr, :club_cc_id]}
+        ]
+      )
+    end
+
+    # Plan 17-04: Strong-Parameters fuer POST acknowledge_result.
+    def acknowledge_result_params
+      params.permit(
+        :schema, :tournament_id,
+        region: [:shortname],
+        tournament: [:external_id],
+        game: [:external_id]
+      )
+    end
+
+    # Plan 17-05: Strong-Parameters fuer POST end_tournament.
+    def end_tournament_params
+      params.permit(:schema, :tournament_id, region: [:shortname], tournament: [:external_id])
+    end
+
+    # Plan 17-06: Strong-Parameters fuer POST player_reconcile (Batch-Liste).
+    def player_reconcile_params
+      params.permit(
+        :schema,
+        region: [:shortname],
+        participants: [:ref, :cc_id, :dbu_nr, :firstname, :lastname, :club_cc_id]
       )
     end
 

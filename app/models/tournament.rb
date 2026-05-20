@@ -40,7 +40,7 @@ require "net/http"
 #  team_size                      :integer          default(1), not null
 #  time_out_warm_up_first_min     :integer          default(5)
 #  time_out_warm_up_follow_up_min :integer          default(3)
-#  timeout                        :integer          default(45)
+#  timeout                        :integer          default(0)
 #  timeouts                       :integer          default(0), not null
 #  title                          :string
 #  created_at                     :datetime         not null

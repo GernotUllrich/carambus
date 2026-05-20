@@ -15,6 +15,9 @@ tauscht mit Carambus über REST folgende Daten aus:
 | Carambus → App | `GET /api/external_tournament/seeding` | Setzliste mit Players/Teams | ✅ v0.5 (Plan 15-02) |
 | App → Carambus | `POST /api/external_tournament/round_start` | Tisch-Paarungen → Game-Creation + Scoreboard-Aktivierung | ✅ v0.5 (Plan 15-02/03 + 15-06 location/table_name) |
 | Carambus → App | `GET /api/external_tournament/round_result` | Game-Ergebnisse zur Übernahme | ✅ v0.5 (Plan 15-04) |
+| App ↔ Carambus | `POST tournament` / `lock_table` / `start_game` / `acknowledge_result` / `end_tournament` | App-getriebener Lokal-Turnier-Lebenszyklus (Anlage, Tisch-Bindung, Warmup-Start, Result-Hold/Pull, Turnierende) | ✅ v0.5 (Plan 17-02..17-05) |
+| App → Carambus | `POST /api/external_tournament/player_reconcile` | Teilnehmer gegen Carambus-lokal matchen → dbu_nr-Rückgabe | ✅ v0.5 (Plan 17-06) |
+| Carambus → App | `GET /api/external_tournament/csv_export` | Ergebnis-CSV (text/csv) + dbu_nr-Crosscheck zur Übergabe an den Ergebnis-Einpfleger | ✅ v0.5 (Plan 17-06) |
 
 **Eliminiert die Doppel-Erfassung** zwischen externer App und Carambus-Scoreboards.
 
@@ -348,6 +351,88 @@ Response (`200 OK`): `carambus.round_result/v1`-konformes JSON-Dokument.
 | 422 | Region-Mismatch / `round_no` fehlt oder nicht numerisch |
 | 200 | Round-Result-Doc (auch bei leeren Runden mit `results: []`) |
 
+## Endpoint 4: Player-Reconcile (Plan 17-06)
+
+```
+POST /api/external_tournament/player_reconcile
+```
+
+Matcht die App-Teilnehmerliste **gegen Carambus-lokal** (D-17-vision-2) und liefert pro
+Eintrag die **dbu_nr** + den kanonischen Carambus-Datensatz. Wiederverwendung von
+`ExternalTournament::PlayerMatcher` (region+cc_id → dbu_nr → name+club). **Legt keine Player an**
+(kein Auto-Create) — nicht-matchbare Einträge → `matched: false`, `player: null`.
+
+Body:
+
+```json
+{
+  "region": { "shortname": "NBV" },
+  "participants": [
+    { "ref": "t1p1", "cc_id": 9001, "dbu_nr": "12001", "firstname": "Dick", "lastname": "Jaspers", "club_cc_id": 11 },
+    { "ref": "t1p2", "firstname": "Unbekannt", "lastname": "Spieler" }
+  ]
+}
+```
+
+Response (`200`, Schema `carambus.player_reconcile/v1`):
+
+```json
+{
+  "schema": "carambus.player_reconcile/v1",
+  "region": { "shortname": "NBV" },
+  "results": [
+    { "ref": "t1p1", "matched": true,
+      "player": { "id": 50000123, "cc_id": 9001, "dbu_nr": "12001",
+                  "firstname": "Dick", "lastname": "Jaspers",
+                  "club": { "cc_id": 11, "shortname": "BC Wedel" } } },
+    { "ref": "t1p2", "matched": false, "player": null }
+  ]
+}
+```
+
+`ref` wird unverändert zurückgespiegelt (App-eigener Zuordnungsschlüssel). `dbu_nr` als String.
+
+### Fehler-Codes
+
+| Status | Bedeutung |
+|--------|-----------|
+| 401 | Fehlende/ungültige JWT |
+| 404 | Region nicht gefunden |
+| 422 | `participants` fehlt oder ist kein nicht-leeres Array |
+
+## Endpoint 5: CSV-Export (Plan 17-06)
+
+```
+GET /api/external_tournament/csv_export?region=NBV&tournament_id=<id>
+GET /api/external_tournament/csv_export?region=NBV&tournament_external_id=<app-id>   (Alternative)
+```
+
+Liefert die **Ergebnis-CSV** eines lokalen App-Turniers (`Content-Type: text/csv`) analog dem
+Carambus-Turnier-Export, **erweitert um dbu_nr je Spieler** für den Crosscheck durch den
+Ergebnis-Einpfleger. Read-only, idempotent/wiederholbar — auch **nach** `end_tournament` abrufbar.
+
+Spalten (Semikolon-getrennt, Header-Zeile):
+
+```
+Gruppe;Partie;ExternalId;Spieler1_cc_id;Spieler1_dbu_nr;Spieler1;Ergebnis1;Aufnahmen1;HS1;Spieler2_cc_id;Spieler2_dbu_nr;Spieler2;Ergebnis2;Aufnahmen2;HS2;Datum;Uhrzeit
+```
+
+- **Quelle der Ergebnisse:** `game.data["ba_results"]` (`Ergebnis1/2`, `Aufnahmen1/2`,
+  `Höchstserie1/2`). App-Turniere laufen als `manual_assignment` → die GameParticipation-Spalten
+  bleiben leer; `report_result` schreibt die `ba_results` aber nach `game.data`.
+- **Enumerierung (D-17-06-A):** durabel + turnier-eindeutig über den beim `start_game` gestempelten
+  Marker `game.data["tournament_external_id"]`. Es gibt keinen durablen Game→Monitor/Tournament-FK
+  (TableMonitor#game_id zeigt nur auf das aktuelle Spiel; ein Game-Swap löst die Bindung des alten).
+- Ein Turnier ohne abgeschlossene Spiele liefert `200` mit nur der Header-Zeile.
+
+### Fehler-Codes
+
+| Status | Bedeutung |
+|--------|-----------|
+| 401 | Fehlende/ungültige JWT |
+| 404 | Region oder Turnier nicht gefunden |
+| 200 | `text/csv` (Header + 1 Zeile je abgeschlossenem Spiel; leer ⇒ nur Header) |
+
 ## Service-Layer
 
 ### `ExternalTournament::PlayerMatcher` (Plan 15-02)
@@ -385,6 +470,19 @@ unbekannte Player manuell in der CC-UI an.
 - Inkludiert auch laufende Games (ohne `ended_at`)
 - Emittiert `table_name` (15-06/D-15-06-D) zusätzlich zu `table_no`
 
+### `ExternalTournament::PlayerReconciler` (Plan 17-06)
+
+- Dünner Batch-Wrapper um `PlayerMatcher` — `call(participants:)` → ein Result je Eintrag
+- Liefert `dbu_nr` (als String) + kanonischen Player + Club; **kein Auto-Create**
+- `ref` wird zurückgespiegelt (App-eigener Zuordnungsschlüssel)
+
+### `ExternalTournament::ResultCsvBuilder` (Plan 17-06)
+
+- Baut die Ergebnis-CSV aus `game.data["ba_results"]` (manual_assignment ⇒ GP-Spalten leer)
+- Enumerierung über den durablen Marker `game.data["tournament_external_id"]`
+  (coarse SQL-`LIKE` auf den external_id-String + exakter Marker-Abgleich)
+- dbu_nr je Spieler als Crosscheck-Spalte; leeres Turnier ⇒ nur Header
+
 ## Verwandte Decisions
 
 | Decision | Wirkbereich |
@@ -405,6 +503,10 @@ unbekannte Player manuell in der CC-UI an.
 | D-15-06-D | `table_name` in `Game.data` persistiert + im round_result emittiert |
 | D-15-06-E | seeding `tournament.location` als `{id, cc_id, name}`-Objekt (vorher String) |
 | D-15-07-A | `location_cc_id`-Auflösung region-scoped (`region_id`-Filter); cc_id nur intra-region eindeutig |
+| D-17-06-A | CSV-Enumerierung über durablen Marker `game.data["tournament_external_id"]` (kein `tournament_id`-FK) |
+| D-17-06-B | CSV-Ergebnisquelle = `game.data["ba_results"]` (manual_assignment ⇒ GP-Spalten leer) |
+| D-17-06-C | Player-Reconcile wiederverwendet `PlayerMatcher` ohne Auto-Create (CC-Meldeliste bleibt MCP-Strang) |
+| D-17-06-D | CSV-Auslieferung als `GET text/csv` (App-Pull) + dbu_nr-Spalten je Spieler; keine Endplatzierungs-CSV |
 
 Siehe `.paul/STATE.md` für vollständige Decision-Records.
 
