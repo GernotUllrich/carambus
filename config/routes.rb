@@ -312,7 +312,7 @@ Rails.application.routes.draw do
   resources :tournament_plans
   resources :tables do
     member do
-      patch :toggle_reservation
+      patch :toggle_lock
     end
   end
   resources :seedings do

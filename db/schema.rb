@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_05_20_161240) do
+ActiveRecord::Schema[7.2].define(version: 2026_05_20_163957) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -1107,7 +1107,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_05_20_161240) do
     t.boolean "scoreboard"
     t.datetime "scoreboard_on_at"
     t.datetime "scoreboard_off_at"
-    t.boolean "reserved", default: false, null: false
+    t.boolean "locked_for_tournament", default: false, null: false
   end
 
   create_table "table_monitors", force: :cascade do |t|
@@ -1165,7 +1165,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_05_20_161240) do
     t.boolean "heater_auto"
     t.integer "region_id"
     t.boolean "global_context", default: false
-    t.boolean "reserved", default: false, null: false
+    t.boolean "locked_for_tournament", default: false, null: false
     t.index ["global_context"], name: "index_tables_on_global_context"
     t.index ["region_id"], name: "index_tables_on_region_id"
   end
