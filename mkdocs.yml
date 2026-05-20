@@ -166,6 +166,7 @@ nav:
       - ClubCloud MCP:
           - Cloud Quickstart: managers/clubcloud-mcp-cloud-quickstart.md
           - Setup Service: managers/clubcloud-mcp-setup-service.md
+      - External Tournament Bridge: managers/external-tournament-bridge.md
           # Plan 14-G.11 Konsolidierung (D-14-G.11-A): clubcloud-mcp-quickstart.de.md +
           # clubcloud-mcp-setup.de.md gelöscht — Pre-Pivot-STDIO-Doppelgänger zu Cloud-Quickstart
           # und Setup-Service. User-Direktive „einfach + ohne Redundanz".

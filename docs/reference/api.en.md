@@ -24,6 +24,63 @@ curl -X GET http://localhost:3000/api/tournaments \
 ### API Token Authentication (Future)
 Token-based authentication is planned for future releases.
 
+## External Tournament Bridge (devise-JWT)
+
+> **Phase 15 (v0.5)** — REST bridge for external tournament apps. User guide:
+> [Manager docs](../managers/external-tournament-bridge.md). Technical details:
+> [Developer docs](../developers/external-tournament-bridge.md).
+
+### Authentication
+
+devise-JWT bearer tokens. One service account per region/scenario:
+
+```bash
+rake service_accounts:create_2band[NBV]
+# → 2band-nbv-bridge@carambus.de
+```
+
+Obtain a bearer token:
+
+```bash
+curl -X POST <base-url>/login \
+  -H "Content-Type: application/json" \
+  -d '{"user":{"email":"2band-nbv-bridge@carambus.de","password":"…"}}' \
+  -i | grep -i Authorization
+# Authorization: Bearer eyJhbGciOi…
+```
+
+JWT lifetime: **90 days** (long-lived; via D-14-G7 +
+`Carambus.config.jwt_expiration_days`).
+
+### Endpoints
+
+| Method | URL | Auth | Purpose |
+|--------|-----|------|---------|
+| `GET`  | `/api/external_tournament/tables?location_cc_id=X&region=R` | Bearer | Tables of a location (`carambus.tables/v1`; Plan 15-06) |
+| `GET`  | `/api/external_tournament/seeding?tournament_cc_id=X&region=R` | Bearer | Seeding list (`carambus.seeding/v1`) |
+| `POST` | `/api/external_tournament/round_start` | Bearer | Table pairings (`carambus.round_start/v1`; accepts `location` + `table_name`, Plan 15-06) → Game + GameParticipation + TableMonitor |
+| `GET`  | `/api/external_tournament/round_result?tournament_cc_id=X&round_no=N&region=R` | Bearer | Results per round (`carambus.round_result/v1`) |
+
+### Error codes (shared)
+
+| Status | Meaning |
+|--------|---------|
+| 401 | Missing/invalid JWT |
+| 404 | TournamentCc / region not found |
+| 422 | Region mismatch / player resolution error / validation error |
+| 200 | Success (GET; round_start on idempotent replay) |
+| 201 | Round start create — at least one new game created |
+
+### Smoke test
+
+Verifies all 3 endpoints in one roundtrip:
+
+```bash
+SERVICE_ACCOUNT_PASSWORD="…" rake external_tournament:smoke_test[NBV]
+```
+
+5-step trace: login → tournament lookup → seeding → round start → round result.
+
 ## Base URL
 ```
 Development: http://localhost:3000
