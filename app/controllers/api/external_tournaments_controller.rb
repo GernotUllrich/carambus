@@ -170,12 +170,86 @@ module Api
           {
             name: t.name,
             table_kind: t.table_kind&.name,
-            has_monitor: t.read_attribute(:table_monitor_id).present?
+            has_monitor: t.read_attribute(:table_monitor_id).present?,
+            # Plan 17-02: Verfuegbarkeits-Info — gesperrt fuer (App-)Turnierbetrieb (Phase 17-01).
+            locked_for_tournament: t.locked_for_tournament?
           }
         end
       }
     rescue ActiveRecord::RecordNotFound => e
       render json: {error: e.message}, status: :not_found
+    end
+
+    # POST /api/external_tournament/tournament
+    #
+    # Plan 17-02: Legt ein lokales App-Turnier OHNE TournamentPlan/Executor an (D-17-vision-1).
+    # Idempotent via external_id (region-scoped). Erzeugt einen schlanken TournamentMonitor.
+    #
+    # Body: { region:{shortname}, location:{id|cc_id}(optional), title, discipline:{name}(optional),
+    #         external_id }
+    # Response (201 / 200 idempotent): carambus.tournament/v1
+    #   { schema, region:{shortname}, tournament:{ id, external_id, tournament_monitor_id, title, location_id } }
+    #
+    # Errors: 401 (Auth) / 404 (Region) / 422 (external_id fehlt, RecordInvalid)
+    def tournament
+      payload = tournament_params.to_h.deep_symbolize_keys
+      region = Region.find_by!(shortname: payload.dig(:region, :shortname).to_s.upcase)
+
+      result = ExternalTournament::LocalTournamentCreator.new(region: region, payload: payload).call
+      t = result.tournament
+
+      render json: {
+        schema: "carambus.tournament/v1",
+        region: {shortname: region.shortname},
+        tournament: {
+          id: t.id,
+          external_id: t.external_id,
+          tournament_monitor_id: t.tournament_monitor&.id,
+          title: t.title,
+          location_id: t.location_id
+        }
+      }, status: result.created? ? :created : :ok
+    rescue ActiveRecord::RecordNotFound => e
+      render json: {error: e.message}, status: :not_found
+    rescue ArgumentError => e
+      render json: {error: e.message}, status: :unprocessable_entity
+    rescue ActiveRecord::RecordInvalid => e
+      render json: {error: e.message}, status: :unprocessable_entity
+    end
+
+    # POST /api/external_tournament/lock_table
+    #
+    # Plan 17-02: Die App sperrt selbst einen Tisch fuer ihr lokales Turnier (locked_for_tournament)
+    # + bindet den TableMonitor an den TournamentMonitor + nimmt den Tisch in data["table_ids"] auf.
+    # lock=false kehrt das um (einfache Teil-Freigabe).
+    #
+    # Body: { region:{shortname}, tournament_id | tournament:{external_id}, table:{id|name}, lock(default true) }
+    # Response (200): { table_id, locked_for_tournament, table_monitor_id }
+    #
+    # Errors: 401 (Auth) / 404 (Region) / 422 (Tournament/Table not found, Konflikt, kein Monitor)
+    def lock_table
+      payload = lock_table_params.to_h.deep_symbolize_keys
+      region = Region.find_by!(shortname: payload.dig(:region, :shortname).to_s.upcase)
+
+      result = ExternalTournament::TableLocker.new(region: region, payload: payload).call
+
+      render json: {
+        table_id: result.table.id,
+        locked_for_tournament: result.table.locked_for_tournament?,
+        table_monitor_id: result.table_monitor.id
+      }
+    rescue ActiveRecord::RecordNotFound => e
+      render json: {error: e.message}, status: :not_found
+    rescue ExternalTournament::TableLocker::TournamentNotFoundError
+      render json: {error: "Tournament not found"}, status: :unprocessable_entity
+    rescue ExternalTournament::TableLocker::TableNotFoundError => e
+      render json: {error: "Table not found: #{e.identifier}"}, status: :unprocessable_entity
+    rescue ExternalTournament::TableLocker::TableConflictError => e
+      render json: {error: "Table already in use: #{e.identifier}"}, status: :unprocessable_entity
+    rescue ExternalTournament::TableLocker::TableMonitorNotFoundError => e
+      render json: {error: "TableMonitor not found for #{e.identifier}"}, status: :unprocessable_entity
+    rescue ActiveRecord::RecordInvalid => e
+      render json: {error: e.message}, status: :unprocessable_entity
     end
 
     private
@@ -217,6 +291,26 @@ module Api
              {player: [:cc_id, :firstname, :lastname, :dbu_nr]}
            ]}
         ]
+      )
+    end
+
+    # Plan 17-02: Strong-Parameters fuer POST tournament (Lokal-Turnier-Anlage).
+    def tournament_params
+      params.permit(
+        :schema, :title, :external_id,
+        region: [:shortname],
+        location: [:id, :cc_id],
+        discipline: [:name]
+      )
+    end
+
+    # Plan 17-02: Strong-Parameters fuer POST lock_table.
+    def lock_table_params
+      params.permit(
+        :schema, :tournament_id, :lock,
+        region: [:shortname],
+        tournament: [:external_id],
+        table: [:id, :name]
       )
     end
 
