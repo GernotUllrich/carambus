@@ -124,6 +124,14 @@ Rails.application.routes.draw do
     post "external_tournament/end_tournament",
          to: "external_tournaments#end_tournament",
          as: :external_tournament_end_tournament
+    # Plan 17-06 (Vision C/D): App-Teilnehmerliste gegen Carambus-lokal reconcilen (dbu_nr-Rueckgabe).
+    post "external_tournament/player_reconcile",
+         to: "external_tournaments#player_reconcile",
+         as: :external_tournament_player_reconcile
+    # Plan 17-06 (Vision 6): Ergebnis-CSV (text/csv) zur Uebergabe an den Ergebnis-Einpfleger.
+    get "external_tournament/csv_export",
+        to: "external_tournaments#csv_export",
+        as: :external_tournament_csv_export
   end
 
   # Debug routes (development only)

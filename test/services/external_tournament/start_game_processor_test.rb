@@ -53,6 +53,8 @@ module ExternalTournament
       assert_equal 100, tm.data.dig("playerb", "balls_goal")
       assert_equal 2, tm.game.game_participations.count
       assert_equal "game-sg-1", tm.game.data["external_id"]
+      # Plan 17-06 (D-17-06-A): durabler Turnier-Marker fuer die CSV-Enumerierung gestempelt.
+      assert_equal @tournament.external_id, tm.game.data["tournament_external_id"]
     end
 
     test "ungebundener Tisch wird abgelehnt" do

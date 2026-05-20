@@ -93,7 +93,13 @@ module ExternalTournament
         tm.finish_warmup! if shootout?(build_options) && tm.may_finish_warmup?
 
         if external_id.present? && tm.game.present?
-          tm.game.update!(data: safe_data(tm.game).merge("external_id" => external_id))
+          # Plan 17-06 (D-17-06-A): zusaetzlich durabler Turnier-Marker fuer die CSV-Enumerierung.
+          # Nur JSON-data (KEIN game.tournament_id-FK — zieht sonst Polymorphie/Unique-Index/
+          # acts_as_list herein). Ueberlebt die TableMonitor-Entbindung beim Lifecycle-Exit (17-05).
+          tm.game.update!(data: safe_data(tm.game).merge(
+            "external_id" => external_id,
+            "tournament_external_id" => tournament.external_id
+          ))
         end
       end
 

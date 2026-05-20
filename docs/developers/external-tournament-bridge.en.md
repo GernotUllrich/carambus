@@ -15,6 +15,9 @@ exchanges the following data with Carambus over REST:
 | Carambus → App | `GET /api/external_tournament/seeding` | Seeding list with players/teams | ✅ v0.5 (Plan 15-02) |
 | App → Carambus | `POST /api/external_tournament/round_start` | Table pairings → Game creation + scoreboard activation | ✅ v0.5 (Plan 15-02/03 + 15-06 location/table_name) |
 | Carambus → App | `GET /api/external_tournament/round_result` | Game results to import into the app | ✅ v0.5 (Plan 15-04) |
+| App ↔ Carambus | `POST tournament` / `lock_table` / `start_game` / `acknowledge_result` / `end_tournament` | App-driven local tournament lifecycle (create, table binding, warmup start, result hold/pull, tournament end) | ✅ v0.5 (Plan 17-02..17-05) |
+| App → Carambus | `POST /api/external_tournament/player_reconcile` | Match participants against Carambus-local → return dbu_nr | ✅ v0.5 (Plan 17-06) |
+| Carambus → App | `GET /api/external_tournament/csv_export` | Result CSV (text/csv) + dbu_nr cross-check for the result importer | ✅ v0.5 (Plan 17-06) |
 
 **Eliminates duplicate data entry** between the external app and Carambus
 scoreboards.
@@ -348,6 +351,89 @@ Response (`200 OK`): `carambus.round_result/v1`-compliant JSON document.
 | 422 | Region mismatch / `round_no` missing or non-numeric |
 | 200 | Round-result document (also for empty rounds with `results: []`) |
 
+## Endpoint 4: Player reconcile (Plan 17-06)
+
+```
+POST /api/external_tournament/player_reconcile
+```
+
+Matches the app's participant list **against Carambus-local** (D-17-vision-2) and returns the
+**dbu_nr** + the canonical Carambus record per entry. Reuses `ExternalTournament::PlayerMatcher`
+(region+cc_id → dbu_nr → name+club). **Creates no players** (no auto-create) — unmatched entries
+return `matched: false`, `player: null`.
+
+Body:
+
+```json
+{
+  "region": { "shortname": "NBV" },
+  "participants": [
+    { "ref": "t1p1", "cc_id": 9001, "dbu_nr": "12001", "firstname": "Dick", "lastname": "Jaspers", "club_cc_id": 11 },
+    { "ref": "t1p2", "firstname": "Unknown", "lastname": "Player" }
+  ]
+}
+```
+
+Response (`200`, schema `carambus.player_reconcile/v1`):
+
+```json
+{
+  "schema": "carambus.player_reconcile/v1",
+  "region": { "shortname": "NBV" },
+  "results": [
+    { "ref": "t1p1", "matched": true,
+      "player": { "id": 50000123, "cc_id": 9001, "dbu_nr": "12001",
+                  "firstname": "Dick", "lastname": "Jaspers",
+                  "club": { "cc_id": 11, "shortname": "BC Wedel" } } },
+    { "ref": "t1p2", "matched": false, "player": null }
+  ]
+}
+```
+
+`ref` is echoed back unchanged (the app's own correlation key). `dbu_nr` is a string.
+
+### Error codes
+
+| Status | Meaning |
+|--------|---------|
+| 401 | Missing/invalid JWT |
+| 404 | Region not found |
+| 422 | `participants` missing or not a non-empty array |
+
+## Endpoint 5: CSV export (Plan 17-06)
+
+```
+GET /api/external_tournament/csv_export?region=NBV&tournament_id=<id>
+GET /api/external_tournament/csv_export?region=NBV&tournament_external_id=<app-id>   (alternative)
+```
+
+Returns the **result CSV** of a local app tournament (`Content-Type: text/csv`), analogous to the
+Carambus tournament export, **extended with dbu_nr per player** for the result importer's
+cross-check. Read-only, idempotent/repeatable — also retrievable **after** `end_tournament`.
+
+Columns (semicolon-separated, with header row):
+
+```
+Gruppe;Partie;ExternalId;Spieler1_cc_id;Spieler1_dbu_nr;Spieler1;Ergebnis1;Aufnahmen1;HS1;Spieler2_cc_id;Spieler2_dbu_nr;Spieler2;Ergebnis2;Aufnahmen2;HS2;Datum;Uhrzeit
+```
+
+- **Result source:** `game.data["ba_results"]` (`Ergebnis1/2`, `Aufnahmen1/2`, `Höchstserie1/2`).
+  App tournaments run as `manual_assignment` → the GameParticipation columns stay empty, but
+  `report_result` writes the `ba_results` into `game.data`.
+- **Enumeration (D-17-06-A):** durable + tournament-unique via the marker
+  `game.data["tournament_external_id"]` stamped at `start_game`. There is no durable
+  game→monitor/tournament FK (TableMonitor#game_id points only at the current game; a game swap
+  releases the previous one).
+- A tournament with no finished games returns `200` with only the header row.
+
+### Error codes
+
+| Status | Meaning |
+|--------|---------|
+| 401 | Missing/invalid JWT |
+| 404 | Region or tournament not found |
+| 200 | `text/csv` (header + one row per finished game; empty ⇒ header only) |
+
 ## Service layer
 
 ### `ExternalTournament::PlayerMatcher` (Plan 15-02)
@@ -385,6 +471,19 @@ unknown players manually in the CC UI.
 - Also includes ongoing games (without `ended_at`)
 - Emits `table_name` (15-06/D-15-06-D) in addition to `table_no`
 
+### `ExternalTournament::PlayerReconciler` (Plan 17-06)
+
+- Thin batch wrapper around `PlayerMatcher` — `call(participants:)` → one result per entry
+- Returns `dbu_nr` (as string) + canonical player + club; **no auto-create**
+- `ref` is echoed back (the app's own correlation key)
+
+### `ExternalTournament::ResultCsvBuilder` (Plan 17-06)
+
+- Builds the result CSV from `game.data["ba_results"]` (manual_assignment ⇒ GP columns empty)
+- Enumerates via the durable marker `game.data["tournament_external_id"]`
+  (coarse SQL `LIKE` on the external_id string + exact marker match)
+- dbu_nr per player as cross-check column; empty tournament ⇒ header only
+
 ## Related decisions
 
 | Decision | Scope |
@@ -405,6 +504,10 @@ unknown players manually in the CC UI.
 | D-15-06-D | `table_name` persisted in `Game.data` + emitted in round result |
 | D-15-06-E | seeding `tournament.location` as `{id, cc_id, name}` object (was a string) |
 | D-15-07-A | `location_cc_id` resolution region-scoped (`region_id` filter); cc_id only intra-region unique |
+| D-17-06-A | CSV enumeration via durable marker `game.data["tournament_external_id"]` (no `tournament_id` FK) |
+| D-17-06-B | CSV result source = `game.data["ba_results"]` (manual_assignment ⇒ GP columns empty) |
+| D-17-06-C | Player reconcile reuses `PlayerMatcher` without auto-create (CC entry list stays the MCP track) |
+| D-17-06-D | CSV delivery as `GET text/csv` (app pull) + dbu_nr columns per player; no final-ranking CSV |
 
 See `.paul/STATE.md` for full decision records.
 

@@ -372,6 +372,61 @@ module Api
       render json: {error: e.message}, status: :not_found
     end
 
+    # POST /api/external_tournament/player_reconcile
+    #
+    # Plan 17-06 (Vision C/D): App-Teilnehmerliste gegen Carambus-lokal reconcilen.
+    # Liefert pro Eintrag die dbu_nr + den kanonischen Player (region-scoped, KEIN Create —
+    # D-17-vision-2). Wiederverwendung von ExternalTournament::PlayerMatcher.
+    #
+    # Body: { region:{shortname}, participants:[{ ref?, cc_id?, dbu_nr?, firstname?, lastname?, club_cc_id? }] }
+    # Response (200): carambus.player_reconcile/v1
+    #   { schema, region:{shortname},
+    #     results:[{ ref, matched, player:{id,cc_id,dbu_nr,firstname,lastname,club:{cc_id,shortname}}|null }] }
+    #
+    # Errors: 401 (Auth) / 404 (Region) / 422 (participants fehlt oder kein Array)
+    def player_reconcile
+      payload = player_reconcile_params.to_h.deep_symbolize_keys
+      region = Region.find_by!(shortname: payload.dig(:region, :shortname).to_s.upcase)
+
+      participants = payload[:participants]
+      unless participants.is_a?(Array) && participants.any?
+        return render json: {error: "participants required (non-empty array)"}, status: :unprocessable_entity
+      end
+
+      results = ExternalTournament::PlayerReconciler.new(region: region).call(participants: participants)
+      render json: {
+        schema: "carambus.player_reconcile/v1",
+        region: {shortname: region.shortname},
+        results: results
+      }, status: :ok
+    rescue ActiveRecord::RecordNotFound => e
+      render json: {error: e.message}, status: :not_found
+    end
+
+    # GET /api/external_tournament/csv_export?region=NBV&tournament_id=X
+    #   alternativ: ?tournament_external_id=...&region=NBV (region-scoped)
+    #
+    # Plan 17-06 (Vision 6): Ergebnis-CSV (text/csv) eines lokalen App-Turniers zur Uebergabe an
+    # den Ergebnis-Einpfleger. Spalten analog Carambus-Export + dbu_nr-Crosscheck je Spieler.
+    # Quelle: game.data["ba_results"]; Enumerierung durabel via tournament_external_id-Marker
+    # (auch NACH end_tournament abrufbar). Read-only, idempotent/wiederholbar.
+    #
+    # Response (200): text/csv (Header-Zeile + 1 Zeile je abgeschlossenem Spiel; leer => nur Header).
+    # Errors: 401 (Auth) / 404 (Region/Tournament)
+    def csv_export
+      region = Region.find_by!(shortname: params[:region].to_s.upcase)
+      tournament = resolve_csv_tournament(params, region)
+      return render json: {error: "Tournament not found"}, status: :not_found if tournament.blank?
+
+      csv = ExternalTournament::ResultCsvBuilder.new(tournament: tournament).call
+      send_data csv,
+        type: "text/csv; charset=utf-8",
+        disposition: "attachment",
+        filename: "result-#{tournament.external_id.presence || tournament.id}.csv"
+    rescue ActiveRecord::RecordNotFound => e
+      render json: {error: e.message}, status: :not_found
+    end
+
     private
 
     # Plan 17-05: region-scoped Tournament-Resolve (tournament_id ODER tournament.external_id).
@@ -380,6 +435,15 @@ module Api
         Tournament.find_by(id: payload[:tournament_id], region_id: region.id)
       elsif payload.dig(:tournament, :external_id).present?
         Tournament.where(region_id: region.id, external_id: payload.dig(:tournament, :external_id)).first
+      end
+    end
+
+    # Plan 17-06: region-scoped Tournament-Resolve fuer GET csv_export (flache Query-Params).
+    def resolve_csv_tournament(p, region)
+      if p[:tournament_id].present?
+        Tournament.find_by(id: p[:tournament_id], region_id: region.id)
+      elsif p[:tournament_external_id].present?
+        Tournament.where(region_id: region.id, external_id: p[:tournament_external_id]).first
       end
     end
 
@@ -472,6 +536,15 @@ module Api
     # Plan 17-05: Strong-Parameters fuer POST end_tournament.
     def end_tournament_params
       params.permit(:schema, :tournament_id, region: [:shortname], tournament: [:external_id])
+    end
+
+    # Plan 17-06: Strong-Parameters fuer POST player_reconcile (Batch-Liste).
+    def player_reconcile_params
+      params.permit(
+        :schema,
+        region: [:shortname],
+        participants: [:ref, :cc_id, :dbu_nr, :firstname, :lastname, :club_cc_id]
+      )
     end
 
     # === Seeding-Payload-Builder ===
