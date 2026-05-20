@@ -74,6 +74,43 @@ module Api
       TableMonitor.where(id: monitor.id).delete_all if defined?(monitor) && monitor
     end
 
+    # AC-4: start_game ohne Auth -> 401
+    test "start_game ohne Auth gibt 401" do
+      post_json("/api/external_tournament/start_game",
+        {region: {shortname: "NBV"}, external_id: "g1"}, nil)
+      assert_response :unauthorized
+    end
+
+    # AC-1: start_game Happy-Path (per-Spieler-Disziplinen) -> Warmup, Response-Shape
+    test "start_game erzeugt Spiel im Warmup" do
+      jwt = login_jwt
+      post_json("/api/external_tournament/tournament",
+        {region: {shortname: "NBV"}, external_id: "ep-1", title: "EP", location: {id: @location.id}}, jwt)
+      assert_response :created
+
+      monitor = TableMonitor.create!(state: "ready", data: {})
+      tables(:one).update_columns(table_monitor_id: monitor.id)
+      post_json("/api/external_tournament/lock_table",
+        {region: {shortname: "NBV"}, tournament: {external_id: "ep-1"}, table: {id: tables(:one).id}}, jwt)
+      assert_response :success
+
+      post_json("/api/external_tournament/start_game", {
+        region: {shortname: "NBV"}, tournament: {external_id: "ep-1"}, table: {id: tables(:one).id},
+        external_id: "g1", free_game_form: "karambol", innings_goal: 25, sets_to_play: 1, sets_to_win: 1,
+        participants: [
+          {role: "playera", player: {firstname: "Dick", lastname: "JASPERS"}, discipline: "3-Band", balls_goal: 30},
+          {role: "playerb", player: {firstname: "Myung Woo", lastname: "CHO"}, discipline: "Freie Partie", balls_goal: 100}
+        ]
+      }, jwt)
+      assert_response :created
+      body = JSON.parse(response.body)
+      assert body["game_id"].present?
+      assert_includes %w[warmup warmup_a warmup_b match_shootout playing], body["state"]
+    ensure
+      tables(:one).update_columns(table_monitor_id: nil)
+      TableMonitor.where(id: monitor.id).delete_all if defined?(monitor) && monitor
+    end
+
     private
 
     def auth_headers(jwt)

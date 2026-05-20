@@ -254,6 +254,46 @@ module Api
       render json: {error: e.message}, status: :unprocessable_entity
     end
 
+    # POST /api/external_tournament/start_game
+    #
+    # Plan 17-03 (B1): App startet ein Spiel auf einem turnier-gebundenen Tisch mit
+    # PER-SPIELER-Disziplinen + Format. Erzeugt Game + GameParticipations + bringt den Tisch
+    # in Warmup (loest 15-06). Ersetzt round_start im App-Lifecycle.
+    #
+    # Body: { region:{shortname}, tournament:{external_id}|tournament_id, table:{id|name},
+    #         external_id, free_game_form, innings_goal, sets_to_play, sets_to_win,
+    #         participants:[{role:"playera|playerb", player:{...}, discipline, balls_goal}] }
+    # Response (201 / 200 idempotent): { external_id, game_id, table_monitor_id, state }
+    #
+    # Errors: 401 / 404 (Region) / 422 (Tournament/Table not found, nicht gebunden, Player, Invalid)
+    def start_game
+      payload = start_game_params.to_h.deep_symbolize_keys
+      region = Region.find_by!(shortname: payload.dig(:region, :shortname).to_s.upcase)
+
+      result = ExternalTournament::StartGameProcessor.new(region: region, payload: payload).call
+
+      render json: {
+        external_id: payload[:external_id],
+        game_id: result.game&.id,
+        table_monitor_id: result.table_monitor.id,
+        state: result.state
+      }, status: result.created? ? :created : :ok
+    rescue ActiveRecord::RecordNotFound => e
+      render json: {error: e.message}, status: :not_found
+    rescue ExternalTournament::StartGameProcessor::TournamentNotFoundError
+      render json: {error: "Tournament not found"}, status: :unprocessable_entity
+    rescue ExternalTournament::StartGameProcessor::TableNotFoundError => e
+      render json: {error: "Table not found: #{e.identifier}"}, status: :unprocessable_entity
+    rescue ExternalTournament::StartGameProcessor::TableNotBoundError => e
+      render json: {error: "Table not bound to this tournament: #{e.identifier}"}, status: :unprocessable_entity
+    rescue ExternalTournament::StartGameProcessor::TableMonitorNotFoundError => e
+      render json: {error: "TableMonitor not found for #{e.identifier}"}, status: :unprocessable_entity
+    rescue ExternalTournament::StartGameProcessor::PlayerResolutionError => e
+      render json: {error: "Player not resolved", participant: e.participant}, status: :unprocessable_entity
+    rescue ActiveRecord::RecordInvalid => e
+      render json: {error: e.message}, status: :unprocessable_entity
+    end
+
     private
 
     # Plan 15-06 (R1/R2): Location-Auflösung aus Params bzw. Payload.
@@ -313,6 +353,22 @@ module Api
         region: [:shortname],
         tournament: [:external_id],
         table: [:id, :name]
+      )
+    end
+
+    # Plan 17-03: Strong-Parameters fuer POST start_game (per-Spiel/Spieler-Disziplinen).
+    def start_game_params
+      params.permit(
+        :schema, :tournament_id, :external_id, :free_game_form,
+        :innings_goal, :sets_to_play, :sets_to_win, :timeouts, :timeout,
+        :kickoff_switches_with, :allow_follow_up, :allow_overflow, :initial_red_balls,
+        region: [:shortname],
+        tournament: [:external_id],
+        table: [:id, :name],
+        participants: [
+          :role, :discipline, :balls_goal,
+          {player: [:cc_id, :firstname, :lastname, :dbu_nr, :club_cc_id]}
+        ]
       )
     end
 

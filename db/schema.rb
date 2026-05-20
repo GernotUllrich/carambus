@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_05_15_170757) do
+ActiveRecord::Schema[7.2].define(version: 2026_05_20_192115) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -1359,7 +1359,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_05_15_170757) do
     t.boolean "handicap_tournier"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.integer "timeout", default: 45
+    t.integer "timeout", default: 0
     t.integer "time_out_warm_up_first_min", default: 5
     t.integer "time_out_warm_up_follow_up_min", default: 3
     t.integer "organizer_id"

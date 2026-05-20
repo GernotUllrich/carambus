@@ -110,6 +110,12 @@ Rails.application.routes.draw do
     post "external_tournament/lock_table",
          to: "external_tournaments#lock_table",
          as: :external_tournament_lock_table
+
+    # Plan 17-03 (B1): App-getriebener Spielstart mit per-Spiel/Spieler-Disziplinen
+    # (ersetzt round_start im App-Lifecycle). Erzeugt Game + Warmup.
+    post "external_tournament/start_game",
+         to: "external_tournaments#start_game",
+         as: :external_tournament_start_game
   end
 
   # Debug routes (development only)

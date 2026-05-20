@@ -41,6 +41,10 @@ module ExternalTournament
         title: @payload[:title].presence || "App Tournament #{external_id}",
         external_id: external_id,
         manual_assignment: true,
+        # Kein Shot-Clock-Default fuer App-Turniere (vermeidet den tournaments.timeout=45-Leak
+        # in den TournamentMonitor/Timer; expliziter Wert wirkt unabhaengig vom Spalten-Default).
+        timeout: 0,
+        timeouts: 0,
         date: Time.current
       )
       ensure_tournament_monitor(tournament)
