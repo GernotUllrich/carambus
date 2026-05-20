@@ -294,6 +294,53 @@ module Api
       render json: {error: e.message}, status: :unprocessable_entity
     end
 
+    # POST /api/external_tournament/acknowledge_result
+    #
+    # Plan 17-04 (Vision J): App ruft das am Hold (:final_match_score) erfasste Ergebnis
+    # ab + gibt den Tisch frei. Bis zu diesem Aufruf ist der Operator-Release am
+    # Scoreboard gesperrt (TableMonitor#external_result_pending?-Guard). Idempotent:
+    # ein 2. Aufruf liefert dasselbe Ergebnis ohne erneuten Release.
+    #
+    # Body: { region:{shortname}, tournament:{external_id}|tournament_id, game:{external_id} }
+    # Response (200): carambus.ack/v1
+    #   { schema, region:{shortname}, tournament:{id,external_id}, game:{id,external_id,gname},
+    #     table:{id,name}|null, state, already_acknowledged, acknowledged_at,
+    #     result:{ ...ba_results..., "sets":[...] } }
+    #
+    # Errors: 401 (Auth) / 404 (Region) / 409 (NotReady — Ergebnis noch nicht erfasst)
+    #         / 422 (Tournament/Game/TableMonitor not found)
+    def acknowledge_result
+      payload = acknowledge_result_params.to_h.deep_symbolize_keys
+      region = Region.find_by!(shortname: payload.dig(:region, :shortname).to_s.upcase)
+
+      result = ExternalTournament::AcknowledgeResultProcessor.new(region: region, payload: payload).call
+      t = result.tournament
+      g = result.game
+      tbl = g&.table_monitor&.table
+
+      render json: {
+        schema: "carambus.ack/v1",
+        region: {shortname: region.shortname},
+        tournament: {id: t.id, external_id: t.external_id},
+        game: {id: g.id, external_id: (g.data.is_a?(Hash) ? g.data["external_id"] : nil), gname: g.gname},
+        table: tbl ? {id: tbl.id, name: tbl.name} : nil,
+        state: result.state,
+        already_acknowledged: result.already_acknowledged,
+        acknowledged_at: result.acknowledged_at&.iso8601,
+        result: result.result
+      }, status: :ok
+    rescue ActiveRecord::RecordNotFound => e
+      render json: {error: e.message}, status: :not_found
+    rescue ExternalTournament::AcknowledgeResultProcessor::TournamentNotFoundError
+      render json: {error: "Tournament not found"}, status: :unprocessable_entity
+    rescue ExternalTournament::AcknowledgeResultProcessor::GameNotFoundError => e
+      render json: {error: "Game not found: #{e.identifier}"}, status: :unprocessable_entity
+    rescue ExternalTournament::AcknowledgeResultProcessor::TableMonitorNotFoundError => e
+      render json: {error: "TableMonitor not found for #{e.identifier}"}, status: :unprocessable_entity
+    rescue ExternalTournament::AcknowledgeResultProcessor::NotReadyError => e
+      render json: {error: e.message, state: e.state}, status: :conflict
+    end
+
     private
 
     # Plan 15-06 (R1/R2): Location-Auflösung aus Params bzw. Payload.
@@ -369,6 +416,16 @@ module Api
           :role, :discipline, :balls_goal,
           {player: [:cc_id, :firstname, :lastname, :dbu_nr, :club_cc_id]}
         ]
+      )
+    end
+
+    # Plan 17-04: Strong-Parameters fuer POST acknowledge_result.
+    def acknowledge_result_params
+      params.permit(
+        :schema, :tournament_id,
+        region: [:shortname],
+        tournament: [:external_id],
+        game: [:external_id]
       )
     end
 

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_05_20_192115) do
+ActiveRecord::Schema[7.2].define(version: 2026_05_20_194502) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -84,6 +84,52 @@ ActiveRecord::Schema[7.2].define(version: 2026_05_20_192115) do
     t.index ["created_at"], name: "index_ai_search_logs_on_created_at"
     t.index ["success"], name: "index_ai_search_logs_on_success"
     t.index ["user_id"], name: "index_ai_search_logs_on_user_id"
+  end
+
+  create_table "ball_configuration_zones", force: :cascade do |t|
+    t.bigint "ball_configuration_id", null: false
+    t.bigint "table_zone_id", null: false
+    t.string "which_ball", null: false
+    t.string "role", null: false
+    t.text "notes"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["ball_configuration_id", "table_zone_id", "which_ball", "role"], name: "idx_ball_config_zone_unique", unique: true
+    t.index ["ball_configuration_id"], name: "index_ball_configuration_zones_on_ball_configuration_id"
+    t.index ["table_zone_id"], name: "index_ball_configuration_zones_on_table_zone_id"
+    t.check_constraint "role::text = ANY (ARRAY['target'::character varying, 'source'::character varying, 'via'::character varying]::text[])", name: "ball_configuration_zones_role_check"
+    t.check_constraint "which_ball::text = ANY (ARRAY['b1'::character varying, 'b2'::character varying, 'b3'::character varying, 'any'::character varying]::text[])", name: "ball_configuration_zones_which_ball_check"
+  end
+
+  create_table "ball_configurations", force: :cascade do |t|
+    t.float "b1_x", null: false
+    t.float "b1_y", null: false
+    t.float "b2_x", null: false
+    t.float "b2_y", null: false
+    t.float "b3_x", null: false
+    t.float "b3_y", null: false
+    t.string "table_variant", null: false
+    t.string "gather_state", null: false
+    t.text "notes"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "flow_direction"
+    t.float "biais_degrees"
+    t.string "biais_class"
+    t.string "orientation"
+    t.string "target_cushion"
+    t.string "position_type", default: "exact", null: false
+    t.index ["gather_state"], name: "index_ball_configurations_on_gather_state"
+    t.index ["table_variant", "gather_state"], name: "index_ball_configs_on_variant_and_gather_state"
+    t.check_constraint "b1_x >= 0::double precision AND b1_x <= 1::double precision AND b1_y >= 0::double precision AND b1_y <= 1::double precision AND b2_x >= 0::double precision AND b2_x <= 1::double precision AND b2_y >= 0::double precision AND b2_y <= 1::double precision AND b3_x >= 0::double precision AND b3_x <= 1::double precision AND b3_y >= 0::double precision AND b3_y <= 1::double precision", name: "ball_configurations_normalized_coords_check"
+    t.check_constraint "biais_class IS NULL OR (biais_class::text = ANY (ARRAY['imperceptible'::character varying, 'faible'::character varying, 'moyen'::character varying, 'prononce'::character varying, 'extreme'::character varying]::text[]))", name: "ball_configs_biais_class_check"
+    t.check_constraint "biais_degrees IS NULL OR biais_degrees >= '-180'::integer::double precision AND biais_degrees <= 180::double precision", name: "ball_configs_biais_degrees_check"
+    t.check_constraint "flow_direction IS NULL OR (flow_direction::text = ANY (ARRAY['centrifugal'::character varying, 'centripetal'::character varying]::text[]))", name: "ball_configs_flow_direction_check"
+    t.check_constraint "gather_state::text = ANY (ARRAY['pre_gather'::character varying, 'gathering'::character varying, 'post_gather'::character varying]::text[])", name: "ball_configurations_gather_state_check"
+    t.check_constraint "orientation IS NULL OR (orientation::text = ANY (ARRAY['gather'::character varying, 'distribute'::character varying, 'hybrid'::character varying]::text[]))", name: "ball_configs_orientation_check"
+    t.check_constraint "position_type::text = ANY (ARRAY['exact'::character varying, 'approximate'::character varying, 'qualitative'::character varying]::text[])", name: "ball_configs_position_type_check"
+    t.check_constraint "table_variant::text = ANY (ARRAY['match'::character varying, 'halbmatch'::character varying, 'klein'::character varying]::text[])", name: "ball_configurations_table_variant_check"
+    t.check_constraint "target_cushion IS NULL OR (target_cushion::text = ANY (ARRAY['short_left'::character varying, 'short_right'::character varying, 'long_near'::character varying, 'long_far'::character varying]::text[]))", name: "ball_configs_target_cushion_check"
   end
 
   create_table "branch_ccs", force: :cascade do |t|
@@ -329,6 +375,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_05_20_192115) do
     t.integer "region_id"
     t.boolean "global_context", default: false
     t.string "type"
+    t.datetime "result_acknowledged_at"
     t.index ["global_context"], name: "index_games_on_global_context"
     t.index ["region_id"], name: "index_games_on_region_id"
     t.index ["tournament_id", "gname", "seqno"], name: "index_games_on_tournament_id_and_gname_and_seqno", unique: true
@@ -935,6 +982,23 @@ ActiveRecord::Schema[7.2].define(version: 2026_05_20_192115) do
     t.datetime "updated_at", null: false
   end
 
+  create_table "shot_events", force: :cascade do |t|
+    t.bigint "shot_id", null: false
+    t.integer "sequence_number", null: false
+    t.string "event_type", null: false
+    t.string "ball_involved"
+    t.string "cushion_involved"
+    t.jsonb "contact_coords_normalized"
+    t.text "notes"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["shot_id", "sequence_number"], name: "idx_shot_events_on_shot_and_sequence", unique: true
+    t.index ["shot_id"], name: "index_shot_events_on_shot_id"
+    t.check_constraint "ball_involved IS NULL OR (ball_involved::text = ANY (ARRAY['b1'::character varying, 'b2'::character varying, 'b3'::character varying]::text[]))", name: "shot_events_ball_involved_check"
+    t.check_constraint "cushion_involved IS NULL OR (cushion_involved::text = ANY (ARRAY['short_left'::character varying, 'short_right'::character varying, 'long_near'::character varying, 'long_far'::character varying]::text[]))", name: "shot_events_cushion_involved_check"
+    t.check_constraint "event_type::text = ANY (ARRAY['initial_contact'::character varying, 'cushion_contact'::character varying, 'sperre'::character varying, 'austausch'::character varying, 'final_carambolage'::character varying, 'near_miss'::character varying]::text[])", name: "shot_events_event_type_check"
+  end
+
   create_table "shots", force: :cascade do |t|
     t.bigint "training_example_id", null: false
     t.string "shot_type", null: false
@@ -955,15 +1019,23 @@ ActiveRecord::Schema[7.2].define(version: 2026_05_20_192115) do
     t.text "shot_description_en"
     t.text "shot_description_fr"
     t.text "shot_description_nl"
-    t.string "end_position_type"
-    t.jsonb "end_position_data", default: {}
     t.jsonb "shot_parameters", default: {}
     t.datetime "translations_synced_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "end_ball_configuration_id"
+    t.string "source_language", default: "de", null: false
+    t.jsonb "translations", default: {}
+    t.text "title"
+    t.text "notes"
+    t.text "end_position_description"
+    t.text "shot_description"
+    t.index ["end_ball_configuration_id"], name: "index_shots_on_end_ball_configuration_id"
     t.index ["shot_type"], name: "index_shots_on_shot_type"
+    t.index ["source_language"], name: "index_shots_on_source_language"
     t.index ["training_example_id", "sequence_number"], name: "index_shots_on_training_example_id_and_sequence_number", unique: true
     t.index ["training_example_id"], name: "index_shots_on_training_example_id"
+    t.index ["translations"], name: "index_shots_on_translations", using: :gin
   end
 
   create_table "slots", force: :cascade do |t|
@@ -1015,8 +1087,6 @@ ActiveRecord::Schema[7.2].define(version: 2026_05_20_192115) do
   create_table "starting_positions", force: :cascade do |t|
     t.bigint "training_example_id", null: false
     t.text "description_text"
-    t.jsonb "ball_measurements", default: {}
-    t.jsonb "position_variants", default: []
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "source_language", default: "de", null: false
@@ -1024,6 +1094,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_05_20_192115) do
     t.text "description_text_de"
     t.text "description_text_en"
     t.datetime "translations_synced_at"
+    t.bigint "ball_configuration_id", null: false
+    t.index ["ball_configuration_id"], name: "index_starting_positions_on_ball_configuration_id"
     t.index ["source_language"], name: "index_starting_positions_on_source_language"
     t.index ["training_example_id"], name: "index_starting_positions_on_training_example_id", unique: true
     t.index ["translations"], name: "index_starting_positions_on_translations", using: :gin
@@ -1134,6 +1206,20 @@ ActiveRecord::Schema[7.2].define(version: 2026_05_20_192115) do
     t.text "prev_data"
     t.integer "prev_tournament_monitor_id"
     t.string "prev_tournament_monitor_type"
+  end
+
+  create_table "table_zones", force: :cascade do |t|
+    t.string "key", null: false
+    t.string "label", null: false
+    t.string "zone_type", null: false
+    t.jsonb "polygon_normalized", default: [], null: false
+    t.text "description"
+    t.string "gretillat_ref"
+    t.string "weingartner_ref"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["key"], name: "index_table_zones_on_key", unique: true
+    t.check_constraint "zone_type::text = ANY (ARRAY['band_strip'::character varying, 'corner_region'::character varying, 'line_passage'::character varying, 'custom'::character varying]::text[])", name: "table_zones_zone_type_check"
   end
 
   create_table "tables", force: :cascade do |t|
@@ -1406,6 +1492,37 @@ ActiveRecord::Schema[7.2].define(version: 2026_05_20_192115) do
     t.index ["training_concept_id"], name: "index_training_concept_disciplines_on_training_concept_id"
   end
 
+  create_table "training_concept_examples", force: :cascade do |t|
+    t.bigint "training_concept_id", null: false
+    t.bigint "training_example_id", null: false
+    t.integer "weight", default: 3, null: false
+    t.string "role"
+    t.integer "sequence_number"
+    t.text "notes"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["training_concept_id", "sequence_number"], name: "idx_concept_example_sequence_unique", unique: true, where: "(sequence_number IS NOT NULL)"
+    t.index ["training_concept_id", "training_example_id"], name: "idx_concept_example_unique", unique: true
+    t.index ["training_concept_id"], name: "index_training_concept_examples_on_training_concept_id"
+    t.index ["training_example_id"], name: "index_training_concept_examples_on_training_example_id"
+    t.check_constraint "role IS NULL OR (role::text = ANY (ARRAY['illustrates'::character varying, 'counter_example'::character varying]::text[]))", name: "training_concept_examples_role_check"
+    t.check_constraint "weight >= 1 AND weight <= 5", name: "training_concept_examples_weight_check"
+  end
+
+  create_table "training_concept_relations", force: :cascade do |t|
+    t.bigint "source_concept_id", null: false
+    t.bigint "target_concept_id", null: false
+    t.string "relation", null: false
+    t.text "notes"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["source_concept_id", "target_concept_id", "relation"], name: "idx_concept_relation_unique", unique: true
+    t.index ["source_concept_id"], name: "index_training_concept_relations_on_source_concept_id"
+    t.index ["target_concept_id"], name: "index_training_concept_relations_on_target_concept_id"
+    t.check_constraint "relation::text = ANY (ARRAY['teaches'::character varying, 'applies'::character varying, 'exemplifies'::character varying, 'specializes'::character varying, 'parallels'::character varying]::text[])", name: "training_concept_relations_relation_check"
+    t.check_constraint "source_concept_id <> target_concept_id", name: "training_concept_relations_no_self_loop"
+  end
+
   create_table "training_concepts", force: :cascade do |t|
     t.string "title", null: false
     t.text "short_description"
@@ -1421,16 +1538,24 @@ ActiveRecord::Schema[7.2].define(version: 2026_05_20_192115) do
     t.text "full_description_de"
     t.text "full_description_en"
     t.datetime "translations_synced_at"
+    t.string "axis", default: "conception", null: false
+    t.string "kind"
+    t.string "key"
+    t.string "gretillat_ref"
+    t.string "weingartner_ref"
+    t.integer "importance_order"
+    t.index ["axis"], name: "index_training_concepts_on_axis"
+    t.index ["key"], name: "index_training_concepts_on_key", unique: true, where: "(key IS NOT NULL)"
     t.index ["source_language"], name: "index_training_concepts_on_source_language"
     t.index ["title_de"], name: "index_training_concepts_on_title_de"
     t.index ["title_en"], name: "index_training_concepts_on_title_en"
     t.index ["translations"], name: "index_training_concepts_on_translations", using: :gin
+    t.check_constraint "axis::text = ANY (ARRAY['technique'::character varying, 'conception'::character varying, 'psychology'::character varying, 'training'::character varying]::text[])", name: "training_concepts_axis_check"
+    t.check_constraint "kind IS NULL OR (kind::text = ANY (ARRAY['topic'::character varying, 'strategic_maxim'::character varying, 'measurable_dimension'::character varying, 'phenomenological'::character varying, 'technique'::character varying, 'system'::character varying]::text[]))", name: "training_concepts_kind_check"
   end
 
   create_table "training_examples", force: :cascade do |t|
-    t.bigint "training_concept_id", null: false
     t.string "title"
-    t.integer "sequence_number", default: 1, null: false
     t.text "ideal_stroke_parameters_text"
     t.jsonb "ideal_stroke_parameters_data", default: {}
     t.datetime "created_at", null: false
@@ -1446,8 +1571,6 @@ ActiveRecord::Schema[7.2].define(version: 2026_05_20_192115) do
     t.integer "parent_id"
     t.index ["parent_id"], name: "index_training_examples_on_parent_id"
     t.index ["source_language"], name: "index_training_examples_on_source_language"
-    t.index ["training_concept_id", "sequence_number"], name: "index_training_examples_on_concept_and_sequence", unique: true
-    t.index ["training_concept_id"], name: "index_training_examples_on_training_concept_id"
     t.index ["translations"], name: "index_training_examples_on_translations", using: :gin
   end
 
@@ -1575,6 +1698,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_05_20_192115) do
   end
 
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "ball_configuration_zones", "ball_configurations"
+  add_foreign_key "ball_configuration_zones", "table_zones"
   add_foreign_key "club_locations", "regions", validate: false
   add_foreign_key "clubs", "regions", validate: false
   add_foreign_key "game_participations", "regions", validate: false
@@ -1594,12 +1719,15 @@ ActiveRecord::Schema[7.2].define(version: 2026_05_20_192115) do
   add_foreign_key "settings", "clubs"
   add_foreign_key "settings", "regions"
   add_foreign_key "settings", "tournaments"
+  add_foreign_key "shot_events", "shots"
+  add_foreign_key "shots", "ball_configurations", column: "end_ball_configuration_id"
   add_foreign_key "shots", "training_examples"
   add_foreign_key "source_attributions", "training_sources"
   add_foreign_key "sportwart_disciplines", "disciplines", on_delete: :cascade
   add_foreign_key "sportwart_disciplines", "users", on_delete: :cascade
   add_foreign_key "sportwart_locations", "locations", on_delete: :cascade
   add_foreign_key "sportwart_locations", "users", on_delete: :cascade
+  add_foreign_key "starting_positions", "ball_configurations"
   add_foreign_key "starting_positions", "training_examples"
   add_foreign_key "stream_configurations", "tables"
   add_foreign_key "tables", "locations"
@@ -1613,7 +1741,10 @@ ActiveRecord::Schema[7.2].define(version: 2026_05_20_192115) do
   add_foreign_key "tournaments", "users", column: "turnier_leiter_user_id", on_delete: :nullify
   add_foreign_key "training_concept_disciplines", "disciplines"
   add_foreign_key "training_concept_disciplines", "training_concepts"
-  add_foreign_key "training_examples", "training_concepts"
+  add_foreign_key "training_concept_examples", "training_concepts"
+  add_foreign_key "training_concept_examples", "training_examples"
+  add_foreign_key "training_concept_relations", "training_concepts", column: "source_concept_id"
+  add_foreign_key "training_concept_relations", "training_concepts", column: "target_concept_id"
   add_foreign_key "training_examples", "training_examples", column: "parent_id"
   add_foreign_key "users", "players"
   add_foreign_key "versions", "regions", validate: false

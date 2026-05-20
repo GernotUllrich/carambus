@@ -116,6 +116,10 @@ Rails.application.routes.draw do
     post "external_tournament/start_game",
          to: "external_tournaments#start_game",
          as: :external_tournament_start_game
+    # Plan 17-04 (Vision J): App ruft erfasstes Ergebnis ab + gibt Tisch frei (Result-Hold + Pull).
+    post "external_tournament/acknowledge_result",
+         to: "external_tournaments#acknowledge_result",
+         as: :external_tournament_acknowledge_result
   end
 
   # Debug routes (development only)

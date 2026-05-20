@@ -10,13 +10,17 @@ module Api
       @nbv = regions(:nbv)
       @location = locations(:one)
       @service_user = User.create!(email: "test-2band-lifecycle@carambus.de", password: "password123")
+      @player_a = Player.create!(id: 50_100_501, firstname: "AckCtrlA", lastname: "Test", dbu_nr: 43001, ba_id: 43001)
+      @player_b = Player.create!(id: 50_100_502, firstname: "AckCtrlB", lastname: "Test", dbu_nr: 43002, ba_id: 43002)
     end
 
     teardown do
+      GameParticipation.where(player: [@player_a, @player_b].compact).delete_all
       Tournament.where(region_id: @nbv.id, external_id: %w[ep-1]).each do |t|
         t.tournament_monitor&.destroy
         t.destroy
       end
+      Player.where(id: [@player_a&.id, @player_b&.id].compact).delete_all
       User.where(email: "test-2band-lifecycle@carambus.de").delete_all
     end
 
@@ -111,7 +115,78 @@ module Api
       TableMonitor.where(id: monitor.id).delete_all if defined?(monitor) && monitor
     end
 
+    # === Plan 17-04: acknowledge_result (Result-Hold + Pull) ===
+
+    # AC-3: ohne Auth -> 401
+    test "acknowledge_result ohne Auth gibt 401" do
+      post_json("/api/external_tournament/acknowledge_result",
+        {region: {shortname: "NBV"}, tournament: {external_id: "ep-1"}, game: {external_id: "x"}}, nil)
+      assert_response :unauthorized
+    end
+
+    # AC-2: Happy-Path -> 200 carambus.ack/v1 + Ergebnis + Release
+    test "acknowledge_result liefert erfasstes Ergebnis + gibt frei (carambus.ack/v1)" do
+      jwt = login_jwt
+      monitor, game = setup_held_game(jwt, external_id: "ack-g1")
+
+      post_json("/api/external_tournament/acknowledge_result",
+        {region: {shortname: "NBV"}, tournament: {external_id: "ep-1"}, game: {external_id: "ack-g1"}}, jwt)
+      assert_response :ok
+      body = JSON.parse(response.body)
+      assert_equal "carambus.ack/v1", body["schema"]
+      assert_equal 100, body.dig("result", "Ergebnis1")
+      assert_equal 60, body.dig("result", "Ergebnis2")
+      assert_equal false, body["already_acknowledged"]
+      assert body["acknowledged_at"].present?
+      assert_equal "ready_for_new_match", body["state"], "Hold verlassen (Tisch frei)"
+      assert game.reload.result_acknowledged_at.present?
+    ensure
+      tables(:one).update_columns(table_monitor_id: nil)
+      TableMonitor.where(id: monitor.id).delete_all if defined?(monitor) && monitor
+    end
+
+    # AC-3: Spiel noch nicht am Hold -> 409 mit aktuellem state
+    test "acknowledge_result auf nicht-bereitem Spiel gibt 409" do
+      jwt = login_jwt
+      monitor, _game = setup_held_game(jwt, external_id: "ack-g2", state: "playing")
+
+      post_json("/api/external_tournament/acknowledge_result",
+        {region: {shortname: "NBV"}, tournament: {external_id: "ep-1"}, game: {external_id: "ack-g2"}}, jwt)
+      assert_response :conflict
+      assert_equal "playing", JSON.parse(response.body)["state"]
+    ensure
+      tables(:one).update_columns(table_monitor_id: nil)
+      TableMonitor.where(id: monitor.id).delete_all if defined?(monitor) && monitor
+    end
+
     private
+
+    ACK_BA = {
+      "Spieler1" => 43001, "Spieler2" => 43002, "Sets1" => 1, "Sets2" => 0,
+      "Ergebnis1" => 100, "Ergebnis2" => 60, "Aufnahmen1" => 5, "Aufnahmen2" => 5,
+      "Höchstserie1" => 50, "Höchstserie2" => 30, "Tischnummer" => 1
+    }.freeze
+
+    # Baut ein App-Turnier (ep-1) + gebundenen Tisch + ein Game im angegebenen State
+    # mit erfasstem ba_results (Hold-Simulation). Liefert [monitor, game].
+    def setup_held_game(jwt, external_id:, state: "final_match_score")
+      post_json("/api/external_tournament/tournament",
+        {region: {shortname: "NBV"}, external_id: "ep-1", title: "EP", location: {id: @location.id}}, jwt)
+      monitor = TableMonitor.create!(state: "ready", data: {})
+      tables(:one).update_columns(table_monitor_id: monitor.id)
+      post_json("/api/external_tournament/lock_table",
+        {region: {shortname: "NBV"}, tournament: {external_id: "ep-1"}, table: {id: tables(:one).id}}, jwt)
+      monitor.reload
+
+      game = Game.create!(group_no: 1, seqno: 1, table_no: 1,
+        data: {"external_id" => external_id, "ba_results" => ACK_BA, "tmp_results" => {"sets" => [ACK_BA]}})
+      GameParticipation.create!(game: game, player: @player_a, role: "playera")
+      GameParticipation.create!(game: game, player: @player_b, role: "playerb")
+      monitor.update!(game_id: game.id, data: {"ba_results" => ACK_BA, "sets" => [ACK_BA]})
+      monitor.update_columns(state: state)
+      monitor.reload
+      [monitor, game]
+    end
 
     def auth_headers(jwt)
       h = {"Content-Type" => "application/json", "Accept" => "application/json"}
