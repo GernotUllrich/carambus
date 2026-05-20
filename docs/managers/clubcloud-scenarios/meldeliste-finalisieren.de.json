@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "id": "meldeliste-finalisieren",
+  "version": "0.1.0",
+  "title": "Meldeliste in ClubCloud finalisieren",
+  "description": "DESTRUKTIVE Aktion: Sperrt die Teilnehmerliste eines Turniers in ClubCloud, sodass keine Anmelde-Änderungen mehr möglich sind. Erst danach akzeptiert CC Ergebnis-Uploads für dieses Turnier. Claude führt durch Region/Turnier-Auswahl, zeigt die aktuelle Liste zur Vollständigkeitsprüfung, demonstriert die Wirkung im Dry-Run und führt erst nach explizitem User-OK die echte Finalisierung aus.",
+  "prerequisites": [
+    "TM hat Club-Sportwart- oder höhere CC-Rolle für die Region des Turniers — Pflicht (sonst lehnt CC mit 403 ab; Claude eskaliert mit Übergabe-Anweisung).",
+    "Die Teilnehmerliste ist vollständig — keine Last-Minute-Anmeldungen mehr erwartet (Finalisierung ist Einweg-Aktion).",
+    "Das Turnier ist in CC angelegt mit allen geplanten Spielern auf der Meldeliste."
+  ],
+  "user_confirm_strategy": "per_step",
+  "notes_for_claude": "Dies ist eine EINWEG-/destruktive Aktion. Pattern: erst armed:false als Dry-Run anwenden + dem User die Effekte zeigen, dann erst nach explizitem User-OK armed:true. Bei fehlender Berechtigung antwortet CC mit 403 — Claude eskaliert konkret: 'Du hast keine Club-Sportwart-Rolle für {Verein}. Bitte den Sportwart anrufen mit der Bitte, die Liste zu finalisieren. Sobald das gemacht ist, sag Bescheid.' Bei doppelter Finalisierung gibt CC ebenfalls einen Fehler — meist gutartig (Liste war bereits finalisiert), Claude bestätigt das beim User.",
+  "steps": [
+    {
+      "step_id": "lookup_region",
+      "tool": "cc_lookup_region",
+      "params": {
+        "shortname": "{{region_shortname}}"
+      },
+      "bind_result": {
+        "region_id": "$.region.id",
+        "fed_id": "$.region.cc_id"
+      },
+      "description_for_user": "Ich klär zuerst die Region. {{region_shortname}} = ?",
+      "user_confirm": false,
+      "expected_outcome": "1 Region-Datensatz",
+      "fail_action": "ask_user"
+    },
+    {
+      "step_id": "lookup_tournament",
+      "tool": "cc_lookup_tournament",
+      "params": {
+        "tournament_id": "{{tournament_id}}"
+      },
+      "bind_result": {
+        "branch_id": "$.tournament.branch_id",
+        "season": "$.tournament.season",
+        "meldeliste_id": "$.tournament.meldeliste_id",
+        "tournament_title": "$.tournament.title"
+      },
+      "description_for_user": "Welches Turnier soll finalisiert werden? Falls die Carambus-Tournament-ID nicht bekannt ist, alternativ über meisterschaft_id (CC-Meisterschafts-ID) suchen.",
+      "user_confirm": true,
+      "expected_outcome": "1 Tournament-Datensatz mit branch_id, season, meldeliste_id und Titel — wird für die nächsten Steps gebraucht",
+      "fail_action": "ask_user"
+    },
+    {
+      "step_id": "lookup_teilnehmerliste",
+      "tool": "cc_lookup_teilnehmerliste",
+      "params": {
+        "tournament_id": "{{tournament_id}}",
+        "meldeliste_id": "{{meldeliste_id}}",
+        "fed_id": "{{fed_id}}"
+      },
+      "description_for_user": "Hier ist die aktuelle Teilnehmerliste für {{tournament_title}}. Bitte einmal durchsehen — sind alle gewünschten Spieler dabei? Fehlt jemand? (Nach der Finalisierung sind keine Änderungen mehr möglich.)",
+      "user_confirm": true,
+      "expected_outcome": "Liste der gemeldeten Spieler — TM bestätigt Vollständigkeit",
+      "fail_action": "ask_user"
+    },
+    {
+      "step_id": "finalize_dry_run",
+      "tool": "cc_finalize_teilnehmerliste",
+      "params": {
+        "fed_id": "{{fed_id}}",
+        "branch_id": "{{branch_id}}",
+        "season": "{{season}}",
+        "meldeliste_id": "{{meldeliste_id}}",
+        "armed": false
+      },
+      "description_for_user": "Ich zeige dir, was die Finalisierung tun würde — Dry-Run, noch nichts geändert in CC:",
+      "user_confirm": false,
+      "expected_outcome": "Dry-Run-Output mit allen Effekten der Finalisierung; CC wird NICHT mutiert",
+      "fail_action": "ask_user"
+    },
+    {
+      "step_id": "finalize_armed",
+      "tool": "cc_finalize_teilnehmerliste",
+      "params": {
+        "fed_id": "{{fed_id}}",
+        "branch_id": "{{branch_id}}",
+        "season": "{{season}}",
+        "meldeliste_id": "{{meldeliste_id}}",
+        "armed": true
+      },
+      "description_for_user": "**ACHTUNG: Einweg-Aktion.** Soll ich {{tournament_title}} jetzt wirklich finalisieren? Nach OK kann CC Ergebnis-Uploads für dieses Turnier akzeptieren. Antworte mit 'ja, finalisieren' für echte Aktion, sonst mit 'abbrechen'.",
+      "user_confirm": true,
+      "expected_outcome": "Erfolg-Meldung von CC; bei 403 → CC-Rolle fehlt, Claude eskaliert mit Telefon-Übergabe-Anweisung an den Vereins-Sportwart",
+      "fail_action": "ask_user"
+    }
+  ]
+}

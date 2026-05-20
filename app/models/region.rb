@@ -560,12 +560,14 @@ image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
       unless tournament.present?
         # Erkenne Vorgabeturniere am Titel
         is_handicap = name =~ /Vorgabe/i
+        parsed_player_class = Tournament.parse_player_class_from_title(name)
         tournament = Tournament.create(
-          season:, 
-          organizer: self, 
-          title: name, 
+          season:,
+          organizer: self,
+          title: name,
           region_id: self.id,
-          handicap_tournier: is_handicap
+          handicap_tournier: is_handicap,
+          player_class: parsed_player_class
         )
       end
       TournamentCc.where(tournament_id: tournament.id).where.not(id: tc.id).destroy_all
@@ -942,13 +944,14 @@ firstname: #{firstname}, lastname: #{lastname}, ba_id: #{should_be_ba_id}, club_
           unless tournament.present?
             # Erkenne Vorgabeturniere am Titel
             is_handicap = name =~ /Vorgabe/i
-            
+            parsed_player_class = Tournament.parse_player_class_from_title(name)
             tournament = Tournament.create!(
               season: current_season,
               organizer: self,
               title: name,
               date: date,
-              handicap_tournier: is_handicap
+              handicap_tournier: is_handicap,
+              player_class: parsed_player_class
             )
             Rails.logger.info "===== scrape_upcoming ===== Created new tournament: #{name}#{is_handicap ? ' (Vorgabeturnier)' : ''}"
           end

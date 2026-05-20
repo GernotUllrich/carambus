@@ -546,4 +546,68 @@ class TournamentsControllerTest < ActionDispatch::IntegrationTest
     assert_includes [200, 302, 404, 500], response.status,
       "placement should reach action body (not guard redirect) in local server mode"
   end
+
+  # ---------------------------------------------------------------------------
+  # Plan 14-G.3 / F3-B: TL-Zuweisung mit Pundit-authorize-Check
+  # ---------------------------------------------------------------------------
+
+  test "PATCH update mit TL-change — Sportwart-im-Wirkbereich-User → success + TL updated" do
+    Carambus.config.carambus_api_url = "http://local.test"
+    sportwart = User.create!(email: "ctrl_sw@test.de", password: "password123", confirmed_at: Time.current)
+    sportwart.sportwart_locations << locations(:one)
+    sportwart.sportwart_disciplines << disciplines(:carom_3band)
+    # Repair fixture-rot: ensure tournament has matching location + discipline
+    @tournament.update_columns(location_id: locations(:one).id, discipline_id: disciplines(:carom_3band).id)
+    new_tl = User.create!(email: "ctrl_tl@test.de", password: "password123", confirmed_at: Time.current)
+
+    sign_out @user
+    sign_in sportwart
+    patch tournament_url(@tournament), params: {tournament: {turnier_leiter_user_id: new_tl.id}}
+
+    assert_includes [200, 302], response.status, "update should succeed"
+    @tournament.reload
+    assert_equal new_tl.id, @tournament.turnier_leiter_user_id, "TL muss gesetzt sein"
+  end
+
+  test "PATCH update mit TL-change — Random-User → redirect with flash[:alert] (Pundit-denied)" do
+    Carambus.config.carambus_api_url = "http://local.test"
+    random_user = User.create!(email: "ctrl_rand@test.de", password: "password123", confirmed_at: Time.current)
+    new_tl = User.create!(email: "ctrl_tl_rand@test.de", password: "password123", confirmed_at: Time.current)
+    original_tl_id = @tournament.turnier_leiter_user_id
+
+    sign_out @user
+    sign_in random_user
+    patch tournament_url(@tournament), params: {tournament: {turnier_leiter_user_id: new_tl.id}}
+
+    @tournament.reload
+    assert_equal original_tl_id, @tournament.turnier_leiter_user_id, "TL darf NICHT geändert sein"
+    assert_match(/Authority-Denied/, flash[:alert].to_s)
+  end
+
+  test "PATCH update mit TL-change — system_admin → success + TL updated (admin-Bypass)" do
+    Carambus.config.carambus_api_url = "http://local.test"
+    new_tl = User.create!(email: "ctrl_tl_sa@test.de", password: "password123", confirmed_at: Time.current)
+
+    sign_out @user
+    sign_in @system_admin
+    patch tournament_url(@tournament), params: {tournament: {turnier_leiter_user_id: new_tl.id}}
+
+    assert_includes [200, 302], response.status, "update should succeed for sysadmin"
+    @tournament.reload
+    assert_equal new_tl.id, @tournament.turnier_leiter_user_id, "TL muss gesetzt sein (admin-Bypass)"
+  end
+
+  test "PATCH update ohne TL-change — kein Pundit-Check (existing-behavior-Smoke)" do
+    Carambus.config.carambus_api_url = "http://local.test"
+    # Random-User ohne Authority — update OHNE TL-change muss durchgehen (kein Pundit-Trigger).
+    random_user = User.create!(email: "ctrl_rand_smoke@test.de", password: "password123", confirmed_at: Time.current)
+
+    sign_out @user
+    sign_in random_user
+    patch tournament_url(@tournament), params: {tournament: {title: "Updated Title Smoke"}}
+
+    assert_includes [200, 302], response.status, "update OHNE TL-change muss durchgehen"
+    @tournament.reload
+    assert_equal "Updated Title Smoke", @tournament.title
+  end
 end

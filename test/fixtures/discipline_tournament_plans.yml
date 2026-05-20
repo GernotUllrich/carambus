@@ -1,0 +1,66 @@
+# Phase 39 D-16 fixture rows for parameter_ranges tests.
+# Discipline IDs reference disciplines.yml; tournament_plan_ids reference tournament_plans.yml.
+# Test DB is rebuilt from these fixtures, so global ID range (id < 50_000_000) is safe.
+
+# D-16(a) DTP-Hit Normal: Freie Partie klein, plan t04_5 (5 players), class "1"
+# Used to assert ranges = {balls_goal: 187..250, innings_goal: 11..15}
+# (250*0.75 = 187.5 -> floor 187; 15*0.75 = 11.25 -> floor 11)
+fpk_t04_5_class1:
+  id: 9_000_001
+  discipline_id: 50_000_004    # disciplines(:discipline_freie_partie_klein)
+  tournament_plan_id: 50_000_100  # tournament_plans(:t04_5)
+  players: 5
+  player_class: "1"
+  points: 250
+  innings: 15
+  created_at: <%= 1.year.ago %>
+  updated_at: <%= 1.day.ago %>
+
+# D-16(b) Class-Walk: same (discipline, plan, players=5) but class "3" — used to walk from "5" -> "3"
+fpk_t04_5_class3:
+  id: 9_000_002
+  discipline_id: 50_000_004
+  tournament_plan_id: 50_000_100
+  players: 5
+  player_class: "3"
+  points: 200
+  innings: 12
+  created_at: <%= 1.year.ago %>
+  updated_at: <%= 1.day.ago %>
+
+# Same plan/players, class "II" (Roman) — used to verify Roman walk
+fpk_t04_5_classII:
+  id: 9_000_003
+  discipline_id: 50_000_004
+  tournament_plan_id: 50_000_100
+  players: 5
+  player_class: "II"
+  points: 150
+  innings: 10
+  created_at: <%= 1.year.ago %>
+  updated_at: <%= 1.day.ago %>
+
+# Zero-canonical row (RQ-01 / Pitfall 2): represents Petit/Grand Prix + Nordcup edge case.
+# When this DTP row is matched, parameter_ranges MUST return {} (the Cup-series no-score-target case).
+fpk_t06_6_class1_zero:
+  id: 9_000_004
+  discipline_id: 50_000_004
+  tournament_plan_id: 50_000_101  # tournament_plans(:t06_6)
+  players: 6
+  player_class: "1"
+  points: 0
+  innings: 0
+  created_at: <%= 1.year.ago %>
+  updated_at: <%= 1.day.ago %>
+
+# Different discipline+plan to prove walk does NOT cross discipline boundaries
+carom_t04_5_class1:
+  id: 9_000_005
+  discipline_id: 50_000_001    # disciplines(:carom_3band) "Dreiband"
+  tournament_plan_id: 50_000_100
+  players: 5
+  player_class: "1"
+  points: 80
+  innings: 50
+  created_at: <%= 1.year.ago %>
+  updated_at: <%= 1.day.ago %>

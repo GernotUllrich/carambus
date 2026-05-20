@@ -79,6 +79,7 @@ de:
         login_html: oder %{link}
         sign_up: Registrieren
         submitting: Warten...
+        terms_acceptance: Ich akzeptiere die Nutzungsbedingungen
         terms_html: Ich akzeptiere die %{terms} und %{privacy}
       signed_up: Sie haben sich erfolgreich registriert.
       signed_up_but_inactive: Sie haben sich erfolgreich registriert. Wir konnten Sie jedoch nicht anmelden, weil Ihr Konto noch nicht aktiviert ist.

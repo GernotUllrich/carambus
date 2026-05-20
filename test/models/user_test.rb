@@ -66,7 +66,6 @@
 require "test_helper"
 
 class UserTest < ActiveSupport::TestCase
-
   test "default role is player" do
     user = User.new(email: "test_drip@example.com", password: "password", first_name: "default", last_name: "user")
     user.save!
@@ -75,48 +74,223 @@ class UserTest < ActiveSupport::TestCase
 
   setup do
     @user = users(:regular)
-    @user.preferences = { 'theme' => 'system', 'locale' => 'de', 'timezone' => 'Berlin' }
+    @user.preferences = {"theme" => "system", "locale" => "de", "timezone" => "Berlin"}
   end
 
-  test 'valid preferences' do
+  test "valid preferences" do
     assert @user.valid?
   end
 
-  test 'invalid theme' do
-    @user.preferences['theme'] = 'invalid'
+  test "invalid theme" do
+    @user.preferences["theme"] = "invalid"
     assert_not @user.valid?
-    assert_includes @user.errors[:preferences], I18n.t('errors.messages.invalid_theme')
+    assert_includes @user.errors[:preferences], I18n.t("errors.messages.invalid_theme")
   end
 
-  test 'invalid locale' do
-    @user.preferences['locale'] = 'xx'
+  test "invalid locale" do
+    @user.preferences["locale"] = "xx"
     assert_not @user.valid?
-    assert_includes @user.errors[:preferences], I18n.t('errors.messages.invalid_locale')
+    assert_includes @user.errors[:preferences], I18n.t("errors.messages.invalid_locale")
   end
 
-  test 'invalid timezone' do
-    @user.preferences['timezone'] = 'Invalid/Timezone'
+  test "invalid timezone" do
+    @user.preferences["timezone"] = "Invalid/Timezone"
     assert_not @user.valid?
-    assert_includes @user.errors[:preferences], I18n.t('errors.messages.invalid_timezone')
+    assert_includes @user.errors[:preferences], I18n.t("errors.messages.invalid_timezone")
   end
 
-  test 'should accept valid themes' do
+  test "should accept valid themes" do
     %w[system dark light].each do |theme|
-      @user.preferences['theme'] = theme
+      @user.preferences["theme"] = theme
       assert @user.valid?, "#{theme} should be valid"
     end
   end
 
-  test 'should set default preferences on initialization' do
+  test "should set default preferences on initialization" do
     user = User.new(
-      email: 'new@example.com',
-      password: 'password',
-      first_name: 'New',
-      last_name: 'User'
+      email: "new@example.com",
+      password: "password",
+      first_name: "New",
+      last_name: "User"
     )
 
-    assert_equal 'system', user.preferences['theme']
-    assert_equal 'de', user.preferences['locale']
-    assert_equal 'Berlin', user.preferences['timezone']
+    assert_equal "system", user.preferences["theme"]
+    assert_equal "de", user.preferences["locale"]
+    assert_equal "Berlin", user.preferences["timezone"]
+  end
+
+  # MCP Multi-User-Hosting (v0.3, Plan 13-02, D-13-01-D Option-B-Override)
+  # ---------------------------------------------------------------------
+  # Plan 14-G.2 / D-14-G6: 5 Tests (mcp_role / mcp_enabled? / mcp_cc_region) ersatzlos gelöscht
+  # (Spalten + Helper durch DROP in 14-G.1 obsolet).
+
+  test "existing Carambus role enum unangetastet (admin? Methoden funktional)" do
+    u = User.new(email: "mcp5@example.com", password: "password123", role: :system_admin)
+    assert u.admin?
+    assert u.super_admin?
+    assert_equal "system_admin", u.role
+  end
+
+  # v0.3 Plan 13-07 (D-13-01-E DSGVO minimal-pragmatic): Consent + AuditTrail-Export
+  # ----------------------------------------------------------------------------------
+  test "mcp_consent_given? false bei neuem User" do
+    u = User.new(email: "consent1@test.de", password: "password123")
+    assert_not u.mcp_consent_given?
+  end
+
+  test "grant_mcp_consent! setzt mcp_consent_at + persistiert" do
+    # mcp_consent_at-Spalte + Helper-Methode bleiben (D-14-G6 droppt nur mcp_role + cc_credentials + cc_region).
+    u = User.create!(email: "consent4@test.de", password: "password123")
+    assert_nil u.mcp_consent_at
+    u.grant_mcp_consent!
+    u.reload
+    refute_nil u.mcp_consent_at
+    assert u.mcp_consent_given?
+  end
+
+  test "mcp_audit_trail_export: 0 Entries leeres Array" do
+    # mcp_audit_trail_export ist mcp_role-unabh\u00e4ngig (nutzt nur user_id).
+    u = User.create!(email: "export1@test.de", password: "password123")
+    assert_equal [], u.mcp_audit_trail_export
+  end
+
+  test "mcp_audit_trail_export: liefert DSGVO-relevante Felder pro Entry" do
+    u = User.create!(email: "export2@test.de", password: "password123")
+    McpAuditTrail.create!(
+      user: u,
+      tool_name: "cc_register_for_tournament",
+      operator: "carambus_admin",
+      payload: {meldeliste_cc_id: 1310, armed: true},
+      pre_validation_results: [{name: "check1", ok: true}],
+      read_back_status: "match",
+      result: "success"
+    )
+    export = u.mcp_audit_trail_export
+    assert_equal 1, export.length
+    entry = export.first
+    assert_kind_of String, entry[:zeitpunkt]
+    assert_equal "cc_register_for_tournament", entry[:tool_name]
+    assert_equal "carambus_admin", entry[:operator]
+    assert_equal({"meldeliste_cc_id" => 1310, "armed" => true}, entry[:payload])
+    assert_equal "success", entry[:result]
+    assert_nothing_raised { export.to_json }
+  end
+
+  # v0.3 Plan 13-06.2 (D-13-06.1-C): Devise-JWT-Auth + JTIMatcher-Revocation
+  test "User#jti column existiert + ist string-typed" do
+    assert_equal :string, User.columns_hash["jti"].type
+    u = User.new(email: "test-jwt-column@example.com", password: "password123")
+    assert u.respond_to?(:jti), "User muss jti-Accessor haben"
+  end
+
+  test "Devise.jwt_revocation_strategy ist auf User-Model gesetzt (JTIMatcher)" do
+    # JTIMatcher fügt Klassen-Methoden für JWT-Revocation hinzu
+    assert User.respond_to?(:jwt_revoked?), "JTIMatcher muss jwt_revoked? auf User definieren"
+    assert User.respond_to?(:revoke_jwt), "JTIMatcher muss revoke_jwt auf User definieren"
+  end
+
+  test "User generates jwt token via Warden::JWTAuth::UserEncoder" do
+    u = User.first
+    skip "no users in fixtures" unless u
+    token, payload = Warden::JWTAuth::UserEncoder.new.call(u, :user, nil)
+    assert_kind_of String, token, "token must be JWT string"
+    assert payload["jti"].present?, "JWT muss jti-Claim enthalten"
+    assert_equal u.id, payload["sub"].to_i, "JWT sub-Claim muss user_id sein"
+    assert payload["exp"] > Time.current.to_i, "exp muss zukünftig sein (24h Default)"
+  end
+
+  test "BackfillJtiForExistingUsers ist idempotent + alle User haben jti danach" do
+    User.unscoped.update_all(jti: nil)
+    assert User.unscoped.where(jti: nil).any?, "Setup: fixture-User sollten jti=NULL haben"
+
+    User.unscoped.where(jti: nil).find_each(batch_size: 1000) do |user|
+      user.update_columns(jti: SecureRandom.uuid)
+    end
+
+    assert_equal 0, User.unscoped.where(jti: nil).count, "alle User müssen jti gesetzt haben"
+
+    pre = User.unscoped.pluck(:id, :jti).to_h
+    User.unscoped.where(jti: nil).find_each(batch_size: 1000) do |user|
+      user.update_columns(jti: SecureRandom.uuid)
+    end
+    post = User.unscoped.pluck(:id, :jti).to_h
+    assert_equal pre, post, "Re-Run der Backfill darf bestehende jti nicht überschreiben (Idempotenz)"
+  end
+
+  # === D-41-C: JTI-Rotation bei Passwort-Aenderung (Plan 41-03 Task 1) ===
+  # Hard-Revoke aller JWT bei encrypted_password-Change. Cross-Repo-sicher:
+  # Routine-Updates (Email, Preferences, First-Name) rotieren jti NICHT.
+
+  test "jti rotates after encrypted_password update via direct save" do
+    user = users(:valid)
+    # Fixture hat kein jti gesetzt — sicherstellen, dass jti existiert (Backfill-Pfad)
+    user.update_column(:jti, SecureRandom.uuid) if user.jti.blank?
+    user.reload
+    old_jti = user.jti
+    refute_nil old_jti, "User muss jti gesetzt haben (Backfill bei nil-Fixture)"
+
+    user.update!(password: "NeuesPasswort123!", password_confirmation: "NeuesPasswort123!")
+    user.reload
+
+    assert_not_equal old_jti, user.jti,
+      "JTI muss nach Passwort-Aenderung rotieren (D-41-C Hard-Revoke)"
+    refute_nil user.jti, "Neuer jti darf nicht nil sein"
+  end
+
+  test "jti bleibt stabil bei first_name-Update (kein Passwort-Change)" do
+    user = users(:valid)
+    user.update_column(:jti, SecureRandom.uuid) if user.jti.blank?
+    user.reload
+    old_jti = user.jti
+
+    user.update!(first_name: "Geaendert-#{SecureRandom.hex(2)}")
+    user.reload
+
+    assert_equal old_jti, user.jti,
+      "JTI darf bei Nicht-Passwort-Updates NICHT rotieren (sonst brechen MCP-JWTs)"
+  end
+
+  test "jti bleibt stabil bei email-Update (Reconfirmable: nur unconfirmed_email aendert sich)" do
+    user = users(:valid)
+    user.update_column(:jti, SecureRandom.uuid) if user.jti.blank?
+    user.reload
+    old_jti = user.jti
+
+    user.update!(email: "neue-email-#{SecureRandom.hex(2)}@example.test")
+    user.reload
+
+    assert_equal old_jti, user.jti,
+      "Email-Aenderung darf JTI nicht rotieren — encrypted_password unveraendert"
+  end
+
+  test "jti rotates via reset_password (Devise-Reset-API)" do
+    user = users(:valid)
+    user.update_column(:jti, SecureRandom.uuid) if user.jti.blank?
+    user.reload
+    old_jti = user.jti
+
+    # Devise-API: reset_password (kein "!") aendert + persistiert encrypted_password
+    user.reset_password("Reset123Passwort!", "Reset123Passwort!")
+    user.reload
+
+    assert_not_equal old_jti, user.jti,
+      "JTI muss bei Devise-reset_password rotieren (Forgot-Password-Flow)"
+  end
+
+  test "jwt_revoked? klassifiziert alten Token als revoked nach Rotation" do
+    user = users(:valid)
+    user.update_column(:jti, SecureRandom.uuid) if user.jti.blank?
+    user.reload
+    old_payload = {"jti" => user.jti}
+
+    user.update!(password: "NeuesPasswort123!", password_confirmation: "NeuesPasswort123!")
+    user.reload
+
+    assert User.jwt_revoked?(old_payload, user),
+      "Alter Payload mit altem jti muss nach Rotation als revoked klassifiziert sein"
+
+    new_payload = {"jti" => user.jti}
+    refute User.jwt_revoked?(new_payload, user),
+      "Neuer Payload mit aktuellem jti darf NICHT als revoked klassifiziert sein"
   end
 end

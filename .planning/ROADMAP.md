@@ -44,7 +44,7 @@ Phases 1-32 completed across six milestones. See `.planning/MILESTONES.md` for s
 **Milestone Goal:** Close the 5 Phase 36B UAT follow-up gaps (G-01, G-03, G-04, G-05, G-06) plus a Test 1 retest before they rot into larger debt. Two-phase warm-up milestone: Phase 38 handles the UX/i18n polish surface, Phase 39 reworks `Discipline#parameter_ranges` on top of the existing `discipline_tournament_plans` table (scope expanded out of Phase 38 during its discuss-phase).
 
 - [x] **Phase 38: UX Polish & i18n Debt** — Close 5 v7.1 requirements (dark-mode contrast, tooltip affordance, EN warmup translation, DE-only string audit on tournament views, Phase 36B Test 1 retest) in 2 plans (completed 2026-04-15)
-- [ ] **Phase 39: DTP-Backed Parameter Ranges** — Close DATA-01 by replacing the hardcoded `DISCIPLINE_PARAMETER_RANGES` constant with a `Discipline#parameter_ranges(tournament:)` method that queries the existing `discipline_tournament_plans` table; handles normal/reduced modes and `handicap_tournier=true` special case
+- [x] **Phase 39: DTP-Backed Parameter Ranges** — Close DATA-01 by replacing the hardcoded `DISCIPLINE_PARAMETER_RANGES` constant with a `Discipline#parameter_ranges(tournament:)` method that queries the existing `discipline_tournament_plans` table; handles normal/reduced modes and `handicap_tournier=true` special case (completed 2026-05-06)
 
 ## Phase Details
 
@@ -242,13 +242,43 @@ Plans:
   4. Disciplines without a DTP entry (Pool, Snooker, Kegel, Biathlon, 5-Kegel) use a hardcoded fallback hash OR return an empty hash (= "no check"); behavior is explicit and tested.
   5. `DISCIPLINE_PARAMETER_RANGES` / `UI_07_SHARED_RANGES` / `UI_07_DISCIPLINE_SPECIFIC_RANGES` constants in `app/models/discipline.rb:59-87` are removed; the `tournaments_controller.rb` parameter verification callsite passes the tournament into the new signature.
   6. `test/models/discipline_test.rb` is updated to cover the new API surface (normal mode, reduced mode, handicap_tournier branch, DTP-backed disciplines, fallback disciplines); `test/system/tournament_parameter_verification_test.rb` still passes with the new behavior.
-**Plans**: TBD (to be created by `/gsd-plan-phase 39`)
+**Plans**: 2 plans
+
+Plans:
+- [ ] `39-01-PLAN.md` — Refactor `Discipline#parameter_ranges` to DTP-backed keyword-arg method (`parameter_ranges(tournament:)`); delete `UI_07_SHARED_RANGES` / `UI_07_DISCIPLINE_SPECIFIC_RANGES` / `DISCIPLINE_PARAMETER_RANGES` constants (D-14); add `PLAYER_CLASS_ORDER` + `REDUCED_FACTOR` constants and 2 private helpers (`lookup_dtp_with_class_walk`, `range_from_canonical`); create `test/fixtures/discipline_tournament_plans.yml` + 8 new tournament fixtures + 41 seedings (D-16 a–f, RQ-01 zero-canonical, RQ-03 blank class, D-16d non-DTP); rewrite `test/models/discipline_test.rb` parameter_ranges block (8 new tests covering D-16 + RQ-01 + RQ-03; 8 obsolete tests deleted). Wave 1.
+- [ ] `39-02-PLAN.md` — Migrate `tournaments_controller.rb#verify_tournament_start_parameters` to keyword-arg call (D-01); reduce `UI_07_FIELDS` to `[:balls_goal, :innings_goal]` (D-12); delete `UI_07_SENTINEL_VALUES` constant + sentinel-exemption guard (D-13/D-15); delete `test/integration/tournament_verification_sentinels_test.rb` (RQ-04 — 7 tests of dead code); update `test/system/tournament_parameter_verification_test.rb` with deterministic Phase-39 fixture for setup + 3 new no-fire tests (BK-2kombi, handicap, no-plan). Wave 2 (depends on 39-01).
 **UI hint**: no
+
+### Phase 40: MCP Server für ClubCloud-Schnittstelle
+**Goal**: Ein in Carambus eingebetteter Ruby MCP-Server (`bin/mcp-server` + `lib/mcp_server/`, Stdio-Transport, Anthropic offizielle `mcp` Gem ~> 0.15) exponiert vier Schichten ClubCloud-Wissen für Claude Desktop / Claude Code: (1) Workflow-Doku als 5 DE Resources (`cc://workflow/scenarios/*` + `cc://workflow/{roles,glossary}`), (2) curated PATH_MAP-Surface als 15 `cc://api/{action}` Resources (D-04 Allowlist, KEIN Auto-Mapping), (3) 10 EN-Read-Tools (`cc_lookup_*` + `cc_search_player`) mit DB-first via `RegionCc`/`LeagueCc`/`TournamentCc` und Force-Refresh-Fallback auf live `RegionCc::ClubCloudClient.get`, (4) Write-Architektur (Allowlist + JSON-Schema + D-11 trust-CC-and-parse-error) plus eine Proof-Implementierung `cc_finalize_teilnehmerliste` (PATH_MAP `releaseMeldeliste`) gegen Mock-Backend. Credentials kommen per MCP-Client-Installation (mcp.json: `CC_USERNAME`, `CC_PASSWORD`, `CC_FED_ID`, `CARAMBUS_MCP_MOCK`); kein Secret im Repo. Restliche 3-5 Write-Tools deferred zu Phase 40.1.
+**Depends on**: Phase 39 (parameter-range refactor abgeschlossen, bevor neue API-Oberfläche gebaut wird)
+**Requirements**: D-01..D-20 (CONTEXT.md locked decisions)
+**Success Criteria** (D-XX-Mapping in jedem Plan's `must_haves` + Plan-Frontmatter `requirements`):
+  1. `bin/mcp-server` ist executable (mode 0755) und bootet Rails sauber (Rails.logger → STDERR per Pitfall 1; SIGINT/SIGTERM-Trap per Pitfall 8).
+  2. `McpServer::Server.build` (lib/mcp_server/server.rb) registriert dynamisch alle Tools (Plans 04+05) und Resources (Plans 02+03) via Konstanten-Lookup (Zeitwerk camelCase `McpServer`).
+  3. 11 MCP-Tools registriert (10 read + 1 write); alle mit EN-Namen per D-20 + JSON-Schema; Read-Tools haben `read_only_hint: true`, Write-Tool `destructive_hint: true`.
+  4. 20 MCP-Resources registriert (5 workflow DE + 15 api curated); URIs `cc://workflow/*` / `cc://api/*` (D-06).
+  5. `cc_finalize_teilnehmerliste` Dry-Run + Armed-Mock-Success + D-11 Role-Error-Parsing + Reauth-Retry verifiziert (6 Tests in `test/mcp_server/tools/finalize_teilnehmerliste_test.rb`).
+  6. End-to-End Stdio-Integrationstest (D-16) spawnt `bin/mcp-server` und exchanged JSON-RPC initialize + tools/list + resources/list + tools/call.
+  7. `.mcp.json.example` committed; `/.mcp.json` gitignored; 2 DE Setup-Docs (manager + developer) für D-17-Audiences.
+  8. D-08 Mock-Mode Failsafe: production + `CARAMBUS_MCP_MOCK=1` raises RuntimeError.
+  9. LocalProtector preserved: kein Carambus-side `id < 50_000_000` Mutation aus Tool-Body (CC-side mutation only).
+**Plans**: 6 plans
+
+Plans:
+- [ ] `40-01-foundation-PLAN.md` — `mcp` Gem (~> 0.15) + `bin/mcp-server` + `lib/mcp_server/{server,cc_session,transport/boot,tools/base_tool,tools/mock_client}.rb` Skeleton + Zeitwerk-Smoke-Test + SDK-API-Smoke-Probe (lockt `tool_name`/Response-Shape) + CcSession mit FULL Login-Implementierung (`Setting.login_to_cc` Reuse, kein Placeholder) + `reauth_if_needed!` + Mock-Mode-Failsafe + zentraler `resources_read_handler`-Dispatcher in server.rb (Plans 02+03 registrieren KEIN eigenes Handler) (D-08, D-10, D-12-D-15). Wave 1. **3 Tasks**.
+- [ ] `40-02-workflow-resources-PLAN.md` — 5 DE Markdown-Files unter `docs/managers/clubcloud-scenarios/` (extrahiert aus `.planning/clubcloud-admin-appendix-DRAFT.md`, `[SME-CONFIRM]`-Marker preserved, 4-5 Files mit Markern) + `WorkflowScenarios` + `WorkflowMeta` Resource-Klassen exponieren NUR `.all` + `.read(slug:|key:)` (KEINE eigene `resources_read_handler`-Registrierung — Plan 01 zentraler Dispatcher) für `cc://workflow/scenarios/{teilnehmerliste-finalisieren,player-anlegen,endrangliste-eintragen}` + `cc://workflow/{roles,glossary}` (D-05, D-07, D-17, D-18). Wave 2. **3 Tasks**.
+- [ ] `40-03-api-surface-resources-PLAN.md` — `ApiSurface` Registry mit EXAKT 15-Entry curated PATH_MAP-Allowlist (10 read lookups + 4 write/admin + 1 dashboard root `home`, NICHT auto-mapped), exponiert `cc://api/{action}` Resources mit syncer-Cross-Reference + Tool-Cross-Reference; Drift-Guard-Test gegen `RegionCc::ClubCloudClient::PATH_MAP`; nur `.all` + `.read(action:)` (Plan 01 zentraler Dispatcher, kein eigenes Handler) (D-04). Wave 2. **2 Tasks**.
+- [ ] `40-04-read-tools-PLAN.md` — 10 Read-Lookup-Tools: `cc_lookup_{region,league,tournament,teilnehmerliste,team,club,spielbericht,category,serie}` + `cc_search_player` (alle EN per D-20, alle BaseTool-Subklassen). Aufgeteilt: **4 DB-first Tools** (region, league, tournament, teilnehmerliste) per D-02; **6 live-only Tools** (team, club, spielbericht, category, serie, search_player) — kein Carambus-Mirror existiert. Plan 04 Task 1 split in 1a (canonical lookup_region) + 1b (9 weitere mechanisch repliziert) + Task 2 (3 repräsentative Test-Suites: DB-first / D-18-Acceptance / live-only). Wave 2. **3 Tasks**.
+- [ ] `40-05-write-tool-PLAN.md` — Write-Architektur (Allowlist + JSON-Schema + `armed`-Flag + D-11 trust-CC-and-parse-error) + EINE Proof-Implementierung `cc_finalize_teilnehmerliste` (PATH_MAP `releaseMeldeliste`) inkl. Retry-After-Reauth via Plan-01-`reauth_if_needed!`. **Plan 05 modifiziert NICHT cc_session.rb** — voller Login-Flow lebt in Plan 01 (Setting.login_to_cc-Reuse). 6 Tests (Dry-Run / Armed-Mock / Validation / D-11 Role-Error / Reauth-Retry / Defensive Guard). (D-03, D-10, D-11, D-19). Wave 2. **2 Tasks**.
+- [ ] `40-06-tests-and-setup-PLAN.md` — 11 Smoke-Tests für Plan-04-Read-Tool-Validierung (mit dynamischer + frozen Reference Drift-Detection) + 6 E2E-Stdio-Integration (`Open3.popen2e bin/mcp-server`: JSON-RPC initialize/tools-list/resources-list/tools-call + Invalid-JSON-Probe für `-32700 Parse error` + Executable-Bit-Guard) + `.mcp.json.example` committed + `/.mcp.json` gitignored + 2 DE Setup-Docs für Sportwart (Claude Desktop) + Carambus-Dev (Claude Code) + **Capistrano deploy task** `lib/capistrano/tasks/mcp_server.rake` (chmod 0755 bin/mcp-server nach `:bundle:install`) löst RESEARCH Open Question §5 (D-09, D-16, D-17). Wave 3. **4 Tasks**.
+**UI hint**: no
+
 
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 33 → 34 → 35 → 36a → 36b → 36c → 37 → 38 → 38.5 → 38.6 → 39
+Phases execute in numeric order: 33 → 34 → 35 → 36a → 36b → 36c → 37 → 38 → 38.5 → 38.6 → 39 → 40
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -267,10 +297,11 @@ Phases execute in numeric order: 33 → 34 → 35 → 36a → 36b → 36c → 37
 | 38.5. BK-Param-Hierarchie + Multiset-Config | v7.1 | 6/6 | Complete    | 2026-04-29 |
 | 38.6. Discipline Master-Data Cleanup | v7.1 | 4/4 | Complete    | 2026-04-29 |
 | 38.8. Endergebnis-erfasst state restore | v7.1 | 6/6 | Complete    | 2026-05-01 |
-| 39. DTP-Backed Parameter Ranges | v7.1 | 0/TBD | Not started | - |
+| 39. DTP-Backed Parameter Ranges | v7.1 | 2/2 | Complete    | 2026-05-06 |
+| 40. MCP Server für ClubCloud-Schnittstelle | v7.1 | 6/6 | Complete    | 2026-05-07 |
 
 **v7.0 total:** 7 phases, 31 plans, 37/37 requirements, ~2 weeks wall time.
-**v7.1 total (planned):** 4 phases, 12+TBD plans, 6+ requirements (5 in Phase 38, 1 in Phase 39, gap closure in 38.1/38.2).
+**v7.1 total (planned):** 5 phases, 12+TBD plans, 6+ requirements (5 in Phase 38, 1 in Phase 39, scope for Phase 40 TBD via discuss-phase, gap closure in 38.1/38.2).
 
 ## Backlog
 
@@ -278,9 +309,8 @@ Phases execute in numeric order: 33 → 34 → 35 → 36a → 36b → 36c → 37
 
 **Goal:** When a match has reached the final state (`Endergebnis erfasst`), surface a "Winner" label in the score panel and, for multi-set games, the per-set result. Captured during Phase 38.9 UAT (Test 3, BK-2 tiebreak path) — non-blocking UI polish; main BK-game paths run correctly without it.
 **Requirements:** TBD
-**Plans:** 0 plans
+**Plans:** 2/2 plans complete
 **Source:** `.planning/phases/38.9-bk-2-end-of-set-anstoss-at-goal-fix-close-set-immediately-wh/38.9-HUMAN-UAT.md` Test 3 observation
 
 Plans:
 - [ ] TBD (promote with /gsd-review-backlog when ready)
-

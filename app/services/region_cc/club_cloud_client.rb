@@ -282,6 +282,72 @@ class RegionCc::ClubCloudClient
     # catId: *
     # season: 2010/2011
     # meldelisteId: 66
+    #
+    # --- Verbands-Sicht (admin/einzel/meldelisten) Edit-Workflow — Plan 06-03 cc_update_tournament_deadline ---
+    # 2-Step-POST-Chain für Meldeschluss-Verschiebung (View-Source-Sniff 2026-05-11):
+    #   1. editMeldelisteCheck (Server-Side-Prep, Edit-Form-Render mit prefilled HTML5-date inputs)
+    #   2. editMeldelisteSave  (actual write — schreibt meldelistenName + mschluss + stag in CC-DB)
+    # Beide Endpoints unter `/admin/einzel/meldelisten/`; nbut="1"/save="1" als PHP-Button-Sentinels.
+    # NICHT zu verwechseln mit Phase-4 saveMeldeliste (`/admin/myclub/...` register-flow) — anderer Pfad, anderer Use-Case.
+    "editMeldelisteCheck" => ["/admin/einzel/meldelisten/editMeldelisteCheck.php", false],
+    "editMeldelisteSave" => ["/admin/einzel/meldelisten/editMeldelisteSave.php", false],
+    #
+    # --- Verbands-Sicht (admin/einzel/meisterschaft) Teilnehmerliste-Pflege — Plan 07-03 cc_assign_player_to_teilnehmerliste ---
+    # Multi-Step-Chain für Akkreditierungs-Workflow (Spieler von Meldeliste → Teilnehmerliste übernehmen):
+    #   1. editTeilnehmerlisteCheck (Pre-Read mit <select name="teilnehmerId"> + <select name="meldungId[]">)
+    #   2. assignPlayer            (Multi-Add via meldungId[] Array — mehrere Spieler in EINEM Call)
+    #   3. editTeilnehmerlisteSave (Commit mit save="1" Sentinel)
+    #   4. removePlayer            (Single-Remove via teilnehmerId — Plan 07-04 Inline-Patch ODER Phase 8)
+    #   5. showTeilnehmerliste     (Read-only View)
+    # Alle Endpoints unter `/admin/einzel/meisterschaft/` (NICHT `meldelisten/` wie Phase 6 — andere Entity!).
+    # Identifier ist `meisterschaftsId` (= tournament_cc_id), NICHT meldelisteId.
+    # KEIN finalize-State (Kapitalbefund Plan 07-02 D-7-5): Add/Remove werden via Save direkt persistiert.
+    "assignPlayer" => ["/admin/einzel/meisterschaft/assignPlayer.php", false],
+    "removePlayer" => ["/admin/einzel/meisterschaft/removePlayer.php", false],
+    "editTeilnehmerlisteCheck" => ["/admin/einzel/meisterschaft/editTeilnehmerlisteCheck.php", false],
+    "editTeilnehmerlisteSave" => ["/admin/einzel/meisterschaft/editTeilnehmerlisteSave.php", false],
+    "showTeilnehmerliste" => ["/admin/einzel/meisterschaft/showTeilnehmerliste.php", true],
+    #
+    # --- Vereins-Sicht (myclub/meldewesen/single) — Plan 04-04 register-Tool ---
+    # Diese 3 Endpoints liegen im VEREINS-Bereich (admin/myclub/meldewesen/single),
+    # NICHT im Verbands-Bereich (admin/einzel/meldelisten) — gleiche Funktion,
+    # anderer Pfad, anderer Action-Name. Ergebnis aus SNIFF v2 (View-Source-Methode).
+    # PATH_MAP-Format hier: [path, read_only_bool]; Plan-04-04-Spec-Detail
+    # `{method: :post, path: ...}` war schematisch — code-konform mit existing format.
+    "addPlayerToMeldeliste" => ["/admin/myclub/meldewesen/single/cc_add.php", false],
+    # POST application/x-www-form-urlencoded — fügt Player in Edit-Buffer
+    # clubId, fedId, branchId, disciplinId=*, catId=*, season, meldelisteId,
+    # firstEntry, rang, gd, selectedClubId, a=<player_cc_id>, d=
+    "saveMeldeliste" => ["/admin/myclub/meldewesen/single/editMeldelisteSave.php", false],
+    # POST application/x-www-form-urlencoded — committet Edit-Buffer in DB
+    # Alle Felder wie addPlayerToMeldeliste + save= als Commit-Marker
+    # Server ignoriert a= beim Commit; Player-cc_id IST der Liste-Identifier
+    "showCommittedMeldeliste" => ["/admin/myclub/meldewesen/single/showMeldeliste.php", true],
+    # Phase 8 Plan 08-02 — cc_unregister_for_tournament (Meldeliste-Pfad).
+    # WICHTIG: `a=<Listen-Eintrags-ID || player_cc_id>` (SUBSTRATE-08.md Sektion 2).
+    # Symmetrisch zu addPlayerToMeldeliste (Phase 4); 5-Step-Chain analog Phase-7-Lesson.
+    "removePlayerFromMeldeliste" => ["/admin/myclub/meldewesen/single/cc_remove.php", false],
+    # POST (read-only) — zeigt committed Meldeliste; für Erfolgs-Verifikation nach Save
+    # Body enthält <td align="center">{player_cc_id}</td> falls erfolgreich
+    # NICHT zu verwechseln mit "showMeldeliste" (Verbands-Pfad oben)
+    #
+    # --- Plan 14-G.12 — Sportwart-Sicht: Meldelisten-Discovery + Edit-Form ---
+    # Komplettiert den myclub-Cluster (addPlayerToMeldeliste + saveMeldeliste +
+    # showCommittedMeldeliste + removePlayerFromMeldeliste existierten bereits).
+    # NICHT zu verwechseln mit der Verbands-Sicht (LSW)
+    # /admin/einzel/meldelisten/showMeldelistenList.php (= Key "showMeldelistenList"
+    # ohne Präfix, oben) — die ist für LSW-Verband-Übersicht; Sportwart-Pfad ist
+    # club-scoped (clubId-Pflicht-Param).
+    "sportwart-showMeldelistenList" => ["/admin/myclub/meldewesen/single/showMeldelistenList.php", true],
+    # POST clubId+fedId+branchId+season+disciplinId=*+catId=*
+    # Response: <select name="meldelisteId" size="15"> mit
+    #   <option value="MID">Title [N Meldungen]</option>
+    # Parser-Pattern: doc.css('select[name="meldelisteId"] option')
+    "sportwart-editMeldelisteCheck" => ["/admin/myclub/meldewesen/single/editMeldelisteCheck.php", true],
+    # POST clubId+fedId+branchId+...+meldelisteId+edit="" (Render der Anmelde-Maske)
+    # Verwendung primär als Discovery-HEAD (Form-Render mit allen Hidden-Inputs);
+    # für Submit nutzen Tools direkt addPlayerToMeldeliste (cc_add.php) und
+    # removePlayerFromMeldeliste (cc_remove.php) — Plan 14-G.12 Substrate.
     "showMeisterschaftenList" => ["/admin/einzel/meisterschaft/showMeisterschaftenList.php", true],
     # fedId: 20
     # branchId: 10
@@ -423,10 +489,39 @@ class RegionCc::ClubCloudClient
 
   attr_reader :base_url, :username, :userpw
 
+  # Plan 14-G.13.1 Task 2: Net::HTTP Keep-Alive — TLS-Handshake nur beim ersten Call
+  # pro (host, port)-Combo, danach Connection-Reuse innerhalb dieses Client-Lifecycles.
+  HTTP_KEEPALIVE_TIMEOUT = 30 # Sekunden
+
   def initialize(base_url:, username:, userpw:)
     @base_url = base_url
     @username = username
     @userpw = userpw
+    @http_pool = {}
+  end
+
+  # Plan 14-G.13.1 Task 2: Reusable Net::HTTP-Instance pro (host, port).
+  # use_ssl wird einmalig gesetzt; keep_alive_timeout ermöglicht Connection-Reuse.
+  def http_for(uri)
+    key = [uri.host, uri.port]
+    @http_pool[key] ||= begin
+      http = Net::HTTP.new(uri.host, uri.port)
+      http.use_ssl = (uri.scheme == "https")
+      http.keep_alive_timeout = HTTP_KEEPALIVE_TIMEOUT
+      http
+    end
+  end
+
+  # Plan 14-G.13.1 Task 2: Defensive Retry bei Stale-Connection
+  # (Server hat keep-alive Connection im Pool gedroppt). Pool-Entry verwerfen + 1× retry.
+  def request_with_keepalive_retry(uri)
+    http = http_for(uri)
+    yield http
+  rescue Errno::EPIPE, IOError => e
+    Rails.logger.warn "[ClubCloudClient] Stale connection (#{e.class}) for #{uri.host}:#{uri.port}, retrying with fresh instance"
+    @http_pool.delete([uri.host, uri.port])
+    http = http_for(uri)
+    yield http
   end
 
   # Fuehrt einen GET-Request durch, ermittelt URL aus PATH_MAP[action][0].
@@ -446,15 +541,17 @@ class RegionCc::ClubCloudClient
     referer = base_url + get_options.delete(:referer).to_s
     Rails.logger.debug "[get_cc] GET #{action} with payload #{get_options}"
     uri = URI(url)
-    http = Net::HTTP.new(uri.host, uri.port)
-    http.use_ssl = true
     req = Net::HTTP::Get.new(uri.path)
     req.set_form_data(get_options)
     # Einen neuen Request mit Query-String bauen (set_form_data setzt body, nicht URI)
     req = Net::HTTP::Get.new(uri.path + ("?" unless /\?$/.match?(uri.path)).to_s + req.body)
     req["cookie"] = "PHPSESSID=#{opts[:session_id]}" if opts[:session_id].present?
     req["referer"] = referer if referer.present?
-    res = http.request(req)
+    t0 = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+    # Plan 14-G.13.1 Task 2: Net::HTTP Keep-Alive via http_for-Pool + EPIPE-Retry.
+    res = request_with_keepalive_retry(uri) { |http| http.request(req) }
+    elapsed_ms = ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - t0) * 1000).round(1)
+    Rails.logger.info "[CC-LATENCY] verb=GET action=#{action} host=#{uri.host} path=#{uri.path} elapsed_ms=#{elapsed_ms} status=#{res&.code} body_bytes=#{res&.body&.bytesize}"
     doc = if res.message == "OK"
       Nokogiri::HTML(res.body)
     else
@@ -476,14 +573,12 @@ class RegionCc::ClubCloudClient
       if read_only_action
         Rails.logger.debug "[#{action}] POST #{PATH_MAP[action][0]} with payload #{post_options}"
       else
-        Rails.logger.debug "[#{action}] #{dry_run ? "WILL" : nil} POST #{action} #{PATH_MAP[action][0]} with payload #{post_options}"
+        Rails.logger.debug "[#{action}] #{"WILL " if dry_run}POST #{action} #{PATH_MAP[action][0]} with payload #{post_options}"
       end
       doc = nil
       res = nil
       if !dry_run || read_only_action
         uri = URI(url)
-        http = Net::HTTP.new(uri.host, uri.port)
-        http.use_ssl = true
         req = Net::HTTP::Post.new(uri.request_uri)
         req["cookie"] = "PHPSESSID=#{opts[:session_id]}"
         req["Content-Type"] = "application/x-www-form-urlencoded"
@@ -493,8 +588,18 @@ class RegionCc::ClubCloudClient
         req["accept-language"] = "de-DE,de;q=0.9,en-US;q=0.8,en;q=0.7,fr;q=0.6"
         req["accept"] =
           "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
-        req.set_form_data(post_options.reject { |_k, v| v.blank? })
-        res = http.request(req)
+        # Plan 14-G.13 (2026-05-18): `opts[:keep_blanks]` (Array von Keys) erlaubt es,
+        # leere Werte gezielt durchzulassen. Brower-Init-Calls senden `edit=` (key
+        # vorhanden, value leer); semantisch unterscheidet PHP zwischen "isset+empty"
+        # und "nicht-isset". Default-Filter wirft beides als blank raus.
+        keep_blanks = Array(opts[:keep_blanks]).map(&:to_sym)
+        filtered = post_options.reject { |k, v| v.blank? && !keep_blanks.include?(k.to_sym) }
+        req.set_form_data(filtered)
+        t0 = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+        # Plan 14-G.13.1 Task 2: Net::HTTP Keep-Alive via http_for-Pool + EPIPE-Retry.
+        res = request_with_keepalive_retry(uri) { |http| http.request(req) }
+        elapsed_ms = ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - t0) * 1000).round(1)
+        Rails.logger.info "[CC-LATENCY] verb=POST action=#{action} host=#{uri.host} path=#{uri.path} elapsed_ms=#{elapsed_ms} status=#{res&.code} body_bytes=#{res&.body&.bytesize} read_only=#{read_only_action ? 1 : 0}"
         doc = if res.message == "OK"
           Nokogiri::HTML(res.body)
         else
@@ -518,14 +623,12 @@ class RegionCc::ClubCloudClient
       if read_only_action
         Rails.logger.debug "[#{action}] POST #{PATH_MAP[action][0]} with payload #{post_options}"
       else
-        Rails.logger.debug "[#{action}] #{dry_run ? "WILL" : nil} POST #{action} #{PATH_MAP[action][0]} with payload #{post_options}"
+        Rails.logger.debug "[#{action}] #{"WILL " if dry_run}POST #{action} #{PATH_MAP[action][0]} with payload #{post_options}"
       end
       doc = nil
       res = nil
       if !dry_run || read_only_action
         uri = URI(url)
-        http = Net::HTTP.new(uri.host, uri.port)
-        http.use_ssl = true
         req = Net::HTTP::Post::Multipart.new(uri.request_uri, post_options)
         req["cookie"] = "PHPSESSID=#{opts[:session_id]}"
         req["referer"] = referer if referer.present?
@@ -534,7 +637,11 @@ class RegionCc::ClubCloudClient
         req["accept-language"] = "de-DE,de;q=0.9,en-US;q=0.8,en;q=0.7,fr;q=0.6"
         req["accept"] =
           "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
-        res = http.request(req)
+        t0 = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+        # Plan 14-G.13.1 Task 2: Net::HTTP Keep-Alive via http_for-Pool + EPIPE-Retry.
+        res = request_with_keepalive_retry(uri) { |http| http.request(req) }
+        elapsed_ms = ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - t0) * 1000).round(1)
+        Rails.logger.info "[CC-LATENCY] verb=POST-MULTIPART action=#{action} host=#{uri.host} path=#{uri.path} elapsed_ms=#{elapsed_ms} status=#{res&.code} body_bytes=#{res&.body&.bytesize} read_only=#{read_only_action ? 1 : 0}"
         doc = if res.message == "OK"
           Nokogiri::HTML(res.body)
         else

@@ -32,17 +32,17 @@ Devise.setup do |config|
   # confirmation, reset password and unlock tokens in the database.
   # Devise will use the `secret_key_base` as its `secret_key`
   # by default. You can change it below and use your own secret key.
-  config.secret_key = '144cc4dd84d9f2172c8cd821cd592115e38e07a61026dacc5aeb1320c3e0d748bdf81e280c49f914af00deb605f1c171be02182622d2ef0beec69ad68dc267b9'
+  config.secret_key = "144cc4dd84d9f2172c8cd821cd592115e38e07a61026dacc5aeb1320c3e0d748bdf81e280c49f914af00deb605f1c171be02182622d2ef0beec69ad68dc267b9"
 
   # ==> Controller configuration
   # Configure the parent class to the devise controllers.
-  config.parent_controller = 'ApplicationController'
+  config.parent_controller = "ApplicationController"
 
   # ==> Mailer Configuration
   # Configure the e-mail address which will be shown in Devise::Mailer,
   # note that it will be overwritten if you use your own mailer class
   # with default "from" parameter.
-  config.mailer_sender = ENV['SMTP_USERNAME'] || "no-reply@carambus.de"
+  config.mailer_sender = ENV["SMTP_USERNAME"] || "no-reply@carambus.de"
 
   # Configure the class responsible to send e-mails.
   # config.mailer = 'Devise::Mailer'
@@ -326,7 +326,34 @@ Devise.setup do |config|
 
   # ==> Configuration for :registerable
 
-  # When set to false, does not sign a user in automatically after their password is
-  # changed. Defaults to true, so a user is signed in automatically after changing a password.
-  # config.sign_in_after_change_password = true
+  # Plan 41-04 Task 1 (D-41-C): Hard-Revoke bei PW-Change semantisch durchsetzen.
+  # User muss nach Passwort-Aenderung neu einloggen — JTI-Rotation per Callback
+  # (siehe app/models/user.rb, Plan 41-03) invalidiert alle JWTs;
+  # sign_in_after_change_password=false invalidiert auch die aktuelle Browser-Session
+  # (bypass_sign_in wird nicht aktiviert in RegistrationsController#update).
+  config.sign_in_after_change_password = false
+
+  # ==> Configuration for :jwt_authenticatable (Plan 13-06.2 / D-13-06.1-C; Plan 14-G.5 / D-14-G7)
+  # MCP-Clients senden `Authorization: Bearer <jwt>` für stateless API-Auth.
+  # Backwards-Compat: Cookie-Session (Plan 13-06.1) bleibt parallel über Standard-Devise.
+  # Plan 14-G.5 / D-14-G7: Long-Lived-JWT — 90-Tage-Default für Token-Expiry-UX-Invisible
+  # (statt 24h-Walkthrough-Pragma aus Plan 13-06.2). Konfigurierbar via
+  # Carambus.config.jwt_expiration_days (carambus.yml-Key; per-Region-Scenario-Override).
+  # JTIMatcher-Revocation (User#jti, D-13-06.2-C) bleibt aktiv als Force-Logout-Defense
+  # bei sicherheitskritischen Events.
+  config.jwt do |jwt|
+    jwt.secret = Rails.application.credentials.devise_jwt_secret_key.presence ||
+      ENV["DEVISE_JWT_SECRET_KEY"].presence ||
+      Rails.application.secret_key_base
+    # Plan 13-06.3 / D-13-06.3-A: Devise-Routes sind via routes.rb umkonfiguriert
+    # (`devise_for :users, path: "", path_names: { sign_in: "login", sign_out: "logout" }`).
+    # Die echten Login-/Logout-URLs sind daher /login und /logout, NICHT /users/sign_in.
+    jwt.dispatch_requests = [["POST", %r{^/login$}]]
+    jwt.revocation_requests = [["DELETE", %r{^/logout$}]]
+    # Plan 14-G.5 / D-14-G7: expiration_time aus Carambus.config.jwt_expiration_days
+    # (Default 90 Tage falls Config blank/0/missing).
+    jwt_days = Carambus.config.respond_to?(:jwt_expiration_days) ? Carambus.config.jwt_expiration_days.to_i : 0
+    jwt_days = 90 if jwt_days <= 0
+    jwt.expiration_time = jwt_days * 86_400 # Tage → Sekunden
+  end
 end

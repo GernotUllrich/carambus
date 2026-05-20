@@ -821,6 +821,10 @@ en:
       player_class: Player Class
       prohibited_this_tournament_from_being_saved: " prohibited this tournament from being saved:"
       save_tournament: Save Tournament
+      turnier_leiter: "Tournament Director (TL)"
+      turnier_leiter_blank_option: "— no TL —"
+    errors:
+      assign_leiter_denied: "Authority-Denied: no permission to assign Tournament Director for this tournament."
     groups:
       groups: Groups
     index:

@@ -144,6 +144,7 @@ admin:
   time_zone: "Central Time (US & Canada)"
   confirmed_at: <%= Time.current %>
   admin: true
+  role: club_admin
 
 invited:
   email: invited@carambus.de

@@ -1,0 +1,117 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "id": "turnier-status-und-anmelden",
+  "version": "0.1.0",
+  "title": "Turnier-Status prüfen und Spieler anmelden",
+  "description": "Status-getriggerter Workflow: Ein Turniermanager hat von einem Turnier gehört (Talk im Verein, Kalender, Hinweis im Forum, …) und möchte zuerst den aktuellen Status sehen — Datum, Ort, Meldeschluss, bereits angemeldete Spieler — bevor er entscheidet, ob er weitere Spieler anmeldet. Komplementär zu `anmeldung-aus-email` (E-Mail-getriggert mit gegebenen Spielerlisten); dieser Spickzettel führt den Dialog vom Status-Check über Player-Search + Plausibilitätscheck bis zur 2-Phasen-Anmeldung (Dry-Run → User-OK → armed).",
+  "prerequisites": [
+    "TM hat Club-Sportwart- oder höhere CC-Rolle für die Region des Turniers (sonst lehnt CC am Ende ab).",
+    "Die anzumeldenden Spieler haben PlayerRanking-Einträge für die Disziplin (Phase-2-Decision: Spielberechtigung wird via PlayerRanking geprüft, nicht via PlayerClass).",
+    "Das Turnier ist in CC angelegt und hat accredation_end >= today AND date >= today.",
+    "register-Tool ist verfügbar (cc_register_for_tournament aus Phase 4)."
+  ],
+  "user_confirm_strategy": "per_step",
+  "notes_for_claude": "Bei mehreren Tournament-Treffern: gezielt disambiguieren (Datum + Ort + ggf. Verein). Niemals raten. Bei mehrdeutigen Spieler-Namen: Vorname + Geburtsjahr + Verein erfragen. Bei `experienced:false` aus check_player_discipline_experience das `reason`-Feld verbatim als Plausibilitäts-Rückfrage ausspielen ('Joshua hat noch nie an einem Eurokegel-Turnier teilgenommen — trotzdem eintragen?'). Bei stale CC-Daten (meta.last_sync_age_hours > 2): force_refresh:true empfehlen, aber den User entscheiden lassen. 2-Phasen-Register-Pattern strikt einhalten: erst Step 5 (armed:false) inkl. Konsistenz-Check, dann erst nach explizitem TM-OK Step 6 (armed:true). Multi-Player-Anmeldung: Steps 3-6 pro Spieler wiederholen (Schleife); bei Fehler in einem Spieler den Rest weitermelden, dem User Fehler aggregiert berichten.",
+  "steps": [
+    {
+      "step_id": "lookup_open_tournaments_by_name",
+      "tool": "cc_list_open_tournaments",
+      "params": {
+        "shortname": "{{region_shortname}}",
+        "name": "{{tournament_name_fragment}}"
+      },
+      "bind_result": {
+        "tournaments": "$.data"
+      },
+      "description_for_user": "Ich suche offene Turniere in {{region_shortname}}, deren Titel '{{tournament_name_fragment}}' enthält. Welches ist gemeint?",
+      "user_confirm": true,
+      "expected_outcome": "≥1 Turnier; bei mehreren Kandidaten: Disambiguierung über Datum + Ort. Stale-Warning prüfen via meta.last_sync_age_hours — falls >2h, force_refresh:true empfehlen.",
+      "fail_action": "ask_user"
+    },
+    {
+      "step_id": "tournament_detail_with_committed_list",
+      "tool": "cc_lookup_tournament",
+      "params": {
+        "tournament_cc_id": "{{selected_tournament_cc_id}}",
+        "with_committed_list": true
+      },
+      "bind_result": {
+        "details": "$.tournament",
+        "committed": "$.committed_meldeliste",
+        "selected_meldeliste_cc_id": "$.tournament.registration_list_cc_id",
+        "selected_branch_cc_id": "$.tournament.branch_cc_id",
+        "selected_season_name": "$.tournament.season_name",
+        "selected_discipline_name": "$.tournament.discipline_name"
+      },
+      "description_for_user": "Hier ist der Status zu {{selected_tournament_name}}: Datum, Ort, Meldeschluss und bereits angemeldete Spieler. Möchtest Du Spieler ergänzen?",
+      "user_confirm": true,
+      "expected_outcome": "Detail-Felder + Liste der bereits gemeldeten Spieler — TM entscheidet, ob er weitermacht. Bereits-Angemeldete kurz aufzählen, damit TM Doppelanmeldungen erkennt.",
+      "fail_action": "ask_user"
+    },
+    {
+      "step_id": "search_player_by_name",
+      "tool": "cc_list_players_by_name",
+      "params": {
+        "name_fragment": "{{player_name_fragment}}",
+        "shortname": "{{region_shortname}}"
+      },
+      "bind_result": {
+        "candidates": "$.players"
+      },
+      "description_for_user": "Welcher Spieler ist '{{player_name_fragment}}'? Bei mehreren Treffern bitte Vorname + Geburtsjahr + Verein zur Auswahl angeben.",
+      "user_confirm": true,
+      "expected_outcome": "Liste der Match-Kandidaten. Falls meta.match_count > meta.returned: club_cc_id zur Verengung erfragen. Auswahl bindet selected_player_cc_id, selected_player_name, selected_club_cc_id.",
+      "fail_action": "ask_user"
+    },
+    {
+      "step_id": "check_discipline_experience",
+      "tool": "cc_check_player_discipline_experience",
+      "params": {
+        "player_cc_id": "{{selected_player_cc_id}}",
+        "discipline": "{{selected_discipline_name}}"
+      },
+      "bind_result": {
+        "experienced": "$.experienced",
+        "reason": "$.reason"
+      },
+      "description_for_user": "Bevor ich {{selected_player_name}} anmelde, prüfe ich Erfahrung in {{selected_discipline_name}}.",
+      "user_confirm": false,
+      "expected_outcome": "experienced:true → still anmelden ohne Plausibilitäts-Frage. experienced:false → reason-Klartext verbatim als 'Bist Du sicher?'-Rückfrage an TM, BEVOR Step 5 startet.",
+      "fail_action": "ask_user"
+    },
+    {
+      "step_id": "register_dry_run",
+      "tool": "cc_register_for_tournament",
+      "params": {
+        "fed_id": "{{region_cc_id}}",
+        "branch_cc_id": "{{selected_branch_cc_id}}",
+        "season": "{{selected_season_name}}",
+        "meldeliste_cc_id": "{{selected_meldeliste_cc_id}}",
+        "player_cc_id": "{{selected_player_cc_id}}",
+        "club_cc_id": "{{selected_club_cc_id}}",
+        "armed": false
+      },
+      "description_for_user": "Dry-Run: Ich melde {{selected_player_name}} in Meldeliste {{selected_meldeliste_name}} an (armed:false). Tool zeigt alle ID-Werte und macht den Konsistenz-Check (PlayerRanking-Existenz). Wenn alles passt, bestätige bitte mit 'armed' für die echte Anmeldung.",
+      "user_confirm": true,
+      "expected_outcome": "Dry-Run-Output mit allen ID-Werten (player_cc_id, meldeliste_cc_id, club_cc_id, fed_id, branch_cc_id, season) + Konsistenz-Check-Status + Workflow-Beschreibung. TM bestätigt explizit, BEVOR Step 6 läuft.",
+      "fail_action": "ask_user"
+    },
+    {
+      "step_id": "register_armed",
+      "tool": "cc_register_for_tournament",
+      "params": {
+        "fed_id": "{{region_cc_id}}",
+        "branch_cc_id": "{{selected_branch_cc_id}}",
+        "season": "{{selected_season_name}}",
+        "meldeliste_cc_id": "{{selected_meldeliste_cc_id}}",
+        "player_cc_id": "{{selected_player_cc_id}}",
+        "club_cc_id": "{{selected_club_cc_id}}",
+        "armed": true
+      },
+      "description_for_user": "Anmeldung jetzt scharf (armed:true). Tool ruft 2-Step-Workflow gegen CC: addPlayerToMeldeliste → saveMeldeliste, plus optional Verifikations-Call (showCommittedMeldeliste).",
+      "user_confirm": true,
+      "expected_outcome": "success_output mit verified_in_committed_list-Indikator (Player-cc_id-Match im commited Meldeliste-HTML). Bei Multi-Player-Anmeldung: Schritt 3-6 pro weiterem Spieler wiederholen.",
+      "fail_action": "ask_user"
+    }
+  ]
+}

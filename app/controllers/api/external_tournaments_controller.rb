@@ -1,0 +1,345 @@
+# frozen_string_literal: true
+
+module Api
+  # Plan 15-02: External-Tournament-Bridge Seeding-Endpoint (Carambus → 3BandMannschaftsTurnier-App)
+  #
+  # Liefert carambus.seeding/v1-konformes JSON-Dokument für externe Turnier-Apps
+  # (Pilot: 3BandMannschaftsTurnier in /Users/gullrich/2BandTurnier; BC Wedel 3-Band-Mannschaft).
+  #
+  # Auth: devise-jwt (Bearer-Token aus POST /login eines 2band-bridge-Service-Account-Users
+  # wie 2band-nbv-bridge@carambus.de; angelegt via `rake service_accounts:create_2band[NBV]`).
+  # D-15-01-A: Service-Account-Pattern analog G.14 (Pattern aus TournamentCcsController).
+  #
+  # Spec: /Users/gullrich/2BandTurnier/docs/json-schema.md
+  # Beispiel: /Users/gullrich/2BandTurnier/docs/examples/seeding-3band-mannschaft.json
+  class ExternalTournamentsController < ApplicationController
+    before_action :authenticate_user!
+    skip_forgery_protection
+
+    # GET /api/external_tournament/seeding?tournament_cc_id=X&region=NBV
+    #
+    # Response (200):
+    #   {
+    #     "schema": "carambus.seeding/v1",
+    #     "region": { "shortname": "NBV", "url": "https://nbv.carambus.de" },
+    #     "tournament": { "cc_id": 12345, "name": "...", "discipline": {...}, "format": {...}, ... },
+    #     "teams": [ { "seeding_position": 1, "name": "...", "club": {...}, "players": [...] }, ... ]
+    #   }
+    #
+    # Errors:
+    #   - 401 — fehlende/ungültige/revoked JWT
+    #   - 404 — tournament_cc_id existiert nicht für die Region
+    #   - 422 — region_shortname passt nicht zur Tournament-Region, oder TournamentCc noch nicht verlinkt
+    def seeding
+      region = Region.find_by!(shortname: params[:region].to_s.upcase)
+      tournament_cc = TournamentCc.find_by!(
+        cc_id: params[:tournament_cc_id],
+        context: region.shortname.downcase
+      )
+
+      tournament = tournament_cc.tournament
+      if tournament.nil?
+        return render json: {error: "Tournament not yet linked"}, status: :unprocessable_entity
+      end
+
+      if tournament.region_id != region.id
+        return render json: {error: "Region mismatch"}, status: :unprocessable_entity
+      end
+
+      render json: build_seeding_payload(tournament, tournament_cc, region)
+    rescue ActiveRecord::RecordNotFound => e
+      render json: {error: e.message}, status: :not_found
+    end
+
+    # POST /api/external_tournament/round_start
+    #
+    # Body: carambus.round_start/v1-Dokument (siehe /Users/gullrich/2BandTurnier/docs/json-schema.md).
+    # Erzeugt pro games[]-Eintrag genau einen Game-Record + GameParticipations + setzt
+    # TableMonitor.game_id. Idempotent via Game.data["external_id"].
+    #
+    # Response (201 / 200 bei Idempotenz):
+    #   { "games": [{ "external_id": "...", "game_id": 123, "table_monitor_id": 45 }, ...] }
+    #
+    # Errors:
+    #   - 401 — fehlende/ungültige/revoked JWT
+    #   - 404 — TournamentCc / Region nicht gefunden
+    #   - 422 — Region-Mismatch / Player nicht resolved / TableMonitor nicht gefunden
+    def round_start
+      payload = round_start_params.to_h.deep_symbolize_keys
+      region = Region.find_by!(shortname: payload.dig(:region, :shortname).to_s.upcase)
+      tournament_cc = TournamentCc.find_by!(
+        cc_id: payload.dig(:tournament, :cc_id),
+        context: region.shortname.downcase
+      )
+
+      tournament = tournament_cc.tournament
+      if tournament.nil?
+        return render json: {error: "Tournament not yet linked"}, status: :unprocessable_entity
+      end
+
+      if tournament.region_id != region.id
+        return render json: {error: "Region mismatch"}, status: :unprocessable_entity
+      end
+
+      result = ExternalTournament::RoundStartProcessor.new(
+        tournament: tournament,
+        region: region,
+        payload: payload
+      ).call
+
+      render json: {games: result.games}, status: result.created_any? ? :created : :ok
+    rescue ActiveRecord::RecordNotFound => e
+      render json: {error: e.message}, status: :not_found
+    rescue ExternalTournament::RoundStartProcessor::PlayerResolutionError => e
+      render json: {error: "Player not resolved", participant: e.participant}, status: :unprocessable_entity
+    rescue ExternalTournament::RoundStartProcessor::TableNotFoundError => e
+      render json: {error: "Table not found: #{e.identifier}"}, status: :unprocessable_entity
+    rescue ExternalTournament::RoundStartProcessor::TableMonitorNotFoundError => e
+      render json: {error: "TableMonitor not found for #{e.identifier}"}, status: :unprocessable_entity
+    rescue ActiveRecord::RecordInvalid => e
+      render json: {error: e.message}, status: :unprocessable_entity
+    end
+
+    # GET /api/external_tournament/round_result?tournament_cc_id=X&round_no=N&region=NBV
+    #
+    # Aggregiert alle Games der angegebenen Runde zu einem carambus.round_result/v1-Doc.
+    # Read-only Endpoint (keine DB-Writes).
+    #
+    # Response (200): carambus.round_result/v1-JSON mit results[]-Array (kann leer sein).
+    #
+    # Errors:
+    #   - 401 — fehlende/ungültige JWT
+    #   - 404 — TournamentCc / Region nicht gefunden
+    #   - 422 — Region-Mismatch / round_no fehlt oder nicht numerisch
+    def round_result
+      region = Region.find_by!(shortname: params[:region].to_s.upcase)
+      tournament_cc = TournamentCc.find_by!(
+        cc_id: params[:tournament_cc_id],
+        context: region.shortname.downcase
+      )
+
+      tournament = tournament_cc.tournament
+      if tournament.nil?
+        return render json: {error: "Tournament not yet linked"}, status: :unprocessable_entity
+      end
+      if tournament.region_id != region.id
+        return render json: {error: "Region mismatch"}, status: :unprocessable_entity
+      end
+
+      round_no = parse_round_no(params[:round_no])
+      if round_no.nil?
+        return render json: {error: "round_no is required and must be numeric"}, status: :unprocessable_entity
+      end
+
+      payload = ExternalTournament::RoundResultAggregator.new(
+        tournament: tournament,
+        tournament_cc: tournament_cc,
+        region: region,
+        round_no: round_no
+      ).call
+
+      render json: payload
+    rescue ActiveRecord::RecordNotFound => e
+      render json: {error: e.message}, status: :not_found
+    end
+
+    # GET /api/external_tournament/tables?location_id=X&region=NBV
+    #   alternativ: ?location_cc_id=11&region=NBV
+    #
+    # Plan 15-06 (R1): Read-only Discovery-Endpoint. Liefert die echten Table#name-Strings
+    # einer Location, damit externe Apps die Tisch-Namen nicht raten müssen
+    # (D-15-06-A: Table-Namen sind beliebige Strings wie "Tisch 5"/"Gr. Tisch 1", keine Nummern).
+    #
+    # Response (200): carambus.tables/v1
+    #   { "schema": "carambus.tables/v1", "region": {...}, "location": {id, cc_id, name},
+    #     "tables": [{ "name": "Tisch 5", "table_kind": "Small Billard", "has_monitor": true }, ...] }
+    #
+    # Errors:
+    #   - 401 — fehlende/ungültige JWT
+    #   - 404 — Region/Location nicht gefunden
+    def tables
+      region = Region.find_by!(shortname: params[:region].to_s.upcase)
+      location = resolve_location(params)
+      return render json: {error: "Location not found"}, status: :not_found unless location
+
+      render json: {
+        schema: "carambus.tables/v1",
+        region: {shortname: region.shortname},
+        location: {id: location.id, cc_id: location.cc_id, name: location.name},
+        tables: location.tables.includes(:table_kind).sort_by { |t| t.name.to_s }.map do |t|
+          {
+            name: t.name,
+            table_kind: t.table_kind&.name,
+            has_monitor: t.read_attribute(:table_monitor_id).present?
+          }
+        end
+      }
+    rescue ActiveRecord::RecordNotFound => e
+      render json: {error: e.message}, status: :not_found
+    end
+
+    private
+
+    # Plan 15-06 (R1/R2): Location-Auflösung aus Params bzw. Payload.
+    # location_id (Carambus-PK) hat Vorrang vor location_cc_id (CC-Region-ID).
+    def resolve_location(p)
+      if p[:location_id].present?
+        Location.find_by(id: p[:location_id])
+      elsif p[:location_cc_id].present?
+        Location.find_by(cc_id: p[:location_cc_id])
+      end
+    end
+
+    # D-15-04-F: round_no Query-Param ist required; nicht-numerisch → nil → 422.
+    def parse_round_no(raw)
+      return nil if raw.blank?
+      raw_str = raw.to_s.strip
+      return nil unless raw_str.match?(/\A\d+\z/)
+      raw_str.to_i
+    end
+
+    # Strong-Parameters für POST round_start.
+    def round_start_params
+      params.permit(
+        :schema, :round_no, :round_name,
+        region: [:shortname],
+        location: [:id, :cc_id], # Plan 15-06 (R2): explizite Location (id|cc_id), optional
+        tournament: [:cc_id, :name],
+        games: [
+          :external_id, :table_no, :table_name, # Plan 15-06 (R2): table_name bevorzugt
+          {discipline: [:name],
+           format: [:target_points, :max_innings],
+           context: [:round_no, :round_name, :gname, :group_no, :seqno],
+           participants: [
+             :role, :team_name, :team_position,
+             {player: [:cc_id, :firstname, :lastname, :dbu_nr]}
+           ]}
+        ]
+      )
+    end
+
+    # === Seeding-Payload-Builder ===
+
+    def build_seeding_payload(tournament, tournament_cc, region)
+      # Polymorphic-aware Seeding-Lookup (Spec-Pivot 2 aus 15-01-Audit).
+      # Tournament#seedings hat `-> { order(position: :asc) }`-Scope (siehe Tournament-Model).
+      seedings = tournament.seedings.includes(:player, :league_team)
+
+      teams = group_seedings_into_teams(seedings)
+
+      {
+        schema: "carambus.seeding/v1",
+        region: {
+          shortname: region.shortname,
+          url: "https://#{region.shortname.downcase}.carambus.de"
+        },
+        tournament: build_tournament_meta(tournament, tournament_cc),
+        teams: teams.map { |t| serialize_team(t) }
+      }
+    end
+
+    # Gruppiert Seedings nach league_team_id (Mannschaftsturnier) oder
+    # behandelt jedes Seeding als 1-Player-Team (Single-Tournament).
+    def group_seedings_into_teams(seedings)
+      if seedings.any? { |s| s.league_team_id.present? }
+        seedings.group_by(&:league_team_id).map do |_team_id, ss|
+          ordered = ss.sort_by { |s| s.position || 0 }
+          {
+            league_team: ordered.first.league_team,
+            seeding_position: ordered.first.position,
+            seedings: ordered
+          }
+        end.sort_by { |t| t[:seeding_position] || 0 }
+      else
+        seedings.sort_by { |s| s.position || 0 }.map.with_index(1) do |s, idx|
+          {league_team: nil, seeding_position: idx, seedings: [s]}
+        end
+      end
+    end
+
+    # === Tournament-Meta-Mapping (Decisions aus 15-02-AUDIT-NOTES.md) ===
+
+    def build_tournament_meta(tournament, tournament_cc)
+      {
+        cc_id: tournament_cc.cc_id,
+        name: tournament.title,
+        discipline: build_discipline(tournament.discipline),
+        format: build_format(tournament),
+        starts_at: tournament.date&.iso8601,
+        location: build_location(tournament.location)
+      }
+    end
+
+    # Plan 15-06 (R3): location als {id, cc_id, name}-Objekt statt String,
+    # damit die App nach Seedlist-Pull die Location für den Round-Start vorbelegen kann.
+    # null wenn tournament.location_id nil ist — dann setzt die App die Location manuell.
+    def build_location(location)
+      return nil unless location
+      {id: location.id, cc_id: location.cc_id, name: location.name}
+    end
+
+    def build_discipline(discipline)
+      return nil unless discipline
+      {
+        name: discipline.name,
+        synonyms: discipline_synonyms(discipline)
+      }
+    end
+
+    # D-15-02 (Mapping-Decision): discipline.synonyms ist newline-separated; enthält Name selbst.
+    # Spec-`synonyms` = nur ALTERNATIVE Namen, deshalb Name subtrahieren.
+    def discipline_synonyms(discipline)
+      return [] unless discipline.synonyms.present?
+      (discipline.synonyms.split("\n").map(&:strip).reject(&:blank?) - [discipline.name])
+    end
+
+    # D-15-02 (Mapping-Decision aus 15-02-AUDIT-NOTES.md Q3):
+    #   target_points = balls_goal | max_innings = innings_goal
+    #   sets = sets_to_play         | frames = nil (Carambus hat kein Frame-Konzept)
+    def build_format(tournament)
+      {
+        target_points: tournament.balls_goal,
+        max_innings: tournament.innings_goal,
+        sets: tournament.sets_to_play,
+        frames: nil
+      }
+    end
+
+    # === Team/Player-Serialisierung ===
+
+    def serialize_team(team)
+      league_team = team[:league_team]
+      first_player = team[:seedings].first.player
+      {
+        seeding_position: team[:seeding_position],
+        name: league_team&.name || first_player.fl_name,
+        club: serialize_club(league_team_club(team) || first_player.clubs.first),
+        players: team[:seedings].map.with_index(1) { |s, idx| serialize_player(s, idx) }
+      }
+    end
+
+    def league_team_club(team)
+      return nil unless team[:league_team]
+      return nil unless team[:league_team].respond_to?(:club_id) && team[:league_team].club_id
+      Club.find_by(id: team[:league_team].club_id)
+    end
+
+    def serialize_club(club)
+      return nil unless club
+      {cc_id: club.cc_id, shortname: club.shortname}
+    end
+
+    def serialize_player(seeding, position_in_team)
+      player = seeding.player
+      return {position_in_team: position_in_team, firstname: nil, lastname: nil} unless player
+      {
+        position_in_team: position_in_team,
+        firstname: player.firstname,
+        lastname: player.lastname,
+        cc_id: player.cc_id,
+        dbu_nr: player.dbu_nr&.to_s,
+        nationality: player.try(:nationality) || "DE"
+      }
+    end
+  end
+end

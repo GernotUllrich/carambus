@@ -2,6 +2,12 @@
 
 class RegistrationsController < Devise::RegistrationsController
   before_action :configure_permitted_parameters
+
+  # D-41-D Plan 41-02 Task 1: server-seitiger Honeypot-Guard. View rendert das verborgene
+  # Feld via <%= invisible_captcha %> (registrations/new.html.erb). Bots, die das Feld
+  # fuellen, werden hier auf #new redirected + flash[:error] (Mitigation T-41-02-01).
+  invisible_captcha only: [:create], honeypot: :subtitle
+
   # PUT /resource
   # We need to use a copy of the resource because we don't want to change
   # the current user in place.
@@ -15,7 +21,7 @@ class RegistrationsController < Devise::RegistrationsController
       set_flash_message_for_update(resource, prev_unconfirmed_email)
       bypass_sign_in resource, scope: resource_name if sign_in_after_change_password?
 
-      #respond_with resource, location: after_update_path_for(resource)
+      # respond_with resource, location: after_update_path_for(resource)
       redirect_to root_path
     else
       clean_up_passwords resource
@@ -24,21 +30,31 @@ class RegistrationsController < Devise::RegistrationsController
     end
   end
 
-
   protected
 
   def configure_permitted_parameters
     devise_parameter_sanitizer.permit(:account_update,
-                                      keys: %i[
-                                        first_name
-                                        last_name
-                                        email
-                                        current_password
-                                        password
-                                        timezone
-                                        theme
-                                        locale
-                                      ])
+      keys: %i[
+        first_name
+        last_name
+        email
+        current_password
+        password
+        timezone
+        theme
+        locale
+      ])
+    # Plan 41-02 Task 1 (Rule 2 auto-fix): :sign_up permittiert terms_of_service +
+    # first_name/last_name, damit die User-Modell-Validation `validates :terms_of_service,
+    # acceptance: true, on: :create` greift. Ohne :sign_up-Permit war terms_of_service
+    # immer nil (durch Strong-Parameters gefiltert), wodurch die acceptance-Validation
+    # passierbar wurde — d.h. Bots/Scripts konnten ohne AGB-Akzept registrieren.
+    devise_parameter_sanitizer.permit(:sign_up,
+      keys: %i[
+        first_name
+        last_name
+        terms_of_service
+      ])
   end
 
   def update_resource(resource, params)

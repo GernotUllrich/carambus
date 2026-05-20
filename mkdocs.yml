@@ -117,6 +117,8 @@ plugins:
             UMB Scraping: UMB Scraping
             UMB Scraping Implementation: UMB Scraping Implementierung
             UMB Scraping Methods: UMB Scraping Methoden
+            ClubCloud MCP Server: ClubCloud MCP-Server
+            External Tournament Bridge: External-Tournament-Bridge
             Services: Services
             Table Monitor: Table Monitor
             Region CC: Region CC
@@ -161,6 +163,25 @@ nav:
       - Table Reservation: managers/table-reservation.md
       - Admin Roles: managers/admin-roles.md
       - ClubCloud Integration: managers/clubcloud-integration.md
+      - ClubCloud MCP:
+          - Cloud Quickstart: managers/clubcloud-mcp-cloud-quickstart.md
+          - Setup Service: managers/clubcloud-mcp-setup-service.md
+      - External Tournament Bridge: managers/external-tournament-bridge.md
+          # Plan 14-G.11 Konsolidierung (D-14-G.11-A): clubcloud-mcp-quickstart.de.md +
+          # clubcloud-mcp-setup.de.md gelöscht — Pre-Pivot-STDIO-Doppelgänger zu Cloud-Quickstart
+          # und Setup-Service. User-Direktive „einfach + ohne Redundanz".
+          # Klickreduktion-Docs (klickreduktion-*) deferred zu v0.5 — fehlen ~48 Screenshot-Files
+          # in managers/images/ (TODO-Marker im Source seit Plan 14-01); Nav-Aktivierung würde
+          # broken-image-Placeholders rendern. Reaktivieren nach Screenshot-Capture-Session.
+          # EN-Pendants (.en.md) zu allen Manager-Docs deferred zu v0.5-EN-Refresh-Cycle —
+          # spiegeln auch Pre-Pivot-Stand wider; mkdocs i18n-Plugin hängt automatisch .de/.en
+          # je nach Locale; nur DE-Slot ist nach Plan 14-G.11 refreshed (D-14-G.11-B).
+      - ClubCloud Scenarios:
+          - CC Glossary: managers/clubcloud-scenarios/cc-glossary.md
+          - CC Roles: managers/clubcloud-scenarios/cc-roles.md
+          - Endrangliste eintragen: managers/clubcloud-scenarios/endrangliste-eintragen.md
+          - Player anlegen: managers/clubcloud-scenarios/player-anlegen.md
+          - Teilnehmerliste finalisieren: managers/clubcloud-scenarios/teilnehmerliste-finalisieren.md
       - Search & Filters: managers/search-filters.md
   - Administrators:
       - administrators/index.md
@@ -188,6 +209,8 @@ nav:
       - UMB Scraping:
           - UMB Scraping Implementation: developers/umb-scraping-implementation.md
           - UMB Scraping Methods: developers/umb-scraping-methods.md
+      - ClubCloud MCP Server: developers/clubcloud-mcp-server.md
+      - External Tournament Bridge: developers/external-tournament-bridge.md
       - Services:
           - Table Monitor: developers/services/table-monitor.md
           - Region CC: developers/services/region-cc.md
@@ -226,7 +249,11 @@ nav:
 markdown_extensions:
   - pymdownx.highlight:
       anchor_linenums: true
-  - pymdownx.superfences
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
   - pymdownx.arithmatex:
       generic: true
   - pymdownx.details
@@ -260,6 +287,8 @@ extra_javascript:
   - javascripts/mathjax.js
   - https://polyfill.io/v3/polyfill.min.js?features=es6
   - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
+  - https://unpkg.com/mermaid@10/dist/mermaid.min.js
+  - javascripts/mermaid-init.js
 
 # Extra
 extra:

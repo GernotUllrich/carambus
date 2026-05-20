@@ -139,6 +139,22 @@
     <%= form.text_area :data, rows: 8 %>
   </div>
 
+  <%# Plan 14-G.3 / F3-B: TL-Zuweisung mit Pundit-Visibility-Gate %>
+  <% if current_user && TournamentPolicy.new(current_user, @tournament).assign_leiter? %>
+    <div class="form-group">
+      <%= form.label :turnier_leiter_user_id, t('tournaments.form.turnier_leiter') %>
+      <%= form.select :turnier_leiter_user_id,
+            User.where.not(confirmed_at: nil).order(:email).map { |u| [u.display_name, u.id] },
+            { include_blank: t('tournaments.form.turnier_leiter_blank_option') },
+            { class: "border rounded border-gray-500" } %>
+    </div>
+  <% elsif @tournament.turnier_leiter %>
+    <div class="form-group">
+      <strong><%= t('tournaments.form.turnier_leiter') %>:</strong>
+      <%= @tournament.turnier_leiter.display_name %>
+    </div>
+  <% end %>
+
   <div class="form-group flex justify-between">
     <%= form.button t('tournaments.form.save_tournament'), class: "btn btn-primary" %>
   </div>

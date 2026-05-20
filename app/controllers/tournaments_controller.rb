@@ -18,19 +18,15 @@ class TournamentsController < ApplicationController
                                                add_player_by_dbu use_clubcloud_as_participants update_seeding_position
                                                recalculate_groups]
 
-  # UI-07 D-18: Felder, die vor dem Turnierstart gegen
+  # UI-07 D-18 / Phase 39 D-12: Felder, die vor dem Turnierstart gegen
   # Discipline#parameter_ranges geprüft werden. Reihenfolge matcht die
-  # Anzeige im Start-Formular, damit der Nutzer Ausreißer in derselben
-  # Reihenfolge sieht. CLASS-LEVEL Konstante (Ruby verbietet dynamische
-  # Konstanten-Zuweisung in Methoden-Bodies).
+  # Anzeige im Start-Formular. Phase 39 hat 5 operator-eingegebene Felder
+  # (timeout, sets_to_*, time_out_warm_up_*) entfernt — diese kommen aus
+  # der Turnier-Einladung, nicht aus Master-Daten, und werden nicht mehr
+  # System-verifiziert.
   UI_07_FIELDS = %i[
     balls_goal
     innings_goal
-    timeout
-    time_out_warm_up_first_min
-    time_out_warm_up_follow_up_min
-    sets_to_play
-    sets_to_win
   ].freeze
 
   # GET /tournaments
@@ -278,6 +274,10 @@ class TournamentsController < ApplicationController
   end
 
   def tournament_monitor
+    # PRG-Empfänger: TournamentsController#start (Verifikations-Branch)
+    # legt flash[:verification_failure] an und redirected hierher. Die
+    # View prüft @verification_failure und rendert Banner + Modal.
+    @verification_failure = flash[:verification_failure]
     return unless @tournament.tournament_monitor.present?
 
     redirect_to tournament_monitor_path(@tournament.tournament_monitor)
@@ -311,8 +311,17 @@ class TournamentsController < ApplicationController
     unless params[:parameter_verification_confirmed].to_s == "1"
       failures = verify_tournament_start_parameters(@tournament, params)
       if failures.any?
-        @verification_failure = build_verification_failure_payload(failures)
-        render :tournament_monitor and return
+        # PRG (Post/Redirect/Get): Verifikations-Payload in den Flash legen
+        # und auf die GET-Route weiterleiten. Form-Werte müssen NICHT
+        # erneut durchgereicht werden — jedes Input-Feld in
+        # tournament_monitor.html.erb liest seinen Default aus
+        # @tournament.<attr>; StimulusReflex change-Handler haben jede
+        # Nutzer-Bearbeitung bereits in die DB persistiert. Der Flash ist
+        # in diesem Projekt Redis-backed (CLAUDE.md → redis-session-store),
+        # daher gilt das 4KB-Cookie-Limit nicht und der Payload räumt sich
+        # nach genau einem Request automatisch auf.
+        flash[:verification_failure] = build_verification_failure_payload(failures)
+        redirect_to tournament_monitor_tournament_path(@tournament) and return
       end
     end
 
@@ -376,7 +385,17 @@ class TournamentsController < ApplicationController
         @tournament.initialize_tournament_monitor
         @tournament.reload
         @tournament.unprotected = true  # Still needed for state transition
-        @tournament.start_tournament!   # AASM auto-saves with the state change
+        # AASM event name literally contains "!" (event :start_tournament! at
+        # app/models/tournament.rb:290). Because the bang is part of the event
+        # NAME (not the AASM `name!` save-variant convention), the auto-generated
+        # method does an in-memory transition only and does NOT persist. We have
+        # to call save explicitly so the state column reaches the DB.
+        # Discovered in quick-260506-k3t when un-skipping 36B-06 tests 3+4
+        # surfaced this latent bug (Tournament.changes showed the new state in
+        # memory but the DB row stayed at tournament_mode_defined).
+        @tournament.start_tournament!
+        @tournament.unprotected = true
+        @tournament.save
         @tournament.reload
         innings_goal_value = (params[:innings_goal].presence || @tournament.innings_goal).to_i
         balls_goal_value = (params[:balls_goal].presence || @tournament.balls_goal).to_i
@@ -484,6 +503,20 @@ class TournamentsController < ApplicationController
   # PATCH/PUT /tournaments/1
   def update
     @tournament.unprotected = true
+
+    # Plan 14-G.3 / F3-B: Pundit-authorize bei TL-Change.
+    # Nur prüfen wenn turnier_leiter_user_id im Payload abweicht vom Bestand.
+    new_tl = tournament_params[:turnier_leiter_user_id]
+    if new_tl.present? && new_tl.to_s != @tournament.turnier_leiter_user_id.to_s
+      begin
+        authorize @tournament, :assign_leiter?
+      rescue Pundit::NotAuthorizedError
+        flash[:alert] = I18n.t("tournaments.errors.assign_leiter_denied",
+          default: "Authority-Denied: kein Recht TL zu benennen für dieses Turnier.")
+        redirect_to(@tournament) and return
+      end
+    end
+
     if @tournament.update(tournament_params)
       redirect_to @tournament, notice: "Tournament was successfully updated."
     else
@@ -986,7 +1019,7 @@ class TournamentsController < ApplicationController
   #   [{ field: :balls_goal, value: 9999, range: (50..500),
   #      label: "Bälle-Ziel" }, ...]
   def verify_tournament_start_parameters(tournament, raw_params)
-    ranges = tournament.discipline&.parameter_ranges || {}
+    ranges = tournament.discipline&.parameter_ranges(tournament: tournament) || {}
     return [] if ranges.empty?
 
     UI_07_FIELDS.each_with_object([]) do |field, failures|
@@ -1020,9 +1053,14 @@ class TournamentsController < ApplicationController
       "tournaments.monitor_form.verification.body_intro",
       default: "Die folgenden Werte liegen außerhalb des üblichen Bereichs für diese Disziplin. Bitte prüfen und bestätigen, wenn sie wirklich gewollt sind:"
     )
+    # JSON cookie-session contract: string keys are the wire format. Symbol keys
+    # would survive Marshal (development.rb redis_session_store) but become strings
+    # under Rails 7.2's default :json serializer (test.rb / staging.rb / production-*.rb).
+    # Writing strings here makes the round-trip a no-op and prevents nil reads in the view.
+    # See quick-260506-k3t for the bug history.
     {
-      failures: failures,
-      body_text: body_intro + "\n\n" + body_lines.join("\n")
+      "failures" => failures,
+      "body_text" => body_intro + "\n\n" + body_lines.join("\n")
     }
   end
 
@@ -1096,7 +1134,8 @@ class TournamentsController < ApplicationController
                                        :player_class, :tournament_plan_id, :innings_goal, :timeouts, :timeout, :balls_goal,
                                        :handicap_tournier, :league_id, :organizer_id, :organizer_type, :manual_assignment, :continuous_placements,
                                        :sets_to_win, :sets_to_play, :team_size, :kickoff_switches_with, :fixed_display_left,
-                                       :color_remains_with_set, :allow_overflow, :allow_follow_up)
+                                       :color_remains_with_set, :allow_overflow, :allow_follow_up,
+                                       :turnier_leiter_user_id)
   end
 
   # Stellt sicher, dass Turniermanagement nur auf lokalen Servern möglich ist

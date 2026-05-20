@@ -63,6 +63,7 @@ class Tournament < ApplicationRecord
   include SourceHandler
   include RegionTaggable
   include Searchable
+  include TournamentLeiter
   DEBUG_LOGGER = Logger.new("#{Rails.root}/log/debug.log")
 
   include AASM
@@ -89,6 +90,9 @@ class Tournament < ApplicationRecord
   
   # International associations
   belongs_to :international_tournament, optional: true
+
+  # D-14-G4: Single-TL-pro-Turnier Sub-Authorization.
+  belongs_to :turnier_leiter, class_name: "User", foreign_key: :turnier_leiter_user_id, optional: true
   
   # Polymorphe Video Association
   has_many :videos, as: :videoable, dependent: :nullify
@@ -169,6 +173,33 @@ class Tournament < ApplicationRecord
   self.ignored_columns = ["region_ids"]
 
   # Searchable concern provides search_hash, we only need to define the specifics
+
+  # Quick 260507-jfe — Extracts the player_class token (e.g. "5", "III")
+  # from a German-federation tournament title. Returns nil if the title is blank
+  # or encodes no class from Discipline::PLAYER_CLASS_ORDER.
+  #
+  # Called from Region#scrape_tournaments_data and Region#scrape_upcoming_tournaments
+  # at Tournament.create(...) time, alongside the existing is_handicap derivation.
+  # Pure / idempotent — keine DB-Zugriffe. Kann überall aufgerufen werden.
+  #
+  # Design: PLAYER_CLASS_ORDER in deklarierter Reihenfolge durchlaufen (7 6 5 4 3 2 1 I II III).
+  # Zwei Erkennungsformen je Token:
+  #   1. Marker-Form: "Klasse 5", "Kl. III", "KK 7", "Kl.1" — Groß-/Kleinschreibung ignoriert.
+  #      "Kl." darf direkt am Token kleben (kein Whitespace nötig); andere Marker brauchen \s+.
+  #   2. Standalone-trailing-Form: Titel endet auf "... 5" oder "... III" mit Wortgrenze,
+  #      z.B. "Cadre 47/2 I". Verhindert Matches in Jahreszahlen ("2024") oder Brüchen ("47/2").
+  def self.parse_player_class_from_title(title)
+    return nil if title.blank?
+
+    Discipline::PLAYER_CLASS_ORDER.each do |token|
+      escaped = Regexp.escape(token)
+      # Marker-Form: "Klasse 5", "Kl. III", "KK 7", "Kl.1" (Punkt trennt — Whitespace optional)
+      return token if title =~ /(?:\bKl\.\s*|\b(?:Klasse|Kl|KK)\s+)#{escaped}\b/i
+      # Standalone-trailing-Form: Titel endet auf Token mit führendem Whitespace
+      return token if title =~ /(?:\s)#{escaped}\s*\z/
+    end
+    nil
+  end
 
   def self.text_search_sql
     "(tournaments.ba_id = :isearch)

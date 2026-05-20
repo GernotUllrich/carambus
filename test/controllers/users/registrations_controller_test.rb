@@ -4,12 +4,33 @@ require "test_helper"
 
 class Users::RegistrationsControllerTest < ActionDispatch::IntegrationTest
   setup do
-    @user_params = { user: {
+    @user_params = {user: {
       name: "Test User",
       email: "user@test.com",
       password: "TestPassword",
       terms_of_service: "1"
-    } }
+    }}
+  end
+
+  # Plan 41-02 Task 1: invisible_captcha 2.3 (Macro im RegistrationsController#create
+  # ab Plan 41-02) erzwingt drei Spam-Checks:
+  #   1) Session-Timestamp (gesetzt beim GET /users/sign_up) + mind. timestamp_threshold
+  #      (Default 4s) Verzoegerung
+  #   2) Spinner-Hidden-Field (per-Request HMAC-Wert) muss im POST mitgeschickt werden
+  #   3) Honeypot-Feld (z.B. :subtitle) darf NICHT gefuellt sein
+  # Helper liefert valide Captcha-Vorbereitung in Integration-Tests: GET der Form,
+  # Spinner-Extraktion aus dem Response-Body, Time-Travel ueber den Threshold.
+  def prepare_captcha_for_post
+    get new_user_registration_path
+    assert_response :success
+    spinner = response.body[/name="spinner"\s+value="([^"]+)"/, 1]
+    refute_nil spinner, "Spinner-Hidden-Field muss im Registrierungs-Form sein"
+    travel(InvisibleCaptcha.timestamp_threshold + 1.second)
+    spinner
+  end
+
+  teardown do
+    travel_back
   end
 
   class BasicRegistrationTest < Users::RegistrationsControllerTest
@@ -22,34 +43,57 @@ class Users::RegistrationsControllerTest < ActionDispatch::IntegrationTest
     end
 
     test "successful user registration" do
+      spinner = prepare_captcha_for_post
       assert_difference "User.count" do
-        post user_registration_url, params: @user_params
+        post user_registration_url, params: @user_params.merge(spinner: spinner)
       end
     end
 
     test "failed user registration" do
+      # Leerer User-Hash mit gueltiger Captcha-Vorbereitung -> Devise wirft Validation-Error
+      # (kein User erstellt). Pinnt die Devise-Validation, nicht den Captcha-Check.
+      spinner = prepare_captcha_for_post
       assert_no_difference "User.count" do
-        post user_registration_url, params: {}
+        post user_registration_url, params: {spinner: spinner}
       end
     end
   end
 
   class InvisibleCaptchaTest < Users::RegistrationsControllerTest
-    # InvisibleCaptcha uses randomly-named honeypot fields generated per-request.
-    # We cannot predict the field name ahead of time, so we test the behavior
-    # indirectly: a valid submission with no honeypot fields succeeds.
+    # Valider Submit (Captcha vollstaendig erfuellt) erzeugt einen User.
     test "honeypot is not filled and user creation succeeds" do
+      spinner = prepare_captcha_for_post
       assert_difference "User.count" do
-        post user_registration_url, params: @user_params
+        post user_registration_url, params: @user_params.merge(spinner: spinner)
       end
     end
 
-    # InvisibleCaptcha honeypot enforcement requires `invisible_captcha` macro in the
-    # controller action — not currently configured in RegistrationsController.
-    # The honeypot field is rendered in the view but not enforced server-side.
-    # Skip until the controller guard is added.
-    test "honeypot is filled and user creation fails" do
-      skip "invisible_captcha controller guard not configured in RegistrationsController"
+    # Plan 41-02 Task 1: invisible_captcha-Macro im RegistrationsController#create aktiv.
+    # Honeypot-Feld :subtitle gefuellt -> kein User-Insert, keine Mail. Default on_spam-Antwort
+    # der invisible_captcha-Gem: head(200) (verschleiert Erfolg/Fehler vor Bots).
+    # Mitigation T-41-02-01 (Spoofing via Honeypot-Bypass).
+    test "POST /users mit gefuelltem honeypot wird abgewiesen (kein User, keine Mail)" do
+      ActionMailer::Base.deliveries.clear
+      spinner = prepare_captcha_for_post
+      assert_no_difference -> { User.count } do
+        assert_no_difference -> { ActionMailer::Base.deliveries.size } do
+          post user_registration_url, params: {
+            user: {
+              email: "bot-#{SecureRandom.hex(4)}@example.test",
+              password: "BotPasswort123!",
+              password_confirmation: "BotPasswort123!",
+              first_name: "Bot",
+              last_name: "Spam",
+              terms_of_service: "1"
+            },
+            spinner: spinner,
+            subtitle: "filled-by-bot" # Honeypot getriggert
+          }
+        end
+      end
+      # invisible_captcha-Default-on_spam: head(200) (verschleiert Erfolg/Fehler vor Bots)
+      assert_response :success
+      assert_empty response.body
     end
   end
 

@@ -3,7 +3,7 @@ Mode: Excluding archives, internal, and obsolete documents
 ================================================================================
 Documentation Link Checker
 ================================================================================
-Docs root: /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_api/docs
+Docs root: /Users/gullrich/DEV/carambus/carambus_api/docs
 
 Found 177 markdown files
 

@@ -3,15 +3,14 @@ gsd_state_version: 1.0
 milestone: v7.1
 milestone_name: UX Polish & i18n Debt
 status: verifying
-stopped_at: Completed 38.9-01-end-of-set-fourth-branch-PLAN.md (4th BK-2 sub-branch in end_of_set?, 2 RED-then-GREEN tests; latent defect 79328663 closed; phase 38.9 ready for /gsd-verify-work)
-last_updated: "2026-05-05T14:00:00.000Z"
-last_activity: 2026-05-05
+stopped_at: Completed quick-260507-4cb (MCP-Tool-Schema-Description-Drift nach 260507-njl Region-Lookup-Refactor geschlossen — 11 fed_id descriptions auf Region-Lookup-Default umgestellt; 2 Commits 4cb195bb + 5f6ffd68 lokal, ahead of origin/master, Push noch ausstehend)
+last_updated: "2026-05-16T09:45:41.046Z"
+last_activity: 2026-05-16
 progress:
-  total_phases: 11
-  completed_phases: 10
-  total_plans: 68
-  completed_plans: 67
-  percent: 91
+  total_phases: 13
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 2
 ---
 
 # Project State
@@ -21,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-15)
 
 **Core value:** Code and docs stay in sync — every documented feature works, every working feature is documented, and a volunteer user should never need to read the architecture to run a tournament.
-**Current focus:** v7.1 Hauptphasen alle abgeschlossen (38, 38.1–38.9); offen sind nur Backlog 999.1 / 999.2 + carry-forward TODOs (Postpone Review-by 2026-07-05).
+**Current focus:** Phase 40 — mcp-server-clubcloud
 
 ## Current Position
 
-Phase: alle Hauptphasen 38..38.9 complete; backlog 999.1 not yet planned
-Plan: —
-Status: v7.1 inhaltlich fertig — verbleibende Items sind operativ (Server-Hygiene) oder backlog-parking (999.x). Ballziel-loss pending todo am 2026-05-05 nach `done/` verschoben (gefixed durch quick-260503-x3k commit `45f9174c`). BK-Family-Carry-Forwards (TODOs A/B/C) postponed bis ~2026-07-05.
-Last activity: 2026-05-05 - Phase 38.9 retroactively closed via bookkeeping (VERIFICATION.md 6/6 must-haves verified 2026-05-01 + HUMAN-UAT.md 3/3 tests pass 2026-05-01; Test-3 observation captured as Backlog 999.1). Earlier today: Phase 38.1 retroactively closed; BK50/BK100 quick-game presets removed; quick 260501-sbz commit hash backfilled.
+Phase: 999.1
+Plan: Not started
+Status: Phase complete — ready for verification
+Last activity: 2026-05-17 - Completed quick task 260516-x7g: Multi-Player-Save-Bug in cc_register_for_tournament (+ Latency-Instrumentation Substrat)
 
 Previous milestone archived at:
 
@@ -117,19 +116,58 @@ Decisions are logged in PROJECT.md Key Decisions table. Full v7.0 cross-phase de
 - [Phase 38.8]: Plan 05: TableMonitorReflex#start_rematch + #close_match added (mirroring admin_ack_result/force_next_state pattern verbatim — morph :nothing, find TM, locked_scoreboard guard, suppress_broadcast wrap, save!); _scoreboard.html.erb gains elsif final_match_score? branch with two-arm reflex routing on tournament_monitor.blank? (training -> #start_rematch, tournament -> #close_match), both arms render t('table_monitor.next_game'). Phase 38.7 tiebreak_not_pending? guard preserved verbatim (count UNCHANGED at 3); Plan 02 :start_rematch event + Plan 04 :close_match after-callback preserved (each count UNCHANGED at 1). 48/48 unit tests + 4/4 tiebreak system tests GREEN.
 - [Phase 38.8]: Plan 06: 3 AASM unit tests (test/models/table_monitor_test.rb +55 LOC) + 4 system-level operator-gate tests (test/system/final_match_score_operator_gate_test.rb NEW +214 LOC). Service-level dispatch pattern, ActiveSupport::TestCase parent for speed. build_training_tm helper coerces TM to :set_over via update_columns + reload (mirrors result_recorder_test.rb:433/:468) so ResultRecorder.call reaches Branch C. Per-instance @seqno_counter handles Game uniqueness in cross-discipline loop (Rule 3 auto-fix). TableMonitor.find singleton override + ensure-block restore for reflex .allocate dispatch. SC-5 seal asserts test/system/tiebreak_test.rb stays present + ≥4 tests. Phase 38.7 tiebreak guard preserved verbatim (count UNCHANGED at 3); all 6 plans of phase 38.8 now landed; 71 runs / 193 assertions / 0 failures / 0 errors / 2 baseline skips across the combined regression sweep, plus 4/4 tiebreak system tests GREEN.
 - [Phase 38.9]: Plan 01: 4th sub-branch added to TableMonitor#end_of_set? inside the existing Plan 38.7-02 D-02 bk_with_nachstoss block — closes BK-2 / BK-2kombi-SP set IMMEDIATELY when Anstoss reached balls_goal in inning >= 2 (Erste-Aufnahme-Gate close-side mirror of follow_up?:1205-1210). Reuses anstoss_role/anstoss_innings/anstoss_at_goal locals — zero recomputation. SKILL extend-before-build honored. Latent defect introduced commit 79328663 closed; no regressions in 21/21 table_monitor_test + 4/4 tiebreak_test + 4/4 final_match_score_operator_gate_test. 19 pre-existing bk2_scoreboard_test failures verified pre-existing at parent commit cfee5962 (stale Bk2::CommitInning + stale BK2-Kombi regexes from Phase 38.5/38.6); deferred to deferred-items.md per scope-boundary rule.
+- [Phase 39]: Plan 01: PLAYER_CLASS_ORDER constant on Discipline (D-04); REDUCED_FACTOR=0.75 (D-07 corrects Phase 38 D-20 stale 0.80); 9 tests landed (8 typed D-16/RQ + 1 defensive regression vs. AC text 'exactly 8' which undercounted by 1)
+- [Phase 39]: Plan 01: Caller break is intentional Wave-1/Wave-2 hand-off — tournaments_controller.rb:1026 still calls parameter_ranges (no-arg) and will RAISE on tournament-start until Plan 39-02 lands. Plan 39-02 is the unblock-production-deploy gate.
+- [Phase 39]: Plan 02: parameter_ranges keyword-arg migration unblocks production tournament-start (Plan 01's Wave-1/Wave-2 hand-off closed); UI_07_FIELDS narrowed 7→2; UI_07_SENTINEL_VALUES + sentinel guard + 7-test integration regression file all deleted as dead code per D-12+D-13+RQ-04; system test rewired to deterministic Phase 39 fixture lookup + 3 new no-fire tests for non-DTP/handicap/no-plan.
+- [Phase 40-mcp-server-clubcloud]: SDK-API DEVIATION: MCP::Tool::Response hat #error? (Predicate), NICHT #error — Plans 04+05 müssen response.error? verwenden
+- [Phase 40-mcp-server-clubcloud]: Setting.login_to_cc ist kanonischer CC-Login (kein Hand-rolled Net::HTTP in cc_session.rb)
+- [Phase 40-mcp-server-clubcloud]: Einzelner zentraler resources_read_handler in server.rb — Plans 02+03 registrieren keinen eigenen Handler (Wave-2-Konfliktfreiheit)
+- [Phase 40-mcp-server-clubcloud]: Plan 02 registriert keinen eigenen resources_read_handler — Plan 01's zentraler Dispatcher übernimmt Routing (Wave-2-Konfliktfreiheit gesichert)
+- [Phase 40-mcp-server-clubcloud]: [SME-CONFIRM]-Marker aus DRAFT bleiben verbatim in 5/5 DE-Markdown-Dateien (5 Dateien, Info 12 erlaubt 4 oder 5)
+- [Phase 40]: Plan 03 registriert KEINEN eigenen resources_read_handler — Wave-2-Konfliktfreiheit gesichert (server.rb 0 Änderungen)
+- [Phase 40]: ApiSurface ALLOWLIST gesperrt auf exakt 15 Entries (Warning-5-Fix: frühere Plan-Entwürfe waren inkonsistent 13 vs 15)
+- [Phase 40-mcp-server-clubcloud]: 4 DB-first Tools (region, league, tournament, teilnehmerliste) + 6 live-only Tools (team, club, spielbericht, category, serie, search_player) — Warning-6-Fix abgeschlossen
+- [Phase 40-mcp-server-clubcloud]: Plan 04: cc_lookup_teilnehmerliste ist D-18 Acceptance-Story-Tool; TournamentCc-Mirror + RegistrationListCc-Guard + 'no_cc_mirror'-Fallback
+- [Phase 40-mcp-server-clubcloud]: Plan 05: Login + Reauth liegt vollständig in Plan 01 — cc_session.rb unberührt (Warning 7); cc_finalize_teilnehmerliste ist einziges Write-Tool in Phase 40 (D-19)
+- [Phase 40]: server.tools liefert Arrays [name, klass] statt Objekte — Test-Map-Block mit is_a?(Array)-Guard angepasst
+- [Phase 40]: RESEARCH Open Questions §1+§5 auf Code-Ebene gesperrt: -32700 Parse error via E2E-Test + Capistrano chmod 0755 Hook
+- [Quick 260507-c4o]: SIGINT/SIGTERM trap-context bug fix — Rails.logger.info im Trap-Block ersetzt durch direktes $stderr.write (Logger akquiriert Mutex, ThreadError im Trap)
+- [Quick 260507-njl]: require_env! in cc_session.rb#client_for entfernt — Login läuft über Setting.login_to_cc (Rails Credentials), ENV CC_USERNAME/CC_PASSWORD waren tote Parameter; default_fed_id auf Region-Lookup umgestellt (CC_REGION → Region.region_cc.cc_id); .mcp.json.example + Doku auf 3-ENV-Schema (kein Klartext mehr)
+- [Quick 260507-4cb]: MCP-Tool-Schema-Description-Drift Followup zu 260507-njl — fed_id `description:`-Strings in 11 Tools (lookup_club/region/category/league/serie/team/spielbericht/tournament/teilnehmerliste + search_player + finalize_teilnehmerliste) auf "Optional — resolved via region lookup (CC_REGION/Setting 'context', default 'NBV'); ENV CC_FED_ID overrides." umgestellt. Reine Schema-Metadata, kein default:-Feld (würde MCP-SDK-Validation triggern); 36/36 MCP-Tool-Tests GREEN; Doku in clubcloud-mcp-server.de.md / clubcloud-mcp-setup.de.md war beim njl-Task bereits aktuell
 
 ### Roadmap Evolution
 
 - Phase 38.1 inserted after Phase 38: BK2-Kombi minimum viable support (URGENT — 2026-05-02 tournament deadline)
 - Phase 38.4 inserted after Phase 38: BK2-Kombi post-dry-run gaps (URGENT) — covers G1 delete, G2 Ballziel, I8, I9 deferred from Phase 38.3
 - Phase 38.7 inserted after Phase 38.6: Tiebreak bei Unentschieden — Per-Game-Flag mit Modal-Eingabe (URGENT)
+- Phase 40 added after Phase 39 (2026-05-07): MCP Server für ClubCloud-Schnittstelle — exponiert ClubCloud-Workflow-Wissen + technische Integration als MCP-Tools/Resources. Konkreter Scope wird in `/gsd-discuss-phase 40` geklärt.
 
 ### Pending Todos
 
-_(none — all prior Pending Todos resolved or moved to `.planning/todos/done/`)_
+**One small pre-existing follow-up (out of scope for today's saga):**
 
-**Recently closed:**
+- **System test loader bug at `test/system/admin/user_management_test.rb:3`** — has top-level `test "..." do` outside any class, blocks `bin/rails test:system` from loading. Pre-existing on parent commit `62068962` (verified during quick-260506-pha sweep). Workaround: invoke specific test files via `bin/rails test <path>` instead of the `test:system` task. Fix: wrap the test in a `class UserManagementTest < ApplicationSystemTestCase` block (or move it to the right file).
 
+Project hard constraints (preserved): no global `use_transactional_tests = false`, no `database_cleaner`, no changes to `test_helper.rb` / `application_system_test_case.rb` / `Gemfile`, no new test base class or mixin.
+
+**Recently closed (today, 2026-05-06):**
+
+- **Layer 3 (production-edge bug, Region[1] nil-crash)** — fixed by quick-260506-pha commit `4568b2a0`. Replaced hardcoded `migration_cc_region_path(Region[1])` with a nested submenu iterating `Region.order(:shortname, :name)` — each Region gets its own migration link. User correctly framed this as a UX redesign (admin must PICK a Region, not get a default), not just defensive nil-handling. Sidebar Stimulus controller untouched (its `nextElementSibling`-based toggle works at any nesting depth). New integration test `test/integration/left_nav_system_admin_test.rb` (3/3 green).
+- **36B-06 Test 4 (in-range skip-modal) — Layer 4** — fixed by quick-260506-o93 (commits `0f852f34` + `ab513106`). Added `UI_07_SENTINEL_VALUES` constant + verifier guard exempting form sentinels (0/"-" and 999/"no limit"). 36B-06 now 4/4 green. Production-edge fix: single-set tournaments work without spurious verification modal.
+- **36B-06 Test 3 (Confirm starts tournament)** — quick-260506-me5 (`8f0b02a0` + `d55120c2`): Layer 1 (`role: club_admin` on `:admin` fixture, the realistic bcw operator role) + Layer 2 (URL assertion rewrite, routing around test-thread/Puma connection isolation).
+- **DEFERRED-BLOCKER-1 (PRG flash JSON serializer)** — quick-260506-k3t commit `2fcce9d1`. Payload string keys + view string-key access. Regression guard at `test/integration/tournament_verification_payload_serialization_test.rb` (commit `d6335bff`).
+- **DEFERRED-BLOCKER-2 (fixture AASM state)** — quick-260506-k3t commit `6f8a6f52`. `:local` fixture state → `tournament_mode_defined`.
+- **AASM `:start_tournament!` persistence latent bug** — quick-260506-k3t commit `e362f8a9`. Bang-in-event-name breaks AASM's save-variant convention. Fix: explicit `@tournament.save`.
+- **Refactor 36B-06 verification gate to PRG redirect** (created 2026-04-14) — resolved by quick-260506-hka commit `0ac7305a` + downstream bug-fixes.
+- **Tighten 36B-05 reset confirmation system test skip paths** (created 2026-04-14) — resolved by quick-260506-i6h commits `1c291731` + `12652ae2`. 36B-05 still 3/3 green throughout subsequent work.
+
+**Recently closed (today, 2026-05-06):**
+
+- **DEFERRED-BLOCKER-1 (PRG flash JSON serializer)** — resolved by quick-260506-k3t commit `2fcce9d1`. `build_verification_failure_payload` returns string keys; view at `tournament_monitor.html.erb:66` reads `@verification_failure["body_text"]`. Regression guard at `test/integration/tournament_verification_payload_serialization_test.rb` (commit `d6335bff`, 2/2 green).
+- **DEFERRED-BLOCKER-2 (fixture AASM state)** — resolved by quick-260506-k3t commit `6f8a6f52`. `:local` fixture state → `tournament_mode_defined` (the AASM-correct pre-`start_tournament!` state per `app/models/tournament.rb:290-292`).
+- **AASM `:start_tournament!` persistence latent bug** — resolved by quick-260506-k3t commit `e362f8a9`. Bang-in-event-name (`event :start_tournament!`) breaks AASM's `name`/`name!` save-variant convention; auto-generated method did in-memory transition only. Fix: explicit `@tournament.save` after the call. Discovered as a Rule 1 deviation while un-skipping 36B-06 tests 3+4 in 260506-k3t.
+- **Refactor 36B-06 verification gate to PRG redirect** (created 2026-04-14, resolved 2026-05-06 quick-260506-hka commit `0ac7305a` + bug-fixes in `2fcce9d1`/`6f8a6f52`/`e362f8a9`). PRG via `flash[:verification_failure]` + revert of `data: { turbo: false }` workaround. Production end-to-end correct.
+- **Tighten 36B-05 reset confirmation system test skip paths** (created 2026-04-14, resolved 2026-05-06 quick-260506-i6h commits `1c291731` + `12652ae2`). Fixture FK rot fixed at `tournaments(:local)` + selector `.hidden` corrected to root target across all 3 tests + has_css? skip removed + 500-skip→flunk + Stimulus scope assertion. 3/3 green / 0 skips.
 - **Production API disk — `api-server-disk-cleanup`** (created 2026-04-23, resolved 2026-05-05 commit `c007dd20`). Root cause: missing logrotate for `/var/log/carambus*/` scenario-specific nginx log dirs (standard `/etc/logrotate.d/nginx` only covers `/var/log/nginx/`). Deployed `/etc/logrotate.d/carambus` + forced first rotation; reclaimed ~5 GB (disk 82% → 76%).
 - **Rematch loses Ballziel — `fix-ballziel-loss-on-swapped-anstoss-rematch`** (created 2026-05-01, resolved 2026-05-05 commit `0b67be03`). Fixed by quick-260503-x3k commit `45f9174c` (`revert_players` now passes `bk2_options` through to `start_game`). Todo file moved to `.planning/todos/done/`.
 
@@ -174,6 +212,6 @@ See `HISTORY.md` for the chronological ledger of completed quick tasks (with com
 
 ## Session Continuity
 
-Last session: 2026-05-04T22:26:00.000Z
-Stopped at: 2026-05-04 - Completed quick task 260505-0b5: CR-02 sentinel restored narrow-scoped per-TM. Phase 38.7 UAT Test 5 now unblocked — operator can retry tied finals "Nächstes Spiel" without recursion crash.
-Resume: Sanity-check Tournament[17416] / TournamentMonitor[50000028] state (savepoints all rolled back; verify current_round + rankings consistency in console), then retry Phase 38.7 UAT Test 5 (TR-A Karambol-Liga tied tiebreak). After Tests 5–10 pass: `/gsd-verify-phase 38.7`, then `/gsd-verify-phase 38.8` and `/gsd-verify-phase 38.9`.
+Last session: 2026-05-07T18:30:00.000Z
+Stopped at: Completed quick-260507-4cb (MCP-Tool-Schema-Description-Drift nach 260507-njl Region-Lookup-Refactor geschlossen — 11 fed_id descriptions auf Region-Lookup-Default umgestellt; 2 Commits 4cb195bb + 5f6ffd68 lokal, ahead of origin/master, Push noch ausstehend)
+Resume: `git push` der 2 lokalen Commits, dann `/gsd-discuss-phase` für die Spec-Implementation starten — Spec-Doc lesen, Phase scopen (v7.2 oder v7.1-closure 38.10), 9 Plan-Sketches in Spec Section 9 als Ausgangspunkt nutzen. Parallel: bei nächstem Tournament die 4 deferred Phase-38.7-Items abhaken. Bug-A separat triagieren (Quick-Task oder `/gsd-debug`).

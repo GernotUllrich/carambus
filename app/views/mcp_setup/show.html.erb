@@ -1,0 +1,89 @@
+<% content_for(:page_title, "MCP-Setup") %>
+
+<div class="container mx-auto px-4 py-8 max-w-3xl">
+  <h1 class="text-2xl font-bold mb-4">MCP-Setup für <%= current_user.email %></h1>
+
+  <p class="mb-6 text-gray-700 dark:text-gray-300">
+    Hallo <strong><%= current_user.email %></strong> — dieser Befehl verbindet
+    <strong>Claude Code</strong> mit deinem Carambus-Konto für die Sportwart-Workflows
+    (Anmeldungen, Akkreditierungen, Meldelisten per natürlicher Sprache statt klick-intensiver
+    Form-Submits in der CC-UI).
+  </p>
+
+  <%# Plan 14-G.8 / AC-2: Token-Restlaufzeit-Banner. Bei >= 14 Tage neutral; bei < 14 Tage Renew-Hinweis (sanft, kein Hard-Stop). %>
+  <% if @days_remaining.is_a?(Integer) %>
+    <% if @renew_recommended %>
+      <div class="border-l-4 border-orange-400 bg-orange-50 dark:bg-orange-900/30 p-4 mb-6">
+        <p class="text-sm">
+          <strong>Token-Restlaufzeit: <%= @days_remaining %> Tage</strong> — Token läuft bald ab.
+          Einfach diese Seite neu laden für frischen Token (gültig wieder <%= @total_lifetime_days %> Tage).
+          Anschließend <code class="bg-gray-100 dark:bg-gray-800 px-1 rounded">claude mcp remove carambus-remote -s user</code>
+          ausführen und den neuen Befehl pasten.
+        </p>
+      </div>
+    <% else %>
+      <div class="border-l-4 border-blue-400 bg-blue-50 dark:bg-blue-900/30 p-4 mb-6">
+        <p class="text-sm">
+          <strong>Token-Restlaufzeit: <%= @days_remaining %> Tage</strong>
+          (Lifetime: <%= @total_lifetime_days %> Tage). Bei Bedarf einfach Seite neu laden für frischen Token.
+        </p>
+      </div>
+    <% end %>
+  <% end %>
+
+  <ol class="list-decimal list-inside space-y-2 mb-6">
+    <li>Stelle sicher, dass <strong>Claude Code</strong> auf deinem Rechner installiert ist (gratis: <a href="https://claude.ai/code" class="underline text-blue-600 dark:text-blue-400" target="_blank" rel="noopener">claude.ai/code</a>)</li>
+    <li>Klicke unten auf „📋 In Zwischenablage kopieren"</li>
+    <li>Öffne dein Terminal (Mac: Terminal.app / Windows: Git Bash oder PowerShell / Linux: Standard-Terminal)</li>
+    <li>Paste den Befehl ins Terminal und drücke <kbd>Enter</kbd></li>
+    <li>Verify mit: <code class="bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded">claude mcp get carambus-remote</code> — sollte <strong>Connected</strong> zeigen</li>
+  </ol>
+
+  <div class="bg-gray-100 dark:bg-gray-800 rounded-lg p-4 mb-4 relative">
+    <pre id="mcp-setup-command" class="text-sm overflow-x-auto whitespace-pre-wrap break-all font-mono"><%= @setup_command %></pre>
+  </div>
+
+  <button id="copy-setup-command"
+          type="button"
+          class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded mb-6"
+          data-clipboard-target="#mcp-setup-command">
+    📋 In Zwischenablage kopieren
+  </button>
+  <span id="copy-feedback" class="ml-3 text-green-600 dark:text-green-400 hidden">✓ Kopiert!</span>
+
+  <h2 class="text-xl font-semibold mt-8 mb-2">Erste Schritte nach dem Setup</h2>
+  <p class="mb-4">
+    Öffne eine neue Claude-Code-Session und probiere:
+  </p>
+  <ul class="list-disc list-inside space-y-1 mb-6">
+    <li>„Welche carambus-remote Tools hast du?"</li>
+    <li>„Liste die offenen Turniere in meiner Region"</li>
+    <li>„Status NDM Endrunde Eurokegel?" (oder ein Turnier deiner Wahl)</li>
+  </ul>
+
+  <h2 class="text-xl font-semibold mt-8 mb-2">Weiterführend</h2>
+  <ul class="list-disc list-inside space-y-1">
+    <li><a href="https://gernotullrich.github.io/carambus/managers/clubcloud-mcp-cloud-quickstart/" class="underline text-blue-600 dark:text-blue-400" target="_blank" rel="noopener">Cloud-Quickstart (1-Seiten-Anleitung mit Troubleshooting)</a></li>
+    <li><a href="https://gernotullrich.github.io/carambus/managers/clubcloud-mcp-setup-service/" class="underline text-blue-600 dark:text-blue-400" target="_blank" rel="noopener">Vollständige Setup-Service-Doku (inkl. DSGVO + Audit-Trail)</a></li>
+  </ul>
+</div>
+
+<script nonce="<%= content_security_policy_nonce %>">
+  document.addEventListener("DOMContentLoaded", function () {
+    const button = document.getElementById("copy-setup-command");
+    const target = document.getElementById("mcp-setup-command");
+    const feedback = document.getElementById("copy-feedback");
+
+    if (button && target && navigator.clipboard) {
+      button.addEventListener("click", async function () {
+        try {
+          await navigator.clipboard.writeText(target.innerText);
+          feedback.classList.remove("hidden");
+          setTimeout(function () { feedback.classList.add("hidden"); }, 3000);
+        } catch (err) {
+          alert("Konnte nicht in Zwischenablage kopieren. Bitte manuell markieren + Cmd/Ctrl+C.");
+        }
+      });
+    }
+  });
+</script>

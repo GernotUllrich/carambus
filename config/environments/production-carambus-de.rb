@@ -67,6 +67,14 @@ Rails.application.configure do
   # Use a different cache store in production.
   # config.cache_store = :redis_cache_store, {url: ENV.fetch("REDIS_URL", "redis://localhost:6379/1")}
 
+  # NOTE (Plan 13-06.1 / D-13-03-A): Redis-Session-Store für MCP HTTP-Transport wird NICHT hier
+  # konfiguriert — auf carambus.de aktiviert das Scenario-Tooling den Block in
+  # `~/DEV/carambus/carambus_data/scenarios/<scenario>/production/production.rb`, das in
+  # `/var/www/carambus/shared/config/environments/production.rb` provisioniert wird. v0.3-Pilot
+  # 2026-05-13: server-side production.rb hat bereits `redis_session_store` mit
+  # `key_prefix: "session:"` + `expire_after: 120.minutes` (vor MCP eingerichtet, deckt MCP-Bedarf).
+  # Falls längere Sessions oder MCP-spezifischer key_prefix gewünscht: scenario-production.rb tunen.
+
   # Use a real queuing backend for Active Job (and separate queues per environment).
   config.active_job.queue_adapter = Carambus.config.queue_adapter
   # config.active_job.queue_name_prefix = "app_name_production"

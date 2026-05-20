@@ -46,6 +46,8 @@ class UserDashboard < Administrate::BaseDashboard
     reset_password_token: Administrate::Field::String,
     role: Administrate::Field::Select.with_options(searchable: false, collection: ->(field) { field.resource.class.send(field.attribute.to_s.pluralize).keys }),
     sign_in_count: Administrate::Field::Number,
+    sportwart_locations: Administrate::Field::HasMany,
+    sportwart_disciplines: Administrate::Field::HasMany,
     time_zone: Administrate::Field::String,
     unconfirmed_email: Administrate::Field::String,
     username: Administrate::Field::String,
@@ -106,6 +108,8 @@ class UserDashboard < Administrate::BaseDashboard
     reset_password_token
     role
     sign_in_count
+    sportwart_locations
+    sportwart_disciplines
     time_zone
     unconfirmed_email
     username
@@ -154,6 +158,8 @@ class UserDashboard < Administrate::BaseDashboard
     reset_password_token
     role
     sign_in_count
+    sportwart_locations
+    sportwart_disciplines
     time_zone
     unconfirmed_email
     username

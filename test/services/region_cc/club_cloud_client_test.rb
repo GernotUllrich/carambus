@@ -154,6 +154,40 @@ class RegionCc::ClubCloudClientTest < ActiveSupport::TestCase
   end
 
   # ---------------------------------------------------------------------------
+  # Plan 14-G.12 Task 1 — Sportwart-Cluster komplett (myclub-Pfad)
+  # ---------------------------------------------------------------------------
+  test "PATH_MAP contains complete sportwart cluster under /admin/myclub/meldewesen/single/" do
+    # 4 Keys existieren bereits (Plan 04-04 / Plan 08-02):
+    assert_equal ["/admin/myclub/meldewesen/single/cc_add.php", false],
+                 RegionCc::ClubCloudClient::PATH_MAP["addPlayerToMeldeliste"]
+    assert_equal ["/admin/myclub/meldewesen/single/editMeldelisteSave.php", false],
+                 RegionCc::ClubCloudClient::PATH_MAP["saveMeldeliste"]
+    assert_equal ["/admin/myclub/meldewesen/single/showMeldeliste.php", true],
+                 RegionCc::ClubCloudClient::PATH_MAP["showCommittedMeldeliste"]
+    assert_equal ["/admin/myclub/meldewesen/single/cc_remove.php", false],
+                 RegionCc::ClubCloudClient::PATH_MAP["removePlayerFromMeldeliste"]
+
+    # 2 Keys NEU (Plan 14-G.12 — Sportwart-Discovery):
+    assert_equal ["/admin/myclub/meldewesen/single/showMeldelistenList.php", true],
+                 RegionCc::ClubCloudClient::PATH_MAP["sportwart-showMeldelistenList"]
+    assert_equal ["/admin/myclub/meldewesen/single/editMeldelisteCheck.php", true],
+                 RegionCc::ClubCloudClient::PATH_MAP["sportwart-editMeldelisteCheck"]
+  end
+
+  # ---------------------------------------------------------------------------
+  # Plan 14-G.12 Task 1 — Backwards-Compat: LSW-Pfade bleiben unverändert
+  # ---------------------------------------------------------------------------
+  test "PATH_MAP keeps LSW paths unchanged (no Plan 14-G.12 regression)" do
+    # LSW-Pfade (/admin/einzel/meldelisten/) sind für Verbandsadministrator-Operationen
+    # (z.B. Plan-06-03 Meldeschluss-Verschiebung); Sportwart-Pfade
+    # (/admin/myclub/meldewesen/single/) sind die parallele Club-scoped Variante.
+    assert_equal ["/admin/einzel/meldelisten/showMeldelistenList.php", true],
+                 RegionCc::ClubCloudClient::PATH_MAP["showMeldelistenList"]
+    assert_equal ["/admin/einzel/meldelisten/editMeldelisteCheck.php", false],
+                 RegionCc::ClubCloudClient::PATH_MAP["editMeldelisteCheck"]
+  end
+
+  # ---------------------------------------------------------------------------
   # Test 8: Keine ActiveRecord-Referenzen in der Klasse
   # ---------------------------------------------------------------------------
   test "ClubCloudClient has no ActiveRecord references" do

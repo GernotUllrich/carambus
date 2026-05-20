@@ -1,0 +1,57 @@
+# Filter-Chain-Sample (Plan 02-02 Task 5) — verifiziert die End-to-End-Read-Kette
+# der Walking-Skeleton-Anmeldelogik: Region -> Disziplin-Vereine -> Spieler-eines-Vereins
+# -> Offene Turniere.
+#
+# Exerziert die in Plan 02-02 Task 4 eingeführte Multi-Step-Variable-Substitution
+# (bind_result + {{var}}). Tolerant gegen Dev-DB-Lücken: wenn die Tools 0 Treffer
+# liefern, scheitert das Szenario nicht — die Existenz der Tool-Pipeline und der
+# Substitutions-Pfad werden geprüft.
+---
+name: "Filter-Chain (read): NBV / Freie Partie klein"
+description: |
+  Turniermanager-Anmelde-Vorbereitung in 4 Schritten:
+    1. Region NBV nachschlagen
+    2. Vereine in Disziplin "Freie Partie klein" listen
+    3. Spielberechtigte Spieler des ersten Vereins für die Disziplin listen
+    4. Aktuell ausgeschriebene Turniere in NBV
+  Mock-Mode-Pflicht; alle Calls sind read-only DB-Lookups.
+mock: true
+steps:
+  - tool: cc_lookup_region
+    args:
+      shortname: "NBV"
+    expect:
+      error: false
+      content_includes:
+        - "NBV"
+    bind_result:
+      region_short: "$.shortname"
+
+  - tool: cc_list_clubs_by_discipline
+    args:
+      shortname: "{{region_short}}"
+      discipline: "Freie Partie klein"
+    expect:
+      error: false
+      content_includes:
+        - "Freie Partie klein"
+
+  # Spieler-Lookup für einen in den Test-Fixtures vorhandenen Club (BCW).
+  # In der Dev-DB hieße der Club anders (z.B. "1. BC Schwerin"); für die
+  # Test-Suite verwenden wir den Fixture-Club. Kann count: 0 liefern, wenn
+  # PlayerRanking-Fixtures fehlen — error: false ist trotzdem korrekt.
+  - tool: cc_list_players_by_club_and_discipline
+    args:
+      club: "BCW"
+      discipline: "Freie Partie klein"
+    expect:
+      error: false
+
+  - tool: cc_list_open_tournaments
+    args:
+      shortname: "{{region_short}}"
+    expect:
+      error: false
+      content_includes:
+        - "last_sync_age_hours"
+        - "filter_basis"

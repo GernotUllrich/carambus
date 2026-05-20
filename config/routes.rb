@@ -1,5 +1,15 @@
 # For details on the DSL available within this file, see http://guides.rubyonrails.org/routing.html
 Rails.application.routes.draw do
+  # D-41-B: Dev-Mailbox via letter_opener_web — Devise-Confirmation- und Reset-Mails
+  # landen unter http://localhost:3000/letter_opener (development only).
+  if Rails.env.development?
+    mount LetterOpenerWeb::Engine, at: "/letter_opener"
+  end
+
+  # MCP HTTP-Mount (v0.3 Plan 13-03, D-13-01-A Pattern B + D-13-01-F Backwards-Compat).
+  # Stdio-Pfad bleibt parallel via bin/mcp-server für technische-Stellvertretung-Persona.
+  match "/mcp", to: "mcp#dispatch_request", via: [:get, :post, :delete], as: :mcp
+
   # International section
   namespace :international do
     resources :tournaments, only: %i[index show]
@@ -28,7 +38,8 @@ Rails.application.routes.draw do
 
   devise_for :users,
              controllers: {
-               registrations: "registrations"
+               registrations: "registrations",
+               sessions: "sessions"
              },
              path: "",
              path_names: {
@@ -37,6 +48,9 @@ Rails.application.routes.draw do
                registration: "users",
                edit: "edit"
              }
+
+  # Plan 14-01.5: MCP-Setup-Helper-UI (Devise-protected via authenticate_user! im Controller)
+  get "/mcp/setup", to: "mcp_setup#show", as: :mcp_setup
 
   # API routes
   namespace :api do
@@ -57,6 +71,36 @@ Rails.application.routes.draw do
         get :autocomplete
       end
     end
+
+    # Plan 14-G.14: Regional→API meldeliste_cc_id-Link-Push (devise-jwt-authentifiziert)
+    patch "tournament_ccs/:id/registration_list_link",
+          to: "tournament_ccs#link_registration_list",
+          as: :tournament_cc_registration_list_link
+
+    # Plan 15-02: External-Tournament-Bridge Seeding-Endpoint (devise-jwt-authentifiziert)
+    # D-15-01-A: Service-Account-Pattern analog G.14 (2band-{region}-bridge@carambus.de).
+    get "external_tournament/seeding",
+        to: "external_tournaments#seeding",
+        as: :external_tournament_seeding
+
+    # Plan 15-03: External-Tournament-Bridge Round-Start-Endpoint (devise-jwt-authentifiziert)
+    # D-15-03-A: TableMonitor-Lookup via Table.name == table_no.to_s.
+    post "external_tournament/round_start",
+         to: "external_tournaments#round_start",
+         as: :external_tournament_round_start
+
+    # Plan 15-04: External-Tournament-Bridge Round-Result-Endpoint (devise-jwt, read-only)
+    # D-15-04-A..F: Aggregator-Pattern; round_no required; empty round → 200/[].
+    get "external_tournament/round_result",
+        to: "external_tournaments#round_result",
+        as: :external_tournament_round_result
+
+    # Plan 15-06: External-Tournament-Bridge Tables-Discovery-Endpoint (devise-jwt, read-only)
+    # R1: liefert echte Table#name-Strings + table_kind + has_monitor pro Location,
+    # damit externe Apps Tisch-Namen nicht raten müssen (D-15-06-A supersedes D-15-03-A).
+    get "external_tournament/tables",
+        to: "external_tournaments#tables",
+        as: :external_tournament_tables
   end
 
   # Debug routes (development only)
