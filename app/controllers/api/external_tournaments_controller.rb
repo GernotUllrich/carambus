@@ -159,7 +159,7 @@ module Api
     #   - 404 — Region/Location nicht gefunden
     def tables
       region = Region.find_by!(shortname: params[:region].to_s.upcase)
-      location = resolve_location(params)
+      location = resolve_location(params, region)
       return render json: {error: "Location not found"}, status: :not_found unless location
 
       render json: {
@@ -181,12 +181,14 @@ module Api
     private
 
     # Plan 15-06 (R1/R2): Location-Auflösung aus Params bzw. Payload.
-    # location_id (Carambus-PK) hat Vorrang vor location_cc_id (CC-Region-ID).
-    def resolve_location(p)
+    # location_id (Carambus-PK, global eindeutig) hat Vorrang vor location_cc_id.
+    # D-15-07-A: location_cc_id MUSS region-scoped sein — cc_id ist nur intra-region
+    # eindeutig (z.B. 3 Locations mit cc_id=11 in verschiedenen Regionen).
+    def resolve_location(p, region)
       if p[:location_id].present?
         Location.find_by(id: p[:location_id])
       elsif p[:location_cc_id].present?
-        Location.find_by(cc_id: p[:location_cc_id])
+        Location.find_by(cc_id: p[:location_cc_id], region_id: region.id)
       end
     end
 

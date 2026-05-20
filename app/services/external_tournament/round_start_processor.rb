@@ -91,7 +91,8 @@ module ExternalTournament
         if loc[:id].present?
           Location.find_by(id: loc[:id])&.id
         elsif loc[:cc_id].present?
-          Location.find_by(cc_id: loc[:cc_id])&.id
+          # D-15-07-A: cc_id ist nur intra-region eindeutig → region-scopen.
+          Location.find_by(cc_id: loc[:cc_id], region_id: @region.id)&.id
         end
       resolved || @tournament.location_id
     end

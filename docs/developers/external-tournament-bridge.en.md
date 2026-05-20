@@ -232,6 +232,9 @@ raise TableMonitorNotFoundError, identifier unless tm
 **Location resolution (D-15-06-B):** `payload.location.id` → else
 `payload.location.cc_id` → else fallback `tournament.location_id`. Needed because
 `tournament.location_id` can be nil (e.g. a NordCup tournament without a location link).
+**D-15-07-A:** the `cc_id` branch is **region-scoped** (`region_id` filter) — `cc_id`
+is only unique within a region (e.g. 3 locations with `cc_id=11` across regions).
+`location.id` (PK) is globally unique and needs no region filter.
 
 **TableMonitor lazy-create (D-15-06-C):** `table.table_monitor || table.table_monitor!`
 (mirrors `tournaments_controller.rb`). A table without a monitor becomes
@@ -401,6 +404,7 @@ unknown players manually in the CC UI.
 | D-15-06-C | TableMonitor lazy-create via `table_monitor || table_monitor!` |
 | D-15-06-D | `table_name` persisted in `Game.data` + emitted in round result |
 | D-15-06-E | seeding `tournament.location` as `{id, cc_id, name}` object (was a string) |
+| D-15-07-A | `location_cc_id` resolution region-scoped (`region_id` filter); cc_id only intra-region unique |
 
 See `.paul/STATE.md` for full decision records.
 

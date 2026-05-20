@@ -130,7 +130,7 @@ module ExternalTournament
     # Plan 15-06 (R2): table_name wird via Table#name aufgelöst (Vorrang vor table_no);
     # explizite location.cc_id steuert den Location-Scope. table_name landet in Game.data.
     test "resolves table via table_name and explicit location cc_id" do
-      @location.update_columns(cc_id: 11)
+      @location.update_columns(cc_id: 11, region_id: @nbv.id)
       @tournament.update_columns(location_id: nil) # beweist: explizite location greift
       tm = TableMonitor.create!(state: "new", name: "TM-RSPT-TN")
       Table.create!(name: "Tisch 5", location: @location, table_monitor: tm, table_kind: @table_kind)
@@ -165,7 +165,7 @@ module ExternalTournament
     ensure
       Table.where(name: "Tisch 5", location: @location).destroy_all
       TableMonitor.where(name: "TM-RSPT-TN").destroy_all
-      @location.update_columns(cc_id: nil)
+      @location.update_columns(cc_id: nil, region_id: nil)
     end
 
     test "transaction rolls back on player error — no partial Game creation" do
