@@ -32,11 +32,23 @@ module ExternalTournament
       end
     end
 
+    # Plan 15-06 (R2): Tisch existiert nicht in der (aufgelösten) Location.
+    # identifier ist der String-Name (table_name) bzw. table_no.to_s als Fallback.
+    class TableNotFoundError < StandardError
+      attr_reader :identifier
+      def initialize(identifier)
+        @identifier = identifier
+        super("Table not found: #{identifier}")
+      end
+    end
+
+    # Plan 15-06 (R2): Tisch gefunden, aber kein TableMonitor (z.B. !local_server?,
+    # da Table#table_monitor! dann nil liefert). identifier = table_name/table_no.to_s.
     class TableMonitorNotFoundError < StandardError
-      attr_reader :table_no
-      def initialize(table_no)
-        @table_no = table_no
-        super("TableMonitor not found for table_no=#{table_no}")
+      attr_reader :identifier
+      def initialize(identifier)
+        @identifier = identifier
+        super("TableMonitor not found for #{identifier}")
       end
     end
 
@@ -48,6 +60,7 @@ module ExternalTournament
       @payload = payload.is_a?(Hash) ? payload.deep_symbolize_keys : payload
       @matcher = PlayerMatcher.new(region: region)
       @created_any = false
+      @location_id = resolve_location_id
     end
 
     def call
@@ -56,7 +69,7 @@ module ExternalTournament
         (@payload[:games] || []).each do |g|
           game = find_or_create_game(g)
           create_participations(game, g[:participants] || [])
-          table_monitor = assign_table_monitor(game, g[:table_no])
+          table_monitor = assign_table_monitor(game, g)
           out << {
             external_id: g[:external_id],
             game_id: game.id,
@@ -68,6 +81,20 @@ module ExternalTournament
     end
 
     private
+
+    # Plan 15-06 (R2/D-15-06-B): Location explizit aus dem Payload (id|cc_id) auflösen,
+    # mit Fallback auf tournament.location_id (Alt-Client-Verhalten). Nötig, weil
+    # tournament.location_id nil sein kann (z.B. NordCup-Turnier ohne Location-Link).
+    def resolve_location_id
+      loc = @payload[:location] || {}
+      resolved =
+        if loc[:id].present?
+          Location.find_by(id: loc[:id])&.id
+        elsif loc[:cc_id].present?
+          Location.find_by(cc_id: loc[:cc_id])&.id
+        end
+      resolved || @tournament.location_id
+    end
 
     # Idempotenz via Game.data["external_id"] — Game.data ist serialized JSON (per
     # Game-Model `serialize :data, coder: JSON, type: Hash`), daher direkter In-Memory-
@@ -89,6 +116,7 @@ module ExternalTournament
           external_id: g[:external_id],
           discipline: g[:discipline],
           format: g[:format],
+          table_name: g[:table_name], # Plan 15-06 (D-15-06-D): für round_result-Symmetrie
           round_name: ctx[:round_name] || @payload[:round_name]
         }
       )
@@ -117,18 +145,23 @@ module ExternalTournament
       end
     end
 
-    # D-15-03-A: Tisch-Identifikation via Table.name == table_no.to_s.
-    # Scope: Tournament.location_id → Tables → Table.table_monitor.
-    # (TableMonitor.tournament_monitor ist polymorphic — Lookup via Location-Scope
-    # ist sauberer und benötigt keinen polymorphic-join.)
+    # Plan 15-06 (R2/D-15-06-A): Tisch-Identifikation via Table#name.
+    # Bevorzugt g[:table_name] (echter String wie "Tisch 5"), Fallback g[:table_no].to_s
+    # (Alt-Client-Verhalten, supersedes D-15-03-A). Scope: aufgelöste @location_id.
+    #
+    # D-15-06-C: table_monitor || table_monitor! — existierenden Monitor nutzen, sonst
+    # lazy-create (analog tournaments_controller.rb `@table.table_monitor || @table.table_monitor!`).
+    # table_monitor! liefert nil wenn !local_server? → TableMonitorNotFoundError.
     # Skip-Reassignment falls TableMonitor schon auf diesem Game steht.
-    def assign_table_monitor(game, table_no)
+    def assign_table_monitor(game, g)
+      identifier = g[:table_name].presence || g[:table_no].to_s
       table = Table
-        .where(location_id: @tournament.location_id)
-        .find_by(name: table_no.to_s)
+        .where(location_id: @location_id)
+        .find_by(name: identifier)
+      raise TableNotFoundError, identifier unless table
 
-      tm = table&.table_monitor
-      raise TableMonitorNotFoundError, table_no unless tm
+      tm = table.table_monitor || table.table_monitor!
+      raise TableMonitorNotFoundError, identifier unless tm
 
       tm.update!(game_id: game.id) unless tm.game_id == game.id
       tm

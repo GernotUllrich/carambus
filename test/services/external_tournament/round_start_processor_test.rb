@@ -116,13 +116,56 @@ module ExternalTournament
       end
     end
 
-    test "raises TableMonitorNotFoundError when no Table.name matches" do
+    # Plan 15-06: fehlender Tisch → TableNotFoundError (vorher TableMonitorNotFoundError)
+    test "raises TableNotFoundError when no Table.name matches" do
       payload = payload_one_game("rspt-notable", 99) # name="99" existiert nicht
       processor = RoundStartProcessor.new(tournament: @tournament, region: @nbv, payload: payload)
 
-      assert_raises(RoundStartProcessor::TableMonitorNotFoundError) do
+      error = assert_raises(RoundStartProcessor::TableNotFoundError) do
         processor.call
       end
+      assert_equal "99", error.identifier
+    end
+
+    # Plan 15-06 (R2): table_name wird via Table#name aufgelöst (Vorrang vor table_no);
+    # explizite location.cc_id steuert den Location-Scope. table_name landet in Game.data.
+    test "resolves table via table_name and explicit location cc_id" do
+      @location.update_columns(cc_id: 11)
+      @tournament.update_columns(location_id: nil) # beweist: explizite location greift
+      tm = TableMonitor.create!(state: "new", name: "TM-RSPT-TN")
+      Table.create!(name: "Tisch 5", location: @location, table_monitor: tm, table_kind: @table_kind)
+
+      payload = {
+        schema: "carambus.round_start/v1",
+        region: {shortname: "NBV"},
+        location: {cc_id: 11},
+        tournament: {cc_id: 999_201, name: @tournament.title},
+        round_no: 1,
+        round_name: "Runde 1",
+        games: [{
+          external_id: "rspt-tn-1",
+          table_name: "Tisch 5",
+          discipline: {name: "3-Band"},
+          format: {target_points: 30, max_innings: 25},
+          context: {round_no: 1, gname: "RSPT-TN-G1", seqno: 1},
+          participants: [
+            {role: "playera", player: {cc_id: @player_a.cc_id || 9001, firstname: @player_a.firstname, lastname: @player_a.lastname}},
+            {role: "playerb", player: {cc_id: @player_b.cc_id || 9002, firstname: @player_b.firstname, lastname: @player_b.lastname}}
+          ]
+        }]
+      }
+
+      result = RoundStartProcessor.new(tournament: @tournament, region: @nbv, payload: payload).call
+      entry = result.games.first
+      assert_equal tm.id, entry[:table_monitor_id]
+
+      game = Game.find(entry[:game_id])
+      data = game.data.is_a?(Hash) ? game.data : JSON.parse(game.data.to_s)
+      assert_equal "Tisch 5", data["table_name"]
+    ensure
+      Table.where(name: "Tisch 5", location: @location).destroy_all
+      TableMonitor.where(name: "TM-RSPT-TN").destroy_all
+      @location.update_columns(cc_id: nil)
     end
 
     test "transaction rolls back on player error — no partial Game creation" do

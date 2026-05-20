@@ -11,8 +11,9 @@ exchanges the following data with Carambus over REST:
 
 | Direction | Endpoint | Purpose | Status |
 |-----------|----------|---------|--------|
+| Carambus → App | `GET /api/external_tournament/tables` | Real table names + table_kind per location | ✅ v0.5 (Plan 15-06) |
 | Carambus → App | `GET /api/external_tournament/seeding` | Seeding list with players/teams | ✅ v0.5 (Plan 15-02) |
-| App → Carambus | `POST /api/external_tournament/round_start` | Table pairings → Game creation + scoreboard activation | ✅ v0.5 (Plan 15-03) |
+| App → Carambus | `POST /api/external_tournament/round_start` | Table pairings → Game creation + scoreboard activation | ✅ v0.5 (Plan 15-02/03 + 15-06 location/table_name) |
 | Carambus → App | `GET /api/external_tournament/round_result` | Game results to import into the app | ✅ v0.5 (Plan 15-04) |
 
 **Eliminates duplicate data entry** between the external app and Carambus
@@ -105,6 +106,43 @@ JWT lifetime: **90 days** (long-lived; via D-14-G7 +
 `Carambus.config.jwt_expiration_days`) — no renew friction for the app
 side across the tournament season.
 
+## Endpoint 0: Tables discovery (Plan 15-06)
+
+```
+GET /api/external_tournament/tables?location_cc_id=11&region=NBV
+GET /api/external_tournament/tables?location_id=1&region=NBV   (alternative)
+Authorization: Bearer …
+```
+
+Read-only discovery endpoint so the app does not have to guess the real
+`Table#name` strings (D-15-06-A: table names are arbitrary strings such as
+`"Tisch 5"`, `"Gr. Tisch 1"`, `"Kl. Tisch 1"` — **not** numbers).
+
+Response (`200`, schema `carambus.tables/v1`):
+
+```json
+{
+  "schema": "carambus.tables/v1",
+  "region": { "shortname": "NBV" },
+  "location": { "id": 1, "cc_id": 11, "name": "BC Wedel 61 Vereinsheim" },
+  "tables": [
+    { "name": "Tisch 5", "table_kind": "Small Billard", "has_monitor": true },
+    { "name": "Tisch 6", "table_kind": "Small Billard", "has_monitor": false }
+  ]
+}
+```
+
+Location resolution: `location_id` (Carambus PK) takes precedence over
+`location_cc_id` (CC region ID). `has_monitor` is only a **status hint** — a
+table without a monitor becomes monitor-capable at round start (see D-15-06-C).
+
+Errors: `401` (JWT), `404` (region/location not found).
+
+> **Defer (v0.6):** optional locations-list endpoint
+> (`GET /api/external_tournament/locations?region=NBV`) so the app can offer a
+> location picker without a known `location_id`. For the BC Wedel pilot the fixed
+> `location_id`/`cc_id` in the app config is enough.
+
 ## Endpoint 1: Seeding (Plan 15-02)
 
 ```
@@ -114,6 +152,11 @@ Authorization: Bearer …
 
 Response: `carambus.seeding/v1`-compliant JSON document with `tournament`,
 `teams[]`, `players[]`.
+
+**Plan 15-06 (R3/D-15-06-E):** `tournament.location` is an object
+`{id, cc_id, name}` (previously a string) so the app can pre-fill the location
+for round start after the seeding pull. `null` when `tournament.location_id` is
+nil (the app then sets the location manually).
 
 **Polymorphic-aware lookup:** Seeding is polymorphic (`Tournament` has
 multiple subclasses). The endpoint logic detects a team tournament (with
@@ -134,6 +177,26 @@ Carambus creates:
 2. `GameParticipation` records per participant (via PlayerMatcher)
 3. TableMonitor assignment (`game_id` is set)
 
+**Plan 15-06 (R2) — additive, v1-compatible extensions:**
+
+```json
+{
+  "schema": "carambus.round_start/v1",
+  "region": { "shortname": "NBV" },
+  "location": { "cc_id": 11 },        ← NEW (id OR cc_id; optional)
+  "tournament": { "cc_id": 886 },
+  "round_no": 1,
+  "games": [
+    {
+      "external_id": "…",
+      "table_name": "Tisch 5",        ← NEW, preferred
+      "table_no": 5,                  ← kept as fallback
+      ...
+    }
+  ]
+}
+```
+
 Response (`201 Created` or `200 OK` on idempotent replay):
 
 ```json
@@ -145,23 +208,39 @@ Response (`201 Created` or `200 OK` on idempotent replay):
 }
 ```
 
-### Convention D-15-03-A: Table identification
+### Convention D-15-06-A: Table identification via `table_name` (supersedes D-15-03-A)
+
+D-15-03-A (`Table.name == table_no.to_s`) matched **no** real location — real
+tables are named `"Tisch 5"`, `"Gr. Tisch 1"` etc. The lookup now prefers
+`table_name`, with `table_no.to_s` as backward-compat fallback:
 
 ```
-3BandMannschaftsTurnier table_no=5   ⟶   Carambus Table.name == "5"
+table_name="Tisch 5"   ⟶   Carambus Table.name == "Tisch 5"   (preferred)
+table_no=5             ⟶   Carambus Table.name == "5"          (fallback, legacy client)
 ```
 
 Lookup path (service `RoundStartProcessor`):
 
 ```ruby
-Table
-  .where(location_id: tournament.location_id)
-  .find_by(name: table_no.to_s)
-# → Table.table_monitor yields the associated TableMonitor
+identifier = g[:table_name].presence || g[:table_no].to_s
+table = Table.where(location_id: resolved_location_id).find_by(name: identifier)
+raise TableNotFoundError, identifier unless table
+tm = table.table_monitor || table.table_monitor!   # D-15-06-C: lazy-create
+raise TableMonitorNotFoundError, identifier unless tm
 ```
 
-Alternative conventions (e.g., `"Tisch 5"`, per-region mapping) are
-currently **not** supported — deferred to v0.6 if needed.
+**Location resolution (D-15-06-B):** `payload.location.id` → else
+`payload.location.cc_id` → else fallback `tournament.location_id`. Needed because
+`tournament.location_id` can be nil (e.g. a NordCup tournament without a location link).
+
+**TableMonitor lazy-create (D-15-06-C):** `table.table_monitor || table.table_monitor!`
+(mirrors `tournaments_controller.rb`). A table without a monitor becomes
+monitor-capable at round start. `table_monitor!` returns `nil` when `!local_server?`
+→ `TableMonitorNotFoundError`.
+
+**round_result symmetry (D-15-06-D):** `table_name` is persisted in `Game.data`
+and emitted in `round_result` in addition to `table_no`, so table_name-only games
+remain identifiable.
 
 ### Prerequisites
 
@@ -280,22 +359,28 @@ Three-path fallback lookup:
 Returns `Player` or `nil` — **no auto-create**. The Sportwart creates
 unknown players manually in the CC UI.
 
-### `ExternalTournament::RoundStartProcessor` (Plan 15-03)
+### `ExternalTournament::RoundStartProcessor` (Plan 15-03 + 15-06)
 
 - Transactional (DB rollback on any error)
-- Custom errors: `PlayerResolutionError`, `TableMonitorNotFoundError`
-  (controller rescues to 422)
+- Custom errors: `PlayerResolutionError`, `TableNotFoundError` (NEW 15-06),
+  `TableMonitorNotFoundError` (controller rescues to 422; now carry a string
+  `identifier` instead of just `table_no`)
+- `resolve_location_id` (15-06): payload.location.id → cc_id → tournament.location_id
+- Table lookup via `table_name` (fallback `table_no.to_s`), monitor via
+  `table_monitor || table_monitor!` (lazy-create)
+- `table_name` is persisted in `Game.data`
 - Idempotency via `Game.data["external_id"]` lookup
 - TableMonitor assignment only when needed (skip if `game_id` already
   correct)
 
-### `ExternalTournament::RoundResultAggregator` (Plan 15-04)
+### `ExternalTournament::RoundResultAggregator` (Plan 15-04 + 15-06)
 
 - **Read-only** aggregator (no DB writes, no transaction needed)
 - Filter: `tournament.games.where(round_no: N)` ordered by `seqno`
 - `innings_played` = `max(participants.innings)` — nachstoß-tolerant
 - `gd` fallback: DB value or computed from `points/innings` (3 decimals)
 - Also includes ongoing games (without `ended_at`)
+- Emits `table_name` (15-06/D-15-06-D) in addition to `table_no`
 
 ## Related decisions
 
@@ -304,13 +389,18 @@ unknown players manually in the CC UI.
 | D-15-01-A | Authority model = service account, same pattern as G.14 |
 | D-15-02-A | Mapping decisions (synonyms newline split + balls_goal→target_points etc.) |
 | D-15-02-B | Service-account email = `2band-{region}-bridge@carambus.de` |
-| D-15-03-A | Table identification via `Table.name == table_no.to_s` |
+| D-15-03-A | Table identification via `Table.name == table_no.to_s` (**superseded by D-15-06-A**) |
 | D-15-04-A | Round result: empty round → `200 OK` with `results: []` |
 | D-15-04-B | Ongoing games (`ended_at: nil`) are included in round result |
 | D-15-04-C | `innings_played` = max(participant.innings) (nachstoß-tolerant) |
 | D-15-04-D | `gd` taken from DB if present, else computed from `points/innings` |
 | D-15-04-E | Player serialization: cc_id/firstname/lastname (dbu_nr omitted) |
 | D-15-04-F | `round_no` query param is required (422 if missing/non-numeric) |
+| D-15-06-A | Table identification via `table_name` (fallback `table_no`); supersedes D-15-03-A |
+| D-15-06-B | Location resolution: payload.location.id → cc_id → tournament.location_id |
+| D-15-06-C | TableMonitor lazy-create via `table_monitor || table_monitor!` |
+| D-15-06-D | `table_name` persisted in `Game.data` + emitted in round result |
+| D-15-06-E | seeding `tournament.location` as `{id, cc_id, name}` object (was a string) |
 
 See `.paul/STATE.md` for full decision records.
 

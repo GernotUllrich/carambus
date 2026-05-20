@@ -51,7 +51,10 @@ module Api
         end
       end
       Table.where(name: %w[5 6]).where(location: locations(:one)).destroy_all
-      TableMonitor.where(name: %w[TM-RS-A TM-RS-B]).destroy_all
+      # Plan 15-06: Tisch-Naming-Tests erzeugen "Tisch N"-Tische + cc_id auf locations(:one)
+      Table.where(location: locations(:one)).where("name LIKE ?", "Tisch %").destroy_all
+      Location.where(id: locations(:one).id).update_all(cc_id: nil)
+      TableMonitor.where(name: %w[TM-RS-A TM-RS-B TM-06-A]).destroy_all
 
       TournamentCc.where(cc_id: 999_201).delete_all
       Tournament.where(title: "Test 3-Band Mannschaft 15-02").delete_all
@@ -223,7 +226,7 @@ module Api
       assert_equal games_before, Game.count
     end
 
-    # AC-6: TableMonitor nicht gefunden → 422
+    # AC-6 (Plan 15-06): unbekannter table_no → 422 (jetzt TableNotFoundError mit Identifier)
     test "round_start with unknown table_no returns 422" do
       setup_round_start_fixtures!
 
@@ -234,8 +237,8 @@ module Api
       post_round_start(payload: payload, jwt: login_jwt)
       assert_response :unprocessable_entity
       body = JSON.parse(response.body)
-      assert_match(/TableMonitor not found/i, body["error"].to_s)
-      assert_match(/table_no=99/, body["error"].to_s)
+      assert_match(/Table not found/i, body["error"].to_s)
+      assert_match(/99/, body["error"].to_s)
       assert_equal games_before, Game.count
     end
 
@@ -316,6 +319,172 @@ module Api
       assert_not_nil ongoing
       assert_nil ongoing["ended_at"]
       assert_not_nil ongoing["started_at"]
+    end
+
+    # === Plan 15-06: Tables-Discovery (R1) ===
+
+    # AC-3: ohne JWT → 401
+    test "tables without Authorization returns 401" do
+      get_tables(location_id: locations(:one).id, region: "NBV", jwt: nil)
+      assert_response :unauthorized
+    end
+
+    # AC-1: Happy-Path via location_cc_id — echte Tisch-Namen + table_kind + has_monitor
+    test "tables happy path returns carambus.tables/v1 with real names and kinds" do
+      loc = locations(:one)
+      loc.update_columns(cc_id: 11)
+      tk = table_kinds(:one)
+      Table.create!(name: "Tisch 5", location: loc, table_kind: tk) # ohne Monitor
+      Table.create!(name: "Tisch 6", location: loc, table_kind: tk)
+
+      get_tables(location_cc_id: 11, region: "NBV", jwt: login_jwt)
+      assert_response :ok
+      body = JSON.parse(response.body)
+      assert_equal "carambus.tables/v1", body["schema"]
+      assert_equal "NBV", body.dig("region", "shortname")
+      assert_equal 11, body.dig("location", "cc_id")
+      assert_equal loc.id, body.dig("location", "id")
+
+      names = body["tables"].map { |t| t["name"] }
+      assert_includes names, "Tisch 5"
+      assert_includes names, "Tisch 6"
+
+      t5 = body["tables"].find { |t| t["name"] == "Tisch 5" }
+      assert_equal "Karambol", t5["table_kind"]
+      assert_equal false, t5["has_monitor"]
+
+      # Fixture "Table One" hat table_monitor_id gesetzt → has_monitor: true
+      fixture_table = body["tables"].find { |t| t["name"] == "Table One" }
+      assert_equal true, fixture_table["has_monitor"]
+    end
+
+    # AC-2: location_id-Lookup auch ohne location.cc_id
+    test "tables resolves by location_id when location has no cc_id" do
+      loc = locations(:one) # cc_id nil
+      tk = table_kinds(:one)
+      Table.create!(name: "Tisch 1", location: loc, table_kind: tk)
+
+      get_tables(location_id: loc.id, region: "NBV", jwt: login_jwt)
+      assert_response :ok
+      body = JSON.parse(response.body)
+      assert_nil body.dig("location", "cc_id")
+      names = body["tables"].map { |t| t["name"] }
+      assert_includes names, "Tisch 1"
+    end
+
+    # AC-3: unbekannte Location → 404
+    test "tables for unknown location returns 404" do
+      get_tables(location_id: 999_999, region: "NBV", jwt: login_jwt)
+      assert_response :not_found
+      body = JSON.parse(response.body)
+      assert_match(/Location not found/i, body["error"].to_s)
+    end
+
+    # === Plan 15-06: round_start location + table_name (R2) ===
+
+    # AC-4: table_name + explizite location.cc_id (auch wenn tournament.location_id nil)
+    test "round_start resolves table via table_name and explicit location cc_id" do
+      loc = locations(:one)
+      loc.update_columns(cc_id: 11)
+      @tournament.update_columns(location_id: nil) # beweist: explizite location wird genutzt
+      tk = table_kinds(:one)
+      tm = TableMonitor.create!(state: "new", name: "TM-06-A")
+      Table.create!(name: "Tisch 5", location: loc, table_kind: tk, table_monitor: tm)
+
+      @player_a = @player
+      @player_b = players(:cho)
+
+      post_round_start(payload: round_start_payload_table_name, jwt: login_jwt)
+      assert_response :created
+      body = JSON.parse(response.body)
+      entry = body["games"].first
+      assert_equal "rs06-ext-1", entry["external_id"]
+      assert_equal tm.id, entry["table_monitor_id"]
+      assert_equal entry["game_id"], tm.reload.game_id
+
+      # D-15-06-D: table_name in Game.data persistiert
+      game = Game.find(entry["game_id"])
+      data = game.data.is_a?(Hash) ? game.data : JSON.parse(game.data.to_s)
+      assert_equal "Tisch 5", data["table_name"]
+    end
+
+    # AC-7: table_name bevorzugt vor table_no — unbekannter Name → 422 mit Namen
+    test "round_start with unknown table_name returns 422 with the name (table_name preferred)" do
+      setup_round_start_fixtures! # erzeugt Tische "5"/"6" auf locations(:one)
+
+      payload = round_start_payload_one_game.deep_dup
+      # table_no=5 existiert, aber table_name hat Vorrang und existiert NICHT
+      payload[:games][0][:table_name] = "Nicht existent"
+
+      games_before = Game.count
+      post_round_start(payload: payload, jwt: login_jwt)
+      assert_response :unprocessable_entity
+      body = JSON.parse(response.body)
+      assert_match(/Table not found/i, body["error"].to_s)
+      assert_match(/Nicht existent/, body["error"].to_s)
+      assert_equal games_before, Game.count
+    end
+
+    # AC-6: TableMonitor wird automatisch angelegt (table.table_monitor!) auf local_server
+    test "round_start auto-creates TableMonitor when table has none (local_server)" do
+      loc = locations(:one)
+      loc.update_columns(cc_id: 11)
+      @tournament.update!(location: loc)
+      tk = table_kinds(:one)
+      table = Table.create!(name: "Tisch 5", location: loc, table_kind: tk) # KEIN Monitor
+
+      @player_a = @player
+      @player_b = players(:cho)
+
+      jwt = login_jwt
+      ApplicationRecord.stub(:local_server?, true) do
+        post_round_start(payload: round_start_payload_table_name, jwt: jwt)
+      end
+
+      assert_response :created
+      body = JSON.parse(response.body)
+      entry = body["games"].first
+      assert entry["table_monitor_id"].is_a?(Integer)
+      assert_not_nil table.reload.read_attribute(:table_monitor_id)
+    end
+
+    # AC-5: Alt-Client (kein location, kein table_name, nur table_no) unverändert
+    test "round_start backward-compat with table_no only still works" do
+      setup_round_start_fixtures! # Tische "5"/"6" mit Monitoren auf locations(:one)
+
+      post_round_start(payload: round_start_payload_one_game, jwt: login_jwt)
+      assert_response :created
+      body = JSON.parse(response.body)
+      assert_equal @tm_a.id, body["games"].first["table_monitor_id"]
+    end
+
+    # === Plan 15-06: seeding location-Objekt (R3) ===
+
+    # AC-8: seeding liefert tournament.location als {id, cc_id, name}
+    test "seeding returns tournament.location as object" do
+      loc = locations(:one)
+      loc.update_columns(cc_id: 11)
+      @tournament.update!(location: loc)
+      Seeding.create!(tournament: @tournament, player: @player, position: 1)
+
+      get_seeding(tournament_cc_id: 999_201, region: "NBV", jwt: login_jwt)
+      assert_response :success
+      body = JSON.parse(response.body)
+      locobj = body.dig("tournament", "location")
+      assert_equal loc.id, locobj["id"]
+      assert_equal 11, locobj["cc_id"]
+      assert_equal loc.name, locobj["name"]
+    end
+
+    # AC-8: null location wenn tournament.location_id nil
+    test "seeding returns null location when tournament has no location" do
+      @tournament.update_columns(location_id: nil)
+      Seeding.create!(tournament: @tournament, player: @player, position: 1)
+
+      get_seeding(tournament_cc_id: 999_201, region: "NBV", jwt: login_jwt)
+      assert_response :success
+      body = JSON.parse(response.body)
+      assert_nil body.dig("tournament", "location")
     end
 
     private
@@ -422,12 +591,46 @@ module Api
       }
     end
 
+    # Plan 15-06 (R2): Payload mit explizitem table_name + location.cc_id (kein table_no).
+    def round_start_payload_table_name
+      {
+        schema: "carambus.round_start/v1",
+        region: {shortname: "NBV"},
+        location: {cc_id: 11},
+        tournament: {cc_id: 999_201, name: @tournament.title},
+        round_no: 1,
+        round_name: "Runde 1",
+        games: [
+          {
+            external_id: "rs06-ext-1",
+            table_name: "Tisch 5",
+            discipline: {name: "3-Band"},
+            format: {target_points: 30, max_innings: 25},
+            context: {round_no: 1, round_name: "Runde 1", gname: "RS06-G1", group_no: 1, seqno: 1},
+            participants: [
+              {role: "playera", player: {cc_id: @player_a.cc_id || 9001, firstname: @player_a.firstname, lastname: @player_a.lastname}},
+              {role: "playerb", player: {cc_id: @player_b.cc_id || 9002, firstname: @player_b.firstname, lastname: @player_b.lastname}}
+            ]
+          }
+        ]
+      }
+    end
+
     def post_round_start(payload:, jwt:)
       headers = {"Content-Type" => "application/json", "Accept" => "application/json"}
       headers["Authorization"] = "Bearer #{jwt}" if jwt
       post "/api/external_tournament/round_start",
         params: payload.to_json,
         headers: headers
+    end
+
+    def get_tables(region:, jwt:, location_id: nil, location_cc_id: nil)
+      headers = {"Content-Type" => "application/json", "Accept" => "application/json"}
+      headers["Authorization"] = "Bearer #{jwt}" if jwt
+      params = {region: region}
+      params[:location_id] = location_id unless location_id.nil?
+      params[:location_cc_id] = location_cc_id unless location_cc_id.nil?
+      get "/api/external_tournament/tables", params: params, headers: headers
     end
 
     def get_seeding(tournament_cc_id:, region:, jwt:)

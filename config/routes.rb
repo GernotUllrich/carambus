@@ -94,6 +94,13 @@ Rails.application.routes.draw do
     get "external_tournament/round_result",
         to: "external_tournaments#round_result",
         as: :external_tournament_round_result
+
+    # Plan 15-06: External-Tournament-Bridge Tables-Discovery-Endpoint (devise-jwt, read-only)
+    # R1: liefert echte Table#name-Strings + table_kind + has_monitor pro Location,
+    # damit externe Apps Tisch-Namen nicht raten müssen (D-15-06-A supersedes D-15-03-A).
+    get "external_tournament/tables",
+        to: "external_tournaments#tables",
+        as: :external_tournament_tables
   end
 
   # Debug routes (development only)

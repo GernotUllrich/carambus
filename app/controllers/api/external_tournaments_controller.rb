@@ -92,8 +92,10 @@ module Api
       render json: {error: e.message}, status: :not_found
     rescue ExternalTournament::RoundStartProcessor::PlayerResolutionError => e
       render json: {error: "Player not resolved", participant: e.participant}, status: :unprocessable_entity
+    rescue ExternalTournament::RoundStartProcessor::TableNotFoundError => e
+      render json: {error: "Table not found: #{e.identifier}"}, status: :unprocessable_entity
     rescue ExternalTournament::RoundStartProcessor::TableMonitorNotFoundError => e
-      render json: {error: "TableMonitor not found for table_no=#{e.table_no}"}, status: :unprocessable_entity
+      render json: {error: "TableMonitor not found for #{e.identifier}"}, status: :unprocessable_entity
     rescue ActiveRecord::RecordInvalid => e
       render json: {error: e.message}, status: :unprocessable_entity
     end
@@ -141,7 +143,52 @@ module Api
       render json: {error: e.message}, status: :not_found
     end
 
+    # GET /api/external_tournament/tables?location_id=X&region=NBV
+    #   alternativ: ?location_cc_id=11&region=NBV
+    #
+    # Plan 15-06 (R1): Read-only Discovery-Endpoint. Liefert die echten Table#name-Strings
+    # einer Location, damit externe Apps die Tisch-Namen nicht raten müssen
+    # (D-15-06-A: Table-Namen sind beliebige Strings wie "Tisch 5"/"Gr. Tisch 1", keine Nummern).
+    #
+    # Response (200): carambus.tables/v1
+    #   { "schema": "carambus.tables/v1", "region": {...}, "location": {id, cc_id, name},
+    #     "tables": [{ "name": "Tisch 5", "table_kind": "Small Billard", "has_monitor": true }, ...] }
+    #
+    # Errors:
+    #   - 401 — fehlende/ungültige JWT
+    #   - 404 — Region/Location nicht gefunden
+    def tables
+      region = Region.find_by!(shortname: params[:region].to_s.upcase)
+      location = resolve_location(params)
+      return render json: {error: "Location not found"}, status: :not_found unless location
+
+      render json: {
+        schema: "carambus.tables/v1",
+        region: {shortname: region.shortname},
+        location: {id: location.id, cc_id: location.cc_id, name: location.name},
+        tables: location.tables.includes(:table_kind).sort_by { |t| t.name.to_s }.map do |t|
+          {
+            name: t.name,
+            table_kind: t.table_kind&.name,
+            has_monitor: t.read_attribute(:table_monitor_id).present?
+          }
+        end
+      }
+    rescue ActiveRecord::RecordNotFound => e
+      render json: {error: e.message}, status: :not_found
+    end
+
     private
+
+    # Plan 15-06 (R1/R2): Location-Auflösung aus Params bzw. Payload.
+    # location_id (Carambus-PK) hat Vorrang vor location_cc_id (CC-Region-ID).
+    def resolve_location(p)
+      if p[:location_id].present?
+        Location.find_by(id: p[:location_id])
+      elsif p[:location_cc_id].present?
+        Location.find_by(cc_id: p[:location_cc_id])
+      end
+    end
 
     # D-15-04-F: round_no Query-Param ist required; nicht-numerisch → nil → 422.
     def parse_round_no(raw)
@@ -156,9 +203,10 @@ module Api
       params.permit(
         :schema, :round_no, :round_name,
         region: [:shortname],
+        location: [:id, :cc_id], # Plan 15-06 (R2): explizite Location (id|cc_id), optional
         tournament: [:cc_id, :name],
         games: [
-          :external_id, :table_no,
+          :external_id, :table_no, :table_name, # Plan 15-06 (R2): table_name bevorzugt
           {discipline: [:name],
            format: [:target_points, :max_innings],
            context: [:round_no, :round_name, :gname, :group_no, :seqno],
@@ -218,8 +266,16 @@ module Api
         discipline: build_discipline(tournament.discipline),
         format: build_format(tournament),
         starts_at: tournament.date&.iso8601,
-        location: tournament.location&.name
+        location: build_location(tournament.location)
       }
+    end
+
+    # Plan 15-06 (R3): location als {id, cc_id, name}-Objekt statt String,
+    # damit die App nach Seedlist-Pull die Location für den Round-Start vorbelegen kann.
+    # null wenn tournament.location_id nil ist — dann setzt die App die Location manuell.
+    def build_location(location)
+      return nil unless location
+      {id: location.id, cc_id: location.cc_id, name: location.name}
     end
 
     def build_discipline(discipline)

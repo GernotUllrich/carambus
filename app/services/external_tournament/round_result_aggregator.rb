@@ -55,6 +55,7 @@ module ExternalTournament
       {
         external_id: safe_data(game)["external_id"],
         table_no: game.table_no,
+        table_name: safe_data(game)["table_name"], # Plan 15-06 (D-15-06-D): table_name-only-Games wiederfindbar
         started_at: game.started_at&.iso8601,
         ended_at: game.ended_at&.iso8601,
         innings_played: innings_played(gps),
