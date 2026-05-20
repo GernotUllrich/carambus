@@ -159,6 +159,36 @@ module Api
       TableMonitor.where(id: monitor.id).delete_all if defined?(monitor) && monitor
     end
 
+    # === Plan 17-05: end_tournament (Lifecycle-Exit) ===
+
+    test "end_tournament ohne Auth gibt 401" do
+      post_json("/api/external_tournament/end_tournament",
+        {region: {shortname: "NBV"}, tournament: {external_id: "ep-1"}}, nil)
+      assert_response :unauthorized
+    end
+
+    test "end_tournament gibt Tische frei + schließt Turnier (carambus.tournament_end/v1)" do
+      jwt = login_jwt
+      monitor, _game = setup_held_game(jwt, external_id: "end-g1")
+
+      post_json("/api/external_tournament/end_tournament",
+        {region: {shortname: "NBV"}, tournament: {external_id: "ep-1"}}, jwt)
+      assert_response :ok
+      body = JSON.parse(response.body)
+      assert_equal "carambus.tournament_end/v1", body["schema"]
+      assert body["released_tables"] >= 1, "mind. ein Tisch freigegeben"
+      assert_equal "closed", body["tournament_monitor_state"]
+      assert_nil monitor.reload.tournament_monitor_id, "Tisch ungebunden"
+
+      post_json("/api/external_tournament/end_tournament",
+        {region: {shortname: "NBV"}, tournament: {external_id: "ep-1"}}, jwt)
+      assert_response :ok
+      assert_equal 0, JSON.parse(response.body)["released_tables"], "idempotent"
+    ensure
+      tables(:one).update_columns(table_monitor_id: nil)
+      TableMonitor.where(id: monitor.id).delete_all if defined?(monitor) && monitor
+    end
+
     private
 
     ACK_BA = {

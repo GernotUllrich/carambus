@@ -99,6 +99,13 @@ every 1.hour, roles: [:local] do
   rake "carambus:retrieve_updates[#{@location_id}]"
 end
 
+# Plan 17-05 (Vision N): Mitternachts-Auto-Abbruch für App-getriebene lokale Turniere.
+# Safety-Net: gibt über Nacht hängende Tischbindungen lokaler App-Turniere
+# (id>=MIN_ID + manual_assignment) frei. Idempotent.
+every 1.day, at: "12:01 am", roles: [:local] do
+  rake "external_tournament:release_stale_local_tables"
+end
+
 # ============================================================================
 # NOTES
 # ============================================================================

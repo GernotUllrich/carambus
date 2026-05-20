@@ -123,6 +123,27 @@ namespace :external_tournament do
     puts "✓ SMOKE-TEST PASSED — alle 3 Endpoints funktional"
     puts "═══════════════════════════════════════════"
   end
+
+  # Plan 17-05 (Vision M): Sysadmin-Fallback — gibt alle Tische eines lokalen App-Turniers
+  # frei + schließt es (force, auch unbestätigte Hold-Ergebnisse).
+  # zsh: Task-Namen quoten! Usage: rake "external_tournament:end[<tournament_id>]"
+  desc "Sysadmin: lokales App-Turnier beenden + Tische freigeben. Usage: rake \"external_tournament:end[<tournament_id>]\""
+  task :end, [:tournament_id] => :environment do |_, args|
+    t = Tournament.find_by(id: args[:tournament_id])
+    abort "Tournament #{args[:tournament_id].inspect} not found" if t.nil?
+    r = ExternalTournament::TableReleaser.release_tournament(t)
+    puts "✓ Tournament #{t.id} (#{t.external_id}): #{r.released} Tisch(e) freigegeben " \
+         "(#{r.unacknowledged} unbestätigt), TournamentMonitor=#{r.tournament_monitor_state}"
+  end
+
+  # Plan 17-05 (Vision N): Mitternachts-Auto-Abbruch — Safety-Net für über Nacht hängende
+  # lokale App-Turnier-Tischbindungen (id>=MIN_ID + manual_assignment). Idempotent.
+  # Via whenever in config/schedule.rb täglich getriggert.
+  desc "Mitternachts-Auto-Abbruch: hängende lokale App-Turnier-Tische freigeben. Usage: rake external_tournament:release_stale_local_tables"
+  task release_stale_local_tables: :environment do
+    res = ExternalTournament::TableReleaser.release_stale_local
+    puts "✓ Stale-Release: #{res[:released]} Tisch(e) freigegeben, #{res[:tournaments_closed]} Turnier(e) geschlossen"
+  end
 end
 
 # Helper-Modul (kein top-level Pollution; Plan 15-05 Substrate)

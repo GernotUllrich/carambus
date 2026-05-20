@@ -1909,15 +1909,16 @@ class TableMonitor < ApplicationRecord
     !external_result_pending?
   end
 
-  def reset_table_monitor
+  def reset_table_monitor(force: false)
     Rails.logger.debug do
-      "--------------m6[#{id}]------->>> reset_table_monitor <<<------------------------------------------"
+      "--------------m6[#{id}]------->>> reset_table_monitor(force: #{force}) <<<------------------------------------------"
     end
     # Phase 17 / 17-04: protect an unacknowledged App result from operator-driven
-    # reset. Sysadmin-override + the midnight job (17-05) get an explicit bypass
-    # later; here the operator path must not wipe a result the app has not yet pulled.
-    # Safe for the :new after_enter callback (game nil → pending? false → no effect).
-    if external_result_pending?
+    # reset — the operator path must not wipe a result the app has not yet pulled.
+    # Phase 17 / 17-05: force:true bypasses this guard for the AUTHORIZED release
+    # paths (App end_tournament, Sysadmin-rake, midnight auto-abort — D-17-vision-5).
+    # Safe for the :new after_enter callback (no force, game nil → pending? false).
+    if external_result_pending? && !force
       Rails.logger.info "+++ m6[#{id}] reset_table_monitor SKIPPED — external result pending (awaiting App acknowledge_result)"
       return
     end
