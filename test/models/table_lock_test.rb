@@ -18,17 +18,21 @@ class TableLockTest < ActiveSupport::TestCase
     assert_not tables(:one).reload.locked_for_tournament?
   end
 
-  # AC-1: globaler Tisch (id < MIN_ID) persistiert locked_for_tournament via table_local (LocalProtector-konform)
-  test "locked_for_tournament auf globalem Tisch laeuft ueber table_local" do
+  # AC-1: globaler Tisch (id < MIN_ID) persistiert locked_for_tournament via table_local
+  # (LocalProtector-konform) — set_locked_for_tournament! darf KEIN Table#save! ausloesen.
+  test "set_locked_for_tournament! auf globalem Tisch laeuft ueber table_local ohne Table#save" do
     global = Table.create!(id: 1234, name: "Global T", location: locations(:one), table_kind_id: 50_000_001)
     assert global.id < Table::MIN_ID
     assert_not global.locked_for_tournament?
 
-    global.locked_for_tournament = true
-    global.reload
+    global.set_locked_for_tournament!(true)
     assert global.locked_for_tournament?, "Getter liest locked_for_tournament aus table_local"
     assert global.table_local.present?, "table_local-Row wurde angelegt"
-    assert_equal true, global.table_local.locked_for_tournament, "Wert liegt auf table_local, nicht auf tables-Spalte"
+    assert_equal true, global.table_local.locked_for_tournament, "Wert liegt auf table_local"
+    assert_not global.read_attribute(:locked_for_tournament), "tables-Spalte selbst bleibt unberuehrt"
+
+    global.set_locked_for_tournament!(false)
+    assert_not global.reload.locked_for_tournament?, "Freigabe ueber table_local"
   end
 
   # AC-2/AC-4: locked_scoreboard folgt dem Lock, unabhaengig vom AASM-State

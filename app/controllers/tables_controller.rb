@@ -59,7 +59,8 @@ class TablesController < ApplicationController
   # gegen Operator-Eingriffe am Scoreboard gesperrt (siehe TableMonitor#locked_scoreboard).
   # NICHT die Google-Calendar-"Reservierung" (Heizung/Kommunikation).
   def toggle_lock
-    @table.update!(locked_for_tournament: !@table.locked_for_tournament?)
+    # LocalProtector-konform (globale Tische via table_local) — kein Table#update!.
+    @table.set_locked_for_tournament!(!@table.locked_for_tournament?)
     notice = if @table.locked_for_tournament?
       "Tisch #{@table.name} gesperrt – Scoreboard gegen Operator-Eingriffe gesperrt."
     else

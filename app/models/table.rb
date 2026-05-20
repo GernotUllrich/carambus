@@ -68,6 +68,17 @@ class Table < ApplicationRecord
     !!locked_for_tournament
   end
 
+  # Phase 17 / 17-01: LocalProtector-konformes Setzen. Globale Tische (id < MIN_ID) sind
+  # LocalProtector-geschuetzt — der LOCAL_METHODS-Setter schreibt nach table_local; ein
+  # zusaetzliches Table#save! wuerde LocalProtector triggern. Daher NUR fuer lokale Tische
+  # (id >= MIN_ID) save!, analog Heater-Pattern (heater_on!: "save if id >= Table::MIN_ID").
+  # NICHT Table#update! verwenden.
+  def set_locked_for_tournament!(value)
+    self.locked_for_tournament = !!value
+    save! if id.present? && id >= Table::MIN_ID
+    locked_for_tournament?
+  end
+
   def number
     m = name.match(/.*(\d+).*/)
     m.present? ? m[1].to_i : 0

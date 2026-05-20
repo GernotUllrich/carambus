@@ -59,11 +59,11 @@ module ExternalTournament
       ActiveRecord::Base.transaction do
         if lock
           raise TableConflictError, table.name if bound_to_other?(monitor, owner)
-          table.update!(locked_for_tournament: true)
+          table.set_locked_for_tournament!(true) # LocalProtector-konform (globale Tische via table_local)
           monitor.update!(tournament_monitor_id: owner.id, tournament_monitor_type: "TournamentMonitor")
           update_table_ids(tournament) { |ids| ids | [table.id.to_s] }
         else
-          table.update!(locked_for_tournament: false)
+          table.set_locked_for_tournament!(false) # LocalProtector-konform
           if monitor.tournament_monitor_id == owner.id && monitor.tournament_monitor_type == "TournamentMonitor"
             monitor.update!(tournament_monitor_id: nil, tournament_monitor_type: nil)
           end
