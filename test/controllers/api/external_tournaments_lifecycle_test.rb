@@ -53,6 +53,27 @@ module Api
       assert(body["tables"].all? { |t| t.key?("in_tournament") })
     end
 
+    # AC-2: lock_table-Controller-Response (Lock = Bindung; Response in_tournament, kein Crash)
+    test "lock_table bindet Tisch + Response in_tournament" do
+      jwt = login_jwt
+      post_json("/api/external_tournament/tournament",
+        {region: {shortname: "NBV"}, external_id: "ep-1", title: "EP", location: {id: @location.id}}, jwt)
+      assert_response :created
+
+      monitor = TableMonitor.create!(state: "ready", data: {})
+      tables(:one).update_columns(table_monitor_id: monitor.id)
+
+      post_json("/api/external_tournament/lock_table",
+        {region: {shortname: "NBV"}, tournament: {external_id: "ep-1"}, table: {id: tables(:one).id}}, jwt)
+      assert_response :success
+      body = JSON.parse(response.body)
+      assert_equal true, body["in_tournament"]
+      assert_equal monitor.id, body["table_monitor_id"]
+    ensure
+      tables(:one).update_columns(table_monitor_id: nil)
+      TableMonitor.where(id: monitor.id).delete_all if defined?(monitor) && monitor
+    end
+
     private
 
     def auth_headers(jwt)

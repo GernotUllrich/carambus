@@ -236,7 +236,8 @@ module Api
 
       render json: {
         table_id: result.table.id,
-        locked_for_tournament: result.table.locked_for_tournament?,
+        # Lock = TournamentMonitor-Bindung (kein eigenes Flag mehr, siehe Refactor 3e7c4739).
+        in_tournament: result.table_monitor.tournament_monitor_id.present?,
         table_monitor_id: result.table_monitor.id
       }
     rescue ActiveRecord::RecordNotFound => e
