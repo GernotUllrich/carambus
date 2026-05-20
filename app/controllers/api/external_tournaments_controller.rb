@@ -166,13 +166,14 @@ module Api
         schema: "carambus.tables/v1",
         region: {shortname: region.shortname},
         location: {id: location.id, cc_id: location.cc_id, name: location.name},
-        tables: location.tables.includes(:table_kind).sort_by { |t| t.name.to_s }.map do |t|
+        tables: location.tables.includes(:table_kind, :table_monitor).sort_by { |t| t.name.to_s }.map do |t|
           {
             name: t.name,
             table_kind: t.table_kind&.name,
             has_monitor: t.read_attribute(:table_monitor_id).present?,
-            # Plan 17-02: Verfuegbarkeits-Info — gesperrt fuer (App-)Turnierbetrieb (Phase 17-01).
-            locked_for_tournament: t.locked_for_tournament?
+            # Plan 17-02: Verfuegbarkeit — Tisch ist fuer den Turnierbetrieb belegt, wenn sein
+            # TableMonitor an einen TournamentMonitor gebunden ist (bestehender Carambus-Mechanismus).
+            in_tournament: t.table_monitor&.tournament_monitor_id.present? || false
           }
         end
       }

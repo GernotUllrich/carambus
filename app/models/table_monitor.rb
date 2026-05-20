@@ -506,10 +506,7 @@ class TableMonitor < ApplicationRecord
   end
 
   def locked_scoreboard
-    # Phase 17 / 17-01: Fuer den Turnierbetrieb gesperrte Tische sind unabhaengig vom
-    # State gegen Operator-Eingriffe gesperrt (Freigabe nur Admin/from_admin bzw.
-    # App/Sysadmin). Bestehende set_over-Sperre (CC/Turnier) bleibt unveraendert.
-    (state == "set_over" && !player_controlled?) || table&.locked_for_tournament?
+    state == "set_over" && !player_controlled?
   end
 
   def log_state_change_destroy

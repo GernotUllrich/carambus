@@ -32,7 +32,7 @@ module ExternalTournament
       assert_equal @nbv.id, t.region_id
       assert_equal "Region", t.organizer_type
       assert_equal @nbv.id, t.organizer_id
-      assert_equal Season.current_season.id, t.season_id
+      assert_equal seasons(:current).id, t.season_id, "season=current (2025/2026)"
       assert_equal @location.id, t.location_id
       assert t.tournament_monitor.present?, "schlanker TournamentMonitor erstellt (kein Crash ohne Plan)"
 

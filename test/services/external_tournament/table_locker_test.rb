@@ -2,7 +2,9 @@
 
 require "test_helper"
 
-# Plan 17-02: TableLocker — App sperrt Tisch fuer ihr Turnier (locked_for_tournament) + Binding + table_ids.
+# Plan 17-02: TableLocker — App belegt Tisch fuer ihr Turnier. Der Lock IST die
+# TournamentMonitor-Bindung (table_monitor.tournament_monitor_id) + Aufnahme in data[table_ids].
+# Kein eigenes Flag (siehe Refactor 2026-05-20: locked_for_tournament entfernt zugunsten der Bindung).
 module ExternalTournament
   class TableLockerTest < ActiveSupport::TestCase
     setup do
@@ -12,10 +14,9 @@ module ExternalTournament
         external_id: "app-lock-1", title: "Lock Cup", location: {id: @location.id}
       }).call.tournament
 
-      # Tisch mit eigenem TableMonitor (unabhaengig von local_server?-Lazy-Create)
       @monitor = TableMonitor.create!(state: "ready", data: {})
       @table = tables(:one)
-      @table.update_columns(table_monitor_id: @monitor.id, locked_for_tournament: false)
+      @table.update_columns(table_monitor_id: @monitor.id)
     end
 
     teardown do
@@ -25,17 +26,16 @@ module ExternalTournament
           t.destroy
         end
       end
-      @table&.update_columns(table_monitor_id: nil, locked_for_tournament: false)
+      @table&.update_columns(table_monitor_id: nil)
       @monitor&.destroy
     end
 
-    test "lock setzt Flag + Binding + table_ids" do
+    test "lock bindet TableMonitor an TournamentMonitor + table_ids" do
       result = TableLocker.new(region: @nbv, payload: {
         tournament_id: @tournament.id, table: {id: @table.id}
       }).call
 
       assert result.locked
-      assert tables(:one).reload.locked_for_tournament?, "locked_for_tournament gesetzt"
       assert_equal @tournament.tournament_monitor.id, @monitor.reload.tournament_monitor_id, "TableMonitor gebunden"
       assert_equal "TournamentMonitor", @monitor.tournament_monitor_type
       assert_includes Array(@tournament.reload.data["table_ids"]), @table.id.to_s
@@ -52,11 +52,10 @@ module ExternalTournament
       end
     end
 
-    test "unlock kehrt um" do
+    test "unlock loest Bindung + entfernt aus table_ids" do
       TableLocker.new(region: @nbv, payload: {tournament_id: @tournament.id, table: {id: @table.id}}).call
       TableLocker.new(region: @nbv, payload: {tournament_id: @tournament.id, table: {id: @table.id}, lock: false}).call
 
-      assert_not tables(:one).reload.locked_for_tournament?
       assert_nil @monitor.reload.tournament_monitor_id
       assert_not_includes Array(@tournament.reload.data["table_ids"]), @table.id.to_s
     end

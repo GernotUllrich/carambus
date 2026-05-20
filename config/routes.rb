@@ -103,7 +103,7 @@ Rails.application.routes.draw do
         as: :external_tournament_tables
 
     # Plan 17-02: App-driven Local Tournament Lifecycle — lokale Turnier-Anlage (no plan)
-    # + App-getriebener Tisch-Lock (locked_for_tournament + TableMonitor-Binding).
+    # + App-getriebener Tisch-Lock via TournamentMonitor-Bindung (table_monitor.tournament_monitor_id).
     post "external_tournament/tournament",
          to: "external_tournaments#tournament",
          as: :external_tournament_tournament
@@ -319,11 +319,7 @@ Rails.application.routes.draw do
   resources :game_participations
   resources :games
   resources :tournament_plans
-  resources :tables do
-    member do
-      patch :toggle_lock
-    end
-  end
+  resources :tables
   resources :seedings do
     member do
       post :down

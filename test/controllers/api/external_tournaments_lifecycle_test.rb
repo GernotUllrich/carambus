@@ -43,14 +43,14 @@ module Api
       assert_equal tid, JSON.parse(response.body).dig("tournament", "id")
     end
 
-    # AC-3: tables-Discovery zeigt locked_for_tournament
-    test "tables discovery enthaelt locked_for_tournament" do
+    # AC-3: tables-Discovery zeigt Verfuegbarkeit (in_tournament, bindungsbasiert)
+    test "tables discovery enthaelt in_tournament" do
       get "/api/external_tournament/tables",
         params: {location_id: @location.id, region: "NBV"}, headers: auth_headers(login_jwt)
       assert_response :success
       body = JSON.parse(response.body)
       assert body["tables"].present?, "Location hat Tische (Fixtures)"
-      assert(body["tables"].all? { |t| t.key?("locked_for_tournament") })
+      assert(body["tables"].all? { |t| t.key?("in_tournament") })
     end
 
     private

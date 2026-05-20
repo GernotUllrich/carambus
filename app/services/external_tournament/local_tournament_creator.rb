@@ -33,7 +33,7 @@ module ExternalTournament
       end
 
       tournament = Tournament.create!(
-        season: Season.current_season,
+        season: resolve_season,
         organizer: @region,
         region_id: @region.id,
         location_id: resolve_location_id,
@@ -52,6 +52,12 @@ module ExternalTournament
     def ensure_tournament_monitor(tournament)
       tournament.initialize_tournament_monitor if tournament.tournament_monitor.blank?
       tournament.reload
+    end
+
+    # Season.current_season memoisiert auf Klassen-Ebene (kann zur Boot-Zeit nil cachen, bevor
+    # Seasons existieren). season_from_date macht einen frischen Lookup — robuster.
+    def resolve_season
+      Season.current_season.presence || Season.season_from_date(Date.current)
     end
 
     # Location optional; id (global) vor cc_id (region-scoped, D-15-07-A).

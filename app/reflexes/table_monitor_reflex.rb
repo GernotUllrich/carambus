@@ -23,12 +23,6 @@ class TableMonitorReflex < ApplicationReflex
   # Learn more at: https://docs.stimulusreflex.com
   #
   DEBUG = true
-
-  # Phase 17 / 17-01: Fuer den Turnierbetrieb gesperrte Tische gegen Operator-Eingriffe schuetzen.
-  # Greift fuer ALLE Operator-Reflex-Aktionen (oeffentliche Methoden); blockt, wenn
-  # der Tisch locked_for_tournament ist und der Aufrufer nicht Admin/from_admin ist.
-  before_reflex :guard_locked_table_scoreboard
-
   (0..9).each do |i|
     define_method :"nnn_#{i}" do
       Rails.logger.info "+++++++++++++++++>>> #{"nnn_#{i}"} <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
@@ -1008,27 +1002,6 @@ class TableMonitorReflex < ApplicationReflex
   end
 
   private
-
-  # Phase 17 / 17-01: Fuer den Turnierbetrieb gesperrte Tische gegen Operator-Eingriffe schuetzen.
-  # Laeuft als before_reflex fuer ALLE Operator-Reflex-Aktionen. Blockt nur den
-  # Lock-Fall (table.locked_for_tournament? => locked_scoreboard); die bestehende
-  # set_over-Sperre bleibt zusaetzlich per-Methode bestehen und ist hier nicht
-  # betroffen. Freigabe: Admin oder from_admin-Element (spaeter App/Sysadmin/Mitternacht).
-  def guard_locked_table_scoreboard
-    tm_id = element.andand.dataset[:id]
-    return if tm_id.blank?
-
-    tm = TableMonitor.find_by(id: tm_id)
-    return if tm.blank?
-    return unless tm.table&.locked_for_tournament?
-
-    from_admin = element.andand.dataset[:from_admin]
-    return if from_admin.present? || current_user&.admin?
-
-    Rails.logger.info "🔒 TableMonitorReflex blocked on locked table ##{tm_id}"
-    morph :nothing
-    throw :abort
-  end
 
   # Helper method to check if request is from remote (not localhost)
   def remote_request?

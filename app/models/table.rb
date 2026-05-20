@@ -35,7 +35,7 @@ class Table < ApplicationRecord
   LOCAL_METHODS = %i[
     ip_address tpl_ip_address event_id event_summary event_start event_end event_creator heater heater_on_reason
     heater_off_reason heater_switched_on_at heater_switched_off_at manual_heater_on_at manual_heater_off_at
-    scoreboard scoreboard_on_at scoreboard_off_at locked_for_tournament
+    scoreboard scoreboard_on_at scoreboard_off_at
   ].freeze
   DEBUG_CALENDAR = true
 
@@ -58,25 +58,6 @@ class Table < ApplicationRecord
         write_attribute(meth, value)
       end
     end
-  end
-
-  # Phase 17 / 17-01: Tisch-Lock fuer geordneten (Turnier-)Betrieb — an gesperrten Tischen
-  # kann niemand sonst ein Spiel anlegen + Operator kann nicht eingreifen. NICHT zu
-  # verwechseln mit der Google-Calendar-"Reservierung" (Heizung/Kommunikation). Geht ueber
-  # den LOCAL_METHODS-Getter (nicht read_attribute), damit globale Tische via table_local lesen.
-  def locked_for_tournament?
-    !!locked_for_tournament
-  end
-
-  # Phase 17 / 17-01: LocalProtector-konformes Setzen. Globale Tische (id < MIN_ID) sind
-  # LocalProtector-geschuetzt — der LOCAL_METHODS-Setter schreibt nach table_local; ein
-  # zusaetzliches Table#save! wuerde LocalProtector triggern. Daher NUR fuer lokale Tische
-  # (id >= MIN_ID) save!, analog Heater-Pattern (heater_on!: "save if id >= Table::MIN_ID").
-  # NICHT Table#update! verwenden.
-  def set_locked_for_tournament!(value)
-    self.locked_for_tournament = !!value
-    save! if id.present? && id >= Table::MIN_ID
-    locked_for_tournament?
   end
 
   def number

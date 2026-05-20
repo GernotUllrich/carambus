@@ -59,11 +59,12 @@ module ExternalTournament
       ActiveRecord::Base.transaction do
         if lock
           raise TableConflictError, table.name if bound_to_other?(monitor, owner)
-          table.set_locked_for_tournament!(true) # LocalProtector-konform (globale Tische via table_local)
+          # Der Lock IST die TournamentMonitor-Bindung: ein gebundener Tisch erscheint im
+          # Location-Scoreboard unter Tournaments + ist nicht mehr fuer Training-Spiele waehlbar
+          # (bestehender Carambus-Mechanismus, scoreboard_tables.html.erb: tm.tournament_monitor.present?).
           monitor.update!(tournament_monitor_id: owner.id, tournament_monitor_type: "TournamentMonitor")
           update_table_ids(tournament) { |ids| ids | [table.id.to_s] }
         else
-          table.set_locked_for_tournament!(false) # LocalProtector-konform
           if monitor.tournament_monitor_id == owner.id && monitor.tournament_monitor_type == "TournamentMonitor"
             monitor.update!(tournament_monitor_id: nil, tournament_monitor_type: nil)
           end
