@@ -1,6 +1,9 @@
 class TablesController < ApplicationController
-  before_action :admin_only_check, except: %i[show index]
-  before_action :set_table, only: %i[show edit update destroy]
+  # Phase 17 / 17-01: toggle_reservation ist NICHT admin-only, sondern eigen-autorisiert
+  # (Admin ODER Sportwart der Location). Die uebrigen CRUD-Pfade bleiben admin-only.
+  before_action :admin_only_check, except: %i[show index toggle_reservation]
+  before_action :set_table, only: %i[show edit update destroy toggle_reservation]
+  before_action :authorize_table_reservation!, only: %i[toggle_reservation]
 
   # GET /tables
   def index
@@ -51,11 +54,33 @@ class TablesController < ApplicationController
     redirect_to tables_url, notice: "Table was successfully destroyed."
   end
 
+  # PATCH /tables/1/toggle_reservation
+  # Phase 17 / 17-01: Tischbezogene Reservierung umschalten. Reservierte Tische sind
+  # gegen Operator-Eingriffe am Scoreboard gesperrt (siehe TableMonitor#locked_scoreboard).
+  def toggle_reservation
+    @table.update!(reserved: !@table.reserved?)
+    notice = if @table.reserved?
+      "Tisch #{@table.name} reserviert – Scoreboard gegen Operator-Eingriffe gesperrt."
+    else
+      "Reservierung von Tisch #{@table.name} aufgehoben."
+    end
+    redirect_back fallback_location: tables_url, notice: notice
+  end
+
   private
 
   # Use callbacks to share common setup or constraints between actions.
   def set_table
     @table = Table.find(params[:id])
+  end
+
+  # Phase 17 / 17-01: Nur Admin ODER Sportwart der Location darf reservieren/freigeben.
+  def authorize_table_reservation!
+    return if current_user&.admin?
+    return if current_user&.sportwart_location_ids&.include?(@table.location_id)
+
+    redirect_back fallback_location: tables_url,
+      alert: "Nur Admin oder Sportwart dieser Location darf Tische reservieren."
   end
 
   # Only allow a trusted parameter "white list" through.

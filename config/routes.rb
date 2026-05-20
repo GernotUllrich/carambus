@@ -310,7 +310,11 @@ Rails.application.routes.draw do
   resources :game_participations
   resources :games
   resources :tournament_plans
-  resources :tables
+  resources :tables do
+    member do
+      patch :toggle_reservation
+    end
+  end
   resources :seedings do
     member do
       post :down

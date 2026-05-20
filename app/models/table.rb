@@ -35,7 +35,7 @@ class Table < ApplicationRecord
   LOCAL_METHODS = %i[
     ip_address tpl_ip_address event_id event_summary event_start event_end event_creator heater heater_on_reason
     heater_off_reason heater_switched_on_at heater_switched_off_at manual_heater_on_at manual_heater_off_at
-    scoreboard scoreboard_on_at scoreboard_off_at
+    scoreboard scoreboard_on_at scoreboard_off_at reserved
   ].freeze
   DEBUG_CALENDAR = true
 
@@ -58,6 +58,12 @@ class Table < ApplicationRecord
         write_attribute(meth, value)
       end
     end
+  end
+
+  # Phase 17 / 17-01: Tischbezogene Reservierung. Geht ueber den LOCAL_METHODS-Getter
+  # `reserved` (nicht read_attribute), damit globale Tische korrekt via table_local lesen.
+  def reserved?
+    !!reserved
   end
 
   def number

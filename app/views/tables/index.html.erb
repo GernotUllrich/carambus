@@ -28,12 +28,19 @@
           <tr class="group border-t border-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
                       <td class="p-3"><%= table.location_id %></td>
                       <td class="p-3"><%= table.table_kind_id %></td>
-                      <td class="p-3"><%= table.name %></td>
+                      <td class="p-3"><%= table.name %><% if table.reserved? %> <span class="text-xs font-semibold text-red-600">🔒 reserviert</span><% end %></td>
                       <td class="p-3"><%= table.data %></td>
                       <td class="p-3"><%= table.ip_address %></td>
 
             <td>
               <%= custom_link_to t('view'), table, class: "btn btn-link no-underline" %>
+              <%# Phase 17 / 17-01: Tisch-Reservierung (Admin oder Sportwart der Location) %>
+              <% if current_user&.admin? || current_user&.sportwart_location_ids&.include?(table.location_id) %>
+                <%= button_to (table.reserved? ? "Freigeben" : "Reservieren"),
+                              toggle_reservation_table_path(table),
+                              method: :patch,
+                              class: "btn btn-link no-underline #{'text-red-600' if table.reserved?}" %>
+              <% end %>
             </td>
           </tr>
         <% end %>
