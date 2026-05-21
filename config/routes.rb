@@ -132,6 +132,15 @@ Rails.application.routes.draw do
     get "external_tournament/csv_export",
         to: "external_tournaments#csv_export",
         as: :external_tournament_csv_export
+    # Plan 18-01 (Club/Player-Discovery): Read-Endpoints fuer die App-Spielerzuordnung.
+    # clubs = Clubs der Region (Picker); club_players = in der laufenden Saison
+    # spielberechtigte (status active) Spieler eines Clubs, je cc_id + dbu_nr.
+    get "external_tournament/clubs",
+        to: "external_tournaments#clubs",
+        as: :external_tournament_clubs
+    get "external_tournament/club_players",
+        to: "external_tournaments#club_players",
+        as: :external_tournament_club_players
   end
 
   # Debug routes (development only)

@@ -18,6 +18,8 @@ exchanges the following data with Carambus over REST:
 | App ↔ Carambus | `POST tournament` / `lock_table` / `start_game` / `acknowledge_result` / `end_tournament` | App-driven local tournament lifecycle (create, table binding, warmup start, result hold/pull, tournament end) | ✅ v0.5 (Plan 17-02..17-05) |
 | App → Carambus | `POST /api/external_tournament/player_reconcile` | Match participants against Carambus-local → return dbu_nr | ✅ v0.5 (Plan 17-06) |
 | Carambus → App | `GET /api/external_tournament/csv_export` | Result CSV (text/csv) + dbu_nr cross-check for the result importer | ✅ v0.5 (Plan 17-06) |
+| Carambus → App | `GET /api/external_tournament/clubs` | Clubs of the region (picker) | ✅ v0.5 (Plan 18-01) |
+| Carambus → App | `GET /api/external_tournament/club_players` | Players eligible to play this season for a club (cc_id + dbu_nr) | ✅ v0.5 (Plan 18-01) |
 
 **Eliminates duplicate data entry** between the external app and Carambus
 scoreboards.
@@ -434,6 +436,65 @@ Gruppe;Partie;ExternalId;Spieler1_cc_id;Spieler1_dbu_nr;Spieler1;Ergebnis1;Aufna
 | 404 | Region or tournament not found |
 | 200 | `text/csv` (header + one row per finished game; empty ⇒ header only) |
 
+## Endpoint 6: Club/Player discovery (Plan 18-01)
+
+Two read-only, region-scoped endpoints for app-side player assignment. The operator picks
+the participating clubs and assigns, per app player slot, an official player who is
+**eligible to play** in the current season (carrying `cc_id` + `dbu_nr`) → exact
+`start_game` matching + complete `csv_export` CSV. Guests remain the fallback. Purely
+additive — no change to `start_game`/`round_start` (the app already sends `cc_id`/`dbu_nr`
+via `cleanPlayerRef` once set).
+
+### `GET /api/external_tournament/clubs?region=NBV`
+
+Clubs of the region (with `cc_id`) for the club picker. `cc_id` is the key for
+`club_players`.
+
+Response (`200`, schema `carambus.clubs/v1`):
+
+```json
+{
+  "schema": "carambus.clubs/v1",
+  "region": { "shortname": "NBV" },
+  "season": { "name": "2025/2026", "current": true },
+  "clubs": [
+    { "cc_id": 11, "shortname": "BC Wedel", "name": "Billard Club Wedel" }
+  ]
+}
+```
+
+### `GET /api/external_tournament/club_players?region=NBV&club_cc_id=11`
+
+Players **eligible to play** for the club in the current season. Eligibility is strictly
+`SeasonParticipation status="active"` of `Season.current_season` (temporary/guest/nil
+excluded; the `status` field is included per player). `dbu_nr` is CSV-relevant and may be
+absent (`null`). Region scope: `cc_id` is only intra-region unique.
+
+Multiple clubs in one call: `?region=NBV&club_cc_ids=11,12` → response as
+`clubs:[{ club, players }]` instead of a single `club`.
+
+Response (`200`, schema `carambus.club_players/v1`):
+
+```json
+{
+  "schema": "carambus.club_players/v1",
+  "region": { "shortname": "NBV" },
+  "season": { "name": "2025/2026" },
+  "club": { "cc_id": 11, "shortname": "BC Wedel", "name": "Billard Club Wedel" },
+  "players": [
+    { "cc_id": 4567, "firstname": "Oliver", "lastname": "Weese", "dbu_nr": "12345", "status": "active" }
+  ]
+}
+```
+
+### Error codes
+
+| Code | Meaning |
+|------|---------|
+| `401` | Missing/invalid bearer token |
+| `404` | Region unknown OR `club_cc_id` not in the region (region-scoped) |
+| `422` | `club_cc_id` missing (and no `club_cc_ids` given) |
+
 ## Service layer
 
 ### `ExternalTournament::PlayerMatcher` (Plan 15-02)
@@ -484,6 +545,13 @@ unknown players manually in the CC UI.
   (coarse SQL `LIKE` on the external_id string + exact marker match)
 - dbu_nr per player as cross-check column; empty tournament ⇒ header only
 
+### `ExternalTournament::ClubRosterQuery` (Plan 18-01)
+
+Read-only discovery substrate: `clubs(region)` + `players(region:, club:, season:)`.
+Eligibility strictly `status="active"` of the current season; region-scoped club lookup via
+`cc_id` (intra-region unique). `dbu_nr` passed through as a string (nullable). Creates no
+players/guests.
+
 ## Related decisions
 
 | Decision | Scope |
@@ -508,6 +576,10 @@ unknown players manually in the CC UI.
 | D-17-06-B | CSV result source = `game.data["ba_results"]` (manual_assignment ⇒ GP columns empty) |
 | D-17-06-C | Player reconcile reuses `PlayerMatcher` without auto-create (CC entry list stays the MCP track) |
 | D-17-06-D | CSV delivery as `GET text/csv` (app pull) + dbu_nr columns per player; no final-ranking CSV |
+| D-18-01-A | club_players eligibility strictly `SeasonParticipation status="active"` of `Season.current_season`; `status` included per player (temporary/guest/nil excluded) |
+| D-18-01-B | clubs = `region.clubs` with `cc_id` (the key for club_players), stably sorted |
+| D-18-01-C | club_players supports single (`club_cc_id`→`club:{}`) and multi (`club_cc_ids`→`clubs:[]`) |
+| D-18-01-D | `dbu_nr` nullable (as String), region scope via club (cc_id only intra-region unique) |
 
 See `.paul/STATE.md` for full decision records.
 
