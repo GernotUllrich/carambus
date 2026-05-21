@@ -64,6 +64,49 @@ class TableMonitorExternalHoldTest < ActiveSupport::TestCase
     assert tm.may_start_rematch?, "normal game start_rematch unaffected"
   end
 
+  # Phase 18 / 18-03 — force_next_state (Scoreboard-Spielstand-Klickfläche) guard.
+  # force_next_state ist die zweite Operator-Freigabe-/Weiterschalt-Fläche neben
+  # close_match/start_rematch; für ein App-Spiel in :final_match_score läuft sie via
+  # evaluate_result in den ResultRecorder (direkter state-Set) — muss bei pending
+  # App-Result blockiert sein. evaluate_result wird gestubbt, um den Guard zu isolieren.
+  test "force_next_state is blocked (no advance) for unacknowledged external game" do
+    tm = build_tm_at_final_match_score(game_data: {"external_id" => "g-fns-1"})
+    assert tm.external_result_pending?, "precondition: external result pending"
+
+    called = false
+    tm.stub(:evaluate_result, -> { called = true }) do
+      tm.force_next_state
+    end
+    assert_not called, "evaluate_result must NOT run while external result is pending"
+    tm.reload
+    assert_equal "final_match_score", tm.state, "state must stay at the hold"
+    assert tm.game_id.present?, "game must remain bound (no release)"
+  end
+
+  test "force_next_state proceeds after result_acknowledged_at is set" do
+    tm = build_tm_at_final_match_score(game_data: {"external_id" => "g-fns-2"})
+    tm.game.update!(result_acknowledged_at: Time.current)
+    tm.reload
+    assert_not tm.external_result_pending?, "no longer pending after ack"
+
+    called = false
+    tm.stub(:evaluate_result, -> { called = true }) do
+      tm.force_next_state
+    end
+    assert called, "force_next_state must proceed (evaluate_result) once the app acknowledged"
+  end
+
+  test "force_next_state unaffected for non-external game (AC-4 regression)" do
+    tm = build_tm_at_final_match_score(game_data: {})
+    assert_not tm.external_result_pending?, "no external_id → not pending"
+
+    called = false
+    tm.stub(:evaluate_result, -> { called = true }) do
+      tm.force_next_state
+    end
+    assert called, "normal game force_next_state proceeds as before"
+  end
+
   test "manual_assignment tournament does NOT trigger round-progression cascade on close_match!" do
     nbv = regions(:nbv)
     location = locations(:one)

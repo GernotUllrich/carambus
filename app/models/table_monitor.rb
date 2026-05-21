@@ -1846,6 +1846,20 @@ class TableMonitor < ApplicationRecord
   end
 
   def force_next_state
+    # Phase 17 (17-04) / 18-03: App-driven result-hold. Die immer-aktive
+    # Spielstand-Klickfläche am Scoreboard (_scoreboard.html.erb ->
+    # table-monitor#force_next_state) ist eine Operator-Freigabe-/Weiterschalt-Fläche,
+    # die NICHT durch die AASM-Guards von :close_match / :start_rematch abgedeckt ist:
+    # für ein App-Spiel in :final_match_score läuft sie via evaluate_result in den
+    # ResultRecorder, der den State direkt setzt (assign_attributes state:"playing") und
+    # acknowledge_result!/finish_match! feuert — am external_release_allowed?-Guard vorbei.
+    # Solange das App-Ergebnis nicht von der App abgeholt wurde (POST acknowledge_result
+    # setzt result_acknowledged_at), darf der Operator den Tisch nicht weiterbewegen.
+    # Nicht-App-Spiele: external_result_pending? false -> keine Verhaltensänderung.
+    if external_result_pending?
+      Rails.logger.info "+++ m6[#{id}] force_next_state SKIPPED — external result pending (awaiting App acknowledge_result)"
+      return
+    end
     if %i[warmup warmup_a warmup_b].include?(state.to_sym)
       Rails.logger.debug { "nxst +++++ B: %i[warmup warmup_a warmup_b].include?(state.to_sym)" }
       reset_timer!
