@@ -181,6 +181,75 @@ module Api
       render json: {error: e.message}, status: :not_found
     end
 
+    # GET /api/external_tournament/clubs?region=NBV
+    #
+    # Plan 18-01: Clubs der Region (mit cc_id) fuer den App-Club-Picker. cc_id ist der
+    # Schluessel fuer club_players. Region-scoped, read-only.
+    # Response: carambus.clubs/v1
+    #   { schema, region:{shortname}, season:{name,current:true}, clubs:[{cc_id,shortname,name}] }
+    # Errors: 401 (Auth) / 404 (Region)
+    def clubs
+      region = Region.find_by!(shortname: params[:region].to_s.upcase)
+      season = ExternalTournament::ClubRosterQuery.current_season
+      render json: {
+        schema: "carambus.clubs/v1",
+        region: {shortname: region.shortname},
+        season: {name: season&.name, current: true},
+        clubs: ExternalTournament::ClubRosterQuery.clubs(region)
+      }
+    rescue ActiveRecord::RecordNotFound => e
+      render json: {error: e.message}, status: :not_found
+    end
+
+    # GET /api/external_tournament/club_players?region=NBV&club_cc_id=11
+    #   alternativ: ?region=NBV&club_cc_ids=11,12 (mehrere Clubs in einem Call)
+    #
+    # Plan 18-01: In der laufenden Saison SPIELBERECHTIGTE (status="active") Spieler eines
+    # Clubs, je cc_id + dbu_nr (CSV-relevant). Region-scoped (Club.cc_id nur regional
+    # eindeutig), read-only.
+    # Response (Einzel-Club): carambus.club_players/v1
+    #   { schema, region, season:{name}, club:{cc_id,shortname,name},
+    #     players:[{cc_id,firstname,lastname,dbu_nr,status}] }
+    # Response (club_cc_ids): { schema, region, season, clubs:[{...club, players:[...]}] }
+    # Errors: 401 (Auth) / 404 (Region | unbekannter club_cc_id) / 422 (club_cc_id fehlt)
+    def club_players
+      region = Region.find_by!(shortname: params[:region].to_s.upcase)
+      season = ExternalTournament::ClubRosterQuery.current_season
+
+      if params[:club_cc_ids].present?
+        cc_ids = params[:club_cc_ids].to_s.split(",").map(&:strip).reject(&:blank?)
+        clubs = cc_ids.filter_map { |cc| ExternalTournament::ClubRosterQuery.find_club(region, cc) }
+        return render json: {
+          schema: "carambus.club_players/v1",
+          region: {shortname: region.shortname},
+          season: {name: season&.name},
+          clubs: clubs.map do |club|
+            {
+              club: ExternalTournament::ClubRosterQuery.club_hash(club),
+              players: ExternalTournament::ClubRosterQuery.players(region: region, club: club, season: season)
+            }
+          end
+        }
+      end
+
+      if params[:club_cc_id].blank?
+        return render json: {error: "club_cc_id is required"}, status: :unprocessable_entity
+      end
+
+      club = ExternalTournament::ClubRosterQuery.find_club(region, params[:club_cc_id])
+      return render json: {error: "Club not found in region #{region.shortname}"}, status: :not_found if club.blank?
+
+      render json: {
+        schema: "carambus.club_players/v1",
+        region: {shortname: region.shortname},
+        season: {name: season&.name},
+        club: ExternalTournament::ClubRosterQuery.club_hash(club),
+        players: ExternalTournament::ClubRosterQuery.players(region: region, club: club, season: season)
+      }
+    rescue ActiveRecord::RecordNotFound => e
+      render json: {error: e.message}, status: :not_found
+    end
+
     # POST /api/external_tournament/tournament
     #
     # Plan 17-02: Legt ein lokales App-Turnier OHNE TournamentPlan/Executor an (D-17-vision-1).

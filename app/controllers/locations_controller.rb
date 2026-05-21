@@ -87,7 +87,15 @@ class LocationsController < ApplicationController
                nil
              end
     end
-    if game.present? && game.tournament.blank?
+    if game.present? && game.table_monitor&.external_result_pending?
+      # Phase 17 (17-04) / 18-03: App-driven result-hold. App-Spiele haben kein
+      # tournament_id (game.tournament.blank? == true) und träfen sonst den
+      # destroy-Zweig: reset_table_monitor ist zwar geguardet, aber game.destroy
+      # würde das erfasste Ergebnis vernichten, BEVOR die App es per
+      # POST acknowledge_result abholt. Solange external_result_pending? gilt,
+      # Terminate komplett überspringen (kein reset, kein destroy).
+      Rails.logger.info "+++ terminate_game SKIPPED — external result pending (game ##{game.id}, awaiting App acknowledge_result)"
+    elsif game.present? && game.tournament.blank?
       game.table_monitor&.reset_table_monitor
       game.destroy
     elsif game.present? && game.tournament.present? && !game.table_monitor&.playing?

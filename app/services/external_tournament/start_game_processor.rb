@@ -59,6 +59,7 @@ module ExternalTournament
 
     def call
       tournament = resolve_tournament
+      @tournament = tournament
       owner = tournament.tournament_monitor
       raise TournamentNotFoundError, "tournament has no tournament_monitor" if owner.blank?
 
@@ -157,12 +158,25 @@ module ExternalTournament
           "sets_to_win" => @payload[:sets_to_win].presence || 1,
           "timeouts" => @payload[:timeouts] || 0,
           "timeout" => @payload[:timeout] || 0,
-          "kickoff_switches_with" => @payload[:kickoff_switches_with].presence || "set",
-          "allow_follow_up" => @payload[:allow_follow_up],
-          "allow_overflow" => @payload[:allow_overflow] || false,
+          # Plan 18-02: Regel-Flags PRO SPIEL (start_game), Default aus dem Tournament, wenn die
+          # App ein Flag weglaesst. Sonst ueberschriebe ein fehlender (nil) Wert in
+          # GameSetup#build_result_hash (deep_merge NACH initialize_game) den Engine-/Tournament-
+          # Default -> z.B. Nachstoss faelschlich aus. Ein explizit gesendeter Wert (auch false) gilt.
+          "kickoff_switches_with" => @payload[:kickoff_switches_with].presence ||
+            @tournament.kickoff_switches_with.presence || "set",
+          "allow_follow_up" => rule_flag(:allow_follow_up, @tournament.allow_follow_up),
+          "allow_overflow" => rule_flag(:allow_overflow, false),
+          "color_remains_with_set" => rule_flag(:color_remains_with_set, @tournament.color_remains_with_set),
           "initial_red_balls" => @payload[:initial_red_balls].presence || 15
         }.stringify_keys
       end
+    end
+
+    # Regel-Flag-Aufloesung: ein explizit gesendeter App-Wert (auch false) gewinnt; fehlt das
+    # Flag (nil/abwesend), greift der Tournament-Default — statt nil, das sonst den Engine-Default
+    # in GameSetup ueberschreibt.
+    def rule_flag(key, default)
+      (@payload.key?(key) && !@payload[key].nil?) ? @payload[key] : default
     end
 
     def participant(role)
