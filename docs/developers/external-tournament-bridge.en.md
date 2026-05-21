@@ -495,6 +495,22 @@ Response (`200`, schema `carambus.club_players/v1`):
 | `404` | Region unknown OR `club_cc_id` not in the region (region-scoped) |
 | `422` | `club_cc_id` missing (and no `club_cc_ids` given) |
 
+## Game-rule parameters in `start_game` (Plan 18-02)
+
+`start_game` accepts optional per-game rule flags and applies them to the game:
+
+| Flag | Effect | Default (when omitted) |
+|------|--------|------------------------|
+| `allow_follow_up` | Follow-up shot / equal innings (draw possible) | Tournament value (default **TRUE** → follow-up on) |
+| `color_remains_with_set` | Color stays across the set | Tournament value (default TRUE) |
+| `kickoff_switches_with` | Kickoff switch (`"set"` …) | Tournament value or `"set"` |
+| `allow_overflow` | Overflow beyond the target | `false` |
+
+**Location = per game (`start_game`)** with the tournament value as fallback (D-18-02-B): an
+omitted flag inherits the tournament value (instead of being forced "off"); an explicitly sent
+value (including `false`) is honored (D-18-02-A). For the 3-cushion team match, follow-up is thus
+on by default. (The fix is bridge-scoped in `StartGameProcessor`; the shared `GameSetup` is unchanged.)
+
 ## Service layer
 
 ### `ExternalTournament::PlayerMatcher` (Plan 15-02)
@@ -580,6 +596,8 @@ players/guests.
 | D-18-01-B | clubs = `region.clubs` with `cc_id` (the key for club_players), stably sorted |
 | D-18-01-C | club_players supports single (`club_cc_id`→`club:{}`) and multi (`club_cc_ids`→`clubs:[]`) |
 | D-18-01-D | `dbu_nr` nullable (as String), region scope via club (cc_id only intra-region unique) |
+| D-18-02-A | start_game rule flags (allow_follow_up etc.) default from the tournament; explicit app values (incl. false) honored — bridge-scoped in StartGameProcessor, no change to GameSetup |
+| D-18-02-B | rule params live per game (start_game) with tournament fallback (no app change needed) |
 
 See `.paul/STATE.md` for full decision records.
 

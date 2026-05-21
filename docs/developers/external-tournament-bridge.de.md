@@ -494,6 +494,23 @@ Response (`200`, Schema `carambus.club_players/v1`):
 | `404` | Region unbekannt ODER `club_cc_id` nicht in der Region (region-scoped) |
 | `422` | `club_cc_id` fehlt (und kein `club_cc_ids` angegeben) |
 
+## Spielregel-Parameter beim `start_game` (Plan 18-02)
+
+`start_game` akzeptiert pro Spiel optionale Spielregel-Flags und wendet sie auf das Spiel an:
+
+| Flag | Wirkung | Default (wenn weggelassen) |
+|------|---------|----------------------------|
+| `allow_follow_up` | Nachstoß / Aufnahmegleichheit (Remis möglich) | Tournament-Wert (Standard **TRUE** → Nachstoß an) |
+| `color_remains_with_set` | Farbe bleibt über den Satz | Tournament-Wert (Standard TRUE) |
+| `kickoff_switches_with` | Anstoßwechsel (`"set"` …) | Tournament-Wert bzw. `"set"` |
+| `allow_overflow` | Überlauf über das Ziel hinaus | `false` |
+
+**Ort = pro Spiel (`start_game`)** mit Tournament-Default als Fallback (D-18-02-B): ein
+weggelassenes Flag erbt den Tournament-Wert (statt auf „aus" gezwungen zu werden), ein explizit
+gesendeter Wert (auch `false`) wird geehrt (D-18-02-A). Für den 3-Band-Mannschaftskampf ist
+Nachstoß damit standardmäßig aktiv. (Der Fix ist bridge-scoped in `StartGameProcessor`; das
+geteilte `GameSetup` bleibt unverändert.)
+
 ## Service-Layer
 
 ### `ExternalTournament::PlayerMatcher` (Plan 15-02)
@@ -579,6 +596,8 @@ Player/Gäste an.
 | D-18-01-B | clubs = `region.clubs` mit `cc_id` (Schlüssel für club_players), stabil sortiert |
 | D-18-01-C | club_players unterstützt Einzel (`club_cc_id`→`club:{}`) und Mehrfach (`club_cc_ids`→`clubs:[]`) |
 | D-18-01-D | `dbu_nr` nullable (als String), Region-Scope via Club (cc_id nur regional eindeutig) |
+| D-18-02-A | start_game-Regel-Flags (allow_follow_up etc.) defaulten aus dem Tournament; explizite App-Werte (auch false) geehrt — bridge-scoped in StartGameProcessor, kein Eingriff in GameSetup |
+| D-18-02-B | Regel-Params leben pro Spiel (start_game) mit Tournament-Fallback (keine App-Änderung nötig) |
 
 Siehe `.paul/STATE.md` für vollständige Decision-Records.
 

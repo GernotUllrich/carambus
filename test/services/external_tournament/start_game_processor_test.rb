@@ -91,5 +91,32 @@ module ExternalTournament
       assert_not r2.created?, "2. Aufruf idempotent"
       assert_equal r1.game.id, r2.game.id
     end
+
+    # Plan 18-02: Regel-Flag-Default-Auflösung (allow_follow_up = Nachstoß) in build_options.
+    # Die Nachstoß-Regel liest TableMonitor#data["allow_follow_up"].
+    test "allow_follow_up defaultet auf Tournament-Wert (TRUE) wenn weggelassen" do
+      assert @tournament.allow_follow_up, "Vorbedingung: Tournament-Default TRUE"
+      result = StartGameProcessor.new(region: @nbv,
+        payload: start_payload(external_id: "game-sg-foll-default")).call
+      assert_equal true, result.table_monitor.reload.data["allow_follow_up"],
+        "fehlendes Flag → Tournament-Default (Nachstoß an), nicht nil"
+    end
+
+    test "explizit gesendetes allow_follow_up wird geehrt (false unterbindet Nachstoß)" do
+      r_false = StartGameProcessor.new(region: @nbv,
+        payload: start_payload(external_id: "game-sg-foll-false").merge(allow_follow_up: false)).call
+      assert_equal false, r_false.table_monitor.reload.data["allow_follow_up"], "explizit false geehrt"
+
+      r_true = StartGameProcessor.new(region: @nbv,
+        payload: start_payload(external_id: "game-sg-foll-true").merge(allow_follow_up: true)).call
+      assert_equal true, r_true.table_monitor.reload.data["allow_follow_up"], "explizit true geehrt"
+    end
+
+    test "color_remains_with_set defaultet auf Tournament-Wert wenn weggelassen" do
+      result = StartGameProcessor.new(region: @nbv,
+        payload: start_payload(external_id: "game-sg-crws")).call
+      assert_equal @tournament.color_remains_with_set,
+        result.table_monitor.reload.data["color_remains_with_set"]
+    end
   end
 end
