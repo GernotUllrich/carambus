@@ -416,10 +416,14 @@ module Api
     # Tische werden freigegeben (force, auch unbestaetigte Hold-Ergebnisse — D-17-vision-5)
     # und der TournamentMonitor geschlossen. Idempotent (2. Aufruf: released_tables=0).
     #
-    # Body: { region:{shortname}, tournament:{external_id} | tournament_id }
+    # Plan 16-01 (D-16-GC-A / D-16-01-A): Mit cleanup:true (opt-in, Default off) wird NACH dem
+    # Tisch-Release das Turnier + seine Marker-Games (+GameParticipation) geloescht — Carambus
+    # haelt kein Gedaechtnis (die App hat ihr eigenes). Datenkritisch → bewusst opt-in.
+    #
+    # Body: { region:{shortname}, tournament:{external_id} | tournament_id, cleanup(default false) }
     # Response (200): carambus.tournament_end/v1
     #   { schema, region:{shortname}, tournament:{id,external_id}, released_tables,
-    #     unacknowledged, tournament_monitor_state }
+    #     unacknowledged, tournament_monitor_state[, tournament_deleted, games_deleted] }
     #
     # Errors: 401 (Auth) / 404 (Region) / 422 (Tournament not found)
     def end_tournament
@@ -429,14 +433,23 @@ module Api
       return render json: {error: "Tournament not found"}, status: :unprocessable_entity if tournament.blank?
 
       r = ExternalTournament::TableReleaser.release_tournament(tournament)
-      render json: {
+      # tournament:{id,external_id} VOR dem cleanup snapshotten — das Objekt ist danach destroyed.
+      body = {
         schema: "carambus.tournament_end/v1",
         region: {shortname: region.shortname},
         tournament: {id: tournament.id, external_id: tournament.external_id},
         released_tables: r.released,
         unacknowledged: r.unacknowledged,
         tournament_monitor_state: r.tournament_monitor_state
-      }, status: :ok
+      }
+
+      if ActiveModel::Type::Boolean.new.cast(payload[:cleanup])
+        c = ExternalTournament::AppTournamentCleaner.cleanup(tournament)
+        body[:tournament_deleted] = c[:tournament_deleted]
+        body[:games_deleted] = c[:games_deleted]
+      end
+
+      render json: body, status: :ok
     rescue ActiveRecord::RecordNotFound => e
       render json: {error: e.message}, status: :not_found
     end
@@ -602,9 +615,9 @@ module Api
       )
     end
 
-    # Plan 17-05: Strong-Parameters fuer POST end_tournament.
+    # Plan 17-05 / 16-01: Strong-Parameters fuer POST end_tournament (cleanup = opt-in Teardown).
     def end_tournament_params
-      params.permit(:schema, :tournament_id, region: [:shortname], tournament: [:external_id])
+      params.permit(:schema, :tournament_id, :cleanup, region: [:shortname], tournament: [:external_id])
     end
 
     # Plan 17-06: Strong-Parameters fuer POST player_reconcile (Batch-Liste).

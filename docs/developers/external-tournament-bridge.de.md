@@ -413,6 +413,10 @@ Liefert die **Ergebnis-CSV** eines lokalen App-Turniers (`Content-Type: text/csv
 Carambus-Turnier-Export, **erweitert um dbu_nr je Spieler** für den Crosscheck durch den
 Ergebnis-Einpfleger. Read-only, idempotent/wiederholbar — auch **nach** `end_tournament` abrufbar.
 
+> **Hinweis (D-16-GC-A):** Da die App ein eigenes Ergebnis-Gedächtnis hält (`acknowledge_result`
+> live) und Carambus die App-Turnierdaten beim Teardown abräumt (siehe unten), ist dieser
+> CSV-Export **obsolet**. Er bleibt vorerst bestehen; die Entfernung ist als Follow-up vorgesehen.
+
 Spalten (Semikolon-getrennt, Header-Zeile):
 
 ```
@@ -511,6 +515,50 @@ gesendeter Wert (auch `false`) wird geehrt (D-18-02-A). Für den 3-Band-Mannscha
 Nachstoß damit standardmäßig aktiv. (Der Fix ist bridge-scoped in `StartGameProcessor`; das
 geteilte `GameSetup` bleibt unverändert.)
 
+## Teardown & Garbage-Collection (Plan 16-01)
+
+**Carambus hält kein Gedächtnis der App-Turnierdaten.** Die App führt ihr eigenes
+Ergebnis-Gedächtnis (über `acknowledge_result` live abgeholt), daher darf Carambus ein
+abgeschlossenes lokales App-Turnier samt Spielen wieder abräumen (D-16-GC-A).
+
+Was gelöscht wird: die **Marker-Games** (`game.data["tournament_external_id"]`) inklusive ihrer
+`GameParticipation`s (kaskadiert via `dependent: :destroy`) **und das Turnier selbst**
+(`tournament.destroy` kaskadiert `TournamentMonitor`/`tournament_local`/`seedings`/`teams`/
+`setting`). App-Spiele tragen **keinen** `tournament_id`-FK, darum werden sie separat über den
+Marker enumeriert (kein Cascade über das Turnier). Es werden **ausschließlich lokale App-Turniere**
+abgeräumt (`id >= MIN_ID` + `manual_assignment`); managed/globale Turniere und fremde Games bleiben
+unberührt.
+
+Zwei Auslöser (D-16-GC-A, Option D):
+
+1. **`end_tournament` mit `cleanup: true`** (opt-in, Default off — D-16-01-A): Nach dem Tisch-Release
+   wird das Turnier + seine Marker-Games gelöscht. Die Response meldet zusätzlich
+   `tournament_deleted` + `games_deleted`. **Ohne** das Flag bleibt das bisherige Verhalten
+   (nur Release, kein Löschen) erhalten — das Löschen ist datenkritisch und daher bewusst opt-in.
+
+   ```
+   POST /api/external_tournament/end_tournament
+   { "region": {"shortname": "NBV"}, "tournament": {"external_id": "<app-id>"}, "cleanup": true }
+   ```
+
+   Response (`200`, `carambus.tournament_end/v1`):
+
+   ```json
+   {
+     "schema": "carambus.tournament_end/v1",
+     "region": { "shortname": "NBV" },
+     "tournament": { "id": 50000123, "external_id": "<app-id>" },
+     "released_tables": 1, "unacknowledged": 0, "tournament_monitor_state": "closed",
+     "tournament_deleted": true, "games_deleted": 3
+   }
+   ```
+
+2. **Mitternachts-GC** (`rake external_tournament:release_stale_local_tables`, via whenever): Das
+   garantierte Safety-Net. Nach dem Stale-Release (das hängende App-Turniere zuerst schließt) werden
+   alle **abgeschlossenen** lokalen App-Turniere (TournamentMonitor `closed` oder fehlend) samt
+   Marker-Games gelöscht. Aktive (Monitor nicht closed) sowie managed/globale Turniere bleiben
+   unberührt. Idempotent.
+
 ## Service-Layer
 
 ### `ExternalTournament::PlayerMatcher` (Plan 15-02)
@@ -568,6 +616,16 @@ Eligibility strikt `status="active"` der laufenden Saison; region-scoped Club-Lo
 `cc_id` (regional eindeutig). `dbu_nr` als String durchgereicht (nullable). Legt keine
 Player/Gäste an.
 
+### `ExternalTournament::AppTournamentCleaner` (Plan 16-01)
+
+- `cleanup(tournament)` → löscht die Marker-Games (`tournament_external_id`, coarse SQL-`LIKE` +
+  exakter Abgleich, wiederverwendet das `ResultCsvBuilder`-Muster) + das Turnier; Rückgabe
+  `{games_deleted:, tournament_deleted:}`. No-op + idempotent für nicht-lokale/managed/bereits
+  gelöschte Turniere.
+- `sweep_closed_local` → Mitternachts-GC: räumt alle abgeschlossenen lokalen App-Turniere ab.
+- Kriterium `id >= MIN_ID` + `manual_assignment` (identisch zu `TableReleaser`); managed/global
+  bleibt unberührt.
+
 ## Verwandte Decisions
 
 | Decision | Wirkbereich |
@@ -598,6 +656,8 @@ Player/Gäste an.
 | D-18-01-D | `dbu_nr` nullable (als String), Region-Scope via Club (cc_id nur regional eindeutig) |
 | D-18-02-A | start_game-Regel-Flags (allow_follow_up etc.) defaulten aus dem Tournament; explizite App-Werte (auch false) geehrt — bridge-scoped in StartGameProcessor, kein Eingriff in GameSetup |
 | D-18-02-B | Regel-Params leben pro Spiel (start_game) mit Tournament-Fallback (keine App-Änderung nötig) |
+| D-16-GC-A | Carambus räumt App-Turnierdaten ab (kein Gedächtnis nötig); Marker-Games + Turnier löschen, nur lokale App-Turniere; csv_export dadurch obsolet (Follow-up-Entfernung) |
+| D-16-01-A | `end_tournament`-Teardown ist opt-in via `cleanup`-Flag (Default off, datenkritisch + backward-compat); Mitternachts-GC als garantiertes Safety-Net |
 
 Siehe `.paul/STATE.md` für vollständige Decision-Records.
 

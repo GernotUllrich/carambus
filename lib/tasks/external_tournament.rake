@@ -163,10 +163,16 @@ namespace :external_tournament do
   # Plan 17-05 (Vision N): Mitternachts-Auto-Abbruch — Safety-Net für über Nacht hängende
   # lokale App-Turnier-Tischbindungen (id>=MIN_ID + manual_assignment). Idempotent.
   # Via whenever in config/schedule.rb täglich getriggert.
-  desc "Mitternachts-Auto-Abbruch: hängende lokale App-Turnier-Tische freigeben. Usage: rake external_tournament:release_stale_local_tables"
+  #
+  # Plan 16-01 (D-16-GC-A): Nach dem Release zusätzlich der Teardown-GC — alle abgeschlossenen
+  # lokalen App-Turniere (+ ihre Marker-Games) werden abgeräumt. release_stale_local schließt
+  # zuerst hängende Turniere, die dann hier gesweept werden. Idempotent; managed/global unberührt.
+  desc "Mitternachts-Auto-Abbruch + GC: hängende lokale App-Turnier-Tische freigeben + abgeschlossene App-Turniere abräumen. Usage: rake external_tournament:release_stale_local_tables"
   task release_stale_local_tables: :environment do
     res = ExternalTournament::TableReleaser.release_stale_local
     puts "✓ Stale-Release: #{res[:released]} Tisch(e) freigegeben, #{res[:tournaments_closed]} Turnier(e) geschlossen"
+    gc = ExternalTournament::AppTournamentCleaner.sweep_closed_local
+    puts "✓ Teardown-GC: #{gc[:tournaments_deleted]} App-Turnier(e) gelöscht, #{gc[:games_deleted]} Marker-Game(s) gelöscht"
   end
 end
 

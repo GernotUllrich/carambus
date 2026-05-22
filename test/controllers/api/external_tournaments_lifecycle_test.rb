@@ -190,6 +190,50 @@ module Api
       TableMonitor.where(id: monitor.id).delete_all if defined?(monitor) && monitor
     end
 
+    # === Plan 16-01: end_tournament cleanup-Flag (Teardown) ===
+
+    test "end_tournament mit cleanup:true loescht Turnier + Marker-Games (AC-3)" do
+      jwt = login_jwt
+      monitor, game = setup_held_game(jwt, external_id: "tdwn-g1")
+      # Marker setzen (setup_held_game stempelt ihn nicht) → cleanup enumeriert hierueber.
+      game.update!(data: game.data.merge("tournament_external_id" => "ep-1"))
+
+      post_json("/api/external_tournament/end_tournament",
+        {region: {shortname: "NBV"}, tournament: {external_id: "ep-1"}, cleanup: true}, jwt)
+      assert_response :ok
+      body = JSON.parse(response.body)
+      assert_equal "carambus.tournament_end/v1", body["schema"]
+      assert_equal true, body["tournament_deleted"]
+      assert body["games_deleted"] >= 1, "mind. ein Marker-Game geloescht"
+      refute Game.exists?(game.id), "Marker-Game geloescht"
+      refute Tournament.where(region_id: @nbv.id, external_id: "ep-1").exists?, "Turnier geloescht"
+    ensure
+      tables(:one).update_columns(table_monitor_id: nil)
+      TableMonitor.where(id: monitor.id).delete_all if defined?(monitor) && monitor
+    end
+
+    test "end_tournament ohne cleanup-Flag laesst Turnier + Games bestehen (AC-3 Default-off)" do
+      jwt = login_jwt
+      monitor, game = setup_held_game(jwt, external_id: "tdwn-g2")
+      game.update!(data: game.data.merge("tournament_external_id" => "ep-1"))
+
+      post_json("/api/external_tournament/end_tournament",
+        {region: {shortname: "NBV"}, tournament: {external_id: "ep-1"}}, jwt)
+      assert_response :ok
+      body = JSON.parse(response.body)
+      assert_nil body["tournament_deleted"], "kein Teardown ohne Flag"
+      assert_nil body["games_deleted"]
+      assert Game.exists?(game.id), "Marker-Game bleibt (Default off)"
+      assert Tournament.where(region_id: @nbv.id, external_id: "ep-1").exists?, "Turnier bleibt (Default off)"
+    ensure
+      if defined?(game) && game
+        GameParticipation.where(game_id: game.id).delete_all
+        Game.where(id: game.id).delete_all
+      end
+      tables(:one).update_columns(table_monitor_id: nil)
+      TableMonitor.where(id: monitor.id).delete_all if defined?(monitor) && monitor
+    end
+
     # === Plan 17-06: player_reconcile ===
 
     test "player_reconcile ohne Auth gibt 401" do
