@@ -17,7 +17,6 @@ exchanges the following data with Carambus over REST:
 | Carambus → App | `GET /api/external_tournament/round_result` | Game results to import into the app | ✅ v0.5 (Plan 15-04) |
 | App ↔ Carambus | `POST tournament` / `lock_table` / `start_game` / `acknowledge_result` / `end_tournament` | App-driven local tournament lifecycle (create, table binding, warmup start, result hold/pull, tournament end) | ✅ v0.5 (Plan 17-02..17-05) |
 | App → Carambus | `POST /api/external_tournament/player_reconcile` | Match participants against Carambus-local → return dbu_nr | ✅ v0.5 (Plan 17-06) |
-| Carambus → App | `GET /api/external_tournament/csv_export` | Result CSV (text/csv) + dbu_nr cross-check for the result importer | ✅ v0.5 (Plan 17-06) |
 | Carambus → App | `GET /api/external_tournament/clubs` | Clubs of the region (picker) | ✅ v0.5 (Plan 18-01) |
 | Carambus → App | `GET /api/external_tournament/club_players` | Players eligible to play this season for a club (cc_id + dbu_nr) | ✅ v0.5 (Plan 18-01) |
 
@@ -402,46 +401,12 @@ Response (`200`, schema `carambus.player_reconcile/v1`):
 | 404 | Region not found |
 | 422 | `participants` missing or not a non-empty array |
 
-## Endpoint 5: CSV export (Plan 17-06)
-
-```
-GET /api/external_tournament/csv_export?region=NBV&tournament_id=<id>
-GET /api/external_tournament/csv_export?region=NBV&tournament_external_id=<app-id>   (alternative)
-```
-
-Returns the **result CSV** of a local app tournament (`Content-Type: text/csv`), analogous to the
-Carambus tournament export, **extended with dbu_nr per player** for the result importer's
-cross-check. Read-only, idempotent/repeatable — also retrievable **after** `end_tournament`.
-
-Columns (semicolon-separated, with header row):
-
-```
-Gruppe;Partie;ExternalId;Spieler1_cc_id;Spieler1_dbu_nr;Spieler1;Ergebnis1;Aufnahmen1;HS1;Spieler2_cc_id;Spieler2_dbu_nr;Spieler2;Ergebnis2;Aufnahmen2;HS2;Datum;Uhrzeit
-```
-
-- **Result source:** `game.data["ba_results"]` (`Ergebnis1/2`, `Aufnahmen1/2`, `Höchstserie1/2`).
-  App tournaments run as `manual_assignment` → the GameParticipation columns stay empty, but
-  `report_result` writes the `ba_results` into `game.data`.
-- **Enumeration (D-17-06-A):** durable + tournament-unique via the marker
-  `game.data["tournament_external_id"]` stamped at `start_game`. There is no durable
-  game→monitor/tournament FK (TableMonitor#game_id points only at the current game; a game swap
-  releases the previous one).
-- A tournament with no finished games returns `200` with only the header row.
-
-### Error codes
-
-| Status | Meaning |
-|--------|---------|
-| 401 | Missing/invalid JWT |
-| 404 | Region or tournament not found |
-| 200 | `text/csv` (header + one row per finished game; empty ⇒ header only) |
-
 ## Endpoint 6: Club/Player discovery (Plan 18-01)
 
 Two read-only, region-scoped endpoints for app-side player assignment. The operator picks
 the participating clubs and assigns, per app player slot, an official player who is
 **eligible to play** in the current season (carrying `cc_id` + `dbu_nr`) → exact
-`start_game` matching + complete `csv_export` CSV. Guests remain the fallback. Purely
+`start_game` matching + correct dbu_nr in the app results. Guests remain the fallback. Purely
 additive — no change to `start_game`/`round_start` (the app already sends `cc_id`/`dbu_nr`
 via `cleanPlayerRef` once set).
 
@@ -511,6 +476,50 @@ omitted flag inherits the tournament value (instead of being forced "off"); an e
 value (including `false`) is honored (D-18-02-A). For the 3-cushion team match, follow-up is thus
 on by default. (The fix is bridge-scoped in `StartGameProcessor`; the shared `GameSetup` is unchanged.)
 
+## Teardown & garbage collection (Plan 16-01)
+
+**Carambus keeps no memory of the app tournament data.** The app maintains its own result memory
+(pulled live via `acknowledge_result`), so Carambus may clean up a completed local app tournament
+together with its games (D-16-GC-A). The former `csv_export` endpoint thereby became obsolete and
+was removed in 16-02.
+
+What gets deleted: the **marker games** (`game.data["tournament_external_id"]`) including their
+`GameParticipation`s (cascaded via `dependent: :destroy`) **and the tournament itself**
+(`tournament.destroy` cascades `TournamentMonitor`/`tournament_local`/`seedings`/`teams`/`setting`).
+App games carry **no** `tournament_id` FK, so they are enumerated separately via the marker (no
+cascade through the tournament). **Only local app tournaments** are cleaned up (`id >= MIN_ID` +
+`manual_assignment`); managed/global tournaments and foreign games stay untouched.
+
+Two triggers (D-16-GC-A, option D):
+
+1. **`end_tournament` with `cleanup: true`** (opt-in, default off — D-16-01-A): after the table
+   release, the tournament + its marker games are deleted. The response additionally reports
+   `tournament_deleted` + `games_deleted`. **Without** the flag the previous behavior (release only,
+   no deletion) is preserved — deletion is data-critical and therefore deliberately opt-in.
+
+   ```
+   POST /api/external_tournament/end_tournament
+   { "region": {"shortname": "NBV"}, "tournament": {"external_id": "<app-id>"}, "cleanup": true }
+   ```
+
+   Response (`200`, `carambus.tournament_end/v1`):
+
+   ```json
+   {
+     "schema": "carambus.tournament_end/v1",
+     "region": { "shortname": "NBV" },
+     "tournament": { "id": 50000123, "external_id": "<app-id>" },
+     "released_tables": 1, "unacknowledged": 0, "tournament_monitor_state": "closed",
+     "tournament_deleted": true, "games_deleted": 3
+   }
+   ```
+
+2. **Midnight GC** (`rake external_tournament:release_stale_local_tables`, via whenever): the
+   guaranteed safety net. After the stale release (which closes hanging app tournaments first), all
+   **completed** local app tournaments (TournamentMonitor `closed` or missing) including their
+   marker games are deleted. Active ones (monitor not closed) and managed/global tournaments stay
+   untouched. Idempotent.
+
 ## Service layer
 
 ### `ExternalTournament::PlayerMatcher` (Plan 15-02)
@@ -554,19 +563,22 @@ unknown players manually in the CC UI.
 - Returns `dbu_nr` (as string) + canonical player + club; **no auto-create**
 - `ref` is echoed back (the app's own correlation key)
 
-### `ExternalTournament::ResultCsvBuilder` (Plan 17-06)
-
-- Builds the result CSV from `game.data["ba_results"]` (manual_assignment ⇒ GP columns empty)
-- Enumerates via the durable marker `game.data["tournament_external_id"]`
-  (coarse SQL `LIKE` on the external_id string + exact marker match)
-- dbu_nr per player as cross-check column; empty tournament ⇒ header only
-
 ### `ExternalTournament::ClubRosterQuery` (Plan 18-01)
 
 Read-only discovery substrate: `clubs(region)` + `players(region:, club:, season:)`.
 Eligibility strictly `status="active"` of the current season; region-scoped club lookup via
 `cc_id` (intra-region unique). `dbu_nr` passed through as a string (nullable). Creates no
 players/guests.
+
+### `ExternalTournament::AppTournamentCleaner` (Plan 16-01)
+
+- `cleanup(tournament)` → deletes the marker games (`tournament_external_id`, coarse SQL `LIKE` +
+  exact marker match) + the tournament; returns
+  `{games_deleted:, tournament_deleted:}`. No-op + idempotent for non-local/managed/already-deleted
+  tournaments.
+- `sweep_closed_local` → midnight GC: cleans up all completed local app tournaments.
+- Criterion `id >= MIN_ID` + `manual_assignment` (identical to `TableReleaser`); managed/global
+  stays untouched.
 
 ## Related decisions
 
@@ -588,16 +600,18 @@ players/guests.
 | D-15-06-D | `table_name` persisted in `Game.data` + emitted in round result |
 | D-15-06-E | seeding `tournament.location` as `{id, cc_id, name}` object (was a string) |
 | D-15-07-A | `location_cc_id` resolution region-scoped (`region_id` filter); cc_id only intra-region unique |
-| D-17-06-A | CSV enumeration via durable marker `game.data["tournament_external_id"]` (no `tournament_id` FK) |
-| D-17-06-B | CSV result source = `game.data["ba_results"]` (manual_assignment ⇒ GP columns empty) |
+| D-17-06-A | CSV enumeration via durable marker `game.data["tournament_external_id"]` (no `tournament_id` FK) — **csv_export removed in 16-02**; marker pattern lives on in `AppTournamentCleaner` |
+| D-17-06-B | CSV result source = `game.data["ba_results"]` (manual_assignment ⇒ GP columns empty) — **csv_export removed in 16-02** |
 | D-17-06-C | Player reconcile reuses `PlayerMatcher` without auto-create (CC entry list stays the MCP track) |
-| D-17-06-D | CSV delivery as `GET text/csv` (app pull) + dbu_nr columns per player; no final-ranking CSV |
+| D-17-06-D | ~~CSV delivery as `GET text/csv` (app pull) + dbu_nr columns per player~~ — **removed in 16-02** (csv_export obsolete, D-16-GC-A: the app keeps its own result memory) |
 | D-18-01-A | club_players eligibility strictly `SeasonParticipation status="active"` of `Season.current_season`; `status` included per player (temporary/guest/nil excluded) |
 | D-18-01-B | clubs = `region.clubs` with `cc_id` (the key for club_players), stably sorted |
 | D-18-01-C | club_players supports single (`club_cc_id`→`club:{}`) and multi (`club_cc_ids`→`clubs:[]`) |
 | D-18-01-D | `dbu_nr` nullable (as String), region scope via club (cc_id only intra-region unique) |
 | D-18-02-A | start_game rule flags (allow_follow_up etc.) default from the tournament; explicit app values (incl. false) honored — bridge-scoped in StartGameProcessor, no change to GameSetup |
 | D-18-02-B | rule params live per game (start_game) with tournament fallback (no app change needed) |
+| D-16-GC-A | Carambus cleans up app tournament data (no memory needed); delete marker games + tournament, local app tournaments only; csv_export thereby obsolete (follow-up removal) |
+| D-16-01-A | `end_tournament` teardown is opt-in via `cleanup` flag (default off, data-critical + backward-compat); midnight GC as the guaranteed safety net |
 
 See `.paul/STATE.md` for full decision records.
 
