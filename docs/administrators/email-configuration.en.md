@@ -79,6 +79,22 @@ sudo systemctl daemon-reload
 sudo systemctl restart carambus_bcw
 ```
 
+### Servers without real SMTP: `SKIP_SMTP_GUARD`
+
+In production, `config/initializers/smtp_guard.rb` checks at server/sidekiq boot whether
+`SMTP_USERNAME` and `SMTP_PASSWORD` are set and otherwise deliberately aborts startup
+(fail-fast, so Devise mails don't silently fail). Internal or scenario servers that need
+**no real SMTP** (e.g. `carambus_gu`) set the opt-out flag instead — cleaner than storing
+dummy SMTP credentials:
+
+```ini
+Environment="SKIP_SMTP_GUARD=1"
+```
+
+When `SKIP_SMTP_GUARD` is set the guard is skipped and the server boots without SMTP
+credentials. **Without** the flag the fail-fast protection stays active unchanged — so omit it
+on real mail-sending servers.
+
 ## Creating a Gmail App Password
 
 **Important:** Don't use a regular Gmail password, but an app password!
