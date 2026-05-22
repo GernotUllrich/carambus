@@ -131,20 +131,10 @@ namespace :external_tournament do
       puts "⚠ Step 6: POST /player_reconcile → HTTP #{code} (nicht-fatal): #{body.to_s[0..150]}"
     end
 
-    # Step 7: GET /csv_export (Plan 17-06) — Ergebnis-CSV (App-Turnier-Games; ggf. nur Header).
-    csv_url = "#{base_url}/api/external_tournament/csv_export?tournament_id=#{tcc.tournament.id}&region=#{shortname}"
-    code, body = ExternalTournamentSmokeTest.http_get(csv_url, jwt)
-    if code == "200" && body.to_s.start_with?("Gruppe;")
-      data_rows = body.to_s.lines.size - 1
-      puts "✓ Step 7: GET /csv_export → 200 text/csv (Header ok), Datenzeilen=#{data_rows}"
-    else
-      puts "⚠ Step 7: GET /csv_export → HTTP #{code} (nicht-fatal): #{body.to_s[0..150]}"
-    end
-
     puts ""
     puts "═══════════════════════════════════════════"
     puts "✓ SMOKE-TEST PASSED — Bridge-Endpoints funktional"
-    puts "  (Seeding/Round-Start/Round-Result + Player-Reconcile/CSV-Export)"
+    puts "  (Seeding/Round-Start/Round-Result + Player-Reconcile)"
     puts "═══════════════════════════════════════════"
   end
 

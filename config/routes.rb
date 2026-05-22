@@ -128,10 +128,6 @@ Rails.application.routes.draw do
     post "external_tournament/player_reconcile",
          to: "external_tournaments#player_reconcile",
          as: :external_tournament_player_reconcile
-    # Plan 17-06 (Vision 6): Ergebnis-CSV (text/csv) zur Uebergabe an den Ergebnis-Einpfleger.
-    get "external_tournament/csv_export",
-        to: "external_tournaments#csv_export",
-        as: :external_tournament_csv_export
     # Plan 18-01 (Club/Player-Discovery): Read-Endpoints fuer die App-Spielerzuordnung.
     # clubs = Clubs der Region (Picker); club_players = in der laufenden Saison
     # spielberechtigte (status active) Spieler eines Clubs, je cc_id + dbu_nr.

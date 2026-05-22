@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "test_helper"
-require "csv"
 
 # Plan 17-02: Controller-Tests fuer die neuen Lifecycle-Endpoints (tournament create, lock_table)
 # + tables-Discovery-Erweiterung (locked_for_tournament). Auth-Muster wie Phase 15.
@@ -270,49 +269,6 @@ module Api
       unmatched = body["results"].find { |r| r["ref"] == "p2" }
       assert_equal false, unmatched["matched"]
       assert_nil unmatched["player"]
-    end
-
-    # === Plan 17-06: csv_export ===
-
-    test "csv_export ohne Auth gibt 401" do
-      get "/api/external_tournament/csv_export",
-        params: {region: "NBV", tournament_external_id: "ep-1"}, headers: auth_headers(nil)
-      assert_response :unauthorized
-    end
-
-    test "csv_export fuer unbekanntes Turnier gibt 404" do
-      get "/api/external_tournament/csv_export",
-        params: {region: "NBV", tournament_external_id: "does-not-exist"}, headers: auth_headers(login_jwt)
-      assert_response :not_found
-    end
-
-    test "csv_export liefert text/csv mit dbu_nr-Spalten" do
-      jwt = login_jwt
-      monitor, game = setup_held_game(jwt, external_id: "csv-g1")
-      # CSV-Enumerierung haengt am durablen Marker game.data["tournament_external_id"]
-      # (kein games.table_monitor_id-FK; Verknuepfung waere ohnehin nur table_monitors.game_id).
-      game.update!(data: game.data.merge("tournament_external_id" => "ep-1", "ba_results" => ACK_BA))
-
-      get "/api/external_tournament/csv_export",
-        params: {region: "NBV", tournament_external_id: "ep-1"}, headers: auth_headers(jwt)
-      assert_response :ok
-      assert_match(%r{text/csv}, response.media_type.to_s)
-
-      rows = CSV.parse(response.body, col_sep: ";", headers: true)
-      assert_equal 1, rows.size
-      r = rows.first
-      assert_equal "csv-g1", r["ExternalId"]
-      assert_equal "43001", r["Spieler1_dbu_nr"]
-      assert_equal "43002", r["Spieler2_dbu_nr"]
-      assert_equal "100", r["Ergebnis1"]
-      assert_equal "60", r["Ergebnis2"]
-    ensure
-      if defined?(game) && game
-        GameParticipation.where(game_id: game.id).delete_all
-        Game.where(id: game.id).delete_all
-      end
-      tables(:one).update_columns(table_monitor_id: nil)
-      TableMonitor.where(id: monitor.id).delete_all if defined?(monitor) && monitor
     end
 
     private

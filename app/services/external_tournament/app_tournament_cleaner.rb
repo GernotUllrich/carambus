@@ -16,7 +16,7 @@ module ExternalTournament
   # Die App-Spiele tragen KEINEN tournament_id-FK (start_game/StartGameProcessor; kein Eintrag
   # in tournament.games), darum kaskadiert tournament.destroy sie NICHT — sie werden separat
   # ueber den durablen Marker game.data["tournament_external_id"] enumeriert und geloescht
-  # (exakt das ResultCsvBuilder#games-Pattern). GameParticipations folgen via
+  # (coarse SQL-LIKE auf den external_id-String + exakter Marker-Abgleich). GameParticipations folgen via
   # Game#has_many(dependent: :destroy), gebundene TableMonitors via has_one(dependent: :nullify).
   class AppTournamentCleaner
     def self.cleanup(tournament)
@@ -77,8 +77,8 @@ module ExternalTournament
 
     # Marker-Games des Turniers: coarse SQL-LIKE-Vorfilter auf den external_id-String
     # (game.data ist serialized-JSON-Text → LIKE greift), danach exakter Marker-Abgleich in Ruby.
-    # Kein ba_results-Filter (anders als ResultCsvBuilder#games): auch unbeendete App-Spiele
-    # tragen den Marker und sollen mit abgeraeumt werden.
+    # Kein ba_results-Filter: auch unbeendete App-Spiele tragen den Marker und sollen
+    # mit abgeraeumt werden.
     def marker_games(tournament)
       ext = tournament.external_id.to_s
       return [] if ext.blank?
@@ -96,7 +96,7 @@ module ExternalTournament
         end
     end
 
-    # game.data ist serialized JSON (Game-Model serialize :data) — defensiv (analog ResultCsvBuilder).
+    # game.data ist serialized JSON (Game-Model serialize :data) — defensiv gegen Nicht-Hash/Parse-Fehler.
     def safe_data(record)
       d = record.data
       return d if d.is_a?(Hash)

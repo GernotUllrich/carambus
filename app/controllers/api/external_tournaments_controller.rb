@@ -485,30 +485,6 @@ module Api
       render json: {error: e.message}, status: :not_found
     end
 
-    # GET /api/external_tournament/csv_export?region=NBV&tournament_id=X
-    #   alternativ: ?tournament_external_id=...&region=NBV (region-scoped)
-    #
-    # Plan 17-06 (Vision 6): Ergebnis-CSV (text/csv) eines lokalen App-Turniers zur Uebergabe an
-    # den Ergebnis-Einpfleger. Spalten analog Carambus-Export + dbu_nr-Crosscheck je Spieler.
-    # Quelle: game.data["ba_results"]; Enumerierung durabel via tournament_external_id-Marker
-    # (auch NACH end_tournament abrufbar). Read-only, idempotent/wiederholbar.
-    #
-    # Response (200): text/csv (Header-Zeile + 1 Zeile je abgeschlossenem Spiel; leer => nur Header).
-    # Errors: 401 (Auth) / 404 (Region/Tournament)
-    def csv_export
-      region = Region.find_by!(shortname: params[:region].to_s.upcase)
-      tournament = resolve_csv_tournament(params, region)
-      return render json: {error: "Tournament not found"}, status: :not_found if tournament.blank?
-
-      csv = ExternalTournament::ResultCsvBuilder.new(tournament: tournament).call
-      send_data csv,
-        type: "text/csv; charset=utf-8",
-        disposition: "attachment",
-        filename: "result-#{tournament.external_id.presence || tournament.id}.csv"
-    rescue ActiveRecord::RecordNotFound => e
-      render json: {error: e.message}, status: :not_found
-    end
-
     private
 
     # Plan 17-05: region-scoped Tournament-Resolve (tournament_id ODER tournament.external_id).
@@ -517,15 +493,6 @@ module Api
         Tournament.find_by(id: payload[:tournament_id], region_id: region.id)
       elsif payload.dig(:tournament, :external_id).present?
         Tournament.where(region_id: region.id, external_id: payload.dig(:tournament, :external_id)).first
-      end
-    end
-
-    # Plan 17-06: region-scoped Tournament-Resolve fuer GET csv_export (flache Query-Params).
-    def resolve_csv_tournament(p, region)
-      if p[:tournament_id].present?
-        Tournament.find_by(id: p[:tournament_id], region_id: region.id)
-      elsif p[:tournament_external_id].present?
-        Tournament.where(region_id: region.id, external_id: p[:tournament_external_id]).first
       end
     end
 
