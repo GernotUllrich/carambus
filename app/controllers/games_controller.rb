@@ -52,6 +52,18 @@ class GamesController < ApplicationController
 
   # DELETE /games/1
   def destroy
+    # Phase 18 / Hold-Guard-Followup zu 18-03: Ein App-getriebenes Spiel mit unbestaetigtem
+    # Ergebnis (TableMonitor#external_result_pending? — game.data["external_id"] gesetzt +
+    # result_acknowledged_at nil) darf NICHT geloescht werden, bevor die App es via
+    # POST acknowledge_result abgeholt hat — auch nicht durch Admins/SysAdmins. Sonst wird die
+    # Tisch-Bindung (has_one :table_monitor, dependent: :nullify) geloest, der Tisch neu belegbar,
+    # und das nachfolgende App-start_game der naechsten Teilrunde schlaegt fehl. Expliziter
+    # Override via ?force=1 (analog reset_table_monitor(force:) / TableReleaser, 17-05).
+    if @game.table_monitor&.external_result_pending? && params[:force].blank?
+      redirect_to games_url,
+        alert: "Dieses Spiel gehört zu einem laufenden App-Turnier und wurde noch nicht abgeholt (acknowledge_result). Löschen blockiert — mit ?force=1 erzwingbar."
+      return
+    end
     @game.destroy
     redirect_to games_url, notice: "Game was successfully destroyed."
   end
