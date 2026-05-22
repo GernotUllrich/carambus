@@ -181,3 +181,5 @@ gem 'rtesseract', '~> 3.1'
 
 # Cron job management for scheduled tasks
 gem 'whenever', require: false
+
+gem "rack-cors", "~> 2.0"
