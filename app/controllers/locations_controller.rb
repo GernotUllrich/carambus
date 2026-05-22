@@ -634,8 +634,12 @@ class LocationsController < ApplicationController
         if @user&.valid?
           bypass_sign_in @user, scope: :user
           Current.user = @user
-        else
+        elsif @user
           flash[:error] = @user.errors.full_messages
+        else
+          # Kein scoreboard@carambus.de-User konfiguriert (User.scoreboard == nil; in der Test-Env
+          # immer der Fall) → kein Auto-Sign-in, aber AUCH KEIN Crash (vormals nil.errors → NPE).
+          Rails.logger.debug "[Scoreboard] kein scoreboard-User konfiguriert — anonymer Zugriff ohne Auto-Sign-in"
         end
       end
     else
