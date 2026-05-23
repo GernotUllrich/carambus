@@ -525,6 +525,34 @@ module Api
       render json: {error: e.message}, status: :not_found
     end
 
+    # GET /api/external_tournament/disciplines?region=NBV
+    #
+    # Plan 20-01 (v0.6 F3): Region-relevante offizielle Disziplinen als Selektor-Substrat fuer
+    # den Turnier-Manager (exakte Namen, die 1:1 in player_rankings/start_game matchen) inkl.
+    # normalisierter TournamentPlan-Matrix (points/innings/players/player_class) + Plan-Definitionen.
+    # Region-scoped (D-20-01-A: Disziplinen mit Rankings ODER Tournaments in der Region), read-only.
+    # Quelle: ExternalTournament::DisciplineQuery.
+    #
+    # Response (200): carambus.disciplines/v1
+    #   { schema, region:{shortname},
+    #     tournament_plans:{ "<name>":{players,tables,ngroups,nrepeats,rulesystem,executor_class,
+    #                                  executor_params,more_description,even_more_description}, ... },
+    #     disciplines:[{ name, synonyms:[...], table_kind, super_discipline, player_classes:[...],
+    #                    parameters:[{tournament_plan,players,player_class,points,innings}] }] }
+    # Errors: 401 (Auth) / 404 (Region)
+    def disciplines
+      region = Region.find_by!(shortname: params[:region].to_s.upcase)
+      result = ExternalTournament::DisciplineQuery.call(region: region)
+      render json: {
+        schema: "carambus.disciplines/v1",
+        region: {shortname: region.shortname},
+        tournament_plans: result.tournament_plans,
+        disciplines: result.disciplines
+      }, status: :ok
+    rescue ActiveRecord::RecordNotFound => e
+      render json: {error: e.message}, status: :not_found
+    end
+
     private
 
     # Plan 17-05: region-scoped Tournament-Resolve (tournament_id ODER tournament.external_id).

@@ -142,6 +142,11 @@ Rails.application.routes.draw do
     get "external_tournament/player_rankings",
         to: "external_tournaments#player_rankings",
         as: :external_tournament_player_rankings
+    # Plan 20-01 (Setup-Discovery F3): region-relevante Disziplinen + TournamentPlan-Matrix
+    # fuer den App-Disziplin-Selektor (carambus.disciplines/v1).
+    get "external_tournament/disciplines",
+        to: "external_tournaments#disciplines",
+        as: :external_tournament_disciplines
   end
 
   # Debug routes (development only)

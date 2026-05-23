@@ -20,6 +20,7 @@ exchanges the following data with Carambus over REST:
 | Carambus → App | `GET /api/external_tournament/clubs` | Clubs of the region (picker) | ✅ v0.5 (Plan 18-01) |
 | Carambus → App | `GET /api/external_tournament/club_players` | Players eligible to play this season for a club (cc_id + dbu_nr) | ✅ v0.5 (Plan 18-01) |
 | Carambus → App | `GET /api/external_tournament/player_rankings` | Discipline ranking seeding list (previous season) | ✅ v0.6 (Plan 19-01) |
+| Carambus → App | `GET /api/external_tournament/disciplines` | Region-relevant disciplines + format/class matrix (TournamentPlans) | ✅ v0.6 (Plan 20-01) |
 
 **Eliminates duplicate data entry** between the external app and Carambus
 scoreboards.
@@ -535,6 +536,69 @@ Response (`200`, schema `carambus.player_rankings/v1`):
 | 404 | Region or discipline not found |
 | 422 | `discipline` param missing |
 
+## Endpoint 8: Disciplines discovery (Plan 20-01 / v0.6)
+
+```
+GET /api/external_tournament/disciplines?region=NBV
+```
+
+Returns the disciplines **relevant to the region** as substrate for the tournament manager's
+discipline selector — exact names that match `player_rankings` (F1) and `start_game` 1:1, plus the
+official **format/class/target matrix** (`DisciplineTournamentPlan`) for quickly batch-creating many
+parallel tournaments. Read-only, region-scoped, devise-jwt.
+
+Response (`200`, schema `carambus.disciplines/v1`):
+
+```json
+{
+  "schema": "carambus.disciplines/v1",
+  "region": { "shortname": "NBV" },
+  "tournament_plans": {
+    "Default8": {
+      "players": 8, "tables": 2, "ngroups": 1, "nrepeats": 1,
+      "rulesystem": "…", "executor_class": "…", "executor_params": "…",
+      "more_description": "…", "even_more_description": "…"
+    }
+  },
+  "disciplines": [
+    {
+      "name": "Dreiband klein",
+      "synonyms": ["3-Band klein"],
+      "table_kind": "Small Billard",
+      "super_discipline": "Dreiband",
+      "player_classes": ["2", "1"],
+      "parameters": [
+        { "tournament_plan": "Default8", "players": 8, "player_class": "1", "points": 40, "innings": 20 },
+        { "tournament_plan": "Default8", "players": 8, "player_class": "2", "points": 30, "innings": 20 }
+      ]
+    }
+  ]
+}
+```
+
+- **Region relevance (D-20-01-A):** only disciplines with `PlayerRanking`s **or** `Tournament`s in
+  the region are listed. Disciplines are global (no `region_id`); the selector shows only what is
+  used regionally. The matrix of a listed discipline is delivered globally complete.
+- **Normalized (D-20-01-D):** plan structures live once in the top-level `tournament_plans` dict
+  (key = plan name); each `parameters` row references its plan by name — no duplication across
+  disciplines.
+- **Plan fields incl. executor (D-20-01-E):** `players, tables, ngroups, nrepeats, rulesystem,
+  executor_class, executor_params, more_description, even_more_description`. Text fields are passed
+  through **raw** as the stored string (no parsing — the app interprets them).
+- **player_classes (D-20-01-B):** shortnames, sorted by `Discipline::PLAYER_CLASS_ORDER`
+  (worst→best, e.g. `7,6,…,1,I,II,III`).
+- **table_kind (D-20-01-C):** delivered as a field only (grouping/filtering is done by the app;
+  no server-side filter param in v1).
+- **synonyms:** without the name itself (D-15-02; `Discipline#synonyms` is newline-separated and
+  contains the name).
+
+### Error codes
+
+| Status | Meaning |
+|--------|---------|
+| 401 | Missing/invalid JWT |
+| 404 | Region not found |
+
 ## Teardown & garbage collection (Plan 16-01)
 
 **Carambus keeps no memory of the app tournament data.** The app maintains its own result memory
@@ -648,6 +712,15 @@ players/guests.
 - **Season = previous season** (`previous_season` from the `Season.current_season` name; D-19-01-SEASON);
   an explicit `season_name` overrides. Read-only.
 
+### `ExternalTournament::DisciplineQuery` (Plan 20-01)
+
+- `call(region:)` → `Result{disciplines[], tournament_plans{}}`. Read-only, region-scoped.
+- Region-relevant disciplines = those with a `PlayerRanking` OR `Tournament` in the region
+  (D-20-01-A); per discipline synonyms (without the name), `table_kind`, `super_discipline`,
+  `player_classes` (`PLAYER_CLASS_ORDER`) + `parameters[]` from `DisciplineTournamentPlan`.
+- `tournament_plans` = normalized dict (key = plan name) of all referenced `TournamentPlan`s with
+  full fields incl. executor (text passed through raw).
+
 ## Related decisions
 
 | Decision | Scope |
@@ -681,6 +754,11 @@ players/guests.
 | D-16-GC-A | Carambus cleans up app tournament data (no memory needed); delete marker games + tournament, local app tournaments only; csv_export thereby obsolete (follow-up removal) |
 | D-16-01-A | `end_tournament` teardown is opt-in via `cleanup` flag (default off, data-critical + backward-compat); midnight GC as the guaranteed safety net |
 | D-19-01-SEASON | player_rankings ALWAYS takes rankings from the previous season (default; current season not final yet); explicit `season` overrides. Corrects the handoff ref impl ("latest season with rankings") |
+| D-20-01-A | disciplines region-relevant: only disciplines with PlayerRankings OR Tournaments in the region (disciplines are global, no region_id) |
+| D-20-01-B | disciplines delivers player_classes inline per discipline (shortnames, sorted by PLAYER_CLASS_ORDER) |
+| D-20-01-C | disciplines: table_kind as a field only (no server-side filter param in v1) |
+| D-20-01-D | disciplines normalized: top-level tournament_plans dict (key=name) + per-discipline parameters[] (plan referenced by name) |
+| D-20-01-E | disciplines delivers full TournamentPlan fields incl. executor; text fields (rulesystem/executor_params/descriptions) passed through raw |
 
 See `.paul/STATE.md` for full decision records.
 
