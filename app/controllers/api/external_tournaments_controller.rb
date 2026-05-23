@@ -485,6 +485,45 @@ module Api
       render json: {error: e.message}, status: :not_found
     end
 
+    # GET /api/external_tournament/player_rankings?region=NBV&discipline=Dreiband+klein
+    #   optional: &player_cc_ids=11683,10024  (Filter; ohne -> ganze Rangliste)
+    #   optional: &season=2024/2025           (Default: juengste Saison mit Rankings)
+    #
+    # Plan 19-01 (v0.6 F1): Disziplin-Ranking-Setzliste (bestes Ranking = Setzplatz 1) fuer
+    # die App-Setzliste (Doppel-KO). Sortierung rank aufsteigend, bei Gleichstand gd absteigend.
+    # Quelle PlayerRanking via ExternalTournament::RankingQuery. Read-only, region-scoped.
+    #
+    # Response (200): carambus.player_rankings/v1
+    #   { schema, region:{shortname}, season:{name}, discipline:{name},
+    #     players:[{cc_id,firstname,lastname,dbu_nr,rank,gd,hs,balls,innings}], unranked:[cc_id,...] }
+    # Errors: 401 (Auth) / 404 (Region | Disziplin nicht gefunden) / 422 (discipline fehlt)
+    def player_rankings
+      region = Region.find_by!(shortname: params[:region].to_s.upcase)
+      if params[:discipline].blank?
+        return render json: {error: "discipline is required"}, status: :unprocessable_entity
+      end
+
+      cc_ids = params[:player_cc_ids].to_s.split(",").map(&:strip).reject(&:blank?)
+      result = ExternalTournament::RankingQuery.players(
+        region: region, discipline_name: params[:discipline],
+        player_cc_ids: cc_ids, season_name: params[:season]
+      )
+      if result.nil?
+        return render json: {error: "Discipline not found: #{params[:discipline]}"}, status: :not_found
+      end
+
+      render json: {
+        schema: "carambus.player_rankings/v1",
+        region: {shortname: region.shortname},
+        season: {name: result.season&.name},
+        discipline: {name: result.discipline.name},
+        players: result.ranked,
+        unranked: result.unranked
+      }, status: :ok
+    rescue ActiveRecord::RecordNotFound => e
+      render json: {error: e.message}, status: :not_found
+    end
+
     private
 
     # Plan 17-05: region-scoped Tournament-Resolve (tournament_id ODER tournament.external_id).

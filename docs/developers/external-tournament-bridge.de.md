@@ -19,6 +19,7 @@ tauscht mit Carambus über REST folgende Daten aus:
 | App → Carambus | `POST /api/external_tournament/player_reconcile` | Teilnehmer gegen Carambus-lokal matchen → dbu_nr-Rückgabe | ✅ v0.5 (Plan 17-06) |
 | Carambus → App | `GET /api/external_tournament/clubs` | Clubs der Region (Picker) | ✅ v0.5 (Plan 18-01) |
 | Carambus → App | `GET /api/external_tournament/club_players` | In der laufenden Saison spielberechtigte Spieler eines Clubs (cc_id + dbu_nr) | ✅ v0.5 (Plan 18-01) |
+| Carambus → App | `GET /api/external_tournament/player_rankings` | Disziplin-Ranking-Setzliste (Vorsaison) | ✅ v0.6 (Plan 19-01) |
 
 **Eliminiert die Doppel-Erfassung** zwischen externer App und Carambus-Scoreboards.
 
@@ -108,6 +109,20 @@ curl -X POST https://nbv.carambus.de/login \
 JWT-Lifetime: **90 Tage** (Long-Lived; via D-14-G7 +
 `Carambus.config.jwt_expiration_days`) — App-seitig kein Renew-Friction
 über die Turniersaison hinweg.
+
+### CORS für die externe SPA (Plan 19-01 / v0.6 F2)
+
+Die App ist eine SPA, die über einen statischen Webserver (anderer Origin, z. B. `…:8123`)
+ausgeliefert wird → ohne CORS blockt der Browser `/login` + `/api/external_tournament/*`.
+`config/initializers/cors.rb` (`rack-cors`) erlaubt das **eng begrenzt**:
+
+- Nur die Ressourcen `/api/external_tournament/*` (GET/POST/OPTIONS) + `/login` (POST/OPTIONS) —
+  NICHT die ganze App.
+- **`expose: ["Authorization"]`** ist Pflicht: die App liest den JWT nach `POST /login` aus dem
+  `Authorization`-Response-Header (cross-origin sonst unsichtbar → Login scheitert „still").
+- Default erlaubte Origins = LAN (`localhost`/`127.0.0.1`/`192.168.x`/`10.x`/`172.16–31.x`, optional
+  `:port`); pro Szenario via ENV **`EXTERNAL_APP_CORS_ORIGINS`** (Komma-Liste) übersteuerbar.
+- Bearer-Auth → keine Cookies, daher KEIN `credentials: true`. Fremd-Origins werden nicht erlaubt.
 
 ## Endpoint 0: Tables-Discovery (Plan 15-06)
 
@@ -477,6 +492,50 @@ gesendeter Wert (auch `false`) wird geehrt (D-18-02-A). Für den 3-Band-Mannscha
 Nachstoß damit standardmäßig aktiv. (Der Fix ist bridge-scoped in `StartGameProcessor`; das
 geteilte `GameSetup` bleibt unverändert.)
 
+## Endpoint 7: Player-Rankings (Plan 19-01 / v0.6)
+
+```
+GET /api/external_tournament/player_rankings?region=NBV&discipline=Dreiband+klein
+    optional: &player_cc_ids=11683,10024   (Filter; ohne → ganze Rangliste)
+    optional: &season=2024/2025            (Default: Vorsaison)
+```
+
+Liefert die **nach offiziellem Ranking sortierte Spielerliste** einer Disziplin (bestes Ranking =
+Setzplatz 1) — Quelle für die App-Setzliste (z. B. Doppel-KO). Read-only, region-scoped, devise-jwt.
+
+Response (`200`, Schema `carambus.player_rankings/v1`):
+
+```json
+{
+  "schema": "carambus.player_rankings/v1",
+  "region": { "shortname": "NBV" },
+  "season": { "name": "2024/2025" },
+  "discipline": { "name": "Dreiband klein" },
+  "players": [
+    { "cc_id": 11683, "firstname": "Georg", "lastname": "Nachtmann", "dbu_nr": "…",
+      "rank": 1, "gd": 20.69, "hs": 12, "balls": 600, "innings": 29 }
+  ],
+  "unranked": ["190204"]
+}
+```
+
+- **Sortierung:** `rank` aufsteigend, bei Gleichstand `gd` absteigend; je `cc_id` wird das beste
+  (kleinste) `rank` dedupliziert.
+- **Disziplin-Auflösung:** exakter `name`, sonst Synonym-Treffer (`Discipline#synonyms` ist
+  newline-separiert und enthält den Namen selbst).
+- **Saison (D-19-01-SEASON):** ohne `season`-Param IMMER die **Vorsaison** (die Saison vor
+  `Season.current_season`) — die Rankings der laufenden Saison sind noch nicht final. Explizites
+  `season` übersteuert. Vgl. „Championship-Rankings aus Vorsaison".
+- **`player_cc_ids`** (optional): nur diese Spieler; angeforderte cc_ids ohne Ranking → `unranked[]`.
+
+### Fehler-Codes
+
+| Status | Bedeutung |
+|--------|-----------|
+| 401 | Fehlende/ungültige JWT |
+| 404 | Region oder Disziplin nicht gefunden |
+| 422 | `discipline`-Param fehlt |
+
 ## Teardown & Garbage-Collection (Plan 16-01)
 
 **Carambus hält kein Gedächtnis der App-Turnierdaten.** Die App führt ihr eigenes
@@ -582,6 +641,15 @@ Player/Gäste an.
 - Kriterium `id >= MIN_ID` + `manual_assignment` (identisch zu `TableReleaser`); managed/global
   bleibt unberührt.
 
+### `ExternalTournament::RankingQuery` (Plan 19-01)
+
+- `players(region:, discipline_name:, player_cc_ids:, season_name:)` → `Result{season, discipline,
+  ranked[], unranked[]}` (oder `nil`, wenn die Disziplin nicht auflösbar ist → Controller 404).
+- Disziplin-Auflösung exakter `name` → sonst Synonym (`Discipline#synonyms`); Sortierung `rank`↑/`gd`↓;
+  dedupe je `cc_id` auf bestes `rank`.
+- **Saison = Vorsaison** (`previous_season` aus `Season.current_season`-Namen; D-19-01-SEASON);
+  explizites `season_name` übersteuert. Read-only.
+
 ## Verwandte Decisions
 
 | Decision | Wirkbereich |
@@ -614,6 +682,7 @@ Player/Gäste an.
 | D-18-02-B | Regel-Params leben pro Spiel (start_game) mit Tournament-Fallback (keine App-Änderung nötig) |
 | D-16-GC-A | Carambus räumt App-Turnierdaten ab (kein Gedächtnis nötig); Marker-Games + Turnier löschen, nur lokale App-Turniere; csv_export dadurch obsolet (Follow-up-Entfernung) |
 | D-16-01-A | `end_tournament`-Teardown ist opt-in via `cleanup`-Flag (Default off, datenkritisch + backward-compat); Mitternachts-GC als garantiertes Safety-Net |
+| D-19-01-SEASON | player_rankings nimmt die Rankings IMMER aus der Vorsaison (Default; laufende Saison noch nicht final); explizites `season` übersteuert. Korrigiert die Handoff-Ref-Impl („jüngste Saison mit Rankings") |
 
 Siehe `.paul/STATE.md` für vollständige Decision-Records.
 
