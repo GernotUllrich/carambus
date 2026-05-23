@@ -137,7 +137,8 @@ Rails.application.routes.draw do
     get "external_tournament/club_players",
         to: "external_tournaments#club_players",
         as: :external_tournament_club_players
-    # Plan 19-01 (v0.6 F1): Disziplin-Ranking-Setzliste (player_rankings).
+    # Plan 19-01 (Ranking-Setzliste): Spielerliste nach Disziplin-Ranking sortiert
+    # (bestes Ranking = Setzplatz 1) fuer App-Setzlisten wie Doppel-KO.
     get "external_tournament/player_rankings",
         to: "external_tournaments#player_rankings",
         as: :external_tournament_player_rankings

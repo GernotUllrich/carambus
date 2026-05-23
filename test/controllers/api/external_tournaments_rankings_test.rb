@@ -2,86 +2,108 @@
 
 require "test_helper"
 
-# Plan 19-01 (v0.6 F1): Controller-Tests fuer GET /api/external_tournament/player_rankings.
-# Saison wird via &season=<name> gepinnt (Default = Vorsaison ist im RankingQuery-Service getestet).
+# Plan 19-01: Controller-Tests fuer den Ranking-Setzlisten-Endpoint
+#   GET /api/external_tournament/player_rankings -> carambus.player_rankings/v1
+# Auth-Muster (Service-User + JWT) wie die uebrigen external_tournament-Tests.
 module Api
   class ExternalTournamentsRankingsTest < ActionDispatch::IntegrationTest
     setup do
       @nbv = regions(:nbv)
-      @service_user = User.create!(email: "test-2band-rankings@carambus.de", password: "password123")
-      @discipline = Discipline.create!(name: "RankCtrl-Dreiband", synonyms: "RC-3B")
-      @season = Season.create!(name: "RANKCTRL-2099/2100")
-      @p1 = mk_player("RC1", 197_001, 97_001)
-      @p2 = mk_player("RC2", 197_002, 97_002)
-      rank!(@p1, rank: 2, gd: 1.0)
-      rank!(@p2, rank: 1, gd: 5.0)
+      @service_user = User.create!(email: "test-2band-ranking@carambus.de", password: "password123")
+      @season = Season.create!(name: "RANK-CTRL-2099/2100")
+      @discipline = Discipline.create!(name: "Test19 Dreiband klein")
+
+      @p1 = mk_player("One", 190_201, 96_001)   # Rang 1
+      @p2 = mk_player("Two", 190_202, 96_002)   # Rang 2
+      @p3 = mk_player("Three", 190_203, 96_003) # Rang 3
+      @p_norank = mk_player("Nor", 190_204, 96_004) # kein Ranking
+
+      mk_rank(@p2, rank: 2, gd: 1.500)
+      mk_rank(@p1, rank: 1, gd: 2.250)
+      mk_rank(@p3, rank: 3, gd: 0.900)
     end
 
     teardown do
-      PlayerRanking.where(discipline_id: @discipline&.id).delete_all
-      Player.where(id: [@p1, @p2].compact.map(&:id)).delete_all
-      Season.where(name: "RANKCTRL-2099/2100").delete_all
+      PlayerRanking.where(season_id: @season&.id).delete_all
+      Player.where("firstname LIKE ?", "Test19R-%").delete_all
       @discipline&.destroy
-      User.where(email: "test-2band-rankings@carambus.de").delete_all
+      @season&.destroy
+      User.where(email: "test-2band-ranking@carambus.de").delete_all
     end
 
-    test "player_rankings liefert nach Rang sortierte Setzliste (carambus.player_rankings/v1)" do
-      get rankings_url(discipline: "RankCtrl-Dreiband", season: @season.name), headers: auth_headers(login_jwt)
+    test "player_rankings returns players sorted by rank with schema" do
+      jwt = login_jwt
+      get "/api/external_tournament/player_rankings?region=NBV&discipline=#{CGI.escape(@discipline.name)}",
+        headers: auth_headers(jwt)
       assert_response :success
       body = JSON.parse(response.body)
       assert_equal "carambus.player_rankings/v1", body["schema"]
       assert_equal "NBV", body.dig("region", "shortname")
-      assert_equal "RankCtrl-Dreiband", body.dig("discipline", "name")
-      assert_equal [197_002, 197_001], body["players"].map { |p| p["cc_id"] }
+      assert_equal @discipline.name, body.dig("discipline", "name")
+      ccids = body["players"].map { |p| p["cc_id"] }
+      assert_equal [190_201, 190_202, 190_203], ccids, "nach Rang sortiert (1,2,3)"
       assert_equal 1, body["players"].first["rank"]
-      assert_equal "97002", body["players"].first["dbu_nr"]
+      assert_equal "96001", body["players"].first["dbu_nr"]
+      assert_in_delta 2.250, body["players"].first["gd"], 0.001
     end
 
-    test "player_cc_ids-Filter + unranked" do
-      get rankings_url(discipline: "RankCtrl-Dreiband", season: @season.name, player_cc_ids: "197001,199999"),
-        headers: auth_headers(login_jwt)
+    test "player_rankings filters by player_cc_ids and reports unranked" do
+      jwt = login_jwt
+      get "/api/external_tournament/player_rankings?region=NBV&discipline=#{CGI.escape(@discipline.name)}" \
+          "&player_cc_ids=190203,190201,190204",
+        headers: auth_headers(jwt)
       assert_response :success
       body = JSON.parse(response.body)
-      assert_equal [197_001], body["players"].map { |p| p["cc_id"] }
-      assert_equal ["199999"], body["unranked"]
+      ccids = body["players"].map { |p| p["cc_id"] }
+      assert_equal [190_201, 190_203], ccids, "nur angeforderte, nach Rang sortiert"
+      assert_equal ["190204"], body["unranked"], "ohne Ranking → unranked"
     end
 
-    test "ohne discipline -> 422" do
-      get rankings_url(region: "NBV"), headers: auth_headers(login_jwt)
+    test "player_rankings resolves discipline via synonym" do
+      @discipline.update!(synonyms: "Dreiband-Synonym19")
+      jwt = login_jwt
+      get "/api/external_tournament/player_rankings?region=NBV&discipline=Dreiband-Synonym19",
+        headers: auth_headers(jwt)
+      assert_response :success
+      body = JSON.parse(response.body)
+      assert_equal @discipline.name, body.dig("discipline", "name")
+    end
+
+    test "player_rankings without discipline returns 422" do
+      jwt = login_jwt
+      get "/api/external_tournament/player_rankings?region=NBV", headers: auth_headers(jwt)
       assert_response :unprocessable_entity
     end
 
-    test "unbekannte Disziplin -> 404" do
-      get rankings_url(discipline: "Gibt-Es-Nicht-XYZ"), headers: auth_headers(login_jwt)
+    test "player_rankings with unknown discipline returns 404" do
+      jwt = login_jwt
+      get "/api/external_tournament/player_rankings?region=NBV&discipline=GibtsNicht19",
+        headers: auth_headers(jwt)
       assert_response :not_found
     end
 
-    test "unbekannte Region -> 404" do
-      get "/api/external_tournament/player_rankings?region=ZZZ&discipline=RankCtrl-Dreiband",
-        headers: auth_headers(login_jwt)
+    test "player_rankings with unknown region returns 404" do
+      jwt = login_jwt
+      get "/api/external_tournament/player_rankings?region=ZZZ&discipline=#{CGI.escape(@discipline.name)}",
+        headers: auth_headers(jwt)
       assert_response :not_found
     end
 
-    test "ohne Auth -> 401" do
-      get rankings_url(discipline: "RankCtrl-Dreiband"), headers: auth_headers(nil)
+    test "player_rankings without auth returns 401" do
+      get "/api/external_tournament/player_rankings?region=NBV&discipline=x", headers: auth_headers(nil)
       assert_response :unauthorized
     end
 
     private
 
-    def rankings_url(region: "NBV", discipline: nil, season: nil, player_cc_ids: nil)
-      q = {region: region, discipline: discipline, season: season, player_cc_ids: player_cc_ids}.compact
-      "/api/external_tournament/player_rankings?" + q.map { |k, v| "#{k}=#{ERB::Util.url_encode(v.to_s)}" }.join("&")
-    end
-
     def mk_player(suffix, cc_id, dbu_nr)
-      Player.create!(firstname: "RC-#{suffix}", lastname: "Test#{suffix}",
+      Player.create!(firstname: "Test19R-#{suffix}", lastname: "Rank#{suffix}",
         region_id: @nbv.id, cc_id: cc_id, dbu_nr: dbu_nr)
     end
 
-    def rank!(player, rank:, gd:)
-      PlayerRanking.create!(region_id: @nbv.id, season_id: @season.id, discipline_id: @discipline.id,
-        player_id: player.id, rank: rank, gd: gd, hs: 5, balls: 100, innings: 30)
+    def mk_rank(player, rank:, gd:)
+      PlayerRanking.create!(player: player, region: @nbv, season: @season,
+        discipline: @discipline, rank: rank, gd: gd)
     end
 
     def auth_headers(jwt)
