@@ -33,7 +33,9 @@ module Api
 
     test "player_rankings returns players sorted by rank with schema" do
       jwt = login_jwt
-      get "/api/external_tournament/player_rankings?region=NBV&discipline=#{CGI.escape(@discipline.name)}",
+      # season explizit pinnen: Default ist die VORSAISON (D-19-01-SEASON), die Test-Saison ist eine
+      # synthetische ("RANK-CTRL-…") — daher die Rankings dieser Saison gezielt anfragen.
+      get "/api/external_tournament/player_rankings?region=NBV&discipline=#{CGI.escape(@discipline.name)}&season=#{CGI.escape(@season.name)}",
         headers: auth_headers(jwt)
       assert_response :success
       body = JSON.parse(response.body)
@@ -50,7 +52,7 @@ module Api
     test "player_rankings filters by player_cc_ids and reports unranked" do
       jwt = login_jwt
       get "/api/external_tournament/player_rankings?region=NBV&discipline=#{CGI.escape(@discipline.name)}" \
-          "&player_cc_ids=190203,190201,190204",
+          "&season=#{CGI.escape(@season.name)}&player_cc_ids=190203,190201,190204",
         headers: auth_headers(jwt)
       assert_response :success
       body = JSON.parse(response.body)
