@@ -150,7 +150,12 @@ class TableMonitorReflex < ApplicationReflex
             @table_monitor.add_n_balls((@table_monitor.discipline == "Eurokegel" ? 2 : 1))
           end
           @table_monitor.do_play
-          @table_monitor.assign_attributes(panel_state: "pointer_mode", current_element: "pointer_mode")
+          # Lost-update-Guard: terminate_current_inning kann via AASM set_over ->
+          # set_game_over den panel_state auf "protocol_final" gesetzt haben. Dieses
+          # unbedingte "pointer_mode" wuerde das ueberschreiben -> beim folgenden save
+          # rendert das Scoreboard das ALTE innings_list-Panel statt des ProtokollEditors
+          # (selten: nur wenn der letzte Ball per A/B-Taste faellt). Bei set_over NICHT ueberschreiben.
+          @table_monitor.assign_attributes(panel_state: "pointer_mode", current_element: "pointer_mode") unless @table_monitor.set_over?
         when "playerb"
           @table_monitor.reset_timer!
           if @table_monitor.data["current_left_player"] == "playerb"
@@ -161,7 +166,12 @@ class TableMonitorReflex < ApplicationReflex
             @table_monitor.terminate_current_inning
           end
           @table_monitor.do_play
-          @table_monitor.assign_attributes(panel_state: "pointer_mode", current_element: "pointer_mode")
+          # Lost-update-Guard: terminate_current_inning kann via AASM set_over ->
+          # set_game_over den panel_state auf "protocol_final" gesetzt haben. Dieses
+          # unbedingte "pointer_mode" wuerde das ueberschreiben -> beim folgenden save
+          # rendert das Scoreboard das ALTE innings_list-Panel statt des ProtokollEditors
+          # (selten: nur wenn der letzte Ball per A/B-Taste faellt). Bei set_over NICHT ueberschreiben.
+          @table_monitor.assign_attributes(panel_state: "pointer_mode", current_element: "pointer_mode") unless @table_monitor.set_over?
         else
           # type code here
         end
@@ -212,7 +222,12 @@ class TableMonitorReflex < ApplicationReflex
             @table_monitor.terminate_current_inning
           end
           @table_monitor.do_play
-          @table_monitor.assign_attributes(panel_state: "pointer_mode", current_element: "pointer_mode")
+          # Lost-update-Guard: terminate_current_inning kann via AASM set_over ->
+          # set_game_over den panel_state auf "protocol_final" gesetzt haben. Dieses
+          # unbedingte "pointer_mode" wuerde das ueberschreiben -> beim folgenden save
+          # rendert das Scoreboard das ALTE innings_list-Panel statt des ProtokollEditors
+          # (selten: nur wenn der letzte Ball per A/B-Taste faellt). Bei set_over NICHT ueberschreiben.
+          @table_monitor.assign_attributes(panel_state: "pointer_mode", current_element: "pointer_mode") unless @table_monitor.set_over?
         when "playera"
           @table_monitor.reset_timer!
           if @table_monitor.data["current_left_player"] == "playerb"
@@ -223,7 +238,12 @@ class TableMonitorReflex < ApplicationReflex
             @table_monitor.terminate_current_inning
           end
           @table_monitor.do_play
-          @table_monitor.assign_attributes(panel_state: "pointer_mode", current_element: "pointer_mode")
+          # Lost-update-Guard: terminate_current_inning kann via AASM set_over ->
+          # set_game_over den panel_state auf "protocol_final" gesetzt haben. Dieses
+          # unbedingte "pointer_mode" wuerde das ueberschreiben -> beim folgenden save
+          # rendert das Scoreboard das ALTE innings_list-Panel statt des ProtokollEditors
+          # (selten: nur wenn der letzte Ball per A/B-Taste faellt). Bei set_over NICHT ueberschreiben.
+          @table_monitor.assign_attributes(panel_state: "pointer_mode", current_element: "pointer_mode") unless @table_monitor.set_over?
         else
           # type code here
         end
@@ -922,7 +942,10 @@ class TableMonitorReflex < ApplicationReflex
     n_balls_left = element.andand.dataset[:ball_no].to_i
     @table_monitor.balls_left(n_balls_left)
     @table_monitor.do_play
-    @table_monitor.assign_attributes(panel_state: "pointer_mode", current_element: "pointer_mode")
+    # Lost-update-Guard (siehe key_a/key_b): foul/balls_left koennen das Set beenden
+    # (AASM set_over -> set_game_over: panel_state="protocol_final"). Bei set_over das
+    # unbedingte "pointer_mode" NICHT setzen, sonst erscheint das alte innings_list-Panel.
+    @table_monitor.assign_attributes(panel_state: "pointer_mode", current_element: "pointer_mode") unless @table_monitor.set_over?
     @table_monitor.suppress_broadcast = false
     @table_monitor.save
   end
@@ -934,7 +957,10 @@ class TableMonitorReflex < ApplicationReflex
     @table_monitor.suppress_broadcast = true
     @table_monitor.foul_two
     @table_monitor.do_play
-    @table_monitor.assign_attributes(panel_state: "pointer_mode", current_element: "pointer_mode")
+    # Lost-update-Guard (siehe key_a/key_b): foul/balls_left koennen das Set beenden
+    # (AASM set_over -> set_game_over: panel_state="protocol_final"). Bei set_over das
+    # unbedingte "pointer_mode" NICHT setzen, sonst erscheint das alte innings_list-Panel.
+    @table_monitor.assign_attributes(panel_state: "pointer_mode", current_element: "pointer_mode") unless @table_monitor.set_over?
     @table_monitor.suppress_broadcast = false
     @table_monitor.save!
   end
@@ -946,7 +972,10 @@ class TableMonitorReflex < ApplicationReflex
     @table_monitor.suppress_broadcast = true
     @table_monitor.foul_one
     @table_monitor.do_play
-    @table_monitor.assign_attributes(panel_state: "pointer_mode", current_element: "pointer_mode")
+    # Lost-update-Guard (siehe key_a/key_b): foul/balls_left koennen das Set beenden
+    # (AASM set_over -> set_game_over: panel_state="protocol_final"). Bei set_over das
+    # unbedingte "pointer_mode" NICHT setzen, sonst erscheint das alte innings_list-Panel.
+    @table_monitor.assign_attributes(panel_state: "pointer_mode", current_element: "pointer_mode") unless @table_monitor.set_over?
     @table_monitor.suppress_broadcast = false
     @table_monitor.save!
   end
