@@ -65,6 +65,12 @@ class TableMonitor < ApplicationRecord
 
   before_create :on_create
   before_save :log_state_change
+  # Invariante: im AASM-Zustand set_over MUSS panel_state "protocol_final" sein, damit das
+  # Scoreboard DIREKT den ProtokollEditor (final-mode, "Fertig"=confirm_result) zeigt — nicht den
+  # seltenen Umweg ueber das "...OK?"/alte innings_list-Panel. Diverse Pfade ueberschreiben
+  # panel_state nach dem set_over-Eintritt (Eingabe-Modus "inputs", key_a/key_b "pointer_mode",
+  # App-/Bridge-Spiele). current_element bleibt unangetastet (Tiebreak setzt "tiebreak_winner_choice").
+  before_save :enforce_protocol_final_panel_at_set_over
 
   delegate :name, to: :table, allow_nil: true
 
@@ -560,6 +566,14 @@ class TableMonitor < ApplicationRecord
     raise StandardError
   end
 
+  # before_save-Invariante (Deklaration oben): solange der AASM-Zustand set_over ist, MUSS
+  # panel_state "protocol_final" sein -> Scoreboard zeigt direkt den ProtokollEditor (final-mode),
+  # nie den seltenen "...OK?"/innings_list-Umweg, egal welcher Pfad panel_state vorher gesetzt hat.
+  # Nur panel_state fixieren; current_element bleibt (Tiebreak setzt "tiebreak_winner_choice").
+  def enforce_protocol_final_panel_at_set_over
+    self.panel_state = "protocol_final" if state == "set_over" && panel_state != "protocol_final"
+  end
+
   def numbers
     Rails.logger.debug { "-------------m6[#{id}]-------->>> numbers <<<------------------------------------------" }
     active_player = data["current_inning"].andand["active_player"]
@@ -682,12 +696,7 @@ class TableMonitor < ApplicationRecord
   end
 
   def protocol_modal_should_be_open?
-    # set_over? erzwingt das Protokoll-Modal UNABHAENGIG vom panel_state. Diverse Pfade
-    # hinterlassen beim Set-Ende einen anderen panel_state als "protocol_final" (Eingabe-Modus
-    # "inputs"/add_*, key_a/key_b "pointer_mode", force_next_state, App-/Bridge-Spiele), wodurch
-    # sonst das ALTE innings_list-Panel statt des ProtokollEditors erscheint. Bei set_over (=
-    # "Partie beendet - OK?") soll IMMER der ProtokollEditor gezeigt werden.
-    %w[protocol protocol_edit protocol_final].include?(panel_state) || set_over?
+    %w[protocol protocol_edit protocol_final].include?(panel_state)
   rescue StandardError => e
     Rails.logger.error "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}"
     false
