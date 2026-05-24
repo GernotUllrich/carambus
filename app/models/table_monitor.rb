@@ -682,7 +682,12 @@ class TableMonitor < ApplicationRecord
   end
 
   def protocol_modal_should_be_open?
-    %w[protocol protocol_edit protocol_final].include?(panel_state)
+    # set_over? erzwingt das Protokoll-Modal UNABHAENGIG vom panel_state. Diverse Pfade
+    # hinterlassen beim Set-Ende einen anderen panel_state als "protocol_final" (Eingabe-Modus
+    # "inputs"/add_*, key_a/key_b "pointer_mode", force_next_state, App-/Bridge-Spiele), wodurch
+    # sonst das ALTE innings_list-Panel statt des ProtokollEditors erscheint. Bei set_over (=
+    # "Partie beendet - OK?") soll IMMER der ProtokollEditor gezeigt werden.
+    %w[protocol protocol_edit protocol_final].include?(panel_state) || set_over?
   rescue StandardError => e
     Rails.logger.error "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}"
     false
