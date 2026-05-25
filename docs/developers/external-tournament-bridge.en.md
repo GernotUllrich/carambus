@@ -21,6 +21,7 @@ exchanges the following data with Carambus over REST:
 | Carambus → App | `GET /api/external_tournament/club_players` | Players eligible to play this season for a club (cc_id + dbu_nr) | ✅ v0.5 (Plan 18-01) |
 | Carambus → App | `GET /api/external_tournament/player_rankings` | Discipline ranking seeding list (previous season) | ✅ v0.6 (Plan 19-01) |
 | Carambus → App | `GET /api/external_tournament/disciplines` | Region-relevant disciplines + format/class matrix (TournamentPlans) | ✅ v0.6 (Plan 20-01) |
+| Carambus → App | `GET /api/external_tournament/categories` | Category/class lists (player_classes + age_classes + genders + categories[]) for the selector | ✅ v0.6 (Plan 20-02) |
 
 **Eliminates duplicate data entry** between the external app and Carambus
 scoreboards.
@@ -599,6 +600,63 @@ Response (`200`, schema `carambus.disciplines/v1`):
 | 401 | Missing/invalid JWT |
 | 404 | Region not found |
 
+## Endpoint 9: Categories discovery (Plan 20-02 / v0.6)
+
+```
+GET /api/external_tournament/categories?region=NBV&discipline=Dreiband+klein
+```
+
+Delivers the **category/class lists** as substrate for the category/class selector of the
+tournament setup (F4): `player_classes` (skill classes), `age_classes` + `genders` (from
+`category_ccs`), plus a rich `categories[]` array. Read-only, region-scoped, devise-jwt. The
+`discipline` param is **optional** (D-20-02-B).
+
+Response (`200`, schema `carambus.categories/v1`):
+
+```json
+{
+  "schema": "carambus.categories/v1",
+  "region": { "shortname": "NBV" },
+  "season": { "name": "2025/2026" },
+  "player_classes": ["2", "1"],
+  "age_classes": ["Damen", "Herren", "Senioren"],
+  "genders": ["M", "F"],
+  "categories": [
+    { "name": "Damen", "sex": "F", "min_age": 0, "max_age": 99, "status": "Freigegeben" },
+    { "name": "Herren", "sex": "M", "min_age": 0, "max_age": 99, "status": "Freigegeben" },
+    { "name": "Senioren", "sex": "M", "min_age": 50, "max_age": 99, "status": "Freigegeben" }
+  ]
+}
+```
+
+- **player_classes (D-20-02-A):** from `discipline.player_classes` (same source as `disciplines`
+  F3), sorted by `Discipline::PLAYER_CLASS_ORDER` (worst→best). **Only with** the `discipline`
+  param; without a discipline `player_classes` is empty (skill classes are inherently
+  discipline-bound).
+- **discipline optional (D-20-02-B):** with → lists scoped to the discipline (via
+  `branch_ccs.discipline_id`); without → region-wide category lists across all branches.
+- **Region/discipline scope (D-20-02-C):** `category_ccs` via `context = shortname.downcase`
+  (region) and `branch_ccs.discipline_id` (branch/Sparte).
+- **Payload (D-20-02-D):** flat convenience lists (`player_classes`/`age_classes`/`genders`)
+  **plus** a rich `categories[]` (`{name, sex, min_age, max_age, status}`). **No** status filter in
+  v1 — `status` is delivered as a field, the app filters itself.
+- **age_classes:** the raw `CategoryCc` names (e.g. "Damen"/"Senioren") — a semantic split of age
+  vs. gender is heuristic and lives in **Phase 21** (admin scraping).
+- **genders (D-20-02-E):** `CategoryCc::SEX_MAP` keys — `M` (male) / `F` (female) / `U` (unisex),
+  ordered `M, F, U`.
+- **season (D-20-02-E):** `Season.current_season` (informational; the eligibility season is used
+  later by the app for the per-player assignment).
+- **DEFERRED (D-v0.6-AGECLASS → Phase 21):** the **per-player** age_class/gender assignment and the
+  corresponding `club_players` filter are NOT part of F4 (`players` has no birth year/gender). F4
+  delivers the LISTS only.
+
+### Error codes
+
+| Status | Meaning |
+|--------|---------|
+| 401 | Missing/invalid JWT |
+| 404 | Region not found **or** `discipline` given but not resolvable |
+
 ## Teardown & garbage collection (Plan 16-01)
 
 **Carambus keeps no memory of the app tournament data.** The app maintains its own result memory
@@ -721,6 +779,17 @@ players/guests.
 - `tournament_plans` = normalized dict (key = plan name) of all referenced `TournamentPlan`s with
   full fields incl. executor (text passed through raw).
 
+### `ExternalTournament::CategoryQuery` (Plan 20-02)
+
+- `call(region:, discipline_name:)` → `Result{season, player_classes[], age_classes[], genders[],
+  categories[], discipline_resolved}`. Read-only, region-scoped.
+- `player_classes` from `discipline.player_classes` (D-20-02-A, `PLAYER_CLASS_ORDER`); only with a
+  discipline, else `[]`. Discipline resolution reuses `RankingQuery.find_disciplines` (exact →
+  synonym); unresolvable ⇒ `discipline_resolved=false` (controller 404, D-20-02-B).
+- `category_ccs` region-scoped via `context` + discipline-scoped via `branch_ccs.discipline_id`
+  (D-20-02-C); `age_classes` = distinct names, `genders` = distinct `sex` (`M/F/U`, D-20-02-E),
+  `categories[]` = `{name, sex, min_age, max_age, status}` (no status filter, D-20-02-D).
+
 ## Related decisions
 
 | Decision | Scope |
@@ -759,6 +828,11 @@ players/guests.
 | D-20-01-C | disciplines: table_kind as a field only (no server-side filter param in v1) |
 | D-20-01-D | disciplines normalized: top-level tournament_plans dict (key=name) + per-discipline parameters[] (plan referenced by name) |
 | D-20-01-E | disciplines delivers full TournamentPlan fields incl. executor; text fields (rulesystem/executor_params/descriptions) passed through raw |
+| D-20-02-A | categories player_classes source = `discipline.player_classes` (like 20-01, `PLAYER_CLASS_ORDER`); no PlayerRanking/season; empty without a discipline |
+| D-20-02-B | categories `discipline` param optional (with → discipline-scoped; without → region-wide); given but unresolvable name → 404 |
+| D-20-02-C | categories `category_ccs` region scope via `context=shortname.downcase`, discipline scope via `branch_ccs.discipline_id` |
+| D-20-02-D | categories payload = flat lists (player_classes/age_classes/genders) + rich `categories[]` ({name,sex,min_age,max_age,status}); no status filter in v1 |
+| D-20-02-E | categories `season=current_season` (informational); `genders` as SEX_MAP keys (M/F/U); per-player age_class/gender DEFERRED (D-v0.6-AGECLASS → Phase 21) |
 
 See `.paul/STATE.md` for full decision records.
 

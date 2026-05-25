@@ -21,6 +21,7 @@ tauscht mit Carambus über REST folgende Daten aus:
 | Carambus → App | `GET /api/external_tournament/club_players` | In der laufenden Saison spielberechtigte Spieler eines Clubs (cc_id + dbu_nr) | ✅ v0.5 (Plan 18-01) |
 | Carambus → App | `GET /api/external_tournament/player_rankings` | Disziplin-Ranking-Setzliste (Vorsaison) | ✅ v0.6 (Plan 19-01) |
 | Carambus → App | `GET /api/external_tournament/disciplines` | Region-relevante Disziplinen + Format-/Klassen-Matrix (TournamentPlans) | ✅ v0.6 (Plan 20-01) |
+| Carambus → App | `GET /api/external_tournament/categories` | Kategorie-/Klassen-Listen (player_classes + age_classes + genders + categories[]) für den Selektor | ✅ v0.6 (Plan 20-02) |
 
 **Eliminiert die Doppel-Erfassung** zwischen externer App und Carambus-Scoreboards.
 
@@ -600,6 +601,62 @@ Response (`200`, Schema `carambus.disciplines/v1`):
 | 401 | Fehlende/ungültige JWT |
 | 404 | Region nicht gefunden |
 
+## Endpoint 9: Categories-Discovery (Plan 20-02 / v0.6)
+
+```
+GET /api/external_tournament/categories?region=NBV&discipline=Dreiband+klein
+```
+
+Liefert die **Kategorie-/Klassen-Listen** als Substrat für den Kategorie-/Klassen-Selektor der
+Turnier-Anlage (F4): `player_classes` (Leistungsklassen), `age_classes` + `genders` (aus
+`category_ccs`) sowie ein reiches `categories[]`-Array. Read-only, region-scoped, devise-jwt.
+Der `discipline`-Param ist **optional** (D-20-02-B).
+
+Response (`200`, Schema `carambus.categories/v1`):
+
+```json
+{
+  "schema": "carambus.categories/v1",
+  "region": { "shortname": "NBV" },
+  "season": { "name": "2025/2026" },
+  "player_classes": ["2", "1"],
+  "age_classes": ["Damen", "Herren", "Senioren"],
+  "genders": ["M", "F"],
+  "categories": [
+    { "name": "Damen", "sex": "F", "min_age": 0, "max_age": 99, "status": "Freigegeben" },
+    { "name": "Herren", "sex": "M", "min_age": 0, "max_age": 99, "status": "Freigegeben" },
+    { "name": "Senioren", "sex": "M", "min_age": 50, "max_age": 99, "status": "Freigegeben" }
+  ]
+}
+```
+
+- **player_classes (D-20-02-A):** aus `discipline.player_classes` (dieselbe Quelle wie `disciplines`
+  F3), sortiert nach `Discipline::PLAYER_CLASS_ORDER` (worst→best). **Nur mit** `discipline`-Param;
+  ohne Disziplin ist `player_classes` leer (Leistungsklassen sind inhärent disziplin-gebunden).
+- **discipline optional (D-20-02-B):** mit → Listen disziplin-skopiert (über
+  `branch_ccs.discipline_id`); ohne → region-weite Kategorie-Listen über alle Sparten.
+- **Region-/Disziplin-Scope (D-20-02-C):** `category_ccs` über `context = shortname.downcase`
+  (Region) und `branch_ccs.discipline_id` (Sparte).
+- **Payload (D-20-02-D):** flache Convenience-Listen (`player_classes`/`age_classes`/`genders`)
+  **plus** reiches `categories[]` (`{name, sex, min_age, max_age, status}`). **Kein** Status-Filter
+  in v1 — `status` wird als Feld mitgeliefert, die App filtert selbst.
+- **age_classes:** die rohen `CategoryCc`-Namen (z. B. „Damen"/„Senioren") — eine semantische
+  Trennung Alter ↔ Geschlecht ist heuristisch und in **Phase 21** (Admin-Scraping) verortet.
+- **genders (D-20-02-E):** `CategoryCc::SEX_MAP`-Keys — `M` (männlich) / `F` (weiblich) /
+  `U` (unisex), geordnet `M, F, U`.
+- **season (D-20-02-E):** `Season.current_season` (informativ; die Eligibilitäts-Saison nutzt die
+  App später für die per-Spieler-Zuordnung).
+- **DEFERRED (D-v0.6-AGECLASS → Phase 21):** die **per-Spieler** age_class/gender-Zuordnung und
+  der entsprechende `club_players`-Filter sind NICHT Teil von F4 (`players` hat kein
+  Geburtsjahr/Geschlecht). F4 liefert nur die LISTEN.
+
+### Fehler-Codes
+
+| Status | Bedeutung |
+|--------|-----------|
+| 401 | Fehlende/ungültige JWT |
+| 404 | Region nicht gefunden **oder** `discipline` angegeben, aber nicht auflösbar |
+
 ## Teardown & Garbage-Collection (Plan 16-01)
 
 **Carambus hält kein Gedächtnis der App-Turnierdaten.** Die App führt ihr eigenes
@@ -723,6 +780,17 @@ Player/Gäste an.
 - `tournament_plans` = normalisiertes Dict (Key = Plan-Name) aller referenzierten `TournamentPlan`s
   mit vollen Feldern inkl. Executor (Text roh durchgereicht).
 
+### `ExternalTournament::CategoryQuery` (Plan 20-02)
+
+- `call(region:, discipline_name:)` → `Result{season, player_classes[], age_classes[], genders[],
+  categories[], discipline_resolved}`. Read-only, region-scoped.
+- `player_classes` aus `discipline.player_classes` (D-20-02-A, `PLAYER_CLASS_ORDER`); nur mit
+  Disziplin, sonst `[]`. Disziplin-Auflösung wiederverwendet `RankingQuery.find_disciplines`
+  (exakt → Synonym); unauflösbar ⇒ `discipline_resolved=false` (Controller 404, D-20-02-B).
+- `category_ccs` region-scoped via `context` + disziplin-scoped via `branch_ccs.discipline_id`
+  (D-20-02-C); `age_classes` = distinct Namen, `genders` = distinct `sex` (`M/F/U`, D-20-02-E),
+  `categories[]` = `{name, sex, min_age, max_age, status}` (kein Status-Filter, D-20-02-D).
+
 ## Verwandte Decisions
 
 | Decision | Wirkbereich |
@@ -761,6 +829,11 @@ Player/Gäste an.
 | D-20-01-C | disciplines: table_kind nur als Feld (kein Server-Filter-Param in v1) |
 | D-20-01-D | disciplines normalisiert: Top-Level tournament_plans-Dict (Key=Name) + per-Disziplin parameters[] (Plan per Name referenziert) |
 | D-20-01-E | disciplines liefert volle TournamentPlan-Felder inkl. Executor; Text-Felder (rulesystem/executor_params/Beschreibungen) roh durchgereicht |
+| D-20-02-A | categories player_classes-Quelle = `discipline.player_classes` (wie 20-01, `PLAYER_CLASS_ORDER`); keine PlayerRanking/Saison; ohne Disziplin leer |
+| D-20-02-B | categories `discipline`-Param optional (mit → disziplin-skopiert; ohne → region-weit); vorhandener aber unauflösbarer Name → 404 |
+| D-20-02-C | categories `category_ccs`-Region-Scope via `context=shortname.downcase`, Disziplin-Scope via `branch_ccs.discipline_id` |
+| D-20-02-D | categories Payload = flache Listen (player_classes/age_classes/genders) + reiches `categories[]` ({name,sex,min_age,max_age,status}); kein Status-Filter in v1 |
+| D-20-02-E | categories `season=current_season` (informativ); `genders` als SEX_MAP-Keys (M/F/U); per-Spieler age_class/gender DEFERRED (D-v0.6-AGECLASS → Phase 21) |
 
 Siehe `.paul/STATE.md` für vollständige Decision-Records.
 

@@ -553,6 +553,37 @@ module Api
       render json: {error: e.message}, status: :not_found
     end
 
+    # GET /api/external_tournament/categories?region=NBV[&discipline=Dreiband+klein]
+    #
+    # Kategorie-/Klassen-LISTEN als Selektor-Substrat fuer die Turnier-Anlage (F4).
+    # discipline optional (D-20-02-B): mit → disziplin-skopiert + player_classes; ohne →
+    # region-weite Kategorie-Listen + player_classes=[]. age_classes = rohe CategoryCc-Namen,
+    # genders = CategoryCc::SEX_MAP-Keys (M/F/U). Per-Spieler age_class/gender DEFERRED (Phase 21).
+    #
+    # Response (200): carambus.categories/v1
+    #   { schema, region:{shortname}, season:{name},
+    #     player_classes:[...], age_classes:[...], genders:[...],
+    #     categories:[{name, sex, min_age, max_age, status}] }
+    # Errors: 401 (Auth) / 404 (Region unbekannt ODER discipline angegeben aber nicht aufloesbar)
+    def categories
+      region = Region.find_by!(shortname: params[:region].to_s.upcase)
+      result = ExternalTournament::CategoryQuery.call(region: region, discipline_name: params[:discipline])
+      unless result.discipline_resolved
+        return render json: {error: "Discipline not found: #{params[:discipline]}"}, status: :not_found
+      end
+      render json: {
+        schema: "carambus.categories/v1",
+        region: {shortname: region.shortname},
+        season: {name: result.season&.name},
+        player_classes: result.player_classes,
+        age_classes: result.age_classes,
+        genders: result.genders,
+        categories: result.categories
+      }, status: :ok
+    rescue ActiveRecord::RecordNotFound => e
+      render json: {error: e.message}, status: :not_found
+    end
+
     private
 
     # Plan 17-05: region-scoped Tournament-Resolve (tournament_id ODER tournament.external_id).

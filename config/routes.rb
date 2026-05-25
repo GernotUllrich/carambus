@@ -147,6 +147,11 @@ Rails.application.routes.draw do
     get "external_tournament/disciplines",
         to: "external_tournaments#disciplines",
         as: :external_tournament_disciplines
+    # Plan 20-02 (Setup-Discovery F4): Kategorie-/Klassen-Listen (player_classes + age_classes +
+    # genders + categories[]) fuer den App-Kategorie-Selektor (carambus.categories/v1).
+    get "external_tournament/categories",
+        to: "external_tournaments#categories",
+        as: :external_tournament_categories
   end
 
   # Debug routes (development only)
