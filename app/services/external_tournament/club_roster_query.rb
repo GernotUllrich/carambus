@@ -36,14 +36,42 @@ module ExternalTournament
     end
 
     # Spielberechtigte (status "active") Spieler des Clubs in der laufenden Saison.
-    def self.players(region:, club:, season: current_season)
+    #
+    # Plan 20-03 (F5): optionaler player_class-Filter (Leistungsklasse, disziplin-gebunden).
+    #   - discipline (Discipline|nil): wenn gesetzt, wird je Spieler die Leistungsklasse aus
+    #     PlayerRanking ermittelt + als Feld :player_class mitgeliefert (D-20-03-A).
+    #   - ranking_season (Season|nil): Saison fuer die Klassen-Ermittlung (Vorsaison-Default
+    #     wird vom Controller bestimmt, D-20-03-B); season bleibt die Eligibility-Saison (unveraendert).
+    #   - player_class (String|nil): wenn gesetzt, werden nur Spieler mit exakt dieser Klasse
+    #     zurueckgegeben (Spieler ohne passendes Ranking RAUS, D-20-03-D).
+    # Ohne discipline ist die Rueckgabe BYTE-IDENTISCH zum bisherigen Verhalten (kein :player_class).
+    def self.players(region:, club:, season: current_season, discipline: nil, player_class: nil, ranking_season: nil)
       return [] if club.blank? || season.blank?
-      SeasonParticipation
+      participations = SeasonParticipation
         .where(season_id: season.id, club_id: club.id, status: ACTIVE)
         .includes(:player)
-        .map { |sp| serialize_player(sp) }
-        .compact
-        .sort_by { |h| [h[:lastname].to_s.downcase, h[:firstname].to_s.downcase] }
+        .to_a
+
+      class_by_player_id = discipline ? player_class_map(region, discipline, ranking_season, participations) : nil
+
+      rows = participations.map { |sp| serialize_player(sp, class_by_player_id) }.compact
+      rows = rows.select { |h| h[:player_class] == player_class } if player_class.present?
+      rows.sort_by { |h| [h[:lastname].to_s.downcase, h[:firstname].to_s.downcase] }
+    end
+
+    # D-20-03-A/B: player_id -> player_class-Shortname aus PlayerRanking (player_class_id ->
+    # PlayerClass.shortname), region+disziplin+ranking_season-scoped. Batch (kein N+1). Erstes
+    # Ranking je Spieler gewinnt (in der Praxis genau eines pro Disziplin/Saison/Region).
+    def self.player_class_map(region, discipline, ranking_season, participations)
+      return {} if region.blank? || discipline.blank?
+      player_ids = participations.map(&:player_id).compact.uniq
+      return {} if player_ids.empty?
+      scope = PlayerRanking.where(region_id: region.id, discipline_id: discipline.id, player_id: player_ids)
+      scope = scope.where(season_id: ranking_season.id) if ranking_season
+      pcid_by_player = {}
+      scope.each { |r| pcid_by_player[r.player_id] ||= r.player_class_id }
+      shortname_by_id = PlayerClass.where(id: pcid_by_player.values.compact.uniq).pluck(:id, :shortname).to_h
+      pcid_by_player.transform_values { |pcid| shortname_by_id[pcid] }
     end
 
     def self.club_hash(club)
@@ -51,16 +79,20 @@ module ExternalTournament
       {cc_id: club.cc_id, shortname: club.shortname, name: club.name}
     end
 
-    def self.serialize_player(season_participation)
+    # class_by_player_id: nil -> kein :player_class-Feld (behavior-preserving, D-20-03);
+    # Hash -> :player_class-Feld (Shortname oder nil falls der Spieler kein Ranking hat).
+    def self.serialize_player(season_participation, class_by_player_id = nil)
       player = season_participation.player
       return nil if player.blank?
-      {
+      row = {
         cc_id: player.cc_id,
         firstname: player.firstname,
         lastname: player.lastname,
         dbu_nr: player.dbu_nr&.to_s,
         status: season_participation.status
       }
+      row[:player_class] = class_by_player_id[player.id] if class_by_player_id
+      row
     end
   end
 end

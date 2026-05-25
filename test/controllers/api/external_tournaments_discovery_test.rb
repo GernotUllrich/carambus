@@ -20,11 +20,21 @@ module Api
       participate(@active, @club, "active")
       participate(@guest, @club, "guest")
       participate(mk_player("Active2", 180_221, 95_003), @club2, "active")
+
+      # Plan 20-03 (F5): Disziplin + Leistungsklassen; @active in Landesliga.
+      @disc = Discipline.create!(name: "ROSTER-CTRL-Dreiband")
+      @pc_ll = PlayerClass.create!(discipline: @disc, shortname: "Landesliga")
+      @pc_bl = PlayerClass.create!(discipline: @disc, shortname: "Bezirksliga")
+      PlayerRanking.create!(region_id: @nbv.id, season_id: @season.id, discipline_id: @disc.id,
+        player_id: @active.id, player_class_id: @pc_ll.id, rank: 1)
     end
 
     teardown do
+      PlayerRanking.where(discipline_id: @disc&.id).delete_all
       SeasonParticipation.where(season_id: @season&.id).delete_all
       Player.where("firstname LIKE ?", "Test18-01D-%").delete_all
+      PlayerClass.where(discipline_id: @disc&.id).delete_all
+      @disc&.destroy
       Club.where(cc_id: [180_201, 180_202]).delete_all
       @season&.destroy
       User.where(email: "test-2band-discovery@carambus.de").delete_all
@@ -91,6 +101,61 @@ module Api
     test "clubs without auth returns 401" do
       get "/api/external_tournament/clubs?region=NBV", headers: auth_headers(nil)
       assert_response :unauthorized
+    end
+
+    # Plan 20-03 (F5)
+    test "club_players with discipline+player_class filters to matching players + field (AC-1)" do
+      bl = mk_player("BL", 180_231, 95_010)
+      participate(bl, @club, "active")
+      PlayerRanking.create!(region_id: @nbv.id, season_id: @season.id, discipline_id: @disc.id,
+        player_id: bl.id, player_class_id: @pc_bl.id, rank: 1)
+      jwt = login_jwt
+      Season.stub(:current_season, @season) do
+        get "/api/external_tournament/club_players?region=NBV&club_cc_id=180201&discipline=ROSTER-CTRL-Dreiband&player_class=Landesliga",
+          headers: auth_headers(jwt)
+      end
+      assert_response :success
+      body = JSON.parse(response.body)
+      players = body["players"]
+      assert_equal [180_211], players.map { |p| p["cc_id"] }, "only Landesliga players"
+      assert_equal "Landesliga", players.first["player_class"]
+    end
+
+    test "club_players with discipline (no filter) adds player_class field to all active players (AC-2)" do
+      jwt = login_jwt
+      Season.stub(:current_season, @season) do
+        get "/api/external_tournament/club_players?region=NBV&club_cc_id=180201&discipline=ROSTER-CTRL-Dreiband",
+          headers: auth_headers(jwt)
+      end
+      assert_response :success
+      body = JSON.parse(response.body)
+      active = body["players"].find { |p| p["cc_id"] == 180_211 }
+      assert active.key?("player_class"), "player_class field present with discipline"
+      assert_equal "Landesliga", active["player_class"]
+    end
+
+    test "club_players with player_class but without discipline returns 422 (AC-3)" do
+      jwt = login_jwt
+      get "/api/external_tournament/club_players?region=NBV&club_cc_id=180201&player_class=Landesliga",
+        headers: auth_headers(jwt)
+      assert_response :unprocessable_entity
+    end
+
+    test "club_players with unresolvable discipline returns 404 (AC-3)" do
+      jwt = login_jwt
+      get "/api/external_tournament/club_players?region=NBV&club_cc_id=180201&discipline=Quatsch-gibt-es-nicht",
+        headers: auth_headers(jwt)
+      assert_response :not_found
+    end
+
+    test "club_players without discipline keeps unchanged response (no player_class key) (AC-2 behavior-preserving)" do
+      jwt = login_jwt
+      Season.stub(:current_season, @season) do
+        get "/api/external_tournament/club_players?region=NBV&club_cc_id=180201", headers: auth_headers(jwt)
+      end
+      assert_response :success
+      body = JSON.parse(response.body)
+      refute body["players"].first.key?("player_class"), "no discipline -> no player_class key"
     end
 
     private

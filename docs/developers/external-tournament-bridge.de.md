@@ -18,7 +18,7 @@ tauscht mit Carambus über REST folgende Daten aus:
 | App ↔ Carambus | `POST tournament` / `lock_table` / `start_game` / `acknowledge_result` / `end_tournament` | App-getriebener Lokal-Turnier-Lebenszyklus (Anlage, Tisch-Bindung, Warmup-Start, Result-Hold/Pull, Turnierende) | ✅ v0.5 (Plan 17-02..17-05) |
 | App → Carambus | `POST /api/external_tournament/player_reconcile` | Teilnehmer gegen Carambus-lokal matchen → dbu_nr-Rückgabe | ✅ v0.5 (Plan 17-06) |
 | Carambus → App | `GET /api/external_tournament/clubs` | Clubs der Region (Picker) | ✅ v0.5 (Plan 18-01) |
-| Carambus → App | `GET /api/external_tournament/club_players` | In der laufenden Saison spielberechtigte Spieler eines Clubs (cc_id + dbu_nr) | ✅ v0.5 (Plan 18-01) |
+| Carambus → App | `GET /api/external_tournament/club_players` | In der laufenden Saison spielberechtigte Spieler eines Clubs (cc_id + dbu_nr); optional player_class-Filter | ✅ v0.5 (Plan 18-01) + v0.6 (Plan 20-03 player_class) |
 | Carambus → App | `GET /api/external_tournament/player_rankings` | Disziplin-Ranking-Setzliste (Vorsaison) | ✅ v0.6 (Plan 19-01) |
 | Carambus → App | `GET /api/external_tournament/disciplines` | Region-relevante Disziplinen + Format-/Klassen-Matrix (TournamentPlans) | ✅ v0.6 (Plan 20-01) |
 | Carambus → App | `GET /api/external_tournament/categories` | Kategorie-/Klassen-Listen (player_classes + age_classes + genders + categories[]) für den Selektor | ✅ v0.6 (Plan 20-02) |
@@ -469,13 +469,40 @@ Response (`200`, Schema `carambus.club_players/v1`):
 }
 ```
 
+#### player_class-Filter (Plan 20-03 / F5)
+
+Optionale Vorfilterung nach **Leistungsklasse** (gilt für beide Modi, single + `club_cc_ids`):
+
+```
+GET .../club_players?region=NBV&club_cc_id=11&discipline=Dreiband+klein&player_class=Landesliga
+```
+
+- **`discipline`** (optional): wenn gesetzt, bekommt jeder Spieler ein zusätzliches Feld
+  `player_class` (Shortname der Leistungsklasse in dieser Disziplin, `null` falls kein Ranking).
+- **`player_class`** (optional, erfordert `discipline`): filtert auf Spieler mit exakt dieser
+  Klasse (Spieler ohne passendes Ranking entfallen).
+- **Quelle (D-20-03-A):** `PlayerRanking.player_class_id` → `PlayerClass.shortname`,
+  region+disziplin-scoped.
+- **Saison (D-20-03-B):** Klassen-Saison = **Vorsaison** (wie `player_rankings`/D-19-01-SEASON);
+  die **Eligibility**-Saison (`status="active"`) bleibt `current_season` (unverändert, D-18-01-A).
+- **Behavior-preserving:** ohne `discipline`/`player_class` ist die Antwort unverändert (kein
+  `player_class`-Feld).
+- **DEFERRED (D-v0.6-AGECLASS → Phase 21):** `age_class`/`gender`-Filter und -Felder sind NICHT
+  verfügbar; solche Params werden ignoriert (kein Fehler).
+
+Erweitertes `players[]`-Beispiel (mit `discipline`):
+```json
+{ "cc_id": 4567, "firstname": "Oliver", "lastname": "Weese", "dbu_nr": "12345",
+  "status": "active", "player_class": "Landesliga" }
+```
+
 ### Fehler-Codes
 
 | Code | Bedeutung |
 |------|-----------|
 | `401` | Kein/ungültiger Bearer-Token |
-| `404` | Region unbekannt ODER `club_cc_id` nicht in der Region (region-scoped) |
-| `422` | `club_cc_id` fehlt (und kein `club_cc_ids` angegeben) |
+| `404` | Region unbekannt ODER `club_cc_id` nicht in der Region ODER `discipline` angegeben aber nicht auflösbar |
+| `422` | `club_cc_id` fehlt (und kein `club_cc_ids`) ODER `player_class` ohne `discipline` |
 
 ## Spielregel-Parameter beim `start_game` (Plan 18-02)
 
@@ -747,10 +774,12 @@ unbekannte Player manuell in der CC-UI an.
 
 ### `ExternalTournament::ClubRosterQuery` (Plan 18-01)
 
-Read-only Discovery-Substrat: `clubs(region)` + `players(region:, club:, season:)`.
-Eligibility strikt `status="active"` der laufenden Saison; region-scoped Club-Lookup über
-`cc_id` (regional eindeutig). `dbu_nr` als String durchgereicht (nullable). Legt keine
-Player/Gäste an.
+Read-only Discovery-Substrat: `clubs(region)` + `players(region:, club:, season:, discipline:,
+player_class:, ranking_season:)`. Eligibility strikt `status="active"` der laufenden Saison;
+region-scoped Club-Lookup über `cc_id` (regional eindeutig). `dbu_nr` als String durchgereicht
+(nullable). Legt keine Player/Gäste an. **Plan 20-03 (F5):** optionaler player_class-Filter +
+per-Spieler `player_class`-Feld via `PlayerRanking.player_class_id` (Batch, kein N+1); ohne
+`discipline` byte-identische Rückgabe (behavior-preserving).
 
 ### `ExternalTournament::AppTournamentCleaner` (Plan 16-01)
 
@@ -834,6 +863,11 @@ Player/Gäste an.
 | D-20-02-C | categories `category_ccs`-Region-Scope via `context=shortname.downcase`, Disziplin-Scope via `branch_ccs.discipline_id` |
 | D-20-02-D | categories Payload = flache Listen (player_classes/age_classes/genders) + reiches `categories[]` ({name,sex,min_age,max_age,status}); kein Status-Filter in v1 |
 | D-20-02-E | categories `season=current_season` (informativ); `genders` als SEX_MAP-Keys (M/F/U); per-Spieler age_class/gender DEFERRED (D-v0.6-AGECLASS → Phase 21) |
+| D-20-03-A | club_players player_class-Quelle = `PlayerRanking.player_class_id` → `PlayerClass.shortname` (Hauptspalte, nicht p_/pp_/tournament_player_class_id) |
+| D-20-03-B | club_players Klassen-Saison = Vorsaison (wie player_rankings/D-19-01-SEASON); Eligibility-Saison bleibt `current_season` (D-18-01-A unverändert) |
+| D-20-03-C | club_players `player_class`-Filter erfordert `discipline` (sonst 422); `discipline` unauflösbar → 404; ohne Params unverändert (behavior-preserving) |
+| D-20-03-D | club_players player_class-Filter schließt Spieler ohne Ranking aus; `player_class`-Feld = null falls kein Ranking (bei gesetzter discipline) |
+| D-20-03-E | club_players age_class/gender-Filter/-Felder DEFERRED (D-v0.6-AGECLASS → Phase 21); solche Params werden ignoriert (kein Fehler) |
 
 Siehe `.paul/STATE.md` für vollständige Decision-Records.
 

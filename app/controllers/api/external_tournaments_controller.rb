@@ -216,6 +216,22 @@ module Api
       region = Region.find_by!(shortname: params[:region].to_s.upcase)
       season = ExternalTournament::ClubRosterQuery.current_season
 
+      # Plan 20-03 (F5): optionaler player_class-Filter (disziplin-gebunden, D-20-03).
+      # discipline angegeben aber nicht aufloesbar -> 404 (D-20-03-C, wie 20-02).
+      disc = nil
+      if params[:discipline].present?
+        disc = ExternalTournament::RankingQuery.find_disciplines(params[:discipline]).first
+        return render json: {error: "Discipline not found: #{params[:discipline]}"}, status: :not_found if disc.nil?
+      end
+      # player_class braucht eine discipline (Leistungsklasse ist disziplin-gebunden) -> sonst 422.
+      pclass = params[:player_class].presence
+      if pclass && disc.nil?
+        return render json: {error: "discipline required for player_class filter"}, status: :unprocessable_entity
+      end
+      # Klassen-Saison = Vorsaison (D-20-03-B / D-19-01-SEASON); Eligibility-Saison bleibt current_season.
+      rseason = ExternalTournament::RankingQuery.resolve_season(season_name: params[:season])
+      # age_class/gender (D-20-03-E): DEFERRED -> Params werden ignoriert (Phase 21).
+
       if params[:club_cc_ids].present?
         cc_ids = params[:club_cc_ids].to_s.split(",").map(&:strip).reject(&:blank?)
         clubs = cc_ids.filter_map { |cc| ExternalTournament::ClubRosterQuery.find_club(region, cc) }
@@ -226,7 +242,8 @@ module Api
           clubs: clubs.map do |club|
             {
               club: ExternalTournament::ClubRosterQuery.club_hash(club),
-              players: ExternalTournament::ClubRosterQuery.players(region: region, club: club, season: season)
+              players: ExternalTournament::ClubRosterQuery.players(region: region, club: club, season: season,
+                discipline: disc, player_class: pclass, ranking_season: rseason)
             }
           end
         }
@@ -244,7 +261,8 @@ module Api
         region: {shortname: region.shortname},
         season: {name: season&.name},
         club: ExternalTournament::ClubRosterQuery.club_hash(club),
-        players: ExternalTournament::ClubRosterQuery.players(region: region, club: club, season: season)
+        players: ExternalTournament::ClubRosterQuery.players(region: region, club: club, season: season,
+          discipline: disc, player_class: pclass, ranking_season: rseason)
       }
     rescue ActiveRecord::RecordNotFound => e
       render json: {error: e.message}, status: :not_found
