@@ -89,5 +89,33 @@ module ExternalTournament
       assert_equal [], result.genders
       assert_equal [], result.categories
     end
+
+    # D-21-02-A: BranchCc.discipline_id ist FK auf die Branch-WURZEL (STI: Branch < Discipline),
+    # nicht auf die feine Disziplin. CategoryQuery muss `discipline.root.id` joinen, sonst
+    # liefert jede feine Disziplin (z.B. „Dreiband klein" unter Branch Karambol) 0 Kategorien.
+    # Dieser Test modelliert die STI-Hierarchie explizit; die Fixturen der anderen Tests
+    # nutzen standalone Disciplines (root == self), die den Bug nicht aufdecken konnten.
+    test "Disziplin-Scope folgt Branch-Wurzel (STI), nicht der feinen Disziplin (AC-1, D-21-02-A)" do
+      branch_root = Branch.create!(name: "CQ-Karambol-Root")
+      fine_disc = Discipline.create!(name: "CQ-Dreiband-fein", super_discipline: branch_root)
+      branch_cc = BranchCc.create!(discipline: branch_root, region_cc: @region_cc,
+        context: "nbv", cc_id: 71_099, name: "CQ-Sparte-Root")
+      cat_root = CategoryCc.create!(branch_cc: branch_cc, context: "nbv", cc_id: 72_099,
+        name: "CQ-Root-Herren", sex: "M", min_age: 0, max_age: 99, status: "Freigegeben")
+
+      # Sanity-Check der Fixture-Annahme: feine Disziplin.root liefert die Branch-Wurzel.
+      assert_equal branch_root.id, fine_disc.root.id, "Fixture: super_discipline-Kette aufgebaut"
+
+      result = CategoryQuery.call(region: @nbv, discipline_name: "CQ-Dreiband-fein")
+      assert result.discipline_resolved
+      cat_names = result.categories.map { |c| c[:name] }
+      assert_includes cat_names, cat_root.name,
+        "Kategorie an Branch-Wurzel muss bei feiner Disziplin gefunden werden (Branch-STI-Scope)"
+    ensure
+      CategoryCc.where(cc_id: 72_099).delete_all
+      BranchCc.where(cc_id: 71_099, context: "nbv").delete_all
+      fine_disc&.destroy
+      branch_root&.destroy
+    end
   end
 end
