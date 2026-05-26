@@ -5,6 +5,7 @@
 # Table name: tournament_ccs
 #
 #  id                        :bigint           not null, primary key
+#  best_of_sets              :integer
 #  branch_cc_name            :string
 #  category_cc_name          :string
 #  championship_type_cc_name :string
@@ -16,11 +17,13 @@
 #  location_text             :string
 #  max_players               :integer
 #  name                      :string
+#  points_to_win             :integer
 #  poster                    :string
 #  ranking_list              :string
 #  registration_rule         :integer
 #  season                    :string
 #  shortname                 :string
+#  shot_clock_minutes        :integer
 #  starting_at               :time
 #  status                    :string
 #  successor_list            :string
@@ -38,12 +41,14 @@
 #  location_id               :integer
 #  registration_list_cc_id   :integer
 #  tournament_id             :integer
+#  tournament_plan_cc_id     :bigint
 #  tournament_series_cc_id   :integer
 #
 # Indexes
 #
-#  index_tournament_ccs_on_cc_id_and_context  (cc_id,context) UNIQUE
-#  index_tournament_ccs_on_tournament_id      (tournament_id) UNIQUE
+#  index_tournament_ccs_on_cc_id_and_context        (cc_id,context) UNIQUE
+#  index_tournament_ccs_on_tournament_id            (tournament_id) UNIQUE
+#  index_tournament_ccs_on_tournament_plan_cc_id    (tournament_plan_cc_id)
 #
 class TournamentCc < ApplicationRecord
   include LocalProtector
@@ -55,6 +60,7 @@ class TournamentCc < ApplicationRecord
   belongs_to :championship_type_cc, optional: true
   belongs_to :category_cc, optional: true
   belongs_to :tournament_series_cc, optional: true
+  belongs_to :tournament_plan_cc, optional: true
   belongs_to :tournament, optional: true
 
   # Plan 14-G.7 / Task 3 / F11: Season-Resolution mit Fallback aus tournament_start.
