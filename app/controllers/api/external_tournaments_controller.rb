@@ -607,6 +607,51 @@ module Api
       render json: {error: e.message}, status: :not_found
     end
 
+    # GET /api/external_tournament/registration_lists?region=NBV
+    #   [&season=2025/2026][&discipline=Dreiband+klein][&category=Herren][&status=Freigegeben]
+    #
+    # Meldelisten-Discovery (Slice B aus Phase-21-Cluster). Liefert RegistrationListCc-Records
+    # einer Region+Saison mit deadline/qualifying_date/status, plus optionaler
+    # tournament_cc-Verknuepfung (Bulk-Reverse-Lookup, KEIN N+1). Read-only.
+    #
+    # Default-Saison = Season.current_season (D-21-05-B). ⚠️ RegistrationSyncer-Cron ist heute
+    # auskommentiert (D-21-DISC-C) → Default-Calls liefern leeres Array bis Slice E den Cron
+    # re-aktiviert. Historische Saison explizit per ?season=2022/2023 anfragen.
+    #
+    # Response (200): carambus.registration_lists/v1
+    #   { schema, region:{shortname}, season:{name},
+    #     registration_lists:[{cc_id, name, deadline, qualifying_date, status, season,
+    #                          discipline:{id,name}|null, category_cc:{id,name}|null,
+    #                          tournament_cc:{id,name,date}|null}] }
+    # Errors: 401 (Auth) / 404 (region/season/discipline/category nicht aufloesbar)
+    def registration_lists
+      region = Region.find_by!(shortname: params[:region].to_s.upcase)
+      result = ExternalTournament::RegistrationListQuery.call(
+        region: region,
+        season: params[:season],
+        discipline: params[:discipline],
+        category: params[:category],
+        status: params[:status]
+      )
+      unless result.season_resolved
+        return render json: {error: "Season not found: #{params[:season]}"}, status: :not_found
+      end
+      unless result.discipline_resolved
+        return render json: {error: "Discipline not found: #{params[:discipline]}"}, status: :not_found
+      end
+      unless result.category_resolved
+        return render json: {error: "Category not found: #{params[:category]}"}, status: :not_found
+      end
+      render json: {
+        schema: "carambus.registration_lists/v1",
+        region: {shortname: region.shortname},
+        season: {name: result.season&.name},
+        registration_lists: result.items
+      }, status: :ok
+    rescue ActiveRecord::RecordNotFound => e
+      render json: {error: e.message}, status: :not_found
+    end
+
     private
 
     # Plan 17-05: region-scoped Tournament-Resolve (tournament_id ODER tournament.external_id).

@@ -699,6 +699,89 @@ Response (`200`, Schema `carambus.categories/v1`):
 | 401 | Fehlende/ungültige JWT |
 | 404 | Region nicht gefunden **oder** `discipline` angegeben, aber nicht auflösbar |
 
+## Endpoint 10: Registration-Lists-Discovery (Plan 21-05 / v0.6)
+
+### `GET /api/external_tournament/registration_lists?region=NBV`
+
+**Optionale Query-Parameter:** `season` (z. B. `2025/2026`), `discipline` (z. B. `Dreiband klein`),
+`category` (z. B. `Herren`), `status` (z. B. `Freigegeben`).
+
+Read-only Discovery der **ClubCloud-Meldelisten** einer Region: `deadline` /
+`qualifying_date` / `status` plus die zugeordnete `discipline` und `category_cc`. Wenn die
+Meldeliste über `link_and_push_if_match` (Plan 14-G.14) mit einem `TournamentCc` verknüpft ist,
+liefert die Response zusätzlich ein `tournament_cc`-Sub-Objekt (Bulk-Reverse-Lookup, **kein N+1**).
+
+> ⚠️ **Datenstand-Warnung:** Der `RegistrationSyncer` läuft heute **nicht** via Cron
+> (`config/schedule.rb` — ClubCloud-Block auskommentiert, D-21-DISC-C). Default-Calls mit
+> `season=current_season` liefern in der Praxis ein **leeres** `registration_lists`-Array, weil
+> der letzte Syncer-Lauf historisch ist. **Workaround:** historische Saison explizit per
+> `?season=2022/2023` anfragen, bis Slice E den Cron re-aktiviert. Die Endpoint-Mechanik selbst
+> ist davon unabhängig und vollständig getestet.
+
+```bash
+# Standard-Call (Default: current_season; aktuell leer wg. Cron-Defer)
+curl -H "Authorization: Bearer <jwt>" \
+  "https://carambus.de/api/external_tournament/registration_lists?region=NBV"
+
+# Historische Saison + Disziplin-Filter (Substanz-Test):
+curl -H "Authorization: Bearer <jwt>" \
+  "https://carambus.de/api/external_tournament/registration_lists?region=NBV&season=2022/2023&discipline=Dreiband+klein&status=Freigegeben"
+```
+
+**Response (200, `carambus.registration_lists/v1`):**
+
+```json
+{
+  "schema": "carambus.registration_lists/v1",
+  "region": { "shortname": "NBV" },
+  "season": { "name": "2022/2023" },
+  "registration_lists": [
+    {
+      "cc_id": 12345,
+      "name": "NDM Dreiband klein 2022/23",
+      "deadline": "2022-12-01T00:00:00+01:00",
+      "qualifying_date": "2022-11-01T00:00:00+01:00",
+      "status": "Freigegeben",
+      "season": "2022/2023",
+      "discipline": { "id": 33, "name": "Dreiband klein" },
+      "category_cc":  { "id":  9, "name": "Unisex jeden Alters" },
+      "tournament_cc": {
+        "id": 50001234,
+        "name": "NDM Dreiband klein 2022/23",
+        "date": "2023-01-15T00:00:00+01:00"
+      }
+    }
+  ]
+}
+```
+
+### Entscheidungen (Plan 21-05, 2026-05-26)
+
+- **D-21-05-A (eigene Bridge-Resource, NICHT in `categories` embedded):** Endpoint 10 als
+  eigenständige Resource. Folgt der passiven Read-Schicht-Konvention aus 21-01/02/03/04
+  (D-21-03-DISC-E / D-21-04-DISC-F-Pattern fortgesetzt).
+- **D-21-05-B (Default-Saison = `Season.current_season`):** explizites unauflösbares
+  `season` → 404 (NICHT silently auf current_season fallen).
+- **D-21-05-C (NBV-Pilot):** Live-Verify nur gegen NBV; Endpoint funktioniert technisch für
+  jede Region (sobald `RegistrationListCc.context=<shortname>` Daten enthält).
+- **D-21-05-D (tournament_cc-Verknüpfung als optionaler Sub-Hash):** Reverse-Lookup
+  `TournamentCc.registration_list_cc_id` mit Bulk-`index_by` → ein Query, kein N+1. Bei
+  Doppel-Verknüpfung (unwahrscheinlich): deterministisch erste via `order(:id)`. Bei keiner
+  Verknüpfung: `tournament_cc: null`.
+- **D-21-05-E (`status`-Filter optional + exakter Match):** Tippfehler im Param-Wert →
+  leeres Array, **kein** 422 / Fuzzy / ILIKE.
+- **D-21-05-F (Status-Hardcoded-Bug DEFERRED):** Der Syncer-Bug in
+  `app/services/region_cc/registration_syncer.rb:107` (hardcoded `status: "Freigegeben"`
+  überschreibt den geparsten Status auf Zeile 98) wird in 21-05 **NICHT** gefixt — gehört zu
+  Slice E (Cron-Re-Enable + Bug-Fix gemeinsam). Endpoint spiegelt was in der DB steht.
+
+### Fehler-Codes
+
+| Status | Bedeutung |
+|--------|-----------|
+| 401 | Fehlende/ungültige JWT |
+| 404 | Region nicht gefunden **oder** `season`/`discipline`/`category` angegeben, aber nicht auflösbar |
+
 ## Teardown & Garbage-Collection (Plan 16-01)
 
 **Carambus hält kein Gedächtnis der App-Turnierdaten.** Die App führt ihr eigenes

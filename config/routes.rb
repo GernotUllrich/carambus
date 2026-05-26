@@ -152,6 +152,11 @@ Rails.application.routes.draw do
     get "external_tournament/categories",
         to: "external_tournaments#categories",
         as: :external_tournament_categories
+    # Plan 21-05 (v0.6 Slice B): Meldelisten-Discovery (deadline/status/category/discipline
+    # + optionale tournament_cc-Verknuepfung) fuer die App; carambus.registration_lists/v1.
+    get "external_tournament/registration_lists",
+        to: "external_tournaments#registration_lists",
+        as: :external_tournament_registration_lists
   end
 
   # Debug routes (development only)
