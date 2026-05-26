@@ -177,6 +177,35 @@ class RegionCc::TournamentSyncer < ApplicationService
               args.merge!(location_text: tr.css("td")[2].inner_html.strip)
             elsif /Status/.match?(tr.css("td")[0].text.strip)
               args.merge!(status: tr.css("td")[2].text.strip.gsub(/^\u00A0/, "").strip)
+            elsif /^Turnierplan$/.match?(tr.css("td")[0].text.strip)
+              # Plan 21-03 T3 / Slice A: TurnierPlan-Name in <b>...</b> in td[2].
+              # Bei NBV durchweg leer (siehe 21-03-SNIFF-FINDINGS.md); idempotenter
+              # find_or_create_by-Lookup auf TournamentPlanCc (D-21-03-DISC-B).
+              plan_name = tr.css("td")[2].css("b").text.strip
+              if plan_name.present?
+                tournament_plan_cc = TournamentPlanCc.find_or_create_by!(
+                  name: plan_name, context: @opts[:context]
+                )
+                args.merge!(tournament_plan_cc_id: tournament_plan_cc.id)
+              end
+            elsif /^Shot-Clock-Schwellenwert$/.match?(tr.css("td")[0].text.strip)
+              # Plan 21-03 T3 / Slice A: "$INT Minuten" in <strong>. 0 = nicht konfiguriert \u2192 NULL.
+              raw = tr.css("td")[2].css("strong").text.strip
+              if (m = raw.match(/\A(\d+)\s*Minuten/))
+                val = m[1].to_i
+                args.merge!(shot_clock_minutes: val.positive? ? val : nil)
+              end
+            elsif /^Ausspielziel$/.match?(tr.css("td")[0].text.strip)
+              # Plan 21-03 T3 / Slice A: ClubCloud-Konvention: 0 = "keine Begrenzung" \u2192 NULL.
+              raw = tr.css("td")[2].css("strong").text.strip
+              if /\A\d+\z/.match?(raw)
+                val = raw.to_i
+                args.merge!(points_to_win: val.positive? ? val : nil)
+              end
+            elsif /^S\u00E4tze \(Best-of-#\)$/.match?(tr.css("td")[0].text.strip)
+              # Plan 21-03 T3 / Slice A: Integer in <b>. Auch "1" (default best-of-1) ist legitim.
+              raw = tr.css("td")[2].css("b").text.strip
+              args.merge!(best_of_sets: raw.to_i) if /\A\d+\z/.match?(raw)
             end
           end
           if args[:name].present?
@@ -188,7 +217,15 @@ class RegionCc::TournamentSyncer < ApplicationService
               derived = Season.season_from_date(args[:tournament_start].to_date)
               season_name = derived&.name
             end
-            tournament_cc.update(args.merge(cc_id: cc_id, season: season_name, branch_cc_id: branch_cc.id))
+            if @opts[:only_admin_params]
+              # Plan 21-03 T3 / Slice A: nur die 4 neuen Admin-Felder anfassen,
+              # bestehende Felder (name/shortname/discipline/etc.) bleiben unverändert.
+              # Greift nur auf BESTEHENDE TournamentCc-Records (kein neuer Eintrag).
+              admin_only = args.slice(:shot_clock_minutes, :points_to_win, :best_of_sets, :tournament_plan_cc_id)
+              tournament_cc.update(admin_only) if tournament_cc.persisted? && admin_only.any?
+            else
+              tournament_cc.update(args.merge(cc_id: cc_id, season: season_name, branch_cc_id: branch_cc.id))
+            end
             tournament_cc.attributes
           end
         end
