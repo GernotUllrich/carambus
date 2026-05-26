@@ -205,13 +205,11 @@ class Discipline < ApplicationRecord
   DISCIPLINE_CLASS_LIMITS =
     { # GD-Min oder [GD-Min, Bälle-Min]
       "Freie Partie groß" => {
-        "1" => 25.0,
-        "2" => 16.0,
-        "3" => 10.0,
-        "4" => 7.0,
-        "5" => 4.0,
-        "6" => 2.0,
-        "7" => 0.0
+        # STO-BTK §1.4.1 (Stand 06/2019): Großes Billard (MB) — Klassen I/II/III.
+        # Vorher fälschlich mit den Kleines-Billard-Werten (1..7) belegt; korrigiert in Plan 21-01.
+        "I" => 10.0,
+        "II" => 5.0,
+        "III" => 0.0
       },
       "Cadre 47/2" => {
         "1" => 7.0,
@@ -226,7 +224,9 @@ class Discipline < ApplicationRecord
         "2" => 0.0
       },
       "Dreiband groß" => {
-        "1" => [0.7, 66],
+        # STO-BTK §1.4.1 + §1.4.3: Klasse I = GD ≥ 0,7 UND Mindestballzahl 65 (vorher 66).
+        # Mindestball-Logik wird im PlayerClassCalculator separat geprüft; class_from_val nutzt nur GD.
+        "1" => [0.7, 65],
         "2" => [0.5, 45],
         "3" => 0.0
       },
@@ -240,7 +240,8 @@ class Discipline < ApplicationRecord
         "7" => 0.0
       },
       "Cadre 35/2" => {
-        "1" => 7.0,
+        # STO-BTK §1.4.1: Klasse 1 ab 6,0 (vorher fälschlich 7,0; an Cadre 47/2 angeglichen statt an STO).
+        "1" => 6.0,
         "2" => 0.0
       },
       "Cadre 52/2" => {
@@ -375,9 +376,12 @@ class Discipline < ApplicationRecord
     end
   end
 
+  # STO-BTK §1.4.1: Klassengrenzen sind inklusiv für die höhere Klasse (val ≥ Grenze).
+  # Vorher mit `>` implementiert; dadurch fiel die UNTERSTE Klasse mit Grenze 0,0 für val=0
+  # immer durch (→ leerer String statt korrekter Klasse). Fix in Plan 21-01.
   def class_from_val(val)
     DISCIPLINE_CLASS_LIMITS[name].to_a.each do |k, v|
-      return k if val > Array(v)[0]
+      return k if val >= Array(v)[0]
     end
     ""
   end
