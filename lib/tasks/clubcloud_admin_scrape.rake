@@ -26,8 +26,14 @@ namespace :clubcloud do
     region_cc = region.region_cc
     raise "RegionCc for #{region_abbr} not found" if region_cc.nil?
 
-    season_name = args[:season].presence || Setting.key_get_value(:season_name).presence ||
-      Season.order(name: :desc).where("name ~ '^20[0-9]+/'").first&.name
+    # Saisonauflösung: explizit > Setting > Season.current_season (kalender-aware:
+    # (Date.today - 6.month).year → "YYYY/YYYY+1"; bei NBV heute 2026-05 → "2025/2026").
+    # FRÜHERE BUGGY-IMPL nutzte `Season.order(name: :desc).where("name ~ '^20[0-9]+/'")`,
+    # die lexikalisch eine Future-Season-Stub wie "2028/2029" pickte → 0 Tournaments,
+    # also nichts zu scrapen (User-Bug-Report 2026-05-26).
+    season_name = args[:season].presence ||
+      Setting.key_get_value(:season_name).presence ||
+      Season.current_season&.name
     raise "no season resolvable (pass :season explicitly)" if season_name.blank?
 
     puts "[clubcloud:scrape_admin_params] region=#{region_abbr} season=#{season_name} context=#{context}"
