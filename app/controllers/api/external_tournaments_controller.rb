@@ -235,7 +235,15 @@ module Api
       end
       # Klassen-Saison = Vorsaison (D-20-03-B / D-19-01-SEASON); Eligibility-Saison bleibt current_season.
       rseason = ExternalTournament::RankingQuery.resolve_season(season_name: params[:season])
-      # age_class/gender (D-20-03-E): DEFERRED -> Params werden ignoriert (Phase 21).
+      # Plan 21-07 (hebt D-20-03-E + D-21-04-DISC-F auf): age_class + gender als optionale
+      # Server-Filter. gender ist enum-artig (M/F/U) → 422 bei ungueltigem Wert (D-21-07-C);
+      # age_class ist freier CategoryCc.name-String → Tippfehler ergibt leeres Array
+      # (D-21-07-E, analog status-Filter in 21-05).
+      age_class = params[:age_class].presence
+      gender = params[:gender].presence
+      if gender && !%w[M F U].include?(gender)
+        return render json: {error: "unknown gender: #{gender} (expected M/F/U)"}, status: :unprocessable_entity
+      end
 
       if params[:club_cc_ids].present?
         cc_ids = params[:club_cc_ids].to_s.split(",").map(&:strip).reject(&:blank?)
@@ -248,7 +256,8 @@ module Api
             {
               club: ExternalTournament::ClubRosterQuery.club_hash(club),
               players: ExternalTournament::ClubRosterQuery.players(region: region, club: club, season: season,
-                discipline: disc, player_class: pclass, ranking_season: rseason)
+                discipline: disc, player_class: pclass, ranking_season: rseason,
+                age_class: age_class, gender: gender)
             }
           end
         }
@@ -267,7 +276,8 @@ module Api
         season: {name: season&.name},
         club: ExternalTournament::ClubRosterQuery.club_hash(club),
         players: ExternalTournament::ClubRosterQuery.players(region: region, club: club, season: season,
-          discipline: disc, player_class: pclass, ranking_season: rseason)
+          discipline: disc, player_class: pclass, ranking_season: rseason,
+          age_class: age_class, gender: gender)
       }
     rescue ActiveRecord::RecordNotFound => e
       render json: {error: e.message}, status: :not_found

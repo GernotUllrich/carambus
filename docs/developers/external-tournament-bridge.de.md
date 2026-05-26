@@ -464,10 +464,35 @@ Response (`200`, Schema `carambus.club_players/v1`):
   "season": { "name": "2025/2026" },
   "club": { "cc_id": 11, "shortname": "BC Wedel", "name": "Billard Club Wedel" },
   "players": [
-    { "cc_id": 4567, "firstname": "Oliver", "lastname": "Weese", "dbu_nr": "12345", "status": "active" }
+    { "cc_id": 4567, "firstname": "Oliver", "lastname": "Weese", "dbu_nr": "12345",
+      "status": "active", "age_class": "Senioren 45-99", "gender": "M" }
   ]
 }
 ```
+
+Felder `age_class` (String oder `null`) und `gender` (`"M"`/`"F"`/`"U"` oder `null`) sind
+ab Plan 21-07 verfügbar — befüllt durch den `PlayerAgeClassGenderHeuristic`-Service aus
+Plan 21-04 (heuristisch abgeleitet aus `category_ccs.min_age`/`sex` der 2 abgeschlossenen
+Vorsaisons-seedings). Schema-Vertrag rückwärts-kompatibel.
+
+#### age_class- und gender-Filter (Plan 21-07)
+
+Optionale Server-Filter (gilt für beide Modi, single + `club_cc_ids`):
+
+```
+GET .../club_players?region=NBV&club_cc_id=11&age_class=Senioren+45-99&gender=M
+```
+
+- **`age_class`** (optional, freier `CategoryCc.name`-String): exakter Match auf
+  `player.age_class`. Tippfehler → leeres Array (kein 422, D-21-07-E — Statuswerte sind
+  freie Kategorie-Namen ohne festes Enum).
+- **`gender`** (optional, enum `M`/`F`/`U`): exakter Match auf `player.gender`.
+  Ungültiger Wert → **422** (D-21-07-C — kanonische Menge aus `CategoryCc::SEX_MAP`).
+- **Quelle:** persistierte Player-Spalten aus Plan 21-04 (heuristisch befüllt für NBV,
+  Coverage Production ~93% gender / ~33% age_class; Spieler ohne qualifizierte seedings
+  haben `null` und entfallen beim Filter).
+- **Kombinierbar:** `age_class=...&gender=M` → UND-Verknüpfung (D-21-07-B + D-21-07-C).
+- Hebt **D-v0.6-AGECLASS / D-20-03-E** auf (Defer aus Plan 20-03).
 
 #### player_class-Filter (Plan 20-03 / F5)
 
@@ -495,8 +520,8 @@ GET .../club_players?region=NBV&club_cc_id=11&discipline=Dreiband+klein&player_c
   (keine STO-Klassifikation hinterlegt).
 - **Behavior-preserving:** ohne `discipline`/`player_class` ist die Antwort unverändert (kein
   `player_class`-Feld).
-- **DEFERRED (D-v0.6-AGECLASS → Phase 21 Folge-Slice):** `age_class`/`gender`-Filter und -Felder
-  sind NICHT verfügbar; solche Params werden ignoriert (kein Fehler).
+- **AUFGEHOBEN (D-v0.6-AGECLASS / D-20-03-E):** `age_class` + `gender` sind ab Plan 21-07
+  als Payload-Felder und als Server-Filter verfügbar — siehe Abschnitt oben.
 
 Erweitertes `players[]`-Beispiel (mit `discipline`):
 ```json
@@ -510,7 +535,7 @@ Erweitertes `players[]`-Beispiel (mit `discipline`):
 |------|-----------|
 | `401` | Kein/ungültiger Bearer-Token |
 | `404` | Region unbekannt ODER `club_cc_id` nicht in der Region ODER `discipline` angegeben aber nicht auflösbar |
-| `422` | `club_cc_id` fehlt (und kein `club_cc_ids`) ODER `player_class` ohne `discipline` ODER `player_class`-Wert nicht in `PLAYER_CLASS_ORDER` (D-21-01-D) |
+| `422` | `club_cc_id` fehlt (und kein `club_cc_ids`) ODER `player_class` ohne `discipline` ODER `player_class`-Wert nicht in `PLAYER_CLASS_ORDER` (D-21-01-D) ODER `gender`-Wert nicht in `M`/`F`/`U` (D-21-07-C) |
 
 ## Spielregel-Parameter beim `start_game` (Plan 18-02)
 
@@ -550,11 +575,17 @@ Response (`200`, Schema `carambus.player_rankings/v1`):
   "discipline": { "name": "Dreiband klein" },
   "players": [
     { "cc_id": 11683, "firstname": "Georg", "lastname": "Nachtmann", "dbu_nr": "…",
-      "rank": 1, "gd": 20.69, "hs": 12, "balls": 600, "innings": 29 }
+      "rank": 1, "gd": 20.69, "hs": 12, "balls": 600, "innings": 29,
+      "age_class": "Senioren 45-99", "gender": "M" }
   ],
   "unranked": ["190204"]
 }
 ```
+
+Felder `age_class` (String oder `null`) und `gender` (`"M"`/`"F"`/`"U"` oder `null`) sind
+ab Plan 21-07 im Payload verfügbar (aus den persistierten Player-Spalten von Plan 21-04).
+**KEIN Server-Filter** (D-21-07-D — Ranking ist disziplin-zentriert; die App filtert
+client-side falls gewünscht). Schema-Vertrag rückwärts-kompatibel.
 
 - **Sortierung:** `rank` aufsteigend, bei Gleichstand `gd` absteigend; je `cc_id` wird das beste
   (kleinste) `rank` dedupliziert.
@@ -969,6 +1000,11 @@ per-Spieler `player_class`-Feld via `PlayerRanking.player_class_id` (Batch, kein
 | D-21-01-A..F | `PlayerClassCalculator` (Plan 21-01 T2): berechnet `PlayerRanking.player_class_id` aus `max(btg)` der 2 abgeschlossenen Vorsaisons → `Discipline::DISCIPLINE_CLASS_LIMITS` (STO-BTK §1.4.1) → `class_from_val`. Pool/Snooker → `nil`. Persistenz auf jüngerer Vorsaison. Echtzeit-Hochspielen/Kipp-Spieler nicht abgebildet (API-Vereinfachung). |
 | D-20-03-E | club_players age_class/gender-Filter/-Felder DEFERRED (D-v0.6-AGECLASS → Phase 21); solche Params werden ignoriert (kein Fehler) |
 | D-21-02-A | categories Disziplin-Scope joint gegen `discipline.root.id` (Branch-Wurzel, STI), nicht gegen die feine Disziplin. Vor Fix `?discipline=Dreiband klein` für NBV: 0 Kategorien; nach Fix: 7 (Live-verifiziert :3008/NBV). Supersedes D-20-02-C-Detail (Scope-Charakter bleibt). |
+| D-21-07-A | Endpoints 6 (club_players) + 7 (player_rankings) liefern `age_class` (String) + `gender` (`M`/`F`/`U`) als zusätzliche Player-Felder im Payload (aus den in Plan 21-04 persistierten Spalten). Schema-Vertrag rückwärts-kompatibel; hebt D-21-04-DISC-F-Defer auf. |
+| D-21-07-B | club_players `age_class`-Filter optional, exakter Match auf freien `CategoryCc.name`-String. Tippfehler ergibt leeres Array (kein 422 / Fuzzy / ILIKE). Hebt D-20-03-E-Defer auf (war: Params werden ignoriert). |
+| D-21-07-C | club_players `gender`-Filter optional, enum-validated `M`/`F`/`U`. Ungültiger Wert → 422. Kanonische Menge aus `CategoryCc::SEX_MAP`. |
+| D-21-07-D | player_rankings KEIN Server-Filter für age_class/gender (Ranking ist disziplin-zentriert; App filtert client-side aus dem Payload falls gewünscht). |
+| D-21-07-E | Sentinel-Filter `?age_class=null` (für "Spieler ohne Wert") DEFERRED; falls die App das braucht, eigener späterer Slice. |
 
 Siehe `.paul/STATE.md` für vollständige Decision-Records.
 

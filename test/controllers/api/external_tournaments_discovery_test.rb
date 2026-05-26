@@ -183,6 +183,62 @@ module Api
       refute body["players"].first.key?("player_class"), "no discipline -> no player_class key"
     end
 
+    # ---------------------------------------------------------------------------
+    # Plan 21-07: Discovery-Endpoint-Exposition age_class + gender
+    # ---------------------------------------------------------------------------
+
+    test "club_players includes age_class + gender in player payload (D-21-07-A)" do
+      @active.update!(age_class: "Senioren 45-99", gender: "M")
+      jwt = login_jwt
+      Season.stub(:current_season, @season) do
+        get "/api/external_tournament/club_players?region=NBV&club_cc_id=180201", headers: auth_headers(jwt)
+      end
+      assert_response :success
+      body = JSON.parse(response.body)
+      player = body["players"].find { |p| p["cc_id"] == 180_211 }
+      assert_equal "Senioren 45-99", player["age_class"]
+      assert_equal "M", player["gender"]
+    end
+
+    test "club_players filter gender=M returns only male players (D-21-07-C)" do
+      @active.update!(gender: "M")
+      # Anderer Active-Player im selben Club mit gender="F"
+      female = mk_player("21-07-F", 180_311, 95_101)
+      female.update!(gender: "F")
+      participate(female, @club, "active")
+
+      jwt = login_jwt
+      Season.stub(:current_season, @season) do
+        get "/api/external_tournament/club_players?region=NBV&club_cc_id=180201&gender=M", headers: auth_headers(jwt)
+      end
+      assert_response :success
+      body = JSON.parse(response.body)
+      ccids = body["players"].map { |p| p["cc_id"] }
+      assert_includes ccids, 180_211, "M-player muss enthalten sein"
+      refute_includes ccids, 180_311, "F-player muss raus gefiltert sein"
+    end
+
+    test "club_players gender=ZZZ returns 422 (D-21-07-C enum-validated)" do
+      jwt = login_jwt
+      Season.stub(:current_season, @season) do
+        get "/api/external_tournament/club_players?region=NBV&club_cc_id=180201&gender=ZZZ", headers: auth_headers(jwt)
+      end
+      assert_response :unprocessable_entity
+      body = JSON.parse(response.body)
+      assert_match(/unknown gender/, body["error"].to_s)
+    end
+
+    test "club_players age_class typo returns empty array (D-21-07-E, no 422)" do
+      @active.update!(age_class: "Senioren 45-99")
+      jwt = login_jwt
+      Season.stub(:current_season, @season) do
+        get "/api/external_tournament/club_players?region=NBV&club_cc_id=180201&age_class=Tippfehler", headers: auth_headers(jwt)
+      end
+      assert_response :success
+      body = JSON.parse(response.body)
+      assert_equal [], body["players"], "Tippfehler-age_class → leeres Array, KEIN 422"
+    end
+
     private
 
     def mk_player(suffix, cc_id, dbu_nr)
