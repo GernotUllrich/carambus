@@ -672,6 +672,13 @@ Response (`200`, Schema `carambus.categories/v1`):
   `branch_ccs.discipline_id`); ohne → region-weite Kategorie-Listen über alle Sparten.
 - **Region-/Disziplin-Scope (D-20-02-C):** `category_ccs` über `context = shortname.downcase`
   (Region) und `branch_ccs.discipline_id` (Sparte).
+- **Disziplin-Scope-Mechanik (D-21-02-A, 2026-05-26, Plan 21-02):** `BranchCc.discipline_id` ist
+  FK auf die Branch-**Wurzel** (STI `Branch < Discipline`), nicht auf die feine Disziplin. Der
+  Query mappt deshalb jede übergebene Disziplin per `discipline.root` auf ihre Branch-Wurzel,
+  bevor sie gegen `branch_ccs.discipline_id` joint. Vor dem Fix lieferte ein Aufruf mit feiner
+  Disziplin (z. B. „Dreiband klein") für NBV **0** Kategorien; danach **7** (Live-verifiziert
+  :3008/NBV 2026-05-26). Supersedes D-20-02-C-Detail — der Scope-Charakter (Region+Sparte) bleibt;
+  korrigiert ist nur die Join-Mechanik. Quelle: `.paul/phases/21-clubcloud-admin-scraping/21-02-PLAN.md`.
 - **Payload (D-20-02-D):** flache Convenience-Listen (`player_classes`/`age_classes`/`genders`)
   **plus** reiches `categories[]` (`{name, sex, min_age, max_age, status}`). **Kein** Status-Filter
   in v1 — `status` wird als Feld mitgeliefert, die App filtert selbst.
@@ -878,6 +885,7 @@ per-Spieler `player_class`-Feld via `PlayerRanking.player_class_id` (Batch, kein
 | D-21-01-D | club_players player_class-Filter = "X **ODER BESSER**" via `Discipline::PLAYER_CLASS_ORDER` (worst→best). STO-Praxis erlaubt Einsatz tieferer Klassen (Einspringen in Rangliste-Reihenfolge). Unbekannter `player_class`-Wert → 422. |
 | D-21-01-A..F | `PlayerClassCalculator` (Plan 21-01 T2): berechnet `PlayerRanking.player_class_id` aus `max(btg)` der 2 abgeschlossenen Vorsaisons → `Discipline::DISCIPLINE_CLASS_LIMITS` (STO-BTK §1.4.1) → `class_from_val`. Pool/Snooker → `nil`. Persistenz auf jüngerer Vorsaison. Echtzeit-Hochspielen/Kipp-Spieler nicht abgebildet (API-Vereinfachung). |
 | D-20-03-E | club_players age_class/gender-Filter/-Felder DEFERRED (D-v0.6-AGECLASS → Phase 21); solche Params werden ignoriert (kein Fehler) |
+| D-21-02-A | categories Disziplin-Scope joint gegen `discipline.root.id` (Branch-Wurzel, STI), nicht gegen die feine Disziplin. Vor Fix `?discipline=Dreiband klein` für NBV: 0 Kategorien; nach Fix: 7 (Live-verifiziert :3008/NBV). Supersedes D-20-02-C-Detail (Scope-Charakter bleibt). |
 
 Siehe `.paul/STATE.md` für vollständige Decision-Records.
 

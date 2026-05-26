@@ -671,6 +671,14 @@ Response (`200`, schema `carambus.categories/v1`):
   `branch_ccs.discipline_id`); without → region-wide category lists across all branches.
 - **Region/discipline scope (D-20-02-C):** `category_ccs` via `context = shortname.downcase`
   (region) and `branch_ccs.discipline_id` (branch/Sparte).
+- **Discipline-scope mechanics (D-21-02-A, 2026-05-26, Plan 21-02):** `BranchCc.discipline_id` is
+  an FK to the branch **root** (STI `Branch < Discipline`), not to the fine discipline. The query
+  therefore maps every incoming discipline through `discipline.root` to its branch root before
+  joining against `branch_ccs.discipline_id`. Before the fix, a call with a fine discipline
+  (e.g. "Dreiband klein") returned **0** categories for NBV; after the fix, **7**
+  (live-verified :3008/NBV 2026-05-26). Supersedes the D-20-02-C detail — the scope character
+  (region+branch) stays; only the join mechanic is corrected. Source:
+  `.paul/phases/21-clubcloud-admin-scraping/21-02-PLAN.md`.
 - **Payload (D-20-02-D):** flat convenience lists (`player_classes`/`age_classes`/`genders`)
   **plus** a rich `categories[]` (`{name, sex, min_age, max_age, status}`). **No** status filter in
   v1 — `status` is delivered as a field, the app filters itself.
@@ -876,6 +884,7 @@ per-player `player_class` field via `PlayerRanking.player_class_id` (batch, no N
 | D-21-01-D | club_players player_class filter = "X **OR BETTER**" via `Discipline::PLAYER_CLASS_ORDER` (worst→best). STO practice allows lower classes to step in (in ranking order). Unknown `player_class` value → 422. |
 | D-21-01-A..F | `PlayerClassCalculator` (Plan 21-01 T2): populates `PlayerRanking.player_class_id` from `max(btg)` of the 2 completed previous seasons → `Discipline::DISCIPLINE_CLASS_LIMITS` (STO-BTK §1.4.1) → `class_from_val`. Pool/Snooker → `nil`. Persistence on the younger previous season. Real-time class-up / borderline players not modeled (API simplification). |
 | D-20-03-E | club_players age_class/gender filters/fields DEFERRED (D-v0.6-AGECLASS → Phase 21); such params are ignored (no error) |
+| D-21-02-A | categories discipline scope joins against `discipline.root.id` (branch root, STI), not against the fine discipline. Before fix `?discipline=Dreiband klein` for NBV: 0 categories; after fix: 7 (live-verified :3008/NBV). Supersedes D-20-02-C detail (scope character stays). |
 
 See `.paul/STATE.md` for full decision records.
 
