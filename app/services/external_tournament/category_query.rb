@@ -58,10 +58,17 @@ module ExternalTournament
     end
 
     # D-20-02-C: Region via context=shortname.downcase; Disziplin via branch_ccs.discipline_id.
+    # D-21-02-A (2026-05-26, Plan 21-02): Mechanik-Korrektur — BranchCc.discipline_id ist FK
+    # auf die Branch-WURZEL (STI: type="Branch"), nicht auf die feine Disziplin. Wir mappen
+    # deshalb jede uebergebene Disziplin per `discipline.root` (discipline.rb:470) auf ihre
+    # Branch-Wurzel. Bei Branch-Records ist `root == self` -> idempotent, daher kein Branch
+    # noetig. Verifiziert NBV/Dreiband klein: vor Fix 0 Kategorien, nach Fix 7. Supersedes
+    # D-20-02-C-Detail (Scope-Charakter bleibt Region+Disziplin; Join-Mechanik korrigiert).
     def self.category_scope(region, disciplines)
       scope = CategoryCc.where(context: region.shortname.downcase)
       return scope if disciplines.empty?
-      scope.joins(:branch_cc).where(branch_ccs: {discipline_id: disciplines.map(&:id)})
+      branch_ids = disciplines.map { |d| d.root.id }.uniq
+      scope.joins(:branch_cc).where(branch_ccs: {discipline_id: branch_ids})
     end
 
     # D-20-02-A: union der discipline.player_classes-Shortnames, sortiert PLAYER_CLASS_ORDER
