@@ -121,6 +121,39 @@ class PlayerAgeClassGenderHeuristicTest < ActiveSupport::TestCase
   end
 
   # ---------------------------------------------------------------------------
+  # Test 5a: SQL-Join-Smoke (Production-Bug-Regression 2026-05-26)
+  # ---------------------------------------------------------------------------
+  # Direct verification dass compute_gender's INNER JOIN gegen `tournaments.date`
+  # (nicht `tournament_start` — das ist auf `tournament_ccs`) funktioniert.
+  # Production-Lauf fiel ursprünglich auf "column t.tournament_start does not exist".
+  # Lehre 3 aus 21-03 angewendet: Tests müssen den SQL-Pfad exercise'n, nicht nur
+  # die pure-function-Logik abdecken.
+  test "compute_gender SQL join references tournaments.date (production-bug regression)" do
+    player = Player.create!(firstname: "JoinTest", lastname: "SqlSmoke",
+      region_id: regions(:nbv).id)
+    tournament = Tournament.create!(
+      title: "SQL Join Test",
+      date: Date.new(2024, 5, 1),
+      season: seasons(:previous),
+      organizer_type: "Region",
+      organizer_id: regions(:nbv).id
+    )
+    Seeding.create!(player_id: player.id, tournament_id: tournament.id,
+      tournament_type: "Tournament", state: "registered")
+
+    # Execute the exact SQL pattern aus compute_gender. Vor Fix: PG::UndefinedColumn.
+    # SQL-Join darf nicht crashen (tournaments hat `date`, nicht `tournament_start`).
+    rows = nil
+    assert_nothing_raised do
+      rows = player.seedings
+        .joins("INNER JOIN tournaments t ON t.id = seedings.tournament_id")
+        .pluck(:id, :tournament_id, "t.date")
+    end
+    assert_equal 1, rows.size
+    refute_nil rows.first[2], "SQL liefert tournament.date (non-nil)"
+  end
+
+  # ---------------------------------------------------------------------------
   # Test 5: dry_run macht keine DB-Writes
   # ---------------------------------------------------------------------------
   test "dry_run: berechnet aber persistiert nicht" do

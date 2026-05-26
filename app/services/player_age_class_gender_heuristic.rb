@@ -155,11 +155,13 @@ class PlayerAgeClassGenderHeuristic < ApplicationService
   end
 
   def compute_gender(seedings, tournament_ids_to_tc, categories)
-    # Lade tournament.tournament_start für die seedings — N+1 vermieden via bulk-pluck.
+    # Lade tournament.date für die seedings — N+1 vermieden via bulk-pluck.
+    # Tournaments hat `date`, nicht `tournament_start` (das liegt auf tournament_ccs).
+    # Production-Bug-Fix 2026-05-26.
     seeding_data = seedings.joins("INNER JOIN tournaments t ON t.id = seedings.tournament_id")
-      .pluck(:id, :tournament_id, "t.tournament_start")
+      .pluck(:id, :tournament_id, "t.date")
 
-    # Sortiere DESC nach tournament_start, tiebreak DESC seeding.id.
+    # Sortiere DESC nach tournament.date (= "jüngste seedings"), tiebreak DESC seeding.id.
     sorted_candidates = seeding_data.sort_by { |sid, _tid, ts| [-(ts&.to_i || 0), -sid] }
       .filter_map do |_sid, tid, _ts|
         cat_id = tournament_ids_to_tc[tid]
