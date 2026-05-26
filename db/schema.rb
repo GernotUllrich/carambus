@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_05_26_162534) do
+ActiveRecord::Schema[7.2].define(version: 2026_05_26_213108) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -752,6 +752,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_05_26_162534) do
     t.boolean "international_player", default: false
     t.integer "umb_player_id"
     t.string "nationality", limit: 2
+    t.string "age_class"
+    t.string "gender"
     t.index ["ba_id"], name: "index_players_on_ba_id", unique: true
     t.index ["club_id"], name: "index_players_on_club_id"
     t.index ["global_context"], name: "index_players_on_global_context"
