@@ -62,6 +62,61 @@ class RegionCc::RegistrationSyncerTest < ActiveSupport::TestCase
   end
 
   # ---------------------------------------------------------------------------
+  # Test 1b: Status-Hardcoded-Bug-Fix (Plan 21-06 T1, D-21-05-F → D-21-06-C)
+  # Persistiert den geparseden status-Wert (Zeile 98) statt hardcoded "Freigegeben".
+  # ---------------------------------------------------------------------------
+  test "persists parsed status value instead of hardcoded 'Freigegeben' (D-21-06-C)" do
+    list_html = <<~HTML
+      <html><body>
+        <select name="meldelisteId">
+          <option value="99999">Test ML mit Gemeldet-Status</option>
+        </select>
+      </body></html>
+    HTML
+
+    # HTML-Detail mit Status-Zelle, die "Gemeldet" liefert (nicht "Freigegeben").
+    # Der Syncer parst tr.css("td")[0].text auf "Status"-Header; tr.css("td")[2].text liefert den Wert.
+    detail_html = <<~HTML
+      <html><body>
+        <table><tr class="tableContent"><td><table>
+          <tr><td>Meldeliste</td><td></td><td>Test ML 21-06</td></tr>
+          <tr><td>Status</td><td></td><td>Gemeldet</td></tr>
+        </table></td></tr></table>
+      </body></html>
+    HTML
+
+    @client.expect(:post, [OpenStruct.new(message: "OK"), Nokogiri::HTML(list_html)],
+      ["showMeldelistenList", Hash, Hash])
+    @client.expect(:post, [OpenStruct.new(message: "OK"), Nokogiri::HTML(detail_html)],
+      ["showMeldeliste", Hash, Hash])
+
+    captured_args = nil
+    registration_list_cc = RegistrationListCc.new
+    registration_list_cc.define_singleton_method(:new_record?) { true }
+    registration_list_cc.define_singleton_method(:update) { |args|
+      captured_args = args
+      true
+    }
+    registration_list_cc.define_singleton_method(:cc_id) { 99_999 }
+
+    RegistrationListCc.stub(:find_or_initialize_by, registration_list_cc) do
+      assert_nothing_raised do
+        RegionCc::RegistrationSyncer.call(
+          region_cc: @region_cc, client: @client,
+          operation: :sync_registration_list_ccs_detail,
+          season: @season, branch_cc: @branch_cc,
+          context: "nbv", update_from_cc: true
+        )
+      end
+    end
+
+    assert_not_nil captured_args, "update muss mit Args aufgerufen worden sein"
+    assert_equal "Gemeldet", captured_args[:status],
+      "Bug-Fix (D-21-06-C): parsed status muss persistiert werden, NICHT hardcoded 'Freigegeben'"
+    @client.verify
+  end
+
+  # ---------------------------------------------------------------------------
   # Test 2: Unbekannte Operation wirft ArgumentError
   # ---------------------------------------------------------------------------
   test "raises ArgumentError for unknown operation" do

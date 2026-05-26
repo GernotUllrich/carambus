@@ -103,8 +103,12 @@ class RegionCc::RegistrationSyncer < ApplicationService
           _, doc = @client.post("releaseMeldeliste",
             {branchId: branch_cc.cc_id, fedId: branch_cc.region_cc.cc_id, season: season.name, meldelisteId: registration_list_cc.cc_id, release: ""}, @opts)
         end
+        # Plan 21-06 T1 (D-21-05-F → D-21-06-C): persistiere den geparseden status-Wert
+        # (Zeile 98), nicht hardcoded "Freigegeben". Vor Fix wurde der geparsede Status
+        # immer ueberschrieben → DB enthielt nur 2 distinkte Werte ("Freigegeben"/NULL)
+        # statt der echten CC-Statuswerte (Gemeldet/Offen/Freigegeben).
         registration_list_cc.update(season_id: season.id, discipline_id: discipline_id, category_cc_id: category_cc_id,
-          context: context, branch_cc_id: branch_cc.id, name: name, status: "Freigegeben", deadline: deadline, qualifying_date: qualifying_date)
+          context: context, branch_cc_id: branch_cc.id, name: name, status: status, deadline: deadline, qualifying_date: qualifying_date)
 
         # Plan 14-G.14 Task 4b: Auto-Wire — finde matching TournamentCc by name+context und triggere API-Push.
         # Idempotent: nur push wenn registration_list_cc_id geändert wurde (Avoidet Push-Storm bei Re-Scraping).
