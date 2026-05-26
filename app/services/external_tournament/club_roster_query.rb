@@ -38,12 +38,18 @@ module ExternalTournament
     # Spielberechtigte (status "active") Spieler des Clubs in der laufenden Saison.
     #
     # Plan 20-03 (F5): optionaler player_class-Filter (Leistungsklasse, disziplin-gebunden).
+    # Plan 21-01 (D-21-01-D): Filter-Semantik = "X ODER BESSER" via PLAYER_CLASS_ORDER
+    #   (worst→best). Ersetzt das urspruengliche "exakt X" (D-20-03-D superseded), weil
+    #   in der STO-Praxis Spieler aus tieferen Klassen einspringen koennen — die App soll
+    #   diese sehen. Ein unbekannter player_class-Wert wird vom Controller mit 422
+    #   abgefangen; hier liefert der Service defensiv ein leeres Set.
+    #
     #   - discipline (Discipline|nil): wenn gesetzt, wird je Spieler die Leistungsklasse aus
     #     PlayerRanking ermittelt + als Feld :player_class mitgeliefert (D-20-03-A).
     #   - ranking_season (Season|nil): Saison fuer die Klassen-Ermittlung (Vorsaison-Default
-    #     wird vom Controller bestimmt, D-20-03-B); season bleibt die Eligibility-Saison (unveraendert).
-    #   - player_class (String|nil): wenn gesetzt, werden nur Spieler mit exakt dieser Klasse
-    #     zurueckgegeben (Spieler ohne passendes Ranking RAUS, D-20-03-D).
+    #     wird vom Controller bestimmt, D-20-03-B); season bleibt die Eligibility-Saison.
+    #   - player_class (String|nil): wenn gesetzt, werden nur Spieler mit Klasse player_class
+    #     ODER BESSER zurueckgegeben (Spieler ohne passendes Ranking RAUS).
     # Ohne discipline ist die Rueckgabe BYTE-IDENTISCH zum bisherigen Verhalten (kein :player_class).
     def self.players(region:, club:, season: current_season, discipline: nil, player_class: nil, ranking_season: nil)
       return [] if club.blank? || season.blank?
@@ -55,8 +61,19 @@ module ExternalTournament
       class_by_player_id = discipline ? player_class_map(region, discipline, ranking_season, participations) : nil
 
       rows = participations.map { |sp| serialize_player(sp, class_by_player_id) }.compact
-      rows = rows.select { |h| h[:player_class] == player_class } if player_class.present?
+      rows = filter_by_class_or_better(rows, player_class) if player_class.present?
       rows.sort_by { |h| [h[:lastname].to_s.downcase, h[:firstname].to_s.downcase] }
+    end
+
+    # D-21-01-D: filtert auf "Klasse X ODER BESSER" via PLAYER_CLASS_ORDER (worst→best).
+    # Spieler ohne Ranking (:player_class nil) sind ausgeschlossen. Unbekannter
+    # player_class-Wert -> leere Liste (Controller faengt 422 ab).
+    def self.filter_by_class_or_better(rows, player_class)
+      order = Discipline::PLAYER_CLASS_ORDER
+      idx = order.index(player_class)
+      return [] if idx.nil?
+      allowed = order[idx..].to_set
+      rows.select { |h| h[:player_class] && allowed.include?(h[:player_class]) }
     end
 
     # D-20-03-A/B: player_id -> player_class-Shortname aus PlayerRanking (player_class_id ->

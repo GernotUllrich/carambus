@@ -479,16 +479,23 @@ GET .../club_players?region=NBV&club_cc_id=11&discipline=Dreiband+klein&player_c
 
 - **`discipline`** (optional): when set, each player gets an additional `player_class` field
   (skill-class shortname for that discipline, `null` if no ranking).
-- **`player_class`** (optional, requires `discipline`): filters to players with exactly this class
-  (players without a matching ranking are dropped).
-- **Source (D-20-03-A):** `PlayerRanking.player_class_id` → `PlayerClass.shortname`,
-  region+discipline-scoped.
+- **`player_class`** (optional, requires `discipline`): filters to players with the given class
+  **or better** (see D-21-01-D below). Players without a matching ranking are dropped.
+  Unknown `player_class` value → `422`.
+- **Source (D-20-03-A + Plan 21-01 T2):** `PlayerRanking.player_class_id` → `PlayerClass.shortname`,
+  region+discipline-scoped. The `PlayerClassCalculator` (Phase 21) populates `player_class_id` from
+  `max(btg)` of the two completed previous seasons → `Discipline::DISCIPLINE_CLASS_LIMITS` →
+  `Discipline#class_from_val` (STO-BTK §1.4.1).
 - **Season (D-20-03-B):** class season = **previous season** (like `player_rankings`/D-19-01-SEASON);
   the **eligibility** season (`status="active"`) stays `current_season` (unchanged, D-18-01-A).
+- **Filter semantics (D-21-01-D, supersedes D-20-03-D):** `player_class=X` returns players with
+  class `X` **OR BETTER** via `Discipline::PLAYER_CLASS_ORDER` (worst→best: `7,6,…,1,I,II,III`).
+  Rationale: STO practice allows players from lower classes to step in (in ranking order); the app
+  should be able to see them. Pool/Snooker return `player_class:null` (no STO classification).
 - **Behavior-preserving:** without `discipline`/`player_class` the response is unchanged (no
   `player_class` field).
-- **DEFERRED (D-v0.6-AGECLASS → Phase 21):** `age_class`/`gender` filters and fields are NOT
-  available; such params are ignored (no error).
+- **DEFERRED (D-v0.6-AGECLASS → Phase 21 follow-up slice):** `age_class`/`gender` filters and
+  fields are NOT available; such params are ignored (no error).
 
 Extended `players[]` example (with `discipline`):
 ```json
@@ -502,7 +509,7 @@ Extended `players[]` example (with `discipline`):
 |------|---------|
 | `401` | Missing/invalid bearer token |
 | `404` | Region unknown OR `club_cc_id` not in the region OR `discipline` given but not resolvable |
-| `422` | `club_cc_id` missing (and no `club_cc_ids`) OR `player_class` without `discipline` |
+| `422` | `club_cc_id` missing (and no `club_cc_ids`) OR `player_class` without `discipline` OR `player_class` value not in `PLAYER_CLASS_ORDER` (D-21-01-D) |
 
 ## Game-rule parameters in `start_game` (Plan 18-02)
 
@@ -865,7 +872,9 @@ per-player `player_class` field via `PlayerRanking.player_class_id` (batch, no N
 | D-20-03-A | club_players player_class source = `PlayerRanking.player_class_id` → `PlayerClass.shortname` (main column, not p_/pp_/tournament_player_class_id) |
 | D-20-03-B | club_players class season = previous season (like player_rankings/D-19-01-SEASON); eligibility season stays `current_season` (D-18-01-A unchanged) |
 | D-20-03-C | club_players `player_class` filter requires `discipline` (else 422); `discipline` unresolvable → 404; without params unchanged (behavior-preserving) |
-| D-20-03-D | club_players player_class filter excludes players without a ranking; `player_class` field = null if no ranking (when discipline given) |
+| D-20-03-D | ~~club_players player_class filter `==` exactly X~~ **SUPERSEDED by D-21-01-D** (filter = "X OR BETTER"). Behavior-preserving (field = null if no ranking) stays. |
+| D-21-01-D | club_players player_class filter = "X **OR BETTER**" via `Discipline::PLAYER_CLASS_ORDER` (worst→best). STO practice allows lower classes to step in (in ranking order). Unknown `player_class` value → 422. |
+| D-21-01-A..F | `PlayerClassCalculator` (Plan 21-01 T2): populates `PlayerRanking.player_class_id` from `max(btg)` of the 2 completed previous seasons → `Discipline::DISCIPLINE_CLASS_LIMITS` (STO-BTK §1.4.1) → `class_from_val`. Pool/Snooker → `nil`. Persistence on the younger previous season. Real-time class-up / borderline players not modeled (API simplification). |
 | D-20-03-E | club_players age_class/gender filters/fields DEFERRED (D-v0.6-AGECLASS → Phase 21); such params are ignored (no error) |
 
 See `.paul/STATE.md` for full decision records.

@@ -228,6 +228,11 @@ module Api
       if pclass && disc.nil?
         return render json: {error: "discipline required for player_class filter"}, status: :unprocessable_entity
       end
+      # Plan 21-01 (D-21-01-D): unbekannte player_class -> 422. PLAYER_CLASS_ORDER ist die
+      # Quelle der gueltigen Klassen-Shortnames (worst→best, TB 7..1 + MB I..III).
+      if pclass && !Discipline::PLAYER_CLASS_ORDER.include?(pclass)
+        return render json: {error: "unknown player_class: #{pclass}"}, status: :unprocessable_entity
+      end
       # Klassen-Saison = Vorsaison (D-20-03-B / D-19-01-SEASON); Eligibility-Saison bleibt current_season.
       rseason = ExternalTournament::RankingQuery.resolve_season(season_name: params[:season])
       # age_class/gender (D-20-03-E): DEFERRED -> Params werden ignoriert (Phase 21).
