@@ -68,9 +68,48 @@ end
 # ============================================================================
 
 # Uncomment if you want to sync regional ClubCloud data daily
+# ⚠️ DEFERRED (D-21-06-F): bleibt auskommentiert wegen Season[16]-Hardcode-Bug in
+# der Implementierung (siehe lib/tasks/scrape.rake — sollte Season.current_season
+# nutzen statt Season[16]). Eigener Fix-Slice im Phase-21-Cluster-Backlog.
 # every 1.day, at: '5:00 am' do
 #   rake "scrape:optimized_daily_update"
 # end
+
+# ============================================================================
+# PHASE 21 CLUBCLOUD-ADMIN-SCRAPING (Plan 21-06 Slice E, D-21-DISC-C + D-21-06-A/B)
+# ============================================================================
+# Cron-Verdrahtung der Phase-21-Cluster-Operations. Alle 4 Jobs laufen mit
+# roles: [:app] = NUR auf carambus_api (Authority-only, D-21-06-A); carambus_gu
+# pullt Daten via existierendem Sync-Layer ([[project_clubcloud_scraping_authority_only]]).
+# NBV-Pilot (D-21-06-D); Multi-Region-Loop = separater Slice.
+
+# Meldeliste-Sync alle 2 Stunden — zeit-sensitiv (Status/Deadline/Qualifying-Date
+# wechseln stuendlich kurz vor Meldeschluss). Quelle: ExternalTournament-App liest
+# dies via Endpoint 16 (Plan 21-05). Hebt die D-v0.6-Datenstand-Caveats auf (Default-
+# Saison-Calls werden befuellt). Plan 21-06 T2 (Rake-Wrapper) + 21-06 T1 (Status-Bug-Fix).
+every 2.hours, roles: [:app] do
+  rake "clubcloud:sync_meldelisten[NBV]"
+end
+
+# TournamentCc-Admin-Parameter (Shot-Clock, points_to_win, best_of_sets,
+# tournament_plan_cc_id) taeglich. Plan 21-03 Slice A.
+every 1.day, at: "4:30 am", roles: [:app] do
+  rake "clubcloud:scrape_admin_params[NBV]"
+end
+
+# PlayerRanking.player_class_id-Berechnung taeglich. Plan 21-01.
+# Quelle: PlayerClassCalculator (max GD aus 2 abgeschlossenen Vorsaisons,
+# STO-BTK §1.4).
+every 1.day, at: "5:30 am", roles: [:app] do
+  rake "player_class:calculate[NBV]"
+end
+
+# Player age_class + gender-Heuristik taeglich. Plan 21-04 Slice C.
+# Quelle: PlayerAgeClassGenderHeuristic (MAX(category_cc.min_age) +
+# juengste seedings.sex).
+every 1.day, at: "6:30 am", roles: [:app] do
+  rake "players:heuristic_age_class_gender[NBV]"
+end
 
 # ============================================================================
 # MAINTENANCE TASKS
