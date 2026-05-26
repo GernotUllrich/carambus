@@ -26,6 +26,7 @@ module ExternalTournament
       PlayerRanking.where(discipline_id: @disc&.id).delete_all
       SeasonParticipation.where(season_id: @season&.id).delete_all
       Player.where("firstname LIKE ?", "Test18-01-%").delete_all
+      Player.where("firstname LIKE ?", "Test21-07-%").delete_all
       PlayerClass.where(discipline_id: @disc&.id).delete_all
       @disc&.destroy
       Club.where(cc_id: [180_101, 180_102]).delete_all
@@ -155,6 +156,73 @@ module ExternalTournament
       rows = ClubRosterQuery.players(region: @nbv, club: @club, season: @season)
       assert_equal [180_221], rows.map { |r| r[:cc_id] }
       refute rows.first.key?(:player_class), "no discipline -> no player_class key (behavior-preserving)"
+    end
+
+    # ---------------------------------------------------------------------------
+    # Plan 21-07: Discovery-Endpoint-Exposition age_class + gender
+    # (Hebt D-21-04-DISC-F + D-20-03-E auf.)
+    # ---------------------------------------------------------------------------
+
+    test "serialize_player includes age_class + gender from persisted player columns (D-21-07-A)" do
+      p1 = make_player("21-07-Senior-M", 180_701, 92_001)
+      p1.update!(age_class: "Senioren 45-99", gender: "M")
+      participate(p1, @club, "active")
+
+      rows = ClubRosterQuery.players(region: @nbv, club: @club, season: @season)
+      row = rows.find { |r| r[:cc_id] == 180_701 }
+      assert_equal "Senioren 45-99", row[:age_class]
+      assert_equal "M", row[:gender]
+    end
+
+    test "players filter by age_class returns only matching (D-21-07-B)" do
+      p_senior = make_player("21-07-S", 180_702, 92_002)
+      p_senior.update!(age_class: "Senioren 45-99", gender: "M")
+      p_damen = make_player("21-07-D", 180_703, 92_003)
+      p_damen.update!(age_class: "Damen", gender: "F")
+      participate(p_senior, @club, "active")
+      participate(p_damen, @club, "active")
+
+      rows = ClubRosterQuery.players(region: @nbv, club: @club, season: @season,
+        age_class: "Senioren 45-99")
+      assert_equal [180_702], rows.map { |r| r[:cc_id] }
+    end
+
+    test "players filter by gender returns only matching (D-21-07-C)" do
+      p_m = make_player("21-07-M", 180_704, 92_004)
+      p_m.update!(gender: "M")
+      p_f = make_player("21-07-F", 180_705, 92_005)
+      p_f.update!(gender: "F")
+      participate(p_m, @club, "active")
+      participate(p_f, @club, "active")
+
+      rows = ClubRosterQuery.players(region: @nbv, club: @club, season: @season, gender: "M")
+      assert_equal [180_704], rows.map { |r| r[:cc_id] }
+    end
+
+    test "players filter combined age_class + gender (D-21-07-B + D-21-07-C)" do
+      p_match = make_player("21-07-Match", 180_706, 92_006)
+      p_match.update!(age_class: "Senioren 45-99", gender: "M")
+      p_age_only = make_player("21-07-AgeOnly", 180_707, 92_007)
+      p_age_only.update!(age_class: "Senioren 45-99", gender: "F")
+      p_gender_only = make_player("21-07-GenderOnly", 180_708, 92_008)
+      p_gender_only.update!(age_class: "Damen", gender: "M")
+      participate(p_match, @club, "active")
+      participate(p_age_only, @club, "active")
+      participate(p_gender_only, @club, "active")
+
+      rows = ClubRosterQuery.players(region: @nbv, club: @club, season: @season,
+        age_class: "Senioren 45-99", gender: "M")
+      assert_equal [180_706], rows.map { |r| r[:cc_id] }
+    end
+
+    test "age_class typo returns empty array (D-21-07-E, analog status-Filter 21-05)" do
+      p_senior = make_player("21-07-Typo", 180_709, 92_009)
+      p_senior.update!(age_class: "Senioren 45-99", gender: "M")
+      participate(p_senior, @club, "active")
+
+      rows = ClubRosterQuery.players(region: @nbv, club: @club, season: @season,
+        age_class: "Tippfehler-existiert-nicht")
+      assert_equal [], rows
     end
   end
 end

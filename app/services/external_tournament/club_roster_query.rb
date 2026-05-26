@@ -51,7 +51,8 @@ module ExternalTournament
     #   - player_class (String|nil): wenn gesetzt, werden nur Spieler mit Klasse player_class
     #     ODER BESSER zurueckgegeben (Spieler ohne passendes Ranking RAUS).
     # Ohne discipline ist die Rueckgabe BYTE-IDENTISCH zum bisherigen Verhalten (kein :player_class).
-    def self.players(region:, club:, season: current_season, discipline: nil, player_class: nil, ranking_season: nil)
+    def self.players(region:, club:, season: current_season, discipline: nil, player_class: nil,
+      ranking_season: nil, age_class: nil, gender: nil)
       return [] if club.blank? || season.blank?
       participations = SeasonParticipation
         .where(season_id: season.id, club_id: club.id, status: ACTIVE)
@@ -62,6 +63,12 @@ module ExternalTournament
 
       rows = participations.map { |sp| serialize_player(sp, class_by_player_id) }.compact
       rows = filter_by_class_or_better(rows, player_class) if player_class.present?
+      # Plan 21-07 (D-21-07-B/C): post-serialize-Filter via Array#select (Roster-Groessen
+      # sind klein, kein DB-Query-Optimization noetig). age_class = exakter Match auf freien
+      # CategoryCc.name-String (Tippfehler -> leeres Array); gender = exakter Match auf M/F/U
+      # (422 macht der Controller).
+      rows = rows.select { |h| h[:age_class] == age_class } if age_class.present?
+      rows = rows.select { |h| h[:gender] == gender } if gender.present?
       rows.sort_by { |h| [h[:lastname].to_s.downcase, h[:firstname].to_s.downcase] }
     end
 
@@ -106,7 +113,11 @@ module ExternalTournament
         firstname: player.firstname,
         lastname: player.lastname,
         dbu_nr: player.dbu_nr&.to_s,
-        status: season_participation.status
+        status: season_participation.status,
+        # Plan 21-07 (D-21-07-A): persistiert in 21-04 via PlayerAgeClassGenderHeuristic;
+        # rueckwaerts-kompatibel (zusaetzliche Felder, bestehender Schema-Vertrag unveraendert).
+        age_class: player.age_class,
+        gender: player.gender
       }
       row[:player_class] = class_by_player_id[player.id] if class_by_player_id
       row

@@ -90,5 +90,17 @@ module ExternalTournament
     test "unbekannte Disziplin -> nil (AC-2: Controller mappt auf 404)" do
       assert_nil RankingQuery.players(region: @nbv, discipline_name: "Gibt-Es-Nicht-XYZ-12345")
     end
+
+    # Plan 21-07 (D-21-07-A): serialize liefert age_class + gender aus den persistierten
+    # Player-Spalten (21-04). KEIN Server-Filter (D-21-07-D — Ranking ist disziplin-zentriert).
+    test "serialize includes age_class + gender from persisted player columns (D-21-07-A)" do
+      @p1.update!(age_class: "Senioren 45-99", gender: "M")
+      rank!(@p1, @season, rank: 1, gd: 9.0)
+      r = RankingQuery.players(region: @nbv, discipline_name: "RankTest-Dreiband",
+        season_name: @season_name)
+      item = r.ranked.first
+      assert_equal "Senioren 45-99", item[:age_class]
+      assert_equal "M", item[:gender]
+    end
   end
 end

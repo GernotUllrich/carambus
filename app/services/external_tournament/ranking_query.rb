@@ -73,8 +73,12 @@ module ExternalTournament
 
     def self.serialize(ranking)
       p = ranking.player
+      # Plan 21-07 (D-21-07-A): age_class + gender als zusaetzliche Payload-Felder
+      # aus den in 21-04 persistierten Player-Spalten; KEIN Server-Filter (D-21-07-D —
+      # Ranking ist disziplin-zentriert, App filtert client-side falls gewuenscht).
       {cc_id: p.cc_id, firstname: p.firstname, lastname: p.lastname, dbu_nr: p.dbu_nr&.to_s,
-       rank: ranking.rank, gd: ranking.gd, hs: ranking.hs, balls: ranking.balls, innings: ranking.innings}
+       rank: ranking.rank, gd: ranking.gd, hs: ranking.hs, balls: ranking.balls, innings: ranking.innings,
+       age_class: p.age_class, gender: p.gender}
     end
   end
 end
