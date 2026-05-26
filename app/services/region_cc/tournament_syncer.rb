@@ -32,6 +32,39 @@ class RegionCc::TournamentSyncer < ApplicationService
 
   private
 
+  # Phase 21-03 T3 follow-up: Session-Recovery für lange Sync-Läufe.
+  #
+  # ClubCloud-PHPSESSID läuft schnell ab (mehrere Sekunden / einige sequentielle
+  # Calls); ohne Recovery bricht ein Multi-Branch-Sync nach den ersten N Calls ab
+  # mit Stub-Response "Sitzung ist ausgelaufen". Existierte als pre-existing
+  # Infrastruktur-Lücke, wurde durch 21-03 (erster Live-Lauf seit Auskommentieren
+  # der Cron) erstmals sichtbar.
+  #
+  # Verhalten: ruft action via @client.send(verb, ...). Erkennt Session-Expired
+  # via input[name="errMsg"] → re-login via Setting.login_to_cc → 1× retry.
+  # Updated @opts[:session_id] für nachfolgende Calls. Behält [response, doc]-
+  # Tuple-Signatur, sodass bestehende Caller (inkl. der line-111-errMsg-Check)
+  # unverändert weiterarbeiten.
+  SESSION_EXPIRED_MARKER = "Sitzung ist ausgelaufen"
+  private_constant :SESSION_EXPIRED_MARKER
+
+  def with_session_recovery(verb, action, params)
+    response, doc = @client.public_send(verb, action, params, @opts)
+    return [response, doc] unless session_expired?(doc)
+
+    Rails.logger.warn "[TournamentSyncer] Session expired during #{verb.upcase} #{action} — re-logging in"
+    new_session_id = Setting.login_to_cc
+    raise "ClubCloud re-login failed (Setting.login_to_cc returned blank)" if new_session_id.blank?
+    @opts[:session_id] = new_session_id
+
+    @client.public_send(verb, action, params, @opts)
+  end
+
+  def session_expired?(doc)
+    err = doc.css('input[name="errMsg"]')[0]&.attr("value").to_s
+    err.include?(SESSION_EXPIRED_MARKER)
+  end
+
   def sync_tournaments
     region = Region.find_by_shortname(@opts[:context].upcase)
     season_name = @opts[:season_name]
@@ -99,15 +132,15 @@ class RegionCc::TournamentSyncer < ApplicationService
     region_cc.branch_ccs.each do |branch_cc|
       next if branch_cc.name == "Pool" || branch_cc.name == "Snooker" # TODO: remove restriction on branch
 
-      _, doc = @client.post("showMeisterschaftenList", {
-                              fedId: region_cc.cc_id,
-                              branchId: branch_cc.cc_id,
-                              disciplinId: "*",
-                              catId: "*",
-                              meisterTypeId: "*",
-                              season: season.name,
-                              t: 1
-                            }, @opts)
+      _, doc = with_session_recovery(:post, "showMeisterschaftenList", {
+        fedId: region_cc.cc_id,
+        branchId: branch_cc.cc_id,
+        disciplinId: "*",
+        catId: "*",
+        meisterTypeId: "*",
+        season: season.name,
+        t: 1
+      })
       if (msg = doc.css('input[name="errMsg"]')[0].andand["value"]).present?
         RegionCc.logger.error msg
         return [[], msg]
@@ -122,7 +155,7 @@ class RegionCc::TournamentSyncer < ApplicationService
           next if tournament_cc.present? && !@opts[:update_from_cc]
 
           tournament_cc = TournamentCc.find_or_initialize_by(cc_id: cc_id)
-          _, doc_cat = @client.get("showMeisterschaft", { p: m[0] }, @opts)
+          _, doc_cat = with_session_recovery(:get, "showMeisterschaft", {p: m[0]})
           lines = doc_cat.css("tr.tableContent > td > table > tr")
           lines.each do |tr|
             if /Meldungen/.match?(tr.css("td")[0].text.strip)

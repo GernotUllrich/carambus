@@ -362,4 +362,69 @@ class RegionCc::TournamentSyncerTest < ActiveSupport::TestCase
     assert_equal 1, plans.count, "idempotency-Verletzung: TournamentPlanCc.find_or_create_by erzeugte #{plans.count} Records statt 1"
     @client.verify
   end
+
+  # ---------------------------------------------------------------------------
+  # Test 8: Session-Recovery — Session-Expired Stub auf erster LIST-POST → re-login
+  # via Setting.login_to_cc → Retry liefert echte Daten → Sync läuft weiter.
+  # ---------------------------------------------------------------------------
+  test "sync_tournament_ccs erholt sich von Session-Expired via Setting.login_to_cc + retry" do
+    expired_html = <<~HTML
+      <html><body><form name='billard'>
+        <input type='hidden' name='errMsg' value='Die Sitzung ist ausgelaufen. Bitte neu anmelden.'>
+      </form></body></html>
+    HTML
+    real_list_html = <<~HTML
+      <html><body>
+        <input name="errMsg" value="">
+        <a class="cc_bluelink" href="showMeisterschaft.php?p=20-10-*-2023/2024-*-*-50004--1&amp;">Sample</a>
+      </body></html>
+    HTML
+    detail_html = <<~HTML
+      <html><body>
+        <tr class="tableContent"><td><table>
+          <tr><td>Meisterschaft</td><td></td><td><strong>Recovered Cup</strong></td></tr>
+          <tr><td>Sätze (Best-of-#)</td><td></td><td><b>3</b></td></tr>
+        </table></td></tr>
+      </body></html>
+    HTML
+
+    branch_cc = BranchCc.new(cc_id: 10, name: "Karambol")
+    branch_cc.define_singleton_method(:id) { 4711 }
+    region_cc_stub = RegionCc.new(cc_id: 20)
+    region_stub = Region.new
+    region_stub.define_singleton_method(:cc_id) { 20 }
+    region_stub.define_singleton_method(:region_cc) { region_cc_stub }
+    region_cc_stub.define_singleton_method(:branch_ccs) { [branch_cc] }
+    season = Season.new(id: 5, name: "2023/2024")
+
+    # 1. POST: liefert expired-stub → Recovery triggert Setting.login_to_cc + 2. POST
+    @client.expect(:post, [OpenStruct.new(message: "OK"), Nokogiri::HTML(expired_html)],
+      ["showMeisterschaftenList", Hash, Hash])
+    @client.expect(:post, [OpenStruct.new(message: "OK"), Nokogiri::HTML(real_list_html)],
+      ["showMeisterschaftenList", Hash, Hash])
+    # 3. GET (Detail) → liefert echte Daten
+    @client.expect(:get, [OpenStruct.new(message: "OK"), Nokogiri::HTML(detail_html)],
+      ["showMeisterschaft", Hash, Hash])
+
+    Region.stub(:find_by_shortname, region_stub) do
+      Season.stub(:find_by_name, season) do
+        Setting.stub(:login_to_cc, "fresh-session-id-after-recovery") do
+          TournamentCc.where(cc_id: 50_004).destroy_all
+          RegionCc::TournamentSyncer.call(
+            region_cc: @region_cc, client: @client,
+            operation: :sync_tournament_ccs,
+            context: "nbv", season_name: "2023/2024",
+            update_from_cc: true,
+            session_id: "stale-session-id"
+          )
+        end
+      end
+    end
+
+    persisted = TournamentCc.find_by(cc_id: 50_004)
+    refute_nil persisted, "Recovery hat nicht weiter-geführt — TournamentCc nicht persistiert"
+    assert_equal "Recovered Cup", persisted.name
+    assert_equal 3, persisted.best_of_sets
+    @client.verify
+  end
 end
