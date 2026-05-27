@@ -212,8 +212,8 @@ namespace :puma do
   end
 end
 
-# Whenever settings
-set :whenever_roles, ->{ [:app, :local] }
+# Whenever settings (Plan 21-09: cap_role via @config, default 'app' for backward-compat)
+set :whenever_roles, ->{ [:<%= @config['cap_role'] || 'app' %>] }
 set :whenever_identifier, ->{ fetch(:basename) }
 set :whenever_variables, -> {
   "'environment=#{fetch(:rails_env, 'production')}&" \

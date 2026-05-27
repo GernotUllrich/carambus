@@ -6,7 +6,7 @@
 #server '192.168.178.48', user: 'www-data', roles: %w{app db web}, ssh_options: {port: "8910"} # carambus gernot local
 #server 'bc-wedel-duckdns.org', user: 'www-data', roles: %w{app db web}, ssh_options: {port: "8910"} # carambus gernot local
 #server 'carambus.de', user: 'www-data', roles: %w{app db web}, ssh_options: {port: "8910"} # carambus global local and api
-server '<%= @config['ssh_host'] %>', user: 'www-data', roles: %w{app db web}, ssh_options: {port: "<%= @config['ssh_port'] %>"} # carambus global
+server '<%= @config['ssh_host'] %>', user: 'www-data', roles: %w{<%= @config['cap_role'] || 'app' %> db web}, ssh_options: {port: "<%= @config['ssh_port'] %>"} # carambus global (Plan 21-09: cap_role via @config, default 'app' for backward-compat)
 
 # Puma auf Port ...
 set :puma_port, "<%= @config['webserver_port'] %>"
