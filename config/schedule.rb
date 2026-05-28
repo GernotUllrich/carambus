@@ -120,13 +120,18 @@ end
 #   + juengste seedings.sex). Plan 21-04 Slice C.
 
 @active_scrape_regions.each do |region|
-  every 2.hours, roles: [:api] do
-    rake "clubcloud:sync_meldelisten[#{region}]"
-  end
-
-  every 1.day, at: "4:30 am", roles: [:api] do
-    rake "clubcloud:scrape_admin_params[#{region}]"
-  end
+  # ⚠️ DEFERRED (Plan 21-13): ClubCloud-V2-UI-Migration entdeckt 2026-05-28.
+  # /admin/<bereich>/<modul>/showXxx.php Pfad-Prefix + <table>-Row-HTML statt
+  # <select>-Options. Adapter-Layer im Code (RegistrationSyncer + TournamentSyncer +
+  # ChampionshipTypeCc) ist defunct, läuft seit unbekannter Zeit silent-failure
+  # (0 Records gefunden, keine DB-Updates). Re-Activation nach Plan-21-13-Apply.
+  # every 2.hours, roles: [:api] do
+  #   rake "clubcloud:sync_meldelisten[#{region}]"
+  # end
+  #
+  # every 1.day, at: "4:30 am", roles: [:api] do
+  #   rake "clubcloud:scrape_admin_params[#{region}]"
+  # end
 
   every 1.day, at: "5:30 am", roles: [:api] do
     rake "player_class:calculate[#{region}]"
