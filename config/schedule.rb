@@ -81,11 +81,13 @@ end
 # REGIONAL/LOCAL SCRAPING (if enabled)
 # ============================================================================
 
-# Uncomment if you want to sync regional ClubCloud data daily
-# ⚠️ DEFERRED (D-21-06-F): bleibt auskommentiert wegen Season[16]-Hardcode-Bug in
-# der Implementierung (siehe lib/tasks/scrape.rake — sollte Season.current_season
-# nutzen statt Season[16]). Eigener Fix-Slice im Phase-21-Cluster-Backlog.
-# every 1.day, at: '5:00 am' do
+# Uncomment if you want to sync regional ClubCloud data daily.
+# ✅ Plan 21-11 T2 (D-21-06-F-Aufhebung): Season[16]-Hardcode-Bug ist GEFIXT in
+# lib/tasks/scrape.rake (jetzt nutzt Season.current_season). Code ist
+# re-aktivier-bar, aber Re-Enable bleibt Operations-Entscheidung — beim Uncommenting:
+# `roles: [:api]` ergänzen (Authority-only, post-21-10 Konvention) und Slot
+# wählen der nicht mit anderen Authority-Crons clasht (z.B. 7:30 AM daily).
+# every 1.day, at: '7:30 am', roles: [:api] do
 #   rake "scrape:optimized_daily_update"
 # end
 
