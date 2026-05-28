@@ -47,76 +47,111 @@ class RegionCc::RegistrationSyncer < ApplicationService
     context = @opts[:context]
     _, doc = @client.post("showMeldelistenList",
       {fedId: @region_cc.cc_id, branchId: branch_cc.cc_id, disciplinId: "*", catId: "*", season: season.name}, @opts)
-    options = doc.css("select[name=\"meldelisteId\"] > option")
-    options.each do |option|
-      cc_id_ml = option["value"].to_i
-      name = option.text.strip
-      status = ""
-      deadline = Date.today
-      qualifying_date = Date.today
-      discipline_id = nil
-      category_cc_id = nil
-      pos_hash = {}
+
+    # Plan 21-13 T3: ClubCloud V2 UI liefert Meldelisten als <table>-Rows
+    # statt <select>-Options. Alle benötigten Felder (Name/Disziplin/Datum1/
+    # Kategorie/Datum2/Status) sind direkt in der Liste enthalten — separater
+    # showMeldeliste-Detail-Call entfällt für basic-sync (deadline/qualifying_date
+    # aus den Cells extrahiert, Discipline/Category-Lookup unverändert).
+    # Format pro Row (7 cells, Browser-Trace 2026-05-28):
+    #   [0] Name | [1] Disziplin | [2] Datum1 (deadline) | [3] Kategorie
+    #   [4] Datum2 (qualifying_date) | [5] Status | [6] Anzeigen-Link mit cc_id
+    rows = extract_meldeliste_rows(doc)
+    rows.each do |row|
+      cc_id_ml = row[:cc_id]
+      next if cc_id_ml.blank? || cc_id_ml < 1
+
       registration_list_cc = RegistrationListCc.find_or_initialize_by(cc_id: cc_id_ml)
-      # if branch_cc.cc_id == 10 && season.name == "2010/2011"
-      #   _, doc_cat = @client.post('deleteMeldeliste', { branchId: 10, fedId: @region_cc.cc_id, season: season.name, meldelisteId: cc_id_ml }, @opts)
-      #   next
-      # end
       next if !registration_list_cc.new_record? && @opts[:update_from_cc].blank?
 
-      _, doc_cat = @client.post("showMeldeliste",
-        {fedId: @region_cc.cc_id, branchId: branch_cc.cc_id, disciplinId: "*", meldelisteId: cc_id_ml, catId: "*", season: season.name}, @opts)
-      lines = doc_cat.css("tr.tableContent > td > table > tr")
+      name = row[:name]
+      # Status: gsub NBSP-prefix entfernen, dann trimmen (D-21-06-C: persistiere
+      # den parsedten Wert, nicht hardcoded "Freigegeben")
+      status = row[:status].to_s.gsub(/^ /, "").strip
+      deadline = parse_german_date(row[:deadline_raw]) || Date.today
+      qualifying_date = parse_german_date(row[:qualifying_date_raw]) || Date.today
+
+      # Discipline-Lookup analog Pre-21-13-Code (Disziplin-Name-Normalisierung)
+      d_name = row[:discipline_text].to_s
+        .gsub("(großes Billard)", "groß")
+        .gsub("(kleines Billard)", "klein")
+        .gsub("5-Kegel", "5 Kegel")
+        .gsub("14/1 endlos", "14.1 endlos")
+        .gsub("15-reds", "Snooker")
+        .gsub("Billard Kegeln", "Billard-Kegeln")
+      discipline_id = Discipline.find_by_name(d_name).andand.id
+
+      # Category-Lookup analog Pre-21-13-Code (`<Name> (range)`-Pattern)
+      category_cc_id = nil
+      if (m = row[:category_text].to_s.match(/(.*) \(\d+-\d+\)/))
+        category_cc_id = CategoryCc.where(context: context, branch_cc_id: branch_cc.id, name: m[1]).first.andand.id
+      end
+
       begin
-        lines.each do |tr|
-          if /Meldungen/.match?(tr.css("td")[0].text.strip)
-            positions = tr.css("td > table > tr")
-            positions.each do |position|
-              pos = position.css("td").andand[0].andand.text.andand.to_i
-              val = position.css("td").andand[1].andand.text
-              pos_hash[pos.to_i] = val if pos.present?
-            end
-          elsif /Meldeliste/.match?(tr.css("td")[0].text.strip)
-            name = tr.css("td")[2].text.strip
-          elsif /Disziplin/.match?(tr.css("td")[0].text.strip)
-            d_name = tr.css("td")[2].text.strip.gsub("(großes Billard)", "groß").gsub("(kleines Billard)", "klein").gsub("5-Kegel", "5 Kegel").gsub("14/1 endlos", "14.1 endlos").gsub("15-reds", "Snooker").gsub(
-              "Billard Kegeln", "Billard-Kegeln"
-            )
-            discipline_id = Discipline.find_by_name(d_name).andand.id
-          elsif /Kategorie/.match?(tr.css("td")[0].text.strip)
-            k_name = tr.css("td")[2].text.strip
-            m = k_name.match(/(.*) \(\d+-\d+\)/)
-            category_cc_id = CategoryCc.where(context: context, branch_cc_id: branch_cc.id, name: m[1]).first.andand.id
-          elsif /Meldeschluss/.match?(tr.css("td")[0].text.strip)
-            deadline = tr.css("td")[2].text.strip
-            deadline = Date.parse(deadline) if /\d\d\.\d\d\.\d\d\d\d/.match?(deadline)
-          elsif /Stichtag/.match?(tr.css("td")[0].text.strip)
-            qualifying_date = tr.css("td")[2].text.strip
-            if m = qualifying_date.match(/(\d\d\.\d\d\.\d\d\d\d).*/)
-              qualifying_date = Date.parse(m[1])
-            end
-          elsif /Status/.match?(tr.css("td")[0].text.strip)
-            status = tr.css("td")[2].text.strip.gsub(/^\u00A0/, "").strip
-          end
-        end
         if @opts[:release] && status != "Freigegeben"
-          _, doc = @client.post("releaseMeldeliste",
-            {branchId: branch_cc.cc_id, fedId: branch_cc.region_cc.cc_id, season: season.name, meldelisteId: registration_list_cc.cc_id, release: ""}, @opts)
+          @client.post("releaseMeldeliste",
+            {branchId: branch_cc.cc_id, fedId: branch_cc.region_cc.cc_id, season: season.name, meldelisteId: cc_id_ml, release: ""}, @opts)
         end
-        # Plan 21-06 T1 (D-21-05-F → D-21-06-C): persistiere den geparseden status-Wert
-        # (Zeile 98), nicht hardcoded "Freigegeben". Vor Fix wurde der geparsede Status
-        # immer ueberschrieben → DB enthielt nur 2 distinkte Werte ("Freigegeben"/NULL)
-        # statt der echten CC-Statuswerte (Gemeldet/Offen/Freigegeben).
+
+        # Persistierung-Logik UNVERÄNDERT (Plan 21-13 Boundary: KEINE Schema-/Persist-Änderungen)
         registration_list_cc.update(season_id: season.id, discipline_id: discipline_id, category_cc_id: category_cc_id,
           context: context, branch_cc_id: branch_cc.id, name: name, status: status, deadline: deadline, qualifying_date: qualifying_date)
 
         # Plan 14-G.14 Task 4b: Auto-Wire — finde matching TournamentCc by name+context und triggere API-Push.
-        # Idempotent: nur push wenn registration_list_cc_id geändert wurde (Avoidet Push-Storm bei Re-Scraping).
+        # Idempotent: nur push wenn registration_list_cc_id geändert wurde.
         link_and_push_if_match(registration_list_cc, context)
       rescue => e
         Rails.logger.error "Error: #{e.message}"
       end
     end
+  end
+
+  # Plan 21-13 T3 Helper: Extract Meldeliste-Rows aus showMeldelistenList-HTML.
+  # ClubCloud V2 UI Heuristik: das Datentabelle ist die letzte <table> mit > 5 Rows
+  # (Browser-Trace 2026-05-28 zeigte 6 Tables; table[5] mit 44 rows = Meldelisten).
+  # Defensive: gibt [] zurück wenn keine passende Tabelle gefunden.
+  def extract_meldeliste_rows(doc)
+    candidate_tables = doc.css("table").select { |t| t.css("tr").length > 5 }
+    data_table = candidate_tables.last
+    return [] unless data_table
+
+    data_table.css("tr").drop(1).filter_map do |tr|
+      cells = tr.css("td")
+      next nil if cells.length < 6  # Row hat keine Daten-Struktur (Trenner/Footer)
+
+      # cc_id aus dem Anzeigen-Link; toleriert verschiedene Query-Param-Namen.
+      anzeigen_link = tr.css('a[href*="showMeldeliste"]').first
+      cc_id = nil
+      if anzeigen_link
+        href = anzeigen_link["href"].to_s
+        if (m = href.match(/[?&]meldelisteId=(\d+)/))
+          cc_id = m[1].to_i
+        elsif (m = href.match(/[?&]id=(\d+)/))
+          cc_id = m[1].to_i
+        end
+      end
+      next nil unless cc_id
+
+      {
+        cc_id: cc_id,
+        name: cells[0].text.strip,
+        discipline_text: cells[1].text.strip,
+        deadline_raw: cells[2].text.strip,
+        category_text: cells[3].text.strip,
+        qualifying_date_raw: cells[4].text.strip,
+        status: cells[5].text.strip
+      }
+    end
+  end
+
+  # Plan 21-13 T3 Helper: defensive German-Date-Parsing.
+  # Akzeptiert "DD.MM.YYYY" überall in einem Text-Snippet; gibt nil bei Parse-Fehler.
+  def parse_german_date(raw)
+    return nil unless raw.is_a?(String)
+    return nil unless (m = raw.match(/(\d\d\.\d\d\.\d\d\d\d)/))
+    Date.parse(m[1])
+  rescue ArgumentError, Date::Error
+    nil
   end
 
   def link_and_push_if_match(registration_list_cc, context)
