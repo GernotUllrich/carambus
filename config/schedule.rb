@@ -12,7 +12,10 @@
 @environment  ||= ENV.fetch("RAILS_ENV", "production")
 @path         ||= "/var/www/carambus_api/current"
 @scenarioname ||= "carambus_api"
-@location_id  ||= "1"
+# Plan 21-11 (Cleanup): @location_id-Default entfernt — wurde nur von der
+# carambus:retrieve_updates-Cron-Line genutzt, die jetzt auch ohne Arg läuft
+# (Task signature `task retrieve_updates: :environment do` akzeptiert keine
+# Rake-Args; Region kommt aus Carambus.config.context).
 
 # Plan 21-08 (Region-Generalisierung): aktive Regionen für Phase-21-Cluster-Cron-Jobs.
 # ENV-driven Operations-Konfig (D-21-08-A/B); Default = NBV → kein Verhaltens-Change
@@ -152,11 +155,13 @@ end
 # LOCAL SERVER TASKS
 # ============================================================================
 
-# Every hour, or any desired interval for local sync tasks
+# Every hour, or any desired interval for local sync tasks.
+# Plan 21-11 (Cleanup): Task akzeptiert keine Rake-Args (`task retrieve_updates:
+# :environment do` ohne args); Region kommt aus Carambus.config.context (z.B. NBV
+# auf carambus_gu via config/carambus.yml). Frühere `[#{@location_id}]`-Param
+# wurde von der Task IGNORIERT (kosmetischer Cleanup, Funktion unverändert).
 every 1.hour, roles: [:local] do
-  # Updates local data from the central API server.
-  # the scenario and location are passed via Capistrano variables.
-  rake "carambus:retrieve_updates[#{@location_id}]"
+  rake "carambus:retrieve_updates"
 end
 
 # Plan 17-05 (Vision N): Mitternachts-Auto-Abbruch für App-getriebene lokale Turniere.
