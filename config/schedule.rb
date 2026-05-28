@@ -14,6 +14,17 @@
 @scenarioname ||= "carambus_api"
 @location_id  ||= "1"
 
+# Plan 21-08 (Region-Generalisierung): aktive Regionen für Phase-21-Cluster-Cron-Jobs.
+# ENV-driven Operations-Konfig (D-21-08-A/B); Default = NBV → kein Verhaltens-Change
+# bei Deploy ohne neuen Setup. Hebt D-21-06-D (NBV-Pilot) auf.
+# Setzen via systemd Environment="ACTIVE_SCRAPE_REGIONS=NBV,BBBV,BVBW" oder ENV-Var.
+# Whitespace + Case werden normalisiert.
+@active_scrape_regions ||= ENV.fetch("ACTIVE_SCRAPE_REGIONS", "NBV")
+                              .split(",")
+                              .map { |r| r.strip.upcase }
+                              .reject(&:empty?)
+                              .freeze
+
 set :output, "log/cron.log"
 set :environment, @environment
 set :path, @path
@@ -76,40 +87,49 @@ end
 # end
 
 # ============================================================================
-# PHASE 21 CLUBCLOUD-ADMIN-SCRAPING (Plan 21-06 Slice E, D-21-DISC-C + D-21-06-A/B)
+# PHASE 21 CLUBCLOUD-ADMIN-SCRAPING (Plan 21-06 Slice E + 21-08 Region-Generalisierung)
 # ============================================================================
-# Cron-Verdrahtung der Phase-21-Cluster-Operations. Alle 4 Jobs laufen mit
+# Cron-Verdrahtung der Phase-21-Cluster-Operations. Alle Jobs laufen mit
 # roles: [:api] = NUR auf carambus_api (Authority-only Sub-Property von :app,
 # D-21-10-G; D-21-06-A überholt durch 21-10 Role-Semantik-Fix); carambus_gu
 # pullt Daten via existierendem Sync-Layer ([[project_clubcloud_scraping_authority_only]]).
-# NBV-Pilot (D-21-06-D); Multi-Region-Loop = separater Slice.
+#
+# Multi-Region (D-21-08-A/B): aktive Regionen aus @active_scrape_regions oben (Default
+# ["NBV"], via ENV ACTIVE_SCRAPE_REGIONS=NBV,BBBV,... erweiterbar).
+# Hebt D-21-06-D (NBV-Pilot) auf — Phase-21-Cluster-Cron ist nicht mehr NBV-only by design.
+# Aktivierung weiterer Regionen: systemd Environment="ACTIVE_SCRAPE_REGIONS=NBV,BBBV,BVBW"
+# + cap production deploy (cron-update via cap-Whenever-Hook).
+#
+# Frequency-Staffelung (D-21-06-B / D-21-08-D): alle Regionen einer Operation teilen
+# denselben Zeitslot (sequentielle Cron-Lines, kein Per-Region-Offset).
+#
+# Per-Operation-Doku:
+# - Meldeliste-Sync 2h: zeit-sensitiv (Status/Deadline/Qualifying-Date wechseln
+#   stuendlich kurz vor Meldeschluss). Quelle: ExternalTournament-App liest dies via
+#   Endpoint 16 (Plan 21-05). Plan 21-06 T2 (Rake-Wrapper) + 21-06 T1 (Status-Bug-Fix).
+# - TournamentCc-Admin-Parameter 04:30: Shot-Clock, points_to_win, best_of_sets,
+#   tournament_plan_cc_id. Plan 21-03 Slice A.
+# - PlayerRanking.player_class_id 05:30: PlayerClassCalculator (max GD aus 2 abgeschl.
+#   Vorsaisons, STO-BTK §1.4). Plan 21-01.
+# - Player age_class + gender 06:30: PlayerAgeClassGenderHeuristic (MAX(category_cc.min_age)
+#   + juengste seedings.sex). Plan 21-04 Slice C.
 
-# Meldeliste-Sync alle 2 Stunden — zeit-sensitiv (Status/Deadline/Qualifying-Date
-# wechseln stuendlich kurz vor Meldeschluss). Quelle: ExternalTournament-App liest
-# dies via Endpoint 16 (Plan 21-05). Hebt die D-v0.6-Datenstand-Caveats auf (Default-
-# Saison-Calls werden befuellt). Plan 21-06 T2 (Rake-Wrapper) + 21-06 T1 (Status-Bug-Fix).
-every 2.hours, roles: [:api] do
-  rake "clubcloud:sync_meldelisten[NBV]"
-end
+@active_scrape_regions.each do |region|
+  every 2.hours, roles: [:api] do
+    rake "clubcloud:sync_meldelisten[#{region}]"
+  end
 
-# TournamentCc-Admin-Parameter (Shot-Clock, points_to_win, best_of_sets,
-# tournament_plan_cc_id) taeglich. Plan 21-03 Slice A.
-every 1.day, at: "4:30 am", roles: [:api] do
-  rake "clubcloud:scrape_admin_params[NBV]"
-end
+  every 1.day, at: "4:30 am", roles: [:api] do
+    rake "clubcloud:scrape_admin_params[#{region}]"
+  end
 
-# PlayerRanking.player_class_id-Berechnung taeglich. Plan 21-01.
-# Quelle: PlayerClassCalculator (max GD aus 2 abgeschlossenen Vorsaisons,
-# STO-BTK §1.4).
-every 1.day, at: "5:30 am", roles: [:api] do
-  rake "player_class:calculate[NBV]"
-end
+  every 1.day, at: "5:30 am", roles: [:api] do
+    rake "player_class:calculate[#{region}]"
+  end
 
-# Player age_class + gender-Heuristik taeglich. Plan 21-04 Slice C.
-# Quelle: PlayerAgeClassGenderHeuristic (MAX(category_cc.min_age) +
-# juengste seedings.sex).
-every 1.day, at: "6:30 am", roles: [:api] do
-  rake "players:heuristic_age_class_gender[NBV]"
+  every 1.day, at: "6:30 am", roles: [:api] do
+    rake "players:heuristic_age_class_gender[#{region}]"
+  end
 end
 
 # ============================================================================
