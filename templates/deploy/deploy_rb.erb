@@ -2,9 +2,8 @@
 lock "3.19.2"
 
 set :application, "<%= @scenario['application_name'] %>"
-set :basename, "<%= @scenario['basename'] %>"
 set :repo_url, "git@github.com:GernotUllrich/#{fetch(:application)}.git"
-set :deploy_to, "/var/www/#{fetch(:basename)}"
+set :deploy_to, -> { "/var/www/#{fetch(:basename)}" }  # Plan 21-10: lambda, :basename set in production.rb (stage-file)
 
 # Default branch is :master
 # ask :branch, `git rev-parse --abbrev-ref HEAD`.chomp
@@ -211,13 +210,3 @@ namespace :puma do
     end
   end
 end
-
-# Whenever settings (Plan 21-09: cap_role via @config, default 'app' for backward-compat)
-set :whenever_roles, ->{ [:<%= @config['cap_role'] || 'app' %>] }
-set :whenever_identifier, ->{ fetch(:basename) }
-set :whenever_variables, -> {
-  "'environment=#{fetch(:rails_env, 'production')}&" \
-  "path=#{fetch(:deploy_to)}/current&" \
-  "scenarioname=#{fetch(:basename)}&" \
-  "location_id=<%= @scenario['location_id'] || '1' %>'"
-}
