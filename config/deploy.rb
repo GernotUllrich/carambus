@@ -1,13 +1,13 @@
 # config valid only for current version of Capistrano
 lock "3.19.2"
 
-set :application, "<%= @scenario['application_name'] %>"
+set :application, "carambus"
 set :repo_url, "git@github.com:GernotUllrich/#{fetch(:application)}.git"
 set :deploy_to, -> { "/var/www/#{fetch(:basename)}" }  # Plan 21-10: lambda, :basename set in production.rb (stage-file)
 
 # Default branch is :master
 # ask :branch, `git rev-parse --abbrev-ref HEAD`.chomp
-set :branch, "<%= @scenario['branch'] %>"
+set :branch, "master"
 
 # Default value for :linked_files is []
 append :linked_files, "config/database.yml", "config/carambus.yml", "config/nginx.conf", "config/puma.rb", "config/environments/production.rb", "config/env.production"

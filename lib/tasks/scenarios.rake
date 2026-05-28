@@ -741,33 +741,14 @@ namespace :scenario do
 
   def generate_deploy_files(scenario_config, env_config, env_dir)
     # Generate deploy files for all environments
-
-    # Generate deploy.rb from template
-    generate_deploy_rb(scenario_config, env_config, env_dir)
+    # Plan 21-10: deploy.rb wird NICHT MEHR generiert (ist tracked-repo-file,
+    # universal content, Variants leben in production.rb stage-file).
 
     # Generate production.rb from template (only for production)
     if File.basename(env_dir) == 'production'
       generate_production_rb(scenario_config, env_config, env_dir)
     end
 
-    true
-  end
-
-  def generate_deploy_rb(scenario_config, env_config, env_dir)
-    template_file = File.join(templates_path, 'deploy', 'deploy_rb.erb')
-    unless File.exist?(template_file)
-      puts "Error: Deploy template not found: #{template_file}"
-      return false
-    end
-
-    template = ERB.new(File.read(template_file))
-    @scenario = scenario_config['scenario']
-    @config = env_config
-    @environment = File.basename(env_dir)
-
-    content = template.result(binding)
-    File.write(File.join(env_dir, 'deploy.rb'), content)
-    puts "   Generated: #{File.join(env_dir, 'deploy.rb')}"
     true
   end
 
