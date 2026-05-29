@@ -188,7 +188,13 @@ class RegionCc::TournamentSyncer < ApplicationService
                 ts_name = tr.css("td")[2].text.gsub(/\u00A0/, "").strip
                 tournament_series_cc = TournamentSeriesCc.where(name: ts_name, branch_cc_id: branch_cc.id,
                                                                 season: season.name).first
-                args.merge!(tournament_series_cc_id: tournament_series_cc.id)
+                # Plan 21-15: andand f\u00FCr nil-safety (analog Pattern Z.194/208/213/219).
+                # Pre-Plan-Spike 2026-05-29 empirisch: cc_id=834/835/836 (Karambol Vorgabepokal/
+                # Grand Prix/NordCup) haben Turnier-Serie-Wert aber kein matching
+                # TournamentSeriesCc-Record in DB \u2192 tournament_series_cc=nil \u2192 alter Code
+                # `nil.id` raised NoMethodError \u2192 silent rescue Z.279 schluckt (production.log
+                # 30\u00D7 Errror-Eintr\u00E4ge in 24h). 7+ Karambol-Records pro Cron-Run untouched.
+                args.merge!(tournament_series_cc_id: tournament_series_cc.andand.id)
               end
             elsif /Disziplin/.match?(tr.css("td")[0].text.strip)
               d_name = tr.css("td")[2].text.strip.gsub("(großes Billard)", "groß").gsub("(kleines Billard)", "klein")
@@ -277,7 +283,8 @@ class RegionCc::TournamentSyncer < ApplicationService
           end
         end
       rescue StandardError => e
-        Rails.logger.error "Errror: #{e} #{e.backtrace.join("\n")}"
+        # Plan 21-15: Typo-Fix "Errror" → "Error" für grep-bare Production-Log-Audit-Trail.
+        Rails.logger.error "Error: #{e} #{e.backtrace.join("\n")}"
       end
     end
   end
