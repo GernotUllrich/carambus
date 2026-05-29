@@ -10,7 +10,7 @@ set :deploy_to, -> { "/var/www/#{fetch(:basename)}" }  # Plan 21-10: lambda, :ba
 set :branch, "master"
 
 # Default value for :linked_files is []
-append :linked_files, "config/database.yml", "config/carambus.yml", "config/nginx.conf", "config/puma.rb", "config/environments/production.rb", "config/env.production"
+append :linked_files, "config/database.yml", "config/cable.yml", "config/carambus.yml", "config/nginx.conf", "config/puma.rb", "config/environments/production.rb", "config/env.production"
 
 # Default value for linked_dirs is []
 append :linked_dirs, "log", "tmp/pids", "tmp/cache", "tmp/sockets", "public/system", "storage", "config/credentials", "bundle"
