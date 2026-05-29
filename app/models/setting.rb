@@ -307,6 +307,9 @@ class Setting < ApplicationRecord
         redirect_follow_res = redirect_http.request(redirect_req)
         Rails.logger.info "Redirect follow response: #{redirect_follow_res.code}"
         
+        # Plan 21-13 T2 (D-21-13-H): Anti-Silent-Failure Sedo-Parking-Detection
+        verify_clubcloud_reachable!(region_cc, session_id)
+
         # Speichere Session-ID nach erfolgreichem Redirect-Follow
         Setting.key_set_value("session_id", session_id)
         Setting.key_set_value("session_login_time", Time.now.to_f.to_s)
@@ -497,10 +500,49 @@ class Setting < ApplicationRecord
       Rails.logger.error "Login response debug info: #{debug_info.inspect}"
       raise "Could not extract session ID from login response. Status: #{login_res.code}, Set-Cookie: #{login_res['set-cookie'] || '(none)'}, All cookies: #{all_cookies.inspect}, Response body length: #{login_res.body.length}"
     end
+
+    # Plan 21-13 T2 (D-21-13-H): Anti-Silent-Failure Sedo-Parking-Detection
+    verify_clubcloud_reachable!(region_cc, session_id)
+
     Setting.key_set_value("session_id", session_id)
     Setting.key_set_value("session_login_time", Time.now.to_f.to_s) # Track login time
     Rails.logger.info "Successfully logged in to ClubCloud, session_id: #{session_id}"
     session_id
+  end
+
+  # Plan 21-13 T2 (D-21-13-H + D-21-13-I): Anti-Silent-Failure-Detection.
+  # ClubCloud kann eine fake-PHPSESSID-Cookie von einer IONOS/Sedo-Domain-
+  # Parking-Page zurückgeben wenn die Tenant-Subdomain abgelaufen/inaktiv
+  # ist. Bisher denkt der Code "Login OK" (HTTP 2xx + Cookie da), alle
+  # Scrape-POSTs landen auf 404-Parking-Pages, der Parser findet 0 Records,
+  # KEIN Fehler. Aufgespürt 2026-05-28 nach Wochen silent-failure.
+  #
+  # Fix: Nach Login-Success zusätzlicher GET auf /admin/verband.php (bekannter
+  # echter Admin-Endpoint). Wenn Response 200 + Body NICHT von Sedo/IONOS
+  # geparkt → echte ClubCloud reachable. Sonst raise mit Hinweis auf
+  # Plan-21-12-Seed-Pattern für base_url-Aktualisierung.
+  def self.verify_clubcloud_reachable!(region_cc, session_id)
+    sanity_uri = URI(region_cc.base_url.chomp("/") + "/admin/verband.php")
+    sanity_http = Net::HTTP.new(sanity_uri.host, sanity_uri.port)
+    sanity_http.use_ssl = true
+    sanity_http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+    sanity_http.read_timeout = 15
+    sanity_http.open_timeout = 10
+
+    sanity_req = Net::HTTP::Get.new(sanity_uri.request_uri)
+    sanity_req["cookie"] = "PHPSESSID=#{session_id}"
+    sanity_req["User-Agent"] = "Mozilla/5.0 (compatible; Carambus/1.0)"
+    sanity_res = sanity_http.request(sanity_req)
+
+    if sanity_res.code != "200"
+      raise "ClubCloud Login succeeded (session_id received) but /admin/verband.php returned HTTP #{sanity_res.code}. base_url may be stale: #{region_cc.base_url}"
+    end
+
+    if sanity_res.body.include?("sedoparking") || sanity_res.body.include?("IONOSParking")
+      raise "ClubCloud Login succeeded but /admin/verband.php is a Domain-Parking-Page (Sedo/IONOS detected). Tenant-Subdomain may have changed; check ClubCloud-Public-Login-Link and update RegionCc[#{region_cc.region&.shortname}].base_url + seed db/seeds/region_cc_base_urls.rb (Plan 21-12 pattern). Current base_url: #{region_cc.base_url}"
+    end
+
+    Rails.logger.info "[Plan 21-13 T2] Sedo-Detection passed for #{region_cc.base_url} — admin/verband.php reachable + real content"
   end
 
   def self.logoff_from_cc
