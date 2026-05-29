@@ -122,6 +122,19 @@ class RegionCc::TournamentSyncer < ApplicationService
     [[], e.to_s]
   end
 
+  # Plan 21-14 Pre-Existing-Bug-Fix (2026-05-29): zwei kritische Layer-5-Bugs
+  # behoben (analog Memory project_cc_id_not_unique für Player):
+  #   (a) TournamentCc.cc_id NICHT global eindeutig (1000+ Dupes empirisch via
+  #       Pre-Plan-Spike /tmp/probe_21_14.rb; 39/39 NBV-Karambol 2025/2026
+  #       Cross-Context-Collisions z.B. cc_id=834 → [bvnr, blmr, nbv, bvbw]) →
+  #       find_or_initialize_by erweitert um context-Scope, dead id-Lookup
+  #       TournamentCc[cc_id] entfernt
+  #   (b) showMeisterschaft Detail-Call nutzte m[0] (Full-Match-String
+  #       "showMeisterschaft.php?p=20-...") statt m[1] (Capture-Group p-Wert
+  #       "20-...") → Mojibake-URL → kein Detail-HTML → args[:name] blank →
+  #       outer guard `args[:name].present?` false → kein Update lief
+  # Atomic-Commit-Disziplin: BEIDE Fixes gemeinsam, weil (b) isoliert Wrong-Context-
+  # Updates triggern würde solange (a) noch context-blind ist.
   def sync_tournament_ccs
     region = Region.find_by_shortname(@opts[:context].upcase)
     season_name = @opts[:season_name]
@@ -151,11 +164,12 @@ class RegionCc::TournamentSyncer < ApplicationService
           cc_id = m[1].split("-")[6].to_i
           args = {}
           pos_hash = {}
-          tournament_cc = TournamentCc[cc_id]
-          next if tournament_cc.present? && !@opts[:update_from_cc]
+          # Plan 21-14: context-aware Lookup (cc_id ist NICHT global eindeutig)
+          tournament_cc = TournamentCc.find_or_initialize_by(cc_id: cc_id, context: @opts[:context])
+          next if tournament_cc.persisted? && !@opts[:update_from_cc]
 
-          tournament_cc = TournamentCc.find_or_initialize_by(cc_id: cc_id)
-          _, doc_cat = with_session_recovery(:get, "showMeisterschaft", {p: m[0]})
+          # Plan 21-14: m[1] = Capture-Group p-Wert (zuvor fälschlich m[0] = Full-Match-String)
+          _, doc_cat = with_session_recovery(:get, "showMeisterschaft", {p: m[1]})
           lines = doc_cat.css("tr.tableContent > td > table > tr")
           lines.each do |tr|
             if /Meldungen/.match?(tr.css("td")[0].text.strip)
