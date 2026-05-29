@@ -128,15 +128,18 @@ end
     rake "clubcloud:sync_meldelisten[#{region}]"
   end
 
-  # ⚠️ DEFERRED zu Slice 21-14: scrape_admin_params läuft cleanly durch Layer 2-4
-  # (HTTP, List-Parser, Detail-Parser, Plan-21-03-Marker), aber Layer 5 (Persistence)
-  # produziert delta=+0 wegen Pre-Existing-Bugs (context-blind cc_id-Lookup analog
-  # Memory 'project_cc_id_not_unique' + args[:name]-Match-Frage in V2-UI). Diese
-  # sind NICHT durch 21-13 verursacht, sondern werden durch die Layer-1+2-Fixes
-  # (Plan 21-12 base_url + 21-13 Sedo-Detection) sichtbar gemacht.
-  # every 1.day, at: "4:30 am", roles: [:api] do
-  #   rake "clubcloud:scrape_admin_params[#{region}]"
-  # end
+  # Plan 21-14 Re-Activation (2026-05-29): scrape_admin_params ist nach Pre-Existing-
+  # Bug-Fixes (a) context-aware cc_id-Lookup `find_or_initialize_by(cc_id:, context:)`
+  # + (b) m[0]→m[1] für showMeisterschaft-Detail-Call wieder produktiv (Commit
+  # 665de0a1). Live-Verify NBV 2025/2026 zeigt delta=+32 (best_of=+32, plan=+32,
+  # plan_records=+1) ohne Cross-Context-Pollution (0 Updates auf bvbw/bvnr/blmr).
+  # Concerns für Slice 21-15 dokumentiert: 7 NBV-Karambol-Records untouched trotz
+  # Pre-Plan-Spike-Befund (cc_id=834/835/836), shot_clock/points_to_win blieben
+  # +0 trotz „60 Minuten"-Werten im HTML — alle 3 Concerns sind Pre-Existing-Edge-
+  # Cases außerhalb 21-14-Scope.
+  every 1.day, at: "4:30 am", roles: [:api] do
+    rake "clubcloud:scrape_admin_params[#{region}]"
+  end
 
   every 1.day, at: "5:30 am", roles: [:api] do
     rake "player_class:calculate[#{region}]"
