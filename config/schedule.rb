@@ -120,15 +120,20 @@ end
 #   + juengste seedings.sex). Plan 21-04 Slice C.
 
 @active_scrape_regions.each do |region|
-  # ⚠️ DEFERRED (Plan 21-13): ClubCloud-V2-UI-Migration entdeckt 2026-05-28.
-  # /admin/<bereich>/<modul>/showXxx.php Pfad-Prefix + <table>-Row-HTML statt
-  # <select>-Options. Adapter-Layer im Code (RegistrationSyncer + TournamentSyncer +
-  # ChampionshipTypeCc) ist defunct, läuft seit unbekannter Zeit silent-failure
-  # (0 Records gefunden, keine DB-Updates). Re-Activation nach Plan-21-13-Apply.
-  # every 2.hours, roles: [:api] do
-  #   rake "clubcloud:sync_meldelisten[#{region}]"
-  # end
-  #
+  # Plan 21-13 T6 Cron-Re-Activation (2026-05-29): RegistrationSyncer ist nach
+  # T2 (Sedo-Detection) + T3 (Cell-Mapping + cc_id-Pipe-Pattern via D-EXEC-A)
+  # live verifiziert (NBV 2025/2026: +68 fresh Records, 2022/2023: +61 historische
+  # Records — Layer-1+2+3 sauber, Status korrekt geparsed via D-21-06-C).
+  every 2.hours, roles: [:api] do
+    rake "clubcloud:sync_meldelisten[#{region}]"
+  end
+
+  # ⚠️ DEFERRED zu Slice 21-14: scrape_admin_params läuft cleanly durch Layer 2-4
+  # (HTTP, List-Parser, Detail-Parser, Plan-21-03-Marker), aber Layer 5 (Persistence)
+  # produziert delta=+0 wegen Pre-Existing-Bugs (context-blind cc_id-Lookup analog
+  # Memory 'project_cc_id_not_unique' + args[:name]-Match-Frage in V2-UI). Diese
+  # sind NICHT durch 21-13 verursacht, sondern werden durch die Layer-1+2-Fixes
+  # (Plan 21-12 base_url + 21-13 Sedo-Detection) sichtbar gemacht.
   # every 1.day, at: "4:30 am", roles: [:api] do
   #   rake "clubcloud:scrape_admin_params[#{region}]"
   # end
