@@ -243,7 +243,11 @@ class RegionCc::TournamentSyncer < ApplicationService
               end
             elsif /^Shot-Clock-Schwellenwert$/.match?(tr.css("td")[0].text.strip)
               # Plan 21-03 T3 / Slice A: "$INT Minuten" in <strong>. 0 = nicht konfiguriert \u2192 NULL.
-              raw = tr.css("td")[2].css("strong").text.strip
+              # Plan 21-16: NBSP-Strip vor Regex (analog Pattern Z.187/188/210/211). ClubCloud-V2-UI
+              # liefert "60\u00a0Minuten" (NBSP zwischen Ziffer und Unit); Ruby-Regex `\s*` matched
+              # \u00a0 NICHT \u2192 Regex-Failure \u2192 Block-Body geskippt \u2192 shot_clock_minutes nie persistiert.
+              # Pre-Plan-Spike 2026-05-29 (cc_id=837): bytes=[54,48,194,160,77,...] empirisch verifiziert.
+              raw = tr.css("td")[2].css("strong").text.gsub(/\u00a0/, "").strip
               if (m = raw.match(/\A(\d+)\s*Minuten/))
                 val = m[1].to_i
                 args.merge!(shot_clock_minutes: val.positive? ? val : nil)
