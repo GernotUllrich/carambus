@@ -107,9 +107,18 @@ class RegionCc::RegistrationSyncer < ApplicationService
   end
 
   # Plan 21-13 T3 Helper: Extract Meldeliste-Rows aus showMeldelistenList-HTML.
-  # ClubCloud V2 UI Heuristik: das Datentabelle ist die letzte <table> mit > 5 Rows
-  # (Browser-Trace 2026-05-28 zeigte 6 Tables; table[5] mit 44 rows = Meldelisten).
+  # ClubCloud V2 UI Heuristik: das Datentabelle ist die letzte <table> mit > 5 Rows.
   # Defensive: gibt [] zurück wenn keine passende Tabelle gefunden.
+  #
+  # Plan 21-13 D-EXEC-A Deviation (2026-05-29 checkpoint:human-verify):
+  # Live-Body-Inspect via /tmp/probe_meldelisten.rb gegen production zeigte zwei
+  # Diskrepanzen zum Browser-Trace 2026-05-28, der dem Plan-CONTEXT D-K zugrunde lag:
+  #   1. Daten-Rows haben 8 Cells, nicht 7. Cell[0] ist Laufnummer (im Trace übersehen).
+  #      Alle Cell-Indizes für Name/Disz/Datum/Kat/Datum/Status verschieben sich um +1.
+  #   2. cc_id-Link sitzt in Cell[1] (Name-Cell) als <a class="cc_bluelink"> und nutzt
+  #      Param `?p=<fed>|<branch>|<disz>|<kat>|<season>|<cc_id>&` (Pipe-separated, letztes
+  #      Segment = cc_id) statt der angenommenen Patterns `meldelisteId=N` / `id=N`.
+  # Defensive Fallback-Patterns (meldelisteId=, id=) bleiben für Mixed-State-Tolerance.
   def extract_meldeliste_rows(doc)
     candidate_tables = doc.css("table").select { |t| t.css("tr").length > 5 }
     data_table = candidate_tables.last
@@ -117,14 +126,17 @@ class RegionCc::RegistrationSyncer < ApplicationService
 
     data_table.css("tr").drop(1).filter_map do |tr|
       cells = tr.css("td")
-      next nil if cells.length < 6  # Row hat keine Daten-Struktur (Trenner/Footer)
+      next nil if cells.length < 8  # Daten-Row hat 8 Cells (Laufnr/Name/Disz/Dl/Kat/Qd/Status/Dashboard)
 
-      # cc_id aus dem Anzeigen-Link; toleriert verschiedene Query-Param-Namen.
-      anzeigen_link = tr.css('a[href*="showMeldeliste"]').first
+      # cc_id aus dem Name-Link in Cell[1]; primär Pipe-Pattern (V2 UI 2026-05-29),
+      # Fallbacks für ältere Patterns.
+      name_link = cells[1].css('a[href*="showMeldeliste.php"]').first
       cc_id = nil
-      if anzeigen_link
-        href = anzeigen_link["href"].to_s
-        if (m = href.match(/[?&]meldelisteId=(\d+)/))
+      if name_link
+        href = name_link["href"].to_s
+        if (m = href.match(/\|(\d+)(?:&|$)/))
+          cc_id = m[1].to_i
+        elsif (m = href.match(/[?&]meldelisteId=(\d+)/))
           cc_id = m[1].to_i
         elsif (m = href.match(/[?&]id=(\d+)/))
           cc_id = m[1].to_i
@@ -132,14 +144,17 @@ class RegionCc::RegistrationSyncer < ApplicationService
       end
       next nil unless cc_id
 
+      # Cell-Mapping (Live-Body 2026-05-29 verifiziert):
+      # [0] Laufnummer | [1] Name+Link | [2] Disziplin | [3] Deadline
+      # [4] Kategorie  | [5] Qualifying-Date | [6] Status | [7] Dashboard-Icon
       {
         cc_id: cc_id,
-        name: cells[0].text.strip,
-        discipline_text: cells[1].text.strip,
-        deadline_raw: cells[2].text.strip,
-        category_text: cells[3].text.strip,
-        qualifying_date_raw: cells[4].text.strip,
-        status: cells[5].text.strip
+        name: cells[1].text.strip,
+        discipline_text: cells[2].text.strip,
+        deadline_raw: cells[3].text.strip,
+        category_text: cells[4].text.strip,
+        qualifying_date_raw: cells[5].text.strip,
+        status: cells[6].text.strip
       }
     end
   end
