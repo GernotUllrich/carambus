@@ -120,10 +120,23 @@ end
 #   + juengste seedings.sex). Plan 21-04 Slice C.
 
 @active_scrape_regions.each do |region|
+  # Plan 21-13 T6 Cron-Re-Activation (2026-05-29): RegistrationSyncer ist nach
+  # T2 (Sedo-Detection) + T3 (Cell-Mapping + cc_id-Pipe-Pattern via D-EXEC-A)
+  # live verifiziert (NBV 2025/2026: +68 fresh Records, 2022/2023: +61 historische
+  # Records — Layer-1+2+3 sauber, Status korrekt geparsed via D-21-06-C).
   every 2.hours, roles: [:api] do
     rake "clubcloud:sync_meldelisten[#{region}]"
   end
 
+  # Plan 21-14 Re-Activation (2026-05-29): scrape_admin_params ist nach Pre-Existing-
+  # Bug-Fixes (a) context-aware cc_id-Lookup `find_or_initialize_by(cc_id:, context:)`
+  # + (b) m[0]→m[1] für showMeisterschaft-Detail-Call wieder produktiv (Commit
+  # 665de0a1). Live-Verify NBV 2025/2026 zeigt delta=+32 (best_of=+32, plan=+32,
+  # plan_records=+1) ohne Cross-Context-Pollution (0 Updates auf bvbw/bvnr/blmr).
+  # Concerns für Slice 21-15 dokumentiert: 7 NBV-Karambol-Records untouched trotz
+  # Pre-Plan-Spike-Befund (cc_id=834/835/836), shot_clock/points_to_win blieben
+  # +0 trotz „60 Minuten"-Werten im HTML — alle 3 Concerns sind Pre-Existing-Edge-
+  # Cases außerhalb 21-14-Scope.
   every 1.day, at: "4:30 am", roles: [:api] do
     rake "clubcloud:scrape_admin_params[#{region}]"
   end
