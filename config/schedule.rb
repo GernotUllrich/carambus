@@ -78,18 +78,25 @@ every :sunday, at: "5:00 am", roles: [:api] do
 end
 
 # ============================================================================
-# REGIONAL/LOCAL SCRAPING (if enabled)
+# REGIONAL/LOCAL SCRAPING (Authority-only, monitored)
 # ============================================================================
 
-# Uncomment if you want to sync regional ClubCloud data daily.
-# ✅ Plan 21-11 T2 (D-21-06-F-Aufhebung): Season[16]-Hardcode-Bug ist GEFIXT in
-# lib/tasks/scrape.rake (jetzt nutzt Season.current_season). Code ist
-# re-aktivier-bar, aber Re-Enable bleibt Operations-Entscheidung — beim Uncommenting:
-# `roles: [:api]` ergänzen (Authority-only, post-21-10 Konvention) und Slot
-# wählen der nicht mit anderen Authority-Crons clasht (z.B. 7:30 AM daily).
-# every 1.day, at: '7:30 am', roles: [:api] do
-#   rake "scrape:optimized_daily_update"
-# end
+# Daily ClubCloud-Pull mit ScrapingMonitor-Instrumentierung
+# (lib/tasks/scrape_monitored.rake):
+#   Region → Locations → Clubs/Players → Tournaments → Leagues
+# Schreibt ScrapingLog-Einträge (Counts + Errors + Duration);
+# `rake scrape:stats` / `scrape:check_health` lesen daraus.
+# Plan 21-11 T2 hat den Season[16]-Hardcode in scrape.rake gefixt → safe to enable.
+#
+# Slot 04:00 daily: Long-Running (bis ~2h). Zeitliche Überlappungen sind gewollt
+# bzw. unkritisch:
+# - 04:00 cuesco:scrape_live: andere Quelle, kein Daten-Konflikt
+# - 04:30/05:30/06:30 Phase-21-Cluster (scrape_admin_params/player_class/heuristic):
+#   arbeitet auf den von daily_update_monitored frisch gepullten Records →
+#   Reihenfolge ist fachlich richtig (erst Datenpull, dann Anreicherung).
+every 1.day, at: "4:00 am", roles: [:api] do
+  rake "scrape:daily_update_monitored"
+end
 
 # ============================================================================
 # PHASE 21 CLUBCLOUD-ADMIN-SCRAPING (Plan 21-06 Slice E + 21-08 Region-Generalisierung)
