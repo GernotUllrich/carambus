@@ -17,7 +17,6 @@ class GroupCc < ApplicationRecord
   include LocalProtector
   belongs_to :branch_cc
   has_many :tournament_cc
-  has_many :registration_list_ccs
 
   NAME_MAPPING = {
     groups: {

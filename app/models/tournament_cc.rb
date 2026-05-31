@@ -42,7 +42,6 @@
 #  group_cc_id               :integer
 #  location_id               :integer
 #  meldeliste_cc_id          :integer
-#  registration_list_cc_id   :integer
 #  tournament_id             :integer
 #  tournament_plan_cc_id     :bigint
 #  tournament_series_cc_id   :integer
@@ -57,7 +56,6 @@ class TournamentCc < ApplicationRecord
   include LocalProtector
   belongs_to :branch_cc, optional: true
   belongs_to :location, optional: true
-  belongs_to :registration_list_cc, optional: true
   belongs_to :discipline, optional: true
   belongs_to :group_cc, optional: true
   belongs_to :championship_type_cc, optional: true

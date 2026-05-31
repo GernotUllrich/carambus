@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_05_31_210925) do
+ActiveRecord::Schema[7.2].define(version: 2026_05_31_214659) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -807,31 +807,6 @@ ActiveRecord::Schema[7.2].define(version: 2026_05_31_210925) do
     t.index ["shortname"], name: "index_regions_on_shortname", unique: true
   end
 
-  create_table "registration_ccs", force: :cascade do |t|
-    t.integer "registration_list_cc_id"
-    t.integer "player_id"
-    t.string "status"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["player_id", "registration_list_cc_id"], name: "index_registration_ccs_on_player_id_and_registration_list_cc_id", unique: true
-  end
-
-  create_table "registration_list_ccs", force: :cascade do |t|
-    t.integer "cc_id"
-    t.string "context"
-    t.string "name"
-    t.integer "branch_cc_id"
-    t.integer "season_id"
-    t.integer "discipline_id"
-    t.integer "category_cc_id"
-    t.datetime "deadline", precision: nil
-    t.datetime "qualifying_date", precision: nil
-    t.text "data"
-    t.string "status"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-  end
-
   create_table "scoreboard_messages", force: :cascade do |t|
     t.integer "table_monitor_id"
     t.integer "location_id", null: false
@@ -1212,7 +1187,6 @@ ActiveRecord::Schema[7.2].define(version: 2026_05_31_210925) do
     t.string "status"
     t.integer "branch_cc_id"
     t.string "season"
-    t.integer "registration_list_cc_id"
     t.integer "registration_rule"
     t.integer "discipline_id"
     t.integer "championship_type_cc_id"

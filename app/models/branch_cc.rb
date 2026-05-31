@@ -20,7 +20,6 @@ class BranchCc < ApplicationRecord
   has_many :competition_ccs
   has_many :game_plan_ccs
   has_many :group_ccs
-  has_many :registration_list_ccs
   belongs_to :discipline
   has_many :discipline_ccs
   belongs_to :region_cc

@@ -304,7 +304,7 @@ class RegionCc < ApplicationRecord
           if tournament.blank?
             raise_err_msg("synchronize_tournament_structure", "no tournament with id #{tournament_id}")
           else
-            RegistrationCc.create_from_ba(tournament, opts)
+            RegionCc::MeldelisteCreator.call(tournament: tournament, **opts)
             branch_cc_ids |= [tournament.discipline.root.branch_cc.cc_id]
           end
         rescue Exception => e
