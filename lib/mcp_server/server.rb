@@ -12,6 +12,37 @@ module McpServer
   class Server
     SERVER_NAME = "carambus_clubcloud"
 
+    # Plan 22-01 T3: Top-Level-Anleitung für LLM-Caller. Wird beim MCP-Initialize-
+    # Handshake an den Client gesendet (MCP-Protokoll-Version >= 2025-03-26).
+    # Zweck: Caller weiß sofort, dass cc_whoami der First-Call sein soll —
+    # eliminates "dumme Rückfragen" wie „Welche cc_id für den Verein?" bei
+    # Regionsmeisterschaften (Wurzel W1 der Halluzinations-Episode 2026-05-31,
+    # siehe Phase 22 CONTEXT.md). Plus DB-first-Hinweis + cc_id-region-Scope-
+    # Warnung als Sicherheits-Anker für die 4 bare-cc_id-Lookups (Memory
+    # project_cc_id_not_unique). Klares Phase-22-Permission-Modell statt
+    # club_cc_id-Allowlist (Memory project_mcp_sportwart_scope_leaky_abstraction).
+    SERVER_INSTRUCTIONS = <<~TXT.strip.freeze
+      Welcome to the Carambus MCP Server.
+
+      Use `cc_whoami` first (or read MCP Resource `context://current`) to learn
+      your full session scope: region, sportwart_locations, sportwart_disciplines,
+      default_season, and which Local-Server scenario you're connected to.
+
+      Data primer:
+      - All global Carambus data (regions, tournaments, players, meldelisten) is
+        mirrored on this Local-Server via sync from the Authority — DB-first is
+        primary; live-CC calls are only for writes or force-refresh.
+      - `cc_id` (ClubCloud-ID) is REGION-SCOPED, not globally unique — context
+        filter required for any cc_id-based lookup.
+      - Tournament entity chain: Tournament (DB) → TournamentCc (CC-Mirror)
+        → RegistrationListCc (Meldeliste-Mirror).
+
+      Permission model (Phase 22+):
+      - Your effective scope is `(sportwart_location_ids, sportwart_discipline_ids,
+        region)` — not Club. Tools verify your scope server-side; you don't need
+        to pass `club_cc_id` for region-wide tournaments.
+    TXT
+
     # Build the server with auto-registered tools and resources.
     # Plans 02..05 add files; this method picks them up via constant enumeration.
     def self.build
@@ -23,6 +54,7 @@ module McpServer
 
       server = MCP::Server.new(
         name: SERVER_NAME,
+        instructions: SERVER_INSTRUCTIONS,
         tools: tools,
         resources: resources
       )

@@ -503,6 +503,45 @@ module McpServer
       def self.cc_cache_reset!
         Thread.current[:cc_cache] = nil
       end
+
+      # Plan 22-01 T3 Foundation: resolved-Echo-Hash für strukturierte Tool-Responses.
+      #
+      # Wird in Phase 22-03 in bestehende Lookup/Register-Tool-Responses integriert
+      # (jedes Tool spiegelt seine aufgelöste Entität explizit zurück), in 22-01 nur
+      # als Helper bereitgestellt + Test.
+      #
+      # Beispiel: { resolved: { tournament_id: 17421, tournament_cc_id: 889,
+      #                         region: "nbv", matched_by: "cc_id", ambiguous: false } }
+      #
+      # Defensive: rescue StandardError → {resolved: nil}; tolerant für nil/unsupported
+      # Entity-Klassen.
+      def self.resolved_echo(entity:, matched_by: nil)
+        case entity
+        when TournamentCc
+          {resolved: {
+            tournament_id: entity.tournament_id,
+            tournament_cc_id: entity.cc_id,
+            region: entity.context,
+            matched_by: matched_by&.to_s,
+            ambiguous: false
+          }}
+        when RegistrationListCc
+          {resolved: {
+            registration_list_id: entity.id,
+            registration_list_cc_id: entity.cc_id,
+            region: entity.context,
+            matched_by: matched_by&.to_s,
+            ambiguous: false
+          }}
+        when nil
+          {resolved: nil}
+        else
+          {resolved: {error: "resolved_echo: unsupported entity class #{entity.class.name}"}}
+        end
+      rescue => e
+        Rails.logger.warn "[BaseTool.resolved_echo] #{e.class}: #{e.message}"
+        {resolved: nil}
+      end
     end
   end
 end
