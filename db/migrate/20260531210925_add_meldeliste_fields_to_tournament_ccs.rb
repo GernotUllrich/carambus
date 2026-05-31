@@ -23,21 +23,41 @@
 #   - add_column nullable, kein DEFAULT, kein NOT NULL → safe
 #   - Backfill via find_each(batch_size: 500) + update_columns → safe
 #   - disable_ddl_transaction! weil Backfill außerhalb DDL-Transaction laufen soll
+#
+# Inline-Mini-Modelle: Production-Deploys bündeln alle Phase-23-Commits. Wenn die
+# T1b-Migration als zweites läuft, ist das echte RegistrationListCc-Model schon
+# aus dem Code entfernt (T1b commit). T1a darf daher nicht auf die Konstante
+# zugreifen — eigene Mini-Klassen mit table_name reichen für den Backfill.
 class AddMeldelisteFieldsToTournamentCcs < ActiveRecord::Migration[7.2]
   disable_ddl_transaction!
+
+  class MigrationTournamentCc < ActiveRecord::Base
+    self.table_name = "tournament_ccs"
+  end
+
+  class MigrationRegistrationListCc < ActiveRecord::Base
+    self.table_name = "registration_list_ccs"
+  end
 
   def up
     add_column :tournament_ccs, :meldeliste_cc_id, :integer unless column_exists?(:tournament_ccs, :meldeliste_cc_id)
     add_column :tournament_ccs, :meldeliste_deadline, :datetime unless column_exists?(:tournament_ccs, :meldeliste_deadline)
     add_column :tournament_ccs, :meldeliste_qualifying_date, :datetime unless column_exists?(:tournament_ccs, :meldeliste_qualifying_date)
 
-    say_with_time "Backfilling meldeliste_* on tournament_ccs from RegistrationListCc" do
-      scope = TournamentCc.where.not(registration_list_cc_id: nil)
+    # Defensive: Skip Backfill wenn die alte Tabelle bereits weg ist (T1b lief schon).
+    unless ActiveRecord::Base.connection.table_exists?("registration_list_ccs")
+      say "Skipping backfill: registration_list_ccs table no longer exists (T1b already ran)."
+      return
+    end
+
+    say_with_time "Backfilling meldeliste_* on tournament_ccs from registration_list_ccs" do
+      MigrationTournamentCc.reset_column_information
+      scope = MigrationTournamentCc.where.not(registration_list_cc_id: nil)
       total = scope.count
       filled = 0
       missing = 0
       scope.find_each(batch_size: 500) do |tcc|
-        rl = RegistrationListCc.find_by(id: tcc.registration_list_cc_id)
+        rl = MigrationRegistrationListCc.find_by(id: tcc.registration_list_cc_id)
         unless rl
           missing += 1
           next
@@ -49,7 +69,7 @@ class AddMeldelisteFieldsToTournamentCcs < ActiveRecord::Migration[7.2]
         )
         filled += 1
       end
-      say "Backfilled #{filled}/#{total} TournamentCc records (#{missing} with stale registration_list_cc_id)."
+      say "Backfilled #{filled}/#{total} tournament_ccs (#{missing} with stale registration_list_cc_id)."
     end
   end
 
