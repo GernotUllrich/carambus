@@ -16,6 +16,8 @@
 #  league_climber_quote      :integer
 #  location_text             :string
 #  max_players               :integer
+#  meldeliste_deadline       :datetime
+#  meldeliste_qualifying_date :datetime
 #  name                      :string
 #  points_to_win             :integer
 #  poster                    :string
@@ -39,6 +41,7 @@
 #  discipline_id             :integer
 #  group_cc_id               :integer
 #  location_id               :integer
+#  meldeliste_cc_id          :integer
 #  registration_list_cc_id   :integer
 #  tournament_id             :integer
 #  tournament_plan_cc_id     :bigint

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_05_26_213108) do
+ActiveRecord::Schema[7.2].define(version: 2026_05_31_210925) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -1243,6 +1243,9 @@ ActiveRecord::Schema[7.2].define(version: 2026_05_26_213108) do
     t.integer "points_to_win"
     t.integer "best_of_sets"
     t.bigint "tournament_plan_cc_id"
+    t.integer "meldeliste_cc_id"
+    t.datetime "meldeliste_deadline"
+    t.datetime "meldeliste_qualifying_date"
     t.index ["cc_id", "context"], name: "index_tournament_ccs_on_cc_id_and_context", unique: true
     t.index ["tournament_id"], name: "index_tournament_ccs_on_tournament_id", unique: true
     t.index ["tournament_plan_cc_id"], name: "index_tournament_ccs_on_tournament_plan_cc_id"
