@@ -474,4 +474,25 @@ class Discipline < ApplicationRecord
   def root
     @root ||= super_discipline.blank? ? self : super_discipline.root
   end
+
+  # Plan 23-01 T4: Discipline-Hierarchie-Chain für transitiven Permission-Check.
+  # Liefert [self, super_discipline, super_super_discipline, ..., root] als Array
+  # von Discipline-Records — alle Vorfahren einschließlich self und root.
+  #
+  # Beispiel: Dreiband-groß[31] → super_discipline=Dreiband[103] → super=Karambol[50]
+  #   Dreiband-groß.root_chain => [Dreiband-groß[31], Dreiband[103], Karambol[50]]
+  #
+  # Verwendung im MCP-Permission-Check:
+  #   tournament.discipline.root_chain.map(&:id) & user.sportwart_disciplines.pluck(:id)
+  # → non-empty array, wenn der User Sportwart für eine der Vorfahren-Disziplinen ist.
+  def root_chain
+    chain = [self]
+    cursor = self
+    while (parent = cursor.super_discipline)
+      break if chain.any? { |d| d.id == parent.id }  # zyklen-defensive
+      chain << parent
+      cursor = parent
+    end
+    chain
+  end
 end

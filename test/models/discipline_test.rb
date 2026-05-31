@@ -433,4 +433,32 @@ class DisciplineTest < ActiveSupport::TestCase
         "#{name} ist nicht in DISCIPLINE_CLASS_LIMITS => leer (STO-BTK ist Karambol-only)"
     end
   end
+
+  # ---------------------------------------------------------------------
+  # Plan 23-01 T4: root_chain für transitiven Permission-Check
+  # ---------------------------------------------------------------------
+
+  test "root_chain liefert self bei root-Discipline (kein super_discipline)" do
+    root = Discipline.create!(name: "T4-Root")
+    chain = root.root_chain
+    assert_equal [root.id], chain.map(&:id)
+  end
+
+  test "root_chain liefert [self, super, ..., root] für 3-stufige Hierarchie" do
+    root = Discipline.create!(name: "T4-Karambol")
+    mid = Discipline.create!(name: "T4-Dreiband", super_discipline: root)
+    leaf = Discipline.create!(name: "T4-Dreiband-groß", super_discipline: mid)
+
+    chain = leaf.root_chain
+    assert_equal [leaf.id, mid.id, root.id], chain.map(&:id),
+      "root_chain muss leaf-first, root-last sein"
+  end
+
+  test "root_chain ist zyklen-defensive (kein Hang bei Self-Reference)" do
+    d = Discipline.create!(name: "T4-Cycle-A")
+    # Forciere zyklische Beziehung: d.super_discipline = d
+    d.update_column(:super_discipline_id, d.id)
+    chain = d.root_chain
+    assert_equal [d.id], chain.map(&:id), "Self-Cycle wird nach erstem Element abgebrochen"
+  end
 end
