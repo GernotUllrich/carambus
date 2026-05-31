@@ -22,14 +22,23 @@ class McpController < ApplicationController
   def dispatch_request
     require "mcp"
     require_relative "../../lib/mcp_server/tool_registry"
+    # Plan 22-01 T2/T3-Mount-Fix: McpServer::Server für SERVER_INSTRUCTIONS-Konstante +
+    # collect_resources + install_central_read_handler-Wiederverwendung.
+    # Pre-22-01 baute dieser Controller MCP::Server "von Hand" und übersprang Resources +
+    # read_handler + instructions; Stdio (bin/mcp-server) ist konsistent über Server.build,
+    # HTTP-Mount hier war historisch ein Skeleton. Jetzt: identische Foundation in beiden Pfaden.
+    require_relative "../../lib/mcp_server/server"
 
     server = MCP::Server.new(
       name: "carambus_clubcloud_mcp",
       title: "Carambus ClubCloud MCP Server",
       version: "0.3.0",
+      instructions: McpServer::Server::SERVER_INSTRUCTIONS,
       tools: McpServer::ToolRegistry.tool_classes_for(current_user),
+      resources: McpServer::Server.collect_resources,
       server_context: build_server_context
     )
+    McpServer::Server.install_central_read_handler(server)
 
     stateless = ActiveModel::Type::Boolean.new.cast(params[:stateless])
     transport = MCP::Server::Transports::StreamableHTTPTransport.new(server, stateless: stateless)
