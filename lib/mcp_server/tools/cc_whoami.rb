@@ -44,11 +44,18 @@ module McpServer
         error("cc_whoami exception: #{e.class.name} (details suppressed; check Rails.logger).")
       end
 
-      # Scenario-Name aus ENV (Capistrano whenever_variables setzt `scenarioname`),
-      # mit Fallback auf SCENARIO_NAME oder Rails-Application-Module-Name.
+      # Scenario-Name. Resolution-Kette (Plan-22-01-Bugfix nach Pre-Apply-Verify):
+      # 1. ENV["scenarioname"] (Capistrano whenever_variables-set für Cron-Jobs)
+      # 2. ENV["SCENARIO_NAME"] (manual override)
+      # 3. Carambus.config.basename (Scenario-Config = die kanonische Quelle —
+      #    carambus_nbv hat basename: "carambus_nbv", carambus_api hat "carambus_api" etc.)
+      # 4. Rails.application.class.module_parent_name.underscore
+      #    (Fallback — liefert "carambus_app" o.ä. weil alle Scenarios dasselbe
+      #    Rails-Application-Modul teilen; NUR als letzter Strohhalm)
       def self.resolve_scenario_name
         ENV["scenarioname"].presence ||
           ENV["SCENARIO_NAME"].presence ||
+          (Carambus.config.basename.presence if Carambus.config.respond_to?(:basename)) ||
           begin
             Rails.application.class.module_parent_name.underscore
           rescue

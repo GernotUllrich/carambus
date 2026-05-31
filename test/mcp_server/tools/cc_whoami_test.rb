@@ -49,6 +49,19 @@ class McpServer::Tools::CcWhoamiTest < ActiveSupport::TestCase
     assert_equal "carambus_fallback", body["scenario_name"]
   end
 
+  test "scenario_name resolution: Carambus.config.basename als 3. Fallback wenn ENV leer" do
+    # Bugfix-Pre-Apply-Verify 2026-05-31: ENV[scenarioname] ist im Puma-Process
+    # NICHT gesetzt (nur in Capistrano-Cron-Context). Carambus.config.basename
+    # ist die kanonische Scenario-Identität (carambus_nbv hat basename: "carambus_nbv").
+    ENV["scenarioname"] = nil
+    ENV["SCENARIO_NAME"] = nil
+    skip "Carambus.config.basename not defined in this test env" unless Carambus.config.respond_to?(:basename) && Carambus.config.basename.present?
+
+    response = McpServer::Tools::CcWhoami.call(server_context: nil)
+    body = JSON.parse(response.content.first[:text])
+    assert_equal Carambus.config.basename, body["scenario_name"]
+  end
+
   test "user-scope: mit server_context und valid user_id liefert user + sportwart_locations" do
     user = begin
       users(:admin)
