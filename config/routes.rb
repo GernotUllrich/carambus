@@ -197,8 +197,6 @@ Rails.application.routes.draw do
       get :synchronize
     end
   end
-  resources :registration_list_ccs
-  resources :registration_ccs
   resources :group_ccs
   resources :championship_type_ccs
   resources :category_ccs
