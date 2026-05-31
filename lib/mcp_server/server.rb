@@ -39,11 +39,13 @@ module McpServer
 
     def self.collect_resources
       # Resources::*.all returns Array<MCP::Resource> (Plans 02-03 implement .all)
+      # Plan 22-01: ContextCurrent added (context://current — Server-Kontext-Snapshot).
       collected = []
       [
         ("McpServer::Resources::WorkflowScenarios" if defined?(McpServer::Resources::WorkflowScenarios)),
         ("McpServer::Resources::WorkflowMeta" if defined?(McpServer::Resources::WorkflowMeta)),
-        ("McpServer::Resources::ApiSurface" if defined?(McpServer::Resources::ApiSurface))
+        ("McpServer::Resources::ApiSurface" if defined?(McpServer::Resources::ApiSurface)),
+        ("McpServer::Resources::ContextCurrent" if defined?(McpServer::Resources::ContextCurrent))
       ].compact.each do |const_name|
         klass = const_name.constantize
         collected.concat(klass.all) if klass.respond_to?(:all)
@@ -78,6 +80,14 @@ module McpServer
           if defined?(McpServer::Resources::ApiSurface)
             result = McpServer::Resources::ApiSurface.read(action: $~[:action])
             content, mime_type = normalize_resource_result(result, default_mime: "text/markdown")
+            [{uri: uri, mimeType: mime_type, text: content}]
+          end
+        when %r{\Acontext://current\z}
+          # Plan 22-01: Server-Kontext-Snapshot (minimal-Form, ohne user-scope).
+          # Für user-scope-Felder (sportwart_locations/disciplines) cc_whoami-Tool nutzen.
+          if defined?(McpServer::Resources::ContextCurrent)
+            result = McpServer::Resources::ContextCurrent.read(uri: uri)
+            content, mime_type = normalize_resource_result(result, default_mime: "application/json")
             [{uri: uri, mimeType: mime_type, text: content}]
           end
         else
