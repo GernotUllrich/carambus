@@ -72,11 +72,6 @@ Rails.application.routes.draw do
       end
     end
 
-    # Plan 14-G.14: Regional→API meldeliste_cc_id-Link-Push (devise-jwt-authentifiziert)
-    patch "tournament_ccs/:id/registration_list_link",
-          to: "tournament_ccs#link_registration_list",
-          as: :tournament_cc_registration_list_link
-
     # Plan 15-02: External-Tournament-Bridge Seeding-Endpoint (devise-jwt-authentifiziert)
     # D-15-01-A: Service-Account-Pattern analog G.14 (2band-{region}-bridge@carambus.de).
     get "external_tournament/seeding",
