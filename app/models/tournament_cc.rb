@@ -174,20 +174,6 @@ class TournamentCc < ApplicationRecord
   def self.create_from_ba(tournament, opts)
     region = tournament.organizer
     region_cc = region.region_cc
-    registration_list_ccs = RegistrationListCc.where(
-      name: tournament.title,
-      context: region.shortname.downcase,
-      discipline_id: tournament.discipline_id,
-      season_id: tournament.season_id
-    )
-    registration_list_cc = nil
-    if registration_list_ccs.count == 1
-      registration_list_cc = registration_list_ccs.first
-    elsif registration_list_ccs.count > 1
-      Rails.logger.info "Error: Ambiguity Problem"
-    else
-      Rails.logger.info "Error: No RegistrationList for Tournament"
-    end
     type_found = nil
     branch_cc = tournament.discipline.root.branch_cc
     begin
@@ -202,7 +188,8 @@ class TournamentCc < ApplicationRecord
       return
     end
     tournament_cc = TournamentCc.where(name: tournament.title, discipline_id: tournament.discipline_id,
-                                       branch_cc_id: branch_cc.id, season: opts[:season_name]).first
+      branch_cc_id: branch_cc.id, season: opts[:season_name]).first
+    # Plan 23-01 T3e: meldeListId liest direkt aus TCc.meldeliste_cc_id (war RL-Lookup).
     begin
       args = {
         fedId: region.cc_id,
@@ -210,7 +197,7 @@ class TournamentCc < ApplicationRecord
         season: opts[:season_name],
         meisterName: tournament.title,
         meisterShortName: tournament.shortname.presence || "NDM",
-        meldeListId: registration_list_cc&.cc_id,
+        meldeListId: tournament_cc&.meldeliste_cc_id,
         mr: 1,
         meisterTypeId: type_found.to_s,
         groupId: 10,

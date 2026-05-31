@@ -391,20 +391,7 @@ class RegionCc::TournamentSyncer < ApplicationService
       tournament_cc = TournamentCc.find_by(tournament_id: tournament.id)
       if tournament_cc.present?
         branch_cc = tournament.discipline.root.branch_cc
-        registration_list_ccs = RegistrationListCc.where(
-          name: tournament.title,
-          context: @region_cc.region.shortname.downcase,
-          discipline_id: tournament.discipline_id,
-          season_id: tournament.season_id
-        )
-        registration_list_cc = nil
-        if registration_list_ccs.count == 1
-          registration_list_cc = registration_list_ccs.first
-        elsif registration_list_ccs.count > 1
-          Rails.logger.info "Error: Ambiguity Problem"
-        else
-          Rails.logger.info "Error: No RegistrationList for Tournament"
-        end
+        # Plan 23-01 T3e: meldeliste_cc_id lebt direkt auf TCc (war RL-Lookup).
         type_found = nil
         begin
           TournamentCc::TYPE_MAP_REV[branch_cc.cc_id].keys.each do |type_name|
@@ -438,7 +425,7 @@ class RegionCc::TournamentSyncer < ApplicationService
           firstEntry: 1,
           meisterName: tournament.title,
           meisterShortName: tournament.shortname.presence || tournament.title,
-          meldeListId: registration_list_cc.cc_id,
+          meldeListId: tournament_cc.meldeliste_cc_id,
           mr: 1,
           meisterTypeId: type_found.to_s,
           groupId: 10, # NBV History is good for all

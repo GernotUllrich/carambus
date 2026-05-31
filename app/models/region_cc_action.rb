@@ -69,8 +69,6 @@ class RegionCcAction
       ChampionshipTypeCc.where("id > 50000000").delete_all
       CategoryCc.where("id > 50000000").delete_all
       GroupCc.where("id > 50000000").delete_all
-      RegistrationListCc.where("id > 50000000").delete_all
-      RegistrationCc.where("id > 50000000").delete_all
       TournamentCc.where("id > 50000000").delete_all
 
     else
@@ -88,8 +86,6 @@ SeasonCc[#{SeasonCc.where("id > 50000000").ids}]
 ChampionshipTypeCc[#{ChampionshipTypeCc.where("id > 50000000").ids}]
 CategoryCc[#{CategoryCc.where("id > 50000000").ids}]
 GroupCc[#{GroupCc.where("id > 50000000").ids}]
-RegistrationListCc[#{RegistrationListCc.where("id > 50000000").ids}]
-RegistrationCc[#{RegistrationCc.where("id > 50000000").ids}]
 TournamentCc[#{TournamentCc.where("id > 50000000").ids}]
 "
     end

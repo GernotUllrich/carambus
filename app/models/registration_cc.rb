@@ -23,13 +23,8 @@ class RegistrationCc < ApplicationRecord
   def self.create_from_ba(tournament, opts)
     region = tournament.organizer
     region_cc = region.region_cc
-    registration_list_cc = RegistrationListCc.where(
-      name: tournament.title,
-      context: region.shortname.downcase,
-      discipline_id: tournament.discipline_id,
-      season_id: tournament.season_id
-    ).first
-    registration_list_cc.destroy if registration_list_cc.present?
+    # Plan 23-01 T3e: kein RL-Pre-Cleanup mehr — RL ist Tabellen-frei nach T1b.
+    # Diese Methode triggert CC-seitig createMeldelisteSave; keine DB-Writes.
     branch_cc_id = tournament.discipline.andand.root.andand.branch_cc.andand.cc_id
     cat_scope = "Unisex"
     cat_scope = "Damen" if /Damen/.match?(tournament.title)
