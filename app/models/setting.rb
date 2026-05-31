@@ -226,8 +226,12 @@ class Setting < ApplicationRecord
     
     login_req = Net::HTTP::Post.new(login_uri.request_uri)
     login_req["Content-Type"] = "application/x-www-form-urlencoded"
-    login_req["referer"] = login_url  # Referer sollte auf checkUser.php zeigen
-    login_req["User-Agent"] = "Mozilla/5.0 (compatible; Carambus/1.0)"
+    # Plan 23-01 T5: Browser-Probe (NBV cloud-subdomain 2026-05-31) ergab:
+    # - Referer = Root-URL (mit trailing /), NICHT der Login-Endpoint-Pfad.
+    # - User-Agent = realistischer Browser-UA (alte Carambus/1.0-UA lieferte 404).
+    # Mit beidem geändert geht der POST auf 200 statt 404.
+    login_req["referer"] = region_cc.base_url.sub(%r{/?$}, "/")
+    login_req["User-Agent"] = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36"
     login_req["Origin"] = region_cc.base_url.chomp("/")
     login_req["Accept"] = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
     login_req["Accept-Language"] = "de-DE,de;q=0.9,en-US;q=0.8,en;q=0.7"
