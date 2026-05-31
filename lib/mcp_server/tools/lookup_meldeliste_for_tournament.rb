@@ -248,19 +248,17 @@ module McpServer
         error("Tool exception: #{e.class.name} (details suppressed; check Rails.logger on stderr).")
       end
 
-      # DB-first Lookup via TournamentCc → registration_list_cc-Beziehung.
-      # Defensiv: rescue StandardError für fehlende Models / fehlende Records / nil-Werte.
+      # DB-first Lookup via TournamentCc.meldeliste_cc_id (Plan 23-01 T3d).
+      # Vorher: belongs_to :registration_list_cc → cc_id; neu: direkter Feldzugriff.
+      # Defensiv: rescue StandardError für fehlende Records / nil-Werte.
       def self.fetch_from_db(tournament_cc_id)
         tcc = TournamentCc.find_by(cc_id: tournament_cc_id)
         return [] unless tcc
-
-        # Erste Quelle: belongs_to :registration_list_cc (1:1)
-        rl = tcc.registration_list_cc
-        return [] unless rl
+        return [] if tcc.meldeliste_cc_id.blank?
 
         [{
-          meldeliste_cc_id: rl.cc_id,
-          name: (rl.respond_to?(:name) ? rl.name : nil) || "Meldeliste #{rl.cc_id}",
+          meldeliste_cc_id: tcc.meldeliste_cc_id,
+          name: tcc.name || "Meldeliste #{tcc.meldeliste_cc_id}",
           source: "db"
         }]
       rescue => e

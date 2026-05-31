@@ -32,13 +32,12 @@ module McpServer
 
         return live_lookup(fed_id: fed_id, meldeliste_id: meldeliste_id, server_context: server_context) if force_refresh
 
-        # DB-first: look up Tournament → TournamentCc → RegistrationListCc mirror
+        # DB-first: look up via TournamentCc.meldeliste_cc_id (Plan 23-01 T3d).
+        # Vorher: RegistrationListCc.find_by(cc_id:) → tournament_cc-Beziehung.
         tournament_cc = if tournament_id.present?
           TournamentCc.find_by(tournament_id: tournament_id)
         else
-          # meldeliste_id given — look for a TournamentCc with this registration_list_cc_id
-          registration_cc = RegistrationListCc.find_by(cc_id: meldeliste_id) if defined?(RegistrationListCc)
-          registration_cc&.tournament_cc
+          TournamentCc.find_by(meldeliste_cc_id: meldeliste_id)
         end
 
         if tournament_id.present? && tournament_cc.nil?
@@ -77,7 +76,7 @@ module McpServer
           name: tournament_cc.name,
           status: tournament_cc.status,
           season: tournament_cc.season,
-          meldeliste_cc_id: tournament_cc.registration_list_cc_id,
+          meldeliste_cc_id: tournament_cc.meldeliste_cc_id,
           context: tournament_cc.context
         )
       end

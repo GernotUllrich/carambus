@@ -380,20 +380,16 @@ module McpServer
       end
 
       # Plan 14-G.4 / F5-A: Tournament-Resolver für Authority-Integration in Write-Tools.
-      # Sucht Tournament-Record via RegistrationListCc-Chain (wenn meldeliste_cc_id gegeben;
-      # die "Meldeliste" in CC entspricht RegistrationListCc in Carambus-DB)
-      # ODER TournamentCc-Chain (wenn tournament_cc_id gegeben).
+      # Sucht Tournament-Record via TournamentCc — entweder über meldeliste_cc_id
+      # (TCc-Feld seit Plan 23-01 T1a) oder tournament_cc_id direkt.
       # Defensiv: returnt nil bei unauflöslichen Inputs (kein Crash).
       def self.resolve_tournament(meldeliste_cc_id: nil, tournament_cc_id: nil, server_context: nil)
         context = effective_cc_region(server_context).to_s.downcase
         return nil if context.blank?
 
         if meldeliste_cc_id.present?
-          rlc = RegistrationListCc.find_by(cc_id: meldeliste_cc_id.to_i, context: context)
-          if rlc
-            tcc = TournamentCc.find_by(registration_list_cc_id: rlc.id, context: context)
-            return tcc.tournament if tcc&.tournament
-          end
+          tcc = TournamentCc.find_by(meldeliste_cc_id: meldeliste_cc_id.to_i, context: context)
+          return tcc.tournament if tcc&.tournament
         end
 
         if tournament_cc_id.present?
@@ -521,14 +517,7 @@ module McpServer
           {resolved: {
             tournament_id: entity.tournament_id,
             tournament_cc_id: entity.cc_id,
-            region: entity.context,
-            matched_by: matched_by&.to_s,
-            ambiguous: false
-          }}
-        when RegistrationListCc
-          {resolved: {
-            registration_list_id: entity.id,
-            registration_list_cc_id: entity.cc_id,
+            meldeliste_cc_id: entity.meldeliste_cc_id,
             region: entity.context,
             matched_by: matched_by&.to_s,
             ambiguous: false

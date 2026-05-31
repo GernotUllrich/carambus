@@ -193,9 +193,9 @@ module McpServer
       # Liest bereits-angemeldete Player-cc_ids via showCommittedMeldeliste.
       # Defensives Pattern (analog Phase-2 force_refresh): Sync-/Parse-Fehler erzeugen
       # nil + meta-Warnung statt Exception. meldeliste_cc_id-Auflösung primär aus
-      # tournament_cc.registration_list_cc; Override-Param erlaubt Fallback.
+      # tournament_cc.meldeliste_cc_id (Plan 23-01 T3d); Override-Param erlaubt Fallback.
       def self.read_committed_players(tournament_cc:, meldeliste_cc_id_override:, fed_id:, meta:, server_context: nil)
-        meldeliste_cc_id = meldeliste_cc_id_override.presence || tournament_cc.registration_list_cc&.cc_id
+        meldeliste_cc_id = meldeliste_cc_id_override.presence || tournament_cc.meldeliste_cc_id
         if meldeliste_cc_id.blank?
           # Plan 14-02.3 / F-6: Sportwart-Vokabular.
           meta[:committed_list_warning] = "Daten-Lücke: Das Turnier ist in Carambus, aber die Meldeliste-Verknüpfung fehlt. Bitte LSW informieren — oder meldeliste_cc_id direkt setzen (Override-Parameter)."
