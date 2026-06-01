@@ -147,4 +147,120 @@ class McpServer::CcSessionTest < ActiveSupport::TestCase
       McpServer::CcSession.singleton_class.send(:remove_method, :_orig_region_cc_base_url)
     end
   end
+
+  # ---------------------------------------------------------------------
+  # Plan 24-01 T2: Auto-Logout-Erkennung + with_session_recovery
+  # ---------------------------------------------------------------------
+  # Fixtures aus heutiger Live-Capture (curl gegen LSW-Endpoint mit stale-SID):
+  # test/fixtures/cc/auto_logout_stub.html (499 bytes, HTTP 200 mit goOut()+sessionLogout).
+
+  def auto_logout_fixture_body
+    File.read(Rails.root.join("test/fixtures/cc/auto_logout_stub.html"))
+  end
+
+  test "session_expired?: erkennt Auto-Logout-Stub aus live-Fixture (onLoad goOut + sessionLogout)" do
+    assert McpServer::CcSession.session_expired?(auto_logout_fixture_body),
+      "Auto-Logout-Fixture muss als expired erkannt werden"
+  end
+
+  test "session_expired?: erkennt onLoad='goOut()' isoliert" do
+    body = "<html><body onLoad='goOut()'>x</body></html>"
+    assert McpServer::CcSession.session_expired?(body)
+  end
+
+  test "session_expired?: erkennt sessionLogout/index2.php-Form-Action isoliert" do
+    body = %(<form action='../../../phpUtilities/sessionLogout/index2.php'></form>)
+    assert McpServer::CcSession.session_expired?(body)
+  end
+
+  test "session_expired?: false bei normaler HTML-Response" do
+    refute McpServer::CcSession.session_expired?("<html><body><table>data</table></body></html>")
+  end
+
+  test "session_expired?: false bei nil/blank (defensive)" do
+    refute McpServer::CcSession.session_expired?(nil)
+    refute McpServer::CcSession.session_expired?("")
+  end
+
+  test "session_expired?: akzeptiert Net::HTTPResponse-like Objekt mit .body" do
+    stub_resp = Struct.new(:body, :code).new(auto_logout_fixture_body, "200")
+    assert McpServer::CcSession.session_expired?(stub_resp)
+  end
+
+  test "session_expired?: akzeptiert Nokogiri-Doc via .to_html" do
+    doc = Nokogiri::HTML(auto_logout_fixture_body)
+    assert McpServer::CcSession.session_expired?(doc)
+  end
+
+  test "with_session_recovery: erfolgreicher Single-Retry bei erster Auto-Logout-Response" do
+    ENV["CARAMBUS_MCP_MOCK"] = "1"  # mock-mode: login! liefert MOCK_SESSION_ID ohne IO
+    call_count = 0
+    expired = Struct.new(:body, :code).new(auto_logout_fixture_body, "200")
+    ok_body = "<html><body><a href='showMeldeliste.php?p=20|10|*|*|2025/2026|1312&'>x</a></body></html>"
+    ok = Struct.new(:body, :code).new(ok_body, "200")
+
+    res, doc = McpServer::CcSession.with_session_recovery do |_client, _sid|
+      call_count += 1
+      if call_count == 1
+        [expired, Nokogiri::HTML(expired.body)]
+      else
+        [ok, Nokogiri::HTML(ok.body)]
+      end
+    end
+
+    assert_equal 2, call_count, "Block muss genau zweimal aufgerufen werden (Original + Retry)"
+    assert_equal ok, res, "Zweite (gute) Response wird zurückgegeben"
+    assert_match(/1312/, doc.to_html, "Doc enthält den Pipe-Pattern-Anchor")
+  end
+
+  test "with_session_recovery: raises SessionRecoveryFailed wenn zweite Response auch Auto-Logout-Stub" do
+    ENV["CARAMBUS_MCP_MOCK"] = "1"
+    call_count = 0
+    expired = Struct.new(:body, :code).new(auto_logout_fixture_body, "200")
+
+    assert_raises(McpServer::CcSession::SessionRecoveryFailed) do
+      McpServer::CcSession.with_session_recovery do |_client, _sid|
+        call_count += 1
+        [expired, Nokogiri::HTML(expired.body)]
+      end
+    end
+    assert_equal 2, call_count, "Block wird zweimal probiert, dann raise"
+  end
+
+  test "with_session_recovery: raises SessionRecoveryFailed wenn Setting.login_to_cc fehlschlägt" do
+    ENV["CARAMBUS_MCP_MOCK"] = nil  # non-mock-mode: login! ruft Setting.login_to_cc
+    # Pre-seed eine SID so dass erster cookie-Aufruf NICHT login! triggert
+    McpServer::CcSession.session_id = "PRESEEDED_PHPSESSID_32_CHARS_xx"
+    McpServer::CcSession.session_started_at = Time.now
+    expired = Struct.new(:body, :code).new(auto_logout_fixture_body, "200")
+
+    Setting.singleton_class.send(:alias_method, :_orig_login_to_cc, :login_to_cc)
+    begin
+      Setting.singleton_class.send(:define_method, :login_to_cc) do
+        raise StandardError, "simulated CC login fail"
+      end
+      assert_raises(McpServer::CcSession::SessionRecoveryFailed) do
+        McpServer::CcSession.with_session_recovery do |_client, _sid|
+          [expired, Nokogiri::HTML(expired.body)]
+        end
+      end
+    ensure
+      Setting.singleton_class.send(:alias_method, :login_to_cc, :_orig_login_to_cc)
+      Setting.singleton_class.send(:remove_method, :_orig_login_to_cc)
+    end
+  end
+
+  test "with_session_recovery: gute Response beim ersten Aufruf → kein Retry, kein Re-Login" do
+    ENV["CARAMBUS_MCP_MOCK"] = "1"
+    call_count = 0
+    ok = Struct.new(:body, :code).new("<html><body>fine</body></html>", "200")
+
+    res, _doc = McpServer::CcSession.with_session_recovery do |_client, _sid|
+      call_count += 1
+      [ok, Nokogiri::HTML(ok.body)]
+    end
+
+    assert_equal 1, call_count
+    assert_equal ok, res
+  end
 end
