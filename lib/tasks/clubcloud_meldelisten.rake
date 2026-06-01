@@ -1,10 +1,18 @@
 # frozen_string_literal: true
 
-# Plan 21-06 T2 / Slice E: NBV-Pilot-Wrapper um RegionCc#sync_registration_list_ccs.
+# Plan 21-06 T2 / Slice E + Plan 24-01 T1 (Phase-23-Nachzieher): NBV-Pilot-Wrapper
+# um RegionCc#sync_registration_list_ccs.
 #
 # Triggert den RegistrationSyncer (sync_registration_list_ccs + Detail-Calls je BranchCc)
 # fuer eine Region+Saison. Designed fuer Cron (D-21-DISC-C + D-21-06-A): laeuft auf
-# carambus_api (Authority), schreibt globale RegistrationListCc-Records (id < MIN_ID).
+# carambus_api (Authority), schreibt seit Phase 23 T1b/T2 die meldeliste_*-Felder direkt
+# auf TournamentCc (vorher RegistrationListCc — Tabelle/Modell wurden in Plan 23-01 T1b
+# ersatzlos gedroppt).
+#
+# Plan 24-01 T1: Telemetrie-Counter umgestellt — vorher zählte das via RegistrationListCc,
+# nach Phase 23 nicht mehr verfügbar. Nutzen jetzt TournamentCc.where.not(meldeliste_cc_id: nil)
+# als Proxy für „synchronisierte Meldelisten". (status-Feld migrierte nicht — D-23-01-Spec —
+# distinct_status-Telemetrie ist deshalb weggefallen.)
 #
 # Nutzt Setting.login_to_cc → PHPSESSID aus Setting; bei expired Session bailt der Syncer
 # heute mid-flight ([[], "Sitzung ist ausgelaufen"]) — Recovery wie 21-03 with_session_recovery
@@ -22,7 +30,7 @@
 #   bin/rails clubcloud:sync_meldelisten           # Default = NBV
 
 namespace :clubcloud do
-  desc "Sync RegistrationListCc records from ClubCloud (Plan 21-06 Slice E)"
+  desc "Sync meldeliste_* fields on TournamentCc from ClubCloud (Plan 21-06 Slice E + Plan 24-01 T1)"
   task :sync_meldelisten, [:region, :season] => :environment do |_t, args|
     region_abbr = (args[:region] || "NBV").upcase
     context = region_abbr.downcase
@@ -42,8 +50,10 @@ namespace :clubcloud do
 
     puts "[clubcloud:sync_meldelisten] region=#{region_abbr} season=#{season_name} context=#{context}"
 
-    before_total = RegistrationListCc.where(context: context).count
-    before_in_season = RegistrationListCc.where(context: context, season_id: season.id).count
+    # Telemetrie-Proxy seit Phase 23: TCcs mit gesetztem meldeliste_cc_id =
+    # bereits synchronisierte Meldelisten. Vorher via RegistrationListCc.count.
+    before_total = TournamentCc.where(context: context).where.not(meldeliste_cc_id: nil).count
+    before_in_season = TournamentCc.where(context: context, season: season_name).where.not(meldeliste_cc_id: nil).count
 
     # PHPSESSID sicherstellen — fresh login wenn fehlend/expired.
     Setting.login_to_cc unless Setting.key_get_value("session_id").present?
@@ -58,13 +68,10 @@ namespace :clubcloud do
       update_from_cc: true
     )
 
-    after_total = RegistrationListCc.where(context: context).count
-    after_in_season = RegistrationListCc.where(context: context, season_id: season.id).count
-    distinct_status = RegistrationListCc.where(context: context, season_id: season.id)
-      .distinct.pluck(:status)
+    after_total = TournamentCc.where(context: context).where.not(meldeliste_cc_id: nil).count
+    after_in_season = TournamentCc.where(context: context, season: season_name).where.not(meldeliste_cc_id: nil).count
 
-    puts "[clubcloud:sync_meldelisten] visited_total=#{before_total}->#{after_total} (delta=#{after_total - before_total})"
-    puts "[clubcloud:sync_meldelisten] in_season_#{season_name}=#{before_in_season}->#{after_in_season} (delta=#{after_in_season - before_in_season})"
-    puts "[clubcloud:sync_meldelisten] distinct_status_in_season=#{distinct_status.inspect}"
+    puts "[clubcloud:sync_meldelisten] meldeliste_linked_total=#{before_total}->#{after_total} (delta=#{after_total - before_total})"
+    puts "[clubcloud:sync_meldelisten] meldeliste_linked_in_season_#{season_name}=#{before_in_season}->#{after_in_season} (delta=#{after_in_season - before_in_season})"
   end
 end
