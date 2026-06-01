@@ -8,8 +8,8 @@
 # cc_unregister_for_tournament / cc_update_tournament_deadline brauchen meldeliste_cc_id —
 # dieses Tool liefert die Auflösung mit Disambiguation-Rückfrage bei N:1 (D-08-E).
 #
-# DB-first via TournamentCc → registration_list_cc → cc_id (1:1-Beziehung in Carambus-DB,
-# kann N:1 sein wenn mehrere RegistrationListCc auf dasselbe Tournament verweisen).
+# DB-first via TournamentCc.meldeliste_cc_id (direkt-Feld seit Phase 23 T1b — vorher
+# über die RegistrationListCc-Zwischentabelle, die wurde ersatzlos gedroppt).
 # Falls DB-Lookup leer ODER force_refresh:true → Live-CC via showMeldelistenList Action.
 #
 # Plan 09-02 (v0.2.1-Spec-Issue konsolidiert): Tool akzeptiert jetzt 5 optionale Scope-Filter-Params
@@ -37,7 +37,7 @@ module McpServer
         Use BEFORE cc_register_for_tournament / cc_unregister_for_tournament / cc_update_tournament_deadline if meldeliste_cc_id unknown.
         One Tournament may have N Meldelisten (Quali-Listen pro Region etc.).
         Returns single meldeliste_cc_id if unambiguous; otherwise candidates-array for User-Disambiguation.
-        DB-first via TournamentCc.registration_list_cc; falls DB empty or force_refresh:true, queries CC showMeldelistenList live.
+        DB-first via TournamentCc.meldeliste_cc_id (direkt-Feld seit Phase 23); falls DB empty or force_refresh:true, queries CC showMeldelistenList live.
         Read-only — no armed-flag needed.
       DESC
       input_schema(

@@ -34,8 +34,10 @@ module McpServer
         primary; live-CC calls are only for writes or force-refresh.
       - `cc_id` (ClubCloud-ID) is REGION-SCOPED, not globally unique — context
         filter required for any cc_id-based lookup.
-      - Tournament entity chain: Tournament (DB) → TournamentCc (CC-Mirror)
-        → RegistrationListCc (Meldeliste-Mirror).
+      - Tournament entity chain: Tournament (DB) → TournamentCc (CC-Mirror
+        mit meldeliste_cc_id / meldeliste_deadline / meldeliste_qualifying_date
+        direkt auf TCc; RegistrationListCc wurde in Phase 23 T1b ersatzlos
+        gedroppt).
 
       Permission model (Phase 22+):
       - Your effective scope is `(sportwart_location_ids, sportwart_discipline_ids,

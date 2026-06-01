@@ -13,11 +13,11 @@ module McpServer
                   "Look up the Teilnehmerliste (participant list / Meldeliste) for a tournament in ClubCloud. " \
                   "D-18 acceptance-story read pathway: given a Carambus tournament_id (or CC meldeliste_id + fed_id), " \
                   "returns whether the Meldeliste exists in CC and its finalization status. " \
-                  "Queries the Carambus DB first (TournamentCc.registration_list_cc_id mirror); pass force_refresh=true for live CC."
+                  "Queries the Carambus DB first (TournamentCc.meldeliste_cc_id, direkt-Feld seit Phase 23); pass force_refresh=true for live CC."
       input_schema(
         properties: {
           tournament_id: {type: "integer", description: "Carambus-internal Tournament ID"},
-          meldeliste_id: {type: "integer", description: "CC meldelisteId (RegistrationListCc.cc_id)"},
+          meldeliste_id: {type: "integer", description: "CC meldelisteId (= TournamentCc.meldeliste_cc_id direkt-Feld seit Phase 23)"},
           fed_id: {type: "integer", description: "ClubCloud federation ID (required for live lookup). Optional — resolved via region lookup (CC_REGION/Setting 'context', default 'NBV'); ENV CC_FED_ID overrides."},
           force_refresh: {type: "boolean", default: false, description: "Bypass DB cache, query CC live"}
         }
@@ -27,7 +27,7 @@ module McpServer
       def self.call(tournament_id: nil, meldeliste_id: nil, fed_id: nil, force_refresh: false, server_context: nil)
         fed_id ||= default_fed_id(server_context)
         unless tournament_id.present? || meldeliste_id.present?
-          return error("Bitte gib `tournament_id` (Carambus-id) oder `meldeliste_id` (CC-RegistrationListCc.cc_id) an.")
+          return error("Bitte gib `tournament_id` (Carambus-id) oder `meldeliste_id` (= TournamentCc.meldeliste_cc_id) an.")
         end
 
         return live_lookup(fed_id: fed_id, meldeliste_id: meldeliste_id, server_context: server_context) if force_refresh
