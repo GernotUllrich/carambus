@@ -75,8 +75,12 @@ module McpServer
           TournamentCc.find_by(cc_id: tournament_cc_id)
         end
 
+        # Plan 25-01 T3b-AssocFix (2026-06-02): TournamentCc hat KEINE direkte region_cc-Assoziation,
+        # nur belongs_to :branch_cc, das wiederum belongs_to :region_cc. Pfad: tcc.branch_cc.region_cc.
+        # User-Live-Befund: NoMethodError "undefined method 'region_cc'" wurde von Outer-Rescue
+        # abgefangen und als saubere Fehlermeldung mit Workaround geliefert (= Defensive funktioniert).
         scope = {
-          fedId: fed_cc_id || tournament_cc&.region_cc&.cc_id,
+          fedId: fed_cc_id || tournament_cc&.branch_cc&.region_cc&.cc_id,
           branchId: branch_cc_id || tournament_cc&.branch_cc_id,
           disciplinId: disciplin_id || "*",
           catId: cat_id || "*",
