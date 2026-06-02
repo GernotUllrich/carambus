@@ -22,21 +22,58 @@ class McpServer::Tools::LookupTeilnehmerlisteTest < ActiveSupport::TestCase
     McpServer::CcSession.reset!
   end
 
-  # Reuses AssignPlayerToTeilnehmerlisteTest.build_check_html — identisches HTML-Format,
-  # weil Tool genau denselben editTeilnehmerlisteCheck-Endpoint pollt.
+  # Plan 25-01 T3b: zwei separate Mocks fuer die zwei Read-Pfade.
+  # - editTeilnehmerlisteCheck (POST) → Edit-Buffer-View, liefert tournament_name + available_in_meldeliste
+  # - showTeilnehmerliste (GET) → persistierte DB-View, liefert current_teilnehmer (Regex-Pattern <td align="center">{cc_id}</td>)
   def build_mock(teilnehmer:, meldung:, tournament_name:)
-    body = McpServer::Tools::AssignPlayerToTeilnehmerlisteTest.build_check_html(
+    edit_check_body = McpServer::Tools::AssignPlayerToTeilnehmerlisteTest.build_check_html(
       teilnehmer_options: teilnehmer,
       meldung_options: meldung,
       tournament_name: tournament_name
     )
+    show_teilnehmer_body = build_show_teilnehmerliste_html(teilnehmer_options: teilnehmer)
     mock = McpServer::Tools::MockClient.new
     mock.define_singleton_method(:post) do |action, params, opts|
       @calls << [:post, action, params, opts]
-      [Struct.new(:code, :message, :body).new("200", "OK", body), Nokogiri::HTML(body)]
+      # editTeilnehmerlisteCheck wird via POST gepollt
+      [Struct.new(:code, :message, :body).new("200", "OK", edit_check_body), Nokogiri::HTML(edit_check_body)]
+    end
+    mock.define_singleton_method(:get) do |action, params, opts|
+      @calls << [:get, action, params, opts]
+      [Struct.new(:code, :message, :body).new("200", "OK", show_teilnehmer_body), Nokogiri::HTML(show_teilnehmer_body)]
     end
     McpServer::CcSession._client_override = mock
     mock
+  end
+
+  # Mock-HTML fuer showTeilnehmerliste.php — Tabellen-Format mit Player-cc_id in <td align="center">.
+  # Format aus User-Browser-Snapshot 2026-06-02 (NDM Test Cadre 35/2).
+  def build_show_teilnehmerliste_html(teilnehmer_options:)
+    rows = teilnehmer_options.map do |cc_id, label|
+      # Label-Format aus Test: "Hassendorf, Maja (42)" → Last="Hassendorf", First="Maja"
+      last_first = label.split(" (").first.to_s
+      last_name, first_name = last_first.split(", ", 2)
+      <<~ROW
+        <tr>
+          <td>1</td>
+          <td>#{last_name}</td>
+          <td>#{first_name}</td>
+          <td align="center">#{cc_id}</td>
+          <td>BC Wedel</td>
+          <td>1010</td>
+          <td>fristgerecht gemeldet</td>
+        </tr>
+      ROW
+    end.join
+    <<~HTML
+      <html><body>
+      <h1>Teilnehmerliste</h1>
+      <table>
+        <tr><th>#</th><th>Nachname</th><th>Vorname</th><th>Pass-Nr.</th><th>Verein</th><th>VNr.</th><th>Status</th></tr>
+        #{rows}
+      </table>
+      </body></html>
+    HTML
   end
 
   test "Smoke-Befund DFP SU: 3 Teilnehmer + 0 Meldung -> phase=finalized" do
@@ -56,7 +93,8 @@ class McpServer::Tools::LookupTeilnehmerlisteTest < ActiveSupport::TestCase
     assert_equal 0, body["counts"]["meldung_open"]
     assert_equal 3, body["current_teilnehmer"].size
     assert_equal 42, body["current_teilnehmer"].first["cc_id"]
-    assert_equal "Hassendorf, Maja (42)", body["current_teilnehmer"].first["label"]
+    # Plan 25-01 T3b: Label kommt aus showTeilnehmerliste.php-Table-Row (Last+First), nicht aus Option-Text.
+    assert_equal "Hassendorf, Maja", body["current_teilnehmer"].first["label"]
   end
 
   test "phase=open: Meldeliste voll, Teilnehmerliste leer" do

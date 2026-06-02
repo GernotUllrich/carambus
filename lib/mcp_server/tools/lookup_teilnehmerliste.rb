@@ -75,25 +75,84 @@ module McpServer
         end
 
         client = cc_session.client_for(server_context)
-        parsed = AssignPlayerToTeilnehmerliste.pre_read_teilnehmerliste(client, tournament_cc_id, scope)
-        # pre_read returns either Hash with [:tournament_name, :current_teilnehmer, :available_in_meldeliste]
-        # OR error(...)-Tool-Result (auf HTTP/Parse-Fehler).
-        return parsed unless parsed.is_a?(Hash)
 
-        teilnehmer = parsed[:current_teilnehmer] || []
-        meldung = parsed[:available_in_meldeliste] || []
+        # PRIMARY READ (persistierte DB-View, stabil): showTeilnehmerliste.php fuer current_teilnehmer.
+        # Plan 25-01 T3b Spike-Followup (2026-06-02): Pivot weg von editTeilnehmerlisteCheck (Edit-Buffer-View),
+        # die nach Writes 1-3s eventual sein kann (User-Live-Befund: flappende Reads im Sekundenabstand).
+        teilnehmer = fetch_teilnehmerliste_persisted(client, tournament_cc_id, scope)
+        return teilnehmer if teilnehmer.is_a?(MCP::Tool::Response)
+
+        # SECONDARY READ (Buffer-View, kann eventual sein): editTeilnehmerlisteCheck fuer tournament_name +
+        # available_in_meldeliste. Caveat im Output. Phase 26 sollte showMeldeliste.php als stabile Quelle ergaenzen.
+        edit_view = AssignPlayerToTeilnehmerliste.pre_read_teilnehmerliste(client, tournament_cc_id, scope)
+        meldung = (edit_view.is_a?(Hash) ? (edit_view[:available_in_meldeliste] || []) : [])
+        tournament_name = edit_view.is_a?(Hash) ? edit_view[:tournament_name] : nil
 
         text(JSON.generate(
           tournament_cc_id: tournament_cc_id,
-          tournament_name: parsed[:tournament_name],
+          tournament_name: tournament_name,
           fed_cc_id: scope[:fedId],
           branch_cc_id: scope[:branchId],
           season: scope[:season],
           phase: compute_phase(teilnehmer.size, meldung.size),
           counts: {teilnehmer: teilnehmer.size, meldung_open: meldung.size},
           current_teilnehmer: teilnehmer,
-          available_in_meldeliste: meldung
+          available_in_meldeliste: meldung,
+          read_pfade: {
+            teilnehmer: "showTeilnehmerliste.php (persistiert, stabil)",
+            meldung: "editTeilnehmerlisteCheck dla=1 (Edit-Buffer, kann nach Writes 1-3s eventual sein)"
+          }
         ))
+      end
+
+      # Plan 25-01 T3b Spike: persistierte Teilnehmerliste via showTeilnehmerliste.php.
+      # URL-Pattern aus User-Browser-Capture: /admin/einzel/meisterschaft/showTeilnehmerliste.php?p=<fed>-<branch>-*-<season>-*--<meisterschaftsId>-3
+      # "3" am Ende = Tab-Indicator fuer Teilnehmerliste (2 = Meldeliste, 1 = Details).
+      # Parser-Pattern analog read_committed_players in cc_lookup_tournament: Regex auf <td align="center">{cc_id}</td>
+      # (Plan 14-G.13 Bug #3: single + double quotes akzeptieren).
+      def self.fetch_teilnehmerliste_persisted(client, tournament_cc_id, scope)
+        p_param = "#{scope[:fedId]}-#{scope[:branchId]}-*-#{scope[:season]}-*--#{tournament_cc_id}-3"
+        res, _doc = client.get("showTeilnehmerliste", {p: p_param}, {session_id: cc_session.cookie})
+        return error("showTeilnehmerliste fetch failed: HTTP #{res&.code}") if res.nil? || res.code != "200"
+
+        cc_ids = res.body.to_s.scan(%r{<td align=['"]center['"]>(\d+)</td>}).flatten.map(&:to_i).uniq
+        # Optional: detail-extract (last_name, first_name, club_cc_id) ueber DOM-Walk. Best-effort.
+        cc_ids.map { |cc_id| extract_teilnehmer_detail(res.body, cc_id) || {cc_id: cc_id, label: cc_id.to_s} }
+      rescue => e
+        Rails.logger.warn "[cc_lookup_teilnehmerliste] fetch_teilnehmerliste_persisted failed: #{e.class}: #{e.message}"
+        error("showTeilnehmerliste parse failed: #{e.class.name} (#{e.message})")
+      end
+
+      # Best-effort Detail-Extract um eine Player-Row aus dem HTML.
+      # Heuristik: <tr>...<td align="center">{cc_id}</td>...</tr> — Cells davor sind Nachname/Vorname,
+      # Cells danach enthalten Verein + VNR + Status. Bricht gracefully auf {cc_id, label} zurueck.
+      def self.extract_teilnehmer_detail(body, cc_id)
+        # Finde die <tr>...</tr> Sektion mit der cc_id-Cell darin (greedy-non-multiline-safe).
+        match = body.match(%r{<tr[^>]*>(?:(?!</tr>).)*?<td[^>]*>#{cc_id}</td>(?:(?!</tr>).)*?</tr>}m)
+        return nil unless match
+        row_html = match[0]
+        # Extract alle <td>-Inhalte (text-only, strip tags).
+        cells = row_html.scan(%r{<td[^>]*>(.*?)</td>}m).flatten.map { |t| t.gsub(%r{<[^>]+>}, "").strip }
+        # Heuristik: position-basiert (pos | nachname | vorname | pass-nr | ...weitere... | verein | vnr | status | ...)
+        return nil if cells.size < 4
+        cc_id_pos = cells.index(cc_id.to_s)
+        return nil unless cc_id_pos && cc_id_pos >= 2
+        last_name = cells[cc_id_pos - 2]
+        first_name = cells[cc_id_pos - 1]
+        # Best-effort Verein + VNR: suche nach numerischem 4-stelligem Wert > cc_id_pos
+        vnr_pos = cells[(cc_id_pos + 1)..]&.find_index { |c| c.match?(/\A\d{3,5}\z/) && c.to_i != cc_id }
+        club_name = (vnr_pos && cc_id_pos + 1 + vnr_pos >= 1) ? cells[cc_id_pos + vnr_pos] : nil
+        club_cc_id = vnr_pos ? cells[cc_id_pos + 1 + vnr_pos].to_i : nil
+        status = (cells[cc_id_pos + 2 + (vnr_pos || 0)] if vnr_pos)
+        {
+          cc_id: cc_id,
+          label: [last_name, first_name].compact.reject(&:empty?).join(", ").presence || cc_id.to_s,
+          club_name: club_name.presence,
+          club_cc_id: club_cc_id,
+          status: status.presence
+        }.compact
+      rescue
+        {cc_id: cc_id, label: cc_id.to_s}
       end
 
       # Phase-Heuristik: "open" (alle in Meldeliste), "partial" (teils transferiert),
