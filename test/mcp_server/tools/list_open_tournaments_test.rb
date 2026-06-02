@@ -18,7 +18,8 @@ class McpServer::Tools::ListOpenTournamentsTest < ActiveSupport::TestCase
 
   # Plan 14-02.3 / D-14-02-G: strict User-Context via server_context: {cc_region: "NBV"}.
   # Vorher: shortname: "NBV" direkt + server_context: nil — wird in 14-02.4 entfernt.
-  test "DB-first happy path NBV: returns data + meta with last_sync_age_hours" do
+  # Plan 25-01 T1.5: last_sync_age_hours-Assertion entfernt (Metric gedroppt).
+  test "DB-first happy path NBV: returns data + meta" do
     nbv = Region.find_by(shortname: "NBV")
     skip "NBV fixtures missing" unless nbv
 
@@ -32,7 +33,8 @@ class McpServer::Tools::ListOpenTournamentsTest < ActiveSupport::TestCase
     assert_kind_of Hash, body["meta"]
     assert_equal "NBV", body["meta"]["region"]
     assert_equal body["data"].length, body["meta"]["count"]
-    assert_kind_of Numeric, body["meta"]["last_sync_age_hours"] unless body["meta"]["last_sync_age_hours"].nil?
+    refute body["meta"].key?("last_sync_age_hours"),
+      "Plan 25-01 T1.5: last_sync_age_hours wurde aus meta entfernt"
     assert_equal "upcoming", body["meta"]["mode"]
     # Plan 14-02.3 / F-1: Default-Mode `upcoming` filter ist Akkreditierung-agnostisch.
     assert_match(/date >=/, body["meta"]["filter_basis"])
@@ -315,39 +317,9 @@ class McpServer::Tools::ListOpenTournamentsTest < ActiveSupport::TestCase
     end
   end
 
-  # Plan 10-05 Task 2 (Befund #4 D-10-01-3): nach erfolgreichem force_refresh
-  # muss last_sync_age_hours ~0 sein (Resync-Marker, nicht stale Tournament.sync_date).
-  test "force_refresh: erfolgreicher sync ergibt frisches last_sync_age_hours (~0.0h)" do
-    nbv = Region.find_by(shortname: "NBV")
-    skip "NBV fixtures missing" unless nbv
-    region_cc = nbv.region_cc
-    skip "RegionCc missing for NBV" unless region_cc
-
-    region_cc.stub(:sync_tournaments, ->(_) { [[], nil] }) do
-      response = McpServer::Tools::ListOpenTournaments.call(
-        server_context: {cc_region: "NBV"},
-        force_refresh: true
-      )
-      refute response.error?
-      body = JSON.parse(response.content.first[:text])
-      assert_kind_of Numeric, body["meta"]["last_sync_age_hours"]
-      assert_in_delta 0.0, body["meta"]["last_sync_age_hours"], 0.1,
-        "force_refresh:true mit erfolgreichem Sync muss last_sync_age_hours auf ~0.0 setzen"
-    end
-  end
-
-  test "force_refresh: false — last_sync_age_hours fällt auf Tournament.sync_date zurück" do
-    nbv = Region.find_by(shortname: "NBV")
-    skip "NBV fixtures missing" unless nbv
-
-    response = McpServer::Tools::ListOpenTournaments.call(
-      server_context: {cc_region: "NBV"},
-      force_refresh: false
-    )
-    refute response.error?
-    body = JSON.parse(response.content.first[:text])
-    assert body["meta"].key?("last_sync_age_hours"), "last_sync_age_hours muss präsent sein"
-  end
+  # Plan 25-01 T1.5: 2 Tests entfernt (force_refresh-Resync-Marker + force_refresh:false-Fallback)
+  # — beide pruefen das gedroppte meta.last_sync_age_hours-Feld.
+  # Plan 10-05 Task 2 (Befund #4 D-10-01-3) ist damit ebenfalls obsolet.
 
   # Plan 14-G.10 / Hot-Fix-Regression: Map-Block muss mit echter Tournament+TournamentCc
   # durchlaufen. Pre-14-G.10-Code rief `t.tournament_ccs` (Plural) auf eine

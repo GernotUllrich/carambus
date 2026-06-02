@@ -21,10 +21,14 @@
 # automatisch raus); fed_id-Parameter aus input_schema entfernt (redundant).
 #
 # Sync-Realität: Local-Server pullt alle 2h via `carambus:retrieve_updates[1]`,
-# d.h. DB ist auf Production max ~2h alt. Tool liefert `meta.last_sync_age_hours`
-# als Datenfrische-Confirmer. Bei Nachmeldungen verschiebt der Verbandsadmin
-# `accredation_end` direkt im CC — bis zum nächsten Pull (max 2h) kann die DB
-# die Verschiebung nicht sehen → `force_refresh:true` empfehlen.
+# d.h. DB ist auf Production max ~2h alt. Bei Nachmeldungen verschiebt der
+# Verbandsadmin `accredation_end` direkt im CC — bis zum nächsten Pull kann
+# die DB die Verschiebung nicht sehen → `force_refresh:true` empfehlen.
+#
+# Plan 25-01 T1.5 (2026-06-02): meta.last_sync_age_hours entfernt. Die Quelle
+# (Tournament.maximum(:sync_date)) zeigte nach Cron-DROP irrefuehrende Werte
+# (485h obwohl Daten korrekt), und der Sportwart sollte diese Internalia ohnehin
+# nicht sehen. Frische ist transparent via force_refresh-Override gesteuert.
 
 module McpServer
   module Tools
@@ -37,7 +41,7 @@ module McpServer
                   "'registration_open' (strict — accredation_end >= today; nur Turniere wo noch angemeldet werden kann); " \
                   "'active' (date in den nächsten 7 Tagen — Akkreditierung läuft / Turnier startet bald); " \
                   "'recent' (vorletzte Woche bis nächste 2 Wochen — für 'was war/ist gerade'-Fragen). " \
-                  "DB-first; Tool liefert meta.last_sync_age_hours als Datenfrische-Confirmer (Production: max ~2h alt). " \
+                  "DB-first; Local-Server pullt Authority alle 2h, d.h. Daten sind <2h alt. " \
                   "Discipline-Filter akzeptiert Branch-Namen ('Pool' → alle Pool-Disciplines: 14.1, 8-Ball, 9-Ball, 10-Ball etc.) oder konkrete Discipline-Namen ('8-Ball'). " \
                   "Optionaler `name`-Filter macht eine case-insensitive Substring-Suche auf Tournament-Title. " \
                   "Output enthält tournament_id (Carambus-id) + cc_id (CC-cc_id) — beide nutzbar für Folge-Tools. " \
@@ -101,11 +105,9 @@ module McpServer
         # Plan 14-02.3 / F-7: Season-Default-Filter via BaseTool.effective_season.
         season_obj = effective_season(server_context, override: season)
 
-        sync_completed_at = nil
         if force_refresh
           begin
             region.region_cc&.sync_tournaments({})
-            sync_completed_at = Time.current
           rescue => e
             Rails.logger.warn "[cc_list_open_tournaments] sync_tournaments failed: #{e.class}: #{e.message}"
           end
@@ -126,9 +128,6 @@ module McpServer
           escaped = ActiveRecord::Base.sanitize_sql_like(name.to_s)
           rel = rel.where("title ILIKE ?", "%#{escaped}%")
         end
-
-        last_sync = sync_completed_at || Tournament.where(region_id: region.id).maximum(:sync_date)
-        last_sync_age_hours = last_sync ? ((Time.current - last_sync) / 3600.0).round(1) : nil
 
         # Plan 14-02.3 / F-4: tournament_id + cc_id + branch + discipline_name + season im Output.
         # Plan 14-G.10 / Hot-Fix: tournament_cc (Singular has_one) statt tournament_ccs (Plural)
@@ -158,7 +157,6 @@ module McpServer
           meta: {
             region: region.shortname,
             count: data.length,
-            last_sync_age_hours: last_sync_age_hours,
             mode: mode.to_s,
             filter_basis: build_filter_basis(mode.to_s, cutoff, include_no_date, name, matched_branch, matched_discipline_name),
             include_no_date: include_no_date,
