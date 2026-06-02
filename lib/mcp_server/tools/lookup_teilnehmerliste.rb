@@ -154,11 +154,19 @@ module McpServer
       # Attribute-Reihenfolge — mein alter Regex `<td align=...>` matched das nicht.
       def self.fetch_teilnehmerliste_persisted(client, tournament_cc_id, scope)
         p_param = "#{scope[:fedId]}-#{scope[:branchId]}-*-#{scope[:season]}-*--#{tournament_cc_id}-3"
+        Rails.logger.info "[cc_lookup_teilnehmerliste] fetch p_param=#{p_param.inspect} session_id_prefix=#{cc_session.cookie&.[](0..7)}"
         res, _doc = client.get("showTeilnehmerliste", {p: p_param}, {session_id: cc_session.cookie})
         return error("showTeilnehmerliste fetch failed: HTTP #{res&.code}") if res.nil? || res.code != "200"
 
+        # Plan 25-01 T3b-DiagLog (2026-06-02): Diagnose-Output fuer das False-Negativ-Problem
+        # (DFP SU Browser zeigt 3 Spieler, Tool sagt 0). Body-Inspect zeigt ob Session expired
+        # (Login-Form-HTML statt Tabelle) oder URL-Encoding das CC verwirrt.
+        body = res.body.to_s
+        title_count = body.scan(/title="[^"]+\(\d+\)"/).size
+        Rails.logger.info "[cc_lookup_teilnehmerliste] body_bytes=#{body.bytesize} has_cc_bluelink=#{body.include?("cc_bluelink")} has_loginButton=#{body.include?("loginButton")} title_with_id_count=#{title_count}"
+
         # Scan: title="Last, First (cc_id)" class="cc_bluelink" — atomarer Player-Match.
-        matches = res.body.to_s.scan(/title="([^"]+?)\s*\((\d+)\)"\s+class="cc_bluelink"/)
+        matches = body.scan(/title="([^"]+?)\s*\((\d+)\)"\s+class="cc_bluelink"/)
         matches.uniq { |_name, cc_id| cc_id.to_i }.map do |name, cc_id|
           {cc_id: cc_id.to_i, label: name.strip}
         end
