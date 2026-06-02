@@ -84,9 +84,18 @@ module McpServer
 
         # SECONDARY READ (Buffer-View, kann eventual sein): editTeilnehmerlisteCheck fuer tournament_name +
         # available_in_meldeliste. Caveat im Output. Phase 26 sollte showMeldeliste.php als stabile Quelle ergaenzen.
-        edit_view = AssignPlayerToTeilnehmerliste.pre_read_teilnehmerliste(client, tournament_cc_id, scope)
+        # Plan 25-01 T3b-Defensive-Wrap (2026-06-02): Crash hier darf das gesamte Tool nicht killen
+        # (-32603 vermieden). User-Live-Befund DFP SU: pre_read raised wegen Multi-Meldelisten-State —
+        # statt Internal-Error liefern wir partial-data + warning.
+        edit_view = begin
+          AssignPlayerToTeilnehmerliste.pre_read_teilnehmerliste(client, tournament_cc_id, scope)
+        rescue => e
+          Rails.logger.warn "[cc_lookup_teilnehmerliste] pre_read fallback (non-fatal): #{e.class}: #{e.message}\n#{e.backtrace&.first(3)&.join("\n")}"
+          nil
+        end
         meldung = (edit_view.is_a?(Hash) ? (edit_view[:available_in_meldeliste] || []) : [])
         tournament_name = edit_view.is_a?(Hash) ? edit_view[:tournament_name] : nil
+        meldung_read_status = edit_view.is_a?(Hash) ? "ok" : "failed-fallback-to-empty"
 
         text(JSON.generate(
           tournament_cc_id: tournament_cc_id,
@@ -100,9 +109,13 @@ module McpServer
           available_in_meldeliste: meldung,
           read_pfade: {
             teilnehmer: "showTeilnehmerliste.php (persistiert, stabil)",
-            meldung: "editTeilnehmerlisteCheck dla=1 (Edit-Buffer, kann nach Writes 1-3s eventual sein)"
+            meldung: "editTeilnehmerlisteCheck dla=1 (Edit-Buffer, kann nach Writes 1-3s eventual sein) — status=#{meldung_read_status}"
           }
         ))
+      rescue => e
+        Rails.logger.error "[cc_lookup_teilnehmerliste] live_lookup CRASH tournament_cc_id=#{tournament_cc_id}: #{e.class}: #{e.message}\n#{e.backtrace&.first(8)&.join("\n")}"
+        error("Tool-internal Fehler beim Read der Teilnehmerliste fuer tournament_cc_id=#{tournament_cc_id}: #{e.class.name} (#{e.message}). " \
+              "Workaround: cc_lookup_tournament(cc_id: #{tournament_cc_id}, with_committed_list: true, meldeliste_cc_id: <override>) — siehe production-log fuer Stacktrace.")
       end
 
       # Plan 25-01 T3b Spike + T3b-Hotfix (2026-06-02): persistierte Teilnehmerliste via showTeilnehmerliste.php.
