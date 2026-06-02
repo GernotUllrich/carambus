@@ -127,13 +127,11 @@ end
 #   + juengste seedings.sex). Plan 21-04 Slice C.
 
 @active_scrape_regions.each do |region|
-  # Plan 21-13 T6 Cron-Re-Activation (2026-05-29): RegistrationSyncer ist nach
-  # T2 (Sedo-Detection) + T3 (Cell-Mapping + cc_id-Pipe-Pattern via D-EXEC-A)
-  # live verifiziert (NBV 2025/2026: +68 fresh Records, 2022/2023: +61 historische
-  # Records — Layer-1+2+3 sauber, Status korrekt geparsed via D-21-06-C).
-  every 2.hours, roles: [:api] do
-    rake "clubcloud:sync_meldelisten[#{region}]"
-  end
+  # Plan 25-01 T1 (2026-06-02): clubcloud:sync_meldelisten-Cron entfernt.
+  # TournamentCc.meldeliste_cc_id wird seit Phase 24 T3 vom Resolver
+  # cc_lookup_meldeliste_for_tournament lazy on-demand aufgeloest + gecached.
+  # Bulk-Sync war 95% Verschwendung + zusaetzliche Fehlerquelle (base_url-Drift
+  # 2026-06-02). Public-Daten (Meldeschluss etc.) kommen via PublicCcScraper.
 
   # Plan 21-14 Re-Activation (2026-05-29): scrape_admin_params ist nach Pre-Existing-
   # Bug-Fixes (a) context-aware cc_id-Lookup `find_or_initialize_by(cc_id:, context:)`
