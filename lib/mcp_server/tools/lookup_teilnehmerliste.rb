@@ -61,10 +61,27 @@ module McpServer
       end
 
       def self.live_lookup(tournament_cc_id:, fed_cc_id:, branch_cc_id:, season:, disciplin_id:, cat_id:, server_context: nil)
-        # Wiederverwendet AssignPlayerToTeilnehmerliste.resolve_scope_filters (DB-Fallback fuer fed/branch/season).
-        scope = AssignPlayerToTeilnehmerliste.resolve_scope_filters(
-          tournament_cc_id, fed_cc_id, branch_cc_id, season, disciplin_id, cat_id
-        )
+        # Plan 25-01 T3b-ContextFix (2026-06-02): cc_id ist NICHT global eindeutig in TournamentCc.
+        # Memory project_cc_id_not_unique: TCc.cc_id existiert ggf. in mehreren context-Spalten
+        # (z.B. cc_id 859 sowohl context=nbv (DFP SU) als auch context=blmr (2.BLMR LM 8-Ball)).
+        # Default-Scope-Resolution MUSS context-scoped sein — sonst kommen falsche defaults.
+        # Wir bauen den Scope hier selbst (statt AssignPlayerToTeilnehmerliste.resolve_scope_filters
+        # zu nutzen, das context-unaware ist).
+        context = effective_cc_region(server_context)&.to_s&.downcase
+
+        tournament_cc = if context.present?
+          TournamentCc.find_by(cc_id: tournament_cc_id, context: context)
+        else
+          TournamentCc.find_by(cc_id: tournament_cc_id)
+        end
+
+        scope = {
+          fedId: fed_cc_id || tournament_cc&.region_cc&.cc_id,
+          branchId: branch_cc_id || tournament_cc&.branch_cc_id,
+          disciplinId: disciplin_id || "*",
+          catId: cat_id || "*",
+          season: season || tournament_cc&.season&.to_s
+        }.compact
 
         missing = [:fedId, :branchId, :season].select { |k| scope[k].blank? }
         if missing.any?
