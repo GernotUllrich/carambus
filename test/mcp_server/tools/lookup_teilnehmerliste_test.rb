@@ -76,6 +76,33 @@ class McpServer::Tools::LookupTeilnehmerlisteTest < ActiveSupport::TestCase
     HTML
   end
 
+  # Plan 25-01 T3b-QuoteFix Regression-Schutz (2026-06-02): CC sendet single quotes statt
+  # double quotes (Memory Plan-14-G.13 Bug #3). Live-Capture: <a ... title='X (10165)' class='cc_bluelink'>.
+  # Test mit echtem single-quote-Format um sicherzustellen dass Regex beide akzeptiert.
+  test "T3b-QuoteFix: parser akzeptiert single-quoted HTML (Live-CC-Format)" do
+    body = <<~HTML
+      <html><body><table><tbody>
+      <tr><td><a href='showTeilnehmer.php?p=20-7-*-2025/2026-*--859-10165&amp;' title='Ben Ghaffar, Ramzi (10165)' class='cc_bluelink'>Ben Ghaffar</a></td></tr>
+      <tr><td><a href='showTeilnehmer.php?p=20-7-*-2025/2026-*--859-10761&amp;' title='Einsiedler, Janni (10761)' class='cc_bluelink'>Einsiedler</a></td></tr>
+      <tr><td><a href='showTeilnehmer.php?p=20-7-*-2025/2026-*--859-11353&amp;' title='Hepp, Neele (11353)' class='cc_bluelink'>Hepp</a></td></tr>
+      </tbody></table></body></html>
+    HTML
+    mock = McpServer::Tools::MockClient.new
+    mock.define_singleton_method(:get) { |_action, _params, _opts| [Struct.new(:code, :message, :body).new("200", "OK", body), Nokogiri::HTML(body)] }
+    mock.define_singleton_method(:post) { |_action, _params, _opts| [Struct.new(:code, :message, :body).new("200", "OK", "<html></html>"), Nokogiri::HTML("<html></html>")] }
+    McpServer::CcSession._client_override = mock
+
+    response = McpServer::Tools::LookupTeilnehmerliste.call(
+      tournament_cc_id: 859, fed_cc_id: 20, branch_cc_id: 7, season: "2025/2026"
+    )
+    refute response.error?, "expected non-error; got: #{response.content.first[:text]}"
+    body_json = JSON.parse(response.content.first[:text])
+    assert_equal "finalized", body_json["phase"], "single-quote Regex muss matchen"
+    assert_equal 3, body_json["counts"]["teilnehmer"]
+    assert_equal [10165, 10761, 11353], body_json["current_teilnehmer"].map { |t| t["cc_id"] }
+    assert_equal "Ben Ghaffar, Ramzi", body_json["current_teilnehmer"].first["label"]
+  end
+
   test "Smoke-Befund DFP SU: 3 Teilnehmer + 0 Meldung -> phase=finalized" do
     build_mock(
       teilnehmer: [[42, "Hassendorf, Maja (42)"], [43, "Lange, Hendrik (43)"], [44, "Wendt, Sebastian (44)"]],

@@ -162,14 +162,16 @@ module McpServer
         # (DFP SU Browser zeigt 3 Spieler, Tool sagt 0). Body-Inspect zeigt ob Session expired
         # (Login-Form-HTML statt Tabelle) oder URL-Encoding das CC verwirrt.
         body = res.body.to_s
-        title_count = body.scan(/title="[^"]+\(\d+\)"/).size
-        # T3b-DiagLog2 (2026-06-02): logge ersten cc_bluelink-Anchor um exaktes HTML-Format zu sehen.
+        # Plan 25-01 T3b-QuoteFix (2026-06-02): CC sendet single quotes (' nicht "), siehe
+        # Memory Plan-14-G.13 Bug #3. Pattern MUSS beide Quote-Forms akzeptieren.
+        # title_count + DiagLog bleiben fuer Robustheits-Monitoring noch eine Runde.
+        title_count = body.scan(/title=["'][^"']+\(\d+\)["']/).size
         first_anchor = body[/<a\s[^>]{0,400}cc_bluelink[^>]{0,200}>[^<]{0,80}<\/a>/]
         Rails.logger.info "[cc_lookup_teilnehmerliste] body_bytes=#{body.bytesize} has_cc_bluelink=#{body.include?("cc_bluelink")} has_loginButton=#{body.include?("loginButton")} title_with_id_count=#{title_count}"
         Rails.logger.info "[cc_lookup_teilnehmerliste] first_anchor=#{first_anchor.inspect}"
 
-        # Scan: title="Last, First (cc_id)" class="cc_bluelink" — atomarer Player-Match.
-        matches = body.scan(/title="([^"]+?)\s*\((\d+)\)"\s+class="cc_bluelink"/)
+        # Scan: title='Last, First (cc_id)' class='cc_bluelink' — accepts both ' and ".
+        matches = body.scan(/title=["']([^"']+?)\s*\((\d+)\)["']\s+class=["']cc_bluelink["']/)
         matches.uniq { |_name, cc_id| cc_id.to_i }.map do |name, cc_id|
           {cc_id: cc_id.to_i, label: name.strip}
         end
