@@ -376,13 +376,22 @@ class RegionCc < ApplicationRecord
 
       doc = Nokogiri::HTML(response.body)
 
-      # Look for the "Anmeldung" (Login) link in the navigation
+      # Look for the "Anmeldung" (Login) link in the navigation.
+      # Plan 25-01 T2 (RC-B-Wurzelfix): Sanity-Filter erzwingt CC-Tenant-URL —
+      # ohne diesen Check kann eine Verbands-Public-Seite (z.B. ndbv.de) einen
+      # Mitglieder-Anmeldungs-Link auf eine ndbv.de-Subseite liefern; die
+      # discovered_url wird dann via ensure_admin_base_url! in RegionCc.base_url
+      # geschrieben → alle CC-Admin-POST/GET laufen ins 404 → MCP-Server kaputt.
       anmeldung_link = doc.css('a[title*="Anmeldung"]').first
 
       if anmeldung_link && anmeldung_link["href"].present?
         discovered_url = anmeldung_link["href"].chomp("/")
-        Rails.logger.info "[discover_admin_url] Discovered admin URL from Anmeldung link: #{discovered_url}"
-        return discovered_url
+        if discovered_url.include?("club-cloud.de")
+          Rails.logger.info "[discover_admin_url] Discovered admin URL from Anmeldung link: #{discovered_url}"
+          return discovered_url
+        else
+          Rails.logger.warn "[discover_admin_url] Rejecting non-CC-Tenant Anmeldung link: #{discovered_url} (expected *.club-cloud.de)"
+        end
       end
 
       # Fallback: Look for any link pointing to club-cloud.de
