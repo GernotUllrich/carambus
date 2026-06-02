@@ -105,54 +105,32 @@ module McpServer
         ))
       end
 
-      # Plan 25-01 T3b Spike: persistierte Teilnehmerliste via showTeilnehmerliste.php.
+      # Plan 25-01 T3b Spike + T3b-Hotfix (2026-06-02): persistierte Teilnehmerliste via showTeilnehmerliste.php.
       # URL-Pattern aus User-Browser-Capture: /admin/einzel/meisterschaft/showTeilnehmerliste.php?p=<fed>-<branch>-*-<season>-*--<meisterschaftsId>-3
       # "3" am Ende = Tab-Indicator fuer Teilnehmerliste (2 = Meldeliste, 1 = Details).
-      # Parser-Pattern analog read_committed_players in cc_lookup_tournament: Regex auf <td align="center">{cc_id}</td>
-      # (Plan 14-G.13 Bug #3: single + double quotes akzeptieren).
+      #
+      # T3b-Hotfix Parser-Pivot: live-HTML-Capture (DFP SU 2026-06-02) zeigt, dass
+      # CC die Player-cc_id NICHT in einer eigenen <td align="center">-Cell rendert
+      # (mein erster Spike-Regex aus read_committed_players match fehl). Stattdessen
+      # ist die cc_id im title-Attribut des showTeilnehmer.php-Links eingebettet:
+      #   <a href="showTeilnehmer.php?p=...-859-10165&amp;"
+      #      title="Ben Ghaffar, Ramzi (10165)" class="cc_bluelink">Ben Ghaffar</a>
+      # Sauberer Parse: title-Attribut liefert Last+First+cc_id atomar. Plus die
+      # vorhandenen <td align="center">-Cells nutzen `class="bb1" align="center"`-
+      # Attribute-Reihenfolge — mein alter Regex `<td align=...>` matched das nicht.
       def self.fetch_teilnehmerliste_persisted(client, tournament_cc_id, scope)
         p_param = "#{scope[:fedId]}-#{scope[:branchId]}-*-#{scope[:season]}-*--#{tournament_cc_id}-3"
         res, _doc = client.get("showTeilnehmerliste", {p: p_param}, {session_id: cc_session.cookie})
         return error("showTeilnehmerliste fetch failed: HTTP #{res&.code}") if res.nil? || res.code != "200"
 
-        cc_ids = res.body.to_s.scan(%r{<td align=['"]center['"]>(\d+)</td>}).flatten.map(&:to_i).uniq
-        # Optional: detail-extract (last_name, first_name, club_cc_id) ueber DOM-Walk. Best-effort.
-        cc_ids.map { |cc_id| extract_teilnehmer_detail(res.body, cc_id) || {cc_id: cc_id, label: cc_id.to_s} }
+        # Scan: title="Last, First (cc_id)" class="cc_bluelink" — atomarer Player-Match.
+        matches = res.body.to_s.scan(/title="([^"]+?)\s*\((\d+)\)"\s+class="cc_bluelink"/)
+        matches.uniq { |_name, cc_id| cc_id.to_i }.map do |name, cc_id|
+          {cc_id: cc_id.to_i, label: name.strip}
+        end
       rescue => e
         Rails.logger.warn "[cc_lookup_teilnehmerliste] fetch_teilnehmerliste_persisted failed: #{e.class}: #{e.message}"
         error("showTeilnehmerliste parse failed: #{e.class.name} (#{e.message})")
-      end
-
-      # Best-effort Detail-Extract um eine Player-Row aus dem HTML.
-      # Heuristik: <tr>...<td align="center">{cc_id}</td>...</tr> — Cells davor sind Nachname/Vorname,
-      # Cells danach enthalten Verein + VNR + Status. Bricht gracefully auf {cc_id, label} zurueck.
-      def self.extract_teilnehmer_detail(body, cc_id)
-        # Finde die <tr>...</tr> Sektion mit der cc_id-Cell darin (greedy-non-multiline-safe).
-        match = body.match(%r{<tr[^>]*>(?:(?!</tr>).)*?<td[^>]*>#{cc_id}</td>(?:(?!</tr>).)*?</tr>}m)
-        return nil unless match
-        row_html = match[0]
-        # Extract alle <td>-Inhalte (text-only, strip tags).
-        cells = row_html.scan(%r{<td[^>]*>(.*?)</td>}m).flatten.map { |t| t.gsub(%r{<[^>]+>}, "").strip }
-        # Heuristik: position-basiert (pos | nachname | vorname | pass-nr | ...weitere... | verein | vnr | status | ...)
-        return nil if cells.size < 4
-        cc_id_pos = cells.index(cc_id.to_s)
-        return nil unless cc_id_pos && cc_id_pos >= 2
-        last_name = cells[cc_id_pos - 2]
-        first_name = cells[cc_id_pos - 1]
-        # Best-effort Verein + VNR: suche nach numerischem 4-stelligem Wert > cc_id_pos
-        vnr_pos = cells[(cc_id_pos + 1)..]&.find_index { |c| c.match?(/\A\d{3,5}\z/) && c.to_i != cc_id }
-        club_name = (vnr_pos && cc_id_pos + 1 + vnr_pos >= 1) ? cells[cc_id_pos + vnr_pos] : nil
-        club_cc_id = vnr_pos ? cells[cc_id_pos + 1 + vnr_pos].to_i : nil
-        status = (cells[cc_id_pos + 2 + (vnr_pos || 0)] if vnr_pos)
-        {
-          cc_id: cc_id,
-          label: [last_name, first_name].compact.reject(&:empty?).join(", ").presence || cc_id.to_s,
-          club_name: club_name.presence,
-          club_cc_id: club_cc_id,
-          status: status.presence
-        }.compact
-      rescue
-        {cc_id: cc_id, label: cc_id.to_s}
       end
 
       # Phase-Heuristik: "open" (alle in Meldeliste), "partial" (teils transferiert),

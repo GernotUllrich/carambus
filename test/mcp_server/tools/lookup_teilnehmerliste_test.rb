@@ -46,32 +46,32 @@ class McpServer::Tools::LookupTeilnehmerlisteTest < ActiveSupport::TestCase
     mock
   end
 
-  # Mock-HTML fuer showTeilnehmerliste.php — Tabellen-Format mit Player-cc_id in <td align="center">.
-  # Format aus User-Browser-Snapshot 2026-06-02 (NDM Test Cadre 35/2).
+  # Mock-HTML fuer showTeilnehmerliste.php — REAL-FORMAT aus User-Browser-Capture (DFP SU 2026-06-02).
+  # Plan 25-01 T3b-Hotfix: cc_id ist im title-Attribut des showTeilnehmer.php-Links eingebettet,
+  # nicht in einer eigenen <td>-Cell. Test-HTML MUSS dieses Live-Format spiegeln (kein circular validation).
   def build_show_teilnehmerliste_html(teilnehmer_options:)
-    rows = teilnehmer_options.map do |cc_id, label|
-      # Label-Format aus Test: "Hassendorf, Maja (42)" → Last="Hassendorf", First="Maja"
+    rows = teilnehmer_options.each_with_index.map do |(cc_id, label), idx|
       last_first = label.split(" (").first.to_s
       last_name, first_name = last_first.split(", ", 2)
       <<~ROW
-        <tr>
-          <td>1</td>
-          <td>#{last_name}</td>
-          <td>#{first_name}</td>
-          <td align="center">#{cc_id}</td>
-          <td>BC Wedel</td>
-          <td>1010</td>
-          <td>fristgerecht gemeldet</td>
+        <tr class="odd">
+          <td class="bb1" align="center">#{idx + 1}</td>
+          <td class="bb1"><a href="showTeilnehmer.php?p=20-7-*-2025/2026-*--859-#{cc_id}&amp;" title="#{last_name}, #{first_name} (#{cc_id})" class="cc_bluelink">#{last_name}</a></td>
+          <td class="bb1">#{first_name}</td>
+          <td class="bb1" align="center">#{cc_id}</td>
+          <td class="bb1">BC Wedel</td>
+          <td class="bb1" align="center">1010</td>
+          <td class="bb1">fristgerecht gemeldet</td>
         </tr>
       ROW
     end.join
     <<~HTML
       <html><body>
-      <h1>Teilnehmerliste</h1>
-      <table>
-        <tr><th>#</th><th>Nachname</th><th>Vorname</th><th>Pass-Nr.</th><th>Verein</th><th>VNr.</th><th>Status</th></tr>
-        #{rows}
-      </table>
+      <table cellspacing="0" cellpadding="8" width="100%"><tbody>
+      <tr><th class="bb1" colspan="16">TEILNEHMERLISTE</th></tr>
+      <tr><th class="colored">#{teilnehmer_options.size}</th><th class="colored" align="left">NACHNAME</th><th class="colored" align="left">VORNAME</th><th class="colored">PASS-NR.</th><th class="colored" align="left">VEREIN</th><th class="colored">VNR.</th><th class="colored" align="left">STATUS</th></tr>
+      #{rows}
+      </tbody></table>
       </body></html>
     HTML
   end
