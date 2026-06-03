@@ -115,6 +115,19 @@ module McpServer
         pre_read = pre_read_teilnehmerliste(client, tournament_cc_id, scope)
         return pre_read if pre_read.is_a?(MCP::Tool::Response)  # error envelope
 
+        # Plan 26-01 T1 (2026-06-03): Truth-Source-Swap + Buffer-Sync-Guard.
+        # Demo-1-Befund: editTeilnehmerlisteCheck (Edit-Buffer-View) kann nach Writes
+        # 1-3s eventual sein — `current_teilnehmer=[]` obwohl persistierte DB-View 3+
+        # Spieler enthielt. Wenn wir mit stalem Buffer in assignPlayer/Save gehen,
+        # überschreibt CC die persistierte Liste mit nur dem neuen Spieler → reale
+        # De-Akkreditierung (3 Spieler live in Demo-1 verloren, nur durch Re-Read entdeckt).
+        # Fix: Vergleiche Edit-Buffer mit persistierter Truth-Source (showTeilnehmerliste.php).
+        # Bei Stale: warten + re-read; wenn weiter stale → abort vor Save (kein Datenverlust).
+        sync = ensure_buffer_synced_with_persisted!(client, tournament_cc_id, scope, pre_read)
+        return sync[:error] if sync[:error]
+        pre_read = sync[:pre_read]
+        persisted_truth_source = sync[:persisted_truth_source]
+
         # Pre-Validation: alle player_cc_ids in meldungId-Available?
         available_ids = pre_read[:available_in_meldeliste].map { |opt| opt[:cc_id] }
         already_in_list = pre_read[:current_teilnehmer].map { |opt| opt[:cc_id] }
@@ -160,6 +173,7 @@ module McpServer
             pre_read_verified: #{pre_read_status[:pre_read_verified]}
             pre_read_source: #{pre_read_status[:pre_read_source]}
             pre_read_warning: #{pre_read_status[:pre_read_warning]}
+            persisted_truth_source: #{persisted_truth_source}
             Pass armed:true to actually perform this assignment.
           DRY_RUN
         end
@@ -241,6 +255,7 @@ module McpServer
           pre_read_verified: #{pre_read_status[:pre_read_verified]}
           pre_read_source: #{pre_read_status[:pre_read_source]}
           pre_read_warning: #{pre_read_status[:pre_read_warning]}
+          persisted_truth_source: #{persisted_truth_source}
         OUT
       rescue => e
         error("Tool exception: #{e.class.name} (details suppressed; check Rails.logger on stderr).")
@@ -274,6 +289,59 @@ module McpServer
         # CC-API hat keinen klaren finalized-Marker für Teilnehmerliste (Phase-7-Befund: kein finalize-State).
         # Defensive: assume non-finalized (CC selbst rejected falls Teilnehmerliste finalized).
         {name: "non_finalized", ok: true}
+      end
+
+      # Plan 26-01 T1 (2026-06-03): Buffer-Sync-Guard gegen Edit-Buffer 1-3s eventual nach Writes.
+      # Liefert {pre_read:, persisted_truth_source:, error: nil} bei Sync oder Degrade-Graceful;
+      # {error: MCP-Response} wenn Buffer dauerhaft stale ist (kein Save → kein Datenverlust).
+      # DRY: nutzt LookupTeilnehmerliste.fetch_teilnehmerliste_persisted (T3b-Pattern aus Plan 25).
+      def self.ensure_buffer_synced_with_persisted!(client, tournament_cc_id, scope, pre_read)
+        persisted_teilnehmer = McpServer::Tools::LookupTeilnehmerliste
+          .fetch_teilnehmerliste_persisted(client, tournament_cc_id, scope)
+
+        unless persisted_teilnehmer.is_a?(Array)
+          # Persisted-Read nicht verfügbar → Degrade-Graceful auf Edit-Buffer (T3b-Pattern).
+          Rails.logger.info "[assign_player_to_teilnehmerliste] persisted truth-source unavailable; falling back to edit_buffer for tournament_cc_id=#{tournament_cc_id}"
+          return {pre_read: pre_read, persisted_truth_source: "edit_buffer (persisted unavailable)", error: nil}
+        end
+
+        persisted_count = persisted_teilnehmer.size
+        edit_buffer_count = pre_read[:current_teilnehmer].size
+
+        if persisted_count <= edit_buffer_count
+          # Edit-Buffer mindestens so aktuell wie persisted → keine Aktion.
+          return {pre_read: pre_read, persisted_truth_source: "showTeilnehmerliste", error: nil}
+        end
+
+        # Edit-Buffer ist stale (Bug-Fall aus Demo-1). Einmalig warten + re-read.
+        Rails.logger.info "[assign_player_to_teilnehmerliste] edit_buffer stale (count=#{edit_buffer_count}) vs persisted (count=#{persisted_count}) for tournament_cc_id=#{tournament_cc_id}; waiting #{edit_buffer_resync_wait_seconds}s before retry"
+        sleep edit_buffer_resync_wait_seconds
+        retry_pre_read = pre_read_teilnehmerliste(client, tournament_cc_id, scope)
+        return {error: retry_pre_read} if retry_pre_read.is_a?(MCP::Tool::Response)
+
+        if persisted_count > retry_pre_read[:current_teilnehmer].size
+          # Buffer weiterhin stale → abort statt Datenverlust riskieren.
+          Rails.logger.warn "[assign_player_to_teilnehmerliste] edit_buffer remains stale after wait (count=#{retry_pre_read[:current_teilnehmer].size} vs persisted=#{persisted_count}); aborting for tournament_cc_id=#{tournament_cc_id}"
+          return {error: error(
+            "Die ClubCloud braucht einen Moment, bis sie den neuen Stand übernimmt. " \
+            "Bitte gleich erneut versuchen. " \
+            "(Hintergrund: Es sind bereits #{persisted_count} Eintrag(e) in der Teilnehmerliste, " \
+            "das Bearbeitungsformular sieht aber nur #{retry_pre_read[:current_teilnehmer].size} davon — " \
+            "ein Schreibvorgang jetzt würde die anderen Einträge verlieren.)"
+          )}
+        end
+
+        # Nach Wait synced — proceed mit korrigiertem pre_read.
+        {pre_read: retry_pre_read, persisted_truth_source: "showTeilnehmerliste (synced after wait)", error: nil}
+      end
+
+      # Wartezeit zwischen erstem Stale-Detect und Re-Read. Klassen-Methode + Setter für Test-Override.
+      def self.edit_buffer_resync_wait_seconds
+        @edit_buffer_resync_wait_seconds ||= 1.5
+      end
+
+      class << self
+        attr_writer :edit_buffer_resync_wait_seconds
       end
 
       # Resolve scope filters from DB (TournamentCc) + Override-Params (Best-Effort, NBV-only-Constraint).
