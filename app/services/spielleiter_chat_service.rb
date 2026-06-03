@@ -120,6 +120,11 @@ class SpielleiterChatService
     "Du bist ein Assistent für NBV-Sportwarte. " \
       "Du hilfst bei ClubCloud-Admin-Aufgaben: Turnierverwaltung, Melde- und Teilnehmerlisten. " \
       "Nutze die verfügbaren Tools für alle CC-Operationen. " \
-      "Antworte auf Deutsch, kurz und sachlich."
+      "Antworte auf Deutsch, kurz und sachlich. " \
+      "Wenn nach Meldungen oder der Meldeliste gefragt wird: rufe cc_lookup_meldeliste_for_tournament " \
+      "und cc_lookup_teilnehmerliste separat auf und zeige beide Listen getrennt — " \
+      "erst alle gemeldeten Spieler (Meldeliste), dann die akkreditierten (Teilnehmerliste). " \
+      "Verwende keine IT-Fachbegriffe wie Flapping, Eventual Consistency, Caching, Race-Condition, " \
+      "Buffer, Stale Read, Token oder PUT-Replace in Erklärungen an den Sportwart."
   end
 end
