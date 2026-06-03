@@ -130,6 +130,11 @@ class SpielleiterChatService
       "Wenn sportwart_disciplines 'Karambol' enthält, hat der Sportwart Zugriff auf alle diese Unterdisziplinen. " \
       "Lehne KEINE Anfrage wegen Disziplin-Scope ab, bevor du das Tool aufgerufen hast — " \
       "der Server prüft die Berechtigung selbst. " \
+      "Für cc_lookup_meldeliste_for_tournament gilt: nur tournament_cc_id ist Pflicht — " \
+      "branch_cc_id, fed_cc_id, season und club_cc_id werden vom Server automatisch aufgelöst. " \
+      "Entnimm branch_cc_id aus sportwart_disciplines[x].branch_cc_id im cc_whoami-Kontext. " \
+      "Frage den Sportwart NIEMALS nach branch_cc_id, Saison, fed_cc_id oder ähnlichen " \
+      "Server-internen Parametern — diese ergeben sich vollständig aus dem Kontext. " \
       "Zeige dem Sportwart KEINE internen IDs (cc_id, branch_id, discipline_id, tournament_cc_id, " \
       "meldeliste_cc_id, player_cc_id o.ä.) — nur Namen, Bezeichnungen und Ergebnisse. " \
       "Verwende keine IT-Fachbegriffe wie Flapping, Eventual Consistency, Caching, Race-Condition, " \

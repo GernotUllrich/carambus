@@ -119,13 +119,19 @@ module McpServer
         []
       end
 
-      # Sportwart-Disciplines analog.
+      # Sportwart-Disciplines mit branch_cc_id (CC admin branch ID für Tool-Calls wie
+      # cc_lookup_meldeliste_for_tournament). branch_cc_id aus BranchCc-Lookup per
+      # discipline_id + context — nil wenn kein BranchCc-Eintrag existiert.
       def self.resolve_sportwart_disciplines(server_context)
         user_id = server_context&.dig(:user_id)
         return [] if user_id.blank?
         u = User.find_by(id: user_id)
         return [] unless u&.respond_to?(:sportwart_disciplines)
-        u.sportwart_disciplines.pluck(:id, :name).map { |id, name| {id: id, name: name} }
+        ctx = Carambus.config.context.to_s.presence
+        u.sportwart_disciplines.map do |d|
+          branch_cc_id = BranchCc.find_by(discipline_id: d.id, context: ctx)&.cc_id
+          {id: d.id, name: d.name, branch_cc_id: branch_cc_id}
+        end
       rescue => e
         Rails.logger.warn "[CcWhoami.resolve_sportwart_disciplines] #{e.class}: #{e.message}"
         []
