@@ -8,7 +8,7 @@ const defaultTheme = require('tailwindcss/defaultTheme')
 module.exports = {
   darkMode: 'class',
   mode: 'jit',
-  plugins: [],
+  plugins: [require('@tailwindcss/typography')],
 
   content: [
     './app/views/**/*.html.erb',

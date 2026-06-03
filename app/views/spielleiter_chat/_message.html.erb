@@ -9,8 +9,9 @@
   <% unless text.blank? %>
     <div class="flex <%= is_user ? 'justify-end' : 'justify-start' %>">
       <div class="max-w-[80%] rounded-lg px-4 py-3 text-sm
-                  <%= is_user ? 'bg-blue-600 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100' %>">
-        <%= simple_format(text, {}, wrapper_tag: :div) %>
+                  <%= is_user ? 'bg-blue-600 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100' %>
+                  <%= is_user ? '' : 'prose prose-sm dark:prose-invert max-w-none' %>">
+        <%= is_user ? simple_format(text, {}, wrapper_tag: :div) : markdown(text) %>
       </div>
     </div>
   <% end %>
