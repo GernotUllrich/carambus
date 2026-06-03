@@ -109,21 +109,22 @@ module McpServer
 
         # DB-first-Resolver (Best-Effort, NBV-only-Optimization)
         scope = resolve_scope_filters(tournament_cc_id, fed_cc_id, branch_cc_id, season, disciplin_id, cat_id)
-
-        # Pre-Read via editTeilnehmerlisteCheck → parse state
         client = cc_session.client_for(server_context)
+
+        # Plan 26-01 T1b (2026-06-03 — Demo-2-Bugfix): REIHENFOLGE KRITISCH.
+        # showTeilnehmerliste MUSS vor editTeilnehmerlisteCheck dla=1 aufgerufen werden.
+        # T1-Fehler (Demo-2-Befund 2026-06-03): showTeilnehmerliste-GET NACH editTeilnehmerlisteCheck
+        # setzt den CC-Session-Edit-Buffer als Seiteneffekt zurück — assignPlayer fügt dann zu
+        # leerem Buffer hinzu, Save schreibt nur den neuen Spieler (live: 4 → 1 statt 4).
+        # Korrekte Reihenfolge entspricht dem CC-Web-UI-HAR-Flow: showTeilnehmerliste → editTeilnehmerlisteCheck.
+        persisted_result = McpServer::Tools::LookupTeilnehmerliste.fetch_teilnehmerliste_persisted(client, tournament_cc_id, scope)
+
+        # Pre-Read via editTeilnehmerlisteCheck → parse state (NACH showTeilnehmerliste!)
         pre_read = pre_read_teilnehmerliste(client, tournament_cc_id, scope)
         return pre_read if pre_read.is_a?(MCP::Tool::Response)  # error envelope
 
-        # Plan 26-01 T1 (2026-06-03): Truth-Source-Swap + Buffer-Sync-Guard.
-        # Demo-1-Befund: editTeilnehmerlisteCheck (Edit-Buffer-View) kann nach Writes
-        # 1-3s eventual sein — `current_teilnehmer=[]` obwohl persistierte DB-View 3+
-        # Spieler enthielt. Wenn wir mit stalem Buffer in assignPlayer/Save gehen,
-        # überschreibt CC die persistierte Liste mit nur dem neuen Spieler → reale
-        # De-Akkreditierung (3 Spieler live in Demo-1 verloren, nur durch Re-Read entdeckt).
-        # Fix: Vergleiche Edit-Buffer mit persistierter Truth-Source (showTeilnehmerliste.php).
-        # Bei Stale: warten + re-read; wenn weiter stale → abort vor Save (kein Datenverlust).
-        sync = ensure_buffer_synced_with_persisted!(client, tournament_cc_id, scope, pre_read)
+        # Buffer-Sync-Guard mit vorab abgerufenem persisted_result (kein internes Fetch mehr).
+        sync = ensure_buffer_synced_with_persisted!(client, tournament_cc_id, scope, pre_read, persisted_result)
         return sync[:error] if sync[:error]
         pre_read = sync[:pre_read]
         persisted_truth_source = sync[:persisted_truth_source]
@@ -214,18 +215,24 @@ module McpServer
         return error("CC rejected at editTeilnehmerlisteSave: #{save_parsed}") if save_parsed && save_parsed != "(no error)"
 
         # Optional Read-Back (Schicht 4 Verify): re-read teilnehmerliste, verify all player_cc_ids now present.
+        # Plan 26-01 T1b: zusätzlich prüfen, ob Bestandsteilnehmer unbeabsichtigt entfernt wurden
+        # (Demo-2-Befund: alter read_back war False-Positive — prüfte nur neue Spieler, nicht Bestand).
         read_back_match = :skipped
         if read_back
           rb = pre_read_teilnehmerliste(client, tournament_cc_id, scope)
           if rb.is_a?(Hash)
             actual_ids = rb[:current_teilnehmer].map { |opt| opt[:cc_id] }
             missing_after_save = player_cc_ids - actual_ids
-            read_back_match = missing_after_save.empty?
+            pre_existing_ids = pre_read[:current_teilnehmer].map { |o| o[:cc_id] }
+            unintended_removals = pre_existing_ids - actual_ids
+            read_back_match = missing_after_save.empty? && unintended_removals.empty?
             unless read_back_match
+              problem_parts = []
+              problem_parts << "fehlende neue Spieler: #{missing_after_save.inspect}" if missing_after_save.any?
+              problem_parts << "unbeabsichtigt entfernte Bestandsteilnehmer: #{unintended_removals.inspect}" if unintended_removals.any?
               return error(
-                "Read-back mismatch: expected players #{player_cc_ids.inspect} in Teilnehmerliste, " \
-                "but #{missing_after_save.inspect} missing. Save may have failed silently. " \
-                "Inspect CC UI manually (cleanup may be needed)."
+                "Read-back mismatch: #{problem_parts.join("; ")}. " \
+                "Save hat möglicherweise unvollständige Daten geschrieben. Bitte CC-UI prüfen und ggf. bereinigen."
               )
             end
           else
@@ -292,13 +299,13 @@ module McpServer
       end
 
       # Plan 26-01 T1 (2026-06-03): Buffer-Sync-Guard gegen Edit-Buffer 1-3s eventual nach Writes.
+      # Plan 26-01 T1b-Fix (2026-06-03): persisted_teilnehmer MUSS vorab (vor pre_read_teilnehmerliste!)
+      # abgerufen worden sein und wird als Parameter übergeben. Internes Fetchen würde den CC-Session-
+      # Edit-Buffer zurücksetzen (Demo-2-Befund: showTeilnehmerliste GET NACH editTeilnehmerlisteCheck
+      # setzt Session-State → leerer Buffer → nur neuer Spieler gespeichert).
       # Liefert {pre_read:, persisted_truth_source:, error: nil} bei Sync oder Degrade-Graceful;
       # {error: MCP-Response} wenn Buffer dauerhaft stale ist (kein Save → kein Datenverlust).
-      # DRY: nutzt LookupTeilnehmerliste.fetch_teilnehmerliste_persisted (T3b-Pattern aus Plan 25).
-      def self.ensure_buffer_synced_with_persisted!(client, tournament_cc_id, scope, pre_read)
-        persisted_teilnehmer = McpServer::Tools::LookupTeilnehmerliste
-          .fetch_teilnehmerliste_persisted(client, tournament_cc_id, scope)
-
+      def self.ensure_buffer_synced_with_persisted!(client, tournament_cc_id, scope, pre_read, persisted_teilnehmer)
         unless persisted_teilnehmer.is_a?(Array)
           # Persisted-Read nicht verfügbar → Degrade-Graceful auf Edit-Buffer (T3b-Pattern).
           Rails.logger.info "[assign_player_to_teilnehmerliste] persisted truth-source unavailable; falling back to edit_buffer for tournament_cc_id=#{tournament_cc_id}"
