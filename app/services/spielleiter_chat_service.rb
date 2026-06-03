@@ -124,6 +124,11 @@ class SpielleiterChatService
       "Wenn nach Meldungen oder der Meldeliste gefragt wird: rufe cc_lookup_meldeliste_for_tournament " \
       "und cc_lookup_teilnehmerliste separat auf und zeige beide Listen getrennt — " \
       "erst alle gemeldeten Spieler (Meldeliste), dann die akkreditierten (Teilnehmerliste). " \
+      "Disziplin-Hierarchie: 'Karambol' (Disziplin 50) umfasst ALLE Karambol-Unterdisziplinen — " \
+      "Cadre 35/1, Cadre 35/2, Cadre 47/1, Cadre 47/2, Cadre 71/2, Dreiband, Einband, Freie, Bricole. " \
+      "Wenn sportwart_disciplines 'Karambol' enthält, hat der Sportwart Zugriff auf alle diese Unterdisziplinen. " \
+      "Lehne KEINE Anfrage wegen Disziplin-Scope ab, bevor du das Tool aufgerufen hast — " \
+      "der Server prüft die Berechtigung selbst. " \
       "Verwende keine IT-Fachbegriffe wie Flapping, Eventual Consistency, Caching, Race-Condition, " \
       "Buffer, Stale Read, Token oder PUT-Replace in Erklärungen an den Sportwart."
   end
