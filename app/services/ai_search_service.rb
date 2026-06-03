@@ -376,7 +376,12 @@ class AiSearchService < ApplicationService
     content = response.content.first&.text
     return error_response('Keine Antwort erhalten') if content.blank?
 
-    data = JSON.parse(content)
+    # Claude wraps JSON in markdown code blocks (```json...```) — strip them before parsing.
+    json_str = content.gsub(/\A\s*```(?:json)?\s*/m, "").gsub(/\s*```\s*\z/m, "").strip
+    # Fallback: extract the first {...} block if preamble text is still present.
+    json_str = json_str[/{.*}/m] || json_str
+
+    data = JSON.parse(json_str)
     
     # Validate response structure
     unless data['entity'].present? && ENTITY_MAPPING.key?(data['entity'])
