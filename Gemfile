@@ -170,8 +170,11 @@ gem 'cancancan', '~> 3.5'
 # Syntax highlighting for code blocks
 gem 'rouge', '~> 3.26'
 
-# OpenAI API integration for AI-powered search
+# OpenAI API integration (deprecated in v0.8 — kept for rollback)
 gem 'ruby-openai', '~> 7.3'
+
+# Anthropic Claude API (v0.8 — ersetzt OpenAI als primäre AI-Integration)
+gem 'anthropic'
 
 # PDF text extraction for tournament invitation parsing
 gem 'pdf-reader', '~> 2.12'

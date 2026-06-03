@@ -108,7 +108,7 @@ class AiSearchService < ApplicationService
     @query = options[:query]&.strip
     @user = options[:user]
     @locale = options[:locale] || 'de'
-    @client = OpenAI::Client.new
+    @client = Anthropic::Client.new(api_key: Rails.application.credentials.dig(:anthropic, :api_key))
   end
 
   def call
@@ -118,24 +118,27 @@ class AiSearchService < ApplicationService
       return result
     end
 
-    unless openai_configured?
-      result = error_response('OpenAI nicht konfiguriert')
+    unless anthropic_configured?
+      result = error_response("KI-Suche nicht konfiguriert")
       log_search(result)
       return result
     end
 
     begin
-      response = @client.chat(
-        parameters: {
-          model: 'gpt-4o-mini',
-          messages: [
-            { role: 'system', content: system_prompt },
-            { role: 'user', content: @query }
-          ],
-          response_format: { type: 'json_object' },
-          temperature: 0.3,
-          max_tokens: 500
-        }
+      response = @client.messages.create(
+        model: "claude-haiku-4-5-20251001",
+        max_tokens: 500,
+        temperature: 0.3,
+        system: [
+          {
+            type: "text",
+            text: system_prompt,
+            cache_control: {type: "ephemeral"}
+          }
+        ],
+        messages: [
+          {role: "user", content: @query}
+        ]
       )
 
       result = parse_ai_response(response)
@@ -370,7 +373,7 @@ class AiSearchService < ApplicationService
   end
 
   def parse_ai_response(response)
-    content = response.dig('choices', 0, 'message', 'content')
+    content = response.content.first&.text
     return error_response('Keine Antwort erhalten') if content.blank?
 
     data = JSON.parse(content)
@@ -401,8 +404,8 @@ class AiSearchService < ApplicationService
     }
   end
 
-  def openai_configured?
-    Rails.application.credentials.dig(:openai, :api_key).present?
+  def anthropic_configured?
+    Rails.application.credentials.dig(:anthropic, :api_key).present?
   end
 
   # Path helper methods (delegates to Rails routes)

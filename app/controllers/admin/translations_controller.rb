@@ -56,7 +56,7 @@ module Admin
           target_lang: target_lang
         )
       when 'openai'
-        service = OpenaiTranslationService.new
+        service = AnthropicTranslationService.new
         service.translate(
           text: text,
           source_lang: source_lang,
