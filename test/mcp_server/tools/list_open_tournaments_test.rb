@@ -116,8 +116,9 @@ class McpServer::Tools::ListOpenTournamentsTest < ActiveSupport::TestCase
     assert_match(/date BETWEEN/, body["meta"]["filter_basis"])
   end
 
-  # Plan 14-02.3 / F-2: Branch-Filter matched alle Sub-Disciplines.
-  test "discipline 'Pool' (Branch-Match): liefert alle Pool-Sub-Disciplines" do
+  # Plan 14-02.3 / F-2: Branch-Filter matched alle Sub-Disciplines (rekursiv).
+  # DEFER-28-02-1 Fix: collect_subtree_ids statt nur 1 Ebene tief.
+  test "discipline 'Pool' (Branch-Match): liefert alle Pool-Sub-Disciplines inkl. Enkel" do
     nbv = Region.find_by(shortname: "NBV")
     pool_branch = Branch.find_by("name ILIKE ?", "Pool")
     skip "NBV / Pool-Branch fixtures missing" unless nbv && pool_branch
@@ -130,9 +131,9 @@ class McpServer::Tools::ListOpenTournamentsTest < ActiveSupport::TestCase
     refute response.error?
     body = JSON.parse(response.content.first[:text])
     assert_equal "Pool", body["meta"]["branch"]
-    pool_discipline_ids = Discipline.where(super_discipline_id: pool_branch.id).pluck(:id)
+    pool_discipline_ids = McpServer::Tools::BaseTool.collect_subtree_ids(pool_branch.id)
     body["data"].each do |t|
-      assert_includes pool_discipline_ids, t["discipline_id"], "Pool-Branch-Filter muss nur Pool-Sub-Disciplines liefern"
+      assert_includes pool_discipline_ids, t["discipline_id"], "Pool-Branch-Filter muss nur Pool-Sub-Disciplines (inkl. Enkel) liefern"
     end
   end
 

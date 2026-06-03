@@ -306,7 +306,7 @@ module McpServer
       # zeigen via super_discipline_id auf ihre Branch.
       #
       # Resolver-Reihenfolge:
-      #   1. Branch-Match (case-insensitive ILIKE) → alle Sub-Disciplines liefern
+      #   1. Branch-Match (case-insensitive ILIKE) → rekursiv alle Sub-Disciplines liefern
       #   2. Discipline-Match (case-insensitive ILIKE) → einzelne Discipline
       #   3. Numerische Discipline-ID-Fallback
       #
@@ -318,10 +318,12 @@ module McpServer
         return [nil, nil] if filter_string.blank?
         f = filter_string.to_s.strip
 
-        # Pfad 1: Branch-Match (STI: Discipline.where(type: 'Branch'))
+        # Pfad 1: Branch-Match — rekursiv alle Ebenen des Subtrees (DEFER-28-02-1).
+        # Pre-Fix: nur 1 Ebene tief → Karambol lieferte Dreiband/Cadre aber NICHT
+        # Dreiband-groß/Cadre-35/2 (wo Turniere tatsächlich hängen).
         branch = Branch.find_by("name ILIKE ?", f)
         if branch
-          discipline_ids = Discipline.where(super_discipline_id: branch.id).pluck(:id)
+          discipline_ids = collect_subtree_ids(branch.id)
           return [discipline_ids, branch.name] if discipline_ids.any?
         end
 
@@ -338,6 +340,23 @@ module McpServer
       rescue => e
         Rails.logger.warn "[BaseTool.resolve_discipline_or_branch] #{e.class}: #{e.message}"
         [nil, nil]
+      end
+
+      # Iterativer BFS-Subtree-Collector — liefert alle Discipline-IDs unterhalb
+      # von parent_id (unbegrenzte Tiefe, zyklus-defensiv).
+      def self.collect_subtree_ids(parent_id)
+        collected = []
+        seen = []
+        queue = [parent_id]
+        until queue.empty?
+          current = queue.shift
+          next if seen.include?(current)
+          seen << current
+          children = Discipline.where(super_discipline_id: current).pluck(:id)
+          collected.concat(children)
+          queue.concat(children)
+        end
+        collected.uniq
       end
 
       # Plan 14-G.2 / D-14-G4 + D-14-G5: Authority-Helper für Write-Tools.

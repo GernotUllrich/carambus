@@ -306,14 +306,28 @@ class McpServer::Tools::BaseToolTest < ActiveSupport::TestCase
       assert_nil branch_name2
     end
 
-    test "resolve_discipline_or_branch: 'Pool' matched Branch → alle Pool-Sub-Disciplines" do
+    test "resolve_discipline_or_branch: 'Pool' matched Branch → rekursiv alle Pool-Sub-Disciplines" do
       ids, branch_name = McpServer::Tools::BaseTool.resolve_discipline_or_branch("Pool")
       pool_branch = Branch.find_by("name ILIKE ?", "Pool")
       skip "Branch 'Pool' nicht in Test-DB" if pool_branch.nil?
-      expected_ids = Discipline.where(super_discipline_id: pool_branch.id).pluck(:id)
+      expected_ids = McpServer::Tools::BaseTool.collect_subtree_ids(pool_branch.id)
       skip "Keine Pool-Sub-Disciplines in Test-DB" if expected_ids.empty?
       assert_equal expected_ids.sort, ids.sort
       assert_equal pool_branch.name, branch_name
+    end
+
+    test "resolve_discipline_or_branch: 'Karambol' matched Branch → enthält Blatt-Disziplinen (Cadre 35/2, Dreiband groß)" do
+      ids, branch_name = McpServer::Tools::BaseTool.resolve_discipline_or_branch("Karambol")
+      karambol_branch = Branch.find_by("name ILIKE ?", "Karambol")
+      skip "Branch 'Karambol' nicht in Test-DB" if karambol_branch.nil?
+      assert_equal karambol_branch.name, branch_name
+
+      cadre_35_2 = Discipline.find_by(name: "Cadre 35/2")
+      dreiband_gross = Discipline.find_by(name: "Dreiband groß")
+      skip "Blatt-Disziplinen 'Cadre 35/2'/'Dreiband groß' nicht in Test-DB" if cadre_35_2.nil? && dreiband_gross.nil?
+
+      assert_includes ids, cadre_35_2.id, "Cadre 35/2 (Ebene 2) muss im Branch-Resolver enthalten sein" if cadre_35_2
+      assert_includes ids, dreiband_gross.id, "Dreiband groß (Ebene 2) muss im Branch-Resolver enthalten sein" if dreiband_gross
     end
 
     test "resolve_discipline_or_branch: '8-Ball' matched Discipline → [[id], nil]" do
@@ -463,7 +477,7 @@ class McpServer::Tools::BaseToolTest < ActiveSupport::TestCase
   end
 
   # Plan 14-G.13.1 Task 1: Cache-Helper Tests.
-  describe "cc_cache_get_or_set / cc_cache_invalidate! / cc_cache_reset!" do
+  class CcCacheTest < ActiveSupport::TestCase
     teardown do
       McpServer::Tools::BaseTool.cc_cache_reset!
     end
