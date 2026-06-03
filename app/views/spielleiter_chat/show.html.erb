@@ -1,11 +1,23 @@
+<% content_for :head do %>
 <style>
   @media print {
     #chat-header, #chat-form-area { display: none !important; }
-    #chat-messages .flex { page-break-inside: avoid; }
+    #chat-messages .flex { page-break-inside: avoid; margin-bottom: 0.5rem; }
+    /* Dark-Mode-Überschreibung: helle Farben erzwingen */
+    #chat-messages .justify-start > div {
+      background-color: #f3f4f6 !important;
+      color: #111827 !important;
+      border: 1px solid #e5e7eb;
+    }
+    #chat-messages .justify-end > div {
+      background-color: #2563eb !important;
+      color: #ffffff !important;
+    }
     * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     @page { margin: 1.5cm; size: A4; }
   }
 </style>
+<% end %>
 
 <div class="max-w-3xl mx-auto px-4 py-8">
   <div id="chat-header" class="flex items-center justify-between mb-6">
