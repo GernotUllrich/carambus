@@ -53,7 +53,7 @@ class SpielleiterChatService
       assistant_content = response.content.map { |b| serialize_content_block(b) }
       loop_messages << {role: "assistant", content: assistant_content}
 
-      break if response.stop_reason != "tool_use"
+      break if response.stop_reason.to_s != "tool_use"
 
       # Dispatch all tool_use blocks and collect tool_results.
       tool_results = assistant_content
