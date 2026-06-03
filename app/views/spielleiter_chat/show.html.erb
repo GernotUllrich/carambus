@@ -1,20 +1,27 @@
 <% content_for :head do %>
 <style>
   @media print {
-    #chat-header, #chat-form-area { display: none !important; }
-    #chat-messages .flex { page-break-inside: avoid; margin-bottom: 0.5rem; }
-    /* Dark-Mode-Überschreibung: helle Farben erzwingen */
+    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    @page { margin: 1.5cm; size: A4; }
+
+    /* Dark-Mode reset: alles auf schwarz/weiß */
+    html, body { background: white !important; color: #111827 !important; }
+    #chat-messages, #chat-messages * { color: #111827 !important; }
+
+    /* Assistenten-Bubble: helles Grau */
     #chat-messages .justify-start > div {
       background-color: #f3f4f6 !important;
-      color: #111827 !important;
-      border: 1px solid #e5e7eb;
+      border: 1px solid #d1d5db !important;
     }
-    #chat-messages .justify-end > div {
+    /* User-Bubble: Blau mit weißem Text */
+    #chat-messages .justify-end > div,
+    #chat-messages .justify-end > div * {
       background-color: #2563eb !important;
       color: #ffffff !important;
     }
-    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    @page { margin: 1.5cm; size: A4; }
+
+    #chat-header, #chat-form-area { display: none !important; }
+    #chat-messages .flex { page-break-inside: avoid; margin-bottom: 0.5rem; }
   }
 </style>
 <% end %>
