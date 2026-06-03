@@ -327,9 +327,13 @@ module McpServer
           return [discipline_ids, branch.name] if discipline_ids.any?
         end
 
-        # Pfad 2: Discipline-Match
+        # Pfad 2: Discipline-Match — auch Zwischen-Knoten ("Cadre") liefern Subtree.
+        # Für Blatt-Disziplinen ("Cadre 35/2") gibt collect_subtree_ids [] zurück → [id].
         discipline = Discipline.find_by("name ILIKE ?", f)
-        return [[discipline.id], nil] if discipline
+        if discipline
+          sub_ids = collect_subtree_ids(discipline.id)
+          return [([discipline.id] + sub_ids).uniq, nil]
+        end
 
         # Pfad 3: numerische Discipline-ID
         if f.match?(/\A\d+\z/) && Discipline.exists?(f.to_i)
