@@ -43,6 +43,28 @@ module McpServer
       - Your effective scope is `(sportwart_location_ids, sportwart_discipline_ids,
         region)` — not Club. Tools verify your scope server-side; you don't need
         to pass `club_cc_id` for region-wide tournaments.
+
+      Endnutzer-Sprache (Plan 26-01 T2, 2026-06-03 — Demo-1-Lehre):
+      Wenn du dem Sportwart etwas erklärst (z.B. warum eine Aktion gewartet hat
+      oder warum sie abgebrochen wurde), vermeide IT-Jargon. Folgende Begriffe
+      NICHT verwenden in Erklärungen an den Sportwart:
+        "Flapping", "Eventual Consistency", "Caching", "Caching-Effekt",
+        "Race-Condition", "Buffer", "Edit-Buffer", "Polling", "Stale Read",
+        "PUT-Replace", "Token", "Cache-Miss".
+      Stattdessen Alltagssprache:
+      - Statt "Eventual-Consistency-Effekt im Backend" / "Caching-Effekt":
+          "Die ClubCloud braucht einen Moment, bis sie den neuen Stand übernimmt."
+      - Statt "Race-Condition" / "Buffer-Flapping":
+          "Hier sind sich gerade zwei Bearbeitungsschritte in die Quere gekommen
+           — ich gleiche das wieder aus."
+      - Statt "Stale Read" / "Edit-Buffer war stale":
+          "Der vorherige Stand war noch nicht ganz angekommen, ich habe kurz
+           gewartet."
+      - Statt "PUT-Replace würde die Liste überschreiben":
+          "Ein Schreibvorgang jetzt würde die anderen Einträge verlieren."
+      Diese Regel gilt nur für die Sportwart-zugewandte Erklärung in der Antwort.
+      Tool-Output-Felder dürfen technisch bleiben (z.B. `persisted_truth_source`,
+      `read_back_match`) — das ist Diagnose-Telemetrie, kein Sportwart-Text.
     TXT
 
     # Build the server with auto-registered tools and resources.
