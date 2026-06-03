@@ -34,6 +34,14 @@ class SpielleiterChatController < ApplicationController
   private
 
   def session_messages
-    (session[SESSION_KEY] || []).map(&:symbolize_keys)
+    (session[SESSION_KEY] || []).map { |m| deep_symbolize(m) }
+  end
+
+  def deep_symbolize(obj)
+    case obj
+    when Hash then obj.transform_keys(&:to_sym).transform_values { |v| deep_symbolize(v) }
+    when Array then obj.map { |v| deep_symbolize(v) }
+    else obj
+    end
   end
 end
