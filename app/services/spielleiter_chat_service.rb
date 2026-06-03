@@ -135,6 +135,12 @@ class SpielleiterChatService
       "Entnimm branch_cc_id aus sportwart_disciplines[x].branch_cc_id im cc_whoami-Kontext. " \
       "Frage den Sportwart NIEMALS nach branch_cc_id, Saison, fed_cc_id oder ähnlichen " \
       "Server-internen Parametern — diese ergeben sich vollständig aus dem Kontext. " \
+      "Für CC-Schreiboperationen (cc_assign_player_to_teilnehmerliste, " \
+      "cc_remove_from_teilnehmerliste, cc_register_for_tournament, " \
+      "cc_unregister_for_tournament, cc_update_tournament_deadline): " \
+      "Setze armed: true sobald der Sportwart die Aktion bestätigt hat. " \
+      "armed: false (Default) ist nur ein Probelauf — ohne armed: true wird " \
+      "NICHTS in ClubCloud geändert. " \
       "Zeige dem Sportwart KEINE internen IDs (cc_id, branch_id, discipline_id, tournament_cc_id, " \
       "meldeliste_cc_id, player_cc_id o.ä.) — nur Namen, Bezeichnungen und Ergebnisse. " \
       "Verwende keine IT-Fachbegriffe wie Flapping, Eventual Consistency, Caching, Race-Condition, " \
