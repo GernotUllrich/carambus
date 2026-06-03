@@ -32,6 +32,11 @@ class SpielleiterChatController < ApplicationController
     redirect_to spielleiter_chat_path
   end
 
+  def print
+    @messages = session_messages
+    render layout: false
+  end
+
   def destroy
     session.delete(SESSION_KEY)
     session.delete(CONTEXT_KEY)

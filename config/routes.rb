@@ -407,7 +407,9 @@ Rails.application.routes.draw do
   # Sportwart Chat-UI (Phase 28 v0.8)
   scope "/sportwart" do
     resource :spielleiter_chat, only: %i[show create destroy],
-             path: "chat", controller: "spielleiter_chat"
+             path: "chat", controller: "spielleiter_chat" do
+      get :print, on: :member
+    end
   end
 
   scope controller: :static do
