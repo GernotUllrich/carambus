@@ -10,14 +10,15 @@
 
   <!-- Nachrichtenbereich -->
   <div id="chat-messages" class="space-y-4 mb-6 min-h-[200px]">
-    <% if @messages.empty? %>
+    <% if @welcome_message %>
+      <%= render 'message', message: {role: "assistant", content: @welcome_message} %>
+    <% elsif @messages.empty? %>
       <p class="text-gray-400 text-center py-12">
         Stelle eine Frage — z.B. „Welche Turniere sind aktuell offen?"
       </p>
-    <% else %>
-      <% @messages.each do |msg| %>
-        <%= render 'message', message: msg %>
-      <% end %>
+    <% end %>
+    <% @messages.each do |msg| %>
+      <%= render 'message', message: msg %>
     <% end %>
   </div>
 
