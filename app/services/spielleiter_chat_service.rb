@@ -100,11 +100,11 @@ class SpielleiterChatService
   end
 
   def serialize_content_block(block)
-    case block.type
+    case block.type.to_s
     when "tool_use"
       {type: "tool_use", id: block.id, name: block.name, input: block.input}
     else
-      {type: "text", text: block.text.to_s}
+      {type: "text", text: block.respond_to?(:text) ? block.text.to_s : ""}
     end
   end
 
