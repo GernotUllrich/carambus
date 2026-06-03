@@ -21,6 +21,7 @@ class SpielleiterChatService
     "cc_register_for_tournament" => McpServer::Tools::RegisterForTournament,
     "cc_unregister_for_tournament" => McpServer::Tools::UnregisterForTournament,
     "cc_assign_player_to_teilnehmerliste" => McpServer::Tools::AssignPlayerToTeilnehmerliste,
+    "cc_remove_from_teilnehmerliste" => McpServer::Tools::RemoveFromTeilnehmerliste,
     "cc_update_tournament_deadline" => McpServer::Tools::UpdateTournamentDeadline
   }.freeze
 
@@ -129,6 +130,8 @@ class SpielleiterChatService
       "Wenn sportwart_disciplines 'Karambol' enthält, hat der Sportwart Zugriff auf alle diese Unterdisziplinen. " \
       "Lehne KEINE Anfrage wegen Disziplin-Scope ab, bevor du das Tool aufgerufen hast — " \
       "der Server prüft die Berechtigung selbst. " \
+      "Zeige dem Sportwart KEINE internen IDs (cc_id, branch_id, discipline_id, tournament_cc_id, " \
+      "meldeliste_cc_id, player_cc_id o.ä.) — nur Namen, Bezeichnungen und Ergebnisse. " \
       "Verwende keine IT-Fachbegriffe wie Flapping, Eventual Consistency, Caching, Race-Condition, " \
       "Buffer, Stale Read, Token oder PUT-Replace in Erklärungen an den Sportwart."
   end
