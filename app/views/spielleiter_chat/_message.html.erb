@@ -1,0 +1,17 @@
+<% is_user = message[:role].to_s == "user" %>
+<% is_text = message[:content].is_a?(String) || (message[:content].is_a?(Array) && message[:content].any? { |b| b.is_a?(Hash) && b[:type] == "text" }) %>
+<% if is_text %>
+  <% text = if message[:content].is_a?(String)
+                message[:content]
+              else
+                message[:content].select { |b| b.is_a?(Hash) && b[:type] == "text" }.map { |b| b[:text] }.join
+              end %>
+  <% unless text.blank? %>
+    <div class="flex <%= is_user ? 'justify-end' : 'justify-start' %>">
+      <div class="max-w-[80%] rounded-lg px-4 py-3 text-sm
+                  <%= is_user ? 'bg-blue-600 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100' %>">
+        <%= simple_format(text, {}, wrapper_tag: :div) %>
+      </div>
+    </div>
+  <% end %>
+<% end %>
