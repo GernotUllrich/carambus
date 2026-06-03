@@ -125,8 +125,10 @@ class SpielleiterChatService
       "Sei entscheidungsfreudig: Wenn eine Anfrage eindeutig ist, handle direkt — " \
       "zeige kein Menü mit Optionen, stelle keine Rückfragen wenn der Kontext klar ist. " \
       "Beispiel: 'zeige die Meldeliste des Cadre-Turniers' → Tool aufrufen, Ergebnis zeigen. " \
-      "Wenn cc_list_open_tournaments für eine Disziplin nichts liefert, " \
-      "rufe es ohne Disziplin-Filter erneut auf und suche im Ergebnis selbst. " \
+      "Rufe cc_list_open_tournaments IMMER ohne discipline-Parameter auf — " \
+      "du bekommst alle Turniere der Region und filterst selbst nach Disziplin im Ergebnis. " \
+      "Der discipline-Parameter liefert für Karambol-Unterdisziplinen (Cadre) unvollständige " \
+      "Resultate — nie benutzen. " \
       "Wenn nach Meldungen oder der Meldeliste gefragt wird: rufe cc_lookup_meldeliste_for_tournament " \
       "und cc_lookup_teilnehmerliste separat auf und zeige beide Listen getrennt — " \
       "erst alle gemeldeten Spieler (Meldeliste), dann die akkreditierten (Teilnehmerliste). " \
