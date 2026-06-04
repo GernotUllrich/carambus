@@ -15,9 +15,12 @@ class SpielleiterChatService
   TOOL_CLASSES = {
     "cc_whoami" => McpServer::Tools::CcWhoami,
     "cc_list_open_tournaments" => McpServer::Tools::ListOpenTournaments,
+    "cc_lookup_tournament" => McpServer::Tools::LookupTournament,
     "cc_lookup_meldeliste_for_tournament" => McpServer::Tools::LookupMeldelisteForTournament,
     "cc_lookup_teilnehmerliste" => McpServer::Tools::LookupTeilnehmerliste,
+    "cc_list_players_by_club_and_discipline" => McpServer::Tools::ListPlayersByClubAndDiscipline,
     "cc_search_player" => McpServer::Tools::SearchPlayer,
+    "cc_check_player_discipline_experience" => McpServer::Tools::CheckPlayerDisciplineExperience,
     "cc_register_for_tournament" => McpServer::Tools::RegisterForTournament,
     "cc_unregister_for_tournament" => McpServer::Tools::UnregisterForTournament,
     "cc_assign_player_to_teilnehmerliste" => McpServer::Tools::AssignPlayerToTeilnehmerliste,
