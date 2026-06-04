@@ -399,17 +399,34 @@ module McpServer
         # firstEntry: 1 raus, dla/foundpid/etlbu/akkpid rein (HAR-Initial-Pattern)
         payload = base_payload(tournament_cc_id, scope).except(:firstEntry)
           .merge(dla: 1, foundpid: "", etlbu: "", akkpid: "")
-        res, doc = client.post("editTeilnehmerlisteCheck", payload, {armed: true, session_id: cc_session.cookie})
-        if cc_session.reauth_if_needed!(doc)
+        # CC-Flakiness-Retry: transienter HTTP-Fehler beim ersten Versuch → einmal wiederholen.
+        # Claude muss keinen Retry mehr machen — der Fehler taucht nie nach oben auf.
+        attempt = 0
+        begin
+          attempt += 1
           res, doc = client.post("editTeilnehmerlisteCheck", payload, {armed: true, session_id: cc_session.cookie})
+          if cc_session.reauth_if_needed!(doc)
+            res, doc = client.post("editTeilnehmerlisteCheck", payload, {armed: true, session_id: cc_session.cookie})
+          end
+          unless res&.code == "200"
+            if attempt < 2
+              Rails.logger.warn "[pre_read_teilnehmerliste] HTTP #{res&.code} on attempt #{attempt}, retrying in 300ms"
+              sleep(0.3)
+              retry
+            end
+            return error("Pre-Read failed: editTeilnehmerlisteCheck returned HTTP #{res&.code}")
+          end
+          parsed = parse_teilnehmerliste_state(doc)
+          return parsed unless parsed.is_a?(Hash)
+          parsed
+        rescue => e
+          if attempt < 2
+            Rails.logger.warn "[pre_read_teilnehmerliste] #{e.class} on attempt #{attempt}, retrying in 300ms"
+            sleep(0.3)
+            retry
+          end
+          error("Pre-Read parse failed: #{e.class.name} (#{e.message})")
         end
-        return error("Pre-Read failed: editTeilnehmerlisteCheck returned HTTP #{res&.code}") if res.nil? || res&.code != "200"
-
-        parsed = parse_teilnehmerliste_state(doc)
-        return parsed unless parsed.is_a?(Hash)
-        parsed
-      rescue => e
-        error("Pre-Read parse failed: #{e.class.name} (#{e.message})")
       end
 
       # Parse Tournament-Name + Teilnehmerliste-Options + Meldeliste-Options from editTeilnehmerlisteCheck HTML.
