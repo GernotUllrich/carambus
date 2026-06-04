@@ -102,7 +102,7 @@ class Setting < ApplicationRecord
   end
 
   def self.login_to_cc
-    opts = RegionCcAction.get_base_opts_from_environment
+    opts = RegionCcAction.context_opts_from_environment
     region = Region.find_by(shortname: opts[:context].upcase)
     raise "Region not found for context: #{opts[:context]}" unless region
 
@@ -550,7 +550,7 @@ class Setting < ApplicationRecord
   end
 
   def self.logoff_from_cc
-    opts = RegionCcAction.get_base_opts_from_environment
+    opts = RegionCcAction.context_opts_from_environment
     region = Region.find_by(shortname: opts[:context].upcase)
     raise "Region not found for context: #{opts[:context]}" unless region
 
@@ -592,7 +592,7 @@ class Setting < ApplicationRecord
     return false unless session_id.present? || Setting.key_get_value("session_id").present?
     
     session_id ||= Setting.key_get_value("session_id")
-    opts = RegionCcAction.get_base_opts_from_environment
+    opts = RegionCcAction.context_opts_from_environment
     region = Region.find_by(shortname: opts[:context].upcase)
     return false unless region&.region_cc&.base_url.present?
 

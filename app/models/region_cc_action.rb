@@ -1,4 +1,12 @@
 class RegionCcAction
+  def self.context_opts_from_environment
+    session_id = Setting.key_get_value("session_id").presence || ENV["PHPSESSID"].presence
+    context = (ENV["CC_REGION"]&.upcase.presence || Setting.key_get_value("context") || "NBV").downcase
+    season_name = ENV["CC_SEASON"].presence || Setting.key_get_value(:season_name)
+    force_update = (ENV["CC_UPDATE"].presence || Setting.key_get_value("force_update").presence) == "true"
+    {session_id: session_id, armed: force_update, context: context, season_name: season_name}
+  end
+
   def self.get_base_opts_from_environment
     # Session-ID wird primär aus Setting geholt (gesetzt durch Setting.login_to_cc)
     # Fallback auf ENV nur für manuelle Overrides bei Tests/Debug
