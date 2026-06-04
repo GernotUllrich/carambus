@@ -401,6 +401,7 @@ module McpServer
           .merge(dla: 1, foundpid: "", etlbu: "", akkpid: "")
         # CC-Flakiness-Retry: transienter HTTP-Fehler beim ersten Versuch → einmal wiederholen.
         # Claude muss keinen Retry mehr machen — der Fehler taucht nie nach oben auf.
+        # retry ist in Ruby nur in rescue gültig — non-200 wird daher als Exception behandelt.
         attempt = 0
         begin
           attempt += 1
@@ -408,24 +409,17 @@ module McpServer
           if cc_session.reauth_if_needed!(doc)
             res, doc = client.post("editTeilnehmerlisteCheck", payload, {armed: true, session_id: cc_session.cookie})
           end
-          unless res&.code == "200"
-            if attempt < 2
-              Rails.logger.warn "[pre_read_teilnehmerliste] HTTP #{res&.code} on attempt #{attempt}, retrying in 300ms"
-              sleep(0.3)
-              retry
-            end
-            return error("Pre-Read failed: editTeilnehmerlisteCheck returned HTTP #{res&.code}")
-          end
+          raise "HTTP #{res&.code}" unless res&.code == "200"
           parsed = parse_teilnehmerliste_state(doc)
           return parsed unless parsed.is_a?(Hash)
           parsed
         rescue => e
           if attempt < 2
-            Rails.logger.warn "[pre_read_teilnehmerliste] #{e.class} on attempt #{attempt}, retrying in 300ms"
+            Rails.logger.warn "[pre_read_teilnehmerliste] attempt #{attempt} failed: #{e.message}, retrying in 300ms"
             sleep(0.3)
             retry
           end
-          error("Pre-Read parse failed: #{e.class.name} (#{e.message})")
+          error("Pre-Read failed: #{e.message}")
         end
       end
 
