@@ -81,7 +81,7 @@ module McpServer
         # abgefangen und als saubere Fehlermeldung mit Workaround geliefert (= Defensive funktioniert).
         scope = {
           fedId: fed_cc_id || tournament_cc&.branch_cc&.region_cc&.cc_id,
-          branchId: branch_cc_id || tournament_cc&.branch_cc_id,
+          branchId: branch_cc_id || tournament_cc&.branch_cc&.cc_id,
           disciplinId: disciplin_id || "*",
           catId: cat_id || "*",
           season: season || tournament_cc&.season&.to_s

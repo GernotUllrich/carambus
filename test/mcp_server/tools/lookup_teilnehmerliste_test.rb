@@ -168,6 +168,41 @@ class McpServer::Tools::LookupTeilnehmerlisteTest < ActiveSupport::TestCase
     assert_match(/tournament_cc_id|tournament_id/i, response.content.first[:text])
   end
 
+  # DEFER-25-9 Regression-Schutz: branch_cc_id-Default muss branch_cc.cc_id (admin-cc-id) liefern,
+  # nicht TournamentCc.branch_cc_id (Rails-FK auf branch_ccs.id, andere Zahl).
+  test "DEFER-25-9: branchId Default nutzt branch_cc.cc_id (admin-cc-id), nicht Rails-FK" do
+    region_cc_stub = Struct.new(:cc_id).new(20)
+    branch_cc_stub = Struct.new(:cc_id, :region_cc).new(7, region_cc_stub)
+    tournament_cc_stub = Struct.new(:branch_cc, :branch_cc_id, :season).new(branch_cc_stub, 3, "2025/2026")
+
+    captured_p_param = nil
+    show_body = "<html><body><table></table></body></html>"
+    mock = McpServer::Tools::MockClient.new
+    mock.define_singleton_method(:get) do |action, params, opts|
+      @calls << [:get, action, params, opts]
+      captured_p_param = params[:p] if action == "showTeilnehmerliste"
+      [Struct.new(:code, :message, :body).new("200", "OK", show_body), Nokogiri::HTML(show_body)]
+    end
+    mock.define_singleton_method(:post) do |action, params, opts|
+      @calls << [:post, action, params, opts]
+      [Struct.new(:code, :message, :body).new("200", "OK", "<html></html>"), Nokogiri::HTML("<html></html>")]
+    end
+    McpServer::CcSession._client_override = mock
+
+    TournamentCc.stub(:find_by, tournament_cc_stub) do
+      McpServer::Tools::LookupTeilnehmerliste.call(
+        tournament_cc_id: 859,
+        fed_cc_id: 20,
+        season: "2025/2026"
+        # kein branch_cc_id — Default soll branch_cc.cc_id=7 liefern, nicht Rails-FK=3
+      )
+    end
+
+    assert_not_nil captured_p_param, "GET showTeilnehmerliste sollte aufgerufen worden sein"
+    # p_param = "fedId-branchId-*-season-*--tournament_cc_id-3"
+    assert_match(/\A20-7-/, captured_p_param, "branchId muss branch_cc.cc_id=7 sein, nicht Rails-FK=3")
+  end
+
   test "fehlender scope (fed/branch/season ohne DB-Mirror) liefert Sportwart-Hinweis mit admin-cc-id-Tabelle" do
     response = McpServer::Tools::LookupTeilnehmerliste.call(tournament_cc_id: 999_999_999)
     assert response.error?
