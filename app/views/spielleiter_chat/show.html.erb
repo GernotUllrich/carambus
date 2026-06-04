@@ -1,5 +1,24 @@
 <% content_for :head do %>
 <style>
+  /* Klickbare Tabellenzeilen in Claude-Antworten */
+  #chat-messages .prose tbody tr.tournament-row {
+    cursor: pointer;
+    transition: background-color 0.12s;
+  }
+  #chat-messages .prose tbody tr.tournament-row:hover {
+    background-color: rgba(59, 130, 246, 0.08);
+  }
+  #chat-messages .prose tbody tr.tournament-row td:first-child::after {
+    content: " →";
+    opacity: 0;
+    transition: opacity 0.12s;
+    color: #2563eb;
+    font-size: 0.75em;
+  }
+  #chat-messages .prose tbody tr.tournament-row:hover td:first-child::after {
+    opacity: 1;
+  }
+
   @media print {
     * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     @page { margin: 1.5cm; size: A4; }
@@ -91,6 +110,24 @@
     if (input) {
       input.scrollIntoView({ block: 'end' });
       input.focus();
+    }
+
+    // Turniertabellen klickbar machen: Klick auf eine Zeile → Turniernahme ins Eingabefeld + absenden
+    var chatMessages = document.getElementById('chat-messages');
+    var chatForm = document.querySelector('#chat-form-area form');
+    if (chatMessages && chatForm) {
+      chatMessages.querySelectorAll('.prose table tbody tr').forEach(function(row) {
+        var firstCell = row.querySelector('td');
+        if (!firstCell) return;
+        var name = firstCell.textContent.trim();
+        if (!name) return;
+        row.classList.add('tournament-row');
+        row.title = '"' + name + '" auswählen';
+        row.addEventListener('click', function() {
+          var inp = document.getElementById('chat-input');
+          if (inp) { inp.value = name; chatForm.submit(); }
+        });
+      });
     }
   })();
 </script>

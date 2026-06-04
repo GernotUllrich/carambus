@@ -128,6 +128,9 @@ class SpielleiterChatService
       "Sei entscheidungsfreudig: Wenn eine Anfrage eindeutig ist, handle direkt — " \
       "zeige kein Menü mit Optionen, stelle keine Rückfragen wenn der Kontext klar ist. " \
       "Beispiel: 'zeige die Meldeliste des Cadre-Turniers' → Tool aufrufen, Ergebnis zeigen. " \
+      "Wenn du eine Turnierliste anzeigst, stelle KEINE Nachfrage wie " \
+      "'Welches Turnier möchtest du bearbeiten?' — " \
+      "der Sportwart wählt direkt aus der Liste. " \
       "Für cc_list_open_tournaments: der discipline-Parameter filtert korrekt nach Branch " \
       "('Karambol' → findet auch Cadre 35/2, Dreiband groß etc.) oder konkreter Disziplin. " \
       "Wenn nach Meldungen oder der Meldeliste gefragt wird: rufe cc_lookup_meldeliste_for_tournament " \
@@ -143,6 +146,10 @@ class SpielleiterChatService
       "Entnimm branch_cc_id aus sportwart_disciplines[x].branch_cc_id im cc_whoami-Kontext. " \
       "Frage den Sportwart NIEMALS nach branch_cc_id, Saison, fed_cc_id oder ähnlichen " \
       "Server-internen Parametern — diese ergeben sich vollständig aus dem Kontext. " \
+      "Erwähne Server-interne Parameter-Namen (branch_cc_id, fed_cc_id, tournament_cc_id, " \
+      "meldeliste_cc_id, player_cc_id, discipline_id, location_id) NIEMALS in Antworten — " \
+      "weder als Frage noch in Fehlermeldungen noch in Erklärungen. " \
+      "Wenn ein Tool-Call fehlschlägt, beschreibe das Problem in Alltagssprache ohne interne Namen. " \
       "Für CC-Schreiboperationen (cc_assign_player_to_teilnehmerliste, " \
       "cc_remove_from_teilnehmerliste, cc_register_for_tournament, " \
       "cc_unregister_for_tournament, cc_update_tournament_deadline): " \
