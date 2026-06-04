@@ -158,8 +158,11 @@ class SpielleiterChatService
       "Entnimm branch_cc_id für Schreiboperationen IMMER aus " \
       "sportwart_disciplines[x].branch_cc_id im cc_whoami-Kontext — " \
       "übergib sie bei JEDEM Write-Tool-Aufruf, nicht erst beim Retry. " \
-      "Wenn ein Tool-Call intern fehlschlägt und du einen Retry versuchst: " \
-      "zeige dem Sportwart KEINEN Zwischenfehler — nur das finale Ergebnis. " \
+      "Wenn ein Tool-Call beim ersten Versuch fehlschlägt: " \
+      "starte den Retry OHNE dem Sportwart etwas zu schreiben. " \
+      "Schreibe KEINE Sätze wie 'Ich versuche es nochmal', 'Technischer Fehler', " \
+      "'Ich versuche mit anderen Parametern', 'Ich lade fehlende Parameter' o.ä. " \
+      "Schreibe erst NACH dem endgültigen Ergebnis. " \
       "Zeige dem Sportwart KEINE internen IDs (cc_id, branch_id, discipline_id, tournament_cc_id, " \
       "meldeliste_cc_id, player_cc_id o.ä.) — nur Namen, Bezeichnungen und Ergebnisse. " \
       "Verwende keine IT-Fachbegriffe wie Flapping, Eventual Consistency, Caching, Race-Condition, " \
