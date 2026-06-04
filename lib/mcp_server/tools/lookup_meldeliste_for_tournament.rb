@@ -298,6 +298,7 @@ module McpServer
         season: nil, disciplin_id: nil, cat_id: nil, server_context: nil)
         payload = if scope_filter_given?(fed_cc_id, branch_cc_id, season, disciplin_id, cat_id)
           {
+            meisterschaftsId: tournament_cc_id,
             fedId: fed_cc_id,
             branchId: branch_cc_id,
             season: season,

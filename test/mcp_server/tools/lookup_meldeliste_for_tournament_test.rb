@@ -77,10 +77,10 @@ class McpServer::Tools::LookupMeldelisteForTournamentTest < ActiveSupport::TestC
     # → +1 GET-Call vor den POST-Calls. Tests filtern jetzt auf POSTs.
     posts = @mock.calls.select { |verb, _, _, _| verb == :post }
     assert_equal 2, posts.size, "Retry-Fallback muss 2 POST-Calls (Scope-Filter + meisterschaftsId) ausgelöst haben"
-    # 1. POST: scope-filter payload
+    # 1. POST: scope-filter payload — enthält seit DEFER-25-4-Fix auch meisterschaftsId
     payload_1 = posts[0][2]
     assert_equal 20, payload_1[:fedId]
-    refute payload_1.key?(:meisterschaftsId)
+    assert_equal 890, payload_1[:meisterschaftsId]
     # 2. POST: meisterschaftsId fallback payload
     payload_2 = posts[1][2]
     assert_equal 890, payload_2[:meisterschaftsId]
@@ -225,7 +225,7 @@ class McpServer::Tools::LookupMeldelisteForTournamentTest < ActiveSupport::TestC
     assert_equal "2025/2026", payload[:season]
     assert_equal "*", payload[:disciplinId]
     assert_equal "100", payload[:catId]
-    refute payload.key?(:meisterschaftsId), "Scope-Filter-Pfad darf KEIN meisterschaftsId-Key haben"
+    assert_equal 890, payload[:meisterschaftsId], "DEFER-25-4: Scope-Filter-Payload muss meisterschaftsId enthalten"
   end
 
   test "Plan 09-02 T-Scope-Partial: nur fed_cc_id + branch_cc_id → partial Scope-Filter-Payload" do
@@ -244,7 +244,7 @@ class McpServer::Tools::LookupMeldelisteForTournamentTest < ActiveSupport::TestC
     assert_equal 8, payload[:branchId]
     refute payload.key?(:season), "Partial: season nicht gesetzt → kein Key"
     refute payload.key?(:catId), "Partial: cat_id nicht gesetzt → kein Key"
-    refute payload.key?(:meisterschaftsId), "Partial Scope-Filter darf KEIN meisterschaftsId-Key haben"
+    assert_equal 890, payload[:meisterschaftsId], "DEFER-25-4: Scope-Filter-Payload muss meisterschaftsId enthalten"
   end
 
   test "Plan 09-02 T-Scope-Default-Disciplin: disciplin_id omitted → Wildcard '*' im Payload" do
@@ -704,5 +704,29 @@ class McpServer::Tools::LookupMeldelisteForTournamentTest < ActiveSupport::TestC
     ensure
       ENV["CARAMBUS_MCP_MOCK"] = prev_mock
     end
+  end
+
+  # DEFER-25-4: scope-filter-Pfad muss meisterschaftsId im Payload enthalten
+  test "DEFER-25-4: scope-filter-Payload enthält meisterschaftsId" do
+    captured_payload = nil
+    @mock.define_singleton_method(:post) do |action, post_options = {}, opts = {}|
+      @calls << [:post, action, post_options, opts]
+      captured_payload = post_options
+      body = '<html><body><tr data-meldeliste-cc-id="1347"><td>NDM Test Cadre 35/2</td></tr></body></html>'
+      [Struct.new(:code, :message, :body).new("200", "OK", body), Nokogiri::HTML(body)]
+    end
+
+    McpServer::Tools::LookupMeldelisteForTournament.call(
+      tournament_cc_id: 937,
+      fed_cc_id: 20, branch_cc_id: 10, season: "2025/2026",
+      force_refresh: true, server_context: nil
+    )
+
+    posts = @mock.calls.select { |verb, _, _, _| verb == :post }
+    assert posts.any?, "Mindestens ein POST soll erfolgt sein"
+    scope_payload = posts.first[2]
+    assert_equal 937, scope_payload[:meisterschaftsId], "Scope-Filter-Payload muss meisterschaftsId enthalten (DEFER-25-4)"
+    assert_equal 20, scope_payload[:fedId]
+    assert_equal 10, scope_payload[:branchId]
   end
 end
