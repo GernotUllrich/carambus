@@ -76,8 +76,9 @@ Verify connectivity before the first real tournament:
 SERVICE_ACCOUNT_PASSWORD="<password>" rake external_tournament:smoke_test[NBV]
 ```
 
-A successful run prints five `✓` steps (login → tournament lookup → seeding
-→ round start → round result). On failure see "What can go wrong?" below.
+A successful run prints six `✓` steps (login → tournament lookup → seeding
+→ round start → round result → player reconcile). On failure see "What can
+go wrong?" below.
 
 ## Deployment topology
 

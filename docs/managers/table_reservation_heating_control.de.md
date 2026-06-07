@@ -36,12 +36,12 @@ Die Tischheizungen werden automatisch basierend auf Kalendereinträgen und Score
 
 ### Regel 1: Heizung EIN (Normale Reservierung)
 
-**Wann:** 2 Stunden vor Reservierung (3 Stunden bei Match Billard/Snooker)
+**Wann:** 2 Stunden vor Reservierung (4 Stunden bei Match Billard/Snooker)
 
 **Bedingung:** Aktuelle Zeit > (Start - Vorheizzeit) UND < Ende
 
 **Beispiel:** 
-- Reservierung 18:00-22:00, großer Tisch → Heizung AN ab 15:00
+- Reservierung 18:00-22:00, großer Tisch (Match Billard/Snooker) → Heizung AN ab 14:00
 - Reservierung 18:00-22:00, normaler Tisch → Heizung AN ab 16:00
 
 **Besonderheit:** Wenn ein Termin kurz vor Beginn eingetragen wird, schaltet die Heizung sofort ein (innerhalb von 5 Minuten durch Cron-Check)
@@ -135,10 +135,10 @@ Die Tischheizungen werden automatisch basierend auf Kalendereinträgen und Score
 #### System-Parameter
 - **Cron-Intervall:** Alle 5 Minuten
 - **Scoreboard-Check:** Network Ping zur IP-Adresse des Tisches
-- **Event-Window:** Events werden bis zu 3 Stunden im Voraus geprüft
+- **Event-Window:** Events werden bis zur jeweiligen Vorheizzeit im Voraus geprüft (bis zu 4 Stunden bei Match Billard/Snooker, sonst 2 Stunden)
 - **Vorheizzeiten:**
-  - Match Billard: 3 Stunden
-  - Snooker: 3 Stunden
+  - Match Billard: 4 Stunden
+  - Snooker: 4 Stunden
   - Pool: Keine automatische Heizung
   - Andere Tische (Karambol): 2 Stunden
 

@@ -4,7 +4,7 @@
 
 ## Worum geht's?
 
-Du bekommst als Turniermanager eine E-Mail mit Spielern, die für ein Turnier angemeldet werden sollen. Statt jetzt 12-15 Mausklicks in der ClubCloud-UI zu tätigen — und dabei E-Mail-Tab, Browser, Notizzettel parallel zu jonglieren — schickst du den E-Mail-Inhalt an Claude Desktop, bestätigst 3 Rückfragen und bist fertig. Das hier ist ein konkretes Vorher/Nachher-Beispiel.
+Du bekommst als Turniermanager eine E-Mail mit Spielern, die für ein Turnier angemeldet werden sollen. Statt jetzt 12-15 Mausklicks in der ClubCloud-UI zu tätigen — und dabei E-Mail-Tab, Browser, Notizzettel parallel zu jonglieren — schickst du den E-Mail-Inhalt an Claude Code, bestätigst 3 Rückfragen und bist fertig. Das hier ist ein konkretes Vorher/Nachher-Beispiel.
 
 ## Vorher: Anmeldung in der ClubCloud-UI
 
@@ -36,12 +36,12 @@ Ungefähr 12-15 Klicks, ~3-5 Minuten, 4 Kontextwechsel (E-Mail ↔ Browser ↔ C
 
 **Häufige Fehlerquellen:** Tippfehler beim Spielernamen, falsches Turnier (zwei NBV-Pokale am selben Wochenende), Vergessen einzelner Spieler, Verlust des Kontexts beim Wechsel zurück zur E-Mail.
 
-## Nachher: Anmeldung mit Claude Desktop
+## Nachher: Anmeldung mit Claude Code
 
-1 Prompt + ~3 Bestätigungen, ~30-60 Sekunden, 1 Kontext (Claude Desktop).
+1 Prompt + ~3 Bestätigungen, ~30-60 Sekunden, 1 Kontext (Claude Code).
 
-1. **E-Mail-Inhalt in Claude Desktop einfügen.**
-   ![Claude Desktop mit Anmelde-Prompt](images/cc-anmeldung-nachher-01-prompt.png) <!-- TODO: Screenshot durch User -->
+1. **E-Mail-Inhalt in Claude Code einfügen.**
+   ![Claude Code mit Anmelde-Prompt](images/cc-anmeldung-nachher-01-prompt.png) <!-- TODO: Screenshot durch User -->
 2. **Claude führt durch Region/Turnier/Spieler-Bestätigungen** (3-4 gezielte Rückfragen).
    - „Region: NBV, korrekt?"
    - „Welches Turnier ist gemeint — NBV-Pokal Freie Partie klein (Anmeldeschluss 2026-05-15) oder NBV-Endrangliste Freie Partie klein (Anmeldeschluss 2026-05-20)?"
@@ -60,13 +60,13 @@ Ungefähr 12-15 Klicks, ~3-5 Minuten, 4 Kontextwechsel (E-Mail ↔ Browser ↔ C
 | Phase | Tool/UI | Klick-Anzahl | geschätzte Zeit | Fehler-Anfälligkeit | Kontextwechsel |
 |---|---|---|---|---|---|
 | **Vorher** | CC-Web-UI | 12-15 (pro Spieler 5-7) | 3-5 min (für 3 Spieler) | hoch (Tippfehler bei Spielernamen, falsches Turnier, vergessene Spieler) | E-Mail ↔ Browser-Tab ↔ CC ↔ E-Mail (≥4 Wechsel) |
-| **Nachher** | Claude Desktop | 1 Prompt + ~3 Bestätigungen | 30-60 s (für 3 Spieler) | niedrig (Claude prüft Spielberechtigung via PlayerRanking-Read-Tool) | nur Claude Desktop |
+| **Nachher** | Claude Code | 1 Prompt + ~3 Bestätigungen | 30-60 s (für 3 Spieler) | niedrig (Claude prüft Spielberechtigung via `cc_check_player_discipline_experience`) | nur Claude Code |
 
 **Was sich besonders auszahlt:** Sonntagabend-Stapel (10+ Anmelde-E-Mails). Vorher: 30-50 min konzentriertes Klicken. Nachher: ~10 min Konversation.
 
 ## Spickzettel-Datei
 
-Die maschinell ausgeführte Schritt-Sequenz (für Claude Desktop) steht in `docs/managers/clubcloud-scenarios/anmeldung-aus-email.de.json` (4 Schritte, JSON-Schema-Format gemäß `docs/developers/clubcloud-mcp-workflow-scenarios.de.md`).
+Die maschinell ausgeführte Schritt-Sequenz (für Claude Code) steht in `docs/managers/clubcloud-scenarios/anmeldung-aus-email.de.json` (4 Schritte, JSON-Schema-Format gemäß `docs/developers/clubcloud-mcp-workflow-scenarios.de.md`).
 
 Kein separater Aufwand für dich — Claude liest den Spickzettel automatisch, sobald du nach „Anmeldung aus E-Mail" fragst.
 

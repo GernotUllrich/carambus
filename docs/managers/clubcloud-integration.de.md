@@ -119,14 +119,15 @@ Diese sind die Grundlage für das automatisierte Turnier- und Table-Management (
 - 🛠️ **Bei Bedarf** - Admin kann Scraping über UI triggern
 
 **Workflow:**
-```ruby
-# Automatisch (Cron-Job):
-rake regions:scrape_all  # Alle Regionen um 4:00 Uhr
+```text
+# Automatisch (Cron-Job, läuft um 4:00 Uhr auf dem API-Server):
+rake scrape:daily_update_monitored
 
-# Manuell (über UI):
-Region.find_by(shortname: 'NBV').reload_from_cc
-Tournament.find(123).reload_from_cc  # Nur ein Turnier
-League.find(456).reload_from_cc_with_details  # Liga mit Details
+# Manuell (über die UI):
+# Auf der Region-, Turnier-, Liga- oder Vereins-Seite die Buttons
+# "Reload from CC" bzw. "Reload from CC with details" anklicken
+# (nur für Admins sichtbar). Diese lösen die Controller-Aktionen
+# reload_from_cc / reload_from_cc_with_details aus.
 ```
 
 ---

@@ -18,6 +18,6 @@ Carambus CCI-01 wird die Endrangliste aus dem Spielbaum in Ruby berechnen und in
 
 ## Carambus-Sicht
 
-Die automatische Endranglisten-Berechnung in ClubCloud ist ein geplantes Feature des v7.2 ClubCloud-Integration-Meilensteins und auf eine zukünftige Phase verschoben (per CONTEXT.md `<deferred>`). In Phase 40 fokussiert sich der MCP-Server auf Read-Lookups und die Write-Tool-Proof (`cc_finalize_teilnehmerliste`). Die Endranglisten-Funktion (`cc_submit_endrangliste`) ist Teil der Phase-40.1-Erweiterung.
+Die automatische Endranglisten-Berechnung in ClubCloud ist ein geplantes Feature des v7.2 ClubCloud-Integration-Meilensteins und auf eine zukünftige Phase verschoben (per CONTEXT.md `<deferred>`). Der MCP-Server fokussiert sich aktuell auf Read-Lookups und ein einziges Write-Tool als Proof (`cc_finalize_teilnehmerliste`). Ein Endranglisten-Write-Tool (geplanter Name z.B. `cc_submit_endrangliste`) ist **noch nicht implementiert** — es existiert derzeit kein solches Tool im MCP-Server. Bis es umgesetzt ist, muss die Endrangliste manuell im CC-Admin-UI eingetragen werden.
 
 *Quelle: .planning/clubcloud-admin-appendix-DRAFT.md (Phase 36c, 2026-04-14). [SME-CONFIRM]-Marker bleiben unaufgelöst — Resolution in einem zukünftigen Doc-Promotion-Workflow.*

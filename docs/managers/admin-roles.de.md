@@ -47,13 +47,18 @@ user.save!
 
 ### Berechtigungen prüfen
 ```ruby
-# In der Anwendung
-if current_user.can_create_tournaments?
+# In der Anwendung (CanCanCan-Berechtigungen via Ability)
+if can? :create, Tournament
   # Turnier erstellen erlauben
 end
 
-if current_user.is_system_admin?
+# Rollenabfragen (enum-Prädikate auf User)
+if current_user.system_admin?
   # Systemfunktionen anzeigen
+end
+
+if current_user.admin?        # true für club_admin ODER system_admin
+  # Admin-Funktionen anzeigen
 end
 ```
 

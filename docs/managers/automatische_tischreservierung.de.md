@@ -12,14 +12,20 @@ Das System reserviert automatisch die benötigten Tische für anstehende Einzelm
 
 ### Automatische Tischreservierung
 
-Nach dem Meldeschluss eines Turniers wird täglich geprüft, ob eine Tischreservierung erstellt werden muss. Dabei werden folgende Kriterien berücksichtigt:
+Nach dem Meldeschluss eines Turniers wird täglich geprüft, ob eine Tischreservierung erstellt werden muss. Der Rake-Task wählt Turniere anhand folgender Kriterien aus:
 
-1. **Turniertyp**: Nur Einzelmeisterschaften (keine Ligen)
-2. **Meldeschluss**: Muss in den letzten 7 Tagen abgelaufen sein
-3. **Turnierdatum**: Liegt in der Zukunft
-4. **Location**: Muss vorhanden sein
-5. **Disziplin**: Muss vorhanden sein
-6. **Teilnehmer**: Mindestens ein Teilnehmer gemeldet
+1. **Location**: Muss vorhanden sein (`location_id` gesetzt)
+2. **Disziplin**: Muss vorhanden sein (`discipline_id` gesetzt)
+3. **Turnierdatum**: Liegt in der Zukunft (`date >= jetzt`)
+4. **Meldeschluss**: `accredation_end` ist gesetzt und in den letzten 7 Tagen abgelaufen
+
+Anschließend wird pro Turnier geprüft:
+
+5. **Teilnehmer**: Mindestens ein Teilnehmer gemeldet (sonst übersprungen)
+
+> **Hinweis:** Der Task filtert technisch nicht auf den Turniertyp
+> (`single_or_league`). In der Praxis sind nur Einzelmeisterschaften betroffen,
+> weil Ligen i.d.R. keinen passenden Meldeschluss/Teilnehmer-Workflow haben.
 
 ### Tischberechnung
 

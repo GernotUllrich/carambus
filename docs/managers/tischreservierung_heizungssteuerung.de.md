@@ -36,15 +36,18 @@ Die Tischheizungen werden automatisch basierend auf Kalendereinträgen und Aktiv
 
 Die Heizungen werden automatisch aktiviert:
 
-1. **2 Stunden vor einer Reservierung**
+1. **2 Stunden vor einer Reservierung** (4 Stunden bei Match-Billard-/Snooker-Tischen)
 2. **Spätestens innerhalb von 5 Minuten**, wenn ein Spiel auf dem **Scoreboard** erkannt wird
 
 ### Deaktivierung (AUS)
 
 Die Heizungen werden automatisch deaktiviert:
 
-1. **Nach Reservierungsbeginn**: Wenn für eine Stunde keine Aktivität auf dem **Scoreboard** erkannt wird
-2. **Ohne laufende Reservierung**: Wenn keine Reservierung läuft und für eine Stunde keine Aktivität auf dem **Scoreboard** erkannt wird
+1. **Nach Reservierungsbeginn**: Wenn das **Scoreboard** nicht innerhalb von 30 Minuten nach Event-Beginn eingeschaltet wird (keine Aktivität erkannt)
+2. **Ohne laufende Reservierung**: Wenn keine Reservierung läuft und das **Scoreboard** ausgeschaltet ist (keine Aktivität erkannt)
+3. **Nach Reservierungsende**: Sobald das Event beendet ist, wird die Heizung sofort ausgeschaltet, auch wenn das Scoreboard noch läuft
+
+> **Hinweis**: Reservierungen, deren Titel `(!)` enthält, sind *gesichert* — die Heizung bleibt während der gesamten Reservierungszeit unabhängig von der Scoreboard-Aktivität AN (nach Event-Ende wird sie dennoch ausgeschaltet).
 
 ## Technische Integration
 

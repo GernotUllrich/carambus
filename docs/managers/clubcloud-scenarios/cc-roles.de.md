@@ -24,13 +24,21 @@ ClubCloud unterscheidet mehrere Rollen, die für Turnier-Workflows relevant sind
 
 Die obigen Rollen sind **ClubCloud-seitig**. In Carambus / im MCP-Server entscheidet
 ein **Wirkbereich-Modell** (Plan 14-G3+G4) — kein globales Rollen-Enum mehr —, welche
-der 22 MCP-Tools ein User sehen + ausführen darf:
+Operationen ein User ausführen darf.
 
-| Carambus-Persona | Authority-Felder | Tool-Subset | Mapping zur CC-Rolle |
-|------------------|------------------|-------------|----------------------|
-| **Sportwart** | `user.sportwart_location_ids = [...]` (Vereins-IDs)<br>`user.sportwart_discipline_ids = [...]` (Disziplin-IDs) | **16 Tools** (Anmeldungs-Lebenszyklus vor Turnier; ohne Akkreditierung am Turniertag) | entspricht CC-Club-Sportwart-Berechtigung für die Schnittmenge der Wirkbereich-Felder |
-| **Turnierleiter** | `tournament.turnier_leiter_user_id = user.id` (Single-FK pro Turnier) | **19 Tools** (Akkreditierung am Turniertag; ohne Pre-Tournament-Setup) | entspricht CC-Turnierleiter-Rolle für genau dieses eine Turnier |
-| **Landessportwart (LSW)** | `user.admin?` (Bypass aller Wirkbereich-Checks) | **22 Tools** (volle Suite) | entspricht CC-Verbands-Sportwart |
+> **Wichtig (Stand Plan 14-G.2):** Der MCP-Server differenziert die **Tool-Liste**
+> nicht mehr nach Persona. Jeder authentifizierte User bekommt vom `ToolRegistry`
+> dieselbe vollständige Liste aller **23 MCP-Tools** (`RoleToolMap::ALL_TOOLS` =
+> 17 Read-Tools + 6 Write-Tools). Die Autorisierung erfolgt **pro Tool-Call und pro
+> Datensatz** über `BaseTool.authorize!` — nicht durch ein verkleinertes Tool-Subset.
+> Die folgende Tabelle beschreibt daher *welche Operationen* eine Persona erfolgreich
+> ausführen kann, nicht wie viele Tools sie in der Tool-Liste sieht.
+
+| Carambus-Persona | Authority-Felder | Wirksame Operationen | Mapping zur CC-Rolle |
+|------------------|------------------|----------------------|----------------------|
+| **Sportwart** | `user.sportwart_location_ids = [...]` (Vereins-IDs)<br>`user.sportwart_discipline_ids = [...]` (Disziplin-IDs) | Anmeldungs-Lebenszyklus vor Turnier für Locations/Disziplinen im Wirkbereich | entspricht CC-Club-Sportwart-Berechtigung für die Schnittmenge der Wirkbereich-Felder |
+| **Turnierleiter** | `tournament.turnier_leiter_user_id = user.id` (Single-FK pro Turnier) | Write-Operationen für genau das zugewiesene Turnier (TL-FK-Match) | entspricht CC-Turnierleiter-Rolle für genau dieses eine Turnier |
+| **Landessportwart (LSW)** | `user.admin?` (Bypass aller Wirkbereich-Checks) | volle Suite (alle 23 Tools wirksam) | entspricht CC-Verbands-Sportwart |
 | **SysAdmin** | `user.super_user?` | volle Suite + Override | technische Admin-Eskalation |
 
 **Authority-Hook:** `lib/mcp_server/tools/base_tool.rb` enthält den `authorize!`-Check,
@@ -39,8 +47,9 @@ der User für das Ziel-Turnier als TL eingetragen ist. Bei fehlender Authority g
 der MCP-Server eine klare Eskalations-Meldung zurück (kein 403 vom CC) — der
 Sportwart weiß sofort, wen er anrufen muss.
 
-**Tool-Anzahl-Implikationen** (Verifikation aus User-Sicht): Sportwart sieht 16,
-Turnierleiter 19, LSW 22 — Details + Smoke-Test in
+**Tool-Anzahl-Implikationen** (Verifikation aus User-Sicht): Die Tool-Liste ist für
+alle authentifizierten User identisch (23 Tools); Unterschiede zeigen sich erst beim
+Ausführen über die Authority-Eskalation — Details + Smoke-Test in
 [Cloud-Quickstart §Erste Beispiel-Dialoge](../clubcloud-mcp-cloud-quickstart.de.md#erste-beispiel-dialoge).
 
 **Wirkbereich-Setup-Console-Befehle:** siehe
