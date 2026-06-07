@@ -65,6 +65,7 @@ bin/rails test:critical      # Nur kritische Tests (~0.4s)
 bin/rails test:coverage      # Mit Coverage Report
 bin/rails test:concerns      # Nur Concern Tests
 bin/rails test:scraping      # Nur Scraping Tests
+bin/rails test:characterization  # Characterization-Tests (Behavior-Pins für Extraktion)
 bin/rails test:stats         # Statistiken anzeigen
 bin/rails test:list          # Alle Tests auflisten
 bin/rails test:validate      # Setup validieren

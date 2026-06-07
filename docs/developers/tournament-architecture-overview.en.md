@@ -15,8 +15,8 @@ This document provides a concise, high-level overview of the most critical files
 
 ## 3. Execution & State Engines (The Runtime)
 
-*   **`TournamentMonitor` (`app/models/tournament_monitor.rb`)**: The active runtime representation of a tournament. This runs the logic that transitions the `TournamentPlan` blueprint into tangible next steps. It handles current rounds, algorithms for distributing players to groups (`distribute_to_group`, `distribute_with_sizes`), determining group ranks (`group_rank`), and KO rankings (`ko_ranking`).
-*   **`TournamentMonitorState` (`lib/tournament_monitor_state.rb`)**: Holds state machine logic to determine phases. (e.g., `finalize_game_result`, `all_table_monitors_finished?`, `finalize_round`, `group_phase_finished?`). It manages exactly *when* the tournament should step forward based on table progress.
+*   **`TournamentMonitor` (`app/models/tournament_monitor.rb`)**: The active runtime representation of a tournament. This runs the logic that transitions the `TournamentPlan` blueprint into tangible next steps. It coordinates current rounds and KO rankings (`ko_ranking`), but the group-distribution and ranking algorithms themselves live in the `TournamentMonitor::` services — the model only exposes thin delegators. `distribute_to_group`/`distribute_with_sizes` delegate to `TournamentMonitor::PlayerGroupDistributor`, and group ranking (`group_rank`, `rank_from_group_ranks`) lives in `TournamentMonitor::RankingResolver`.
+*   **`TournamentMonitorState` (`lib/tournament_monitor_state.rb`)**: Holds state machine logic to determine phases. (e.g., `all_table_monitors_finished?`, `finalize_round`, `group_phase_finished?`). It manages exactly *when* the tournament should step forward based on table progress. (Note: `finalize_game_result` is *not* here — it lives in `TournamentMonitor::ResultProcessor`.)
 *   **`TournamentMonitor::` services (`app/services/tournament_monitor/`)**: The operational workhorses, extracted from the former support module during v2.1 refactoring. `TablePopulator` handles populating available tables and placement (`do_placement`) logic, `ResultProcessor` reacts to game completions (`accumulate_results`, `report_result`, `update_ranking`), and `PlayerGroupDistributor`/`RankingResolver` handle group distribution and ranking.
 
 ## 4. Controllers (The UI Connectors)
@@ -31,6 +31,6 @@ This document provides a concise, high-level overview of the most critical files
 If you are debugging how a specific mode progresses or fails to place a player correctly:
 
 1.  **Check `TournamentPlan#group_sizes` / `#rounds_count`** to see how the blueprint's `executor_params` is parsed.
-2.  **Trace `TournamentMonitor`** methods like `#rank_from_group_ranks` and `#distribute_to_group` to see how it mathematically resolves player positioning.
+2.  **Trace `TournamentMonitor::RankingResolver#rank_from_group_ranks`** and **`TournamentMonitor::PlayerGroupDistributor#distribute_to_group`** to see how player positioning is mathematically resolved (the `TournamentMonitor` model only delegates to these services).
 3.  **Inspect `TournamentMonitor::TablePopulator#do_placement`** to step through how the next `Game` is actively scheduled based on those newly determined ranks.
 4.  **Inspect `TournamentMonitorState#finalize_round`** to see if the criteria to close the active segment are firing properly.

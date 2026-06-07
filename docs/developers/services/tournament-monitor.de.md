@@ -82,8 +82,9 @@ processor.accumulate_results
 processor.update_ranking
   # → aktualisiert Rankings nach Ergebnisverarbeitung
 
-processor.update_game_participations
+processor.update_game_participations(tabmon)
   # → aktualisiert GameParticipation-Datensätze
+  # → delegiert an update_game_participations_for_game(tabmon.game, tabmon.data)
 ```
 
 **DB-Lock-Bereich:**

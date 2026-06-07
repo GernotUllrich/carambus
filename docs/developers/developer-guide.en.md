@@ -128,7 +128,7 @@ The application uses Rails concerns to share functionality:
 
 ### Umb:: (10 Services)
 
-Detailed architecture documentation: [UMB Scraping — Architecture](umb-scraping-implementation.md) and [UMB Scraping — Method Reference](umb-scraping-methods.md).
+Detailed architecture documentation: [UMB Scraping — Architecture](umb-scraping-implementation.en.md) and [UMB Scraping — Method Reference](umb-scraping-methods.en.md).
 
 | Service Class | File | Description |
 |---|---|---|
@@ -210,7 +210,7 @@ Detailed architecture documentation: [UMB Scraping — Architecture](umb-scrapin
 
 For setting up a new development database, it is recommended to import an existing database dump. Detailed instructions can be found in the separate documentation:
 
-**[🗄️ Database Setup Guide](../administrators/database-setup.md)**
+**[🗄️ Database Setup Guide](../administrators/database-setup.en.md)**
 
 ### Quick Start
 ```bash
@@ -249,12 +249,12 @@ The `Seeding` model serves two distinct purposes:
 
 ```ruby
 class Seeding < ApplicationRecord
-  belongs_to :player, optional: true
+  belongs_to :player
   belongs_to :tournament, polymorphic: true, optional: true
   belongs_to :league_team, optional: true
   include LocalProtector
-  include SourceHandler
   include RegionTaggable
+  include Searchable
 end
 ```
 
@@ -343,7 +343,7 @@ The scoreboard system provides live updates for tournament displays:
 - **WebSocket Integration**: Live updates via Action Cable
 
 #### Setup
-See [Scoreboard Autostart Setup](../administrators/../administrators/scoreboard-autostart.md) for detailed configuration.
+See [Scoreboard Autostart Setup](../administrators/scoreboard-autostart.en.md) for detailed configuration.
 
 ### Data Synchronization
 Integration with external billiards databases:
@@ -433,13 +433,13 @@ Carambus uses an **Enhanced Mode System** with Ruby/Rake Named Parameters for ea
 
 ```bash
 # Use Scenario Management instead
-rake scenario:deploy[scenario_name,target_environment]
+rake scenario:deploy[scenario_name]
 
 # Example:
-rake scenario:deploy[carambus_location_5101,production]
+rake scenario:deploy[carambus_location_5101]
 ```
 
-**[🚀 Current: Scenario Management Documentation](scenario-management.md)**  
+**[🚀 Current: Scenario Management Documentation](scenario-management.en.md)**  
 ~~**Old (Obsolete): Enhanced Mode System**~~
 
 ### Production Setup
@@ -452,7 +452,7 @@ The application is designed for deployment on Raspberry Pi or similar hardware:
 - **Web Server**: Nginx + Puma
 
 #### Deployment Process
-1. **Server Setup**: See [Runbook](../developers/developer-guide.md#operations) for detailed server configuration
+1. **Server Setup**: See [Scenario Management](scenario-management.en.md) for detailed server configuration
 2. **Enhanced Mode Configuration**: Use the Enhanced Mode System for deployment configuration
 3. **Application Deployment**: Capistrano-based deployment
 4. **Service Management**: Systemd services for autostart
@@ -527,11 +527,11 @@ sudo systemctl status carambus
 ## Additional Resources
 
 ### Documentation
-- [Database Design](database-design.md): Detailed database schema
-- [Scoreboard Setup](../administrators/scoreboard-autostart.md): Scoreboard configuration
-- [Tournament Management](../managers/tournament-management.md): Tournament workflows
-- [Installation Overview](../administrators/installation-overview.md): Installation overview
-- [Scenario Management](scenario-management.md): Deployment configuration and multi-environment support
+- [Database Design](database-design.en.md): Detailed database schema
+- [Scoreboard Setup](../administrators/scoreboard-autostart.en.md): Scoreboard configuration
+- [Tournament Management](../managers/tournament-management.en.md): Tournament workflows
+- [Installation Overview](../administrators/installation-overview.en.md): Installation overview
+- [Scenario Management](scenario-management.en.md): Deployment configuration and multi-environment support
 - ~~Enhanced Mode System~~ - **OBSOLETE** (replaced by Scenario Management)
 
 ### External Links

@@ -20,20 +20,42 @@ This version brings extensive improvements for the Pool Scoreboard and League Ma
 **Description:**
 Pool tables now have configurable quickstart buttons similar to carom tables:
 
+> **Note (current structure):** The original release used a flat `pool:` map keyed
+> by discipline with a `sets:` key per button. This was later superseded by the
+> `quick_game_presets:` structure below, which groups presets by `TableKind`
+> (`small_billard` / `match_billard` / `pool` / `snooker`) as a list of
+> `{ category:, buttons: }` entries, and renames `sets:` to `sets_to_win:`.
+
 ```yaml
-pool:
-  8-Ball:
-    - { sets: 5, discipline: "8-Ball", kickoff_switches_with: "set", label: "Best of 5" }
-    - { sets: 6, discipline: "8-Ball", kickoff_switches_with: "set", label: "Best of 6" }
-  9-Ball:
-    - { sets: 7, discipline: "9-Ball", kickoff_switches_with: "set", label: "Best of 7" }
-    - { sets: 9, discipline: "9-Ball", kickoff_switches_with: "set", label: "Best of 9" }
-  10-Ball:
-    - { sets: 7, discipline: "10-Ball", kickoff_switches_with: "set", label: "Best of 7" }
-  14.1 endlos:
-    - { balls: 50, innings: 0, discipline: "14.1 endlos", label: "50 Points" }
-    - { balls: 75, innings: 0, discipline: "14.1 endlos", label: "75 Points" }
-    - { balls: 100, innings: 0, discipline: "14.1 endlos", label: "100 Points" }
+quick_game_presets:
+  pool:
+    - category: "8-Ball"
+      buttons:
+        - { sets_to_win: 3, discipline: "8-Ball", kickoff_switches_with: "winner", label: "3 (W)" }
+        - { sets_to_win: 4, discipline: "8-Ball", kickoff_switches_with: "winner", label: "4 (W)" }
+        - { sets_to_win: 5, discipline: "8-Ball", kickoff_switches_with: "winner", label: "5 (W)" }
+        - { sets_to_win: 3, discipline: "8-Ball", kickoff_switches_with: "set", label: "3 (A)" }
+        - { sets_to_win: 4, discipline: "8-Ball", kickoff_switches_with: "set", label: "4 (A)" }
+        - { sets_to_win: 5, discipline: "8-Ball", kickoff_switches_with: "set", label: "5 (A)" }
+    - category: "9-Ball"
+      buttons:
+        - { sets_to_win: 5, discipline: "9-Ball", kickoff_switches_with: "winner", label: "5 (W)" }
+        - { sets_to_win: 7, discipline: "9-Ball", kickoff_switches_with: "winner", label: "7 (W)" }
+        - { sets_to_win: 9, discipline: "9-Ball", kickoff_switches_with: "winner", label: "9 (W)" }
+        - { sets_to_win: 5, discipline: "9-Ball", kickoff_switches_with: "set", label: "5 (A)" }
+        - { sets_to_win: 7, discipline: "9-Ball", kickoff_switches_with: "set", label: "7 (A)" }
+        - { sets_to_win: 9, discipline: "9-Ball", kickoff_switches_with: "set", label: "9 (A)" }
+    - category: "10-Ball"
+      buttons:
+        - { sets_to_win: 5, discipline: "10-Ball", kickoff_switches_with: "winner", label: "5 (W)" }
+        - { sets_to_win: 7, discipline: "10-Ball", kickoff_switches_with: "winner", label: "7 (W)" }
+        - { sets_to_win: 5, discipline: "10-Ball", kickoff_switches_with: "set", label: "5 (A)" }
+        - { sets_to_win: 7, discipline: "10-Ball", kickoff_switches_with: "set", label: "7 (A)" }
+    - category: "14.1 endlos"
+      buttons:
+        - { balls: 50, innings: 0, discipline: "14.1 endlos", label: "50" }
+        - { balls: 75, innings: 0, discipline: "14.1 endlos", label: "75" }
+        - { balls: 100, innings: 0, discipline: "14.1 endlos", label: "100" }
 ```
 
 ### 2. Pool Scoreboard User Manual
@@ -95,28 +117,31 @@ ERB syntax error due to multiple assignment with condition and missing `end` tag
 
 ### 3. PartyMonitor Game Association
 
-**File:** `app/models/table_monitor.rb`
+**File:** `app/services/table_monitor/game_setup.rb`
+(`TableMonitor#start_game` was originally implemented inline in
+`app/models/table_monitor.rb`; it was later extracted into the
+`TableMonitor::GameSetup` service and now only delegates:
+`def start_game(options_ = {}); TableMonitor::GameSetup.call(table_monitor: self, options: options_); end`)
 
 **Problem:**
 When starting league matches through the PartyMonitor, new games were created instead of using the existing Party games. As a result, game results were not correctly displayed in the PartyMonitor.
 
 **Solution:**
-The `start_game()` method now checks whether an existing Party/Tournament game is present:
+The game setup logic now checks whether an existing Party/Tournament game is present (in `GameSetup#perform_start_game`, branching into `setup_existing_party_game`):
 
 ```ruby
-def start_game(options_ = {})
+def perform_start_game
   # Check if we have an existing Party/Tournament game that should be preserved
-  existing_party_game = game if game.present? && game.tournament_type.present?
-  
+  existing_party_game = @tm.game if @tm.game.present? && @tm.game.tournament_type.present?
+
   if existing_party_game.present?
     # Use the existing Party/Tournament game - don't create a new one
-    @game = existing_party_game
-    # Update game participations instead of creating new ones
-    # ...
+    setup_existing_party_game(existing_party_game)
   else
     # Create a new game for free games
-    # ...
+    create_new_game
   end
+  # ...
 end
 ```
 

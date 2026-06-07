@@ -67,7 +67,7 @@ end
 ### Versions-Scope
 ```ruby
 scope :for_region, ->(region_id) {
-  where("region_id IS NULL OR region_id = ?", region_id)
+  where("region_id IS NULL OR region_id = ? OR global_context = TRUE", region_id)
 }
 ```
 
@@ -107,10 +107,10 @@ bin/check_database_sync.sh carambus_bcw
 Environment override:
 - `CARAMBUS_DATA_DIR=/path/to/carambus_data bin/check_database_sync.sh carambus_bcw`
 
-### Modelle mit RegionTaggable
-- Region, Club, Tournament, League, Party
-- Location, LeagueTeam, Game, PartyGame, GameParticipation
-- Player, SeasonParticipation, Seeding
+### Modelle mit RegionTaggable (16 Modelle)
+- Region, Club, ClubLocation, Tournament, League, Party
+- Location, LeagueTeam, Game, GamePlan, PartyGame, GameParticipation
+- Player, SeasonParticipation, Seeding, Table
 
 ## Migration von altem System
 

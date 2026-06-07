@@ -49,8 +49,8 @@ Phase 40 schließt alle drei Lücken in einem Server: vier Schichten ClubCloud-W
 
 | Schicht | URI / Tool-Präfix | Anzahl | Zielgruppe |
 |---------|-------------------|--------|------------|
-| **Workflow-Doku (DE)** | `cc://workflow/scenarios/*` + `cc://workflow/{roles,glossary}` | 5 Resources | Sportwart |
-| **API-Surface (curated)** | `cc://api/{action}` | 15 Resources | Carambus-Dev |
+| **Workflow-Doku (DE)** | `cc://workflow/scenarios/*` + `cc://workflow/{roles,glossary}` | 10 Resources (8 Szenarien + 2 Meta) | Sportwart |
+| **API-Surface (curated)** | `cc://api/{action}` | 26 Resources | Carambus-Dev |
 | **Read-Tools (Lookup)** | `cc_whoami` + `cc_lookup_*` + `cc_list_*` + `cc_search_*` + `cc_check_*` | 17 Tools | beide |
 | **Write-Tools (Mutation)** | `cc_register_*` / `cc_unregister_*` / `cc_*_teilnehmerliste` / `cc_update_tournament_deadline` | 6 Tools | Sportwart |
 
@@ -131,6 +131,8 @@ flowchart TD
 ```
 
 **Konsequenz:** Eine neue Tool-Klasse unter `lib/mcp_server/tools/` (Subklasse von `McpServer::Tools::BaseTool`) wird beim nächsten Server-Boot automatisch entdeckt — kein Edit von `server.rb` nötig.
+
+**Hinweis (zwei Tool-Listing-Pfade):** Die Auto-Registry via `collect_tools` gilt nur für den **Stdio-Pfad** (`Server.build`). Der **HTTP-Pfad** (`McpController`-Mount) nutzt stattdessen die hardcoded `RoleToolMap::ALL_TOOLS`-Liste, ausgeliefert über `ToolRegistry.tool_classes_for(user)` (`lib/mcp_server/tool_registry.rb` + `role_tool_map.rb`). `ToolRegistry` ersetzt die Auto-Registry **nicht** — beide koexistieren. Eine neue Tool-Klasse muss daher zusätzlich in `RoleToolMap::ALL_TOOLS` eingetragen werden, damit sie auch über HTTP sichtbar ist.
 
 **Ein einziger zentraler `resources_read_handler`** dispatched alle `cc://`-URIs per Regex an die richtige Registry-Klasse (`WorkflowScenarios.read`, `WorkflowMeta.read`, `ApiSurface.read`). Das verhindert SDK-Konflikte (das MCP-SDK akzeptiert nur einen Handler pro Server) und macht parallele Plan-Entwicklung konfliktfrei (Phase-40-Wave-2-Lehre).
 
@@ -227,8 +229,11 @@ sequenceDiagram
 ```
 lib/
 ├── mcp_server/
-│   ├── server.rb                       # 89 LOC — Auto-Registry + zentraler read_handler
+│   ├── server.rb                       # 177 LOC — Auto-Registry (Stdio) + zentraler read_handler
 │   ├── cc_session.rb                   # 106 LOC — Login + 30min TTL + Reauth
+│   ├── audit_trail.rb                  # 81 LOC — JSON-Lines-Audit-Trail für jeden armed:true-Write-Call
+│   ├── role_tool_map.rb                # 50 LOC — ALL_TOOLS-Liste (HTTP-Pfad/McpController, hardcoded statt collect_tools)
+│   ├── tool_registry.rb                # 34 LOC — tools_for(user)/tool_classes_for (HTTP-Pfad-Mount, liefert ALL_TOOLS)
 │   ├── transport/
 │   │   └── boot.rb                     # 35 LOC — Logger→STDERR, SIGINT/TERM trap, StdioTransport.open
 │   ├── tools/
@@ -258,9 +263,9 @@ lib/
 │   │   ├── unregister_for_tournament.rb            # WRITE
 │   │   └── update_tournament_deadline.rb           # WRITE
 │   └── resources/
-│       ├── workflow_scenarios.rb       # cc://workflow/scenarios/* (3 Slugs whitelisted)
+│       ├── workflow_scenarios.rb       # cc://workflow/scenarios/* (8 Slugs whitelisted)
 │       ├── workflow_meta.rb            # cc://workflow/{roles,glossary}
-│       └── api_surface.rb              # cc://api/{action} (15 ALLOWLIST entries)
+│       └── api_surface.rb              # cc://api/{action} (26 ALLOWLIST entries)
 bin/
 └── mcp-server                          # 0755 — require config/environment + Boot.run
 
@@ -491,6 +496,28 @@ Boot-Sequenz für `bin/mcp-server`:
 3. `Server.build` aufrufen.
 4. Signal-Handler für SIGINT + SIGTERM registrieren — **direkter `$stderr.write`** (Pitfall 8: Logger im Trap-Kontext nicht erlaubt; Quick-Fix `260507-c4o`).
 5. `MCP::Server::Transports::StdioTransport.new(server).open` — blockiert.
+
+### `McpServer::AuditTrail` (`lib/mcp_server/audit_trail.rb`)
+
+JSON-Lines-Audit-Trail (append-only) für jeden `armed:true`-Write-Call — Forensik + Cleanup-Routing bei Live-Datenschäden (D-10-04-D). Storage: `log/mcp-audit-trail.log`. Defensiv: `rescue StandardError` — ein Logger-Failure darf das Tool nie crashen.
+
+7-Feld-Schema: `zeitpunkt` (ISO-8601 UTC), `operator` (CC-Login-User, `"unknown"` falls fehlend), `tool` (name+version), `payload` (vollständig inkl. cc_ids), `pre_validation_results`, `read_back_status` (`match`/`mismatch`/`skipped`/nil), `result` (`success`/`cc-error`/`exception`).
+
+### `McpServer::RoleToolMap` (`lib/mcp_server/role_tool_map.rb`)
+
+Hardcoded Tool-Listen (`BASE_READ_TOOLS`, `ALL_TOOLS`) für den **HTTP-Pfad** (`McpController`-Mount). Der HTTP-Pfad nutzt diese Liste statt der Stdio-`collect_tools`-Auto-Registry — neue Tools müssen hier zusätzlich eingetragen werden, um über HTTP sichtbar zu sein. Der Final-Stub (Plan 14-G.2) liefert allen authentifizierten Usern `ALL_TOOLS`; die Per-Record-Authority erfolgt in `BaseTool.authorize!` (TournamentPolicy), nicht hier.
+
+### `McpServer::ToolRegistry` (`lib/mcp_server/tool_registry.rb`)
+
+Liefert die Tool-Klassen für den HTTP-Mount auf Basis von `RoleToolMap::ALL_TOOLS`.
+
+| Methode | Signatur | Zweck |
+|---------|----------|-------|
+| `.tools_for` | `(user)` → `Array<Symbol>` | `[]` bei nil-User, sonst `RoleToolMap::ALL_TOOLS`. |
+| `.tool_classes_for` | `(user)` → `Array<Class>` | Resolved Tool-Klassen (`constantize`); unbekannte Klassen werden geloggt + `compact`-entfernt. |
+| `.tool_count_for` | `(_role_key)` → `Integer` | Stub — gibt `ALL_TOOLS.size` für jeden Key zurück. |
+
+**Wichtig:** `ToolRegistry`/`RoleToolMap` ersetzen die Stdio-Auto-Registry (`Server.collect_tools`) **nicht** — beide Listing-Pfade koexistieren (siehe §2 Auto-Registry-Mechanismus).
 
 ---
 

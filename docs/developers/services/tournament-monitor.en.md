@@ -82,8 +82,9 @@ processor.accumulate_results
 processor.update_ranking
   # → updates rankings after result processing
 
-processor.update_game_participations
+processor.update_game_participations(tabmon)
   # → updates GameParticipation records
+  # → delegates to update_game_participations_for_game(tabmon.game, tabmon.data)
 ```
 
 **DB lock scope:**

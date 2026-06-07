@@ -128,7 +128,7 @@ Aus den ursprünglichen God-Objects wurden 35 Services in 7 Namespaces extrahier
 
 ### Umb:: (10 Services)
 
-Detaillierte Architekturdokumentation: [UMB Scraping — Architektur](umb-scraping-implementation.md) und [UMB Scraping — Methoden-Referenz](umb-scraping-methods.md).
+Detaillierte Architekturdokumentation: [UMB Scraping — Architektur](umb-scraping-implementation.de.md) und [UMB Scraping — Methoden-Referenz](umb-scraping-methods.de.md).
 
 | Service-Klasse | Datei | Beschreibung |
 |---|---|---|
@@ -210,7 +210,7 @@ Detaillierte Architekturdokumentation: [UMB Scraping — Architektur](umb-scrapi
 
 Für die Einrichtung einer neuen Entwicklungsdatenbank wird empfohlen, einen bestehenden Datenbank-Dump zu importieren. Detaillierte Anweisungen finden Sie in der separaten Dokumentation:
 
-**[🗄️ Datenbank-Setup Anleitung](../administrators/database-setup.md)**
+**[🗄️ Datenbank-Setup Anleitung](../administrators/database-setup.de.md)**
 
 ### Schnellstart
 ```bash
@@ -249,12 +249,12 @@ Das `Seeding` Model dient zwei verschiedenen Zwecken:
 
 ```ruby
 class Seeding < ApplicationRecord
-  belongs_to :player, optional: true
+  belongs_to :player
   belongs_to :tournament, polymorphic: true, optional: true
   belongs_to :league_team, optional: true
   include LocalProtector
-  include SourceHandler
   include RegionTaggable
+  include Searchable
 end
 ```
 
@@ -343,7 +343,7 @@ Das Scoreboard-System bietet Live-Updates für Turnier-Anzeigen:
 - **WebSocket-Integration**: Live-Updates über Action Cable
 
 #### Einrichtung
-Siehe [Scoreboard-Setup](../administrators/scoreboard-autostart.md) für detaillierte Konfiguration.
+Siehe [Scoreboard-Setup](../administrators/scoreboard-autostart.de.md) für detaillierte Konfiguration.
 
 ### Datensynchronisation
 Integration mit externen Billard-Datenbanken:
@@ -604,7 +604,7 @@ Das Scenario Management System wurde 2024 umfassend refaktoriert, um Code-Duplik
 - **Flexibilität**: Granulare Kontrolle über einzelne Schritte
 - **Zuverlässigkeit**: Idempotente Operationen, keine Abhängigkeitsfehler
 
-**[🚀 Vollständige Scenario Management Dokumentation](scenario-management.md)**
+**[🚀 Vollständige Scenario Management Dokumentation](scenario-management.de.md)**
 
 ### Produktions-Setup
 Die Anwendung ist für den Einsatz auf Raspberry Pi oder ähnlicher Hardware konzipiert:
@@ -616,7 +616,7 @@ Die Anwendung ist für den Einsatz auf Raspberry Pi oder ähnlicher Hardware kon
 - **Web-Server**: Nginx + Puma
 
 #### Deployment-Prozess
-1. **Server-Setup**: Siehe [Runbook](../developers/developer-guide.de.md#operations) für detaillierte Server-Konfiguration
+1. **Server-Setup**: Siehe [Scenario Management](scenario-management.de.md) für detaillierte Server-Konfiguration
 2. **Scenario Management**: Verwenden Sie das Scenario Management System für Deployment-Konfiguration
 3. **Anwendungs-Deployment**: Capistrano-basiertes Deployment
 4. **Service-Management**: Systemd-Services für Autostart
@@ -691,11 +691,11 @@ sudo systemctl status carambus
 ## Zusätzliche Ressourcen
 
 ### Dokumentation
-- [Datenbankdesign](database-design.md): Detailliertes Datenbankschema
-- [Scoreboard-Setup](../administrators/scoreboard-autostart.md): Scoreboard-Konfiguration
-- [Turnierverwaltung](../managers/tournament-management.md): Turnier-Workflows
-- [Installationsübersicht](../administrators/installation-overview.md): Installationsübersicht
-- [Scenario Management](scenario-management.md): Deployment-Konfiguration und Multi-Environment-Support
+- [Datenbankdesign](database-design.de.md): Detailliertes Datenbankschema
+- [Scoreboard-Setup](../administrators/scoreboard-autostart.de.md): Scoreboard-Konfiguration
+- [Turnierverwaltung](../managers/tournament-management.de.md): Turnier-Workflows
+- [Installationsübersicht](../administrators/installation-overview.de.md): Installationsübersicht
+- [Scenario Management](scenario-management.de.md): Deployment-Konfiguration und Multi-Environment-Support
 
 ### Externe Links
 - [Ruby on Rails Guides](https://guides.rubyonrails.org/)

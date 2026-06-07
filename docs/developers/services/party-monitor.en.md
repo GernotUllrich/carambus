@@ -72,7 +72,7 @@ populator.reset_party_monitor
 populator.initialize_table_monitors
   # → nil; assigns TableMonitors to party tables
 
-populator.do_placement(game, r_no, t_no)
+populator.do_placement(game, r_no, t_no, row = nil, row_nr = nil)
   # → places a single game on a table (round number r_no, table number t_no)
 ```
 
@@ -83,6 +83,8 @@ populator.do_placement(game, r_no, t_no)
 | `game` | `Game` | The game to be placed |
 | `r_no` | `Integer` | Round number |
 | `t_no` | `Integer` | Table number |
+| `row` | `Hash` | Optional. Result row for the placement (default `nil`) |
+| `row_nr` | `Integer` | Optional. Row index for the placement (default `nil`) |
 
 ## Architecture Decisions
 
@@ -92,7 +94,7 @@ Both services are POROs (not `ApplicationService` subclasses) because they have 
 
 ### b. AASM events on the model, not the service
 
-All AASM events (e.g., `finish_match!`, `close_match!`) are fired on `@party_monitor` or the respective `table_monitor` record, not by the service itself. This ensures `after_enter` callbacks execute correctly through the model reference.
+AASM events such as `finish_match!` and `close_match!` are fired on the `table_monitor` record (a `TableMonitor`), not on the service / not on `@party_monitor`. This ensures `after_enter` callbacks execute correctly through the model reference.
 
 ### c. cattr_accessor pattern
 
