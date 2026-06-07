@@ -46,6 +46,7 @@ class McpServer::Tools::LookupSmokeTest < ActiveSupport::TestCase
     cc_remove_from_teilnehmerliste
     cc_unregister_for_tournament
     cc_lookup_meldeliste_for_tournament
+    cc_whoami
   ].freeze
 
   WRITE_TOOL_NAMES = %w[
@@ -132,6 +133,7 @@ class McpServer::Tools::LookupSmokeTest < ActiveSupport::TestCase
     read_tool_names.each do |tname|
       fname = case tname
       when "cc_search_player" then "search_player.rb"
+      when "cc_whoami" then "cc_whoami.rb"
       else "#{tname.delete_prefix("cc_")}.rb"
       end
       file = Rails.root.join("lib/mcp_server/tools/#{fname}")
