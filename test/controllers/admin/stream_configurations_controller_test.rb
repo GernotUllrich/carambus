@@ -27,7 +27,7 @@ module Admin
 
     test "deploy_all scopes to a location when location_id is given" do
       assert_enqueued_with(job: StreamDeployJob, args: [@config.id]) do
-        post deploy_all_admin_stream_configurations_path, params: { location_id: @config.location.id }
+        post deploy_all_admin_stream_configurations_path, params: {location_id: @config.location.id}
       end
     end
   end
