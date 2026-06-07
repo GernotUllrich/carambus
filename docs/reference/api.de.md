@@ -465,20 +465,14 @@ GET /table_monitors/{id}
 }
 ```
 
-#### Tisch-Monitor aktualisieren
+#### Bälle setzen
 ```http
-PATCH /table_monitors/{id}
+POST /table_monitors/{id}/set_balls
 ```
 
-**Anfrage-Body:**
-```json
-{
-  "table_monitor": {
-    "balls_a": 16,
-    "balls_b": 12
-  }
-}
-```
+Setzt den Ballstand für den aktiven Spieler. Der Spielstand wird über diese
+Member-Action (sowie die Inkrement-/Dekrement-Actions unten) geändert, nicht
+über ein `PATCH /table_monitors/{id}` Update.
 
 ### Tisch-Monitor-Aktionen
 

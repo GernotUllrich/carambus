@@ -73,7 +73,7 @@ TableMonitor::ResultRecorder.switch_to_next_set(table_monitor: tm)
   "Aufnahmen2"   => Integer,         # Anzahl Aufnahmen Spieler B
   "Höchstserie1" => Integer,         # Höchstserie Spieler A
   "Höchstserie2" => Integer,         # Höchstserie Spieler B
-  "Tischnummer"  => Integer          # Tisch-ID
+  "Tischnummer"  => Integer          # Tischnummer (game.table_no)
 }
 ```
 

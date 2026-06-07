@@ -50,8 +50,8 @@ module RegionTaggable
   extend ActiveSupport::Concern
 
   included do
-    after_save :update_region_tagging
-    after_destroy :update_region_tagging
+    after_save :update_version_region_data
+    after_destroy :update_version_region_data
   end
 
   def find_associated_region_id
@@ -76,7 +76,7 @@ scope :for_region, ->(region_id) {
 ### Rake Tasks
 ```bash
 # Region-IDs für alle Modelle aktualisieren
-rails region_taggings:update_all_region_ids
+rails region_taggings:update_all_region_id
 
 # Region-Tagging für alle Modelle aktualisieren
 rails region_taggings:update_all

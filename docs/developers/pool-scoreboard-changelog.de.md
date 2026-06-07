@@ -61,7 +61,7 @@ quick_game_presets:
 
 ### 2. Pool Scoreboard Benutzerhandbuch
 
-**Datei:** `docs/pool_scoreboard_benutzerhandbuch.de.md`
+**Datei:** `docs/players/pool_scoreboard_benutzerhandbuch.de.md`
 
 Vollständiges deutsches Benutzerhandbuch für Pool-Spieler mit:
 - Anleitungen für alle Pool-Disziplinen (8-Ball, 9-Ball, 10-Ball, 14.1 endlos)
@@ -308,8 +308,8 @@ Der Undo-Button unterhalb des Tischnamens wurde entfernt, da bereits ein Undo/Re
 
 ## Dokumentation
 
-- `docs/pool_scoreboard_benutzerhandbuch.de.md` - Neues Benutzerhandbuch
-- `docs/CHANGELOG_POOL_SCOREBOARD.md` - Diese Datei
+- `docs/players/pool_scoreboard_benutzerhandbuch.de.md` - Neues Benutzerhandbuch
+- `docs/developers/pool-scoreboard-changelog.de.md` - Diese Datei
 
 
 

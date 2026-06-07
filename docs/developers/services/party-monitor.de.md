@@ -25,6 +25,7 @@ processor.report_result(table_monitor)
 
 processor.accumulate_results
   # → nil; aggregiert GameParticipation-Ergebnisse in @party_monitor.data["rankings"]
+  #   und persistiert sie via @party_monitor.save! (Seiteneffekt)
 
 processor.finalize_round
   # → nil; schließt alle TableMonitor-Records und akkumuliert Ergebnisse
@@ -98,7 +99,7 @@ AASM-Events wie `finish_match!` und `close_match!` werden auf dem `table_monitor
 
 ### c. cattr_accessor-Muster
 
-Der `cattr_accessor`-Wert `allow_change_tables` wird als `PartyMonitor.allow_change_tables` (Klassen-Level) abgerufen — nicht als `TournamentMonitor.allow_change_tables`. Dies spiegelt den eigenständigen Namespace des PartyMonitors wider.
+`allow_change_tables` ist als `cattr_accessor` auf dem `PartyMonitor`-Modell deklariert (`party_monitor.rb:~35`). Die tatsächliche Lese-/Schreib-Nutzung liegt jedoch im `table_populator` des `TournamentMonitor` (über `TournamentMonitor.allow_change_tables`), nicht in einem PartyMonitor-Service. Die Deklaration existiert auf dem Modell, wird aber von den hier dokumentierten PartyMonitor-Services nicht verwendet.
 
 ### d. Paralleles Muster zu TournamentMonitor::
 

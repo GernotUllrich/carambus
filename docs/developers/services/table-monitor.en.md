@@ -73,7 +73,7 @@ TableMonitor::ResultRecorder.switch_to_next_set(table_monitor: tm)
   "Aufnahmen2"   => Integer,         # number of innings player B
   "Höchstserie1" => Integer,         # highest run player A
   "Höchstserie2" => Integer,         # highest run player B
-  "Tischnummer"  => Integer          # table ID
+  "Tischnummer"  => Integer          # table number (game.table_no)
 }
 ```
 

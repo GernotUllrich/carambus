@@ -462,20 +462,14 @@ GET /table_monitors/{id}
 }
 ```
 
-#### Update Table Monitor
+#### Set Balls
 ```http
-PATCH /table_monitors/{id}
+POST /table_monitors/{id}/set_balls
 ```
 
-**Request Body:**
-```json
-{
-  "table_monitor": {
-    "balls_a": 16,
-    "balls_b": 12
-  }
-}
-```
+Sets the ball count for the active player. The score is mutated through this
+member action (and the increment/decrement actions below), not through a
+`PATCH /table_monitors/{id}` update.
 
 ### Table Monitor Actions
 

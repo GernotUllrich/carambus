@@ -40,11 +40,11 @@ config.logger.formatter = ::Logger::Formatter.new
 ```bash
 # carambus_bcw
 cd /Users/gullrich/DEV/carambus/carambus_bcw
-# Editiere config/environments/development.rb (Zeile 13-16)
+# Editiere config/environments/development.rb (Zeile 15-23)
 
 # carambus_master  
 cd /Users/gullrich/DEV/carambus/carambus_master
-# Editiere config/environments/development.rb (Zeile 13-16)
+# Editiere config/environments/development.rb (Zeile 15-23)
 ```
 
 **WICHTIG - Templates sind bereits aktualisiert! ✅**

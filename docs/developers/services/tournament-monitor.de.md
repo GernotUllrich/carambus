@@ -91,9 +91,15 @@ processor.update_game_participations(tabmon)
 
 ```ruby
 game.with_lock do
-  # Deckt genau ab: write_game_result_data + finish_match!
-  # Pessimistischer Lock verhindert Race Conditions bei gleichzeitigen Ergebnissen
+  # Innerhalb des Locks: table_monitor + game neu laden, write_game_result_data,
+  # beide erneut neu laden (um die vom AASM-Callback gelesene
+  # table_monitor.game-Assoziation zu aktualisieren), dann ein abgesichertes
+  # finish_match! (falls may_finish_match?).
+  # Pessimistischer Lock verhindert Race Conditions bei gleichzeitigen Ergebnissen.
 end
+
+# Der ClubCloud-Upload (finalize_game_result) läuft AUSSERHALB des Locks,
+# nach dessen Freigabe, um den Lock nicht während des Netzwerkaufrufs zu halten.
 ```
 
 **Eingabe (Konstruktor):**

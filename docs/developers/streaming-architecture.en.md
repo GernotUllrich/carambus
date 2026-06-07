@@ -392,24 +392,38 @@ end
 <% end %>
 ```
 
-**Layout: `app/views/layouts/streaming_overlay.html.erb`**
+**Layout: `app/views/layouts/streaming_overlay.html.erb`** (verkürzt — der reale
+Body-Hintergrund ist opakes Schwarz `#000000`, gerendert über Tailwind/Importmap):
 
 ```erb
 <html>
 <head>
+  <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
   <style>
-    body { background: rgba(0, 0, 0, 0.75); }
-    /* Fixed 1920x200 Overlay-Dimensionen */
+    @keyframes pulse-dot { 0%, 100% { opacity: 1; transform: scale(1); }
+                           50% { opacity: 0.5; transform: scale(0.85); } }
+    .live-indicator { animation: pulse-dot 2s infinite; }
+    .overlay-gradient {
+      background: linear-gradient(135deg, rgba(0, 97, 120, 0.95) 0%,
+                                          rgba(0, 60, 80, 0.95) 100%);
+    }
   </style>
+  <%= javascript_importmap_tags %>
+  <%= action_cable_meta_tag %>
 </head>
-<body><%= yield %></body>
+<body class="w-full h-full m-0 p-0 font-sans text-white overflow-hidden antialiased"
+      style="background-color: #000000;">
+  <%= yield %>
+</body>
 </html>
 ```
 
 **Design-Entscheidungen:**
-- Fixed Dimensions (1920x200): FFmpeg erwartet konsistente Größe
-- Transparenter Hintergrund (alpha channel)
-- Inline CSS (keine External Assets, schnelleres Rendering)
+- Opaker schwarzer Body-Hintergrund (`#000000`); die Score-Karte selbst nutzt
+  `bg-black/80` (transluzent) bzw. die `.overlay-gradient`-Klasse
+- Das Layout setzt keine festen 1920×200-Maße; der Body ist `w-full h-full`,
+  die FFmpeg/Chromium-Capture-Größe wird beim Start vorgegeben
+- Tailwind-CSS + Importmap-Assets statt reinem Inline-CSS
 - Der Overlay-Stimulus-Controller lädt die Seite per Polling alle 3s neu; FFmpeg/
   Chromium captured den jeweils gerenderten Stand
 
@@ -848,6 +862,13 @@ def execute_ssh_command(command)
   end
 end
 ```
+
+> **SSH-User-Auflösung:** `ssh_user` in `StreamControlJob` ist
+> `@config.raspi_ssh_user.presence || ENV['RASPI_SSH_USER'] || 'pi'` —
+> der Konfigurationswert `raspi_ssh_user` (DB-Default `'pi'`) hat Vorrang,
+> dann die Umgebungsvariable `RASPI_SSH_USER`, sonst der Fallback `'pi'`.
+> Hinweis: `StreamHealthJob#ssh_user` nutzt denselben Override-Mechanismus,
+> aber mit Fallback `'www-data'` statt `'pi'`.
 
 **Security-Considerations:**
 

@@ -58,9 +58,9 @@ app/
 #### Concerns
 The application uses Rails concerns to share functionality:
 
-- `LocalProtector`: Protects local data from external modifications
-- `SourceHandler`: Manages external data synchronization
-- `RegionTaggable`: Handles region-based data organization
+- `LocalProtector` (`app/models/local_protector.rb`): Protects local data from external modifications
+- `SourceHandler` (`app/models/source_handler.rb`): Manages external data synchronization
+- `RegionTaggable` (`app/models/concerns/region_taggable.rb`): Handles region-based data organization
 
 #### Real-time Features
 - **Action Cable**: WebSocket connections for live updates

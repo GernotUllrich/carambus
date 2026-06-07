@@ -34,20 +34,25 @@ Durchsucht:
 - CC-ID (numerisch)
 
 #### Club-Suche
-Durchsucht:
-- Clubname (vollständig und Kurzname)
+Freitext durchsucht:
+- Region-Kurzname (über Verknüpfung)
 - Adresse
+- Club-Kurzname
 - E-Mail
-- Homepage
-- Region (über Verknüpfung)
-- CC-ID, BA-ID (numerisch)
+- CC-ID (numerisch)
+
+(Homepage ist als Feldfilter verfügbar, z. B. `homepage:billard`, und nicht
+Teil der Freitext-Suche.)
 
 #### Turnier-Suche
-Durchsucht:
+Freitext durchsucht:
 - Turniertitel
 - Kurzname (Shortname)
 - Saison
-- Region/Veranstalter
+- BA-ID (numerisch)
+
+(Region/Veranstalter ist ein strukturierter Filter, nicht Teil der
+Freitext-Suche.)
 
 ### Intelligente Verknüpfungen
 Die Suche nutzt automatisch Beziehungen zwischen Tabellen:

@@ -25,6 +25,7 @@ processor.report_result(table_monitor)
 
 processor.accumulate_results
   # → nil; aggregates GameParticipation results into @party_monitor.data["rankings"]
+  #   and persists them via @party_monitor.save! (side effect)
 
 processor.finalize_round
   # → nil; closes all TableMonitor records and accumulates results
@@ -98,7 +99,7 @@ AASM events such as `finish_match!` and `close_match!` are fired on the `table_m
 
 ### c. cattr_accessor pattern
 
-The `cattr_accessor` value `allow_change_tables` is accessed as `PartyMonitor.allow_change_tables` (class level) — not as `TournamentMonitor.allow_change_tables`. This reflects the PartyMonitor's independent namespace.
+`allow_change_tables` is declared as a `cattr_accessor` on the `PartyMonitor` model (`party_monitor.rb:~35`). However, the live read/write usage is in `TournamentMonitor`'s `table_populator` (via `TournamentMonitor.allow_change_tables`), not in any PartyMonitor service. The declaration exists on the model, but it is not exercised by the PartyMonitor services documented here.
 
 ### d. Parallel pattern to TournamentMonitor::
 
