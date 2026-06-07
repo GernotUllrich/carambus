@@ -135,7 +135,7 @@ rails server
 - Tailwind for CSS
 - Build process
 
-➡️ **[Developer Guide - Frontend](developer-guide.en.md#frontend)**
+➡️ **[Developer Guide - Frontend](developer-guide.en.md#architecture)**
 
 ### 6. Testing
 
@@ -350,7 +350,7 @@ chore: Update dependencies
 16. **[Region Tagging](region-tagging-cleanup-summary.md)** - Geographic assignment
 17. **[ClubCloud Upload System](clubcloud-upload.md)** - Automatic upload & CSV export
 18. **[YouTube Streaming Architecture](streaming-architecture.md)** - Live streaming system (architecture, FFmpeg, hardware)
-19. **[YouTube Streaming Development Setup](streaming-dev-setup.md)** - Development environment for streaming (SSH keys, custom port)
+19. **[YouTube Streaming Development Setup](streaming-dev-setup.de.md)** (German only) - Development environment for streaming (SSH keys, custom port)
 20. **[Translation System](../TRANSLATION.md)** - Translation system with DeepL, Claude, and billiard glossaries
 
 ---

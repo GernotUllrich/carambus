@@ -51,8 +51,8 @@ Phase 40 schließt alle drei Lücken in einem Server: vier Schichten ClubCloud-W
 |---------|-------------------|--------|------------|
 | **Workflow-Doku (DE)** | `cc://workflow/scenarios/*` + `cc://workflow/{roles,glossary}` | 5 Resources | Sportwart |
 | **API-Surface (curated)** | `cc://api/{action}` | 15 Resources | Carambus-Dev |
-| **Read-Tools (Lookup)** | `cc_lookup_*` + `cc_search_*` | 10 Tools (4 DB-first, 6 live-only) | beide |
-| **Write-Tools (Mutation)** | `cc_finalize_teilnehmerliste` (Phase 40.1: mehr) | 1 Tool (Proof) | Sportwart |
+| **Read-Tools (Lookup)** | `cc_whoami` + `cc_lookup_*` + `cc_list_*` + `cc_search_*` + `cc_check_*` | 17 Tools | beide |
+| **Write-Tools (Mutation)** | `cc_register_*` / `cc_unregister_*` / `cc_*_teilnehmerliste` / `cc_update_tournament_deadline` | 6 Tools | Sportwart |
 
 ---
 
@@ -68,7 +68,7 @@ flowchart LR
     Boot["McpServer::Transport::Boot<br/>(Logger→STDERR, SIGINT/TERM)"]
 
     subgraph "lib/mcp_server/"
-        Tools["Tools::*<br/>(11 Klassen)"]
+        Tools["Tools::*<br/>(23 Klassen)"]
         Resources["Resources::*<br/>(3 Registries)"]
         BaseTool["BaseTool<br/>(error/text/validate)"]
         CcSession["CcSession<br/>(Login + 30min TTL + Reauth)"]
@@ -95,7 +95,7 @@ flowchart LR
     CcSession -->|Live-Mode| Setting
     Setting -->|HTTPS| CC
     CcSession -.->|Mock-Mode| MockClient
-    Tools -.->|DB-first 4 Tools| Region
+    Tools -.->|DB-first Read-Tools| Region
     Tools -.-> RegionCc
     Tools -.-> LeagueCc
     Tools -.-> TournamentCc
@@ -234,17 +234,29 @@ lib/
 │   ├── tools/
 │   │   ├── base_tool.rb                # 43 LOC — BaseTool < MCP::Tool — error/text/validate Helpers
 │   │   ├── mock_client.rb              # 42 LOC — Drop-in für CARAMBUS_MCP_MOCK=1
-│   │   ├── lookup_region.rb            # DB-first — kanonisches Template
-│   │   ├── lookup_league.rb            # DB-first
-│   │   ├── lookup_tournament.rb        # DB-first
-│   │   ├── lookup_teilnehmerliste.rb   # DB-first
-│   │   ├── lookup_team.rb              # live-only
-│   │   ├── lookup_club.rb              # live-only
-│   │   ├── lookup_spielbericht.rb      # live-only
-│   │   ├── lookup_category.rb          # live-only
-│   │   ├── lookup_serie.rb             # live-only
-│   │   ├── search_player.rb            # live-only
-│   │   └── finalize_teilnehmerliste.rb # WRITE — armed-flag + parse_cc_error + Reauth-Retry
+│   │   ├── cc_whoami.rb                             # READ — Session-Kontext (scenario/region/season/Sportwart-Scope), kein CC-Call
+│   │   ├── lookup_region.rb                       # READ DB-first — kanonisches Template
+│   │   ├── lookup_league.rb                        # READ DB-first
+│   │   ├── lookup_tournament.rb                     # READ DB-first
+│   │   ├── lookup_teilnehmerliste.rb               # READ DB-first
+│   │   ├── lookup_club.rb                           # READ DB-first (cc_id ODER Name/Synonym-Suche)
+│   │   ├── lookup_meldeliste_for_tournament.rb     # READ DB-first + Live-Fallback
+│   │   ├── search_player.rb                         # READ DB-first (Disambiguation-Output)
+│   │   ├── list_clubs_by_discipline.rb             # READ DB-first
+│   │   ├── list_open_tournaments.rb                # READ DB-first
+│   │   ├── list_players_by_club_and_discipline.rb  # READ DB-first
+│   │   ├── list_players_by_name.rb                  # READ DB-first (kein CC-Call)
+│   │   ├── check_player_discipline_experience.rb   # READ DB-first
+│   │   ├── lookup_team.rb                           # READ live-only
+│   │   ├── lookup_spielbericht.rb                  # READ live-only
+│   │   ├── lookup_category.rb                       # READ live-only
+│   │   ├── lookup_serie.rb                          # READ live-only
+│   │   ├── finalize_teilnehmerliste.rb             # WRITE — armed-flag + parse_cc_error + Reauth-Retry
+│   │   ├── assign_player_to_teilnehmerliste.rb     # WRITE
+│   │   ├── remove_from_teilnehmerliste.rb          # WRITE
+│   │   ├── register_for_tournament.rb              # WRITE
+│   │   ├── unregister_for_tournament.rb            # WRITE
+│   │   └── update_tournament_deadline.rb           # WRITE
 │   └── resources/
 │       ├── workflow_scenarios.rb       # cc://workflow/scenarios/* (3 Slugs whitelisted)
 │       ├── workflow_meta.rb            # cc://workflow/{roles,glossary}
@@ -276,7 +288,7 @@ test/mcp_server/
 │   ├── lookup_teilnehmerliste_test.rb  # D-18 acceptance story
 │   ├── search_player_test.rb           # live-only
 │   ├── finalize_teilnehmerliste_test.rb # 6 Tests inkl. Reauth-Retry
-│   └── lookup_smoke_test.rb            # 11 Smoke + Drift-Detection
+│   └── lookup_smoke_test.rb            # Tool-Namen Drift-Detection (EXPECTED_TOOL_NAMES, 23 Tools inkl. cc_whoami)
 └── integration/
     └── stdio_e2e_test.rb               # 6 E2E — bin/mcp-server Subprocess + JSON-RPC
 
@@ -286,7 +298,7 @@ lib/capistrano/tasks/
 .mcp.json.example                       # Vorlage — .mcp.json ist gitignored
 ```
 
-**Gesamt:** 30 Source-Files, ~1100 LOC Production-Code, 65 Tests / 220 Assertions.
+**Gesamt:** 31 Source-Files, ~1100 LOC Production-Code, 65 Tests / 220 Assertions.
 
 ---
 
@@ -676,7 +688,7 @@ Für eine neue Meta-Resource (`cc://workflow/foo`): analog die `META`-Konstante 
 | Schicht | Pfad | Was | Boot-Cost |
 |---------|------|-----|-----------|
 | Unit | `test/mcp_server/{tools,resources}/*_test.rb` | Einzelne Klassen, Mock-Client | schnell (< 1s) |
-| Smoke | `test/mcp_server/tools/lookup_smoke_test.rb` | Drift-Detection für 11 Tool-Namen | schnell |
+| Smoke | `test/mcp_server/tools/lookup_smoke_test.rb` | Drift-Detection für 23 Tool-Namen inkl. `cc_whoami` (`EXPECTED_TOOL_NAMES`) | schnell |
 | Integration | `test/mcp_server/server_smoke_test.rb` | `Server.build` + Auto-Registry | schnell |
 | E2E | `test/mcp_server/integration/stdio_e2e_test.rb` | echter `bin/mcp-server`-Subprocess + JSON-RPC-Roundtrip | langsam (Rails-Boot pro Test) |
 
@@ -908,7 +920,22 @@ Phase 40 lieferte die **Architektur** + **eine** Write-Tool-Proof-Implementierun
 
 WR-01..WR-05 Fixes + IN-02 + IN-04 (siehe oben). Vor neuen Write-Tools — sonst werden Defekte vervielfacht.
 
-### B. Restliche Write-Tools (Vorlage: `cc_finalize_teilnehmerliste`)
+### B. Write-Tools (Vorlage: `cc_finalize_teilnehmerliste`)
+
+**Bereits implementiert** (seit Phase 40 / 40.1 — alle in `lib/mcp_server/tools/`, `annotations(read_only_hint: false, destructive_hint: true)`):
+
+| Tool | Datei | Zweck |
+|------|-------|-------|
+| `cc_finalize_teilnehmerliste` | `finalize_teilnehmerliste.rb` | Teilnehmerliste finalisieren (Proof-Implementierung) |
+| `cc_assign_player_to_teilnehmerliste` | `assign_player_to_teilnehmerliste.rb` | Spieler einer Teilnehmerliste zuordnen |
+| `cc_remove_from_teilnehmerliste` | `remove_from_teilnehmerliste.rb` | Spieler aus Teilnehmerliste entfernen |
+| `cc_register_for_tournament` | `register_for_tournament.rb` | Spieler zu Turnier melden |
+| `cc_unregister_for_tournament` | `unregister_for_tournament.rb` | Turniermeldung zurücknehmen |
+| `cc_update_tournament_deadline` | `update_tournament_deadline.rb` | Meldeschluss eines Turniers ändern |
+
+Jedes Tool folgt dem Vertrag aus [How-To 7.3](#73-neues-write-tool).
+
+**Noch offen (Kandidaten):**
 
 | Geplantes Tool | CC-Action (PATH_MAP) | Zweck | Pflicht-Inputs |
 |----------------|---------------------|-------|----------------|
@@ -917,11 +944,9 @@ WR-01..WR-05 Fixes + IN-02 + IN-04 (siehe oben). Vor neuen Write-Tools — sonst
 | `cc_upload_result` | `uploadErgebnis` (TBD) | Ergebnis-Upload | spielberichtId + Daten |
 | `cc_release_endrangliste` | `releaseEndrangliste` | Endrangliste freigeben | tournamentId |
 
-Jedes Tool folgt dem Vertrag aus [How-To 7.3](#73-neues-write-tool).
-
 ### C. Reauth-Retry in alle live-Read-Tools
 
-WR-04-Fix: `cc_session.reauth_if_needed!(doc)` + Retry-Schleife in den 6 live-only Lookups.
+WR-04-Fix: `cc_session.reauth_if_needed!(doc)` + Retry-Schleife in den 4 live-only Lookups (`cc_lookup_team`, `cc_lookup_spielbericht`, `cc_lookup_category`, `cc_lookup_serie`).
 
 ### D. JSON-Output statt freier Text
 

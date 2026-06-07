@@ -79,22 +79,16 @@ bin/rails test:rerecord_vcr  # VCR Cassettes neu aufnehmen
 - ✅ Coverage-Upload als Artifact
 - ✅ Linting (Standard, Brakeman)
 
-### 6. Dokumentation (7 Dokumente)
+### 6. Dokumentation
 
-| Dokument | Zeilen | Zweck |
-|----------|--------|-------|
-| `QUICKSTART_TESTS.md` | 80 | ⚡ 3 Befehle zum Starten |
-| `TESTING.md` | 300 | 📖 Quick Start Guide |
-| `INSTALL_TESTS.md` | 250 | 🔧 Detaillierte Installation |
-| `TEST_SETUP_SUMMARY.md` | 400 | 📋 Technische Übersicht |
-| `TEST_ERFOLG.md` | 150 | ✅ Diese Zusammenfassung |
-| `test/README.md` | 350 | 📚 Vollständige Anleitung |
-| `test/ARCHITECTURE.md` | 400 | 🏗️ Architektur-Details |
-| `test/TEST_STRUCTURE.md` | 300 | 📁 Struktur-Übersicht |
-| `test/snapshots/README.md` | 200 | 📸 Snapshot-Nutzung |
-| `docs/developers/testing-strategy.de.md` | 500 | 🎯 Strategie & Philosophie |
-
-**Gesamt:** ~3000 Zeilen Dokumentation
+| Dokument | Zweck |
+|----------|-------|
+| `docs/developers/testing/testing-quickstart.de.md` | ⚡ Quick Start Guide |
+| `test/README.md` | 📚 Vollständige Anleitung |
+| `test/ARCHITECTURE.md` | 🏗️ Architektur-Details |
+| `test/TEST_STRUCTURE.md` | 📁 Struktur-Übersicht |
+| `test/snapshots/README.md` | 📸 Snapshot-Nutzung |
+| `docs/developers/testing-strategy.de.md` | 🎯 Strategie & Philosophie |
 
 ## 📊 Test-Ergebnisse
 
@@ -233,7 +227,7 @@ Das Test-System ist **jetzt schon präsentabel**:
 ### Contributors können sofort:
 
 1. Tests laufen lassen (`bin/rails test:critical`)
-2. Dokumentation lesen (`TESTING.md`)
+2. Dokumentation lesen (`docs/developers/testing/testing-quickstart.de.md`)
 3. Tests mit `skip` vervollständigen
 4. Pull Requests erstellen
 
@@ -322,9 +316,8 @@ Das System ist perfekt für Open Source Contributors:
 ## 📚 Ressourcen für Contributors
 
 **Getting Started:**
-1. `QUICKSTART_TESTS.md` - In 3 Befehlen zu laufenden Tests
-2. `TESTING.md` - Quick Start Guide
-3. `test/README.md` - Vollständige Anleitung
+1. `docs/developers/testing/testing-quickstart.de.md` - Quick Start Guide
+2. `test/README.md` - Vollständige Anleitung
 
 **Deep Dive:**
 4. `test/ARCHITECTURE.md` - Architektur verstehen

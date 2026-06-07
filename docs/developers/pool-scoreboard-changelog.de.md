@@ -184,24 +184,44 @@ Die Spielparameter (z.B. Punkteziel 80 für 14.1 endlos) waren vor dem Spielstar
 
 ---
 
-## JavaScript-Änderungen
+## JavaScript-/View-Änderungen
 
-### balls_left Methode
+### balls_left Klick-Verarbeitung
 
-**Datei:** `app/javascript/controllers/table_monitor_controller.js`
+**Dateien:**
+- `app/views/table_monitors/_pool_scoreboard.html.erb`
+- `app/reflexes/table_monitor_reflex.rb` (`TableMonitor#balls_left`)
 
 **Problem:**
-Klicks auf Bälle in der Kontrollleiste zeigten keine Wirkung.
+Klicks auf Bälle in der Kontrollleiste (14.1 endlos) zeigten keine Wirkung.
 
 **Lösung:**
-Hinzufügen der fehlenden JavaScript-Methode:
+Der Klick wird deklarativ in der View verdrahtet, nicht über eine explizite
+Stimulus-Controller-Methode. Jedes Ball-Element trägt die StimulusReflex-Action
+sowie die vom Reflex benötigten Daten:
 
-```javascript
-balls_left () {
-  console.log('TableMonitor balls_left called')
-  this.stimulate('TableMonitor#balls_left', this.element)
-}
+```erb
+<%= content_tag "div",
+                data: {
+                  controller: "table-monitor",
+                  action: "click->table-monitor#balls_left",
+                  ball_no: n,
+                  id: table_monitor.id
+                },
+                ... do %>
+  <%= image_tag "p#{n}.png" %>
+<%- end %>
 ```
+
+StimulusReflex bildet die Action `table-monitor#balls_left` direkt auf den
+Reflex `TableMonitor#balls_left` ab; eine explizite `balls_left()`-Methode in
+`table_monitor_controller.js` ist nicht erforderlich. Der Reflex liest
+`dataset[:ball_no]`, um die Anzahl der verbleibenden Bälle zu ermitteln.
+
+> **Hinweis:** Eine frühere Fassung dieses Changelogs beschrieb das Hinzufügen
+> einer expliziten `balls_left()`-Methode in `table_monitor_controller.js`.
+> Diese Methode wurde nie committet — der oben beschriebene deklarative
+> View-Weg ist der tatsächlich verwendete Mechanismus.
 
 ---
 

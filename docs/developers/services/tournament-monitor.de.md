@@ -21,11 +21,11 @@ Der Namespace besteht aus **4 Services** in `app/services/tournament_monitor/`.
 
 ```ruby
 TournamentMonitor::PlayerGroupDistributor.distribute_to_group(players, ngroups)
-  # → Hash { group_no => [player_ids] }
+  # → Hash { "group1" => [player_ids], "group2" => [player_ids], … }
   # Verteilt players (Array von Integer) auf ngroups Gruppen via Zick-Zack
 
 TournamentMonitor::PlayerGroupDistributor.distribute_with_sizes(players, ngroups, sizes)
-  # → Hash { group_no => [player_ids] }
+  # → Hash { "group1" => [player_ids], "group2" => [player_ids], … }
   # Verteilt players auf ngroups Gruppen mit expliziten Gruppengrößen
 ```
 
@@ -37,7 +37,7 @@ TournamentMonitor::PlayerGroupDistributor.distribute_with_sizes(players, ngroups
 | `ngroups` | `Integer` | Anzahl der Gruppen |
 | `sizes` | `Array<Integer>` | Explizite Gruppengrößen (nur für `distribute_with_sizes`) |
 
-**Ausgabe:** `Hash { Integer => Array<Integer> }` — Gruppennnummer → Liste der Spieler-IDs.
+**Ausgabe:** `Hash { String => Array<Integer> }` — Gruppenschlüssel (`"group1"`, `"group2"`, …) → Liste der Spieler-IDs.
 
 ### RankingResolver
 
@@ -57,7 +57,7 @@ resolver.player_id_from_ranking(rule_str, opts = {})
 | `"g1.2"` | Spieler auf Rang 2 in Gruppe 1 |
 | `"g1.rk4"` | Spieler auf Rang 4 in Gruppe 1 (explizites `rk`-Präfix) |
 | `"(g1.rk4 + g2.rk4).rk2"` | Komposit-Regel: Rang 2 unter allen Rang-4-Spielern der Gruppen 1 und 2 |
-| `"fin.w"` | Sieger des Finales (KO-Klammer-Referenz) |
+| `"fin.rk1"` | Rang 1 des Finalspiels — also der Sieger des Finales (KO-Klammer-Referenz) |
 | `"sl.rk1"` | Rang 1 im Kleinen Finale (small final) |
 
 **Eingabe (Konstruktor):**

@@ -184,24 +184,43 @@ The match parameters (e.g., target score 80 for 14.1 endlos) could not be edited
 
 ---
 
-## JavaScript Changes
+## JavaScript / View Changes
 
-### balls_left Method
+### balls_left Click Handling
 
-**File:** `app/javascript/controllers/table_monitor_controller.js`
+**Files:**
+- `app/views/table_monitors/_pool_scoreboard.html.erb`
+- `app/reflexes/table_monitor_reflex.rb` (`TableMonitor#balls_left`)
 
 **Problem:**
-Clicking on balls in the control bar had no effect.
+Clicking on balls in the control bar (14.1 endless) had no effect.
 
 **Solution:**
-Added the missing JavaScript method:
+The click is wired declaratively in the view rather than through an explicit
+Stimulus controller method. Each ball element carries the StimulusReflex
+action plus the data the reflex needs:
 
-```javascript
-balls_left () {
-  console.log('TableMonitor balls_left called')
-  this.stimulate('TableMonitor#balls_left', this.element)
-}
+```erb
+<%= content_tag "div",
+                data: {
+                  controller: "table-monitor",
+                  action: "click->table-monitor#balls_left",
+                  ball_no: n,
+                  id: table_monitor.id
+                },
+                ... do %>
+  <%= image_tag "p#{n}.png" %>
+<%- end %>
 ```
+
+StimulusReflex maps the `table-monitor#balls_left` action directly onto the
+`TableMonitor#balls_left` reflex; no explicit `balls_left()` method in
+`table_monitor_controller.js` is required. The reflex reads `dataset[:ball_no]`
+to determine how many balls remain.
+
+> **Note:** An earlier draft of this changelog described adding an explicit
+> `balls_left()` method to `table_monitor_controller.js`. That method was never
+> committed — the declarative view-based wiring above is the mechanism in use.
 
 ---
 

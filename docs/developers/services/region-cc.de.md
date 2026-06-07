@@ -1,8 +1,8 @@
 # RegionCc:: — Architektur
 
-Der `RegionCc::`-Namespace synchronisiert die lokale Carambus-Datenbank mit der ClubCloud (CC) — der PHP-basierten Verwaltungsplattform des Deutschen Billard-Verbands. Alle Sync-Operationen werden über `RegionCc.synchronize(opts)` am Modell gestartet; jeder Service verantwortet eine Sync-Domäne.
+Der `RegionCc::`-Namespace synchronisiert die lokale Carambus-Datenbank mit der ClubCloud (CC) — der PHP-basierten Verwaltungsplattform des Deutschen Billard-Verbands. Die übergeordnete Synchronisation wird von drei Instanzmethoden des `RegionCc`-Modells orchestriert — `synchronize_league_structure`, `synchronize_league_plan_structure` und `synchronize_tournament_structure` (`app/models/region_cc.rb`) —, die mehrere Syncer aufrufen. Aufrufer können die einzelnen `RegionCc::*Syncer.call`-Services auch direkt nutzen; jeder Service verantwortet eine Sync-Domäne.
 
-Der Namespace besteht aus **10 Services** in `app/services/region_cc/`.
+Der Namespace besteht aus **11 Services** in `app/services/region_cc/`.
 
 ## Namespace-Übersicht
 
@@ -12,12 +12,13 @@ Der Namespace besteht aus **10 Services** in `app/services/region_cc/`.
 | `RegionCc::BranchSyncer` | `app/services/region_cc/branch_syncer.rb` | Synchronisiert `BranchCc`-Datensätze (Disziplinen) aus der CC-API |
 | `RegionCc::ClubSyncer` | `app/services/region_cc/club_syncer.rb` | Synchronisiert `Club`-Datensätze aus der CC-API |
 | `RegionCc::CompetitionSyncer` | `app/services/region_cc/competition_syncer.rb` | Synchronisiert Wettkampf- und Saison-Daten; Operation-Dispatch (`:sync_competitions`, `:sync_seasons_in_competitions`) |
-| `RegionCc::GamePlanSyncer` | `app/services/region_cc/game_plan_syncer.rb` | Synchronisiert `GamePlanCc`- und `GameDetailCc`-Datensätze inkl. HTML-Tabellen-Parsing; Operation-Dispatch |
+| `RegionCc::GamePlanSyncer` | `app/services/region_cc/game_plan_syncer.rb` | Synchronisiert `GamePlanCc`- und `GameDetailCc`-Datensätze inkl. HTML-Tabellen-Parsing; Operationen: `:sync_game_plans`, `:sync_game_details` |
 | `RegionCc::LeagueSyncer` | `app/services/region_cc/league_syncer.rb` | Dispatcher für Liga-Sync — Operationen: `:sync_leagues`, `:sync_league_teams`, `:sync_league_teams_new`, `:sync_league_plan`, `:sync_team_players`, `:sync_team_players_structure` |
-| `RegionCc::MetadataSyncer` | `app/services/region_cc/metadata_syncer.rb` | Synchronisiert Metadaten-Referenzobjekte (Kategorien, Gruppen, Disziplinen); Operation-Dispatch |
+| `RegionCc::MeldelisteCreator` | `app/services/region_cc/meldeliste_creator.rb` | Erstellt die CC-Meldeliste für ein einzelnes Turnier — prüft auf eine bestehende Liste, erstellt sie dann und verifiziert sie via `post_cc`. Kein `operation`-Dispatch; erwartet ein `tournament:` statt `client:` |
+| `RegionCc::MetadataSyncer` | `app/services/region_cc/metadata_syncer.rb` | Synchronisiert Metadaten-Referenzobjekte (Kategorien, Gruppen, Disziplinen); Operationen: `:sync_category_ccs`, `:sync_group_ccs`, `:sync_discipline_ccs` |
 | `RegionCc::PartySyncer` | `app/services/region_cc/party_syncer.rb` | Synchronisiert `PartyCc`-Datensätze und Spielpaarungen; Operationen: `:sync_parties`, `:sync_party_games` |
 | `RegionCc::RegistrationSyncer` | `app/services/region_cc/registration_syncer.rb` | Synchronisiert Meldelisteneinträge; Operationen: `:sync_registration_list_ccs`, `:sync_registration_list_ccs_detail` |
-| `RegionCc::TournamentSyncer` | `app/services/region_cc/tournament_syncer.rb` | Synchronisiert Turnier-, Turnierserie- und Meisterschaftstyp-Daten; mehrere Operationen |
+| `RegionCc::TournamentSyncer` | `app/services/region_cc/tournament_syncer.rb` | Synchronisiert Turnier-, Turnierserie- und Meisterschaftstyp-Daten; Operationen: `:sync_tournaments`, `:sync_tournament_ccs`, `:sync_tournament_series_ccs`, `:sync_championship_type_ccs`, `:fix_tournament_structure` |
 
 ## Öffentliche Schnittstelle
 
@@ -82,9 +83,26 @@ RegionCc::PartySyncer.call(region_cc: rc, client: cc_client, operation: :sync_pa
 RegionCc::RegistrationSyncer.call(region_cc: rc, client: cc_client, operation: :sync_registration_list_ccs, **opts)
 RegionCc::RegistrationSyncer.call(region_cc: rc, client: cc_client, operation: :sync_registration_list_ccs_detail, **opts)
 
-RegionCc::GamePlanSyncer.call(region_cc: rc, client: cc_client, operation: :sync_game_plans, **opts)
+RegionCc::TournamentSyncer.call(region_cc: rc, client: cc_client, operation: :sync_tournament_ccs, **opts)
+RegionCc::TournamentSyncer.call(region_cc: rc, client: cc_client, operation: :sync_tournament_series_ccs, **opts)
+RegionCc::TournamentSyncer.call(region_cc: rc, client: cc_client, operation: :sync_championship_type_ccs, **opts)
+RegionCc::TournamentSyncer.call(region_cc: rc, client: cc_client, operation: :fix_tournament_structure, **opts)
 
-RegionCc::MetadataSyncer.call(region_cc: rc, client: cc_client, operation: :sync_metadata, **opts)
+RegionCc::GamePlanSyncer.call(region_cc: rc, client: cc_client, operation: :sync_game_plans, **opts)
+RegionCc::GamePlanSyncer.call(region_cc: rc, client: cc_client, operation: :sync_game_details, **opts)
+
+RegionCc::MetadataSyncer.call(region_cc: rc, client: cc_client, operation: :sync_category_ccs, **opts)
+RegionCc::MetadataSyncer.call(region_cc: rc, client: cc_client, operation: :sync_group_ccs, **opts)
+RegionCc::MetadataSyncer.call(region_cc: rc, client: cc_client, operation: :sync_discipline_ccs, **opts)
+```
+
+### MeldelisteCreator (abweichende Signatur)
+
+`MeldelisteCreator` folgt nicht dem `region_cc:`/`client:`/`operation:`-Muster. Er erwartet ein `tournament:` und erstellt die CC-Meldeliste für genau dieses Turnier, wobei Region und Client aus dem Organizer des Turniers aufgelöst werden. Die HTTP-Aufrufe erfolgen über `region_cc.post_cc`; aufgerufen wird er von `synchronize_tournament_structure`.
+
+```ruby
+RegionCc::MeldelisteCreator.call(tournament: tournament, **opts)
+  # → erstellt und verifiziert die Meldeliste; wirft "Error: Synchronization failed", falls die Verifikation fehlschlägt
 ```
 
 **Gemeinsame Eingabe-Parameter:**
@@ -117,7 +135,7 @@ ClubCloud verwendet PHP-Sitzungen. `opts[:session_id]` wird als `PHPSESSID`-Cook
 
 ### e. Alle Syncer als ApplicationService
 
-Alle 9 Syncer erben von `ApplicationService`, da sie Datenbankänderungen vornehmen. `ClubCloudClient` erbt nicht von `ApplicationService` — er ist ein zustandsloser HTTP-Transport.
+Alle 10 Services (9 Syncer plus `MeldelisteCreator`) erben von `ApplicationService`, da sie Datenbank-/CC-Änderungen vornehmen. `ClubCloudClient` erbt nicht von `ApplicationService` — er ist ein zustandsloser HTTP-Transport.
 
 ## Querverweise
 

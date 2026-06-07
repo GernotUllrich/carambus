@@ -1,58 +1,79 @@
-# Logging Patch für WebSocket Synchronisierungs-Debug
+# WebSocket-Synchronisierungs-Logging (Referenz)
 
-## Manuelle Änderungen erforderlich
+Dieses Dokument erklärt, wie das WebSocket-Synchronisierungs-Logging funktioniert
+und wie man es liest. **Das Logging ist bereits im Code vorhanden** — es muss
+nichts mehr eingebaut werden. Die folgenden Abschnitte zeigen, wo die Log-Zeilen
+sitzen und was sie bedeuten.
+
+## Wo das Logging sitzt
 
 ### 1. app/models/table_monitor.rb
 
-Füge nach Zeile 71 `after_update_commit lambda {` folgende Zeilen ein:
+Der `after_update_commit`-Block beginnt bei **Zeile 85** und enthält das
+🔔-Logging. Steuerung und wichtige Bezeichner:
+
+- **Suppression-Flag:** `suppress_broadcast` (`attr_writer` bei Zeile 79, Getter
+  bei Zeile 81). Wird von `GameSetup` während Batch-Saves gesetzt, um redundante
+  `TableMonitorJob`-Enqueues zu verhindern. Achtung: **nicht** `skip_update_callbacks`.
+- **Geloggter Changeset:** Das Logging gibt `@collected_changes` und
+  `@collected_data_changes` aus (nicht `previous_changes`). Die Job-Entscheidungen
+  nutzen zusätzlich `relevant_keys`, abgeleitet aus `previous_changes.keys`.
+- **Job-Enqueue:** Jobs werden über `TableMonitorJob.perform_later(id, ...)`
+  eingereiht (es wird die `id` übergeben, kein Model-Objekt).
+
+Auszug aus dem aktuellen Code (ab Zeile 85):
 
 ```ruby
   after_update_commit lambda {
-    Rails.logger.info "🔔 ========== after_update_commit TRIGGERED =========="
-    Rails.logger.info "🔔 TableMonitor ID: #{id}"
-    Rails.logger.info "🔔 Previous changes: #{previous_changes.inspect}"
-    
     # Skip callbacks if flag is set (used in start_game to prevent redundant job enqueues)
-    if skip_update_callbacks
-      Rails.logger.info "🔔 Skipping callbacks (skip_update_callbacks=true)"
+    if suppress_broadcast
+      Rails.logger.info "🔔 Skipping callbacks (suppress_broadcast=true)"
       Rails.logger.info "🔔 ========== after_update_commit END (skipped) =========="
       return
     end
 
-    #broadcast_replace_later_to self
+    # Skip cable broadcasts on API Server (no scoreboards running)
+    unless ApplicationRecord.local_server?
+      Rails.logger.info "🔔 Skipping callbacks (API Server - no scoreboards)"
+      Rails.logger.info "🔔 ========== after_update_commit END (API Server) =========="
+      return
+    end
+
+    Rails.logger.info "🔔 ========== after_update_commit TRIGGERED =========="
+    Rails.logger.info "🔔 TableMonitor ID: #{id}"
+    Rails.logger.info "🔔 Previous changes: #{@collected_changes.inspect}"
+    Rails.logger.info "🔔 Previous data changes: #{@collected_data_changes.inspect}"
+
     relevant_keys = (previous_changes.keys - %w[data nnn panel_state pointer_mode current_element updated_at])
     Rails.logger.info "🔔 Relevant keys: #{relevant_keys.inspect}"
-    
+
     get_options!(I18n.locale)
     if tournament_monitor.is_a?(PartyMonitor) &&
-      (relevant_keys.include?("state") || state != "playing")
+       (relevant_keys.include?("state") || state != "playing")
       Rails.logger.info "🔔 Enqueuing: party_monitor_scores job"
-      TableMonitorJob.perform_later(self,
-                                    "party_monitor_scores")
+      TableMonitorJob.perform_later(id, "party_monitor_scores")
     end
     if previous_changes.keys.present? && relevant_keys.present?
       Rails.logger.info "🔔 Enqueuing: table_scores job (relevant_keys present)"
-      TableMonitorJob.perform_later(self, "table_scores")
-    else
+      TableMonitorJob.perform_later(id, "table_scores")
+      Rails.logger.info "🔔 Enqueuing: teaser job (for tournament_scores page)"
+      TableMonitorJob.perform_later(id, "teaser")
+    elsif @collected_changes.present? || @collected_data_changes.select(&:present?).present?
       Rails.logger.info "🔔 Enqueuing: teaser job (no relevant_keys)"
-      TableMonitorJob.perform_later(self, "teaser")
+      TableMonitorJob.perform_later(id, "teaser")
     end
-    TableMonitorJob.perform_later(self, "")  # Was macht diese Zeile??
-    Rails.logger.info "🔔 ========== after_update_commit END =========="
-    # broadcast_replace_to self
+    # ... weitere Fast-Path-Zweige (ultra_fast_score_update?, simple_score_update?) folgen
   }
 ```
 
-**ACHTUNG:** Zeile 88 `TableMonitorJob.perform_later(self, "")` mit leerem String - sollte das entfernt werden?
+### 2. Weitere Logging-Stellen
 
-### 2. Bereits angewendet
-
-✅ `app/javascript/channels/table_monitor_channel.js` - Erweitertes Logging
-✅ `app/jobs/table_monitor_job.rb` - Logging am Anfang und Ende
+✅ `app/javascript/channels/table_monitor_channel.js` — Client-Logging (📥, 🔌)
+✅ `app/jobs/table_monitor_job.rb` — Logging am Anfang und Ende (📡)
 
 ## Test-Strategie
 
-Nach dem Logging einbauen:
+So liest man das vorhandene Logging im Betrieb:
 
 1. **Tail logs in production:**
    ```bash
@@ -111,7 +132,7 @@ Nach dem Logging einbauen:
 
 ### Szenario 1: Kein after_update_commit Log
 **Problem:** `save!` wird nicht aufgerufen oder Callback wird unterdrückt  
-**Check:** Wo wird das Model gespeichert? Wird `skip_update_callbacks` gesetzt?
+**Check:** Wo wird das Model gespeichert? Wird `suppress_broadcast` gesetzt (z.B. durch `GameSetup` während Batch-Saves)? Läuft der Code auf einem API-Server (`local_server?` false) — dann werden Broadcasts bewusst übersprungen.
 
 ### Szenario 2: after_update_commit läuft, aber falsche relevant_keys
 **Problem:** Wichtige Attribute sind in exclude-Liste  

@@ -167,8 +167,8 @@ Detailed architecture documentation: [UMB Scraping — Architecture](umb-scrapin
 
 3. **Database setup**
    ```bash
-   cp config/database.yml.example config/database.yml
-   # Edit database.yml with your PostgreSQL credentials
+   # config/database.yml already exists in the repository.
+   # Edit it with your PostgreSQL credentials if needed.
    
    # Option 1: Import existing database dump (recommended)
    # Ensure you have a database dump file (e.g., carambus_api_development_YYYYMMDD_HHMMSS.sql)
@@ -184,8 +184,8 @@ Detailed architecture documentation: [UMB Scraping — Architecture](umb-scrapin
 
 4. **Environment configuration**
    ```bash
-   cp config/application.yml.example config/application.yml
-   # Edit application.yml with your configuration
+   # Application configuration lives in config/carambus.yml (accessed via Carambus.config).
+   # This file already exists in the repository; edit it for your environment if needed.
    ```
 
 5. **Start the application**
@@ -202,7 +202,7 @@ Detailed architecture documentation: [UMB Scraping — Architecture](umb-scrapin
 - **Overcommit**: Git hooks for code quality
 
 #### Testing
-- **RSpec**: Unit and integration tests
+- **Minitest**: Unit and integration tests
 - **Capybara**: System tests
 - **Factory Bot**: Test data factories
 

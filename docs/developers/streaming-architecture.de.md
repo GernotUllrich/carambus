@@ -95,12 +95,21 @@ Diese Dokumentation beschreibt die technische Implementierung des YouTube-Live-S
 # db/migrate/XXXXXX_create_stream_configurations.rb
 create_table :stream_configurations do |t|
   # Beziehungen
+  # Nur :table. Die Location wird NICHT direkt referenziert, sondern
+  # über die Table erreicht (has_one :location, through: :table).
   t.references :table, null: false, foreign_key: true, index: false
-  t.references :location, null: false, foreign_key: true, index: false
+  
+  # Stream-Ziel (youtube | local | custom)
+  t.string :stream_destination, default: 'youtube', null: false
   
   # YouTube
   t.string :youtube_stream_key      # encrypted!
   t.string :youtube_channel_id
+  
+  # Lokaler RTMP-Server / Custom-RTMP-Ziel
+  t.string :local_rtmp_server_ip
+  t.string :custom_rtmp_url
+  t.string :custom_rtmp_key         # encrypted!
   
   # Kamera
   t.string :camera_device, default: '/dev/video0'
@@ -133,14 +142,18 @@ end
 
 # Indizes
 add_index :stream_configurations, :table_id, unique: true
-add_index :stream_configurations, :location_id
+add_index :stream_configurations, :stream_destination
 add_index :stream_configurations, :status
 ```
 
 **Wichtige Constraints:**
 - `table_id` unique: Nur ein Stream pro Tisch
-- `youtube_stream_key` verschlüsselt via Rails 7 `encrypts`
+- `youtube_stream_key` und `custom_rtmp_key` verschlüsselt via Rails 7 `encrypts`
 - Status-Maschine: `inactive → starting → active → stopping → inactive|error`
+- **Keine `location_id`-Spalte**: Eine frühere `location`-Referenz wurde per Migration
+  `remove_location_id_from_stream_configurations` entfernt. Die Location wird über
+  `has_one :location, through: :table` erreicht. Im Model verhindert
+  `self.ignored_columns = ["location_id"]` Fehler bei Deployments mit alter DB-Spalte.
 
 #### 1.2 Model-Layer
 
@@ -148,12 +161,20 @@ add_index :stream_configurations, :status
 
 ```ruby
 class StreamConfiguration < ApplicationRecord
-  # Verschlüsselung
+  # Spalte location_id wurde entfernt; Shim verhindert Fehler bei
+  # alter DB-Spalte während Deployments.
+  self.ignored_columns = ["location_id"]
+  
+  # Verschlüsselung (zwei verschlüsselte Keys)
   encrypts :youtube_stream_key, deterministic: false
+  encrypts :custom_rtmp_key, deterministic: false
   
   # Beziehungen
   belongs_to :table
-  belongs_to :location
+  has_one :location, through: :table   # KEIN belongs_to :location
+  
+  # Stream-Ziel-Validierung
+  validates :stream_destination, inclusion: { in: %w[youtube local custom] }, presence: true
   
   # Status-Helpers
   def inactive?; status == 'inactive'; end
@@ -177,13 +198,26 @@ class StreamConfiguration < ApplicationRecord
     # Generiert: http://localhost:80/locations/:md5/scoreboard_overlay?table=N
   end
   
+  # RTMP-Ziel hängt von stream_destination ab:
+  #   youtube → rtmp://a.rtmp.youtube.com/live2/<youtube_stream_key>
+  #   local   → rtmp://<local_rtmp_server_ip>:1935/stream/table<table_id>
+  #   custom  → <custom_rtmp_url>[/<custom_rtmp_key>]
   def rtmp_url
-    # Generiert: rtmp://a.rtmp.youtube.com/live2/:stream_key
+    case stream_destination
+    when 'youtube' then youtube_rtmp_url
+    when 'local'   then local_rtmp_url
+    when 'custom'  then custom_rtmp_url_complete
+    end
   end
 end
 ```
 
 **Design-Entscheidungen:**
+- Drei Stream-Ziele: `youtube`, `local` (Docker-RTMP-Server im LAN, z.B. Mac mini),
+  `custom` (frei konfigurierbare RTMP-URL + optionaler Key)
+- `rtmp_url` schaltet anhand `stream_destination` zwischen den Zielen um (nicht
+  fest auf YouTube verdrahtet)
+- Location über `has_one :location, through: :table` statt direkter Referenz
 - Asynchrone Job-Ausführung (verhindert HTTP-Timeouts bei langsamen SSH-Operationen)
 - URL-Generierung im Model (Single Source of Truth)
 - Deterministic false encryption (höhere Sicherheit, keine Suche nach Keys möglich)
@@ -200,8 +234,17 @@ POST /admin/stream_configurations/:id/start       # Stream starten
 POST /admin/stream_configurations/:id/stop        # Stream stoppen
 POST /admin/stream_configurations/:id/restart     # Neustart
 POST /admin/stream_configurations/:id/health_check # Health-Check
-POST /admin/stream_configurations/deploy_all      # Alle deployen
+POST /admin/stream_configurations/deploy_all      # Alle deployen (siehe Caveat)
 ```
+
+> ⚠️ **Caveat `deploy_all`:** Die Route und die Controller-Action existieren,
+> aber die Action ruft `StreamDeployJob.perform_later(config.id)` auf — und
+> **`StreamDeployJob` existiert im Code nicht** (kein `app/jobs/stream_deploy_job.rb`).
+> Beim Aufruf von `deploy_all` schlägt die Job-Einreihung daher fehl. Für das
+> tatsächliche Starten/Stoppen wird **`StreamControlJob`** verwendet (siehe
+> `start_streaming` / `stop_streaming` im Model). `deploy_all` ist derzeit defekt,
+> bis `StreamDeployJob` implementiert oder die Action auf `StreamControlJob`
+> umgestellt wird.
 
 **`app/controllers/locations_controller.rb`**
 
@@ -905,6 +948,7 @@ end
 ```ruby
 class StreamConfiguration < ApplicationRecord
   encrypts :youtube_stream_key, deterministic: false
+  encrypts :custom_rtmp_key, deterministic: false
 end
 ```
 
@@ -912,6 +956,9 @@ end
 - AES-256-GCM
 - Key-Rotation unterstützt
 - Key-Storage: `config/credentials.yml.enc`
+- **Zwei verschlüsselte Felder:** `youtube_stream_key` (YouTube-Ziel) und
+  `custom_rtmp_key` (Custom-RTMP-Ziel). Beim `local`-Ziel wird kein Key
+  benötigt (Stream-Name = `table<ID>`).
 
 **Key-Derivation:**
 ```ruby
