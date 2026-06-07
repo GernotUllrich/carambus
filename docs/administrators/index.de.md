@@ -26,13 +26,13 @@ Wählen Sie Ihre Deployment-Variante:
 **Setup-Zeit**: 2-4 Stunden  
 **Schwierigkeit**: ⭐⭐ Mittel
 
-➡️ **[Installations-Übersicht - Cloud-Setup](installation-overview.de.md#cloud-hosting)**
+➡️ **[Installations-Übersicht - Cloud-Setup](installation-overview.de.md)**
 
 ### Option 3: On-Premise Server
 **Setup-Zeit**: 1-2 Tage  
 **Schwierigkeit**: ⭐⭐⭐ Anspruchsvoll
 
-➡️ **[Installations-Übersicht - On-Premise](installation-overview.de.md#on-premise)**
+➡️ **[Installations-Übersicht - On-Premise](installation-overview.de.md)**
 
 ## 📚 Hauptthemen
 
@@ -111,7 +111,7 @@ Wählen Sie Ihre Deployment-Variante:
 - Log-Monitoring
 - Penetration-Tests
 
-➡️ **[Sicherheits-Best-Practices](installation-overview.de.md#sicherheit)**
+➡️ **[Sicherheits-Best-Practices](installation-overview.de.md)**
 
 ### 6. Monitoring & Troubleshooting
 
@@ -226,7 +226,7 @@ Wählen Sie Ihre Deployment-Variante:
 - ❌ Internet-Abhängigkeit
 - ❌ Höherer initialer Setup-Aufwand
 
-➡️ **[Cloud-Installations-Guide](installation-overview.de.md#cloud-hosting)**
+➡️ **[Cloud-Installations-Guide](installation-overview.de.md)**
 
 ### On-Premise Server
 
@@ -260,7 +260,7 @@ Wählen Sie Ihre Deployment-Variante:
 - ❌ Selbst für Wartung verantwortlich
 - ❌ Höherer Setup-Aufwand
 
-➡️ **[On-Premise-Installations-Guide](installation-overview.de.md#on-premise)**
+➡️ **[On-Premise-Installations-Guide](installation-overview.de.md)**
 
 ## ⚙️ Wichtige Konfigurationsdateien
 

@@ -586,9 +586,8 @@ open http://localhost:3000/locations/[MD5]/scoreboard_overlay?table_id=1
 ## Support & Ressourcen
 
 **Carambus-Dokumentation:**
-- `docs/developers/streaming-architecture.de.md` - Technische Details
+- `docs/developers/streaming-architecture.de.md` - Technische Details (inkl. Overlay-System)
 - `docs/administrators/streaming-obs-setup.de.md` - OBS-Setup
-- `STREAMING_OVERLAY_README.md` - Overlay-System
 
 **Externe Ressourcen:**
 - [OBS Studio Dokumentation](https://obsproject.com/wiki/)

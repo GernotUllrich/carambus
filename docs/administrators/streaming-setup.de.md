@@ -2,7 +2,7 @@
 
 ## 📋 Übersicht
 
-Das Carambus-System unterstützt Live-Streaming von Billard-Spielen direkt auf YouTube. Dabei werden die bereits vorhandenen Scoreboard-Raspberry-Pis genutzt, um kostengünstig jeden Tisch einzeln zu streamen.
+Das Carambus-System unterstützt Live-Streaming von Billard-Spielen. Dabei werden die bereits vorhandenen Scoreboard-Raspberry-Pis genutzt, um kostengünstig jeden Tisch einzeln zu streamen. Als Stream-Ziel (`stream_destination`) stehen drei Optionen zur Verfügung: **`youtube`** (direkt zu YouTube), **`local`** (lokaler RTMP-Server, z.B. für OBS-Integration) und **`custom`** (eigener RTMP-Endpunkt). Diese Anleitung beschreibt überwiegend den YouTube-Weg.
 
 ### Architektur
 
@@ -138,9 +138,22 @@ Alle Tests sollten mit ✅ bestanden werden.
 - Location auswählen
 - Tisch auswählen
 
-**YouTube-Konfiguration:**
+**Stream-Ziel (`stream_destination`):**
+- **`youtube`**: Direkt zu YouTube (Standard)
+- **`local`**: Lokaler RTMP-Server (z.B. Mac mini/Laptop mit Docker, für OBS-Integration)
+- **`custom`**: Eigener RTMP-Endpunkt
+
+**YouTube-Konfiguration (bei `stream_destination = youtube`):**
 - **Stream-Key**: Von YouTube kopieren
 - **Channel-ID**: (optional) Für direkten Link
+
+**Lokaler RTMP-Server (bei `stream_destination = local`):**
+- **RTMP-Server-IP**: IP des Rechners mit dem RTMP-Server (z.B. `192.168.2.150`)
+- Stream-URL wird automatisch erzeugt: `rtmp://<IP>:1935/stream/table<TABLE_ID>`
+
+**Eigener RTMP-Endpunkt (bei `stream_destination = custom`):**
+- **Custom RTMP-URL**: Vollständige Basis-URL des RTMP-Servers
+- **Custom RTMP-Key**: (optional) Wird an die URL angehängt
 
 ### 3. Kamera-Einstellungen
 
@@ -324,7 +337,7 @@ telnet a.rtmp.youtube.com 1935
    ```
 3. Scoreboard-URL erreichbar?
    ```bash
-   curl http://localhost/locations/xxx/scoreboard_overlay?table=1
+   curl http://localhost/locations/xxx/scoreboard_overlay?table_id=1
    ```
 4. Xvfb läuft?
    ```bash
@@ -520,7 +533,7 @@ sudo journalctl -u carambus-stream@1.service -f
 
 ```
 Stream-Verwaltung:  /admin/stream_configurations
-Overlay-Vorschau:   /locations/:md5/scoreboard_overlay?table=1
+Overlay-Vorschau:   /locations/:md5/scoreboard_overlay?table_id=1
 ```
 
 ### Dateien auf Raspi

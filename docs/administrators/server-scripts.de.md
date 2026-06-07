@@ -173,25 +173,24 @@ ssh -p 8910 www-data@192.168.178.107 '/var/www/carambus_location_5101/current/bi
 
 ## Rails Console
 
-### `console-api.sh`
-**Zweck**: Öffnet Rails Console für API-Server
+Es gibt kein eigenes Console-Wrapper-Script. Verwende die Standard-Rails-Console
+(`bin/rails console`) im jeweiligen Scenario- oder API-Verzeichnis.
+
+### Lokale / API-Console (Development)
 
 **Verwendung**:
 ```bash
-./bin/console-api.sh
-```
+# Im API-Checkout
+cd carambus_api
+bin/rails console
 
-**Was wird gemacht**:
-- Wechselt zu carambus_api
-- Startet Rails Console (Development)
-- Lädt alle Models/Helpers
+# In einem Scenario-Checkout
+cd carambus_location_5101
+bin/rails console
+```
 
 **Beispiel-Session**:
 ```ruby
-# Script starten
-./bin/console-api.sh
-
-# In der Console:
 > Player.count
 => 69082
 
@@ -200,24 +199,8 @@ ssh -p 8910 www-data@192.168.178.107 '/var/www/carambus_location_5101/current/bi
 
 > Setting.find_by(key: 'last_version_id').value
 => "12227261"
-```
 
----
-
-### `console-local.sh`
-**Zweck**: Öffnet Rails Console für lokales Scenario
-
-**Verwendung**:
-```bash
-./bin/console-local.sh <scenario_name>
-```
-
-**Beispiele**:
-```bash
-# Scenario-Console öffnen
-./bin/console-local.sh carambus_location_5101
-
-# Lokale Daten prüfen
+# Lokale Daten prüfen (Datensätze mit id >= 50_000_000 sind lokal)
 > Game.where('id > 50000000').count
 => 28
 
@@ -225,29 +208,20 @@ ssh -p 8910 www-data@192.168.178.107 '/var/www/carambus_location_5101/current/bi
 => 10
 ```
 
----
-
-### `console-production.sh`
-**Zweck**: Öffnet Rails Console auf Production-Server
+### Production-Console
 
 **Verwendung**:
 ```bash
-./bin/console-production.sh <scenario_name>
+# Per SSH auf den Production-Server, dann Console im Deployment-Verzeichnis
+ssh -p 8910 www-data@192.168.178.107
+cd /var/www/carambus_location_5101/current
+RAILS_ENV=production bundle exec rails console
 ```
-
-**Was wird gemacht**:
-- SSH zu Production-Server
-- Wechselt in Deployment-Verzeichnis
-- Startet Rails Console (Production)
 
 **⚠️ WARNUNG**: Production-Console! Vorsicht bei Änderungen!
 
 **Beispiel**:
-```bash
-# Production-Console öffnen
-./bin/console-production.sh carambus_location_5101
-
-# Vorsichtig! Production-Daten!
+```ruby
 > Rails.env
 => "production"
 
@@ -335,42 +309,39 @@ cd carambus_location_5101
 
 ## Debug & Testing
 
-### `debug-production.sh`
-**Zweck**: Debugging-Informationen von Production sammeln
+Es gibt kein einzelnes `debug-production.sh` Script. Verwende je nach
+Fragestellung die folgenden dedizierten Diagnose-Scripts.
+
+### `diagnose-puma-carambus.sh`
+**Zweck**: Detaillierte Diagnose von Puma-Socket-/Service-Verbindungsproblemen
 
 **Verwendung**:
 ```bash
-./bin/debug-production.sh <scenario_name>
+./bin/diagnose-puma-carambus.sh
 ```
 
-**Was wird gesammelt**:
-1. ✅ Service-Status (Puma, Nginx)
-2. ✅ Log-Dateien (letzten 100 Zeilen)
-3. ✅ Database-Status
-4. ✅ Disk-Space
-5. ✅ Memory-Usage
-6. ✅ Process-Liste
+**Was wird geprüft**:
+1. ✅ Puma-Socket-Pfad und Berechtigungen
+2. ✅ Service-Status (Puma, Nginx)
+3. ✅ Process-Liste
+4. ✅ Aktuelle Log-Ausgabe
 
-**Output**:
+### `check-database-states.sh`
+**Zweck**: Aktuelle Datenbank-Zustände für ein Scenario prüfen
+
+**Verwendung**:
 ```bash
-./bin/debug-production.sh carambus_location_5101
+./bin/check-database-states.sh <scenario_name>
 
-=== Service Status ===
-puma-carambus_location_5101.service: active (running)
-nginx.service: active (running)
-
-=== Logs (last 100 lines) ===
-[...]
-
-=== Database ===
-Games: 280163
-Players: 63972
-Tournaments: 16748
-
-=== Resources ===
-Disk: 45% used
-Memory: 678M / 8G
+# Beispiel
+./bin/check-database-states.sh carambus_location_5101
 ```
+
+### Weitere Diagnose-Scripts
+- `diagnose-nginx.sh` — Nginx-Konfiguration / Konnektivität
+- `diagnose-socket-issue.sh` — Puma/Nginx-Socket-Probleme
+- `check-puma-logs.sh` — aktuelle Puma-Log-Ausgabe
+- `check-actioncable-status.sh` — ActionCable / WebSocket-Status
 
 ---
 
@@ -535,13 +506,16 @@ ssh -p 8910 www-data@192.168.178.107 './bin/restart-scoreboard.sh'
 
 ```bash
 # 1. Debug-Infos sammeln
-./bin/debug-production.sh carambus_location_5101 > debug.log
+./bin/diagnose-puma-carambus.sh > debug.log
+./bin/check-database-states.sh carambus_location_5101 >> debug.log
 
 # 2. Logs prüfen
 less debug.log
 
 # 3. Console öffnen (falls nötig)
-./bin/console-production.sh carambus_location_5101
+ssh -p 8910 www-data@192.168.178.107
+cd /var/www/carambus_location_5101/current
+RAILS_ENV=production bundle exec rails console
 
 # 4. Quick-Fix anwenden
 ssh -p 8910 www-data@192.168.178.107 'sudo systemctl restart puma-carambus_location_5101'
@@ -596,7 +570,7 @@ cat /var/www/carambus_location_5101/shared/config/database.yml
 ```bash
 # Problem: "Cannot allocate memory"
 # Lösung: Memory-Analyse und Cleanup
-./bin/debug-production.sh carambus_location_5101 | grep Memory
+ssh -p 8910 www-data@192.168.178.107 'free -h'
 
 # Cache bereinigen
 ssh -p 8910 www-data@192.168.178.107
@@ -620,7 +594,7 @@ sudo systemctl restart puma-carambus_location_5101
 ### Production
 1. ✅ Niemals manuell Puma starten/stoppen (Capistrano nutzen)
 2. ✅ Console nur für Debugging, nicht für Daten-Änderungen
-3. ✅ Bei Problemen: Zuerst `debug-production.sh` ausführen
+3. ✅ Bei Problemen: Zuerst `diagnose-puma-carambus.sh` / `check-database-states.sh` ausführen
 4. ✅ Logs regelmäßig prüfen
 
 ### Deployment
@@ -656,7 +630,7 @@ ssh -p 8910 www-data@192.168.178.107 'cd /var/www/carambus_location_5101/current
 ssh -p 8910 www-data@192.168.178.107 'sudo logrotate -f /etc/logrotate.d/carambus'
 
 # 3. Disk-Space prüfen
-./bin/debug-production.sh carambus_location_5101 | grep "Disk:"
+ssh -p 8910 www-data@192.168.178.107 'df -h'
 ```
 
 ### Monatliche Wartung

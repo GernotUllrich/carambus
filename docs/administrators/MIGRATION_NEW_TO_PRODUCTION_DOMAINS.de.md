@@ -277,7 +277,8 @@ Alle lokalen Scenario-Deployments (carambus_location_*, carambus_bcw, etc.) müs
 cd /Users/gullrich/DEV/carambus/carambus_location_XXXX
 
 # prepare_development ausführen (aktualisiert automatisch vom Master)
-bundle exec rails prepare_development
+# scenario_name = Name des Verzeichnisses, z.B. carambus_location_XXXX
+bundle exec rake "scenario:prepare_development[carambus_location_XXXX,development]"
 ```
 
 ### Option B: Manuell git pull
