@@ -222,7 +222,7 @@ class Table < ApplicationRecord
   end
 
   def pre_heating_time_in_hours
-    if %w[Match Billard Snooker].include? self.table_kind.name
+    if ["Match Billard", "Snooker"].include?(self.table_kind.name)
       4
     else
       2
