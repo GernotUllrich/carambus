@@ -126,27 +126,36 @@ ActiveStorage Tables:
 
 ```ruby
 # Hauptmodelle
+# Tagging erfolgt über das Taggable-Concern (has_many :tags, through: :taggings),
+# NICHT über eine polymorphe :taggable-Association.
 TrainingConcept
+  include Taggable
   include Translatable
-  has_many :training_examples
+  has_many :training_concept_disciplines, dependent: :destroy
   has_many :disciplines, through: :training_concept_disciplines
-  has_many :tags, as: :taggable
+  has_many :training_examples, dependent: :destroy
+  has_many :source_attributions, as: :sourceable, dependent: :destroy
+  has_many :training_sources, through: :source_attributions
+  # via Taggable: has_many :taggings, as: :taggable / has_many :tags, through: :taggings
 
 TrainingExample
+  include Taggable
   include Translatable
   belongs_to :training_concept
   belongs_to :parent, class_name: 'TrainingExample', optional: true
-  has_many :children, class_name: 'TrainingExample', foreign_key: :parent_id
-  has_one :start_position
-  has_many :shots
-  has_many :source_attributions, as: :sourceable
+  has_many :children, class_name: 'TrainingExample', foreign_key: :parent_id, dependent: :destroy
+  has_one :start_position, dependent: :destroy
+  has_many :shots, dependent: :destroy
+  has_many :source_attributions, as: :sourceable, dependent: :destroy
   has_many :training_sources, through: :source_attributions
 
 StartPosition
+  include Taggable
   include Translatable
   self.table_name = 'starting_positions'
   belongs_to :training_example
   has_one_attached :image
+  validates :training_example_id, uniqueness: true
 
 Shot (NEW)
   include Translatable
@@ -158,14 +167,20 @@ Shot (NEW)
   scope :errors, -> { where(shot_type: 'error') }
 
 TrainingSource (NEW)
-  has_many :source_attributions
-  has_many :training_concepts, through: :source_attributions
-  has_many :training_examples, through: :source_attributions
+  has_many :source_attributions, dependent: :destroy
+  has_many :training_concepts, through: :source_attributions,
+           source: :sourceable, source_type: 'TrainingConcept'
+  has_many :training_examples, through: :source_attributions,
+           source: :sourceable, source_type: 'TrainingExample'
   has_many_attached :source_files, service: :local_sources
+  validates :title, presence: true
+  validates :language, inclusion: { in: %w[de en nl fr], allow_blank: true }
 
 SourceAttribution (NEW)
   belongs_to :training_source
   belongs_to :sourceable, polymorphic: true
+  validates :training_source, presence: true
+  validates :sourceable, presence: true
 ```
 
 ### Translatable Concern
@@ -419,7 +434,14 @@ rsync -avz api-server:/path/to/storage/ ./storage/
 ```ruby
 namespace :admin do
   resources :training_concepts do
+    member do
+      post :translate
+    end
     resources :training_examples, shallow: true do
+      member do
+        patch :move_up
+        patch :move_down
+      end
       resources :shots, shallow: true do
         member do
           patch :move_up
@@ -428,16 +450,32 @@ namespace :admin do
       end
     end
   end
-  
+
+  # Standalone für Administrate navigation (mit Sortier-Membern)
+  resources :training_examples, only: [:index] do
+    member do
+      patch :move_up
+      patch :move_down
+    end
+  end
+  resources :shots, only: [:index] do
+    member do
+      patch :move_up
+      patch :move_down
+    end
+  end
+
   resources :training_sources do
     member do
       delete :delete_attachment
     end
   end
-  
-  # Standalone für Administrate navigation
-  resources :training_examples, only: [:index]
-  resources :shots, only: [:index]
+
+  resources :tags do
+    member do
+      post :translate
+    end
+  end
 end
 ```
 
@@ -483,10 +521,15 @@ Für DeepL Glossar-Management (siehe TRANSLATION.md)
 
 ## Testing
 
-### Fixtures
+> Stand März 2026: Bisher existiert nur die Fixture `test/fixtures/training_sources.yml`.
+> Dedizierte Fixtures für `shots` und Model-Tests (z.B. `test/models/shot_test.rb`)
+> sind noch **nicht** vorhanden — siehe "Zukünftige Erweiterungen → Automated Tests".
+> Die folgenden Snippets sind als Vorlage zu verstehen, nicht als existierender Code.
+
+### Fixtures (Vorlage)
 
 ```yaml
-# test/fixtures/shots.yml
+# test/fixtures/shots.yml (noch nicht vorhanden)
 ideal_shot:
   training_example: example_one
   shot_type: ideal
@@ -501,10 +544,10 @@ error_shot:
   title_de: "Zu wenig Effet"
 ```
 
-### Model Tests
+### Model Tests (Vorlage)
 
 ```ruby
-# test/models/shot_test.rb
+# test/models/shot_test.rb (noch nicht vorhanden)
 test "should validate shot_type" do
   shot = Shot.new(shot_type: 'invalid')
   assert_not shot.valid?

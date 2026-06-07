@@ -26,13 +26,13 @@ The Carambus scoreboard uses a **simple, server-driven architecture** that prior
 
 ### 1. Client-Side Controller
 
-**File**: `app/javascript/controllers/table_monitor_controller.js` (118 lines)
+**File**: `app/javascript/controllers/table_monitor_controller.js` (~135 lines)
 
 ```javascript
 // Simple Stimulus controller - just triggers reflexes
-add_n() {
+add_n () {
   const n = this.element.dataset.n
-  this.stimulate('TableMonitor#add_n', this.element)
+  this.stimulate('TableMonitor#add_n', this.element)  // pass element so reflex reads dataset
 }
 ```
 
@@ -44,71 +44,107 @@ add_n() {
 
 ### 2. ActionCable Channel
 
-**File**: `app/javascript/channels/table_monitor_channel.js` (25 lines)
+**File**: `app/javascript/channels/table_monitor_channel.js` (~672 lines)
 
 ```javascript
-// Simple channel - just performs CableReady operations
-received(data) {
-  if (data.cableReady) CableReady.perform(data.operations)
-}
+// Subscription created against the server-side TableMonitorChannel
+const tableMonitorSubscription = consumer.subscriptions.create("TableMonitorChannel", {
+  received(data) {
+    // ... performance timestamp handling, page-context filtering, then:
+    if (data.cableReady && data.operations?.length > 0) CableReady.perform(applicableOperations)
+  }
+})
 ```
 
 **Purpose**:
-- Subscribes to global `"table-monitor-stream"`
-- Receives and performs CableReady operations
-- No filtering, no context awareness, no complex logic
+- Subscribes to the server-side `TableMonitorChannel` (which `stream_from "table-monitor-stream"`)
+- Receives CableReady operations and performs the ones applicable to the current page
+- Performs **page-context detection and filtering** (`getPageContext()`) so only relevant operations are applied
+- Includes a `ConnectionHealthMonitor` (heartbeat, reconnect, status indicator) and a fast `score:update` optimistic DOM-update path
+- This file is NOT a thin pass-through; it is substantially complex (~672 lines)
+
+### 2b. Server-Side ActionCable Channel
+
+**File**: `app/channels/table_monitor_channel.rb`
+
+```ruby
+class TableMonitorChannel < ApplicationCable::Channel
+  def subscribed
+    reject and return unless ApplicationRecord.local_server?  # API server has no scoreboards
+    stream_from "table-monitor-stream"
+  end
+  def heartbeat(data); end          # client liveness ack
+  def self.force_reconnect(...); end # broadcast forced reconnect
+end
+```
+
+**Purpose**:
+- Defines the `"table-monitor-stream"` that all jobs broadcast to
+- **Rejects subscriptions on the API server** (`unless ApplicationRecord.local_server?`)
+- Provides `heartbeat` ack and `force_reconnect` server-push helpers
 
 ### 3. Server-Side Reflex
 
-**File**: `app/reflexes/table_monitor_reflex.rb` (674 lines)
+**File**: `app/reflexes/table_monitor_reflex.rb` (~1133 lines)
 
 ```ruby
 def add_n
   n = element.andand.dataset[:n].to_i
+  morph :nothing
+  return if remote_request? && !current_user&.admin?  # security guard
   @table_monitor = TableMonitor.find(element.andand.dataset[:id])
+  @table_monitor.suppress_broadcast = true
+  @table_monitor.reset_timer!
   @table_monitor.add_n_balls(n)  # Full game logic
   @table_monitor.do_play         # State transitions
-  @table_monitor.save!           # Commit to database
+  @table_monitor.suppress_broadcast = false
+  @table_monitor.save!           # Commit to database (triggers after_update_commit)
 end
 ```
 
 **Purpose**:
 - Contains all game logic and state transitions
 - Updates database immediately with `save!`
-- Callbacks automatically enqueue `TableMonitorJob`
-- No complex timing, no delays, no locks
+- Callbacks (`after_update_commit`) automatically enqueue `TableMonitorJob`
+- Guards against unauthorized remote requests and toggles `suppress_broadcast`
+- Note: this is one of ~40 reflex methods; the file is ~1133 lines, not a thin handler
 
 ### 4. Background Job
 
-**File**: `app/jobs/table_monitor_job.rb` (115 lines)
+**File**: `app/jobs/table_monitor_job.rb` (~401 lines)
 
 ```ruby
-def perform(table_monitor, operation_type)
-  table_monitor.reload              # Fresh data
-  table_monitor.clear_options_cache # No stale cache
-  
+def perform(*args)
+  return unless ApplicationRecord.local_server?   # skip on API server
+  table_monitor_id = args[0]
+  # CRITICAL: only Integer ID accepted — passing an object causes race
+  # conditions where a reused object renders the wrong table's data.
+  raise ArgumentError unless table_monitor_id.is_a?(Integer)
+  operation_type = args[1]
+  options = args[2] || {}
+
+  table_monitor = TableMonitor.find(table_monitor_id) # FRESH instance, never reuse
+  table_monitor.clear_options_cache                   # no stale cache
+
   case operation_type
-  when "teaser"
-    cable_ready["table-monitor-stream"].inner_html(
-      selector: "#teaser_#{table_monitor.id}",
-      html: ApplicationController.render(...)
-    )
-  else
-    cable_ready["table-monitor-stream"].inner_html(
-      selector: "#full_screen_table_monitor_#{table_monitor.id}",
-      html: ApplicationController.render(...)
-    )
+  when "party_monitor_scores" then ...
+  when "teaser"  then cable_ready["table-monitor-stream"].inner_html(selector: "#teaser_#{id}", ...)
+  when "table_scores" then ...
+  when "score_data" then cable_ready["table-monitor-stream"].dispatch_event(...) # optimistic JSON path
+  when "player_score_panel" then ...
+  else cable_ready["table-monitor-stream"].inner_html(selector: "#full_screen_table_monitor_#{id}", ...)
   end
-  
+
   cable_ready.broadcast
 end
 ```
 
 **Purpose**:
-- Renders HTML partials on the server
-- Broadcasts `innerHTML` replacement operations via CableReady
-- Simple case statement for different update types
-- Always calls `broadcast` at the end
+- Renders HTML partials on the server and broadcasts via CableReady
+- **Accepts only an Integer ID** (`args[0]`) and reloads via `TableMonitor.find` — it does NOT accept an object reference and does NOT call `reload`; passing an object raises `ArgumentError` (race-condition guard)
+- Skips entirely on the API server (`ApplicationRecord.local_server?`)
+- Multi-branch `case` on `operation_type`: `party_monitor_scores`, `teaser`, `table_scores`, `score_data` (a `dispatch_event` JSON/optimistic path), `player_score_panel`, and the `else` full-screen branch
+- Always calls `cable_ready.broadcast` at the end
 
 ---
 
@@ -166,9 +202,9 @@ DOM updated with new HTML
    - Cache invalidation prevents stale data
 
 4. **Easy Maintenance**
-   - ~258 lines of core code (vs ~1,500+ in complex version)
-   - All game logic in one place (reflex)
-   - Standard Rails patterns
+   - Game logic concentrated in the reflex and model
+   - Standard Rails patterns (reflex → `save!` → `after_update_commit` → job → CableReady)
+   - Note: the components have grown well beyond a minimal footprint — the model (~2132 lines), reflex (~1133 lines), client channel (~672 lines), and job (~401 lines) are each substantial
 
 ### Trade-offs
 
@@ -185,13 +221,15 @@ These trade-offs are **acceptable** because:
 
 ## Lessons Learned
 
-### What Didn't Work
+### Design Tensions
 
-❌ **Optimistic UI**: Added complexity, validation delays, and duplicate scores  
-❌ **JSON Broadcasting**: Required complex client-side rendering logic  
-❌ **Client-Side Validation**: Duplicated server logic, led to inconsistencies  
-❌ **Dynamic Streams**: Complex filtering, subscription management issues  
-❌ **DOM Morphing**: CPU-intensive on slow hardware (Pi 3)
+⚠️ **Optimistic UI**: A `score:update` DOM-update path still exists in the client channel,
+and a `score_data` `dispatch_event` broadcast exists in the job. The "innerHTML-only" ideal
+described above is the *baseline*; these fast paths were layered on for latency.  
+⚠️ **JSON Broadcasting**: Present via `score_data` / `dispatch_event` for the ultra-fast path.  
+❌ **Client-Side Validation**: Not used — server remains the single source of truth.  
+✅ **Single Global Stream**: One `"table-monitor-stream"`; clients filter by page context.  
+❌ **DOM Morphing**: Avoided — updates use `inner_html` replacement (CPU-friendly on Pi 3).
 
 ### What Does Work
 
@@ -233,27 +271,44 @@ These trade-offs are **acceptable** because:
 
 ### Stream Name
 
-```ruby
-# Global stream used for all TableMonitor updates
-STREAM_NAME = "table-monitor-stream"
-```
+The global stream name is the **string literal** `"table-monitor-stream"`, used directly
+in the server channel (`stream_from "table-monitor-stream"`) and in every job broadcast
+(`cable_ready["table-monitor-stream"]`). There is **no** `STREAM_NAME` constant in the
+codebase — the literal is repeated at each call site.
 
 ### Callback Settings
 
 ```ruby
 # app/models/table_monitor.rb
 after_update_commit lambda {
-  relevant_keys = (previous_changes.keys - %w[
-    data nnn panel_state pointer_mode current_element updated_at
-  ])
-  
-  if relevant_keys.any?
-    TableMonitorJob.perform_later(self, 'table_scores')
-  else
-    TableMonitorJob.perform_later(self, 'score_update')
+  return if suppress_broadcast                 # set during start_game / reflexes
+  return unless ApplicationRecord.local_server? # skip on API server
+
+  relevant_keys = (previous_changes.keys - %w[data nnn panel_state pointer_mode current_element updated_at])
+
+  # PartyMonitor scores
+  TableMonitorJob.perform_later(id, "party_monitor_scores") if tournament_monitor.is_a?(PartyMonitor) && ...
+
+  # Structural change → table_scores + teaser; score-only change → teaser
+  if previous_changes.keys.present? && relevant_keys.present?
+    TableMonitorJob.perform_later(id, "table_scores")
+    TableMonitorJob.perform_later(id, "teaser")
+  elsif @collected_changes.present? || ...
+    TableMonitorJob.perform_later(id, "teaser")
   end
+
+  # Fast paths (early return)
+  return TableMonitorJob.perform_later(id, "score_data", player: player_key) if ultra_fast_score_update?
+  return TableMonitorJob.perform_later(id, "player_score_panel", player: player_key) if simple_score_update?
+
+  # Slow path: full scoreboard ("" triggers the else branch in the job)
+  TableMonitorJob.perform_later(id, "")
 }
 ```
+
+Note: the callback passes the **integer `id`** (never `self`), enqueues **multiple jobs**
+per update, and includes ultra-fast/simple-score fast paths. There is no `'score_update'`
+operation type — the full-screen update is triggered by the empty string `""`.
 
 ---
 

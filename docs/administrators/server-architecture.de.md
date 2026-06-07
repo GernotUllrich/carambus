@@ -236,7 +236,7 @@ BC Hamburg Local Server
 #### Optional: Upload zum API Server
 ```
 Local Server
-  ↓ rake sync:to_api (falls gewünscht)
+  ↓ rake scenario:backup_local_data[scenario] (falls gewünscht)
 API Server
   ↓ speichert mit gleicher ID
   ID: 50.012.345 bleibt erhalten!
@@ -280,9 +280,10 @@ BV Wedel Local Server sieht:
 ### Synchronisation von Local Data
 
 1. **Local Server:** Turnier erstellen (ID 50.001.234)
-2. **Upload zu API Server:** POST /api/tournaments
-3. **API Server:** Speichert mit gleicher ID
-4. **Synchronisation:** Andere Local Server erhalten das Turnier
+2. **Backup der Local Data:** `rake scenario:backup_local_data[scenario]`
+3. **API Server:** Übernimmt die Local Data mit gleicher ID
+4. **Synchronisation:** Andere Local Server erhalten das Turnier über den
+   Version-Sync (`rake carambus:retrieve_updates`)
 5. **Regionale Filterung:** Nur relevante Regionen erhalten es
 
 ---
@@ -388,27 +389,30 @@ Tournament.where(region_id: nbv_id)
           .count # => 500 (nur Hamburg + Global)
 ```
 
+Die Region, auf die ein Local Server filtert, wird über `region_id` und
+`context` in `config/carambus.yml` konfiguriert (siehe `config/carambus.yml`).
+
 ### Synchronisation
 
 **Von API → Local:**
-```ruby
-# Rake Task auf Local Server:
-rake sync:from_api[region_id]
+```bash
+# Rake Task auf Local Server (Region wird aus dem konfigurierten
+# Carambus.config.context abgeleitet, z.B. "NBV"):
+rake carambus:retrieve_updates
 
-# Lädt:
-# - Alle Daten mit region_id = Hamburg
+# Ruft intern Version.update_from_carambus_api auf, das inkrementelle
+# Änderungen von carambus_api_url/versions/get_updates abholt und lädt:
+# - Alle Daten mit region_id = konfigurierte Region
 # - Alle Daten mit global_context = true
 # - Alle Daten mit region_id = NULL
 ```
 
-**Von Local → API:**
-```ruby
-# Rake Task auf Local Server:
-rake sync:to_api[local_data]
-
-# Uploaded:
-# - Alle Daten mit ID >= 50.000.000 (Local Data)
-# - Neu erstellte Turniere, Spieler, etc.
+**Von Local → API (Local Data):**
+```bash
+# Local Data (IDs >= 50.000.000) wird über die Scenario-Tasks
+# gesichert / wiederhergestellt, nicht über eine eigene Sync-Task:
+rake scenario:backup_local_data[scenario_name]
+rake scenario:restore_local_data[scenario_name,backup_file]
 ```
 
 ---
@@ -436,12 +440,14 @@ A: Keine Konflikte möglich:
 - Local Server: IDs >= 50.000.000
 - Unterschiedliche ID-Bereiche garantieren Eindeutigkeit
 
-**Q: Kann ein Local Server für mehrere Regionen Daten haben?**  
-A: Ja! Ein Local Server kann mehrere Regionen filtern. Konfigurierbar über `region_ids` Array.
+**Q: Wie wird die Region eines Local Servers konfiguriert?**  
+A: Über die Schlüssel `region_id` und `context` in `config/carambus.yml`. Der
+`context` (z.B. `NBV`) bestimmt, welche Region zusätzlich zu den global
+relevanten Daten synchronisiert wird.
 
 ---
 
-**Version:** 1.0  
-**Letzte Aktualisierung:** Oktober 2024  
+**Version:** 1.1  
+**Letzte Aktualisierung:** Juni 2026  
 **Status:** Production in Use
 

@@ -228,15 +228,20 @@ tail -f /var/www/carambus_bcw/current/log/production.log | grep "📡"
 
 ## Optimierungsstrategien
 
-### Option 1: JSON Broadcasting (bereits implementiert)
+### Option 1: JSON Broadcasting (evaluiert, NICHT umgesetzt)
 
-Siehe: `docs/JSON_BROADCASTING_FINAL_SUCCESS.md`
+Siehe: `docs/internal/performance-analysis/SCOREBOARD_ARCHITECTURE.md`
+
+**Hinweis**: JSON Broadcasting wurde evaluiert, aber zugunsten von
+`innerHTML`-Replacement verworfen (siehe Architecture-Doc: "JSON Broadcasting
+required complex client-side rendering logic"). Die folgenden Werte sind die
+theoretischen Erwartungen aus der Evaluation, nicht gemessene Production-Werte.
 
 **Vorher** (innerHTML):
 - Server rendered HTML: 12 KB
 - Client DOM Update: 1200ms
 
-**Nachher** (JSON):
+**Nachher** (JSON, theoretisch):
 - Server sendet JSON: 200 bytes
 - Client textContent: 50ms
 
@@ -438,9 +443,9 @@ Total:     50ms     ✅ 30x schneller!
    - Client: Network + DOM Timing
    - Conditional Logging
 
-2. ⏳ **JSON Broadcasting für Score-Updates**
-   - Siehe: `JSON_BROADCASTING_FINAL_SUCCESS.md`
-   - Bereits implementiert, nur aktivieren
+2. ⏳ **JSON Broadcasting für Score-Updates** (evaluiert, verworfen)
+   - Siehe: `SCOREBOARD_ARCHITECTURE.md` (gleiches Verzeichnis)
+   - Wurde zugunsten von innerHTML-Replacement verworfen — nicht implementiert
 
 ### Short Term
 

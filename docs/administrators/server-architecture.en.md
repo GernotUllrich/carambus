@@ -236,7 +236,7 @@ BC Hamburg Local Server
 #### Optional: Upload to API Server
 ```
 Local Server
-  ↓ rake sync:to_api (if desired)
+  ↓ rake scenario:backup_local_data[scenario] (if desired)
 API Server
   ↓ stores with same ID
   ID: 50,012,345 is preserved!
@@ -380,27 +380,31 @@ Tournament.where(region_id: nbv_id)
           .count # => 500 (only Hamburg + Global)
 ```
 
+The region a Local Server filters to is configured via `region_id` and
+`context` in `config/carambus.yml` (see `config/carambus.yml`).
+
 ### Synchronization
 
 **From API → Local:**
-```ruby
-# Rake task on Local Server:
-rake sync:from_api[region_id]
+```bash
+# Rake task on Local Server (region is derived from the
+# configured Carambus.config.context, e.g. "NBV"):
+rake carambus:retrieve_updates
 
-# Loads:
-# - All data with region_id = Hamburg
+# Internally calls Version.update_from_carambus_api, which pulls
+# incremental changes from carambus_api_url/versions/get_updates and
+# loads:
+# - All data with region_id = configured region
 # - All data with global_context = true
 # - All data with region_id = NULL
 ```
 
-**From Local → API:**
-```ruby
-# Rake task on Local Server:
-rake sync:to_api[local_data]
-
-# Uploads:
-# - All data with ID >= 50,000,000 (Local Data)
-# - Newly created tournaments, players, etc.
+**From Local → API (Local Data):**
+```bash
+# Local Data (IDs >= 50,000,000) is backed up / restored via the
+# scenario tasks, not a dedicated sync task:
+rake scenario:backup_local_data[scenario_name]
+rake scenario:restore_local_data[scenario_name,backup_file]
 ```
 
 ---
@@ -428,12 +432,14 @@ A: No conflicts possible:
 - Local Server: IDs >= 50,000,000
 - Different ID ranges guarantee uniqueness
 
-**Q: Can a Local Server have data for multiple regions?**  
-A: Yes! A Local Server can filter multiple regions. Configurable via `region_ids` array.
+**Q: How is a Local Server's region configured?**  
+A: Via the `region_id` and `context` keys in `config/carambus.yml`. The
+`context` (e.g. `NBV`) determines which region's data is synchronized in
+addition to the globally relevant data.
 
 ---
 
-**Version:** 1.0  
-**Last Update:** October 2024  
+**Version:** 1.1  
+**Last Update:** June 2026  
 **Status:** Production in Use
 
