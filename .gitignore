@@ -7,6 +7,9 @@
 # Ignore bundler config.
 /.bundle
 
+# Ignore graphify knowledge-graph output (graph, drift findings, caches).
+/graphify-out
+
 # Ignore all logfiles and tempfiles.
 /log/*
 /tmp/*
@@ -63,6 +66,21 @@ Thumbs.db
 .env.local
 .env.*.local
 
+# .planning/ workflow byproducts (regenerable; kept locally for GSD tooling).
+# Tracked: STATE.md, ROADMAP.md, PROJECT.md, REQUIREMENTS.md, MILESTONES.md,
+# RETROSPECTIVE.md, HISTORY.md, BROADCAST-GAP-REPORT.md, v7.0-scope-evolution.md,
+# clubcloud-admin-appendix-DRAFT.md, config.json, seeds/, todos/.
+# Untracked (local-only audit trail): per-quick / per-phase / per-research /
+# per-codebase / per-debug detail + reek baselines + archived milestones.
+/.planning/quick/
+/.planning/phases/
+/.planning/research/
+/.planning/codebase/
+/.planning/intel/
+/.planning/debug/
+/.planning/milestones/
+/.planning/reek_*.txt
+
 # Ignore database files
 /*.sqlite3
 /*.sqlite3-*
@@ -80,9 +98,23 @@ Thumbs.db
 # Ignore scenario-specific generated files (generated from carambus_data/*/config.yml)
 /config/deploy/production.rb
 /config/environments/development.rb
+
+# Plan 21-10: deploy.rb committed as tracked-repo-file (universal content,
+# Variants leben in production.rb stage-file). Overrides ~/.gitignore_global Z.3.
+!/config/deploy.rb
 /config/scoreboard_url
 /env.development
 /doc/doc-local/**/*.log
 /doc/doc-local/**/*.md
 import_all.log
 /app/assets/builds/**/*
+config/cable.yml
+.paul/
+.claude/paul-framework/
+.claude/commands/paul/
+.mcp.json
+db/schema_baseline_*.backup
+
+# MCP-Client-Konfiguration (enthält CC-Zugangsdaten — NICHT einchecken).
+# Vorlage: .mcp.json.example (tracked).
+/.mcp.json
