@@ -416,8 +416,13 @@ step_three_deploy() {
     fi
     
     log "Running: rake scenario:deploy[$SCENARIO_NAME]"
-    rake "scenario:deploy[$SCENARIO_NAME]"
-    
+    if ! rake "scenario:deploy[$SCENARIO_NAME]"; then
+        error "Server deployment (Capistrano) failed - aborting workflow."
+        error "Fix the cause (e.g. transient 'No route to host'), then re-run:"
+        error "  cd $CARAMBUS_BASE/$SCENARIO_NAME && cap production deploy"
+        exit 1
+    fi
+
     log "✅ Step 3 completed: Server deployment finished"
     echo ""
 }

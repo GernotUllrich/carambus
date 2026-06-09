@@ -123,7 +123,11 @@ namespace :scenario do
       exit 1
     end
 
-    deploy_scenario(scenario_name)
+    # Propagate failure: deploy_scenario returns false when (e.g.) the
+    # Capistrano deployment aborts. Without a non-zero exit code the calling
+    # shell script (deploy-scenario.sh) treats a failed deploy as success and
+    # prints "COMPLETE WORKFLOW SUCCESSFUL". exit 1 makes the failure visible.
+    abort("❌ scenario:deploy[#{scenario_name}] failed") unless deploy_scenario(scenario_name)
   end
 
   desc "Update scenario with git pull (preserves local changes)"
